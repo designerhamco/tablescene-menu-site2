@@ -94,6 +94,7 @@ function useDragNavigation(onPrev, onNext) {
       startX: event.clientX,
       startY: event.clientY,
       moved: false,
+      horizontal: false,
     };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
@@ -107,6 +108,11 @@ function useDragNavigation(onPrev, onNext) {
     if (Math.abs(deltaX) > 12 || Math.abs(deltaY) > 12) {
       drag.moved = true;
     }
+
+    if (Math.abs(deltaX) > 18 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+      drag.horizontal = true;
+      event.preventDefault();
+    }
   }
 
   function handlePointerEnd(event) {
@@ -118,7 +124,7 @@ function useDragNavigation(onPrev, onNext) {
     dragRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
 
-    if (!drag.moved || Math.abs(deltaX) < 56 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) {
+    if (!drag.moved || !drag.horizontal || Math.abs(deltaX) < 48) {
       return;
     }
 
@@ -135,6 +141,9 @@ function useDragNavigation(onPrev, onNext) {
     onPointerUp: handlePointerEnd,
     onPointerCancel: () => {
       dragRef.current = null;
+    },
+    onDragStart: (event) => {
+      event.preventDefault();
     },
   };
 }
