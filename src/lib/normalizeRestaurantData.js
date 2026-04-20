@@ -9,6 +9,7 @@ export function normalizeRestaurantData(rawData) {
     about: rawData.about ?? { enabled: false },
     menu: {
       enabled: rawData.menu?.enabled ?? false,
+      cover: rawData.menu?.cover,
       slides: rawData.menu?.slides ?? [],
     },
     events: {

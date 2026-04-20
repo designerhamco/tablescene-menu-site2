@@ -4,6 +4,7 @@ import { normalizeRestaurantData, toNumber } from "./normalizeRestaurantData.js"
 // 시트에서는 name_ko, name_en 같은 컬럼을 쓰고, 앱 안에서는 { ko, en, zh, ja } 객체로 사용합니다.
 
 export const sheetLanguages = ["ko", "en", "zh", "ja"];
+const menuContentSlideOrder = ["set", "main-side", "dessert-drink"];
 
 export function localizedFieldFromRow(row, fieldName) {
   return sheetLanguages.reduce((result, language) => {
@@ -76,9 +77,9 @@ export function validateSheetData(sheetData) {
   const checks = {
     intro: rowsFromTables(tables, ["Intro", "intro", "Intros", "intros", "IntroRows", "introRows"]).length > 0,
     about: rowsFromTables(tables, ["About", "about"]).length > 0,
-    menuSlides: rowsFromTables(tables, ["MenuSlides", "menuSlides", "menu_slides"]).filter(
-      (row) => row.id !== "cover"
-    ).length > 0,
+    menuSlides: menuContentSlideOrder.every((slideId) =>
+      rowsFromTables(tables, ["MenuSlides", "menuSlides", "menu_slides"]).some((row) => row.id === slideId)
+    ),
     menuCategories: rowsFromTables(tables, ["MenuCategories", "menuCategories", "menu_categories"]).length > 0,
     menuItems: rowsFromTables(tables, ["MenuItems", "menuItems", "menu_items"]).length > 0,
     events: rowsFromTables(tables, ["Events", "events"]).length > 0,
@@ -269,8 +270,12 @@ function normalizeMenu(
 ) {
   if (!hasMenuSlidesTable || !hasMenuCategoriesTable || !hasMenuItemsTable) return fallbackMenu;
 
-  const contentSlideRows = slideRows.filter((row) => row.id !== "cover");
-  if (contentSlideRows.length === 0 || categoryRows.length === 0 || itemRows.length === 0) {
+  const coverRow = slideRows.find((row) => row.id === "cover");
+  const contentSlideRows = menuContentSlideOrder
+    .map((slideId) => slideRows.find((row) => row.id === slideId))
+    .filter(Boolean);
+
+  if (contentSlideRows.length !== menuContentSlideOrder.length || categoryRows.length === 0 || itemRows.length === 0) {
     return fallbackMenu;
   }
   const categories = categoryRows.map((row) => ({
@@ -282,6 +287,13 @@ function normalizeMenu(
 
   return {
     enabled: fallbackMenu.enabled ?? true,
+    cover: coverRow
+      ? {
+          ...normalizeSheetRow(coverRow, ["title", "description"]),
+          enabled: valueOrFallbackBoolean(coverRow.enabled, true),
+          sortOrder: toNumber(coverRow.sortOrder, 0),
+        }
+      : fallbackMenu.cover,
     slides: contentSlideRows.map((row) => {
       const slide = normalizeSheetRow(row, ["title"]);
       const slideCategories = categories

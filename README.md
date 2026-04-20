@@ -330,7 +330,7 @@ name: {
 | `About` | `enabled`, `storeName_ko`, `storeName_en`, `storeName_zh`, `storeName_ja`, `description_ko`, `description_en`, `description_zh`, `description_ja`, `address_ko`, `address_en`, `address_zh`, `address_ja`, `hours_ko`, `hours_en`, `hours_zh`, `hours_ja`, `contactType`, `contactLabel_ko`, `contactLabel_en`, `contactLabel_zh`, `contactLabel_ja`, `contactValue`, `contactLink`, `heroImageEnabled`, `heroImageUrl`, `heroImageAlt_ko`, `heroImageAlt_en`, `heroImageAlt_zh`, `heroImageAlt_ja`, `mapLink`, `reservationHours_ko`, `reservationHours_en`, `reservationHours_zh`, `reservationHours_ja`, `parking_ko`, `parking_en`, `parking_zh`, `parking_ja`, `wifi_ko`, `wifi_en`, `wifi_zh`, `wifi_ja`, `corkage_ko`, `corkage_en`, `corkage_zh`, `corkage_ja`, `closedDays_ko`, `closedDays_en`, `closedDays_zh`, `closedDays_ja` |
 | `Chefs` | `id`, `enabled`, `name_ko`, `name_en`, `name_zh`, `name_ja`, `title_ko`, `title_en`, `title_zh`, `title_ja`, `description_ko`, `description_en`, `description_zh`, `description_ja`, `imageUrl`, `sortOrder` |
 | `SNS` | `id`, `enabled`, `type`, `label`, `url`, `sortOrder` |
-| `MenuSlides` | `id`, `enabled`, `title_ko`, `title_en`, `title_zh`, `title_ja`, `sortOrder` |
+| `MenuSlides` | `id`, `enabled`, `title_ko`, `title_en`, `title_zh`, `title_ja`, `description_ko`, `description_en`, `description_zh`, `description_ja`, `sortOrder` |
 | `MenuCategories` | `id`, `slideId`, `enabled`, `name_ko`, `name_en`, `name_zh`, `name_ja`, `sortOrder` |
 | `MenuItems` | `id`, `categoryId`, `enabled`, `name_ko`, `name_en`, `name_zh`, `name_ja`, `price`, `description_ko`, `description_en`, `description_zh`, `description_ja`, `isRecommended`, `useLabel`, `labelName_ko`, `labelName_en`, `labelName_zh`, `labelName_ja`, `isSoldOut`, `imageUrl`, `origin_ko`, `origin_en`, `origin_zh`, `origin_ja`, `sortOrder` |
 | `Events` | `id`, `enabled`, `visible`, `title_ko`, `title_en`, `title_zh`, `title_ja`, `subtitle_ko`, `subtitle_en`, `subtitle_zh`, `subtitle_ja`, `description_ko`, `description_en`, `description_zh`, `description_ja`, `imageUrl`, `period_ko`, `period_en`, `period_zh`, `period_ja`, `price_ko`, `price_en`, `price_zh`, `price_ja`, `benefitDetails_ko`, `benefitDetails_en`, `benefitDetails_zh`, `benefitDetails_ja`, `sortOrder` |
@@ -343,6 +343,18 @@ name: {
 - 번역이 비어 있으면 한국어(`_ko`) 값을 대신 보여주는 구조로 두면 됩니다.
 - 이미지 주소 필드는 `imageUrl` 또는 더 구체적인 `heroImageUrl`, `backgroundImageUrl`처럼 `Url`로 끝나게 맞춥니다.
 - 시트에서 가져온 원본 데이터는 바로 컴포넌트에 넣지 말고, `src/lib/normalizeRestaurantData.js`에서 변환한 뒤 사용합니다.
+
+메뉴 페이지는 아래 `MenuSlides.id` 값을 기준으로 총 4페이지를 구성합니다.
+
+| 페이지 | `MenuSlides.id` |
+| --- | --- |
+| 커버 | `cover` |
+| 세트 | `set` |
+| 메인 및 사이드 | `main-side` |
+| 음료 및 디저트 | `dessert-drink` |
+
+`MenuCategories.slideId`는 위 id 중 하나와 같아야 해당 메뉴 페이지에 카테고리가 연결됩니다.  
+예를 들어 메인 메뉴 카테고리는 `slideId`를 `main-side`로 입력합니다.
 
 ### Google Apps Script 응답 속도 개선
 

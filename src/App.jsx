@@ -4,6 +4,7 @@ import { defaultLanguage, getLocalizedText, getUiText, supportedLanguages } from
 import { normalizeSheetData, validateSheetData } from "./lib/normalizeSheetData.js";
 
 const pageOrder = ["intro", "about", "menu", "events"];
+const menuContentSlideOrder = ["set", "main-side", "dessert-drink"];
 const languageStorageKey = "tablesceneLanguage";
 const sheetCacheStorageKey = "tablesceneSheetDataCache";
 
@@ -67,6 +68,12 @@ function sortByOrder(items = []) {
   return [...items]
     .filter((item) => item.enabled !== false)
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+}
+
+function getOrderedMenuSlides(slides = []) {
+  return menuContentSlideOrder
+    .map((slideId) => slides.find((slide) => slide.id === slideId))
+    .filter(Boolean);
 }
 
 function formatPrice(price) {
@@ -505,7 +512,8 @@ function InfoItem({ label, value, href }) {
 }
 
 function MenuPage({ menu, settings, menuResetKey, t, lt }) {
-  const slides = sortByOrder(menu.slides);
+  const slides = getOrderedMenuSlides(menu.slides);
+  const cover = menu.cover ?? menu.slides.find((slide) => slide.id === "cover");
   const [index, setIndex] = useState(0);
   const total = slides.length + 1;
   const slide = slides[index - 1];
@@ -531,8 +539,8 @@ function MenuPage({ menu, settings, menuResetKey, t, lt }) {
       >
         <section className="menu-cover">
           <p className="menu-cover-mark">THE MENU</p>
-          <h2>{t("menuCoverTitle")}</h2>
-          <p>{t("menuCoverDescription")}</p>
+          <h2>{lt(cover?.title) || t("menuCoverTitle")}</h2>
+          <p>{lt(cover?.description) || t("menuCoverDescription")}</p>
         </section>
       </SlidePage>
     );

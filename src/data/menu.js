@@ -5,19 +5,19 @@ export const menu = {
   // 선택한 언어 값이 비어 있으면 ko 값을 대신 보여줍니다.
   slides: [
     {
-      id: "menu-slide-001",
+      id: "set",
       enabled: true,
       title: {
-        ko: "시그니처",
-        en: "Signature",
-        zh: "招牌",
-        ja: "シグネチャー",
+        ko: "세트",
+        en: "Set",
+        zh: "套餐",
+        ja: "セット",
       },
       sortOrder: 1,
       categories: [
         {
           id: "category-001",
-          slideId: "menu-slide-001",
+          slideId: "set",
           enabled: true,
           name: {
             ko: "셰프 추천",
@@ -104,7 +104,7 @@ export const menu = {
       ],
     },
     {
-      id: "menu-slide-002",
+      id: "main-side",
       enabled: true,
       title: {
         ko: "메인과 사이드",
@@ -116,7 +116,7 @@ export const menu = {
       categories: [
         {
           id: "category-002",
-          slideId: "menu-slide-002",
+          slideId: "main-side",
           enabled: true,
           name: {
             ko: "메인",
@@ -202,7 +202,7 @@ export const menu = {
         },
         {
           id: "category-003",
-          slideId: "menu-slide-002",
+          slideId: "main-side",
           enabled: true,
           name: {
             ko: "사이드",
@@ -252,19 +252,19 @@ export const menu = {
       ],
     },
     {
-      id: "menu-slide-003",
+      id: "dessert-drink",
       enabled: true,
       title: {
-        ko: "음료",
-        en: "Drinks",
-        zh: "饮品",
-        ja: "ドリンク",
+        ko: "음료와 디저트",
+        en: "Drinks & Dessert",
+        zh: "饮品与甜点",
+        ja: "ドリンクとデザート",
       },
       sortOrder: 3,
       categories: [
         {
           id: "category-004",
-          slideId: "menu-slide-003",
+          slideId: "dessert-drink",
           enabled: true,
           name: {
             ko: "마실거리",
