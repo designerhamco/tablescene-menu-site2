@@ -1,0 +1,46 @@
+export const events = {
+  enabled: true,
+  slides: [
+    {
+      id: "event-001",
+      enabled: true,
+      visible: true,
+      title: "평일 런치 세트",
+      subtitle: "11:30 - 14:30",
+      description: "파스타 또는 리조또 주문 시 오늘의 수프와 음료를 함께 제공합니다.",
+      image:
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80",
+      period: "2026.04.01 - 2026.06.30",
+      price: "메뉴 가격 + 4,000원",
+      benefitDetails: "수프, 미니 샐러드, 커피 또는 탄산음료 포함",
+      sortOrder: 1,
+    },
+    {
+      id: "event-002",
+      enabled: true,
+      visible: true,
+      title: "와인 페어링 나이트",
+      subtitle: "금요일 저녁 한정",
+      description: "시그니처 메뉴 2종과 어울리는 글라스 와인을 추천해드립니다.",
+      image:
+        "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=80",
+      period: "매주 금요일 18:00 - 21:00",
+      price: "1인 39,000원",
+      benefitDetails: "예약 고객 우선, 당일 잔여석 이용 가능",
+      sortOrder: 2,
+    },
+    {
+      id: "event-003",
+      enabled: true,
+      visible: false,
+      title: "숨김 이벤트",
+      subtitle: "관리용 예시",
+      description: "visible을 false로 두면 화면에 보이지 않습니다.",
+      image: "",
+      period: "",
+      price: "",
+      benefitDetails: "",
+      sortOrder: 3,
+    },
+  ],
+};
