@@ -297,11 +297,15 @@ function IntroPage({ intro, goToPage, enabledPages, t, lt }) {
       }}
     >
       <div className="intro-content">
-        <h1>{lt(intro.storeName)}</h1>
-        {lt(intro.headline) && <p className="intro-headline">{lt(intro.headline)}</p>}
-        {lt(intro.shortText) && <p className="intro-text">{lt(intro.shortText)}</p>}
+        <h1>{lt(intro.title) || lt(intro.storeName)}</h1>
+        {(lt(intro.subtitle) || lt(intro.headline)) && (
+          <p className="intro-headline">{lt(intro.subtitle) || lt(intro.headline)}</p>
+        )}
+        {(lt(intro.description) || lt(intro.shortText)) && (
+          <p className="intro-text">{lt(intro.description) || lt(intro.shortText)}</p>
+        )}
         <button type="button" className="primary-button" onClick={() => goToPage(nextPage)}>
-          {lt(intro.startButtonText) || t("start")}
+          {lt(intro.buttonText) || lt(intro.startButtonText) || t("start")}
         </button>
       </div>
     </section>

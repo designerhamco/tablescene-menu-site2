@@ -179,16 +179,37 @@ function normalizeIntro(row, fallbackIntro = {}) {
   if (!row) return fallbackIntro;
 
   const normalized = normalizeSheetRow(row, [
+    "title",
+    "subtitle",
+    "description",
+    "buttonText",
     "storeName",
     "headline",
     "shortText",
     "startButtonText",
   ]);
+  const title = hasLocalizedText(normalized.title) ? normalized.title : normalized.storeName;
+  const subtitle = hasLocalizedText(normalized.subtitle) ? normalized.subtitle : normalized.headline;
+  const description = hasLocalizedText(normalized.description)
+    ? normalized.description
+    : normalized.shortText;
+  const buttonText = hasLocalizedText(normalized.buttonText)
+    ? normalized.buttonText
+    : normalized.startButtonText;
 
   return {
     ...fallbackIntro,
     ...normalized,
+    title,
+    subtitle,
+    description,
+    buttonText,
+    storeName: title,
+    headline: subtitle,
+    shortText: description,
+    startButtonText: buttonText,
     enabled: valueOrFallbackBoolean(row.enabled, fallbackIntro.enabled),
+    sortOrder: toNumber(row.sortOrder, fallbackIntro.sortOrder ?? 0),
     backgroundImageUrl: row.backgroundImageUrl ?? fallbackIntro.backgroundImageUrl,
   };
 }
