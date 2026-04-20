@@ -344,6 +344,73 @@ name: {
 - 이미지 주소 필드는 `imageUrl` 또는 더 구체적인 `heroImageUrl`, `backgroundImageUrl`처럼 `Url`로 끝나게 맞춥니다.
 - 시트에서 가져온 원본 데이터는 바로 컴포넌트에 넣지 말고, `src/lib/normalizeRestaurantData.js`에서 변환한 뒤 사용합니다.
 
+### Google Apps Script 응답 속도 개선
+
+사이트는 시트 데이터를 `VITE_SHEET_WEBAPP_URL`에 등록된 Apps Script 웹앱 JSON URL에서 읽습니다.  
+첫 방문 로딩이 길게 느껴지면 Apps Script 쪽에서 `CacheService`를 사용해 JSON 응답을 잠깐 저장하는 방식이 가장 효과적입니다.
+
+권장 캐시 시간은 60초에서 300초 사이입니다.
+
+- 시트를 수정한 내용이 거의 즉시 반영되어야 하면 `60초`
+- 방문자가 많고 속도가 더 중요하면 `300초`
+
+Apps Script의 `doGet` 함수는 아래 흐름으로 구성하면 됩니다.
+
+```js
+const CACHE_KEY = "tablescene-menu-json";
+const CACHE_SECONDS = 60;
+
+function doGet() {
+  const cache = CacheService.getScriptCache();
+  const cachedJson = cache.get(CACHE_KEY);
+
+  if (cachedJson) {
+    return createJsonResponse(cachedJson);
+  }
+
+  const data = buildRestaurantJsonFromSheets();
+  const json = JSON.stringify(data);
+
+  cache.put(CACHE_KEY, json, CACHE_SECONDS);
+
+  return createJsonResponse(json);
+}
+
+function createJsonResponse(json) {
+  return ContentService
+    .createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+```
+
+기존 Apps Script에 이미 시트를 읽어서 JSON을 만드는 코드가 있다면, 그 부분을 `buildRestaurantJsonFromSheets()` 함수 안으로 옮기면 됩니다.
+
+```js
+function buildRestaurantJsonFromSheets() {
+  // 기존에 Intro, About, MenuItems, Events 탭을 읽어서
+  // JSON 객체로 만들던 코드를 여기에 넣습니다.
+  return {
+    intro: [],
+    about: [],
+    menuSlides: [],
+    menuCategories: [],
+    menuItems: [],
+    events: [],
+  };
+}
+```
+
+시트를 수정했는데 바로 반영하고 싶다면 캐시 시간이 끝날 때까지 기다리거나, Apps Script 편집기에서 아래 함수를 한 번 실행해 캐시를 비울 수 있습니다.
+
+```js
+function clearTablesceneCache() {
+  CacheService.getScriptCache().remove("tablescene-menu-json");
+}
+```
+
+현재 사이트 쪽에서도 마지막으로 성공한 시트 데이터를 브라우저 `localStorage`에 저장합니다.  
+그래서 첫 방문은 Apps Script 응답을 기다리지만, 재방문부터는 저장된 시트 데이터를 먼저 보여주고 백그라운드에서 최신 데이터를 다시 불러옵니다.
+
 ### 시트 행 변환 예시
 
 Google Sheets의 `MenuItems` 탭 한 행이 아래처럼 들어온다고 가정합니다.

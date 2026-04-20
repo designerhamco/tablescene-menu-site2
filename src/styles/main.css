@@ -180,12 +180,12 @@ button {
 }
 
 .loading-card {
-  width: min(620px, 100%);
-  padding: clamp(34px, 6vw, 64px);
+  width: min(520px, 100%);
+  padding: clamp(28px, 5vw, 46px);
   border: 1px solid rgba(143, 63, 44, 0.18);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.72);
-  box-shadow: var(--shadow);
+  background: rgba(255, 250, 240, 0.58);
+  box-shadow: 0 14px 32px rgba(51, 36, 22, 0.1);
   text-align: center;
 }
 
@@ -200,19 +200,19 @@ button {
 }
 
 .loading-card h1 {
-  font-size: clamp(1.7rem, 4vw, 3rem);
+  font-size: clamp(1.42rem, 3vw, 2.35rem);
   line-height: 1.18;
 }
 
 .skeleton-stack {
   display: grid;
-  gap: 12px;
-  width: min(420px, 100%);
-  margin: 28px auto 0;
+  gap: 9px;
+  width: min(320px, 92%);
+  margin: 22px auto 0;
 }
 
 .skeleton-stack span {
-  height: 14px;
+  height: 10px;
   border-radius: 999px;
   background:
     linear-gradient(90deg, rgba(143, 63, 44, 0.08), rgba(197, 144, 74, 0.26), rgba(143, 63, 44, 0.08));
