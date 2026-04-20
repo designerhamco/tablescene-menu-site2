@@ -5,6 +5,63 @@ import { normalizeSheetData, validateSheetData } from "./lib/normalizeSheetData.
 
 const pageOrder = ["intro", "about", "menu", "events"];
 const languageStorageKey = "tablesceneLanguage";
+const sheetCacheStorageKey = "tablesceneSheetDataCache";
+
+function getSheetUrl() {
+  return import.meta.env.VITE_SHEET_WEBAPP_URL;
+}
+
+function isUsableSheetData(sheetData) {
+  const validation = validateSheetData(sheetData);
+  const isUsable =
+    validation.canUseIntro &&
+    validation.canUseAbout &&
+    validation.canUseMenu &&
+    validation.canUseEvents;
+
+  return {
+    ...validation,
+    isUsable,
+  };
+}
+
+function getCachedRestaurantData() {
+  try {
+    const cached = window.localStorage.getItem(sheetCacheStorageKey);
+    if (!cached) return null;
+
+    const parsed = JSON.parse(cached);
+    const sheetData = parsed?.sheetData ?? parsed;
+    const validation = isUsableSheetData(sheetData);
+
+    if (!validation.isUsable) {
+      console.warn(
+        "저장된 Google Sheet 캐시 구조가 부족해 캐시를 사용하지 않습니다.",
+        validation.missing
+      );
+      return null;
+    }
+
+    return normalizeSheetData(sheetData, localRestaurantData);
+  } catch (error) {
+    console.warn("저장된 Google Sheet 캐시를 읽지 못해 무시합니다.", error);
+    return null;
+  }
+}
+
+function saveSheetDataCache(sheetData) {
+  try {
+    window.localStorage.setItem(
+      sheetCacheStorageKey,
+      JSON.stringify({
+        cachedAt: new Date().toISOString(),
+        sheetData,
+      })
+    );
+  } catch (error) {
+    console.warn("Google Sheet 데이터를 localStorage에 저장하지 못했습니다.", error);
+  }
+}
 
 function sortByOrder(items = []) {
   return [...items]
@@ -76,11 +133,17 @@ function useDragNavigation(onPrev, onNext) {
 }
 
 function App() {
-  const [restaurantData, setRestaurantData] = useState(localRestaurantData);
-  const { settings, intro, about, menu, events } = restaurantData;
+  const hasSheetUrl = Boolean(getSheetUrl());
+  const [restaurantData, setRestaurantData] = useState(() => {
+    if (!hasSheetUrl) return localRestaurantData;
+    return getCachedRestaurantData();
+  });
+  const [isDataLoading, setIsDataLoading] = useState(() => hasSheetUrl && !restaurantData);
+  const dataForLayout = restaurantData ?? localRestaurantData;
+  const { settings, intro, about, menu, events } = dataForLayout;
   const enabledPages = pageOrder.filter((page) => {
     const pageEnabled = settings.pages[page]?.enabled !== false;
-    const dataEnabled = restaurantData[page]?.enabled !== false;
+    const dataEnabled = dataForLayout[page]?.enabled !== false;
     return pageEnabled && dataEnabled;
   });
   const enabledPagesKey = enabledPages.join(",");
@@ -103,12 +166,18 @@ function App() {
   const lt = (value) => getLocalizedText(value, language);
 
   useEffect(() => {
-    const sheetUrl = import.meta.env.VITE_SHEET_WEBAPP_URL;
-    if (!sheetUrl) return undefined;
+    const sheetUrl = getSheetUrl();
+    if (!sheetUrl) {
+      setRestaurantData(localRestaurantData);
+      setIsDataLoading(false);
+      return undefined;
+    }
 
     const controller = new AbortController();
 
     async function loadSheetData() {
+      setIsDataLoading((current) => current || !restaurantData);
+
       try {
         const separator = sheetUrl.includes("?") ? "&" : "?";
         const response = await fetch(`${sheetUrl}${separator}ts=${Date.now()}`, {
@@ -121,25 +190,26 @@ function App() {
         }
 
         const sheetData = await response.json();
-        const validation = validateSheetData(sheetData);
-        if (!validation.isValid) {
+        const validation = isUsableSheetData(sheetData);
+
+        if (!validation.isUsable) {
           console.warn(
-            "Google Sheet 데이터 구조가 비어 있어 로컬 데이터를 유지합니다.",
+            "Google Sheet 데이터 구조가 화면 렌더링에 부족해 로컬 데이터를 사용합니다.",
             validation.missing
           );
+          setRestaurantData((current) => current ?? localRestaurantData);
+          setIsDataLoading(false);
           return;
         }
-        if (validation.missing.length > 0) {
-          console.warn(
-            "Google Sheet 일부 탭이 비어 있어 해당 섹션은 로컬 데이터를 유지합니다.",
-            validation.missing
-          );
-        }
 
+        saveSheetDataCache(sheetData);
         setRestaurantData(normalizeSheetData(sheetData, localRestaurantData));
+        setIsDataLoading(false);
       } catch (error) {
         if (error.name !== "AbortError") {
           console.warn("Google Sheet 데이터를 불러오지 못해 로컬 데이터를 사용합니다.", error);
+          setRestaurantData((current) => current ?? localRestaurantData);
+          setIsDataLoading(false);
         }
       }
     }
@@ -187,6 +257,10 @@ function App() {
     t,
     lt,
   };
+
+  if (isDataLoading && !restaurantData) {
+    return <LoadingScreen t={t} />;
+  }
 
   return (
     <div className="app">
@@ -253,6 +327,24 @@ function App() {
         {activePage === "menu" && <MenuPage {...pageProps} />}
         {activePage === "events" && <EventsPage {...pageProps} />}
       </main>
+    </div>
+  );
+}
+
+function LoadingScreen({ t }) {
+  return (
+    <div className="app loading-shell">
+      <section className="loading-page" aria-live="polite" aria-busy="true">
+        <div className="loading-card">
+          <span className="loading-mark">TABLE SCENE</span>
+          <h1>{t("loadingMenu")}</h1>
+          <div className="skeleton-stack" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
