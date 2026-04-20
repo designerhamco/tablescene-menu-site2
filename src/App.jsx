@@ -124,10 +124,16 @@ function App() {
         const validation = validateSheetData(sheetData);
         if (!validation.isValid) {
           console.warn(
-            "Google Sheet 데이터 구조가 비어 있거나 필수 탭이 부족해 로컬 데이터를 유지합니다.",
+            "Google Sheet 데이터 구조가 비어 있어 로컬 데이터를 유지합니다.",
             validation.missing
           );
           return;
+        }
+        if (validation.missing.length > 0) {
+          console.warn(
+            "Google Sheet 일부 탭이 비어 있어 해당 섹션은 로컬 데이터를 유지합니다.",
+            validation.missing
+          );
         }
 
         setRestaurantData(normalizeSheetData(sheetData, localRestaurantData));

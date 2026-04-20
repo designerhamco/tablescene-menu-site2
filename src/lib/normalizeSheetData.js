@@ -58,7 +58,15 @@ export function normalizeSheetData(sheetData, fallbackData) {
     settings: normalizeSettings(settingsRows, fallbackData.settings),
     intro: normalizeIntro(introRow, fallbackData.intro),
     about: normalizeAbout(aboutRow, chefRows, snsRows, fallbackData.about, hasChefTable, hasSnsTable),
-    menu: normalizeMenu(menuSlideRows, menuCategoryRows, menuItemRows, fallbackData.menu, hasMenuSlidesTable),
+    menu: normalizeMenu(
+      menuSlideRows,
+      menuCategoryRows,
+      menuItemRows,
+      fallbackData.menu,
+      hasMenuSlidesTable,
+      hasTable(tables, ["MenuCategories", "menuCategories", "menu_categories"]),
+      hasTable(tables, ["MenuItems", "menuItems", "menu_items"])
+    ),
     events: normalizeEvents(eventRows, fallbackData.events, hasEventsTable),
   });
 }
@@ -79,7 +87,10 @@ export function validateSheetData(sheetData) {
     .map(([key]) => key);
 
   return {
-    isValid: missing.length === 0,
+    isValid: checks.about || (checks.menuSlides && checks.menuCategories && checks.menuItems) || checks.events,
+    canUseAbout: checks.about,
+    canUseMenu: checks.menuSlides && checks.menuCategories && checks.menuItems,
+    canUseEvents: checks.events,
     missing,
   };
 }
@@ -215,10 +226,21 @@ function normalizeSnsRow(row) {
   };
 }
 
-function normalizeMenu(slideRows, categoryRows, itemRows, fallbackMenu = {}, hasMenuSlidesTable = false) {
-  if (!hasMenuSlidesTable) return fallbackMenu;
+function normalizeMenu(
+  slideRows,
+  categoryRows,
+  itemRows,
+  fallbackMenu = {},
+  hasMenuSlidesTable = false,
+  hasMenuCategoriesTable = false,
+  hasMenuItemsTable = false
+) {
+  if (!hasMenuSlidesTable || !hasMenuCategoriesTable || !hasMenuItemsTable) return fallbackMenu;
 
   const contentSlideRows = slideRows.filter((row) => row.id !== "cover");
+  if (contentSlideRows.length === 0 || categoryRows.length === 0 || itemRows.length === 0) {
+    return fallbackMenu;
+  }
   const categories = categoryRows.map((row) => ({
     ...normalizeSheetRow(row, ["name"]),
     enabled: valueOrFallbackBoolean(row.enabled, true),
@@ -262,7 +284,7 @@ function normalizeMenuItemRow(row) {
 }
 
 function normalizeEvents(eventRows, fallbackEvents = {}, hasEventsTable = false) {
-  if (!hasEventsTable) return fallbackEvents;
+  if (!hasEventsTable || eventRows.length === 0) return fallbackEvents;
 
   return {
     enabled: fallbackEvents.enabled ?? true,
