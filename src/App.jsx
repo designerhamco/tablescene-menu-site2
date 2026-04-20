@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { restaurantData as localRestaurantData } from "./data";
 import { defaultLanguage, getLocalizedText, getUiText, supportedLanguages } from "./i18n/uiText";
-import { normalizeSheetData } from "./lib/normalizeSheetData.js";
+import { normalizeSheetData, validateSheetData } from "./lib/normalizeSheetData.js";
 
 const pageOrder = ["intro", "about", "menu", "events"];
 const languageStorageKey = "tablesceneLanguage";
@@ -121,11 +121,19 @@ function App() {
         }
 
         const sheetData = await response.json();
+        const validation = validateSheetData(sheetData);
+        if (!validation.isValid) {
+          console.warn(
+            "Google Sheet 데이터 구조가 비어 있거나 필수 탭이 부족해 로컬 데이터를 유지합니다.",
+            validation.missing
+          );
+          return;
+        }
+
         setRestaurantData(normalizeSheetData(sheetData, localRestaurantData));
       } catch (error) {
         if (error.name !== "AbortError") {
           console.warn("Google Sheet 데이터를 불러오지 못해 로컬 데이터를 사용합니다.", error);
-          setRestaurantData(localRestaurantData);
         }
       }
     }

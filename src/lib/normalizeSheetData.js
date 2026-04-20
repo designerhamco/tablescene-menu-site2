@@ -63,6 +63,27 @@ export function normalizeSheetData(sheetData, fallbackData) {
   });
 }
 
+export function validateSheetData(sheetData) {
+  const tables = getSheetTables(sheetData);
+  const checks = {
+    about: rowsFromTables(tables, ["About", "about"]).length > 0,
+    menuSlides: rowsFromTables(tables, ["MenuSlides", "menuSlides", "menu_slides"]).filter(
+      (row) => row.id !== "cover"
+    ).length > 0,
+    menuCategories: rowsFromTables(tables, ["MenuCategories", "menuCategories", "menu_categories"]).length > 0,
+    menuItems: rowsFromTables(tables, ["MenuItems", "menuItems", "menu_items"]).length > 0,
+    events: rowsFromTables(tables, ["Events", "events"]).length > 0,
+  };
+  const missing = Object.entries(checks)
+    .filter(([, isValid]) => !isValid)
+    .map(([key]) => key);
+
+  return {
+    isValid: missing.length === 0,
+    missing,
+  };
+}
+
 export function normalizeAboutSheetRow(row) {
   const normalized = normalizeSheetRow(row, [
     "storeName",
