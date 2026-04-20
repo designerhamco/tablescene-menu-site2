@@ -295,7 +295,7 @@ function normalizeMenu(
         }
       : fallbackMenu.cover,
     slides: contentSlideRows.map((row) => {
-      const slide = normalizeSheetRow(row, ["title"]);
+      const slide = normalizeSheetRow(row, ["title", "description"]);
       const slideCategories = categories
         .filter((category) => category.slideId === row.id)
         .map((category) => ({
