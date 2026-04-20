@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { restaurantData } from "./data";
+import { defaultLanguage, getLocalizedText, getUiText, supportedLanguages } from "./i18n/uiText";
 
 const pageOrder = ["intro", "about", "menu", "events"];
+const languageStorageKey = "tablesceneLanguage";
 
 function sortByOrder(items = []) {
   return [...items]
@@ -13,6 +15,63 @@ function formatPrice(price) {
   if (price === "" || price === undefined || price === null) return "";
   if (typeof price === "number") return `${price.toLocaleString("ko-KR")}원`;
   return price;
+}
+
+function useDragNavigation(onPrev, onNext) {
+  const dragRef = useRef(null);
+
+  function handlePointerDown(event) {
+    const interactiveTarget = event.target.closest("button, a");
+    if (interactiveTarget) return;
+
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function handlePointerMove(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (Math.abs(deltaX) > 12 || Math.abs(deltaY) > 12) {
+      drag.moved = true;
+    }
+  }
+
+  function handlePointerEnd(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    dragRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+
+    if (!drag.moved || Math.abs(deltaX) < 56 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      onNext();
+    } else {
+      onPrev();
+    }
+  }
+
+  return {
+    onPointerDown: handlePointerDown,
+    onPointerMove: handlePointerMove,
+    onPointerUp: handlePointerEnd,
+    onPointerCancel: () => {
+      dragRef.current = null;
+    },
+  };
 }
 
 function App() {
@@ -29,10 +88,33 @@ function App() {
 
   const [activePage, setActivePage] = useState(firstPage);
   const [navOpen, setNavOpen] = useState(false);
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const [language, setLanguage] = useState(() => {
+    const savedLanguage = window.localStorage.getItem(languageStorageKey);
+    return supportedLanguages.some((item) => item.code === savedLanguage)
+      ? savedLanguage
+      : defaultLanguage;
+  });
+  const [menuResetKey, setMenuResetKey] = useState(0);
+  const t = (key) => getUiText(language, key);
+  const lt = (value) => getLocalizedText(value, language);
+
+  useEffect(() => {
+    window.localStorage.setItem(languageStorageKey, language);
+  }, [language]);
 
   function goToPage(page) {
+    if (page === "menu") {
+      setMenuResetKey((key) => key + 1);
+    }
     setActivePage(page);
     setNavOpen(false);
+    setLanguageMenuOpen(false);
+  }
+
+  function changeLanguage(nextLanguage) {
+    setLanguage(nextLanguage);
+    setLanguageMenuOpen(false);
   }
 
   const pageProps = {
@@ -43,23 +125,58 @@ function App() {
     settings,
     goToPage,
     enabledPages,
+    menuResetKey,
+    t,
+    lt,
   };
 
   return (
     <div className="app">
-      <header className="app-header">
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="메뉴 열기"
-          onClick={() => setNavOpen(true)}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-        <strong>{settings.siteTitle}</strong>
-      </header>
+      {activePage !== "intro" && (
+        <header className="app-header">
+          <button
+            className="icon-button hamburger-button"
+            type="button"
+            aria-label={t("openMenu")}
+            onClick={() => setNavOpen(true)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+          <strong>{settings.siteTitle}</strong>
+          <div className="language-picker">
+            <button
+              className="icon-button globe-button"
+              type="button"
+              aria-label={t("languageChange")}
+              aria-expanded={languageMenuOpen}
+              onClick={() => setLanguageMenuOpen((isOpen) => !isOpen)}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M3.5 12h17" />
+                <path d="M12 3.5c2.3 2.5 3.4 5.3 3.4 8.5S14.3 18 12 20.5" />
+                <path d="M12 3.5C9.7 6 8.6 8.8 8.6 12s1.1 6 3.4 8.5" />
+              </svg>
+            </button>
+            {languageMenuOpen && (
+              <div className="language-menu">
+                {supportedLanguages.map((item) => (
+                  <button
+                    type="button"
+                    key={item.code}
+                    className={language === item.code ? "active" : ""}
+                    onClick={() => changeLanguage(item.code)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </header>
+      )}
 
       {navOpen && (
         <Navigation
@@ -68,6 +185,7 @@ function App() {
           activePage={activePage}
           onClose={() => setNavOpen(false)}
           onMove={goToPage}
+          t={t}
         />
       )}
 
@@ -81,14 +199,14 @@ function App() {
   );
 }
 
-function Navigation({ pages, labels, activePage, onClose, onMove }) {
+function Navigation({ pages, activePage, onClose, onMove, t }) {
   return (
     <div className="nav-backdrop">
-      <nav className="nav-panel" aria-label="페이지 이동">
+      <nav className="nav-panel" aria-label={t("navigation")}>
         <div className="nav-top">
-          <span>MENU</span>
+          <span>{t("navigation")}</span>
           <button type="button" className="close-button" onClick={onClose}>
-            닫기
+            {t("close")}
           </button>
         </div>
         <div className="nav-links">
@@ -99,7 +217,7 @@ function Navigation({ pages, labels, activePage, onClose, onMove }) {
               className={activePage === page ? "active" : ""}
               onClick={() => onMove(page)}
             >
-              {labels[page]?.label ?? page}
+              {t(page)}
             </button>
           ))}
         </div>
@@ -108,66 +226,66 @@ function Navigation({ pages, labels, activePage, onClose, onMove }) {
   );
 }
 
-function IntroPage({ intro, goToPage, enabledPages }) {
-  const nextPage = enabledPages.includes("about")
-    ? "about"
-    : enabledPages.includes("menu")
-      ? "menu"
-      : enabledPages[0];
+function IntroPage({ intro, goToPage, enabledPages, t, lt }) {
+  const nextPage = enabledPages.includes("menu") ? "menu" : enabledPages[0];
 
   return (
     <section
       className="intro-page"
       style={{
-        backgroundImage: intro.backgroundImage
-          ? `linear-gradient(180deg, rgba(22, 18, 14, 0.28), rgba(22, 18, 14, 0.74)), url(${intro.backgroundImage})`
+        backgroundImage: intro.backgroundImageUrl
+          ? `linear-gradient(180deg, rgba(22, 18, 14, 0.28), rgba(22, 18, 14, 0.74)), url(${intro.backgroundImageUrl})`
           : undefined,
       }}
     >
       <div className="intro-content">
-        <p className="eyebrow">WEB MENU</p>
-        <h1>{intro.storeName}</h1>
-        {intro.headline && <p className="intro-headline">{intro.headline}</p>}
-        {intro.shortText && <p className="intro-text">{intro.shortText}</p>}
+        <h1>{lt(intro.storeName)}</h1>
+        {lt(intro.headline) && <p className="intro-headline">{lt(intro.headline)}</p>}
+        {lt(intro.shortText) && <p className="intro-text">{lt(intro.shortText)}</p>}
         <button type="button" className="primary-button" onClick={() => goToPage(nextPage)}>
-          {intro.startButtonText || "시작하기"}
+          {lt(intro.startButtonText) || t("start")}
         </button>
       </div>
     </section>
   );
 }
 
-function AboutPage({ about, settings }) {
+function AboutPage({ about, settings, t, lt }) {
   const showChefs = settings.sections.about.chefs !== false;
   const showSns = settings.sections.about.sns !== false;
   const showExtra = settings.sections.about.extraInfo !== false;
+  const showHeroImage = about.heroImageEnabled === true && Boolean(about.heroImageUrl);
   const chefs = sortByOrder(about.chefs);
   const sns = sortByOrder(about.sns);
   const extraInfo = [
-    ["예약 가능 시간", about.reservationHours],
-    ["주차", about.parking],
-    ["와이파이", about.wifi],
-    ["콜키지", about.corkage],
-    ["휴무일", about.closedDays],
+    [t("reservationInfo"), lt(about.reservationHours)],
+    [t("parkingInfo"), lt(about.parking)],
+    [t("wifi"), lt(about.wifi)],
+    [t("corkage"), lt(about.corkage)],
+    [t("closedDays"), lt(about.closedDays)],
   ].filter(([, value]) => Boolean(value));
 
   return (
     <section className="content-page">
       <div className="scroll-content">
-        <p className="eyebrow">ABOUT</p>
-        <h1>{about.storeName}</h1>
-        <p className="lead">{about.description}</p>
+        {showHeroImage && (
+          <figure className="about-hero-image">
+            <img src={about.heroImageUrl} alt={lt(about.heroImageAlt) || `${lt(about.storeName)} ${t("imageAltSuffix")}`} />
+          </figure>
+        )}
+        <h1>{lt(about.storeName)}</h1>
+        <p className="lead">{lt(about.description)}</p>
 
         <div className="info-grid">
-          <InfoItem label="주소" value={about.address} />
-          <InfoItem label="운영시간" value={about.hours} />
-          <InfoItem label={about.contact.label} value={about.contact.value} href={about.contact.link} />
-          {about.mapLink && <InfoItem label="지도" value="지도 열기" href={about.mapLink} />}
+          <InfoItem label={t("address")} value={lt(about.address)} />
+          <InfoItem label={t("hours")} value={lt(about.hours)} />
+          <InfoItem label={lt(about.contact.label)} value={about.contact.value} href={about.contact.link} />
+          {about.mapLink && <InfoItem label={t("map")} value={t("openMap")} href={about.mapLink} />}
         </div>
 
         {showExtra && extraInfo.length > 0 && (
           <section className="section-block">
-            <h2>이용 안내</h2>
+            <h2>{t("guide")}</h2>
             <div className="info-list">
               {extraInfo.map(([label, value]) => (
                 <InfoItem key={label} label={label} value={value} />
@@ -178,15 +296,15 @@ function AboutPage({ about, settings }) {
 
         {showChefs && chefs.length > 0 && (
           <section className="section-block">
-            <h2>Chef</h2>
+            <h2>{t("chefs")}</h2>
             <div className="chef-list">
               {chefs.map((chef) => (
                 <article className="chef-card" key={chef.id}>
-                  {chef.image && <img src={chef.image} alt={`${chef.name} 셰프`} />}
+                  {chef.imageUrl && <img src={chef.imageUrl} alt={`${lt(chef.name)} ${t("chefAltSuffix")}`} />}
                   <div>
-                    <p>{chef.title}</p>
-                    <h3>{chef.name}</h3>
-                    <span>{chef.description}</span>
+                    <p>{lt(chef.title)}</p>
+                    <h3>{lt(chef.name)}</h3>
+                    <span>{lt(chef.description)}</span>
                   </div>
                 </article>
               ))}
@@ -196,7 +314,7 @@ function AboutPage({ about, settings }) {
 
         {showSns && sns.length > 0 && (
           <section className="section-block">
-            <h2>SNS</h2>
+            <h2>{t("social")}</h2>
             <div className="sns-list">
               {sns.map((item) => (
                 <a key={item.id} href={item.url} target="_blank" rel="noreferrer">
@@ -231,141 +349,184 @@ function InfoItem({ label, value, href }) {
   return <div className="info-item">{content}</div>;
 }
 
-function MenuPage({ menu, settings }) {
-  const slides = useMemo(() => sortByOrder(menu.slides), [menu.slides]);
+function MenuPage({ menu, settings, menuResetKey, t, lt }) {
+  const slides = sortByOrder(menu.slides);
   const [index, setIndex] = useState(0);
-  const slide = slides[index];
+  const total = slides.length + 1;
+  const slide = slides[index - 1];
 
-  if (!slide) {
-    return <EmptyPage title="Menu" message="표시할 메뉴가 없습니다." />;
+  useEffect(() => {
+    setIndex(0);
+  }, [menuResetKey]);
+
+  if (slides.length === 0) {
+    return <EmptyPage message={t("noMenu")} />;
+  }
+
+  if (index === 0) {
+    return (
+      <SlidePage
+        title=""
+        hideTitle
+        index={index}
+        total={total}
+        t={t}
+        onPrev={() => setIndex((current) => Math.max(0, current - 1))}
+        onNext={() => setIndex((current) => Math.min(total - 1, current + 1))}
+      >
+        <section className="menu-cover">
+          <p className="menu-cover-mark">THE MENU</p>
+          <h2>{t("menuCoverTitle")}</h2>
+          <p>{t("menuCoverDescription")}</p>
+        </section>
+      </SlidePage>
+    );
   }
 
   return (
     <SlidePage
-      eyebrow="MENU"
-      title={slide.title}
+      title={lt(slide.title)}
       index={index}
-      total={slides.length}
+      total={total}
+      t={t}
       onPrev={() => setIndex((current) => Math.max(0, current - 1))}
-      onNext={() => setIndex((current) => Math.min(slides.length - 1, current + 1))}
+      onNext={() => setIndex((current) => Math.min(total - 1, current + 1))}
     >
-      {sortByOrder(slide.categories).map((category) => (
-        <section className="menu-category" key={category.id}>
-          <h2>{category.name}</h2>
-          <div className="menu-items">
-            {sortByOrder(category.items).map((item) => (
-              <MenuItem key={item.id} item={item} settings={settings} />
-            ))}
-          </div>
-        </section>
-      ))}
+      {sortByOrder(slide.categories).map((category) => {
+        const items = sortByOrder(category.items);
+        const hasImages = items.some(
+          (item) => settings.sections.menu.images !== false && item.imageUrl
+        );
+
+        return (
+          <section className="menu-category" key={category.id}>
+            <h2>{lt(category.name)}</h2>
+            <div className={`menu-items ${hasImages ? "has-images" : "text-only"}`}>
+              {items.map((item) => (
+                <MenuItem key={item.id} item={item} settings={settings} t={t} lt={lt} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </SlidePage>
   );
 }
 
-function MenuItem({ item, settings }) {
-  const showImage = settings.sections.menu.images !== false && item.image;
-  const showLabel = settings.sections.menu.labels !== false && item.useLabel && item.labelName;
-  const showOrigin = settings.sections.menu.origin !== false && item.origin;
+function MenuItem({ item, settings, t, lt }) {
+  const showImage = settings.sections.menu.images !== false && item.imageUrl;
+  const showLabel = settings.sections.menu.labels !== false && item.useLabel && lt(item.labelName);
+  const showOrigin = settings.sections.menu.origin !== false && lt(item.origin);
 
   return (
-    <article className={`menu-item ${item.isSoldOut ? "sold-out" : ""}`}>
-      {showImage && <img src={item.image} alt={item.name} />}
+    <article
+      className={`menu-item ${showImage ? "has-image" : ""} ${item.isSoldOut ? "sold-out" : ""}`}
+    >
+      {showImage && <img src={item.imageUrl} alt={lt(item.name)} />}
       <div className="menu-item-body">
         <div className="menu-item-top">
           <div>
-            <h3>{item.name}</h3>
+            <h3>{lt(item.name)}</h3>
             <div className="menu-badges">
-              {item.isRecommended && <span className="badge recommend">추천</span>}
-              {showLabel && <span className="badge">{item.labelName}</span>}
-              {item.isSoldOut && <span className="badge muted">Sold out</span>}
+              {item.isRecommended && <span className="badge recommend">{t("recommended")}</span>}
+              {showLabel && <span className="badge">{lt(item.labelName)}</span>}
+              {item.isSoldOut && <span className="badge muted">{t("soldOut")}</span>}
             </div>
           </div>
           <strong>{formatPrice(item.price)}</strong>
         </div>
-        {item.description && <p>{item.description}</p>}
-        {showOrigin && <small>{item.origin}</small>}
+        {lt(item.description) && <p>{lt(item.description)}</p>}
+        {showOrigin && <small>{lt(item.origin)}</small>}
       </div>
     </article>
   );
 }
 
-function EventsPage({ events, settings }) {
-  const slides = useMemo(
-    () => sortByOrder(events.slides).filter((slide) => slide.visible !== false),
-    [events.slides]
-  );
+function EventsPage({ events, settings, t, lt }) {
+  const slides = sortByOrder(events.slides).filter((slide) => slide.visible !== false);
   const [index, setIndex] = useState(0);
   const event = slides[index];
 
   if (!event) {
-    return <EmptyPage title="Events" message="표시할 이벤트가 없습니다." />;
+    return <EmptyPage message={t("noEvent")} />;
   }
 
+  const showImage = settings.sections.events.images !== false && event.imageUrl;
+  const goPrev = () => setIndex((current) => Math.max(0, current - 1));
+  const goNext = () => setIndex((current) => Math.min(slides.length - 1, current + 1));
+  const dragHandlers = useDragNavigation(goPrev, goNext);
+
   return (
-    <SlidePage
-      eyebrow="EVENTS"
-      title={event.title}
-      index={index}
-      total={slides.length}
-      onPrev={() => setIndex((current) => Math.max(0, current - 1))}
-      onNext={() => setIndex((current) => Math.min(slides.length - 1, current + 1))}
-    >
-      <article className="event-card">
-        {settings.sections.events.images !== false && event.image && (
-          <img src={event.image} alt={event.title} />
-        )}
-        <div className="event-body">
-          {event.subtitle && <p className="event-subtitle">{event.subtitle}</p>}
-          <p className="lead">{event.description}</p>
-          {settings.sections.events.details !== false && (
+    <section className="content-page">
+      <div className="scroll-content event-scroll-content draggable-page" {...dragHandlers}>
+        <article className={`event-card ${showImage ? "" : "no-image"}`}>
+          {showImage && <img src={event.imageUrl} alt={lt(event.title)} />}
+          <div className="event-body">
+            <h2 className="event-title">{lt(event.title)}</h2>
+            {lt(event.subtitle) && !lt(event.subtitle).includes(":") && (
+              <p className="event-subtitle">{lt(event.subtitle)}</p>
+            )}
+            {lt(event.description) && <p className="lead">{lt(event.description)}</p>}
             <div className="info-list">
-              <InfoItem label="기간" value={event.period} />
-              <InfoItem label="가격" value={event.price} />
-              <InfoItem label="혜택" value={event.benefitDetails} />
+              <InfoItem label={t("period")} value={lt(event.period)} />
+              <InfoItem label={t("price")} value={lt(event.price)} />
+              <InfoItem label={t("benefit")} value={lt(event.benefitDetails)} />
             </div>
-          )}
+          </div>
+        </article>
+        <div className="inline-slide-controls">
+          <button type="button" onClick={goPrev} disabled={index === 0} aria-label={t("prev")}>
+            {t("prev")}
+          </button>
+          <div className="dots" aria-hidden="true">
+            {Array.from({ length: slides.length }).map((_, dotIndex) => (
+              <span key={dotIndex} className={dotIndex === index ? "active" : ""} />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={index === slides.length - 1}
+            aria-label={t("next")}
+          >
+            {t("next")}
+          </button>
         </div>
-      </article>
-    </SlidePage>
+      </div>
+    </section>
   );
 }
 
-function SlidePage({ eyebrow, title, index, total, onPrev, onNext, children }) {
+function SlidePage({ title, hideTitle = false, index, total, onPrev, onNext, children, t }) {
+  const dragHandlers = useDragNavigation(onPrev, onNext);
+
   return (
-    <section className="content-page slide-page">
+    <section className="content-page slide-page draggable-page" {...dragHandlers}>
       <div className="slide-head">
-        <div>
-          <p className="eyebrow">{eyebrow}</p>
-          <h1>{title}</h1>
-        </div>
-        <span>
-          {index + 1} / {total}
-        </span>
+        <div>{!hideTitle && <h1>{title}</h1>}</div>
       </div>
       <div className="scroll-content slide-content">{children}</div>
       <div className="slide-controls">
-        <button type="button" onClick={onPrev} disabled={index === 0} aria-label="이전 슬라이드">
-          이전
+        <button type="button" onClick={onPrev} disabled={index === 0} aria-label={t("prev")}>
+          {t("prev")}
         </button>
         <div className="dots" aria-hidden="true">
           {Array.from({ length: total }).map((_, dotIndex) => (
             <span key={dotIndex} className={dotIndex === index ? "active" : ""} />
           ))}
         </div>
-        <button type="button" onClick={onNext} disabled={index === total - 1} aria-label="다음 슬라이드">
-          다음
+        <button type="button" onClick={onNext} disabled={index === total - 1} aria-label={t("next")}>
+          {t("next")}
         </button>
       </div>
     </section>
   );
 }
 
-function EmptyPage({ title, message }) {
+function EmptyPage({ message }) {
   return (
     <section className="content-page">
       <div className="scroll-content">
-        <p className="eyebrow">{title}</p>
         <h1>{message}</h1>
       </div>
     </section>
