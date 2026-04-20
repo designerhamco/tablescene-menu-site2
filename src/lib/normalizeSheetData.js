@@ -41,7 +41,7 @@ export function normalizeSheetData(sheetData, fallbackData) {
 
   const tables = getSheetTables(sheetData);
   const settingsRows = rowsFromTables(tables, ["Settings", "settings"]);
-  const introRow = firstRow(tables, ["Intro", "intro"]);
+  const introRow = firstRow(tables, ["Intro", "intro", "Intros", "intros", "IntroRows", "introRows"]);
   const aboutRow = firstRow(tables, ["About", "about"]);
   const chefRows = rowsFromTables(tables, ["Chefs", "chefs"]);
   const snsRows = rowsFromTables(tables, ["SNS", "Sns", "sns"]);
@@ -74,6 +74,7 @@ export function normalizeSheetData(sheetData, fallbackData) {
 export function validateSheetData(sheetData) {
   const tables = getSheetTables(sheetData);
   const checks = {
+    intro: rowsFromTables(tables, ["Intro", "intro", "Intros", "intros", "IntroRows", "introRows"]).length > 0,
     about: rowsFromTables(tables, ["About", "about"]).length > 0,
     menuSlides: rowsFromTables(tables, ["MenuSlides", "menuSlides", "menu_slides"]).filter(
       (row) => row.id !== "cover"
@@ -87,7 +88,9 @@ export function validateSheetData(sheetData) {
     .map(([key]) => key);
 
   return {
-    isValid: checks.about || (checks.menuSlides && checks.menuCategories && checks.menuItems) || checks.events,
+    isValid:
+      checks.intro || checks.about || (checks.menuSlides && checks.menuCategories && checks.menuItems) || checks.events,
+    canUseIntro: checks.intro,
     canUseAbout: checks.about,
     canUseMenu: checks.menuSlides && checks.menuCategories && checks.menuItems,
     canUseEvents: checks.events,
@@ -336,13 +339,27 @@ function firstRow(tables, names) {
 }
 
 function rowsFromTables(tables, names) {
-  const value = names.map((name) => tables?.[name]).find(Boolean);
+  const value = names.map((name) => getTableValue(tables, name)).find((tableValue) => tableValue !== undefined);
   if (!value) return [];
   return Array.isArray(value) ? value : [value];
 }
 
 function hasTable(tables, names) {
-  return names.some((name) => Object.prototype.hasOwnProperty.call(tables ?? {}, name));
+  return names.some((name) => getTableValue(tables, name) !== undefined);
+}
+
+function getTableValue(tables, name) {
+  if (!tables) return undefined;
+  if (Object.prototype.hasOwnProperty.call(tables, name)) return tables[name];
+
+  const normalizedName = normalizeTableName(name);
+  const matchedKey = Object.keys(tables).find((key) => normalizeTableName(key) === normalizedName);
+
+  return matchedKey ? tables[matchedKey] : undefined;
+}
+
+function normalizeTableName(name) {
+  return String(name).toLowerCase().replaceAll(/[^a-z0-9]/g, "");
 }
 
 function normalizePrice(price) {
