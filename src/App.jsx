@@ -380,7 +380,7 @@ function AboutPage({ about, settings, t, lt }) {
             <div className="sns-list">
               {sns.map((item) => (
                 <a key={item.id} href={item.url} target="_blank" rel="noreferrer">
-                  {item.label}
+                  {lt(item.label)}
                 </a>
               ))}
             </div>

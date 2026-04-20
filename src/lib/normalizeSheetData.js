@@ -122,7 +122,7 @@ export function normalizeAboutSheetRow(row) {
     contact: {
       type: row.contactType ?? "",
       label: contactLabel,
-      value: row.contactValue ?? row.phone ?? "",
+      value: row.contactValue ?? row.phone ?? row.phone_ko ?? "",
       link: row.contactLink ?? "",
     },
   };
@@ -244,7 +244,7 @@ function normalizeChefRow(row) {
 
 function normalizeSnsRow(row) {
   return {
-    ...row,
+    ...normalizeSheetRow(row, ["label"]),
     enabled: valueOrFallbackBoolean(row.enabled, true),
     sortOrder: toNumber(row.sortOrder, 0),
   };
