@@ -1,9 +1,9 @@
-import { settings } from "./settings";
-import { intro } from "./intro";
-import { about } from "./about";
-import { menu } from "./menu";
-import { events } from "./events";
-import { normalizeRestaurantData } from "../lib/normalizeRestaurantData";
+import { settings } from "./settings.js";
+import { intro } from "./intro.js";
+import { about } from "./about.js";
+import { menu } from "./menu.js";
+import { events } from "./events.js";
+import { normalizeRestaurantData } from "../lib/normalizeRestaurantData.js";
 
 export const restaurantData = normalizeRestaurantData({
   settings,

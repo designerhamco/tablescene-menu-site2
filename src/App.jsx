@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { restaurantData } from "./data";
+import { restaurantData as localRestaurantData } from "./data";
 import { defaultLanguage, getLocalizedText, getUiText, supportedLanguages } from "./i18n/uiText";
+import { normalizeSheetData } from "./lib/normalizeSheetData.js";
 
 const pageOrder = ["intro", "about", "menu", "events"];
 const languageStorageKey = "tablesceneLanguage";
@@ -75,12 +76,14 @@ function useDragNavigation(onPrev, onNext) {
 }
 
 function App() {
+  const [restaurantData, setRestaurantData] = useState(localRestaurantData);
   const { settings, intro, about, menu, events } = restaurantData;
   const enabledPages = pageOrder.filter((page) => {
     const pageEnabled = settings.pages[page]?.enabled !== false;
     const dataEnabled = restaurantData[page]?.enabled !== false;
     return pageEnabled && dataEnabled;
   });
+  const enabledPagesKey = enabledPages.join(",");
   const fallbackPage = enabledPages[0] ?? "intro";
   const firstPage = enabledPages.includes(settings.defaultPage)
     ? settings.defaultPage
@@ -98,6 +101,47 @@ function App() {
   const [menuResetKey, setMenuResetKey] = useState(0);
   const t = (key) => getUiText(language, key);
   const lt = (value) => getLocalizedText(value, language);
+
+  useEffect(() => {
+    const sheetUrl = import.meta.env.VITE_SHEET_WEBAPP_URL;
+    if (!sheetUrl) return undefined;
+
+    const controller = new AbortController();
+
+    async function loadSheetData() {
+      try {
+        const separator = sheetUrl.includes("?") ? "&" : "?";
+        const response = await fetch(`${sheetUrl}${separator}ts=${Date.now()}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Google Sheet request failed: ${response.status}`);
+        }
+
+        const sheetData = await response.json();
+        setRestaurantData(normalizeSheetData(sheetData, localRestaurantData));
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.warn("Google Sheet 데이터를 불러오지 못해 로컬 데이터를 사용합니다.", error);
+          setRestaurantData(localRestaurantData);
+        }
+      }
+    }
+
+    loadSheetData();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!enabledPages.includes(activePage)) {
+      setActivePage(firstPage);
+    }
+  }, [activePage, enabledPagesKey, firstPage, enabledPages]);
 
   useEffect(() => {
     window.localStorage.setItem(languageStorageKey, language);

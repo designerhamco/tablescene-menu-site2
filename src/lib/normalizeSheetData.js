@@ -1,11 +1,16 @@
-// Google Sheets 연동을 붙일 때 사용할 변환 helper입니다.
-// 지금은 실제 fetch를 하지 않고, 시트 행 데이터를 앱 내부 구조로 바꾸는 규칙만 준비합니다.
+import { normalizeRestaurantData, toNumber } from "./normalizeRestaurantData.js";
+
+// Google Apps Script 웹앱 JSON을 앱 내부 restaurantData 구조로 바꾸는 helper입니다.
+// 시트에서는 name_ko, name_en 같은 컬럼을 쓰고, 앱 안에서는 { ko, en, zh, ja } 객체로 사용합니다.
 
 export const sheetLanguages = ["ko", "en", "zh", "ja"];
 
 export function localizedFieldFromRow(row, fieldName) {
   return sheetLanguages.reduce((result, language) => {
-    result[language] = row?.[`${fieldName}_${language}`] ?? "";
+    result[language] =
+      language === "ko"
+        ? row?.[`${fieldName}_ko`] ?? row?.[fieldName] ?? ""
+        : row?.[`${fieldName}_${language}`] ?? "";
     return result;
   }, {});
 }
@@ -23,6 +28,41 @@ export function normalizeSheetRow(row, localizedFields = []) {
   return normalized;
 }
 
+export function normalizeSheetData(sheetData, fallbackData) {
+  if (!sheetData) return normalizeRestaurantData(fallbackData);
+
+  if (sheetData.restaurantData) {
+    return normalizeRestaurantData(sheetData.restaurantData);
+  }
+
+  if (sheetData.settings && sheetData.intro && sheetData.about && sheetData.menu && sheetData.events) {
+    return normalizeRestaurantData(sheetData);
+  }
+
+  const tables = getSheetTables(sheetData);
+  const settingsRows = rowsFromTables(tables, ["Settings", "settings"]);
+  const introRow = firstRow(tables, ["Intro", "intro"]);
+  const aboutRow = firstRow(tables, ["About", "about"]);
+  const chefRows = rowsFromTables(tables, ["Chefs", "chefs"]);
+  const snsRows = rowsFromTables(tables, ["SNS", "Sns", "sns"]);
+  const menuSlideRows = rowsFromTables(tables, ["MenuSlides", "menuSlides", "menu_slides"]);
+  const menuCategoryRows = rowsFromTables(tables, ["MenuCategories", "menuCategories", "menu_categories"]);
+  const menuItemRows = rowsFromTables(tables, ["MenuItems", "menuItems", "menu_items"]);
+  const eventRows = rowsFromTables(tables, ["Events", "events"]);
+  const hasChefTable = hasTable(tables, ["Chefs", "chefs"]);
+  const hasSnsTable = hasTable(tables, ["SNS", "Sns", "sns"]);
+  const hasMenuSlidesTable = hasTable(tables, ["MenuSlides", "menuSlides", "menu_slides"]);
+  const hasEventsTable = hasTable(tables, ["Events", "events"]);
+
+  return normalizeRestaurantData({
+    settings: normalizeSettings(settingsRows, fallbackData.settings),
+    intro: normalizeIntro(introRow, fallbackData.intro),
+    about: normalizeAbout(aboutRow, chefRows, snsRows, fallbackData.about, hasChefTable, hasSnsTable),
+    menu: normalizeMenu(menuSlideRows, menuCategoryRows, menuItemRows, fallbackData.menu, hasMenuSlidesTable),
+    events: normalizeEvents(eventRows, fallbackData.events, hasEventsTable),
+  });
+}
+
 export function normalizeAboutSheetRow(row) {
   const normalized = normalizeSheetRow(row, [
     "storeName",
@@ -37,17 +77,223 @@ export function normalizeAboutSheetRow(row) {
     "corkage",
     "closedDays",
   ]);
+  const contactLabel = hasLocalizedText(normalized.contactLabel)
+    ? normalized.contactLabel
+    : localizedFieldFromRow(row, "reservationInfo");
 
   return {
     ...normalized,
     heroImageEnabled: toSheetBoolean(row.heroImageEnabled),
     contact: {
       type: row.contactType ?? "",
-      label: normalized.contactLabel,
-      value: row.contactValue ?? "",
+      label: contactLabel,
+      value: row.contactValue ?? row.phone ?? "",
       link: row.contactLink ?? "",
     },
   };
+}
+
+function normalizeSettings(rowsOrRow = {}, fallbackSettings = {}) {
+  const row = normalizeSettingsRows(rowsOrRow);
+
+  return {
+    ...fallbackSettings,
+    siteTitle: row.siteTitle || fallbackSettings.siteTitle,
+    defaultPage: row.defaultPage || fallbackSettings.defaultPage,
+    pages: {
+      ...fallbackSettings.pages,
+      intro: {
+        ...fallbackSettings.pages?.intro,
+        enabled: valueOrFallbackBoolean(row.introEnabled ?? row.intro_enabled, fallbackSettings.pages?.intro?.enabled),
+      },
+      about: {
+        ...fallbackSettings.pages?.about,
+        enabled: valueOrFallbackBoolean(row.aboutEnabled ?? row.about_enabled, fallbackSettings.pages?.about?.enabled),
+      },
+      menu: {
+        ...fallbackSettings.pages?.menu,
+        enabled: valueOrFallbackBoolean(row.menuEnabled ?? row.menu_enabled, fallbackSettings.pages?.menu?.enabled),
+      },
+      events: {
+        ...fallbackSettings.pages?.events,
+        enabled: valueOrFallbackBoolean(row.eventsEnabled ?? row.events_enabled, fallbackSettings.pages?.events?.enabled),
+      },
+    },
+    sections: {
+      ...fallbackSettings.sections,
+      about: {
+        ...fallbackSettings.sections?.about,
+        chefs: valueOrFallbackBoolean(row.chefEnabled ?? row.chef_enabled, fallbackSettings.sections?.about?.chefs),
+        sns: valueOrFallbackBoolean(row.snsEnabled ?? row.sns_enabled, fallbackSettings.sections?.about?.sns),
+      },
+    },
+  };
+}
+
+function normalizeSettingsRows(rowsOrRow) {
+  if (!Array.isArray(rowsOrRow)) return rowsOrRow ?? {};
+
+  return rowsOrRow.reduce((result, row) => {
+    if (row?.key) {
+      result[row.key] = row.value;
+    } else {
+      Object.assign(result, row);
+    }
+    return result;
+  }, {});
+}
+
+function normalizeIntro(row, fallbackIntro = {}) {
+  if (!row) return fallbackIntro;
+
+  const normalized = normalizeSheetRow(row, [
+    "storeName",
+    "headline",
+    "shortText",
+    "startButtonText",
+  ]);
+
+  return {
+    ...fallbackIntro,
+    ...normalized,
+    enabled: valueOrFallbackBoolean(row.enabled, fallbackIntro.enabled),
+    backgroundImageUrl: row.backgroundImageUrl ?? fallbackIntro.backgroundImageUrl,
+  };
+}
+
+function normalizeAbout(row, chefRows, snsRows, fallbackAbout = {}, hasChefTable = false, hasSnsTable = false) {
+  const about = row ? normalizeAboutSheetRow(row) : fallbackAbout;
+
+  return {
+    ...fallbackAbout,
+    ...about,
+    enabled: valueOrFallbackBoolean(row?.enabled, fallbackAbout.enabled),
+    heroImageEnabled: valueOrFallbackBoolean(row?.heroImageEnabled, fallbackAbout.heroImageEnabled),
+    heroImageUrl: row?.heroImageUrl ?? fallbackAbout.heroImageUrl,
+    mapLink: row?.mapLink ?? fallbackAbout.mapLink,
+    chefs: hasChefTable ? chefRows.map(normalizeChefRow) : fallbackAbout.chefs ?? [],
+    sns: hasSnsTable ? snsRows.map(normalizeSnsRow) : fallbackAbout.sns ?? [],
+  };
+}
+
+function normalizeChefRow(row) {
+  const normalized = normalizeSheetRow(row, ["name", "title", "description"]);
+
+  return {
+    ...normalized,
+    enabled: valueOrFallbackBoolean(row.enabled, true),
+    sortOrder: toNumber(row.sortOrder, 0),
+  };
+}
+
+function normalizeSnsRow(row) {
+  return {
+    ...row,
+    enabled: valueOrFallbackBoolean(row.enabled, true),
+    sortOrder: toNumber(row.sortOrder, 0),
+  };
+}
+
+function normalizeMenu(slideRows, categoryRows, itemRows, fallbackMenu = {}, hasMenuSlidesTable = false) {
+  if (!hasMenuSlidesTable) return fallbackMenu;
+
+  const contentSlideRows = slideRows.filter((row) => row.id !== "cover");
+  const categories = categoryRows.map((row) => ({
+    ...normalizeSheetRow(row, ["name"]),
+    enabled: valueOrFallbackBoolean(row.enabled, true),
+    sortOrder: toNumber(row.sortOrder, 0),
+  }));
+  const items = itemRows.map(normalizeMenuItemRow);
+
+  return {
+    enabled: fallbackMenu.enabled ?? true,
+    slides: contentSlideRows.map((row) => {
+      const slide = normalizeSheetRow(row, ["title"]);
+      const slideCategories = categories
+        .filter((category) => category.slideId === row.id)
+        .map((category) => ({
+          ...category,
+          items: items.filter((item) => item.categoryId === category.id),
+        }));
+
+      return {
+        ...slide,
+        enabled: valueOrFallbackBoolean(row.enabled, true),
+        sortOrder: toNumber(row.sortOrder, 0),
+        categories: slideCategories,
+      };
+    }),
+  };
+}
+
+function normalizeMenuItemRow(row) {
+  const normalized = normalizeSheetRow(row, ["name", "description", "labelName", "origin"]);
+
+  return {
+    ...normalized,
+    enabled: valueOrFallbackBoolean(row.enabled, true),
+    price: normalizePrice(row.price),
+    isRecommended: valueOrFallbackBoolean(row.isRecommended, false),
+    useLabel: valueOrFallbackBoolean(row.useLabel, false),
+    isSoldOut: valueOrFallbackBoolean(row.isSoldOut, false),
+    sortOrder: toNumber(row.sortOrder, 0),
+  };
+}
+
+function normalizeEvents(eventRows, fallbackEvents = {}, hasEventsTable = false) {
+  if (!hasEventsTable) return fallbackEvents;
+
+  return {
+    enabled: fallbackEvents.enabled ?? true,
+    slides: eventRows.map((row) => ({
+      ...normalizeSheetRow(row, [
+        "title",
+        "subtitle",
+        "description",
+        "period",
+        "price",
+        "benefitDetails",
+      ]),
+      enabled: valueOrFallbackBoolean(row.enabled, true),
+      visible: valueOrFallbackBoolean(row.visible, true),
+      sortOrder: toNumber(row.sortOrder, 0),
+    })),
+  };
+}
+
+function getSheetTables(sheetData) {
+  if (sheetData.data && typeof sheetData.data === "object") return sheetData.data;
+  if (sheetData.sheets && typeof sheetData.sheets === "object") return sheetData.sheets;
+  return sheetData;
+}
+
+function firstRow(tables, names) {
+  return rowsFromTables(tables, names)[0];
+}
+
+function rowsFromTables(tables, names) {
+  const value = names.map((name) => tables?.[name]).find(Boolean);
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function hasTable(tables, names) {
+  return names.some((name) => Object.prototype.hasOwnProperty.call(tables ?? {}, name));
+}
+
+function normalizePrice(price) {
+  if (price === "" || price === undefined || price === null) return "";
+  const numericPrice = Number(String(price).replaceAll(",", ""));
+  return Number.isFinite(numericPrice) ? numericPrice : price;
+}
+
+function valueOrFallbackBoolean(value, fallback) {
+  if (value === "" || value === undefined || value === null) return fallback;
+  return toSheetBoolean(value);
+}
+
+function hasLocalizedText(value) {
+  return sheetLanguages.some((language) => Boolean(value?.[language]));
 }
 
 export function toSheetBoolean(value) {
