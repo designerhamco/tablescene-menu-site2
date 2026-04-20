@@ -286,26 +286,27 @@ function Navigation({ pages, activePage, onClose, onMove, t }) {
 
 function IntroPage({ intro, goToPage, enabledPages, t, lt }) {
   const nextPage = enabledPages.includes("menu") ? "menu" : enabledPages[0];
+  const backgroundImage = intro.backgroundImage ?? intro.backgroundImageUrl;
 
   return (
     <section
       className="intro-page"
       style={{
-        backgroundImage: intro.backgroundImageUrl
-          ? `linear-gradient(180deg, rgba(22, 18, 14, 0.28), rgba(22, 18, 14, 0.74)), url(${intro.backgroundImageUrl})`
+        backgroundImage: backgroundImage
+          ? `linear-gradient(180deg, rgba(22, 18, 14, 0.28), rgba(22, 18, 14, 0.74)), url(${backgroundImage})`
           : undefined,
       }}
     >
       <div className="intro-content">
-        <h1>{lt(intro.title) || lt(intro.storeName)}</h1>
-        {(lt(intro.subtitle) || lt(intro.headline)) && (
-          <p className="intro-headline">{lt(intro.subtitle) || lt(intro.headline)}</p>
+        <h1>{lt(intro.storeName) || lt(intro.title)}</h1>
+        {(lt(intro.headline) || lt(intro.subtitle)) && (
+          <p className="intro-headline">{lt(intro.headline) || lt(intro.subtitle)}</p>
         )}
-        {(lt(intro.description) || lt(intro.shortText)) && (
-          <p className="intro-text">{lt(intro.description) || lt(intro.shortText)}</p>
+        {(lt(intro.shortText) || lt(intro.description)) && (
+          <p className="intro-text">{lt(intro.shortText) || lt(intro.description)}</p>
         )}
         <button type="button" className="primary-button" onClick={() => goToPage(nextPage)}>
-          {lt(intro.buttonText) || lt(intro.startButtonText) || t("start")}
+          {lt(intro.startButtonText) || lt(intro.buttonText) || t("start")}
         </button>
       </div>
     </section>

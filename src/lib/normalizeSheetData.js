@@ -199,6 +199,13 @@ function normalizeIntro(row, fallbackIntro = {}) {
   const buttonText = hasLocalizedText(normalized.buttonText)
     ? normalized.buttonText
     : normalized.startButtonText;
+  const backgroundImage =
+    firstFilledValue(
+      row.backgroundImageUrl,
+      row.backgroundImage,
+      fallbackIntro.backgroundImageUrl,
+      fallbackIntro.backgroundImage
+    );
 
   return {
     ...fallbackIntro,
@@ -213,7 +220,8 @@ function normalizeIntro(row, fallbackIntro = {}) {
     startButtonText: buttonText,
     enabled: valueOrFallbackBoolean(row.enabled, fallbackIntro.enabled),
     sortOrder: toNumber(row.sortOrder, fallbackIntro.sortOrder ?? 0),
-    backgroundImageUrl: row.backgroundImageUrl ?? fallbackIntro.backgroundImageUrl,
+    backgroundImage,
+    backgroundImageUrl: backgroundImage,
   };
 }
 
@@ -375,6 +383,10 @@ function valueOrFallbackBoolean(value, fallback) {
 
 function hasLocalizedText(value) {
   return sheetLanguages.some((language) => Boolean(value?.[language]));
+}
+
+function firstFilledValue(...values) {
+  return values.find((value) => value !== "" && value !== undefined && value !== null) ?? "";
 }
 
 export function toSheetBoolean(value) {
