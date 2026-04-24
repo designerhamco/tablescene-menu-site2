@@ -1,0 +1,36 @@
+{
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/.next/**": true,
+    "**/node_modules/**": true,
+    "**/out/**": true,
+    "**/build/**": true,
+    "**/coverage/**": true,
+    "**/public/**/*.mp4": true,
+    "**/public/**/*.mov": true,
+    "**/public/**/*.psd": true,
+    "**/public/**/*.fig": true
+  },
+  "search.exclude": {
+    "**/.next": true,
+    "**/node_modules": true,
+    "**/out": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/public/**/*.mp4": true,
+    "**/public/**/*.mov": true,
+    "**/public/**/*.psd": true,
+    "**/public/**/*.fig": true
+  },
+  "files.exclude": {
+    "**/.next": true
+  }
+}

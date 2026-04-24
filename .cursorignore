@@ -1,0 +1,16 @@
+.next/
+node_modules/
+out/
+build/
+coverage/
+package-lock.json
+*.tsbuildinfo
+
+public/**/*.mp4
+public/**/*.mov
+public/**/*.psd
+public/**/*.fig
+public/**/*.sketch
+public/**/*.zip
+public/**/*.heic
+public/**/*.raw

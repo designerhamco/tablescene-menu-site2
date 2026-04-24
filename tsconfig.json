@@ -30,5 +30,17 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "build",
+    "coverage",
+    "public/**/*.png",
+    "public/**/*.jpg",
+    "public/**/*.jpeg",
+    "public/**/*.webp",
+    "public/**/*.avif",
+    "public/**/*.mp4"
+  ]
 }
