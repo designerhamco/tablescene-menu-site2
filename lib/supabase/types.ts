@@ -8,6 +8,7 @@ export type Json =
 
 export type MenuSiteStatus = "draft" | "published" | "archived";
 export type MenuSectionKey = "set_menu" | "main_menu" | "dessert_drink";
+export type SupportedLocale = "ko" | "en" | "zh" | "ja";
 export type OrderStatus = "pending" | "paid" | "cancelled" | "refunded";
 export type PaymentStatus = "ready" | "paid" | "failed" | "cancelled";
 export type InquiryStatus = "open" | "answered" | "closed";
@@ -400,6 +401,228 @@ export type Database = {
           url?: string;
           visible?: boolean;
           sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_site_translations: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          locale: SupportedLocale;
+          restaurant_name: string | null;
+          restaurant_category: string | null;
+          brand_description: string | null;
+          intro_title: string | null;
+          intro_description: string | null;
+          menu_cover_title: string | null;
+          menu_cover_description: string | null;
+          about_description: string | null;
+          opening_hours: string | null;
+          restaurant_address: string | null;
+          restaurant_phone: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          locale: SupportedLocale;
+          restaurant_name?: string | null;
+          restaurant_category?: string | null;
+          brand_description?: string | null;
+          intro_title?: string | null;
+          intro_description?: string | null;
+          menu_cover_title?: string | null;
+          menu_cover_description?: string | null;
+          about_description?: string | null;
+          opening_hours?: string | null;
+          restaurant_address?: string | null;
+          restaurant_phone?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          locale?: SupportedLocale;
+          restaurant_name?: string | null;
+          restaurant_category?: string | null;
+          brand_description?: string | null;
+          intro_title?: string | null;
+          intro_description?: string | null;
+          menu_cover_title?: string | null;
+          menu_cover_description?: string | null;
+          about_description?: string | null;
+          opening_hours?: string | null;
+          restaurant_address?: string | null;
+          restaurant_phone?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_category_translations: {
+        Row: {
+          id: string;
+          category_id: string;
+          locale: SupportedLocale;
+          name: string | null;
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          category_id: string;
+          locale: SupportedLocale;
+          name?: string | null;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          category_id?: string;
+          locale?: SupportedLocale;
+          name?: string | null;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_item_translations: {
+        Row: {
+          id: string;
+          item_id: string;
+          locale: SupportedLocale;
+          name: string | null;
+          description: string | null;
+          price_label: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          item_id: string;
+          locale: SupportedLocale;
+          name?: string | null;
+          description?: string | null;
+          price_label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          item_id?: string;
+          locale?: SupportedLocale;
+          name?: string | null;
+          description?: string | null;
+          price_label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_chef_translations: {
+        Row: {
+          id: string;
+          chef_id: string;
+          locale: SupportedLocale;
+          chef_name: string | null;
+          chef_role: string | null;
+          chef_description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          chef_id: string;
+          locale: SupportedLocale;
+          chef_name?: string | null;
+          chef_role?: string | null;
+          chef_description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          chef_id?: string;
+          locale?: SupportedLocale;
+          chef_name?: string | null;
+          chef_role?: string | null;
+          chef_description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_event_translations: {
+        Row: {
+          id: string;
+          event_id: string;
+          locale: SupportedLocale;
+          event_title: string | null;
+          event_subtitle: string | null;
+          event_description: string | null;
+          event_period: string | null;
+          event_benefit: string | null;
+          event_detail: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          locale: SupportedLocale;
+          event_title?: string | null;
+          event_subtitle?: string | null;
+          event_description?: string | null;
+          event_period?: string | null;
+          event_benefit?: string | null;
+          event_detail?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          locale?: SupportedLocale;
+          event_title?: string | null;
+          event_subtitle?: string | null;
+          event_description?: string | null;
+          event_period?: string | null;
+          event_benefit?: string | null;
+          event_detail?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_social_link_translations: {
+        Row: {
+          id: string;
+          social_link_id: string;
+          locale: SupportedLocale;
+          label: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          social_link_id: string;
+          locale: SupportedLocale;
+          label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          social_link_id?: string;
+          locale?: SupportedLocale;
+          label?: string | null;
           created_at?: string;
           updated_at?: string;
         };
