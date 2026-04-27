@@ -10,7 +10,6 @@ import ProV10Plan from './original-pages/services/ProV1.0Plan';
 import DesignCustomizing from './original-pages/services/DesignCustomizing';
 import FoodVisualArt from './original-pages/branding/FoodVisualArt';
 import GoodsPackage from './original-pages/branding/GoodsPackage';
-import ApplyPage from './original-pages/ApplyPage';
 import Store from './original-pages/Store';
 import ScrollToTopButton from './components/ui/ScrollToTop';
 import Footer from './components/layout/Footer';
@@ -20,6 +19,14 @@ const ScrollToTop = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+  return null;
+};
+
+const ReloadNextRoute = () => {
+  useEffect(() => {
+    window.location.reload();
+  }, []);
+
   return null;
 };
 
@@ -42,7 +49,7 @@ export default function App() {
             <Route path="/services/design-customizing" element={<DesignCustomizing />} />
             <Route path="/branding/food-visual-art" element={<FoodVisualArt />} />
             <Route path="/branding/goods-package" element={<GoodsPackage />} />
-            <Route path="/apply" element={<ApplyPage />} />
+            <Route path="/apply" element={<ReloadNextRoute />} />
             <Route path="/store" element={<Store />} />
           </Routes>
         </main>

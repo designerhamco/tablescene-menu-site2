@@ -1,0 +1,552 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+export type MenuSiteStatus = "draft" | "published" | "archived";
+export type MenuSectionKey = "set_menu" | "main_menu" | "dessert_drink";
+export type OrderStatus = "pending" | "paid" | "cancelled" | "refunded";
+export type PaymentStatus = "ready" | "paid" | "failed" | "cancelled";
+export type InquiryStatus = "open" | "answered" | "closed";
+
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          email: string | null;
+          display_name: string | null;
+          phone: string | null;
+          company_name: string | null;
+          avatar_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email?: string | null;
+          display_name?: string | null;
+          phone?: string | null;
+          company_name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string | null;
+          display_name?: string | null;
+          phone?: string | null;
+          company_name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      admin_users: {
+        Row: {
+          user_id: string;
+          memo: string | null;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_sites: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          slug: string;
+          template_key: string;
+          status: MenuSiteStatus;
+          description: string | null;
+          brand_description: string | null;
+          intro_title: string | null;
+          intro_description: string | null;
+          menu_cover_title: string | null;
+          menu_cover_description: string | null;
+          about_description: string | null;
+          opening_hours: string | null;
+          map_url: string | null;
+          logo_url: string | null;
+          cover_image_url: string | null;
+          brand_color: string | null;
+          business_name: string | null;
+          business_address: string | null;
+          business_phone: string | null;
+          restaurant_name: string | null;
+          restaurant_category: string | null;
+          restaurant_address: string | null;
+          restaurant_phone: string | null;
+          instagram_url: string | null;
+          notes: string | null;
+          settings: Json;
+          design_settings: Json;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          slug: string;
+          template_key?: string;
+          status?: MenuSiteStatus;
+          description?: string | null;
+          brand_description?: string | null;
+          intro_title?: string | null;
+          intro_description?: string | null;
+          menu_cover_title?: string | null;
+          menu_cover_description?: string | null;
+          about_description?: string | null;
+          opening_hours?: string | null;
+          map_url?: string | null;
+          logo_url?: string | null;
+          cover_image_url?: string | null;
+          brand_color?: string | null;
+          business_name?: string | null;
+          business_address?: string | null;
+          business_phone?: string | null;
+          restaurant_name?: string | null;
+          restaurant_category?: string | null;
+          restaurant_address?: string | null;
+          restaurant_phone?: string | null;
+          instagram_url?: string | null;
+          notes?: string | null;
+          settings?: Json;
+          design_settings?: Json;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          slug?: string;
+          template_key?: string;
+          status?: MenuSiteStatus;
+          description?: string | null;
+          brand_description?: string | null;
+          intro_title?: string | null;
+          intro_description?: string | null;
+          menu_cover_title?: string | null;
+          menu_cover_description?: string | null;
+          about_description?: string | null;
+          opening_hours?: string | null;
+          map_url?: string | null;
+          logo_url?: string | null;
+          cover_image_url?: string | null;
+          brand_color?: string | null;
+          business_name?: string | null;
+          business_address?: string | null;
+          business_phone?: string | null;
+          restaurant_name?: string | null;
+          restaurant_category?: string | null;
+          restaurant_address?: string | null;
+          restaurant_phone?: string | null;
+          instagram_url?: string | null;
+          notes?: string | null;
+          settings?: Json;
+          design_settings?: Json;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_categories: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          name: string;
+          description: string | null;
+          section_key: MenuSectionKey;
+          sort_order: number;
+          visible: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          name: string;
+          description?: string | null;
+          section_key?: MenuSectionKey;
+          sort_order?: number;
+          visible?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          name?: string;
+          description?: string | null;
+          section_key?: MenuSectionKey;
+          sort_order?: number;
+          visible?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_items: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          category_id: string | null;
+          name: string;
+          description: string | null;
+          price: number;
+          price_label: string | null;
+          image_url: string | null;
+          badge: string | null;
+          recommended: boolean;
+          is_best: boolean;
+          is_sold_out: boolean;
+          visible: boolean;
+          sort_order: number;
+          options: Json;
+          allergens: Json;
+          translations: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          category_id?: string | null;
+          name: string;
+          description?: string | null;
+          price?: number;
+          price_label?: string | null;
+          image_url?: string | null;
+          badge?: string | null;
+          recommended?: boolean;
+          is_best?: boolean;
+          is_sold_out?: boolean;
+          visible?: boolean;
+          sort_order?: number;
+          options?: Json;
+          allergens?: Json;
+          translations?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          category_id?: string | null;
+          name?: string;
+          description?: string | null;
+          price?: number;
+          price_label?: string | null;
+          image_url?: string | null;
+          badge?: string | null;
+          recommended?: boolean;
+          is_best?: boolean;
+          is_sold_out?: boolean;
+          visible?: boolean;
+          sort_order?: number;
+          options?: Json;
+          allergens?: Json;
+          translations?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_events: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          event_title: string | null;
+          event_subtitle: string | null;
+          event_description: string | null;
+          event_period: string | null;
+          event_image_url: string | null;
+          event_benefit: string | null;
+          event_detail: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          link_url: string | null;
+          visible: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          event_title?: string | null;
+          event_subtitle?: string | null;
+          event_description?: string | null;
+          event_period?: string | null;
+          event_image_url?: string | null;
+          event_benefit?: string | null;
+          event_detail?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          link_url?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          event_title?: string | null;
+          event_subtitle?: string | null;
+          event_description?: string | null;
+          event_period?: string | null;
+          event_image_url?: string | null;
+          event_benefit?: string | null;
+          event_detail?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          link_url?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_chefs: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          chef_name: string;
+          chef_role: string | null;
+          chef_description: string | null;
+          chef_image_url: string | null;
+          visible: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          chef_name: string;
+          chef_role?: string | null;
+          chef_description?: string | null;
+          chef_image_url?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          chef_name?: string;
+          chef_role?: string | null;
+          chef_description?: string | null;
+          chef_image_url?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_social_links: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          type: string;
+          label: string | null;
+          url: string;
+          visible: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          type: string;
+          label?: string | null;
+          url: string;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          type?: string;
+          label?: string | null;
+          url?: string;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      orders: {
+        Row: {
+          id: string;
+          user_id: string;
+          menu_site_id: string | null;
+          product_key: string | null;
+          template_key: string | null;
+          order_name: string | null;
+          payment_id: string | null;
+          customer_name: string | null;
+          buyer_name: string | null;
+          buyer_phone: string | null;
+          buyer_email: string | null;
+          business_name: string | null;
+          business_number: string | null;
+          raw_payload: Json | null;
+          status: OrderStatus;
+          total_amount: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          menu_site_id?: string | null;
+          product_key?: string | null;
+          template_key?: string | null;
+          order_name?: string | null;
+          payment_id?: string | null;
+          customer_name?: string | null;
+          buyer_name?: string | null;
+          buyer_phone?: string | null;
+          buyer_email?: string | null;
+          business_name?: string | null;
+          business_number?: string | null;
+          raw_payload?: Json | null;
+          status?: OrderStatus;
+          total_amount?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          menu_site_id?: string | null;
+          product_key?: string | null;
+          template_key?: string | null;
+          order_name?: string | null;
+          payment_id?: string | null;
+          customer_name?: string | null;
+          buyer_name?: string | null;
+          buyer_phone?: string | null;
+          buyer_email?: string | null;
+          business_name?: string | null;
+          business_number?: string | null;
+          raw_payload?: Json | null;
+          status?: OrderStatus;
+          total_amount?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      payments: {
+        Row: {
+          id: string;
+          user_id: string;
+          order_id: string | null;
+          product_key: string | null;
+          template_key: string | null;
+          payment_id: string | null;
+          portone_payment_id: string | null;
+          status: PaymentStatus;
+          amount: number;
+          raw_payload: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          order_id?: string | null;
+          product_key?: string | null;
+          template_key?: string | null;
+          payment_id?: string | null;
+          portone_payment_id?: string | null;
+          status?: PaymentStatus;
+          amount?: number;
+          raw_payload?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          order_id?: string | null;
+          product_key?: string | null;
+          template_key?: string | null;
+          payment_id?: string | null;
+          portone_payment_id?: string | null;
+          status?: PaymentStatus;
+          amount?: number;
+          raw_payload?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      inquiries: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          message: string;
+          status: InquiryStatus;
+          admin_reply: string | null;
+          replied_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          message: string;
+          status?: InquiryStatus;
+          admin_reply?: string | null;
+          replied_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          message?: string;
+          status?: InquiryStatus;
+          admin_reply?: string | null;
+          replied_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+};

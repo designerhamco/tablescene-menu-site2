@@ -32,6 +32,66 @@ select {
   font: inherit;
 }
 
+button.bg-black,
+button.bg-zinc-900,
+button.bg-zinc-950,
+button.bg-neutral-900,
+button.bg-neutral-950,
+button.bg-stone-900,
+button.bg-stone-950,
+a.bg-black,
+a.bg-zinc-900,
+a.bg-zinc-950,
+a.bg-neutral-900,
+a.bg-neutral-950,
+a.bg-stone-900,
+a.bg-stone-950,
+[role="button"].bg-black,
+[role="button"].bg-zinc-900,
+[role="button"].bg-zinc-950,
+[role="button"].bg-neutral-900,
+[role="button"].bg-neutral-950,
+[role="button"].bg-stone-900,
+[role="button"].bg-stone-950 {
+  color: #ffffff !important;
+}
+
+button.hover\:bg-black:hover,
+button.hover\:bg-zinc-900:hover,
+button.hover\:bg-zinc-950:hover,
+button.hover\:bg-neutral-900:hover,
+button.hover\:bg-neutral-950:hover,
+button.hover\:bg-stone-900:hover,
+button.hover\:bg-stone-950:hover,
+a.hover\:bg-black:hover,
+a.hover\:bg-zinc-900:hover,
+a.hover\:bg-zinc-950:hover,
+a.hover\:bg-neutral-900:hover,
+a.hover\:bg-neutral-950:hover,
+a.hover\:bg-stone-900:hover,
+a.hover\:bg-stone-950:hover,
+[role="button"].hover\:bg-black:hover,
+[role="button"].hover\:bg-zinc-900:hover,
+[role="button"].hover\:bg-zinc-950:hover,
+[role="button"].hover\:bg-neutral-900:hover,
+[role="button"].hover\:bg-neutral-950:hover,
+[role="button"].hover\:bg-stone-900:hover,
+[role="button"].hover\:bg-stone-950:hover {
+  color: #ffffff !important;
+}
+
+.group:hover button.group-hover\:bg-black,
+.group:hover button.group-hover\:bg-zinc-900,
+.group:hover button.group-hover\:bg-zinc-950,
+.group:hover a.group-hover\:bg-black,
+.group:hover a.group-hover\:bg-zinc-900,
+.group:hover a.group-hover\:bg-zinc-950,
+.group:hover [role="button"].group-hover\:bg-black,
+.group:hover [role="button"].group-hover\:bg-zinc-900,
+.group:hover [role="button"].group-hover\:bg-zinc-950 {
+  color: #ffffff !important;
+}
+
 img,
 video {
   display: block;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, ShoppingCart, Menu, X, ArrowRight,
@@ -6,6 +6,7 @@ import {
   BarChart, Globe, Shield, Smartphone, ChevronRight, Bell, ChevronDown
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
+import AuthNav from '../auth/AuthNav';
 const logoImage = '/assets/tablescene-symbol.png';
 
 const NAV_DATA = {
@@ -95,18 +96,30 @@ const Navbar = () => {
   const [activeMobileSection, setActiveMobileSection] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const pathname = location.pathname;
+
+  const updateActiveDropdown = useCallback((nextDropdown: string | null) => {
+    setActiveDropdown((currentDropdown) => (currentDropdown === nextDropdown ? currentDropdown : nextDropdown));
+  }, []);
+
+  const closeMobileMenu = useCallback(() => {
+    setIsOpen((currentIsOpen) => (currentIsOpen ? false : currentIsOpen));
+  }, []);
   
   // Close mobile menu when route changes
   useEffect(() => {
-    setIsOpen(false);
-    setActiveDropdown(null);
-    setActiveMobileSection(null);
-  }, [location]);
+    setIsOpen((currentIsOpen) => (currentIsOpen ? false : currentIsOpen));
+    setActiveDropdown((currentDropdown) => (currentDropdown === null ? currentDropdown : null));
+    setActiveMobileSection((currentSection) => (currentSection === null ? currentSection : null));
+  }, [pathname]);
 
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      const nextIsScrolled = window.scrollY > 50;
+      setIsScrolled((currentIsScrolled) =>
+        currentIsScrolled === nextIsScrolled ? currentIsScrolled : nextIsScrolled,
+      );
     };
     
     // Check initial position
@@ -117,7 +130,7 @@ const Navbar = () => {
   }, []);
 
   // Dynamic Styles
-  const isLightPage = ['/services/simple-template', '/services/pro-v1', '/services/design-customizing'].includes(location.pathname);
+  const isLightPage = ['/services/simple-template', '/services/pro-v1', '/services/design-customizing'].includes(pathname);
   const shouldShowDarkNav = isScrolled || activeDropdown || isLightPage || isOpen;
 
   const navBgClass = shouldShowDarkNav
@@ -136,7 +149,7 @@ const Navbar = () => {
     <>
       <nav 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20 ${navContainerClass}`}
-        onMouseLeave={() => setActiveDropdown(null)}
+        onMouseLeave={() => updateActiveDropdown(null)}
       >
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between relative">
           
@@ -170,9 +183,9 @@ const Navbar = () => {
                 className="h-full flex items-center"
                 onMouseEnter={() => {
                   if ('items' in item) {
-                    setActiveDropdown(item.id);
+                    updateActiveDropdown(item.id);
                   } else {
-                    setActiveDropdown(null);
+                    updateActiveDropdown(null);
                   }
                 }}
               >
@@ -188,6 +201,8 @@ const Navbar = () => {
 
           {/* Right Section: Actions */}
           <div className="flex items-center gap-6 shrink-0 z-50">
+            <AuthNav dark={shouldShowDarkNav} />
+
             <button className={`transition-colors p-1 ${iconClass}`}>
               <ShoppingCart size={20} strokeWidth={2} />
             </button>
@@ -195,7 +210,7 @@ const Navbar = () => {
             {/* Mobile Menu Toggle */}
             <button 
               className={`lg:hidden p-1 transition-colors ${menuButtonClass}`}
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => setIsOpen((currentIsOpen) => !currentIsOpen)}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -247,7 +262,7 @@ const Navbar = () => {
                                       alert("서비스 준비중입니다.");
                                       return;
                                     }
-                                    setActiveDropdown(null);
+                                    updateActiveDropdown(null);
                                   }}
                                 >
                                   <div className={`w-12 h-12 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600 transition-all duration-300 shrink-0 ${
@@ -292,7 +307,7 @@ const Navbar = () => {
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-50 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
                                 onClick={() => {
                                   alert("서비스 업데이트 소식 준비중입니다.");
-                                  setActiveDropdown(null);
+                                  updateActiveDropdown(null);
                                 }}
                               >
                                 <data.notice.icon size={12} />
@@ -383,7 +398,7 @@ const Navbar = () => {
                         className="py-6 flex items-center justify-between cursor-pointer group"
                         onClick={() => {
                           if (hasSubItems) {
-                            setActiveMobileSection(isExpanded ? null : item.id);
+                            setActiveMobileSection((currentSection) => (currentSection === item.id ? null : item.id));
                           } else {
                             // Direct link navigation logic here if needed, 
                             // currently 'store' has a path but the Link is wrapped or separate?
@@ -407,7 +422,7 @@ const Navbar = () => {
                            <Link 
                              to={item.path || '#'}
                              className="text-3xl font-bold text-zinc-400 hover:text-black tracking-tight block w-full transition-colors duration-300"
-                             onClick={() => setIsOpen(false)}
+                             onClick={closeMobileMenu}
                            >
                              {item.title}
                            </Link>
@@ -440,7 +455,7 @@ const Navbar = () => {
                                             alert("서비스 준비중입니다.");
                                             return;
                                           }
-                                          setIsOpen(false);
+                                          closeMobileMenu();
                                         }}
                                       >
                                          <div className="w-11 h-11 rounded-2xl bg-zinc-50 flex items-center justify-center shrink-0 text-zinc-900 group-active:scale-95 transition-all">
@@ -473,7 +488,7 @@ const Navbar = () => {
                                  <Link 
                                   to={item.promo.link}
                                   className="block relative rounded-xl overflow-hidden aspect-[16/9] w-full"
-                                  onClick={() => setIsOpen(false)}
+                                  onClick={closeMobileMenu}
                                  >
                                     <img 
                                       /* @ts-ignore */
@@ -503,7 +518,7 @@ const Navbar = () => {
                                       className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-zinc-300 text-zinc-500 text-sm font-medium hover:bg-zinc-50 hover:text-black transition-colors"
                                       onClick={() => {
                                         alert("서비스 업데이트 소식 준비중입니다.");
-                                        setIsOpen(false);
+                                        closeMobileMenu();
                                       }}
                                     >
                                       {/* @ts-ignore */}

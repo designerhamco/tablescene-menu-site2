@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --max-old-space-size=6144 node_modules/next/dist/bin/next dev",
-    "dev:lean": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
+    "dev": "node --max-old-space-size=6144 node_modules/next/dist/bin/next dev --webpack",
+    "dev:turbo": "node --max-old-space-size=6144 node_modules/next/dist/bin/next dev",
+    "dev:lean": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev --webpack",
     "build": "node --max-old-space-size=6144 node_modules/next/dist/bin/next build --webpack",
     "build:turbo": "node --max-old-space-size=6144 node_modules/next/dist/bin/next build",
     "build:debug-memory": "node --max-old-space-size=6144 node_modules/next/dist/bin/next build --webpack --experimental-debug-memory-usage",
@@ -12,6 +13,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@portone/browser-sdk": "^0.1.5",
     "@radix-ui/react-accordion": "1.2.3",
     "@radix-ui/react-alert-dialog": "1.1.6",
     "@radix-ui/react-aspect-ratio": "1.1.2",
@@ -38,6 +40,8 @@
     "@radix-ui/react-toggle": "1.1.2",
     "@radix-ui/react-toggle-group": "1.1.2",
     "@radix-ui/react-tooltip": "1.1.8",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.104.1",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
