@@ -1,6 +1,7 @@
-import type { Database, MenuSectionKey, SupportedLocale } from "@/lib/supabase/types";
+import type { BadgeType, Database, Json, MenuSectionKey, SupportedLocale } from "@/lib/supabase/types";
+import type { MenuSocialLink as TypedMenuSocialLink, SocialLinkInput, SocialLinkType } from "@/lib/social-links";
 
-export type { MenuSectionKey, SupportedLocale };
+export type { BadgeType, Json, MenuSectionKey, SocialLinkInput, SocialLinkType, SupportedLocale };
 
 export const MENU_SECTION_KEYS = ["set_menu", "main_menu", "dessert_drink"] as const satisfies readonly MenuSectionKey[];
 
@@ -13,12 +14,215 @@ export const MENU_SECTION_LABELS: Record<MenuSectionKey, string> = {
 export type MenuSite = Database["public"]["Tables"]["menu_sites"]["Row"];
 export type MenuCategory = Database["public"]["Tables"]["menu_categories"]["Row"];
 export type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
+export type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 export type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 export type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
-export type MenuSocialLink = Database["public"]["Tables"]["menu_social_links"]["Row"];
+export type MenuSocialLink = TypedMenuSocialLink;
 export type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"]["Row"];
 export type MenuCategoryTranslation = Database["public"]["Tables"]["menu_category_translations"]["Row"];
 export type MenuItemTranslation = Database["public"]["Tables"]["menu_item_translations"]["Row"];
 export type MenuChefTranslation = Database["public"]["Tables"]["menu_chef_translations"]["Row"];
 export type MenuEventTranslation = Database["public"]["Tables"]["menu_event_translations"]["Row"];
 export type MenuSocialLinkTranslation = Database["public"]["Tables"]["menu_social_link_translations"]["Row"];
+
+export type PageSettings = {
+  intro_enabled: boolean;
+  menu_cover_enabled: boolean;
+  set_menu_enabled: boolean;
+  main_menu_enabled: boolean;
+  dessert_drink_enabled: boolean;
+  about_enabled: boolean;
+  chefs_enabled: boolean;
+  events_enabled: boolean;
+  social_links_enabled: boolean;
+};
+
+export type MenuItemTraitInput = {
+  label?: unknown;
+  value?: unknown;
+  max_value?: unknown;
+  visible?: unknown;
+  sort_order?: unknown;
+};
+
+export type NormalizedMenuItemTrait = {
+  label: string;
+  value: number;
+  max_value: number;
+  visible: boolean;
+  sort_order: number;
+};
+
+export type MenuItemTraitValidationResult =
+  | { ok: true; trait: NormalizedMenuItemTrait; message: null }
+  | { ok: false; trait: null; message: string };
+
+export type EventPricePair = {
+  regular: string | null;
+  sale: string | null;
+};
+
+export const DEFAULT_PAGE_SETTINGS: PageSettings = {
+  intro_enabled: true,
+  menu_cover_enabled: true,
+  set_menu_enabled: true,
+  main_menu_enabled: true,
+  dessert_drink_enabled: true,
+  about_enabled: true,
+  chefs_enabled: true,
+  events_enabled: true,
+  social_links_enabled: true,
+};
+
+// Public menu visibility policy:
+// 1. Page-level switches live in menu_sites.page_settings.
+// 2. Row/group-level switches use each table's visible column.
+// 3. Field-level switches use price_visible, portion_visible, traits_visible,
+//    description_visible, and event_price_visible.
+export function getDefaultPageSettings(): PageSettings {
+  return { ...DEFAULT_PAGE_SETTINGS };
+}
+
+export function mergePageSettings(settings: Json | Partial<PageSettings> | null | undefined): PageSettings {
+  if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+    return getDefaultPageSettings();
+  }
+
+  const merged = getDefaultPageSettings();
+  const input = settings as Record<string, unknown>;
+
+  for (const key of Object.keys(merged) as (keyof PageSettings)[]) {
+    if (typeof input[key] === "boolean") {
+      merged[key] = input[key];
+    }
+  }
+
+  return merged;
+}
+
+export function formatPortionLabel(item: Pick<MenuItem, "portion_label" | "portion_visible">) {
+  if (item.portion_visible === false) {
+    return null;
+  }
+
+  const portionLabel = item.portion_label?.trim();
+  return portionLabel || null;
+}
+
+export function formatMenuPrice(item: Pick<MenuItem, "price" | "price_label" | "price_visible">) {
+  if (item.price_visible === false) {
+    return null;
+  }
+
+  const priceLabel = item.price_label?.trim();
+
+  if (priceLabel) {
+    return priceLabel;
+  }
+
+  if (typeof item.price !== "number") {
+    return null;
+  }
+
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    maximumFractionDigits: 0,
+  }).format(item.price);
+}
+
+export function shouldShowMenuItemTraits(
+  item: Pick<MenuItem, "traits_visible">,
+  traits: Pick<MenuItemTrait, "visible">[] | null | undefined
+) {
+  if (item.traits_visible === false) {
+    return false;
+  }
+
+  return Boolean(traits?.some((trait) => trait.visible));
+}
+
+export function formatEventRegularPrice(
+  event: Pick<MenuEvent, "event_price_visible" | "event_regular_price_label">
+) {
+  if (event.event_price_visible === false) {
+    return null;
+  }
+
+  return event.event_regular_price_label?.trim() || null;
+}
+
+export function formatEventSalePrice(event: Pick<MenuEvent, "event_price_visible" | "event_sale_price_label">) {
+  if (event.event_price_visible === false) {
+    return null;
+  }
+
+  return event.event_sale_price_label?.trim() || null;
+}
+
+export function formatEventPricePair(
+  event: Pick<MenuEvent, "event_price_visible" | "event_regular_price_label" | "event_sale_price_label">
+): EventPricePair | null {
+  if (event.event_price_visible === false) {
+    return null;
+  }
+
+  const regular = formatEventRegularPrice(event);
+  const sale = formatEventSalePrice(event);
+
+  if (!regular && !sale) {
+    return null;
+  }
+
+  return { regular, sale };
+}
+
+function toInteger(value: unknown, fallback: number) {
+  if (typeof value === "number" && Number.isInteger(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) ? parsed : fallback;
+  }
+
+  return fallback;
+}
+
+export function normalizeMenuItemTrait(input: MenuItemTraitInput): NormalizedMenuItemTrait {
+  const label = typeof input.label === "string" ? input.label.trim() : "";
+  const maxValue = toInteger(input.max_value, 5);
+  const value = toInteger(input.value, 0);
+  const sortOrder = toInteger(input.sort_order, 0);
+
+  return {
+    label,
+    value,
+    max_value: maxValue,
+    visible: typeof input.visible === "boolean" ? input.visible : true,
+    sort_order: sortOrder,
+  };
+}
+
+export function validateMenuItemTrait(input: MenuItemTraitInput): MenuItemTraitValidationResult {
+  const trait = normalizeMenuItemTrait(input);
+
+  if (!trait.label) {
+    return { ok: false, trait: null, message: "지표 이름을 입력해주세요." };
+  }
+
+  if (trait.value < 0) {
+    return { ok: false, trait: null, message: "지표 값은 0 이상이어야 합니다." };
+  }
+
+  if (trait.max_value < 1) {
+    return { ok: false, trait: null, message: "최대 값은 1 이상이어야 합니다." };
+  }
+
+  if (trait.value > trait.max_value) {
+    return { ok: false, trait: null, message: "지표 값은 최대 값보다 클 수 없습니다." };
+  }
+
+  return { ok: true, trait, message: null };
+}

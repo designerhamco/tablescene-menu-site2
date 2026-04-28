@@ -9,6 +9,7 @@ export type Json =
 export type MenuSiteStatus = "draft" | "published" | "archived";
 export type MenuSectionKey = "set_menu" | "main_menu" | "dessert_drink";
 export type SupportedLocale = "ko" | "en" | "zh" | "ja";
+export type BadgeType = "none" | "recommend" | "popular" | "best" | "discount" | "event" | "signature";
 export type OrderStatus = "pending" | "paid" | "cancelled" | "refunded";
 export type PaymentStatus = "ready" | "paid" | "failed" | "cancelled";
 export type InquiryStatus = "open" | "answered" | "closed";
@@ -98,6 +99,7 @@ export type Database = {
           notes: string | null;
           settings: Json;
           design_settings: Json;
+          page_settings: Json;
           published_at: string | null;
           created_at: string;
           updated_at: string;
@@ -132,6 +134,7 @@ export type Database = {
           notes?: string | null;
           settings?: Json;
           design_settings?: Json;
+          page_settings?: Json;
           published_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -166,6 +169,7 @@ export type Database = {
           notes?: string | null;
           settings?: Json;
           design_settings?: Json;
+          page_settings?: Json;
           published_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -178,6 +182,7 @@ export type Database = {
           menu_site_id: string;
           name: string;
           description: string | null;
+          description_visible: boolean;
           section_key: MenuSectionKey;
           sort_order: number;
           visible: boolean;
@@ -189,6 +194,7 @@ export type Database = {
           menu_site_id: string;
           name: string;
           description?: string | null;
+          description_visible?: boolean;
           section_key?: MenuSectionKey;
           sort_order?: number;
           visible?: boolean;
@@ -200,6 +206,7 @@ export type Database = {
           menu_site_id?: string;
           name?: string;
           description?: string | null;
+          description_visible?: boolean;
           section_key?: MenuSectionKey;
           sort_order?: number;
           visible?: boolean;
@@ -214,12 +221,19 @@ export type Database = {
           menu_site_id: string;
           category_id: string | null;
           name: string;
+          set_name: string | null;
           description: string | null;
           price: number;
           price_label: string | null;
+          portion_label: string | null;
+          price_visible: boolean;
+          portion_visible: boolean;
+          traits_visible: boolean;
           image_url: string | null;
           badge: string | null;
+          badge_type: BadgeType | null;
           recommended: boolean;
+          origin_info: string | null;
           is_best: boolean;
           is_sold_out: boolean;
           visible: boolean;
@@ -235,12 +249,19 @@ export type Database = {
           menu_site_id: string;
           category_id?: string | null;
           name: string;
+          set_name?: string | null;
           description?: string | null;
           price?: number;
           price_label?: string | null;
+          portion_label?: string | null;
+          price_visible?: boolean;
+          portion_visible?: boolean;
+          traits_visible?: boolean;
           image_url?: string | null;
           badge?: string | null;
+          badge_type?: BadgeType | null;
           recommended?: boolean;
+          origin_info?: string | null;
           is_best?: boolean;
           is_sold_out?: boolean;
           visible?: boolean;
@@ -256,12 +277,19 @@ export type Database = {
           menu_site_id?: string;
           category_id?: string | null;
           name?: string;
+          set_name?: string | null;
           description?: string | null;
           price?: number;
           price_label?: string | null;
+          portion_label?: string | null;
+          price_visible?: boolean;
+          portion_visible?: boolean;
+          traits_visible?: boolean;
           image_url?: string | null;
           badge?: string | null;
+          badge_type?: BadgeType | null;
           recommended?: boolean;
+          origin_info?: string | null;
           is_best?: boolean;
           is_sold_out?: boolean;
           visible?: boolean;
@@ -269,6 +297,45 @@ export type Database = {
           options?: Json;
           allergens?: Json;
           translations?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      menu_item_traits: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          menu_item_id: string;
+          label: string;
+          value: number;
+          max_value: number;
+          visible: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          menu_item_id: string;
+          label: string;
+          value?: number;
+          max_value?: number;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          menu_item_id?: string;
+          label?: string;
+          value?: number;
+          max_value?: number;
+          visible?: boolean;
+          sort_order?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -285,6 +352,9 @@ export type Database = {
           event_image_url: string | null;
           event_benefit: string | null;
           event_detail: string | null;
+          event_regular_price_label: string | null;
+          event_sale_price_label: string | null;
+          event_price_visible: boolean;
           start_date: string | null;
           end_date: string | null;
           link_url: string | null;
@@ -303,6 +373,9 @@ export type Database = {
           event_image_url?: string | null;
           event_benefit?: string | null;
           event_detail?: string | null;
+          event_regular_price_label?: string | null;
+          event_sale_price_label?: string | null;
+          event_price_visible?: boolean;
           start_date?: string | null;
           end_date?: string | null;
           link_url?: string | null;
@@ -321,6 +394,9 @@ export type Database = {
           event_image_url?: string | null;
           event_benefit?: string | null;
           event_detail?: string | null;
+          event_regular_price_label?: string | null;
+          event_sale_price_label?: string | null;
+          event_price_visible?: boolean;
           start_date?: string | null;
           end_date?: string | null;
           link_url?: string | null;
@@ -376,6 +452,7 @@ export type Database = {
           menu_site_id: string;
           type: string;
           label: string | null;
+          display_name: string | null;
           url: string;
           visible: boolean;
           sort_order: number;
@@ -387,6 +464,7 @@ export type Database = {
           menu_site_id: string;
           type: string;
           label?: string | null;
+          display_name?: string | null;
           url: string;
           visible?: boolean;
           sort_order?: number;
@@ -398,6 +476,7 @@ export type Database = {
           menu_site_id?: string;
           type?: string;
           label?: string | null;
+          display_name?: string | null;
           url?: string;
           visible?: boolean;
           sort_order?: number;
