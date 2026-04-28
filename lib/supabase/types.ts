@@ -176,10 +176,50 @@ export type Database = {
         };
         Relationships: [];
       };
+      menu_pages: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          title: string;
+          description: string | null;
+          description_visible: boolean;
+          legacy_section_key: string | null;
+          visible: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          title: string;
+          description?: string | null;
+          description_visible?: boolean;
+          legacy_section_key?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          title?: string;
+          description?: string | null;
+          description_visible?: boolean;
+          legacy_section_key?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       menu_categories: {
         Row: {
           id: string;
           menu_site_id: string;
+          menu_page_id: string | null;
           name: string;
           description: string | null;
           description_visible: boolean;
@@ -192,6 +232,7 @@ export type Database = {
         Insert: {
           id?: string;
           menu_site_id: string;
+          menu_page_id?: string | null;
           name: string;
           description?: string | null;
           description_visible?: boolean;
@@ -204,6 +245,7 @@ export type Database = {
         Update: {
           id?: string;
           menu_site_id?: string;
+          menu_page_id?: string | null;
           name?: string;
           description?: string | null;
           description_visible?: boolean;

@@ -12,6 +12,7 @@ export const MENU_SECTION_LABELS: Record<MenuSectionKey, string> = {
 };
 
 export type MenuSite = Database["public"]["Tables"]["menu_sites"]["Row"];
+export type MenuPage = Database["public"]["Tables"]["menu_pages"]["Row"];
 export type MenuCategory = Database["public"]["Tables"]["menu_categories"]["Row"];
 export type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 export type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
@@ -62,6 +63,11 @@ export type EventPricePair = {
   sale: string | null;
 };
 
+export type DefaultMenuPageInput = Pick<
+  Database["public"]["Tables"]["menu_pages"]["Insert"],
+  "title" | "description" | "description_visible" | "legacy_section_key" | "visible" | "sort_order"
+>;
+
 export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   intro_enabled: true,
   menu_cover_enabled: true,
@@ -73,6 +79,8 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   events_enabled: true,
   social_links_enabled: true,
 };
+
+export const UNASSIGNED_MENU_PAGE_KEY = "__unassigned__";
 
 // Public menu visibility policy:
 // 1. Page-level switches live in menu_sites.page_settings.
@@ -98,6 +106,64 @@ export function mergePageSettings(settings: Json | Partial<PageSettings> | null 
   }
 
   return merged;
+}
+
+export function getMenuPageTitle(page: Pick<MenuPage, "title" | "legacy_section_key">) {
+  const title = page.title.trim();
+
+  if (title) {
+    return title;
+  }
+
+  if (page.legacy_section_key && page.legacy_section_key in MENU_SECTION_LABELS) {
+    return MENU_SECTION_LABELS[page.legacy_section_key as MenuSectionKey];
+  }
+
+  return "메뉴";
+}
+
+export function sortMenuPages<T extends Pick<MenuPage, "sort_order" | "created_at" | "title">>(pages: T[]) {
+  return [...pages].sort((a, b) => {
+    if (a.sort_order !== b.sort_order) {
+      return a.sort_order - b.sort_order;
+    }
+
+    const createdAtCompare = a.created_at.localeCompare(b.created_at);
+    return createdAtCompare || a.title.localeCompare(b.title, "ko");
+  });
+}
+
+export function groupCategoriesByMenuPage<T extends Pick<MenuCategory, "menu_page_id" | "sort_order" | "name">>(
+  categories: T[]
+) {
+  return categories.reduce<Record<string, T[]>>((grouped, category) => {
+    const key = category.menu_page_id ?? UNASSIGNED_MENU_PAGE_KEY;
+    const next = grouped[key] ?? [];
+    next.push(category);
+    grouped[key] = next.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "ko"));
+    return grouped;
+  }, {});
+}
+
+export function getCategoriesForMenuPage<T extends Pick<MenuCategory, "menu_page_id" | "sort_order" | "name">>(
+  pageId: string | null,
+  categories: T[]
+) {
+  const key = pageId ?? UNASSIGNED_MENU_PAGE_KEY;
+  return groupCategoriesByMenuPage(categories)[key] ?? [];
+}
+
+export function getDefaultMenuPages(): DefaultMenuPageInput[] {
+  return [
+    {
+      title: "대표 메뉴",
+      description: null,
+      description_visible: true,
+      legacy_section_key: null,
+      visible: true,
+      sort_order: 0,
+    },
+  ];
 }
 
 export function formatPortionLabel(item: Pick<MenuItem, "portion_label" | "portion_visible">) {
