@@ -86,7 +86,9 @@ export type Database = {
           opening_hours: string | null;
           map_url: string | null;
           logo_url: string | null;
+          logo_path: string | null;
           cover_image_url: string | null;
+          cover_image_path: string | null;
           brand_color: string | null;
           business_name: string | null;
           business_address: string | null;
@@ -121,7 +123,9 @@ export type Database = {
           opening_hours?: string | null;
           map_url?: string | null;
           logo_url?: string | null;
+          logo_path?: string | null;
           cover_image_url?: string | null;
+          cover_image_path?: string | null;
           brand_color?: string | null;
           business_name?: string | null;
           business_address?: string | null;
@@ -156,7 +160,9 @@ export type Database = {
           opening_hours?: string | null;
           map_url?: string | null;
           logo_url?: string | null;
+          logo_path?: string | null;
           cover_image_url?: string | null;
+          cover_image_path?: string | null;
           brand_color?: string | null;
           business_name?: string | null;
           business_address?: string | null;
@@ -272,6 +278,7 @@ export type Database = {
           portion_visible: boolean;
           traits_visible: boolean;
           image_url: string | null;
+          image_path: string | null;
           badge: string | null;
           badge_type: BadgeType | null;
           recommended: boolean;
@@ -300,6 +307,7 @@ export type Database = {
           portion_visible?: boolean;
           traits_visible?: boolean;
           image_url?: string | null;
+          image_path?: string | null;
           badge?: string | null;
           badge_type?: BadgeType | null;
           recommended?: boolean;
@@ -328,6 +336,7 @@ export type Database = {
           portion_visible?: boolean;
           traits_visible?: boolean;
           image_url?: string | null;
+          image_path?: string | null;
           badge?: string | null;
           badge_type?: BadgeType | null;
           recommended?: boolean;
@@ -392,6 +401,7 @@ export type Database = {
           event_description: string | null;
           event_period: string | null;
           event_image_url: string | null;
+          event_image_path: string | null;
           event_benefit: string | null;
           event_detail: string | null;
           event_regular_price_label: string | null;
@@ -413,6 +423,7 @@ export type Database = {
           event_description?: string | null;
           event_period?: string | null;
           event_image_url?: string | null;
+          event_image_path?: string | null;
           event_benefit?: string | null;
           event_detail?: string | null;
           event_regular_price_label?: string | null;
@@ -434,6 +445,7 @@ export type Database = {
           event_description?: string | null;
           event_period?: string | null;
           event_image_url?: string | null;
+          event_image_path?: string | null;
           event_benefit?: string | null;
           event_detail?: string | null;
           event_regular_price_label?: string | null;
@@ -457,6 +469,7 @@ export type Database = {
           chef_role: string | null;
           chef_description: string | null;
           chef_image_url: string | null;
+          chef_image_path: string | null;
           visible: boolean;
           sort_order: number;
           created_at: string;
@@ -469,6 +482,7 @@ export type Database = {
           chef_role?: string | null;
           chef_description?: string | null;
           chef_image_url?: string | null;
+          chef_image_path?: string | null;
           visible?: boolean;
           sort_order?: number;
           created_at?: string;
@@ -481,6 +495,7 @@ export type Database = {
           chef_role?: string | null;
           chef_description?: string | null;
           chef_image_url?: string | null;
+          chef_image_path?: string | null;
           visible?: boolean;
           sort_order?: number;
           created_at?: string;
