@@ -47,6 +47,7 @@ export default async function ApplyPage() {
           userId={user.id}
           storeId={portOneConfig.storeId}
           channelKey={portOneConfig.channelKey}
+          mockEnabled={portOneConfig.mockEnabled}
         />
       </div>
     </main>

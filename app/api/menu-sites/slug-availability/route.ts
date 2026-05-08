@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   const slug = normalizeMenuSlug(url.searchParams.get("slug") ?? "");
 
   if (!isValidMenuSlug(slug)) {
-    return jsonError("slug는 3자 이상이며 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.");
+    return jsonError("메뉴판 주소는 3자 이상이며 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.");
   }
 
   const { data: existingSite, error } = await supabase
