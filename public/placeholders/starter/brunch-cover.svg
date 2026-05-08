@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="Brunch cover placeholder">
+  <rect width="1440" height="900" fill="#fff7ed"/>
+  <circle cx="560" cy="410" r="160" fill="#fed7aa"/>
+  <circle cx="760" cy="410" r="118" fill="#ffffff"/>
+  <circle cx="760" cy="410" r="54" fill="#f8e731"/>
+  <rect x="875" y="330" width="270" height="32" rx="16" fill="#18181b"/>
+  <rect x="875" y="395" width="360" height="22" rx="11" fill="#a8a29e"/>
+  <text x="720" y="730" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="800" fill="#18181b">BRUNCH MENU</text>
+</svg>

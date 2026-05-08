@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720" viewBox="0 0 720 720" role="img" aria-label="Chef placeholder">
+  <rect width="720" height="720" rx="64" fill="#f4f4f5"/>
+  <circle cx="360" cy="260" r="112" fill="#d4d4d8"/>
+  <path d="M178 618c28-112 98-172 182-172s154 60 182 172" fill="#e4e4e7"/>
+  <rect x="240" y="130" width="240" height="82" rx="41" fill="#ffffff"/>
+  <text x="360" y="650" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#a1a1aa">PEOPLE</text>
+</svg>

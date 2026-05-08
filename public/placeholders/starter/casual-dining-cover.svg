@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="Casual dining cover placeholder">
+  <rect width="1440" height="900" fill="#fafafa"/>
+  <rect x="220" y="210" width="1000" height="420" rx="56" fill="#e4e4e7"/>
+  <circle cx="480" cy="420" r="120" fill="#f8e731"/>
+  <rect x="650" y="330" width="360" height="34" rx="17" fill="#18181b"/>
+  <rect x="650" y="400" width="460" height="24" rx="12" fill="#a1a1aa"/>
+  <rect x="650" y="455" width="360" height="24" rx="12" fill="#d4d4d8"/>
+  <text x="720" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="50" font-weight="800" fill="#18181b">CASUAL DINING</text>
+</svg>

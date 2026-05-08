@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 
 import {
+  TEMPLATE_CATEGORIES,
   templateCatalog,
-  templateCategoryFilters,
   type TemplateCatalogItem,
   type TemplateCategoryKey,
   type TemplateKey,
@@ -66,15 +66,13 @@ function TemplateThumbnail({ template }: { template: TemplateCatalogItem }) {
 }
 
 export default function TemplateCatalogPicker() {
-  const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>("all");
-  const [selectedTemplateKey, setSelectedTemplateKey] = useState<TemplateKey>("design_a");
+  const firstCategory = TEMPLATE_CATEGORIES[0].key;
+  const firstTemplate = templateCatalog.find((template) => template.template_category === firstCategory) ?? templateCatalog[0];
+  const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate.template_category);
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState<TemplateKey>(firstTemplate.key);
 
   const filteredTemplates = useMemo(() => {
-    if (selectedCategory === "all") {
-      return templateCatalog;
-    }
-
-    return templateCatalog.filter((template) => template.categories.some((category) => category === selectedCategory));
+    return templateCatalog.filter((template) => template.template_category === selectedCategory);
   }, [selectedCategory]);
 
   return (
@@ -82,19 +80,23 @@ export default function TemplateCatalogPicker() {
       <div className="flex flex-col gap-2">
         <legend className="text-sm font-bold">템플릿 선택</legend>
         <p className="break-keep text-sm font-medium leading-relaxed text-zinc-500">
-          업종 필터는 템플릿을 고르기 위한 UI 정보이며, 실제 공개 메뉴판은 저장된 template_key로 렌더링됩니다.
+          업종 카테고리를 먼저 선택한 뒤 해당 카테고리 안의 디자인을 고릅니다.
         </p>
       </div>
 
       <div className="scrollbar-hide -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-        {templateCategoryFilters.map((category) => {
+        {TEMPLATE_CATEGORIES.map((category) => {
           const isSelected = selectedCategory === category.key;
 
           return (
             <button
               key={category.key}
               type="button"
-              onClick={() => setSelectedCategory(category.key)}
+              onClick={() => {
+                const nextTemplate = templateCatalog.find((template) => template.template_category === category.key);
+                setSelectedCategory(category.key);
+                if (nextTemplate) setSelectedTemplateKey(nextTemplate.key);
+              }}
               className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
                 isSelected
                   ? "border-zinc-950 bg-zinc-950 text-white"
@@ -129,6 +131,7 @@ export default function TemplateCatalogPicker() {
                 onChange={() => setSelectedTemplateKey(template.key)}
                 className="sr-only"
               />
+              {isSelected && <input type="hidden" name="template_category" value={template.template_category} />}
 
               <TemplateThumbnail template={template} />
 

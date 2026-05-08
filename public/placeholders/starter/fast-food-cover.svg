@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="Fast food cover placeholder">
+  <rect width="1440" height="900" fill="#f8e731"/>
+  <rect x="230" y="250" width="980" height="360" rx="60" fill="#18181b"/>
+  <circle cx="500" cy="430" r="120" fill="#ffffff"/>
+  <rect x="680" y="350" width="330" height="36" rx="18" fill="#ffffff"/>
+  <rect x="680" y="428" width="430" height="24" rx="12" fill="#d4d4d8"/>
+  <rect x="680" y="486" width="280" height="24" rx="12" fill="#a1a1aa"/>
+  <text x="720" y="750" text-anchor="middle" font-family="Arial, sans-serif" font-size="58" font-weight="900" fill="#18181b">FAST FOOD</text>
+</svg>

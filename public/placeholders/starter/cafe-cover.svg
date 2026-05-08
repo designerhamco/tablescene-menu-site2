@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="Cafe cover placeholder">
+  <rect width="1440" height="900" fill="#f4f4f5"/>
+  <circle cx="440" cy="420" r="180" fill="#d6d3d1"/>
+  <rect x="620" y="310" width="430" height="42" rx="21" fill="#18181b"/>
+  <rect x="620" y="390" width="580" height="28" rx="14" fill="#a8a29e"/>
+  <rect x="620" y="450" width="460" height="28" rx="14" fill="#d6d3d1"/>
+  <text x="720" y="720" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="800" fill="#18181b">CAFE MENU</text>
+</svg>

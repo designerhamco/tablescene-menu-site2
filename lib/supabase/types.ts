@@ -75,6 +75,7 @@ export type Database = {
           name: string;
           slug: string;
           template_key: string;
+          template_category: string | null;
           status: MenuSiteStatus;
           description: string | null;
           brand_description: string | null;
@@ -112,6 +113,7 @@ export type Database = {
           name: string;
           slug: string;
           template_key?: string;
+          template_category?: string | null;
           status?: MenuSiteStatus;
           description?: string | null;
           brand_description?: string | null;
@@ -149,6 +151,7 @@ export type Database = {
           name?: string;
           slug?: string;
           template_key?: string;
+          template_category?: string | null;
           status?: MenuSiteStatus;
           description?: string | null;
           brand_description?: string | null;

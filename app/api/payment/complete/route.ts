@@ -7,15 +7,21 @@ import {
   normalizeMenuSlug,
   type MenuOrderPayload,
 } from "@/lib/payments";
-import { requirePortOneApiSecret } from "@/lib/portone";
+import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
+import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
+import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
+import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
+import type { PaymentCompleteResponse } from "@/types/payment";
 
 export const runtime = "nodejs";
 
 type CompletePaymentRequest = {
   paymentId?: unknown;
+  template_category?: unknown;
   template_key?: unknown;
+  order?: unknown;
   orderPayload?: unknown;
 };
 
@@ -95,28 +101,78 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
 
   const payload = value as Record<string, unknown>;
   const templateKey = getString(payload.template_key);
+  const templateCategoryInput = getString(payload.template_category);
+  const templateCategory = isTemplateCategoryKey(templateCategoryInput)
+    ? templateCategoryInput
+    : getTemplateCategoryFromKey(templateKey);
+  const mappedRestaurantCategory = templateCategory ? getTemplateCategoryLabel(templateCategory) : "";
   const desiredSlug = normalizeMenuSlug(getString(payload.desiredSlug));
   const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
+  const planKey = getString(payload.plan_key) || "basic";
+  const buyerTypeInput = getString(payload.buyerType);
+  const buyerType = buyerTypeInput === "business" ? "business" : "individual";
+  const legacyInstagramUrl = getNullableString(payload.instagramUrl);
+  const rawSocialLinks = Array.isArray(payload.socialLinks) ? payload.socialLinks.slice(0, 3) : [];
+  const socialLinksValidation = validateSocialLinks(
+    rawSocialLinks.map((link) => {
+      const socialLink = link && typeof link === "object" ? (link as Record<string, unknown>) : {};
 
-  if (!isTemplateKey(templateKey) || !isValidMenuSlug(desiredSlug) || amount !== menuCreationProduct.amount) {
+      const type = getString(socialLink.type);
+
+      return {
+        type: isSocialLinkType(type) ? type : "",
+        display_name: getString(socialLink.display_name),
+        url: getString(socialLink.url),
+      };
+    })
+  );
+
+  if (!socialLinksValidation.ok) {
+    return null;
+  }
+
+  const socialLinks =
+    socialLinksValidation.socialLinks.length > 0 || !legacyInstagramUrl
+      ? socialLinksValidation.socialLinks
+      : validateSocialLinks([{ type: "instagram", display_name: "인스타그램", url: legacyInstagramUrl }]).socialLinks;
+  const instagramUrl = socialLinks.find((link) => link.type === "instagram")?.url ?? legacyInstagramUrl;
+
+  if (planKey !== "basic" || !isTemplateKey(templateKey) || !templateCategory || !isValidMenuSlug(desiredSlug) || amount !== menuCreationProduct.amount) {
     return null;
   }
 
   const parsedPayload: MenuOrderPayload = {
+    plan_key: "basic",
+    template_category: templateCategory,
     template_key: templateKey,
     menuName: getString(payload.menuName),
     desiredSlug,
     restaurantName: getString(payload.restaurantName),
-    restaurantCategory: getString(payload.restaurantCategory),
+    restaurantCategory: mappedRestaurantCategory,
     restaurantAddress: getString(payload.restaurantAddress),
     restaurantPhone: getString(payload.restaurantPhone),
-    instagramUrl: getNullableString(payload.instagramUrl),
+    openingHours: getNullableString(payload.openingHours),
+    mapUrl: getNullableString(payload.mapUrl),
+    introTitle: getNullableString(payload.introTitle),
+    introDescription: getNullableString(payload.introDescription),
+    brandDescription: getNullableString(payload.brandDescription),
+    menuCoverTitle: getNullableString(payload.menuCoverTitle),
+    menuCoverDescription: getNullableString(payload.menuCoverDescription),
+    aboutDescription: getNullableString(payload.aboutDescription),
+    instagramUrl,
+    socialLinks,
     notes: getNullableString(payload.notes),
+    buyerType,
     buyerName: getString(payload.buyerName),
     buyerPhone: getString(payload.buyerPhone),
     buyerEmail: getString(payload.buyerEmail),
-    businessName: getNullableString(payload.businessName),
-    businessNumber: getNullableString(payload.businessNumber),
+    businessName: buyerType === "business" ? getNullableString(payload.businessName) : null,
+    representativeName: buyerType === "business" ? getNullableString(payload.representativeName) : null,
+    businessNumber: buyerType === "business" ? getNullableString(payload.businessNumber) : null,
+    businessPhone: buyerType === "business" ? getNullableString(payload.businessPhone) : null,
+    termsAccepted: payload.termsAccepted === true,
+    privacyAccepted: payload.privacyAccepted === true,
+    contentPolicyAccepted: payload.contentPolicyAccepted === true,
     amount,
   };
 
@@ -132,6 +188,17 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
   ];
 
   if (requiredFields.some((field) => !field)) {
+    return null;
+  }
+
+  if (!parsedPayload.termsAccepted || !parsedPayload.privacyAccepted || !parsedPayload.contentPolicyAccepted) {
+    return null;
+  }
+
+  if (
+    parsedPayload.buyerType === "business" &&
+    (!parsedPayload.businessName || !parsedPayload.representativeName || !parsedPayload.businessNumber || !parsedPayload.businessPhone)
+  ) {
     return null;
   }
 
@@ -186,7 +253,7 @@ async function findExistingPaymentRecord(
   return data;
 }
 
-async function createMenuSiteWithSamples(
+async function createMenuSiteWithStarterPreset(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   orderPayload: MenuOrderPayload
@@ -196,11 +263,20 @@ async function createMenuSiteWithSamples(
     name: orderPayload.menuName,
     slug: orderPayload.desiredSlug,
     template_key: orderPayload.template_key,
+    template_category: orderPayload.template_category,
     status: "draft",
     restaurant_name: orderPayload.restaurantName,
     restaurant_category: orderPayload.restaurantCategory,
     restaurant_address: orderPayload.restaurantAddress,
     restaurant_phone: orderPayload.restaurantPhone,
+    opening_hours: orderPayload.openingHours,
+    map_url: orderPayload.mapUrl,
+    intro_title: orderPayload.introTitle,
+    intro_description: orderPayload.introDescription,
+    brand_description: orderPayload.brandDescription,
+    menu_cover_title: orderPayload.menuCoverTitle,
+    menu_cover_description: orderPayload.menuCoverDescription,
+    about_description: orderPayload.aboutDescription,
     business_name: orderPayload.businessName,
     instagram_url: orderPayload.instagramUrl,
     notes: orderPayload.notes,
@@ -227,6 +303,14 @@ async function createMenuSiteWithSamples(
       restaurant_category: orderPayload.restaurantCategory,
       restaurant_address: orderPayload.restaurantAddress,
       restaurant_phone: orderPayload.restaurantPhone,
+      opening_hours: orderPayload.openingHours,
+      map_url: orderPayload.mapUrl,
+      intro_title: orderPayload.introTitle,
+      intro_description: orderPayload.introDescription,
+      brand_description: orderPayload.brandDescription,
+      menu_cover_title: orderPayload.menuCoverTitle,
+      menu_cover_description: orderPayload.menuCoverDescription,
+      about_description: orderPayload.aboutDescription,
       instagram_url: orderPayload.instagramUrl,
       notes: orderPayload.notes,
     };
@@ -245,108 +329,82 @@ async function createMenuSiteWithSamples(
   }
 
   const createdMenuSite = menuSite as MenuSiteResult;
-
-  const categoryInserts: Database["public"]["Tables"]["menu_categories"]["Insert"][] = [
-    {
-      menu_site_id: createdMenuSite.id,
-      name: "대표 메뉴",
-      description: "가장 먼저 보여줄 대표 메뉴를 등록하세요.",
-      sort_order: 1,
-      visible: true,
-    },
-    {
-      menu_site_id: createdMenuSite.id,
-      name: "식사",
-      description: "식사 메뉴를 등록하세요.",
-      sort_order: 2,
-      visible: true,
-    },
-    {
-      menu_site_id: createdMenuSite.id,
-      name: "음료",
-      description: "음료 또는 페어링 메뉴를 등록하세요.",
-      sort_order: 3,
-      visible: true,
-    },
-  ];
-
-  const { data: categories, error: categoriesError } = await supabase
-    .from("menu_categories")
-    .insert(categoryInserts)
-    .select("id, name");
-
-  if (categoriesError) {
-    throw new Error(`기본 카테고리 생성에 실패했습니다: ${categoriesError.message}`);
-  }
-
-  const mainCategoryId = categories?.find((category) => category.name === "대표 메뉴")?.id ?? null;
-  const mealCategoryId = categories?.find((category) => category.name === "식사")?.id ?? mainCategoryId;
-  const drinkCategoryId = categories?.find((category) => category.name === "음료")?.id ?? mainCategoryId;
-  const itemInserts: Database["public"]["Tables"]["menu_items"]["Insert"][] = [
-    {
-      menu_site_id: createdMenuSite.id,
-      category_id: mainCategoryId,
-      name: "대표 메뉴 샘플",
-      description: "마이페이지에서 실제 메뉴명과 설명으로 수정하세요.",
-      price: 19000,
-      badge: "BEST",
-      is_best: true,
-      visible: true,
-      sort_order: 1,
-    },
-    {
-      menu_site_id: createdMenuSite.id,
-      category_id: mealCategoryId,
-      name: "식사 메뉴 샘플",
-      description: "식사 메뉴 예시입니다. 실제 메뉴로 교체하세요.",
-      price: 16000,
-      visible: true,
-      sort_order: 2,
-    },
-    {
-      menu_site_id: createdMenuSite.id,
-      category_id: drinkCategoryId,
-      name: "음료 샘플",
-      description: "음료 메뉴 예시입니다.",
-      price: 7000,
-      visible: true,
-      sort_order: 3,
-    },
-  ];
-
-  const { error: itemsError } = await supabase.from("menu_items").insert(itemInserts);
-
-  if (itemsError) {
-    const minimalItemInserts: LooseInsert[] = [
-      {
-        menu_site_id: createdMenuSite.id,
-        category_id: mainCategoryId,
-        name: "대표 메뉴 샘플",
-        description: "마이페이지에서 실제 메뉴명과 설명으로 수정하세요.",
-        price: 19000,
-        recommended: true,
-        visible: true,
-        sort_order: 1,
-      },
-      {
-        menu_site_id: createdMenuSite.id,
-        category_id: drinkCategoryId,
-        name: "음료 샘플",
-        description: "음료 메뉴 예시입니다.",
-        price: 7000,
-        recommended: false,
-        visible: true,
-        sort_order: 2,
-      },
-    ];
-    const { error: fallbackItemsError } = await supabase.from("menu_items").insert(minimalItemInserts as never);
-
-    if (fallbackItemsError) {
-      throw new Error(`샘플 메뉴 생성에 실패했습니다: ${fallbackItemsError.message}`);
-    }
-  }
+  await createStarterMenuData(
+    supabase,
+    createdMenuSite.id,
+    orderPayload.template_key,
+    orderPayload.restaurantCategory,
+    orderPayload.template_category
+  );
+  await createMenuSocialLinks(supabase, createdMenuSite.id, orderPayload.socialLinks);
 
   return createdMenuSite;
+}
+
+async function createMenuSocialLinks(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  menuSiteId: string,
+  socialLinks: MenuOrderPayload["socialLinks"]
+) {
+  const normalizedSocialLinks = socialLinks ?? [];
+
+  if (normalizedSocialLinks.length === 0) {
+    return;
+  }
+
+  const { data: existingLinks, error: existingLinksError } = await supabase
+    .from("menu_social_links")
+    .select("type")
+    .eq("menu_site_id", menuSiteId);
+
+  if (existingLinksError) {
+    console.error("menu_social_links existing check failed", {
+      menuSiteId,
+      message: existingLinksError.message,
+    });
+    return;
+  }
+
+  const usedTypes = new Set((existingLinks ?? []).map((link) => link.type));
+  const availableSlots = Math.max(0, MENU_LIMITS.maxSocialLinksPerSite - usedTypes.size);
+  const nextLinks = normalizedSocialLinks.filter((link) => !usedTypes.has(link.type)).slice(0, availableSlots);
+
+  if (nextLinks.length === 0) {
+    return;
+  }
+
+  const inserts: Database["public"]["Tables"]["menu_social_links"]["Insert"][] = nextLinks.map((link, index) => ({
+    menu_site_id: menuSiteId,
+    type: link.type,
+    label: link.label,
+    display_name: link.display_name,
+    url: link.url,
+    visible: true,
+    sort_order: usedTypes.size + index,
+  }));
+
+  const { error } = await supabase.from("menu_social_links").insert(inserts);
+
+  if (!error) {
+    return;
+  }
+
+  const fallbackInserts: Database["public"]["Tables"]["menu_social_links"]["Insert"][] = nextLinks.map((link, index) => ({
+    menu_site_id: menuSiteId,
+    type: link.type,
+    label: link.display_name || link.label,
+    url: link.url,
+    visible: true,
+    sort_order: usedTypes.size + index,
+  }));
+  const { error: fallbackError } = await supabase.from("menu_social_links").insert(fallbackInserts);
+
+  if (fallbackError) {
+    console.error("menu_social_links insert failed", {
+      menuSiteId,
+      message: fallbackError.message,
+    });
+  }
 }
 
 async function createOrderRecord(
@@ -462,10 +520,9 @@ async function createPaymentRecord(
 }
 
 function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayload): VerifiedPayment {
-  // TODO: PortOne 테스트 결제 준비가 끝나면 mock 분기는 제거하거나 별도 테스트 전용 플래그로만 유지하세요.
-  // production에서는 절대 mock 결제가 통과하지 않도록 NODE_ENV와 paymentId prefix를 함께 검사합니다.
-  if (process.env.NODE_ENV === "production" || !paymentId.startsWith("mock_")) {
-    throw new Error("mock 결제 검증은 development 환경에서 mock_ paymentId로만 사용할 수 있습니다.");
+  // development 전용 DB 생성 흐름 테스트입니다. production에서는 portOneMockEnabled가 절대 true가 되지 않습니다.
+  if (!portOneMockEnabled || !paymentId.startsWith("mock_")) {
+    throw new Error("mock 결제 검증은 development 환경에서 PORTONE_MOCK_ENABLED=true와 mock_ paymentId로만 사용할 수 있습니다.");
   }
 
   const raw: PortOnePayment = {
@@ -477,7 +534,10 @@ function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayl
     amount: menuCreationProduct.amount,
     customData: {
       product_key: menuCreationProduct.key,
+      plan_key: orderPayload.plan_key,
+      buyer_type: orderPayload.buyerType,
       template_key: orderPayload.template_key,
+      template_category: orderPayload.template_category,
       desired_slug: orderPayload.desiredSlug,
       mock: true,
     },
@@ -510,7 +570,7 @@ async function getPortOnePayment(paymentId: string) {
 }
 
 async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload): Promise<VerifiedPayment> {
-  if (process.env.NODE_ENV !== "production" && paymentId.startsWith("mock_")) {
+  if (portOneMockEnabled && paymentId.startsWith("mock_")) {
     return createMockPortOnePayment(paymentId, orderPayload);
   }
 
@@ -518,6 +578,7 @@ async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload):
   const verifiedPaymentId = portOnePayment.id ?? portOnePayment.paymentId;
   const verifiedAmount = getPaymentAmount(portOnePayment);
   const customTemplateKey = portOnePayment.customData?.template_key ?? portOnePayment.customData?.templateKey;
+  const customTemplateCategory = portOnePayment.customData?.template_category ?? portOnePayment.customData?.templateCategory;
 
   if (verifiedPaymentId && verifiedPaymentId !== paymentId) {
     throw new Error("조회한 결제 ID가 요청한 paymentId와 일치하지 않습니다.");
@@ -533,6 +594,10 @@ async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload):
 
   if (customTemplateKey && customTemplateKey !== orderPayload.template_key) {
     throw new Error("결제 요청의 template_key와 완료 요청의 template_key가 일치하지 않습니다.");
+  }
+
+  if (customTemplateCategory && customTemplateCategory !== orderPayload.template_category) {
+    throw new Error("결제 요청의 template_category와 완료 요청의 template_category가 일치하지 않습니다.");
   }
 
   return {
@@ -562,7 +627,8 @@ export async function POST(request: Request) {
   }
 
   const paymentId = typeof body.paymentId === "string" ? body.paymentId.trim() : "";
-  const orderPayload = parseOrderPayload(body.orderPayload);
+  const orderSource = body.order ?? body.orderPayload;
+  const orderPayload = parseOrderPayload(orderSource);
   const templateKey = orderPayload?.template_key ?? (typeof body.template_key === "string" ? body.template_key.trim() : "");
 
   if (!paymentId) {
@@ -612,7 +678,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (existingSlugError) {
-    return jsonError(`slug 중복 확인에 실패했습니다: ${existingSlugError.message}`, 500);
+    return jsonError(`메뉴판 주소 중복 확인에 실패했습니다: ${existingSlugError.message}`, 500);
   }
 
   if (existingSlug) {
@@ -622,7 +688,7 @@ export async function POST(request: Request) {
   let menuSite: MenuSiteResult;
 
   try {
-    menuSite = await createMenuSiteWithSamples(supabase, user.id, orderPayload);
+    menuSite = await createMenuSiteWithStarterPreset(supabase, user.id, orderPayload);
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "메뉴판 생성 중 오류가 발생했습니다.", 500);
   }
@@ -651,5 +717,5 @@ export async function POST(request: Request) {
     paymentRecordId: paymentRecord.id,
     menuSiteId: menuSite.id,
     slug: menuSite.slug,
-  });
+  } satisfies PaymentCompleteResponse);
 }

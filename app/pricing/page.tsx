@@ -21,6 +21,7 @@ export default async function PricingPage() {
     .filter((template) => template.active)
     .map((template) => ({
       key: template.key,
+      template_category: template.template_category,
       name: template.name,
       description: template.description,
       badge: template.badge,

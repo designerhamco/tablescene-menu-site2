@@ -4,10 +4,11 @@ import PortOne from "@portone/browser-sdk/v2";
 import { useMemo, useState } from "react";
 
 import { formatKrw, menuCreationProduct } from "@/lib/payments";
-import type { TemplateKey } from "@/lib/templates";
+import type { TemplateCategoryKey, TemplateKey } from "@/lib/templates";
 
 type TemplateOption = {
   key: TemplateKey;
+  template_category: TemplateCategoryKey;
   name: string;
   description: string;
   badge: string;
@@ -56,7 +57,7 @@ export default function PricingPaymentClient({
   storeId,
   channelKey,
 }: PricingPaymentClientProps) {
-  const [selectedTemplateKey, setSelectedTemplateKey] = useState<TemplateKey>(templates[0]?.key ?? "design_a");
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState<TemplateKey>(templates[0]?.key ?? "cafe_design_a");
   const [uiState, setUiState] = useState<PaymentUiState>({
     type: "idle",
     message: null,
@@ -100,6 +101,7 @@ export default function PricingPaymentClient({
         },
         customData: {
           product_key: menuCreationProduct.key,
+          template_category: selectedTemplate?.template_category,
           template_key: selectedTemplateKey,
         },
       } as unknown as Parameters<typeof PortOne.requestPayment>[0];
@@ -134,6 +136,7 @@ export default function PricingPaymentClient({
         },
         body: JSON.stringify({
           paymentId: payment.paymentId,
+          template_category: selectedTemplate?.template_category,
           template_key: selectedTemplateKey,
         }),
       });
@@ -226,6 +229,10 @@ export default function PricingPaymentClient({
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
             <dt className="text-zinc-400">선택 템플릿</dt>
             <dd className="font-bold text-zinc-950">{selectedTemplate?.name}</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
+            <dt className="text-zinc-400">template_category</dt>
+            <dd className="font-mono text-xs font-bold text-zinc-700">{selectedTemplate?.template_category}</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
             <dt className="text-zinc-400">template_key</dt>

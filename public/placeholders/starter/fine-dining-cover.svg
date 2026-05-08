@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="Fine dining cover placeholder">
+  <rect width="1440" height="900" fill="#18181b"/>
+  <circle cx="720" cy="360" r="190" fill="none" stroke="#f8e731" stroke-width="18"/>
+  <circle cx="720" cy="360" r="96" fill="#27272a"/>
+  <rect x="470" y="640" width="500" height="34" rx="17" fill="#fafafa"/>
+  <rect x="560" y="706" width="320" height="22" rx="11" fill="#a1a1aa"/>
+  <text x="720" y="800" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="800" fill="#f8e731">DINING COURSE</text>
+</svg>
