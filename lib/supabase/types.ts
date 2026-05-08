@@ -283,6 +283,7 @@ export type Database = {
           image_url: string | null;
           image_path: string | null;
           badge: string | null;
+          badge_label: string | null;
           badge_type: BadgeType | null;
           recommended: boolean;
           origin_info: string | null;
@@ -312,6 +313,7 @@ export type Database = {
           image_url?: string | null;
           image_path?: string | null;
           badge?: string | null;
+          badge_label?: string | null;
           badge_type?: BadgeType | null;
           recommended?: boolean;
           origin_info?: string | null;
@@ -341,6 +343,7 @@ export type Database = {
           image_url?: string | null;
           image_path?: string | null;
           badge?: string | null;
+          badge_label?: string | null;
           badge_type?: BadgeType | null;
           recommended?: boolean;
           origin_info?: string | null;

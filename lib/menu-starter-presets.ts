@@ -906,6 +906,7 @@ export async function createStarterMenuData(
         portion_label: menuItem.portion_label ?? null,
         image_url: STARTER_PLACEHOLDERS.item,
         image_path: null,
+        badge_label: menuItem.recommended ? "추천" : null,
         recommended: menuItem.recommended ?? false,
         price_visible: true,
         portion_visible: true,
@@ -916,7 +917,23 @@ export async function createStarterMenuData(
     });
   });
 
-  const { data: insertedItems, error: itemsError } = await supabase.from("menu_items").insert(itemInserts).select("id, name, category_id");
+  let { data: insertedItems, error: itemsError } = await supabase.from("menu_items").insert(itemInserts).select("id, name, category_id");
+
+  if (
+    itemsError &&
+    (itemsError.message.toLowerCase().includes("badge_label") ||
+      itemsError.message.toLowerCase().includes("could not find") ||
+      itemsError.code === "42703")
+  ) {
+    const fallbackItemInserts = itemInserts.map((menuItem) => {
+      const fallbackMenuItem = { ...menuItem };
+      delete fallbackMenuItem.badge_label;
+      return fallbackMenuItem;
+    });
+    const fallbackResult = await supabase.from("menu_items").insert(fallbackItemInserts).select("id, name, category_id");
+    insertedItems = fallbackResult.data;
+    itemsError = fallbackResult.error;
+  }
 
   if (itemsError) {
     throw new Error(`기본 메뉴 아이템 생성에 실패했습니다: ${itemsError.message}`);

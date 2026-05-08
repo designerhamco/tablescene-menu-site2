@@ -13,6 +13,8 @@ import {
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
+import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
+import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import {
   ChefsSection as InteractiveChefsSection,
   EventsSection as InteractiveEventsSection,
@@ -73,6 +75,7 @@ type MenuItem = Pick<
   | "portion_label"
   | "portion_visible"
   | "image_url"
+  | "badge_label"
   | "badge_type"
   | "recommended"
   | "origin_info"
@@ -179,12 +182,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
 }
 
 function Checkbox({ name, defaultChecked, label }: { name: string; defaultChecked?: boolean; label: string }) {
-  return (
-    <label className="inline-flex items-start gap-2 text-sm font-bold leading-relaxed text-zinc-600">
-      <input name={name} type="checkbox" defaultChecked={defaultChecked} className="mt-1 h-4 w-4 accent-zinc-950" />
-      <span>{label}</span>
-    </label>
-  );
+  return <SwitchField name={name} label={label} defaultChecked={defaultChecked} onText="사용 중" offText="사용 안 함" />;
 }
 
 function SubmitButton({ children, tone = "dark" }: { children: ReactNode; tone?: "dark" | "light" | "danger" }) {
@@ -257,7 +255,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const [
     { data: menuPagesData },
     { data: categoriesData },
-    { data: itemsData },
+    { data: itemsData, error: itemsError },
     { data: priceOptionsData, error: priceOptionsError },
     { data: traitsData },
     { data: chefsData },
@@ -280,7 +278,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       supabase
         .from("menu_items")
         .select(
-          "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+          "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
         )
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
@@ -319,7 +317,23 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const menuPages = (menuPagesData ?? []) as MenuPage[];
   const categories = (categoriesData ?? []) as MenuCategory[];
-  const items = (itemsData ?? []) as MenuItem[];
+  const isMissingBadgeLabelColumn =
+    itemsError &&
+    (itemsError.message.toLowerCase().includes("badge_label") ||
+      itemsError.message.toLowerCase().includes("could not find") ||
+      itemsError.code === "42703");
+  const { data: legacyItemsData } =
+    isMissingBadgeLabelColumn
+      ? await supabase
+          .from("menu_items")
+          .select(
+            "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+          )
+          .eq("menu_site_id", menuId)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true })
+      : { data: null };
+  const items = ((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[];
   const isMissingPriceOptionsTable =
     priceOptionsError &&
     (priceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||
@@ -335,17 +349,25 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const publicUrl = getPublicMenuUrl(site.slug);
   const previewUrl = `/mypage/menus/${site.id}/preview`;
   const isSlugLocked = site.status === "published" || Boolean(site.published_at);
-  const hasVisibleItem = items.some((item) => item.visible);
   const checklist = [
     { label: "매장명 입력", ok: Boolean(site.restaurant_name || site.name) },
-    { label: "공개 주소 설정", ok: Boolean(site.slug) },
+    { label: "공개 메뉴판 주소 설정", ok: Boolean(site.slug) },
+    { label: "메뉴 페이지 1개 이상", ok: menuPages.length > 0 },
     { label: "메뉴 카테고리 1개 이상", ok: categories.length > 0 },
-    { label: "노출 메뉴 1개 이상", ok: hasVisibleItem },
-    { label: "공개 상태에서 메뉴판 주소 활성화", ok: site.status === "published" },
+    { label: "메뉴 아이템 1개 이상", ok: items.length > 0 },
+  ];
+  const optionalChecklist = [
+    { label: "인트로 페이지 사용", ok: pageSettings.intro_enabled },
+    { label: "메뉴 커버 페이지 사용", ok: pageSettings.menu_cover_enabled },
+    { label: "소개 페이지 사용", ok: pageSettings.about_enabled },
+    { label: "이벤트 등록", ok: events.length > 0 },
+    { label: "SNS 등록", ok: socialLinks.length > 0 },
+    { label: "셰프/인물 등록", ok: chefs.length > 0 },
   ];
 
   return (
     <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+      <MenuEditorScrollRestoration menuId={menuId} />
       <div className="mx-auto w-full max-w-4xl">
         <header className="mb-6 rounded-lg bg-white p-6 shadow-sm">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
@@ -497,44 +519,45 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "about" && (
-              <SectionCard title="소개" eyebrow="About">
-                <form action={updateAboutAction} className="grid gap-5 md:grid-cols-2">
-                  <HiddenMenuId menuId={site.id} />
-                  <div>
-                    <FieldLabel required>주소</FieldLabel>
-                    <TextInput name="restaurant_address" defaultValue={site.restaurant_address ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.restaurantAddress} helperText="공개 메뉴판의 소개 영역에 표시됩니다." />
-                  </div>
-                  <div>
-                    <FieldLabel required>전화번호</FieldLabel>
-                    <TextInput name="restaurant_phone" defaultValue={site.restaurant_phone ?? ""} required inputMode="tel" maxLength={20} pattern="[0-9+\-()\s]{8,20}" title="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." helperText="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." />
-                  </div>
-                  <div>
-                    <FieldLabel required>영업시간</FieldLabel>
-                    <TextInput name="opening_hours" defaultValue={site.opening_hours ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.openingHours} helperText="예: 매일 10:00 - 21:00" />
-                  </div>
-                  <div>
-                    <FieldLabel>지도 URL</FieldLabel>
-                    <TextInput name="map_url" defaultValue={site.map_url ?? ""} type="url" placeholder="https://..." maxLength={MENU_FIELD_LIMITS.menuSites.mapUrl} helperText="네이버지도, 카카오맵, 구글맵 링크를 입력할 수 있습니다." />
-                  </div>
-                  <div className="md:col-span-2">
-                    <FieldLabel required>소개 문구</FieldLabel>
-                    <TextArea name="about_description" defaultValue={site.about_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.aboutDescription} helperText={`매장 소개 영역에 표시됩니다. 최대 ${MENU_FIELD_LIMITS.menuSites.aboutDescription}자까지 입력할 수 있습니다.`} />
-                  </div>
-                  <div className="md:col-span-2">
-                    <FieldLabel>브랜드 설명</FieldLabel>
-                    <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription} helperText="브랜드 스토리나 운영 철학을 입력해주세요." />
-                  </div>
-                  <p className="md:col-span-2 text-sm font-semibold text-zinc-500">SNS 링크는 SNS 탭에서 관리합니다.</p>
-                  <div className="md:col-span-2">
-                    <SubmitButton>소개 저장</SubmitButton>
-                  </div>
-                </form>
-              </SectionCard>
+              <>
+                <SectionCard title="소개" eyebrow="About">
+                  <form action={updateAboutAction} className="grid gap-5 md:grid-cols-2">
+                    <HiddenMenuId menuId={site.id} />
+                    <div>
+                      <FieldLabel required>주소</FieldLabel>
+                      <TextInput name="restaurant_address" defaultValue={site.restaurant_address ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.restaurantAddress} helperText="공개 메뉴판의 소개 영역에 표시됩니다." />
+                    </div>
+                    <div>
+                      <FieldLabel required>전화번호</FieldLabel>
+                      <TextInput name="restaurant_phone" defaultValue={site.restaurant_phone ?? ""} required inputMode="tel" maxLength={20} pattern="[0-9+\-()\s]{8,20}" title="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." helperText="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." />
+                    </div>
+                    <div>
+                      <FieldLabel required>영업시간</FieldLabel>
+                      <TextInput name="opening_hours" defaultValue={site.opening_hours ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.openingHours} helperText="예: 매일 10:00 - 21:00" />
+                    </div>
+                    <div>
+                      <FieldLabel>지도 URL</FieldLabel>
+                      <TextInput name="map_url" defaultValue={site.map_url ?? ""} type="url" placeholder="https://..." maxLength={MENU_FIELD_LIMITS.menuSites.mapUrl} helperText="네이버지도, 카카오맵, 구글맵 링크를 입력할 수 있습니다." />
+                    </div>
+                    <div className="md:col-span-2">
+                      <FieldLabel required>소개 문구</FieldLabel>
+                      <TextArea name="about_description" defaultValue={site.about_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.aboutDescription} helperText={`매장 소개 영역에 표시됩니다. 최대 ${MENU_FIELD_LIMITS.menuSites.aboutDescription}자까지 입력할 수 있습니다.`} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <FieldLabel>브랜드 설명</FieldLabel>
+                      <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription} helperText="브랜드 스토리나 운영 철학을 입력해주세요." />
+                    </div>
+                    <div className="md:col-span-2">
+                      <SubmitButton>소개 저장</SubmitButton>
+                    </div>
+                  </form>
+                </SectionCard>
+                <InteractiveChefsSection menuId={site.id} chefs={chefs} />
+                <InteractiveSocialLinksSection menuId={site.id} socialLinks={socialLinks} />
+              </>
             )}
 
-            {activeTab === "chefs" && <InteractiveChefsSection menuId={site.id} chefs={chefs} />}
             {activeTab === "events" && <InteractiveEventsSection menuId={site.id} events={events} />}
-            {activeTab === "social" && <InteractiveSocialLinksSection menuId={site.id} socialLinks={socialLinks} />}
 
             {activeTab === "design" && (
               <SectionCard title="디자인" eyebrow="Design">
@@ -562,11 +585,21 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </Select>
                   </div>
                   <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-                    <h3 className="font-bold">공개 전 체크리스트</h3>
+                    <h3 className="font-bold">공개 전 필수 체크리스트</h3>
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
                       {checklist.map((item) => (
                         <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
                           {item.ok ? "완료" : "필요"} · {item.label}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-zinc-100 bg-white p-5">
+                    <h3 className="font-bold">선택 콘텐츠</h3>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                      {optionalChecklist.map((item) => (
+                        <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
+                          {item.ok ? "사용 중" : "미사용"} · {item.label}
                         </p>
                       ))}
                     </div>

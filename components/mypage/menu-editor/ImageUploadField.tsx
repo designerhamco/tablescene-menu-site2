@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
+import { saveMenuEditorScrollPosition } from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -92,6 +94,7 @@ export default function ImageUploadField({
       setPreviewUrl(result.imageUrl ?? "");
       setIsConfirmingDelete(false);
       setState({ type: "success", message: "이미지가 저장되었습니다." });
+      saveMenuEditorScrollPosition(menuId);
       router.refresh();
     } catch (error) {
       setState({ type: "error", message: error instanceof Error ? error.message : "이미지 업로드 중 오류가 발생했습니다." });
@@ -126,6 +129,7 @@ export default function ImageUploadField({
       setPreviewUrl("");
       setIsConfirmingDelete(false);
       setState({ type: "success", message: "이미지가 삭제되었습니다." });
+      saveMenuEditorScrollPosition(menuId);
       router.refresh();
     } catch (error) {
       setState({ type: "error", message: error instanceof Error ? error.message : "이미지 삭제 중 오류가 발생했습니다." });

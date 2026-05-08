@@ -14,6 +14,7 @@ import {
   updateSocialLinkAction,
 } from "@/app/mypage/menus/actions";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
+import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getSocialLinkLabel, SOCIAL_LINK_TYPES } from "@/lib/social-links";
 import type { Database } from "@/lib/supabase/types";
@@ -105,13 +106,20 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
   );
 }
 
-function Checkbox({ name, defaultChecked, label }: { name: string; defaultChecked?: boolean; label: string }) {
-  return (
-    <label className="inline-flex items-start gap-2 text-sm font-bold leading-relaxed text-zinc-600">
-      <input name={name} type="checkbox" defaultChecked={defaultChecked} className="mt-1 h-4 w-4 accent-zinc-950" />
-      <span>{label}</span>
-    </label>
-  );
+function Checkbox({
+  name,
+  defaultChecked,
+  label,
+  canTurnOn,
+  blockedMessage,
+}: {
+  name: string;
+  defaultChecked?: boolean;
+  label: string;
+  canTurnOn?: boolean;
+  blockedMessage?: ReactNode;
+}) {
+  return <SwitchField name={name} label={label} defaultChecked={defaultChecked} canTurnOn={canTurnOn} blockedMessage={blockedMessage} />;
 }
 
 function SubmitButton({
@@ -408,6 +416,10 @@ function EventForm({ menuId, count, onCancel }: { menuId: string; count: number;
 }
 
 function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
+  const [regularPriceLabel, setRegularPriceLabel] = useState(event?.event_regular_price_label ?? "");
+  const [salePriceLabel, setSalePriceLabel] = useState(event?.event_sale_price_label ?? "");
+  const hasEventPriceData = Boolean(regularPriceLabel.trim() || salePriceLabel.trim());
+
   return (
     <>
       <div>
@@ -445,11 +457,25 @@ function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
       </div>
       <div>
         <FieldLabel>정가 표시 문구</FieldLabel>
-        <TextInput name="event_regular_price_label" defaultValue={event?.event_regular_price_label ?? ""} placeholder="29,000원" maxLength={MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel} helperText="가격 문구 그대로 표시됩니다." />
+        <TextInput
+          name="event_regular_price_label"
+          defaultValue={event?.event_regular_price_label ?? ""}
+          placeholder="29,000원"
+          maxLength={MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel}
+          helperText="가격 문구 그대로 표시됩니다."
+          onChange={(event) => setRegularPriceLabel(event.target.value)}
+        />
       </div>
       <div>
         <FieldLabel>할인가/이벤트가 표시 문구</FieldLabel>
-        <TextInput name="event_sale_price_label" defaultValue={event?.event_sale_price_label ?? ""} placeholder="19,000원, 무료" maxLength={MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel} helperText="할인가 또는 이벤트가 문구를 입력해주세요." />
+        <TextInput
+          name="event_sale_price_label"
+          defaultValue={event?.event_sale_price_label ?? ""}
+          placeholder="19,000원, 무료"
+          maxLength={MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel}
+          helperText="할인가 또는 이벤트가 문구를 입력해주세요."
+          onChange={(event) => setSalePriceLabel(event.target.value)}
+        />
       </div>
       <div>
         <FieldLabel>시작일</FieldLabel>
@@ -468,7 +494,13 @@ function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
         <TextInput name="event_sort_order" type="number" min={0} step={1} defaultValue={event?.sort_order ?? (count ?? 0) + 1} helperText="숫자가 낮을수록 먼저 표시됩니다." />
       </div>
       <div className="flex flex-col gap-3 md:col-span-2">
-        <Checkbox name="event_price_visible" label="이벤트 가격 영역 표시" defaultChecked={event?.event_price_visible ?? true} />
+        <Checkbox
+          name="event_price_visible"
+          label="이벤트 가격 영역 표시"
+          defaultChecked={Boolean((event?.event_price_visible ?? true) && hasEventPriceData)}
+          canTurnOn={hasEventPriceData}
+          blockedMessage="이벤트 가격 정보를 먼저 입력해주세요."
+        />
         <Checkbox name="event_visible" label="메뉴판에 표시" defaultChecked={event?.visible ?? true} />
       </div>
     </>

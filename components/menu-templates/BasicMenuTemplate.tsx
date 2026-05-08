@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import ImagePlaceholder from "@/components/menu-templates/shared/ImagePlaceholder";
 import MenuGnb from "@/components/menu-templates/shared/MenuGnb";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
+import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import {
   formatEventPricePair,
@@ -147,6 +148,7 @@ function MenuItemCard({
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
   const visiblePriceOptions = item.price_visible ? getItemPriceOptions(priceOptions, item.id) : [];
+  const badgeLabel = getMenuItemBadgeLabel(item);
   const visibleTraits = shouldShowMenuItemTraits(item, traits)
     ? traits
         .filter((trait) => trait.visible)
@@ -165,7 +167,7 @@ function MenuItemCard({
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              {item.recommended && <span className="rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-black text-white">추천</span>}
+              {badgeLabel && <span className="rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-black text-white">{badgeLabel}</span>}
               {item.is_sold_out && <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-black text-zinc-500">품절</span>}
             </div>
             {item.set_name && <p className="mb-1 text-xs font-black text-zinc-400">{item.set_name}</p>}
@@ -284,31 +286,45 @@ function AboutSection({ data }: { data: PublicMenuTemplateProps }) {
           { label: "지도", value: menuSite.map_url, href: menuSite.map_url },
         ]}
       />
-    </Section>
-  );
-}
-
-function ChefsSection({ data }: { data: PublicMenuTemplateProps }) {
-  if (data.chefs.length === 0) return null;
-
-  return (
-    <Section eyebrow="People" title="셰프 / 인물">
-      <div className="grid gap-4">
-        {data.chefs.map((chef) => (
-          <article key={chef.id} className="flex gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-            {chef.chef_image_url ? (
-              <img src={chef.chef_image_url} alt={chef.chef_name} className="h-20 w-20 rounded-lg object-cover" />
-            ) : (
-              <ImagePlaceholder className="h-20 w-20 shrink-0" iconClassName="h-9 w-9" />
-            )}
-            <div>
-              <h3 className="text-lg font-black text-zinc-950">{chef.chef_name}</h3>
-              {chef.chef_role && <p className="mt-1 text-sm font-black text-zinc-400">{chef.chef_role}</p>}
-              {chef.chef_description && <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{chef.chef_description}</p>}
-            </div>
-          </article>
-        ))}
-      </div>
+      {data.chefs.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-lg font-black text-zinc-950">셰프 / 인물</h3>
+          <div className="mt-4 grid gap-4">
+            {data.chefs.map((chef) => (
+              <article key={chef.id} className="flex gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                {chef.chef_image_url ? (
+                  <img src={chef.chef_image_url} alt={chef.chef_name} className="h-20 w-20 rounded-lg object-cover" />
+                ) : (
+                  <ImagePlaceholder className="h-20 w-20 shrink-0" iconClassName="h-9 w-9" />
+                )}
+                <div>
+                  <h4 className="text-lg font-black text-zinc-950">{chef.chef_name}</h4>
+                  {chef.chef_role && <p className="mt-1 text-sm font-black text-zinc-400">{chef.chef_role}</p>}
+                  {chef.chef_description && <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{chef.chef_description}</p>}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+      {data.socialLinks.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-lg font-black text-zinc-950">SNS</h3>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {data.socialLinks.map((link) => (
+              <a
+                key={link.id}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-black text-zinc-700 hover:bg-zinc-50"
+              >
+                {link.display_name || link.label || link.type}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </Section>
   );
 }
@@ -351,28 +367,6 @@ function EventsSection({ data }: { data: PublicMenuTemplateProps }) {
   );
 }
 
-function SocialLinksSection({ data }: { data: PublicMenuTemplateProps }) {
-  if (data.socialLinks.length === 0) return null;
-
-  return (
-    <Section eyebrow="Social" title="SNS">
-      <div className="flex flex-wrap gap-2">
-        {data.socialLinks.map((link) => (
-          <a
-            key={link.id}
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-black text-zinc-700 hover:bg-zinc-50"
-          >
-            {link.display_name || link.label || link.type}
-          </a>
-        ))}
-      </div>
-    </Section>
-  );
-}
-
 export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
   const { pageSettings } = data;
 
@@ -383,9 +377,7 @@ export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
       {pageSettings.menu_cover_enabled && <MenuCoverSection data={data} />}
       <MenuPagesSection data={data} />
       {pageSettings.about_enabled && <AboutSection data={data} />}
-      {pageSettings.chefs_enabled && <ChefsSection data={data} />}
-      {pageSettings.events_enabled && <EventsSection data={data} />}
-      {pageSettings.social_links_enabled && <SocialLinksSection data={data} />}
+      <EventsSection data={data} />
     </div>
   );
 }

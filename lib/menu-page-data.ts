@@ -1,7 +1,7 @@
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/MenuTemplateRenderer";
 import { createClient } from "@/lib/supabase/server";
-import type { Database, MenuSectionKey } from "@/lib/supabase/types";
-import { mergePageSettings, sortMenuPages, type PageSettings } from "@/types/menu";
+import type { Database } from "@/lib/supabase/types";
+import { mergePageSettings, sortMenuPages } from "@/types/menu";
 
 type MenuSite = PublicMenuTemplateProps["menuSite"] &
   Pick<Database["public"]["Tables"]["menu_sites"]["Row"], "status" | "user_id">;
@@ -23,6 +23,8 @@ const siteSelect = baseSiteSelect.replace("template_key", "template_key, templat
 const pageSelect = "id, title, description, description_visible, legacy_section_key, visible, sort_order, created_at";
 const categorySelect = "id, menu_page_id, name, description, description_visible, sort_order, visible";
 const itemSelect =
+  "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
+const legacyItemSelect =
   "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
 const priceOptionSelect = "id, menu_item_id, label, price, price_label, visible, sort_order";
 const traitSelect = "id, menu_item_id, label, value, max_value, visible, sort_order";
@@ -30,25 +32,6 @@ const eventSelect =
   "id, event_title, event_subtitle, event_description, event_period, event_image_url, event_benefit, event_detail, event_regular_price_label, event_sale_price_label, event_price_visible, visible, sort_order";
 const chefSelect = "id, chef_name, chef_role, chef_description, chef_image_url, visible, sort_order";
 const socialLinkSelect = "id, type, label, display_name, url, visible, sort_order";
-
-const legacyPageSettingBySection: Partial<Record<MenuSectionKey, keyof PageSettings>> = {
-  set_menu: "set_menu_enabled",
-  main_menu: "main_menu_enabled",
-  dessert_drink: "dessert_drink_enabled",
-};
-
-function isLegacyMenuSectionKey(value: string | null): value is MenuSectionKey {
-  return value === "set_menu" || value === "main_menu" || value === "dessert_drink";
-}
-
-function pageEnabledBySettings(page: MenuPage, pageSettings: PageSettings) {
-  if (!isLegacyMenuSectionKey(page.legacy_section_key)) {
-    return true;
-  }
-
-  const settingKey = legacyPageSettingBySection[page.legacy_section_key];
-  return settingKey ? pageSettings[settingKey] : true;
-}
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {
   return [...rows].sort((a, b) => {
@@ -68,7 +51,6 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
     .from("menu_pages")
     .select(pageSelect)
     .eq("menu_site_id", menuSite.id)
-    .eq("visible", true)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
 
@@ -76,7 +58,7 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
     return null;
   }
 
-  const pages = sortMenuPages(((pagesData ?? []) as MenuPage[]).filter((page) => pageEnabledBySettings(page, pageSettings)));
+  const pages = sortMenuPages((pagesData ?? []) as MenuPage[]);
   const pageIds = pages.map((page) => page.id);
 
   const { data: categoriesData, error: categoriesError } = pageIds.length
@@ -106,11 +88,28 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
         .order("created_at", { ascending: true })
     : { data: [], error: null };
 
-  if (itemsError) {
+  const isMissingBadgeLabelColumn =
+    itemsError &&
+    (itemsError.message.toLowerCase().includes("badge_label") ||
+      itemsError.message.toLowerCase().includes("could not find") ||
+      itemsError.code === "42703");
+
+  const { data: legacyItemsData, error: legacyItemsError } =
+    isMissingBadgeLabelColumn && categoryIds.length
+      ? await supabase
+          .from("menu_items")
+          .select(legacyItemSelect)
+          .in("category_id", categoryIds)
+          .eq("visible", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true })
+      : { data: null, error: null };
+
+  if ((itemsError && !isMissingBadgeLabelColumn) || legacyItemsError) {
     return null;
   }
 
-  const items = orderBySortThenCreated((itemsData ?? []) as MenuItem[]);
+  const items = orderBySortThenCreated(((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[]);
   const itemIds = items.map((item) => item.id);
   const traitItemIds = items.filter((item) => item.traits_visible).map((item) => item.id);
 
@@ -139,33 +138,27 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true })
       : Promise.resolve({ data: [], error: null }),
-    pageSettings.events_enabled
-      ? supabase
-          .from("menu_events")
-          .select(eventSelect)
-          .eq("menu_site_id", menuSite.id)
-          .eq("visible", true)
-          .order("sort_order", { ascending: true })
-          .order("created_at", { ascending: true })
-      : Promise.resolve({ data: [], error: null }),
-    pageSettings.chefs_enabled
-      ? supabase
-          .from("menu_chefs")
-          .select(chefSelect)
-          .eq("menu_site_id", menuSite.id)
-          .eq("visible", true)
-          .order("sort_order", { ascending: true })
-          .order("created_at", { ascending: true })
-      : Promise.resolve({ data: [], error: null }),
-    pageSettings.social_links_enabled
-      ? supabase
-          .from("menu_social_links")
-          .select(socialLinkSelect)
-          .eq("menu_site_id", menuSite.id)
-          .eq("visible", true)
-          .order("sort_order", { ascending: true })
-          .order("created_at", { ascending: true })
-      : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("menu_events")
+      .select(eventSelect)
+      .eq("menu_site_id", menuSite.id)
+      .eq("visible", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("menu_chefs")
+      .select(chefSelect)
+      .eq("menu_site_id", menuSite.id)
+      .eq("visible", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("menu_social_links")
+      .select(socialLinkSelect)
+      .eq("menu_site_id", menuSite.id)
+      .eq("visible", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
   ]);
 
   const isMissingPriceOptionsTable =

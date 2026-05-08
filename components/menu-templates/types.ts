@@ -54,6 +54,7 @@ export type PublicMenuItem = Pick<
   | "portion_visible"
   | "image_url"
   | "badge"
+  | "badge_label"
   | "badge_type"
   | "recommended"
   | "origin_info"

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { normalizeBadgeType } from "@/lib/menu-badges";
+import { getLegacyBadgeTypeForLabel, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
@@ -84,17 +84,155 @@ function validatePriceOptionForm(menuId: string, formData: FormData) {
   validateRequiredText(menuId, label, "옵션명", MENU_FIELD_LIMITS.menuItemPriceOptions.label);
   validateOptionalText(menuId, priceLabel, "옵션 가격 표시 문구", MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel);
 
-  if (price === undefined && !priceLabel) {
-    redirectToMenuEditWithError(menuId, "가격 옵션은 가격 또는 옵션 가격 표시 문구 중 하나를 입력해주세요.");
+  if (price === undefined) {
+    redirectToMenuEditWithError(menuId, "옵션 가격을 입력해주세요.");
   }
 
   return {
     label,
-    price: price ?? null,
+    price,
     price_label: priceLabel,
-    visible: getBoolean(formData, "price_option_visible"),
     sort_order: getNumber(formData, "price_option_sort_order"),
   };
+}
+
+function getNewMenuItemPriceOptions(menuId: string, formData: FormData) {
+  return Array.from({ length: MENU_LIMITS.maxPriceOptionsPerItem }, (_, index) => {
+    const label = getString(formData, `new_price_option_${index}_label`);
+    const price = getOptionalNumber(formData, `new_price_option_${index}_price`);
+    const priceLabel = getNullableString(formData, `new_price_option_${index}_price_label`);
+    const sortOrder = getNumber(formData, `new_price_option_${index}_sort_order`, index + 1);
+
+    if (!label && price === undefined && !priceLabel) return null;
+
+    validateRequiredText(menuId, label, "옵션명", MENU_FIELD_LIMITS.menuItemPriceOptions.label);
+    validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel);
+
+    if (price === undefined) {
+      redirectToMenuEditWithError(menuId, "옵션 가격을 입력해주세요.");
+    }
+
+    return {
+      label,
+      price,
+      price_label: priceLabel,
+      visible: true,
+      sort_order: sortOrder,
+    };
+  }).filter((option): option is NonNullable<typeof option> => Boolean(option));
+}
+
+type MenuItemTraitSlotInput = {
+  id: string | null;
+  label: string;
+  value: number;
+  visible: boolean;
+  sort_order: number;
+};
+
+function getMenuItemTraitSlots(menuId: string, formData: FormData): MenuItemTraitSlotInput[] {
+  return Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => {
+    const id = getNullableString(formData, `trait_slot_${index}_id`);
+    const label = getString(formData, `trait_slot_${index}_label`);
+    const value = getNumber(formData, `trait_slot_${index}_value`, MENU_FIELD_LIMITS.menuItemTraits.minValue);
+    const visible = getBoolean(formData, `trait_slot_${index}_visible`);
+    const sortOrder = getNumber(formData, `trait_slot_${index}_sort_order`, index);
+
+    if (!label) {
+      return { id, label, value, visible, sort_order: sortOrder };
+    }
+
+    const validation = validateMenuItemTrait({
+      label,
+      value,
+      max_value: MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue,
+      visible,
+      sort_order: sortOrder,
+    });
+
+    if (!validation.ok) {
+      redirectToMenuEditWithError(menuId, validation.message);
+    }
+
+    return {
+      id,
+      ...validation.trait,
+    };
+  });
+}
+
+async function syncMenuItemTraitSlots(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  menuId: string,
+  itemId: string,
+  slots: MenuItemTraitSlotInput[]
+) {
+  for (const slot of slots) {
+    if (!slot.label) {
+      if (slot.id) {
+        const { error } = await supabase
+          .from("menu_item_traits")
+          .update({ visible: false, updated_at: new Date().toISOString() })
+          .eq("id", slot.id)
+          .eq("menu_site_id", menuId)
+          .eq("menu_item_id", itemId);
+
+        if (error) {
+          redirectToMenuEditWithError(menuId, `빈 맛/특징 지표 숨김 처리에 실패했습니다: ${error.message}`);
+        }
+      }
+
+      continue;
+    }
+
+    const payload: MenuItemTraitInsert | MenuItemTraitUpdate = {
+      label: slot.label,
+      value: slot.value,
+      max_value: MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue,
+      visible: slot.visible,
+      sort_order: slot.sort_order,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (slot.id) {
+      const { error } = await supabase
+        .from("menu_item_traits")
+        .update(payload)
+        .eq("id", slot.id)
+        .eq("menu_site_id", menuId)
+        .eq("menu_item_id", itemId);
+
+      if (error) {
+        redirectToMenuEditWithError(menuId, `맛/특징 지표 저장에 실패했습니다: ${error.message}`);
+      }
+
+      continue;
+    }
+
+    const insertPayload: MenuItemTraitInsert = {
+      menu_site_id: menuId,
+      menu_item_id: itemId,
+      label: slot.label,
+      value: slot.value,
+      max_value: MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue,
+      visible: slot.visible,
+      sort_order: slot.sort_order,
+    };
+    const { error } = await supabase.from("menu_item_traits").insert(insertPayload);
+
+    if (error) {
+      redirectToMenuEditWithError(menuId, `맛/특징 지표 저장에 실패했습니다: ${error.message}`);
+    }
+  }
+}
+
+function isMissingBadgeLabelColumnError(error: { message: string; code?: string } | null) {
+  return Boolean(
+    error &&
+      (error.message.toLowerCase().includes("badge_label") ||
+        error.message.toLowerCase().includes("could not find") ||
+        error.code === "42703")
+  );
 }
 
 function validateRequiredPhone(menuId: string, value: string | null, label: string, tab = "about") {
@@ -296,8 +434,8 @@ async function assertChefBelongsToMenuSite(menuId: string, chefId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("menu_chefs").select("id, chef_image_path").eq("id", chefId).eq("menu_site_id", menuId).maybeSingle();
 
-  if (error) redirectToTabEditWithError(menuId, "chefs", `셰프/인물 확인에 실패했습니다: ${error.message}`);
-  if (!data) redirectToTabEditWithError(menuId, "chefs", "해당 셰프/인물 정보를 찾을 수 없습니다.");
+  if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 확인에 실패했습니다: ${error.message}`);
+  if (!data) redirectToTabEditWithError(menuId, "about", "해당 셰프/인물 정보를 찾을 수 없습니다.");
 
   return data;
 }
@@ -316,8 +454,8 @@ async function assertSocialLinkBelongsToMenuSite(menuId: string, socialLinkId: s
   const supabase = await createClient();
   const { data, error } = await supabase.from("menu_social_links").select("id").eq("id", socialLinkId).eq("menu_site_id", menuId).maybeSingle();
 
-  if (error) redirectToTabEditWithError(menuId, "social", `SNS 링크 확인에 실패했습니다: ${error.message}`);
-  if (!data) redirectToTabEditWithError(menuId, "social", "해당 SNS 링크를 찾을 수 없습니다.");
+  if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 확인에 실패했습니다: ${error.message}`);
+  if (!data) redirectToTabEditWithError(menuId, "about", "해당 SNS 링크를 찾을 수 없습니다.");
 }
 
 async function assertTraitBelongsToMenuSite(menuId: string, traitId: string) {
@@ -671,8 +809,8 @@ export async function createMenuPageAction(formData: FormData) {
     menu_site_id: menuId,
     title,
     description,
-    description_visible: getBoolean(formData, "menu_page_description_visible"),
-    visible: getBoolean(formData, "menu_page_visible"),
+    description_visible: Boolean(description && getBoolean(formData, "menu_page_description_visible")),
+    visible: true,
     sort_order: getNumber(formData, "menu_page_sort_order"),
   };
 
@@ -706,8 +844,8 @@ export async function updateMenuPageAction(formData: FormData) {
   const payload: MenuPageUpdate = {
     title,
     description,
-    description_visible: getBoolean(formData, "menu_page_description_visible"),
-    visible: getBoolean(formData, "menu_page_visible"),
+    description_visible: Boolean(description && getBoolean(formData, "menu_page_description_visible")),
+    visible: true,
     sort_order: getNumber(formData, "menu_page_sort_order"),
     updated_at: new Date().toISOString(),
   };
@@ -812,7 +950,7 @@ export async function createCategoryAction(formData: FormData) {
     menu_page_id: menuPageId,
     name,
     description,
-    description_visible: getBoolean(formData, "category_description_visible"),
+    description_visible: Boolean(description && getBoolean(formData, "category_description_visible")),
     section_key: getMenuPageSectionKey(menuPage.legacy_section_key),
     sort_order: getNumber(formData, "category_sort_order"),
     visible: getBoolean(formData, "category_visible"),
@@ -857,7 +995,7 @@ export async function updateCategoryAction(formData: FormData) {
     menu_page_id: menuPageId,
     name,
     description,
-    description_visible: getBoolean(formData, "category_description_visible"),
+    description_visible: Boolean(description && getBoolean(formData, "category_description_visible")),
     section_key: getMenuPageSectionKey(menuPage.legacy_section_key),
     sort_order: getNumber(formData, "category_sort_order"),
     visible: getBoolean(formData, "category_visible"),
@@ -940,6 +1078,7 @@ export async function createMenuItemAction(formData: FormData) {
   const priceLabel = getNullableString(formData, "item_price_label");
   const portionLabel = getNullableString(formData, "item_portion_label");
   const description = getNullableString(formData, "item_description");
+  const priceMode = getString(formData, "item_price_mode") === "options" ? "options" : "single";
 
   validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
   validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
@@ -948,8 +1087,14 @@ export async function createMenuItemAction(formData: FormData) {
   validateOptionalText(menuId, getNullableString(formData, "item_origin_info"), "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
 
   const price = getOptionalNumber(formData, "item_price");
-  if (price === undefined && !priceLabel) {
-    redirectToMenuEditWithError(menuId, "단일 가격 모드에서는 기본 가격 또는 가격 표시 문구 중 하나를 입력해주세요.");
+  const newPriceOptions = getNewMenuItemPriceOptions(menuId, formData);
+
+  if (priceMode === "single" && price === undefined) {
+    redirectToMenuEditWithError(menuId, "기본 가격을 입력해주세요.");
+  }
+
+  if (priceMode === "options" && newPriceOptions.length < 1) {
+    redirectToMenuEditWithError(menuId, "옵션별 가격을 1개 이상 추가해주세요.");
   }
 
   const categoryId = getString(formData, "item_category_id");
@@ -987,8 +1132,11 @@ export async function createMenuItemAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `한 메뉴판에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
   }
 
-  const badgeType = normalizeBadgeType(formData.get("item_badge_type"));
+  const badgeLabel = normalizeMenuBadgeLabel(formData.get("item_badge_label"));
+  const badgeType = getLegacyBadgeTypeForLabel(badgeLabel);
   const setName = category?.section_key === "set_menu" ? getNullableString(formData, "item_set_name") : null;
+  const traitSlots = getMenuItemTraitSlots(menuId, formData);
+  const hasTraitSlotData = traitSlots.some((slot) => slot.label);
 
   const payload: MenuItemInsert = {
     menu_site_id: menuId,
@@ -996,25 +1144,55 @@ export async function createMenuItemAction(formData: FormData) {
     name,
     set_name: setName,
     description,
-    price,
-    price_label: priceLabel,
+    price: priceMode === "single" ? price : undefined,
+    price_label: priceMode === "single" ? priceLabel : null,
     price_visible: getBoolean(formData, "item_price_visible"),
     portion_label: portionLabel,
-    portion_visible: getBoolean(formData, "item_portion_visible"),
+    portion_visible: Boolean(getBoolean(formData, "item_portion_visible") && portionLabel),
+    badge_label: badgeLabel,
     badge_type: badgeType,
-    recommended: badgeType === "recommend" || getBoolean(formData, "item_recommended"),
+    recommended: Boolean(badgeLabel),
     origin_info: getNullableString(formData, "item_origin_info"),
-    is_best: badgeType === "best" || getBoolean(formData, "item_is_best"),
+    is_best: badgeLabel === "BEST",
     is_sold_out: getBoolean(formData, "item_is_sold_out"),
-    traits_visible: getBoolean(formData, "item_traits_visible"),
+    traits_visible: Boolean(getBoolean(formData, "item_traits_visible") && hasTraitSlotData),
     visible: getBoolean(formData, "item_visible"),
     sort_order: getNumber(formData, "item_sort_order"),
   };
 
-  const { error } = await supabase.from("menu_items").insert(payload);
+  let { data: createdItem, error } = await supabase.from("menu_items").insert(payload).select("id").single();
+
+  if (isMissingBadgeLabelColumnError(error)) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.badge_label;
+    const fallbackResult = await supabase.from("menu_items").insert(fallbackPayload).select("id").single();
+    createdItem = fallbackResult.data;
+    error = fallbackResult.error;
+  }
 
   if (error) {
     redirectToMenuEditWithError(menuId, `아이템 추가에 실패했습니다: ${error.message}`);
+  }
+
+  if (createdItem?.id) {
+    await syncMenuItemTraitSlots(supabase, menuId, createdItem.id, traitSlots);
+
+    if (priceMode === "options") {
+      const payloads: MenuItemPriceOptionInsert[] = newPriceOptions.map((option) => ({
+        menu_site_id: menuId,
+        menu_item_id: createdItem.id,
+        ...option,
+      }));
+      const { error: priceOptionsError } = await supabase.from("menu_item_price_options").insert(payloads);
+
+      if (priceOptionsError) {
+        revalidateMenuPaths(menuId, menuSite.slug);
+        redirectToMenuEditWithError(
+          menuId,
+          `아이템은 추가되었지만 옵션별 가격 저장에 실패했습니다: ${priceOptionsError.message}. 생성된 아이템 카드에서 옵션 가격을 다시 추가해주세요.`
+        );
+      }
+    }
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
@@ -1045,12 +1223,12 @@ export async function updateMenuItemAction(formData: FormData) {
   validateOptionalText(menuId, description, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
   validateOptionalText(menuId, getNullableString(formData, "item_origin_info"), "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
 
-  if (priceMode === "single" && price === undefined && !priceLabel) {
-    redirectToMenuEditWithError(menuId, "단일 가격 모드에서는 기본 가격 또는 가격 표시 문구 중 하나를 입력해주세요.");
+  if (priceMode === "single" && price === undefined) {
+    redirectToMenuEditWithError(menuId, "기본 가격을 입력해주세요.");
   }
 
   if (priceMode === "options") {
-    const { count: visiblePriceOptionCount, error: visiblePriceOptionCountError } = await supabase
+    const { count, error: visiblePriceOptionCountError } = await supabase
       .from("menu_item_price_options")
       .select("id", { count: "exact", head: true })
       .eq("menu_site_id", menuId)
@@ -1061,9 +1239,10 @@ export async function updateMenuItemAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, `가격 옵션 확인에 실패했습니다: ${visiblePriceOptionCountError.message}`);
     }
 
-    if ((visiblePriceOptionCount ?? 0) < 1) {
+    if ((count ?? 0) < 1) {
       redirectToMenuEditWithError(menuId, "옵션별 가격 모드에서는 가격 옵션을 1개 이상 등록하고 표시 상태로 켜주세요.");
     }
+
   }
 
   const categoryId = getString(formData, "item_category_id");
@@ -1074,8 +1253,11 @@ export async function updateMenuItemAction(formData: FormData) {
 
   const category = await assertCategoryBelongsToMenuSite(menuId, categoryId);
 
-  const badgeType = normalizeBadgeType(formData.get("item_badge_type"));
+  const badgeLabel = normalizeMenuBadgeLabel(formData.get("item_badge_label"));
+  const badgeType = getLegacyBadgeTypeForLabel(badgeLabel);
   const setName = category?.section_key === "set_menu" ? getNullableString(formData, "item_set_name") : null;
+  const traitSlots = getMenuItemTraitSlots(menuId, formData);
+  const hasTraitSlotData = traitSlots.some((slot) => slot.label);
 
   const payload: MenuItemUpdate = {
     category_id: categoryId,
@@ -1084,13 +1266,14 @@ export async function updateMenuItemAction(formData: FormData) {
     description,
     price_visible: getBoolean(formData, "item_price_visible"),
     portion_label: portionLabel,
-    portion_visible: getBoolean(formData, "item_portion_visible"),
+    portion_visible: Boolean(getBoolean(formData, "item_portion_visible") && portionLabel),
+    badge_label: badgeLabel,
     badge_type: badgeType,
-    recommended: badgeType === "recommend" || getBoolean(formData, "item_recommended"),
+    recommended: Boolean(badgeLabel),
     origin_info: getNullableString(formData, "item_origin_info"),
-    is_best: badgeType === "best" || getBoolean(formData, "item_is_best"),
+    is_best: badgeLabel === "BEST",
     is_sold_out: getBoolean(formData, "item_is_sold_out"),
-    traits_visible: getBoolean(formData, "item_traits_visible"),
+    traits_visible: Boolean(getBoolean(formData, "item_traits_visible") && hasTraitSlotData),
     visible: getBoolean(formData, "item_visible"),
     sort_order: getNumber(formData, "item_sort_order"),
     updated_at: new Date().toISOString(),
@@ -1101,15 +1284,28 @@ export async function updateMenuItemAction(formData: FormData) {
     payload.price_label = priceLabel;
   }
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from("menu_items")
     .update(payload)
     .eq("id", itemId)
     .eq("menu_site_id", menuId);
 
+  if (isMissingBadgeLabelColumnError(error)) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.badge_label;
+    const fallbackResult = await supabase
+      .from("menu_items")
+      .update(fallbackPayload)
+      .eq("id", itemId)
+      .eq("menu_site_id", menuId);
+    error = fallbackResult.error;
+  }
+
   if (error) {
     redirectToMenuEditWithError(menuId, `아이템 저장에 실패했습니다: ${error.message}`);
   }
+
+  await syncMenuItemTraitSlots(supabase, menuId, itemId, traitSlots);
 
   if (priceMode === "single") {
     const { error: hidePriceOptionsError } = await supabase
@@ -1215,6 +1411,7 @@ export async function createMenuItemPriceOptionAction(formData: FormData) {
   const payload: MenuItemPriceOptionInsert = {
     menu_site_id: menuId,
     menu_item_id: itemId,
+    visible: true,
     ...payloadInput,
   };
   const { error } = await supabase.from("menu_item_price_options").insert(payload);
@@ -1354,21 +1551,21 @@ export async function createChefAction(formData: FormData) {
   const chefRole = getString(formData, "chef_role");
   const chefDescription = getString(formData, "chef_description");
 
-  if (!chefName) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 이름을 입력해주세요.");
-  if (!chefRole) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 역할을 입력해주세요.");
-  if (!chefDescription) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 소개를 입력해주세요.");
-  validateRequiredText(menuId, chefName, "셰프/인물 이름", MENU_FIELD_LIMITS.menuChefs.chefName, "chefs");
-  validateRequiredText(menuId, chefRole, "셰프/인물 역할", MENU_FIELD_LIMITS.menuChefs.chefRole, "chefs");
-  validateRequiredText(menuId, chefDescription, "셰프/인물 소개", MENU_FIELD_LIMITS.menuChefs.chefDescription, "chefs");
+  if (!chefName) redirectToTabEditWithError(menuId, "about", "셰프/인물 이름을 입력해주세요.");
+  if (!chefRole) redirectToTabEditWithError(menuId, "about", "셰프/인물 역할을 입력해주세요.");
+  if (!chefDescription) redirectToTabEditWithError(menuId, "about", "셰프/인물 소개를 입력해주세요.");
+  validateRequiredText(menuId, chefName, "셰프/인물 이름", MENU_FIELD_LIMITS.menuChefs.chefName, "about");
+  validateRequiredText(menuId, chefRole, "셰프/인물 역할", MENU_FIELD_LIMITS.menuChefs.chefRole, "about");
+  validateRequiredText(menuId, chefDescription, "셰프/인물 소개", MENU_FIELD_LIMITS.menuChefs.chefDescription, "about");
 
   const { count: chefCount, error: chefCountError } = await supabase
     .from("menu_chefs")
     .select("id", { count: "exact", head: true })
     .eq("menu_site_id", menuId);
 
-  if (chefCountError) redirectToTabEditWithError(menuId, "chefs", `셰프/인물 개수 확인에 실패했습니다: ${chefCountError.message}`);
+  if (chefCountError) redirectToTabEditWithError(menuId, "about", `셰프/인물 개수 확인에 실패했습니다: ${chefCountError.message}`);
   if ((chefCount ?? 0) >= MENU_LIMITS.maxChefsPerSite) {
-    redirectToTabEditWithError(menuId, "chefs", `셰프/인물 정보는 최대 ${MENU_LIMITS.maxChefsPerSite}명까지 등록할 수 있습니다.`);
+    redirectToTabEditWithError(menuId, "about", `셰프/인물 정보는 최대 ${MENU_LIMITS.maxChefsPerSite}명까지 등록할 수 있습니다.`);
   }
 
   const payload: MenuChefInsert = {
@@ -1381,10 +1578,10 @@ export async function createChefAction(formData: FormData) {
   };
   const { error } = await supabase.from("menu_chefs").insert(payload);
 
-  if (error) redirectToTabEditWithError(menuId, "chefs", `셰프/인물 추가에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 추가에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "chefs", "셰프/인물 정보가 추가되었습니다.");
+  redirectToTabEdit(menuId, "about", "셰프/인물 정보가 추가되었습니다.");
 }
 
 export async function updateChefAction(formData: FormData) {
@@ -1398,12 +1595,12 @@ export async function updateChefAction(formData: FormData) {
   const chefRole = getString(formData, "chef_role");
   const chefDescription = getString(formData, "chef_description");
 
-  if (!chefName) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 이름을 입력해주세요.");
-  if (!chefRole) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 역할을 입력해주세요.");
-  if (!chefDescription) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 소개를 입력해주세요.");
-  validateRequiredText(menuId, chefName, "셰프/인물 이름", MENU_FIELD_LIMITS.menuChefs.chefName, "chefs");
-  validateRequiredText(menuId, chefRole, "셰프/인물 역할", MENU_FIELD_LIMITS.menuChefs.chefRole, "chefs");
-  validateRequiredText(menuId, chefDescription, "셰프/인물 소개", MENU_FIELD_LIMITS.menuChefs.chefDescription, "chefs");
+  if (!chefName) redirectToTabEditWithError(menuId, "about", "셰프/인물 이름을 입력해주세요.");
+  if (!chefRole) redirectToTabEditWithError(menuId, "about", "셰프/인물 역할을 입력해주세요.");
+  if (!chefDescription) redirectToTabEditWithError(menuId, "about", "셰프/인물 소개를 입력해주세요.");
+  validateRequiredText(menuId, chefName, "셰프/인물 이름", MENU_FIELD_LIMITS.menuChefs.chefName, "about");
+  validateRequiredText(menuId, chefRole, "셰프/인물 역할", MENU_FIELD_LIMITS.menuChefs.chefRole, "about");
+  validateRequiredText(menuId, chefDescription, "셰프/인물 소개", MENU_FIELD_LIMITS.menuChefs.chefDescription, "about");
 
   const payload: MenuChefUpdate = {
     chef_name: chefName,
@@ -1415,10 +1612,10 @@ export async function updateChefAction(formData: FormData) {
   };
   const { error } = await supabase.from("menu_chefs").update(payload).eq("id", chefId).eq("menu_site_id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "chefs", `셰프/인물 저장에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "chefs", "셰프/인물 정보가 저장되었습니다.");
+  redirectToTabEdit(menuId, "about", "셰프/인물 정보가 저장되었습니다.");
 }
 
 export async function deleteChefAction(formData: FormData) {
@@ -1430,16 +1627,16 @@ export async function deleteChefAction(formData: FormData) {
   const chef = await assertChefBelongsToMenuSite(menuId, chefId);
   const { error } = await supabase.from("menu_chefs").delete().eq("id", chefId).eq("menu_site_id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "chefs", `셰프/인물 삭제에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 삭제에 실패했습니다: ${error.message}`);
 
   const removeError = await removeMenuImagePath(supabase, chef.chef_image_path);
 
   if (removeError) {
-    redirectToTabEditWithError(menuId, "chefs", `셰프/인물 정보는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
+    redirectToTabEditWithError(menuId, "about", `셰프/인물 정보는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "chefs", "셰프/인물 정보가 삭제되었습니다.");
+  redirectToTabEdit(menuId, "about", "셰프/인물 정보가 삭제되었습니다.");
 }
 
 export async function createEventAction(formData: FormData) {
@@ -1461,6 +1658,9 @@ export async function createEventAction(formData: FormData) {
   validateOptionalText(menuId, getNullableString(formData, "event_regular_price_label"), "정가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel, "events");
   validateOptionalText(menuId, getNullableString(formData, "event_sale_price_label"), "할인가/이벤트가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel, "events");
   validateOptionalText(menuId, getNullableString(formData, "event_link_url"), "이벤트 링크 URL", MENU_FIELD_LIMITS.menuEvents.linkUrl, "events");
+  const eventRegularPriceLabel = getNullableString(formData, "event_regular_price_label");
+  const eventSalePriceLabel = getNullableString(formData, "event_sale_price_label");
+  const hasEventPriceData = Boolean(eventRegularPriceLabel || eventSalePriceLabel);
 
   const { count: eventCount, error: eventCountError } = await supabase
     .from("menu_events")
@@ -1480,9 +1680,9 @@ export async function createEventAction(formData: FormData) {
     event_period: getNullableString(formData, "event_period"),
     event_benefit: getNullableString(formData, "event_benefit"),
     event_detail: getNullableString(formData, "event_detail"),
-    event_regular_price_label: getNullableString(formData, "event_regular_price_label"),
-    event_sale_price_label: getNullableString(formData, "event_sale_price_label"),
-    event_price_visible: getBoolean(formData, "event_price_visible"),
+    event_regular_price_label: eventRegularPriceLabel,
+    event_sale_price_label: eventSalePriceLabel,
+    event_price_visible: Boolean(getBoolean(formData, "event_price_visible") && hasEventPriceData),
     start_date: getDateString(formData, "event_start_date"),
     end_date: getDateString(formData, "event_end_date"),
     link_url: getNullableString(formData, "event_link_url"),
@@ -1518,6 +1718,9 @@ export async function updateEventAction(formData: FormData) {
   validateOptionalText(menuId, getNullableString(formData, "event_regular_price_label"), "정가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel, "events");
   validateOptionalText(menuId, getNullableString(formData, "event_sale_price_label"), "할인가/이벤트가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel, "events");
   validateOptionalText(menuId, getNullableString(formData, "event_link_url"), "이벤트 링크 URL", MENU_FIELD_LIMITS.menuEvents.linkUrl, "events");
+  const eventRegularPriceLabel = getNullableString(formData, "event_regular_price_label");
+  const eventSalePriceLabel = getNullableString(formData, "event_sale_price_label");
+  const hasEventPriceData = Boolean(eventRegularPriceLabel || eventSalePriceLabel);
 
   const payload: MenuEventUpdate = {
     event_title: title,
@@ -1526,9 +1729,9 @@ export async function updateEventAction(formData: FormData) {
     event_period: getNullableString(formData, "event_period"),
     event_benefit: getNullableString(formData, "event_benefit"),
     event_detail: getNullableString(formData, "event_detail"),
-    event_regular_price_label: getNullableString(formData, "event_regular_price_label"),
-    event_sale_price_label: getNullableString(formData, "event_sale_price_label"),
-    event_price_visible: getBoolean(formData, "event_price_visible"),
+    event_regular_price_label: eventRegularPriceLabel,
+    event_sale_price_label: eventSalePriceLabel,
+    event_price_visible: Boolean(getBoolean(formData, "event_price_visible") && hasEventPriceData),
     start_date: getDateString(formData, "event_start_date"),
     end_date: getDateString(formData, "event_end_date"),
     link_url: getNullableString(formData, "event_link_url"),
@@ -1571,13 +1774,13 @@ async function validateSocialLinkForm(menuId: string, formData: FormData) {
   const displayName = getString(formData, "social_display_name");
   const url = getString(formData, "social_url");
 
-  if (!isSocialLinkType(type)) redirectToTabEditWithError(menuId, "social", "SNS 종류를 선택해주세요.");
-  if (!label) redirectToTabEditWithError(menuId, "social", "SNS 화면 표시 라벨을 입력해주세요.");
-  if (!displayName) redirectToTabEditWithError(menuId, "social", "SNS 아이디/표시명을 입력해주세요.");
-  validateRequiredText(menuId, label, "SNS 화면 표시 라벨", MENU_FIELD_LIMITS.menuSocialLinks.label, "social");
-  validateRequiredText(menuId, displayName, "SNS 아이디/표시명", MENU_FIELD_LIMITS.menuSocialLinks.displayName, "social");
-  validateRequiredText(menuId, url, "SNS URL", MENU_FIELD_LIMITS.menuSocialLinks.url, "social");
-  if (!/^https?:\/\//i.test(url)) redirectToTabEditWithError(menuId, "social", "SNS URL은 http:// 또는 https://로 시작해야 합니다.");
+  if (!isSocialLinkType(type)) redirectToTabEditWithError(menuId, "about", "SNS 종류를 선택해주세요.");
+  if (!label) redirectToTabEditWithError(menuId, "about", "SNS 화면 표시 라벨을 입력해주세요.");
+  if (!displayName) redirectToTabEditWithError(menuId, "about", "SNS 아이디/표시명을 입력해주세요.");
+  validateRequiredText(menuId, label, "SNS 화면 표시 라벨", MENU_FIELD_LIMITS.menuSocialLinks.label, "about");
+  validateRequiredText(menuId, displayName, "SNS 아이디/표시명", MENU_FIELD_LIMITS.menuSocialLinks.displayName, "about");
+  validateRequiredText(menuId, url, "SNS URL", MENU_FIELD_LIMITS.menuSocialLinks.url, "about");
+  if (!/^https?:\/\//i.test(url)) redirectToTabEditWithError(menuId, "about", "SNS URL은 http:// 또는 https://로 시작해야 합니다.");
 
   return {
     type,
@@ -1601,21 +1804,21 @@ export async function createSocialLinkAction(formData: FormData) {
     .select("id, type")
     .eq("menu_site_id", menuId);
 
-  if (existingError) redirectToTabEditWithError(menuId, "social", `SNS 링크 확인에 실패했습니다: ${existingError.message}`);
+  if (existingError) redirectToTabEditWithError(menuId, "about", `SNS 링크 확인에 실패했습니다: ${existingError.message}`);
   if ((existingLinks ?? []).length >= MENU_LIMITS.maxSocialLinksPerSite) {
-    redirectToTabEditWithError(menuId, "social", `SNS 링크는 최대 ${MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.`);
+    redirectToTabEditWithError(menuId, "about", `SNS 링크는 최대 ${MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.`);
   }
   if ((existingLinks ?? []).some((link) => link.type === payloadInput.type)) {
-    redirectToTabEditWithError(menuId, "social", "같은 SNS 종류는 한 번만 등록할 수 있습니다.");
+    redirectToTabEditWithError(menuId, "about", "같은 SNS 종류는 한 번만 등록할 수 있습니다.");
   }
 
   const payload: MenuSocialLinkInsert = { menu_site_id: menuId, ...payloadInput };
   const { error } = await supabase.from("menu_social_links").insert(payload);
 
-  if (error) redirectToTabEditWithError(menuId, "social", `SNS 링크 추가에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 추가에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "social", "SNS 링크가 추가되었습니다.");
+  redirectToTabEdit(menuId, "about", "SNS 링크가 추가되었습니다.");
 }
 
 export async function updateSocialLinkAction(formData: FormData) {
@@ -1635,16 +1838,16 @@ export async function updateSocialLinkAction(formData: FormData) {
     .neq("id", socialLinkId)
     .maybeSingle();
 
-  if (duplicateError) redirectToTabEditWithError(menuId, "social", `SNS 중복 확인에 실패했습니다: ${duplicateError.message}`);
-  if (duplicate) redirectToTabEditWithError(menuId, "social", "같은 SNS 종류는 한 번만 등록할 수 있습니다.");
+  if (duplicateError) redirectToTabEditWithError(menuId, "about", `SNS 중복 확인에 실패했습니다: ${duplicateError.message}`);
+  if (duplicate) redirectToTabEditWithError(menuId, "about", "같은 SNS 종류는 한 번만 등록할 수 있습니다.");
 
   const payload: MenuSocialLinkUpdate = { ...payloadInput, updated_at: new Date().toISOString() };
   const { error } = await supabase.from("menu_social_links").update(payload).eq("id", socialLinkId).eq("menu_site_id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "social", `SNS 링크 저장에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "social", "SNS 링크가 저장되었습니다.");
+  redirectToTabEdit(menuId, "about", "SNS 링크가 저장되었습니다.");
 }
 
 export async function deleteSocialLinkAction(formData: FormData) {
@@ -1656,8 +1859,8 @@ export async function deleteSocialLinkAction(formData: FormData) {
   await assertSocialLinkBelongsToMenuSite(menuId, socialLinkId);
   const { error } = await supabase.from("menu_social_links").delete().eq("id", socialLinkId).eq("menu_site_id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "social", `SNS 링크 삭제에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 삭제에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "social", "SNS 링크가 삭제되었습니다.");
+  redirectToTabEdit(menuId, "about", "SNS 링크가 삭제되었습니다.");
 }

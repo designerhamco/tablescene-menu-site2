@@ -2,6 +2,20 @@ import type { BadgeType } from "@/lib/supabase/types";
 
 export type { BadgeType };
 
+export type MenuBadgeLabel = "추천" | "BEST" | "SIGNATURE" | "NEW" | "인기" | "한정";
+
+export const MENU_BADGE_OPTIONS = [
+  { value: "none", label: "사용 안 함" },
+  { value: "추천", label: "추천" },
+  { value: "BEST", label: "BEST" },
+  { value: "SIGNATURE", label: "SIGNATURE" },
+  { value: "NEW", label: "NEW" },
+  { value: "인기", label: "인기" },
+  { value: "한정", label: "한정" },
+] as const;
+
+const MENU_BADGE_LABELS = ["추천", "BEST", "SIGNATURE", "NEW", "인기", "한정"] as const satisfies readonly MenuBadgeLabel[];
+
 export const BADGE_TYPES = [
   "none",
   "recommend",
@@ -23,6 +37,7 @@ export const BADGE_LABELS: Record<BadgeType, string> = {
 };
 
 export type BadgeableMenuItem = {
+  badge_label?: MenuBadgeLabel | string | null;
   badge_type?: BadgeType | string | null;
   recommended?: boolean | null;
 };
@@ -43,6 +58,52 @@ export function normalizeBadgeType(value: FormDataEntryValue | string | null | u
   }
 
   return isBadgeType(normalized) ? normalized : null;
+}
+
+export function normalizeMenuBadgeLabel(value: FormDataEntryValue | string | null | undefined): MenuBadgeLabel | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+
+  if (!normalized || normalized === "none") {
+    return null;
+  }
+
+  return MENU_BADGE_LABELS.includes(normalized as MenuBadgeLabel) ? (normalized as MenuBadgeLabel) : null;
+}
+
+export function getLegacyBadgeTypeForLabel(label: MenuBadgeLabel | null): BadgeType | null {
+  if (!label) return null;
+
+  if (label === "추천") return "recommend";
+  if (label === "인기") return "popular";
+  if (label === "BEST") return "best";
+  if (label === "SIGNATURE") return "signature";
+  if (label === "한정") return "event";
+
+  return null;
+}
+
+export function getMenuItemBadgeLabel(item: BadgeableMenuItem): MenuBadgeLabel | "" {
+  const normalizedLabel = normalizeMenuBadgeLabel(item.badge_label);
+
+  if (normalizedLabel) {
+    return normalizedLabel;
+  }
+
+  const badgeType = getMenuItemBadgeType(item);
+  if (badgeType === "none") {
+    return "";
+  }
+
+  if (badgeType === "best") return "BEST";
+  if (badgeType === "signature") return "SIGNATURE";
+  if (badgeType === "popular") return "인기";
+  if (badgeType === "event") return "한정";
+
+  return "추천";
 }
 
 export function getMenuItemBadgeType(item: BadgeableMenuItem): BadgeType {
