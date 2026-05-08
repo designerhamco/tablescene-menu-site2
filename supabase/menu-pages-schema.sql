@@ -40,22 +40,6 @@ begin
 end;
 $$;
 
-insert into public.menu_pages (menu_site_id, title, legacy_section_key, sort_order)
-select menu_sites.id, defaults.title, defaults.legacy_section_key, defaults.sort_order
-from public.menu_sites
-cross join (
-  values
-    ('세트 메뉴', 'set_menu', 0),
-    ('메인 메뉴', 'main_menu', 1),
-    ('디저트/음료', 'dessert_drink', 2)
-) as defaults(title, legacy_section_key, sort_order)
-where not exists (
-  select 1
-  from public.menu_pages existing
-  where existing.menu_site_id = menu_sites.id
-    and existing.legacy_section_key = defaults.legacy_section_key
-);
-
 update public.menu_categories category
 set menu_page_id = page.id
 from public.menu_pages page

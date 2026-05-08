@@ -57,12 +57,15 @@ create table if not exists public.menu_items (
   menu_site_id uuid not null references public.menu_sites(id) on delete cascade,
   category_id uuid references public.menu_categories(id) on delete set null,
   name text not null,
+  set_name text,
   price integer not null default 0,
   price_label text,
   description text,
   image_url text,
   badge text,
+  badge_type text,
   recommended boolean not null default false,
+  origin_info text,
   is_best boolean not null default false,
   is_sold_out boolean not null default false,
   visible boolean not null default true,
@@ -76,6 +79,9 @@ create table if not exists public.menu_items (
 
 alter table public.menu_items add column if not exists price_label text;
 alter table public.menu_items add column if not exists recommended boolean not null default false;
+alter table public.menu_items add column if not exists badge_type text;
+alter table public.menu_items add column if not exists origin_info text;
+alter table public.menu_items add column if not exists set_name text;
 
 -- TODO: Keep validating in application code that menu_items.category_id belongs to the same menu_site_id.
 create table if not exists public.orders (
@@ -149,6 +155,7 @@ create table if not exists public.menu_social_links (
   menu_site_id uuid not null references public.menu_sites(id) on delete cascade,
   type text not null,
   label text,
+  display_name text,
   url text not null,
   visible boolean not null default true,
   sort_order integer not null default 0,
@@ -477,3 +484,5 @@ using (
     where user_id = auth.uid()
   )
 );
+
+alter table public.menu_social_links add column if not exists display_name text;
