@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["localhost", "127.0.0.1"],
   productionBrowserSourceMaps: false,
   enablePrerenderSourceMaps: false,
   typescript: {
