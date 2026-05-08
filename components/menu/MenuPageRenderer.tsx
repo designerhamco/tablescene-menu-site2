@@ -1,5 +1,4 @@
 import MenuTemplateRenderer from "@/components/menu-templates/MenuTemplateRenderer";
-import MenuPreviewRenderer from "@/components/menu/MenuPreviewRenderer";
 import type { MenuPageData } from "@/lib/menu-page-data";
 
 type MenuPageRendererProps = MenuPageData & {
@@ -14,7 +13,7 @@ export default function MenuPageRenderer({ mode, ...data }: MenuPageRendererProp
           미리보기 모드입니다. 아직 공개되지 않은 메뉴판도 이 화면에서는 확인할 수 있습니다.
         </div>
       )}
-      {mode === "preview" ? <MenuPreviewRenderer {...data} /> : <MenuTemplateRenderer {...data} />}
+      <MenuTemplateRenderer mode={mode} {...data} />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/supabase/types";
+import type { PageSettings } from "@/types/menu";
 
 export type PublicMenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -96,7 +97,9 @@ export type PublicMenuSocialLink = Pick<
 >;
 
 export type PublicMenuTemplateProps = {
+  mode: "public" | "preview";
   menuSite: PublicMenuSite;
+  pageSettings: PageSettings;
   pages: PublicMenuPage[];
   categories: PublicMenuCategory[];
   items: PublicMenuItem[];

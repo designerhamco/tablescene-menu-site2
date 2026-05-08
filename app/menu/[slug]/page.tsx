@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
-import { getPublicMenuPageData } from "@/lib/menu-page-data";
+import { getPublicMenuDataBySlug } from "@/lib/menu-page-data";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -10,7 +10,7 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getPublicMenuPageData(slug);
+  const data = await getPublicMenuDataBySlug(slug);
 
   if (!data) {
     return {
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PublicMenuPage({ params }: PageProps) {
   const { slug } = await params;
-  const data = await getPublicMenuPageData(slug);
+  const data = await getPublicMenuDataBySlug(slug);
 
   if (!data) {
     notFound();

@@ -6,9 +6,8 @@ import { mergePageSettings, sortMenuPages, type PageSettings } from "@/types/men
 type MenuSite = PublicMenuTemplateProps["menuSite"] &
   Pick<Database["public"]["Tables"]["menu_sites"]["Row"], "status" | "user_id">;
 
-type MenuPageData = PublicMenuTemplateProps & {
+type MenuPageData = Omit<PublicMenuTemplateProps, "mode"> & {
   menuSite: MenuSite;
-  pageSettings: PageSettings;
 };
 
 type MenuPage = PublicMenuTemplateProps["pages"][number];
@@ -59,7 +58,7 @@ function orderBySortThenCreated<T extends { sort_order: number; created_at?: str
   });
 }
 
-async function getMenuPageDataForSite(menuSite: MenuSite): Promise<MenuPageData | null> {
+async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData | null> {
   const supabase = await createClient();
   const pageSettings = mergePageSettings(menuSite.page_settings);
 
@@ -200,7 +199,7 @@ export async function getPublicMenuPageData(slug: string) {
     return null;
   }
 
-  return getMenuPageDataForSite(site as MenuSite);
+  return normalizeMenuPageData(site as MenuSite);
 }
 
 export async function getOwnerPreviewMenuPageData(menuId: string, userId: string) {
@@ -230,9 +229,12 @@ export async function getOwnerPreviewMenuPageData(menuId: string, userId: string
     return null;
   }
 
-  return getMenuPageDataForSite(site as MenuSite);
+  return normalizeMenuPageData(site as MenuSite);
 }
 
+export const getPublicMenuDataBySlug = getPublicMenuPageData;
+export const getPreviewMenuDataById = getOwnerPreviewMenuPageData;
 export const getMenuPreviewData = getOwnerPreviewMenuPageData;
 
+export { normalizeMenuPageData };
 export type { MenuPageData };

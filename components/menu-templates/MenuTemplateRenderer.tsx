@@ -1,21 +1,25 @@
-import { getTemplateDesignKey } from "@/lib/templates";
+import { normalizeTemplateKey } from "@/lib/templates";
 
-import DesignA from "./DesignA";
-import DesignB from "./DesignB";
-import DesignC from "./DesignC";
+import BasicMenuTemplate from "./BasicMenuTemplate";
 import type { PublicMenuTemplateProps } from "./types";
 
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
-  const templateKey = getTemplateDesignKey(props.menuSite.template_key, props.menuSite.template_category);
+  const templateKey = normalizeTemplateKey(props.menuSite.template_key, props.menuSite.template_category);
 
   switch (templateKey) {
-    case "design_b":
-      return <DesignB {...props} />;
-    case "design_c":
-      return <DesignC {...props} />;
-    case "design_a":
+    case "cafe_design_a":
+    case "cafe_design_b":
+    case "cafe_design_c":
+    case "fine_dining_design_a":
+    case "fine_dining_design_b":
+    case "casual_dining_design_a":
+    case "casual_dining_design_b":
+    case "fast_food_design_a":
+    case "fast_food_design_b":
+    case "brunch_design_a":
+    case "brunch_design_b":
     default:
-      return <DesignA {...props} />;
+      return <BasicMenuTemplate {...props} />;
   }
 }
 
