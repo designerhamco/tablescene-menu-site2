@@ -5,6 +5,8 @@ import { deleteInquiryReplyAction, replyInquiryAction } from "@/app/admin/action
 import { signOutAction } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { getPublicMenuUrl } from "@/lib/menu-url";
+import { getTemplateDisplayName } from "@/lib/templates";
 
 type SearchParams = Promise<{
   error?: string;
@@ -344,7 +346,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                   <thead className="border-b border-zinc-100 text-xs uppercase tracking-[0.16em] text-zinc-400">
                     <tr>
                       <th className="py-3 pr-4">name</th>
-                      <th className="py-3 pr-4">slug</th>
+                      <th className="py-3 pr-4">메뉴판 주소</th>
                       <th className="py-3 pr-4">owner user_id</th>
                       <th className="py-3 pr-4">template</th>
                       <th className="py-3 pr-4">status</th>
@@ -356,12 +358,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                       <tr key={site.id}>
                         <td className="py-4 pr-4 font-bold">{site.name}</td>
                         <td className="py-4 pr-4">
-                          <Link href={`/m/${site.slug}`} className="font-bold text-zinc-500 hover:text-zinc-950 hover:underline">
-                            /m/{site.slug}
+                          <Link href={getPublicMenuUrl(site.slug)} className="font-bold text-zinc-500 hover:text-zinc-950 hover:underline">
+                            {getPublicMenuUrl(site.slug)}
                           </Link>
                         </td>
                         <td className="max-w-[180px] truncate py-4 pr-4 font-mono text-xs text-zinc-400">{site.user_id}</td>
-                        <td className="py-4 pr-4 font-mono text-xs font-bold text-zinc-500">{site.template_key}</td>
+                        <td className="py-4 pr-4 text-xs font-bold text-zinc-500">{getTemplateDisplayName(site.template_key)}</td>
                         <td className="py-4 pr-4">
                           <span className={`rounded-full px-3 py-1 text-xs font-bold ${getStatusClassName(site.status)}`}>{site.status}</span>
                         </td>

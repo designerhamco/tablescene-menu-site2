@@ -1,18 +1,30 @@
 /* eslint-disable @next/next/no-img-element */
-import type { PublicMenuItem, PublicMenuTemplateProps } from "./types";
+import { getBadgeLabel, getMenuItemBadgeType, shouldShowBadge } from "@/lib/menu-badges";
+import { getPublicMenuUrl } from "@/lib/menu-url";
+import { getTemplateDisplayName } from "@/lib/templates";
+import { formatMenuPrice, formatPortionLabel, shouldShowMenuItemTraits } from "@/types/menu";
 
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("ko-KR").format(price);
-}
+import type { PublicMenuItem, PublicMenuItemTrait, PublicMenuTemplateProps } from "./types";
 
 function getItemsByCategory(items: PublicMenuItem[], categoryId: string) {
   return items.filter((item) => item.category_id === categoryId);
 }
 
-export default function DesignA({ menuSite, categories, items, socialLinks }: PublicMenuTemplateProps) {
-  const uncategorizedItems = items.filter((item) => !item.category_id);
+function getCategoriesByPage(categories: PublicMenuTemplateProps["categories"], pageId: string) {
+  return categories.filter((category) => category.menu_page_id === pageId);
+}
+
+function getTraitsByItem(traits: PublicMenuItemTrait[], itemId: string) {
+  return traits.filter((trait) => trait.menu_item_id === itemId);
+}
+
+export default function DesignA({ menuSite, pages, categories, items, traits, socialLinks }: PublicMenuTemplateProps) {
   const brandColor = menuSite.brand_color || "#18181b";
+  const templateDisplayName = getTemplateDisplayName(menuSite.template_key, menuSite.template_category);
   const heroImage = menuSite.cover_image_url;
+  const hasMenuContent = pages.some((page) =>
+    getCategoriesByPage(categories, page.id).some((category) => getItemsByCategory(items, category.id).length > 0)
+  );
 
   return (
     <main className="min-h-screen bg-[#f6f2ea] text-zinc-950">
@@ -40,11 +52,11 @@ export default function DesignA({ menuSite, categories, items, socialLinks }: Pu
                 )}
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/60">TABLE SCENE MENU</p>
-                  <p className="mt-1 text-sm font-bold text-white/85">/{menuSite.slug}</p>
+                  <p className="mt-1 break-all text-sm font-bold text-white/85">{getPublicMenuUrl(menuSite.slug)}</p>
                 </div>
               </div>
               <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur">
-                {menuSite.template_key}
+                {templateDisplayName}
               </span>
             </div>
 
@@ -64,74 +76,73 @@ export default function DesignA({ menuSite, categories, items, socialLinks }: Pu
 
         <section className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[#fbfaf6]/95 px-5 py-3 backdrop-blur">
           <div className="scrollbar-hide flex gap-2 overflow-x-auto">
-            {categories.map((category) => (
+            {pages.map((page) => (
               <a
-                key={category.id}
-                href={`#category-${category.id}`}
+                key={page.id}
+                href={`#page-${page.id}`}
                 className="shrink-0 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-black text-zinc-700 shadow-sm"
               >
-                {category.name}
+                {page.title}
               </a>
             ))}
-            {uncategorizedItems.length > 0 && (
-              <a
-                href="#category-uncategorized"
-                className="shrink-0 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-black text-zinc-700 shadow-sm"
-              >
-                Other
-              </a>
-            )}
           </div>
         </section>
 
         <section className="space-y-8 px-5 py-7">
-          {categories.map((category) => {
-            const categoryItems = getItemsByCategory(items, category.id);
+          {pages.map((page) => {
+            const pageCategories = getCategoriesByPage(categories, page.id);
+            const pageHasItems = pageCategories.some((category) => getItemsByCategory(items, category.id).length > 0);
 
-            if (categoryItems.length === 0) {
+            if (!pageHasItems) {
               return null;
             }
 
             return (
-              <section key={category.id} id={`category-${category.id}`} className="scroll-mt-20">
+              <section key={page.id} id={`page-${page.id}`} className="scroll-mt-20">
                 <div className="mb-4">
                   <p className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-zinc-400">
-                    {String(category.sort_order).padStart(2, "0")}
+                    {String(page.sort_order).padStart(2, "0")}
                   </p>
-                  <h2 className="text-2xl font-black tracking-tight">{category.name}</h2>
-                  {category.description && (
-                    <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">{category.description}</p>
+                  <h2 className="text-2xl font-black tracking-tight">{page.title}</h2>
+                  {page.description_visible && page.description && (
+                    <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">{page.description}</p>
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  {categoryItems.map((item) => (
-                    <MenuItemCard key={item.id} item={item} brandColor={brandColor} />
-                  ))}
+                <div className="space-y-6">
+                  {pageCategories.map((category) => {
+                    const categoryItems = getItemsByCategory(items, category.id);
+
+                    if (categoryItems.length === 0) {
+                      return null;
+                    }
+
+                    return (
+                      <section key={category.id}>
+                        <div className="mb-3">
+                          <h3 className="text-lg font-black tracking-tight">{category.name}</h3>
+                          {category.description_visible && category.description && (
+                            <p className="mt-1 break-keep text-sm font-medium leading-relaxed text-zinc-500">{category.description}</p>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          {categoryItems.map((item) => (
+                            <MenuItemCard key={item.id} item={item} traits={getTraitsByItem(traits, item.id)} brandColor={brandColor} />
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })}
                 </div>
               </section>
             );
           })}
 
-          {uncategorizedItems.length > 0 && (
-            <section id="category-uncategorized" className="scroll-mt-20">
-              <div className="mb-4">
-                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-zinc-400">ETC</p>
-                <h2 className="text-2xl font-black tracking-tight">Other Menu</h2>
-              </div>
-              <div className="space-y-3">
-                {uncategorizedItems.map((item) => (
-                  <MenuItemCard key={item.id} item={item} brandColor={brandColor} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {items.length === 0 && (
+          {!hasMenuContent && (
             <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center">
               <h2 className="text-xl font-black">준비 중인 메뉴판입니다</h2>
               <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                공개된 메뉴 아이템이 아직 없습니다.
+                표시할 메뉴 페이지, 카테고리 또는 아이템이 아직 없습니다.
               </p>
             </div>
           )}
@@ -143,7 +154,12 @@ export default function DesignA({ menuSite, categories, items, socialLinks }: Pu
   );
 }
 
-function MenuItemCard({ item, brandColor }: { item: PublicMenuItem; brandColor: string }) {
+function MenuItemCard({ item, traits, brandColor }: { item: PublicMenuItem; traits: PublicMenuItemTrait[]; brandColor: string }) {
+  const badgeLabel = getBadgeLabel(getMenuItemBadgeType(item));
+  const price = formatMenuPrice(item);
+  const portion = formatPortionLabel(item);
+  const visibleTraits = shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
+
   return (
     <article className="overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-sm">
       {item.image_url && (
@@ -156,17 +172,12 @@ function MenuItemCard({ item, brandColor }: { item: PublicMenuItem; brandColor: 
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              {item.badge && (
+              {shouldShowBadge(item) && (
                 <span
-                  className="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white"
+                  className="rounded-full px-2.5 py-1 text-[10px] font-black tracking-[0.04em] text-white"
                   style={{ backgroundColor: brandColor }}
                 >
-                  {item.badge}
-                </span>
-              )}
-              {item.is_best && (
-                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-amber-700">
-                  Best
+                  {badgeLabel}
                 </span>
               )}
               {item.is_sold_out && (
@@ -175,13 +186,29 @@ function MenuItemCard({ item, brandColor }: { item: PublicMenuItem; brandColor: 
                 </span>
               )}
             </div>
+            {item.set_name && <p className="mb-1 break-keep text-xs font-black text-zinc-400">{item.set_name}</p>}
             <h3 className="break-keep text-lg font-black leading-tight">{item.name}</h3>
           </div>
-          <p className="shrink-0 text-base font-black">{formatPrice(item.price)}원</p>
+          {price && <p className="shrink-0 text-base font-black">{price}</p>}
         </div>
 
         {item.description && (
           <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">{item.description}</p>
+        )}
+        {portion && <p className="mt-2 text-xs font-black text-zinc-400">{portion}</p>}
+        {visibleTraits.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {visibleTraits.map((trait) => (
+              <span key={trait.id} className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-black text-zinc-500">
+                {trait.label} {trait.value}/{trait.max_value}
+              </span>
+            ))}
+          </div>
+        )}
+        {item.origin_info && (
+          <p className="mt-3 break-keep break-words border-t border-zinc-100 pt-3 text-xs font-semibold leading-relaxed text-zinc-400">
+            <span className="font-black text-zinc-500">원산지</span> {item.origin_info}
+          </p>
         )}
       </div>
     </article>
@@ -195,7 +222,7 @@ function MenuFooter({ socialLinks }: Pick<PublicMenuTemplateProps, "socialLinks"
         <div className="mb-5 flex flex-wrap justify-center gap-2">
           {socialLinks.map((link) => (
             <a key={link.id} href={link.url} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-500">
-              {link.label}
+              {link.display_name || link.label}
             </a>
           ))}
         </div>

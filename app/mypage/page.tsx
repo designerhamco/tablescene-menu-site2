@@ -2,17 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { signOutAction } from "@/app/auth/actions";
+import { getPublicMenuUrl } from "@/lib/menu-url";
 import { createClient } from "@/lib/supabase/server";
+import { getTemplateDisplayName } from "@/lib/templates";
 import type { Database } from "@/lib/supabase/types";
 
 type MenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
   "id" | "name" | "slug" | "template_key" | "status" | "created_at" | "updated_at"
 >;
-
-function getPublicMenuUrl(slug: string) {
-  return `/m/${slug}`;
-}
 
 function getStatusLabel(status: MenuSite["status"]) {
   const labels: Record<MenuSite["status"], string> = {
@@ -130,7 +128,7 @@ export default async function MyPage() {
                     <div className="mb-6 flex items-start justify-between gap-4">
                       <div>
                         <h3 className="text-2xl font-bold tracking-tight">{site.name}</h3>
-                        <p className="mt-2 text-sm font-medium text-zinc-500">/{site.slug}</p>
+                        <p className="mt-2 break-all text-sm font-medium text-zinc-500">{publicUrl}</p>
                       </div>
                       <span
                         className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${getStatusClassName(
@@ -143,8 +141,8 @@ export default async function MyPage() {
 
                     <dl className="space-y-3 text-sm font-medium">
                       <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-                        <dt className="text-zinc-400">template_key</dt>
-                        <dd className="font-mono text-xs font-bold text-zinc-800">{site.template_key}</dd>
+                        <dt className="text-zinc-400">템플릿</dt>
+                        <dd className="text-right text-xs font-bold text-zinc-800">{getTemplateDisplayName(site.template_key)}</dd>
                       </div>
                       <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
                         <dt className="text-zinc-400">status</dt>

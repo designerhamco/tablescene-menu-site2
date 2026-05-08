@@ -1,16 +1,12 @@
-import type { TemplateKey } from "@/lib/templates";
+import { getTemplateDesignKey } from "@/lib/templates";
 
 import DesignA from "./DesignA";
 import DesignB from "./DesignB";
 import DesignC from "./DesignC";
 import type { PublicMenuTemplateProps } from "./types";
 
-function isTemplateKey(value: string): value is TemplateKey {
-  return value === "design_a" || value === "design_b" || value === "design_c";
-}
-
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
-  const templateKey = isTemplateKey(props.menuSite.template_key) ? props.menuSite.template_key : "design_a";
+  const templateKey = getTemplateDesignKey(props.menuSite.template_key, props.menuSite.template_category);
 
   switch (templateKey) {
     case "design_b":

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getPublicMenuUrl } from "@/lib/menu-url";
+import { getTemplateDisplayName } from "@/lib/templates";
 import type { Database } from "@/lib/supabase/types";
 
 type PageProps = {
@@ -80,12 +82,12 @@ export default async function SuccessPage({ searchParams }: PageProps) {
               <h2 className="text-2xl font-bold">{menuSite.name}</h2>
               <dl className="mt-5 space-y-3 text-sm font-medium">
                 <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3">
-                  <dt className="text-zinc-400">slug</dt>
-                  <dd className="font-bold text-zinc-800">{menuSite.slug}</dd>
+                  <dt className="text-zinc-400">공개 메뉴판 주소</dt>
+                  <dd className="font-bold text-zinc-800">{getPublicMenuUrl(menuSite.slug)}</dd>
                 </div>
                 <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3">
-                  <dt className="text-zinc-400">template_key</dt>
-                  <dd className="font-bold text-zinc-800">{menuSite.template_key}</dd>
+                  <dt className="text-zinc-400">템플릿</dt>
+                  <dd className="font-bold text-zinc-800">{getTemplateDisplayName(menuSite.template_key)}</dd>
                 </div>
                 <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3">
                   <dt className="text-zinc-400">status</dt>
@@ -110,14 +112,19 @@ export default async function SuccessPage({ searchParams }: PageProps) {
             >
               마이페이지에서 편집하기
             </Link>
-            {menuSite && (
-              <Link
-                href={`/m/${menuSite.slug}`}
-                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
-              >
-                공개 메뉴판 보기
-              </Link>
-            )}
+            <Link
+              href="/mypage"
+              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+            >
+              마이페이지로 이동
+            </Link>
+            <button
+              type="button"
+              disabled
+              className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400"
+            >
+              공개 페이지 준비중
+            </button>
           </div>
         </section>
       </div>
