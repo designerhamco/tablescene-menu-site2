@@ -6,16 +6,9 @@ import {
   isTemplateCategoryKey,
   type TemplateCategoryKey,
 } from "@/lib/templates";
+import { MENU_LIMITS } from "@/lib/menu-limits";
 
-export const MENU_LIMITS = {
-  maxPagesPerSite: 8,
-  maxCategoriesPerPage: 8,
-  maxItemsPerCategory: 20,
-  maxItemsPerSite: 100,
-  maxSocialLinksPerSite: 3,
-  maxEventsPerSite: 5,
-  maxChefsPerSite: 8,
-} as const;
+export { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 
 export type StarterPresetKey = TemplateCategoryKey;
 
@@ -25,6 +18,13 @@ type StarterItem = {
   portion_label?: string;
   description: string;
   recommended?: boolean;
+  price_options?: StarterPriceOption[];
+};
+
+type StarterPriceOption = {
+  label: string;
+  price?: number;
+  price_label?: string;
 };
 
 type StarterCategory = {
@@ -92,6 +92,7 @@ type MenuSiteUpdate = Database["public"]["Tables"]["menu_sites"]["Update"];
 type MenuPageInsert = Database["public"]["Tables"]["menu_pages"]["Insert"];
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuItemInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
+type MenuItemPriceOptionInsert = Database["public"]["Tables"]["menu_item_price_options"]["Insert"];
 type MenuChefInsert = Database["public"]["Tables"]["menu_chefs"]["Insert"];
 type MenuEventInsert = Database["public"]["Tables"]["menu_events"]["Insert"];
 type MenuSocialLinkInsert = Database["public"]["Tables"]["menu_social_links"]["Insert"];
@@ -115,7 +116,12 @@ const STARTER_PAGE_SETTINGS = {
   social_links_enabled: true,
 } as const;
 
-function item(name: string, price: number, description: string, options: { portion_label?: string; recommended?: boolean } = {}): StarterItem {
+function item(
+  name: string,
+  price: number,
+  description: string,
+  options: { portion_label?: string; recommended?: boolean; price_options?: StarterPriceOption[] } = {}
+): StarterItem {
   return { name, price, description, ...options };
 }
 
@@ -167,7 +173,14 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
           {
             name: "시그니처 메뉴",
             items: [
-              item("시그니처 크림 라떼", 6500, "부드러운 크림과 에스프레소가 어우러진 대표 메뉴", { portion_label: "HOT / ICE", recommended: true }),
+              item("시그니처 크림 라떼", 6500, "부드러운 크림과 에스프레소가 어우러진 대표 메뉴", {
+                portion_label: "HOT / ICE",
+                recommended: true,
+                price_options: [
+                  { label: "HOT", price: 6500, price_label: "6,500원" },
+                  { label: "ICE", price: 6800, price_label: "6,800원" },
+                ],
+              }),
               item("아인슈페너", 6500, "진한 커피 위에 부드러운 크림을 올린 시그니처 음료", { portion_label: "ICE", recommended: true }),
             ],
           },
@@ -180,7 +193,13 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
           {
             name: "에스프레소",
             items: [
-              item("아메리카노", 4500, "깔끔한 산미와 고소한 밸런스의 기본 커피", { portion_label: "HOT / ICE" }),
+              item("아메리카노", 4500, "깔끔한 산미와 고소한 밸런스의 기본 커피", {
+                portion_label: "HOT / ICE",
+                price_options: [
+                  { label: "HOT", price: 4000, price_label: "4,000원" },
+                  { label: "ICE", price: 4500, price_label: "4,500원" },
+                ],
+              }),
               item("에스프레소", 4000, "진한 커피의 향을 짧고 강하게 즐기는 메뉴"),
               item("콜드브루", 5500, "천천히 추출해 부드럽게 즐기는 콜드브루", { portion_label: "ICE" }),
             ],
@@ -188,7 +207,13 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
           {
             name: "라떼",
             items: [
-              item("카페라떼", 5500, "부드러운 우유와 에스프레소가 어우러진 라떼", { portion_label: "HOT / ICE" }),
+              item("카페라떼", 5500, "부드러운 우유와 에스프레소가 어우러진 라떼", {
+                portion_label: "HOT / ICE",
+                price_options: [
+                  { label: "HOT", price: 4800, price_label: "4,800원" },
+                  { label: "ICE", price: 5300, price_label: "5,300원" },
+                ],
+              }),
               item("바닐라라떼", 6000, "달콤한 바닐라 향을 더한 라떼", { portion_label: "HOT / ICE" }),
               item("오트 라떼", 6500, "오트 밀크로 만든 부드러운 라떼", { portion_label: "HOT / ICE" }),
             ],
@@ -891,10 +916,45 @@ export async function createStarterMenuData(
     });
   });
 
-  const { error: itemsError } = await supabase.from("menu_items").insert(itemInserts);
+  const { data: insertedItems, error: itemsError } = await supabase.from("menu_items").insert(itemInserts).select("id, name, category_id");
 
   if (itemsError) {
     throw new Error(`기본 메뉴 아이템 생성에 실패했습니다: ${itemsError.message}`);
+  }
+
+  const itemIdByKey = new Map((insertedItems ?? []).map((menuItem) => [`${menuItem.category_id ?? ""}:${menuItem.name}`, menuItem.id]));
+  const priceOptionInserts: MenuItemPriceOptionInsert[] = preset.pages.flatMap((page) => {
+    const pageId = pageIdByTitle.get(page.title) ?? "";
+    return page.categories.flatMap((category) => {
+      const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
+      return category.items.flatMap((menuItem) => {
+        const menuItemId = itemIdByKey.get(`${categoryId}:${menuItem.name}`);
+        if (!menuItemId || !menuItem.price_options?.length) return [];
+
+        return menuItem.price_options.slice(0, MENU_LIMITS.maxPriceOptionsPerItem).map((option, index) => ({
+          menu_site_id: menuSiteId,
+          menu_item_id: menuItemId,
+          label: option.label,
+          price: option.price ?? null,
+          price_label: option.price_label ?? null,
+          visible: true,
+          sort_order: index + 1,
+        }));
+      });
+    });
+  });
+
+  if (priceOptionInserts.length > 0) {
+    const { error: priceOptionsError } = await supabase.from("menu_item_price_options").insert(priceOptionInserts);
+
+    if (
+      priceOptionsError &&
+      !priceOptionsError.message.toLowerCase().includes("menu_item_price_options") &&
+      !priceOptionsError.message.toLowerCase().includes("does not exist") &&
+      priceOptionsError.code !== "42P01"
+    ) {
+      throw new Error(`기본 가격 옵션 생성에 실패했습니다: ${priceOptionsError.message}`);
+    }
   }
 
   const chefInserts: MenuChefInsert[] = preset.chefs.slice(0, MENU_LIMITS.maxChefsPerSite).map((chef, index) => ({

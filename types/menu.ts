@@ -1,3 +1,4 @@
+import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import type { BadgeType, Database, Json, MenuSectionKey, SupportedLocale } from "@/lib/supabase/types";
 import type { MenuSocialLink as TypedMenuSocialLink, SocialLinkInput, SocialLinkType } from "@/lib/social-links";
 
@@ -15,6 +16,7 @@ export type MenuSite = Database["public"]["Tables"]["menu_sites"]["Row"];
 export type MenuPage = Database["public"]["Tables"]["menu_pages"]["Row"];
 export type MenuCategory = Database["public"]["Tables"]["menu_categories"]["Row"];
 export type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
+export type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
 export type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 export type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 export type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
@@ -258,8 +260,8 @@ function toInteger(value: unknown, fallback: number) {
 
 export function normalizeMenuItemTrait(input: MenuItemTraitInput): NormalizedMenuItemTrait {
   const label = typeof input.label === "string" ? input.label.trim() : "";
-  const maxValue = toInteger(input.max_value, 5);
-  const value = toInteger(input.value, 0);
+  const maxValue = toInteger(input.max_value, MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue);
+  const value = toInteger(input.value, MENU_FIELD_LIMITS.menuItemTraits.minValue);
   const sortOrder = toInteger(input.sort_order, 0);
 
   return {
@@ -278,12 +280,20 @@ export function validateMenuItemTrait(input: MenuItemTraitInput): MenuItemTraitV
     return { ok: false, trait: null, message: "지표 이름을 입력해주세요." };
   }
 
-  if (trait.value < 0) {
-    return { ok: false, trait: null, message: "지표 값은 0 이상이어야 합니다." };
+  if (trait.label.length > MENU_FIELD_LIMITS.menuItemTraits.label) {
+    return { ok: false, trait: null, message: `지표 이름은 최대 ${MENU_FIELD_LIMITS.menuItemTraits.label}자까지 입력 가능합니다.` };
   }
 
-  if (trait.max_value < 1) {
-    return { ok: false, trait: null, message: "최대 값은 1 이상이어야 합니다." };
+  if (trait.value < MENU_FIELD_LIMITS.menuItemTraits.minValue || trait.value > MENU_FIELD_LIMITS.menuItemTraits.maxValue) {
+    return {
+      ok: false,
+      trait: null,
+      message: `지표 값은 ${MENU_FIELD_LIMITS.menuItemTraits.minValue}부터 ${MENU_FIELD_LIMITS.menuItemTraits.maxValue}까지 선택할 수 있습니다.`,
+    };
+  }
+
+  if (trait.max_value !== MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue) {
+    return { ok: false, trait: null, message: `최대 값은 ${MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue}로 저장됩니다.` };
   }
 
   if (trait.value > trait.max_value) {

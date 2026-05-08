@@ -14,7 +14,7 @@ import {
   updateSocialLinkAction,
 } from "@/app/mypage/menus/actions";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
-import { MENU_LIMITS } from "@/lib/menu-starter-presets";
+import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getSocialLinkLabel, SOCIAL_LINK_TYPES } from "@/lib/social-links";
 import type { Database } from "@/lib/supabase/types";
 
@@ -40,29 +40,53 @@ function FieldHint({ children }: { children?: ReactNode }) {
 }
 
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
+  const initialValue = props.value ?? props.defaultValue ?? "";
+  const [currentLength, setCurrentLength] = useState(String(initialValue).length);
+
   return (
     <>
       <input
         {...props}
+        onChange={(event) => {
+          setCurrentLength(event.target.value.length);
+          props.onChange?.(event);
+        }}
         className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
-      <FieldHint>{helperText}</FieldHint>
+      {(helperText || props.maxLength) && (
+        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+          <span className="break-keep">{helperText}</span>
+          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+        </div>
+      )}
     </>
   );
 }
 
 function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { helperText?: ReactNode }) {
+  const initialValue = props.value ?? props.defaultValue ?? "";
+  const [currentLength, setCurrentLength] = useState(String(initialValue).length);
+
   return (
     <>
       <textarea
         {...props}
+        onChange={(event) => {
+          setCurrentLength(event.target.value.length);
+          props.onChange?.(event);
+        }}
         className={`mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
-      <FieldHint>{helperText}</FieldHint>
+      {(helperText || props.maxLength) && (
+        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+          <span className="break-keep">{helperText}</span>
+          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+        </div>
+      )}
     </>
   );
 }
@@ -267,15 +291,15 @@ function ChefFields({ chef, count }: { chef?: MenuChef; count?: number }) {
     <>
       <div>
         <FieldLabel required>이름</FieldLabel>
-        <TextInput name="chef_name" defaultValue={chef?.chef_name ?? ""} required maxLength={50} placeholder="이름을 입력하세요" helperText="셰프/인물 카드에 표시될 이름입니다." />
+        <TextInput name="chef_name" defaultValue={chef?.chef_name ?? ""} required maxLength={MENU_FIELD_LIMITS.menuChefs.chefName} placeholder="이름을 입력하세요" helperText="셰프/인물 카드에 표시될 이름입니다." />
       </div>
       <div>
         <FieldLabel required>역할</FieldLabel>
-        <TextInput name="chef_role" defaultValue={chef?.chef_role ?? ""} required maxLength={50} placeholder="역할을 입력하세요" helperText="예: Head Barista, Executive Chef" />
+        <TextInput name="chef_role" defaultValue={chef?.chef_role ?? ""} required maxLength={MENU_FIELD_LIMITS.menuChefs.chefRole} placeholder="역할을 입력하세요" helperText="예: Head Barista, Executive Chef" />
       </div>
       <div className="md:col-span-2">
         <FieldLabel required>소개</FieldLabel>
-        <TextArea name="chef_description" defaultValue={chef?.chef_description ?? ""} required maxLength={300} placeholder="소개를 입력하세요" helperText="최대 300자까지 입력할 수 있습니다." />
+        <TextArea name="chef_description" defaultValue={chef?.chef_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuChefs.chefDescription} placeholder="소개를 입력하세요" helperText={`최대 ${MENU_FIELD_LIMITS.menuChefs.chefDescription}자까지 입력할 수 있습니다.`} />
       </div>
       <div>
         {chef ? (
@@ -388,19 +412,19 @@ function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
     <>
       <div>
         <FieldLabel required>이벤트 제목</FieldLabel>
-        <TextInput name="event_title" defaultValue={event?.event_title ?? ""} required maxLength={80} placeholder="이벤트 제목을 입력하세요" helperText="이벤트 카드의 제목입니다." />
+        <TextInput name="event_title" defaultValue={event?.event_title ?? ""} required maxLength={MENU_FIELD_LIMITS.menuEvents.eventTitle} placeholder="이벤트 제목을 입력하세요" helperText="이벤트 카드의 제목입니다." />
       </div>
       <div>
         <FieldLabel>부제목</FieldLabel>
-        <TextInput name="event_subtitle" defaultValue={event?.event_subtitle ?? ""} maxLength={80} helperText="짧은 보조 문구를 입력할 수 있습니다." />
+        <TextInput name="event_subtitle" defaultValue={event?.event_subtitle ?? ""} maxLength={MENU_FIELD_LIMITS.menuEvents.eventSubtitle} helperText="짧은 보조 문구를 입력할 수 있습니다." />
       </div>
       <div className="md:col-span-2">
         <FieldLabel required>설명</FieldLabel>
-        <TextArea name="event_description" defaultValue={event?.event_description ?? ""} required maxLength={500} placeholder="이벤트 설명을 입력하세요" helperText="최대 500자까지 입력할 수 있습니다." />
+        <TextArea name="event_description" defaultValue={event?.event_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuEvents.eventDescription} placeholder="이벤트 설명을 입력하세요" helperText={`최대 ${MENU_FIELD_LIMITS.menuEvents.eventDescription}자까지 입력할 수 있습니다.`} />
       </div>
       <div>
         <FieldLabel>기간 문구</FieldLabel>
-        <TextInput name="event_period" defaultValue={event?.event_period ?? ""} maxLength={80} helperText="예: 상시 진행, 시즌 한정, 평일 점심" />
+        <TextInput name="event_period" defaultValue={event?.event_period ?? ""} maxLength={MENU_FIELD_LIMITS.menuEvents.eventPeriod} helperText="예: 상시 진행, 시즌 한정, 평일 점심" />
       </div>
       <div>
         {event ? (
@@ -413,19 +437,19 @@ function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
       </div>
       <div>
         <FieldLabel>혜택</FieldLabel>
-        <TextInput name="event_benefit" defaultValue={event?.event_benefit ?? ""} maxLength={120} helperText="고객이 받을 수 있는 혜택을 짧게 적어주세요." />
+        <TextInput name="event_benefit" defaultValue={event?.event_benefit ?? ""} maxLength={MENU_FIELD_LIMITS.menuEvents.eventBenefit} helperText="고객이 받을 수 있는 혜택을 짧게 적어주세요." />
       </div>
       <div>
         <FieldLabel>상세</FieldLabel>
-        <TextInput name="event_detail" defaultValue={event?.event_detail ?? ""} maxLength={160} helperText="제외 조건이나 안내가 있으면 입력해주세요." />
+        <TextInput name="event_detail" defaultValue={event?.event_detail ?? ""} maxLength={MENU_FIELD_LIMITS.menuEvents.eventDetail} helperText="제외 조건이나 안내가 있으면 입력해주세요." />
       </div>
       <div>
         <FieldLabel>정가 표시 문구</FieldLabel>
-        <TextInput name="event_regular_price_label" defaultValue={event?.event_regular_price_label ?? ""} placeholder="29,000원" maxLength={30} helperText="가격 문구 그대로 표시됩니다." />
+        <TextInput name="event_regular_price_label" defaultValue={event?.event_regular_price_label ?? ""} placeholder="29,000원" maxLength={MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel} helperText="가격 문구 그대로 표시됩니다." />
       </div>
       <div>
         <FieldLabel>할인가/이벤트가 표시 문구</FieldLabel>
-        <TextInput name="event_sale_price_label" defaultValue={event?.event_sale_price_label ?? ""} placeholder="19,000원, 무료" maxLength={30} helperText="할인가 또는 이벤트가 문구를 입력해주세요." />
+        <TextInput name="event_sale_price_label" defaultValue={event?.event_sale_price_label ?? ""} placeholder="19,000원, 무료" maxLength={MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel} helperText="할인가 또는 이벤트가 문구를 입력해주세요." />
       </div>
       <div>
         <FieldLabel>시작일</FieldLabel>
@@ -437,7 +461,7 @@ function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
       </div>
       <div>
         <FieldLabel>링크 URL</FieldLabel>
-        <TextInput name="event_link_url" type="url" defaultValue={event?.link_url ?? ""} placeholder="https://..." helperText="이벤트 상세 페이지가 있을 때 입력하세요." />
+        <TextInput name="event_link_url" type="url" defaultValue={event?.link_url ?? ""} placeholder="https://..." maxLength={MENU_FIELD_LIMITS.menuEvents.linkUrl} helperText="이벤트 상세 페이지가 있을 때 입력하세요." />
       </div>
       <div>
         <FieldLabel>정렬 순서</FieldLabel>
@@ -549,15 +573,15 @@ function SocialLinkFields({ socialLink, count }: { socialLink?: MenuSocialLink; 
       </div>
       <div>
         <FieldLabel required>화면 표시 라벨</FieldLabel>
-        <TextInput name="social_label" defaultValue={socialLink?.label ?? ""} placeholder="인스타그램" required maxLength={30} helperText="메뉴판에 표시되는 SNS 이름입니다." />
+        <TextInput name="social_label" defaultValue={socialLink?.label ?? ""} placeholder="인스타그램" required maxLength={MENU_FIELD_LIMITS.menuSocialLinks.label} helperText="메뉴판에 표시되는 SNS 이름입니다." />
       </div>
       <div>
         <FieldLabel required>아이디/표시명</FieldLabel>
-        <TextInput name="social_display_name" defaultValue={socialLink?.display_name ?? ""} placeholder="@tablescene_official" required maxLength={50} helperText="고객에게 보이는 계정명 또는 표시명입니다." />
+        <TextInput name="social_display_name" defaultValue={socialLink?.display_name ?? ""} placeholder="@tablescene_official" required maxLength={MENU_FIELD_LIMITS.menuSocialLinks.displayName} helperText="고객에게 보이는 계정명 또는 표시명입니다." />
       </div>
       <div>
         <FieldLabel required>URL</FieldLabel>
-        <TextInput name="social_url" type="url" defaultValue={socialLink?.url ?? ""} placeholder="https://..." required helperText="https://로 시작하는 전체 URL을 입력해주세요." />
+        <TextInput name="social_url" type="url" defaultValue={socialLink?.url ?? ""} placeholder="https://..." required maxLength={MENU_FIELD_LIMITS.menuSocialLinks.url} helperText="https://로 시작하는 전체 URL을 입력해주세요." />
       </div>
       <div>
         <FieldLabel>정렬 순서</FieldLabel>

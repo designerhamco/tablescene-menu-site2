@@ -356,6 +356,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      menu_item_price_options: {
+        Row: {
+          id: string;
+          menu_site_id: string;
+          menu_item_id: string;
+          label: string;
+          price: number | null;
+          price_label: string | null;
+          visible: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          menu_site_id: string;
+          menu_item_id: string;
+          label: string;
+          price?: number | null;
+          price_label?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          menu_site_id?: string;
+          menu_item_id?: string;
+          label?: string;
+          price?: number | null;
+          price_label?: string | null;
+          visible?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       menu_item_traits: {
         Row: {
           id: string;

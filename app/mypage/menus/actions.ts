@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { normalizeBadgeType } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
-import { MENU_LIMITS } from "@/lib/menu-starter-presets";
+import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
 import { createClient } from "@/lib/supabase/server";
@@ -28,6 +28,8 @@ type MenuEventInsert = Database["public"]["Tables"]["menu_events"]["Insert"];
 type MenuEventUpdate = Database["public"]["Tables"]["menu_events"]["Update"];
 type MenuSocialLinkInsert = Database["public"]["Tables"]["menu_social_links"]["Insert"];
 type MenuSocialLinkUpdate = Database["public"]["Tables"]["menu_social_links"]["Update"];
+type MenuItemPriceOptionInsert = Database["public"]["Tables"]["menu_item_price_options"]["Insert"];
+type MenuItemPriceOptionUpdate = Database["public"]["Tables"]["menu_item_price_options"]["Update"];
 type MenuItemTraitInsert = Database["public"]["Tables"]["menu_item_traits"]["Insert"];
 type MenuItemTraitUpdate = Database["public"]["Tables"]["menu_item_traits"]["Update"];
 type LooseInsert = Record<string, unknown>;
@@ -74,6 +76,37 @@ function validateOptionalText(menuId: string, value: string | null, label: strin
   }
 }
 
+function validatePriceOptionForm(menuId: string, formData: FormData) {
+  const label = getString(formData, "price_option_label");
+  const price = getOptionalNumber(formData, "price_option_price");
+  const priceLabel = getNullableString(formData, "price_option_price_label");
+
+  validateRequiredText(menuId, label, "옵션명", MENU_FIELD_LIMITS.menuItemPriceOptions.label);
+  validateOptionalText(menuId, priceLabel, "옵션 가격 표시 문구", MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel);
+
+  if (price === undefined && !priceLabel) {
+    redirectToMenuEditWithError(menuId, "가격 옵션은 가격 또는 옵션 가격 표시 문구 중 하나를 입력해주세요.");
+  }
+
+  return {
+    label,
+    price: price ?? null,
+    price_label: priceLabel,
+    visible: getBoolean(formData, "price_option_visible"),
+    sort_order: getNumber(formData, "price_option_sort_order"),
+  };
+}
+
+function validateRequiredPhone(menuId: string, value: string | null, label: string, tab = "about") {
+  if (!value) {
+    redirectToTabEditWithError(menuId, tab, `${label}은 필수 입력입니다.`);
+  }
+
+  if (!isValidRestaurantPhone(value)) {
+    redirectToTabEditWithError(menuId, tab, `${label} 형식이 올바르지 않습니다.`);
+  }
+}
+
 function normalizeSlug(slug: string) {
   return slug
     .toLowerCase()
@@ -99,7 +132,7 @@ function getMenuPageSectionKey(value: string | null): MenuSectionKey {
 }
 
 function isValidSlug(slug: string) {
-  return /^[a-z0-9-]+$/.test(slug) && slug.length >= 3;
+  return isValidPublicSlug(slug);
 }
 
 function getDateString(formData: FormData, key: string) {
@@ -295,6 +328,19 @@ async function assertTraitBelongsToMenuSite(menuId: string, traitId: string) {
   if (!data) redirectToEditWithError(menuId, "해당 맛/특징 지표를 찾을 수 없습니다.");
 }
 
+async function assertPriceOptionBelongsToMenuSite(menuId: string, priceOptionId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("menu_item_price_options")
+    .select("id")
+    .eq("id", priceOptionId)
+    .eq("menu_site_id", menuId)
+    .maybeSingle();
+
+  if (error) redirectToEditWithError(menuId, `가격 옵션 확인에 실패했습니다: ${error.message}`);
+  if (!data) redirectToEditWithError(menuId, "해당 가격 옵션을 찾을 수 없습니다.");
+}
+
 export async function createMenuSiteAction(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -318,12 +364,18 @@ export async function createMenuSiteAction(formData: FormData) {
     redirectWithError("메뉴판 이름을 입력해주세요.");
   }
 
+  if (name.length > MENU_FIELD_LIMITS.menuSites.name) {
+    redirectWithError(`메뉴판 이름은 최대 ${MENU_FIELD_LIMITS.menuSites.name}자까지 입력 가능합니다.`);
+  }
+
   if (!slug) {
     redirectWithError("공개 메뉴판 주소를 입력해주세요. 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.");
   }
 
-  if (slug.length < 3) {
-    redirectWithError("공개 메뉴판 주소는 3자 이상이어야 합니다.");
+  if (!isValidSlug(slug)) {
+    redirectWithError(
+      `공개 메뉴판 주소는 영문 소문자, 숫자, 하이픈으로 ${MENU_FIELD_LIMITS.menuSites.slugMin}자 이상 ${MENU_FIELD_LIMITS.menuSites.slugMax}자 이하로 입력해주세요.`
+    );
   }
 
   if (!isTemplateKey(templateKey)) {
@@ -398,8 +450,16 @@ export async function updateMenuSiteAction(formData: FormData) {
     redirectToTabEditWithError(menuId, "basic", "메뉴판 이름을 입력해주세요.");
   }
 
+  validateRequiredText(menuId, name, "메뉴판 이름", MENU_FIELD_LIMITS.menuSites.name, "basic");
+  validateOptionalText(menuId, restaurantName, "실제 매장명", MENU_FIELD_LIMITS.menuSites.restaurantName, "basic");
+  validateOptionalText(menuId, restaurantCategory, "매장 카테고리", MENU_FIELD_LIMITS.menuSites.restaurantCategory, "basic");
+
   if (!isValidSlug(slug)) {
-    redirectToTabEditWithError(menuId, "basic", "공개 메뉴판 주소는 영문 소문자, 숫자, 하이픈으로 3자 이상 입력해주세요.");
+    redirectToTabEditWithError(
+      menuId,
+      "basic",
+      `공개 메뉴판 주소는 영문 소문자, 숫자, 하이픈으로 ${MENU_FIELD_LIMITS.menuSites.slugMin}자 이상 ${MENU_FIELD_LIMITS.menuSites.slugMax}자 이하로 입력해주세요.`
+    );
   }
 
   const isSlugLocked = menuSite.status === "published" || Boolean(menuSite.published_at);
@@ -475,8 +535,9 @@ export async function updateIntroAction(formData: FormData) {
   const introTitle = getNullableString(formData, "intro_title");
   const introDescription = getNullableString(formData, "intro_description");
 
-  validateRequiredText(menuId, introTitle ?? "", "인트로 제목", 100, "intro");
-  validateRequiredText(menuId, introDescription ?? "", "인트로 설명", 300, "intro");
+  validateRequiredText(menuId, introTitle ?? "", "인트로 제목", MENU_FIELD_LIMITS.menuSites.introTitle, "intro");
+  validateRequiredText(menuId, introDescription ?? "", "인트로 설명", MENU_FIELD_LIMITS.menuSites.introDescription, "intro");
+  validateOptionalText(menuId, getNullableString(formData, "brand_description"), "브랜드 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "intro");
 
   const { error } = await supabase
     .from("menu_sites")
@@ -502,8 +563,8 @@ export async function updateMenuCoverAction(formData: FormData) {
   const menuCoverTitle = getNullableString(formData, "menu_cover_title");
   const menuCoverDescription = getNullableString(formData, "menu_cover_description");
 
-  validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", 100, "cover");
-  validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", 300, "cover");
+  validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
+  validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
 
   const { error } = await supabase
     .from("menu_sites")
@@ -530,10 +591,12 @@ export async function updateAboutAction(formData: FormData) {
   const openingHours = getNullableString(formData, "opening_hours");
   const aboutDescription = getNullableString(formData, "about_description");
 
-  validateRequiredText(menuId, restaurantAddress ?? "", "주소", 100, "about");
-  validateRequiredText(menuId, restaurantPhone ?? "", "전화번호", 50, "about");
-  validateRequiredText(menuId, openingHours ?? "", "영업시간", 100, "about");
-  validateRequiredText(menuId, aboutDescription ?? "", "소개 문구", 500, "about");
+  validateRequiredText(menuId, restaurantAddress ?? "", "주소", MENU_FIELD_LIMITS.menuSites.restaurantAddress, "about");
+  validateRequiredPhone(menuId, restaurantPhone, "전화번호", "about");
+  validateRequiredText(menuId, openingHours ?? "", "영업시간", MENU_FIELD_LIMITS.menuSites.openingHours, "about");
+  validateRequiredText(menuId, aboutDescription ?? "", "소개 문구", MENU_FIELD_LIMITS.menuSites.aboutDescription, "about");
+  validateOptionalText(menuId, getNullableString(formData, "map_url"), "지도 URL", MENU_FIELD_LIMITS.menuSites.mapUrl, "about");
+  validateOptionalText(menuId, getNullableString(formData, "brand_description"), "브랜드 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "about");
 
   const { error } = await supabase
     .from("menu_sites")
@@ -588,8 +651,8 @@ export async function createMenuPageAction(formData: FormData) {
   const title = getString(formData, "menu_page_title");
   const description = getNullableString(formData, "menu_page_description");
 
-  validateRequiredText(menuId, title, "페이지 이름", 30);
-  validateOptionalText(menuId, description, "페이지 설명", 100);
+  validateRequiredText(menuId, title, "페이지 이름", MENU_FIELD_LIMITS.menuPages.title);
+  validateOptionalText(menuId, description, "페이지 설명", MENU_FIELD_LIMITS.menuPages.description);
 
   const { count: pageCount, error: pageCountError } = await supabase
     .from("menu_pages")
@@ -637,8 +700,8 @@ export async function updateMenuPageAction(formData: FormData) {
   const title = getString(formData, "menu_page_title");
   const description = getNullableString(formData, "menu_page_description");
 
-  validateRequiredText(menuId, title, "페이지 이름", 30);
-  validateOptionalText(menuId, description, "페이지 설명", 100);
+  validateRequiredText(menuId, title, "페이지 이름", MENU_FIELD_LIMITS.menuPages.title);
+  validateOptionalText(menuId, description, "페이지 설명", MENU_FIELD_LIMITS.menuPages.description);
 
   const payload: MenuPageUpdate = {
     title,
@@ -721,8 +784,8 @@ export async function createCategoryAction(formData: FormData) {
   const description = getNullableString(formData, "category_description");
   const menuPageId = getString(formData, "category_menu_page_id");
 
-  validateRequiredText(menuId, name, "메뉴 카테고리 이름", 30);
-  validateOptionalText(menuId, description, "메뉴 카테고리 설명", 100);
+  validateRequiredText(menuId, name, "메뉴 카테고리 이름", MENU_FIELD_LIMITS.menuCategories.name);
+  validateOptionalText(menuId, description, "메뉴 카테고리 설명", MENU_FIELD_LIMITS.menuCategories.description);
 
   if (!menuPageId) {
     redirectToMenuEditWithError(menuId, "메뉴 카테고리를 추가할 메뉴 페이지를 선택해주세요.");
@@ -781,8 +844,8 @@ export async function updateCategoryAction(formData: FormData) {
   const description = getNullableString(formData, "category_description");
   const menuPageId = getString(formData, "category_menu_page_id");
 
-  validateRequiredText(menuId, name, "메뉴 카테고리 이름", 30);
-  validateOptionalText(menuId, description, "메뉴 카테고리 설명", 100);
+  validateRequiredText(menuId, name, "메뉴 카테고리 이름", MENU_FIELD_LIMITS.menuCategories.name);
+  validateOptionalText(menuId, description, "메뉴 카테고리 설명", MENU_FIELD_LIMITS.menuCategories.description);
 
   if (!menuPageId) {
     redirectToMenuEditWithError(menuId, "메뉴 카테고리가 속할 메뉴 페이지를 선택해주세요.");
@@ -878,10 +941,16 @@ export async function createMenuItemAction(formData: FormData) {
   const portionLabel = getNullableString(formData, "item_portion_label");
   const description = getNullableString(formData, "item_description");
 
-  validateRequiredText(menuId, name, "아이템 이름", 50);
-  validateOptionalText(menuId, priceLabel, "표시용 가격", 30);
-  validateOptionalText(menuId, portionLabel, "제공량", 30);
-  validateOptionalText(menuId, description, "아이템 설명", 200);
+  validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
+  validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
+  validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+  validateOptionalText(menuId, description, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+  validateOptionalText(menuId, getNullableString(formData, "item_origin_info"), "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
+
+  const price = getOptionalNumber(formData, "item_price");
+  if (price === undefined && !priceLabel) {
+    redirectToMenuEditWithError(menuId, "단일 가격 모드에서는 기본 가격 또는 가격 표시 문구 중 하나를 입력해주세요.");
+  }
 
   const categoryId = getString(formData, "item_category_id");
 
@@ -927,7 +996,7 @@ export async function createMenuItemAction(formData: FormData) {
     name,
     set_name: setName,
     description,
-    price: getOptionalNumber(formData, "item_price"),
+    price,
     price_label: priceLabel,
     price_visible: getBoolean(formData, "item_price_visible"),
     portion_label: portionLabel,
@@ -967,11 +1036,35 @@ export async function updateMenuItemAction(formData: FormData) {
   const priceLabel = getNullableString(formData, "item_price_label");
   const portionLabel = getNullableString(formData, "item_portion_label");
   const description = getNullableString(formData, "item_description");
+  const priceMode = getString(formData, "item_price_mode") === "options" ? "options" : "single";
+  const price = getOptionalNumber(formData, "item_price");
 
-  validateRequiredText(menuId, name, "아이템 이름", 50);
-  validateOptionalText(menuId, priceLabel, "표시용 가격", 30);
-  validateOptionalText(menuId, portionLabel, "제공량", 30);
-  validateOptionalText(menuId, description, "아이템 설명", 200);
+  validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
+  validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
+  validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+  validateOptionalText(menuId, description, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+  validateOptionalText(menuId, getNullableString(formData, "item_origin_info"), "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
+
+  if (priceMode === "single" && price === undefined && !priceLabel) {
+    redirectToMenuEditWithError(menuId, "단일 가격 모드에서는 기본 가격 또는 가격 표시 문구 중 하나를 입력해주세요.");
+  }
+
+  if (priceMode === "options") {
+    const { count: visiblePriceOptionCount, error: visiblePriceOptionCountError } = await supabase
+      .from("menu_item_price_options")
+      .select("id", { count: "exact", head: true })
+      .eq("menu_site_id", menuId)
+      .eq("menu_item_id", itemId)
+      .eq("visible", true);
+
+    if (visiblePriceOptionCountError) {
+      redirectToMenuEditWithError(menuId, `가격 옵션 확인에 실패했습니다: ${visiblePriceOptionCountError.message}`);
+    }
+
+    if ((visiblePriceOptionCount ?? 0) < 1) {
+      redirectToMenuEditWithError(menuId, "옵션별 가격 모드에서는 가격 옵션을 1개 이상 등록하고 표시 상태로 켜주세요.");
+    }
+  }
 
   const categoryId = getString(formData, "item_category_id");
 
@@ -989,8 +1082,6 @@ export async function updateMenuItemAction(formData: FormData) {
     name,
     set_name: setName,
     description,
-    price: getOptionalNumber(formData, "item_price"),
-    price_label: priceLabel,
     price_visible: getBoolean(formData, "item_price_visible"),
     portion_label: portionLabel,
     portion_visible: getBoolean(formData, "item_portion_visible"),
@@ -1005,6 +1096,11 @@ export async function updateMenuItemAction(formData: FormData) {
     updated_at: new Date().toISOString(),
   };
 
+  if (priceMode === "single") {
+    payload.price = price;
+    payload.price_label = priceLabel;
+  }
+
   const { error } = await supabase
     .from("menu_items")
     .update(payload)
@@ -1013,6 +1109,24 @@ export async function updateMenuItemAction(formData: FormData) {
 
   if (error) {
     redirectToMenuEditWithError(menuId, `아이템 저장에 실패했습니다: ${error.message}`);
+  }
+
+  if (priceMode === "single") {
+    const { error: hidePriceOptionsError } = await supabase
+      .from("menu_item_price_options")
+      .update({ visible: false, updated_at: new Date().toISOString() })
+      .eq("menu_site_id", menuId)
+      .eq("menu_item_id", itemId);
+
+    const isMissingPriceOptionsTable =
+      hidePriceOptionsError &&
+      (hidePriceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||
+        hidePriceOptionsError.message.toLowerCase().includes("does not exist") ||
+        hidePriceOptionsError.code === "42P01");
+
+    if (hidePriceOptionsError && !isMissingPriceOptionsTable) {
+      redirectToMenuEditWithError(menuId, `단일 가격 전환 중 기존 가격 옵션 숨김 처리에 실패했습니다: ${hidePriceOptionsError.message}`);
+    }
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
@@ -1075,6 +1189,75 @@ export async function deleteMenuItemAction(formData: FormData) {
   redirectToMenuEdit(menuId, "아이템이 삭제되었습니다.");
 }
 
+export async function createMenuItemPriceOptionAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const itemId = getString(formData, "itemId");
+  if (!menuId || !itemId) redirect("/mypage?error=missing-menu-item-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertItemBelongsToMenuSite(menuId, itemId);
+
+  const { count: optionCount, error: optionCountError } = await supabase
+    .from("menu_item_price_options")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuId)
+    .eq("menu_item_id", itemId);
+
+  if (optionCountError) {
+    redirectToMenuEditWithError(menuId, `가격 옵션 개수 확인에 실패했습니다: ${optionCountError.message}`);
+  }
+
+  if ((optionCount ?? 0) >= MENU_LIMITS.maxPriceOptionsPerItem) {
+    redirectToMenuEditWithError(menuId, `가격 옵션은 아이템당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`);
+  }
+
+  const payloadInput = validatePriceOptionForm(menuId, formData);
+  const payload: MenuItemPriceOptionInsert = {
+    menu_site_id: menuId,
+    menu_item_id: itemId,
+    ...payloadInput,
+  };
+  const { error } = await supabase.from("menu_item_price_options").insert(payload);
+
+  if (error) redirectToMenuEditWithError(menuId, `가격 옵션 추가에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "가격 옵션이 추가되었습니다.");
+}
+
+export async function updateMenuItemPriceOptionAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const priceOptionId = getString(formData, "priceOptionId");
+  if (!menuId || !priceOptionId) redirect("/mypage?error=missing-price-option-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertPriceOptionBelongsToMenuSite(menuId, priceOptionId);
+
+  const payloadInput = validatePriceOptionForm(menuId, formData);
+  const payload: MenuItemPriceOptionUpdate = { ...payloadInput, updated_at: new Date().toISOString() };
+  const { error } = await supabase.from("menu_item_price_options").update(payload).eq("id", priceOptionId).eq("menu_site_id", menuId);
+
+  if (error) redirectToMenuEditWithError(menuId, `가격 옵션 저장에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "가격 옵션이 저장되었습니다.");
+}
+
+export async function deleteMenuItemPriceOptionAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const priceOptionId = getString(formData, "priceOptionId");
+  if (!menuId || !priceOptionId) redirect("/mypage?error=missing-price-option-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertPriceOptionBelongsToMenuSite(menuId, priceOptionId);
+  const { error } = await supabase.from("menu_item_price_options").delete().eq("id", priceOptionId).eq("menu_site_id", menuId);
+
+  if (error) redirectToMenuEditWithError(menuId, `가격 옵션 삭제에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "가격 옵션이 삭제되었습니다.");
+}
+
 export async function createMenuItemTraitAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   const itemId = getString(formData, "itemId");
@@ -1082,6 +1265,20 @@ export async function createMenuItemTraitAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   await assertItemBelongsToMenuSite(menuId, itemId);
+
+  const { count: traitCount, error: traitCountError } = await supabase
+    .from("menu_item_traits")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuId)
+    .eq("menu_item_id", itemId);
+
+  if (traitCountError) {
+    redirectToMenuEditWithError(menuId, `맛/특징 지표 개수 확인에 실패했습니다: ${traitCountError.message}`);
+  }
+
+  if ((traitCount ?? 0) >= MENU_LIMITS.maxTraitsPerItem) {
+    redirectToMenuEditWithError(menuId, `맛/특징 지표는 아이템당 최대 ${MENU_LIMITS.maxTraitsPerItem}개까지 등록할 수 있습니다.`);
+  }
 
   const validation = validateMenuItemTrait({
     label: formData.get("trait_label"),
@@ -1160,6 +1357,9 @@ export async function createChefAction(formData: FormData) {
   if (!chefName) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 이름을 입력해주세요.");
   if (!chefRole) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 역할을 입력해주세요.");
   if (!chefDescription) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 소개를 입력해주세요.");
+  validateRequiredText(menuId, chefName, "셰프/인물 이름", MENU_FIELD_LIMITS.menuChefs.chefName, "chefs");
+  validateRequiredText(menuId, chefRole, "셰프/인물 역할", MENU_FIELD_LIMITS.menuChefs.chefRole, "chefs");
+  validateRequiredText(menuId, chefDescription, "셰프/인물 소개", MENU_FIELD_LIMITS.menuChefs.chefDescription, "chefs");
 
   const { count: chefCount, error: chefCountError } = await supabase
     .from("menu_chefs")
@@ -1201,6 +1401,9 @@ export async function updateChefAction(formData: FormData) {
   if (!chefName) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 이름을 입력해주세요.");
   if (!chefRole) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 역할을 입력해주세요.");
   if (!chefDescription) redirectToTabEditWithError(menuId, "chefs", "셰프/인물 소개를 입력해주세요.");
+  validateRequiredText(menuId, chefName, "셰프/인물 이름", MENU_FIELD_LIMITS.menuChefs.chefName, "chefs");
+  validateRequiredText(menuId, chefRole, "셰프/인물 역할", MENU_FIELD_LIMITS.menuChefs.chefRole, "chefs");
+  validateRequiredText(menuId, chefDescription, "셰프/인물 소개", MENU_FIELD_LIMITS.menuChefs.chefDescription, "chefs");
 
   const payload: MenuChefUpdate = {
     chef_name: chefName,
@@ -1249,6 +1452,15 @@ export async function createEventAction(formData: FormData) {
 
   if (!title) redirectToTabEditWithError(menuId, "events", "이벤트 제목을 입력해주세요.");
   if (!description) redirectToTabEditWithError(menuId, "events", "이벤트 설명을 입력해주세요.");
+  validateRequiredText(menuId, title, "이벤트 제목", MENU_FIELD_LIMITS.menuEvents.eventTitle, "events");
+  validateRequiredText(menuId, description, "이벤트 설명", MENU_FIELD_LIMITS.menuEvents.eventDescription, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_subtitle"), "이벤트 부제목", MENU_FIELD_LIMITS.menuEvents.eventSubtitle, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_period"), "이벤트 기간 문구", MENU_FIELD_LIMITS.menuEvents.eventPeriod, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_benefit"), "이벤트 혜택", MENU_FIELD_LIMITS.menuEvents.eventBenefit, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_detail"), "이벤트 상세", MENU_FIELD_LIMITS.menuEvents.eventDetail, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_regular_price_label"), "정가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_sale_price_label"), "할인가/이벤트가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_link_url"), "이벤트 링크 URL", MENU_FIELD_LIMITS.menuEvents.linkUrl, "events");
 
   const { count: eventCount, error: eventCountError } = await supabase
     .from("menu_events")
@@ -1297,6 +1509,15 @@ export async function updateEventAction(formData: FormData) {
 
   if (!title) redirectToTabEditWithError(menuId, "events", "이벤트 제목을 입력해주세요.");
   if (!description) redirectToTabEditWithError(menuId, "events", "이벤트 설명을 입력해주세요.");
+  validateRequiredText(menuId, title, "이벤트 제목", MENU_FIELD_LIMITS.menuEvents.eventTitle, "events");
+  validateRequiredText(menuId, description, "이벤트 설명", MENU_FIELD_LIMITS.menuEvents.eventDescription, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_subtitle"), "이벤트 부제목", MENU_FIELD_LIMITS.menuEvents.eventSubtitle, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_period"), "이벤트 기간 문구", MENU_FIELD_LIMITS.menuEvents.eventPeriod, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_benefit"), "이벤트 혜택", MENU_FIELD_LIMITS.menuEvents.eventBenefit, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_detail"), "이벤트 상세", MENU_FIELD_LIMITS.menuEvents.eventDetail, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_regular_price_label"), "정가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_sale_price_label"), "할인가/이벤트가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel, "events");
+  validateOptionalText(menuId, getNullableString(formData, "event_link_url"), "이벤트 링크 URL", MENU_FIELD_LIMITS.menuEvents.linkUrl, "events");
 
   const payload: MenuEventUpdate = {
     event_title: title,
@@ -1353,6 +1574,9 @@ async function validateSocialLinkForm(menuId: string, formData: FormData) {
   if (!isSocialLinkType(type)) redirectToTabEditWithError(menuId, "social", "SNS 종류를 선택해주세요.");
   if (!label) redirectToTabEditWithError(menuId, "social", "SNS 화면 표시 라벨을 입력해주세요.");
   if (!displayName) redirectToTabEditWithError(menuId, "social", "SNS 아이디/표시명을 입력해주세요.");
+  validateRequiredText(menuId, label, "SNS 화면 표시 라벨", MENU_FIELD_LIMITS.menuSocialLinks.label, "social");
+  validateRequiredText(menuId, displayName, "SNS 아이디/표시명", MENU_FIELD_LIMITS.menuSocialLinks.displayName, "social");
+  validateRequiredText(menuId, url, "SNS URL", MENU_FIELD_LIMITS.menuSocialLinks.url, "social");
   if (!/^https?:\/\//i.test(url)) redirectToTabEditWithError(menuId, "social", "SNS URL은 http:// 또는 https://로 시작해야 합니다.");
 
   return {

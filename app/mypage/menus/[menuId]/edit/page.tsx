@@ -18,6 +18,7 @@ import {
   EventsSection as InteractiveEventsSection,
   SocialLinksSection as InteractiveSocialLinksSection,
 } from "@/components/mypage/menu-editor/OptionalContentSections";
+import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { createClient } from "@/lib/supabase/server";
@@ -82,6 +83,7 @@ type MenuItem = Pick<
   | "sort_order"
 >;
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
+type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
 type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
 type MenuSocialLink = Database["public"]["Tables"]["menu_social_links"]["Row"];
@@ -119,6 +121,9 @@ function FieldHint({ children }: { children?: ReactNode }) {
 }
 
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
+  const displayValue = props.value ?? props.defaultValue ?? "";
+  const currentLength = typeof displayValue === "string" || typeof displayValue === "number" ? String(displayValue).length : 0;
+
   return (
     <>
       <input
@@ -127,12 +132,20 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
           className ?? ""
         }`}
       />
-      <FieldHint>{helperText}</FieldHint>
+      {(helperText || props.maxLength) && (
+        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+          <span className="break-keep">{helperText}</span>
+          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+        </div>
+      )}
     </>
   );
 }
 
 function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { helperText?: ReactNode }) {
+  const displayValue = props.value ?? props.defaultValue ?? "";
+  const currentLength = typeof displayValue === "string" || typeof displayValue === "number" ? String(displayValue).length : 0;
+
   return (
     <>
       <textarea
@@ -141,7 +154,12 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
           className ?? ""
         }`}
       />
-      <FieldHint>{helperText}</FieldHint>
+      {(helperText || props.maxLength) && (
+        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+          <span className="break-keep">{helperText}</span>
+          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+        </div>
+      )}
     </>
   );
 }
@@ -240,6 +258,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     { data: menuPagesData },
     { data: categoriesData },
     { data: itemsData },
+    { data: priceOptionsData, error: priceOptionsError },
     { data: traitsData },
     { data: chefsData },
     { data: eventsData },
@@ -263,6 +282,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .select(
           "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
         )
+        .eq("menu_site_id", menuId)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("menu_item_price_options")
+        .select("*")
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -295,6 +320,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const menuPages = (menuPagesData ?? []) as MenuPage[];
   const categories = (categoriesData ?? []) as MenuCategory[];
   const items = (itemsData ?? []) as MenuItem[];
+  const isMissingPriceOptionsTable =
+    priceOptionsError &&
+    (priceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||
+      priceOptionsError.message.toLowerCase().includes("does not exist") ||
+      priceOptionsError.code === "42P01");
+  const priceOptions = (isMissingPriceOptionsTable ? [] : priceOptionsData ?? []) as MenuItemPriceOption[];
   const traits = (traitsData ?? []) as MenuItemTrait[];
   const chefs = (chefsData ?? []) as MenuChef[];
   const events = (eventsData ?? []) as MenuEvent[];
@@ -365,20 +396,20 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel required>메뉴판 관리용 이름</FieldLabel>
-                    <TextInput name="name" defaultValue={site.name} required maxLength={80} helperText="마이페이지에서 구분할 이름입니다. 최대 80자까지 입력할 수 있습니다." />
+                    <TextInput name="name" defaultValue={site.name} required maxLength={MENU_FIELD_LIMITS.menuSites.name} helperText={`마이페이지에서 구분할 이름입니다. 최대 ${MENU_FIELD_LIMITS.menuSites.name}자까지 입력할 수 있습니다.`} />
                   </div>
                   <div>
                     <FieldLabel>실제 매장명</FieldLabel>
-                    <TextInput name="restaurant_name" defaultValue={site.restaurant_name ?? ""} maxLength={80} helperText="공개 메뉴판에 표시될 매장명입니다." />
+                    <TextInput name="restaurant_name" defaultValue={site.restaurant_name ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.restaurantName} helperText="공개 메뉴판에 표시될 매장명입니다." />
                   </div>
                   <div>
                     <FieldLabel>매장 카테고리</FieldLabel>
-                    <TextInput name="restaurant_category" defaultValue={site.restaurant_category ?? ""} placeholder="예: 이탈리안 레스토랑" maxLength={50} helperText="고객이 이해하기 쉬운 업종명을 입력해주세요." />
+                    <TextInput name="restaurant_category" defaultValue={site.restaurant_category ?? ""} placeholder="예: 이탈리안 레스토랑" maxLength={MENU_FIELD_LIMITS.menuSites.restaurantCategory} helperText="고객이 이해하기 쉬운 업종명을 입력해주세요." />
                   </div>
                   <div>
                     <FieldLabel required>공개 주소</FieldLabel>
                     {isSlugLocked && <input type="hidden" name="slug" value={site.slug} />}
-                    <TextInput name="slug" defaultValue={site.slug} required disabled={isSlugLocked} pattern="[a-z0-9-]+" title="영문 소문자, 숫자, 하이픈만 입력할 수 있습니다." helperText="영문 소문자, 숫자, 하이픈만 사용할 수 있습니다." />
+                    <TextInput name="slug" defaultValue={site.slug} required disabled={isSlugLocked} minLength={MENU_FIELD_LIMITS.menuSites.slugMin} maxLength={MENU_FIELD_LIMITS.menuSites.slugMax} pattern="[a-z0-9-]+" title="영문 소문자, 숫자, 하이픈만 입력할 수 있습니다." helperText="영문 소문자, 숫자, 하이픈만 사용할 수 있습니다." />
                     <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
                       공개 후에는 QR 코드와 공유 링크 유지를 위해 주소를 변경할 수 없습니다.
                     </p>
@@ -416,18 +447,18 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel required>인트로 제목</FieldLabel>
-                    <TextInput name="intro_title" defaultValue={site.intro_title ?? ""} required maxLength={80} helperText="첫 화면에서 가장 크게 보이는 제목입니다." />
+                    <TextInput name="intro_title" defaultValue={site.intro_title ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.introTitle} helperText="첫 화면에서 가장 크게 보이는 제목입니다." />
                   </div>
                   <div>
                     <ImageUploadField label="로고 이미지" menuId={site.id} target="site-logo" currentUrl={site.logo_url} />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel required>인트로 설명</FieldLabel>
-                    <TextArea name="intro_description" defaultValue={site.intro_description ?? ""} required maxLength={300} helperText="매장의 첫인상을 설명하는 문구입니다. 최대 300자까지 입력할 수 있습니다." />
+                    <TextArea name="intro_description" defaultValue={site.intro_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.introDescription} helperText={`매장의 첫인상을 설명하는 문구입니다. 최대 ${MENU_FIELD_LIMITS.menuSites.introDescription}자까지 입력할 수 있습니다.`} />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel>브랜드 설명</FieldLabel>
-                    <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={500} helperText="브랜드나 공간의 분위기를 소개해주세요." />
+                    <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription} helperText="브랜드나 공간의 분위기를 소개해주세요." />
                   </div>
                   <div className="md:col-span-2">
                     <ImageUploadField label="커버 이미지" menuId={site.id} target="site-cover" currentUrl={site.cover_image_url} />
@@ -445,14 +476,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel required>메뉴 커버 제목</FieldLabel>
-                    <TextInput name="menu_cover_title" defaultValue={site.menu_cover_title ?? ""} required maxLength={80} helperText="메뉴 영역 상단에 표시되는 제목입니다." />
+                    <TextInput name="menu_cover_title" defaultValue={site.menu_cover_title ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverTitle} helperText="메뉴 영역 상단에 표시되는 제목입니다." />
                   </div>
                   <div>
                     <ImageUploadField label="커버 이미지" menuId={site.id} target="site-cover" currentUrl={site.cover_image_url} />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel required>메뉴 커버 설명</FieldLabel>
-                    <TextArea name="menu_cover_description" defaultValue={site.menu_cover_description ?? ""} required maxLength={300} helperText="메뉴 소개 문구를 입력해주세요. 최대 300자까지 입력할 수 있습니다." />
+                    <TextArea name="menu_cover_description" defaultValue={site.menu_cover_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverDescription} helperText={`메뉴 소개 문구를 입력해주세요. 최대 ${MENU_FIELD_LIMITS.menuSites.menuCoverDescription}자까지 입력할 수 있습니다.`} />
                   </div>
                   <div className="md:col-span-2">
                     <SubmitButton>메뉴 커버 저장</SubmitButton>
@@ -462,7 +493,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "menu" && (
-              <MenuManagementSection menuId={site.id} menuPages={menuPages} categories={categories} items={items} traits={traits} />
+              <MenuManagementSection menuId={site.id} menuPages={menuPages} categories={categories} items={items} priceOptions={priceOptions} traits={traits} />
             )}
 
             {activeTab === "about" && (
@@ -471,27 +502,27 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel required>주소</FieldLabel>
-                    <TextInput name="restaurant_address" defaultValue={site.restaurant_address ?? ""} required maxLength={150} helperText="공개 메뉴판의 소개 영역에 표시됩니다." />
+                    <TextInput name="restaurant_address" defaultValue={site.restaurant_address ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.restaurantAddress} helperText="공개 메뉴판의 소개 영역에 표시됩니다." />
                   </div>
                   <div>
                     <FieldLabel required>전화번호</FieldLabel>
-                    <TextInput name="restaurant_phone" defaultValue={site.restaurant_phone ?? ""} required inputMode="tel" pattern="[0-9+\-()\s]{8,20}" title="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." helperText="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." />
+                    <TextInput name="restaurant_phone" defaultValue={site.restaurant_phone ?? ""} required inputMode="tel" maxLength={20} pattern="[0-9+\-()\s]{8,20}" title="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." helperText="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." />
                   </div>
                   <div>
                     <FieldLabel required>영업시간</FieldLabel>
-                    <TextInput name="opening_hours" defaultValue={site.opening_hours ?? ""} required maxLength={120} helperText="예: 매일 10:00 - 21:00" />
+                    <TextInput name="opening_hours" defaultValue={site.opening_hours ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.openingHours} helperText="예: 매일 10:00 - 21:00" />
                   </div>
                   <div>
                     <FieldLabel>지도 URL</FieldLabel>
-                    <TextInput name="map_url" defaultValue={site.map_url ?? ""} type="url" placeholder="https://..." helperText="네이버지도, 카카오맵, 구글맵 링크를 입력할 수 있습니다." />
+                    <TextInput name="map_url" defaultValue={site.map_url ?? ""} type="url" placeholder="https://..." maxLength={MENU_FIELD_LIMITS.menuSites.mapUrl} helperText="네이버지도, 카카오맵, 구글맵 링크를 입력할 수 있습니다." />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel required>소개 문구</FieldLabel>
-                    <TextArea name="about_description" defaultValue={site.about_description ?? ""} required maxLength={500} helperText="매장 소개 영역에 표시됩니다. 최대 500자까지 입력할 수 있습니다." />
+                    <TextArea name="about_description" defaultValue={site.about_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.aboutDescription} helperText={`매장 소개 영역에 표시됩니다. 최대 ${MENU_FIELD_LIMITS.menuSites.aboutDescription}자까지 입력할 수 있습니다.`} />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel>브랜드 설명</FieldLabel>
-                    <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={500} helperText="브랜드 스토리나 운영 철학을 입력해주세요." />
+                    <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription} helperText="브랜드 스토리나 운영 철학을 입력해주세요." />
                   </div>
                   <p className="md:col-span-2 text-sm font-semibold text-zinc-500">SNS 링크는 SNS 탭에서 관리합니다.</p>
                   <div className="md:col-span-2">

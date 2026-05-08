@@ -69,6 +69,11 @@ export type PublicMenuItemTrait = Pick<
   "id" | "menu_item_id" | "label" | "value" | "max_value" | "visible" | "sort_order"
 >;
 
+export type PublicMenuItemPriceOption = Pick<
+  Database["public"]["Tables"]["menu_item_price_options"]["Row"],
+  "id" | "menu_item_id" | "label" | "price" | "price_label" | "visible" | "sort_order"
+>;
+
 export type PublicMenuEvent = Pick<
   Database["public"]["Tables"]["menu_events"]["Row"],
   | "id"
@@ -103,6 +108,7 @@ export type PublicMenuTemplateProps = {
   pages: PublicMenuPage[];
   categories: PublicMenuCategory[];
   items: PublicMenuItem[];
+  priceOptions: PublicMenuItemPriceOption[];
   traits: PublicMenuItemTrait[];
   events: PublicMenuEvent[];
   chefs: PublicMenuChef[];

@@ -5,20 +5,23 @@ import { useMemo, useState, type ReactNode } from "react";
 import {
   createCategoryAction,
   createMenuItemAction,
+  createMenuItemPriceOptionAction,
   createMenuItemTraitAction,
   createMenuPageAction,
   deleteCategoryAction,
   deleteMenuItemAction,
+  deleteMenuItemPriceOptionAction,
   deleteMenuItemTraitAction,
   deleteMenuPageAction,
   updateCategoryAction,
   updateMenuItemAction,
+  updateMenuItemPriceOptionAction,
   updateMenuItemTraitAction,
   updateMenuPageAction,
 } from "@/app/mypage/menus/actions";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import { BADGE_LABELS, BADGE_TYPES, getBadgeLabel, getMenuItemBadgeType } from "@/lib/menu-badges";
-import { MENU_LIMITS } from "@/lib/menu-starter-presets";
+import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import type { Database } from "@/lib/supabase/types";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
 
@@ -53,14 +56,17 @@ type MenuItem = Pick<
   | "sort_order"
 >;
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
+type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
 
 type MenuManagementSectionProps = {
   menuId: string;
   menuPages: MenuPage[];
   categories: MenuCategory[];
   items: MenuItem[];
+  priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
 };
+type PriceMode = "single" | "options";
 
 function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
   return (
@@ -71,38 +77,54 @@ function FieldLabel({ children, required = false }: { children: ReactNode; requi
   );
 }
 
-function FieldHint({ children }: { children?: ReactNode }) {
-  if (!children) {
-    return null;
-  }
-
-  return <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{children}</p>;
-}
-
 function TextInput({ helperText, className, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
+  const initialValue = props.value ?? props.defaultValue ?? "";
+  const [currentLength, setCurrentLength] = useState(String(initialValue).length);
+
   return (
     <>
       <input
         {...props}
+        onChange={(event) => {
+          setCurrentLength(event.target.value.length);
+          props.onChange?.(event);
+        }}
         className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 disabled:bg-zinc-100 disabled:text-zinc-400 ${
           className ?? ""
         }`}
       />
-      <FieldHint>{helperText}</FieldHint>
+      {(helperText || props.maxLength) && (
+        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+          <span className="break-keep">{helperText}</span>
+          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+        </div>
+      )}
     </>
   );
 }
 
 function TextArea({ helperText, className, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { helperText?: ReactNode }) {
+  const initialValue = props.value ?? props.defaultValue ?? "";
+  const [currentLength, setCurrentLength] = useState(String(initialValue).length);
+
   return (
     <>
       <textarea
         {...props}
+        onChange={(event) => {
+          setCurrentLength(event.target.value.length);
+          props.onChange?.(event);
+        }}
         className={`mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
-      <FieldHint>{helperText}</FieldHint>
+      {(helperText || props.maxLength) && (
+        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+          <span className="break-keep">{helperText}</span>
+          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+        </div>
+      )}
     </>
   );
 }
@@ -254,10 +276,10 @@ function BadgeSelect({ defaultValue = "none" }: { defaultValue?: string | null }
   );
 }
 
-function TraitValueSelect({ defaultValue = 0 }: { defaultValue?: number }) {
+function TraitValueSelect({ defaultValue = MENU_FIELD_LIMITS.menuItemTraits.minValue }: { defaultValue?: number }) {
   return (
     <Select name="trait_value" defaultValue={String(defaultValue)}>
-      {[0, 1, 2, 3, 4, 5].map((value) => (
+      {[1, 2, 3, 4, 5].map((value) => (
         <option key={value} value={value}>
           {value}/5
         </option>
@@ -332,7 +354,7 @@ function DeleteConfirmForm({
 
 function MenuPageForm({ menuId, page, count, onCancel }: { menuId: string; page?: MenuPage; count: number; onCancel: () => void }) {
   const [title, setTitle] = useState(page?.title ?? "");
-  const titleInvalid = !title.trim() || title.length > 30;
+  const titleInvalid = !title.trim() || title.length > MENU_FIELD_LIMITS.menuPages.title;
 
   return (
     <form action={page ? updateMenuPageAction : createMenuPageAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
@@ -343,7 +365,7 @@ function MenuPageForm({ menuId, page, count, onCancel }: { menuId: string; page?
         <input
           name="menu_page_title"
           value={title}
-          maxLength={30}
+          maxLength={MENU_FIELD_LIMITS.menuPages.title}
           placeholder="페이지 이름을 입력하세요"
           required
           onChange={(event) => setTitle(event.target.value)}
@@ -353,12 +375,12 @@ function MenuPageForm({ menuId, page, count, onCancel }: { menuId: string; page?
         />
         <div className="mt-2 flex items-center justify-between text-xs font-bold">
           <span className={titleInvalid ? "text-red-600" : "text-zinc-400"}>
-            {!title.trim() ? "이름은 필수 입력입니다" : title.length > 30 ? "최대 30자까지 입력 가능합니다" : ""}
+            {!title.trim() ? "이름은 필수 입력입니다" : title.length > MENU_FIELD_LIMITS.menuPages.title ? `최대 ${MENU_FIELD_LIMITS.menuPages.title}자까지 입력 가능합니다` : ""}
           </span>
-          <span className={title.length > 30 ? "text-red-600" : "text-zinc-400"}>{title.length} / 30</span>
+          <span className={title.length > MENU_FIELD_LIMITS.menuPages.title ? "text-red-600" : "text-zinc-400"}>{title.length} / {MENU_FIELD_LIMITS.menuPages.title}</span>
         </div>
       </div>
-      <ValidatedTextArea name="menu_page_description" label="페이지 설명" defaultValue={page?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={100} helperText="메뉴 페이지를 설명하는 짧은 문구입니다." />
+      <ValidatedTextArea name="menu_page_description" label="페이지 설명" defaultValue={page?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuPages.description} helperText="메뉴 페이지를 설명하는 짧은 문구입니다." />
       <ValidatedTextInput name="menu_page_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={page?.sort_order ?? count} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
       <div className="grid gap-3">
         <Checkbox name="menu_page_description_visible" label="설명 표시" defaultChecked={page?.description_visible ?? true} />
@@ -388,7 +410,7 @@ function MenuCategoryForm({
   onCancel: () => void;
 }) {
   const [name, setName] = useState(category?.name ?? "");
-  const nameInvalid = !name.trim() || name.length > 30;
+  const nameInvalid = !name.trim() || name.length > MENU_FIELD_LIMITS.menuCategories.name;
 
   return (
     <form action={category ? updateCategoryAction : createCategoryAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
@@ -400,7 +422,7 @@ function MenuCategoryForm({
         <input
           name="category_name"
           value={name}
-          maxLength={30}
+          maxLength={MENU_FIELD_LIMITS.menuCategories.name}
           placeholder="메뉴 카테고리 이름을 입력하세요"
           required
           onChange={(event) => setName(event.target.value)}
@@ -410,12 +432,12 @@ function MenuCategoryForm({
         />
         <div className="mt-2 flex items-center justify-between text-xs font-bold">
           <span className={nameInvalid ? "text-red-600" : "text-zinc-400"}>
-            {!name.trim() ? "이름은 필수 입력입니다" : name.length > 30 ? "최대 30자까지 입력 가능합니다" : ""}
+            {!name.trim() ? "이름은 필수 입력입니다" : name.length > MENU_FIELD_LIMITS.menuCategories.name ? `최대 ${MENU_FIELD_LIMITS.menuCategories.name}자까지 입력 가능합니다` : ""}
           </span>
-          <span className={name.length > 30 ? "text-red-600" : "text-zinc-400"}>{name.length} / 30</span>
+          <span className={name.length > MENU_FIELD_LIMITS.menuCategories.name ? "text-red-600" : "text-zinc-400"}>{name.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
         </div>
       </div>
-      <ValidatedTextArea name="category_description" label="메뉴 카테고리 설명" defaultValue={category?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={100} helperText="카테고리 소개 문구입니다." />
+      <ValidatedTextArea name="category_description" label="메뉴 카테고리 설명" defaultValue={category?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuCategories.description} helperText="카테고리 소개 문구입니다." />
       <ValidatedTextInput name="category_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={category?.sort_order ?? count} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
       <div className="grid gap-3">
         <Checkbox name="category_description_visible" label="설명 표시" defaultChecked={category?.description_visible ?? true} />
@@ -436,29 +458,36 @@ function MenuItemForm({
   item,
   itemCount,
   selectedCategoryId,
+  priceMode = "single",
+  onPriceModeChange,
   onCancel,
 }: {
   menuId: string;
   item?: MenuItem;
   itemCount: number;
   selectedCategoryId: string;
+  priceMode?: PriceMode;
+  onPriceModeChange?: (mode: PriceMode) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(item?.name ?? "");
-  const nameInvalid = !name.trim() || name.length > 50;
+  const nameInvalid = !name.trim() || name.length > MENU_FIELD_LIMITS.menuItems.name;
   const linkedCategoryId = item?.category_id ?? selectedCategoryId;
+  const isOptionsMode = Boolean(item && priceMode === "options");
+  const isSingleMode = !isOptionsMode;
 
   return (
     <form action={item ? updateMenuItemAction : createMenuItemAction} className="mt-4 grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       {item && <input type="hidden" name="itemId" value={item.id} />}
       <input type="hidden" name="item_category_id" value={linkedCategoryId} />
+      <input type="hidden" name="item_price_mode" value={isOptionsMode ? "options" : "single"} />
       <div>
         <FieldLabel required>이름</FieldLabel>
         <input
           name="item_name"
           value={name}
-          maxLength={50}
+          maxLength={MENU_FIELD_LIMITS.menuItems.name}
           placeholder="메뉴 이름을 입력하세요"
           required
           onChange={(event) => setName(event.target.value)}
@@ -468,14 +497,55 @@ function MenuItemForm({
         />
         <div className="mt-2 flex items-center justify-between text-xs font-bold">
           <span className={nameInvalid ? "text-red-600" : "text-zinc-400"}>
-            {!name.trim() ? "이름은 필수 입력입니다" : name.length > 50 ? "최대 50자까지 입력 가능합니다" : ""}
+            {!name.trim() ? "이름은 필수 입력입니다" : name.length > MENU_FIELD_LIMITS.menuItems.name ? `최대 ${MENU_FIELD_LIMITS.menuItems.name}자까지 입력 가능합니다` : ""}
           </span>
-          <span className={name.length > 50 ? "text-red-600" : "text-zinc-400"}>{name.length} / 50</span>
+          <span className={name.length > MENU_FIELD_LIMITS.menuItems.name ? "text-red-600" : "text-zinc-400"}>{name.length} / {MENU_FIELD_LIMITS.menuItems.name}</span>
         </div>
       </div>
-      <ValidatedTextInput name="item_price" label="가격" type="number" min={0} step={1} defaultValue={item?.price ?? ""} placeholder="가격을 입력하세요" helperText="숫자만 입력하세요. 표시용 가격이 있으면 공개 메뉴판에는 표시용 가격이 우선될 수 있습니다." />
-      <ValidatedTextInput name="item_price_label" label="표시용 가격" defaultValue={item?.price_label ?? ""} placeholder="예: 시가, 문의, 12,000원" maxLength={30} helperText="숫자 가격 대신 보여줄 문구입니다." />
-      <ValidatedTextInput name="item_portion_label" label="제공량" defaultValue={item?.portion_label ?? ""} placeholder="예: 150g, 1인분, 2pcs" maxLength={30} helperText="용량, 인분, 온도 옵션 등을 입력할 수 있습니다." />
+      <div className="rounded-lg border border-zinc-100 bg-white p-4 md:col-span-2">
+        <FieldLabel>가격 표시 방식</FieldLabel>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          {(["single", "options"] as const).map((mode) => (
+            <label
+              key={mode}
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-sm font-bold ${
+                priceMode === mode ? "border-zinc-950 bg-zinc-50 text-zinc-950" : "border-zinc-200 bg-white text-zinc-500"
+              } ${!item && mode === "options" ? "cursor-not-allowed opacity-50" : ""}`}
+            >
+              <input
+                type="radio"
+                name="price_mode_selector"
+                value={mode}
+                checked={priceMode === mode}
+                disabled={!item && mode === "options"}
+                onChange={() => onPriceModeChange?.(mode)}
+                className="mt-1 accent-zinc-950"
+              />
+              <span>
+                {mode === "single" ? "단일 가격" : "옵션별 가격"}
+                <span className="mt-1 block text-xs font-semibold leading-relaxed text-zinc-400">
+                  {mode === "single"
+                    ? "기본 가격 또는 가격 표시 문구를 한 번만 보여줍니다."
+                    : "HOT/ICE, 사이즈, 중량처럼 가격이 나뉘는 경우 사용합니다."}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+        {!item && <p className="mt-3 text-xs font-bold text-zinc-400">옵션별 가격은 아이템을 먼저 추가한 뒤 설정할 수 있습니다.</p>}
+      </div>
+      {isSingleMode && (
+        <>
+          <ValidatedTextInput name="item_price" label="기본 가격" type="number" min={0} step={1} defaultValue={item?.price ?? ""} placeholder="가격을 입력하세요" helperText="숫자로 입력합니다. 가격 표시 문구가 있으면 공개 메뉴판에는 문구가 우선됩니다." />
+          <ValidatedTextInput name="item_price_label" label="가격 표시 문구" defaultValue={item?.price_label ?? ""} placeholder="예: 4,500원, 시가, 변동가, 문의" maxLength={MENU_FIELD_LIMITS.menuItems.priceLabel} helperText="메뉴판에 그대로 보이는 가격 문구입니다." />
+        </>
+      )}
+      {isOptionsMode && (
+        <div className="rounded-lg border border-zinc-100 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-500 md:col-span-2">
+          옵션별 가격을 사용하면 기본 가격은 공개 메뉴판에 표시되지 않습니다. 아래 가격 옵션에서 옵션명과 가격을 관리해주세요.
+        </div>
+      )}
+      <ValidatedTextInput name="item_portion_label" label="제공량" defaultValue={item?.portion_label ?? ""} placeholder="예: 150g, 1인분, 2pcs" maxLength={MENU_FIELD_LIMITS.menuItems.portionLabel} helperText="용량, 인분, 온도 옵션 등을 입력할 수 있습니다." />
       <ValidatedTextInput name="item_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={item?.sort_order ?? itemCount} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
       <div>
         <FieldLabel>추천/딱지</FieldLabel>
@@ -491,11 +561,11 @@ function MenuItemForm({
         )}
       </div>
       <div className="md:col-span-2">
-        <ValidatedTextArea name="item_description" label="설명" defaultValue={item?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={200} helperText="재료, 맛, 추천 포인트를 짧게 적어주세요." />
+        <ValidatedTextArea name="item_description" label="설명" defaultValue={item?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuItems.description} helperText="재료, 맛, 추천 포인트를 짧게 적어주세요." />
       </div>
       <div className="md:col-span-2">
         <FieldLabel>원산지 정보</FieldLabel>
-        <TextArea name="item_origin_info" defaultValue={item?.origin_info ?? ""} placeholder="원산지 정보를 입력하세요" maxLength={300} helperText="필요한 메뉴에만 원산지 정보를 입력하세요." />
+        <TextArea name="item_origin_info" defaultValue={item?.origin_info ?? ""} placeholder="원산지 정보를 입력하세요" maxLength={MENU_FIELD_LIMITS.menuItems.originInfo} helperText="필요한 메뉴에만 원산지 정보를 입력하세요." />
       </div>
       <div className="rounded-lg border border-zinc-100 bg-white p-4 md:col-span-2">
         <h4 className="mb-3 text-sm font-bold text-zinc-900">표시 설정</h4>
@@ -536,7 +606,21 @@ function traitSummary(traits: MenuItemTrait[]) {
     .join(" · ");
 }
 
-export default function MenuManagementSection({ menuId, menuPages, categories, items, traits }: MenuManagementSectionProps) {
+function formatPriceOption(option: Pick<MenuItemPriceOption, "price" | "price_label">) {
+  if (option.price_label) return option.price_label;
+  if (typeof option.price === "number") return new Intl.NumberFormat("ko-KR").format(option.price) + "원";
+  return "";
+}
+
+function priceOptionSummary(options: MenuItemPriceOption[]) {
+  return options
+    .filter((option) => option.visible)
+    .slice(0, MENU_LIMITS.maxPriceOptionsPerItem)
+    .map((option) => `${option.label} ${formatPriceOption(option)}`.trim())
+    .join(" · ");
+}
+
+export default function MenuManagementSection({ menuId, menuPages, categories, items, priceOptions, traits }: MenuManagementSectionProps) {
   const sortedPages = useMemo(() => sortMenuPages(menuPages), [menuPages]);
   const firstPageId = sortedPages[0]?.id ?? "";
   const [selectedPageId, setSelectedPageId] = useState(firstPageId);
@@ -854,6 +938,7 @@ export default function MenuManagementSection({ menuId, menuPages, categories, i
               menuId={menuId}
               categories={categoriesForPage}
               item={item}
+              priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
               traits={traits.filter((trait) => trait.menu_item_id === item.id)}
               isEditing={editingItemId === item.id}
               isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
@@ -879,6 +964,7 @@ function MenuItemCard({
   menuId,
   categories,
   item,
+  priceOptions,
   traits,
   isEditing,
   isConfirmingDelete,
@@ -889,6 +975,7 @@ function MenuItemCard({
   menuId: string;
   categories: MenuCategory[];
   item: MenuItem;
+  priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
   isEditing: boolean;
   isConfirmingDelete: boolean;
@@ -899,8 +986,10 @@ function MenuItemCard({
   const badgeLabel = getBadgeLabel(getMenuItemBadgeType(item));
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
+  const priceOptionText = priceOptionSummary(priceOptions);
   const traitText = traitSummary(traits);
   const categoryName = categories.find((category) => category.id === item.category_id)?.name ?? "메뉴 카테고리";
+  const [priceMode, setPriceMode] = useState<PriceMode>(priceOptions.some((option) => option.visible) ? "options" : "single");
 
   return (
     <article className="rounded-lg border border-zinc-100 p-5">
@@ -910,7 +999,16 @@ function MenuItemCard({
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Item Detail</p>
             <h4 className="mt-1 text-2xl font-bold">아이템 수정</h4>
           </div>
-          <MenuItemForm menuId={menuId} item={item} itemCount={0} selectedCategoryId={item.category_id ?? ""} onCancel={onCancel} />
+          <MenuItemForm
+            menuId={menuId}
+            item={item}
+            itemCount={0}
+            selectedCategoryId={item.category_id ?? ""}
+            priceMode={priceMode}
+            onPriceModeChange={setPriceMode}
+            onCancel={onCancel}
+          />
+          {priceMode === "options" && <MenuItemPriceOptionsEditor menuId={menuId} itemId={item.id} priceOptions={priceOptions} />}
           <MenuItemTraitEditor menuId={menuId} itemId={item.id} traits={traits} />
         </>
       ) : (
@@ -924,7 +1022,7 @@ function MenuItemCard({
           <p className="mt-2 text-sm font-bold text-zinc-400">{categoryName}</p>
           <p className="mt-1 text-xs font-bold text-zinc-400">연결된 메뉴 카테고리 이름: {categoryName}</p>
           <p className="mt-2 text-sm font-semibold text-zinc-600">
-            {[portion, price, item.recommended ? "추천" : null].filter(Boolean).join(" · ") || "표시 정보 없음"}
+            {[portion, priceOptionText || price, item.recommended ? "추천" : null].filter(Boolean).join(" · ") || "표시 정보 없음"}
           </p>
           {traitText && <p className="mt-2 text-xs font-bold text-zinc-400">{traitText}</p>}
         </div>
@@ -937,7 +1035,11 @@ function MenuItemCard({
             menuId={menuId}
             hiddenName="itemId"
             hiddenValue={item.id}
-            disabledReason={traits.length > 0 ? "하위 맛/특징 지표가 있어 삭제할 수 없습니다. 삭제 대신 저장 시 메뉴판 표시를 끌 수 있습니다." : undefined}
+            disabledReason={
+              traits.length > 0 || priceOptions.length > 0
+                ? "하위 가격 옵션 또는 맛/특징 지표가 있어 삭제할 수 없습니다. 삭제 대신 저장 시 메뉴판 표시를 끌 수 있습니다."
+                : undefined
+            }
             isConfirming={isConfirmingDelete}
             onRequestConfirm={onRequestDelete}
             onCancel={onCancel}
@@ -949,18 +1051,111 @@ function MenuItemCard({
   );
 }
 
+function MenuItemPriceOptionsEditor({
+  menuId,
+  itemId,
+  priceOptions,
+}: {
+  menuId: string;
+  itemId: string;
+  priceOptions: MenuItemPriceOption[];
+}) {
+  const reachedPriceOptionLimit = priceOptions.length >= MENU_LIMITS.maxPriceOptionsPerItem;
+  const priceOptionLimitMessage = `가격 옵션은 아이템당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`;
+
+  return (
+    <div className="mt-6 rounded-lg bg-zinc-50 p-4">
+      <details open>
+        <summary className="cursor-pointer text-sm font-bold text-zinc-900">가격 옵션</summary>
+        <p className="mt-2 break-keep text-xs font-semibold text-zinc-500">
+          HOT / ICE, 사이즈, 중량처럼 공개 메뉴판에 보여줄 가격 문구를 관리합니다.
+        </p>
+        <p className={`mt-2 break-keep text-xs font-bold ${reachedPriceOptionLimit ? "text-amber-700" : "text-zinc-400"}`}>
+          {priceOptionLimitMessage}
+        </p>
+        <form action={createMenuItemPriceOptionAction} className="mt-4 grid gap-3 md:grid-cols-[1fr_120px_120px_100px_auto] md:items-end">
+          <HiddenMenuId menuId={menuId} />
+          <input type="hidden" name="itemId" value={itemId} />
+          <div>
+            <FieldLabel required>옵션명</FieldLabel>
+            <TextInput name="price_option_label" placeholder="HOT" required maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label} helperText="예: HOT, ICE, 150g" />
+          </div>
+          <div>
+            <FieldLabel>가격</FieldLabel>
+            <TextInput name="price_option_price" type="number" min={0} step={1} placeholder="4000" helperText="숫자만 입력하세요." />
+          </div>
+          <div>
+            <FieldLabel>옵션 가격 표시 문구</FieldLabel>
+            <TextInput name="price_option_price_label" placeholder="4,000원" maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel} helperText="있으면 이 문구를 우선 표시합니다." />
+          </div>
+          <div>
+            <FieldLabel>순서</FieldLabel>
+            <TextInput name="price_option_sort_order" type="number" defaultValue={priceOptions.length + 1} min={0} step={1} helperText="낮을수록 먼저 표시됩니다." />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Checkbox name="price_option_visible" label="표시" defaultChecked />
+            <SubmitButton tone="light" disabled={reachedPriceOptionLimit}>
+              추가
+            </SubmitButton>
+          </div>
+        </form>
+        <div className="mt-4 space-y-3">
+          {priceOptions.map((option) => (
+            <div key={option.id} className="rounded-lg border border-zinc-100 bg-white p-3">
+              <form action={updateMenuItemPriceOptionAction} className="grid gap-3 md:grid-cols-[1fr_120px_120px_100px_auto] md:items-end">
+                <HiddenMenuId menuId={menuId} />
+                <input type="hidden" name="priceOptionId" value={option.id} />
+                <div>
+                  <FieldLabel required>옵션명</FieldLabel>
+                  <TextInput name="price_option_label" defaultValue={option.label} required maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label} helperText="예: HOT, ICE, 150g" />
+                </div>
+                <div>
+                  <FieldLabel>가격</FieldLabel>
+                  <TextInput name="price_option_price" type="number" min={0} step={1} defaultValue={option.price ?? ""} helperText="숫자만 입력하세요." />
+                </div>
+                <div>
+                  <FieldLabel>옵션 가격 표시 문구</FieldLabel>
+                  <TextInput name="price_option_price_label" defaultValue={option.price_label ?? ""} maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel} helperText="있으면 이 문구를 우선 표시합니다." />
+                </div>
+                <div>
+                  <FieldLabel>순서</FieldLabel>
+                  <TextInput name="price_option_sort_order" type="number" defaultValue={option.sort_order} min={0} step={1} helperText="낮을수록 먼저 표시됩니다." />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Checkbox name="price_option_visible" label="표시" defaultChecked={option.visible} />
+                  <SubmitButton tone="light">저장</SubmitButton>
+                </div>
+              </form>
+              <form action={deleteMenuItemPriceOptionAction} className="mt-2">
+                <HiddenMenuId menuId={menuId} />
+                <input type="hidden" name="priceOptionId" value={option.id} />
+                <SubmitButton tone="danger">{option.label} 삭제</SubmitButton>
+              </form>
+            </div>
+          ))}
+          {priceOptions.length === 0 && <EmptyState>아직 가격 옵션이 없습니다. 옵션이 없으면 기본 가격 또는 가격 표시 문구를 사용합니다.</EmptyState>}
+        </div>
+      </details>
+    </div>
+  );
+}
+
 function MenuItemTraitEditor({ menuId, itemId, traits }: { menuId: string; itemId: string; traits: MenuItemTrait[] }) {
+  const reachedTraitLimit = traits.length >= MENU_LIMITS.maxTraitsPerItem;
+  const traitLimitMessage = `맛/특징 지표는 아이템당 최대 ${MENU_LIMITS.maxTraitsPerItem}개까지 등록할 수 있습니다.`;
+
   return (
     <div className="mt-6 rounded-lg bg-zinc-50 p-4">
       <details>
         <summary className="cursor-pointer text-sm font-bold text-zinc-900">맛/특징 지표</summary>
-        <p className="mt-2 break-keep text-xs font-semibold text-zinc-500">값은 0/5부터 5/5까지 선택할 수 있습니다.</p>
+        <p className="mt-2 break-keep text-xs font-semibold text-zinc-500">값은 1/5부터 5/5까지 선택할 수 있습니다.</p>
+        <p className={`mt-2 break-keep text-xs font-bold ${reachedTraitLimit ? "text-amber-700" : "text-zinc-400"}`}>{traitLimitMessage}</p>
         <form action={createMenuItemTraitAction} className="mt-4 grid gap-3 md:grid-cols-[1fr_120px_100px_100px_auto] md:items-end">
           <HiddenMenuId menuId={menuId} />
           <input type="hidden" name="itemId" value={itemId} />
           <div>
             <FieldLabel>지표 이름</FieldLabel>
-            <TextInput name="trait_label" placeholder="맵기" maxLength={30} helperText="예: 맵기, 단맛, 산미" />
+            <TextInput name="trait_label" placeholder="산미" maxLength={MENU_FIELD_LIMITS.menuItemTraits.label} helperText="예: 산미, 바디감, 단맛, 담백함, 풍미, 바삭함" />
           </div>
           <div>
             <FieldLabel>강도</FieldLabel>
@@ -968,7 +1163,7 @@ function MenuItemTraitEditor({ menuId, itemId, traits }: { menuId: string; itemI
           </div>
           <div>
             <FieldLabel>최대</FieldLabel>
-            <TextInput name="trait_max_value" type="number" defaultValue={5} min={1} step={1} helperText="1 이상의 숫자를 입력하세요." />
+            <TextInput name="trait_max_value" type="number" defaultValue={MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue} min={MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue} max={MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue} step={1} helperText="현재 베이직 플랜에서는 5로 고정됩니다." />
           </div>
           <div>
             <FieldLabel>순서</FieldLabel>
@@ -976,7 +1171,9 @@ function MenuItemTraitEditor({ menuId, itemId, traits }: { menuId: string; itemI
           </div>
           <div className="flex flex-col gap-2">
             <Checkbox name="trait_visible" label="표시" defaultChecked />
-            <SubmitButton tone="light">추가</SubmitButton>
+            <SubmitButton tone="light" disabled={reachedTraitLimit}>
+              추가
+            </SubmitButton>
           </div>
         </form>
         <div className="mt-4 space-y-3">
@@ -987,7 +1184,7 @@ function MenuItemTraitEditor({ menuId, itemId, traits }: { menuId: string; itemI
                 <input type="hidden" name="traitId" value={trait.id} />
                 <div>
                   <FieldLabel>지표 이름</FieldLabel>
-                  <TextInput name="trait_label" defaultValue={trait.label} maxLength={30} helperText="예: 맵기, 단맛, 산미" />
+                  <TextInput name="trait_label" defaultValue={trait.label} maxLength={MENU_FIELD_LIMITS.menuItemTraits.label} helperText="예: 산미, 바디감, 단맛, 담백함, 풍미, 바삭함" />
                 </div>
                 <div>
                   <FieldLabel>강도</FieldLabel>
@@ -995,7 +1192,7 @@ function MenuItemTraitEditor({ menuId, itemId, traits }: { menuId: string; itemI
                 </div>
                 <div>
                   <FieldLabel>최대</FieldLabel>
-                  <TextInput name="trait_max_value" type="number" defaultValue={trait.max_value} min={1} step={1} helperText="1 이상의 숫자를 입력하세요." />
+                  <TextInput name="trait_max_value" type="number" defaultValue={MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue} min={MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue} max={MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue} step={1} helperText="현재 베이직 플랜에서는 5로 고정됩니다." />
                 </div>
                 <div>
                   <FieldLabel>순서</FieldLabel>

@@ -13,6 +13,7 @@ type MenuPageData = Omit<PublicMenuTemplateProps, "mode"> & {
 type MenuPage = PublicMenuTemplateProps["pages"][number];
 type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuItem = PublicMenuTemplateProps["items"][number];
+type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
 
 const baseSiteSelect =
@@ -23,6 +24,7 @@ const pageSelect = "id, title, description, description_visible, legacy_section_
 const categorySelect = "id, menu_page_id, name, description, description_visible, sort_order, visible";
 const itemSelect =
   "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
+const priceOptionSelect = "id, menu_item_id, label, price, price_label, visible, sort_order";
 const traitSelect = "id, menu_item_id, label, value, max_value, visible, sort_order";
 const eventSelect =
   "id, event_title, event_subtitle, event_description, event_period, event_image_url, event_benefit, event_detail, event_regular_price_label, event_sale_price_label, event_price_visible, visible, sort_order";
@@ -109,14 +111,25 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
   }
 
   const items = orderBySortThenCreated((itemsData ?? []) as MenuItem[]);
+  const itemIds = items.map((item) => item.id);
   const traitItemIds = items.filter((item) => item.traits_visible).map((item) => item.id);
 
   const [
+    { data: priceOptionsData, error: priceOptionsError },
     { data: traitsData, error: traitsError },
     { data: eventsData },
     { data: chefsData },
     { data: socialLinksData },
   ] = await Promise.all([
+    itemIds.length
+      ? supabase
+          .from("menu_item_price_options")
+          .select(priceOptionSelect)
+          .in("menu_item_id", itemIds)
+          .eq("visible", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
     traitItemIds.length
       ? supabase
           .from("menu_item_traits")
@@ -155,6 +168,16 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
       : Promise.resolve({ data: [], error: null }),
   ]);
 
+  const isMissingPriceOptionsTable =
+    priceOptionsError &&
+    (priceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||
+      priceOptionsError.message.toLowerCase().includes("does not exist") ||
+      priceOptionsError.code === "42P01");
+
+  if (priceOptionsError && !isMissingPriceOptionsTable) {
+    return null;
+  }
+
   if (traitsError) {
     return null;
   }
@@ -165,6 +188,7 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
     pages,
     categories,
     items,
+    priceOptions: isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]),
     traits: (traitsData ?? []) as MenuItemTrait[],
     events: (eventsData ?? []) as MenuPageData["events"],
     chefs: (chefsData ?? []) as MenuPageData["chefs"],
