@@ -6,6 +6,7 @@ import MenuGnb from "@/components/menu-templates/shared/MenuGnb";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
+import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import {
   formatEventPricePair,
   formatMenuPrice,
@@ -93,27 +94,29 @@ function DetailList({ rows }: { rows: { label: string; value: string | null | un
 function IntroSection({ data }: { data: PublicMenuTemplateProps }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
+  const hasBackgroundImage = Boolean(menuSite.cover_image_url);
 
   return (
-    <section className="bg-zinc-950 px-5 py-12 text-white">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="overflow-hidden rounded-lg border border-white/10 bg-white/5">
-          {menuSite.cover_image_url ? (
-            <img src={menuSite.cover_image_url} alt="" className="h-64 w-full object-cover opacity-80" />
-          ) : (
-            <ImagePlaceholder className="h-64 w-full rounded-none border-0 bg-white/5 text-white/25" iconClassName="h-24 w-24" />
+    <section className={`relative overflow-hidden px-5 py-16 ${hasBackgroundImage ? "min-h-[520px] text-white" : "bg-zinc-50 text-zinc-950"}`}>
+      {hasBackgroundImage && (
+        <>
+          <img src={menuSite.cover_image_url ?? ""} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-black/65" />
+        </>
+      )}
+      <div className="relative mx-auto flex min-h-80 w-full max-w-3xl items-center">
+        <div className={`w-full rounded-lg p-6 ${hasBackgroundImage ? "border border-white/15 bg-black/10 backdrop-blur-[2px]" : "border border-zinc-100 bg-white"}`}>
+          <p className={`text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/65" : "text-zinc-400"}`}>
+            {menuSite.restaurant_category || "Restaurant"}
+          </p>
+          <h1 className="mt-3 break-words text-4xl font-black tracking-tight">{menuSite.intro_title || displayName}</h1>
+          {(menuSite.intro_description || menuSite.brand_description) && (
+            <div className={`mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed ${hasBackgroundImage ? "text-white/78" : "text-zinc-500"}`}>
+              {menuSite.intro_description && <p className="break-words">{menuSite.intro_description}</p>}
+              {menuSite.brand_description && <p className="break-words">{menuSite.brand_description}</p>}
+            </div>
           )}
-          <div className="p-6">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-white/50">{menuSite.restaurant_category || "Restaurant"}</p>
-            <h1 className="mt-3 break-words text-4xl font-black tracking-tight">{menuSite.intro_title || displayName}</h1>
-            {(menuSite.intro_description || menuSite.brand_description) && (
-              <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-white/70">
-                {menuSite.intro_description && <p className="break-words">{menuSite.intro_description}</p>}
-                {menuSite.brand_description && <p className="break-words">{menuSite.brand_description}</p>}
-              </div>
-            )}
           </div>
-        </div>
       </div>
     </section>
   );
@@ -124,15 +127,15 @@ function MenuCoverSection({ data }: { data: PublicMenuTemplateProps }) {
   const displayName = getDisplayName(menuSite);
 
   return (
-    <Section eyebrow="Menu" title={menuSite.menu_cover_title || `${displayName} 메뉴`}>
-      <div className="flex min-h-48 flex-col justify-center rounded-lg border border-zinc-100 bg-zinc-50 p-6">
-        {menuSite.cover_image_url && <img src={menuSite.cover_image_url} alt="" className="mb-5 aspect-[16/9] w-full rounded-lg object-cover" />}
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-400">{menuSite.restaurant_category || "Menu"}</p>
+    <section className="bg-zinc-950 px-5 py-14 text-white">
+      <div className="mx-auto flex min-h-64 w-full max-w-3xl flex-col justify-center">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuSite.restaurant_category || "Menu"}</p>
+        <h2 className="mt-4 break-words text-4xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h2>
         {menuSite.menu_cover_description && (
-          <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{menuSite.menu_cover_description}</p>
+          <p className="mt-5 max-w-2xl break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
         )}
       </div>
-    </Section>
+    </section>
   );
 }
 
@@ -140,16 +143,18 @@ function MenuItemCard({
   item,
   priceOptions,
   traits,
+  capabilities,
 }: {
   item: MenuItem;
   priceOptions: PublicMenuTemplateProps["priceOptions"];
   traits: PublicMenuTemplateProps["traits"];
+  capabilities: TemplateCapabilities;
 }) {
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
-  const visiblePriceOptions = item.price_visible ? getItemPriceOptions(priceOptions, item.id) : [];
-  const badgeLabel = getMenuItemBadgeLabel(item);
-  const visibleTraits = shouldShowMenuItemTraits(item, traits)
+  const visiblePriceOptions = capabilities.priceOptions && item.price_visible ? getItemPriceOptions(priceOptions, item.id) : [];
+  const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
+  const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits)
     ? traits
         .filter((trait) => trait.visible)
         .sort((a, b) => a.sort_order - b.sort_order)
@@ -158,10 +163,12 @@ function MenuItemCard({
 
   return (
     <article className="overflow-hidden rounded-lg border border-zinc-100 bg-white">
-      {item.image_url ? (
-        <img src={item.image_url} alt={item.name} className="aspect-[16/10] w-full object-cover" loading="lazy" />
-      ) : (
-        <ImagePlaceholder />
+      {capabilities.menuItemImages && (
+        item.image_url ? (
+          <img src={item.image_url} alt={item.name} className="aspect-[16/10] w-full object-cover" loading="lazy" />
+        ) : (
+          <ImagePlaceholder />
+        )
       )}
       <div className="p-4">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
@@ -205,7 +212,7 @@ function MenuItemCard({
   );
 }
 
-function MenuPagesSection({ data }: { data: PublicMenuTemplateProps }) {
+function MenuPagesSection({ data, capabilities }: { data: PublicMenuTemplateProps; capabilities: TemplateCapabilities }) {
   const hasVisibleMenu = data.pages.some((page) =>
     data.categories.some((category) => category.menu_page_id === page.id && getCategoryItems(data.items, category.id).length > 0)
   );
@@ -249,6 +256,7 @@ function MenuPagesSection({ data }: { data: PublicMenuTemplateProps }) {
                               item={item}
                               priceOptions={data.priceOptions}
                               traits={getItemTraits(data.traits, item.id)}
+                              capabilities={capabilities}
                             />
                           ))}
                         </div>
@@ -265,7 +273,7 @@ function MenuPagesSection({ data }: { data: PublicMenuTemplateProps }) {
   );
 }
 
-function AboutSection({ data }: { data: PublicMenuTemplateProps }) {
+function AboutSection({ data, capabilities }: { data: PublicMenuTemplateProps; capabilities: TemplateCapabilities }) {
   const { menuSite } = data;
 
   return (
@@ -286,7 +294,7 @@ function AboutSection({ data }: { data: PublicMenuTemplateProps }) {
           { label: "지도", value: menuSite.map_url, href: menuSite.map_url },
         ]}
       />
-      {data.chefs.length > 0 && (
+      {capabilities.chefs && data.chefs.length > 0 && (
         <div className="mt-8">
           <h3 className="text-lg font-black text-zinc-950">셰프 / 인물</h3>
           <div className="mt-4 grid gap-4">
@@ -307,7 +315,7 @@ function AboutSection({ data }: { data: PublicMenuTemplateProps }) {
           </div>
         </div>
       )}
-      {data.socialLinks.length > 0 && (
+      {capabilities.socialLinks && data.socialLinks.length > 0 && (
         <div className="mt-8">
           <h3 className="text-lg font-black text-zinc-950">SNS</h3>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -369,15 +377,16 @@ function EventsSection({ data }: { data: PublicMenuTemplateProps }) {
 
 export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
   const { pageSettings } = data;
+  const capabilities = getTemplateCapabilities(data.menuSite.template_key);
 
   return (
-    <div className="bg-zinc-50 text-zinc-950">
+    <div id="intro" className="bg-zinc-50 text-zinc-950">
       {pageSettings.intro_enabled && <IntroSection data={data} />}
       <MenuGnb site={data.menuSite} />
       {pageSettings.menu_cover_enabled && <MenuCoverSection data={data} />}
-      <MenuPagesSection data={data} />
-      {pageSettings.about_enabled && <AboutSection data={data} />}
-      <EventsSection data={data} />
+      <MenuPagesSection data={data} capabilities={capabilities} />
+      {pageSettings.about_enabled && <AboutSection data={data} capabilities={capabilities} />}
+      {capabilities.events && <EventsSection data={data} />}
     </div>
   );
 }

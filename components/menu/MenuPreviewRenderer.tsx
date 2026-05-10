@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ReactNode } from "react";
 
+import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import { formatMenuPrice, formatPortionLabel, shouldShowMenuItemTraits } from "@/types/menu";
 import type { MenuPageData } from "@/lib/menu-page-data";
 
@@ -78,24 +79,32 @@ function IntroSection({ data }: { data: MenuPreviewRendererProps }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
   const title = menuSite.intro_title || displayName;
+  const hasBackgroundImage = Boolean(menuSite.cover_image_url);
 
   return (
-    <PreviewSection eyebrow="Intro" title="인트로">
-      <div className="overflow-hidden rounded-lg border border-zinc-100 bg-zinc-950 text-white">
-        {menuSite.cover_image_url && <img src={menuSite.cover_image_url} alt="" className="h-56 w-full object-cover opacity-80" />}
-        <div className="p-6">
-          {menuSite.logo_url && <img src={menuSite.logo_url} alt={`${displayName} logo`} className="mb-5 h-16 w-16 rounded-full object-cover" />}
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-white/50">{menuSite.restaurant_category || "Restaurant"}</p>
+    <section className={`relative overflow-hidden px-5 py-10 ${hasBackgroundImage ? "text-white" : "bg-white text-zinc-950"}`}>
+      {hasBackgroundImage && (
+        <>
+          <img src={menuSite.cover_image_url ?? ""} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-black/65" />
+        </>
+      )}
+      <div className="relative mx-auto w-full max-w-3xl">
+        <p className={`mb-3 text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/60" : "text-zinc-400"}`}>Intro</p>
+        <div className={`rounded-lg p-6 ${hasBackgroundImage ? "border border-white/15 bg-black/10" : "border border-zinc-100 bg-zinc-50"}`}>
+          <p className={`text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/50" : "text-zinc-400"}`}>
+            {menuSite.restaurant_category || "Restaurant"}
+          </p>
           <h3 className="mt-3 break-keep text-4xl font-black tracking-tight">{title}</h3>
           {(menuSite.intro_description || menuSite.brand_description) && (
-            <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-white/70">
+            <div className={`mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed ${hasBackgroundImage ? "text-white/70" : "text-zinc-500"}`}>
               {menuSite.intro_description && <p>{menuSite.intro_description}</p>}
               {menuSite.brand_description && <p>{menuSite.brand_description}</p>}
             </div>
           )}
         </div>
       </div>
-    </PreviewSection>
+    </section>
   );
 }
 
@@ -105,26 +114,27 @@ function MenuCoverSection({ data }: { data: MenuPreviewRendererProps }) {
 
   return (
     <PreviewSection eyebrow="Menu Cover" title="메뉴 커버">
-      <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-6">
-        {menuSite.cover_image_url && <img src={menuSite.cover_image_url} alt="" className="mb-5 aspect-[16/9] w-full rounded-lg object-cover" />}
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-400">{menuSite.restaurant_category || "Menu"}</p>
-        <h3 className="mt-3 break-keep text-3xl font-black tracking-tight text-zinc-950">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h3>
+      <div className="rounded-lg bg-zinc-950 p-6 text-white">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuSite.restaurant_category || "Menu"}</p>
+        <h3 className="mt-3 break-keep text-3xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h3>
         {menuSite.menu_cover_description && (
-          <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{menuSite.menu_cover_description}</p>
+          <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
         )}
       </div>
     </PreviewSection>
   );
 }
 
-function MenuItemCard({ item, traits }: { item: MenuItem; traits: MenuPageData["traits"] }) {
+function MenuItemCard({ item, traits, capabilities }: { item: MenuItem; traits: MenuPageData["traits"]; capabilities: TemplateCapabilities }) {
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
-  const visibleTraits = shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
+  const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
 
   return (
     <article className="overflow-hidden rounded-lg border border-zinc-100 bg-white">
-      {item.image_url && <img src={item.image_url} alt={item.name} className="aspect-[16/10] w-full object-cover" loading="lazy" />}
+      {capabilities.menuItemImages && item.image_url && (
+        <img src={item.image_url} alt={item.name} className="aspect-[16/10] w-full object-cover" loading="lazy" />
+      )}
       <div className="p-4">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div>
@@ -150,7 +160,7 @@ function MenuItemCard({ item, traits }: { item: MenuItem; traits: MenuPageData["
   );
 }
 
-function MenuPagesSection({ data }: { data: MenuPreviewRendererProps }) {
+function MenuPagesSection({ data, capabilities }: { data: MenuPreviewRendererProps; capabilities: TemplateCapabilities }) {
   const hasVisibleMenu = data.pages.some((page) =>
     data.categories.some((category) => category.menu_page_id === page.id && getCategoryItems(data.items, category.id).length > 0)
   );
@@ -189,7 +199,7 @@ function MenuPagesSection({ data }: { data: MenuPreviewRendererProps }) {
                         )}
                         <div className="mt-3 space-y-3">
                           {items.map((item) => (
-                            <MenuItemCard key={item.id} item={item} traits={getItemTraits(data.traits, item.id)} />
+                            <MenuItemCard key={item.id} item={item} traits={getItemTraits(data.traits, item.id)} capabilities={capabilities} />
                           ))}
                         </div>
                       </section>
@@ -311,16 +321,17 @@ function SocialLinksSection({ data }: { data: MenuPreviewRendererProps }) {
 
 export default function MenuPreviewRenderer(data: MenuPreviewRendererProps) {
   const { pageSettings } = data;
+  const capabilities = getTemplateCapabilities(data.menuSite.template_key);
 
   return (
     <div className="bg-zinc-50">
       {pageSettings.intro_enabled && <IntroSection data={data} />}
       {pageSettings.menu_cover_enabled && <MenuCoverSection data={data} />}
-      <MenuPagesSection data={data} />
+      <MenuPagesSection data={data} capabilities={capabilities} />
       {pageSettings.about_enabled && <AboutSection data={data} />}
-      {pageSettings.chefs_enabled && <ChefsSection data={data} />}
-      {pageSettings.events_enabled && <EventsSection data={data} />}
-      {pageSettings.social_links_enabled && <SocialLinksSection data={data} />}
+      {capabilities.chefs && pageSettings.chefs_enabled && <ChefsSection data={data} />}
+      {capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
+      {capabilities.socialLinks && pageSettings.social_links_enabled && <SocialLinksSection data={data} />}
     </div>
   );
 }

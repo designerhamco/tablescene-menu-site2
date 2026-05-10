@@ -21,6 +21,7 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import { getMenuItemBadgeLabel, MENU_BADGE_OPTIONS } from "@/lib/menu-badges";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import type { Database } from "@/lib/supabase/types";
+import type { TemplateCapabilities } from "@/lib/template-capabilities";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
 
 type MenuPage = Pick<
@@ -64,6 +65,7 @@ type MenuManagementSectionProps = {
   items: MenuItem[];
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
+  capabilities: TemplateCapabilities;
 };
 type PriceMode = "single" | "options";
 type DraftPriceOption = {
@@ -530,6 +532,7 @@ function MenuCategoryForm({
 function MenuItemForm({
   menuId,
   categories,
+  capabilities,
   item,
   itemCount,
   selectedCategoryId,
@@ -541,6 +544,7 @@ function MenuItemForm({
 }: {
   menuId: string;
   categories: MenuCategory[];
+  capabilities: TemplateCapabilities;
   item?: MenuItem;
   itemCount: number;
   selectedCategoryId: string;
@@ -555,7 +559,8 @@ function MenuItemForm({
   const nameInvalid = !name.trim() || name.length > MENU_FIELD_LIMITS.menuItems.name;
   const categoryInvalid = !categoryId;
   const [draftPriceMode, setDraftPriceMode] = useState<PriceMode>(priceMode);
-  const currentPriceMode = item ? priceMode : draftPriceMode;
+  const requestedPriceMode = item ? priceMode : draftPriceMode;
+  const currentPriceMode = capabilities.priceOptions ? requestedPriceMode : "single";
   const isOptionsMode = currentPriceMode === "options";
   const isSingleMode = !isOptionsMode;
   const formId = item ? `menu-item-form-${item.id}` : "menu-item-form-new";
@@ -583,6 +588,10 @@ function MenuItemForm({
   const hasTraitData = traitLabelValues.some((label) => label.trim());
 
   function setPriceMode(mode: PriceMode) {
+    if (!capabilities.priceOptions && mode === "options") {
+      return;
+    }
+
     if (item) {
       onPriceModeChange?.(mode);
       return;
@@ -731,13 +740,17 @@ function MenuItemForm({
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ValidatedTextInput form={formId} name="item_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={item?.sort_order ?? itemCount} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
-          <div>
-            <FieldLabel>메뉴 배지</FieldLabel>
-            <BadgeSelect form={formId} defaultValue={item ? getMenuItemBadgeLabel(item) : "none"} />
-            <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-              선택한 배지는 공개 메뉴판의 메뉴 카드에 작게 표시됩니다.
-            </p>
-          </div>
+          {capabilities.itemBadges ? (
+            <div>
+              <FieldLabel>메뉴 배지</FieldLabel>
+              <BadgeSelect form={formId} defaultValue={item ? getMenuItemBadgeLabel(item) : "none"} />
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                선택한 배지는 공개 메뉴판의 메뉴 카드에 작게 표시됩니다.
+              </p>
+            </div>
+          ) : (
+            <input type="hidden" name="item_badge_label" value={item ? getMenuItemBadgeLabel(item) || "none" : "none"} form={formId} />
+          )}
           <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
             <Checkbox form={formId} name="item_visible" label="공개 메뉴판에 표시" defaultChecked={item?.visible ?? true} />
           </div>
@@ -753,7 +766,7 @@ function MenuItemForm({
           <FieldLabel>가격 표시 방식</FieldLabel>
         </div>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          {(["single", "options"] as const).map((mode) => (
+          {(capabilities.priceOptions ? (["single", "options"] as const) : (["single"] as const)).map((mode) => (
             <label
               key={mode}
               className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-sm font-bold ${
@@ -861,39 +874,43 @@ function MenuItemForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-zinc-100 bg-white p-4">
-        <h4 className="text-sm font-black text-zinc-950">맛/특징 지표</h4>
-        <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          메뉴의 맛이나 특징을 간단히 보여주는 지표입니다. 최대 {MENU_LIMITS.maxTraitsPerItem}개까지 등록할 수 있습니다.
-        </p>
-        <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-          <Checkbox
-            form={formId}
-            name="item_traits_visible"
-            label="공개 메뉴판에 맛/특징 지표 표시"
-            defaultChecked={Boolean((item?.traits_visible ?? true) && hasTraitData)}
-            canTurnOn={hasTraitData}
-            blockedMessage="맛/특징 지표를 1개 이상 입력해주세요."
-          />
-        </div>
-        <MenuItemTraitSlots formId={formId} traits={traits} onTraitLabelChange={handleTraitLabelChange} />
-      </section>
-
-      <section className="rounded-lg border border-zinc-100 bg-white p-4">
-        <h4 className="text-sm font-black text-zinc-950">이미지</h4>
-        <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          이미지는 필수가 아닙니다. 이미지를 삭제하면 공개 메뉴판에서는 이미지 없는 형태로 표시됩니다.
-        </p>
-        <div className="mt-4">
-        {item ? (
-          <ImageUploadField label="메뉴 이미지" menuId={menuId} target="menu-item" recordId={item.id} currentUrl={item.image_url} />
-        ) : (
-          <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-400">
-            아이템을 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
+      {capabilities.itemTraits && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">맛/특징 지표</h4>
+          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+            메뉴의 맛이나 특징을 간단히 보여주는 지표입니다. 최대 {MENU_LIMITS.maxTraitsPerItem}개까지 등록할 수 있습니다.
+          </p>
+          <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+            <Checkbox
+              form={formId}
+              name="item_traits_visible"
+              label="공개 메뉴판에 맛/특징 지표 표시"
+              defaultChecked={Boolean((item?.traits_visible ?? true) && hasTraitData)}
+              canTurnOn={hasTraitData}
+              blockedMessage="맛/특징 지표를 1개 이상 입력해주세요."
+            />
           </div>
-        )}
-        </div>
-      </section>
+          <MenuItemTraitSlots formId={formId} traits={traits} onTraitLabelChange={handleTraitLabelChange} />
+        </section>
+      )}
+
+      {capabilities.menuItemImages && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">이미지</h4>
+          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+            이미지는 필수가 아닙니다. 이미지를 삭제하면 공개 메뉴판에서는 이미지 없는 형태로 표시됩니다.
+          </p>
+          <div className="mt-4">
+          {item ? (
+            <ImageUploadField label="메뉴 이미지" menuId={menuId} target="menu-item" recordId={item.id} currentUrl={item.image_url} />
+          ) : (
+            <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-400">
+              아이템을 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
+            </div>
+          )}
+          </div>
+        </section>
+      )}
 
       <div>
         <SubmitButton
@@ -1025,7 +1042,7 @@ function DraftPriceOptionsEditor({
   );
 }
 
-export default function MenuManagementSection({ menuId, menuPages, categories, items, priceOptions, traits }: MenuManagementSectionProps) {
+export default function MenuManagementSection({ menuId, menuPages, categories, items, priceOptions, traits, capabilities }: MenuManagementSectionProps) {
   const sortedPages = useMemo(() => sortMenuPages(menuPages), [menuPages]);
   const firstPageId = sortedPages[0]?.id ?? "";
   const [selectedPageId, setSelectedPageId] = useState(firstPageId);
@@ -1414,6 +1431,7 @@ export default function MenuManagementSection({ menuId, menuPages, categories, i
             <MenuItemForm
               menuId={menuId}
               categories={categoriesForPage}
+              capabilities={capabilities}
               itemCount={itemsForCategory.length}
               selectedCategoryId={selectedCategory.id}
               onCancel={resetModes}
@@ -1430,6 +1448,7 @@ export default function MenuManagementSection({ menuId, menuPages, categories, i
               item={item}
               priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
               traits={traits.filter((trait) => trait.menu_item_id === item.id)}
+              capabilities={capabilities}
               isEditing={editingItemId === item.id}
               isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
               onEdit={() => startEditItem(item.id)}
@@ -1452,6 +1471,7 @@ function MenuItemCard({
   item,
   priceOptions,
   traits,
+  capabilities,
   isEditing,
   isConfirmingDelete,
   onEdit,
@@ -1463,19 +1483,20 @@ function MenuItemCard({
   item: MenuItem;
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
+  capabilities: TemplateCapabilities;
   isEditing: boolean;
   isConfirmingDelete: boolean;
   onEdit: () => void;
   onCancel: () => void;
   onRequestDelete: () => void;
 }) {
-  const badgeLabel = getMenuItemBadgeLabel(item);
+  const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
-  const priceOptionText = priceOptionSummary(priceOptions);
-  const traitText = traitSummary(traits);
+  const priceOptionText = capabilities.priceOptions ? priceOptionSummary(priceOptions) : "";
+  const traitText = capabilities.itemTraits ? traitSummary(traits) : "";
   const categoryName = categories.find((category) => category.id === item.category_id)?.name ?? "메뉴 카테고리";
-  const [priceMode, setPriceMode] = useState<PriceMode>(priceOptions.some((option) => option.visible) ? "options" : "single");
+  const [priceMode, setPriceMode] = useState<PriceMode>(capabilities.priceOptions && priceOptions.some((option) => option.visible) ? "options" : "single");
 
   return (
     <article className="rounded-lg border border-zinc-100 p-5">
@@ -1488,6 +1509,7 @@ function MenuItemCard({
           <MenuItemForm
             menuId={menuId}
             categories={categories}
+            capabilities={capabilities}
             item={item}
             itemCount={0}
             selectedCategoryId={item.category_id ?? ""}

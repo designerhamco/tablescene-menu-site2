@@ -17,13 +17,13 @@ export default function MenuGnb({ site }: MenuGnbProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 px-5 py-3 backdrop-blur">
       <div className="mx-auto flex h-10 w-full max-w-3xl items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center">
+        <a href="#intro" className="flex min-w-0 items-center" aria-label={`${brandName} 홈으로 이동`}>
           {site.logo_url ? (
             <img src={site.logo_url} alt={`${brandName} logo`} className="max-h-9 w-auto max-w-36 object-contain sm:max-h-10 sm:max-w-44" />
           ) : (
             <span className="truncate text-base font-black tracking-normal text-zinc-950 sm:text-lg">{brandName}</span>
           )}
-        </div>
+        </a>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"

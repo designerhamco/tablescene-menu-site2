@@ -21,10 +21,11 @@ import {
   SocialLinksSection as InteractiveSocialLinksSection,
 } from "@/components/mypage/menu-editor/OptionalContentSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
-import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
+import { MENU_EDITOR_TABS, isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateDisplayName } from "@/lib/templates";
 import { mergePageSettings } from "@/types/menu";
 
@@ -216,7 +217,7 @@ function HiddenMenuId({ menuId }: { menuId: string }) {
 export default async function EditMenuPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
   const { error, message, tab } = await searchParams;
-  const activeTab = isMenuEditorTabKey(tab) ? tab : "basic";
+  const requestedActiveTab = isMenuEditorTabKey(tab) ? tab : "basic";
   const supabase = await createClient();
   const {
     data: { user },
@@ -345,6 +346,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const events = (eventsData ?? []) as MenuEvent[];
   const socialLinks = (socialLinksData ?? []) as MenuSocialLink[];
   const pageSettings = mergePageSettings(site.page_settings);
+  const capabilities = getTemplateCapabilities(site.template_key);
+  const visibleEditorTabs = MENU_EDITOR_TABS.filter((item) => capabilities.events || item.key !== "events");
+  const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : "basic";
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
   const publicUrl = getPublicMenuUrl(site.slug);
   const previewUrl = `/mypage/menus/${site.id}/preview`;
@@ -360,10 +364,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     { label: "인트로 페이지 사용", ok: pageSettings.intro_enabled },
     { label: "메뉴 커버 페이지 사용", ok: pageSettings.menu_cover_enabled },
     { label: "소개 페이지 사용", ok: pageSettings.about_enabled },
-    { label: "이벤트 등록", ok: events.length > 0 },
-    { label: "SNS 등록", ok: socialLinks.length > 0 },
-    { label: "셰프/인물 등록", ok: chefs.length > 0 },
-  ];
+    capabilities.events ? { label: "이벤트 등록", ok: events.length > 0 } : null,
+    capabilities.socialLinks ? { label: "SNS 등록", ok: socialLinks.length > 0 } : null,
+    capabilities.chefs ? { label: "셰프/인물 등록", ok: chefs.length > 0 } : null,
+  ].filter((item): item is { label: string; ok: boolean } => Boolean(item));
 
   return (
     <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
@@ -409,7 +413,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         {message && <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">{message}</div>}
         {error && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
 
-        <MenuEditorNavigation menuId={menuId} activeTab={activeTab} />
+        <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
 
         <div className="space-y-6">
             {activeTab === "basic" && (
@@ -439,6 +443,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FieldLabel>템플릿</FieldLabel>
                     <TextInput value={templateDisplayName} readOnly helperText="결제 시 선택한 템플릿입니다." />
+                  </div>
+                  <div className="md:col-span-2">
+                    <ImageUploadField
+                      label="로고 이미지"
+                      menuId={site.id}
+                      target="site-logo"
+                      currentUrl={site.logo_url}
+                      description="상단바에 표시됩니다. 등록하지 않으면 매장명이 표시됩니다."
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <SubmitButton>기본 정보 저장</SubmitButton>
@@ -471,9 +484,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <FieldLabel required>인트로 제목</FieldLabel>
                     <TextInput name="intro_title" defaultValue={site.intro_title ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.introTitle} helperText="첫 화면에서 가장 크게 보이는 제목입니다." />
                   </div>
-                  <div>
-                    <ImageUploadField label="로고 이미지" menuId={site.id} target="site-logo" currentUrl={site.logo_url} />
-                  </div>
                   <div className="md:col-span-2">
                     <FieldLabel required>인트로 설명</FieldLabel>
                     <TextArea name="intro_description" defaultValue={site.intro_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.introDescription} helperText={`매장의 첫인상을 설명하는 문구입니다. 최대 ${MENU_FIELD_LIMITS.menuSites.introDescription}자까지 입력할 수 있습니다.`} />
@@ -483,7 +493,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription} helperText="브랜드나 공간의 분위기를 소개해주세요." />
                   </div>
                   <div className="md:col-span-2">
-                    <ImageUploadField label="커버 이미지" menuId={site.id} target="site-cover" currentUrl={site.cover_image_url} />
+                    <ImageUploadField
+                      label="인트로 배경 이미지"
+                      menuId={site.id}
+                      target="site-cover"
+                      currentUrl={site.cover_image_url}
+                      description="등록하면 어두운 오버레이가 적용되고 흰색 텍스트로 표시됩니다. 등록하지 않으면 단색 배경으로 표시됩니다."
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <SubmitButton>인트로 저장</SubmitButton>
@@ -496,12 +512,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               <SectionCard title="메뉴 커버" eyebrow="Cover">
                 <form action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
-                  <div>
+                  <div className="md:col-span-2">
+                    <p className="rounded-lg bg-zinc-50 p-4 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                      메뉴 커버 페이지는 메뉴 페이지로 들어가기 전 보여지는 텍스트 중심 화면입니다.
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
                     <FieldLabel required>메뉴 커버 제목</FieldLabel>
                     <TextInput name="menu_cover_title" defaultValue={site.menu_cover_title ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverTitle} helperText="메뉴 영역 상단에 표시되는 제목입니다." />
-                  </div>
-                  <div>
-                    <ImageUploadField label="커버 이미지" menuId={site.id} target="site-cover" currentUrl={site.cover_image_url} />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel required>메뉴 커버 설명</FieldLabel>
@@ -515,7 +533,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "menu" && (
-              <MenuManagementSection menuId={site.id} menuPages={menuPages} categories={categories} items={items} priceOptions={priceOptions} traits={traits} />
+              <MenuManagementSection menuId={site.id} menuPages={menuPages} categories={categories} items={items} priceOptions={priceOptions} traits={traits} capabilities={capabilities} />
             )}
 
             {activeTab === "about" && (
@@ -552,12 +570,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </div>
                   </form>
                 </SectionCard>
-                <InteractiveChefsSection menuId={site.id} chefs={chefs} />
-                <InteractiveSocialLinksSection menuId={site.id} socialLinks={socialLinks} />
+                {capabilities.chefs && <InteractiveChefsSection menuId={site.id} chefs={chefs} />}
+                {capabilities.socialLinks && <InteractiveSocialLinksSection menuId={site.id} socialLinks={socialLinks} />}
               </>
             )}
 
-            {activeTab === "events" && <InteractiveEventsSection menuId={site.id} events={events} />}
+            {capabilities.events && activeTab === "events" && <InteractiveEventsSection menuId={site.id} events={events} />}
 
             {activeTab === "design" && (
               <SectionCard title="디자인" eyebrow="Design">
