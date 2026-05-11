@@ -9,7 +9,7 @@ import {
 } from "@/lib/payments";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
-import { getDefaultMenuCoverLabel, isRestaurantTypeKey } from "@/lib/restaurant-types";
+import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
 import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
 import { createClient } from "@/lib/supabase/server";
@@ -190,7 +190,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     desiredSlug,
     restaurantName: getString(payload.restaurantName),
     restaurantCategory: planKey === "large_screen" && requestedRestaurantCategory ? requestedRestaurantCategory : mappedRestaurantCategory,
-    restaurantType: isRestaurantTypeKey(getString(payload.restaurantType)) ? getString(payload.restaurantType) : templateCategory,
+    restaurantType: isBusinessTypeKey(getString(payload.restaurantType)) ? getString(payload.restaurantType) : templateCategory,
     restaurantAddress: getString(payload.restaurantAddress),
     restaurantPhone: getString(payload.restaurantPhone),
     openingHours: getNullableString(payload.openingHours),
@@ -200,7 +200,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     brandDescription: getNullableString(payload.brandDescription),
     menuCoverTitle: getNullableString(payload.menuCoverTitle),
     menuCoverDescription: getNullableString(payload.menuCoverDescription),
-    menuCoverLabel: getNullableString(payload.menuCoverLabel) ?? getDefaultMenuCoverLabel(templateCategory),
+    menuCoverLabel: getNullableString(payload.menuCoverLabel) ?? getDefaultBusinessCoverLabel(templateCategory),
     aboutDescription: getNullableString(payload.aboutDescription),
     instagramUrl,
     socialLinks,
@@ -402,7 +402,8 @@ async function createMenuSiteWithStarterPreset(
     createdMenuSite.id,
     orderPayload.template_key,
     orderPayload.restaurantCategory,
-    orderPayload.template_category
+    orderPayload.template_category,
+    orderPayload.plan_key
   );
   await createMenuSocialLinks(supabase, createdMenuSite.id, orderPayload.socialLinks);
 

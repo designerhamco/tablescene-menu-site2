@@ -1,4 +1,5 @@
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/MenuTemplateRenderer";
+import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { mergePageSettings, sortMenuPages } from "@/types/menu";
@@ -15,6 +16,7 @@ type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 const baseSiteSelect =
   "id, user_id, name, slug, template_key, status, description, logo_url, cover_image_url, brand_color, business_name, business_address, business_phone, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, page_settings";
@@ -46,9 +48,27 @@ function orderBySortThenCreated<T extends { sort_order: number; created_at?: str
   });
 }
 
+async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, menuSiteId: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("product_key")
+    .eq("menu_site_id", menuSiteId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return null;
+  }
+
+  return data?.product_key ?? null;
+}
+
 async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData | null> {
   const supabase = await createClient();
   const pageSettings = mergePageSettings(menuSite.page_settings);
+  const productKey = await getLatestProductKeyForMenuSite(supabase, menuSite.id);
+  const publicServiceType = getMenuPublicServiceType(productKey);
 
   const { data: pagesData, error: pagesError } = await supabase
     .from("menu_pages")
@@ -179,6 +199,7 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
   }
 
   return {
+    publicServiceType,
     menuSite,
     pageSettings,
     pages,

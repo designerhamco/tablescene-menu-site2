@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ReactNode } from "react";
 
+import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import { formatMenuPrice, formatPortionLabel, shouldShowMenuItemTraits } from "@/types/menu";
 import type { MenuPageData } from "@/lib/menu-page-data";
@@ -326,16 +327,17 @@ function SocialLinksSection({ data }: { data: MenuPreviewRendererProps }) {
 export default function MenuPreviewRenderer(data: MenuPreviewRendererProps) {
   const { pageSettings } = data;
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
+  const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
 
   return (
     <div className="bg-zinc-50">
-      {pageSettings.intro_enabled && <IntroSection data={data} />}
-      {pageSettings.menu_cover_enabled && <MenuCoverSection data={data} />}
-      <MenuPagesSection data={data} capabilities={capabilities} />
-      {pageSettings.about_enabled && <AboutSection data={data} />}
-      {capabilities.chefs && pageSettings.chefs_enabled && <ChefsSection data={data} />}
-      {capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
-      {capabilities.socialLinks && pageSettings.social_links_enabled && <SocialLinksSection data={data} />}
+      {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
+      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} />}
+      {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
+      {publicCapabilities.aboutPage && pageSettings.about_enabled && <AboutSection data={data} />}
+      {publicCapabilities.chefs && capabilities.chefs && pageSettings.chefs_enabled && <ChefsSection data={data} />}
+      {publicCapabilities.eventPage && capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
+      {publicCapabilities.socialLinks && capabilities.socialLinks && pageSettings.social_links_enabled && <SocialLinksSection data={data} />}
     </div>
   );
 }

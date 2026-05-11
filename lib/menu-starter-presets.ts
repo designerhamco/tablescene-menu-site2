@@ -89,6 +89,7 @@ export type StarterPreset = {
   pages: StarterPage[];
 };
 
+type StarterServiceType = "menu" | "screen" | "legacy";
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 type MenuSiteUpdate = Database["public"]["Tables"]["menu_sites"]["Update"];
 type MenuPageInsert = Database["public"]["Tables"]["menu_pages"]["Insert"];
@@ -117,6 +118,29 @@ const STARTER_PAGE_SETTINGS = {
   events_enabled: true,
   social_links_enabled: true,
 } as const;
+
+const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
+  intro_enabled: false,
+  menu_cover_enabled: true,
+  set_menu_enabled: true,
+  main_menu_enabled: true,
+  dessert_drink_enabled: true,
+  about_enabled: false,
+  chefs_enabled: false,
+  events_enabled: false,
+  social_links_enabled: false,
+} as const;
+
+function getStarterServiceType(productKey?: string | null): StarterServiceType {
+  if (productKey === "basic") return "menu";
+  if (productKey === "large_screen") return "screen";
+
+  return "legacy";
+}
+
+function shouldUseLeanStarterPreset(serviceType: StarterServiceType) {
+  return serviceType === "menu" || serviceType === "screen";
+}
 
 function item(
   name: string,
@@ -799,7 +823,14 @@ function pageSettingsAreEmpty(settings: Json | null | undefined) {
   return !settings || (typeof settings === "object" && !Array.isArray(settings) && Object.keys(settings).length === 0);
 }
 
-async function applyStarterSiteDefaults(supabase: SupabaseClient, menuSiteId: string, preset: StarterPreset) {
+async function applyStarterSiteDefaults(
+  supabase: SupabaseClient,
+  menuSiteId: string,
+  preset: StarterPreset,
+  serviceType: StarterServiceType
+) {
+  const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
+  const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
   const siteSelect =
     "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings";
   const legacySiteSelect =
@@ -826,12 +857,12 @@ async function applyStarterSiteDefaults(supabase: SupabaseClient, menuSiteId: st
     restaurant_category: valueOrDefault(site?.restaurant_category, preset.site.restaurant_category),
     restaurant_type: valueOrDefault(site?.restaurant_type, preset.site.restaurant_type),
     menu_cover_label: valueOrDefault(site?.menu_cover_label, preset.site.menu_cover_label),
-    intro_title: valueOrDefault(site?.intro_title, preset.site.intro_title),
-    intro_description: valueOrDefault(site?.intro_description, preset.site.intro_description),
-    brand_description: valueOrDefault(site?.brand_description, preset.site.brand_description),
+    intro_title: useLeanPreset ? (site?.intro_title ?? null) : valueOrDefault(site?.intro_title, preset.site.intro_title),
+    intro_description: useLeanPreset ? (site?.intro_description ?? null) : valueOrDefault(site?.intro_description, preset.site.intro_description),
+    brand_description: useLeanPreset ? (site?.brand_description ?? null) : valueOrDefault(site?.brand_description, preset.site.brand_description),
     menu_cover_title: valueOrDefault(site?.menu_cover_title, preset.site.menu_cover_title),
     menu_cover_description: valueOrDefault(site?.menu_cover_description, preset.site.menu_cover_description),
-    about_description: valueOrDefault(site?.about_description, preset.site.about_description),
+    about_description: useLeanPreset ? (site?.about_description ?? null) : valueOrDefault(site?.about_description, preset.site.about_description),
     opening_hours: valueOrDefault(site?.opening_hours, preset.site.opening_hours),
     restaurant_address: valueOrDefault(site?.restaurant_address, preset.site.restaurant_address),
     restaurant_phone: valueOrDefault(site?.restaurant_phone, preset.site.restaurant_phone),
@@ -840,7 +871,7 @@ async function applyStarterSiteDefaults(supabase: SupabaseClient, menuSiteId: st
     logo_path: site?.logo_path ?? null,
     cover_image_url: valueOrDefault(site?.cover_image_url, preset.site.cover_image_url),
     cover_image_path: site?.cover_image_path ?? null,
-    page_settings: pageSettingsAreEmpty(site?.page_settings) ? (STARTER_PAGE_SETTINGS as unknown as Json) : site?.page_settings,
+    page_settings: pageSettingsAreEmpty(site?.page_settings) ? (starterPageSettings as unknown as Json) : site?.page_settings,
     updated_at: new Date().toISOString(),
   };
 
@@ -864,9 +895,12 @@ export async function createStarterMenuData(
   menuSiteId: string,
   templateKey?: string | null,
   restaurantCategory?: string | null,
-  templateCategory?: string | null
+  templateCategory?: string | null,
+  productKey?: string | null
 ) {
   const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory);
+  const serviceType = getStarterServiceType(productKey);
+  const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const { count, error: countError } = await supabase
     .from("menu_pages")
     .select("id", { count: "exact", head: true })
@@ -880,7 +914,7 @@ export async function createStarterMenuData(
     return { created: false, presetKey: preset.key, pageCount: 0, categoryCount: 0, itemCount: 0, chefCount: 0, eventCount: 0, socialLinkCount: 0 };
   }
 
-  await applyStarterSiteDefaults(supabase, menuSiteId, preset);
+  await applyStarterSiteDefaults(supabase, menuSiteId, preset, serviceType);
 
   const pageInserts: MenuPageInsert[] = preset.pages.map((page, index) => ({
     menu_site_id: menuSiteId,
@@ -1005,16 +1039,18 @@ export async function createStarterMenuData(
     }
   }
 
-  const chefInserts: MenuChefInsert[] = preset.chefs.slice(0, MENU_LIMITS.maxChefsPerSite).map((chef, index) => ({
-    menu_site_id: menuSiteId,
-    chef_name: chef.chef_name,
-    chef_role: chef.chef_role,
-    chef_description: chef.chef_description,
-    chef_image_url: STARTER_PLACEHOLDERS.chef,
-    chef_image_path: null,
-    visible: true,
-    sort_order: index + 1,
-  }));
+  const chefInserts: MenuChefInsert[] = useLeanPreset
+    ? []
+    : preset.chefs.slice(0, MENU_LIMITS.maxChefsPerSite).map((chef, index) => ({
+        menu_site_id: menuSiteId,
+        chef_name: chef.chef_name,
+        chef_role: chef.chef_role,
+        chef_description: chef.chef_description,
+        chef_image_url: STARTER_PLACEHOLDERS.chef,
+        chef_image_path: null,
+        visible: true,
+        sort_order: index + 1,
+      }));
 
   if (chefInserts.length > 0) {
     const { error: chefsError } = await supabase.from("menu_chefs").insert(chefInserts);
@@ -1024,22 +1060,24 @@ export async function createStarterMenuData(
     }
   }
 
-  const eventInserts: MenuEventInsert[] = preset.events.slice(0, MENU_LIMITS.maxEventsPerSite).map((event, index) => ({
-    menu_site_id: menuSiteId,
-    event_title: event.event_title,
-    event_subtitle: event.event_subtitle,
-    event_description: event.event_description,
-    event_period: event.event_period,
-    event_image_url: STARTER_PLACEHOLDERS.event,
-    event_image_path: null,
-    event_benefit: event.event_benefit,
-    event_detail: event.event_detail,
-    event_regular_price_label: event.event_regular_price_label,
-    event_sale_price_label: event.event_sale_price_label,
-    event_price_visible: true,
-    visible: true,
-    sort_order: index + 1,
-  }));
+  const eventInserts: MenuEventInsert[] = useLeanPreset
+    ? []
+    : preset.events.slice(0, MENU_LIMITS.maxEventsPerSite).map((event, index) => ({
+        menu_site_id: menuSiteId,
+        event_title: event.event_title,
+        event_subtitle: event.event_subtitle,
+        event_description: event.event_description,
+        event_period: event.event_period,
+        event_image_url: STARTER_PLACEHOLDERS.event,
+        event_image_path: null,
+        event_benefit: event.event_benefit,
+        event_detail: event.event_detail,
+        event_regular_price_label: event.event_regular_price_label,
+        event_sale_price_label: event.event_sale_price_label,
+        event_price_visible: true,
+        visible: true,
+        sort_order: index + 1,
+      }));
 
   if (eventInserts.length > 0) {
     const { error: eventsError } = await supabase.from("menu_events").insert(eventInserts);
@@ -1049,15 +1087,17 @@ export async function createStarterMenuData(
     }
   }
 
-  const socialLinkInserts: MenuSocialLinkInsert[] = preset.socialLinks.slice(0, MENU_LIMITS.maxSocialLinksPerSite).map((link, index) => ({
-    menu_site_id: menuSiteId,
-    type: link.type,
-    label: link.label,
-    display_name: link.display_name,
-    url: link.url,
-    visible: true,
-    sort_order: index,
-  }));
+  const socialLinkInserts: MenuSocialLinkInsert[] = useLeanPreset
+    ? []
+    : preset.socialLinks.slice(0, MENU_LIMITS.maxSocialLinksPerSite).map((link, index) => ({
+        menu_site_id: menuSiteId,
+        type: link.type,
+        label: link.label,
+        display_name: link.display_name,
+        url: link.url,
+        visible: true,
+        sort_order: index,
+      }));
 
   if (socialLinkInserts.length > 0) {
     const { error: socialLinksError } = await supabase.from("menu_social_links").insert(socialLinkInserts);

@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/supabase/types";
+import type { MenuEditorServiceType } from "@/lib/menu-editor-capabilities";
 import type { PageSettings } from "@/types/menu";
 
 export type PublicMenuSite = Pick<
@@ -106,6 +107,7 @@ export type PublicMenuSocialLink = Pick<
 
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
+  publicServiceType: MenuEditorServiceType;
   menuSite: PublicMenuSite;
   pageSettings: PageSettings;
   pages: PublicMenuPage[];

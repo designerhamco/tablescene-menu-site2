@@ -5,6 +5,7 @@ import ImagePlaceholder from "@/components/menu-templates/shared/ImagePlaceholde
 import MenuGnb from "@/components/menu-templates/shared/MenuGnb";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
+import { getMenuPublicCapabilities, type MenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import {
@@ -278,7 +279,15 @@ function MenuPagesSection({ data, capabilities }: { data: PublicMenuTemplateProp
   );
 }
 
-function AboutSection({ data, capabilities }: { data: PublicMenuTemplateProps; capabilities: TemplateCapabilities }) {
+function AboutSection({
+  data,
+  capabilities,
+  publicCapabilities,
+}: {
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  publicCapabilities: MenuPublicCapabilities;
+}) {
   const { menuSite } = data;
 
   return (
@@ -298,7 +307,7 @@ function AboutSection({ data, capabilities }: { data: PublicMenuTemplateProps; c
           { label: "지도", value: menuSite.map_url, href: menuSite.map_url },
         ]}
       />
-      {capabilities.chefs && data.chefs.length > 0 && (
+      {publicCapabilities.chefs && capabilities.chefs && data.pageSettings.chefs_enabled && data.chefs.length > 0 && (
         <div className="mt-8">
           <h3 className="text-lg font-black text-zinc-950">셰프 / 인물</h3>
           <div className="mt-4 grid gap-4">
@@ -319,7 +328,7 @@ function AboutSection({ data, capabilities }: { data: PublicMenuTemplateProps; c
           </div>
         </div>
       )}
-      {capabilities.socialLinks && data.socialLinks.length > 0 && (
+      {publicCapabilities.socialLinks && capabilities.socialLinks && data.pageSettings.social_links_enabled && data.socialLinks.length > 0 && (
         <div className="mt-8">
           <h3 className="text-lg font-black text-zinc-950">SNS</h3>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -382,15 +391,18 @@ function EventsSection({ data }: { data: PublicMenuTemplateProps }) {
 export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
   const { pageSettings } = data;
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
+  const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
 
   return (
     <div id="intro" className="bg-zinc-50 text-zinc-950">
-      {pageSettings.intro_enabled && <IntroSection data={data} />}
+      {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
       <MenuGnb site={data.menuSite} />
-      {pageSettings.menu_cover_enabled && <MenuCoverSection data={data} />}
-      <MenuPagesSection data={data} capabilities={capabilities} />
-      {pageSettings.about_enabled && <AboutSection data={data} capabilities={capabilities} />}
-      {capabilities.events && <EventsSection data={data} />}
+      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} />}
+      {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
+      {publicCapabilities.aboutPage && pageSettings.about_enabled && (
+        <AboutSection data={data} capabilities={capabilities} publicCapabilities={publicCapabilities} />
+      )}
+      {publicCapabilities.eventPage && capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
     </div>
   );
 }

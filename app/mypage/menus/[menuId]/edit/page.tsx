@@ -22,6 +22,11 @@ import {
   SocialLinksSection as InteractiveSocialLinksSection,
 } from "@/components/mypage/menu-editor/OptionalContentSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
+import {
+  MENU_EDITOR_CAPABILITIES,
+  getMenuEditorServiceType,
+  isMenuEditorTabEnabled,
+} from "@/lib/menu-editor-capabilities";
 import { MENU_EDITOR_TABS, isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
@@ -95,6 +100,7 @@ type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options
 type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
 type MenuSocialLink = Database["public"]["Tables"]["menu_social_links"]["Row"];
+type MenuSiteOrder = Pick<Database["public"]["Tables"]["orders"]["Row"], "product_key">;
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
@@ -217,6 +223,37 @@ function SectionCard({ title, eyebrow, children }: { title: string; eyebrow?: st
   );
 }
 
+function CustomEditorUnavailable({ siteName }: { siteName: string }) {
+  return (
+    <>
+      <SiteHeader />
+      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+        <div className="mx-auto w-full max-w-3xl">
+          <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+            마이페이지로 돌아가기
+          </Link>
+          <section className="rounded-lg bg-white p-8 shadow-sm">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Custom Project</p>
+            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">테이블씬 커스텀은 맞춤 제작형 서비스입니다.</h1>
+            <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+              <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
+              <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/mypage" className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white hover:bg-zinc-800">
+                마이페이지로 돌아가기
+              </Link>
+              <Link href="/mypage/inquiries" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-100">
+                상담 내역 확인하기
+              </Link>
+            </div>
+          </section>
+        </div>
+      </main>
+    </>
+  );
+}
+
 function HiddenMenuId({ menuId }: { menuId: string }) {
   return <input type="hidden" name="menuId" value={menuId} />;
 }
@@ -269,6 +306,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     { data: chefsData },
     { data: eventsData },
     { data: socialLinksData },
+    { data: orderData },
   ] =
     await Promise.all([
       supabase
@@ -321,6 +359,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
+      supabase
+        .from("orders")
+        .select("product_key")
+        .eq("menu_site_id", menuId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
   const menuPages = (menuPagesData ?? []) as MenuPage[];
@@ -353,8 +398,22 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const events = (eventsData ?? []) as MenuEvent[];
   const socialLinks = (socialLinksData ?? []) as MenuSocialLink[];
   const pageSettings = mergePageSettings(site.page_settings);
-  const capabilities = getTemplateCapabilities(site.template_key);
-  const visibleEditorTabs = MENU_EDITOR_TABS.filter((item) => capabilities.events || item.key !== "events");
+  const latestOrder = orderData as MenuSiteOrder | null;
+  const editorServiceType = getMenuEditorServiceType(latestOrder?.product_key);
+
+  if (editorServiceType === "custom") {
+    return <CustomEditorUnavailable siteName={site.name} />;
+  }
+
+  const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
+  const templateCapabilities = getTemplateCapabilities(site.template_key);
+  const visibleEditorTabs = MENU_EDITOR_TABS.filter((item) => {
+    if (!isMenuEditorTabEnabled(item.key, editorCapabilities)) {
+      return false;
+    }
+
+    return templateCapabilities.events || item.key !== "events";
+  });
   const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : "basic";
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
   const publicUrl = getPublicMenuUrl(site.slug);
@@ -368,12 +427,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     { label: "메뉴 아이템 1개 이상", ok: items.length > 0 },
   ];
   const optionalChecklist = [
-    { label: "인트로 페이지 사용", ok: pageSettings.intro_enabled },
-    { label: "메뉴 커버 페이지 사용", ok: pageSettings.menu_cover_enabled },
-    { label: "소개 페이지 사용", ok: pageSettings.about_enabled },
-    capabilities.events ? { label: "이벤트 등록", ok: events.length > 0 } : null,
-    capabilities.socialLinks ? { label: "SNS 등록", ok: socialLinks.length > 0 } : null,
-    capabilities.chefs ? { label: "셰프/인물 등록", ok: chefs.length > 0 } : null,
+    editorCapabilities.introPage ? { label: "인트로 페이지 사용", ok: pageSettings.intro_enabled } : null,
+    editorCapabilities.menuCoverPage ? { label: "메뉴 커버 페이지 사용", ok: pageSettings.menu_cover_enabled } : null,
+    editorCapabilities.aboutPage ? { label: "소개 페이지 사용", ok: pageSettings.about_enabled } : null,
+    editorCapabilities.eventPage && templateCapabilities.events ? { label: "이벤트 등록", ok: events.length > 0 } : null,
+    editorCapabilities.socialLinks && templateCapabilities.socialLinks ? { label: "SNS 등록", ok: socialLinks.length > 0 } : null,
+    editorCapabilities.chefs && templateCapabilities.chefs ? { label: "셰프/인물 등록", ok: chefs.length > 0 } : null,
   ].filter((item): item is { label: string; ok: boolean } => Boolean(item));
 
   return (
@@ -559,7 +618,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "menu" && (
-              <MenuManagementSection menuId={site.id} menuPages={menuPages} categories={categories} items={items} priceOptions={priceOptions} traits={traits} capabilities={capabilities} />
+              <MenuManagementSection menuId={site.id} menuPages={menuPages} categories={categories} items={items} priceOptions={priceOptions} traits={traits} capabilities={templateCapabilities} />
             )}
 
             {activeTab === "about" && (
@@ -596,12 +655,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </div>
                   </form>
                 </SectionCard>
-                {capabilities.chefs && <InteractiveChefsSection menuId={site.id} chefs={chefs} />}
-                {capabilities.socialLinks && <InteractiveSocialLinksSection menuId={site.id} socialLinks={socialLinks} />}
+                {editorCapabilities.chefs && templateCapabilities.chefs && <InteractiveChefsSection menuId={site.id} chefs={chefs} />}
+                {editorCapabilities.socialLinks && templateCapabilities.socialLinks && <InteractiveSocialLinksSection menuId={site.id} socialLinks={socialLinks} />}
               </>
             )}
 
-            {capabilities.events && activeTab === "events" && <InteractiveEventsSection menuId={site.id} events={events} />}
+            {editorCapabilities.eventPage && templateCapabilities.events && activeTab === "events" && <InteractiveEventsSection menuId={site.id} events={events} />}
 
             {activeTab === "design" && (
               <SectionCard title="디자인" eyebrow="Design">
