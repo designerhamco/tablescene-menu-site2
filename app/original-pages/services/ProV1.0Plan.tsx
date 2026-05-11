@@ -433,6 +433,62 @@ const ProV10Plan = () => {
   // Create a seamless loop with enough items
   const marqueeItems = [...HERO_IMAGES, ...HERO_IMAGES, ...HERO_IMAGES, ...HERO_IMAGES];
 
+  const isPreparing = true;
+
+  if (isPreparing) {
+    return (
+      <div className="min-h-screen bg-white font-sans selection:bg-zinc-900 selection:text-white">
+        <section className="px-6 pb-24 pt-36 md:pb-32 md:pt-44">
+          <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.05fr_0.95fr] md:items-center">
+            <div>
+              <span className="mb-5 inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-500">
+                준비 중
+              </span>
+              <h1 className="break-keep text-4xl font-black tracking-tight text-zinc-950 md:text-6xl">
+                테이블씬 오더 1.0
+              </h1>
+              <p className="mt-6 max-w-2xl break-keep text-lg font-semibold leading-relaxed text-zinc-500 md:text-xl">
+                QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.
+                현재는 테이블씬 메뉴, 스크린, 커스텀 서비스를 먼저 이용하실 수 있습니다.
+              </p>
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  to="/services/menu"
+                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
+                >
+                  테이블씬 메뉴 보기
+                </Link>
+                <Link
+                  to="/apply/custom"
+                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-6 py-4 text-sm font-bold text-zinc-950 transition hover:bg-zinc-50"
+                >
+                  문의하기
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-zinc-200 bg-zinc-50 p-6 md:p-8">
+              <div className="rounded-[1.5rem] bg-white p-6 shadow-sm">
+                <Clock className="mb-5 h-10 w-10 text-zinc-400" />
+                <h2 className="text-2xl font-black text-zinc-950">준비 중인 기능</h2>
+                <ul className="mt-6 space-y-4 text-sm font-semibold leading-relaxed text-zinc-500">
+                  <li>QR 테이블 주문</li>
+                  <li>직원 호출 및 요청 옵션</li>
+                  <li>주방 대시보드 연동</li>
+                  <li>선불/후불 운영 설정</li>
+                </ul>
+                <p className="mt-6 rounded-2xl bg-zinc-50 p-4 text-sm font-semibold leading-relaxed text-zinc-500">
+                  정식 출시 전까지 공개 CTA에서 결제 신청은 받지 않습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <FAQ />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-zinc-900 selection:text-white">
       
@@ -1673,10 +1729,10 @@ const ProV10Plan = () => {
 
         <div className="mt-16 text-center">
             <Link 
-                to="/apply/order" 
+                to="/services/order" 
                 className="inline-flex items-center justify-center gap-2 bg-[#F8E731] hover:bg-[#E5D520] text-black text-xl font-bold px-16 py-5 rounded-full transition-all hover:scale-105 shadow-lg shadow-yellow-400/20"
             >
-                바로 도입하기 <ArrowRight size={24}/>
+                준비 중 <ArrowRight size={24}/>
             </Link>
         </div>
       </div>

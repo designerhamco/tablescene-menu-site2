@@ -11,36 +11,46 @@ const logoImage = '/assets/tablescene-symbol.png';
 
 const NAV_DATA = {
   services: {
-    title: "웹 메뉴판",
+    title: "서비스",
     id: "services",
     label: "솔루션",
     items: [
       { 
         label: "테이블씬 메뉴",
-        badges: ["모바일/QR", "태블릿", "PC"],
+        badge: "추천",
         path: "/services/menu",
-        desc: "누구나 쉽고 빠르게 만드는 디지털 메뉴판",
+        descLines: [
+          "메뉴와 가격표를 빠르게 만드는 디지털 메뉴판",
+          "모바일, QR, PC까지 하나의 링크로 관리",
+        ],
         icon: LayoutGrid,
       },
       { 
         label: "테이블씬 스크린",
-        badges: ["대형스크린", "가로/세로"],
+        badge: "추천",
         path: "/services/screen",
-        desc: "매장 화면을 감각적인 디지털 메뉴보드로",
+        descLines: [
+          "매장 화면을 감각적인 디지털 메뉴보드로",
+          "TV와 모니터에 최적화된 대형 화면 메뉴판",
+        ],
         icon: LayoutGrid,
       },
       { 
         label: "테이블씬 오더 1.0",
-        badges: ["모바일/QR"],
-        path: "/services/order",
-        desc: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템",
+        path: "#",
+        descLines: [
+          "QR로 주문하고 주방까지 바로 연결",
+          "테이블 주문, 호출, 주방 대시보드를 한 번에",
+        ],
         icon: Crown,
       },
       { 
         label: "테이블씬 커스텀",
-        badges: ["맞춤제작"],
         path: "/services/custom",
-        desc: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험",
+        descLines: [
+          "브랜딩과 인터랙션을 담은 웹 메뉴 경험",
+          "프리미엄 매장을 위한 맞춤형 제작",
+        ],
         icon: Palette 
       }
     ],
@@ -91,6 +101,11 @@ const NAV_DATA = {
   }
 };
 
+const dropdownItemTitleClass = "text-lg font-bold text-zinc-900 transition-colors";
+const dropdownItemDescriptionClass = "text-sm text-zinc-500 font-medium transition-colors";
+const mobileDropdownItemTitleClass = "text-base font-bold text-zinc-900";
+const mobileDropdownItemDescriptionClass = "text-xs text-zinc-500 mt-0.5 font-medium";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -115,6 +130,19 @@ const Navbar = () => {
     setActiveMobileSection((currentSection) => (currentSection === null ? currentSection : null));
   }, [pathname]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsOpen((currentIsOpen) => (currentIsOpen ? false : currentIsOpen));
+        setActiveMobileSection((currentSection) => (currentSection === null ? currentSection : null));
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -138,7 +166,8 @@ const Navbar = () => {
   // Dynamic Styles
   const transparentNavPaths = ["/", "/services/menu", "/services/screen", "/services/signature", "/store"];
   const solidNavPaths = ["/services/order", "/services/custom", "/services/simple-template", "/services/pro-v1", "/services/design-customizing"];
-  const navVariant = solidNavPaths.includes(pathname)
+  const isApplyPath = pathname === "/apply" || pathname.startsWith("/apply/");
+  const navVariant = isApplyPath || solidNavPaths.includes(pathname)
     ? "solid"
     : transparentNavPaths.includes(pathname)
       ? "transparent"
@@ -182,7 +211,7 @@ const Navbar = () => {
                 TABLE SCENE
                 </span>
                 <span className={`text-[9px] md:text-[10px] tracking-[0.3em] font-sans font-medium mt-0.5 ml-0.5 opacity-60 uppercase transition-colors duration-300 ${logoTextClass}`}>
-                Studio
+                AI Studio
                 </span>
             </div>
           </Link>
@@ -286,7 +315,7 @@ const Navbar = () => {
                                   </div>
                                   <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                      <h4 className={`text-lg font-bold text-zinc-900 transition-colors ${
+                                      <h4 className={`${dropdownItemTitleClass} ${
                                         !isDisabled && "group-hover:text-black"
                                       }`}>
                                         {subItem.label}
@@ -302,23 +331,24 @@ const Navbar = () => {
                                         </span>
                                       )}
                                     </div>
-                                    {"badges" in subItem && Array.isArray(subItem.badges) && subItem.badges.length > 0 && (
-                                      <div className="mb-2 flex flex-wrap gap-1.5">
-                                        {subItem.badges.map((badge) => (
-                                          <span
-                                            key={badge}
-                                            className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold text-zinc-500"
-                                          >
-                                            {badge}
-                                          </span>
+                                    {"descLines" in subItem && Array.isArray(subItem.descLines) ? (
+                                      <p className={`${dropdownItemDescriptionClass} ${
+                                        !isDisabled && "group-hover:text-zinc-700"
+                                      }`}>
+                                        {subItem.descLines.map((line, lineIndex) => (
+                                          <React.Fragment key={line}>
+                                            {lineIndex > 0 && <br />}
+                                            {line}
+                                          </React.Fragment>
                                         ))}
-                                      </div>
+                                      </p>
+                                    ) : (
+                                      <p className={`${dropdownItemDescriptionClass} ${
+                                        !isDisabled && "group-hover:text-zinc-700"
+                                      }`}>
+                                        {subItem.desc}
+                                      </p>
                                     )}
-                                    <p className={`text-sm text-zinc-500 font-medium transition-colors ${
-                                      !isDisabled && "group-hover:text-zinc-700"
-                                    }`}>
-                                      {subItem.desc}
-                                    </p>
                                   </div>
                                 </Link>
                               );
@@ -493,7 +523,7 @@ const Navbar = () => {
                                          </div>
                                          <div className="pt-0.5">
                                             <div className="flex items-center gap-2">
-                                             <span className="text-base font-bold text-zinc-900">{subItem.label}</span>
+                                             <span className={mobileDropdownItemTitleClass}>{subItem.label}</span>
                                               {subItem.badge && (
                                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${['AI', '추천'].includes(subItem.badge) ? 'bg-[#F8E731] text-black' : 'bg-black text-white'}`}>
                                                   {subItem.badge}
@@ -505,21 +535,20 @@ const Navbar = () => {
                                                 </span>
                                               )}
                                             </div>
-                                            {"badges" in subItem && Array.isArray(subItem.badges) && subItem.badges.length > 0 && (
-                                              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                                {subItem.badges.map((badge) => (
-                                                  <span
-                                                    key={badge}
-                                                    className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[9px] font-bold text-zinc-500"
-                                                  >
-                                                    {badge}
-                                                  </span>
+                                            {"descLines" in subItem && Array.isArray(subItem.descLines) ? (
+                                              <p className={mobileDropdownItemDescriptionClass}>
+                                                {subItem.descLines.map((line, lineIndex) => (
+                                                  <React.Fragment key={line}>
+                                                    {lineIndex > 0 && <br />}
+                                                    {line}
+                                                  </React.Fragment>
                                                 ))}
-                                              </div>
+                                              </p>
+                                            ) : (
+                                              <p className={`${mobileDropdownItemDescriptionClass} line-clamp-1`}>
+                                                {subItem.desc}
+                                              </p>
                                             )}
-                                            <p className="text-xs text-zinc-500 mt-0.5 line-clamp-1 font-medium">
-                                              {subItem.desc}
-                                            </p>
                                          </div>
                                       </Link>
                                     );

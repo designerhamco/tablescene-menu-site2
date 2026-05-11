@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 
 import { createConsultingApplyAction } from "@/app/apply/actions";
 import Footer from "@/app/components/layout/Footer";
-import SiteHeader from "@/components/layout/SiteHeader";
+import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { getBusinessTypeOptions } from "@/lib/business-types";
 import { createClient } from "@/lib/supabase/server";
 
 type PageProps = {
@@ -63,11 +64,13 @@ function SelectField({
   name,
   options,
   required,
+  helperText,
 }: {
   label: string;
   name: string;
-  options: string[];
+  options: readonly (string | { value: string; label: string })[];
   required?: boolean;
+  helperText?: string;
 }) {
   return (
     <label className="block">
@@ -81,19 +84,21 @@ function SelectField({
         defaultValue=""
         className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
       >
-        <option value="">선택해주세요</option>
+        <option value="">{label === "업종" ? "업종을 선택해주세요" : "선택해주세요"}</option>
         {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+          <option key={typeof option === "string" ? option : option.value} value={typeof option === "string" ? option : option.value}>
+            {typeof option === "string" ? option : option.label}
           </option>
         ))}
       </select>
+      {helperText ? <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{helperText}</p> : null}
     </label>
   );
 }
 
 export default async function ApplyCustomPage({ searchParams }: PageProps) {
   const { error } = await searchParams;
+  const businessTypeOptions = getBusinessTypeOptions("custom");
   const supabase = await createClient();
   const {
     data: { user },
@@ -105,7 +110,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-6xl">
           <header className="grid gap-8 border-b border-zinc-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
@@ -137,9 +142,20 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
                 </div>
               ) : null}
 
+              <div className="mb-6">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Basic Info</p>
+                <h2 className="text-3xl font-black tracking-tight">기본 신청 정보</h2>
+              </div>
+
               <div className="grid gap-6 md:grid-cols-2">
                 <Field label="매장명" name="storeName" placeholder="예: 테이블씬 다이닝" required />
-                <Field label="브랜드/업종" name="businessCategory" placeholder="예: 파인다이닝, 와인바, 카페" />
+                <SelectField
+                  label="업종"
+                  name="businessCategory"
+                  options={businessTypeOptions}
+                  required
+                  helperText="업종은 템플릿 추천과 신청 정보 확인에 활용됩니다."
+                />
                 <Field label="담당자명" name="contactName" placeholder="예: 홍길동" required />
                 <Field label="연락처" name="contactPhone" placeholder="예: 010-0000-0000" required />
                 <Field label="이메일" name="contactEmail" type="email" placeholder="예: hello@tablescene.kr" required />

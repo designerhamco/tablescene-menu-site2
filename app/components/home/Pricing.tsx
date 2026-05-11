@@ -5,40 +5,37 @@ import { ArrowRight, Lock } from 'lucide-react';
 
 const PLANS = [
   {
-    id: 'pro-v1',
-    name: '올인원 통합 관리',
-    tagline: 'PRO 1.0',
-    keywords: ['주문/결제', '직원 호출', '효율적 운영'],
-    narrative: '주문부터 결제, 직원 호출까지 매장 운영에 필요한 핵심 기능을 하나로 담았습니다. 효율적인 매장 관리를 시작하세요.',
-    link: '/services/pro-v1',
-    // Busy Kitchen (Original Pro Image)
-    poster: 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    id: 'menu',
+    name: '디지털 메뉴판/가격표',
+    tagline: 'TableScene Menu',
+    keywords: ['모바일/QR', '가격표', '바로 수정'],
+    narrative: '카페, 식당, 미용실, 네일샵까지 메뉴와 가격표를 하나의 링크로 관리합니다.',
+    link: '/services/menu',
+    poster: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
     highlight: false,
     disabled: false
   },
   {
-    id: 'dining',
-    name: '프리미엄 커스텀',
-    tagline: 'DINING',
-    keywords: ['파인다이닝', 'QR 웰컴 카드', '프리미엄 커스텀'],
-    narrative: '웹 메뉴판과 완벽한 조화를 이루는 프리미엄 QR 웰컴 카드를 제작해 드립니다. 매장의 품격을 높이는 차별화된 경험을 제공하세요.',
-    link: '/services/signature',
-    // Bar / Fine Dining (Original Dining Image)
-    poster: 'https://images.unsplash.com/photo-1574096079513-d8259312b785?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    id: 'screen',
+    name: '대형 화면 메뉴보드',
+    tagline: 'TableScene Screen',
+    keywords: ['TV/모니터', '메뉴보드', '안내 화면'],
+    narrative: '매장 TV와 모니터에 띄우는 디지털 메뉴보드로 메뉴, 가격표, 이벤트 화면을 보여주세요.',
+    link: '/services/screen',
+    poster: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
     highlight: false,
     disabled: false
   },
   {
-    id: 'pro-ai',
-    name: 'AI 자동화 솔루션',
-    tagline: 'PRO AI',
-    keywords: ['매출 분석', '마케팅 자동화', '운영 최적화'],
-    narrative: 'AI가 매출 데이터를 분석하여 마케팅 전략을 제안하고 실행합니다. 매장 운영의 새로운 패러다임을 경험해보세요.',
-    link: '#',
-    // AI / Tech feel
-    poster: 'https://images.unsplash.com/photo-1588560107833-167198a53677?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    highlight: true,
-    disabled: true
+    id: 'custom',
+    name: '맞춤형 웹 메뉴 경험',
+    tagline: 'TableScene Custom',
+    keywords: ['브랜딩', '인터랙션', '프로젝트 제작'],
+    narrative: '템플릿으로 담기 어려운 브랜드 경험은 프리미엄 맞춤 제작으로 완성합니다.',
+    link: '/services/custom',
+    poster: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    highlight: false,
+    disabled: false
   }
 ];
 
@@ -146,7 +143,7 @@ const Pricing = () => {
             매장의 운영 방식에 최적화된<br className="hidden md:block" /> 맞춤형 솔루션을 제안합니다
           </h2>
           <p className="text-lg text-zinc-500 leading-relaxed font-medium">
-            규모도, 운영 방식도 다른 우리 매장.<br className="md:hidden" /> 가장 필요한 기능만 담은 합리적인 플랜으로 시작해보세요.
+            메뉴판, 가격표, 안내 화면까지.<br className="md:hidden" /> 지금 바로 운영 가능한 핵심 서비스부터 시작해보세요.
           </p>
         </div>
 

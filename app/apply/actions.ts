@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getBusinessTypeLabel } from "@/lib/business-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -31,10 +32,13 @@ function redirectWithApplyError(serviceType: ConsultingServiceType, message: str
 }
 
 function buildOrderMessage(formData: FormData) {
+  const businessType = getString(formData, "businessCategory");
+  const businessTypeLabel = getBusinessTypeLabel(businessType) ?? businessType;
+
   return [
     "[테이블씬 오더 1.0 상담 신청]",
     `매장명: ${getString(formData, "storeName")}`,
-    `업종: ${getString(formData, "businessCategory") || "-"}`,
+    `업종: ${businessTypeLabel || "-"}`,
     `담당자명: ${getString(formData, "contactName")}`,
     `연락처: ${getString(formData, "contactPhone")}`,
     `이메일: ${getString(formData, "contactEmail")}`,
@@ -50,11 +54,13 @@ function buildOrderMessage(formData: FormData) {
 
 function buildCustomMessage(formData: FormData) {
   const neededFeatures = getStringList(formData, "neededFeatures");
+  const businessType = getString(formData, "businessCategory");
+  const businessTypeLabel = getBusinessTypeLabel(businessType) ?? businessType;
 
   return [
     "[테이블씬 커스텀 견적 문의]",
     `매장명: ${getString(formData, "storeName")}`,
-    `브랜드/업종: ${getString(formData, "businessCategory") || "-"}`,
+    `업종: ${businessTypeLabel || "-"}`,
     `담당자명: ${getString(formData, "contactName")}`,
     `연락처: ${getString(formData, "contactPhone")}`,
     `이메일: ${getString(formData, "contactEmail")}`,
@@ -87,6 +93,7 @@ export async function createConsultingApplyAction(formData: FormData) {
   }
 
   const storeName = getString(formData, "storeName");
+  const businessCategory = getString(formData, "businessCategory");
   const contactName = getString(formData, "contactName");
   const contactPhone = getString(formData, "contactPhone");
   const contactEmail = getString(formData, "contactEmail");
@@ -94,6 +101,10 @@ export async function createConsultingApplyAction(formData: FormData) {
 
   if (!storeName) {
     redirectWithApplyError(serviceType, "매장명을 입력해주세요.");
+  }
+
+  if (!businessCategory) {
+    redirectWithApplyError(serviceType, "업종을 선택해주세요.");
   }
 
   if (!contactName) {

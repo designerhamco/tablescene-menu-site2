@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { createConsultingApplyAction } from "@/app/apply/actions";
-import SiteHeader from "@/components/layout/SiteHeader";
+import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { getBusinessTypeOptions } from "@/lib/business-types";
 import { createClient } from "@/lib/supabase/server";
 
 type ConsultingServiceType = "order" | "custom";
@@ -68,26 +69,35 @@ function SelectField({
   label,
   name,
   options,
+  required,
+  helperText,
 }: {
   label: string;
   name: string;
-  options: string[];
+  options: readonly (string | { value: string; label: string })[];
+  required?: boolean;
+  helperText?: string;
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-zinc-800">{label}</span>
+      <span className="text-sm font-semibold text-zinc-800">
+        {label}
+        {required ? " *" : ""}
+      </span>
       <select
         name={name}
+        required={required}
         className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950"
         defaultValue=""
       >
-        <option value="">선택해주세요</option>
+        <option value="">{label === "업종" ? "업종을 선택해주세요" : "선택해주세요"}</option>
         {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+          <option key={typeof option === "string" ? option : option.value} value={typeof option === "string" ? option : option.value}>
+            {typeof option === "string" ? option : option.label}
           </option>
         ))}
       </select>
+      {helperText ? <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{helperText}</p> : null}
     </label>
   );
 }
@@ -107,10 +117,11 @@ export default async function ConsultingApplyPage({
 
   const copy = CONSULTING_COPY[serviceType];
   const isOrder = serviceType === "order";
+  const businessTypeOptions = getBusinessTypeOptions(serviceType);
 
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-10 border-b border-zinc-200 pb-8">
@@ -137,10 +148,12 @@ export default async function ConsultingApplyPage({
 
             <div className="grid gap-5 md:grid-cols-2">
               <Field label="매장명" name="storeName" placeholder="예: 테이블씬 카페" required />
-              <Field
-                label={isOrder ? "업종" : "브랜드/업종"}
+              <SelectField
+                label="업종"
                 name="businessCategory"
-                placeholder="예: 카페, 다이닝, 베이커리"
+                options={businessTypeOptions}
+                required
+                helperText="업종은 템플릿 추천과 신청 정보 확인에 활용됩니다."
               />
               <Field label="담당자명" name="contactName" placeholder="예: 홍길동" required />
               <Field label="연락처" name="contactPhone" placeholder="예: 010-0000-0000" required />

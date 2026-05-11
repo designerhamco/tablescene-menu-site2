@@ -87,20 +87,12 @@ export default function AuthNav({ dark }: { dark: boolean }) {
   return (
     <div className="hidden items-center gap-3 lg:flex">
       <a
-        href="/sign-in"
-        aria-label="로그인"
-        title="로그인"
+        href="/sign-in?next=/mypage"
+        aria-label="마이페이지"
+        title="마이페이지"
         className={`inline-flex items-center justify-center p-1 transition-opacity ${iconButtonClass}`}
       >
-        <LogIn size={20} strokeWidth={2} aria-hidden="true" />
-      </a>
-      <a
-        href="/sign-up"
-        aria-label="회원가입"
-        title="회원가입"
-        className={`inline-flex items-center justify-center p-1 transition-opacity ${iconButtonClass}`}
-      >
-        <UserPlus size={20} strokeWidth={2} aria-hidden="true" />
+        <User size={20} strokeWidth={2} aria-hidden="true" />
       </a>
     </div>
   );

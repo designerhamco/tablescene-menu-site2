@@ -4,30 +4,31 @@ import { ArrowUpRight } from 'lucide-react';
 
 const services = [
   {
-    id: 'web-menu-pro-v1',
-    title: 'PRO 1.0',
-    description: '주문, 결제, 호출 등 매장 운영의 핵심 기능을 모두 담은 실속형 올인원 솔루션.',
-    image: 'https://images.unsplash.com/photo-1659035260002-11d486d6e9f5?q=80&w=1080',
+    id: 'tablescene-menu',
+    title: '테이블씬 메뉴',
+    description: '누구나 쉽고 빠르게 만드는 디지털 메뉴판/가격표',
+    cta: '바로 도입하기',
+    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=1080',
     video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    link: '/services/pro-v1'
+    link: '/apply/menu'
   },
   {
-    id: 'web-menu-dining',
-    title: 'DINING',
-    description: '웹 메뉴판과 완벽히 어우러지는 QR 웰컴 카드. 매장의 품격을 완성하는 프리미엄 솔루션.',
-    image: 'https://images.unsplash.com/photo-1728044849280-10a1a75cff83?q=80&w=1080',
+    id: 'tablescene-screen',
+    title: '테이블씬 스크린',
+    description: '매장 TV와 모니터에 띄우는 디지털 메뉴보드',
+    cta: '바로 도입하기',
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=1080',
     video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-    link: '/services/signature'
+    link: '/apply/screen'
   },
   {
-    id: 'web-menu-pro-ai',
-    title: 'PRO AI',
-    description: 'AI가 매출과 재고를 분석하고 마케팅까지. 매장 운영의 패러다임을 바꾸는 차세대 솔루션.',
-    image: 'https://images.unsplash.com/photo-1561284081-ebf6c977bbde?q=80&w=1080',
+    id: 'tablescene-custom',
+    title: '테이블씬 커스텀',
+    description: '브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험',
+    cta: '상담 신청하기',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1080',
     video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-    link: '#',
-    isAi: true,
-    disabled: true
+    link: '/apply/custom'
   }
 ];
 
@@ -123,11 +124,6 @@ const ServiceCard = ({ service }: { service: typeof services[0] }) => {
         <div className="absolute bottom-0 left-0 right-0 p-8 pointer-events-none">
           <h3 className="text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight flex items-center gap-3">
             {service.title}
-            {service.isAi && (
-              <span className="bg-gradient-to-r from-blue-500 to-violet-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full leading-none shadow-lg border border-white/20">
-                AI
-              </span>
-            )}
             {!service.disabled && (
               <div className="ml-auto bg-white/10 p-2 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
                  <ArrowUpRight className="w-5 h-5 text-white" />
@@ -137,6 +133,9 @@ const ServiceCard = ({ service }: { service: typeof services[0] }) => {
           <p className="text-sm md:text-base text-zinc-300 font-medium leading-relaxed opacity-90 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
             {service.description}
           </p>
+          <span className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-xs font-black text-zinc-950">
+            {service.cta}
+          </span>
         </div>
       </a>
     </div>
@@ -153,11 +152,11 @@ const ServiceOverview = () => {
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
              <span className="text-primary text-xs font-bold tracking-widest uppercase mb-4 block">Our Solutions</span>
              <h2 className="text-4xl md:text-6xl font-bold text-zinc-900 mb-6 tracking-tight leading-tight">
-               우리의 서비스
+               필요한 방식으로 고르는 테이블씬
              </h2>
              <p className="text-lg md:text-xl text-zinc-500 font-medium">
-               완벽하게 연결된 올인원 시스템으로 완성된<br className="hidden md:block"/>
-               테이블씬의 혁신적인 서비스를 만나보세요.
+               QR 링크 메뉴판부터 매장 스크린, 맞춤형 웹 메뉴 경험까지.<br className="hidden md:block"/>
+               업종과 운영 방식에 맞는 서비스를 선택하세요.
              </p>
           </div>
         </div>

@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
-import SiteHeader from "@/components/layout/SiteHeader";
+import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 export const metadata: Metadata = {
   title: "서비스 신청 | TableScene",
-  description: "테이블씬 메뉴, 스크린, 오더 1.0, 커스텀 서비스 신청 페이지를 선택하세요.",
+  description: "테이블씬 메뉴, 스크린, 커스텀 서비스 신청 페이지를 선택하세요.",
 };
 
 const applyServices = [
   {
     title: "테이블씬 메뉴",
     eyebrow: "TableScene Menu",
-    description: "누구나 쉽고 빠르게 만드는 디지털 메뉴판",
+    description: "누구나 쉽고 빠르게 만드는 디지털 메뉴판/가격표",
     type: "결제신청형",
     cta: "바로 도입하기",
     href: "/apply/menu",
@@ -29,10 +29,10 @@ const applyServices = [
   {
     title: "테이블씬 오더 1.0",
     eyebrow: "TableScene QR Order",
-    description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템",
-    type: "결제신청형",
-    cta: "바로 도입하기",
-    href: "/apply/order",
+    description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.",
+    type: "준비 중",
+    cta: "준비 중 안내 보기",
+    href: "/services/order",
   },
   {
     title: "테이블씬 커스텀",
@@ -47,7 +47,7 @@ const applyServices = [
 export default function ApplyPage() {
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-6xl">
           <header className="border-b border-zinc-200 pb-10">
@@ -56,8 +56,8 @@ export default function ApplyPage() {
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              테이블씬의 네 가지 서비스 중 필요한 신청 유형을 선택해주세요. 결제신청형 서비스는 신청서 작성 후 결제로 이어지고,
-              커스텀은 상담과 견적 문의로 접수됩니다.
+              현재 바로 도입 가능한 메뉴와 스크린, 상담형 커스텀 중 필요한 신청 유형을 선택해주세요.
+              오더 1.0은 준비 중 안내로 연결됩니다.
             </p>
           </header>
 

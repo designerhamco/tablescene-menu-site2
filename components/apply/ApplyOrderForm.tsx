@@ -18,7 +18,11 @@ import {
   type ScreenSetupPayload,
 } from "@/lib/payments";
 import { getPublicMenuUrl } from "@/lib/menu-url";
-import { RESTAURANT_TYPE_OPTIONS, getDefaultMenuCoverLabel, type RestaurantTypeKey } from "@/lib/restaurant-types";
+import {
+  getBusinessTypeOptions,
+  getDefaultBusinessCoverLabel,
+  type BusinessTypeKey,
+} from "@/lib/business-types";
 import {
   TEMPLATE_CATEGORIES,
   getTemplateCategoryLabel,
@@ -52,7 +56,7 @@ type FormState = {
   buyerName: string;
   buyerPhone: string;
   buyerEmail: string;
-  restaurantType: RestaurantTypeKey;
+  restaurantType: BusinessTypeKey | "";
   screenPurpose: string;
   screenTemplateCategory: string;
   screenOrientation: string;
@@ -90,6 +94,19 @@ type PaidApplyProduct = {
   amount: number;
   currency: typeof menuCreationProduct.currency;
 };
+
+type MenuTemplateGroupKey =
+  | "recommended"
+  | "cafe_dessert"
+  | "dining"
+  | "fast_takeout"
+  | "beauty_wellness"
+  | "class_workshop"
+  | "fitness"
+  | "pet"
+  | "clinic"
+  | "popup_event"
+  | "all";
 
 const phonePrefixes = [
   "010",
@@ -194,6 +211,57 @@ const orderPosUsageOptions = ["사용 중", "사용하지 않음", "잘 모름"]
 const orderPaymentPreferenceOptions = ["선불", "후불", "둘 다 필요", "아직 미정"] as const;
 const orderNeedOptions = ["필요", "불필요", "아직 미정"] as const;
 const orderLaunchTimelineOptions = ["즉시", "1개월 이내", "3개월 이내", "아직 미정"] as const;
+const menuTemplateGroups = [
+  { key: "recommended", label: "추천" },
+  { key: "cafe_dessert", label: "카페·디저트" },
+  { key: "dining", label: "음식점·다이닝" },
+  { key: "fast_takeout", label: "패스트푸드·테이크아웃" },
+  { key: "beauty_wellness", label: "뷰티·웰니스" },
+  { key: "class_workshop", label: "클래스·공방" },
+  { key: "fitness", label: "피트니스" },
+  { key: "pet", label: "펫" },
+  { key: "clinic", label: "병원·클리닉" },
+  { key: "popup_event", label: "팝업·행사" },
+  { key: "all", label: "전체" },
+] as const satisfies readonly { key: MenuTemplateGroupKey; label: string }[];
+const menuTemplateGroupCategoryMap = {
+  cafe_dessert: ["cafe"],
+  dining: ["brunch", "casual_dining", "fine_dining"],
+  fast_takeout: ["fast_food"],
+  beauty_wellness: [],
+  class_workshop: [],
+  fitness: [],
+  pet: [],
+  clinic: [],
+  popup_event: [],
+} as const satisfies Record<Exclude<MenuTemplateGroupKey, "recommended" | "all">, readonly TemplateCategoryKey[]>;
+const menuTemplateRecommendationMap = {
+  cafe: ["cafe_dessert"],
+  bakery: ["cafe_dessert"],
+  dessert: ["cafe_dessert"],
+  restaurant: ["dining"],
+  brunch: ["dining"],
+  casual_dining: ["dining"],
+  fine_dining: ["dining"],
+  pub_bar: ["dining"],
+  fast_food: ["fast_takeout"],
+  hair_salon: ["beauty_wellness"],
+  nail_shop: ["beauty_wellness"],
+  beauty_esthetic: ["beauty_wellness"],
+  workshop_class: ["class_workshop"],
+  fitness_pt: ["fitness"],
+  pet_shop: ["pet"],
+  clinic: ["clinic"],
+  popup_event: ["popup_event"],
+  etc: ["cafe_dessert", "dining"],
+} as const satisfies Record<BusinessTypeKey, readonly Exclude<MenuTemplateGroupKey, "recommended" | "all">[]>;
+const templateTagMap = {
+  cafe: ["카페", "디저트", "이미지형", "모바일/QR"],
+  brunch: ["브런치", "다이닝", "모바일/QR"],
+  casual_dining: ["식당", "캐주얼다이닝", "모바일/QR"],
+  fine_dining: ["파인다이닝", "코스", "프리미엄"],
+  fast_food: ["패스트푸드", "테이크아웃", "빠른 주문"],
+} as const satisfies Record<TemplateCategoryKey, readonly string[]>;
 const screenPurposeOptions = [
   "카페 메뉴보드",
   "베이커리/디저트 쇼케이스",
@@ -219,24 +287,6 @@ const screenTemplateCategories = [
   label: string;
   templateCategory: TemplateCategoryKey;
 }[];
-const menuRestaurantTypeOptions = RESTAURANT_TYPE_OPTIONS.filter((option) =>
-  [
-    "cafe",
-    "casual_dining",
-    "brunch",
-    "bakery",
-    "dessert",
-    "hair_salon",
-    "nail_shop",
-    "beauty_esthetic",
-    "workshop_class",
-    "fitness_pt",
-    "pet_shop",
-    "clinic",
-    "popup_event",
-    "etc",
-  ].includes(option.value)
-);
 
 function createPaymentId() {
   const timestamp = Date.now().toString(36);
@@ -379,6 +429,41 @@ function getScreenTemplateCategoryByKey(key: string) {
   return screenTemplateCategories.find((category) => category.key === key) ?? screenTemplateCategories[0];
 }
 
+function getMenuTemplateCategoriesByGroup(groupKey: MenuTemplateGroupKey, businessType: BusinessTypeKey | "") {
+  if (groupKey === "all") {
+    return TEMPLATE_CATEGORIES.map((category) => category.key);
+  }
+
+  if (groupKey === "recommended") {
+    const recommendedGroups = businessType ? menuTemplateRecommendationMap[businessType] : ["cafe_dessert", "dining"];
+    return recommendedGroups.flatMap((group) => menuTemplateGroupCategoryMap[group]);
+  }
+
+  return menuTemplateGroupCategoryMap[groupKey];
+}
+
+function getMenuTemplateGroupLabel(groupKey: MenuTemplateGroupKey) {
+  return menuTemplateGroups.find((group) => group.key === groupKey)?.label ?? "추천";
+}
+
+function getTemplatesByMenuGroup(
+  templates: readonly TemplateCatalogItem[],
+  groupKey: MenuTemplateGroupKey,
+  businessType: BusinessTypeKey | "",
+) {
+  const categories = getMenuTemplateCategoriesByGroup(groupKey, businessType);
+
+  if (categories.length === 0) {
+    return [];
+  }
+
+  return templates.filter((template) => categories.includes(template.template_category));
+}
+
+function getMenuTemplateTags(template: TemplateCatalogItem) {
+  return templateTagMap[template.template_category] ?? [template.categoryLabel, "모바일/QR"];
+}
+
 function validatePersonName(label: string, value: string) {
   const trimmed = value.trim();
 
@@ -475,6 +560,7 @@ export default function ApplyOrderForm({
   const firstCategory = TEMPLATE_CATEGORIES[0].key;
   const firstTemplate = templates.find((template) => template.template_category === firstCategory) ?? templates[0];
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate?.template_category ?? firstCategory);
+  const [selectedMenuTemplateGroup, setSelectedMenuTemplateGroup] = useState<MenuTemplateGroupKey>("recommended");
   const [agreements, setAgreements] = useState(initialAgreements);
   const [activeAgreement, setActiveAgreement] = useState<AgreementKey | null>(null);
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
@@ -491,7 +577,7 @@ export default function ApplyOrderForm({
     buyerName: "",
     buyerPhone: "",
     buyerEmail: userEmail,
-    restaurantType: "cafe",
+    restaurantType: "",
     screenPurpose: "카페 메뉴보드",
     screenTemplateCategory: "cafe_screen",
     screenOrientation: "",
@@ -510,8 +596,12 @@ export default function ApplyOrderForm({
   });
 
   const filteredTemplates = useMemo(() => {
+    if (isMenuService) {
+      return getTemplatesByMenuGroup(templates, selectedMenuTemplateGroup, form.restaurantType);
+    }
+
     return templates.filter((template) => template.template_category === selectedCategory);
-  }, [selectedCategory, templates]);
+  }, [form.restaurantType, isMenuService, selectedCategory, selectedMenuTemplateGroup, templates]);
 
   const selectedTemplate = useMemo(
     () => templates.find((template) => template.key === form.template_key) ?? templates[0],
@@ -519,12 +609,13 @@ export default function ApplyOrderForm({
   );
   const currentPlanRequiresBusinessInfo = requiresBusinessInfo(currentPlanKey);
   const currentPlanAllowsIndividual = canIndividualPurchasePlan(currentPlanKey);
-  const templateStepLabel = isMenuService ? "Step 2" : isScreenService ? "Step 2-3" : "Step 1";
-  const basicInfoStepLabel = isMenuService ? "Step 3" : isScreenService ? "Step 4" : "Step 2";
-  const buyerInfoStepLabel = isMenuService ? "Step 4" : isScreenService ? "Step 5" : "Step 3";
-  const summaryStepLabel = isMenuService ? "Step 5" : isScreenService ? "Step 6" : "Step 4";
-  const agreementsStepLabel = isMenuService ? "Step 6" : isScreenService ? "Step 7" : "Step 5";
+  const templateStepLabel = isScreenService ? "Step 2" : "Step 1";
+  const basicInfoStepLabel = isScreenService ? "Step 3" : "Step 2";
+  const buyerInfoStepLabel = isScreenService ? "Step 4" : "Step 3";
+  const summaryStepLabel = isScreenService ? "Step 5" : "Step 4";
+  const agreementsStepLabel = isScreenService ? "Step 6" : "Step 5";
   const selectedScreenTemplateCategory = getScreenTemplateCategoryByKey(form.screenTemplateCategory);
+  const businessTypeOptions = getBusinessTypeOptions(serviceType);
   const orderSetup = useMemo<OrderSetupPayload>(
     () => ({
       tableCount: nullable(form.tableCount),
@@ -556,7 +647,7 @@ export default function ApplyOrderForm({
       desiredSlug: normalizeMenuSlug(form.desiredSlug),
       restaurantName: form.restaurantName.trim(),
       restaurantCategory: isScreenService ? selectedScreenTemplateCategory.label : getTemplateCategoryLabel(form.template_category),
-      restaurantType: isMenuService ? form.restaurantType : form.template_category,
+      restaurantType: form.restaurantType || null,
       restaurantAddress: form.restaurantAddress.trim(),
       restaurantPhone: form.restaurantPhone.trim(),
       openingHours: null,
@@ -566,7 +657,7 @@ export default function ApplyOrderForm({
       brandDescription: null,
       menuCoverTitle: null,
       menuCoverDescription: null,
-      menuCoverLabel: isScreenService ? "DIGITAL MENU BOARD" : getDefaultMenuCoverLabel(isMenuService ? form.restaurantType : form.template_category),
+      menuCoverLabel: isScreenService ? "DIGITAL MENU BOARD" : getDefaultBusinessCoverLabel(form.restaurantType),
       aboutDescription: null,
       orderSetup: isOrderService ? orderSetup : null,
       screenSetup: isScreenService ? screenSetup : null,
@@ -591,7 +682,6 @@ export default function ApplyOrderForm({
       agreements.terms,
       currentPlanKey,
       form,
-      isMenuService,
       isOrderService,
       isScreenService,
       orderSetup,
@@ -622,6 +712,9 @@ export default function ApplyOrderForm({
   const isSlugAvailable = visibleSlugState.type === "available";
   const menuNameError = getRequiredMessage(isScreenService ? "스크린 이름" : "메뉴판 이름", payload.menuName);
   const restaurantNameError = getRequiredMessage("레스토랑 이름", payload.restaurantName);
+  const restaurantTypeError = form.restaurantType ? null : "업종을 선택해주세요.";
+  const visibleRestaurantTypeError = !form.restaurantType && (form.menuName.trim() || form.restaurantName.trim() || form.desiredSlug.trim()) ? restaurantTypeError : null;
+  const templateSelectionError = isMenuService && filteredTemplates.length === 0 ? "선택 가능한 템플릿이 있는 카테고리를 선택해주세요." : null;
   const restaurantAddressError = getRequiredMessage("주소", payload.restaurantAddress);
   const restaurantPhoneError = validatePhoneNumber(payload.restaurantPhone);
   const buyerNameError = validatePersonName("담당자명", payload.buyerName);
@@ -642,7 +735,9 @@ export default function ApplyOrderForm({
     !menuNameError &&
     isSlugValid &&
     isSlugAvailable &&
+    !templateSelectionError &&
     !restaurantNameError &&
+    !restaurantTypeError &&
     !restaurantAddressError &&
     !restaurantPhoneError &&
     !buyerNameError &&
@@ -719,6 +814,30 @@ export default function ApplyOrderForm({
       ...current,
       [key]: key === "desiredSlug" ? normalizeMenuSlug(String(value)) : key === "businessNumber" ? formatBusinessNumber(String(value)) : value,
     }));
+  }
+
+  function updateRestaurantType(value: FormState["restaurantType"]) {
+    setForm((current) => {
+      const nextState = {
+        ...current,
+        restaurantType: value,
+      };
+
+      if (!isMenuService || selectedMenuTemplateGroup !== "recommended") {
+        return nextState;
+      }
+
+      const nextTemplate = getTemplatesByMenuGroup(templates, "recommended", value)[0];
+      if (!nextTemplate) {
+        return nextState;
+      }
+
+      return {
+        ...nextState,
+        template_category: nextTemplate.template_category,
+        template_key: nextTemplate.key,
+      };
+    });
   }
 
   function toggleAgreement(key: AgreementKey) {
@@ -806,6 +925,8 @@ export default function ApplyOrderForm({
           template_key: payload.template_key,
           desired_slug: payload.desiredSlug,
           service_type: serviceType,
+          business_type: payload.restaurantType,
+          menu_template_group: isMenuService ? selectedMenuTemplateGroup : undefined,
           screen_purpose: isScreenService ? form.screenPurpose : undefined,
           screen_template_category: isScreenService ? selectedScreenTemplateCategory.label : undefined,
         },
@@ -885,47 +1006,15 @@ export default function ApplyOrderForm({
           </section>
         )}
 
-        {isMenuService && (
-          <section className="rounded-3xl bg-white p-7 shadow-sm">
-            <div className="mb-6">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
-              <h2 className="text-3xl font-bold tracking-tight">업종 선택</h2>
-              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                업종은 템플릿 추천과 기본 데이터 구성에 활용됩니다. 공개 메뉴판의 커버 문구와 starter preset 기본값에도 참고됩니다.
-              </p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {menuRestaurantTypeOptions.map((option) => {
-                const isSelected = form.restaurantType === option.value;
-
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => updateField("restaurantType", option.value)}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition-colors ${
-                      isSelected
-                        ? "border-zinc-950 bg-zinc-950 text-white"
-                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-950"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
         <section className="rounded-3xl bg-white p-7 shadow-sm">
           <div className="mb-6">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{templateStepLabel}</p>
             <h2 className="text-3xl font-bold tracking-tight">
-              {isScreenService ? "스크린 템플릿 카테고리 / 스크린 템플릿 선택" : isMenuService ? "템플릿 카테고리 / 템플릿 선택" : "템플릿 선택"}
+              {isScreenService ? "스크린 템플릿 카테고리 / 스크린 템플릿 선택" : "템플릿 선택"}
             </h2>
             {isMenuService && (
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                먼저 카테고리를 고른 뒤 실제 공개 메뉴판에 적용할 템플릿을 선택해주세요.
+                업종에 맞는 템플릿을 선택하세요. 선택한 템플릿은 결제 후 생성되는 메뉴판에 적용됩니다.
               </p>
             )}
             {isScreenService && (
@@ -960,33 +1049,59 @@ export default function ApplyOrderForm({
                     {filter.label}
                   </button>
                 ))
-              : TEMPLATE_CATEGORIES.map((filter) => (
+              : isMenuService
+                ? menuTemplateGroups.map((filter) => (
                   <button
                     key={filter.key}
                     type="button"
                     onClick={() => {
-                      const nextTemplate = templates.find((template) => template.template_category === filter.key);
-                      setSelectedCategory(filter.key);
+                      const nextTemplates = getTemplatesByMenuGroup(templates, filter.key, form.restaurantType);
+                      const nextTemplate = nextTemplates[0];
+                      setSelectedMenuTemplateGroup(filter.key);
                       if (nextTemplate) {
                         setForm((current) => ({
                           ...current,
-                          template_category: filter.key,
+                          template_category: nextTemplate.template_category,
                           template_key: nextTemplate.key,
                         }));
                       }
                     }}
                     className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                      selectedCategory === filter.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
+                      selectedMenuTemplateGroup === filter.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
                     }`}
                   >
                     {filter.label}
                   </button>
-                ))}
+                ))
+                : TEMPLATE_CATEGORIES.map((filter) => (
+                    <button
+                      key={filter.key}
+                      type="button"
+                      onClick={() => {
+                        const nextTemplate = templates.find((template) => template.template_category === filter.key);
+                        setSelectedCategory(filter.key);
+                        if (nextTemplate) {
+                          setForm((current) => ({
+                            ...current,
+                            template_category: filter.key,
+                            template_key: nextTemplate.key,
+                          }));
+                        }
+                      }}
+                      className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                        selectedCategory === filter.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {filteredTemplates.map((template) => {
+          {filteredTemplates.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {filteredTemplates.map((template) => {
               const isSelected = form.template_key === template.key;
+              const tags = getMenuTemplateTags(template);
 
               return (
                 <button
@@ -1019,10 +1134,32 @@ export default function ApplyOrderForm({
                   <p className={`mt-3 break-keep text-sm font-medium leading-relaxed ${isSelected ? "text-white/70" : "text-zinc-500"}`}>
                     {template.description}
                   </p>
+                  {isMenuService && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                            isSelected ? "border-white/15 bg-white/10 text-white/70" : "border-zinc-200 bg-zinc-50 text-zinc-500"
+                          }`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </button>
               );
-            })}
-          </div>
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-5 py-8 text-center">
+              <p className="text-base font-black text-zinc-800">해당 카테고리 템플릿은 준비 중입니다.</p>
+              <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                현재 선택 가능한 템플릿은 추천 또는 전체 탭에서 확인할 수 있습니다.
+              </p>
+            </div>
+          )}
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
@@ -1045,6 +1182,16 @@ export default function ApplyOrderForm({
               </p>
             </div>
             <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "스크린 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
+            <SelectField
+              label="업종"
+              value={form.restaurantType}
+              onChange={(value) => updateRestaurantType(value as FormState["restaurantType"])}
+              options={businessTypeOptions}
+              required
+              helperText="업종은 템플릿 추천과 신청 정보 확인에 활용됩니다."
+              placeholder="업종을 선택해주세요"
+              errorText={visibleRestaurantTypeError}
+            />
             <Field label="주소" value={form.restaurantAddress} onChange={(value) => updateField("restaurantAddress", value)} required helperText={isScreenService ? "설치 매장 또는 화면 운영 매장의 주소를 입력해주세요." : "공개 메뉴판의 소개 영역에 표시됩니다."} errorText={form.restaurantAddress.trim() ? restaurantAddressError : null} successText="입력 완료" className="md:col-span-2" />
             <PhoneInput
               label="매장 전화번호"
@@ -1200,6 +1347,7 @@ export default function ApplyOrderForm({
             {isScreenService && <SummaryRow label="스크린 카테고리" value={selectedScreenTemplateCategory.label} />}
             {isScreenService && <SummaryRow label="화면 방향" value={form.screenOrientation || "-"} />}
             {isScreenService && <SummaryRow label="설치 기기" value={form.screenDevice || "-"} />}
+            {isMenuService && <SummaryRow label="템플릿 그룹" value={getMenuTemplateGroupLabel(selectedMenuTemplateGroup)} />}
             <SummaryRow label="선택 템플릿" value={selectedTemplate ? `${selectedTemplate.name} (${selectedTemplate.key})` : "-"} />
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 예정 URL" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
@@ -1330,30 +1478,46 @@ function SelectField({
   onChange,
   options,
   helperText = "선택해주세요.",
+  placeholder = "선택해주세요.",
+  required: isRequired,
+  errorText,
   className = "",
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  options: readonly string[];
+  options: readonly (string | { value: string; label: string })[];
   helperText?: string;
+  placeholder?: string;
+  required?: boolean;
+  errorText?: string | null;
   className?: string;
 }) {
+  const message = errorText ?? helperText;
+
   return (
     <label className={className}>
-      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{label}</span>
+      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">
+        {label}
+        {isRequired && <span className="text-red-500"> *</span>}
+      </span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+        required={isRequired}
+        aria-invalid={Boolean(errorText)}
+        className={`mt-2 w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+          errorText ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
+        }`}
       >
-        <option value="">{helperText}</option>
+        <option value="">{placeholder}</option>
         {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+          <option key={typeof option === "string" ? option : option.value} value={typeof option === "string" ? option : option.value}>
+            {typeof option === "string" ? option : option.label}
           </option>
         ))}
       </select>
+      {message && <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${errorText ? "text-red-600" : "text-zinc-400"}`}>{message}</p>}
     </label>
   );
 }

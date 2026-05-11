@@ -6,28 +6,28 @@ const AllInOneFlow = () => {
   const cards = [
     {
       id: 1,
-      icon: <Users className="w-6 h-6" />,
-      title: "스마트 웨이팅",
-      desc: "대기 등록부터 입장 안내,\n미리 주문하는 선주문 기능",
-      badge: "PRO AI"
+      icon: <Smartphone className="w-6 h-6" />,
+      title: "모바일 메뉴판",
+      desc: "QR과 링크로 공유하고\n가격표까지 바로 수정"
     },
     {
       id: 2,
-      icon: <Tablet className="w-6 h-6" />,
-      title: "주문 & 결제",
-      desc: "웹 메뉴판 결제 (PG 연동),\n웹 POS 실시간 연동"
+      icon: <Monitor className="w-6 h-6" />,
+      title: "스크린 메뉴보드",
+      desc: "TV와 모니터에 맞춘\n대형 화면 안내"
     },
     {
       id: 3,
-      icon: <Bell className="w-6 h-6" />,
-      title: "스마트 직원 호출",
-      desc: "진동벨 없이 웹에서 즉시 호출,\n요청 항목 자유로운 커스텀"
+      icon: <MessageCircle className="w-6 h-6" />,
+      title: "맞춤형 제작",
+      desc: "브랜딩과 인터랙션을 담은\n프리미엄 웹 메뉴 경험"
     },
     {
       id: 4,
-      icon: <MessageCircle className="w-6 h-6" />,
-      title: "CRM & 멤버십",
-      desc: "결제 시 자동 포인트 적립,\n주문 시 현금처럼 사용"
+      icon: <Bell className="w-6 h-6" />,
+      title: "오더 1.0",
+      desc: "QR 주문과 주방 연동은\n현재 준비 중입니다",
+      badge: "준비 중"
     }
   ];
 
@@ -44,12 +44,12 @@ const AllInOneFlow = () => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-zinc-900 mb-6 leading-tight">
-              복잡한 매장 운영,<br/>
-              테이블씬 하나로 연결됩니다
+              메뉴와 가격표를<br/>
+              필요한 화면으로 연결합니다
             </h2>
             <p className="text-lg md:text-xl text-zinc-500 font-medium">
-              따로 놀던 기기들과 데이터를 하나의 흐름으로 완성하세요.<br className="hidden md:block"/>
-              웨이팅부터 고객 관리까지, 모든 기능이 완벽하게 연동됩니다.
+              모바일 QR, PC 링크, 매장 스크린까지 하나의 흐름으로 관리하세요.<br className="hidden md:block"/>
+              오더 기능은 정식 출시 전까지 준비 중으로 안내합니다.
             </p>
           </motion.div>
         </div>
@@ -158,14 +158,14 @@ const AllInOneFlow = () => {
 
             <div className="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-8">
               
-              {/* Box 1: TableScene PRO (Dark) */}
+              {/* Box 1: TableScene Menu (Dark) */}
               <div className="relative group w-full lg:w-auto">
                  {/* Glow Effect */}
                  <div className="absolute inset-0 bg-zinc-900 blur-[40px] opacity-10 rounded-full" />
                  
                  <div className="relative bg-zinc-900 text-white px-10 py-6 lg:py-8 rounded-[2rem] shadow-2xl flex flex-col items-center md:items-start text-center md:text-left border border-zinc-700/50 min-w-[280px]">
-                   <div className="text-zinc-400 text-xs font-bold tracking-wider uppercase mb-2">테이블씬 웹메뉴판</div>
-                   <div className="text-xl lg:text-2xl font-bold tracking-tight mb-4">PRO 1.0</div>
+                   <div className="text-zinc-400 text-xs font-bold tracking-wider uppercase mb-2">TableScene Menu</div>
+                   <div className="text-xl lg:text-2xl font-bold tracking-tight mb-4">메뉴/가격표 링크</div>
                    <div className="flex items-center gap-4 text-zinc-400 justify-center w-full md:w-auto">
                       <Monitor className="w-5 h-5" />
                       <Tablet className="w-5 h-5" />
@@ -181,16 +181,15 @@ const AllInOneFlow = () => {
                 </div>
               </div>
 
-              {/* Box 2: AI Service (White) */}
-              <div className="relative w-full lg:w-auto opacity-80 cursor-not-allowed">
+              {/* Box 2: Screen & Custom */}
+              <div className="relative w-full lg:w-auto">
                  <div className="bg-white text-zinc-900 px-10 py-6 lg:py-8 rounded-[2rem] shadow-xl border border-zinc-200 flex flex-col items-center md:items-start text-center md:text-left min-w-[280px] h-full justify-between">
-                   <div className="text-zinc-400 text-xs font-bold tracking-wider uppercase mb-2">AI Service</div>
+                   <div className="text-zinc-400 text-xs font-bold tracking-wider uppercase mb-2">Screen & Custom</div>
                    <div className="text-xl lg:text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
-                     AI 마케팅 자동화
-                     <span className="bg-[#F8E731] text-black text-[10px] lg:text-xs font-bold px-2 py-0.5 rounded-full leading-none border border-black/5 shadow-sm">PRO AI</span>
+                     스크린과 맞춤 제작
                    </div>
                    <div className="flex items-center gap-2 text-sm font-bold text-zinc-400 mt-auto">
-                      COMING SOON
+                      매장 화면과 브랜드 경험까지 확장
                    </div>
                  </div>
               </div>

@@ -280,9 +280,13 @@ const DiningPlan = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-0 leading-tight whitespace-pre-line">
-              웹 메뉴판과 프리미엄 QR 웰컴 카드,<br />
-              <span className="text-zinc-500">매장의 품격을 완성하는</span> 완벽한 조화
+              누구나 쉽고 빠르게 만드는<br />
+              <span className="text-zinc-500">디지털 메뉴판/가격표</span>
             </h2>
+            <p className="mt-6 text-lg md:text-xl leading-relaxed text-zinc-400">
+              카페, 식당, 미용실, 네일샵, 공방, 병원/클리닉까지.<br className="hidden md:block" />
+              QR과 링크로 보고, 관리자에서 바로 수정하세요.
+            </p>
           </motion.div>
         </div>
 
@@ -299,15 +303,15 @@ const DiningPlan = () => {
               {[
                 {
                   target: "Fine Dining",
-                  desc: "분위기와 서비스 흐름이 중요한 공간"
+                  desc: "메뉴와 가격표를 자주 바꾸는 매장"
                 },
                 {
                   target: "Wine Bar & Omakase",
-                  desc: "어두운 조명과 정갈한 무드가 생명인 곳"
+                  desc: "QR 링크로 메뉴를 안내하고 싶은 공간"
                 },
                 {
                   target: "Casual Dining",
-                  desc: "감성적인 인테리어와 디테일이 핵심인 매장"
+                  desc: "서비스 안내와 가격표를 함께 관리하는 매장"
                 }
               ].map((item, idx) => (
                 <div key={idx} className="flex flex-col items-center justify-center text-center px-4 py-5 md:py-0">
@@ -366,7 +370,7 @@ const DiningPlan = () => {
                          </h2>
                          <p className="text-lg text-zinc-600 leading-relaxed mb-10">
                            단 한 장의 카드, 그 안에 담긴 깊이를 경험하세요.<br className="hidden md:block"/>
-                           테이블씬 DINING은 웹 메뉴판과 완벽하게 조화를 이루는<br className="hidden md:block"/>
+                           테이블씬 메뉴는 웹 메뉴판과 가격표를 하나의 링크로 관리하고<br className="hidden md:block"/>
                            <span className="text-black font-bold underline decoration-zinc-400 decoration-2 underline-offset-4">프리미엄 QR 웰컴 카드</span>를 제작해 드립니다.
                          </p>
 

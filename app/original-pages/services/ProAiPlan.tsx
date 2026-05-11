@@ -504,9 +504,13 @@ const ProAiPlan = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-0 leading-tight whitespace-pre-line">
-              테이블오더와 마케팅을 하나로,<br />
-              매출까지 잡는 <span className="text-zinc-500">올인원 메뉴판</span>
+              매장 TV와 모니터에 띄우는<br />
+              <span className="text-zinc-500">디지털 메뉴보드</span>
             </h2>
+            <p className="mt-6 text-lg md:text-xl leading-relaxed text-zinc-500">
+              메뉴, 가격표, 안내, 이벤트 화면을 대형 화면에 맞게 보여주세요.<br className="hidden md:block" />
+              카페 메뉴보드부터 병원 안내 화면까지 매장 화면을 쉽게 관리할 수 있습니다.
+            </p>
           </motion.div>
         </div>
 

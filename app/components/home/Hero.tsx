@@ -187,11 +187,11 @@ const Hero = () => {
           className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center pointer-events-none px-6"
         >
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 drop-shadow-lg tracking-tight">
-            매장의 모든 순간을<br />하나로 연결하다
+            모든 매장을 위한<br />디지털 메뉴판 플랫폼
           </h1>
           <p className="text-xl text-white/90 max-w-xl font-medium drop-shadow-md">
-            웨이팅부터 주문, 결제, 고객 관리까지.<br/>
-            복잡한 매장 운영, 테이블씬 하나로 완벽해집니다.
+            메뉴와 가격표를 하나의 링크로 관리하세요.<br/>
+            카페, 식당, 미용실, 네일샵까지 쉽게 만들고 바로 수정할 수 있습니다.
           </p>
         </motion.div>
 
@@ -202,11 +202,11 @@ const Hero = () => {
            className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
         >
           <h2 className="text-4xl md:text-6xl font-bold text-zinc-900 mb-6 tracking-tight leading-tight">
-            따로 쓰던 기능을<br className="md:hidden"/> 웹 하나로,<br/> 내 기기에서 바로
+            QR로 보고,<br className="md:hidden"/> 스크린에 띄우고,<br/> 필요하면 맞춤 제작까지
           </h2>
            <p className="text-zinc-600 text-xl max-w-lg mx-auto font-medium">
-             복잡한 설치나 비싼 렌탈 없이,<br/>
-             가지고 계신 스마트폰과 태블릿으로 즉시 시작하세요.
+             모바일, PC, 매장 화면까지.<br/>
+             테이블씬으로 매장의 메뉴와 안내를 유연하게 운영하세요.
            </p>
         </motion.div>
 

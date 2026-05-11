@@ -121,9 +121,9 @@ const SECTION_1_ITEMS = [
 ];
 
 const PROCESS_ITEMS = [
-  { num: "01", title: "플랜 구독 및 신청", desc: "PRO 1.0 또는 DINING 플랜 구독 후\n디자인 커스터마이징 신청" },
-  { num: "02", title: "아이덴티티 분석 및 설계", desc: "매장과 요리사의 철학을 분석하여\n아이덴티티 확립 및 화면 설계" },
-  { num: "03", title: "비주얼 디자인", desc: "레스토랑 분위기에 최적화된 UI 적용 및\n실제 기기 환경 테스트" },
+  { num: "01", title: "상담 및 견적 문의", desc: "브랜드 방향과 필요한 기능을 바탕으로\n프로젝트 범위를 정리합니다." },
+  { num: "02", title: "아이덴티티 분석 및 설계", desc: "매장의 분위기와 브랜드 철학을 분석하여\n아이덴티티 확립 및 화면 설계" },
+  { num: "03", title: "비주얼 디자인", desc: "매장 분위기에 최적화된 UI 적용 및\n실제 기기 환경 테스트" },
   { num: "04", title: "최종 점검 및 전달", desc: "디테일한 사용성 최종 점검 후\n완성된 디자인 매장 적용" }
 ];
 
@@ -240,12 +240,12 @@ const DesignCustomizing = () => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-6 leading-tight whitespace-pre-line">
-              TableScene 메뉴판의 완성,<br/>
-              <span className="text-zinc-500">프리미엄 디자인 커스터마이징</span>
+              브랜딩과 인터랙션을 담은<br/>
+              <span className="text-zinc-500">프리미엄 웹 메뉴 경험</span>
             </h2>
             <p className="text-zinc-500 text-lg md:text-xl leading-relaxed whitespace-pre-line">
-              기본 템플릿의 한계를 넘어, 우리 매장만의 브랜드 철학을 담은<br className="hidden md:block"/>
-              독창적인 메뉴판을 제작해드립니다.
+              템플릿으로 담기 어려운 브랜드 경험을 맞춤형으로 설계하고,<br className="hidden md:block"/>
+              매장에 어울리는 웹 메뉴와 안내 화면을 제작합니다.
             </p>
           </motion.div>
         </div>
