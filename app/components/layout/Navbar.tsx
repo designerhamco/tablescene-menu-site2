@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, ShoppingCart, Menu, X, ArrowRight,
@@ -6,7 +6,7 @@ import {
   BarChart, Globe, Shield, Smartphone, ChevronRight, Bell, ChevronDown
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
-import AuthNav from '../auth/AuthNav';
+import AuthNav, { MobileAuthLinks } from '../auth/AuthNav';
 const logoImage = '/assets/tablescene-symbol.png';
 
 const NAV_DATA = {
@@ -16,30 +16,31 @@ const NAV_DATA = {
     label: "솔루션",
     items: [
       { 
-        label: "테이블씬 PRO AI", 
-        path: "#", 
-        desc: "데이터 기반으로 매출을 극대화하는 AI 파트너", 
+        label: "테이블씬 메뉴",
+        badges: ["모바일/QR", "태블릿", "PC"],
+        path: "/services/menu",
+        desc: "누구나 쉽고 빠르게 만드는 디지털 메뉴판",
         icon: LayoutGrid,
-        badge: "AI"
       },
       { 
-        label: "테이블씬 PRO 1.0", 
-        path: "/services/pro-v1", 
-        desc: "주문, 결제, 호출을 하나로 담은 올인원 솔루션", 
+        label: "테이블씬 스크린",
+        badges: ["대형스크린", "가로/세로"],
+        path: "/services/screen",
+        desc: "매장 화면을 감각적인 디지털 메뉴보드로",
         icon: LayoutGrid,
-        badge: "할인" 
       },
       { 
-        label: "테이블씬 DINING", 
-        path: "/services/signature", 
-        desc: "웹 메뉴판과 프리미엄 QR 웰컴카드의 완벽한 조화", 
+        label: "테이블씬 오더 1.0",
+        badges: ["모바일/QR"],
+        path: "/services/order",
+        desc: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템",
         icon: Crown,
-        badge: "할인" 
       },
       { 
-        label: "디자인 커스터마이징", 
-        path: "/services/design-customizing", 
-        desc: "브랜드 아이덴티티를 담은 독창적인 UX/UI", 
+        label: "테이블씬 커스텀",
+        badges: ["맞춤제작"],
+        path: "/services/custom",
+        desc: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험",
         icon: Palette 
       }
     ],
@@ -95,6 +96,7 @@ const Navbar = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [activeMobileSection, setActiveMobileSection] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const isScrolledRef = useRef(false);
   const location = useLocation();
   const pathname = location.pathname;
 
@@ -117,9 +119,13 @@ const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       const nextIsScrolled = window.scrollY > 50;
-      setIsScrolled((currentIsScrolled) =>
-        currentIsScrolled === nextIsScrolled ? currentIsScrolled : nextIsScrolled,
-      );
+
+      if (isScrolledRef.current === nextIsScrolled) {
+        return;
+      }
+
+      isScrolledRef.current = nextIsScrolled;
+      setIsScrolled(nextIsScrolled);
     };
     
     // Check initial position
@@ -130,25 +136,31 @@ const Navbar = () => {
   }, []);
 
   // Dynamic Styles
-  const isLightPage = ['/services/simple-template', '/services/pro-v1', '/services/design-customizing'].includes(pathname);
-  const shouldShowDarkNav = isScrolled || activeDropdown || isLightPage || isOpen;
+  const transparentNavPaths = ["/", "/services/menu", "/services/screen", "/services/signature", "/store"];
+  const solidNavPaths = ["/services/order", "/services/custom", "/services/simple-template", "/services/pro-v1", "/services/design-customizing"];
+  const navVariant = solidNavPaths.includes(pathname)
+    ? "solid"
+    : transparentNavPaths.includes(pathname)
+      ? "transparent"
+      : "transparent";
+  const shouldShowSolidNav = navVariant === "solid" || isScrolled || activeDropdown || isOpen;
 
-  const navBgClass = shouldShowDarkNav
+  const navBgClass = shouldShowSolidNav
     ? "bg-white/90 backdrop-blur-md border-b border-zinc-100" 
     : "bg-transparent border-transparent";
-    
-  const logoTextClass = shouldShowDarkNav ? "text-black" : "text-white";
-  const navTextClass = shouldShowDarkNav
-    ? "text-zinc-600 hover:text-black" 
-    : "text-white/90 hover:text-white";
-  const iconClass = shouldShowDarkNav ? "text-black hover:text-zinc-600" : "text-white hover:text-white/80";
-  const menuButtonClass = shouldShowDarkNav ? "text-black" : "text-white";
+  const navToneClass = shouldShowSolidNav ? "text-black" : "text-white";
+  const logoTextClass = "text-current";
+  const navTextClass = shouldShowSolidNav
+    ? "text-current opacity-70 hover:opacity-100"
+    : "text-current opacity-90 hover:opacity-100";
+  const iconClass = shouldShowSolidNav ? "text-current hover:opacity-70" : "text-current hover:opacity-80";
+  const menuButtonClass = shouldShowSolidNav ? "text-current hover:opacity-70" : "text-current hover:opacity-80";
   const navContainerClass = activeDropdown ? "bg-white border-b border-zinc-100" : navBgClass;
 
   return (
     <>
       <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20 ${navContainerClass}`}
+        className={`fixed top-0 left-0 right-0 z-50 h-20 transition-all duration-300 ${navContainerClass} ${navToneClass}`}
         onMouseLeave={() => updateActiveDropdown(null)}
       >
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between relative">
@@ -191,7 +203,7 @@ const Navbar = () => {
               >
                 <Link 
                   to={item.path || '#'}
-                  className={`text-[15px] font-bold tracking-tight transition-colors duration-200 py-2 ${navTextClass} ${activeDropdown === item.id ? 'text-black' : ''}`}
+                  className={`py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 ${navTextClass} ${activeDropdown === item.id ? 'opacity-100' : ''}`}
                 >
                   {item.title}
                 </Link>
@@ -200,17 +212,19 @@ const Navbar = () => {
           </div>
 
           {/* Right Section: Actions */}
-          <div className="flex items-center gap-6 shrink-0 z-50">
-            <AuthNav dark={shouldShowDarkNav} />
+          <div className="flex items-center gap-3 shrink-0 z-50">
+            <AuthNav dark={shouldShowSolidNav} />
 
-            <button className={`transition-colors p-1 ${iconClass}`}>
-              <ShoppingCart size={20} strokeWidth={2} />
-            </button>
+            <Link to="/store" aria-label="장바구니" title="장바구니" className={`p-1 transition-opacity ${iconClass}`}>
+              <ShoppingCart size={20} strokeWidth={2} aria-hidden="true" />
+            </Link>
             
             {/* Mobile Menu Toggle */}
             <button 
-              className={`lg:hidden p-1 transition-colors ${menuButtonClass}`}
+              className={`p-1 transition-opacity lg:hidden ${menuButtonClass}`}
               onClick={() => setIsOpen((currentIsOpen) => !currentIsOpen)}
+              aria-label={isOpen ? "메뉴 닫기" : "메뉴 열기"}
+              aria-expanded={isOpen}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -288,6 +302,18 @@ const Navbar = () => {
                                         </span>
                                       )}
                                     </div>
+                                    {"badges" in subItem && Array.isArray(subItem.badges) && subItem.badges.length > 0 && (
+                                      <div className="mb-2 flex flex-wrap gap-1.5">
+                                        {subItem.badges.map((badge) => (
+                                          <span
+                                            key={badge}
+                                            className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold text-zinc-500"
+                                          >
+                                            {badge}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
                                     <p className={`text-sm text-zinc-500 font-medium transition-colors ${
                                       !isDisabled && "group-hover:text-zinc-700"
                                     }`}>
@@ -388,6 +414,10 @@ const Navbar = () => {
           >
             <div className="h-full flex flex-col overflow-y-auto pb-10">
               <div className="flex-1 px-6 py-6">
+                <div className="mb-4 border-b border-zinc-100 pb-5">
+                  <MobileAuthLinks onNavigate={closeMobileMenu} />
+                </div>
+
                 {Object.values(NAV_DATA).map((item) => {
                   const hasSubItems = 'items' in item;
                   const isExpanded = activeMobileSection === item.id;
@@ -463,7 +493,7 @@ const Navbar = () => {
                                          </div>
                                          <div className="pt-0.5">
                                             <div className="flex items-center gap-2">
-                                              <span className="text-base font-bold text-zinc-900">{subItem.label}</span>
+                                             <span className="text-base font-bold text-zinc-900">{subItem.label}</span>
                                               {subItem.badge && (
                                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${['AI', '추천'].includes(subItem.badge) ? 'bg-[#F8E731] text-black' : 'bg-black text-white'}`}>
                                                   {subItem.badge}
@@ -475,7 +505,21 @@ const Navbar = () => {
                                                 </span>
                                               )}
                                             </div>
-                                            <p className="text-xs text-zinc-500 mt-0.5 line-clamp-1 font-medium">{subItem.desc}</p>
+                                            {"badges" in subItem && Array.isArray(subItem.badges) && subItem.badges.length > 0 && (
+                                              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                                {subItem.badges.map((badge) => (
+                                                  <span
+                                                    key={badge}
+                                                    className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[9px] font-bold text-zinc-500"
+                                                  >
+                                                    {badge}
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            )}
+                                            <p className="text-xs text-zinc-500 mt-0.5 line-clamp-1 font-medium">
+                                              {subItem.desc}
+                                            </p>
                                          </div>
                                       </Link>
                                     );

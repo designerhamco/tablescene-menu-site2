@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import SiteHeader from "@/components/layout/SiteHeader";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -58,18 +59,16 @@ export default async function SuccessPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-6 py-24 text-zinc-950">
-      <div className="mx-auto w-full max-w-3xl">
-        <Link href="/" className="mb-6 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
-          TABLE SCENE
-        </Link>
-
-        <section className="rounded-3xl bg-white p-8 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">Success</p>
-          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">메뉴판이 생성되었습니다.</h1>
-          <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
-            결제 검증이 완료되면 메뉴판은 작성중 상태로 생성됩니다. 마이페이지에서 내용을 수정한 뒤 공개 상태로 변경하세요.
-          </p>
+    <>
+      <SiteHeader />
+      <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
+        <div className="mx-auto w-full max-w-3xl">
+          <section className="rounded-3xl bg-white p-8 shadow-sm">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">Success</p>
+            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">메뉴판이 생성되었습니다.</h1>
+            <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              결제 검증이 완료되면 메뉴판은 작성중 상태로 생성됩니다. 마이페이지에서 내용을 수정한 뒤 공개 상태로 변경하세요.
+            </p>
 
           {errorMessage && (
             <div className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">
@@ -126,8 +125,9 @@ export default async function SuccessPage({ searchParams }: PageProps) {
               공개 페이지 준비중
             </button>
           </div>
-        </section>
-      </div>
-    </main>
+          </section>
+        </div>
+      </main>
+    </>
   );
 }

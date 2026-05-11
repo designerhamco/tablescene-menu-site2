@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { deleteInquiryReplyAction, replyInquiryAction } from "@/app/admin/actions";
-import { signOutAction } from "@/app/auth/actions";
+import SiteHeader from "@/components/layout/SiteHeader";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { getPublicMenuUrl } from "@/lib/menu-url";
@@ -158,13 +158,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
   if (adminError || !adminUser) {
     return (
-      <main className="min-h-screen bg-zinc-950 px-6 py-24 text-white">
-        <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-2xl flex-col justify-center">
-          <Link href="/" className="mb-10 text-sm font-bold text-white/50 hover:text-white">
-            TABLE SCENE
-          </Link>
-
-          <section className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
+      <>
+        <SiteHeader />
+        <main className="min-h-screen bg-zinc-950 px-6 py-16 text-white">
+          <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-2xl flex-col justify-center">
+            <section className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-zinc-400">Admin Access</p>
             <h1 className="text-3xl font-bold tracking-tight">관리자 권한이 필요합니다</h1>
             <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -185,18 +183,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
               >
                 마이페이지로 이동
               </Link>
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="w-full rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
-                >
-                  로그아웃
-                </button>
-              </form>
             </div>
-          </section>
-        </div>
-      </main>
+            </section>
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -266,7 +257,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-24 text-white">
+    <>
+      <SiteHeader />
+      <main className="min-h-screen bg-zinc-950 px-6 py-16 text-white">
       <div className="mx-auto w-full max-w-7xl">
         <header className="mb-12 flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
           <div>
@@ -287,14 +280,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             >
               마이페이지
             </Link>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="rounded-full border border-white/10 bg-white px-5 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-[#F8E731]"
-              >
-                로그아웃
-              </button>
-            </form>
           </div>
         </header>
 
@@ -560,7 +545,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           </article>
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }
 

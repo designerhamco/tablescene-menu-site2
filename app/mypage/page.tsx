@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { signOutAction } from "@/app/auth/actions";
+import SiteHeader from "@/components/layout/SiteHeader";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { createClient } from "@/lib/supabase/server";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -59,28 +60,27 @@ export default async function MyPage() {
   const sites = (menuSites ?? []) as MenuSite[];
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-6 py-24 text-zinc-950">
-      <div className="mx-auto w-full max-w-6xl">
-        <header className="mb-12 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
-          <div>
-            <Link href="/" className="mb-6 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
-              TABLE SCENE
-            </Link>
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">마이페이지</h1>
-            <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
-              메뉴판 SaaS 관리 기능을 연결하기 위한 기본 대시보드입니다.
-            </p>
-          </div>
+    <>
+      <SiteHeader />
+      <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
+        <div className="mx-auto w-full max-w-6xl">
+          <header className="mb-12 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight md:text-5xl">마이페이지</h1>
+              <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
+                메뉴판 SaaS 관리 기능을 연결하기 위한 기본 대시보드입니다.
+              </p>
+            </div>
 
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-950 hover:text-white"
-            >
-              로그아웃
-            </button>
-          </form>
-        </header>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-950 hover:text-white"
+              >
+                로그아웃
+              </button>
+            </form>
+          </header>
 
         <section className="mb-8 rounded-3xl bg-white p-8 shadow-sm">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">
@@ -232,7 +232,8 @@ export default async function MyPage() {
             </Link>
           </article>
         </section>
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }

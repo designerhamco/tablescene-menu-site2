@@ -42,6 +42,10 @@ export default function App() {
         <main className="relative">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/services/menu" element={<DiningPlan />} />
+            <Route path="/services/screen" element={<ProAiPlan />} />
+            <Route path="/services/order" element={<ProV10Plan />} />
+            <Route path="/services/custom" element={<DesignCustomizing />} />
             <Route path="/services/signature" element={<DiningPlan />} />
             <Route path="/services/full-option" element={<ProAiPlan />} />
             <Route path="/services/pro-v1" element={<ProV10Plan />} />
@@ -50,6 +54,7 @@ export default function App() {
             <Route path="/branding/food-visual-art" element={<FoodVisualArt />} />
             <Route path="/branding/goods-package" element={<GoodsPackage />} />
             <Route path="/apply" element={<ReloadNextRoute />} />
+            <Route path="/apply/*" element={<ReloadNextRoute />} />
             <Route path="/store" element={<Store />} />
           </Routes>
         </main>
