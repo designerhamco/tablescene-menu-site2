@@ -9,6 +9,7 @@ import {
 } from "@/lib/payments";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
+import { getDefaultMenuCoverLabel, isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
 import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
 import { createClient } from "@/lib/supabase/server";
@@ -94,6 +95,39 @@ function getNullableString(value: unknown) {
   return stringValue || null;
 }
 
+function getOrderSetupPayload(value: unknown): MenuOrderPayload["orderSetup"] {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const payload = value as Record<string, unknown>;
+
+  return {
+    tableCount: getNullableString(payload.tableCount),
+    posUsage: getNullableString(payload.posUsage),
+    paymentPreference: getNullableString(payload.paymentPreference),
+    kitchenDashboard: getNullableString(payload.kitchenDashboard),
+    callFeature: getNullableString(payload.callFeature),
+    launchTimeline: getNullableString(payload.launchTimeline),
+    additionalRequests: getNullableString(payload.additionalRequests),
+  };
+}
+
+function getScreenSetupPayload(value: unknown): MenuOrderPayload["screenSetup"] {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const payload = value as Record<string, unknown>;
+
+  return {
+    purpose: getNullableString(payload.purpose),
+    templateCategory: getNullableString(payload.templateCategory),
+    orientation: getNullableString(payload.orientation),
+    device: getNullableString(payload.device),
+  };
+}
+
 function parseOrderPayload(value: unknown): MenuOrderPayload | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -106,6 +140,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     ? templateCategoryInput
     : getTemplateCategoryFromKey(templateKey);
   const mappedRestaurantCategory = templateCategory ? getTemplateCategoryLabel(templateCategory) : "";
+  const requestedRestaurantCategory = getString(payload.restaurantCategory);
   const desiredSlug = normalizeMenuSlug(getString(payload.desiredSlug));
   const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
   const planKey = getString(payload.plan_key) || "basic";
@@ -137,18 +172,25 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
       : validateSocialLinks([{ type: "instagram", display_name: "인스타그램", url: legacyInstagramUrl }]).socialLinks;
   const instagramUrl = socialLinks.find((link) => link.type === "instagram")?.url ?? legacyInstagramUrl;
 
-  if (planKey !== "basic" || !isTemplateKey(templateKey) || !templateCategory || !isValidMenuSlug(desiredSlug) || amount !== menuCreationProduct.amount) {
+  if (
+    (planKey !== "basic" && planKey !== "large_screen" && planKey !== "qr_order") ||
+    !isTemplateKey(templateKey) ||
+    !templateCategory ||
+    !isValidMenuSlug(desiredSlug) ||
+    amount !== menuCreationProduct.amount
+  ) {
     return null;
   }
 
   const parsedPayload: MenuOrderPayload = {
-    plan_key: "basic",
+    plan_key: planKey === "large_screen" ? "large_screen" : planKey === "qr_order" ? "qr_order" : "basic",
     template_category: templateCategory,
     template_key: templateKey,
     menuName: getString(payload.menuName),
     desiredSlug,
     restaurantName: getString(payload.restaurantName),
-    restaurantCategory: mappedRestaurantCategory,
+    restaurantCategory: planKey === "large_screen" && requestedRestaurantCategory ? requestedRestaurantCategory : mappedRestaurantCategory,
+    restaurantType: isRestaurantTypeKey(getString(payload.restaurantType)) ? getString(payload.restaurantType) : templateCategory,
     restaurantAddress: getString(payload.restaurantAddress),
     restaurantPhone: getString(payload.restaurantPhone),
     openingHours: getNullableString(payload.openingHours),
@@ -158,9 +200,12 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     brandDescription: getNullableString(payload.brandDescription),
     menuCoverTitle: getNullableString(payload.menuCoverTitle),
     menuCoverDescription: getNullableString(payload.menuCoverDescription),
+    menuCoverLabel: getNullableString(payload.menuCoverLabel) ?? getDefaultMenuCoverLabel(templateCategory),
     aboutDescription: getNullableString(payload.aboutDescription),
     instagramUrl,
     socialLinks,
+    orderSetup: planKey === "qr_order" ? getOrderSetupPayload(payload.orderSetup) : null,
+    screenSetup: planKey === "large_screen" ? getScreenSetupPayload(payload.screenSetup) : null,
     notes: getNullableString(payload.notes),
     buyerType,
     buyerName: getString(payload.buyerName),
@@ -203,6 +248,27 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
   }
 
   return parsedPayload;
+}
+
+function getPaymentProduct(orderPayload: MenuOrderPayload) {
+  if (orderPayload.plan_key === "large_screen") {
+    return {
+      key: "large_screen",
+      name: "테이블씬 스크린 생성권",
+    };
+  }
+
+  if (orderPayload.plan_key === "qr_order") {
+    return {
+      key: "qr_order",
+      name: "테이블씬 오더 1.0 신청권",
+    };
+  }
+
+  return {
+    key: menuCreationProduct.key,
+    name: menuCreationProduct.name,
+  };
 }
 
 async function findExistingMenuForPayment(
@@ -267,6 +333,7 @@ async function createMenuSiteWithStarterPreset(
     status: "draft",
     restaurant_name: orderPayload.restaurantName,
     restaurant_category: orderPayload.restaurantCategory,
+    restaurant_type: orderPayload.restaurantType,
     restaurant_address: orderPayload.restaurantAddress,
     restaurant_phone: orderPayload.restaurantPhone,
     opening_hours: orderPayload.openingHours,
@@ -276,6 +343,7 @@ async function createMenuSiteWithStarterPreset(
     brand_description: orderPayload.brandDescription,
     menu_cover_title: orderPayload.menuCoverTitle,
     menu_cover_description: orderPayload.menuCoverDescription,
+    menu_cover_label: orderPayload.menuCoverLabel,
     about_description: orderPayload.aboutDescription,
     business_name: orderPayload.businessName,
     instagram_url: orderPayload.instagramUrl,
@@ -416,14 +484,16 @@ async function createOrderRecord(
   orderPayload: MenuOrderPayload,
   verifiedPayment: VerifiedPayment
 ): Promise<OrderResult> {
+  const product = getPaymentProduct(orderPayload);
+
   let { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
       user_id: userId,
       menu_site_id: menuSiteId,
-      product_key: menuCreationProduct.key,
+      product_key: product.key,
       template_key: orderPayload.template_key,
-      order_name: menuCreationProduct.name,
+      order_name: product.name,
       payment_id: paymentId,
       customer_name: userEmail ?? null,
       buyer_name: orderPayload.buyerName,
@@ -471,10 +541,11 @@ async function createPaymentRecord(
   orderPayload: MenuOrderPayload,
   verifiedPayment: VerifiedPayment
 ): Promise<PaymentResult> {
+  const product = getPaymentProduct(orderPayload);
   const rawPayload = JSON.parse(
     JSON.stringify({
       portone_payment: verifiedPayment.raw,
-      product_key: menuCreationProduct.key,
+      product_key: product.key,
       order_payload: orderPayload,
     })
   ) as Json;
@@ -484,7 +555,7 @@ async function createPaymentRecord(
     .insert({
       user_id: userId,
       order_id: orderId,
-      product_key: menuCreationProduct.key,
+      product_key: product.key,
       template_key: orderPayload.template_key,
       payment_id: paymentId,
       portone_payment_id: paymentId,
@@ -525,15 +596,16 @@ function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayl
     throw new Error("mock 결제 검증은 development 환경에서 PORTONE_MOCK_ENABLED=true와 mock_ paymentId로만 사용할 수 있습니다.");
   }
 
+  const product = getPaymentProduct(orderPayload);
   const raw: PortOnePayment = {
     id: paymentId,
     paymentId,
     status: "PAID",
-    orderName: menuCreationProduct.name,
+    orderName: product.name,
     currency: menuCreationProduct.currency,
     amount: menuCreationProduct.amount,
     customData: {
-      product_key: menuCreationProduct.key,
+      product_key: product.key,
       plan_key: orderPayload.plan_key,
       buyer_type: orderPayload.buyerType,
       template_key: orderPayload.template_key,

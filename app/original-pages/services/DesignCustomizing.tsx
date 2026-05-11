@@ -4,6 +4,7 @@ import {
   Bell, Check, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight,
   Minus, Plus, Info, PenTool, Palette, Layers, Star, ArrowUpRight, ArrowDown
 } from 'lucide-react';
+import { Link } from 'react-router';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import CTA from '../../components/home/CTA';
 
@@ -437,14 +438,14 @@ const DesignCustomizing = () => {
                 </li>
              </ul>
 
-             <button className="px-10 py-4 bg-white text-zinc-900 font-bold rounded-full hover:bg-zinc-200 transition-colors text-lg">
+             <Link to="/apply/custom" className="inline-flex px-10 py-4 bg-white text-zinc-900 font-bold rounded-full hover:bg-zinc-200 transition-colors text-lg">
                 상담 신청하기
-             </button>
+             </Link>
            </div>
         </div>
       </section>
 
-      <CTA />
+      <CTA applyHref="/apply/custom" />
       
     </div>
   );

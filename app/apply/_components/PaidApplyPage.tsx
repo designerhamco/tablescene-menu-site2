@@ -1,0 +1,95 @@
+import ApplyOrderForm from "@/components/apply/ApplyOrderForm";
+import SiteHeader from "@/components/layout/SiteHeader";
+import { getPublicPortOneConfig } from "@/lib/portone";
+import { createClient } from "@/lib/supabase/server";
+import { templateCatalog } from "@/lib/templates";
+import { redirect } from "next/navigation";
+
+type PaidApplyService = "menu" | "screen" | "order";
+
+const PAID_APPLY_COPY: Record<
+  PaidApplyService,
+  {
+    eyebrow: string;
+    title: string;
+    description: string;
+    note?: string;
+  }
+> = {
+  menu: {
+    eyebrow: "TableScene Menu",
+    title: "테이블씬 메뉴 신청/결제",
+    description:
+      "누구나 쉽고 빠르게 만드는 디지털 메뉴판입니다. 템플릿과 메뉴판 정보를 입력한 뒤 결제가 완료되면 메뉴판이 자동으로 생성됩니다.",
+  },
+  screen: {
+    eyebrow: "TableScene Screen",
+    title: "테이블씬 스크린 신청/결제",
+    description:
+      "매장 화면을 감각적인 디지털 메뉴보드로 운영할 수 있는 결제형 신청 페이지입니다.",
+    note:
+      "현재는 기존 메뉴판 생성 흐름을 재사용해 준비되며, 추후 스크린 전용 템플릿과 데이터 구조로 분리할 수 있습니다.",
+  },
+  order: {
+    eyebrow: "TableScene QR Order",
+    title: "테이블씬 오더 1.0 신청/결제",
+    description:
+      "QR로 주문하고 주방까지 바로 연결되는 오더 시스템 도입을 위한 결제신청형 페이지입니다.",
+    note:
+      "현재는 기존 신청/결제 흐름을 기반으로 접수되며, POS 사용 여부, 테이블 수, 주방 대시보드 등 오더 전용 입력 항목은 다음 단계에서 확장할 수 있습니다.",
+  },
+};
+
+type PaidApplyPageProps = {
+  serviceType: PaidApplyService;
+};
+
+export default async function PaidApplyPage({ serviceType }: PaidApplyPageProps) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/sign-in?next=/apply/${serviceType}`);
+  }
+
+  const copy = PAID_APPLY_COPY[serviceType];
+  const portOneConfig = getPublicPortOneConfig();
+
+  return (
+    <>
+      <SiteHeader />
+      <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
+        <div className="mx-auto w-full max-w-6xl">
+          <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">
+                {copy.eyebrow}
+              </p>
+              <h1 className="text-4xl font-bold tracking-tight md:text-5xl">{copy.title}</h1>
+              <p className="mt-4 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500">
+                {copy.description}
+              </p>
+              {copy.note ? (
+                <p className="mt-3 max-w-2xl break-keep text-sm font-medium leading-relaxed text-zinc-400">
+                  {copy.note}
+                </p>
+              ) : null}
+            </div>
+          </header>
+
+          <ApplyOrderForm
+            templates={templateCatalog.filter((template) => template.active)}
+            userEmail={user.email ?? ""}
+            userId={user.id}
+            storeId={portOneConfig.storeId}
+            channelKey={portOneConfig.channelKey}
+            mockEnabled={portOneConfig.mockEnabled}
+            serviceType={serviceType}
+          />
+        </div>
+      </main>
+    </>
+  );
+}

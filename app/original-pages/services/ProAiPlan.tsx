@@ -1548,7 +1548,7 @@ const ProAiPlan = () => {
 
         <div className="mt-16 text-center">
             <Link 
-                to="/apply" 
+                to="/apply/screen" 
                 className="inline-flex items-center justify-center gap-2 bg-[#F8E731] hover:bg-[#E5D520] text-black text-xl font-bold px-16 py-5 rounded-full transition-all hover:scale-105 shadow-lg shadow-yellow-400/20"
             >
                 바로 도입하기 <ArrowRight size={24}/>

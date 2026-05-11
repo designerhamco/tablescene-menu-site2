@@ -3,7 +3,11 @@ import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 
-const CTA = () => {
+type CTAProps = {
+  applyHref?: string;
+};
+
+const CTA = ({ applyHref = "/apply/menu" }: CTAProps) => {
   return (
     <section id="cta" className="py-20 md:py-24 bg-zinc-50 text-zinc-900 relative overflow-hidden">
       {/* Background Effects */}
@@ -47,7 +51,7 @@ const CTA = () => {
           className="flex flex-col md:flex-row gap-4 justify-center items-center"
         >
           <Link 
-            to="/apply"
+            to={applyHref}
             className="w-full md:w-auto px-10 py-4 bg-black text-white text-base md:text-lg font-bold rounded-full hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 group tracking-widest uppercase shadow-lg shadow-zinc-200"
           >
             지금 도입하기

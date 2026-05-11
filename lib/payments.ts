@@ -1,8 +1,24 @@
 import { isValidTemplateKey, type TemplateCategoryKey, type TemplateKey } from "@/lib/templates";
 import type { SocialLinkInput } from "@/lib/social-links";
 
-export type PlanKey = "basic" | "pro" | "large_screen" | "premium_dining_tablet";
+export type PlanKey = "basic" | "pro" | "large_screen" | "qr_order" | "premium_dining_tablet";
 export type BuyerType = "individual" | "business";
+export type OrderSetupPayload = {
+  tableCount?: string | null;
+  posUsage?: string | null;
+  paymentPreference?: string | null;
+  kitchenDashboard?: string | null;
+  callFeature?: string | null;
+  launchTimeline?: string | null;
+  additionalRequests?: string | null;
+};
+
+export type ScreenSetupPayload = {
+  purpose?: string | null;
+  templateCategory?: string | null;
+  orientation?: string | null;
+  device?: string | null;
+};
 
 export const menuCreationProduct = {
   key: "basic",
@@ -22,6 +38,7 @@ export type MenuOrderPayload = {
   desiredSlug: string;
   restaurantName: string;
   restaurantCategory: string;
+  restaurantType?: string | null;
   restaurantAddress: string;
   restaurantPhone: string;
   openingHours?: string | null;
@@ -31,9 +48,12 @@ export type MenuOrderPayload = {
   brandDescription?: string | null;
   menuCoverTitle?: string | null;
   menuCoverDescription?: string | null;
+  menuCoverLabel?: string | null;
   aboutDescription?: string | null;
   instagramUrl?: string | null;
   socialLinks?: SocialLinkInput[];
+  orderSetup?: OrderSetupPayload | null;
+  screenSetup?: ScreenSetupPayload | null;
   notes: string | null;
   buyerType?: BuyerType;
   buyerName: string;
@@ -67,12 +87,13 @@ export function isValidMenuSlug(slug: string) {
 }
 
 export function canIndividualPurchasePlan(planKey: PlanKey) {
-  return planKey === "basic";
+  return planKey === "basic" || planKey === "qr_order";
 }
 
 export function requiresBusinessInfo(planKey: PlanKey) {
   if (planKey === "basic") return false;
   if (planKey === "large_screen") return false;
+  if (planKey === "qr_order") return false;
   return true;
 }
 

@@ -13,9 +13,12 @@ import {
   requiresBusinessInfo,
   type BuyerType,
   type MenuOrderPayload,
+  type OrderSetupPayload,
   type PlanKey,
+  type ScreenSetupPayload,
 } from "@/lib/payments";
 import { getPublicMenuUrl } from "@/lib/menu-url";
+import { RESTAURANT_TYPE_OPTIONS, getDefaultMenuCoverLabel, type RestaurantTypeKey } from "@/lib/restaurant-types";
 import {
   TEMPLATE_CATEGORIES,
   getTemplateCategoryLabel,
@@ -32,6 +35,7 @@ type ApplyOrderFormProps = {
   storeId: string | null;
   channelKey: string | null;
   mockEnabled: boolean;
+  serviceType?: "menu" | "screen" | "order";
 };
 
 type AgreementKey = "terms" | "privacy" | "contentPolicy";
@@ -48,10 +52,22 @@ type FormState = {
   buyerName: string;
   buyerPhone: string;
   buyerEmail: string;
+  restaurantType: RestaurantTypeKey;
+  screenPurpose: string;
+  screenTemplateCategory: string;
+  screenOrientation: string;
+  screenDevice: string;
   businessName: string;
   representativeName: string;
   businessNumber: string;
   businessPhone: string;
+  tableCount: string;
+  posUsage: string;
+  paymentPreference: string;
+  kitchenDashboard: string;
+  callFeature: string;
+  launchTimeline: string;
+  additionalRequests: string;
 };
 
 type SlugState =
@@ -66,6 +82,14 @@ type UiState =
   | { type: "loading"; message: string }
   | { type: "success"; message: string }
   | { type: "error"; message: string };
+
+type PaidApplyProduct = {
+  key: PlanKey;
+  name: string;
+  description: string;
+  amount: number;
+  currency: typeof menuCreationProduct.currency;
+};
 
 const phonePrefixes = [
   "010",
@@ -140,7 +164,79 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   ],
 };
 
-const currentPlanKey = "basic" satisfies PlanKey;
+const screenCreationProduct = {
+  ...menuCreationProduct,
+  key: "large_screen",
+  name: "테이블씬 스크린 생성권",
+  description: "매장 화면용 디지털 메뉴보드 운영을 준비합니다.",
+} as const;
+
+const orderCreationProduct = {
+  ...menuCreationProduct,
+  key: "qr_order",
+  name: "테이블씬 오더 1.0 신청권",
+  description: "QR 주문과 주방 연결을 위한 오더 1.0 도입 신청을 접수합니다.",
+} as const;
+
+const servicePlanKeys = {
+  menu: "basic",
+  screen: "large_screen",
+  order: "qr_order",
+} as const satisfies Record<NonNullable<ApplyOrderFormProps["serviceType"]>, PlanKey>;
+
+const serviceProducts = {
+  menu: menuCreationProduct,
+  screen: screenCreationProduct,
+  order: orderCreationProduct,
+} as const satisfies Record<NonNullable<ApplyOrderFormProps["serviceType"]>, PaidApplyProduct>;
+
+const orderPosUsageOptions = ["사용 중", "사용하지 않음", "잘 모름"] as const;
+const orderPaymentPreferenceOptions = ["선불", "후불", "둘 다 필요", "아직 미정"] as const;
+const orderNeedOptions = ["필요", "불필요", "아직 미정"] as const;
+const orderLaunchTimelineOptions = ["즉시", "1개월 이내", "3개월 이내", "아직 미정"] as const;
+const screenPurposeOptions = [
+  "카페 메뉴보드",
+  "베이커리/디저트 쇼케이스",
+  "푸드코트 메뉴보드",
+  "미용실/샵 가격표",
+  "병원/클리닉 안내",
+  "피트니스/PT 안내",
+  "이벤트/프로모션",
+  "대기 화면",
+  "기타",
+] as const;
+const screenOrientationOptions = ["가로형 16:9", "세로형 9:16, 추후", "아직 미정"] as const;
+const screenDeviceOptions = ["TV", "모니터", "PC", "미니PC/TV스틱", "아직 미정"] as const;
+const screenTemplateCategories = [
+  { key: "cafe_screen", label: "카페 스크린", templateCategory: "cafe" },
+  { key: "bakery_screen", label: "베이커리 스크린", templateCategory: "cafe" },
+  { key: "foodcourt_screen", label: "푸드코트 스크린", templateCategory: "fast_food" },
+  { key: "price_screen", label: "가격표 스크린", templateCategory: "casual_dining" },
+  { key: "promo_screen", label: "안내/프로모션 스크린", templateCategory: "brunch" },
+  { key: "waiting_screen", label: "대기화면 스크린", templateCategory: "fine_dining" },
+] as const satisfies readonly {
+  key: string;
+  label: string;
+  templateCategory: TemplateCategoryKey;
+}[];
+const menuRestaurantTypeOptions = RESTAURANT_TYPE_OPTIONS.filter((option) =>
+  [
+    "cafe",
+    "casual_dining",
+    "brunch",
+    "bakery",
+    "dessert",
+    "hair_salon",
+    "nail_shop",
+    "beauty_esthetic",
+    "workshop_class",
+    "fitness_pt",
+    "pet_shop",
+    "clinic",
+    "popup_event",
+    "etc",
+  ].includes(option.value)
+);
 
 function createPaymentId() {
   const timestamp = Date.now().toString(36);
@@ -242,6 +338,47 @@ function validateBusinessName(value: string) {
   return null;
 }
 
+function getOrderSetupNotes(orderSetup: OrderSetupPayload) {
+  const hasOrderSetup = Object.values(orderSetup).some(Boolean);
+
+  if (!hasOrderSetup) {
+    return null;
+  }
+
+  return [
+    "[테이블씬 오더 1.0 도입 정보]",
+    `테이블 수: ${orderSetup.tableCount || "-"}`,
+    `현재 POS 사용 여부: ${orderSetup.posUsage || "-"}`,
+    `선불/후불 희망: ${orderSetup.paymentPreference || "-"}`,
+    `주방 대시보드 필요 여부: ${orderSetup.kitchenDashboard || "-"}`,
+    `호출 기능 필요 여부: ${orderSetup.callFeature || "-"}`,
+    `도입 희망 시기: ${orderSetup.launchTimeline || "-"}`,
+    "",
+    "[추가 요청사항]",
+    orderSetup.additionalRequests || "-",
+  ].join("\n");
+}
+
+function getScreenSetupNotes(screenSetup: ScreenSetupPayload) {
+  const hasScreenSetup = Object.values(screenSetup).some(Boolean);
+
+  if (!hasScreenSetup) {
+    return null;
+  }
+
+  return [
+    "[테이블씬 스크린 도입 정보]",
+    `스크린 용도: ${screenSetup.purpose || "-"}`,
+    `스크린 템플릿 카테고리: ${screenSetup.templateCategory || "-"}`,
+    `화면 방향: ${screenSetup.orientation || "-"}`,
+    `설치 기기: ${screenSetup.device || "-"}`,
+  ].join("\n");
+}
+
+function getScreenTemplateCategoryByKey(key: string) {
+  return screenTemplateCategories.find((category) => category.key === key) ?? screenTemplateCategories[0];
+}
+
 function validatePersonName(label: string, value: string) {
   const trimmed = value.trim();
 
@@ -320,8 +457,21 @@ function TemplatePreview({ template }: { template: TemplateCatalogItem }) {
   );
 }
 
-export default function ApplyOrderForm({ templates, userEmail, userId, storeId, channelKey, mockEnabled }: ApplyOrderFormProps) {
+export default function ApplyOrderForm({
+  templates,
+  userEmail,
+  userId,
+  storeId,
+  channelKey,
+  mockEnabled,
+  serviceType = "menu",
+}: ApplyOrderFormProps) {
   const router = useRouter();
+  const isMenuService = serviceType === "menu";
+  const isScreenService = serviceType === "screen";
+  const isOrderService = serviceType === "order";
+  const currentPlanKey = servicePlanKeys[serviceType];
+  const activeProduct = serviceProducts[serviceType];
   const firstCategory = TEMPLATE_CATEGORIES[0].key;
   const firstTemplate = templates.find((template) => template.template_category === firstCategory) ?? templates[0];
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate?.template_category ?? firstCategory);
@@ -341,10 +491,22 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
     buyerName: "",
     buyerPhone: "",
     buyerEmail: userEmail,
+    restaurantType: "cafe",
+    screenPurpose: "카페 메뉴보드",
+    screenTemplateCategory: "cafe_screen",
+    screenOrientation: "",
+    screenDevice: "",
     businessName: "",
     representativeName: "",
     businessNumber: "",
     businessPhone: "",
+    tableCount: "",
+    posUsage: "",
+    paymentPreference: "",
+    kitchenDashboard: "",
+    callFeature: "",
+    launchTimeline: "",
+    additionalRequests: "",
   });
 
   const filteredTemplates = useMemo(() => {
@@ -357,6 +519,33 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
   );
   const currentPlanRequiresBusinessInfo = requiresBusinessInfo(currentPlanKey);
   const currentPlanAllowsIndividual = canIndividualPurchasePlan(currentPlanKey);
+  const templateStepLabel = isMenuService ? "Step 2" : isScreenService ? "Step 2-3" : "Step 1";
+  const basicInfoStepLabel = isMenuService ? "Step 3" : isScreenService ? "Step 4" : "Step 2";
+  const buyerInfoStepLabel = isMenuService ? "Step 4" : isScreenService ? "Step 5" : "Step 3";
+  const summaryStepLabel = isMenuService ? "Step 5" : isScreenService ? "Step 6" : "Step 4";
+  const agreementsStepLabel = isMenuService ? "Step 6" : isScreenService ? "Step 7" : "Step 5";
+  const selectedScreenTemplateCategory = getScreenTemplateCategoryByKey(form.screenTemplateCategory);
+  const orderSetup = useMemo<OrderSetupPayload>(
+    () => ({
+      tableCount: nullable(form.tableCount),
+      posUsage: nullable(form.posUsage),
+      paymentPreference: nullable(form.paymentPreference),
+      kitchenDashboard: nullable(form.kitchenDashboard),
+      callFeature: nullable(form.callFeature),
+      launchTimeline: nullable(form.launchTimeline),
+      additionalRequests: nullable(form.additionalRequests),
+    }),
+    [form.additionalRequests, form.callFeature, form.kitchenDashboard, form.launchTimeline, form.paymentPreference, form.posUsage, form.tableCount]
+  );
+  const screenSetup = useMemo<ScreenSetupPayload>(
+    () => ({
+      purpose: nullable(form.screenPurpose),
+      templateCategory: selectedScreenTemplateCategory.label,
+      orientation: nullable(form.screenOrientation),
+      device: nullable(form.screenDevice),
+    }),
+    [form.screenDevice, form.screenOrientation, form.screenPurpose, selectedScreenTemplateCategory.label]
+  );
 
   const payload = useMemo<MenuOrderPayload>(
     () => ({
@@ -366,7 +555,8 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
       menuName: form.menuName.trim(),
       desiredSlug: normalizeMenuSlug(form.desiredSlug),
       restaurantName: form.restaurantName.trim(),
-      restaurantCategory: getTemplateCategoryLabel(form.template_category),
+      restaurantCategory: isScreenService ? selectedScreenTemplateCategory.label : getTemplateCategoryLabel(form.template_category),
+      restaurantType: isMenuService ? form.restaurantType : form.template_category,
       restaurantAddress: form.restaurantAddress.trim(),
       restaurantPhone: form.restaurantPhone.trim(),
       openingHours: null,
@@ -376,8 +566,11 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
       brandDescription: null,
       menuCoverTitle: null,
       menuCoverDescription: null,
+      menuCoverLabel: isScreenService ? "DIGITAL MENU BOARD" : getDefaultMenuCoverLabel(isMenuService ? form.restaurantType : form.template_category),
       aboutDescription: null,
-      notes: null,
+      orderSetup: isOrderService ? orderSetup : null,
+      screenSetup: isScreenService ? screenSetup : null,
+      notes: isOrderService ? getOrderSetupNotes(orderSetup) : isScreenService ? getScreenSetupNotes(screenSetup) : null,
       buyerType: form.buyerType,
       buyerName: form.buyerName.trim(),
       buyerPhone: form.buyerPhone.trim(),
@@ -389,9 +582,22 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
       termsAccepted: agreements.terms,
       privacyAccepted: agreements.privacy,
       contentPolicyAccepted: agreements.contentPolicy,
-      amount: menuCreationProduct.amount,
+      amount: activeProduct.amount,
     }),
-    [agreements.contentPolicy, agreements.privacy, agreements.terms, form]
+    [
+      activeProduct.amount,
+      agreements.contentPolicy,
+      agreements.privacy,
+      agreements.terms,
+      currentPlanKey,
+      form,
+      isMenuService,
+      isOrderService,
+      isScreenService,
+      orderSetup,
+      screenSetup,
+      selectedScreenTemplateCategory.label,
+    ]
   );
 
   const isPortOneReady = Boolean(storeId && channelKey);
@@ -414,7 +620,7 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
     return slugState;
   }, [isSlugValid, menuAddressError, payload.desiredSlug, slugState]);
   const isSlugAvailable = visibleSlugState.type === "available";
-  const menuNameError = getRequiredMessage("메뉴판 이름", payload.menuName);
+  const menuNameError = getRequiredMessage(isScreenService ? "스크린 이름" : "메뉴판 이름", payload.menuName);
   const restaurantNameError = getRequiredMessage("레스토랑 이름", payload.restaurantName);
   const restaurantAddressError = getRequiredMessage("주소", payload.restaurantAddress);
   const restaurantPhoneError = validatePhoneNumber(payload.restaurantPhone);
@@ -547,7 +753,7 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
       return;
     }
 
-    console.log("Table Scene menu order payload", payload);
+    console.log("Table Scene apply order payload", payload);
 
     if (!isPortOneReady || !storeId || !channelKey) {
       if (!isDevelopment || !mockEnabled) {
@@ -559,7 +765,7 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
         return;
       }
 
-      setUiState({ type: "loading", message: "개발 환경 mock 결제로 메뉴판 생성 흐름을 확인하고 있습니다." });
+        setUiState({ type: "loading", message: "개발 환경 mock 결제로 신청 생성 흐름을 확인하고 있습니다." });
 
       try {
         await completePayment(createMockPaymentId());
@@ -582,9 +788,9 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
         storeId,
         channelKey,
         paymentId,
-        orderName: menuCreationProduct.name,
-        totalAmount: menuCreationProduct.amount,
-        currency: menuCreationProduct.currency,
+        orderName: activeProduct.name,
+        totalAmount: activeProduct.amount,
+        currency: activeProduct.currency,
         payMethod: "CARD",
         customer: {
           customerId: userId,
@@ -593,12 +799,15 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
           email: payload.buyerEmail,
         },
         customData: {
-          product_key: menuCreationProduct.key,
+          product_key: activeProduct.key,
           plan_key: payload.plan_key,
           buyer_type: payload.buyerType,
           template_category: payload.template_category,
           template_key: payload.template_key,
           desired_slug: payload.desiredSlug,
+          service_type: serviceType,
+          screen_purpose: isScreenService ? form.screenPurpose : undefined,
+          screen_template_category: isScreenService ? selectedScreenTemplateCategory.label : undefined,
         },
       } as unknown as Parameters<typeof PortOne.requestPayment>[0];
 
@@ -614,7 +823,7 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
         return;
       }
 
-      setUiState({ type: "loading", message: "서버에서 결제를 검증하고 메뉴판을 생성하고 있습니다." });
+      setUiState({ type: "loading", message: "서버에서 결제를 검증하고 신청 정보를 생성하고 있습니다." });
       await completePayment(payment.paymentId);
     } catch (error) {
       setUiState({
@@ -627,35 +836,152 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-6">
+        {isScreenService && (
+          <section className="rounded-3xl bg-white p-7 shadow-sm">
+            <div className="mb-6">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
+              <h2 className="text-3xl font-bold tracking-tight">스크린 용도 / 설치 정보</h2>
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                매장 TV나 모니터에 띄울 화면의 목적과 설치 환경을 알려주세요. 입력값은 초기 세팅 안내와 추후 스크린 전용 템플릿 분리에 활용됩니다.
+              </p>
+            </div>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">스크린 용도</span>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {screenPurposeOptions.map((option) => {
+                  const isSelected = form.screenPurpose === option;
+
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => updateField("screenPurpose", option)}
+                      className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition-colors ${
+                        isSelected
+                          ? "border-zinc-950 bg-zinc-950 text-white"
+                          : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-950"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <SelectField
+                label="화면 방향"
+                value={form.screenOrientation}
+                onChange={(value) => updateField("screenOrientation", value)}
+                options={screenOrientationOptions}
+              />
+              <SelectField
+                label="설치 기기"
+                value={form.screenDevice}
+                onChange={(value) => updateField("screenDevice", value)}
+                options={screenDeviceOptions}
+              />
+            </div>
+          </section>
+        )}
+
+        {isMenuService && (
+          <section className="rounded-3xl bg-white p-7 shadow-sm">
+            <div className="mb-6">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
+              <h2 className="text-3xl font-bold tracking-tight">업종 선택</h2>
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                업종은 템플릿 추천과 기본 데이터 구성에 활용됩니다. 공개 메뉴판의 커버 문구와 starter preset 기본값에도 참고됩니다.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {menuRestaurantTypeOptions.map((option) => {
+                const isSelected = form.restaurantType === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateField("restaurantType", option.value)}
+                    className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition-colors ${
+                      isSelected
+                        ? "border-zinc-950 bg-zinc-950 text-white"
+                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-950"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         <section className="rounded-3xl bg-white p-7 shadow-sm">
           <div className="mb-6">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
-            <h2 className="text-3xl font-bold tracking-tight">템플릿 선택</h2>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{templateStepLabel}</p>
+            <h2 className="text-3xl font-bold tracking-tight">
+              {isScreenService ? "스크린 템플릿 카테고리 / 스크린 템플릿 선택" : isMenuService ? "템플릿 카테고리 / 템플릿 선택" : "템플릿 선택"}
+            </h2>
+            {isMenuService && (
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                먼저 카테고리를 고른 뒤 실제 공개 메뉴판에 적용할 템플릿을 선택해주세요.
+              </p>
+            )}
+            {isScreenService && (
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                스크린 전용 카테고리를 고른 뒤 TV/모니터 화면에 맞는 메뉴보드 템플릿을 선택해주세요. 현재는 구현된 템플릿을 기반으로 연결됩니다.
+              </p>
+            )}
           </div>
 
           <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
-            {TEMPLATE_CATEGORIES.map((filter) => (
-              <button
-                key={filter.key}
-                type="button"
-                onClick={() => {
-                  const nextTemplate = templates.find((template) => template.template_category === filter.key);
-                  setSelectedCategory(filter.key);
-                  if (nextTemplate) {
-                    setForm((current) => ({
-                      ...current,
-                      template_category: filter.key,
-                      template_key: nextTemplate.key,
-                    }));
-                  }
-                }}
-                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                  selectedCategory === filter.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
+            {isScreenService
+              ? screenTemplateCategories.map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => {
+                      const nextTemplate = templates.find((template) => template.template_category === filter.templateCategory);
+                      setSelectedCategory(filter.templateCategory);
+                      setForm((current) => ({
+                        ...current,
+                        screenTemplateCategory: filter.key,
+                        template_category: filter.templateCategory,
+                        template_key: nextTemplate?.key ?? current.template_key,
+                      }));
+                    }}
+                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                      form.screenTemplateCategory === filter.key
+                        ? "border-zinc-950 bg-zinc-950 text-white"
+                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))
+              : TEMPLATE_CATEGORIES.map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => {
+                      const nextTemplate = templates.find((template) => template.template_category === filter.key);
+                      setSelectedCategory(filter.key);
+                      if (nextTemplate) {
+                        setForm((current) => ({
+                          ...current,
+                          template_category: filter.key,
+                          template_key: nextTemplate.key,
+                        }));
+                      }
+                    }}
+                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                      selectedCategory === filter.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -683,7 +1009,7 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
                       <h3 className="text-lg font-bold">{template.name}</h3>
                       <p className={`mt-1 font-mono text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>{template.key}</p>
                       <p className={`mt-1 text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>
-                        {getTemplateCategoryLabel(template.template_category)}
+                        {isScreenService ? selectedScreenTemplateCategory.label : getTemplateCategoryLabel(template.template_category)}
                       </p>
                     </div>
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
@@ -700,18 +1026,26 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 2</p>
-          <h2 className="mb-6 text-3xl font-bold tracking-tight">메뉴판 기본 정보</h2>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{basicInfoStepLabel}</p>
+          <h2 className="mb-6 text-3xl font-bold tracking-tight">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
           <div className="grid gap-5 md:grid-cols-2">
-            <Field label="메뉴판 이름" value={form.menuName} onChange={(value) => updateField("menuName", value)} required helperText="관리자가 구분할 수 있는 이름을 입력해주세요." errorText={form.menuName.trim() ? menuNameError : null} successText="입력 완료" />
+            <Field
+              label={isScreenService ? "스크린 이름 또는 메뉴보드 이름" : "메뉴판 관리용 이름"}
+              value={form.menuName}
+              onChange={(value) => updateField("menuName", value)}
+              required
+              helperText={isScreenService ? "마이페이지에서 구분할 수 있는 스크린/메뉴보드 이름을 입력해주세요." : "관리자가 구분할 수 있는 이름을 입력해주세요."}
+              errorText={form.menuName.trim() ? menuNameError : null}
+              successText="입력 완료"
+            />
             <div>
-              <Field label="희망 메뉴판 주소" value={form.desiredSlug} onChange={(value) => updateField("desiredSlug", value)} required maxLength={40} helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : "영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다."} errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null} successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined} />
+              <Field label={isScreenService ? "희망 주소 또는 slug" : "희망 메뉴판 주소"} value={form.desiredSlug} onChange={(value) => updateField("desiredSlug", value)} required maxLength={40} helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : "영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다."} errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null} successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined} />
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                 생성될 주소: {payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
               </p>
             </div>
-            <Field label="레스토랑 이름" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText="공개 메뉴판에 표시될 매장명을 입력해주세요." errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
-            <Field label="주소" value={form.restaurantAddress} onChange={(value) => updateField("restaurantAddress", value)} required helperText="공개 메뉴판의 소개 영역에 표시됩니다." errorText={form.restaurantAddress.trim() ? restaurantAddressError : null} successText="입력 완료" className="md:col-span-2" />
+            <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "스크린 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
+            <Field label="주소" value={form.restaurantAddress} onChange={(value) => updateField("restaurantAddress", value)} required helperText={isScreenService ? "설치 매장 또는 화면 운영 매장의 주소를 입력해주세요." : "공개 메뉴판의 소개 영역에 표시됩니다."} errorText={form.restaurantAddress.trim() ? restaurantAddressError : null} successText="입력 완료" className="md:col-span-2" />
             <PhoneInput
               label="매장 전화번호"
               value={form.restaurantPhone}
@@ -722,12 +1056,74 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
           </div>
         </section>
 
+        {isOrderService && (
+          <section className="rounded-3xl bg-white p-7 shadow-sm">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Order Setup</p>
+            <h2 className="text-3xl font-bold tracking-tight">오더 도입 정보</h2>
+            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+              입력해주신 정보는 테이블씬 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
+            </p>
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <Field
+                label="테이블 수"
+                value={form.tableCount}
+                onChange={(value) => updateField("tableCount", getDigits(value, 4))}
+                type="number"
+                inputMode="numeric"
+                min={1}
+                placeholder="예: 12"
+                helperText="매장 내 주문을 받을 테이블 수를 입력해주세요."
+              />
+              <SelectField
+                label="현재 POS 사용 여부"
+                value={form.posUsage}
+                onChange={(value) => updateField("posUsage", value)}
+                options={orderPosUsageOptions}
+              />
+              <SelectField
+                label="선불/후불 희망"
+                value={form.paymentPreference}
+                onChange={(value) => updateField("paymentPreference", value)}
+                options={orderPaymentPreferenceOptions}
+              />
+              <SelectField
+                label="주방 대시보드 필요 여부"
+                value={form.kitchenDashboard}
+                onChange={(value) => updateField("kitchenDashboard", value)}
+                options={orderNeedOptions}
+              />
+              <SelectField
+                label="호출 기능 필요 여부"
+                value={form.callFeature}
+                onChange={(value) => updateField("callFeature", value)}
+                options={orderNeedOptions}
+              />
+              <SelectField
+                label="도입 희망 시기"
+                value={form.launchTimeline}
+                onChange={(value) => updateField("launchTimeline", value)}
+                options={orderLaunchTimelineOptions}
+              />
+              <TextareaField
+                label="추가 요청사항"
+                value={form.additionalRequests}
+                onChange={(value) => updateField("additionalRequests", value)}
+                placeholder="POS 연동, 메뉴 등록 범위, 주방 동선, 호출 방식 등 필요한 내용을 남겨주세요."
+                helperText="아직 정해지지 않은 내용이 있어도 괜찮습니다."
+                className="md:col-span-2"
+              />
+            </div>
+          </section>
+        )}
+
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 3</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{buyerInfoStepLabel}</p>
           <h2 className="mb-6 text-3xl font-bold tracking-tight">구매자 및 담당자 정보</h2>
           <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
-              베이직 플랜은 개인 또는 사업자 모두 구매할 수 있습니다. 프로 및 고급 다이닝 플랜은 사업자 또는 별도 상담 고객만 이용할 수 있습니다.
+              {isScreenService
+                ? "테이블씬 스크린은 개인 또는 사업자 모두 신청할 수 있습니다. 현재는 기존 생성 흐름을 재사용해 접수하고, 추후 스크린 전용 관리 구조로 분리할 수 있습니다."
+                : "베이직 플랜은 개인 또는 사업자 모두 구매할 수 있습니다. 프로 및 고급 다이닝 플랜은 사업자 또는 별도 상담 고객만 이용할 수 있습니다."}
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
@@ -748,7 +1144,9 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
                 ))}
               </div>
               {form.buyerType === "individual" && currentPlanAllowsIndividual && !currentPlanRequiresBusinessInfo && (
-                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">베이직 플랜은 개인 구매가 가능합니다.</p>
+                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                  {isScreenService ? "테이블씬 스크린은 개인 구매가 가능합니다." : "베이직 플랜은 개인 구매가 가능합니다."}
+                </p>
               )}
             </div>
             <Field label="담당자명" value={form.buyerName} onChange={(value) => updateField("buyerName", value)} required maxLength={30} helperText="결제 및 문의 대응에 사용할 이름입니다." errorText={form.buyerName.trim() ? buyerNameError : null} successText="입력 완료" />
@@ -794,21 +1192,25 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
 
       <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 4</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{summaryStepLabel}</p>
           <h2 className="text-2xl font-bold tracking-tight">주문 요약</h2>
           <dl className="mt-6 space-y-4 text-sm font-medium">
-            <SummaryRow label="상품명" value={menuCreationProduct.name} />
+            <SummaryRow label="상품명" value={activeProduct.name} />
+            {isScreenService && <SummaryRow label="스크린 용도" value={form.screenPurpose || "-"} />}
+            {isScreenService && <SummaryRow label="스크린 카테고리" value={selectedScreenTemplateCategory.label} />}
+            {isScreenService && <SummaryRow label="화면 방향" value={form.screenOrientation || "-"} />}
+            {isScreenService && <SummaryRow label="설치 기기" value={form.screenDevice || "-"} />}
             <SummaryRow label="선택 템플릿" value={selectedTemplate ? `${selectedTemplate.name} (${selectedTemplate.key})` : "-"} />
-            <SummaryRow label="메뉴판 이름" value={payload.menuName || "-"} />
+            <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 예정 URL" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
             <SummaryRow label="구매자 유형" value={payload.buyerType === "business" ? "사업자" : "개인"} />
-            <SummaryRow label="금액" value={formatKrw(menuCreationProduct.amount)} strong />
+            <SummaryRow label="금액" value={formatKrw(activeProduct.amount)} strong />
           </dl>
-          <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-400">VAT 포함 금액입니다. 결제 검증 성공 후 메뉴판이 자동 생성됩니다.</p>
+          <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-400">VAT 포함 금액입니다. 결제 검증 성공 후 신청 정보가 생성됩니다.</p>
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 5</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{agreementsStepLabel}</p>
           <h2 className="mb-5 text-2xl font-bold tracking-tight">약관 동의</h2>
           <div className="space-y-3">
             {(Object.keys(agreementLabels) as AgreementKey[]).map((key) => (
@@ -835,7 +1237,7 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
           {!isPortOneReady && (
             <div className="mt-6 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
               {isDevelopment && mockEnabled
-                ? "PortOne 공개 환경변수가 없어서 개발 환경 mock 결제로 메뉴판 생성 흐름을 테스트합니다."
+                ? "PortOne 공개 환경변수가 없어서 개발 환경 mock 결제로 신청 생성 흐름을 테스트합니다."
                 : "PortOne 공개 환경변수가 없어서 결제를 진행할 수 없습니다. 개발 mock은 PORTONE_MOCK_ENABLED=true일 때만 동작합니다."}
             </div>
           )}
@@ -850,7 +1252,7 @@ export default function ApplyOrderForm({ templates, userEmail, userId, storeId, 
             disabled={!isFormReady || isLoading}
             className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
-            {isLoading ? "처리 중..." : isPortOneReady ? "결제하고 메뉴판 생성하기" : isDevelopment && mockEnabled ? "mock 결제로 생성 테스트" : "결제 설정 필요"}
+            {isLoading ? "처리 중..." : isPortOneReady ? "신청하고 결제하기" : isDevelopment && mockEnabled ? "mock 결제로 신청 테스트" : "결제 설정 필요"}
           </button>
         </section>
       </aside>
@@ -873,6 +1275,7 @@ function Field({
   required: isRequired,
   type = "text",
   inputMode,
+  min,
   maxLength,
   placeholder,
   helperText,
@@ -886,6 +1289,7 @@ function Field({
   required?: boolean;
   type?: React.HTMLInputTypeAttribute;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  min?: number;
   maxLength?: number;
   placeholder?: string;
   helperText?: string;
@@ -905,6 +1309,7 @@ function Field({
       <input
         type={type}
         inputMode={inputMode}
+        min={min}
         maxLength={maxLength}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -915,6 +1320,70 @@ function Field({
         }`}
       />
       {message && <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${messageClassName}`}>{message}</p>}
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  helperText = "선택해주세요.",
+  className = "",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: readonly string[];
+  helperText?: string;
+  className?: string;
+}) {
+  return (
+    <label className={className}>
+      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+      >
+        <option value="">{helperText}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function TextareaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  helperText,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  helperText?: string;
+  className?: string;
+}) {
+  return (
+    <label className={className}>
+      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{label}</span>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        rows={5}
+        className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
+      />
+      {helperText && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{helperText}</p>}
     </label>
   );
 }
