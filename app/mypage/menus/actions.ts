@@ -7,6 +7,7 @@ import { getLegacyBadgeTypeForLabel, normalizeMenuBadgeLabel } from "@/lib/menu-
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
+import { isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType } from "@/lib/social-links";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
@@ -581,7 +582,7 @@ export async function updateMenuSiteAction(formData: FormData) {
   const name = getString(formData, "name");
   const rawSlug = getString(formData, "slug");
   const restaurantName = getNullableString(formData, "restaurant_name");
-  const restaurantCategory = getNullableString(formData, "restaurant_category");
+  const restaurantType = getNullableString(formData, "restaurant_type");
   const slug = normalizeSlug(rawSlug);
 
   if (!name) {
@@ -590,7 +591,11 @@ export async function updateMenuSiteAction(formData: FormData) {
 
   validateRequiredText(menuId, name, "메뉴판 이름", MENU_FIELD_LIMITS.menuSites.name, "basic");
   validateOptionalText(menuId, restaurantName, "실제 매장명", MENU_FIELD_LIMITS.menuSites.restaurantName, "basic");
-  validateOptionalText(menuId, restaurantCategory, "매장 카테고리", MENU_FIELD_LIMITS.menuSites.restaurantCategory, "basic");
+  validateOptionalText(menuId, restaurantType, "업종", MENU_FIELD_LIMITS.menuSites.restaurantType, "basic");
+
+  if (restaurantType && !isRestaurantTypeKey(restaurantType)) {
+    redirectToTabEditWithError(menuId, "basic", "업종을 다시 선택해주세요.");
+  }
 
   if (!isValidSlug(slug)) {
     redirectToTabEditWithError(
@@ -621,16 +626,30 @@ export async function updateMenuSiteAction(formData: FormData) {
     redirectToTabEditWithError(menuId, "basic", "이미 사용 중인 공개 메뉴판 주소입니다. 다른 주소를 입력해주세요.");
   }
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from("menu_sites")
     .update({
       name,
       slug,
       restaurant_name: restaurantName,
-      restaurant_category: restaurantCategory,
+      restaurant_type: restaurantType,
       updated_at: new Date().toISOString(),
     })
     .eq("id", menuId);
+
+  if (error && error.message.toLowerCase().includes("restaurant_type")) {
+    const fallbackResult = await supabase
+      .from("menu_sites")
+      .update({
+        name,
+        slug,
+        restaurant_name: restaurantName,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", menuId);
+
+    error = fallbackResult.error;
+  }
 
   if (error) {
     redirectToTabEditWithError(menuId, "basic", `메뉴판 저장에 실패했습니다: ${error.message}`);
@@ -698,20 +717,36 @@ export async function updateMenuCoverAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const menuCoverLabel = getNullableString(formData, "menu_cover_label");
   const menuCoverTitle = getNullableString(formData, "menu_cover_title");
   const menuCoverDescription = getNullableString(formData, "menu_cover_description");
 
+  validateOptionalText(menuId, menuCoverLabel, "커버 상단 문구", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
   validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
   validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from("menu_sites")
     .update({
+      menu_cover_label: menuCoverLabel,
       menu_cover_title: menuCoverTitle,
       menu_cover_description: menuCoverDescription,
       updated_at: new Date().toISOString(),
     })
     .eq("id", menuId);
+
+  if (error && error.message.toLowerCase().includes("menu_cover_label")) {
+    const fallbackResult = await supabase
+      .from("menu_sites")
+      .update({
+        menu_cover_title: menuCoverTitle,
+        menu_cover_description: menuCoverDescription,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", menuId);
+
+    error = fallbackResult.error;
+  }
 
   if (error) redirectToTabEditWithError(menuId, "cover", `메뉴 커버 저장에 실패했습니다: ${error.message}`);
 

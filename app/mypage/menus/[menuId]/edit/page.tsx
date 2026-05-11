@@ -10,6 +10,7 @@ import {
   updatePageSettingsAction,
   updatePublishSettingsAction,
 } from "@/app/mypage/menus/actions";
+import SiteHeader from "@/components/layout/SiteHeader";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
@@ -23,6 +24,7 @@ import {
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import { MENU_EDITOR_TABS, isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
+import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
@@ -41,11 +43,13 @@ type MenuSite = Pick<
   | "published_at"
   | "restaurant_name"
   | "restaurant_category"
+  | "restaurant_type"
   | "restaurant_address"
   | "restaurant_phone"
   | "intro_title"
   | "intro_description"
   | "brand_description"
+  | "menu_cover_label"
   | "menu_cover_title"
   | "menu_cover_description"
   | "about_description"
@@ -105,7 +109,10 @@ const statusLabels: Record<MenuSiteStatus, string> = {
 
 const baseMenuSiteSelect =
   "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, cover_image_url, page_settings";
-const menuSiteSelect = baseMenuSiteSelect.replace("template_key", "template_key, template_category");
+const menuSiteSelect = baseMenuSiteSelect
+  .replace("template_key", "template_key, template_category")
+  .replace("restaurant_category", "restaurant_category, restaurant_type")
+  .replace("menu_cover_title", "menu_cover_label, menu_cover_title");
 
 function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
   return (
@@ -236,7 +243,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   let menuSite = primaryMenuSiteResult.data as unknown;
   let menuSiteError = primaryMenuSiteResult.error;
 
-  if (menuSiteError && menuSiteError.message.toLowerCase().includes("template_category")) {
+  if (menuSiteError && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => menuSiteError.message.toLowerCase().includes(column))) {
     const fallbackResult = await supabase
       .from("menu_sites")
       .select(baseMenuSiteSelect)
@@ -370,9 +377,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   ].filter((item): item is { label: string; ok: boolean } => Boolean(item));
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
-      <MenuEditorScrollRestoration menuId={menuId} />
-      <div className="mx-auto w-full max-w-4xl">
+    <>
+      <SiteHeader />
+      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+        <MenuEditorScrollRestoration menuId={menuId} />
+        <div className="mx-auto w-full max-w-4xl">
         <header className="mb-6 rounded-lg bg-white p-6 shadow-sm">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             마이페이지로 돌아가기
@@ -429,8 +438,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <TextInput name="restaurant_name" defaultValue={site.restaurant_name ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.restaurantName} helperText="공개 메뉴판에 표시될 매장명입니다." />
                   </div>
                   <div>
-                    <FieldLabel>매장 카테고리</FieldLabel>
-                    <TextInput name="restaurant_category" defaultValue={site.restaurant_category ?? ""} placeholder="예: 이탈리안 레스토랑" maxLength={MENU_FIELD_LIMITS.menuSites.restaurantCategory} helperText="고객이 이해하기 쉬운 업종명을 입력해주세요." />
+                    <FieldLabel>업종</FieldLabel>
+                    <Select name="restaurant_type" defaultValue={site.restaurant_type ?? ""} helperText="업종은 템플릿 추천과 기본 데이터 구성에 활용됩니다.">
+                      <option value="">선택해주세요</option>
+                      {RESTAURANT_TYPE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Select>
                   </div>
                   <div>
                     <FieldLabel required>공개 주소</FieldLabel>
@@ -516,6 +532,16 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <p className="rounded-lg bg-zinc-50 p-4 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                       메뉴 커버 페이지는 메뉴 페이지로 들어가기 전 보여지는 텍스트 중심 화면입니다.
                     </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <FieldLabel>커버 상단 문구</FieldLabel>
+                    <TextInput
+                      name="menu_cover_label"
+                      defaultValue={site.menu_cover_label ?? site.restaurant_category ?? ""}
+                      placeholder="SPECIALTY COFFEE / BRUNCH CAFE / FINE DINING / TODAY'S MENU / DESSERT & COFFEE"
+                      maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverLabel}
+                      helperText="메뉴 커버 페이지 상단에 작게 표시되는 문구입니다."
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel required>메뉴 커버 제목</FieldLabel>
@@ -628,7 +654,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               </SectionCard>
             )}
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }

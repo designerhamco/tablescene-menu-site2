@@ -20,6 +20,10 @@ function getDisplayName(site: PublicMenuTemplateProps["menuSite"]) {
   return site.restaurant_name || site.business_name || site.name;
 }
 
+function getMenuCoverLabel(site: PublicMenuTemplateProps["menuSite"]) {
+  return site.menu_cover_label || site.restaurant_category;
+}
+
 function getCategoryItems(items: PublicMenuTemplateProps["items"], categoryId: string) {
   return items.filter((item) => item.category_id === categoryId);
 }
@@ -107,7 +111,7 @@ function IntroSection({ data }: { data: PublicMenuTemplateProps }) {
       <div className="relative mx-auto flex min-h-80 w-full max-w-3xl items-center">
         <div className={`w-full rounded-lg p-6 ${hasBackgroundImage ? "border border-white/15 bg-black/10 backdrop-blur-[2px]" : "border border-zinc-100 bg-white"}`}>
           <p className={`text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/65" : "text-zinc-400"}`}>
-            {menuSite.restaurant_category || "Restaurant"}
+            Welcome
           </p>
           <h1 className="mt-3 break-words text-4xl font-black tracking-tight">{menuSite.intro_title || displayName}</h1>
           {(menuSite.intro_description || menuSite.brand_description) && (
@@ -125,11 +129,12 @@ function IntroSection({ data }: { data: PublicMenuTemplateProps }) {
 function MenuCoverSection({ data }: { data: PublicMenuTemplateProps }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
+  const menuCoverLabel = getMenuCoverLabel(menuSite);
 
   return (
     <section className="bg-zinc-950 px-5 py-14 text-white">
       <div className="mx-auto flex min-h-64 w-full max-w-3xl flex-col justify-center">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuSite.restaurant_category || "Menu"}</p>
+        {menuCoverLabel && <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuCoverLabel}</p>}
         <h2 className="mt-4 break-words text-4xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h2>
         {menuSite.menu_cover_description && (
           <p className="mt-5 max-w-2xl break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
@@ -287,7 +292,6 @@ function AboutSection({ data, capabilities }: { data: PublicMenuTemplateProps; c
       <DetailList
         rows={[
           { label: "매장명", value: getDisplayName(menuSite) },
-          { label: "카테고리", value: menuSite.restaurant_category },
           { label: "주소", value: menuSite.restaurant_address || menuSite.business_address },
           { label: "전화번호", value: menuSite.restaurant_phone || menuSite.business_phone },
           { label: "운영시간", value: menuSite.opening_hours },

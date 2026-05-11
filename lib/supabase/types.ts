@@ -83,6 +83,7 @@ export type Database = {
           intro_description: string | null;
           menu_cover_title: string | null;
           menu_cover_description: string | null;
+          menu_cover_label: string | null;
           about_description: string | null;
           opening_hours: string | null;
           map_url: string | null;
@@ -96,6 +97,7 @@ export type Database = {
           business_phone: string | null;
           restaurant_name: string | null;
           restaurant_category: string | null;
+          restaurant_type: string | null;
           restaurant_address: string | null;
           restaurant_phone: string | null;
           instagram_url: string | null;
@@ -121,6 +123,7 @@ export type Database = {
           intro_description?: string | null;
           menu_cover_title?: string | null;
           menu_cover_description?: string | null;
+          menu_cover_label?: string | null;
           about_description?: string | null;
           opening_hours?: string | null;
           map_url?: string | null;
@@ -134,6 +137,7 @@ export type Database = {
           business_phone?: string | null;
           restaurant_name?: string | null;
           restaurant_category?: string | null;
+          restaurant_type?: string | null;
           restaurant_address?: string | null;
           restaurant_phone?: string | null;
           instagram_url?: string | null;
@@ -159,6 +163,7 @@ export type Database = {
           intro_description?: string | null;
           menu_cover_title?: string | null;
           menu_cover_description?: string | null;
+          menu_cover_label?: string | null;
           about_description?: string | null;
           opening_hours?: string | null;
           map_url?: string | null;
@@ -172,6 +177,7 @@ export type Database = {
           business_phone?: string | null;
           restaurant_name?: string | null;
           restaurant_category?: string | null;
+          restaurant_type?: string | null;
           restaurant_address?: string | null;
           restaurant_phone?: string | null;
           instagram_url?: string | null;

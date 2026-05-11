@@ -15,6 +15,8 @@ export const MENU_FIELD_LIMITS = {
     name: 40,
     restaurantName: 40,
     restaurantCategory: 20,
+    restaurantType: 40,
+    menuCoverLabel: 40,
     slugMin: 3,
     slugMax: 40,
     introTitle: 40,

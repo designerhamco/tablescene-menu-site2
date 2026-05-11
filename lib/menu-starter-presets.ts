@@ -42,6 +42,8 @@ type StarterPage = {
 type StarterSiteDefaults = {
   restaurant_name: string;
   restaurant_category: string;
+  restaurant_type: string;
+  menu_cover_label: string;
   intro_title: string;
   intro_description: string;
   brand_description: string;
@@ -131,6 +133,8 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
     site: {
       restaurant_name: "테이블씬 카페",
       restaurant_category: "카페",
+      restaurant_type: "cafe",
+      menu_cover_label: "SPECIALTY COFFEE",
       intro_title: "따뜻한 커피와 디저트가 있는 공간",
       intro_description: "하루의 여유를 채워주는 커피와 디저트를 준비했습니다.",
       brand_description: "테이블씬 카페는 편안한 분위기 속에서 커피와 디저트를 즐길 수 있는 공간입니다.",
@@ -263,6 +267,8 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
     site: {
       restaurant_name: "테이블씬 브런치",
       restaurant_category: "브런치",
+      restaurant_type: "brunch",
+      menu_cover_label: "BRUNCH CAFE",
       intro_title: "여유로운 하루를 여는 브런치",
       intro_description: "브런치 플레이트와 음료, 디저트를 함께 즐겨보세요.",
       brand_description: "테이블씬 브런치는 편안한 공간에서 여유로운 식사를 제안합니다.",
@@ -375,6 +381,8 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
     site: {
       restaurant_name: "테이블씬 다이닝",
       restaurant_category: "파인다이닝",
+      restaurant_type: "fine_dining",
+      menu_cover_label: "FINE DINING",
       intro_title: "계절의 흐름을 담은 다이닝",
       intro_description: "정성스럽게 준비한 코스와 페어링을 경험해보세요.",
       brand_description: "테이블씬 다이닝은 재료의 계절감과 섬세한 서비스를 중요하게 생각합니다.",
@@ -491,6 +499,8 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
     site: {
       restaurant_name: "테이블씬 키친",
       restaurant_category: "캐주얼다이닝",
+      restaurant_type: "casual_dining",
+      menu_cover_label: "CASUAL DINING",
       intro_title: "편안하게 즐기는 다이닝 메뉴",
       intro_description: "스테이크, 파스타, 피자와 함께하는 캐주얼한 식사 공간입니다.",
       brand_description: "테이블씬 키친은 누구나 편하게 즐길 수 있는 다이닝 메뉴를 제공합니다.",
@@ -617,6 +627,8 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
     site: {
       restaurant_name: "테이블씬 버거",
       restaurant_category: "패스트푸드",
+      restaurant_type: "fast_food",
+      menu_cover_label: "FAST & CASUAL",
       intro_title: "빠르고 맛있게 즐기는 메뉴",
       intro_description: "버거, 치킨, 사이드와 음료를 간편하게 확인해보세요.",
       brand_description: "테이블씬 버거는 빠르고 간편하게 즐길 수 있는 메뉴를 제공합니다.",
@@ -788,13 +800,22 @@ function pageSettingsAreEmpty(settings: Json | null | undefined) {
 }
 
 async function applyStarterSiteDefaults(supabase: SupabaseClient, menuSiteId: string, preset: StarterPreset) {
-  const { data: site, error } = await supabase
+  const siteSelect =
+    "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings";
+  const legacySiteSelect =
+    "restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings";
+
+  let { data: site, error } = await supabase
     .from("menu_sites")
-    .select(
-      "restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings"
-    )
+    .select(siteSelect)
     .eq("id", menuSiteId)
     .maybeSingle();
+
+  if (error && ["restaurant_type", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
+    const fallbackResult = await supabase.from("menu_sites").select(legacySiteSelect).eq("id", menuSiteId).maybeSingle();
+    site = fallbackResult.data;
+    error = fallbackResult.error;
+  }
 
   if (error) {
     throw new Error(`기본 메뉴판 정보 확인에 실패했습니다: ${error.message}`);
@@ -803,6 +824,8 @@ async function applyStarterSiteDefaults(supabase: SupabaseClient, menuSiteId: st
   const payload: MenuSiteUpdate = {
     restaurant_name: valueOrDefault(site?.restaurant_name, preset.site.restaurant_name),
     restaurant_category: valueOrDefault(site?.restaurant_category, preset.site.restaurant_category),
+    restaurant_type: valueOrDefault(site?.restaurant_type, preset.site.restaurant_type),
+    menu_cover_label: valueOrDefault(site?.menu_cover_label, preset.site.menu_cover_label),
     intro_title: valueOrDefault(site?.intro_title, preset.site.intro_title),
     intro_description: valueOrDefault(site?.intro_description, preset.site.intro_description),
     brand_description: valueOrDefault(site?.brand_description, preset.site.brand_description),
@@ -821,7 +844,15 @@ async function applyStarterSiteDefaults(supabase: SupabaseClient, menuSiteId: st
     updated_at: new Date().toISOString(),
   };
 
-  const { error: updateError } = await supabase.from("menu_sites").update(payload).eq("id", menuSiteId);
+  let { error: updateError } = await supabase.from("menu_sites").update(payload).eq("id", menuSiteId);
+
+  if (updateError && ["restaurant_type", "menu_cover_label"].some((column) => updateError.message.toLowerCase().includes(column))) {
+    const legacyPayload: MenuSiteUpdate = { ...payload };
+    delete legacyPayload.restaurant_type;
+    delete legacyPayload.menu_cover_label;
+    const fallbackResult = await supabase.from("menu_sites").update(legacyPayload).eq("id", menuSiteId);
+    updateError = fallbackResult.error;
+  }
 
   if (updateError) {
     throw new Error(`기본 메뉴판 정보 저장에 실패했습니다: ${updateError.message}`);

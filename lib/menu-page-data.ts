@@ -18,7 +18,10 @@ type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
 
 const baseSiteSelect =
   "id, user_id, name, slug, template_key, status, description, logo_url, cover_image_url, brand_color, business_name, business_address, business_phone, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, page_settings";
-const siteSelect = baseSiteSelect.replace("template_key", "template_key, template_category");
+const siteSelect = baseSiteSelect
+  .replace("template_key", "template_key, template_category")
+  .replace("restaurant_category", "restaurant_category, restaurant_type")
+  .replace("menu_cover_title", "menu_cover_label, menu_cover_title");
 
 const pageSelect = "id, title, description, description_visible, legacy_section_key, visible, sort_order, created_at";
 const categorySelect = "id, menu_page_id, name, description, description_visible, sort_order, visible";
@@ -200,7 +203,7 @@ export async function getPublicMenuPageData(slug: string) {
   let site = primarySiteResult.data as unknown;
   let error = primarySiteResult.error;
 
-  if (error && error.message.toLowerCase().includes("template_category")) {
+  if (error && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
     const fallbackResult = await supabase
       .from("menu_sites")
       .select(baseSiteSelect)
@@ -230,7 +233,7 @@ export async function getOwnerPreviewMenuPageData(menuId: string, userId: string
   let site = primarySiteResult.data as unknown;
   let error = primarySiteResult.error;
 
-  if (error && error.message.toLowerCase().includes("template_category")) {
+  if (error && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
     const fallbackResult = await supabase
       .from("menu_sites")
       .select(baseSiteSelect)

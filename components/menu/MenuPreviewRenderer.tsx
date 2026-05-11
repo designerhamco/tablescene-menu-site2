@@ -12,6 +12,10 @@ function getDisplayName(menuSite: MenuPageData["menuSite"]) {
   return menuSite.restaurant_name || menuSite.business_name || menuSite.name;
 }
 
+function getMenuCoverLabel(menuSite: MenuPageData["menuSite"]) {
+  return menuSite.menu_cover_label || menuSite.restaurant_category;
+}
+
 function getCategoryItems(items: MenuPageData["items"], categoryId: string) {
   return items.filter((item) => item.category_id === categoryId);
 }
@@ -93,7 +97,7 @@ function IntroSection({ data }: { data: MenuPreviewRendererProps }) {
         <p className={`mb-3 text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/60" : "text-zinc-400"}`}>Intro</p>
         <div className={`rounded-lg p-6 ${hasBackgroundImage ? "border border-white/15 bg-black/10" : "border border-zinc-100 bg-zinc-50"}`}>
           <p className={`text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/50" : "text-zinc-400"}`}>
-            {menuSite.restaurant_category || "Restaurant"}
+            Intro
           </p>
           <h3 className="mt-3 break-keep text-4xl font-black tracking-tight">{title}</h3>
           {(menuSite.intro_description || menuSite.brand_description) && (
@@ -111,11 +115,12 @@ function IntroSection({ data }: { data: MenuPreviewRendererProps }) {
 function MenuCoverSection({ data }: { data: MenuPreviewRendererProps }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
+  const menuCoverLabel = getMenuCoverLabel(menuSite);
 
   return (
     <PreviewSection eyebrow="Menu Cover" title="메뉴 커버">
       <div className="rounded-lg bg-zinc-950 p-6 text-white">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuSite.restaurant_category || "Menu"}</p>
+        {menuCoverLabel && <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuCoverLabel}</p>}
         <h3 className="mt-3 break-keep text-3xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h3>
         {menuSite.menu_cover_description && (
           <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
@@ -229,7 +234,6 @@ function AboutSection({ data }: { data: MenuPreviewRendererProps }) {
       <DetailList
         rows={[
           { label: "매장명", value: getDisplayName(menuSite) },
-          { label: "카테고리", value: menuSite.restaurant_category },
           { label: "주소", value: menuSite.restaurant_address || menuSite.business_address },
           { label: "전화번호", value: menuSite.restaurant_phone || menuSite.business_phone },
           { label: "운영시간", value: menuSite.opening_hours },
