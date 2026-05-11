@@ -3,12 +3,16 @@ import { redirect } from "next/navigation";
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 import {
+  resetBadgeStylesAction,
+  resetTypographySettingsAction,
   updateAboutAction,
+  updateBadgeStylesAction,
   updateIntroAction,
   updateMenuCoverAction,
   updateMenuSiteAction,
   updatePageSettingsAction,
   updatePublishSettingsAction,
+  updateTypographySettingsAction,
 } from "@/app/mypage/menus/actions";
 import SiteHeader from "@/components/layout/SiteHeader";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
@@ -33,8 +37,23 @@ import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
+import {
+  BADGE_STYLE_KEYS,
+  BADGE_STYLE_LABELS,
+  getCustomBadgeStyles,
+  getDefaultBadgeStyles,
+  mergeBadgeStyles,
+} from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
-import { mergePageSettings } from "@/types/menu";
+import {
+  ENGLISH_FONT_OPTIONS,
+  FONT_SIZE_SCALE_OPTIONS,
+  KOREAN_FONT_OPTIONS,
+  getCustomTypographySettings,
+  getDefaultTypographyPreset,
+  mergeTypographySettings,
+} from "@/lib/template-typography-presets";
+import { formatMenuPrice, mergePageSettings } from "@/types/menu";
 
 type MenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -62,6 +81,7 @@ type MenuSite = Pick<
   | "map_url"
   | "logo_url"
   | "cover_image_url"
+  | "settings"
   | "page_settings"
 >;
 type MenuCategory = Pick<
@@ -114,7 +134,7 @@ const statusLabels: Record<MenuSiteStatus, string> = {
 };
 
 const baseMenuSiteSelect =
-  "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, cover_image_url, page_settings";
+  "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, cover_image_url, settings, page_settings";
 const menuSiteSelect = baseMenuSiteSelect
   .replace("template_key", "template_key, template_category")
   .replace("restaurant_category", "restaurant_category, restaurant_type")
@@ -156,6 +176,22 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
         </div>
       )}
     </>
+  );
+}
+
+function ColorInput({ name, defaultValue }: { name: string; defaultValue: string }) {
+  return (
+    <div className="mt-2 flex overflow-hidden rounded-lg border border-zinc-200 bg-white focus-within:border-zinc-950">
+      <input type="color" name={name} defaultValue={defaultValue} className="h-11 w-14 shrink-0 cursor-pointer border-0 bg-transparent p-1" />
+      <input
+        type="text"
+        defaultValue={defaultValue}
+        readOnly
+        pattern="#[0-9A-Fa-f]{6}"
+        className="min-w-0 flex-1 px-3 text-sm font-semibold uppercase text-zinc-900 outline-none"
+        aria-label={name}
+      />
+    </div>
   );
 }
 
@@ -407,6 +443,22 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const templateCapabilities = getTemplateCapabilities(site.template_key);
+  const customBadgeStyles = getCustomBadgeStyles(site.settings, site.page_settings);
+  const badgeStyles = mergeBadgeStyles(site.template_key, customBadgeStyles);
+  const defaultBadgeStyles = getDefaultBadgeStyles(site.template_key);
+  const hasCustomBadgeStyles = Boolean(customBadgeStyles);
+  const customTypography = getCustomTypographySettings(site.settings, site.page_settings);
+  const typographySettings = mergeTypographySettings(site.template_key, customTypography);
+  const defaultTypography = getDefaultTypographyPreset(site.template_key);
+  const hasCustomTypography = Boolean(customTypography);
+  const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
+  const featuredItemOptions = items.map((item) => ({
+    id: item.id,
+    label: item.name,
+    categoryName: item.category_id ? categoryNameById.get(item.category_id) ?? "미분류" : "미분류",
+    price: formatMenuPrice(item) ?? "문의",
+    imageStatus: item.image_url ? "이미지 있음" : "이미지 없음",
+  }));
   const visibleEditorTabs = MENU_EDITOR_TABS.filter((item) => {
     if (!isMenuEditorTabEnabled(item.key, editorCapabilities)) {
       return false;
@@ -610,6 +662,37 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <FieldLabel required>메뉴 커버 설명</FieldLabel>
                     <TextArea name="menu_cover_description" defaultValue={site.menu_cover_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverDescription} helperText={`메뉴 소개 문구를 입력해주세요. 최대 ${MENU_FIELD_LIMITS.menuSites.menuCoverDescription}자까지 입력할 수 있습니다.`} />
                   </div>
+                  <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-bold tracking-tight text-zinc-950">대표 추천 메뉴</h3>
+                      <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                        대표 추천 메뉴는 일부 템플릿에서 메뉴판의 커버형 영역에 크게 표시됩니다. 이미지가 등록된 메뉴를 선택하면 대표 상품처럼 노출할 수 있습니다.
+                      </p>
+                    </div>
+                    <div className="grid gap-5">
+                      <Checkbox name="featured_item_enabled" label="대표 추천 메뉴 사용" defaultChecked={pageSettings.featured_item_enabled} />
+                      <div>
+                        <FieldLabel>대표 추천 메뉴</FieldLabel>
+                        <Select
+                          name="featured_item_id"
+                          defaultValue={pageSettings.featured_item_id ?? ""}
+                          helperText="대표 추천 메뉴는 이미지가 있을 때 가장 잘 보입니다. 이미지가 없는 경우 공개 메뉴판에서 대표 영역이 표시되지 않을 수 있습니다."
+                        >
+                          <option value="">대표로 보여줄 메뉴를 선택해주세요</option>
+                          {featuredItemOptions.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.label} · {item.categoryName} · {item.price} · {item.imageStatus}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                      {(!templateCapabilities.featuredItemHero || !templateCapabilities.menuItemImages) && (
+                        <p className="break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                          현재 선택한 템플릿은 대표 추천 메뉴 영역을 사용하지 않습니다. 설정값은 저장되지만 공개 메뉴판에는 표시되지 않을 수 있습니다.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   <div className="md:col-span-2">
                     <SubmitButton>메뉴 커버 저장</SubmitButton>
                   </div>
@@ -670,7 +753,160 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <TextInput value={templateDisplayName} readOnly helperText="템플릿 변경 기능은 추후 제공 예정입니다." />
                   </div>
                   <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">결제 시 선택한 템플릿입니다.</p>
-                  <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">전체 폰트 선택 기능은 추후 제공 예정입니다.</p>
+                  <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+                      <div>
+                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">글꼴과 글자 크기</h3>
+                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          메뉴판의 한글/영문 글꼴과 전체 글자 크기를 조정할 수 있습니다. 템플릿의 기본 디자인을 유지하는 범위에서 적용됩니다.
+                        </p>
+                      </div>
+                      <form action={resetTypographySettingsAction}>
+                        <HiddenMenuId menuId={site.id} />
+                        <button
+                          type="submit"
+                          className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
+                        >
+                          기본값으로 되돌리기
+                        </button>
+                      </form>
+                    </div>
+                    <form action={updateTypographySettingsAction} className="mt-5 space-y-5">
+                      <HiddenMenuId menuId={site.id} />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <FieldLabel>한글 폰트</FieldLabel>
+                          <Select name="korean_font_key" defaultValue={typographySettings.korean_font_key}>
+                            {KOREAN_FONT_OPTIONS.map((option) => (
+                              <option key={option.key} value={option.key}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </Select>
+                          <p
+                            className="mt-2 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-700"
+                            style={{ fontFamily: KOREAN_FONT_OPTIONS.find((option) => option.key === typographySettings.korean_font_key)?.fontFamily }}
+                          >
+                            아메리카노 4,500
+                          </p>
+                        </div>
+                        <div>
+                          <FieldLabel>영문 폰트</FieldLabel>
+                          <Select name="english_font_key" defaultValue={typographySettings.english_font_key}>
+                            {ENGLISH_FONT_OPTIONS.map((option) => (
+                              <option key={option.key} value={option.key}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </Select>
+                          <p
+                            className="mt-2 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-700"
+                            style={{ fontFamily: ENGLISH_FONT_OPTIONS.find((option) => option.key === typographySettings.english_font_key)?.fontFamily }}
+                          >
+                            Signature Coffee
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <FieldLabel>글자 크기</FieldLabel>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                          {FONT_SIZE_SCALE_OPTIONS.map((option) => (
+                            <label
+                              key={option.key}
+                              className={`cursor-pointer rounded-lg border bg-white p-4 transition ${
+                                typographySettings.font_size_scale_key === option.key
+                                  ? "border-zinc-950 ring-2 ring-zinc-950/10"
+                                  : "border-zinc-200 hover:border-zinc-400"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="font_size_scale_key"
+                                value={option.key}
+                                defaultChecked={typographySettings.font_size_scale_key === option.key}
+                                className="sr-only"
+                              />
+                              <span className="block text-lg font-black text-zinc-950">{option.label}</span>
+                              <span className="mt-1 block break-keep text-xs font-bold leading-relaxed text-zinc-400">{option.description}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <FieldHint>메뉴 수가 적어 화면이 허전해 보이면 L을 선택해 더 크게 보여줄 수 있습니다.</FieldHint>
+                      </div>
+                      {!hasCustomTypography && (
+                        <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                          현재 템플릿 기본값: {defaultTypography.korean_font_key} / {defaultTypography.english_font_key} / {defaultTypography.font_size_scale_key.toUpperCase()}
+                        </p>
+                      )}
+                      <SubmitButton>글꼴 설정 저장</SubmitButton>
+                    </form>
+                  </div>
+                  <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+                      <div>
+                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">배지/칩 색상</h3>
+                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          BEST, SIGNATURE, NEW, 추천 같은 메뉴 배지의 배경색과 글자색을 각각 설정할 수 있습니다.
+                        </p>
+                      </div>
+                      <form action={resetBadgeStylesAction}>
+                        <HiddenMenuId menuId={site.id} />
+                        <button
+                          type="submit"
+                          className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
+                        >
+                          전체 기본값으로 되돌리기
+                        </button>
+                      </form>
+                    </div>
+                    {!templateCapabilities.itemBadges && (
+                      <p className="mt-4 break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                        현재 선택한 템플릿은 메뉴 배지를 사용하지 않습니다. 설정값은 저장되지만 공개 메뉴판에는 표시되지 않을 수 있습니다.
+                      </p>
+                    )}
+                    <form action={updateBadgeStylesAction} className="mt-5 space-y-3">
+                      <HiddenMenuId menuId={site.id} />
+                      <fieldset className="space-y-3">
+                        {BADGE_STYLE_KEYS.map((key) => {
+                          const style = badgeStyles[key];
+                          const defaultStyle = defaultBadgeStyles[key];
+
+                          return (
+                            <div key={key} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-[1fr_170px_170px] md:items-end">
+                              <div>
+                                <p className="text-sm font-bold text-zinc-900">{BADGE_STYLE_LABELS[key]}</p>
+                                <span
+                                  className="mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black"
+                                  style={{ backgroundColor: style.background_color, color: style.text_color }}
+                                >
+                                  {BADGE_STYLE_LABELS[key]}
+                                </span>
+                                {!hasCustomBadgeStyles && (
+                                  <p className="mt-2 text-xs font-bold text-zinc-400">
+                                    템플릿 기본값 {defaultStyle.background_color} / {defaultStyle.text_color}
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <FieldLabel>배경색</FieldLabel>
+                                <ColorInput name={`badge_${key}_background_color`} defaultValue={style.background_color} />
+                              </div>
+                              <div>
+                                <FieldLabel>글자색</FieldLabel>
+                                <ColorInput name={`badge_${key}_text_color`} defaultValue={style.text_color} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </fieldset>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <SubmitButton>배지 색상 저장</SubmitButton>
+                        <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                          현재 템플릿의 기본 배지 색상으로 되돌리려면 전체 기본값으로 되돌리기를 사용하세요.
+                        </p>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </SectionCard>
             )}

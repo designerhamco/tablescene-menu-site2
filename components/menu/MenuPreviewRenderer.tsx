@@ -1,8 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ReactNode } from "react";
 
+import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
+import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
+import { getCustomTypographySettings, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
 import { formatMenuPrice, formatPortionLabel, shouldShowMenuItemTraits } from "@/types/menu";
 import type { MenuPageData } from "@/lib/menu-page-data";
 
@@ -23,6 +26,44 @@ function getCategoryItems(items: MenuPageData["items"], categoryId: string) {
 
 function getItemTraits(traits: MenuPageData["traits"], itemId: string) {
   return traits.filter((trait) => trait.menu_item_id === itemId);
+}
+
+function formatPriceOption(option: MenuPageData["priceOptions"][number]) {
+  if (option.price_label) return option.price_label;
+  if (typeof option.price === "number") return new Intl.NumberFormat("ko-KR").format(option.price) + "원";
+  return "";
+}
+
+function getItemPriceOptions(priceOptions: MenuPageData["priceOptions"], itemId: string) {
+  return priceOptions.filter((option) => option.menu_item_id === itemId && option.visible).sort((a, b) => a.sort_order - b.sort_order);
+}
+
+function getFeaturedPrice(data: MenuPreviewRendererProps, item: MenuItem, capabilities: TemplateCapabilities) {
+  if (item.price_visible === false) return null;
+  if (item.price_label?.trim()) return item.price_label.trim();
+
+  const optionSummary = capabilities.priceOptions
+    ? getItemPriceOptions(data.priceOptions, item.id)
+        .map((option) => {
+          const optionPrice = formatPriceOption(option);
+          return optionPrice ? `${option.label} ${optionPrice}` : option.label;
+        })
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(" / ")
+    : "";
+
+  return optionSummary || formatMenuPrice(item) || "문의";
+}
+
+function getFeaturedItem(data: MenuPreviewRendererProps, capabilities: TemplateCapabilities) {
+  if (!data.pageSettings.featured_item_enabled || !data.pageSettings.featured_item_id) return null;
+  if (!capabilities.featuredItemHero || !capabilities.menuItemImages) return null;
+
+  const featuredItem = data.items.find((item) => item.id === data.pageSettings.featured_item_id);
+  if (!featuredItem || featuredItem.visible === false || !featuredItem.image_url) return null;
+
+  return featuredItem;
 }
 
 function PreviewSection({
@@ -113,27 +154,70 @@ function IntroSection({ data }: { data: MenuPreviewRendererProps }) {
   );
 }
 
-function MenuCoverSection({ data }: { data: MenuPreviewRendererProps }) {
+function MenuCoverSection({ data, capabilities }: { data: MenuPreviewRendererProps; capabilities: TemplateCapabilities }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
   const menuCoverLabel = getMenuCoverLabel(menuSite);
+  const featuredItem = getFeaturedItem(data, capabilities);
+  const featuredPrice = featuredItem ? getFeaturedPrice(data, featuredItem, capabilities) : null;
+  const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
+  const featuredBadge = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : null;
+  const featuredBadgeStyle = featuredItem ? getBadgeStyleForItem(featuredItem, data.menuSite.template_key, customBadgeStyles) : null;
 
   return (
     <PreviewSection eyebrow="Menu Cover" title="메뉴 커버">
-      <div className="rounded-lg bg-zinc-950 p-6 text-white">
-        {menuCoverLabel && <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuCoverLabel}</p>}
-        <h3 className="mt-3 break-keep text-3xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h3>
-        {menuSite.menu_cover_description && (
-          <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
+      <div className={`grid gap-5 rounded-lg bg-zinc-950 p-6 text-white ${featuredItem ? "lg:grid-cols-[0.95fr_1.05fr] lg:items-center" : ""}`}>
+        <div>
+          {menuCoverLabel && <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuCoverLabel}</p>}
+          <h3 className="mt-3 break-keep text-3xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h3>
+          {menuSite.menu_cover_description && (
+            <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
+          )}
+        </div>
+        {featuredItem && (
+          <article className="overflow-hidden rounded-lg bg-white text-zinc-950">
+            <img src={featuredItem.image_url ?? ""} alt={featuredItem.name} className="aspect-[16/10] w-full object-cover" />
+            <div className="p-4">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-black text-white">대표 추천</span>
+                {featuredBadge && featuredBadgeStyle && (
+                  <span className="rounded-full px-2.5 py-1 text-[11px] font-black" style={getBadgeStyleCss(featuredBadgeStyle)}>
+                    {featuredBadge}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                <div>
+                  <h4 className="break-keep text-xl font-black tracking-tight">{featuredItem.name}</h4>
+                  {featuredItem.description && <p className="mt-2 line-clamp-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{featuredItem.description}</p>}
+                </div>
+                {featuredPrice && <p className="shrink-0 whitespace-nowrap text-sm font-black text-zinc-950">{featuredPrice}</p>}
+              </div>
+            </div>
+          </article>
         )}
       </div>
     </PreviewSection>
   );
 }
 
-function MenuItemCard({ item, traits, capabilities }: { item: MenuItem; traits: MenuPageData["traits"]; capabilities: TemplateCapabilities }) {
+function MenuItemCard({
+  item,
+  traits,
+  capabilities,
+  templateKey,
+  customBadgeStyles,
+}: {
+  item: MenuItem;
+  traits: MenuPageData["traits"];
+  capabilities: TemplateCapabilities;
+  templateKey: string | null;
+  customBadgeStyles: unknown;
+}) {
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
+  const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
+  const badgeStyle = badgeLabel ? getBadgeStyleForItem(item, templateKey, customBadgeStyles) : null;
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
 
   return (
@@ -144,6 +228,11 @@ function MenuItemCard({ item, traits, capabilities }: { item: MenuItem; traits: 
       <div className="p-4">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div>
+            {badgeLabel && badgeStyle && (
+              <span className="mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black" style={getBadgeStyleCss(badgeStyle)}>
+                {badgeLabel}
+              </span>
+            )}
             {item.set_name && <p className="mb-1 text-xs font-black text-zinc-400">{item.set_name}</p>}
             <h5 className="break-keep text-lg font-black text-zinc-950">{item.name}</h5>
             {item.description && <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{item.description}</p>}
@@ -167,6 +256,7 @@ function MenuItemCard({ item, traits, capabilities }: { item: MenuItem; traits: 
 }
 
 function MenuPagesSection({ data, capabilities }: { data: MenuPreviewRendererProps; capabilities: TemplateCapabilities }) {
+  const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
   const hasVisibleMenu = data.pages.some((page) =>
     data.categories.some((category) => category.menu_page_id === page.id && getCategoryItems(data.items, category.id).length > 0)
   );
@@ -205,7 +295,14 @@ function MenuPagesSection({ data, capabilities }: { data: MenuPreviewRendererPro
                         )}
                         <div className="mt-3 space-y-3">
                           {items.map((item) => (
-                            <MenuItemCard key={item.id} item={item} traits={getItemTraits(data.traits, item.id)} capabilities={capabilities} />
+                            <MenuItemCard
+                              key={item.id}
+                              item={item}
+                              traits={getItemTraits(data.traits, item.id)}
+                              capabilities={capabilities}
+                              templateKey={data.menuSite.template_key}
+                              customBadgeStyles={customBadgeStyles}
+                            />
                           ))}
                         </div>
                       </section>
@@ -328,11 +425,13 @@ export default function MenuPreviewRenderer(data: MenuPreviewRendererProps) {
   const { pageSettings } = data;
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
+  const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
+  const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
 
   return (
-    <div className="bg-zinc-50">
+    <div className="menu-typography bg-zinc-50" style={getTypographyCssVariables(typographySettings)}>
       {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
-      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} />}
+      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} capabilities={capabilities} />}
       {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
       {publicCapabilities.aboutPage && pageSettings.about_enabled && <AboutSection data={data} />}
       {publicCapabilities.chefs && capabilities.chefs && pageSettings.chefs_enabled && <ChefsSection data={data} />}

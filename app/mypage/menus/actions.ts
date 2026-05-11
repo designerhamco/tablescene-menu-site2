@@ -11,11 +11,21 @@ import { isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType } from "@/lib/social-links";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
+import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyles } from "@/lib/template-badge-styles";
 import { getTemplateCategoryFromKey, isTemplateCategoryKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
+import {
+  ENGLISH_FONT_OPTIONS,
+  KOREAN_FONT_OPTIONS,
+  isFontSizeScaleKey,
+  type EnglishFontKey,
+  type KoreanFontKey,
+} from "@/lib/template-typography-presets";
 import { mergePageSettings, validateMenuItemTrait } from "@/types/menu";
 
 const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
+const koreanFontKeys = new Set(KOREAN_FONT_OPTIONS.map((option) => option.key));
+const englishFontKeys = new Set(ENGLISH_FONT_OPTIONS.map((option) => option.key));
 
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
@@ -34,6 +44,10 @@ type MenuItemPriceOptionUpdate = Database["public"]["Tables"]["menu_item_price_o
 type MenuItemTraitInsert = Database["public"]["Tables"]["menu_item_traits"]["Insert"];
 type MenuItemTraitUpdate = Database["public"]["Tables"]["menu_item_traits"]["Update"];
 type LooseInsert = Record<string, unknown>;
+
+function getJsonObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, unknown>) } : {};
+}
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -355,7 +369,7 @@ async function requireOwnedMenuSite(menuId: string) {
 
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
-    .select("id, user_id, slug, status, published_at, page_settings")
+    .select("id, user_id, slug, status, published_at, settings, page_settings")
     .eq("id", menuId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -369,6 +383,120 @@ async function requireOwnedMenuSite(menuId: string) {
   }
 
   return { supabase, user, menuSite };
+}
+
+export async function updateBadgeStylesAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const badgeStyles = BADGE_STYLE_KEYS.reduce<BadgeStyles>((styles, key) => {
+    const backgroundColor = getString(formData, `badge_${key}_background_color`);
+    const textColor = getString(formData, `badge_${key}_text_color`);
+
+    if (!isHexColor(backgroundColor) || !isHexColor(textColor)) {
+      redirectToTabEditWithError(menuId, "design", "배지 색상은 #RRGGBB 형식으로 입력해주세요.");
+    }
+
+    styles[key] = {
+      background_color: backgroundColor.toUpperCase(),
+      text_color: textColor.toUpperCase(),
+    };
+    return styles;
+  }, {} as BadgeStyles);
+  const settings = {
+    ...getJsonObject(menuSite.settings),
+    badge_styles: badgeStyles,
+  };
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `배지 색상 저장에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", "배지/칩 색상이 저장되었습니다.");
+}
+
+export async function resetBadgeStylesAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const settings = getJsonObject(menuSite.settings);
+  delete settings.badge_styles;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `배지 기본값 복원에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 배지 색상으로 되돌렸습니다.");
+}
+
+export async function updateTypographySettingsAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const koreanFontKey = getString(formData, "korean_font_key");
+  const englishFontKey = getString(formData, "english_font_key");
+  const fontSizeScaleKey = getString(formData, "font_size_scale_key");
+
+  if (!koreanFontKeys.has(koreanFontKey as KoreanFontKey)) {
+    redirectToTabEditWithError(menuId, "design", "한글 폰트 선택값이 올바르지 않습니다.");
+  }
+
+  if (!englishFontKeys.has(englishFontKey as EnglishFontKey)) {
+    redirectToTabEditWithError(menuId, "design", "영문 폰트 선택값이 올바르지 않습니다.");
+  }
+
+  if (!isFontSizeScaleKey(fontSizeScaleKey)) {
+    redirectToTabEditWithError(menuId, "design", "글자 크기 선택값이 올바르지 않습니다.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const settings = {
+    ...getJsonObject(menuSite.settings),
+    typography: {
+      korean_font_key: koreanFontKey,
+      english_font_key: englishFontKey,
+      font_size_scale_key: fontSizeScaleKey,
+    },
+  };
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `글꼴과 글자 크기 저장에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", "글꼴과 글자 크기 설정이 저장되었습니다.");
+}
+
+export async function resetTypographySettingsAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const settings = getJsonObject(menuSite.settings);
+  delete settings.typography;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `글꼴 기본값 복원에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 글꼴과 글자 크기로 되돌렸습니다.");
 }
 
 async function assertCategoryBelongsToMenuSite(menuId: string, categoryId: string) {
@@ -720,10 +848,39 @@ export async function updateMenuCoverAction(formData: FormData) {
   const menuCoverLabel = getNullableString(formData, "menu_cover_label");
   const menuCoverTitle = getNullableString(formData, "menu_cover_title");
   const menuCoverDescription = getNullableString(formData, "menu_cover_description");
+  const currentSettings = mergePageSettings(menuSite.page_settings);
+  const requestedFeaturedItemId = getNullableString(formData, "featured_item_id");
+  const featuredItemEnabled = getBoolean(formData, "featured_item_enabled") && Boolean(requestedFeaturedItemId);
+  let featuredItemId: string | null = null;
 
   validateOptionalText(menuId, menuCoverLabel, "커버 상단 문구", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
   validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
   validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
+
+  if (featuredItemEnabled && requestedFeaturedItemId) {
+    const { data: featuredItem, error: featuredItemError } = await supabase
+      .from("menu_items")
+      .select("id")
+      .eq("id", requestedFeaturedItemId)
+      .eq("menu_site_id", menuId)
+      .maybeSingle();
+
+    if (featuredItemError) {
+      redirectToTabEditWithError(menuId, "cover", `대표 추천 메뉴 확인에 실패했습니다: ${featuredItemError.message}`);
+    }
+
+    if (!featuredItem) {
+      redirectToTabEditWithError(menuId, "cover", "대표 추천 메뉴를 다시 선택해주세요.");
+    }
+
+    featuredItemId = featuredItem.id;
+  }
+
+  const nextSettings = {
+    ...currentSettings,
+    featured_item_enabled: featuredItemEnabled,
+    featured_item_id: featuredItemEnabled ? featuredItemId : null,
+  };
 
   let { error } = await supabase
     .from("menu_sites")
@@ -731,6 +888,7 @@ export async function updateMenuCoverAction(formData: FormData) {
       menu_cover_label: menuCoverLabel,
       menu_cover_title: menuCoverTitle,
       menu_cover_description: menuCoverDescription,
+      page_settings: nextSettings,
       updated_at: new Date().toISOString(),
     })
     .eq("id", menuId);
@@ -741,6 +899,7 @@ export async function updateMenuCoverAction(formData: FormData) {
       .update({
         menu_cover_title: menuCoverTitle,
         menu_cover_description: menuCoverDescription,
+        page_settings: nextSettings,
         updated_at: new Date().toISOString(),
       })
       .eq("id", menuId);

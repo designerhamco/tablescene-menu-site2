@@ -117,6 +117,8 @@ const STARTER_PAGE_SETTINGS = {
   chefs_enabled: true,
   events_enabled: true,
   social_links_enabled: true,
+  featured_item_enabled: false,
+  featured_item_id: null,
 } as const;
 
 const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
@@ -129,6 +131,8 @@ const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
   chefs_enabled: false,
   events_enabled: false,
   social_links_enabled: false,
+  featured_item_enabled: false,
+  featured_item_id: null,
 } as const;
 
 function getStarterServiceType(productKey?: string | null): StarterServiceType {

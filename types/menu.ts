@@ -38,6 +38,8 @@ export type PageSettings = {
   chefs_enabled: boolean;
   events_enabled: boolean;
   social_links_enabled: boolean;
+  featured_item_enabled: boolean;
+  featured_item_id: string | null;
 };
 
 export type MenuItemTraitInput = {
@@ -80,6 +82,8 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   chefs_enabled: true,
   events_enabled: true,
   social_links_enabled: true,
+  featured_item_enabled: false,
+  featured_item_id: null,
 };
 
 export const UNASSIGNED_MENU_PAGE_KEY = "__unassigned__";
@@ -102,7 +106,9 @@ export function mergePageSettings(settings: Json | Partial<PageSettings> | null 
   const input = settings as Record<string, unknown>;
 
   for (const key of Object.keys(merged) as (keyof PageSettings)[]) {
-    if (typeof input[key] === "boolean") {
+    if (key === "featured_item_id") {
+      merged[key] = typeof input[key] === "string" && input[key].trim() ? input[key].trim() : null;
+    } else if (typeof input[key] === "boolean") {
       merged[key] = input[key];
     }
   }

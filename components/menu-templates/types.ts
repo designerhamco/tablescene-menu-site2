@@ -31,6 +31,7 @@ export type PublicMenuSite = Pick<
   | "opening_hours"
   | "map_url"
   | "page_settings"
+  | "settings"
 >;
 
 export type PublicMenuPage = Pick<

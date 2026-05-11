@@ -106,3 +106,52 @@ video {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+.menu-typography {
+  --menu-font-ko: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  --menu-font-en: "Outfit", system-ui, sans-serif;
+  --menu-font-size-scale: 1;
+  font-family: var(--menu-font-ko), var(--menu-font-en), system-ui, sans-serif;
+}
+
+.menu-typography .uppercase,
+.menu-typography [class*="tracking-"],
+.menu-typography .font-mono {
+  font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
+}
+
+.menu-typography .text-xs {
+  font-size: clamp(0.7rem, calc(0.75rem * var(--menu-font-size-scale)), 0.82rem);
+}
+
+.menu-typography .text-sm {
+  font-size: clamp(0.8rem, calc(0.875rem * var(--menu-font-size-scale)), 0.98rem);
+}
+
+.menu-typography .text-base {
+  font-size: clamp(0.94rem, calc(1rem * var(--menu-font-size-scale)), 1.08rem);
+}
+
+.menu-typography .text-lg {
+  font-size: clamp(1.02rem, calc(1.125rem * var(--menu-font-size-scale)), 1.22rem);
+}
+
+.menu-typography .text-xl {
+  font-size: clamp(1.12rem, calc(1.25rem * var(--menu-font-size-scale)), 1.36rem);
+}
+
+.menu-typography .text-2xl {
+  font-size: clamp(1.28rem, calc(1.5rem * var(--menu-font-size-scale)), 1.68rem);
+}
+
+.menu-typography .text-3xl {
+  font-size: clamp(1.55rem, calc(1.875rem * var(--menu-font-size-scale)), 2.08rem);
+}
+
+.menu-typography .text-4xl {
+  font-size: clamp(1.85rem, calc(2.25rem * var(--menu-font-size-scale)), 2.5rem);
+}
+
+.menu-typography .text-5xl {
+  font-size: clamp(2.2rem, calc(3rem * var(--menu-font-size-scale)), 3.35rem);
+}

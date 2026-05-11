@@ -3,6 +3,7 @@ export type TemplateCapabilities = {
   itemBadges: boolean;
   itemTraits: boolean;
   priceOptions: boolean;
+  featuredItemHero: boolean;
   chefs: boolean;
   events: boolean;
   socialLinks: boolean;
@@ -13,6 +14,7 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   itemBadges: true,
   itemTraits: true,
   priceOptions: true,
+  featuredItemHero: true,
   chefs: true,
   events: true,
   socialLinks: true,
@@ -25,6 +27,7 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     itemBadges: true,
     itemTraits: false,
     priceOptions: true,
+    featuredItemHero: false,
     chefs: false,
     events: true,
     socialLinks: true,

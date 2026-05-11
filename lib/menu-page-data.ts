@@ -19,7 +19,7 @@ type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 const baseSiteSelect =
-  "id, user_id, name, slug, template_key, status, description, logo_url, cover_image_url, brand_color, business_name, business_address, business_phone, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, page_settings";
+  "id, user_id, name, slug, template_key, status, description, logo_url, cover_image_url, brand_color, business_name, business_address, business_phone, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, settings, page_settings";
 const siteSelect = baseSiteSelect
   .replace("template_key", "template_key, template_category")
   .replace("restaurant_category", "restaurant_category, restaurant_type")

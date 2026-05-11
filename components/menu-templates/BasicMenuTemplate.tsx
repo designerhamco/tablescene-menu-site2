@@ -7,7 +7,15 @@ import type { PublicMenuTemplateProps } from "@/components/menu-templates/types"
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getMenuPublicCapabilities, type MenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
+import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
+import {
+  getMenuGridClassName,
+  getMenuLayoutDensity,
+  getTemplateLayoutRules,
+  type MenuLayoutDensity,
+} from "@/lib/template-layout-rules";
+import { getCustomTypographySettings, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
 import {
   formatEventPricePair,
   formatMenuPrice,
@@ -47,6 +55,35 @@ function formatPriceOption(option: PublicMenuTemplateProps["priceOptions"][numbe
   if (option.price_label) return option.price_label;
   if (typeof option.price === "number") return new Intl.NumberFormat("ko-KR").format(option.price) + "원";
   return "";
+}
+
+function getFeaturedPrice(data: PublicMenuTemplateProps, item: MenuItem, capabilities: TemplateCapabilities) {
+  if (item.price_visible === false) return null;
+  if (item.price_label?.trim()) return item.price_label.trim();
+
+  const visiblePriceOptions = capabilities.priceOptions ? getItemPriceOptions(data.priceOptions, item.id) : [];
+  const optionSummary = visiblePriceOptions
+    .map((option) => {
+      const optionPrice = formatPriceOption(option);
+      return optionPrice ? `${option.label} ${optionPrice}` : option.label;
+    })
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(" / ");
+
+  if (optionSummary) return optionSummary;
+
+  return formatMenuPrice(item) ?? "문의";
+}
+
+function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
+  if (!data.pageSettings.featured_item_enabled || !data.pageSettings.featured_item_id) return null;
+  if (!capabilities.featuredItemHero || !capabilities.menuItemImages) return null;
+
+  const featuredItem = data.items.find((item) => item.id === data.pageSettings.featured_item_id);
+  if (!featuredItem || featuredItem.visible === false || !featuredItem.image_url) return null;
+
+  return featuredItem;
 }
 
 function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
@@ -127,18 +164,47 @@ function IntroSection({ data }: { data: PublicMenuTemplateProps }) {
   );
 }
 
-function MenuCoverSection({ data }: { data: PublicMenuTemplateProps }) {
+function MenuCoverSection({ data, capabilities }: { data: PublicMenuTemplateProps; capabilities: TemplateCapabilities }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
   const menuCoverLabel = getMenuCoverLabel(menuSite);
+  const featuredItem = getFeaturedItem(data, capabilities);
+  const featuredPrice = featuredItem ? getFeaturedPrice(data, featuredItem, capabilities) : null;
+  const featuredBadge = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : null;
+  const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
+  const featuredBadgeStyle = featuredItem ? getBadgeStyleForItem(featuredItem, data.menuSite.template_key, customBadgeStyles) : null;
 
   return (
     <section className="bg-zinc-950 px-5 py-14 text-white">
-      <div className="mx-auto flex min-h-64 w-full max-w-3xl flex-col justify-center">
-        {menuCoverLabel && <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuCoverLabel}</p>}
-        <h2 className="mt-4 break-words text-4xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h2>
-        {menuSite.menu_cover_description && (
-          <p className="mt-5 max-w-2xl break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
+      <div className={`mx-auto grid min-h-64 w-full max-w-5xl items-center gap-8 ${featuredItem ? "lg:grid-cols-[0.95fr_1.05fr]" : ""}`}>
+        <div className="flex flex-col justify-center">
+          {menuCoverLabel && <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuCoverLabel}</p>}
+          <h2 className="mt-4 break-words text-4xl font-black tracking-tight">{menuSite.menu_cover_title || `${displayName} 메뉴`}</h2>
+          {menuSite.menu_cover_description && (
+            <p className="mt-5 max-w-2xl break-keep text-sm font-semibold leading-relaxed text-white/65">{menuSite.menu_cover_description}</p>
+          )}
+        </div>
+        {featuredItem && (
+          <article className="overflow-hidden rounded-lg border border-white/10 bg-white text-zinc-950 shadow-2xl shadow-black/20">
+            <img src={featuredItem.image_url ?? ""} alt={featuredItem.name} className="aspect-[16/10] w-full object-cover" />
+            <div className="p-5">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-black text-white">대표 추천</span>
+                {featuredBadge && featuredBadgeStyle && (
+                  <span className="rounded-full px-2.5 py-1 text-[11px] font-black" style={getBadgeStyleCss(featuredBadgeStyle)}>
+                    {featuredBadge}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                <div className="min-w-0">
+                  <h3 className="break-words text-2xl font-black tracking-tight">{featuredItem.name}</h3>
+                  {featuredItem.description && <p className="mt-2 line-clamp-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{featuredItem.description}</p>}
+                </div>
+                {featuredPrice && <p className="shrink-0 whitespace-nowrap text-sm font-black text-zinc-950">{featuredPrice}</p>}
+              </div>
+            </div>
+          </article>
         )}
       </div>
     </section>
@@ -150,22 +216,48 @@ function MenuItemCard({
   priceOptions,
   traits,
   capabilities,
+  density,
+  templateKey,
+  customBadgeStyles,
 }: {
   item: MenuItem;
   priceOptions: PublicMenuTemplateProps["priceOptions"];
   traits: PublicMenuTemplateProps["traits"];
   capabilities: TemplateCapabilities;
+  density: MenuLayoutDensity;
+  templateKey: string | null;
+  customBadgeStyles: unknown;
 }) {
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
   const visiblePriceOptions = capabilities.priceOptions && item.price_visible ? getItemPriceOptions(priceOptions, item.id) : [];
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
+  const badgeStyle = badgeLabel ? getBadgeStyleForItem(item, templateKey, customBadgeStyles) : null;
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits)
     ? traits
         .filter((trait) => trait.visible)
         .sort((a, b) => a.sort_order - b.sort_order)
         .slice(0, MENU_LIMITS.maxTraitsPerItem)
     : [];
+
+  const cardPaddingClassName = {
+    spacious: "p-5",
+    default: "p-4",
+    compact: "p-3.5",
+    ultraCompact: "p-3",
+  }[density];
+  const titleClassName = {
+    spacious: "text-lg",
+    default: "text-lg",
+    compact: "text-base",
+    ultraCompact: "text-[15px]",
+  }[density];
+  const descriptionClassName = {
+    spacious: "line-clamp-3",
+    default: "line-clamp-3",
+    compact: "line-clamp-2",
+    ultraCompact: "line-clamp-2",
+  }[density];
 
   return (
     <article className="overflow-hidden rounded-lg border border-zinc-100 bg-white">
@@ -176,16 +268,20 @@ function MenuItemCard({
           <ImagePlaceholder />
         )
       )}
-      <div className="p-4">
+      <div className={cardPaddingClassName}>
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              {badgeLabel && <span className="rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-black text-white">{badgeLabel}</span>}
+              {badgeLabel && badgeStyle && (
+                <span className="rounded-full px-2.5 py-1 text-[11px] font-black" style={getBadgeStyleCss(badgeStyle)}>
+                  {badgeLabel}
+                </span>
+              )}
               {item.is_sold_out && <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-black text-zinc-500">품절</span>}
             </div>
             {item.set_name && <p className="mb-1 text-xs font-black text-zinc-400">{item.set_name}</p>}
-            <h3 className="line-clamp-2 break-words text-lg font-black text-zinc-950">{item.name}</h3>
-            {item.description && <p className="mt-2 line-clamp-3 break-words text-sm font-semibold leading-relaxed text-zinc-500">{item.description}</p>}
+            <h3 className={`line-clamp-2 break-words font-black text-zinc-950 ${titleClassName}`}>{item.name}</h3>
+            {item.description && <p className={`mt-2 break-words text-sm font-semibold leading-relaxed text-zinc-500 ${descriptionClassName}`}>{item.description}</p>}
           </div>
           {price && visiblePriceOptions.length === 0 && <p className="shrink-0 whitespace-nowrap text-sm font-black text-zinc-950">{price}</p>}
         </div>
@@ -218,7 +314,18 @@ function MenuItemCard({
   );
 }
 
-function MenuPagesSection({ data, capabilities }: { data: PublicMenuTemplateProps; capabilities: TemplateCapabilities }) {
+function MenuPagesSection({
+  data,
+  capabilities,
+}: {
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+}) {
+  const totalVisibleItemCount = data.items.filter((item) => item.visible).length;
+  const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
+  const density = getMenuLayoutDensity(totalVisibleItemCount, layoutRules, "desktop");
+  const gridClassName = getMenuGridClassName(layoutRules, density);
+  const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
   const hasVisibleMenu = data.pages.some((page) =>
     data.categories.some((category) => category.menu_page_id === page.id && getCategoryItems(data.items, category.id).length > 0)
   );
@@ -255,7 +362,7 @@ function MenuPagesSection({ data, capabilities }: { data: PublicMenuTemplateProp
                         {category.description_visible && category.description && (
                           <p className="mt-1 break-keep text-sm font-semibold text-zinc-500">{category.description}</p>
                         )}
-                        <div className="mt-3 space-y-3">
+                        <div className={`mt-3 ${gridClassName}`}>
                           {items.map((item) => (
                             <MenuItemCard
                               key={item.id}
@@ -263,6 +370,9 @@ function MenuPagesSection({ data, capabilities }: { data: PublicMenuTemplateProp
                               priceOptions={data.priceOptions}
                               traits={getItemTraits(data.traits, item.id)}
                               capabilities={capabilities}
+                              density={density}
+                              templateKey={data.menuSite.template_key}
+                              customBadgeStyles={customBadgeStyles}
                             />
                           ))}
                         </div>
@@ -392,12 +502,14 @@ export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
   const { pageSettings } = data;
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
+  const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
+  const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
 
   return (
-    <div id="intro" className="bg-zinc-50 text-zinc-950">
+    <div id="intro" className="menu-typography bg-zinc-50 text-zinc-950" style={getTypographyCssVariables(typographySettings)}>
       {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
       <MenuGnb site={data.menuSite} />
-      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} />}
+      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} capabilities={capabilities} />}
       {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
       {publicCapabilities.aboutPage && pageSettings.about_enabled && (
         <AboutSection data={data} capabilities={capabilities} publicCapabilities={publicCapabilities} />
