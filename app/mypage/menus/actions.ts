@@ -11,7 +11,7 @@ import { isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType } from "@/lib/social-links";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
-import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyles } from "@/lib/template-badge-styles";
+import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
 import { getTemplateCategoryFromKey, isTemplateCategoryKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import {
   ENGLISH_FONT_OPTIONS,
@@ -439,6 +439,110 @@ export async function resetBadgeStylesAction(formData: FormData) {
   redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 배지 색상으로 되돌렸습니다.");
 }
 
+export async function updateBadgeStyleKeyAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const styleKey = getString(formData, "badge_style_key") as BadgeStyleKey;
+  const backgroundColor = getString(formData, "badge_background_color");
+  const textColor = getString(formData, "badge_text_color");
+
+  if (!BADGE_STYLE_KEYS.includes(styleKey)) {
+    redirectToMenuEditWithError(menuId, "배지 종류를 다시 선택해주세요.");
+  }
+
+  if (!isHexColor(backgroundColor) || !isHexColor(textColor)) {
+    redirectToMenuEditWithError(menuId, "배지 색상은 #RRGGBB 형식으로 입력해주세요.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const settings = getJsonObject(menuSite.settings);
+  const badgeStyles = getJsonObject(settings.badge_styles);
+  badgeStyles[styleKey] = {
+    background_color: backgroundColor.toUpperCase(),
+    text_color: textColor.toUpperCase(),
+  };
+  settings.badge_styles = badgeStyles;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToMenuEditWithError(menuId, `배지 색상 저장에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "배지 색상이 저장되었습니다.");
+}
+
+export async function resetBadgeStyleKeyAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const styleKey = getString(formData, "badge_style_key") as BadgeStyleKey;
+
+  if (!BADGE_STYLE_KEYS.includes(styleKey)) {
+    redirectToMenuEditWithError(menuId, "배지 종류를 다시 선택해주세요.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const settings = getJsonObject(menuSite.settings);
+  const badgeStyles = getJsonObject(settings.badge_styles);
+  delete badgeStyles[styleKey];
+
+  if (Object.keys(badgeStyles).length > 0) {
+    settings.badge_styles = badgeStyles;
+  } else {
+    delete settings.badge_styles;
+  }
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToMenuEditWithError(menuId, `배지 기본값 복원에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "선택한 배지를 현재 템플릿의 기본 색상으로 되돌렸습니다.");
+}
+
+async function saveBadgeStyleFromMenuItemForm(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  menuId: string,
+  menuSite: { settings: unknown },
+  formData: FormData
+) {
+  const styleKey = getString(formData, "badge_style_key") as BadgeStyleKey;
+  if (!styleKey) return;
+
+  if (!BADGE_STYLE_KEYS.includes(styleKey)) {
+    redirectToMenuEditWithError(menuId, "배지 종류를 다시 선택해주세요.");
+  }
+
+  const backgroundColor = getString(formData, "badge_background_color");
+  const textColor = getString(formData, "badge_text_color");
+
+  if (!isHexColor(backgroundColor) || !isHexColor(textColor)) {
+    redirectToMenuEditWithError(menuId, "배지 색상은 #RRGGBB 형식으로 입력해주세요.");
+  }
+
+  const settings = getJsonObject(menuSite.settings);
+  const badgeStyles = getJsonObject(settings.badge_styles);
+  badgeStyles[styleKey] = {
+    background_color: backgroundColor.toUpperCase(),
+    text_color: textColor.toUpperCase(),
+  };
+  settings.badge_styles = badgeStyles;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToMenuEditWithError(menuId, `배지 색상 저장에 실패했습니다: ${error.message}`);
+}
+
 export async function updateTypographySettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
@@ -863,6 +967,7 @@ export async function updateMenuCoverAction(formData: FormData) {
       .select("id")
       .eq("id", requestedFeaturedItemId)
       .eq("menu_site_id", menuId)
+      .eq("visible", true)
       .maybeSingle();
 
     if (featuredItemError) {
@@ -870,7 +975,7 @@ export async function updateMenuCoverAction(formData: FormData) {
     }
 
     if (!featuredItem) {
-      redirectToTabEditWithError(menuId, "cover", "대표 추천 메뉴를 다시 선택해주세요.");
+      redirectToTabEditWithError(menuId, "cover", "대표 추천 메뉴는 공개/활성 메뉴 중에서 선택해주세요.");
     }
 
     featuredItemId = featuredItem.id;
@@ -1389,6 +1494,8 @@ export async function createMenuItemAction(formData: FormData) {
     }
   }
 
+  await saveBadgeStyleFromMenuItemForm(supabase, menuId, menuSite, formData);
+
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToMenuEdit(menuId, "아이템이 추가되었습니다.");
 }
@@ -1518,6 +1625,8 @@ export async function updateMenuItemAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, `단일 가격 전환 중 기존 가격 옵션 숨김 처리에 실패했습니다: ${hidePriceOptionsError.message}`);
     }
   }
+
+  await saveBadgeStyleFromMenuItemForm(supabase, menuId, menuSite, formData);
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToMenuEdit(menuId, "아이템이 저장되었습니다.");

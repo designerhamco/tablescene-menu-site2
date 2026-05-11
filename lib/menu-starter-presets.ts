@@ -905,6 +905,7 @@ export async function createStarterMenuData(
   const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory);
   const serviceType = getStarterServiceType(productKey);
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
+  const starterMenuItemsVisible = !useLeanPreset;
   const { count, error: countError } = await supabase
     .from("menu_pages")
     .select("id", { count: "exact", head: true })
@@ -980,7 +981,7 @@ export async function createStarterMenuData(
         price_visible: true,
         portion_visible: true,
         traits_visible: true,
-        visible: true,
+        visible: starterMenuItemsVisible,
         sort_order: index + 1,
       }));
     });

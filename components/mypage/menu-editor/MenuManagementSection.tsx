@@ -11,7 +11,9 @@ import {
   deleteMenuItemAction,
   deleteMenuItemPriceOptionAction,
   deleteMenuPageAction,
+  resetBadgeStyleKeyAction,
   updateCategoryAction,
+  updateBadgeStyleKeyAction,
   updateMenuItemAction,
   updateMenuItemPriceOptionAction,
   updateMenuPageAction,
@@ -21,6 +23,14 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import { getMenuItemBadgeLabel, MENU_BADGE_OPTIONS } from "@/lib/menu-badges";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import type { Database } from "@/lib/supabase/types";
+import {
+  BADGE_STYLE_LABELS,
+  getBadgeStyleCss,
+  getBadgeStyleKey,
+  type BadgeStyle,
+  type BadgeStyleKey,
+  type BadgeStyles,
+} from "@/lib/template-badge-styles";
 import type { TemplateCapabilities } from "@/lib/template-capabilities";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
 
@@ -66,6 +76,8 @@ type MenuManagementSectionProps = {
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
+  badgeStyles: BadgeStyles;
+  defaultBadgeStyles: BadgeStyles;
 };
 type PriceMode = "single" | "options";
 type DraftPriceOption = {
@@ -313,6 +325,7 @@ function SubmitButton({
   children,
   tone = "dark",
   disabled = false,
+  className: customClassName,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" }) {
   const className = {
@@ -326,7 +339,7 @@ function SubmitButton({
       type="submit"
       disabled={disabled}
       {...props}
-      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 ${className}`}
+      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
     >
       {children}
     </button>
@@ -337,15 +350,165 @@ function HiddenMenuId({ menuId, form }: { menuId: string; form?: string }) {
   return <input type="hidden" name="menuId" value={menuId} form={form} />;
 }
 
-function BadgeSelect({ defaultValue = "none", form }: { defaultValue?: string | null; form?: string }) {
+function BadgeSelect({
+  defaultValue = "none",
+  form,
+  value,
+  onChange,
+}: {
+  defaultValue?: string | null;
+  form?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+}) {
   return (
-    <Select name="item_badge_label" form={form} defaultValue={defaultValue || "none"}>
+    <Select
+      name="item_badge_label"
+      form={form}
+      value={value}
+      defaultValue={value === undefined ? defaultValue || "none" : undefined}
+      onChange={(event) => onChange?.(event.target.value)}
+    >
       {MENU_BADGE_OPTIONS.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
         </option>
       ))}
     </Select>
+  );
+}
+
+function ColorInput({
+  name,
+  form,
+  value,
+  onChange,
+}: {
+  name: string;
+  form?: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const colorPickerValue = /^#[0-9A-Fa-f]{6}$/.test(value) ? value : "#000000";
+
+  return (
+    <div className="mt-2 flex min-w-0 overflow-hidden rounded-lg border border-zinc-200 bg-white focus-within:border-zinc-950">
+      <input type="hidden" name={name} form={form} value={value} />
+      <input
+        type="color"
+        form={form}
+        value={colorPickerValue}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-10 w-11 shrink-0 cursor-pointer border-0 bg-transparent p-1"
+      />
+      <input
+        type="text"
+        form={form}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        pattern="#[0-9A-Fa-f]{6}"
+        className="min-w-0 flex-1 px-2 text-xs font-bold uppercase text-zinc-900 outline-none"
+        aria-label={name}
+      />
+    </div>
+  );
+}
+
+function BadgeColorInlineSettings({
+  menuId,
+  formId,
+  selectedBadgeLabel,
+  badgeStyles,
+  defaultBadgeStyles,
+}: {
+  menuId: string;
+  formId: string;
+  selectedBadgeLabel: string;
+  badgeStyles: BadgeStyles;
+  defaultBadgeStyles: BadgeStyles;
+}) {
+  if (!selectedBadgeLabel || selectedBadgeLabel === "none") {
+    return <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">배지를 선택하면 색상을 조정할 수 있습니다.</p>;
+  }
+
+  const styleKey = getBadgeStyleKey(selectedBadgeLabel);
+  const displayLabel = selectedBadgeLabel === "추천" ? "추천" : selectedBadgeLabel;
+  const selectedStyle = badgeStyles[styleKey];
+  const defaultStyle = defaultBadgeStyles[styleKey];
+  return (
+    <BadgeColorFields
+      key={styleKey}
+      menuId={menuId}
+      formId={formId}
+      styleKey={styleKey}
+      displayLabel={displayLabel}
+      selectedStyle={selectedStyle}
+      defaultStyle={defaultStyle}
+    />
+  );
+}
+
+function BadgeColorFields({
+  menuId,
+  formId,
+  styleKey,
+  displayLabel,
+  selectedStyle,
+  defaultStyle,
+}: {
+  menuId: string;
+  formId: string;
+  styleKey: BadgeStyleKey;
+  displayLabel: string;
+  selectedStyle: BadgeStyle;
+  defaultStyle: BadgeStyle;
+}) {
+  const [backgroundColor, setBackgroundColor] = useState(selectedStyle.background_color);
+  const [textColor, setTextColor] = useState(selectedStyle.text_color);
+  const previewStyle: BadgeStyle = {
+    background_color: backgroundColor,
+    text_color: textColor,
+  };
+  const guideText =
+    styleKey === "default"
+      ? "기타 배지 기본 색상에 적용됩니다."
+      : `${BADGE_STYLE_LABELS[styleKey]} 색상을 변경하면 모든 ${BADGE_STYLE_LABELS[styleKey]} 배지에 공통 적용됩니다.`;
+
+  return (
+    <div className="mt-3 max-w-full min-w-0 overflow-hidden rounded-lg border border-zinc-100 bg-zinc-50 p-3">
+      <input type="hidden" name="badge_style_key" value={styleKey} form={formId} />
+      <div className="grid min-w-0 gap-2">
+        <span className="inline-flex w-fit max-w-full rounded-full px-2.5 py-1 text-[11px] font-black" style={getBadgeStyleCss(previewStyle)}>
+          {displayLabel}
+        </span>
+        <p className="min-w-0 break-keep text-xs font-bold leading-relaxed text-zinc-400">{guideText}</p>
+      </div>
+      <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
+        <div>
+          <FieldLabel>배경색</FieldLabel>
+          <ColorInput name="badge_background_color" form={formId} value={backgroundColor} onChange={setBackgroundColor} />
+        </div>
+        <div>
+          <FieldLabel>글자색</FieldLabel>
+          <ColorInput name="badge_text_color" form={formId} value={textColor} onChange={setTextColor} />
+        </div>
+      </div>
+      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">아이템 저장을 누르면 배지 색상도 함께 저장됩니다.</p>
+      <form action={updateBadgeStyleKeyAction} className="mt-3 flex min-w-0 flex-wrap gap-2">
+        <HiddenMenuId menuId={menuId} />
+        <input type="hidden" name="badge_style_key" value={styleKey} />
+        <input type="hidden" name="badge_background_color" value={backgroundColor} />
+        <input type="hidden" name="badge_text_color" value={textColor} />
+        <SubmitButton className="min-w-0 px-4 py-2 text-xs">색상만 저장</SubmitButton>
+      </form>
+      <form action={resetBadgeStyleKeyAction} className="mt-2">
+        <HiddenMenuId menuId={menuId} />
+        <input type="hidden" name="badge_style_key" value={styleKey} />
+        <button type="submit" className="max-w-full break-keep text-left text-xs font-bold leading-relaxed text-zinc-400 underline-offset-4 hover:text-zinc-950 hover:underline">
+          {BADGE_STYLE_LABELS[styleKey]} 기본값으로 되돌리기 ({defaultStyle.background_color} / {defaultStyle.text_color})
+        </button>
+      </form>
+    </div>
   );
 }
 
@@ -533,6 +696,8 @@ function MenuItemForm({
   menuId,
   categories,
   capabilities,
+  badgeStyles,
+  defaultBadgeStyles,
   item,
   itemCount,
   selectedCategoryId,
@@ -545,6 +710,8 @@ function MenuItemForm({
   menuId: string;
   categories: MenuCategory[];
   capabilities: TemplateCapabilities;
+  badgeStyles: BadgeStyles;
+  defaultBadgeStyles: BadgeStyles;
   item?: MenuItem;
   itemCount: number;
   selectedCategoryId: string;
@@ -555,6 +722,7 @@ function MenuItemForm({
   onCancel: () => void;
 }) {
   const [name, setName] = useState(item?.name ?? "");
+  const [selectedBadgeLabel, setSelectedBadgeLabel] = useState(item ? getMenuItemBadgeLabel(item) || "none" : "none");
   const [categoryId, setCategoryId] = useState(item?.category_id ?? selectedCategoryId);
   const nameInvalid = !name.trim() || name.length > MENU_FIELD_LIMITS.menuItems.name;
   const categoryInvalid = !categoryId;
@@ -741,12 +909,29 @@ function MenuItemForm({
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ValidatedTextInput form={formId} name="item_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={item?.sort_order ?? itemCount} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
           {capabilities.itemBadges ? (
-            <div>
+            <div className="min-w-0">
               <FieldLabel>메뉴 배지</FieldLabel>
-              <BadgeSelect form={formId} defaultValue={item ? getMenuItemBadgeLabel(item) : "none"} />
+              <div className="mt-2 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                <BadgeSelect form={formId} value={selectedBadgeLabel} onChange={setSelectedBadgeLabel} />
+                {selectedBadgeLabel !== "none" && (
+                  <span
+                    className="inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-black"
+                    style={getBadgeStyleCss(badgeStyles[getBadgeStyleKey(selectedBadgeLabel)])}
+                  >
+                    {selectedBadgeLabel}
+                  </span>
+                )}
+              </div>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                 선택한 배지는 공개 메뉴판의 메뉴 카드에 작게 표시됩니다.
               </p>
+              <BadgeColorInlineSettings
+                menuId={menuId}
+                formId={formId}
+                selectedBadgeLabel={selectedBadgeLabel}
+                badgeStyles={badgeStyles}
+                defaultBadgeStyles={defaultBadgeStyles}
+              />
             </div>
           ) : (
             <input type="hidden" name="item_badge_label" value={item ? getMenuItemBadgeLabel(item) || "none" : "none"} form={formId} />
@@ -1042,7 +1227,17 @@ function DraftPriceOptionsEditor({
   );
 }
 
-export default function MenuManagementSection({ menuId, menuPages, categories, items, priceOptions, traits, capabilities }: MenuManagementSectionProps) {
+export default function MenuManagementSection({
+  menuId,
+  menuPages,
+  categories,
+  items,
+  priceOptions,
+  traits,
+  capabilities,
+  badgeStyles,
+  defaultBadgeStyles,
+}: MenuManagementSectionProps) {
   const sortedPages = useMemo(() => sortMenuPages(menuPages), [menuPages]);
   const firstPageId = sortedPages[0]?.id ?? "";
   const [selectedPageId, setSelectedPageId] = useState(firstPageId);
@@ -1432,6 +1627,8 @@ export default function MenuManagementSection({ menuId, menuPages, categories, i
               menuId={menuId}
               categories={categoriesForPage}
               capabilities={capabilities}
+              badgeStyles={badgeStyles}
+              defaultBadgeStyles={defaultBadgeStyles}
               itemCount={itemsForCategory.length}
               selectedCategoryId={selectedCategory.id}
               onCancel={resetModes}
@@ -1449,6 +1646,8 @@ export default function MenuManagementSection({ menuId, menuPages, categories, i
               priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
               traits={traits.filter((trait) => trait.menu_item_id === item.id)}
               capabilities={capabilities}
+              badgeStyles={badgeStyles}
+              defaultBadgeStyles={defaultBadgeStyles}
               isEditing={editingItemId === item.id}
               isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
               onEdit={() => startEditItem(item.id)}
@@ -1472,6 +1671,8 @@ function MenuItemCard({
   priceOptions,
   traits,
   capabilities,
+  badgeStyles,
+  defaultBadgeStyles,
   isEditing,
   isConfirmingDelete,
   onEdit,
@@ -1484,6 +1685,8 @@ function MenuItemCard({
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
+  badgeStyles: BadgeStyles;
+  defaultBadgeStyles: BadgeStyles;
   isEditing: boolean;
   isConfirmingDelete: boolean;
   onEdit: () => void;
@@ -1491,6 +1694,7 @@ function MenuItemCard({
   onRequestDelete: () => void;
 }) {
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
+  const badgeStyle = badgeLabel ? badgeStyles[getBadgeStyleKey(item)] : null;
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
   const priceOptionText = capabilities.priceOptions ? priceOptionSummary(priceOptions) : "";
@@ -1510,6 +1714,8 @@ function MenuItemCard({
             menuId={menuId}
             categories={categories}
             capabilities={capabilities}
+            badgeStyles={badgeStyles}
+            defaultBadgeStyles={defaultBadgeStyles}
             item={item}
             itemCount={0}
             selectedCategoryId={item.category_id ?? ""}
@@ -1525,7 +1731,11 @@ function MenuItemCard({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-xl font-bold">{item.name}</h3>
-            {badgeLabel && <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{badgeLabel}</span>}
+            {badgeLabel && badgeStyle && (
+              <span className="rounded-full px-3 py-1 text-xs font-bold" style={getBadgeStyleCss(badgeStyle)}>
+                {badgeLabel}
+              </span>
+            )}
             {!item.visible && <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">숨김</span>}
           </div>
           <p className="mt-2 text-sm font-bold text-zinc-400">{categoryName}</p>

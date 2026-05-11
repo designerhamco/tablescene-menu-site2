@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 import {
-  resetBadgeStylesAction,
   resetTypographySettingsAction,
   updateAboutAction,
-  updateBadgeStylesAction,
   updateIntroAction,
   updateMenuCoverAction,
   updateMenuSiteAction,
@@ -38,8 +36,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import {
-  BADGE_STYLE_KEYS,
-  BADGE_STYLE_LABELS,
   getCustomBadgeStyles,
   getDefaultBadgeStyles,
   mergeBadgeStyles,
@@ -176,22 +172,6 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
         </div>
       )}
     </>
-  );
-}
-
-function ColorInput({ name, defaultValue }: { name: string; defaultValue: string }) {
-  return (
-    <div className="mt-2 flex overflow-hidden rounded-lg border border-zinc-200 bg-white focus-within:border-zinc-950">
-      <input type="color" name={name} defaultValue={defaultValue} className="h-11 w-14 shrink-0 cursor-pointer border-0 bg-transparent p-1" />
-      <input
-        type="text"
-        defaultValue={defaultValue}
-        readOnly
-        pattern="#[0-9A-Fa-f]{6}"
-        className="min-w-0 flex-1 px-3 text-sm font-semibold uppercase text-zinc-900 outline-none"
-        aria-label={name}
-      />
-    </div>
   );
 }
 
@@ -446,19 +426,22 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const customBadgeStyles = getCustomBadgeStyles(site.settings, site.page_settings);
   const badgeStyles = mergeBadgeStyles(site.template_key, customBadgeStyles);
   const defaultBadgeStyles = getDefaultBadgeStyles(site.template_key);
-  const hasCustomBadgeStyles = Boolean(customBadgeStyles);
   const customTypography = getCustomTypographySettings(site.settings, site.page_settings);
   const typographySettings = mergeTypographySettings(site.template_key, customTypography);
   const defaultTypography = getDefaultTypographyPreset(site.template_key);
   const hasCustomTypography = Boolean(customTypography);
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
-  const featuredItemOptions = items.map((item) => ({
-    id: item.id,
-    label: item.name,
-    categoryName: item.category_id ? categoryNameById.get(item.category_id) ?? "미분류" : "미분류",
-    price: formatMenuPrice(item) ?? "문의",
-    imageStatus: item.image_url ? "이미지 있음" : "이미지 없음",
-  }));
+  const featuredItemOptions = items
+    .filter((item) => item.visible === true)
+    .map((item) => ({
+      id: item.id,
+      label: item.name,
+      categoryName: item.category_id ? categoryNameById.get(item.category_id) ?? "미분류" : "미분류",
+      price: formatMenuPrice(item) ?? "문의",
+      imageStatus: item.image_url ? "이미지 있음" : "이미지 없음",
+    }));
+  const selectedFeaturedItem = pageSettings.featured_item_id ? items.find((item) => item.id === pageSettings.featured_item_id) : null;
+  const selectedFeaturedItemInactive = Boolean(pageSettings.featured_item_enabled && pageSettings.featured_item_id && selectedFeaturedItem?.visible !== true);
   const visibleEditorTabs = MENU_EDITOR_TABS.filter((item) => {
     if (!isMenuEditorTabEnabled(item.key, editorCapabilities)) {
       return false;
@@ -679,12 +662,22 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           helperText="대표 추천 메뉴는 이미지가 있을 때 가장 잘 보입니다. 이미지가 없는 경우 공개 메뉴판에서 대표 영역이 표시되지 않을 수 있습니다."
                         >
                           <option value="">대표로 보여줄 메뉴를 선택해주세요</option>
+                          {selectedFeaturedItemInactive && selectedFeaturedItem && (
+                            <option value={selectedFeaturedItem.id} disabled>
+                              {selectedFeaturedItem.name} · 숨김 처리됨
+                            </option>
+                          )}
                           {featuredItemOptions.map((item) => (
                             <option key={item.id} value={item.id}>
                               {item.label} · {item.categoryName} · {item.price} · {item.imageStatus}
                             </option>
                           ))}
                         </Select>
+                        {selectedFeaturedItemInactive && (
+                          <p className="mt-3 break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                            선택한 대표 추천 메뉴가 숨김 처리되어 공개 메뉴판에는 표시되지 않습니다. 선택을 해제하려면 “대표 추천 메뉴 사용”을 끄거나 선택값을 비운 뒤 저장해주세요.
+                          </p>
+                        )}
                       </div>
                       {(!templateCapabilities.featuredItemHero || !templateCapabilities.menuItemImages) && (
                         <p className="break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
@@ -701,7 +694,17 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "menu" && (
-              <MenuManagementSection menuId={site.id} menuPages={menuPages} categories={categories} items={items} priceOptions={priceOptions} traits={traits} capabilities={templateCapabilities} />
+              <MenuManagementSection
+                menuId={site.id}
+                menuPages={menuPages}
+                categories={categories}
+                items={items}
+                priceOptions={priceOptions}
+                traits={traits}
+                capabilities={templateCapabilities}
+                badgeStyles={badgeStyles}
+                defaultBadgeStyles={defaultBadgeStyles}
+              />
             )}
 
             {activeTab === "about" && (
@@ -839,72 +842,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </p>
                       )}
                       <SubmitButton>글꼴 설정 저장</SubmitButton>
-                    </form>
-                  </div>
-                  <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                      <div>
-                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">배지/칩 색상</h3>
-                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                          BEST, SIGNATURE, NEW, 추천 같은 메뉴 배지의 배경색과 글자색을 각각 설정할 수 있습니다.
-                        </p>
-                      </div>
-                      <form action={resetBadgeStylesAction}>
-                        <HiddenMenuId menuId={site.id} />
-                        <button
-                          type="submit"
-                          className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
-                        >
-                          전체 기본값으로 되돌리기
-                        </button>
-                      </form>
-                    </div>
-                    {!templateCapabilities.itemBadges && (
-                      <p className="mt-4 break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
-                        현재 선택한 템플릿은 메뉴 배지를 사용하지 않습니다. 설정값은 저장되지만 공개 메뉴판에는 표시되지 않을 수 있습니다.
-                      </p>
-                    )}
-                    <form action={updateBadgeStylesAction} className="mt-5 space-y-3">
-                      <HiddenMenuId menuId={site.id} />
-                      <fieldset className="space-y-3">
-                        {BADGE_STYLE_KEYS.map((key) => {
-                          const style = badgeStyles[key];
-                          const defaultStyle = defaultBadgeStyles[key];
-
-                          return (
-                            <div key={key} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-[1fr_170px_170px] md:items-end">
-                              <div>
-                                <p className="text-sm font-bold text-zinc-900">{BADGE_STYLE_LABELS[key]}</p>
-                                <span
-                                  className="mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black"
-                                  style={{ backgroundColor: style.background_color, color: style.text_color }}
-                                >
-                                  {BADGE_STYLE_LABELS[key]}
-                                </span>
-                                {!hasCustomBadgeStyles && (
-                                  <p className="mt-2 text-xs font-bold text-zinc-400">
-                                    템플릿 기본값 {defaultStyle.background_color} / {defaultStyle.text_color}
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <FieldLabel>배경색</FieldLabel>
-                                <ColorInput name={`badge_${key}_background_color`} defaultValue={style.background_color} />
-                              </div>
-                              <div>
-                                <FieldLabel>글자색</FieldLabel>
-                                <ColorInput name={`badge_${key}_text_color`} defaultValue={style.text_color} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </fieldset>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <SubmitButton>배지 색상 저장</SubmitButton>
-                        <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                          현재 템플릿의 기본 배지 색상으로 되돌리려면 전체 기본값으로 되돌리기를 사용하세요.
-                        </p>
-                      </div>
                     </form>
                   </div>
                 </div>
