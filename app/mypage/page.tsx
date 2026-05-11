@@ -155,7 +155,7 @@ export default async function MyPage() {
                       <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
                         <dt className="text-zinc-400">공개 URL</dt>
                         <dd>
-                          <Link href={publicUrl} className="font-bold text-zinc-950 hover:underline">
+                          <Link href={publicUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-950 hover:underline">
                             {publicUrl}
                           </Link>
                         </dd>
@@ -171,6 +171,8 @@ export default async function MyPage() {
                       </Link>
                       <Link
                         href={publicUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
                       >
                         미리보기

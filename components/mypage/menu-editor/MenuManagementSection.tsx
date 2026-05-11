@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
+  copyMenuPageAction,
   createCategoryAction,
   createMenuItemAction,
   createMenuItemPriceOptionAction,
@@ -19,6 +20,7 @@ import {
   updateMenuPageAction,
 } from "@/app/mypage/menus/actions";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
+import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import { getMenuItemBadgeLabel, MENU_BADGE_OPTIONS } from "@/lib/menu-badges";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
@@ -530,6 +532,8 @@ function DeleteConfirmForm({
   menuId,
   hiddenName,
   hiddenValue,
+  title = "정말 삭제하시겠습니까?",
+  description,
   disabledReason,
   isConfirming,
   onRequestConfirm,
@@ -539,6 +543,8 @@ function DeleteConfirmForm({
   menuId: string;
   hiddenName: string;
   hiddenValue: string;
+  title?: string;
+  description?: string;
   disabledReason?: string;
   isConfirming: boolean;
   onRequestConfirm: () => void;
@@ -558,7 +564,8 @@ function DeleteConfirmForm({
 
   return (
     <div className="rounded-lg border border-red-100 bg-red-50 p-4">
-      <p className="text-sm font-bold text-red-700">정말 삭제하시겠습니까?</p>
+      <p className="text-sm font-bold text-red-700">{title}</p>
+      {description && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{description}</p>}
       {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
       <div className="mt-3 flex flex-wrap gap-2">
         <form action={action}>
@@ -576,14 +583,26 @@ function DeleteConfirmForm({
   );
 }
 
-function MenuPageForm({ menuId, page, count, onCancel }: { menuId: string; page?: MenuPage; count: number; onCancel: () => void }) {
-  const [title, setTitle] = useState(page?.title ?? "");
+function MenuPageForm({
+  menuId,
+  page,
+  count,
+  formId,
+  onCancel,
+}: {
+  menuId: string;
+  page?: MenuPage;
+  count: number;
+  formId: string;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState(page?.title ?? `메뉴 페이지 ${count + 1}`);
   const [description, setDescription] = useState(page?.description ?? "");
   const titleInvalid = !title.trim() || title.length > MENU_FIELD_LIMITS.menuPages.title;
   const hasDescription = Boolean(description.trim());
 
   return (
-    <form action={page ? updateMenuPageAction : createMenuPageAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+    <form id={formId} action={page ? updateMenuPageAction : createMenuPageAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
       <HiddenMenuId menuId={menuId} />
       {page && <input type="hidden" name="menuPageId" value={page.id} />}
       <div>
@@ -632,12 +651,14 @@ function MenuCategoryForm({
   pageId,
   category,
   count,
+  formId,
   onCancel,
 }: {
   menuId: string;
   pageId: string;
   category?: MenuCategory;
   count: number;
+  formId: string;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(category?.name ?? "");
@@ -646,17 +667,17 @@ function MenuCategoryForm({
   const hasDescription = Boolean(description.trim());
 
   return (
-    <form action={category ? updateCategoryAction : createCategoryAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+    <form id={formId} action={category ? updateCategoryAction : createCategoryAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
       <HiddenMenuId menuId={menuId} />
       {category && <input type="hidden" name="categoryId" value={category.id} />}
       <input type="hidden" name="category_menu_page_id" value={category?.menu_page_id ?? pageId} />
       <div>
-        <FieldLabel required>메뉴 카테고리 이름</FieldLabel>
+        <FieldLabel required>메뉴 그룹 이름</FieldLabel>
         <input
           name="category_name"
           value={name}
           maxLength={MENU_FIELD_LIMITS.menuCategories.name}
-          placeholder="메뉴 카테고리 이름을 입력하세요"
+          placeholder="메뉴 그룹 이름을 입력하세요"
           required
           onChange={(event) => setName(event.target.value)}
           className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
@@ -670,7 +691,7 @@ function MenuCategoryForm({
           <span className={name.length > MENU_FIELD_LIMITS.menuCategories.name ? "text-red-600" : "text-zinc-400"}>{name.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
         </div>
       </div>
-      <ValidatedTextArea name="category_description" label="메뉴 카테고리 설명" defaultValue={category?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuCategories.description} helperText="카테고리 소개 문구입니다." onValueChange={setDescription} />
+      <ValidatedTextArea name="category_description" label="메뉴 그룹 설명" defaultValue={category?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuCategories.description} helperText="메뉴 그룹 소개 문구입니다." onValueChange={setDescription} />
       <ValidatedTextInput name="category_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={category?.sort_order ?? count} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
       <div className="grid gap-3">
         <Checkbox
@@ -683,7 +704,7 @@ function MenuCategoryForm({
         <Checkbox name="category_visible" label="메뉴판 표시" defaultChecked={category?.visible ?? true} />
       </div>
       <SubmitButton tone={category ? "light" : "dark"} disabled={nameInvalid}>
-        {category ? "메뉴 카테고리 저장" : "메뉴 카테고리 추가"}
+        {category ? "메뉴 그룹 저장" : "메뉴 그룹 추가"}
       </SubmitButton>
       <button type="button" onClick={onCancel} className="ml-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
         취소
@@ -817,9 +838,16 @@ function MenuItemForm({
     });
   }
 
+  function handleItemSubmit(event: React.FormEvent<HTMLFormElement>) {
+    setAttemptedItemSubmit(true);
+    if (singlePriceInvalid || optionsPriceInvalid) {
+      event.preventDefault();
+    }
+  }
+
   return (
     <div className="mt-4 grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-      <form id={formId} action={item ? updateMenuItemAction : createMenuItemAction} className="hidden" />
+      <form id={formId} action={item ? updateMenuItemAction : createMenuItemAction} onSubmit={handleItemSubmit} className="hidden" />
       <HiddenMenuId menuId={menuId} form={formId} />
       {item && <input type="hidden" name="itemId" value={item.id} form={formId} />}
       <input type="hidden" name="item_price_mode" value={currentPriceMode} form={formId} />
@@ -840,7 +868,7 @@ function MenuItemForm({
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <FieldLabel required>메뉴 카테고리</FieldLabel>
+            <FieldLabel required>메뉴 그룹</FieldLabel>
             <Select
               name="item_category_id"
               form={formId}
@@ -848,7 +876,7 @@ function MenuItemForm({
               required
               onChange={(event) => setCategoryId(event.target.value)}
             >
-              {categories.length === 0 && <option value="">메뉴 카테고리를 선택하세요</option>}
+              {categories.length === 0 && <option value="">메뉴 그룹을 선택하세요</option>}
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -856,7 +884,7 @@ function MenuItemForm({
               ))}
             </Select>
             <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${categoryInvalid ? "text-red-600" : "text-zinc-400"}`}>
-              {categoryInvalid ? "메뉴 카테고리를 선택해주세요." : "이 아이템이 표시될 메뉴 카테고리를 선택하세요."}
+              {categoryInvalid ? "메뉴 그룹을 선택해주세요." : "이 메뉴가 표시될 메뉴 그룹을 선택하세요."}
             </p>
           </div>
           <div>
@@ -1090,7 +1118,7 @@ function MenuItemForm({
             <ImageUploadField label="메뉴 이미지" menuId={menuId} target="menu-item" recordId={item.id} currentUrl={item.image_url} />
           ) : (
             <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-400">
-              아이템을 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
+              메뉴를 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
             </div>
           )}
           </div>
@@ -1102,14 +1130,11 @@ function MenuItemForm({
           form={formId}
           tone={item ? "light" : "dark"}
           disabled={nameInvalid || categoryInvalid}
-          onClick={(event) => {
+          onClick={() => {
             setAttemptedItemSubmit(true);
-            if (singlePriceInvalid || optionsPriceInvalid) {
-              event.preventDefault();
-            }
           }}
         >
-          {item ? "아이템 저장" : "아이템 추가"}
+          {item ? "메뉴 저장" : "메뉴 추가"}
         </SubmitButton>
         <button type="button" onClick={onCancel} className="ml-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
           취소
@@ -1239,6 +1264,7 @@ export default function MenuManagementSection({
   defaultBadgeStyles,
 }: MenuManagementSectionProps) {
   const sortedPages = useMemo(() => sortMenuPages(menuPages), [menuPages]);
+  const canManagePages = true;
   const firstPageId = sortedPages[0]?.id ?? "";
   const [selectedPageId, setSelectedPageId] = useState(firstPageId);
   const [editingPageId, setEditingPageId] = useState("");
@@ -1254,9 +1280,10 @@ export default function MenuManagementSection({
   const visiblePageId = selectedPage?.id ?? "";
 
   const categoriesForPage = useMemo(() => {
+    if (!canManagePages) return sortCategories(categories);
     if (!visiblePageId) return [];
     return sortCategories(categories.filter((category) => category.menu_page_id === visiblePageId));
-  }, [categories, visiblePageId]);
+  }, [canManagePages, categories, visiblePageId]);
 
   const firstCategoryId = categoriesForPage[0]?.id ?? "";
   const [selectedCategoryId, setSelectedCategoryId] = useState(firstCategoryId);
@@ -1381,24 +1408,64 @@ export default function MenuManagementSection({
     setConfirmingDeleteKey(key);
   }
 
+  const activeManagementFormId =
+    isCreatingPage
+      ? "menu-page-form-new"
+      : editingPageId
+        ? `menu-page-form-${editingPageId}`
+        : isCreatingCategory
+          ? "menu-category-form-new"
+          : editingCategoryId
+            ? `menu-category-form-${editingCategoryId}`
+            : isCreatingItem
+              ? "menu-item-form-new"
+              : editingItemId
+                ? `menu-item-form-${editingItemId}`
+                : "";
+  const hasActiveManagementForm = Boolean(activeManagementFormId);
+
   return (
     <div className="space-y-6">
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <div className="mb-8 border-b border-zinc-100 pb-6">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Menu Builder</p>
-          <h2 className="text-2xl font-bold tracking-tight">메뉴 페이지, 메뉴 카테고리, 아이템</h2>
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Menu Builder</p>
+              <h2 className="text-2xl font-bold tracking-tight">메뉴 관리</h2>
+              <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                메뉴 페이지, 메뉴 그룹, 메뉴 아이템을 관리합니다.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:items-end">
+              <div className="flex flex-wrap gap-2 sm:justify-end">
+                <ResetTabActionButton menuId={menuId} kind="menu" />
+                <SubmitButton form={activeManagementFormId || undefined} tone="dark" disabled={!hasActiveManagementForm}>
+                  변경사항 저장
+                </SubmitButton>
+              </div>
+              <p className="max-w-xs break-keep text-left text-xs font-bold leading-relaxed text-zinc-400 sm:text-right">
+                {hasActiveManagementForm
+                  ? "열려 있는 메뉴 편집 내용을 저장합니다."
+                  : "페이지, 메뉴 그룹, 메뉴 아이템의 수정 버튼을 누르면 저장할 수 있습니다."}
+              </p>
+            </div>
+          </div>
           <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-            메뉴 페이지를 선택한 뒤 메뉴 카테고리를 만들고, 선택한 메뉴 카테고리 안에 아이템을 추가합니다.
+            메뉴 페이지는 메뉴판의 큰 구역입니다. 처음에는 1개 페이지로 시작하며, 메뉴가 많을 경우 페이지를 추가할 수 있습니다.
+          </p>
+          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            페이지·메뉴 그룹·메뉴 아이템의 일반 수정값은 저장 버튼을 눌러 반영됩니다. 삭제, 복사, 샘플 초기화는 확인 후 즉시 반영됩니다.
           </p>
           <p className="mt-3 rounded-lg bg-zinc-50 p-4 break-keep text-sm font-bold leading-relaxed text-zinc-500">
             기본 메뉴 구성은 예시입니다. 실제 메뉴에 맞게 자유롭게 수정하거나 삭제하세요.
           </p>
         </div>
 
+        {canManagePages && (
         <div>
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Pages</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">메뉴 페이지</p>
             <h3 className="text-xl font-bold tracking-tight">메뉴 페이지</h3>
           </div>
           {!isCreatingPage && !editingPageId && (
@@ -1418,7 +1485,7 @@ export default function MenuManagementSection({
           </p>
         )}
 
-        {isCreatingPage && <MenuPageForm menuId={menuId} count={sortedPages.length} onCancel={resetModes} />}
+        {isCreatingPage && <MenuPageForm menuId={menuId} count={sortedPages.length} formId="menu-page-form-new" onCancel={resetModes} />}
 
         {sortedPages.length === 0 ? (
           <div className="mt-6">
@@ -1450,13 +1517,15 @@ export default function MenuManagementSection({
         )}
 
         {selectedPage && editingPageId === selectedPage.id && (
-          <MenuPageForm menuId={menuId} page={selectedPage} count={sortedPages.length} onCancel={resetModes} />
+          <MenuPageForm menuId={menuId} page={selectedPage} count={sortedPages.length} formId={`menu-page-form-${selectedPage.id}`} onCancel={resetModes} />
         )}
 
         {selectedPage && editingPageId !== selectedPage.id && (
           <div className="mt-6 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
             <div className="grid gap-4 md:grid-cols-2">
               <DetailValue label="페이지 이름">{selectedPage.title}</DetailValue>
+              <DetailValue label="메뉴 그룹 수">{categoriesForPage.length}개</DetailValue>
+              <DetailValue label="메뉴 아이템 수">{items.filter((item) => categoriesForPage.some((category) => category.id === item.category_id)).length}개</DetailValue>
               <DetailValue label="정렬 순서">{selectedPage.sort_order}</DetailValue>
               <DetailValue label="설명 표시">{selectedPage.description_visible ? "표시" : "숨김"}</DetailValue>
               <div className="md:col-span-2">
@@ -1465,14 +1534,23 @@ export default function MenuManagementSection({
             </div>
             <div className="mt-5 flex flex-wrap gap-2">
               <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
-                수정
+                이름 수정
               </button>
+              <form action={copyMenuPageAction}>
+                <HiddenMenuId menuId={menuId} />
+                <input type="hidden" name="menuPageId" value={selectedPage.id} />
+                <SubmitButton tone="light" disabled={reachedPageLimit}>
+                  복사
+                </SubmitButton>
+              </form>
               <DeleteConfirmForm
                 action={deleteMenuPageAction}
                 menuId={menuId}
                 hiddenName="menuPageId"
                 hiddenValue={selectedPage.id}
-                disabledReason={categoriesForPage.length > 0 ? "하위 메뉴 카테고리가 있어 삭제할 수 없습니다. 삭제 대신 저장 시 메뉴판 표시를 끌 수 있습니다." : undefined}
+                title="메뉴 페이지를 삭제할까요?"
+                description="이 페이지에 포함된 메뉴 그룹과 메뉴 아이템도 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
+                disabledReason={sortedPages.length <= 1 ? "최소 1개의 메뉴 페이지는 필요합니다." : undefined}
                 isConfirming={confirmingDeleteKey === `page:${selectedPage.id}`}
                 onRequestConfirm={() => startConfirmDelete(`page:${selectedPage.id}`)}
                 onCancel={resetModes}
@@ -1481,14 +1559,15 @@ export default function MenuManagementSection({
           </div>
         )}
         </div>
+        )}
 
-        <div className={`mt-8 border-t border-zinc-100 pt-6 ${!selectedPage ? "opacity-60" : ""}`}>
+        <div className={`${canManagePages ? "mt-8 border-t border-zinc-100 pt-6" : ""} ${!selectedPage ? "opacity-60" : ""}`}>
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Categories</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">메뉴 그룹</p>
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-xl font-bold tracking-tight">메뉴 카테고리</h3>
-                {selectedPage && (
+                <h3 className="text-xl font-bold tracking-tight">메뉴 그룹</h3>
+                {canManagePages && selectedPage && (
                   <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
                     {getMenuPageTitle(selectedPage)}
                   </span>
@@ -1502,23 +1581,23 @@ export default function MenuManagementSection({
                 disabled={!selectedPage || reachedCategoryLimit}
                 className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
               >
-                + 메뉴 카테고리 추가
+                + 메뉴 그룹 추가
               </button>
             )}
           </div>
 
-          {!selectedPage && <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">메뉴 페이지를 먼저 선택해주세요</p>}
+          {!selectedPage && <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">{canManagePages ? "메뉴 페이지를 먼저 선택해주세요" : "기본 메뉴 구조가 없습니다. 메뉴판을 다시 생성하거나 관리자에게 문의해주세요."}</p>}
           {selectedPage && reachedCategoryLimit && !isCreatingCategory && (
             <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">
-              이 페이지에는 메뉴 카테고리를 최대 {MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.
+              이 페이지에는 메뉴 그룹을 최대 {MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.
             </p>
           )}
 
-          {isCreatingCategory && <MenuCategoryForm menuId={menuId} pageId={selectedPage.id} count={categoriesForPage.length} onCancel={resetModes} />}
+          {isCreatingCategory && <MenuCategoryForm menuId={menuId} pageId={selectedPage.id} count={categoriesForPage.length} formId="menu-category-form-new" onCancel={resetModes} />}
 
           {selectedPage && categoriesForPage.length === 0 ? (
             <div className="mt-6">
-            <EmptyState>이 페이지에 메뉴 카테고리가 없습니다</EmptyState>
+            <EmptyState>이 페이지에 메뉴 그룹이 없습니다</EmptyState>
             </div>
           ) : selectedPage ? (
             <div className="mt-5 flex gap-2 overflow-x-auto">
@@ -1544,19 +1623,26 @@ export default function MenuManagementSection({
           ) : null}
 
           {selectedCategory && editingCategoryId === selectedCategory.id && (
-            <MenuCategoryForm menuId={menuId} pageId={selectedPage.id} category={selectedCategory} count={categoriesForPage.length} onCancel={resetModes} />
+            <MenuCategoryForm
+              menuId={menuId}
+              pageId={selectedPage.id}
+              category={selectedCategory}
+              count={categoriesForPage.length}
+              formId={`menu-category-form-${selectedCategory.id}`}
+              onCancel={resetModes}
+            />
           )}
 
           {selectedCategory && editingCategoryId !== selectedCategory.id && (
             <div className="mt-6 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
               <div className="grid gap-4 md:grid-cols-2">
-                <DetailValue label="메뉴 카테고리 이름">{selectedCategory.name}</DetailValue>
-                <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>
+                <DetailValue label="메뉴 그룹 이름">{selectedCategory.name}</DetailValue>
+                {canManagePages && <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>}
                 <DetailValue label="정렬 순서">{selectedCategory.sort_order}</DetailValue>
                 <DetailValue label="설명 표시">{selectedCategory.description_visible ? "표시" : "숨김"}</DetailValue>
                 <DetailValue label="메뉴판 표시">{selectedCategory.visible ? "표시" : "숨김"}</DetailValue>
                 <div className="md:col-span-2">
-                  <DetailValue label="메뉴 카테고리 설명">{selectedCategory.description}</DetailValue>
+                  <DetailValue label="메뉴 그룹 설명">{selectedCategory.description}</DetailValue>
                 </div>
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
@@ -1568,7 +1654,7 @@ export default function MenuManagementSection({
                   menuId={menuId}
                   hiddenName="categoryId"
                   hiddenValue={selectedCategory.id}
-                  disabledReason={itemsForCategory.length > 0 ? "하위 아이템이 있어 삭제할 수 없습니다. 삭제 대신 저장 시 메뉴판 표시를 끌 수 있습니다." : undefined}
+                  disabledReason={itemsForCategory.length > 0 ? "하위 메뉴가 있어 삭제할 수 없습니다. 삭제 대신 저장 시 메뉴판 표시를 끌 수 있습니다." : undefined}
                   isConfirming={confirmingDeleteKey === `category:${selectedCategory.id}`}
                   onRequestConfirm={() => startConfirmDelete(`category:${selectedCategory.id}`)}
                   onCancel={resetModes}
@@ -1581,9 +1667,9 @@ export default function MenuManagementSection({
         <div className={`mt-8 border-t border-zinc-100 pt-6 ${!selectedCategory ? "opacity-60" : ""}`}>
         <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Items</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">메뉴 목록</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="text-xl font-bold tracking-tight">아이템 목록</h4>
+              <h4 className="text-xl font-bold tracking-tight">메뉴 목록</h4>
               {selectedCategory && (
                 <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
                   {selectedCategory.name}
@@ -1599,13 +1685,13 @@ export default function MenuManagementSection({
                 disabled={!selectedCategory || reachedItemLimit}
                 className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
               >
-                + 아이템 추가
+                + 메뉴 추가
               </button>
             )}
           </div>
         </div>
 
-        {!selectedCategory && <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">메뉴 카테고리를 먼저 선택해주세요</p>}
+        {!selectedCategory && <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">메뉴 그룹을 먼저 선택해주세요</p>}
         {selectedCategory && reachedItemLimit && !isCreatingItem && (
           <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">
             {reachedItemsPerSiteLimit
@@ -1658,6 +1744,11 @@ export default function MenuManagementSection({
         </div>
 
         {selectedCategory && itemsForCategory.length === 0 && <EmptyState>이 메뉴 카테고리에 아이템이 없습니다.</EmptyState>}
+        </div>
+        <div className="mt-8 flex justify-end border-t border-zinc-100 pt-6">
+          <SubmitButton form={activeManagementFormId || undefined} tone="dark" disabled={!hasActiveManagementForm}>
+            변경사항 저장
+          </SubmitButton>
         </div>
       </section>
     </div>

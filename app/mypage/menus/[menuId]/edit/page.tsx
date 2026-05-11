@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 import {
-  resetTypographySettingsAction,
   updateAboutAction,
   updateIntroAction,
   updateMenuCoverAction,
@@ -17,6 +16,7 @@ import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavi
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
+import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import {
   ChefsSection as InteractiveChefsSection,
@@ -215,7 +215,12 @@ function Checkbox({ name, defaultChecked, label }: { name: string; defaultChecke
   return <SwitchField name={name} label={label} defaultChecked={defaultChecked} onText="사용 중" offText="사용 안 함" />;
 }
 
-function SubmitButton({ children, tone = "dark" }: { children: ReactNode; tone?: "dark" | "light" | "danger" }) {
+function SubmitButton({
+  children,
+  tone = "dark",
+  className: customClassName,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" }) {
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
@@ -223,19 +228,34 @@ function SubmitButton({ children, tone = "dark" }: { children: ReactNode; tone?:
   }[tone];
 
   return (
-    <button type="submit" className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors ${className}`}>
+    <button
+      type="submit"
+      {...props}
+      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+    >
       {children}
     </button>
   );
 }
 
-function SectionCard({ title, eyebrow, children }: { title: string; eyebrow?: string; children: ReactNode }) {
+function SectionCard({ title, eyebrow, action, children }: { title: string; eyebrow?: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
       {eyebrow && <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{eyebrow}</p>}
-      <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+        {action && <div className="flex flex-wrap gap-2 sm:justify-end">{action}</div>}
+      </div>
       <div className="mt-6">{children}</div>
     </section>
+  );
+}
+
+function SectionSaveButton({ formId, children = "저장" }: { formId: string; children?: ReactNode }) {
+  return (
+    <SubmitButton form={formId} className="shrink-0">
+      {children}
+    </SubmitButton>
   );
 }
 
@@ -463,7 +483,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   ];
   const optionalChecklist = [
     editorCapabilities.introPage ? { label: "인트로 페이지 사용", ok: pageSettings.intro_enabled } : null,
-    editorCapabilities.menuCoverPage ? { label: "메뉴 커버 페이지 사용", ok: pageSettings.menu_cover_enabled } : null,
+    editorCapabilities.menuCoverPage ? { label: "메뉴 커버 사용", ok: pageSettings.menu_cover_enabled } : null,
     editorCapabilities.aboutPage ? { label: "소개 페이지 사용", ok: pageSettings.about_enabled } : null,
     editorCapabilities.eventPage && templateCapabilities.events ? { label: "이벤트 등록", ok: events.length > 0 } : null,
     editorCapabilities.socialLinks && templateCapabilities.socialLinks ? { label: "SNS 등록", ok: socialLinks.length > 0 } : null,
@@ -494,11 +514,21 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             </div>
             <div className="flex flex-col items-start gap-2 lg:items-end">
               <div className="flex flex-wrap gap-2">
-                <Link href={previewUrl} className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white">
+                <Link
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white"
+                >
                   미리보기
                 </Link>
                 {site.status === "published" ? (
-                  <Link href={publicUrl} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                  <Link
+                    href={publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                  >
                     공개 페이지 보기
                   </Link>
                 ) : (
@@ -520,8 +550,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
         <div className="space-y-6">
             {activeTab === "basic" && (
-              <SectionCard title="기본 정보" eyebrow="Basic">
-                <form action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
+              <SectionCard title="기본 정보" eyebrow="Basic" action={<SectionSaveButton formId="basic-info-form" />}>
+                <form id="basic-info-form" action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel required>메뉴판 관리용 이름</FieldLabel>
@@ -571,8 +601,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "pages" && (
-              <SectionCard title="페이지 설정" eyebrow="Pages">
-                <form action={updatePageSettingsAction} className="grid gap-4 md:grid-cols-2">
+              <SectionCard title="페이지 설정" eyebrow="Pages" action={<SectionSaveButton formId="page-settings-form" />}>
+                <form id="page-settings-form" action={updatePageSettingsAction} className="grid gap-4 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   {pageSettingKeys.map((key) => (
                     <div key={key} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
@@ -587,8 +617,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "intro" && (
-              <SectionCard title="인트로" eyebrow="Intro">
-                <form action={updateIntroAction} className="grid gap-5 md:grid-cols-2">
+              <SectionCard title="인트로" eyebrow="Intro" action={<SectionSaveButton formId="intro-form" />}>
+                <form id="intro-form" action={updateIntroAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel required>인트로 제목</FieldLabel>
@@ -619,24 +649,18 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "cover" && (
-              <SectionCard title="메뉴 커버" eyebrow="Cover">
-                <form action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
+              <SectionCard
+                title="메뉴 커버"
+                eyebrow="Cover"
+                action={
+                  <>
+                    <ResetTabActionButton menuId={site.id} kind="cover" />
+                    <SectionSaveButton formId="menu-cover-form" />
+                  </>
+                }
+              >
+                <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
-                  <div className="md:col-span-2">
-                    <p className="rounded-lg bg-zinc-50 p-4 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                      메뉴 커버 페이지는 메뉴 페이지로 들어가기 전 보여지는 텍스트 중심 화면입니다.
-                    </p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <FieldLabel>커버 상단 문구</FieldLabel>
-                    <TextInput
-                      name="menu_cover_label"
-                      defaultValue={site.menu_cover_label ?? site.restaurant_category ?? ""}
-                      placeholder="SPECIALTY COFFEE / BRUNCH CAFE / FINE DINING / TODAY'S MENU / DESSERT & COFFEE"
-                      maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverLabel}
-                      helperText="메뉴 커버 페이지 상단에 작게 표시되는 문구입니다."
-                    />
-                  </div>
                   <div className="md:col-span-2">
                     <FieldLabel required>메뉴 커버 제목</FieldLabel>
                     <TextInput name="menu_cover_title" defaultValue={site.menu_cover_title ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverTitle} helperText="메뉴 영역 상단에 표시되는 제목입니다." />
@@ -709,8 +733,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "about" && (
               <>
-                <SectionCard title="소개" eyebrow="About">
-                  <form action={updateAboutAction} className="grid gap-5 md:grid-cols-2">
+                <SectionCard title="소개" eyebrow="About" action={<SectionSaveButton formId="about-form" />}>
+                  <form id="about-form" action={updateAboutAction} className="grid gap-5 md:grid-cols-2">
                     <HiddenMenuId menuId={site.id} />
                     <div>
                       <FieldLabel required>주소</FieldLabel>
@@ -749,7 +773,16 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             {editorCapabilities.eventPage && templateCapabilities.events && activeTab === "events" && <InteractiveEventsSection menuId={site.id} events={events} />}
 
             {activeTab === "design" && (
-              <SectionCard title="디자인" eyebrow="Design">
+              <SectionCard
+                title="디자인"
+                eyebrow="Design"
+                action={
+                  <>
+                    <ResetTabActionButton menuId={site.id} kind="design" />
+                    <SectionSaveButton formId="typography-settings-form" />
+                  </>
+                }
+              >
                 <div className="space-y-5">
                   <div>
                     <FieldLabel>현재 템플릿</FieldLabel>
@@ -757,24 +790,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </div>
                   <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">결제 시 선택한 템플릿입니다.</p>
                   <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+                    <div>
                       <div>
                         <h3 className="text-lg font-bold tracking-tight text-zinc-950">글꼴과 글자 크기</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                           메뉴판의 한글/영문 글꼴과 전체 글자 크기를 조정할 수 있습니다. 템플릿의 기본 디자인을 유지하는 범위에서 적용됩니다.
                         </p>
                       </div>
-                      <form action={resetTypographySettingsAction}>
-                        <HiddenMenuId menuId={site.id} />
-                        <button
-                          type="submit"
-                          className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
-                        >
-                          기본값으로 되돌리기
-                        </button>
-                      </form>
                     </div>
-                    <form action={updateTypographySettingsAction} className="mt-5 space-y-5">
+                    <form id="typography-settings-form" action={updateTypographySettingsAction} className="mt-5 space-y-5">
                       <HiddenMenuId menuId={site.id} />
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
@@ -849,8 +873,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "publish" && (
-              <SectionCard title="공개 설정" eyebrow="Publish">
-                <form action={updatePublishSettingsAction} className="space-y-5">
+              <SectionCard title="공개 설정" eyebrow="Publish" action={<SectionSaveButton formId="publish-settings-form" />}>
+                <form id="publish-settings-form" action={updatePublishSettingsAction} className="space-y-5">
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel>공개 상태</FieldLabel>

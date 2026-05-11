@@ -16,7 +16,7 @@ export type MenuEditorTabKey = (typeof MENU_EDITOR_TABS)[number]["key"];
 
 export const pageSettingLabels = {
   intro_enabled: "인트로 페이지 사용",
-  menu_cover_enabled: "메뉴 커버 페이지 사용",
+  menu_cover_enabled: "메뉴 커버 사용",
   about_enabled: "소개 페이지 사용",
 } satisfies Pick<PageSettings, "intro_enabled" | "menu_cover_enabled" | "about_enabled">;
 

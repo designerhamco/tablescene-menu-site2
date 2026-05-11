@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getLegacyBadgeTypeForLabel, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
+import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isRestaurantTypeKey } from "@/lib/restaurant-types";
@@ -29,6 +30,7 @@ const englishFontKeys = new Set(ENGLISH_FONT_OPTIONS.map((option) => option.key)
 
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
+type MenuSiteUpdate = Database["public"]["Tables"]["menu_sites"]["Update"];
 type MenuPageInsert = Database["public"]["Tables"]["menu_pages"]["Insert"];
 type MenuPageUpdate = Database["public"]["Tables"]["menu_pages"]["Update"];
 type MenuItemInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
@@ -367,19 +369,35 @@ async function requireOwnedMenuSite(menuId: string) {
     redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
   }
 
-  const { data: menuSite, error } = await supabase
+  const menuSiteSelect = "id, user_id, slug, status, published_at, template_key, template_category, restaurant_category, menu_cover_label, settings, page_settings";
+  const fallbackMenuSiteSelect = "id, user_id, slug, status, published_at, template_key, restaurant_category, settings, page_settings";
+
+  let { data: menuSite, error } = await supabase
     .from("menu_sites")
-    .select("id, user_id, slug, status, published_at, settings, page_settings")
+    .select(menuSiteSelect)
     .eq("id", menuId)
     .eq("user_id", user.id)
     .maybeSingle();
 
+  if (error && ["template_category", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
+    const fallbackResult = await supabase
+      .from("menu_sites")
+      .select(fallbackMenuSiteSelect)
+      .eq("id", menuId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    menuSite = fallbackResult.data;
+    error = fallbackResult.error;
+  }
+
   if (error) {
-    redirectToEditWithError(menuId, `메뉴판 권한 확인에 실패했습니다: ${error.message}`);
+    console.error("[menu-editor] menu site ownership check failed", { menuId, message: error.message, code: error.code });
+    redirectToEditWithError(menuId, "이 메뉴판을 수정할 권한이 없습니다.");
   }
 
   if (!menuSite) {
-    redirect("/mypage?error=menu-not-found");
+    redirectToEditWithError(menuId, "이 메뉴판을 수정할 권한이 없습니다.");
   }
 
   return { supabase, user, menuSite };
@@ -603,6 +621,140 @@ export async function resetTypographySettingsAction(formData: FormData) {
   redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 글꼴과 글자 크기로 되돌렸습니다.");
 }
 
+export async function resetMenuCoverToPresetAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const preset = getStarterPreset(menuSite.template_key, menuSite.restaurant_category, menuSite.template_category);
+  const featuredItemName = preset.featured_item_name;
+  let featuredItemId: string | null = null;
+
+  if (featuredItemName) {
+    const { data: featuredItem, error: featuredItemError } = await supabase
+      .from("menu_items")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .eq("name", featuredItemName)
+      .eq("visible", true)
+      .maybeSingle();
+
+    if (featuredItemError) {
+      redirectToTabEditWithError(menuId, "cover", `대표 추천 메뉴 확인에 실패했습니다: ${featuredItemError.message}`);
+    }
+
+    featuredItemId = featuredItem?.id ?? null;
+  }
+
+  const nextPageSettings = {
+    ...getJsonObject(menuSite.page_settings),
+    featured_item_enabled: Boolean(featuredItemId),
+    featured_item_id: featuredItemId,
+  };
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({
+      menu_cover_title: preset.site.menu_cover_title,
+      menu_cover_description: preset.site.menu_cover_description,
+      page_settings: nextPageSettings,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "cover", `메뉴 커버 초기화에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(
+    menuId,
+    "cover",
+    featuredItemId
+      ? "메뉴 커버를 샘플 상태로 되돌렸습니다."
+      : "메뉴 커버를 샘플 상태로 되돌렸습니다. 대표 추천 메뉴는 현재 메뉴 목록에서 찾을 수 없어 선택 해제되었습니다."
+  );
+}
+
+export async function resetMenuManagementToPresetAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+
+  const { error: priceOptionsError } = await supabase.from("menu_item_price_options").delete().eq("menu_site_id", menuId);
+  if (priceOptionsError) {
+    redirectToMenuEditWithError(menuId, `가격 옵션 초기화에 실패했습니다: ${priceOptionsError.message}`);
+  }
+
+  const { error: traitsError } = await supabase.from("menu_item_traits").delete().eq("menu_site_id", menuId);
+  if (traitsError) {
+    redirectToMenuEditWithError(menuId, `메뉴 특성 초기화에 실패했습니다: ${traitsError.message}`);
+  }
+
+  const { error: itemsError } = await supabase.from("menu_items").delete().eq("menu_site_id", menuId);
+  if (itemsError) {
+    redirectToMenuEditWithError(menuId, `메뉴 아이템 초기화에 실패했습니다: ${itemsError.message}`);
+  }
+
+  const { error: categoriesError } = await supabase.from("menu_categories").delete().eq("menu_site_id", menuId);
+  if (categoriesError) {
+    redirectToMenuEditWithError(menuId, `메뉴 그룹 초기화에 실패했습니다: ${categoriesError.message}`);
+  }
+
+  const { error: pagesError } = await supabase.from("menu_pages").delete().eq("menu_site_id", menuId);
+  if (pagesError) {
+    redirectToMenuEditWithError(menuId, `메뉴 페이지 초기화에 실패했습니다: ${pagesError.message}`);
+  }
+
+  try {
+    await createStarterMenuData(
+      supabase,
+      menuId,
+      menuSite.template_key,
+      menuSite.restaurant_category,
+      menuSite.template_category,
+      null,
+      {
+        force: true,
+        applySiteDefaults: false,
+        includeAuxiliaryContent: false,
+      }
+    );
+  } catch (error) {
+    redirectToMenuEditWithError(menuId, error instanceof Error ? error.message : "샘플 메뉴 생성에 실패했습니다.");
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "샘플 메뉴로 초기화했습니다.");
+}
+
+export async function resetDesignSettingsToTemplateDefaultAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const settings = getJsonObject(menuSite.settings);
+  const pageSettings = getJsonObject(menuSite.page_settings);
+
+  delete settings.badge_styles;
+  delete settings.typography;
+  delete pageSettings.badge_styles;
+  delete pageSettings.typography;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({
+      settings,
+      page_settings: pageSettings,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `디자인 설정 초기화에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", "디자인 설정을 현재 템플릿의 기본값으로 되돌렸습니다.");
+}
+
 async function assertCategoryBelongsToMenuSite(menuId: string, categoryId: string) {
   const supabase = await createClient();
   const { data: category, error } = await supabase
@@ -782,7 +934,7 @@ export async function createMenuSiteAction(formData: FormData) {
     status,
   };
 
-  let { error } = await supabase.from("menu_sites").insert(menuSiteInsert);
+  let { data: createdSite, error } = await supabase.from("menu_sites").insert(menuSiteInsert).select("id").single();
 
   if (error && error.message.toLowerCase().includes("template_category")) {
     const fallbackInsert: LooseInsert = {
@@ -792,12 +944,17 @@ export async function createMenuSiteAction(formData: FormData) {
       template_key: templateKey,
       status,
     };
-    const fallbackResult = await supabase.from("menu_sites").insert(fallbackInsert as never);
+    const fallbackResult = await supabase.from("menu_sites").insert(fallbackInsert as never).select("id").single();
+    createdSite = fallbackResult.data;
     error = fallbackResult.error;
   }
 
   if (error) {
     redirectWithError(`메뉴판 생성에 실패했습니다: ${error.message}`);
+  }
+
+  if (createdSite?.id) {
+    await createStarterMenuData(supabase, createdSite.id, templateKey, null, templateCategory);
   }
 
   redirect("/mypage?message=menu-created");
@@ -949,7 +1106,8 @@ export async function updateMenuCoverAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const menuCoverLabel = getNullableString(formData, "menu_cover_label");
+  const hasMenuCoverLabelField = formData.has("menu_cover_label");
+  const menuCoverLabel = hasMenuCoverLabelField ? getNullableString(formData, "menu_cover_label") : menuSite.menu_cover_label;
   const menuCoverTitle = getNullableString(formData, "menu_cover_title");
   const menuCoverDescription = getNullableString(formData, "menu_cover_description");
   const currentSettings = mergePageSettings(menuSite.page_settings);
@@ -957,7 +1115,9 @@ export async function updateMenuCoverAction(formData: FormData) {
   const featuredItemEnabled = getBoolean(formData, "featured_item_enabled") && Boolean(requestedFeaturedItemId);
   let featuredItemId: string | null = null;
 
-  validateOptionalText(menuId, menuCoverLabel, "커버 상단 문구", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
+  if (hasMenuCoverLabelField) {
+    validateOptionalText(menuId, menuCoverLabel, "메뉴 커버 라벨", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
+  }
   validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
   validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
 
@@ -987,16 +1147,18 @@ export async function updateMenuCoverAction(formData: FormData) {
     featured_item_id: featuredItemEnabled ? featuredItemId : null,
   };
 
-  let { error } = await supabase
-    .from("menu_sites")
-    .update({
-      menu_cover_label: menuCoverLabel,
-      menu_cover_title: menuCoverTitle,
-      menu_cover_description: menuCoverDescription,
-      page_settings: nextSettings,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", menuId);
+  const updatePayload: MenuSiteUpdate = {
+    menu_cover_title: menuCoverTitle,
+    menu_cover_description: menuCoverDescription,
+    page_settings: nextSettings,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (hasMenuCoverLabelField) {
+    updatePayload.menu_cover_label = menuCoverLabel;
+  }
+
+  let { error } = await supabase.from("menu_sites").update(updatePayload).eq("id", menuId);
 
   if (error && error.message.toLowerCase().includes("menu_cover_label")) {
     const fallbackResult = await supabase
@@ -1163,6 +1325,297 @@ export async function updateMenuPageAction(formData: FormData) {
   redirectToMenuEdit(menuId, "메뉴 페이지가 저장되었습니다.");
 }
 
+export async function copyMenuPageAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const menuPageId = getString(formData, "menuPageId");
+
+  if (!menuId || !menuPageId) {
+    redirect("/mypage?error=missing-menu-page-id");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+
+  const { count: pageCount, error: pageCountError } = await supabase
+    .from("menu_pages")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuId);
+
+  if (pageCountError) {
+    redirectToMenuEditWithError(menuId, `메뉴 페이지 개수 확인에 실패했습니다: ${pageCountError.message}`);
+  }
+
+  if ((pageCount ?? 0) >= MENU_LIMITS.maxPagesPerSite) {
+    redirectToMenuEditWithError(menuId, `메뉴 페이지는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`);
+  }
+
+  const { data: sourcePage, error: sourcePageError } = await supabase
+    .from("menu_pages")
+    .select("id, title, description, description_visible, legacy_section_key, visible")
+    .eq("id", menuPageId)
+    .eq("menu_site_id", menuId)
+    .maybeSingle();
+
+  if (sourcePageError || !sourcePage) {
+    redirectToMenuEditWithError(menuId, sourcePageError ? `복사할 메뉴 페이지 확인에 실패했습니다: ${sourcePageError.message}` : "복사할 메뉴 페이지를 찾을 수 없습니다.");
+  }
+
+  const nextSortOrder = pageCount ?? 0;
+  const copiedPageTitle = `${sourcePage.title || `메뉴 페이지 ${nextSortOrder}`} 복사본`;
+  const pagePayload: MenuPageInsert = {
+    menu_site_id: menuId,
+    title: copiedPageTitle,
+    description: sourcePage.description,
+    description_visible: sourcePage.description_visible,
+    legacy_section_key: sourcePage.legacy_section_key,
+    visible: sourcePage.visible ?? true,
+    sort_order: nextSortOrder,
+  };
+
+  const { data: copiedPage, error: copiedPageError } = await supabase.from("menu_pages").insert(pagePayload).select("id").single();
+
+  if (copiedPageError || !copiedPage) {
+    redirectToMenuEditWithError(menuId, copiedPageError ? `메뉴 페이지 복사에 실패했습니다: ${copiedPageError.message}` : "메뉴 페이지 복사에 실패했습니다.");
+  }
+
+  const { data: sourceCategories, error: categoriesError } = await supabase
+    .from("menu_categories")
+    .select("id, name, description, description_visible, section_key, visible, sort_order")
+    .eq("menu_site_id", menuId)
+    .eq("menu_page_id", menuPageId)
+    .order("sort_order", { ascending: true });
+
+  if (categoriesError) {
+    redirectToMenuEditWithError(menuId, `페이지 복사 중 메뉴 그룹 확인에 실패했습니다: ${categoriesError.message}`);
+  }
+
+  const categoryIdBySourceId = new Map<string, string>();
+  const sourceCategoryIds = (sourceCategories ?? []).map((category) => category.id);
+
+  if (sourceCategories?.length) {
+    const categoryPayloads: MenuCategoryInsert[] = sourceCategories.map((category) => ({
+      menu_site_id: menuId,
+      menu_page_id: copiedPage.id,
+      name: category.name,
+      description: category.description,
+      description_visible: category.description_visible,
+      section_key: category.section_key,
+      visible: category.visible,
+      sort_order: category.sort_order,
+    }));
+
+    const { data: copiedCategories, error: copiedCategoriesError } = await supabase
+      .from("menu_categories")
+      .insert(categoryPayloads)
+      .select("id, name, sort_order");
+
+    if (copiedCategoriesError) {
+      redirectToMenuEditWithError(menuId, `페이지 복사 중 메뉴 그룹 생성에 실패했습니다: ${copiedCategoriesError.message}`);
+    }
+
+    const copiedCategoryQueue = [...(copiedCategories ?? [])].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "ko"));
+    sourceCategories.forEach((category, index) => {
+      const copiedCategory = copiedCategoryQueue[index];
+      if (copiedCategory) categoryIdBySourceId.set(category.id, copiedCategory.id);
+    });
+  }
+
+  const menuItemCopySelect =
+    "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
+  const legacyMenuItemCopySelect =
+    "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
+
+  let { data: sourceItems, error: itemsError } = sourceCategoryIds.length
+    ? await supabase
+        .from("menu_items")
+        .select(menuItemCopySelect)
+        .eq("menu_site_id", menuId)
+        .in("category_id", sourceCategoryIds)
+        .order("sort_order", { ascending: true })
+    : { data: [], error: null };
+
+  if (itemsError && itemsError.message.toLowerCase().includes("badge_label")) {
+    const fallbackResult = await supabase
+      .from("menu_items")
+      .select(legacyMenuItemCopySelect)
+      .eq("menu_site_id", menuId)
+      .in("category_id", sourceCategoryIds)
+      .order("sort_order", { ascending: true });
+
+    sourceItems = fallbackResult.data;
+    itemsError = fallbackResult.error;
+  }
+
+  if (itemsError) {
+    redirectToMenuEditWithError(menuId, `페이지 복사 중 메뉴 아이템 확인에 실패했습니다: ${itemsError.message}`);
+  }
+
+  const itemIdBySourceId = new Map<string, string>();
+  const sourceItemIds = (sourceItems ?? []).map((item) => item.id);
+
+  if (sourceItems?.length) {
+    const itemPayloads: MenuItemInsert[] = sourceItems.map((item) => {
+      const itemWithOptionalBadgeLabel = item as typeof item & { badge_label?: string | null };
+
+      return {
+        menu_site_id: menuId,
+        category_id: item.category_id ? (categoryIdBySourceId.get(item.category_id) ?? null) : null,
+        name: item.name,
+        set_name: item.set_name,
+        description: item.description,
+        price: item.price,
+        price_label: item.price_label,
+        price_visible: item.price_visible,
+        portion_label: item.portion_label,
+        portion_visible: item.portion_visible,
+        image_url: item.image_url,
+        image_path: item.image_path,
+        badge_label: itemWithOptionalBadgeLabel.badge_label ?? null,
+        badge_type: item.badge_type,
+        recommended: item.recommended,
+        origin_info: item.origin_info,
+        is_best: item.is_best,
+        is_sold_out: item.is_sold_out,
+        traits_visible: item.traits_visible,
+        visible: item.visible,
+        sort_order: item.sort_order,
+      };
+    });
+
+    let { data: copiedItems, error: copiedItemsError } = await supabase
+      .from("menu_items")
+      .insert(itemPayloads)
+      .select("id, name, category_id, sort_order");
+
+    if (
+      copiedItemsError &&
+      (copiedItemsError.message.toLowerCase().includes("badge_label") ||
+        copiedItemsError.message.toLowerCase().includes("could not find") ||
+        copiedItemsError.code === "42703")
+    ) {
+      const fallbackItemPayloads = itemPayloads.map((itemPayload) => {
+        const fallbackPayload = { ...itemPayload };
+        delete fallbackPayload.badge_label;
+        return fallbackPayload;
+      });
+      const fallbackResult = await supabase.from("menu_items").insert(fallbackItemPayloads).select("id, name, category_id, sort_order");
+      copiedItems = fallbackResult.data;
+      copiedItemsError = fallbackResult.error;
+    }
+
+    if (copiedItemsError) {
+      redirectToMenuEditWithError(menuId, `페이지 복사 중 메뉴 아이템 생성에 실패했습니다: ${copiedItemsError.message}`);
+    }
+
+    const copiedItemsByCategory = new Map<string, typeof copiedItems>();
+    for (const item of copiedItems ?? []) {
+      const key = item.category_id ?? "";
+      const values = copiedItemsByCategory.get(key) ?? [];
+      values.push(item);
+      copiedItemsByCategory.set(key, values);
+    }
+
+    for (const values of copiedItemsByCategory.values()) {
+      values.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "ko"));
+    }
+
+    const sourceItemsByCategory = new Map<string, typeof sourceItems>();
+    for (const item of sourceItems) {
+      const key = item.category_id ?? "";
+      const values = sourceItemsByCategory.get(key) ?? [];
+      values.push(item);
+      sourceItemsByCategory.set(key, values);
+    }
+
+    for (const [sourceCategoryId, values] of sourceItemsByCategory) {
+      values.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "ko"));
+      const copiedCategoryId = sourceCategoryId ? (categoryIdBySourceId.get(sourceCategoryId) ?? "") : "";
+      const copiedValues = copiedItemsByCategory.get(copiedCategoryId) ?? [];
+      values.forEach((item, index) => {
+        const copiedItem = copiedValues[index];
+        if (copiedItem) itemIdBySourceId.set(item.id, copiedItem.id);
+      });
+    }
+  }
+
+  if (sourceItemIds.length > 0) {
+    const { data: sourcePriceOptions, error: priceOptionsError } = await supabase
+      .from("menu_item_price_options")
+      .select("menu_item_id, label, price, price_label, visible, sort_order")
+      .eq("menu_site_id", menuId)
+      .in("menu_item_id", sourceItemIds);
+
+    if (
+      priceOptionsError &&
+      !priceOptionsError.message.toLowerCase().includes("menu_item_price_options") &&
+      !priceOptionsError.message.toLowerCase().includes("does not exist") &&
+      priceOptionsError.code !== "42P01"
+    ) {
+      redirectToMenuEditWithError(menuId, `페이지 복사 중 가격 옵션 확인에 실패했습니다: ${priceOptionsError.message}`);
+    }
+
+    const priceOptionPayloads: MenuItemPriceOptionInsert[] = (sourcePriceOptions ?? []).flatMap((option) => {
+      const copiedItemId = itemIdBySourceId.get(option.menu_item_id);
+      if (!copiedItemId) return [];
+      return {
+        menu_site_id: menuId,
+        menu_item_id: copiedItemId,
+        label: option.label,
+        price: option.price,
+        price_label: option.price_label,
+        visible: option.visible,
+        sort_order: option.sort_order,
+      };
+    });
+
+    if (priceOptionPayloads.length > 0) {
+      const { error: copyPriceOptionsError } = await supabase.from("menu_item_price_options").insert(priceOptionPayloads);
+      if (copyPriceOptionsError) {
+        redirectToMenuEditWithError(menuId, `페이지 복사 중 가격 옵션 생성에 실패했습니다: ${copyPriceOptionsError.message}`);
+      }
+    }
+
+    const { data: sourceTraits, error: traitsError } = await supabase
+      .from("menu_item_traits")
+      .select("menu_item_id, label, value, max_value, visible, sort_order")
+      .eq("menu_site_id", menuId)
+      .in("menu_item_id", sourceItemIds);
+
+    if (
+      traitsError &&
+      !traitsError.message.toLowerCase().includes("menu_item_traits") &&
+      !traitsError.message.toLowerCase().includes("does not exist") &&
+      traitsError.code !== "42P01"
+    ) {
+      redirectToMenuEditWithError(menuId, `페이지 복사 중 메뉴 특성 확인에 실패했습니다: ${traitsError.message}`);
+    }
+
+    const traitPayloads: MenuItemTraitInsert[] = (sourceTraits ?? []).flatMap((trait) => {
+      const copiedItemId = itemIdBySourceId.get(trait.menu_item_id);
+      if (!copiedItemId) return [];
+      return {
+        menu_site_id: menuId,
+        menu_item_id: copiedItemId,
+        label: trait.label,
+        value: trait.value,
+        max_value: trait.max_value,
+        visible: trait.visible,
+        sort_order: trait.sort_order,
+      };
+    });
+
+    if (traitPayloads.length > 0) {
+      const { error: copyTraitsError } = await supabase.from("menu_item_traits").insert(traitPayloads);
+      if (copyTraitsError) {
+        redirectToMenuEditWithError(menuId, `페이지 복사 중 메뉴 특성 생성에 실패했습니다: ${copyTraitsError.message}`);
+      }
+    }
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "메뉴 페이지가 복사되었습니다.");
+}
+
 export async function deleteMenuPageAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   const menuPageId = getString(formData, "menuPageId");
@@ -1174,35 +1627,88 @@ export async function deleteMenuPageAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
 
-  const { count, error: countError } = await supabase
-    .from("menu_categories")
+  const { count: pageCount, error: pageCountError } = await supabase
+    .from("menu_pages")
     .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuId);
+
+  if (pageCountError) {
+    redirectToMenuEditWithError(menuId, `메뉴 페이지 개수 확인에 실패했습니다: ${pageCountError.message}`);
+  }
+
+  if ((pageCount ?? 0) <= 1) {
+    redirectToMenuEditWithError(menuId, "최소 1개의 메뉴 페이지는 필요합니다.");
+  }
+
+  const { data: pageCategories, error: categoriesError } = await supabase
+    .from("menu_categories")
+    .select("id")
     .eq("menu_site_id", menuId)
     .eq("menu_page_id", menuPageId);
 
-  if (countError) {
-    redirectToMenuEditWithError(menuId, `하위 메뉴 카테고리 확인에 실패했습니다: ${countError.message}`);
+  if (categoriesError) {
+    redirectToMenuEditWithError(menuId, `하위 메뉴 그룹 확인에 실패했습니다: ${categoriesError.message}`);
   }
 
-  if ((count ?? 0) > 0) {
-    const { error: hideError } = await supabase
-      .from("menu_pages")
-      .update({ visible: false, updated_at: new Date().toISOString() })
-      .eq("id", menuPageId)
-      .eq("menu_site_id", menuId);
+  const categoryIds = (pageCategories ?? []).map((category) => category.id);
+  const { data: pageItems, error: itemsError } = categoryIds.length
+    ? await supabase.from("menu_items").select("id").eq("menu_site_id", menuId).in("category_id", categoryIds)
+    : { data: [], error: null };
 
-    if (hideError) {
-      redirectToMenuEditWithError(menuId, `메뉴 페이지 숨김 처리에 실패했습니다: ${hideError.message}`);
+  if (itemsError) {
+    redirectToMenuEditWithError(menuId, `하위 메뉴 아이템 확인에 실패했습니다: ${itemsError.message}`);
+  }
+
+  const itemIds = (pageItems ?? []).map((item) => item.id);
+
+  if (itemIds.length > 0) {
+    const { error: priceOptionsError } = await supabase.from("menu_item_price_options").delete().eq("menu_site_id", menuId).in("menu_item_id", itemIds);
+    if (
+      priceOptionsError &&
+      !priceOptionsError.message.toLowerCase().includes("menu_item_price_options") &&
+      !priceOptionsError.message.toLowerCase().includes("does not exist") &&
+      priceOptionsError.code !== "42P01"
+    ) {
+      redirectToMenuEditWithError(menuId, `가격 옵션 삭제에 실패했습니다: ${priceOptionsError.message}`);
     }
 
-    revalidateMenuPaths(menuId, menuSite.slug);
-    redirectToMenuEdit(menuId, "하위 메뉴 카테고리가 있어 삭제하지 않고 메뉴판 표시를 껐습니다.");
+    const { error: traitsError } = await supabase.from("menu_item_traits").delete().eq("menu_site_id", menuId).in("menu_item_id", itemIds);
+    if (
+      traitsError &&
+      !traitsError.message.toLowerCase().includes("menu_item_traits") &&
+      !traitsError.message.toLowerCase().includes("does not exist") &&
+      traitsError.code !== "42P01"
+    ) {
+      redirectToMenuEditWithError(menuId, `메뉴 특성 삭제에 실패했습니다: ${traitsError.message}`);
+    }
+
+    const { error: itemsDeleteError } = await supabase.from("menu_items").delete().eq("menu_site_id", menuId).in("id", itemIds);
+    if (itemsDeleteError) {
+      redirectToMenuEditWithError(menuId, `메뉴 아이템 삭제에 실패했습니다: ${itemsDeleteError.message}`);
+    }
+  }
+
+  if (categoryIds.length > 0) {
+    const { error: categoriesDeleteError } = await supabase.from("menu_categories").delete().eq("menu_site_id", menuId).in("id", categoryIds);
+    if (categoriesDeleteError) {
+      redirectToMenuEditWithError(menuId, `메뉴 그룹 삭제에 실패했습니다: ${categoriesDeleteError.message}`);
+    }
   }
 
   const { error } = await supabase.from("menu_pages").delete().eq("id", menuPageId).eq("menu_site_id", menuId);
 
   if (error) {
     redirectToMenuEditWithError(menuId, `메뉴 페이지 삭제에 실패했습니다: ${error.message}`);
+  }
+
+  const featuredItemId = getJsonObject(menuSite.page_settings).featured_item_id;
+  if (typeof featuredItemId === "string" && itemIds.includes(featuredItemId)) {
+    const nextPageSettings = {
+      ...getJsonObject(menuSite.page_settings),
+      featured_item_enabled: false,
+      featured_item_id: null,
+    };
+    await supabase.from("menu_sites").update({ page_settings: nextPageSettings, updated_at: new Date().toISOString() }).eq("id", menuId);
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);

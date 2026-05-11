@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 import {
   createChefAction,
@@ -125,15 +125,11 @@ function Checkbox({
 function SubmitButton({
   children,
   tone = "dark",
-  type = "submit",
-  onClick,
-  disabled = false,
-}: {
+  className: customClassName,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   tone?: "dark" | "light" | "danger";
-  type?: "button" | "submit";
-  onClick?: () => void;
-  disabled?: boolean;
 }) {
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
@@ -143,21 +139,23 @@ function SubmitButton({
 
   return (
     <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className}`}
+      type="submit"
+      {...props}
+      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
     >
       {children}
     </button>
   );
 }
 
-function SectionCard({ title, eyebrow, children }: { title: string; eyebrow: string; children: ReactNode }) {
+function SectionCard({ title, eyebrow, action, children }: { title: string; eyebrow: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
       <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{eyebrow}</p>
-      <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+        {action && <div className="flex flex-wrap gap-2 sm:justify-end">{action}</div>}
+      </div>
       <div className="mt-6">{children}</div>
     </section>
   );
@@ -214,9 +212,18 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
   const [editingChefId, setEditingChefId] = useState<string | null>(null);
   const reachedChefLimit = chefs.length >= MENU_LIMITS.maxChefsPerSite;
   const chefLimitMessage = `셰프/인물 정보는 최대 ${MENU_LIMITS.maxChefsPerSite}명까지 등록할 수 있습니다.`;
+  const activeFormId = isCreating ? "chef-form-new" : editingChefId ? `chef-form-${editingChefId}` : "";
 
   return (
-    <SectionCard title="셰프 / 인물" eyebrow="People">
+    <SectionCard
+      title="셰프 / 인물"
+      eyebrow="People"
+      action={
+        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
+          저장
+        </SubmitButton>
+      }
+    >
       {chefs.length === 0 && !isCreating ? (
         <EmptyState message="등록된 셰프/인물 정보가 없습니다" buttonLabel="+ 셰프/인물 추가" onCreate={() => setIsCreating(true)} disabled={reachedChefLimit} disabledMessage={reachedChefLimit ? chefLimitMessage : undefined} />
       ) : (
@@ -225,7 +232,7 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
             <article key={chef.id} className="rounded-lg border border-zinc-100 p-5">
               {editingChefId === chef.id ? (
                 <>
-                  <form action={updateChefAction} className="grid gap-4 md:grid-cols-2">
+                  <form id={`chef-form-${chef.id}`} action={updateChefAction} className="grid gap-4 md:grid-cols-2">
                     <HiddenMenuId menuId={menuId} />
                     <input type="hidden" name="chefId" value={chef.id} />
                     <ChefFields chef={chef} />
@@ -275,13 +282,18 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
           )}
         </div>
       )}
+      <div className="mt-6 flex justify-end border-t border-zinc-100 pt-5">
+        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
+          저장
+        </SubmitButton>
+      </div>
     </SectionCard>
   );
 }
 
 function ChefForm({ menuId, count, onCancel }: { menuId: string; count: number; onCancel: () => void }) {
   return (
-    <form action={createChefAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+    <form id="chef-form-new" action={createChefAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <ChefFields count={count} />
       <div className="flex gap-2 md:col-span-2">
@@ -334,9 +346,18 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const reachedEventLimit = events.length >= MENU_LIMITS.maxEventsPerSite;
   const eventLimitMessage = `이벤트는 최대 ${MENU_LIMITS.maxEventsPerSite}개까지 등록할 수 있습니다.`;
+  const activeFormId = isCreating ? "event-form-new" : editingEventId ? `event-form-${editingEventId}` : "";
 
   return (
-    <SectionCard title="이벤트" eyebrow="Events">
+    <SectionCard
+      title="이벤트"
+      eyebrow="Events"
+      action={
+        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
+          저장
+        </SubmitButton>
+      }
+    >
       {events.length === 0 && !isCreating ? (
         <EmptyState message="등록된 이벤트가 없습니다" buttonLabel="+ 이벤트 추가" onCreate={() => setIsCreating(true)} disabled={reachedEventLimit} disabledMessage={reachedEventLimit ? eventLimitMessage : undefined} />
       ) : (
@@ -344,7 +365,7 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
           {events.map((event) => (
             <article key={event.id} className="rounded-lg border border-zinc-100 p-5">
               {editingEventId === event.id ? (
-                <form action={updateEventAction} className="grid gap-4 md:grid-cols-2">
+                <form id={`event-form-${event.id}`} action={updateEventAction} className="grid gap-4 md:grid-cols-2">
                   <HiddenMenuId menuId={menuId} />
                   <input type="hidden" name="eventId" value={event.id} />
                   <EventFields event={event} />
@@ -396,13 +417,18 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
           )}
         </div>
       )}
+      <div className="mt-6 flex justify-end border-t border-zinc-100 pt-5">
+        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
+          저장
+        </SubmitButton>
+      </div>
     </SectionCard>
   );
 }
 
 function EventForm({ menuId, count, onCancel }: { menuId: string; count: number; onCancel: () => void }) {
   return (
-    <form action={createEventAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+    <form id="event-form-new" action={createEventAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <EventFields count={count} />
       <div className="flex gap-2 md:col-span-2">
@@ -512,9 +538,18 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
   const [editingSocialLinkId, setEditingSocialLinkId] = useState<string | null>(null);
   const reachedSocialLinkLimit = socialLinks.length >= MENU_LIMITS.maxSocialLinksPerSite;
   const socialLinkLimitMessage = `SNS 링크는 최대 ${MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.`;
+  const activeFormId = isCreating ? "social-link-form-new" : editingSocialLinkId ? `social-link-form-${editingSocialLinkId}` : "";
 
   return (
-    <SectionCard title="SNS" eyebrow="Social">
+    <SectionCard
+      title="SNS"
+      eyebrow="Social"
+      action={
+        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
+          저장
+        </SubmitButton>
+      }
+    >
       <p className="mb-5 break-keep text-sm font-semibold text-zinc-500">공개 메뉴판에서는 display_name을 클릭하면 URL로 이동합니다. SNS 링크는 최대 {MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.</p>
       {socialLinks.length === 0 && !isCreating ? (
         <EmptyState message="등록된 SNS 링크가 없습니다" buttonLabel="+ SNS 추가" onCreate={() => setIsCreating(true)} disabled={reachedSocialLinkLimit} disabledMessage={reachedSocialLinkLimit ? socialLinkLimitMessage : undefined} />
@@ -523,7 +558,7 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
           {socialLinks.map((link) => (
             <article key={link.id} className="rounded-lg border border-zinc-100 p-5">
               {editingSocialLinkId === link.id ? (
-                <form action={updateSocialLinkAction} className="grid gap-4 md:grid-cols-2">
+                <form id={`social-link-form-${link.id}`} action={updateSocialLinkAction} className="grid gap-4 md:grid-cols-2">
                   <HiddenMenuId menuId={menuId} />
                   <input type="hidden" name="socialLinkId" value={link.id} />
                   <SocialLinkFields socialLink={link} />
@@ -570,13 +605,18 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
           )}
         </div>
       )}
+      <div className="mt-6 flex justify-end border-t border-zinc-100 pt-5">
+        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
+          저장
+        </SubmitButton>
+      </div>
     </SectionCard>
   );
 }
 
 function SocialLinkForm({ menuId, count, onCancel }: { menuId: string; count: number; onCancel: () => void }) {
   return (
-    <form action={createSocialLinkAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+    <form id="social-link-form-new" action={createSocialLinkAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <SocialLinkFields count={count} />
       <div className="flex gap-2 md:col-span-2">

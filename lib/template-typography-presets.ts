@@ -97,7 +97,7 @@ export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
 
 export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySettings>> = {
   cafe_design_a: {
-    korean_font_key: "default_ko",
+    korean_font_key: "modern_gothic_ko",
     english_font_key: "modern_sans_en",
     font_size_scale_key: "m",
   },

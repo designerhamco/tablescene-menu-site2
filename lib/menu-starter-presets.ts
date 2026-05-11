@@ -1,6 +1,7 @@
 import type { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
+import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
 import {
   getTemplateCategoryFromKey,
   isTemplateCategoryKey,
@@ -14,9 +15,13 @@ export type StarterPresetKey = TemplateCategoryKey;
 
 type StarterItem = {
   name: string;
+  set_name?: string;
   price: number;
+  price_label?: string | null;
   portion_label?: string;
   description: string;
+  image_url?: string | null;
+  badge_label?: string | null;
   recommended?: boolean;
   price_options?: StarterPriceOption[];
 };
@@ -83,10 +88,18 @@ type StarterSocialLink = {
 export type StarterPreset = {
   key: StarterPresetKey;
   site: StarterSiteDefaults;
+  featured_item_name?: string;
+  sample_items_visible?: boolean;
   chefs: StarterChef[];
   events: StarterEvent[];
   socialLinks: StarterSocialLink[];
   pages: StarterPage[];
+};
+
+type CreateStarterMenuDataOptions = {
+  force?: boolean;
+  applySiteDefaults?: boolean;
+  includeAuxiliaryContent?: boolean;
 };
 
 type StarterServiceType = "menu" | "screen" | "legacy";
@@ -154,6 +167,48 @@ function item(
 ): StarterItem {
   return { name, price, description, ...options };
 }
+
+function isCafeDesignATemplateKey(templateKey?: string | null) {
+  return templateKey?.trim().toLowerCase() === "cafe_design_a";
+}
+
+const cafeDesignAStarterPreset: StarterPreset = {
+  key: "cafe",
+  site: CAFE_DESIGN_A_STITCH_SAMPLE.site,
+  featured_item_name: "바질 크림 라떼",
+  sample_items_visible: true,
+  chefs: [],
+  events: [],
+  socialLinks: [],
+  pages: [
+    {
+      title: "메뉴 페이지 1",
+      legacy_section_key: "main_menu",
+      categories: CAFE_DESIGN_A_STITCH_SAMPLE.pages.flatMap((page) =>
+        page.categories.map((category) => ({
+          name: category.name,
+          section_key: "section_key" in category ? (category.section_key as MenuSectionKey) : (page.legacy_section_key as MenuSectionKey),
+          items: category.items.map((menuItem) => ({
+            name: menuItem.name,
+            set_name: menuItem.set_name,
+            price: menuItem.price,
+            price_label: menuItem.price_label,
+            portion_label: "portion_label" in menuItem ? menuItem.portion_label : undefined,
+            description: menuItem.description,
+            image_url: "image_url" in menuItem ? menuItem.image_url : undefined,
+            badge_label: "badge_label" in menuItem ? menuItem.badge_label : undefined,
+            recommended: "recommended" in menuItem ? menuItem.recommended : undefined,
+            price_options: "price_options" in menuItem ? menuItem.price_options.map((option) => ({ ...option })) : undefined,
+          })),
+        }))
+      ),
+    },
+  ],
+};
+
+const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
+  cafe_design_a: cafeDesignAStarterPreset,
+};
 
 const starterPresets: Record<StarterPresetKey, StarterPreset> = {
   cafe: {
@@ -791,6 +846,16 @@ const starterPresets: Record<StarterPresetKey, StarterPreset> = {
 };
 
 export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null) {
+  if (isCafeDesignATemplateKey(templateKey)) {
+    return cafeDesignAStarterPreset;
+  }
+
+  const normalizedTemplateKey = templateKey?.trim().toLowerCase() ?? "";
+  const templatePreset = normalizedTemplateKey ? templateStarterPresets[normalizedTemplateKey] : null;
+  if (templatePreset) {
+    return templatePreset;
+  }
+
   if (isTemplateCategoryKey(templateCategory ?? "")) {
     return starterPresets[templateCategory as TemplateCategoryKey];
   }
@@ -825,6 +890,10 @@ function valueOrDefault(value: string | null | undefined, defaultValue: string) 
 
 function pageSettingsAreEmpty(settings: Json | null | undefined) {
   return !settings || (typeof settings === "object" && !Array.isArray(settings) && Object.keys(settings).length === 0);
+}
+
+function getJsonRecord(value: Json | null | undefined): Record<string, Json> {
+  return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, Json>) } : {};
 }
 
 async function applyStarterSiteDefaults(
@@ -900,12 +969,17 @@ export async function createStarterMenuData(
   templateKey?: string | null,
   restaurantCategory?: string | null,
   templateCategory?: string | null,
-  productKey?: string | null
+  productKey?: string | null,
+  options: CreateStarterMenuDataOptions = {}
 ) {
   const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory);
+  if (isCafeDesignATemplateKey(templateKey) && preset.pages.length !== 1) {
+    throw new Error("Cafe Design A 기본 메뉴는 메뉴 페이지 1개로만 생성되어야 합니다.");
+  }
+
   const serviceType = getStarterServiceType(productKey);
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
-  const starterMenuItemsVisible = !useLeanPreset;
+  const starterMenuItemsVisible = preset.sample_items_visible ?? !useLeanPreset;
   const { count, error: countError } = await supabase
     .from("menu_pages")
     .select("id", { count: "exact", head: true })
@@ -915,11 +989,13 @@ export async function createStarterMenuData(
     throw new Error(`기본 메뉴 중복 확인에 실패했습니다: ${countError.message}`);
   }
 
-  if ((count ?? 0) > 0) {
+  if ((count ?? 0) > 0 && !options.force) {
     return { created: false, presetKey: preset.key, pageCount: 0, categoryCount: 0, itemCount: 0, chefCount: 0, eventCount: 0, socialLinkCount: 0 };
   }
 
-  await applyStarterSiteDefaults(supabase, menuSiteId, preset, serviceType);
+  if (options.applySiteDefaults !== false) {
+    await applyStarterSiteDefaults(supabase, menuSiteId, preset, serviceType);
+  }
 
   const pageInserts: MenuPageInsert[] = preset.pages.map((page, index) => ({
     menu_site_id: menuSiteId,
@@ -928,7 +1004,7 @@ export async function createStarterMenuData(
     description_visible: true,
     legacy_section_key: page.legacy_section_key,
     visible: true,
-    sort_order: index + 1,
+    sort_order: index,
   }));
 
   const { data: pages, error: pagesError } = await supabase.from("menu_pages").insert(pageInserts).select("id, title");
@@ -970,13 +1046,14 @@ export async function createStarterMenuData(
         menu_site_id: menuSiteId,
         category_id: categoryId,
         name: menuItem.name,
+        set_name: menuItem.set_name ?? null,
         description: menuItem.description,
         price: menuItem.price,
-        price_label: null,
+        price_label: menuItem.price_label ?? null,
         portion_label: menuItem.portion_label ?? null,
-        image_url: STARTER_PLACEHOLDERS.item,
+        image_url: menuItem.image_url ?? STARTER_PLACEHOLDERS.item,
         image_path: null,
-        badge_label: menuItem.recommended ? "추천" : null,
+        badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
         recommended: menuItem.recommended ?? false,
         price_visible: true,
         portion_visible: true,
@@ -1010,6 +1087,41 @@ export async function createStarterMenuData(
   }
 
   const itemIdByKey = new Map((insertedItems ?? []).map((menuItem) => [`${menuItem.category_id ?? ""}:${menuItem.name}`, menuItem.id]));
+
+  if (preset.featured_item_name) {
+    const featuredItem = (insertedItems ?? []).find((menuItem) => menuItem.name === preset.featured_item_name);
+
+    if (featuredItem?.id) {
+      const { data: siteSettings, error: siteSettingsError } = await supabase
+        .from("menu_sites")
+        .select("page_settings")
+        .eq("id", menuSiteId)
+        .maybeSingle();
+
+      if (siteSettingsError) {
+        throw new Error(`대표 추천 메뉴 기본값 확인에 실패했습니다: ${siteSettingsError.message}`);
+      }
+
+      const nextPageSettings = {
+        ...getJsonRecord(siteSettings?.page_settings),
+        featured_item_enabled: true,
+        featured_item_id: featuredItem.id,
+      } satisfies Record<string, Json>;
+
+      const { error: featuredSettingsError } = await supabase
+        .from("menu_sites")
+        .update({
+          page_settings: nextPageSettings as Json,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", menuSiteId);
+
+      if (featuredSettingsError) {
+        throw new Error(`대표 추천 메뉴 기본값 저장에 실패했습니다: ${featuredSettingsError.message}`);
+      }
+    }
+  }
+
   const priceOptionInserts: MenuItemPriceOptionInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title) ?? "";
     return page.categories.flatMap((category) => {
@@ -1044,7 +1156,8 @@ export async function createStarterMenuData(
     }
   }
 
-  const chefInserts: MenuChefInsert[] = useLeanPreset
+  const includeAuxiliaryContent = options.includeAuxiliaryContent !== false;
+  const chefInserts: MenuChefInsert[] = useLeanPreset || !includeAuxiliaryContent
     ? []
     : preset.chefs.slice(0, MENU_LIMITS.maxChefsPerSite).map((chef, index) => ({
         menu_site_id: menuSiteId,
@@ -1065,7 +1178,7 @@ export async function createStarterMenuData(
     }
   }
 
-  const eventInserts: MenuEventInsert[] = useLeanPreset
+  const eventInserts: MenuEventInsert[] = useLeanPreset || !includeAuxiliaryContent
     ? []
     : preset.events.slice(0, MENU_LIMITS.maxEventsPerSite).map((event, index) => ({
         menu_site_id: menuSiteId,
@@ -1092,7 +1205,7 @@ export async function createStarterMenuData(
     }
   }
 
-  const socialLinkInserts: MenuSocialLinkInsert[] = useLeanPreset
+  const socialLinkInserts: MenuSocialLinkInsert[] = useLeanPreset || !includeAuxiliaryContent
     ? []
     : preset.socialLinks.slice(0, MENU_LIMITS.maxSocialLinksPerSite).map((link, index) => ({
         menu_site_id: menuSiteId,
