@@ -13,6 +13,7 @@ export type MenuEditorCapabilities = {
   chefs: boolean;
   socialLinks: boolean;
   design: boolean;
+  localization: boolean;
   publish: boolean;
 };
 
@@ -28,6 +29,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     chefs: false,
     socialLinks: false,
     design: true,
+    localization: true,
     publish: true,
   },
   screen: {
@@ -41,6 +43,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     chefs: false,
     socialLinks: false,
     design: true,
+    localization: true,
     publish: true,
   },
   order: {
@@ -54,6 +57,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     chefs: true,
     socialLinks: true,
     design: true,
+    localization: true,
     publish: true,
   },
   custom: {
@@ -67,6 +71,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     chefs: false,
     socialLinks: false,
     design: false,
+    localization: false,
     publish: false,
   },
   legacy: {
@@ -80,6 +85,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     chefs: true,
     socialLinks: true,
     design: true,
+    localization: true,
     publish: true,
   },
 } as const satisfies Record<MenuEditorServiceType, MenuEditorCapabilities>;
@@ -111,6 +117,8 @@ export function isMenuEditorTabEnabled(tabKey: MenuEditorTabKey, capabilities: M
       return capabilities.eventPage;
     case "design":
       return capabilities.design;
+    case "localization":
+      return capabilities.localization;
     case "publish":
       return capabilities.publish;
     default:

@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import { normalizeLocale } from "@/lib/locales";
 import { getOwnerPreviewMenuPageData } from "@/lib/menu-page-data";
 import { createClient } from "@/lib/supabase/server";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
+  searchParams?: Promise<{ lang?: string | string[] }>;
 };
 
 export const metadata: Metadata = {
@@ -17,8 +19,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function MenuPreviewPage({ params }: PageProps) {
+function getSearchParamValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function MenuPreviewPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
+  const query = searchParams ? await searchParams : {};
+  const locale = normalizeLocale(getSearchParamValue(query.lang));
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,7 +36,7 @@ export default async function MenuPreviewPage({ params }: PageProps) {
     redirect(`/sign-in?next=/mypage/menus/${menuId}/preview`);
   }
 
-  const data = await getOwnerPreviewMenuPageData(menuId, user.id);
+  const data = await getOwnerPreviewMenuPageData(menuId, user.id, { locale });
 
   if (!data) {
     redirect("/mypage?error=menu-preview-not-allowed");

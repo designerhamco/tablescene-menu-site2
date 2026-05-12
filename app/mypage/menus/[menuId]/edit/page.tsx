@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 import {
-  translateMenuSiteAction,
   updateAboutAction,
   updateIntroAction,
   updateMenuCoverAction,
@@ -15,10 +14,12 @@ import {
 import SiteHeader from "@/components/layout/SiteHeader";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
+import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
+import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import {
   ChefsSection as InteractiveChefsSection,
   EventsSection as InteractiveEventsSection,
@@ -32,6 +33,9 @@ import {
 } from "@/lib/menu-editor-capabilities";
 import { MENU_EDITOR_TABS, isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
+import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
+import { getTranslationUsage } from "@/lib/menu-translation-usage";
+import { getEnabledLocales } from "@/lib/locales";
 import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
@@ -43,9 +47,6 @@ import {
 } from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
 import {
-  ENGLISH_FONT_OPTIONS,
-  FONT_SIZE_SCALE_OPTIONS,
-  KOREAN_FONT_OPTIONS,
   getCustomTypographySettings,
   getDefaultTypographyPreset,
   mergeTypographySettings,
@@ -299,52 +300,6 @@ function HiddenMenuId({ menuId }: { menuId: string }) {
   return <input type="hidden" name="menuId" value={menuId} />;
 }
 
-function formatTranslationDateTime(value: string | null) {
-  if (!value) return "";
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Seoul",
-  }).format(new Date(value));
-}
-
-function getTranslationStatus(job: MenuTranslationJob | null) {
-  if (!job) {
-    return {
-      label: "번역 전",
-      message: "아직 번역 전입니다.",
-      tone: "text-zinc-500 bg-zinc-50 border-zinc-100",
-      isRunning: false,
-    };
-  }
-
-  if (job.status === "pending" || job.status === "running") {
-    return {
-      label: "번역 중",
-      message: "번역을 생성하는 중입니다. 잠시 후 다시 확인해주세요.",
-      tone: "text-amber-700 bg-amber-50 border-amber-100",
-      isRunning: true,
-    };
-  }
-
-  if (job.status === "completed") {
-    return {
-      label: "번역 완료",
-      message: `마지막 번역 완료: ${formatTranslationDateTime(job.completed_at ?? job.created_at)}`,
-      tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
-      isRunning: false,
-    };
-  }
-
-  return {
-    label: "번역 실패",
-    message: job.error_message ? `번역 실패: ${job.error_message}` : "번역 실패: 다시 시도해주세요.",
-    tone: "text-red-700 bg-red-50 border-red-100",
-    isRunning: false,
-  };
-}
-
 export default async function EditMenuPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
   const { error, message, tab } = await searchParams;
@@ -493,7 +448,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const events = (eventsData ?? []) as MenuEvent[];
   const socialLinks = (socialLinksData ?? []) as MenuSocialLink[];
   const latestTranslationJob = translationJobData as MenuTranslationJob | null;
-  const translationStatus = getTranslationStatus(latestTranslationJob);
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const editorServiceType = getMenuEditorServiceType(latestOrder?.product_key);
@@ -511,6 +465,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const typographySettings = mergeTypographySettings(site.template_key, customTypography);
   const defaultTypography = getDefaultTypographyPreset(site.template_key);
   const hasCustomTypography = Boolean(customTypography);
+  const enabledLocales = getEnabledLocales(site.settings);
+  const translationUsage = getTranslationUsage(site.settings);
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
   const featuredItemOptions = items
     .filter((item) => item.visible === true)
@@ -531,6 +487,17 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     return templateCapabilities.events || item.key !== "events";
   });
   const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : "basic";
+  const bannerMessage = message;
+  const bannerError =
+    activeTab === "localization"
+      ? latestTranslationJob?.status === "completed"
+        ? null
+        : latestTranslationJob?.status === "failed"
+          ? getSafeTranslationErrorMessage(latestTranslationJob.error_message)
+          : error
+            ? getSafeTranslationErrorMessage(error)
+            : null
+      : error;
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
@@ -620,8 +587,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           </div>
         </header>
 
-        {message && <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">{message}</div>}
-        {error && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
+        {bannerMessage && <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">{bannerMessage}</div>}
+        {bannerError && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{bannerError}</div>}
 
         <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
 
@@ -875,103 +842,32 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </p>
                       </div>
                     </div>
-                    <form id="typography-settings-form" action={updateTypographySettingsAction} className="mt-5 space-y-5">
-                      <HiddenMenuId menuId={site.id} />
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                          <FieldLabel>한글 폰트</FieldLabel>
-                          <Select name="korean_font_key" defaultValue={typographySettings.korean_font_key}>
-                            {KOREAN_FONT_OPTIONS.map((option) => (
-                              <option key={option.key} value={option.key}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </Select>
-                          <p
-                            className="mt-2 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-700"
-                            style={{ fontFamily: KOREAN_FONT_OPTIONS.find((option) => option.key === typographySettings.korean_font_key)?.fontFamily }}
-                          >
-                            아메리카노 4,500
-                          </p>
-                        </div>
-                        <div>
-                          <FieldLabel>영문 폰트</FieldLabel>
-                          <Select name="english_font_key" defaultValue={typographySettings.english_font_key}>
-                            {ENGLISH_FONT_OPTIONS.map((option) => (
-                              <option key={option.key} value={option.key}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </Select>
-                          <p
-                            className="mt-2 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-700"
-                            style={{ fontFamily: ENGLISH_FONT_OPTIONS.find((option) => option.key === typographySettings.english_font_key)?.fontFamily }}
-                          >
-                            Signature Coffee
-                          </p>
-                        </div>
-                      </div>
-                      <div>
-                        <FieldLabel>글자 크기</FieldLabel>
-                        <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                          {FONT_SIZE_SCALE_OPTIONS.map((option) => (
-                            <label
-                              key={option.key}
-                              className={`cursor-pointer rounded-lg border bg-white p-4 transition ${
-                                typographySettings.font_size_scale_key === option.key
-                                  ? "border-zinc-950 ring-2 ring-zinc-950/10"
-                                  : "border-zinc-200 hover:border-zinc-400"
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name="font_size_scale_key"
-                                value={option.key}
-                                defaultChecked={typographySettings.font_size_scale_key === option.key}
-                                className="sr-only"
-                              />
-                              <span className="block text-lg font-black text-zinc-950">{option.label}</span>
-                              <span className="mt-1 block break-keep text-xs font-bold leading-relaxed text-zinc-400">{option.description}</span>
-                            </label>
-                          ))}
-                        </div>
-                        <FieldHint>메뉴 수가 적어 화면이 허전해 보이면 L을 선택해 더 크게 보여줄 수 있습니다.</FieldHint>
-                      </div>
-                      {!hasCustomTypography && (
-                        <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                          현재 템플릿 기본값: {defaultTypography.korean_font_key} / {defaultTypography.english_font_key} / {defaultTypography.font_size_scale_key.toUpperCase()}
-                        </p>
-                      )}
-                      <SubmitButton>글꼴 설정 저장</SubmitButton>
-                    </form>
+                    <TypographySettingsForm
+                      action={updateTypographySettingsAction}
+                      formId="typography-settings-form"
+                      menuId={site.id}
+                      initialSettings={typographySettings}
+                      defaultSettings={defaultTypography}
+                      hasCustomTypography={hasCustomTypography}
+                    />
                   </div>
                 </div>
               </SectionCard>
             )}
 
+            {activeTab === "localization" && (
+              <SectionCard title="다국어" eyebrow="Localization" action={<SectionSaveButton formId="localization-settings-form" />}>
+                <LocalizationSection
+                  menuId={site.id}
+                  enabledLocales={enabledLocales}
+                  translationUsage={translationUsage}
+                  latestTranslationJob={latestTranslationJob}
+                />
+              </SectionCard>
+            )}
+
             {activeTab === "publish" && (
               <SectionCard title="공개 설정" eyebrow="Publish" action={<SectionSaveButton formId="publish-settings-form" />}>
-                <div className="mb-6 rounded-lg border border-zinc-100 bg-white p-5">
-                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                    <div>
-                      <h3 className="text-lg font-bold tracking-tight">다국어 자동 번역</h3>
-                      <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                        한국어로 입력한 메뉴 정보를 영어, 중국어, 일본어로 자동 번역합니다.
-                      </p>
-                      <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${translationStatus.tone}`}>
-                        {translationStatus.label}
-                      </p>
-                      <p className="mt-3 break-keep text-sm font-bold text-zinc-500">{translationStatus.message}</p>
-                    </div>
-                    <form action={translateMenuSiteAction}>
-                      <HiddenMenuId menuId={site.id} />
-                      <SubmitButton disabled={translationStatus.isRunning}>자동 번역 업데이트</SubmitButton>
-                    </form>
-                  </div>
-                  <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                    번역값이 없는 필드는 공개 메뉴판에서 한국어 원문으로 표시됩니다.
-                  </p>
-                </div>
                 <form id="publish-settings-form" action={updatePublishSettingsAction} className="space-y-5">
                   <HiddenMenuId menuId={site.id} />
                   <div>

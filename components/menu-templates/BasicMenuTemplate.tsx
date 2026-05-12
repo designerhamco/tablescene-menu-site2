@@ -508,7 +508,7 @@ export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
   return (
     <div id="intro" className="menu-typography bg-zinc-50 text-zinc-950" style={getTypographyCssVariables(typographySettings)}>
       {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
-      <MenuGnb site={data.menuSite} />
+      <MenuGnb site={data.menuSite} currentLocale={data.locale} enabledLocales={data.enabledLocales} />
       {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} capabilities={capabilities} />}
       {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
       {publicCapabilities.aboutPage && pageSettings.about_enabled && (

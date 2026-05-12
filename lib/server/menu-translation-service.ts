@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { PARTIAL_TRANSLATION_FAILURE_MESSAGE } from "@/lib/menu-translation-errors";
 import type { Database } from "@/lib/supabase/types";
 
 export const TARGET_TRANSLATION_LOCALES = ["en", "zh", "ja"] as const;
@@ -56,7 +57,7 @@ export type MenuTranslationUpdateResult = {
 
 const CHUNK_SIZE = 40;
 const OPENAI_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses";
-const DEFAULT_TRANSLATION_MODEL = "gpt-4o-mini";
+const DEFAULT_TRANSLATION_MODEL = "gpt-5-nano";
 
 const targetLanguageLabels: Record<TargetTranslationLocale, string> = {
   en: "English",
@@ -66,6 +67,60 @@ const targetLanguageLabels: Record<TargetTranslationLocale, string> = {
 
 function cleanText(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function hasHangul(value: string) {
+  return /[가-힣]/.test(value);
+}
+
+function isLikelyUntranslatedMenuItemValue(sourceText: string, translatedText: string, locale: TargetTranslationLocale) {
+  if (!hasHangul(sourceText)) return false;
+
+  const normalizedSource = sourceText.trim();
+  const normalizedTranslation = translatedText.trim();
+
+  if (normalizedTranslation === normalizedSource) return true;
+  if (locale !== "ko" && hasHangul(normalizedTranslation)) return true;
+
+  return false;
+}
+
+function isMenuItemNameKey(key: string) {
+  return key.startsWith("menu_item_translations:") && key.endsWith(":name");
+}
+
+function isAllCapsEnglishMenuItemName(fieldName: string, translatedText: string, locale: TargetTranslationLocale) {
+  if (locale !== "en" || fieldName !== "name") return false;
+
+  const letters = translatedText.match(/[A-Za-z]/g) ?? [];
+  if (letters.length < 2) return false;
+
+  return /[A-Z]/.test(translatedText) && !/[a-z]/.test(translatedText);
+}
+
+function toEnglishMenuItemTitleCase(value: string) {
+  const lowerCaseWords = new Set(["a", "an", "and", "as", "at", "but", "by", "for", "in", "of", "on", "or", "the", "to", "with"]);
+  let wordIndex = 0;
+
+  return value.replace(/[A-Za-z]+(?:'[A-Za-z]+)?/g, (word) => {
+    const lower = word.toLowerCase();
+    const shouldKeepLowerCase = wordIndex > 0 && lowerCaseWords.has(lower);
+    wordIndex += 1;
+
+    if (shouldKeepLowerCase) {
+      return lower;
+    }
+
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  });
+}
+
+function normalizeTranslatedTextValue(locale: TargetTranslationLocale, key: string, value: string) {
+  if (locale === "en" && isMenuItemNameKey(key)) {
+    return toEnglishMenuItemTitleCase(value);
+  }
+
+  return value;
 }
 
 function buildSourceHash(fields: Record<string, string>) {
@@ -179,7 +234,7 @@ async function translateChunk(locale: TargetTranslationLocale, items: Translatio
             {
               type: "input_text",
               text:
-                "You translate Korean restaurant menu content. Preserve meaning, menu style, line breaks, numbers, symbols, and brand names. Return only valid JSON that matches the schema.",
+                "You translate Korean restaurant menu content. Preserve meaning, menu style, line breaks, numbers, symbols, and brand names. For English menu item name fields, use natural Title Case like Basil Cream Latte, not ALL CAPS. Category names, badges, and price labels may preserve uppercase when appropriate. Return only valid JSON that matches the schema.",
             },
           ],
         },
@@ -243,7 +298,10 @@ async function translateTextUnits(locale: TargetTranslationLocale, textUnits: Tr
   const translations: Record<string, string> = {};
 
   for (const chunk of chunkItems(textUnits, CHUNK_SIZE)) {
-    Object.assign(translations, await translateChunk(locale, chunk));
+    const chunkTranslations = await translateChunk(locale, chunk);
+    Object.entries(chunkTranslations).forEach(([key, value]) => {
+      translations[key] = normalizeTranslatedTextValue(locale, key, value);
+    });
   }
 
   return translations;
@@ -367,8 +425,60 @@ function getTextUnitKey(entity: TranslationEntity, fieldName: string) {
   return `${entity.table}:${entity.id}:${fieldName}`;
 }
 
-async function loadExistingTranslationHashes(supabase: Supabase, entities: TranslationEntity[]) {
+const translationTableSourceIdFields = {
+  menu_site_translations: "menu_site_id",
+  menu_page_translations: "menu_page_id",
+  menu_category_translations: "category_id",
+  menu_item_translations: "item_id",
+  menu_item_price_option_translations: "price_option_id",
+  menu_item_trait_translations: "trait_id",
+  menu_event_translations: "event_id",
+  menu_chef_translations: "chef_id",
+  menu_social_link_translations: "social_link_id",
+} as const satisfies Record<TranslationTable, TranslationEntity["sourceIdField"]>;
+
+function hasCompleteTranslatedFields(row: Record<string, unknown>, entity: TranslationEntity, locale: TargetTranslationLocale) {
+  return Object.entries(entity.fields).every(([fieldName, sourceText]) => {
+    const translatedText = cleanText(row[fieldName]);
+    if (!translatedText) return false;
+
+    if (entity.table === "menu_item_translations" && isLikelyUntranslatedMenuItemValue(sourceText, translatedText, locale)) {
+      return false;
+    }
+
+    if (entity.table === "menu_item_translations" && isAllCapsEnglishMenuItemName(fieldName, translatedText, locale)) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function rememberCompletedTranslationHash(
+  existingHashes: Map<string, string>,
+  entityByTableAndId: Map<string, TranslationEntity>,
+  table: TranslationTable,
+  row: Record<string, unknown>
+) {
+  const sourceId = cleanText(row[translationTableSourceIdFields[table]]);
+  const locale = cleanText(row.locale) as TargetTranslationLocale | null;
+  const sourceTextHash = cleanText(row.source_text_hash);
+
+  if (!sourceId || !locale || !sourceTextHash || row.status !== "completed") {
+    return;
+  }
+
+  const entity = entityByTableAndId.get(`${table}:${sourceId}`);
+  if (!entity || sourceTextHash !== entity.sourceTextHash || !hasCompleteTranslatedFields(row, entity, locale)) {
+    return;
+  }
+
+  existingHashes.set(`${table}:${locale}:${sourceId}`, sourceTextHash);
+}
+
+async function loadExistingTranslationHashes(supabase: Supabase, entities: TranslationEntity[], targetLocales: readonly TargetTranslationLocale[]) {
   const existingHashes = new Map<string, string>();
+  const entityByTableAndId = new Map(entities.map((entity) => [`${entity.table}:${entity.id}`, entity]));
   const groups = entities.reduce<Record<TranslationTable, string[]>>((result, entity) => {
     result[entity.table] = [...(result[entity.table] ?? []), entity.id];
     return result;
@@ -383,110 +493,108 @@ async function loadExistingTranslationHashes(supabase: Supabase, entities: Trans
         case "menu_site_translations": {
           const { data, error } = await supabase
             .from("menu_site_translations")
-            .select("menu_site_id, locale, source_text_hash, status")
+            .select("*")
             .in("menu_site_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed") existingHashes.set(`menu_site_translations:${row.locale}:${row.menu_site_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_site_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_page_translations": {
           const { data, error } = await supabase
             .from("menu_page_translations")
-            .select("menu_page_id, locale, source_text_hash, status")
+            .select("*")
             .in("menu_page_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed") existingHashes.set(`menu_page_translations:${row.locale}:${row.menu_page_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_page_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_category_translations": {
           const { data, error } = await supabase
             .from("menu_category_translations")
-            .select("category_id, locale, source_text_hash, status")
+            .select("*")
             .in("category_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed") existingHashes.set(`menu_category_translations:${row.locale}:${row.category_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_category_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_item_translations": {
           const { data, error } = await supabase
             .from("menu_item_translations")
-            .select("item_id, locale, source_text_hash, status")
+            .select("*")
             .in("item_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed") existingHashes.set(`menu_item_translations:${row.locale}:${row.item_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_item_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_item_price_option_translations": {
           const { data, error } = await supabase
             .from("menu_item_price_option_translations")
-            .select("price_option_id, locale, source_text_hash, status")
+            .select("*")
             .in("price_option_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed")
-              existingHashes.set(`menu_item_price_option_translations:${row.locale}:${row.price_option_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_item_price_option_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_item_trait_translations": {
           const { data, error } = await supabase
             .from("menu_item_trait_translations")
-            .select("trait_id, locale, source_text_hash, status")
+            .select("*")
             .in("trait_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed") existingHashes.set(`menu_item_trait_translations:${row.locale}:${row.trait_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_item_trait_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_event_translations": {
           const { data, error } = await supabase
             .from("menu_event_translations")
-            .select("event_id, locale, source_text_hash, status")
+            .select("*")
             .in("event_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed") existingHashes.set(`menu_event_translations:${row.locale}:${row.event_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_event_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_chef_translations": {
           const { data, error } = await supabase
             .from("menu_chef_translations")
-            .select("chef_id, locale, source_text_hash, status")
+            .select("*")
             .in("chef_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed") existingHashes.set(`menu_chef_translations:${row.locale}:${row.chef_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_chef_translations", row as Record<string, unknown>);
           });
           break;
         }
         case "menu_social_link_translations": {
           const { data, error } = await supabase
             .from("menu_social_link_translations")
-            .select("social_link_id, locale, source_text_hash, status")
+            .select("*")
             .in("social_link_id", uniqueIds)
-            .in("locale", TARGET_TRANSLATION_LOCALES);
+            .in("locale", targetLocales);
           if (error) throw new Error(`기존 번역 상태 조회에 실패했습니다: ${error.message}`);
           data?.forEach((row) => {
-            if (row.source_text_hash && row.status === "completed")
-              existingHashes.set(`menu_social_link_translations:${row.locale}:${row.social_link_id}`, row.source_text_hash);
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_social_link_translations", row as Record<string, unknown>);
           });
           break;
         }
@@ -495,6 +603,25 @@ async function loadExistingTranslationHashes(supabase: Supabase, entities: Trans
   );
 
   return existingHashes;
+}
+
+function validateTranslatedTextUnits(locale: TargetTranslationLocale, textUnits: TranslationTextUnit[], translatedText: Record<string, string>) {
+  const missingCount = textUnits.filter((unit) => !cleanText(translatedText[unit.key])).length;
+
+  if (missingCount > 0) {
+    throw new Error(`번역 API 응답에서 ${missingCount}개 필드가 누락되었습니다. 다시 시도해주세요.`);
+  }
+
+  const untranslatedMenuItemCount = textUnits.filter((unit) => {
+    if (!unit.key.startsWith("menu_item_translations:")) return false;
+
+    const translatedValue = cleanText(translatedText[unit.key]);
+    return translatedValue ? isLikelyUntranslatedMenuItemValue(unit.text, translatedValue, locale) : false;
+  }).length;
+
+  if (untranslatedMenuItemCount > 0) {
+    throw new Error(`메뉴 아이템 ${untranslatedMenuItemCount}개가 번역되지 않은 상태로 응답되었습니다. 다시 시도해주세요.`);
+  }
 }
 
 function buildRowsForLocale(locale: TargetTranslationLocale, entities: TranslationEntity[], translatedText: Record<string, string>) {
@@ -508,7 +635,7 @@ function buildRowsForLocale(locale: TargetTranslationLocale, entities: Translati
     };
 
     Object.keys(entity.fields).forEach((fieldName) => {
-      const value = translatedText[getTextUnitKey(entity, fieldName)];
+      const value = cleanText(translatedText[getTextUnitKey(entity, fieldName)]);
       row[fieldName] = value ?? null;
     });
 
@@ -588,44 +715,67 @@ async function upsertRows(supabase: Supabase, table: TranslationTable, rows: Rec
   }
 }
 
-export async function runMenuTranslationUpdate(supabase: Supabase, menuSiteId: string): Promise<MenuTranslationUpdateResult> {
+export async function runMenuTranslationUpdate(
+  supabase: Supabase,
+  menuSiteId: string,
+  targetLocales: readonly TargetTranslationLocale[] = TARGET_TRANSLATION_LOCALES
+): Promise<MenuTranslationUpdateResult> {
+  if (targetLocales.length === 0) {
+    throw new Error("자동 번역을 실행할 외국어를 먼저 선택해주세요.");
+  }
+
   const entities = await loadTranslationEntities(supabase, menuSiteId);
-  const existingHashes = await loadExistingTranslationHashes(supabase, entities);
+  const existingHashes = await loadExistingTranslationHashes(supabase, entities, targetLocales);
   let translatedEntities = 0;
   let skippedEntities = 0;
   let translatedTextUnits = 0;
+  let savedRows = false;
 
-  for (const locale of TARGET_TRANSLATION_LOCALES) {
-    const entitiesToTranslate = entities.filter((entity) => {
-      const existingHash = existingHashes.get(getEntityKey(entity, locale));
-      if (existingHash === entity.sourceTextHash) {
-        skippedEntities += 1;
-        return false;
+  try {
+    for (const locale of targetLocales) {
+      const entitiesToTranslate = entities.filter((entity) => {
+        const existingHash = existingHashes.get(getEntityKey(entity, locale));
+        if (existingHash === entity.sourceTextHash) {
+          skippedEntities += 1;
+          return false;
+        }
+
+        return true;
+      });
+
+      const textUnits = entitiesToTranslate.flatMap((entity) =>
+        Object.entries(entity.fields).map(([fieldName, text]) => ({
+          key: getTextUnitKey(entity, fieldName),
+          text,
+        }))
+      );
+
+      if (textUnits.length === 0) {
+        continue;
       }
 
-      return true;
-    });
+      const translatedText = await translateTextUnits(locale, textUnits);
+      if (Object.keys(translatedText).length === 0) {
+        throw new Error("번역 API 결과가 비어 있습니다.");
+      }
+      validateTranslatedTextUnits(locale, textUnits, translatedText);
 
-    const textUnits = entitiesToTranslate.flatMap((entity) =>
-      Object.entries(entity.fields).map(([fieldName, text]) => ({
-        key: getTextUnitKey(entity, fieldName),
-        text,
-      }))
-    );
+      const rowsByTable = buildRowsForLocale(locale, entitiesToTranslate, translatedText);
 
-    if (textUnits.length === 0) {
-      continue;
+      for (const [table, rows] of Object.entries(rowsByTable)) {
+        await upsertRows(supabase, table as TranslationTable, rows);
+        savedRows = true;
+      }
+
+      translatedEntities += entitiesToTranslate.length;
+      translatedTextUnits += textUnits.length;
+    }
+  } catch (error) {
+    if (savedRows) {
+      throw new Error(PARTIAL_TRANSLATION_FAILURE_MESSAGE, { cause: error });
     }
 
-    const translatedText = await translateTextUnits(locale, textUnits);
-    const rowsByTable = buildRowsForLocale(locale, entitiesToTranslate, translatedText);
-
-    for (const [table, rows] of Object.entries(rowsByTable)) {
-      await upsertRows(supabase, table as TranslationTable, rows);
-    }
-
-    translatedEntities += entitiesToTranslate.length;
-    translatedTextUnits += textUnits.length;
+    throw error;
   }
 
   return {

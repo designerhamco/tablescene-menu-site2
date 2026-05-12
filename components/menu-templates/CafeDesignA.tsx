@@ -3,6 +3,7 @@
 
 import { useState, type ReactNode } from "react";
 
+import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
@@ -164,8 +165,8 @@ function getItemStackSpacing(density: MenuLayoutDensity) {
 
 function getMenuAreaClassName(hasFeaturedItem: boolean) {
   return hasFeaturedItem
-    ? "lg:col-span-3 lg:grid-cols-3"
-    : "lg:col-span-4 lg:grid-cols-4";
+    ? "lg:col-span-3 lg:grid-cols-3 2xl:col-span-4 2xl:grid-cols-4"
+    : "lg:col-span-4 lg:grid-cols-4 2xl:col-span-5 2xl:grid-cols-5";
 }
 
 function getCategorySpanClassName(itemCount: number) {
@@ -189,11 +190,17 @@ function getCategoryFlowClassName(itemCount: number, density: MenuLayoutDensity)
 
 function getOuterGridGapClassName(density: MenuLayoutDensity) {
   return {
-    spacious: "gap-y-12 md:gap-x-8 lg:gap-x-9 lg:gap-y-10",
-    default: "gap-y-10 md:gap-x-8 lg:gap-x-8 lg:gap-y-8",
-    compact: "gap-y-9 md:gap-x-7 lg:gap-x-7 lg:gap-y-7",
-    ultraCompact: "gap-y-8 md:gap-x-6 lg:gap-x-6 lg:gap-y-6",
+    spacious: "gap-y-12 md:gap-x-8 lg:gap-x-[clamp(28px,3vw,56px)] lg:gap-y-[clamp(32px,3vh,48px)]",
+    default: "gap-y-10 md:gap-x-8 lg:gap-x-[clamp(24px,2.6vw,48px)] lg:gap-y-[clamp(24px,2.6vh,40px)]",
+    compact: "gap-y-9 md:gap-x-7 lg:gap-x-[clamp(22px,2.3vw,40px)] lg:gap-y-[clamp(22px,2.3vh,34px)]",
+    ultraCompact: "gap-y-8 md:gap-x-6 lg:gap-x-[clamp(20px,2vw,34px)] lg:gap-y-[clamp(20px,2vh,30px)]",
   }[density];
+}
+
+function getDesktopGridClassName(hasFeaturedItem: boolean) {
+  return hasFeaturedItem
+    ? "lg:grid-cols-[minmax(280px,0.8fr)_repeat(3,minmax(0,1fr))] 2xl:grid-cols-[minmax(300px,0.75fr)_repeat(4,minmax(0,1fr))]"
+    : "lg:grid-cols-4 2xl:grid-cols-5";
 }
 
 function CategoryTitle({ category, density }: { category: MenuCategory; density: MenuLayoutDensity }) {
@@ -360,7 +367,7 @@ function FeaturedHero({
   }[density];
 
   return (
-    <section className={`flex ${heroMinHeightClassName} flex-col bg-[#eceeec] md:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0`}>
+    <section className={`flex min-w-0 ${heroMinHeightClassName} flex-col bg-[#eceeec] md:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0`}>
       <div className={`relative h-full ${heroMinHeightClassName} flex-1 overflow-hidden lg:min-h-0`}>
         <img src={featuredItem.image_url ?? ""} alt={featuredItem.name} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
@@ -391,16 +398,14 @@ function HeaderBlock({ data }: { data: PublicMenuTemplateProps }) {
   const description = data.menuSite.menu_cover_description || data.menuSite.description || data.menuSite.brand_description;
 
   return (
-    <header className="relative left-1/2 w-screen shrink-0 -translate-x-1/2 border-b border-[#191c1b] px-5 py-8 sm:px-8 lg:px-10 lg:py-[clamp(18px,2.4vh,28px)]">
-      <div className="flex items-start justify-between gap-6">
-        <div className="max-w-md">
+    <header className="w-full shrink-0 border-b border-[#191c1b] px-[clamp(24px,4vw,96px)] py-8 lg:px-[clamp(32px,4vw,96px)] lg:py-[clamp(18px,2.4vh,28px)]">
+      <div className="flex min-w-0 items-start justify-between gap-[clamp(16px,2vw,32px)]">
+        <div className="min-w-0 max-w-5xl">
           <h1 className="break-words text-5xl font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]">{title}</h1>
           {description && <p className="mt-2 break-keep text-[11px] font-normal leading-[1.5] text-[#3f4945]">{description}</p>}
         </div>
         <div className="group relative shrink-0 cursor-default text-right text-[#191c1b]">
-          <div className="flex items-center gap-1 text-lg font-bold leading-none">
-            <span className="text-sm">KR</span>
-          </div>
+          <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
         </div>
       </div>
     </header>
@@ -437,7 +442,7 @@ function MenuGroupsGrid({
   showPageTitles: boolean;
 }) {
   return (
-    <section className={`grid grid-flow-dense grid-cols-1 content-start md:col-span-2 md:grid-cols-2 lg:min-h-0 lg:max-h-full lg:overflow-y-auto lg:pr-1 ${outerGridGapClassName} ${menuAreaClassName}`}>
+    <section className={`grid min-w-0 grid-flow-dense grid-cols-1 content-start md:col-span-2 md:grid-cols-2 lg:min-h-0 lg:max-h-full lg:overflow-y-auto lg:pr-1 ${outerGridGapClassName} ${menuAreaClassName}`}>
       {pageGroups.map((pageGroup) => (
         <div key={pageGroup.page.id} className="contents">
           {showPageTitles && !isDefaultPageTitle(pageGroup.page) && (
@@ -490,7 +495,7 @@ function DesktopPageControls({
   const isLastPage = pageIndex >= pageCount - 1;
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 hidden px-10 opacity-0 transition-opacity duration-200 group-hover/cafe-board:opacity-100 group-focus-within/cafe-board:opacity-100 lg:block">
+    <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 hidden px-[clamp(32px,4vw,96px)] opacity-0 transition-opacity duration-200 group-hover/cafe-board:opacity-100 group-focus-within/cafe-board:opacity-100 lg:block">
       <div className="ml-auto flex w-fit items-center gap-2 border border-[#191c1b] bg-white/90 px-2 py-2 text-[#191c1b] shadow-sm backdrop-blur">
         <button
           type="button"
@@ -534,14 +539,15 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
   const hasFeaturedItem = Boolean(featuredItem);
   const menuAreaClassName = getMenuAreaClassName(hasFeaturedItem);
+  const desktopGridClassName = getDesktopGridClassName(hasFeaturedItem);
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
 
   return (
-    <main className="menu-typography group/cafe-board relative min-h-screen bg-white text-[#191c1b] lg:h-screen lg:overflow-hidden" style={getTypographyCssVariables(typographySettings)}>
-      <div className="mx-auto flex min-h-screen w-full max-w-[1440px] flex-col lg:h-full lg:min-h-0 lg:overflow-hidden">
+    <main className="menu-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 bg-white text-[#191c1b] lg:h-screen lg:overflow-y-hidden" style={getTypographyCssVariables(typographySettings)}>
+      <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
         <HeaderBlock data={data} />
-        <div className={`grid px-5 py-8 pb-16 sm:px-8 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
+        <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] py-8 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
           {publicCapabilities.menuCoverPage && data.pageSettings.menu_cover_enabled !== false && featuredItem && (
             <FeaturedHero data={data} featuredItem={featuredItem} capabilities={capabilities} customBadgeStyles={customBadgeStyles} density={density} />
           )}
@@ -565,7 +571,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
           )}
         </div>
 
-        <div className={`hidden lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-4 lg:overflow-hidden lg:px-10 lg:py-[clamp(18px,2.4vh,28px)] ${outerGridGapClassName}`}>
+        <div className={`hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:px-[clamp(32px,4vw,96px)] lg:py-[clamp(18px,2.4vh,28px)] ${desktopGridClassName} ${outerGridGapClassName}`}>
           {publicCapabilities.menuCoverPage && data.pageSettings.menu_cover_enabled !== false && featuredItem && (
             <FeaturedHero data={data} featuredItem={featuredItem} capabilities={capabilities} customBadgeStyles={customBadgeStyles} density={density} />
           )}

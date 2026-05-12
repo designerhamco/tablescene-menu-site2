@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/supabase/types";
+import type { SupportedLocale } from "@/lib/locales";
 import type { MenuEditorServiceType } from "@/lib/menu-editor-capabilities";
 import type { PageSettings } from "@/types/menu";
 
@@ -108,6 +109,8 @@ export type PublicMenuSocialLink = Pick<
 
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
+  locale: SupportedLocale;
+  enabledLocales: SupportedLocale[];
   publicServiceType: MenuEditorServiceType;
   menuSite: PublicMenuSite;
   pageSettings: PageSettings;

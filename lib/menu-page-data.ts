@@ -1,5 +1,5 @@
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/MenuTemplateRenderer";
-import { DEFAULT_LOCALE, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
+import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -284,6 +284,8 @@ async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, me
 async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOptions = {}): Promise<MenuPageData | null> {
   const supabase = await createClient();
   const pageSettings = mergePageSettings(menuSite.page_settings);
+  const enabledLocales = getEnabledLocales(menuSite.settings);
+  const locale = getEffectiveLocale(options.locale ?? DEFAULT_LOCALE, enabledLocales);
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuSite.id);
   const publicServiceType = getMenuPublicServiceType(productKey);
 
@@ -416,6 +418,8 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
   }
 
   const data = {
+    locale,
+    enabledLocales,
     publicServiceType,
     menuSite,
     pageSettings,
@@ -429,7 +433,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     socialLinks: (socialLinksData ?? []) as MenuPageData["socialLinks"],
   };
 
-  return applyMenuTranslations(supabase, data, options.locale ?? DEFAULT_LOCALE);
+  return applyMenuTranslations(supabase, data, locale);
 }
 
 export async function getPublicMenuPageData(slug: string, options: MenuPageDataOptions = {}) {
@@ -462,7 +466,7 @@ export async function getPublicMenuPageData(slug: string, options: MenuPageDataO
   return normalizeMenuPageData(site as MenuSite, options);
 }
 
-export async function getOwnerPreviewMenuPageData(menuId: string, userId: string) {
+export async function getOwnerPreviewMenuPageData(menuId: string, userId: string, options: MenuPageDataOptions = {}) {
   const supabase = await createClient();
   const primarySiteResult = await supabase
     .from("menu_sites")
@@ -489,7 +493,7 @@ export async function getOwnerPreviewMenuPageData(menuId: string, userId: string
     return null;
   }
 
-  return normalizeMenuPageData(site as MenuSite);
+  return normalizeMenuPageData(site as MenuSite, options);
 }
 
 export const getPublicMenuDataBySlug = getPublicMenuPageData;

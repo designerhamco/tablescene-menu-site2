@@ -9,6 +9,7 @@ export const MENU_EDITOR_TABS = [
   { key: "about", label: "소개" },
   { key: "events", label: "이벤트" },
   { key: "design", label: "디자인" },
+  { key: "localization", label: "다국어" },
   { key: "publish", label: "공개 설정" },
 ] as const;
 

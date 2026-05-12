@@ -84,9 +84,9 @@ export const ENGLISH_FONT_OPTIONS: readonly FontOption<EnglishFontKey>[] = [
 ];
 
 export const FONT_SIZE_SCALE_OPTIONS = [
-  { key: "s", label: "S", description: "조금 작게", scale: 0.92 },
+  { key: "s", label: "S", description: "조금 작게", scale: 0.9 },
   { key: "m", label: "M", description: "기본", scale: 1 },
-  { key: "l", label: "L", description: "조금 크게", scale: 1.1 },
+  { key: "l", label: "L", description: "조금 크게", scale: 1.08 },
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
 
 export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {

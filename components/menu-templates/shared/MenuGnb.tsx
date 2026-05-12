@@ -1,17 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
-import { Globe2, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
+import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 
 type MenuGnbProps = {
   site: PublicMenuTemplateProps["menuSite"];
+  currentLocale: PublicMenuTemplateProps["locale"];
+  enabledLocales: PublicMenuTemplateProps["enabledLocales"];
 };
 
 function getBrandName(site: PublicMenuTemplateProps["menuSite"]) {
   return site.restaurant_name || site.name || "TableScene";
 }
 
-export default function MenuGnb({ site }: MenuGnbProps) {
+export default function MenuGnb({ site, currentLocale, enabledLocales }: MenuGnbProps) {
   const brandName = getBrandName(site);
 
   return (
@@ -25,13 +28,7 @@ export default function MenuGnb({ site }: MenuGnbProps) {
           )}
         </a>
         <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            aria-label="언어 변경"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100"
-          >
-            <Globe2 className="h-5 w-5" aria-hidden="true" />
-          </button>
+          <MenuLanguageSwitcher currentLocale={currentLocale} enabledLocales={enabledLocales} compact />
           <button
             type="button"
             aria-label="메뉴 열기"

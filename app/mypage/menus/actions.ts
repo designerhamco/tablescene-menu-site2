@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 
 import { getLegacyBadgeTypeForLabel, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
+import { DEFAULT_LOCALE, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
+import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
+import { getIncrementedTranslationUsage, getTranslationUsage, isTranslationUsageExceeded } from "@/lib/menu-translation-usage";
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
@@ -532,6 +535,19 @@ export async function translateMenuSiteAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId);
+  const translationUsage = getTranslationUsage(menuSite.settings);
+  const targetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is (typeof TARGET_TRANSLATION_LOCALES)[number] =>
+    TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
+  );
+
+  if (targetLocales.length === 0) {
+    redirectToTabEditWithError(menuId, "localization", "자동 번역을 실행할 외국어를 먼저 선택해주세요.");
+  }
+
+  if (isTranslationUsageExceeded(translationUsage)) {
+    redirectToTabEditWithError(menuId, "localization", "이번 달 자동번역 제공량을 모두 사용했습니다.");
+  }
+
   const startedAt = new Date().toISOString();
   const { data: job, error: jobError } = await supabase
     .from("menu_translation_jobs")
@@ -539,7 +555,7 @@ export async function translateMenuSiteAction(formData: FormData) {
       menu_site_id: menuId,
       requested_by: user.id,
       status: "running",
-      target_locales: [...TARGET_TRANSLATION_LOCALES],
+      target_locales: [...targetLocales],
       started_at: startedAt,
       updated_at: startedAt,
     })
@@ -547,13 +563,15 @@ export async function translateMenuSiteAction(formData: FormData) {
     .single();
 
   if (jobError || !job) {
-    redirectToTabEditWithError(menuId, "publish", `번역 작업 기록 생성에 실패했습니다: ${jobError?.message ?? "알 수 없는 오류"}`);
+    const safeMessage = getSafeTranslationErrorMessage(jobError?.message ?? null);
+    console.error("[menu-translation] job creation failed", { menuId, message: jobError?.message ?? "unknown" });
+    redirectToTabEditWithError(menuId, "localization", safeMessage);
   }
 
   let translatedEntities = 0;
 
   try {
-    const result = await runMenuTranslationUpdate(supabase, menuId);
+    const result = await runMenuTranslationUpdate(supabase, menuId, targetLocales);
     translatedEntities = result.translatedEntities;
     const completedAt = new Date().toISOString();
     const updatePayload: MenuTranslationJobUpdate = {
@@ -566,27 +584,44 @@ export async function translateMenuSiteAction(formData: FormData) {
     if (updateJobError) {
       throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
     }
+
+    if (translatedEntities > 0) {
+      const settings = {
+        ...getJsonObject(menuSite.settings),
+        translation_usage: getIncrementedTranslationUsage(menuSite.settings, new Date(completedAt)),
+      };
+      const { error: updateUsageError } = await supabase
+        .from("menu_sites")
+        .update({ settings, updated_at: completedAt })
+        .eq("id", menuId);
+
+      if (updateUsageError) {
+        throw new Error(`자동번역 사용량 저장에 실패했습니다: ${updateUsageError.message}`);
+      }
+    }
   } catch (error) {
     const failedAt = new Date().toISOString();
     const errorMessage = error instanceof Error ? error.message : "번역 중 알 수 없는 오류가 발생했습니다.";
+    const safeMessage = translatedEntities > 0 ? PARTIAL_TRANSLATION_FAILURE_MESSAGE : getSafeTranslationErrorMessage(errorMessage);
+    console.error("[menu-translation] update failed", { menuId, jobId: job.id, message: errorMessage });
     await supabase
       .from("menu_translation_jobs")
       .update({
         status: "failed",
-        error_message: errorMessage,
+        error_message: safeMessage,
         completed_at: failedAt,
         updated_at: failedAt,
       })
       .eq("id", job.id);
 
     revalidateMenuPaths(menuId, menuSite.slug);
-    redirectToTabEditWithError(menuId, "publish", errorMessage);
+    redirectToTabEditWithError(menuId, "localization", safeMessage);
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(
     menuId,
-    "publish",
+    "localization",
     translatedEntities > 0 ? "자동 번역 업데이트가 완료되었습니다." : "최신 번역이 이미 준비되어 있습니다."
   );
 }
@@ -666,6 +701,36 @@ export async function updateTypographySettingsAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(menuId, "design", "글꼴과 글자 크기 설정이 저장되었습니다.");
+}
+
+export async function updateLocalizationSettingsAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const requestedLocales = formData
+    .getAll("enabled_locales")
+    .filter((value): value is string => typeof value === "string")
+    .filter(isSupportedLocale);
+  const enabledLocales = [
+    DEFAULT_LOCALE,
+    ...TRANSLATABLE_LOCALES.filter((locale) => requestedLocales.includes(locale)),
+  ] satisfies SupportedLocale[];
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const settings = {
+    ...getJsonObject(menuSite.settings),
+    enabled_locales: enabledLocales,
+  };
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "localization", `다국어 설정 저장에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "localization", "다국어 설정이 저장되었습니다.");
 }
 
 export async function resetTypographySettingsAction(formData: FormData) {
