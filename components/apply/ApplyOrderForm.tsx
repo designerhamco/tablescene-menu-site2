@@ -9,7 +9,6 @@ import {
   formatKrw,
   isValidMenuSlug,
   menuCreationProduct,
-  normalizeMenuSlug,
   requiresBusinessInfo,
   type BuyerType,
   type MenuOrderPayload,
@@ -91,6 +90,8 @@ type SlugAvailabilityResponse = {
   available?: boolean;
   message?: string;
 };
+
+const MENU_ADDRESS_HELPER_TEXT = "영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
 
 type PaidApplyProduct = {
   key: PlanKey;
@@ -226,6 +227,10 @@ async function readSlugAvailabilityResponse(response: Response): Promise<SlugAva
       message: response.ok ? undefined : `주소 확인 요청에 실패했습니다. (${response.status})`,
     };
   }
+}
+
+function normalizeMenuAddressInput(value: string) {
+  return value.toLowerCase().slice(0, 40);
 }
 
 const orderPosUsageOptions = ["사용 중", "사용하지 않음", "잘 모름"] as const;
@@ -501,7 +506,9 @@ function validatePersonName(label: string, value: string) {
 
 function getMenuAddressError(value: string) {
   if (!value) return "주소는 최소 3자 이상 입력해주세요.";
-  if (!/^[a-z0-9-]+$/.test(value)) return "메뉴판 주소는 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.";
+  if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(value)) return "한글은 사용할 수 없습니다. 영문 소문자, 숫자, 하이픈(-)으로 입력해주세요.";
+  if (/\s/.test(value)) return "공백은 사용할 수 없습니다. 단어 사이는 하이픈(-)으로 연결해주세요.";
+  if (!/^[a-z0-9-]+$/.test(value)) return "특수문자는 사용할 수 없습니다. 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.";
   if (value.length < 3) return "주소는 최소 3자 이상 입력해주세요.";
   if (value.length > 40) return "주소는 최대 40자까지 입력할 수 있습니다.";
   if (value.startsWith("-") || value.endsWith("-")) return "주소는 하이픈으로 시작하거나 끝날 수 없습니다.";
@@ -585,7 +592,7 @@ export default function ApplyOrderForm({
   const [agreements, setAgreements] = useState(initialAgreements);
   const [activeAgreement, setActiveAgreement] = useState<AgreementKey | null>(null);
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
-  const [slugState, setSlugState] = useState<SlugState>({ slug: "", type: "idle", message: "영문 소문자, 숫자, 하이픈만 사용할 수 있습니다." });
+  const [slugState, setSlugState] = useState<SlugState>({ slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT });
   const [form, setForm] = useState<FormState>({
     buyerType: "individual",
     template_category: firstTemplate?.template_category ?? firstCategory,
@@ -665,7 +672,7 @@ export default function ApplyOrderForm({
       template_category: form.template_category,
       template_key: form.template_key,
       menuName: form.menuName.trim(),
-      desiredSlug: normalizeMenuSlug(form.desiredSlug),
+      desiredSlug: normalizeMenuAddressInput(form.desiredSlug),
       restaurantName: form.restaurantName.trim(),
       restaurantCategory: isScreenService ? selectedScreenTemplateCategory.label : getTemplateCategoryLabel(form.template_category),
       restaurantType: form.restaurantType || null,
@@ -717,7 +724,7 @@ export default function ApplyOrderForm({
   const isSlugValid = !menuAddressError && isValidMenuSlug(payload.desiredSlug);
   const visibleSlugState = useMemo<SlugState>(() => {
     if (!payload.desiredSlug) {
-      return { slug: "", type: "idle", message: "영문 소문자, 숫자, 하이픈만 사용할 수 있습니다." };
+      return { slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT };
     }
 
     if (!isSlugValid) {
@@ -725,7 +732,7 @@ export default function ApplyOrderForm({
     }
 
     if (slugState.slug !== payload.desiredSlug) {
-      return { slug: payload.desiredSlug, type: "checking", message: "주소 중복을 확인하고 있습니다." };
+      return { slug: payload.desiredSlug, type: "checking", message: "메뉴판 주소를 확인하고 있습니다." };
     }
 
     return slugState;
@@ -772,7 +779,7 @@ export default function ApplyOrderForm({
   const isLoading = uiState.type === "loading";
 
   useEffect(() => {
-    const slug = normalizeMenuSlug(form.desiredSlug);
+    const slug = normalizeMenuAddressInput(form.desiredSlug);
 
     if (!slug || getMenuAddressError(slug)) {
       return;
@@ -780,7 +787,7 @@ export default function ApplyOrderForm({
 
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
-      setSlugState({ slug, type: "checking", message: "주소 중복을 확인하고 있습니다." });
+      setSlugState({ slug, type: "checking", message: "메뉴판 주소를 확인하고 있습니다." });
 
       try {
         const response = await fetch(`/api/menu-sites/slug-availability?slug=${encodeURIComponent(slug)}`, {
@@ -837,7 +844,7 @@ export default function ApplyOrderForm({
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({
       ...current,
-      [key]: key === "desiredSlug" ? normalizeMenuSlug(String(value)) : key === "businessNumber" ? formatBusinessNumber(String(value)) : value,
+      [key]: key === "desiredSlug" ? normalizeMenuAddressInput(String(value)) : key === "businessNumber" ? formatBusinessNumber(String(value)) : value,
     }));
   }
 
@@ -893,7 +900,7 @@ export default function ApplyOrderForm({
   }
 
   async function verifySlugBeforePayment() {
-    const slug = normalizeMenuSlug(payload.desiredSlug);
+    const slug = payload.desiredSlug;
 
     if (!slug || getMenuAddressError(slug)) {
       setSlugState({
@@ -905,7 +912,7 @@ export default function ApplyOrderForm({
       return false;
     }
 
-    setSlugState({ slug, type: "checking", message: "결제 전 주소 중복을 다시 확인하고 있습니다." });
+    setSlugState({ slug, type: "checking", message: "결제 전 메뉴판 주소를 다시 확인하고 있습니다." });
 
     try {
       const response = await fetch(`/api/menu-sites/slug-availability?slug=${encodeURIComponent(slug)}`, {
@@ -1247,9 +1254,9 @@ export default function ApplyOrderForm({
               successText="입력 완료"
             />
             <div>
-              <Field label={isScreenService ? "희망 주소 또는 slug" : "희망 메뉴판 주소"} value={form.desiredSlug} onChange={(value) => updateField("desiredSlug", value)} required maxLength={40} helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : "영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다."} errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null} successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined} />
+              <Field label={isScreenService ? "희망 공개 주소" : "희망 메뉴판 주소"} value={form.desiredSlug} onChange={(value) => updateField("desiredSlug", value)} required maxLength={40} placeholder="예: gangnam-cafe" helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : MENU_ADDRESS_HELPER_TEXT} errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null} successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined} />
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                생성될 주소: {payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
+                생성될 주소: {isSlugValid ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
               </p>
             </div>
             <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "스크린 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
@@ -1421,7 +1428,7 @@ export default function ApplyOrderForm({
             {isMenuService && <SummaryRow label="템플릿 그룹" value={getMenuTemplateGroupLabel(selectedMenuTemplateGroup)} />}
             <SummaryRow label="선택 템플릿" value={selectedTemplate ? `${selectedTemplate.name} (${selectedTemplate.key})` : "-"} />
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
-            <SummaryRow label="공개 예정 URL" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
+            <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
             <SummaryRow label="구매자 유형" value={payload.buyerType === "business" ? "사업자" : "개인"} />
             <SummaryRow label="금액" value={formatKrw(activeProduct.amount)} strong />
           </dl>
@@ -1474,7 +1481,7 @@ export default function ApplyOrderForm({
             {isLoading
               ? "처리 중..."
               : visibleSlugState.type === "checking"
-                ? "주소 확인 중..."
+                ? "메뉴판 주소 확인 중..."
                 : isPortOneReady
                   ? "신청하고 결제하기"
                   : isDevelopment && mockEnabled

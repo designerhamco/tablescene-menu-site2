@@ -617,7 +617,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </Select>
                   </div>
                   <div>
-                    <FieldLabel required>공개 주소</FieldLabel>
+                    <FieldLabel required>공개 메뉴판 주소</FieldLabel>
                     {isSlugLocked && <input type="hidden" name="slug" value={site.slug} />}
                     <TextInput name="slug" defaultValue={site.slug} required disabled={isSlugLocked} minLength={MENU_FIELD_LIMITS.menuSites.slugMin} maxLength={MENU_FIELD_LIMITS.menuSites.slugMax} pattern="[a-z0-9-]+" title="영문 소문자, 숫자, 하이픈만 입력할 수 있습니다." helperText="영문 소문자, 숫자, 하이픈만 사용할 수 있습니다." />
                     <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
@@ -898,7 +898,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       ))}
                     </div>
                   </div>
-                  {isSlugLocked && <p className="break-keep text-sm font-bold text-amber-700">이미 공개된 메뉴판입니다. 기존 QR 코드가 깨지지 않도록 공개 주소는 잠겨 있습니다.</p>}
+                  {isSlugLocked && <p className="break-keep text-sm font-bold text-amber-700">이미 공개된 메뉴판입니다. 기존 QR 코드가 깨지지 않도록 공개 메뉴판 주소는 잠겨 있습니다.</p>}
                   <SubmitButton>공개 설정 저장</SubmitButton>
                 </form>
               </SectionCard>
