@@ -10,6 +10,7 @@ import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMI
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType } from "@/lib/social-links";
+import { runMenuTranslationUpdate, TARGET_TRANSLATION_LOCALES } from "@/lib/server/menu-translation-service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
@@ -45,6 +46,7 @@ type MenuItemPriceOptionInsert = Database["public"]["Tables"]["menu_item_price_o
 type MenuItemPriceOptionUpdate = Database["public"]["Tables"]["menu_item_price_options"]["Update"];
 type MenuItemTraitInsert = Database["public"]["Tables"]["menu_item_traits"]["Insert"];
 type MenuItemTraitUpdate = Database["public"]["Tables"]["menu_item_traits"]["Update"];
+type MenuTranslationJobUpdate = Database["public"]["Tables"]["menu_translation_jobs"]["Update"];
 type LooseInsert = Record<string, unknown>;
 
 function getJsonObject(value: unknown): Record<string, unknown> {
@@ -523,6 +525,70 @@ export async function resetBadgeStyleKeyAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToMenuEdit(menuId, "선택한 배지를 현재 템플릿의 기본 색상으로 되돌렸습니다.");
+}
+
+export async function translateMenuSiteAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId);
+  const startedAt = new Date().toISOString();
+  const { data: job, error: jobError } = await supabase
+    .from("menu_translation_jobs")
+    .insert({
+      menu_site_id: menuId,
+      requested_by: user.id,
+      status: "running",
+      target_locales: [...TARGET_TRANSLATION_LOCALES],
+      started_at: startedAt,
+      updated_at: startedAt,
+    })
+    .select("id")
+    .single();
+
+  if (jobError || !job) {
+    redirectToTabEditWithError(menuId, "publish", `번역 작업 기록 생성에 실패했습니다: ${jobError?.message ?? "알 수 없는 오류"}`);
+  }
+
+  let translatedEntities = 0;
+
+  try {
+    const result = await runMenuTranslationUpdate(supabase, menuId);
+    translatedEntities = result.translatedEntities;
+    const completedAt = new Date().toISOString();
+    const updatePayload: MenuTranslationJobUpdate = {
+      status: "completed",
+      completed_at: completedAt,
+      updated_at: completedAt,
+    };
+    const { error: updateJobError } = await supabase.from("menu_translation_jobs").update(updatePayload).eq("id", job.id);
+
+    if (updateJobError) {
+      throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
+    }
+  } catch (error) {
+    const failedAt = new Date().toISOString();
+    const errorMessage = error instanceof Error ? error.message : "번역 중 알 수 없는 오류가 발생했습니다.";
+    await supabase
+      .from("menu_translation_jobs")
+      .update({
+        status: "failed",
+        error_message: errorMessage,
+        completed_at: failedAt,
+        updated_at: failedAt,
+      })
+      .eq("id", job.id);
+
+    revalidateMenuPaths(menuId, menuSite.slug);
+    redirectToTabEditWithError(menuId, "publish", errorMessage);
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(
+    menuId,
+    "publish",
+    translatedEntities > 0 ? "자동 번역 업데이트가 완료되었습니다." : "최신 번역이 이미 준비되어 있습니다."
+  );
 }
 
 async function saveBadgeStyleFromMenuItemForm(

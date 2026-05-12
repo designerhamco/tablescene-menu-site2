@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 import {
+  translateMenuSiteAction,
   updateAboutAction,
   updateIntroAction,
   updateMenuCoverAction,
@@ -117,6 +118,10 @@ type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
 type MenuSocialLink = Database["public"]["Tables"]["menu_social_links"]["Row"];
 type MenuSiteOrder = Pick<Database["public"]["Tables"]["orders"]["Row"], "product_key">;
+type MenuTranslationJob = Pick<
+  Database["public"]["Tables"]["menu_translation_jobs"]["Row"],
+  "id" | "status" | "error_message" | "target_locales" | "started_at" | "completed_at" | "created_at"
+>;
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
@@ -294,6 +299,52 @@ function HiddenMenuId({ menuId }: { menuId: string }) {
   return <input type="hidden" name="menuId" value={menuId} />;
 }
 
+function formatTranslationDateTime(value: string | null) {
+  if (!value) return "";
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Seoul",
+  }).format(new Date(value));
+}
+
+function getTranslationStatus(job: MenuTranslationJob | null) {
+  if (!job) {
+    return {
+      label: "번역 전",
+      message: "아직 번역 전입니다.",
+      tone: "text-zinc-500 bg-zinc-50 border-zinc-100",
+      isRunning: false,
+    };
+  }
+
+  if (job.status === "pending" || job.status === "running") {
+    return {
+      label: "번역 중",
+      message: "번역을 생성하는 중입니다. 잠시 후 다시 확인해주세요.",
+      tone: "text-amber-700 bg-amber-50 border-amber-100",
+      isRunning: true,
+    };
+  }
+
+  if (job.status === "completed") {
+    return {
+      label: "번역 완료",
+      message: `마지막 번역 완료: ${formatTranslationDateTime(job.completed_at ?? job.created_at)}`,
+      tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
+      isRunning: false,
+    };
+  }
+
+  return {
+    label: "번역 실패",
+    message: job.error_message ? `번역 실패: ${job.error_message}` : "번역 실패: 다시 시도해주세요.",
+    tone: "text-red-700 bg-red-50 border-red-100",
+    isRunning: false,
+  };
+}
+
 export default async function EditMenuPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
   const { error, message, tab } = await searchParams;
@@ -343,6 +394,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     { data: eventsData },
     { data: socialLinksData },
     { data: orderData },
+    { data: translationJobData },
   ] =
     await Promise.all([
       supabase
@@ -402,6 +454,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase
+        .from("menu_translation_jobs")
+        .select("id, status, error_message, target_locales, started_at, completed_at, created_at")
+        .eq("menu_site_id", menuId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
   const menuPages = (menuPagesData ?? []) as MenuPage[];
@@ -433,6 +492,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const chefs = (chefsData ?? []) as MenuChef[];
   const events = (eventsData ?? []) as MenuEvent[];
   const socialLinks = (socialLinksData ?? []) as MenuSocialLink[];
+  const latestTranslationJob = translationJobData as MenuTranslationJob | null;
+  const translationStatus = getTranslationStatus(latestTranslationJob);
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const editorServiceType = getMenuEditorServiceType(latestOrder?.product_key);
@@ -874,6 +935,27 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "publish" && (
               <SectionCard title="공개 설정" eyebrow="Publish" action={<SectionSaveButton formId="publish-settings-form" />}>
+                <div className="mb-6 rounded-lg border border-zinc-100 bg-white p-5">
+                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+                    <div>
+                      <h3 className="text-lg font-bold tracking-tight">다국어 자동 번역</h3>
+                      <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                        한국어로 입력한 메뉴 정보를 영어, 중국어, 일본어로 자동 번역합니다.
+                      </p>
+                      <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${translationStatus.tone}`}>
+                        {translationStatus.label}
+                      </p>
+                      <p className="mt-3 break-keep text-sm font-bold text-zinc-500">{translationStatus.message}</p>
+                    </div>
+                    <form action={translateMenuSiteAction}>
+                      <HiddenMenuId menuId={site.id} />
+                      <SubmitButton disabled={translationStatus.isRunning}>자동 번역 업데이트</SubmitButton>
+                    </form>
+                  </div>
+                  <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                    번역값이 없는 필드는 공개 메뉴판에서 한국어 원문으로 표시됩니다.
+                  </p>
+                </div>
                 <form id="publish-settings-form" action={updatePublishSettingsAction} className="space-y-5">
                   <HiddenMenuId menuId={site.id} />
                   <div>
