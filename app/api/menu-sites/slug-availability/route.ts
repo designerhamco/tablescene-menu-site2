@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 import { isValidMenuSlug, normalizeMenuSlug } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ available: false, message }, { status, headers: { "Cache-Control": "no-store" } });
@@ -15,15 +15,6 @@ function jsonAvailable(available: boolean, message: string) {
 }
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonError("로그인이 필요합니다.", 401);
-  }
-
   const url = new URL(request.url);
   const slug = normalizeMenuSlug(url.searchParams.get("slug") ?? "");
 
@@ -35,7 +26,12 @@ export async function GET(request: Request) {
 
   try {
     adminSupabase = createAdminClient();
-  } catch {
+  } catch (error) {
+    console.error("[slug-availability] admin client configuration failed", {
+      message: error instanceof Error ? error.message : "Unknown admin client error",
+      hasSupabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()),
+      hasServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()),
+    });
     return jsonError("주소 확인 설정에 문제가 있습니다. 관리자에게 문의해주세요.", 500);
   }
 
@@ -44,6 +40,7 @@ export async function GET(request: Request) {
   if (error) {
     console.error("[slug-availability] slug check failed", {
       slug,
+      code: error.code,
       message: error.message,
     });
     return jsonError("주소 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", 500);

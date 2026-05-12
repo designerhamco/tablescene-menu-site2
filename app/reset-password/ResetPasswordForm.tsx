@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +14,6 @@ function getFriendlyErrorMessage() {
 
 export default function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [state, setState] = useState<ResetState>("checking");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,35 +21,89 @@ export default function ResetPasswordForm() {
 
   useEffect(() => {
     let isMounted = true;
+    const supabase = createClient();
 
-    async function prepareRecoverySession() {
-      const supabase = createClient();
-      const code = searchParams.get("code");
-
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          if (isMounted) setState("invalid");
-          return;
-        }
-
-        window.history.replaceState({}, "", "/reset-password");
-      }
-
-      const { data } = await supabase.auth.getSession();
+    function markReady() {
       if (isMounted) {
-        setState(data.session ? "ready" : "invalid");
+        setState("ready");
       }
     }
 
+    function markInvalid() {
+      if (isMounted) {
+        setState("invalid");
+      }
+    }
+
+    function clearRecoveryParams() {
+      window.history.replaceState({}, "", "/reset-password");
+    }
+
+    async function prepareRecoverySession() {
+      const queryParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+      if (queryParams.get("error") || hashParams.get("error")) {
+        markInvalid();
+        return;
+      }
+
+      const code = queryParams.get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          markInvalid();
+          return;
+        }
+
+        clearRecoveryParams();
+        markReady();
+        return;
+      }
+
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (error) {
+          markInvalid();
+          return;
+        }
+
+        clearRecoveryParams();
+        markReady();
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        markReady();
+      } else {
+        markInvalid();
+      }
+    }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session) {
+        markReady();
+      }
+    });
+
     prepareRecoverySession().catch(() => {
-      if (isMounted) setState("invalid");
+      markInvalid();
     });
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
-  }, [searchParams]);
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -95,11 +95,21 @@ export async function requestPasswordResetAction(formData: FormData) {
 
   const supabase = await createClient();
   const publicOrigin = await getPublicOrigin();
+  const redirectTo = `${publicOrigin}/reset-password`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${publicOrigin}/reset-password`,
+    redirectTo,
   });
 
   if (error) {
+    // TODO(auth): Configure Supabase Authentication -> SMTP Settings before production.
+    // Supabase's default SMTP is intended for testing and can fail for general customer email delivery.
+    console.error("[auth] resetPasswordForEmail failed", {
+      name: error.name,
+      message: error.message,
+      status: error.status,
+      redirectTo,
+      hasNextPublicSiteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL?.trim()),
+    });
     redirect("/forgot-password?error=send-failed");
   }
 

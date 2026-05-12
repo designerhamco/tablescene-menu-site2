@@ -13,7 +13,7 @@ function getErrorMessage(error?: string) {
   }
 
   if (error === "send-failed") {
-    return "메일 발송 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    return "입력하신 이메일로 비밀번호 재설정 안내를 보낼 수 있는지 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
 
   return null;

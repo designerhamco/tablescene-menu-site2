@@ -87,6 +87,11 @@ type UiState =
   | { type: "success"; message: string }
   | { type: "error"; message: string };
 
+type SlugAvailabilityResponse = {
+  available?: boolean;
+  message?: string;
+};
+
 type PaidApplyProduct = {
   key: PlanKey;
   name: string;
@@ -206,6 +211,22 @@ const serviceProducts = {
   screen: screenCreationProduct,
   order: orderCreationProduct,
 } as const satisfies Record<NonNullable<ApplyOrderFormProps["serviceType"]>, PaidApplyProduct>;
+
+async function readSlugAvailabilityResponse(response: Response): Promise<SlugAvailabilityResponse> {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text) as SlugAvailabilityResponse;
+  } catch {
+    return {
+      message: response.ok ? undefined : `주소 확인 요청에 실패했습니다. (${response.status})`,
+    };
+  }
+}
 
 const orderPosUsageOptions = ["사용 중", "사용하지 않음", "잘 모름"] as const;
 const orderPaymentPreferenceOptions = ["선불", "후불", "둘 다 필요", "아직 미정"] as const;
@@ -763,9 +784,13 @@ export default function ApplyOrderForm({
 
       try {
         const response = await fetch(`/api/menu-sites/slug-availability?slug=${encodeURIComponent(slug)}`, {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+          },
           signal: controller.signal,
         });
-        const result = (await response.json()) as { available?: boolean; message?: string };
+        const result = await readSlugAvailabilityResponse(response);
 
         if (!response.ok) {
           setSlugState({ slug, type: "error", message: result.message ?? "주소 확인 중 오류가 발생했습니다." });
@@ -885,8 +910,11 @@ export default function ApplyOrderForm({
     try {
       const response = await fetch(`/api/menu-sites/slug-availability?slug=${encodeURIComponent(slug)}`, {
         cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
       });
-      const result = (await response.json()) as { available?: boolean; message?: string };
+      const result = await readSlugAvailabilityResponse(response);
       const message = result.available
         ? result.message ?? "사용 가능한 주소입니다."
         : "방금 다른 고객이 이 주소를 사용했습니다. 다른 공개 주소를 입력해주세요.";
