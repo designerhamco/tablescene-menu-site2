@@ -61,6 +61,18 @@ type PaymentResult = {
 };
 
 type LooseInsert = Record<string, unknown>;
+type ExistingPaymentCompletion =
+  | {
+      kind: "completed";
+      orderId: string;
+      paymentRecordId?: string;
+      menuSiteId: string;
+      slug: string;
+    }
+  | {
+      kind: "incomplete";
+      message: string;
+    };
 
 function getPaymentAmount(payment: PortOnePayment) {
   if (typeof payment.amount === "number") {
@@ -271,35 +283,102 @@ function getPaymentProduct(orderPayload: MenuOrderPayload) {
   };
 }
 
-async function findExistingMenuForPayment(
+async function getCompletedMenuFromOrder(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  paymentId: string
-) {
-  const { data: existingOrder, error } = await supabase
-    .from("orders")
-    .select("id, menu_site_id")
-    .eq("payment_id", paymentId)
-    .maybeSingle();
-
-  if (error || !existingOrder?.menu_site_id) {
-    return null;
+  orderId: string,
+  menuSiteId: string | null,
+  paymentRecordId?: string
+): Promise<ExistingPaymentCompletion> {
+  if (!menuSiteId) {
+    return {
+      kind: "incomplete",
+      message: "결제 처리 흔적은 있지만 연결된 메뉴판이 없습니다. 관리자 확인이 필요합니다.",
+    };
   }
 
   const { data: existingSite } = await supabase
     .from("menu_sites")
     .select("id, slug")
-    .eq("id", existingOrder.menu_site_id)
+    .eq("id", menuSiteId)
     .maybeSingle();
 
   if (!existingSite) {
-    return null;
+    return {
+      kind: "incomplete",
+      message: "결제 처리 흔적은 있지만 메뉴판 정보를 찾지 못했습니다. 관리자 확인이 필요합니다.",
+    };
   }
 
   return {
-    orderId: existingOrder.id,
+    kind: "completed",
+    orderId,
+    paymentRecordId,
     menuSiteId: existingSite.id,
     slug: existingSite.slug,
   };
+}
+
+async function findExistingPaymentCompletion(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  paymentId: string
+): Promise<ExistingPaymentCompletion | null> {
+  const { data: existingOrder, error: orderError } = await supabase
+    .from("orders")
+    .select("id, menu_site_id")
+    .eq("payment_id", paymentId)
+    .maybeSingle();
+
+  if (orderError) {
+    console.error("[payment-complete] existing order check failed", {
+      paymentId,
+      message: orderError.message,
+    });
+  }
+
+  if (existingOrder) {
+    return getCompletedMenuFromOrder(supabase, existingOrder.id, existingOrder.menu_site_id);
+  }
+
+  const paymentQueries = [
+    supabase.from("payments").select("id, status, order_id").eq("payment_id", paymentId).maybeSingle(),
+    supabase.from("payments").select("id, status, order_id").eq("portone_payment_id", paymentId).maybeSingle(),
+  ];
+  const [paymentByIdResult, paymentByPortOneIdResult] = await Promise.all(paymentQueries);
+  const existingPayment = paymentByIdResult.data ?? paymentByPortOneIdResult.data;
+  const paymentError = paymentByIdResult.error ?? paymentByPortOneIdResult.error;
+
+  if (paymentError) {
+    console.error("[payment-complete] existing payment check failed", {
+      paymentId,
+      message: paymentError.message,
+    });
+  }
+
+  if (!existingPayment) {
+    return null;
+  }
+
+  if (!existingPayment.order_id) {
+    return {
+      kind: "incomplete",
+      message: "결제 기록은 이미 존재하지만 연결된 주문이 없습니다. 관리자 확인이 필요합니다.",
+    };
+  }
+
+  const { data: orderForPayment, error: orderForPaymentError } = await supabase
+    .from("orders")
+    .select("id, menu_site_id")
+    .eq("id", existingPayment.order_id)
+    .maybeSingle();
+
+  if (orderForPaymentError || !orderForPayment) {
+    return {
+      kind: "incomplete",
+      message: "결제 기록은 이미 존재하지만 연결된 주문을 찾지 못했습니다. 관리자 확인이 필요합니다.",
+    };
+  }
+
+  return getCompletedMenuFromOrder(supabase, orderForPayment.id, orderForPayment.menu_site_id, existingPayment.id);
 }
 
 async function findExistingPaymentRecord(
@@ -317,6 +396,25 @@ async function findExistingPaymentRecord(
   }
 
   return data;
+}
+
+async function cleanupMenuSiteAfterPaymentFailure(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  menuSite: MenuSiteResult,
+  paymentId: string,
+  reason: string
+) {
+  const { error } = await supabase.from("menu_sites").delete().eq("id", menuSite.id);
+
+  if (error) {
+    console.error("[payment-complete] menu site cleanup failed", {
+      paymentId,
+      menuSiteId: menuSite.id,
+      slug: menuSite.slug,
+      reason,
+      message: error.message,
+    });
+  }
 }
 
 async function createMenuSiteWithStarterPreset(
@@ -650,8 +748,13 @@ async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload):
   const portOnePayment = await getPortOnePayment(paymentId);
   const verifiedPaymentId = portOnePayment.id ?? portOnePayment.paymentId;
   const verifiedAmount = getPaymentAmount(portOnePayment);
+  const product = getPaymentProduct(orderPayload);
+  const verifiedCurrency = portOnePayment.currency;
+  const customProductKey = portOnePayment.customData?.product_key ?? portOnePayment.customData?.productKey;
+  const customPlanKey = portOnePayment.customData?.plan_key ?? portOnePayment.customData?.planKey;
   const customTemplateKey = portOnePayment.customData?.template_key ?? portOnePayment.customData?.templateKey;
   const customTemplateCategory = portOnePayment.customData?.template_category ?? portOnePayment.customData?.templateCategory;
+  const customDesiredSlug = portOnePayment.customData?.desired_slug ?? portOnePayment.customData?.desiredSlug;
 
   if (verifiedPaymentId && verifiedPaymentId !== paymentId) {
     throw new Error("조회한 결제 ID가 요청한 paymentId와 일치하지 않습니다.");
@@ -661,8 +764,24 @@ async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload):
     throw new Error(`결제가 완료 상태가 아닙니다. 현재 상태: ${portOnePayment.status ?? "unknown"}`);
   }
 
-  if (verifiedAmount !== menuCreationProduct.amount) {
-    throw new Error(`결제 금액이 일치하지 않습니다. 요청 금액: ${menuCreationProduct.amount}, 결제 금액: ${verifiedAmount ?? "unknown"}`);
+  if (verifiedAmount !== orderPayload.amount) {
+    throw new Error(`결제 금액이 일치하지 않습니다. 요청 금액: ${orderPayload.amount}, 결제 금액: ${verifiedAmount ?? "unknown"}`);
+  }
+
+  if (verifiedCurrency && verifiedCurrency !== menuCreationProduct.currency && verifiedCurrency !== `CURRENCY_${menuCreationProduct.currency}`) {
+    throw new Error(`결제 통화가 일치하지 않습니다. 요청 통화: ${menuCreationProduct.currency}, 결제 통화: ${verifiedCurrency}`);
+  }
+
+  if (portOnePayment.orderName && portOnePayment.orderName !== product.name) {
+    throw new Error("결제 주문명이 요청 상품과 일치하지 않습니다.");
+  }
+
+  if (customProductKey && customProductKey !== product.key) {
+    throw new Error("결제 요청의 product_key와 완료 요청의 product_key가 일치하지 않습니다.");
+  }
+
+  if (customPlanKey && customPlanKey !== orderPayload.plan_key) {
+    throw new Error("결제 요청의 plan_key와 완료 요청의 plan_key가 일치하지 않습니다.");
   }
 
   if (customTemplateKey && customTemplateKey !== orderPayload.template_key) {
@@ -671,6 +790,10 @@ async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload):
 
   if (customTemplateCategory && customTemplateCategory !== orderPayload.template_category) {
     throw new Error("결제 요청의 template_category와 완료 요청의 template_category가 일치하지 않습니다.");
+  }
+
+  if (customDesiredSlug && customDesiredSlug !== orderPayload.desiredSlug) {
+    throw new Error("결제 요청의 desired_slug와 완료 요청의 desired_slug가 일치하지 않습니다.");
   }
 
   return {
@@ -716,18 +839,23 @@ export async function POST(request: Request) {
     return jsonError("메뉴판 생성을 위한 주문 payload가 올바르지 않습니다.");
   }
 
-  const existingMenu = await findExistingMenuForPayment(supabase, paymentId);
+  const existingCompletion = await findExistingPaymentCompletion(supabase, paymentId);
 
-  if (existingMenu) {
+  if (existingCompletion?.kind === "completed") {
     return NextResponse.json({
       ok: true,
       message: "이미 처리된 결제입니다.",
       paymentId,
-      orderId: existingMenu.orderId,
-      menuSiteId: existingMenu.menuSiteId,
-      slug: existingMenu.slug,
+      orderId: existingCompletion.orderId,
+      paymentRecordId: existingCompletion.paymentRecordId,
+      menuSiteId: existingCompletion.menuSiteId,
+      slug: existingCompletion.slug,
       alreadyProcessed: true,
     });
+  }
+
+  if (existingCompletion?.kind === "incomplete") {
+    return jsonError(existingCompletion.message, 409);
   }
 
   const existingPayment = await findExistingPaymentRecord(supabase, paymentId);
@@ -771,6 +899,12 @@ export async function POST(request: Request) {
   try {
     order = await createOrderRecord(supabase, user.id, user.email, paymentId, menuSite.id, orderPayload, verifiedPayment);
   } catch (error) {
+    await cleanupMenuSiteAfterPaymentFailure(
+      supabase,
+      menuSite,
+      paymentId,
+      error instanceof Error ? error.message : "주문 기록 저장 중 알 수 없는 오류가 발생했습니다."
+    );
     return jsonError(error instanceof Error ? error.message : "주문 기록 저장 중 오류가 발생했습니다.", 500);
   }
 

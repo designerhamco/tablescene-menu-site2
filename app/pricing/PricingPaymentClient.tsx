@@ -249,6 +249,9 @@ export default function PricingPaymentClient({
             PortOne 공개 환경변수를 먼저 설정해야 결제창을 열 수 있습니다.
           </div>
         )}
+        <div className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
+          메뉴판 신청과 결제는 신청 페이지에서 진행됩니다. 실제 테스트 결제는 `/apply/menu` 흐름으로 확인해주세요.
+        </div>
 
         {uiState.message && (
           <div className={`mt-6 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${getStateClassName(uiState.type)}`}>{uiState.message}</div>
@@ -257,10 +260,10 @@ export default function PricingPaymentClient({
         <button
           type="button"
           onClick={handlePayment}
-          disabled={isLoading || !isConfigReady}
+          disabled
           className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
-          {isLoading ? "처리 중..." : "결제하기"}
+          {isLoading ? "처리 중..." : "신청 페이지에서 결제하기"}
         </button>
       </aside>
     </div>

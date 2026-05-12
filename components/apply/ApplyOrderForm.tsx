@@ -872,8 +872,6 @@ export default function ApplyOrderForm({
       return;
     }
 
-    console.log("Table Scene apply order payload", payload);
-
     if (!isPortOneReady || !storeId || !channelKey) {
       if (!isDevelopment || !mockEnabled) {
         setUiState({
