@@ -533,6 +533,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : "basic";
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
   const publicUrl = getPublicMenuUrl(site.slug);
+  const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
   const previewUrl = `/mypage/menus/${site.id}/preview`;
   const isSlugLocked = site.status === "published" || Boolean(site.published_at);
   const checklist = [
@@ -584,21 +585,36 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   미리보기
                 </Link>
                 {site.status === "published" ? (
-                  <Link
-                    href={publicUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
-                  >
-                    공개 페이지 보기
-                  </Link>
+                  <>
+                    <Link
+                      href={publicUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                    >
+                      공개 페이지 보기
+                    </Link>
+                    <a
+                      href={qrDownloadUrl}
+                      download
+                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                    >
+                      QR 다운로드
+                    </a>
+                  </>
                 ) : (
-                  <button type="button" disabled className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
-                    공개 페이지 보기
-                  </button>
+                  <>
+                    <button type="button" disabled className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                      공개 페이지 보기
+                    </button>
+                    <button type="button" disabled className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                      QR 다운로드
+                    </button>
+                  </>
                 )}
               </div>
               <p className="text-xs font-bold text-zinc-400">공개 후 손님이 볼 수 있는 주소입니다.</p>
+              {site.status !== "published" && <p className="text-xs font-bold text-amber-700">메뉴판을 공개한 뒤 QR을 다운로드할 수 있습니다.</p>}
               <p className="text-xs font-bold text-emerald-700">저장하면 각 섹션이 즉시 반영됩니다.</p>
             </div>
           </div>

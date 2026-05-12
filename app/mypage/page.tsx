@@ -122,6 +122,8 @@ export default async function MyPage() {
             <div className="grid gap-5 md:grid-cols-2">
               {sites.map((site) => {
                 const publicUrl = getPublicMenuUrl(site.slug);
+                const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
+                const isPublished = site.status === "published";
 
                 return (
                   <article key={site.id} className="rounded-3xl bg-white p-7 shadow-sm">
@@ -177,7 +179,25 @@ export default async function MyPage() {
                       >
                         미리보기
                       </Link>
+                      {isPublished ? (
+                        <a
+                          href={qrDownloadUrl}
+                          download
+                          className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                        >
+                          QR 다운로드
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled
+                          className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400"
+                        >
+                          QR 다운로드
+                        </button>
+                      )}
                     </div>
+                    {!isPublished && <p className="mt-3 break-keep text-xs font-bold text-amber-700">메뉴판을 공개한 뒤 QR을 다운로드할 수 있습니다.</p>}
                   </article>
                 );
               })}
