@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import { normalizeLocale } from "@/lib/locales";
 import { getPublicMenuDataBySlug } from "@/lib/menu-page-data";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ lang?: string | string[] }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -36,9 +38,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function PublicMenuPage({ params }: PageProps) {
+function getSearchParamValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function PublicMenuPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const data = await getPublicMenuDataBySlug(slug);
+  const query = searchParams ? await searchParams : {};
+  const locale = normalizeLocale(getSearchParamValue(query.lang));
+  const data = await getPublicMenuDataBySlug(slug, { locale });
 
   if (!data) {
     notFound();

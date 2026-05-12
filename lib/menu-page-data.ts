@@ -1,4 +1,5 @@
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/MenuTemplateRenderer";
+import { DEFAULT_LOCALE, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -17,6 +18,19 @@ type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"]["Row"];
+type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
+type MenuCategoryTranslation = Database["public"]["Tables"]["menu_category_translations"]["Row"];
+type MenuItemTranslation = Database["public"]["Tables"]["menu_item_translations"]["Row"];
+type MenuItemPriceOptionTranslation = Database["public"]["Tables"]["menu_item_price_option_translations"]["Row"];
+type MenuItemTraitTranslation = Database["public"]["Tables"]["menu_item_trait_translations"]["Row"];
+type MenuEventTranslation = Database["public"]["Tables"]["menu_event_translations"]["Row"];
+type MenuChefTranslation = Database["public"]["Tables"]["menu_chef_translations"]["Row"];
+type MenuSocialLinkTranslation = Database["public"]["Tables"]["menu_social_link_translations"]["Row"];
+
+type MenuPageDataOptions = {
+  locale?: SupportedLocale;
+};
 
 const baseSiteSelect =
   "id, user_id, name, slug, template_key, status, description, logo_url, cover_image_url, brand_color, business_name, business_address, business_phone, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, settings, page_settings";
@@ -48,6 +62,209 @@ function orderBySortThenCreated<T extends { sort_order: number; created_at?: str
   });
 }
 
+function mapById<T extends Record<TKey, string>, TKey extends keyof T>(rows: T[], idKey: TKey) {
+  return new Map(rows.map((row) => [row[idKey], row]));
+}
+
+function mergeMenuSiteTranslation(menuSite: MenuSite, translation: MenuSiteTranslation | null | undefined): MenuSite {
+  if (!translation) return menuSite;
+
+  return {
+    ...menuSite,
+    description: getLocalizedValue(menuSite.description, translation.description),
+    restaurant_name: getLocalizedValue(menuSite.restaurant_name, translation.restaurant_name),
+    restaurant_category: getLocalizedValue(menuSite.restaurant_category, translation.restaurant_category),
+    brand_description: getLocalizedValue(menuSite.brand_description, translation.brand_description),
+    intro_title: getLocalizedValue(menuSite.intro_title, translation.intro_title),
+    intro_description: getLocalizedValue(menuSite.intro_description, translation.intro_description),
+    menu_cover_label: getLocalizedValue(menuSite.menu_cover_label, translation.menu_cover_label),
+    menu_cover_title: getLocalizedValue(menuSite.menu_cover_title, translation.menu_cover_title),
+    menu_cover_description: getLocalizedValue(menuSite.menu_cover_description, translation.menu_cover_description),
+    about_description: getLocalizedValue(menuSite.about_description, translation.about_description),
+    opening_hours: getLocalizedValue(menuSite.opening_hours, translation.opening_hours),
+    restaurant_address: getLocalizedValue(menuSite.restaurant_address, translation.restaurant_address),
+    restaurant_phone: getLocalizedValue(menuSite.restaurant_phone, translation.restaurant_phone),
+  };
+}
+
+async function applyMenuTranslations(
+  supabase: SupabaseServerClient,
+  data: MenuPageData,
+  locale: SupportedLocale,
+): Promise<MenuPageData> {
+  if (locale === DEFAULT_LOCALE) return data;
+
+  const pageIds = data.pages.map((page) => page.id);
+  const categoryIds = data.categories.map((category) => category.id);
+  const itemIds = data.items.map((item) => item.id);
+  const priceOptionIds = data.priceOptions.map((option) => option.id);
+  const traitIds = data.traits.map((trait) => trait.id);
+  const eventIds = data.events.map((event) => event.id);
+  const chefIds = data.chefs.map((chef) => chef.id);
+  const socialLinkIds = data.socialLinks.map((link) => link.id);
+
+  const [
+    siteResult,
+    pageResult,
+    categoryResult,
+    itemResult,
+    priceOptionResult,
+    traitResult,
+    eventResult,
+    chefResult,
+    socialLinkResult,
+  ] = await Promise.all([
+    supabase
+      .from("menu_site_translations")
+      .select("*")
+      .eq("menu_site_id", data.menuSite.id)
+      .eq("locale", locale)
+      .maybeSingle(),
+    pageIds.length
+      ? supabase.from("menu_page_translations").select("*").eq("locale", locale).in("menu_page_id", pageIds)
+      : Promise.resolve({ data: [], error: null }),
+    categoryIds.length
+      ? supabase.from("menu_category_translations").select("*").eq("locale", locale).in("category_id", categoryIds)
+      : Promise.resolve({ data: [], error: null }),
+    itemIds.length
+      ? supabase.from("menu_item_translations").select("*").eq("locale", locale).in("item_id", itemIds)
+      : Promise.resolve({ data: [], error: null }),
+    priceOptionIds.length
+      ? supabase.from("menu_item_price_option_translations").select("*").eq("locale", locale).in("price_option_id", priceOptionIds)
+      : Promise.resolve({ data: [], error: null }),
+    traitIds.length
+      ? supabase.from("menu_item_trait_translations").select("*").eq("locale", locale).in("trait_id", traitIds)
+      : Promise.resolve({ data: [], error: null }),
+    eventIds.length
+      ? supabase.from("menu_event_translations").select("*").eq("locale", locale).in("event_id", eventIds)
+      : Promise.resolve({ data: [], error: null }),
+    chefIds.length
+      ? supabase.from("menu_chef_translations").select("*").eq("locale", locale).in("chef_id", chefIds)
+      : Promise.resolve({ data: [], error: null }),
+    socialLinkIds.length
+      ? supabase.from("menu_social_link_translations").select("*").eq("locale", locale).in("social_link_id", socialLinkIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (
+    siteResult.error ||
+    pageResult.error ||
+    categoryResult.error ||
+    itemResult.error ||
+    priceOptionResult.error ||
+    traitResult.error ||
+    eventResult.error ||
+    chefResult.error ||
+    socialLinkResult.error
+  ) {
+    return data;
+  }
+
+  const pageTranslations = mapById((pageResult.data ?? []) as MenuPageTranslation[], "menu_page_id");
+  const categoryTranslations = mapById((categoryResult.data ?? []) as MenuCategoryTranslation[], "category_id");
+  const itemTranslations = mapById((itemResult.data ?? []) as MenuItemTranslation[], "item_id");
+  const priceOptionTranslations = mapById((priceOptionResult.data ?? []) as MenuItemPriceOptionTranslation[], "price_option_id");
+  const traitTranslations = mapById((traitResult.data ?? []) as MenuItemTraitTranslation[], "trait_id");
+  const eventTranslations = mapById((eventResult.data ?? []) as MenuEventTranslation[], "event_id");
+  const chefTranslations = mapById((chefResult.data ?? []) as MenuChefTranslation[], "chef_id");
+  const socialLinkTranslations = mapById((socialLinkResult.data ?? []) as MenuSocialLinkTranslation[], "social_link_id");
+
+  return {
+    ...data,
+    menuSite: mergeMenuSiteTranslation(data.menuSite, siteResult.data as MenuSiteTranslation | null),
+    pages: data.pages.map((page) => {
+      const translation = pageTranslations.get(page.id);
+      return translation
+        ? {
+            ...page,
+            title: getLocalizedValue(page.title, translation.title),
+            description: getLocalizedValue(page.description, translation.description),
+          }
+        : page;
+    }),
+    categories: data.categories.map((category) => {
+      const translation = categoryTranslations.get(category.id);
+      return translation
+        ? {
+            ...category,
+            name: getLocalizedValue(category.name, translation.name),
+            description: getLocalizedValue(category.description, translation.description),
+          }
+        : category;
+    }),
+    items: data.items.map((item) => {
+      const translation = itemTranslations.get(item.id);
+      return translation
+        ? {
+            ...item,
+            name: getLocalizedValue(item.name, translation.name),
+            set_name: getLocalizedValue(item.set_name, translation.set_name),
+            description: getLocalizedValue(item.description, translation.description),
+            price_label: getLocalizedValue(item.price_label, translation.price_label),
+            portion_label: getLocalizedValue(item.portion_label, translation.portion_label),
+            badge_label: getLocalizedValue(item.badge_label, translation.badge_label),
+            origin_info: getLocalizedValue(item.origin_info, translation.origin_info),
+          }
+        : item;
+    }),
+    priceOptions: data.priceOptions.map((option) => {
+      const translation = priceOptionTranslations.get(option.id);
+      return translation
+        ? {
+            ...option,
+            label: getLocalizedValue(option.label, translation.label),
+            price_label: getLocalizedValue(option.price_label, translation.price_label),
+          }
+        : option;
+    }),
+    traits: data.traits.map((trait) => {
+      const translation = traitTranslations.get(trait.id);
+      return translation
+        ? {
+            ...trait,
+            label: getLocalizedValue(trait.label, translation.label),
+          }
+        : trait;
+    }),
+    events: data.events.map((event) => {
+      const translation = eventTranslations.get(event.id);
+      return translation
+        ? {
+            ...event,
+            event_title: getLocalizedValue(event.event_title, translation.event_title),
+            event_subtitle: getLocalizedValue(event.event_subtitle, translation.event_subtitle),
+            event_description: getLocalizedValue(event.event_description, translation.event_description),
+            event_period: getLocalizedValue(event.event_period, translation.event_period),
+            event_benefit: getLocalizedValue(event.event_benefit, translation.event_benefit),
+            event_detail: getLocalizedValue(event.event_detail, translation.event_detail),
+            event_regular_price_label: getLocalizedValue(event.event_regular_price_label, translation.event_regular_price_label),
+            event_sale_price_label: getLocalizedValue(event.event_sale_price_label, translation.event_sale_price_label),
+          }
+        : event;
+    }),
+    chefs: data.chefs.map((chef) => {
+      const translation = chefTranslations.get(chef.id);
+      return translation
+        ? {
+            ...chef,
+            chef_name: getLocalizedValue(chef.chef_name, translation.chef_name),
+            chef_role: getLocalizedValue(chef.chef_role, translation.chef_role),
+            chef_description: getLocalizedValue(chef.chef_description, translation.chef_description),
+          }
+        : chef;
+    }),
+    socialLinks: data.socialLinks.map((link) => {
+      const translation = socialLinkTranslations.get(link.id);
+      return translation
+        ? {
+            ...link,
+            label: getLocalizedValue(link.label, translation.label),
+          }
+        : link;
+    }),
+  };
+}
+
 async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, menuSiteId: string) {
   const { data, error } = await supabase
     .from("orders")
@@ -64,7 +281,7 @@ async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, me
   return data?.product_key ?? null;
 }
 
-async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData | null> {
+async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOptions = {}): Promise<MenuPageData | null> {
   const supabase = await createClient();
   const pageSettings = mergePageSettings(menuSite.page_settings);
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuSite.id);
@@ -198,7 +415,7 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
     return null;
   }
 
-  return {
+  const data = {
     publicServiceType,
     menuSite,
     pageSettings,
@@ -211,9 +428,11 @@ async function normalizeMenuPageData(menuSite: MenuSite): Promise<MenuPageData |
     chefs: (chefsData ?? []) as MenuPageData["chefs"],
     socialLinks: (socialLinksData ?? []) as MenuPageData["socialLinks"],
   };
+
+  return applyMenuTranslations(supabase, data, options.locale ?? DEFAULT_LOCALE);
 }
 
-export async function getPublicMenuPageData(slug: string) {
+export async function getPublicMenuPageData(slug: string, options: MenuPageDataOptions = {}) {
   const supabase = await createClient();
   const primarySiteResult = await supabase
     .from("menu_sites")
@@ -240,7 +459,7 @@ export async function getPublicMenuPageData(slug: string) {
     return null;
   }
 
-  return normalizeMenuPageData(site as MenuSite);
+  return normalizeMenuPageData(site as MenuSite, options);
 }
 
 export async function getOwnerPreviewMenuPageData(menuId: string, userId: string) {
