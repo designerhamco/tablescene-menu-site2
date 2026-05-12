@@ -12,6 +12,7 @@ import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
 import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
 import type { PaymentCompleteResponse } from "@/types/payment";
@@ -74,6 +75,8 @@ type ExistingPaymentCompletion =
       message: string;
     };
 
+const SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE = "결제는 확인되었지만 공개 주소가 중복되어 메뉴판 생성에 실패했습니다. 관리자에게 문의해주세요.";
+
 function getPaymentAmount(payment: PortOnePayment) {
   if (typeof payment.amount === "number") {
     return payment.amount;
@@ -105,6 +108,13 @@ function getString(value: unknown) {
 function getNullableString(value: unknown) {
   const stringValue = getString(value);
   return stringValue || null;
+}
+
+function isMenuSiteSlugDuplicateError(error: { code?: string; message?: string } | null | undefined) {
+  if (!error) return false;
+
+  const message = error.message ?? "";
+  return error.code === "23505" || message.includes("menu_sites_slug_key") || message.includes("duplicate key value");
 }
 
 function getOrderSetupPayload(value: unknown): MenuOrderPayload["orderSetup"] {
@@ -417,6 +427,78 @@ async function cleanupMenuSiteAfterPaymentFailure(
   }
 }
 
+async function createIncompletePaymentRecords(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  userEmail: string | null | undefined,
+  paymentId: string,
+  orderPayload: MenuOrderPayload,
+  verifiedPayment: VerifiedPayment,
+  failureMessage: string
+) {
+  const product = getPaymentProduct(orderPayload);
+  const rawPayload = JSON.parse(
+    JSON.stringify({
+      failure_reason: failureMessage,
+      desired_slug: orderPayload.desiredSlug,
+      portone_payment: verifiedPayment.raw,
+      order_payload: orderPayload,
+    })
+  ) as Json;
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert({
+      user_id: userId,
+      menu_site_id: null,
+      product_key: product.key,
+      template_key: orderPayload.template_key,
+      order_name: product.name,
+      payment_id: paymentId,
+      customer_name: userEmail ?? null,
+      buyer_name: orderPayload.buyerName,
+      buyer_phone: orderPayload.buyerPhone,
+      buyer_email: orderPayload.buyerEmail,
+      business_name: orderPayload.businessName,
+      business_number: orderPayload.businessNumber,
+      raw_payload: rawPayload,
+      status: "failed",
+      total_amount: verifiedPayment.amount,
+    })
+    .select("id")
+    .single();
+
+  if (orderError) {
+    console.error("[payment-complete] incomplete order record failed", {
+      paymentId,
+      desiredSlug: orderPayload.desiredSlug,
+      message: orderError.message,
+    });
+    return;
+  }
+
+  const { error: paymentError } = await supabase.from("payments").insert({
+    user_id: userId,
+    order_id: order.id,
+    product_key: product.key,
+    template_key: orderPayload.template_key,
+    payment_id: paymentId,
+    portone_payment_id: paymentId,
+    status: "failed",
+    amount: verifiedPayment.amount,
+    raw_payload: rawPayload,
+  });
+
+  if (paymentError) {
+    console.error("[payment-complete] incomplete payment record failed", {
+      paymentId,
+      orderId: order.id,
+      desiredSlug: orderPayload.desiredSlug,
+      message: paymentError.message,
+    });
+  }
+}
+
 async function createMenuSiteWithStarterPreset(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
@@ -459,6 +541,10 @@ async function createMenuSiteWithStarterPreset(
     .single();
 
   if (menuSiteError) {
+    if (isMenuSiteSlugDuplicateError(menuSiteError)) {
+      throw new Error(SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE);
+    }
+
     const minimalMenuSiteInsert: LooseInsert = {
       user_id: userId,
       name: orderPayload.menuName,
@@ -490,6 +576,10 @@ async function createMenuSiteWithStarterPreset(
     menuSiteError = fallbackResult.error;
 
     if (menuSiteError) {
+      if (isMenuSiteSlugDuplicateError(menuSiteError)) {
+        throw new Error(SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE);
+      }
+
       throw new Error(`메뉴판 생성에 실패했습니다: ${menuSiteError.message}`);
     }
   }
@@ -872,18 +962,28 @@ export async function POST(request: Request) {
     return jsonError(error instanceof Error ? error.message : "결제 검증에 실패했습니다.", 502);
   }
 
-  const { data: existingSlug, error: existingSlugError } = await supabase
-    .from("menu_sites")
-    .select("id")
-    .eq("slug", orderPayload.desiredSlug)
-    .maybeSingle();
+  let adminSupabase: ReturnType<typeof createAdminClient>;
+
+  try {
+    adminSupabase = createAdminClient();
+  } catch {
+    return jsonError("메뉴판 주소 확인 설정에 문제가 있습니다. 관리자 확인이 필요합니다.", 500);
+  }
+
+  const { data: existingSlug, error: existingSlugError } = await adminSupabase.from("menu_sites").select("id").eq("slug", orderPayload.desiredSlug).maybeSingle();
 
   if (existingSlugError) {
-    return jsonError(`메뉴판 주소 중복 확인에 실패했습니다: ${existingSlugError.message}`, 500);
+    console.error("[payment-complete] slug check failed after payment verification", {
+      paymentId,
+      desiredSlug: orderPayload.desiredSlug,
+      message: existingSlugError.message,
+    });
+    return jsonError("메뉴판 주소 확인 중 문제가 발생했습니다. 관리자 확인이 필요합니다.", 500);
   }
 
   if (existingSlug) {
-    return jsonError("이미 사용 중인 공개 메뉴판 주소입니다. 다른 주소로 다시 신청해주세요.", 409);
+    await createIncompletePaymentRecords(supabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE);
+    return jsonError(SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE, 409);
   }
 
   let menuSite: MenuSiteResult;
@@ -891,7 +991,13 @@ export async function POST(request: Request) {
   try {
     menuSite = await createMenuSiteWithStarterPreset(supabase, user.id, orderPayload);
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "메뉴판 생성 중 오류가 발생했습니다.", 500);
+    const message = error instanceof Error ? error.message : "메뉴판 생성 중 오류가 발생했습니다.";
+    if (message === SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE) {
+      await createIncompletePaymentRecords(supabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, message);
+      return jsonError(message, 409);
+    }
+
+    return jsonError(message.includes("duplicate key value") ? SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE : message, 500);
   }
 
   let order: OrderResult;

@@ -775,7 +775,7 @@ export default function ApplyOrderForm({
         setSlugState({
           slug,
           type: result.available ? "available" : "unavailable",
-          message: result.message ?? (result.available ? "사용 가능한 주소입니다." : "이미 사용 중인 주소입니다."),
+          message: result.message ?? (result.available ? "사용 가능한 주소입니다." : "이미 사용 중인 공개 주소입니다. 다른 주소를 입력해주세요."),
         });
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -867,8 +867,53 @@ export default function ApplyOrderForm({
     router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
   }
 
+  async function verifySlugBeforePayment() {
+    const slug = normalizeMenuSlug(payload.desiredSlug);
+
+    if (!slug || getMenuAddressError(slug)) {
+      setSlugState({
+        slug,
+        type: "unavailable",
+        message: menuAddressError ?? "메뉴판 주소 형식이 올바르지 않습니다.",
+      });
+      setUiState({ type: "error", message: "공개 메뉴판 주소를 다시 확인해주세요." });
+      return false;
+    }
+
+    setSlugState({ slug, type: "checking", message: "결제 전 주소 중복을 다시 확인하고 있습니다." });
+
+    try {
+      const response = await fetch(`/api/menu-sites/slug-availability?slug=${encodeURIComponent(slug)}`, {
+        cache: "no-store",
+      });
+      const result = (await response.json()) as { available?: boolean; message?: string };
+      const message = result.available
+        ? result.message ?? "사용 가능한 주소입니다."
+        : "방금 다른 고객이 이 주소를 사용했습니다. 다른 공개 주소를 입력해주세요.";
+
+      if (!response.ok || !result.available) {
+        setSlugState({ slug, type: "unavailable", message });
+        setUiState({ type: "error", message });
+        return false;
+      }
+
+      setSlugState({ slug, type: "available", message });
+      return true;
+    } catch {
+      const message = "주소 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      setSlugState({ slug, type: "error", message });
+      setUiState({ type: "error", message });
+      return false;
+    }
+  }
+
   async function handlePayment() {
     if (!isFormReady || isLoading) {
+      return;
+    }
+
+    const isSlugStillAvailable = await verifySlugBeforePayment();
+    if (!isSlugStillAvailable) {
       return;
     }
 
@@ -1398,7 +1443,15 @@ export default function ApplyOrderForm({
             disabled={!isFormReady || isLoading}
             className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
-            {isLoading ? "처리 중..." : isPortOneReady ? "신청하고 결제하기" : isDevelopment && mockEnabled ? "mock 결제로 신청 테스트" : "결제 설정 필요"}
+            {isLoading
+              ? "처리 중..."
+              : visibleSlugState.type === "checking"
+                ? "주소 확인 중..."
+                : isPortOneReady
+                  ? "신청하고 결제하기"
+                  : isDevelopment && mockEnabled
+                    ? "mock 결제로 신청 테스트"
+                    : "결제 설정 필요"}
           </button>
         </section>
       </aside>
