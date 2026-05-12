@@ -25,6 +25,10 @@ function getNotice(message?: string) {
     return "가입 확인 메일을 보냈습니다. 메일 인증 후 로그인해주세요.";
   }
 
+  if (message === "password-updated") {
+    return "비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.";
+  }
+
   return null;
 }
 
@@ -107,6 +111,16 @@ export default async function SignInPage({
               로그인
             </button>
           </form>
+
+          <div className="mt-5 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-zinc-500 sm:flex-row sm:gap-3">
+            <Link href="/forgot-password" className="hover:text-zinc-950 hover:underline">
+              비밀번호를 잊으셨나요?
+            </Link>
+            <span className="hidden text-zinc-300 sm:inline">·</span>
+            <Link href="/find-account" className="hover:text-zinc-950 hover:underline">
+              로그인 이메일을 잊으셨나요?
+            </Link>
+          </div>
 
           <p className="mt-6 text-center text-sm font-medium text-zinc-500">
             계정이 없나요?{" "}

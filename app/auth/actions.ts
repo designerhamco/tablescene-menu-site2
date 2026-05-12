@@ -24,6 +24,16 @@ async function getOrigin() {
   return host ? `${protocol}://${host}` : "http://localhost:3000";
 }
 
+async function getPublicOrigin() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
+
+  if (siteUrl?.startsWith("http://") || siteUrl?.startsWith("https://")) {
+    return siteUrl;
+  }
+
+  return getOrigin();
+}
+
 export async function signUpAction(formData: FormData) {
   const email = getString(formData, "email");
   const password = getString(formData, "password");
@@ -74,6 +84,26 @@ export async function signInAction(formData: FormData) {
   }
 
   redirect(next);
+}
+
+export async function requestPasswordResetAction(formData: FormData) {
+  const email = getString(formData, "email");
+
+  if (!email) {
+    redirect("/forgot-password?error=missing-email");
+  }
+
+  const supabase = await createClient();
+  const publicOrigin = await getPublicOrigin();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${publicOrigin}/reset-password`,
+  });
+
+  if (error) {
+    redirect("/forgot-password?error=send-failed");
+  }
+
+  redirect("/forgot-password?message=sent");
 }
 
 export async function signOutAction() {
