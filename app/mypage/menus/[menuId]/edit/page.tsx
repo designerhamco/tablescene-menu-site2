@@ -898,7 +898,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       ))}
                     </div>
                   </div>
-                  {isSlugLocked && <p className="break-keep text-sm font-bold text-amber-700">published_at 기준으로 공개 주소는 잠겨 있습니다.</p>}
+                  {isSlugLocked && <p className="break-keep text-sm font-bold text-amber-700">이미 공개된 메뉴판입니다. 기존 QR 코드가 깨지지 않도록 공개 주소는 잠겨 있습니다.</p>}
                   <SubmitButton>공개 설정 저장</SubmitButton>
                 </form>
               </SectionCard>
