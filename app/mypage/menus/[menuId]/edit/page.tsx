@@ -11,7 +11,7 @@ import {
   updatePublishSettingsAction,
   updateTypographySettingsAction,
 } from "@/app/mypage/menus/actions";
-import SiteHeader from "@/components/layout/SiteHeader";
+import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
@@ -268,7 +268,7 @@ function SectionSaveButton({ formId, children = "저장" }: { formId: string; ch
 function CustomEditorUnavailable({ siteName }: { siteName: string }) {
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
@@ -521,7 +521,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
         <MenuEditorScrollRestoration menuId={menuId} />
         <div className="mx-auto w-full max-w-4xl">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createInquiryAction, deleteInquiryAction, updateInquiryAction } from "@/app/mypage/inquiries/actions";
-import SiteHeader from "@/components/layout/SiteHeader";
+import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -123,7 +123,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
 
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-5xl">
         <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">

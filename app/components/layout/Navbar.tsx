@@ -171,7 +171,7 @@ const Navbar = () => {
     ? "solid"
     : transparentNavPaths.includes(pathname)
       ? "transparent"
-      : "transparent";
+      : "solid";
   const shouldShowSolidNav = navVariant === "solid" || isScrolled || activeDropdown || isOpen;
 
   const navBgClass = shouldShowSolidNav

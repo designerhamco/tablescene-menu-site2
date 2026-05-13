@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import SiteHeader from "@/components/layout/SiteHeader";
+import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -60,7 +60,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <section className="rounded-3xl bg-white p-8 shadow-sm">

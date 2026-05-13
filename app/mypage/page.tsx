@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { signOutAction } from "@/app/auth/actions";
-import SiteHeader from "@/components/layout/SiteHeader";
+import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { createClient } from "@/lib/supabase/server";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -61,7 +61,7 @@ export default async function MyPage() {
 
   return (
     <>
-      <SiteHeader />
+      <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-6xl">
           <header className="mb-12 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
