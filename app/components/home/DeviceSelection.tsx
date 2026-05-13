@@ -38,7 +38,7 @@ type DeviceSelectionProps = {
 const DeviceSelection = ({
   muted = true,
   includeLargeScreen = true,
-  title = <>하나의 메뉴판을,<br className="hidden md:block" />매장에 맞는 화면으로 보여주세요</>,
+  title = <>메뉴판 하나로,<br className="hidden md:block" />모든 디바이스에서 열어보세요</>,
 }: DeviceSelectionProps) => {
   const visibleDevices = includeLargeScreen
     ? devices

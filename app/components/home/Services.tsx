@@ -4,23 +4,23 @@ import { motion, useMotionValueEvent, useScroll } from 'motion/react';
 const painPoints = [
   {
     id: 'price',
-    title: '가격이 자꾸 바뀌어서',
-    description: '메뉴판을 또 새로 뽑아야 해요.\n작은 수정인데도 시간과 비용이 계속 들어요.',
+    title: '디지털 메뉴판을 직접 만들고',
+    description: '메뉴 하나 바꾸려고 레이아웃부터 다시 만지면\n운영보다 제작에 시간이 더 들어요.',
   },
   {
     id: 'design',
-    title: '조금만 고치고 싶은데',
-    description: '디자이너에게 매번 말하기가 부담돼요.\n원하는 타이밍에 바로 바꾸기가 어려워요.',
+    title: '디자인까지 매번 고민하고',
+    description: '가격표를 보기 좋게 맞추려다 보면\n폰트, 간격, 이미지 정리까지 신경 쓰게 돼요.',
   },
   {
     id: 'new-menu',
-    title: '신메뉴가 생길 때마다',
-    description: '빈자리가 없어서 종이를 덧대게 돼요.\n계절 메뉴가 많아질수록 정리가 힘들어요.',
+    title: '작은 수정도 다시 부탁하고',
+    description: '디자이너에게 요청하거나 편집 파일을 열어\n수정본을 다시 만드는 과정이 반복돼요.',
   },
   {
     id: 'brand',
-    title: '임시로 만든 메뉴판이',
-    description: '매장 분위기랑 안 맞아서 아쉬워요.\n브랜드 느낌을 제대로 보여주고 싶어요.',
+    title: '수정본을 다시 확인하고',
+    description: '저장하고 공유하고 화면에 다시 띄우는 과정이\n메뉴가 자주 바뀔수록 번거로워져요.',
   },
 ];
 
@@ -69,8 +69,8 @@ const ServiceOverview = () => {
           className="mx-auto mb-14 max-w-3xl text-center"
         >
           <h2 className="break-keep text-3xl font-bold tracking-tight text-white md:text-5xl">
-            메뉴판 하나 바꾸는 일,<br className="hidden md:block" />
-            생각보다 번거롭지 않나요?
+            디지털 메뉴판,<br className="hidden md:block" />
+            아직도 직접 만들고 있나요?
           </h2>
         </motion.div>
 
