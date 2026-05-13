@@ -22,13 +22,12 @@ type PricingData = {
   description: string;
   plans: BillingPlan[];
   features: string[];
-  note: string;
 };
 
 const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
   basic: {
     title: "테이블씬 베이직 가격 안내",
-    description: "메뉴와 가격표를 직접 관리하는 기본 디지털 메뉴판입니다.",
+    description: "",
     plans: [
       {
         label: "월 결제",
@@ -60,8 +59,8 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
       "디자이너 템플릿 사용",
       "반응형 화면 지원",
       "모바일 / 태블릿 / PC / 매장 화면 대응",
+      "AI 작성 도우미 기본 제공",
     ],
-    note: "월 결제 이용 중 연 결제로 변경을 원하시는 경우 고객지원으로 문의해주세요. 현재 이용 기간 종료 후 연 결제로 변경을 도와드립니다.",
   },
   display: {
     title: "테이블씬 디스플레이 가격 안내",
@@ -95,8 +94,8 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
       "전체화면 링크",
       "매장 화면용 디자인 구성",
       "베이직 주요 기능 포함",
+      "AI 작성 도우미 기본 제공",
     ],
-    note: "월 결제 이용 중 연 결제로 변경을 원하시는 경우 고객지원으로 문의해주세요. 현재 이용 기간 종료 후 연 결제로 변경을 도와드립니다.",
   },
 };
 
@@ -110,89 +109,67 @@ export default function ServicePricingSection({ service }: { service: ServicePri
           <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
             {data.title}
           </h2>
-          <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
-            {data.description}
-          </p>
+          {data.description ? (
+            <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+              {data.description}
+            </p>
+          ) : null}
         </div>
 
-        <div className="rounded-[2rem] bg-zinc-950 p-6 text-white md:p-8">
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-            <h3 className="break-keep text-2xl font-bold tracking-tight md:text-3xl">
-              {service === "basic" ? "테이블씬 베이직" : "테이블씬 디스플레이"}
-            </h3>
-            <span className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-full bg-[#F8E731] text-center text-zinc-950">
-              <span className="text-xl font-black leading-none">50%</span>
-              <span className="mt-1 text-[11px] font-bold leading-none">오픈할인</span>
-            </span>
-          </div>
+        <div className="grid gap-5 md:grid-cols-2">
+          {data.plans.map((plan) => {
+            return (
+              <div
+                key={plan.label}
+                className="relative overflow-hidden rounded-[2rem] border border-zinc-950 bg-white p-7 text-zinc-950 md:p-9"
+              >
+                <div className="absolute right-0 top-0 rounded-bl-[1.4rem] bg-[#F8E731] px-7 py-4 text-sm font-black text-zinc-950 md:text-base">
+                  50% 할인
+                </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {data.plans.map((plan, index) => {
-              const isAnnual = index === 1;
-
-              return (
-                <div
-                  key={plan.label}
-                  className={`rounded-[1.5rem] border p-5 md:p-6 ${
-                    isAnnual
-                      ? "border-white/10 bg-white text-zinc-950"
-                      : "border-white/10 bg-white/5 text-white"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className={`text-sm font-bold ${isAnnual ? "text-zinc-400" : "text-white/50"}`}>{plan.label}</p>
-                      <div className="mt-6 flex flex-wrap items-end gap-3">
-                        <span className={`text-base font-bold line-through ${isAnnual ? "text-zinc-300" : "text-white/35"}`}>
-                          {plan.regularPrice}
-                        </span>
-                        <span className="text-4xl font-bold tracking-tight">{plan.salePrice}</span>
-                      </div>
-                      <p className={`mt-3 text-sm font-bold ${isAnnual ? "text-zinc-500" : "text-white/55"}`}>{plan.helper}</p>
-                      <p className={`mt-1 text-xs font-bold ${isAnnual ? "text-zinc-400" : "text-white/40"}`}>{plan.savings}</p>
-                    </div>
-                  </div>
-
-                  <div className={`mt-6 rounded-2xl p-4 ${isAnnual ? "bg-zinc-50" : "bg-white/5"}`}>
-                    <p className={`text-xs font-bold ${isAnnual ? "text-zinc-400" : "text-white/40"}`}>{plan.aiTitle}</p>
-                    <p className={`mt-2 break-keep text-sm font-bold leading-relaxed ${isAnnual ? "text-zinc-950" : "text-white"}`}>
-                      {plan.aiUsage}
+                <div className="flex min-h-[360px] flex-col pt-6 md:min-h-[390px]">
+                  <div>
+                    <p className="text-base font-bold text-zinc-500">{plan.label}</p>
+                    <h4 className="mt-5 break-keep text-2xl font-bold tracking-tight md:text-3xl">
+                      {service === "basic" ? "TableScene Basic" : "TableScene Display"}
+                    </h4>
+                    <p className="mt-4 text-base font-bold text-zinc-400 line-through">
+                      {plan.regularPrice}
+                    </p>
+                    <p className="mt-2 text-3xl font-black tracking-tight md:text-4xl">
+                      {plan.salePrice}
                     </p>
                   </div>
 
+                  <ul className="mt-9 space-y-4">
+                    {[plan.helper, plan.savings, plan.aiUsage].map((item) => (
+                      <li key={item} className="flex items-start gap-3 break-keep text-base font-semibold leading-relaxed text-zinc-600">
+                        <Check className="mt-1 h-5 w-5 shrink-0 text-zinc-950" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+
                   <Link
                     to={plan.href}
-                    className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors ${
-                      isAnnual
-                        ? "bg-zinc-950 text-white hover:bg-zinc-800"
-                        : "bg-white text-zinc-950 hover:bg-zinc-100"
-                    }`}
+                    className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-4 text-base font-bold text-white transition-colors hover:bg-zinc-800 md:py-5 md:text-lg"
                   >
                     {plan.label}로 만들기
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-5 w-5" />
                   </Link>
                 </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 grid gap-3 border-t border-white/10 pt-6 sm:grid-cols-2 lg:grid-cols-4">
-            {data.features.map((feature) => (
-              <div key={feature} className="flex items-start gap-2 break-keep text-sm font-semibold leading-relaxed text-white/70">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F8E731]" />
-                <span>{feature}</span>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          <div className="mt-6 rounded-[1.2rem] border border-white/10 bg-white/5 p-5">
-            <p className="break-keep text-sm font-semibold leading-relaxed text-white/65">
-              자동 번역은 페이지 단위로 제공되며, 선택한 페이지의 한국어 내용을 영어·중국어·일본어로 번역합니다. 미사용 월 제공량은 다음 달로 이월되지 않습니다.
-            </p>
-            <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-white/65">
-              {data.note}
-            </p>
-          </div>
+        <div className="mt-8 grid gap-3 border-t border-zinc-200 pt-7 sm:grid-cols-2 lg:grid-cols-4">
+          {data.features.map((feature) => (
+            <div key={feature} className="flex items-start gap-2 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F8E731]" />
+              <span>{feature}</span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

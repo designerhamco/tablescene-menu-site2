@@ -287,7 +287,7 @@ const FAQ = ({
   className = "",
   showSupport = true,
   data = MAIN_FAQ_DATA,
-  description = "구매 전 사장님들이 가장 자주 확인하는 내용을 모았습니다.",
+  description,
 }: FAQProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -306,9 +306,11 @@ const FAQ = ({
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-zinc-900 tracking-tight leading-tight">
             자주 묻는 질문
           </h2>
-          <p className="text-lg text-zinc-500 font-medium">
-            {description}
-          </p>
+          {description ? (
+            <p className="text-lg text-zinc-500 font-medium">
+              {description}
+            </p>
+          ) : null}
         </div>
 
         {/* Category Tabs */}

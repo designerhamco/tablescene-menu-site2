@@ -72,9 +72,6 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
           <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
             디자이너가 만든 템플릿으로 시작하세요
           </h2>
-          <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
-            템플릿으로 빠르게 시작하고, 글자 크기·배경색·폰트·메뉴 구성을 매장에 맞게 조정할 수 있습니다.
-          </p>
         </motion.div>
 
         <div className="mb-12 flex flex-wrap justify-center gap-3">

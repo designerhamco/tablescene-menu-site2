@@ -31,9 +31,19 @@ const devices = [
 
 type DeviceSelectionProps = {
   muted?: boolean;
+  includeLargeScreen?: boolean;
+  title?: React.ReactNode;
 };
 
-const DeviceSelection = ({ muted = true }: DeviceSelectionProps) => {
+const DeviceSelection = ({
+  muted = true,
+  includeLargeScreen = true,
+  title = <>하나의 메뉴판을,<br className="hidden md:block" />매장에 맞는 화면으로 보여주세요</>,
+}: DeviceSelectionProps) => {
+  const visibleDevices = includeLargeScreen
+    ? devices
+    : devices.filter((device) => device.title !== '대형 스크린');
+
   return (
     <section className={`relative py-14 md:min-h-screen md:py-16 ${muted ? 'bg-zinc-50' : 'bg-white'}`}>
       <div className="mx-auto max-w-7xl px-6">
@@ -45,15 +55,18 @@ const DeviceSelection = ({ muted = true }: DeviceSelectionProps) => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-zinc-900 md:text-5xl">
-              하나의 메뉴판을,<br className="hidden md:block" />
-              매장에 맞는 화면으로 보여주세요
+              {title}
             </h2>
 
           </motion.div>
         </div>
 
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 md:h-[560px] md:grid-cols-12 md:grid-rows-[1.08fr_0.92fr] md:gap-5 lg:h-[590px]">
-          {devices.map((device, index) => {
+        <div className={`mx-auto grid max-w-6xl grid-cols-2 gap-3 md:gap-5 ${
+          includeLargeScreen
+            ? 'md:h-[560px] md:grid-cols-12 md:grid-rows-[1.08fr_0.92fr] lg:h-[590px]'
+            : 'md:grid-cols-4'
+        }`}>
+          {visibleDevices.map((device, index) => {
             return (
               <motion.article
                 key={device.title}
@@ -61,7 +74,9 @@ const DeviceSelection = ({ muted = true }: DeviceSelectionProps) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.08 }}
-                className={`group relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-zinc-900 md:aspect-auto md:min-h-0 md:rounded-[2rem] ${device.className}`}
+                className={`group relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-zinc-900 md:min-h-0 md:rounded-[2rem] ${
+                  includeLargeScreen ? `md:aspect-auto ${device.className}` : 'md:aspect-[3/4]'
+                }`}
               >
                 <img
                   src={device.image}

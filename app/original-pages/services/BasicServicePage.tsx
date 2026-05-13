@@ -1,89 +1,49 @@
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { Link } from 'react-router';
-import { ArrowRight, Check, ChevronDown } from 'lucide-react';
+import React from 'react';
+import { motion } from 'motion/react';
+import { ArrowRight } from 'lucide-react';
 
 import FAQ from '@/app/components/common/FAQ';
 import DeviceSelection from '@/app/components/home/DeviceSelection';
 import TemplateShowcase from '@/app/components/home/TemplateShowcase';
 import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
 
-const storeTypes = [
-  {
-    label: '카페',
-    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '식당',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '디저트샵',
-    image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '미용실',
-    image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '네일샵',
-    image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '피부관리샵',
-    image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '공방',
-    image: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '클래스',
-    image: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: 'PT / 피트니스',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    label: '팝업스토어',
-    image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=1400&auto=format&fit=crop',
-  },
-];
-
-const storeNeeds = [
-  '가격 변동이 잦은 매장',
-  '시즌 메뉴를 자주 추가하는 매장',
-  '종이 메뉴판 제작이 번거로운 매장',
-  '모바일과 매장 화면을 함께 쓰고 싶은 매장',
-];
-
-const featureGroups = [
-  {
-    title: '메뉴판 관리',
-    description: '메뉴명, 가격, 설명, 이미지, 추천 메뉴와 숨김 상태까지 직접 관리합니다.',
-    items: ['메뉴/가격/설명 관리', '페이지/카테고리 관리', '이미지 등록', '추천 메뉴 표시', '숨김 처리'],
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    title: '디자인 / 표시',
-    description: '디자이너 템플릿으로 시작하고, 매장 분위기에 맞는 표시 옵션을 준비합니다.',
-    items: ['디자인 템플릿', '모바일/태블릿/PC/매장 화면 대응', '글자 크기/글씨체/배경색 설정 준비'],
-    image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1400&auto=format&fit=crop',
-  },
-  {
-    title: '공유 / 편의 기능',
-    description: '공개 링크와 QR 이미지, 작성 도우미로 메뉴판 운영을 더 가볍게 만듭니다.',
-    items: ['공개 메뉴판 링크', 'QR 이미지 다운로드', 'AI 작성 도우미', '다국어 표시 지원'],
-    image: 'https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1400&auto=format&fit=crop',
-  },
-];
-
 const flowSteps = [
-  ['템플릿 선택', '매장 분위기에 맞는 디자인을 고릅니다.'],
-  ['주소 입력과 생성', '공개 주소를 정하고 결제 후 메뉴판을 생성합니다.'],
-  ['직접 수정', '메뉴, 가격, 설명과 디자인을 바로 다듬습니다.'],
-  ['공개 활용', '링크와 QR 이미지로 매장에서 사용합니다.'],
+  {
+    eyebrow: '첫번째',
+    title: '템플릿 선택',
+    description: '매장 분위기에 맞는 디자인에서 시작합니다.',
+    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1600&auto=format&fit=crop',
+  },
+  {
+    eyebrow: '두번째',
+    title: '주소 입력',
+    description: '손님에게 공유할 메뉴판 링크를 정합니다.',
+    image: 'https://images.unsplash.com/photo-1555421689-491a97ff2040?q=80&w=1600&auto=format&fit=crop',
+  },
+  {
+    eyebrow: '세번째',
+    title: '결제 후 생성',
+    description: '관리 가능한 메뉴판이 마이페이지에 만들어집니다.',
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=1600&auto=format&fit=crop',
+  },
+  {
+    eyebrow: '네번째',
+    title: '메뉴 입력',
+    description: '메뉴명, 가격, 설명, 이미지를 채워 넣습니다.',
+    image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1600&auto=format&fit=crop',
+  },
+  {
+    eyebrow: '다섯번째',
+    title: '디자인 조정',
+    description: '폰트, 배경색, 텍스트 칩을 매장에 맞게 다듬습니다.',
+    image: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=1600&auto=format&fit=crop',
+  },
+  {
+    eyebrow: '여섯번째',
+    title: '공개하기',
+    description: '공개 링크와 QR로 메뉴판을 바로 활용합니다.',
+    image: 'https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1600&auto=format&fit=crop',
+  },
 ];
 
 function SectionTitle({
@@ -118,98 +78,6 @@ function ImageBlock({ image, dark = false }: { image: string; dark?: boolean }) 
   );
 }
 
-function PrimaryLink({ to, children, variant = 'dark' }: { to: string; children: React.ReactNode; variant?: 'dark' | 'light' | 'outline' }) {
-  const className =
-    variant === 'dark'
-      ? 'bg-zinc-950 text-white hover:bg-zinc-800'
-      : variant === 'light'
-        ? 'border border-white bg-white text-zinc-950 hover:bg-zinc-100'
-        : 'border border-white/35 bg-white/10 text-white hover:bg-white/15';
-
-  const content = (
-    <>
-      {children}
-      <ArrowRight className="h-4 w-4" />
-    </>
-  );
-
-  const linkClassName = `inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors ${className}`;
-
-  if (to.startsWith('http')) {
-    return (
-      <a href={to} target="_blank" rel="noreferrer" className={linkClassName}>
-        {content}
-      </a>
-    );
-  }
-
-  return (
-    <Link to={to} className={linkClassName}>
-      {content}
-    </Link>
-  );
-}
-
-function StoreFitSection() {
-  const [activeStore, setActiveStore] = useState(storeTypes[0]);
-
-  return (
-    <section className="bg-zinc-50 px-6 py-20 md:py-28">
-      <div className="mx-auto max-w-7xl">
-        <SectionTitle
-          title="메뉴판을 자주 바꾸는 매장이라면"
-          description="메뉴와 가격표를 쉽게 만들고, 사장님이 직접 관리하고 싶은 매장에 잘 맞습니다."
-        />
-
-        <div className="mb-5 flex gap-2 overflow-x-auto pb-2 md:flex-wrap md:justify-center md:overflow-visible">
-          {storeTypes.map((store) => {
-            const isActive = activeStore.label === store.label;
-            return (
-              <button
-                key={store.label}
-                type="button"
-                onClick={() => setActiveStore(store)}
-                onMouseEnter={() => setActiveStore(store)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                  isActive ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-600 hover:bg-zinc-100'
-                }`}
-              >
-                {store.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="relative overflow-hidden rounded-[2rem] bg-zinc-950">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={activeStore.label}
-              src={activeStore.image}
-              alt=""
-              initial={{ opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.35 }}
-              className="h-[420px] w-full object-cover opacity-75 md:h-[600px]"
-            />
-          </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/15 to-black/75" />
-          <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
-            <div className="grid gap-3 md:grid-cols-4">
-              {storeNeeds.map((need) => (
-                <div key={need} className="flex items-start gap-2 text-sm font-bold leading-relaxed text-white md:text-base">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F8E731]" />
-                  {need}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function SimpleVisualSection({
   title,
   description,
@@ -234,75 +102,34 @@ function SimpleVisualSection({
   );
 }
 
-function FeatureAccordion() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const activeFeature = featureGroups[activeIndex];
-
-  return (
-    <section className="relative overflow-hidden bg-[#111111] px-6 py-20 text-white md:py-28">
-      <div className="absolute left-0 top-0 h-[360px] w-full bg-gradient-to-b from-zinc-800/30 to-transparent opacity-70" />
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <SectionTitle title="테이블씬 베이직에서 제공하는 기능" inverted />
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-          <ImageBlock image={activeFeature.image} dark />
-          <div className="border-y border-white/10">
-            {featureGroups.map((group, index) => {
-              const isOpen = activeIndex === index;
-              return (
-                <div key={group.title} className="border-b border-white/10 last:border-0">
-                  <button
-                    type="button"
-                    onClick={() => setActiveIndex(index)}
-                    className="flex w-full items-center justify-between gap-4 px-6 py-6 text-left"
-                  >
-                    <span className={`text-xl font-bold transition-colors ${isOpen ? 'text-white' : 'text-zinc-500'}`}>{group.title}</span>
-                    <ChevronDown className={`h-5 w-5 shrink-0 text-zinc-500 transition-transform ${isOpen ? 'rotate-180 text-white' : ''}`} />
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen ? (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-6 pb-6">
-                          <p className="break-keep text-sm font-medium leading-relaxed text-zinc-400">{group.description}</p>
-                          <div className="mt-5 grid gap-3">
-                            {group.items.map((item) => (
-                              <div key={item} className="flex items-center gap-3 text-sm font-bold text-zinc-200">
-                                <Check className="h-4 w-4 shrink-0 text-[#F8E731]" />
-                                {item}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function FlowSection() {
   return (
     <section className="px-6 py-20 md:py-28">
       <div className="mx-auto max-w-7xl">
-        <SectionTitle title="복잡한 과정 없이 시작하세요" />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {flowSteps.map(([title, desc], index) => (
-            <div key={title} className="rounded-[1.4rem] border border-zinc-200 bg-white p-5 md:p-6">
-              <span className="mb-8 flex h-9 w-9 items-center justify-center rounded-full bg-zinc-950 text-sm font-bold text-white">{index + 1}</span>
-              <h3 className="break-keep text-lg font-bold text-zinc-950">{title}</h3>
-              <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">{desc}</p>
-            </div>
+        <SectionTitle
+          title="몇 분 만에 만들 수 있어요"
+        />
+        <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-x-5 md:gap-y-12 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
+          {flowSteps.map((step, index) => (
+            <article key={step.eyebrow} className="relative min-w-[78vw] snap-center md:min-w-0">
+              <div className="aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-zinc-100 md:rounded-[1.75rem]">
+                <img src={step.image} alt="" className="h-full w-full object-cover" />
+              </div>
+              <div className="pt-5 md:pt-6">
+                <p className="text-xs font-bold text-zinc-300 md:text-sm">{step.eyebrow}</p>
+                <h3 className="mt-3 break-keep text-2xl font-bold leading-tight tracking-tight text-zinc-950 md:text-[1.65rem]">
+                  {step.title}
+                </h3>
+                <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-[15px]">
+                  {step.description}
+                </p>
+              </div>
+              {index % 3 !== 2 && index !== flowSteps.length - 1 ? (
+                <div className="pointer-events-none absolute right-[-1.55rem] top-[32%] z-10 hidden h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-400 md:flex">
+                  <ArrowRight className="h-4 w-4" />
+                </div>
+              ) : null}
+            </article>
           ))}
         </div>
       </div>
@@ -329,41 +156,55 @@ const BasicServicePage = () => {
           className="max-w-3xl text-left"
         >
           <h1 className="break-keep text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
-            링크 하나로 열리는<br />
-            우리 매장 디지털 메뉴판
+            메뉴와 가격표를<br />
+            직접 바꾸고 바로 보여주세요
           </h1>
           <p className="mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-white/80 md:text-lg">
-            메뉴와 가격표를 웹 링크로 만들고, 모바일부터 매장 화면까지 보기 좋게 보여주세요. 수정은 마이페이지에서 직접 할 수 있습니다.
+            테이블씬 베이직은 앱 설치 없이 브라우저 링크로 열리는 디지털 메뉴판입니다. 모바일, 태블릿, 노트북, PC처럼 브라우저를 사용할 수 있는 기기라면 링크 하나로 메뉴와 가격표를 바로 보여줄 수 있습니다.
           </p>
         </motion.div>
       </section>
 
-      <StoreFitSection />
-      <DeviceSelection muted={false} />
-
       <SimpleVisualSection
-        title={<>메뉴가 많아도,<br />화면에 맞춰 정리됩니다</>}
-        description="화면 크기와 메뉴 개수에 맞춰 여백과 열 구성이 자연스럽게 조정됩니다. 모바일에서는 읽기 쉽게, 넓은 화면에서는 넓게 활용합니다."
-        image="https://images.unsplash.com/photo-1556741533-6e6a62bd8b49?q=80&w=1400&auto=format&fit=crop"
+        title={<>관리자 페이지에서<br />언제든 메뉴를 수정하세요</>}
+        description="PC 앞에 앉아 있지 않아도 됩니다. 모바일 웹으로 관리자 페이지에 접속할 수 있다면 매장 안팎 어디서든 메뉴명, 가격, 설명, 이미지, 노출 상태를 수정할 수 있고, 저장한 내용은 공개 메뉴판에 반영됩니다."
+        image="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1400&auto=format&fit=crop"
       />
 
       <SimpleVisualSection
         reverse
-        title={<>메뉴판 수정,<br />이제 다시 맡기지 마세요</>}
-        description="메뉴명, 가격, 설명, 카테고리를 직접 수정하고 바로 반영하세요. 가격이 바뀌거나 신메뉴가 추가되어도 메뉴판을 다시 만들 필요가 없습니다."
+        title={<>페이지와 카테고리를<br />운영 방식대로 구성하세요</>}
+        description="메뉴 페이지를 여러 개 추가하고, 메뉴 아이템과 카테고리도 자유롭게 늘려갈 수 있습니다. 커피, 디저트, 세트, 시술, 이벤트 메뉴처럼 매장에 맞게 구조를 바꾸고, 한국어·영어·중국어·일본어 메뉴 표시도 함께 준비할 수 있습니다."
+        image="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1400&auto=format&fit=crop"
+      />
+
+      <SimpleVisualSection
+        title={<>가격과 옵션도<br />메뉴에 맞게 자세히 보여주세요</>}
+        description="HOT / ICE 가격을 따로 설정하거나, 메뉴별 옵션을 더 자세히 안내할 수 있습니다. 맵기, 짜기, 쓴맛처럼 5칸 단계로 보여주는 세부 표시도 활용해 손님이 메뉴의 특징을 더 쉽게 이해하도록 도울 수 있습니다."
+        image="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1400&auto=format&fit=crop"
+      />
+
+      <SimpleVisualSection
+        reverse
+        title={<>메뉴가 많아도,<br />보기 좋은 비율을 찾습니다</>}
+        description="모든 메뉴를 무조건 한 화면에 넣는 방식이 아니라, 화면 크기와 메뉴 개수에 맞춰 가능한 한 읽기 좋은 비율로 정리합니다. 모바일에서는 세로형으로, 넓은 화면에서는 여백과 열 구성을 활용해 가독성을 유지합니다."
         image="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1400&auto=format&fit=crop"
       />
 
       <SimpleVisualSection
-        title={<>AI 작성 도우미로<br />메뉴 입력을 더 쉽게</>}
-        description="메뉴가 많거나 설명 작성이 막막할 때, 메뉴 정리와 문구 작성을 가볍게 도와줍니다. 제안된 문구는 그대로 쓰거나 직접 다듬을 수 있습니다."
-        image="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1400&auto=format&fit=crop"
+        title={<>매장 분위기에 맞게<br />디자인을 다듬을 수 있습니다</>}
+        description="템플릿을 그대로 쓰는 것에서 끝나지 않습니다. 폰트 스타일과 배경색을 조정하고, BEST나 Signature 같은 텍스트 칩을 만들어 색상까지 바꿀 수 있어 우리 매장 메뉴판처럼 자연스럽게 다듬어갈 수 있습니다."
+        image="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=1400&auto=format&fit=crop"
       />
 
       <TemplateShowcase service="basic" />
 
       <FlowSection />
-      <FeatureAccordion />
+      <DeviceSelection
+        muted
+        includeLargeScreen={false}
+        title={<>링크 하나면,<br className="hidden md:block" />어떤 기기에서도 열어볼 수 있어요</>}
+      />
       <ServicePricingSection service="basic" />
       <FAQ />
     </div>

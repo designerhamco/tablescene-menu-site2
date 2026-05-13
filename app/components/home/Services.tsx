@@ -25,10 +25,10 @@ const painPoints = [
 ];
 
 function getVisibleCount(progress: number) {
-  if (progress < 0.18) return 0;
-  if (progress < 0.36) return 1;
-  if (progress < 0.54) return 2;
-  if (progress < 0.72) return 3;
+  if (progress < 0.06) return 0;
+  if (progress < 0.16) return 1;
+  if (progress < 0.26) return 2;
+  if (progress < 0.36) return 3;
   return 4;
 }
 

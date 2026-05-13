@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useScroll } from 'motion/react';
+import { StoreFitVisual } from './StoreFitSection';
 
 type Feature = {
   id: string;
@@ -7,8 +8,6 @@ type Feature = {
   description: string;
   image: string;
 };
-
-const introImage = 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=1800&auto=format&fit=crop';
 
 const features: Feature[] = [
   {
@@ -97,9 +96,8 @@ const AllInOneFlow = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.65, delay: 0.1 }}
-            className="mt-14 aspect-[16/9] w-full overflow-hidden rounded-[2rem] border border-zinc-100 bg-zinc-100"
           >
-            <img src={introImage} alt="" className="h-full w-full object-cover" />
+            <StoreFitVisual className="mt-14" showNeeds={false} />
           </motion.div>
         </div>
       </section>
