@@ -89,8 +89,9 @@ const Navbar = () => {
     : 'text-current opacity-90 hover:opacity-100';
   const menuButtonClass = shouldShowSolidNav ? 'text-current hover:opacity-70' : 'text-current hover:opacity-80';
   const primaryButtonClass = shouldShowSolidNav
-    ? 'bg-zinc-950 text-white hover:bg-zinc-800'
-    : 'bg-white text-zinc-950 hover:bg-white/90';
+    ? 'bg-zinc-950 hover:bg-zinc-800'
+    : 'bg-white hover:bg-white/90';
+  const primaryButtonStyle = { color: shouldShowSolidNav ? '#ffffff' : '#09090b' };
   const secondaryButtonClass = shouldShowSolidNav
     ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
     : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
@@ -111,9 +112,6 @@ const Navbar = () => {
             <div className="flex flex-col items-start leading-none">
               <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${logoTextClass}`}>
                 TABLE SCENE
-              </span>
-              <span className={`ml-0.5 mt-0.5 font-sans text-[9px] font-medium uppercase tracking-[0.3em] opacity-60 transition-colors duration-300 md:text-[10px] ${logoTextClass}`}>
-                AI Studio
               </span>
             </div>
           </Link>
@@ -145,6 +143,7 @@ const Navbar = () => {
             <Link
               to="/apply/menu"
               className={`hidden rounded-full px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${primaryButtonClass}`}
+              style={primaryButtonStyle}
             >
               만들기
             </Link>

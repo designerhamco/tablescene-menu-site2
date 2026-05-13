@@ -253,7 +253,6 @@ interface FAQProps {
   showSupport?: boolean;
   data?: FAQCategory[];
   description?: string;
-  showMoreLink?: boolean;
 }
 
 const FAQ = ({
@@ -261,7 +260,6 @@ const FAQ = ({
   showSupport = true,
   data = MAIN_FAQ_DATA,
   description = "구매 전 사장님들이 가장 자주 확인하는 내용을 모았습니다.",
-  showMoreLink = true,
 }: FAQProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -326,17 +324,6 @@ const FAQ = ({
             </motion.div>
           </AnimatePresence>
         </div>
-
-        {showMoreLink && (
-          <div className="mb-12 flex justify-center">
-            <a
-              href="/faq"
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
-            >
-              더 궁금한 점 보기
-            </a>
-          </div>
-        )}
 
         {/* Support Center (Responsive Layout) - Conditionally Rendered */}
         {showSupport && (

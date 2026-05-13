@@ -28,6 +28,8 @@
   /* Light Mode Base with Black Monotone Brand */
   --background: #ffffff;
   --foreground: #09090b;
+  --surface-muted: #f4f4f5;
+  --surface-muted-strong: #e9e9ec;
 
   --primary: #18181b;
   --primary-foreground: #ffffff;
@@ -38,13 +40,13 @@
   --popover: #ffffff;
   --popover-foreground: #09090b;
   
-  --secondary: #f4f4f5;
+  --secondary: var(--surface-muted);
   --secondary-foreground: #18181b;
   
-  --muted: #f4f4f5;
+  --muted: var(--surface-muted);
   --muted-foreground: #71717a;
   
-  --accent: #f4f4f5;
+  --accent: var(--surface-muted);
   --accent-foreground: #18181b;
   
   --destructive: #ef4444;

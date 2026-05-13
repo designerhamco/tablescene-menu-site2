@@ -33,6 +33,34 @@ select {
   font: inherit;
 }
 
+.site-surface-muted {
+  background-color: var(--surface-muted);
+}
+
+.site-surface-muted-strong {
+  background-color: var(--surface-muted-strong);
+}
+
+.bg-zinc-50,
+[class~="bg-[#fcfcfc]"],
+[class~="bg-[#f9f9f9]"],
+[class~="bg-[#fafafa]"],
+[class~="bg-[#f8f8f8]"],
+[class~="bg-[#f7f7f7]"],
+[class~="bg-[#f5f5f5]"] {
+  background-color: var(--surface-muted) !important;
+}
+
+[class~="bg-zinc-50/50"],
+[class~="bg-zinc-50/70"] {
+  background-color: rgb(244 244 245 / 0.7) !important;
+}
+
+.hover\:bg-zinc-50:hover,
+.hover\:bg-zinc-50\/50:hover {
+  background-color: var(--surface-muted) !important;
+}
+
 button.bg-black,
 button.bg-zinc-900,
 button.bg-zinc-950,
@@ -91,6 +119,18 @@ a.hover\:bg-stone-950:hover,
 .group:hover [role="button"].group-hover\:bg-zinc-900,
 .group:hover [role="button"].group-hover\:bg-zinc-950 {
   color: #ffffff !important;
+}
+
+button.bg-white,
+a.bg-white,
+[role="button"].bg-white {
+  color: #09090b !important;
+}
+
+button.hover\:bg-white:hover,
+a.hover\:bg-white:hover,
+[role="button"].hover\:bg-white:hover {
+  color: #09090b !important;
 }
 
 img,

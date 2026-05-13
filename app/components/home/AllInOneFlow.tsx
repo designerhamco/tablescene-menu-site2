@@ -34,9 +34,9 @@ const features: Feature[] = [
   },
   {
     id: 'assistant',
-    title: '메뉴 정리와 설명 작성이 막막할 때 더 빠르게',
+    title: 'AI 작성 도우미로 메뉴 입력과 번역까지 더 쉽게',
     description:
-      '메뉴가 많거나 설명 작성이 막막할 때, 메뉴 정리와 문구 작성을 도와받을 수 있습니다. 처음부터 하나씩 완벽하게 입력하지 않아도 더 빠르게 시작할 수 있어요.',
+      '메뉴가 많거나 설명이 막막할 때 AI 작성 도우미가 메뉴 정리와 문구 작성을 도와줍니다. 영어, 중국어, 일본어 번역도 GPT 기반으로 더 자연스러운 말투에 가깝게 다듬어 보여줄 수 있어요.',
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1400&auto=format&fit=crop',
   },
   {
@@ -88,7 +88,7 @@ const AllInOneFlow = () => {
           >
             <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-zinc-900 md:text-5xl">
               사장님이 직접 바꾸고,<br />
-              매장 화면에 바로 띄우는 메뉴판
+              링크 하나로 매장 화면에 바로 띄우는 메뉴판
             </h2>
           </motion.div>
 

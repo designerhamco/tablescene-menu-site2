@@ -12,8 +12,8 @@ type TemplateCardProps = {
 
 function getThumbnailClassName(tone: TemplateCatalogItem["thumbnailTone"]) {
   const toneClasses: Record<TemplateCatalogItem["thumbnailTone"], string> = {
-    light: "bg-[#f7f4ed] text-zinc-950",
-    warm: "bg-[#f8eadb] text-zinc-950",
+    light: "bg-zinc-50 text-zinc-950",
+    warm: "bg-zinc-100 text-zinc-950",
     dark: "bg-zinc-950 text-white",
   };
 

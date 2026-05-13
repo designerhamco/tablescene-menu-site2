@@ -28,7 +28,7 @@ const Home = () => {
       <section id="devices" className="relative"><DeviceSelection /></section>
       <section id="plans" className="relative"><ServicePlans /></section>
       <section id="templates" className="relative"><TemplateShowcase /></section>
-      <section id="faq" className="relative"><FAQ showSupport={false} /></section>
+      <section id="faq" className="relative"><FAQ /></section>
     </>
   );
 };

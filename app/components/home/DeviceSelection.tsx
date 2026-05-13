@@ -29,9 +29,13 @@ const devices = [
   },
 ];
 
-const DeviceSelection = () => {
+type DeviceSelectionProps = {
+  muted?: boolean;
+};
+
+const DeviceSelection = ({ muted = true }: DeviceSelectionProps) => {
   return (
-    <section className="relative bg-zinc-50 py-14 md:min-h-screen md:py-16">
+    <section className={`relative py-14 md:min-h-screen md:py-16 ${muted ? 'bg-zinc-50' : 'bg-white'}`}>
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto mb-10 max-w-3xl text-center md:mb-12">
           <motion.div

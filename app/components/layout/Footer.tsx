@@ -67,6 +67,10 @@ const Footer = () => {
            {/* Copyright & Links */}
            <div className="flex flex-col md:items-end gap-3 shrink-0 w-full md:w-auto text-left md:text-right mt-4 md:mt-0">
               <div className="flex gap-4 md:gap-6 text-[11px] text-zinc-500 font-medium">
+                <a href="/faq" className="hover:text-zinc-300 transition-colors">
+                  FAQ
+                </a>
+
                 {/* Terms of Service Dialog */}
                 <Dialog>
                   <DialogTrigger className="hover:text-zinc-300 cursor-pointer transition-colors">
