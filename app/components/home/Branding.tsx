@@ -8,10 +8,10 @@ const Branding = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20 md:mb-32 max-w-4xl mx-auto">
           <span className="text-primary text-xs font-bold tracking-widest uppercase mb-4 block">Visual & Branding</span>
-          <h2 className="text-3xl md:text-5xl font-bold mb-8 tracking-tight">푸드 비주얼 & 브랜딩</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-8 tracking-tight">비주얼 스튜디오</h2>
           <p className="text-lg text-zinc-400 leading-relaxed font-medium">
             메뉴는 단순한 리스트가 아닙니다. 브랜드의 첫인상입니다.<br className="hidden md:block" />
-            우리의 푸드 비주얼 연출 서비스는 당신의 요리를 식욕을 자극하는 예술 작품으로 변신시킵니다.
+            비주얼 스튜디오는 당신의 요리를 식욕을 자극하는 장면으로 연출합니다.
           </p>
         </div>
 

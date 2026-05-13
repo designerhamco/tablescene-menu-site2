@@ -276,7 +276,7 @@ function getPaymentProduct(orderPayload: MenuOrderPayload) {
   if (orderPayload.plan_key === "large_screen") {
     return {
       key: "large_screen",
-      name: "테이블씬 스크린 생성권",
+      name: "테이블씬 디스플레이 생성권",
     };
   }
 

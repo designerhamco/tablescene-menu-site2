@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
-import CTA from '../../components/home/CTA';
 
 // --- Agency Style Detail Section (Rounded & Trendy) ---
 interface FeatureItem {
@@ -405,7 +404,6 @@ const DesignCustomizing = () => {
         </div>
       </section>
 
-      {/* 6. Pricing CTA (Preserved) */}
       <section className="py-24 bg-zinc-900 text-white rounded-t-[3rem] -mt-12 relative z-10">
         <div className="max-w-4xl mx-auto px-6 text-center">
            <div className="mb-12">
@@ -445,8 +443,6 @@ const DesignCustomizing = () => {
         </div>
       </section>
 
-      <CTA applyHref="/apply/custom" />
-      
     </div>
   );
 };

@@ -1,158 +1,211 @@
+"use client";
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus, CheckCircle2, TrendingDown, Clock, ScreenShare, MessageCircle } from 'lucide-react';
+import { Plus, Minus, Clock, ScreenShare, MessageCircle } from 'lucide-react';
 
-const FAQ_DATA = [
+export type FAQCategory = {
+  category: string;
+  items: {
+    question: string;
+    answer: React.ReactNode;
+  }[];
+};
+
+const MAIN_FAQ_DATA: FAQCategory[] = [
   {
-    category: "도입 및 기기",
+    category: "서비스 이용",
     items: [
       {
-        question: "서비스 도입 시 별도의 기기를 구매해야 하나요?",
+        question: "제가 가진 기기에서도 메뉴판을 볼 수 있나요?",
         answer: (
           <>
-            아니요. 사장님이 이미 사용 중인 태블릿, PC, 스마트폰만 있다면 어디서든 바로 사용 가능합니다. 손님들은 개인 휴대폰으로 메뉴를 보기 때문에 비싼 하드웨어 추가 비용이 들지 않아 경제적입니다. (단, 웹 기반 서비스로 일반 포스(POS) 기기 내 설치는 불가합니다.)
+            네. 테이블씬 메뉴판은 웹 링크로 열리는 방식이라, 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다. 모바일, 태블릿, 노트북, PC는 물론이고, 브라우저를 지원하는 스마트 TV나 매장용 디스플레이에서도 사용할 수 있습니다.
           </>
         )
       },
       {
-        question: "현재 사용 중인 포스(POS)기와 연동되나요?",
+        question: "매장 TV나 큰 화면에는 어떻게 띄우나요?",
         answer: (
           <>
-            본 서비스는 포스사와 연동하는 방식이 아닌, <strong className="font-bold text-zinc-900">독자적인 '테이블씬 대시보드(웹 POS)'</strong>를 사용합니다.
-            <br /><br />
-            <span className="font-bold text-primary">[Point]</span> 무거운 포스기에 얽매일 필요 없습니다! 주방, 카운터, 혹은 사장님 주머니 속 스마트폰까지, 장소에 구애받지 않고 어디서든 자유롭게 주문을 확인하고 관리할 수 있는 것이 저희 서비스만의 최대 장점입니다.
+            가장 쉬운 방법은 매장 TV나 모니터에서 메뉴판 링크를 직접 여는 것입니다. 스마트 TV라면 TV 브라우저에서 메뉴판 주소를 열 수 있고, 일반 TV나 모니터라면 노트북, 미니 PC, TV 스틱, 크롬캐스트 같은 기기를 연결해 화면에 띄울 수 있습니다.
           </>
         )
       },
       {
-        question: "테이블별로 QR 코드를 다르게 만들어야 하나요?",
+        question: "메뉴판을 만들려면 프로그램을 설치해야 하나요?",
         answer: (
           <>
-            네, 각 테이블 고유의 QR 코드를 생성해 드립니다. 특히 구역별 커스터마이징이 매우 자유롭습니다. 창가석(W01), 야외테라스(O01), 단체석(G01) 등 매장 구조에 맞춰 사장님이 원하는 대로 이름을 붙여 관리할 수 있습니다.
-          </>
-        )
-      }
-    ]
-  },
-  {
-    category: "메뉴 및 운영",
-    items: [
-      {
-        question: "메뉴 수정은 실시간으로 가능한가요?",
-        answer: (
-          <>
-            네, 관리자 페이지에서 메뉴 품절 처리, 가격 변경, 사진 수정을 하는 즉시 손님 화면에 반영됩니다. 종이 메뉴판처럼 다시 인쇄할 필요가 없어 비용이 절감되며, 재료 소진 등 매장 상황에 즉각적으로 대응할 수 있습니다.
+            아니요. 별도 프로그램 설치 없이 웹에서 사용할 수 있습니다. 메뉴판은 링크로 열리고, 수정은 마이페이지에서 진행합니다. 고객이 보는 화면도 브라우저에서 바로 열 수 있습니다.
           </>
         )
       },
       {
-        question: "사용 중 오류가 발생하거나 궁금한 점이 있으면 어떡하나요?",
+        question: "결제 후 바로 사용할 수 있나요?",
         answer: (
           <>
-            <span className="font-bold text-zinc-900">[고객센터 평일 09:00 ~ 17:00 / 긴급상담 주말 10:00 ~ 22:00]</span><br/>
-            서비스 이용 중 문의 사항은 카카오톡 상담을 통해 남겨주세요. 특히 해결이 어려운 문제는 저희 지원팀이 원격 제어로 사장님의 화면을 실시간으로 보면서 신속하게 해결해 드립니다. 늦은 시간이나 공휴일에도 안심하고 운영하세요!
+            결제가 완료되면 메뉴판이 자동 생성되고 마이페이지에서 확인할 수 있습니다. 생성된 메뉴판은 내용을 수정한 뒤 공개 상태로 전환해 사용할 수 있습니다.
           </>
-        )
-      },
-      {
-        question: "웹 방식이면 인터넷이 끊기거나 불안정하지 않을까요?",
-        answer: (
-          <>
-            본 서비스는 안정적인 클라우드 서버를 기반으로 작동하므로, 매장의 인터넷(Wi-Fi 또는 LTE/5G) 환경만 원활하다면 끊김 없이 사용 가능합니다.
-            <br /><br />
-            <span className="font-bold text-primary">[Tip]</span> 만약 매장 인터넷이 일시적으로 불안정할 경우, 사장님 스마트폰의 테더링(핫스팟)을 연결해서 즉시 임시 대처가 가능하다는 점도 웹 방식만의 장점입니다.
-          </>
-        )
-      }
-    ]
-  },
-  {
-    category: "결제 및 정산 (PRO 전용)",
-    items: [
-      {
-        question: "결제 방식은 어떻게 구성되어 있나요?",
-        answer: (
-          <>
-            기본적으로 웹 메뉴판을 통한 온라인 선결제를 지원합니다. 만약 손님이 현장에서 카드 리더기나 현금으로 결제하길 원하신다면(후불제), 별도의 단말기로 결제하신 뒤 대시보드에서 해당 주문의 결제 상태를 '수동'으로 변경하여 매출을 관리하실 수 있습니다.
-          </>
-        )
-      },
-      {
-        question: "PG 결제 가맹 계약은 사장님이 직접 해야 하나요?",
-        answer: (
-          <>
-            네, 결제 대금이 사장님 계좌로 안전하게 정산되어야 하므로 PG 가맹 계약은 필수입니다. 가입이 생소하실 사장님들을 위해 <strong className="font-bold text-zinc-900">상세한 가입 가이드(안내서)</strong>를 제공해 드립니다. 가이드에 따라 가입을 완료하신 후, 발급된 가맹점 ID 값만 저희 시스템에 등록해 주시면 바로 결제 기능이 활성화됩니다.
-          </>
-        )
-      },
-      {
-        question: "결제 수수료는 어떻게 되나요? (우대 수수료 혜택 안내)",
-        answer: (
-          <div className="space-y-6">
-            <p>
-              포트원을 이용해도 정부에서 지원하는 <strong className="text-zinc-900">영세/중소 가맹점 우대 수수료 혜택</strong>을 동일하게 적용받으실 수 있습니다.
-            </p>
-
-            <div className="bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200 text-sm">
-               <div className="p-3 bg-zinc-900 text-white text-center font-bold">
-                  영세/중소 가맹점 우대 수수료 예시
-               </div>
-               <div className="divide-y divide-zinc-200">
-                 <div className="grid grid-cols-3 p-3 bg-zinc-100 font-bold text-zinc-600 text-xs md:text-sm">
-                    <div>가맹점 구분</div>
-                    <div>연 매출</div>
-                    <div>수수료율</div>
-                 </div>
-                 <div className="grid grid-cols-3 p-3 items-center">
-                    <div className="font-bold">영세</div>
-                    <div className="text-zinc-500">3억 이하</div>
-                    <div className="font-bold text-blue-600">0.5%~</div>
-                 </div>
-                 <div className="grid grid-cols-3 p-3 items-center">
-                    <div className="font-bold">중소 1</div>
-                    <div className="text-zinc-500">3~5억</div>
-                    <div className="font-bold text-blue-600">약 2.1%</div>
-                 </div>
-                 <div className="grid grid-cols-3 p-3 items-center">
-                    <div className="font-bold">중소 2</div>
-                    <div className="text-zinc-500">5~10억</div>
-                    <div className="font-bold text-zinc-700">약 2.4%</div>
-                 </div>
-                 <div className="grid grid-cols-3 p-3 items-center">
-                    <div className="font-bold">일반</div>
-                    <div className="text-zinc-500">30억~</div>
-                    <div className="font-bold text-zinc-500">약 3.0%~</div>
-                 </div>
-               </div>
-            </div>
-            <p className="text-xs text-zinc-400">
-               * PG사 및 결제 수단에 따라 상이할 수 있으나 우대 정책은 동일하게 반영됩니다.
-            </p>
-
-            <div className="grid gap-4 md:grid-cols-2 pt-2">
-               <div>
-                  <div className="flex items-center gap-2 mb-1 text-zinc-900 font-bold">
-                    <CheckCircle2 className="w-4 h-4 text-zinc-400" />
-                    <span>혜택은 그대로</span>
-                  </div>
-                  <p className="text-sm text-zinc-500 pl-6">오프라인 단말기와 동일한 우대 수수료 적용</p>
-               </div>
-               <div>
-                  <div className="flex items-center gap-2 mb-1 text-zinc-900 font-bold">
-                    <TrendingDown className="w-4 h-4 text-zinc-400" />
-                    <span>비용은 절감</span>
-                  </div>
-                  <p className="text-sm text-zinc-500 pl-6">Starter 요금제 월 0원 + 인건비 절감 효과</p>
-               </div>
-            </div>
-          </div>
         )
       }
     ]
   }
 ];
 
-const FAQItem = ({ item, isOpen, onToggle, index }: { item: any, isOpen: boolean, onToggle: () => void, index: number }) => {
+export const DETAILED_FAQ_DATA: FAQCategory[] = [
+  {
+    category: "이용 환경",
+    items: [
+      {
+        question: "제가 가진 기기에서도 메뉴판을 볼 수 있나요?",
+        answer: (
+          <>
+            테이블씬 메뉴판은 웹 링크로 열리는 방식이라 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다.
+          </>
+        )
+      },
+      {
+        question: "매장 TV나 큰 화면에는 어떻게 띄우나요?",
+        answer: (
+          <>
+            스마트 TV는 브라우저에서 메뉴판 링크를 열 수 있고, 일반 TV나 모니터는 노트북, 미니 PC, TV 스틱, 크롬캐스트 같은 기기를 연결해 사용할 수 있습니다.
+          </>
+        )
+      },
+      {
+        question: "프로그램을 설치해야 하나요?",
+        answer: (
+          <>
+            별도 프로그램 설치 없이 웹에서 사용할 수 있습니다. 메뉴판 수정은 마이페이지에서 진행하고, 공개 메뉴판은 링크로 열립니다.
+          </>
+        )
+      }
+    ]
+  },
+  {
+    category: "메뉴판 생성 / 관리",
+    items: [
+      {
+        question: "결제 후 바로 사용할 수 있나요?",
+        answer: (
+          <>
+            결제가 완료되면 메뉴판이 자동 생성되고 마이페이지에서 확인할 수 있습니다. 내용을 수정한 뒤 공개 상태로 전환해 사용할 수 있습니다.
+          </>
+        )
+      },
+      {
+        question: "메뉴판 주소는 나중에 바꿀 수 있나요?",
+        answer: (
+          <>
+            공개 전에는 수정할 수 있지만, 공개 후에는 QR 코드와 공유 링크 유지를 위해 주소 변경이 제한될 수 있습니다.
+          </>
+        )
+      },
+      {
+        question: "QR 이미지는 받을 수 있나요?",
+        answer: (
+          <>
+            메뉴판이 생성되면 공개 주소에 연결된 QR 이미지를 다운로드할 수 있습니다. 테이블 안내물, 카운터 POP, 포스터 등에 활용할 수 있습니다.
+          </>
+        )
+      }
+    ]
+  },
+  {
+    category: "디자인 / 템플릿",
+    items: [
+      {
+        question: "디자인도 직접 바꿀 수 있나요?",
+        answer: (
+          <>
+            템플릿을 기반으로 글자 크기, 글씨체, 배경색 등 일부 디자인 옵션을 조정할 수 있도록 준비하고 있습니다.
+          </>
+        )
+      },
+      {
+        question: "템플릿은 나중에 변경할 수 있나요?",
+        answer: (
+          <>
+            현재는 결제 시 선택한 템플릿을 기준으로 메뉴판이 생성됩니다. 템플릿 변경 기능은 추후 정책에 따라 제공될 수 있습니다.
+          </>
+        )
+      }
+    ]
+  },
+  {
+    category: "AI 작성 도우미",
+    items: [
+      {
+        question: "AI 작성 도우미는 어떤 기능인가요?",
+        answer: (
+          <>
+            메뉴가 많거나 설명 작성이 막막할 때, 메뉴 정리와 설명 문구 작성을 도와주는 기능입니다.
+          </>
+        )
+      },
+      {
+        question: "AI 작성 도우미는 월 몇 회 사용할 수 있나요?",
+        answer: (
+          <>
+            테이블씬 베이직은 AI 작성 도우미를 월 10회까지 사용할 수 있습니다. 사용량은 매월 초기화되며, 추가 사용 정책은 정식 오픈 전 안내될 예정입니다.
+          </>
+        )
+      },
+      {
+        question: "AI가 작성한 문구를 꼭 그대로 써야 하나요?",
+        answer: (
+          <>
+            아니요. 제안된 문구를 참고해 직접 수정할 수 있습니다.
+          </>
+        )
+      }
+    ]
+  },
+  {
+    category: "요금 / 결제",
+    items: [
+      {
+        question: "메뉴판은 월 단위로 이용하나요, 1년 단위로 이용하나요?",
+        answer: (
+          <>
+            현재 초기 오픈 기준으로 이용 기간과 요금제를 정리 중입니다. 정식 오픈 전 최종 요금제와 이용 기간을 안내드릴 예정입니다.
+          </>
+        )
+      },
+      {
+        question: "결제 후 환불이 가능한가요?",
+        answer: (
+          <>
+            결제 후 메뉴판 생성이 완료되면 서비스 이용이 시작된 것으로 볼 수 있습니다. 환불 정책은 정식 오픈 전 별도 안내될 예정입니다.
+          </>
+        )
+      }
+    ]
+  },
+  {
+    category: "준비 중 기능",
+    items: [
+      {
+        question: "테이블 오더 기능도 사용할 수 있나요?",
+        answer: (
+          <>
+            테이블 오더 기능은 준비 중입니다. 현재는 디지털 메뉴판 제작과 관리 기능을 먼저 제공합니다.
+          </>
+        )
+      },
+      {
+        question: "테이블씬 디스플레이는 무엇인가요?",
+        answer: (
+          <>
+            매장 TV나 모니터에 메뉴판을 띄워 사용하는 스크린 메뉴보드 서비스입니다. 테이블씬 베이직과 함께 확장해 사용할 수 있도록 준비 중입니다.
+          </>
+        )
+      }
+    ]
+  }
+];
+
+const FAQItem = ({ item, isOpen, onToggle, index }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, index: number }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
@@ -198,9 +251,18 @@ const FAQItem = ({ item, isOpen, onToggle, index }: { item: any, isOpen: boolean
 interface FAQProps {
   className?: string;
   showSupport?: boolean;
+  data?: FAQCategory[];
+  description?: string;
+  showMoreLink?: boolean;
 }
 
-const FAQ = ({ className = "", showSupport = true }: FAQProps) => {
+const FAQ = ({
+  className = "",
+  showSupport = true,
+  data = MAIN_FAQ_DATA,
+  description = "구매 전 사장님들이 가장 자주 확인하는 내용을 모았습니다.",
+  showMoreLink = true,
+}: FAQProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -219,26 +281,28 @@ const FAQ = ({ className = "", showSupport = true }: FAQProps) => {
             자주 묻는 질문
           </h2>
           <p className="text-lg text-zinc-500 font-medium">
-            서비스 이용과 관련하여 가장 많이 궁금해하시는 내용입니다.
+            {description}
           </p>
         </div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
-          {FAQ_DATA.map((category, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleTabChange(idx)}
-              className={`px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
-                activeTab === idx 
-                  ? 'bg-zinc-900 text-white shadow-lg scale-105' 
-                  : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
-              }`}
-            >
-              {category.category}
-            </button>
-          ))}
-        </div>
+        {data.length > 1 && (
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
+            {data.map((category, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleTabChange(idx)}
+                className={`px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
+                  activeTab === idx 
+                    ? 'bg-zinc-900 text-white shadow-lg scale-105' 
+                    : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
+                }`}
+              >
+                {category.category}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* FAQ List */}
         <div className="w-full md:max-w-6xl mx-auto bg-white rounded-2xl border border-zinc-200 p-4 md:p-8 shadow-sm min-h-[400px] mb-12">
@@ -250,7 +314,7 @@ const FAQ = ({ className = "", showSupport = true }: FAQProps) => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {FAQ_DATA[activeTab].items.map((faq, index) => (
+              {data[activeTab].items.map((faq, index) => (
                 <FAQItem
                   key={`${activeTab}-${index}`}
                   index={index}
@@ -262,6 +326,17 @@ const FAQ = ({ className = "", showSupport = true }: FAQProps) => {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {showMoreLink && (
+          <div className="mb-12 flex justify-center">
+            <a
+              href="/faq"
+              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+            >
+              더 궁금한 점 보기
+            </a>
+          </div>
+        )}
 
         {/* Support Center (Responsive Layout) - Conditionally Rendered */}
         {showSupport && (

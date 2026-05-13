@@ -190,7 +190,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
 const screenCreationProduct = {
   ...menuCreationProduct,
   key: "large_screen",
-  name: "테이블씬 스크린 생성권",
+  name: "테이블씬 디스플레이 생성권",
   description: "매장 화면용 디지털 메뉴보드 운영을 준비합니다.",
 } as const;
 
@@ -251,15 +251,15 @@ const menuTemplateGroups = [
   { key: "all", label: "전체" },
 ] as const satisfies readonly { key: MenuTemplateGroupKey; label: string }[];
 const menuTemplateGroupCategoryMap = {
-  cafe_dessert: ["cafe"],
-  dining: ["brunch", "casual_dining", "fine_dining"],
+  cafe_dessert: ["cafe", "bakery", "dessert"],
+  dining: ["restaurant", "brunch", "casual_dining", "fine_dining", "pub_bar"],
   fast_takeout: ["fast_food"],
-  beauty_wellness: [],
-  class_workshop: [],
-  fitness: [],
-  pet: [],
-  clinic: [],
-  popup_event: [],
+  beauty_wellness: ["hair_salon", "nail_shop", "beauty_esthetic"],
+  class_workshop: ["workshop_class"],
+  fitness: ["fitness_pt"],
+  pet: ["pet_shop"],
+  clinic: ["clinic"],
+  popup_event: ["popup_event"],
 } as const satisfies Record<Exclude<MenuTemplateGroupKey, "recommended" | "all">, readonly TemplateCategoryKey[]>;
 const menuTemplateRecommendationMap = {
   cafe: ["cafe_dessert"],
@@ -283,10 +283,23 @@ const menuTemplateRecommendationMap = {
 } as const satisfies Record<BusinessTypeKey, readonly Exclude<MenuTemplateGroupKey, "recommended" | "all">[]>;
 const templateTagMap = {
   cafe: ["카페", "디저트", "이미지형", "모바일/QR"],
+  bakery: ["베이커리", "디저트", "모바일/QR"],
+  dessert: ["디저트샵", "카페", "모바일/QR"],
+  restaurant: ["식당", "메뉴판", "모바일/QR"],
   brunch: ["브런치", "다이닝", "모바일/QR"],
   casual_dining: ["식당", "캐주얼다이닝", "모바일/QR"],
   fine_dining: ["파인다이닝", "코스", "프리미엄"],
   fast_food: ["패스트푸드", "테이크아웃", "빠른 주문"],
+  pub_bar: ["주점", "바", "모바일/QR"],
+  hair_salon: ["미용실", "가격표", "모바일/QR"],
+  nail_shop: ["네일샵", "가격표", "모바일/QR"],
+  beauty_esthetic: ["에스테틱", "가격표", "모바일/QR"],
+  workshop_class: ["공방", "클래스", "안내"],
+  fitness_pt: ["피트니스", "PT", "가격표"],
+  pet_shop: ["펫샵", "애견미용", "가격표"],
+  clinic: ["병원", "클리닉", "안내"],
+  popup_event: ["팝업", "행사", "안내"],
+  etc: ["기타", "메뉴판", "가격표"],
 } as const satisfies Record<TemplateCategoryKey, readonly string[]>;
 const screenPurposeOptions = [
   "카페 메뉴보드",
@@ -443,7 +456,7 @@ function getScreenSetupNotes(screenSetup: ScreenSetupPayload) {
   }
 
   return [
-    "[테이블씬 스크린 도입 정보]",
+    "[테이블씬 디스플레이 도입 정보]",
     `스크린 용도: ${screenSetup.purpose || "-"}`,
     `스크린 템플릿 카테고리: ${screenSetup.templateCategory || "-"}`,
     `화면 방향: ${screenSetup.orientation || "-"}`,
@@ -1347,7 +1360,7 @@ export default function ApplyOrderForm({
           <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
               {isScreenService
-                ? "테이블씬 스크린은 개인 또는 사업자 모두 신청할 수 있습니다. 현재는 기존 생성 흐름을 재사용해 접수하고, 추후 스크린 전용 관리 구조로 분리할 수 있습니다."
+                ? "테이블씬 디스플레이는 개인 또는 사업자 모두 신청할 수 있습니다. 현재는 기존 생성 흐름을 재사용해 접수하고, 추후 디스플레이 전용 관리 구조로 분리할 수 있습니다."
                 : "베이직 플랜은 개인 또는 사업자 모두 구매할 수 있습니다. 프로 및 고급 다이닝 플랜은 사업자 또는 별도 상담 고객만 이용할 수 있습니다."}
             </p>
           </div>
@@ -1370,7 +1383,7 @@ export default function ApplyOrderForm({
               </div>
               {form.buyerType === "individual" && currentPlanAllowsIndividual && !currentPlanRequiresBusinessInfo && (
                 <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                  {isScreenService ? "테이블씬 스크린은 개인 구매가 가능합니다." : "베이직 플랜은 개인 구매가 가능합니다."}
+                  {isScreenService ? "테이블씬 디스플레이는 개인 구매가 가능합니다." : "베이직 플랜은 개인 구매가 가능합니다."}
                 </p>
               )}
             </div>

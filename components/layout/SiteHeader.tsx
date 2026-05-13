@@ -17,7 +17,7 @@ type SiteHeaderVariant = "solid" | "transparent";
 
 const navItems = [
   { label: "웹 메뉴판", href: "/services/pro-v1" },
-  { label: "푸드 비주얼 & 브랜딩", href: "/branding/food-visual-art" },
+  { label: "비주얼 스튜디오", href: "/branding/food-visual-art" },
   { label: "스토어", href: "/store" },
 ];
 

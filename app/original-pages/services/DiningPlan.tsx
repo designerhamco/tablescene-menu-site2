@@ -370,7 +370,7 @@ const DiningPlan = () => {
                          </h2>
                          <p className="text-lg text-zinc-600 leading-relaxed mb-10">
                            단 한 장의 카드, 그 안에 담긴 깊이를 경험하세요.<br className="hidden md:block"/>
-                           테이블씬 메뉴는 웹 메뉴판과 가격표를 하나의 링크로 관리하고<br className="hidden md:block"/>
+                           테이블씬 베이직은 웹 메뉴판과 가격표를 하나의 링크로 관리하고<br className="hidden md:block"/>
                            <span className="text-black font-bold underline decoration-zinc-400 decoration-2 underline-offset-4">프리미엄 QR 웰컴 카드</span>를 제작해 드립니다.
                          </p>
 
@@ -627,7 +627,6 @@ const DiningPlan = () => {
               })}
            </div>
 
-           {/* Customizing CTA */}
            <div className="bg-zinc-800 rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-zinc-700 shadow-xl">
               <div className="flex-1 text-center md:text-left">
                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-700 text-white text-xs font-bold mb-3 uppercase tracking-wide">

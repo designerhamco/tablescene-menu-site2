@@ -1,13 +1,12 @@
 import React from 'react';
 import PageHeader from '../../components/layout/PageHeader';
-import CTA from '../../components/home/CTA';
 import { motion } from 'motion/react';
 
 const FoodVisualArt = () => {
   return (
     <div className="min-h-screen bg-white">
       <PageHeader 
-        title="푸드비주얼 아트" 
+        title="비주얼 스튜디오" 
         subtitle="Artistic Culinary Photography"
         bgImage="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=2070&auto=format&fit=crop"
       />
@@ -47,8 +46,6 @@ const FoodVisualArt = () => {
           ))}
         </div>
       </div>
-
-      <CTA />
     </div>
   );
 };

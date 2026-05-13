@@ -6,41 +6,45 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 export const metadata: Metadata = {
   title: "서비스 신청 | TableScene",
-  description: "테이블씬 메뉴, 스크린, 커스텀 서비스 신청 페이지를 선택하세요.",
+  description: "테이블씬 베이직, 디스플레이 서비스 신청 페이지를 선택하세요.",
 };
 
 const applyServices = [
   {
-    title: "테이블씬 메뉴",
-    eyebrow: "TableScene Menu",
+    title: "테이블씬 베이직",
+    eyebrow: "TableScene Basic",
     description: "누구나 쉽고 빠르게 만드는 디지털 메뉴판/가격표",
     type: "결제신청형",
     cta: "바로 도입하기",
     href: "/apply/menu",
+    active: true,
   },
   {
-    title: "테이블씬 스크린",
-    eyebrow: "TableScene Screen",
+    title: "테이블씬 디스플레이",
+    eyebrow: "TableScene Display",
     description: "매장 화면을 감각적인 디지털 메뉴보드로",
     type: "결제신청형",
     cta: "바로 도입하기",
     href: "/apply/screen",
+    active: true,
   },
   {
     title: "테이블씬 오더 1.0",
     eyebrow: "TableScene QR Order",
     description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.",
     type: "준비 중",
-    cta: "준비 중 안내 보기",
+    cta: "준비 중",
     href: "/services/order",
+    active: false,
   },
   {
     title: "테이블씬 커스텀",
     eyebrow: "TableScene Custom",
     description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험",
-    type: "상담형",
-    cta: "상담 신청하기",
+    type: "준비 중",
+    cta: "준비 중",
     href: "/apply/custom",
+    active: false,
   },
 ] as const;
 
@@ -56,8 +60,8 @@ export default function ApplyPage() {
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              현재 바로 도입 가능한 메뉴와 스크린, 상담형 커스텀 중 필요한 신청 유형을 선택해주세요.
-              오더 1.0은 준비 중 안내로 연결됩니다.
+              현재 바로 도입 가능한 베이직과 디스플레이 중 필요한 신청 유형을 선택해주세요.
+              오더와 커스텀은 준비 중입니다.
             </p>
           </header>
 
@@ -65,7 +69,9 @@ export default function ApplyPage() {
             {applyServices.map((service) => (
               <article
                 key={service.href}
-                className="flex min-h-[280px] flex-col rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md md:p-8"
+                className={`flex min-h-[280px] flex-col rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition md:p-8 ${
+                  service.active ? "hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md" : "opacity-60"
+                }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">{service.eyebrow}</p>
@@ -81,12 +87,18 @@ export default function ApplyPage() {
                   </p>
                 </div>
 
-                <Link
-                  href={service.href}
-                  className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
-                >
-                  {service.cta}
-                </Link>
+                {service.active ? (
+                  <Link
+                    href={service.href}
+                    className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
+                  >
+                    {service.cta}
+                  </Link>
+                ) : (
+                  <span className="mt-8 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm font-bold text-zinc-400">
+                    {service.cta}
+                  </span>
+                )}
               </article>
             ))}
           </section>

@@ -1,5 +1,4 @@
 import { AllInOneFlow } from "./AllInOneFlow";
-import { CTA } from "./CTA";
 import { DeviceSelection } from "./DeviceSelection";
 import { FAQ } from "./FAQ";
 import { Footer } from "./Footer";
@@ -23,7 +22,6 @@ export function LandingPage() {
         <Pricing />
         <Portfolio />
         <FAQ />
-        <CTA />
       </main>
       <Footer />
     </div>

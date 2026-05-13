@@ -1,6 +1,5 @@
 import React from 'react';
 import PageHeader from '../components/layout/PageHeader';
-import CTA from '../components/home/CTA';
 import { motion } from 'motion/react';
 import { ShoppingBag } from 'lucide-react';
 
@@ -75,8 +74,6 @@ const Store = () => {
           ))}
         </div>
       </div>
-
-      <CTA />
     </div>
   );
 };

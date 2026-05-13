@@ -17,14 +17,14 @@ const PAID_APPLY_COPY: Record<
   }
 > = {
   menu: {
-    eyebrow: "TableScene Menu",
-    title: "테이블씬 메뉴 신청/결제",
+    eyebrow: "TableScene Basic",
+    title: "테이블씬 베이직 신청/결제",
     description:
       "누구나 쉽고 빠르게 만드는 디지털 메뉴판입니다. 템플릿과 메뉴판 정보를 입력한 뒤 결제가 완료되면 메뉴판이 자동으로 생성됩니다.",
   },
   screen: {
-    eyebrow: "TableScene Screen",
-    title: "테이블씬 스크린 신청/결제",
+    eyebrow: "TableScene Display",
+    title: "테이블씬 디스플레이 신청/결제",
     description:
       "매장 화면을 감각적인 디지털 메뉴보드로 운영할 수 있는 결제형 신청 페이지입니다.",
     note:

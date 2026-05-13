@@ -184,15 +184,17 @@ const Hero = () => {
         {/* Layer 3: Initial Title */}
         <motion.div 
           style={{ opacity: initialTextOpacity, y: initialTextY }}
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center pointer-events-none px-6"
+          className="absolute inset-0 z-20 flex items-start justify-center px-6 pt-32 text-center pointer-events-none md:items-center md:justify-start md:px-[max(3rem,calc((100vw-80rem)/2+1.5rem))] md:pt-0 md:text-left"
         >
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 drop-shadow-lg tracking-tight">
-            모든 매장을 위한<br />디지털 메뉴판 플랫폼
-          </h1>
-          <p className="text-xl text-white/90 max-w-xl font-medium drop-shadow-md">
-            메뉴와 가격표를 하나의 링크로 관리하세요.<br/>
-            카페, 식당, 미용실, 네일샵까지 쉽게 만들고 바로 수정할 수 있습니다.
-          </p>
+          <div className="max-w-2xl">
+            <h1 className="mb-5 text-3xl font-bold tracking-tight text-white drop-shadow-lg md:text-5xl lg:text-6xl">
+              모든 매장을 위한<br />디지털 메뉴판 플랫폼
+            </h1>
+            <p className="mx-auto max-w-xl text-base font-medium text-white/90 drop-shadow-md md:mx-0 md:text-lg">
+              메뉴와 가격표를 하나의 링크로 관리하세요.<br/>
+              카페, 식당, 미용실, 네일샵까지 쉽게 만들고 바로 수정할 수 있습니다.
+            </p>
+          </div>
         </motion.div>
 
         {/* Layer 4: Final Text (Centered & Higher z-index) */}
@@ -201,12 +203,14 @@ const Hero = () => {
            style={{ opacity: contentOpacity, scale: contentScale, y: contentY }}
            className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
         >
-          <h2 className="text-4xl md:text-6xl font-bold text-zinc-900 mb-6 tracking-tight leading-tight">
-            QR로 보고,<br className="md:hidden"/> 스크린에 띄우고,<br/> 필요하면 맞춤 제작까지
+          <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-5 tracking-tight leading-tight">
+            메뉴판 수정,<br/> 이제 다시 만들지 말고<br className="md:hidden"/> 직접 바꾸세요.
           </h2>
-           <p className="text-zinc-600 text-xl max-w-lg mx-auto font-medium">
-             모바일, PC, 매장 화면까지.<br/>
-             테이블씬으로 매장의 메뉴와 안내를 유연하게 운영하세요.
+           <p className="text-zinc-600 text-base md:text-lg max-w-lg mx-auto font-medium leading-relaxed">
+             가격이 바뀌어도, 메뉴가 추가되어도<br/>
+             사장님이 직접 수정하고 바로 공개할 수 있어요.
+             <br className="hidden md:block"/>
+             트렌디한 템플릿으로 시작해 TV, 태블릿, 모바일 어디서든 보여주세요.
            </p>
         </motion.div>
 

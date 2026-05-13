@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Outfit', 'Pretendard', 'Noto Sans KR', sans-serif;
+  --font-sans: 'Pretendard', 'Outfit', 'Noto Sans KR', sans-serif;
   
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -89,30 +89,31 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground text-lg; /* Default 18px */
-    font-family: 'Outfit', 'Pretendard', 'Noto Sans KR', sans-serif;
+    @apply bg-background text-foreground text-base;
+    font-family: 'Pretendard', 'Outfit', 'Noto Sans KR', sans-serif;
+    line-height: 1.5;
   }
   
   /* Global Typography Scale */
   h1 {
-    @apply text-5xl font-bold; /* 48px */
+    @apply text-4xl font-bold leading-tight;
   }
   h2 {
-    @apply text-4xl font-bold; /* 36px */
+    @apply text-3xl font-bold leading-tight;
   }
   h3 {
-    @apply text-3xl font-bold; /* 30px */
+    @apply text-2xl font-bold leading-snug;
   }
   h4 {
-    @apply text-2xl font-bold; /* 24px */
+    @apply text-xl font-bold leading-snug;
   }
   h5 {
-    @apply text-xl font-bold; /* 20px */
+    @apply text-lg font-bold leading-snug;
   }
   p {
-    @apply text-lg leading-relaxed; /* 18px */
+    @apply text-base leading-relaxed;
   }
   small {
-    @apply text-base; /* 16px */
+    @apply text-sm;
   }
 }

@@ -9,6 +9,21 @@ export const TEMPLATE_CATEGORIES = [
     ],
   },
   {
+    key: "bakery",
+    label: "베이커리",
+    templates: [],
+  },
+  {
+    key: "dessert",
+    label: "디저트샵",
+    templates: [],
+  },
+  {
+    key: "restaurant",
+    label: "식당",
+    templates: [],
+  },
+  {
     key: "fine_dining",
     label: "파인다이닝",
     templates: [
@@ -40,6 +55,56 @@ export const TEMPLATE_CATEGORIES = [
       { key: "brunch_design_b", label: "Brunch Design B", design: "design_b" },
     ],
   },
+  {
+    key: "pub_bar",
+    label: "주점/바",
+    templates: [],
+  },
+  {
+    key: "hair_salon",
+    label: "미용실/헤어샵",
+    templates: [],
+  },
+  {
+    key: "nail_shop",
+    label: "네일샵",
+    templates: [],
+  },
+  {
+    key: "beauty_esthetic",
+    label: "피부관리/에스테틱",
+    templates: [],
+  },
+  {
+    key: "workshop_class",
+    label: "공방/클래스",
+    templates: [],
+  },
+  {
+    key: "fitness_pt",
+    label: "피트니스/PT",
+    templates: [],
+  },
+  {
+    key: "pet_shop",
+    label: "펫샵/애견미용",
+    templates: [],
+  },
+  {
+    key: "clinic",
+    label: "병원/클리닉",
+    templates: [],
+  },
+  {
+    key: "popup_event",
+    label: "팝업/행사",
+    templates: [],
+  },
+  {
+    key: "etc",
+    label: "기타",
+    templates: [],
+  },
 ] as const;
 
 export const LEGACY_TEMPLATE_KEYS = ["design_a", "design_b", "design_c"] as const;
@@ -50,6 +115,7 @@ export type LegacyTemplateKey = (typeof LEGACY_TEMPLATE_KEYS)[number];
 export type TemplateKey = (typeof TEMPLATE_CATEGORIES)[number]["templates"][number]["key"];
 export type AnyTemplateKey = TemplateKey | LegacyTemplateKey;
 export type TemplateDesignKey = (typeof TEMPLATE_CATEGORIES)[number]["templates"][number]["design"];
+export type TemplateServiceKey = "basic" | "screen";
 
 const templateToneByDesign: Record<TemplateDesignKey, "light" | "warm" | "dark"> = {
   design_a: "light",
@@ -77,6 +143,8 @@ export const templateCategoryFilters = [
 export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
   category.templates.map((template) => ({
     key: template.key,
+    service: "basic" as const satisfies TemplateServiceKey,
+    serviceLabel: "Basic",
     name: template.label,
     label: template.label,
     template_category: category.key,
@@ -86,7 +154,7 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
     categories: [category.key],
     categoryLabels: [category.label],
     badge: templateBadgeByDesign[template.design],
-    active: true,
+    active: template.key === "cafe_design_a",
     thumbnailTone: templateToneByDesign[template.design],
     thumbnailUrl: null,
   }))
@@ -124,10 +192,23 @@ export function getTemplateCategoryFromKey(templateKey?: string | null): Templat
   if (matchedTemplate) return matchedTemplate.template_category;
 
   if (templateKey.startsWith("cafe_")) return "cafe";
+  if (templateKey.startsWith("bakery_")) return "bakery";
+  if (templateKey.startsWith("dessert_")) return "dessert";
+  if (templateKey.startsWith("restaurant_")) return "restaurant";
   if (templateKey.startsWith("fine_dining_")) return "fine_dining";
   if (templateKey.startsWith("casual_dining_")) return "casual_dining";
   if (templateKey.startsWith("fast_food_")) return "fast_food";
   if (templateKey.startsWith("brunch_")) return "brunch";
+  if (templateKey.startsWith("pub_bar_")) return "pub_bar";
+  if (templateKey.startsWith("hair_salon_")) return "hair_salon";
+  if (templateKey.startsWith("nail_shop_")) return "nail_shop";
+  if (templateKey.startsWith("beauty_esthetic_")) return "beauty_esthetic";
+  if (templateKey.startsWith("workshop_class_")) return "workshop_class";
+  if (templateKey.startsWith("fitness_pt_")) return "fitness_pt";
+  if (templateKey.startsWith("pet_shop_")) return "pet_shop";
+  if (templateKey.startsWith("clinic_")) return "clinic";
+  if (templateKey.startsWith("popup_event_")) return "popup_event";
+  if (templateKey.startsWith("etc_")) return "etc";
 
   return null;
 }

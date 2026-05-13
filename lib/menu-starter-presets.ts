@@ -210,7 +210,7 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
 };
 
-const starterPresets: Record<StarterPresetKey, StarterPreset> = {
+const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe: StarterPreset } = {
   cafe: {
     key: "cafe",
     site: {
@@ -857,12 +857,12 @@ export function getStarterPreset(templateKey?: string | null, restaurantCategory
   }
 
   if (isTemplateCategoryKey(templateCategory ?? "")) {
-    return starterPresets[templateCategory as TemplateCategoryKey];
+    return starterPresets[templateCategory as TemplateCategoryKey] ?? starterPresets.cafe;
   }
 
   const categoryFromTemplateKey = getTemplateCategoryFromKey(templateKey);
   if (categoryFromTemplateKey) {
-    return starterPresets[categoryFromTemplateKey];
+    return starterPresets[categoryFromTemplateKey] ?? starterPresets.cafe;
   }
 
   const source = `${templateKey ?? ""} ${restaurantCategory ?? ""}`.toLowerCase();

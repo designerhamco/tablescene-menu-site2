@@ -7,7 +7,7 @@ const PLANS = [
   {
     id: 'menu',
     name: '디지털 메뉴판/가격표',
-    tagline: 'TableScene Menu',
+    tagline: 'TableScene Basic',
     keywords: ['모바일/QR', '가격표', '바로 수정'],
     narrative: '카페, 식당, 미용실, 네일샵까지 메뉴와 가격표를 하나의 링크로 관리합니다.',
     link: '/services/menu',
@@ -18,7 +18,7 @@ const PLANS = [
   {
     id: 'screen',
     name: '대형 화면 메뉴보드',
-    tagline: 'TableScene Screen',
+    tagline: 'TableScene Display',
     keywords: ['TV/모니터', '메뉴보드', '안내 화면'],
     narrative: '매장 TV와 모니터에 띄우는 디지털 메뉴보드로 메뉴, 가격표, 이벤트 화면을 보여주세요.',
     link: '/services/screen',

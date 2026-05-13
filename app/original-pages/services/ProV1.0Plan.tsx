@@ -449,14 +449,14 @@ const ProV10Plan = () => {
               </h1>
               <p className="mt-6 max-w-2xl break-keep text-lg font-semibold leading-relaxed text-zinc-500 md:text-xl">
                 QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.
-                현재는 테이블씬 메뉴, 스크린, 커스텀 서비스를 먼저 이용하실 수 있습니다.
+                현재는 테이블씬 베이직, 스크린, 커스텀 서비스를 먼저 이용하실 수 있습니다.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/services/menu"
                   className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
                 >
-                  테이블씬 메뉴 보기
+                  테이블씬 베이직 보기
                 </Link>
                 <Link
                   to="/apply/custom"
@@ -478,7 +478,7 @@ const ProV10Plan = () => {
                   <li>선불/후불 운영 설정</li>
                 </ul>
                 <p className="mt-6 rounded-2xl bg-zinc-50 p-4 text-sm font-semibold leading-relaxed text-zinc-500">
-                  정식 출시 전까지 공개 CTA에서 결제 신청은 받지 않습니다.
+                  정식 출시 전까지 공개 페이지에서 결제 신청은 받지 않습니다.
                 </p>
               </div>
             </div>

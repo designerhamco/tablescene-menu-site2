@@ -1,6 +1,5 @@
 import React from 'react';
 import PageHeader from '../../components/layout/PageHeader';
-import CTA from '../../components/home/CTA';
 import { motion } from 'motion/react';
 
 const GoodsPackage = () => {
@@ -61,8 +60,6 @@ const GoodsPackage = () => {
           </motion.div>
         </div>
       </div>
-
-      <CTA />
     </div>
   );
 };
