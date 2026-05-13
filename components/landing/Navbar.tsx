@@ -18,11 +18,11 @@ const navItems = [
   },
   {
     title: "브랜딩 솔루션",
-    href: "/services/signature",
+    href: "/services/basic",
     eyebrow: "Branding",
     summary: "QR 웰컴 카드와 다이닝 경험을 매장 톤에 맞게 설계합니다.",
     links: [
-      { title: "DINING", desc: "프리미엄 QR 웰컴 카드", href: "/services/signature", icon: "palette" },
+      { title: "DINING", desc: "프리미엄 QR 웰컴 카드", href: "/services/basic", icon: "palette" },
       { title: "포트폴리오", desc: "테이블씬 적용 화면 보기", href: "/#portfolio", icon: "layout" },
       { title: "상담 문의", desc: "브랜드 맞춤 제작 상담", href: "mailto:admin@dndcommerce.co.kr?subject=테이블씬 브랜딩 솔루션 문의", icon: "message" },
     ],

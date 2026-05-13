@@ -2,7 +2,7 @@ import React from 'react';
 import PageHeader from '../../components/layout/PageHeader';
 import { motion } from 'motion/react';
 
-const GoodsPackage = () => {
+const GoodsPackagePage = () => {
   return (
     <div className="min-h-screen bg-white">
       <PageHeader 
@@ -64,4 +64,4 @@ const GoodsPackage = () => {
   );
 };
 
-export default GoodsPackage;
+export default GoodsPackagePage;

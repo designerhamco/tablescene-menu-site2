@@ -14,24 +14,27 @@ const applyServices = [
     title: "테이블씬 베이직",
     eyebrow: "TableScene Basic",
     description: "누구나 쉽고 빠르게 만드는 디지털 메뉴판/가격표",
+    price: "오픈가 월 6,000원 / 연 60,000원",
     type: "결제신청형",
     cta: "바로 도입하기",
-    href: "/apply/menu",
+    href: "/apply/basic",
     active: true,
   },
   {
     title: "테이블씬 디스플레이",
     eyebrow: "TableScene Display",
     description: "매장 화면을 감각적인 디지털 메뉴보드로",
+    price: "오픈가 월 12,000원 / 연 120,000원",
     type: "결제신청형",
     cta: "바로 도입하기",
-    href: "/apply/screen",
+    href: "/apply/display",
     active: true,
   },
   {
     title: "테이블씬 오더 1.0",
     eyebrow: "TableScene QR Order",
     description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.",
+    price: null,
     type: "준비 중",
     cta: "준비 중",
     href: "/services/order",
@@ -41,6 +44,7 @@ const applyServices = [
     title: "테이블씬 커스텀",
     eyebrow: "TableScene Custom",
     description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험",
+    price: null,
     type: "준비 중",
     cta: "준비 중",
     href: "/apply/custom",
@@ -85,6 +89,11 @@ export default function ApplyPage() {
                   <p className="mt-4 break-keep text-base font-semibold leading-relaxed text-zinc-500">
                     {service.description}
                   </p>
+                  {service.price ? (
+                    <p className="mt-5 text-lg font-black text-zinc-950">
+                      {service.price}
+                    </p>
+                  ) : null}
                 </div>
 
                 {service.active ? (

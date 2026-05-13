@@ -6,9 +6,9 @@ import { Link, useLocation } from 'react-router';
 const logoImage = '/assets/tablescene-symbol.png';
 
 const NAV_ITEMS = [
-  { label: '테이블씬 베이직', path: '/services/menu', discount: true },
-  { label: '테이블씬 디스플레이', path: '/services/screen', discount: true },
-  { label: '비주얼 스튜디오', path: '/branding/food-visual-art', disabled: true },
+  { label: '테이블씬 베이직', path: '/services/basic', discount: true },
+  { label: '테이블씬 디스플레이', path: '/services/display', discount: true },
+  { label: '비주얼 스튜디오', path: '/branding/visual-studio', disabled: true },
 ] as const;
 
 function DiscountChip() {
@@ -69,7 +69,7 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const transparentNavPaths = ['/', '/services/menu', '/services/screen', '/services/signature', '/store'];
+  const transparentNavPaths = ['/', '/services/basic', '/services/display', '/services/menu', '/services/screen', '/services/signature', '/store'];
   const solidNavPaths = ['/services/order', '/services/custom', '/services/simple-template', '/services/pro-v1', '/services/design-customizing'];
   const isApplyPath = pathname === '/apply' || pathname.startsWith('/apply/');
   const navVariant = isApplyPath || solidNavPaths.includes(pathname)
@@ -141,7 +141,7 @@ const Navbar = () => {
 
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
             <Link
-              to="/apply/menu"
+              to="/apply/basic"
               className={`hidden rounded-full px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${primaryButtonClass}`}
               style={primaryButtonStyle}
             >
@@ -178,7 +178,7 @@ const Navbar = () => {
               <div className="flex-1 px-6 py-6">
                 <div className="mb-6 grid grid-cols-2 gap-2 border-b border-zinc-100 pb-6">
                   <Link
-                    to="/apply/menu"
+                    to="/apply/basic"
                     onClick={closeMobileMenu}
                     className="flex items-center justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
                   >

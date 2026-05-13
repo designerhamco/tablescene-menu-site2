@@ -4,12 +4,12 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import Navbar from './components/layout/Navbar';
 import Home from './original-pages/Home';
-import DiningPlan from './original-pages/services/DiningPlan';
-import ProAiPlan from './original-pages/services/ProAiPlan';
-import ProV10Plan from './original-pages/services/ProV1.0Plan';
-import DesignCustomizing from './original-pages/services/DesignCustomizing';
-import FoodVisualArt from './original-pages/branding/FoodVisualArt';
-import GoodsPackage from './original-pages/branding/GoodsPackage';
+import BasicServicePage from './original-pages/services/BasicServicePage';
+import DisplayServicePage from './original-pages/services/DisplayServicePage';
+import OrderServicePage from './original-pages/services/OrderServicePage';
+import CustomServicePage from './original-pages/services/CustomServicePage';
+import VisualStudioPage from './original-pages/branding/VisualStudioPage';
+import GoodsPackagePage from './original-pages/branding/GoodsPackagePage';
 import Store from './original-pages/Store';
 import ScrollToTopButton from './components/ui/ScrollToTop';
 import Footer from './components/layout/Footer';
@@ -42,17 +42,20 @@ export default function App() {
         <main className="relative">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/services/menu" element={<DiningPlan />} />
-            <Route path="/services/screen" element={<ProAiPlan />} />
-            <Route path="/services/order" element={<ProV10Plan />} />
-            <Route path="/services/custom" element={<DesignCustomizing />} />
-            <Route path="/services/signature" element={<DiningPlan />} />
-            <Route path="/services/full-option" element={<ProAiPlan />} />
-            <Route path="/services/pro-v1" element={<ProV10Plan />} />
-            <Route path="/tablescene-pro" element={<ProAiPlan />} />
-            <Route path="/services/design-customizing" element={<DesignCustomizing />} />
-            <Route path="/branding/food-visual-art" element={<FoodVisualArt />} />
-            <Route path="/branding/goods-package" element={<GoodsPackage />} />
+            <Route path="/services/basic" element={<BasicServicePage />} />
+            <Route path="/services/display" element={<DisplayServicePage />} />
+            <Route path="/services/menu" element={<BasicServicePage />} />
+            <Route path="/services/screen" element={<DisplayServicePage />} />
+            <Route path="/services/order" element={<OrderServicePage />} />
+            <Route path="/services/custom" element={<CustomServicePage />} />
+            <Route path="/services/signature" element={<BasicServicePage />} />
+            <Route path="/services/full-option" element={<DisplayServicePage />} />
+            <Route path="/services/pro-v1" element={<OrderServicePage />} />
+            <Route path="/tablescene-pro" element={<DisplayServicePage />} />
+            <Route path="/services/design-customizing" element={<CustomServicePage />} />
+            <Route path="/branding/visual-studio" element={<VisualStudioPage />} />
+            <Route path="/branding/food-visual-art" element={<VisualStudioPage />} />
+            <Route path="/branding/goods-package" element={<GoodsPackagePage />} />
             <Route path="/apply" element={<ReloadNextRoute />} />
             <Route path="/apply/*" element={<ReloadNextRoute />} />
             <Route path="/store" element={<Store />} />

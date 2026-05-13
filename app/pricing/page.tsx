@@ -42,7 +42,7 @@ export default async function PricingPage() {
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Pricing</p>
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">메뉴판 생성권 구매</h1>
               <p className="mt-4 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500">
-                메뉴판 신청과 결제는 신청 페이지에서 진행됩니다. 실제 메뉴판 생성 테스트는 `/apply/menu` 흐름으로 확인해주세요.
+                메뉴판 신청과 결제는 신청 페이지에서 진행됩니다. 실제 메뉴판 생성 테스트는 `/apply/basic` 흐름으로 확인해주세요.
               </p>
             </div>
           </header>

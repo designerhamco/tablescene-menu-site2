@@ -6,6 +6,7 @@ import { ArrowRight, Check, ChevronDown } from 'lucide-react';
 import FAQ from '@/app/components/common/FAQ';
 import DeviceSelection from '@/app/components/home/DeviceSelection';
 import TemplateShowcase from '@/app/components/home/TemplateShowcase';
+import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
 
 const storeTypes = [
   {
@@ -83,12 +84,6 @@ const flowSteps = [
   ['주소 입력과 생성', '공개 주소를 정하고 결제 후 메뉴판을 생성합니다.'],
   ['직접 수정', '메뉴, 가격, 설명과 디자인을 바로 다듬습니다.'],
   ['공개 활용', '링크와 QR 이미지로 매장에서 사용합니다.'],
-];
-
-const aiUsage = [
-  ['설명 작성', '월 10회'],
-  ['메뉴 정리', '월 2회'],
-  ['자동 번역', '월 1페이지'],
 ];
 
 function SectionTitle({
@@ -315,73 +310,7 @@ function FlowSection() {
   );
 }
 
-function PricingSection() {
-  return (
-    <section className="px-6 py-20 md:py-28">
-      <div className="mx-auto max-w-7xl">
-        <SectionTitle title="테이블씬 베이직 가격 안내" />
-
-        <div className="rounded-[2rem] bg-zinc-950 p-6 text-white md:p-8">
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-            <h3 className="text-2xl font-bold tracking-tight md:text-3xl">테이블씬 베이직</h3>
-            <span className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-full bg-[#F8E731] text-center text-zinc-950">
-              <span className="text-xl font-black leading-none">50%</span>
-              <span className="mt-1 text-[11px] font-bold leading-none">오픈할인</span>
-            </span>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 md:p-6">
-              <p className="text-sm font-bold text-white/50">월 결제</p>
-              <div className="mt-6 flex flex-wrap items-end gap-3">
-                <span className="text-base font-bold text-white/35 line-through">12,000원</span>
-                <span className="text-4xl font-bold tracking-tight">6,000원</span>
-              </div>
-              <p className="mt-3 text-sm font-medium text-white/55">매월 자동 갱신</p>
-              <Link
-                to="/apply/menu?billing=monthly"
-                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100"
-              >
-                월 결제로 만들기
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            <div className="rounded-[1.5rem] border border-white/10 bg-white p-5 text-zinc-950 md:p-6">
-              <p className="text-sm font-bold text-zinc-400">연 결제</p>
-              <div className="mt-6 flex flex-wrap items-end gap-3">
-                <span className="text-base font-bold text-zinc-300 line-through">120,000원</span>
-                <span className="text-4xl font-bold tracking-tight">60,000원</span>
-              </div>
-              <p className="mt-3 text-sm font-bold text-zinc-500">월 5,000원 수준</p>
-              <Link
-                to="/apply/menu?billing=yearly"
-                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
-              >
-                연 결제로 만들기
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-[1.2rem] border border-white/10 bg-white/5 p-5">
-            <p className="text-sm font-bold text-white">AI 작성 도우미 기본 제공</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {aiUsage.map(([label, value]) => (
-                <div key={label} className="border-t border-white/10 pt-3">
-                  <p className="text-xs font-bold text-white/40">{label}</p>
-                  <p className="mt-1 text-sm font-bold text-white">{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const DiningPlan = () => {
+const BasicServicePage = () => {
   return (
     <div className="min-h-screen bg-white text-zinc-950">
       <section
@@ -435,10 +364,10 @@ const DiningPlan = () => {
 
       <FlowSection />
       <FeatureAccordion />
-      <PricingSection />
+      <ServicePricingSection service="basic" />
       <FAQ />
     </div>
   );
 };
 
-export default DiningPlan;
+export default BasicServicePage;

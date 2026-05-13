@@ -355,7 +355,7 @@ const CONTENT = {
   }
 };
 
-const ProV10Plan = () => {
+const OrderServicePage = () => {
   const [isSetupDetailOpen, setIsSetupDetailOpen] = React.useState(false);
   const [isPrinterGuideOpen, setIsPrinterGuideOpen] = React.useState(false);
   const [activeFeatureIndex, setActiveFeatureIndex] = React.useState(0);
@@ -449,11 +449,11 @@ const ProV10Plan = () => {
               </h1>
               <p className="mt-6 max-w-2xl break-keep text-lg font-semibold leading-relaxed text-zinc-500 md:text-xl">
                 QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.
-                현재는 테이블씬 베이직, 스크린, 커스텀 서비스를 먼저 이용하실 수 있습니다.
+                현재는 테이블씬 베이직, 테이블씬 디스플레이, 커스텀 서비스를 먼저 이용하실 수 있습니다.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  to="/services/menu"
+                  to="/services/basic"
                   className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
                 >
                   테이블씬 베이직 보기
@@ -1744,4 +1744,4 @@ const ProV10Plan = () => {
 );
 };
 
-export default ProV10Plan;
+export default OrderServicePage;

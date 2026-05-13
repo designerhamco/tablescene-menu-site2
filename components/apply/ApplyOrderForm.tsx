@@ -155,13 +155,18 @@ const agreementLabels: Record<AgreementKey, string> = {
 
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
-    "[서비스 목적] 테이블씬은 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 현재 베이직 플랜은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[베이직 플랜] 베이직 플랜은 템플릿 디자인과 데이터 편집 기능을 제공하며, 개인 또는 사업자 모두 구매할 수 있습니다. 테이블 오더, 주방 대시보드, 선불/후불 주문 기능, 호출 기능은 포함되지 않습니다.",
-    "[향후 플랜 안내] 베이직은 템플릿 디자인과 데이터 편집, 개인/사업자 구매를 지원합니다. 프로는 테이블 오더 선불/후불, 테이블 오더 ON/OFF, 주방 대시보드를 제공할 수 있으며 개인 구매가 제한될 수 있습니다. 대형스크린은 1페이지 중심 구성을 제공할 수 있고 구매 자격은 추후 별도 안내합니다. 고급 다이닝 태블릿은 주문제작 디자인과 호출 기능을 제공할 수 있으며 개인 구매가 제한될 수 있습니다.",
+    "[서비스 목적] 테이블씬은 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 테이블씬 베이직은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
+    "[테이블씬 베이직] 테이블씬 베이직은 템플릿 디자인과 데이터 편집 기능을 제공하며, 개인 또는 사업자 모두 구매할 수 있습니다. 테이블 오더, 주방 대시보드, 선불/후불 주문 기능, 호출 기능은 포함되지 않습니다.",
+    "[서비스 안내] 테이블씬 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 테이블씬 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
     "[서비스 이용 시작] 결제가 완료되고 메뉴판이 생성되면 서비스 이용이 시작된 것으로 봅니다. 생성된 메뉴판은 마이페이지에서 확인하고 편집할 수 있습니다.",
     "[메뉴판 주소] 사용자가 입력한 희망 메뉴판 주소는 중복 여부, 정책 위반 여부, 기술적 제한 등에 따라 사용할 수 없을 수 있습니다. 회사는 부적절하거나 오해를 유발하거나 제3자의 권리를 침해할 우려가 있는 주소 사용을 제한할 수 있습니다.",
     "[서비스 제공 범위] 회사는 서비스 안정성, 보안, 운영 정책, 기술적 사유에 따라 일부 기능을 변경, 중단, 제한할 수 있습니다.",
-    "[결제 및 환불] 베이직 플랜 결제 후 메뉴판 생성이 완료되면 서비스 이용이 시작된 것으로 봅니다. 단순 변심, 잘못된 정보 입력, 사용자의 편집 실수, 이미지 또는 콘텐츠 등록 오류로 인한 환불은 제한될 수 있습니다. 결제 오류, 중복 결제, 서비스 제공 불가 등 회사 귀책 사유가 확인되는 경우 별도 기준에 따라 환불 또는 조치할 수 있습니다.",
+    "[월 결제] 월 결제는 매월 자동 갱신됩니다. 해지 신청 시 다음 결제일부터 자동 결제가 중단되며, 이미 결제된 이용 기간 종료일까지 서비스를 사용할 수 있습니다.",
+    "[연 결제] 연 결제는 1년 단위 이용권입니다. 이용 기간 동안 서비스를 사용할 수 있으며, 기간 종료 전 갱신 안내를 받을 수 있습니다.",
+    "[월 결제에서 연 결제로 변경] 월 결제 이용 중 연 결제로 변경을 원하시는 경우 고객지원으로 문의해주세요. 현재 이용 기간 종료 후 연 결제로 변경을 도와드립니다.",
+    "[결제 및 환불] 결제 후 메뉴판 생성이 완료되면 서비스 이용이 시작된 것으로 봅니다. 단순 변심, 잘못된 정보 입력, 사용자의 편집 실수, 이미지 또는 콘텐츠 등록 오류로 인한 환불은 제한될 수 있습니다. 결제 오류, 중복 결제, 서비스 제공 불가 등 회사 귀책 사유가 확인되는 경우 별도 기준에 따라 환불 또는 조치할 수 있습니다.",
+    "[이용 종료 후 데이터] 이용 기간이 종료되면 메뉴판은 비공개 처리됩니다. 종료 후 7일간 복구 가능 상태로 보관되며, 7일이 지나면 메뉴판 데이터와 업로드 이미지는 삭제되고 복구할 수 없습니다.",
+    "[자료 백업 안내] 삭제된 메뉴판 데이터, 메뉴 이미지, 설정 정보는 복구할 수 없으므로 해지 전 필요한 자료를 반드시 백업해주세요.",
     "[회사 제공 콘텐츠의 권리] 테이블씬 서비스, 소프트웨어, 코드, 관리자 화면, 공개 메뉴판 템플릿, 디자인, 레이아웃, 로고, 상표, starter preset, 공용 placeholder 이미지 등 회사가 제공하는 콘텐츠와 구성 요소에 대한 권리는 회사 또는 정당한 권리자에게 있습니다. 회원은 이를 테이블씬 서비스 이용 범위 내에서만 사용할 수 있습니다.",
     "[회원 콘텐츠의 권리] 회원이 입력하거나 업로드한 매장 정보, 메뉴명, 설명, 가격, 소개 문구, 이벤트 문구, SNS 정보, 이미지 등 콘텐츠의 권리는 회원 또는 해당 콘텐츠의 정당한 권리자에게 귀속되며 회사는 소유권을 취득하지 않습니다.",
     "[서비스 제공을 위한 콘텐츠 이용허락] 회원은 서비스 제공, 메뉴판 생성, 공개 메뉴판 표시, 저장, 백업, 고객 지원, 오류 수정 및 서비스 개선에 필요한 범위에서 회사가 회원 콘텐츠를 이용, 저장, 복제, 전송, 표시할 수 있도록 허락합니다.",
@@ -172,6 +177,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
     "[수집 항목] 필수 수집 항목은 담당자명, 담당자 연락처, 담당자 이메일, 구매자 유형, 메뉴판 이름, 희망 메뉴판 주소, 매장명, 결제 정보, 서비스 이용 기록입니다.",
     "[사업자 정보] 사업자 구매 또는 사업자 정보 입력 시 상호명, 대표자명, 사업자등록번호, 사업장 연락처를 추가로 수집할 수 있습니다.",
     "[보유 및 이용 기간] 수집된 개인정보는 서비스 제공 및 고객 응대 목적 달성 시까지 보관합니다. 관계 법령에 따라 보관이 필요한 정보는 해당 법령에서 정한 기간 동안 보관할 수 있습니다.",
+    "[운영 기록 보관] 결제 내역, 주문번호, 결제 금액, 결제 상태, 환불 여부, 이용 기간, 약관 동의 기록은 운영, 정산, 법적 대응을 위해 관계 법령과 내부 정책에 따라 보관될 수 있습니다.",
     "[개인정보 처리 위탁 및 결제] 결제 처리를 위해 결제대행사 또는 관련 서비스 제공업체가 필요한 정보를 처리할 수 있으며, 구체적인 결제 정보 처리는 결제대행사의 정책과 관련 법령을 따릅니다.",
     "[동의 거부 권리] 이용자는 개인정보 수집 및 이용에 대한 동의를 거부할 수 있으나, 필수 항목에 대한 동의를 거부할 경우 서비스 신청, 결제, 메뉴판 생성이 제한될 수 있습니다.",
     "[안전한 관리] 회사는 개인정보가 분실, 도난, 유출, 위조, 변조 또는 훼손되지 않도록 합리적인 보호 조치를 취합니다.",
@@ -180,8 +186,8 @@ const agreementDetails: Record<AgreementKey, string[]> = {
     "[부적절한 사용 금지] 회원은 불법적이거나 허위 정보를 포함한 메뉴판 생성, 실제 매장 운영과 무관한 장난성 메뉴판 생성, 음란물, 혐오, 폭력, 차별, 사기성 콘텐츠 게시, 악성 코드, 피싱, 사기 링크 삽입, 허위 광고 또는 소비자를 오인하게 하는 콘텐츠 게시에 서비스를 사용할 수 없습니다.",
     "[이미지 업로드 책임] 회원은 자신이 업로드한 이미지에 대해 필요한 권리 또는 이용허락을 보유하고 있음을 보증합니다. 이미지가 제3자의 권리를 침해하여 발생하는 책임은 회원에게 있습니다.",
     "[텍스트 콘텐츠 책임] 회원이 입력한 매장명, 메뉴명, 설명, 가격, 이벤트 문구, 소개 문구, SNS 정보 등 콘텐츠의 정확성과 적법성에 대한 책임은 회원에게 있습니다.",
-    "[개인 구매자 관련] 베이직 플랜은 개인도 구매할 수 있으나 개인 구매자도 부적절한 사용 금지 정책을 동일하게 준수해야 합니다.",
-    "[사업자 전용 플랜 관련] 프로 플랜과 고급 다이닝 태블릿 플랜은 개인 구매가 제한될 수 있으며 사업자 또는 별도 상담 고객을 대상으로 합니다.",
+    "[개인 구매자 관련] 테이블씬 베이직은 개인도 구매할 수 있으나 개인 구매자도 부적절한 사용 금지 정책을 동일하게 준수해야 합니다.",
+    "[상담형 서비스 관련] 테이블씬 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 구매 자격은 별도 안내합니다.",
     "[콘텐츠 조치] 회사는 권리 침해 우려, 신고 접수, 약관 위반, 부적절한 이미지 또는 텍스트가 확인된 경우 해당 콘텐츠를 임시 비공개, 삭제하거나 서비스 이용을 제한할 수 있습니다.",
     "[신고 및 대응] 제3자의 권리 침해 신고, 부적절한 콘텐츠 신고, 허위 정보 신고가 접수된 경우 회사는 회원에게 소명 또는 자료 제출을 요청할 수 있으며 확인 완료 전까지 콘텐츠를 임시 비공개 처리할 수 있습니다.",
   ],
@@ -315,12 +321,12 @@ const screenPurposeOptions = [
 const screenOrientationOptions = ["가로형 16:9", "세로형 9:16, 추후", "아직 미정"] as const;
 const screenDeviceOptions = ["TV", "모니터", "PC", "미니PC/TV스틱", "아직 미정"] as const;
 const screenTemplateCategories = [
-  { key: "cafe_screen", label: "카페 스크린", templateCategory: "cafe" },
-  { key: "bakery_screen", label: "베이커리 스크린", templateCategory: "cafe" },
-  { key: "foodcourt_screen", label: "푸드코트 스크린", templateCategory: "fast_food" },
-  { key: "price_screen", label: "가격표 스크린", templateCategory: "casual_dining" },
-  { key: "promo_screen", label: "안내/프로모션 스크린", templateCategory: "brunch" },
-  { key: "waiting_screen", label: "대기화면 스크린", templateCategory: "fine_dining" },
+  { key: "cafe_screen", label: "카페 디스플레이", templateCategory: "cafe" },
+  { key: "bakery_screen", label: "베이커리 디스플레이", templateCategory: "cafe" },
+  { key: "foodcourt_screen", label: "푸드코트 디스플레이", templateCategory: "fast_food" },
+  { key: "price_screen", label: "가격표 디스플레이", templateCategory: "casual_dining" },
+  { key: "promo_screen", label: "안내/프로모션 디스플레이", templateCategory: "brunch" },
+  { key: "waiting_screen", label: "대기화면 디스플레이", templateCategory: "fine_dining" },
 ] as const satisfies readonly {
   key: string;
   label: string;
@@ -457,8 +463,8 @@ function getScreenSetupNotes(screenSetup: ScreenSetupPayload) {
 
   return [
     "[테이블씬 디스플레이 도입 정보]",
-    `스크린 용도: ${screenSetup.purpose || "-"}`,
-    `스크린 템플릿 카테고리: ${screenSetup.templateCategory || "-"}`,
+    `디스플레이 용도: ${screenSetup.purpose || "-"}`,
+    `디스플레이 템플릿 카테고리: ${screenSetup.templateCategory || "-"}`,
     `화면 방향: ${screenSetup.orientation || "-"}`,
     `설치 기기: ${screenSetup.device || "-"}`,
   ].join("\n");
@@ -751,7 +757,7 @@ export default function ApplyOrderForm({
     return slugState;
   }, [isSlugValid, menuAddressError, payload.desiredSlug, slugState]);
   const isSlugAvailable = visibleSlugState.type === "available";
-  const menuNameError = getRequiredMessage(isScreenService ? "스크린 이름" : "메뉴판 이름", payload.menuName);
+  const menuNameError = getRequiredMessage(isScreenService ? "디스플레이 이름" : "메뉴판 이름", payload.menuName);
   const restaurantNameError = getRequiredMessage("레스토랑 이름", payload.restaurantName);
   const restaurantTypeError = form.restaurantType ? null : "업종을 선택해주세요.";
   const visibleRestaurantTypeError = !form.restaurantType && (form.menuName.trim() || form.restaurantName.trim() || form.desiredSlug.trim()) ? restaurantTypeError : null;
@@ -1052,13 +1058,13 @@ export default function ApplyOrderForm({
           <section className="rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
-              <h2 className="text-3xl font-bold tracking-tight">스크린 용도 / 설치 정보</h2>
+              <h2 className="text-3xl font-bold tracking-tight">디스플레이 용도 / 설치 정보</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                매장 TV나 모니터에 띄울 화면의 목적과 설치 환경을 알려주세요. 입력값은 초기 세팅 안내와 추후 스크린 전용 템플릿 분리에 활용됩니다.
+                매장 TV나 모니터에 띄울 화면의 목적과 설치 환경을 알려주세요. 입력값은 초기 세팅 안내와 추후 디스플레이 전용 템플릿 분리에 활용됩니다.
               </p>
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">스크린 용도</span>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">디스플레이 용도</span>
               <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {screenPurposeOptions.map((option) => {
                   const isSelected = form.screenPurpose === option;
@@ -1101,7 +1107,7 @@ export default function ApplyOrderForm({
           <div className="mb-6">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{templateStepLabel}</p>
             <h2 className="text-3xl font-bold tracking-tight">
-              {isScreenService ? "스크린 템플릿 카테고리 / 스크린 템플릿 선택" : "템플릿 선택"}
+              {isScreenService ? "디스플레이 템플릿 카테고리 / 디스플레이 템플릿 선택" : "템플릿 선택"}
             </h2>
             {isMenuService && (
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
@@ -1110,7 +1116,7 @@ export default function ApplyOrderForm({
             )}
             {isScreenService && (
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                스크린 전용 카테고리를 고른 뒤 TV/모니터 화면에 맞는 메뉴보드 템플릿을 선택해주세요. 현재는 구현된 템플릿을 기반으로 연결됩니다.
+                디스플레이 전용 카테고리를 고른 뒤 TV/모니터 화면에 맞는 메뉴보드 템플릿을 선택해주세요. 현재는 구현된 템플릿을 기반으로 연결됩니다.
               </p>
             )}
           </div>
@@ -1258,11 +1264,11 @@ export default function ApplyOrderForm({
           <h2 className="mb-6 text-3xl font-bold tracking-tight">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <Field
-              label={isScreenService ? "스크린 이름 또는 메뉴보드 이름" : "메뉴판 관리용 이름"}
+              label={isScreenService ? "디스플레이 이름 또는 메뉴보드 이름" : "메뉴판 관리용 이름"}
               value={form.menuName}
               onChange={(value) => updateField("menuName", value)}
               required
-              helperText={isScreenService ? "마이페이지에서 구분할 수 있는 스크린/메뉴보드 이름을 입력해주세요." : "관리자가 구분할 수 있는 이름을 입력해주세요."}
+              helperText={isScreenService ? "마이페이지에서 구분할 수 있는 디스플레이/메뉴보드 이름을 입력해주세요." : "관리자가 구분할 수 있는 이름을 입력해주세요."}
               errorText={form.menuName.trim() ? menuNameError : null}
               successText="입력 완료"
             />
@@ -1272,7 +1278,7 @@ export default function ApplyOrderForm({
                 생성될 주소: {isSlugValid ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
               </p>
             </div>
-            <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "스크린 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
+            <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "디스플레이 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
             <SelectField
               label="업종"
               value={form.restaurantType}
@@ -1361,7 +1367,7 @@ export default function ApplyOrderForm({
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
               {isScreenService
                 ? "테이블씬 디스플레이는 개인 또는 사업자 모두 신청할 수 있습니다. 현재는 기존 생성 흐름을 재사용해 접수하고, 추후 디스플레이 전용 관리 구조로 분리할 수 있습니다."
-                : "베이직 플랜은 개인 또는 사업자 모두 구매할 수 있습니다. 프로 및 고급 다이닝 플랜은 사업자 또는 별도 상담 고객만 이용할 수 있습니다."}
+                : "테이블씬 베이직은 개인 또는 사업자 모두 구매할 수 있습니다. 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로 별도 안내합니다."}
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
@@ -1383,7 +1389,7 @@ export default function ApplyOrderForm({
               </div>
               {form.buyerType === "individual" && currentPlanAllowsIndividual && !currentPlanRequiresBusinessInfo && (
                 <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                  {isScreenService ? "테이블씬 디스플레이는 개인 구매가 가능합니다." : "베이직 플랜은 개인 구매가 가능합니다."}
+                  {isScreenService ? "테이블씬 디스플레이는 개인 구매가 가능합니다." : "테이블씬 베이직은 개인 구매가 가능합니다."}
                 </p>
               )}
             </div>
@@ -1434,8 +1440,8 @@ export default function ApplyOrderForm({
           <h2 className="text-2xl font-bold tracking-tight">주문 요약</h2>
           <dl className="mt-6 space-y-4 text-sm font-medium">
             <SummaryRow label="상품명" value={activeProduct.name} />
-            {isScreenService && <SummaryRow label="스크린 용도" value={form.screenPurpose || "-"} />}
-            {isScreenService && <SummaryRow label="스크린 카테고리" value={selectedScreenTemplateCategory.label} />}
+            {isScreenService && <SummaryRow label="디스플레이 용도" value={form.screenPurpose || "-"} />}
+            {isScreenService && <SummaryRow label="디스플레이 카테고리" value={selectedScreenTemplateCategory.label} />}
             {isScreenService && <SummaryRow label="화면 방향" value={form.screenOrientation || "-"} />}
             {isScreenService && <SummaryRow label="설치 기기" value={form.screenDevice || "-"} />}
             {isMenuService && <SummaryRow label="템플릿 그룹" value={getMenuTemplateGroupLabel(selectedMenuTemplateGroup)} />}

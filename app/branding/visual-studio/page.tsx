@@ -1,5 +1,5 @@
 import OriginalAppNoSsr from "../../OriginalAppNoSsr";
 
-export default function CustomServiceRoutePage() {
+export default function VisualStudioRoutePage() {
   return <OriginalAppNoSsr />;
 }

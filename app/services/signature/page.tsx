@@ -1,5 +1,5 @@
-import OriginalAppNoSsr from "../../OriginalAppNoSsr";
+import { redirect } from "next/navigation";
 
-export default function SignaturePage() {
-  return <OriginalAppNoSsr />;
+export default function SignatureRedirectPage() {
+  redirect("/services/basic");
 }

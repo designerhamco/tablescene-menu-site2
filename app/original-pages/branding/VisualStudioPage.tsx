@@ -2,7 +2,7 @@ import React from 'react';
 import PageHeader from '../../components/layout/PageHeader';
 import { motion } from 'motion/react';
 
-const FoodVisualArt = () => {
+const VisualStudioPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <PageHeader 
@@ -50,4 +50,4 @@ const FoodVisualArt = () => {
   );
 };
 
-export default FoodVisualArt;
+export default VisualStudioPage;

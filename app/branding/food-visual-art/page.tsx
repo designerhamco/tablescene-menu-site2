@@ -1,5 +1,5 @@
-import OriginalAppNoSsr from "../../OriginalAppNoSsr";
+import { redirect } from "next/navigation";
 
-export default function FoodVisualArtPage() {
-  return <OriginalAppNoSsr />;
+export default function FoodVisualArtRedirectPage() {
+  redirect("/branding/visual-studio");
 }

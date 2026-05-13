@@ -80,7 +80,7 @@ export async function createConsultingApplyAction(formData: FormData) {
   const serviceType = getServiceType(requestedServiceType);
 
   if (!serviceType) {
-    redirect("/apply/menu");
+    redirect("/apply/basic");
   }
 
   const supabase = await createClient();

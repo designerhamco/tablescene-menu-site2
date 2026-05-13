@@ -16,6 +16,7 @@ import {
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { Link } from 'react-router';
 import FAQ from '@/app/components/common/FAQ';
+import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
 
 // --- Feature Accordion Component ---
 interface FeatureItem {
@@ -388,7 +389,7 @@ const CONTENT = {
   }
 };
 
-const ProAiPlan = () => {
+const DisplayServicePage = () => {
   const [activeFeatureIndex, setActiveFeatureIndex] = React.useState(0);
   const [deviceMode, setDeviceMode] = React.useState<'tablet' | 'mobile'>('tablet');
   const [isMobileScreen, setIsMobileScreen] = React.useState(false);
@@ -1374,7 +1375,7 @@ const ProAiPlan = () => {
            </div>
 
            {/* Pricing & Options - Minimal Design */}
-           <div className="bg-zinc-50 rounded-[2rem] p-8 md:p-12 lg:p-16">
+           <div className="hidden">
               <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 border-b border-zinc-200 pb-12 mb-12">
                   {/* Pricing */}
                   <div>
@@ -1459,7 +1460,7 @@ const ProAiPlan = () => {
     </section>
 
     {/* 7. ROI / Cost Effectiveness (Restored) */}
-    <section id="roi" className="pt-24 pb-12 bg-zinc-900 text-white relative overflow-hidden">
+    <section id="roi" className="hidden">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
       
       <div className="max-w-5xl mx-auto px-6 relative z-10">
@@ -1552,7 +1553,7 @@ const ProAiPlan = () => {
 
         <div className="mt-16 text-center">
             <Link 
-                to="/apply/screen" 
+                to="/apply/display" 
                 className="inline-flex items-center justify-center gap-2 bg-[#F8E731] hover:bg-[#E5D520] text-black text-xl font-bold px-16 py-5 rounded-full transition-all hover:scale-105 shadow-lg shadow-yellow-400/20"
             >
                 바로 도입하기 <ArrowRight size={24}/>
@@ -1561,10 +1562,12 @@ const ProAiPlan = () => {
       </div>
     </section>
 
+    <ServicePricingSection service="display" />
+
     {/* 8. FAQ */}
     <FAQ />
   </div>
 );
 };
 
-export default ProAiPlan;
+export default DisplayServicePage;

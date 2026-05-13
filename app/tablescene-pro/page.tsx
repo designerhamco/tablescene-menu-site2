@@ -1,5 +1,5 @@
-import OriginalAppNoSsr from "../OriginalAppNoSsr";
+import { redirect } from "next/navigation";
 
-export default function TableSceneProPage() {
-  return <OriginalAppNoSsr />;
+export default function TableSceneProRedirectPage() {
+  redirect("/services/display");
 }

@@ -250,7 +250,7 @@ export default function PricingPaymentClient({
           </div>
         )}
         <div className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
-          메뉴판 신청과 결제는 신청 페이지에서 진행됩니다. 실제 테스트 결제는 `/apply/menu` 흐름으로 확인해주세요.
+          메뉴판 신청과 결제는 신청 페이지에서 진행됩니다. 실제 테스트 결제는 `/apply/basic` 흐름으로 확인해주세요.
         </div>
 
         {uiState.message && (

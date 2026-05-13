@@ -8,18 +8,20 @@ const services = [
     title: 'TableScene Basic',
     badge: '50% 할인',
     description: '직접 편집하는 기본 디지털 메뉴판',
+    price: '월 6,000원 / 연 60,000원',
     details: ['다양한 템플릿 제공', '실시간 메뉴 및 가격 수정', '모든 기기 호환 및 QR 지원'],
     cta: '구매하기',
-    href: '/apply/menu',
+    href: '/apply/basic',
     highlighted: true,
   },
   {
     title: 'TableScene Display',
     badge: '50% 할인',
-    description: '매장 TV와 모니터에 띄우는 스크린 메뉴보드',
+    description: '매장 TV와 모니터에 띄우는 디스플레이 메뉴보드',
+    price: '월 12,000원 / 연 120,000원',
     details: ['매장 화면용 메뉴 구성', '이벤트와 안내 화면 확장', '디스플레이 환경 상담'],
     cta: '구매하기',
-    href: '/apply/screen',
+    href: '/apply/display',
     highlighted: true,
   },
 ];
@@ -64,6 +66,9 @@ const ServicePlans = () => {
                 </h3>
                 <p className="break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
                   {service.description}
+                </p>
+                <p className="mt-5 text-lg font-black text-zinc-950">
+                  {service.price}
                 </p>
               </div>
 

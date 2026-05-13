@@ -135,7 +135,7 @@ const PORTFOLIO_ITEMS = [
   { title: "Grid System", desc: "많은 메뉴도 한눈에 들어오는 정돈된 구조", img: "https://images.unsplash.com/photo-1625173616412-7b403d49a41e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" }
 ];
 
-const DesignCustomizing = () => {
+const CustomServicePage = () => {
   const scrollRefFlow1 = useRef<HTMLDivElement>(null);
   const scrollRefFlow2 = useRef<HTMLDivElement>(null);
   
@@ -447,4 +447,4 @@ const DesignCustomizing = () => {
   );
 };
 
-export default DesignCustomizing;
+export default CustomServicePage;

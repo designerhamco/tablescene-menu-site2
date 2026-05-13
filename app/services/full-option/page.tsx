@@ -1,5 +1,5 @@
-import OriginalAppNoSsr from "../../OriginalAppNoSsr";
+import { redirect } from "next/navigation";
 
-export default function FullOptionPage() {
-  return <OriginalAppNoSsr />;
+export default function FullOptionRedirectPage() {
+  redirect("/services/display");
 }
