@@ -157,7 +157,11 @@ video {
 
 .menu-typography .uppercase,
 .menu-typography [class*="tracking-"],
-.menu-typography .font-mono {
+.menu-typography .font-mono,
+.menu-typography .menu-font-en,
+.menu-typography .menu-price,
+.menu-typography .menu-badge,
+.menu-typography .menu-chip {
   font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
 }
 

@@ -3,19 +3,21 @@
 
 import { useState, type ReactNode } from "react";
 
+import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
+import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import {
   getMenuLayoutDensity,
   getTemplateLayoutRules,
   type MenuLayoutDensity,
 } from "@/lib/template-layout-rules";
-import { getCustomTypographySettings, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
+import { getCustomTypographySettings, getEnglishFontLoadAssets, getKoreanFontLoadAssets, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
 import { formatMenuPrice, shouldShowMenuItemTraits } from "@/types/menu";
 
 type MenuItem = PublicMenuTemplateProps["items"][number];
@@ -33,7 +35,7 @@ type MenuPageGroup = {
 };
 
 function getDisplayName(site: PublicMenuTemplateProps["menuSite"]) {
-  return site.restaurant_name || site.business_name || site.name;
+  return site.restaurant_name || site.name || "TableScene";
 }
 
 function getCategoryItems(items: PublicMenuTemplateProps["items"], categoryId: string) {
@@ -108,10 +110,10 @@ function getItemPriceRows(item: MenuItem, priceOptions: PublicMenuTemplateProps[
 
 function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
   if (!data.pageSettings.featured_item_enabled || !data.pageSettings.featured_item_id) return null;
-  if (!capabilities.featuredItemHero || !capabilities.menuItemImages) return null;
+  if (!capabilities.featuredItemHero) return null;
 
   const featuredItem = data.items.find((item) => item.id === data.pageSettings.featured_item_id);
-  if (!featuredItem || featuredItem.visible === false || !featuredItem.image_url) return null;
+  if (!featuredItem || featuredItem.visible === false) return null;
 
   return featuredItem;
 }
@@ -163,8 +165,8 @@ function getItemStackSpacing(density: MenuLayoutDensity) {
   }[density];
 }
 
-function getMenuAreaClassName(hasFeaturedItem: boolean) {
-  return hasFeaturedItem
+function getMenuAreaClassName(hasCoverSection: boolean) {
+  return hasCoverSection
     ? "lg:col-span-3 lg:grid-cols-3 2xl:col-span-4 2xl:grid-cols-4"
     : "lg:col-span-4 lg:grid-cols-4 2xl:col-span-5 2xl:grid-cols-5";
 }
@@ -197,8 +199,8 @@ function getOuterGridGapClassName(density: MenuLayoutDensity) {
   }[density];
 }
 
-function getDesktopGridClassName(hasFeaturedItem: boolean) {
-  return hasFeaturedItem
+function getDesktopGridClassName(hasCoverSection: boolean) {
+  return hasCoverSection
     ? "lg:grid-cols-[minmax(280px,0.8fr)_repeat(3,minmax(0,1fr))] 2xl:grid-cols-[minmax(300px,0.75fr)_repeat(4,minmax(0,1fr))]"
     : "lg:grid-cols-4 2xl:grid-cols-5";
 }
@@ -242,14 +244,14 @@ function Badge({
   const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
 
   return (
-    <span className="inline-flex rounded-none px-1.5 py-1 text-[10px] font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
+    <span className="menu-badge inline-flex rounded-none px-1.5 py-1 text-[10px] font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
       {label}
     </span>
   );
 }
 
 function SoldOutBadge() {
-  return <span className="inline-flex rounded-none bg-[#e1e3e0] px-1.5 py-1 text-[10px] font-black uppercase leading-none text-[#3f4945]">품절</span>;
+  return <span className="menu-badge inline-flex rounded-none bg-[#e1e3e0] px-1.5 py-1 text-[10px] font-black uppercase leading-none text-[#3f4945]">품절</span>;
 }
 
 function MenuItemRow({
@@ -316,23 +318,24 @@ function MenuItemRow({
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
           {item.is_sold_out && <SoldOutBadge />}
         </div>
-        {item.set_name && <p className={`mb-0.5 font-medium uppercase leading-snug text-[#5e5e5e] ${metaClassName}`}>{item.set_name}</p>}
+        {/* TODO(i18n): Avoid duplicate helper names when the current locale matches set_name language. */}
+        {item.set_name && <p className={`menu-font-en mb-0.5 font-medium uppercase leading-snug text-[#5e5e5e] ${metaClassName}`}>{item.set_name}</p>}
         {item.description && (
           <p className={`break-keep font-normal text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
         )}
         {visibleTraits.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {visibleTraits.map((trait) => (
-              <span key={trait.id} className="border border-[#bfc9c4] px-1.5 py-1 text-[10px] font-black text-[#3f4945]">
+              <span key={trait.id} className="menu-chip border border-[#bfc9c4] px-1.5 py-1 text-[10px] font-black text-[#3f4945]">
                 {trait.label} {trait.value}/{trait.max_value}
               </span>
             ))}
           </div>
         )}
-        {item.origin_info && <p className="mt-2 line-clamp-2 break-words text-[11px] font-semibold leading-relaxed text-[#707975]">원산지 {item.origin_info}</p>}
+        {capabilities.originInfo && item.origin_info && <p className="mt-2 line-clamp-2 break-words text-[11px] font-semibold leading-relaxed text-[#707975]">원산지 {item.origin_info}</p>}
       </div>
       {priceRows.length > 0 && (
-        <div className="flex flex-col items-end gap-1 text-right text-[#191c1b]">
+        <div className="menu-price flex flex-col items-end gap-1 text-right text-[#191c1b]">
           {priceRows.map((row, index) => (
             <div key={`${row.label}-${row.price}-${index}`} className="grid grid-cols-[auto_auto] items-baseline gap-x-2">
               {row.label && <span className="whitespace-nowrap text-[10px] font-bold uppercase leading-none text-[#191c1b]">{row.label}</span>}
@@ -345,7 +348,7 @@ function MenuItemRow({
   );
 }
 
-function FeaturedHero({
+function CoverHero({
   data,
   featuredItem,
   capabilities,
@@ -353,12 +356,13 @@ function FeaturedHero({
   density,
 }: {
   data: PublicMenuTemplateProps;
-  featuredItem: MenuItem;
+  featuredItem: MenuItem | null;
   capabilities: TemplateCapabilities;
   customBadgeStyles: unknown;
   density: MenuLayoutDensity;
 }) {
-  const price = getItemPriceDisplay(featuredItem, data.priceOptions, capabilities);
+  const price = featuredItem ? getItemPriceDisplay(featuredItem, data.priceOptions, capabilities) : null;
+  const coverImageUrl = data.menuSite.cover_image_url;
   const heroMinHeightClassName = {
     spacious: "min-h-[400px]",
     default: "min-h-[380px]",
@@ -369,24 +373,30 @@ function FeaturedHero({
   return (
     <section className={`flex min-w-0 ${heroMinHeightClassName} flex-col bg-[#eceeec] md:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0`}>
       <div className={`relative h-full ${heroMinHeightClassName} flex-1 overflow-hidden lg:min-h-0`}>
-        <img src={featuredItem.image_url ?? ""} alt={featuredItem.name} className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
-          <div className="min-w-0">
-            <div className="mb-2 flex flex-wrap gap-2">
-              <span className="inline-flex rounded-none bg-[#00342b] px-1.5 py-1 text-[10px] font-black uppercase leading-none text-white">대표 추천</span>
-              <Badge
-                item={featuredItem}
-                capabilities={capabilities}
-                templateKey={data.menuSite.template_key}
-                customBadgeStyles={customBadgeStyles}
-              />
+        {coverImageUrl ? (
+          <img src={coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_42%,#f7f8f6_100%)]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        {featuredItem && (
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
+            <div className="min-w-0">
+              <div className="mb-2 flex flex-wrap gap-2">
+                <span className="menu-badge inline-flex rounded-none bg-[#00342b] px-1.5 py-1 text-[10px] font-black uppercase leading-none text-white">대표 추천</span>
+                <Badge
+                  item={featuredItem}
+                  capabilities={capabilities}
+                  templateKey={data.menuSite.template_key}
+                  customBadgeStyles={customBadgeStyles}
+                />
+              </div>
+              <h2 className="break-words text-2xl font-bold leading-tight">{featuredItem.name}</h2>
+              {featuredItem.description && <p className="mt-2 line-clamp-2 break-keep text-xs font-semibold leading-relaxed text-white/82">{featuredItem.description}</p>}
             </div>
-            <h2 className="break-words text-2xl font-bold leading-tight">{featuredItem.name}</h2>
-            {featuredItem.description && <p className="mt-2 line-clamp-2 break-keep text-xs font-semibold leading-relaxed text-white/82">{featuredItem.description}</p>}
+            {price && <p className="menu-price shrink-0 whitespace-nowrap text-xl font-black leading-none">{price}</p>}
           </div>
-          {price && <p className="shrink-0 whitespace-nowrap text-xl font-black leading-none">{price}</p>}
-        </div>
+        )}
       </div>
     </section>
   );
@@ -394,8 +404,8 @@ function FeaturedHero({
 
 function HeaderBlock({ data }: { data: PublicMenuTemplateProps }) {
   const displayName = getDisplayName(data.menuSite);
-  const title = data.menuSite.menu_cover_title || displayName;
-  const description = data.menuSite.menu_cover_description || data.menuSite.description || data.menuSite.brand_description;
+  const title = displayName || "TableScene";
+  const description = data.menuSite.brand_description || data.menuSite.description;
 
   return (
     <header className="w-full shrink-0 border-b border-[#191c1b] px-[clamp(24px,4vw,96px)] py-8 lg:px-[clamp(32px,4vw,96px)] lg:py-[clamp(18px,2.4vh,28px)]">
@@ -404,7 +414,7 @@ function HeaderBlock({ data }: { data: PublicMenuTemplateProps }) {
           <h1 className="break-words text-5xl font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]">{title}</h1>
           {description && <p className="mt-2 break-keep text-[11px] font-normal leading-[1.5] text-[#3f4945]">{description}</p>}
         </div>
-        <div className="group relative shrink-0 cursor-default text-right text-[#191c1b]">
+        <div className="menu-font-en group relative shrink-0 cursor-default text-right text-[#191c1b]">
           <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
         </div>
       </div>
@@ -506,7 +516,7 @@ function DesktopPageControls({
         >
           ←
         </button>
-        <p className="min-w-14 text-center text-[11px] font-black tabular-nums tracking-[0.16em]">
+        <p className="menu-font-en min-w-14 text-center text-[11px] font-black tabular-nums tracking-[0.16em]">
           {String(pageIndex + 1).padStart(2, "0")} / {String(pageCount).padStart(2, "0")}
         </p>
         <button
@@ -528,7 +538,10 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
+  const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
+  const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
   const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
+  const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
   const featuredItem = getFeaturedItem(data, capabilities);
   const visiblePageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
   const [desktopPageIndex, setDesktopPageIndex] = useState(0);
@@ -537,70 +550,81 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const visibleItemCount = data.items.filter((item) => item.visible !== false).length;
   const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
-  const hasFeaturedItem = Boolean(featuredItem);
-  const menuAreaClassName = getMenuAreaClassName(hasFeaturedItem);
-  const desktopGridClassName = getDesktopGridClassName(hasFeaturedItem);
+  const hasCoverSection =
+    publicCapabilities.menuCoverPage &&
+    capabilities.menuCover.coverMode === "section" &&
+    data.pageSettings.menu_cover_enabled !== false;
+  const shouldRenderMenuCoverSection =
+    hasCoverSection;
+  const menuAreaClassName = getMenuAreaClassName(hasCoverSection);
+  const desktopGridClassName = getDesktopGridClassName(hasCoverSection);
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
 
   return (
-    <main className="menu-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 bg-white text-[#191c1b] lg:h-screen lg:overflow-y-hidden" style={getTypographyCssVariables(typographySettings)}>
-      <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
-        <HeaderBlock data={data} />
-        <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] py-8 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
-          {publicCapabilities.menuCoverPage && data.pageSettings.menu_cover_enabled !== false && featuredItem && (
-            <FeaturedHero data={data} featuredItem={featuredItem} capabilities={capabilities} customBadgeStyles={customBadgeStyles} density={density} />
-          )}
+    <>
+      <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
+      <main
+        className="menu-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
+        style={{ ...getTypographyCssVariables(typographySettings), backgroundColor }}
+      >
+        <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
+          <HeaderBlock data={data} />
+          <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] py-8 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
+            {shouldRenderMenuCoverSection && (
+              <CoverHero data={data} featuredItem={featuredItem} capabilities={capabilities} customBadgeStyles={customBadgeStyles} density={density} />
+            )}
 
-          {visiblePageGroups.length === 0 ? (
-            <section className={featuredItem ? "lg:col-span-3" : "lg:col-span-4"}>
-              <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
-            </section>
-          ) : (
-            <MenuGroupsGrid
-              pageGroups={visiblePageGroups}
-              density={density}
-              data={data}
-              capabilities={capabilities}
-              customBadgeStyles={customBadgeStyles}
-              itemStackSpacing={itemStackSpacing}
-              outerGridGapClassName={outerGridGapClassName}
-              menuAreaClassName={menuAreaClassName}
-              showPageTitles
-            />
-          )}
+            {visiblePageGroups.length === 0 ? (
+              <section className={hasCoverSection ? "lg:col-span-3" : "lg:col-span-4"}>
+                <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
+              </section>
+            ) : (
+              <MenuGroupsGrid
+                pageGroups={visiblePageGroups}
+                density={density}
+                data={data}
+                capabilities={capabilities}
+                customBadgeStyles={customBadgeStyles}
+                itemStackSpacing={itemStackSpacing}
+                outerGridGapClassName={outerGridGapClassName}
+                menuAreaClassName={menuAreaClassName}
+                showPageTitles
+              />
+            )}
+          </div>
+
+          <div className={`hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:px-[clamp(32px,4vw,96px)] lg:py-[clamp(18px,2.4vh,28px)] ${desktopGridClassName} ${outerGridGapClassName}`}>
+            {shouldRenderMenuCoverSection && (
+              <CoverHero data={data} featuredItem={featuredItem} capabilities={capabilities} customBadgeStyles={customBadgeStyles} density={density} />
+            )}
+
+            {desktopPageGroups.length === 0 ? (
+              <section className={hasCoverSection ? "lg:col-span-3" : "lg:col-span-4"}>
+                <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
+              </section>
+            ) : (
+              <MenuGroupsGrid
+                pageGroups={desktopPageGroups}
+                density={density}
+                data={data}
+                capabilities={capabilities}
+                customBadgeStyles={customBadgeStyles}
+                itemStackSpacing={itemStackSpacing}
+                outerGridGapClassName={outerGridGapClassName}
+                menuAreaClassName={menuAreaClassName}
+                showPageTitles={false}
+              />
+            )}
+          </div>
         </div>
-
-        <div className={`hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:px-[clamp(32px,4vw,96px)] lg:py-[clamp(18px,2.4vh,28px)] ${desktopGridClassName} ${outerGridGapClassName}`}>
-          {publicCapabilities.menuCoverPage && data.pageSettings.menu_cover_enabled !== false && featuredItem && (
-            <FeaturedHero data={data} featuredItem={featuredItem} capabilities={capabilities} customBadgeStyles={customBadgeStyles} density={density} />
-          )}
-
-          {desktopPageGroups.length === 0 ? (
-            <section className={featuredItem ? "lg:col-span-3" : "lg:col-span-4"}>
-              <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
-            </section>
-          ) : (
-            <MenuGroupsGrid
-              pageGroups={desktopPageGroups}
-              density={density}
-              data={data}
-              capabilities={capabilities}
-              customBadgeStyles={customBadgeStyles}
-              itemStackSpacing={itemStackSpacing}
-              outerGridGapClassName={outerGridGapClassName}
-              menuAreaClassName={menuAreaClassName}
-              showPageTitles={false}
-            />
-          )}
-        </div>
-      </div>
-      <DesktopPageControls
-        pageIndex={boundedDesktopPageIndex}
-        pageCount={visiblePageGroups.length}
-        onPrevious={() => setDesktopPageIndex((currentIndex) => Math.max(0, currentIndex - 1))}
-        onNext={() => setDesktopPageIndex((currentIndex) => Math.min(visiblePageGroups.length - 1, currentIndex + 1))}
-      />
-    </main>
+        <DesktopPageControls
+          pageIndex={boundedDesktopPageIndex}
+          pageCount={visiblePageGroups.length}
+          onPrevious={() => setDesktopPageIndex((currentIndex) => Math.max(0, currentIndex - 1))}
+          onNext={() => setDesktopPageIndex((currentIndex) => Math.min(visiblePageGroups.length - 1, currentIndex + 1))}
+        />
+      </main>
+    </>
   );
 }

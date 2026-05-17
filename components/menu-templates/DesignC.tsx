@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { getBadgeLabel, getMenuItemBadgeType, shouldShowBadge } from "@/lib/menu-badges";
+import { getMenuItemBadgeLabel, shouldShowBadge } from "@/lib/menu-badges";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { formatMenuPrice } from "@/types/menu";
 
@@ -129,7 +129,7 @@ export default function DesignC({ menuSite, pages, categories, items, chefs, soc
 }
 
 function PremiumItemRow({ item, brandColor }: { item: PublicMenuItem; brandColor: string }) {
-  const badgeLabel = getBadgeLabel(getMenuItemBadgeType(item));
+  const badgeLabel = getMenuItemBadgeLabel(item);
   const price = formatMenuPrice(item);
 
   return (

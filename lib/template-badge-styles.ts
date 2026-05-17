@@ -159,7 +159,7 @@ export function getBadgeStyleKey(itemOrLabel: BadgeableMenuItem | string | null 
   if (normalizedLabel === "NEW" || rawLabel === "new") return "new";
   if (
     recommended ||
-    item?.recommended === true ||
+    (item?.recommended === true && !rawLabel) ||
     normalizedLabel === "추천" ||
     rawLabel === "recommended" ||
     rawLabel === "recommend" ||

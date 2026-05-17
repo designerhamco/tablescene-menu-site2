@@ -13,6 +13,7 @@ export type PublicMenuSite = Pick<
   | "description"
   | "logo_url"
   | "cover_image_url"
+  | "intro_image_url"
   | "brand_color"
   | "business_name"
   | "business_address"

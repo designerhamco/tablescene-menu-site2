@@ -957,6 +957,8 @@ export type Database = {
           id: string
           instagram_url: string | null
           intro_description: string | null
+          intro_image_path: string | null
+          intro_image_url: string | null
           intro_title: string | null
           logo_path: string | null
           logo_url: string | null
@@ -997,6 +999,8 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           intro_description?: string | null
+          intro_image_path?: string | null
+          intro_image_url?: string | null
           intro_title?: string | null
           logo_path?: string | null
           logo_url?: string | null
@@ -1037,6 +1041,8 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           intro_description?: string | null
+          intro_image_path?: string | null
+          intro_image_url?: string | null
           intro_title?: string | null
           logo_path?: string | null
           logo_url?: string | null

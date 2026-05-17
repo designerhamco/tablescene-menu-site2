@@ -1,11 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ReactNode } from "react";
 
+import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
-import { getCustomTypographySettings, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
+import { getCustomTypographySettings, getEnglishFontLoadAssets, getKoreanFontLoadAssets, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
 import { formatMenuPrice, formatPortionLabel, shouldShowMenuItemTraits } from "@/types/menu";
 import type { MenuPageData } from "@/lib/menu-page-data";
 
@@ -125,13 +126,13 @@ function IntroSection({ data }: { data: MenuPreviewRendererProps }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
   const title = menuSite.intro_title || displayName;
-  const hasBackgroundImage = Boolean(menuSite.cover_image_url);
+  const hasBackgroundImage = Boolean(menuSite.intro_image_url);
 
   return (
     <section className={`relative overflow-hidden px-5 py-10 ${hasBackgroundImage ? "text-white" : "bg-white text-zinc-950"}`}>
       {hasBackgroundImage && (
         <>
-          <img src={menuSite.cover_image_url ?? ""} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={menuSite.intro_image_url ?? ""} alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-black/65" />
         </>
       )}
@@ -249,7 +250,7 @@ function MenuItemCard({
             ))}
           </div>
         )}
-        {item.origin_info && <p className="mt-3 break-keep text-xs font-semibold leading-relaxed text-zinc-400">원산지 {item.origin_info}</p>}
+        {capabilities.originInfo && item.origin_info && <p className="mt-3 break-keep text-xs font-semibold leading-relaxed text-zinc-400">원산지 {item.origin_info}</p>}
       </div>
     </article>
   );
@@ -427,16 +428,25 @@ export default function MenuPreviewRenderer(data: MenuPreviewRendererProps) {
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
+  const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
+  const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
+  const shouldRenderMenuCover =
+    publicCapabilities.menuCoverPage &&
+    capabilities.menuCover.coverMode !== "none" &&
+    pageSettings.menu_cover_enabled !== false;
 
   return (
-    <div className="menu-typography bg-zinc-50" style={getTypographyCssVariables(typographySettings)}>
-      {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
-      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} capabilities={capabilities} />}
-      {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
-      {publicCapabilities.aboutPage && pageSettings.about_enabled && <AboutSection data={data} />}
-      {publicCapabilities.chefs && capabilities.chefs && pageSettings.chefs_enabled && <ChefsSection data={data} />}
-      {publicCapabilities.eventPage && capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
-      {publicCapabilities.socialLinks && capabilities.socialLinks && pageSettings.social_links_enabled && <SocialLinksSection data={data} />}
-    </div>
+    <>
+      <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
+      <div className="menu-typography bg-zinc-50" style={getTypographyCssVariables(typographySettings)}>
+        {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
+        {shouldRenderMenuCover && <MenuCoverSection data={data} capabilities={capabilities} />}
+        {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
+        {publicCapabilities.aboutPage && pageSettings.about_enabled && <AboutSection data={data} />}
+        {publicCapabilities.chefs && capabilities.chefs && pageSettings.chefs_enabled && <ChefsSection data={data} />}
+        {publicCapabilities.eventPage && capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
+        {publicCapabilities.socialLinks && capabilities.socialLinks && pageSettings.social_links_enabled && <SocialLinksSection data={data} />}
+      </div>
+    </>
   );
 }

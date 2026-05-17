@@ -2,12 +2,14 @@
 import type { ReactNode } from "react";
 
 import ImagePlaceholder from "@/components/menu-templates/shared/ImagePlaceholder";
+import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuGnb from "@/components/menu-templates/shared/MenuGnb";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getMenuPublicCapabilities, type MenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
+import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import {
   getMenuGridClassName,
@@ -15,7 +17,7 @@ import {
   getTemplateLayoutRules,
   type MenuLayoutDensity,
 } from "@/lib/template-layout-rules";
-import { getCustomTypographySettings, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
+import { getCustomTypographySettings, getEnglishFontLoadAssets, getKoreanFontLoadAssets, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
 import {
   formatEventPricePair,
   formatMenuPrice,
@@ -136,13 +138,13 @@ function DetailList({ rows }: { rows: { label: string; value: string | null | un
 function IntroSection({ data }: { data: PublicMenuTemplateProps }) {
   const { menuSite } = data;
   const displayName = getDisplayName(menuSite);
-  const hasBackgroundImage = Boolean(menuSite.cover_image_url);
+  const hasBackgroundImage = Boolean(menuSite.intro_image_url);
 
   return (
     <section className={`relative overflow-hidden px-5 py-16 ${hasBackgroundImage ? "min-h-[520px] text-white" : "bg-zinc-50 text-zinc-950"}`}>
       {hasBackgroundImage && (
         <>
-          <img src={menuSite.cover_image_url ?? ""} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={menuSite.intro_image_url ?? ""} alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-black/65" />
         </>
       )}
@@ -308,7 +310,7 @@ function MenuItemCard({
             ))}
           </div>
         )}
-        {item.origin_info && <p className="mt-3 line-clamp-2 break-words text-xs font-semibold leading-relaxed text-zinc-400">원산지 {item.origin_info}</p>}
+        {capabilities.originInfo && item.origin_info && <p className="mt-3 line-clamp-2 break-words text-xs font-semibold leading-relaxed text-zinc-400">원산지 {item.origin_info}</p>}
       </div>
     </article>
   );
@@ -504,17 +506,27 @@ export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
+  const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
+  const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
+  const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
+  const shouldRenderMenuCover =
+    publicCapabilities.menuCoverPage &&
+    capabilities.menuCover.coverMode !== "none" &&
+    pageSettings.menu_cover_enabled !== false;
 
   return (
-    <div id="intro" className="menu-typography bg-zinc-50 text-zinc-950" style={getTypographyCssVariables(typographySettings)}>
-      {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
-      <MenuGnb site={data.menuSite} currentLocale={data.locale} enabledLocales={data.enabledLocales} />
-      {publicCapabilities.menuCoverPage && pageSettings.menu_cover_enabled !== false && <MenuCoverSection data={data} capabilities={capabilities} />}
-      {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
-      {publicCapabilities.aboutPage && pageSettings.about_enabled && (
-        <AboutSection data={data} capabilities={capabilities} publicCapabilities={publicCapabilities} />
-      )}
-      {publicCapabilities.eventPage && capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
-    </div>
+    <>
+      <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
+      <div id="intro" className="menu-typography text-zinc-950" style={{ ...getTypographyCssVariables(typographySettings), backgroundColor }}>
+        {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
+        <MenuGnb site={data.menuSite} currentLocale={data.locale} enabledLocales={data.enabledLocales} />
+        {shouldRenderMenuCover && <MenuCoverSection data={data} capabilities={capabilities} />}
+        {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
+        {publicCapabilities.aboutPage && pageSettings.about_enabled && (
+          <AboutSection data={data} capabilities={capabilities} publicCapabilities={publicCapabilities} />
+        )}
+        {publicCapabilities.eventPage && capabilities.events && pageSettings.events_enabled && <EventsSection data={data} />}
+      </div>
+    </>
   );
 }

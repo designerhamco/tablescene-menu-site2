@@ -2,19 +2,35 @@ import type { BadgeType } from "@/lib/supabase/types";
 
 export type { BadgeType };
 
-export type MenuBadgeLabel = "추천" | "BEST" | "SIGNATURE" | "NEW" | "인기" | "한정";
+export type MenuBadgeLabel = "추천" | "BEST" | "SIGNATURE" | "NEW" | "인기" | "한정" | "시즌" | "대표" | "신규" | "이벤트";
+
+export const MENU_BADGE_CUSTOM_VALUE = "custom";
+export const MENU_BADGE_MAX_LENGTH = 8;
 
 export const MENU_BADGE_OPTIONS = [
   { value: "none", label: "사용 안 함" },
-  { value: "추천", label: "추천" },
   { value: "BEST", label: "BEST" },
   { value: "SIGNATURE", label: "SIGNATURE" },
   { value: "NEW", label: "NEW" },
+  { value: "추천", label: "추천" },
   { value: "인기", label: "인기" },
   { value: "한정", label: "한정" },
+  { value: "시즌", label: "시즌" },
+  { value: MENU_BADGE_CUSTOM_VALUE, label: "직접 입력" },
 ] as const;
 
-const MENU_BADGE_LABELS = ["추천", "BEST", "SIGNATURE", "NEW", "인기", "한정"] as const satisfies readonly MenuBadgeLabel[];
+export const PRICE_LIST_BADGE_OPTIONS = [
+  { value: "none", label: "사용 안 함" },
+  { value: "추천", label: "추천" },
+  { value: "인기", label: "인기" },
+  { value: "대표", label: "대표" },
+  { value: "신규", label: "신규" },
+  { value: "이벤트", label: "이벤트" },
+  { value: "한정", label: "한정" },
+  { value: MENU_BADGE_CUSTOM_VALUE, label: "직접 입력" },
+] as const;
+
+const MENU_BADGE_LABELS = ["추천", "BEST", "SIGNATURE", "NEW", "인기", "한정", "시즌", "대표", "신규", "이벤트"] as const satisfies readonly MenuBadgeLabel[];
 
 export const BADGE_TYPES = [
   "none",
@@ -74,23 +90,53 @@ export function normalizeMenuBadgeLabel(value: FormDataEntryValue | string | nul
   return MENU_BADGE_LABELS.includes(normalized as MenuBadgeLabel) ? (normalized as MenuBadgeLabel) : null;
 }
 
-export function getLegacyBadgeTypeForLabel(label: MenuBadgeLabel | null): BadgeType | null {
+export function normalizeBadgeLabelForSave(
+  selectedValue: FormDataEntryValue | string | null | undefined,
+  customValue: FormDataEntryValue | string | null | undefined,
+): string | null {
+  if (typeof selectedValue !== "string") return null;
+
+  const selected = selectedValue.trim();
+  if (!selected || selected === "none") return null;
+
+  if (selected === MENU_BADGE_CUSTOM_VALUE) {
+    const customLabel = typeof customValue === "string" ? customValue.trim() : "";
+    if (!customLabel) return null;
+    if (customLabel.length > MENU_BADGE_MAX_LENGTH) {
+      throw new Error(`배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`);
+    }
+    return customLabel;
+  }
+
+  const defaultLabel = normalizeMenuBadgeLabel(selected);
+  return defaultLabel;
+}
+
+export function getLegacyBadgeTypeForLabel(label: string | null): BadgeType | null {
   if (!label) return null;
 
   if (label === "추천") return "recommend";
   if (label === "인기") return "popular";
   if (label === "BEST") return "best";
   if (label === "SIGNATURE") return "signature";
+  if (label === "대표") return "signature";
   if (label === "한정") return "event";
+  if (label === "이벤트") return "event";
+  if (label === "신규") return "recommend";
+  if (label === "시즌") return "event";
 
   return null;
 }
 
-export function getMenuItemBadgeLabel(item: BadgeableMenuItem): MenuBadgeLabel | "" {
+export function getMenuItemBadgeLabel(item: BadgeableMenuItem): string {
   const normalizedLabel = normalizeMenuBadgeLabel(item.badge_label);
 
   if (normalizedLabel) {
     return normalizedLabel;
+  }
+
+  if (typeof item.badge_label === "string" && item.badge_label.trim()) {
+    return item.badge_label.trim();
   }
 
   const badgeType = getMenuItemBadgeType(item);
@@ -123,5 +169,5 @@ export function getBadgeLabel(badgeType: BadgeType | null | undefined) {
 }
 
 export function shouldShowBadge(item: BadgeableMenuItem) {
-  return getMenuItemBadgeType(item) !== "none";
+  return Boolean(getMenuItemBadgeLabel(item)) || getMenuItemBadgeType(item) !== "none";
 }

@@ -20,9 +20,9 @@ export default function MenuGnb({ site, currentLocale, enabledLocales }: MenuGnb
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 px-5 py-3 backdrop-blur">
       <div className="mx-auto flex h-10 w-full max-w-3xl items-center justify-between gap-4">
-        <a href="#intro" className="flex min-w-0 items-center" aria-label={`${brandName} 홈으로 이동`}>
+        <a href="#intro" className="flex min-w-0 shrink-0 items-center max-w-[120px] sm:max-w-40 md:max-w-[180px]" aria-label={`${brandName} 홈으로 이동`}>
           {site.logo_url ? (
-            <img src={site.logo_url} alt={`${brandName} logo`} className="max-h-9 w-auto max-w-36 object-contain sm:max-h-10 sm:max-w-44" />
+            <img src={site.logo_url} alt={`${brandName} logo`} className="h-auto max-h-8 w-auto max-w-[120px] object-contain sm:max-h-10 sm:max-w-40 md:max-h-12 md:max-w-[180px]" />
           ) : (
             <span className="truncate text-base font-black tracking-normal text-zinc-950 sm:text-lg">{brandName}</span>
           )}

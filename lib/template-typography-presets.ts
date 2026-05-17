@@ -1,7 +1,24 @@
 import type { CSSProperties } from "react";
 
-export type KoreanFontKey = "default_ko" | "clean_gothic_ko" | "soft_gothic_ko" | "emotional_serif_ko" | "modern_gothic_ko";
-export type EnglishFontKey = "default_en" | "modern_sans_en" | "classic_serif_en" | "clean_grotesk_en" | "elegant_serif_en";
+import {
+  ENGLISH_FONT_OPTIONS as REGISTERED_ENGLISH_FONT_OPTIONS,
+  KOREAN_FONT_OPTIONS as REGISTERED_KOREAN_FONT_OPTIONS,
+  getCustomEnglishFontValue,
+  getDefaultKoreanFontForTemplate,
+  getDefaultEnglishFontForTemplate,
+  getEnglishFontOption,
+  getFontLoadAssets,
+  getKoreanFontOption,
+  getCustomKoreanFontValue,
+  isEnglishFontValue,
+  isKoreanFontValue,
+  type FontLoadAssets,
+  type EnglishFontValue,
+  type KoreanFontValue,
+} from "@/lib/font-options";
+
+export type KoreanFontKey = KoreanFontValue;
+export type EnglishFontKey = EnglishFontValue;
 export type FontSizeScaleKey = "s" | "m" | "l";
 
 export type TypographySettings = {
@@ -17,71 +34,19 @@ export type FontOption<Key extends string> = {
   fontFamily: string;
 };
 
-export const KOREAN_FONT_OPTIONS: readonly FontOption<KoreanFontKey>[] = [
-  {
-    key: "default_ko",
-    label: "기본 한글",
-    sample: "아메리카노 4,500",
-    fontFamily: "\"Pretendard\", \"Noto Sans KR\", system-ui, sans-serif",
-  },
-  {
-    key: "clean_gothic_ko",
-    label: "깔끔한 고딕",
-    sample: "아메리카노 4,500",
-    fontFamily: "\"Pretendard\", \"Noto Sans KR\", Arial, sans-serif",
-  },
-  {
-    key: "soft_gothic_ko",
-    label: "부드러운 고딕",
-    sample: "아메리카노 4,500",
-    fontFamily: "\"Noto Sans KR\", \"Pretendard\", system-ui, sans-serif",
-  },
-  {
-    key: "emotional_serif_ko",
-    label: "감성 명조",
-    sample: "아메리카노 4,500",
-    fontFamily: "\"Noto Serif KR\", \"Batang\", \"AppleMyungjo\", serif",
-  },
-  {
-    key: "modern_gothic_ko",
-    label: "모던 고딕",
-    sample: "아메리카노 4,500",
-    fontFamily: "\"Outfit\", \"Pretendard\", \"Noto Sans KR\", system-ui, sans-serif",
-  },
-];
+export const KOREAN_FONT_OPTIONS: readonly FontOption<KoreanFontKey>[] = REGISTERED_KOREAN_FONT_OPTIONS.map((option) => ({
+  key: option.value,
+  label: option.label,
+  sample: "아메리카노 4,500",
+  fontFamily: option.fontFamily,
+}));
 
-export const ENGLISH_FONT_OPTIONS: readonly FontOption<EnglishFontKey>[] = [
-  {
-    key: "default_en",
-    label: "기본 영문",
-    sample: "Signature Coffee",
-    fontFamily: "\"Outfit\", system-ui, sans-serif",
-  },
-  {
-    key: "modern_sans_en",
-    label: "Modern Sans",
-    sample: "Signature Coffee",
-    fontFamily: "\"Outfit\", \"Pretendard\", system-ui, sans-serif",
-  },
-  {
-    key: "classic_serif_en",
-    label: "Classic Serif",
-    sample: "Signature Coffee",
-    fontFamily: "Georgia, \"Times New Roman\", serif",
-  },
-  {
-    key: "clean_grotesk_en",
-    label: "Clean Grotesk",
-    sample: "Signature Coffee",
-    fontFamily: "Arial, Helvetica, \"Outfit\", sans-serif",
-  },
-  {
-    key: "elegant_serif_en",
-    label: "Elegant Serif",
-    sample: "Signature Coffee",
-    fontFamily: "\"Times New Roman\", Georgia, serif",
-  },
-];
+export const ENGLISH_FONT_OPTIONS: readonly FontOption<EnglishFontKey>[] = REGISTERED_ENGLISH_FONT_OPTIONS.map((option) => ({
+  key: option.value,
+  label: option.label,
+  sample: "Signature Coffee 5,500",
+  fontFamily: option.fontFamily,
+}));
 
 export const FONT_SIZE_SCALE_OPTIONS = [
   { key: "s", label: "S", description: "조금 작게", scale: 0.9 },
@@ -90,50 +55,56 @@ export const FONT_SIZE_SCALE_OPTIONS = [
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
 
 export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
-  korean_font_key: "default_ko",
-  english_font_key: "default_en",
+  korean_font_key: "pretendard",
+  english_font_key: "outfit",
   font_size_scale_key: "m",
 };
 
 export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySettings>> = {
   cafe_design_a: {
-    korean_font_key: "modern_gothic_ko",
-    english_font_key: "modern_sans_en",
+    korean_font_key: "pretendard",
+    english_font_key: "outfit",
     font_size_scale_key: "m",
   },
   cafe_design_b: {
-    korean_font_key: "soft_gothic_ko",
-    english_font_key: "modern_sans_en",
+    korean_font_key: "pretendard",
+    english_font_key: "outfit",
     font_size_scale_key: "m",
   },
   cafe_design_c: {
-    korean_font_key: "modern_gothic_ko",
-    english_font_key: "modern_sans_en",
+    korean_font_key: "pretendard",
+    english_font_key: "outfit",
     font_size_scale_key: "m",
   },
   fine_dining_design_a: {
-    korean_font_key: "emotional_serif_ko",
-    english_font_key: "elegant_serif_en",
+    korean_font_key: "noto-serif-kr",
+    english_font_key: "playfair-display",
     font_size_scale_key: "m",
   },
   fast_food_design_a: {
-    korean_font_key: "clean_gothic_ko",
-    english_font_key: "clean_grotesk_en",
+    korean_font_key: "noto-sans-kr",
+    english_font_key: "montserrat",
     font_size_scale_key: "s",
   },
 };
 
-const koreanFontKeys = new Set<KoreanFontKey>(KOREAN_FONT_OPTIONS.map((option) => option.key));
-const englishFontKeys = new Set<EnglishFontKey>(ENGLISH_FONT_OPTIONS.map((option) => option.key));
 const fontSizeScaleKeys = new Set<FontSizeScaleKey>(FONT_SIZE_SCALE_OPTIONS.map((option) => option.key));
 
-function isKoreanFontKey(value: unknown): value is KoreanFontKey {
-  return typeof value === "string" && koreanFontKeys.has(value as KoreanFontKey);
-}
+const LEGACY_KOREAN_FONT_KEY_MAP: Record<string, KoreanFontKey> = {
+  default_ko: "pretendard",
+  clean_gothic_ko: "noto-sans-kr",
+  soft_gothic_ko: "gothic-a1",
+  emotional_serif_ko: "noto-serif-kr",
+  modern_gothic_ko: "ibm-plex-sans-kr",
+};
 
-function isEnglishFontKey(value: unknown): value is EnglishFontKey {
-  return typeof value === "string" && englishFontKeys.has(value as EnglishFontKey);
-}
+const LEGACY_ENGLISH_FONT_KEY_MAP: Record<string, EnglishFontKey> = {
+  default_en: "outfit",
+  modern_sans_en: "outfit",
+  classic_serif_en: "libre-baskerville",
+  clean_grotesk_en: "manrope",
+  elegant_serif_en: "playfair-display",
+};
 
 export function isFontSizeScaleKey(value: unknown): value is FontSizeScaleKey {
   return typeof value === "string" && fontSizeScaleKeys.has(value as FontSizeScaleKey);
@@ -147,10 +118,22 @@ export function getDefaultTypographyPreset(templateKey?: string | null): Typogra
   const preset = templateKey ? TEMPLATE_TYPOGRAPHY_PRESETS[templateKey] : null;
 
   return {
-    korean_font_key: preset?.korean_font_key ?? DEFAULT_TYPOGRAPHY_PRESET.korean_font_key,
-    english_font_key: preset?.english_font_key ?? DEFAULT_TYPOGRAPHY_PRESET.english_font_key,
+    korean_font_key: preset?.korean_font_key ?? getDefaultKoreanFontForTemplate(templateKey).value,
+    english_font_key: preset?.english_font_key ?? getDefaultEnglishFontForTemplate(templateKey).value,
     font_size_scale_key: preset?.font_size_scale_key ?? DEFAULT_TYPOGRAPHY_PRESET.font_size_scale_key,
   };
+}
+
+function normalizeKoreanFontKey(value: unknown): KoreanFontKey | null {
+  if (isKoreanFontValue(value)) return value;
+  if (typeof value === "string") return LEGACY_KOREAN_FONT_KEY_MAP[value] ?? null;
+  return null;
+}
+
+function normalizeEnglishFontKey(value: unknown): EnglishFontKey | null {
+  if (isEnglishFontValue(value)) return value;
+  if (typeof value === "string") return LEGACY_ENGLISH_FONT_KEY_MAP[value] ?? null;
+  return null;
 }
 
 export function normalizeTypographySettings(value: unknown): Partial<TypographySettings> | null {
@@ -159,8 +142,10 @@ export function normalizeTypographySettings(value: unknown): Partial<TypographyS
 
   const settings: Partial<TypographySettings> = {};
 
-  if (isKoreanFontKey(record.korean_font_key)) settings.korean_font_key = record.korean_font_key;
-  if (isEnglishFontKey(record.english_font_key)) settings.english_font_key = record.english_font_key;
+  const koreanFontKey = normalizeKoreanFontKey(record.korean_font_key);
+  const englishFontKey = normalizeEnglishFontKey(record.english_font_key);
+  if (koreanFontKey) settings.korean_font_key = koreanFontKey;
+  if (englishFontKey) settings.english_font_key = englishFontKey;
   if (isFontSizeScaleKey(record.font_size_scale_key)) settings.font_size_scale_key = record.font_size_scale_key;
 
   return Object.keys(settings).length > 0 ? settings : null;
@@ -169,8 +154,16 @@ export function normalizeTypographySettings(value: unknown): Partial<TypographyS
 export function getCustomTypographySettings(settings: unknown, pageSettings?: unknown): Partial<TypographySettings> | null {
   const settingsRecord = getRecord(settings);
   const pageSettingsRecord = getRecord(pageSettings);
+  const designKoreanFont = getCustomKoreanFontValue(pageSettings);
+  const designEnglishFont = getCustomEnglishFontValue(pageSettings);
+  const legacyTypography = normalizeTypographySettings(settingsRecord?.typography) ?? normalizeTypographySettings(pageSettingsRecord?.typography);
+  const mergedSettings = {
+    ...(legacyTypography ?? {}),
+    ...(designKoreanFont ? { korean_font_key: designKoreanFont } : {}),
+    ...(designEnglishFont ? { english_font_key: designEnglishFont } : {}),
+  } satisfies Partial<TypographySettings>;
 
-  return normalizeTypographySettings(settingsRecord?.typography) ?? normalizeTypographySettings(pageSettingsRecord?.typography);
+  return Object.keys(mergedSettings).length > 0 ? mergedSettings : null;
 }
 
 export function mergeTypographySettings(templateKey?: string | null, customTypography?: unknown): TypographySettings {
@@ -189,11 +182,19 @@ export function getFontSizeMultiplier(scaleKey: FontSizeScaleKey) {
 }
 
 export function getKoreanFontFamily(fontKey: KoreanFontKey) {
-  return KOREAN_FONT_OPTIONS.find((option) => option.key === fontKey)?.fontFamily ?? KOREAN_FONT_OPTIONS[0].fontFamily;
+  return getKoreanFontOption(fontKey)?.fontFamily ?? getDefaultKoreanFontForTemplate().fontFamily;
+}
+
+export function getKoreanFontLoadAssets(fontKey: KoreanFontKey): FontLoadAssets {
+  return getFontLoadAssets(getKoreanFontOption(fontKey) ?? getDefaultKoreanFontForTemplate());
 }
 
 export function getEnglishFontFamily(fontKey: EnglishFontKey) {
-  return ENGLISH_FONT_OPTIONS.find((option) => option.key === fontKey)?.fontFamily ?? ENGLISH_FONT_OPTIONS[0].fontFamily;
+  return getEnglishFontOption(fontKey)?.fontFamily ?? getDefaultEnglishFontForTemplate().fontFamily;
+}
+
+export function getEnglishFontLoadAssets(fontKey: EnglishFontKey): FontLoadAssets {
+  return getFontLoadAssets(getEnglishFontOption(fontKey) ?? getDefaultEnglishFontForTemplate());
 }
 
 export function getTypographyCssVariables(settings: TypographySettings): CSSProperties {

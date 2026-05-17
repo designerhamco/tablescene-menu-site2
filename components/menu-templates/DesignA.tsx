@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { getBadgeLabel, getMenuItemBadgeType, shouldShowBadge } from "@/lib/menu-badges";
+import { getMenuItemBadgeLabel, shouldShowBadge } from "@/lib/menu-badges";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getTemplateDisplayName } from "@/lib/templates";
 import { formatMenuPrice, formatPortionLabel, shouldShowMenuItemTraits } from "@/types/menu";
@@ -39,9 +39,11 @@ export default function DesignA({ menuSite, pages, categories, items, traits, so
 
           <div className="relative z-10">
             <div className="mb-14 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 {menuSite.logo_url ? (
-                  <img src={menuSite.logo_url} alt={`${menuSite.name} logo`} className="h-11 w-11 rounded-full object-cover ring-1 ring-white/30" />
+                  <div className="flex max-w-[120px] shrink-0 items-center sm:max-w-40 md:max-w-[180px]">
+                    <img src={menuSite.logo_url} alt={`${menuSite.name} logo`} className="h-auto max-h-8 w-auto max-w-[120px] object-contain sm:max-h-10 sm:max-w-40 md:max-h-12 md:max-w-[180px]" />
+                  </div>
                 ) : (
                   <div
                     className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black text-white ring-1 ring-white/30"
@@ -155,7 +157,7 @@ export default function DesignA({ menuSite, pages, categories, items, traits, so
 }
 
 function MenuItemCard({ item, traits, brandColor }: { item: PublicMenuItem; traits: PublicMenuItemTrait[]; brandColor: string }) {
-  const badgeLabel = getBadgeLabel(getMenuItemBadgeType(item));
+  const badgeLabel = getMenuItemBadgeLabel(item);
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
   const visibleTraits = shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
