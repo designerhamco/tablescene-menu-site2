@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { saveMenuEditorScrollPosition } from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024;
@@ -248,9 +249,16 @@ export default function ImageUploadField({
               type="button"
               disabled={isLoading}
               onClick={() => inputRef.current?.click()}
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
             >
-              이미지 등록
+              {isLoading ? (
+                <>
+                  <LoadingSpinner className="h-3 w-3" />
+                  업로드 중...
+                </>
+              ) : (
+                "이미지 등록"
+              )}
             </button>
             {previewUrl && !isConfirmingDelete && (
               <button
@@ -289,9 +297,16 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={deleteImage}
-                className="rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
               >
-                삭제 확정
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner className="h-4 w-4" />
+                    이미지 처리 중...
+                  </>
+                ) : (
+                  "삭제 확정"
+                )}
               </button>
             </div>
           </div>

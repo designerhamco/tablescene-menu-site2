@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { useFormStatus } from "react-dom";
 
 import {
   createChefAction,
@@ -15,6 +16,7 @@ import {
 } from "@/app/mypage/menus/actions";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getSocialLinkLabel, SOCIAL_LINK_TYPES } from "@/lib/social-links";
 import type { Database } from "@/lib/supabase/types";
@@ -126,24 +128,37 @@ function SubmitButton({
   children,
   tone = "dark",
   className: customClassName,
+  disabled,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   tone?: "dark" | "light" | "danger";
 }) {
+  const { pending } = useFormStatus();
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
     danger: "border border-red-100 bg-red-50 text-red-700 hover:bg-red-100",
   }[tone];
 
+  const isSubmitButton = props.type !== "button";
+  const isPending = isSubmitButton && pending;
+
   return (
     <button
       type="submit"
+      disabled={disabled || isPending}
       {...props}
-      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
     >
-      {children}
+      {isPending ? (
+        <>
+          <LoadingSpinner className="h-4 w-4" />
+          저장 중...
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }

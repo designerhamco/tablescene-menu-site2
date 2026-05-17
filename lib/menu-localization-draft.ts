@@ -9,6 +9,7 @@ export type EditableTranslationField = {
   field: string;
   group: "site" | "pages" | "categories" | "items";
   groupLabel: string;
+  parentGroupLabel?: string;
   label: string;
   sourceText: string;
   sourceHash: string;

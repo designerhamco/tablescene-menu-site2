@@ -14,7 +14,16 @@ import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMI
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType } from "@/lib/social-links";
-import { runMenuTranslationUpdate, TARGET_TRANSLATION_LOCALES, translatePartialMenuCategoryFields, translatePartialMenuHeroFields, translatePartialMenuItemFields } from "@/lib/server/menu-translation-service";
+import {
+  generateMenuCleanupStructure,
+  generateMenuItemDescriptionDraft,
+  runMenuTranslationUpdate,
+  TARGET_TRANSLATION_LOCALES,
+  translatePartialMenuCategoryFields,
+  translatePartialMenuHeroFields,
+  translatePartialMenuItemFields,
+  type MenuCleanupStructuredResult,
+} from "@/lib/server/menu-translation-service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
@@ -900,6 +909,37 @@ function getMeaningfulTranslatedFields(fields: Record<string, string>) {
   return Object.fromEntries(Object.entries(fields).filter(([, value]) => hasMeaningfulTranslationText(value)));
 }
 
+function normalizeAiDescriptionForComparison(value: unknown) {
+  if (typeof value !== "string") return "";
+  return value.trim().replace(/\s+/g, " ");
+}
+
+type GenerateMenuItemDescriptionResult =
+  | {
+      ok: true;
+      description: string;
+      usage: { used: number; limit: number };
+      message: string;
+    }
+  | {
+      ok: false;
+      message: string;
+      usage?: { used: number; limit: number };
+    };
+
+type GenerateMenuCleanupActionResult =
+  | {
+      ok: true;
+      data: MenuCleanupStructuredResult;
+      usage: { used: number; limit: number };
+      message: string;
+    }
+  | {
+      ok: false;
+      message: string;
+      usage?: { used: number; limit: number };
+    };
+
 function setEditableTranslationValue(row: Record<string, unknown>, field: string, value: string | null) {
   row[field] = value;
 }
@@ -1037,6 +1077,212 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(menuId, "localization", "다국어 설정과 번역 내용이 저장되었습니다.");
+}
+
+export async function generateMenuItemDescriptionAction(input: {
+  menuId: string;
+  itemId?: string | null;
+  name: string;
+  categoryName?: string | null;
+  price?: string | null;
+  priceLabel?: string | null;
+  badgeLabel?: string | null;
+  currentDescription?: string | null;
+  templateKey?: string | null;
+  serviceType?: string | null;
+}): Promise<GenerateMenuItemDescriptionResult> {
+  const menuId = input.menuId?.trim();
+  const itemId = input.itemId?.trim() || null;
+  const name = input.name?.trim();
+
+  if (!menuId) {
+    return { ok: false, message: "AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+
+  if (!name) {
+    return { ok: false, message: "메뉴명을 먼저 입력해주세요." };
+  }
+
+  try {
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+
+    if (!getTemplateCapabilities(menuSite.template_key).itemDescription) {
+      return { ok: false, message: "현재 템플릿에서는 아이템 설명을 사용하지 않습니다." };
+    }
+
+    if (itemId) {
+      const { data: item, error: itemError } = await supabase
+        .from("menu_items")
+        .select("id")
+        .eq("id", itemId)
+        .eq("menu_site_id", menuId)
+        .maybeSingle();
+
+      if (itemError || !item) {
+        return { ok: false, message: "AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요." };
+      }
+    }
+
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const descriptionUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_description");
+
+    if (isAiUsageExceeded(descriptionUsage)) {
+      return {
+        ok: false,
+        message: "AI 설명 작성 제공량을 모두 사용했습니다.",
+        usage: { used: descriptionUsage.used, limit: descriptionUsage.limit },
+      };
+    }
+
+    const description = await generateMenuItemDescriptionDraft({
+      name,
+      categoryName: input.categoryName,
+      price: input.price,
+      priceLabel: input.priceLabel,
+      badgeLabel: input.badgeLabel,
+      currentDescription: input.currentDescription,
+      templateKey: input.templateKey ?? menuSite.template_key,
+      serviceType: input.serviceType ?? getTemplateType(menuSite.template_key),
+    });
+
+    if (!description.trim()) {
+      return {
+        ok: false,
+        message: "AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요.",
+        usage: { used: descriptionUsage.used, limit: descriptionUsage.limit },
+      };
+    }
+
+    const normalizedCurrentDescription = normalizeAiDescriptionForComparison(input.currentDescription);
+    const normalizedGeneratedDescription = normalizeAiDescriptionForComparison(description);
+
+    if (!normalizedGeneratedDescription) {
+      return {
+        ok: false,
+        message: "AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요.",
+        usage: { used: descriptionUsage.used, limit: descriptionUsage.limit },
+      };
+    }
+
+    // TODO: 동일 결과가 반복될 때 "더 짧게/감성적으로/고급스럽게/담백하게" 같은 tone 옵션을 추가한다.
+    if (normalizedCurrentDescription && normalizedCurrentDescription === normalizedGeneratedDescription) {
+      return {
+        ok: false,
+        message: "기존 설명과 거의 동일한 결과입니다. 다른 문체로 다시 시도해보세요.",
+        usage: { used: descriptionUsage.used, limit: descriptionUsage.limit },
+      };
+    }
+
+    const usedAt = new Date();
+    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_description", usedAt);
+    const { error: usageError } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: usedAt.toISOString() })
+      .eq("id", menuId);
+
+    if (usageError) {
+      return { ok: false, message: "AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_description", usedAt);
+
+    return {
+      ok: true,
+      description: description.trim(),
+      usage: { used: nextUsage.used, limit: nextUsage.limit },
+      message: "AI 설명이 작성되었습니다. 수정 내용 반영 후 저장하면 공개 메뉴판에 반영됩니다.",
+    };
+  } catch (error) {
+    console.error("[menu-ai] description generation failed", {
+      menuId,
+      itemId,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return { ok: false, message: "AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+}
+
+export async function generateAiMenuCleanupAction(input: {
+  menuId: string;
+  rawText: string;
+  templateKey?: string | null;
+  serviceType?: string | null;
+}): Promise<GenerateMenuCleanupActionResult> {
+  const menuId = input.menuId?.trim();
+  const rawText = input.rawText?.trim();
+
+  if (!menuId) {
+    return { ok: false, message: "AI 메뉴 정리 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+
+  if (!rawText) {
+    return { ok: false, message: "정리할 메뉴 내용을 입력해주세요." };
+  }
+
+  if (rawText.length < 8) {
+    return { ok: false, message: "정리할 메뉴 내용을 조금 더 입력해주세요." };
+  }
+
+  if (rawText.length > 4000) {
+    return { ok: false, message: "입력 내용이 너무 깁니다. 4,000자 이하로 입력해주세요." };
+  }
+
+  try {
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const cleanupUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_menu_cleanup");
+
+    if (isAiUsageExceeded(cleanupUsage)) {
+      return {
+        ok: false,
+        message: "AI 메뉴 정리 제공량을 모두 사용했습니다.",
+        usage: { used: cleanupUsage.used, limit: cleanupUsage.limit },
+      };
+    }
+
+    const data = await generateMenuCleanupStructure({
+      rawText,
+      templateKey: input.templateKey ?? menuSite.template_key,
+      serviceType: input.serviceType ?? getTemplateType(menuSite.template_key),
+    });
+
+    const totalItemCount = data.categories.reduce((count, category) => count + category.items.length, 0);
+    if (data.categories.length === 0 || totalItemCount === 0) {
+      return {
+        ok: false,
+        message: "AI 메뉴 정리 중 오류가 발생했습니다. 다시 시도해주세요.",
+        usage: { used: cleanupUsage.used, limit: cleanupUsage.limit },
+      };
+    }
+
+    const usedAt = new Date();
+    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_menu_cleanup", usedAt);
+    const { error: usageError } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: usedAt.toISOString() })
+      .eq("id", menuId);
+
+    if (usageError) {
+      return { ok: false, message: "AI 메뉴 정리 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_menu_cleanup", usedAt);
+
+    return {
+      ok: true,
+      data,
+      usage: { used: nextUsage.used, limit: nextUsage.limit },
+      message: "AI가 메뉴를 정리했습니다. 결과를 확인한 뒤 메뉴 관리에 임시 추가하세요.",
+    };
+  } catch (error) {
+    console.error("[menu-ai] menu cleanup failed", {
+      menuId,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return { ok: false, message: "AI 메뉴 정리 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
 }
 
 export async function translateMenuItemPartialAction(input: {
@@ -1278,7 +1524,7 @@ export async function translateMenuHeroPartialAction(input: {
     const sourceFields = {
       restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
       brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
-      menu_cover_label: site.menu_cover_label,
+      menu_cover_label: menuCoverCapabilities.usesCoverLabel ? site.menu_cover_label : null,
       menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,
       menu_cover_description: menuCoverCapabilities.usesCoverDescription ? site.menu_cover_description : null,
     };

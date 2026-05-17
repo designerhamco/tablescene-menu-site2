@@ -4,6 +4,7 @@ export type TemplateMenuCoverCapabilities = {
   coverMode: TemplateMenuCoverMode;
   usesStoreName: boolean;
   usesStoreDescription: boolean;
+  usesCoverLabel: boolean;
   usesCoverTitle: boolean;
   usesCoverDescription: boolean;
   usesCoverImage: boolean;
@@ -31,6 +32,7 @@ export const DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES: TemplateMenuCoverCapabili
   coverMode: "section",
   usesStoreName: false,
   usesStoreDescription: false,
+  usesCoverLabel: true,
   usesCoverTitle: true,
   usesCoverDescription: true,
   usesCoverImage: true,
@@ -71,6 +73,7 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
       coverMode: "section",
       usesStoreName: true,
       usesStoreDescription: true,
+      usesCoverLabel: false,
       usesCoverTitle: false,
       usesCoverDescription: false,
       usesCoverImage: true,

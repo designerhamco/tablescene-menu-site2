@@ -7,6 +7,7 @@ import {
   resetMenuCoverToPresetAction,
   resetMenuManagementToPresetAction,
 } from "@/app/mypage/menus/actions";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 type ResetKind = "cover" | "menu" | "design";
 
@@ -106,9 +107,16 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
                 type="button"
                 onClick={handleReset}
                 disabled={isPending}
-                className="inline-flex w-full items-center justify-center rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-200 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-200 sm:w-auto"
               >
-                {isPending ? "처리 중..." : copy.submitLabel}
+                {isPending ? (
+                  <>
+                    <LoadingSpinner className="h-4 w-4" />
+                    적용 중...
+                  </>
+                ) : (
+                  copy.submitLabel
+                )}
               </button>
             </div>
           </div>

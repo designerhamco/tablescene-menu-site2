@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE } from "@/lib/menu-translation-errors";
 import type { Database } from "@/lib/supabase/types";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 
 export const TARGET_TRANSLATION_LOCALES = ["en", "zh", "ja"] as const;
 
@@ -49,6 +50,24 @@ type OpenAITranslationResponse = {
   }[];
 };
 
+type OpenAIDescriptionResponse = {
+  description: string;
+};
+
+type OpenAIMenuCleanupResponse = {
+  categories: {
+    name: string;
+    description: string;
+    items: {
+      name: string;
+      price: number | null;
+      price_label: string;
+      description: string;
+      badge_label: string;
+    }[];
+  }[];
+};
+
 export type MenuTranslationUpdateResult = {
   translatedEntities: number;
   skippedEntities: number;
@@ -77,6 +96,29 @@ export type PartialMenuHeroTranslationInput = {
   menu_cover_title?: string | null;
   menu_cover_description?: string | null;
   restaurantCategory?: string | null;
+};
+
+export type MenuItemDescriptionDraftInput = {
+  name: string;
+  categoryName?: string | null;
+  price?: string | null;
+  priceLabel?: string | null;
+  badgeLabel?: string | null;
+  currentDescription?: string | null;
+  templateKey?: string | null;
+  serviceType?: string | null;
+};
+
+export type MenuCleanupStructuredCategory = OpenAIMenuCleanupResponse["categories"][number];
+
+export type MenuCleanupStructuredResult = {
+  categories: MenuCleanupStructuredCategory[];
+};
+
+export type MenuCleanupStructureInput = {
+  rawText: string;
+  templateKey?: string | null;
+  serviceType?: string | null;
 };
 
 const CHUNK_SIZE = 40;
@@ -147,8 +189,16 @@ function normalizeTranslatedTextValue(locale: TargetTranslationLocale, key: stri
   return value;
 }
 
-function isNumericOnlyLabel(value: string) {
-  return /^[\d\s,.$₩¥€£()+\-/:~]+$/.test(value.trim());
+export function isPriceLikeText(value: string) {
+  const normalized = value.trim();
+  if (!normalized) return false;
+  if (!/\d/.test(normalized)) return false;
+
+  return /^[\d\s,.₩¥€£$~–—\-+()/:%원円엔KRWkrwUSDusdJPYjpyHOTICEhotice]+$/.test(normalized);
+}
+
+function isPriceLabelField(fieldName: string) {
+  return fieldName === "price_label" || fieldName.endsWith("_price_label");
 }
 
 function buildSourceHash(fields: Record<string, string>) {
@@ -239,6 +289,60 @@ function parseTranslationResponse(text: string) {
   }, {});
 }
 
+function parseDescriptionResponse(text: string) {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error("AI 설명 작성 응답을 JSON으로 해석하지 못했습니다.");
+  }
+
+  const description = cleanText((parsed as Partial<OpenAIDescriptionResponse> | null)?.description);
+  if (!description) {
+    throw new Error("AI 설명 작성 결과가 비어 있습니다.");
+  }
+
+  return description;
+}
+
+function parseMenuCleanupResponse(text: string): MenuCleanupStructuredResult {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error("AI 메뉴 정리 응답을 JSON으로 해석하지 못했습니다.");
+  }
+
+  if (!parsed || typeof parsed !== "object" || !Array.isArray((parsed as Partial<OpenAIMenuCleanupResponse>).categories)) {
+    throw new Error("AI 메뉴 정리 응답 형식이 올바르지 않습니다.");
+  }
+
+  const categories = (parsed as OpenAIMenuCleanupResponse).categories
+    .map((category) => ({
+      name: cleanText(category.name) ?? "",
+      description: cleanText(category.description) ?? "",
+      items: Array.isArray(category.items)
+        ? category.items.map((item) => ({
+            name: cleanText(item.name) ?? "",
+            price: typeof item.price === "number" && Number.isFinite(item.price) ? Math.max(0, Math.floor(item.price)) : null,
+            price_label: cleanText(item.price_label) ?? "",
+            description: cleanText(item.description) ?? "",
+            badge_label: cleanText(item.badge_label) ?? "",
+          }))
+        : [],
+    }))
+    .filter((category) => category.name && category.items.some((item) => item.name));
+
+  return {
+    categories: categories.map((category) => ({
+      ...category,
+      items: category.items.filter((item) => item.name),
+    })),
+  };
+}
+
 async function translateChunk(locale: TargetTranslationLocale, items: TranslationTextUnit[]) {
   const apiKey = process.env.OPENAI_API_KEY;
 
@@ -262,7 +366,7 @@ async function translateChunk(locale: TargetTranslationLocale, items: Translatio
             {
               type: "input_text",
               text:
-                "You translate Korean restaurant menu content. Preserve meaning, menu style, line breaks, numbers, symbols, and brand names. For English menu item name fields, use natural Title Case like Basil Cream Latte, not ALL CAPS. Category names, badges, and price labels may preserve uppercase when appropriate. Return only valid JSON that matches the schema.",
+                "You translate Korean restaurant menu content. Preserve meaning, menu style, line breaks, numbers, symbols, and brand names. Never translate or reformat numeric prices or price-like labels: keep values such as 6.5, 6,500원, HOT 4.5 / ICE 5.0, 4,500 ~ 6,000 exactly as provided. Translate price labels only when they are meaningful text such as 문의, 시가, 무료, or 변동. Do not invent prices, currencies, or units. For English menu item name fields, use natural Title Case like Basil Cream Latte, not ALL CAPS. Category names, badges, and price labels may preserve uppercase when appropriate. Return only valid JSON that matches the schema.",
             },
           ],
         },
@@ -322,6 +426,210 @@ async function translateChunk(locale: TargetTranslationLocale, items: Translatio
   return parseTranslationResponse(getTextFromOpenAIResponse(payload));
 }
 
+export async function generateMenuItemDescriptionDraft(input: MenuItemDescriptionDraftInput) {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY 환경변수가 설정되어 있지 않습니다.");
+  }
+
+  const name = cleanText(input.name);
+  if (!name) {
+    throw new Error("메뉴명을 먼저 입력해주세요.");
+  }
+
+  const model = process.env.OPENAI_DESCRIPTION_MODEL || process.env.OPENAI_MODEL || DEFAULT_TRANSLATION_MODEL;
+  const response = await fetch(OPENAI_RESPONSES_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      input: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "input_text",
+              text:
+                "You write concise Korean menu or service item descriptions for a digital menu board. Write 1-2 natural Korean sentences. Do not invent ingredients, discounts, medical effects, origin claims, or premium claims. Use the given name, category, price label, badge, and existing description only as context. Return only valid JSON that matches the schema.",
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: JSON.stringify({
+                language: "ko",
+                name,
+                categoryName: cleanText(input.categoryName),
+                price: cleanText(input.price),
+                priceLabel: cleanText(input.priceLabel),
+                badgeLabel: cleanText(input.badgeLabel),
+                currentDescription: cleanText(input.currentDescription),
+                templateKey: cleanText(input.templateKey),
+                serviceType: cleanText(input.serviceType),
+                instruction:
+                  "메뉴판에 바로 넣을 수 있는 짧고 자연스러운 한국어 설명을 작성하세요. 음식 메뉴가 아닌 서비스/가격표 항목이면 음식처럼 표현하지 말고 안내 문구처럼 작성하세요.",
+              }),
+            },
+          ],
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "menu_item_description_draft",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["description"],
+            properties: {
+              description: { type: "string" },
+            },
+          },
+        },
+      },
+    }),
+  });
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+
+  if (!response.ok) {
+    const errorMessage =
+      payload && typeof payload === "object" && "error" in payload
+        ? ((payload as { error?: { message?: string } }).error?.message ?? "AI 설명 작성 API 호출에 실패했습니다.")
+        : "AI 설명 작성 API 호출에 실패했습니다.";
+    throw new Error(errorMessage);
+  }
+
+  return parseDescriptionResponse(getTextFromOpenAIResponse(payload));
+}
+
+export async function generateMenuCleanupStructure(input: MenuCleanupStructureInput): Promise<MenuCleanupStructuredResult> {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY 환경변수가 설정되어 있지 않습니다.");
+  }
+
+  const rawText = cleanText(input.rawText);
+  if (!rawText) {
+    throw new Error("정리할 메뉴 내용을 입력해주세요.");
+  }
+
+  const model = process.env.OPENAI_MENU_CLEANUP_MODEL || process.env.OPENAI_MODEL || DEFAULT_TRANSLATION_MODEL;
+  const response = await fetch(OPENAI_RESPONSES_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      input: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "input_text",
+              text:
+                "You convert pasted Korean menu text into a clean digital menu structure. Do not invent menu items, prices, ingredients, images, origins, traits, or nutrition/medical claims. Extract only what is present or clearly implied. Infer natural menu categories from item names even when the user did not explicitly write category headers. Use blank-line groups as a useful hint, but split a group if it clearly mixes coffee, tea/drinks, desserts, soups, brunch, or meals. Do not put everything into '기본 메뉴' when cafe, dessert, drink, or food categories are reasonably inferable. Use '기본 메뉴' only when category inference is genuinely unclear. When flavor or characteristic phrases are provided, fold them naturally into the item description instead of creating separate trait indicators. Return only valid JSON that matches the schema.",
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: JSON.stringify({
+                rawText,
+                templateKey: cleanText(input.templateKey),
+                serviceType: cleanText(input.serviceType),
+                rules: [
+                  "카테고리 name은 짧게 정리합니다.",
+                  "카테고리명이 명시되지 않아도 메뉴명 의미를 보고 자연스럽게 카테고리를 추론합니다.",
+                  "빈 줄로 나뉜 그룹은 사용자가 의도한 묶음일 수 있으므로 카테고리 추론의 힌트로 사용합니다.",
+                  "카페/디저트/음료 메뉴는 커피, 티 & 음료, 디저트, 브런치, 스프처럼 메뉴판에 자연스러운 카테고리로 나눕니다.",
+                  "모든 항목을 기본 메뉴 하나로 묶지 마세요. 단, 정말 판단하기 어려운 항목은 기본 메뉴로 묶을 수 있습니다.",
+                  "카테고리는 가능하면 2-6개로 정리하고, 최대 8개를 넘지 않게 합니다.",
+                  "아이템 name은 원문 메뉴명을 유지합니다.",
+                  "price는 숫자로 명확히 추출할 수 있을 때만 number로 반환하고, 모르면 null로 둡니다.",
+                  "price_label은 원문 가격 표시가 있으면 보존합니다. 가격이 없으면 빈 문자열로 둡니다.",
+                  "description은 원문에 설명이 있을 때만 짧게 정리합니다.",
+                  "산미, 고소함, 단맛, 바디감 같은 맛/특징 표현은 별도 지표로 만들지 말고 description에 자연스럽게 반영합니다.",
+                  "badge_label은 BEST, 추천, NEW처럼 명확히 표시된 경우만 사용합니다.",
+                  "현재 템플릿은 traits를 생성하지 않습니다. 향후 itemTraits=true 템플릿에서는 traits 배열 생성을 확장할 수 있습니다.",
+                ],
+              }),
+            },
+          ],
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "menu_cleanup_structure",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["categories"],
+            properties: {
+              categories: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["name", "description", "items"],
+                  properties: {
+                    name: { type: "string" },
+                    description: { type: "string" },
+                    items: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        additionalProperties: false,
+                        required: ["name", "price", "price_label", "description", "badge_label"],
+                        properties: {
+                          name: { type: "string" },
+                          price: { type: ["number", "null"] },
+                          price_label: { type: "string" },
+                          description: { type: "string" },
+                          badge_label: { type: "string" },
+                          // TODO: itemTraits=true 템플릿에서는 traits 배열 생성을 별도 schema로 확장한다.
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+  });
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+
+  if (!response.ok) {
+    const errorMessage =
+      payload && typeof payload === "object" && "error" in payload
+        ? ((payload as { error?: { message?: string } }).error?.message ?? "AI 메뉴 정리 API 호출에 실패했습니다.")
+        : "AI 메뉴 정리 API 호출에 실패했습니다.";
+    throw new Error(errorMessage);
+  }
+
+  return parseMenuCleanupResponse(getTextFromOpenAIResponse(payload));
+}
+
 async function translateTextUnits(locale: TargetTranslationLocale, textUnits: TranslationTextUnit[]) {
   const translations: Record<string, string> = {};
 
@@ -333,6 +641,21 @@ async function translateTextUnits(locale: TargetTranslationLocale, textUnits: Tr
   }
 
   return translations;
+}
+
+function splitProtectedPriceTextUnits(textUnits: TranslationTextUnit[]) {
+  const protectedText: Record<string, string> = {};
+  const translatableTextUnits = textUnits.filter((unit) => {
+    const fieldName = unit.key.split(":").at(-1) ?? "";
+    if (isPriceLabelField(fieldName) && isPriceLikeText(unit.text)) {
+      protectedText[unit.key] = unit.text;
+      return false;
+    }
+
+    return true;
+  });
+
+  return { protectedText, translatableTextUnits };
 }
 
 export async function translatePartialMenuItemFields(
@@ -348,7 +671,6 @@ export async function translatePartialMenuItemFields(
   const textUnits = Object.entries(sourceFields).flatMap(([fieldName, rawValue]) => {
     const text = cleanText(rawValue);
     if (!text) return [];
-    if (fieldName === "price_label" && isNumericOnlyLabel(text)) return [];
 
     return [
       {
@@ -357,24 +679,29 @@ export async function translatePartialMenuItemFields(
       },
     ];
   });
+  const { protectedText, translatableTextUnits } = splitProtectedPriceTextUnits(textUnits);
 
   if (textUnits.length === 0) {
     throw new Error("번역할 내용이 없습니다.");
   }
 
-  const translations = await translateChunk(locale, [
-    ...textUnits,
-    ...(source.categoryName
-      ? [{ key: "context:category", text: `Category context: ${source.categoryName}` }]
-      : []),
-    ...(source.restaurantName
-      ? [{ key: "context:restaurant", text: `Restaurant context: ${source.restaurantName}` }]
-      : []),
-  ]);
+  const translations =
+    translatableTextUnits.length > 0
+      ? await translateChunk(locale, [
+          ...translatableTextUnits,
+          ...(source.categoryName
+            ? [{ key: "context:category", text: `Category context: ${source.categoryName}` }]
+            : []),
+          ...(source.restaurantName
+            ? [{ key: "context:restaurant", text: `Restaurant context: ${source.restaurantName}` }]
+            : []),
+        ])
+      : {};
+  const translatedText = { ...protectedText, ...translations };
 
   return textUnits.reduce<Record<string, string>>((result, unit) => {
     const fieldName = unit.key.split(":").at(-1);
-    const value = cleanText(translations[unit.key]);
+    const value = cleanText(translatedText[unit.key]);
     if (fieldName && value) {
       result[fieldName] = normalizeTranslatedTextValue(locale, unit.key, value);
     }
@@ -482,7 +809,7 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
     supabase
       .from("menu_sites")
       .select(
-        "id, restaurant_name, restaurant_category, brand_description, intro_title, intro_description, menu_cover_title, menu_cover_description, menu_cover_label, about_description, opening_hours, description"
+        "id, template_key, restaurant_name, restaurant_category, brand_description, intro_title, intro_description, menu_cover_title, menu_cover_description, menu_cover_label, about_description, opening_hours, description"
       )
       .eq("id", menuSiteId)
       .maybeSingle(),
@@ -515,17 +842,18 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
     throw new Error(`번역 대상 데이터 조회에 실패했습니다: ${readErrors[0].message}`);
   }
 
+  const menuCoverCapabilities = getTemplateCapabilities(siteResult.data?.template_key).menuCover;
   const entities = [
     siteResult.data
       ? buildEntity("menu_site_translations", "menu_site_id", siteResult.data.id, {
-          restaurant_name: siteResult.data.restaurant_name,
+          restaurant_name: menuCoverCapabilities.usesStoreName ? siteResult.data.restaurant_name : null,
           restaurant_category: siteResult.data.restaurant_category,
-          brand_description: siteResult.data.brand_description,
+          brand_description: menuCoverCapabilities.usesStoreDescription ? siteResult.data.brand_description : null,
           intro_title: siteResult.data.intro_title,
           intro_description: siteResult.data.intro_description,
-          menu_cover_title: siteResult.data.menu_cover_title,
-          menu_cover_description: siteResult.data.menu_cover_description,
-          menu_cover_label: siteResult.data.menu_cover_label,
+          menu_cover_title: menuCoverCapabilities.usesCoverTitle ? siteResult.data.menu_cover_title : null,
+          menu_cover_description: menuCoverCapabilities.usesCoverDescription ? siteResult.data.menu_cover_description : null,
+          menu_cover_label: menuCoverCapabilities.usesCoverLabel ? siteResult.data.menu_cover_label : null,
           about_description: siteResult.data.about_description,
           opening_hours: siteResult.data.opening_hours,
           description: siteResult.data.description,
@@ -601,6 +929,10 @@ function hasCompleteTranslatedFields(row: Record<string, unknown>, entity: Trans
   return Object.entries(entity.fields).every(([fieldName, sourceText]) => {
     const translatedText = cleanText(row[fieldName]);
     if (!translatedText) return false;
+
+    if (isPriceLabelField(fieldName) && isPriceLikeText(sourceText)) {
+      return translatedText === sourceText;
+    }
 
     if (entity.table === "menu_item_translations" && isLikelyUntranslatedMenuItemValue(sourceText, translatedText, locale)) {
       return false;
@@ -903,22 +1235,26 @@ export async function runMenuTranslationUpdate(
         return true;
       });
 
-      const textUnits = entitiesToTranslate.flatMap((entity) =>
+      const allTextUnits = entitiesToTranslate.flatMap((entity) =>
         Object.entries(entity.fields).map(([fieldName, text]) => ({
           key: getTextUnitKey(entity, fieldName),
           text,
         }))
       );
+      const { protectedText, translatableTextUnits } = splitProtectedPriceTextUnits(allTextUnits);
 
-      if (textUnits.length === 0) {
+      if (allTextUnits.length === 0) {
         continue;
       }
 
-      const translatedText = await translateTextUnits(locale, textUnits);
+      const translatedText =
+        translatableTextUnits.length > 0
+          ? { ...protectedText, ...(await translateTextUnits(locale, translatableTextUnits)) }
+          : protectedText;
       if (Object.keys(translatedText).length === 0) {
         throw new Error("번역 API 결과가 비어 있습니다.");
       }
-      validateTranslatedTextUnits(locale, textUnits, translatedText);
+      validateTranslatedTextUnits(locale, translatableTextUnits, translatedText);
 
       const rowsByTable = buildRowsForLocale(locale, entitiesToTranslate, translatedText);
 
@@ -928,7 +1264,7 @@ export async function runMenuTranslationUpdate(
       }
 
       translatedEntities += entitiesToTranslate.length;
-      translatedTextUnits += textUnits.length;
+      translatedTextUnits += translatableTextUnits.length;
     }
   } catch (error) {
     if (savedRows) {

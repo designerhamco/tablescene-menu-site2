@@ -24,6 +24,7 @@ import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSec
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import MenuEditorToastBridge from "@/components/mypage/menu-editor/MenuEditorToastBridge";
+import PendingSubmitButton from "@/components/mypage/menu-editor/PendingSubmitButton";
 import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
@@ -249,6 +250,7 @@ function buildEditableTranslationFields({
     sourceFields,
     translationsByLocale,
     fieldLabels,
+    parentGroupLabel,
     multilineFields = [],
   }: {
     entityType: EditableTranslationField["entityType"];
@@ -258,6 +260,7 @@ function buildEditableTranslationFields({
     sourceFields: Record<string, unknown>;
     translationsByLocale: Map<EditableTranslationLocale, Record<string, unknown>>;
     fieldLabels: Record<string, string>;
+    parentGroupLabel?: string;
     multilineFields?: string[];
   }) {
     const cleanFields = Object.entries(sourceFields).reduce<Record<string, string>>((result, [field, value]) => {
@@ -274,6 +277,7 @@ function buildEditableTranslationFields({
         field,
         group,
         groupLabel,
+        parentGroupLabel,
         label: fieldLabels[field] ?? field,
         sourceText,
         sourceHash,
@@ -291,7 +295,7 @@ function buildEditableTranslationFields({
     sourceFields: {
       restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
       brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
-      menu_cover_label: site.menu_cover_label,
+      menu_cover_label: menuCoverCapabilities.usesCoverLabel ? site.menu_cover_label : null,
       menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,
       menu_cover_description: menuCoverCapabilities.usesCoverDescription ? site.menu_cover_description : null,
     },
@@ -345,11 +349,13 @@ function buildEditableTranslationFields({
   items
     .filter((item) => item.visible)
     .forEach((item) => {
+      const categoryName = categories.find((category) => category.id === item.category_id)?.name ?? "기타";
       pushFields({
         entityType: "item",
         entityId: item.id,
         group: "items",
         groupLabel: item.name,
+        parentGroupLabel: categoryName,
         sourceFields: {
           name: item.name,
           description: item.description,
@@ -476,13 +482,13 @@ function SubmitButton({
   }[tone];
 
   return (
-    <button
-      type="submit"
+    <PendingSubmitButton
       {...props}
-      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+      pendingLabel="저장 중..."
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
     >
       {children}
-    </button>
+    </PendingSubmitButton>
   );
 }
 
@@ -1311,6 +1317,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   priceOptions={priceOptions}
                   traits={traits}
                   capabilities={templateCapabilities}
+                  aiDescriptionUsage={aiUsage.ai_description}
+                  aiMenuCleanupUsage={aiUsage.ai_menu_cleanup}
                   badgeStyles={badgeStyles}
                   editorLabels={templateEditorLabels}
                   starterPreset={menuManagementStarterPreset}
@@ -1415,15 +1423,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         templateType={templateType}
                       />
                     </div>
+                    <FinalActionRow>
+                      <ResetTabActionButton menuId={site.id} kind="design" />
+                      <SubmitButton tone="final">저장</SubmitButton>
+                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        미리보기에는 저장된 디자인 설정만 표시됩니다.
+                      </p>
+                    </FinalActionRow>
                   </form>
-                  <FinalActionRow>
-                    <ResetTabActionButton menuId={site.id} kind="design" />
-                    <SubmitButton form="design-settings-form" tone="final">저장</SubmitButton>
-                    <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                    <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
-                      미리보기에는 저장된 디자인 설정만 표시됩니다.
-                    </p>
-                  </FinalActionRow>
                 </div>
               </SectionCard>
             )}

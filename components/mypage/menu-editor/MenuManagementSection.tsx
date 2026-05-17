@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
 import {
   createCategoryAction,
   createMenuItemAction,
   createMenuPageAction,
+  generateAiMenuCleanupAction,
+  generateMenuItemDescriptionAction,
   saveMenuManagementBasicDraftAction,
   updateCategoryAction,
   updateMenuItemAction,
@@ -14,6 +17,7 @@ import {
 } from "@/app/mypage/menus/actions";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
   getMenuItemBadgeLabel,
@@ -23,6 +27,7 @@ import {
   PRICE_LIST_BADGE_OPTIONS,
   normalizeMenuBadgeLabel,
 } from "@/lib/menu-badges";
+import type { AiUsage } from "@/lib/menu-ai-usage";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import type { Database } from "@/lib/supabase/types";
 import {
@@ -80,6 +85,8 @@ type MenuManagementSectionProps = {
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
+  aiDescriptionUsage: AiUsage;
+  aiMenuCleanupUsage: AiUsage;
   badgeStyles: BadgeStyles;
   editorLabels?: TemplateEditorLabels;
   starterPreset?: StarterPreset | null;
@@ -137,6 +144,24 @@ type ItemBasicDraft = {
   badgeStyleKey?: BadgeStyleKey;
   badgeBackgroundColor?: string;
   badgeTextColor?: string;
+};
+
+type AiMenuCleanupItem = {
+  name: string;
+  price: number | null;
+  price_label: string;
+  description: string;
+  badge_label: string;
+};
+
+type AiMenuCleanupCategory = {
+  name: string;
+  description: string;
+  items: AiMenuCleanupItem[];
+};
+
+type AiMenuCleanupResult = {
+  categories: AiMenuCleanupCategory[];
 };
 type ItemTraitDraft = {
   id?: string;
@@ -357,6 +382,7 @@ function ValidatedTextInput({
 function ValidatedTextArea({
   name,
   label,
+  value: controlledValue,
   defaultValue = "",
   placeholder,
   maxLength,
@@ -366,6 +392,7 @@ function ValidatedTextArea({
 }: {
   name: string;
   label: string;
+  value?: string;
   defaultValue?: string | null;
   placeholder: string;
   maxLength: number;
@@ -373,12 +400,13 @@ function ValidatedTextArea({
   form?: string;
   onValueChange?: (value: string) => void;
 }) {
-  const [value, setValue] = useState(defaultValue ?? "");
+  const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? "");
+  const value = controlledValue ?? uncontrolledValue;
   const isTooLong = value.length > maxLength;
 
   return (
     <div>
-      <FieldLabel>{label}</FieldLabel>
+      {label ? <FieldLabel>{label}</FieldLabel> : null}
       <textarea
         name={name}
         form={form}
@@ -386,7 +414,7 @@ function ValidatedTextArea({
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={(event) => {
-          setValue(event.target.value);
+          if (controlledValue === undefined) setUncontrolledValue(event.target.value);
           onValueChange?.(event.target.value);
         }}
         className={`mt-2 min-h-24 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
@@ -455,9 +483,17 @@ function SubmitButton({
   children,
   tone = "dark",
   disabled = false,
+  loading = false,
+  loadingLabel,
   className: customClassName,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" | "final" }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: ReactNode;
+  tone?: "dark" | "light" | "danger" | "final";
+  loading?: boolean;
+  loadingLabel?: string;
+}) {
+  const { pending } = useFormStatus();
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
@@ -465,14 +501,25 @@ function SubmitButton({
     final: "rounded-lg bg-zinc-950 text-white shadow-sm hover:bg-zinc-800",
   }[tone];
 
+  const isSubmitButton = props.type !== "button";
+  const isPending = isSubmitButton && pending;
+  const isLoading = loading || isPending;
+
   return (
     <button
       type="submit"
-      disabled={disabled}
+      disabled={disabled || isLoading}
       {...props}
-      className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
     >
-      {children}
+      {isLoading ? (
+        <>
+          <LoadingSpinner className="h-4 w-4" />
+          {loadingLabel ?? (isPending ? "저장 중..." : "처리 중...")}
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }
@@ -669,6 +716,20 @@ function getCopyName(name: string, existingNames: string[] = []) {
   }
 
   return `${baseName} ${copyIndex}`;
+}
+
+function getUniqueName(name: string, existingNames: string[] = []) {
+  const baseName = name.trim() || "이름 없음";
+  const existingNameSet = new Set(existingNames.map((existingName) => existingName.trim()).filter(Boolean));
+
+  if (!existingNameSet.has(baseName)) return baseName;
+
+  let nameIndex = 2;
+  while (existingNameSet.has(`${baseName} ${nameIndex}`)) {
+    nameIndex += 1;
+  }
+
+  return `${baseName} ${nameIndex}`;
 }
 
 function DragHandleIcon() {
@@ -1083,6 +1144,8 @@ function MenuItemForm({
   menuId,
   categories,
   capabilities,
+  aiDescriptionUsage,
+  onAiDescriptionUsageChange,
   badgeStyles,
   labels,
   item,
@@ -1107,6 +1170,8 @@ function MenuItemForm({
   menuId: string;
   categories: MenuCategory[];
   capabilities: TemplateCapabilities;
+  aiDescriptionUsage: { used: number; limit: number };
+  onAiDescriptionUsageChange: (usage: { used: number; limit: number }) => void;
   badgeStyles: BadgeStyles;
   labels: TemplateEditorLabels;
   item?: MenuItem;
@@ -1166,6 +1231,8 @@ function MenuItemForm({
   const [draftPriceOptionPriceLabel, setDraftPriceOptionPriceLabel] = useState("");
   const [draftPriceOptionError, setDraftPriceOptionError] = useState("");
   const [attemptedItemSubmit, setAttemptedItemSubmit] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [descriptionOverwritePending, setDescriptionOverwritePending] = useState(false);
   const [portionLabelValue, setPortionLabelValue] = useState(draftItem?.portionLabel ?? item?.portion_label ?? "");
   const initialTraitDrafts = draftItem?.traitDrafts ?? toItemTraitDrafts(traits);
   const [traitLabelValues, setTraitLabelValues] = useState(() =>
@@ -1196,6 +1263,8 @@ function MenuItemForm({
   const visibleBadgeLabel = isCustomBadge ? customBadgeLabel.trim() : selectedBadgeLabel !== "none" ? selectedBadgeLabel : "";
   const badgeVariant = labels.itemLabel === "서비스" ? "price_list" : "menu";
   const displayImageUrl = draftImageState.imageAction === "delete" ? "" : draftImageState.imageUrl ?? "";
+  const selectedCategoryName = categories.find((category) => category.id === categoryId)?.name ?? "";
+  const aiDescriptionUsageExceeded = aiDescriptionUsage.used >= aiDescriptionUsage.limit;
 
   function updateBadgeDraft(nextSelectedBadgeLabel: string, nextCustomBadgeLabel = customBadgeLabel) {
     const nextBadgeLabel =
@@ -1304,6 +1373,70 @@ function MenuItemForm({
     setDraftPriceOptionError("");
   }
 
+  async function runAiDescriptionGeneration() {
+    if (isGeneratingDescription) return;
+
+    const trimmedName = nameValue.trim();
+    if (!trimmedName) {
+      toast.error("메뉴명을 먼저 입력해주세요.");
+      return;
+    }
+
+    if (aiDescriptionUsageExceeded) {
+      toast.error("AI 설명 작성 제공량을 모두 사용했습니다.");
+      return;
+    }
+
+    const optionPriceLabel = isOptionsMode
+      ? [
+          ...priceOptions.filter((option) => option.visible).map((option) => `${option.label} ${formatPriceOption(option)}`.trim()),
+          ...draftPriceOptions.filter((option) => option.visible).map((option) => `${option.label} ${option.priceLabel || option.price}`.trim()),
+        ]
+          .filter(Boolean)
+          .join(" / ")
+      : priceLabelValue;
+
+    setIsGeneratingDescription(true);
+
+    try {
+      const result = await generateMenuItemDescriptionAction({
+        menuId,
+        itemId: item?.id,
+        name: trimmedName,
+        categoryName: selectedCategoryName,
+        price: isSingleMode ? priceValue : null,
+        priceLabel: optionPriceLabel,
+        badgeLabel: visibleBadgeLabel,
+        currentDescription: descriptionValue,
+        serviceType: labels.itemLabel === "서비스" ? "service" : "menu",
+      });
+
+      if (!result.ok) {
+        toast.error(result.message);
+        if (result.usage) onAiDescriptionUsageChange(result.usage);
+        return;
+      }
+
+      setDescriptionValue(result.description);
+      onAiDescriptionUsageChange(result.usage);
+      toast.success(result.message);
+    } catch {
+      toast.error("AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsGeneratingDescription(false);
+      setDescriptionOverwritePending(false);
+    }
+  }
+
+  function requestAiDescriptionGeneration() {
+    if (descriptionValue.trim()) {
+      setDescriptionOverwritePending(true);
+      return;
+    }
+
+    void runAiDescriptionGeneration();
+  }
+
   function removeDraftPriceOption(optionId: string) {
     setDraftPriceOptions((currentOptions) => currentOptions.filter((option) => option.id !== optionId));
   }
@@ -1403,21 +1536,43 @@ function MenuItemForm({
               <span className={nameValue.length > MENU_FIELD_LIMITS.menuItems.name ? "text-red-600" : "text-zinc-400"}>{nameValue.length} / {MENU_FIELD_LIMITS.menuItems.name}</span>
             </div>
           </div>
-          <div className="md:col-span-2">
-            <ValidatedTextArea
-              form={formId}
-              name="item_description"
-              label={labels.itemDescriptionLabel}
-              defaultValue={descriptionValue}
-              placeholder={labels.itemDescriptionPlaceholder}
-              maxLength={MENU_FIELD_LIMITS.menuItems.description}
-              helperText={labels.itemDescriptionHelperText}
-              onValueChange={(value) => {
-                setDescriptionValue(value);
-                updateDraftItem({ description: value });
-              }}
-            />
-          </div>
+          {capabilities.itemDescription ? (
+            <div className="md:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <FieldLabel>{labels.itemDescriptionLabel}</FieldLabel>
+                <button
+                  type="button"
+                  disabled={isGeneratingDescription}
+                  onClick={requestAiDescriptionGeneration}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-black text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                >
+                  {isGeneratingDescription ? (
+                    <>
+                      <LoadingSpinner className="h-3 w-3" />
+                      작성 중...
+                    </>
+                  ) : (
+                    "AI 설명 작성"
+                  )}
+                </button>
+              </div>
+              <ValidatedTextArea
+                form={formId}
+                name="item_description"
+                label=""
+                value={descriptionValue}
+                placeholder={labels.itemDescriptionPlaceholder}
+                maxLength={MENU_FIELD_LIMITS.menuItems.description}
+                helperText={`${labels.itemDescriptionHelperText} AI 설명 작성 ${aiDescriptionUsage.used} / ${aiDescriptionUsage.limit}회 사용`}
+                onValueChange={(value) => {
+                  setDescriptionValue(value);
+                  updateDraftItem({ description: value });
+                }}
+              />
+            </div>
+          ) : (
+            <input type="hidden" name="item_description" value="" form={formId} />
+          )}
           {capabilities.originInfo && (
             <div className="md:col-span-2">
               <FieldLabel>원산지 정보</FieldLabel>
@@ -1752,6 +1907,40 @@ function MenuItemForm({
         )}
       </div>
       {draftOnly && cancelHelperText && <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">{cancelHelperText}</p>}
+      {descriptionOverwritePending ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4">
+          <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl">
+            <h3 className="text-lg font-bold tracking-tight text-zinc-950">기존 설명을 AI 설명으로 바꿀까요?</h3>
+            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+              현재 입력된 설명이 AI가 작성한 설명으로 바뀝니다. 수정 내용 반영 전까지는 저장 대상에 포함되지 않습니다.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDescriptionOverwritePending(false)}
+                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-zinc-600 transition-colors hover:border-zinc-400"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => void runAiDescriptionGeneration()}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                disabled={isGeneratingDescription}
+              >
+                {isGeneratingDescription ? (
+                  <>
+                    <LoadingSpinner className="h-4 w-4" />
+                    작성 중...
+                  </>
+                ) : (
+                  "AI 설명으로 바꾸기"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1871,6 +2060,8 @@ export default function MenuManagementSection({
   priceOptions,
   traits,
   capabilities,
+  aiDescriptionUsage,
+  aiMenuCleanupUsage,
   badgeStyles,
   editorLabels,
   starterPreset,
@@ -1879,6 +2070,20 @@ export default function MenuManagementSection({
 }: MenuManagementSectionProps) {
   const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
   const [dismissedFinalSaveError, setDismissedFinalSaveError] = useState<string | null>(null);
+  const [localAiDescriptionUsage, setLocalAiDescriptionUsage] = useState({
+    used: aiDescriptionUsage.used,
+    limit: aiDescriptionUsage.limit,
+  });
+  const [localAiMenuCleanupUsage, setLocalAiMenuCleanupUsage] = useState({
+    used: aiMenuCleanupUsage.used,
+    limit: aiMenuCleanupUsage.limit,
+  });
+  const [isMenuCleanupOpen, setIsMenuCleanupOpen] = useState(false);
+  const [menuCleanupText, setMenuCleanupText] = useState("");
+  const [menuCleanupResult, setMenuCleanupResult] = useState<AiMenuCleanupResult | null>(null);
+  const [isMenuCleanupRunning, setIsMenuCleanupRunning] = useState(false);
+  const [isMenuCleanupReplaceConfirming, setIsMenuCleanupReplaceConfirming] = useState(false);
+  const [menuCleanupApplyMode, setMenuCleanupApplyMode] = useState<"replace" | "append-current" | "append-new" | null>(null);
   const menuFinalSaveError =
     !finalSaveMessage && finalSaveError && dismissedFinalSaveError !== finalSaveError
       ? finalSaveError
@@ -2085,6 +2290,7 @@ export default function MenuManagementSection({
   const [categoryDraftFeedback, setCategoryDraftFeedback] = useState("");
   const [itemDraftFeedback, setItemDraftFeedback] = useState("");
   const [isSampleResetConfirming, setIsSampleResetConfirming] = useState(false);
+  const [isSampleResetApplying, setIsSampleResetApplying] = useState(false);
   const [hasRestoredBuilderState, setHasRestoredBuilderState] = useState(false);
   const newItemFormRef = useRef<HTMLDivElement | null>(null);
   const selectedPage = sortedPages.find((page) => page.id === selectedPageId) ?? sortedPages.find((page) => page.visible) ?? sortedPages[0] ?? null;
@@ -2283,6 +2489,394 @@ export default function MenuManagementSection({
     setPageDraftFeedback("");
     setCategoryDraftFeedback("");
     setItemDraftFeedback("");
+  }
+
+  function closeMenuCleanupDialog() {
+    setIsMenuCleanupOpen(false);
+    setMenuCleanupResult(null);
+    setIsMenuCleanupRunning(false);
+    setIsMenuCleanupReplaceConfirming(false);
+    setMenuCleanupApplyMode(null);
+  }
+
+  async function runAiMenuCleanup() {
+    const rawText = menuCleanupText.trim();
+
+    if (!rawText) {
+      toast.error("정리할 메뉴 내용을 입력해주세요.");
+      return;
+    }
+
+    if (rawText.length < 8) {
+      toast.error("정리할 메뉴 내용을 조금 더 입력해주세요.");
+      return;
+    }
+
+    if (rawText.length > 4000) {
+      toast.error("입력 내용이 너무 깁니다. 4,000자 이하로 입력해주세요.");
+      return;
+    }
+
+    if (localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit) {
+      toast.error("AI 메뉴 정리 제공량을 모두 사용했습니다.");
+      return;
+    }
+
+    setIsMenuCleanupRunning(true);
+
+    try {
+      const result = await generateAiMenuCleanupAction({
+        menuId,
+        rawText,
+        serviceType: labels.itemLabel === "서비스" ? "service" : "menu",
+      });
+
+      if (!result.ok) {
+        toast.error(result.message);
+        if (result.usage) setLocalAiMenuCleanupUsage(result.usage);
+        return;
+      }
+
+      setMenuCleanupResult(result.data);
+      setLocalAiMenuCleanupUsage(result.usage);
+      toast.success(result.message);
+    } catch {
+      toast.error("AI 메뉴 정리 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsMenuCleanupRunning(false);
+    }
+  }
+
+  function getCleanedAiMenuCategories() {
+    return (menuCleanupResult?.categories ?? [])
+      .map((category) => ({
+        ...category,
+        name: category.name.trim(),
+        description: category.description.trim(),
+        items: category.items.filter((item) => item.name.trim()),
+      }))
+      .filter((category) => category.name && category.items.length > 0);
+  }
+
+  function getAiCleanupItemDraft(item: AiMenuCleanupItem, categoryId: string, sortOrder: number): ItemBasicDraft {
+    const price = typeof item.price === "number" && Number.isFinite(item.price) ? String(Math.max(0, Math.floor(item.price))) : "";
+    const priceLabel = item.price_label.trim() || (price ? "" : "문의");
+
+    return {
+      categoryId,
+      isNew: true,
+      imageUrl: null,
+      imagePath: null,
+      imageAction: "keep",
+      name: item.name.trim().slice(0, MENU_FIELD_LIMITS.menuItems.name),
+      description: capabilities.itemDescription ? item.description.trim().slice(0, MENU_FIELD_LIMITS.menuItems.description) : "",
+      originInfo: "",
+      price,
+      priceLabel: priceLabel.slice(0, MENU_FIELD_LIMITS.menuItems.priceLabel),
+      badgeLabel: capabilities.itemBadges ? item.badge_label.trim().slice(0, MENU_BADGE_MAX_LENGTH) : "",
+      visible: true,
+      sortOrder,
+      priceVisible: true,
+      portionLabel: "",
+      portionVisible: false,
+      traitsVisible: false,
+      traitDrafts: [],
+    };
+  }
+
+  function getAiCleanupItemDraftWithName(item: AiMenuCleanupItem, categoryId: string, sortOrder: number, name: string): ItemBasicDraft {
+    return {
+      ...getAiCleanupItemDraft(item, categoryId, sortOrder),
+      name: name.slice(0, MENU_FIELD_LIMITS.menuItems.name),
+    };
+  }
+
+  function validateAiMenuCleanupResultForApply(categoriesToApply: AiMenuCleanupCategory[]) {
+    const itemCount = categoriesToApply.reduce((count, category) => count + category.items.length, 0);
+    if (categoriesToApply.length === 0 || itemCount === 0) {
+      toast.error("메뉴 관리에 적용할 항목이 없습니다.");
+      return false;
+    }
+
+    if (categoriesToApply.length > MENU_LIMITS.maxCategoriesPerPage) {
+      toast.error(`AI 정리 결과의 ${labels.categoryLabel}가 ${categoriesToApply.length}개입니다. ${labels.categoryLabel}는 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다.`);
+      return false;
+    }
+
+    const overflowingCategory = categoriesToApply.find((category) => category.items.length > MENU_LIMITS.maxItemsPerCategory);
+    if (overflowingCategory) {
+      toast.error(`"${overflowingCategory.name}"에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerCategory}개까지 추가할 수 있습니다.`);
+      return false;
+    }
+
+    if (itemCount > MENU_LIMITS.maxItemsPerSite) {
+      toast.error(`한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  function applyAiMenuCleanupAppendResult() {
+    if (menuCleanupApplyMode) return;
+    setMenuCleanupApplyMode("append-current");
+    const categoriesToAdd = getCleanedAiMenuCategories();
+    if (!validateAiMenuCleanupResultForApply(categoriesToAdd)) {
+      setMenuCleanupApplyMode(null);
+      return;
+    }
+
+    const itemsToAddCount = categoriesToAdd.reduce((count, category) => count + category.items.length, 0);
+    const targetPage = selectedPage ?? sortedPages.find((page) => page.visible) ?? sortedPages[0] ?? null;
+    const shouldCreatePage = !targetPage;
+    if (shouldCreatePage && sortedPages.length >= MENU_LIMITS.maxPagesPerSite) {
+      toast.error(`${labels.pageLabel}는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`);
+      setMenuCleanupApplyMode(null);
+      return;
+    }
+
+    const targetPageId = targetPage?.id ?? `temp-page-ai-cleanup-${Date.now()}`;
+    const targetPageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === targetPageId));
+    const nextCategoryCount = targetPageCategories.length + categoriesToAdd.length;
+    if (nextCategoryCount > MENU_LIMITS.maxCategoriesPerPage) {
+      toast.error(`현재 페이지에는 카테고리를 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다. 현재 ${targetPageCategories.length}개가 등록되어 있고, AI 정리 결과 ${categoriesToAdd.length}개를 추가하면 총 ${nextCategoryCount}개가 됩니다.`);
+      setMenuCleanupApplyMode(null);
+      return;
+    }
+
+    if (draftedItems.length + itemsToAddCount > MENU_LIMITS.maxItemsPerSite) {
+      toast.error(`한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
+      setMenuCleanupApplyMode(null);
+      return;
+    }
+
+    const seed = Date.now();
+    const newCategoryIds = categoriesToAdd.map((_, index) => `temp-category-ai-cleanup-${seed}-${index + 1}`);
+    const categoryNamesForAppend = targetPageCategories.map((category) => category.name);
+    const categoriesWithUniqueNames = categoriesToAdd.map((category) => {
+      const uniqueName = getUniqueName(category.name, categoryNamesForAppend);
+      categoryNamesForAppend.push(uniqueName);
+      return { ...category, name: uniqueName };
+    });
+
+    if (shouldCreatePage) {
+      setPageBasicDrafts((currentDrafts) => ({
+        ...currentDrafts,
+        [targetPageId]: {
+          isNew: true,
+          title: labels.pageLabel === "가격표 페이지" ? "가격표" : "메뉴",
+          description: "",
+          descriptionVisible: false,
+          visible: true,
+          sortOrder: 0,
+        },
+      }));
+    }
+
+    setCategoryBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      targetPageCategories.forEach((category, index) => {
+        nextDrafts[category.id] = {
+          isNew: nextDrafts[category.id]?.isNew,
+          pageId: nextDrafts[category.id]?.pageId ?? category.menu_page_id,
+          name: nextDrafts[category.id]?.name ?? category.name,
+          description: nextDrafts[category.id]?.description ?? category.description ?? "",
+          descriptionVisible: nextDrafts[category.id]?.descriptionVisible ?? category.description_visible,
+          visible: nextDrafts[category.id]?.visible ?? category.visible,
+          sortOrder: index + categoriesToAdd.length,
+        };
+      });
+
+      categoriesWithUniqueNames.forEach((category, index) => {
+        nextDrafts[newCategoryIds[index]] = {
+          isNew: true,
+          pageId: targetPageId,
+          name: category.name,
+          description: capabilities.categoryDescription ? category.description : "",
+          descriptionVisible: Boolean(capabilities.categoryDescription && category.description),
+          visible: true,
+          sortOrder: index,
+        };
+      });
+
+      return nextDrafts;
+    });
+
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+
+      categoriesWithUniqueNames.forEach((category, categoryIndex) => {
+        const categoryId = newCategoryIds[categoryIndex];
+        const itemNamesForCategory: string[] = [];
+        category.items.forEach((item, itemIndex) => {
+          const itemId = `temp-item-ai-cleanup-${seed}-${categoryIndex + 1}-${itemIndex + 1}`;
+          const itemName = getUniqueName(item.name, itemNamesForCategory);
+          itemNamesForCategory.push(itemName);
+          nextDrafts[itemId] = getAiCleanupItemDraftWithName(item, categoryId, itemIndex, itemName);
+        });
+      });
+
+      return nextDrafts;
+    });
+
+    resetModes();
+    setSelectedPageId(targetPageId);
+    setSelectedCategoryId(newCategoryIds[0] ?? "");
+    setExpandedPageIds(new Set([targetPageId]));
+    setExpandedCategoryIds(new Set(newCategoryIds[0] ? [newCategoryIds[0]] : []));
+    markMenuManagementDirty();
+    closeMenuCleanupDialog();
+    toast.success("AI가 정리한 메뉴가 현재 페이지에 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+  }
+
+  function applyAiMenuCleanupNewPageResult() {
+    if (menuCleanupApplyMode) return;
+    setMenuCleanupApplyMode("append-new");
+    const categoriesToAdd = getCleanedAiMenuCategories();
+    if (!validateAiMenuCleanupResultForApply(categoriesToAdd)) {
+      setMenuCleanupApplyMode(null);
+      return;
+    }
+
+    if (sortedPages.length >= MENU_LIMITS.maxPagesPerSite) {
+      toast.error(`${labels.pageLabel}는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`);
+      setMenuCleanupApplyMode(null);
+      return;
+    }
+
+    const seed = Date.now();
+    const pageId = `temp-page-ai-cleanup-new-${seed}`;
+    const pageTitle = getUniqueName("AI 정리 메뉴", sortedPages.map((page) => getMenuPageTitle(page)));
+    const newCategoryIds = categoriesToAdd.map((_, index) => `temp-category-ai-cleanup-new-${seed}-${index + 1}`);
+    const categoryNamesForNewPage: string[] = [];
+    const categoriesWithUniqueNames = categoriesToAdd.map((category) => {
+      const uniqueName = getUniqueName(category.name, categoryNamesForNewPage);
+      categoryNamesForNewPage.push(uniqueName);
+      return { ...category, name: uniqueName };
+    });
+
+    setPageBasicDrafts((currentDrafts) => ({
+      ...sortedPages.reduce<Record<string, PageBasicDraft>>((drafts, page, index) => {
+        drafts[page.id] = {
+          isNew: currentDrafts[page.id]?.isNew,
+          title: currentDrafts[page.id]?.title ?? page.title,
+          description: currentDrafts[page.id]?.description ?? page.description ?? "",
+          descriptionVisible: currentDrafts[page.id]?.descriptionVisible ?? page.description_visible,
+          visible: currentDrafts[page.id]?.visible ?? page.visible,
+          sortOrder: index + 1,
+        };
+        return drafts;
+      }, {}),
+      [pageId]: {
+        isNew: true,
+        title: pageTitle,
+        description: "",
+        descriptionVisible: false,
+        visible: true,
+        sortOrder: 0,
+      },
+    }));
+
+    setCategoryBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      categoriesWithUniqueNames.forEach((category, index) => {
+        nextDrafts[newCategoryIds[index]] = {
+          isNew: true,
+          pageId,
+          name: category.name,
+          description: capabilities.categoryDescription ? category.description : "",
+          descriptionVisible: Boolean(capabilities.categoryDescription && category.description),
+          visible: true,
+          sortOrder: index,
+        };
+      });
+      return nextDrafts;
+    });
+
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      categoriesWithUniqueNames.forEach((category, categoryIndex) => {
+        const categoryId = newCategoryIds[categoryIndex];
+        const itemNamesForCategory: string[] = [];
+        category.items.forEach((item, itemIndex) => {
+          const itemId = `temp-item-ai-cleanup-new-${seed}-${categoryIndex + 1}-${itemIndex + 1}`;
+          const itemName = getUniqueName(item.name, itemNamesForCategory);
+          itemNamesForCategory.push(itemName);
+          nextDrafts[itemId] = getAiCleanupItemDraftWithName(item, categoryId, itemIndex, itemName);
+        });
+      });
+      return nextDrafts;
+    });
+
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId(newCategoryIds[0] ?? "");
+    setExpandedPageIds(new Set([pageId]));
+    setExpandedCategoryIds(new Set(newCategoryIds[0] ? [newCategoryIds[0]] : []));
+    markMenuManagementDirty();
+    closeMenuCleanupDialog();
+    toast.success("AI가 정리한 메뉴가 새 페이지에 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+  }
+
+  function applyAiMenuCleanupReplaceResult() {
+    if (menuCleanupApplyMode) return;
+    setMenuCleanupApplyMode("replace");
+    const categoriesToReplace = getCleanedAiMenuCategories();
+    if (!validateAiMenuCleanupResultForApply(categoriesToReplace)) {
+      setMenuCleanupApplyMode(null);
+      return;
+    }
+
+    const seed = Date.now();
+    const pageId = `temp-page-ai-cleanup-replace-${seed}`;
+    const pageTitle = selectedPage ? getMenuPageTitle(selectedPage) : labels.pageLabel === "가격표 페이지" ? "가격표" : "메뉴 페이지 1";
+    const nextPageDrafts: Record<string, PageBasicDraft> = {
+      [pageId]: {
+        isNew: true,
+        title: pageTitle || "메뉴 페이지 1",
+        description: "",
+        descriptionVisible: false,
+        visible: true,
+        sortOrder: 0,
+      },
+    };
+    const nextCategoryDrafts: Record<string, CategoryBasicDraft> = {};
+    const nextItemDrafts: Record<string, ItemBasicDraft> = {};
+    const firstCategoryId = categoriesToReplace.length > 0 ? `temp-category-ai-cleanup-replace-${seed}-1` : "";
+
+    categoriesToReplace.forEach((category, categoryIndex) => {
+      const categoryId = `temp-category-ai-cleanup-replace-${seed}-${categoryIndex + 1}`;
+      nextCategoryDrafts[categoryId] = {
+        isNew: true,
+        pageId,
+        name: category.name,
+        description: capabilities.categoryDescription ? category.description : "",
+        descriptionVisible: Boolean(capabilities.categoryDescription && category.description),
+        visible: true,
+        sortOrder: categoryIndex,
+      };
+
+      category.items.forEach((item, itemIndex) => {
+        const itemId = `temp-item-ai-cleanup-replace-${seed}-${categoryIndex + 1}-${itemIndex + 1}`;
+        nextItemDrafts[itemId] = getAiCleanupItemDraft(item, categoryId, itemIndex);
+      });
+    });
+
+    setPageBasicDrafts(nextPageDrafts);
+    setCategoryBasicDrafts(nextCategoryDrafts);
+    setItemBasicDrafts(nextItemDrafts);
+    setPendingItemDrafts({});
+    setDeletedPageIds(new Set(menuPages.map((page) => page.id)));
+    setDeletedCategoryIds(new Set(categories.map((category) => category.id)));
+    setDeletedItemIds(new Set(items.map((item) => item.id)));
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId(firstCategoryId);
+    setExpandedPageIds(new Set([pageId]));
+    setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
+    markMenuManagementDirty();
+    closeMenuCleanupDialog();
+    toast.success("AI가 정리한 메뉴로 임시 교체되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
   }
 
   function confirmDiscardDraft() {
@@ -3206,7 +3800,8 @@ export default function MenuManagementSection({
   }
 
   function resetMenuManagementToStarterDraft() {
-    if (!starterPreset) return;
+    if (!starterPreset || isSampleResetApplying) return;
+    setIsSampleResetApplying(true);
 
     const resetSeed = Date.now().toString(36);
     const nextPageDrafts: Record<string, PageBasicDraft> = {};
@@ -3295,10 +3890,24 @@ export default function MenuManagementSection({
     setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
     markMenuManagementDirty();
     toast.success("메뉴 관리 내용이 샘플 데이터로 임시 변경되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+    setIsSampleResetApplying(false);
   }
 
   const selectedPageCopyDisabledReason = selectedPage ? getPageCopyDisabledReason(selectedPage.id) : "";
   const sampleResetDisabledReason = starterPreset ? "" : "이 템플릿의 샘플 데이터를 찾을 수 없습니다.";
+  const aiMenuCleanupCategories = getCleanedAiMenuCategories();
+  const aiMenuCleanupCategoryCount = aiMenuCleanupCategories.length;
+  const aiMenuCleanupTargetPage = selectedPage ?? sortedPages.find((page) => page.visible) ?? sortedPages[0] ?? null;
+  const aiMenuCleanupTargetPageCategoryCount = aiMenuCleanupTargetPage
+    ? draftedCategories.filter((category) => category.menu_page_id === aiMenuCleanupTargetPage.id).length
+    : 0;
+  const aiMenuCleanupCurrentPageTotal = aiMenuCleanupTargetPageCategoryCount + aiMenuCleanupCategoryCount;
+  const aiMenuCleanupResultFitsOnePage =
+    aiMenuCleanupCategoryCount > 0 && aiMenuCleanupCategoryCount <= MENU_LIMITS.maxCategoriesPerPage;
+  const aiMenuCleanupCurrentPageBlocked =
+    Boolean(menuCleanupResult && aiMenuCleanupTargetPage && aiMenuCleanupCurrentPageTotal > MENU_LIMITS.maxCategoriesPerPage);
+  const aiMenuCleanupNewPageBlocked = Boolean(menuCleanupResult && sortedPages.length >= MENU_LIMITS.maxPagesPerSite);
+  const aiMenuCleanupTooManyCategories = Boolean(menuCleanupResult && aiMenuCleanupCategoryCount > MENU_LIMITS.maxCategoriesPerPage);
 
   return (
     <div className="space-y-6">
@@ -3314,6 +3923,21 @@ export default function MenuManagementSection({
               </h2>
               <p className="mt-2 break-words text-sm font-semibold leading-relaxed text-zinc-500">
                 {labels.pageLabel}, {labels.categoryLabel}, {labels.itemPluralLabel}을 관리합니다.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuCleanupResult(null);
+                  setIsMenuCleanupOpen(true);
+                }}
+                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950"
+              >
+                AI 메뉴 정리
+              </button>
+              <p className="mt-2 text-right text-xs font-bold leading-relaxed text-zinc-400">
+                {localAiMenuCleanupUsage.used} / {localAiMenuCleanupUsage.limit}회 사용
               </p>
             </div>
           </div>
@@ -3675,6 +4299,8 @@ export default function MenuManagementSection({
                   menuId={menuId}
                   categories={categoriesForPage}
                   capabilities={capabilities}
+                  aiDescriptionUsage={localAiDescriptionUsage}
+                  onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                   badgeStyles={badgeStyles}
                   labels={labels}
                   itemCount={itemsForCategory.length}
@@ -3717,6 +4343,8 @@ export default function MenuManagementSection({
                   priceOptions={priceOptions.filter((option) => option.menu_item_id === selectedEditingItem.id)}
                   traits={traits.filter((trait) => trait.menu_item_id === selectedEditingItem.id)}
                   capabilities={capabilities}
+                  aiDescriptionUsage={localAiDescriptionUsage}
+                  onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                   badgeStyles={badgeStyles}
                   labels={labels}
                   isEditing
@@ -3809,6 +4437,8 @@ export default function MenuManagementSection({
                           priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
                           traits={traits.filter((trait) => trait.menu_item_id === item.id)}
                           capabilities={capabilities}
+                          aiDescriptionUsage={localAiDescriptionUsage}
+                          onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                           badgeStyles={badgeStyles}
                           labels={labels}
                           cancelLabel="목록으로"
@@ -3926,6 +4556,218 @@ export default function MenuManagementSection({
             </FinalActionRow>
           </form>
         </div>
+        {isMenuCleanupOpen && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="menu-cleanup-title"
+              className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-zinc-100 bg-white p-6 shadow-xl"
+            >
+              <h2 id="menu-cleanup-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
+                AI 메뉴 정리
+              </h2>
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                메뉴 이름, 가격, 설명을 자유롭게 붙여넣으면 AI가 카테고리와 메뉴 아이템으로 정리합니다.
+              </p>
+              <div className="mt-5">
+                <FieldLabel>메뉴 내용</FieldLabel>
+                <textarea
+                  value={menuCleanupText}
+                  maxLength={4000}
+                  disabled={isMenuCleanupRunning}
+                  placeholder={`아메리카노 4,500원\n카페라떼 5,000원\n바닐라라떼 5,500원\n레몬에이드 6,000원\n바스크 치즈케이크 6,500원\n\n또는:\n커피: 아메리카노 4500, 라떼 5000\n디저트: 치즈케이크 6500, 티라미수 7000`}
+                  onChange={(event) => setMenuCleanupText(event.target.value)}
+                  className="mt-2 min-h-48 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950 disabled:bg-zinc-100 disabled:text-zinc-400"
+                />
+                <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+                  <span>입력 내용은 4,000자 이하로 정리해주세요.</span>
+                  <span className="shrink-0">{menuCleanupText.length} / 4000</span>
+                </div>
+              </div>
+
+              {menuCleanupResult ? (
+                <div className="mt-6 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                  <h3 className="text-sm font-black text-zinc-950">정리 결과 미리보기</h3>
+                  <div className="mt-4 space-y-4">
+                    {menuCleanupResult.categories.map((category, categoryIndex) => (
+                      <div key={`${category.name}-${categoryIndex}`} className="rounded-lg border border-zinc-100 bg-white p-4">
+                        <p className="text-sm font-black text-zinc-950">{category.name}</p>
+                        {category.description ? <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{category.description}</p> : null}
+                        <div className="mt-3 space-y-2">
+                          {category.items.map((item, itemIndex) => (
+                            <div key={`${item.name}-${itemIndex}`} className="rounded-lg bg-zinc-50 px-3 py-2">
+                              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                                <p className="min-w-0 break-keep text-sm font-bold text-zinc-900">{item.name}</p>
+                                <p className="shrink-0 text-xs font-black text-zinc-500">
+                                  / {item.price_label || (item.price == null ? "문의" : `${new Intl.NumberFormat("ko-KR").format(item.price)}원`)}
+                                </p>
+                              </div>
+                              {item.description ? <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">{item.description}</p> : null}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : isMenuCleanupRunning ? (
+                <div className="mt-6 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold text-amber-700">
+                  <div className="flex items-center gap-2">
+                    <LoadingSpinner className="h-4 w-4" />
+                    AI가 메뉴 목록을 카테고리와 아이템으로 정리하고 있습니다.
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <div className="h-3 w-2/3 animate-pulse rounded-full bg-amber-100" />
+                    <div className="h-3 w-5/6 animate-pulse rounded-full bg-amber-100" />
+                    <div className="h-3 w-1/2 animate-pulse rounded-full bg-amber-100" />
+                  </div>
+                </div>
+              ) : null}
+
+              {menuCleanupResult ? (
+                <div className="mt-6 rounded-lg border border-zinc-100 bg-white p-4">
+                  <h3 className="text-sm font-black text-zinc-950">AI가 정리한 메뉴를 어떻게 적용할까요?</h3>
+                  <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                    처음 메뉴판을 세팅하는 경우에는 ‘현재 메뉴를 AI 결과로 교체’를 추천합니다. 운영 중 신메뉴를 추가하는 경우에는 ‘현재 페이지에 추가’ 또는 ‘새 페이지에 추가’를 사용할 수 있습니다.
+                  </p>
+                  {aiMenuCleanupTooManyCategories ? (
+                    <p className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-xs font-bold leading-relaxed text-red-700">
+                      AI 정리 결과의 카테고리가 {MENU_LIMITS.maxCategoriesPerPage}개를 초과합니다. 입력 내용을 줄이거나 카테고리 수를 줄여 다시 정리해주세요.
+                    </p>
+                  ) : aiMenuCleanupCurrentPageBlocked ? (
+                    <p className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
+                      현재 페이지에는 카테고리를 최대 {MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다. 현재 {aiMenuCleanupTargetPageCategoryCount}개가 등록되어 있고, AI 정리 결과 {aiMenuCleanupCategoryCount}개를 추가하면 총 {aiMenuCleanupCurrentPageTotal}개가 됩니다. 새 페이지에 추가하거나, 현재 메뉴를 AI 결과로 교체할 수 있습니다.
+                    </p>
+                  ) : null}
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                      <p className="text-sm font-black text-zinc-950">현재 메뉴를 AI 결과로 교체</p>
+                      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                        샘플 메뉴나 현재 메뉴 구조를 AI가 정리한 결과로 바꿉니다. 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                      <p className="text-sm font-black text-zinc-950">현재 페이지에 추가</p>
+                      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                        현재 페이지는 유지하고, AI가 정리한 카테고리와 아이템을 새 항목으로 추가합니다. 기존 카테고리와 자동으로 합치지 않습니다.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                      <p className="text-sm font-black text-zinc-950">새 페이지에 추가</p>
+                      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                        새 페이지를 만들고 AI가 정리한 카테고리와 아이템을 그 아래에 추가합니다. 현재 페이지의 카테고리 수와 합산하지 않습니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeMenuCleanupDialog}
+                  disabled={isMenuCleanupRunning || Boolean(menuCleanupApplyMode)}
+                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                >
+                  취소
+                </button>
+                {menuCleanupResult ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setMenuCleanupResult(null)}
+                      disabled={Boolean(menuCleanupApplyMode)}
+                      className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    >
+                      다시 정리하기
+                    </button>
+                    <SubmitButton
+                      type="button"
+                      tone="final"
+                      disabled={!aiMenuCleanupResultFitsOnePage || Boolean(menuCleanupApplyMode)}
+                      onClick={() => setIsMenuCleanupReplaceConfirming(true)}
+                    >
+                      현재 메뉴를 AI 결과로 교체
+                    </SubmitButton>
+                    <button
+                      type="button"
+                      onClick={applyAiMenuCleanupAppendResult}
+                      disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupCurrentPageBlocked || Boolean(menuCleanupApplyMode)}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    >
+                      {menuCleanupApplyMode === "append-current" ? (
+                        <>
+                          <LoadingSpinner className="h-4 w-4" />
+                          추가 중...
+                        </>
+                      ) : (
+                        "현재 페이지에 추가"
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={applyAiMenuCleanupNewPageResult}
+                      disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupNewPageBlocked || Boolean(menuCleanupApplyMode)}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    >
+                      {menuCleanupApplyMode === "append-new" ? (
+                        <>
+                          <LoadingSpinner className="h-4 w-4" />
+                          추가 중...
+                        </>
+                      ) : (
+                        "새 페이지에 추가"
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <SubmitButton
+                    type="button"
+                    tone="final"
+                    disabled={isMenuCleanupRunning || localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
+                    loading={isMenuCleanupRunning}
+                    loadingLabel="정리 중..."
+                    onClick={() => void runAiMenuCleanup()}
+                  >
+                    AI로 정리하기
+                  </SubmitButton>
+                )}
+              </div>
+              {isMenuCleanupReplaceConfirming ? (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-zinc-950/40 px-4">
+                  <div className="w-full max-w-md rounded-xl border border-zinc-100 bg-white p-6 shadow-xl">
+                    <h3 className="break-keep text-xl font-black tracking-tight text-zinc-950">현재 메뉴를 AI 결과로 교체할까요?</h3>
+                    <div className="mt-3 space-y-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">
+                      <p>현재 메뉴 관리 탭의 페이지, 카테고리, 메뉴 아이템이 AI가 정리한 결과로 바뀝니다.</p>
+                      <p>저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.</p>
+                      <p>저장하지 않고 페이지를 벗어나면 기존 저장 데이터는 유지됩니다.</p>
+                    </div>
+                    <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setIsMenuCleanupReplaceConfirming(false)}
+                        disabled={Boolean(menuCleanupApplyMode)}
+                        className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      >
+                        취소
+                      </button>
+                      <SubmitButton
+                        type="button"
+                        tone="danger"
+                        loading={menuCleanupApplyMode === "replace"}
+                        loadingLabel="교체 중..."
+                        onClick={applyAiMenuCleanupReplaceResult}
+                      >
+                        AI 결과로 교체
+                      </SubmitButton>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
         {isSampleResetConfirming && (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
             <div
@@ -3945,11 +4787,18 @@ export default function MenuManagementSection({
                 <button
                   type="button"
                   onClick={() => setIsSampleResetConfirming(false)}
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                  disabled={isSampleResetApplying}
+                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                 >
                   취소
                 </button>
-                <SubmitButton type="button" tone="danger" onClick={resetMenuManagementToStarterDraft}>
+                <SubmitButton
+                  type="button"
+                  tone="danger"
+                  loading={isSampleResetApplying}
+                  loadingLabel="적용 중..."
+                  onClick={resetMenuManagementToStarterDraft}
+                >
                   샘플로 되돌리기
                 </SubmitButton>
               </div>
@@ -3968,6 +4817,8 @@ function MenuItemCard({
   priceOptions,
   traits,
   capabilities,
+  aiDescriptionUsage,
+  onAiDescriptionUsageChange,
   badgeStyles,
   labels,
   cancelLabel,
@@ -3991,6 +4842,8 @@ function MenuItemCard({
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
+  aiDescriptionUsage: { used: number; limit: number };
+  onAiDescriptionUsageChange: (usage: { used: number; limit: number }) => void;
   badgeStyles: BadgeStyles;
   labels: TemplateEditorLabels;
   cancelLabel: string;
@@ -4034,6 +4887,8 @@ function MenuItemCard({
             menuId={menuId}
             categories={categories}
             capabilities={capabilities}
+            aiDescriptionUsage={aiDescriptionUsage}
+            onAiDescriptionUsageChange={onAiDescriptionUsageChange}
             badgeStyles={badgeStyles}
             labels={labels}
             item={item}
