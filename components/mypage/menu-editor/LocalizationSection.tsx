@@ -1,14 +1,15 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
 import {
   translateMenuSiteAction,
   updateLocalizationSettingsAction,
 } from "@/app/mypage/menus/actions";
+import { isAiUsageExceeded, type AiUsageSnapshot } from "@/lib/menu-ai-usage";
 import { LOCALE_LABELS, TRANSLATABLE_LOCALES, type SupportedLocale } from "@/lib/locales";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
-import { isTranslationUsageExceeded, type TranslationUsage } from "@/lib/menu-translation-usage";
 
 type TranslationJob = {
   status: string;
@@ -21,7 +22,7 @@ type TranslationJob = {
 type LocalizationSectionProps = {
   menuId: string;
   enabledLocales: SupportedLocale[];
-  translationUsage: TranslationUsage;
+  aiUsage: AiUsageSnapshot;
   latestTranslationJob: TranslationJob;
 };
 
@@ -122,7 +123,7 @@ function TranslationSubmitButton({ disabled }: { disabled?: boolean }) {
       disabled={disabled || pending}
       className="inline-flex shrink-0 items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
     >
-      {pending ? "번역 중..." : "자동 번역 업데이트"}
+      {pending ? "번역 중..." : "전체 자동 번역 업데이트"}
     </button>
   );
 }
@@ -139,9 +140,36 @@ function TranslationPendingMessage() {
   );
 }
 
-export default function LocalizationSection({ menuId, enabledLocales, translationUsage, latestTranslationJob }: LocalizationSectionProps) {
+function UsageCard({
+  title,
+  description,
+  used,
+  limit,
+  children,
+}: {
+  title: string;
+  description: string;
+  used: number;
+  limit: number;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+      <p className="text-sm font-black text-zinc-950">{title}</p>
+      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">{description}</p>
+      <p className="mt-3 text-sm font-bold text-zinc-600">
+        이번 달 {used} / {limit}회 사용
+      </p>
+      {children}
+    </div>
+  );
+}
+
+export default function LocalizationSection({ menuId, enabledLocales, aiUsage, latestTranslationJob }: LocalizationSectionProps) {
   const translationStatus = getTranslationStatus(latestTranslationJob);
-  const isUsageExceeded = isTranslationUsageExceeded(translationUsage);
+  const fullTranslationUsage = aiUsage.ai_translate_full;
+  const partialTranslationUsage = aiUsage.ai_translate_partial;
+  const isUsageExceeded = isAiUsageExceeded(fullTranslationUsage);
   const hasTargetLocales = enabledLocales.some((locale) => locale !== "ko");
   const isTranslationDisabled = translationStatus.isRunning || isUsageExceeded || !hasTargetLocales;
 
@@ -185,23 +213,23 @@ export default function LocalizationSection({ menuId, enabledLocales, translatio
       <section className="rounded-lg border border-zinc-100 bg-white p-5">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
-            <h3 className="text-lg font-bold tracking-tight text-zinc-950">자동 번역</h3>
+            <h3 className="text-lg font-bold tracking-tight text-zinc-950">전체 자동 번역</h3>
             <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-              한국어로 입력한 메뉴 정보를 영어, 중국어, 일본어로 자동 번역합니다. 번역값이 없는 필드는 공개 메뉴판에서 한국어 원문으로 표시됩니다.
+              메뉴판 전체 번역을 영어, 중국어, 일본어로 업데이트합니다. 번역값이 없는 필드는 공개 메뉴판에서 한국어 원문으로 표시됩니다.
             </p>
-            <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-              <p className="text-sm font-black text-zinc-950">자동번역 사용량</p>
-              <p className="mt-1 text-sm font-bold text-zinc-600">
-                이번 달 {translationUsage.monthly_used} / {translationUsage.monthly_limit}회 사용
-              </p>
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">번역 성공 시 1회 차감됩니다.</p>
+            <UsageCard
+              title="전체 자동 번역 사용량"
+              description="전체 자동 번역이 실제로 새 번역을 저장한 경우 1회 차감됩니다."
+              used={fullTranslationUsage.used}
+              limit={fullTranslationUsage.limit}
+            >
               {isUsageExceeded && (
-                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-red-700">이번 달 자동번역 제공량을 모두 사용했습니다.</p>
+                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-red-700">이번 달 전체 자동 번역 제공량을 모두 사용했습니다.</p>
               )}
               {!hasTargetLocales && (
                 <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
               )}
-            </div>
+            </UsageCard>
             <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${translationStatus.tone}`}>
               {translationStatus.label}
             </p>
@@ -212,6 +240,30 @@ export default function LocalizationSection({ menuId, enabledLocales, translatio
             <TranslationSubmitButton disabled={isTranslationDisabled} />
             <TranslationPendingMessage />
           </form>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-zinc-100 bg-white p-5">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <h3 className="text-lg font-bold tracking-tight text-zinc-950">부분 자동 번역</h3>
+            <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+              선택한 메뉴, 카테고리, 대표 영역만 번역하는 기능입니다. 다음 단계에서 사용할 수 있도록 준비 중입니다.
+            </p>
+            <UsageCard
+              title="부분 자동 번역 사용량"
+              description="부분 자동 번역은 아직 실행되지 않으며, 이번 달 제공량만 먼저 표시합니다."
+              used={partialTranslationUsage.used}
+              limit={partialTranslationUsage.limit}
+            />
+          </div>
+          <button
+            type="button"
+            disabled
+            className="inline-flex shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400"
+          >
+            부분 자동 번역 준비 중
+          </button>
         </div>
       </section>
 

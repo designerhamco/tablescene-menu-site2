@@ -15,6 +15,7 @@ import {
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import BackgroundColorSettingsForm from "@/components/mypage/menu-editor/BackgroundColorSettingsForm";
+import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
@@ -36,7 +37,7 @@ import {
 import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
-import { getTranslationUsage } from "@/lib/menu-translation-usage";
+import { getAiUsageSnapshot, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
 import { getEnabledLocales } from "@/lib/locales";
 import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
 import { createClient } from "@/lib/supabase/server";
@@ -540,6 +541,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const editorServiceType = getMenuEditorServiceType(latestOrder?.product_key);
+  const aiUsagePlanKey = normalizeTableScenePlanKey(latestOrder?.product_key);
 
   if (editorServiceType === "custom") {
     return <CustomEditorUnavailable siteName={site.name} />;
@@ -583,7 +585,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const defaultBackgroundColor = getTemplateDefaultBackgroundColor(site.template_key);
   const resolvedBackgroundColor = getResolvedBackgroundColor(site.template_key, site.page_settings);
   const enabledLocales = getEnabledLocales(site.settings);
-  const translationUsage = getTranslationUsage(site.settings);
+  const aiUsage = getAiUsageSnapshot(site.settings, aiUsagePlanKey);
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
   const featuredItemOptions = items
     .filter((item) => item.visible === true)
@@ -596,6 +598,19 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     }));
   const selectedFeaturedItem = pageSettings.featured_item_id ? items.find((item) => item.id === pageSettings.featured_item_id) : null;
   const selectedFeaturedItemInactive = Boolean(pageSettings.featured_item_enabled && pageSettings.featured_item_id && selectedFeaturedItem?.visible !== true);
+  const sampleFeaturedItem = menuManagementStarterPreset?.featured_item_name
+    ? items.find((item) => item.name === menuManagementStarterPreset.featured_item_name && item.visible !== false)
+    : null;
+  const coverSampleDraft = menuManagementStarterPreset && supportsMenuCover
+    ? {
+        menuCoverEnabled: true,
+        menuCoverTitle: menuCoverCapabilities.usesCoverTitle ? menuManagementStarterPreset.site.menu_cover_title : null,
+        menuCoverDescription: menuCoverCapabilities.usesCoverDescription ? menuManagementStarterPreset.site.menu_cover_description : null,
+        coverImageUrl: menuCoverCapabilities.usesCoverImage ? menuManagementStarterPreset.site.cover_image_url : null,
+        featuredItemEnabled: Boolean(canUseFeaturedItemCover && sampleFeaturedItem),
+        featuredItemId: canUseFeaturedItemCover ? sampleFeaturedItem?.id ?? null : null,
+      }
+    : null;
   const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const visibleEditorTabs = configuredEditorTabs.flatMap((item) => {
@@ -1023,6 +1038,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </CoverDraftToggleSection>
                   <div className="md:col-span-2">
                     <FinalActionRow>
+                      <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
                       <SubmitButton tone="final">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
@@ -1168,7 +1184,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <LocalizationSection
                   menuId={site.id}
                   enabledLocales={enabledLocales}
-                  translationUsage={translationUsage}
+                  aiUsage={aiUsage}
                   latestTranslationJob={latestTranslationJob}
                 />
               </SectionCard>

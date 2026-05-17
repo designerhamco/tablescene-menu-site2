@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 
 import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelForSave, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
+import { getAiUsage, getSettingsWithIncrementedAiUsage, isAiUsageExceeded, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
 import { DEFAULT_LOCALE, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
-import { getIncrementedTranslationUsage, getTranslationUsage, isTranslationUsageExceeded } from "@/lib/menu-translation-usage";
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
@@ -67,6 +67,22 @@ function getMenuItemBadgeLabelFromForm(menuId: string, formData: FormData) {
 
 function getJsonObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, unknown>) } : {};
+}
+
+async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, menuId: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("product_key")
+    .eq("menu_site_id", menuId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return null;
+  }
+
+  return data?.product_key ?? null;
 }
 
 function getString(formData: FormData, key: string) {
@@ -595,7 +611,9 @@ export async function translateMenuSiteAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId);
-  const translationUsage = getTranslationUsage(menuSite.settings);
+  const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+  const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+  const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
   const targetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is (typeof TARGET_TRANSLATION_LOCALES)[number] =>
     TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
   );
@@ -604,8 +622,8 @@ export async function translateMenuSiteAction(formData: FormData) {
     redirectToTabEditWithError(menuId, "localization", "자동 번역을 실행할 외국어를 먼저 선택해주세요.");
   }
 
-  if (isTranslationUsageExceeded(translationUsage)) {
-    redirectToTabEditWithError(menuId, "localization", "이번 달 자동번역 제공량을 모두 사용했습니다.");
+  if (isAiUsageExceeded(fullTranslationUsage)) {
+    redirectToTabEditWithError(menuId, "localization", "전체 자동 번역 제공량을 모두 사용했습니다.");
   }
 
   const startedAt = new Date().toISOString();
@@ -646,10 +664,7 @@ export async function translateMenuSiteAction(formData: FormData) {
     }
 
     if (translatedEntities > 0) {
-      const settings = {
-        ...getJsonObject(menuSite.settings),
-        translation_usage: getIncrementedTranslationUsage(menuSite.settings, new Date(completedAt)),
-      };
+      const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full", new Date(completedAt));
       const { error: updateUsageError } = await supabase
         .from("menu_sites")
         .update({ settings, updated_at: completedAt })
@@ -1571,7 +1586,7 @@ export async function updateMenuCoverAction(formData: FormData) {
   if (shouldDeleteCoverImage) {
     updatePayload.cover_image_url = null;
     updatePayload.cover_image_path = null;
-  } else if (draftCoverImageUrl && draftCoverImagePath) {
+  } else if (draftCoverImageUrl && (draftCoverImagePath || draftCoverImageUrl.startsWith("/placeholders/"))) {
     updatePayload.cover_image_url = draftCoverImageUrl;
     updatePayload.cover_image_path = draftCoverImagePath;
   }
@@ -1590,7 +1605,7 @@ export async function updateMenuCoverAction(formData: FormData) {
         menu_cover_description: menuCoverDescription,
         ...(shouldDeleteCoverImage
           ? { cover_image_url: null, cover_image_path: null }
-          : draftCoverImageUrl && draftCoverImagePath
+          : draftCoverImageUrl && (draftCoverImagePath || draftCoverImageUrl.startsWith("/placeholders/"))
           ? { cover_image_url: draftCoverImageUrl, cover_image_path: draftCoverImagePath }
           : {}),
         page_settings: nextSettings,

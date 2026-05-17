@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { saveMenuEditorScrollPosition } from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
@@ -94,6 +94,31 @@ export default function ImageUploadField({
   const isLoading = state.type === "loading";
   const usesDraftUpload = target === "site-logo-draft" || target === "site-cover-draft" || target === "site-intro-image-draft" || target === "menu-item-draft";
   const isLogoUpload = target === "site-logo" || target === "site-logo-draft";
+
+  useEffect(() => {
+    function handleDraftReset(event: Event) {
+      const detail = (event as CustomEvent<{
+        draftImageUrlInputName?: string;
+        imageUrl?: string | null;
+        imagePath?: string | null;
+        deleteImage?: boolean;
+      }>).detail;
+
+      if (!draftImageUrlInputName || detail?.draftImageUrlInputName !== draftImageUrlInputName) {
+        return;
+      }
+
+      setPreviewUrl(detail.imageUrl ?? "");
+      setDraftImageUrl(detail.imageUrl ?? "");
+      setDraftImagePath(detail.imagePath ?? "");
+      setIsMarkedForDeferredDelete(Boolean(detail.deleteImage));
+      setIsConfirmingDelete(false);
+      setState({ type: "success", message: "샘플 이미지가 임시 반영되었습니다. 저장을 눌러야 공개 메뉴판에 반영됩니다." });
+    }
+
+    window.addEventListener("tablescene:image-upload-draft-reset", handleDraftReset);
+    return () => window.removeEventListener("tablescene:image-upload-draft-reset", handleDraftReset);
+  }, [draftImageUrlInputName]);
 
   async function uploadFile(file: File) {
     const validationMessage = validateFile(file, target);

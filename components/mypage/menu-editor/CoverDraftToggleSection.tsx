@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 
@@ -20,15 +20,30 @@ export default function CoverDraftToggleSection({
   children,
 }: CoverDraftToggleSectionProps) {
   const [enabled, setEnabled] = useState(defaultChecked);
+  const [resetVersion, setResetVersion] = useState(0);
   const hasDraftToggleChange = enabled !== defaultChecked;
+
+  useEffect(() => {
+    function handleCoverDraftReset(event: Event) {
+      const detail = (event as CustomEvent<{ menuCoverEnabled?: boolean }>).detail;
+      if (typeof detail?.menuCoverEnabled !== "boolean") return;
+
+      setEnabled(detail.menuCoverEnabled);
+      setResetVersion((version) => version + 1);
+    }
+
+    window.addEventListener("tablescene:cover-draft-reset", handleCoverDraftReset);
+    return () => window.removeEventListener("tablescene:cover-draft-reset", handleCoverDraftReset);
+  }, []);
 
   return (
     <>
       <div className="md:col-span-2">
         <SwitchField
+          key={resetVersion}
           name={name}
           label={label}
-          defaultChecked={defaultChecked}
+          defaultChecked={enabled}
           onText="사용 중"
           offText="사용 안 함"
           onCheckedChange={setEnabled}
