@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
@@ -39,6 +41,7 @@ import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
 import { getEnabledLocales } from "@/lib/locales";
+import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
 import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
@@ -152,6 +155,215 @@ type MenuTranslationJob = Pick<
   Database["public"]["Tables"]["menu_translation_jobs"]["Row"],
   "id" | "status" | "error_message" | "target_locales" | "started_at" | "completed_at" | "created_at"
 >;
+type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"]["Row"];
+type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
+type MenuCategoryTranslation = Database["public"]["Tables"]["menu_category_translations"]["Row"];
+type MenuItemTranslation = Database["public"]["Tables"]["menu_item_translations"]["Row"];
+
+const editableTranslationLocales = ["en", "zh", "ja"] as const satisfies readonly EditableTranslationLocale[];
+
+function cleanTranslationSource(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function buildLocalizationSourceHash(fields: Record<string, string>) {
+  return createHash("sha256").update(JSON.stringify(fields)).digest("hex");
+}
+
+function getTranslationValue(
+  translationsByLocale: Map<EditableTranslationLocale, Record<string, unknown>>,
+  locale: EditableTranslationLocale,
+  field: string
+) {
+  const value = translationsByLocale.get(locale)?.[field];
+  return typeof value === "string" ? value : "";
+}
+
+function buildTranslationLocaleValues(
+  translationsByLocale: Map<EditableTranslationLocale, Record<string, unknown>>,
+  field: string
+) {
+  return editableTranslationLocales.reduce<Record<EditableTranslationLocale, string>>((result, locale) => {
+    result[locale] = getTranslationValue(translationsByLocale, locale, field);
+    return result;
+  }, { en: "", zh: "", ja: "" });
+}
+
+function buildEditableTranslationFields({
+  site,
+  pages,
+  categories,
+  items,
+  siteTranslations,
+  pageTranslations,
+  categoryTranslations,
+  itemTranslations,
+  includeItemBadges,
+  includeCategoryDescriptions,
+  menuCoverCapabilities,
+}: {
+  site: MenuSite;
+  pages: MenuPage[];
+  categories: MenuCategory[];
+  items: MenuItem[];
+  siteTranslations: MenuSiteTranslation[];
+  pageTranslations: MenuPageTranslation[];
+  categoryTranslations: MenuCategoryTranslation[];
+  itemTranslations: MenuItemTranslation[];
+  includeItemBadges: boolean;
+  includeCategoryDescriptions: boolean;
+  menuCoverCapabilities: ReturnType<typeof getTemplateCapabilities>["menuCover"];
+}) {
+  const fields: EditableTranslationField[] = [];
+  const siteTranslationsByLocale = new Map(
+    siteTranslations.map((translation) => [translation.locale as EditableTranslationLocale, translation as Record<string, unknown>])
+  );
+  const pageTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
+  const categoryTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
+  const itemTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
+
+  pageTranslations.forEach((translation) => {
+    const locale = translation.locale as EditableTranslationLocale;
+    const translations = pageTranslationsById.get(translation.menu_page_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
+    translations.set(locale, translation as Record<string, unknown>);
+    pageTranslationsById.set(translation.menu_page_id, translations);
+  });
+  categoryTranslations.forEach((translation) => {
+    const locale = translation.locale as EditableTranslationLocale;
+    const translations = categoryTranslationsById.get(translation.category_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
+    translations.set(locale, translation as Record<string, unknown>);
+    categoryTranslationsById.set(translation.category_id, translations);
+  });
+  itemTranslations.forEach((translation) => {
+    const locale = translation.locale as EditableTranslationLocale;
+    const translations = itemTranslationsById.get(translation.item_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
+    translations.set(locale, translation as Record<string, unknown>);
+    itemTranslationsById.set(translation.item_id, translations);
+  });
+
+  function pushFields({
+    entityType,
+    entityId,
+    group,
+    groupLabel,
+    sourceFields,
+    translationsByLocale,
+    fieldLabels,
+    multilineFields = [],
+  }: {
+    entityType: EditableTranslationField["entityType"];
+    entityId: string;
+    group: EditableTranslationField["group"];
+    groupLabel: string;
+    sourceFields: Record<string, unknown>;
+    translationsByLocale: Map<EditableTranslationLocale, Record<string, unknown>>;
+    fieldLabels: Record<string, string>;
+    multilineFields?: string[];
+  }) {
+    const cleanFields = Object.entries(sourceFields).reduce<Record<string, string>>((result, [field, value]) => {
+      const text = cleanTranslationSource(value);
+      if (text) result[field] = text;
+      return result;
+    }, {});
+    const sourceHash = buildLocalizationSourceHash(cleanFields);
+
+    Object.entries(cleanFields).forEach(([field, sourceText]) => {
+      fields.push({
+        entityType,
+        entityId,
+        field,
+        group,
+        groupLabel,
+        label: fieldLabels[field] ?? field,
+        sourceText,
+        sourceHash,
+        multiline: multilineFields.includes(field),
+        translations: buildTranslationLocaleValues(translationsByLocale, field),
+      });
+    });
+  }
+
+  pushFields({
+    entityType: "site",
+    entityId: site.id,
+    group: "site",
+    groupLabel: "대표 영역",
+    sourceFields: {
+      restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
+      brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
+      menu_cover_label: site.menu_cover_label,
+      menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,
+      menu_cover_description: menuCoverCapabilities.usesCoverDescription ? site.menu_cover_description : null,
+    },
+    translationsByLocale: siteTranslationsByLocale,
+    fieldLabels: {
+      restaurant_name: "매장명",
+      brand_description: "브랜드 설명",
+      menu_cover_label: "대표 영역 라벨",
+      menu_cover_title: "대표 영역 제목",
+      menu_cover_description: "대표 영역 설명",
+    },
+    multilineFields: ["brand_description", "menu_cover_description"],
+  });
+
+  pages
+    .filter((page) => page.visible)
+    .forEach((page) => {
+      pushFields({
+        entityType: "page",
+        entityId: page.id,
+        group: "pages",
+        groupLabel: page.title,
+        sourceFields: {
+          title: page.title,
+          description: page.description_visible ? page.description : null,
+        },
+        translationsByLocale: pageTranslationsById.get(page.id) ?? new Map(),
+        fieldLabels: { title: "페이지명", description: "페이지 설명" },
+        multilineFields: ["description"],
+      });
+    });
+
+  categories
+    .filter((category) => category.visible)
+    .forEach((category) => {
+      pushFields({
+        entityType: "category",
+        entityId: category.id,
+        group: "categories",
+        groupLabel: category.name,
+        sourceFields: {
+          name: category.name,
+          description: includeCategoryDescriptions && category.description_visible ? category.description : null,
+        },
+        translationsByLocale: categoryTranslationsById.get(category.id) ?? new Map(),
+        fieldLabels: { name: "카테고리명", description: "카테고리 설명" },
+        multilineFields: ["description"],
+      });
+    });
+
+  items
+    .filter((item) => item.visible)
+    .forEach((item) => {
+      pushFields({
+        entityType: "item",
+        entityId: item.id,
+        group: "items",
+        groupLabel: item.name,
+        sourceFields: {
+          name: item.name,
+          description: item.description,
+          price_label: item.price_label,
+          badge_label: includeItemBadges ? item.badge_label : null,
+        },
+        translationsByLocale: itemTranslationsById.get(item.id) ?? new Map(),
+        fieldLabels: { name: "메뉴명", description: "메뉴 설명", price_label: "표시 가격 문구", badge_label: "배지 문구" },
+        multilineFields: ["description"],
+      });
+    });
+
+  return fields;
+}
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
@@ -538,6 +750,30 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const events = (eventsData ?? []) as MenuEvent[];
   const socialLinks = (socialLinksData ?? []) as MenuSocialLink[];
   const latestTranslationJob = translationJobData as MenuTranslationJob | null;
+  const pageIds = menuPages.map((page) => page.id);
+  const categoryIds = categories.map((category) => category.id);
+  const itemIds = items.map((item) => item.id);
+  const [
+    { data: siteTranslationsData },
+    { data: pageTranslationsData },
+    { data: categoryTranslationsData },
+    { data: itemTranslationsData },
+  ] = await Promise.all([
+    supabase
+      .from("menu_site_translations")
+      .select("*")
+      .eq("menu_site_id", menuId)
+      .in("locale", editableTranslationLocales),
+    pageIds.length > 0
+      ? supabase.from("menu_page_translations").select("*").in("menu_page_id", pageIds).in("locale", editableTranslationLocales)
+      : Promise.resolve({ data: [], error: null }),
+    categoryIds.length > 0
+      ? supabase.from("menu_category_translations").select("*").in("category_id", categoryIds).in("locale", editableTranslationLocales)
+      : Promise.resolve({ data: [], error: null }),
+    itemIds.length > 0
+      ? supabase.from("menu_item_translations").select("*").in("item_id", itemIds).in("locale", editableTranslationLocales)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const editorServiceType = getMenuEditorServiceType(latestOrder?.product_key);
@@ -586,6 +822,19 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const resolvedBackgroundColor = getResolvedBackgroundColor(site.template_key, site.page_settings);
   const enabledLocales = getEnabledLocales(site.settings);
   const aiUsage = getAiUsageSnapshot(site.settings, aiUsagePlanKey);
+  const editableTranslationFields = buildEditableTranslationFields({
+    site,
+    pages: menuPages,
+    categories,
+    items,
+    siteTranslations: (siteTranslationsData ?? []) as MenuSiteTranslation[],
+    pageTranslations: (pageTranslationsData ?? []) as MenuPageTranslation[],
+    categoryTranslations: (categoryTranslationsData ?? []) as MenuCategoryTranslation[],
+    itemTranslations: (itemTranslationsData ?? []) as MenuItemTranslation[],
+    includeItemBadges: templateCapabilities.itemBadges,
+    includeCategoryDescriptions: templateCapabilities.categoryDescription,
+    menuCoverCapabilities,
+  });
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
   const featuredItemOptions = items
     .filter((item) => item.visible === true)
@@ -1186,6 +1435,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   enabledLocales={enabledLocales}
                   aiUsage={aiUsage}
                   latestTranslationJob={latestTranslationJob}
+                  editableTranslationFields={editableTranslationFields}
                 />
               </SectionCard>
             )}

@@ -7,13 +7,14 @@ import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelF
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { getAiUsage, getSettingsWithIncrementedAiUsage, isAiUsageExceeded, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
 import { DEFAULT_LOCALE, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
+import type { EditableTranslationDraftValue, EditableTranslationEntityType, EditableTranslationLocale, PartialTranslationActionResult } from "@/lib/menu-localization-draft";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType } from "@/lib/social-links";
-import { runMenuTranslationUpdate, TARGET_TRANSLATION_LOCALES } from "@/lib/server/menu-translation-service";
+import { runMenuTranslationUpdate, TARGET_TRANSLATION_LOCALES, translatePartialMenuCategoryFields, translatePartialMenuHeroFields, translatePartialMenuItemFields } from "@/lib/server/menu-translation-service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
@@ -44,6 +45,10 @@ type MenuItemPriceOptionUpdate = Database["public"]["Tables"]["menu_item_price_o
 type MenuItemTraitInsert = Database["public"]["Tables"]["menu_item_traits"]["Insert"];
 type MenuItemTraitUpdate = Database["public"]["Tables"]["menu_item_traits"]["Update"];
 type MenuTranslationJobUpdate = Database["public"]["Tables"]["menu_translation_jobs"]["Update"];
+type MenuSiteTranslationInsert = Database["public"]["Tables"]["menu_site_translations"]["Insert"];
+type MenuPageTranslationInsert = Database["public"]["Tables"]["menu_page_translations"]["Insert"];
+type MenuCategoryTranslationInsert = Database["public"]["Tables"]["menu_category_translations"]["Insert"];
+type MenuItemTranslationInsert = Database["public"]["Tables"]["menu_item_translations"]["Insert"];
 type LooseInsert = Record<string, unknown>;
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -845,6 +850,162 @@ export async function resetBackgroundColorAction(formData: FormData) {
   redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 배경색으로 되돌렸습니다.");
 }
 
+function getTranslationDraftValues(formData: FormData) {
+  const rawValue = getString(formData, "translation_draft");
+  if (!rawValue) return [];
+
+  try {
+    const parsed = JSON.parse(rawValue) as unknown;
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((entry): entry is EditableTranslationDraftValue => {
+      if (!entry || typeof entry !== "object") return false;
+      const candidate = entry as Partial<EditableTranslationDraftValue>;
+      return (
+        (candidate.entityType === "site" || candidate.entityType === "page" || candidate.entityType === "category" || candidate.entityType === "item") &&
+        typeof candidate.entityId === "string" &&
+        typeof candidate.field === "string" &&
+        typeof candidate.sourceHash === "string" &&
+        Boolean(candidate.entityId) &&
+        Boolean(candidate.field) &&
+        candidate.translations !== null &&
+        typeof candidate.translations === "object"
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
+function getEditableTranslationText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function isTargetTranslationLocale(value: string): value is (typeof TARGET_TRANSLATION_LOCALES)[number] {
+  return TARGET_TRANSLATION_LOCALES.includes(value as (typeof TARGET_TRANSLATION_LOCALES)[number]);
+}
+
+function hasMeaningfulTranslationText(value: unknown) {
+  if (typeof value !== "string") return false;
+
+  const text = value.trim();
+  if (!text) return false;
+  if (/^[ㄱ-ㅎㅏ-ㅣ\s]+$/.test(text)) return false;
+  if (!/[\p{L}\p{N}]/u.test(text)) return false;
+
+  return true;
+}
+
+function getMeaningfulTranslatedFields(fields: Record<string, string>) {
+  return Object.fromEntries(Object.entries(fields).filter(([, value]) => hasMeaningfulTranslationText(value)));
+}
+
+function setEditableTranslationValue(row: Record<string, unknown>, field: string, value: string | null) {
+  row[field] = value;
+}
+
+async function saveEditableTranslationDrafts(
+  supabase: SupabaseServerClient,
+  menuId: string,
+  draftValues: EditableTranslationDraftValue[]
+) {
+  if (draftValues.length === 0) return;
+
+  const allowedFields: Record<EditableTranslationEntityType, readonly string[]> = {
+    site: ["restaurant_name", "brand_description", "menu_cover_title", "menu_cover_description", "menu_cover_label", "description"],
+    page: ["title", "description"],
+    category: ["name", "description"],
+    item: ["name", "description", "price_label", "badge_label"],
+  };
+  const targetLocales = TRANSLATABLE_LOCALES as readonly EditableTranslationLocale[];
+  const groupedRows = {
+    site: new Map<string, Record<string, unknown>>(),
+    page: new Map<string, Record<string, unknown>>(),
+    category: new Map<string, Record<string, unknown>>(),
+    item: new Map<string, Record<string, unknown>>(),
+  };
+
+  const idsByType = draftValues.reduce<Record<EditableTranslationEntityType, Set<string>>>(
+    (result, draft) => {
+      result[draft.entityType].add(draft.entityId);
+      return result;
+    },
+    { site: new Set(), page: new Set(), category: new Set(), item: new Set() }
+  );
+
+  if (idsByType.site.size !== 1 || !idsByType.site.has(menuId)) {
+    redirectToTabEditWithError(menuId, "localization", "번역 저장 대상 메뉴판을 확인할 수 없습니다.");
+  }
+
+  const [pagesResult, categoriesResult, itemsResult] = await Promise.all([
+    idsByType.page.size > 0
+      ? supabase.from("menu_pages").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.page])
+      : Promise.resolve({ data: [], error: null }),
+    idsByType.category.size > 0
+      ? supabase.from("menu_categories").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.category])
+      : Promise.resolve({ data: [], error: null }),
+    idsByType.item.size > 0
+      ? supabase.from("menu_items").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.item])
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  const readError = pagesResult.error ?? categoriesResult.error ?? itemsResult.error;
+  if (readError) {
+    redirectToTabEditWithError(menuId, "localization", `번역 저장 대상 확인에 실패했습니다: ${readError.message}`);
+  }
+
+  const allowedIds = {
+    site: new Set([menuId]),
+    page: new Set((pagesResult.data ?? []).map((row) => row.id)),
+    category: new Set((categoriesResult.data ?? []).map((row) => row.id)),
+    item: new Set((itemsResult.data ?? []).map((row) => row.id)),
+  };
+
+  draftValues.forEach((draft) => {
+    if (!allowedFields[draft.entityType].includes(draft.field) || !allowedIds[draft.entityType].has(draft.entityId)) {
+      redirectToTabEditWithError(menuId, "localization", "저장할 수 없는 번역 항목이 포함되어 있습니다.");
+    }
+
+    targetLocales.forEach((locale) => {
+      const rowKey = `${draft.entityId}:${locale}`;
+      const rows = groupedRows[draft.entityType];
+      const existingRow = rows.get(rowKey) ?? {
+        locale,
+        source_text_hash: draft.sourceHash,
+        status: "completed",
+        updated_at: new Date().toISOString(),
+      };
+      rows.set(rowKey, existingRow);
+      setEditableTranslationValue(existingRow, draft.field, getEditableTranslationText(draft.translations[locale]));
+    });
+  });
+
+  const siteRows = [...groupedRows.site.values()].map((row) => ({ ...row, menu_site_id: menuId })) as MenuSiteTranslationInsert[];
+  const pageRows = [...groupedRows.page.entries()].map(([key, row]) => ({ ...row, menu_page_id: key.split(":")[0] })) as MenuPageTranslationInsert[];
+  const categoryRows = [...groupedRows.category.entries()].map(([key, row]) => ({ ...row, category_id: key.split(":")[0] })) as MenuCategoryTranslationInsert[];
+  const itemRows = [...groupedRows.item.entries()].map(([key, row]) => ({ ...row, item_id: key.split(":")[0] })) as MenuItemTranslationInsert[];
+
+  const [{ error: siteError }, { error: pageError }, { error: categoryError }, { error: itemError }] = await Promise.all([
+    siteRows.length > 0
+      ? supabase.from("menu_site_translations").upsert(siteRows, { onConflict: "menu_site_id,locale" })
+      : Promise.resolve({ error: null }),
+    pageRows.length > 0
+      ? supabase.from("menu_page_translations").upsert(pageRows, { onConflict: "menu_page_id,locale" })
+      : Promise.resolve({ error: null }),
+    categoryRows.length > 0
+      ? supabase.from("menu_category_translations").upsert(categoryRows, { onConflict: "category_id,locale" })
+      : Promise.resolve({ error: null }),
+    itemRows.length > 0
+      ? supabase.from("menu_item_translations").upsert(itemRows, { onConflict: "item_id,locale" })
+      : Promise.resolve({ error: null }),
+  ]);
+  const saveError = siteError ?? pageError ?? categoryError ?? itemError;
+
+  if (saveError) {
+    redirectToTabEditWithError(menuId, "localization", `다국어 저장 중 오류가 발생했습니다: ${saveError.message}`);
+  }
+}
+
 export async function updateLocalizationSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
@@ -859,10 +1020,13 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
   ] satisfies SupportedLocale[];
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const translationDraftValues = getTranslationDraftValues(formData);
   const settings = {
     ...getJsonObject(menuSite.settings),
     enabled_locales: enabledLocales,
   };
+
+  await saveEditableTranslationDrafts(supabase, menuId, translationDraftValues);
 
   const { error } = await supabase
     .from("menu_sites")
@@ -872,7 +1036,303 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
   if (error) redirectToTabEditWithError(menuId, "localization", `다국어 설정 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "localization", "다국어 설정이 저장되었습니다.");
+  redirectToTabEdit(menuId, "localization", "다국어 설정과 번역 내용이 저장되었습니다.");
+}
+
+export async function translateMenuItemPartialAction(input: {
+  menuId: string;
+  itemId: string;
+  targetLocale: EditableTranslationLocale;
+}): Promise<PartialTranslationActionResult> {
+  const menuId = input.menuId?.trim();
+  const itemId = input.itemId?.trim();
+  const targetLocale = input.targetLocale;
+
+  if (!menuId || !itemId || !isTargetTranslationLocale(targetLocale)) {
+    return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+
+  try {
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
+
+    if (isAiUsageExceeded(partialUsage)) {
+      return {
+        ok: false,
+        message: "부분 자동 번역 제공량을 모두 사용했습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const { data: item, error: itemError } = await supabase
+      .from("menu_items")
+      .select("id, menu_site_id, category_id, name, description, price_label, badge_label")
+      .eq("id", itemId)
+      .eq("menu_site_id", menuId)
+      .maybeSingle();
+
+    if (itemError || !item) {
+      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const supportsItemBadges = getTemplateCapabilities(menuSite.template_key).itemBadges;
+    const { data: category } = item.category_id
+      ? await supabase.from("menu_categories").select("name").eq("id", item.category_id).eq("menu_site_id", menuId).maybeSingle()
+      : { data: null };
+    const sourceFields = {
+      name: item.name,
+      description: item.description,
+      price_label: item.price_label,
+      badge_label: supportsItemBadges ? item.badge_label : null,
+    };
+    const hasTranslatableText = Object.values(sourceFields).some(hasMeaningfulTranslationText);
+
+    if (!hasTranslatableText) {
+      return {
+        ok: false,
+        message: "번역할 내용이 없습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const translatedFields = await translatePartialMenuItemFields(targetLocale, {
+      ...sourceFields,
+      categoryName: category?.name ?? null,
+      restaurantName: menuSite.restaurant_category ?? null,
+    });
+
+    const meaningfulTranslatedFields = getMeaningfulTranslatedFields(translatedFields);
+
+    if (Object.keys(meaningfulTranslatedFields).length === 0) {
+      return {
+        ok: false,
+        message: "번역 결과가 비어 있어 기존 번역을 변경하지 않았습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const usedAt = new Date();
+    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+    const { error: usageError } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: usedAt.toISOString() })
+      .eq("id", menuId);
+
+    if (usageError) {
+      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+
+    return {
+      ok: true,
+      data: meaningfulTranslatedFields,
+      usage: { used: nextUsage.used, limit: nextUsage.limit },
+      message: "선택한 메뉴 아이템 번역이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다.",
+    };
+  } catch (error) {
+    console.error("[menu-translation] partial item translation failed", {
+      menuId,
+      itemId,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+}
+
+export async function translateMenuCategoryPartialAction(input: {
+  menuId: string;
+  categoryId: string;
+  targetLocale: EditableTranslationLocale;
+}): Promise<PartialTranslationActionResult> {
+  const menuId = input.menuId?.trim();
+  const categoryId = input.categoryId?.trim();
+  const targetLocale = input.targetLocale;
+
+  if (!menuId || !categoryId || !isTargetTranslationLocale(targetLocale)) {
+    return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+
+  try {
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
+
+    if (isAiUsageExceeded(partialUsage)) {
+      return {
+        ok: false,
+        message: "부분 자동 번역 제공량을 모두 사용했습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const { data: category, error: categoryError } = await supabase
+      .from("menu_categories")
+      .select("id, menu_site_id, name, description, description_visible")
+      .eq("id", categoryId)
+      .eq("menu_site_id", menuId)
+      .maybeSingle();
+
+    if (categoryError || !category) {
+      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const supportsCategoryDescription = getTemplateCapabilities(menuSite.template_key).categoryDescription;
+    const sourceFields = {
+      name: category.name,
+      description: supportsCategoryDescription && category.description_visible ? category.description : null,
+    };
+    const hasTranslatableText = Object.values(sourceFields).some(hasMeaningfulTranslationText);
+
+    if (!hasTranslatableText) {
+      return {
+        ok: false,
+        message: "번역할 내용이 없습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const translatedFields = await translatePartialMenuCategoryFields(targetLocale, {
+      ...sourceFields,
+      restaurantName: menuSite.restaurant_category ?? null,
+    });
+
+    const meaningfulTranslatedFields = getMeaningfulTranslatedFields(translatedFields);
+
+    if (Object.keys(meaningfulTranslatedFields).length === 0) {
+      return {
+        ok: false,
+        message: "번역 결과가 비어 있어 기존 번역을 변경하지 않았습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const usedAt = new Date();
+    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+    const { error: usageError } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: usedAt.toISOString() })
+      .eq("id", menuId);
+
+    if (usageError) {
+      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+
+    return {
+      ok: true,
+      data: meaningfulTranslatedFields,
+      usage: { used: nextUsage.used, limit: nextUsage.limit },
+      message: "선택한 카테고리 번역이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다.",
+    };
+  } catch (error) {
+    console.error("[menu-translation] partial category translation failed", {
+      menuId,
+      categoryId,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+}
+
+export async function translateMenuHeroPartialAction(input: {
+  menuId: string;
+  targetLocale: EditableTranslationLocale;
+}): Promise<PartialTranslationActionResult> {
+  const menuId = input.menuId?.trim();
+  const targetLocale = input.targetLocale;
+
+  if (!menuId || !isTargetTranslationLocale(targetLocale)) {
+    return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+
+  try {
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
+
+    if (isAiUsageExceeded(partialUsage)) {
+      return {
+        ok: false,
+        message: "부분 자동 번역 제공량을 모두 사용했습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const { data: site, error: siteError } = await supabase
+      .from("menu_sites")
+      .select("id, restaurant_name, restaurant_category, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, template_key")
+      .eq("id", menuId)
+      .maybeSingle();
+
+    if (siteError || !site) {
+      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const menuCoverCapabilities = getTemplateCapabilities(site.template_key).menuCover;
+    const sourceFields = {
+      restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
+      brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
+      menu_cover_label: site.menu_cover_label,
+      menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,
+      menu_cover_description: menuCoverCapabilities.usesCoverDescription ? site.menu_cover_description : null,
+    };
+    const hasTranslatableText = Object.values(sourceFields).some(hasMeaningfulTranslationText);
+
+    if (!hasTranslatableText) {
+      return {
+        ok: false,
+        message: "번역할 내용이 없습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const translatedFields = await translatePartialMenuHeroFields(targetLocale, {
+      ...sourceFields,
+      restaurantCategory: site.restaurant_category ?? null,
+    });
+
+    const meaningfulTranslatedFields = getMeaningfulTranslatedFields(translatedFields);
+
+    if (Object.keys(meaningfulTranslatedFields).length === 0) {
+      return {
+        ok: false,
+        message: "번역 결과가 비어 있어 기존 번역을 변경하지 않았습니다.",
+        usage: { used: partialUsage.used, limit: partialUsage.limit },
+      };
+    }
+
+    const usedAt = new Date();
+    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+    const { error: usageError } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: usedAt.toISOString() })
+      .eq("id", menuId);
+
+    if (usageError) {
+      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+    }
+
+    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+
+    return {
+      ok: true,
+      data: meaningfulTranslatedFields,
+      usage: { used: nextUsage.used, limit: nextUsage.limit },
+      message: "대표 영역 번역이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다.",
+    };
+  } catch (error) {
+    console.error("[menu-translation] partial hero translation failed", {
+      menuId,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
 }
 
 export async function resetTypographySettingsAction(formData: FormData) {

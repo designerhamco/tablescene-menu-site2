@@ -55,6 +55,30 @@ export type MenuTranslationUpdateResult = {
   translatedTextUnits: number;
 };
 
+export type PartialMenuItemTranslationInput = {
+  name: string | null;
+  description?: string | null;
+  price_label?: string | null;
+  badge_label?: string | null;
+  categoryName?: string | null;
+  restaurantName?: string | null;
+};
+
+export type PartialMenuCategoryTranslationInput = {
+  name: string | null;
+  description?: string | null;
+  restaurantName?: string | null;
+};
+
+export type PartialMenuHeroTranslationInput = {
+  restaurant_name?: string | null;
+  brand_description?: string | null;
+  menu_cover_label?: string | null;
+  menu_cover_title?: string | null;
+  menu_cover_description?: string | null;
+  restaurantCategory?: string | null;
+};
+
 const CHUNK_SIZE = 40;
 const OPENAI_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses";
 const DEFAULT_TRANSLATION_MODEL = "gpt-5-nano";
@@ -121,6 +145,10 @@ function normalizeTranslatedTextValue(locale: TargetTranslationLocale, key: stri
   }
 
   return value;
+}
+
+function isNumericOnlyLabel(value: string) {
+  return /^[\d\s,.$₩¥€£()+\-/:~]+$/.test(value.trim());
 }
 
 function buildSourceHash(fields: Record<string, string>) {
@@ -305,6 +333,138 @@ async function translateTextUnits(locale: TargetTranslationLocale, textUnits: Tr
   }
 
   return translations;
+}
+
+export async function translatePartialMenuItemFields(
+  locale: TargetTranslationLocale,
+  source: PartialMenuItemTranslationInput
+) {
+  const sourceFields = {
+    name: source.name,
+    description: source.description,
+    price_label: source.price_label,
+    badge_label: source.badge_label,
+  };
+  const textUnits = Object.entries(sourceFields).flatMap(([fieldName, rawValue]) => {
+    const text = cleanText(rawValue);
+    if (!text) return [];
+    if (fieldName === "price_label" && isNumericOnlyLabel(text)) return [];
+
+    return [
+      {
+        key: `menu_item_translations:partial:${fieldName}`,
+        text,
+      },
+    ];
+  });
+
+  if (textUnits.length === 0) {
+    throw new Error("번역할 내용이 없습니다.");
+  }
+
+  const translations = await translateChunk(locale, [
+    ...textUnits,
+    ...(source.categoryName
+      ? [{ key: "context:category", text: `Category context: ${source.categoryName}` }]
+      : []),
+    ...(source.restaurantName
+      ? [{ key: "context:restaurant", text: `Restaurant context: ${source.restaurantName}` }]
+      : []),
+  ]);
+
+  return textUnits.reduce<Record<string, string>>((result, unit) => {
+    const fieldName = unit.key.split(":").at(-1);
+    const value = cleanText(translations[unit.key]);
+    if (fieldName && value) {
+      result[fieldName] = normalizeTranslatedTextValue(locale, unit.key, value);
+    }
+    return result;
+  }, {});
+}
+
+export async function translatePartialMenuCategoryFields(
+  locale: TargetTranslationLocale,
+  source: PartialMenuCategoryTranslationInput
+) {
+  const sourceFields = {
+    name: source.name,
+    description: source.description,
+  };
+  const textUnits = Object.entries(sourceFields).flatMap(([fieldName, rawValue]) => {
+    const text = cleanText(rawValue);
+    if (!text) return [];
+
+    return [
+      {
+        key: `menu_category_translations:partial:${fieldName}`,
+        text,
+      },
+    ];
+  });
+
+  if (textUnits.length === 0) {
+    throw new Error("번역할 내용이 없습니다.");
+  }
+
+  const translations = await translateChunk(locale, [
+    ...textUnits,
+    ...(source.restaurantName
+      ? [{ key: "context:restaurant", text: `Restaurant context: ${source.restaurantName}` }]
+      : []),
+  ]);
+
+  return textUnits.reduce<Record<string, string>>((result, unit) => {
+    const fieldName = unit.key.split(":").at(-1);
+    const value = cleanText(translations[unit.key]);
+    if (fieldName && value) {
+      result[fieldName] = normalizeTranslatedTextValue(locale, unit.key, value);
+    }
+    return result;
+  }, {});
+}
+
+export async function translatePartialMenuHeroFields(
+  locale: TargetTranslationLocale,
+  source: PartialMenuHeroTranslationInput
+) {
+  const sourceFields = {
+    restaurant_name: source.restaurant_name,
+    brand_description: source.brand_description,
+    menu_cover_label: source.menu_cover_label,
+    menu_cover_title: source.menu_cover_title,
+    menu_cover_description: source.menu_cover_description,
+  };
+  const textUnits = Object.entries(sourceFields).flatMap(([fieldName, rawValue]) => {
+    const text = cleanText(rawValue);
+    if (!text) return [];
+
+    return [
+      {
+        key: `menu_site_translations:partial:${fieldName}`,
+        text,
+      },
+    ];
+  });
+
+  if (textUnits.length === 0) {
+    throw new Error("번역할 내용이 없습니다.");
+  }
+
+  const translations = await translateChunk(locale, [
+    ...textUnits,
+    ...(source.restaurantCategory
+      ? [{ key: "context:restaurant_category", text: `Restaurant category context: ${source.restaurantCategory}` }]
+      : []),
+  ]);
+
+  return textUnits.reduce<Record<string, string>>((result, unit) => {
+    const fieldName = unit.key.split(":").at(-1);
+    const value = cleanText(translations[unit.key]);
+    if (fieldName && value) {
+      result[fieldName] = normalizeTranslatedTextValue(locale, unit.key, value);
+    }
+    return result;
+  }, {});
 }
 
 async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
