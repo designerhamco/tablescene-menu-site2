@@ -20,28 +20,28 @@ export type MenuEditorCapabilities = {
 export const MENU_EDITOR_CAPABILITIES = {
   menu: {
     basicInfo: true,
-    pageSettings: false,
+    pageSettings: true,
     introPage: false,
     menuCoverPage: true,
     menuPages: true,
-    aboutPage: false,
-    eventPage: false,
-    chefs: false,
-    socialLinks: false,
+    aboutPage: true,
+    eventPage: true,
+    chefs: true,
+    socialLinks: true,
     design: true,
     localization: true,
     publish: true,
   },
   screen: {
     basicInfo: true,
-    pageSettings: false,
+    pageSettings: true,
     introPage: false,
     menuCoverPage: true,
     menuPages: true,
-    aboutPage: false,
-    eventPage: false,
-    chefs: false,
-    socialLinks: false,
+    aboutPage: true,
+    eventPage: true,
+    chefs: true,
+    socialLinks: true,
     design: true,
     localization: true,
     publish: true,
@@ -110,6 +110,8 @@ export function isMenuEditorTabEnabled(tabKey: MenuEditorTabKey, capabilities: M
     case "cover":
       return capabilities.menuCoverPage;
     case "menu":
+      return capabilities.menuPages;
+    case "schedule":
       return capabilities.menuPages;
     case "about":
       return capabilities.aboutPage;

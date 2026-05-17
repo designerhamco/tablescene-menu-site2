@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import {
   resetDesignSettingsToTemplateDefaultAction,
@@ -32,18 +32,18 @@ const resetCopy: Record<
     submitLabel: "샘플로 되돌리기",
   },
   menu: {
-    buttonLabel: "샘플 메뉴로 초기화",
+    buttonLabel: "샘플로 되돌리기 준비 중",
     title: "메뉴 목록을 샘플 메뉴로 초기화할까요?",
     description:
-      "현재 메뉴 페이지, 메뉴 그룹, 메뉴 아이템이 이 템플릿의 기본 샘플 메뉴로 교체됩니다. 매장명, 공개 주소, 공개 상태, 결제 정보는 유지됩니다. 이 작업은 되돌릴 수 없습니다.",
+      "샘플 복원 기능은 안전한 draft 저장 구조 적용 후 사용할 수 있습니다. 현재는 실제 데이터를 보호하기 위해 비활성화되어 있습니다.",
     submitLabel: "초기화하기",
   },
   design: {
-    buttonLabel: "템플릿 기본값으로 되돌리기",
-    title: "디자인 설정을 템플릿 기본값으로 되돌릴까요?",
+    buttonLabel: "기본 디자인으로 되돌리기",
+    title: "디자인 설정을 기본값으로 되돌릴까요?",
     description:
-      "배지 색상, 글꼴, 글자 크기 등 디자인 설정이 현재 템플릿의 기본값으로 돌아갑니다. 메뉴 내용과 기본 정보는 변경되지 않습니다.",
-    submitLabel: "기본값으로 되돌리기",
+      "배지 색상, 한글 폰트, 배경색 등 디자인 설정이 현재 템플릿의 기본값으로 돌아갑니다. 메뉴 내용과 기본 정보는 변경되지 않습니다.",
+    submitLabel: "기본 디자인으로 되돌리기",
   },
 };
 
@@ -55,15 +55,29 @@ const resetActions = {
 
 export default function ResetTabActionButton({ menuId, kind }: ResetTabActionButtonProps) {
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const copy = resetCopy[kind];
   const action = resetActions[kind];
+  const disabled = kind === "menu";
+
+  function handleReset() {
+    const formData = new FormData();
+    formData.set("menuId", menuId);
+    startTransition(() => {
+      void action(formData);
+    });
+  }
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center rounded-full border border-red-100 bg-white px-4 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-50"
+        onClick={() => {
+          if (!disabled) setOpen(true);
+        }}
+        disabled={disabled}
+        title={disabled ? "샘플 복원 기능은 안전한 draft 저장 구조 적용 후 사용할 수 있습니다." : undefined}
+        className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
       >
         {copy.buttonLabel}
       </button>
@@ -88,15 +102,14 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
               >
                 취소
               </button>
-              <form action={action}>
-                <input type="hidden" name="menuId" value={menuId} />
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 sm:w-auto"
-                >
-                  {copy.submitLabel}
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={isPending}
+                className="inline-flex w-full items-center justify-center rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-200 sm:w-auto"
+              >
+                {isPending ? "처리 중..." : copy.submitLabel}
+              </button>
             </div>
           </div>
         </div>

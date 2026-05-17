@@ -1,28 +1,28 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
 import {
-  copyMenuPageAction,
   createCategoryAction,
   createMenuItemAction,
-  createMenuItemPriceOptionAction,
   createMenuPageAction,
-  deleteCategoryAction,
-  deleteMenuItemAction,
-  deleteMenuItemPriceOptionAction,
-  deleteMenuPageAction,
-  resetBadgeStyleKeyAction,
+  saveMenuManagementBasicDraftAction,
   updateCategoryAction,
-  updateBadgeStyleKeyAction,
   updateMenuItemAction,
-  updateMenuItemPriceOptionAction,
   updateMenuPageAction,
 } from "@/app/mypage/menus/actions";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
-import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
-import { getMenuItemBadgeLabel, MENU_BADGE_OPTIONS } from "@/lib/menu-badges";
+import type { StarterPreset } from "@/lib/menu-starter-presets";
+import {
+  getMenuItemBadgeLabel,
+  MENU_BADGE_CUSTOM_VALUE,
+  MENU_BADGE_MAX_LENGTH,
+  MENU_BADGE_OPTIONS,
+  PRICE_LIST_BADGE_OPTIONS,
+  normalizeMenuBadgeLabel,
+} from "@/lib/menu-badges";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import type { Database } from "@/lib/supabase/types";
 import {
@@ -34,6 +34,7 @@ import {
   type BadgeStyles,
 } from "@/lib/template-badge-styles";
 import type { TemplateCapabilities } from "@/lib/template-capabilities";
+import { getEditorLabelsByTemplateType, type TemplateEditorLabels } from "@/lib/template-types";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
 
 type MenuPage = Pick<
@@ -57,6 +58,7 @@ type MenuItem = Pick<
   | "portion_label"
   | "portion_visible"
   | "image_url"
+  | "image_path"
   | "badge_label"
   | "badge_type"
   | "recommended"
@@ -79,7 +81,70 @@ type MenuManagementSectionProps = {
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
   badgeStyles: BadgeStyles;
-  defaultBadgeStyles: BadgeStyles;
+  editorLabels?: TemplateEditorLabels;
+  starterPreset?: StarterPreset | null;
+  finalSaveMessage?: string | null;
+  finalSaveError?: string | null;
+};
+type DraftTarget =
+  | { type: "page"; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean }
+  | { type: "category"; pageId: string; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean };
+type DragState =
+  | { type: "page"; id: string }
+  | { type: "category"; id: string; pageId: string }
+  | { type: "item"; id: string; categoryId: string }
+  | null;
+
+type PageBasicDraft = {
+  isNew?: boolean;
+  title: string;
+  description?: string;
+  descriptionVisible?: boolean;
+  visible?: boolean;
+  sortOrder: number;
+};
+
+type CategoryBasicDraft = {
+  isNew?: boolean;
+  pageId?: string;
+  name: string;
+  description?: string;
+  descriptionVisible?: boolean;
+  visible?: boolean;
+  sortOrder: number;
+};
+
+type ItemBasicDraft = {
+  categoryId?: string;
+  isNew?: boolean;
+  imageUrl?: string | null;
+  imagePath?: string | null;
+  imageAction?: "keep" | "replace" | "delete";
+  name: string;
+  description: string;
+  originInfo: string;
+  price: string;
+  priceLabel: string;
+  badgeLabel: string;
+  visible: boolean;
+  sortOrder: number;
+  portionLabel?: string;
+  priceVisible?: boolean;
+  portionVisible?: boolean;
+  traitsVisible?: boolean;
+  traitDrafts?: ItemTraitDraft[];
+  priceOptions?: DraftPriceOption[];
+  badgeStyleKey?: BadgeStyleKey;
+  badgeBackgroundColor?: string;
+  badgeTextColor?: string;
+};
+type ItemTraitDraft = {
+  id?: string;
+  label: string;
+  value: number;
+  visible: boolean;
+  sortOrder: number;
+  maxValue?: number;
 };
 type PriceMode = "single" | "options";
 type DraftPriceOption = {
@@ -110,12 +175,63 @@ function readMenuBuilderState(menuId: string): MenuBuilderSavedState {
   }
 }
 
+function toItemTraitDrafts(traits: MenuItemTrait[], stripIds = false): ItemTraitDraft[] {
+  return [...traits]
+    .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at))
+    .slice(0, MENU_LIMITS.maxTraitsPerItem)
+    .map((trait) => ({
+      id: stripIds ? undefined : trait.id,
+      label: trait.label ?? "",
+      value: trait.value ?? MENU_FIELD_LIMITS.menuItemTraits.minValue,
+      visible: trait.visible,
+      sortOrder: trait.sort_order,
+      maxValue: trait.max_value ?? MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue,
+    }));
+}
+
+function copyItemTraitDrafts(traitDrafts?: ItemTraitDraft[]) {
+  return (traitDrafts ?? []).map((trait, index) => ({
+    ...trait,
+    id: undefined,
+    sortOrder: index,
+  }));
+}
+
 function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
   return (
     <label className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
       {children}
       {required && <span className="ml-1 text-red-500">*</span>}
     </label>
+  );
+}
+
+function HelpTooltip({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <span className="group/help relative inline-flex align-middle">
+      <button
+        type="button"
+        aria-label={label}
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-[11px] font-black text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+      >
+        ?
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 top-7 z-30 hidden w-72 -translate-x-1/2 rounded-lg border border-zinc-100 bg-white p-3 text-left text-xs font-semibold leading-relaxed text-zinc-600 shadow-xl group-hover/help:block group-focus-within/help:block"
+      >
+        {children}
+      </span>
+    </span>
+  );
+}
+
+function LabelWithHelp({ children, help }: { children: ReactNode; help: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span>{children}</span>
+      <HelpTooltip label={`${children} 도움말`}>{help}</HelpTooltip>
+    </span>
   );
 }
 
@@ -300,25 +416,37 @@ function Checkbox({
   name,
   defaultChecked,
   label,
+  description,
   form,
+  onText,
+  offText,
   canTurnOn,
   blockedMessage,
+  onCheckedChange,
 }: {
   name: string;
   defaultChecked?: boolean;
-  label: string;
+  label: ReactNode;
+  description?: ReactNode;
   form?: string;
+  onText?: string;
+  offText?: string;
   canTurnOn?: boolean;
   blockedMessage?: ReactNode;
+  onCheckedChange?: (checked: boolean) => void;
 }) {
   return (
     <SwitchField
       name={name}
       form={form}
       label={label}
+      description={description}
       defaultChecked={defaultChecked}
+      onText={onText}
+      offText={offText}
       canTurnOn={canTurnOn}
       blockedMessage={blockedMessage}
+      onCheckedChange={onCheckedChange}
     />
   );
 }
@@ -329,11 +457,12 @@ function SubmitButton({
   disabled = false,
   className: customClassName,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" | "final" }) {
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
     danger: "border border-red-100 bg-red-50 text-red-700 hover:bg-red-100",
+    final: "rounded-lg bg-zinc-950 text-white shadow-sm hover:bg-zinc-800",
   }[tone];
 
   return (
@@ -348,6 +477,14 @@ function SubmitButton({
   );
 }
 
+function FinalActionRow({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-4">
+      {children}
+    </div>
+  );
+}
+
 function HiddenMenuId({ menuId, form }: { menuId: string; form?: string }) {
   return <input type="hidden" name="menuId" value={menuId} form={form} />;
 }
@@ -357,12 +494,16 @@ function BadgeSelect({
   form,
   value,
   onChange,
+  variant = "menu",
 }: {
   defaultValue?: string | null;
   form?: string;
   value?: string;
   onChange?: (value: string) => void;
+  variant?: "menu" | "price_list";
 }) {
+  const options = variant === "price_list" ? PRICE_LIST_BADGE_OPTIONS : MENU_BADGE_OPTIONS;
+
   return (
     <Select
       name="item_badge_label"
@@ -371,7 +512,7 @@ function BadgeSelect({
       defaultValue={value === undefined ? defaultValue || "none" : undefined}
       onChange={(event) => onChange?.(event.target.value)}
     >
-      {MENU_BADGE_OPTIONS.map((option) => (
+      {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
         </option>
@@ -417,53 +558,49 @@ function ColorInput({
 }
 
 function BadgeColorInlineSettings({
-  menuId,
   formId,
   selectedBadgeLabel,
+  forceStyleKey,
   badgeStyles,
-  defaultBadgeStyles,
+  onColorChange,
 }: {
-  menuId: string;
   formId: string;
   selectedBadgeLabel: string;
+  forceStyleKey?: BadgeStyleKey;
   badgeStyles: BadgeStyles;
-  defaultBadgeStyles: BadgeStyles;
+  onColorChange?: (patch: Pick<ItemBasicDraft, "badgeStyleKey" | "badgeBackgroundColor" | "badgeTextColor">) => void;
 }) {
-  if (!selectedBadgeLabel || selectedBadgeLabel === "none") {
+  if (!selectedBadgeLabel && !forceStyleKey) {
     return <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">배지를 선택하면 색상을 조정할 수 있습니다.</p>;
   }
 
-  const styleKey = getBadgeStyleKey(selectedBadgeLabel);
-  const displayLabel = selectedBadgeLabel === "추천" ? "추천" : selectedBadgeLabel;
+  const styleKey = forceStyleKey ?? getBadgeStyleKey(selectedBadgeLabel);
+  const displayLabel = selectedBadgeLabel || "직접 입력";
   const selectedStyle = badgeStyles[styleKey];
-  const defaultStyle = defaultBadgeStyles[styleKey];
   return (
     <BadgeColorFields
       key={styleKey}
-      menuId={menuId}
       formId={formId}
       styleKey={styleKey}
       displayLabel={displayLabel}
       selectedStyle={selectedStyle}
-      defaultStyle={defaultStyle}
+      onColorChange={onColorChange}
     />
   );
 }
 
 function BadgeColorFields({
-  menuId,
   formId,
   styleKey,
   displayLabel,
   selectedStyle,
-  defaultStyle,
+  onColorChange,
 }: {
-  menuId: string;
   formId: string;
   styleKey: BadgeStyleKey;
   displayLabel: string;
   selectedStyle: BadgeStyle;
-  defaultStyle: BadgeStyle;
+  onColorChange?: (patch: Pick<ItemBasicDraft, "badgeStyleKey" | "badgeBackgroundColor" | "badgeTextColor">) => void;
 }) {
   const [backgroundColor, setBackgroundColor] = useState(selectedStyle.background_color);
   const [textColor, setTextColor] = useState(selectedStyle.text_color);
@@ -488,28 +625,29 @@ function BadgeColorFields({
       <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
         <div>
           <FieldLabel>배경색</FieldLabel>
-          <ColorInput name="badge_background_color" form={formId} value={backgroundColor} onChange={setBackgroundColor} />
+          <ColorInput
+            name="badge_background_color"
+            form={formId}
+            value={backgroundColor}
+            onChange={(value) => {
+              setBackgroundColor(value);
+              onColorChange?.({ badgeStyleKey: styleKey, badgeBackgroundColor: value, badgeTextColor: textColor });
+            }}
+          />
         </div>
         <div>
           <FieldLabel>글자색</FieldLabel>
-          <ColorInput name="badge_text_color" form={formId} value={textColor} onChange={setTextColor} />
+          <ColorInput
+            name="badge_text_color"
+            form={formId}
+            value={textColor}
+            onChange={(value) => {
+              setTextColor(value);
+              onColorChange?.({ badgeStyleKey: styleKey, badgeBackgroundColor: backgroundColor, badgeTextColor: value });
+            }}
+          />
         </div>
       </div>
-      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">아이템 저장을 누르면 배지 색상도 함께 저장됩니다.</p>
-      <form action={updateBadgeStyleKeyAction} className="mt-3 flex min-w-0 flex-wrap gap-2">
-        <HiddenMenuId menuId={menuId} />
-        <input type="hidden" name="badge_style_key" value={styleKey} />
-        <input type="hidden" name="badge_background_color" value={backgroundColor} />
-        <input type="hidden" name="badge_text_color" value={textColor} />
-        <SubmitButton className="min-w-0 px-4 py-2 text-xs">색상만 저장</SubmitButton>
-      </form>
-      <form action={resetBadgeStyleKeyAction} className="mt-2">
-        <HiddenMenuId menuId={menuId} />
-        <input type="hidden" name="badge_style_key" value={styleKey} />
-        <button type="submit" className="max-w-full break-keep text-left text-xs font-bold leading-relaxed text-zinc-400 underline-offset-4 hover:text-zinc-950 hover:underline">
-          {BADGE_STYLE_LABELS[styleKey]} 기본값으로 되돌리기 ({defaultStyle.background_color} / {defaultStyle.text_color})
-        </button>
-      </form>
     </div>
   );
 }
@@ -518,40 +656,103 @@ function EmptyState({ children }: { children: ReactNode }) {
   return <p className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-sm font-bold text-zinc-400">{children}</p>;
 }
 
-function DetailValue({ label, children }: { label: string; children: ReactNode }) {
+function getCopyName(name: string, existingNames: string[] = []) {
+  const normalizedName = name.replace(/^(?:\[복사본\]\s*)+/u, "").trim();
+  const baseName = `[복사본] ${normalizedName || name.trim() || "이름 없음"}`;
+  const existingNameSet = new Set(existingNames.map((existingName) => existingName.trim()));
+
+  if (!existingNameSet.has(baseName)) return baseName;
+
+  let copyIndex = 2;
+  while (existingNameSet.has(`${baseName} ${copyIndex}`)) {
+    copyIndex += 1;
+  }
+
+  return `${baseName} ${copyIndex}`;
+}
+
+function DragHandleIcon() {
   return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</p>
-      <div className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-700">{children || <span className="text-zinc-400">입력 전</span>}</div>
+    <span aria-hidden="true" className="inline-flex h-4 w-4 flex-col items-center justify-center gap-[3px]">
+      <span className="h-px w-[14px] rounded-full bg-current" />
+      <span className="h-px w-[14px] rounded-full bg-current" />
+      <span className="h-px w-[14px] rounded-full bg-current" />
+    </span>
+  );
+}
+
+function PanelHeader({
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="mb-5 flex min-w-0 flex-col justify-between gap-4 border-b border-zinc-100 pb-5 md:flex-row md:items-end">
+      <div className="min-w-0">
+        <h3 className="mt-1 line-clamp-2 break-words text-2xl font-black tracking-tight text-zinc-950">{title}</h3>
+        {description ? <p className="mt-2 break-words text-sm font-semibold leading-relaxed text-zinc-500">{description}</p> : null}
+      </div>
+      {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
 }
 
-function DeleteConfirmForm({
-  action,
-  menuId,
-  hiddenName,
-  hiddenValue,
+function DraftNameInput({
+  value,
+  onChange,
+  placeholder,
+  level,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  level: "page" | "category";
+}) {
+  return (
+    <input
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder}
+      className={`w-full rounded-md border border-dashed border-zinc-300 bg-white text-zinc-900 outline-none focus:border-zinc-950 ${
+        level === "page" ? "px-3 py-2 text-sm font-bold" : "px-3 py-2 text-xs font-bold"
+      }`}
+    />
+  );
+}
+
+function DetailValue({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="min-w-0 overflow-hidden">
+      <p className="break-words text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</p>
+      <div className="mt-2 min-w-0 whitespace-pre-wrap break-words text-sm font-semibold leading-relaxed text-zinc-700">{children || <span className="text-zinc-400">입력 전</span>}</div>
+    </div>
+  );
+}
+
+function DraftDeleteConfirmButton({
   title = "정말 삭제하시겠습니까?",
   description,
   disabledReason,
   isConfirming,
   onRequestConfirm,
+  onConfirm,
   onCancel,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
-  menuId: string;
-  hiddenName: string;
-  hiddenValue: string;
   title?: string;
   description?: string;
   disabledReason?: string;
   isConfirming: boolean;
   onRequestConfirm: () => void;
+  onConfirm: () => void;
   onCancel: () => void;
 }) {
-  if (!isConfirming) {
-    return (
+  return (
+    <>
       <button
         type="button"
         onClick={onRequestConfirm}
@@ -559,27 +760,24 @@ function DeleteConfirmForm({
       >
         삭제
       </button>
-    );
-  }
-
-  return (
-    <div className="rounded-lg border border-red-100 bg-red-50 p-4">
-      <p className="text-sm font-bold text-red-700">{title}</p>
-      {description && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{description}</p>}
-      {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
-      <div className="mt-3 flex flex-wrap gap-2">
-        <form action={action}>
-          <HiddenMenuId menuId={menuId} />
-          <input type="hidden" name={hiddenName} value={hiddenValue} />
-          <SubmitButton tone="danger" disabled={Boolean(disabledReason)}>
-            삭제 확정
-          </SubmitButton>
-        </form>
-        <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
-          취소
-        </button>
-      </div>
-    </div>
+      {isConfirming && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
+          <div className="w-full max-w-sm rounded-xl border border-red-100 bg-white p-5 shadow-xl">
+            <p className="text-base font-black text-red-700">{title}</p>
+            {description && <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">{description}</p>}
+            {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
+            <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+              <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                취소
+              </button>
+              <SubmitButton type="button" tone="danger" disabled={Boolean(disabledReason)} onClick={onConfirm}>
+                삭제 확정
+              </SubmitButton>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -588,60 +786,142 @@ function MenuPageForm({
   page,
   count,
   formId,
+  labels,
+  draftTitle,
+  onDraftTitleChange,
+  onDraftChange,
+  onDraftCommit,
   onCancel,
+  cancelLabel = "취소",
+  deleteAction,
+  draftActionLabel,
+  draftFeedback,
+  draftOnly = false,
+  supportsDescription = true,
 }: {
   menuId: string;
   page?: MenuPage;
   count: number;
   formId: string;
-  onCancel: () => void;
+  labels: TemplateEditorLabels;
+  draftTitle?: string;
+  onDraftTitleChange?: (title: string) => void;
+  onDraftChange?: (patch: Partial<PageBasicDraft>) => void;
+  onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
+  onCancel?: () => void;
+  cancelLabel?: string;
+  deleteAction?: ReactNode;
+  draftActionLabel?: string;
+  draftFeedback?: string;
+  draftOnly?: boolean;
+  supportsDescription?: boolean;
 }) {
-  const [title, setTitle] = useState(page?.title ?? `메뉴 페이지 ${count + 1}`);
+  const [title, setTitle] = useState(draftTitle ?? page?.title ?? `${labels.pageLabel} ${count + 1}`);
   const [description, setDescription] = useState(page?.description ?? "");
-  const titleInvalid = !title.trim() || title.length > MENU_FIELD_LIMITS.menuPages.title;
-  const hasDescription = Boolean(description.trim());
+  const [descriptionVisible, setDescriptionVisible] = useState(page?.description_visible ?? false);
+  const titleValue = page ? title : draftTitle !== undefined ? draftTitle : title;
+  const titleInvalid = !titleValue.trim() || titleValue.length > MENU_FIELD_LIMITS.menuPages.title;
+
+  function handleDraftCommit() {
+    onDraftTitleChange?.(titleValue);
+    onDraftChange?.(supportsDescription ? { title: titleValue, description, descriptionVisible } : { title: titleValue });
+    onDraftCommit?.();
+  }
 
   return (
-    <form id={formId} action={page ? updateMenuPageAction : createMenuPageAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+    <form
+      id={formId}
+      action={draftOnly ? undefined : page ? updateMenuPageAction : createMenuPageAction}
+      onSubmit={draftOnly ? (event) => event.preventDefault() : undefined}
+      className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4"
+    >
       <HiddenMenuId menuId={menuId} />
       {page && <input type="hidden" name="menuPageId" value={page.id} />}
       <div>
-        <FieldLabel required>페이지 이름</FieldLabel>
+        <FieldLabel required>{labels.pageLabel} 이름</FieldLabel>
         <input
           name="menu_page_title"
-          value={title}
+          value={titleValue}
           maxLength={MENU_FIELD_LIMITS.menuPages.title}
-          placeholder="페이지 이름을 입력하세요"
+          placeholder={`${labels.pageLabel} 이름을 입력하세요`}
           required
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            if (!page) {
+              onDraftTitleChange?.(event.target.value);
+              onDraftChange?.({ title: event.target.value });
+            }
+          }}
           className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
             titleInvalid ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
           }`}
         />
         <div className="mt-2 flex items-center justify-between text-xs font-bold">
           <span className={titleInvalid ? "text-red-600" : "text-zinc-400"}>
-            {!title.trim() ? "이름은 필수 입력입니다" : title.length > MENU_FIELD_LIMITS.menuPages.title ? `최대 ${MENU_FIELD_LIMITS.menuPages.title}자까지 입력 가능합니다` : ""}
+            {!titleValue.trim() ? "이름은 필수 입력입니다" : titleValue.length > MENU_FIELD_LIMITS.menuPages.title ? `최대 ${MENU_FIELD_LIMITS.menuPages.title}자까지 입력 가능합니다` : ""}
           </span>
-          <span className={title.length > MENU_FIELD_LIMITS.menuPages.title ? "text-red-600" : "text-zinc-400"}>{title.length} / {MENU_FIELD_LIMITS.menuPages.title}</span>
+          <span className={titleValue.length > MENU_FIELD_LIMITS.menuPages.title ? "text-red-600" : "text-zinc-400"}>{titleValue.length} / {MENU_FIELD_LIMITS.menuPages.title}</span>
         </div>
       </div>
-      <ValidatedTextArea name="menu_page_description" label="페이지 설명" defaultValue={page?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuPages.description} helperText="메뉴 페이지를 설명하는 짧은 문구입니다." onValueChange={setDescription} />
-      <ValidatedTextInput name="menu_page_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={page?.sort_order ?? count} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
-      <div className="grid gap-3">
-        <Checkbox
-          name="menu_page_description_visible"
-          label="설명 표시"
-          defaultChecked={Boolean((page?.description_visible ?? true) && hasDescription)}
-          canTurnOn={hasDescription}
-          blockedMessage="설명을 먼저 입력해주세요."
+      {supportsDescription && (
+        <ValidatedTextArea
+          name="menu_page_description"
+          label={`${labels.pageLabel} 설명`}
+          defaultValue={description}
+          placeholder={`${labels.pageLabel} 설명을 입력하세요`}
+          maxLength={MENU_FIELD_LIMITS.menuPages.description}
+          helperText={descriptionVisible ? `${labels.pageLabel}를 설명하는 짧은 문구입니다.` : "사용 안 함 상태에서는 공개 메뉴판에 설명이 표시되지 않습니다."}
+          onValueChange={(value) => {
+            setDescription(value);
+            if (!page) onDraftChange?.({ description: value });
+          }}
         />
-      </div>
-      <SubmitButton tone={page ? "light" : "dark"} disabled={titleInvalid}>
-        {page ? "페이지 저장" : "페이지 추가"}
-      </SubmitButton>
-      <button type="button" onClick={onCancel} className="ml-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
-        취소
-      </button>
+      )}
+      <ValidatedTextInput name="menu_page_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={page?.sort_order ?? 0} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
+      {supportsDescription && (
+        <div className="grid gap-3">
+          <Checkbox
+            name="menu_page_description_visible"
+            label={
+              <LabelWithHelp help="사용 안 함으로 바꿔도 입력한 설명은 삭제되지 않습니다. 공개 메뉴판에만 표시되지 않습니다.">
+                설명글 사용
+              </LabelWithHelp>
+            }
+            defaultChecked={descriptionVisible}
+            onText="사용함"
+            offText="사용 안 함"
+            onCheckedChange={(checked) => {
+              setDescriptionVisible(checked);
+              if (!page) onDraftChange?.({ descriptionVisible: checked });
+            }}
+          />
+        </div>
+      )}
+      {draftOnly ? (
+        <>
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <SubmitButton type="button" tone="final" disabled={titleInvalid} onClick={handleDraftCommit}>
+              {draftActionLabel ?? (page ? "수정 내용 반영" : `${labels.pageLabel} 추가`)}
+            </SubmitButton>
+            {onCancel && (
+              <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                {cancelLabel}
+              </button>
+            )}
+            {deleteAction}
+          </div>
+          <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">
+            변경 내용은 메뉴 관리 탭에 임시 반영됩니다.
+          </p>
+          {draftFeedback && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">{draftFeedback}</p>}
+        </>
+      ) : (
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <SubmitButton tone="final" disabled={titleInvalid}>
+            수정 내용 반영
+          </SubmitButton>
+        </div>
+      )}
     </form>
   );
 }
@@ -650,65 +930,151 @@ function MenuCategoryForm({
   menuId,
   pageId,
   category,
-  count,
   formId,
+  labels,
+  draftName,
+  onDraftNameChange,
+  onDraftChange,
+  onDraftCommit,
+  draftActionLabel,
+  draftFeedback,
+  draftOnly = false,
   onCancel,
+  cancelLabel = "취소",
+  deleteAction,
+  cancelHelperText,
 }: {
   menuId: string;
   pageId: string;
   category?: MenuCategory;
-  count: number;
   formId: string;
-  onCancel: () => void;
+  labels: TemplateEditorLabels;
+  draftName?: string;
+  onDraftNameChange?: (name: string) => void;
+  onDraftChange?: (patch: Partial<CategoryBasicDraft>) => void;
+  onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
+  draftActionLabel?: string;
+  draftFeedback?: string;
+  draftOnly?: boolean;
+  onCancel?: () => void;
+  cancelLabel?: string;
+  deleteAction?: ReactNode;
+  cancelHelperText?: string;
 }) {
-  const [name, setName] = useState(category?.name ?? "");
+  const [name, setName] = useState(draftName ?? category?.name ?? "");
   const [description, setDescription] = useState(category?.description ?? "");
-  const nameInvalid = !name.trim() || name.length > MENU_FIELD_LIMITS.menuCategories.name;
-  const hasDescription = Boolean(description.trim());
+  const [descriptionVisible, setDescriptionVisible] = useState(category?.description_visible ?? false);
+  const [visible, setVisible] = useState(category?.visible ?? true);
+  const nameValue = category ? name : draftName !== undefined ? draftName : name;
+  const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuCategories.name;
+
+  function handleDraftCommit() {
+    onDraftNameChange?.(nameValue);
+    onDraftChange?.({ name: nameValue, description, descriptionVisible, visible });
+    onDraftCommit?.();
+  }
 
   return (
-    <form id={formId} action={category ? updateCategoryAction : createCategoryAction} className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+    <form
+      id={formId}
+      action={draftOnly ? undefined : category ? updateCategoryAction : createCategoryAction}
+      onSubmit={draftOnly ? (event) => event.preventDefault() : undefined}
+      className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4"
+    >
       <HiddenMenuId menuId={menuId} />
       {category && <input type="hidden" name="categoryId" value={category.id} />}
       <input type="hidden" name="category_menu_page_id" value={category?.menu_page_id ?? pageId} />
       <div>
-        <FieldLabel required>메뉴 그룹 이름</FieldLabel>
+        <FieldLabel required>{labels.categoryLabel} 이름</FieldLabel>
         <input
           name="category_name"
-          value={name}
+          value={nameValue}
           maxLength={MENU_FIELD_LIMITS.menuCategories.name}
-          placeholder="메뉴 그룹 이름을 입력하세요"
+          placeholder={labels.categoryNamePlaceholder}
           required
-          onChange={(event) => setName(event.target.value)}
+          onChange={(event) => {
+            setName(event.target.value);
+            if (!category) {
+              onDraftNameChange?.(event.target.value);
+              onDraftChange?.({ name: event.target.value });
+            }
+          }}
           className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
             nameInvalid ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
           }`}
         />
         <div className="mt-2 flex items-center justify-between text-xs font-bold">
           <span className={nameInvalid ? "text-red-600" : "text-zinc-400"}>
-            {!name.trim() ? "이름은 필수 입력입니다" : name.length > MENU_FIELD_LIMITS.menuCategories.name ? `최대 ${MENU_FIELD_LIMITS.menuCategories.name}자까지 입력 가능합니다` : ""}
+            {!nameValue.trim() ? "이름은 필수 입력입니다" : nameValue.length > MENU_FIELD_LIMITS.menuCategories.name ? `최대 ${MENU_FIELD_LIMITS.menuCategories.name}자까지 입력 가능합니다` : ""}
           </span>
-          <span className={name.length > MENU_FIELD_LIMITS.menuCategories.name ? "text-red-600" : "text-zinc-400"}>{name.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
+          <span className={nameValue.length > MENU_FIELD_LIMITS.menuCategories.name ? "text-red-600" : "text-zinc-400"}>{nameValue.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
         </div>
       </div>
-      <ValidatedTextArea name="category_description" label="메뉴 그룹 설명" defaultValue={category?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuCategories.description} helperText="메뉴 그룹 소개 문구입니다." onValueChange={setDescription} />
-      <ValidatedTextInput name="category_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={category?.sort_order ?? count} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
+      <ValidatedTextArea
+        name="category_description"
+        label={`${labels.categoryLabel} 설명`}
+        defaultValue={description}
+        placeholder={`${labels.categoryLabel} 설명을 입력하세요`}
+        maxLength={MENU_FIELD_LIMITS.menuCategories.description}
+        helperText={descriptionVisible ? `${labels.categoryLabel} 소개 문구입니다.` : "사용 안 함 상태에서는 공개 메뉴판에 설명이 표시되지 않습니다."}
+        onValueChange={(value) => {
+          setDescription(value);
+          if (!category) onDraftChange?.({ description: value });
+        }}
+      />
+      <ValidatedTextInput name="category_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={category?.sort_order ?? 0} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
       <div className="grid gap-3">
         <Checkbox
           name="category_description_visible"
-          label="설명 표시"
-          defaultChecked={Boolean((category?.description_visible ?? true) && hasDescription)}
-          canTurnOn={hasDescription}
-          blockedMessage="카테고리 설명을 먼저 입력해주세요."
+          label={
+            <LabelWithHelp help="사용 안 함으로 바꿔도 입력한 설명은 삭제되지 않습니다. 공개 메뉴판에만 표시되지 않습니다.">
+              설명글 사용
+            </LabelWithHelp>
+          }
+          defaultChecked={descriptionVisible}
+          onText="사용함"
+          offText="사용 안 함"
+          onCheckedChange={(checked) => {
+            setDescriptionVisible(checked);
+            if (!category) onDraftChange?.({ descriptionVisible: checked });
+          }}
         />
-        <Checkbox name="category_visible" label="메뉴판 표시" defaultChecked={category?.visible ?? true} />
+        <Checkbox
+          name="category_visible"
+          label="메뉴판 표시"
+          defaultChecked={visible}
+          onCheckedChange={(checked) => {
+            setVisible(checked);
+            if (!category) onDraftChange?.({ visible: checked });
+          }}
+        />
       </div>
-      <SubmitButton tone={category ? "light" : "dark"} disabled={nameInvalid}>
-        {category ? "메뉴 그룹 저장" : "메뉴 그룹 추가"}
-      </SubmitButton>
-      <button type="button" onClick={onCancel} className="ml-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
-        취소
-      </button>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        {draftOnly ? (
+          <SubmitButton type="button" tone="final" disabled={nameInvalid} onClick={handleDraftCommit}>
+            {draftActionLabel ?? (category ? "수정 내용 반영" : `${labels.categoryLabel} 추가`)}
+          </SubmitButton>
+        ) : (
+          <SubmitButton tone="final" disabled={nameInvalid}>
+            수정 내용 반영
+          </SubmitButton>
+        )}
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+            {cancelLabel}
+          </button>
+        )}
+        {deleteAction}
+      </div>
+      {cancelHelperText && <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">{cancelHelperText}</p>}
+      {draftOnly && (
+        <>
+          <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">
+            변경 내용은 메뉴 관리 탭에 임시 반영됩니다.
+          </p>
+          {draftFeedback && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">{draftFeedback}</p>}
+        </>
+      )}
     </form>
   );
 }
@@ -718,34 +1084,58 @@ function MenuItemForm({
   categories,
   capabilities,
   badgeStyles,
-  defaultBadgeStyles,
+  labels,
   item,
+  draftItem,
+  onDraftItemChange,
+  onDraftCommit,
+  onDraftCommitMessageClear,
+  onCancel,
+  cancelLabel = "취소",
+  deleteAction,
+  cancelHelperText,
+  draftOnly = false,
+  draftName,
+  onDraftNameChange,
   itemCount,
   selectedCategoryId,
   priceOptions = [],
   traits = [],
   priceMode = "single",
   onPriceModeChange,
-  onCancel,
 }: {
   menuId: string;
   categories: MenuCategory[];
   capabilities: TemplateCapabilities;
   badgeStyles: BadgeStyles;
-  defaultBadgeStyles: BadgeStyles;
+  labels: TemplateEditorLabels;
   item?: MenuItem;
+  draftItem?: ItemBasicDraft;
+  onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
+  onDraftCommit?: () => void;
+  onDraftCommitMessageClear?: () => void;
+  onCancel?: () => void;
+  cancelLabel?: string;
+  deleteAction?: ReactNode;
+  cancelHelperText?: string;
+  draftOnly?: boolean;
+  draftName?: string;
+  onDraftNameChange?: (name: string) => void;
   itemCount: number;
   selectedCategoryId: string;
   priceOptions?: MenuItemPriceOption[];
   traits?: MenuItemTrait[];
   priceMode?: PriceMode;
   onPriceModeChange?: (mode: PriceMode) => void;
-  onCancel: () => void;
 }) {
-  const [name, setName] = useState(item?.name ?? "");
-  const [selectedBadgeLabel, setSelectedBadgeLabel] = useState(item ? getMenuItemBadgeLabel(item) || "none" : "none");
+  const initialBadgeLabel = draftItem?.badgeLabel ?? (item ? getMenuItemBadgeLabel(item) : "");
+  const initialDefaultBadgeLabel = normalizeMenuBadgeLabel(initialBadgeLabel);
+  const [name, setName] = useState(draftItem?.name ?? item?.name ?? "");
+  const [selectedBadgeLabel, setSelectedBadgeLabel] = useState(initialBadgeLabel ? initialDefaultBadgeLabel ?? MENU_BADGE_CUSTOM_VALUE : "none");
+  const [customBadgeLabel, setCustomBadgeLabel] = useState(initialDefaultBadgeLabel ? "" : initialBadgeLabel);
   const [categoryId, setCategoryId] = useState(item?.category_id ?? selectedCategoryId);
-  const nameInvalid = !name.trim() || name.length > MENU_FIELD_LIMITS.menuItems.name;
+  const nameValue = !item && draftName !== undefined ? draftName : name;
+  const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuItems.name;
   const categoryInvalid = !categoryId;
   const [draftPriceMode, setDraftPriceMode] = useState<PriceMode>(priceMode);
   const requestedPriceMode = item ? priceMode : draftPriceMode;
@@ -753,28 +1143,116 @@ function MenuItemForm({
   const isOptionsMode = currentPriceMode === "options";
   const isSingleMode = !isOptionsMode;
   const formId = item ? `menu-item-form-${item.id}` : "menu-item-form-new";
-  const [priceValue, setPriceValue] = useState(item?.price == null ? "" : String(item.price));
-  const [, setPriceLabelValue] = useState(item?.price_label ?? "");
+  const [priceValue, setPriceValue] = useState(draftItem?.price ?? (item?.price == null ? "" : String(item.price)));
+  const [priceLabelValue, setPriceLabelValue] = useState(draftItem?.priceLabel ?? item?.price_label ?? "");
+  const [descriptionValue, setDescriptionValue] = useState(draftItem?.description ?? item?.description ?? "");
+  const [originInfoValue, setOriginInfoValue] = useState(draftItem?.originInfo ?? item?.origin_info ?? "");
+  const [visibleValue, setVisibleValue] = useState(draftItem?.visible ?? item?.visible ?? true);
+  const [priceVisibleValue, setPriceVisibleValue] = useState(draftItem?.priceVisible ?? item?.price_visible ?? true);
+  const [portionVisibleValue, setPortionVisibleValue] = useState(draftItem?.portionVisible ?? item?.portion_visible ?? true);
+  const [traitsVisibleValue, setTraitsVisibleValue] = useState(draftItem?.traitsVisible ?? item?.traits_visible ?? true);
+  const [draftImageState, setDraftImageState] = useState<{
+    imageUrl: string | null;
+    imagePath: string | null;
+    imageAction: "keep" | "replace" | "delete";
+  }>({
+    imageUrl: draftItem?.imageUrl ?? item?.image_url ?? null,
+    imagePath: draftItem?.imagePath ?? item?.image_path ?? null,
+    imageAction: draftItem?.imageAction ?? "keep",
+  });
   const [draftPriceOptions, setDraftPriceOptions] = useState<DraftPriceOption[]>([]);
   const [draftPriceOptionLabel, setDraftPriceOptionLabel] = useState("");
   const [draftPriceOptionPrice, setDraftPriceOptionPrice] = useState("");
   const [draftPriceOptionPriceLabel, setDraftPriceOptionPriceLabel] = useState("");
   const [draftPriceOptionError, setDraftPriceOptionError] = useState("");
   const [attemptedItemSubmit, setAttemptedItemSubmit] = useState(false);
-  const [portionLabelValue, setPortionLabelValue] = useState(item?.portion_label ?? "");
+  const [portionLabelValue, setPortionLabelValue] = useState(draftItem?.portionLabel ?? item?.portion_label ?? "");
+  const initialTraitDrafts = draftItem?.traitDrafts ?? toItemTraitDrafts(traits);
   const [traitLabelValues, setTraitLabelValues] = useState(() =>
-    [...traits]
-      .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at))
-      .slice(0, MENU_LIMITS.maxTraitsPerItem)
-      .map((trait) => trait.label)
+    Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => initialTraitDrafts[index]?.label ?? "")
   );
   const hasVisiblePriceOption = priceOptions.some((option) => option.visible);
   const hasDraftPriceOption = draftPriceOptions.some((option) => option.visible);
-  const singlePriceInvalid = isSingleMode && !priceValue.trim();
+  const singlePriceInvalid = isSingleMode && !priceValue.trim() && !priceLabelValue.trim();
   const optionsPriceInvalid = isOptionsMode && !(hasVisiblePriceOption || hasDraftPriceOption);
-  const singlePriceErrorText = attemptedItemSubmit && singlePriceInvalid ? "기본 가격을 입력해주세요." : undefined;
+  const singlePriceErrorText = attemptedItemSubmit && singlePriceInvalid ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해주세요.` : undefined;
+  const isCustomBadge = selectedBadgeLabel === MENU_BADGE_CUSTOM_VALUE;
+  const customBadgeTooLong = isCustomBadge && customBadgeLabel.length > MENU_BADGE_MAX_LENGTH;
+  const itemSaveDisabledReason = nameInvalid
+    ? `${labels.itemNameLabel}을 입력해야 반영할 수 있습니다.`
+    : categoryInvalid
+      ? `${labels.categoryLabel}을 선택해야 반영할 수 있습니다.`
+      : singlePriceInvalid
+        ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해야 반영할 수 있습니다.`
+        : optionsPriceInvalid
+          ? "옵션별 가격을 1개 이상 추가해야 반영할 수 있습니다."
+          : customBadgeTooLong
+            ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
+            : "";
+  const itemDraftSaveDisabled = nameInvalid || categoryInvalid || singlePriceInvalid || optionsPriceInvalid || customBadgeTooLong;
+  const itemDraftActionLabel = item ? "수정 내용 반영" : labels.itemLabel === "서비스" ? "서비스 추가" : "아이템 추가";
   const hasPortionData = Boolean(portionLabelValue.trim());
   const hasTraitData = traitLabelValues.some((label) => label.trim());
+  const visibleBadgeLabel = isCustomBadge ? customBadgeLabel.trim() : selectedBadgeLabel !== "none" ? selectedBadgeLabel : "";
+  const badgeVariant = labels.itemLabel === "서비스" ? "price_list" : "menu";
+  const displayImageUrl = draftImageState.imageAction === "delete" ? "" : draftImageState.imageUrl ?? "";
+
+  function updateBadgeDraft(nextSelectedBadgeLabel: string, nextCustomBadgeLabel = customBadgeLabel) {
+    const nextBadgeLabel =
+      nextSelectedBadgeLabel === MENU_BADGE_CUSTOM_VALUE
+        ? nextCustomBadgeLabel.trim()
+        : nextSelectedBadgeLabel !== "none"
+          ? nextSelectedBadgeLabel
+          : "";
+    if (nextBadgeLabel.length > MENU_BADGE_MAX_LENGTH) return;
+    updateDraftItem({ badgeLabel: nextBadgeLabel });
+  }
+
+  function updateDraftItem(patch: Partial<ItemBasicDraft>) {
+    onDraftCommitMessageClear?.();
+    onDraftItemChange?.(patch);
+  }
+
+  function getCurrentFormDraftPatch(): Partial<ItemBasicDraft> {
+    const formElement = document.getElementById(formId) as HTMLFormElement | null;
+    const formData = formElement ? new FormData(formElement) : null;
+    const badgeValue = String(formData?.get("item_badge_label") ?? selectedBadgeLabel);
+    const customBadgeValue = String(formData?.get("item_custom_badge_label") ?? customBadgeLabel);
+    const nextBadgeLabel =
+      badgeValue === MENU_BADGE_CUSTOM_VALUE
+        ? customBadgeValue.trim()
+        : badgeValue && badgeValue !== "none"
+          ? badgeValue
+          : "";
+    const traitDrafts = Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => ({
+      id: String(formData?.get(`trait_slot_${index}_id`) ?? "") || undefined,
+      label: String(formData?.get(`trait_slot_${index}_label`) ?? ""),
+      value: Number(String(formData?.get(`trait_slot_${index}_value`) ?? MENU_FIELD_LIMITS.menuItemTraits.minValue)) || MENU_FIELD_LIMITS.menuItemTraits.minValue,
+      visible: formData ? formData.has(`trait_slot_${index}_visible`) : Boolean(draftItem?.traitDrafts?.[index]?.visible),
+      sortOrder: Number(String(formData?.get(`trait_slot_${index}_sort_order`) ?? index)) || index,
+      maxValue: initialTraitDrafts[index]?.maxValue ?? MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue,
+    }));
+
+    return {
+      categoryId: String(formData?.get("item_category_id") ?? categoryId),
+      name: String(formData?.get("item_name") ?? nameValue),
+      description: String(formData?.get("item_description") ?? descriptionValue),
+      originInfo: String(formData?.get("item_origin_info") ?? originInfoValue),
+      price: String(formData?.get("item_price") ?? priceValue),
+      priceLabel: String(formData?.get("item_price_label") ?? priceLabelValue),
+      badgeLabel: nextBadgeLabel,
+      visible: formData ? formData.has("item_visible") : visibleValue,
+      sortOrder: Number(String(formData?.get("item_sort_order") ?? item?.sort_order ?? itemCount)) || 0,
+      priceVisible: formData ? formData.has("item_price_visible") : priceVisibleValue,
+      portionLabel: String(formData?.get("item_portion_label") ?? portionLabelValue),
+      portionVisible: formData ? formData.has("item_portion_visible") : portionVisibleValue,
+      traitsVisible: formData ? formData.has("item_traits_visible") : traitsVisibleValue,
+      traitDrafts,
+      imageUrl: draftImageState.imageUrl,
+      imagePath: draftImageState.imagePath,
+      imageAction: draftImageState.imageAction,
+    };
+  }
 
   function setPriceMode(mode: PriceMode) {
     if (!capabilities.priceOptions && mode === "options") {
@@ -805,7 +1283,7 @@ function MenuItemForm({
     }
 
     if (draftPriceOptions.length >= MENU_LIMITS.maxPriceOptionsPerItem) {
-      setDraftPriceOptionError(`가격 옵션은 아이템당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`);
+      setDraftPriceOptionError(`가격 옵션은 ${labels.itemLabel}당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`);
       return;
     }
 
@@ -847,7 +1325,12 @@ function MenuItemForm({
 
   return (
     <div className="mt-4 grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-      <form id={formId} action={item ? updateMenuItemAction : createMenuItemAction} onSubmit={handleItemSubmit} className="hidden" />
+      <form
+        id={formId}
+        action={draftOnly ? undefined : item ? updateMenuItemAction : createMenuItemAction}
+        onSubmit={draftOnly ? (event) => event.preventDefault() : handleItemSubmit}
+        className="hidden"
+      />
       <HiddenMenuId menuId={menuId} form={formId} />
       {item && <input type="hidden" name="itemId" value={item.id} form={formId} />}
       <input type="hidden" name="item_price_mode" value={currentPriceMode} form={formId} />
@@ -864,19 +1347,22 @@ function MenuItemForm({
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
         <h4 className="text-sm font-black text-zinc-950">기본 정보</h4>
         <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          메뉴의 소속, 이름, 설명, 원산지 정보를 입력합니다.
+          {labels.itemLabel}의 소속, 이름, 설명, 원산지 정보를 입력합니다.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <FieldLabel required>메뉴 그룹</FieldLabel>
+            <FieldLabel required>{labels.categoryLabel}</FieldLabel>
             <Select
               name="item_category_id"
               form={formId}
               value={categoryId}
               required
-              onChange={(event) => setCategoryId(event.target.value)}
+              onChange={(event) => {
+                setCategoryId(event.target.value);
+                updateDraftItem({ categoryId: event.target.value });
+              }}
             >
-              {categories.length === 0 && <option value="">메뉴 그룹을 선택하세요</option>}
+              {categories.length === 0 && <option value="">{labels.categoryLabel}을 선택하세요</option>}
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -884,99 +1370,163 @@ function MenuItemForm({
               ))}
             </Select>
             <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${categoryInvalid ? "text-red-600" : "text-zinc-400"}`}>
-              {categoryInvalid ? "메뉴 그룹을 선택해주세요." : "이 메뉴가 표시될 메뉴 그룹을 선택하세요."}
+              {categoryInvalid ? `${labels.categoryLabel}을 선택해주세요.` : `이 ${labels.itemLabel}가 표시될 ${labels.categoryLabel}을 선택하세요.`}
             </p>
           </div>
           <div>
-            <FieldLabel required>메뉴명</FieldLabel>
+            <FieldLabel required>{labels.itemNameLabel}</FieldLabel>
             <input
               name="item_name"
               form={formId}
-              value={name}
+              value={nameValue}
               maxLength={MENU_FIELD_LIMITS.menuItems.name}
-              placeholder="메뉴 이름을 입력하세요"
+              placeholder={labels.itemNamePlaceholder}
               required
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                setName(event.target.value);
+                onDraftCommitMessageClear?.();
+                if (item) updateDraftItem({ name: event.target.value });
+                if (!item) onDraftNameChange?.(event.target.value);
+              }}
               className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
                 nameInvalid ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
               }`}
             />
             <div className="mt-2 flex items-center justify-between text-xs font-bold">
               <span className={nameInvalid ? "text-red-600" : "text-zinc-400"}>
-                {!name.trim()
-                  ? "메뉴명을 입력해주세요."
-                  : name.length > MENU_FIELD_LIMITS.menuItems.name
+                {!nameValue.trim()
+                  ? `${labels.itemNameLabel}을 입력해주세요.`
+                  : nameValue.length > MENU_FIELD_LIMITS.menuItems.name
                     ? `최대 ${MENU_FIELD_LIMITS.menuItems.name}자까지 입력 가능합니다`
                     : ""}
               </span>
-              <span className={name.length > MENU_FIELD_LIMITS.menuItems.name ? "text-red-600" : "text-zinc-400"}>{name.length} / {MENU_FIELD_LIMITS.menuItems.name}</span>
+              <span className={nameValue.length > MENU_FIELD_LIMITS.menuItems.name ? "text-red-600" : "text-zinc-400"}>{nameValue.length} / {MENU_FIELD_LIMITS.menuItems.name}</span>
             </div>
           </div>
           <div className="md:col-span-2">
-            <ValidatedTextArea form={formId} name="item_description" label="간단 설명" defaultValue={item?.description ?? ""} placeholder="간단한 설명을 입력하세요" maxLength={MENU_FIELD_LIMITS.menuItems.description} helperText="재료, 맛, 추천 포인트를 짧게 적어주세요." />
-          </div>
-          <div className="md:col-span-2">
-            <FieldLabel>원산지 정보</FieldLabel>
-            <TextArea
-              name="item_origin_info"
+            <ValidatedTextArea
               form={formId}
-              defaultValue={item?.origin_info ?? ""}
-              placeholder="원산지나 주요 재료 정보를 입력하세요"
-              maxLength={MENU_FIELD_LIMITS.menuItems.originInfo}
-              helperText="필요한 경우 원산지나 주요 재료 정보를 입력하세요. 예: 원두 브라질/콜롬비아, 돼지고기 국내산"
+              name="item_description"
+              label={labels.itemDescriptionLabel}
+              defaultValue={descriptionValue}
+              placeholder={labels.itemDescriptionPlaceholder}
+              maxLength={MENU_FIELD_LIMITS.menuItems.description}
+              helperText={labels.itemDescriptionHelperText}
+              onValueChange={(value) => {
+                setDescriptionValue(value);
+                updateDraftItem({ description: value });
+              }}
             />
           </div>
+          {capabilities.originInfo && (
+            <div className="md:col-span-2">
+              <FieldLabel>원산지 정보</FieldLabel>
+              <TextArea
+                name="item_origin_info"
+                form={formId}
+                value={originInfoValue}
+                placeholder="원산지나 주요 재료 정보를 입력하세요"
+                maxLength={MENU_FIELD_LIMITS.menuItems.originInfo}
+                helperText="필요한 경우 원산지나 주요 재료 정보를 입력하세요. 예: 원두 브라질/콜롬비아, 돼지고기 국내산"
+                onChange={(event) => {
+                  setOriginInfoValue(event.target.value);
+                  updateDraftItem({ originInfo: event.target.value });
+                }}
+              />
+            </div>
+          )}
         </div>
       </section>
 
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
         <h4 className="text-sm font-black text-zinc-950">노출 설정</h4>
-        <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          공개 메뉴판에 표시를 끄면 손님 화면에서 보이지 않습니다. 메뉴명과 카테고리는 저장 전에 반드시 입력해야 합니다.
-        </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ValidatedTextInput form={formId} name="item_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={item?.sort_order ?? itemCount} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
           {capabilities.itemBadges ? (
             <div className="min-w-0">
-              <FieldLabel>메뉴 배지</FieldLabel>
+              <FieldLabel>{labels.itemLabel} 배지</FieldLabel>
               <div className="mt-2 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                <BadgeSelect form={formId} value={selectedBadgeLabel} onChange={setSelectedBadgeLabel} />
-                {selectedBadgeLabel !== "none" && (
+                <BadgeSelect
+                  form={formId}
+                  value={selectedBadgeLabel}
+                  onChange={(value) => {
+                    setSelectedBadgeLabel(value);
+                    updateBadgeDraft(value);
+                  }}
+                  variant={badgeVariant}
+                />
+                {visibleBadgeLabel && (
                   <span
                     className="inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-black"
-                    style={getBadgeStyleCss(badgeStyles[getBadgeStyleKey(selectedBadgeLabel)])}
+                    style={getBadgeStyleCss(badgeStyles[getBadgeStyleKey(visibleBadgeLabel)])}
                   >
-                    {selectedBadgeLabel}
+                    {visibleBadgeLabel}
                   </span>
                 )}
               </div>
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                선택한 배지는 공개 메뉴판의 메뉴 카드에 작게 표시됩니다.
-              </p>
+              {isCustomBadge && (
+                <div className="mt-3">
+                  <FieldLabel>배지 문구</FieldLabel>
+                  <input
+                    name="item_custom_badge_label"
+                    form={formId}
+                    value={customBadgeLabel}
+                    placeholder="예: 수제, 시그니처"
+                    onChange={(event) => {
+                      setCustomBadgeLabel(event.target.value);
+                      updateBadgeDraft(selectedBadgeLabel, event.target.value);
+                    }}
+                    className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+                      customBadgeTooLong ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
+                    }`}
+                  />
+                  <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+                    <span className={`break-keep ${customBadgeTooLong ? "text-red-600" : ""}`}>
+                      {customBadgeTooLong ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.` : "배지는 메뉴판에 작게 표시되는 문구입니다."}
+                    </span>
+                    <span className={`shrink-0 ${customBadgeTooLong ? "text-red-600" : ""}`}>{customBadgeLabel.length} / {MENU_BADGE_MAX_LENGTH}</span>
+                  </div>
+                </div>
+              )}
               <BadgeColorInlineSettings
-                menuId={menuId}
                 formId={formId}
-                selectedBadgeLabel={selectedBadgeLabel}
+                selectedBadgeLabel={visibleBadgeLabel}
+                forceStyleKey={isCustomBadge ? "default" : undefined}
                 badgeStyles={badgeStyles}
-                defaultBadgeStyles={defaultBadgeStyles}
+                onColorChange={(patch) => updateDraftItem(patch)}
               />
             </div>
           ) : (
             <input type="hidden" name="item_badge_label" value={item ? getMenuItemBadgeLabel(item) || "none" : "none"} form={formId} />
           )}
           <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
-            <Checkbox form={formId} name="item_visible" label="공개 메뉴판에 표시" defaultChecked={item?.visible ?? true} />
+            <Checkbox
+              form={formId}
+              name="item_visible"
+              label="공개 메뉴판에 표시"
+              defaultChecked={visibleValue}
+              onCheckedChange={(checked) => {
+                setVisibleValue(checked);
+                updateDraftItem({ visible: checked });
+              }}
+            />
           </div>
         </div>
       </section>
 
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
-        <h4 className="text-sm font-black text-zinc-950">가격 설정</h4>
-        <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          이 메뉴의 가격을 어떻게 보여줄지 선택하세요.
-        </p>
+        <h4 className="inline-flex items-center gap-2 text-sm font-black text-zinc-950">
+          가격 설정
+          <HelpTooltip label="가격 설정 도움말">
+            단일 가격은 하나의 가격을 보여줄 때 사용하고, 옵션별 가격은 HOT/ICE나 사이즈별 가격처럼 여러 가격을 보여줄 때 사용합니다.
+          </HelpTooltip>
+        </h4>
         <div className="mt-4">
-          <FieldLabel>가격 표시 방식</FieldLabel>
+          <FieldLabel>
+            <LabelWithHelp help="단일 가격은 기본 가격 또는 표시용 가격을 한 번만 보여줍니다. 옵션별 가격은 여러 가격 문구를 보여줄 때 사용합니다.">
+              가격 표시 방식
+            </LabelWithHelp>
+          </FieldLabel>
         </div>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           {(capabilities.priceOptions ? (["single", "options"] as const) : (["single"] as const)).map((mode) => (
@@ -998,7 +1548,7 @@ function MenuItemForm({
                 {mode === "single" ? "단일 가격" : "옵션별 가격"}
                 <span className="mt-1 block text-xs font-semibold leading-relaxed text-zinc-400">
                   {mode === "single"
-                    ? "기본 가격 또는 가격 표시 문구를 한 번만 보여줍니다."
+                    ? `기본 가격 또는 ${labels.priceLabelLabel}을 한 번만 보여줍니다.`
                     : "HOT/ICE, 사이즈, 중량처럼 가격이 나뉘는 경우 사용합니다."}
                 </span>
               </span>
@@ -1010,39 +1560,43 @@ function MenuItemForm({
             <ValidatedTextInput
               form={formId}
               name="item_price"
-              label="기본 가격"
+              label={`기본 ${labels.priceLabel}`}
               type="number"
               min={0}
               step={1}
-              defaultValue={item?.price ?? ""}
-              placeholder="가격을 입력하세요"
+              defaultValue={priceValue}
+              placeholder={labels.pricePlaceholder}
               requiredIndicator
               helperText="숫자만 입력해주세요. 예: 4500"
               errorText={singlePriceErrorText}
-              onValueChange={setPriceValue}
+              onValueChange={(value) => {
+                setPriceValue(value);
+                updateDraftItem({ price: value });
+              }}
             />
             <ValidatedTextInput
               form={formId}
               name="item_price_label"
-              label="가격 표시 문구"
-              defaultValue={item?.price_label ?? ""}
-              placeholder="예: 4,500원, 시가, 변동가, 문의"
+              label={labels.priceLabelLabel}
+              defaultValue={priceLabelValue}
+              placeholder={labels.priceLabelPlaceholder}
               maxLength={MENU_FIELD_LIMITS.menuItems.priceLabel}
-              helperText="메뉴판에 그대로 보여줄 가격 문구입니다. 예: 4,500원, 시가, 변동가, 문의"
-              onValueChange={setPriceLabelValue}
+              helperText={labels.priceLabelHelperText}
+              onValueChange={(value) => {
+                setPriceLabelValue(value);
+                updateDraftItem({ priceLabel: value });
+              }}
             />
           </div>
         )}
         {isOptionsMode && (
           <div className="mt-4">
-            <p className="break-keep text-sm font-bold leading-relaxed text-zinc-500">
-              HOT/ICE, 사이즈, 중량처럼 가격이 나뉘는 경우 사용합니다. 옵션별 가격을 사용하면 기본 가격은 공개 메뉴판에 표시되지 않습니다.
-            </p>
             {item ? (
-              <MenuItemPriceOptionsEditor menuId={menuId} itemId={item.id} priceOptions={priceOptions} />
+              <MenuItemPriceOptionsEditor priceOptions={priceOptions} />
             ) : (
               <DraftPriceOptionsEditor
                 options={draftPriceOptions}
+                labels={labels}
                 label={draftPriceOptionLabel}
                 price={draftPriceOptionPrice}
                 priceLabel={draftPriceOptionPriceLabel}
@@ -1060,28 +1614,45 @@ function MenuItemForm({
           <Checkbox
             form={formId}
             name="item_price_visible"
-            label="공개 메뉴판에 가격 표시"
-            description="끄면 공개 메뉴판에서 이 메뉴의 가격 정보가 숨겨집니다."
-            defaultChecked={item?.price_visible ?? true}
+            label={`공개 메뉴판에 ${labels.priceLabel} 표시`}
+            description={`끄면 공개 메뉴판에서 이 ${labels.itemLabel}의 ${labels.priceLabel} 정보가 숨겨집니다.`}
+            defaultChecked={priceVisibleValue}
+            onCheckedChange={(checked) => {
+              setPriceVisibleValue(checked);
+              updateDraftItem({ priceVisible: checked });
+            }}
           />
         </div>
       </section>
 
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
         <h4 className="text-sm font-black text-zinc-950">제공량</h4>
-        <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          가격 옆에 함께 보여줄 수 있는 용량, 중량, 구성 정보입니다.
-        </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <ValidatedTextInput form={formId} name="item_portion_label" label="제공량 표시 문구" defaultValue={item?.portion_label ?? ""} placeholder="예: 150g, 1인분, 2pcs, 355ml, Small" maxLength={MENU_FIELD_LIMITS.menuItems.portionLabel} helperText="용량, 중량, 구성 정보를 짧게 입력하세요." onValueChange={setPortionLabelValue} />
+          <ValidatedTextInput
+            form={formId}
+            name="item_portion_label"
+            label="제공량 표시 문구"
+            defaultValue={portionLabelValue}
+            placeholder="예: 150g, 1인분, 2pcs, 355ml, Small"
+            maxLength={MENU_FIELD_LIMITS.menuItems.portionLabel}
+            helperText="용량, 중량, 구성 정보를 짧게 입력하세요."
+            onValueChange={(value) => {
+              setPortionLabelValue(value);
+              updateDraftItem({ portionLabel: value });
+            }}
+          />
           <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
             <Checkbox
               form={formId}
               name="item_portion_visible"
               label="공개 메뉴판에 제공량 표시"
-              defaultChecked={Boolean((item?.portion_visible ?? true) && hasPortionData)}
+              defaultChecked={Boolean(portionVisibleValue && hasPortionData)}
               canTurnOn={hasPortionData}
               blockedMessage="제공량 표시 문구를 먼저 입력해주세요."
+              onCheckedChange={(checked) => {
+                setPortionVisibleValue(checked);
+                updateDraftItem({ portionVisible: checked });
+              }}
             />
           </div>
         </div>
@@ -1090,56 +1661,97 @@ function MenuItemForm({
       {capabilities.itemTraits && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <h4 className="text-sm font-black text-zinc-950">맛/특징 지표</h4>
-          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-            메뉴의 맛이나 특징을 간단히 보여주는 지표입니다. 최대 {MENU_LIMITS.maxTraitsPerItem}개까지 등록할 수 있습니다.
-          </p>
           <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
             <Checkbox
               form={formId}
               name="item_traits_visible"
               label="공개 메뉴판에 맛/특징 지표 표시"
-              defaultChecked={Boolean((item?.traits_visible ?? true) && hasTraitData)}
+              defaultChecked={Boolean(traitsVisibleValue && hasTraitData)}
               canTurnOn={hasTraitData}
               blockedMessage="맛/특징 지표를 1개 이상 입력해주세요."
+              onCheckedChange={(checked) => {
+                setTraitsVisibleValue(checked);
+                updateDraftItem({ traitsVisible: checked });
+              }}
             />
           </div>
-          <MenuItemTraitSlots formId={formId} traits={traits} onTraitLabelChange={handleTraitLabelChange} />
+          <MenuItemTraitSlots formId={formId} traits={traits} draftTraits={draftItem?.traitDrafts} onTraitLabelChange={handleTraitLabelChange} />
         </section>
       )}
 
       {capabilities.menuItemImages && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">이미지</h4>
-          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-            이미지는 필수가 아닙니다. 이미지를 삭제하면 공개 메뉴판에서는 이미지 없는 형태로 표시됩니다.
-          </p>
+          <h4 className="inline-flex items-center gap-2 text-sm font-black text-zinc-950">
+            이미지
+            <HelpTooltip label="이미지 도움말">
+              이미지는 선택 사항입니다. 이미지가 없으면 공개 메뉴판에서는 이미지 없는 형태로 표시됩니다.
+            </HelpTooltip>
+          </h4>
           <div className="mt-4">
-          {item ? (
-            <ImageUploadField label="메뉴 이미지" menuId={menuId} target="menu-item" recordId={item.id} currentUrl={item.image_url} />
-          ) : (
-            <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-400">
-              메뉴를 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
-            </div>
-          )}
+          <ImageUploadField
+            key={item?.id ?? "new-item"}
+            label={labels.imageLabel}
+            menuId={menuId}
+            target="menu-item-draft"
+            recordId={item?.id ?? "new-item"}
+            currentUrl={displayImageUrl}
+            uploadSuccessMessage="새 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+            deleteConfirmTitle="이 메뉴 이미지를 삭제할까요?"
+            deleteConfirmDescription="삭제해도 하단의 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
+            onDraftImageChange={(draft) => {
+              setDraftImageState(draft);
+              updateDraftItem({
+                imageUrl: draft.imageUrl,
+                imagePath: draft.imagePath,
+                imageAction: draft.imageAction,
+              });
+            }}
+          />
           </div>
         </section>
       )}
 
-      <div>
-        <SubmitButton
-          form={formId}
-          tone={item ? "light" : "dark"}
-          disabled={nameInvalid || categoryInvalid}
-          onClick={() => {
-            setAttemptedItemSubmit(true);
-          }}
-        >
-          {item ? "메뉴 저장" : "메뉴 추가"}
-        </SubmitButton>
-        <button type="button" onClick={onCancel} className="ml-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
-          취소
-        </button>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        {draftOnly ? (
+          <>
+            <SubmitButton
+              type="button"
+              tone="final"
+              disabled={itemDraftSaveDisabled}
+              onClick={() => {
+                setAttemptedItemSubmit(true);
+                if (itemDraftSaveDisabled) return;
+                onDraftCommit?.(getCurrentFormDraftPatch());
+              }}
+            >
+              {itemDraftActionLabel}
+            </SubmitButton>
+            {onCancel && (
+              <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                {cancelLabel}
+              </button>
+            )}
+            {deleteAction}
+            {itemSaveDisabledReason && (
+              <p className="basis-full break-keep text-right text-xs font-bold leading-relaxed text-amber-700">
+                {itemSaveDisabledReason}
+              </p>
+            )}
+          </>
+        ) : (
+          <SubmitButton
+            form={formId}
+            tone="final"
+            disabled={nameInvalid || categoryInvalid}
+            onClick={() => {
+              setAttemptedItemSubmit(true);
+            }}
+          >
+            수정 내용 반영
+          </SubmitButton>
+        )}
       </div>
+      {draftOnly && cancelHelperText && <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">{cancelHelperText}</p>}
     </div>
   );
 }
@@ -1176,6 +1788,7 @@ function priceOptionSummary(options: MenuItemPriceOption[]) {
 
 function DraftPriceOptionsEditor({
   options,
+  labels,
   label,
   price,
   priceLabel,
@@ -1187,6 +1800,7 @@ function DraftPriceOptionsEditor({
   onRemove,
 }: {
   options: DraftPriceOption[];
+  labels: TemplateEditorLabels;
   label: string;
   price: string;
   priceLabel: string;
@@ -1202,14 +1816,11 @@ function DraftPriceOptionsEditor({
   return (
     <div className="mt-4 rounded-lg bg-zinc-50 p-4">
       <p className={`break-keep text-xs font-bold leading-relaxed ${error ? "text-red-600" : "text-zinc-400"}`}>
-        {error || `옵션은 아이템당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`}
+        {error || `옵션은 ${labels.itemLabel}당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`}
       </p>
 
       <div className="mt-4 rounded-lg border border-zinc-100 bg-white p-4">
         <h5 className="text-sm font-black text-zinc-950">새 가격 옵션 추가</h5>
-        <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          옵션별 가격을 사용하면 등록된 옵션이 공개 메뉴판에 표시됩니다. 옵션을 숨기려면 삭제해주세요.
-        </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
           <div>
             <FieldLabel required>옵션명</FieldLabel>
@@ -1220,8 +1831,8 @@ function DraftPriceOptionsEditor({
             <TextInput value={price} onChange={(event) => onPriceChange(event.target.value.replace(/[^0-9]/g, ""))} type="number" min={0} step={1} placeholder="4000" helperText="숫자만 입력하세요." />
           </div>
           <div>
-            <FieldLabel>가격 표시 문구</FieldLabel>
-            <TextInput value={priceLabel} onChange={(event) => onPriceLabelChange(event.target.value)} placeholder="4,000원" maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel} helperText="있으면 이 문구를 우선 표시합니다." />
+            <FieldLabel>{labels.priceLabelLabel}</FieldLabel>
+            <TextInput value={priceLabel} onChange={(event) => onPriceLabelChange(event.target.value)} placeholder={labels.priceLabelPlaceholder} maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel} helperText="있으면 이 문구를 우선 표시합니다." />
           </div>
           <div className="flex flex-col gap-2">
             <SubmitButton type="button" tone="light" disabled={reachedPriceOptionLimit} onClick={onAdd}>
@@ -1261,55 +1872,342 @@ export default function MenuManagementSection({
   traits,
   capabilities,
   badgeStyles,
-  defaultBadgeStyles,
+  editorLabels,
+  starterPreset,
+  finalSaveMessage,
+  finalSaveError,
 }: MenuManagementSectionProps) {
-  const sortedPages = useMemo(() => sortMenuPages(menuPages), [menuPages]);
+  const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
+  const [dismissedFinalSaveError, setDismissedFinalSaveError] = useState<string | null>(null);
+  const menuFinalSaveError =
+    !finalSaveMessage && finalSaveError && dismissedFinalSaveError !== finalSaveError
+      ? finalSaveError
+      : null;
+  const [pageBasicDrafts, setPageBasicDrafts] = useState<Record<string, PageBasicDraft>>(() =>
+    Object.fromEntries(menuPages.map((page) => [page.id, { title: page.title, sortOrder: page.sort_order }]))
+  );
+  const [categoryBasicDrafts, setCategoryBasicDrafts] = useState<Record<string, CategoryBasicDraft>>(() =>
+    Object.fromEntries(categories.map((category) => [category.id, { name: category.name, sortOrder: category.sort_order }]))
+  );
+  const [itemBasicDrafts, setItemBasicDrafts] = useState<Record<string, ItemBasicDraft>>(() =>
+    Object.fromEntries(
+      items.map((item) => [
+        item.id,
+        {
+          name: item.name,
+          categoryId: item.category_id ?? undefined,
+          isNew: false,
+          description: item.description ?? "",
+          originInfo: item.origin_info ?? "",
+          price: item.price == null ? "" : String(item.price),
+          priceLabel: item.price_label ?? "",
+          badgeLabel: getMenuItemBadgeLabel(item) ?? "",
+          visible: item.visible,
+          sortOrder: item.sort_order,
+          imageUrl: item.image_url,
+          imagePath: item.image_path,
+          priceVisible: item.price_visible,
+          portionLabel: item.portion_label ?? "",
+          portionVisible: item.portion_visible,
+          traitsVisible: item.traits_visible,
+          traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
+        },
+      ])
+    )
+  );
+  const [pendingItemDrafts, setPendingItemDrafts] = useState<Record<string, ItemBasicDraft>>({});
+  const [menuManagementDirtyState, setMenuManagementDirtyState] = useState({
+    dirty: Boolean(finalSaveError && !finalSaveMessage),
+    saveMessage: finalSaveMessage ?? null,
+  });
+  const menuManagementDirty =
+    menuManagementDirtyState.saveMessage === (finalSaveMessage ?? null)
+      ? menuManagementDirtyState.dirty
+      : Boolean(finalSaveError && !finalSaveMessage);
+  const [deletedPageIds, setDeletedPageIds] = useState<Set<string>>(() => new Set());
+  const [deletedCategoryIds, setDeletedCategoryIds] = useState<Set<string>>(() => new Set());
+  const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(() => new Set());
+  const draftedPages = useMemo(
+    () => {
+      const existingPages = menuPages
+        .filter((page) => !deletedPageIds.has(page.id))
+        .map((page) => {
+          const draft = pageBasicDrafts[page.id];
+          return {
+            ...page,
+            title: draft?.title ?? page.title,
+            description: draft?.description ?? page.description,
+            description_visible: draft?.descriptionVisible ?? page.description_visible,
+            visible: draft?.visible ?? page.visible,
+            sort_order: draft?.sortOrder ?? page.sort_order,
+          };
+        });
+      const createdPages: MenuPage[] = Object.entries(pageBasicDrafts)
+        .filter(([id, draft]) => draft.isNew && !deletedPageIds.has(id))
+        .map(([id, draft]) => ({
+          id,
+          title: draft.title,
+          description: draft.description ?? null,
+          description_visible: draft.descriptionVisible ?? false,
+          legacy_section_key: null,
+          visible: draft.visible ?? true,
+          sort_order: draft.sortOrder,
+          created_at: "",
+        }));
+
+      return [...existingPages, ...createdPages];
+    },
+    [deletedPageIds, menuPages, pageBasicDrafts]
+  );
+  const draftedCategories = useMemo(
+    () => {
+      const existingCategories = categories
+        .filter((category) => !deletedCategoryIds.has(category.id) && !deletedPageIds.has(category.menu_page_id))
+        .map((category) => ({
+          ...category,
+          name: categoryBasicDrafts[category.id]?.name ?? category.name,
+          description: categoryBasicDrafts[category.id]?.description ?? category.description,
+          description_visible: categoryBasicDrafts[category.id]?.descriptionVisible ?? category.description_visible,
+          visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
+          sort_order: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
+        }));
+      const createdCategories: MenuCategory[] = Object.entries(categoryBasicDrafts)
+        .filter(([id, draft]) => draft.isNew && draft.pageId && !deletedCategoryIds.has(id) && !deletedPageIds.has(draft.pageId))
+        .map(([id, draft]) => ({
+          id,
+          menu_page_id: draft.pageId ?? "",
+          name: draft.name,
+          description: draft.description ?? null,
+          description_visible: draft.descriptionVisible ?? false,
+          section_key: null,
+          sort_order: draft.sortOrder,
+          visible: draft.visible ?? true,
+        }));
+
+      return [...existingCategories, ...createdCategories];
+    },
+    [categories, categoryBasicDrafts, deletedCategoryIds, deletedPageIds]
+  );
+  const draftedItems = useMemo(
+    () => {
+      const deletedCategoryIdSet = new Set([
+        ...Array.from(deletedCategoryIds),
+        ...categories.filter((category) => deletedPageIds.has(category.menu_page_id)).map((category) => category.id),
+      ]);
+      const existingDraftedItems = items.filter((item) => {
+        if (deletedItemIds.has(item.id)) return false;
+        if (item.category_id && deletedCategoryIdSet.has(item.category_id)) return false;
+        return true;
+      }).map((item) => {
+        const draft = itemBasicDrafts[item.id];
+        if (!draft) return item;
+        const numericPrice = draft.price.trim() ? Number(draft.price) : null;
+        const nextImageUrl = draft.imageAction === "delete" ? null : draft.imageUrl ?? item.image_url;
+        const nextImagePath = draft.imageAction === "delete" ? null : draft.imagePath ?? item.image_path;
+        return {
+          ...item,
+          category_id: draft.categoryId ?? item.category_id,
+          name: draft.name,
+          description: draft.description.trim() ? draft.description : null,
+          origin_info: draft.originInfo.trim() ? draft.originInfo : null,
+          price: Number.isFinite(numericPrice) ? numericPrice : item.price,
+          price_label: draft.priceLabel.trim() ? draft.priceLabel : null,
+          portion_label: draft.portionLabel?.trim() ? draft.portionLabel : null,
+          badge_label: draft.badgeLabel.trim() ? draft.badgeLabel : null,
+          badge_type: getBadgeStyleKey(draft.badgeLabel),
+          recommended: Boolean(draft.badgeLabel.trim()),
+          is_best: draft.badgeLabel === "BEST",
+          visible: draft.visible,
+          sort_order: draft.sortOrder,
+          image_url: nextImageUrl,
+          image_path: nextImagePath,
+          price_visible: draft.priceVisible ?? item.price_visible,
+          portion_visible: draft.portionVisible ?? item.portion_visible,
+          traits_visible: draft.traitsVisible ?? item.traits_visible,
+        };
+      });
+      const createdDraftItems: MenuItem[] = Object.entries(itemBasicDrafts)
+        .filter(([, draft]) => draft.isNew && draft.categoryId && !deletedCategoryIdSet.has(draft.categoryId))
+        .map(([id, draft]) => {
+          const numericPrice = draft.price.trim() ? Number(draft.price) : null;
+          const badgeLabel = draft.badgeLabel.trim() ? draft.badgeLabel : null;
+          return {
+            id,
+            category_id: draft.categoryId ?? null,
+            name: draft.name,
+            set_name: null,
+            description: draft.description.trim() ? draft.description : null,
+            price: Number.isFinite(numericPrice) && numericPrice != null ? numericPrice : 0,
+            price_label: draft.priceLabel.trim() ? draft.priceLabel : null,
+            price_visible: draft.priceVisible ?? true,
+            portion_label: draft.portionLabel?.trim() ? draft.portionLabel : null,
+            portion_visible: draft.portionVisible ?? true,
+            image_url: draft.imageUrl ?? null,
+            image_path: draft.imagePath ?? null,
+            badge_label: badgeLabel,
+            badge_type: getBadgeStyleKey(badgeLabel),
+            recommended: Boolean(badgeLabel),
+            origin_info: draft.originInfo.trim() ? draft.originInfo : null,
+            is_best: badgeLabel === "BEST",
+            is_sold_out: false,
+            traits_visible: draft.traitsVisible ?? true,
+            visible: draft.visible,
+            sort_order: draft.sortOrder,
+          };
+        });
+
+      return [...existingDraftedItems, ...createdDraftItems];
+    },
+    [categories, deletedCategoryIds, deletedItemIds, deletedPageIds, items, itemBasicDrafts]
+  );
+  const sortedPages = useMemo(() => sortMenuPages(draftedPages), [draftedPages]);
   const canManagePages = true;
-  const firstPageId = sortedPages[0]?.id ?? "";
-  const [selectedPageId, setSelectedPageId] = useState(firstPageId);
+  const firstVisiblePageId = sortedPages.find((page) => page.visible)?.id ?? sortedPages[0]?.id ?? "";
+  const firstVisibleCategoryIdForInitialPage = firstVisiblePageId
+    ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === firstVisiblePageId)).find((category) => category.visible)?.id ??
+      sortCategories(draftedCategories.filter((category) => category.menu_page_id === firstVisiblePageId))[0]?.id ??
+      ""
+    : "";
+  const [selectedPageId, setSelectedPageId] = useState(firstVisiblePageId);
   const [editingPageId, setEditingPageId] = useState("");
   const [editingCategoryId, setEditingCategoryId] = useState("");
   const [editingItemId, setEditingItemId] = useState("");
+  const [itemEditorEntryMode, setItemEditorEntryMode] = useState<"list" | "edit">("list");
   const [isCreatingPage, setIsCreatingPage] = useState(false);
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isCreatingItem, setIsCreatingItem] = useState(false);
+  const [draftTarget, setDraftTarget] = useState<DraftTarget | null>(null);
+  const [expandedPageIds, setExpandedPageIds] = useState<Set<string>>(() => new Set(firstVisiblePageId ? [firstVisiblePageId] : []));
+  const [expandedCategoryIds, setExpandedCategoryIds] = useState<Set<string>>(() => new Set(firstVisibleCategoryIdForInitialPage ? [firstVisibleCategoryIdForInitialPage] : []));
+  const [dragState, setDragState] = useState<DragState>(null);
   const [confirmingDeleteKey, setConfirmingDeleteKey] = useState("");
+  const [pageDraftFeedback, setPageDraftFeedback] = useState("");
+  const [categoryDraftFeedback, setCategoryDraftFeedback] = useState("");
+  const [itemDraftFeedback, setItemDraftFeedback] = useState("");
+  const [isSampleResetConfirming, setIsSampleResetConfirming] = useState(false);
   const [hasRestoredBuilderState, setHasRestoredBuilderState] = useState(false);
   const newItemFormRef = useRef<HTMLDivElement | null>(null);
-  const selectedPage = sortedPages.find((page) => page.id === selectedPageId) ?? sortedPages[0] ?? null;
+  const selectedPage = sortedPages.find((page) => page.id === selectedPageId) ?? sortedPages.find((page) => page.visible) ?? sortedPages[0] ?? null;
   const visiblePageId = selectedPage?.id ?? "";
 
   const categoriesForPage = useMemo(() => {
-    if (!canManagePages) return sortCategories(categories);
+    if (!canManagePages) return sortCategories(draftedCategories);
     if (!visiblePageId) return [];
-    return sortCategories(categories.filter((category) => category.menu_page_id === visiblePageId));
-  }, [canManagePages, categories, visiblePageId]);
+    return sortCategories(draftedCategories.filter((category) => category.menu_page_id === visiblePageId));
+  }, [canManagePages, draftedCategories, visiblePageId]);
 
-  const firstCategoryId = categoriesForPage[0]?.id ?? "";
-  const [selectedCategoryId, setSelectedCategoryId] = useState(firstCategoryId);
-  const selectedCategory = categoriesForPage.find((category) => category.id === selectedCategoryId) ?? categoriesForPage[0] ?? null;
+  const [selectedCategoryId, setSelectedCategoryId] = useState(firstVisibleCategoryIdForInitialPage);
+  const selectedCategory =
+    categoriesForPage.find((category) => category.id === selectedCategoryId) ??
+    draftedCategories.find((category) => category.id === selectedCategoryId) ??
+    null;
   const visibleCategoryId = selectedCategory?.id ?? "";
-  const itemsForCategory = useMemo(() => sortItems(items.filter((item) => item.category_id === visibleCategoryId)), [items, visibleCategoryId]);
+  const itemsForCategory = sortItems(draftedItems.filter((item) => item.category_id === visibleCategoryId));
+  const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
   const reachedPageLimit = sortedPages.length >= MENU_LIMITS.maxPagesPerSite;
   const reachedCategoryLimit = categoriesForPage.length >= MENU_LIMITS.maxCategoriesPerPage;
   const reachedItemsPerCategoryLimit = itemsForCategory.length >= MENU_LIMITS.maxItemsPerCategory;
-  const reachedItemsPerSiteLimit = items.length >= MENU_LIMITS.maxItemsPerSite;
+  const reachedItemsPerSiteLimit = draftedItems.length >= MENU_LIMITS.maxItemsPerSite;
   const reachedItemLimit = reachedItemsPerCategoryLimit || reachedItemsPerSiteLimit;
+  const isItemSelected = Boolean(editingItemId || isCreatingItem);
+  const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
+  const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
+  const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected;
+  const shouldShowPageCreateButton = hasNoSelection || isPageSelectedOnly;
+  const shouldShowCategoryCreateButton = Boolean(selectedPage && (isPageSelectedOnly || isCategorySelected));
+  const shouldShowItemCreateButton = Boolean(selectedCategory && (isCategorySelected || Boolean(editingItemId)));
+  const pageBasicDraftPayload = useMemo(
+    () =>
+      JSON.stringify(
+        sortedPages.map((page) => {
+          const draft = pageBasicDrafts[page.id];
+          return {
+            id: page.id,
+            isNew: Boolean(draft?.isNew),
+            title: draft?.title ?? page.title,
+            description: draft?.description ?? page.description ?? "",
+            descriptionVisible: draft?.descriptionVisible ?? page.description_visible,
+            visible: draft?.visible ?? page.visible,
+            sortOrder: draft?.sortOrder ?? page.sort_order,
+          };
+        })
+      ),
+    [pageBasicDrafts, sortedPages]
+  );
+  const categoryBasicDraftPayload = useMemo(
+    () =>
+      JSON.stringify(
+        draftedCategories.map((category) => ({
+          id: category.id,
+          isNew: Boolean(categoryBasicDrafts[category.id]?.isNew),
+          pageId: categoryBasicDrafts[category.id]?.pageId ?? category.menu_page_id,
+          name: categoryBasicDrafts[category.id]?.name ?? category.name,
+          description: categoryBasicDrafts[category.id]?.description ?? category.description ?? "",
+          descriptionVisible: categoryBasicDrafts[category.id]?.descriptionVisible ?? category.description_visible,
+          visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
+          sortOrder: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
+        }))
+      ),
+    [categoryBasicDrafts, draftedCategories]
+  );
+  const itemBasicDraftPayload = useMemo(
+    () =>
+      JSON.stringify(
+        draftedItems
+          .filter((item) => items.some((sourceItem) => sourceItem.id === item.id) || Boolean(itemBasicDrafts[item.id]))
+          .map((item) => {
+            const draft = itemBasicDrafts[item.id];
+            return {
+              id: item.id,
+              isNew: Boolean(draft?.isNew),
+              categoryId: draft?.categoryId ?? item.category_id ?? "",
+              name: draft?.name ?? item.name,
+              description: draft?.description ?? item.description ?? "",
+              originInfo: draft?.originInfo ?? item.origin_info ?? "",
+              price: draft?.price ?? (item.price == null ? "" : String(item.price)),
+              priceLabel: draft?.priceLabel ?? item.price_label ?? "",
+              badgeLabel: draft?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "",
+              visible: draft?.visible ?? item.visible,
+              sortOrder: draft?.sortOrder ?? item.sort_order,
+              imageUrl: draft?.imageUrl ?? item.image_url ?? null,
+              imagePath: draft?.imagePath ?? item.image_path ?? null,
+              imageAction: draft?.imageAction ?? "keep",
+              priceVisible: draft?.priceVisible ?? item.price_visible,
+              portionLabel: draft?.portionLabel ?? item.portion_label ?? "",
+              portionVisible: draft?.portionVisible ?? item.portion_visible,
+              traitsVisible: draft?.traitsVisible ?? item.traits_visible,
+              traitDrafts: draft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
+              priceOptions: draft?.priceOptions,
+              badgeStyleKey: draft?.badgeStyleKey,
+              badgeBackgroundColor: draft?.badgeBackgroundColor,
+              badgeTextColor: draft?.badgeTextColor,
+            };
+          })
+      ),
+    [draftedItems, itemBasicDrafts, items, traits]
+  );
+  const deletedPageIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedPageIds)), [deletedPageIds]);
+  const deletedCategoryIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedCategoryIds)), [deletedCategoryIds]);
+  const deletedItemIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedItemIds)), [deletedItemIds]);
 
   useEffect(() => {
     if (hasRestoredBuilderState) return;
 
+    const focusedItemId = new URLSearchParams(window.location.search).get("editingItemId") ?? "";
     const savedBuilderState = readMenuBuilderState(menuId);
-    const savedItem = savedBuilderState.editingItemId
-      ? items.find((item) => item.id === savedBuilderState.editingItemId)
+    const targetEditingItemId = focusedItemId || savedBuilderState.editingItemId || "";
+    const savedItem = targetEditingItemId
+      ? draftedItems.find((item) => item.id === targetEditingItemId)
       : null;
-    const savedItemCategory = savedItem ? categories.find((category) => category.id === savedItem.category_id) : null;
+    const savedItemCategory = savedItem ? draftedCategories.find((category) => category.id === savedItem.category_id) : null;
 
     const timeoutId = window.setTimeout(() => {
       if (savedItem && savedItemCategory) {
         setSelectedPageId(savedItemCategory.menu_page_id);
         setSelectedCategoryId(savedItemCategory.id);
         setEditingItemId(savedItem.id);
+        setExpandedPageIds(new Set([savedItemCategory.menu_page_id]));
+        setExpandedCategoryIds(new Set([savedItemCategory.id]));
         setHasRestoredBuilderState(true);
         return;
       }
@@ -1317,22 +2215,24 @@ export default function MenuManagementSection({
       const nextPageId =
         savedBuilderState.selectedPageId && sortedPages.some((page) => page.id === savedBuilderState.selectedPageId)
           ? savedBuilderState.selectedPageId
-          : sortedPages[0]?.id ?? "";
+          : sortedPages.find((page) => page.visible)?.id ?? sortedPages[0]?.id ?? "";
       const categoriesForNextPage = nextPageId
-        ? sortCategories(categories.filter((category) => category.menu_page_id === nextPageId))
+        ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === nextPageId))
         : [];
       const nextCategoryId =
         savedBuilderState.selectedCategoryId && categoriesForNextPage.some((category) => category.id === savedBuilderState.selectedCategoryId)
           ? savedBuilderState.selectedCategoryId
-          : categoriesForNextPage[0]?.id ?? "";
+          : categoriesForNextPage.find((category) => category.visible)?.id ?? categoriesForNextPage[0]?.id ?? "";
 
       setSelectedPageId(nextPageId);
       setSelectedCategoryId(nextCategoryId);
+      setExpandedPageIds(new Set(nextPageId ? [nextPageId] : []));
+      setExpandedCategoryIds(new Set(nextCategoryId ? [nextCategoryId] : []));
       setHasRestoredBuilderState(true);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [categories, hasRestoredBuilderState, items, menuId, sortedPages]);
+  }, [draftedCategories, draftedItems, hasRestoredBuilderState, menuId, sortedPages]);
 
   useEffect(() => {
     try {
@@ -1360,396 +2260,1702 @@ export default function MenuManagementSection({
     window.setTimeout(() => nameInput?.focus(), 120);
   }, [isCreatingItem]);
 
+  function clearFinalSaveSummary() {
+    if (finalSaveError) setDismissedFinalSaveError(finalSaveError);
+  }
+
+  function markMenuManagementDirty() {
+    clearFinalSaveSummary();
+    setMenuManagementDirtyState({ dirty: true, saveMessage: finalSaveMessage ?? null });
+  }
+
   function resetModes() {
+    clearFinalSaveSummary();
     setEditingPageId("");
     setEditingCategoryId("");
     setEditingItemId("");
+    setItemEditorEntryMode("list");
     setIsCreatingPage(false);
     setIsCreatingCategory(false);
     setIsCreatingItem(false);
+    setDraftTarget(null);
     setConfirmingDeleteKey("");
+    setPageDraftFeedback("");
+    setCategoryDraftFeedback("");
+    setItemDraftFeedback("");
+  }
+
+  function confirmDiscardDraft() {
+    if (!draftTarget) return true;
+    return window.confirm("저장하지 않은 새 항목이 있습니다. 이동하면 입력 내용이 사라집니다.");
+  }
+
+  function updateDraftTitle(title: string) {
+    clearFinalSaveSummary();
+    setDraftTarget((currentDraft) => (currentDraft ? { ...currentDraft, title } : currentDraft));
+  }
+
+  function updateDraftTargetDetails(patch: Partial<PageBasicDraft & CategoryBasicDraft>) {
+    clearFinalSaveSummary();
+    setDraftTarget((currentDraft) => (currentDraft ? { ...currentDraft, ...patch } : currentDraft));
+  }
+
+  function updatePageBasicDraft(pageId: string, patch: Partial<PageBasicDraft>) {
+    clearFinalSaveSummary();
+    const sourcePage = draftedPages.find((page) => page.id === pageId) ?? menuPages.find((page) => page.id === pageId);
+    setPageBasicDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [pageId]: {
+        isNew: currentDrafts[pageId]?.isNew,
+        title: currentDrafts[pageId]?.title ?? sourcePage?.title ?? "",
+        description: currentDrafts[pageId]?.description ?? sourcePage?.description ?? "",
+        descriptionVisible: currentDrafts[pageId]?.descriptionVisible ?? sourcePage?.description_visible ?? false,
+        visible: currentDrafts[pageId]?.visible ?? sourcePage?.visible ?? true,
+        sortOrder: currentDrafts[pageId]?.sortOrder ?? sourcePage?.sort_order ?? 0,
+        ...patch,
+      },
+    }));
+  }
+
+  function updateCategoryBasicDraft(categoryId: string, patch: Partial<CategoryBasicDraft>) {
+    clearFinalSaveSummary();
+    const sourceCategory = draftedCategories.find((category) => category.id === categoryId) ?? categories.find((category) => category.id === categoryId);
+    setCategoryBasicDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [categoryId]: {
+        isNew: currentDrafts[categoryId]?.isNew,
+        name: currentDrafts[categoryId]?.name ?? sourceCategory?.name ?? "",
+        pageId: currentDrafts[categoryId]?.pageId ?? sourceCategory?.menu_page_id ?? visiblePageId,
+        description: currentDrafts[categoryId]?.description ?? sourceCategory?.description ?? "",
+        descriptionVisible: currentDrafts[categoryId]?.descriptionVisible ?? sourceCategory?.description_visible ?? false,
+        visible: currentDrafts[categoryId]?.visible ?? sourceCategory?.visible ?? true,
+        sortOrder: currentDrafts[categoryId]?.sortOrder ?? sourceCategory?.sort_order ?? 0,
+        ...patch,
+      },
+    }));
+  }
+
+  function getItemDraftBase(itemId: string): ItemBasicDraft {
+    const committedDraft = itemBasicDrafts[itemId];
+    if (committedDraft) return committedDraft;
+
+    const sourceItem = items.find((item) => item.id === itemId) ?? draftedItems.find((item) => item.id === itemId);
+    return {
+      categoryId: sourceItem?.category_id ?? visibleCategoryId ?? undefined,
+      isNew: false,
+      imageUrl: sourceItem?.image_url ?? null,
+      imagePath: sourceItem?.image_path ?? null,
+      imageAction: "keep",
+      name: sourceItem?.name ?? "",
+      description: sourceItem?.description ?? "",
+      originInfo: sourceItem?.origin_info ?? "",
+      price: sourceItem?.price == null ? "" : String(sourceItem.price),
+      priceLabel: sourceItem?.price_label ?? "",
+      badgeLabel: sourceItem ? getMenuItemBadgeLabel(sourceItem) ?? "" : "",
+      visible: sourceItem?.visible ?? true,
+      sortOrder: sourceItem?.sort_order ?? itemsForCategory.length,
+      priceVisible: sourceItem?.price_visible ?? true,
+      portionLabel: sourceItem?.portion_label ?? "",
+      portionVisible: sourceItem?.portion_visible ?? true,
+      traitsVisible: sourceItem?.traits_visible ?? true,
+      traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === itemId)),
+    };
+  }
+
+  function buildItemOrderDraft(id: string, sortOrder: number, fallbackCategoryId?: string, sourceDrafts?: Record<string, ItemBasicDraft>): ItemBasicDraft {
+    const existingDraft = sourceDrafts?.[id] ?? itemBasicDrafts[id];
+    const sourceItem = draftedItems.find((entry) => entry.id === id) ?? items.find((entry) => entry.id === id);
+
+    return {
+      categoryId: existingDraft?.categoryId ?? sourceItem?.category_id ?? fallbackCategoryId,
+      isNew: existingDraft?.isNew ?? false,
+      imageUrl: existingDraft?.imageUrl ?? sourceItem?.image_url ?? null,
+      imagePath: existingDraft?.imagePath ?? sourceItem?.image_path ?? null,
+      imageAction: existingDraft?.imageAction ?? "keep",
+      name: existingDraft?.name ?? sourceItem?.name ?? "",
+      description: existingDraft?.description ?? sourceItem?.description ?? "",
+      originInfo: existingDraft?.originInfo ?? sourceItem?.origin_info ?? "",
+      price: existingDraft?.price ?? (sourceItem?.price == null ? "" : String(sourceItem.price)),
+      priceLabel: existingDraft?.priceLabel ?? sourceItem?.price_label ?? "",
+      badgeLabel: existingDraft?.badgeLabel ?? (sourceItem ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
+      visible: existingDraft?.visible ?? sourceItem?.visible ?? true,
+      sortOrder,
+      priceVisible: existingDraft?.priceVisible ?? sourceItem?.price_visible ?? true,
+      portionLabel: existingDraft?.portionLabel ?? sourceItem?.portion_label ?? "",
+      portionVisible: existingDraft?.portionVisible ?? sourceItem?.portion_visible ?? true,
+      traitsVisible: existingDraft?.traitsVisible ?? sourceItem?.traits_visible ?? true,
+      traitDrafts: existingDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === id)),
+      badgeStyleKey: existingDraft?.badgeStyleKey,
+      badgeBackgroundColor: existingDraft?.badgeBackgroundColor,
+      badgeTextColor: existingDraft?.badgeTextColor,
+    };
+  }
+
+  function updatePendingItemDraft(itemId: string, patch: Partial<ItemBasicDraft>) {
+    clearFinalSaveSummary();
+    setItemDraftFeedback("");
+    setPendingItemDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [itemId]: {
+        ...getItemDraftBase(itemId),
+        ...currentDrafts[itemId],
+        ...patch,
+      },
+    }));
+  }
+
+  function commitPendingItemDraft(itemId: string, commitPatch?: Partial<ItemBasicDraft>) {
+    clearFinalSaveSummary();
+    const pendingDraft = pendingItemDrafts[itemId]
+      ? { ...pendingItemDrafts[itemId], ...commitPatch }
+      : commitPatch
+        ? { ...getItemDraftBase(itemId), ...commitPatch }
+        : undefined;
+    const isNewDraftCommit = !itemBasicDrafts[itemId];
+    if (!pendingDraft) {
+      if (itemBasicDrafts[itemId]) {
+        const message = "수정 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.";
+        const committedCategoryId = itemBasicDrafts[itemId]?.categoryId;
+        if (committedCategoryId) setSelectedCategoryId(committedCategoryId);
+        setIsCreatingItem(false);
+        toast.success(message);
+      }
+      return;
+    }
+
+    const committedDraft = {
+      ...getItemDraftBase(itemId),
+      ...pendingDraft,
+      sortOrder: isNewDraftCommit ? 0 : pendingDraft.sortOrder,
+    };
+    markMenuManagementDirty();
+
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+
+      if (isNewDraftCommit && committedDraft.categoryId) {
+        sortItems(draftedItems.filter((item) => item.category_id === committedDraft.categoryId)).forEach((item, index) => {
+          nextDrafts[item.id] = buildItemOrderDraft(item.id, index + 1, committedDraft.categoryId, nextDrafts);
+        });
+      }
+
+      nextDrafts[itemId] = committedDraft;
+      return nextDrafts;
+    });
+    setPendingItemDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      delete nextDrafts[itemId];
+      return nextDrafts;
+    });
+    setIsCreatingItem(false);
+    if (committedDraft.categoryId) {
+      const committedCategory = draftedCategories.find((category) => category.id === committedDraft.categoryId);
+      if (committedCategory) {
+        setSelectedPageId(committedCategory.menu_page_id);
+        setExpandedPageIds(new Set([committedCategory.menu_page_id]));
+      }
+      setSelectedCategoryId(committedDraft.categoryId);
+      setExpandedCategoryIds(new Set([committedDraft.categoryId]));
+    }
+    if (isNewDraftCommit) {
+      setEditingItemId("");
+      setDraftTarget(null);
+    }
+    setConfirmingDeleteKey("");
+    const message = isNewDraftCommit
+        ? `${labels.itemLabel === "서비스" ? "서비스가" : "아이템이"} 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
+        : "수정 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.";
+    toast.success(message);
+  }
+
+  function toggleExpandedPage(pageId: string) {
+    setExpandedPageIds(new Set([pageId]));
+    const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId));
+    const nextCategoryId =
+      pageId === visiblePageId && visibleCategoryId && pageCategories.some((category) => category.id === visibleCategoryId)
+        ? visibleCategoryId
+        : pageCategories.find((category) => category.visible)?.id ?? pageCategories[0]?.id ?? "";
+    setExpandedCategoryIds(new Set(nextCategoryId ? [nextCategoryId] : []));
+  }
+
+  function toggleExpandedCategory(categoryId: string) {
+    setExpandedCategoryIds(new Set([categoryId]));
+  }
+
+  function moveId(ids: string[], draggedId: string, targetId: string) {
+    if (draggedId === targetId) return ids;
+    const nextIds = ids.filter((id) => id !== draggedId);
+    const targetIndex = nextIds.indexOf(targetId);
+    if (targetIndex < 0) return ids;
+    nextIds.splice(targetIndex, 0, draggedId);
+    return nextIds;
+  }
+
+  function applyPageOrderDraft(orderedIds: string[]) {
+    markMenuManagementDirty();
+    setPageBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      orderedIds.forEach((id, index) => {
+        const page = menuPages.find((entry) => entry.id === id);
+        nextDrafts[id] = {
+          title: nextDrafts[id]?.title ?? page?.title ?? "",
+          description: nextDrafts[id]?.description ?? page?.description ?? "",
+          descriptionVisible: nextDrafts[id]?.descriptionVisible ?? page?.description_visible ?? false,
+          visible: nextDrafts[id]?.visible ?? page?.visible ?? true,
+          sortOrder: index,
+          isNew: nextDrafts[id]?.isNew,
+        };
+      });
+      return nextDrafts;
+    });
+  }
+
+  function applyCategoryOrderDraft(orderedIds: string[]) {
+    markMenuManagementDirty();
+    setCategoryBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      orderedIds.forEach((id, index) => {
+        const category = categories.find((entry) => entry.id === id);
+        nextDrafts[id] = {
+          isNew: nextDrafts[id]?.isNew,
+          pageId: nextDrafts[id]?.pageId ?? category?.menu_page_id ?? visiblePageId,
+          name: nextDrafts[id]?.name ?? category?.name ?? "",
+          description: nextDrafts[id]?.description ?? category?.description ?? "",
+          descriptionVisible: nextDrafts[id]?.descriptionVisible ?? category?.description_visible ?? false,
+          visible: nextDrafts[id]?.visible ?? category?.visible ?? true,
+          sortOrder: index,
+        };
+      });
+      return nextDrafts;
+    });
+  }
+
+  function applyItemOrderDraft(orderedIds: string[]) {
+    markMenuManagementDirty();
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      orderedIds.forEach((id, index) => {
+        nextDrafts[id] = buildItemOrderDraft(id, index, undefined, nextDrafts);
+      });
+      return nextDrafts;
+    });
+  }
+
+  function handlePageDrop(targetPageId: string) {
+    if (dragState?.type !== "page") return;
+    const orderedIds = moveId(sortedPages.map((page) => page.id), dragState.id, targetPageId);
+    setDragState(null);
+    applyPageOrderDraft(orderedIds);
+  }
+
+  function handleCategoryDrop(pageId: string, targetCategoryId: string) {
+    if (dragState?.type !== "category" || dragState.pageId !== pageId) return;
+    const pageCategoryIds = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId)).map((category) => category.id);
+    const orderedIds = moveId(pageCategoryIds, dragState.id, targetCategoryId);
+    setDragState(null);
+    applyCategoryOrderDraft(orderedIds);
+  }
+
+  function handleItemDrop(categoryId: string, targetItemId: string) {
+    if (dragState?.type !== "item" || dragState.categoryId !== categoryId) return;
+    const categoryItemIds = sortItems(draftedItems.filter((item) => item.category_id === categoryId)).map((item) => item.id);
+    const orderedIds = moveId(categoryItemIds, dragState.id, targetItemId);
+    setDragState(null);
+    applyItemOrderDraft(orderedIds);
   }
 
   function startCreatePage() {
     if (reachedPageLimit) return;
+    if (!confirmDiscardDraft()) return;
     resetModes();
+    setDraftTarget({ type: "page", title: "" });
     setIsCreatingPage(true);
   }
 
   function startEditPage(pageId: string) {
+    if (!confirmDiscardDraft()) return;
     resetModes();
     setEditingPageId(pageId);
   }
 
+  function commitPageDraft() {
+    if (isCreatingPage) {
+      const title = draftTarget?.type === "page" ? draftTarget.title.trim() : "";
+      if (!title) return;
+      const draftCount = Object.values(pageBasicDrafts).filter((draft) => draft.isNew).length;
+      const draftId = `temp-page-${draftCount + 1}`;
+      setPageBasicDrafts((currentDrafts) => ({
+        ...sortedPages.reduce<Record<string, PageBasicDraft>>((drafts, page, index) => {
+          drafts[page.id] = {
+            title: currentDrafts[page.id]?.title ?? page.title,
+            description: currentDrafts[page.id]?.description ?? page.description ?? "",
+            descriptionVisible: currentDrafts[page.id]?.descriptionVisible ?? page.description_visible,
+            visible: currentDrafts[page.id]?.visible ?? page.visible,
+            sortOrder: index + 1,
+            isNew: currentDrafts[page.id]?.isNew,
+          };
+          return drafts;
+        }, {}),
+        [draftId]: {
+          isNew: true,
+          title,
+          description: draftTarget?.type === "page" ? draftTarget.description ?? "" : "",
+          descriptionVisible: draftTarget?.type === "page" ? draftTarget.descriptionVisible ?? false : false,
+          visible: draftTarget?.type === "page" ? draftTarget.visible ?? true : true,
+          sortOrder: 0,
+        },
+      }));
+      setSelectedPageId(draftId);
+      setSelectedCategoryId("");
+      setExpandedPageIds(new Set([draftId]));
+      setExpandedCategoryIds(new Set());
+      setDraftTarget(null);
+      setIsCreatingPage(false);
+      markMenuManagementDirty();
+      const message = `${labels.pageLabel}가 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+      toast.success(message);
+      return;
+    }
+
+    if (editingPageId) {
+      markMenuManagementDirty();
+      const message = "수정 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.";
+      toast.success(message);
+    }
+  }
+
   function startCreateCategory() {
     if (!visiblePageId || reachedCategoryLimit) return;
+    if (!confirmDiscardDraft()) return;
     resetModes();
+    setDraftTarget({ type: "category", pageId: visiblePageId, title: "" });
     setIsCreatingCategory(true);
   }
 
   function startEditCategory(categoryId: string) {
+    if (!confirmDiscardDraft()) return;
     resetModes();
     setEditingCategoryId(categoryId);
   }
 
+  function commitCategoryDraft() {
+    if (isCreatingCategory) {
+      const title = draftTarget?.type === "category" ? draftTarget.title.trim() : "";
+      const pageId = draftTarget?.type === "category" ? draftTarget.pageId : visiblePageId;
+      if (!title || !pageId) return;
+      const draftCount = Object.values(categoryBasicDrafts).filter((draft) => draft.isNew).length;
+      const draftId = `temp-category-${draftCount + 1}`;
+      setCategoryBasicDrafts((currentDrafts) => ({
+        ...currentDrafts,
+        ...categoriesForPage.reduce<Record<string, CategoryBasicDraft>>((drafts, category, index) => {
+          drafts[category.id] = {
+            isNew: currentDrafts[category.id]?.isNew,
+            pageId: currentDrafts[category.id]?.pageId ?? category.menu_page_id,
+            name: currentDrafts[category.id]?.name ?? category.name,
+            description: currentDrafts[category.id]?.description ?? category.description ?? "",
+            descriptionVisible: currentDrafts[category.id]?.descriptionVisible ?? category.description_visible,
+            visible: currentDrafts[category.id]?.visible ?? category.visible,
+            sortOrder: index + 1,
+          };
+          return drafts;
+        }, {}),
+        [draftId]: {
+          isNew: true,
+          pageId,
+          name: title,
+          description: draftTarget?.type === "category" ? draftTarget.description ?? "" : "",
+          descriptionVisible: draftTarget?.type === "category" ? draftTarget.descriptionVisible ?? false : false,
+          visible: draftTarget?.type === "category" ? draftTarget.visible ?? true : true,
+          sortOrder: 0,
+        },
+      }));
+      setSelectedPageId(pageId);
+      setSelectedCategoryId(draftId);
+      setExpandedPageIds(new Set([pageId]));
+      setExpandedCategoryIds(new Set([draftId]));
+      setDraftTarget(null);
+      setIsCreatingCategory(false);
+      markMenuManagementDirty();
+      const message = `${labels.categoryLabel}가 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+      toast.success(message);
+      return;
+    }
+
+    if (editingCategoryId) {
+      markMenuManagementDirty();
+      const message = "수정 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.";
+      toast.success(message);
+    }
+  }
+
   function startCreateItem() {
-    if (!visibleCategoryId || reachedItemLimit) return;
+    if (!visibleCategoryId || !visiblePageId || reachedItemLimit) return;
+    if (!confirmDiscardDraft()) return;
     resetModes();
+    setExpandedPageIds(new Set([visiblePageId]));
+    setExpandedCategoryIds(new Set([visibleCategoryId]));
+    const draftCount = Object.keys(itemBasicDrafts).filter((id) => id.startsWith(`temp-item-new-${visibleCategoryId}-`)).length;
+    const draftId = `temp-item-new-${visibleCategoryId}-${draftCount + 1}`;
+    const draftName = labels.itemLabel === "서비스" ? "새 서비스" : "새 메뉴 아이템";
+    setPendingItemDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [draftId]: {
+        categoryId: visibleCategoryId,
+        isNew: true,
+        name: draftName,
+        description: "",
+        originInfo: "",
+        price: "",
+        priceLabel: "",
+        badgeLabel: "",
+        imageUrl: null,
+        imagePath: null,
+        imageAction: "keep",
+        visible: true,
+        sortOrder: 0,
+        priceVisible: true,
+        portionLabel: "",
+        portionVisible: true,
+        traitsVisible: true,
+        traitDrafts: [],
+      },
+    }));
+    setEditingItemId(draftId);
     setIsCreatingItem(true);
   }
 
-  function startEditItem(itemId: string) {
+  function removeCreatedItemDraft(itemId: string) {
+    setPendingItemDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      delete nextDrafts[itemId];
+      return nextDrafts;
+    });
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      delete nextDrafts[itemId];
+      return nextDrafts;
+    });
+  }
+
+  function cancelPendingItemDraft(itemId: string) {
+    removeCreatedItemDraft(itemId);
     resetModes();
+  }
+
+  function markItemDeleted(itemId: string) {
+    markMenuManagementDirty();
+    const draft = itemBasicDrafts[itemId];
+    if (draft?.isNew) {
+      removeCreatedItemDraft(itemId);
+      return;
+    }
+
+    setDeletedItemIds((currentIds) => new Set(currentIds).add(itemId));
+  }
+
+  function deleteItemDraft(itemId: string) {
+    const item = draftedItems.find((entry) => entry.id === itemId);
+    const draft = itemBasicDrafts[itemId];
+    markItemDeleted(itemId);
+    setConfirmingDeleteKey("");
+    if (editingItemId === itemId) {
+      setEditingItemId("");
+      if (item?.category_id) {
+        const itemCategory = draftedCategories.find((category) => category.id === item.category_id);
+        if (itemCategory) {
+          setSelectedPageId(itemCategory.menu_page_id);
+          setExpandedPageIds(new Set([itemCategory.menu_page_id]));
+        }
+        setSelectedCategoryId(item.category_id);
+        setExpandedCategoryIds(new Set([item.category_id]));
+      }
+    }
+    const isCopiedDraft = draft?.isNew && (itemId.startsWith("temp-item-copy-") || itemId.startsWith("temp-item-category-copy-") || itemId.startsWith("temp-item-page-copy-"));
+    const message = isCopiedDraft
+      ? `복사본 ${labels.itemLabel}이 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
+      : `${labels.itemLabel}이 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+    toast.success(message);
+  }
+
+  function deleteCategoryDraft(categoryId: string) {
+    markMenuManagementDirty();
+    const category = categories.find((entry) => entry.id === categoryId) ?? draftedCategories.find((entry) => entry.id === categoryId);
+    const pageId = category?.menu_page_id ?? visiblePageId;
+    draftedItems.filter((item) => item.category_id === categoryId).forEach((item) => markItemDeleted(item.id));
+    const isCopiedDraft = categoryBasicDrafts[categoryId]?.isNew && (categoryId.startsWith("temp-category-copy-") || categoryId.startsWith("temp-category-page-copy-"));
+    if (categoryBasicDrafts[categoryId]?.isNew) {
+      setCategoryBasicDrafts((currentDrafts) => {
+        const nextDrafts = { ...currentDrafts };
+        delete nextDrafts[categoryId];
+        return nextDrafts;
+      });
+    } else {
+      setDeletedCategoryIds((currentIds) => new Set(currentIds).add(categoryId));
+    }
+    const message = isCopiedDraft
+      ? `복사본 ${labels.categoryLabel}가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
+      : `${labels.categoryLabel}가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+    toast.success(message);
+    setConfirmingDeleteKey("");
+    setEditingCategoryId("");
+    setEditingItemId("");
+    if (pageId) setSelectedPageId(pageId);
+    const nextCategories = pageId
+      ? sortCategories(draftedCategories.filter((entry) => entry.menu_page_id === pageId && entry.id !== categoryId))
+      : [];
+    const nextCategoryId = nextCategories.find((entry) => entry.visible)?.id ?? nextCategories[0]?.id ?? "";
+    setSelectedCategoryId(nextCategoryId);
+    setExpandedPageIds(new Set(pageId ? [pageId] : []));
+    setExpandedCategoryIds(new Set(nextCategoryId ? [nextCategoryId] : []));
+  }
+
+  function deletePageDraft(pageId: string) {
+    markMenuManagementDirty();
+    const remainingPages = sortedPages.filter((page) => page.id !== pageId);
+    const categoryIds = draftedCategories.filter((category) => category.menu_page_id === pageId).map((category) => category.id);
+    categoryIds.forEach((categoryId) => {
+      draftedItems.filter((item) => item.category_id === categoryId).forEach((item) => markItemDeleted(item.id));
+    });
+    setCategoryBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      categoryIds.forEach((categoryId) => {
+        if (nextDrafts[categoryId]?.isNew) delete nextDrafts[categoryId];
+      });
+      return nextDrafts;
+    });
+    setDeletedCategoryIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      categoryIds.forEach((categoryId) => {
+        if (!categoryBasicDrafts[categoryId]?.isNew) nextIds.add(categoryId);
+      });
+      return nextIds;
+    });
+    if (pageBasicDrafts[pageId]?.isNew) {
+      setPageBasicDrafts((currentDrafts) => {
+        const nextDrafts = { ...currentDrafts };
+        delete nextDrafts[pageId];
+        return nextDrafts;
+      });
+    } else {
+      setDeletedPageIds((currentIds) => new Set(currentIds).add(pageId));
+    }
+    setConfirmingDeleteKey("");
+    resetModes();
+    const isCopiedDraft = pageBasicDrafts[pageId]?.isNew && pageId.startsWith("temp-page-copy-");
+    const message = isCopiedDraft
+      ? `복사본 ${labels.pageLabel}가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
+      : `${labels.pageLabel}가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+    toast.success(message);
+
+    const nextPageId = remainingPages.find((page) => page.visible)?.id ?? remainingPages[0]?.id ?? "";
+    setSelectedPageId(nextPageId);
+    const nextCategories = nextPageId ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === nextPageId)) : [];
+    const nextCategoryId = nextCategories.find((category) => category.visible)?.id ?? nextCategories[0]?.id ?? "";
+    setSelectedCategoryId(nextCategoryId);
+    setExpandedPageIds(new Set(nextPageId ? [nextPageId] : []));
+    setExpandedCategoryIds(new Set(nextCategoryId ? [nextCategoryId] : []));
+  }
+
+  function getPageCopyDisabledReason(pageId: string) {
+    if (reachedPageLimit) {
+      return `${labels.pageLabel}는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`;
+    }
+
+    const sourceCategories = draftedCategories.filter((category) => category.menu_page_id === pageId);
+    if (sourceCategories.length > MENU_LIMITS.maxCategoriesPerPage) {
+      return `복사할 ${labels.pageLabel}의 ${labels.categoryLabel} 수가 최대 개수를 초과합니다.`;
+    }
+
+    const sourceCategoryIds = new Set(sourceCategories.map((category) => category.id));
+    const sourceItems = draftedItems.filter((item) => item.category_id && sourceCategoryIds.has(item.category_id));
+    if (draftedItems.length + sourceItems.length > MENU_LIMITS.maxItemsPerSite) {
+      return `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`;
+    }
+
+    const overflowingCategory = sourceCategories.find(
+      (category) => draftedItems.filter((item) => item.category_id === category.id).length > MENU_LIMITS.maxItemsPerCategory
+    );
+    if (overflowingCategory) {
+      return `복사할 ${labels.categoryLabel}의 ${labels.itemLabel} 수가 최대 개수를 초과합니다.`;
+    }
+
+    return "";
+  }
+
+  function copyPageDraft(pageId: string) {
+    const disabledReason = getPageCopyDisabledReason(pageId);
+    if (disabledReason) {
+      setPageDraftFeedback(disabledReason);
+      return;
+    }
+
+    const sourcePage = sortedPages.find((page) => page.id === pageId);
+    if (!sourcePage) return;
+
+    const sourceCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId));
+    const copyCount = Object.keys(pageBasicDrafts).filter((id) => id.startsWith(`temp-page-copy-${pageId}-`)).length;
+    const draftPageId = `temp-page-copy-${pageId}-${copyCount + 1}`;
+    const categoryIdMap = new Map<string, string>();
+    const existingPageNames = sortedPages.map((page) => getMenuPageTitle(page));
+
+    sourceCategories.forEach((category) => {
+      const draftCategoryId = `temp-category-page-copy-${pageId}-${category.id}-${copyCount + 1}`;
+      categoryIdMap.set(category.id, draftCategoryId);
+    });
+
+    setPageBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      sortedPages.forEach((page, index) => {
+        nextDrafts[page.id] = {
+          isNew: nextDrafts[page.id]?.isNew,
+          title: nextDrafts[page.id]?.title ?? page.title,
+          description: nextDrafts[page.id]?.description ?? page.description ?? "",
+          descriptionVisible: nextDrafts[page.id]?.descriptionVisible ?? page.description_visible,
+          visible: nextDrafts[page.id]?.visible ?? page.visible,
+          sortOrder: index + 1,
+        };
+      });
+      nextDrafts[draftPageId] = {
+        isNew: true,
+        title: getCopyName(getMenuPageTitle(sourcePage), existingPageNames),
+        description: sourcePage.description ?? "",
+        descriptionVisible: sourcePage.description_visible,
+        visible: sourcePage.visible,
+        sortOrder: 0,
+      };
+      return nextDrafts;
+    });
+
+    setCategoryBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      const copiedCategoryNames: string[] = [];
+      sourceCategories.forEach((category, index) => {
+        const draftCategoryId = categoryIdMap.get(category.id);
+        if (!draftCategoryId) return;
+        const copiedCategoryName = getCopyName(currentDrafts[category.id]?.name ?? category.name, copiedCategoryNames);
+        copiedCategoryNames.push(copiedCategoryName);
+        nextDrafts[draftCategoryId] = {
+          isNew: true,
+          pageId: draftPageId,
+          name: copiedCategoryName,
+          description: currentDrafts[category.id]?.description ?? category.description ?? "",
+          descriptionVisible: currentDrafts[category.id]?.descriptionVisible ?? category.description_visible,
+          visible: currentDrafts[category.id]?.visible ?? category.visible,
+          sortOrder: index,
+        };
+      });
+      return nextDrafts;
+    });
+
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      sourceCategories.forEach((category) => {
+        const draftCategoryId = categoryIdMap.get(category.id);
+        if (!draftCategoryId) return;
+
+        const sourceItems = sortItems(draftedItems.filter((item) => item.category_id === category.id));
+        const copiedItemNames: string[] = [];
+        sourceItems.forEach((item, index) => {
+          const sourceDraft = currentDrafts[item.id];
+          const draftItemId = `temp-item-page-copy-${pageId}-${category.id}-${item.id}-${copyCount + 1}`;
+          const copiedItemName = getCopyName(sourceDraft?.name ?? item.name, copiedItemNames);
+          copiedItemNames.push(copiedItemName);
+          nextDrafts[draftItemId] = {
+            categoryId: draftCategoryId,
+            isNew: true,
+            imageUrl: sourceDraft?.imageUrl ?? item.image_url ?? null,
+            imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
+            imageAction: sourceDraft?.imageAction ?? "keep",
+            name: copiedItemName,
+            description: sourceDraft?.description ?? item.description ?? "",
+            originInfo: sourceDraft?.originInfo ?? item.origin_info ?? "",
+            price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
+            priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
+            badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
+            visible: sourceDraft?.visible ?? item.visible,
+            sortOrder: index,
+            priceVisible: sourceDraft?.priceVisible ?? item.price_visible,
+            portionLabel: sourceDraft?.portionLabel ?? item.portion_label ?? "",
+            portionVisible: sourceDraft?.portionVisible ?? item.portion_visible,
+            traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
+            traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
+            badgeStyleKey: sourceDraft?.badgeStyleKey,
+            badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
+            badgeTextColor: sourceDraft?.badgeTextColor,
+          };
+        });
+      });
+      return nextDrafts;
+    });
+
+    resetModes();
+    setSelectedPageId(draftPageId);
+    setSelectedCategoryId("");
+    setEditingPageId(draftPageId);
+    setExpandedPageIds(new Set([draftPageId]));
+    setExpandedCategoryIds(new Set());
+    markMenuManagementDirty();
+    const message = `${labels.pageLabel}가 임시 복사되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+    toast.success(message);
+  }
+
+  function copyItemDraft(itemId: string) {
+    const sourceItem = draftedItems.find((item) => item.id === itemId);
+    if (!sourceItem?.category_id) return;
+    if (reachedItemsPerSiteLimit) return;
+
+    const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === sourceItem.category_id));
+    if (categoryItems.length >= MENU_LIMITS.maxItemsPerCategory) return;
+
+    const copyCount = Object.keys(itemBasicDrafts).filter((id) => id.startsWith(`temp-item-copy-${itemId}-`)).length;
+    const draftId = `temp-item-copy-${itemId}-${copyCount + 1}`;
+    const nextOrderedIds = [draftId, ...categoryItems.map((item) => item.id)];
+    const sourceDraft = itemBasicDrafts[itemId];
+
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = {
+        ...currentDrafts,
+        [draftId]: {
+          categoryId: sourceItem.category_id ?? undefined,
+          isNew: true,
+          imageUrl: sourceItem.image_url,
+          imagePath: sourceItem.image_path,
+          imageAction: "keep",
+          name: getCopyName(sourceItem.name, categoryItems.map((item) => item.name)),
+          description: sourceItem.description ?? "",
+          originInfo: sourceItem.origin_info ?? "",
+          price: sourceItem.price == null ? "" : String(sourceItem.price),
+          priceLabel: sourceItem.price_label ?? "",
+          badgeLabel: capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : "",
+          visible: sourceItem.visible,
+          sortOrder: 0,
+          priceVisible: sourceItem.price_visible,
+          portionLabel: sourceItem.portion_label ?? "",
+          portionVisible: sourceItem.portion_visible,
+          traitsVisible: sourceItem.traits_visible,
+          traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === sourceItem.id))),
+        },
+      };
+
+      nextOrderedIds.forEach((id, index) => {
+        nextDrafts[id] = buildItemOrderDraft(id, index, sourceItem.category_id ?? undefined, nextDrafts);
+      });
+
+      return nextDrafts;
+    });
+
+    const sourceCategory = draftedCategories.find((category) => category.id === sourceItem.category_id);
+    if (sourceCategory) {
+      setSelectedPageId(sourceCategory.menu_page_id);
+      setSelectedCategoryId(sourceCategory.id);
+      setExpandedPageIds(new Set([sourceCategory.menu_page_id]));
+      setExpandedCategoryIds(new Set([sourceCategory.id]));
+    }
+    setEditingItemId(draftId);
+    setItemEditorEntryMode("list");
+    setIsCreatingItem(false);
+    setConfirmingDeleteKey("");
+    markMenuManagementDirty();
+    const message = `${labels.itemLabel}이 임시 복사되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+    toast.success(message);
+  }
+
+  function copyCategoryDraft(categoryId: string) {
+    const sourceCategory = draftedCategories.find((category) => category.id === categoryId);
+    if (!sourceCategory) return;
+
+    const pageId = sourceCategory.menu_page_id;
+    const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId));
+    if (pageCategories.length >= MENU_LIMITS.maxCategoriesPerPage) {
+      setCategoryDraftFeedback(`이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`);
+      return;
+    }
+
+    const sourceItems = sortItems(draftedItems.filter((item) => item.category_id === sourceCategory.id));
+    if (sourceItems.length > MENU_LIMITS.maxItemsPerCategory) {
+      setCategoryDraftFeedback(`복사할 ${labels.categoryLabel}의 ${labels.itemLabel} 수가 최대 개수를 초과합니다.`);
+      return;
+    }
+    if (draftedItems.length + sourceItems.length > MENU_LIMITS.maxItemsPerSite) {
+      setCategoryDraftFeedback(`한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
+      return;
+    }
+
+    const copyCount = Object.keys(categoryBasicDrafts).filter((id) => id.startsWith(`temp-category-copy-${categoryId}-`)).length;
+    const draftCategoryId = `temp-category-copy-${categoryId}-${copyCount + 1}`;
+    const existingCategoryNames = pageCategories.map((category) => category.name);
+
+    setCategoryBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      pageCategories.forEach((category, index) => {
+        nextDrafts[category.id] = {
+          isNew: nextDrafts[category.id]?.isNew,
+          pageId: nextDrafts[category.id]?.pageId ?? category.menu_page_id,
+          name: nextDrafts[category.id]?.name ?? category.name,
+          description: nextDrafts[category.id]?.description ?? category.description ?? "",
+          descriptionVisible: nextDrafts[category.id]?.descriptionVisible ?? category.description_visible,
+          visible: nextDrafts[category.id]?.visible ?? category.visible,
+          sortOrder: index + 1,
+        };
+      });
+      nextDrafts[draftCategoryId] = {
+        isNew: true,
+        pageId,
+        name: getCopyName(sourceCategory.name, existingCategoryNames),
+        description: sourceCategory.description ?? "",
+        descriptionVisible: sourceCategory.description_visible,
+        visible: sourceCategory.visible,
+        sortOrder: 0,
+      };
+      return nextDrafts;
+    });
+
+    setItemBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      const copiedItemNames: string[] = [];
+      sourceItems.forEach((item, index) => {
+        const sourceDraft = currentDrafts[item.id];
+        const draftItemId = `temp-item-category-copy-${categoryId}-${item.id}-${copyCount + 1}`;
+        const copiedItemName = getCopyName(sourceDraft?.name ?? item.name, copiedItemNames);
+        copiedItemNames.push(copiedItemName);
+        nextDrafts[draftItemId] = {
+          categoryId: draftCategoryId,
+          isNew: true,
+          imageUrl: sourceDraft?.imageUrl ?? item.image_url ?? null,
+          imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
+          imageAction: sourceDraft?.imageAction ?? "keep",
+          name: copiedItemName,
+          description: sourceDraft?.description ?? item.description ?? "",
+          originInfo: sourceDraft?.originInfo ?? item.origin_info ?? "",
+          price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
+          priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
+          badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
+          visible: sourceDraft?.visible ?? item.visible,
+          sortOrder: index,
+          priceVisible: sourceDraft?.priceVisible ?? item.price_visible,
+          portionLabel: sourceDraft?.portionLabel ?? item.portion_label ?? "",
+          portionVisible: sourceDraft?.portionVisible ?? item.portion_visible,
+          traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
+          traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
+          badgeStyleKey: sourceDraft?.badgeStyleKey,
+          badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
+          badgeTextColor: sourceDraft?.badgeTextColor,
+        };
+      });
+      return nextDrafts;
+    });
+
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId(draftCategoryId);
+    setEditingCategoryId(draftCategoryId);
+    setExpandedPageIds(new Set([pageId]));
+    setExpandedCategoryIds(new Set([draftCategoryId]));
+    markMenuManagementDirty();
+    const message = `${labels.categoryLabel}가 임시 복사되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
+    toast.success(message);
+  }
+
+  function startEditItem(itemId: string) {
+    if (!confirmDiscardDraft()) return;
+    const item = draftedItems.find((entry) => entry.id === itemId);
+    const category = item?.category_id ? draftedCategories.find((entry) => entry.id === item.category_id) : null;
+    resetModes();
+    if (category) {
+      setSelectedPageId(category.menu_page_id);
+      setSelectedCategoryId(category.id);
+      setExpandedPageIds(new Set([category.menu_page_id]));
+      setExpandedCategoryIds(new Set([category.id]));
+    }
     setEditingItemId(itemId);
+    setItemEditorEntryMode("edit");
   }
 
   function startConfirmDelete(key: string) {
-    resetModes();
+    if (!confirmDiscardDraft()) return;
     setConfirmingDeleteKey(key);
   }
 
-  const activeManagementFormId =
-    isCreatingPage
-      ? "menu-page-form-new"
-      : editingPageId
-        ? `menu-page-form-${editingPageId}`
-        : isCreatingCategory
-          ? "menu-category-form-new"
-          : editingCategoryId
-            ? `menu-category-form-${editingCategoryId}`
-            : isCreatingItem
-              ? "menu-item-form-new"
-              : editingItemId
-                ? `menu-item-form-${editingItemId}`
-                : "";
-  const hasActiveManagementForm = Boolean(activeManagementFormId);
+  function selectPage(pageId: string) {
+    if (!confirmDiscardDraft()) return;
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId("");
+    setExpandedPageIds(new Set([pageId]));
+    setExpandedCategoryIds(new Set());
+  }
+
+  function selectCategory(pageId: string, categoryId: string) {
+    if (!confirmDiscardDraft()) return;
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId(categoryId);
+    setExpandedPageIds(new Set([pageId]));
+    setExpandedCategoryIds(new Set([categoryId]));
+  }
+
+  function selectItem(pageId: string, categoryId: string, itemId: string) {
+    if (!confirmDiscardDraft()) return;
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId(categoryId);
+    setEditingItemId(itemId);
+    setItemEditorEntryMode("list");
+    setExpandedPageIds(new Set([pageId]));
+    setExpandedCategoryIds(new Set([categoryId]));
+  }
+
+  function resetMenuManagementToStarterDraft() {
+    if (!starterPreset) return;
+
+    const resetSeed = Date.now().toString(36);
+    const nextPageDrafts: Record<string, PageBasicDraft> = {};
+    const nextCategoryDrafts: Record<string, CategoryBasicDraft> = {};
+    const nextItemDrafts: Record<string, ItemBasicDraft> = {};
+    let firstPageId = "";
+    let firstCategoryId = "";
+
+    starterPreset.pages.forEach((page, pageIndex) => {
+      const pageId = `temp-page-sample-${resetSeed}-${pageIndex + 1}`;
+      if (!firstPageId) firstPageId = pageId;
+
+      nextPageDrafts[pageId] = {
+        isNew: true,
+        title: page.title,
+        description: capabilities.pageDescription ? "" : "",
+        descriptionVisible: false,
+        visible: true,
+        sortOrder: pageIndex,
+      };
+
+      page.categories.forEach((category, categoryIndex) => {
+        const categoryId = `temp-category-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}`;
+        if (!firstCategoryId) firstCategoryId = categoryId;
+
+        nextCategoryDrafts[categoryId] = {
+          isNew: true,
+          pageId,
+          name: category.name,
+          description: "",
+          descriptionVisible: false,
+          visible: true,
+          sortOrder: categoryIndex,
+        };
+
+        category.items.forEach((starterItem, itemIndex) => {
+          const badgeLabel = capabilities.itemBadges ? starterItem.badge_label ?? (starterItem.recommended ? "추천" : "") : "";
+          const itemId = `temp-item-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}-${itemIndex + 1}`;
+
+          nextItemDrafts[itemId] = {
+            categoryId,
+            isNew: true,
+            imageUrl: capabilities.menuItemImages ? starterItem.image_url ?? null : null,
+            imagePath: null,
+            imageAction: "keep",
+            name: starterItem.name,
+            description: capabilities.itemDescription ? starterItem.description ?? "" : "",
+            originInfo: "",
+            price: starterItem.price == null ? "" : String(starterItem.price),
+            priceLabel: starterItem.price_label ?? "",
+            badgeLabel,
+            visible: starterPreset.sample_items_visible ?? true,
+            sortOrder: itemIndex,
+            priceVisible: true,
+            portionLabel: starterItem.portion_label ?? "",
+            portionVisible: Boolean(starterItem.portion_label),
+            traitsVisible: false,
+            traitDrafts: [],
+            priceOptions: capabilities.priceOptions
+              ? starterItem.price_options?.slice(0, MENU_LIMITS.maxPriceOptionsPerItem).map((option, optionIndex) => ({
+                  id: `temp-price-option-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}-${itemIndex + 1}-${optionIndex + 1}`,
+                  label: option.label,
+                  price: option.price == null ? "" : String(option.price),
+                  priceLabel: option.price_label ?? "",
+                  visible: true,
+                  sortOrder: optionIndex,
+                }))
+              : undefined,
+          };
+        });
+      });
+    });
+
+    setPageBasicDrafts(nextPageDrafts);
+    setCategoryBasicDrafts(nextCategoryDrafts);
+    setItemBasicDrafts(nextItemDrafts);
+    setPendingItemDrafts({});
+    setDeletedPageIds(new Set(menuPages.map((page) => page.id)));
+    setDeletedCategoryIds(new Set(categories.map((category) => category.id)));
+    setDeletedItemIds(new Set(items.map((item) => item.id)));
+    resetModes();
+    setIsSampleResetConfirming(false);
+    setSelectedPageId(firstPageId);
+    setSelectedCategoryId(firstCategoryId);
+    setExpandedPageIds(new Set(firstPageId ? [firstPageId] : []));
+    setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
+    markMenuManagementDirty();
+    toast.success("메뉴 관리 내용이 샘플 데이터로 임시 변경되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+  }
+
+  const selectedPageCopyDisabledReason = selectedPage ? getPageCopyDisabledReason(selectedPage.id) : "";
+  const sampleResetDisabledReason = starterPreset ? "" : "이 템플릿의 샘플 데이터를 찾을 수 없습니다.";
 
   return (
     <div className="space-y-6">
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <div className="mb-8 border-b border-zinc-100 pb-6">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Menu Builder</p>
-              <h2 className="text-2xl font-bold tracking-tight">메뉴 관리</h2>
-              <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                메뉴 페이지, 메뉴 그룹, 메뉴 아이템을 관리합니다.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 sm:items-end">
-              <div className="flex flex-wrap gap-2 sm:justify-end">
-                <ResetTabActionButton menuId={menuId} kind="menu" />
-                <SubmitButton form={activeManagementFormId || undefined} tone="dark" disabled={!hasActiveManagementForm}>
-                  변경사항 저장
-                </SubmitButton>
-              </div>
-              <p className="max-w-xs break-keep text-left text-xs font-bold leading-relaxed text-zinc-400 sm:text-right">
-                {hasActiveManagementForm
-                  ? "열려 있는 메뉴 편집 내용을 저장합니다."
-                  : "페이지, 메뉴 그룹, 메뉴 아이템의 수정 버튼을 누르면 저장할 수 있습니다."}
+            <div className="min-w-0">
+              <h2 className="flex min-w-0 items-center gap-2 text-2xl font-bold tracking-tight">
+                <span className="min-w-0 truncate">{labels.itemPluralLabel.includes("서비스") ? "가격표 관리" : "메뉴 관리"}</span>
+                <HelpTooltip label="메뉴 관리 도움말">
+                  변경사항은 편집 화면에 먼저 반영되며, 하단의 저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다. 샘플로 되돌리기도 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
+                </HelpTooltip>
+              </h2>
+              <p className="mt-2 break-words text-sm font-semibold leading-relaxed text-zinc-500">
+                {labels.pageLabel}, {labels.categoryLabel}, {labels.itemPluralLabel}을 관리합니다.
               </p>
             </div>
           </div>
-          <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-            메뉴 페이지는 메뉴판의 큰 구역입니다. 처음에는 1개 페이지로 시작하며, 메뉴가 많을 경우 페이지를 추가할 수 있습니다.
-          </p>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-            페이지·메뉴 그룹·메뉴 아이템의 일반 수정값은 저장 버튼을 눌러 반영됩니다. 삭제, 복사, 샘플 초기화는 확인 후 즉시 반영됩니다.
-          </p>
-          <p className="mt-3 rounded-lg bg-zinc-50 p-4 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-            기본 메뉴 구성은 예시입니다. 실제 메뉴에 맞게 자유롭게 수정하거나 삭제하세요.
-          </p>
         </div>
 
-        {canManagePages && (
-        <div>
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">메뉴 페이지</p>
-            <h3 className="text-xl font-bold tracking-tight">메뉴 페이지</h3>
-          </div>
-          {!isCreatingPage && !editingPageId && (
-            <button
-              type="button"
-              onClick={startCreatePage}
-              disabled={reachedPageLimit}
-              className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
-            >
-              + 메뉴 페이지 추가
-            </button>
-          )}
-        </div>
-        {reachedPageLimit && !isCreatingPage && (
-          <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">
-            메뉴 페이지는 최대 {MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.
-          </p>
-        )}
-
-        {isCreatingPage && <MenuPageForm menuId={menuId} count={sortedPages.length} formId="menu-page-form-new" onCancel={resetModes} />}
-
-        {sortedPages.length === 0 ? (
-          <div className="mt-6">
-            <EmptyState>메뉴 페이지가 없습니다</EmptyState>
-          </div>
-        ) : (
-          <div className="mt-5 flex gap-2 overflow-x-auto">
-            {sortedPages.map((page) => {
-              const isActive = page.id === visiblePageId;
-              return (
+        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
+          <aside className="min-w-0 rounded-lg border border-zinc-100 bg-zinc-50 p-4 lg:sticky lg:top-24">
+            <div className="mb-4 min-w-0">
+              <h3 className="mt-1 flex min-w-0 items-center gap-2 text-lg font-black text-zinc-950">
+                <span className="min-w-0 truncate">메뉴판 구조</span>
+                <HelpTooltip label="메뉴판 구조 도움말">
+                  {labels.pageLabel} 안에 {labels.categoryLabel}가 있고, {labels.categoryLabel} 안에 {labels.itemLabel}이 들어갑니다. 왼쪽의 + {labels.categoryLabel}, + {labels.itemLabel} 버튼으로 항목을 추가할 수 있으며, 변경사항은 저장 후 공개 메뉴판에 반영됩니다.
+                </HelpTooltip>
+              </h3>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {shouldShowPageCreateButton && (
                 <button
-                  key={page.id}
                   type="button"
-                  onClick={() => {
-                    resetModes();
-                    setSelectedPageId(page.id);
-                    const nextCategory = sortCategories(categories.filter((category) => category.menu_page_id === page.id))[0];
-                    setSelectedCategoryId(nextCategory?.id ?? "");
-                  }}
-                  className={`shrink-0 rounded-full px-4 py-3 text-left text-sm font-bold transition ${
-                    isActive ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-                  }`}
+                  onClick={startCreatePage}
+                  disabled={reachedPageLimit}
+                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                 >
-                  {getMenuPageTitle(page)}
+                  + {labels.pageLabel}
                 </button>
-              );
-            })}
-          </div>
-        )}
+              )}
+              {shouldShowCategoryCreateButton && (
+                <button
+                  type="button"
+                  onClick={startCreateCategory}
+                  disabled={reachedCategoryLimit}
+                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                >
+                  + {labels.categoryLabel}
+                </button>
+              )}
+              {shouldShowItemCreateButton && (
+                <button
+                  type="button"
+                  onClick={startCreateItem}
+                  disabled={reachedItemLimit}
+                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                >
+                  + {labels.itemLabel}
+                </button>
+              )}
+            </div>
 
-        {selectedPage && editingPageId === selectedPage.id && (
-          <MenuPageForm menuId={menuId} page={selectedPage} count={sortedPages.length} formId={`menu-page-form-${selectedPage.id}`} onCancel={resetModes} />
-        )}
-
-        {selectedPage && editingPageId !== selectedPage.id && (
-          <div className="mt-6 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <DetailValue label="페이지 이름">{selectedPage.title}</DetailValue>
-              <DetailValue label="메뉴 그룹 수">{categoriesForPage.length}개</DetailValue>
-              <DetailValue label="메뉴 아이템 수">{items.filter((item) => categoriesForPage.some((category) => category.id === item.category_id)).length}개</DetailValue>
-              <DetailValue label="정렬 순서">{selectedPage.sort_order}</DetailValue>
-              <DetailValue label="설명 표시">{selectedPage.description_visible ? "표시" : "숨김"}</DetailValue>
-              <div className="md:col-span-2">
-                <DetailValue label="페이지 설명">{selectedPage.description}</DetailValue>
+            {sortedPages.length === 0 ? (
+              <div className="mt-6 grid gap-3">
+                {draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
+                <EmptyState>{labels.pageLabel}가 없습니다</EmptyState>
               </div>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
-                이름 수정
-              </button>
-              <form action={copyMenuPageAction}>
-                <HiddenMenuId menuId={menuId} />
-                <input type="hidden" name="menuPageId" value={selectedPage.id} />
-                <SubmitButton tone="light" disabled={reachedPageLimit}>
-                  복사
-                </SubmitButton>
-              </form>
-              <DeleteConfirmForm
-                action={deleteMenuPageAction}
-                menuId={menuId}
-                hiddenName="menuPageId"
-                hiddenValue={selectedPage.id}
-                title="메뉴 페이지를 삭제할까요?"
-                description="이 페이지에 포함된 메뉴 그룹과 메뉴 아이템도 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
-                disabledReason={sortedPages.length <= 1 ? "최소 1개의 메뉴 페이지는 필요합니다." : undefined}
-                isConfirming={confirmingDeleteKey === `page:${selectedPage.id}`}
-                onRequestConfirm={() => startConfirmDelete(`page:${selectedPage.id}`)}
-                onCancel={resetModes}
-              />
-            </div>
-          </div>
-        )}
-        </div>
-        )}
-
-        <div className={`${canManagePages ? "mt-8 border-t border-zinc-100 pt-6" : ""} ${!selectedPage ? "opacity-60" : ""}`}>
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">메뉴 그룹</p>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-xl font-bold tracking-tight">메뉴 그룹</h3>
-                {canManagePages && selectedPage && (
-                  <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
-                    {getMenuPageTitle(selectedPage)}
-                  </span>
-                )}
+            ) : (
+              <div className="mt-5 grid gap-3">
+                {draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
+                {sortedPages.map((page) => {
+                  const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
+                  const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId;
+                  const pageCanCollapse = sortedPages.length > 1;
+                  const pageExpanded = !pageCanCollapse || expandedPageIds.has(page.id);
+                  return (
+                    <div
+                      key={page.id}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={() => handlePageDrop(page.id)}
+                      className="min-w-0 overflow-hidden rounded-lg border border-zinc-100 bg-white p-2"
+                      >
+                      <div className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 transition ${pageActive ? "bg-zinc-950 text-white" : "text-zinc-800 hover:bg-zinc-100"}`}>
+                        <button
+                          type="button"
+                          draggable
+                          onDragStart={(event) => {
+                            event.stopPropagation();
+                            setDragState({ type: "page", id: page.id });
+                          }}
+                          onClick={(event) => event.stopPropagation()}
+                          className={`inline-flex shrink-0 cursor-grab select-none items-center justify-center rounded px-1 active:cursor-grabbing ${pageActive ? "text-zinc-300 hover:text-white" : "text-zinc-300 hover:text-zinc-500"}`}
+                          aria-label={`${labels.pageLabel} 순서 이동`}
+                        >
+                          <DragHandleIcon />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => selectPage(page.id)}
+                          className="min-w-0 flex-1 truncate text-left text-sm font-black"
+                        >
+                          {getMenuPageTitle(page)}
+                        </button>
+                        {pageCanCollapse && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleExpandedPage(page.id);
+                            }}
+                            className="shrink-0 rounded-md px-1 text-xs font-black"
+                            aria-expanded={pageExpanded}
+                            aria-label={pageExpanded ? "페이지 접기" : "페이지 펼치기"}
+                          >
+                            {pageExpanded ? "⌃" : "⌄"}
+                          </button>
+                        )}
+                      </div>
+                      {pageExpanded && <div className="mt-2 grid min-w-0 gap-1 border-l border-zinc-200 pl-3">
+                        {draftTarget?.type === "category" && draftTarget.pageId === page.id && (
+                          <DraftNameInput
+                            value={draftTarget.title}
+                            onChange={updateDraftTitle}
+                            placeholder={labels.categoryLabel === "서비스 그룹" ? "새 서비스 그룹명 입력" : "새 카테고리명 입력"}
+                            level="category"
+                          />
+                        )}
+                        {pageCategories.map((category) => {
+                          const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === category.id));
+                          const categoryActive = category.id === visibleCategoryId && !editingItemId;
+                          const categoryCanCollapse = pageCategories.length > 1;
+                          const categoryExpanded = !categoryCanCollapse || expandedCategoryIds.has(category.id);
+                          return (
+                            <div
+                              key={category.id}
+                              onDragOver={(event) => event.preventDefault()}
+                              onDrop={() => handleCategoryDrop(page.id, category.id)}
+                              className="min-w-0"
+                            >
+                              <div
+                                className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 transition ${
+                                  categoryActive ? "bg-zinc-950 text-white" : "text-zinc-600 hover:bg-zinc-100"
+                                }`}
+                              >
+                                <button
+                                  type="button"
+                                  draggable
+                                  onDragStart={(event) => {
+                                    event.stopPropagation();
+                                    setDragState({ type: "category", id: category.id, pageId: page.id });
+                                  }}
+                                  onClick={(event) => event.stopPropagation()}
+                                  className={`inline-flex shrink-0 cursor-grab select-none items-center justify-center rounded px-1 active:cursor-grabbing ${categoryActive ? "text-zinc-300 hover:text-white" : "text-zinc-300 hover:text-zinc-500"}`}
+                                  aria-label={`${labels.categoryLabel} 순서 이동`}
+                                >
+                                  <DragHandleIcon />
+                                </button>
+                                <button type="button" onClick={() => selectCategory(page.id, category.id)} className="flex min-w-0 flex-1 items-center gap-1 text-left text-xs font-bold">
+                                  <span className="min-w-0 truncate">{category.name}</span>
+                                  <span className={`shrink-0 ${categoryActive ? "text-zinc-300" : "text-zinc-400"}`}>({categoryItems.length})</span>
+                                </button>
+                                {categoryCanCollapse && (
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      toggleExpandedCategory(category.id);
+                                    }}
+                                    className="shrink-0 rounded-md px-1 text-xs font-black"
+                                    aria-expanded={categoryExpanded}
+                                    aria-label={categoryExpanded ? `${labels.categoryLabel} 접기` : `${labels.categoryLabel} 펼치기`}
+                                  >
+                                    {categoryExpanded ? "⌃" : "⌄"}
+                                  </button>
+                                )}
+                              </div>
+                              {categoryExpanded && categoryItems.length > 0 && (
+                                <div className="ml-3 mt-1 grid min-w-0 gap-1 border-l border-zinc-100 pl-3">
+                                  {categoryItems.map((item) => (
+                                    <div
+                                      key={item.id}
+                                      onDragOver={(event) => event.preventDefault()}
+                                      onDrop={() => handleItemDrop(category.id, item.id)}
+                                      onPointerUp={(event) => {
+                                        if (event.pointerType === "mouse" && event.button !== 0) return;
+                                        selectItem(page.id, category.id, item.id);
+                                      }}
+                                      onKeyDown={(event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                          event.preventDefault();
+                                          selectItem(page.id, category.id, item.id);
+                                        }
+                                      }}
+                                      role="button"
+                                      tabIndex={0}
+                                      className={`flex min-w-0 cursor-pointer items-center gap-1 rounded-md px-3 py-1.5 text-left text-xs font-semibold transition ${
+                                        item.id === editingItemId ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700"
+                                      }`}
+                                    >
+                                      <button
+                                        type="button"
+                                        draggable
+                                        onDragStart={(event) => {
+                                          event.stopPropagation();
+                                          setDragState({ type: "item", id: item.id, categoryId: category.id });
+                                        }}
+                                        onClick={(event) => event.stopPropagation()}
+                                        onPointerUp={(event) => event.stopPropagation()}
+                                        className="inline-flex shrink-0 cursor-grab select-none items-center justify-center rounded px-1 text-zinc-300 hover:text-zinc-500 active:cursor-grabbing"
+                                        aria-label={`${labels.itemLabel} 순서 이동`}
+                                      >
+                                        <DragHandleIcon />
+                                      </button>
+                                      <span className="min-w-0 flex-1 truncate text-left">
+                                        {item.name}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>}
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-            {!isCreatingCategory && !editingCategoryId && (
-              <button
-                type="button"
-                onClick={startCreateCategory}
-                disabled={!selectedPage || reachedCategoryLimit}
-                className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
-              >
-                + 메뉴 그룹 추가
-              </button>
             )}
-          </div>
+          </aside>
 
-          {!selectedPage && <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">{canManagePages ? "메뉴 페이지를 먼저 선택해주세요" : "기본 메뉴 구조가 없습니다. 메뉴판을 다시 생성하거나 관리자에게 문의해주세요."}</p>}
-          {selectedPage && reachedCategoryLimit && !isCreatingCategory && (
-            <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">
-              이 페이지에는 메뉴 그룹을 최대 {MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.
-            </p>
-          )}
-
-          {isCreatingCategory && <MenuCategoryForm menuId={menuId} pageId={selectedPage.id} count={categoriesForPage.length} formId="menu-category-form-new" onCancel={resetModes} />}
-
-          {selectedPage && categoriesForPage.length === 0 ? (
-            <div className="mt-6">
-            <EmptyState>이 페이지에 메뉴 그룹이 없습니다</EmptyState>
-            </div>
-          ) : selectedPage ? (
-            <div className="mt-5 flex gap-2 overflow-x-auto">
-              {categoriesForPage.map((category) => {
-                const isActive = category.id === visibleCategoryId;
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => {
-                      resetModes();
-                      setSelectedCategoryId(category.id);
-                    }}
-                    className={`shrink-0 rounded-full px-4 py-3 text-sm font-bold transition ${
-                      isActive ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-                    }`}
-                  >
-                    {category.name}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
-
-          {selectedCategory && editingCategoryId === selectedCategory.id && (
-            <MenuCategoryForm
-              menuId={menuId}
-              pageId={selectedPage.id}
-              category={selectedCategory}
-              count={categoriesForPage.length}
-              formId={`menu-category-form-${selectedCategory.id}`}
-              onCancel={resetModes}
-            />
-          )}
-
-          {selectedCategory && editingCategoryId !== selectedCategory.id && (
-            <div className="mt-6 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-              <div className="grid gap-4 md:grid-cols-2">
-                <DetailValue label="메뉴 그룹 이름">{selectedCategory.name}</DetailValue>
-                {canManagePages && <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>}
-                <DetailValue label="정렬 순서">{selectedCategory.sort_order}</DetailValue>
-                <DetailValue label="설명 표시">{selectedCategory.description_visible ? "표시" : "숨김"}</DetailValue>
-                <DetailValue label="메뉴판 표시">{selectedCategory.visible ? "표시" : "숨김"}</DetailValue>
-                <div className="md:col-span-2">
-                  <DetailValue label="메뉴 그룹 설명">{selectedCategory.description}</DetailValue>
-                </div>
-              </div>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
-                  수정
-                </button>
-                <DeleteConfirmForm
-                  action={deleteCategoryAction}
+          <section className="min-w-0 rounded-lg border border-zinc-100 bg-white p-4 lg:p-6">
+            {isCreatingPage ? (
+              <div>
+                <PanelHeader eyebrow="New Page" title={`새 ${labels.pageLabel} 추가`} description={`${labels.pageLabel}를 추가하면 왼쪽 구조 트리에 새 구역이 생깁니다.`} />
+                <MenuPageForm
                   menuId={menuId}
-                  hiddenName="categoryId"
-                  hiddenValue={selectedCategory.id}
-                  disabledReason={itemsForCategory.length > 0 ? "하위 메뉴가 있어 삭제할 수 없습니다. 삭제 대신 저장 시 메뉴판 표시를 끌 수 있습니다." : undefined}
-                  isConfirming={confirmingDeleteKey === `category:${selectedCategory.id}`}
-                  onRequestConfirm={() => startConfirmDelete(`category:${selectedCategory.id}`)}
+                  count={sortedPages.length}
+                  formId="menu-page-form-new"
+                  labels={labels}
+                  draftOnly
+                  draftTitle={draftTarget?.type === "page" ? draftTarget.title : undefined}
+                  onDraftTitleChange={updateDraftTitle}
+                  onDraftChange={updateDraftTargetDetails}
+                  onDraftCommit={commitPageDraft}
+                  onCancel={resetModes}
+                  draftActionLabel={`${labels.pageLabel} 추가`}
+                  draftFeedback={pageDraftFeedback}
+                  supportsDescription={capabilities.pageDescription}
+                />
+              </div>
+            ) : editingPageId && selectedPage ? (
+              <div>
+                {(() => {
+                  const isCopiedPage = selectedPage.id.startsWith("temp-page-copy-");
+                  return (
+                    <>
+                <PanelHeader
+                  eyebrow="Page Detail"
+                  title={`${labels.pageLabel} 수정`}
+                  description={
+                    capabilities.pageDescription
+                      ? `${labels.pageLabel}의 이름, 설명, 표시 여부를 수정합니다.`
+                      : `${labels.pageLabel}의 이름과 표시 여부를 수정합니다.`
+                  }
+                />
+                <MenuPageForm
+                  key={selectedPage.id}
+                  menuId={menuId}
+                  page={selectedPage}
+                  count={sortedPages.length}
+                  formId={`menu-page-form-${selectedPage.id}`}
+                  labels={labels}
+                  draftOnly
+                  draftTitle={pageBasicDrafts[selectedPage.id]?.title ?? selectedPage.title}
+                  onDraftTitleChange={(title) => updatePageBasicDraft(selectedPage.id, { title })}
+                  onDraftChange={(patch) => updatePageBasicDraft(selectedPage.id, patch)}
+                  onDraftCommit={commitPageDraft}
+                  onCancel={resetModes}
+                  cancelLabel={isCopiedPage ? "목록으로" : "취소"}
+                  draftActionLabel="수정 내용 반영"
+                  draftFeedback={pageDraftFeedback}
+                  supportsDescription={capabilities.pageDescription}
+                  deleteAction={
+                    <DraftDeleteConfirmButton
+                      title={isCopiedPage ? "이 복사본을 삭제할까요?" : `${labels.pageLabel}를 삭제할까요?`}
+                      description={
+                        isCopiedPage
+                          ? "삭제해도 하단의 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
+                          : `이 페이지에 포함된 ${labels.categoryLabel}과 ${labels.itemLabel}도 함께 삭제됩니다. 저장 전까지 실제 데이터에는 반영되지 않습니다.`
+                      }
+                      disabledReason={sortedPages.length <= 1 ? `최소 1개의 ${labels.pageLabel}는 필요합니다.` : undefined}
+                      isConfirming={confirmingDeleteKey === `page:${selectedPage.id}`}
+                      onRequestConfirm={() => startConfirmDelete(`page:${selectedPage.id}`)}
+                      onConfirm={() => deletePageDraft(selectedPage.id)}
+                      onCancel={() => setConfirmingDeleteKey("")}
+                    />
+                  }
+                />
+                    </>
+                  );
+                })()}
+              </div>
+            ) : isCreatingCategory && selectedPage ? (
+              <div>
+                <PanelHeader eyebrow="New Group" title={`새 ${labels.categoryLabel} 추가`} description={`${getMenuPageTitle(selectedPage)} 안에 새 ${labels.categoryLabel}을 추가합니다.`} />
+                <MenuCategoryForm
+                  menuId={menuId}
+                  pageId={selectedPage.id}
+                  formId="menu-category-form-new"
+                  labels={labels}
+                  draftOnly
+                  draftName={draftTarget?.type === "category" ? draftTarget.title : undefined}
+                  onDraftNameChange={updateDraftTitle}
+                  onDraftChange={updateDraftTargetDetails}
+                  onDraftCommit={commitCategoryDraft}
+                  draftActionLabel={`${labels.categoryLabel} 추가`}
+                  draftFeedback={categoryDraftFeedback}
                   onCancel={resetModes}
                 />
               </div>
-            </div>
-          )}
+            ) : editingCategoryId && selectedCategory ? (
+              <div>
+                {(() => {
+                  const isCopiedCategory = selectedCategory.id.startsWith("temp-category-copy-") || selectedCategory.id.startsWith("temp-category-page-copy-");
+                  return (
+                    <>
+                <PanelHeader eyebrow="Group Detail" title={`${labels.categoryLabel} 수정`} description={`${labels.categoryLabel}의 이름, 설명, 표시 여부를 수정합니다.`} />
+                <MenuCategoryForm
+                  key={selectedCategory.id}
+                  menuId={menuId}
+                  pageId={selectedPage?.id ?? selectedCategory.menu_page_id}
+                  category={selectedCategory}
+                  formId={`menu-category-form-${selectedCategory.id}`}
+                  labels={labels}
+                  draftOnly
+                  draftName={categoryBasicDrafts[selectedCategory.id]?.name ?? selectedCategory.name}
+                  onDraftNameChange={(name) => updateCategoryBasicDraft(selectedCategory.id, { name })}
+                  onDraftChange={(patch) => updateCategoryBasicDraft(selectedCategory.id, patch)}
+                  onDraftCommit={commitCategoryDraft}
+                  draftActionLabel="수정 내용 반영"
+                  draftFeedback={categoryDraftFeedback}
+                  onCancel={resetModes}
+                  cancelLabel={isCopiedCategory ? "목록으로" : "취소"}
+                  deleteAction={
+                    <DraftDeleteConfirmButton
+                      title={isCopiedCategory ? "이 복사본을 삭제할까요?" : `${labels.categoryLabel}을 삭제할까요?`}
+                      description={
+                        isCopiedCategory
+                          ? "삭제해도 하단의 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
+                          : `이 ${labels.categoryLabel}에 포함된 ${labels.itemLabel}도 함께 삭제됩니다. 저장 전까지 실제 데이터에는 반영되지 않습니다.`
+                      }
+                      isConfirming={confirmingDeleteKey === `category:${selectedCategory.id}`}
+                      onRequestConfirm={() => startConfirmDelete(`category:${selectedCategory.id}`)}
+                      onConfirm={() => deleteCategoryDraft(selectedCategory.id)}
+                      onCancel={() => setConfirmingDeleteKey("")}
+                    />
+                  }
+                  cancelHelperText={
+                    isCopiedCategory
+                      ? "목록으로 돌아가도 복사본은 삭제되지 않습니다. 복사본을 없애려면 삭제 버튼을 사용해주세요."
+                      : undefined
+                  }
+                />
+                    </>
+                  );
+                })()}
+              </div>
+            ) : selectedCategory && isCreatingItem ? (
+              <div ref={newItemFormRef} className="fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:p-0">
+                <PanelHeader eyebrow="New Item" title={`새 ${labels.itemLabel} 추가`} description={`현재 선택한 ${labels.categoryLabel}에 새 ${labels.itemLabel}을 추가합니다.`} />
+                <MenuItemForm
+                  menuId={menuId}
+                  categories={categoriesForPage}
+                  capabilities={capabilities}
+                  badgeStyles={badgeStyles}
+                  labels={labels}
+                  itemCount={itemsForCategory.length}
+                  selectedCategoryId={selectedCategory.id}
+                  draftOnly
+                  draftItem={editingItemId ? pendingItemDrafts[editingItemId] : undefined}
+                  draftName={editingItemId ? pendingItemDrafts[editingItemId]?.name : undefined}
+                  onDraftNameChange={(name) => {
+                    if (editingItemId) updatePendingItemDraft(editingItemId, { name });
+                  }}
+                  onDraftItemChange={(patch) => {
+                    if (editingItemId) updatePendingItemDraft(editingItemId, patch);
+                  }}
+                  onDraftCommit={(patch) => {
+                    if (editingItemId) commitPendingItemDraft(editingItemId, patch);
+                  }}
+                  onDraftCommitMessageClear={() => setItemDraftFeedback("")}
+                  onCancel={() => {
+                    if (editingItemId) cancelPendingItemDraft(editingItemId);
+                  }}
+                />
+                {itemDraftFeedback && (
+                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                    {itemDraftFeedback}
+                  </p>
+                )}
+              </div>
+            ) : editingItemId && selectedEditingItem ? (
+              <div>
+                <MenuItemCard
+                  key={selectedEditingItem.id}
+                  menuId={menuId}
+                  categories={categoriesForPage}
+                  item={selectedEditingItem}
+                  draftItem={pendingItemDrafts[selectedEditingItem.id] ?? itemBasicDrafts[selectedEditingItem.id]}
+                  onDraftItemChange={(patch) => updatePendingItemDraft(selectedEditingItem.id, patch)}
+                  onDraftCommit={(patch) => commitPendingItemDraft(selectedEditingItem.id, patch)}
+                  onDraftCommitMessageClear={() => setItemDraftFeedback("")}
+                  draftOnly
+                  priceOptions={priceOptions.filter((option) => option.menu_item_id === selectedEditingItem.id)}
+                  traits={traits.filter((trait) => trait.menu_item_id === selectedEditingItem.id)}
+                  capabilities={capabilities}
+                  badgeStyles={badgeStyles}
+                  labels={labels}
+                  isEditing
+                  cancelLabel={itemEditorEntryMode === "edit" ? "취소" : "목록으로"}
+                  isConfirmingDelete={confirmingDeleteKey === `item:${selectedEditingItem.id}`}
+                  onEdit={() => startEditItem(selectedEditingItem.id)}
+                  onCancel={resetModes}
+                  onCancelDelete={() => setConfirmingDeleteKey("")}
+                  onRequestDelete={() => startConfirmDelete(`item:${selectedEditingItem.id}`)}
+                  onConfirmDelete={() => deleteItemDraft(selectedEditingItem.id)}
+                  onCopy={() => copyItemDraft(selectedEditingItem.id)}
+                />
+                {itemDraftFeedback && (
+                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                    {itemDraftFeedback}
+                  </p>
+                )}
+              </div>
+            ) : selectedCategory ? (
+              <div>
+                <PanelHeader
+                  eyebrow="Group Detail"
+                  title={selectedCategory.name}
+                  description={`${labels.categoryLabel} 정보를 확인하고, 이 그룹의 ${labels.itemPluralLabel}을 관리합니다.`}
+                />
+                <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+                  <DetailValue label={`${labels.categoryLabel} 이름`}>{selectedCategory.name}</DetailValue>
+                  {selectedPage && <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>}
+                  <DetailValue label="정렬 순서">{selectedCategory.sort_order}</DetailValue>
+                  <DetailValue label="설명 표시">{selectedCategory.description_visible ? "사용함" : "사용 안 함"}</DetailValue>
+                  <DetailValue label="메뉴판 표시">{selectedCategory.visible ? "표시" : "숨김"}</DetailValue>
+                  <div className="md:col-span-2">
+                    <DetailValue label={`${labels.categoryLabel} 설명`}>{selectedCategory.description}</DetailValue>
+                  </div>
+                </div>
+                <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+                  <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                    수정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => copyCategoryDraft(selectedCategory.id)}
+                    disabled={reachedCategoryLimit || reachedItemsPerSiteLimit}
+                    title={
+                      reachedCategoryLimit
+                        ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
+                        : reachedItemsPerSiteLimit
+                        ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
+                        : undefined
+                    }
+                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  >
+                    복사
+                  </button>
+                  <DraftDeleteConfirmButton
+                    title={`${labels.categoryLabel}을 삭제할까요?`}
+                    description={`이 ${labels.categoryLabel}에 포함된 ${labels.itemLabel}도 함께 삭제됩니다. 저장 전까지 실제 데이터에는 반영되지 않습니다.`}
+                    isConfirming={confirmingDeleteKey === `category:${selectedCategory.id}`}
+                    onRequestConfirm={() => startConfirmDelete(`category:${selectedCategory.id}`)}
+                    onConfirm={() => deleteCategoryDraft(selectedCategory.id)}
+                    onCancel={() => setConfirmingDeleteKey("")}
+                  />
+                </div>
+                {categoryDraftFeedback && (
+                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                    {categoryDraftFeedback}
+                  </p>
+                )}
+                {(reachedCategoryLimit || reachedItemsPerSiteLimit) && (
+                  <p className="mt-3 rounded-lg bg-zinc-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-zinc-400">
+                    {reachedCategoryLimit
+                      ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
+                      : `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`}
+                  </p>
+                )}
+                {itemsForCategory.length > 0 && (
+                  <div className="mt-8 border-t border-zinc-100 pt-6">
+                    <h3 className="text-base font-black text-zinc-950">등록된 {labels.itemPluralLabel}</h3>
+                    <div className="mt-4 grid gap-3">
+                      {itemsForCategory.map((item) => (
+                        <MenuItemCard
+                          key={item.id}
+                          menuId={menuId}
+                          categories={categoriesForPage}
+                          item={item}
+                          draftItem={itemBasicDrafts[item.id]}
+                          onDraftItemChange={(patch) => updatePendingItemDraft(item.id, patch)}
+                          onDraftCommit={(patch) => commitPendingItemDraft(item.id, patch)}
+                          draftOnly
+                          priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
+                          traits={traits.filter((trait) => trait.menu_item_id === item.id)}
+                          capabilities={capabilities}
+                          badgeStyles={badgeStyles}
+                          labels={labels}
+                          cancelLabel="목록으로"
+                          isEditing={false}
+                          isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
+                          onEdit={() => startEditItem(item.id)}
+                          onCancel={resetModes}
+                          onCancelDelete={() => setConfirmingDeleteKey("")}
+                          onRequestDelete={() => startConfirmDelete(`item:${item.id}`)}
+                          onConfirmDelete={() => deleteItemDraft(item.id)}
+                          onCopy={() => copyItemDraft(item.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : selectedPage ? (
+              <div>
+                <PanelHeader
+                  eyebrow="Page Detail"
+                  title={getMenuPageTitle(selectedPage)}
+                  description={`${labels.pageLabel} 정보를 확인합니다.`}
+                />
+                <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+                  <DetailValue label="페이지 이름">{selectedPage.title}</DetailValue>
+                  <DetailValue label={`${labels.categoryLabel} 수`}>{categoriesForPage.length}개</DetailValue>
+                  <DetailValue label={`${labels.itemLabel} 수`}>{draftedItems.filter((item) => categoriesForPage.some((category) => category.id === item.category_id)).length}개</DetailValue>
+                  <DetailValue label="정렬 순서">{selectedPage.sort_order}</DetailValue>
+                  {capabilities.pageDescription && (
+                    <>
+                      <DetailValue label="설명 표시">{selectedPage.description_visible ? "사용함" : "사용 안 함"}</DetailValue>
+                      <div className="md:col-span-2">
+                        <DetailValue label="페이지 설명">{selectedPage.description}</DetailValue>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+                  <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                    수정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => copyPageDraft(selectedPage.id)}
+                    disabled={Boolean(selectedPageCopyDisabledReason)}
+                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    title={selectedPageCopyDisabledReason || undefined}
+                  >
+                    복사
+                  </button>
+                  <DraftDeleteConfirmButton
+                    title={`${labels.pageLabel}를 삭제할까요?`}
+                    description={`이 페이지에 포함된 ${labels.categoryLabel}과 ${labels.itemLabel}도 함께 삭제됩니다. 저장 전까지 실제 데이터에는 반영되지 않습니다.`}
+                    disabledReason={sortedPages.length <= 1 ? `최소 1개의 ${labels.pageLabel}는 필요합니다.` : undefined}
+                    isConfirming={confirmingDeleteKey === `page:${selectedPage.id}`}
+                    onRequestConfirm={() => startConfirmDelete(`page:${selectedPage.id}`)}
+                    onConfirm={() => deletePageDraft(selectedPage.id)}
+                    onCancel={() => setConfirmingDeleteKey("")}
+                  />
+                </div>
+                {selectedPageCopyDisabledReason && (
+                  <p className="mt-3 rounded-lg bg-zinc-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-zinc-400">
+                    {selectedPageCopyDisabledReason}
+                  </p>
+                )}
+                {pageDraftFeedback && (
+                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                    {pageDraftFeedback}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <EmptyState>{labels.pageLabel}를 선택하거나 새로 추가해주세요.</EmptyState>
+            )}
+          </section>
         </div>
-
-        <div className={`mt-8 border-t border-zinc-100 pt-6 ${!selectedCategory ? "opacity-60" : ""}`}>
-        <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">메뉴 목록</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <h4 className="text-xl font-bold tracking-tight">메뉴 목록</h4>
-              {selectedCategory && (
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
-                  {selectedCategory.name}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-2 md:items-end">
-            {!isCreatingItem && !editingItemId && (
+        <div className="mt-6">
+          <form action={saveMenuManagementBasicDraftAction}>
+            <HiddenMenuId menuId={menuId} />
+            <input type="hidden" name="page_basic_drafts" value={pageBasicDraftPayload} />
+            <input type="hidden" name="category_basic_drafts" value={categoryBasicDraftPayload} />
+            <input type="hidden" name="item_basic_drafts" value={itemBasicDraftPayload} />
+            <input type="hidden" name="deleted_page_ids" value={deletedPageIdsPayload} />
+            <input type="hidden" name="deleted_category_ids" value={deletedCategoryIdsPayload} />
+            <input type="hidden" name="deleted_item_ids" value={deletedItemIdsPayload} />
+            <FinalActionRow>
               <button
                 type="button"
-                onClick={startCreateItem}
-                disabled={!selectedCategory || reachedItemLimit}
-                className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                onClick={() => setIsSampleResetConfirming(true)}
+                disabled={Boolean(sampleResetDisabledReason)}
+                title={sampleResetDisabledReason || undefined}
+                className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
               >
-                + 메뉴 추가
+                샘플로 되돌리기
               </button>
-            )}
-          </div>
+              <SubmitButton tone="final" disabled={!menuManagementDirty}>
+                저장
+              </SubmitButton>
+              {finalSaveMessage && !menuManagementDirty && (
+                <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-emerald-700">
+                  {finalSaveMessage}
+                </p>
+              )}
+              {menuFinalSaveError && (
+                <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-red-600">
+                  {menuFinalSaveError}
+                </p>
+              )}
+              {menuManagementDirty && (
+                <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-600">
+                  아직 저장되지 않은 변경사항이 있습니다. 저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.
+                </p>
+              )}
+            </FinalActionRow>
+          </form>
         </div>
-
-        {!selectedCategory && <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">메뉴 그룹을 먼저 선택해주세요</p>}
-        {selectedCategory && reachedItemLimit && !isCreatingItem && (
-          <p className="mt-4 rounded-lg bg-zinc-50 p-4 text-sm font-bold text-zinc-400">
-            {reachedItemsPerSiteLimit
-              ? `한 메뉴판에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
-              : `이 카테고리에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerCategory}개까지 추가할 수 있습니다.`}
-          </p>
-        )}
-
-        {selectedCategory && isCreatingItem && (
-          <div ref={newItemFormRef} className="mt-6 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 border-b border-zinc-100 pb-4">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">New Item</p>
-              <h4 className="mt-1 text-2xl font-bold">새 아이템 추가</h4>
-              <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                현재 선택한 메뉴 카테고리의 목록 위에 새 아이템을 추가합니다.
-              </p>
+        {isSampleResetConfirming && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="menu-sample-reset-title"
+              className="w-full max-w-md rounded-xl border border-red-100 bg-white p-6 shadow-xl"
+            >
+              <h2 id="menu-sample-reset-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
+                메뉴 관리 내용을 샘플로 되돌릴까요?
+              </h2>
+              <div className="mt-3 space-y-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">
+                <p>현재 메뉴 관리 탭에서 편집 중인 페이지, 카테고리, 메뉴 아이템 내용이 선택한 템플릿의 샘플 데이터로 바뀝니다.</p>
+                <p>저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.</p>
+              </div>
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsSampleResetConfirming(false)}
+                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                >
+                  취소
+                </button>
+                <SubmitButton type="button" tone="danger" onClick={resetMenuManagementToStarterDraft}>
+                  샘플로 되돌리기
+                </SubmitButton>
+              </div>
             </div>
-            <MenuItemForm
-              menuId={menuId}
-              categories={categoriesForPage}
-              capabilities={capabilities}
-              badgeStyles={badgeStyles}
-              defaultBadgeStyles={defaultBadgeStyles}
-              itemCount={itemsForCategory.length}
-              selectedCategoryId={selectedCategory.id}
-              onCancel={resetModes}
-            />
           </div>
         )}
-
-        <div className="mt-6 grid gap-4">
-          {itemsForCategory.map((item) => (
-            <MenuItemCard
-              key={item.id}
-              menuId={menuId}
-              categories={categoriesForPage}
-              item={item}
-              priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
-              traits={traits.filter((trait) => trait.menu_item_id === item.id)}
-              capabilities={capabilities}
-              badgeStyles={badgeStyles}
-              defaultBadgeStyles={defaultBadgeStyles}
-              isEditing={editingItemId === item.id}
-              isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
-              onEdit={() => startEditItem(item.id)}
-              onCancel={resetModes}
-              onRequestDelete={() => startConfirmDelete(`item:${item.id}`)}
-            />
-          ))}
-        </div>
-
-        {selectedCategory && itemsForCategory.length === 0 && <EmptyState>이 메뉴 카테고리에 아이템이 없습니다.</EmptyState>}
-        </div>
-        <div className="mt-8 flex justify-end border-t border-zinc-100 pt-6">
-          <SubmitButton form={activeManagementFormId || undefined} tone="dark" disabled={!hasActiveManagementForm}>
-            변경사항 저장
-          </SubmitButton>
-        </div>
       </section>
     </div>
   );
@@ -1763,12 +3969,21 @@ function MenuItemCard({
   traits,
   capabilities,
   badgeStyles,
-  defaultBadgeStyles,
+  labels,
+  cancelLabel,
+  draftItem,
+  onDraftItemChange,
+  onDraftCommit,
+  onDraftCommitMessageClear,
+  draftOnly = false,
   isEditing,
   isConfirmingDelete,
   onEdit,
   onCancel,
+  onCancelDelete,
   onRequestDelete,
+  onConfirmDelete,
+  onCopy,
 }: {
   menuId: string;
   categories: MenuCategory[];
@@ -1777,12 +3992,21 @@ function MenuItemCard({
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
   badgeStyles: BadgeStyles;
-  defaultBadgeStyles: BadgeStyles;
+  labels: TemplateEditorLabels;
+  cancelLabel: string;
+  draftItem?: ItemBasicDraft;
+  onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
+  onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
+  onDraftCommitMessageClear?: () => void;
+  draftOnly?: boolean;
   isEditing: boolean;
   isConfirmingDelete: boolean;
   onEdit: () => void;
   onCancel: () => void;
+  onCancelDelete: () => void;
   onRequestDelete: () => void;
+  onConfirmDelete: () => void;
+  onCopy: () => void;
 }) {
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const badgeStyle = badgeLabel ? badgeStyles[getBadgeStyleKey(item)] : null;
@@ -1790,24 +4014,34 @@ function MenuItemCard({
   const portion = formatPortionLabel(item);
   const priceOptionText = capabilities.priceOptions ? priceOptionSummary(priceOptions) : "";
   const traitText = capabilities.itemTraits ? traitSummary(traits) : "";
-  const categoryName = categories.find((category) => category.id === item.category_id)?.name ?? "메뉴 카테고리";
   const [priceMode, setPriceMode] = useState<PriceMode>(capabilities.priceOptions && priceOptions.some((option) => option.visible) ? "options" : "single");
+  const isCopiedDraftItem =
+    item.id.startsWith("temp-item-copy-") ||
+    item.id.startsWith("temp-item-category-copy-") ||
+    item.id.startsWith("temp-item-page-copy-");
 
   return (
-    <article className="rounded-lg border border-zinc-100 p-5">
+    <article className={isEditing ? "fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:rounded-lg lg:border lg:border-zinc-100 lg:p-5" : "rounded-lg border border-zinc-100 p-4"}>
       {isEditing ? (
         <>
-          <div className="mb-4 border-b border-zinc-100 pb-4">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Item Detail</p>
-            <h4 className="mt-1 text-2xl font-bold">아이템 수정</h4>
+          <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4">
+            <h4 className="mt-1 line-clamp-2 break-words text-2xl font-bold">{labels.itemLabel} 수정</h4>
+            <button type="button" onClick={onCancel} className="mt-3 inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-zinc-700 lg:hidden">
+              {isCopiedDraftItem ? "목록으로" : cancelLabel}
+            </button>
           </div>
           <MenuItemForm
             menuId={menuId}
             categories={categories}
             capabilities={capabilities}
             badgeStyles={badgeStyles}
-            defaultBadgeStyles={defaultBadgeStyles}
+            labels={labels}
             item={item}
+            draftItem={draftItem}
+            onDraftItemChange={onDraftItemChange}
+            onDraftCommit={onDraftCommit}
+            onDraftCommitMessageClear={onDraftCommitMessageClear}
+            draftOnly={draftOnly}
             itemCount={0}
             selectedCategoryId={item.category_id ?? ""}
             priceOptions={priceOptions}
@@ -1815,44 +4049,61 @@ function MenuItemCard({
             priceMode={priceMode}
             onPriceModeChange={setPriceMode}
             onCancel={onCancel}
+            cancelLabel={isCopiedDraftItem ? "목록으로" : cancelLabel}
+            deleteAction={
+              <DraftDeleteConfirmButton
+                title={isCopiedDraftItem ? "이 복사본을 삭제할까요?" : `이 ${labels.itemLabel}을 삭제할까요?`}
+                description={
+                  isCopiedDraftItem
+                    ? "삭제해도 하단의 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
+                    : labels.itemLabel === "서비스"
+                    ? "저장을 누르기 전까지는 실제 가격표에 반영되지 않습니다."
+                    : "저장을 누르기 전까지는 실제 메뉴판에 반영되지 않습니다."
+                }
+                isConfirming={isConfirmingDelete}
+                onRequestConfirm={onRequestDelete}
+                onConfirm={onConfirmDelete}
+                onCancel={onCancelDelete}
+              />
+            }
+            cancelHelperText={
+              isCopiedDraftItem
+                ? "목록으로 돌아가도 복사본은 삭제되지 않습니다. 복사본을 없애려면 삭제 버튼을 사용해주세요."
+                : undefined
+            }
           />
         </>
       ) : (
-      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-xl font-bold">{item.name}</h3>
+      <div className="flex min-w-0 flex-col justify-between gap-3 md:flex-row md:items-start">
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h3 className="min-w-0 max-w-full truncate text-base font-black text-zinc-950">{item.name}</h3>
             {badgeLabel && badgeStyle && (
-              <span className="rounded-full px-3 py-1 text-xs font-bold" style={getBadgeStyleCss(badgeStyle)}>
+              <span className="max-w-full truncate rounded-full px-3 py-1 text-xs font-bold" style={getBadgeStyleCss(badgeStyle)}>
                 {badgeLabel}
               </span>
             )}
-            {!item.visible && <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">숨김</span>}
+            {!item.visible && <span className="shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">숨김</span>}
           </div>
-          <p className="mt-2 text-sm font-bold text-zinc-400">{categoryName}</p>
-          <p className="mt-1 text-xs font-bold text-zinc-400">연결된 메뉴 카테고리 이름: {categoryName}</p>
-          <p className="mt-2 text-sm font-semibold text-zinc-600">
+          <p className="mt-1 break-words text-sm font-semibold text-zinc-600">
             {[portion, priceOptionText || price, item.recommended ? "추천" : null].filter(Boolean).join(" · ") || "표시 정보 없음"}
           </p>
-          {traitText && <p className="mt-2 text-xs font-bold text-zinc-400">{traitText}</p>}
+          {traitText && <p className="mt-2 break-words text-xs font-bold text-zinc-400">{traitText}</p>}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
           <button type="button" onClick={onEdit} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
             수정
           </button>
-          <DeleteConfirmForm
-            action={deleteMenuItemAction}
-            menuId={menuId}
-            hiddenName="itemId"
-            hiddenValue={item.id}
-            disabledReason={
-              traits.length > 0 || priceOptions.length > 0
-                ? "하위 가격 옵션 또는 맛/특징 지표가 있어 삭제할 수 없습니다. 삭제 대신 저장 시 메뉴판 표시를 끌 수 있습니다."
-                : undefined
-            }
+          <SubmitButton type="button" tone="light" onClick={onCopy}>
+            복사
+          </SubmitButton>
+          <DraftDeleteConfirmButton
+            title={`이 ${labels.itemLabel}을 삭제할까요?`}
+            description={labels.itemLabel === "서비스" ? "저장을 누르기 전까지는 실제 가격표에 반영되지 않습니다." : "저장을 누르기 전까지는 실제 메뉴판에 반영되지 않습니다."}
             isConfirming={isConfirmingDelete}
             onRequestConfirm={onRequestDelete}
-            onCancel={onCancel}
+            onConfirm={onConfirmDelete}
+            onCancel={onCancelDelete}
           />
         </div>
       </div>
@@ -1862,138 +4113,22 @@ function MenuItemCard({
 }
 
 function MenuItemPriceOptionsEditor({
-  menuId,
-  itemId,
   priceOptions,
 }: {
-  menuId: string;
-  itemId: string;
   priceOptions: MenuItemPriceOption[];
 }) {
-  const reachedPriceOptionLimit = priceOptions.length >= MENU_LIMITS.maxPriceOptionsPerItem;
-  const priceOptionLimitMessage = `옵션은 아이템당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`;
-  const [editingPriceOptionId, setEditingPriceOptionId] = useState("");
-  const [confirmingPriceOptionId, setConfirmingPriceOptionId] = useState("");
-
   return (
     <div className="mt-4 rounded-lg bg-zinc-50 p-4">
-      <p className="break-keep text-xs font-semibold text-zinc-500">
-        HOT / ICE, 사이즈, 중량처럼 공개 메뉴판에 보여줄 가격 문구를 관리합니다.
-      </p>
-      <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
-        옵션별 가격을 사용하면 등록된 옵션이 공개 메뉴판에 표시됩니다. 옵션을 숨기려면 삭제해주세요.
-      </p>
-      <p className={`mt-2 break-keep text-xs font-bold ${reachedPriceOptionLimit ? "text-amber-700" : "text-zinc-400"}`}>
-        {priceOptionLimitMessage}
-      </p>
-
-      <div className="mt-4 rounded-lg border border-zinc-100 bg-white p-4">
-        <h5 className="text-sm font-black text-zinc-950">새 가격 옵션 추가</h5>
-        <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-          새로 등록할 옵션만 입력합니다. 옵션명은 필수이고, 가격 또는 가격 표시 문구 중 하나는 필요합니다.
-        </p>
-        <form action={createMenuItemPriceOptionAction} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_100px_auto] lg:items-end">
-          <HiddenMenuId menuId={menuId} />
-          <input type="hidden" name="itemId" value={itemId} />
-          <div>
-            <FieldLabel required>옵션명</FieldLabel>
-            <TextInput name="price_option_label" placeholder="HOT" required maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label} helperText="예: HOT, ICE, 150g" />
-          </div>
-          <div>
-            <FieldLabel>가격</FieldLabel>
-            <TextInput name="price_option_price" type="number" min={0} step={1} placeholder="4000" helperText="숫자만 입력하세요." />
-          </div>
-          <div>
-            <FieldLabel>가격 표시 문구</FieldLabel>
-            <TextInput name="price_option_price_label" placeholder="4,000원" maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel} helperText="있으면 이 문구를 우선 표시합니다." />
-          </div>
-          <div>
-            <FieldLabel>순서</FieldLabel>
-            <TextInput name="price_option_sort_order" type="number" defaultValue={priceOptions.length + 1} min={0} step={1} helperText="낮을수록 먼저 표시됩니다." />
-          </div>
-          <div className="flex flex-col gap-2">
-            <SubmitButton tone="light" disabled={reachedPriceOptionLimit}>
-              추가
-            </SubmitButton>
-          </div>
-        </form>
-      </div>
-
-      <div className="mt-5">
+      <div>
         <h5 className="text-sm font-black text-zinc-950">등록된 가격 옵션</h5>
         <div className="mt-3 space-y-3">
-          {priceOptions.map((option) => {
-            const isEditing = editingPriceOptionId === option.id;
-
-            return (
+          {priceOptions.map((option) => (
             <div key={option.id} className="rounded-lg border border-zinc-100 bg-white p-4">
-              {isEditing ? (
-              <form action={updateMenuItemPriceOptionAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_100px_auto] lg:items-end">
-                <HiddenMenuId menuId={menuId} />
-                <input type="hidden" name="priceOptionId" value={option.id} />
-                <div>
-                  <FieldLabel required>옵션명</FieldLabel>
-                  <TextInput name="price_option_label" defaultValue={option.label} required maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label} helperText="예: HOT, ICE, 150g" />
-                </div>
-                <div>
-                  <FieldLabel>가격</FieldLabel>
-                  <TextInput name="price_option_price" type="number" min={0} step={1} defaultValue={option.price ?? ""} helperText="숫자만 입력하세요." />
-                </div>
-                <div>
-                  <FieldLabel>가격 표시 문구</FieldLabel>
-                  <TextInput name="price_option_price_label" defaultValue={option.price_label ?? ""} maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel} helperText="있으면 이 문구를 우선 표시합니다." />
-                </div>
-                <div>
-                  <FieldLabel>순서</FieldLabel>
-                  <TextInput name="price_option_sort_order" type="number" defaultValue={option.sort_order} min={0} step={1} helperText="낮을수록 먼저 표시됩니다." />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <SubmitButton tone="light">저장</SubmitButton>
-                  <button
-                    type="button"
-                    onClick={() => setEditingPriceOptionId("")}
-                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
-                  >
-                    취소
-                  </button>
-                </div>
-              </form>
-              ) : (
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                  <div>
-                    <p className="text-base font-black text-zinc-950">{option.label}</p>
-                    <p className="mt-2 text-sm font-bold text-zinc-600">{formatPriceOption(option) || "가격 입력 전"}</p>
-                    <p className="mt-1 text-xs font-semibold text-zinc-400">정렬 순서 {option.sort_order}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setConfirmingPriceOptionId("");
-                        setEditingPriceOptionId(option.id);
-                      }}
-                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
-                    >
-                      수정
-                    </button>
-                    <DeleteConfirmForm
-                      action={deleteMenuItemPriceOptionAction}
-                      menuId={menuId}
-                      hiddenName="priceOptionId"
-                      hiddenValue={option.id}
-                      isConfirming={confirmingPriceOptionId === option.id}
-                      onRequestConfirm={() => {
-                        setEditingPriceOptionId("");
-                        setConfirmingPriceOptionId(option.id);
-                      }}
-                      onCancel={() => setConfirmingPriceOptionId("")}
-                    />
-                  </div>
-                </div>
-              )}
+              <p className="text-base font-black text-zinc-950">{option.label}</p>
+              <p className="mt-2 text-sm font-bold text-zinc-600">{formatPriceOption(option) || "가격 입력 전"}</p>
+              <p className="mt-1 text-xs font-semibold text-zinc-400">정렬 순서 {option.sort_order}</p>
             </div>
-            );
-          })}
+          ))}
           {priceOptions.length === 0 && <EmptyState>아직 등록된 가격 옵션이 없습니다. 예: HOT / ICE, Small / Large, 150g / 300g</EmptyState>}
         </div>
       </div>
@@ -2004,15 +4139,15 @@ function MenuItemPriceOptionsEditor({
 function MenuItemTraitSlots({
   formId,
   traits,
+  draftTraits,
   onTraitLabelChange,
 }: {
   formId: string;
   traits: MenuItemTrait[];
+  draftTraits?: ItemTraitDraft[];
   onTraitLabelChange?: (index: number, value: string) => void;
 }) {
-  const orderedTraits = [...traits]
-    .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at))
-    .slice(0, MENU_LIMITS.maxTraitsPerItem);
+  const orderedTraits = draftTraits?.length ? [...draftTraits].sort((a, b) => a.sortOrder - b.sortOrder) : toItemTraitDrafts(traits);
   const slots = Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => orderedTraits[index] ?? null);
   const [slotLabelValues, setSlotLabelValues] = useState(() => slots.map((trait) => trait?.label ?? ""));
 
@@ -2046,7 +4181,7 @@ function MenuItemTraitSlots({
                   name={`trait_slot_${index}_visible`}
                   form={formId}
                   label="표시"
-                  defaultChecked={Boolean(trait?.visible && hasSlotLabel)}
+                  defaultChecked={Boolean((trait?.visible ?? false) && hasSlotLabel)}
                   canTurnOn={hasSlotLabel}
                   blockedMessage="지표명을 먼저 입력해주세요."
                   onText="표시 중"

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getLegacyBadgeTypeForLabel, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
+import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelForSave, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { DEFAULT_LOCALE, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
@@ -17,21 +17,15 @@ import { runMenuTranslationUpdate, TARGET_TRANSLATION_LOCALES } from "@/lib/serv
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
+import { normalizeBackgroundColor } from "@/lib/template-background-colors";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateCategoryFromKey, isTemplateCategoryKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
-import {
-  ENGLISH_FONT_OPTIONS,
-  KOREAN_FONT_OPTIONS,
-  isFontSizeScaleKey,
-  type EnglishFontKey,
-  type KoreanFontKey,
-} from "@/lib/template-typography-presets";
+import { getTemplateType } from "@/lib/template-types";
+import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import { mergePageSettings, validateMenuItemTrait } from "@/types/menu";
 
 const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
-const koreanFontKeys = new Set(KOREAN_FONT_OPTIONS.map((option) => option.key));
-const englishFontKeys = new Set(ENGLISH_FONT_OPTIONS.map((option) => option.key));
-
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
 type MenuSiteUpdate = Database["public"]["Tables"]["menu_sites"]["Update"];
@@ -51,6 +45,25 @@ type MenuItemTraitInsert = Database["public"]["Tables"]["menu_item_traits"]["Ins
 type MenuItemTraitUpdate = Database["public"]["Tables"]["menu_item_traits"]["Update"];
 type MenuTranslationJobUpdate = Database["public"]["Tables"]["menu_translation_jobs"]["Update"];
 type LooseInsert = Record<string, unknown>;
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+function getOrderedIds(formData: FormData) {
+  const rawValue = getString(formData, "orderedIds");
+  try {
+    const parsed = JSON.parse(rawValue);
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string" && Boolean(id)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getMenuItemBadgeLabelFromForm(menuId: string, formData: FormData) {
+  try {
+    return normalizeBadgeLabelForSave(formData.get("item_badge_label"), formData.get("item_custom_badge_label"));
+  } catch (error) {
+    redirectToMenuEditWithError(menuId, error instanceof Error ? error.message : "배지 문구를 확인해주세요.");
+  }
+}
 
 function getJsonObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, unknown>) } : {};
@@ -152,6 +165,15 @@ type MenuItemTraitSlotInput = {
   sort_order: number;
 };
 
+type MenuItemTraitDraftInput = {
+  id?: unknown;
+  label?: unknown;
+  value?: unknown;
+  visible?: unknown;
+  sortOrder?: unknown;
+  maxValue?: unknown;
+};
+
 function getMenuItemTraitSlots(menuId: string, formData: FormData): MenuItemTraitSlotInput[] {
   return Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => {
     const id = getNullableString(formData, `trait_slot_${index}_id`);
@@ -159,6 +181,40 @@ function getMenuItemTraitSlots(menuId: string, formData: FormData): MenuItemTrai
     const value = getNumber(formData, `trait_slot_${index}_value`, MENU_FIELD_LIMITS.menuItemTraits.minValue);
     const visible = getBoolean(formData, `trait_slot_${index}_visible`);
     const sortOrder = getNumber(formData, `trait_slot_${index}_sort_order`, index);
+
+    if (!label) {
+      return { id, label, value, visible, sort_order: sortOrder };
+    }
+
+    const validation = validateMenuItemTrait({
+      label,
+      value,
+      max_value: MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue,
+      visible,
+      sort_order: sortOrder,
+    });
+
+    if (!validation.ok) {
+      redirectToMenuEditWithError(menuId, validation.message);
+    }
+
+    return {
+      id,
+      ...validation.trait,
+    };
+  });
+}
+
+function getMenuItemTraitSlotsFromDraft(menuId: string, drafts: unknown): MenuItemTraitSlotInput[] {
+  const draftSlots = Array.isArray(drafts) ? (drafts as MenuItemTraitDraftInput[]) : [];
+
+  return Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => {
+    const draft = draftSlots[index] ?? {};
+    const id = normalizeDraftString(draft.id) || null;
+    const label = normalizeDraftString(draft.label);
+    const value = normalizeDraftNumber(draft.value) || MENU_FIELD_LIMITS.menuItemTraits.minValue;
+    const visible = normalizeDraftBoolean(draft.visible);
+    const sortOrder = normalizeDraftNumber(draft.sortOrder ?? index);
 
     if (!label) {
       return { id, label, value, visible, sort_order: sortOrder };
@@ -303,7 +359,7 @@ function redirectWithError(message: string): never {
   redirect(`/mypage/menus/new?error=${encodeURIComponent(message)}`);
 }
 
-function getEditPath(menuId: string, params?: { error?: string; message?: string; tab?: string }) {
+function getEditPath(menuId: string, params?: { error?: string; message?: string; tab?: string; editingItemId?: string }) {
   const searchParams = new URLSearchParams();
 
   if (params?.tab) {
@@ -316,6 +372,10 @@ function getEditPath(menuId: string, params?: { error?: string; message?: string
 
   if (params?.message) {
     searchParams.set("message", params.message);
+  }
+
+  if (params?.editingItemId) {
+    searchParams.set("editingItemId", params.editingItemId);
   }
 
   const query = searchParams.toString();
@@ -374,8 +434,8 @@ async function requireOwnedMenuSite(menuId: string) {
     redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
   }
 
-  const menuSiteSelect = "id, user_id, slug, status, published_at, template_key, template_category, restaurant_category, menu_cover_label, settings, page_settings";
-  const fallbackMenuSiteSelect = "id, user_id, slug, status, published_at, template_key, restaurant_category, settings, page_settings";
+  const menuSiteSelect = "id, user_id, slug, status, published_at, template_key, template_category, restaurant_category, menu_cover_label, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
+  const fallbackMenuSiteSelect = "id, user_id, slug, status, published_at, template_key, restaurant_category, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
 
   let { data: menuSite, error } = await supabase
     .from("menu_sites")
@@ -668,39 +728,106 @@ export async function updateTypographySettingsAction(formData: FormData) {
 
   const koreanFontKey = getString(formData, "korean_font_key");
   const englishFontKey = getString(formData, "english_font_key");
-  const fontSizeScaleKey = getString(formData, "font_size_scale_key");
-
-  if (!koreanFontKeys.has(koreanFontKey as KoreanFontKey)) {
+  if (koreanFontKey && !isKoreanFontValue(koreanFontKey)) {
     redirectToTabEditWithError(menuId, "design", "한글 폰트 선택값이 올바르지 않습니다.");
   }
 
-  if (!englishFontKeys.has(englishFontKey as EnglishFontKey)) {
-    redirectToTabEditWithError(menuId, "design", "영문 폰트 선택값이 올바르지 않습니다.");
-  }
-
-  if (!isFontSizeScaleKey(fontSizeScaleKey)) {
-    redirectToTabEditWithError(menuId, "design", "글자 크기 선택값이 올바르지 않습니다.");
+  if (englishFontKey && !isEnglishFontValue(englishFontKey)) {
+    redirectToTabEditWithError(menuId, "design", "영문/숫자 폰트 선택값이 올바르지 않습니다.");
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const settings = {
-    ...getJsonObject(menuSite.settings),
-    typography: {
-      korean_font_key: koreanFontKey,
-      english_font_key: englishFontKey,
-      font_size_scale_key: fontSizeScaleKey,
+  const pageSettings = getJsonObject(menuSite.page_settings);
+  const designSettings = getJsonObject(pageSettings.design);
+
+  if (koreanFontKey) {
+    designSettings.koreanFont = koreanFontKey;
+  } else {
+    delete designSettings.koreanFont;
+  }
+
+  if (englishFontKey) {
+    designSettings.englishFont = englishFontKey;
+  } else {
+    delete designSettings.englishFont;
+  }
+
+  if (Object.keys(designSettings).length > 0) {
+    pageSettings.design = designSettings;
+  } else {
+    delete pageSettings.design;
+  }
+  delete pageSettings.koreanFont;
+  delete pageSettings.englishFont;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ page_settings: pageSettings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `폰트 저장에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", koreanFontKey || englishFontKey ? "폰트 설정이 저장되었습니다." : "현재 템플릿의 기본 폰트로 되돌렸습니다.");
+}
+
+export async function updateBackgroundColorAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const backgroundColor = normalizeBackgroundColor(getString(formData, "background_color"));
+  if (!backgroundColor) {
+    redirectToTabEditWithError(menuId, "design", "배경색은 #RRGGBB 형식으로 입력해주세요.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const pageSettings = getJsonObject(menuSite.page_settings);
+  const designSettings = getJsonObject(pageSettings.design);
+
+  const nextPageSettings = {
+    ...pageSettings,
+    design: {
+      ...designSettings,
+      backgroundColor,
     },
   };
 
   const { error } = await supabase
     .from("menu_sites")
-    .update({ settings, updated_at: new Date().toISOString() })
+    .update({ page_settings: nextPageSettings, updated_at: new Date().toISOString() })
     .eq("id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "design", `글꼴과 글자 크기 저장에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "design", `배경색 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "design", "글꼴과 글자 크기 설정이 저장되었습니다.");
+  redirectToTabEdit(menuId, "design", "배경색이 저장되었습니다.");
+}
+
+export async function resetBackgroundColorAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const pageSettings = getJsonObject(menuSite.page_settings);
+  const designSettings = getJsonObject(pageSettings.design);
+
+  delete designSettings.backgroundColor;
+  if (Object.keys(designSettings).length > 0) {
+    pageSettings.design = designSettings;
+  } else {
+    delete pageSettings.design;
+  }
+  delete pageSettings.backgroundColor;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ page_settings: pageSettings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `배경색 기본값 복원에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 배경색으로 되돌렸습니다.");
 }
 
 export async function updateLocalizationSettingsAction(formData: FormData) {
@@ -739,17 +866,84 @@ export async function resetTypographySettingsAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const settings = getJsonObject(menuSite.settings);
+  const pageSettings = getJsonObject(menuSite.page_settings);
+  const designSettings = getJsonObject(pageSettings.design);
+
   delete settings.typography;
+  delete pageSettings.typography;
+  delete pageSettings.koreanFont;
+  delete pageSettings.englishFont;
+  delete designSettings.koreanFont;
+  delete designSettings.englishFont;
+  if (Object.keys(designSettings).length > 0) {
+    pageSettings.design = designSettings;
+  } else {
+    delete pageSettings.design;
+  }
 
   const { error } = await supabase
     .from("menu_sites")
-    .update({ settings, updated_at: new Date().toISOString() })
+    .update({ settings, page_settings: pageSettings, updated_at: new Date().toISOString() })
     .eq("id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "design", `글꼴 기본값 복원에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "design", `폰트 기본값 복원에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 글꼴과 글자 크기로 되돌렸습니다.");
+  redirectToTabEdit(menuId, "design", "현재 템플릿의 기본 폰트로 되돌렸습니다.");
+}
+
+export async function updateDesignSettingsAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const backgroundColor = normalizeBackgroundColor(getString(formData, "background_color"));
+  const koreanFontKey = getString(formData, "korean_font_key");
+  const englishFontKey = getString(formData, "english_font_key");
+
+  if (!backgroundColor) {
+    redirectToTabEditWithError(menuId, "design", "배경색은 #RRGGBB 형식으로 입력해주세요.");
+  }
+
+  if (koreanFontKey && !isKoreanFontValue(koreanFontKey)) {
+    redirectToTabEditWithError(menuId, "design", "한글 폰트 선택값이 올바르지 않습니다.");
+  }
+
+  if (englishFontKey && !isEnglishFontValue(englishFontKey)) {
+    redirectToTabEditWithError(menuId, "design", "영문/숫자 폰트 선택값이 올바르지 않습니다.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const pageSettings = getJsonObject(menuSite.page_settings);
+  const designSettings = getJsonObject(pageSettings.design);
+
+  designSettings.backgroundColor = backgroundColor;
+
+  if (koreanFontKey) {
+    designSettings.koreanFont = koreanFontKey;
+  } else {
+    delete designSettings.koreanFont;
+  }
+
+  if (englishFontKey) {
+    designSettings.englishFont = englishFontKey;
+  } else {
+    delete designSettings.englishFont;
+  }
+
+  pageSettings.design = designSettings;
+  delete pageSettings.backgroundColor;
+  delete pageSettings.koreanFont;
+  delete pageSettings.englishFont;
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update({ page_settings: pageSettings, updated_at: new Date().toISOString() })
+    .eq("id", menuId);
+
+  if (error) redirectToTabEditWithError(menuId, "design", `디자인 설정 저장에 실패했습니다: ${error.message}`);
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "design", "디자인 설정이 저장되었습니다.");
 }
 
 export async function resetMenuCoverToPresetAction(formData: FormData) {
@@ -809,31 +1003,39 @@ export async function resetMenuManagementToPresetAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
+  await requireOwnedMenuSite(menuId);
+  redirectToMenuEditWithError(menuId, "샘플 복원 기능은 안전한 draft 저장 구조 적용 후 사용할 수 있습니다. 현재 데이터 보호를 위해 비활성화되어 있습니다.");
+}
+
+export async function restoreEmptyMenuManagementFromStarterPresetAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const preset = getStarterPreset(menuSite.template_key, menuSite.restaurant_category, menuSite.template_category);
+  const presetCategoryCount = preset.pages.reduce((count, page) => count + page.categories.length, 0);
+  const presetItemCount = preset.pages.reduce(
+    (count, page) => count + page.categories.reduce((categoryCount, category) => categoryCount + category.items.length, 0),
+    0
+  );
 
-  const { error: priceOptionsError } = await supabase.from("menu_item_price_options").delete().eq("menu_site_id", menuId);
-  if (priceOptionsError) {
-    redirectToMenuEditWithError(menuId, `가격 옵션 초기화에 실패했습니다: ${priceOptionsError.message}`);
+  if (preset.pages.length === 0 || presetCategoryCount === 0 || presetItemCount === 0) {
+    redirectToMenuEditWithError(menuId, "이 템플릿의 기본 샘플 데이터를 찾을 수 없습니다.");
   }
 
-  const { error: traitsError } = await supabase.from("menu_item_traits").delete().eq("menu_site_id", menuId);
-  if (traitsError) {
-    redirectToMenuEditWithError(menuId, `메뉴 특성 초기화에 실패했습니다: ${traitsError.message}`);
-  }
+  const [{ count: pageCount, error: pageCountError }, { count: categoryCount, error: categoryCountError }, { count: itemCount, error: itemCountError }] =
+    await Promise.all([
+      supabase.from("menu_pages").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
+      supabase.from("menu_categories").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
+      supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
+    ]);
 
-  const { error: itemsError } = await supabase.from("menu_items").delete().eq("menu_site_id", menuId);
-  if (itemsError) {
-    redirectToMenuEditWithError(menuId, `메뉴 아이템 초기화에 실패했습니다: ${itemsError.message}`);
-  }
+  if (pageCountError) redirectToMenuEditWithError(menuId, `페이지 상태 확인에 실패했습니다: ${pageCountError.message}`);
+  if (categoryCountError) redirectToMenuEditWithError(menuId, `카테고리 상태 확인에 실패했습니다: ${categoryCountError.message}`);
+  if (itemCountError) redirectToMenuEditWithError(menuId, `아이템 상태 확인에 실패했습니다: ${itemCountError.message}`);
 
-  const { error: categoriesError } = await supabase.from("menu_categories").delete().eq("menu_site_id", menuId);
-  if (categoriesError) {
-    redirectToMenuEditWithError(menuId, `메뉴 그룹 초기화에 실패했습니다: ${categoriesError.message}`);
-  }
-
-  const { error: pagesError } = await supabase.from("menu_pages").delete().eq("menu_site_id", menuId);
-  if (pagesError) {
-    redirectToMenuEditWithError(menuId, `메뉴 페이지 초기화에 실패했습니다: ${pagesError.message}`);
+  if ((pageCount ?? 0) > 0 || (categoryCount ?? 0) > 0 || (itemCount ?? 0) > 0) {
+    redirectToMenuEditWithError(menuId, "복구 action은 메뉴 데이터가 비어 있을 때만 실행할 수 있습니다. 기존 데이터가 있는 경우 아무것도 변경하지 않았습니다.");
   }
 
   try {
@@ -845,17 +1047,17 @@ export async function resetMenuManagementToPresetAction(formData: FormData) {
       menuSite.template_category,
       null,
       {
-        force: true,
+        force: false,
         applySiteDefaults: false,
         includeAuxiliaryContent: false,
       }
     );
   } catch (error) {
-    redirectToMenuEditWithError(menuId, error instanceof Error ? error.message : "샘플 메뉴 생성에 실패했습니다.");
+    redirectToMenuEditWithError(menuId, error instanceof Error ? error.message : "샘플 메뉴 복구에 실패했습니다.");
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToMenuEdit(menuId, "샘플 메뉴로 초기화했습니다.");
+  redirectToMenuEdit(menuId, "템플릿 기본 샘플 메뉴를 복구했습니다.");
 }
 
 export async function resetDesignSettingsToTemplateDefaultAction(formData: FormData) {
@@ -870,6 +1072,18 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete settings.typography;
   delete pageSettings.badge_styles;
   delete pageSettings.typography;
+  const designSettings = getJsonObject(pageSettings.design);
+  delete designSettings.backgroundColor;
+  delete designSettings.koreanFont;
+  delete designSettings.englishFont;
+  if (Object.keys(designSettings).length > 0) {
+    pageSettings.design = designSettings;
+  } else {
+    delete pageSettings.design;
+  }
+  delete pageSettings.backgroundColor;
+  delete pageSettings.koreanFont;
+  delete pageSettings.englishFont;
 
   const { error } = await supabase
     .from("menu_sites")
@@ -1102,7 +1316,11 @@ export async function updateMenuSiteAction(formData: FormData) {
   const name = getString(formData, "name");
   const rawSlug = getString(formData, "slug");
   const restaurantName = getNullableString(formData, "restaurant_name");
+  const brandDescription = getNullableString(formData, "brand_description");
   const restaurantType = getNullableString(formData, "restaurant_type");
+  const shouldDeleteLogoImage = getBoolean(formData, "delete_logo_image");
+  const draftLogoImageUrl = getNullableString(formData, "draft_logo_image_url");
+  const draftLogoImagePath = getNullableString(formData, "draft_logo_image_path");
   const slug = normalizeSlug(rawSlug);
 
   if (!name) {
@@ -1111,6 +1329,7 @@ export async function updateMenuSiteAction(formData: FormData) {
 
   validateRequiredText(menuId, name, "메뉴판 이름", MENU_FIELD_LIMITS.menuSites.name, "basic");
   validateOptionalText(menuId, restaurantName, "실제 매장명", MENU_FIELD_LIMITS.menuSites.restaurantName, "basic");
+  validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "basic");
   validateOptionalText(menuId, restaurantType, "업종", MENU_FIELD_LIMITS.menuSites.restaurantType, "basic");
 
   if (restaurantType && !isRestaurantTypeKey(restaurantType)) {
@@ -1146,16 +1365,24 @@ export async function updateMenuSiteAction(formData: FormData) {
     redirectToTabEditWithError(menuId, "basic", "이미 사용 중인 공개 메뉴판 주소입니다. 다른 주소를 입력해주세요.");
   }
 
-  let { error } = await supabase
-    .from("menu_sites")
-    .update({
-      name,
-      slug,
-      restaurant_name: restaurantName,
-      restaurant_type: restaurantType,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", menuId);
+  const updatePayload: MenuSiteUpdate = {
+    name,
+    slug,
+    restaurant_name: restaurantName,
+    brand_description: brandDescription,
+    restaurant_type: restaurantType,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (shouldDeleteLogoImage) {
+    updatePayload.logo_url = null;
+    updatePayload.logo_path = null;
+  } else if (draftLogoImageUrl && draftLogoImagePath) {
+    updatePayload.logo_url = draftLogoImageUrl;
+    updatePayload.logo_path = draftLogoImagePath;
+  }
+
+  let { error } = await supabase.from("menu_sites").update(updatePayload).eq("id", menuId);
 
   if (error && error.message.toLowerCase().includes("restaurant_type")) {
     const fallbackResult = await supabase
@@ -1164,6 +1391,12 @@ export async function updateMenuSiteAction(formData: FormData) {
         name,
         slug,
         restaurant_name: restaurantName,
+        brand_description: brandDescription,
+        ...(shouldDeleteLogoImage
+          ? { logo_url: null, logo_path: null }
+          : draftLogoImageUrl && draftLogoImagePath
+          ? { logo_url: draftLogoImageUrl, logo_path: draftLogoImagePath }
+          : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", menuId);
@@ -1178,7 +1411,7 @@ export async function updateMenuSiteAction(formData: FormData) {
   revalidateMenuPaths(menuId, menuSite.slug);
   revalidatePath(getPublicMenuPath(slug));
   revalidatePath(getLegacyMenuPath(slug));
-  redirectToTabEdit(menuId, "basic", "메뉴판 기본 정보가 저장되었습니다.");
+  redirectToTabEdit(menuId, "basic", "기본 정보가 저장되었습니다.");
 }
 
 export async function updatePageSettingsAction(formData: FormData) {
@@ -1186,10 +1419,15 @@ export async function updatePageSettingsAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const pageSettingsRecord = getJsonObject(menuSite.page_settings);
   const currentSettings = mergePageSettings(menuSite.page_settings);
-  const nextSettings = { ...currentSettings };
+  const nextSettings = { ...pageSettingsRecord, ...currentSettings };
+  const supportsMenuCover = getTemplateCapabilities(menuSite.template_key).menuCover.coverMode !== "none";
 
   for (const key of pageSettingKeys) {
+    if (key === "menu_cover_enabled" && !supportsMenuCover) {
+      continue;
+    }
     nextSettings[key] = getBoolean(formData, key);
   }
 
@@ -1211,20 +1449,34 @@ export async function updateIntroAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const introTitle = getNullableString(formData, "intro_title");
   const introDescription = getNullableString(formData, "intro_description");
+  const hasBrandDescriptionField = formData.has("brand_description");
+  const brandDescription = hasBrandDescriptionField ? getNullableString(formData, "brand_description") : menuSite.brand_description;
+  const shouldDeleteIntroImage = getBoolean(formData, "delete_intro_image");
+  const draftIntroImageUrl = getNullableString(formData, "draft_intro_image_url");
+  const draftIntroImagePath = getNullableString(formData, "draft_intro_image_path");
 
   validateRequiredText(menuId, introTitle ?? "", "인트로 제목", MENU_FIELD_LIMITS.menuSites.introTitle, "intro");
   validateRequiredText(menuId, introDescription ?? "", "인트로 설명", MENU_FIELD_LIMITS.menuSites.introDescription, "intro");
-  validateOptionalText(menuId, getNullableString(formData, "brand_description"), "브랜드 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "intro");
+  if (hasBrandDescriptionField) {
+    validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "intro");
+  }
 
-  const { error } = await supabase
-    .from("menu_sites")
-    .update({
-      intro_title: introTitle,
-      intro_description: introDescription,
-      brand_description: getNullableString(formData, "brand_description"),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", menuId);
+  const updatePayload: MenuSiteUpdate = {
+    intro_title: introTitle,
+    intro_description: introDescription,
+    brand_description: brandDescription,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (shouldDeleteIntroImage) {
+    updatePayload.intro_image_url = null;
+    updatePayload.intro_image_path = null;
+  } else if (draftIntroImageUrl && draftIntroImagePath) {
+    updatePayload.intro_image_url = draftIntroImageUrl;
+    updatePayload.intro_image_path = draftIntroImagePath;
+  }
+
+  const { error } = await supabase.from("menu_sites").update(updatePayload).eq("id", menuId);
 
   if (error) redirectToTabEditWithError(menuId, "intro", `인트로 저장에 실패했습니다: ${error.message}`);
 
@@ -1239,18 +1491,33 @@ export async function updateMenuCoverAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const hasMenuCoverLabelField = formData.has("menu_cover_label");
   const menuCoverLabel = hasMenuCoverLabelField ? getNullableString(formData, "menu_cover_label") : menuSite.menu_cover_label;
-  const menuCoverTitle = getNullableString(formData, "menu_cover_title");
-  const menuCoverDescription = getNullableString(formData, "menu_cover_description");
+  const menuCoverCapabilities = getTemplateCapabilities(menuSite.template_key).menuCover;
+  if (menuCoverCapabilities.coverMode === "none") {
+    redirectToTabEditWithError(menuId, "basic", "현재 템플릿은 메뉴 커버 기능을 지원하지 않습니다.");
+  }
+  const menuCoverEnabled = getBoolean(formData, "menu_cover_enabled");
+  const menuCoverTitle = menuCoverCapabilities.usesCoverTitle ? getNullableString(formData, "menu_cover_title") : menuSite.menu_cover_title;
+  const menuCoverDescription = menuCoverCapabilities.usesCoverDescription ? getNullableString(formData, "menu_cover_description") : menuSite.menu_cover_description;
+  const shouldDeleteCoverImage = getBoolean(formData, "delete_cover_image");
+  const draftCoverImageUrl = getNullableString(formData, "draft_cover_image_url");
+  const draftCoverImagePath = getNullableString(formData, "draft_cover_image_path");
+  const pageSettingsRecord = getJsonObject(menuSite.page_settings);
   const currentSettings = mergePageSettings(menuSite.page_settings);
-  const requestedFeaturedItemId = getNullableString(formData, "featured_item_id");
-  const featuredItemEnabled = getBoolean(formData, "featured_item_enabled") && Boolean(requestedFeaturedItemId);
+  const templateType = getTemplateType(menuSite.template_key);
+  const canUseFeaturedItem = templateType === "menu" && menuCoverCapabilities.usesFeaturedItem;
+  const requestedFeaturedItemId = menuCoverEnabled && canUseFeaturedItem ? getNullableString(formData, "featured_item_id") : null;
+  const featuredItemEnabled = menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled") && Boolean(requestedFeaturedItemId);
   let featuredItemId: string | null = null;
 
   if (hasMenuCoverLabelField) {
     validateOptionalText(menuId, menuCoverLabel, "메뉴 커버 라벨", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
   }
-  validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
-  validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
+  if (menuCoverEnabled && menuCoverCapabilities.usesCoverTitle) {
+    validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
+  }
+  if (menuCoverEnabled && menuCoverCapabilities.usesCoverDescription) {
+    validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
+  }
 
   if (featuredItemEnabled && requestedFeaturedItemId) {
     const { data: featuredItem, error: featuredItemError } = await supabase
@@ -1272,11 +1539,27 @@ export async function updateMenuCoverAction(formData: FormData) {
     featuredItemId = featuredItem.id;
   }
 
-  const nextSettings = {
-    ...currentSettings,
-    featured_item_enabled: featuredItemEnabled,
-    featured_item_id: featuredItemEnabled ? featuredItemId : null,
-  };
+  const nextSettings = menuCoverEnabled && canUseFeaturedItem
+    ? {
+        ...pageSettingsRecord,
+        ...currentSettings,
+        menu_cover_enabled: true,
+        featured_item_enabled: featuredItemEnabled,
+        featured_item_id: featuredItemEnabled ? featuredItemId : null,
+      }
+    : !menuCoverEnabled && canUseFeaturedItem
+    ? {
+        ...pageSettingsRecord,
+        ...currentSettings,
+        menu_cover_enabled: false,
+      }
+    : {
+        ...pageSettingsRecord,
+        ...currentSettings,
+        menu_cover_enabled: menuCoverEnabled,
+        featured_item_enabled: false,
+        featured_item_id: null,
+      };
 
   const updatePayload: MenuSiteUpdate = {
     menu_cover_title: menuCoverTitle,
@@ -1284,6 +1567,14 @@ export async function updateMenuCoverAction(formData: FormData) {
     page_settings: nextSettings,
     updated_at: new Date().toISOString(),
   };
+
+  if (shouldDeleteCoverImage) {
+    updatePayload.cover_image_url = null;
+    updatePayload.cover_image_path = null;
+  } else if (draftCoverImageUrl && draftCoverImagePath) {
+    updatePayload.cover_image_url = draftCoverImageUrl;
+    updatePayload.cover_image_path = draftCoverImagePath;
+  }
 
   if (hasMenuCoverLabelField) {
     updatePayload.menu_cover_label = menuCoverLabel;
@@ -1297,6 +1588,11 @@ export async function updateMenuCoverAction(formData: FormData) {
       .update({
         menu_cover_title: menuCoverTitle,
         menu_cover_description: menuCoverDescription,
+        ...(shouldDeleteCoverImage
+          ? { cover_image_url: null, cover_image_path: null }
+          : draftCoverImageUrl && draftCoverImagePath
+          ? { cover_image_url: draftCoverImageUrl, cover_image_path: draftCoverImagePath }
+          : {}),
         page_settings: nextSettings,
         updated_at: new Date().toISOString(),
       })
@@ -1308,7 +1604,280 @@ export async function updateMenuCoverAction(formData: FormData) {
   if (error) redirectToTabEditWithError(menuId, "cover", `메뉴 커버 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "cover", "메뉴 커버가 저장되었습니다.");
+  redirectToTabEdit(menuId, "cover", "대표 영역이 저장되었습니다.");
+}
+
+type AboutSocialLinkDraft = {
+  id?: string;
+  type?: string;
+  label?: string;
+  display_name?: string;
+  url?: string;
+  visible?: boolean;
+  sort_order?: number;
+  deleted?: boolean;
+};
+
+type AboutChefDraft = {
+  id?: string;
+  chef_name?: string;
+  chef_role?: string;
+  chef_description?: string;
+  visible?: boolean;
+  sort_order?: number;
+  deleted?: boolean;
+};
+
+type AboutEventDraft = {
+  id?: string;
+  event_title?: string;
+  event_subtitle?: string;
+  event_description?: string;
+  event_period?: string;
+  event_benefit?: string;
+  event_detail?: string;
+  event_regular_price_label?: string;
+  event_sale_price_label?: string;
+  event_price_visible?: boolean;
+  start_date?: string;
+  end_date?: string;
+  link_url?: string;
+  visible?: boolean;
+  sort_order?: number;
+  deleted?: boolean;
+};
+
+function normalizeDraftNumber(value: unknown, fallback = 0) {
+  const numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
+}
+
+function normalizeDraftDate(value: unknown) {
+  const dateValue = normalizeDraftString(value);
+  return dateValue || null;
+}
+
+function isDraftDeleted(value: unknown) {
+  return value === true;
+}
+
+async function syncAboutSocialLinks(supabase: SupabaseServerClient, menuId: string, drafts: AboutSocialLinkDraft[]) {
+  const activeDrafts = drafts.filter((draft) => !isDraftDeleted(draft.deleted));
+  if (activeDrafts.length > MENU_LIMITS.maxSocialLinksPerSite) {
+    redirectToTabEditWithError(menuId, "about", `SNS 링크는 최대 ${MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.`);
+  }
+
+  const usedTypes = new Set<string>();
+  for (const draft of activeDrafts) {
+    const type = normalizeDraftString(draft.type);
+    const label = normalizeDraftString(draft.label);
+    const displayName = normalizeDraftString(draft.display_name);
+    const url = normalizeDraftString(draft.url);
+
+    if (!isSocialLinkType(type)) redirectToTabEditWithError(menuId, "about", "SNS 종류를 선택해주세요.");
+    if (usedTypes.has(type)) redirectToTabEditWithError(menuId, "about", "같은 SNS 종류는 한 번만 등록할 수 있습니다.");
+    usedTypes.add(type);
+    if (!label) redirectToTabEditWithError(menuId, "about", "SNS 화면 표시 라벨을 입력해주세요.");
+    if (!displayName) redirectToTabEditWithError(menuId, "about", "SNS 아이디/표시명을 입력해주세요.");
+    validateRequiredText(menuId, label, "SNS 화면 표시 라벨", MENU_FIELD_LIMITS.menuSocialLinks.label, "about");
+    validateRequiredText(menuId, displayName, "SNS 아이디/표시명", MENU_FIELD_LIMITS.menuSocialLinks.displayName, "about");
+    validateRequiredText(menuId, url, "SNS URL", MENU_FIELD_LIMITS.menuSocialLinks.url, "about");
+    if (!/^https?:\/\//i.test(url)) redirectToTabEditWithError(menuId, "about", "SNS URL은 http:// 또는 https://로 시작해야 합니다.");
+  }
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from("menu_social_links")
+    .select("id")
+    .eq("menu_site_id", menuId);
+
+  if (existingError) redirectToTabEditWithError(menuId, "about", `SNS 링크 확인에 실패했습니다: ${existingError.message}`);
+
+  const existingIds = new Set((existingLinks ?? []).map((link) => link.id));
+
+  for (const draft of drafts) {
+    const id = normalizeDraftString(draft.id);
+
+    if (isDraftDeleted(draft.deleted)) {
+      if (!id) continue;
+      if (!existingIds.has(id)) redirectToTabEditWithError(menuId, "about", "삭제할 SNS 링크를 찾을 수 없습니다.");
+      const { error } = await supabase.from("menu_social_links").delete().eq("id", id).eq("menu_site_id", menuId);
+      if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 삭제에 실패했습니다: ${error.message}`);
+      continue;
+    }
+
+    const type = normalizeDraftString(draft.type);
+    if (!isSocialLinkType(type)) redirectToTabEditWithError(menuId, "about", "SNS 종류를 선택해주세요.");
+
+    const payloadInput = {
+      type,
+      label: normalizeDraftString(draft.label),
+      display_name: normalizeDraftString(draft.display_name),
+      url: normalizeDraftString(draft.url),
+      visible: normalizeDraftBoolean(draft.visible),
+      sort_order: normalizeDraftNumber(draft.sort_order),
+    };
+
+    if (id) {
+      if (!existingIds.has(id)) redirectToTabEditWithError(menuId, "about", "저장할 SNS 링크를 찾을 수 없습니다.");
+      const payload: MenuSocialLinkUpdate = { ...payloadInput, updated_at: new Date().toISOString() };
+      const { error } = await supabase.from("menu_social_links").update(payload).eq("id", id).eq("menu_site_id", menuId);
+      if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 저장에 실패했습니다: ${error.message}`);
+    } else {
+      const payload: MenuSocialLinkInsert = { menu_site_id: menuId, ...payloadInput };
+      const { error } = await supabase.from("menu_social_links").insert(payload);
+      if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 추가에 실패했습니다: ${error.message}`);
+    }
+  }
+}
+
+async function syncAboutChefs(supabase: SupabaseServerClient, menuId: string, drafts: AboutChefDraft[]) {
+  const activeDrafts = drafts.filter((draft) => !isDraftDeleted(draft.deleted));
+  if (activeDrafts.length > MENU_LIMITS.maxChefsPerSite) {
+    redirectToTabEditWithError(menuId, "about", `셰프/인물 정보는 최대 ${MENU_LIMITS.maxChefsPerSite}명까지 등록할 수 있습니다.`);
+  }
+
+  for (const draft of activeDrafts) {
+    const chefName = normalizeDraftString(draft.chef_name);
+    const chefRole = normalizeDraftString(draft.chef_role);
+    const chefDescription = normalizeDraftString(draft.chef_description);
+
+    if (!chefName) redirectToTabEditWithError(menuId, "about", "셰프/인물 이름을 입력해주세요.");
+    if (!chefRole) redirectToTabEditWithError(menuId, "about", "셰프/인물 역할을 입력해주세요.");
+    if (!chefDescription) redirectToTabEditWithError(menuId, "about", "셰프/인물 소개를 입력해주세요.");
+    validateRequiredText(menuId, chefName, "셰프/인물 이름", MENU_FIELD_LIMITS.menuChefs.chefName, "about");
+    validateRequiredText(menuId, chefRole, "셰프/인물 역할", MENU_FIELD_LIMITS.menuChefs.chefRole, "about");
+    validateRequiredText(menuId, chefDescription, "셰프/인물 소개", MENU_FIELD_LIMITS.menuChefs.chefDescription, "about");
+  }
+
+  const { data: existingChefs, error: existingError } = await supabase
+    .from("menu_chefs")
+    .select("id, chef_image_path")
+    .eq("menu_site_id", menuId);
+
+  if (existingError) redirectToTabEditWithError(menuId, "about", `셰프/인물 확인에 실패했습니다: ${existingError.message}`);
+
+  const existingById = new Map((existingChefs ?? []).map((chef) => [chef.id, chef]));
+
+  for (const draft of drafts) {
+    const id = normalizeDraftString(draft.id);
+
+    if (isDraftDeleted(draft.deleted)) {
+      if (!id) continue;
+      const existingChef = existingById.get(id);
+      if (!existingChef) redirectToTabEditWithError(menuId, "about", "삭제할 셰프/인물 정보를 찾을 수 없습니다.");
+
+      const { error } = await supabase.from("menu_chefs").delete().eq("id", id).eq("menu_site_id", menuId);
+      if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 삭제에 실패했습니다: ${error.message}`);
+
+      const removeError = await removeMenuImagePath(supabase, existingChef.chef_image_path);
+      if (removeError) {
+        redirectToTabEditWithError(menuId, "about", `셰프/인물 정보는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
+      }
+      continue;
+    }
+
+    const payloadInput = {
+      chef_name: normalizeDraftString(draft.chef_name),
+      chef_role: normalizeDraftString(draft.chef_role),
+      chef_description: normalizeDraftString(draft.chef_description),
+      visible: normalizeDraftBoolean(draft.visible),
+      sort_order: normalizeDraftNumber(draft.sort_order),
+    };
+
+    if (id) {
+      if (!existingById.has(id)) redirectToTabEditWithError(menuId, "about", "저장할 셰프/인물 정보를 찾을 수 없습니다.");
+      const payload: MenuChefUpdate = { ...payloadInput, updated_at: new Date().toISOString() };
+      const { error } = await supabase.from("menu_chefs").update(payload).eq("id", id).eq("menu_site_id", menuId);
+      if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 저장에 실패했습니다: ${error.message}`);
+    } else {
+      const payload: MenuChefInsert = { menu_site_id: menuId, ...payloadInput };
+      const { error } = await supabase.from("menu_chefs").insert(payload);
+      if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 추가에 실패했습니다: ${error.message}`);
+    }
+  }
+}
+
+async function syncEvents(supabase: SupabaseServerClient, menuId: string, drafts: AboutEventDraft[]) {
+  const activeDrafts = drafts.filter((draft) => !isDraftDeleted(draft.deleted));
+  if (activeDrafts.length > MENU_LIMITS.maxEventsPerSite) {
+    redirectToTabEditWithError(menuId, "events", `이벤트는 최대 ${MENU_LIMITS.maxEventsPerSite}개까지 등록할 수 있습니다.`);
+  }
+
+  for (const draft of activeDrafts) {
+    const title = normalizeDraftString(draft.event_title);
+    const description = normalizeDraftString(draft.event_description);
+
+    if (!title) redirectToTabEditWithError(menuId, "events", "이벤트 제목을 입력해주세요.");
+    if (!description) redirectToTabEditWithError(menuId, "events", "이벤트 설명을 입력해주세요.");
+    validateRequiredText(menuId, title, "이벤트 제목", MENU_FIELD_LIMITS.menuEvents.eventTitle, "events");
+    validateRequiredText(menuId, description, "이벤트 설명", MENU_FIELD_LIMITS.menuEvents.eventDescription, "events");
+    validateOptionalText(menuId, normalizeDraftString(draft.event_subtitle) || null, "이벤트 부제목", MENU_FIELD_LIMITS.menuEvents.eventSubtitle, "events");
+    validateOptionalText(menuId, normalizeDraftString(draft.event_period) || null, "이벤트 기간 문구", MENU_FIELD_LIMITS.menuEvents.eventPeriod, "events");
+    validateOptionalText(menuId, normalizeDraftString(draft.event_benefit) || null, "이벤트 혜택", MENU_FIELD_LIMITS.menuEvents.eventBenefit, "events");
+    validateOptionalText(menuId, normalizeDraftString(draft.event_detail) || null, "이벤트 상세", MENU_FIELD_LIMITS.menuEvents.eventDetail, "events");
+    validateOptionalText(menuId, normalizeDraftString(draft.event_regular_price_label) || null, "정가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventRegularPriceLabel, "events");
+    validateOptionalText(menuId, normalizeDraftString(draft.event_sale_price_label) || null, "할인가/이벤트가 표시 문구", MENU_FIELD_LIMITS.menuEvents.eventSalePriceLabel, "events");
+    validateOptionalText(menuId, normalizeDraftString(draft.link_url) || null, "이벤트 링크 URL", MENU_FIELD_LIMITS.menuEvents.linkUrl, "events");
+  }
+
+  const { data: existingEvents, error: existingError } = await supabase
+    .from("menu_events")
+    .select("id, event_image_path")
+    .eq("menu_site_id", menuId);
+
+  if (existingError) redirectToTabEditWithError(menuId, "events", `이벤트 확인에 실패했습니다: ${existingError.message}`);
+
+  const existingById = new Map((existingEvents ?? []).map((event) => [event.id, event]));
+
+  for (const draft of drafts) {
+    const id = normalizeDraftString(draft.id);
+
+    if (isDraftDeleted(draft.deleted)) {
+      if (!id) continue;
+      const existingEvent = existingById.get(id);
+      if (!existingEvent) redirectToTabEditWithError(menuId, "events", "삭제할 이벤트를 찾을 수 없습니다.");
+
+      const { error } = await supabase.from("menu_events").delete().eq("id", id).eq("menu_site_id", menuId);
+      if (error) redirectToTabEditWithError(menuId, "events", `이벤트 삭제에 실패했습니다: ${error.message}`);
+
+      const removeError = await removeMenuImagePath(supabase, existingEvent.event_image_path);
+      if (removeError) {
+        redirectToTabEditWithError(menuId, "events", `이벤트는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
+      }
+      continue;
+    }
+
+    const regularPriceLabel = normalizeDraftString(draft.event_regular_price_label) || null;
+    const salePriceLabel = normalizeDraftString(draft.event_sale_price_label) || null;
+    const hasEventPriceData = Boolean(regularPriceLabel || salePriceLabel);
+    const payloadInput = {
+      event_title: normalizeDraftString(draft.event_title),
+      event_subtitle: normalizeDraftString(draft.event_subtitle) || null,
+      event_description: normalizeDraftString(draft.event_description),
+      event_period: normalizeDraftString(draft.event_period) || null,
+      event_benefit: normalizeDraftString(draft.event_benefit) || null,
+      event_detail: normalizeDraftString(draft.event_detail) || null,
+      event_regular_price_label: regularPriceLabel,
+      event_sale_price_label: salePriceLabel,
+      event_price_visible: Boolean(normalizeDraftBoolean(draft.event_price_visible) && hasEventPriceData),
+      start_date: normalizeDraftDate(draft.start_date),
+      end_date: normalizeDraftDate(draft.end_date),
+      link_url: normalizeDraftString(draft.link_url) || null,
+      visible: normalizeDraftBoolean(draft.visible),
+      sort_order: normalizeDraftNumber(draft.sort_order),
+    };
+
+    if (id) {
+      if (!existingById.has(id)) redirectToTabEditWithError(menuId, "events", "저장할 이벤트를 찾을 수 없습니다.");
+      const payload: MenuEventUpdate = { ...payloadInput, updated_at: new Date().toISOString() };
+      const { error } = await supabase.from("menu_events").update(payload).eq("id", id).eq("menu_site_id", menuId);
+      if (error) redirectToTabEditWithError(menuId, "events", `이벤트 저장에 실패했습니다: ${error.message}`);
+    } else {
+      const payload: MenuEventInsert = { menu_site_id: menuId, ...payloadInput };
+      const { error } = await supabase.from("menu_events").insert(payload);
+      if (error) redirectToTabEditWithError(menuId, "events", `이벤트 추가에 실패했습니다: ${error.message}`);
+    }
+  }
 }
 
 export async function updateAboutAction(formData: FormData) {
@@ -1316,35 +1885,79 @@ export async function updateAboutAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const restaurantAddress = getNullableString(formData, "restaurant_address");
-  const restaurantPhone = getNullableString(formData, "restaurant_phone");
-  const openingHours = getNullableString(formData, "opening_hours");
-  const aboutDescription = getNullableString(formData, "about_description");
+  const hasRestaurantAddressField = formData.has("restaurant_address");
+  const hasRestaurantPhoneField = formData.has("restaurant_phone");
+  const hasOpeningHoursField = formData.has("opening_hours");
+  const hasAboutDescriptionField = formData.has("about_description");
+  const hasMapUrlField = formData.has("map_url");
+  const restaurantAddress = hasRestaurantAddressField ? getNullableString(formData, "restaurant_address") : null;
+  const restaurantPhone = hasRestaurantPhoneField ? getNullableString(formData, "restaurant_phone") : null;
+  const openingHours = hasOpeningHoursField ? getNullableString(formData, "opening_hours") : null;
+  const aboutDescription = hasAboutDescriptionField ? getNullableString(formData, "about_description") : null;
+  const mapUrl = hasMapUrlField ? getNullableString(formData, "map_url") : null;
+  const hasBrandDescriptionField = formData.has("brand_description");
+  const brandDescription = hasBrandDescriptionField ? getNullableString(formData, "brand_description") : menuSite.brand_description;
 
-  validateRequiredText(menuId, restaurantAddress ?? "", "주소", MENU_FIELD_LIMITS.menuSites.restaurantAddress, "about");
-  validateRequiredPhone(menuId, restaurantPhone, "전화번호", "about");
-  validateRequiredText(menuId, openingHours ?? "", "영업시간", MENU_FIELD_LIMITS.menuSites.openingHours, "about");
-  validateRequiredText(menuId, aboutDescription ?? "", "소개 문구", MENU_FIELD_LIMITS.menuSites.aboutDescription, "about");
-  validateOptionalText(menuId, getNullableString(formData, "map_url"), "지도 URL", MENU_FIELD_LIMITS.menuSites.mapUrl, "about");
-  validateOptionalText(menuId, getNullableString(formData, "brand_description"), "브랜드 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "about");
+  if (hasRestaurantAddressField) {
+    validateRequiredText(menuId, restaurantAddress ?? "", "주소", MENU_FIELD_LIMITS.menuSites.restaurantAddress, "about");
+  }
+  if (hasRestaurantPhoneField) {
+    validateRequiredPhone(menuId, restaurantPhone, "전화번호", "about");
+  }
+  if (hasOpeningHoursField) {
+    validateRequiredText(menuId, openingHours ?? "", "영업시간", MENU_FIELD_LIMITS.menuSites.openingHours, "about");
+  }
+  if (hasAboutDescriptionField) {
+    validateRequiredText(menuId, aboutDescription ?? "", "소개 문구", MENU_FIELD_LIMITS.menuSites.aboutDescription, "about");
+  }
+  if (hasMapUrlField) {
+    validateOptionalText(menuId, mapUrl, "지도 URL", MENU_FIELD_LIMITS.menuSites.mapUrl, "about");
+  }
+  if (hasBrandDescriptionField) {
+    validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "about");
+  }
 
-  const { error } = await supabase
-    .from("menu_sites")
-    .update({
-      restaurant_address: restaurantAddress,
-      restaurant_phone: restaurantPhone,
-      opening_hours: openingHours,
-      map_url: getNullableString(formData, "map_url"),
-      about_description: aboutDescription,
-      brand_description: getNullableString(formData, "brand_description"),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", menuId);
+  if (hasRestaurantAddressField || hasRestaurantPhoneField || hasOpeningHoursField || hasMapUrlField || hasAboutDescriptionField || hasBrandDescriptionField) {
+    const siteUpdate: MenuSiteUpdate = { updated_at: new Date().toISOString() };
+    if (hasRestaurantAddressField) siteUpdate.restaurant_address = restaurantAddress;
+    if (hasRestaurantPhoneField) siteUpdate.restaurant_phone = restaurantPhone;
+    if (hasOpeningHoursField) siteUpdate.opening_hours = openingHours;
+    if (hasMapUrlField) siteUpdate.map_url = mapUrl;
+    if (hasAboutDescriptionField) siteUpdate.about_description = aboutDescription;
+    if (hasBrandDescriptionField) siteUpdate.brand_description = brandDescription;
 
-  if (error) redirectToTabEditWithError(menuId, "about", `소개 정보 저장에 실패했습니다: ${error.message}`);
+    const { error } = await supabase
+      .from("menu_sites")
+      .update(siteUpdate)
+      .eq("id", menuId);
+
+    if (error) redirectToTabEditWithError(menuId, "about", `소개 정보 저장에 실패했습니다: ${error.message}`);
+  }
+
+  if (getString(formData, "include_social_links") === "on") {
+    await syncAboutSocialLinks(supabase, menuId, parseDraftArray<AboutSocialLinkDraft>(formData, "about_social_links_draft"));
+  }
+
+  if (getString(formData, "include_chefs") === "on") {
+    await syncAboutChefs(supabase, menuId, parseDraftArray<AboutChefDraft>(formData, "about_chefs_draft"));
+  }
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "about", "소개 정보가 저장되었습니다.");
+  redirectToTabEdit(menuId, "about", "소개 내용이 저장되었습니다.");
+}
+
+export async function updateEventsAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+
+  if (getString(formData, "include_events") === "on") {
+    await syncEvents(supabase, menuId, parseDraftArray<AboutEventDraft>(formData, "events_draft"));
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToTabEdit(menuId, "events", "이벤트 내용이 저장되었습니다.");
 }
 
 export async function updatePublishSettingsAction(formData: FormData) {
@@ -1397,13 +2010,39 @@ export async function createMenuPageAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `메뉴 페이지는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`);
   }
 
+  const { data: existingPages, error: existingPagesError } = await supabase
+    .from("menu_pages")
+    .select("id, sort_order")
+    .eq("menu_site_id", menuId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (existingPagesError) {
+    redirectToMenuEditWithError(menuId, `메뉴 페이지 정렬 확인에 실패했습니다: ${existingPagesError.message}`);
+  }
+
+  const pageReorderResults = await Promise.all(
+    (existingPages ?? []).map((page, index) =>
+      supabase
+        .from("menu_pages")
+        .update({ sort_order: index + 1, updated_at: new Date().toISOString() })
+        .eq("id", page.id)
+        .eq("menu_site_id", menuId)
+    )
+  );
+  const pageReorderError = pageReorderResults.find((result) => result.error)?.error;
+
+  if (pageReorderError) {
+    redirectToMenuEditWithError(menuId, `메뉴 페이지 정렬 저장에 실패했습니다: ${pageReorderError.message}`);
+  }
+
   const payload: MenuPageInsert = {
     menu_site_id: menuId,
     title,
     description,
     description_visible: Boolean(description && getBoolean(formData, "menu_page_description_visible")),
     visible: true,
-    sort_order: getNumber(formData, "menu_page_sort_order"),
+    sort_order: 0,
   };
 
   const { error } = await supabase.from("menu_pages").insert(payload);
@@ -1454,6 +2093,43 @@ export async function updateMenuPageAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToMenuEdit(menuId, "메뉴 페이지가 저장되었습니다.");
+}
+
+export async function reorderMenuPagesAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const orderedIds = getOrderedIds(formData);
+
+  if (!menuId || orderedIds.length === 0) {
+    redirectToMenuEditWithError(menuId, "페이지 순서를 저장할 항목이 없습니다.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const { data: pages, error: pagesError } = await supabase.from("menu_pages").select("id").eq("menu_site_id", menuId);
+
+  if (pagesError) {
+    redirectToMenuEditWithError(menuId, `페이지 순서 확인에 실패했습니다: ${pagesError.message}`);
+  }
+
+  const pageIds = new Set((pages ?? []).map((page) => page.id));
+  const canSaveOrder = orderedIds.length === pageIds.size && orderedIds.every((id) => pageIds.has(id));
+
+  if (!canSaveOrder) {
+    redirectToMenuEditWithError(menuId, "현재 페이지 목록과 순서 정보가 일치하지 않습니다. 새로고침 후 다시 시도해주세요.");
+  }
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) =>
+      supabase.from("menu_pages").update({ sort_order: index, updated_at: new Date().toISOString() }).eq("id", id).eq("menu_site_id", menuId)
+    )
+  );
+  const error = results.find((result) => result.error)?.error;
+
+  if (error) {
+    redirectToMenuEditWithError(menuId, `페이지 순서 저장에 실패했습니다: ${error.message}`);
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "페이지 순서가 저장되었습니다.");
 }
 
 export async function copyMenuPageAction(formData: FormData) {
@@ -1881,6 +2557,33 @@ export async function createCategoryAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `이 페이지에는 메뉴 카테고리를 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`);
   }
 
+  const { data: existingCategories, error: existingCategoriesError } = await supabase
+    .from("menu_categories")
+    .select("id, sort_order")
+    .eq("menu_site_id", menuId)
+    .eq("menu_page_id", menuPageId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (existingCategoriesError) {
+    redirectToMenuEditWithError(menuId, `메뉴 카테고리 정렬 확인에 실패했습니다: ${existingCategoriesError.message}`);
+  }
+
+  const categoryReorderResults = await Promise.all(
+    (existingCategories ?? []).map((category, index) =>
+      supabase
+        .from("menu_categories")
+        .update({ sort_order: index + 1, updated_at: new Date().toISOString() })
+        .eq("id", category.id)
+        .eq("menu_site_id", menuId)
+    )
+  );
+  const categoryReorderError = categoryReorderResults.find((result) => result.error)?.error;
+
+  if (categoryReorderError) {
+    redirectToMenuEditWithError(menuId, `메뉴 카테고리 정렬 저장에 실패했습니다: ${categoryReorderError.message}`);
+  }
+
   const payload: MenuCategoryInsert = {
     menu_site_id: menuId,
     menu_page_id: menuPageId,
@@ -1888,7 +2591,7 @@ export async function createCategoryAction(formData: FormData) {
     description,
     description_visible: Boolean(description && getBoolean(formData, "category_description_visible")),
     section_key: getMenuPageSectionKey(menuPage.legacy_section_key),
-    sort_order: getNumber(formData, "category_sort_order"),
+    sort_order: 0,
     visible: getBoolean(formData, "category_visible"),
   };
 
@@ -1950,6 +2653,49 @@ export async function updateCategoryAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToMenuEdit(menuId, "메뉴 카테고리가 저장되었습니다.");
+}
+
+export async function reorderCategoriesAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const menuPageId = getString(formData, "menuPageId");
+  const orderedIds = getOrderedIds(formData);
+
+  if (!menuId || !menuPageId || orderedIds.length === 0) {
+    redirectToMenuEditWithError(menuId, "카테고리 순서를 저장할 항목이 없습니다.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  const { data: currentCategories, error: categoriesError } = await supabase
+    .from("menu_categories")
+    .select("id")
+    .eq("menu_site_id", menuId)
+    .eq("menu_page_id", menuPageId);
+
+  if (categoriesError) {
+    redirectToMenuEditWithError(menuId, `카테고리 순서 확인에 실패했습니다: ${categoriesError.message}`);
+  }
+
+  const categoryIds = new Set((currentCategories ?? []).map((category) => category.id));
+  const canSaveOrder = orderedIds.length === categoryIds.size && orderedIds.every((id) => categoryIds.has(id));
+
+  if (!canSaveOrder) {
+    redirectToMenuEditWithError(menuId, "현재 카테고리 목록과 순서 정보가 일치하지 않습니다. 새로고침 후 다시 시도해주세요.");
+  }
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) =>
+      supabase.from("menu_categories").update({ sort_order: index, updated_at: new Date().toISOString() }).eq("id", id).eq("menu_site_id", menuId)
+    )
+  );
+  const error = results.find((result) => result.error)?.error;
+
+  if (error) {
+    redirectToMenuEditWithError(menuId, `카테고리 순서 저장에 실패했습니다: ${error.message}`);
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "카테고리 순서가 저장되었습니다.");
 }
 
 export async function deleteCategoryAction(formData: FormData) {
@@ -2068,7 +2814,7 @@ export async function createMenuItemAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `한 메뉴판에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
   }
 
-  const badgeLabel = normalizeMenuBadgeLabel(formData.get("item_badge_label"));
+  const badgeLabel = getMenuItemBadgeLabelFromForm(menuId, formData);
   const badgeType = getLegacyBadgeTypeForLabel(badgeLabel);
   const setName = category?.section_key === "set_menu" ? getNullableString(formData, "item_set_name") : null;
   const traitSlots = getMenuItemTraitSlots(menuId, formData);
@@ -2191,7 +2937,7 @@ export async function updateMenuItemAction(formData: FormData) {
 
   const category = await assertCategoryBelongsToMenuSite(menuId, categoryId);
 
-  const badgeLabel = normalizeMenuBadgeLabel(formData.get("item_badge_label"));
+  const badgeLabel = getMenuItemBadgeLabelFromForm(menuId, formData);
   const badgeType = getLegacyBadgeTypeForLabel(badgeLabel);
   const setName = category?.section_key === "set_menu" ? getNullableString(formData, "item_set_name") : null;
   const traitSlots = getMenuItemTraitSlots(menuId, formData);
@@ -2267,6 +3013,880 @@ export async function updateMenuItemAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToMenuEdit(menuId, "아이템이 저장되었습니다.");
+}
+
+type MenuManagementBasicPageDraft = {
+  id: string;
+  isNew?: boolean;
+  title: string;
+  description?: string;
+  descriptionVisible?: boolean;
+  visible?: boolean;
+  sortOrder: number;
+};
+
+type MenuManagementBasicCategoryDraft = {
+  id: string;
+  isNew?: boolean;
+  pageId?: string;
+  name: string;
+  description?: string;
+  descriptionVisible?: boolean;
+  visible?: boolean;
+  sortOrder: number;
+};
+
+type MenuManagementBasicItemDraft = {
+  id: string;
+  categoryId?: string;
+  isNew?: boolean;
+  imageUrl?: string | null;
+  imagePath?: string | null;
+  imageAction?: "keep" | "replace" | "delete";
+  name: string;
+  description: string;
+  originInfo?: string;
+  price: string;
+  priceLabel: string;
+  badgeLabel: string;
+  visible: boolean;
+  sortOrder: number;
+  portionLabel?: string;
+  priceVisible?: boolean;
+  portionVisible?: boolean;
+  traitsVisible?: boolean;
+  traitDrafts?: MenuItemTraitDraftInput[];
+  priceOptions?: {
+    label?: string;
+    price?: string | number | null;
+    priceLabel?: string | null;
+    visible?: boolean;
+    sortOrder?: number;
+  }[];
+  badgeStyleKey?: string;
+  badgeBackgroundColor?: string;
+  badgeTextColor?: string;
+};
+
+function parseDraftArray<T extends Record<string, unknown>>(formData: FormData, key: string): T[] {
+  const rawValue = getString(formData, key);
+  if (!rawValue) return [];
+
+  try {
+    const parsed = JSON.parse(rawValue);
+    return Array.isArray(parsed) ? parsed.filter((entry): entry is T => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseDraftStringArray(formData: FormData, key: string) {
+  const rawValue = getString(formData, key);
+  if (!rawValue) return [];
+
+  try {
+    const parsed = JSON.parse(rawValue);
+    return Array.isArray(parsed) ? parsed.filter((entry): entry is string => typeof entry === "string" && Boolean(entry)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeDraftString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeDraftBoolean(value: unknown) {
+  return value === true;
+}
+
+export async function saveMenuManagementBasicDraftAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const now = new Date().toISOString();
+  const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
+  const categoryDrafts = parseDraftArray<MenuManagementBasicCategoryDraft>(formData, "category_basic_drafts");
+  const itemDrafts = parseDraftArray<MenuManagementBasicItemDraft>(formData, "item_basic_drafts");
+  const deletedPageIds = parseDraftStringArray(formData, "deleted_page_ids");
+  const deletedCategoryIds = parseDraftStringArray(formData, "deleted_category_ids");
+  const deletedItemIds = parseDraftStringArray(formData, "deleted_item_ids");
+  const newPageDraftCount = pageDrafts.filter((page) => {
+    const pageId = normalizeDraftString(page.id);
+    return pageId && page.isNew === true && !deletedPageIds.includes(pageId);
+  }).length;
+
+  if (deletedPageIds.length > 0) {
+    const { count: pageCount, error: pageCountError } = await supabase
+      .from("menu_pages")
+      .select("id", { count: "exact", head: true })
+      .eq("menu_site_id", menuId);
+
+    if (pageCountError) {
+      redirectToMenuEditWithError(menuId, `페이지 삭제 가능 여부 확인에 실패했습니다: ${pageCountError.message}`);
+    }
+
+    if ((pageCount ?? 0) - deletedPageIds.length + newPageDraftCount < 1) {
+      redirectToMenuEditWithError(menuId, "최소 1개의 페이지는 필요합니다.");
+    }
+  }
+
+  let categoryIdsFromDeletedPages: string[] = [];
+  if (deletedPageIds.length > 0) {
+    const { data: pageCategories, error: pageCategoriesError } = await supabase
+      .from("menu_categories")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .in("menu_page_id", deletedPageIds);
+
+    if (pageCategoriesError) {
+      redirectToMenuEditWithError(menuId, `삭제할 페이지의 카테고리 확인에 실패했습니다: ${pageCategoriesError.message}`);
+    }
+
+    categoryIdsFromDeletedPages = (pageCategories ?? []).map((category) => category.id);
+  }
+
+  const deletedPageIdSet = new Set(deletedPageIds);
+  const categoryIdsToDelete = Array.from(new Set([...deletedCategoryIds, ...categoryIdsFromDeletedPages]));
+  const categoryIdDeleteSet = new Set(categoryIdsToDelete);
+  const deletedItemIdSet = new Set(deletedItemIds);
+  const existingItemIdsForBadgeCheck = Array.from(
+    new Set(
+      itemDrafts
+        .map((item) => normalizeDraftString(item.id))
+        .filter((itemId) => itemId && !itemId.startsWith("temp-") && !deletedItemIdSet.has(itemId))
+    )
+  );
+  const originalBadgeLabelsByItemId = new Map<string, string>();
+  let canCompareOriginalBadgeLabels = true;
+
+  if (existingItemIdsForBadgeCheck.length > 0) {
+    const { data: originalBadgeItems, error: originalBadgeItemsError } = await supabase
+      .from("menu_items")
+      .select("id, badge_label")
+      .eq("menu_site_id", menuId)
+      .in("id", existingItemIdsForBadgeCheck);
+
+    if (isMissingBadgeLabelColumnError(originalBadgeItemsError)) {
+      canCompareOriginalBadgeLabels = false;
+    } else if (originalBadgeItemsError) {
+      redirectToMenuEditWithError(menuId, `아이템 배지 정보 확인에 실패했습니다: ${originalBadgeItemsError.message}`);
+    } else {
+      (originalBadgeItems ?? []).forEach((item) => {
+        originalBadgeLabelsByItemId.set(item.id, normalizeDraftString(item.badge_label));
+      });
+    }
+  }
+
+  for (const page of pageDrafts) {
+    const pageId = normalizeDraftString(page.id);
+    const title = normalizeDraftString(page.title);
+    if (!pageId || deletedPageIdSet.has(pageId)) continue;
+    validateRequiredText(menuId, title, "페이지 이름", MENU_FIELD_LIMITS.menuPages.title);
+  }
+
+  for (const category of categoryDrafts) {
+    const categoryId = normalizeDraftString(category.id);
+    const name = normalizeDraftString(category.name);
+    if (!categoryId || categoryIdDeleteSet.has(categoryId)) continue;
+    validateRequiredText(menuId, name, "메뉴 카테고리 이름", MENU_FIELD_LIMITS.menuCategories.name);
+  }
+
+  for (const item of itemDrafts) {
+    const itemId = normalizeDraftString(item.id);
+    const name = normalizeDraftString(item.name);
+    const description = normalizeDraftString(item.description);
+    const originInfo = normalizeDraftString(item.originInfo);
+    const priceLabel = normalizeDraftString(item.priceLabel);
+    const portionLabel = normalizeDraftString(item.portionLabel);
+    const badgeLabel = normalizeDraftString(item.badgeLabel);
+    const badgeStyleKey = normalizeDraftString(item.badgeStyleKey) as BadgeStyleKey;
+    const badgeBackgroundColor = normalizeDraftString(item.badgeBackgroundColor);
+    const badgeTextColor = normalizeDraftString(item.badgeTextColor);
+    const categoryId = normalizeDraftString(item.categoryId);
+    if (!itemId || deletedItemIdSet.has(itemId) || categoryIdDeleteSet.has(categoryId)) continue;
+
+    validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
+    validateOptionalText(menuId, description || null, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+    if (templateCapabilities.originInfo) {
+      validateOptionalText(menuId, originInfo || null, "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
+    }
+    validateOptionalText(menuId, priceLabel || null, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
+    validateOptionalText(menuId, portionLabel || null, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+    if (templateCapabilities.itemTraits) {
+      getMenuItemTraitSlotsFromDraft(menuId, item.traitDrafts);
+    }
+    const originalBadgeLabel = originalBadgeLabelsByItemId.get(itemId) ?? "";
+    const shouldValidateBadgeLabel =
+      item.isNew === true ||
+      !canCompareOriginalBadgeLabels ||
+      !originalBadgeLabelsByItemId.has(itemId) ||
+      badgeLabel !== originalBadgeLabel;
+
+    const isPresetBadgeLabel = Boolean(normalizeMenuBadgeLabel(badgeLabel));
+    if (shouldValidateBadgeLabel && !isPresetBadgeLabel && badgeLabel.length > MENU_BADGE_MAX_LENGTH) {
+      const itemName = name || "이름 없는 아이템";
+      redirectToMenuEditWithError(
+        menuId,
+        `"${itemName}"의 배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
+      );
+    }
+    if (badgeStyleKey || badgeBackgroundColor || badgeTextColor) {
+      if (!BADGE_STYLE_KEYS.includes(badgeStyleKey) || !isHexColor(badgeBackgroundColor) || !isHexColor(badgeTextColor)) {
+        redirectToMenuEditWithError(menuId, "배지 색상은 #RRGGBB 형식으로 입력해주세요.");
+      }
+    }
+  }
+
+  const badgeStyleDrafts = itemDrafts
+    .map((item) => ({
+      styleKey: normalizeDraftString(item.badgeStyleKey) as BadgeStyleKey,
+      backgroundColor: normalizeDraftString(item.badgeBackgroundColor),
+      textColor: normalizeDraftString(item.badgeTextColor),
+    }))
+    .filter(
+      (draft) =>
+        BADGE_STYLE_KEYS.includes(draft.styleKey) &&
+        isHexColor(draft.backgroundColor) &&
+        isHexColor(draft.textColor)
+    );
+
+  if (badgeStyleDrafts.length > 0) {
+    const settings = getJsonObject(menuSite.settings);
+    const badgeStyles = getJsonObject(settings.badge_styles);
+    badgeStyleDrafts.forEach((draft) => {
+      badgeStyles[draft.styleKey] = {
+        background_color: draft.backgroundColor.toUpperCase(),
+        text_color: draft.textColor.toUpperCase(),
+      };
+    });
+    settings.badge_styles = badgeStyles;
+
+    const { error } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: now })
+      .eq("id", menuId);
+
+    if (error) redirectToMenuEditWithError(menuId, `배지 색상 draft 저장에 실패했습니다: ${error.message}`);
+  }
+
+  let itemIdsFromDeletedCategories: string[] = [];
+  if (categoryIdsToDelete.length > 0) {
+    const { data: categoryItems, error: categoryItemsError } = await supabase
+      .from("menu_items")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .in("category_id", categoryIdsToDelete);
+
+    if (categoryItemsError) {
+      redirectToMenuEditWithError(menuId, `삭제할 카테고리의 아이템 확인에 실패했습니다: ${categoryItemsError.message}`);
+    }
+
+    itemIdsFromDeletedCategories = (categoryItems ?? []).map((item) => item.id);
+  }
+
+  const itemIdsToDelete = Array.from(new Set([...deletedItemIds, ...itemIdsFromDeletedCategories]));
+  if (itemIdsToDelete.length > 0) {
+    const { error: priceOptionDeleteError } = await supabase
+      .from("menu_item_price_options")
+      .delete()
+      .eq("menu_site_id", menuId)
+      .in("menu_item_id", itemIdsToDelete);
+
+    const missingPriceOptionsTable =
+      priceOptionDeleteError &&
+      (priceOptionDeleteError.message.toLowerCase().includes("menu_item_price_options") ||
+        priceOptionDeleteError.message.toLowerCase().includes("does not exist") ||
+        priceOptionDeleteError.code === "42P01");
+
+    if (priceOptionDeleteError && !missingPriceOptionsTable) {
+      redirectToMenuEditWithError(menuId, `삭제할 아이템의 가격 옵션 정리에 실패했습니다: ${priceOptionDeleteError.message}`);
+    }
+
+    const { error: traitDeleteError } = await supabase
+      .from("menu_item_traits")
+      .delete()
+      .eq("menu_site_id", menuId)
+      .in("menu_item_id", itemIdsToDelete);
+
+    const missingTraitsTable =
+      traitDeleteError &&
+      (traitDeleteError.message.toLowerCase().includes("menu_item_traits") ||
+        traitDeleteError.message.toLowerCase().includes("does not exist") ||
+        traitDeleteError.code === "42P01");
+
+    if (traitDeleteError && !missingTraitsTable) {
+      redirectToMenuEditWithError(menuId, `삭제할 아이템의 맛/특징 지표 정리에 실패했습니다: ${traitDeleteError.message}`);
+    }
+
+    const { error } = await supabase
+      .from("menu_items")
+      .delete()
+      .eq("menu_site_id", menuId)
+      .in("id", itemIdsToDelete);
+
+    if (error) redirectToMenuEditWithError(menuId, `아이템 draft 삭제에 실패했습니다: ${error.message}`);
+  }
+
+  if (categoryIdsToDelete.length > 0) {
+    const { error: categoryDeleteError } = await supabase
+      .from("menu_categories")
+      .delete()
+      .eq("menu_site_id", menuId)
+      .in("id", categoryIdsToDelete);
+
+    if (categoryDeleteError) redirectToMenuEditWithError(menuId, `카테고리 draft 삭제에 실패했습니다: ${categoryDeleteError.message}`);
+  }
+
+  if (deletedPageIds.length > 0) {
+    const { error } = await supabase
+      .from("menu_pages")
+      .delete()
+      .eq("menu_site_id", menuId)
+      .in("id", deletedPageIds);
+
+    if (error) redirectToMenuEditWithError(menuId, `페이지 draft 삭제에 실패했습니다: ${error.message}`);
+  }
+
+  const newPageDrafts = pageDrafts
+    .map((page) => ({
+      id: normalizeDraftString(page.id),
+      title: normalizeDraftString(page.title),
+      description: normalizeDraftString(page.description),
+      descriptionVisible: normalizeDraftBoolean(page.descriptionVisible),
+      visible: page.visible === undefined ? true : normalizeDraftBoolean(page.visible),
+      sortOrder: normalizeDraftNumber(page.sortOrder),
+      isNew: page.isNew === true,
+    }))
+    .filter((page) => page.id && page.isNew && !deletedPageIdSet.has(page.id));
+
+  const { count: existingPageCount, error: existingPageCountError } = await supabase
+    .from("menu_pages")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuId);
+
+  if (existingPageCountError) {
+    redirectToMenuEditWithError(menuId, `페이지 개수 확인에 실패했습니다: ${existingPageCountError.message}`);
+  }
+
+  if ((existingPageCount ?? 0) + newPageDrafts.length - deletedPageIds.length > MENU_LIMITS.maxPagesPerSite) {
+    redirectToMenuEditWithError(menuId, `페이지는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`);
+  }
+
+  const pageIdMap = new Map<string, string>();
+  for (const page of newPageDrafts) {
+    const payload: MenuPageInsert = {
+      menu_site_id: menuId,
+      title: page.title,
+      description: page.description || null,
+      description_visible: Boolean(page.description && page.descriptionVisible),
+      visible: page.visible,
+      sort_order: page.sortOrder,
+    };
+
+    const { data, error } = await supabase.from("menu_pages").insert(payload).select("id").single();
+    if (error) redirectToMenuEditWithError(menuId, `새 페이지 draft 저장에 실패했습니다: ${error.message}`);
+    if (data?.id) pageIdMap.set(page.id, data.id);
+  }
+
+  const pageResults = await Promise.all(
+    pageDrafts
+      .map((page) => ({
+        id: normalizeDraftString(page.id),
+        title: normalizeDraftString(page.title),
+        description: normalizeDraftString(page.description),
+        descriptionVisible: normalizeDraftBoolean(page.descriptionVisible),
+        visible: page.visible === undefined ? true : normalizeDraftBoolean(page.visible),
+        sortOrder: normalizeDraftNumber(page.sortOrder),
+        isNew: page.isNew === true,
+      }))
+      .filter((page) => page.id && !page.isNew && !deletedPageIdSet.has(page.id))
+      .map((page) =>
+        supabase
+          .from("menu_pages")
+          .update({
+            title: page.title,
+            description: page.description || null,
+            description_visible: Boolean(page.description && page.descriptionVisible),
+            visible: page.visible,
+            sort_order: page.sortOrder,
+            updated_at: now,
+          })
+          .eq("id", page.id)
+          .eq("menu_site_id", menuId)
+      )
+  );
+  const pageError = pageResults.find((result) => result.error)?.error;
+  if (pageError) redirectToMenuEditWithError(menuId, `페이지 draft 저장에 실패했습니다: ${pageError.message}`);
+
+  const categoryIdMap = new Map<string, string>();
+  const newCategoryDrafts = categoryDrafts
+    .map((category) => ({
+      id: normalizeDraftString(category.id),
+      pageId: normalizeDraftString(category.pageId),
+      name: normalizeDraftString(category.name),
+      description: normalizeDraftString(category.description),
+      descriptionVisible: normalizeDraftBoolean(category.descriptionVisible),
+      visible: category.visible === undefined ? true : normalizeDraftBoolean(category.visible),
+      sortOrder: normalizeDraftNumber(category.sortOrder),
+      isNew: category.isNew === true,
+    }))
+    .filter((category) => category.id && category.isNew && !categoryIdDeleteSet.has(category.id));
+
+  for (const category of newCategoryDrafts) {
+    const resolvedPageId = pageIdMap.get(category.pageId) ?? category.pageId;
+    if (!resolvedPageId) redirectToMenuEditWithError(menuId, "새 카테고리를 추가할 페이지를 찾을 수 없습니다.");
+    const menuPage = await assertMenuPageBelongsToMenuSite(menuId, resolvedPageId);
+
+    const payload: MenuCategoryInsert = {
+      menu_site_id: menuId,
+      menu_page_id: resolvedPageId,
+      name: category.name,
+      description: category.description || null,
+      description_visible: Boolean(category.description && category.descriptionVisible),
+      section_key: getMenuPageSectionKey(menuPage.legacy_section_key),
+      sort_order: category.sortOrder,
+      visible: category.visible,
+    };
+
+    const { data, error } = await supabase.from("menu_categories").insert(payload).select("id").single();
+    if (error) redirectToMenuEditWithError(menuId, `새 카테고리 draft 저장에 실패했습니다: ${error.message}`);
+    if (data?.id) categoryIdMap.set(category.id, data.id);
+  }
+
+  const categoryResults = await Promise.all(
+    categoryDrafts
+      .map((category) => ({
+        id: normalizeDraftString(category.id),
+        pageId: normalizeDraftString(category.pageId),
+        name: normalizeDraftString(category.name),
+        description: normalizeDraftString(category.description),
+        descriptionVisible: normalizeDraftBoolean(category.descriptionVisible),
+        visible: category.visible === undefined ? true : normalizeDraftBoolean(category.visible),
+        sortOrder: normalizeDraftNumber(category.sortOrder),
+        isNew: category.isNew === true,
+      }))
+      .filter((category) => category.id && !category.isNew && !categoryIdDeleteSet.has(category.id))
+      .map((category) =>
+        supabase
+          .from("menu_categories")
+          .update({
+            name: category.name,
+            description: category.description || null,
+            description_visible: Boolean(category.description && category.descriptionVisible),
+            visible: category.visible,
+            sort_order: category.sortOrder,
+            updated_at: now,
+          })
+          .eq("id", category.id)
+          .eq("menu_site_id", menuId)
+      )
+  );
+  const categoryError = categoryResults.find((result) => result.error)?.error;
+  if (categoryError) redirectToMenuEditWithError(menuId, `카테고리 draft 저장에 실패했습니다: ${categoryError.message}`);
+
+  for (const item of itemDrafts) {
+    const itemId = normalizeDraftString(item.id);
+    if (!itemId) continue;
+    const rawCategoryId = normalizeDraftString(item.categoryId);
+    const categoryId = categoryIdMap.get(rawCategoryId) ?? rawCategoryId;
+    if (deletedItemIdSet.has(itemId) || categoryIdDeleteSet.has(categoryId)) continue;
+
+    const rawPrice = normalizeDraftString(item.price);
+    const numericPrice = rawPrice ? Number(rawPrice) : null;
+    if (rawPrice && !Number.isFinite(numericPrice)) {
+      redirectToMenuEditWithError(menuId, "가격은 숫자로 입력해주세요.");
+    }
+    const priceLabel = normalizeDraftString(item.priceLabel);
+    if (item.isNew && numericPrice == null && !priceLabel) {
+      redirectToMenuEditWithError(menuId, "새 아이템은 가격 또는 표시용 가격 중 하나를 입력해주세요.");
+    }
+
+    const badgeLabel = normalizeDraftString(item.badgeLabel) || null;
+    const imageAction = normalizeDraftString(item.imageAction);
+    const draftImageUrl = normalizeDraftString(item.imageUrl);
+    const draftImagePath = normalizeDraftString(item.imagePath);
+    const traitSlots = templateCapabilities.itemTraits ? getMenuItemTraitSlotsFromDraft(menuId, item.traitDrafts) : [];
+    const priceOptionDrafts = templateCapabilities.priceOptions
+      ? (item.priceOptions ?? [])
+          .slice(0, MENU_LIMITS.maxPriceOptionsPerItem)
+          .map((option, index) => {
+            const rawOptionPrice = typeof option.price === "number" ? String(option.price) : normalizeDraftString(option.price);
+            return {
+              label: normalizeDraftString(option.label),
+              price: rawOptionPrice ? normalizeDraftNumber(rawOptionPrice) : null,
+              priceLabel: normalizeDraftString(option.priceLabel),
+              visible: option.visible === undefined ? true : normalizeDraftBoolean(option.visible),
+              sortOrder: normalizeDraftNumber(option.sortOrder ?? index),
+            };
+          })
+          .filter((option) => option.label && (option.price != null || option.priceLabel))
+      : [];
+    const payloadInput = {
+      name: normalizeDraftString(item.name),
+      description: normalizeDraftString(item.description) || null,
+      origin_info: normalizeDraftString(item.originInfo) || null,
+      price: numericPrice,
+      price_label: priceLabel || null,
+      portion_label: normalizeDraftString(item.portionLabel) || null,
+      badge_label: badgeLabel,
+      badge_type: getLegacyBadgeTypeForLabel(badgeLabel),
+      recommended: Boolean(badgeLabel),
+      is_best: badgeLabel === "BEST",
+      visible: normalizeDraftBoolean(item.visible),
+      sort_order: normalizeDraftNumber(item.sortOrder),
+      image_url: imageAction === "delete" ? null : draftImageUrl || null,
+      image_path: imageAction === "delete" ? null : draftImagePath || null,
+      price_visible: item.priceVisible !== undefined ? normalizeDraftBoolean(item.priceVisible) : true,
+      portion_visible: item.portionVisible !== undefined ? normalizeDraftBoolean(item.portionVisible) : true,
+      traits_visible: item.traitsVisible !== undefined ? normalizeDraftBoolean(item.traitsVisible) : true,
+      updated_at: now,
+    };
+
+    if (item.isNew) {
+      if (!categoryId) redirectToMenuEditWithError(menuId, "새 아이템을 추가할 카테고리를 선택해주세요.");
+      await assertCategoryBelongsToMenuSite(menuId, categoryId);
+
+      const { count: categoryItemCount, error: categoryItemCountError } = await supabase
+        .from("menu_items")
+        .select("id", { count: "exact", head: true })
+        .eq("menu_site_id", menuId)
+        .eq("category_id", categoryId);
+
+      if (categoryItemCountError) {
+        redirectToMenuEditWithError(menuId, `아이템 개수 확인에 실패했습니다: ${categoryItemCountError.message}`);
+      }
+
+      if ((categoryItemCount ?? 0) >= MENU_LIMITS.maxItemsPerCategory) {
+        redirectToMenuEditWithError(menuId, `이 카테고리에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerCategory}개까지 추가할 수 있습니다.`);
+      }
+
+      const { count: totalItemCount, error: totalItemCountError } = await supabase
+        .from("menu_items")
+        .select("id", { count: "exact", head: true })
+        .eq("menu_site_id", menuId);
+
+      if (totalItemCountError) {
+        redirectToMenuEditWithError(menuId, `전체 아이템 개수 확인에 실패했습니다: ${totalItemCountError.message}`);
+      }
+
+      if ((totalItemCount ?? 0) >= MENU_LIMITS.maxItemsPerSite) {
+        redirectToMenuEditWithError(menuId, `한 메뉴판에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
+      }
+
+      const insertPayload: MenuItemInsert = {
+        menu_site_id: menuId,
+        category_id: categoryId,
+        ...payloadInput,
+      };
+      delete insertPayload.updated_at;
+
+      const insertResult = await supabase.from("menu_items").insert(insertPayload).select("id").single();
+      let error = insertResult.error;
+      let insertedItemId = insertResult.data?.id ?? "";
+
+      if (isMissingBadgeLabelColumnError(error)) {
+        const fallbackPayload = { ...insertPayload };
+        delete fallbackPayload.badge_label;
+        const fallbackResult = await supabase.from("menu_items").insert(fallbackPayload).select("id").single();
+        error = fallbackResult.error;
+        insertedItemId = fallbackResult.data?.id ?? "";
+      }
+
+      if (error) redirectToMenuEditWithError(menuId, `새 아이템 draft 저장에 실패했습니다: ${error.message}`);
+      if (insertedItemId) {
+        if (priceOptionDrafts.length > 0) {
+          const priceOptionInserts: MenuItemPriceOptionInsert[] = priceOptionDrafts.map((option) => ({
+            menu_site_id: menuId,
+            menu_item_id: insertedItemId,
+            label: option.label,
+            price: option.price,
+            price_label: option.priceLabel || null,
+            visible: option.visible,
+            sort_order: option.sortOrder,
+          }));
+          const { error: priceOptionsError } = await supabase.from("menu_item_price_options").insert(priceOptionInserts);
+          const missingPriceOptionsTable =
+            priceOptionsError &&
+            (priceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||
+              priceOptionsError.message.toLowerCase().includes("does not exist") ||
+              priceOptionsError.code === "42P01");
+
+          if (priceOptionsError && !missingPriceOptionsTable) {
+            redirectToMenuEditWithError(menuId, `새 아이템 가격 옵션 저장에 실패했습니다: ${priceOptionsError.message}`);
+          }
+        }
+        if (templateCapabilities.itemTraits) {
+          await syncMenuItemTraitSlots(supabase, menuId, insertedItemId, traitSlots);
+        }
+      }
+      continue;
+    }
+
+    const payload: MenuItemUpdate = payloadInput;
+
+    const updateResult = await supabase
+      .from("menu_items")
+      .update(payload)
+      .eq("id", itemId)
+      .eq("menu_site_id", menuId)
+      .select("id")
+      .maybeSingle();
+    let error = updateResult.error;
+    let updatedItemId = updateResult.data?.id ?? "";
+
+    if (isMissingBadgeLabelColumnError(error)) {
+      const fallbackPayload = { ...payload };
+      delete fallbackPayload.badge_label;
+      const fallbackResult = await supabase
+        .from("menu_items")
+        .update(fallbackPayload)
+        .eq("id", itemId)
+        .eq("menu_site_id", menuId)
+        .select("id")
+        .maybeSingle();
+      error = fallbackResult.error;
+      updatedItemId = fallbackResult.data?.id ?? "";
+    }
+
+    if (error) redirectToMenuEditWithError(menuId, `아이템 draft 저장에 실패했습니다: ${error.message}`);
+    if (!updatedItemId) redirectToMenuEditWithError(menuId, "저장할 아이템을 찾지 못했습니다. 새로고침 후 다시 시도해주세요.");
+    if (templateCapabilities.itemTraits) {
+      await syncMenuItemTraitSlots(supabase, menuId, itemId, traitSlots);
+    }
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "메뉴 관리 내용이 저장되었습니다.");
+}
+
+export async function copyMenuItemAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const itemId = getString(formData, "itemId");
+
+  if (!menuId || !itemId) {
+    redirect("/mypage?error=missing-menu-item-id");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertItemBelongsToMenuSite(menuId, itemId);
+
+  const menuItemCopySelect =
+    "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, origin_info, is_sold_out, traits_visible, visible, sort_order";
+  const legacyMenuItemCopySelect =
+    "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_type, origin_info, is_sold_out, traits_visible, visible, sort_order";
+
+  let { data: sourceItem, error: sourceItemError } = await supabase
+    .from("menu_items")
+    .select(menuItemCopySelect)
+    .eq("id", itemId)
+    .eq("menu_site_id", menuId)
+    .maybeSingle();
+
+  if (isMissingBadgeLabelColumnError(sourceItemError)) {
+    const fallbackResult = await supabase
+      .from("menu_items")
+      .select(legacyMenuItemCopySelect)
+      .eq("id", itemId)
+      .eq("menu_site_id", menuId)
+      .maybeSingle();
+    sourceItem = fallbackResult.data;
+    sourceItemError = fallbackResult.error;
+  }
+
+  if (sourceItemError || !sourceItem) {
+    redirectToMenuEditWithError(menuId, sourceItemError ? `복사할 아이템 확인에 실패했습니다: ${sourceItemError.message}` : "복사할 아이템을 찾을 수 없습니다.");
+  }
+
+  const categoryId = sourceItem.category_id;
+  if (!categoryId) {
+    redirectToMenuEditWithError(menuId, "카테고리가 없는 아이템은 복사할 수 없습니다.");
+  }
+
+  await assertCategoryBelongsToMenuSite(menuId, categoryId);
+
+  const { count: categoryItemCount, error: categoryItemCountError } = await supabase
+    .from("menu_items")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuId)
+    .eq("category_id", categoryId);
+
+  if (categoryItemCountError) {
+    redirectToMenuEditWithError(menuId, `아이템 개수 확인에 실패했습니다: ${categoryItemCountError.message}`);
+  }
+
+  if ((categoryItemCount ?? 0) >= MENU_LIMITS.maxItemsPerCategory) {
+    redirectToMenuEditWithError(menuId, `이 카테고리에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerCategory}개까지 추가할 수 있습니다.`);
+  }
+
+  const { count: totalItemCount, error: totalItemCountError } = await supabase
+    .from("menu_items")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuId);
+
+  if (totalItemCountError) {
+    redirectToMenuEditWithError(menuId, `전체 아이템 개수 확인에 실패했습니다: ${totalItemCountError.message}`);
+  }
+
+  if ((totalItemCount ?? 0) >= MENU_LIMITS.maxItemsPerSite) {
+    redirectToMenuEditWithError(menuId, `한 메뉴판에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
+  }
+
+  const itemWithOptionalBadgeLabel = sourceItem as typeof sourceItem & { badge_label?: string | null };
+  const payload: MenuItemInsert = {
+    menu_site_id: menuId,
+    category_id: categoryId,
+    name: `${sourceItem.name || "아이템"} 복사본`,
+    set_name: sourceItem.set_name,
+    description: sourceItem.description,
+    price: sourceItem.price,
+    price_label: sourceItem.price_label,
+    price_visible: sourceItem.price_visible,
+    portion_label: sourceItem.portion_label,
+    portion_visible: sourceItem.portion_visible,
+    image_url: sourceItem.image_url,
+    image_path: sourceItem.image_path,
+    badge_label: itemWithOptionalBadgeLabel.badge_label ?? null,
+    badge_type: sourceItem.badge_type,
+    recommended: false,
+    origin_info: sourceItem.origin_info,
+    is_best: false,
+    is_sold_out: sourceItem.is_sold_out,
+    traits_visible: sourceItem.traits_visible,
+    visible: sourceItem.visible,
+    sort_order: categoryItemCount ?? 0,
+  };
+
+  let { data: copiedItem, error: copiedItemError } = await supabase.from("menu_items").insert(payload).select("id").single();
+
+  if (isMissingBadgeLabelColumnError(copiedItemError)) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.badge_label;
+    const fallbackResult = await supabase.from("menu_items").insert(fallbackPayload).select("id").single();
+    copiedItem = fallbackResult.data;
+    copiedItemError = fallbackResult.error;
+  }
+
+  if (copiedItemError || !copiedItem) {
+    redirectToMenuEditWithError(menuId, copiedItemError ? `아이템 복사에 실패했습니다: ${copiedItemError.message}` : "아이템 복사에 실패했습니다.");
+  }
+
+  const { data: sourcePriceOptions, error: priceOptionsError } = await supabase
+    .from("menu_item_price_options")
+    .select("label, price, price_label, visible, sort_order")
+    .eq("menu_site_id", menuId)
+    .eq("menu_item_id", itemId);
+
+  if (
+    priceOptionsError &&
+    !priceOptionsError.message.toLowerCase().includes("menu_item_price_options") &&
+    !priceOptionsError.message.toLowerCase().includes("does not exist") &&
+    priceOptionsError.code !== "42P01"
+  ) {
+    redirectToMenuEditWithError(menuId, `아이템 복사 중 가격 옵션 확인에 실패했습니다: ${priceOptionsError.message}`);
+  }
+
+  const priceOptionPayloads: MenuItemPriceOptionInsert[] = (sourcePriceOptions ?? []).map((option) => ({
+    menu_site_id: menuId,
+    menu_item_id: copiedItem.id,
+    label: option.label,
+    price: option.price,
+    price_label: option.price_label,
+    visible: option.visible,
+    sort_order: option.sort_order,
+  }));
+
+  if (priceOptionPayloads.length > 0) {
+    const { error: copyPriceOptionsError } = await supabase.from("menu_item_price_options").insert(priceOptionPayloads);
+    if (copyPriceOptionsError) {
+      redirectToMenuEditWithError(menuId, `아이템은 복사되었지만 가격 옵션 복사에 실패했습니다: ${copyPriceOptionsError.message}`);
+    }
+  }
+
+  const { data: sourceTraits, error: traitsError } = await supabase
+    .from("menu_item_traits")
+    .select("label, value, max_value, visible, sort_order")
+    .eq("menu_site_id", menuId)
+    .eq("menu_item_id", itemId);
+
+  if (
+    traitsError &&
+    !traitsError.message.toLowerCase().includes("menu_item_traits") &&
+    !traitsError.message.toLowerCase().includes("does not exist") &&
+    traitsError.code !== "42P01"
+  ) {
+    redirectToMenuEditWithError(menuId, `아이템 복사 중 맛/특징 지표 확인에 실패했습니다: ${traitsError.message}`);
+  }
+
+  const traitPayloads: MenuItemTraitInsert[] = (sourceTraits ?? []).map((trait) => ({
+    menu_site_id: menuId,
+    menu_item_id: copiedItem.id,
+    label: trait.label,
+    value: trait.value,
+    max_value: trait.max_value,
+    visible: trait.visible,
+    sort_order: trait.sort_order,
+  }));
+
+  if (traitPayloads.length > 0) {
+    const { error: copyTraitsError } = await supabase.from("menu_item_traits").insert(traitPayloads);
+    if (copyTraitsError) {
+      redirectToMenuEditWithError(menuId, `아이템은 복사되었지만 맛/특징 지표 복사에 실패했습니다: ${copyTraitsError.message}`);
+    }
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  const templateType = getTemplateType(menuSite.template_key);
+  redirect(getEditPath(menuId, {
+    tab: "menu",
+    message: templateType === "price_list" ? "서비스가 복사되었습니다." : "메뉴 아이템이 복사되었습니다.",
+    editingItemId: copiedItem.id,
+  }));
+}
+
+export async function reorderMenuItemsAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  const categoryId = getString(formData, "categoryId");
+  const orderedIds = getOrderedIds(formData);
+
+  if (!menuId || !categoryId || orderedIds.length === 0) {
+    redirectToMenuEditWithError(menuId, "아이템 순서를 저장할 항목이 없습니다.");
+  }
+
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertCategoryBelongsToMenuSite(menuId, categoryId);
+  const { data: currentItems, error: itemsError } = await supabase
+    .from("menu_items")
+    .select("id")
+    .eq("menu_site_id", menuId)
+    .eq("category_id", categoryId);
+
+  if (itemsError) {
+    redirectToMenuEditWithError(menuId, `아이템 순서 확인에 실패했습니다: ${itemsError.message}`);
+  }
+
+  const itemIds = new Set((currentItems ?? []).map((item) => item.id));
+  const canSaveOrder = orderedIds.length === itemIds.size && orderedIds.every((id) => itemIds.has(id));
+
+  if (!canSaveOrder) {
+    redirectToMenuEditWithError(menuId, "현재 아이템 목록과 순서 정보가 일치하지 않습니다. 새로고침 후 다시 시도해주세요.");
+  }
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) =>
+      supabase.from("menu_items").update({ sort_order: index, updated_at: new Date().toISOString() }).eq("id", id).eq("menu_site_id", menuId)
+    )
+  );
+  const error = results.find((result) => result.error)?.error;
+
+  if (error) {
+    redirectToMenuEditWithError(menuId, `아이템 순서 저장에 실패했습니다: ${error.message}`);
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  redirectToMenuEdit(menuId, "아이템 순서가 저장되었습니다.");
 }
 
 export async function deleteMenuItemAction(formData: FormData) {

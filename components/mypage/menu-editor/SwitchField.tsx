@@ -13,6 +13,7 @@ type SwitchFieldProps = {
   offText?: string;
   canTurnOn?: boolean;
   blockedMessage?: ReactNode;
+  onCheckedChange?: (checked: boolean) => void;
 };
 
 export default function SwitchField({
@@ -26,6 +27,7 @@ export default function SwitchField({
   offText = "숨김",
   canTurnOn = true,
   blockedMessage,
+  onCheckedChange,
 }: SwitchFieldProps) {
   const id = useId();
   const [checked, setChecked] = useState(defaultChecked && canTurnOn);
@@ -37,7 +39,7 @@ export default function SwitchField({
     <label
       htmlFor={id}
       className={`flex items-start justify-between gap-4 rounded-lg border border-zinc-100 bg-white p-4 text-sm transition-colors ${
-        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-zinc-50"
+        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
       }`}
     >
       <span className="min-w-0">
@@ -73,6 +75,7 @@ export default function SwitchField({
 
             setBlocked(false);
             setChecked(nextChecked);
+            onCheckedChange?.(nextChecked);
           }}
           className="peer sr-only"
         />

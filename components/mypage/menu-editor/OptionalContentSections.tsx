@@ -148,13 +148,12 @@ function SubmitButton({
   );
 }
 
-function SectionCard({ title, eyebrow, action, children }: { title: string; eyebrow: string; action?: ReactNode; children: ReactNode }) {
+function SectionCard({ title, action, children }: { title: string; eyebrow: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
-      <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{eyebrow}</p>
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-        {action && <div className="flex flex-wrap gap-2 sm:justify-end">{action}</div>}
+        {action && <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>}
       </div>
       <div className="mt-6">{children}</div>
     </section>
@@ -212,17 +211,11 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
   const [editingChefId, setEditingChefId] = useState<string | null>(null);
   const reachedChefLimit = chefs.length >= MENU_LIMITS.maxChefsPerSite;
   const chefLimitMessage = `셰프/인물 정보는 최대 ${MENU_LIMITS.maxChefsPerSite}명까지 등록할 수 있습니다.`;
-  const activeFormId = isCreating ? "chef-form-new" : editingChefId ? `chef-form-${editingChefId}` : "";
 
   return (
     <SectionCard
       title="셰프 / 인물"
       eyebrow="People"
-      action={
-        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
-          저장
-        </SubmitButton>
-      }
     >
       {chefs.length === 0 && !isCreating ? (
         <EmptyState message="등록된 셰프/인물 정보가 없습니다" buttonLabel="+ 셰프/인물 추가" onCreate={() => setIsCreating(true)} disabled={reachedChefLimit} disabledMessage={reachedChefLimit ? chefLimitMessage : undefined} />
@@ -236,7 +229,7 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
                     <HiddenMenuId menuId={menuId} />
                     <input type="hidden" name="chefId" value={chef.id} />
                     <ChefFields chef={chef} />
-                    <div className="flex gap-2 md:col-span-2">
+                    <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
                       <SubmitButton tone="light">저장</SubmitButton>
                       <SubmitButton type="button" tone="light" onClick={() => setEditingChefId(null)}>
                         취소
@@ -256,7 +249,7 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
                     <Detail label="정렬 순서" value={chef.sort_order} />
                     <Detail label="메뉴판 표시" value={chef.visible ? "표시" : "숨김"} />
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-3">
                     <SubmitButton type="button" tone="light" onClick={() => setEditingChefId(chef.id)}>
                       수정
                     </SubmitButton>
@@ -282,11 +275,6 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
           )}
         </div>
       )}
-      <div className="mt-6 flex justify-end border-t border-zinc-100 pt-5">
-        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
-          저장
-        </SubmitButton>
-      </div>
     </SectionCard>
   );
 }
@@ -296,7 +284,7 @@ function ChefForm({ menuId, count, onCancel }: { menuId: string; count: number; 
     <form id="chef-form-new" action={createChefAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <ChefFields count={count} />
-      <div className="flex gap-2 md:col-span-2">
+      <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
         <SubmitButton>셰프/인물 추가</SubmitButton>
         <SubmitButton type="button" tone="light" onClick={onCancel}>
           취소
@@ -346,17 +334,11 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const reachedEventLimit = events.length >= MENU_LIMITS.maxEventsPerSite;
   const eventLimitMessage = `이벤트는 최대 ${MENU_LIMITS.maxEventsPerSite}개까지 등록할 수 있습니다.`;
-  const activeFormId = isCreating ? "event-form-new" : editingEventId ? `event-form-${editingEventId}` : "";
 
   return (
     <SectionCard
       title="이벤트"
       eyebrow="Events"
-      action={
-        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
-          저장
-        </SubmitButton>
-      }
     >
       {events.length === 0 && !isCreating ? (
         <EmptyState message="등록된 이벤트가 없습니다" buttonLabel="+ 이벤트 추가" onCreate={() => setIsCreating(true)} disabled={reachedEventLimit} disabledMessage={reachedEventLimit ? eventLimitMessage : undefined} />
@@ -369,7 +351,7 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
                   <HiddenMenuId menuId={menuId} />
                   <input type="hidden" name="eventId" value={event.id} />
                   <EventFields event={event} />
-                  <div className="flex gap-2 md:col-span-2">
+                  <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
                     <SubmitButton tone="light">이벤트 저장</SubmitButton>
                     <SubmitButton type="button" tone="light" onClick={() => setEditingEventId(null)}>
                       취소
@@ -391,7 +373,7 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
                     <Detail label="이벤트가" value={event.event_sale_price_label} />
                     <Detail label="메뉴판 표시" value={event.visible ? "표시" : "숨김"} />
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-3">
                     <SubmitButton type="button" tone="light" onClick={() => setEditingEventId(event.id)}>
                       수정
                     </SubmitButton>
@@ -417,11 +399,6 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
           )}
         </div>
       )}
-      <div className="mt-6 flex justify-end border-t border-zinc-100 pt-5">
-        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
-          저장
-        </SubmitButton>
-      </div>
     </SectionCard>
   );
 }
@@ -431,7 +408,7 @@ function EventForm({ menuId, count, onCancel }: { menuId: string; count: number;
     <form id="event-form-new" action={createEventAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <EventFields count={count} />
-      <div className="flex gap-2 md:col-span-2">
+      <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
         <SubmitButton>이벤트 추가</SubmitButton>
         <SubmitButton type="button" tone="light" onClick={onCancel}>
           취소
@@ -538,17 +515,11 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
   const [editingSocialLinkId, setEditingSocialLinkId] = useState<string | null>(null);
   const reachedSocialLinkLimit = socialLinks.length >= MENU_LIMITS.maxSocialLinksPerSite;
   const socialLinkLimitMessage = `SNS 링크는 최대 ${MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.`;
-  const activeFormId = isCreating ? "social-link-form-new" : editingSocialLinkId ? `social-link-form-${editingSocialLinkId}` : "";
 
   return (
     <SectionCard
       title="SNS"
       eyebrow="Social"
-      action={
-        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
-          저장
-        </SubmitButton>
-      }
     >
       <p className="mb-5 break-keep text-sm font-semibold text-zinc-500">공개 메뉴판에서는 display_name을 클릭하면 URL로 이동합니다. SNS 링크는 최대 {MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.</p>
       {socialLinks.length === 0 && !isCreating ? (
@@ -562,7 +533,7 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
                   <HiddenMenuId menuId={menuId} />
                   <input type="hidden" name="socialLinkId" value={link.id} />
                   <SocialLinkFields socialLink={link} />
-                  <div className="flex gap-2 md:col-span-2">
+                  <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
                     <SubmitButton tone="light">SNS 저장</SubmitButton>
                     <SubmitButton type="button" tone="light" onClick={() => setEditingSocialLinkId(null)}>
                       취소
@@ -579,7 +550,7 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
                     <Detail label="정렬 순서" value={link.sort_order} />
                     <Detail label="메뉴판 표시" value={link.visible ? "표시" : "숨김"} />
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-3">
                     <SubmitButton type="button" tone="light" onClick={() => setEditingSocialLinkId(link.id)}>
                       수정
                     </SubmitButton>
@@ -605,11 +576,6 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
           )}
         </div>
       )}
-      <div className="mt-6 flex justify-end border-t border-zinc-100 pt-5">
-        <SubmitButton form={activeFormId || undefined} disabled={!activeFormId}>
-          저장
-        </SubmitButton>
-      </div>
     </SectionCard>
   );
 }
@@ -619,7 +585,7 @@ function SocialLinkForm({ menuId, count, onCancel }: { menuId: string; count: nu
     <form id="social-link-form-new" action={createSocialLinkAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <SocialLinkFields count={count} />
-      <div className="flex gap-2 md:col-span-2">
+      <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
         <SubmitButton>SNS 추가</SubmitButton>
         <SubmitButton type="button" tone="light" onClick={onCancel}>
           취소

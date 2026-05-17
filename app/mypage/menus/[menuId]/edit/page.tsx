@@ -4,34 +4,36 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAt
 
 import {
   updateAboutAction,
+  updateEventsAction,
   updateIntroAction,
+  updateDesignSettingsAction,
   updateMenuCoverAction,
   updateMenuSiteAction,
   updatePageSettingsAction,
   updatePublishSettingsAction,
-  updateTypographySettingsAction,
 } from "@/app/mypage/menus/actions";
+import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import BackgroundColorSettingsForm from "@/components/mypage/menu-editor/BackgroundColorSettingsForm";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
+import MenuEditorToastBridge from "@/components/mypage/menu-editor/MenuEditorToastBridge";
 import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
-import {
-  ChefsSection as InteractiveChefsSection,
-  EventsSection as InteractiveEventsSection,
-  SocialLinksSection as InteractiveSocialLinksSection,
-} from "@/components/mypage/menu-editor/OptionalContentSections";
+import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
+import { getStarterPreset } from "@/lib/menu-starter-presets";
+import CoverDraftToggleSection from "@/components/mypage/menu-editor/CoverDraftToggleSection";
 import {
   MENU_EDITOR_CAPABILITIES,
   getMenuEditorServiceType,
   isMenuEditorTabEnabled,
 } from "@/lib/menu-editor-capabilities";
-import { MENU_EDITOR_TABS, isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
+import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getTranslationUsage } from "@/lib/menu-translation-usage";
@@ -39,16 +41,38 @@ import { getEnabledLocales } from "@/lib/locales";
 import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
-import { getTemplateCapabilities } from "@/lib/template-capabilities";
+import {
+  getCoverDescription,
+  getCoverTabLabel,
+  getCoverToggleLabel,
+  getTemplateCapabilities,
+} from "@/lib/template-capabilities";
 import {
   getCustomBadgeStyles,
-  getDefaultBadgeStyles,
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
 import {
+  getCustomBackgroundColor,
+  getResolvedBackgroundColor,
+  getTemplateDefaultBackgroundColor,
+} from "@/lib/template-background-colors";
+import {
+  getCustomEnglishFontValue,
+  getCustomKoreanFontValue,
+  getDefaultEnglishFontForTemplate,
+  getDefaultKoreanFontForTemplate,
+  getResolvedEnglishFont,
+  getResolvedKoreanFont,
+} from "@/lib/font-options";
+import {
+  getTemplateEditorLabels,
+  getTemplateEditorTabs,
+  getTemplateType,
+  getTemplateTypeLabel,
+} from "@/lib/template-types";
+import {
   getCustomTypographySettings,
-  getDefaultTypographyPreset,
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
 import { formatMenuPrice, mergePageSettings } from "@/types/menu";
@@ -78,7 +102,10 @@ type MenuSite = Pick<
   | "opening_hours"
   | "map_url"
   | "logo_url"
+  | "logo_path"
   | "cover_image_url"
+  | "intro_image_url"
+  | "intro_image_path"
   | "settings"
   | "page_settings"
 >;
@@ -103,6 +130,7 @@ type MenuItem = Pick<
   | "portion_label"
   | "portion_visible"
   | "image_url"
+  | "image_path"
   | "badge_label"
   | "badge_type"
   | "recommended"
@@ -130,13 +158,13 @@ type PageProps = {
 };
 
 const statusLabels: Record<MenuSiteStatus, string> = {
-  draft: "작성중",
+  draft: "비공개",
   published: "공개중",
-  archived: "보관됨",
+  archived: "비공개",
 };
 
 const baseMenuSiteSelect =
-  "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, cover_image_url, settings, page_settings";
+  "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, intro_image_url, intro_image_path, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, settings, page_settings";
 const menuSiteSelect = baseMenuSiteSelect
   .replace("template_key", "template_key, template_category")
   .replace("restaurant_category", "restaurant_category, restaurant_type")
@@ -226,11 +254,12 @@ function SubmitButton({
   tone = "dark",
   className: customClassName,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" | "final" }) {
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
     danger: "border border-red-100 bg-red-50 text-red-700 hover:bg-red-100",
+    final: "rounded-lg bg-zinc-950 text-white shadow-sm hover:bg-zinc-800",
   }[tone];
 
   return (
@@ -244,24 +273,70 @@ function SubmitButton({
   );
 }
 
-function SectionCard({ title, eyebrow, action, children }: { title: string; eyebrow?: string; action?: ReactNode; children: ReactNode }) {
+function FinalActionRow({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-4">
+      {children}
+    </div>
+  );
+}
+
+function FinalSaveFeedback({ message, error }: { message?: string | null; error?: string | null }) {
+  if (!message && !error) return null;
+
+  return (
+    <>
+      {message && (
+        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-emerald-700">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-red-600">
+          {error}
+        </p>
+      )}
+    </>
+  );
+}
+
+function normalizeFinalSaveError(error?: string | null) {
+  if (!error) return null;
+  if (error.includes("배지 문구는 최대")) {
+    return "일부 메뉴 아이템 입력값을 확인해주세요.";
+  }
+  return error;
+}
+
+function SectionCard({ title, action, children }: { title: string; eyebrow?: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
-      {eyebrow && <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{eyebrow}</p>}
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-        {action && <div className="flex flex-wrap gap-2 sm:justify-end">{action}</div>}
+        {action && <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>}
       </div>
       <div className="mt-6">{children}</div>
     </section>
   );
 }
 
-function SectionSaveButton({ formId, children = "저장" }: { formId: string; children?: ReactNode }) {
+function HelpTooltip({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <SubmitButton form={formId} className="shrink-0">
-      {children}
-    </SubmitButton>
+    <span className="group/help relative inline-flex align-middle">
+      <button
+        type="button"
+        aria-label={label}
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-[11px] font-black text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+      >
+        ?
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 top-7 z-30 hidden w-72 -translate-x-1/2 rounded-lg border border-zinc-100 bg-white p-3 text-left text-xs font-semibold leading-relaxed text-zinc-600 shadow-xl group-hover/help:block group-focus-within/help:block"
+      >
+        {children}
+      </span>
+    </span>
   );
 }
 
@@ -272,10 +347,9 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
       <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
-            마이페이지로 돌아가기
+            ← 메뉴판 목록으로
           </Link>
           <section className="rounded-lg bg-white p-8 shadow-sm">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Custom Project</p>
             <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">테이블씬 커스텀은 맞춤 제작형 서비스입니다.</h1>
             <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
@@ -283,7 +357,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/mypage" className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white hover:bg-zinc-800">
-                마이페이지로 돌아가기
+                메뉴판 목록으로
               </Link>
               <Link href="/mypage/inquiries" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-100">
                 상담 내역 확인하기
@@ -292,12 +366,27 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
           </section>
         </div>
       </main>
+      <Footer />
     </>
   );
 }
 
 function HiddenMenuId({ menuId }: { menuId: string }) {
   return <input type="hidden" name="menuId" value={menuId} />;
+}
+
+function SchedulePlaceholder() {
+  return (
+    <SectionCard title="일정표 관리" eyebrow="Schedule">
+      <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6">
+        <h3 className="text-lg font-bold tracking-tight text-zinc-950">일정표형 템플릿은 준비 중입니다.</h3>
+        <div className="mt-3 space-y-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+          <p>이번 1차 작업에서는 템플릿 유형, 관리자 라벨, 탭 구성만 준비합니다.</p>
+          <p>schedule_items 테이블, 일정 CRUD, 공개 일정표 렌더링은 2차 개발에서 추가할 예정입니다.</p>
+        </div>
+      </div>
+    </SectionCard>
+  );
 }
 
 export default async function EditMenuPage({ params, searchParams }: PageProps) {
@@ -367,7 +456,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       supabase
         .from("menu_items")
         .select(
-          "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+          "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
         )
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
@@ -430,7 +519,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       ? await supabase
           .from("menu_items")
           .select(
-            "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+            "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
           )
           .eq("menu_site_id", menuId)
           .order("sort_order", { ascending: true })
@@ -458,13 +547,41 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const templateCapabilities = getTemplateCapabilities(site.template_key);
+  const templateType = getTemplateType(site.template_key);
+  const templateTypeLabel = getTemplateTypeLabel(templateType);
+  const isPriceListTemplate = templateType === "price_list";
+  const menuCoverCapabilities = templateCapabilities.menuCover;
+  const coverMode = menuCoverCapabilities.coverMode;
+  const supportsMenuCover = coverMode !== "none";
+  const menuCoverEnabled = pageSettings.menu_cover_enabled !== false;
+  const coverTabLabel = getCoverTabLabel(coverMode);
+  const coverToggleLabel = getCoverToggleLabel(coverMode);
+  const coverDescription = getCoverDescription(coverMode);
+  const usesStoreIdentityForCover = menuCoverCapabilities.usesStoreName || menuCoverCapabilities.usesStoreDescription;
+  const canUseFeaturedItemCover = templateType === "menu" && menuCoverCapabilities.usesFeaturedItem;
+  const templateEditorLabels = getTemplateEditorLabels(site.template_key);
+  const menuManagementStarterPreset = getStarterPreset(site.template_key, site.restaurant_category, site.template_category);
   const customBadgeStyles = getCustomBadgeStyles(site.settings, site.page_settings);
   const badgeStyles = mergeBadgeStyles(site.template_key, customBadgeStyles);
-  const defaultBadgeStyles = getDefaultBadgeStyles(site.template_key);
   const customTypography = getCustomTypographySettings(site.settings, site.page_settings);
   const typographySettings = mergeTypographySettings(site.template_key, customTypography);
-  const defaultTypography = getDefaultTypographyPreset(site.template_key);
-  const hasCustomTypography = Boolean(customTypography);
+  const customKoreanFont = getCustomKoreanFontValue(site.page_settings);
+  const customEnglishFont = getCustomEnglishFontValue(site.page_settings);
+  const defaultKoreanFont = getDefaultKoreanFontForTemplate(site.template_key);
+  const defaultEnglishFont = getDefaultEnglishFontForTemplate(site.template_key);
+  const resolvedKoreanFont = getResolvedKoreanFont({
+    templateKey: site.template_key,
+    selectedFont: typographySettings.korean_font_key,
+    pageSettings: site.page_settings,
+  });
+  const resolvedEnglishFont = getResolvedEnglishFont({
+    templateKey: site.template_key,
+    selectedFont: typographySettings.english_font_key,
+    pageSettings: site.page_settings,
+  });
+  const customBackgroundColor = getCustomBackgroundColor(site.page_settings);
+  const defaultBackgroundColor = getTemplateDefaultBackgroundColor(site.template_key);
+  const resolvedBackgroundColor = getResolvedBackgroundColor(site.template_key, site.page_settings);
   const enabledLocales = getEnabledLocales(site.settings);
   const translationUsage = getTranslationUsage(site.settings);
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
@@ -479,14 +596,33 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     }));
   const selectedFeaturedItem = pageSettings.featured_item_id ? items.find((item) => item.id === pageSettings.featured_item_id) : null;
   const selectedFeaturedItemInactive = Boolean(pageSettings.featured_item_enabled && pageSettings.featured_item_id && selectedFeaturedItem?.visible !== true);
-  const visibleEditorTabs = MENU_EDITOR_TABS.filter((item) => {
+  const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
+  const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
+  const visibleEditorTabs = configuredEditorTabs.flatMap((item) => {
     if (!isMenuEditorTabEnabled(item.key, editorCapabilities)) {
-      return false;
+      return [];
     }
 
-    return templateCapabilities.events || item.key !== "events";
+    if (item.key === "cover" && !supportsMenuCover) {
+      return [];
+    }
+
+    if (item.key === "about" && !(templateCapabilities.socialLinks || templateCapabilities.chefs)) {
+      return [];
+    }
+
+    if (item.key === "events" && !templateCapabilities.events) {
+      return [];
+    }
+
+    if (item.key === "cover" && coverTabLabel) {
+      return [{ ...item, label: coverTabLabel }];
+    }
+
+    return [item];
   });
-  const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : "basic";
+  const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : visibleEditorTabs[0]?.key ?? "basic";
+  const editorShellMaxWidth = "max-w-7xl";
   const bannerMessage = message;
   const bannerError =
     activeTab === "localization"
@@ -498,6 +634,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             ? getSafeTranslationErrorMessage(error)
             : null
       : error;
+  const basicNameError = activeTab === "basic" && bannerError?.includes("메뉴판 이름") ? bannerError : null;
+  const basicSlugError =
+    activeTab === "basic" &&
+    (bannerError?.includes("공개 메뉴판 주소") || bannerError?.includes("이미 사용 중인 공개 메뉴판 주소"))
+      ? bannerError
+      : null;
+  const finalSaveError = normalizeFinalSaveError(activeTab === "basic" && (basicNameError || basicSlugError) ? null : bannerError);
+  const globalBannerError = activeTab === "localization" ? bannerError : null;
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
@@ -506,13 +650,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const checklist = [
     { label: "매장명 입력", ok: Boolean(site.restaurant_name || site.name) },
     { label: "공개 메뉴판 주소 설정", ok: Boolean(site.slug) },
-    { label: "메뉴 페이지 1개 이상", ok: menuPages.length > 0 },
-    { label: "메뉴 카테고리 1개 이상", ok: categories.length > 0 },
-    { label: "메뉴 아이템 1개 이상", ok: items.length > 0 },
+    { label: `${templateEditorLabels.pageLabel} 1개 이상`, ok: menuPages.length > 0 },
+    { label: `${templateEditorLabels.categoryLabel} 1개 이상`, ok: categories.length > 0 },
+    { label: `${templateEditorLabels.itemLabel} 1개 이상`, ok: items.length > 0 },
   ];
   const optionalChecklist = [
     editorCapabilities.introPage ? { label: "인트로 페이지 사용", ok: pageSettings.intro_enabled } : null,
-    editorCapabilities.menuCoverPage ? { label: "메뉴 커버 사용", ok: pageSettings.menu_cover_enabled } : null,
+    editorCapabilities.menuCoverPage && supportsMenuCover ? { label: coverToggleLabel, ok: pageSettings.menu_cover_enabled } : null,
     editorCapabilities.aboutPage ? { label: "소개 페이지 사용", ok: pageSettings.about_enabled } : null,
     editorCapabilities.eventPage && templateCapabilities.events ? { label: "이벤트 등록", ok: events.length > 0 } : null,
     editorCapabilities.socialLinks && templateCapabilities.socialLinks ? { label: "SNS 등록", ok: socialLinks.length > 0 } : null,
@@ -524,10 +668,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
         <MenuEditorScrollRestoration menuId={menuId} />
-        <div className="mx-auto w-full max-w-4xl">
+        <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
+        <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
         <header className="mb-6 rounded-lg bg-white p-6 shadow-sm">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
-            마이페이지로 돌아가기
+            ← 메뉴판 목록으로
           </Link>
           <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
             <div>
@@ -535,14 +680,20 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${site.status === "published" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
                   {statusLabels[site.status]}
                 </span>
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">{templateDisplayName}</span>
+                <span className="rounded-full bg-zinc-950 px-3 py-1 text-xs font-bold text-white">{templateTypeLabel}</span>
+                <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
+                  {templateDisplayName}
+                  <HelpTooltip label="템플릿 도움말">결제 시 선택한 템플릿입니다.</HelpTooltip>
+                </span>
               </div>
               <h1 className="text-4xl font-bold tracking-tight">{site.name}</h1>
-              <p className="mt-3 text-sm font-bold text-zinc-400">{publicUrl}</p>
-              <p className="mt-2 break-keep text-sm font-semibold text-zinc-500">결제 시 선택한 템플릿입니다.</p>
+              <p className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-zinc-400">
+                {publicUrl}
+                <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>
+              </p>
             </div>
             <div className="flex flex-col items-start gap-2 lg:items-end">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <Link
                   href={previewUrl}
                   target="_blank"
@@ -571,39 +722,57 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </>
                 ) : (
                   <>
-                    <button type="button" disabled className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                    <button type="button" disabled title="공개 설정 탭에서 공개로 저장한 뒤 사용할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
                       공개 페이지 보기
                     </button>
-                    <button type="button" disabled className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                    <button type="button" disabled title="공개 설정 탭에서 공개로 저장한 뒤 QR을 다운로드할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
                       QR 다운로드
                     </button>
                   </>
                 )}
               </div>
-              <p className="text-xs font-bold text-zinc-400">공개 후 손님이 볼 수 있는 주소입니다.</p>
-              {site.status !== "published" && <p className="text-xs font-bold text-amber-700">메뉴판을 공개한 뒤 QR을 다운로드할 수 있습니다.</p>}
-              <p className="text-xs font-bold text-emerald-700">저장하면 각 섹션이 즉시 반영됩니다.</p>
+              <p className="text-xs font-bold text-zinc-400">변경사항은 저장 후 반영됩니다.</p>
             </div>
           </div>
         </header>
 
-        {bannerMessage && <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">{bannerMessage}</div>}
-        {bannerError && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{bannerError}</div>}
+        {globalBannerError && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{globalBannerError}</div>}
 
         <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
 
         <div className="space-y-6">
             {activeTab === "basic" && (
-              <SectionCard title="기본 정보" eyebrow="Basic" action={<SectionSaveButton formId="basic-info-form" />}>
+              <SectionCard title="기본 정보" eyebrow="Basic">
                 <form id="basic-info-form" action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div>
-                    <FieldLabel required>메뉴판 관리용 이름</FieldLabel>
-                    <TextInput name="name" defaultValue={site.name} required maxLength={MENU_FIELD_LIMITS.menuSites.name} helperText={`마이페이지에서 구분할 이름입니다. 최대 ${MENU_FIELD_LIMITS.menuSites.name}자까지 입력할 수 있습니다.`} />
+                    <FieldLabel required>{templateEditorLabels.pageLabel} 관리용 이름</FieldLabel>
+                    <TextInput
+                      name="name"
+                      defaultValue={site.name}
+                      required
+                      maxLength={MENU_FIELD_LIMITS.menuSites.name}
+                      helperText={
+                        <>
+                          마이페이지에서 구분할 이름입니다. 최대 {MENU_FIELD_LIMITS.menuSites.name}자까지 입력할 수 있습니다.
+                          {basicNameError && <span className="mt-1 block text-red-600">{basicNameError}</span>}
+                        </>
+                      }
+                    />
                   </div>
                   <div>
                     <FieldLabel>실제 매장명</FieldLabel>
                     <TextInput name="restaurant_name" defaultValue={site.restaurant_name ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.restaurantName} helperText="공개 메뉴판에 표시될 매장명입니다." />
+                  </div>
+                  <div className="md:col-span-2">
+                    <FieldLabel>매장 설명</FieldLabel>
+                    <TextArea
+                      name="brand_description"
+                      defaultValue={site.brand_description ?? ""}
+                      maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription}
+                      placeholder="예: 신선한 재료와 정성스러운 서비스로 매일의 시간을 더 특별하게 만드는 공간입니다."
+                      helperText="공개 메뉴판 상단에 매장 소개 문구로 표시됩니다."
+                    />
                   </div>
                   <div>
                     <FieldLabel>업종</FieldLabel>
@@ -619,49 +788,90 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div>
                     <FieldLabel required>공개 메뉴판 주소</FieldLabel>
                     {isSlugLocked && <input type="hidden" name="slug" value={site.slug} />}
-                    <TextInput name="slug" defaultValue={site.slug} required disabled={isSlugLocked} minLength={MENU_FIELD_LIMITS.menuSites.slugMin} maxLength={MENU_FIELD_LIMITS.menuSites.slugMax} pattern="[a-z0-9-]+" title="영문 소문자, 숫자, 하이픈만 입력할 수 있습니다." helperText="영문 소문자, 숫자, 하이픈만 사용할 수 있습니다." />
+                    <TextInput
+                      name="slug"
+                      defaultValue={site.slug}
+                      required
+                      disabled={isSlugLocked}
+                      minLength={MENU_FIELD_LIMITS.menuSites.slugMin}
+                      maxLength={MENU_FIELD_LIMITS.menuSites.slugMax}
+                      pattern="[a-z0-9-]+"
+                      title="영문 소문자, 숫자, 하이픈만 입력할 수 있습니다."
+                      helperText={
+                        <>
+                          영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.
+                          {basicSlugError && <span className="mt-1 block text-red-600">{basicSlugError}</span>}
+                        </>
+                      }
+                    />
                     <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
                       공개 후에는 QR 코드와 공유 링크 유지를 위해 주소를 변경할 수 없습니다.
                     </p>
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel>템플릿</FieldLabel>
-                    <TextInput value={templateDisplayName} readOnly helperText="결제 시 선택한 템플릿입니다." />
+                    <TextInput value={templateDisplayName} readOnly />
                   </div>
+                  {templateCapabilities.logoImage && (
+                    <div className="md:col-span-2">
+                      <ImageUploadField
+                        label="로고 이미지"
+                        menuId={site.id}
+                        target="site-logo-draft"
+                        currentUrl={site.logo_url}
+                        description="공개 메뉴판에서는 최대 높이 32~48px, 최대 너비 120~180px 안에서 비율에 맞춰 표시됩니다."
+                        fileGuidance="PNG, JPG, WebP · 최대 2MB / 권장: 가로 512px 이상, 투명 배경 이미지"
+                        deferredDeleteName="delete_logo_image"
+                        draftImageUrlInputName="draft_logo_image_url"
+                        draftImagePathInputName="draft_logo_image_path"
+                        uploadSuccessMessage="새 로고 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+                        deleteSuccessMessage="로고 이미지가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
+                        deleteConfirmTitle="이 로고 이미지를 삭제할까요?"
+                        deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
+                      />
+                    </div>
+                  )}
                   <div className="md:col-span-2">
-                    <ImageUploadField
-                      label="로고 이미지"
-                      menuId={site.id}
-                      target="site-logo"
-                      currentUrl={site.logo_url}
-                      description="상단바에 표시됩니다. 등록하지 않으면 매장명이 표시됩니다."
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <SubmitButton>기본 정보 저장</SubmitButton>
+                    <FinalActionRow>
+                      <SubmitButton tone="final">저장</SubmitButton>
+                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                      </p>
+                    </FinalActionRow>
                   </div>
                 </form>
               </SectionCard>
             )}
 
             {activeTab === "pages" && (
-              <SectionCard title="페이지 설정" eyebrow="Pages" action={<SectionSaveButton formId="page-settings-form" />}>
+              <SectionCard title="페이지 설정" eyebrow="Pages">
                 <form id="page-settings-form" action={updatePageSettingsAction} className="grid gap-4 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
-                  {pageSettingKeys.map((key) => (
-                    <div key={key} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-                      <Checkbox name={key} label={pageSettingLabels[key]} defaultChecked={pageSettings[key]} />
-                    </div>
-                  ))}
+                  {visiblePageSettingKeys.map((key) => {
+                    const settingLabel = key === "menu_cover_enabled" ? coverToggleLabel : pageSettingLabels[key];
+
+                    return (
+                      <div key={key} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                        <Checkbox name={key} label={settingLabel} defaultChecked={pageSettings[key]} />
+                      </div>
+                    );
+                  })}
                   <div className="md:col-span-2">
-                    <SubmitButton>페이지 설정 저장</SubmitButton>
+                    <FinalActionRow>
+                      <SubmitButton tone="final">저장</SubmitButton>
+                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                      </p>
+                    </FinalActionRow>
                   </div>
                 </form>
               </SectionCard>
             )}
 
             {activeTab === "intro" && (
-              <SectionCard title="인트로" eyebrow="Intro" action={<SectionSaveButton formId="intro-form" />}>
+              <SectionCard title="인트로" eyebrow="Intro">
                 <form id="intro-form" action={updateIntroAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div>
@@ -673,20 +883,29 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <TextArea name="intro_description" defaultValue={site.intro_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.introDescription} helperText={`매장의 첫인상을 설명하는 문구입니다. 최대 ${MENU_FIELD_LIMITS.menuSites.introDescription}자까지 입력할 수 있습니다.`} />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel>브랜드 설명</FieldLabel>
-                    <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription} helperText="브랜드나 공간의 분위기를 소개해주세요." />
-                  </div>
-                  <div className="md:col-span-2">
                     <ImageUploadField
                       label="인트로 배경 이미지"
                       menuId={site.id}
-                      target="site-cover"
-                      currentUrl={site.cover_image_url}
+                      target="site-intro-image-draft"
+                      currentUrl={site.intro_image_url}
                       description="등록하면 어두운 오버레이가 적용되고 흰색 텍스트로 표시됩니다. 등록하지 않으면 단색 배경으로 표시됩니다."
+                      deferredDeleteName="delete_intro_image"
+                      draftImageUrlInputName="draft_intro_image_url"
+                      draftImagePathInputName="draft_intro_image_path"
+                      uploadSuccessMessage="새 인트로 배경 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+                      deleteSuccessMessage="인트로 배경 이미지가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
+                      deleteConfirmTitle="이 인트로 배경 이미지를 삭제할까요?"
+                      deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <SubmitButton>인트로 저장</SubmitButton>
+                    <FinalActionRow>
+                      <SubmitButton tone="final">저장</SubmitButton>
+                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                      </p>
+                    </FinalActionRow>
                   </div>
                 </form>
               </SectionCard>
@@ -694,169 +913,258 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "cover" && (
               <SectionCard
-                title="메뉴 커버"
+                title={coverTabLabel ?? "메뉴 커버"}
                 eyebrow="Cover"
-                action={
-                  <>
-                    <ResetTabActionButton menuId={site.id} kind="cover" />
-                    <SectionSaveButton formId="menu-cover-form" />
-                  </>
-                }
               >
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
-                  <div className="md:col-span-2">
-                    <FieldLabel required>메뉴 커버 제목</FieldLabel>
-                    <TextInput name="menu_cover_title" defaultValue={site.menu_cover_title ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverTitle} helperText="메뉴 영역 상단에 표시되는 제목입니다." />
-                  </div>
-                  <div className="md:col-span-2">
-                    <FieldLabel required>메뉴 커버 설명</FieldLabel>
-                    <TextArea name="menu_cover_description" defaultValue={site.menu_cover_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverDescription} helperText={`메뉴 소개 문구를 입력해주세요. 최대 ${MENU_FIELD_LIMITS.menuSites.menuCoverDescription}자까지 입력할 수 있습니다.`} />
-                  </div>
                   <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-bold tracking-tight text-zinc-950">대표 추천 메뉴</h3>
-                      <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                        대표 추천 메뉴는 일부 템플릿에서 메뉴판의 커버형 영역에 크게 표시됩니다. 이미지가 등록된 메뉴를 선택하면 대표 상품처럼 노출할 수 있습니다.
-                      </p>
-                    </div>
-                    <div className="grid gap-5">
-                      <Checkbox name="featured_item_enabled" label="대표 추천 메뉴 사용" defaultChecked={pageSettings.featured_item_enabled} />
-                      <div>
-                        <FieldLabel>대표 추천 메뉴</FieldLabel>
-                        <Select
-                          name="featured_item_id"
-                          defaultValue={pageSettings.featured_item_id ?? ""}
-                          helperText="대표 추천 메뉴는 이미지가 있을 때 가장 잘 보입니다. 이미지가 없는 경우 공개 메뉴판에서 대표 영역이 표시되지 않을 수 있습니다."
-                        >
-                          <option value="">대표로 보여줄 메뉴를 선택해주세요</option>
-                          {selectedFeaturedItemInactive && selectedFeaturedItem && (
-                            <option value={selectedFeaturedItem.id} disabled>
-                              {selectedFeaturedItem.name} · 숨김 처리됨
-                            </option>
-                          )}
-                          {featuredItemOptions.map((item) => (
-                            <option key={item.id} value={item.id}>
-                              {item.label} · {item.categoryName} · {item.price} · {item.imageStatus}
-                            </option>
-                          ))}
-                        </Select>
-                        {selectedFeaturedItemInactive && (
-                          <p className="mt-3 break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
-                            선택한 대표 추천 메뉴가 숨김 처리되어 공개 메뉴판에는 표시되지 않습니다. 선택을 해제하려면 “대표 추천 메뉴 사용”을 끄거나 선택값을 비운 뒤 저장해주세요.
-                          </p>
-                        )}
-                      </div>
-                      {(!templateCapabilities.featuredItemHero || !templateCapabilities.menuItemImages) && (
-                        <p className="break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
-                          현재 선택한 템플릿은 대표 추천 메뉴 영역을 사용하지 않습니다. 설정값은 저장되지만 공개 메뉴판에는 표시되지 않을 수 있습니다.
-                        </p>
-                      )}
-                    </div>
+                    <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
+                      {coverDescription ||
+                        (usesStoreIdentityForCover
+                        ? "이 템플릿은 상단 제목과 설명에 기본 정보의 매장명과 매장 설명을 사용합니다. 메뉴 커버에서는 템플릿에 강조해서 보여줄 이미지와 대표 항목만 설정할 수 있습니다."
+                        : isPriceListTemplate
+                        ? "가격표 상단에 보여줄 대표 문구와 이미지를 설정합니다. 등록된 서비스 중 하나를 고르는 방식이 아니라, 가격표 전체를 소개하는 커버 내용을 직접 입력합니다."
+                        : "메뉴판 첫 화면이나 상단 영역에 강조해서 보여줄 내용을 설정합니다. 대표 추천 메뉴를 선택하면 템플릿에 따라 상단 강조 영역에 표시될 수 있습니다.")}
+                    </p>
                   </div>
+                  <CoverDraftToggleSection
+                    name="menu_cover_enabled"
+                    label={coverToggleLabel}
+                    defaultChecked={menuCoverEnabled}
+                    inactiveMessage={`${coverToggleLabel}을 켜면 아래 설정을 편집할 수 있습니다. 꺼도 기존 입력값은 삭제되지 않습니다.`}
+                  >
+                    {menuCoverCapabilities.usesCoverTitle && (
+                      <div className="md:col-span-2">
+                        <FieldLabel required>커버 제목</FieldLabel>
+                        <TextInput
+                          name="menu_cover_title"
+                          defaultValue={site.menu_cover_title ?? ""}
+                          required
+                          maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverTitle}
+                          placeholder={isPriceListTemplate ? "예: 우리 매장의 대표 서비스 안내" : "예: 오늘의 대표 메뉴"}
+                          helperText={isPriceListTemplate ? "가격표 상단에 표시할 대표 제목입니다." : "메뉴 영역 상단에 표시되는 제목입니다."}
+                        />
+                      </div>
+                    )}
+                    {menuCoverCapabilities.usesCoverDescription && (
+                      <div className="md:col-span-2">
+                        <FieldLabel required>커버 설명</FieldLabel>
+                        <TextArea
+                          name="menu_cover_description"
+                          defaultValue={site.menu_cover_description ?? ""}
+                          required
+                          maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverDescription}
+                          placeholder={isPriceListTemplate ? "예: 기본 관리부터 프리미엄 케어까지, 필요한 서비스를 한눈에 확인해보세요." : "예: 매장의 대표 메뉴와 추천 구성을 소개해보세요."}
+                          helperText={`${isPriceListTemplate ? "가격표 소개 문구" : "메뉴 소개 문구"}를 입력해주세요. 최대 ${MENU_FIELD_LIMITS.menuSites.menuCoverDescription}자까지 입력할 수 있습니다.`}
+                        />
+                      </div>
+                    )}
+                    {menuCoverCapabilities.usesCoverImage && (
+                      <div className="md:col-span-2">
+                        <ImageUploadField
+                          label="커버 이미지"
+                          menuId={site.id}
+                          target="site-cover-draft"
+                          currentUrl={site.cover_image_url}
+                          description={isPriceListTemplate ? "매장 분위기, 대표 시술, 서비스 이미지를 등록해주세요." : "메뉴판 첫 화면이나 상단 영역에 사용할 이미지를 등록해주세요."}
+                          deferredDeleteName="delete_cover_image"
+                          draftImageUrlInputName="draft_cover_image_url"
+                          draftImagePathInputName="draft_cover_image_path"
+                          uploadSuccessMessage="새 커버 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+                          deleteConfirmTitle="이 커버 이미지를 삭제할까요?"
+                          deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
+                        />
+                      </div>
+                    )}
+                    {canUseFeaturedItemCover && (
+                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                        <div className="mb-4">
+                          <h3 className="text-lg font-bold tracking-tight text-zinc-950">대표 추천 메뉴</h3>
+                          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                            대표 추천 메뉴는 일부 템플릿에서 대표 영역의 메뉴 정보로 표시됩니다. 커버 이미지는 별도로 등록한 이미지만 사용합니다.
+                          </p>
+                        </div>
+                        <div className="grid gap-5">
+                          <Checkbox name="featured_item_enabled" label="대표 추천 메뉴 사용" defaultChecked={pageSettings.featured_item_enabled} />
+                          <div>
+                            <FieldLabel>대표 추천 메뉴</FieldLabel>
+                            <Select
+                              name="featured_item_id"
+                              defaultValue={pageSettings.featured_item_id ?? ""}
+                              helperText="대표 영역에 표시할 메뉴 정보를 선택합니다. 메뉴 이미지는 커버 이미지 대체로 사용되지 않습니다."
+                            >
+                              <option value="">대표로 보여줄 메뉴를 선택해주세요</option>
+                              {selectedFeaturedItemInactive && selectedFeaturedItem && (
+                                <option value={selectedFeaturedItem.id} disabled>
+                                  {selectedFeaturedItem.name} · 숨김 처리됨
+                                </option>
+                              )}
+                              {featuredItemOptions.map((item) => (
+                                <option key={item.id} value={item.id}>
+                                  {item.label} · {item.categoryName} · {item.price} · {item.imageStatus}
+                                </option>
+                              ))}
+                            </Select>
+                            {selectedFeaturedItemInactive && (
+                              <p className="mt-3 break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                                선택한 대표 추천 메뉴가 숨김 처리되어 공개 메뉴판에는 표시되지 않습니다. 선택을 해제하려면 “대표 추천 메뉴 사용”을 끄거나 선택값을 비운 뒤 저장해주세요.
+                              </p>
+                            )}
+                          </div>
+                          {!templateCapabilities.featuredItemHero && (
+                            <p className="break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                              현재 선택한 템플릿은 대표 추천 메뉴 영역을 사용하지 않습니다. 설정값은 저장되지만 공개 메뉴판에는 표시되지 않을 수 있습니다.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CoverDraftToggleSection>
                   <div className="md:col-span-2">
-                    <SubmitButton>메뉴 커버 저장</SubmitButton>
+                    <FinalActionRow>
+                      <SubmitButton tone="final">저장</SubmitButton>
+                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다.
+                      </p>
+                    </FinalActionRow>
                   </div>
                 </form>
               </SectionCard>
             )}
 
             {activeTab === "menu" && (
-              <MenuManagementSection
-                menuId={site.id}
-                menuPages={menuPages}
-                categories={categories}
-                items={items}
-                priceOptions={priceOptions}
-                traits={traits}
-                capabilities={templateCapabilities}
-                badgeStyles={badgeStyles}
-                defaultBadgeStyles={defaultBadgeStyles}
-              />
+              templateType === "schedule" ? (
+                <SchedulePlaceholder />
+              ) : (
+                <MenuManagementSection
+                  menuId={site.id}
+                  menuPages={menuPages}
+                  categories={categories}
+                  items={items}
+                  priceOptions={priceOptions}
+                  traits={traits}
+                  capabilities={templateCapabilities}
+                  badgeStyles={badgeStyles}
+                  editorLabels={templateEditorLabels}
+                  starterPreset={menuManagementStarterPreset}
+                  finalSaveMessage={bannerMessage}
+                  finalSaveError={finalSaveError}
+                />
+              )
             )}
+
+            {activeTab === "schedule" && <SchedulePlaceholder />}
 
             {activeTab === "about" && (
               <>
-                <SectionCard title="소개" eyebrow="About" action={<SectionSaveButton formId="about-form" />}>
+                <SectionCard title="소개" eyebrow="About">
                   <form id="about-form" action={updateAboutAction} className="grid gap-5 md:grid-cols-2">
                     <HiddenMenuId menuId={site.id} />
-                    <div>
-                      <FieldLabel required>주소</FieldLabel>
-                      <TextInput name="restaurant_address" defaultValue={site.restaurant_address ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.restaurantAddress} helperText="공개 메뉴판의 소개 영역에 표시됩니다." />
-                    </div>
-                    <div>
-                      <FieldLabel required>전화번호</FieldLabel>
-                      <TextInput name="restaurant_phone" defaultValue={site.restaurant_phone ?? ""} required inputMode="tel" maxLength={20} pattern="[0-9+\-()\s]{8,20}" title="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." helperText="숫자, 하이픈, 공백, +, 괄호만 입력할 수 있습니다." />
-                    </div>
-                    <div>
-                      <FieldLabel required>영업시간</FieldLabel>
-                      <TextInput name="opening_hours" defaultValue={site.opening_hours ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.openingHours} helperText="예: 매일 10:00 - 21:00" />
-                    </div>
-                    <div>
-                      <FieldLabel>지도 URL</FieldLabel>
-                      <TextInput name="map_url" defaultValue={site.map_url ?? ""} type="url" placeholder="https://..." maxLength={MENU_FIELD_LIMITS.menuSites.mapUrl} helperText="네이버지도, 카카오맵, 구글맵 링크를 입력할 수 있습니다." />
-                    </div>
+                    <AboutDraftSections
+                      socialLinks={socialLinks}
+                      chefs={chefs}
+                      showChefs={editorCapabilities.chefs && templateCapabilities.chefs}
+                      showSocialLinks={editorCapabilities.socialLinks && templateCapabilities.socialLinks}
+                    />
                     <div className="md:col-span-2">
-                      <FieldLabel required>소개 문구</FieldLabel>
-                      <TextArea name="about_description" defaultValue={site.about_description ?? ""} required maxLength={MENU_FIELD_LIMITS.menuSites.aboutDescription} helperText={`매장 소개 영역에 표시됩니다. 최대 ${MENU_FIELD_LIMITS.menuSites.aboutDescription}자까지 입력할 수 있습니다.`} />
-                    </div>
-                    <div className="md:col-span-2">
-                      <FieldLabel>브랜드 설명</FieldLabel>
-                      <TextArea name="brand_description" defaultValue={site.brand_description ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription} helperText="브랜드 스토리나 운영 철학을 입력해주세요." />
-                    </div>
-                    <div className="md:col-span-2">
-                      <SubmitButton>소개 저장</SubmitButton>
+                      <FinalActionRow>
+                        <SubmitButton tone="final">저장</SubmitButton>
+                        <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                          변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                        </p>
+                      </FinalActionRow>
                     </div>
                   </form>
                 </SectionCard>
-                {editorCapabilities.chefs && templateCapabilities.chefs && <InteractiveChefsSection menuId={site.id} chefs={chefs} />}
-                {editorCapabilities.socialLinks && templateCapabilities.socialLinks && <InteractiveSocialLinksSection menuId={site.id} socialLinks={socialLinks} />}
               </>
             )}
 
-            {editorCapabilities.eventPage && templateCapabilities.events && activeTab === "events" && <InteractiveEventsSection menuId={site.id} events={events} />}
+            {activeTab === "events" && (
+              <SectionCard title="이벤트" eyebrow="Events">
+                <form id="events-form" action={updateEventsAction} className="grid gap-5 md:grid-cols-2">
+                  <HiddenMenuId menuId={site.id} />
+                  <EventDraftSections
+                    events={events}
+                    showEvents={editorCapabilities.eventPage && templateCapabilities.events}
+                  />
+                  <div className="md:col-span-2">
+                      <FinalActionRow>
+                        <SubmitButton tone="final">저장</SubmitButton>
+                        <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                          이벤트 변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 이벤트 이미지는 후속 draft 단계 전까지 기존 업로드 정책을 따릅니다.
+                        </p>
+                    </FinalActionRow>
+                  </div>
+                </form>
+              </SectionCard>
+            )}
 
             {activeTab === "design" && (
               <SectionCard
                 title="디자인"
                 eyebrow="Design"
-                action={
-                  <>
-                    <ResetTabActionButton menuId={site.id} kind="design" />
-                    <SectionSaveButton formId="typography-settings-form" />
-                  </>
-                }
               >
                 <div className="space-y-5">
-                  <div>
-                    <FieldLabel>현재 템플릿</FieldLabel>
-                    <TextInput value={templateDisplayName} readOnly helperText="템플릿 변경 기능은 추후 제공 예정입니다." />
-                  </div>
-                  <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">결제 시 선택한 템플릿입니다.</p>
-                  <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                  <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
+                    <HiddenMenuId menuId={site.id} />
                     <div>
+                      <FieldLabel>현재 템플릿</FieldLabel>
+                      <TextInput value={templateDisplayName} readOnly helperText="템플릿 변경 기능은 추후 제공 예정입니다." />
+                    </div>
+                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>
-                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">글꼴과 글자 크기</h3>
+                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">배경색</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                          메뉴판의 한글/영문 글꼴과 전체 글자 크기를 조정할 수 있습니다. 템플릿의 기본 디자인을 유지하는 범위에서 적용됩니다.
+                          메뉴판 전체 배경색을 매장 분위기에 맞게 변경할 수 있습니다. 마음에 들지 않으면 언제든 템플릿 기본 색상으로 되돌릴 수 있습니다.
                         </p>
                       </div>
+                      <BackgroundColorSettingsForm
+                        formId="design-settings-form"
+                        initialColor={resolvedBackgroundColor}
+                        defaultColor={defaultBackgroundColor}
+                        hasCustomBackgroundColor={Boolean(customBackgroundColor)}
+                      />
                     </div>
-                    <TypographySettingsForm
-                      action={updateTypographySettingsAction}
-                      formId="typography-settings-form"
-                      menuId={site.id}
-                      initialSettings={typographySettings}
-                      defaultSettings={defaultTypography}
-                      hasCustomTypography={hasCustomTypography}
-                    />
-                  </div>
+                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                      <div>
+                        <div>
+                          <h3 className="text-lg font-bold tracking-tight text-zinc-950">폰트 설정</h3>
+                          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                            템플릿에 어울리는 기본 폰트가 적용되어 있습니다. 원하는 경우 준비된 한글 폰트 목록에서 선택해 메뉴판 분위기를 바꿀 수 있습니다.
+                            마음에 들지 않으면 언제든 템플릿 기본 폰트로 되돌릴 수 있습니다.
+                          </p>
+                        </div>
+                      </div>
+                      <TypographySettingsForm
+                        formId="design-settings-form"
+                        initialFont={resolvedKoreanFont}
+                        initialEnglishFont={resolvedEnglishFont}
+                        defaultFont={defaultKoreanFont}
+                        defaultEnglishFont={defaultEnglishFont}
+                        hasCustomKoreanFont={Boolean(customKoreanFont)}
+                        hasCustomEnglishFont={Boolean(customEnglishFont)}
+                        templateType={templateType}
+                      />
+                    </div>
+                  </form>
+                  <FinalActionRow>
+                    <ResetTabActionButton menuId={site.id} kind="design" />
+                    <SubmitButton form="design-settings-form" tone="final">저장</SubmitButton>
+                    <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                    <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                      미리보기에는 저장된 디자인 설정만 표시됩니다.
+                    </p>
+                  </FinalActionRow>
                 </div>
               </SectionCard>
             )}
 
             {activeTab === "localization" && (
-              <SectionCard title="다국어" eyebrow="Localization" action={<SectionSaveButton formId="localization-settings-form" />}>
+              <SectionCard title="다국어" eyebrow="Localization">
                 <LocalizationSection
                   menuId={site.id}
                   enabledLocales={enabledLocales}
@@ -867,16 +1175,54 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "publish" && (
-              <SectionCard title="공개 설정" eyebrow="Publish" action={<SectionSaveButton formId="publish-settings-form" />}>
+              <SectionCard title="공개 설정" eyebrow="Publish">
                 <form id="publish-settings-form" action={updatePublishSettingsAction} className="space-y-5">
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel>공개 상태</FieldLabel>
-                    <Select name="status" defaultValue={site.status} helperText="공개중으로 변경하면 고객이 메뉴판 URL로 접근할 수 있습니다.">
-                      <option value="draft">작성중</option>
-                      <option value="published">공개중</option>
-                      <option value="archived">보관됨</option>
-                    </Select>
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      <label className="group relative flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 bg-white p-5 transition focus-within:border-zinc-950 has-[:checked]:border-zinc-950 has-[:checked]:bg-zinc-50">
+                        <input
+                          type="radio"
+                          name="status"
+                          value="draft"
+                          defaultChecked={site.status !== "published"}
+                          className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
+                        />
+                        <span>
+                          <span className="block text-base font-black text-zinc-950">비공개</span>
+                          <span className="mt-2 block break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                            공개 URL로 접속해도 손님에게 메뉴판이 보이지 않습니다.
+                          </span>
+                        </span>
+                      </label>
+                      <label className="group relative flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 bg-white p-5 transition focus-within:border-zinc-950 has-[:checked]:border-zinc-950 has-[:checked]:bg-zinc-50">
+                        <input
+                          type="radio"
+                          name="status"
+                          value="published"
+                          defaultChecked={site.status === "published"}
+                          className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
+                        />
+                        <span>
+                          <span className="block text-base font-black text-zinc-950">공개</span>
+                          <span className="mt-2 block break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                            공개 URL과 QR 코드로 손님이 메뉴판을 볼 수 있습니다.
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                    {site.status === "archived" && (
+                      <p className="mt-3 break-keep rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                        현재 보관된 메뉴판입니다. 공개 설정 탭에서는 비공개 상태로 표시됩니다.
+                      </p>
+                    )}
+                    <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                      공개 상태 변경은 저장 후 반영됩니다.
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-700">
+                    저장 전에는 미리보기와 공개 메뉴판에 반영되지 않습니다. 공개 페이지 보기와 미리보기는 저장된 데이터 기준으로 열립니다.
                   </div>
                   <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                     <h3 className="font-bold">공개 전 필수 체크리스트</h3>
@@ -899,13 +1245,22 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </div>
                   </div>
                   {isSlugLocked && <p className="break-keep text-sm font-bold text-amber-700">이미 공개된 메뉴판입니다. 기존 QR 코드가 깨지지 않도록 공개 메뉴판 주소는 잠겨 있습니다.</p>}
-                  <SubmitButton>공개 설정 저장</SubmitButton>
+                  <div>
+                    <FinalActionRow>
+                      <SubmitButton tone="final">저장</SubmitButton>
+                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        공개 상태 변경은 저장 후 DB와 미리보기, 공개 메뉴판에 반영됩니다.
+                      </p>
+                    </FinalActionRow>
+                  </div>
                 </form>
               </SectionCard>
             )}
         </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

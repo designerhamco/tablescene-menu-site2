@@ -2,13 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { saveMenuEditorScrollPosition } from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export type ImageUploadTarget = "site-logo" | "site-cover" | "menu-item" | "menu-event" | "menu-chef";
+export type ImageUploadTarget = "site-logo" | "site-logo-draft" | "site-cover" | "site-cover-draft" | "site-intro-image-draft" | "menu-item" | "menu-item-draft" | "menu-event" | "menu-chef";
 
 type ImageUploadFieldProps = {
   label: string;
@@ -17,6 +19,15 @@ type ImageUploadFieldProps = {
   recordId?: string;
   currentUrl?: string | null;
   description?: string;
+  deferredDeleteName?: string;
+  draftImageUrlInputName?: string;
+  draftImagePathInputName?: string;
+  uploadSuccessMessage?: string;
+  deleteSuccessMessage?: string;
+  deleteConfirmTitle?: string;
+  deleteConfirmDescription?: string;
+  fileGuidance?: string;
+  onDraftImageChange?: (draft: { imageUrl: string | null; imagePath: string | null; imageAction: "replace" | "delete" }) => void;
 };
 
 type UploadState =
@@ -37,12 +48,18 @@ function getStateClassName(type: UploadState["type"]) {
   return "border-zinc-100 bg-zinc-50 text-zinc-500";
 }
 
-function validateFile(file: File) {
+function validateFile(file: File, target: ImageUploadTarget) {
+  const isLogoUpload = target === "site-logo" || target === "site-logo-draft";
+
   if (!ALLOWED_TYPES.has(file.type)) {
-    return "JPG, PNG, WebP 이미지만 업로드할 수 있습니다.";
+    return isLogoUpload ? "PNG, JPG, WebP 형식의 이미지만 업로드할 수 있습니다." : "JPG, PNG, WebP 이미지만 업로드할 수 있습니다.";
   }
 
-  if (file.size > MAX_FILE_SIZE) {
+  if (isLogoUpload && file.size > LOGO_MAX_FILE_SIZE) {
+    return "로고 이미지는 최대 2MB까지 업로드할 수 있습니다.";
+  }
+
+  if (!isLogoUpload && file.size > MAX_FILE_SIZE) {
     return "이미지는 5MB 이하만 업로드할 수 있습니다.";
   }
 
@@ -56,16 +73,30 @@ export default function ImageUploadField({
   recordId,
   currentUrl,
   description,
+  deferredDeleteName,
+  draftImageUrlInputName,
+  draftImagePathInputName,
+  uploadSuccessMessage = "이미지가 업로드되었습니다.",
+  deleteSuccessMessage = "이미지 삭제가 임시 반영되었습니다. 저장을 눌러야 공개 메뉴판에 반영됩니다.",
+  deleteConfirmTitle = "이 이미지를 삭제할까요?",
+  deleteConfirmDescription = "삭제하면 저장 후 공개 메뉴판에 반영됩니다.",
+  fileGuidance = "JPG, PNG, WebP / 최대 5MB",
+  onDraftImageChange,
 }: ImageUploadFieldProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState(currentUrl ?? "");
   const [state, setState] = useState<UploadState>({ type: "idle", message: null });
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isMarkedForDeferredDelete, setIsMarkedForDeferredDelete] = useState(false);
+  const [draftImageUrl, setDraftImageUrl] = useState("");
+  const [draftImagePath, setDraftImagePath] = useState("");
   const isLoading = state.type === "loading";
+  const usesDraftUpload = target === "site-logo-draft" || target === "site-cover-draft" || target === "site-intro-image-draft" || target === "menu-item-draft";
+  const isLogoUpload = target === "site-logo" || target === "site-logo-draft";
 
   async function uploadFile(file: File) {
-    const validationMessage = validateFile(file);
+    const validationMessage = validateFile(file, target);
 
     if (validationMessage) {
       setState({ type: "error", message: validationMessage });
@@ -85,17 +116,23 @@ export default function ImageUploadField({
         method: "POST",
         body: formData,
       });
-      const result = (await response.json()) as { ok?: boolean; message?: string; imageUrl?: string | null };
+      const result = (await response.json()) as { ok?: boolean; message?: string; imageUrl?: string | null; imagePath?: string | null };
 
       if (!response.ok || !result.ok) {
         throw new Error(result.message ?? "이미지 업로드에 실패했습니다.");
       }
 
       setPreviewUrl(result.imageUrl ?? "");
+      setDraftImageUrl(result.imageUrl ?? "");
+      setDraftImagePath(result.imagePath ?? "");
+      onDraftImageChange?.({ imageUrl: result.imageUrl ?? null, imagePath: result.imagePath ?? null, imageAction: "replace" });
       setIsConfirmingDelete(false);
-      setState({ type: "success", message: "이미지가 저장되었습니다." });
-      saveMenuEditorScrollPosition(menuId);
-      router.refresh();
+      setIsMarkedForDeferredDelete(false);
+      setState({ type: "success", message: uploadSuccessMessage });
+      if (!usesDraftUpload) {
+        saveMenuEditorScrollPosition(menuId);
+        router.refresh();
+      }
     } catch (error) {
       setState({ type: "error", message: error instanceof Error ? error.message : "이미지 업로드 중 오류가 발생했습니다." });
     } finally {
@@ -106,6 +143,19 @@ export default function ImageUploadField({
   }
 
   async function deleteImage() {
+    if (deferredDeleteName || onDraftImageChange) {
+      setPreviewUrl("");
+      setDraftImageUrl("");
+      setDraftImagePath("");
+      onDraftImageChange?.({ imageUrl: null, imagePath: null, imageAction: "delete" });
+      setIsConfirmingDelete(false);
+      setIsMarkedForDeferredDelete(true);
+      const message = deleteSuccessMessage;
+      setState({ type: "success", message });
+      toast.success(message);
+      return;
+    }
+
     setState({ type: "loading", message: "이미지를 삭제하고 있습니다." });
 
     try {
@@ -129,6 +179,7 @@ export default function ImageUploadField({
       setPreviewUrl("");
       setIsConfirmingDelete(false);
       setState({ type: "success", message: "이미지가 삭제되었습니다." });
+      toast.success("이미지가 삭제되었습니다.");
       saveMenuEditorScrollPosition(menuId);
       router.refresh();
     } catch (error) {
@@ -138,12 +189,15 @@ export default function ImageUploadField({
 
   return (
     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+      {deferredDeleteName && isMarkedForDeferredDelete && <input type="hidden" name={deferredDeleteName} value="on" />}
+      {draftImageUrlInputName && draftImageUrl && <input type="hidden" name={draftImageUrlInputName} value={draftImageUrl} />}
+      {draftImagePathInputName && draftImagePath && <input type="hidden" name={draftImagePathInputName} value={draftImagePath} />}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white sm:w-40">
           {previewUrl ? (
             // TODO: 이미지 업로드 시 WebP 변환/압축을 서버 또는 브라우저에서 추가할 수 있습니다.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt="" className="h-full w-full object-cover" />
+            <img src={previewUrl} alt="" className={`h-full w-full ${isLogoUpload ? "object-contain p-3" : "object-cover"}`} />
           ) : (
             <span className="text-xs font-bold text-zinc-400">이미지 없음</span>
           )}
@@ -152,9 +206,9 @@ export default function ImageUploadField({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</p>
           {description && <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">{description}</p>}
-          <p className="mt-2 text-xs font-semibold text-zinc-400">JPG, PNG, WebP / 최대 5MB</p>
+          <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{fileGuidance}</p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
             <input
               ref={inputRef}
               type="file"
@@ -183,26 +237,6 @@ export default function ImageUploadField({
                 이미지 삭제
               </button>
             )}
-            {previewUrl && isConfirmingDelete && (
-              <>
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={deleteImage}
-                  className="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
-                >
-                  삭제 확인
-                </button>
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => setIsConfirmingDelete(false)}
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
-                >
-                  취소
-                </button>
-              </>
-            )}
           </div>
 
           {state.message && (
@@ -212,6 +246,32 @@ export default function ImageUploadField({
           )}
         </div>
       </div>
+      {previewUrl && isConfirmingDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-5">
+          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
+            <h4 className="text-lg font-bold tracking-tight text-zinc-950">{deleteConfirmTitle}</h4>
+            <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{deleteConfirmDescription}</p>
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => setIsConfirmingDelete(false)}
+                className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={deleteImage}
+                className="rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
+              >
+                삭제 확정
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

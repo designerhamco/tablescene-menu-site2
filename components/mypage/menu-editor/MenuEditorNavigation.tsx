@@ -7,7 +7,7 @@ import { MENU_EDITOR_TABS, type MenuEditorTabKey } from "@/lib/menu-editor";
 type MenuEditorNavigationProps = {
   menuId: string;
   activeTab: MenuEditorTabKey;
-  tabs?: readonly { key: MenuEditorTabKey; label: string }[];
+  tabs?: readonly { key: MenuEditorTabKey; label: string; status?: "ready" | "todo" }[];
 };
 
 export default function MenuEditorNavigation({ menuId, activeTab, tabs = MENU_EDITOR_TABS }: MenuEditorNavigationProps) {
@@ -23,6 +23,7 @@ export default function MenuEditorNavigation({ menuId, activeTab, tabs = MENU_ED
             }`}
           >
             {item.label}
+            {item.status === "todo" ? <span className="ml-1 text-[10px] opacity-70">준비 중</span> : null}
           </Link>
         ))}
       </div>

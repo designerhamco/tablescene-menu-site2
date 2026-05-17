@@ -8,9 +8,11 @@ export const runtime = "nodejs";
 
 const BUCKET = "menu-images";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-type ImageTarget = "site-logo" | "site-cover" | "menu-item" | "menu-event" | "menu-chef";
+type ImageTarget = "site-logo" | "site-logo-draft" | "site-cover" | "site-cover-draft" | "site-intro-image-draft" | "menu-item" | "menu-item-draft" | "menu-event" | "menu-chef";
+type PersistentImageTarget = Exclude<ImageTarget, "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "menu-item-draft">;
 
 type TargetRecord = {
   menuId: string;
@@ -20,7 +22,15 @@ type TargetRecord = {
 };
 
 function isImageTarget(value: string): value is ImageTarget {
-  return value === "site-logo" || value === "site-cover" || value === "menu-item" || value === "menu-event" || value === "menu-chef";
+  return value === "site-logo" || value === "site-logo-draft" || value === "site-cover" || value === "site-cover-draft" || value === "site-intro-image-draft" || value === "menu-item" || value === "menu-item-draft" || value === "menu-event" || value === "menu-chef";
+}
+
+function isDraftImageTarget(target: ImageTarget) {
+  return target === "site-logo-draft" || target === "site-cover-draft" || target === "site-intro-image-draft" || target === "menu-item-draft";
+}
+
+function isLogoTarget(target: ImageTarget) {
+  return target === "site-logo" || target === "site-logo-draft";
 }
 
 function jsonError(message: string, status = 400) {
@@ -51,10 +61,18 @@ function getPath(target: ImageTarget, menuId: string, recordId: string, extensio
   switch (target) {
     case "site-logo":
       return `menu-sites/${menuId}/brand/logo.${extension}`;
+    case "site-logo-draft":
+      return `menu-sites/${menuId}/draft/logo-${crypto.randomUUID()}.${extension}`;
     case "site-cover":
       return `menu-sites/${menuId}/brand/cover.${extension}`;
+    case "site-cover-draft":
+      return `menu-sites/${menuId}/draft/cover-${crypto.randomUUID()}.${extension}`;
+    case "site-intro-image-draft":
+      return `menu-sites/${menuId}/draft/intro-${crypto.randomUUID()}.${extension}`;
     case "menu-item":
       return `menu-sites/${menuId}/items/${recordId}/main.${extension}`;
+    case "menu-item-draft":
+      return `menu-sites/${menuId}/draft/items/${recordId || "item"}-${crypto.randomUUID()}.${extension}`;
     case "menu-event":
       return `menu-sites/${menuId}/events/${recordId}/main.${extension}`;
     case "menu-chef":
@@ -66,10 +84,18 @@ function getPathPrefix(target: ImageTarget, menuId: string, recordId: string) {
   switch (target) {
     case "site-logo":
       return `menu-sites/${menuId}/brand/logo.`;
+    case "site-logo-draft":
+      return `menu-sites/${menuId}/draft/logo-`;
     case "site-cover":
       return `menu-sites/${menuId}/brand/cover.`;
+    case "site-cover-draft":
+      return `menu-sites/${menuId}/draft/cover-`;
+    case "site-intro-image-draft":
+      return `menu-sites/${menuId}/draft/intro-`;
     case "menu-item":
       return `menu-sites/${menuId}/items/${recordId}/main.`;
+    case "menu-item-draft":
+      return `menu-sites/${menuId}/draft/items/`;
     case "menu-event":
       return `menu-sites/${menuId}/events/${recordId}/main.`;
     case "menu-chef":
@@ -103,7 +129,7 @@ async function requireOwnedMenuSite(
 
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
-    .select("id, user_id, slug, logo_url, logo_path, cover_image_url, cover_image_path")
+    .select("id, user_id, slug, logo_url, logo_path, cover_image_url, cover_image_path, intro_image_url, intro_image_path")
     .eq("id", menuId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -143,7 +169,21 @@ async function getTargetRecord(
     };
   }
 
+  if (target === "site-logo-draft") {
+    return {
+      error: null,
+      record: {
+        menuId,
+        slug: ownership.menuSite.slug,
+        imageUrl: null,
+        imagePath: null,
+      },
+    };
+  }
+
   if (target === "site-cover") {
+    // Legacy immediate-update target. New edit UI should use draft targets
+    // such as site-cover-draft or site-intro-image-draft.
     return {
       error: null,
       record: {
@@ -151,6 +191,42 @@ async function getTargetRecord(
         slug: ownership.menuSite.slug,
         imageUrl: ownership.menuSite.cover_image_url,
         imagePath: ownership.menuSite.cover_image_path,
+      },
+    };
+  }
+
+  if (target === "site-cover-draft") {
+    return {
+      error: null,
+      record: {
+        menuId,
+        slug: ownership.menuSite.slug,
+        imageUrl: null,
+        imagePath: null,
+      },
+    };
+  }
+
+  if (target === "site-intro-image-draft") {
+    return {
+      error: null,
+      record: {
+        menuId,
+        slug: ownership.menuSite.slug,
+        imageUrl: null,
+        imagePath: null,
+      },
+    };
+  }
+
+  if (target === "menu-item-draft") {
+    return {
+      error: null,
+      record: {
+        menuId,
+        slug: ownership.menuSite.slug,
+        imageUrl: null,
+        imagePath: null,
       },
     };
   }
@@ -214,7 +290,7 @@ async function getTargetRecord(
 
 async function updateImageRecord(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  target: ImageTarget,
+  target: PersistentImageTarget,
   menuId: string,
   recordId: string,
   imageUrl: string | null,
@@ -280,10 +356,14 @@ export async function POST(request: Request) {
   }
 
   if (!ALLOWED_TYPES.has(file.type)) {
-    return jsonError("JPG, PNG, WebP 이미지만 업로드할 수 있습니다.");
+    return jsonError(isLogoTarget(target) ? "PNG, JPG, WebP 형식의 이미지만 업로드할 수 있습니다." : "JPG, PNG, WebP 이미지만 업로드할 수 있습니다.");
   }
 
-  if (file.size > MAX_FILE_SIZE) {
+  if (isLogoTarget(target) && file.size > LOGO_MAX_FILE_SIZE) {
+    return jsonError("로고 이미지는 최대 2MB까지 업로드할 수 있습니다.");
+  }
+
+  if (!isLogoTarget(target) && file.size > MAX_FILE_SIZE) {
     return jsonError("이미지는 5MB 이하만 업로드할 수 있습니다.");
   }
 
@@ -315,6 +395,12 @@ export async function POST(request: Request) {
     data: { publicUrl },
   } = supabase.storage.from(BUCKET).getPublicUrl(nextPath);
   const imageUrl = withCacheBust(publicUrl);
+
+  if (isDraftImageTarget(target)) {
+    // TODO: 저장 없이 이탈한 임시 이미지는 만료 정책 또는 정리 작업으로 제거합니다.
+    return NextResponse.json({ ok: true, imageUrl, imagePath: nextPath });
+  }
+
   const { error: updateError } = await updateImageRecord(supabase, target, menuId, recordId, imageUrl, nextPath);
 
   if (updateError) {
@@ -352,6 +438,10 @@ export async function DELETE(request: Request) {
 
   if (!menuId) {
     return jsonError("menuId가 없습니다.");
+  }
+
+  if (isDraftImageTarget(target)) {
+    return jsonError("임시 이미지는 저장 전 삭제 API를 사용하지 않습니다.");
   }
 
   const { record, error } = await getTargetRecord(supabase, target, menuId, recordId);

@@ -177,7 +177,9 @@ export default function LocalizationSection({ menuId, enabledLocales, translatio
             언어를 꺼도 기존 번역 데이터는 삭제되지 않습니다. 다시 켜면 저장된 번역을 재사용할 수 있습니다.
           </p>
         </section>
-        <SubmitButton>다국어 설정 저장</SubmitButton>
+        <div className="flex flex-wrap items-center justify-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-4">
+          <SubmitButton>저장</SubmitButton>
+        </div>
       </form>
 
       <section className="rounded-lg border border-zinc-100 bg-white p-5">
@@ -205,7 +207,7 @@ export default function LocalizationSection({ menuId, enabledLocales, translatio
             </p>
             <p className="mt-3 break-keep text-sm font-bold text-zinc-500">{translationStatus.message}</p>
           </div>
-          <form action={translateMenuSiteAction}>
+          <form action={translateMenuSiteAction} className="flex shrink-0 flex-wrap items-center justify-end gap-3">
             <HiddenMenuId menuId={menuId} />
             <TranslationSubmitButton disabled={isTranslationDisabled} />
             <TranslationPendingMessage />
