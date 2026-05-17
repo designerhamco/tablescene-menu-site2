@@ -175,7 +175,7 @@ const featuredDisplayTemplateKeys = [
 ] as const satisfies readonly string[];
 
 function getTemplateCatalogStatus(templateKey: string): TemplateCatalogStatus {
-  return availableTemplateKeys.includes(templateKey) ? "available" : "coming_soon";
+  return availableTemplateKeys.includes(templateKey as (typeof availableTemplateKeys)[number]) ? "available" : "coming_soon";
 }
 
 export const templateCategoryFilters = [
@@ -213,9 +213,9 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
       supportedServices,
       status,
       active: status === "available",
-      featuredHome: featuredHomeTemplateKeys.includes(template.key),
-      featuredBasic: featuredBasicTemplateKeys.includes(template.key),
-      featuredDisplay: featuredDisplayTemplateKeys.includes(template.key),
+      featuredHome: featuredHomeTemplateKeys.includes(template.key as (typeof featuredHomeTemplateKeys)[number]),
+      featuredBasic: featuredBasicTemplateKeys.includes(template.key as (typeof featuredBasicTemplateKeys)[number]),
+      featuredDisplay: featuredDisplayTemplateKeys.includes(template.key as (typeof featuredDisplayTemplateKeys)[number]),
       sortOrder: TEMPLATE_CATEGORIES.findIndex((entry) => entry.key === category.key) * 100 + templateIndex,
       thumbnailTone: templateToneByDesign[template.design],
       thumbnailUrl: null,

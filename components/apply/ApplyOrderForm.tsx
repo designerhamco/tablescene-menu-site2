@@ -52,7 +52,7 @@ type AgreementKey = "terms" | "privacy" | "contentPolicy";
 type FormState = {
   buyerType: BuyerType;
   template_category: TemplateCategoryKey;
-  template_key: TemplateKey;
+  template_key: TemplateKey | "";
   menuName: string;
   desiredSlug: string;
   restaurantName: string;
@@ -95,6 +95,10 @@ type UiState =
 type SlugAvailabilityResponse = {
   available?: boolean;
   message?: string;
+};
+
+type DraftMenuOrderPayload = Omit<MenuOrderPayload, "template_key"> & {
+  template_key: TemplateKey | "";
 };
 
 const MENU_ADDRESS_HELPER_TEXT = "영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
@@ -624,7 +628,7 @@ export default function ApplyOrderForm({
   const [form, setForm] = useState<FormState>({
     buyerType: "individual",
     template_category: firstTemplate?.template_category ?? firstCategory,
-    template_key: firstTemplate?.key ?? "cafe_design_a",
+    template_key: firstTemplate?.key ?? "",
     menuName: "",
     desiredSlug: "",
     restaurantName: "",
@@ -663,6 +667,7 @@ export default function ApplyOrderForm({
     () => serviceTemplates.find((template) => template.key === form.template_key) ?? serviceTemplates[0] ?? templates[0],
     [form.template_key, serviceTemplates, templates]
   );
+  const hasSelectableTemplate = Boolean(selectedTemplate && form.template_key);
   const currentPlanRequiresBusinessInfo = requiresBusinessInfo(currentPlanKey);
   const currentPlanAllowsIndividual = canIndividualPurchasePlan(currentPlanKey);
   const templateStepLabel = isScreenService ? "Step 2" : "Step 1";
@@ -694,7 +699,7 @@ export default function ApplyOrderForm({
     [form.screenDevice, form.screenOrientation, form.screenPurpose, selectedScreenTemplateCategory.label]
   );
 
-  const payload = useMemo<MenuOrderPayload>(
+  const payload = useMemo<DraftMenuOrderPayload>(
     () => ({
       plan_key: currentPlanKey,
       template_category: form.template_category,
@@ -751,6 +756,14 @@ export default function ApplyOrderForm({
   const menuAddressError = getMenuAddressError(payload.desiredSlug);
   const isSlugValid = !menuAddressError && isValidMenuSlug(payload.desiredSlug);
   const visibleSlugState = useMemo<SlugState>(() => {
+    if (!hasSelectableTemplate) {
+      return {
+        slug: payload.desiredSlug,
+        type: "idle",
+        message: isScreenService ? "Display 템플릿 준비 후 공개 주소를 확인할 수 있습니다." : MENU_ADDRESS_HELPER_TEXT,
+      };
+    }
+
     if (!payload.desiredSlug) {
       return { slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT };
     }
@@ -764,13 +777,19 @@ export default function ApplyOrderForm({
     }
 
     return slugState;
-  }, [isSlugValid, menuAddressError, payload.desiredSlug, slugState]);
+  }, [hasSelectableTemplate, isScreenService, isSlugValid, menuAddressError, payload.desiredSlug, slugState]);
   const isSlugAvailable = visibleSlugState.type === "available";
   const menuNameError = getRequiredMessage(isScreenService ? "디스플레이 이름" : "메뉴판 이름", payload.menuName);
   const restaurantNameError = getRequiredMessage("레스토랑 이름", payload.restaurantName);
   const restaurantTypeError = form.restaurantType ? null : "업종을 선택해주세요.";
   const visibleRestaurantTypeError = !form.restaurantType && (form.menuName.trim() || form.restaurantName.trim() || form.desiredSlug.trim()) ? restaurantTypeError : null;
-  const templateSelectionError = isMenuService && filteredTemplates.length === 0 ? "선택 가능한 템플릿이 있는 카테고리를 선택해주세요." : null;
+  const templateSelectionError = !hasSelectableTemplate
+    ? isScreenService
+      ? "현재 선택 가능한 TableScene Display 템플릿이 준비 중입니다."
+      : "선택 가능한 템플릿이 있는 카테고리를 선택해주세요."
+    : isMenuService && filteredTemplates.length === 0
+      ? "선택 가능한 템플릿이 있는 카테고리를 선택해주세요."
+      : null;
   const restaurantAddressError = getRequiredMessage("주소", payload.restaurantAddress);
   const restaurantPhoneError = validatePhoneNumber(payload.restaurantPhone);
   const buyerNameError = validatePersonName("담당자명", payload.buyerName);
@@ -791,6 +810,7 @@ export default function ApplyOrderForm({
     !menuNameError &&
     isSlugValid &&
     isSlugAvailable &&
+    hasSelectableTemplate &&
     !templateSelectionError &&
     !restaurantNameError &&
     !restaurantTypeError &&
@@ -808,6 +828,10 @@ export default function ApplyOrderForm({
 
   useEffect(() => {
     const slug = normalizeMenuAddressInput(form.desiredSlug);
+
+    if (!hasSelectableTemplate) {
+      return;
+    }
 
     if (!slug || getMenuAddressError(slug)) {
       return;
@@ -852,7 +876,7 @@ export default function ApplyOrderForm({
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [form.desiredSlug]);
+  }, [form.desiredSlug, hasSelectableTemplate]);
 
   useEffect(() => {
     if (!activeAgreement) {
@@ -972,6 +996,11 @@ export default function ApplyOrderForm({
 
   async function handlePayment() {
     if (!isFormReady || isLoading) {
+      return;
+    }
+
+    if (!hasSelectableTemplate || !payload.template_key) {
+      setUiState({ type: "error", message: templateSelectionError ?? "선택 가능한 템플릿이 없습니다." });
       return;
     }
 
@@ -1281,9 +1310,15 @@ export default function ApplyOrderForm({
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-5 py-8 text-center">
-              <p className="text-base font-black text-zinc-800">해당 카테고리 템플릿은 준비 중입니다.</p>
+              <p className="text-base font-black text-zinc-800">
+                {isScreenService && serviceTemplates.length === 0
+                  ? "현재 선택 가능한 TableScene Display 템플릿이 준비 중입니다."
+                  : "해당 카테고리 템플릿은 준비 중입니다."}
+              </p>
               <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                현재 선택 가능한 템플릿은 추천 또는 전체 탭에서 확인할 수 있습니다.
+                {isScreenService && serviceTemplates.length === 0
+                  ? "Display 상품은 템플릿 준비 후 신청할 수 있습니다."
+                  : "현재 선택 가능한 템플릿은 추천 또는 전체 탭에서 확인할 수 있습니다."}
               </p>
             </div>
           )}
@@ -1529,6 +1564,8 @@ export default function ApplyOrderForm({
           >
             {isLoading
               ? "처리 중..."
+              : isScreenService && !hasSelectableTemplate
+                ? "Display 템플릿 준비 중"
               : visibleSlugState.type === "checking"
                 ? "메뉴판 주소 확인 중..."
                 : isPortOneReady

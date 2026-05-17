@@ -81,6 +81,27 @@ export const TEMPLATE_TYPE_OPTIONS_BY_SERVICE = {
   display: ["menu", "price_list"],
 } as const satisfies Record<TemplateServiceType, readonly TemplateType[]>;
 
+const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]> = {
+  basic: [
+    "cafe_design_a",
+    "cafe_design_b",
+    "cafe_design_c",
+    "fine_dining_design_a",
+    "fine_dining_design_b",
+    "casual_dining_design_a",
+    "casual_dining_design_b",
+    "fast_food_design_a",
+    "fast_food_design_b",
+    "brunch_design_a",
+    "brunch_design_b",
+    "beauty_price_a",
+    "clinic_price_a",
+    "yoga_schedule_a",
+    "pilates_schedule_a",
+  ],
+  display: [],
+};
+
 const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
   cafe_design_a: "menu",
   cafe_design_b: "menu",
@@ -274,13 +295,11 @@ export function getTemplateTypeShortDescription(templateType: TemplateType): str
 }
 
 export function getSupportedServices(templateKey: string | null | undefined): readonly TemplateServiceType[] {
-  const templateType = getTemplateType(templateKey);
+  if (!templateKey) return [];
 
-  if (templateType === "schedule") {
-    return ["basic"];
-  }
-
-  return ["basic", "display"];
+  return (Object.keys(TEMPLATE_SERVICE_ALLOWLIST) as TemplateServiceType[]).filter((serviceType) =>
+    TEMPLATE_SERVICE_ALLOWLIST[serviceType].includes(templateKey)
+  );
 }
 
 export function isTemplateSupportedForService(templateKey: string | null | undefined, serviceType: TemplateServiceType): boolean {

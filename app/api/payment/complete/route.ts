@@ -11,7 +11,7 @@ import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
-import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
+import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey, isTemplateSupportedForService } from "@/lib/templates";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
@@ -76,6 +76,10 @@ type ExistingPaymentCompletion =
     };
 
 const SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE = "결제는 확인되었지만 공개 주소가 중복되어 메뉴판 생성에 실패했습니다. 관리자에게 문의해주세요.";
+
+function getTemplateServiceTypeForPlan(planKey: string) {
+  return planKey === "large_screen" || planKey === "display" ? "display" : "basic";
+}
 
 function getPaymentAmount(payment: PortOnePayment) {
   if (typeof payment.amount === "number") {
@@ -201,6 +205,10 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     !isValidMenuSlug(desiredSlug) ||
     amount !== menuCreationProduct.amount
   ) {
+    return null;
+  }
+
+  if (!isTemplateSupportedForService(templateKey, getTemplateServiceTypeForPlan(planKey))) {
     return null;
   }
 
@@ -915,7 +923,15 @@ export async function POST(request: Request) {
   const paymentId = typeof body.paymentId === "string" ? body.paymentId.trim() : "";
   const orderSource = body.order ?? body.orderPayload;
   const orderPayload = parseOrderPayload(orderSource);
-  const templateKey = orderPayload?.template_key ?? (typeof body.template_key === "string" ? body.template_key.trim() : "");
+  const requestedPlanKey = orderSource && typeof orderSource === "object"
+    ? getString((orderSource as Record<string, unknown>).plan_key) || "basic"
+    : "basic";
+  const requestedTemplateKey = orderSource && typeof orderSource === "object"
+    ? getString((orderSource as Record<string, unknown>).template_key)
+    : typeof body.template_key === "string"
+      ? body.template_key.trim()
+      : "";
+  const templateKey = orderPayload?.template_key ?? requestedTemplateKey;
 
   if (!paymentId) {
     return jsonError("paymentId가 없습니다.");
@@ -923,6 +939,10 @@ export async function POST(request: Request) {
 
   if (!isTemplateKey(templateKey)) {
     return jsonError("template_key가 올바르지 않습니다.");
+  }
+
+  if (!isTemplateSupportedForService(templateKey, getTemplateServiceTypeForPlan(requestedPlanKey))) {
+    return jsonError("선택한 상품에서 사용할 수 없는 템플릿입니다.");
   }
 
   if (!orderPayload) {
