@@ -6,12 +6,13 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
 import {
+  generateMenuSiteTranslationDraftAction,
   translateMenuCategoryPartialAction,
   translateMenuHeroPartialAction,
   translateMenuItemPartialAction,
-  translateMenuSiteAction,
   updateLocalizationSettingsAction,
 } from "@/app/mypage/menus/actions";
+import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { isAiUsageExceeded, type AiUsageSnapshot } from "@/lib/menu-ai-usage";
 import { LOCALE_LABELS, TRANSLATABLE_LOCALES, type SupportedLocale } from "@/lib/locales";
@@ -36,25 +37,6 @@ type LocalizationSectionProps = {
 
 type TranslationTargetGroup = EditableTranslationField["group"];
 
-function formatTranslationDateTime(value: string | null) {
-  if (!value) return "";
-
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Seoul",
-  }).formatToParts(new Date(value));
-  const getPart = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  const month = Number(getPart("month"));
-  const day = Number(getPart("day"));
-
-  return `${getPart("year")}. ${month}. ${day}. ${getPart("hour")}:${getPart("minute")}`;
-}
-
 const STALE_TRANSLATION_JOB_MS = 5 * 60 * 1000;
 
 function isStaleRunningJob(job: TranslationJob) {
@@ -64,17 +46,7 @@ function isStaleRunningJob(job: TranslationJob) {
   return Number.isFinite(startedAt) && Date.now() - startedAt > STALE_TRANSLATION_JOB_MS;
 }
 
-function getTranslationStatus(job: TranslationJob) {
-  if (!job) {
-    return {
-      label: "번역 전",
-      message: "아직 번역 전입니다.",
-      tone: "text-zinc-500 bg-zinc-50 border-zinc-100",
-      isRunning: false,
-      isStale: false,
-    };
-  }
-
+function getTranslationJobStatus(job: TranslationJob) {
   if (job.status === "pending" || job.status === "running") {
     const isStale = isStaleRunningJob(job);
 
@@ -89,16 +61,6 @@ function getTranslationStatus(job: TranslationJob) {
     };
   }
 
-  if (job.status === "completed") {
-    return {
-      label: "번역 완료",
-      message: `자동 번역이 완료되었습니다. 마지막 번역: ${formatTranslationDateTime(job.completed_at ?? job.created_at)}`,
-      tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
-      isRunning: false,
-      isStale: false,
-    };
-  }
-
   return {
     label: "번역 실패",
     message: getSafeTranslationErrorMessage(job.error_message),
@@ -108,11 +70,39 @@ function getTranslationStatus(job: TranslationJob) {
   };
 }
 
+function getDraftTranslationStatus({ hasDraftChanges, hasSavedTranslations }: { hasDraftChanges: boolean; hasSavedTranslations: boolean }) {
+  if (hasDraftChanges) {
+    return {
+      label: "번역 초안 생성됨",
+      message: "번역 초안이 생성되었습니다. 아래 직접 번역 수정 영역에서 확인한 뒤 저장하면 공개 메뉴판에 반영됩니다.",
+      tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
+    };
+  }
+
+  if (hasSavedTranslations) {
+    return {
+      label: "저장된 번역 있음",
+      message: "저장된 번역을 기준으로 공개 메뉴판에 표시됩니다. 필요한 경우 아래에서 수정할 수 있습니다.",
+      tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
+    };
+  }
+
+  return {
+    label: "번역 초안 없음",
+    message: "아직 생성된 자동 번역 초안이 없습니다.",
+    tone: "text-zinc-500 bg-zinc-50 border-zinc-100",
+  };
+}
+
+function hasSavedTranslationValues(fields: EditableTranslationField[]) {
+  return fields.some((field) => Object.values(field.translations).some((value) => value.trim().length > 0));
+}
+
 function HiddenMenuId({ menuId }: { menuId: string }) {
   return <input type="hidden" name="menuId" value={menuId} />;
 }
 
-function LocalizationSaveButton({ disabled = false }: { disabled?: boolean }) {
+function LocalizationSaveButton({ disabled = false, children = "저장" }: { disabled?: boolean; children?: ReactNode }) {
   const { pending, action } = useFormStatus();
   const isPending = pending && action === updateLocalizationSettingsAction;
 
@@ -120,7 +110,7 @@ function LocalizationSaveButton({ disabled = false }: { disabled?: boolean }) {
     <button
       type="submit"
       disabled={disabled || isPending}
-      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
     >
       {isPending ? (
         <>
@@ -128,70 +118,39 @@ function LocalizationSaveButton({ disabled = false }: { disabled?: boolean }) {
           저장 중...
         </>
       ) : (
-        "저장"
+        children
       )}
     </button>
   );
 }
 
-function TranslationSubmitButton({ disabled }: { disabled?: boolean }) {
-  const { pending, action } = useFormStatus();
-  const isPending = pending && action === translateMenuSiteAction;
-
+function TranslationSubmitButton({ disabled, pending, onClick }: { disabled?: boolean; pending?: boolean; onClick: () => void }) {
   return (
     <button
-      type="submit"
-      formAction={translateMenuSiteAction}
-      disabled={disabled || isPending}
+      type="button"
+      onClick={onClick}
+      disabled={disabled || pending}
       className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
     >
-      {isPending ? (
+      {pending ? (
         <>
           <LoadingSpinner className="h-4 w-4" />
           번역 중...
         </>
       ) : (
-        "전체 자동 번역 업데이트"
+        "전체 자동 번역 초안 만들기"
       )}
     </button>
   );
 }
 
-function TranslationPendingMessage() {
-  const { pending, action } = useFormStatus();
-  const isPending = pending && action === translateMenuSiteAction;
-
-  if (!isPending) return null;
+function TranslationPendingMessage({ pending }: { pending?: boolean }) {
+  if (!pending) return null;
 
   return (
     <p className="mt-3 break-keep rounded-lg bg-amber-50 p-3 text-xs font-bold leading-relaxed text-amber-700">
-      AI가 메뉴판 전체를 번역하고 있습니다. 잠시만 기다려주세요.
+      AI가 메뉴판 전체를 번역하고 있습니다. 메뉴 수에 따라 1~3분 정도 걸릴 수 있으니 페이지를 닫거나 새로고침하지 말아주세요.
     </p>
-  );
-}
-
-function UsageCard({
-  title,
-  description,
-  used,
-  limit,
-  children,
-}: {
-  title: string;
-  description: string;
-  used: number;
-  limit: number;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-      <p className="text-sm font-black text-zinc-950">{title}</p>
-      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">{description}</p>
-      <p className="mt-3 text-sm font-bold text-zinc-600">
-        이번 달 {used} / {limit}회 사용
-      </p>
-      {children}
-    </div>
   );
 }
 
@@ -215,6 +174,14 @@ type PartialTranslationPatch = {
   value: string;
 };
 
+type FullTranslationDraftPatch = {
+  entityType: EditableTranslationField["entityType"];
+  entityId: string;
+  field: string;
+  locale: EditableTranslationLocale;
+  value: string;
+};
+
 const translationTargetLabels: Record<TranslationTargetGroup, string> = {
   site: "대표 영역",
   pages: "페이지",
@@ -231,6 +198,7 @@ const partialTranslationFieldAliases: Record<string, string[]> = {
   name: ["name", "title"],
   description: ["description"],
   price_label: ["price_label"],
+  portion_label: ["portion_label", "serving_label", "servingLabel", "portionLabel"],
   badge_label: ["badge_label"],
 };
 
@@ -446,12 +414,21 @@ function ReadOnlyTranslationFields({ fields }: { fields: EditableTranslationFiel
 
   return (
     <div className="space-y-4">
-      {fields.map((field) => (
-        <div key={getFieldKey(field)} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{field.groupLabel} · {field.label}</p>
-          <p className="mt-2 whitespace-pre-wrap break-keep text-sm font-bold leading-relaxed text-zinc-800">{field.sourceText}</p>
-        </div>
-      ))}
+      {fields.map((field) => {
+        const Input = field.multiline ? "textarea" : "input";
+
+        return (
+          <label key={getFieldKey(field)} className="block rounded-lg border border-zinc-100 bg-white p-4">
+            <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{field.groupLabel} · {field.label}</span>
+            <Input
+              value={field.sourceText}
+              readOnly
+              rows={field.multiline ? 3 : undefined}
+              className="mt-2 w-full cursor-default resize-none rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-semibold leading-relaxed text-zinc-700 outline-none"
+            />
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -501,10 +478,12 @@ function ReadOnlyItemGroups({ fields }: { fields: EditableTranslationField[] }) 
 }
 
 function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTranslationJob, editableTranslationFields }: LocalizationSectionProps) {
-  const translationStatus = getTranslationStatus(latestTranslationJob);
-  const fullTranslationUsage = aiUsage.ai_translate_full;
   const partialTranslationUsage = aiUsage.ai_translate_partial;
-  const isUsageExceeded = isAiUsageExceeded(fullTranslationUsage);
+  const [localFullUsage, setLocalFullUsage] = useState({
+    used: aiUsage.ai_translate_full.used,
+    limit: aiUsage.ai_translate_full.limit,
+  });
+  const isUsageExceeded = isAiUsageExceeded(localFullUsage);
   const [localPartialUsage, setLocalPartialUsage] = useState({
     used: partialTranslationUsage.used,
     limit: partialTranslationUsage.limit,
@@ -513,6 +492,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
   const [activeLocale, setActiveLocale] = useState<SupportedLocale>("ko");
   const [activeTargetGroup, setActiveTargetGroup] = useState<TranslationTargetGroup>("site");
   const [draftValues, setDraftValues] = useState(() => buildInitialDraft(editableTranslationFields));
+  const [isGeneratingFullDraft, setIsGeneratingFullDraft] = useState(false);
   const [pendingPartialEntityKey, setPendingPartialEntityKey] = useState<string | null>(null);
   const [overwriteRequest, setOverwriteRequest] = useState<EditableTranslationField[] | null>(null);
   const initialDraftValues = useMemo(() => buildInitialDraft(editableTranslationFields), [editableTranslationFields]);
@@ -528,10 +508,17 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     [draftValues, editableTranslationFields]
   );
   const hasTargetLocales = selectedLocales.some((locale) => locale !== "ko");
-  const isTranslationDisabled = translationStatus.isRunning || isUsageExceeded || !hasTargetLocales;
+  const isTranslationDisabled = isGeneratingFullDraft || isUsageExceeded || !hasTargetLocales;
   const hasLocaleChanges = getNormalizedLocales(selectedLocales) !== getNormalizedLocales(enabledLocales);
   const hasTranslationChanges = JSON.stringify(draftValues) !== JSON.stringify(initialDraftValues);
-  const hasSaveChanges = hasLocaleChanges || hasTranslationChanges;
+  const savedTranslationsExist = hasSavedTranslationValues(editableTranslationFields);
+  const translationStatus =
+    latestTranslationJob && (latestTranslationJob.status === "pending" || latestTranslationJob.status === "running" || latestTranslationJob.status === "failed")
+      ? getTranslationJobStatus(latestTranslationJob)
+      : getDraftTranslationStatus({
+          hasDraftChanges: hasTranslationChanges,
+          hasSavedTranslations: savedTranslationsExist,
+        });
   const fieldsByGroup = useMemo(
     () =>
       editableTranslationFields.reduce<Record<EditableTranslationField["group"], EditableTranslationField[]>>(
@@ -578,6 +565,59 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
 
       return nextValues;
     });
+  }
+
+  function applyFullTranslationDraft(patches: FullTranslationDraftPatch[]) {
+    const fieldByKey = new Map(editableTranslationFields.map((field) => [`${field.entityType}:${field.entityId}:${field.field}`, field]));
+
+    setDraftValues((current) => {
+      const nextValues = { ...current };
+
+      patches.forEach((patch) => {
+        const field = fieldByKey.get(`${patch.entityType}:${patch.entityId}:${patch.field}`);
+        if (!field) return;
+
+        nextValues[getFieldKey(field)] = {
+          ...(nextValues[getFieldKey(field)] ?? field.translations),
+          [patch.locale]: patch.value,
+        };
+      });
+
+      return nextValues;
+    });
+  }
+
+  async function runFullTranslationDraft() {
+    if (isTranslationDisabled) return;
+
+    const targetLocales = selectedLocales.filter((locale) => locale !== "ko");
+    if (targetLocales.length === 0) {
+      toast.error("자동 번역을 실행할 외국어를 먼저 선택해주세요.");
+      return;
+    }
+
+    setIsGeneratingFullDraft(true);
+
+    try {
+      const result = await generateMenuSiteTranslationDraftAction({
+        menuId,
+        targetLocales,
+      });
+
+      if (!result.ok) {
+        toast.error(result.message);
+        if (result.usage) setLocalFullUsage(result.usage);
+        return;
+      }
+
+      applyFullTranslationDraft(result.data);
+      setLocalFullUsage(result.usage);
+      toast.success(result.message);
+    } catch {
+      toast.error("전체 자동 번역 초안 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsGeneratingFullDraft(false);
+    }
   }
 
   async function runPartialTranslation(fields: EditableTranslationField[]) {
@@ -657,10 +697,15 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
         <HiddenMenuId menuId={menuId} />
         <input type="hidden" name="translation_draft" value={JSON.stringify(translationDraftPayload)} />
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
-          <h3 className="text-lg font-bold tracking-tight text-zinc-950">사용할 언어</h3>
+          <h3 className="text-lg font-bold tracking-tight text-zinc-950">다국어 설정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-            한국어는 기본 언어로 항상 사용됩니다. 필요한 외국어만 선택해 공개 메뉴판 언어 선택에 표시할 수 있습니다.
+            공개 메뉴판에서 사용할 언어를 선택하고, AI로 번역 초안을 만들 수 있습니다.
           </p>
+          <div className="mt-5">
+            <h4 className="text-sm font-black text-zinc-950">사용할 언어</h4>
+            <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+              한국어는 기본 언어로 항상 사용됩니다. 선택한 언어는 하단 저장 후 공개 메뉴판의 언어 선택에 반영됩니다.
+            </p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <label className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold text-zinc-500">
               <span>{LOCALE_LABELS.ko}</span>
@@ -684,47 +729,46 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
           <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             언어를 꺼도 기존 번역 데이터는 삭제되지 않습니다. 다시 켜면 저장된 번역을 재사용할 수 있습니다.
           </p>
-        </section>
+          </div>
 
-        <section className="rounded-lg border border-zinc-100 bg-white p-5">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div className="mt-6 border-t border-zinc-100 pt-5">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
             <div>
-              <h3 className="text-lg font-bold tracking-tight text-zinc-950">전체 자동 번역</h3>
+              <h3 className="text-lg font-bold tracking-tight text-zinc-950">AI 번역 사용량</h3>
               <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                한국어로 입력된 메뉴판 내용을 선택한 언어로 한 번에 번역합니다. 번역 결과는 아래 직접 번역 수정 영역에서 확인하고 수정할 수 있습니다.
+                선택한 외국어의 번역 초안을 생성합니다. 메뉴 수에 따라 보통 1~3분 정도 걸릴 수 있습니다.
+                생성된 번역은 아래 “번역 확인 및 수정” 영역에서 확인하고 저장 후 공개 메뉴판에 반영됩니다.
               </p>
-              <UsageCard
-                title="전체 자동 번역 사용량"
-                description="전체 자동 번역이 실제로 새 번역을 저장한 경우 1회 차감됩니다."
-                used={fullTranslationUsage.used}
-                limit={fullTranslationUsage.limit}
-              >
-                {isUsageExceeded && (
-                  <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-red-700">이번 달 전체 자동 번역 제공량을 모두 사용했습니다.</p>
-                )}
-                {!hasTargetLocales && (
-                  <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
-                )}
-              </UsageCard>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <AiUsageMeter label="전체 자동 번역" used={localFullUsage.used} limit={localFullUsage.limit} />
+                <AiUsageMeter label="부분 자동 번역" used={localPartialUsage.used} limit={localPartialUsage.limit} />
+              </div>
+              <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 각각 제공량이 차감됩니다.
+              </p>
+              {!hasTargetLocales && (
+                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
+              )}
               <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${translationStatus.tone}`}>
                 {translationStatus.label}
               </p>
               <p className="mt-3 break-keep text-sm font-bold text-zinc-500">{translationStatus.message}</p>
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-              <TranslationSubmitButton disabled={isTranslationDisabled} />
-              <TranslationPendingMessage />
+              <TranslationSubmitButton disabled={isTranslationDisabled} pending={isGeneratingFullDraft} onClick={() => void runFullTranslationDraft()} />
+              <TranslationPendingMessage pending={isGeneratingFullDraft} />
+            </div>
             </div>
           </div>
         </section>
 
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
-          <h3 className="text-lg font-bold tracking-tight text-zinc-950">직접 번역 수정</h3>
+          <h3 className="text-lg font-bold tracking-tight text-zinc-950">번역 확인 및 수정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-            자동 번역 결과를 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다.
+            자동 번역 초안을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-            항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있습니다. 부분 자동 번역 사용량: 이번 달 {localPartialUsage.used} / {localPartialUsage.limit}회
+            항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역 사용량을 차감합니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
             다시 자동 번역을 실행하면 직접 수정한 번역이 새 번역 결과로 덮어써질 수 있습니다.
@@ -745,64 +789,71 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
               </button>
             ))}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {(Object.keys(translationTargetLabels) as TranslationTargetGroup[]).map((group) => (
-              <button
-                key={group}
-                type="button"
-                onClick={() => setActiveTargetGroup(group)}
-                className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                  activeTargetGroup === group
-                    ? "border-zinc-950 bg-zinc-950 text-white"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                }`}
-              >
-                {translationTargetLabels[group]}
-              </button>
-            ))}
-          </div>
-
-          {activeLocale === "ko" ? (
-            <div className="mt-5 space-y-4">
-              <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
-                한국어 원문은 기본 정보, 대표 영역, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다.
-              </p>
-              {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}
+          <div className="mt-5 overflow-hidden rounded-lg border border-zinc-200 bg-white">
+            <div className="flex flex-wrap border-b border-zinc-200 bg-zinc-50 p-1">
+              {(Object.keys(translationTargetLabels) as TranslationTargetGroup[]).map((group) => (
+                <button
+                  key={group}
+                  type="button"
+                  onClick={() => setActiveTargetGroup(group)}
+                  className={`rounded-md px-4 py-2 text-sm font-black transition-colors ${
+                    activeTargetGroup === group
+                      ? "bg-white text-zinc-950 shadow-sm"
+                      : "text-zinc-500 hover:bg-white/70 hover:text-zinc-800"
+                  }`}
+                >
+                  {translationTargetLabels[group]}
+                </button>
+              ))}
             </div>
-          ) : editableTranslationFields.length === 0 ? (
-            <p className="mt-5 break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
-              번역할 수 있는 문구가 없습니다. 한국어 메뉴 정보를 먼저 저장해주세요.
-            </p>
-          ) : (
-            <div className="mt-5 space-y-5">
-              {activeTargetGroup === "items" ? (
-                <TranslationEditorItemGroups
-                  fields={activeTargetFields}
-                  activeLocale={activeLocale}
-                  draftValues={draftValues}
-                  onDraftChange={updateDraft}
-                  partialUsage={localPartialUsage}
-                  pendingPartialEntityKey={pendingPartialEntityKey}
-                  onPartialTranslate={requestPartialTranslation}
-                />
+
+            <div className="p-4">
+              {activeLocale === "ko" ? (
+                <div className="space-y-4">
+                  <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                    한국어 원문은 기본 정보, 대표 영역, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다.
+                  </p>
+                  {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}
+                </div>
+              ) : editableTranslationFields.length === 0 ? (
+                <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                  번역할 수 있는 문구가 없습니다. 한국어 메뉴 정보를 먼저 저장해주세요.
+                </p>
               ) : (
-                <TranslationEditorGroup
-                  title={translationTargetLabels[activeTargetGroup]}
-                  fields={activeTargetFields}
-                  activeLocale={activeLocale}
-                  draftValues={draftValues}
-                  onDraftChange={updateDraft}
-                  partialUsage={activeTargetGroup === "site" || activeTargetGroup === "categories" ? localPartialUsage : undefined}
-                  pendingPartialEntityKey={pendingPartialEntityKey}
-                  onPartialTranslate={activeTargetGroup === "site" || activeTargetGroup === "categories" ? requestPartialTranslation : undefined}
-                />
+                <div className="space-y-5">
+                  {activeTargetGroup === "items" ? (
+                    <TranslationEditorItemGroups
+                      fields={activeTargetFields}
+                      activeLocale={activeLocale}
+                      draftValues={draftValues}
+                      onDraftChange={updateDraft}
+                      partialUsage={localPartialUsage}
+                      pendingPartialEntityKey={pendingPartialEntityKey}
+                      onPartialTranslate={requestPartialTranslation}
+                    />
+                  ) : (
+                    <TranslationEditorGroup
+                      title={translationTargetLabels[activeTargetGroup]}
+                      fields={activeTargetFields}
+                      activeLocale={activeLocale}
+                      draftValues={draftValues}
+                      onDraftChange={updateDraft}
+                      partialUsage={activeTargetGroup === "site" || activeTargetGroup === "categories" ? localPartialUsage : undefined}
+                      pendingPartialEntityKey={pendingPartialEntityKey}
+                      onPartialTranslate={activeTargetGroup === "site" || activeTargetGroup === "categories" ? requestPartialTranslation : undefined}
+                    />
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </div>
         </section>
 
         <div className="flex flex-wrap items-center justify-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-4">
-          <LocalizationSaveButton disabled={!hasSaveChanges} />
+          <LocalizationSaveButton disabled={!hasLocaleChanges && !hasTranslationChanges}>저장</LocalizationSaveButton>
+          <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+            언어 설정과 번역 내용을 저장합니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+          </p>
         </div>
       </form>
 

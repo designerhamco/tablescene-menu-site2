@@ -15,6 +15,7 @@ import {
   updateMenuItemAction,
   updateMenuPageAction,
 } from "@/app/mypage/menus/actions";
+import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -137,6 +138,7 @@ type ItemBasicDraft = {
   sortOrder: number;
   portionLabel?: string;
   priceVisible?: boolean;
+  priceMode?: PriceMode;
   portionVisible?: boolean;
   traitsVisible?: boolean;
   traitDrafts?: ItemTraitDraft[];
@@ -220,6 +222,49 @@ function copyItemTraitDrafts(traitDrafts?: ItemTraitDraft[]) {
     id: undefined,
     sortOrder: index,
   }));
+}
+
+function normalizeDraftText(value: unknown) {
+  return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim();
+}
+
+function normalizeDraftBoolean(value: unknown, fallback = true) {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function normalizeDraftNumberText(value: unknown) {
+  const text = normalizeDraftText(value);
+  if (!text) return "0";
+  const numericValue = Number(text);
+  return Number.isFinite(numericValue) ? String(numericValue) : text;
+}
+
+function toDraftPriceOption(option: MenuItemPriceOption, index: number): DraftPriceOption {
+  return {
+    id: option.id,
+    label: option.label,
+    price: option.price == null ? "" : String(option.price),
+    priceLabel: option.price_label ?? "",
+    visible: option.visible,
+    sortOrder: option.sort_order ?? index,
+  };
+}
+
+function normalizeDraftPriceOptions(options: DraftPriceOption[] | undefined) {
+  return (options ?? [])
+    .map((option, index) => ({
+      id: option.id,
+      label: normalizeDraftText(option.label),
+      price: normalizeDraftText(option.price),
+      priceLabel: normalizeDraftText(option.priceLabel),
+      visible: normalizeDraftBoolean(option.visible),
+      sortOrder: Number.isFinite(Number(option.sortOrder)) ? Number(option.sortOrder) : index,
+    }))
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, "ko"));
+}
+
+function areDraftPriceOptionsEqual(left?: DraftPriceOption[], right?: DraftPriceOption[]) {
+  return JSON.stringify(normalizeDraftPriceOptions(left)) === JSON.stringify(normalizeDraftPriceOptions(right));
 }
 
 function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
@@ -880,12 +925,20 @@ function MenuPageForm({
   const [title, setTitle] = useState(draftTitle ?? page?.title ?? `${labels.pageLabel} ${count + 1}`);
   const [description, setDescription] = useState(page?.description ?? "");
   const [descriptionVisible, setDescriptionVisible] = useState(page?.description_visible ?? false);
+  const [sortOrder, setSortOrder] = useState(page?.sort_order ?? 0);
   const titleValue = page ? title : draftTitle !== undefined ? draftTitle : title;
   const titleInvalid = !titleValue.trim() || titleValue.length > MENU_FIELD_LIMITS.menuPages.title;
+  const pageFormDirty =
+    !page ||
+    normalizeDraftText(titleValue) !== normalizeDraftText(page.title) ||
+    (supportsDescription && normalizeDraftText(description) !== normalizeDraftText(page.description ?? "")) ||
+    (supportsDescription && descriptionVisible !== (page.description_visible ?? false)) ||
+    normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(page.sort_order);
 
   function handleDraftCommit() {
+    if (page && !pageFormDirty) return;
     onDraftTitleChange?.(titleValue);
-    onDraftChange?.(supportsDescription ? { title: titleValue, description, descriptionVisible } : { title: titleValue });
+    onDraftChange?.(supportsDescription ? { title: titleValue, description, descriptionVisible, sortOrder } : { title: titleValue, sortOrder });
     onDraftCommit?.();
   }
 
@@ -938,7 +991,18 @@ function MenuPageForm({
           }}
         />
       )}
-      <ValidatedTextInput name="menu_page_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={page?.sort_order ?? 0} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
+      <ValidatedTextInput
+        name="menu_page_sort_order"
+        label="정렬 순서"
+        type="number"
+        min={0}
+        step={1}
+        defaultValue={sortOrder}
+        placeholder="정렬 순서를 입력하세요"
+        required
+        helperText="숫자가 낮을수록 먼저 표시됩니다."
+        onValueChange={(value) => setSortOrder(Number(value))}
+      />
       {supportsDescription && (
         <div className="grid gap-3">
           <Checkbox
@@ -961,7 +1025,7 @@ function MenuPageForm({
       {draftOnly ? (
         <>
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <SubmitButton type="button" tone="final" disabled={titleInvalid} onClick={handleDraftCommit}>
+            <SubmitButton type="button" tone="final" disabled={titleInvalid || (Boolean(page) && !pageFormDirty)} onClick={handleDraftCommit}>
               {draftActionLabel ?? (page ? "수정 내용 반영" : `${labels.pageLabel} 추가`)}
             </SubmitButton>
             {onCancel && (
@@ -1026,12 +1090,21 @@ function MenuCategoryForm({
   const [description, setDescription] = useState(category?.description ?? "");
   const [descriptionVisible, setDescriptionVisible] = useState(category?.description_visible ?? false);
   const [visible, setVisible] = useState(category?.visible ?? true);
+  const [sortOrder, setSortOrder] = useState(category?.sort_order ?? 0);
   const nameValue = category ? name : draftName !== undefined ? draftName : name;
   const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuCategories.name;
+  const categoryFormDirty =
+    !category ||
+    normalizeDraftText(nameValue) !== normalizeDraftText(category.name) ||
+    normalizeDraftText(description) !== normalizeDraftText(category.description ?? "") ||
+    descriptionVisible !== (category.description_visible ?? false) ||
+    visible !== (category.visible ?? true) ||
+    normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(category.sort_order);
 
   function handleDraftCommit() {
+    if (category && !categoryFormDirty) return;
     onDraftNameChange?.(nameValue);
-    onDraftChange?.({ name: nameValue, description, descriptionVisible, visible });
+    onDraftChange?.({ name: nameValue, description, descriptionVisible, visible, sortOrder });
     onDraftCommit?.();
   }
 
@@ -1083,7 +1156,18 @@ function MenuCategoryForm({
           if (!category) onDraftChange?.({ description: value });
         }}
       />
-      <ValidatedTextInput name="category_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={category?.sort_order ?? 0} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
+      <ValidatedTextInput
+        name="category_sort_order"
+        label="정렬 순서"
+        type="number"
+        min={0}
+        step={1}
+        defaultValue={sortOrder}
+        placeholder="정렬 순서를 입력하세요"
+        required
+        helperText="숫자가 낮을수록 먼저 표시됩니다."
+        onValueChange={(value) => setSortOrder(Number(value))}
+      />
       <div className="grid gap-3">
         <Checkbox
           name="category_description_visible"
@@ -1112,7 +1196,7 @@ function MenuCategoryForm({
       </div>
       <div className="flex flex-wrap items-center justify-end gap-3">
         {draftOnly ? (
-          <SubmitButton type="button" tone="final" disabled={nameInvalid} onClick={handleDraftCommit}>
+          <SubmitButton type="button" tone="final" disabled={nameInvalid || (Boolean(category) && !categoryFormDirty)} onClick={handleDraftCommit}>
             {draftActionLabel ?? (category ? "수정 내용 반영" : `${labels.categoryLabel} 추가`)}
           </SubmitButton>
         ) : (
@@ -1150,6 +1234,7 @@ function MenuItemForm({
   labels,
   item,
   draftItem,
+  committedDraftItem,
   onDraftItemChange,
   onDraftCommit,
   onDraftCommitMessageClear,
@@ -1176,8 +1261,9 @@ function MenuItemForm({
   labels: TemplateEditorLabels;
   item?: MenuItem;
   draftItem?: ItemBasicDraft;
+  committedDraftItem?: ItemBasicDraft;
   onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
-  onDraftCommit?: () => void;
+  onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
   onDraftCommitMessageClear?: () => void;
   onCancel?: () => void;
   cancelLabel?: string;
@@ -1216,6 +1302,7 @@ function MenuItemForm({
   const [priceVisibleValue, setPriceVisibleValue] = useState(draftItem?.priceVisible ?? item?.price_visible ?? true);
   const [portionVisibleValue, setPortionVisibleValue] = useState(draftItem?.portionVisible ?? item?.portion_visible ?? true);
   const [traitsVisibleValue, setTraitsVisibleValue] = useState(draftItem?.traitsVisible ?? item?.traits_visible ?? true);
+  const [sortOrderValue, setSortOrderValue] = useState(draftItem?.sortOrder ?? item?.sort_order ?? itemCount);
   const [draftImageState, setDraftImageState] = useState<{
     imageUrl: string | null;
     imagePath: string | null;
@@ -1225,7 +1312,13 @@ function MenuItemForm({
     imagePath: draftItem?.imagePath ?? item?.image_path ?? null,
     imageAction: draftItem?.imageAction ?? "keep",
   });
-  const [draftPriceOptions, setDraftPriceOptions] = useState<DraftPriceOption[]>([]);
+  const [draftPriceOptions, setDraftPriceOptions] = useState<DraftPriceOption[]>(() =>
+    draftItem?.priceOptions ??
+    priceOptions
+      .slice(0, MENU_LIMITS.maxPriceOptionsPerItem)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(toDraftPriceOption)
+  );
   const [draftPriceOptionLabel, setDraftPriceOptionLabel] = useState("");
   const [draftPriceOptionPrice, setDraftPriceOptionPrice] = useState("");
   const [draftPriceOptionPriceLabel, setDraftPriceOptionPriceLabel] = useState("");
@@ -1238,10 +1331,12 @@ function MenuItemForm({
   const [traitLabelValues, setTraitLabelValues] = useState(() =>
     Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => initialTraitDrafts[index]?.label ?? "")
   );
-  const hasVisiblePriceOption = priceOptions.some((option) => option.visible);
   const hasDraftPriceOption = draftPriceOptions.some((option) => option.visible);
   const singlePriceInvalid = isSingleMode && !priceValue.trim() && !priceLabelValue.trim();
-  const optionsPriceInvalid = isOptionsMode && !(hasVisiblePriceOption || hasDraftPriceOption);
+  const optionsPriceInvalid = isOptionsMode && !hasDraftPriceOption;
+  const draftPriceOptionInvalid =
+    isOptionsMode &&
+    draftPriceOptions.some((option) => option.visible && (!option.label.trim() || (!String(option.price).trim() && !option.priceLabel.trim())));
   const singlePriceErrorText = attemptedItemSubmit && singlePriceInvalid ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해주세요.` : undefined;
   const isCustomBadge = selectedBadgeLabel === MENU_BADGE_CUSTOM_VALUE;
   const customBadgeTooLong = isCustomBadge && customBadgeLabel.length > MENU_BADGE_MAX_LENGTH;
@@ -1253,10 +1348,12 @@ function MenuItemForm({
         ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해야 반영할 수 있습니다.`
         : optionsPriceInvalid
           ? "옵션별 가격을 1개 이상 추가해야 반영할 수 있습니다."
-          : customBadgeTooLong
-            ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
-            : "";
-  const itemDraftSaveDisabled = nameInvalid || categoryInvalid || singlePriceInvalid || optionsPriceInvalid || customBadgeTooLong;
+          : draftPriceOptionInvalid
+            ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
+            : customBadgeTooLong
+              ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
+              : "";
+  const itemDraftSaveDisabled = nameInvalid || categoryInvalid || singlePriceInvalid || optionsPriceInvalid || draftPriceOptionInvalid || customBadgeTooLong;
   const itemDraftActionLabel = item ? "수정 내용 반영" : labels.itemLabel === "서비스" ? "서비스 추가" : "아이템 추가";
   const hasPortionData = Boolean(portionLabelValue.trim());
   const hasTraitData = traitLabelValues.some((label) => label.trim());
@@ -1265,6 +1362,34 @@ function MenuItemForm({
   const displayImageUrl = draftImageState.imageAction === "delete" ? "" : draftImageState.imageUrl ?? "";
   const selectedCategoryName = categories.find((category) => category.id === categoryId)?.name ?? "";
   const aiDescriptionUsageExceeded = aiDescriptionUsage.used >= aiDescriptionUsage.limit;
+  const committedPriceOptions = useMemo(
+    () => committedDraftItem?.priceOptions ?? priceOptions.slice(0, MENU_LIMITS.maxPriceOptionsPerItem).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+    [committedDraftItem?.priceOptions, priceOptions]
+  );
+  const committedPriceMode =
+    committedDraftItem?.priceMode ?? (capabilities.priceOptions && committedPriceOptions.some((option) => option.visible !== false) ? "options" : "single");
+  const itemFormDirty =
+    !item ||
+    normalizeDraftText(categoryId) !== normalizeDraftText(committedDraftItem?.categoryId ?? item.category_id ?? "") ||
+    normalizeDraftText(nameValue) !== normalizeDraftText(committedDraftItem?.name ?? item.name) ||
+    normalizeDraftText(descriptionValue) !== normalizeDraftText(committedDraftItem?.description ?? item.description ?? "") ||
+    normalizeDraftText(originInfoValue) !== normalizeDraftText(committedDraftItem?.originInfo ?? item.origin_info ?? "") ||
+    normalizeDraftText(priceValue) !== normalizeDraftText(committedDraftItem?.price ?? (item.price == null ? "" : String(item.price))) ||
+    normalizeDraftText(priceLabelValue) !== normalizeDraftText(committedDraftItem?.priceLabel ?? item.price_label ?? "") ||
+    normalizeDraftText(visibleBadgeLabel) !== normalizeDraftText(committedDraftItem?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "") ||
+    visibleValue !== (committedDraftItem?.visible ?? item.visible ?? true) ||
+    normalizeDraftNumberText(sortOrderValue) !== normalizeDraftNumberText(committedDraftItem?.sortOrder ?? item.sort_order ?? itemCount) ||
+    priceVisibleValue !== (committedDraftItem?.priceVisible ?? item.price_visible ?? true) ||
+    currentPriceMode !== committedPriceMode ||
+    normalizeDraftText(portionLabelValue) !== normalizeDraftText(committedDraftItem?.portionLabel ?? item.portion_label ?? "") ||
+    portionVisibleValue !== (committedDraftItem?.portionVisible ?? item.portion_visible ?? true) ||
+    traitsVisibleValue !== (committedDraftItem?.traitsVisible ?? item.traits_visible ?? true) ||
+    !areDraftPriceOptionsEqual(draftPriceOptions, committedPriceOptions) ||
+    draftImageState.imageUrl !== (committedDraftItem?.imageUrl ?? item.image_url ?? null) ||
+    draftImageState.imagePath !== (committedDraftItem?.imagePath ?? item.image_path ?? null) ||
+    draftImageState.imageAction !== (committedDraftItem?.imageAction ?? "keep") ||
+    normalizeDraftText(draftItem?.badgeBackgroundColor) !== normalizeDraftText(committedDraftItem?.badgeBackgroundColor) ||
+    normalizeDraftText(draftItem?.badgeTextColor) !== normalizeDraftText(committedDraftItem?.badgeTextColor);
 
   function updateBadgeDraft(nextSelectedBadgeLabel: string, nextCustomBadgeLabel = customBadgeLabel) {
     const nextBadgeLabel =
@@ -1313,10 +1438,12 @@ function MenuItemForm({
       visible: formData ? formData.has("item_visible") : visibleValue,
       sortOrder: Number(String(formData?.get("item_sort_order") ?? item?.sort_order ?? itemCount)) || 0,
       priceVisible: formData ? formData.has("item_price_visible") : priceVisibleValue,
+      priceMode: currentPriceMode,
       portionLabel: String(formData?.get("item_portion_label") ?? portionLabelValue),
       portionVisible: formData ? formData.has("item_portion_visible") : portionVisibleValue,
       traitsVisible: formData ? formData.has("item_traits_visible") : traitsVisibleValue,
       traitDrafts,
+      priceOptions: currentPriceMode === "options" ? draftPriceOptions : [],
       imageUrl: draftImageState.imageUrl,
       imagePath: draftImageState.imagePath,
       imageAction: draftImageState.imageAction,
@@ -1346,8 +1473,8 @@ function MenuItemForm({
       return;
     }
 
-    if (!price) {
-      setDraftPriceOptionError("옵션 가격을 입력해주세요.");
+    if (!price && !priceLabel) {
+      setDraftPriceOptionError("옵션 가격 또는 표시용 가격을 입력해주세요.");
       return;
     }
 
@@ -1439,6 +1566,12 @@ function MenuItemForm({
 
   function removeDraftPriceOption(optionId: string) {
     setDraftPriceOptions((currentOptions) => currentOptions.filter((option) => option.id !== optionId));
+  }
+
+  function updateDraftPriceOption(optionId: string, patch: Partial<DraftPriceOption>) {
+    setDraftPriceOptions((currentOptions) =>
+      currentOptions.map((option) => (option.id === optionId ? { ...option, ...patch } : option))
+    );
   }
 
   function handleTraitLabelChange(index: number, value: string) {
@@ -1542,7 +1675,7 @@ function MenuItemForm({
                 <FieldLabel>{labels.itemDescriptionLabel}</FieldLabel>
                 <button
                   type="button"
-                  disabled={isGeneratingDescription}
+                  disabled={isGeneratingDescription || aiDescriptionUsageExceeded}
                   onClick={requestAiDescriptionGeneration}
                   className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-black text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                 >
@@ -1563,12 +1696,15 @@ function MenuItemForm({
                 value={descriptionValue}
                 placeholder={labels.itemDescriptionPlaceholder}
                 maxLength={MENU_FIELD_LIMITS.menuItems.description}
-                helperText={`${labels.itemDescriptionHelperText} AI 설명 작성 ${aiDescriptionUsage.used} / ${aiDescriptionUsage.limit}회 사용`}
+                helperText={labels.itemDescriptionHelperText}
                 onValueChange={(value) => {
                   setDescriptionValue(value);
                   updateDraftItem({ description: value });
                 }}
               />
+              <div className="mt-3 max-w-sm">
+                <AiUsageMeter label="AI 설명 작성" used={aiDescriptionUsage.used} limit={aiDescriptionUsage.limit} compact />
+              </div>
             </div>
           ) : (
             <input type="hidden" name="item_description" value="" form={formId} />
@@ -1596,7 +1732,19 @@ function MenuItemForm({
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
         <h4 className="text-sm font-black text-zinc-950">노출 설정</h4>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <ValidatedTextInput form={formId} name="item_sort_order" label="정렬 순서" type="number" min={0} step={1} defaultValue={item?.sort_order ?? itemCount} placeholder="정렬 순서를 입력하세요" required helperText="숫자가 낮을수록 먼저 표시됩니다." />
+          <ValidatedTextInput
+            form={formId}
+            name="item_sort_order"
+            label="정렬 순서"
+            type="number"
+            min={0}
+            step={1}
+            defaultValue={sortOrderValue}
+            placeholder="정렬 순서를 입력하세요"
+            required
+            helperText="숫자가 낮을수록 먼저 표시됩니다."
+            onValueChange={(value) => setSortOrderValue(Number(value))}
+          />
           {capabilities.itemBadges ? (
             <div className="min-w-0">
               <FieldLabel>{labels.itemLabel} 배지</FieldLabel>
@@ -1746,23 +1894,20 @@ function MenuItemForm({
         )}
         {isOptionsMode && (
           <div className="mt-4">
-            {item ? (
-              <MenuItemPriceOptionsEditor priceOptions={priceOptions} />
-            ) : (
-              <DraftPriceOptionsEditor
-                options={draftPriceOptions}
-                labels={labels}
-                label={draftPriceOptionLabel}
-                price={draftPriceOptionPrice}
-                priceLabel={draftPriceOptionPriceLabel}
-                error={draftPriceOptionError || (optionsPriceInvalid ? "옵션별 가격을 1개 이상 추가해주세요." : "")}
-                onLabelChange={setDraftPriceOptionLabel}
-                onPriceChange={setDraftPriceOptionPrice}
-                onPriceLabelChange={setDraftPriceOptionPriceLabel}
-                onAdd={addDraftPriceOption}
-                onRemove={removeDraftPriceOption}
-              />
-            )}
+            <DraftPriceOptionsEditor
+              options={draftPriceOptions}
+              labels={labels}
+              label={draftPriceOptionLabel}
+              price={draftPriceOptionPrice}
+              priceLabel={draftPriceOptionPriceLabel}
+              error={draftPriceOptionError || (optionsPriceInvalid ? "옵션별 가격을 1개 이상 추가해주세요." : "")}
+              onLabelChange={setDraftPriceOptionLabel}
+              onPriceChange={setDraftPriceOptionPrice}
+              onPriceLabelChange={setDraftPriceOptionPriceLabel}
+              onAdd={addDraftPriceOption}
+              onRemove={removeDraftPriceOption}
+              onOptionChange={updateDraftPriceOption}
+            />
           </div>
         )}
         <div className="mt-4">
@@ -1872,10 +2017,10 @@ function MenuItemForm({
             <SubmitButton
               type="button"
               tone="final"
-              disabled={itemDraftSaveDisabled}
+              disabled={itemDraftSaveDisabled || (Boolean(item) && !itemFormDirty)}
               onClick={() => {
                 setAttemptedItemSubmit(true);
-                if (itemDraftSaveDisabled) return;
+                if (itemDraftSaveDisabled || (item && !itemFormDirty)) return;
                 onDraftCommit?.(getCurrentFormDraftPatch());
               }}
             >
@@ -1897,7 +2042,7 @@ function MenuItemForm({
           <SubmitButton
             form={formId}
             tone="final"
-            disabled={nameInvalid || categoryInvalid}
+            disabled={nameInvalid || categoryInvalid || (Boolean(item) && !itemFormDirty)}
             onClick={() => {
               setAttemptedItemSubmit(true);
             }}
@@ -1987,6 +2132,7 @@ function DraftPriceOptionsEditor({
   onPriceLabelChange,
   onAdd,
   onRemove,
+  onOptionChange,
 }: {
   options: DraftPriceOption[];
   labels: TemplateEditorLabels;
@@ -1999,6 +2145,7 @@ function DraftPriceOptionsEditor({
   onPriceLabelChange: (value: string) => void;
   onAdd: () => void;
   onRemove: (optionId: string) => void;
+  onOptionChange: (optionId: string, patch: Partial<DraftPriceOption>) => void;
 }) {
   const reachedPriceOptionLimit = options.length >= MENU_LIMITS.maxPriceOptionsPerItem;
 
@@ -2017,7 +2164,7 @@ function DraftPriceOptionsEditor({
           </div>
           <div>
             <FieldLabel required>가격</FieldLabel>
-            <TextInput value={price} onChange={(event) => onPriceChange(event.target.value.replace(/[^0-9]/g, ""))} type="number" min={0} step={1} placeholder="4000" helperText="숫자만 입력하세요." />
+            <TextInput value={price} onChange={(event) => onPriceChange(event.target.value.replace(/[^0-9]/g, ""))} type="number" min={0} step={1} placeholder="4000" helperText="표시용 가격만 쓸 경우 비워둘 수 있습니다." />
           </div>
           <div>
             <FieldLabel>{labels.priceLabelLabel}</FieldLabel>
@@ -2032,20 +2179,49 @@ function DraftPriceOptionsEditor({
       </div>
 
       <div className="mt-5">
-        <h5 className="text-sm font-black text-zinc-950">등록 예정 옵션</h5>
+        <h5 className="text-sm font-black text-zinc-950">옵션 목록</h5>
         <div className="mt-3 space-y-3">
           {options.map((option) => (
-            <div key={option.id} className="flex flex-col justify-between gap-3 rounded-lg border border-zinc-100 bg-white p-4 md:flex-row md:items-center">
-              <div>
-                <p className="text-base font-black text-zinc-950">{option.label}</p>
-                <p className="mt-2 text-sm font-bold text-zinc-600">{option.priceLabel || `${new Intl.NumberFormat("ko-KR").format(Number(option.price))}원`}</p>
+            <div key={option.id} className="rounded-lg border border-zinc-100 bg-white p-4">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
+                <div>
+                  <FieldLabel required>옵션명</FieldLabel>
+                  <TextInput
+                    value={option.label}
+                    onChange={(event) => onOptionChange(option.id, { label: event.target.value })}
+                    placeholder="HOT"
+                    maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>가격</FieldLabel>
+                  <TextInput
+                    value={option.price}
+                    onChange={(event) => onOptionChange(option.id, { price: event.target.value.replace(/[^0-9]/g, "") })}
+                    type="number"
+                    min={0}
+                    step={1}
+                    placeholder="4000"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>{labels.priceLabelLabel}</FieldLabel>
+                  <TextInput
+                    value={option.priceLabel}
+                    onChange={(event) => onOptionChange(option.id, { priceLabel: event.target.value })}
+                    placeholder={labels.priceLabelPlaceholder}
+                    maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel}
+                  />
+                </div>
+                <button type="button" onClick={() => onRemove(option.id)} className="rounded-full border border-red-100 bg-red-50 px-5 py-3 text-sm font-bold text-red-700">
+                  제거
+                </button>
               </div>
-              <button type="button" onClick={() => onRemove(option.id)} className="rounded-full border border-red-100 bg-red-50 px-5 py-3 text-sm font-bold text-red-700">
-                제거
-              </button>
+              {!option.label.trim() && <p className="mt-2 text-xs font-bold text-red-600">옵션명을 입력해주세요.</p>}
+              {!String(option.price).trim() && !option.priceLabel.trim() && <p className="mt-2 text-xs font-bold text-red-600">가격 또는 표시용 가격을 입력해주세요.</p>}
             </div>
           ))}
-          {options.length === 0 && <EmptyState>옵션별 가격을 1개 이상 추가해주세요. 예: HOT / ICE, Small / Large</EmptyState>}
+          {options.length === 0 && <EmptyState>아직 등록된 가격 옵션이 없습니다. 위의 “새 가격 옵션 추가”에서 HOT / ICE, Small / Large 같은 옵션을 추가해주세요.</EmptyState>}
         </div>
       </div>
     </div>
@@ -2379,6 +2555,7 @@ export default function MenuManagementSection({
               imagePath: draft?.imagePath ?? item.image_path ?? null,
               imageAction: draft?.imageAction ?? "keep",
               priceVisible: draft?.priceVisible ?? item.price_visible,
+              priceMode: draft?.priceMode,
               portionLabel: draft?.portionLabel ?? item.portion_label ?? "",
               portionVisible: draft?.portionVisible ?? item.portion_visible,
               traitsVisible: draft?.traitsVisible ?? item.traits_visible,
@@ -3926,19 +4103,22 @@ export default function MenuManagementSection({
               </p>
             </div>
             <div className="shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuCleanupResult(null);
-                  setIsMenuCleanupOpen(true);
-                }}
-                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950"
-              >
-                AI 메뉴 정리
-              </button>
-              <p className="mt-2 text-right text-xs font-bold leading-relaxed text-zinc-400">
-                {localAiMenuCleanupUsage.used} / {localAiMenuCleanupUsage.limit}회 사용
-              </p>
+              <div className="flex flex-col gap-3 sm:items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuCleanupResult(null);
+                    setIsMenuCleanupOpen(true);
+                  }}
+                  disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
+                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                >
+                  AI 메뉴 정리
+                </button>
+                <div className="w-full min-w-56">
+                  <AiUsageMeter label="AI 메뉴 정리" used={localAiMenuCleanupUsage.used} limit={localAiMenuCleanupUsage.limit} compact />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -4336,6 +4516,7 @@ export default function MenuManagementSection({
                   categories={categoriesForPage}
                   item={selectedEditingItem}
                   draftItem={pendingItemDrafts[selectedEditingItem.id] ?? itemBasicDrafts[selectedEditingItem.id]}
+                  committedDraftItem={itemBasicDrafts[selectedEditingItem.id]}
                   onDraftItemChange={(patch) => updatePendingItemDraft(selectedEditingItem.id, patch)}
                   onDraftCommit={(patch) => commitPendingItemDraft(selectedEditingItem.id, patch)}
                   onDraftCommitMessageClear={() => setItemDraftFeedback("")}
@@ -4431,6 +4612,7 @@ export default function MenuManagementSection({
                           categories={categoriesForPage}
                           item={item}
                           draftItem={itemBasicDrafts[item.id]}
+                          committedDraftItem={itemBasicDrafts[item.id]}
                           onDraftItemChange={(patch) => updatePendingItemDraft(item.id, patch)}
                           onDraftCommit={(patch) => commitPendingItemDraft(item.id, patch)}
                           draftOnly
@@ -4570,6 +4752,9 @@ export default function MenuManagementSection({
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 메뉴 이름, 가격, 설명을 자유롭게 붙여넣으면 AI가 카테고리와 메뉴 아이템으로 정리합니다.
               </p>
+              <div className="mt-4 max-w-sm">
+                <AiUsageMeter label="AI 메뉴 정리" used={localAiMenuCleanupUsage.used} limit={localAiMenuCleanupUsage.limit} compact />
+              </div>
               <div className="mt-5">
                 <FieldLabel>메뉴 내용</FieldLabel>
                 <textarea
@@ -4823,6 +5008,7 @@ function MenuItemCard({
   labels,
   cancelLabel,
   draftItem,
+  committedDraftItem,
   onDraftItemChange,
   onDraftCommit,
   onDraftCommitMessageClear,
@@ -4848,6 +5034,7 @@ function MenuItemCard({
   labels: TemplateEditorLabels;
   cancelLabel: string;
   draftItem?: ItemBasicDraft;
+  committedDraftItem?: ItemBasicDraft;
   onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
   onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
   onDraftCommitMessageClear?: () => void;
@@ -4867,7 +5054,9 @@ function MenuItemCard({
   const portion = formatPortionLabel(item);
   const priceOptionText = capabilities.priceOptions ? priceOptionSummary(priceOptions) : "";
   const traitText = capabilities.itemTraits ? traitSummary(traits) : "";
-  const [priceMode, setPriceMode] = useState<PriceMode>(capabilities.priceOptions && priceOptions.some((option) => option.visible) ? "options" : "single");
+  const [priceMode, setPriceMode] = useState<PriceMode>(
+    draftItem?.priceMode ?? (capabilities.priceOptions && priceOptions.some((option) => option.visible) ? "options" : "single")
+  );
   const isCopiedDraftItem =
     item.id.startsWith("temp-item-copy-") ||
     item.id.startsWith("temp-item-category-copy-") ||
@@ -4893,6 +5082,7 @@ function MenuItemCard({
             labels={labels}
             item={item}
             draftItem={draftItem}
+            committedDraftItem={committedDraftItem}
             onDraftItemChange={onDraftItemChange}
             onDraftCommit={onDraftCommit}
             onDraftCommitMessageClear={onDraftCommitMessageClear}
@@ -4964,30 +5154,6 @@ function MenuItemCard({
       </div>
       )}
     </article>
-  );
-}
-
-function MenuItemPriceOptionsEditor({
-  priceOptions,
-}: {
-  priceOptions: MenuItemPriceOption[];
-}) {
-  return (
-    <div className="mt-4 rounded-lg bg-zinc-50 p-4">
-      <div>
-        <h5 className="text-sm font-black text-zinc-950">등록된 가격 옵션</h5>
-        <div className="mt-3 space-y-3">
-          {priceOptions.map((option) => (
-            <div key={option.id} className="rounded-lg border border-zinc-100 bg-white p-4">
-              <p className="text-base font-black text-zinc-950">{option.label}</p>
-              <p className="mt-2 text-sm font-bold text-zinc-600">{formatPriceOption(option) || "가격 입력 전"}</p>
-              <p className="mt-1 text-xs font-semibold text-zinc-400">정렬 순서 {option.sort_order}</p>
-            </div>
-          ))}
-          {priceOptions.length === 0 && <EmptyState>아직 등록된 가격 옵션이 없습니다. 예: HOT / ICE, Small / Large, 150g / 300g</EmptyState>}
-        </div>
-      </div>
-    </div>
   );
 }
 

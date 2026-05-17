@@ -30,18 +30,27 @@ function getItemTraits(traits: MenuPageData["traits"], itemId: string) {
 }
 
 function formatPriceOption(option: MenuPageData["priceOptions"][number]) {
-  if (option.price_label) return option.price_label;
-  if (typeof option.price === "number") return new Intl.NumberFormat("ko-KR").format(option.price) + "원";
+  const priceLabel = option.price_label?.trim();
+  if (priceLabel) return priceLabel;
+
+  const rawPrice = option.price as unknown;
+  if (typeof rawPrice === "number" && Number.isFinite(rawPrice)) {
+    return new Intl.NumberFormat("ko-KR").format(rawPrice) + "원";
+  }
+  if (typeof rawPrice === "string" && rawPrice.trim()) {
+    const numericPrice = Number(rawPrice.replace(/,/g, ""));
+    return Number.isFinite(numericPrice) ? new Intl.NumberFormat("ko-KR").format(numericPrice) + "원" : rawPrice.trim();
+  }
+
   return "";
 }
 
 function getItemPriceOptions(priceOptions: MenuPageData["priceOptions"], itemId: string) {
-  return priceOptions.filter((option) => option.menu_item_id === itemId && option.visible).sort((a, b) => a.sort_order - b.sort_order);
+  return priceOptions.filter((option) => option.menu_item_id === itemId && option.visible !== false).sort((a, b) => a.sort_order - b.sort_order);
 }
 
 function getFeaturedPrice(data: MenuPreviewRendererProps, item: MenuItem, capabilities: TemplateCapabilities) {
   if (item.price_visible === false) return null;
-  if (item.price_label?.trim()) return item.price_label.trim();
 
   const optionSummary = capabilities.priceOptions
     ? getItemPriceOptions(data.priceOptions, item.id)
@@ -54,7 +63,10 @@ function getFeaturedPrice(data: MenuPreviewRendererProps, item: MenuItem, capabi
         .join(" / ")
     : "";
 
-  return optionSummary || formatMenuPrice(item) || "문의";
+  if (optionSummary) return optionSummary;
+  if (item.price_label?.trim()) return item.price_label.trim();
+
+  return formatMenuPrice(item) || "문의";
 }
 
 function getFeaturedItem(data: MenuPreviewRendererProps, capabilities: TemplateCapabilities) {
@@ -204,12 +216,14 @@ function MenuCoverSection({ data, capabilities }: { data: MenuPreviewRendererPro
 
 function MenuItemCard({
   item,
+  priceOptions,
   traits,
   capabilities,
   templateKey,
   customBadgeStyles,
 }: {
   item: MenuItem;
+  priceOptions: MenuPageData["priceOptions"];
   traits: MenuPageData["traits"];
   capabilities: TemplateCapabilities;
   templateKey: string | null;
@@ -217,6 +231,7 @@ function MenuItemCard({
 }) {
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
+  const visiblePriceOptions = capabilities.priceOptions && item.price_visible !== false ? getItemPriceOptions(priceOptions, item.id) : [];
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const badgeStyle = badgeLabel ? getBadgeStyleForItem(item, templateKey, customBadgeStyles) : null;
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
@@ -238,9 +253,23 @@ function MenuItemCard({
             <h5 className="break-keep text-lg font-black text-zinc-950">{item.name}</h5>
             {item.description && <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{item.description}</p>}
           </div>
-          {price && <p className="shrink-0 text-sm font-black text-zinc-950">{price}</p>}
+          {price && visiblePriceOptions.length === 0 && <p className="shrink-0 text-sm font-black text-zinc-950">{price}</p>}
         </div>
         {portion && <p className="mt-3 text-xs font-black text-zinc-400">{portion}</p>}
+        {visiblePriceOptions.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {visiblePriceOptions.map((option) => {
+              const optionPrice = formatPriceOption(option);
+
+              return (
+                <span key={option.id} className="rounded-full bg-zinc-50 px-2.5 py-1 text-xs font-black text-zinc-500">
+                  {option.label}
+                  {optionPrice && <span className="ml-1 text-zinc-700">{optionPrice}</span>}
+                </span>
+              );
+            })}
+          </div>
+        )}
         {visibleTraits.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
             {visibleTraits.map((trait) => (
@@ -299,6 +328,7 @@ function MenuPagesSection({ data, capabilities }: { data: MenuPreviewRendererPro
                             <MenuItemCard
                               key={item.id}
                               item={item}
+                              priceOptions={data.priceOptions}
                               traits={getItemTraits(data.traits, item.id)}
                               capabilities={capabilities}
                               templateKey={data.menuSite.template_key}

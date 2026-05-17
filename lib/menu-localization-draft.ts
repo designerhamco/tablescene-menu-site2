@@ -28,6 +28,7 @@ export type PartialMenuItemTranslationResult = {
   name?: string;
   description?: string;
   price_label?: string;
+  portion_label?: string;
   badge_label?: string;
 };
 

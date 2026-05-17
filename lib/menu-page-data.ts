@@ -87,6 +87,23 @@ function mergeMenuSiteTranslation(menuSite: MenuSite, translation: MenuSiteTrans
   };
 }
 
+function mergePriceOptionTranslation(
+  option: MenuItemPriceOption,
+  translation: MenuItemPriceOptionTranslation | null | undefined,
+): MenuItemPriceOption {
+  if (!translation) return option;
+
+  return {
+    ...option,
+    label: getLocalizedValue(option.label, translation.label),
+    price_label: getLocalizedValue(option.price_label, translation.price_label),
+    price: option.price,
+    visible: option.visible,
+    menu_item_id: option.menu_item_id,
+    sort_order: option.sort_order,
+  };
+}
+
 async function applyMenuTranslations(
   supabase: SupabaseServerClient,
   data: MenuPageData,
@@ -151,7 +168,6 @@ async function applyMenuTranslations(
     pageResult.error ||
     categoryResult.error ||
     itemResult.error ||
-    priceOptionResult.error ||
     traitResult.error ||
     eventResult.error ||
     chefResult.error ||
@@ -163,7 +179,9 @@ async function applyMenuTranslations(
   const pageTranslations = mapById((pageResult.data ?? []) as MenuPageTranslation[], "menu_page_id");
   const categoryTranslations = mapById((categoryResult.data ?? []) as MenuCategoryTranslation[], "category_id");
   const itemTranslations = mapById((itemResult.data ?? []) as MenuItemTranslation[], "item_id");
-  const priceOptionTranslations = mapById((priceOptionResult.data ?? []) as MenuItemPriceOptionTranslation[], "price_option_id");
+  const priceOptionTranslations = priceOptionResult.error
+    ? new Map<string, MenuItemPriceOptionTranslation>()
+    : mapById((priceOptionResult.data ?? []) as MenuItemPriceOptionTranslation[], "price_option_id");
   const traitTranslations = mapById((traitResult.data ?? []) as MenuItemTraitTranslation[], "trait_id");
   const eventTranslations = mapById((eventResult.data ?? []) as MenuEventTranslation[], "event_id");
   const chefTranslations = mapById((chefResult.data ?? []) as MenuChefTranslation[], "chef_id");
@@ -207,16 +225,7 @@ async function applyMenuTranslations(
           }
         : item;
     }),
-    priceOptions: data.priceOptions.map((option) => {
-      const translation = priceOptionTranslations.get(option.id);
-      return translation
-        ? {
-            ...option,
-            label: getLocalizedValue(option.label, translation.label),
-            price_label: getLocalizedValue(option.price_label, translation.price_label),
-          }
-        : option;
-    }),
+    priceOptions: data.priceOptions.map((option) => mergePriceOptionTranslation(option, priceOptionTranslations.get(option.id))),
     traits: data.traits.map((trait) => {
       const translation = traitTranslations.get(trait.id);
       return translation

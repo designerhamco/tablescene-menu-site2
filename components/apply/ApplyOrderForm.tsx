@@ -101,7 +101,8 @@ type DraftMenuOrderPayload = Omit<MenuOrderPayload, "template_key"> & {
   template_key: TemplateKey | "";
 };
 
-const MENU_ADDRESS_HELPER_TEXT = "영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
+const MENU_ADDRESS_HELPER_TEXT =
+  "결제 후 변경할 수 없습니다. QR 코드와 공유 링크에 사용되므로 신중하게 입력해주세요. 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
 
 type PaidApplyProduct = {
   key: PlanKey;
@@ -1341,6 +1342,9 @@ export default function ApplyOrderForm({
               <Field label={isScreenService ? "희망 공개 주소" : "희망 메뉴판 주소"} value={form.desiredSlug} onChange={(value) => updateField("desiredSlug", value)} required maxLength={40} placeholder="예: gangnam-cafe" helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : MENU_ADDRESS_HELPER_TEXT} errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null} successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined} />
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                 생성될 주소: {isSlugValid ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
+              </p>
+              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                주소 확인 후 결제를 완료하면 이 공개 주소는 고객 화면에서 변경할 수 없습니다.
               </p>
             </div>
             <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "디스플레이 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />

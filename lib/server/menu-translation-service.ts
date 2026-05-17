@@ -8,9 +8,9 @@ import { getTemplateCapabilities } from "@/lib/template-capabilities";
 
 export const TARGET_TRANSLATION_LOCALES = ["en", "zh", "ja"] as const;
 
-type TargetTranslationLocale = (typeof TARGET_TRANSLATION_LOCALES)[number];
+export type TargetTranslationLocale = (typeof TARGET_TRANSLATION_LOCALES)[number];
 type Supabase = SupabaseClient<Database>;
-type TranslationTable =
+export type TranslationTable =
   | "menu_site_translations"
   | "menu_page_translations"
   | "menu_category_translations"
@@ -74,10 +74,23 @@ export type MenuTranslationUpdateResult = {
   translatedTextUnits: number;
 };
 
+export type MenuTranslationDraftRow = {
+  table: TranslationTable;
+  entityId: string;
+  locale: TargetTranslationLocale;
+  sourceTextHash: string;
+  fields: Record<string, string | null>;
+};
+
+export type MenuTranslationDraftResult = MenuTranslationUpdateResult & {
+  rows: MenuTranslationDraftRow[];
+};
+
 export type PartialMenuItemTranslationInput = {
   name: string | null;
   description?: string | null;
   price_label?: string | null;
+  portion_label?: string | null;
   badge_label?: string | null;
   categoryName?: string | null;
   restaurantName?: string | null;
@@ -197,8 +210,22 @@ export function isPriceLikeText(value: string) {
   return /^[\d\s,.₩¥€£$~–—\-+()/:%원円엔KRWkrwUSDusdJPYjpyHOTICEhotice]+$/.test(normalized);
 }
 
+function isUnitLikeText(value: string) {
+  const normalized = value.trim();
+  if (!normalized || !/\d/.test(normalized)) return false;
+
+  return /^[\d\s,.~–—\-+()/]*(ml|milliliter|millilitre|l|liter|litre|g|gram|kg|mg|oz|lb|cm|mm|m)\b[\d\s,.~–—\-+()/]*$/i.test(
+    normalized
+  );
+}
+
 function isPriceLabelField(fieldName: string) {
   return fieldName === "price_label" || fieldName.endsWith("_price_label");
+}
+
+function isProtectedLiteralField(fieldName: string, value: string) {
+  if (isPriceLabelField(fieldName)) return isPriceLikeText(value);
+  return fieldName === "portion_label" && isUnitLikeText(value);
 }
 
 function buildSourceHash(fields: Record<string, string>) {
@@ -647,7 +674,7 @@ function splitProtectedPriceTextUnits(textUnits: TranslationTextUnit[]) {
   const protectedText: Record<string, string> = {};
   const translatableTextUnits = textUnits.filter((unit) => {
     const fieldName = unit.key.split(":").at(-1) ?? "";
-    if (isPriceLabelField(fieldName) && isPriceLikeText(unit.text)) {
+    if (isProtectedLiteralField(fieldName, unit.text)) {
       protectedText[unit.key] = unit.text;
       return false;
     }
@@ -666,6 +693,7 @@ export async function translatePartialMenuItemFields(
     name: source.name,
     description: source.description,
     price_label: source.price_label,
+    portion_label: source.portion_label,
     badge_label: source.badge_label,
   };
   const textUnits = Object.entries(sourceFields).flatMap(([fieldName, rawValue]) => {
@@ -1136,6 +1164,40 @@ function buildRowsForLocale(locale: TargetTranslationLocale, entities: Translati
   }, {} as Record<TranslationTable, Record<string, unknown>[]>);
 }
 
+function buildDraftRows(rowsByTable: Record<TranslationTable, Record<string, unknown>[]>) {
+  return Object.entries(rowsByTable).flatMap(([table, rows]) => {
+    const translationTable = table as TranslationTable;
+    const sourceIdField = translationTableSourceIdFields[translationTable];
+
+    return rows.flatMap((row) => {
+      const entityId = cleanText(row[sourceIdField]);
+      const locale = cleanText(row.locale) as TargetTranslationLocale | null;
+      const sourceTextHash = cleanText(row.source_text_hash);
+
+      if (!entityId || !locale || !sourceTextHash) return [];
+
+      const fields = Object.entries(row).reduce<Record<string, string | null>>((result, [key, value]) => {
+        if (key === sourceIdField || key === "locale" || key === "source_text_hash" || key === "status" || key === "updated_at") {
+          return result;
+        }
+
+        result[key] = cleanText(value);
+        return result;
+      }, {});
+
+      return [
+        {
+          table: translationTable,
+          entityId,
+          locale,
+          sourceTextHash,
+          fields,
+        } satisfies MenuTranslationDraftRow,
+      ];
+    });
+  });
+}
+
 async function upsertRows(supabase: Supabase, table: TranslationTable, rows: Record<string, unknown>[]) {
   if (rows.length === 0) {
     return;
@@ -1278,5 +1340,69 @@ export async function runMenuTranslationUpdate(
     translatedEntities,
     skippedEntities,
     translatedTextUnits,
+  };
+}
+
+export async function runMenuTranslationDraft(
+  supabase: Supabase,
+  menuSiteId: string,
+  targetLocales: readonly TargetTranslationLocale[] = TARGET_TRANSLATION_LOCALES
+): Promise<MenuTranslationDraftResult> {
+  if (targetLocales.length === 0) {
+    throw new Error("자동 번역을 실행할 외국어를 먼저 선택해주세요.");
+  }
+
+  const entities = await loadTranslationEntities(supabase, menuSiteId);
+  const existingHashes = await loadExistingTranslationHashes(supabase, entities, targetLocales);
+  const rows: MenuTranslationDraftRow[] = [];
+  let translatedEntities = 0;
+  let skippedEntities = 0;
+  let translatedTextUnits = 0;
+
+  for (const locale of targetLocales) {
+    const entitiesToTranslate = entities.filter((entity) => {
+      const existingHash = existingHashes.get(getEntityKey(entity, locale));
+      if (existingHash === entity.sourceTextHash) {
+        skippedEntities += 1;
+        return false;
+      }
+
+      return true;
+    });
+
+    const allTextUnits = entitiesToTranslate.flatMap((entity) =>
+      Object.entries(entity.fields).map(([fieldName, text]) => ({
+        key: getTextUnitKey(entity, fieldName),
+        text,
+      }))
+    );
+    const { protectedText, translatableTextUnits } = splitProtectedPriceTextUnits(allTextUnits);
+
+    if (allTextUnits.length === 0) {
+      continue;
+    }
+
+    const translatedText =
+      translatableTextUnits.length > 0
+        ? { ...protectedText, ...(await translateTextUnits(locale, translatableTextUnits)) }
+        : protectedText;
+
+    if (Object.keys(translatedText).length === 0) {
+      throw new Error("번역 API 결과가 비어 있습니다.");
+    }
+
+    validateTranslatedTextUnits(locale, translatableTextUnits, translatedText);
+
+    const rowsByTable = buildRowsForLocale(locale, entitiesToTranslate, translatedText);
+    rows.push(...buildDraftRows(rowsByTable));
+    translatedEntities += entitiesToTranslate.length;
+    translatedTextUnits += translatableTextUnits.length;
+  }
+
+  return {
+    translatedEntities,
+    skippedEntities,
+    translatedTextUnits,
+    rows,
   };
 }

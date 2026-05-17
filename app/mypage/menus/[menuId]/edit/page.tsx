@@ -18,6 +18,7 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import BackgroundColorSettingsForm from "@/components/mypage/menu-editor/BackgroundColorSettingsForm";
 import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
+import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
@@ -43,7 +44,6 @@ import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
-import { RESTAURANT_TYPE_OPTIONS } from "@/lib/restaurant-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
 import {
@@ -360,10 +360,11 @@ function buildEditableTranslationFields({
           name: item.name,
           description: item.description,
           price_label: item.price_label,
+          portion_label: item.portion_visible === false ? null : item.portion_label,
           badge_label: includeItemBadges ? item.badge_label : null,
         },
         translationsByLocale: itemTranslationsById.get(item.id) ?? new Map(),
-        fieldLabels: { name: "메뉴명", description: "메뉴 설명", price_label: "표시 가격 문구", badge_label: "배지 문구" },
+        fieldLabels: { name: "메뉴명", description: "메뉴 설명", price_label: "표시 가격 문구", portion_label: "제공량 표시 문구", badge_label: "배지 문구" },
         multilineFields: ["description"],
       });
     });
@@ -471,21 +472,36 @@ function Checkbox({ name, defaultChecked, label }: { name: string; defaultChecke
 function SubmitButton({
   children,
   tone = "dark",
+  dirtyFormId,
   className: customClassName,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" | "final" }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" | "final"; dirtyFormId?: string }) {
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
     danger: "border border-red-100 bg-red-50 text-red-700 hover:bg-red-100",
     final: "rounded-lg bg-zinc-950 text-white shadow-sm hover:bg-zinc-800",
   }[tone];
+  const buttonClassName = `inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`;
+
+  if (dirtyFormId) {
+    return (
+      <DirtySubmitButton
+        {...props}
+        formId={dirtyFormId}
+        pendingLabel="저장 중..."
+        className={buttonClassName}
+      >
+        {children}
+      </DirtySubmitButton>
+    );
+  }
 
   return (
     <PendingSubmitButton
       {...props}
       pendingLabel="저장 중..."
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+      className={buttonClassName}
     >
       {children}
     </PendingSubmitButton>
@@ -852,7 +868,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       imageStatus: item.image_url ? "이미지 있음" : "이미지 없음",
     }));
   const selectedFeaturedItem = pageSettings.featured_item_id ? items.find((item) => item.id === pageSettings.featured_item_id) : null;
-  const selectedFeaturedItemInactive = Boolean(pageSettings.featured_item_enabled && pageSettings.featured_item_id && selectedFeaturedItem?.visible !== true);
+  const selectedFeaturedItemInactive = Boolean(
+    pageSettings.featured_item_enabled &&
+      pageSettings.featured_item_id &&
+      (!selectedFeaturedItem || selectedFeaturedItem.visible === false)
+  );
   const sampleFeaturedItem = menuManagementStarterPreset?.featured_item_name
     ? items.find((item) => item.name === menuManagementStarterPreset.featured_item_name && item.visible !== false)
     : null;
@@ -905,18 +925,19 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             : null
       : error;
   const basicNameError = activeTab === "basic" && bannerError?.includes("메뉴판 이름") ? bannerError : null;
-  const basicSlugError =
-    activeTab === "basic" &&
-    (bannerError?.includes("공개 메뉴판 주소") || bannerError?.includes("이미 사용 중인 공개 메뉴판 주소"))
-      ? bannerError
-      : null;
-  const finalSaveError = normalizeFinalSaveError(activeTab === "basic" && (basicNameError || basicSlugError) ? null : bannerError);
+  const basicRestaurantNameError = activeTab === "basic" && bannerError?.includes("실제 매장명") ? bannerError : null;
+  const coverFeaturedItemError = activeTab === "cover" && bannerError?.includes("대표 추천 메뉴") ? bannerError : null;
+  const finalSaveError = normalizeFinalSaveError(
+    (activeTab === "basic" && (basicNameError || basicRestaurantNameError)) ||
+      (activeTab === "cover" && coverFeaturedItemError)
+      ? null
+      : bannerError
+  );
   const globalBannerError = activeTab === "localization" ? bannerError : null;
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
   const previewUrl = `/mypage/menus/${site.id}/preview`;
-  const isSlugLocked = site.status === "published" || Boolean(site.published_at);
   const checklist = [
     { label: "매장명 입력", ok: Boolean(site.restaurant_name || site.name) },
     { label: "공개 메뉴판 주소 설정", ok: Boolean(site.slug) },
@@ -927,7 +948,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const optionalChecklist = [
     editorCapabilities.introPage ? { label: "인트로 페이지 사용", ok: pageSettings.intro_enabled } : null,
     editorCapabilities.menuCoverPage && supportsMenuCover ? { label: coverToggleLabel, ok: pageSettings.menu_cover_enabled } : null,
-    editorCapabilities.aboutPage ? { label: "소개 페이지 사용", ok: pageSettings.about_enabled } : null,
+    editorCapabilities.aboutPage && (templateCapabilities.chefs || templateCapabilities.socialLinks)
+      ? { label: "소개 페이지 사용", ok: pageSettings.about_enabled }
+      : null,
     editorCapabilities.eventPage && templateCapabilities.events ? { label: "이벤트 등록", ok: events.length > 0 } : null,
     editorCapabilities.socialLinks && templateCapabilities.socialLinks ? { label: "SNS 등록", ok: socialLinks.length > 0 } : null,
     editorCapabilities.chefs && templateCapabilities.chefs ? { label: "셰프/인물 등록", ok: chefs.length > 0 } : null,
@@ -1031,8 +1054,19 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     />
                   </div>
                   <div>
-                    <FieldLabel>실제 매장명</FieldLabel>
-                    <TextInput name="restaurant_name" defaultValue={site.restaurant_name ?? ""} maxLength={MENU_FIELD_LIMITS.menuSites.restaurantName} helperText="공개 메뉴판에 표시될 매장명입니다." />
+                    <FieldLabel required>실제 매장명</FieldLabel>
+                    <TextInput
+                      name="restaurant_name"
+                      defaultValue={site.restaurant_name ?? ""}
+                      required
+                      maxLength={MENU_FIELD_LIMITS.menuSites.restaurantName}
+                      helperText={
+                        <>
+                          공개 메뉴판에 표시될 매장명입니다.
+                          {basicRestaurantNameError && <span className="mt-1 block text-red-600">{basicRestaurantNameError}</span>}
+                        </>
+                      }
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel>매장 설명</FieldLabel>
@@ -1045,42 +1079,27 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     />
                   </div>
                   <div>
-                    <FieldLabel>업종</FieldLabel>
-                    <Select name="restaurant_type" defaultValue={site.restaurant_type ?? ""} helperText="업종은 템플릿 추천과 기본 데이터 구성에 활용됩니다.">
-                      <option value="">선택해주세요</option>
-                      {RESTAURANT_TYPE_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div>
-                    <FieldLabel required>공개 메뉴판 주소</FieldLabel>
-                    {isSlugLocked && <input type="hidden" name="slug" value={site.slug} />}
+                    <FieldLabel>공개 메뉴판 주소</FieldLabel>
                     <TextInput
-                      name="slug"
-                      defaultValue={site.slug}
-                      required
-                      disabled={isSlugLocked}
-                      minLength={MENU_FIELD_LIMITS.menuSites.slugMin}
-                      maxLength={MENU_FIELD_LIMITS.menuSites.slugMax}
-                      pattern="[a-z0-9-]+"
-                      title="영문 소문자, 숫자, 하이픈만 입력할 수 있습니다."
+                      value={publicUrl}
+                      readOnly
+                      className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
                       helperText={
                         <>
-                          영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.
-                          {basicSlugError && <span className="mt-1 block text-red-600">{basicSlugError}</span>}
+                          QR 코드와 공유 링크에 사용되는 주소입니다. 결제 후에는 변경할 수 없습니다.
+                          {!site.slug && <span className="mt-1 block text-red-600">공개 메뉴판 주소가 비어 있습니다. 관리자에게 문의해주세요.</span>}
                         </>
                       }
                     />
-                    <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-                      공개 후에는 QR 코드와 공유 링크 유지를 위해 주소를 변경할 수 없습니다.
-                    </p>
                   </div>
                   <div className="md:col-span-2">
                     <FieldLabel>템플릿</FieldLabel>
-                    <TextInput value={templateDisplayName} readOnly />
+                    <TextInput
+                      value={templateDisplayName}
+                      readOnly
+                      className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
+                      helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
+                    />
                   </div>
                   {templateCapabilities.logoImage && (
                     <div className="md:col-span-2">
@@ -1103,7 +1122,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   )}
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="basic-info-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
@@ -1129,7 +1148,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   })}
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="page-settings-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
@@ -1170,7 +1189,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </div>
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="intro-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
@@ -1258,11 +1277,16 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         <div className="grid gap-5">
                           <Checkbox name="featured_item_enabled" label="대표 추천 메뉴 사용" defaultChecked={pageSettings.featured_item_enabled} />
                           <div>
-                            <FieldLabel>대표 추천 메뉴</FieldLabel>
+                            <FieldLabel required>대표 추천 메뉴</FieldLabel>
                             <Select
                               name="featured_item_id"
                               defaultValue={pageSettings.featured_item_id ?? ""}
-                              helperText="대표 영역에 표시할 메뉴 정보를 선택합니다. 메뉴 이미지는 커버 이미지 대체로 사용되지 않습니다."
+                              helperText={
+                                <>
+                                  대표 추천 메뉴 사용을 켠 경우 필수입니다. 메뉴 이미지는 커버 이미지 대체로 사용되지 않습니다.
+                                  {coverFeaturedItemError && <span className="mt-1 block text-red-600">{coverFeaturedItemError}</span>}
+                                </>
+                              }
                             >
                               <option value="">대표로 보여줄 메뉴를 선택해주세요</option>
                               {selectedFeaturedItemInactive && selectedFeaturedItem && (
@@ -1278,7 +1302,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             </Select>
                             {selectedFeaturedItemInactive && (
                               <p className="mt-3 break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
-                                선택한 대표 추천 메뉴가 숨김 처리되어 공개 메뉴판에는 표시되지 않습니다. 선택을 해제하려면 “대표 추천 메뉴 사용”을 끄거나 선택값을 비운 뒤 저장해주세요.
+                                {selectedFeaturedItem
+                                  ? `선택한 대표 추천 메뉴 “${selectedFeaturedItem.name}”이 숨김 처리되어 공개 메뉴판에는 표시되지 않습니다.`
+                                  : "선택한 대표 추천 메뉴가 삭제되었거나 존재하지 않아 공개 메뉴판에는 표시되지 않습니다."}{" "}
+                                선택을 해제하려면 “대표 추천 메뉴 사용”을 끄거나 선택값을 비운 뒤 저장해주세요.
                               </p>
                             )}
                           </div>
@@ -1294,7 +1321,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FinalActionRow>
                       <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
-                      <SubmitButton tone="final">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="menu-cover-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다.
@@ -1343,7 +1370,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     />
                     <div className="md:col-span-2">
                       <FinalActionRow>
-                        <SubmitButton tone="final">저장</SubmitButton>
+                        <SubmitButton tone="final" dirtyFormId="about-form">저장</SubmitButton>
                         <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                           변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
@@ -1365,7 +1392,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   />
                   <div className="md:col-span-2">
                       <FinalActionRow>
-                        <SubmitButton tone="final">저장</SubmitButton>
+                        <SubmitButton tone="final" dirtyFormId="events-form">저장</SubmitButton>
                         <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                           이벤트 변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 이벤트 이미지는 후속 draft 단계 전까지 기존 업로드 정책을 따릅니다.
@@ -1386,7 +1413,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <HiddenMenuId menuId={site.id} />
                     <div>
                       <FieldLabel>현재 템플릿</FieldLabel>
-                      <TextInput value={templateDisplayName} readOnly helperText="템플릿 변경 기능은 추후 제공 예정입니다." />
+                      <TextInput
+                        value={templateDisplayName}
+                        readOnly
+                        className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
+                        helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
+                      />
                     </div>
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>
@@ -1425,7 +1457,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </div>
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
-                      <SubmitButton tone="final">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="design-settings-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.
@@ -1508,20 +1540,24 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       ))}
                     </div>
                   </div>
-                  <div className="rounded-lg border border-zinc-100 bg-white p-5">
-                    <h3 className="font-bold">선택 콘텐츠</h3>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
-                      {optionalChecklist.map((item) => (
-                        <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
-                          {item.ok ? "사용 중" : "미사용"} · {item.label}
-                        </p>
-                      ))}
+                  {optionalChecklist.length > 1 && (
+                    <div className="rounded-lg border border-zinc-100 bg-white p-5">
+                      <h3 className="font-bold">선택 콘텐츠</h3>
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        {optionalChecklist.map((item) => (
+                          <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
+                            {item.ok ? "사용 중" : "미사용"} · {item.label}
+                          </p>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  {isSlugLocked && <p className="break-keep text-sm font-bold text-amber-700">이미 공개된 메뉴판입니다. 기존 QR 코드가 깨지지 않도록 공개 메뉴판 주소는 잠겨 있습니다.</p>}
+                  )}
+                  <p className="break-keep text-sm font-bold text-amber-700">
+                    QR 코드는 결제 시 지정한 공개 메뉴판 주소로 연결됩니다.
+                  </p>
                   <div>
                     <FinalActionRow>
-                      <SubmitButton tone="final">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="publish-settings-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         공개 상태 변경은 저장 후 DB와 미리보기, 공개 메뉴판에 반영됩니다.

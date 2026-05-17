@@ -48,20 +48,29 @@ function getItemTraits(traits: PublicMenuTemplateProps["traits"], itemId: string
 
 function getItemPriceOptions(priceOptions: PublicMenuTemplateProps["priceOptions"], itemId: string) {
   return priceOptions
-    .filter((option) => option.menu_item_id === itemId && option.visible)
+    .filter((option) => option.menu_item_id === itemId && option.visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order)
     .slice(0, MENU_LIMITS.maxPriceOptionsPerItem);
 }
 
 function formatPriceOption(option: PublicMenuTemplateProps["priceOptions"][number]) {
-  if (option.price_label) return option.price_label;
-  if (typeof option.price === "number") return new Intl.NumberFormat("ko-KR").format(option.price) + "원";
+  const priceLabel = option.price_label?.trim();
+  if (priceLabel) return priceLabel;
+
+  const rawPrice = option.price as unknown;
+  if (typeof rawPrice === "number" && Number.isFinite(rawPrice)) {
+    return new Intl.NumberFormat("ko-KR").format(rawPrice) + "원";
+  }
+  if (typeof rawPrice === "string" && rawPrice.trim()) {
+    const numericPrice = Number(rawPrice.replace(/,/g, ""));
+    return Number.isFinite(numericPrice) ? new Intl.NumberFormat("ko-KR").format(numericPrice) + "원" : rawPrice.trim();
+  }
+
   return "";
 }
 
 function getFeaturedPrice(data: PublicMenuTemplateProps, item: MenuItem, capabilities: TemplateCapabilities) {
   if (item.price_visible === false) return null;
-  if (item.price_label?.trim()) return item.price_label.trim();
 
   const visiblePriceOptions = capabilities.priceOptions ? getItemPriceOptions(data.priceOptions, item.id) : [];
   const optionSummary = visiblePriceOptions
@@ -74,6 +83,8 @@ function getFeaturedPrice(data: PublicMenuTemplateProps, item: MenuItem, capabil
     .join(" / ");
 
   if (optionSummary) return optionSummary;
+
+  if (item.price_label?.trim()) return item.price_label.trim();
 
   return formatMenuPrice(item) ?? "문의";
 }
@@ -232,7 +243,7 @@ function MenuItemCard({
 }) {
   const price = formatMenuPrice(item);
   const portion = formatPortionLabel(item);
-  const visiblePriceOptions = capabilities.priceOptions && item.price_visible ? getItemPriceOptions(priceOptions, item.id) : [];
+  const visiblePriceOptions = capabilities.priceOptions && item.price_visible !== false ? getItemPriceOptions(priceOptions, item.id) : [];
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const badgeStyle = badgeLabel ? getBadgeStyleForItem(item, templateKey, customBadgeStyles) : null;
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits)

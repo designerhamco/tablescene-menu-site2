@@ -12,11 +12,11 @@ import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } f
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
-import { isRestaurantTypeKey } from "@/lib/restaurant-types";
 import { isSocialLinkType } from "@/lib/social-links";
 import {
   generateMenuCleanupStructure,
   generateMenuItemDescriptionDraft,
+  runMenuTranslationDraft,
   runMenuTranslationUpdate,
   TARGET_TRANSLATION_LOCALES,
   translatePartialMenuCategoryFields,
@@ -464,8 +464,8 @@ async function requireOwnedMenuSite(menuId: string) {
     redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
   }
 
-  const menuSiteSelect = "id, user_id, slug, status, published_at, template_key, template_category, restaurant_category, menu_cover_label, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
-  const fallbackMenuSiteSelect = "id, user_id, slug, status, published_at, template_key, restaurant_category, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
+  const menuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, template_category, restaurant_name, restaurant_category, menu_cover_label, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
+  const fallbackMenuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, restaurant_name, restaurant_category, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
 
   let { data: menuSite, error } = await supabase
     .from("menu_sites")
@@ -715,6 +715,93 @@ export async function translateMenuSiteAction(formData: FormData) {
   );
 }
 
+export async function generateMenuSiteTranslationDraftAction(input: {
+  menuId: string;
+  targetLocales: SupportedLocale[];
+}): Promise<FullTranslationDraftActionResult> {
+  const menuId = input.menuId?.trim();
+  if (!menuId) {
+    return { ok: false, message: "자동 번역 초안 생성 중 오류가 발생했습니다. 다시 시도해주세요." };
+  }
+
+  const targetLocales = input.targetLocales.filter((locale): locale is EditableTranslationLocale =>
+    TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
+  );
+
+  if (targetLocales.length === 0) {
+    return { ok: false, message: "자동 번역을 실행할 외국어를 먼저 선택해주세요." };
+  }
+
+  try {
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
+
+    if (isAiUsageExceeded(fullTranslationUsage)) {
+      return { ok: false, message: "전체 자동 번역 제공량을 모두 사용했습니다.", usage: fullTranslationUsage };
+    }
+
+    const result = await runMenuTranslationDraft(supabase, menuId, targetLocales);
+    let usage = fullTranslationUsage;
+
+    if (result.translatedEntities > 0) {
+      const usedAt = new Date();
+      const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full", usedAt);
+      const { error } = await supabase
+        .from("menu_sites")
+        .update({ settings, updated_at: usedAt.toISOString() })
+        .eq("id", menuId);
+
+      if (error) {
+        return { ok: false, message: `자동번역 사용량 저장에 실패했습니다: ${error.message}`, usage };
+      }
+
+      usage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_full", usedAt);
+    }
+
+    const entityTypeByTable = {
+      menu_site_translations: "site",
+      menu_page_translations: "page",
+      menu_category_translations: "category",
+      menu_item_translations: "item",
+    } as const satisfies Record<string, EditableTranslationEntityType>;
+    const data = result.rows.flatMap((row) => {
+      const entityType = entityTypeByTable[row.table as keyof typeof entityTypeByTable];
+      if (!entityType) return [];
+
+      return Object.entries(row.fields).flatMap(([field, value]) => {
+        if (!value) return [];
+        return [
+          {
+            entityType,
+            entityId: row.entityId,
+            field,
+            locale: row.locale,
+            value,
+            sourceHash: row.sourceTextHash,
+          },
+        ];
+      });
+    });
+
+    return {
+      ok: true,
+      data,
+      usage,
+      message:
+        result.translatedEntities > 0
+          ? "전체 자동 번역 초안이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
+          : "최신 번역이 이미 준비되어 있습니다.",
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: getSafeTranslationErrorMessage(error instanceof Error ? error.message : "자동 번역 초안 생성 중 오류가 발생했습니다."),
+    };
+  }
+}
+
 async function saveBadgeStyleFromMenuItemForm(
   supabase: Awaited<ReturnType<typeof createClient>>,
   menuId: string,
@@ -940,6 +1027,26 @@ type GenerateMenuCleanupActionResult =
       usage?: { used: number; limit: number };
     };
 
+type FullTranslationDraftActionResult =
+  | {
+      ok: true;
+      data: {
+        entityType: EditableTranslationEntityType;
+        entityId: string;
+        field: string;
+        locale: EditableTranslationLocale;
+        value: string;
+        sourceHash: string;
+      }[];
+      usage: { used: number; limit: number };
+      message: string;
+    }
+  | {
+      ok: false;
+      message: string;
+      usage?: { used: number; limit: number };
+    };
+
 function setEditableTranslationValue(row: Record<string, unknown>, field: string, value: string | null) {
   row[field] = value;
 }
@@ -947,7 +1054,8 @@ function setEditableTranslationValue(row: Record<string, unknown>, field: string
 async function saveEditableTranslationDrafts(
   supabase: SupabaseServerClient,
   menuId: string,
-  draftValues: EditableTranslationDraftValue[]
+  draftValues: EditableTranslationDraftValue[],
+  errorLabel = "다국어 저장"
 ) {
   if (draftValues.length === 0) return;
 
@@ -955,7 +1063,7 @@ async function saveEditableTranslationDrafts(
     site: ["restaurant_name", "brand_description", "menu_cover_title", "menu_cover_description", "menu_cover_label", "description"],
     page: ["title", "description"],
     category: ["name", "description"],
-    item: ["name", "description", "price_label", "badge_label"],
+    item: ["name", "description", "price_label", "portion_label", "badge_label"],
   };
   const targetLocales = TRANSLATABLE_LOCALES as readonly EditableTranslationLocale[];
   const groupedRows = {
@@ -1042,7 +1150,7 @@ async function saveEditableTranslationDrafts(
   const saveError = siteError ?? pageError ?? categoryError ?? itemError;
 
   if (saveError) {
-    redirectToTabEditWithError(menuId, "localization", `다국어 저장 중 오류가 발생했습니다: ${saveError.message}`);
+    redirectToTabEditWithError(menuId, "localization", `${errorLabel} 중 오류가 발생했습니다: ${saveError.message}`);
   }
 }
 
@@ -1050,30 +1158,50 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
+  const saveMode = getString(formData, "localization_save_mode") || "all";
   const requestedLocales = formData
     .getAll("enabled_locales")
     .filter((value): value is string => typeof value === "string")
     .filter(isSupportedLocale);
-  const enabledLocales = [
-    DEFAULT_LOCALE,
-    ...TRANSLATABLE_LOCALES.filter((locale) => requestedLocales.includes(locale)),
-  ] satisfies SupportedLocale[];
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const translationDraftValues = getTranslationDraftValues(formData);
-  const settings = {
-    ...getJsonObject(menuSite.settings),
-    enabled_locales: enabledLocales,
-  };
+  const currentSettings = getJsonObject(menuSite.settings);
 
-  await saveEditableTranslationDrafts(supabase, menuId, translationDraftValues);
+  if (saveMode !== "languages") {
+    await saveEditableTranslationDrafts(supabase, menuId, translationDraftValues, saveMode === "translations" ? "번역 저장" : "다국어 저장");
+  }
 
-  const { error } = await supabase
-    .from("menu_sites")
-    .update({ settings, updated_at: new Date().toISOString() })
-    .eq("id", menuId);
+  if (saveMode !== "translations") {
+    const enabledLocales = [
+      DEFAULT_LOCALE,
+      ...TRANSLATABLE_LOCALES.filter((locale) => requestedLocales.includes(locale)),
+    ] satisfies SupportedLocale[];
+    const settings = {
+      ...currentSettings,
+      enabled_locales: enabledLocales,
+    };
 
-  if (error) redirectToTabEditWithError(menuId, "localization", `다국어 설정 저장에 실패했습니다: ${error.message}`);
+    const { error } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: new Date().toISOString() })
+      .eq("id", menuId);
+
+    if (error) {
+      const errorLabel = saveMode === "languages" ? "언어 설정 저장" : "다국어 저장";
+      redirectToTabEditWithError(menuId, "localization", `${errorLabel} 중 오류가 발생했습니다: ${error.message}`);
+    }
+  }
+
+  if (saveMode === "languages") {
+    revalidateMenuPaths(menuId, menuSite.slug);
+    redirectToTabEdit(menuId, "localization", "언어 설정이 저장되었습니다.");
+  }
+
+  if (saveMode === "translations") {
+    revalidateMenuPaths(menuId, menuSite.slug);
+    redirectToTabEdit(menuId, "localization", "번역 수정 내용이 저장되었습니다.");
+  }
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(menuId, "localization", "다국어 설정과 번역 내용이 저장되었습니다.");
@@ -1314,7 +1442,7 @@ export async function translateMenuItemPartialAction(input: {
 
     const { data: item, error: itemError } = await supabase
       .from("menu_items")
-      .select("id, menu_site_id, category_id, name, description, price_label, badge_label")
+      .select("id, menu_site_id, category_id, name, description, price_label, portion_label, badge_label")
       .eq("id", itemId)
       .eq("menu_site_id", menuId)
       .maybeSingle();
@@ -1331,6 +1459,7 @@ export async function translateMenuItemPartialAction(input: {
       name: item.name,
       description: item.description,
       price_label: item.price_label,
+      portion_label: item.portion_label,
       badge_label: supportsItemBadges ? item.badge_label : null,
     };
     const hasTranslatableText = Object.values(sourceFields).some(hasMeaningfulTranslationText);
@@ -2035,63 +2164,24 @@ export async function updateMenuSiteAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const name = getString(formData, "name");
-  const rawSlug = getString(formData, "slug");
   const restaurantName = getNullableString(formData, "restaurant_name");
   const brandDescription = getNullableString(formData, "brand_description");
-  const restaurantType = getNullableString(formData, "restaurant_type");
   const shouldDeleteLogoImage = getBoolean(formData, "delete_logo_image");
   const draftLogoImageUrl = getNullableString(formData, "draft_logo_image_url");
   const draftLogoImagePath = getNullableString(formData, "draft_logo_image_path");
-  const slug = normalizeSlug(rawSlug);
 
   if (!name) {
     redirectToTabEditWithError(menuId, "basic", "메뉴판 이름을 입력해주세요.");
   }
 
   validateRequiredText(menuId, name, "메뉴판 이름", MENU_FIELD_LIMITS.menuSites.name, "basic");
-  validateOptionalText(menuId, restaurantName, "실제 매장명", MENU_FIELD_LIMITS.menuSites.restaurantName, "basic");
+  validateRequiredText(menuId, restaurantName ?? "", "실제 매장명", MENU_FIELD_LIMITS.menuSites.restaurantName, "basic");
   validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "basic");
-  validateOptionalText(menuId, restaurantType, "업종", MENU_FIELD_LIMITS.menuSites.restaurantType, "basic");
-
-  if (restaurantType && !isRestaurantTypeKey(restaurantType)) {
-    redirectToTabEditWithError(menuId, "basic", "업종을 다시 선택해주세요.");
-  }
-
-  if (!isValidSlug(slug)) {
-    redirectToTabEditWithError(
-      menuId,
-      "basic",
-      `공개 메뉴판 주소는 영문 소문자, 숫자, 하이픈으로 ${MENU_FIELD_LIMITS.menuSites.slugMin}자 이상 ${MENU_FIELD_LIMITS.menuSites.slugMax}자 이하로 입력해주세요.`
-    );
-  }
-
-  const isSlugLocked = menuSite.status === "published" || Boolean(menuSite.published_at);
-
-  if (isSlugLocked && slug !== menuSite.slug) {
-    redirectToTabEditWithError(menuId, "basic", "공개 후에는 QR 코드와 공유 링크 유지를 위해 주소를 변경할 수 없습니다.");
-  }
-
-  const { data: existingSite, error: duplicateCheckError } = await supabase
-    .from("menu_sites")
-    .select("id")
-    .eq("slug", slug)
-    .neq("id", menuId)
-    .maybeSingle();
-
-  if (duplicateCheckError) {
-    redirectToTabEditWithError(menuId, "basic", `공개 메뉴판 주소 중복 확인 중 오류가 발생했습니다: ${duplicateCheckError.message}`);
-  }
-
-  if (existingSite) {
-    redirectToTabEditWithError(menuId, "basic", "이미 사용 중인 공개 메뉴판 주소입니다. 다른 주소를 입력해주세요.");
-  }
 
   const updatePayload: MenuSiteUpdate = {
     name,
-    slug,
     restaurant_name: restaurantName,
     brand_description: brandDescription,
-    restaurant_type: restaurantType,
     updated_at: new Date().toISOString(),
   };
 
@@ -2110,7 +2200,6 @@ export async function updateMenuSiteAction(formData: FormData) {
       .from("menu_sites")
       .update({
         name,
-        slug,
         restaurant_name: restaurantName,
         brand_description: brandDescription,
         ...(shouldDeleteLogoImage
@@ -2130,8 +2219,6 @@ export async function updateMenuSiteAction(formData: FormData) {
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  revalidatePath(getPublicMenuPath(slug));
-  revalidatePath(getLegacyMenuPath(slug));
   redirectToTabEdit(menuId, "basic", "기본 정보가 저장되었습니다.");
 }
 
@@ -2226,8 +2313,9 @@ export async function updateMenuCoverAction(formData: FormData) {
   const currentSettings = mergePageSettings(menuSite.page_settings);
   const templateType = getTemplateType(menuSite.template_key);
   const canUseFeaturedItem = templateType === "menu" && menuCoverCapabilities.usesFeaturedItem;
+  const wantsFeaturedItem = menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled");
   const requestedFeaturedItemId = menuCoverEnabled && canUseFeaturedItem ? getNullableString(formData, "featured_item_id") : null;
-  const featuredItemEnabled = menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled") && Boolean(requestedFeaturedItemId);
+  const featuredItemEnabled = wantsFeaturedItem && Boolean(requestedFeaturedItemId);
   let featuredItemId: string | null = null;
 
   if (hasMenuCoverLabelField) {
@@ -2238,6 +2326,9 @@ export async function updateMenuCoverAction(formData: FormData) {
   }
   if (menuCoverEnabled && menuCoverCapabilities.usesCoverDescription) {
     validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
+  }
+  if (wantsFeaturedItem && !requestedFeaturedItemId) {
+    redirectToTabEditWithError(menuId, "cover", "대표 추천 메뉴를 선택해주세요.");
   }
 
   if (featuredItemEnabled && requestedFeaturedItemId) {
@@ -2691,6 +2782,39 @@ export async function updatePublishSettingsAction(formData: FormData) {
   if (!isMenuSiteStatus(status)) redirectToTabEditWithError(menuId, "publish", "공개 상태를 선택해주세요.");
 
   const nextStatus: MenuSiteStatus = status;
+
+  if (nextStatus === "published") {
+    if (!menuSite.restaurant_name) {
+      redirectToTabEditWithError(menuId, "publish", "공개하려면 실제 매장명을 먼저 입력해주세요.");
+    }
+    if (!menuSite.slug) {
+      redirectToTabEditWithError(menuId, "publish", "공개하려면 공개 메뉴판 주소를 먼저 설정해주세요.");
+    }
+
+    const [
+      { count: pageCount, error: pageCountError },
+      { count: categoryCount, error: categoryCountError },
+      { count: itemCount, error: itemCountError },
+    ] = await Promise.all([
+      supabase.from("menu_pages").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
+      supabase.from("menu_categories").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
+      supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
+    ]);
+
+    if (pageCountError || categoryCountError || itemCountError) {
+      redirectToTabEditWithError(menuId, "publish", "공개 전 필수 데이터 확인 중 오류가 발생했습니다.");
+    }
+    if ((pageCount ?? 0) < 1) {
+      redirectToTabEditWithError(menuId, "publish", "공개하려면 페이지를 1개 이상 등록해주세요.");
+    }
+    if ((categoryCount ?? 0) < 1) {
+      redirectToTabEditWithError(menuId, "publish", "공개하려면 카테고리를 1개 이상 등록해주세요.");
+    }
+    if ((itemCount ?? 0) < 1) {
+      redirectToTabEditWithError(menuId, "publish", "공개하려면 메뉴 아이템을 1개 이상 등록해주세요.");
+    }
+  }
+
   const publishedAt = nextStatus === "published" ? menuSite.published_at ?? new Date().toISOString() : menuSite.published_at;
 
   const { error } = await supabase
@@ -3774,6 +3898,7 @@ type MenuManagementBasicItemDraft = {
   sortOrder: number;
   portionLabel?: string;
   priceVisible?: boolean;
+  priceMode?: "single" | "options";
   portionVisible?: boolean;
   traitsVisible?: boolean;
   traitDrafts?: MenuItemTraitDraftInput[];
@@ -4221,15 +4346,14 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, "가격은 숫자로 입력해주세요.");
     }
     const priceLabel = normalizeDraftString(item.priceLabel);
-    if (item.isNew && numericPrice == null && !priceLabel) {
-      redirectToMenuEditWithError(menuId, "새 아이템은 가격 또는 표시용 가격 중 하나를 입력해주세요.");
-    }
 
     const badgeLabel = normalizeDraftString(item.badgeLabel) || null;
     const imageAction = normalizeDraftString(item.imageAction);
     const draftImageUrl = normalizeDraftString(item.imageUrl);
     const draftImagePath = normalizeDraftString(item.imagePath);
     const traitSlots = templateCapabilities.itemTraits ? getMenuItemTraitSlotsFromDraft(menuId, item.traitDrafts) : [];
+    const hasPriceOptionDraft = item.priceOptions !== undefined;
+    const priceMode = normalizeDraftString(item.priceMode);
     const priceOptionDrafts = templateCapabilities.priceOptions
       ? (item.priceOptions ?? [])
           .slice(0, MENU_LIMITS.maxPriceOptionsPerItem)
@@ -4245,12 +4369,20 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
           })
           .filter((option) => option.label && (option.price != null || option.priceLabel))
       : [];
+    const usesOptionPricing = templateCapabilities.priceOptions && (priceMode === "options" || priceOptionDrafts.length > 0);
+
+    if (usesOptionPricing && priceOptionDrafts.length === 0) {
+      redirectToMenuEditWithError(menuId, "옵션별 가격은 가격 옵션을 1개 이상 입력해주세요.");
+    }
+    if (!usesOptionPricing && item.isNew && numericPrice == null && !priceLabel) {
+      redirectToMenuEditWithError(menuId, "새 아이템은 가격 또는 표시용 가격 중 하나를 입력해주세요.");
+    }
     const payloadInput = {
       name: normalizeDraftString(item.name),
       description: normalizeDraftString(item.description) || null,
       origin_info: normalizeDraftString(item.originInfo) || null,
-      price: numericPrice,
-      price_label: priceLabel || null,
+      price: usesOptionPricing ? 0 : numericPrice ?? 0,
+      price_label: usesOptionPricing ? null : priceLabel || null,
       portion_label: normalizeDraftString(item.portionLabel) || null,
       badge_label: badgeLabel,
       badge_type: getLegacyBadgeTypeForLabel(badgeLabel),
@@ -4374,6 +4506,38 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
 
     if (error) redirectToMenuEditWithError(menuId, `아이템 draft 저장에 실패했습니다: ${error.message}`);
     if (!updatedItemId) redirectToMenuEditWithError(menuId, "저장할 아이템을 찾지 못했습니다. 새로고침 후 다시 시도해주세요.");
+    if (templateCapabilities.priceOptions && hasPriceOptionDraft) {
+      const { error: deletePriceOptionsError } = await supabase
+        .from("menu_item_price_options")
+        .delete()
+        .eq("menu_site_id", menuId)
+        .eq("menu_item_id", itemId);
+      const missingPriceOptionsTable =
+        deletePriceOptionsError &&
+        (deletePriceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||
+          deletePriceOptionsError.message.toLowerCase().includes("does not exist") ||
+          deletePriceOptionsError.code === "42P01");
+
+      if (deletePriceOptionsError && !missingPriceOptionsTable) {
+        redirectToMenuEditWithError(menuId, `아이템 가격 옵션 정리에 실패했습니다: ${deletePriceOptionsError.message}`);
+      }
+
+      if (!deletePriceOptionsError && priceOptionDrafts.length > 0) {
+        const priceOptionInserts: MenuItemPriceOptionInsert[] = priceOptionDrafts.map((option) => ({
+          menu_site_id: menuId,
+          menu_item_id: itemId,
+          label: option.label,
+          price: option.price,
+          price_label: option.priceLabel || null,
+          visible: option.visible,
+          sort_order: option.sortOrder,
+        }));
+        const { error: insertPriceOptionsError } = await supabase.from("menu_item_price_options").insert(priceOptionInserts);
+        if (insertPriceOptionsError) {
+          redirectToMenuEditWithError(menuId, `아이템 가격 옵션 저장에 실패했습니다: ${insertPriceOptionsError.message}`);
+        }
+      }
+    }
     if (templateCapabilities.itemTraits) {
       await syncMenuItemTraitSlots(supabase, menuId, itemId, traitSlots);
     }
