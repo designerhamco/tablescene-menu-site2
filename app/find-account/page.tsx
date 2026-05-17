@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 const supportMailHref = "mailto:admin@dndcommerce.co.kr?subject=TableScene 로그인 이메일 찾기 문의";
@@ -45,6 +46,7 @@ export default function FindAccountPage() {
         </div>
       </div>
       </main>
+      <Footer />
     </>
   );
 }

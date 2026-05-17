@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import Footer from "@/app/components/layout/Footer";
 import { requestPasswordResetAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
@@ -83,6 +84,7 @@ export default async function ForgotPasswordPage({
         </div>
       </div>
       </main>
+      <Footer />
     </>
   );
 }

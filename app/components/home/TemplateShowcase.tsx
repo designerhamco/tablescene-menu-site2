@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import TemplateCard from '@/components/templates/TemplateCard';
-import { templateCatalog, templateCategoryFilters, type TemplateCategoryFilterKey, type TemplateServiceKey } from '@/lib/templates';
+import {
+  getFeaturedTemplatesForBasicPage,
+  getFeaturedTemplatesForDisplayPage,
+  templateCategoryFilters,
+  type TemplateCategoryFilterKey,
+  type TemplateCatalogItem,
+  type TemplateServiceKey,
+} from '@/lib/templates';
 
 const recommendedFilterKeys = ['all', 'cafe', 'bakery', 'dessert', 'restaurant', 'hair_salon', 'nail_shop', 'clinic'] as const;
 const showcaseCategoryFilters = templateCategoryFilters.filter((filter) => recommendedFilterKeys.includes(filter.key));
@@ -10,14 +17,34 @@ type TemplateShowcaseProps = {
   service?: TemplateServiceKey | 'all';
 };
 
+const serviceTabs = [
+  {
+    key: 'basic',
+    label: '테이블씬 베이직',
+    description: '모바일·태블릿·PC에서 열어보는 디지털 메뉴판',
+  },
+  {
+    key: 'display',
+    label: '테이블씬 디스플레이',
+    description: '매장 TV와 모니터에 띄우는 디지털 메뉴보드',
+  },
+] as const satisfies readonly { key: TemplateServiceKey; label: string; description: string }[];
+
+function getShowcaseTemplates(service: TemplateServiceKey): TemplateCatalogItem[] {
+  if (service === 'display') return getFeaturedTemplatesForDisplayPage();
+  return getFeaturedTemplatesForBasicPage();
+}
+
 const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
+  const [activeService, setActiveService] = useState<TemplateServiceKey>('basic');
   const [activeCategory, setActiveCategory] = useState<TemplateCategoryFilterKey>('all');
   const [activePage, setActivePage] = useState(0);
   const [cardsPerPage, setCardsPerPage] = useState(4);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const showcaseTemplates = templateCatalog.filter((template) => (
-    template.active && (service === 'all' || template.service === service)
-  ));
+  const isHomeShowcase = service === 'all';
+  const selectedService = isHomeShowcase ? activeService : service;
+  const activeServiceCopy = serviceTabs.find((tab) => tab.key === selectedService) ?? serviceTabs[0];
+  const showcaseTemplates = getShowcaseTemplates(selectedService);
   const visibleTemplates =
     activeCategory === 'all'
       ? showcaseTemplates
@@ -38,7 +65,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   useEffect(() => {
     setActivePage(0);
     carouselRef.current?.scrollTo({ left: 0 });
-  }, [activeCategory, service]);
+  }, [activeCategory, selectedService]);
 
   const scrollToPage = (pageIndex: number) => {
     const carousel = carouselRef.current;
@@ -72,7 +99,40 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
           <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
             디자이너가 만든 템플릿으로 시작하세요
           </h2>
+          <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+            {activeServiceCopy.description}
+          </p>
         </motion.div>
+
+        {isHomeShowcase ? (
+          <div className="mx-auto mb-8 grid max-w-3xl gap-3 rounded-[1.5rem] border border-zinc-200 bg-white p-2 md:grid-cols-2">
+            {serviceTabs.map((tab) => {
+              const isSelected = activeService === tab.key;
+
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => {
+                    setActiveService(tab.key);
+                    setActiveCategory('all');
+                  }}
+                  className={`rounded-[1.1rem] px-5 py-4 text-left transition-colors ${
+                    isSelected ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-50'
+                  }`}
+                  aria-pressed={isSelected}
+                >
+                  <span className="block text-base font-black">{tab.label}</span>
+                  <span className={`mt-1 block break-keep text-sm font-medium leading-relaxed ${
+                    isSelected ? 'text-white/70' : 'text-zinc-500'
+                  }`}>
+                    {tab.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
 
         <div className="mb-12 flex flex-wrap justify-center gap-3">
           {showcaseCategoryFilters.map((category) => (
@@ -106,15 +166,19 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                 transition={{ duration: 0.45, delay: index * 0.08 }}
                 className="min-w-0 shrink-0 basis-[calc((100%_-_1rem)/2)] snap-start md:basis-[calc((100%_-_4.5rem)/4)]"
               >
-                <a
-                  href={`/templates/${template.key}/preview`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`${template.name} 템플릿 미리보기 새창으로 열기`}
-                  className="block h-full"
-                >
+                {template.status === 'available' ? (
+                  <a
+                    href={`/templates/${template.key}/preview`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`${template.name} 템플릿 미리보기 새창으로 열기`}
+                    className="block h-full"
+                  >
+                    <TemplateCard template={template} />
+                  </a>
+                ) : (
                   <TemplateCard template={template} />
-                </a>
+                )}
               </motion.article>
             ))
           ) : (

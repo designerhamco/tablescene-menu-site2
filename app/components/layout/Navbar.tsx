@@ -148,10 +148,10 @@ const Navbar = () => {
               만들기
             </Link>
             <Link
-              to="/sign-in?next=/admin"
+              to="/mypage"
               className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
             >
-              관리자 로그인
+              마이페이지
             </Link>
 
             <button
@@ -185,11 +185,11 @@ const Navbar = () => {
                     만들기
                   </Link>
                   <Link
-                    to="/sign-in?next=/admin"
+                    to="/mypage"
                     onClick={closeMobileMenu}
                     className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
                   >
-                    관리자 로그인
+                    마이페이지
                   </Link>
                 </div>
 

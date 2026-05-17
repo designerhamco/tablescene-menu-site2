@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 import ResetPasswordForm from "./ResetPasswordForm";
@@ -30,6 +31,7 @@ export default function ResetPasswordPage() {
         </div>
       </div>
       </main>
+      <Footer />
     </>
   );
 }

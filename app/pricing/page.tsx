@@ -2,9 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import PricingPaymentClient from "@/app/pricing/PricingPaymentClient";
+import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { getPublicPortOneConfig } from "@/lib/portone";
-import { templateCatalog } from "@/lib/templates";
+import { getAvailableTemplatesForService } from "@/lib/templates";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PricingPage() {
@@ -18,8 +19,7 @@ export default async function PricingPage() {
   }
 
   const portOneConfig = getPublicPortOneConfig();
-  const templates = templateCatalog
-    .filter((template) => template.active)
+  const templates = getAvailableTemplatesForService("basic")
     .map((template) => ({
       key: template.key,
       template_category: template.template_category,
@@ -56,6 +56,7 @@ export default async function PricingPage() {
           />
         </div>
       </main>
+      <Footer />
     </>
   );
 }

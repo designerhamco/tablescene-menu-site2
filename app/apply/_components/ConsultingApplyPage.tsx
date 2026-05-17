@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import Footer from "@/app/components/layout/Footer";
 import { createConsultingApplyAction } from "@/app/apply/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { getBusinessTypeOptions } from "@/lib/business-types";
@@ -216,6 +217,7 @@ export default async function ConsultingApplyPage({
           </form>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

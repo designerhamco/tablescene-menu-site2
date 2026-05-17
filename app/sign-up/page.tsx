@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import Footer from "@/app/components/layout/Footer";
 import { signUpAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
@@ -112,6 +113,7 @@ export default async function SignUpPage({
         </div>
       </div>
       </main>
+      <Footer />
     </>
   );
 }

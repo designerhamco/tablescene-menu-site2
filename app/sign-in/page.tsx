@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import Footer from "@/app/components/layout/Footer";
 import { signInAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
@@ -130,6 +131,7 @@ export default async function SignInPage({
         </div>
       </div>
       </main>
+      <Footer />
     </>
   );
 }

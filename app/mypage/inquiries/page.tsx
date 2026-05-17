@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import Footer from "@/app/components/layout/Footer";
 import { createInquiryAction, deleteInquiryAction, updateInquiryAction } from "@/app/mypage/inquiries/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { createClient } from "@/lib/supabase/server";
@@ -358,6 +359,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
         </section>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

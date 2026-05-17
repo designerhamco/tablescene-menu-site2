@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import Footer from "@/app/components/layout/Footer";
 import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { getPublicMenuUrl } from "@/lib/menu-url";
@@ -166,7 +167,7 @@ export default async function MyPage() {
 
                     <div className="mt-6 flex flex-wrap gap-3">
                       <Link
-                        href={`/mypage/menus/${site.id}/edit`}
+                        href={`/mypage/menus/${site.id}/edit?tab=menu`}
                         className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
                       >
                         편집하기
@@ -256,6 +257,7 @@ export default async function MyPage() {
         </section>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

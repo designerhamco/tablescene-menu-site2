@@ -1,8 +1,9 @@
+import Footer from "@/app/components/layout/Footer";
 import ApplyOrderForm from "@/components/apply/ApplyOrderForm";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { createClient } from "@/lib/supabase/server";
-import { templateCatalog } from "@/lib/templates";
+import { getAvailableTemplatesForService } from "@/lib/templates";
 import { redirect } from "next/navigation";
 
 type PaidApplyService = "menu" | "screen" | "order";
@@ -56,6 +57,7 @@ export default async function PaidApplyPage({ serviceType }: PaidApplyPageProps)
 
   const copy = PAID_APPLY_COPY[serviceType];
   const portOneConfig = getPublicPortOneConfig();
+  const templateServiceType = serviceType === "screen" ? "display" : "basic";
 
   return (
     <>
@@ -80,7 +82,7 @@ export default async function PaidApplyPage({ serviceType }: PaidApplyPageProps)
           </header>
 
           <ApplyOrderForm
-            templates={templateCatalog.filter((template) => template.active)}
+            templates={getAvailableTemplatesForService(templateServiceType)}
             userEmail={user.email ?? ""}
             userId={user.id}
             storeId={portOneConfig.storeId}
@@ -90,6 +92,7 @@ export default async function PaidApplyPage({ serviceType }: PaidApplyPageProps)
           />
         </div>
       </main>
+      <Footer />
     </>
   );
 }

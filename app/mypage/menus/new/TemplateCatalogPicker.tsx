@@ -5,12 +5,12 @@ import { useMemo, useState } from "react";
 import TemplateCard from "@/components/templates/TemplateCard";
 import {
   TEMPLATE_CATEGORIES,
-  templateCatalog,
+  getAvailableTemplatesForService,
   type TemplateCategoryKey,
   type TemplateKey,
 } from "@/lib/templates";
 
-const activeTemplateCatalog = templateCatalog.filter((template) => template.active);
+const activeTemplateCatalog = getAvailableTemplatesForService("basic");
 
 export default function TemplateCatalogPicker() {
   const firstCategory = TEMPLATE_CATEGORIES[0].key;

@@ -70,6 +70,9 @@ const Footer = () => {
                 <a href="/faq" className="hover:text-zinc-300 transition-colors">
                   FAQ
                 </a>
+                <a href="/admin" className="hover:text-zinc-300 transition-colors">
+                  Admin
+                </a>
 
                 {/* Terms of Service Dialog */}
                 <Dialog>

@@ -29,6 +29,12 @@ import {
   type TemplateCategoryKey,
   type TemplateKey,
 } from "@/lib/templates";
+import {
+  getTemplateServiceLabel,
+  getTemplateTypeOptionsForService,
+  getTemplateTypeLabelByTemplateKey,
+  type TemplateServiceType,
+} from "@/lib/template-types";
 import type { PaymentCompleteResponse } from "@/types/payment";
 
 type ApplyOrderFormProps = {
@@ -602,10 +608,13 @@ export default function ApplyOrderForm({
   const isMenuService = serviceType === "menu";
   const isScreenService = serviceType === "screen";
   const isOrderService = serviceType === "order";
+  const templateServiceType: TemplateServiceType = isScreenService ? "display" : "basic";
+  const serviceTemplates = useMemo(() => [...templates], [templates]);
+  const templateTypeOptions = useMemo(() => getTemplateTypeOptionsForService(templateServiceType), [templateServiceType]);
   const currentPlanKey = servicePlanKeys[serviceType];
   const activeProduct = serviceProducts[serviceType];
   const firstCategory = TEMPLATE_CATEGORIES[0].key;
-  const firstTemplate = templates.find((template) => template.template_category === firstCategory) ?? templates[0];
+  const firstTemplate = serviceTemplates.find((template) => template.template_category === firstCategory) ?? serviceTemplates[0] ?? templates[0];
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate?.template_category ?? firstCategory);
   const [selectedMenuTemplateGroup, setSelectedMenuTemplateGroup] = useState<MenuTemplateGroupKey>("recommended");
   const [agreements, setAgreements] = useState(initialAgreements);
@@ -644,15 +653,15 @@ export default function ApplyOrderForm({
 
   const filteredTemplates = useMemo(() => {
     if (isMenuService) {
-      return getTemplatesByMenuGroup(templates, selectedMenuTemplateGroup, form.restaurantType);
+      return getTemplatesByMenuGroup(serviceTemplates, selectedMenuTemplateGroup, form.restaurantType);
     }
 
-    return templates.filter((template) => template.template_category === selectedCategory);
-  }, [form.restaurantType, isMenuService, selectedCategory, selectedMenuTemplateGroup, templates]);
+    return serviceTemplates.filter((template) => template.template_category === selectedCategory);
+  }, [form.restaurantType, isMenuService, selectedCategory, selectedMenuTemplateGroup, serviceTemplates]);
 
   const selectedTemplate = useMemo(
-    () => templates.find((template) => template.key === form.template_key) ?? templates[0],
-    [form.template_key, templates]
+    () => serviceTemplates.find((template) => template.key === form.template_key) ?? serviceTemplates[0] ?? templates[0],
+    [form.template_key, serviceTemplates, templates]
   );
   const currentPlanRequiresBusinessInfo = requiresBusinessInfo(currentPlanKey);
   const currentPlanAllowsIndividual = canIndividualPurchasePlan(currentPlanKey);
@@ -878,7 +887,7 @@ export default function ApplyOrderForm({
         return nextState;
       }
 
-      const nextTemplate = getTemplatesByMenuGroup(templates, "recommended", value)[0];
+      const nextTemplate = getTemplatesByMenuGroup(serviceTemplates, "recommended", value)[0];
       if (!nextTemplate) {
         return nextState;
       }
@@ -1119,6 +1128,21 @@ export default function ApplyOrderForm({
                 디스플레이 전용 카테고리를 고른 뒤 TV/모니터 화면에 맞는 메뉴보드 템플릿을 선택해주세요. 현재는 구현된 템플릿을 기반으로 연결됩니다.
               </p>
             )}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {templateTypeOptions.map((option) => (
+                <span key={option.type} className="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-black text-zinc-600">
+                  {option.label}
+                </span>
+              ))}
+            </div>
+            {isScreenService && (
+              <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                일정표형 템플릿은 현재 테이블씬 베이직에서만 지원됩니다. 디스플레이용 일정표 템플릿은 추후 검토 예정입니다.
+              </p>
+            )}
+            <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+              현재 선택 화면은 {getTemplateServiceLabel(templateServiceType)}에서 지원하는 템플릿만 보여줍니다.
+            </p>
           </div>
 
           <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
@@ -1128,7 +1152,7 @@ export default function ApplyOrderForm({
                     key={filter.key}
                     type="button"
                     onClick={() => {
-                      const nextTemplate = templates.find((template) => template.template_category === filter.templateCategory);
+                      const nextTemplate = serviceTemplates.find((template) => template.template_category === filter.templateCategory);
                       setSelectedCategory(filter.templateCategory);
                       setForm((current) => ({
                         ...current,
@@ -1152,7 +1176,7 @@ export default function ApplyOrderForm({
                     key={filter.key}
                     type="button"
                     onClick={() => {
-                      const nextTemplates = getTemplatesByMenuGroup(templates, filter.key, form.restaurantType);
+                      const nextTemplates = getTemplatesByMenuGroup(serviceTemplates, filter.key, form.restaurantType);
                       const nextTemplate = nextTemplates[0];
                       setSelectedMenuTemplateGroup(filter.key);
                       if (nextTemplate) {
@@ -1175,7 +1199,7 @@ export default function ApplyOrderForm({
                       key={filter.key}
                       type="button"
                       onClick={() => {
-                        const nextTemplate = templates.find((template) => template.template_category === filter.key);
+                        const nextTemplate = serviceTemplates.find((template) => template.template_category === filter.key);
                         setSelectedCategory(filter.key);
                         if (nextTemplate) {
                           setForm((current) => ({
@@ -1199,6 +1223,7 @@ export default function ApplyOrderForm({
               {filteredTemplates.map((template) => {
               const isSelected = form.template_key === template.key;
               const tags = getMenuTemplateTags(template);
+              const templateTypeLabel = template.templateTypeLabel ?? getTemplateTypeLabelByTemplateKey(template.key);
 
               return (
                 <button
@@ -1224,9 +1249,14 @@ export default function ApplyOrderForm({
                         {isScreenService ? selectedScreenTemplateCategory.label : getTemplateCategoryLabel(template.template_category)}
                       </p>
                     </div>
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                      {isSelected ? "선택됨" : template.badge}
-                    </span>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                        {isSelected ? "선택됨" : template.badge}
+                      </span>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-white/10 text-white/80" : "bg-[#F8E731] text-zinc-950"}`}>
+                        {templateTypeLabel}
+                      </span>
+                    </div>
                   </div>
                   <p className={`mt-3 break-keep text-sm font-medium leading-relaxed ${isSelected ? "text-white/70" : "text-zinc-500"}`}>
                     {template.description}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicMenuUrl } from "@/lib/menu-url";
@@ -128,6 +129,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
           </section>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

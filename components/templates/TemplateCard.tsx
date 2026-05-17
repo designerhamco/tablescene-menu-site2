@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import { ArrowUpRight } from "lucide-react";
 
 import type { TemplateCatalogItem } from "@/lib/templates";
+import { getTemplateTypeLabelByTemplateKey } from "@/lib/template-types";
 
 type TemplateCardProps = {
   template: TemplateCatalogItem;
@@ -12,9 +14,9 @@ type TemplateCardProps = {
 
 function getThumbnailClassName(tone: TemplateCatalogItem["thumbnailTone"]) {
   const toneClasses: Record<TemplateCatalogItem["thumbnailTone"], string> = {
-    light: "bg-zinc-50 text-zinc-950",
-    warm: "bg-zinc-100 text-zinc-950",
-    dark: "bg-zinc-950 text-white",
+    light: "bg-zinc-100 text-zinc-950",
+    warm: "bg-stone-100 text-zinc-950",
+    dark: "bg-zinc-900 text-white",
   };
 
   return toneClasses[tone];
@@ -22,44 +24,48 @@ function getThumbnailClassName(tone: TemplateCatalogItem["thumbnailTone"]) {
 
 export function TemplateThumbnail({ template }: { template: TemplateCatalogItem }) {
   const isDark = template.thumbnailTone === "dark";
+  const previewImage = template.previewImage ?? template.thumbnailUrl;
 
-  if (template.thumbnailUrl) {
+  if (previewImage) {
     return (
       <div
         aria-label={`${template.name} 템플릿 미리보기`}
-        className="relative aspect-[4/3] overflow-hidden bg-zinc-100 bg-cover bg-center"
+        className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-zinc-100 bg-cover bg-center"
         role="img"
-        style={{ backgroundImage: `url(${template.thumbnailUrl})` }}
+        style={{ backgroundImage: `url(${previewImage})` }}
       />
     );
   }
 
   return (
-    <div className={`relative aspect-[4/3] overflow-hidden p-4 ${getThumbnailClassName(template.thumbnailTone)}`}>
-      <div className={`absolute inset-x-0 top-0 h-24 ${isDark ? "bg-white/10" : "bg-zinc-950/10"}`} />
-      <div className="relative mx-auto flex h-full max-w-[168px] flex-col rounded-[1.7rem] border border-current/10 bg-white/90 p-3 text-zinc-950 shadow-xl shadow-zinc-900/10">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="h-7 w-7 rounded-full bg-zinc-950" />
-          <div className="h-2 w-12 rounded-full bg-zinc-200" />
+    <div className={`relative aspect-[4/3] overflow-hidden rounded-[1.5rem] p-5 ${getThumbnailClassName(template.thumbnailTone)}`}>
+      <div className={`absolute inset-x-0 top-0 h-28 ${isDark ? "bg-white/10" : "bg-white/60"}`} />
+      <div className="relative flex h-full flex-col rounded-[1.15rem] border border-current/10 bg-white/95 p-4 text-zinc-950 shadow-xl shadow-zinc-900/10">
+        <div className="mb-4 flex items-center justify-between gap-3 border-b border-zinc-100 pb-3">
+          <div className="h-2.5 w-24 rounded-full bg-zinc-950" />
+          <div className="flex gap-1.5">
+            <span className="h-2 w-8 rounded-full bg-zinc-200" />
+            <span className="h-2 w-8 rounded-full bg-zinc-200" />
+          </div>
         </div>
-        <div className="mb-3 space-y-1.5">
-          <div className="h-3 w-20 rounded-full bg-zinc-950" />
-          <div className="h-2 w-24 rounded-full bg-zinc-200" />
+        <div className="mb-4 grid grid-cols-[1fr_auto] items-end gap-4">
+          <div className="space-y-2">
+            <div className="h-5 w-28 rounded-full bg-zinc-950" />
+            <div className="h-2.5 w-40 max-w-full rounded-full bg-zinc-200" />
+          </div>
+          <div className="h-12 w-12 rounded-2xl bg-zinc-100" />
         </div>
-        <div className="space-y-2">
-          {[0, 1, 2].map((item) => (
-            <div key={item} className="rounded-2xl border border-zinc-100 bg-white p-2">
-              <div className="flex gap-2">
-                <div className="h-8 w-8 rounded-xl bg-zinc-100" />
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <div className="h-2 w-16 rounded-full bg-zinc-800" />
-                  <div className="h-1.5 w-20 rounded-full bg-zinc-200" />
-                </div>
+        <div className="grid flex-1 grid-cols-2 gap-3">
+          {[0, 1, 2, 3].map((item) => (
+            <div key={item} className="flex min-w-0 flex-col justify-between rounded-[0.95rem] border border-zinc-100 bg-zinc-50/80 p-3">
+              <div className="space-y-2">
+                <div className="h-2.5 w-16 rounded-full bg-zinc-800" />
+                <div className="h-2 w-20 max-w-full rounded-full bg-zinc-200" />
               </div>
+              <div className="mt-4 h-2 w-12 rounded-full bg-zinc-950" />
             </div>
           ))}
         </div>
-        <div className="mt-auto h-2 w-full rounded-full bg-zinc-100" />
       </div>
     </div>
   );
@@ -68,41 +74,42 @@ export function TemplateThumbnail({ template }: { template: TemplateCatalogItem 
 export default function TemplateCard({
   template,
   selected = false,
-  showServiceBadge = true,
   action,
   className = "",
 }: TemplateCardProps) {
+  const templateTypeLabel = template.templateTypeLabel ?? getTemplateTypeLabelByTemplateKey(template.key);
+
   return (
     <div
-      className={`group flex h-full flex-col overflow-hidden rounded-[1.5rem] border bg-white transition-colors ${
-        selected ? "border-zinc-950" : "border-zinc-200 hover:border-zinc-400"
+      className={`group flex h-full flex-col rounded-[1.5rem] bg-transparent transition ${
+        selected ? "ring-2 ring-zinc-950 ring-offset-4 ring-offset-white" : ""
       } ${className}`}
     >
-      <div className="relative overflow-hidden bg-zinc-100">
+      <div className="relative overflow-hidden rounded-[1.5rem] bg-zinc-100">
         <TemplateThumbnail template={template} />
-        <div className="absolute left-5 top-5 flex flex-wrap gap-2">
-          {showServiceBadge ? (
-            <span className="rounded-full bg-zinc-950 px-3 py-1.5 text-xs font-bold text-white">
-              {template.serviceLabel}
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-[#F8E731]/95 px-3 py-1.5 text-xs font-black text-zinc-950 backdrop-blur">
+            {templateTypeLabel}
+          </span>
+          {template.status === "coming_soon" ? (
+            <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-zinc-950 backdrop-blur">
+              준비 중
             </span>
           ) : null}
-          <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 backdrop-blur">
-            {template.categoryLabel}
-          </span>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-7">
+      <div className="flex flex-1 flex-col px-1 pt-5">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-bold tracking-tight text-zinc-950 md:text-2xl">
-              {template.name}
+          <div className="min-w-0">
+            <h3 className="inline-flex max-w-full items-center gap-1.5 break-keep text-base font-black leading-snug tracking-tight text-zinc-950 md:text-lg">
+              <span className="min-w-0">{template.name}</span>
+              <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.4] md:h-[18px] md:w-[18px]" aria-hidden="true" />
             </h3>
-            <p className="mt-1 font-mono text-xs font-bold text-zinc-400">{template.key}</p>
           </div>
           {action}
         </div>
-        <p className="mt-4 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
+        <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-600 md:text-base">
           {template.description}
         </p>
       </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 
-import FAQ from '@/app/components/common/FAQ';
+import FAQ, { type FAQCategory } from '@/app/components/common/FAQ';
 import DeviceSelection from '@/app/components/home/DeviceSelection';
 import TemplateShowcase from '@/app/components/home/TemplateShowcase';
 import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
@@ -10,39 +10,158 @@ import ServicePricingSection from '@/app/components/pricing/ServicePricingSectio
 const flowSteps = [
   {
     eyebrow: '첫번째',
-    title: '템플릿 선택',
-    description: '매장 화면에 어울리는 디자인에서 시작합니다.',
+    title: '화면 용도 선택',
+    description: '카운터 메뉴보드, 가격표, 대기 안내처럼 매장에서 보여줄 화면의 목적을 정합니다.',
     image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1600&auto=format&fit=crop',
   },
   {
     eyebrow: '두번째',
-    title: '화면 주소 입력',
-    description: '매장 화면에 띄울 디스플레이 링크를 정합니다.',
+    title: '템플릿 선택',
+    description: '카페, 베이커리, 시술 가격표, 안내 화면에 어울리는 큰 화면용 디자인에서 시작합니다.',
     image: 'https://images.unsplash.com/photo-1555421689-491a97ff2040?q=80&w=1600&auto=format&fit=crop',
   },
   {
     eyebrow: '세번째',
-    title: '결제 후 생성',
-    description: '관리 가능한 디스플레이 메뉴보드가 만들어집니다.',
+    title: '디스플레이 링크 생성',
+    description: '결제 후 TV, 모니터, PC, 태블릿 브라우저에서 열 수 있는 화면 링크가 준비됩니다.',
     image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=1600&auto=format&fit=crop',
   },
   {
     eyebrow: '네번째',
-    title: '내용 입력',
-    description: '메뉴, 가격, 안내 문구와 이미지를 채워 넣습니다.',
+    title: '메뉴와 가격 입력',
+    description: '메뉴명, 가격, 대표 메뉴, 품절 상태, 이벤트 문구와 안내 문구를 마이페이지에서 채웁니다.',
     image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1600&auto=format&fit=crop',
   },
   {
     eyebrow: '다섯번째',
-    title: '화면 조정',
-    description: '폰트, 배경색, 표시 요소를 매장 화면에 맞게 다듬습니다.',
+    title: '큰 화면에 맞게 조정',
+    description: '화면 크기와 메뉴 개수에 맞춰 글자 크기, 여백, 열 구성을 가능한 한 읽기 좋게 정리합니다.',
     image: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=1600&auto=format&fit=crop',
   },
   {
     eyebrow: '여섯번째',
-    title: '매장에 띄우기',
-    description: '공개 링크를 TV나 모니터에서 열어 바로 활용합니다.',
+    title: '매장 화면에 띄우기',
+    description: '스마트 TV 브라우저나 연결된 노트북, 미니 PC, TV 스틱에서 링크를 열고 전체화면으로 사용합니다.',
     image: 'https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1600&auto=format&fit=crop',
+  },
+];
+
+const displayFaqData: FAQCategory[] = [
+  {
+    category: '디스플레이 이용',
+    items: [
+      {
+        question: '테이블씬 베이직과 디스플레이는 무엇이 다른가요?',
+        answer: (
+          <>
+            베이직은 손님이 QR이나 링크로 직접 열어보는 모바일 중심 메뉴판에 가깝습니다. 디스플레이는 카운터 뒤 TV, 매장 모니터, 대기 공간 화면에 계속 띄워두는 큰 화면용 메뉴보드입니다.
+          </>
+        ),
+      },
+      {
+        question: '새 TV나 전용 기기를 꼭 사야 하나요?',
+        answer: (
+          <>
+            꼭 새 기기를 구매해야 하는 방식은 아닙니다. 스마트 TV가 있다면 TV 브라우저에서 링크를 열 수 있고, 일반 TV나 모니터는 노트북, 미니 PC, TV 스틱, 크롬캐스트 같은 장치를 연결해 사용할 수 있습니다.
+          </>
+        ),
+      },
+      {
+        question: '설치가 복잡한가요?',
+        answer: (
+          <>
+            별도 앱 설치 방식이 아니라 브라우저에서 디스플레이용 링크를 여는 방식입니다. 매장 환경에 따라 세팅 방식은 달라질 수 있지만, 기본적으로 링크를 열고 전체화면으로 띄워두면 메뉴보드처럼 사용할 수 있습니다.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    category: '화면 구성',
+    items: [
+      {
+        question: '큰 화면에서는 무엇이 다르게 보이나요?',
+        answer: (
+          <>
+            손님이 몇 걸음 떨어진 곳에서도 읽을 수 있도록 메뉴명, 가격, 카테고리, 대표 메뉴가 또렷하게 보이는 구성을 우선합니다. 큰 글씨, 넓은 간격, 한눈에 읽히는 열 구성, 이벤트나 안내 문구 노출에 맞춘 메뉴보드입니다.
+          </>
+        ),
+      },
+      {
+        question: '화면 크기가 달라도 잘 맞나요?',
+        answer: (
+          <>
+            매장마다 TV 크기, 모니터 해상도, 화면 비율, 브라우저 확대 상태가 다를 수 있습니다. 테이블씬 디스플레이는 화면 크기와 메뉴 개수에 맞춰 가능한 한 보기 좋은 비율로 정리되고, 가독성을 유지하는 선에서 큰 화면에 맞게 조정됩니다.
+          </>
+        ),
+      },
+      {
+        question: '메뉴가 많은 매장도 사용할 수 있나요?',
+        answer: (
+          <>
+            사용할 수 있습니다. 모든 메뉴를 무조건 한 화면에 넣기보다 메뉴 수와 화면 크기에 따라 여백, 글자 크기, 열 구성, 카테고리 구성이 조정됩니다. 메뉴가 적으면 화면이 허전하지 않게, 메뉴가 많으면 가능한 한 읽기 좋게 정리하는 방향입니다.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    category: '관리 / 기능',
+    items: [
+      {
+        question: '가격이나 품절 메뉴가 바뀌면 어떻게 수정하나요?',
+        answer: (
+          <>
+            마이페이지에서 메뉴 데이터, 가격, 품절 상태, 시즌 메뉴, 이벤트 문구를 직접 수정할 수 있습니다. 종이 출력물이나 새 이미지 파일을 다시 만들지 않아도 저장한 내용이 디스플레이 화면에 반영되는 구조입니다.
+          </>
+        ),
+      },
+      {
+        question: 'AI 작성 도우미도 사용할 수 있나요?',
+        answer: (
+          <>
+            네. 메뉴 설명, 이벤트 문구, 안내 문구 작성이 막막할 때 보조 기능으로 사용할 수 있습니다. 메뉴 목록을 정리하거나 문구를 제안받은 뒤 사장님이 직접 수정해 사용할 수 있습니다.
+          </>
+        ),
+      },
+      {
+        question: '자동 번역은 어떻게 제공되나요?',
+        answer: (
+          <>
+            한국어로 입력한 내용을 필요한 페이지 단위로 영어, 중국어, 일본어로 번역할 수 있습니다. 자동 번역은 페이지 단위로 차감되며, 월 결제는 1페이지, 연 결제는 12페이지가 기본 제공됩니다.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    category: '요금 / 종료',
+    items: [
+      {
+        question: '디스플레이 요금은 어떻게 되나요?',
+        answer: (
+          <>
+            정가는 월 24,000원, 연 240,000원입니다. 오픈 할인 50% 기준으로 월 결제는 월 12,000원, 연 결제는 연 120,000원이며 연 결제는 월 10,000원 수준으로 월 결제보다 연 24,000원 절약됩니다.
+          </>
+        ),
+      },
+      {
+        question: 'AI 작성 도우미 제공량은 어떻게 되나요?',
+        answer: (
+          <>
+            월 결제는 설명 작성 10회, 메뉴 자동 정리 2회, 자동 번역 1페이지가 제공됩니다. 연 결제는 설명 작성 120회, 메뉴 자동 정리 24회, 자동 번역 12페이지가 제공됩니다. 자동 번역은 페이지 단위로 차감됩니다.
+          </>
+        ),
+      },
+      {
+        question: '해지하면 디스플레이 화면과 데이터는 어떻게 되나요?',
+        answer: (
+          <>
+            월 결제는 해지 신청 후에도 이미 결제된 이용 기간 종료일까지 사용할 수 있고, 다음 결제일부터 자동 결제가 중단됩니다. 이용 기간이 끝나면 디스플레이 메뉴보드는 비공개 처리되며 7일간 복구 가능 상태로 보관됩니다. 7일 이후에는 메뉴보드 데이터와 업로드 이미지가 삭제되고 복구할 수 없습니다. 결제 내역과 약관 동의 기록 등 운영, 정산, 법적 대응에 필요한 기록은 보관될 수 있습니다.
+          </>
+        ),
+      },
+    ],
   },
 ];
 
@@ -156,44 +275,44 @@ const DisplayServicePage = () => {
           className="max-w-3xl text-left"
         >
           <h1 className="break-keep text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
-            매장 화면에 맞춰<br />
-            메뉴와 안내를 보여주세요
+            매장 TV를<br />
+            디지털 메뉴보드로 바꾸세요
           </h1>
           <p className="mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-white/80 md:text-lg">
-            테이블씬 디스플레이는 매장 TV와 모니터에 띄우는 디지털 메뉴보드입니다. 브라우저에서 링크를 열 수 있는 화면이라면 메뉴, 가격표, 안내 화면을 매장 분위기에 맞게 보여줄 수 있습니다.
+            테이블씬 디스플레이는 모바일 메뉴판을 크게 띄우는 서비스가 아니라, 매장 TV와 모니터에서 메뉴명과 가격을 멀리서도 읽기 좋게 보여주는 대형 화면용 디지털 메뉴보드입니다.
           </p>
         </motion.div>
       </section>
 
       <SimpleVisualSection
-        title={<>관리자 페이지에서<br />언제든 화면 내용을 수정하세요</>}
-        description="PC 앞에 앉아 있지 않아도 됩니다. 모바일 웹으로 관리자 페이지에 접속할 수 있다면 매장 안팎 어디서든 메뉴명, 가격, 안내 문구, 이미지, 노출 상태를 수정할 수 있고, 저장한 내용은 매장 화면에 반영됩니다."
+        title={<>손님이 여는 메뉴판이 아니라<br />매장이 보여주는 화면입니다</>}
+        description="테이블씬 베이직이 손님이 QR이나 링크로 직접 열어보는 메뉴판이라면, 디스플레이는 카운터 뒤 TV나 매장 모니터에 계속 띄워두는 메뉴보드입니다. 카페 메뉴, 베이커리 오늘의 메뉴, 시술 가격표, 클리닉 대기 안내처럼 매장 안에서 보여주는 화면에 집중합니다."
         image="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1400&auto=format&fit=crop"
       />
 
       <SimpleVisualSection
         reverse
-        title={<>페이지와 카테고리를<br />운영 방식대로 구성하세요</>}
-        description="메뉴 페이지를 여러 개 추가하고, 메뉴 아이템과 카테고리도 자유롭게 늘려갈 수 있습니다. 메뉴보드, 시술 가격표, 이벤트 안내처럼 매장 상황에 맞게 화면 구조를 구성할 수 있습니다."
+        title={<>가지고 있는 화면을<br />메뉴보드로 활용하세요</>}
+        description="새 기기를 반드시 구매해야 하는 서비스가 아닙니다. 스마트 TV는 브라우저에서 디스플레이 링크를 열 수 있고, 일반 TV나 모니터는 노트북, 미니 PC, TV 스틱, 크롬캐스트 같은 장치를 연결해 사용할 수 있습니다."
         image="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1400&auto=format&fit=crop"
       />
 
       <SimpleVisualSection
-        title={<>가격과 옵션도<br />메뉴에 맞게 자세히 보여주세요</>}
-        description="HOT / ICE 가격을 따로 설정하거나, 메뉴별 옵션을 더 자세히 안내할 수 있습니다. 맵기, 짜기, 쓴맛처럼 5칸 단계로 보여주는 세부 표시도 활용해 손님이 메뉴의 특징을 더 쉽게 이해하도록 도울 수 있습니다."
+        title={<>멀리서도 메뉴명과 가격이<br />먼저 읽히게 구성합니다</>}
+        description="모바일 메뉴판은 손님이 가까이에서 보지만, 매장 디스플레이는 몇 걸음 떨어진 거리에서 보게 됩니다. 큰 글씨, 넓은 간격, 한눈에 읽히는 카테고리, 대표 메뉴 강조, 이벤트 문구 노출처럼 큰 화면에서 필요한 가독성을 우선합니다."
         image="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1400&auto=format&fit=crop"
       />
 
       <SimpleVisualSection
         reverse
         title={<>메뉴가 많아도,<br />화면에 맞는 비율을 찾습니다</>}
-        description="모든 메뉴를 무조건 한 화면에 넣는 방식이 아니라, 화면 크기와 메뉴 개수에 맞춰 가능한 한 읽기 좋은 비율로 정리합니다. TV나 모니터처럼 넓은 화면에서는 여백과 열 구성을 활용해 가독성을 유지합니다."
+        description="모든 메뉴를 무조건 한 화면에 넣는 방식이 아니라, 화면 크기와 메뉴 개수에 맞춰 가능한 한 읽기 좋은 비율로 정리합니다. 메뉴가 적을 때는 화면이 허전하지 않게, 메뉴가 많을 때는 여백과 열 구성, 글자 크기를 조정해 가독성을 유지합니다."
         image="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1400&auto=format&fit=crop"
       />
 
       <SimpleVisualSection
-        title={<>매장 분위기에 맞게<br />디자인을 다듬을 수 있습니다</>}
-        description="템플릿을 그대로 쓰는 것에서 끝나지 않습니다. 폰트 스타일과 배경색을 조정하고, BEST나 Signature 같은 텍스트 칩을 만들어 색상까지 바꿀 수 있어 우리 매장 화면처럼 자연스럽게 다듬어갈 수 있습니다."
+        title={<>메뉴가 바뀌어도<br />다시 만들 필요가 없습니다</>}
+        description="가격 변경, 품절 메뉴, 시즌 메뉴, 이벤트 안내가 생기면 마이페이지에서 직접 수정할 수 있습니다. 종이 출력물이나 이미지 파일을 새로 만들지 않아도, 저장한 내용이 매장 화면의 메뉴보드에 반영됩니다."
         image="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=1400&auto=format&fit=crop"
       />
 
@@ -206,7 +325,7 @@ const DisplayServicePage = () => {
         title={<>링크 하나면,<br className="hidden md:block" />매장 화면에 바로 띄울 수 있어요</>}
       />
       <ServicePricingSection service="display" />
-      <FAQ />
+      <FAQ data={displayFaqData} />
     </div>
   );
 };

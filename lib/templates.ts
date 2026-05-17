@@ -1,3 +1,13 @@
+import {
+  getTemplateType,
+  getTemplateTypeLabel,
+  getTemplateTypeShortDescription,
+  getSupportedServices,
+  isTemplateSupportedForService as isTemplateKeySupportedForService,
+  type TemplateServiceType,
+  type TemplateType,
+} from "@/lib/template-types";
+
 export const TEMPLATE_CATEGORIES = [
   {
     key: "cafe",
@@ -115,7 +125,9 @@ export type LegacyTemplateKey = (typeof LEGACY_TEMPLATE_KEYS)[number];
 export type TemplateKey = (typeof TEMPLATE_CATEGORIES)[number]["templates"][number]["key"];
 export type AnyTemplateKey = TemplateKey | LegacyTemplateKey;
 export type TemplateDesignKey = (typeof TEMPLATE_CATEGORIES)[number]["templates"][number]["design"];
-export type TemplateServiceKey = "basic" | "screen";
+export type TemplateServiceKey = TemplateServiceType;
+export type TemplateCatalogStatus = "available" | "coming_soon" | "hidden";
+export type { TemplateType };
 
 const templateToneByDesign: Record<TemplateDesignKey, "light" | "warm" | "dark"> = {
   design_a: "light",
@@ -135,30 +147,84 @@ const templateDescriptionByDesign: Record<TemplateDesignKey, string> = {
   design_c: "코스, 스토리, 브랜드 분위기를 차분하게 보여주는 프리미엄 다이닝 템플릿입니다.",
 };
 
+const availableTemplateKeys = ["cafe_design_a"] as const satisfies readonly string[];
+
+const featuredHomeTemplateKeys = [
+  "cafe_design_a",
+  "cafe_design_b",
+  "cafe_design_c",
+  "casual_dining_design_a",
+] as const satisfies readonly string[];
+
+const featuredBasicTemplateKeys = [
+  "cafe_design_a",
+  "cafe_design_b",
+  "cafe_design_c",
+  "fine_dining_design_a",
+  "casual_dining_design_a",
+  "fast_food_design_a",
+  "brunch_design_a",
+] as const satisfies readonly string[];
+
+const featuredDisplayTemplateKeys = [
+  "cafe_design_a",
+  "casual_dining_design_a",
+  "fast_food_design_a",
+  "brunch_design_a",
+  "fine_dining_design_a",
+] as const satisfies readonly string[];
+
+function getTemplateCatalogStatus(templateKey: string): TemplateCatalogStatus {
+  return availableTemplateKeys.includes(templateKey) ? "available" : "coming_soon";
+}
+
 export const templateCategoryFilters = [
   { key: "all", label: "전체" },
   ...TEMPLATE_CATEGORIES.map((category) => ({ key: category.key, label: category.label })),
 ] as const;
 
 export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
-  category.templates.map((template) => ({
-    key: template.key,
-    service: "basic" as const satisfies TemplateServiceKey,
-    serviceLabel: "Basic",
-    name: template.label,
-    label: template.label,
-    template_category: category.key,
-    categoryLabel: category.label,
-    design: template.design,
-    description: templateDescriptionByDesign[template.design],
-    categories: [category.key],
-    categoryLabels: [category.label],
-    badge: templateBadgeByDesign[template.design],
-    active: template.key === "cafe_design_a",
-    thumbnailTone: templateToneByDesign[template.design],
-    thumbnailUrl: null,
-  }))
+  category.templates.map((template, templateIndex) => {
+    const templateType = getTemplateType(template.key);
+    const supportedServices = getSupportedServices(template.key);
+    const status = getTemplateCatalogStatus(template.key);
+
+    return {
+      key: template.key,
+      templateKey: template.key,
+      service: "basic" as const satisfies TemplateServiceKey,
+      serviceLabel: "테이블씬 베이직",
+      name: template.label,
+      displayName: template.label,
+      label: template.label,
+      template_category: category.key,
+      categoryLabel: category.label,
+      design: template.design,
+      description: templateType === "price_list"
+        ? getTemplateTypeShortDescription("price_list")
+        : templateDescriptionByDesign[template.design],
+      categories: [category.key],
+      categoryLabels: [category.label],
+      badge: templateBadgeByDesign[template.design],
+      template_type: templateType,
+      templateType,
+      templateTypeLabel: getTemplateTypeLabel(templateType),
+      supported_services: supportedServices,
+      supportedServices,
+      status,
+      active: status === "available",
+      featuredHome: featuredHomeTemplateKeys.includes(template.key),
+      featuredBasic: featuredBasicTemplateKeys.includes(template.key),
+      featuredDisplay: featuredDisplayTemplateKeys.includes(template.key),
+      sortOrder: TEMPLATE_CATEGORIES.findIndex((entry) => entry.key === category.key) * 100 + templateIndex,
+      thumbnailTone: templateToneByDesign[template.design],
+      thumbnailUrl: null,
+      previewImage: null,
+    };
+  })
 );
+
+export const TEMPLATE_CATALOG = templateCatalog;
 
 export type TemplateCatalogItem = (typeof templateCatalog)[number];
 
@@ -238,4 +304,45 @@ export function getTemplateDisplayName(templateKey?: string | null, templateCate
 
 export function getTemplateDesignKey(templateKey?: string | null, templateCategory?: string | null): TemplateDesignKey {
   return getTemplateByKey(templateKey, templateCategory).design;
+}
+
+function sortTemplateCatalogItems(templates: readonly TemplateCatalogItem[]): TemplateCatalogItem[] {
+  return [...templates].sort((left, right) => left.sortOrder - right.sortOrder);
+}
+
+export function getAllTemplates(): TemplateCatalogItem[] {
+  return sortTemplateCatalogItems(TEMPLATE_CATALOG);
+}
+
+export function getTemplatesForService(serviceType: TemplateServiceType): TemplateCatalogItem[] {
+  return getAllTemplates().filter((template) => template.supportedServices.includes(serviceType));
+}
+
+export function getAvailableTemplatesForService(serviceType: TemplateServiceType): TemplateCatalogItem[] {
+  return getTemplatesForService(serviceType).filter((template) => template.status === "available");
+}
+
+export function getFeaturedTemplatesForHome(): TemplateCatalogItem[] {
+  return getAllTemplates().filter((template) => template.featuredHome && template.status !== "hidden");
+}
+
+export function getFeaturedTemplatesForBasicPage(): TemplateCatalogItem[] {
+  return getAllTemplates().filter((template) => (
+    template.featuredBasic &&
+    template.status !== "hidden" &&
+    template.supportedServices.includes("basic")
+  ));
+}
+
+export function getFeaturedTemplatesForDisplayPage(): TemplateCatalogItem[] {
+  return getAllTemplates().filter((template) => (
+    template.featuredDisplay &&
+    template.status !== "hidden" &&
+    template.templateType !== "schedule" &&
+    template.supportedServices.includes("display")
+  ));
+}
+
+export function isTemplateSupportedForService(templateKey: string | null | undefined, serviceType: TemplateServiceType): boolean {
+  return isTemplateKeySupportedForService(templateKey, serviceType);
 }
