@@ -1125,7 +1125,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <SubmitButton tone="final" dirtyFormId="basic-info-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
-                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
                     </FinalActionRow>
                   </div>
@@ -1151,7 +1151,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <SubmitButton tone="final" dirtyFormId="page-settings-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
-                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
                     </FinalActionRow>
                   </div>
@@ -1192,7 +1192,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <SubmitButton tone="final" dirtyFormId="intro-form">저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
-                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
                     </FinalActionRow>
                   </div>
@@ -1373,7 +1373,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         <SubmitButton tone="final" dirtyFormId="about-form">저장</SubmitButton>
                         <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
-                          변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
+                          변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                         </p>
                       </FinalActionRow>
                     </div>

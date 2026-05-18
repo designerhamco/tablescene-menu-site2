@@ -2120,6 +2120,15 @@ function priceOptionSummary(options: MenuItemPriceOption[]) {
     .join(" · ");
 }
 
+function formatDraftPriceOption(option: DraftPriceOption) {
+  if (option.priceLabel.trim()) return option.priceLabel.trim();
+  const numericPrice = Number(option.price);
+  if (Number.isFinite(numericPrice) && option.price.trim()) {
+    return new Intl.NumberFormat("ko-KR").format(numericPrice) + "원";
+  }
+  return option.price.trim();
+}
+
 function DraftPriceOptionsEditor({
   options,
   labels,
@@ -2148,6 +2157,52 @@ function DraftPriceOptionsEditor({
   onOptionChange: (optionId: string, patch: Partial<DraftPriceOption>) => void;
 }) {
   const reachedPriceOptionLimit = options.length >= MENU_LIMITS.maxPriceOptionsPerItem;
+  const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
+  const [editingOptionDraft, setEditingOptionDraft] = useState({
+    label: "",
+    price: "",
+    priceLabel: "",
+  });
+  const [editingOptionError, setEditingOptionError] = useState("");
+
+  function startEditingOption(option: DraftPriceOption) {
+    setEditingOptionId(option.id);
+    setEditingOptionDraft({
+      label: option.label,
+      price: option.price,
+      priceLabel: option.priceLabel,
+    });
+    setEditingOptionError("");
+  }
+
+  function cancelEditingOption() {
+    setEditingOptionId(null);
+    setEditingOptionDraft({ label: "", price: "", priceLabel: "" });
+    setEditingOptionError("");
+  }
+
+  function completeEditingOption(optionId: string) {
+    const nextLabel = editingOptionDraft.label.trim();
+    const nextPrice = editingOptionDraft.price.trim();
+    const nextPriceLabel = editingOptionDraft.priceLabel.trim();
+
+    if (!nextLabel) {
+      setEditingOptionError("옵션명을 입력해주세요.");
+      return;
+    }
+
+    if (!nextPrice && !nextPriceLabel) {
+      setEditingOptionError("옵션 가격 또는 표시용 가격을 입력해주세요.");
+      return;
+    }
+
+    onOptionChange(optionId, {
+      label: nextLabel,
+      price: nextPrice,
+      priceLabel: nextPriceLabel,
+    });
+    cancelEditingOption();
+  }
 
   return (
     <div className="mt-4 rounded-lg bg-zinc-50 p-4">
@@ -2180,47 +2235,98 @@ function DraftPriceOptionsEditor({
 
       <div className="mt-5">
         <h5 className="text-sm font-black text-zinc-950">옵션 목록</h5>
+        <p className="mt-1 break-keep text-xs font-bold text-zinc-400">추가된 옵션은 기본 보기 상태로 표시됩니다. 값을 바꾸려면 해당 옵션의 수정 버튼을 눌러주세요.</p>
         <div className="mt-3 space-y-3">
-          {options.map((option) => (
-            <div key={option.id} className="rounded-lg border border-zinc-100 bg-white p-4">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
-                <div>
-                  <FieldLabel required>옵션명</FieldLabel>
-                  <TextInput
-                    value={option.label}
-                    onChange={(event) => onOptionChange(option.id, { label: event.target.value })}
-                    placeholder="HOT"
-                    maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label}
-                  />
+          {options.map((option) => {
+            const isEditing = editingOptionId === option.id;
+            const displayPrice = formatDraftPriceOption(option);
+
+            if (isEditing) {
+              return (
+                <div key={option.id} className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
+                    <div>
+                      <FieldLabel required>옵션명</FieldLabel>
+                      <TextInput
+                        value={editingOptionDraft.label}
+                        onChange={(event) => setEditingOptionDraft((currentDraft) => ({ ...currentDraft, label: event.target.value }))}
+                        placeholder="HOT"
+                        maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>가격</FieldLabel>
+                      <TextInput
+                        value={editingOptionDraft.price}
+                        onChange={(event) => setEditingOptionDraft((currentDraft) => ({ ...currentDraft, price: event.target.value.replace(/[^0-9]/g, "") }))}
+                        type="number"
+                        min={0}
+                        step={1}
+                        placeholder="4000"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>{labels.priceLabelLabel}</FieldLabel>
+                      <TextInput
+                        value={editingOptionDraft.priceLabel}
+                        onChange={(event) => setEditingOptionDraft((currentDraft) => ({ ...currentDraft, priceLabel: event.target.value }))}
+                        placeholder={labels.priceLabelPlaceholder}
+                        maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel}
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2 lg:flex-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => completeEditingOption(option.id)}
+                        className="rounded-full border border-zinc-950 bg-zinc-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+                      >
+                        수정 완료
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditingOption}
+                        className="rounded-full border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-900"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                  {editingOptionError && <p className="mt-2 text-xs font-bold text-red-600">{editingOptionError}</p>}
                 </div>
-                <div>
-                  <FieldLabel>가격</FieldLabel>
-                  <TextInput
-                    value={option.price}
-                    onChange={(event) => onOptionChange(option.id, { price: event.target.value.replace(/[^0-9]/g, "") })}
-                    type="number"
-                    min={0}
-                    step={1}
-                    placeholder="4000"
-                  />
+              );
+            }
+
+            return (
+              <div key={option.id} className="rounded-lg border border-zinc-100 bg-white p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-zinc-950">
+                      {option.label.trim() || "옵션명 없음"}
+                      <span className="mx-2 text-zinc-300">·</span>
+                      <span className={displayPrice ? "text-zinc-700" : "text-red-600"}>{displayPrice || "가격 미입력"}</span>
+                    </p>
+                    {option.priceLabel.trim() && option.price.trim() && (
+                      <p className="mt-1 text-xs font-bold text-zinc-400">가격 {new Intl.NumberFormat("ko-KR").format(Number(option.price))}원</p>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => startEditingOption(option)}
+                      className="rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:border-zinc-300 hover:bg-white hover:text-zinc-950"
+                    >
+                      수정
+                    </button>
+                    <button type="button" onClick={() => onRemove(option.id)} className="rounded-full border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:border-red-200 hover:bg-red-100">
+                      삭제
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <FieldLabel>{labels.priceLabelLabel}</FieldLabel>
-                  <TextInput
-                    value={option.priceLabel}
-                    onChange={(event) => onOptionChange(option.id, { priceLabel: event.target.value })}
-                    placeholder={labels.priceLabelPlaceholder}
-                    maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel}
-                  />
-                </div>
-                <button type="button" onClick={() => onRemove(option.id)} className="rounded-full border border-red-100 bg-red-50 px-5 py-3 text-sm font-bold text-red-700">
-                  제거
-                </button>
+                {!option.label.trim() && <p className="mt-2 text-xs font-bold text-red-600">옵션명을 입력해주세요.</p>}
+                {!String(option.price).trim() && !option.priceLabel.trim() && <p className="mt-2 text-xs font-bold text-red-600">가격 또는 표시용 가격을 입력해주세요.</p>}
               </div>
-              {!option.label.trim() && <p className="mt-2 text-xs font-bold text-red-600">옵션명을 입력해주세요.</p>}
-              {!String(option.price).trim() && !option.priceLabel.trim() && <p className="mt-2 text-xs font-bold text-red-600">가격 또는 표시용 가격을 입력해주세요.</p>}
-            </div>
-          ))}
+            );
+          })}
           {options.length === 0 && <EmptyState>아직 등록된 가격 옵션이 없습니다. 위의 “새 가격 옵션 추가”에서 HOT / ICE, Small / Large 같은 옵션을 추가해주세요.</EmptyState>}
         </div>
       </div>
