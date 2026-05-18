@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/expire-personal-trials",
+      "schedule": "0 18 * * *"
+    }
+  ]
+}

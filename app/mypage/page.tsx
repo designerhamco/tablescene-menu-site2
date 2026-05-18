@@ -280,7 +280,7 @@ export default async function MyPage() {
                             ? `체험 기간이 종료되었습니다. ${
                                 typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds > 0
                                   ? `데이터 보관 만료까지 ${daysUntilRetentionEnds}일 남았습니다.`
-                                  : "데이터 보관 기간이 종료되었거나 확인이 필요합니다."
+                                  : "데이터 보관 기간이 종료되어 삭제 예정 상태입니다."
                               }`
                             : `만료일 ${formatDate(accessExpiresAt)}${
                                 typeof daysUntilExpiry === "number" ? `, 남은 기간 ${daysUntilExpiry}일` : ""
