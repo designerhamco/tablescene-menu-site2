@@ -2,7 +2,9 @@ import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
 import { signInAction } from "@/app/auth/actions";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
 
 type SearchParams = Promise<{
   error?: string;
@@ -42,6 +44,7 @@ export default async function SignInPage({
   const { error, message, next } = await searchParams;
   const errorMessage = getErrorMessage(error);
   const notice = getNotice(message);
+  const safeNext = getSafeAuthRedirectPath(next);
 
   return (
     <>
@@ -72,7 +75,7 @@ export default async function SignInPage({
           )}
 
           <form action={signInAction} className="space-y-5">
-            <input type="hidden" name="next" value={next ?? "/mypage"} />
+            <input type="hidden" name="next" value={safeNext} />
 
             <div>
               <label htmlFor="email" className="mb-2 block text-sm font-bold">
@@ -112,6 +115,8 @@ export default async function SignInPage({
             </button>
           </form>
 
+          <OAuthButtons next={safeNext} />
+
           <div className="mt-5 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-zinc-500 sm:flex-row sm:gap-3">
             <Link href="/forgot-password" className="hover:text-zinc-950 hover:underline">
               비밀번호를 잊으셨나요?
@@ -124,7 +129,10 @@ export default async function SignInPage({
 
           <p className="mt-6 text-center text-sm font-medium text-zinc-500">
             계정이 없나요?{" "}
-            <Link href="/sign-up" className="font-bold text-zinc-950 hover:underline">
+            <Link
+              href={`/sign-up?next=${encodeURIComponent(safeNext)}`}
+              className="font-bold text-zinc-950 hover:underline"
+            >
               회원가입
             </Link>
           </p>

@@ -2,10 +2,13 @@ import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
 import { signUpAction } from "@/app/auth/actions";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
 
 type SearchParams = Promise<{
   error?: string;
+  next?: string;
 }>;
 
 function getErrorMessage(error?: string) {
@@ -25,8 +28,9 @@ export default async function SignUpPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const errorMessage = getErrorMessage(error);
+  const safeNext = getSafeAuthRedirectPath(next);
 
   return (
     <>
@@ -104,9 +108,14 @@ export default async function SignUpPage({
             </button>
           </form>
 
+          <OAuthButtons next={safeNext} />
+
           <p className="mt-6 text-center text-sm font-medium text-zinc-500">
             이미 계정이 있나요?{" "}
-            <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
+            <Link
+              href={`/sign-in?next=${encodeURIComponent(safeNext)}`}
+              className="font-bold text-zinc-950 hover:underline"
+            >
               로그인
             </Link>
           </p>
