@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Toaster } from "@/app/components/ui/sonner";
+import ScrollToTopOnPathChange from "@/app/components/navigation/ScrollToTopOnPathChange";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,6 +18,9 @@ export default function RootLayout({
     <html lang="ko" className="h-full scroll-smooth antialiased" suppressHydrationWarning>
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         {children}
+        <Suspense fallback={null}>
+          <ScrollToTopOnPathChange />
+        </Suspense>
         <Toaster richColors position="top-right" />
       </body>
     </html>

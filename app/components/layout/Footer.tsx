@@ -9,6 +9,8 @@ import {
 } from "@/app/components/ui/dialog";
 
 const Footer = () => {
+  const showAdminLink = process.env.NODE_ENV !== "production";
+
   return (
     <footer className="bg-[#111111] text-zinc-400 py-12 border-t border-zinc-800">
       <div className="max-w-7xl mx-auto px-6">
@@ -70,9 +72,11 @@ const Footer = () => {
                 <a href="/faq" className="hover:text-zinc-300 transition-colors">
                   FAQ
                 </a>
-                <a href="/admin" className="hover:text-zinc-300 transition-colors">
-                  Admin
-                </a>
+                {showAdminLink ? (
+                  <a href="/admin" className="hover:text-zinc-300 transition-colors">
+                    Admin
+                  </a>
+                ) : null}
 
                 {/* Terms of Service Dialog */}
                 <Dialog>

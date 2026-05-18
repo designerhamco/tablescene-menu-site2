@@ -140,19 +140,19 @@ const Navbar = () => {
           </div>
 
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
-            <Link
-              to="/apply/basic"
+            <a
+              href="/apply"
               className={`hidden rounded-full px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${primaryButtonClass}`}
               style={primaryButtonStyle}
             >
               만들기
-            </Link>
-            <Link
-              to="/mypage"
+            </a>
+            <a
+              href="/mypage"
               className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
             >
               마이페이지
-            </Link>
+            </a>
 
             <button
               className={`p-1 transition-opacity lg:hidden ${menuButtonClass}`}
@@ -177,20 +177,20 @@ const Navbar = () => {
             <div className="flex h-full flex-col overflow-y-auto pb-10">
               <div className="flex-1 px-6 py-6">
                 <div className="mb-6 grid grid-cols-2 gap-2 border-b border-zinc-100 pb-6">
-                  <Link
-                    to="/apply/basic"
+                  <a
+                    href="/apply"
                     onClick={closeMobileMenu}
                     className="flex items-center justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
                   >
                     만들기
-                  </Link>
-                  <Link
-                    to="/mypage"
+                  </a>
+                  <a
+                    href="/mypage"
                     onClick={closeMobileMenu}
                     className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
                   >
                     마이페이지
-                  </Link>
+                  </a>
                 </div>
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">

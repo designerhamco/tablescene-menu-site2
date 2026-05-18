@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string) {
@@ -67,7 +68,7 @@ export async function signUpAction(formData: FormData) {
 export async function signInAction(formData: FormData) {
   const email = getString(formData, "email");
   const password = getString(formData, "password");
-  const next = getString(formData, "next") || "/mypage";
+  const next = getSafeAuthRedirectPath(getString(formData, "next"));
 
   if (!email || !password) {
     redirect("/sign-in?error=missing-fields");

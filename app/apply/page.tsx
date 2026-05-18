@@ -15,8 +15,9 @@ const applyServices = [
     eyebrow: "TableScene Basic",
     description: "누구나 쉽고 빠르게 만드는 디지털 메뉴판/가격표",
     price: "오픈가 월 6,000원 / 연 60,000원",
+    note: "월/연 자동결제 방식은 준비 중이며, 정식 오픈 시 적용됩니다.",
     type: "결제신청형",
-    cta: "바로 도입하기",
+    cta: "Basic 만들기",
     href: "/apply/basic",
     active: true,
   },
@@ -25,16 +26,18 @@ const applyServices = [
     eyebrow: "TableScene Display",
     description: "매장 화면을 감각적인 디지털 메뉴보드로",
     price: "오픈가 월 12,000원 / 연 120,000원",
-    type: "결제신청형",
-    cta: "바로 도입하기",
+    note: "Display 전용 템플릿 준비 중입니다. 템플릿 준비 후 신청할 수 있습니다.",
+    type: "준비 중",
+    cta: "준비 중",
     href: "/apply/display",
-    active: true,
+    active: false,
   },
   {
     title: "테이블씬 오더 1.0",
     eyebrow: "TableScene QR Order",
     description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.",
     price: null,
+    note: null,
     type: "준비 중",
     cta: "준비 중",
     href: "/services/order",
@@ -44,11 +47,12 @@ const applyServices = [
     title: "테이블씬 커스텀",
     eyebrow: "TableScene Custom",
     description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험",
-    price: null,
-    type: "준비 중",
-    cta: "준비 중",
+    price: "별도 견적",
+    note: "결제 없이 상담 신청을 접수한 뒤 별도 견적을 안내합니다.",
+    type: "상담형",
+    cta: "상담 신청",
     href: "/apply/custom",
-    active: false,
+    active: true,
   },
 ] as const;
 
@@ -64,8 +68,11 @@ export default function ApplyPage() {
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              현재 바로 도입 가능한 베이직과 디스플레이 중 필요한 신청 유형을 선택해주세요.
-              오더와 커스텀은 준비 중입니다.
+              현재 바로 도입 가능한 베이직과 상담형 커스텀 중 필요한 신청 유형을 선택해주세요.
+              디스플레이와 오더는 준비 중입니다.
+            </p>
+            <p className="mt-4 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-700">
+              월/연 자동결제 방식은 준비 중이며, PG/PortOne 확인 후 정식 오픈 시 적용됩니다.
             </p>
           </header>
 
@@ -92,6 +99,11 @@ export default function ApplyPage() {
                   {service.price ? (
                     <p className="mt-5 text-lg font-black text-zinc-950">
                       {service.price}
+                    </p>
+                  ) : null}
+                  {service.note ? (
+                    <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">
+                      {service.note}
                     </p>
                   ) : null}
                 </div>
