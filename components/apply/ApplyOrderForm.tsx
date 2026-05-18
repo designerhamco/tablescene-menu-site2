@@ -1,9 +1,10 @@
 "use client";
 
 import * as PortOne from "@portone/browser-sdk/v2";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import {
   basicPaymentProducts,
   canIndividualPurchasePlan,
@@ -1500,7 +1501,18 @@ export default function ApplyOrderForm({
               successText="입력 완료"
             />
             <div>
-              <Field label={isScreenService ? "희망 공개 주소" : "희망 메뉴판 주소"} value={form.desiredSlug} onChange={(value) => updateField("desiredSlug", value)} required maxLength={40} placeholder="예: gangnam-cafe" helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : MENU_ADDRESS_HELPER_TEXT} errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null} successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined} />
+              <Field
+                label={isScreenService ? "희망 공개 주소" : "희망 메뉴판 주소"}
+                value={form.desiredSlug}
+                onChange={(value) => updateField("desiredSlug", value)}
+                required
+                maxLength={40}
+                placeholder="예: gangnam-cafe"
+                helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : MENU_ADDRESS_HELPER_TEXT}
+                helperIcon={visibleSlugState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : undefined}
+                errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null}
+                successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined}
+              />
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                 생성될 주소: {isSlugValid ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
               </p>
@@ -1824,6 +1836,7 @@ function Field({
   maxLength,
   placeholder,
   helperText,
+  helperIcon,
   errorText,
   successText,
   className = "",
@@ -1838,6 +1851,7 @@ function Field({
   maxLength?: number;
   placeholder?: string;
   helperText?: string;
+  helperIcon?: ReactNode;
   errorText?: string | null;
   successText?: string;
   className?: string;
@@ -1864,7 +1878,12 @@ function Field({
           errorText ? "border-red-200 focus:border-red-500" : value.trim() && successText ? "border-emerald-200 focus:border-emerald-600" : "border-zinc-200 focus:border-zinc-950"
         }`}
       />
-      {message && <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${messageClassName}`}>{message}</p>}
+      {message && (
+        <p className={`mt-2 flex min-h-[18px] items-center gap-1.5 break-keep text-xs font-bold leading-relaxed ${messageClassName}`}>
+          {helperIcon}
+          <span>{message}</span>
+        </p>
+      )}
     </label>
   );
 }
