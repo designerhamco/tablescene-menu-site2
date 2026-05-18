@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 
 import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelForSave, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
-import { getAiUsage, getSettingsWithIncrementedAiUsage, isAiUsageExceeded, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
+import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
+import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
 import { DEFAULT_LOCALE, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import type { EditableTranslationDraftValue, EditableTranslationEntityType, EditableTranslationLocale, PartialTranslationActionResult } from "@/lib/menu-localization-draft";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
@@ -107,6 +108,11 @@ function getString(formData: FormData, key: string) {
 function getNullableString(formData: FormData, key: string) {
   const value = getString(formData, key);
   return value || null;
+}
+
+async function hasEnoughAiCredits(menuId: string, cost: number) {
+  const balance = await getAiCreditBalanceForMenuSite(menuId);
+  return balance ? balance.remainingCredits >= cost : null;
 }
 
 function getBoolean(formData: FormData, key: string) {
@@ -628,6 +634,7 @@ export async function translateMenuSiteAction(formData: FormData) {
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
   const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
   const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
+  const hasFullTranslationCredits = await hasEnoughAiCredits(menuId, 5);
   const targetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is (typeof TARGET_TRANSLATION_LOCALES)[number] =>
     TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
   );
@@ -636,8 +643,8 @@ export async function translateMenuSiteAction(formData: FormData) {
     redirectToTabEditWithError(menuId, "localization", "자동 번역을 실행할 외국어를 먼저 선택해주세요.");
   }
 
-  if (isAiUsageExceeded(fullTranslationUsage)) {
-    redirectToTabEditWithError(menuId, "localization", "전체 자동 번역 제공량을 모두 사용했습니다.");
+  if (hasFullTranslationCredits === false || (hasFullTranslationCredits === null && isAiUsageExceeded(fullTranslationUsage))) {
+    redirectToTabEditWithError(menuId, "localization", "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.");
   }
 
   const startedAt = new Date().toISOString();
@@ -678,15 +685,7 @@ export async function translateMenuSiteAction(formData: FormData) {
     }
 
     if (translatedEntities > 0) {
-      const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full", new Date(completedAt));
-      const { error: updateUsageError } = await supabase
-        .from("menu_sites")
-        .update({ settings, updated_at: completedAt })
-        .eq("id", menuId);
-
-      if (updateUsageError) {
-        throw new Error(`자동번역 사용량 저장에 실패했습니다: ${updateUsageError.message}`);
-      }
+      await spendAiCredits({ userId: user.id, menuSiteId: menuId, featureKey: "full_translation" });
     }
   } catch (error) {
     const failedAt = new Date().toISOString();
@@ -737,9 +736,10 @@ export async function generateMenuSiteTranslationDraftAction(input: {
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
     const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
+    const hasFullTranslationCredits = await hasEnoughAiCredits(menuId, 5);
 
-    if (isAiUsageExceeded(fullTranslationUsage)) {
-      return { ok: false, message: "전체 자동 번역 제공량을 모두 사용했습니다.", usage: fullTranslationUsage };
+    if (hasFullTranslationCredits === false || (hasFullTranslationCredits === null && isAiUsageExceeded(fullTranslationUsage))) {
+      return { ok: false, message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.", usage: fullTranslationUsage };
     }
 
     const result = await runMenuTranslationDraft(supabase, menuId, targetLocales);
@@ -747,17 +747,8 @@ export async function generateMenuSiteTranslationDraftAction(input: {
 
     if (result.translatedEntities > 0) {
       const usedAt = new Date();
-      const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full", usedAt);
-      const { error } = await supabase
-        .from("menu_sites")
-        .update({ settings, updated_at: usedAt.toISOString() })
-        .eq("id", menuId);
-
-      if (error) {
-        return { ok: false, message: `자동번역 사용량 저장에 실패했습니다: ${error.message}`, usage };
-      }
-
-      usage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_full", usedAt);
+      const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "full_translation" });
+      usage = getAiUsageFromCreditSpend("ai_translate_full", creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
     }
 
     const entityTypeByTable = {
@@ -1233,6 +1224,7 @@ export async function generateMenuItemDescriptionAction(input: {
 
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
 
     if (!getTemplateCapabilities(menuSite.template_key).itemDescription) {
       return { ok: false, message: "현재 템플릿에서는 아이템 설명을 사용하지 않습니다." };
@@ -1251,14 +1243,14 @@ export async function generateMenuItemDescriptionAction(input: {
       }
     }
 
-    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
     const descriptionUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_description");
+    const hasDescriptionCredits = await hasEnoughAiCredits(menuId, 1);
 
-    if (isAiUsageExceeded(descriptionUsage)) {
+    if (hasDescriptionCredits === false || (hasDescriptionCredits === null && isAiUsageExceeded(descriptionUsage))) {
       return {
         ok: false,
-        message: "AI 설명 작성 제공량을 모두 사용했습니다.",
+        message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.",
         usage: { used: descriptionUsage.used, limit: descriptionUsage.limit },
       };
     }
@@ -1303,17 +1295,8 @@ export async function generateMenuItemDescriptionAction(input: {
     }
 
     const usedAt = new Date();
-    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_description", usedAt);
-    const { error: usageError } = await supabase
-      .from("menu_sites")
-      .update({ settings, updated_at: usedAt.toISOString() })
-      .eq("id", menuId);
-
-    if (usageError) {
-      return { ok: false, message: "AI 설명 작성 중 오류가 발생했습니다. 다시 시도해주세요." };
-    }
-
-    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_description", usedAt);
+    const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "description_write" });
+    const nextUsage = getAiUsageFromCreditSpend("ai_description", creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
 
     return {
       ok: true,
@@ -1361,11 +1344,12 @@ export async function generateAiMenuCleanupAction(input: {
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
     const cleanupUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_menu_cleanup");
+    const hasCleanupCredits = await hasEnoughAiCredits(menuId, 3);
 
-    if (isAiUsageExceeded(cleanupUsage)) {
+    if (hasCleanupCredits === false || (hasCleanupCredits === null && isAiUsageExceeded(cleanupUsage))) {
       return {
         ok: false,
-        message: "AI 메뉴 정리 제공량을 모두 사용했습니다.",
+        message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.",
         usage: { used: cleanupUsage.used, limit: cleanupUsage.limit },
       };
     }
@@ -1386,17 +1370,8 @@ export async function generateAiMenuCleanupAction(input: {
     }
 
     const usedAt = new Date();
-    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_menu_cleanup", usedAt);
-    const { error: usageError } = await supabase
-      .from("menu_sites")
-      .update({ settings, updated_at: usedAt.toISOString() })
-      .eq("id", menuId);
-
-    if (usageError) {
-      return { ok: false, message: "AI 메뉴 정리 중 오류가 발생했습니다. 다시 시도해주세요." };
-    }
-
-    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_menu_cleanup", usedAt);
+    const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "menu_cleanup" });
+    const nextUsage = getAiUsageFromCreditSpend("ai_menu_cleanup", creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
 
     return {
       ok: true,
@@ -1431,11 +1406,12 @@ export async function translateMenuItemPartialAction(input: {
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
+    const hasPartialCredits = await hasEnoughAiCredits(menuId, 1);
 
-    if (isAiUsageExceeded(partialUsage)) {
+    if (hasPartialCredits === false || (hasPartialCredits === null && isAiUsageExceeded(partialUsage))) {
       return {
         ok: false,
-        message: "부분 자동 번역 제공량을 모두 사용했습니다.",
+        message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.",
         usage: { used: partialUsage.used, limit: partialUsage.limit },
       };
     }
@@ -1489,17 +1465,8 @@ export async function translateMenuItemPartialAction(input: {
     }
 
     const usedAt = new Date();
-    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
-    const { error: usageError } = await supabase
-      .from("menu_sites")
-      .update({ settings, updated_at: usedAt.toISOString() })
-      .eq("id", menuId);
-
-    if (usageError) {
-      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
-    }
-
-    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+    const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "partial_translation" });
+    const nextUsage = getAiUsageFromCreditSpend("ai_translate_partial", creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
 
     return {
       ok: true,
@@ -1535,11 +1502,12 @@ export async function translateMenuCategoryPartialAction(input: {
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
+    const hasPartialCredits = await hasEnoughAiCredits(menuId, 1);
 
-    if (isAiUsageExceeded(partialUsage)) {
+    if (hasPartialCredits === false || (hasPartialCredits === null && isAiUsageExceeded(partialUsage))) {
       return {
         ok: false,
-        message: "부분 자동 번역 제공량을 모두 사용했습니다.",
+        message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.",
         usage: { used: partialUsage.used, limit: partialUsage.limit },
       };
     }
@@ -1586,17 +1554,8 @@ export async function translateMenuCategoryPartialAction(input: {
     }
 
     const usedAt = new Date();
-    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
-    const { error: usageError } = await supabase
-      .from("menu_sites")
-      .update({ settings, updated_at: usedAt.toISOString() })
-      .eq("id", menuId);
-
-    if (usageError) {
-      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
-    }
-
-    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+    const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "partial_translation" });
+    const nextUsage = getAiUsageFromCreditSpend("ai_translate_partial", creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
 
     return {
       ok: true,
@@ -1630,11 +1589,12 @@ export async function translateMenuHeroPartialAction(input: {
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
+    const hasPartialCredits = await hasEnoughAiCredits(menuId, 1);
 
-    if (isAiUsageExceeded(partialUsage)) {
+    if (hasPartialCredits === false || (hasPartialCredits === null && isAiUsageExceeded(partialUsage))) {
       return {
         ok: false,
-        message: "부분 자동 번역 제공량을 모두 사용했습니다.",
+        message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.",
         usage: { used: partialUsage.used, limit: partialUsage.limit },
       };
     }
@@ -1683,17 +1643,8 @@ export async function translateMenuHeroPartialAction(input: {
     }
 
     const usedAt = new Date();
-    const settings = getSettingsWithIncrementedAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
-    const { error: usageError } = await supabase
-      .from("menu_sites")
-      .update({ settings, updated_at: usedAt.toISOString() })
-      .eq("id", menuId);
-
-    if (usageError) {
-      return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
-    }
-
-    const nextUsage = getAiUsage(settings, aiUsagePlanKey, "ai_translate_partial", usedAt);
+    const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "partial_translation" });
+    const nextUsage = getAiUsageFromCreditSpend("ai_translate_partial", creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
 
     return {
       ok: true,

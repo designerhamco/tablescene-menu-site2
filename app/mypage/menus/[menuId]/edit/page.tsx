@@ -16,6 +16,7 @@ import {
 } from "@/app/mypage/menus/actions";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
 import BackgroundColorSettingsForm from "@/components/mypage/menu-editor/BackgroundColorSettingsForm";
 import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
@@ -31,6 +32,7 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
+import type { AiCreditBalance } from "@/lib/ai-credits";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
 import CoverDraftToggleSection from "@/components/mypage/menu-editor/CoverDraftToggleSection";
 import {
@@ -41,7 +43,9 @@ import {
 import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
-import { getAiUsageSnapshot, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
+import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
+import { getPublicPortOneConfig } from "@/lib/portone";
+import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
 import { createClient } from "@/lib/supabase/server";
@@ -114,6 +118,7 @@ type MenuSite = Pick<
   | "settings"
   | "page_settings"
 >;
+
 type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "section_key" | "sort_order" | "visible"
@@ -843,7 +848,16 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const defaultBackgroundColor = getTemplateDefaultBackgroundColor(site.template_key);
   const resolvedBackgroundColor = getResolvedBackgroundColor(site.template_key, site.page_settings);
   const enabledLocales = getEnabledLocales(site.settings);
-  const aiUsage = getAiUsageSnapshot(site.settings, aiUsagePlanKey);
+  let aiCreditBalance: AiCreditBalance | null = null;
+
+  try {
+    aiCreditBalance = await getAiCreditBalanceForMenuSite(site.id);
+  } catch {
+    aiCreditBalance = null;
+  }
+
+  const portOneConfig = getPublicPortOneConfig();
+  const aiUsage = getAiUsageSnapshotFromCredits(aiCreditBalance) ?? getAiUsageSnapshot(site.settings, aiUsagePlanKey);
   const editableTranslationFields = buildEditableTranslationFields({
     site,
     pages: menuPages,
@@ -1336,22 +1350,33 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               templateType === "schedule" ? (
                 <SchedulePlaceholder />
               ) : (
-                <MenuManagementSection
-                  menuId={site.id}
-                  menuPages={menuPages}
-                  categories={categories}
-                  items={items}
-                  priceOptions={priceOptions}
-                  traits={traits}
-                  capabilities={templateCapabilities}
-                  aiDescriptionUsage={aiUsage.ai_description}
-                  aiMenuCleanupUsage={aiUsage.ai_menu_cleanup}
-                  badgeStyles={badgeStyles}
-                  editorLabels={templateEditorLabels}
-                  starterPreset={menuManagementStarterPreset}
-                  finalSaveMessage={bannerMessage}
-                  finalSaveError={finalSaveError}
-                />
+                <div className="space-y-5">
+                  <AiCreditRechargePanel
+                    menuSiteId={site.id}
+                    menuName={site.name}
+                    userId={user.id}
+                    userEmail={user.email}
+                    storeId={portOneConfig.storeId}
+                    channelKey={portOneConfig.channelKey}
+                    initialBalance={aiCreditBalance}
+                  />
+                  <MenuManagementSection
+                    menuId={site.id}
+                    menuPages={menuPages}
+                    categories={categories}
+                    items={items}
+                    priceOptions={priceOptions}
+                    traits={traits}
+                    capabilities={templateCapabilities}
+                    aiDescriptionUsage={aiUsage.ai_description}
+                    aiMenuCleanupUsage={aiUsage.ai_menu_cleanup}
+                    badgeStyles={badgeStyles}
+                    editorLabels={templateEditorLabels}
+                    starterPreset={menuManagementStarterPreset}
+                    finalSaveMessage={bannerMessage}
+                    finalSaveError={finalSaveError}
+                  />
+                </div>
               )
             )}
 
@@ -1470,6 +1495,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "localization" && (
               <SectionCard title="다국어" eyebrow="Localization">
+                <AiCreditRechargePanel
+                  menuSiteId={site.id}
+                  menuName={site.name}
+                  userId={user.id}
+                  userEmail={user.email}
+                  storeId={portOneConfig.storeId}
+                  channelKey={portOneConfig.channelKey}
+                  initialBalance={aiCreditBalance}
+                />
                 <LocalizationSection
                   menuId={site.id}
                   enabledLocales={enabledLocales}

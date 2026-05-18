@@ -23,7 +23,7 @@ const PAID_APPLY_COPY: Record<
     description:
       "개인 1개월 체험, 사업자 월 결제, 사업자 연 결제 중 이용 방식을 선택해 Basic 메뉴판을 신청합니다.",
     note:
-      "개인 체험은 1회 결제로 바로 이용할 수 있고, 사업자 월/연 결제는 사업자 인증과 자동결제 연결을 기준으로 설계되어 있습니다.",
+      "Basic 메뉴판 생성 시 AI 크레딧 18개가 계정에 지급됩니다. 개인 체험은 1회 결제로 바로 이용할 수 있고, 사업자 월/연 결제는 사업자 인증과 자동결제 연결을 기준으로 설계되어 있습니다.",
   },
   screen: {
     eyebrow: "TableScene Display",
@@ -31,7 +31,7 @@ const PAID_APPLY_COPY: Record<
     description:
       "매장 화면을 감각적인 디지털 메뉴보드로 운영할 수 있는 결제형 신청 페이지입니다.",
     note:
-      "현재는 기존 메뉴판 생성 흐름을 재사용해 준비되며, 추후 디스플레이 전용 템플릿과 데이터 구조로 분리할 수 있습니다.",
+      "Display 메뉴판 생성 시 AI 크레딧 26개가 계정에 지급됩니다. 현재는 전용 템플릿 준비 중이며, 개인 체험은 제공하지 않습니다.",
   },
   order: {
     eyebrow: "TableScene QR Order",
@@ -90,6 +90,7 @@ export default async function PaidApplyPage({ serviceType, nextPath }: PaidApply
             userId={user.id}
             storeId={portOneConfig.storeId}
             channelKey={portOneConfig.channelKey}
+            billingChannelKey={portOneConfig.billingChannelKey}
             mockEnabled={portOneConfig.mockEnabled}
             serviceType={serviceType}
           />

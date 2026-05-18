@@ -49,6 +49,7 @@ type ApplyOrderFormProps = {
   userId: string;
   storeId: string | null;
   channelKey: string | null;
+  billingChannelKey: string | null;
   mockEnabled: boolean;
   serviceType?: "menu" | "screen" | "order";
 };
@@ -65,6 +66,34 @@ type BusinessVerificationResponse = {
   taxType?: string | null;
   verifiedAt?: string | null;
   message?: string;
+};
+
+type BillingKeyIssueResponse = {
+  code?: string;
+  message?: string;
+  billingKey?: string;
+  billingKeyInfo?: {
+    billingKey?: string;
+  };
+};
+
+type BusinessSubscriptionResponse = {
+  ok?: boolean;
+  step?: string;
+  debugCode?: string;
+  message?: string;
+  menuSiteId?: string;
+  slug?: string;
+  safeDebug?: {
+    portoneStatus?: number;
+    portoneCode?: string;
+    portoneMessage?: string;
+  };
+  debug?: {
+    portoneStatus?: number;
+    portoneCode?: string;
+    portoneMessage?: string;
+  };
 };
 
 type BusinessVerificationState =
@@ -266,19 +295,19 @@ const basicProductCards = [
   {
     product: basicPaymentProducts[0],
     eyebrow: "Personal Trial",
-    bullets: ["1회 결제", "자동결제 없음", "사업자 인증 없이 시작", "1개월 이용"],
+    bullets: ["1회 결제", "자동결제 없음", "사업자 인증 없이 시작", "Basic 체험 메뉴판 생성 시 AI 크레딧 18개 제공"],
     helperText: "체험 종료 후 비공개 전환 및 30일 데이터 보관",
   },
   {
     product: basicPaymentProducts[1],
     eyebrow: "Business Monthly",
-    bullets: ["사업자 인증 필요", "월 자동결제", "Basic 정식 이용", "계속 이용 가능"],
+    bullets: ["사업자 인증 필요", "월 자동결제", "Basic 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
   {
     product: basicPaymentProducts[2],
     eyebrow: "Business Yearly",
-    bullets: ["사업자 인증 필요", "연 자동결제", "Basic 정식 이용", "계속 이용 가능"],
+    bullets: ["사업자 인증 필요", "연 자동결제", "Basic 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
 ] as const satisfies readonly {
@@ -664,6 +693,7 @@ export default function ApplyOrderForm({
   userId,
   storeId,
   channelKey,
+  billingChannelKey,
   mockEnabled,
   serviceType = "menu",
 }: ApplyOrderFormProps) {
@@ -830,6 +860,7 @@ export default function ApplyOrderForm({
   );
 
   const isPortOneReady = Boolean(storeId && channelKey);
+  const isBillingPortOneReady = Boolean(storeId && billingChannelKey);
   const isDevelopment = process.env.NODE_ENV !== "production";
   const menuAddressError = getMenuAddressError(payload.desiredSlug);
   const isSlugValid = !menuAddressError && isValidMenuSlug(payload.desiredSlug);
@@ -911,14 +942,14 @@ export default function ApplyOrderForm({
     !businessOpeningDateError &&
     !businessPhoneError &&
     Object.values(agreements).every(Boolean);
-  const isFormReady = isBaseFormReady && !isSubscriptionProduct;
+  const isFormReady = isBaseFormReady && (!isSubscriptionProduct || hasVerifiedBusinessProfile);
   const isLoading = uiState.type === "loading";
-  const paymentButtonDisabled = isSubscriptionProduct || !isFormReady || isLoading;
+  const paymentButtonDisabled = !isFormReady || isLoading;
   const subscriptionActionMessage = isSubscriptionProduct
     ? isBusinessVerificationChecking
       ? "사업자 정보를 확인하고 있습니다. 확인이 끝날 때까지 기다려주세요."
       : hasVerifiedBusinessProfile
-        ? "사업자 인증이 완료되었습니다. 월/연 자동결제는 곧 제공될 예정입니다."
+        ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 첫 결제를 진행합니다."
         : businessVerificationState.type === "failed"
           ? "사업자 정보가 확인되지 않았습니다. 입력 정보를 다시 확인해주세요."
           : "사업자 월/연 결제는 사업자 인증 완료 후 진행할 수 있습니다."
@@ -931,7 +962,7 @@ export default function ApplyOrderForm({
         ? isBusinessVerificationChecking
           ? "사업자 인증 확인 중"
           : hasVerifiedBusinessProfile
-            ? "자동결제 준비 중"
+            ? "정기결제 테스트 진행"
             : "사업자 인증 후 진행 가능"
         : visibleSlugState.type === "checking"
           ? "메뉴판 주소 확인 중..."
@@ -1138,6 +1169,30 @@ export default function ApplyOrderForm({
     router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
   }
 
+  function getBillingKeyFromIssueResponse(response: unknown) {
+    const billingKeyResponse = response as BillingKeyIssueResponse | null | undefined;
+    return billingKeyResponse?.billingKeyInfo?.billingKey ?? billingKeyResponse?.billingKey ?? "";
+  }
+
+  function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionResponse) {
+    const baseMessage = result.message ?? "사업자 자동결제 첫 결제 처리에 실패했습니다.";
+
+    if (process.env.NODE_ENV === "production") {
+      return baseMessage;
+    }
+
+    const safeDebug = result.safeDebug ?? result.debug;
+    const details = [
+      result.step ? `step: ${result.step}` : null,
+      result.debugCode ? `debugCode: ${result.debugCode}` : null,
+      typeof safeDebug?.portoneStatus === "number" ? `portoneStatus: ${safeDebug.portoneStatus}` : null,
+      safeDebug?.portoneCode ? `portoneCode: ${safeDebug.portoneCode}` : null,
+      safeDebug?.portoneMessage ? `portoneMessage: ${safeDebug.portoneMessage}` : null,
+    ].filter(Boolean);
+
+    return details.length > 0 ? `${baseMessage}\n${details.join("\n")}` : baseMessage;
+  }
+
   async function verifySlugBeforePayment() {
     const slug = payload.desiredSlug;
 
@@ -1183,12 +1238,90 @@ export default function ApplyOrderForm({
 
   async function handlePayment() {
     if (isSubscriptionProduct) {
-      setUiState({
-        type: "error",
-        message: hasVerifiedBusinessProfile
-          ? "사업자 인증이 완료되었습니다. 월/연 자동결제는 곧 제공될 예정이며, 현재 단건 결제로 처리하지 않습니다."
-          : "사업자 월/연 결제는 사업자 인증 완료 후 진행할 수 있습니다.",
-      });
+      if (!hasVerifiedBusinessProfile || businessVerificationState.type !== "verified") {
+        setUiState({
+          type: "error",
+          message: "사업자 월/연 결제는 사업자 인증 완료 후 진행할 수 있습니다.",
+        });
+        return;
+      }
+
+      if (!isFormReady || isLoading) {
+        return;
+      }
+
+      if (!storeId || !billingChannelKey) {
+        setUiState({
+          type: "error",
+          message: "사업자 정기결제용 PortOne 빌링키 채널 환경변수가 필요합니다. NEXT_PUBLIC_PORTONE_BILLING_CHANNEL_KEY 설정을 확인해주세요.",
+        });
+        return;
+      }
+
+      setUiState({ type: "loading", message: "PortOne 빌링키 발급창을 준비하고 있습니다." });
+
+      try {
+        const issueResponse = await PortOne.requestIssueBillingKey({
+          storeId,
+          channelKey: billingChannelKey,
+          billingKeyMethod: "CARD",
+          customer: {
+            id: userId,
+            email: payload.buyerEmail,
+            phoneNumber: payload.buyerPhone,
+            name: {
+              full: payload.buyerName,
+            },
+          },
+          customData: {
+            product_key: activeProduct.product_key,
+            plan_type: activeProduct.plan_type,
+            billing_cycle: activeProduct.billing_cycle,
+            billing_channel: "subscription",
+            source: "apply_basic",
+          },
+        } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0]);
+        const issueResult = issueResponse as BillingKeyIssueResponse | null | undefined;
+
+        if (!issueResponse || issueResult?.code) {
+          throw new Error(issueResult?.message ?? "빌링키 발급이 취소되었거나 실패했습니다.");
+        }
+
+        const billingKey = getBillingKeyFromIssueResponse(issueResponse);
+
+        if (!billingKey) {
+          throw new Error("빌링키 발급 결과를 확인하지 못했습니다.");
+        }
+
+        setUiState({ type: "loading", message: "빌링키로 첫 결제를 요청하고 있습니다." });
+
+        const response = await fetch("/api/business-subscriptions/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode: "new",
+            billingKey,
+            businessProfileId: businessVerificationState.result.businessProfileId,
+            productKey: activeProduct.product_key,
+            billingCycle: activeProduct.billing_cycle,
+            order: payload,
+          }),
+        });
+        const result = (await response.json()) as BusinessSubscriptionResponse;
+
+        if (!response.ok || !result.ok) {
+          throw new Error(getBusinessSubscriptionErrorMessage(result));
+        }
+
+        router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
+      } catch (error) {
+        setUiState({
+          type: "error",
+          message: error instanceof Error ? error.message : "사업자 자동결제 처리 중 알 수 없는 오류가 발생했습니다.",
+        });
+      }
       return;
     }
 
@@ -1299,6 +1432,7 @@ export default function ApplyOrderForm({
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월/연 결제는 사업자 인증과 자동결제 구조로 이어집니다.
+                Basic 메뉴판을 생성하면 AI 크레딧 18개가 계정에 지급됩니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-3">
@@ -1900,8 +2034,15 @@ export default function ApplyOrderForm({
             </div>
           )}
 
+          {isSubscriptionProduct && !isBillingPortOneReady && (
+            <div className="mt-6 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+              사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
+              `NEXT_PUBLIC_PORTONE_BILLING_CHANNEL_KEY`를 설정해주세요.
+            </div>
+          )}
+
           {uiState.message && (
-            <div className={`mt-6 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${getUiStateClassName(uiState.type)}`}>{uiState.message}</div>
+            <div className={`mt-6 whitespace-pre-line rounded-2xl border p-4 text-sm font-bold leading-relaxed ${getUiStateClassName(uiState.type)}`}>{uiState.message}</div>
           )}
 
           {subscriptionActionMessage && (

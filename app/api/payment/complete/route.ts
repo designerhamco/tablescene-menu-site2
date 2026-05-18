@@ -10,6 +10,7 @@ import {
   type MenuOrderPayload,
 } from "@/lib/payments";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
+import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
@@ -938,7 +939,7 @@ async function createServiceEntitlement(
     return;
   }
 
-  throw new Error(`개인 체험 이용권 저장에 실패했습니다: ${error.message}`);
+  throw new Error(`개인 체험 이용 상태 저장에 실패했습니다: ${error.message}`);
 }
 
 function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayload): VerifiedPayment {
@@ -1123,7 +1124,7 @@ export async function POST(request: Request) {
 
   if (orderPayload.payment_type === "subscription") {
     // TODO(billing): 사업자 자동결제 구현 시 businessProfileId 소유권, verified 상태,
-    // business_profiles.verification_status, business_basic_monthly/yearly product_key,
+    // business_profiles.verification_status, business_basic/display 월/연 product_key,
     // billing_cycle 매칭, billing key 생성 성공, subscription 생성 성공 후 entitlement 생성,
     // subscription renewal 처리를 별도 API에서 검증합니다.
     return jsonError(
@@ -1239,7 +1240,24 @@ export async function POST(request: Request) {
   try {
     await createServiceEntitlement(adminSupabase, user.id, menuSite.id, orderPayload);
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "개인 체험 이용권 저장 중 오류가 발생했습니다.", 500);
+    return jsonError(error instanceof Error ? error.message : "개인 체험 이용 상태 저장 중 오류가 발생했습니다.", 500);
+  }
+
+  try {
+    const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
+      adminSupabase,
+      userId: user.id,
+      menuSiteId: menuSite.id,
+      serviceType: "basic",
+      productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+      planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+      reason: "personal_trial_created",
+    });
+    if (!aiCreditGrant.ok) {
+      throw new Error("AI 크레딧 테이블 migration 적용이 필요합니다.");
+    }
+  } catch (error) {
+    return jsonError(error instanceof Error ? error.message : "AI 크레딧 기본 제공량 저장 중 오류가 발생했습니다.", 500);
   }
 
   return NextResponse.json({

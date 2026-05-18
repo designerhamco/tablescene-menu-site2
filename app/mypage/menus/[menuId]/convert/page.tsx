@@ -5,6 +5,7 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import BusinessPlanConvertPanel from "@/components/mypage/BusinessPlanConvertPanel";
 import { getPublicMenuUrl } from "@/lib/menu-url";
+import { getPublicPortOneConfig } from "@/lib/portone";
 import { createClient } from "@/lib/supabase/server";
 import { getTemplateDisplayName } from "@/lib/templates";
 import type { Json } from "@/lib/supabase/types";
@@ -181,6 +182,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
 
   const isPendingDelete = trialInfo.status === "pending_delete" || Boolean(trialInfo.deletedScheduledAt);
   const publicUrl = typedMenuSite.slug ? getPublicMenuUrl(typedMenuSite.slug) : "공개 주소 미설정";
+  const portOneConfig = getPublicPortOneConfig();
 
   return (
     <>
@@ -218,7 +220,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
             </dl>
             {entitlementsError && (
               <p className="mt-4 break-keep rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold text-amber-800">
-                이용권 정보를 완전히 불러오지 못해 일부 정보는 메뉴판 저장값 기준으로 표시됩니다: {entitlementsError.message}
+                이용 상태 정보를 완전히 불러오지 못해 일부 정보는 메뉴판 저장값 기준으로 표시됩니다: {entitlementsError.message}
               </p>
             )}
           </section>
@@ -234,7 +236,11 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
               </Link>
             </section>
           ) : (
-            <BusinessPlanConvertPanel menuSiteId={menuId} />
+            <BusinessPlanConvertPanel
+              menuSiteId={menuId}
+              storeId={portOneConfig.storeId}
+              billingChannelKey={portOneConfig.billingChannelKey}
+            />
           )}
         </div>
       </main>

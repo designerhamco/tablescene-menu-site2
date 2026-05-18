@@ -1510,7 +1510,7 @@ function MenuItemForm({
     }
 
     if (aiDescriptionUsageExceeded) {
-      toast.error("AI 설명 작성 제공량을 모두 사용했습니다.");
+      toast.error(`AI 크레딧이 부족합니다. AI 설명 작성은 1크레딧이 필요합니다. 현재 보유 AI 크레딧: ${Math.max(0, aiDescriptionUsage.limit - aiDescriptionUsage.used)}개`);
       return;
     }
 
@@ -1685,7 +1685,7 @@ function MenuItemForm({
                       작성 중...
                     </>
                   ) : (
-                    "AI 설명 작성"
+                    "AI 설명 작성 · 1크레딧"
                   )}
                 </button>
               </div>
@@ -2079,7 +2079,7 @@ function MenuItemForm({
                     작성 중...
                   </>
                 ) : (
-                  "AI 설명으로 바꾸기"
+                  "AI 설명으로 바꾸기 · 1크레딧"
                 )}
               </button>
             </div>
@@ -2801,7 +2801,7 @@ export default function MenuManagementSection({
     }
 
     if (localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit) {
-      toast.error("AI 메뉴 정리 제공량을 모두 사용했습니다.");
+      toast.error(`AI 크레딧이 부족합니다. AI 메뉴 정리는 3크레딧이 필요합니다. 현재 보유 AI 크레딧: ${Math.max(0, localAiMenuCleanupUsage.limit - localAiMenuCleanupUsage.used)}개`);
       return;
     }
 
@@ -4219,7 +4219,7 @@ export default function MenuManagementSection({
                   disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
                   className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                 >
-                  AI 메뉴 정리
+                  AI 메뉴 정리 · 3크레딧
                 </button>
                 <div className="w-full min-w-56">
                   <AiUsageMeter label="AI 메뉴 정리" used={localAiMenuCleanupUsage.used} limit={localAiMenuCleanupUsage.limit} compact />
@@ -4853,7 +4853,7 @@ export default function MenuManagementSection({
               className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-zinc-100 bg-white p-6 shadow-xl"
             >
               <h2 id="menu-cleanup-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
-                AI 메뉴 정리
+                AI 메뉴 정리 · 3크레딧
               </h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 메뉴 이름, 가격, 설명을 자유롭게 붙여넣으면 AI가 카테고리와 메뉴 아이템으로 정리합니다.

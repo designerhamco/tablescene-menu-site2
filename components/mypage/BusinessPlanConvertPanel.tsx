@@ -1,5 +1,6 @@
 "use client";
 
+import * as PortOne from "@portone/browser-sdk/v2";
 import { useState } from "react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -18,6 +19,32 @@ type BusinessVerificationResponse = {
   message?: string;
 };
 
+type BillingKeyIssueResponse = {
+  code?: string;
+  message?: string;
+  billingKey?: string;
+  billingKeyInfo?: {
+    billingKey?: string;
+  };
+};
+
+type BusinessSubscriptionResponse = {
+  ok?: boolean;
+  step?: string;
+  debugCode?: string;
+  message?: string;
+  safeDebug?: {
+    portoneStatus?: number;
+    portoneCode?: string;
+    portoneMessage?: string;
+  };
+  debug?: {
+    portoneStatus?: number;
+    portoneCode?: string;
+    portoneMessage?: string;
+  };
+};
+
 type BusinessVerificationState =
   | { type: "idle"; message: string }
   | { type: "checking"; message: string }
@@ -30,6 +57,12 @@ type FormState = {
   businessNumber: string;
   openingDate: string;
   phone: string;
+};
+
+type BusinessPlanConvertPanelProps = {
+  menuSiteId: string;
+  storeId: string | null;
+  billingChannelKey: string | null;
 };
 
 const conversionProducts = [businessBasicMonthlyProduct, businessBasicYearlyProduct] as const;
@@ -51,8 +84,9 @@ function getRequiredError(label: string, value: string) {
   return value.trim() ? null : `${label}을 입력해주세요.`;
 }
 
-export default function BusinessPlanConvertPanel({ menuSiteId }: { menuSiteId: string }) {
+export default function BusinessPlanConvertPanel({ menuSiteId, storeId, billingChannelKey }: BusinessPlanConvertPanelProps) {
   const [selectedProductKey, setSelectedProductKey] = useState<BasicProductKey>("business_basic_monthly");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState<FormState>({
     businessName: "",
     representativeName: "",
@@ -71,6 +105,7 @@ export default function BusinessPlanConvertPanel({ menuSiteId }: { menuSiteId: s
   const businessNumberError = form.businessNumber.trim() ? getBusinessNumberError(form.businessNumber) : "사업자등록번호를 입력해주세요.";
   const openingDateError = getRequiredError("개업일자", form.openingDate);
   const isVerified = verificationState.type === "verified" && Boolean(verificationState.result.businessProfileId);
+  const isPortOneReady = Boolean(storeId && billingChannelKey);
 
   function updateField(key: keyof FormState, value: string) {
     setForm((current) => ({
@@ -130,16 +165,113 @@ export default function BusinessPlanConvertPanel({ menuSiteId }: { menuSiteId: s
     }
   }
 
-  function showBillingNotice() {
+function getBillingKeyFromIssueResponse(response: unknown) {
+  const billingKeyResponse = response as BillingKeyIssueResponse | null | undefined;
+  return billingKeyResponse?.billingKeyInfo?.billingKey ?? billingKeyResponse?.billingKey ?? "";
+}
+
+function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionResponse) {
+  const baseMessage = result.message ?? "사업자 플랜 전환 결제 처리에 실패했습니다.";
+
+  if (process.env.NODE_ENV === "production") {
+    return baseMessage;
+  }
+
+  const safeDebug = result.safeDebug ?? result.debug;
+  const details = [
+    result.step ? `step: ${result.step}` : null,
+    result.debugCode ? `debugCode: ${result.debugCode}` : null,
+    typeof safeDebug?.portoneStatus === "number" ? `portoneStatus: ${safeDebug.portoneStatus}` : null,
+    safeDebug?.portoneCode ? `portoneCode: ${safeDebug.portoneCode}` : null,
+    safeDebug?.portoneMessage ? `portoneMessage: ${safeDebug.portoneMessage}` : null,
+  ].filter(Boolean);
+
+  return details.length > 0 ? `${baseMessage}\n${details.join("\n")}` : baseMessage;
+}
+
+  async function startConversionBilling() {
     // TODO(billing-conversion): 자동결제 구현 시 businessProfileId 소유권, verification_status,
     // menuSiteId 소유권, 개인 체험 전환 가능 상태, 기존 menu_site 유지, 기존 slug/메뉴/이미지 유지,
     // billing key/subscription 생성 성공, subscription_id 저장, 기존 entitlement 전환 또는 신규 entitlement 연결을 서버에서 검증해야 합니다.
-    setVerificationState((current) => ({
-      ...current,
-      message: isVerified
-        ? "사업자 인증이 완료되었습니다. 기존 메뉴판을 이어서 사용할 수 있는 월/연 자동결제 전환 기능은 곧 제공될 예정입니다."
-        : "사업자 인증 완료 후 전환 준비 상태를 확인할 수 있습니다.",
-    }));
+    if (!isVerified || verificationState.type !== "verified") {
+      setVerificationState({ type: "failed", message: "사업자 인증 완료 후 전환할 수 있습니다." });
+      return;
+    }
+
+    if (!storeId || !billingChannelKey) {
+      setVerificationState({
+        type: "failed",
+        message: "사업자 정기결제용 PortOne 빌링키 채널 환경변수가 필요합니다. NEXT_PUBLIC_PORTONE_BILLING_CHANNEL_KEY 설정을 확인해주세요.",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setVerificationState((current) => ({ ...current, message: "PortOne 빌링키 발급창을 준비하고 있습니다." }));
+
+    try {
+      const issueResponse = await PortOne.requestIssueBillingKey({
+        storeId,
+        channelKey: billingChannelKey,
+        billingKeyMethod: "CARD",
+        customer: {
+          id: menuSiteId,
+          name: {
+            full: form.representativeName,
+          },
+        },
+        customData: {
+          product_key: selectedProduct.product_key,
+          plan_type: selectedProduct.plan_type,
+          billing_cycle: selectedProduct.billing_cycle,
+          billing_channel: "subscription",
+          source: "personal_trial_convert",
+          menu_site_id: menuSiteId,
+        },
+      } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0]);
+      const issueResult = issueResponse as BillingKeyIssueResponse | null | undefined;
+
+      if (!issueResponse || issueResult?.code) {
+        throw new Error(issueResult?.message ?? "빌링키 발급이 취소되었거나 실패했습니다.");
+      }
+
+      const billingKey = getBillingKeyFromIssueResponse(issueResponse);
+
+      if (!billingKey) {
+        throw new Error("빌링키 발급 결과를 확인하지 못했습니다.");
+      }
+
+      setVerificationState((current) => ({ ...current, message: "빌링키로 첫 결제를 요청하고 있습니다." }));
+
+      const response = await fetch("/api/business-subscriptions/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mode: "convert",
+          billingKey,
+          businessProfileId: verificationState.result.businessProfileId,
+          productKey: selectedProduct.product_key,
+          billingCycle: selectedProduct.billing_cycle,
+          menuSiteId,
+        }),
+      });
+      const result = (await response.json()) as BusinessSubscriptionResponse;
+
+      if (!response.ok || !result.ok) {
+        throw new Error(getBusinessSubscriptionErrorMessage(result));
+      }
+
+      window.location.assign("/mypage");
+    } catch (error) {
+      setVerificationState({
+        type: "failed",
+        message: error instanceof Error ? error.message : "사업자 플랜 전환 중 알 수 없는 오류가 발생했습니다.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -148,7 +280,8 @@ export default function BusinessPlanConvertPanel({ menuSiteId }: { menuSiteId: s
         <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Plan</p>
         <h2 className="text-2xl font-black tracking-tight">사업자 플랜 선택</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-          개인 체험으로 만든 기존 메뉴판을 그대로 이어서 사용할 사업자 Basic 플랜을 선택합니다.
+          현재 메뉴판은 Basic 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 Basic 사업자 플랜으로 전환할 수 있습니다.
+          Display 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -201,21 +334,26 @@ export default function BusinessPlanConvertPanel({ menuSiteId }: { menuSiteId: s
             <dd className="text-right text-zinc-900">{selectedProduct.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}</dd>
           </div>
         </dl>
-        <div className={`mt-6 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${isVerified ? "border-emerald-100 bg-emerald-50 text-emerald-700" : verificationState.type === "failed" ? "border-red-100 bg-red-50 text-red-700" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
+        <div className={`mt-6 whitespace-pre-line rounded-2xl border p-4 text-sm font-bold leading-relaxed ${isVerified ? "border-emerald-100 bg-emerald-50 text-emerald-700" : verificationState.type === "failed" ? "border-red-100 bg-red-50 text-red-700" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
           {isVerified
-            ? "사업자 인증이 완료되었습니다. 기존 메뉴판을 이어서 사용할 수 있는 월/연 자동결제 전환 기능은 곧 제공될 예정입니다."
+            ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 기존 메뉴판을 이어서 사용할 수 있습니다."
             : verificationState.type === "checking"
               ? "사업자 정보를 확인하고 있습니다."
               : verificationState.message}
         </div>
         <button
           type="button"
-          onClick={showBillingNotice}
-          disabled={!isVerified}
-          className="mt-6 inline-flex w-full cursor-not-allowed items-center justify-center rounded-full bg-zinc-300 px-5 py-4 text-sm font-black text-white disabled:bg-zinc-300"
+          onClick={startConversionBilling}
+          disabled={!isVerified || isSubmitting}
+          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-black text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
-          {isVerified ? "자동결제 준비 중" : "사업자 인증 후 진행 가능"}
+          {isSubmitting ? "정기결제 처리 중..." : isVerified ? "정기결제 테스트 진행" : "사업자 인증 후 진행 가능"}
         </button>
+        {!isPortOneReady && (
+          <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">
+            사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
+          </p>
+        )}
       </aside>
 
       <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm lg:col-span-2">
@@ -243,7 +381,7 @@ export default function BusinessPlanConvertPanel({ menuSiteId }: { menuSiteId: s
             {verificationState.type === "checking" ? <LoadingSpinner className="h-4 w-4" /> : null}
             {verificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
           </button>
-          <p className={`break-keep text-sm font-bold ${verificationState.type === "verified" ? "text-emerald-700" : verificationState.type === "failed" ? "text-red-700" : "text-zinc-500"}`}>
+          <p className={`whitespace-pre-line break-keep text-sm font-bold ${verificationState.type === "verified" ? "text-emerald-700" : verificationState.type === "failed" ? "text-red-700" : "text-zinc-500"}`}>
             {verificationState.message}
           </p>
         </div>

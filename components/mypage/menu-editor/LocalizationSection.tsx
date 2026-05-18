@@ -138,7 +138,7 @@ function TranslationSubmitButton({ disabled, pending, onClick }: { disabled?: bo
           번역 중...
         </>
       ) : (
-        "전체 자동 번역 초안 만들기"
+        "전체 자동 번역 초안 만들기 · 5크레딧"
       )}
     </button>
   );
@@ -279,7 +279,7 @@ function TranslationEditorGroup({
                         번역 중...
                       </>
                     ) : (
-                      "AI 번역"
+                      "AI 번역 · 1크레딧"
                     )}
                   </button>
                 ) : null}
@@ -627,7 +627,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     if (!firstField || locale === "ko") return;
     if (firstField.entityType !== "item" && firstField.entityType !== "category" && firstField.entityType !== "site") return;
     if (localPartialUsage.used >= localPartialUsage.limit) {
-      toast.error("부분 자동 번역 제공량을 모두 사용했습니다.");
+      toast.error(`AI 크레딧이 부족합니다. 부분 자동 번역은 1크레딧이 필요합니다. 현재 보유 AI 크레딧: ${Math.max(0, localPartialUsage.limit - localPartialUsage.used)}개`);
       return;
     }
 
@@ -734,7 +734,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
           <div className="mt-6 border-t border-zinc-100 pt-5">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
             <div>
-              <h3 className="text-lg font-bold tracking-tight text-zinc-950">AI 번역 사용량</h3>
+              <h3 className="text-lg font-bold tracking-tight text-zinc-950">AI 번역 크레딧</h3>
               <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                 선택한 외국어의 번역 초안을 생성합니다. 메뉴 수에 따라 보통 1~3분 정도 걸릴 수 있습니다.
                 생성된 번역은 아래 “번역 확인 및 수정” 영역에서 확인하고 저장 후 공개 메뉴판에 반영됩니다.
@@ -744,11 +744,16 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
                 <AiUsageMeter label="부분 자동 번역" used={localPartialUsage.used} limit={localPartialUsage.limit} />
               </div>
               <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 각각 제공량이 차감됩니다.
+                전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 기능별 AI 크레딧이 차감됩니다.
               </p>
               {!hasTargetLocales && (
                 <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
               )}
+              {localFullUsage.used >= localFullUsage.limit ? (
+                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-red-700">
+                  AI 크레딧이 부족합니다. 전체 자동 번역은 5크레딧이 필요합니다. 현재 보유 AI 크레딧: {Math.max(0, localFullUsage.limit - localFullUsage.used)}개
+                </p>
+              ) : null}
               <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${translationStatus.tone}`}>
                 {translationStatus.label}
               </p>
@@ -768,7 +773,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
             자동 번역 초안을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-            항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역 사용량을 차감합니다.
+            항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역은 1크레딧이 차감됩니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
             다시 자동 번역을 실행하면 직접 수정한 번역이 새 번역 결과로 덮어써질 수 있습니다.
@@ -885,7 +890,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
                     번역 중...
                   </>
                 ) : (
-                  "AI 번역으로 바꾸기"
+                  "AI 번역으로 바꾸기 · 1크레딧"
                 )}
               </button>
             </div>

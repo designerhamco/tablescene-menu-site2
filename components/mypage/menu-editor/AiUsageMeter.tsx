@@ -43,18 +43,18 @@ export default function AiUsageMeter({ label, used, limit, compact = false }: Ai
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">{label}</p>
         <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${tone.badge}`}>
-          남은 {remaining}회
+          남은 AI 크레딧 {remaining}개
         </span>
       </div>
       <p className={`mt-2 text-sm font-black ${tone.text}`}>
-        이번 달 {safeUsed} / {safeLimit}회 사용
+        사용 AI 크레딧 {safeUsed}개 / 총 {safeLimit}개
       </p>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-200">
         <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${percent}%` }} />
       </div>
       {remaining <= 0 && (
         <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-700">
-          이번 달 제공량을 모두 사용했습니다.
+          보유 AI 크레딧을 모두 사용했습니다.
         </p>
       )}
     </div>
