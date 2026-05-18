@@ -20,6 +20,31 @@ type MenuSite = {
   settings: Json | null;
 };
 
+type ServiceEntitlement = {
+  id: string | null;
+  menu_site_id: string | null;
+  plan_type: string | null;
+  billing_type: string | null;
+  billing_cycle?: string | null;
+  status: string | null;
+  access_expires_at: string | null;
+  expired_at: string | null;
+  data_retention_until: string | null;
+  deleted_scheduled_at: string | null;
+};
+
+type TrialDisplayInfo = {
+  source: "service_entitlements" | "settings";
+  planType: string;
+  billingType: string;
+  billingCycle: string;
+  status: string;
+  accessExpiresAt: string;
+  expiredAt: string;
+  dataRetentionUntil: string;
+  deletedScheduledAt: string;
+};
+
 function getStatusLabel(status: MenuSite["status"]) {
   const labels: Record<string, string> = {
     draft: "작성중",
@@ -116,6 +141,47 @@ function getSettingsString(settings: Record<string, unknown>, key: string) {
   return typeof value === "string" ? value : "";
 }
 
+function getEntitlementString(entitlement: ServiceEntitlement | undefined, key: keyof ServiceEntitlement) {
+  const value = entitlement?.[key];
+  return typeof value === "string" ? value : "";
+}
+
+function getTrialDisplayInfo(settings: Record<string, unknown>, entitlement?: ServiceEntitlement): TrialDisplayInfo | null {
+  const entitlementPlanType = getEntitlementString(entitlement, "plan_type");
+
+  if (entitlementPlanType) {
+    return {
+      source: "service_entitlements",
+      planType: entitlementPlanType,
+      billingType: getEntitlementString(entitlement, "billing_type"),
+      billingCycle: getEntitlementString(entitlement, "billing_cycle"),
+      status: getEntitlementString(entitlement, "status"),
+      accessExpiresAt: getEntitlementString(entitlement, "access_expires_at"),
+      expiredAt: getEntitlementString(entitlement, "expired_at"),
+      dataRetentionUntil: getEntitlementString(entitlement, "data_retention_until"),
+      deletedScheduledAt: getEntitlementString(entitlement, "deleted_scheduled_at"),
+    };
+  }
+
+  const settingsPlanType = getSettingsString(settings, "plan_type");
+
+  if (!settingsPlanType) {
+    return null;
+  }
+
+  return {
+    source: "settings",
+    planType: settingsPlanType,
+    billingType: getSettingsString(settings, "payment_type"),
+    billingCycle: getSettingsString(settings, "billing_cycle"),
+    status: "",
+    accessExpiresAt: getSettingsString(settings, "access_expires_at"),
+    expiredAt: "",
+    dataRetentionUntil: getSettingsString(settings, "data_retention_until"),
+    deletedScheduledAt: "",
+  };
+}
+
 function getDaysUntil(date: string) {
   const time = new Date(date).getTime();
 
@@ -124,6 +190,37 @@ function getDaysUntil(date: string) {
   }
 
   return Math.ceil((time - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+async function getServiceEntitlementsForMenuSites(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  menuSiteIds: string[]
+) {
+  if (menuSiteIds.length === 0) {
+    return { data: [] as ServiceEntitlement[], error: null };
+  }
+
+  const result = await supabase
+    .from("service_entitlements")
+    .select("id, menu_site_id, plan_type, billing_type, billing_cycle, status, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at")
+    .in("menu_site_id", menuSiteIds);
+
+  if (!result.error || !result.error.message.includes("billing_cycle")) {
+    return {
+      data: (result.data ?? []) as ServiceEntitlement[],
+      error: result.error,
+    };
+  }
+
+  const fallbackResult = await supabase
+    .from("service_entitlements")
+    .select("id, menu_site_id, plan_type, billing_type, status, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at")
+    .in("menu_site_id", menuSiteIds);
+
+  return {
+    data: (fallbackResult.data ?? []) as ServiceEntitlement[],
+    error: fallbackResult.error,
+  };
 }
 
 export default async function MyPage() {
@@ -143,6 +240,22 @@ export default async function MyPage() {
     .order("updated_at", { ascending: false });
 
   const sites = (menuSites ?? []) as MenuSite[];
+  const menuSiteIds = sites
+    .map((site) => getSafeString(site.id))
+    .filter(Boolean);
+  const { data: serviceEntitlements, error: serviceEntitlementsError } = await getServiceEntitlementsForMenuSites(supabase, menuSiteIds);
+  const entitlementByMenuSiteId = new Map<string, ServiceEntitlement>();
+
+  if (!serviceEntitlementsError) {
+    for (const entitlement of (serviceEntitlements ?? []) as ServiceEntitlement[]) {
+      const menuSiteId = getSafeString(entitlement.menu_site_id);
+
+      if (menuSiteId && !entitlementByMenuSiteId.has(menuSiteId)) {
+        entitlementByMenuSiteId.set(menuSiteId, entitlement);
+      }
+    }
+  }
+
   const identityProviders = getIdentityProviders(user.identities);
   const primaryProvider = getPrimaryProvider(user.app_metadata, identityProviders);
   const displayName = getMetadataString(user.user_metadata, ["display_name", "full_name", "name", "nickname"]);
@@ -225,6 +338,12 @@ export default async function MyPage() {
             </div>
           )}
 
+          {serviceEntitlementsError && (
+            <div className="mb-5 rounded-3xl border border-amber-100 bg-amber-50 p-6 text-sm font-medium text-amber-800">
+              이용권 정보를 불러오지 못해 일부 메뉴판은 기존 저장값 기준으로 표시됩니다: {serviceEntitlementsError.message}
+            </div>
+          )}
+
           {sites.length > 0 ? (
             <div className="grid gap-5 md:grid-cols-2">
               {sites.map((site) => {
@@ -236,15 +355,19 @@ export default async function MyPage() {
                 const canOpenPublicPage = isPublished && Boolean(slug);
                 const canManageSite = Boolean(siteId);
                 const settings = getMenuSiteSettings(site.settings);
-                const planType = getSettingsString(settings, "plan_type");
-                const billingCycle = getSettingsString(settings, "billing_cycle");
+                const entitlement = siteId ? entitlementByMenuSiteId.get(siteId) : undefined;
+                const trialDisplayInfo = getTrialDisplayInfo(settings, entitlement);
+                const planType = trialDisplayInfo?.planType ?? "";
+                const billingCycle = trialDisplayInfo?.billingCycle ?? "";
+                const entitlementStatus = trialDisplayInfo?.status ?? "";
                 const isPersonalTrial = planType === "personal_trial";
                 const isBusinessBasic = planType === "business_basic";
-                const accessExpiresAt = getSettingsString(settings, "access_expires_at");
-                const dataRetentionUntil = getSettingsString(settings, "data_retention_until");
+                const accessExpiresAt = trialDisplayInfo?.accessExpiresAt ?? "";
+                const dataRetentionUntil = trialDisplayInfo?.dataRetentionUntil ?? "";
                 const daysUntilExpiry = accessExpiresAt ? getDaysUntil(accessExpiresAt) : null;
                 const daysUntilRetentionEnds = dataRetentionUntil ? getDaysUntil(dataRetentionUntil) : null;
-                const isTrialExpired = typeof daysUntilExpiry === "number" && daysUntilExpiry <= 0;
+                const isTrialPendingDelete = entitlementStatus === "pending_delete" || Boolean(trialDisplayInfo?.deletedScheduledAt);
+                const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || (typeof daysUntilExpiry === "number" && daysUntilExpiry <= 0);
 
                 return (
                   <article key={siteId || `${slug || "menu-site"}-${site.created_at ?? "unknown"}`} className="rounded-3xl bg-white p-7 shadow-sm">
@@ -266,7 +389,7 @@ export default async function MyPage() {
                       <div className="mb-6 rounded-2xl border border-amber-100 bg-amber-50 p-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-amber-800 ring-1 ring-amber-100">
-                            {isTrialExpired ? "체험 기간 종료" : "개인 체험 이용 중"}
+                            {isTrialPendingDelete ? "삭제 예정" : isTrialExpired ? "체험 기간 종료" : "개인 체험 이용 중"}
                           </span>
                           <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-amber-800 ring-1 ring-amber-100">
                             1개월 단건 이용
@@ -277,8 +400,10 @@ export default async function MyPage() {
                         </div>
                         <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-800">
                           {isTrialExpired
-                            ? `체험 기간이 종료되었습니다. ${
-                                typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds > 0
+                            ? `${isTrialPendingDelete ? "보관 기간이 종료되었습니다." : "체험 기간이 종료되어 공개 메뉴판이 비공개로 전환되었습니다."} ${
+                                isTrialPendingDelete
+                                  ? "삭제 예정 상태입니다."
+                                  : typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds > 0
                                   ? `데이터 보관 만료까지 ${daysUntilRetentionEnds}일 남았습니다.`
                                   : "데이터 보관 기간이 종료되어 삭제 예정 상태입니다."
                               }`

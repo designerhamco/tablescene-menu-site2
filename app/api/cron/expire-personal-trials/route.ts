@@ -16,6 +16,7 @@ type TrialEntitlement = {
 type CronResult = {
   expiredEntitlements: number;
   archivedMenuSites: number;
+  repairedArchivedMenuSites: number;
   pendingDeleteEntitlements: number;
   errors: string[];
 };
@@ -63,6 +64,7 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
   const result: CronResult = {
     expiredEntitlements: 0,
     archivedMenuSites: 0,
+    repairedArchivedMenuSites: 0,
     pendingDeleteEntitlements: 0,
     errors: [],
   };
@@ -137,6 +139,7 @@ async function markRetentionEndedTrials(nowIso: string): Promise<CronResult> {
   const result: CronResult = {
     expiredEntitlements: 0,
     archivedMenuSites: 0,
+    repairedArchivedMenuSites: 0,
     pendingDeleteEntitlements: 0,
     errors: [],
   };
@@ -206,6 +209,69 @@ async function markRetentionEndedTrials(nowIso: string): Promise<CronResult> {
   return result;
 }
 
+async function reconcileExpiredTrialMenuSites(): Promise<CronResult> {
+  const adminSupabase = createAdminClient();
+  const result: CronResult = {
+    expiredEntitlements: 0,
+    archivedMenuSites: 0,
+    repairedArchivedMenuSites: 0,
+    pendingDeleteEntitlements: 0,
+    errors: [],
+  };
+
+  const { data: endedTrials, error: endedTrialsError } = await adminSupabase
+    .from("service_entitlements")
+    .select("id, menu_site_id, access_expires_at, data_retention_until, expired_at, deleted_scheduled_at")
+    .eq("plan_type", "personal_trial")
+    .eq("billing_type", "one_time")
+    .in("status", ["expired", "pending_delete"]);
+
+  if (endedTrialsError) {
+    if (isMissingRelationError(endedTrialsError)) {
+      result.errors.push("service_entitlements 테이블을 찾을 수 없습니다. migration 적용이 필요합니다.");
+      return result;
+    }
+
+    throw new Error(`만료/삭제 예정 메뉴판 보정 대상 조회 실패: ${endedTrialsError.message}`);
+  }
+
+  const menuSiteIds = Array.from(
+    new Set(
+      ((endedTrials ?? []) as TrialEntitlement[])
+        .map((trial) => trial.menu_site_id)
+        .filter((menuSiteId): menuSiteId is string => Boolean(menuSiteId))
+    )
+  );
+
+  if (menuSiteIds.length === 0) {
+    return result;
+  }
+
+  const { data: publishedSites, error: publishedSitesError } = await adminSupabase
+    .from("menu_sites")
+    .select("id")
+    .in("id", menuSiteIds)
+    .eq("status", "published");
+
+  if (publishedSitesError) {
+    throw new Error(`공개 상태 메뉴판 보정 대상 조회 실패: ${publishedSitesError.message}`);
+  }
+
+  const publishedSiteIds = (publishedSites ?? [])
+    .map((site) => site.id)
+    .filter((menuSiteId): menuSiteId is string => Boolean(menuSiteId));
+
+  const archiveResult = await archiveMenuSites(publishedSiteIds);
+
+  if (archiveResult.error) {
+    throw new Error(`만료/삭제 예정 메뉴판 보정 실패: ${archiveResult.error.message}`);
+  }
+
+  result.repairedArchivedMenuSites = archiveResult.count;
+
+  return result;
+}
+
 async function handleCron(request: NextRequest) {
   if (!process.env.CRON_SECRET?.trim()) {
     return NextResponse.json({ ok: false, message: "CRON_SECRET이 설정되어 있지 않습니다." }, { status: 500 });
@@ -220,6 +286,7 @@ async function handleCron(request: NextRequest) {
   try {
     const expiredResult = await expireActiveTrials(nowIso);
     const pendingDeleteResult = await markRetentionEndedTrials(nowIso);
+    const repairResult = await reconcileExpiredTrialMenuSites();
 
     return NextResponse.json({
       ok: true,
@@ -227,8 +294,9 @@ async function handleCron(request: NextRequest) {
       expiredEntitlements: expiredResult.expiredEntitlements,
       pendingDeleteEntitlements: pendingDeleteResult.pendingDeleteEntitlements,
       archivedMenuSites: expiredResult.archivedMenuSites + pendingDeleteResult.archivedMenuSites,
+      repairedArchivedMenuSites: repairResult.repairedArchivedMenuSites,
       hardDeleted: 0,
-      errors: [...expiredResult.errors, ...pendingDeleteResult.errors],
+      errors: [...expiredResult.errors, ...pendingDeleteResult.errors, ...repairResult.errors],
       todo:
         "2차 작업에서 pending_delete 상태의 menu_pages, menu_categories, menu_items, 이미지 storage 파일 삭제 job을 별도 구현합니다. orders/payments/service_entitlements 기록은 삭제하지 않습니다.",
     });
