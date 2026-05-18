@@ -6,41 +6,30 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 export const metadata: Metadata = {
   title: "서비스 신청 | TableScene",
-  description: "테이블씬 베이직, 디스플레이 서비스 신청 페이지를 선택하세요.",
+  description: "테이블씬 Basic, Display, Custom 신청 페이지를 선택하세요.",
 };
 
 const applyServices = [
   {
-    title: "테이블씬 베이직",
-    eyebrow: "TableScene Basic",
-    description: "누구나 쉽고 빠르게 만드는 디지털 메뉴판/가격표",
-    price: "오픈가 월 6,000원 / 연 60,000원",
-    note: "월/연 자동결제 방식은 준비 중이며, 정식 오픈 시 적용됩니다.",
-    type: "결제신청형",
+    title: "TableScene Basic",
+    eyebrow: "Basic",
+    description: "개인 1개월 체험 또는 사업자 정식 월/연 결제를 선택해 웹 메뉴판을 만듭니다.",
+    price: "개인 체험 6,600원 / 사업자 월 6,000원 / 연 60,000원",
+    note: "Basic 신청 화면에서 이용 방식과 템플릿을 함께 선택합니다.",
+    type: "웹 메뉴판",
     cta: "Basic 만들기",
     href: "/apply/basic",
     active: true,
   },
   {
-    title: "테이블씬 디스플레이",
-    eyebrow: "TableScene Display",
-    description: "매장 화면을 감각적인 디지털 메뉴보드로",
-    price: "오픈가 월 12,000원 / 연 120,000원",
-    note: "Display 전용 템플릿 준비 중입니다. 템플릿 준비 후 신청할 수 있습니다.",
+    title: "TableScene Display",
+    eyebrow: "Display",
+    description: "사업자 전용 디스플레이 메뉴보드입니다.",
+    price: "오픈 할인 월 12,000원 / 연 120,000원",
+    note: "Display 전용 템플릿 준비 전까지 결제할 수 없습니다.",
     type: "준비 중",
     cta: "준비 중",
     href: "/apply/display",
-    active: false,
-  },
-  {
-    title: "테이블씬 오더 1.0",
-    eyebrow: "TableScene QR Order",
-    description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.",
-    price: null,
-    note: null,
-    type: "준비 중",
-    cta: "준비 중",
-    href: "/services/order",
     active: false,
   },
   {
@@ -68,11 +57,8 @@ export default function ApplyPage() {
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              현재 바로 도입 가능한 베이직과 상담형 커스텀 중 필요한 신청 유형을 선택해주세요.
-              디스플레이와 오더는 준비 중입니다.
-            </p>
-            <p className="mt-4 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-700">
-              월/연 자동결제 방식은 준비 중이며, PG/PortOne 확인 후 정식 오픈 시 적용됩니다.
+              Basic은 개인 1개월 체험과 사업자 정식 월/연 결제를 한 화면에서 선택할 수 있습니다.
+              Display는 전용 템플릿 준비 후 신청을 열 예정입니다.
             </p>
           </header>
 

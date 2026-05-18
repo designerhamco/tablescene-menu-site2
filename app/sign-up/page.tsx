@@ -55,6 +55,8 @@ export default async function SignUpPage({
           )}
 
           <form action={signUpAction} className="space-y-5">
+            <input type="hidden" name="next" value={safeNext} />
+
             <div>
               <label htmlFor="displayName" className="mb-2 block text-sm font-bold">
                 이름 또는 매장명

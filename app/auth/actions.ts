@@ -39,9 +39,11 @@ export async function signUpAction(formData: FormData) {
   const email = getString(formData, "email");
   const password = getString(formData, "password");
   const displayName = getString(formData, "displayName");
+  const next = getSafeAuthRedirectPath(getString(formData, "next"));
+  const encodedNext = encodeURIComponent(next);
 
   if (!email || !password) {
-    redirect("/sign-up?error=missing-fields");
+    redirect(`/sign-up?error=missing-fields&next=${encodedNext}`);
   }
 
   const supabase = await createClient();
@@ -54,24 +56,25 @@ export async function signUpAction(formData: FormData) {
       data: {
         display_name: displayName,
       },
-      emailRedirectTo: `${origin}/auth/callback?next=/mypage`,
+      emailRedirectTo: `${origin}/auth/callback?next=${encodedNext}`,
     },
   });
 
   if (error) {
-    redirect(`/sign-up?error=${encodeURIComponent(error.message)}`);
+    redirect(`/sign-up?error=${encodeURIComponent(error.message)}&next=${encodedNext}`);
   }
 
-  redirect("/sign-in?message=check-email");
+  redirect(`/sign-in?message=check-email&next=${encodedNext}`);
 }
 
 export async function signInAction(formData: FormData) {
   const email = getString(formData, "email");
   const password = getString(formData, "password");
   const next = getSafeAuthRedirectPath(getString(formData, "next"));
+  const encodedNext = encodeURIComponent(next);
 
   if (!email || !password) {
-    redirect("/sign-in?error=missing-fields");
+    redirect(`/sign-in?error=missing-fields&next=${encodedNext}`);
   }
 
   const supabase = await createClient();
@@ -81,7 +84,7 @@ export async function signInAction(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/sign-in?error=${encodeURIComponent(error.message)}`);
+    redirect(`/sign-in?error=${encodeURIComponent(error.message)}&next=${encodedNext}`);
   }
 
   redirect(next);

@@ -5,11 +5,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
+  basicPaymentProducts,
   canIndividualPurchasePlan,
   formatKrw,
+  getBasicPaymentProduct,
   isValidMenuSlug,
   menuCreationProduct,
+  personalTrialBasicProduct,
   requiresBusinessInfo,
+  type BasicPaymentProduct,
+  type BasicProductKey,
   type BuyerType,
   type MenuOrderPayload,
   type OrderSetupPayload,
@@ -48,6 +53,10 @@ type ApplyOrderFormProps = {
 };
 
 type AgreementKey = "terms" | "privacy" | "contentPolicy";
+type BusinessVerificationState =
+  | { type: "idle"; message: string }
+  | { type: "checking"; message: string }
+  | { type: "not_configured"; message: string };
 
 type FormState = {
   buyerType: BuyerType;
@@ -69,6 +78,7 @@ type FormState = {
   businessName: string;
   representativeName: string;
   businessNumber: string;
+  businessOpeningDate: string;
   businessPhone: string;
   tableCount: string;
   posUsage: string;
@@ -105,11 +115,19 @@ const MENU_ADDRESS_HELPER_TEXT =
   "결제 후 변경할 수 없습니다. QR 코드와 공유 링크에 사용되므로 신중하게 입력해주세요. 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
 
 type PaidApplyProduct = {
-  key: PlanKey;
+  key: string;
   name: string;
+  label?: string;
   description: string;
   amount: number;
+  regular_amount?: number;
   currency: typeof menuCreationProduct.currency;
+  product_key?: string;
+  plan_type?: MenuOrderPayload["plan_type"];
+  payment_type?: MenuOrderPayload["payment_type"];
+  billing_cycle?: MenuOrderPayload["billing_cycle"];
+  requires_business_verification?: boolean;
+  is_subscription?: boolean;
 };
 
 type MenuTemplateGroupKey =
@@ -167,16 +185,15 @@ const agreementLabels: Record<AgreementKey, string> = {
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 테이블씬은 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 테이블씬 베이직은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[테이블씬 베이직] 테이블씬 베이직은 템플릿 디자인과 데이터 편집 기능을 제공하며, 개인 또는 사업자 모두 구매할 수 있습니다. 테이블 오더, 주방 대시보드, 선불/후불 주문 기능, 호출 기능은 포함되지 않습니다.",
+    "[개인 체험 1개월] 개인 체험은 사업자 인증 없이 Basic 템플릿 메뉴판을 1개월 동안 사용할 수 있는 단건 결제 상품입니다. 자동결제는 제공되지 않습니다.",
+    "[사업자 정식 이용] 사업자 Basic 월/연 결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. 실제 자동결제는 PG/PortOne 빌링키 설정과 인증 API 연결이 완료된 뒤 진행됩니다.",
     "[서비스 안내] 테이블씬 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 테이블씬 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
     "[서비스 이용 시작] 결제가 완료되고 메뉴판이 생성되면 서비스 이용이 시작된 것으로 봅니다. 생성된 메뉴판은 마이페이지에서 확인하고 편집할 수 있습니다.",
     "[메뉴판 주소] 사용자가 입력한 희망 메뉴판 주소는 중복 여부, 정책 위반 여부, 기술적 제한 등에 따라 사용할 수 없을 수 있습니다. 회사는 부적절하거나 오해를 유발하거나 제3자의 권리를 침해할 우려가 있는 주소 사용을 제한할 수 있습니다.",
     "[서비스 제공 범위] 회사는 서비스 안정성, 보안, 운영 정책, 기술적 사유에 따라 일부 기능을 변경, 중단, 제한할 수 있습니다.",
-    "[월 결제] 월 결제는 매월 자동 갱신됩니다. 해지 신청 시 다음 결제일부터 자동 결제가 중단되며, 이미 결제된 이용 기간 종료일까지 서비스를 사용할 수 있습니다.",
-    "[연 결제] 연 결제는 1년 단위 이용권입니다. 이용 기간 동안 서비스를 사용할 수 있으며, 기간 종료 전 갱신 안내를 받을 수 있습니다.",
-    "[월 결제에서 연 결제로 변경] 월 결제 이용 중 연 결제로 변경을 원하시는 경우 고객지원으로 문의해주세요. 현재 이용 기간 종료 후 연 결제로 변경을 도와드립니다.",
+    "[정식 이용 전환] 개인 체험을 계속 이용하려면 체험 기간 안에 사업자 인증 후 정식 플랜으로 전환해야 합니다.",
     "[결제 및 환불] 결제 후 메뉴판 생성이 완료되면 서비스 이용이 시작된 것으로 봅니다. 단순 변심, 잘못된 정보 입력, 사용자의 편집 실수, 이미지 또는 콘텐츠 등록 오류로 인한 환불은 제한될 수 있습니다. 결제 오류, 중복 결제, 서비스 제공 불가 등 회사 귀책 사유가 확인되는 경우 별도 기준에 따라 환불 또는 조치할 수 있습니다.",
-    "[이용 종료 후 데이터] 이용 기간이 종료되면 메뉴판은 비공개 처리됩니다. 종료 후 7일간 복구 가능 상태로 보관되며, 7일이 지나면 메뉴판 데이터와 업로드 이미지는 삭제되고 복구할 수 없습니다.",
+    "[이용 종료 후 데이터] 개인 체험 이용 기간이 종료되면 메뉴판은 비공개 처리됩니다. 종료 후 30일 동안 복구 가능 상태로 보관되며, 30일이 지나면 메뉴판 데이터와 업로드 이미지는 삭제 또는 삭제 예정 처리됩니다.",
     "[자료 백업 안내] 삭제된 메뉴판 데이터, 메뉴 이미지, 설정 정보는 복구할 수 없으므로 해지 전 필요한 자료를 반드시 백업해주세요.",
     "[회사 제공 콘텐츠의 권리] 테이블씬 서비스, 소프트웨어, 코드, 관리자 화면, 공개 메뉴판 템플릿, 디자인, 레이아웃, 로고, 상표, starter preset, 공용 placeholder 이미지 등 회사가 제공하는 콘텐츠와 구성 요소에 대한 권리는 회사 또는 정당한 권리자에게 있습니다. 회원은 이를 테이블씬 서비스 이용 범위 내에서만 사용할 수 있습니다.",
     "[회원 콘텐츠의 권리] 회원이 입력하거나 업로드한 매장 정보, 메뉴명, 설명, 가격, 소개 문구, 이벤트 문구, SNS 정보, 이미지 등 콘텐츠의 권리는 회원 또는 해당 콘텐츠의 정당한 권리자에게 귀속되며 회사는 소유권을 취득하지 않습니다.",
@@ -229,6 +246,32 @@ const serviceProducts = {
   screen: screenCreationProduct,
   order: orderCreationProduct,
 } as const satisfies Record<NonNullable<ApplyOrderFormProps["serviceType"]>, PaidApplyProduct>;
+
+const basicProductCards = [
+  {
+    product: basicPaymentProducts[0],
+    eyebrow: "Personal Trial",
+    bullets: ["1회 결제", "자동결제 없음", "사업자 인증 없이 시작", "1개월 이용"],
+    helperText: "체험 종료 후 비공개 전환 및 30일 데이터 보관",
+  },
+  {
+    product: basicPaymentProducts[1],
+    eyebrow: "Business Monthly",
+    bullets: ["사업자 인증 필요", "월 자동결제", "Basic 정식 이용", "계속 이용 가능"],
+    helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
+  },
+  {
+    product: basicPaymentProducts[2],
+    eyebrow: "Business Yearly",
+    bullets: ["사업자 인증 필요", "연 자동결제", "Basic 정식 이용", "계속 이용 가능"],
+    helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
+  },
+] as const satisfies readonly {
+  product: BasicPaymentProduct;
+  eyebrow: string;
+  bullets: readonly string[];
+  helperText: string;
+}[];
 
 async function readSlugAvailabilityResponse(response: Response): Promise<SlugAvailabilityResponse> {
   const text = await response.text();
@@ -617,13 +660,19 @@ export default function ApplyOrderForm({
   const serviceTemplates = useMemo(() => [...templates], [templates]);
   const templateTypeOptions = useMemo(() => getTemplateTypeOptionsForService(templateServiceType), [templateServiceType]);
   const currentPlanKey = servicePlanKeys[serviceType];
-  const activeProduct = serviceProducts[serviceType];
   const firstCategory = TEMPLATE_CATEGORIES[0].key;
   const firstTemplate = serviceTemplates.find((template) => template.template_category === firstCategory) ?? serviceTemplates[0] ?? templates[0];
+  const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(personalTrialBasicProduct.product_key);
+  const selectedBasicProduct = getBasicPaymentProduct(selectedBasicProductKey) ?? personalTrialBasicProduct;
+  const activeProduct: PaidApplyProduct = isMenuService ? selectedBasicProduct : serviceProducts[serviceType];
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate?.template_category ?? firstCategory);
   const [selectedMenuTemplateGroup, setSelectedMenuTemplateGroup] = useState<MenuTemplateGroupKey>("recommended");
   const [agreements, setAgreements] = useState(initialAgreements);
   const [activeAgreement, setActiveAgreement] = useState<AgreementKey | null>(null);
+  const [businessVerificationState, setBusinessVerificationState] = useState<BusinessVerificationState>({
+    type: "idle",
+    message: "사업자등록번호, 대표자명, 개업일자, 상호명을 입력한 뒤 확인합니다.",
+  });
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
   const [slugState, setSlugState] = useState<SlugState>({ slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT });
   const [form, setForm] = useState<FormState>({
@@ -646,6 +695,7 @@ export default function ApplyOrderForm({
     businessName: "",
     representativeName: "",
     businessNumber: "",
+    businessOpeningDate: "",
     businessPhone: "",
     tableCount: "",
     posUsage: "",
@@ -671,11 +721,13 @@ export default function ApplyOrderForm({
   const hasSelectableTemplate = Boolean(selectedTemplate && form.template_key);
   const currentPlanRequiresBusinessInfo = requiresBusinessInfo(currentPlanKey);
   const currentPlanAllowsIndividual = canIndividualPurchasePlan(currentPlanKey);
-  const templateStepLabel = isScreenService ? "Step 2" : "Step 1";
-  const basicInfoStepLabel = isScreenService ? "Step 3" : "Step 2";
-  const buyerInfoStepLabel = isScreenService ? "Step 4" : "Step 3";
-  const summaryStepLabel = isScreenService ? "Step 5" : "Step 4";
-  const agreementsStepLabel = isScreenService ? "Step 6" : "Step 5";
+  const activeProductRequiresBusinessVerification = Boolean(activeProduct.requires_business_verification);
+  const isSubscriptionProduct = activeProduct.payment_type === "subscription";
+  const templateStepLabel = isScreenService ? "Step 2" : isMenuService ? "Step 2" : "Step 1";
+  const basicInfoStepLabel = isScreenService ? "Step 3" : isMenuService ? "Step 3" : "Step 2";
+  const buyerInfoStepLabel = isScreenService ? "Step 4" : isMenuService ? "Step 4" : "Step 3";
+  const summaryStepLabel = isScreenService ? "Step 5" : isMenuService ? "Step 5" : "Step 4";
+  const agreementsStepLabel = isScreenService ? "Step 6" : isMenuService ? "Step 6" : "Step 5";
   const selectedScreenTemplateCategory = getScreenTemplateCategoryByKey(form.screenTemplateCategory);
   const businessTypeOptions = getBusinessTypeOptions(serviceType);
   const orderSetup = useMemo<OrderSetupPayload>(
@@ -702,6 +754,10 @@ export default function ApplyOrderForm({
 
   const payload = useMemo<DraftMenuOrderPayload>(
     () => ({
+      product_key: isMenuService ? selectedBasicProduct.product_key : personalTrialBasicProduct.product_key,
+      plan_type: isMenuService ? selectedBasicProduct.plan_type : personalTrialBasicProduct.plan_type,
+      payment_type: isMenuService ? selectedBasicProduct.payment_type : personalTrialBasicProduct.payment_type,
+      billing_cycle: isMenuService ? selectedBasicProduct.billing_cycle : personalTrialBasicProduct.billing_cycle,
       plan_key: currentPlanKey,
       template_category: form.template_category,
       template_key: form.template_key,
@@ -724,14 +780,15 @@ export default function ApplyOrderForm({
       orderSetup: isOrderService ? orderSetup : null,
       screenSetup: isScreenService ? screenSetup : null,
       notes: isOrderService ? getOrderSetupNotes(orderSetup) : isScreenService ? getScreenSetupNotes(screenSetup) : null,
-      buyerType: form.buyerType,
+      buyerType: activeProductRequiresBusinessVerification ? "business" : form.buyerType,
       buyerName: form.buyerName.trim(),
       buyerPhone: form.buyerPhone.trim(),
       buyerEmail: form.buyerEmail.trim(),
-      businessName: form.buyerType === "business" ? form.businessName.trim() : null,
-      representativeName: form.buyerType === "business" ? form.representativeName.trim() : null,
-      businessNumber: form.buyerType === "business" ? nullable(form.businessNumber) : null,
-      businessPhone: form.buyerType === "business" ? nullable(form.businessPhone) : null,
+      businessName: activeProductRequiresBusinessVerification || form.buyerType === "business" ? form.businessName.trim() : null,
+      representativeName: activeProductRequiresBusinessVerification || form.buyerType === "business" ? form.representativeName.trim() : null,
+      businessNumber: activeProductRequiresBusinessVerification || form.buyerType === "business" ? nullable(form.businessNumber) : null,
+      businessOpeningDate: activeProductRequiresBusinessVerification || form.buyerType === "business" ? nullable(form.businessOpeningDate) : null,
+      businessPhone: activeProductRequiresBusinessVerification || form.buyerType === "business" ? nullable(form.businessPhone) : null,
       termsAccepted: agreements.terms,
       privacyAccepted: agreements.privacy,
       contentPolicyAccepted: agreements.contentPolicy,
@@ -739,15 +796,18 @@ export default function ApplyOrderForm({
     }),
     [
       activeProduct.amount,
+      activeProductRequiresBusinessVerification,
       agreements.contentPolicy,
       agreements.privacy,
       agreements.terms,
       currentPlanKey,
       form,
+      isMenuService,
       isOrderService,
       isScreenService,
       orderSetup,
       screenSetup,
+      selectedBasicProduct,
       selectedScreenTemplateCategory.label,
     ]
   );
@@ -796,7 +856,7 @@ export default function ApplyOrderForm({
   const buyerNameError = validatePersonName("담당자명", payload.buyerName);
   const buyerPhoneError = validatePhoneNumber(payload.buyerPhone);
   const buyerEmailError = getRequiredMessage("담당자 이메일", payload.buyerEmail) ?? (isEmail(payload.buyerEmail) ? null : "올바른 이메일 형식으로 입력해주세요.");
-  const isBusinessBuyer = form.buyerType === "business";
+  const isBusinessBuyer = activeProductRequiresBusinessVerification || form.buyerType === "business";
   const businessNameError = isBusinessBuyer ? validateBusinessName(form.businessName) : null;
   const representativeNameError = isBusinessBuyer ? validatePersonName("대표자명", form.representativeName) : null;
   const businessNumberError = isBusinessBuyer
@@ -805,6 +865,11 @@ export default function ApplyOrderForm({
         ? null
         : "사업자등록번호는 숫자 10자리로 입력해주세요."
       : "사업자등록번호를 입력해주세요."
+    : null;
+  const businessOpeningDateError = isBusinessBuyer
+    ? form.businessOpeningDate.trim()
+      ? null
+      : "개업일자를 입력해주세요."
     : null;
   const businessPhoneError = isBusinessBuyer ? validatePhoneNumber(form.businessPhone) : null;
   const isFormReady =
@@ -823,7 +888,9 @@ export default function ApplyOrderForm({
     !businessNameError &&
     !representativeNameError &&
     !businessNumberError &&
+    !businessOpeningDateError &&
     !businessPhoneError &&
+    !isSubscriptionProduct &&
     Object.values(agreements).every(Boolean);
   const isLoading = uiState.type === "loading";
 
@@ -901,6 +968,20 @@ export default function ApplyOrderForm({
     }));
   }
 
+  function selectBasicProduct(product: BasicPaymentProduct) {
+    setSelectedBasicProductKey(product.product_key);
+    setForm((current) => ({
+      ...current,
+      buyerType: product.requires_business_verification ? "business" : "individual",
+    }));
+    setBusinessVerificationState({
+      type: "idle",
+      message: product.requires_business_verification
+        ? "사업자 월/연 결제는 국세청 사업자 인증 성공 후 자동결제를 진행합니다."
+        : "개인 체험은 사업자 인증 없이 1개월 동안 사용할 수 있습니다.",
+    });
+  }
+
   function updateRestaurantType(value: FormState["restaurantType"]) {
     setForm((current) => {
       const nextState = {
@@ -930,6 +1011,14 @@ export default function ApplyOrderForm({
       ...current,
       [key]: !current[key],
     }));
+  }
+
+  function handleBusinessVerificationCheck() {
+    setBusinessVerificationState({
+      type: "not_configured",
+      message:
+        "사업자 정보 확인 API는 다음 작업에서 연결됩니다. 국세청 진위확인 API와 PortOne 빌링키 설정이 완료되면 이 단계에서 인증 성공 상태를 저장하고 자동결제로 이어집니다.",
+    });
   }
 
   async function completePayment(paymentId: string) {
@@ -996,6 +1085,15 @@ export default function ApplyOrderForm({
   }
 
   async function handlePayment() {
+    if (isSubscriptionProduct) {
+      setUiState({
+        type: "error",
+        message:
+          "사업자 월/연 결제는 자동결제용 빌링키와 사업자 인증 API 연결 후 진행됩니다. 현재 단건 결제로 처리하지 않도록 차단되어 있습니다.",
+      });
+      return;
+    }
+
     if (!isFormReady || isLoading) {
       return;
     }
@@ -1055,6 +1153,9 @@ export default function ApplyOrderForm({
         },
         customData: {
           product_key: activeProduct.key,
+          plan_type: payload.plan_type,
+          payment_type: payload.payment_type,
+          billing_cycle: payload.billing_cycle,
           plan_key: payload.plan_key,
           buyer_type: payload.buyerType,
           template_category: payload.template_category,
@@ -1093,6 +1194,66 @@ export default function ApplyOrderForm({
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-6">
+        {isMenuService && (
+          <section className="rounded-3xl bg-white p-7 shadow-sm">
+            <div className="mb-6">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
+              <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월/연 결제는 사업자 인증과 자동결제 구조로 이어집니다.
+              </p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-3">
+              {basicProductCards.map(({ product, eyebrow, bullets, helperText }) => {
+                const isSelected = selectedBasicProductKey === product.product_key;
+
+                return (
+                  <button
+                    key={product.product_key}
+                    type="button"
+                    onClick={() => selectBasicProduct(product)}
+                    className={`flex min-h-[260px] flex-col rounded-2xl border p-5 text-left transition ${
+                      isSelected
+                        ? "border-zinc-950 bg-zinc-950 text-white shadow-md"
+                        : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className={`text-xs font-black uppercase tracking-[0.18em] ${isSelected ? "text-white/50" : "text-zinc-400"}`}>
+                          {eyebrow}
+                        </p>
+                        <h3 className="mt-2 break-keep text-xl font-black tracking-tight">{product.label}</h3>
+                      </div>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                        {isSelected ? "선택됨" : product.payment_type === "one_time" ? "단건" : "자동결제"}
+                      </span>
+                    </div>
+                    <div className="mt-5">
+                      <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
+                        정가 {product.billing_cycle === "monthly" ? "월 " : product.billing_cycle === "yearly" ? "연 " : ""}
+                        {formatKrw(product.regular_amount)}
+                      </p>
+                      <p className="mt-1 text-2xl font-black">
+                        오픈 할인 {product.billing_cycle === "monthly" ? "월 " : product.billing_cycle === "yearly" ? "연 " : ""}
+                        {formatKrw(product.amount)}
+                      </p>
+                    </div>
+                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
+                      {bullets.map((bullet) => (
+                        <li key={bullet}>• {bullet}</li>
+                      ))}
+                    </ul>
+                    <p className={`mt-auto pt-5 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/50" : "text-zinc-400"}`}>
+                      {helperText}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {isScreenService && (
           <section className="rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
@@ -1435,30 +1596,38 @@ export default function ApplyOrderForm({
           <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
               {isScreenService
-                ? "테이블씬 디스플레이는 개인 또는 사업자 모두 신청할 수 있습니다. 현재는 기존 생성 흐름을 재사용해 접수하고, 추후 디스플레이 전용 관리 구조로 분리할 수 있습니다."
-                : "테이블씬 베이직은 개인 또는 사업자 모두 구매할 수 있습니다. 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로 별도 안내합니다."}
+                ? "테이블씬 디스플레이는 전용 템플릿 준비 전까지 결제를 진행하지 않습니다."
+                : activeProductRequiresBusinessVerification
+                  ? "사업자 월/연 결제는 사업자 인증 후 자동결제로 이용합니다. 현재 화면은 인증 입력 구조와 자동결제 연결 전 상태를 명확히 구분합니다."
+                  : "개인 체험은 사업자 인증 없이 1개월 동안 사용하는 단건 결제 상품입니다. 자동결제 없이 1회 결제로 이용합니다."}
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
             <div className="md:col-span-2">
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">구매자 유형 *</span>
-              <div className="mt-2 grid grid-cols-2 gap-2 rounded-2xl bg-zinc-100 p-1">
-                {(["individual", "business"] as BuyerType[]).map((buyerType) => (
-                  <button
-                    key={buyerType}
-                    type="button"
-                    onClick={() => updateField("buyerType", buyerType)}
-                    className={`rounded-xl px-4 py-3 text-sm font-black transition-colors ${
-                      form.buyerType === buyerType ? "bg-zinc-950 text-white" : "text-zinc-500 hover:bg-white"
-                    }`}
-                  >
-                    {buyerType === "individual" ? "개인" : "사업자"}
-                  </button>
-                ))}
-              </div>
-              {form.buyerType === "individual" && currentPlanAllowsIndividual && !currentPlanRequiresBusinessInfo && (
+              {isMenuService ? (
+                <div className="mt-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-black text-zinc-700">
+                  {activeProductRequiresBusinessVerification ? "사업자 정식 이용" : "개인 체험 이용"}
+                </div>
+              ) : (
+                <div className="mt-2 grid grid-cols-2 gap-2 rounded-2xl bg-zinc-100 p-1">
+                  {(["individual", "business"] as BuyerType[]).map((buyerType) => (
+                    <button
+                      key={buyerType}
+                      type="button"
+                      onClick={() => updateField("buyerType", buyerType)}
+                      className={`rounded-xl px-4 py-3 text-sm font-black transition-colors ${
+                        form.buyerType === buyerType ? "bg-zinc-950 text-white" : "text-zinc-500 hover:bg-white"
+                      }`}
+                    >
+                      {buyerType === "individual" ? "개인" : "사업자"}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {payload.buyerType === "individual" && currentPlanAllowsIndividual && !currentPlanRequiresBusinessInfo && (
                 <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                  {isScreenService ? "테이블씬 디스플레이는 개인 구매가 가능합니다." : "테이블씬 베이직은 개인 구매가 가능합니다."}
+                  {isScreenService ? "테이블씬 디스플레이는 현재 준비 중입니다." : "개인 체험은 계정당 1회만 이용할 수 있습니다."}
                 </p>
               )}
             </div>
@@ -1471,7 +1640,7 @@ export default function ApplyOrderForm({
               errorText={form.buyerPhone.trim() ? buyerPhoneError : null}
             />
             <Field label="담당자 이메일" value={form.buyerEmail} onChange={(value) => updateField("buyerEmail", value)} required type="email" helperText="결제 안내를 받을 이메일을 입력해주세요." errorText={form.buyerEmail.trim() ? buyerEmailError : null} successText="이메일 형식이 올바릅니다." />
-            {form.buyerType === "business" && (
+            {isBusinessBuyer && (
               <>
                 <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} required maxLength={50} helperText="사업자 증빙에 사용할 상호명을 입력해주세요." errorText={form.businessName.trim() ? businessNameError : null} successText="입력 완료" />
                 <Field label="대표자명" value={form.representativeName} onChange={(value) => updateField("representativeName", value)} required maxLength={30} helperText="사업자등록증 기준 대표자명을 입력해주세요." errorText={form.representativeName.trim() ? representativeNameError : null} successText="입력 완료" />
@@ -1487,6 +1656,16 @@ export default function ApplyOrderForm({
                   errorText={form.businessNumber.trim() ? businessNumberError : null}
                   successText={form.businessNumber.trim() ? "사업자등록번호 형식이 올바릅니다." : undefined}
                 />
+                <Field
+                  label="개업일자"
+                  value={form.businessOpeningDate}
+                  onChange={(value) => updateField("businessOpeningDate", value)}
+                  required
+                  type="date"
+                  helperText="국세청 진위확인에 사용할 개업일자입니다."
+                  errorText={form.businessOpeningDate.trim() ? businessOpeningDateError : null}
+                  successText="입력 완료"
+                />
                 <PhoneInput
                   label="사업장 연락처"
                   value={form.businessPhone}
@@ -1495,7 +1674,22 @@ export default function ApplyOrderForm({
                   errorText={form.businessPhone.trim() ? businessPhoneError : null}
                 />
                 <div className="md:col-span-2 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
-                  <p>사업자 명의로 매입세액 공제를 받으시려면 결제창에서 지출증빙용을 선택하고 사업자번호를 입력해 주세요.</p>
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="font-black text-amber-900">사업자 인증</p>
+                      <p className="mt-1 break-keep">{businessVerificationState.message}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleBusinessVerificationCheck}
+                      className="inline-flex shrink-0 items-center justify-center rounded-full bg-amber-900 px-4 py-2.5 text-xs font-black text-white transition hover:bg-amber-800"
+                    >
+                      사업자 정보 확인
+                    </button>
+                  </div>
+                  <p className="mt-3 break-keep text-xs">
+                    사업자 명의로 매입세액 공제를 받으시려면 결제창에서 지출증빙용을 선택하고 사업자번호를 입력해 주세요.
+                  </p>
                 </div>
               </>
             )}
@@ -1509,6 +1703,19 @@ export default function ApplyOrderForm({
           <h2 className="text-2xl font-bold tracking-tight">주문 요약</h2>
           <dl className="mt-6 space-y-4 text-sm font-medium">
             <SummaryRow label="상품명" value={activeProduct.name} />
+            {isMenuService && (
+              <SummaryRow
+                label="이용 방식"
+                value={
+                  activeProduct.billing_cycle === "monthly"
+                    ? "사업자 월 자동결제"
+                    : activeProduct.billing_cycle === "yearly"
+                      ? "사업자 연 자동결제"
+                      : "개인 1개월 단건 결제"
+                }
+              />
+            )}
+            {isMenuService && <SummaryRow label="자동결제" value={activeProduct.is_subscription ? "필요" : "없음"} />}
             {isScreenService && <SummaryRow label="디스플레이 용도" value={form.screenPurpose || "-"} />}
             {isScreenService && <SummaryRow label="디스플레이 카테고리" value={selectedScreenTemplateCategory.label} />}
             {isScreenService && <SummaryRow label="화면 방향" value={form.screenOrientation || "-"} />}
@@ -1518,9 +1725,21 @@ export default function ApplyOrderForm({
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
             <SummaryRow label="구매자 유형" value={payload.buyerType === "business" ? "사업자" : "개인"} />
-            <SummaryRow label="금액" value={formatKrw(activeProduct.amount)} strong />
+            {isMenuService && activeProduct.regular_amount && (
+              <SummaryRow
+                label="정가"
+                value={`${activeProduct.billing_cycle === "monthly" ? "월 " : activeProduct.billing_cycle === "yearly" ? "연 " : ""}${formatKrw(activeProduct.regular_amount)}`}
+              />
+            )}
+            <SummaryRow label={isMenuService ? "오픈 할인 결제금액" : "금액"} value={formatKrw(activeProduct.amount)} strong />
           </dl>
-          <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-400">VAT 포함 금액입니다. 결제 검증 성공 후 신청 정보가 생성됩니다.</p>
+          <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+            {isMenuService
+              ? activeProduct.is_subscription
+                ? "VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다. 현재 단건 결제로 처리하지 않습니다."
+                : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환되며, 30일 후 데이터 삭제 또는 삭제 예정 처리됩니다."
+              : "VAT 포함 금액입니다. 결제 검증 성공 후 신청 정보가 생성됩니다."}
+          </p>
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
@@ -1570,6 +1789,8 @@ export default function ApplyOrderForm({
               ? "처리 중..."
               : isScreenService && !hasSelectableTemplate
                 ? "Display 템플릿 준비 중"
+              : isSubscriptionProduct
+                ? "사업자 인증 및 자동결제 연결 필요"
               : visibleSlugState.type === "checking"
                 ? "메뉴판 주소 확인 중..."
                 : isPortOneReady

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 
 import {
+  getBasicPaymentProduct,
   isTemplateKey,
   isValidMenuSlug,
   menuCreationProduct,
   normalizeMenuSlug,
+  personalTrialBasicProduct,
   type MenuOrderPayload,
 } from "@/lib/payments";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
@@ -61,6 +63,18 @@ type PaymentResult = {
   id: string;
 };
 
+type TrialAccessPeriod = {
+  accessStartsAt: string;
+  accessExpiresAt: string;
+  dataRetentionUntil: string;
+};
+
+type ServiceEntitlementRow = {
+  id: string;
+  status: string | null;
+  data_retention_until: string | null;
+};
+
 type LooseInsert = Record<string, unknown>;
 type ExistingPaymentCompletion =
   | {
@@ -99,6 +113,71 @@ function getPaymentAmount(payment: PortOnePayment) {
   }
 
   return null;
+}
+
+function getTrialAccessPeriod(now = new Date()): TrialAccessPeriod {
+  const accessStartsAt = new Date(now);
+  const accessExpiresAt = new Date(accessStartsAt);
+  accessExpiresAt.setMonth(accessExpiresAt.getMonth() + personalTrialBasicProduct.duration_months);
+
+  const dataRetentionUntil = new Date(accessExpiresAt);
+  dataRetentionUntil.setDate(dataRetentionUntil.getDate() + 30);
+
+  return {
+    accessStartsAt: accessStartsAt.toISOString(),
+    accessExpiresAt: accessExpiresAt.toISOString(),
+    dataRetentionUntil: dataRetentionUntil.toISOString(),
+  };
+}
+
+function isMissingRelationError(error: { code?: string; message?: string } | null | undefined) {
+  return error?.code === "42P01" || Boolean(error?.message?.includes("service_entitlements"));
+}
+
+function isWithinRetentionWindow(dataRetentionUntil: string | null | undefined) {
+  if (!dataRetentionUntil) {
+    return true;
+  }
+
+  const retentionTime = new Date(dataRetentionUntil).getTime();
+  return Number.isFinite(retentionTime) && retentionTime >= Date.now();
+}
+
+function getRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+async function hasExistingPersonalTrial(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const { data, error } = await supabase
+    .from("service_entitlements")
+    .select("id, status, data_retention_until")
+    .eq("user_id", userId)
+    .eq("plan_type", personalTrialBasicProduct.plan_type);
+
+  if (!error) {
+    return ((data ?? []) as ServiceEntitlementRow[]).some((entitlement) => {
+      const status = entitlement.status ?? "";
+      return status !== "deleted" && isWithinRetentionWindow(entitlement.data_retention_until);
+    });
+  }
+
+  if (!isMissingRelationError(error)) {
+    throw new Error(`개인 체험 이용 이력 확인에 실패했습니다: ${error.message}`);
+  }
+
+  const { data: menuSites, error: menuSitesError } = await supabase
+    .from("menu_sites")
+    .select("id, settings")
+    .eq("user_id", userId);
+
+  if (menuSitesError) {
+    throw new Error(`개인 체험 메뉴판 확인에 실패했습니다: ${menuSitesError.message}`);
+  }
+
+  return (menuSites ?? []).some((site) => {
+    const settings = getRecord(site.settings);
+    return settings.plan_type === personalTrialBasicProduct.plan_type && isWithinRetentionWindow(typeof settings.data_retention_until === "string" ? settings.data_retention_until : null);
+  });
 }
 
 function jsonError(message: string, status = 400) {
@@ -169,6 +248,11 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
   const requestedRestaurantCategory = getString(payload.restaurantCategory);
   const desiredSlug = normalizeMenuSlug(getString(payload.desiredSlug));
   const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
+  const productKey = getString(payload.product_key);
+  const requestedProduct = getBasicPaymentProduct(productKey);
+  const planType = getString(payload.plan_type);
+  const paymentType = getString(payload.payment_type);
+  const billingCycle = getString(payload.billing_cycle);
   const planKey = getString(payload.plan_key) || "basic";
   const buyerTypeInput = getString(payload.buyerType);
   const buyerType = buyerTypeInput === "business" ? "business" : "individual";
@@ -203,7 +287,11 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     !isTemplateKey(templateKey) ||
     !templateCategory ||
     !isValidMenuSlug(desiredSlug) ||
-    amount !== menuCreationProduct.amount
+    !requestedProduct ||
+    amount !== requestedProduct.amount ||
+    planType !== requestedProduct.plan_type ||
+    paymentType !== requestedProduct.payment_type ||
+    billingCycle !== requestedProduct.billing_cycle
   ) {
     return null;
   }
@@ -213,6 +301,10 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
   }
 
   const parsedPayload: MenuOrderPayload = {
+    product_key: requestedProduct.product_key,
+    plan_type: requestedProduct.plan_type,
+    payment_type: requestedProduct.payment_type,
+    billing_cycle: requestedProduct.billing_cycle,
     plan_key: planKey === "large_screen" ? "large_screen" : planKey === "qr_order" ? "qr_order" : "basic",
     template_category: templateCategory,
     template_key: templateKey,
@@ -244,6 +336,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     businessName: buyerType === "business" ? getNullableString(payload.businessName) : null,
     representativeName: buyerType === "business" ? getNullableString(payload.representativeName) : null,
     businessNumber: buyerType === "business" ? getNullableString(payload.businessNumber) : null,
+    businessOpeningDate: buyerType === "business" ? getNullableString(payload.businessOpeningDate) : null,
     businessPhone: buyerType === "business" ? getNullableString(payload.businessPhone) : null,
     termsAccepted: payload.termsAccepted === true,
     privacyAccepted: payload.privacyAccepted === true,
@@ -272,7 +365,11 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
 
   if (
     parsedPayload.buyerType === "business" &&
-    (!parsedPayload.businessName || !parsedPayload.representativeName || !parsedPayload.businessNumber || !parsedPayload.businessPhone)
+    (!parsedPayload.businessName ||
+      !parsedPayload.representativeName ||
+      !parsedPayload.businessNumber ||
+      !parsedPayload.businessOpeningDate ||
+      !parsedPayload.businessPhone)
   ) {
     return null;
   }
@@ -281,6 +378,16 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
 }
 
 function getPaymentProduct(orderPayload: MenuOrderPayload) {
+  const basicProduct = getBasicPaymentProduct(orderPayload.product_key);
+
+  if (basicProduct) {
+    return {
+      key: basicProduct.product_key,
+      name: basicProduct.name,
+      amount: basicProduct.amount,
+    };
+  }
+
   if (orderPayload.plan_key === "large_screen") {
     return {
       key: "large_screen",
@@ -512,6 +619,8 @@ async function createMenuSiteWithStarterPreset(
   userId: string,
   orderPayload: MenuOrderPayload
 ) {
+  const trialAccessPeriod = getTrialAccessPeriod();
+  const product = getBasicPaymentProduct(orderPayload.product_key) ?? personalTrialBasicProduct;
   const menuSiteInsert: Database["public"]["Tables"]["menu_sites"]["Insert"] = {
     user_id: userId,
     name: orderPayload.menuName,
@@ -538,6 +647,14 @@ async function createMenuSiteWithStarterPreset(
     notes: orderPayload.notes,
     settings: {
       source: "payment_complete",
+      product_key: product.product_key,
+      plan_type: product.plan_type,
+      payment_type: product.payment_type,
+      billing_cycle: product.billing_cycle,
+      access_starts_at: trialAccessPeriod.accessStartsAt,
+      access_expires_at: trialAccessPeriod.accessExpiresAt,
+      data_retention_until: trialAccessPeriod.dataRetentionUntil,
+      auto_renewal: product.is_subscription,
       buyer_email: orderPayload.buyerEmail,
     },
   };
@@ -787,6 +904,42 @@ async function createPaymentRecord(
   return paymentRecord as PaymentResult;
 }
 
+async function createServiceEntitlement(
+  supabase: ReturnType<typeof createAdminClient>,
+  userId: string,
+  menuSiteId: string,
+  orderPayload: MenuOrderPayload
+) {
+  const period = getTrialAccessPeriod();
+  const { error } = await supabase.from("service_entitlements").insert({
+    user_id: userId,
+    menu_site_id: menuSiteId,
+    business_profile_id: null,
+    plan_type: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+    billing_type: orderPayload.payment_type ?? personalTrialBasicProduct.payment_type,
+    status: "active",
+    access_starts_at: period.accessStartsAt,
+    access_expires_at: period.accessExpiresAt,
+    expired_at: null,
+    data_retention_until: period.dataRetentionUntil,
+    deleted_scheduled_at: null,
+  });
+
+  if (!error) {
+    return;
+  }
+
+  if (isMissingRelationError(error)) {
+    console.warn("[payment-complete] service_entitlements table is not available yet", {
+      menuSiteId,
+      message: error.message,
+    });
+    return;
+  }
+
+  throw new Error(`개인 체험 이용권 저장에 실패했습니다: ${error.message}`);
+}
+
 function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayload): VerifiedPayment {
   // development 전용 DB 생성 흐름 테스트입니다. production에서는 portOneMockEnabled가 절대 true가 되지 않습니다.
   if (!portOneMockEnabled || !paymentId.startsWith("mock_")) {
@@ -800,9 +953,12 @@ function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayl
     status: "PAID",
     orderName: product.name,
     currency: menuCreationProduct.currency,
-    amount: menuCreationProduct.amount,
+    amount: product.amount ?? orderPayload.amount,
     customData: {
       product_key: product.key,
+      plan_type: orderPayload.plan_type,
+      payment_type: orderPayload.payment_type,
+      billing_cycle: orderPayload.billing_cycle,
       plan_key: orderPayload.plan_key,
       buyer_type: orderPayload.buyerType,
       template_key: orderPayload.template_key,
@@ -814,7 +970,7 @@ function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayl
 
   return {
     id: paymentId,
-    amount: menuCreationProduct.amount,
+    amount: product.amount ?? orderPayload.amount,
     status: "PAID",
     raw,
   };
@@ -849,6 +1005,9 @@ async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload):
   const product = getPaymentProduct(orderPayload);
   const verifiedCurrency = portOnePayment.currency;
   const customProductKey = portOnePayment.customData?.product_key ?? portOnePayment.customData?.productKey;
+  const customPlanType = portOnePayment.customData?.plan_type ?? portOnePayment.customData?.planType;
+  const customPaymentType = portOnePayment.customData?.payment_type ?? portOnePayment.customData?.paymentType;
+  const customBillingCycle = portOnePayment.customData?.billing_cycle ?? portOnePayment.customData?.billingCycle;
   const customPlanKey = portOnePayment.customData?.plan_key ?? portOnePayment.customData?.planKey;
   const customTemplateKey = portOnePayment.customData?.template_key ?? portOnePayment.customData?.templateKey;
   const customTemplateCategory = portOnePayment.customData?.template_category ?? portOnePayment.customData?.templateCategory;
@@ -876,6 +1035,18 @@ async function verifyPayment(paymentId: string, orderPayload: MenuOrderPayload):
 
   if (customProductKey && customProductKey !== product.key) {
     throw new Error("결제 요청의 product_key와 완료 요청의 product_key가 일치하지 않습니다.");
+  }
+
+  if (customPlanType && customPlanType !== orderPayload.plan_type) {
+    throw new Error("결제 요청의 plan_type과 완료 요청의 plan_type이 일치하지 않습니다.");
+  }
+
+  if (customPaymentType && customPaymentType !== orderPayload.payment_type) {
+    throw new Error("결제 요청의 payment_type과 완료 요청의 payment_type이 일치하지 않습니다.");
+  }
+
+  if (customBillingCycle && customBillingCycle !== orderPayload.billing_cycle) {
+    throw new Error("결제 요청의 billing_cycle과 완료 요청의 billing_cycle이 일치하지 않습니다.");
   }
 
   if (customPlanKey && customPlanKey !== orderPayload.plan_key) {
@@ -949,6 +1120,13 @@ export async function POST(request: Request) {
     return jsonError("메뉴판 생성을 위한 주문 payload가 올바르지 않습니다.");
   }
 
+  if (orderPayload.payment_type === "subscription") {
+    return jsonError(
+      "사업자 월/연 결제는 자동결제용 billing API에서 처리해야 합니다. 현재 단건 결제 완료 API로는 처리하지 않습니다.",
+      501
+    );
+  }
+
   const existingCompletion = await findExistingPaymentCompletion(supabase, paymentId);
 
   if (existingCompletion?.kind === "completed") {
@@ -980,6 +1158,17 @@ export async function POST(request: Request) {
     verifiedPayment = await verifyPayment(paymentId, orderPayload);
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "결제 검증에 실패했습니다.", 502);
+  }
+
+  try {
+    const hasPersonalTrial = await hasExistingPersonalTrial(supabase, user.id);
+
+    if (hasPersonalTrial) {
+      await createIncompletePaymentRecords(supabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, "개인 체험은 계정당 1회만 이용할 수 있습니다.");
+      return jsonError("개인 체험은 계정당 1회만 이용할 수 있습니다.", 409);
+    }
+  } catch (error) {
+    return jsonError(error instanceof Error ? error.message : "개인 체험 이용 이력 확인에 실패했습니다.", 500);
   }
 
   let adminSupabase: ReturnType<typeof createAdminClient>;
@@ -1040,6 +1229,12 @@ export async function POST(request: Request) {
     paymentRecord = await createPaymentRecord(supabase, user.id, paymentId, order.id, orderPayload, verifiedPayment);
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "결제 기록 저장 중 오류가 발생했습니다.", 500);
+  }
+
+  try {
+    await createServiceEntitlement(adminSupabase, user.id, menuSite.id, orderPayload);
+  } catch (error) {
+    return jsonError(error instanceof Error ? error.message : "개인 체험 이용권 저장 중 오류가 발생했습니다.", 500);
   }
 
   return NextResponse.json({

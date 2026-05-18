@@ -3,6 +3,10 @@ import type { SocialLinkInput } from "@/lib/social-links";
 
 export type PlanKey = "basic" | "pro" | "large_screen" | "qr_order" | "premium_dining_tablet";
 export type BuyerType = "individual" | "business";
+export type PlanType = "personal_trial" | "business_basic" | "business_display";
+export type PaymentType = "one_time" | "subscription";
+export type BillingCycle = "trial_1_month" | "monthly" | "yearly";
+export type BasicProductKey = "personal_trial_basic_1month" | "business_basic_monthly" | "business_basic_yearly";
 export type OrderSetupPayload = {
   tableCount?: string | null;
   posUsage?: string | null;
@@ -20,17 +24,79 @@ export type ScreenSetupPayload = {
   device?: string | null;
 };
 
-export const menuCreationProduct = {
-  key: "basic",
-  name: "테이블씬 베이직 웹 메뉴판 생성권",
-  description: "템플릿 디자인과 데이터 편집 기능을 제공하는 베이직 웹 메뉴판 1개를 생성합니다.",
-  amount: 59000,
+export const personalTrialBasicProduct = {
+  key: "personal_trial_basic_1month",
+  product_key: "personal_trial_basic_1month",
+  name: "개인 체험 1개월",
+  label: "개인 체험 1개월",
+  description: "사업자 인증 없이 Basic 템플릿 메뉴판을 1개월 동안 체험합니다.",
+  plan_type: "personal_trial",
+  payment_type: "one_time",
+  billing_cycle: "trial_1_month",
+  regular_amount: 13200,
+  amount: 6600,
+  discount_rate: 50,
+  duration_months: 1,
   currency: "KRW",
+  template_service: "basic",
+  requires_business_verification: false,
+  is_subscription: false,
 } as const;
 
+export const businessBasicMonthlyProduct = {
+  key: "business_basic_monthly",
+  product_key: "business_basic_monthly",
+  name: "사업자 Basic 월 결제",
+  label: "사업자 월 결제",
+  description: "사업자 인증 후 Basic 메뉴판을 월 자동결제로 이용합니다.",
+  plan_type: "business_basic",
+  payment_type: "subscription",
+  billing_cycle: "monthly",
+  regular_amount: 12000,
+  amount: 6000,
+  discount_rate: 50,
+  duration_months: null,
+  currency: "KRW",
+  template_service: "basic",
+  requires_business_verification: true,
+  is_subscription: true,
+} as const;
+
+export const businessBasicYearlyProduct = {
+  key: "business_basic_yearly",
+  product_key: "business_basic_yearly",
+  name: "사업자 Basic 연 결제",
+  label: "사업자 연 결제",
+  description: "사업자 인증 후 Basic 메뉴판을 연 자동결제로 이용합니다.",
+  plan_type: "business_basic",
+  payment_type: "subscription",
+  billing_cycle: "yearly",
+  regular_amount: 120000,
+  amount: 60000,
+  discount_rate: 50,
+  duration_months: null,
+  currency: "KRW",
+  template_service: "basic",
+  requires_business_verification: true,
+  is_subscription: true,
+} as const;
+
+export const basicPaymentProducts = [
+  personalTrialBasicProduct,
+  businessBasicMonthlyProduct,
+  businessBasicYearlyProduct,
+] as const;
+
+export type BasicPaymentProduct = (typeof basicPaymentProducts)[number];
+
+export const menuCreationProduct = personalTrialBasicProduct;
 export type MenuCreationProduct = typeof menuCreationProduct;
 
 export type MenuOrderPayload = {
+  product_key?: BasicProductKey;
+  plan_type?: PlanType;
+  payment_type?: PaymentType;
+  billing_cycle?: BillingCycle;
   plan_key?: PlanKey;
   template_category: TemplateCategoryKey;
   template_key: TemplateKey;
@@ -62,12 +128,17 @@ export type MenuOrderPayload = {
   businessName: string | null;
   representativeName?: string | null;
   businessNumber: string | null;
+  businessOpeningDate?: string | null;
   businessPhone?: string | null;
   termsAccepted?: boolean;
   privacyAccepted?: boolean;
   contentPolicyAccepted?: boolean;
   amount: number;
 };
+
+export function getBasicPaymentProduct(productKey: string | null | undefined) {
+  return basicPaymentProducts.find((product) => product.product_key === productKey) ?? null;
+}
 
 export function isTemplateKey(value: string): value is TemplateKey {
   return isValidTemplateKey(value);

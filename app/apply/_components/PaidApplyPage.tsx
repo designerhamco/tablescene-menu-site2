@@ -21,7 +21,9 @@ const PAID_APPLY_COPY: Record<
     eyebrow: "TableScene Basic",
     title: "테이블씬 베이직 신청/결제",
     description:
-      "누구나 쉽고 빠르게 만드는 디지털 메뉴판입니다. 템플릿과 메뉴판 정보를 입력한 뒤 결제가 완료되면 메뉴판이 자동으로 생성됩니다.",
+      "개인 1개월 체험, 사업자 월 결제, 사업자 연 결제 중 이용 방식을 선택해 Basic 메뉴판을 신청합니다.",
+    note:
+      "개인 체험은 1회 결제로 바로 이용할 수 있고, 사업자 월/연 결제는 사업자 인증과 자동결제 연결을 기준으로 설계되어 있습니다.",
   },
   screen: {
     eyebrow: "TableScene Display",
@@ -43,16 +45,17 @@ const PAID_APPLY_COPY: Record<
 
 type PaidApplyPageProps = {
   serviceType: PaidApplyService;
+  nextPath?: string;
 };
 
-export default async function PaidApplyPage({ serviceType }: PaidApplyPageProps) {
+export default async function PaidApplyPage({ serviceType, nextPath }: PaidApplyPageProps) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/sign-in?next=/apply/${serviceType}`);
+    redirect(`/sign-in?next=${encodeURIComponent(nextPath ?? `/apply/${serviceType}`)}`);
   }
 
   const copy = PAID_APPLY_COPY[serviceType];
