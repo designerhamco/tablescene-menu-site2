@@ -334,6 +334,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     buyerPhone: getString(payload.buyerPhone),
     buyerEmail: getString(payload.buyerEmail),
     businessName: buyerType === "business" ? getNullableString(payload.businessName) : null,
+    businessProfileId: buyerType === "business" ? getNullableString(payload.businessProfileId) : null,
     representativeName: buyerType === "business" ? getNullableString(payload.representativeName) : null,
     businessNumber: buyerType === "business" ? getNullableString(payload.businessNumber) : null,
     businessOpeningDate: buyerType === "business" ? getNullableString(payload.businessOpeningDate) : null,
@@ -1121,8 +1122,12 @@ export async function POST(request: Request) {
   }
 
   if (orderPayload.payment_type === "subscription") {
+    // TODO(billing): 사업자 자동결제 구현 시 businessProfileId 소유권, verified 상태,
+    // business_profiles.verification_status, business_basic_monthly/yearly product_key,
+    // billing_cycle 매칭, billing key 생성 성공, subscription 생성 성공 후 entitlement 생성,
+    // subscription renewal 처리를 별도 API에서 검증합니다.
     return jsonError(
-      "사업자 월/연 결제는 자동결제용 billing API에서 처리해야 합니다. 현재 단건 결제 완료 API로는 처리하지 않습니다.",
+      "사업자 월/연 자동결제는 아직 준비 중입니다.",
       501
     );
   }

@@ -54,10 +54,24 @@ type ApplyOrderFormProps = {
 };
 
 type AgreementKey = "terms" | "privacy" | "contentPolicy";
+type BusinessVerificationResponse = {
+  ok?: boolean;
+  verified?: boolean;
+  businessProfileId?: string;
+  businessName?: string | null;
+  representativeName?: string;
+  businessRegistrationNumberMasked?: string;
+  businessStatus?: string | null;
+  taxType?: string | null;
+  verifiedAt?: string | null;
+  message?: string;
+};
+
 type BusinessVerificationState =
   | { type: "idle"; message: string }
   | { type: "checking"; message: string }
-  | { type: "not_configured"; message: string };
+  | { type: "verified"; message: string; result: BusinessVerificationResponse }
+  | { type: "failed"; message: string };
 
 type FormState = {
   buyerType: BuyerType;
@@ -786,6 +800,7 @@ export default function ApplyOrderForm({
       buyerPhone: form.buyerPhone.trim(),
       buyerEmail: form.buyerEmail.trim(),
       businessName: activeProductRequiresBusinessVerification || form.buyerType === "business" ? form.businessName.trim() : null,
+      businessProfileId: businessVerificationState.type === "verified" ? businessVerificationState.result.businessProfileId ?? null : null,
       representativeName: activeProductRequiresBusinessVerification || form.buyerType === "business" ? form.representativeName.trim() : null,
       businessNumber: activeProductRequiresBusinessVerification || form.buyerType === "business" ? nullable(form.businessNumber) : null,
       businessOpeningDate: activeProductRequiresBusinessVerification || form.buyerType === "business" ? nullable(form.businessOpeningDate) : null,
@@ -801,6 +816,7 @@ export default function ApplyOrderForm({
       agreements.contentPolicy,
       agreements.privacy,
       agreements.terms,
+      businessVerificationState,
       currentPlanKey,
       form,
       isMenuService,
@@ -872,8 +888,11 @@ export default function ApplyOrderForm({
       ? null
       : "개업일자를 입력해주세요."
     : null;
-  const businessPhoneError = isBusinessBuyer ? validatePhoneNumber(form.businessPhone) : null;
-  const isFormReady =
+  const businessPhoneError = isBusinessBuyer && form.businessPhone.trim() ? validatePhoneNumber(form.businessPhone) : null;
+  const hasVerifiedBusinessProfile =
+    businessVerificationState.type === "verified" && Boolean(businessVerificationState.result.businessProfileId);
+  const isBusinessVerificationChecking = businessVerificationState.type === "checking";
+  const isBaseFormReady =
     !menuNameError &&
     isSlugValid &&
     isSlugAvailable &&
@@ -891,9 +910,36 @@ export default function ApplyOrderForm({
     !businessNumberError &&
     !businessOpeningDateError &&
     !businessPhoneError &&
-    !isSubscriptionProduct &&
     Object.values(agreements).every(Boolean);
+  const isFormReady = isBaseFormReady && !isSubscriptionProduct;
   const isLoading = uiState.type === "loading";
+  const paymentButtonDisabled = isSubscriptionProduct || !isFormReady || isLoading;
+  const subscriptionActionMessage = isSubscriptionProduct
+    ? isBusinessVerificationChecking
+      ? "사업자 정보를 확인하고 있습니다. 확인이 끝날 때까지 기다려주세요."
+      : hasVerifiedBusinessProfile
+        ? "사업자 인증이 완료되었습니다. 월/연 자동결제는 곧 제공될 예정입니다."
+        : businessVerificationState.type === "failed"
+          ? "사업자 정보가 확인되지 않았습니다. 입력 정보를 다시 확인해주세요."
+          : "사업자 월/연 결제는 사업자 인증 완료 후 진행할 수 있습니다."
+    : null;
+  const paymentButtonLabel = isLoading
+    ? "처리 중..."
+    : isScreenService && !hasSelectableTemplate
+      ? "Display 템플릿 준비 중"
+      : isSubscriptionProduct
+        ? isBusinessVerificationChecking
+          ? "사업자 인증 확인 중"
+          : hasVerifiedBusinessProfile
+            ? "자동결제 준비 중"
+            : "사업자 인증 후 진행 가능"
+        : visibleSlugState.type === "checking"
+          ? "메뉴판 주소 확인 중..."
+          : isPortOneReady
+            ? "신청하고 결제하기"
+            : isDevelopment && mockEnabled
+              ? "mock 결제로 신청 테스트"
+              : "결제 설정 필요";
 
   useEffect(() => {
     const slug = normalizeMenuAddressInput(form.desiredSlug);
@@ -967,6 +1013,13 @@ export default function ApplyOrderForm({
       ...current,
       [key]: key === "desiredSlug" ? normalizeMenuAddressInput(String(value)) : key === "businessNumber" ? formatBusinessNumber(String(value)) : value,
     }));
+
+    if (["businessName", "representativeName", "businessNumber", "businessOpeningDate"].includes(String(key))) {
+      setBusinessVerificationState({
+        type: "idle",
+        message: "사업자등록번호, 대표자명, 개업일자, 상호명을 입력한 뒤 확인합니다.",
+      });
+    }
   }
 
   function selectBasicProduct(product: BasicPaymentProduct) {
@@ -1014,12 +1067,55 @@ export default function ApplyOrderForm({
     }));
   }
 
-  function handleBusinessVerificationCheck() {
+  async function handleBusinessVerificationCheck() {
+    if (businessNameError || representativeNameError || businessNumberError || businessOpeningDateError || businessPhoneError) {
+      setBusinessVerificationState({
+        type: "failed",
+        message: businessNameError ?? representativeNameError ?? businessNumberError ?? businessOpeningDateError ?? businessPhoneError ?? "사업자 정보를 다시 확인해주세요.",
+      });
+      return;
+    }
+
     setBusinessVerificationState({
-      type: "not_configured",
-      message:
-        "사업자 정보 확인 API는 다음 작업에서 연결됩니다. 국세청 진위확인 API와 PortOne 빌링키 설정이 완료되면 이 단계에서 인증 성공 상태를 저장하고 자동결제로 이어집니다.",
+      type: "checking",
+      message: "사업자 정보를 확인하고 있습니다.",
     });
+
+    try {
+      const response = await fetch("/api/business/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          businessName: form.businessName,
+          representativeName: form.representativeName,
+          businessRegistrationNumber: form.businessNumber,
+          openingDate: form.businessOpeningDate,
+          phone: form.businessPhone,
+        }),
+      });
+      const result = (await response.json()) as BusinessVerificationResponse;
+
+      if (!response.ok || !result.ok || !result.verified) {
+        setBusinessVerificationState({
+          type: "failed",
+          message: result.message ?? "입력한 사업자 정보가 국세청 정보와 일치하지 않습니다.",
+        });
+        return;
+      }
+
+      setBusinessVerificationState({
+        type: "verified",
+        message: result.message ?? "사업자 인증이 완료되었습니다.",
+        result,
+      });
+    } catch {
+      setBusinessVerificationState({
+        type: "failed",
+        message: "사업자 정보 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      });
+    }
   }
 
   async function completePayment(paymentId: string) {
@@ -1089,8 +1185,9 @@ export default function ApplyOrderForm({
     if (isSubscriptionProduct) {
       setUiState({
         type: "error",
-        message:
-          "사업자 월/연 결제는 자동결제용 빌링키와 사업자 인증 API 연결 후 진행됩니다. 현재 단건 결제로 처리하지 않도록 차단되어 있습니다.",
+        message: hasVerifiedBusinessProfile
+          ? "사업자 인증이 완료되었습니다. 월/연 자동결제는 곧 제공될 예정이며, 현재 단건 결제로 처리하지 않습니다."
+          : "사업자 월/연 결제는 사업자 인증 완료 후 진행할 수 있습니다.",
       });
       return;
     }
@@ -1654,8 +1751,8 @@ export default function ApplyOrderForm({
             <Field label="담당자 이메일" value={form.buyerEmail} onChange={(value) => updateField("buyerEmail", value)} required type="email" helperText="결제 안내를 받을 이메일을 입력해주세요." errorText={form.buyerEmail.trim() ? buyerEmailError : null} successText="이메일 형식이 올바릅니다." />
             {isBusinessBuyer && (
               <>
-                <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} required maxLength={50} helperText="사업자 증빙에 사용할 상호명을 입력해주세요." errorText={form.businessName.trim() ? businessNameError : null} successText="입력 완료" />
-                <Field label="대표자명" value={form.representativeName} onChange={(value) => updateField("representativeName", value)} required maxLength={30} helperText="사업자등록증 기준 대표자명을 입력해주세요." errorText={form.representativeName.trim() ? representativeNameError : null} successText="입력 완료" />
+                <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} required maxLength={50} placeholder="테이블씬카페" helperText="사업자 증빙에 사용할 상호명을 입력해주세요." errorText={form.businessName.trim() ? businessNameError : null} successText="입력 완료" />
+                <Field label="대표자명" value={form.representativeName} onChange={(value) => updateField("representativeName", value)} required maxLength={30} placeholder="홍길동" helperText="사업자등록증 기준 대표자명을 입력해주세요." errorText={form.representativeName.trim() ? representativeNameError : null} successText="입력 완료" />
                 <Field
                   label="사업자등록번호"
                   value={form.businessNumber}
@@ -1663,7 +1760,7 @@ export default function ApplyOrderForm({
                   required
                   inputMode="numeric"
                   maxLength={12}
-                  placeholder="000-00-00000"
+                  placeholder="123-45-67890"
                   helperText="숫자 10자리를 입력하면 XXX-XX-XXXXX 형식으로 표시됩니다."
                   errorText={form.businessNumber.trim() ? businessNumberError : null}
                   successText={form.businessNumber.trim() ? "사업자등록번호 형식이 올바릅니다." : undefined}
@@ -1673,7 +1770,7 @@ export default function ApplyOrderForm({
                   value={form.businessOpeningDate}
                   onChange={(value) => updateField("businessOpeningDate", value)}
                   required
-                  type="date"
+                  placeholder="2024-01-15 또는 20240115"
                   helperText="국세청 진위확인에 사용할 개업일자입니다."
                   errorText={form.businessOpeningDate.trim() ? businessOpeningDateError : null}
                   successText="입력 완료"
@@ -1682,23 +1779,39 @@ export default function ApplyOrderForm({
                   label="사업장 연락처"
                   value={form.businessPhone}
                   onChange={(value) => updateField("businessPhone", value)}
-                  required
                   errorText={form.businessPhone.trim() ? businessPhoneError : null}
                 />
                 <div className="md:col-span-2 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="font-black text-amber-900">사업자 인증</p>
-                      <p className="mt-1 break-keep">{businessVerificationState.message}</p>
+                      <p className="mt-1 break-keep">
+                        사업자 월/연 결제는 사업자 정보 확인 후 이용할 수 있습니다. 자동결제는 아직 준비 중이며, 이번 단계에서는 인증만 진행됩니다.
+                      </p>
+                      <p className={`mt-2 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-amber-800"}`}>
+                        {businessVerificationState.message}
+                      </p>
                     </div>
                     <button
                       type="button"
                       onClick={handleBusinessVerificationCheck}
-                      className="inline-flex shrink-0 items-center justify-center rounded-full bg-amber-900 px-4 py-2.5 text-xs font-black text-white transition hover:bg-amber-800"
+                      disabled={businessVerificationState.type === "checking"}
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-amber-900 px-4 py-2.5 text-xs font-black text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      사업자 정보 확인
+                      {businessVerificationState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : null}
+                      {businessVerificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
                     </button>
                   </div>
+                  {businessVerificationState.type === "verified" && (
+                    <div className="mt-4 grid gap-2 rounded-2xl border border-emerald-100 bg-white p-4 text-xs font-bold text-emerald-800 md:grid-cols-2">
+                      <BusinessVerificationSummaryRow label="상호명" value={businessVerificationState.result.businessName || form.businessName || "-"} />
+                      <BusinessVerificationSummaryRow label="대표자명" value={businessVerificationState.result.representativeName || form.representativeName || "-"} />
+                      <BusinessVerificationSummaryRow label="사업자등록번호" value={businessVerificationState.result.businessRegistrationNumberMasked ?? "-"} />
+                      <BusinessVerificationSummaryRow label="사업자 상태" value={businessVerificationState.result.businessStatus ?? "-"} />
+                      <BusinessVerificationSummaryRow label="과세 유형" value={businessVerificationState.result.taxType ?? "-"} />
+                      <BusinessVerificationSummaryRow label="인증일" value={businessVerificationState.result.verifiedAt ? new Date(businessVerificationState.result.verifiedAt).toLocaleDateString("ko-KR") : "-"} />
+                    </div>
+                  )}
                   <p className="mt-3 break-keep text-xs">
                     사업자 명의로 매입세액 공제를 받으시려면 결제창에서 지출증빙용을 선택하고 사업자번호를 입력해 주세요.
                   </p>
@@ -1791,25 +1904,19 @@ export default function ApplyOrderForm({
             <div className={`mt-6 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${getUiStateClassName(uiState.type)}`}>{uiState.message}</div>
           )}
 
+          {subscriptionActionMessage && (
+            <div className={`mt-6 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${hasVerifiedBusinessProfile ? "border-emerald-100 bg-emerald-50 text-emerald-700" : businessVerificationState.type === "failed" ? "border-red-100 bg-red-50 text-red-700" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
+              {subscriptionActionMessage}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={handlePayment}
-            disabled={!isFormReady || isLoading}
+            disabled={paymentButtonDisabled}
             className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
-            {isLoading
-              ? "처리 중..."
-              : isScreenService && !hasSelectableTemplate
-                ? "Display 템플릿 준비 중"
-              : isSubscriptionProduct
-                ? "사업자 인증 및 자동결제 연결 필요"
-              : visibleSlugState.type === "checking"
-                ? "메뉴판 주소 확인 중..."
-                : isPortOneReady
-                  ? "신청하고 결제하기"
-                  : isDevelopment && mockEnabled
-                    ? "mock 결제로 신청 테스트"
-                    : "결제 설정 필요"}
+            {paymentButtonLabel}
           </button>
         </section>
       </aside>
@@ -2081,6 +2188,15 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
     <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
       <dt className="text-zinc-400">{label}</dt>
       <dd className={`text-right ${strong ? "text-xl font-black text-zinc-950" : "font-bold text-zinc-800"}`}>{value}</dd>
+    </div>
+  );
+}
+
+function BusinessVerificationSummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-emerald-50 px-3 py-2">
+      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">{label}</p>
+      <p className="mt-1 break-keep text-xs font-black text-emerald-900">{value}</p>
     </div>
   );
 }

@@ -126,6 +126,7 @@ export type MenuOrderPayload = {
   buyerPhone: string;
   buyerEmail: string;
   businessName: string | null;
+  businessProfileId?: string | null;
   representativeName?: string | null;
   businessNumber: string | null;
   businessOpeningDate?: string | null;

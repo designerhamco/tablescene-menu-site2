@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Footer from "@/app/components/layout/Footer";
 import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { createClient } from "@/lib/supabase/server";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -31,6 +32,18 @@ type ServiceEntitlement = {
   expired_at: string | null;
   data_retention_until: string | null;
   deleted_scheduled_at: string | null;
+};
+
+type BusinessProfile = {
+  id: string | null;
+  business_registration_number: string | null;
+  business_name: string | null;
+  representative_name: string | null;
+  business_status: string | null;
+  tax_type: string | null;
+  verification_status: string | null;
+  verified_at: string | null;
+  last_verified_at: string | null;
 };
 
 type TrialDisplayInfo = {
@@ -244,6 +257,14 @@ export default async function MyPage() {
     .map((site) => getSafeString(site.id))
     .filter(Boolean);
   const { data: serviceEntitlements, error: serviceEntitlementsError } = await getServiceEntitlementsForMenuSites(supabase, menuSiteIds);
+  const { data: businessProfiles, error: businessProfilesError } = await supabase
+    .from("business_profiles")
+    .select("id, business_registration_number, business_name, representative_name, business_status, tax_type, verification_status, verified_at, last_verified_at")
+    .eq("user_id", user.id)
+    .eq("verification_status", "verified")
+    .order("last_verified_at", { ascending: false })
+    .limit(1);
+  const businessProfile = businessProfilesError ? null : ((businessProfiles ?? [])[0] as BusinessProfile | undefined ?? null);
   const entitlementByMenuSiteId = new Map<string, ServiceEntitlement>();
 
   if (!serviceEntitlementsError) {
@@ -368,6 +389,16 @@ export default async function MyPage() {
                 const daysUntilRetentionEnds = dataRetentionUntil ? getDaysUntil(dataRetentionUntil) : null;
                 const isTrialPendingDelete = entitlementStatus === "pending_delete" || Boolean(trialDisplayInfo?.deletedScheduledAt);
                 const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || (typeof daysUntilExpiry === "number" && daysUntilExpiry <= 0);
+                const trialConversionButtonLabel = isTrialPendingDelete
+                  ? "고객지원 문의"
+                  : isTrialExpired
+                    ? "사업자 플랜으로 전환하고 복구"
+                    : "사업자 플랜으로 전환";
+                const trialConversionDescription = isTrialPendingDelete
+                  ? "복구 가능 기간이 종료되었습니다. 데이터 복구 가능 여부는 고객지원으로 문의해주세요."
+                  : isTrialExpired
+                    ? "체험 기간이 종료되어 메뉴판이 비공개 상태입니다. 사업자 플랜으로 전환하면 기존 메뉴판을 복구해 이어서 사용할 수 있습니다."
+                    : "체험 기간이 끝나기 전 사업자 플랜으로 전환하면 현재 메뉴판을 그대로 이어서 사용할 수 있습니다.";
 
                 return (
                   <article key={siteId || `${slug || "menu-site"}-${site.created_at ?? "unknown"}`} className="rounded-3xl bg-white p-7 shadow-sm">
@@ -412,7 +443,7 @@ export default async function MyPage() {
                               }`}
                         </p>
                         <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                          계속 이용하려면 사업자 인증 후 정식 플랜으로 전환해야 합니다. 정식 전환 기능은 준비 중입니다.
+                          {trialConversionDescription}
                         </p>
                       </div>
                     )}
@@ -481,6 +512,23 @@ export default async function MyPage() {
                           >
                             미리보기
                           </Link>
+                          {isPersonalTrial ? (
+                            isTrialPendingDelete ? (
+                              <Link
+                                href="/mypage/inquiries"
+                                className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-bold text-amber-800 transition-colors hover:bg-amber-100"
+                              >
+                                {trialConversionButtonLabel}
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/mypage/menus/${siteId}/convert`}
+                                className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-bold text-amber-800 transition-colors hover:bg-amber-100"
+                              >
+                                {trialConversionButtonLabel}
+                              </Link>
+                            )
+                          ) : null}
                         </>
                       ) : (
                         <span className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
@@ -589,6 +637,67 @@ export default async function MyPage() {
                     <dd className="mt-2 break-all font-mono text-xs font-bold text-zinc-600">{user.id}</dd>
                   </div>
                 </dl>
+                <section className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
+                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">인증된 사업자 정보</p>
+                      <h3 className="mt-2 text-lg font-black tracking-tight text-zinc-950">
+                        {businessProfile?.business_name || "아직 인증된 사업자 정보가 없습니다."}
+                      </h3>
+                      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                        사업자 정보 변경은 재인증이 필요합니다.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled
+                      className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-400"
+                    >
+                      사업자 정보 변경 / 재인증 준비 중
+                    </button>
+                  </div>
+
+                  {businessProfile ? (
+                    <dl className="mt-5 grid gap-3 md:grid-cols-2">
+                      <div className="rounded-2xl bg-white p-4">
+                        <dt className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">대표자명</dt>
+                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.representative_name ?? "-"}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-white p-4">
+                        <dt className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">사업자등록번호</dt>
+                        <dd className="mt-2 text-sm font-bold text-zinc-900">
+                          {businessProfile.business_registration_number ? maskBusinessRegistrationNumber(businessProfile.business_registration_number) : "-"}
+                        </dd>
+                      </div>
+                      <div className="rounded-2xl bg-white p-4">
+                        <dt className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">사업자 상태</dt>
+                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.business_status ?? "-"}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-white p-4">
+                        <dt className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">과세 유형</dt>
+                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.tax_type ?? "-"}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-white p-4">
+                        <dt className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">인증 상태</dt>
+                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.verification_status === "verified" ? "인증 완료" : businessProfile.verification_status ?? "-"}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-white p-4">
+                        <dt className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">인증일</dt>
+                        <dd className="mt-2 text-sm font-bold text-zinc-900">{formatDate(businessProfile.last_verified_at ?? businessProfile.verified_at)}</dd>
+                      </div>
+                    </dl>
+                  ) : (
+                    <p className="mt-5 break-keep rounded-2xl bg-white p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                      사업자 월/연 결제를 이용하려면 /apply/basic에서 사업자 인증을 먼저 진행해주세요.
+                    </p>
+                  )}
+
+                  {businessProfilesError && (
+                    <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                      사업자 정보 테이블이 아직 적용되지 않았거나 조회 권한이 없습니다.
+                    </p>
+                  )}
+                </section>
                 <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
                   업체명, 담당자명, 연락처를 별도로 관리하려면 사용자 프로필 테이블과 계정 정보 수정 화면이 필요합니다.
                 </p>
