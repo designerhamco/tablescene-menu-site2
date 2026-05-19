@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import AiCreditPurchaseModal from "@/components/ai/AiCreditPurchaseModal";
@@ -28,6 +29,7 @@ export default function AiCreditRechargePanel({
   compact = false,
   accountSummaryOnly = false,
 }: AiCreditRechargePanelProps) {
+  const router = useRouter();
   const [balance, setBalance] = useState(initialBalance);
   const [isOpen, setIsOpen] = useState(false);
   const [pendingProductKey, setPendingProductKey] = useState<AiCreditPackKey | null>(null);
@@ -98,6 +100,7 @@ export default function AiCreditRechargePanel({
         onPurchased={(nextBalance, nextMessage) => {
           setBalance(nextBalance);
           setMessage(nextMessage);
+          router.refresh();
         }}
         onError={(nextMessage) => setMessage(nextMessage || null)}
       />

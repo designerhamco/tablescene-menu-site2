@@ -1,6 +1,7 @@
 "use client";
 
 import * as PortOne from "@portone/browser-sdk/v2";
+import { useState } from "react";
 
 import { AI_CREDIT_PACKS, type AiCreditBalance, type AiCreditPackKey } from "@/lib/ai-credits";
 
@@ -26,15 +27,32 @@ type CompleteResponse = {
 };
 
 function createPaymentId() {
-  const random = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-  return `ai_credit_${Date.now()}_${random}`;
+  const timestamp = Date.now().toString(36);
+  const random = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID().replaceAll("-", "").slice(0, 18)
+    : Math.random().toString(36).slice(2, 20);
+  return `ai-${timestamp}-${random}`;
+}
+
+function getPaymentErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  const lowerMessage = message.toLowerCase();
+
+  if (lowerMessage.includes("cancel") || message.includes("취소")) {
+    return "결제가 취소되었습니다.";
+  }
+
+  if (lowerMessage.includes("complete") || lowerMessage.includes("verify") || message.includes("검증") || message.includes("충전 처리")) {
+    return "AI 크레딧 충전에 실패했습니다. 결제 상태를 확인해주세요.";
+  }
+
+  return message || "AI 크레딧 결제창을 열지 못했습니다.";
 }
 
 export default function AiCreditPurchaseModal({
   open,
   onClose,
   menuSiteId,
-  menuName,
   userId,
   userEmail,
   storeId,
@@ -44,6 +62,7 @@ export default function AiCreditPurchaseModal({
   onPurchased,
   onError,
 }: AiCreditPurchaseModalProps) {
+  const [localError, setLocalError] = useState<string | null>(null);
   if (!open) return null;
 
   const isPortOneReady = Boolean(storeId && channelKey);
@@ -71,14 +90,27 @@ export default function AiCreditPurchaseModal({
   async function startPurchase(productKey: AiCreditPackKey) {
     const product = AI_CREDIT_PACKS[productKey];
     setPendingProductKey(productKey);
+    setLocalError(null);
     onError("");
 
     try {
       if (!isPortOneReady || !storeId || !channelKey) {
-        throw new Error("AI 크레딧 결제용 PortOne 일반 결제 채널 환경변수를 확인해주세요.");
+        console.debug("[ai-credit-payment] missing public payment config", {
+          hasStoreId: Boolean(storeId),
+          hasChannelKey: Boolean(channelKey),
+          productKey,
+          amount: product.amount,
+        });
+        throw new Error("결제 설정을 확인할 수 없습니다. 잠시 후 다시 시도해주세요.");
       }
 
       const paymentId = createPaymentId();
+      console.debug("[ai-credit-payment] request payment", {
+        hasStoreId: Boolean(storeId),
+        hasChannelKey: Boolean(channelKey),
+        productKey,
+        amount: product.amount,
+      });
       const payment = await PortOne.requestPayment({
         storeId,
         channelKey,
@@ -94,13 +126,15 @@ export default function AiCreditPurchaseModal({
         customData: {
           purpose: "ai_credit_purchase",
           product_key: product.productKey,
+          productKey: product.productKey,
+          credits: product.credits,
           payment_type: product.paymentType,
           menu_site_id: menuSiteId,
         },
       } as unknown as Parameters<typeof PortOne.requestPayment>[0]);
 
       if (!payment) {
-        throw new Error("결제가 완료되지 않았습니다. 결제창이 닫혔거나 리디렉션 방식으로 진행 중일 수 있습니다.");
+        throw new Error("AI 크레딧 결제창을 열지 못했습니다.");
       }
 
       if (payment.code) {
@@ -109,7 +143,9 @@ export default function AiCreditPurchaseModal({
 
       await completePurchase(payment.paymentId, productKey);
     } catch (error) {
-      onError(error instanceof Error ? error.message : "AI 크레딧 충전 중 오류가 발생했습니다.");
+      const message = getPaymentErrorMessage(error);
+      setLocalError(message);
+      onError(message);
     } finally {
       setPendingProductKey(null);
     }
@@ -130,7 +166,7 @@ export default function AiCreditPurchaseModal({
               계정에 충전할 크레딧을 선택하세요
             </h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-              충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다. 현재 위치는 {menuName}이며, 결제는 일반 결제창의 one_time 단건 결제로 처리됩니다.
+              충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
             </p>
           </div>
           <button
@@ -165,6 +201,12 @@ export default function AiCreditPurchaseModal({
             );
           })}
         </div>
+
+        {localError ? (
+          <p className="mt-5 break-keep rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
+            {localError}
+          </p>
+        ) : null}
 
         <p className="mt-5 break-keep rounded-2xl bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
           AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 5크레딧. 충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.

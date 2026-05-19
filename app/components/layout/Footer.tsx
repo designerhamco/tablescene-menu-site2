@@ -45,7 +45,7 @@ const Footer = () => {
             {/* Legal Text */}
             <div className="text-[10px] md:text-[11px] text-zinc-600 space-y-1.5 leading-relaxed w-full md:max-w-3xl font-normal">
               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                <span><span className="font-semibold text-zinc-500">상호명</span> (주)테이블씬</span>
+                <span><span className="font-semibold text-zinc-500">상호명</span> 디앤디커머스</span>
                 <span className="text-zinc-800">|</span>
                 <span><span className="font-semibold text-zinc-500">대표자</span> 나형미</span>
                 <span className="text-zinc-800">|</span>
@@ -135,7 +135,7 @@ const Footer = () => {
                     <div className="text-sm text-zinc-600 space-y-4 mt-4">
                       <p>
                         <strong>1. 개인정보의 처리 목적</strong><br/>
-                        (주)테이블씬은(는) 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.
+                        디앤디커머스는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.
                       </p>
                       <p>
                         <strong>2. 개인정보의 처리 및 보유 기간</strong><br/>

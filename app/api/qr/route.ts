@@ -1,7 +1,7 @@
 import { toBuffer } from "qrcode";
 
 import { isValidPublicSlug } from "@/lib/menu-limits";
-import { createClient } from "@/lib/supabase/server";
+import { getMenuSiteAccessStateBySlug } from "@/lib/server/menu-site-access-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,19 +31,13 @@ export async function GET(request: Request) {
     return Response.json({ error: "올바른 메뉴판 주소가 필요합니다." }, { status: 400 });
   }
 
-  const supabase = await createClient();
-  const { data: menuSite, error } = await supabase.from("menu_sites").select("id, status").eq("slug", slug).maybeSingle();
-
-  if (error) {
-    return Response.json({ error: "메뉴판 정보를 확인하지 못했습니다." }, { status: 500 });
-  }
-
-  if (!menuSite) {
+  const accessState = await getMenuSiteAccessStateBySlug(slug);
+  if (!accessState) {
     return Response.json({ error: "메뉴판을 찾을 수 없습니다." }, { status: 404 });
   }
 
-  if (menuSite.status !== "published") {
-    return Response.json({ error: "공개된 메뉴판만 QR을 다운로드할 수 있습니다." }, { status: 403 });
+  if (!accessState.canDownloadQr) {
+    return Response.json({ error: "공개 중인 메뉴판에서만 QR을 다운로드할 수 있습니다." }, { status: 403 });
   }
 
   const publicMenuUrl = getPublicMenuQrUrl(request, slug);

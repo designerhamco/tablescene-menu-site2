@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getOwnerPreviewMenuPageData } from "@/lib/menu-page-data";
+import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
 
 type PageProps = {
@@ -34,6 +35,11 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
 
   if (!user) {
     redirect(`/sign-in?next=/mypage/menus/${menuId}/preview`);
+  }
+
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
+  if (!accessState?.canPreview) {
+    redirect("/mypage?error=menu-preview-not-allowed");
   }
 
   const data = await getOwnerPreviewMenuPageData(menuId, user.id, { locale });

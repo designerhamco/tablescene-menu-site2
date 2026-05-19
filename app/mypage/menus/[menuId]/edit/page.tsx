@@ -46,6 +46,7 @@ import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
+import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
 import { createClient } from "@/lib/supabase/server";
@@ -668,6 +669,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   }
 
   const site = menuSite as MenuSite;
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id, userId: user.id });
+  const isReadOnly = !accessState?.canEdit;
+  const canPreview = Boolean(accessState?.canPreview);
+  const canViewPublic = Boolean(accessState?.canViewPublic);
+  const canDownloadQr = Boolean(accessState?.canDownloadQr);
+  const readOnlyMessage =
+    accessState?.message ?? "체험 기간이 종료되어 편집과 공개가 제한되었습니다. 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.";
   const [
     { data: menuPagesData },
     { data: categoriesData },
@@ -952,6 +960,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
   const previewUrl = `/mypage/menus/${site.id}/preview`;
+  const headerStatusLabel = accessState?.statusLabel ?? statusLabels[site.status];
+  const headerStatusClassName = accessState?.canViewPublic
+    ? "bg-emerald-50 text-emerald-700"
+    : isReadOnly
+      ? "bg-amber-50 text-amber-700"
+      : "bg-zinc-100 text-zinc-600";
   const checklist = [
     { label: "매장명 입력", ok: Boolean(site.restaurant_name || site.name) },
     { label: "공개 메뉴판 주소 설정", ok: Boolean(site.slug) },
@@ -984,8 +998,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
             <div>
               <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${site.status === "published" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                  {statusLabels[site.status]}
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${headerStatusClassName}`}>
+                  {headerStatusLabel}
                 </span>
                 <span className="rounded-full bg-zinc-950 px-3 py-1 text-xs font-bold text-white">{templateTypeLabel}</span>
                 <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
@@ -1001,15 +1015,21 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             </div>
             <div className="flex flex-col items-start gap-2 lg:items-end">
               <div className="flex flex-wrap items-center justify-end gap-3">
-                <Link
-                  href={previewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white"
-                >
-                  미리보기
-                </Link>
-                {site.status === "published" ? (
+                {canPreview ? (
+                  <Link
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white"
+                  >
+                    미리보기
+                  </Link>
+                ) : (
+                  <button type="button" disabled className="cursor-not-allowed rounded-full bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                    미리보기
+                  </button>
+                )}
+                {canViewPublic ? (
                   <>
                     <Link
                       href={publicUrl}
@@ -1019,20 +1039,22 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     >
                       공개 페이지 보기
                     </Link>
-                    <a
-                      href={qrDownloadUrl}
-                      download
-                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
-                    >
-                      QR 다운로드
-                    </a>
+                    {canDownloadQr ? (
+                      <a
+                        href={qrDownloadUrl}
+                        download
+                        className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                      >
+                        QR 다운로드
+                      </a>
+                    ) : null}
                   </>
                 ) : (
                   <>
-                    <button type="button" disabled title="공개 설정 탭에서 공개로 저장한 뒤 사용할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                    <button type="button" disabled title="공개 중인 활성 메뉴판에서만 사용할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
                       공개 페이지 보기
                     </button>
-                    <button type="button" disabled title="공개 설정 탭에서 공개로 저장한 뒤 QR을 다운로드할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                    <button type="button" disabled title="공개 중인 메뉴판에서만 QR을 다운로드할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
                       QR 다운로드
                     </button>
                   </>
@@ -1044,10 +1066,32 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         </header>
 
         {globalBannerError && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{globalBannerError}</div>}
+        {isReadOnly && (
+          <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-5">
+            <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">{readOnlyMessage}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {accessState?.canConvertToBusiness ? (
+                <Link
+                  href={`/mypage/menus/${site.id}/convert`}
+                  className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800"
+                >
+                  사업자 플랜으로 전환하고 복구
+                </Link>
+              ) : (
+                <Link
+                  href="/mypage/inquiries"
+                  className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800"
+                >
+                  고객지원 문의
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
 
         <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
 
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
             {activeTab === "basic" && (
               <SectionCard title="기본 정보" eyebrow="Basic">
                 <form id="basic-info-form" action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
@@ -1136,7 +1180,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   )}
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="basic-info-form">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="basic-info-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -1162,7 +1206,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   })}
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="page-settings-form">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="page-settings-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -1203,7 +1247,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </div>
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="intro-form">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="intro-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -1335,7 +1379,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FinalActionRow>
                       <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
-                      <SubmitButton tone="final" dirtyFormId="menu-cover-form">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다.
@@ -1351,15 +1395,21 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <SchedulePlaceholder />
               ) : (
                 <div className="space-y-5">
-                  <AiCreditRechargePanel
-                    menuSiteId={site.id}
-                    menuName={site.name}
-                    userId={user.id}
-                    userEmail={user.email}
-                    storeId={portOneConfig.storeId}
-                    channelKey={portOneConfig.channelKey}
-                    initialBalance={aiCreditBalance}
-                  />
+                  {accessState?.canUseAi ? (
+                    <AiCreditRechargePanel
+                      menuSiteId={site.id}
+                      menuName={site.name}
+                      userId={user.id}
+                      userEmail={user.email}
+                      storeId={portOneConfig.storeId}
+                      channelKey={portOneConfig.channelKey}
+                      initialBalance={aiCreditBalance}
+                    />
+                  ) : (
+                    <div className="rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                      현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
+                    </div>
+                  )}
                   <MenuManagementSection
                     menuId={site.id}
                     menuPages={menuPages}
@@ -1395,7 +1445,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     />
                     <div className="md:col-span-2">
                       <FinalActionRow>
-                        <SubmitButton tone="final" dirtyFormId="about-form">저장</SubmitButton>
+                        <SubmitButton tone="final" dirtyFormId="about-form" disabled={isReadOnly}>저장</SubmitButton>
                         <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                           변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -1417,7 +1467,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   />
                   <div className="md:col-span-2">
                       <FinalActionRow>
-                        <SubmitButton tone="final" dirtyFormId="events-form">저장</SubmitButton>
+                        <SubmitButton tone="final" dirtyFormId="events-form" disabled={isReadOnly}>저장</SubmitButton>
                         <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                           이벤트 변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 이벤트 이미지는 후속 draft 단계 전까지 기존 업로드 정책을 따릅니다.
@@ -1482,7 +1532,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </div>
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
-                      <SubmitButton tone="final" dirtyFormId="design-settings-form">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.
@@ -1495,15 +1545,21 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "localization" && (
               <SectionCard title="다국어" eyebrow="Localization">
-                <AiCreditRechargePanel
-                  menuSiteId={site.id}
-                  menuName={site.name}
-                  userId={user.id}
-                  userEmail={user.email}
-                  storeId={portOneConfig.storeId}
-                  channelKey={portOneConfig.channelKey}
-                  initialBalance={aiCreditBalance}
-                />
+                {accessState?.canUseAi ? (
+                  <AiCreditRechargePanel
+                    menuSiteId={site.id}
+                    menuName={site.name}
+                    userId={user.id}
+                    userEmail={user.email}
+                    storeId={portOneConfig.storeId}
+                    channelKey={portOneConfig.channelKey}
+                    initialBalance={aiCreditBalance}
+                  />
+                ) : (
+                  <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                    현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
+                  </div>
+                )}
                 <LocalizationSection
                   menuId={site.id}
                   enabledLocales={enabledLocales}
@@ -1527,6 +1583,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           name="status"
                           value="draft"
                           defaultChecked={site.status !== "published"}
+                          disabled={isReadOnly}
                           className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
                         />
                         <span>
@@ -1542,6 +1599,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           name="status"
                           value="published"
                           defaultChecked={site.status === "published"}
+                          disabled={isReadOnly}
                           className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
                         />
                         <span>
@@ -1555,6 +1613,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     {site.status === "archived" && (
                       <p className="mt-3 break-keep rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
                         현재 보관된 메뉴판입니다. 공개 설정 탭에서는 비공개 상태로 표시됩니다.
+                      </p>
+                    )}
+                    {isReadOnly && (
+                      <p className="mt-3 break-keep rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                        체험 기간이 종료되어 공개 상태를 변경할 수 없습니다. 사업자 플랜으로 전환 후 다시 이용해주세요.
                       </p>
                     )}
                     <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
@@ -1591,7 +1654,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </p>
                   <div>
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="publish-settings-form">저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="publish-settings-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
                         공개 상태 변경은 저장 후 DB와 미리보기, 공개 메뉴판에 반영됩니다.

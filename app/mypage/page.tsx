@@ -5,6 +5,7 @@ import Footer from "@/app/components/layout/Footer";
 import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
+import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import {
   getInquiryErrorMessage,
   getInquiryNoticeMessage,
@@ -27,12 +28,21 @@ import type { Json } from "@/lib/supabase/types";
 
 type SearchParams = Promise<{
   tab?: string | string[];
+  billingTab?: string | string[];
   error?: string | string[];
   message?: string | string[];
   inquiryPage?: string | string[];
 }>;
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const MYPAGE_QUERY_TIMEOUT_MS = 5000;
+const KST_TIME_ZONE = "Asia/Seoul";
+const DAY_MS = 1000 * 60 * 60 * 24;
+
 type MyPageTab = "menus" | "payments" | "inquiries" | "account";
+type BillingTab = "subscriptions" | "ai-credits";
 
 type MenuSite = {
   id: string | null;
@@ -75,6 +85,12 @@ type BusinessSubscription = {
   portone_payment_id: string | null;
   next_billing_at: string | null;
   last_paid_at: string | null;
+  cancel_at_period_end?: boolean | null;
+  cancel_requested_at?: string | null;
+  canceled_at?: string | null;
+  cancellation_reason?: string | null;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
   created_at: string | null;
 };
 
@@ -121,6 +137,54 @@ type BusinessProfile = {
   verified_at: string | null;
   last_verified_at: string | null;
 };
+
+type QueryErrorLike = {
+  code?: string;
+  message?: string;
+};
+
+function isMissingRelationError(error: QueryErrorLike | null | undefined, relationName: string) {
+  return error?.code === "42P01" || Boolean(error?.message?.includes(relationName));
+}
+
+function isMissingOptionalMypageRelation(error: QueryErrorLike | null | undefined) {
+  return Boolean(
+    error
+      && (
+        error.code === "42P01"
+        || error.code === "42703"
+        || error.message?.includes("service_entitlements")
+        || error.message?.includes("business_subscriptions")
+        || error.message?.includes("ai_account_credit_balances")
+        || error.message?.includes("ai_credit_transactions")
+        || error.message?.includes("inquiries")
+      )
+  );
+}
+
+function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+
+  return Promise.race([Promise.resolve(promise), timeout]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+  });
+}
+
+async function runMypageQuery<T>(label: string, promise: PromiseLike<T>) {
+  try {
+    return await withTimeout(promise, MYPAGE_QUERY_TIMEOUT_MS, label);
+  } catch (error) {
+    console.error("[mypage] query failed or timed out", {
+      label,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return null;
+  }
+}
 
 type TrialDisplayInfo = {
   source: "service_entitlements" | "settings";
@@ -224,6 +288,22 @@ function getActiveTab(value: string | string[] | undefined): MyPageTab {
   }
 
   return "menus";
+}
+
+function getBillingTab(value: string | string[] | undefined): BillingTab {
+  const tab = Array.isArray(value) ? value[0] : value;
+
+  if (tab === "ai-credits") {
+    return "ai-credits";
+  }
+
+  return "subscriptions";
+}
+
+function getBillingTabClassName(isActive: boolean) {
+  return isActive
+    ? "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-sm font-black text-white sm:flex-none"
+    : "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-black text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 sm:flex-none";
 }
 
 function getTabLinkClassName(isActive: boolean) {
@@ -332,6 +412,11 @@ function getSubscriptionStatusLabel(status: string | null | undefined) {
   return status ? labels[status] ?? status : "상태 확인 필요";
 }
 
+function getBusinessSubscriptionCardStatusLabel(subscription: BusinessSubscription | null | undefined, fallbackStatus: string | null | undefined) {
+  if (subscription?.status === "active" && subscription.cancel_at_period_end) return "해지 예약됨";
+  return getSubscriptionStatusLabel(subscription?.status ?? fallbackStatus);
+}
+
 function getPaymentStatusLabel(status: string | null | undefined) {
   const labels: Record<string, string> = {
     paid: "결제 완료",
@@ -403,14 +488,83 @@ function getTrialDisplayInfo(settings: Record<string, unknown>, entitlement?: Se
   };
 }
 
-function getDaysUntil(date: string) {
-  const time = new Date(date).getTime();
+function getKstDateParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: KST_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = new Map(parts.map((part) => [part.type, part.value]));
+  const year = Number(values.get("year"));
+  const month = Number(values.get("month"));
+  const day = Number(values.get("day"));
 
-  if (!Number.isFinite(time)) {
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
     return null;
   }
 
-  return Math.ceil((time - Date.now()) / (1000 * 60 * 60 * 24));
+  return { year, month, day };
+}
+
+function getKstDayStartTime(date: Date) {
+  const parts = getKstDateParts(date);
+
+  if (!parts) {
+    return null;
+  }
+
+  return Date.UTC(parts.year, parts.month - 1, parts.day);
+}
+
+function getRemainingDaysUntilKst(expiresAt: string | Date, now: Date = new Date()) {
+  const expiresAtDate = typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt;
+  const expiresAtTime = expiresAtDate.getTime();
+
+  if (!Number.isFinite(expiresAtTime)) {
+    return null;
+  }
+
+  const todayStart = getKstDayStartTime(now);
+  const expiresStart = getKstDayStartTime(expiresAtDate);
+
+  if (todayStart === null || expiresStart === null) {
+    return null;
+  }
+
+  return Math.round((expiresStart - todayStart) / DAY_MS);
+}
+
+function getRetentionMessage(daysUntilRetentionEnds: number | null) {
+  if (daysUntilRetentionEnds === null) {
+    return "데이터 보관 기간을 확인 중입니다.";
+  }
+
+  if (daysUntilRetentionEnds > 0) {
+    return `데이터 보관 만료까지 ${daysUntilRetentionEnds}일 남았습니다.`;
+  }
+
+  if (daysUntilRetentionEnds === 0) {
+    return "데이터 보관 기간이 오늘 종료됩니다.";
+  }
+
+  return "데이터 보관 기간이 종료되어 삭제 예정 상태입니다.";
+}
+
+function getTrialExpiryMessage(accessExpiresAt: string, daysUntilExpiry: number | null) {
+  if (!accessExpiresAt || daysUntilExpiry === null) {
+    return "만료일 확인 중";
+  }
+
+  if (daysUntilExpiry < 0) {
+    return "체험 기간 종료";
+  }
+
+  if (daysUntilExpiry === 0) {
+    return `만료일 ${formatDate(accessExpiresAt)}, 오늘 만료`;
+  }
+
+  return `만료일 ${formatDate(accessExpiresAt)}, 남은 기간 ${daysUntilExpiry}일`;
 }
 
 async function getServiceEntitlementsForMenuSites(
@@ -421,10 +575,27 @@ async function getServiceEntitlementsForMenuSites(
     return { data: [] as ServiceEntitlement[], error: null };
   }
 
-  const result = await supabase
-    .from("service_entitlements")
-    .select("id, menu_site_id, product_key, plan_key, plan_type, billing_type, billing_cycle, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
-    .in("menu_site_id", menuSiteIds);
+  const result = await runMypageQuery(
+    "service_entitlements",
+    supabase
+      .from("service_entitlements")
+      .select("id, menu_site_id, product_key, plan_key, plan_type, billing_type, billing_cycle, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
+      .in("menu_site_id", menuSiteIds)
+  );
+
+  if (!result) {
+    return {
+      data: [] as ServiceEntitlement[],
+      error: { message: "이용 상태 정보를 불러오는 데 시간이 오래 걸려 건너뛰었습니다." },
+    };
+  }
+
+  if (isMissingRelationError(result.error, "service_entitlements")) {
+    return {
+      data: [] as ServiceEntitlement[],
+      error: null,
+    };
+  }
 
   if (!result.error || !result.error.message.includes("billing_cycle")) {
     return {
@@ -433,10 +604,20 @@ async function getServiceEntitlementsForMenuSites(
     };
   }
 
-  const fallbackResult = await supabase
-    .from("service_entitlements")
-    .select("id, menu_site_id, product_key, plan_key, plan_type, billing_type, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
-    .in("menu_site_id", menuSiteIds);
+  const fallbackResult = await runMypageQuery(
+    "service_entitlements_fallback",
+    supabase
+      .from("service_entitlements")
+      .select("id, menu_site_id, product_key, plan_key, plan_type, billing_type, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
+      .in("menu_site_id", menuSiteIds)
+  );
+
+  if (!fallbackResult) {
+    return {
+      data: [] as ServiceEntitlement[],
+      error: { message: "이용 상태 정보를 불러오는 데 시간이 오래 걸려 건너뛰었습니다." },
+    };
+  }
 
   return {
     data: (fallbackResult.data ?? []) as ServiceEntitlement[],
@@ -445,22 +626,31 @@ async function getServiceEntitlementsForMenuSites(
 }
 
 export default async function MyPage({ searchParams }: { searchParams: SearchParams }) {
-  const { tab, error, message, inquiryPage } = await searchParams;
+  const { tab, billingTab, error, message, inquiryPage } = await searchParams;
   const activeTab = getActiveTab(tab);
+  const activeBillingTab = getBillingTab(billingTab);
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userResult = await runMypageQuery("auth.getUser", supabase.auth.getUser());
+  const user = userResult?.data.user ?? null;
 
   if (!user) {
     redirect("/sign-in?next=/mypage");
   }
 
-  const { data: menuSites, error: menuSitesError } = await supabase
-    .from("menu_sites")
-    .select("id, name, slug, template_key, status, created_at, updated_at, settings")
-    .eq("user_id", user.id)
-    .order("updated_at", { ascending: false });
+  const menuSitesResult = await runMypageQuery(
+    "menu_sites",
+    supabase
+      .from("menu_sites")
+      .select("id, name, slug, template_key, status, created_at, updated_at, settings")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+  );
+  const menuSites = menuSitesResult?.data ?? [];
+  const menuSitesError = menuSitesResult?.error ?? (
+    menuSitesResult
+      ? null
+      : { message: "메뉴판 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다." }
+  );
 
   const sites = (menuSites ?? []) as MenuSite[];
   const menuSiteIds = sites
@@ -473,18 +663,30 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
   if (aiCreditContextMenuSite?.id) {
     try {
-      accountAiCreditBalance = await getAiCreditBalanceForMenuSite(aiCreditContextMenuSite.id);
-    } catch {
+      accountAiCreditBalance = await runMypageQuery(
+        "ai_credit_balance",
+        getAiCreditBalanceForMenuSite(aiCreditContextMenuSite.id)
+      );
+    } catch (error) {
+      console.error("[mypage] AI credit balance query failed", {
+        userId: user.id,
+        message: error instanceof Error ? error.message : "unknown",
+      });
       accountAiCreditBalance = null;
     }
   }
-  const { data: businessProfiles, error: businessProfilesError } = await supabase
-    .from("business_profiles")
-    .select("id, business_registration_number, business_name, representative_name, business_status, tax_type, verification_status, verified_at, last_verified_at")
-    .eq("user_id", user.id)
-    .eq("verification_status", "verified")
-    .order("last_verified_at", { ascending: false })
-    .limit(1);
+  const businessProfilesResult = await runMypageQuery(
+    "business_profiles",
+    supabase
+      .from("business_profiles")
+      .select("id, business_registration_number, business_name, representative_name, business_status, tax_type, verification_status, verified_at, last_verified_at")
+      .eq("user_id", user.id)
+      .eq("verification_status", "verified")
+      .order("last_verified_at", { ascending: false })
+      .limit(1)
+  );
+  const businessProfiles = businessProfilesResult?.data ?? [];
+  const businessProfilesError = businessProfilesResult?.error ?? null;
   const activeInquiryPage = normalizeInquiryPage(inquiryPage);
   const inquiryFrom = (activeInquiryPage - 1) * inquiryPageSize;
   const inquiryTo = inquiryFrom + inquiryPageSize - 1;
@@ -493,16 +695,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   let inquiriesErrorMessage: string | null = null;
 
   if (activeTab === "inquiries") {
-    const { data: inquiriesData, error: inquiriesError, count: inquiryCount } = await supabase
-      .from("inquiries")
-      .select("id, title, message, status, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .range(inquiryFrom, inquiryTo);
+    const inquiriesResult = await runMypageQuery(
+      "inquiries",
+      supabase
+        .from("inquiries")
+        .select("id, title, message, status, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .range(inquiryFrom, inquiryTo)
+    );
+    const inquiriesData = inquiriesResult?.data ?? [];
+    const inquiriesError = inquiriesResult?.error ?? null;
+    const inquiryCount = inquiriesResult?.count ?? 0;
 
     inquiries = (inquiriesData ?? []) as InquirySectionInquiry[];
     inquiryTotalCount = inquiryCount ?? 0;
-    inquiriesErrorMessage = inquiriesError?.message ?? null;
+    inquiriesErrorMessage = isMissingOptionalMypageRelation(inquiriesError)
+      ? null
+      : inquiriesError?.message ?? (inquiriesResult ? null : "문의 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
   }
 
   const inquiryTotalPages = Math.max(1, Math.ceil(inquiryTotalCount / inquiryPageSize));
@@ -545,30 +755,56 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ordersResult,
         aiCreditPurchasesResult,
       ] = await Promise.all([
-        adminSupabase
-          .from("business_subscriptions" as never)
-          .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, created_at")
-          .eq("user_id" as never, user.id as never)
-          .order("created_at" as never, { ascending: false } as never),
-        supabase
-          .from("payments")
-          .select("id, order_id, product_key, payment_id, portone_payment_id, status, amount, created_at")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("orders")
-          .select("id, menu_site_id, product_key, order_name, payment_id, status, total_amount, created_at")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-        adminSupabase
-          .from("ai_credit_transactions" as never)
-          .select("id, menu_site_id, product_key, payment_id, credit_amount, balance_after, created_at")
-          .eq("user_id" as never, user.id as never)
-          .eq("transaction_type" as never, "purchase" as never)
-          .order("created_at" as never, { ascending: false } as never),
+        runMypageQuery(
+          "business_subscriptions",
+          adminSupabase
+            .from("business_subscriptions" as never)
+            .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, cancel_requested_at, canceled_at, cancellation_reason, current_period_start, current_period_end, created_at")
+            .eq("user_id" as never, user.id as never)
+            .order("created_at" as never, { ascending: false } as never)
+        ),
+        runMypageQuery(
+          "payments",
+          supabase
+            .from("payments")
+            .select("id, order_id, product_key, payment_id, portone_payment_id, status, amount, created_at")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+        ),
+        runMypageQuery(
+          "orders",
+          supabase
+            .from("orders")
+            .select("id, menu_site_id, product_key, order_name, payment_id, status, total_amount, created_at")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+        ),
+        runMypageQuery(
+          "ai_credit_transactions_purchases",
+          adminSupabase
+            .from("ai_credit_transactions" as never)
+            .select("id, menu_site_id, product_key, payment_id, credit_amount, balance_after, created_at")
+            .eq("user_id" as never, user.id as never)
+            .eq("transaction_type" as never, "purchase" as never)
+            .order("created_at" as never, { ascending: false } as never)
+        ),
       ]);
 
-      if (businessSubscriptionsResult.error) {
+      if (!businessSubscriptionsResult) {
+        paymentsErrors.push("구독 정보를 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
+      } else if (businessSubscriptionsResult.error?.code === "42703") {
+        const fallbackResult = await runMypageQuery(
+          "business_subscriptions_fallback",
+          adminSupabase
+            .from("business_subscriptions" as never)
+            .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, created_at")
+            .eq("user_id" as never, user.id as never)
+            .order("created_at" as never, { ascending: false } as never)
+        );
+
+        businessSubscriptions = (fallbackResult?.data ?? []) as unknown as BusinessSubscription[];
+        paymentsErrors.push("구독 관리 컬럼 migration 적용 전이라 해지 예약 기능은 비활성화됩니다.");
+      } else if (businessSubscriptionsResult.error && !isMissingRelationError(businessSubscriptionsResult.error, "business_subscriptions")) {
         console.error("[mypage/payments] business subscriptions query failed", {
           userId: user.id,
           code: businessSubscriptionsResult.error.code,
@@ -577,7 +813,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         paymentsErrors.push("구독 정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
 
-      if (paymentsResult.error) {
+      if (!paymentsResult) {
+        paymentsErrors.push("결제 내역을 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
+      } else if (paymentsResult.error) {
         console.error("[mypage/payments] payments query failed", {
           userId: user.id,
           code: paymentsResult.error.code,
@@ -586,7 +824,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         paymentsErrors.push("결제 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
 
-      if (ordersResult.error) {
+      if (!ordersResult) {
+        paymentsErrors.push("주문 내역을 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
+      } else if (ordersResult.error) {
         console.error("[mypage/payments] orders query failed", {
           userId: user.id,
           code: ordersResult.error.code,
@@ -595,7 +835,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         paymentsErrors.push("결제 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
 
-      if (aiCreditPurchasesResult.error) {
+      if (!aiCreditPurchasesResult) {
+        paymentsErrors.push("AI 크레딧 충전 내역을 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
+      } else if (aiCreditPurchasesResult.error && !isMissingRelationError(aiCreditPurchasesResult.error, "ai_credit_transactions")) {
         console.error("[mypage/payments] AI credit purchase query failed", {
           userId: user.id,
           code: aiCreditPurchasesResult.error.code,
@@ -604,10 +846,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         paymentsErrors.push("AI 크레딧 충전 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
 
-      businessSubscriptions = (businessSubscriptionsResult.data ?? []) as unknown as BusinessSubscription[];
-      payments = (paymentsResult.data ?? []) as PaymentRecord[];
-      orders = (ordersResult.data ?? []) as OrderRecord[];
-      aiCreditPurchases = (aiCreditPurchasesResult.data ?? []) as unknown as AiCreditPurchaseTransaction[];
+      if (businessSubscriptions.length === 0) {
+        businessSubscriptions = (businessSubscriptionsResult?.data ?? []) as unknown as BusinessSubscription[];
+      }
+      payments = (paymentsResult?.data ?? []) as PaymentRecord[];
+      orders = (ordersResult?.data ?? []) as OrderRecord[];
+      aiCreditPurchases = (aiCreditPurchasesResult?.data ?? []) as unknown as AiCreditPurchaseTransaction[];
     } catch (paymentsError) {
       console.error("[mypage/payments] payment tab query failed", {
         userId: user.id,
@@ -652,6 +896,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });
+  const currentServiceItems = serviceItems.filter(({ entitlement, subscription }) => {
+    const planType = entitlement?.plan_type ?? subscription?.plan_type ?? null;
+
+    if (planType === "personal_trial") {
+      return entitlement?.status === "active" || entitlement?.status === "expired" || entitlement?.status === "archived" || entitlement?.status === "pending_delete";
+    }
+
+    if (planType === "business_basic" || planType === "business_display") {
+      return subscription?.status === "active" || (!subscription && entitlement?.status === "active");
+    }
+
+    return false;
+  });
 
   const paymentHistory = payments.map((payment) => {
     const order = payment.order_id ? orderById.get(payment.order_id) : orderByPaymentId.get(getSafeString(payment.payment_id));
@@ -660,6 +917,20 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     return { payment, order, productKey, menuSite };
   });
+  const displayedAiCreditPurchases = aiCreditPurchases.slice(0, 8);
+  function getLatestPaymentForService({
+    menuSiteId,
+    productKey,
+  }: {
+    menuSiteId?: string | null;
+    productKey?: string | null;
+  }) {
+    return paymentHistory.find(({ productKey: paymentProductKey, menuSite }) => {
+      const productMatches = productKey ? paymentProductKey === productKey : true;
+      const menuMatches = menuSiteId ? menuSite?.id === menuSiteId : true;
+      return productMatches && menuMatches;
+    });
+  }
 
   const identityProviders = getIdentityProviders(user.identities);
   const primaryProvider = getPrimaryProvider(user.app_metadata, identityProviders);
@@ -703,7 +974,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               </Link>
               <div className="mt-2 space-y-1">
                 <Link href="/mypage?tab=payments" className={getTabLinkClassName(activeTab === "payments")}>
-                  <span>결제 내역</span>
+                  <span>구독/결제 내역</span>
                 </Link>
                 <Link href="/mypage?tab=inquiries" className={getTabLinkClassName(activeTab === "inquiries")}>
                   <span>문의 내역</span>
@@ -756,8 +1027,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 const slug = getSafeString(site.slug);
                 const publicUrl = slug ? getPublicMenuUrl(slug) : "공개 주소 미설정";
                 const qrDownloadUrl = slug ? `/api/qr?slug=${encodeURIComponent(slug)}` : null;
-                const isPublished = site.status === "published";
-                const canOpenPublicPage = isPublished && Boolean(slug);
                 const canManageSite = Boolean(siteId);
                 const settings = getMenuSiteSettings(site.settings);
                 const entitlement = siteId ? entitlementByMenuSiteId.get(siteId) : undefined;
@@ -765,14 +1034,30 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 const planType = trialDisplayInfo?.planType ?? "";
                 const billingCycle = trialDisplayInfo?.billingCycle ?? "";
                 const entitlementStatus = trialDisplayInfo?.status ?? "";
-                const isPersonalTrial = planType === "personal_trial";
+                const isPersonalTrial = planType === "personal_trial" || planType === "personal_trial_basic_1month";
                 const isBusinessBasic = planType === "business_basic";
+                const isBusinessService = planType === "business_basic" || planType === "business_display";
                 const accessExpiresAt = trialDisplayInfo?.accessExpiresAt ?? "";
                 const dataRetentionUntil = trialDisplayInfo?.dataRetentionUntil ?? "";
-                const daysUntilExpiry = accessExpiresAt ? getDaysUntil(accessExpiresAt) : null;
-                const daysUntilRetentionEnds = dataRetentionUntil ? getDaysUntil(dataRetentionUntil) : null;
+                const daysUntilExpiry = accessExpiresAt ? getRemainingDaysUntilKst(accessExpiresAt) : null;
+                const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
                 const isTrialPendingDelete = entitlementStatus === "pending_delete" || Boolean(trialDisplayInfo?.deletedScheduledAt);
-                const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || (typeof daysUntilExpiry === "number" && daysUntilExpiry <= 0);
+                const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || (typeof daysUntilExpiry === "number" && daysUntilExpiry < 0);
+                const isPublished = site.status === "published";
+                const isMenuArchived = site.status === "archived";
+                const hasActiveBusinessService = isBusinessService && entitlementStatus === "active";
+                const hasInactiveEntitlement = ["expired", "archived", "pending_delete"].includes(entitlementStatus);
+                const isAccessRestricted = isMenuArchived || (!hasActiveBusinessService && (isTrialExpired || hasInactiveEntitlement));
+                const canOpenPublicPage = isPublished && Boolean(slug) && !isAccessRestricted;
+                const canDownloadQr = canOpenPublicPage;
+                const cardStatusLabel = isTrialPendingDelete
+                  ? "복구 기간 종료"
+                  : isAccessRestricted
+                    ? isMenuArchived
+                      ? "보관됨"
+                      : "체험 기간 종료"
+                    : getStatusLabel(site.status);
+                const cardStatusClassName = isAccessRestricted ? "bg-amber-50 text-amber-700" : getStatusClassName(site.status);
                 const trialConversionButtonLabel = isTrialPendingDelete
                   ? "고객지원 문의"
                   : isTrialExpired
@@ -792,11 +1077,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         <p className="mt-2 break-all text-sm font-medium text-zinc-500">{publicUrl}</p>
                       </div>
                       <span
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${getStatusClassName(
-                          site.status
-                        )}`}
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${cardStatusClassName}`}
                       >
-                        {getStatusLabel(site.status)}
+                        {cardStatusLabel}
                       </span>
                     </div>
 
@@ -818,13 +1101,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                             ? `${isTrialPendingDelete ? "보관 기간이 종료되었습니다." : "체험 기간이 종료되어 공개 메뉴판이 비공개로 전환되었습니다."} ${
                                 isTrialPendingDelete
                                   ? "삭제 예정 상태입니다."
-                                  : typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds > 0
-                                  ? `데이터 보관 만료까지 ${daysUntilRetentionEnds}일 남았습니다.`
-                                  : "데이터 보관 기간이 종료되어 삭제 예정 상태입니다."
+                                  : getRetentionMessage(daysUntilRetentionEnds)
                               }`
-                            : `만료일 ${formatDate(accessExpiresAt)}${
-                                typeof daysUntilExpiry === "number" ? `, 남은 기간 ${daysUntilExpiry}일` : ""
-                              }`}
+                            : getTrialExpiryMessage(accessExpiresAt, daysUntilExpiry)}
                         </p>
                         <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                           {trialConversionDescription}
@@ -855,7 +1134,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       </div>
                       <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
                         <dt className="text-zinc-400">상태</dt>
-                        <dd className="font-bold text-zinc-800">{getStatusLabel(site.status)}</dd>
+                        <dd className="font-bold text-zinc-800">{cardStatusLabel}</dd>
                       </div>
                       <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
                         <dt className="text-zinc-400">생성일</dt>
@@ -886,16 +1165,18 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                             href={`/mypage/menus/${siteId}/edit`}
                             className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
                           >
-                            편집하기
+                            {isAccessRestricted ? "내용 확인" : "편집하기"}
                           </Link>
-                          <Link
-                            href={`/mypage/menus/${siteId}/preview`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
-                          >
-                            미리보기
-                          </Link>
+                          {!isTrialPendingDelete ? (
+                            <Link
+                              href={`/mypage/menus/${siteId}/preview`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                            >
+                              미리보기
+                            </Link>
+                          ) : null}
                           {isPersonalTrial ? (
                             isTrialPendingDelete ? (
                               <Link
@@ -929,7 +1210,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                           >
                             공개 페이지 보기
                           </Link>
-                          {qrDownloadUrl ? (
+                          {canDownloadQr && qrDownloadUrl ? (
                             <a
                               href={qrDownloadUrl}
                               download
@@ -941,7 +1222,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         </>
                       ) : null}
                     </div>
-                    {!canOpenPublicPage && <p className="mt-3 break-keep text-xs font-bold text-amber-700">메뉴판을 공개하고 공개 주소가 준비된 뒤 QR을 다운로드할 수 있습니다.</p>}
+                    {!canOpenPublicPage && (
+                      <p className="mt-3 break-keep text-xs font-bold text-amber-700">
+                        {isAccessRestricted
+                          ? "체험 기간이 종료되어 공개 메뉴판과 QR 다운로드가 비활성화되었습니다."
+                          : "메뉴판을 공개하고 공개 주소가 준비된 뒤 QR을 다운로드할 수 있습니다."}
+                      </p>
+                    )}
                   </article>
                 );
               })}
@@ -970,14 +1257,168 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <section id="payment-history" className="scroll-mt-28">
                 <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                   <div>
-                    <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">결제 내역</p>
-                    <h2 className="text-3xl font-bold tracking-tight">결제 관리</h2>
+                    <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Billing</p>
+                    <h2 className="text-3xl font-bold tracking-tight">구독/결제 내역</h2>
                     <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                      개인 체험 결제, 사업자 구독 결제, AI 크레딧 충전 내역을 확인할 수 있습니다.
+                      이용 중인 구독, 결제 내역, AI 크레딧 충전 내역을 확인할 수 있습니다.
                     </p>
                   </div>
                 </div>
 
+                <nav className="mb-5 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200" aria-label="구독/결제 내역 탭">
+                  <Link href="/mypage?tab=payments&billingTab=subscriptions" className={getBillingTabClassName(activeBillingTab === "subscriptions")}>
+                    이용 중인 구독
+                  </Link>
+                  <Link href="/mypage?tab=payments&billingTab=ai-credits" className={getBillingTabClassName(activeBillingTab === "ai-credits")}>
+                    AI 크레딧 충전 내역
+                  </Link>
+                </nav>
+
+                {paymentsErrors.length > 0 ? (
+                  <div className="mb-5 rounded-3xl border border-amber-100 bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-800">
+                    {Array.from(new Set(paymentsErrors)).map((paymentsError) => (
+                      <p key={paymentsError}>{paymentsError}</p>
+                    ))}
+                  </div>
+                ) : null}
+
+                {activeBillingTab === "subscriptions" ? (
+                  <>
+                <section className="space-y-4">
+                  <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
+                    <div>
+                      <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Current Subscriptions</p>
+                      <h3 className="text-2xl font-black tracking-tight">현재 이용 중인 구독</h3>
+                    </div>
+                    {currentServiceItems.length > 4 ? (
+                      <p className="text-xs font-bold text-zinc-400">최근 4개 우선 표시 · 전체 {currentServiceItems.length.toLocaleString("ko-KR")}개</p>
+                    ) : null}
+                  </div>
+
+                  {currentServiceItems.length > 0 ? (
+                    <div className="grid gap-3">
+                      {currentServiceItems.slice(0, 4).map(({ key, entitlement, menuSite, subscription }) => {
+                        const slug = getSafeString(menuSite?.slug);
+                        const publicUrl = slug ? getPublicMenuUrl(slug) : "";
+                        const planType = entitlement?.plan_type ?? subscription?.plan_type ?? null;
+                        const billingCycle = entitlement?.billing_cycle ?? subscription?.billing_cycle ?? null;
+                        const status = subscription?.status ?? entitlement?.status ?? null;
+                        const productKey = subscription?.product_key ?? entitlement?.product_key ?? null;
+                        const product = productKey ? getSubscriptionProduct(productKey) : null;
+                        const amount = subscription?.amount ?? product?.amount ?? (planType === "personal_trial" ? personalTrialBasicProduct.amount : null);
+                        const latestPayment = getLatestPaymentForService({ menuSiteId: menuSite?.id, productKey });
+                        const latestPaymentStatus = latestPayment?.payment.status ?? null;
+                        const isPublished = menuSite?.status === "published" && Boolean(publicUrl);
+                        const isBusinessSubscription = Boolean(subscription?.id && planType !== "personal_trial");
+                        const isPersonalTrial = planType === "personal_trial";
+                        const cancelAtPeriodEnd = Boolean(subscription?.cancel_at_period_end);
+                        const periodEnd = subscription?.current_period_end ?? subscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
+                        const subscriptionCardStatusLabel = isBusinessSubscription
+                          ? getBusinessSubscriptionCardStatusLabel(subscription, status)
+                          : isPersonalTrial
+                            ? entitlement?.status === "active"
+                              ? "개인 체험 이용 중"
+                              : entitlement?.status === "expired"
+                                ? "체험 종료"
+                                : getEntitlementStatusLabel(entitlement?.status)
+                            : getEntitlementStatusLabel(entitlement?.status);
+
+                        return (
+                          <article key={key} className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="text-lg font-black tracking-tight">{getServiceName(planType, billingCycle)}</h4>
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(status)}`}>
+                                    {subscriptionCardStatusLabel}
+                                  </span>
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(latestPaymentStatus)}`}>
+                                    최근 결제 {getPaymentStatusLabel(latestPaymentStatus)}
+                                  </span>
+                                </div>
+                                <dl className="mt-4 grid gap-x-5 gap-y-2 text-sm md:grid-cols-2 xl:grid-cols-3">
+                                  <div>
+                                    <dt className="text-xs font-black text-zinc-400">메뉴판</dt>
+                                    <dd className="mt-1 break-keep font-bold text-zinc-900">{menuSite?.name ?? "연결된 메뉴판 확인 필요"}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="text-xs font-black text-zinc-400">공개 주소</dt>
+                                    <dd className="mt-1 break-all font-bold text-zinc-900">{slug || "-"}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="text-xs font-black text-zinc-400">결제 주기 / 금액</dt>
+                                    <dd className="mt-1 font-bold text-zinc-900">{getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="text-xs font-black text-zinc-400">{isPersonalTrial ? "만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일"}</dt>
+                                    <dd className="mt-1 font-bold text-zinc-900">{formatDate(isPersonalTrial ? entitlement?.access_expires_at ?? null : cancelAtPeriodEnd ? periodEnd : subscription?.next_billing_at ?? null)}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="text-xs font-black text-zinc-400">최근 결제일</dt>
+                                    <dd className="mt-1 font-bold text-zinc-900">{formatDate(latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? null)}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="text-xs font-black text-zinc-400">결제수단 / PG</dt>
+                                    <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "PortOne 일반 결제" : "NHN KCP 카드 정기결제"}</dd>
+                                  </div>
+                                </dl>
+                              </div>
+                              <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
+                                {menuSite?.id ? (
+                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800">
+                                    메뉴판 관리
+                                  </Link>
+                                ) : null}
+                                {isPublished ? (
+                                  <Link href={publicUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100">
+                                    공개 페이지 보기
+                                  </Link>
+                                ) : null}
+                                {isPersonalTrial && menuSite?.id ? (
+                                  <Link href={`/mypage/menus/${menuSite.id}/convert`} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
+                                    사업자 플랜으로 전환
+                                  </Link>
+                                ) : null}
+                                {isBusinessSubscription && subscription?.id ? (
+                                  <SubscriptionManagementModal
+                                    subscriptionId={subscription.id}
+                                    productName={getServiceName(planType, billingCycle)}
+                                    menuName={menuSite?.name ?? "연결된 메뉴판 확인 필요"}
+                                    menuStatus={menuSite?.status ? getStatusLabel(menuSite.status) : "상태 확인 필요"}
+                                    amountLabel={typeof amount === "number" ? formatKrw(amount) : "-"}
+                                    billingCycleLabel={getBillingCycleLabel(billingCycle)}
+                                    nextBillingLabel={formatDate(subscription.next_billing_at ?? null)}
+                                    periodEndLabel={formatDate(periodEnd)}
+                                    status={subscription.status ?? ""}
+                                    statusLabel={getSubscriptionStatusLabel(subscription.status)}
+                                    cancelAtPeriodEnd={cancelAtPeriodEnd}
+                                    cancelRequestedLabel={formatDateTime(subscription.cancel_requested_at ?? null)}
+                                    pgLabel="NHN KCP 카드 정기결제"
+                                    serviceEntitlementLabel={getEntitlementStatusLabel(entitlement?.status)}
+                                    canManage={Boolean(typeof subscription.cancel_at_period_end === "boolean")}
+                                  />
+                                ) : null}
+                                <button type="button" disabled className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400">
+                                  영수증 준비 중
+                                </button>
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
+                      <h4 className="text-xl font-black">현재 이용 중인 구독이 없습니다</h4>
+                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">메뉴판을 만들거나 사업자 플랜을 시작하면 이곳에 표시됩니다.</p>
+                    </article>
+                  )}
+                </section>
+                  </>
+                ) : null}
+
+                {activeBillingTab === "ai-credits" ? (
+                  <>
                 {aiCreditContextMenuSite?.id ? (
                   <AiCreditRechargePanel
                     menuSiteId={aiCreditContextMenuSite.id}
@@ -990,175 +1431,37 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     accountSummaryOnly
                   />
                 ) : (
-                  <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+                  <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">AI 크레딧</p>
                     <h3 className="mt-2 text-base font-black text-zinc-950">보유 AI 크레딧 0개</h3>
                     <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                      메뉴판을 만들 때마다 기본 AI 크레딧이 계정에 지급됩니다. AI 크레딧 충전은 메뉴판 생성 후 사용할 수 있습니다.
+                      충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
                     </p>
                   </article>
                 )}
-
-                {paymentsErrors.length > 0 ? (
-                  <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-800">
-                    {Array.from(new Set(paymentsErrors)).map((paymentsError) => (
-                      <p key={paymentsError}>{paymentsError}</p>
-                    ))}
-                  </div>
-                ) : null}
-
                 <section className="space-y-4">
-                  <div>
-                    <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Active Services</p>
-                    <h3 className="text-2xl font-black tracking-tight">구독 중인 서비스</h3>
-                  </div>
-
-                  {serviceItems.length > 0 ? (
-                    <div className="grid gap-4">
-                      {serviceItems.map(({ key, entitlement, menuSite, subscription }) => {
-                        const slug = getSafeString(menuSite?.slug);
-                        const publicUrl = slug ? getPublicMenuUrl(slug) : "";
-                        const planType = entitlement?.plan_type ?? subscription?.plan_type ?? null;
-                        const billingCycle = entitlement?.billing_cycle ?? subscription?.billing_cycle ?? null;
-                        const status = subscription?.status ?? entitlement?.status ?? null;
-                        const productKey = subscription?.product_key ?? entitlement?.product_key ?? null;
-                        const product = productKey ? getSubscriptionProduct(productKey) : null;
-                        const amount = subscription?.amount ?? product?.amount ?? (planType === "personal_trial" ? personalTrialBasicProduct.amount : null);
-                        const isPublished = menuSite?.status === "published" && Boolean(publicUrl);
-                        const serviceMessage = planType === "personal_trial"
-                          ? entitlement?.status === "active"
-                            ? "개인 체험 이용 중입니다. 체험 기간이 끝나기 전 사업자 플랜으로 전환하면 현재 메뉴판을 그대로 이어서 사용할 수 있습니다."
-                            : "체험 기간이 종료되어 메뉴판이 비공개 상태입니다. 사업자 플랜으로 전환하면 기존 메뉴판을 복구해 이어서 사용할 수 있습니다."
-                          : status === "failed" || status === "past_due"
-                            ? "최근 결제에 실패했습니다. 결제수단 확인이 필요합니다."
-                            : "사업자 플랜으로 이용 중입니다.";
-
-                        return (
-                          <article key={key} className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-                            <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
-                              <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <h4 className="text-xl font-black tracking-tight">{getServiceName(planType, billingCycle)}</h4>
-                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(status)}`}>
-                                    {planType === "personal_trial" ? getEntitlementStatusLabel(entitlement?.status) : getSubscriptionStatusLabel(status)}
-                                  </span>
-                                </div>
-                                <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">{serviceMessage}</p>
-                                <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
-                                  <div className="rounded-2xl bg-zinc-50 p-4">
-                                    <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">메뉴판</dt>
-                                    <dd className="mt-2 break-keep font-bold text-zinc-900">{menuSite?.name ?? "연결된 메뉴판 확인 필요"}</dd>
-                                  </div>
-                                  <div className="rounded-2xl bg-zinc-50 p-4">
-                                    <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">공개 주소</dt>
-                                    <dd className="mt-2 break-all font-bold text-zinc-900">{slug || "-"}</dd>
-                                  </div>
-                                  <div className="rounded-2xl bg-zinc-50 p-4">
-                                    <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">결제 주기</dt>
-                                    <dd className="mt-2 font-bold text-zinc-900">{getBillingCycleLabel(billingCycle)}</dd>
-                                  </div>
-                                  <div className="rounded-2xl bg-zinc-50 p-4">
-                                    <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">금액</dt>
-                                    <dd className="mt-2 font-bold text-zinc-900">{typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
-                                  </div>
-                                  <div className="rounded-2xl bg-zinc-50 p-4">
-                                    <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">시작일</dt>
-                                    <dd className="mt-2 font-bold text-zinc-900">{formatDate(entitlement?.access_starts_at ?? entitlement?.created_at ?? subscription?.created_at ?? null)}</dd>
-                                  </div>
-                                  <div className="rounded-2xl bg-zinc-50 p-4">
-                                    <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{planType === "personal_trial" ? "만료일" : "다음 결제 예정일"}</dt>
-                                    <dd className="mt-2 font-bold text-zinc-900">{formatDate(planType === "personal_trial" ? entitlement?.access_expires_at ?? null : subscription?.next_billing_at ?? null)}</dd>
-                                  </div>
-                                  <div className="rounded-2xl bg-zinc-50 p-4 md:col-span-2">
-                                    <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">결제수단 / PG</dt>
-                                    <dd className="mt-2 font-bold text-zinc-900">{planType === "personal_trial" ? "PortOne 일반 결제" : "NHN KCP 카드 정기결제"}</dd>
-                                  </div>
-                                </dl>
-                              </div>
-                              <div className="flex shrink-0 flex-wrap gap-2 md:flex-col">
-                                {menuSite?.id ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800">
-                                    메뉴판 관리
-                                  </Link>
-                                ) : null}
-                                {isPublished ? (
-                                  <Link href={publicUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100">
-                                    공개 페이지 보기
-                                  </Link>
-                                ) : null}
-                                <button type="button" disabled className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400">
-                                  구독 관리 준비 중
-                                </button>
-                              </div>
-                            </div>
-                          </article>
-                        );
-                      })}
+                  <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
+                    <div>
+                      <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">AI Credits</p>
+                      <h3 className="text-2xl font-black tracking-tight">AI 크레딧 충전 내역</h3>
                     </div>
-                  ) : (
-                    <article className="rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
-                      <h4 className="text-xl font-black">현재 이용 중인 서비스가 없습니다</h4>
-                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">메뉴판을 만들거나 사업자 플랜을 시작하면 이곳에 표시됩니다.</p>
-                    </article>
-                  )}
-                </section>
-
-                <section className="space-y-4">
-                  <div>
-                    <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Payment History</p>
-                    <h3 className="text-2xl font-black tracking-tight">결제 내역</h3>
+                    {aiCreditPurchases.length > displayedAiCreditPurchases.length ? (
+                      <p className="text-xs font-bold text-zinc-400">최근 {displayedAiCreditPurchases.length.toLocaleString("ko-KR")}건 표시</p>
+                    ) : null}
                   </div>
 
-                  {paymentHistory.length > 0 ? (
-                    <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-                      {paymentHistory.map(({ payment, order, productKey, menuSite }, index) => (
-                        <div key={payment.id ?? `${payment.payment_id}-${index}`} className={`grid gap-4 p-5 md:grid-cols-[1.1fr_0.7fr_0.7fr_0.8fr] md:items-center ${index > 0 ? "border-t border-zinc-100" : ""}`}>
-                          <div className="min-w-0">
-                            <p className="text-sm font-black text-zinc-950">{getProductLabel(productKey)}</p>
-                            <p className="mt-1 break-keep text-xs font-bold text-zinc-500">{menuSite?.name ?? (order?.menu_site_id ? "연결된 메뉴판 확인 필요" : "메뉴판 연결 없음")}</p>
-                            <p className="mt-1 font-mono text-[11px] font-bold text-zinc-400">결제번호 {maskPaymentId(payment.portone_payment_id ?? payment.payment_id)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">결제일</p>
-                            <p className="mt-1 text-sm font-bold text-zinc-900">{formatDateTime(payment.created_at)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">금액</p>
-                            <p className="mt-1 text-sm font-black text-zinc-900">{formatKrw(payment.amount ?? order?.total_amount ?? 0)}</p>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                            <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(payment.status)}`}>
-                              {getPaymentStatusLabel(payment.status)}
-                            </span>
-                            <button type="button" disabled className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-black text-zinc-400">
-                              영수증 준비 중
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <article className="rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
-                      <h4 className="text-xl font-black">아직 결제 내역이 없습니다</h4>
-                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">개인 체험, 사업자 구독, AI 크레딧 충전 결제가 완료되면 최신순으로 표시됩니다.</p>
-                    </article>
-                  )}
-                </section>
-
-                <section className="space-y-4">
-                  <div>
-                    <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">AI Credits</p>
-                    <h3 className="text-2xl font-black tracking-tight">AI 크레딧 충전 내역</h3>
-                  </div>
-
-                  {aiCreditPurchases.length > 0 ? (
-                    <div className="grid gap-3">
-                      {aiCreditPurchases.map((purchase) => {
+                  {displayedAiCreditPurchases.length > 0 ? (
+                    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                      {displayedAiCreditPurchases.map((purchase, index) => {
                         const product = getAiCreditPack(purchase.product_key);
                         const menuSite = purchase.menu_site_id ? siteById.get(purchase.menu_site_id) : undefined;
+                        const payment = payments.find((item) => {
+                          const paymentId = getSafeString(purchase.payment_id);
+                          return paymentId && (item.payment_id === paymentId || item.portone_payment_id === paymentId);
+                        });
 
                         return (
-                          <article key={purchase.id ?? `${purchase.payment_id}-${purchase.created_at}`} className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+                          <article key={purchase.id ?? `${purchase.payment_id}-${purchase.created_at}`} className={`p-4 ${index > 0 ? "border-t border-zinc-100" : ""}`}>
                             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                               <div>
                                 <h4 className="text-base font-black text-zinc-950">{product?.name ?? getProductLabel(purchase.product_key)}</h4>
@@ -1170,6 +1473,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               <div className="text-left md:text-right">
                                 <p className="text-sm font-black text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p>
                                 <p className="mt-1 text-xs font-black text-emerald-700">AI 크레딧 {Math.max(0, purchase.credit_amount ?? product?.credits ?? 0).toLocaleString("ko-KR")}개 충전</p>
+                                <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(payment?.status)}`}>
+                                    {getPaymentStatusLabel(payment?.status)}
+                                  </span>
+                                  <button type="button" disabled className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-black text-zinc-400">
+                                    영수증 준비 중
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </article>
@@ -1177,12 +1488,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       })}
                     </div>
                   ) : (
-                    <article className="rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
+                    <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
                       <h4 className="text-xl font-black">아직 AI 크레딧 충전 내역이 없습니다</h4>
                       <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">AI 크레딧을 충전하면 결제 완료 내역과 충전 크레딧이 이곳에 표시됩니다.</p>
                     </article>
                   )}
                 </section>
+                  </>
+                ) : null}
               </section>
             ) : null}
 

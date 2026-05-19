@@ -7,6 +7,11 @@ import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelF
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
+import {
+  getMenuSiteAccessStateForMenuSite,
+  MENU_SITE_INACTIVE_EDIT_MESSAGE,
+  MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
+} from "@/lib/server/menu-site-access-service";
 import { DEFAULT_LOCALE, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import type { EditableTranslationDraftValue, EditableTranslationEntityType, EditableTranslationLocale, PartialTranslationActionResult } from "@/lib/menu-localization-draft";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
@@ -460,7 +465,7 @@ async function removeMenuImagePath(
   return error;
 }
 
-async function requireOwnedMenuSite(menuId: string) {
+async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?: string } = {}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -499,6 +504,11 @@ async function requireOwnedMenuSite(menuId: string) {
 
   if (!menuSite) {
     redirectToEditWithError(menuId, "이 메뉴판을 수정할 권한이 없습니다.");
+  }
+
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
+  if (!accessState?.canEdit) {
+    redirectToEditWithError(menuId, options.inactiveMessage ?? MENU_SITE_INACTIVE_EDIT_MESSAGE);
   }
 
   return { supabase, user, menuSite };
@@ -2727,7 +2737,7 @@ export async function updatePublishSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
-  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { inactiveMessage: MENU_SITE_INACTIVE_PUBLISH_MESSAGE });
   const status = getString(formData, "status");
 
   if (!isMenuSiteStatus(status)) redirectToTabEditWithError(menuId, "publish", "공개 상태를 선택해주세요.");

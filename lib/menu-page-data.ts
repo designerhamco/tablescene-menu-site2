@@ -1,6 +1,7 @@
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/MenuTemplateRenderer";
 import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
+import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { mergePageSettings, sortMenuPages } from "@/types/menu";
@@ -469,6 +470,11 @@ export async function getPublicMenuPageData(slug: string, options: MenuPageDataO
   }
 
   if (error || !site) {
+    return null;
+  }
+
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: (site as MenuSite).id });
+  if (!accessState?.canViewPublic) {
     return null;
   }
 

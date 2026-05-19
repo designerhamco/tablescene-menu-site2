@@ -1,6 +1,7 @@
 import "server-only";
 
 import { AI_FEATURE_CREDIT_COSTS, getIncludedAiCredits, type AiCreditBalance, type AiFeatureKey } from "@/lib/ai-credits";
+import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_AI_MESSAGE } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -25,9 +26,7 @@ function isMissingAiCreditTable(error: { code?: string; message?: string } | nul
     || error?.code === "42883"
     || message.includes("ai_account_credit_balances")
     || message.includes("ai_credit_transactions")
-    || message.includes("consume_ai_account_credits")
-    || message.includes("grant_ai_account_credits")
-    || message.includes("grant_ai_menu_creation_credits");
+    || message.includes("does not exist");
 }
 
 function positiveInteger(value: number | null | undefined) {
@@ -89,6 +88,12 @@ export async function getAiCreditBalanceForMenuSite(menuSiteId: string): Promise
   if (!menuSite) return null;
 
   const accountBalance = await getAccountBalance(adminSupabase, menuSite.user_id);
+  return accountBalance ? toBalance(accountBalance) : emptyBalance();
+}
+
+export async function getAiCreditBalanceForUser(userId: string): Promise<AiCreditBalance> {
+  const adminSupabase = createAdminClient();
+  const accountBalance = await getAccountBalance(adminSupabase, userId);
   return accountBalance ? toBalance(accountBalance) : emptyBalance();
 }
 
@@ -210,10 +215,43 @@ export async function grantAiCreditsForMenuSiteCreation({
       .from("ai_credit_transactions" as never)
       .update(({ product_key: productKey, metadata: { reason, product_key: productKey, plan_type: grantPlanType, service_type: serviceType, policy: "account_shared_menu_creation_grant" } }) as never)
       .eq("menu_site_id" as never, menuSiteId as never)
-      .eq("transaction_type" as never, "included_grant" as never);
+      .in("transaction_type" as never, ["grant", "included_grant"] as never);
   }
 
   return { ok: true, missingTable: false, grantedCredits, alreadyProcessed, planType: grantPlanType };
+}
+
+export async function reclaimUnusedPersonalTrialGrantCredits({
+  adminSupabase = createAdminClient(),
+  menuSiteId,
+  reason = "personal_trial_retention_expired",
+}: {
+  adminSupabase?: AdminClient;
+  menuSiteId: string;
+  reason?: "personal_trial_retention_expired";
+}) {
+  const { data, error } = await adminSupabase.rpc("expire_personal_trial_unused_grant_credits" as never, {
+    p_menu_site_id: menuSiteId,
+    p_reason: reason,
+  } as never);
+
+  if (error) {
+    if (isMissingAiCreditTable(error)) {
+      return { ok: false, missingTable: true, reclaimedCredits: 0, alreadyProcessed: false, skippedReason: "missing_ai_credit_tables" as const };
+    }
+    throw new Error(error.message || "AI 크레딧 잔여 지급분 회수에 실패했습니다.");
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+  const reclaimedCredits = typeof (result as { reclaimed_credits?: unknown } | null)?.reclaimed_credits === "number"
+    ? (result as { reclaimed_credits: number }).reclaimed_credits
+    : 0;
+  const alreadyProcessed = Boolean((result as { already_processed?: unknown } | null)?.already_processed);
+  const skippedReason = typeof (result as { skipped_reason?: unknown } | null)?.skipped_reason === "string"
+    ? (result as { skipped_reason: string }).skipped_reason
+    : null;
+
+  return { ok: true, missingTable: false, reclaimedCredits, alreadyProcessed, skippedReason };
 }
 
 export async function purchaseAiCredits({
@@ -244,9 +282,17 @@ export async function purchaseAiCredits({
 
   if (error) {
     if (isMissingAiCreditTable(error)) {
-      throw new Error("AI 크레딧 테이블 migration 적용이 필요합니다.");
+      throw Object.assign(new Error("AI 크레딧 테이블 migration 적용이 필요합니다."), {
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
     }
-    throw new Error(error.message || "AI 크레딧 충전에 실패했습니다.");
+    throw Object.assign(new Error(error.message || "AI 크레딧 충전에 실패했습니다."), {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
   }
 
   const accountBalance = await getAccountBalance(adminSupabase, userId);
@@ -264,6 +310,11 @@ export async function spendAiCredits({
 }) {
   const cost = AI_FEATURE_CREDIT_COSTS[featureKey];
   const adminSupabase = createAdminClient();
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId, userId });
+  if (!accessState?.canUseAi) {
+    throw new Error(MENU_SITE_INACTIVE_AI_MESSAGE);
+  }
+
   const { data, error } = await adminSupabase.rpc("consume_ai_account_credits" as never, {
     p_user_id: userId,
     p_menu_site_id: menuSiteId,

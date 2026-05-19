@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { reclaimUnusedPersonalTrialGrantCredits } from "@/lib/server/ai-credits-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -18,6 +19,7 @@ type CronResult = {
   archivedMenuSites: number;
   repairedArchivedMenuSites: number;
   pendingDeleteEntitlements: number;
+  reclaimedAiCredits: number;
   errors: string[];
 };
 
@@ -66,6 +68,7 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
     archivedMenuSites: 0,
     repairedArchivedMenuSites: 0,
     pendingDeleteEntitlements: 0,
+    reclaimedAiCredits: 0,
     errors: [],
   };
 
@@ -141,6 +144,7 @@ async function markRetentionEndedTrials(nowIso: string): Promise<CronResult> {
     archivedMenuSites: 0,
     repairedArchivedMenuSites: 0,
     pendingDeleteEntitlements: 0,
+    reclaimedAiCredits: 0,
     errors: [],
   };
 
@@ -185,6 +189,17 @@ async function markRetentionEndedTrials(nowIso: string): Promise<CronResult> {
     result.pendingDeleteEntitlements = trialIds.length;
   }
 
+  for (const menuSiteId of menuSiteIds) {
+    const reclaimResult = await reclaimUnusedPersonalTrialGrantCredits({ adminSupabase, menuSiteId });
+
+    if (!reclaimResult.ok && reclaimResult.missingTable) {
+      result.errors.push("AI 크레딧 테이블을 찾을 수 없습니다. migration 적용이 필요합니다.");
+      continue;
+    }
+
+    result.reclaimedAiCredits += reclaimResult.reclaimedCredits;
+  }
+
   if (trialIdsMissingDeletedScheduledAt.length > 0) {
     const { error: deletedScheduledAtUpdateError } = await adminSupabase
       .from("service_entitlements")
@@ -216,6 +231,7 @@ async function reconcileExpiredTrialMenuSites(): Promise<CronResult> {
     archivedMenuSites: 0,
     repairedArchivedMenuSites: 0,
     pendingDeleteEntitlements: 0,
+    reclaimedAiCredits: 0,
     errors: [],
   };
 
@@ -293,6 +309,7 @@ async function handleCron(request: NextRequest) {
       now: nowIso,
       expiredEntitlements: expiredResult.expiredEntitlements,
       pendingDeleteEntitlements: pendingDeleteResult.pendingDeleteEntitlements,
+      reclaimedAiCredits: pendingDeleteResult.reclaimedAiCredits,
       archivedMenuSites: expiredResult.archivedMenuSites + pendingDeleteResult.archivedMenuSites,
       repairedArchivedMenuSites: repairResult.repairedArchivedMenuSites,
       hardDeleted: 0,

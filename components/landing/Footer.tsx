@@ -26,7 +26,7 @@ export function Footer() {
         <div className="flex flex-col items-end justify-between gap-8 md:flex-row md:items-start">
           <div className="w-full space-y-1.5 text-[10px] font-normal leading-relaxed text-zinc-600 md:max-w-3xl md:text-[11px]">
             <div className="flex flex-wrap gap-x-3 gap-y-1">
-              <span><span className="font-semibold text-zinc-500">상호명</span> (주)테이블씬</span>
+              <span><span className="font-semibold text-zinc-500">상호명</span> 디앤디커머스</span>
               <span className="text-zinc-800">|</span>
               <span><span className="font-semibold text-zinc-500">대표자</span> 나형미</span>
               <span className="text-zinc-800">|</span>
