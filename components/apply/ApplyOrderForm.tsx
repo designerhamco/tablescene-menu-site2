@@ -96,6 +96,14 @@ type BusinessSubscriptionResponse = {
   };
 };
 
+type PersonalTrialEligibilityResponse = {
+  eligible?: boolean;
+  reason?: string;
+  message?: string;
+  existingMenuSiteId?: string;
+  existingEntitlementStatus?: string;
+};
+
 type BusinessVerificationState =
   | { type: "idle"; message: string }
   | { type: "checking"; message: string }
@@ -157,6 +165,8 @@ type DraftMenuOrderPayload = Omit<MenuOrderPayload, "template_key"> & {
 
 const MENU_ADDRESS_HELPER_TEXT =
   "결제 후 변경할 수 없습니다. QR 코드와 공유 링크에 사용되므로 신중하게 입력해주세요. 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
+const PERSONAL_TRIAL_LIMIT_MESSAGE =
+  "개인 1개월 체험은 계정당 1개만 이용할 수 있습니다. 기존 체험 메뉴판을 사업자 플랜으로 전환하거나 새 사업자 메뉴판을 신청해주세요.";
 
 type PaidApplyProduct = {
   key: string;
@@ -1236,6 +1246,40 @@ export default function ApplyOrderForm({
     }
   }
 
+  async function verifyPersonalTrialEligibilityBeforePayment() {
+    if (payload.product_key !== personalTrialBasicProduct.product_key) {
+      return true;
+    }
+
+    setUiState({ type: "loading", message: "개인 체험 이용 가능 여부를 확인하고 있습니다." });
+
+    try {
+      const response = await fetch("/api/orders/personal-trial-eligibility", {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      const result = (await response.json()) as PersonalTrialEligibilityResponse;
+
+      if (!response.ok || !result.eligible) {
+        setUiState({
+          type: "error",
+          message: result.message ?? PERSONAL_TRIAL_LIMIT_MESSAGE,
+        });
+        return false;
+      }
+
+      return true;
+    } catch {
+      setUiState({
+        type: "error",
+        message: "개인 체험 이용 가능 여부를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      });
+      return false;
+    }
+  }
+
   async function handlePayment() {
     if (isSubscriptionProduct) {
       if (!hasVerifiedBusinessProfile || businessVerificationState.type !== "verified") {
@@ -1339,6 +1383,11 @@ export default function ApplyOrderForm({
       return;
     }
 
+    const isPersonalTrialEligible = await verifyPersonalTrialEligibilityBeforePayment();
+    if (!isPersonalTrialEligible) {
+      return;
+    }
+
     if (!isPortOneReady || !storeId || !channelKey) {
       if (!isDevelopment || !mockEnabled) {
         setUiState({
@@ -1433,6 +1482,9 @@ export default function ApplyOrderForm({
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월/연 결제는 사업자 인증과 자동결제 구조로 이어집니다.
                 Basic 메뉴판을 생성하면 AI 크레딧 18개가 계정에 지급됩니다.
+              </p>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                개인 1개월 체험은 계정당 1개만 이용할 수 있습니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-3">

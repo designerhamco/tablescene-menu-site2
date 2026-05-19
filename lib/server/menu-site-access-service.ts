@@ -114,9 +114,10 @@ function buildAccessState(menuSite: MenuSiteRow, entitlements: ServiceEntitlemen
       (entitlementStatus === "active" && accessExpiresAt !== null && accessExpiresAt <= now));
   const hasActiveService =
     !isArchivedMenuSite &&
-    (entitlement
-      ? entitlementStatus === "active" && !isPendingDelete && !isExpiredPersonalTrial
-      : menuSite.status !== "archived");
+    Boolean(entitlement) &&
+    entitlementStatus === "active" &&
+    !isPendingDelete &&
+    !isExpiredPersonalTrial;
 
   if (isPendingDelete) {
     return {
@@ -178,7 +179,7 @@ function buildAccessState(menuSite: MenuSiteRow, entitlements: ServiceEntitlemen
     canConvertToBusiness: false,
     isReadOnly: !hasActiveService,
     isPendingDelete: false,
-    statusLabel: menuSite.status === "published" ? "공개중" : menuSite.status === "draft" ? "비공개" : "보관됨",
+    statusLabel: menuSite.status === "published" ? "공개중" : menuSite.status === "draft" ? "작성중" : "보관됨",
     message: null,
     ctaLabel: null,
     reason: "active",

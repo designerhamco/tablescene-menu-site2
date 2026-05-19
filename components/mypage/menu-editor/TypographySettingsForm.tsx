@@ -15,6 +15,7 @@ import {
   type KoreanFontOption,
   type KoreanFontValue,
 } from "@/lib/font-options";
+import { FONT_SIZE_SCALE_OPTIONS, getFontSizeMultiplier, type FontSizeScaleKey } from "@/lib/template-typography-presets";
 import type { TemplateType } from "@/lib/template-types";
 
 type TypographySettingsFormProps = {
@@ -25,6 +26,7 @@ type TypographySettingsFormProps = {
   defaultEnglishFont: EnglishFontOption;
   hasCustomKoreanFont: boolean;
   hasCustomEnglishFont: boolean;
+  initialFontSizeScale: FontSizeScaleKey;
   templateType: TemplateType;
 };
 
@@ -135,17 +137,20 @@ export default function TypographySettingsForm({
   defaultEnglishFont,
   hasCustomKoreanFont,
   hasCustomEnglishFont,
+  initialFontSizeScale,
   templateType,
 }: TypographySettingsFormProps) {
   const [selectedFontValue, setSelectedFontValue] = useState<KoreanFontValue | "">(hasCustomKoreanFont ? initialFont.value : "");
   const [selectedEnglishFontValue, setSelectedEnglishFontValue] = useState<EnglishFontValue | "">(
     hasCustomEnglishFont ? initialEnglishFont.value : "",
   );
+  const [selectedFontSizeScale, setSelectedFontSizeScale] = useState<FontSizeScaleKey>(initialFontSizeScale);
   const previewKoreanFont = useMemo(() => getKoreanFontOption(selectedFontValue) ?? defaultFont, [defaultFont, selectedFontValue]);
   const previewEnglishFont = useMemo(
     () => getEnglishFontOption(selectedEnglishFontValue) ?? defaultEnglishFont,
     [defaultEnglishFont, selectedEnglishFontValue],
   );
+  const previewFontSizeScale = getFontSizeMultiplier(selectedFontSizeScale);
   const editorFontAssets = useMemo(
     () => [...KOREAN_FONT_OPTIONS, ...ENGLISH_FONT_OPTIONS].map((option) => getFontLoadAssets(option)),
     [],
@@ -179,11 +184,50 @@ export default function TypographySettingsForm({
         <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
           고객에게는 폰트 이름만 표시됩니다. 웹폰트 주소와 CSS font-family 값은 코드에서 관리합니다.
         </p>
+
+        <div>
+          <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">글자 크기</p>
+              <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                공개 메뉴판에 표시되는 전체 글자 크기를 조정합니다.
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="글자 크기">
+            {FONT_SIZE_SCALE_OPTIONS.map((option) => (
+              <label
+                key={option.key}
+                className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-4 py-3 transition ${
+                  selectedFontSizeScale === option.key
+                    ? "border-zinc-950 bg-zinc-950 text-white"
+                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
+                }`}
+              >
+                <input
+                  form={formId}
+                  type="radio"
+                  name="font_size_scale_key"
+                  value={option.key}
+                  checked={selectedFontSizeScale === option.key}
+                  onChange={() => setSelectedFontSizeScale(option.key)}
+                  className="sr-only"
+                />
+                <span className="text-lg font-black">{option.label}</span>
+                <span className={`text-sm font-bold ${selectedFontSizeScale === option.key ? "text-white/70" : "text-zinc-400"}`}>
+                  {option.description}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
         <div
-          className="rounded-lg border border-zinc-200 bg-white p-5 text-zinc-950"
+          className="menu-typography rounded-lg border border-zinc-200 bg-white p-5 text-zinc-950"
           style={{
             "--menu-font-ko": previewKoreanFont.fontFamily,
             "--menu-font-en": previewEnglishFont.fontFamily,
+            "--menu-font-size-scale": String(previewFontSizeScale),
             fontFamily: "var(--menu-font-ko)",
           } as CSSProperties}
         >

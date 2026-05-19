@@ -5,9 +5,12 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { normalizeInquiryCategory } from "@/lib/inquiries";
 
 type InquiryInsert = Database["public"]["Tables"]["inquiries"]["Insert"];
 type InquiryUpdate = Database["public"]["Tables"]["inquiries"]["Update"];
+type InquiryInsertWithCategory = InquiryInsert & { category?: string };
+type InquiryUpdateWithCategory = InquiryUpdate & { category?: string };
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -62,6 +65,7 @@ export async function createInquiryAction(formData: FormData) {
 
   const title = getString(formData, "title");
   const message = getString(formData, "message");
+  const category = normalizeInquiryCategory(getString(formData, "category"));
 
   if (!title) {
     redirectWithError(formData, "문의 제목을 입력해주세요.");
@@ -75,10 +79,11 @@ export async function createInquiryAction(formData: FormData) {
     redirectWithError(formData, "문의 내용을 입력해주세요.");
   }
 
-  const payload: InquiryInsert = {
+  const payload: InquiryInsertWithCategory = {
     user_id: user.id,
     title,
     message,
+    category,
     status: "open",
   };
 
@@ -105,6 +110,7 @@ export async function updateInquiryAction(formData: FormData) {
   const inquiryId = getString(formData, "inquiryId");
   const title = getString(formData, "title");
   const message = getString(formData, "message");
+  const category = normalizeInquiryCategory(getString(formData, "category"));
 
   if (!inquiryId) {
     redirectWithError(formData, "수정할 문의를 찾을 수 없습니다.");
@@ -122,9 +128,10 @@ export async function updateInquiryAction(formData: FormData) {
     redirectWithError(formData, "문의 내용을 입력해주세요.");
   }
 
-  const payload: InquiryUpdate = {
+  const payload: InquiryUpdateWithCategory = {
     title,
     message,
+    category,
     updated_at: new Date().toISOString(),
   };
 

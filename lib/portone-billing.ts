@@ -17,6 +17,7 @@ export type PortOneBillingPaymentResult = {
   paymentId: string;
   status: string;
   amount: number;
+  rawPayment: PortOnePaymentResponse;
 };
 
 type PortOneSafeDebug = {
@@ -229,5 +230,6 @@ export async function payWithBillingKey({
     paymentId,
     status: "PAID",
     amount,
+    rawPayment: payment,
   } satisfies PortOneBillingPaymentResult;
 }

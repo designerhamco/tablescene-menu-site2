@@ -882,6 +882,7 @@ async function createOrderAndPaymentRecords({
   menuSiteId,
   product,
   businessProfile,
+  portonePayment,
 }: {
   supabase: ServerSupabaseClient;
   userId: string;
@@ -889,14 +890,18 @@ async function createOrderAndPaymentRecords({
   menuSiteId: string;
   product: SubscriptionProduct;
   businessProfile: BusinessProfile;
+  portonePayment?: unknown;
 }) {
-  const safeRawPayload = {
-    payment_type: product.paymentType,
-    billing_cycle: product.billingCycle,
-    product_key: product.productKey,
-    plan_type: product.planType,
-    portone_payment_id: paymentId,
-  } satisfies Json;
+  const safeRawPayload = JSON.parse(
+    JSON.stringify({
+      payment_type: product.paymentType,
+      billing_cycle: product.billingCycle,
+      product_key: product.productKey,
+      plan_type: product.planType,
+      portone_payment_id: paymentId,
+      portone_payment: portonePayment ?? null,
+    })
+  ) as Json;
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -1285,8 +1290,10 @@ export async function POST(request: Request) {
     });
   }
 
+  let billingPayment: Awaited<ReturnType<typeof payWithBillingKey>> | null = null;
+
   try {
-    await payWithBillingKey({
+    billingPayment = await payWithBillingKey({
       paymentId,
       billingKey,
       orderName: getSubscriptionOrderName(product),
@@ -1382,6 +1389,7 @@ export async function POST(request: Request) {
       menuSiteId: menuSite.id,
       product,
       businessProfile,
+      portonePayment: billingPayment?.rawPayment,
     });
 
     return NextResponse.json({

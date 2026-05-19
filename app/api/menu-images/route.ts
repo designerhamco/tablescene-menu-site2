@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
+import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_EDIT_MESSAGE } from "@/lib/server/menu-site-access-service";
 
 export const runtime = "nodejs";
 
@@ -140,6 +141,11 @@ async function requireOwnedMenuSite(
 
   if (!menuSite) {
     return { error: jsonError("메뉴판을 찾을 수 없거나 권한이 없습니다.", 404), menuSite: null };
+  }
+
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
+  if (!accessState?.canEdit) {
+    return { error: jsonError(MENU_SITE_INACTIVE_EDIT_MESSAGE, 403), menuSite: null };
   }
 
   return { error: null, menuSite };

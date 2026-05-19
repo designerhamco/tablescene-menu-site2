@@ -203,8 +203,25 @@ export async function grantAiCreditsForMenuSiteCreation({
   } as never);
 
   if (error) {
-    if (isMissingAiCreditTable(error)) return { ok: false, missingTable: true, grantedCredits: 0, alreadyProcessed: false };
-    throw new Error(error.message || "AI 크레딧 기본 지급에 실패했습니다.");
+    if (isMissingAiCreditTable(error)) {
+      return {
+        ok: false,
+        missingTable: true,
+        grantedCredits: 0,
+        alreadyProcessed: false,
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        },
+      };
+    }
+    throw Object.assign(new Error(error.message || "AI 크레딧 기본 지급에 실패했습니다."), {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
   }
 
   const result = Array.isArray(data) ? data[0] : data;

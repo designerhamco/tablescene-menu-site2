@@ -1,12 +1,15 @@
 import Link from "next/link";
 
 import { createInquiryAction, deleteInquiryAction, updateInquiryAction } from "@/app/mypage/inquiries/actions";
+import { getInquiryCategoryLabel, inquiryCategoryOptions, normalizeInquiryCategory, type InquiryCategory } from "@/lib/inquiries";
 import type { Database } from "@/lib/supabase/types";
 
 export type InquirySectionInquiry = Pick<
   Database["public"]["Tables"]["inquiries"]["Row"],
   "id" | "title" | "message" | "status" | "admin_reply" | "replied_at" | "created_at" | "updated_at"
->;
+> & {
+  category?: InquiryCategory | null;
+};
 
 export const inquiryPageSize = 10;
 
@@ -181,6 +184,24 @@ export function InquirySection({
         <form action={createInquiryAction} className="mt-7 space-y-5">
           <input type="hidden" name="returnTo" value={returnToPath} />
           <div>
+            <label htmlFor="category" className="mb-2 block text-sm font-bold">
+              문의 유형
+            </label>
+            <select
+              id="category"
+              name="category"
+              required
+              defaultValue="general"
+              className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-base font-semibold outline-none transition-colors focus:border-zinc-950"
+            >
+              {inquiryCategoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label htmlFor="title" className="mb-2 block text-sm font-bold">
               제목
             </label>
@@ -228,8 +249,9 @@ export function InquirySection({
 
         {inquiries.length > 0 ? (
           <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-            <div className="hidden grid-cols-[56px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 text-[11px] font-black uppercase tracking-[0.12em] text-zinc-400 md:grid">
+            <div className="hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 text-[11px] font-black uppercase tracking-[0.12em] text-zinc-400 md:grid">
               <p>번호</p>
+              <p>유형</p>
               <p>제목</p>
               <p>상태</p>
               <p>작성 시간</p>
@@ -238,8 +260,11 @@ export function InquirySection({
             <div className="divide-y divide-zinc-100">
               {inquiries.map((inquiry, index) => (
                 <details key={inquiry.id} className="group">
-                  <summary className="grid cursor-pointer list-none gap-3 px-4 py-4 text-sm transition-colors hover:bg-zinc-50 focus:outline-none focus-visible:bg-zinc-50 md:grid-cols-[56px_1fr_96px_144px_52px] md:items-center">
+                  <summary className="grid cursor-pointer list-none gap-3 px-4 py-4 text-sm transition-colors hover:bg-zinc-50 focus:outline-none focus-visible:bg-zinc-50 md:grid-cols-[56px_112px_1fr_96px_144px_52px] md:items-center">
                     <p className="text-xs font-black text-zinc-400">#{inquiryFrom + index + 1}</p>
+                    <span className="w-fit rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-bold text-zinc-600">
+                      {getInquiryCategoryLabel(inquiry.category)}
+                    </span>
                     <h4 className="line-clamp-1 break-keep text-sm font-bold tracking-tight text-zinc-900">{inquiry.title}</h4>
                     <span className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-bold ${getStatusClassName(inquiry.status)}`}>
                       {getStatusLabel(inquiry.status)}
@@ -252,7 +277,8 @@ export function InquirySection({
                   </summary>
 
                   <div className="border-t border-zinc-100 bg-zinc-50 p-4 md:p-5">
-                    <div className="mb-3 grid gap-2 text-[11px] font-bold text-zinc-400 md:grid-cols-2">
+                    <div className="mb-3 grid gap-2 text-[11px] font-bold text-zinc-400 md:grid-cols-3">
+                      <p>유형 {getInquiryCategoryLabel(inquiry.category)}</p>
                       <p>작성일 {formatDate(inquiry.created_at)}</p>
                       <p>수정일 {formatDate(inquiry.updated_at)}</p>
                     </div>
@@ -261,7 +287,7 @@ export function InquirySection({
                       <p className="whitespace-pre-wrap break-keep text-sm font-medium leading-6 text-zinc-600">{inquiry.message}</p>
                     </div>
 
-                    {inquiry.admin_reply && (
+                    {inquiry.admin_reply ? (
                       <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                         <div className="mb-2 flex flex-col justify-between gap-1 md:flex-row md:items-center">
                           <p className="text-xs font-bold text-emerald-800">관리자 답변</p>
@@ -269,6 +295,13 @@ export function InquirySection({
                         </div>
                         <p className="whitespace-pre-wrap break-keep text-sm font-medium leading-6 text-emerald-900">
                           {inquiry.admin_reply}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4">
+                        <p className="text-xs font-bold text-zinc-500">관리자 답변</p>
+                        <p className="mt-2 break-keep text-sm font-medium leading-6 text-zinc-500">
+                          아직 답변이 등록되지 않았습니다.
                         </p>
                       </div>
                     )}
@@ -295,6 +328,27 @@ export function InquirySection({
                         <form action={updateInquiryAction} className="mt-4 space-y-4">
                           <input type="hidden" name="returnTo" value={returnToPath} />
                           <input type="hidden" name="inquiryId" value={inquiry.id} />
+                          <div>
+                            <label
+                              htmlFor={`category-${inquiry.id}`}
+                              className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-zinc-400"
+                            >
+                              category
+                            </label>
+                            <select
+                              id={`category-${inquiry.id}`}
+                              name="category"
+                              required
+                              defaultValue={normalizeInquiryCategory(inquiry.category)}
+                              className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-colors focus:border-zinc-950"
+                            >
+                              {inquiryCategoryOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                           <div>
                             <label
                               htmlFor={`title-${inquiry.id}`}

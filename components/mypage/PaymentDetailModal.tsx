@@ -10,6 +10,7 @@ export type PaymentDetailModalProps = {
   amountLabel: string;
   pgLabel: string;
   paymentIdLabel: string;
+  receiptUrl?: string | null;
   menuName?: string | null;
   isAiCreditPurchase?: boolean;
 };
@@ -41,6 +42,7 @@ export default function PaymentDetailModal({
   amountLabel,
   pgLabel,
   paymentIdLabel,
+  receiptUrl,
   menuName,
   isAiCreditPurchase = false,
 }: PaymentDetailModalProps) {
@@ -106,6 +108,23 @@ export default function PaymentDetailModal({
                 {AI_CREDIT_REFUND_NOTICE}
               </div>
             ) : null}
+
+            <div className="mt-6 flex justify-end gap-2">
+              {receiptUrl ? (
+                <a
+                  href={receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
+                >
+                  영수증 보기
+                </a>
+              ) : (
+                <span className="inline-flex items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-xs font-black text-zinc-400">
+                  영수증 준비 중
+                </span>
+              )}
+            </div>
           </section>
         </div>
       ) : null}

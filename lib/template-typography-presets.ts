@@ -49,7 +49,7 @@ export const ENGLISH_FONT_OPTIONS: readonly FontOption<EnglishFontKey>[] = REGIS
 }));
 
 export const FONT_SIZE_SCALE_OPTIONS = [
-  { key: "s", label: "S", description: "조금 작게", scale: 0.9 },
+  { key: "s", label: "S", description: "조금 작게", scale: 0.92 },
   { key: "m", label: "M", description: "기본", scale: 1 },
   { key: "l", label: "L", description: "조금 크게", scale: 1.08 },
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
@@ -154,13 +154,20 @@ export function normalizeTypographySettings(value: unknown): Partial<TypographyS
 export function getCustomTypographySettings(settings: unknown, pageSettings?: unknown): Partial<TypographySettings> | null {
   const settingsRecord = getRecord(settings);
   const pageSettingsRecord = getRecord(pageSettings);
+  const designRecord = getRecord(pageSettingsRecord?.design);
   const designKoreanFont = getCustomKoreanFontValue(pageSettings);
   const designEnglishFont = getCustomEnglishFontValue(pageSettings);
+  const designFontSizeScale = isFontSizeScaleKey(designRecord?.fontSizeScale)
+    ? designRecord.fontSizeScale
+    : isFontSizeScaleKey(designRecord?.font_size_scale_key)
+      ? designRecord.font_size_scale_key
+      : null;
   const legacyTypography = normalizeTypographySettings(settingsRecord?.typography) ?? normalizeTypographySettings(pageSettingsRecord?.typography);
   const mergedSettings = {
     ...(legacyTypography ?? {}),
     ...(designKoreanFont ? { korean_font_key: designKoreanFont } : {}),
     ...(designEnglishFont ? { english_font_key: designEnglishFont } : {}),
+    ...(designFontSizeScale ? { font_size_scale_key: designFontSizeScale } : {}),
   } satisfies Partial<TypographySettings>;
 
   return Object.keys(mergedSettings).length > 0 ? mergedSettings : null;

@@ -185,22 +185,27 @@ async function createRenewalRecords({
   product,
   paymentId,
   businessProfile,
+  portonePayment,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscription: DueSubscription;
   product: SubscriptionProduct;
   paymentId: string;
   businessProfile: BusinessProfile | null;
+  portonePayment?: unknown;
 }) {
-  const rawPayload = {
-    payment_type: product.paymentType,
-    billing_cycle: product.billingCycle,
-    product_key: product.productKey,
-    plan_type: product.planType,
-    renewal: true,
-    subscription_id: subscription.id,
-    portone_payment_id: paymentId,
-  } satisfies Json;
+  const rawPayload = JSON.parse(
+    JSON.stringify({
+      payment_type: product.paymentType,
+      billing_cycle: product.billingCycle,
+      product_key: product.productKey,
+      plan_type: product.planType,
+      renewal: true,
+      subscription_id: subscription.id,
+      portone_payment_id: paymentId,
+      portone_payment: portonePayment ?? null,
+    })
+  ) as Json;
   const { data: order, error: orderError } = await adminSupabase
     .from("orders")
     .insert({
@@ -419,7 +424,7 @@ async function processDueSubscription({
 
   try {
     const businessProfile = await getBusinessProfile(adminSupabase, subscription.business_profile_id);
-    await payWithBillingKey({
+    const billingPayment = await payWithBillingKey({
       paymentId,
       billingKey: subscription.billing_key_ref,
       orderName: getOrderName(product),
@@ -429,7 +434,7 @@ async function processDueSubscription({
         name: businessProfile?.business_name ?? undefined,
       },
     });
-    await createRenewalRecords({ adminSupabase, subscription, product, paymentId, businessProfile });
+    await createRenewalRecords({ adminSupabase, subscription, product, paymentId, businessProfile, portonePayment: billingPayment.rawPayment });
     await markSubscriptionRenewed({ adminSupabase, subscription, paymentId, periodStart, periodEnd });
 
     return {

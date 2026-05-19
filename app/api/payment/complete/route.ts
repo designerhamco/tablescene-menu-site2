@@ -11,6 +11,7 @@ import {
 } from "@/lib/payments";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
+import { hasUsedPersonalTrial } from "@/lib/server/personal-trial-eligibility";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
@@ -70,12 +71,6 @@ type TrialAccessPeriod = {
   dataRetentionUntil: string;
 };
 
-type ServiceEntitlementRow = {
-  id: string;
-  status: string | null;
-  data_retention_until: string | null;
-};
-
 type LooseInsert = Record<string, unknown>;
 type ExistingPaymentCompletion =
   | {
@@ -91,6 +86,77 @@ type ExistingPaymentCompletion =
     };
 
 const SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE = "결제는 확인되었지만 공개 주소가 중복되어 메뉴판 생성에 실패했습니다. 관리자에게 문의해주세요.";
+const PAYMENT_COMPLETE_RECOVERY_MESSAGE =
+  "결제는 확인되었지만 AI 크레딧 지급 중 문제가 발생했습니다. 재결제하지 말고 고객지원으로 문의해주세요.";
+const DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE =
+  "결제는 완료되었으나 개인 체험 중복 신청으로 메뉴판이 생성되지 않았습니다. 고객지원으로 문의해주세요.";
+
+type PaymentCompleteDebugStep =
+  | "auth_user_check"
+  | "request_body_parse"
+  | "payment_verification"
+  | "menu_site_create"
+  | "order_insert"
+  | "payment_insert"
+  | "service_entitlement_insert"
+  | "ai_menu_creation_grant_rpc";
+
+type SafePaymentCompleteError = {
+  code?: string;
+  message?: string;
+  details?: string;
+  hint?: string;
+};
+
+type PaymentCompleteDebugContext = {
+  step: PaymentCompleteDebugStep;
+  debugCode: string;
+  paymentId?: string;
+  userId?: string;
+  menuSiteId?: string;
+  productKey?: string;
+  planType?: string;
+  error?: SafePaymentCompleteError | Error | null;
+};
+
+function readSafePaymentCompleteError(error: SafePaymentCompleteError | Error | null | undefined) {
+  const source = error as SafePaymentCompleteError | undefined;
+  return {
+    code: source?.code,
+    message: error?.message,
+    details: source?.details,
+    hint: source?.hint,
+  };
+}
+
+function logSafePaymentCompleteError({
+  step,
+  debugCode,
+  error,
+  paymentId,
+  userId,
+  menuSiteId,
+  productKey,
+  planType,
+}: PaymentCompleteDebugContext) {
+  const safeError = readSafePaymentCompleteError(error);
+  console.error("[payment-complete]", {
+    step,
+    debugCode,
+    userId,
+    paymentId,
+    menuSiteId,
+    productKey,
+    planType,
+    supabaseCode: safeError.code,
+    supabaseMessage: safeError.message,
+    supabaseDetails: safeError.details,
+    supabaseHint: safeError.hint,
+    hasPaymentId: Boolean(paymentId),
+    hasUserId: Boolean(userId),
+    hasMenuSiteId: Boolean(menuSiteId),
+  });
+}
 
 function getTemplateServiceTypeForPlan(planKey: string) {
   return planKey === "large_screen" || planKey === "display" ? "display" : "basic";
@@ -135,54 +201,35 @@ function isMissingRelationError(error: { code?: string; message?: string } | nul
   return error?.code === "42P01" || Boolean(error?.message?.includes("service_entitlements"));
 }
 
-function isWithinRetentionWindow(dataRetentionUntil: string | null | undefined) {
-  if (!dataRetentionUntil) {
-    return true;
-  }
-
-  const retentionTime = new Date(dataRetentionUntil).getTime();
-  return Number.isFinite(retentionTime) && retentionTime >= Date.now();
-}
-
-function getRecord(value: unknown) {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-
 async function hasExistingPersonalTrial(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
-  const { data, error } = await supabase
-    .from("service_entitlements")
-    .select("id, status, data_retention_until")
-    .eq("user_id", userId)
-    .eq("plan_type", personalTrialBasicProduct.plan_type);
-
-  if (!error) {
-    return ((data ?? []) as ServiceEntitlementRow[]).some((entitlement) => {
-      const status = entitlement.status ?? "";
-      return status !== "deleted" && isWithinRetentionWindow(entitlement.data_retention_until);
-    });
-  }
-
-  if (!isMissingRelationError(error)) {
-    throw new Error(`개인 체험 이용 이력 확인에 실패했습니다: ${error.message}`);
-  }
-
-  const { data: menuSites, error: menuSitesError } = await supabase
-    .from("menu_sites")
-    .select("id, settings")
-    .eq("user_id", userId);
-
-  if (menuSitesError) {
-    throw new Error(`개인 체험 메뉴판 확인에 실패했습니다: ${menuSitesError.message}`);
-  }
-
-  return (menuSites ?? []).some((site) => {
-    const settings = getRecord(site.settings);
-    return settings.plan_type === personalTrialBasicProduct.plan_type && isWithinRetentionWindow(typeof settings.data_retention_until === "string" ? settings.data_retention_until : null);
-  });
+  void supabase;
+  const result = await hasUsedPersonalTrial(userId);
+  return result.used;
 }
 
-function jsonError(message: string, status = 400) {
-  return NextResponse.json({ ok: false, message }, { status });
+function jsonError(message: string, status = 400, context?: PaymentCompleteDebugContext) {
+  const payload: Record<string, unknown> = { ok: false, message };
+
+  if (process.env.NODE_ENV !== "production" && context) {
+    const safeError = readSafePaymentCompleteError(context.error);
+    payload.step = context.step;
+    payload.debugCode = context.debugCode;
+    payload.safeDebug = {
+      productKey: context.productKey,
+      planType: context.planType,
+      hasPaymentId: Boolean(context.paymentId),
+      paymentId: context.paymentId,
+      hasUserId: Boolean(context.userId),
+      hasMenuSiteId: Boolean(context.menuSiteId),
+      menuSiteId: context.menuSiteId,
+      supabaseCode: safeError.code,
+      supabaseMessage: safeError.message,
+      supabaseDetails: safeError.details,
+      supabaseHint: safeError.hint,
+    };
+  }
+
+  return NextResponse.json(payload, { status });
 }
 
 function getString(value: unknown) {
@@ -545,7 +592,7 @@ async function cleanupMenuSiteAfterPaymentFailure(
 }
 
 async function createIncompletePaymentRecords(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: Awaited<ReturnType<typeof createClient>> | ReturnType<typeof createAdminClient>,
   userId: string,
   userEmail: string | null | undefined,
   paymentId: string,
@@ -557,6 +604,7 @@ async function createIncompletePaymentRecords(
   const rawPayload = JSON.parse(
     JSON.stringify({
       failure_reason: failureMessage,
+      manual_review_required: true,
       desired_slug: orderPayload.desiredSlug,
       portone_payment: verifiedPayment.raw,
       order_payload: orderPayload,
@@ -579,7 +627,7 @@ async function createIncompletePaymentRecords(
       business_name: orderPayload.businessName,
       business_number: orderPayload.businessNumber,
       raw_payload: rawPayload,
-      status: "failed",
+      status: "paid",
       total_amount: verifiedPayment.amount,
     })
     .select("id")
@@ -601,7 +649,7 @@ async function createIncompletePaymentRecords(
     template_key: orderPayload.template_key,
     payment_id: paymentId,
     portone_payment_id: paymentId,
-    status: "failed",
+    status: "paid",
     amount: verifiedPayment.amount,
     raw_payload: rawPayload,
   });
@@ -1136,6 +1184,37 @@ export async function POST(request: Request) {
   const existingCompletion = await findExistingPaymentCompletion(supabase, paymentId);
 
   if (existingCompletion?.kind === "completed") {
+    let adminSupabaseForExisting: ReturnType<typeof createAdminClient>;
+
+    try {
+      adminSupabaseForExisting = createAdminClient();
+      const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
+        adminSupabase: adminSupabaseForExisting,
+        userId: user.id,
+        menuSiteId: existingCompletion.menuSiteId,
+        serviceType: "basic",
+        productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+        planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+        reason: "personal_trial_created",
+      });
+      if (!aiCreditGrant.ok) {
+        throw Object.assign(new Error("AI 크레딧 테이블 migration 적용이 필요합니다."), aiCreditGrant.error ?? {});
+      }
+    } catch (error) {
+      const debugContext = {
+        step: "ai_menu_creation_grant_rpc" as const,
+        debugCode: "AI_MENU_CREATION_GRANT_RPC_FAILED",
+        paymentId,
+        userId: user.id,
+        menuSiteId: existingCompletion.menuSiteId,
+        productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+        planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+        error: error instanceof Error ? error : null,
+      };
+      logSafePaymentCompleteError(debugContext);
+      return jsonError(PAYMENT_COMPLETE_RECOVERY_MESSAGE, 500, debugContext);
+    }
+
     return NextResponse.json({
       ok: true,
       message: "이미 처리된 결제입니다.",
@@ -1170,8 +1249,23 @@ export async function POST(request: Request) {
     const hasPersonalTrial = await hasExistingPersonalTrial(supabase, user.id);
 
     if (hasPersonalTrial) {
-      await createIncompletePaymentRecords(supabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, "개인 체험은 계정당 1회만 이용할 수 있습니다.");
-      return jsonError("개인 체험은 계정당 1회만 이용할 수 있습니다.", 409);
+      let writeSupabase: ReturnType<typeof createAdminClient> | Awaited<ReturnType<typeof createClient>> = supabase;
+
+      try {
+        writeSupabase = createAdminClient();
+      } catch {
+        writeSupabase = supabase;
+      }
+
+      await createIncompletePaymentRecords(writeSupabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE);
+      return jsonError(DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE, 409, {
+        step: "payment_verification",
+        debugCode: "PERSONAL_TRIAL_ALREADY_USED_AFTER_PAYMENT",
+        paymentId,
+        userId: user.id,
+        productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+        planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+      });
     }
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "개인 체험 이용 이력 확인에 실패했습니다.", 500);
@@ -1254,10 +1348,21 @@ export async function POST(request: Request) {
       reason: "personal_trial_created",
     });
     if (!aiCreditGrant.ok) {
-      throw new Error("AI 크레딧 테이블 migration 적용이 필요합니다.");
+      throw Object.assign(new Error("AI 크레딧 테이블 migration 적용이 필요합니다."), aiCreditGrant.error ?? {});
     }
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "AI 크레딧 기본 제공량 저장 중 오류가 발생했습니다.", 500);
+    const debugContext = {
+      step: "ai_menu_creation_grant_rpc" as const,
+      debugCode: "AI_MENU_CREATION_GRANT_RPC_FAILED",
+      paymentId,
+      userId: user.id,
+      menuSiteId: menuSite.id,
+      productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+      planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+      error: error instanceof Error ? error : null,
+    };
+    logSafePaymentCompleteError(debugContext);
+    return jsonError(PAYMENT_COMPLETE_RECOVERY_MESSAGE, 500, debugContext);
   }
 
   return NextResponse.json({

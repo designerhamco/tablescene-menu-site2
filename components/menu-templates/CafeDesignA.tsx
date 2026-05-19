@@ -303,10 +303,10 @@ function MenuItemRow({
     ultraCompact: "text-[15px]",
   }[density];
   const itemGridClassName = {
-    spacious: "grid-cols-[minmax(0,1fr)_minmax(3.75rem,auto)] gap-4",
-    default: "grid-cols-[minmax(0,1fr)_minmax(3.25rem,auto)] gap-3",
-    compact: "grid-cols-[minmax(0,1fr)_minmax(3rem,auto)] gap-2.5",
-    ultraCompact: "grid-cols-[minmax(0,1fr)_minmax(2.75rem,auto)] gap-2",
+    spacious: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.75rem,auto)] sm:gap-4",
+    default: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.25rem,auto)] sm:gap-3",
+    compact: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3rem,auto)] sm:gap-2.5",
+    ultraCompact: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(2.75rem,auto)] sm:gap-2",
   }[density];
   const metaClassName = {
     spacious: "text-xs",
@@ -346,7 +346,7 @@ function MenuItemRow({
         {capabilities.originInfo && item.origin_info && <p className="mt-2 line-clamp-2 break-words text-[11px] font-semibold leading-relaxed text-[#707975]">원산지 {item.origin_info}</p>}
       </div>
       {priceRows.length > 0 && (
-        <div className="menu-price flex flex-col items-end gap-1 text-right text-[#191c1b]">
+        <div className="menu-price flex flex-col items-start gap-1 text-left text-[#191c1b] sm:items-end sm:text-right">
           {priceRows.map((row, index) => (
             <div key={`${row.label}-${row.price}-${index}`} className="grid grid-cols-[auto_auto] items-baseline gap-x-2">
               {row.label && <span className="whitespace-nowrap text-[10px] font-bold uppercase leading-none text-[#191c1b]">{row.label}</span>}

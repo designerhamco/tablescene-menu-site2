@@ -34,15 +34,24 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
   const inquiryFrom = (activeInquiryPage - 1) * inquiryPageSize;
   const inquiryTo = inquiryFrom + inquiryPageSize - 1;
 
-  const { data: inquiriesData, error: inquiriesError, count: inquiryCount } = await supabase
+  let inquiriesResult = await supabase
     .from("inquiries")
-    .select("id, title, message, status, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
+    .select("id, title, message, status, category, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .range(inquiryFrom, inquiryTo);
 
-  const inquiries = (inquiriesData ?? []) as InquirySectionInquiry[];
-  const inquiryTotalCount = inquiryCount ?? 0;
+  if (inquiriesResult.error?.code === "42703") {
+    inquiriesResult = await supabase
+      .from("inquiries")
+      .select("id, title, message, status, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(inquiryFrom, inquiryTo);
+  }
+
+  const inquiries = (inquiriesResult.data ?? []) as InquirySectionInquiry[];
+  const inquiryTotalCount = inquiriesResult.count ?? 0;
   const inquiryTotalPages = Math.max(1, Math.ceil(inquiryTotalCount / inquiryPageSize));
 
   return (
@@ -71,7 +80,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
             inquiryFrom={inquiryFrom}
             noticeMessage={getInquiryNoticeMessage(message)}
             errorMessage={getInquiryErrorMessage(error)}
-            inquiriesErrorMessage={inquiriesError?.message ?? null}
+            inquiriesErrorMessage={inquiriesResult.error?.message ?? null}
             paginationBasePath="/mypage/inquiries"
             returnToPath={`/mypage/inquiries${activeInquiryPage > 1 ? `?inquiryPage=${activeInquiryPage}` : ""}`}
             showIntro={false}

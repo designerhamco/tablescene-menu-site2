@@ -1527,6 +1527,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         defaultEnglishFont={defaultEnglishFont}
                         hasCustomKoreanFont={Boolean(customKoreanFont)}
                         hasCustomEnglishFont={Boolean(customEnglishFont)}
+                        initialFontSizeScale={typographySettings.font_size_scale_key}
                         templateType={templateType}
                       />
                     </div>

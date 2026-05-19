@@ -10,6 +10,10 @@ function getString(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeInquiryStatus(value: string) {
+  return value === "answered" || value === "closed" ? value : "open";
+}
+
 function redirectWithError(message: string): never {
   redirect(`/admin?error=${encodeURIComponent(message)}`);
 }
@@ -68,6 +72,34 @@ export async function replyInquiryAction(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/mypage/inquiries");
   redirect("/admin?message=inquiry-answered");
+}
+
+export async function updateInquiryStatusAction(formData: FormData) {
+  const inquiryId = getString(formData, "inquiryId");
+  const status = normalizeInquiryStatus(getString(formData, "status"));
+
+  if (!inquiryId) {
+    redirectWithError("문의 ID가 없습니다.");
+  }
+
+  const { supabase } = await requireAdmin();
+  const now = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("inquiries")
+    .update({
+      status,
+      updated_at: now,
+    })
+    .eq("id", inquiryId);
+
+  if (error) {
+    redirectWithError(`문의 상태 변경에 실패했습니다: ${error.message}`);
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/mypage/inquiries");
+  redirect("/admin?message=inquiry-status-updated");
 }
 
 export async function deleteInquiryReplyAction(formData: FormData) {

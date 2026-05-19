@@ -410,8 +410,10 @@ export async function POST(request: Request) {
     });
   }
 
+  let verifiedPayment: PortOnePayment;
+
   try {
-    await verifyAiCreditPayment(paymentId, product.productKey, product.amount);
+    verifiedPayment = await verifyAiCreditPayment(paymentId, product.productKey, product.amount);
   } catch (error) {
     const verificationError = error instanceof PortOneVerificationError ? error : null;
     const step = verificationError?.step ?? "portone_payment_fetch";
@@ -440,12 +442,15 @@ export async function POST(request: Request) {
     });
   }
 
-  const rawPayload = {
-    payment_type: product.paymentType,
-    product_key: product.productKey,
-    credits: product.credits,
-    purpose: "ai_credit_purchase",
-  } satisfies Json;
+  const rawPayload = JSON.parse(
+    JSON.stringify({
+      payment_type: product.paymentType,
+      product_key: product.productKey,
+      credits: product.credits,
+      purpose: "ai_credit_purchase",
+      portone_payment: verifiedPayment,
+    })
+  ) as Json;
 
   const { data: existingOrder, error: existingOrderError } = await adminSupabase
     .from("orders")

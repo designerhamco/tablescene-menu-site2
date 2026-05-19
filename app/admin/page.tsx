@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { deleteInquiryReplyAction, replyInquiryAction } from "@/app/admin/actions";
+import { deleteInquiryReplyAction, replyInquiryAction, updateInquiryStatusAction } from "@/app/admin/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { getInquiryCategoryLabel, type InquiryCategory } from "@/lib/inquiries";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getTemplateDisplayName } from "@/lib/templates";
 
@@ -24,7 +25,9 @@ type MenuSite = Pick<
 type Inquiry = Pick<
   Database["public"]["Tables"]["inquiries"]["Row"],
   "id" | "title" | "message" | "status" | "user_id" | "admin_reply" | "replied_at" | "created_at" | "updated_at"
->;
+> & {
+  category?: InquiryCategory | null;
+};
 
 type CountResult = {
   count: number;
@@ -34,14 +37,15 @@ type CountResult = {
 const inquiryPageSize = 10;
 const inquiryStatusFilters = [
   { value: "all", label: "전체" },
-  { value: "open", label: "답변 전" },
-  { value: "answered", label: "답변 후" },
+  { value: "open", label: "접수됨" },
+  { value: "answered", label: "답변 완료" },
+  { value: "closed", label: "종료" },
 ] as const;
 
 type InquiryStatusFilter = (typeof inquiryStatusFilters)[number]["value"];
 
 function normalizeInquiryStatusFilter(value?: string): InquiryStatusFilter {
-  if (value === "open" || value === "answered") {
+  if (value === "open" || value === "answered" || value === "closed") {
     return value;
   }
 
@@ -82,8 +86,8 @@ function getStatusClassName(status: string) {
 
 function getInquiryStatusLabel(status: string) {
   const labels: Record<string, string> = {
-    open: "답변 전",
-    answered: "답변 후",
+    open: "접수됨",
+    answered: "답변 완료",
     closed: "종료",
   };
 
@@ -97,6 +101,10 @@ function getNoticeMessage(message?: string) {
 
   if (message === "inquiry-reply-deleted") {
     return "문의 답변이 삭제되었습니다.";
+  }
+
+  if (message === "inquiry-status-updated") {
+    return "문의 상태가 변경되었습니다.";
   }
 
   return null;
@@ -201,7 +209,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
   let inquiriesQuery = supabase
     .from("inquiries")
-    .select("id, title, message, status, user_id, admin_reply, replied_at, created_at, updated_at", { count: "exact" });
+    .select("id, title, message, status, category, user_id, admin_reply, replied_at, created_at, updated_at", { count: "exact" });
 
   if (activeInquiryStatus !== "all") {
     inquiriesQuery = inquiriesQuery.eq("status", activeInquiryStatus);
@@ -237,11 +245,27 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     supabase.from("payments").select("id, user_id, order_id, status, amount, created_at").order("created_at", { ascending: false }).limit(5),
   ]);
 
+  let effectiveInquiriesResult = inquiriesResult;
+
+  if (inquiriesResult.error?.code === "42703") {
+    let fallbackInquiriesQuery = supabase
+      .from("inquiries")
+      .select("id, title, message, status, user_id, admin_reply, replied_at, created_at, updated_at", { count: "exact" });
+
+    if (activeInquiryStatus !== "all") {
+      fallbackInquiriesQuery = fallbackInquiriesQuery.eq("status", activeInquiryStatus);
+    }
+
+    effectiveInquiriesResult = await fallbackInquiriesQuery
+      .order("created_at", { ascending: false })
+      .range(inquiryFrom, inquiryTo);
+  }
+
   const recentMenus = (recentMenusResult.data ?? []) as MenuSite[];
-  const inquiries = (inquiriesResult.data ?? []) as Inquiry[];
+  const inquiries = (effectiveInquiriesResult.data ?? []) as Inquiry[];
   const recentOrders = recentOrdersResult.data ?? [];
   const recentPayments = recentPaymentsResult.data ?? [];
-  const inquiryTotalCount = inquiriesResult.count ?? 0;
+  const inquiryTotalCount = effectiveInquiriesResult.count ?? 0;
   const inquiryTotalPages = Math.max(1, Math.ceil(inquiryTotalCount / inquiryPageSize));
   const selectedInquiryId = inquiryId ?? null;
   const selectedInquiry = inquiries.find((inquiry) => inquiry.id === selectedInquiryId) ?? null;
@@ -394,7 +418,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
               })}
             </div>
 
-            {inquiriesResult.error && <AdminError message={inquiriesResult.error.message} />}
+            {effectiveInquiriesResult.error && <AdminError message={effectiveInquiriesResult.error.message} />}
 
             {inquiries.length > 0 ? (
               <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
@@ -416,6 +440,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                               {getInquiryStatusLabel(inquiry.status)}
                             </span>
                           </div>
+                          <p className={`mb-2 w-fit rounded-full px-2.5 py-1 text-[10px] font-bold ${isSelected ? "bg-white/10 text-white/75" : "bg-zinc-100 text-zinc-500"}`}>
+                            {getInquiryCategoryLabel(inquiry.category)}
+                          </p>
                           <h3 className="line-clamp-1 break-keep text-sm font-black">{inquiry.title}</h3>
                           <p className={`mt-2 line-clamp-1 break-all text-xs font-medium ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
                             {inquiry.user_id}
@@ -463,6 +490,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                       <div>
                         <h3 className="break-keep text-xl font-black">{selectedInquiry.title}</h3>
                         <p className="mt-2 break-all text-xs font-medium text-zinc-400">user_id: {selectedInquiry.user_id}</p>
+                        <p className="mt-1 text-xs font-medium text-zinc-400">유형 {getInquiryCategoryLabel(selectedInquiry.category)}</p>
                         <p className="mt-1 text-xs font-medium text-zinc-400">작성일 {formatDate(selectedInquiry.created_at)}</p>
                         <p className="mt-1 text-xs font-medium text-zinc-400">수정일 {formatDate(selectedInquiry.updated_at)}</p>
                       </div>
@@ -474,6 +502,28 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                     <div className="mb-4 rounded-2xl bg-white p-5">
                       <p className="whitespace-pre-wrap break-keep text-sm font-medium leading-relaxed text-zinc-600">{selectedInquiry.message}</p>
                     </div>
+
+                    <form action={updateInquiryStatusAction} className="mb-4 rounded-2xl border border-zinc-200 bg-white p-4">
+                      <input type="hidden" name="inquiryId" value={selectedInquiry.id} />
+                      <label htmlFor={`inquiry-status-${selectedInquiry.id}`} className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+                        status
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <select
+                          id={`inquiry-status-${selectedInquiry.id}`}
+                          name="status"
+                          defaultValue={selectedInquiry.status}
+                          className="min-h-11 flex-1 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                        >
+                          <option value="open">접수됨</option>
+                          <option value="answered">답변 완료</option>
+                          <option value="closed">종료</option>
+                        </select>
+                        <button type="submit" className={getAdminActionButtonClassName("secondary")}>
+                          상태 변경
+                        </button>
+                      </div>
+                    </form>
 
                     <form action={replyInquiryAction} className="space-y-3">
                       <input type="hidden" name="inquiryId" value={selectedInquiry.id} />
