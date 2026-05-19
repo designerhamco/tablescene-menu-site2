@@ -5,6 +5,7 @@ import Footer from "@/app/components/layout/Footer";
 import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
+import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import {
   getInquiryErrorMessage,
@@ -404,6 +405,7 @@ function getSubscriptionStatusLabel(status: string | null | undefined) {
     pending: "처리 중",
     active: "이용 중",
     failed: "결제 실패",
+    payment_failed: "결제 실패",
     canceled: "해지됨",
     past_due: "결제 확인 필요",
     expired: "만료됨",
@@ -435,12 +437,22 @@ function getPaymentStatusLabel(status: string | null | undefined) {
 
 function getStateBadgeClassName(status: string | null | undefined) {
   if (status === "active" || status === "paid" || status === "completed") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
-  if (status === "failed" || status === "past_due") return "bg-red-50 text-red-700 ring-red-100";
+  if (status === "failed" || status === "past_due" || status === "payment_failed") return "bg-red-50 text-red-700 ring-red-100";
   if (status === "expired" || status === "archived" || status === "pending_delete" || status === "cancelled" || status === "canceled" || status === "refunded") {
     return "bg-amber-50 text-amber-700 ring-amber-100";
   }
 
   return "bg-zinc-100 text-zinc-600 ring-zinc-200";
+}
+
+function getPaymentStatusTone(status: string | null | undefined): "success" | "warning" | "danger" | "neutral" {
+  if (status === "active" || status === "paid" || status === "completed") return "success";
+  if (status === "failed" || status === "past_due") return "danger";
+  if (status === "expired" || status === "archived" || status === "pending_delete" || status === "cancelled" || status === "canceled" || status === "refunded") {
+    return "warning";
+  }
+
+  return "neutral";
 }
 
 function maskPaymentId(paymentId: string | null | undefined) {
@@ -1311,6 +1323,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const isPublished = menuSite?.status === "published" && Boolean(publicUrl);
                         const isBusinessSubscription = Boolean(subscription?.id && planType !== "personal_trial");
                         const isPersonalTrial = planType === "personal_trial";
+                        const paymentDetailProductName = getProductLabel(productKey) || getServiceName(planType, billingCycle);
+                        const paymentDetailAmount = latestPayment?.payment.amount ?? amount;
+                        const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
+                        const paymentDetailId = getSafeString(latestPayment?.payment.payment_id ?? latestPayment?.payment.portone_payment_id ?? subscription?.portone_payment_id ?? latestPayment?.order?.payment_id ?? null);
+                        const paymentDetailPgLabel = isPersonalTrial ? "PortOne 일반 결제" : "NHN KCP 카드 정기결제";
                         const cancelAtPeriodEnd = Boolean(subscription?.cancel_at_period_end);
                         const periodEnd = subscription?.current_period_end ?? subscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
                         const subscriptionCardStatusLabel = isBusinessSubscription
@@ -1359,7 +1376,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">결제수단 / PG</dt>
-                                    <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "PortOne 일반 결제" : "NHN KCP 카드 정기결제"}</dd>
+                                    <dd className="mt-1 font-bold text-zinc-900">{paymentDetailPgLabel}</dd>
                                   </div>
                                 </dl>
                               </div>
@@ -1398,9 +1415,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     canManage={Boolean(typeof subscription.cancel_at_period_end === "boolean")}
                                   />
                                 ) : null}
-                                <button type="button" disabled className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400">
-                                  영수증 준비 중
-                                </button>
+                                <PaymentDetailModal
+                                  productName={paymentDetailProductName}
+                                  statusLabel={getPaymentStatusLabel(latestPaymentStatus)}
+                                  statusTone={getPaymentStatusTone(latestPaymentStatus)}
+                                  paidAtLabel={formatDateTime(paymentDetailDate)}
+                                  amountLabel={typeof paymentDetailAmount === "number" ? formatKrw(paymentDetailAmount) : "-"}
+                                  pgLabel={paymentDetailPgLabel}
+                                  paymentIdLabel={paymentDetailId || "결제번호 확인 필요"}
+                                  menuName={menuSite?.name ?? null}
+                                />
                               </div>
                             </div>
                           </article>
@@ -1454,32 +1478,45 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
                       {displayedAiCreditPurchases.map((purchase, index) => {
                         const product = getAiCreditPack(purchase.product_key);
-                        const menuSite = purchase.menu_site_id ? siteById.get(purchase.menu_site_id) : undefined;
                         const payment = payments.find((item) => {
                           const paymentId = getSafeString(purchase.payment_id);
                           return paymentId && (item.payment_id === paymentId || item.portone_payment_id === paymentId);
                         });
+                        const productName = product?.name ? `${product.name} 충전` : getProductLabel(purchase.product_key);
+                        const paymentStatus = payment?.status ?? "paid";
+                        const paymentId = getSafeString(purchase.payment_id ?? payment?.payment_id ?? payment?.portone_payment_id ?? null);
 
                         return (
                           <article key={purchase.id ?? `${purchase.payment_id}-${purchase.created_at}`} className={`p-4 ${index > 0 ? "border-t border-zinc-100" : ""}`}>
                             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                               <div>
-                                <h4 className="text-base font-black text-zinc-950">{product?.name ?? getProductLabel(purchase.product_key)}</h4>
+                                <h4 className="text-base font-black text-zinc-950">{productName}</h4>
                                 <p className="mt-1 text-xs font-bold text-zinc-500">
-                                  {formatDateTime(purchase.created_at)} · {menuSite?.name ? `${menuSite.name}에서 충전` : "계정 공용 크레딧 충전"}
+                                  {formatDateTime(purchase.created_at)} · 계정 공용 크레딧 충전
                                 </p>
-                                <p className="mt-1 font-mono text-[11px] font-bold text-zinc-400">결제번호 {maskPaymentId(purchase.payment_id)}</p>
+                                <p className="mt-1 font-mono text-[11px] font-bold text-zinc-400">결제번호 {maskPaymentId(paymentId)}</p>
+                                <p className="mt-2 max-w-xl break-keep text-xs font-bold leading-relaxed text-amber-700">
+                                  AI 크레딧은 지급 후 취소/환불이 제한됩니다. 중복 결제 또는 미지급 건은 고객지원으로 문의해주세요.
+                                </p>
                               </div>
                               <div className="text-left md:text-right">
                                 <p className="text-sm font-black text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p>
                                 <p className="mt-1 text-xs font-black text-emerald-700">AI 크레딧 {Math.max(0, purchase.credit_amount ?? product?.credits ?? 0).toLocaleString("ko-KR")}개 충전</p>
                                 <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
-                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(payment?.status)}`}>
-                                    {getPaymentStatusLabel(payment?.status)}
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(paymentStatus)}`}>
+                                    {getPaymentStatusLabel(paymentStatus)}
                                   </span>
-                                  <button type="button" disabled className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-black text-zinc-400">
-                                    영수증 준비 중
-                                  </button>
+                                  <PaymentDetailModal
+                                    productName={productName}
+                                    statusLabel={getPaymentStatusLabel(paymentStatus)}
+                                    statusTone={getPaymentStatusTone(paymentStatus)}
+                                    paidAtLabel={formatDateTime(purchase.created_at ?? payment?.created_at ?? null)}
+                                    amountLabel={product ? formatKrw(product.amount) : typeof payment?.amount === "number" ? formatKrw(payment.amount) : "-"}
+                                    pgLabel="PortOne 일반 결제"
+                                    paymentIdLabel={paymentId || "결제번호 확인 필요"}
+                                    menuName={null}
+                                    isAiCreditPurchase
+                                  />
                                 </div>
                               </div>
                             </div>

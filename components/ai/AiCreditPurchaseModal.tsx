@@ -63,9 +63,17 @@ export default function AiCreditPurchaseModal({
   onError,
 }: AiCreditPurchaseModalProps) {
   const [localError, setLocalError] = useState<string | null>(null);
+  const [refundPolicyAgreed, setRefundPolicyAgreed] = useState(false);
+
   if (!open) return null;
 
   const isPortOneReady = Boolean(storeId && channelKey);
+
+  function closeModal() {
+    setRefundPolicyAgreed(false);
+    setLocalError(null);
+    onClose();
+  }
 
   async function completePurchase(paymentId: string, productKey: AiCreditPackKey) {
     const response = await fetch("/api/ai-credits/purchase/complete", {
@@ -84,10 +92,17 @@ export default function AiCreditPurchaseModal({
     }
 
     onPurchased(result.balance, result.message ?? "AI 크레딧 충전이 완료되었습니다.");
-    onClose();
+    closeModal();
   }
 
   async function startPurchase(productKey: AiCreditPackKey) {
+    if (!refundPolicyAgreed) {
+      const message = "AI 크레딧 충전 후 취소/환불 제한 정책에 동의해주세요.";
+      setLocalError(message);
+      onError(message);
+      return;
+    }
+
     const product = AI_CREDIT_PACKS[productKey];
     setPendingProductKey(productKey);
     setLocalError(null);
@@ -171,7 +186,7 @@ export default function AiCreditPurchaseModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={closeModal}
             disabled={Boolean(pendingProductKey)}
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-black text-zinc-500 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="AI 크레딧 충전 닫기"
@@ -188,18 +203,34 @@ export default function AiCreditPurchaseModal({
               <button
                 key={product.productKey}
                 type="button"
-                disabled={Boolean(pendingProductKey)}
+                disabled={Boolean(pendingProductKey) || !refundPolicyAgreed}
                 onClick={() => startPurchase(product.productKey)}
                 className="rounded-2xl border border-zinc-200 bg-white p-5 text-left transition-colors hover:border-zinc-500 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="block text-base font-black text-zinc-950">{product.name}</span>
                 <span className="mt-3 block text-2xl font-black text-zinc-950">{product.amount.toLocaleString("ko-KR")}원</span>
                 <span className="mt-4 inline-flex rounded-full bg-zinc-950 px-3 py-1 text-xs font-black text-white">
-                  {isPending ? "결제 진행 중" : "선택하기"}
+                  {isPending ? "결제 진행 중" : refundPolicyAgreed ? "선택하기" : "동의 후 선택"}
                 </span>
               </button>
             );
           })}
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+          <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">
+            AI 크레딧은 결제 완료 즉시 계정에 지급되는 디지털 소모성 상품입니다. 크레딧 지급 후에는 단순 변심에 따른 취소/환불이 불가합니다. 중복 결제 또는 크레딧 미지급이 발생한 경우 고객지원으로 문의해주세요.
+          </p>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-white/70 p-3 text-sm font-black text-amber-950">
+            <input
+              type="checkbox"
+              checked={refundPolicyAgreed}
+              disabled={Boolean(pendingProductKey)}
+              onChange={(event) => setRefundPolicyAgreed(event.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-amber-300 accent-zinc-950"
+            />
+            <span>[필수] AI 크레딧 충전 후 취소/환불 제한 정책에 동의합니다.</span>
+          </label>
         </div>
 
         {localError ? (
