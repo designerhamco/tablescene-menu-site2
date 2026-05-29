@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp, ArrowDown, MessageCircle } from 'lucide-react';
 
-const KAKAO_CHANNEL_URL = 'http://pf.kakao.com/_xmxnxfQn/chat';
+export const KAKAO_CHANNEL_URL = 'http://pf.kakao.com/_xmxnxfQn/chat';
 
 const ScrollToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -56,7 +56,7 @@ const ScrollToTop = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-8 right-8 z-[9999] flex flex-col items-end gap-3 pointer-events-none"
+          className="pointer-events-none fixed bottom-8 right-8 z-40 hidden flex-col items-end gap-3 md:flex"
         >
           {/* Container needs pointer-events-auto for children to be clickable */}
           <div className="flex flex-col items-end gap-3 pointer-events-auto">

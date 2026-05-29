@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { BrowserRouter, useLocation } from "react-router";
 
 import Navbar from "@/app/components/layout/Navbar";
+import ScrollToTopButton from "@/app/components/ui/ScrollToTop";
 
 function subscribeToMount(onStoreChange: () => void) {
   const timeoutId = window.setTimeout(onStoreChange, 0);
@@ -35,6 +37,11 @@ function ReloadNextRouteOnNavigate() {
 
 export default function OfficialSiteNavbar() {
   const isMounted = useSyncExternalStore(subscribeToMount, getClientSnapshot, getServerSnapshot);
+  const pathname = usePathname();
+  const shouldShowQuickMenu =
+    !pathname.startsWith("/menu/") &&
+    !pathname.startsWith("/m/") &&
+    !pathname.includes("/preview");
 
   return (
     <>
@@ -44,6 +51,7 @@ export default function OfficialSiteNavbar() {
           <ReloadNextRouteOnNavigate />
         </BrowserRouter>
       ) : null}
+      {shouldShowQuickMenu ? <ScrollToTopButton /> : null}
       <div className="h-20" aria-hidden="true" />
     </>
   );

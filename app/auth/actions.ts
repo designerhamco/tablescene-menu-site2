@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { isDeletedAccountStatus } from "@/lib/account-status";
 import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -98,6 +99,15 @@ export async function signInAction(formData: FormData) {
 
   if (error) {
     redirect(`/sign-in?error=${encodeURIComponent(error.message)}&next=${encodedNext}`);
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (isDeletedAccountStatus(user?.app_metadata)) {
+    await supabase.auth.signOut();
+    redirect(`/sign-in?error=${encodeURIComponent("탈퇴 처리된 계정입니다.")}`);
   }
 
   redirect(next);

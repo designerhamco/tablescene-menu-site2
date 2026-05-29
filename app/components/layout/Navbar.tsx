@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
+import { KAKAO_CHANNEL_URL } from '../ui/ScrollToTop';
 import { createClient } from '@/lib/supabase/client';
 
 const logoImage = '/assets/tablescene-symbol.png';
@@ -246,6 +247,15 @@ const Navbar = () => {
                       {accountCtaLabel}
                     </a>
                   ) : null}
+                  <a
+                    href={KAKAO_CHANNEL_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMobileMenu}
+                    className="col-span-2 flex items-center justify-center rounded-2xl border border-[#F8E731]/70 bg-[#F8E731]/15 px-4 py-3 text-sm font-bold text-zinc-900"
+                  >
+                    카카오톡 상담
+                  </a>
                 </div>
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">

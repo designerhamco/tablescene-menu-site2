@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Footer from "@/app/components/layout/Footer";
 import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import AccountDeletionPanel from "@/components/mypage/AccountDeletionPanel";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
 import ContactProfileEditor from "@/components/mypage/ContactProfileEditor";
 import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettings";
@@ -17,6 +18,7 @@ import {
   normalizeInquiryPage,
   type InquirySectionInquiry,
 } from "@/components/mypage/InquirySection";
+import { isDeletedAccountStatus } from "@/lib/account-status";
 import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuPath } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
@@ -153,6 +155,15 @@ type UserContactProfile = {
   updated_at: string | null;
 };
 
+type NotificationEvent = {
+  id: string | null;
+  title: string | null;
+  message: string | null;
+  status: string | null;
+  read_at: string | null;
+  created_at: string | null;
+};
+
 type QueryErrorLike = {
   code?: string;
   message?: string;
@@ -184,6 +195,7 @@ function isMissingOptionalMypageRelation(error: QueryErrorLike | null | undefine
         || error.message?.includes("ai_credit_transactions")
         || error.message?.includes("inquiries")
         || error.message?.includes("user_contact_profiles")
+        || error.message?.includes("notification_events")
       )
   );
 }
@@ -738,6 +750,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     redirect("/sign-in?next=/mypage");
   }
 
+  if (isDeletedAccountStatus(user.app_metadata)) {
+    await supabase.auth.signOut();
+    redirect(`/sign-in?error=${encodeURIComponent("탈퇴 처리된 계정입니다.")}`);
+  }
+
   const menuSitesResult = await runMypageQuery(
     "menu_sites",
     supabase
@@ -799,6 +816,36 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     ? null
     : contactProfileResult?.data ?? null;
   const contactProfileError = contactProfileResult?.error ?? null;
+  let notificationEvents: NotificationEvent[] = [];
+
+  try {
+    const adminSupabase = createAdminClient();
+    const notificationEventsResult = await runMypageQuery(
+      "notification_events",
+      adminSupabase
+        .from("notification_events" as never)
+        .select("id, title, message, status, read_at, created_at")
+        .eq("user_id" as never, user.id as never)
+        .order("created_at" as never, { ascending: false } as never)
+        .limit(5)
+    );
+
+    if (!notificationEventsResult?.error) {
+      notificationEvents = (notificationEventsResult?.data ?? []) as unknown as NotificationEvent[];
+    } else if (!isMissingOptionalMypageRelation(notificationEventsResult.error)) {
+      console.error("[mypage] notification events query failed", {
+        userId: user.id,
+        code: notificationEventsResult.error.code,
+        message: notificationEventsResult.error.message,
+      });
+    }
+  } catch (notificationError) {
+    console.error("[mypage] notification events query failed", {
+      userId: user.id,
+      message: notificationError instanceof Error ? notificationError.message : "unknown",
+    });
+  }
+
   const activeInquiryPage = normalizeInquiryPage(inquiryPage);
   const inquiryFrom = (activeInquiryPage - 1) * inquiryPageSize;
   const inquiryTo = inquiryFrom + inquiryPageSize - 1;
@@ -1370,6 +1417,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const marketingAccepted = user.user_metadata?.marketing_accepted === true;
   const marketingConsentedAt = getMetadataString(user.user_metadata, ["marketing_consented_at"]);
   const marketingWithdrawnAt = getMetadataString(user.user_metadata, ["marketing_withdrawn_at"]);
+  const hasActiveBusinessSubscriptionForDeletion = businessSubscriptions.some((subscription) =>
+    subscription.status === "active" || subscription.status === "past_due"
+  );
 
   return (
     <>
@@ -1384,6 +1434,37 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               </p>
             </div>
           </header>
+
+          {notificationEvents.length > 0 ? (
+            <section className="mb-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">최근 알림</h2>
+                  <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                    이메일로 발송되거나 발송 예정인 필수 고지를 이곳에서도 확인할 수 있습니다.
+                  </p>
+                </div>
+                <p className="text-sm font-bold text-zinc-400">
+                  읽지 않음 {notificationEvents.filter((event) => !event.read_at).length.toLocaleString("ko-KR")}개
+                </p>
+              </div>
+              <div className="mt-5 divide-y divide-zinc-100">
+                {notificationEvents.map((event) => (
+                  <details key={event.id ?? `${event.title}-${event.created_at}`} className="group py-4">
+                    <summary className="flex cursor-pointer list-none flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                      <span className="break-keep text-sm font-black text-zinc-900">{event.title ?? "알림"}</span>
+                      <span className="shrink-0 text-xs font-bold text-zinc-400">
+                        {formatDateTime(event.created_at)} · {event.status === "sent" ? "이메일 발송 완료" : event.status === "failed" ? "발송 실패" : event.status === "skipped" ? "발송 제외" : "발송 대기"}
+                      </span>
+                    </summary>
+                    <p className="mt-3 whitespace-pre-wrap break-keep rounded-2xl bg-zinc-50 p-4 text-sm font-semibold leading-relaxed text-zinc-600">
+                      {event.message ?? "알림 내용을 확인할 수 없습니다."}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           <aside className="space-y-4 lg:sticky lg:top-28">
@@ -2087,6 +2168,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   initialAccepted={marketingAccepted}
                   consentedAt={marketingConsentedAt}
                   withdrawnAt={marketingWithdrawnAt}
+                />
+                <AccountDeletionPanel
+                  hasActiveBusinessSubscription={hasActiveBusinessSubscriptionForDeletion}
+                  hasAnyMenuSite={sites.length > 0}
                 />
               </article>
             </section>

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isDeletedAccountStatus } from "@/lib/account-status";
 import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,6 +29,18 @@ export async function GET(request: NextRequest) {
       const signInUrl = new URL("/sign-in", origin);
       signInUrl.searchParams.set("error", error.message);
       signInUrl.searchParams.set("next", next);
+
+      return NextResponse.redirect(signInUrl);
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (isDeletedAccountStatus(user?.app_metadata)) {
+      await supabase.auth.signOut();
+      const signInUrl = new URL("/sign-in", origin);
+      signInUrl.searchParams.set("error", "탈퇴 처리된 계정입니다.");
 
       return NextResponse.redirect(signInUrl);
     }
