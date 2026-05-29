@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelForSave, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
-import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
+import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
 import {
   getMenuSiteAccessStateForMenuSite,
@@ -643,7 +643,7 @@ export async function translateMenuSiteAction(formData: FormData) {
 
   const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId);
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-  const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+  const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
   const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
   const hasFullTranslationCredits = await hasEnoughAiCredits(menuId, 5);
   const targetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is (typeof TARGET_TRANSLATION_LOCALES)[number] =>
@@ -745,7 +745,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
     const hasFullTranslationCredits = await hasEnoughAiCredits(menuId, 5);
 
@@ -1262,7 +1262,7 @@ export async function generateMenuItemDescriptionAction(input: {
       }
     }
 
-    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const descriptionUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_description");
     const hasDescriptionCredits = await hasEnoughAiCredits(menuId, 1);
 
@@ -1361,7 +1361,7 @@ export async function generateAiMenuCleanupAction(input: {
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const cleanupUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_menu_cleanup");
     const hasCleanupCredits = await hasEnoughAiCredits(menuId, 3);
 
@@ -1423,7 +1423,7 @@ export async function translateMenuItemPartialAction(input: {
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
     const hasPartialCredits = await hasEnoughAiCredits(menuId, 1);
 
@@ -1519,7 +1519,7 @@ export async function translateMenuCategoryPartialAction(input: {
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
     const hasPartialCredits = await hasEnoughAiCredits(menuId, 1);
 
@@ -1606,7 +1606,7 @@ export async function translateMenuHeroPartialAction(input: {
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-    const aiUsagePlanKey = normalizeTableScenePlanKey(productKey);
+    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
     const hasPartialCredits = await hasEnoughAiCredits(menuId, 1);
 

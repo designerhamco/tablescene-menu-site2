@@ -176,8 +176,7 @@ export default function AiCreditPurchaseModal({
       >
         <div className="flex items-start justify-between gap-5">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">AI 크레딧 충전</p>
-            <h2 id="ai-credit-modal-title" className="mt-2 text-2xl font-black tracking-tight text-zinc-950">
+            <h2 id="ai-credit-modal-title" className="text-2xl font-black tracking-tight text-zinc-950">
               계정에 충전할 크레딧을 선택하세요
             </h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">

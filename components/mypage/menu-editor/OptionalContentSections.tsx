@@ -630,7 +630,7 @@ function SocialLinkFields({ socialLink, count }: { socialLink?: MenuSocialLink; 
       </div>
       <div>
         <FieldLabel required>아이디/표시명</FieldLabel>
-        <TextInput name="social_display_name" defaultValue={socialLink?.display_name ?? ""} placeholder="@tablescene_official" required maxLength={MENU_FIELD_LIMITS.menuSocialLinks.displayName} helperText="고객에게 보이는 계정명 또는 표시명입니다." />
+        <TextInput name="social_display_name" defaultValue={socialLink?.display_name ?? ""} placeholder="@your_store_official" required maxLength={MENU_FIELD_LIMITS.menuSocialLinks.displayName} helperText="고객에게 보이는 계정명 또는 표시명입니다." />
       </div>
       <div>
         <FieldLabel required>URL</FieldLabel>

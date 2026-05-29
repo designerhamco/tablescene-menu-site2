@@ -3,11 +3,13 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
+import { createClient } from '@/lib/supabase/client';
+
 const logoImage = '/assets/tablescene-symbol.png';
 
 const NAV_ITEMS = [
-  { label: '테이블씬 베이직', path: '/services/basic', discount: true },
-  { label: '테이블씬 디스플레이', path: '/services/display', discount: true },
+  { label: '메뉴링크 베이직', path: '/services/basic', discount: true },
+  { label: '메뉴링크 디스플레이', path: '/services/display', discount: true },
   { label: '비주얼 스튜디오', path: '/branding/visual-studio', disabled: true },
 ] as const;
 
@@ -27,9 +29,18 @@ function DisabledChip() {
   );
 }
 
+type AuthState = {
+  isAuthenticated: boolean;
+  loading: boolean;
+};
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [authState, setAuthState] = useState<AuthState>({
+    isAuthenticated: false,
+    loading: true,
+  });
   const isScrolledRef = useRef(false);
   const location = useLocation();
   const pathname = location.pathname;
@@ -50,6 +61,44 @@ const Navbar = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    let isMounted = true;
+
+    const updateAuthState = (nextState: AuthState) => {
+      if (!isMounted) {
+        return;
+      }
+
+      setAuthState((currentState) =>
+        currentState.isAuthenticated === nextState.isAuthenticated && currentState.loading === nextState.loading
+          ? currentState
+          : nextState,
+      );
+    };
+
+    supabase.auth.getUser().then(({ data }) => {
+      updateAuthState({
+        isAuthenticated: Boolean(data.user),
+        loading: false,
+      });
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      updateAuthState({
+        isAuthenticated: Boolean(session?.user),
+        loading: false,
+      });
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -95,6 +144,8 @@ const Navbar = () => {
   const secondaryButtonClass = shouldShowSolidNav
     ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
     : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
+  const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
+  const accountCtaLabel = authState.isAuthenticated ? '마이페이지' : '로그인';
 
   return (
     <>
@@ -104,14 +155,14 @@ const Navbar = () => {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F8E731] transition-transform duration-300 group-hover:scale-105 md:h-10 md:w-10 md:rounded-xl">
               <img
                 src={logoImage}
-                alt="TableScene Symbol"
+                alt="MenuLink Symbol"
                 className="h-5 w-5 rotate-45 object-contain md:h-6 md:w-6"
               />
             </div>
 
             <div className="flex flex-col items-start leading-none">
               <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${logoTextClass}`}>
-                TABLE SCENE
+                MENULINK
               </span>
             </div>
           </Link>
@@ -147,12 +198,14 @@ const Navbar = () => {
             >
               만들기
             </a>
-            <a
-              href="/mypage"
-              className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
-            >
-              마이페이지
-            </a>
+            {!authState.loading ? (
+              <a
+                href={accountCtaHref}
+                className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
+              >
+                {accountCtaLabel}
+              </a>
+            ) : null}
 
             <button
               className={`p-1 transition-opacity lg:hidden ${menuButtonClass}`}
@@ -184,13 +237,15 @@ const Navbar = () => {
                   >
                     만들기
                   </a>
-                  <a
-                    href="/mypage"
-                    onClick={closeMobileMenu}
-                    className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
-                  >
-                    마이페이지
-                  </a>
+                  {!authState.loading ? (
+                    <a
+                      href={accountCtaHref}
+                      onClick={closeMobileMenu}
+                      className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
+                    >
+                      {accountCtaLabel}
+                    </a>
+                  ) : null}
                 </div>
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">
@@ -225,9 +280,9 @@ const Navbar = () => {
               <div className="mt-auto px-6 py-8">
                 <div className="border-t border-zinc-100 pt-6">
                   <div className="flex flex-col gap-0.5 text-[10px] font-medium tracking-tight text-zinc-400">
-                    <p className="mb-1 text-xs font-bold text-zinc-900">TABLE SCENE Studio</p>
+                    <p className="mb-1 text-xs font-bold text-zinc-900">MENULINK Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
-                    <p className="mt-1 opacity-60">© 2026 Table Scene. All rights reserved.</p>
+                    <p className="mt-1 opacity-60">© 2026 MenuLink. All rights reserved.</p>
                   </div>
                 </div>
               </div>

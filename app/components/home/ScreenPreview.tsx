@@ -77,7 +77,7 @@ const ScreenPreview = () => {
             매장 운영의 진실,<br className="md:hidden" /> 눈으로 직접 확인하세요
           </h2>
           <p className="text-zinc-500 text-lg md:text-xl">
-            테이블씬이 제공하는 직관적인 인터페이스를 미리 만나보세요.
+            메뉴링크이 제공하는 직관적인 인터페이스를 미리 만나보세요.
           </p>
         </div>
 

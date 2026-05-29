@@ -5,36 +5,33 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 export const metadata: Metadata = {
-  title: "서비스 신청 | TableScene",
-  description: "테이블씬 Basic, Display, Custom 신청 페이지를 선택하세요.",
+  title: "서비스 신청 | MenuLink",
+  description: "메뉴링크 베이직, 메뉴링크 디스플레이, 메뉴링크 커스텀 신청 페이지를 선택하세요.",
 };
 
 const applyServices = [
   {
-    title: "TableScene Basic",
-    eyebrow: "Basic",
+    title: "MenuLink Basic",
     description: "개인 1개월 체험 또는 사업자 정식 월/연 결제를 선택해 웹 메뉴판을 만듭니다.",
     price: "개인 체험 6,600원 / 사업자 월 6,000원 / 연 60,000원",
-    note: "Basic 신청 화면에서 이용 방식과 템플릿을 함께 선택합니다.",
+    note: "메뉴링크 베이직 신청 화면에서 이용 방식과 템플릿을 함께 선택합니다.",
     type: "웹 메뉴판",
-    cta: "Basic 만들기",
+    cta: "베이직 만들기",
     href: "/apply/basic",
     active: true,
   },
   {
-    title: "TableScene Display",
-    eyebrow: "Display",
+    title: "MenuLink Display",
     description: "사업자 전용 디스플레이 메뉴보드입니다.",
     price: "오픈 할인 월 12,000원 / 연 120,000원",
-    note: "Display 전용 템플릿 준비 전까지 결제할 수 없습니다.",
+    note: "메뉴링크 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",
     type: "준비 중",
     cta: "준비 중",
     href: "/apply/display",
     active: false,
   },
   {
-    title: "테이블씬 커스텀",
-    eyebrow: "TableScene Custom",
+    title: "메뉴링크 커스텀",
     description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험",
     price: "별도 견적",
     note: "결제 없이 상담 신청을 접수한 뒤 별도 견적을 안내합니다.",
@@ -52,13 +49,12 @@ export default function ApplyPage() {
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-6xl">
           <header className="border-b border-zinc-200 pb-10">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Apply</p>
             <h1 className="max-w-3xl break-keep text-4xl font-black tracking-tight md:text-5xl">
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              Basic은 개인 1개월 체험과 사업자 정식 월/연 결제를 한 화면에서 선택할 수 있습니다.
-              Display는 전용 템플릿 준비 후 신청을 열 예정입니다.
+              메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월/연 결제를 한 화면에서 선택할 수 있습니다.
+              메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다.
             </p>
           </header>
 
@@ -71,7 +67,6 @@ export default function ApplyPage() {
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">{service.eyebrow}</p>
                   <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-black text-zinc-500">
                     {service.type}
                   </span>

@@ -191,7 +191,6 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
         <div className="mx-auto w-full max-w-7xl">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Convert</p>
               <h1 className="text-4xl font-black tracking-tight md:text-5xl">사업자 플랜 전환</h1>
               <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-500">
                 새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 사업자 플랜으로 전환합니다.

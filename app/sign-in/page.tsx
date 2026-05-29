@@ -53,12 +53,9 @@ export default async function SignInPage({
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
         <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
           <div className="mb-8">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.28em] text-zinc-400">
-              Welcome Back
-            </p>
             <h1 className="text-3xl font-bold tracking-tight">로그인</h1>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
+              메뉴링크 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
             </p>
           </div>
 
@@ -115,7 +112,7 @@ export default async function SignInPage({
             </button>
           </form>
 
-          <OAuthButtons next={safeNext} />
+          <OAuthButtons next={safeNext} buttonLabel="카카오로 로그인" />
 
           <div className="mt-5 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-zinc-500 sm:flex-row sm:gap-3">
             <Link href="/forgot-password" className="hover:text-zinc-950 hover:underline">
@@ -133,7 +130,7 @@ export default async function SignInPage({
               href={`/sign-up?next=${encodeURIComponent(safeNext)}`}
               className="font-bold text-zinc-950 hover:underline"
             >
-              회원가입
+              메뉴링크 회원가입
             </Link>
           </p>
         </div>

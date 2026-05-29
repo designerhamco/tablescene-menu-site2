@@ -150,7 +150,6 @@ export function InquirySection({
       {showIntro ? (
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">문의 내역</p>
             <h2 className="text-3xl font-bold tracking-tight">문의 및 답변</h2>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
               고객지원 문의와 답변 내역을 확인하고 새 문의를 남길 수 있습니다.
@@ -178,7 +177,6 @@ export function InquirySection({
       )}
 
       <section className="rounded-3xl bg-white p-7 shadow-sm">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">New Inquiry</p>
         <h3 className="text-2xl font-bold tracking-tight md:text-3xl">새 문의 등록</h3>
 
         <form action={createInquiryAction} className="mt-7 space-y-5">
@@ -239,7 +237,6 @@ export function InquirySection({
       <section>
         <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-end">
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">My Inquiries</p>
             <h3 className="text-2xl font-bold tracking-tight md:text-3xl">내 문의 목록</h3>
           </div>
           <p className="text-sm font-bold text-zinc-400">
@@ -419,7 +416,6 @@ export function InquirySection({
           </div>
         ) : (
           <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Empty</p>
             <h3 className="text-2xl font-bold">아직 문의 내역이 없습니다</h3>
             <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
               궁금한 점이 있다면 새 문의를 남겨주세요. 답변 상태와 내용을 이곳에서 확인할 수 있습니다.

@@ -49,13 +49,12 @@ export default function AiCreditRechargePanel({
     <div className={wrapperClassName}>
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">AI 크레딧</p>
-          <h4 className={`${compact ? "mt-1 text-sm" : "mt-2 text-base"} font-black text-zinc-950`}>
+          <h4 className={`${compact ? "text-sm" : "text-base"} font-black text-zinc-950`}>
             {`보유 AI 크레딧 ${formatAiCredits(totalRemainingCredits)}`}
           </h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
             {accountSummaryOnly
-              ? "메뉴판을 만들 때마다 기본 AI 크레딧이 계정에 지급됩니다. 충전한 AI 크레딧도 내 계정의 모든 메뉴판에서 함께 사용할 수 있습니다."
+              ? "AI 크레딧은 메뉴링크 AI 기능 이용을 위한 통합 단위입니다. MenuLink Basic과 무료 개인체험은 18크레딧, MenuLink Display는 26크레딧을 기본 제공합니다."
               : compact
                 ? "이 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다."
                 : `기본 지급 ${formatAiCredits(totalGrantedCredits)} · 추가 충전 ${formatAiCredits(totalPurchasedCredits)} · 사용 ${formatAiCredits(totalUsedCredits)}`}
@@ -80,9 +79,19 @@ export default function AiCreditRechargePanel({
 
       {!compact && !accountSummaryOnly ? (
         <div className="mt-3 space-y-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-          <p>AI 기능마다 차감되는 크레딧이 다릅니다. 보유 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.</p>
-          <p>메뉴판 생성으로 지급된 크레딧과 추가 충전한 크레딧을 함께 사용할 수 있습니다.</p>
+          <p>AI 크레딧은 메뉴링크 AI 기능 이용을 위한 통합 단위입니다. 보유 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.</p>
+          <p>MenuLink Basic과 무료 개인체험은 18크레딧, MenuLink Display는 26크레딧을 기본 제공합니다.</p>
           <p>AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 5크레딧</p>
+          <p>요금제에 포함된 AI 크레딧은 현금성 가치가 없으며 환불, 현금 교환 또는 양도 대상이 아닙니다.</p>
+          <p>AI가 생성한 문구와 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>
+          <p>주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 AI 입력창에 입력하지 마세요.</p>
+        </div>
+      ) : null}
+      {accountSummaryOnly ? (
+        <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
+          <p>차감 기준: AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 5크레딧</p>
+          <p className="mt-2">요금제에 포함된 AI 크레딧은 현금성 가치가 없으며 환불, 현금 교환 또는 양도 대상이 아닙니다.</p>
+          <p className="mt-2">AI 결과물은 참고용 초안이므로 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>
         </div>
       ) : null}
       {message ? <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-700">{message}</p> : null}

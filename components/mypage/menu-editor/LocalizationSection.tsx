@@ -746,6 +746,12 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
               <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                 전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 기능별 AI 크레딧이 차감됩니다.
               </p>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                AI가 생성한 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
+              </p>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 AI 입력창에 입력하지 마세요.
+              </p>
               {!hasTargetLocales && (
                 <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
               )}
@@ -774,6 +780,9 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
             항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역은 1크레딧이 차감됩니다.
+          </p>
+          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+            전체 자동 번역은 5크레딧, 부분 자동 번역은 1크레딧이 필요합니다. AI 크레딧이 부족하면 번역을 실행할 수 없습니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
             다시 자동 번역을 실행하면 직접 수정한 번역이 새 번역 결과로 덮어써질 수 있습니다.

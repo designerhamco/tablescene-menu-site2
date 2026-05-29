@@ -4,7 +4,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-12 flex flex-col items-start justify-between gap-8 md:flex-row">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-white">TABLE SCENE</h2>
+            <h2 className="text-xl font-bold tracking-tight text-white">MENULINK</h2>
             <p className="max-w-xs text-sm font-normal leading-relaxed text-zinc-500">
               디지털 혁신과 시각적 스토리텔링을 통해<br />
               다이닝 경험의 새로운 장면을 만듭니다.
@@ -48,11 +48,12 @@ export function Footer() {
           </div>
 
           <div className="mt-4 flex w-full shrink-0 flex-col gap-3 text-left md:mt-0 md:w-auto md:items-end md:text-right">
-            <div className="flex gap-4 text-[11px] font-medium text-zinc-500 md:gap-6">
-              <a href="mailto:admin@dndcommerce.co.kr?subject=이용약관 문의" className="transition-colors hover:text-zinc-300">이용약관</a>
-              <a href="mailto:admin@dndcommerce.co.kr?subject=개인정보처리방침 문의" className="transition-colors hover:text-zinc-300">개인정보처리방침</a>
+            <div className="flex flex-wrap gap-4 text-[11px] font-medium text-zinc-500 md:justify-end md:gap-6">
+              <a href="/terms" className="transition-colors hover:text-zinc-300">이용약관</a>
+              <a href="/privacy" className="transition-colors hover:text-zinc-300">개인정보 처리방침</a>
+              <a href="mailto:admin@dndcommerce.co.kr" className="transition-colors hover:text-zinc-300">고객지원</a>
             </div>
-            <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-700">© 2026 Table Scene Studio.</p>
+            <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-700">© 2026 MenuLink Studio.</p>
           </div>
         </div>
       </div>

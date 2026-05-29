@@ -107,7 +107,7 @@ export function Hero() {
             </h1>
             <p className="max-w-xl text-xl font-medium text-white/90 drop-shadow-md">
               웨이팅부터 주문, 결제, 고객 관리까지.<br />
-              복잡한 매장 운영, 테이블씬 하나로 완벽해집니다.
+              복잡한 매장 운영, 메뉴링크 하나로 완벽해집니다.
             </p>
           </div>
         </div>

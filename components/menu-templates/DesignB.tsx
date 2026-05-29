@@ -192,7 +192,7 @@ function Footer({ socialLinks }: Pick<PublicMenuTemplateProps, "socialLinks">) {
           ))}
         </div>
       )}
-      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Powered by Table Scene</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Powered by MenuLink</p>
     </footer>
   );
 }

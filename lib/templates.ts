@@ -193,7 +193,7 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
       key: template.key,
       templateKey: template.key,
       service: "basic" as const satisfies TemplateServiceKey,
-      serviceLabel: "테이블씬 베이직",
+      serviceLabel: "메뉴링크 베이직",
       name: template.label,
       displayName: template.label,
       label: template.label,

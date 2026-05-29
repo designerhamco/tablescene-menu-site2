@@ -26,7 +26,7 @@ type PricingData = {
 
 const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
   basic: {
-    title: "테이블씬 베이직 가격 안내",
+    title: "메뉴링크 베이직 가격 안내",
     description: "",
     plans: [
       {
@@ -65,7 +65,7 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
     ],
   },
   display: {
-    title: "테이블씬 디스플레이 가격 안내",
+    title: "메뉴링크 디스플레이 가격 안내",
     description: "매장 TV와 모니터에 띄우는 대형 화면용 디지털 메뉴보드입니다.",
     plans: [
       {
@@ -134,7 +134,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
                   <div>
                     <p className="text-base font-bold text-zinc-500">{plan.label}</p>
                     <h4 className="mt-5 break-keep text-2xl font-bold tracking-tight md:text-3xl">
-                      {service === "basic" ? "TableScene Basic" : "TableScene Display"}
+                      {service === "basic" ? "MenuLink Basic" : "MenuLink Display"}
                     </h4>
                     <p className="mt-4 text-base font-bold text-zinc-400 line-through">
                       {plan.regularPrice}

@@ -35,7 +35,6 @@ const Recommendation = () => {
           viewport={{ once: true }}
           className="mb-20 text-center max-w-3xl mx-auto"
         >
-          <span className="text-primary text-xs font-bold tracking-widest uppercase mb-4 block">Solution</span>
           <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-6 leading-tight tracking-tight">
             운영의 고민,<br />명쾌한 해답
           </h2>

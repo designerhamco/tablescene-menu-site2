@@ -13,7 +13,7 @@ const features = [
   {
     id: 1,
     title: "웨이팅부터 결제까지 올인원",
-    description: "입장 대기부터 테이블 주문, 그리고 결제까지 하나의 시스템으로 연결됩니다. 여러 기기를 쓸 필요 없이 테이블씬 하나면 충분합니다.",
+    description: "입장 대기부터 테이블 주문, 그리고 결제까지 하나의 시스템으로 연결됩니다. 여러 기기를 쓸 필요 없이 메뉴링크 하나면 충분합니다.",
     image: "https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     tags: ["웨이팅 통합", "테이블 오더"]
   },
@@ -60,7 +60,6 @@ const Features = () => {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <span className="text-primary text-xs font-bold tracking-widest uppercase mb-4 block">Why Choose Us</span>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight leading-tight text-white">단순한 디지털 메뉴 그 이상</h2>
               <p className="text-lg text-zinc-400 leading-relaxed font-medium">
                 단순히 보여주는 메뉴판이 아닙니다.<br className="hidden md:block"/>

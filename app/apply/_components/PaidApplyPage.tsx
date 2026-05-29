@@ -11,31 +11,27 @@ type PaidApplyService = "menu" | "screen" | "order";
 const PAID_APPLY_COPY: Record<
   PaidApplyService,
   {
-    eyebrow: string;
     title: string;
     description: string;
     note?: string;
   }
 > = {
   menu: {
-    eyebrow: "TableScene Basic",
-    title: "테이블씬 베이직 신청/결제",
+    title: "메뉴링크 베이직 신청/결제",
     description:
-      "개인 1개월 체험, 사업자 월 결제, 사업자 연 결제 중 이용 방식을 선택해 Basic 메뉴판을 신청합니다.",
+      "개인 1개월 체험, 사업자 월 결제, 사업자 연 결제 중 이용 방식을 선택해 메뉴링크 베이직 메뉴판을 신청합니다.",
     note:
-      "Basic 메뉴판 생성 시 AI 크레딧 18개가 계정에 지급됩니다. 개인 체험은 1회 결제로 바로 이용할 수 있고, 사업자 월/연 결제는 사업자 인증과 자동결제 연결을 기준으로 설계되어 있습니다.",
+      "메뉴링크 베이직 메뉴판 생성 시 AI 크레딧 18개가 계정에 지급됩니다. 개인 체험은 1회 결제로 바로 이용할 수 있고, 사업자 월/연 결제는 사업자 인증과 자동결제 연결을 기준으로 설계되어 있습니다.",
   },
   screen: {
-    eyebrow: "TableScene Display",
-    title: "테이블씬 디스플레이 신청/결제",
+    title: "메뉴링크 디스플레이 신청/결제",
     description:
       "매장 화면을 감각적인 디지털 메뉴보드로 운영할 수 있는 결제형 신청 페이지입니다.",
     note:
-      "Display 메뉴판 생성 시 AI 크레딧 26개가 계정에 지급됩니다. 현재는 전용 템플릿 준비 중이며, 개인 체험은 제공하지 않습니다.",
+      "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개가 계정에 지급됩니다. 현재는 전용 템플릿 준비 중이며, 개인 체험은 제공하지 않습니다.",
   },
   order: {
-    eyebrow: "TableScene QR Order",
-    title: "테이블씬 오더 1.0 신청/결제",
+    title: "메뉴링크 오더 1.0 신청/결제",
     description:
       "QR로 주문하고 주방까지 바로 연결되는 오더 시스템 도입을 위한 결제신청형 페이지입니다.",
     note:
@@ -69,9 +65,6 @@ export default async function PaidApplyPage({ serviceType, nextPath }: PaidApply
         <div className="mx-auto w-full max-w-6xl">
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">
-                {copy.eyebrow}
-              </p>
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">{copy.title}</h1>
               <p className="mt-4 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500">
                 {copy.description}

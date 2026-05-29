@@ -3,7 +3,7 @@ import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
-const supportMailHref = "mailto:admin@dndcommerce.co.kr?subject=TableScene 로그인 이메일 찾기 문의";
+const supportMailHref = "mailto:admin@dndcommerce.co.kr?subject=MenuLink 로그인 이메일 찾기 문의";
 
 export default function FindAccountPage() {
   return (
@@ -13,10 +13,9 @@ export default function FindAccountPage() {
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
         <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
           <div className="mb-8">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.28em] text-zinc-400">Account Help</p>
             <h1 className="break-keep text-3xl font-bold tracking-tight">로그인 이메일을 잊으셨나요?</h1>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              TableScene은 이메일 주소로 로그인합니다. 가입 시 사용한 이메일을 확인해주세요.
+              MenuLink는 이메일 주소로 로그인합니다. 가입 시 사용한 이메일을 확인해주세요.
             </p>
           </div>
 
@@ -24,7 +23,7 @@ export default function FindAccountPage() {
             <p>다음 메일함을 먼저 확인해보세요.</p>
             <ul className="list-disc space-y-2 pl-5">
               <li>결제 완료 메일을 받은 이메일</li>
-              <li>TableScene 가입 또는 메뉴판 생성 안내 메일을 받은 이메일</li>
+              <li>MenuLink 가입 또는 메뉴판 생성 안내 메일을 받은 이메일</li>
               <li>자주 사용하는 업무용 이메일</li>
             </ul>
             <p className="break-keep pt-2 text-xs font-bold text-zinc-400">

@@ -76,13 +76,6 @@ const ManagementWorkflow = () => {
         
         {/* Header */}
         <div className="text-center mb-24 max-w-3xl mx-auto">
-          <motion.div
-             initial={{ opacity: 0, y: 10 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true }}
-          >
-             <span className="text-zinc-500 text-xs font-bold tracking-widest uppercase mb-4 block">Workflow</span>
-          </motion.div>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

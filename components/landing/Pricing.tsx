@@ -33,7 +33,7 @@ export function Pricing() {
                 {!plan.disabled && <a href={plan.link} className="absolute inset-0 z-10" aria-label={`${plan.name} 자세히 보기`} />}
 
                 <div className={`relative z-20 flex w-full flex-col items-start justify-center p-8 md:w-1/2 md:p-12 ${plan.disabled ? "opacity-40 grayscale" : ""}`}>
-                  <span className="mb-3 block text-sm font-bold uppercase tracking-widest text-zinc-500">{plan.name}</span>
+                  <span className="mb-3 block text-sm font-bold text-zinc-500">{plan.name}</span>
                   <h3 className="mb-6 flex items-center gap-3 text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">{plan.tagline}</h3>
                   <div className="mb-8 flex flex-wrap gap-2">
                     {plan.keywords.map((keyword) => (

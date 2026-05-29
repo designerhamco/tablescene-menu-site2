@@ -72,8 +72,8 @@ export const TEMPLATE_TYPE_DESCRIPTIONS = {
 } as const satisfies Record<TemplateType, { short: string; description: string }>;
 
 export const TEMPLATE_SERVICE_LABELS = {
-  basic: "테이블씬 베이직",
-  display: "테이블씬 디스플레이",
+  basic: "메뉴링크 베이직",
+  display: "메뉴링크 디스플레이",
 } as const satisfies Record<TemplateServiceType, string>;
 
 export const TEMPLATE_TYPE_OPTIONS_BY_SERVICE = {

@@ -390,6 +390,9 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     termsAccepted: payload.termsAccepted === true,
     privacyAccepted: payload.privacyAccepted === true,
     contentPolicyAccepted: payload.contentPolicyAccepted === true,
+    marketingAccepted: payload.marketingAccepted === true,
+    consentAgreedAt: getNullableString(payload.consentAgreedAt),
+    consentContext: getNullableString(payload.consentContext),
     amount,
   };
 
@@ -440,14 +443,14 @@ function getPaymentProduct(orderPayload: MenuOrderPayload) {
   if (orderPayload.plan_key === "large_screen") {
     return {
       key: "large_screen",
-      name: "테이블씬 디스플레이 생성권",
+      name: "메뉴링크 디스플레이 생성권",
     };
   }
 
   if (orderPayload.plan_key === "qr_order") {
     return {
       key: "qr_order",
-      name: "테이블씬 오더 1.0 신청권",
+      name: "메뉴링크 오더 1.0 신청권",
     };
   }
 

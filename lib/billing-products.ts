@@ -10,8 +10,8 @@ export type SubscriptionProductKey =
 export const SUBSCRIPTION_PRODUCTS = {
   business_basic_monthly: {
     productKey: "business_basic_monthly",
-    name: "사업자 Basic 월 결제",
-    label: "사업자 Basic 월 결제",
+    name: "메뉴링크 베이직 월결제",
+    label: "메뉴링크 베이직 월결제",
     serviceType: "basic",
     planType: "business_basic",
     paymentType: "subscription",
@@ -24,8 +24,8 @@ export const SUBSCRIPTION_PRODUCTS = {
   },
   business_basic_yearly: {
     productKey: "business_basic_yearly",
-    name: "사업자 Basic 연 결제",
-    label: "사업자 Basic 연 결제",
+    name: "메뉴링크 베이직 연결제",
+    label: "메뉴링크 베이직 연결제",
     serviceType: "basic",
     planType: "business_basic",
     paymentType: "subscription",
@@ -38,8 +38,8 @@ export const SUBSCRIPTION_PRODUCTS = {
   },
   business_display_monthly: {
     productKey: "business_display_monthly",
-    name: "사업자 Display 월 결제",
-    label: "사업자 Display 월 결제",
+    name: "메뉴링크 디스플레이 월결제",
+    label: "메뉴링크 디스플레이 월결제",
     serviceType: "display",
     planType: "business_display",
     paymentType: "subscription",
@@ -52,8 +52,8 @@ export const SUBSCRIPTION_PRODUCTS = {
   },
   business_display_yearly: {
     productKey: "business_display_yearly",
-    name: "사업자 Display 연 결제",
-    label: "사업자 Display 연 결제",
+    name: "메뉴링크 디스플레이 연결제",
+    label: "메뉴링크 디스플레이 연결제",
     serviceType: "display",
     planType: "business_display",
     paymentType: "subscription",

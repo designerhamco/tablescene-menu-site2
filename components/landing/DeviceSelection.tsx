@@ -64,7 +64,6 @@ export function DeviceSelection() {
               <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
               <div className="absolute inset-x-8 top-8">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-white md:text-sm">{device.eyebrow}</span>
                   <Icon name={device.icon} className="h-6 w-6 text-white/80" />
                 </div>
                 <h3 className="mb-2 text-xl font-bold text-white md:text-3xl">{device.title}</h3>

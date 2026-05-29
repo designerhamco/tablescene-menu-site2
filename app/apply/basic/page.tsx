@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import PaidApplyPage from "../_components/PaidApplyPage";
 
 export const metadata: Metadata = {
-  title: "테이블씬 베이직 신청/결제 | TableScene",
-  description: "개인 1개월 체험 또는 사업자 정식 월/연 결제를 선택해 TableScene Basic 메뉴판을 신청합니다.",
+  title: "메뉴링크 베이직 신청/결제 | MenuLink",
+  description: "개인 1개월 체험 또는 사업자 정식 월/연 결제를 선택해 메뉴링크 베이직 메뉴판을 신청합니다.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

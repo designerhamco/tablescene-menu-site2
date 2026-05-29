@@ -20,7 +20,7 @@ const MAIN_FAQ_DATA: FAQCategory[] = [
         question: "제가 가진 기기에서도 메뉴판을 볼 수 있나요?",
         answer: (
           <>
-            네. 테이블씬 베이직 메뉴판은 웹 링크로 열리는 방식이라, 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다. 모바일, 태블릿, 노트북, PC는 물론이고, 브라우저를 지원하는 스마트 TV나 매장용 디스플레이에서도 사용할 수 있습니다.
+            네. 메뉴링크 베이직 메뉴판은 웹 링크로 열리는 방식이라, 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다. 모바일, 태블릿, 노트북, PC는 물론이고, 브라우저를 지원하는 스마트 TV나 매장용 디스플레이에서도 사용할 수 있습니다.
           </>
         )
       },
@@ -60,7 +60,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "제가 가진 기기에서도 메뉴판을 볼 수 있나요?",
         answer: (
           <>
-            테이블씬 베이직 메뉴판은 웹 링크로 열리는 방식이라 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다.
+            메뉴링크 베이직 메뉴판은 웹 링크로 열리는 방식이라 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다.
           </>
         )
       },
@@ -147,7 +147,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "AI 작성 도우미는 어떻게 제공되나요?",
         answer: (
           <>
-            Basic 메뉴판 생성 시 기본 AI 크레딧 18개, Display 메뉴판 생성 시 기본 AI 크레딧 26개가 계정에 지급됩니다.
+            메뉴링크 베이직 메뉴판 생성 시 기본 AI 크레딧 18개, 메뉴링크 디스플레이 메뉴판 생성 시 기본 AI 크레딧 26개가 계정에 지급됩니다.
             보유 AI 크레딧은 계정의 모든 메뉴판에서 함께 사용할 수 있고, 부족하면 AI 크레딧을 추가 충전할 수 있습니다.
             AI 설명 작성과 부분 자동 번역은 1 크레딧, AI 메뉴 정리는 3 크레딧, 전체 자동 번역은 5 크레딧을 사용합니다.
           </>
@@ -218,15 +218,15 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "테이블 오더 기능도 사용할 수 있나요?",
         answer: (
           <>
-            테이블 오더 기능은 준비 중입니다. 현재는 디지털 메뉴판 제작과 관리 기능을 먼저 제공합니다.
+            테이블 오더 기능은 준비 중입니다. 현재는 메뉴링크 디지털 메뉴판 제작과 관리 기능을 먼저 제공합니다.
           </>
         )
       },
       {
-        question: "테이블씬 디스플레이는 무엇인가요?",
+        question: "메뉴링크 디스플레이는 무엇인가요?",
         answer: (
           <>
-            매장 TV나 모니터에 메뉴판을 띄워 사용하는 디스플레이 메뉴보드 서비스입니다. 테이블씬 베이직과 함께 확장해 사용할 수 있도록 준비 중입니다.
+            매장 TV나 모니터에 메뉴판을 띄워 사용하는 디스플레이 메뉴보드 서비스입니다. 메뉴링크 베이직과 함께 확장해 사용할 수 있도록 준비 중입니다.
           </>
         )
       }
@@ -363,7 +363,6 @@ const FAQ = ({
                 
                 {/* Left: Title - Centered on mobile */}
                 <div className="text-center md:text-left">
-                   <span className="text-sm font-bold text-primary tracking-widest uppercase mb-2 block">Support</span>
                    <h3 className="text-2xl md:text-3xl font-bold text-zinc-900">사장님의 든든한 운영 파트너</h3>
                    <p className="text-zinc-400 text-base md:text-lg mt-2 font-medium">체계적인 기술 지원으로 안정적인 매장 운영을 약속합니다.</p>
                 </div>

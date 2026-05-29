@@ -1705,6 +1705,9 @@ function MenuItemForm({
               <div className="mt-3 max-w-sm">
                 <AiUsageMeter label="AI 설명 작성" used={aiDescriptionUsage.used} limit={aiDescriptionUsage.limit} compact />
               </div>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                AI가 생성한 문구는 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
+              </p>
             </div>
           ) : (
             <input type="hidden" name="item_description" value="" form={formId} />
@@ -1724,6 +1727,9 @@ function MenuItemForm({
                   updateDraftItem({ originInfo: event.target.value });
                 }}
               />
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                원산지 및 알레르기 정보는 실제 제공 상품 기준으로 직접 확인 후 입력해주세요.
+              </p>
             </div>
           )}
         </div>
@@ -1892,6 +1898,9 @@ function MenuItemForm({
             />
           </div>
         )}
+        <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+          실제 매장에서 제공하는 가격과 일치하는지 확인해주세요.
+        </p>
         {isOptionsMode && (
           <div className="mt-4">
             <DraftPriceOptionsEditor
@@ -4207,6 +4216,9 @@ export default function MenuManagementSection({
               <p className="mt-2 break-words text-sm font-semibold leading-relaxed text-zinc-500">
                 {labels.pageLabel}, {labels.categoryLabel}, {labels.itemPluralLabel}을 관리합니다.
               </p>
+              <p className="mt-3 break-keep rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
+                메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
+              </p>
             </div>
             <div className="shrink-0">
               <div className="flex flex-col gap-3 sm:items-end">
@@ -4221,6 +4233,9 @@ export default function MenuManagementSection({
                 >
                   AI 메뉴 정리 · 3크레딧
                 </button>
+                <p className="max-w-xs break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">
+                  AI가 생성한 문구와 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
+                </p>
                 <div className="w-full min-w-56">
                   <AiUsageMeter label="AI 메뉴 정리" used={localAiMenuCleanupUsage.used} limit={localAiMenuCleanupUsage.limit} compact />
                 </div>
@@ -4857,6 +4872,9 @@ export default function MenuManagementSection({
               </h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 메뉴 이름, 가격, 설명을 자유롭게 붙여넣으면 AI가 카테고리와 메뉴 아이템으로 정리합니다.
+              </p>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                AI 결과물은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인하고, 주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 입력하지 마세요.
               </p>
               <div className="mt-4 max-w-sm">
                 <AiUsageMeter label="AI 메뉴 정리" used={localAiMenuCleanupUsage.used} limit={localAiMenuCleanupUsage.limit} compact />

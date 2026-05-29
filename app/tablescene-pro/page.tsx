@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function TableSceneProRedirectPage() {
+export default function MenuLinkProRedirectPage() {
   redirect("/services/display");
 }

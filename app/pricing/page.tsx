@@ -5,7 +5,7 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 const pricingPlans = [
   {
-    name: "TableScene Basic",
+    name: "MenuLink Basic",
     description: "디지털 메뉴판을 만들고 QR 링크로 공유하는 기본 상품입니다.",
     price: "월 6,000원 / 연 60,000원",
     href: "/apply/basic",
@@ -13,7 +13,7 @@ const pricingPlans = [
     available: true,
   },
   {
-    name: "TableScene Display",
+    name: "MenuLink Display",
     description: "매장 TV와 모니터용 디스플레이 메뉴보드 상품입니다.",
     price: "월 12,000원 / 연 120,000원",
     href: "/apply/display",
@@ -21,7 +21,7 @@ const pricingPlans = [
     available: false,
   },
   {
-    name: "TableScene Custom",
+    name: "MenuLink Custom",
     description: "브랜딩과 인터랙션을 담은 맞춤 제작 상담형 상품입니다.",
     price: "별도 견적",
     href: "/apply/custom",
@@ -41,7 +41,6 @@ export default function PricingPage() {
               <Link href="/mypage" className="mb-6 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
                 ← 마이페이지
               </Link>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Pricing</p>
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">요금제 안내</h1>
               <p className="mt-4 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500">
                 요금제를 확인한 뒤 신청 페이지에서 상품을 선택해주세요. 실제 결제와 메뉴판 생성은 `/apply` 및 `/apply/basic` 흐름에서만 진행됩니다.
@@ -58,8 +57,7 @@ export default function PricingPage() {
           <section className="grid gap-5 md:grid-cols-3">
             {pricingPlans.map((plan) => (
               <article key={plan.name} className="flex min-h-[280px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Plan</p>
-                <h2 className="mt-5 break-keep text-2xl font-black tracking-tight">{plan.name}</h2>
+                <h2 className="break-keep text-2xl font-black tracking-tight">{plan.name}</h2>
                 <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{plan.description}</p>
                 <p className="mt-6 text-lg font-black text-zinc-950">{plan.price}</p>
                 {plan.available ? (

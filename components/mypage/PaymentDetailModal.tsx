@@ -68,8 +68,7 @@ export default function PaymentDetailModal({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Payment</p>
-                <h2 id="payment-detail-title" className="mt-2 text-2xl font-black tracking-tight text-zinc-950">
+                <h2 id="payment-detail-title" className="text-2xl font-black tracking-tight text-zinc-950">
                   결제 상세
                 </h2>
               </div>

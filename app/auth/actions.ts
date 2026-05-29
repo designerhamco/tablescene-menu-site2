@@ -39,6 +39,9 @@ export async function signUpAction(formData: FormData) {
   const email = getString(formData, "email");
   const password = getString(formData, "password");
   const displayName = getString(formData, "displayName");
+  const termsAccepted = formData.get("termsAccepted") === "on";
+  const privacyAccepted = formData.get("privacyAccepted") === "on";
+  const marketingAccepted = formData.get("marketingAccepted") === "on";
   const next = getSafeAuthRedirectPath(getString(formData, "next"));
   const encodedNext = encodeURIComponent(next);
 
@@ -46,8 +49,13 @@ export async function signUpAction(formData: FormData) {
     redirect(`/sign-up?error=missing-fields&next=${encodedNext}`);
   }
 
+  if (!termsAccepted || !privacyAccepted) {
+    redirect(`/sign-up?error=${encodeURIComponent("필수 약관에 동의해주세요.")}&next=${encodedNext}`);
+  }
+
   const supabase = await createClient();
   const origin = await getOrigin();
+  const consentAgreedAt = new Date().toISOString();
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -55,6 +63,11 @@ export async function signUpAction(formData: FormData) {
     options: {
       data: {
         display_name: displayName,
+        terms_accepted: termsAccepted,
+        privacy_accepted: privacyAccepted,
+        marketing_accepted: marketingAccepted,
+        consent_agreed_at: consentAgreedAt,
+        consent_context: "sign_up",
       },
       emailRedirectTo: `${origin}/auth/callback?next=${encodedNext}`,
     },

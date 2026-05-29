@@ -16,21 +16,18 @@ type ConsultingApplyPageProps = {
 const CONSULTING_COPY: Record<
   ConsultingServiceType,
   {
-    eyebrow: string;
     title: string;
     description: string;
     submitLabel: string;
   }
 > = {
   order: {
-    eyebrow: "TableScene QR Order",
-    title: "테이블씬 오더 1.0 상담 신청",
+    title: "메뉴링크 오더 1.0 상담 신청",
     description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템 도입을 상담합니다.",
     submitLabel: "도입 문의하기",
   },
   custom: {
-    eyebrow: "TableScene Custom",
-    title: "테이블씬 커스텀 견적 문의",
+    title: "메뉴링크 커스텀 견적 문의",
     description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 프로젝트 단위로 상담합니다.",
     submitLabel: "견적 문의하기",
   },
@@ -126,9 +123,6 @@ export default async function ConsultingApplyPage({
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-10 border-b border-zinc-200 pb-8">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">
-              {copy.eyebrow}
-            </p>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">{copy.title}</h1>
             <p className="mt-4 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500">
               {copy.description}
@@ -148,7 +142,7 @@ export default async function ConsultingApplyPage({
             ) : null}
 
             <div className="grid gap-5 md:grid-cols-2">
-              <Field label="매장명" name="storeName" placeholder="예: 테이블씬 카페" required />
+              <Field label="매장명" name="storeName" placeholder="예: 메뉴링크 카페" required />
               <SelectField
                 label="업종"
                 name="businessCategory"
@@ -162,7 +156,7 @@ export default async function ConsultingApplyPage({
                 label="이메일"
                 name="contactEmail"
                 type="email"
-                placeholder="예: hello@tablescene.kr"
+                placeholder="예: hello@example.com"
                 required
               />
 

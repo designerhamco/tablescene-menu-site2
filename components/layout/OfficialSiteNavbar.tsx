@@ -5,8 +5,9 @@ import { BrowserRouter, useLocation } from "react-router";
 
 import Navbar from "@/app/components/layout/Navbar";
 
-function subscribeToMount() {
-  return () => {};
+function subscribeToMount(onStoreChange: () => void) {
+  const timeoutId = window.setTimeout(onStoreChange, 0);
+  return () => window.clearTimeout(timeoutId);
 }
 
 function getClientSnapshot() {

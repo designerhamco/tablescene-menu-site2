@@ -43,7 +43,7 @@ import {
 import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
-import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeTableScenePlanKey } from "@/lib/menu-ai-usage";
+import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
@@ -591,7 +591,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
             ← 메뉴판 목록으로
           </Link>
           <section className="rounded-lg bg-white p-8 shadow-sm">
-            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">테이블씬 커스텀은 맞춤 제작형 서비스입니다.</h1>
+            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">메뉴링크 커스텀은 맞춤 제작형 서비스입니다.</h1>
             <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
               <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
@@ -812,7 +812,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const editorServiceType = getMenuEditorServiceType(latestOrder?.product_key);
-  const aiUsagePlanKey = normalizeTableScenePlanKey(latestOrder?.product_key);
+  const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
 
   if (editorServiceType === "custom") {
     return <CustomEditorUnavailable siteName={site.name} />;
@@ -1410,6 +1410,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
                     </div>
                   )}
+                  <div className="rounded-lg border border-zinc-100 bg-white p-4 text-xs font-bold leading-relaxed text-zinc-500 shadow-sm">
+                    메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
+                  </div>
                   <MenuManagementSection
                     menuId={site.id}
                     menuPages={menuPages}
@@ -1652,6 +1655,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   )}
                   <p className="break-keep text-sm font-bold text-amber-700">
                     QR 코드는 결제 시 지정한 공개 메뉴판 주소로 연결됩니다.
+                  </p>
+                  <p className="break-keep rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                    공개 전 메뉴명, 가격, 영업시간, 이벤트, 원산지, 알레르기 정보가 정확한지 확인해주세요. AI 기능을 통해 생성된 문구와 번역은 참고용 초안이며, 실제 매장 운영 정보와 일치하는지 직접 검토해야 합니다.
                   </p>
                   <div>
                     <FinalActionRow>

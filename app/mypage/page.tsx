@@ -6,6 +6,7 @@ import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
 import ContactProfileEditor from "@/components/mypage/ContactProfileEditor";
+import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettings";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import {
@@ -402,17 +403,17 @@ function getProductLabel(productKey: string | null | undefined) {
 
   if (basicProduct) return basicProduct.name;
 
-  if (key === personalTrialBasicProduct.product_key) return "TableScene Basic 개인 1개월 체험";
+  if (key === personalTrialBasicProduct.product_key) return "메뉴링크 베이직 개인 1개월 체험";
 
   return key || "상품명 확인 필요";
 }
 
 function getServiceName(planType: string | null | undefined, billingCycle: string | null | undefined) {
-  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return "TableScene Basic 개인 체험";
-  if (planType === "business_display") return billingCycle === "yearly" ? "TableScene Display 연 결제" : "TableScene Display 월 결제";
-  if (planType === "business_basic") return billingCycle === "yearly" ? "TableScene Basic 연 결제" : "TableScene Basic 월 결제";
+  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return "메뉴링크 베이직 개인 체험";
+  if (planType === "business_display") return billingCycle === "yearly" ? "메뉴링크 디스플레이 연결제" : "메뉴링크 디스플레이 월결제";
+  if (planType === "business_basic") return billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
 
-  return "TableScene 이용권";
+  return "메뉴링크 이용권";
 }
 
 function getBillingCycleLabel(billingCycle: string | null | undefined) {
@@ -633,6 +634,21 @@ function getRemainingDaysUntilKst(expiresAt: string | Date, now: Date = new Date
   }
 
   return Math.round((expiresStart - todayStart) / DAY_MS);
+}
+
+function addDaysIso(dateValue: string | Date | null | undefined, days: number) {
+  if (!dateValue) {
+    return null;
+  }
+
+  const date = typeof dateValue === "string" ? new Date(dateValue) : new Date(dateValue);
+
+  if (!Number.isFinite(date.getTime())) {
+    return null;
+  }
+
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
 }
 
 function getRetentionMessage(daysUntilRetentionEnds: number | null) {
@@ -1219,7 +1235,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     if (activeBusinessSubscription) {
       primaryMessage = cancelAtPeriodEnd
         ? "해지 예약된 구독입니다. 이용 종료일까지 메뉴판을 사용할 수 있습니다."
-        : `${billingCycle === "yearly" ? "사업자 Basic 연 결제" : "사업자 Basic 월결제"}로 이용 중입니다.`;
+        : `${billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제"}로 이용 중입니다.`;
       metaItems.push({
         label: cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일",
         value: formatDate(cancelAtPeriodEnd ? periodEnd : activeBusinessSubscription.next_billing_at),
@@ -1351,6 +1367,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const contactName = contactProfile?.contact_name?.trim() || displayName || businessProfile?.representative_name || "";
   const contactPhone = contactProfile?.contact_phone?.trim() || "";
   const notificationEmail = contactProfile?.notification_email?.trim() || user.email || "";
+  const marketingAccepted = user.user_metadata?.marketing_accepted === true;
+  const marketingConsentedAt = getMetadataString(user.user_metadata, ["marketing_consented_at"]);
+  const marketingWithdrawnAt = getMetadataString(user.user_metadata, ["marketing_withdrawn_at"]);
 
   return (
     <>
@@ -1369,7 +1388,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           <aside className="space-y-4 lg:sticky lg:top-28">
             <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-zinc-400">계정 요약</p>
               <h2 className="break-all text-lg font-black tracking-tight">{user.email}</h2>
               <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {user.id}</p>
               <form action={signOutAction} className="mt-5">
@@ -1406,9 +1424,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section id="my-menus" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">
-                    내 메뉴판
-                  </p>
                   <h2 className="text-3xl font-bold tracking-tight">메뉴판 관리</h2>
                   <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     생성한 메뉴판을 편집하고 공개 상태를 확인할 수 있습니다.
@@ -1483,9 +1498,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             </section>
           ) : (
             <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">
-                내 메뉴판
-              </p>
               <h3 className="text-2xl font-bold">아직 만든 메뉴판이 없습니다</h3>
               <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
                 상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다.
@@ -1505,7 +1517,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <section id="payment-history" className="scroll-mt-28">
                 <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                   <div>
-                    <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Billing</p>
                     <h2 className="text-3xl font-bold tracking-tight">구독/결제 내역</h2>
                     <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                       이용 중인 서비스, 만료·보관된 메뉴판, AI 크레딧 충전 내역을 확인할 수 있습니다.
@@ -1538,7 +1549,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <section className="space-y-4">
                   <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                     <div>
-                      <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Active Services</p>
                       <h3 className="text-2xl font-black tracking-tight">이용 중인 서비스</h3>
                     </div>
                     {activeServiceItems.length > 4 ? (
@@ -1619,6 +1629,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     체험 종료 전 사업자 플랜으로 전환하면 현재 메뉴판을 이어서 사용할 수 있습니다.
                                   </p>
                                 ) : null}
+                                {isBusinessSubscription ? (
+                                  <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-500">
+                                    구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있으며, 이용기간 종료 후 메뉴판은 비공개 처리되고 7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
+                                  </div>
+                                ) : null}
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
                                 {isBusinessSubscription && subscription?.id ? (
@@ -1677,7 +1692,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <section className="space-y-4">
                   <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                     <div>
-                      <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Expired & Archived</p>
                       <h3 className="text-2xl font-black tracking-tight">만료·보관된 메뉴판</h3>
                       <p className="mt-2 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-700">
                         만료 또는 보관 중인 메뉴판은 공개와 편집이 제한됩니다. 복구 가능한 메뉴판은 사업자 플랜 전환 후 이어서 사용할 수 있습니다.
@@ -1704,6 +1718,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const dataRetentionUntil = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
                         const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
                         const expiresAt = entitlement?.access_expires_at ?? subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
+                        const dataDeletionScheduledAt = dataRetentionUntil ?? addDaysIso(entitlement?.expired_at ?? expiresAt, 7);
                         const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle);
                         const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
                         const paymentDetailId = getSafeString(latestPayment?.payment.payment_id ?? latestPayment?.payment.portone_payment_id ?? subscription?.portone_payment_id ?? latestPayment?.order?.payment_id ?? null);
@@ -1739,7 +1754,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">보관 상태</dt>
-                                    <dd className="mt-1 break-keep font-bold text-zinc-900">{dataRetentionUntil ? getRetentionMessage(daysUntilRetentionEnds) : "보관 기간 정보 없음"}</dd>
+                                    <dd className="mt-1 break-keep font-bold text-zinc-900">{dataDeletionScheduledAt ? getRetentionMessage(dataRetentionUntil ? daysUntilRetentionEnds : getRemainingDaysUntilKst(dataDeletionScheduledAt)) : "보관 기간 정보 없음"}</dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">결제수단 / PG</dt>
@@ -1750,8 +1765,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     <dd className="mt-1 font-bold text-zinc-900">{typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                 </dl>
+                                <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs font-bold leading-relaxed text-amber-800">
+                                  <p>이 메뉴판의 이용기간이 종료되어 비공개 처리되었습니다.</p>
+                                  <p className="mt-2">종료 후 7일 이내 유료서비스로 전환하거나 구독을 재개하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.</p>
+                                  <p className="mt-2">7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.</p>
+                                  <p className="mt-3 font-black text-amber-950">데이터 삭제 예정일: {formatDate(dataDeletionScheduledAt)}</p>
+                                  <p className="mt-2 text-[11px] text-amber-700">TODO: 실제 삭제 배치/스케줄러는 데이터 보관 정책에 맞춰 별도 작업으로 연결합니다.</p>
+                                </div>
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
+                                {menuSite?.id && isPersonalTrial ? (
+                                  <Link href={`/mypage/menus/${menuSite.id}/convert`} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
+                                    기존 메뉴판 유지하고 유료 전환하기
+                                  </Link>
+                                ) : subscription ? (
+                                  <Link href="/mypage/inquiries" className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
+                                    구독 재개하기
+                                  </Link>
+                                ) : null}
                                 {latestPayment ? (
                                   <PaymentDetailModal
                                     productName={paymentDetailProductName}
@@ -1801,8 +1832,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   />
                 ) : (
                   <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">AI 크레딧</p>
-                    <h3 className="mt-2 text-base font-black text-zinc-950">보유 AI 크레딧 0개</h3>
+                    <h3 className="text-base font-black text-zinc-950">보유 AI 크레딧 0개</h3>
                     <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                       충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
                     </p>
@@ -1811,7 +1841,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <section className="space-y-4">
                   <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                     <div>
-                      <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">AI Credits</p>
                       <h3 className="text-2xl font-black tracking-tight">AI 크레딧 충전 내역</h3>
                       <p className="mt-2 max-w-2xl break-keep text-xs font-bold leading-relaxed text-amber-700">
                         AI 크레딧은 계정 공용으로 충전되며, 지급 후 단순 변심에 따른 취소/환불이 제한됩니다. 중복 결제 또는 미지급 건은 고객지원으로 문의해주세요.
@@ -1905,7 +1934,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section id="account-info" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">계정 정보</p>
                   <h2 className="text-2xl font-bold tracking-tight">로그인 및 가입 정보</h2>
                   <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     현재 계정의 로그인 방식과 연결된 인증 정보를 확인합니다.
@@ -1961,8 +1989,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <section className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">인증된 사업자 정보</p>
-                      <h3 className="mt-2 text-lg font-black tracking-tight text-zinc-950">
+                      <h3 className="text-lg font-black tracking-tight text-zinc-950">
                         {businessProfile?.business_name || "아직 인증된 사업자 정보가 없습니다."}
                       </h3>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
@@ -2021,8 +2048,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <section className="mt-6 rounded-2xl border border-zinc-100 bg-white p-5">
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">담당자 정보</p>
-                      <h3 className="mt-2 text-lg font-black tracking-tight text-zinc-950">서비스 안내 및 문의 수신 정보</h3>
+                      <h3 className="text-lg font-black tracking-tight text-zinc-950">서비스 안내 및 문의 수신 정보</h3>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다.
                       </p>
@@ -2057,6 +2083,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     </p>
                   )}
                 </section>
+                <MarketingConsentSettings
+                  initialAccepted={marketingAccepted}
+                  consentedAt={marketingConsentedAt}
+                  withdrawnAt={marketingWithdrawnAt}
+                />
               </article>
             </section>
             ) : null}

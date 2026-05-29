@@ -34,7 +34,6 @@ const Shop = () => {
         
         {/* Changed to Center Alignment for Consistency */}
         <div className="text-center mb-16 md:mb-20 max-w-3xl mx-auto">
-          <span className="text-primary text-xs font-bold tracking-widest uppercase mb-4 block">Hardware Store</span>
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-zinc-900 tracking-tight">
             매장 효율을 극대화하는<br />
             전용 하드웨어

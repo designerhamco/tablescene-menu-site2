@@ -1,5 +1,5 @@
 export type AiUsageType = "ai_description" | "ai_menu_cleanup" | "ai_translate_full" | "ai_translate_partial";
-export type TableScenePlanKey = "basic" | "display";
+export type MenuLinkPlanKey = "basic" | "display";
 
 export type AiUsage = {
   used: number;
@@ -13,7 +13,7 @@ export type AiUsageSnapshot = Record<AiUsageType, AiUsage>;
 const AI_INCLUDED_CREDIT_LIMITS_BY_PLAN = {
   basic: 18,
   display: 26,
-} as const satisfies Record<TableScenePlanKey, number>;
+} as const satisfies Record<MenuLinkPlanKey, number>;
 
 const AI_USAGE_TYPE_CREDIT_COSTS = {
   ai_description: 1,
@@ -32,7 +32,7 @@ function getNumber(value: unknown, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
-export function normalizeTableScenePlanKey(productKey?: string | null): TableScenePlanKey {
+export function normalizeMenuLinkPlanKey(productKey?: string | null): MenuLinkPlanKey {
   if (productKey === "large_screen" || productKey === "display") return "display";
   return "basic";
 }
@@ -63,7 +63,7 @@ function getLegacyTranslationUsage(settings: unknown, period: string) {
   };
 }
 
-export function getAiUsage(settings: unknown, planKey: TableScenePlanKey, usageType: AiUsageType, now = new Date()): AiUsage {
+export function getAiUsage(settings: unknown, planKey: MenuLinkPlanKey, usageType: AiUsageType, now = new Date()): AiUsage {
   const period = getCurrentAiUsagePeriod(now);
   const settingsObject = getJsonObject(settings);
   const aiUsage = getJsonObject(settingsObject.ai_usage);
@@ -82,7 +82,7 @@ export function getAiUsage(settings: unknown, planKey: TableScenePlanKey, usageT
   };
 }
 
-export function getAiUsageSnapshot(settings: unknown, planKey: TableScenePlanKey, now = new Date()): AiUsageSnapshot {
+export function getAiUsageSnapshot(settings: unknown, planKey: MenuLinkPlanKey, now = new Date()): AiUsageSnapshot {
   return AI_USAGE_TYPES.reduce((snapshot, usageType) => {
     snapshot[usageType] = getAiUsage(settings, planKey, usageType, now);
     return snapshot;
@@ -124,7 +124,7 @@ export function isAiUsageExceeded(usage: AiUsage) {
   return usage.used >= usage.limit;
 }
 
-export function getSettingsWithIncrementedAiUsage(settings: unknown, planKey: TableScenePlanKey, usageType: AiUsageType, usedAt = new Date()) {
+export function getSettingsWithIncrementedAiUsage(settings: unknown, planKey: MenuLinkPlanKey, usageType: AiUsageType, usedAt = new Date()) {
   const settingsObject = getJsonObject(settings);
   const aiUsage = getJsonObject(settingsObject.ai_usage);
   const currentUsage = getAiUsage(settingsObject, planKey, usageType, usedAt);

@@ -201,8 +201,7 @@ export default function ContactProfileEditor({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Contact</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight text-zinc-950">담당자 정보 수정</h2>
+                <h2 className="text-2xl font-black tracking-tight text-zinc-950">담당자 정보 수정</h2>
                 <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                   문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다. 사업자 인증 정보 변경은 고객지원으로 문의해주세요.
                 </p>

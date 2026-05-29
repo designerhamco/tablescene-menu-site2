@@ -233,6 +233,9 @@ export default function ImageUploadField({
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</p>
           {description && <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">{description}</p>}
           <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{fileGuidance}</p>
+          <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+            본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
+          </p>
 
           <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
             <input

@@ -17,13 +17,13 @@ export const SmartWaitingUI = () => {
                     <div className="w-1.5 h-1.5 @sm:w-2 @sm:h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                     <span className="text-emerald-500 text-[10px] @sm:text-xs font-bold tracking-widest uppercase">Operating</span>
                 </div>
-                <h1 className="text-xl @sm:text-3xl lg:text-4xl font-bold mb-1 @sm:mb-2 tracking-tight text-white">테이블씬 다이닝</h1>
+                <h1 className="text-xl @sm:text-3xl lg:text-4xl font-bold mb-1 @sm:mb-2 tracking-tight text-white">메뉴링크 다이닝</h1>
                 <p className="text-zinc-500 text-xs @sm:text-sm font-medium">서울 강남구 테헤란로 123</p>
             </div>
             
             {/* Mobile Only: Powered by (moved to top right on mobile) */}
             <div className="block @sm:hidden text-zinc-700 text-[8px] font-mono tracking-widest uppercase mt-1">
-                TableScene
+                MenuLink
             </div>
           </div>
 
@@ -56,7 +56,7 @@ export const SmartWaitingUI = () => {
 
           {/* Desktop Only: Powered by */}
           <div className="hidden @sm:block text-zinc-700 text-[10px] font-mono relative z-10 tracking-widest uppercase">
-            Powered by TableScene
+            Powered by MenuLink
           </div>
         </div>
 

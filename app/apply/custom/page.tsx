@@ -12,7 +12,7 @@ type PageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "테이블씬 커스텀 견적 문의 | TableScene",
+  title: "메뉴링크 커스텀 견적 문의 | MenuLink",
   description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험 상담 신청 페이지입니다.",
 };
 
@@ -115,17 +115,15 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
         <div className="mx-auto w-full max-w-6xl">
           <header className="grid gap-8 border-b border-zinc-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
             <div>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">TableScene Custom</p>
               <h1 className="max-w-3xl break-keep text-4xl font-black tracking-tight md:text-5xl">
-                테이블씬 커스텀 견적 문의
+                메뉴링크 커스텀 견적 문의
               </h1>
               <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
                 브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 주문제작 프로젝트로 상담합니다.
               </p>
             </div>
             <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Project Type</p>
-              <p className="mt-3 break-keep text-2xl font-black tracking-tight">상담형 · 견적 문의형</p>
+              <p className="break-keep text-2xl font-black tracking-tight">상담형 · 견적 문의형</p>
               <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                 결제 없이 프로젝트 범위와 예산을 먼저 확인합니다. 접수 후 담당자가 맞춤 제작 범위와 일정, 견적을 안내합니다.
               </p>
@@ -143,12 +141,11 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
               ) : null}
 
               <div className="mb-6">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Basic Info</p>
                 <h2 className="text-3xl font-black tracking-tight">기본 신청 정보</h2>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
-                <Field label="매장명" name="storeName" placeholder="예: 테이블씬 다이닝" required />
+                <Field label="매장명" name="storeName" placeholder="예: 메뉴링크 다이닝" required />
                 <SelectField
                   label="업종"
                   name="businessCategory"
@@ -158,7 +155,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
                 />
                 <Field label="담당자명" name="contactName" placeholder="예: 홍길동" required />
                 <Field label="연락처" name="contactPhone" placeholder="예: 010-0000-0000" required />
-                <Field label="이메일" name="contactEmail" type="email" placeholder="예: hello@tablescene.kr" required />
+                <Field label="이메일" name="contactEmail" type="email" placeholder="예: hello@example.com" required />
                 <SelectField label="원하는 분위기" name="desiredMood" options={moodOptions} />
                 <Field label="참고 사이트" name="referenceSite" placeholder="https://example.com" />
                 <SelectField label="예산 범위" name="budgetRange" options={budgetOptions} />
@@ -193,8 +190,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
 
             <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
               <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Estimate Request</p>
-                <h2 className="mt-3 text-2xl font-black tracking-tight">상담 신청하기</h2>
+                <h2 className="text-2xl font-black tracking-tight">상담 신청하기</h2>
                 <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                   결제 버튼은 제공하지 않습니다. 접수된 내용은 문의 내역으로 저장되고, 프로젝트 상담 후 별도 견적을 안내합니다.
                 </p>

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!accessState?.canViewPublic) {
     return {
-      title: "비공개 메뉴판 | Table Scene",
+      title: "비공개 메뉴판 | MenuLink",
       robots: {
         index: false,
         follow: false,
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) {
     return {
-      title: "공개되지 않은 메뉴판 | Table Scene",
+      title: "공개되지 않은 메뉴판 | MenuLink",
       robots: {
         index: false,
         follow: false,
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = `${data.menuSite.business_name || data.menuSite.name} 메뉴판`;
-  const description = data.menuSite.description || `${data.menuSite.name}의 Table Scene 디지털 메뉴판입니다.`;
+  const description = data.menuSite.description || `${data.menuSite.name}의 MenuLink 디지털 메뉴판입니다.`;
 
   return {
     title,

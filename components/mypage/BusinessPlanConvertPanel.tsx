@@ -4,7 +4,9 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import { useState } from "react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { ConsentAgreementBox, ConsentDetailText, type ConsentAgreementItem } from "@/components/consent/ConsentAgreementBox";
 import { businessBasicMonthlyProduct, businessBasicYearlyProduct, formatKrw, type BasicProductKey } from "@/lib/payments";
+import { openDiscountPolicy } from "@/lib/promotion-policy";
 
 type BusinessVerificationResponse = {
   ok?: boolean;
@@ -59,6 +61,8 @@ type FormState = {
   phone: string;
 };
 
+type ConvertConsentKey = "termsAccepted" | "businessInfoAccepted" | "paymentPolicyAccepted" | "marketingAccepted";
+
 type BusinessPlanConvertPanelProps = {
   menuSiteId: string;
   storeId: string | null;
@@ -66,6 +70,51 @@ type BusinessPlanConvertPanelProps = {
 };
 
 const conversionProducts = [businessBasicMonthlyProduct, businessBasicYearlyProduct] as const;
+
+const convertConsentItems: readonly ConsentAgreementItem[] = [
+  {
+    key: "termsAccepted",
+    label: "[필수] 메뉴링크 이용약관에 동의합니다.",
+    required: true,
+    href: "/terms",
+    detailTitle: "메뉴링크 이용약관 동의",
+    detail: <ConsentDetailText><p>메뉴링크 서비스 이용, 무료 개인체험, 유료서비스, 정기결제, 해지, 환불 제한, AI 크레딧, 데이터 보관 및 삭제 기준을 확인하고 동의합니다.</p></ConsentDetailText>,
+  },
+  {
+    key: "businessInfoAccepted",
+    label: "[필수] 유료 전환을 위한 사업자 정보 수집·이용에 동의합니다.",
+    required: true,
+    href: "/privacy",
+    detailTitle: "사업자 정보 수집·이용 동의",
+    detail: (
+      <ConsentDetailText>
+        <p>무료 개인체험 메뉴판의 유료서비스 전환, 사업자 확인, 월구독 또는 연구독 결제, 정기구독 관리, 증빙 처리, 고객지원 및 부정 이용 방지를 위해 상호명, 대표자명, 사업자등록번호, 사업장 주소, 업종, 업태, 담당자명, 담당자 연락처, 담당자 이메일을 수집·이용합니다.</p>
+        <p>사업자 정보는 사업자 인증 API를 통해 유효성이 확인될 수 있으며, 사업자등록증 파일은 기본적으로 수집하지 않습니다.</p>
+        <p>보유기간은 유료서비스 이용기간 동안이며, 결제·정산·계약·소비자 분쟁 관련 기록은 관계 법령에 따라 일정 기간 보관됩니다.</p>
+        <p>동의를 거부할 경우 무료 개인체험 메뉴판의 유료 전환, 결제 및 유료서비스 이용이 제한될 수 있습니다.</p>
+      </ConsentDetailText>
+    ),
+  },
+  {
+    key: "paymentPolicyAccepted",
+    label: "[필수] 결제 즉시 유료서비스가 시작되며, 정기결제·해지·환불 제한 조건을 확인했습니다.",
+    required: true,
+    detailTitle: "유료 전환 및 결제 조건",
+    detail: (
+      <ConsentDetailText>
+        <p>무료 개인체험 메뉴판을 유료서비스로 전환하면 기존 메뉴판 데이터가 유지되며, 선택한 요금제의 유료서비스 이용기간이 시작됩니다.</p>
+        <p>결제 완료 즉시 유료서비스 제공 및 AI 크레딧 지급이 시작되므로, 서비스 제공 개시 후에는 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.</p>
+        <p>구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.</p>
+      </ConsentDetailText>
+    ),
+  },
+  {
+    key: "marketingAccepted",
+    label: "[선택] 이벤트·혜택·신규 템플릿·AI 기능 업데이트 등 광고성 정보 수신에 동의합니다.",
+    detailTitle: "마케팅 정보 수신 동의",
+    detail: <ConsentDetailText><p>마케팅 정보 수신 동의는 선택 사항이며, 동의하지 않아도 유료 전환 및 서비스 이용에는 제한이 없습니다. 동의는 마이페이지 또는 고객지원 문의를 통해 철회할 수 있습니다.</p></ConsentDetailText>,
+  },
+];
 
 function formatBusinessNumber(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -87,6 +136,13 @@ function getRequiredError(label: string, value: string) {
 export default function BusinessPlanConvertPanel({ menuSiteId, storeId, billingChannelKey }: BusinessPlanConvertPanelProps) {
   const [selectedProductKey, setSelectedProductKey] = useState<BasicProductKey>("business_basic_monthly");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [consents, setConsents] = useState<Record<ConvertConsentKey, boolean>>({
+    termsAccepted: false,
+    businessInfoAccepted: false,
+    paymentPolicyAccepted: false,
+    marketingAccepted: false,
+  });
+  const [activeConsent, setActiveConsent] = useState<ConvertConsentKey | null>(null);
   const [form, setForm] = useState<FormState>({
     businessName: "",
     representativeName: "",
@@ -106,6 +162,20 @@ export default function BusinessPlanConvertPanel({ menuSiteId, storeId, billingC
   const openingDateError = getRequiredError("개업일자", form.openingDate);
   const isVerified = verificationState.type === "verified" && Boolean(verificationState.result.businessProfileId);
   const isPortOneReady = Boolean(storeId && billingChannelKey);
+  const requiredConsentsAccepted = consents.termsAccepted && consents.businessInfoAccepted && consents.paymentPolicyAccepted;
+
+  function updateConsent(key: ConvertConsentKey, checked: boolean) {
+    setConsents((current) => ({ ...current, [key]: checked }));
+  }
+
+  function toggleAllConsents(checked: boolean) {
+    setConsents({
+      termsAccepted: checked,
+      businessInfoAccepted: checked,
+      paymentPolicyAccepted: checked,
+      marketingAccepted: checked,
+    });
+  }
 
   function updateField(key: keyof FormState, value: string) {
     setForm((current) => ({
@@ -198,6 +268,11 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
       return;
     }
 
+    if (!requiredConsentsAccepted) {
+      setVerificationState({ type: "failed", message: "필수 동의 항목을 확인해주세요." });
+      return;
+    }
+
     if (!storeId || !billingChannelKey) {
       setVerificationState({
         type: "failed",
@@ -227,6 +302,10 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           billing_channel: "subscription",
           source: "personal_trial_convert",
           menu_site_id: menuSiteId,
+          terms_accepted: consents.termsAccepted,
+          business_info_accepted: consents.businessInfoAccepted,
+          payment_policy_accepted: consents.paymentPolicyAccepted,
+          marketing_accepted: consents.marketingAccepted,
         },
       } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0]);
       const issueResult = issueResponse as BillingKeyIssueResponse | null | undefined;
@@ -255,6 +334,14 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           productKey: selectedProduct.product_key,
           billingCycle: selectedProduct.billing_cycle,
           menuSiteId,
+          consentSnapshot: {
+            termsAccepted: consents.termsAccepted,
+            businessInfoAccepted: consents.businessInfoAccepted,
+            paymentPolicyAccepted: consents.paymentPolicyAccepted,
+            marketingAccepted: consents.marketingAccepted,
+            consentAgreedAt: new Date().toISOString(),
+            consentContext: "personal_trial_convert",
+          },
         }),
       });
       const result = (await response.json()) as BusinessSubscriptionResponse;
@@ -277,11 +364,10 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Plan</p>
         <h2 className="text-2xl font-black tracking-tight">사업자 플랜 선택</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-          현재 메뉴판은 Basic 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 Basic 사업자 플랜으로 전환할 수 있습니다.
-          Display 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
+          현재 메뉴판은 메뉴링크 베이직 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 메뉴링크 베이직 사업자 플랜으로 전환할 수 있습니다.
+          메뉴링크 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -314,7 +400,6 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
       </section>
 
       <aside className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm lg:sticky lg:top-28 lg:self-start">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Summary</p>
         <h2 className="text-2xl font-black tracking-tight">전환 준비</h2>
         <dl className="mt-6 space-y-4 text-sm font-bold">
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
@@ -333,7 +418,29 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             <dt className="text-zinc-400">결제 방식</dt>
             <dd className="text-right text-zinc-900">{selectedProduct.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}</dd>
           </div>
+          <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
+            <dt className="text-zinc-400">오늘 결제 금액</dt>
+            <dd className="text-right text-zinc-900">{formatKrw(selectedProduct.amount)}</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
+            <dt className="text-zinc-400">오픈 할인</dt>
+            <dd className="text-right text-zinc-900">{openDiscountPolicy.durationLabel}</dd>
+          </div>
         </dl>
+        <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+          {openDiscountPolicy.note}
+        </p>
+        <div className="mt-6">
+          <ConsentAgreementBox<ConvertConsentKey>
+            values={consents}
+            items={convertConsentItems}
+            activeKey={activeConsent}
+            onChange={updateConsent}
+            onToggleAll={toggleAllConsents}
+            onOpen={setActiveConsent}
+            onClose={() => setActiveConsent(null)}
+          />
+        </div>
         <div className={`mt-6 whitespace-pre-line rounded-2xl border p-4 text-sm font-bold leading-relaxed ${isVerified ? "border-emerald-100 bg-emerald-50 text-emerald-700" : verificationState.type === "failed" ? "border-red-100 bg-red-50 text-red-700" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
           {isVerified
             ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 기존 메뉴판을 이어서 사용할 수 있습니다."
@@ -344,10 +451,10 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
         <button
           type="button"
           onClick={startConversionBilling}
-          disabled={!isVerified || isSubmitting}
+          disabled={!isVerified || !requiredConsentsAccepted || isSubmitting}
           className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-black text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
-          {isSubmitting ? "정기결제 처리 중..." : isVerified ? "정기결제 테스트 진행" : "사업자 인증 후 진행 가능"}
+          {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
         {!isPortOneReady && (
           <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">
@@ -357,14 +464,13 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
       </aside>
 
       <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm lg:col-span-2">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Business</p>
         <h2 className="text-2xl font-black tracking-tight">사업자 인증</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
           사업자 플랜 전환은 사업자 정보 확인 후 진행됩니다. 이번 단계에서는 인증만 진행하고, 자동결제 연결은 아직 호출하지 않습니다.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} placeholder="테이블씬카페" required />
+          <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} placeholder="메뉴링크카페" required />
           <Field label="대표자명" value={form.representativeName} onChange={(value) => updateField("representativeName", value)} placeholder="홍길동" required />
           <Field label="사업자등록번호" value={form.businessNumber} onChange={(value) => updateField("businessNumber", value)} placeholder="123-45-67890" required />
           <Field label="개업일자" value={form.openingDate} onChange={(value) => updateField("openingDate", value)} placeholder="2024-01-15 또는 20240115" required />

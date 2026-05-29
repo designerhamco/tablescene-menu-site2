@@ -45,7 +45,6 @@ export default async function ForgotPasswordPage({
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
         <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
           <div className="mb-8">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.28em] text-zinc-400">Account Recovery</p>
             <h1 className="text-3xl font-bold tracking-tight">비밀번호 재설정</h1>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
               가입한 이메일을 입력하면 비밀번호를 다시 설정할 수 있는 링크를 보내드립니다.

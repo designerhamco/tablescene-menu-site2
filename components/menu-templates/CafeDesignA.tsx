@@ -35,7 +35,7 @@ type MenuPageGroup = {
 };
 
 function getDisplayName(site: PublicMenuTemplateProps["menuSite"]) {
-  return site.restaurant_name || site.name || "TableScene";
+  return site.restaurant_name || site.name || "MenuLink";
 }
 
 function getCategoryItems(items: PublicMenuTemplateProps["items"], categoryId: string) {
@@ -415,7 +415,7 @@ function CoverHero({
 
 function HeaderBlock({ data }: { data: PublicMenuTemplateProps }) {
   const displayName = getDisplayName(data.menuSite);
-  const title = displayName || "TableScene";
+  const title = displayName || "MenuLink";
   const description = data.menuSite.brand_description || data.menuSite.description;
 
   return (

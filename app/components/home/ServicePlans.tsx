@@ -5,7 +5,7 @@ import { CheckCircle2 } from 'lucide-react';
 
 const services = [
   {
-    title: 'TableScene Basic',
+    title: 'MenuLink Basic',
     badge: '50% 할인',
     description: '직접 편집하는 기본 디지털 메뉴판',
     price: '월 6,000원 / 연 60,000원',
@@ -15,7 +15,7 @@ const services = [
     highlighted: true,
   },
   {
-    title: 'TableScene Display',
+    title: 'MenuLink Display',
     badge: '50% 할인',
     description: '매장 TV와 모니터에 띄우는 디스플레이 메뉴보드',
     price: '월 12,000원 / 연 120,000원',
@@ -38,7 +38,7 @@ const ServicePlans = () => {
           className="mb-14 text-center"
         >
           <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
-            매장에 맞게 선택하는 TableScene 서비스
+            매장에 맞게 선택하는 MenuLink 서비스
           </h2>
         </motion.div>
 

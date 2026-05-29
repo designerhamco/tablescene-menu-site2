@@ -27,7 +27,7 @@ export function Portfolio() {
     <section id="portfolio" className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-white py-12 text-zinc-900 md:py-16">
       <div className="relative mx-auto w-full max-w-7xl px-6">
         <div className="relative z-10 mb-10 text-center">
-          <h2 className="mb-8 text-3xl font-bold leading-tight tracking-tight text-black md:text-5xl">테이블씬 서비스 화면 미리보기</h2>
+          <h2 className="mb-8 text-3xl font-bold leading-tight tracking-tight text-black md:text-5xl">메뉴링크 서비스 화면 미리보기</h2>
           <div className="mb-6 flex flex-wrap justify-center gap-2">
             {(Object.keys(portfolioContent) as Tab[]).map((tab) => (
               <button

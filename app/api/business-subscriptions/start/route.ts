@@ -29,6 +29,7 @@ type StartBusinessSubscriptionRequest = {
   billingCycle?: unknown;
   menuSiteId?: unknown;
   order?: unknown;
+  consentSnapshot?: unknown;
 };
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -355,6 +356,9 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     termsAccepted: payload.termsAccepted === true,
     privacyAccepted: payload.privacyAccepted === true,
     contentPolicyAccepted: payload.contentPolicyAccepted === true,
+    marketingAccepted: payload.marketingAccepted === true,
+    consentAgreedAt: getNullableString(payload.consentAgreedAt),
+    consentContext: getNullableString(payload.consentContext),
     amount,
   };
 
@@ -394,8 +398,11 @@ function getNextBillingAt(product: SubscriptionProduct, now = new Date()) {
 }
 
 function getSubscriptionOrderName(product: SubscriptionProduct) {
-  const serviceLabel = product.serviceType === "display" ? "Display" : "Basic";
-  return product.billingCycle === "yearly" ? `TableScene ${serviceLabel} 사업자 연 결제` : `TableScene ${serviceLabel} 사업자 월 결제`;
+  if (product.serviceType === "display") {
+    return product.billingCycle === "yearly" ? "메뉴링크 디스플레이 연결제" : "메뉴링크 디스플레이 월결제";
+  }
+
+  return product.billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
 }
 
 function isMissingRelationError(error: { code?: string; message?: string } | null | undefined, relationName: string) {
@@ -883,6 +890,7 @@ async function createOrderAndPaymentRecords({
   product,
   businessProfile,
   portonePayment,
+  consentSnapshot,
 }: {
   supabase: ServerSupabaseClient;
   userId: string;
@@ -891,6 +899,7 @@ async function createOrderAndPaymentRecords({
   product: SubscriptionProduct;
   businessProfile: BusinessProfile;
   portonePayment?: unknown;
+  consentSnapshot?: Json | null;
 }) {
   const safeRawPayload = JSON.parse(
     JSON.stringify({
@@ -898,6 +907,7 @@ async function createOrderAndPaymentRecords({
       billing_cycle: product.billingCycle,
       product_key: product.productKey,
       plan_type: product.planType,
+      consent_snapshot: consentSnapshot ?? null,
       portone_payment_id: paymentId,
       portone_payment: portonePayment ?? null,
     })
@@ -1055,7 +1065,7 @@ export async function POST(request: Request) {
     return jsonStepError({
       step: "new_or_convert_precheck",
       debugCode: "DISPLAY_CONVERT_NOT_ALLOWED",
-      message: "Display 플랜은 기존 Basic 체험 메뉴판에서 바로 전환할 수 없습니다. Display는 신규 신청으로 이용해주세요.",
+      message: "메뉴링크 디스플레이 플랜은 기존 메뉴링크 베이직 체험 메뉴판에서 바로 전환할 수 없습니다. 메뉴링크 디스플레이는 신규 신청으로 이용해주세요.",
       status: 409,
       userId: user.id,
       mode,
@@ -1069,7 +1079,7 @@ export async function POST(request: Request) {
     return jsonStepError({
       step: "new_or_convert_precheck",
       debugCode: "DISPLAY_NEW_NOT_READY",
-      message: "Display 신규 사업자 신청은 전용 템플릿 준비 후 제공됩니다.",
+      message: "메뉴링크 디스플레이 신규 사업자 신청은 전용 템플릿 준비 후 제공됩니다.",
       status: 409,
       userId: user.id,
       mode,
@@ -1382,6 +1392,8 @@ export async function POST(request: Request) {
       }
     }
 
+    const requestConsentSnapshot = body.consentSnapshot && typeof body.consentSnapshot === "object" ? body.consentSnapshot : null;
+
     await createOrderAndPaymentRecords({
       supabase,
       userId: user.id,
@@ -1390,12 +1402,23 @@ export async function POST(request: Request) {
       product,
       businessProfile,
       portonePayment: billingPayment?.rawPayment,
+      consentSnapshot: (order ? {
+        termsAccepted: order.termsAccepted,
+        privacyAccepted: order.privacyAccepted,
+        contentPolicyAccepted: order.contentPolicyAccepted,
+        marketingAccepted: order.marketingAccepted,
+        consentAgreedAt: order.consentAgreedAt,
+        consentContext: order.consentContext,
+      } : requestConsentSnapshot ?? {
+        consentContext: "personal_trial_convert",
+        capturedFromRequest: true,
+      }) as Json,
     });
 
     return NextResponse.json({
       ok: true,
       step: "final_response",
-      message: mode === "convert" ? "기존 메뉴판이 사업자 플랜으로 전환되었습니다." : "사업자 Basic 메뉴판이 생성되었습니다.",
+      message: mode === "convert" ? "기존 메뉴판이 사업자 플랜으로 전환되었습니다." : "메뉴링크 베이직 메뉴판이 생성되었습니다.",
       mode,
       menuSiteId: menuSite.id,
       slug: menuSite.slug,

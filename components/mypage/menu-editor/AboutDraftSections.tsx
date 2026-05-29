@@ -378,7 +378,7 @@ export default function AboutDraftSections({
                         value={link.display_name}
                         required
                         maxLength={MENU_FIELD_LIMITS.menuSocialLinks.displayName}
-                        placeholder="@tablescene_official"
+                        placeholder="@your_store_official"
                         onChange={(event) => updateSocial(link.draftId, { display_name: event.target.value })}
                       />
                     </div>

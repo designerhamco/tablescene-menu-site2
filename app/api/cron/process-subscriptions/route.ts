@@ -145,8 +145,11 @@ function createRenewalPaymentId(subscription: DueSubscription, periodStart: Date
 }
 
 function getOrderName(product: SubscriptionProduct) {
-  const serviceLabel = product.serviceType === "display" ? "Display" : "Basic";
-  return product.billingCycle === "yearly" ? `TableScene ${serviceLabel} 사업자 연 결제` : `TableScene ${serviceLabel} 사업자 월 결제`;
+  if (product.serviceType === "display") {
+    return product.billingCycle === "yearly" ? "메뉴링크 디스플레이 연결제" : "메뉴링크 디스플레이 월결제";
+  }
+
+  return product.billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
 }
 
 function getSafePortOneMessage(error: unknown) {

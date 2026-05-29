@@ -26,7 +26,7 @@ const ApplyPage = () => {
     <div className="min-h-screen bg-white">
       <PageHeader 
         title="서비스 도입 신청" 
-        subtitle="테이블씬의 올인원 솔루션을 시작해보세요."
+        subtitle="메뉴링크의 올인원 솔루션을 시작해보세요."
         dark={false} 
       />
 
@@ -59,7 +59,7 @@ const ApplyPage = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-zinc-700">상호명</label>
-                <input type="text" className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-black transition-colors" placeholder="테이블씬 식당" />
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-black transition-colors" placeholder="메뉴링크 식당" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-zinc-700">사업자 등록번호</label>

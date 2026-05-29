@@ -118,8 +118,7 @@ export default function SubscriptionManagementModal({
           <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Subscription</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight text-zinc-950">구독 관리</h2>
+                <h2 className="text-2xl font-black tracking-tight text-zinc-950">구독 관리</h2>
               </div>
               <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-600">
                 닫기
@@ -127,16 +126,16 @@ export default function SubscriptionManagementModal({
             </div>
 
             <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
-              구독을 해지해도 이미 결제된 이용 기간이 끝날 때까지 메뉴판을 사용할 수 있습니다. 다음 결제일부터 자동 갱신되지 않습니다.
+              구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있습니다. 이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
             </div>
 
             <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">상품명</dt>
-                <dd className="mt-2 font-bold text-zinc-900">{productName}</dd>
+                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">현재 요금제</dt>
+                <dd className="mt-2 font-bold text-zinc-900">{productName} {billingCycleLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">상태</dt>
+                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">구독 상태</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{cancelAtPeriodEnd ? "해지 예약됨" : statusLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
@@ -145,7 +144,7 @@ export default function SubscriptionManagementModal({
                 <p className="mt-1 text-xs font-bold text-zinc-400">{menuStatus}</p>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">결제 금액</dt>
+                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">다음 결제 예정 금액</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{amountLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
@@ -184,7 +183,7 @@ export default function SubscriptionManagementModal({
                   }}
                   className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800"
                 >
-                  구독 해지 예약
+                  구독 해지하기
                 </button>
               ) : null}
               {status === "active" && cancelAtPeriodEnd && canManage ? (
@@ -210,9 +209,12 @@ export default function SubscriptionManagementModal({
       {isConfirmingCancel && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-950/50 px-4 py-8">
           <form onSubmit={submitCancellation} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-            <h2 className="text-2xl font-black tracking-tight text-zinc-950">구독 해지 예약</h2>
+            <h2 className="text-2xl font-black tracking-tight text-zinc-950">정말 구독을 해지하시겠어요?</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-              구독을 해지해도 이미 결제된 기간이 끝날 때까지 메뉴판을 사용할 수 있습니다. 다음 결제일부터 자동 갱신되지 않습니다.
+              해지해도 이미 결제된 이용기간은 종료일까지 사용할 수 있습니다. 다음 결제일부터 결제는 중단됩니다.
+            </p>
+            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+              이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 7일 이내 다시 구독하면 기존 데이터를 계속 사용할 수 있습니다. 7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
             </p>
             <label className="mt-5 block">
               <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">해지 사유</span>
@@ -227,14 +229,14 @@ export default function SubscriptionManagementModal({
             {error && <p className="mt-4 break-keep rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
             <div className="mt-6 flex flex-wrap justify-end gap-3">
               <button type="button" onClick={() => setIsConfirmingCancel(false)} className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700">
-                취소
+                계속 이용하기
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
               >
-                {isSubmitting ? "처리 중..." : "해지 예약하기"}
+                {isSubmitting ? "처리 중..." : "다음 결제일부터 해지하기"}
               </button>
             </div>
           </form>

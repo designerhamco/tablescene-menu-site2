@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { openDiscountPolicy } from "@/lib/promotion-policy";
 import {
   basicPaymentProducts,
   canIndividualPurchasePlan,
@@ -54,7 +55,7 @@ type ApplyOrderFormProps = {
   serviceType?: "menu" | "screen" | "order";
 };
 
-type AgreementKey = "terms" | "privacy" | "contentPolicy";
+type AgreementKey = "terms" | "privacy" | "contentPolicy" | "marketing";
 type BusinessVerificationResponse = {
   ok?: boolean;
   verified?: boolean;
@@ -175,6 +176,7 @@ type PaidApplyProduct = {
   description: string;
   amount: number;
   regular_amount?: number;
+  discount_rate?: number;
   currency: typeof menuCreationProduct.currency;
   product_key?: string;
   plan_type?: MenuOrderPayload["plan_type"];
@@ -228,64 +230,92 @@ const initialAgreements: Record<AgreementKey, boolean> = {
   terms: false,
   privacy: false,
   contentPolicy: false,
+  marketing: false,
 };
 
 const agreementLabels: Record<AgreementKey, string> = {
-  terms: "[필수] 서비스 이용약관 및 플랜별 이용 조건에 동의합니다.",
-  privacy: "[필수] 개인정보 수집 및 이용에 동의합니다.",
-  contentPolicy: "[필수] 부적절한 사용 및 콘텐츠 정책에 동의합니다.",
+  terms: "[필수] 메뉴링크 이용약관에 동의합니다.",
+  privacy: "[필수] 개인정보 수집·이용 및 사업자 정보 수집·이용에 동의합니다.",
+  contentPolicy: "[필수] 결제 즉시 서비스가 시작되며, 정기결제·해지·환불 제한 조건을 확인했습니다.",
+  marketing: "[선택] 이벤트·혜택·신규 템플릿·AI 기능 업데이트 등 광고성 정보 수신에 동의합니다.",
 };
 
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
-    "[서비스 목적] 테이블씬은 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 테이블씬 베이직은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[개인 체험 1개월] 개인 체험은 사업자 인증 없이 Basic 템플릿 메뉴판을 1개월 동안 사용할 수 있는 단건 결제 상품입니다. 자동결제는 제공되지 않습니다.",
-    "[사업자 정식 이용] 사업자 Basic 월/연 결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. 실제 자동결제는 PG/PortOne 빌링키 설정과 인증 API 연결이 완료된 뒤 진행됩니다.",
-    "[서비스 안내] 테이블씬 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 테이블씬 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
+    "[서비스 목적] 메뉴링크는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 메뉴링크 베이직은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
+    "[개인 체험 1개월] 개인 체험은 사업자 인증 없이 메뉴링크 베이직 템플릿 메뉴판을 1개월 동안 사용할 수 있는 단건 결제 상품입니다. 자동결제는 제공되지 않습니다.",
+    "[사업자 정식 이용] 메뉴링크 베이직 월/연 결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. 실제 자동결제는 PG/PortOne 빌링키 설정과 인증 API 연결이 완료된 뒤 진행됩니다.",
+    "[서비스 안내] 메뉴링크 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 메뉴링크 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
     "[서비스 이용 시작] 결제가 완료되고 메뉴판이 생성되면 서비스 이용이 시작된 것으로 봅니다. 생성된 메뉴판은 마이페이지에서 확인하고 편집할 수 있습니다.",
     "[메뉴판 주소] 사용자가 입력한 희망 메뉴판 주소는 중복 여부, 정책 위반 여부, 기술적 제한 등에 따라 사용할 수 없을 수 있습니다. 회사는 부적절하거나 오해를 유발하거나 제3자의 권리를 침해할 우려가 있는 주소 사용을 제한할 수 있습니다.",
     "[서비스 제공 범위] 회사는 서비스 안정성, 보안, 운영 정책, 기술적 사유에 따라 일부 기능을 변경, 중단, 제한할 수 있습니다.",
     "[정식 이용 전환] 개인 체험을 계속 이용하려면 체험 기간 안에 사업자 인증 후 정식 플랜으로 전환해야 합니다.",
     "[결제 및 환불] 결제 후 메뉴판 생성이 완료되면 서비스 이용이 시작된 것으로 봅니다. 단순 변심, 잘못된 정보 입력, 사용자의 편집 실수, 이미지 또는 콘텐츠 등록 오류로 인한 환불은 제한될 수 있습니다. 결제 오류, 중복 결제, 서비스 제공 불가 등 회사 귀책 사유가 확인되는 경우 별도 기준에 따라 환불 또는 조치할 수 있습니다.",
-    "[이용 종료 후 데이터] 개인 체험 이용 기간이 종료되면 메뉴판은 비공개 처리됩니다. 종료 후 30일 동안 복구 가능 상태로 보관되며, 30일이 지나면 메뉴판 데이터와 업로드 이미지는 삭제 또는 삭제 예정 처리됩니다.",
+    "[이용 종료 후 데이터] 개인 체험 이용 기간이 종료되면 메뉴판은 비공개 처리됩니다. 종료 후 7일 동안 복구 가능 상태로 보관되며, 7일이 지나면 메뉴판 데이터와 업로드 이미지는 삭제 또는 삭제 예정 처리될 수 있습니다.",
     "[자료 백업 안내] 삭제된 메뉴판 데이터, 메뉴 이미지, 설정 정보는 복구할 수 없으므로 해지 전 필요한 자료를 반드시 백업해주세요.",
-    "[회사 제공 콘텐츠의 권리] 테이블씬 서비스, 소프트웨어, 코드, 관리자 화면, 공개 메뉴판 템플릿, 디자인, 레이아웃, 로고, 상표, starter preset, 공용 placeholder 이미지 등 회사가 제공하는 콘텐츠와 구성 요소에 대한 권리는 회사 또는 정당한 권리자에게 있습니다. 회원은 이를 테이블씬 서비스 이용 범위 내에서만 사용할 수 있습니다.",
+    "[회사 제공 콘텐츠의 권리] 메뉴링크 서비스, 소프트웨어, 코드, 관리자 화면, 공개 메뉴판 템플릿, 디자인, 레이아웃, 로고, 상표, starter preset, 공용 placeholder 이미지 등 회사가 제공하는 콘텐츠와 구성 요소에 대한 권리는 회사 또는 정당한 권리자에게 있습니다. 회원은 이를 메뉴링크 서비스 이용 범위 내에서만 사용할 수 있습니다.",
     "[회원 콘텐츠의 권리] 회원이 입력하거나 업로드한 매장 정보, 메뉴명, 설명, 가격, 소개 문구, 이벤트 문구, SNS 정보, 이미지 등 콘텐츠의 권리는 회원 또는 해당 콘텐츠의 정당한 권리자에게 귀속되며 회사는 소유권을 취득하지 않습니다.",
     "[서비스 제공을 위한 콘텐츠 이용허락] 회원은 서비스 제공, 메뉴판 생성, 공개 메뉴판 표시, 저장, 백업, 고객 지원, 오류 수정 및 서비스 개선에 필요한 범위에서 회사가 회원 콘텐츠를 이용, 저장, 복제, 전송, 표시할 수 있도록 허락합니다.",
     "[마케팅 사용] 회사는 회원 콘텐츠를 서비스 제공 목적 외의 광고, 홍보, 포트폴리오 목적으로 사용하려는 경우 회원의 별도 동의를 받습니다.",
   ],
   privacy: [
-    "[수집 목적] 회사는 서비스 신청, 결제 처리, 메뉴판 생성, 고객 응대, 서비스 운영, 부정 이용 방지, 고지사항 전달을 위해 개인정보를 수집 및 이용합니다.",
-    "[수집 항목] 필수 수집 항목은 담당자명, 담당자 연락처, 담당자 이메일, 구매자 유형, 메뉴판 이름, 희망 메뉴판 주소, 매장명, 결제 정보, 서비스 이용 기록입니다.",
-    "[사업자 정보] 사업자 구매 또는 사업자 정보 입력 시 상호명, 대표자명, 사업자등록번호, 사업장 연락처를 추가로 수집할 수 있습니다.",
-    "[보유 및 이용 기간] 수집된 개인정보는 서비스 제공 및 고객 응대 목적 달성 시까지 보관합니다. 관계 법령에 따라 보관이 필요한 정보는 해당 법령에서 정한 기간 동안 보관할 수 있습니다.",
-    "[운영 기록 보관] 결제 내역, 주문번호, 결제 금액, 결제 상태, 환불 여부, 이용 기간, 약관 동의 기록은 운영, 정산, 법적 대응을 위해 관계 법령과 내부 정책에 따라 보관될 수 있습니다.",
-    "[개인정보 처리 위탁 및 결제] 결제 처리를 위해 결제대행사 또는 관련 서비스 제공업체가 필요한 정보를 처리할 수 있으며, 구체적인 결제 정보 처리는 결제대행사의 정책과 관련 법령을 따릅니다.",
-    "[동의 거부 권리] 이용자는 개인정보 수집 및 이용에 대한 동의를 거부할 수 있으나, 필수 항목에 대한 동의를 거부할 경우 서비스 신청, 결제, 메뉴판 생성이 제한될 수 있습니다.",
-    "[안전한 관리] 회사는 개인정보가 분실, 도난, 유출, 위조, 변조 또는 훼손되지 않도록 합리적인 보호 조치를 취합니다.",
+    "유료 메뉴판 생성, 정기결제, 구독 관리, 사업자 확인, 증빙 처리, 고객지원 및 부정 이용 방지를 위해 이름, 이메일, 휴대전화번호, 요금제, 결제 주기, 주문번호, 결제금액, 결제일시, 결제수단, 승인번호, 결제 상태, 구독 상태, 다음 결제 예정일, 상호명, 대표자명, 사업자등록번호, 사업장 주소, 업종, 업태, 담당자명, 담당자 연락처, 담당자 이메일 등을 수집·이용합니다.",
+    "사업자 정보는 사업자 인증 API를 통해 유효성이 확인될 수 있으며, 사업자등록증 파일은 기본적으로 수집하지 않습니다.",
+    "카드번호 전체, 비밀번호, CVC 등 민감한 결제수단 정보는 메뉴링크가 직접 저장하지 않으며, 포트원 및 NHN KCP 등 결제대행사 또는 결제사가 처리합니다.",
+    "보유기간은 유료서비스 이용기간 동안이며, 구독 종료 후 메뉴판 데이터는 7일간 복구 가능 상태로 보관될 수 있습니다.",
+    "결제·정산·계약·청약철회·소비자 분쟁 관련 기록은 관계 법령에 따라 일정 기간 보관됩니다.",
+    "동의를 거부할 경우 유료서비스 신청, 메뉴판 생성, 결제 및 정기구독 이용이 제한될 수 있습니다.",
   ],
   contentPolicy: [
-    "[부적절한 사용 금지] 회원은 불법적이거나 허위 정보를 포함한 메뉴판 생성, 실제 매장 운영과 무관한 장난성 메뉴판 생성, 음란물, 혐오, 폭력, 차별, 사기성 콘텐츠 게시, 악성 코드, 피싱, 사기 링크 삽입, 허위 광고 또는 소비자를 오인하게 하는 콘텐츠 게시에 서비스를 사용할 수 없습니다.",
-    "[이미지 업로드 책임] 회원은 자신이 업로드한 이미지에 대해 필요한 권리 또는 이용허락을 보유하고 있음을 보증합니다. 이미지가 제3자의 권리를 침해하여 발생하는 책임은 회원에게 있습니다.",
-    "[텍스트 콘텐츠 책임] 회원이 입력한 매장명, 메뉴명, 설명, 가격, 이벤트 문구, 소개 문구, SNS 정보 등 콘텐츠의 정확성과 적법성에 대한 책임은 회원에게 있습니다.",
-    "[개인 구매자 관련] 테이블씬 베이직은 개인도 구매할 수 있으나 개인 구매자도 부적절한 사용 금지 정책을 동일하게 준수해야 합니다.",
-    "[상담형 서비스 관련] 테이블씬 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 구매 자격은 별도 안내합니다.",
-    "[콘텐츠 조치] 회사는 권리 침해 우려, 신고 접수, 약관 위반, 부적절한 이미지 또는 텍스트가 확인된 경우 해당 콘텐츠를 임시 비공개, 삭제하거나 서비스 이용을 제한할 수 있습니다.",
-    "[신고 및 대응] 제3자의 권리 침해 신고, 부적절한 콘텐츠 신고, 허위 정보 신고가 접수된 경우 회사는 회원에게 소명 또는 자료 제출을 요청할 수 있으며 확인 완료 전까지 콘텐츠를 임시 비공개 처리할 수 있습니다.",
+    "결제 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용 등 유료서비스 제공이 시작됩니다.",
+    "또한 요금제에 포함된 AI 크레딧이 지급됩니다.",
+    "월구독 또는 연구독 상품은 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 선택한 결제 주기에 따라 자동 결제됩니다.",
+    "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
+    "서비스 제공이 개시된 이후에는 관련 법령상 허용되는 범위 내에서 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.",
+    "단, 중복 결제, 결제 오류, 회사의 귀책사유로 서비스가 정상적으로 제공되지 않은 경우 등 회사가 환불이 필요하다고 인정하거나 관련 법령상 환불이 필요한 경우에는 회사의 환불 정책 및 관계 법령에 따라 처리됩니다.",
+    "메뉴판에 등록되는 메뉴명, 가격, 설명, 이미지, 원산지, 알레르기 정보, 영업시간, 이벤트 정보 등은 이용자가 직접 입력·관리하며, AI 기능을 통해 생성된 문구와 번역은 참고용 초안으로 공개 전 이용자가 직접 검토해야 합니다.",
+  ],
+  marketing: [
+    "메뉴링크는 이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내 등 광고성 정보를 이메일, 문자메시지, 카카오 메시지 등으로 발송할 수 있습니다.",
+    "마케팅 정보 수신 동의는 선택 사항이며, 동의하지 않아도 회원가입 및 서비스 이용에는 제한이 없습니다.",
+    "이용자는 언제든지 마이페이지 또는 고객지원 문의를 통해 수신 동의를 철회할 수 있습니다.",
+  ],
+};
+
+const personalTrialAgreementLabels: Record<AgreementKey, string> = {
+  terms: "[필수] 메뉴링크 이용약관에 동의합니다.",
+  privacy: "[필수] 개인정보 수집·이용에 동의합니다.",
+  contentPolicy: "[필수] 무료 개인체험 이용 조건 및 종료 후 데이터 처리 기준을 확인했습니다.",
+  marketing: agreementLabels.marketing,
+};
+
+const personalTrialAgreementDetails: Record<AgreementKey, string[]> = {
+  ...agreementDetails,
+  privacy: [
+    "무료 개인체험 메뉴판 생성, 체험 기간 관리, 고객지원, 부정 이용 방지, 체험 종료 및 데이터 삭제 예정 안내를 위해 이름, 이메일, 휴대전화번호, 체험 신청일, 체험 시작일, 체험 종료일, 메뉴판 ID, 메뉴판 상태 등을 수집·이용합니다.",
+    "보유기간은 무료 개인체험 기간 및 종료 후 7일까지이며, 유료서비스로 전환하는 경우 유료서비스 이용기간 동안 보관됩니다.",
+    "동의를 거부할 경우 무료 개인체험 신청 및 체험 메뉴판 제공이 제한될 수 있습니다.",
+  ],
+  contentPolicy: [
+    "무료 개인체험은 MenuLink Basic 기준으로 신청일로부터 1개월간 제공됩니다.",
+    "체험 기간 동안 Basic 기준 AI 크레딧 18개가 제공됩니다.",
+    "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 7일 이내 유료 월구독 또는 연구독으로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
+    "7일이 경과하면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.",
+    "무료 개인체험 후 유료서비스로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
   ],
 };
 
 const screenCreationProduct = {
   ...menuCreationProduct,
   key: "large_screen",
-  name: "테이블씬 디스플레이 생성권",
+  name: "메뉴링크 디스플레이 생성권",
   description: "매장 화면용 디지털 메뉴보드 운영을 준비합니다.",
 } as const;
 
 const orderCreationProduct = {
   ...menuCreationProduct,
   key: "qr_order",
-  name: "테이블씬 오더 1.0 신청권",
+  name: "메뉴링크 오더 1.0 신청권",
   description: "QR 주문과 주방 연결을 위한 오더 1.0 도입 신청을 접수합니다.",
 } as const;
 
@@ -304,25 +334,21 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    eyebrow: "Personal Trial",
-    bullets: ["1회 결제", "자동결제 없음", "사업자 인증 없이 시작", "Basic 체험 메뉴판 생성 시 AI 크레딧 18개 제공"],
-    helperText: "체험 종료 후 비공개 전환 및 30일 데이터 보관",
+    bullets: ["1회 결제", "자동결제 없음", "사업자 인증 없이 시작", "메뉴링크 베이직 체험 메뉴판 생성 시 AI 크레딧 18개 제공"],
+    helperText: "체험 종료 후 비공개 전환 및 7일 데이터 보관",
   },
   {
     product: basicPaymentProducts[1],
-    eyebrow: "Business Monthly",
-    bullets: ["사업자 인증 필요", "월 자동결제", "Basic 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
+    bullets: ["사업자 인증 필요", "월 자동결제", "메뉴링크 베이직 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
   {
     product: basicPaymentProducts[2],
-    eyebrow: "Business Yearly",
-    bullets: ["사업자 인증 필요", "연 자동결제", "Basic 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
+    bullets: ["사업자 인증 필요", "연 자동결제", "메뉴링크 베이직 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
 ] as const satisfies readonly {
   product: BasicPaymentProduct;
-  eyebrow: string;
   bullets: readonly string[];
   helperText: string;
 }[];
@@ -549,7 +575,7 @@ function getOrderSetupNotes(orderSetup: OrderSetupPayload) {
   }
 
   return [
-    "[테이블씬 오더 1.0 도입 정보]",
+    "[메뉴링크 오더 1.0 도입 정보]",
     `테이블 수: ${orderSetup.tableCount || "-"}`,
     `현재 POS 사용 여부: ${orderSetup.posUsage || "-"}`,
     `선불/후불 희망: ${orderSetup.paymentPreference || "-"}`,
@@ -570,7 +596,7 @@ function getScreenSetupNotes(screenSetup: ScreenSetupPayload) {
   }
 
   return [
-    "[테이블씬 디스플레이 도입 정보]",
+    "[메뉴링크 디스플레이 도입 정보]",
     `디스플레이 용도: ${screenSetup.purpose || "-"}`,
     `디스플레이 템플릿 카테고리: ${screenSetup.templateCategory || "-"}`,
     `화면 방향: ${screenSetup.orientation || "-"}`,
@@ -778,11 +804,6 @@ export default function ApplyOrderForm({
   const currentPlanAllowsIndividual = canIndividualPurchasePlan(currentPlanKey);
   const activeProductRequiresBusinessVerification = Boolean(activeProduct.requires_business_verification);
   const isSubscriptionProduct = activeProduct.payment_type === "subscription";
-  const templateStepLabel = isScreenService ? "Step 2" : isMenuService ? "Step 2" : "Step 1";
-  const basicInfoStepLabel = isScreenService ? "Step 3" : isMenuService ? "Step 3" : "Step 2";
-  const buyerInfoStepLabel = isScreenService ? "Step 4" : isMenuService ? "Step 4" : "Step 3";
-  const summaryStepLabel = isScreenService ? "Step 5" : isMenuService ? "Step 5" : "Step 4";
-  const agreementsStepLabel = isScreenService ? "Step 6" : isMenuService ? "Step 6" : "Step 5";
   const selectedScreenTemplateCategory = getScreenTemplateCategoryByKey(form.screenTemplateCategory);
   const businessTypeOptions = getBusinessTypeOptions(serviceType);
   const orderSetup = useMemo<OrderSetupPayload>(
@@ -848,12 +869,17 @@ export default function ApplyOrderForm({
       termsAccepted: agreements.terms,
       privacyAccepted: agreements.privacy,
       contentPolicyAccepted: agreements.contentPolicy,
+      marketingAccepted: agreements.marketing,
+      consentAgreedAt: agreements.terms && agreements.privacy && agreements.contentPolicy ? new Date().toISOString() : null,
+      consentContext: activeProduct.product_key === personalTrialBasicProduct.product_key ? "personal_trial_apply" : "paid_apply",
       amount: activeProduct.amount,
     }),
     [
       activeProduct.amount,
+      activeProduct.product_key,
       activeProductRequiresBusinessVerification,
       agreements.contentPolicy,
+      agreements.marketing,
       agreements.privacy,
       agreements.terms,
       businessVerificationState,
@@ -879,7 +905,7 @@ export default function ApplyOrderForm({
       return {
         slug: payload.desiredSlug,
         type: "idle",
-        message: isScreenService ? "Display 템플릿 준비 후 공개 주소를 확인할 수 있습니다." : MENU_ADDRESS_HELPER_TEXT,
+        message: isScreenService ? "메뉴링크 디스플레이 템플릿 준비 후 공개 주소를 확인할 수 있습니다." : MENU_ADDRESS_HELPER_TEXT,
       };
     }
 
@@ -904,7 +930,7 @@ export default function ApplyOrderForm({
   const visibleRestaurantTypeError = !form.restaurantType && (form.menuName.trim() || form.restaurantName.trim() || form.desiredSlug.trim()) ? restaurantTypeError : null;
   const templateSelectionError = !hasSelectableTemplate
     ? isScreenService
-      ? "현재 선택 가능한 TableScene Display 템플릿이 준비 중입니다."
+      ? "현재 선택 가능한 메뉴링크 디스플레이 템플릿이 준비 중입니다."
       : "선택 가능한 템플릿이 있는 카테고리를 선택해주세요."
     : isMenuService && filteredTemplates.length === 0
       ? "선택 가능한 템플릿이 있는 카테고리를 선택해주세요."
@@ -951,7 +977,9 @@ export default function ApplyOrderForm({
     !businessNumberError &&
     !businessOpeningDateError &&
     !businessPhoneError &&
-    Object.values(agreements).every(Boolean);
+    agreements.terms &&
+    agreements.privacy &&
+    agreements.contentPolicy;
   const isFormReady = isBaseFormReady && (!isSubscriptionProduct || hasVerifiedBusinessProfile);
   const isLoading = uiState.type === "loading";
   const paymentButtonDisabled = !isFormReady || isLoading;
@@ -967,7 +995,7 @@ export default function ApplyOrderForm({
   const paymentButtonLabel = isLoading
     ? "처리 중..."
     : isScreenService && !hasSelectableTemplate
-      ? "Display 템플릿 준비 중"
+      ? "메뉴링크 디스플레이 템플릿 준비 중"
       : isSubscriptionProduct
         ? isBusinessVerificationChecking
           ? "사업자 인증 확인 중"
@@ -1106,6 +1134,15 @@ export default function ApplyOrderForm({
       ...current,
       [key]: !current[key],
     }));
+  }
+
+  function toggleAllAgreements(checked: boolean) {
+    setAgreements({
+      terms: checked,
+      privacy: checked,
+      contentPolicy: checked,
+      marketing: checked,
+    });
   }
 
   async function handleBusinessVerificationCheck() {
@@ -1323,6 +1360,10 @@ export default function ApplyOrderForm({
             billing_cycle: activeProduct.billing_cycle,
             billing_channel: "subscription",
             source: "apply_basic",
+            terms_accepted: agreements.terms,
+            privacy_accepted: agreements.privacy,
+            content_policy_accepted: agreements.contentPolicy,
+            marketing_accepted: agreements.marketing,
           },
         } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0]);
         const issueResult = issueResponse as BillingKeyIssueResponse | null | undefined;
@@ -1471,24 +1512,32 @@ export default function ApplyOrderForm({
     }
   }
 
+  const activeAgreementLabels = activeProduct.product_key === personalTrialBasicProduct.product_key ? personalTrialAgreementLabels : agreementLabels;
+  const activeAgreementDetails = activeProduct.product_key === personalTrialBasicProduct.product_key ? personalTrialAgreementDetails : agreementDetails;
+  const allAgreementsChecked = Object.values(agreements).every(Boolean);
+  const nextBillingLabel = activeProduct.billing_cycle === "monthly"
+    ? "첫 결제일 기준 매월"
+    : activeProduct.billing_cycle === "yearly"
+      ? "첫 결제일 기준 매년"
+      : "-";
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-6">
         {isMenuService && (
           <section className="rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월/연 결제는 사업자 인증과 자동결제 구조로 이어집니다.
-                Basic 메뉴판을 생성하면 AI 크레딧 18개가 계정에 지급됩니다.
+                메뉴링크 베이직 메뉴판을 생성하면 AI 크레딧 18개가 계정에 지급됩니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 개인 1개월 체험은 계정당 1개만 이용할 수 있습니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-3">
-              {basicProductCards.map(({ product, eyebrow, bullets, helperText }) => {
+              {basicProductCards.map(({ product, bullets, helperText }) => {
                 const isSelected = selectedBasicProductKey === product.product_key;
 
                 return (
@@ -1504,10 +1553,7 @@ export default function ApplyOrderForm({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className={`text-xs font-black uppercase tracking-[0.18em] ${isSelected ? "text-white/50" : "text-zinc-400"}`}>
-                          {eyebrow}
-                        </p>
-                        <h3 className="mt-2 break-keep text-xl font-black tracking-tight">{product.label}</h3>
+                        <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
                         {isSelected ? "선택됨" : product.payment_type === "one_time" ? "단건" : "자동결제"}
@@ -1541,7 +1587,6 @@ export default function ApplyOrderForm({
         {isScreenService && (
           <section className="rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
               <h2 className="text-3xl font-bold tracking-tight">디스플레이 용도 / 설치 정보</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 매장 TV나 모니터에 띄울 화면의 목적과 설치 환경을 알려주세요. 입력값은 초기 세팅 안내와 추후 디스플레이 전용 템플릿 분리에 활용됩니다.
@@ -1589,7 +1634,6 @@ export default function ApplyOrderForm({
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
           <div className="mb-6">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{templateStepLabel}</p>
             <h2 className="text-3xl font-bold tracking-tight">
               {isScreenService ? "디스플레이 템플릿 카테고리 / 디스플레이 템플릿 선택" : "템플릿 선택"}
             </h2>
@@ -1612,7 +1656,7 @@ export default function ApplyOrderForm({
             </div>
             {isScreenService && (
               <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                일정표형 템플릿은 현재 테이블씬 베이직에서만 지원됩니다. 디스플레이용 일정표 템플릿은 추후 검토 예정입니다.
+                일정표형 템플릿은 현재 메뉴링크 베이직에서만 지원됩니다. 디스플레이용 일정표 템플릿은 추후 검토 예정입니다.
               </p>
             )}
             <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
@@ -1758,12 +1802,12 @@ export default function ApplyOrderForm({
             <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-5 py-8 text-center">
               <p className="text-base font-black text-zinc-800">
                 {isScreenService && serviceTemplates.length === 0
-                  ? "현재 선택 가능한 TableScene Display 템플릿이 준비 중입니다."
+                  ? "현재 선택 가능한 메뉴링크 디스플레이 템플릿이 준비 중입니다."
                   : "해당 카테고리 템플릿은 준비 중입니다."}
               </p>
               <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 {isScreenService && serviceTemplates.length === 0
-                  ? "Display 상품은 템플릿 준비 후 신청할 수 있습니다."
+                  ? "메뉴링크 디스플레이 상품은 템플릿 준비 후 신청할 수 있습니다."
                   : "현재 선택 가능한 템플릿은 추천 또는 전체 탭에서 확인할 수 있습니다."}
               </p>
             </div>
@@ -1771,7 +1815,6 @@ export default function ApplyOrderForm({
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{basicInfoStepLabel}</p>
           <h2 className="mb-6 text-3xl font-bold tracking-tight">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <Field
@@ -1827,10 +1870,9 @@ export default function ApplyOrderForm({
 
         {isOrderService && (
           <section className="rounded-3xl bg-white p-7 shadow-sm">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Order Setup</p>
             <h2 className="text-3xl font-bold tracking-tight">오더 도입 정보</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-              입력해주신 정보는 테이블씬 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
+              입력해주신 정보는 메뉴링크 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
             </p>
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <Field
@@ -1886,12 +1928,11 @@ export default function ApplyOrderForm({
         )}
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{buyerInfoStepLabel}</p>
           <h2 className="mb-6 text-3xl font-bold tracking-tight">구매자 및 담당자 정보</h2>
           <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
               {isScreenService
-                ? "테이블씬 디스플레이는 전용 템플릿 준비 전까지 결제를 진행하지 않습니다."
+                ? "메뉴링크 디스플레이는 전용 템플릿 준비 전까지 결제를 진행하지 않습니다."
                 : activeProductRequiresBusinessVerification
                   ? "사업자 월/연 결제는 사업자 인증 후 자동결제로 이용합니다. 현재 화면은 인증 입력 구조와 자동결제 연결 전 상태를 명확히 구분합니다."
                   : "개인 체험은 사업자 인증 없이 1개월 동안 사용하는 단건 결제 상품입니다. 자동결제 없이 1회 결제로 이용합니다."}
@@ -1922,7 +1963,7 @@ export default function ApplyOrderForm({
               )}
               {payload.buyerType === "individual" && currentPlanAllowsIndividual && !currentPlanRequiresBusinessInfo && (
                 <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                  {isScreenService ? "테이블씬 디스플레이는 현재 준비 중입니다." : "개인 체험은 계정당 1회만 이용할 수 있습니다."}
+                  {isScreenService ? "메뉴링크 디스플레이는 현재 준비 중입니다." : "개인 체험은 계정당 1회만 이용할 수 있습니다."}
                 </p>
               )}
             </div>
@@ -1937,7 +1978,7 @@ export default function ApplyOrderForm({
             <Field label="담당자 이메일" value={form.buyerEmail} onChange={(value) => updateField("buyerEmail", value)} required type="email" helperText="결제 안내를 받을 이메일을 입력해주세요." errorText={form.buyerEmail.trim() ? buyerEmailError : null} successText="이메일 형식이 올바릅니다." />
             {isBusinessBuyer && (
               <>
-                <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} required maxLength={50} placeholder="테이블씬카페" helperText="사업자 증빙에 사용할 상호명을 입력해주세요." errorText={form.businessName.trim() ? businessNameError : null} successText="입력 완료" />
+                <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} required maxLength={50} placeholder="메뉴링크카페" helperText="사업자 증빙에 사용할 상호명을 입력해주세요." errorText={form.businessName.trim() ? businessNameError : null} successText="입력 완료" />
                 <Field label="대표자명" value={form.representativeName} onChange={(value) => updateField("representativeName", value)} required maxLength={30} placeholder="홍길동" helperText="사업자등록증 기준 대표자명을 입력해주세요." errorText={form.representativeName.trim() ? representativeNameError : null} successText="입력 완료" />
                 <Field
                   label="사업자등록번호"
@@ -2010,7 +2051,6 @@ export default function ApplyOrderForm({
 
       <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{summaryStepLabel}</p>
           <h2 className="text-2xl font-bold tracking-tight">주문 요약</h2>
           <dl className="mt-6 space-y-4 text-sm font-medium">
             <SummaryRow label="상품명" value={activeProduct.name} />
@@ -2042,28 +2082,39 @@ export default function ApplyOrderForm({
                 value={`${activeProduct.billing_cycle === "monthly" ? "월 " : activeProduct.billing_cycle === "yearly" ? "연 " : ""}${formatKrw(activeProduct.regular_amount)}`}
               />
             )}
-            <SummaryRow label={isMenuService ? "오픈 할인 결제금액" : "금액"} value={formatKrw(activeProduct.amount)} strong />
+            {isMenuService && activeProduct.regular_amount ? (
+              <SummaryRow label="오픈 할인 적용" value={`${activeProduct.discount_rate ?? 0}% 할인`} />
+            ) : null}
+            {isMenuService ? <SummaryRow label="오픈 할인 적용 기간" value={openDiscountPolicy.durationLabel} /> : null}
+            <SummaryRow label={isMenuService ? "오늘 결제 금액" : "금액"} value={formatKrw(activeProduct.amount)} strong />
+            {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정일" value={nextBillingLabel} /> : null}
+            {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정 금액" value={formatKrw(activeProduct.amount)} /> : null}
           </dl>
           <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
             {isMenuService
               ? activeProduct.is_subscription
-                ? "VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다. 현재 단건 결제로 처리하지 않습니다."
-                : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환되며, 30일 후 데이터 삭제 또는 삭제 예정 처리됩니다."
+                ? `${openDiscountPolicy.note} VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다.`
+                : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환되며, 7일 후 데이터 삭제 또는 삭제 예정 처리될 수 있습니다."
               : "VAT 포함 금액입니다. 결제 검증 성공 후 신청 정보가 생성됩니다."}
           </p>
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">{agreementsStepLabel}</p>
           <h2 className="mb-5 text-2xl font-bold tracking-tight">약관 동의</h2>
           <div className="space-y-3">
+            <label className="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-sm font-black leading-relaxed text-zinc-900">
+              <input type="checkbox" checked={allAgreementsChecked} onChange={(event) => toggleAllAgreements(event.target.checked)} className="mt-1 h-4 w-4 accent-zinc-950" />
+              <span>전체 동의</span>
+            </label>
             {(Object.keys(agreementLabels) as AgreementKey[]).map((key) => (
               <div key={key} className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
                 <div className="flex items-start gap-3 text-sm font-bold leading-relaxed text-zinc-600">
                   <input type="checkbox" checked={agreements[key]} onChange={() => toggleAgreement(key)} className="mt-1 h-4 w-4 accent-zinc-950" />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span>{agreementLabels[key]}</span>
+                      <span>{activeAgreementLabels[key]}</span>
+                      {key === "terms" ? <a href="/terms" target="_blank" className="text-xs font-black text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
+                      {key === "privacy" ? <a href="/privacy" target="_blank" className="text-xs font-black text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
                       <button
                         type="button"
                         onClick={() => setActiveAgreement(key)}
@@ -2109,7 +2160,7 @@ export default function ApplyOrderForm({
             disabled={paymentButtonDisabled}
             className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
-            {paymentButtonLabel}
+            {activeProduct.product_key === personalTrialBasicProduct.product_key && paymentButtonLabel.includes("신청") ? "동의하고 무료체험 시작하기" : isFormReady && !isLoading ? "동의하고 메뉴판 생성하기" : paymentButtonLabel}
           </button>
         </section>
       </aside>
@@ -2117,7 +2168,7 @@ export default function ApplyOrderForm({
       {activeAgreement && (
         <TermsModal
           title={getAgreementModalTitle(activeAgreement)}
-          details={agreementDetails[activeAgreement]}
+          details={activeAgreementDetails[activeAgreement]}
           onClose={() => setActiveAgreement(null)}
         />
       )}
@@ -2350,7 +2401,6 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
         onClick={(event) => event.stopPropagation()}
       >
         <div className="border-b border-zinc-100 p-6">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Policy</p>
           <div className="flex items-start justify-between gap-4">
             <h3 className="text-2xl font-black tracking-tight text-zinc-950">{title}</h3>
             <button type="button" onClick={onClose} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-500">

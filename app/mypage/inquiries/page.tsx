@@ -64,10 +64,9 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
               <Link href="/mypage?tab=inquiries" className="mb-6 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
                 ← 마이페이지 문의 내역
               </Link>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Support</p>
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">문의하기</h1>
               <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
-                메뉴판 운영, 결제, 기능 요청 등 테이블씬 운영팀에 남길 내용을 작성해주세요.
+                메뉴판 운영, 결제, 기능 요청 등 메뉴링크 운영팀에 남길 내용을 작성해주세요.
               </p>
             </div>
           </header>

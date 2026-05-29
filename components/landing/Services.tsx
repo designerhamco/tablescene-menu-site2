@@ -9,11 +9,10 @@ export function Services() {
     <section id="services" className="relative overflow-hidden bg-[#fcfcfc] py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="relative mb-16 text-center">
-          <span className="mb-4 block text-xs font-bold uppercase tracking-widest text-primary">Our Solutions</span>
           <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-zinc-900 md:text-6xl">우리의 서비스</h2>
           <p className="text-lg font-medium text-zinc-500 md:text-xl">
             완벽하게 연결된 올인원 시스템으로 완성된<br className="hidden md:block" />
-            테이블씬의 혁신적인 서비스를 만나보세요.
+            메뉴링크의 혁신적인 서비스를 만나보세요.
           </p>
         </div>
 

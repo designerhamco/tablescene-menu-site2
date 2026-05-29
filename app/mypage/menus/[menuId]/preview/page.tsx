@@ -13,7 +13,7 @@ type PageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "메뉴판 미리보기 | Table Scene",
+  title: "메뉴판 미리보기 | MenuLink",
   robots: {
     index: false,
     follow: false,

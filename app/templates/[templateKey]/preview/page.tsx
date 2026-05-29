@@ -179,7 +179,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!isValidTemplateKey(templateKey)) {
     return {
-      title: "템플릿 미리보기 | TableScene",
+      title: "템플릿 미리보기 | MenuLink",
       robots: { index: false, follow: false },
     };
   }
@@ -187,7 +187,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const template = getTemplateByKey(templateKey);
 
   return {
-    title: `${template.name} 미리보기 | TableScene`,
+    title: `${template.name} 미리보기 | MenuLink`,
     description: `${template.name} 템플릿 화면을 미리 확인해보세요.`,
     robots: { index: false, follow: false },
   };

@@ -1,6 +1,7 @@
 import { toBuffer } from "qrcode";
 
 import { isValidPublicSlug } from "@/lib/menu-limits";
+import { getPublicMenuPath } from "@/lib/menu-url";
 import { getMenuSiteAccessStateBySlug } from "@/lib/server/menu-site-access-service";
 
 export const runtime = "nodejs";
@@ -9,18 +10,25 @@ export const dynamic = "force-dynamic";
 function getPublicMenuQrUrl(request: Request, slug: string) {
   const encodedSlug = encodeURIComponent(slug);
   const requestOrigin = new URL(request.url).origin;
-  const menuBaseUrl = process.env.NEXT_PUBLIC_MENU_BASE_URL?.trim().replace(/\/+$/, "");
+  const publicBaseUrl = process.env.NEXT_PUBLIC_PUBLIC_MENU_BASE_URL?.trim().replace(/\/+$/, "");
 
-  if (menuBaseUrl) {
-    if (menuBaseUrl.startsWith("http://") || menuBaseUrl.startsWith("https://")) {
-      return `${menuBaseUrl}/${encodedSlug}`;
+  if (publicBaseUrl) {
+    return `${publicBaseUrl}/menu/${encodedSlug}`;
+  }
+
+  const legacyMenuBaseUrl = process.env.NEXT_PUBLIC_MENU_BASE_URL?.trim().replace(/\/+$/, "");
+
+  if (legacyMenuBaseUrl) {
+    if (legacyMenuBaseUrl.startsWith("http://") || legacyMenuBaseUrl.startsWith("https://")) {
+      return legacyMenuBaseUrl.endsWith("/menu") ? `${legacyMenuBaseUrl}/${encodedSlug}` : `${legacyMenuBaseUrl}/menu/${encodedSlug}`;
     }
 
-    return `${requestOrigin}${menuBaseUrl.startsWith("/") ? menuBaseUrl : `/${menuBaseUrl}`}/${encodedSlug}`;
+    const legacyPath = legacyMenuBaseUrl.endsWith("/menu") ? `${legacyMenuBaseUrl}/${encodedSlug}` : `${legacyMenuBaseUrl}/menu/${encodedSlug}`;
+    return `${requestOrigin}${legacyPath.startsWith("/") ? legacyPath : `/${legacyPath}`}`;
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
-  return `${siteUrl || requestOrigin}/menu/${encodedSlug}`;
+  return siteUrl ? `${siteUrl}${getPublicMenuPath(slug)}` : `${requestOrigin}${getPublicMenuPath(slug)}`;
 }
 
 export async function GET(request: Request) {
@@ -55,7 +63,7 @@ export async function GET(request: Request) {
   return new Response(new Uint8Array(pngBuffer), {
     headers: {
       "Content-Type": "image/png",
-      "Content-Disposition": `attachment; filename="tablescene-${slug}-qr.png"`,
+      "Content-Disposition": `attachment; filename="menulink-${slug}-qr.png"`,
       "Cache-Control": "private, no-store",
     },
   });

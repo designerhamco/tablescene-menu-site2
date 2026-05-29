@@ -73,7 +73,7 @@ const Portfolio = () => {
         {/* Header Section */}
         <div className="text-center mb-10 relative z-10">
           <h2 className="text-3xl md:text-5xl font-bold mb-8 tracking-tight leading-tight text-black">
-            테이블씬 서비스 화면 미리보기
+            메뉴링크 서비스 화면 미리보기
           </h2>
           
           {/* Tab Navigation */}

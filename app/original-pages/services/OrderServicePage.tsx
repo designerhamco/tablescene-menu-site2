@@ -445,18 +445,18 @@ const OrderServicePage = () => {
                 준비 중
               </span>
               <h1 className="break-keep text-4xl font-black tracking-tight text-zinc-950 md:text-6xl">
-                테이블씬 오더 1.0
+                메뉴링크 오더 1.0
               </h1>
               <p className="mt-6 max-w-2xl break-keep text-lg font-semibold leading-relaxed text-zinc-500 md:text-xl">
                 QR로 주문하고 주방까지 바로 연결되는 오더 시스템은 준비 중입니다.
-                현재는 테이블씬 베이직, 테이블씬 디스플레이, 커스텀 서비스를 먼저 이용하실 수 있습니다.
+                현재는 메뉴링크 베이직, 메뉴링크 디스플레이, 커스텀 서비스를 먼저 이용하실 수 있습니다.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/services/basic"
                   className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
                 >
-                  테이블씬 베이직 보기
+                  메뉴링크 베이직 보기
                 </Link>
                 <Link
                   to="/apply/custom"
@@ -512,7 +512,7 @@ const OrderServicePage = () => {
             >
               <img 
                 src={item.src} 
-                alt="Table Scene Moment" 
+                alt="MenuLink Moment" 
                 className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
               />
             </div>
@@ -686,13 +686,13 @@ const OrderServicePage = () => {
 
             <div className="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-8">
               
-              {/* Box 1: TableScene PRO (Dark) */}
+              {/* Box 1: MenuLink PRO (Dark) */}
               <div className="relative group w-full lg:w-auto">
                  {/* Glow Effect */}
                  <div className="absolute inset-0 bg-zinc-900 blur-[40px] opacity-10 rounded-full" />
                  
                  <div className="relative bg-zinc-900 text-white px-10 py-6 lg:py-8 rounded-[2rem] shadow-2xl flex flex-col items-center md:items-start text-center md:text-left border border-zinc-700/50 min-w-[280px]">
-                   <div className="text-zinc-400 text-sm font-bold tracking-wider uppercase mb-2">테이블씬 웹메뉴판</div>
+                   <div className="text-zinc-400 text-sm font-bold tracking-wider uppercase mb-2">메뉴링크 웹메뉴판</div>
                    <div className="text-xl lg:text-2xl font-bold tracking-tight mb-4">PRO 1.0</div>
                    <div className="flex items-center gap-4 text-zinc-400 justify-center w-full md:w-auto">
                       <Monitor className="w-5 h-5" />
@@ -1190,7 +1190,7 @@ const OrderServicePage = () => {
             <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
               {designTab === 'template' ? (
                 <>
-                  테이블씬 PRO 1.0에서는 매장 분위기에 맞는<br/>
+                  메뉴링크 PRO 1.0에서는 매장 분위기에 맞는<br/>
                   <span className="text-zinc-900 font-semibold">8가지 프리미엄 디자인 템플릿</span> 중 하나를 선택하실 수 있습니다.
                 </>
               ) : (
@@ -1681,7 +1681,7 @@ const OrderServicePage = () => {
                 압도적인 비용 절감 효과
              </div>
              <h3 className="text-2xl font-bold text-white mb-8 mt-2 md:mt-0 flex flex-col md:flex-row items-center md:items-baseline gap-2 justify-center md:justify-start">
-               테이블씬 PRO (All-in-One)
+               메뉴링크 PRO (All-in-One)
                <span className="text-base font-normal text-white/70">(약정 1년 / 위약금 없음)</span>
              </h3>
              <div className="space-y-4 font-medium text-lg">
