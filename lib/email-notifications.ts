@@ -2,6 +2,7 @@ type EmailSendInput = {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 };
 
 type EmailSendResult =
@@ -51,6 +52,7 @@ export async function sendNotificationEmail(input: EmailSendInput): Promise<Emai
       to: [input.to],
       subject: input.subject,
       text: input.text,
+      html: input.html,
     }),
   });
 

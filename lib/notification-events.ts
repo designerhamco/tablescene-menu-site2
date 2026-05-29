@@ -1,11 +1,26 @@
 import type { Json } from "@/lib/supabase/types";
+import {
+  buildDataRetentionEndingEmail,
+  formatKoreanDate,
+  formatPublicMenuPath,
+} from "@/lib/notification-email-templates";
 
 export const RETENTION_NOTICE_DAY_OFFSETS = [30, 7, 1, 0] as const;
+export const EMAIL_BATCH_LIMIT = Number(process.env.EMAIL_BATCH_LIMIT ?? 10);
+export const EMAIL_SEND_DELAY_MS = Number(process.env.EMAIL_SEND_DELAY_MS ?? 700);
+export const EMAIL_MAX_RETRY_COUNT = Number(process.env.EMAIL_MAX_RETRY_COUNT ?? 3);
 
 export const LONG_INACTIVE_ACCOUNT_NOTICE = {
   enabled: false,
   inactiveAfterDays: 365,
-  todo: "장기 미접속 1년 기준은 정책 확정 후 활성화합니다.",
+  eventType: "account_inactive_1year_notice",
+  basis: "가입 후 1년이 아니라 auth.users.last_sign_in_at 기준 1년 이상 미접속 계정을 검토합니다.",
+  exclusions: [
+    "active 유료 구독 계정",
+    "active 개인 체험 계정",
+    "active 메뉴판 또는 서비스 권한이 있는 계정",
+  ],
+  todo: "장기 미접속 1년 고지는 event_type/DB 정책 확정 후 dry-run부터 활성화합니다.",
 } as const;
 
 export const ACCOUNT_DELETION_RETENTION_POLICY = {
@@ -47,23 +62,7 @@ export type NotificationEventRecord = {
   updated_at: string;
 };
 
-export function formatPublicMenuPath(slug: string | null | undefined) {
-  return slug ? `/menu/${slug}` : "-";
-}
-
-export function formatKoreanDate(value: string | null | undefined) {
-  if (!value) return "-";
-
-  const date = new Date(value);
-
-  if (!Number.isFinite(date.getTime())) return "-";
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(date);
-}
+export { formatKoreanDate, formatPublicMenuPath };
 
 export function getRetentionNoticePeriodKey(menuSiteId: string, daysLeft: number, retentionUntil: string) {
   return `data_retention:${menuSiteId}:${daysLeft}:${retentionUntil.slice(0, 10)}`;
@@ -80,33 +79,14 @@ export function buildDataRetentionNoticeMessage({
   retentionUntil: string;
   daysLeft: number;
 }) {
-  const publicPath = formatPublicMenuPath(slug);
-  const retentionLabel = formatKoreanDate(retentionUntil);
-  const daysLeftLabel = daysLeft === 0 ? "오늘" : `${daysLeft}일`;
-
-  return [
-    "안녕하세요, 메뉴링크입니다.",
-    "",
-    "회원님의 메뉴판 데이터 보관 기간이 곧 종료될 예정입니다.",
-    "",
-    `* 메뉴판: ${menuSiteName}`,
-    `* 공개 주소: ${publicPath}`,
-    `* 보관 종료 예정일: ${retentionLabel}`,
-    `* 남은 기간: ${daysLeftLabel}`,
-    "",
-    "보관 기간이 종료되면 해당 메뉴판의 편집, 공개, QR, AI 기능 이용이 제한되며, 정책에 따라 데이터가 삭제될 수 있습니다.",
-    "",
-    "계속 이용을 원하시면 보관 종료 전 사업자 플랜으로 전환해 주세요.",
-    "",
-    "감사합니다.",
-    "메뉴링크 드림",
-  ].join("\n");
+  return buildDataRetentionEndingEmail({ menuSiteName, slug, retentionUntil, daysLeft }).text;
 }
 
 export function getRetentionNoticeTitle(daysLeft: number) {
-  if (daysLeft === 0) {
-    return "[메뉴링크] 데이터 보관 기간이 오늘 종료됩니다";
-  }
-
-  return "[메뉴링크] 데이터 보관 기간 종료 예정 안내";
+  return buildDataRetentionEndingEmail({
+    menuSiteName: "메뉴판",
+    slug: null,
+    retentionUntil: new Date().toISOString(),
+    daysLeft,
+  }).subject;
 }

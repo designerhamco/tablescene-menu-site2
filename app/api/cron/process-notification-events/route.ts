@@ -1,8 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { sendNotificationEmail } from "@/lib/email-notifications";
+import { buildNotificationEmail } from "@/lib/notification-email-templates";
 import {
   buildDataRetentionNoticeMessage,
+  EMAIL_BATCH_LIMIT,
+  EMAIL_MAX_RETRY_COUNT,
+  EMAIL_SEND_DELAY_MS,
   getRetentionNoticePeriodKey,
   getRetentionNoticeTitle,
   RETENTION_NOTICE_DAY_OFFSETS,
@@ -106,6 +110,58 @@ function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setUTCDate(next.getUTCDate() + days);
   return next;
+}
+
+function getBoundedNumber(value: number, fallback: number, min: number, max: number) {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.floor(value)));
+}
+
+function getEmailBatchLimit() {
+  return getBoundedNumber(EMAIL_BATCH_LIMIT, 10, 1, 25);
+}
+
+function getEmailSendDelayMs() {
+  return getBoundedNumber(EMAIL_SEND_DELAY_MS, 700, 0, 2000);
+}
+
+function getEmailMaxRetryCount() {
+  return getBoundedNumber(EMAIL_MAX_RETRY_COUNT, 3, 0, 10);
+}
+
+function sleep(ms: number) {
+  return ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+}
+
+function getMetadataObject(metadata: Json) {
+  return metadata && typeof metadata === "object" && !Array.isArray(metadata) ? metadata as Record<string, Json> : {};
+}
+
+function getRetryCount(metadata: Json) {
+  const value = getMetadataObject(metadata).retry_count;
+  return typeof value === "number" && Number.isFinite(value) ? value : Number(value ?? 0) || 0;
+}
+
+function getEmailErrorInfo(emailResult: Awaited<ReturnType<typeof sendNotificationEmail>>) {
+  const rawMessage = "error" in emailResult ? emailResult.error : emailResult.skippedReason;
+  let errorCode: string | null = null;
+
+  try {
+    const parsed = JSON.parse(rawMessage) as { name?: unknown; error?: unknown; message?: unknown };
+    const candidate = parsed.name ?? parsed.error;
+    if (typeof candidate === "string" && candidate.trim()) {
+      errorCode = candidate.trim();
+    }
+  } catch {
+    if (rawMessage.toLowerCase().includes("rate_limit")) {
+      errorCode = "rate_limit_exceeded";
+    }
+  }
+
+  return {
+    rawMessage,
+    errorCode,
+  };
 }
 
 function getDaysLeft(targetIso: string, now: Date) {
@@ -287,25 +343,33 @@ async function buildRetentionNoticeCandidates(adminSupabase: ReturnType<typeof c
 }
 
 async function processPendingEmails(adminSupabase: ReturnType<typeof createAdminClient>, now: Date) {
+  const batchLimit = getEmailBatchLimit();
+  const sendDelayMs = getEmailSendDelayMs();
+  const maxRetryCount = getEmailMaxRetryCount();
   const { data, error } = await adminSupabase
     .from("notification_events" as never)
     .select("id, user_id, menu_site_id, subscription_id, event_type, channel, title, message, status, scheduled_for, sent_at, read_at, metadata, created_at, updated_at")
     .eq("channel" as never, "email" as never)
-    .eq("status" as never, "pending" as never)
+    .in("status" as never, ["pending", "failed"] as never)
     .or(`scheduled_for.is.null,scheduled_for.lte.${now.toISOString()}` as never)
     .order("created_at" as never, { ascending: true } as never)
-    .limit(25);
+    .limit(batchLimit * 3);
 
   if (error) {
     throw new Error(`발송 대기 알림 조회 실패: ${error.message}`);
   }
 
-  const events = (data ?? []) as unknown as NotificationEventRecord[];
+  const events = ((data ?? []) as unknown as NotificationEventRecord[])
+    .filter((event) => event.status === "pending" || getRetryCount(event.metadata) < maxRetryCount)
+    .slice(0, batchLimit);
   const userIds = Array.from(new Set(events.map((event) => event.user_id)));
   const contactEmailByUserId = await getContactEmailsByUserId(adminSupabase, userIds);
-  const results: Array<{ id: string; status: "sent" | "failed" | "skipped" | "pending"; message?: string }> = [];
+  const results: Array<{ id: string; status: "sent" | "failed" | "skipped" | "pending"; message?: string; retryCount?: number }> = [];
 
-  for (const event of events) {
+  for (let index = 0; index < events.length; index += 1) {
+    const event = events[index];
+    const metadata = getMetadataObject(event.metadata);
+    const nextRetryCount = getRetryCount(event.metadata) + 1;
     const recipient = await getRecipientEmail(adminSupabase, event.user_id, contactEmailByUserId);
 
     if (!recipient) {
@@ -314,7 +378,7 @@ async function processPendingEmails(adminSupabase: ReturnType<typeof createAdmin
         .update({
           status: "skipped",
           metadata: {
-            ...(typeof event.metadata === "object" && event.metadata && !Array.isArray(event.metadata) ? event.metadata : {}),
+            ...metadata,
             skipped_reason: "recipient_email_missing",
           },
         } as never)
@@ -328,10 +392,12 @@ async function processPendingEmails(adminSupabase: ReturnType<typeof createAdmin
       continue;
     }
 
+    const email = buildNotificationEmail(event);
     const emailResult = await sendNotificationEmail({
       to: recipient,
-      subject: event.title,
-      text: event.message,
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
     });
 
     if (emailResult.ok) {
@@ -341,30 +407,44 @@ async function processPendingEmails(adminSupabase: ReturnType<typeof createAdmin
           status: "sent",
           sent_at: now.toISOString(),
           metadata: {
-            ...(typeof event.metadata === "object" && event.metadata && !Array.isArray(event.metadata) ? event.metadata : {}),
+            ...metadata,
             email_provider: emailResult.provider,
             email_provider_id: emailResult.id ?? null,
+            retry_count: nextRetryCount,
           },
         } as never)
         .eq("id" as never, event.id as never);
       results.push({ id: event.id, status: "sent" });
     } else {
+      const errorInfo = getEmailErrorInfo(emailResult);
       await adminSupabase
         .from("notification_events" as never)
         .update({
           status: "failed",
           metadata: {
-            ...(typeof event.metadata === "object" && event.metadata && !Array.isArray(event.metadata) ? event.metadata : {}),
+            ...metadata,
             email_provider: emailResult.provider,
-            email_error: "error" in emailResult ? emailResult.error : emailResult.skippedReason,
+            email_error: errorInfo.rawMessage,
+            email_error_code: errorInfo.errorCode,
+            retry_count: nextRetryCount,
+            retryable: nextRetryCount < maxRetryCount,
           },
         } as never)
         .eq("id" as never, event.id as never);
-      results.push({ id: event.id, status: "failed" });
+      results.push({ id: event.id, status: "failed", retryCount: nextRetryCount });
+    }
+
+    if (index < events.length - 1) {
+      await sleep(sendDelayMs);
     }
   }
 
-  return results;
+  return {
+    batchLimit,
+    sendDelayMs,
+    maxRetryCount,
+    results,
+  };
 }
 
 async function handleCron(request: NextRequest) {
@@ -401,7 +481,12 @@ async function handleCron(request: NextRequest) {
     }
   }
 
-  const emailResults = options.execute ? await processPendingEmails(adminSupabase, now) : [];
+  const emailProcessing = options.execute ? await processPendingEmails(adminSupabase, now) : {
+    batchLimit: getEmailBatchLimit(),
+    sendDelayMs: getEmailSendDelayMs(),
+    maxRetryCount: getEmailMaxRetryCount(),
+    results: [],
+  };
 
   return NextResponse.json({
     ok: true,
@@ -419,7 +504,10 @@ async function handleCron(request: NextRequest) {
     created: createdEvents.map((event) => event.id),
     skippedDuplicates,
     emailProviderConfigured: process.env.EMAIL_PROVIDER?.trim().toLowerCase() === "resend" && Boolean(process.env.RESEND_API_KEY?.trim()),
-    emailResults,
+    emailBatchLimit: emailProcessing.batchLimit,
+    emailSendDelayMs: emailProcessing.sendDelayMs,
+    emailMaxRetryCount: emailProcessing.maxRetryCount,
+    emailResults: emailProcessing.results,
     warnings,
     todos: [
       "회원탈퇴 데이터 파기 예정 알림은 회원탈퇴 기능과 보관 기준일 확정 후 연결합니다.",

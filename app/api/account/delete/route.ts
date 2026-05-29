@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import { buildAccountDeletionRequestedEmail } from "@/lib/notification-email-templates";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -120,18 +121,7 @@ async function createAccountDeletionNotification({
   userId: string;
   nowIso: string;
 }) {
-  const message = [
-    "안녕하세요, 메뉴링크입니다.",
-    "",
-    "회원탈퇴 신청이 접수되어 계정 이용이 중단되었습니다.",
-    "",
-    "메뉴판은 비공개 및 삭제 예정 상태로 전환되며, 서비스 이용 데이터는 개인정보 처리방침과 데이터 보관·삭제 정책에 따라 처리됩니다.",
-    "",
-    "단, 결제·정산·분쟁 대응 및 관계 법령상 보관이 필요한 기록은 정해진 기간 동안 별도 보관될 수 있습니다.",
-    "",
-    "감사합니다.",
-    "메뉴링크 드림",
-  ].join("\n");
+  const email = buildAccountDeletionRequestedEmail();
 
   const { error } = await adminSupabase
     .from("notification_events" as never)
@@ -139,8 +129,8 @@ async function createAccountDeletionNotification({
       user_id: userId,
       event_type: "account_deletion_requested",
       channel: "email",
-      title: "[메뉴링크] 회원탈퇴 신청 접수 안내",
-      message,
+      title: email.subject,
+      message: email.text,
       status: "pending",
       scheduled_for: nowIso,
       metadata: {
