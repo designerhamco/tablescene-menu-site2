@@ -5,6 +5,8 @@
 - 이메일 고지 이벤트 기록: `notification_events`
 - 마이페이지 최근 알림 표시
 - `/api/cron/process-notification-events` 기반 dry run / execute 처리
+- Vercel Cron 등록 경로: `/api/cron/process-notification-events`
+- Vercel Cron schedule: `0 19 * * *` (UTC 기준, 한국시간 새벽 4시)
 - 데이터 보관 종료 30일 전, 7일 전, 1일 전, 당일 고지 후보 생성
 - Resend 발송은 한 번 실행당 기본 10건으로 제한
 - 실패 이벤트는 `metadata.retry_count` 기준 기본 3회까지 재시도 가능
@@ -19,11 +21,37 @@
 
 ## 이메일 발송 설정
 
+- `CRON_SECRET`: cron route 인증 토큰
+- `EMAIL_PROVIDER`: `resend`
+- `RESEND_API_KEY`: Resend API key
+- `EMAIL_FROM`: 예) `메뉴링크 <admin@dndcommerce.co.kr>`
 - `EMAIL_BATCH_LIMIT`: 기본 10, 최대 25
 - `EMAIL_SEND_DELAY_MS`: 기본 700ms, 최대 2000ms
 - `EMAIL_MAX_RETRY_COUNT`: 기본 3, 최대 10
+- `ENABLE_NOTIFICATION_CRON_EXECUTE`: Vercel Cron GET 실행 제어값
 - Resend rate limit 발생 시 `metadata.email_error_code = rate_limit_exceeded` 형태로 추적
 - `sent` 상태 이벤트는 재발송하지 않음
+
+## 운영 실행 정책
+
+- `GET /api/cron/process-notification-events`는 Vercel Cron용입니다.
+- 기본값은 dry-run입니다.
+- `ENABLE_NOTIFICATION_CRON_EXECUTE=true`일 때만 GET 호출에서 `notification_events` 생성과 이메일 발송을 실행합니다.
+- 환경변수가 없거나 `true`가 아니면 `execute=false`, `dryRun=true`로 동작합니다.
+- 수동 테스트는 `POST /api/cron/process-notification-events`에 `CRON_SECRET`을 포함하고, 테스트 이벤트는 `metadata.test=true`로 구분해서 사용합니다.
+- 운영 고객 대상 자동 발송은 Resend 발신 도메인, 수신 대상, 템플릿, batch limit을 확인한 뒤 `ENABLE_NOTIFICATION_CRON_EXECUTE=true`로 켭니다.
+
+## 문의 기록 조회 권한 메모
+
+- 회원탈퇴 route는 `inquiries`를 삭제하지 않습니다.
+- 마이페이지/관리자 문의 화면은 사용자 또는 관리자 client 흐름으로 `inquiries`를 조회합니다.
+- notification email cron은 `inquiries`를 조회하지 않습니다.
+- QA 또는 운영 점검에서 service_role REST로 문의 기록 보관 여부를 확인해야 한다면 아래 SQL을 Supabase SQL Editor에 적용할 수 있습니다.
+
+```sql
+grant select on public.inquiries to service_role;
+notify pgrst, 'reload schema';
+```
 
 ## 1년 이상 미접속 고지 정책 메모
 

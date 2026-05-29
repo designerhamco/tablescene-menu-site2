@@ -20,6 +20,7 @@ export const runtime = "nodejs";
 type CronRequestOptions = {
   dryRun: boolean;
   execute: boolean;
+  executeEnabledForGet: boolean;
 };
 
 type RetentionEntitlement = {
@@ -81,6 +82,7 @@ function getBoolean(value: unknown, fallback: boolean) {
 async function getRequestOptions(request: NextRequest): Promise<CronRequestOptions> {
   const executeFromQuery = request.nextUrl.searchParams.get("execute");
   const dryRunFromQuery = request.nextUrl.searchParams.get("dryRun");
+  const executeEnabledForGet = process.env.ENABLE_NOTIFICATION_CRON_EXECUTE === "true";
 
   if (request.method === "POST") {
     try {
@@ -89,16 +91,26 @@ async function getRequestOptions(request: NextRequest): Promise<CronRequestOptio
       return {
         execute,
         dryRun: getBoolean(body.dryRun ?? dryRunFromQuery, !execute),
+        executeEnabledForGet,
       };
     } catch {
       // Fall through to query parsing.
     }
+
+    const execute = getBoolean(executeFromQuery, false);
+    return {
+      execute,
+      dryRun: getBoolean(dryRunFromQuery, !execute),
+      executeEnabledForGet,
+    };
   }
 
-  const execute = getBoolean(executeFromQuery, false);
+  const requestedExecute = getBoolean(executeFromQuery, executeEnabledForGet);
+  const execute = executeEnabledForGet && requestedExecute;
   return {
     execute,
     dryRun: getBoolean(dryRunFromQuery, !execute),
+    executeEnabledForGet,
   };
 }
 
@@ -492,6 +504,7 @@ async function handleCron(request: NextRequest) {
     ok: true,
     dryRun: options.dryRun,
     execute: options.execute,
+    executeEnabledForGet: options.executeEnabledForGet,
     now: now.toISOString(),
     candidates: candidates.length,
     wouldCreate: wouldCreate.map((candidate) => ({
