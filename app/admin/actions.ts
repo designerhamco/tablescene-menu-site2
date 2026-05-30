@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -16,6 +17,26 @@ function normalizeInquiryStatus(value: string) {
 
 function redirectWithError(message: string): never {
   redirect(`/admin?error=${encodeURIComponent(message)}`);
+}
+
+async function createInquiryAnsweredNotification(userId: string, inquiryId: string) {
+  const result = await createInAppNotificationOnce({
+    userId,
+    inquiryId,
+    eventType: "inquiry_answered",
+    title: "문의 답변이 등록되었습니다.",
+    message: "문의하신 내용에 대한 답변이 등록되었습니다.",
+    href: "/mypage?tab=inquiries",
+    periodKey: `inquiry_answered:${inquiryId}`,
+  });
+
+  if (!result.ok) {
+    console.error("[admin] failed to create inquiry answered notification", {
+      userId,
+      inquiryId,
+      error: result.error,
+    });
+  }
 }
 
 async function requireAdmin() {
@@ -53,7 +74,18 @@ export async function replyInquiryAction(formData: FormData) {
     redirectWithError("답변 내용을 입력해주세요.");
   }
 
-  const { supabase } = await requireAdmin();
+  const { supabase, user } = await requireAdmin();
+  const { data: inquiry, error: inquiryError } = await supabase
+    .from("inquiries")
+    .select("id, user_id, admin_reply")
+    .eq("id", inquiryId)
+    .maybeSingle();
+
+  if (inquiryError || !inquiry) {
+    redirectWithError(`문의 조회에 실패했습니다: ${inquiryError?.message ?? "문의를 찾을 수 없습니다."}`);
+  }
+
+  const shouldNotify = !inquiry.admin_reply && inquiry.user_id !== user.id;
 
   const { error } = await supabase
     .from("inquiries")
@@ -67,6 +99,10 @@ export async function replyInquiryAction(formData: FormData) {
 
   if (error) {
     redirectWithError(`문의 답변 저장에 실패했습니다: ${error.message}`);
+  }
+
+  if (shouldNotify) {
+    await createInquiryAnsweredNotification(inquiry.user_id, inquiry.id);
   }
 
   revalidatePath("/admin");

@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { normalizeInquiryCategory } from "@/lib/inquiries";
+import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 
 type InquiryInsert = Database["public"]["Tables"]["inquiries"]["Insert"];
 type InquiryUpdate = Database["public"]["Tables"]["inquiries"]["Update"];
@@ -53,6 +54,26 @@ function redirectWithMessage(formData: FormData, message: string): never {
   redirect(withQuery(getSafeReturnPath(formData), "message", message));
 }
 
+async function createInquirySubmittedNotification(userId: string, inquiryId: string) {
+  const result = await createInAppNotificationOnce({
+    userId,
+    inquiryId,
+    eventType: "inquiry_submitted",
+    title: "문의가 접수되었습니다.",
+    message: "문의가 정상적으로 접수되었습니다. 답변이 등록되면 알림으로 알려드릴게요.",
+    href: "/mypage?tab=inquiries",
+    periodKey: `inquiry_submitted:${inquiryId}`,
+  });
+
+  if (!result.ok) {
+    console.error("[inquiries] failed to create inquiry submitted notification", {
+      userId,
+      inquiryId,
+      error: result.error,
+    });
+  }
+}
+
 export async function createInquiryAction(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -80,6 +101,7 @@ export async function createInquiryAction(formData: FormData) {
   }
 
   const payload: InquiryInsertWithCategory = {
+    id: crypto.randomUUID(),
     user_id: user.id,
     title,
     message,
@@ -92,6 +114,8 @@ export async function createInquiryAction(formData: FormData) {
   if (error) {
     redirectWithError(formData, `문의 등록에 실패했습니다: ${error.message}`);
   }
+
+  await createInquirySubmittedNotification(user.id, payload.id);
 
   revalidateInquiryViews();
   redirectWithMessage(formData, "inquiry-created");
