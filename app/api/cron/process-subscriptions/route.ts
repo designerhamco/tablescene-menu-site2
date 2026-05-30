@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
 import { payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
+import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -259,6 +260,7 @@ async function expireSubscriptionAtPeriodEnd({
 }) {
   const nowIso = new Date().toISOString();
   const accessExpiresAt = (subscription.current_period_end ?? subscription.next_billing_at ?? periodStart.toISOString());
+  const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
 
   const { error: subscriptionError } = await adminSupabase
     .from("business_subscriptions" as never)
@@ -280,6 +282,8 @@ async function expireSubscriptionAtPeriodEnd({
       status: "expired",
       expired_at: nowIso,
       access_expires_at: accessExpiresAt,
+      data_retention_until: dataRetentionUntil,
+      deleted_scheduled_at: null,
     })
     .eq("subscription_id", subscription.id);
 
@@ -291,6 +295,17 @@ async function expireSubscriptionAtPeriodEnd({
 
   if (entitlementError) {
     throw new Error(`SERVICE_ENTITLEMENT_EXPIRE_FAILED: ${entitlementError.message}`);
+  }
+
+  if (subscription.menu_site_id) {
+    const { error: menuSiteError } = await adminSupabase
+      .from("menu_sites")
+      .update({ status: "archived" })
+      .eq("id", subscription.menu_site_id);
+
+    if (menuSiteError) {
+      throw new Error(`MENU_SITE_ARCHIVE_FAILED: ${menuSiteError.message}`);
+    }
   }
 }
 
@@ -338,6 +353,8 @@ async function markSubscriptionRenewed({
       status: "active",
       access_expires_at: periodEnd.toISOString(),
       expired_at: null,
+      data_retention_until: null,
+      deleted_scheduled_at: null,
     })
     .eq("subscription_id", subscription.id);
 

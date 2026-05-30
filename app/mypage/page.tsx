@@ -28,6 +28,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
+import { SERVICE_DATA_RETENTION_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
 import type { Json } from "@/lib/supabase/types";
 
@@ -1775,7 +1776,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     <div>
                       <h3 className="text-2xl font-black tracking-tight">만료·보관된 메뉴판</h3>
                       <p className="mt-2 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-700">
-                        만료 또는 보관 중인 메뉴판은 공개와 편집이 제한됩니다. 복구 가능한 메뉴판은 사업자 플랜 전환 후 이어서 사용할 수 있습니다.
+                        체험 또는 서비스 종료 후 7일 동안 복구할 수 있습니다. 보관 기간 종료 전 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.
                       </p>
                     </div>
                     {expiredServiceItems.length > 6 ? (
@@ -1799,7 +1800,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const dataRetentionUntil = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
                         const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
                         const expiresAt = entitlement?.access_expires_at ?? subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
-                        const dataDeletionScheduledAt = dataRetentionUntil ?? addDaysIso(entitlement?.expired_at ?? expiresAt, 7);
+                        const dataDeletionScheduledAt = dataRetentionUntil ?? addDaysIso(entitlement?.expired_at ?? expiresAt, SERVICE_DATA_RETENTION_DAYS);
                         const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle);
                         const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
                         const paymentDetailId = getSafeString(latestPayment?.payment.payment_id ?? latestPayment?.payment.portone_payment_id ?? subscription?.portone_payment_id ?? latestPayment?.order?.payment_id ?? null);
@@ -1848,10 +1849,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                 </dl>
                                 <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs font-bold leading-relaxed text-amber-800">
                                   <p>이 메뉴판의 이용기간이 종료되어 비공개 처리되었습니다.</p>
-                                  <p className="mt-2">종료 후 7일 이내 유료서비스로 전환하거나 구독을 재개하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.</p>
-                                  <p className="mt-2">7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.</p>
+                                  <p className="mt-2">종료 후 7일 이내 사업자 플랜으로 전환하거나 구독을 재개하면 기존 메뉴판을 복구할 수 있습니다.</p>
+                                  <p className="mt-2">보관 기간이 종료되면 메뉴판 데이터와 업로드 이미지는 정책에 따라 삭제될 수 있습니다.</p>
                                   <p className="mt-3 font-black text-amber-950">데이터 삭제 예정일: {formatDate(dataDeletionScheduledAt)}</p>
-                                  <p className="mt-2 text-[11px] text-amber-700">TODO: 실제 삭제 배치/스케줄러는 데이터 보관 정책에 맞춰 별도 작업으로 연결합니다.</p>
                                 </div>
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">

@@ -5,7 +5,7 @@ import {
   formatPublicMenuPath,
 } from "@/lib/notification-email-templates";
 
-export const RETENTION_NOTICE_DAY_OFFSETS = [30, 7, 1, 0] as const;
+export const RETENTION_NOTICE_DAY_OFFSETS = [3, 1, 0] as const;
 export const EMAIL_BATCH_LIMIT = Number(process.env.EMAIL_BATCH_LIMIT ?? 10);
 export const EMAIL_SEND_DELAY_MS = Number(process.env.EMAIL_SEND_DELAY_MS ?? 700);
 export const EMAIL_MAX_RETRY_COUNT = Number(process.env.EMAIL_MAX_RETRY_COUNT ?? 3);

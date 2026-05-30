@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { reclaimUnusedPersonalTrialGrantCredits } from "@/lib/server/ai-credits-service";
+import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -103,6 +104,8 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
       .from("service_entitlements")
       .update({
         status: "expired",
+        data_retention_until: getServiceDataRetentionUntil(nowIso),
+        deleted_scheduled_at: null,
       })
       .in("id", trialIds);
 
@@ -314,8 +317,8 @@ async function handleCron(request: NextRequest) {
       repairedArchivedMenuSites: repairResult.repairedArchivedMenuSites,
       hardDeleted: 0,
       errors: [...expiredResult.errors, ...pendingDeleteResult.errors, ...repairResult.errors],
-      todo:
-        "2차 작업에서 pending_delete 상태의 menu_pages, menu_categories, menu_items, 이미지 storage 파일 삭제 job을 별도 구현합니다. orders/payments/service_entitlements 기록은 삭제하지 않습니다.",
+      nextStep:
+        "pending_delete 상태의 menu_pages, menu_categories, menu_items, 이미지 storage 파일 삭제 job은 2차 작업에서 별도 구현합니다. orders/payments/service_entitlements 기록은 삭제하지 않습니다.",
     });
   } catch (error) {
     console.error("[cron:expire-personal-trials] failed", error);

@@ -7,7 +7,7 @@
 - `/api/cron/process-notification-events` 기반 dry run / execute 처리
 - Vercel Cron 등록 경로: `/api/cron/process-notification-events`
 - Vercel Cron schedule: `0 19 * * *` (UTC 기준, 한국시간 새벽 4시)
-- 데이터 보관 종료 30일 전, 7일 전, 1일 전, 당일 고지 후보 생성
+- 데이터 보관 종료 3일 전, 1일 전, 당일 고지 후보 생성
 - Resend 발송은 한 번 실행당 기본 10건으로 제한
 - 실패 이벤트는 `metadata.retry_count` 기준 기본 3회까지 재시도 가능
 - 발송 간격은 기본 700ms로 순차 처리
