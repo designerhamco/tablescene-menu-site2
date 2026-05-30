@@ -10,7 +10,8 @@
     "build:turbo": "node --max-old-space-size=6144 node_modules/next/dist/bin/next build",
     "build:debug-memory": "node --max-old-space-size=6144 node_modules/next/dist/bin/next build --webpack --experimental-debug-memory-usage",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "supabase:types": "node scripts/generate-supabase-types.mjs"
   },
   "dependencies": {
     "@portone/browser-sdk": "^0.1.5",
@@ -73,6 +74,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "supabase": "^2.102.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
