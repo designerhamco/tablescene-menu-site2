@@ -66,6 +66,12 @@ type ServiceEntitlement = {
   data_retention_until: string | null;
 };
 
+type SubscriptionBillingPeriod = {
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  nextBillingAt: string;
+};
+
 type NormalizedBusinessOrder = MenuOrderPayload & {
   product_key: "business_basic_monthly" | "business_basic_yearly";
   plan_type: "business_basic";
@@ -442,16 +448,21 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
   return order;
 }
 
-function getNextBillingAt(product: SubscriptionProduct, now = new Date()) {
-  const next = new Date(now);
+function getSubscriptionBillingPeriod(product: SubscriptionProduct, now = new Date()): SubscriptionBillingPeriod {
+  const periodStart = new Date(now);
+  const periodEnd = new Date(periodStart);
 
   if (product.billingCycle === "yearly") {
-    next.setFullYear(next.getFullYear() + 1);
+    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
   } else {
-    next.setMonth(next.getMonth() + 1);
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
   }
 
-  return next.toISOString();
+  return {
+    currentPeriodStart: periodStart.toISOString(),
+    currentPeriodEnd: periodEnd.toISOString(),
+    nextBillingAt: periodEnd.toISOString(),
+  };
 }
 
 function getSubscriptionOrderName(product: SubscriptionProduct) {
@@ -591,13 +602,13 @@ async function markSubscriptionActive({
   subscriptionId,
   menuSiteId,
   paymentId,
-  nextBillingAt,
+  billingPeriod,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscriptionId: string;
   menuSiteId: string;
   paymentId: string;
-  nextBillingAt: string;
+  billingPeriod: SubscriptionBillingPeriod;
 }) {
   const { error } = await adminSupabase
     .from("business_subscriptions" as never)
@@ -605,8 +616,10 @@ async function markSubscriptionActive({
       menu_site_id: menuSiteId,
       status: "active",
       portone_payment_id: paymentId,
-      last_paid_at: new Date().toISOString(),
-      next_billing_at: nextBillingAt,
+      last_paid_at: billingPeriod.currentPeriodStart,
+      current_period_start: billingPeriod.currentPeriodStart,
+      current_period_end: billingPeriod.currentPeriodEnd,
+      next_billing_at: billingPeriod.nextBillingAt,
     }) as never)
     .eq("id" as never, subscriptionId as never);
 
@@ -651,14 +664,14 @@ async function createBusinessMenuSite({
   order,
   product,
   subscriptionId,
-  nextBillingAt,
+  billingPeriod,
 }: {
   supabase: ServerSupabaseClient;
   userId: string;
   order: NormalizedBusinessOrder;
   product: SubscriptionProduct;
   subscriptionId: string;
-  nextBillingAt: string;
+  billingPeriod: SubscriptionBillingPeriod;
 }) {
   const settings = {
     source: "business_subscription",
@@ -667,7 +680,11 @@ async function createBusinessMenuSite({
     payment_type: product.paymentType,
     billing_cycle: product.billingCycle,
     subscription_id: subscriptionId,
-    next_billing_at: nextBillingAt,
+    access_starts_at: billingPeriod.currentPeriodStart,
+    access_expires_at: billingPeriod.currentPeriodEnd,
+    current_period_start: billingPeriod.currentPeriodStart,
+    current_period_end: billingPeriod.currentPeriodEnd,
+    next_billing_at: billingPeriod.nextBillingAt,
     auto_renewal: true,
     buyer_email: order.buyerEmail,
   };
@@ -827,20 +844,37 @@ function isPersonalTrialConvertible(entitlements: ServiceEntitlement[]) {
   });
 }
 
+function removeRetentionSettings(settings: Record<string, unknown>) {
+  const nextSettings = { ...settings };
+  const legacyRetentionKeys = [
+    "data_retention_until",
+    "deleted_scheduled_at",
+    "retention_until",
+    "expired_at",
+    "data_deletion_scheduled_at",
+  ];
+
+  for (const key of legacyRetentionKeys) {
+    delete nextSettings[key];
+  }
+
+  return nextSettings;
+}
+
 async function updateConvertedMenuSite({
   supabase,
   menuSite,
   product,
   subscriptionId,
-  nextBillingAt,
+  billingPeriod,
 }: {
   supabase: ServerSupabaseClient;
   menuSite: ExistingMenuSite;
   product: SubscriptionProduct;
   subscriptionId: string;
-  nextBillingAt: string;
+  billingPeriod: SubscriptionBillingPeriod;
 }) {
-  const currentSettings = getRecord(menuSite.settings);
+  const currentSettings = removeRetentionSettings(getRecord(menuSite.settings));
   const { data, error } = await supabase
     .from("menu_sites")
     .update({
@@ -853,7 +887,11 @@ async function updateConvertedMenuSite({
         payment_type: product.paymentType,
         billing_cycle: product.billingCycle,
         subscription_id: subscriptionId,
-        next_billing_at: nextBillingAt,
+        access_starts_at: billingPeriod.currentPeriodStart,
+        access_expires_at: billingPeriod.currentPeriodEnd,
+        current_period_start: billingPeriod.currentPeriodStart,
+        current_period_end: billingPeriod.currentPeriodEnd,
+        next_billing_at: billingPeriod.nextBillingAt,
         auto_renewal: true,
       },
     })
@@ -900,7 +938,7 @@ async function createBusinessEntitlement({
   businessProfileId,
   product,
   subscriptionId,
-  nextBillingAt,
+  billingPeriod,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   userId: string;
@@ -908,7 +946,7 @@ async function createBusinessEntitlement({
   businessProfileId: string;
   product: SubscriptionProduct;
   subscriptionId: string;
-  nextBillingAt: string;
+  billingPeriod: SubscriptionBillingPeriod;
 }) {
   const { error } = await adminSupabase.from("service_entitlements").insert({
     user_id: userId,
@@ -921,8 +959,8 @@ async function createBusinessEntitlement({
     billing_cycle: product.billingCycle,
     subscription_id: subscriptionId,
     status: "active",
-    access_starts_at: new Date().toISOString(),
-    access_expires_at: nextBillingAt,
+    access_starts_at: billingPeriod.currentPeriodStart,
+    access_expires_at: billingPeriod.currentPeriodEnd,
     expired_at: null,
     data_retention_until: null,
     deleted_scheduled_at: null,
@@ -1333,7 +1371,8 @@ export async function POST(request: Request) {
   }
 
   const paymentId = `billing_${Date.now()}_${randomUUID()}`;
-  const nextBillingAt = getNextBillingAt(product);
+  const billingPeriod = getSubscriptionBillingPeriod(product);
+  const nextBillingAt = billingPeriod.nextBillingAt;
   let subscriptionId: string;
 
   try {
@@ -1398,14 +1437,14 @@ export async function POST(request: Request) {
           order: order as NormalizedBusinessOrder,
           product,
           subscriptionId,
-          nextBillingAt,
+          billingPeriod,
         })
       : await updateConvertedMenuSite({
           supabase,
           menuSite: existingMenuSite as ExistingMenuSite,
           product,
           subscriptionId,
-          nextBillingAt,
+          billingPeriod,
         });
 
     await markSubscriptionActive({
@@ -1413,7 +1452,7 @@ export async function POST(request: Request) {
       subscriptionId,
       menuSiteId: menuSite.id,
       paymentId,
-      nextBillingAt,
+      billingPeriod,
     });
 
     if (mode === "convert") {
@@ -1427,7 +1466,7 @@ export async function POST(request: Request) {
       businessProfileId: businessProfile.id,
       product,
       subscriptionId,
-      nextBillingAt,
+      billingPeriod,
     });
 
     if (mode === "new") {
