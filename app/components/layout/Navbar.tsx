@@ -4,6 +4,7 @@ import { Bell, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
 import { KAKAO_CHANNEL_URL } from '../ui/ScrollToTop';
+import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 
 const logoImage = '/assets/tablescene-symbol.png';
@@ -142,7 +143,7 @@ const Navbar = () => {
           .from('notification_events' as never)
           .select('id, title, message, read_at, created_at, metadata')
           .eq('user_id' as never, authState.userId as never)
-          .in('channel' as never, ['in_app', 'email'] as never)
+          .in('channel' as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
           .neq('status' as never, 'skipped' as never)
           .order('created_at' as never, { ascending: false } as never)
           .limit(10),
@@ -150,7 +151,7 @@ const Navbar = () => {
           .from('notification_events' as never)
           .select('id', { count: 'exact', head: true })
           .eq('user_id' as never, authState.userId as never)
-          .in('channel' as never, ['in_app', 'email'] as never)
+          .in('channel' as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
           .neq('status' as never, 'skipped' as never)
           .is('read_at' as never, null),
       ]);
@@ -237,7 +238,7 @@ const Navbar = () => {
     : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? '마이페이지' : '로그인';
-  const unreadBadgeLabel = unreadCount > 9 ? '9+' : String(unreadCount);
+  const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
 
   const markNotificationAsRead = async (notificationId: string) => {
     const event = notificationEvents.find((item) => item.id === notificationId);
@@ -361,11 +362,11 @@ const Navbar = () => {
                       )}
                     </div>
                     <a
-                      href="/mypage#notifications"
+                      href={NOTIFICATION_FALLBACK_HREF}
                       onClick={() => setIsNotificationOpen(false)}
                       className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-black text-zinc-900 transition-colors hover:bg-zinc-50"
                     >
-                      마이페이지 알림으로 이동
+                      전체 알림 보기
                     </a>
                   </div>
                 ) : null}
@@ -421,7 +422,7 @@ const Navbar = () => {
                   ) : null}
                   {authState.isAuthenticated ? (
                     <a
-                      href="/mypage#notifications"
+                      href={NOTIFICATION_FALLBACK_HREF}
                       onClick={closeMobileMenu}
                       className="col-span-2 flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
                     >
@@ -495,19 +496,19 @@ export default Navbar;
 
 function getNotificationHref(metadata: unknown) {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-    return '/mypage#notifications';
+    return NOTIFICATION_FALLBACK_HREF;
   }
 
   const value = (metadata as { href?: unknown; action_url?: unknown }).href ?? (metadata as { action_url?: unknown }).action_url;
 
   if (typeof value !== 'string') {
-    return '/mypage#notifications';
+    return NOTIFICATION_FALLBACK_HREF;
   }
 
   const trimmed = value.trim();
 
   if (!trimmed || !trimmed.startsWith('/') || trimmed.startsWith('//')) {
-    return '/mypage#notifications';
+    return NOTIFICATION_FALLBACK_HREF;
   }
 
   return trimmed;
@@ -533,10 +534,7 @@ function formatNotificationTime(value: string | null) {
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) return `${diffHours}시간 전`;
 
-  return date.toLocaleDateString('ko-KR', {
-    month: 'short',
-    day: 'numeric',
-  });
+  return formatNotificationDateTime(date);
 }
 
 function NotificationItem({

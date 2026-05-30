@@ -8,6 +8,7 @@ import AccountDeletionPanel from "@/components/mypage/AccountDeletionPanel";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
 import ContactProfileEditor from "@/components/mypage/ContactProfileEditor";
 import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettings";
+import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import {
@@ -27,6 +28,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
+import { formatNotificationBadgeCount, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { SERVICE_DATA_RETENTION_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -48,7 +50,7 @@ const MYPAGE_QUERY_TIMEOUT_MS = 5000;
 const KST_TIME_ZONE = "Asia/Seoul";
 const DAY_MS = 1000 * 60 * 60 * 24;
 
-type MyPageTab = "menus" | "payments" | "inquiries" | "account";
+type MyPageTab = "menus" | "payments" | "inquiries" | "notifications" | "account";
 type MenuTab = "active" | "archived";
 type BillingTab = "active" | "expired" | "ai-credits";
 
@@ -154,15 +156,6 @@ type UserContactProfile = {
   contact_phone: string | null;
   notification_email: string | null;
   updated_at: string | null;
-};
-
-type NotificationEvent = {
-  id: string | null;
-  title: string | null;
-  message: string | null;
-  status: string | null;
-  read_at: string | null;
-  created_at: string | null;
 };
 
 type QueryErrorLike = {
@@ -322,7 +315,7 @@ function getProviderLabel(provider: string | null | undefined) {
 function getActiveTab(value: string | string[] | undefined): MyPageTab {
   const tab = Array.isArray(value) ? value[0] : value;
 
-  if (tab === "payments" || tab === "inquiries" || tab === "account") {
+  if (tab === "payments" || tab === "inquiries" || tab === "notifications" || tab === "account") {
     return tab;
   }
 
@@ -817,22 +810,46 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     ? null
     : contactProfileResult?.data ?? null;
   const contactProfileError = contactProfileResult?.error ?? null;
-  let notificationEvents: NotificationEvent[] = [];
+  let notificationEvents: MypageNotificationEvent[] = [];
+  let unreadNotificationCount = 0;
 
   try {
     const adminSupabase = createAdminClient();
-    const notificationEventsResult = await runMypageQuery(
+    const unreadNotificationsResult = await runMypageQuery(
+      "notification_events_unread_count",
+      adminSupabase
+        .from("notification_events" as never)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id" as never, user.id as never)
+        .in("channel" as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
+        .neq("status" as never, "skipped" as never)
+        .is("read_at" as never, null)
+    );
+
+    if (!unreadNotificationsResult?.error) {
+      unreadNotificationCount = unreadNotificationsResult?.count ?? 0;
+    } else if (!isMissingOptionalMypageRelation(unreadNotificationsResult.error)) {
+      console.error("[mypage] notification unread count query failed", {
+        userId: user.id,
+        code: unreadNotificationsResult.error.code,
+        message: unreadNotificationsResult.error.message,
+      });
+    }
+
+    const notificationEventsResult = activeTab === "notifications" ? await runMypageQuery(
       "notification_events",
       adminSupabase
         .from("notification_events" as never)
-        .select("id, title, message, status, read_at, created_at")
+        .select("id, title, message, status, channel, sent_at, read_at, created_at, metadata")
         .eq("user_id" as never, user.id as never)
+        .in("channel" as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
+        .neq("status" as never, "skipped" as never)
         .order("created_at" as never, { ascending: false } as never)
-        .limit(5)
-    );
+        .limit(50)
+    ) : null;
 
     if (!notificationEventsResult?.error) {
-      notificationEvents = (notificationEventsResult?.data ?? []) as unknown as NotificationEvent[];
+      notificationEvents = (notificationEventsResult?.data ?? []) as unknown as MypageNotificationEvent[];
     } else if (!isMissingOptionalMypageRelation(notificationEventsResult.error)) {
       console.error("[mypage] notification events query failed", {
         userId: user.id,
@@ -1436,37 +1453,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             </div>
           </header>
 
-          {notificationEvents.length > 0 ? (
-            <section id="notifications" className="mb-8 scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">최근 알림</h2>
-                  <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                    인앱 알림과 중요한 이메일 고지를 이곳에서도 확인할 수 있습니다.
-                  </p>
-                </div>
-                <p className="text-sm font-bold text-zinc-400">
-                  읽지 않음 {notificationEvents.filter((event) => !event.read_at).length.toLocaleString("ko-KR")}개
-                </p>
-              </div>
-              <div className="mt-5 divide-y divide-zinc-100">
-                {notificationEvents.map((event) => (
-                  <details key={event.id ?? `${event.title}-${event.created_at}`} className="group py-4">
-                    <summary className="flex cursor-pointer list-none flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                      <span className="break-keep text-sm font-black text-zinc-900">{event.title ?? "알림"}</span>
-                      <span className="shrink-0 text-xs font-bold text-zinc-400">
-                        {formatDateTime(event.created_at)} · {event.status === "sent" ? "이메일 발송 완료" : event.status === "failed" ? "발송 실패" : event.status === "skipped" ? "발송 제외" : "발송 대기"}
-                      </span>
-                    </summary>
-                    <p className="mt-3 whitespace-pre-wrap break-keep rounded-2xl bg-zinc-50 p-4 text-sm font-semibold leading-relaxed text-zinc-600">
-                      {event.message ?? "알림 내용을 확인할 수 없습니다."}
-                    </p>
-                  </details>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           <aside className="space-y-4 lg:sticky lg:top-28">
             <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
@@ -1493,6 +1479,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 </Link>
                 <Link href="/mypage?tab=inquiries" className={getTabLinkClassName(activeTab === "inquiries")}>
                   <span>문의 내역</span>
+                </Link>
+                <Link href="/mypage?tab=notifications" className={getTabLinkClassName(activeTab === "notifications")}>
+                  <span>알림 내역</span>
+                  {unreadNotificationCount > 0 ? (
+                    <span className={`text-xs ${activeTab === "notifications" ? "text-white/60" : "text-zinc-400"}`}>
+                      {formatNotificationBadgeCount(unreadNotificationCount)}
+                    </span>
+                  ) : null}
                 </Link>
                 <Link href="/mypage?tab=account" className={getTabLinkClassName(activeTab === "account")}>
                   <span>계정 정보</span>
@@ -2009,6 +2003,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   returnToPath={`/mypage?tab=inquiries${activeInquiryPage > 1 ? `&inquiryPage=${activeInquiryPage}` : ""}`}
                 />
               </section>
+            ) : null}
+
+            {activeTab === "notifications" ? (
+              <NotificationHistorySection events={notificationEvents} />
             ) : null}
 
             {activeTab === "account" ? (

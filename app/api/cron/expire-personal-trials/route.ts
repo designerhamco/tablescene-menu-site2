@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import {
+  buildDataRetentionStartedNoticeMessage,
+  getDataRetentionStartedNoticeTitle,
+  getDataRetentionStartedPeriodKey,
+} from "@/lib/notification-events";
 import { reclaimUnusedPersonalTrialGrantCredits } from "@/lib/server/ai-credits-service";
 import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -8,6 +13,7 @@ export const runtime = "nodejs";
 
 type TrialEntitlement = {
   id: string;
+  user_id?: string | null;
   menu_site_id: string | null;
   access_expires_at: string | null;
   data_retention_until: string | null;
@@ -62,6 +68,78 @@ async function archiveMenuSites(menuSiteIds: string[]) {
   return { count: error ? 0 : menuSiteIds.length, error };
 }
 
+async function getMenuSiteForRetentionStart(adminSupabase: ReturnType<typeof createAdminClient>, menuSiteId: string | null) {
+  if (!menuSiteId) return null;
+
+  const { data, error } = await adminSupabase
+    .from("menu_sites")
+    .select("id, name, slug")
+    .eq("id", menuSiteId)
+    .maybeSingle();
+
+  if (error) return null;
+  return data as { id: string; name: string | null; slug: string | null } | null;
+}
+
+async function createDataRetentionStartedNotification({
+  adminSupabase,
+  entitlement,
+  retentionUntil,
+  nowIso,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  entitlement: TrialEntitlement;
+  retentionUntil: string;
+  nowIso: string;
+}) {
+  if (!entitlement.user_id || !entitlement.menu_site_id) return;
+
+  const periodKey = getDataRetentionStartedPeriodKey(entitlement.id, retentionUntil);
+  const { data: existingEvent, error: existingEventError } = await adminSupabase
+    .from("notification_events" as never)
+    .select("id")
+    .eq("user_id" as never, entitlement.user_id as never)
+    .eq("menu_site_id" as never, entitlement.menu_site_id as never)
+    .eq("event_type" as never, "data_retention_started" as never)
+    .eq("channel" as never, "email" as never)
+    .contains("metadata" as never, { period_key: periodKey } as never)
+    .maybeSingle();
+
+  if (existingEventError && existingEventError.code !== "PGRST116") {
+    throw new Error(`보관 시작 알림 중복 확인 실패: ${existingEventError.message}`);
+  }
+
+  if (existingEvent) return;
+
+  const menuSite = await getMenuSiteForRetentionStart(adminSupabase, entitlement.menu_site_id);
+  const menuSiteName = menuSite?.name?.trim() || "메뉴판";
+  const slug = menuSite?.slug ?? null;
+
+  const { error } = await adminSupabase
+    .from("notification_events" as never)
+    .insert({
+      user_id: entitlement.user_id,
+      menu_site_id: entitlement.menu_site_id,
+      event_type: "data_retention_started",
+      channel: "email",
+      title: getDataRetentionStartedNoticeTitle({ menuSiteName, slug, retentionUntil }),
+      message: buildDataRetentionStartedNoticeMessage({ menuSiteName, slug, retentionUntil }),
+      status: "pending",
+      scheduled_for: nowIso,
+      metadata: {
+        period_key: periodKey,
+        retention_until: retentionUntil,
+        menu_site_name: menuSiteName,
+        slug,
+        source: "expire-personal-trials",
+      },
+    } as never);
+
+  if (error && error.code !== "42P01") {
+    throw new Error(`보관 시작 알림 이벤트 생성 실패: ${error.message}`);
+  }
+}
+
 async function expireActiveTrials(nowIso: string): Promise<CronResult> {
   const adminSupabase = createAdminClient();
   const result: CronResult = {
@@ -75,7 +153,7 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
 
   const { data: activeTrials, error: activeTrialsError } = await adminSupabase
     .from("service_entitlements")
-    .select("id, menu_site_id, access_expires_at, data_retention_until, expired_at, deleted_scheduled_at")
+    .select("id, user_id, menu_site_id, access_expires_at, data_retention_until, expired_at, deleted_scheduled_at")
     .eq("plan_type", "personal_trial")
     .eq("billing_type", "one_time")
     .eq("status", "active")
@@ -98,13 +176,14 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
   const menuSiteIds = trials
     .map((trial) => trial.menu_site_id)
     .filter((menuSiteId): menuSiteId is string => Boolean(menuSiteId));
+  const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
 
   if (trialIds.length > 0) {
     const { error: updateError } = await adminSupabase
       .from("service_entitlements")
       .update({
         status: "expired",
-        data_retention_until: getServiceDataRetentionUntil(nowIso),
+        data_retention_until: dataRetentionUntil,
         deleted_scheduled_at: null,
       })
       .in("id", trialIds);
@@ -114,6 +193,19 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
     }
 
     result.expiredEntitlements = trialIds.length;
+
+    for (const trial of trials) {
+      try {
+        await createDataRetentionStartedNotification({
+          adminSupabase,
+          entitlement: trial,
+          retentionUntil: dataRetentionUntil,
+          nowIso,
+        });
+      } catch (error) {
+        result.errors.push(error instanceof Error ? error.message : "보관 시작 알림 이벤트 생성 실패");
+      }
+    }
   }
 
   if (trialIdsMissingExpiredAt.length > 0) {

@@ -1,10 +1,14 @@
 import type { Json } from "@/lib/supabase/types";
 import {
+  buildDataRetentionStartedEmail,
   buildDataRetentionEndingEmail,
+  buildPersonalTrialExpiringEmail,
+  buildSubscriptionAccessEndingEmail,
   formatKoreanDate,
   formatPublicMenuPath,
 } from "@/lib/notification-email-templates";
 
+export const ACCESS_ENDING_NOTICE_DAY_OFFSETS = [7, 1, 0] as const;
 export const RETENTION_NOTICE_DAY_OFFSETS = [3, 1, 0] as const;
 export const EMAIL_BATCH_LIMIT = Number(process.env.EMAIL_BATCH_LIMIT ?? 10);
 export const EMAIL_SEND_DELAY_MS = Number(process.env.EMAIL_SEND_DELAY_MS ?? 700);
@@ -82,6 +86,22 @@ export function getRetentionNoticePeriodKey(menuSiteId: string, daysLeft: number
   return `data_retention:${menuSiteId}:${daysLeft}:${retentionUntil.slice(0, 10)}`;
 }
 
+export function getPersonalTrialExpiringPeriodKey(daysLeft: number) {
+  return `personal_trial_expiring_${daysLeft}d`;
+}
+
+export function getSubscriptionAccessEndingPeriodKey(subscriptionId: string, daysLeft: number, accessEndsAt: string) {
+  return `subscription_access_ending_${daysLeft}d:${subscriptionId}:${accessEndsAt.slice(0, 10)}`;
+}
+
+export function getPaymentFailedPeriodKey(subscriptionId: string, billingPeriod: string) {
+  return `payment_failed:${subscriptionId}:${billingPeriod}`;
+}
+
+export function getDataRetentionStartedPeriodKey(entitlementId: string, retentionUntil: string) {
+  return `data_retention_started:${entitlementId}:${retentionUntil.slice(0, 10)}`;
+}
+
 export function buildDataRetentionNoticeMessage({
   menuSiteName,
   slug,
@@ -103,4 +123,104 @@ export function getRetentionNoticeTitle(daysLeft: number) {
     retentionUntil: new Date().toISOString(),
     daysLeft,
   }).subject;
+}
+
+export function buildPersonalTrialExpiringNoticeMessage({
+  menuSiteName,
+  slug,
+  accessExpiresAt,
+  daysLeft,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  accessExpiresAt: string;
+  daysLeft: number;
+}) {
+  return buildPersonalTrialExpiringEmail({
+    menuSiteName,
+    slug,
+    expiresAt: accessExpiresAt,
+    daysLeft,
+  }).text;
+}
+
+export function getPersonalTrialExpiringNoticeTitle({
+  menuSiteName,
+  slug,
+  accessExpiresAt,
+  daysLeft,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  accessExpiresAt: string;
+  daysLeft: number;
+}) {
+  return buildPersonalTrialExpiringEmail({
+    menuSiteName,
+    slug,
+    expiresAt: accessExpiresAt,
+    daysLeft,
+  }).subject;
+}
+
+export function buildSubscriptionAccessEndingNoticeMessage({
+  menuSiteName,
+  slug,
+  accessEndsAt,
+  daysLeft,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  accessEndsAt: string;
+  daysLeft: number;
+}) {
+  return buildSubscriptionAccessEndingEmail({
+    menuSiteName,
+    slug,
+    accessEndsAt,
+    daysLeft,
+  }).text;
+}
+
+export function getSubscriptionAccessEndingNoticeTitle({
+  menuSiteName,
+  slug,
+  accessEndsAt,
+  daysLeft,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  accessEndsAt: string;
+  daysLeft: number;
+}) {
+  return buildSubscriptionAccessEndingEmail({
+    menuSiteName,
+    slug,
+    accessEndsAt,
+    daysLeft,
+  }).subject;
+}
+
+export function buildDataRetentionStartedNoticeMessage({
+  menuSiteName,
+  slug,
+  retentionUntil,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  retentionUntil: string;
+}) {
+  return buildDataRetentionStartedEmail({ menuSiteName, slug, retentionUntil }).text;
+}
+
+export function getDataRetentionStartedNoticeTitle({
+  menuSiteName,
+  slug,
+  retentionUntil,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  retentionUntil: string;
+}) {
+  return buildDataRetentionStartedEmail({ menuSiteName, slug, retentionUntil }).subject;
 }

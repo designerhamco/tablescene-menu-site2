@@ -3,12 +3,19 @@ import { NextResponse, type NextRequest } from "next/server";
 import { sendNotificationEmail } from "@/lib/email-notifications";
 import { buildNotificationEmail } from "@/lib/notification-email-templates";
 import {
+  ACCESS_ENDING_NOTICE_DAY_OFFSETS,
+  buildPersonalTrialExpiringNoticeMessage,
+  buildSubscriptionAccessEndingNoticeMessage,
   buildDataRetentionNoticeMessage,
   EMAIL_BATCH_LIMIT,
   EMAIL_MAX_RETRY_COUNT,
   EMAIL_SEND_DELAY_MS,
+  getPersonalTrialExpiringPeriodKey,
   getRetentionNoticePeriodKey,
   getRetentionNoticeTitle,
+  getPersonalTrialExpiringNoticeTitle,
+  getSubscriptionAccessEndingPeriodKey,
+  getSubscriptionAccessEndingNoticeTitle,
   RETENTION_NOTICE_DAY_OFFSETS,
   type NotificationEventRecord,
 } from "@/lib/notification-events";
@@ -32,6 +39,27 @@ type RetentionEntitlement = {
   data_retention_until: string | null;
 };
 
+type TrialExpiringEntitlement = {
+  id: string;
+  user_id: string;
+  menu_site_id: string | null;
+  subscription_id: string | null;
+  status: string;
+  access_expires_at: string | null;
+};
+
+type SubscriptionAccessEnding = {
+  id: string;
+  user_id: string;
+  menu_site_id: string | null;
+  product_key: string | null;
+  billing_cycle: string | null;
+  status: string;
+  cancel_at_period_end: boolean | null;
+  current_period_end: string | null;
+  next_billing_at: string | null;
+};
+
 type MenuSiteForNotice = {
   id: string;
   name: string | null;
@@ -47,7 +75,11 @@ type NoticeCandidate = {
   userId: string;
   menuSiteId: string;
   subscriptionId: string | null;
-  eventType: "data_retention_ending_soon" | "data_deletion_scheduled";
+  eventType:
+    | "personal_trial_expiring_soon"
+    | "subscription_access_ending_soon"
+    | "data_retention_ending_soon"
+    | "data_deletion_scheduled";
   periodKey: string;
   title: string;
   message: string;
@@ -286,7 +318,7 @@ async function createNotificationEvent(adminSupabase: ReturnType<typeof createAd
 
 async function buildRetentionNoticeCandidates(adminSupabase: ReturnType<typeof createAdminClient>, now: Date) {
   const todayStart = getDayStart(now);
-  const maxRetentionDate = addDays(todayStart, Math.max(...RETENTION_NOTICE_DAY_OFFSETS));
+  const retentionEndExclusive = addDays(todayStart, Math.max(...RETENTION_NOTICE_DAY_OFFSETS) + 1);
 
   const { data, error } = await adminSupabase
     .from("service_entitlements")
@@ -294,7 +326,7 @@ async function buildRetentionNoticeCandidates(adminSupabase: ReturnType<typeof c
     .in("status", ["expired", "pending_delete"])
     .not("data_retention_until", "is", null)
     .gte("data_retention_until", todayStart.toISOString())
-    .lte("data_retention_until", maxRetentionDate.toISOString());
+    .lt("data_retention_until", retentionEndExclusive.toISOString());
 
   if (error) {
     if (error.code === "42P01") {
@@ -343,6 +375,174 @@ async function buildRetentionNoticeCandidates(adminSupabase: ReturnType<typeof c
         retention_until: entitlement.data_retention_until,
         menu_site_name: menuSiteName,
         slug: menuSite?.slug ?? null,
+        source: "process-notification-events",
+      },
+    });
+  }
+
+  return {
+    candidates,
+    warnings: [] as string[],
+  };
+}
+
+async function getActiveBusinessSubscriptionMenuSiteIds(adminSupabase: ReturnType<typeof createAdminClient>, menuSiteIds: string[]) {
+  if (menuSiteIds.length === 0) return new Set<string>();
+
+  const { data, error } = await adminSupabase
+    .from("business_subscriptions" as never)
+    .select("menu_site_id")
+    .in("menu_site_id" as never, menuSiteIds as never)
+    .in("status" as never, ["active", "past_due"] as never);
+
+  if (error && error.code !== "42P01") {
+    throw new Error(`사업자 구독 전환 여부 조회 실패: ${error.message}`);
+  }
+
+  return new Set(((data ?? []) as unknown as Array<{ menu_site_id: string | null }>).map((item) => item.menu_site_id).filter((id): id is string => Boolean(id)));
+}
+
+async function buildPersonalTrialExpiringCandidates(adminSupabase: ReturnType<typeof createAdminClient>, now: Date) {
+  const todayStart = getDayStart(now);
+  const accessEndExclusive = addDays(todayStart, Math.max(...ACCESS_ENDING_NOTICE_DAY_OFFSETS) + 1);
+
+  const { data, error } = await adminSupabase
+    .from("service_entitlements")
+    .select("id, user_id, menu_site_id, subscription_id, status, access_expires_at")
+    .eq("status", "active")
+    .or("plan_type.eq.personal_trial,product_key.eq.personal_trial_basic_1month")
+    .not("access_expires_at", "is", null)
+    .gte("access_expires_at", todayStart.toISOString())
+    .lt("access_expires_at", accessEndExclusive.toISOString());
+
+  if (error) {
+    if (error.code === "42P01") {
+      return {
+        candidates: [] as NoticeCandidate[],
+        warnings: ["service_entitlements 테이블을 찾을 수 없어 개인 체험 종료 예정 알림 대상을 조회하지 못했습니다."],
+      };
+    }
+
+    throw new Error(`개인 체험 종료 예정 알림 대상 조회 실패: ${error.message}`);
+  }
+
+  const entitlements = (data ?? []) as TrialExpiringEntitlement[];
+  const menuSiteIds = Array.from(new Set(entitlements.map((item) => item.menu_site_id).filter((id): id is string => Boolean(id))));
+  const [menuSitesById, activeBusinessMenuSiteIds] = await Promise.all([
+    getMenuSitesById(adminSupabase, menuSiteIds),
+    getActiveBusinessSubscriptionMenuSiteIds(adminSupabase, menuSiteIds),
+  ]);
+  const candidates: NoticeCandidate[] = [];
+
+  for (const entitlement of entitlements) {
+    if (!entitlement.menu_site_id || !entitlement.access_expires_at || activeBusinessMenuSiteIds.has(entitlement.menu_site_id)) continue;
+
+    const daysLeft = getDaysLeft(entitlement.access_expires_at, now);
+    if (daysLeft === null || !ACCESS_ENDING_NOTICE_DAY_OFFSETS.includes(daysLeft as typeof ACCESS_ENDING_NOTICE_DAY_OFFSETS[number])) continue;
+
+    const menuSite = menuSitesById.get(entitlement.menu_site_id);
+    const menuSiteName = menuSite?.name?.trim() || "메뉴판";
+    const periodKey = getPersonalTrialExpiringPeriodKey(daysLeft);
+
+    candidates.push({
+      userId: entitlement.user_id,
+      menuSiteId: entitlement.menu_site_id,
+      subscriptionId: entitlement.subscription_id,
+      eventType: "personal_trial_expiring_soon",
+      periodKey,
+      title: getPersonalTrialExpiringNoticeTitle({
+        menuSiteName,
+        slug: menuSite?.slug ?? null,
+        accessExpiresAt: entitlement.access_expires_at,
+        daysLeft,
+      }),
+      message: buildPersonalTrialExpiringNoticeMessage({
+        menuSiteName,
+        slug: menuSite?.slug ?? null,
+        accessExpiresAt: entitlement.access_expires_at,
+        daysLeft,
+      }),
+      scheduledFor: now.toISOString(),
+      metadata: {
+        period_key: periodKey,
+        days_left: daysLeft,
+        access_expires_at: entitlement.access_expires_at,
+        menu_site_name: menuSiteName,
+        slug: menuSite?.slug ?? null,
+        source: "process-notification-events",
+      },
+    });
+  }
+
+  return {
+    candidates,
+    warnings: [] as string[],
+  };
+}
+
+async function buildSubscriptionAccessEndingCandidates(adminSupabase: ReturnType<typeof createAdminClient>, now: Date) {
+  const { data, error } = await adminSupabase
+    .from("business_subscriptions" as never)
+    .select("id, user_id, menu_site_id, product_key, billing_cycle, status, cancel_at_period_end, current_period_end, next_billing_at")
+    .eq("status" as never, "active" as never)
+    .eq("cancel_at_period_end" as never, true as never);
+
+  if (error) {
+    if (error.code === "42P01") {
+      return {
+        candidates: [] as NoticeCandidate[],
+        warnings: ["business_subscriptions 테이블을 찾을 수 없어 구독 이용 종료 예정 알림 대상을 조회하지 못했습니다."],
+      };
+    }
+
+    throw new Error(`구독 이용 종료 예정 알림 대상 조회 실패: ${error.message}`);
+  }
+
+  const subscriptions = (data ?? []) as unknown as SubscriptionAccessEnding[];
+  const menuSiteIds = Array.from(new Set(subscriptions.map((item) => item.menu_site_id).filter((id): id is string => Boolean(id))));
+  const menuSitesById = await getMenuSitesById(adminSupabase, menuSiteIds);
+  const candidates: NoticeCandidate[] = [];
+
+  for (const subscription of subscriptions) {
+    if (!subscription.menu_site_id) continue;
+
+    const accessEndsAt = subscription.current_period_end ?? subscription.next_billing_at;
+    if (!accessEndsAt) continue;
+
+    const daysLeft = getDaysLeft(accessEndsAt, now);
+    if (daysLeft === null || !ACCESS_ENDING_NOTICE_DAY_OFFSETS.includes(daysLeft as typeof ACCESS_ENDING_NOTICE_DAY_OFFSETS[number])) continue;
+
+    const menuSite = menuSitesById.get(subscription.menu_site_id);
+    const menuSiteName = menuSite?.name?.trim() || "메뉴판";
+    const periodKey = getSubscriptionAccessEndingPeriodKey(subscription.id, daysLeft, accessEndsAt);
+
+    candidates.push({
+      userId: subscription.user_id,
+      menuSiteId: subscription.menu_site_id,
+      subscriptionId: subscription.id,
+      eventType: "subscription_access_ending_soon",
+      periodKey,
+      title: getSubscriptionAccessEndingNoticeTitle({
+        menuSiteName,
+        slug: menuSite?.slug ?? null,
+        accessEndsAt,
+        daysLeft,
+      }),
+      message: buildSubscriptionAccessEndingNoticeMessage({
+        menuSiteName,
+        slug: menuSite?.slug ?? null,
+        accessEndsAt,
+        daysLeft,
+      }),
+      scheduledFor: now.toISOString(),
+      metadata: {
+        period_key: periodKey,
+        days_left: daysLeft,
+        access_ends_at: accessEndsAt,
+        menu_site_name: menuSiteName,
+        slug: menuSite?.slug ?? null,
+        product_key: subscription.product_key,
+        billing_cycle: subscription.billing_cycle,
         source: "process-notification-events",
       },
     });
@@ -471,7 +671,25 @@ async function handleCron(request: NextRequest) {
   const options = await getRequestOptions(request);
   const adminSupabase = createAdminClient();
   const now = new Date();
-  const { candidates, warnings } = await buildRetentionNoticeCandidates(adminSupabase, now);
+  const [
+    personalTrialExpiring,
+    subscriptionAccessEnding,
+    retentionEnding,
+  ] = await Promise.all([
+    buildPersonalTrialExpiringCandidates(adminSupabase, now),
+    buildSubscriptionAccessEndingCandidates(adminSupabase, now),
+    buildRetentionNoticeCandidates(adminSupabase, now),
+  ]);
+  const candidates = [
+    ...personalTrialExpiring.candidates,
+    ...subscriptionAccessEnding.candidates,
+    ...retentionEnding.candidates,
+  ];
+  const warnings = [
+    ...personalTrialExpiring.warnings,
+    ...subscriptionAccessEnding.warnings,
+    ...retentionEnding.warnings,
+  ];
   const wouldCreate: NoticeCandidate[] = [];
   const skippedDuplicates: string[] = [];
 
@@ -511,6 +729,7 @@ async function handleCron(request: NextRequest) {
       eventType: candidate.eventType,
       userId: candidate.userId,
       menuSiteId: candidate.menuSiteId,
+      subscriptionId: candidate.subscriptionId,
       periodKey: candidate.periodKey,
       title: candidate.title,
     })),

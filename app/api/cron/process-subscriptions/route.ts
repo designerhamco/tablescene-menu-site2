@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
+import { buildPaymentFailedEmail } from "@/lib/notification-email-templates";
+import {
+  buildDataRetentionStartedNoticeMessage,
+  getDataRetentionStartedNoticeTitle,
+  getDataRetentionStartedPeriodKey,
+  getPaymentFailedPeriodKey,
+} from "@/lib/notification-events";
 import { payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
 import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -174,6 +181,19 @@ async function getBusinessProfile(adminSupabase: ReturnType<typeof createAdminCl
   return data as BusinessProfile | null;
 }
 
+async function getMenuSiteForNotice(adminSupabase: ReturnType<typeof createAdminClient>, menuSiteId: string | null) {
+  if (!menuSiteId) return null;
+
+  const { data, error } = await adminSupabase
+    .from("menu_sites")
+    .select("id, name, slug")
+    .eq("id", menuSiteId)
+    .maybeSingle();
+
+  if (error) return null;
+  return data as { id: string; name: string | null; slug: string | null } | null;
+}
+
 async function hasExistingPayment(adminSupabase: ReturnType<typeof createAdminClient>, paymentId: string) {
   const [{ data: existingOrder }, { data: existingPayment }] = await Promise.all([
     adminSupabase.from("orders").select("id").eq("payment_id", paymentId).maybeSingle(),
@@ -181,6 +201,146 @@ async function hasExistingPayment(adminSupabase: ReturnType<typeof createAdminCl
   ]);
 
   return Boolean(existingOrder || existingPayment);
+}
+
+async function createDataRetentionStartedNotification({
+  adminSupabase,
+  subscription,
+  dataRetentionUntil,
+  nowIso,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  subscription: DueSubscription;
+  dataRetentionUntil: string;
+  nowIso: string;
+}) {
+  if (!subscription.menu_site_id) return;
+
+  const periodKey = getDataRetentionStartedPeriodKey(subscription.id, dataRetentionUntil);
+  const { data: existingEvent, error: existingEventError } = await adminSupabase
+    .from("notification_events" as never)
+    .select("id")
+    .eq("user_id" as never, subscription.user_id as never)
+    .eq("menu_site_id" as never, subscription.menu_site_id as never)
+    .eq("event_type" as never, "data_retention_started" as never)
+    .eq("channel" as never, "email" as never)
+    .contains("metadata" as never, { period_key: periodKey } as never)
+    .maybeSingle();
+
+  if (existingEventError && existingEventError.code !== "PGRST116") {
+    throw new Error(`DATA_RETENTION_STARTED_DUPLICATE_CHECK_FAILED: ${existingEventError.message}`);
+  }
+
+  if (existingEvent) return;
+
+  const menuSite = await getMenuSiteForNotice(adminSupabase, subscription.menu_site_id);
+  const menuSiteName = menuSite?.name?.trim() || "메뉴판";
+  const slug = menuSite?.slug ?? null;
+
+  const { error } = await adminSupabase
+    .from("notification_events" as never)
+    .insert({
+      user_id: subscription.user_id,
+      menu_site_id: subscription.menu_site_id,
+      subscription_id: subscription.id,
+      event_type: "data_retention_started",
+      channel: "email",
+      title: getDataRetentionStartedNoticeTitle({ menuSiteName, slug, retentionUntil: dataRetentionUntil }),
+      message: buildDataRetentionStartedNoticeMessage({ menuSiteName, slug, retentionUntil: dataRetentionUntil }),
+      status: "pending",
+      scheduled_for: nowIso,
+      metadata: {
+        period_key: periodKey,
+        retention_until: dataRetentionUntil,
+        menu_site_name: menuSiteName,
+        slug,
+        product_key: subscription.product_key,
+        billing_cycle: subscription.billing_cycle,
+        source: "process-subscriptions",
+      },
+    } as never);
+
+  if (error && error.code !== "42P01") {
+    throw new Error(`DATA_RETENTION_STARTED_EVENT_INSERT_FAILED: ${error.message}`);
+  }
+}
+
+async function createPaymentFailedNotification({
+  adminSupabase,
+  subscription,
+  product,
+  paymentId,
+  periodStart,
+  failureMessage,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  subscription: DueSubscription;
+  product: SubscriptionProduct;
+  paymentId: string;
+  periodStart: Date;
+  failureMessage: string;
+}) {
+  const billingPeriod = periodStart.toISOString().slice(0, 10);
+  const periodKey = getPaymentFailedPeriodKey(subscription.id, billingPeriod);
+  const { data: existingEvent, error: existingEventError } = await adminSupabase
+    .from("notification_events" as never)
+    .select("id")
+    .eq("user_id" as never, subscription.user_id as never)
+    .eq("subscription_id" as never, subscription.id as never)
+    .eq("event_type" as never, "payment_failed" as never)
+    .eq("channel" as never, "email" as never)
+    .contains("metadata" as never, { period_key: periodKey } as never)
+    .maybeSingle();
+
+  if (existingEventError && existingEventError.code !== "PGRST116") {
+    throw new Error(`PAYMENT_FAILED_DUPLICATE_CHECK_FAILED: ${existingEventError.message}`);
+  }
+
+  if (existingEvent) return;
+
+  const email = buildPaymentFailedEmail({
+    event_type: "payment_failed",
+    title: "[메뉴링크] 결제 실패 안내",
+    message: [
+      "안녕하세요, 메뉴링크입니다.",
+      "",
+      "정기결제 처리가 정상적으로 완료되지 않았습니다.",
+      "카드 한도, 유효기간, 결제수단 상태를 확인한 뒤 마이페이지에서 구독/결제 내역을 확인해 주세요.",
+      "",
+      "감사합니다.",
+      "메뉴링크 드림",
+    ].join("\n"),
+    metadata: {},
+  });
+
+  const { error } = await adminSupabase
+    .from("notification_events" as never)
+    .insert({
+      user_id: subscription.user_id,
+      menu_site_id: subscription.menu_site_id,
+      subscription_id: subscription.id,
+      event_type: "payment_failed",
+      channel: "email",
+      title: email.subject,
+      message: email.text,
+      status: "pending",
+      scheduled_for: new Date().toISOString(),
+      metadata: {
+        period_key: periodKey,
+        subscription_id: subscription.id,
+        menu_site_id: subscription.menu_site_id,
+        product_key: product.productKey,
+        amount: product.amount,
+        billing_period: billingPeriod,
+        payment_id: paymentId,
+        failure_message: failureMessage,
+        source: "process-subscriptions",
+      },
+    } as never);
+
+  if (error && error.code !== "42P01") {
+    throw new Error(`PAYMENT_FAILED_EVENT_INSERT_FAILED: ${error.message}`);
+  }
 }
 
 async function createRenewalRecords({
@@ -306,6 +466,17 @@ async function expireSubscriptionAtPeriodEnd({
     if (menuSiteError) {
       throw new Error(`MENU_SITE_ARCHIVE_FAILED: ${menuSiteError.message}`);
     }
+  }
+
+  try {
+    await createDataRetentionStartedNotification({ adminSupabase, subscription, dataRetentionUntil, nowIso });
+  } catch (error) {
+    console.error("[cron/process-subscriptions] data_retention_started notification failed", {
+      subscriptionId: subscription.id,
+      userId: subscription.user_id,
+      menuSiteId: subscription.menu_site_id,
+      message: error instanceof Error ? error.message : "unknown",
+    });
   }
 }
 
@@ -466,7 +637,25 @@ async function processDueSubscription({
       paymentId,
     };
   } catch (error) {
+    const failureMessage = getSafePortOneMessage(error);
     await markSubscriptionPastDue(adminSupabase, subscription.id);
+    try {
+      await createPaymentFailedNotification({
+        adminSupabase,
+        subscription,
+        product,
+        paymentId,
+        periodStart,
+        failureMessage,
+      });
+    } catch (notificationError) {
+      console.error("[cron/process-subscriptions] payment_failed notification failed", {
+        subscriptionId: subscription.id,
+        userId: subscription.user_id,
+        paymentId,
+        message: notificationError instanceof Error ? notificationError.message : "unknown",
+      });
+    }
     return {
       subscriptionId: subscription.id,
       productKey: subscription.product_key,
@@ -474,7 +663,7 @@ async function processDueSubscription({
       amount: product.amount,
       nextBillingAt: subscription.next_billing_at,
       paymentId,
-      message: getSafePortOneMessage(error),
+      message: failureMessage,
     };
   }
 }

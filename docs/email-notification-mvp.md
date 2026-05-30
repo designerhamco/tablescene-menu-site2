@@ -7,6 +7,10 @@
 - `/api/cron/process-notification-events` 기반 dry run / execute 처리
 - Vercel Cron 등록 경로: `/api/cron/process-notification-events`
 - Vercel Cron schedule: `0 19 * * *` (UTC 기준, 한국시간 새벽 4시)
+- MVP 이메일 대상은 정기결제 실패, 개인 체험 종료 예정, 해지 예약 구독 이용 종료 예정, 데이터 보관 시작, 데이터 보관 종료 예정, 회원탈퇴 신청 안내로 제한
+- 결제 완료, 문의 접수/답변, AI 크레딧 충전 완료는 인앱 알림으로만 처리
+- 개인 체험 종료 예정 및 해지 예약 구독 이용 종료 예정은 7일 전, 1일 전, 당일 고지 후보 생성
+- 개인 체험 또는 유료서비스 만료로 보관 상태에 들어가면 데이터 보관 시작 안내 이벤트 생성
 - 데이터 보관 종료 3일 전, 1일 전, 당일 고지 후보 생성
 - Resend 발송은 한 번 실행당 기본 10건으로 제한
 - 실패 이벤트는 `metadata.retry_count` 기준 기본 3회까지 재시도 가능

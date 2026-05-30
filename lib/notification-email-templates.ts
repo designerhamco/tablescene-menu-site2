@@ -93,6 +93,44 @@ export function buildDataRetentionEndingEmail({
   };
 }
 
+export function buildDataRetentionStartedEmail({
+  menuSiteName,
+  slug,
+  retentionUntil,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  retentionUntil: string;
+}): NotificationEmailTemplate {
+  const publicPath = formatPublicMenuPath(slug);
+  const retentionLabel = formatKoreanDate(retentionUntil);
+  const subject = "[메뉴링크] 메뉴판 데이터 보관 안내";
+  const text = [
+    "안녕하세요, 메뉴링크입니다.",
+    "",
+    "서비스 이용기간이 종료되어 메뉴판이 보관 상태로 전환되었습니다.",
+    "",
+    `* 메뉴판: ${menuSiteName}`,
+    `* 공개 주소: ${publicPath}`,
+    `* 보관 종료 예정일: ${retentionLabel}`,
+    "",
+    "종료 후 7일 동안 복구할 수 있습니다.",
+    "보관 기간 내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
+    "",
+    "보관 기간이 종료되면 메뉴판 데이터와 업로드 이미지는 정책에 따라 삭제될 수 있습니다.",
+    "",
+    "감사합니다.",
+    "메뉴링크 드림",
+  ].join("\n");
+
+  return {
+    subject,
+    text,
+    html: textToHtml(text),
+    previewText: "메뉴판 데이터 보관 시작 안내입니다.",
+  };
+}
+
 export function buildAccountDeletionRequestedEmail(): NotificationEmailTemplate {
   const subject = "[메뉴링크] 회원탈퇴 신청 안내";
   const text = [
@@ -113,6 +151,86 @@ export function buildAccountDeletionRequestedEmail(): NotificationEmailTemplate 
     text,
     html: textToHtml(text),
     previewText: "회원탈퇴 신청 접수 안내입니다.",
+  };
+}
+
+export function buildPersonalTrialExpiringEmail({
+  menuSiteName,
+  slug,
+  expiresAt,
+  daysLeft,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  expiresAt: string;
+  daysLeft: number;
+}): NotificationEmailTemplate {
+  const publicPath = formatPublicMenuPath(slug);
+  const expiresLabel = formatKoreanDate(expiresAt);
+  const daysLeftLabel = daysLeft === 0 ? "오늘" : `${daysLeft}일`;
+  const subject = "[메뉴링크] 개인 체험 기간 종료 예정 안내";
+  const text = [
+    "안녕하세요, 메뉴링크입니다.",
+    "",
+    "개인 체험 기간 종료가 다가오고 있습니다.",
+    "",
+    `* 메뉴판: ${menuSiteName}`,
+    `* 공개 주소: ${publicPath}`,
+    `* 체험 종료 예정일: ${expiresLabel}`,
+    `* 남은 기간: ${daysLeftLabel}`,
+    "",
+    "종료 전 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
+    "종료 후에는 7일 동안 복구 가능 상태로 보관됩니다.",
+    "",
+    "감사합니다.",
+    "메뉴링크 드림",
+  ].join("\n");
+
+  return {
+    subject,
+    text,
+    html: textToHtml(text),
+    previewText: "개인 체험 기간 종료 예정 안내입니다.",
+  };
+}
+
+export function buildSubscriptionAccessEndingEmail({
+  menuSiteName,
+  slug,
+  accessEndsAt,
+  daysLeft,
+}: {
+  menuSiteName: string;
+  slug: string | null;
+  accessEndsAt: string;
+  daysLeft: number;
+}): NotificationEmailTemplate {
+  const publicPath = formatPublicMenuPath(slug);
+  const accessEndsLabel = formatKoreanDate(accessEndsAt);
+  const daysLeftLabel = daysLeft === 0 ? "오늘" : `${daysLeft}일`;
+  const subject = "[메뉴링크] 구독 이용 종료 예정 안내";
+  const text = [
+    "안녕하세요, 메뉴링크입니다.",
+    "",
+    "해지 예약된 구독의 이용 종료일이 다가오고 있습니다.",
+    "",
+    `* 메뉴판: ${menuSiteName}`,
+    `* 공개 주소: ${publicPath}`,
+    `* 이용 종료 예정일: ${accessEndsLabel}`,
+    `* 남은 기간: ${daysLeftLabel}`,
+    "",
+    "이용 종료 후 메뉴판은 보관 상태로 전환되며, 종료 후 7일 동안 복구할 수 있습니다.",
+    "보관 기간 내 사업자 플랜으로 다시 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
+    "",
+    "감사합니다.",
+    "메뉴링크 드림",
+  ].join("\n");
+
+  return {
+    subject,
+    text,
+    html: textToHtml(text),
+    previewText: "해지 예약된 구독의 이용 종료 예정 안내입니다.",
   };
 }
 
@@ -186,6 +304,44 @@ export function buildNotificationEmail(event: TemplateEvent): NotificationEmailT
       menuSiteName,
       slug,
       retentionUntil,
+      daysLeft: Number.isFinite(daysLeft) ? daysLeft : 0,
+    });
+  }
+
+  if (event.event_type === "data_retention_started") {
+    const menuSiteName = getMetadataValue(event.metadata, "menu_site_name") ?? "메뉴판";
+    const slug = getMetadataValue(event.metadata, "slug");
+    const retentionUntil = getMetadataValue(event.metadata, "retention_until") ?? "";
+
+    return buildDataRetentionStartedEmail({ menuSiteName, slug, retentionUntil });
+  }
+
+  if (event.event_type === "personal_trial_expiring_soon") {
+    const menuSiteName = getMetadataValue(event.metadata, "menu_site_name") ?? "메뉴판";
+    const slug = getMetadataValue(event.metadata, "slug");
+    const expiresAt = getMetadataValue(event.metadata, "access_expires_at") ?? "";
+    const daysLeftValue = event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata) ? event.metadata.days_left : null;
+    const daysLeft = typeof daysLeftValue === "number" ? daysLeftValue : Number(daysLeftValue ?? 0);
+
+    return buildPersonalTrialExpiringEmail({
+      menuSiteName,
+      slug,
+      expiresAt,
+      daysLeft: Number.isFinite(daysLeft) ? daysLeft : 0,
+    });
+  }
+
+  if (event.event_type === "subscription_access_ending_soon") {
+    const menuSiteName = getMetadataValue(event.metadata, "menu_site_name") ?? "메뉴판";
+    const slug = getMetadataValue(event.metadata, "slug");
+    const accessEndsAt = getMetadataValue(event.metadata, "access_ends_at") ?? "";
+    const daysLeftValue = event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata) ? event.metadata.days_left : null;
+    const daysLeft = typeof daysLeftValue === "number" ? daysLeftValue : Number(daysLeftValue ?? 0);
+
+    return buildSubscriptionAccessEndingEmail({
+      menuSiteName,
+      slug,
+      accessEndsAt,
       daysLeft: Number.isFinite(daysLeft) ? daysLeft : 0,
     });
   }
