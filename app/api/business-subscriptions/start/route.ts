@@ -11,6 +11,7 @@ import {
 } from "@/lib/payments";
 import { payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
+import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey, isTemplateSupportedForService } from "@/lib/templates";
@@ -102,6 +103,62 @@ class BusinessSubscriptionRouteError extends Error {
     public safeDebug: SafeDebug = {}
   ) {
     super(message);
+  }
+}
+
+async function createBusinessPaymentPaidNotification({
+  userId,
+  paymentId,
+  orderId,
+  menuSiteId,
+  subscriptionId,
+  product,
+  mode,
+}: {
+  userId: string;
+  paymentId: string;
+  orderId?: string | null;
+  menuSiteId: string;
+  subscriptionId: string;
+  product: SubscriptionProduct;
+  mode: "new" | "convert";
+}) {
+  try {
+    const result = await createInAppNotificationOnce({
+      userId,
+      eventType: "payment_paid",
+      title: "결제가 완료되었습니다.",
+      message: "결제가 정상적으로 완료되었습니다. 결제/구독 내역에서 상세 내용을 확인할 수 있습니다.",
+      href: "/mypage?tab=payments",
+      periodKey: `payment_paid:${paymentId}`,
+      metadata: {
+        payment_id: paymentId,
+        order_id: orderId ?? null,
+        menu_site_id: menuSiteId,
+        subscription_id: subscriptionId,
+        product_key: product.productKey,
+        amount: product.amount,
+        mode,
+      },
+    });
+
+    if (!result.ok) {
+      console.error("[business-subscriptions/start] payment_paid in-app notification failed", {
+        userId,
+        paymentId,
+        orderId,
+        subscriptionId,
+        error: result.error,
+      });
+    }
+  } catch (error) {
+    console.error("[business-subscriptions/start] payment_paid in-app notification failed", {
+      userId,
+      paymentId,
+      orderId,
+      subscriptionId,
+      error: error instanceof Error ? error.message : error,
+    });
   }
 }
 
@@ -961,6 +1018,8 @@ async function createOrderAndPaymentRecords({
       getSupabaseSafeDebug(paymentError)
     );
   }
+
+  return { orderId: (order as { id: string }).id };
 }
 
 export async function POST(request: Request) {
@@ -1394,7 +1453,7 @@ export async function POST(request: Request) {
 
     const requestConsentSnapshot = body.consentSnapshot && typeof body.consentSnapshot === "object" ? body.consentSnapshot : null;
 
-    await createOrderAndPaymentRecords({
+    const paymentRecords = await createOrderAndPaymentRecords({
       supabase,
       userId: user.id,
       paymentId,
@@ -1413,6 +1472,16 @@ export async function POST(request: Request) {
         consentContext: "personal_trial_convert",
         capturedFromRequest: true,
       }) as Json,
+    });
+
+    await createBusinessPaymentPaidNotification({
+      userId: user.id,
+      paymentId,
+      orderId: paymentRecords.orderId,
+      menuSiteId: menuSite.id,
+      subscriptionId,
+      product,
+      mode,
     });
 
     return NextResponse.json({

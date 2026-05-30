@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getAiCreditPack } from "@/lib/ai-credits";
 import { getAiCreditBalanceForUser, purchaseAiCredits } from "@/lib/server/ai-credits-service";
+import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -67,6 +68,62 @@ type DebugContext = {
 
 const AI_CREDIT_PROCESSING_MESSAGE =
   "AI 크레딧 결제 확인 중 문제가 발생했습니다. 결제가 완료되었는데 크레딧이 반영되지 않았다면 고객지원으로 문의해주세요.";
+
+async function createAiCreditPurchasedNotification({
+  userId,
+  paymentId,
+  orderId,
+  productKey,
+  credits,
+  balance,
+}: {
+  userId: string;
+  paymentId: string;
+  orderId?: string | null;
+  productKey: string;
+  credits: number;
+  balance: {
+    totalRemainingCredits: number;
+    remainingCredits: number;
+  };
+}) {
+  try {
+    const result = await createInAppNotificationOnce({
+      userId,
+      eventType: "ai_credit_purchased",
+      title: "AI 크레딧이 충전되었습니다.",
+      message: `AI 크레딧 ${credits.toLocaleString("ko-KR")}개가 계정에 충전되었습니다.`,
+      href: "/mypage?tab=ai-credits",
+      periodKey: `ai_credit_purchased:${paymentId}`,
+      metadata: {
+        payment_id: paymentId,
+        order_id: orderId ?? null,
+        product_key: productKey,
+        credits,
+        balance: {
+          total_remaining_credits: balance.totalRemainingCredits,
+          remaining_credits: balance.remainingCredits,
+        },
+      },
+    });
+
+    if (!result.ok) {
+      console.error("[ai-credits/purchase/complete] ai_credit_purchased in-app notification failed", {
+        userId,
+        paymentId,
+        orderId,
+        error: result.error,
+      });
+    }
+  } catch (error) {
+    console.error("[ai-credits/purchase/complete] ai_credit_purchased in-app notification failed", {
+      userId,
+      paymentId,
+      orderId,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+}
 
 function readSafeError(error: SafeError | Error | null | undefined) {
   const source = error as SafeError | undefined;
@@ -402,6 +459,14 @@ export async function POST(request: Request) {
 
   if (existingTransaction) {
     const balance = await getAiCreditBalanceForUser(user.id);
+    await createAiCreditPurchasedNotification({
+      userId: user.id,
+      paymentId,
+      productKey: product.productKey,
+      credits: product.credits,
+      balance,
+    });
+
     return NextResponse.json({
       ok: true,
       message: "이미 처리된 AI 크레딧 충전 결제입니다.",
@@ -564,6 +629,15 @@ export async function POST(request: Request) {
       productKey: product.productKey,
       paymentId,
       orderId: (order as { id: string }).id,
+    });
+
+    await createAiCreditPurchasedNotification({
+      userId: user.id,
+      paymentId,
+      orderId: (order as { id: string }).id,
+      productKey: product.productKey,
+      credits: product.credits,
+      balance,
     });
 
     return NextResponse.json({

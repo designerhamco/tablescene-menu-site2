@@ -11,6 +11,7 @@ import {
 } from "@/lib/payments";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
+import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { hasUsedPersonalTrial } from "@/lib/server/personal-trial-eligibility";
 import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
@@ -91,6 +92,59 @@ const PAYMENT_COMPLETE_RECOVERY_MESSAGE =
   "결제는 확인되었지만 AI 크레딧 지급 중 문제가 발생했습니다. 재결제하지 말고 고객지원으로 문의해주세요.";
 const DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE =
   "결제는 완료되었으나 개인 체험 중복 신청으로 메뉴판이 생성되지 않았습니다. 고객지원으로 문의해주세요.";
+
+async function createPaymentPaidNotification({
+  userId,
+  paymentId,
+  orderId,
+  paymentRecordId,
+  menuSiteId,
+  productKey,
+  amount,
+}: {
+  userId: string;
+  paymentId: string;
+  orderId?: string | null;
+  paymentRecordId?: string | null;
+  menuSiteId?: string | null;
+  productKey: string;
+  amount: number;
+}) {
+  try {
+    const result = await createInAppNotificationOnce({
+      userId,
+      eventType: "payment_paid",
+      title: "결제가 완료되었습니다.",
+      message: "결제가 정상적으로 완료되었습니다. 결제/구독 내역에서 상세 내용을 확인할 수 있습니다.",
+      href: "/mypage?tab=payments",
+      periodKey: `payment_paid:${paymentId}`,
+      metadata: {
+        payment_id: paymentId,
+        order_id: orderId ?? null,
+        payment_record_id: paymentRecordId ?? null,
+        menu_site_id: menuSiteId ?? null,
+        product_key: productKey,
+        amount,
+      },
+    });
+
+    if (!result.ok) {
+      console.error("[payment-complete] payment_paid in-app notification failed", {
+        userId,
+        paymentId,
+        orderId,
+        error: result.error,
+      });
+    }
+  } catch (error) {
+    console.error("[payment-complete] payment_paid in-app notification failed", {
+      userId,
+      paymentId,
+      orderId,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+}
 
 type PaymentCompleteDebugStep =
   | "auth_user_check"
@@ -1218,6 +1272,16 @@ export async function POST(request: Request) {
       return jsonError(PAYMENT_COMPLETE_RECOVERY_MESSAGE, 500, debugContext);
     }
 
+    await createPaymentPaidNotification({
+      userId: user.id,
+      paymentId,
+      orderId: existingCompletion.orderId,
+      paymentRecordId: existingCompletion.paymentRecordId ?? null,
+      menuSiteId: existingCompletion.menuSiteId,
+      productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+      amount: orderPayload.amount,
+    });
+
     return NextResponse.json({
       ok: true,
       message: "이미 처리된 결제입니다.",
@@ -1367,6 +1431,16 @@ export async function POST(request: Request) {
     logSafePaymentCompleteError(debugContext);
     return jsonError(PAYMENT_COMPLETE_RECOVERY_MESSAGE, 500, debugContext);
   }
+
+  await createPaymentPaidNotification({
+    userId: user.id,
+    paymentId,
+    orderId: order.id,
+    paymentRecordId: paymentRecord.id,
+    menuSiteId: menuSite.id,
+    productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+    amount: verifiedPayment.amount,
+  });
 
   return NextResponse.json({
     ok: true,

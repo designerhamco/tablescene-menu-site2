@@ -20,8 +20,8 @@ export async function createInAppNotificationOnce(input: CreateInAppNotification
   const metadata = {
     ...(input.metadata ?? {}),
     href: input.href,
-    inquiry_id: input.inquiryId ?? null,
     period_key: input.periodKey,
+    ...(input.inquiryId ? { inquiry_id: input.inquiryId } : {}),
   };
 
   const { data: existingEvent, error: existingError } = await adminSupabase
