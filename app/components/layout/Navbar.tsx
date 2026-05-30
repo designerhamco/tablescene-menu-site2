@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Menu, X } from 'lucide-react';
+import { Bell, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
 import { KAKAO_CHANNEL_URL } from '../ui/ScrollToTop';
@@ -32,21 +32,40 @@ function DisabledChip() {
 
 type AuthState = {
   isAuthenticated: boolean;
+  userId: string | null;
   loading: boolean;
+};
+
+type NotificationEvent = {
+  id: string;
+  title: string | null;
+  message: string | null;
+  read_at: string | null;
+  created_at: string | null;
+  metadata: unknown;
 };
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
+    userId: null,
     loading: true,
   });
   const isScrolledRef = useRef(false);
+  const notificationLayerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const pathname = location.pathname;
 
-  const closeMobileMenu = () => setIsOpen(false);
+  const closeMobileMenu = () => {
+    setIsOpen(false);
+    setIsNotificationOpen(false);
+  };
 
   useEffect(() => {
     setIsOpen(false);
@@ -83,6 +102,7 @@ const Navbar = () => {
     supabase.auth.getUser().then(({ data }) => {
       updateAuthState({
         isAuthenticated: Boolean(data.user),
+        userId: data.user?.id ?? null,
         loading: false,
       });
     });
@@ -92,6 +112,7 @@ const Navbar = () => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       updateAuthState({
         isAuthenticated: Boolean(session?.user),
+        userId: session?.user.id ?? null,
         loading: false,
       });
     });
@@ -101,6 +122,75 @@ const Navbar = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!authState.userId) {
+      setNotificationEvents([]);
+      setUnreadCount(0);
+      setIsNotificationOpen(false);
+      return;
+    }
+
+    const supabase = createClient();
+    let isMounted = true;
+
+    async function loadNotifications() {
+      setNotificationsLoading(true);
+
+      const [eventsResult, countResult] = await Promise.all([
+        supabase
+          .from('notification_events' as never)
+          .select('id, title, message, read_at, created_at, metadata')
+          .eq('user_id' as never, authState.userId as never)
+          .in('channel' as never, ['in_app', 'email'] as never)
+          .neq('status' as never, 'skipped' as never)
+          .order('created_at' as never, { ascending: false } as never)
+          .limit(10),
+        supabase
+          .from('notification_events' as never)
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id' as never, authState.userId as never)
+          .in('channel' as never, ['in_app', 'email'] as never)
+          .neq('status' as never, 'skipped' as never)
+          .is('read_at' as never, null),
+      ]);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (!eventsResult.error) {
+        setNotificationEvents((eventsResult.data ?? []) as unknown as NotificationEvent[]);
+      } else {
+        setNotificationEvents([]);
+      }
+
+      setUnreadCount(countResult.error ? 0 : countResult.count ?? 0);
+      setNotificationsLoading(false);
+    }
+
+    loadNotifications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authState.userId]);
+
+  useEffect(() => {
+    if (!isNotificationOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!notificationLayerRef.current?.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [isNotificationOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -147,6 +237,36 @@ const Navbar = () => {
     : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? '마이페이지' : '로그인';
+  const unreadBadgeLabel = unreadCount > 9 ? '9+' : String(unreadCount);
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    const event = notificationEvents.find((item) => item.id === notificationId);
+
+    if (!event || event.read_at) {
+      return;
+    }
+
+    setNotificationEvents((events) =>
+      events.map((item) => item.id === notificationId ? { ...item, read_at: new Date().toISOString() } : item)
+    );
+    setUnreadCount((count) => Math.max(0, count - 1));
+
+    try {
+      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('read failed');
+      }
+    } catch {
+      setNotificationEvents((events) =>
+        events.map((item) => item.id === notificationId ? { ...item, read_at: event.read_at } : item)
+      );
+      setUnreadCount((count) => count + 1);
+    }
+  };
 
   return (
     <>
@@ -199,6 +319,58 @@ const Navbar = () => {
             >
               만들기
             </a>
+            {authState.isAuthenticated ? (
+              <div ref={notificationLayerRef} className="relative hidden lg:block">
+                <button
+                  type="button"
+                  aria-label="알림"
+                  aria-expanded={isNotificationOpen}
+                  onClick={() => setIsNotificationOpen((current) => !current)}
+                  className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${secondaryButtonClass}`}
+                >
+                  <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
+                  {unreadCount > 0 ? (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+                      {unreadBadgeLabel}
+                    </span>
+                  ) : null}
+                </button>
+
+                {isNotificationOpen ? (
+                  <div className="absolute right-0 top-12 w-[360px] overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-950 shadow-2xl">
+                    <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
+                      <p className="text-sm font-black">알림</p>
+                      {unreadCount > 0 ? <p className="text-xs font-bold text-zinc-400">읽지 않음 {unreadBadgeLabel}</p> : null}
+                    </div>
+                    <div className="max-h-[420px] overflow-y-auto">
+                      {notificationsLoading ? (
+                        <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">알림을 불러오는 중입니다.</p>
+                      ) : notificationEvents.length > 0 ? (
+                        <div className="divide-y divide-zinc-100">
+                          {notificationEvents.map((event) => (
+                            <NotificationItem
+                              key={event.id}
+                              event={event}
+                              onRead={markNotificationAsRead}
+                              onNavigate={() => setIsNotificationOpen(false)}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">새 알림이 없습니다.</p>
+                      )}
+                    </div>
+                    <a
+                      href="/mypage#notifications"
+                      onClick={() => setIsNotificationOpen(false)}
+                      className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-black text-zinc-900 transition-colors hover:bg-zinc-50"
+                    >
+                      마이페이지 알림으로 이동
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             {!authState.loading ? (
               <a
                 href={accountCtaHref}
@@ -245,6 +417,21 @@ const Navbar = () => {
                       className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
                     >
                       {accountCtaLabel}
+                    </a>
+                  ) : null}
+                  {authState.isAuthenticated ? (
+                    <a
+                      href="/mypage#notifications"
+                      onClick={closeMobileMenu}
+                      className="col-span-2 flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
+                    >
+                      <Bell size={17} strokeWidth={2.2} aria-hidden="true" />
+                      알림
+                      {unreadCount > 0 ? (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white">
+                          {unreadBadgeLabel}
+                        </span>
+                      ) : null}
                     </a>
                   ) : null}
                   <a
@@ -305,3 +492,84 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+function getNotificationHref(metadata: unknown) {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return '/mypage#notifications';
+  }
+
+  const value = (metadata as { href?: unknown; action_url?: unknown }).href ?? (metadata as { action_url?: unknown }).action_url;
+
+  if (typeof value !== 'string') {
+    return '/mypage#notifications';
+  }
+
+  const trimmed = value.trim();
+
+  if (!trimmed || !trimmed.startsWith('/') || trimmed.startsWith('//')) {
+    return '/mypage#notifications';
+  }
+
+  return trimmed;
+}
+
+function formatNotificationTime(value: string | null) {
+  if (!value) {
+    return '방금 전';
+  }
+
+  const date = new Date(value);
+
+  if (!Number.isFinite(date.getTime())) {
+    return '방금 전';
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
+
+  if (diffMinutes < 1) return '방금 전';
+  if (diffMinutes < 60) return `${diffMinutes}분 전`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+
+  return date.toLocaleDateString('ko-KR', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function NotificationItem({
+  event,
+  onRead,
+  onNavigate,
+}: {
+  event: NotificationEvent;
+  onRead: (notificationId: string) => Promise<void>;
+  onNavigate: () => void;
+}) {
+  const href = getNotificationHref(event.metadata);
+
+  return (
+    <a
+      href={href}
+      onClick={(clickEvent) => {
+        clickEvent.preventDefault();
+        onRead(event.id).finally(() => {
+          onNavigate();
+          window.location.assign(href);
+        });
+      }}
+      className="flex gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50"
+    >
+      <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${event.read_at ? 'bg-zinc-200' : 'bg-red-500'}`} aria-hidden="true" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-black text-zinc-900">{event.title ?? '알림'}</span>
+        <span className="mt-1 line-clamp-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+          {event.message ?? '알림 내용을 확인할 수 없습니다.'}
+        </span>
+        <span className="mt-2 block text-[11px] font-bold text-zinc-400">{formatNotificationTime(event.created_at)}</span>
+      </span>
+    </a>
+  );
+}

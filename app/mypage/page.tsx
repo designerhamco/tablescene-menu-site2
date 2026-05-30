@@ -1437,12 +1437,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </header>
 
           {notificationEvents.length > 0 ? (
-            <section className="mb-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <section id="notifications" className="mb-8 scroll-mt-28 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
               <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight">최근 알림</h2>
                   <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                    이메일로 발송되거나 발송 예정인 필수 고지를 이곳에서도 확인할 수 있습니다.
+                    인앱 알림과 중요한 이메일 고지를 이곳에서도 확인할 수 있습니다.
                   </p>
                 </div>
                 <p className="text-sm font-bold text-zinc-400">
