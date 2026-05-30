@@ -298,20 +298,7 @@ async function createPaymentFailedNotification({
 
   if (existingEvent) return;
 
-  const email = buildPaymentFailedEmail({
-    event_type: "payment_failed",
-    title: "[메뉴링크] 결제 실패 안내",
-    message: [
-      "안녕하세요, 메뉴링크입니다.",
-      "",
-      "정기결제 처리가 정상적으로 완료되지 않았습니다.",
-      "카드 한도, 유효기간, 결제수단 상태를 확인한 뒤 마이페이지에서 구독/결제 내역을 확인해 주세요.",
-      "",
-      "감사합니다.",
-      "메뉴링크 드림",
-    ].join("\n"),
-    metadata: {},
-  });
+  const email = buildPaymentFailedEmail();
 
   const { error } = await adminSupabase
     .from("notification_events" as never)

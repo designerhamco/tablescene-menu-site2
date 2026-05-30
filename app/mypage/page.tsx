@@ -667,7 +667,7 @@ function getRetentionMessage(daysUntilRetentionEnds: number | null) {
   }
 
   if (daysUntilRetentionEnds === 0) {
-    return "데이터 보관 기간이 오늘 종료됩니다.";
+    return "데이터 보관 기간이 오늘 종료 예정입니다.";
   }
 
   return "데이터 보관 기간이 종료되어 삭제 예정 상태입니다.";
