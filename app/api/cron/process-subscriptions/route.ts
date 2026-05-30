@@ -408,6 +408,9 @@ async function expireSubscriptionAtPeriodEnd({
   const nowIso = new Date().toISOString();
   const accessExpiresAt = (subscription.current_period_end ?? subscription.next_billing_at ?? periodStart.toISOString());
   const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
+  if (!dataRetentionUntil) {
+    throw new Error("DATA_RETENTION_UNTIL_CALCULATION_FAILED");
+  }
 
   const { error: subscriptionError } = await adminSupabase
     .from("business_subscriptions" as never)

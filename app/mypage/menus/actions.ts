@@ -31,7 +31,7 @@ import {
   type MenuCleanupStructuredResult,
 } from "@/lib/server/menu-translation-service";
 import { createClient } from "@/lib/supabase/server";
-import type { Database, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
+import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
@@ -45,6 +45,7 @@ const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
+type MenuSite = Database["public"]["Tables"]["menu_sites"]["Row"];
 type MenuSiteUpdate = Database["public"]["Tables"]["menu_sites"]["Update"];
 type MenuPageInsert = Database["public"]["Tables"]["menu_pages"]["Insert"];
 type MenuPageUpdate = Database["public"]["Tables"]["menu_pages"]["Update"];
@@ -86,8 +87,8 @@ function getMenuItemBadgeLabelFromForm(menuId: string, formData: FormData) {
   }
 }
 
-function getJsonObject(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, unknown>) } : {};
+function getJsonObject(value: unknown): Record<string, Json> {
+  return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, Json>) } : {};
 }
 
 async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, menuId: string) {
@@ -479,14 +480,17 @@ async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?:
   const menuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, template_category, restaurant_name, restaurant_category, menu_cover_label, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
   const fallbackMenuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, restaurant_name, restaurant_category, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
 
-  let { data: menuSite, error } = await supabase
+  const primaryResult = await supabase
     .from("menu_sites")
     .select(menuSiteSelect)
     .eq("id", menuId)
     .eq("user_id", user.id)
     .maybeSingle();
+  let menuSite = primaryResult.data as MenuSite | null;
+  let error = primaryResult.error;
 
-  if (error && ["template_category", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
+  const menuSiteErrorMessage = error?.message.toLowerCase() ?? "";
+  if (error && ["template_category", "menu_cover_label"].some((column) => menuSiteErrorMessage.includes(column))) {
     const fallbackResult = await supabase
       .from("menu_sites")
       .select(fallbackMenuSiteSelect)
@@ -494,7 +498,7 @@ async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?:
       .eq("user_id", user.id)
       .maybeSingle();
 
-    menuSite = fallbackResult.data;
+    menuSite = fallbackResult.data as MenuSite | null;
     error = fallbackResult.error;
   }
 
@@ -3075,7 +3079,7 @@ export async function copyMenuPageAction(formData: FormData) {
       .in("category_id", sourceCategoryIds)
       .order("sort_order", { ascending: true });
 
-    sourceItems = fallbackResult.data;
+    sourceItems = (fallbackResult.data ?? []).map((item) => ({ ...item, badge_label: null }));
     itemsError = fallbackResult.error;
   }
 
@@ -3140,7 +3144,7 @@ export async function copyMenuPageAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, `페이지 복사 중 메뉴 아이템 생성에 실패했습니다: ${copiedItemsError.message}`);
     }
 
-    const copiedItemsByCategory = new Map<string, typeof copiedItems>();
+    const copiedItemsByCategory = new Map<string, NonNullable<typeof copiedItems>>();
     for (const item of copiedItems ?? []) {
       const key = item.category_id ?? "";
       const values = copiedItemsByCategory.get(key) ?? [];
@@ -3152,12 +3156,16 @@ export async function copyMenuPageAction(formData: FormData) {
       values.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "ko"));
     }
 
-    const sourceItemsByCategory = new Map<string, typeof sourceItems>();
-    for (const item of sourceItems) {
+    const sourceItemsForGrouping = [...(sourceItems ?? [])];
+    const sourceItemsByCategory = new Map<string, typeof sourceItemsForGrouping>();
+    for (const item of sourceItemsForGrouping) {
       const key = item.category_id ?? "";
-      const values = sourceItemsByCategory.get(key) ?? [];
-      values.push(item);
-      sourceItemsByCategory.set(key, values);
+      const values = sourceItemsByCategory.get(key);
+      if (values) {
+        values.push(item);
+      } else {
+        sourceItemsByCategory.set(key, [item]);
+      }
     }
 
     for (const [sourceCategoryId, values] of sourceItemsByCategory) {
@@ -4558,7 +4566,7 @@ export async function copyMenuItemAction(formData: FormData) {
       .eq("id", itemId)
       .eq("menu_site_id", menuId)
       .maybeSingle();
-    sourceItem = fallbackResult.data;
+    sourceItem = fallbackResult.data ? { ...fallbackResult.data, badge_label: null } : null;
     sourceItemError = fallbackResult.error;
   }
 

@@ -23,7 +23,16 @@ interface FeatureItem {
   title: string;
   desc: string;
   image: string;
+  isPaid?: boolean;
 }
+
+type OrderFeature = {
+  id: string;
+  text: string;
+  image: string;
+  type: string;
+  isPaid?: boolean;
+};
 
 interface FeatureAccordionSectionProps {
   id: string;
@@ -45,7 +54,7 @@ const FeatureAccordionSection = ({ id, title, subtitle, items, alignRight = fals
       if (window.innerWidth >= 768) return;
 
       const viewportCenter = window.innerHeight / 2;
-      let closestId = null;
+      let closestId: string | null = null;
       let minDistance = Infinity;
 
       items.forEach(item => {
@@ -65,7 +74,8 @@ const FeatureAccordionSection = ({ id, title, subtitle, items, alignRight = fals
       });
 
       if (closestId) {
-        setActiveId(prev => (prev !== closestId ? closestId : prev));
+        const nextActiveId = closestId;
+        setActiveId(prev => (prev !== nextActiveId ? nextActiveId : prev));
       }
     };
 
@@ -323,7 +333,7 @@ const DASHBOARD_FEATURES = [
   { id: 'd4', text: "메뉴/품절 관리", image: IMAGES.dashboard_menu, type: 'right' },
 ];
 
-const CONTENT = {
+const CONTENT: Record<"PRO" | "DINING" | "LITE", { features: OrderFeature[] }> = {
   PRO: {
     features: [
       { id: 'p2', text: "주문/결제/알림톡", image: IMAGES.order, type: 'function' },
@@ -371,7 +381,7 @@ const OrderServicePage = () => {
   const scrollRef1 = React.useRef<HTMLDivElement>(null);
   const scrollRef2 = React.useRef<HTMLDivElement>(null);
 
-  const scroll = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
+  const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
     if (ref.current) {
       const scrollAmount = direction === 'left' ? -400 : 400;
       ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -397,7 +407,7 @@ const OrderServicePage = () => {
   }, [viewTab]);
 
   const serviceFeatures = CONTENT['PRO'].features;
-  const currentFeatures = viewTab === 'service' ? serviceFeatures : DASHBOARD_FEATURES;
+  const currentFeatures: OrderFeature[] = viewTab === 'service' ? serviceFeatures : DASHBOARD_FEATURES;
   const currentFeature = currentFeatures[activeFeatureIndex];
   
   const handlePrev = () => {
@@ -422,11 +432,11 @@ const OrderServicePage = () => {
     }
   };
   
-  const leftFeatures = viewTab === 'service' 
+  const leftFeatures: OrderFeature[] = viewTab === 'service' 
     ? serviceFeatures.filter(f => f.type === 'function')
     : DASHBOARD_FEATURES.filter(f => f.type === 'left');
 
-  const rightFeatures = viewTab === 'service'
+  const rightFeatures: OrderFeature[] = viewTab === 'service'
     ? serviceFeatures.filter(f => f.type === 'page')
     : DASHBOARD_FEATURES.filter(f => f.type === 'right');
 

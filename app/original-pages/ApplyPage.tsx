@@ -27,7 +27,6 @@ const ApplyPage = () => {
       <PageHeader 
         title="서비스 도입 신청" 
         subtitle="메뉴링크의 올인원 솔루션을 시작해보세요."
-        dark={false} 
       />
 
       <main className="max-w-3xl mx-auto px-6 py-20">

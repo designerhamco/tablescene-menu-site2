@@ -14,7 +14,7 @@ import {
 } from "@/app/mypage/menus/actions";
 import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { isAiUsageExceeded, type AiUsageSnapshot } from "@/lib/menu-ai-usage";
+import type { AiUsageSnapshot } from "@/lib/menu-ai-usage";
 import { LOCALE_LABELS, TRANSLATABLE_LOCALES, type SupportedLocale } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale, PartialTranslationResult } from "@/lib/menu-localization-draft";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
@@ -46,7 +46,7 @@ function isStaleRunningJob(job: TranslationJob) {
   return Number.isFinite(startedAt) && Date.now() - startedAt > STALE_TRANSLATION_JOB_MS;
 }
 
-function getTranslationJobStatus(job: TranslationJob) {
+function getTranslationJobStatus(job: NonNullable<TranslationJob>) {
   if (job.status === "pending" || job.status === "running") {
     const isStale = isStaleRunningJob(job);
 
@@ -483,7 +483,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     used: aiUsage.ai_translate_full.used,
     limit: aiUsage.ai_translate_full.limit,
   });
-  const isUsageExceeded = isAiUsageExceeded(localFullUsage);
+  const isUsageExceeded = localFullUsage.used >= localFullUsage.limit;
   const [localPartialUsage, setLocalPartialUsage] = useState({
     used: partialTranslationUsage.used,
     limit: partialTranslationUsage.limit,

@@ -40,9 +40,375 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_account_credit_balances: {
+        Row: {
+          created_at: string
+          granted_credits: number
+          id: string
+          purchased_credits: number
+          updated_at: string
+          used_credits: number
+          used_purchased_credits: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_credits?: number
+          id?: string
+          purchased_credits?: number
+          updated_at?: string
+          used_credits?: number
+          used_purchased_credits?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_credits?: number
+          id?: string
+          purchased_credits?: number
+          updated_at?: string
+          used_credits?: number
+          used_purchased_credits?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_credit_balances: {
+        Row: {
+          created_at: string
+          id: string
+          included_credits: number
+          menu_site_id: string
+          purchased_credits: number
+          updated_at: string
+          used_credits: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          included_credits?: number
+          menu_site_id: string
+          purchased_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          included_credits?: number
+          menu_site_id?: string
+          purchased_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_credit_balances_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: true
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_credit_transactions: {
+        Row: {
+          account_balance_after: number | null
+          balance_after: number | null
+          created_at: string
+          credit_amount: number
+          credit_source: string | null
+          feature_key: string | null
+          id: string
+          included_credits_used: number
+          menu_balance_after: number | null
+          menu_site_id: string | null
+          metadata: Json | null
+          order_id: string | null
+          payment_id: string | null
+          product_key: string | null
+          purchased_credits_used: number
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          account_balance_after?: number | null
+          balance_after?: number | null
+          created_at?: string
+          credit_amount: number
+          credit_source?: string | null
+          feature_key?: string | null
+          id?: string
+          included_credits_used?: number
+          menu_balance_after?: number | null
+          menu_site_id?: string | null
+          metadata?: Json | null
+          order_id?: string | null
+          payment_id?: string | null
+          product_key?: string | null
+          purchased_credits_used?: number
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          account_balance_after?: number | null
+          balance_after?: number | null
+          created_at?: string
+          credit_amount?: number
+          credit_source?: string | null
+          feature_key?: string | null
+          id?: string
+          included_credits_used?: number
+          menu_balance_after?: number | null
+          menu_site_id?: string | null
+          metadata?: Json | null
+          order_id?: string | null
+          payment_id?: string | null
+          product_key?: string | null
+          purchased_credits_used?: number
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_credit_transactions_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_menu_credit_balances: {
+        Row: {
+          created_at: string
+          id: string
+          included_credits: number
+          menu_site_id: string
+          updated_at: string
+          used_included_credits: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          included_credits?: number
+          menu_site_id: string
+          updated_at?: string
+          used_included_credits?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          included_credits?: number
+          menu_site_id?: string
+          updated_at?: string
+          used_included_credits?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_menu_credit_balances_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: true
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_profiles: {
+        Row: {
+          business_name: string | null
+          business_registration_number: string
+          business_status: string | null
+          created_at: string
+          id: string
+          last_verified_at: string | null
+          opening_date: string | null
+          representative_name: string
+          tax_type: string | null
+          updated_at: string
+          user_id: string
+          verification_source: string
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          business_registration_number: string
+          business_status?: string | null
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          opening_date?: string | null
+          representative_name: string
+          tax_type?: string | null
+          updated_at?: string
+          user_id: string
+          verification_source?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          business_registration_number?: string
+          business_status?: string | null
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          opening_date?: string | null
+          representative_name?: string
+          tax_type?: string | null
+          updated_at?: string
+          user_id?: string
+          verification_source?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      business_subscriptions: {
+        Row: {
+          amount: number
+          billing_cycle: string
+          billing_key_ref: string
+          business_profile_id: string | null
+          cancel_at_period_end: boolean
+          cancel_requested_at: string | null
+          canceled_at: string | null
+          cancellation_reason: string | null
+          created_at: string
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          last_paid_at: string | null
+          menu_site_id: string | null
+          next_billing_at: string | null
+          plan_type: string
+          portone_payment_id: string | null
+          product_key: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle: string
+          billing_key_ref: string
+          business_profile_id?: string | null
+          cancel_at_period_end?: boolean
+          cancel_requested_at?: string | null
+          canceled_at?: string | null
+          cancellation_reason?: string | null
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          last_paid_at?: string | null
+          menu_site_id?: string | null
+          next_billing_at?: string | null
+          plan_type?: string
+          portone_payment_id?: string | null
+          product_key: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string
+          billing_key_ref?: string
+          business_profile_id?: string | null
+          cancel_at_period_end?: boolean
+          cancel_requested_at?: string | null
+          canceled_at?: string | null
+          cancellation_reason?: string | null
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          last_paid_at?: string | null
+          menu_site_id?: string | null
+          next_billing_at?: string | null
+          plan_type?: string
+          portone_payment_id?: string | null
+          product_key?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_subscriptions_business_profile_id_fkey"
+            columns: ["business_profile_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_subscriptions_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_verifications: {
+        Row: {
+          business_profile_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          request_payload: Json | null
+          request_type: string
+          response_payload: Json | null
+          result: string
+          user_id: string
+        }
+        Insert: {
+          business_profile_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          request_payload?: Json | null
+          request_type: string
+          response_payload?: Json | null
+          result: string
+          user_id: string
+        }
+        Update: {
+          business_profile_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          request_payload?: Json | null
+          request_type?: string
+          response_payload?: Json | null
+          result?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_verifications_business_profile_id_fkey"
+            columns: ["business_profile_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inquiries: {
         Row: {
           admin_reply: string | null
+          category: string
           created_at: string
           id: string
           message: string
@@ -54,6 +420,7 @@ export type Database = {
         }
         Insert: {
           admin_reply?: string | null
+          category?: string
           created_at?: string
           id?: string
           message: string
@@ -65,6 +432,7 @@ export type Database = {
         }
         Update: {
           admin_reply?: string | null
+          category?: string
           created_at?: string
           id?: string
           message?: string
@@ -1205,6 +1573,75 @@ export type Database = {
           },
         ]
       }
+      notification_events: {
+        Row: {
+          channel: string
+          created_at: string
+          event_type: string
+          id: string
+          menu_site_id: string | null
+          message: string
+          metadata: Json
+          read_at: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          subscription_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          event_type: string
+          id?: string
+          menu_site_id?: string | null
+          message: string
+          metadata?: Json
+          read_at?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          subscription_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          menu_site_id?: string | null
+          message?: string
+          metadata?: Json
+          read_at?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          subscription_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_events_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "business_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           business_name: string | null
@@ -1323,11 +1760,196 @@ export type Database = {
           },
         ]
       }
+      service_entitlements: {
+        Row: {
+          access_expires_at: string | null
+          access_starts_at: string
+          billing_cycle: string | null
+          billing_type: string
+          business_profile_id: string | null
+          created_at: string
+          data_retention_until: string | null
+          deleted_scheduled_at: string | null
+          expired_at: string | null
+          id: string
+          menu_site_id: string
+          plan_key: string | null
+          plan_type: string
+          product_key: string | null
+          status: string
+          subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_expires_at?: string | null
+          access_starts_at?: string
+          billing_cycle?: string | null
+          billing_type: string
+          business_profile_id?: string | null
+          created_at?: string
+          data_retention_until?: string | null
+          deleted_scheduled_at?: string | null
+          expired_at?: string | null
+          id?: string
+          menu_site_id: string
+          plan_key?: string | null
+          plan_type: string
+          product_key?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_expires_at?: string | null
+          access_starts_at?: string
+          billing_cycle?: string | null
+          billing_type?: string
+          business_profile_id?: string | null
+          created_at?: string
+          data_retention_until?: string | null
+          deleted_scheduled_at?: string | null
+          expired_at?: string | null
+          id?: string
+          menu_site_id?: string
+          plan_key?: string | null
+          plan_type?: string
+          product_key?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_entitlements_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_contact_profiles: {
+        Row: {
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          notification_email: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          notification_email: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          notification_email?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      consume_ai_account_credits: {
+        Args: {
+          p_credit_cost: number
+          p_feature_key: string
+          p_menu_site_id: string
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: {
+          credit_source: string
+          remaining_credits: number
+          used_credits: number
+        }[]
+      }
+      consume_ai_credits: {
+        Args: {
+          p_credit_cost: number
+          p_feature_key: string
+          p_menu_site_id: string
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: {
+          balance_id: string
+          included_credits: number
+          purchased_credits: number
+          remaining_credits: number
+          total_credits: number
+          used_credits: number
+        }[]
+      }
+      consume_ai_credits_v2: {
+        Args: {
+          p_credit_cost: number
+          p_feature_key: string
+          p_menu_site_id: string
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: {
+          account_remaining_credits: number
+          included_credits_used: number
+          menu_remaining_credits: number
+          purchased_credits_used: number
+          total_remaining_credits: number
+          total_used_credits: number
+        }[]
+      }
+      expire_personal_trial_unused_grant_credits: {
+        Args: { p_menu_site_id: string; p_reason?: string }
+        Returns: {
+          already_processed: boolean
+          reclaimed_credits: number
+          skipped_reason: string
+        }[]
+      }
+      grant_ai_account_credits: {
+        Args: {
+          p_context_menu_site_id: string
+          p_credits: number
+          p_order_id: string
+          p_payment_id: string
+          p_product_key: string
+          p_user_id: string
+        }
+        Returns: {
+          account_remaining_credits: number
+          already_processed: boolean
+          purchased_credits: number
+          used_purchased_credits: number
+        }[]
+      }
+      grant_ai_menu_creation_credits: {
+        Args: {
+          p_credits: number
+          p_menu_site_id: string
+          p_plan_type: string
+          p_user_id: string
+        }
+        Returns: {
+          already_processed: boolean
+          granted_credits: number
+          purchased_credits: number
+          remaining_credits: number
+          used_credits: number
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {

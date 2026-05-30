@@ -100,8 +100,9 @@ export async function createInquiryAction(formData: FormData) {
     redirectWithError(formData, "문의 내용을 입력해주세요.");
   }
 
+  const inquiryId = crypto.randomUUID();
   const payload: InquiryInsertWithCategory = {
-    id: crypto.randomUUID(),
+    id: inquiryId,
     user_id: user.id,
     title,
     message,
@@ -115,7 +116,7 @@ export async function createInquiryAction(formData: FormData) {
     redirectWithError(formData, `문의 등록에 실패했습니다: ${error.message}`);
   }
 
-  await createInquirySubmittedNotification(user.id, payload.id);
+  await createInquirySubmittedNotification(user.id, inquiryId);
 
   revalidateInquiryViews();
   redirectWithMessage(formData, "inquiry-created");

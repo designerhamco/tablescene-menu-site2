@@ -49,9 +49,11 @@ type MenuPage = Pick<
 >;
 type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
-  "id" | "menu_page_id" | "name" | "description" | "description_visible" | "section_key" | "sort_order" | "visible"
->;
-type MenuItem = Pick<
+  "id" | "menu_page_id" | "name" | "description" | "description_visible" | "sort_order" | "visible"
+> & {
+  section_key: string | null;
+};
+type MenuItem = Omit<Pick<
   Database["public"]["Tables"]["menu_items"]["Row"],
   | "id"
   | "category_id"
@@ -74,7 +76,9 @@ type MenuItem = Pick<
   | "traits_visible"
   | "visible"
   | "sort_order"
->;
+>, "price"> & {
+  price: number | null;
+};
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
 
@@ -2458,7 +2462,7 @@ export default function MenuManagementSection({
   const draftedCategories = useMemo(
     () => {
       const existingCategories = categories
-        .filter((category) => !deletedCategoryIds.has(category.id) && !deletedPageIds.has(category.menu_page_id))
+        .filter((category) => !deletedCategoryIds.has(category.id) && (!category.menu_page_id || !deletedPageIds.has(category.menu_page_id)))
         .map((category) => ({
           ...category,
           name: categoryBasicDrafts[category.id]?.name ?? category.name,
@@ -2488,7 +2492,7 @@ export default function MenuManagementSection({
     () => {
       const deletedCategoryIdSet = new Set([
         ...Array.from(deletedCategoryIds),
-        ...categories.filter((category) => deletedPageIds.has(category.menu_page_id)).map((category) => category.id),
+        ...categories.filter((category) => category.menu_page_id && deletedPageIds.has(category.menu_page_id)).map((category) => category.id),
       ]);
       const existingDraftedItems = items.filter((item) => {
         if (deletedItemIds.has(item.id)) return false;
@@ -2701,10 +2705,10 @@ export default function MenuManagementSection({
 
     const timeoutId = window.setTimeout(() => {
       if (savedItem && savedItemCategory) {
-        setSelectedPageId(savedItemCategory.menu_page_id);
+        if (savedItemCategory.menu_page_id) setSelectedPageId(savedItemCategory.menu_page_id);
         setSelectedCategoryId(savedItemCategory.id);
         setEditingItemId(savedItem.id);
-        setExpandedPageIds(new Set([savedItemCategory.menu_page_id]));
+        setExpandedPageIds(new Set(savedItemCategory.menu_page_id ? [savedItemCategory.menu_page_id] : []));
         setExpandedCategoryIds(new Set([savedItemCategory.id]));
         setHasRestoredBuilderState(true);
         return;
@@ -2970,7 +2974,7 @@ export default function MenuManagementSection({
       targetPageCategories.forEach((category, index) => {
         nextDrafts[category.id] = {
           isNew: nextDrafts[category.id]?.isNew,
-          pageId: nextDrafts[category.id]?.pageId ?? category.menu_page_id,
+          pageId: nextDrafts[category.id]?.pageId ?? category.menu_page_id ?? undefined,
           name: nextDrafts[category.id]?.name ?? category.name,
           description: nextDrafts[category.id]?.description ?? category.description ?? "",
           descriptionVisible: nextDrafts[category.id]?.descriptionVisible ?? category.description_visible,
@@ -3337,8 +3341,8 @@ export default function MenuManagementSection({
     if (committedDraft.categoryId) {
       const committedCategory = draftedCategories.find((category) => category.id === committedDraft.categoryId);
       if (committedCategory) {
-        setSelectedPageId(committedCategory.menu_page_id);
-        setExpandedPageIds(new Set([committedCategory.menu_page_id]));
+        if (committedCategory.menu_page_id) setSelectedPageId(committedCategory.menu_page_id);
+        setExpandedPageIds(new Set(committedCategory.menu_page_id ? [committedCategory.menu_page_id] : []));
       }
       setSelectedCategoryId(committedDraft.categoryId);
       setExpandedCategoryIds(new Set([committedDraft.categoryId]));
@@ -3536,7 +3540,7 @@ export default function MenuManagementSection({
         ...categoriesForPage.reduce<Record<string, CategoryBasicDraft>>((drafts, category, index) => {
           drafts[category.id] = {
             isNew: currentDrafts[category.id]?.isNew,
-            pageId: currentDrafts[category.id]?.pageId ?? category.menu_page_id,
+            pageId: currentDrafts[category.id]?.pageId ?? category.menu_page_id ?? undefined,
             name: currentDrafts[category.id]?.name ?? category.name,
             description: currentDrafts[category.id]?.description ?? category.description ?? "",
             descriptionVisible: currentDrafts[category.id]?.descriptionVisible ?? category.description_visible,
@@ -3649,8 +3653,8 @@ export default function MenuManagementSection({
       if (item?.category_id) {
         const itemCategory = draftedCategories.find((category) => category.id === item.category_id);
         if (itemCategory) {
-          setSelectedPageId(itemCategory.menu_page_id);
-          setExpandedPageIds(new Set([itemCategory.menu_page_id]));
+          if (itemCategory.menu_page_id) setSelectedPageId(itemCategory.menu_page_id);
+          setExpandedPageIds(new Set(itemCategory.menu_page_id ? [itemCategory.menu_page_id] : []));
         }
         setSelectedCategoryId(item.category_id);
         setExpandedCategoryIds(new Set([item.category_id]));
@@ -3899,28 +3903,29 @@ export default function MenuManagementSection({
     const sourceDraft = itemBasicDrafts[itemId];
 
     setItemBasicDrafts((currentDrafts) => {
+      const copiedDraft: ItemBasicDraft = {
+        categoryId: sourceItem.category_id ?? undefined,
+        isNew: true,
+        imageUrl: sourceItem.image_url,
+        imagePath: sourceItem.image_path,
+        imageAction: "keep",
+        name: getCopyName(sourceItem.name, categoryItems.map((item) => item.name)),
+        description: sourceItem.description ?? "",
+        originInfo: sourceItem.origin_info ?? "",
+        price: sourceItem.price == null ? "" : String(sourceItem.price),
+        priceLabel: sourceItem.price_label ?? "",
+        badgeLabel: capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : "",
+        visible: sourceItem.visible,
+        sortOrder: 0,
+        priceVisible: sourceItem.price_visible,
+        portionLabel: sourceItem.portion_label ?? "",
+        portionVisible: sourceItem.portion_visible,
+        traitsVisible: sourceItem.traits_visible,
+        traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === sourceItem.id))),
+      };
       const nextDrafts = {
         ...currentDrafts,
-        [draftId]: {
-          categoryId: sourceItem.category_id ?? undefined,
-          isNew: true,
-          imageUrl: sourceItem.image_url,
-          imagePath: sourceItem.image_path,
-          imageAction: "keep",
-          name: getCopyName(sourceItem.name, categoryItems.map((item) => item.name)),
-          description: sourceItem.description ?? "",
-          originInfo: sourceItem.origin_info ?? "",
-          price: sourceItem.price == null ? "" : String(sourceItem.price),
-          priceLabel: sourceItem.price_label ?? "",
-          badgeLabel: capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : "",
-          visible: sourceItem.visible,
-          sortOrder: 0,
-          priceVisible: sourceItem.price_visible,
-          portionLabel: sourceItem.portion_label ?? "",
-          portionVisible: sourceItem.portion_visible,
-          traitsVisible: sourceItem.traits_visible,
-          traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === sourceItem.id))),
-        },
+        [draftId]: copiedDraft,
       };
 
       nextOrderedIds.forEach((id, index) => {
@@ -3932,9 +3937,9 @@ export default function MenuManagementSection({
 
     const sourceCategory = draftedCategories.find((category) => category.id === sourceItem.category_id);
     if (sourceCategory) {
-      setSelectedPageId(sourceCategory.menu_page_id);
+      if (sourceCategory.menu_page_id) setSelectedPageId(sourceCategory.menu_page_id);
       setSelectedCategoryId(sourceCategory.id);
-      setExpandedPageIds(new Set([sourceCategory.menu_page_id]));
+      setExpandedPageIds(new Set(sourceCategory.menu_page_id ? [sourceCategory.menu_page_id] : []));
       setExpandedCategoryIds(new Set([sourceCategory.id]));
     }
     setEditingItemId(draftId);
@@ -3951,6 +3956,7 @@ export default function MenuManagementSection({
     if (!sourceCategory) return;
 
     const pageId = sourceCategory.menu_page_id;
+    if (!pageId) return;
     const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId));
     if (pageCategories.length >= MENU_LIMITS.maxCategoriesPerPage) {
       setCategoryDraftFeedback(`이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`);
@@ -3976,7 +3982,7 @@ export default function MenuManagementSection({
       pageCategories.forEach((category, index) => {
         nextDrafts[category.id] = {
           isNew: nextDrafts[category.id]?.isNew,
-          pageId: nextDrafts[category.id]?.pageId ?? category.menu_page_id,
+          pageId: nextDrafts[category.id]?.pageId ?? category.menu_page_id ?? undefined,
           name: nextDrafts[category.id]?.name ?? category.name,
           description: nextDrafts[category.id]?.description ?? category.description ?? "",
           descriptionVisible: nextDrafts[category.id]?.descriptionVisible ?? category.description_visible,
@@ -4048,9 +4054,9 @@ export default function MenuManagementSection({
     const category = item?.category_id ? draftedCategories.find((entry) => entry.id === item.category_id) : null;
     resetModes();
     if (category) {
-      setSelectedPageId(category.menu_page_id);
+      if (category.menu_page_id) setSelectedPageId(category.menu_page_id);
       setSelectedCategoryId(category.id);
-      setExpandedPageIds(new Set([category.menu_page_id]));
+      setExpandedPageIds(new Set(category.menu_page_id ? [category.menu_page_id] : []));
       setExpandedCategoryIds(new Set([category.id]));
     }
     setEditingItemId(itemId);

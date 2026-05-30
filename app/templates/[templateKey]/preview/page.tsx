@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
-import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
+import type { MenuPageData } from "@/lib/menu-page-data";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings } from "@/types/menu";
@@ -12,13 +12,13 @@ type PageProps = {
   params: Promise<{ templateKey: string }>;
 };
 
-function buildPreviewData(templateKey: TemplateKey): Omit<PublicMenuTemplateProps, "mode"> {
+function buildPreviewData(templateKey: TemplateKey): MenuPageData {
   const template = getTemplateByKey(templateKey);
   const preset = getStarterPreset(templateKey, template.categoryLabel, template.template_category);
   const now = new Date().toISOString();
   const siteId = `template-preview-${template.key}`;
 
-  const pages: PublicMenuTemplateProps["pages"] = preset.pages.map((page, pageIndex) => ({
+  const pages: MenuPageData["pages"] = preset.pages.map((page, pageIndex) => ({
     id: `${siteId}-page-${pageIndex}`,
     title: page.title,
     description: null,
@@ -29,9 +29,9 @@ function buildPreviewData(templateKey: TemplateKey): Omit<PublicMenuTemplateProp
     created_at: now,
   }));
 
-  const categories: PublicMenuTemplateProps["categories"] = [];
-  const items: PublicMenuTemplateProps["items"] = [];
-  const priceOptions: PublicMenuTemplateProps["priceOptions"] = [];
+  const categories: MenuPageData["categories"] = [];
+  const items: MenuPageData["items"] = [];
+  const priceOptions: MenuPageData["priceOptions"] = [];
 
   preset.pages.forEach((page, pageIndex) => {
     const pageId = pages[pageIndex]?.id ?? null;
@@ -104,13 +104,16 @@ function buildPreviewData(templateKey: TemplateKey): Omit<PublicMenuTemplateProp
     publicServiceType: "menu",
     menuSite: {
       id: siteId,
+      user_id: "template-preview",
       name: template.name,
       slug: `preview-${template.key}`,
       template_key: template.key,
       template_category: template.template_category,
+      status: "published",
       description: template.description,
       logo_url: null,
       cover_image_url: preset.site.cover_image_url,
+      intro_image_url: null,
       brand_color: "#111111",
       business_name: preset.site.restaurant_name,
       business_address: preset.site.restaurant_address,

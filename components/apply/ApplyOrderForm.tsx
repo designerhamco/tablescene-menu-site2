@@ -421,6 +421,7 @@ const menuTemplateRecommendationMap = {
   popup_event: ["popup_event"],
   etc: ["cafe_dessert", "dining"],
 } as const satisfies Record<BusinessTypeKey, readonly Exclude<MenuTemplateGroupKey, "recommended" | "all">[]>;
+const defaultRecommendedMenuTemplateGroups = ["cafe_dessert", "dining"] as const satisfies readonly Exclude<MenuTemplateGroupKey, "recommended" | "all">[];
 const templateTagMap = {
   cafe: ["카페", "디저트", "이미지형", "모바일/QR"],
   bakery: ["베이커리", "디저트", "모바일/QR"],
@@ -614,7 +615,7 @@ function getMenuTemplateCategoriesByGroup(groupKey: MenuTemplateGroupKey, busine
   }
 
   if (groupKey === "recommended") {
-    const recommendedGroups = businessType ? menuTemplateRecommendationMap[businessType] : ["cafe_dessert", "dining"];
+    const recommendedGroups = businessType ? menuTemplateRecommendationMap[businessType] : defaultRecommendedMenuTemplateGroups;
     return recommendedGroups.flatMap((group) => menuTemplateGroupCategoryMap[group]);
   }
 
@@ -636,7 +637,7 @@ function getTemplatesByMenuGroup(
     return [];
   }
 
-  return templates.filter((template) => categories.includes(template.template_category));
+  return templates.filter((template) => categories.some((category) => category === template.template_category));
 }
 
 function getMenuTemplateTags(template: TemplateCatalogItem) {

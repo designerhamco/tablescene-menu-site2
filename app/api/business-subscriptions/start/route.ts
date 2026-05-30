@@ -98,7 +98,8 @@ type DebugStep =
   | "service_entitlement_insert"
   | "final_response";
 
-type SafeDebug = Record<string, boolean | number | string | null | undefined>;
+type SafeDebugValue = boolean | number | string | null | undefined | { [key: string]: SafeDebugValue };
+type SafeDebug = Record<string, SafeDebugValue>;
 
 class BusinessSubscriptionRouteError extends Error {
   constructor(

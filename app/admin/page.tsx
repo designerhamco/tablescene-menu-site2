@@ -245,7 +245,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     supabase.from("payments").select("id, user_id, order_id, status, amount, created_at").order("created_at", { ascending: false }).limit(5),
   ]);
 
-  let effectiveInquiriesResult = inquiriesResult;
+  let effectiveInquiriesData = inquiriesResult.data;
+  let effectiveInquiriesCount = inquiriesResult.count;
+  let effectiveInquiriesError = inquiriesResult.error;
 
   if (inquiriesResult.error?.code === "42703") {
     let fallbackInquiriesQuery = supabase
@@ -256,16 +258,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       fallbackInquiriesQuery = fallbackInquiriesQuery.eq("status", activeInquiryStatus);
     }
 
-    effectiveInquiriesResult = await fallbackInquiriesQuery
+    const fallbackInquiriesResult = await fallbackInquiriesQuery
       .order("created_at", { ascending: false })
       .range(inquiryFrom, inquiryTo);
+
+    effectiveInquiriesData = fallbackInquiriesResult.data as typeof effectiveInquiriesData;
+    effectiveInquiriesCount = fallbackInquiriesResult.count;
+    effectiveInquiriesError = fallbackInquiriesResult.error;
   }
 
   const recentMenus = (recentMenusResult.data ?? []) as MenuSite[];
-  const inquiries = (effectiveInquiriesResult.data ?? []) as Inquiry[];
+  const inquiries = (effectiveInquiriesData ?? []) as Inquiry[];
   const recentOrders = recentOrdersResult.data ?? [];
   const recentPayments = recentPaymentsResult.data ?? [];
-  const inquiryTotalCount = effectiveInquiriesResult.count ?? 0;
+  const inquiryTotalCount = effectiveInquiriesCount ?? 0;
   const inquiryTotalPages = Math.max(1, Math.ceil(inquiryTotalCount / inquiryPageSize));
   const selectedInquiryId = inquiryId ?? null;
   const selectedInquiry = inquiries.find((inquiry) => inquiry.id === selectedInquiryId) ?? null;
@@ -418,7 +424,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
               })}
             </div>
 
-            {effectiveInquiriesResult.error && <AdminError message={effectiveInquiriesResult.error.message} />}
+            {effectiveInquiriesError && <AdminError message={effectiveInquiriesError.message} />}
 
             {inquiries.length > 0 ? (
               <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">

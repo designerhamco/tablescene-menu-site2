@@ -88,6 +88,10 @@ function mergeMenuSiteTranslation(menuSite: MenuSite, translation: MenuSiteTrans
   };
 }
 
+function getLocalizedRequiredValue(defaultValue: string, translationValue: string | null | undefined) {
+  return getLocalizedValue(defaultValue, translationValue ?? null) ?? defaultValue;
+}
+
 function mergePriceOptionTranslation(
   option: MenuItemPriceOption,
   translation: MenuItemPriceOptionTranslation | null | undefined,
@@ -96,7 +100,7 @@ function mergePriceOptionTranslation(
 
   return {
     ...option,
-    label: getLocalizedValue(option.label, translation.label),
+    label: getLocalizedRequiredValue(option.label, translation.label),
     price_label: getLocalizedValue(option.price_label, translation.price_label),
     price: option.price,
     visible: option.visible,
@@ -196,7 +200,7 @@ async function applyMenuTranslations(
       return translation
         ? {
             ...page,
-            title: getLocalizedValue(page.title, translation.title),
+            title: getLocalizedRequiredValue(page.title, translation.title),
             description: getLocalizedValue(page.description, translation.description),
           }
         : page;
@@ -206,7 +210,7 @@ async function applyMenuTranslations(
       return translation
         ? {
             ...category,
-            name: getLocalizedValue(category.name, translation.name),
+            name: getLocalizedRequiredValue(category.name, translation.name),
             description: getLocalizedValue(category.description, translation.description),
           }
         : category;
@@ -216,7 +220,7 @@ async function applyMenuTranslations(
       return translation
         ? {
             ...item,
-            name: getLocalizedValue(item.name, translation.name),
+            name: getLocalizedRequiredValue(item.name, translation.name),
             set_name: getLocalizedValue(item.set_name, translation.set_name),
             description: getLocalizedValue(item.description, translation.description),
             price_label: getLocalizedValue(item.price_label, translation.price_label),
@@ -232,7 +236,7 @@ async function applyMenuTranslations(
       return translation
         ? {
             ...trait,
-            label: getLocalizedValue(trait.label, translation.label),
+            label: getLocalizedRequiredValue(trait.label, translation.label),
           }
         : trait;
     }),
@@ -257,7 +261,7 @@ async function applyMenuTranslations(
       return translation
         ? {
             ...chef,
-            chef_name: getLocalizedValue(chef.chef_name, translation.chef_name),
+            chef_name: getLocalizedRequiredValue(chef.chef_name, translation.chef_name),
             chef_role: getLocalizedValue(chef.chef_role, translation.chef_role),
             chef_description: getLocalizedValue(chef.chef_description, translation.chef_description),
           }
@@ -457,7 +461,8 @@ export async function getPublicMenuPageData(slug: string, options: MenuPageDataO
   let site = primarySiteResult.data as unknown;
   let error = primarySiteResult.error;
 
-  if (error && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
+  const siteErrorMessage = error?.message.toLowerCase() ?? "";
+  if (error && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => siteErrorMessage.includes(column))) {
     const fallbackResult = await supabase
       .from("menu_sites")
       .select(baseSiteSelect)
@@ -492,7 +497,8 @@ export async function getOwnerPreviewMenuPageData(menuId: string, userId: string
   let site = primarySiteResult.data as unknown;
   let error = primarySiteResult.error;
 
-  if (error && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
+  const siteErrorMessage = error?.message.toLowerCase() ?? "";
+  if (error && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => siteErrorMessage.includes(column))) {
     const fallbackResult = await supabase
       .from("menu_sites")
       .select(baseSiteSelect)

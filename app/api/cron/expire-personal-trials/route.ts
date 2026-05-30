@@ -177,6 +177,9 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
     .map((trial) => trial.menu_site_id)
     .filter((menuSiteId): menuSiteId is string => Boolean(menuSiteId));
   const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
+  if (!dataRetentionUntil) {
+    throw new Error("데이터 보관 종료일 계산 실패");
+  }
 
   if (trialIds.length > 0) {
     const { error: updateError } = await adminSupabase

@@ -172,6 +172,11 @@ function isCafeDesignATemplateKey(templateKey?: string | null) {
   return templateKey?.trim().toLowerCase() === "cafe_design_a";
 }
 
+function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((option) => ({ ...(option as StarterPriceOption) }));
+}
+
 const cafeDesignAStarterPreset: StarterPreset = {
   key: "cafe",
   site: CAFE_DESIGN_A_STITCH_SAMPLE.site,
@@ -198,7 +203,7 @@ const cafeDesignAStarterPreset: StarterPreset = {
             image_url: "image_url" in menuItem ? menuItem.image_url : undefined,
             badge_label: "badge_label" in menuItem ? menuItem.badge_label : undefined,
             recommended: "recommended" in menuItem ? menuItem.recommended : undefined,
-            price_options: "price_options" in menuItem ? menuItem.price_options.map((option) => ({ ...option })) : undefined,
+            price_options: "price_options" in menuItem ? cloneStarterPriceOptions(menuItem.price_options) : undefined,
           })),
         }))
       ),
@@ -845,7 +850,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
   },
 };
 
-export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null) {
+export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null): StarterPreset {
   if (isCafeDesignATemplateKey(templateKey)) {
     return cafeDesignAStarterPreset;
   }
@@ -869,12 +874,12 @@ export function getStarterPreset(templateKey?: string | null, restaurantCategory
 
   if (source.includes("cafe") || source.includes("카페")) return starterPresets.cafe;
   if (source.includes("casual_dining") || source.includes("casual") || source.includes("캐주얼다이닝") || source.includes("캐주얼")) {
-    return starterPresets.casual_dining;
+    return starterPresets.casual_dining ?? starterPresets.cafe;
   }
-  if (source.includes("fast_food") || source.includes("fastfood") || source.includes("패스트푸드")) return starterPresets.fast_food;
-  if (source.includes("brunch") || source.includes("브런치")) return starterPresets.brunch;
+  if (source.includes("fast_food") || source.includes("fastfood") || source.includes("패스트푸드")) return starterPresets.fast_food ?? starterPresets.cafe;
+  if (source.includes("brunch") || source.includes("브런치")) return starterPresets.brunch ?? starterPresets.cafe;
   if (source.includes("fine_dining") || source.includes("fine") || source.includes("dining") || source.includes("파인다이닝")) {
-    return starterPresets.fine_dining;
+    return starterPresets.fine_dining ?? starterPresets.cafe;
   }
 
   return starterPresets.cafe;
@@ -909,20 +914,23 @@ async function applyStarterSiteDefaults(
   const legacySiteSelect =
     "restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings";
 
-  let { data: site, error } = await supabase
+  const primaryResult = await supabase
     .from("menu_sites")
     .select(siteSelect)
     .eq("id", menuSiteId)
     .maybeSingle();
+  let site = primaryResult.data as Partial<MenuSiteUpdate> | null;
+  let error = primaryResult.error;
 
-  if (error && ["restaurant_type", "menu_cover_label"].some((column) => error.message.toLowerCase().includes(column))) {
+  const siteErrorMessage = error?.message.toLowerCase() ?? "";
+  if (error && ["restaurant_type", "menu_cover_label"].some((column) => siteErrorMessage.includes(column))) {
     const fallbackResult = await supabase.from("menu_sites").select(legacySiteSelect).eq("id", menuSiteId).maybeSingle();
-    site = fallbackResult.data;
+    site = fallbackResult.data as Partial<MenuSiteUpdate> | null;
     error = fallbackResult.error;
   }
 
   if (error) {
-    throw new Error(`기본 메뉴판 정보 확인에 실패했습니다: ${error.message}`);
+    throw new Error(`기본 메뉴판 정보 확인에 실패했습니다: ${error?.message ?? "알 수 없는 오류"}`);
   }
 
   const payload: MenuSiteUpdate = {
@@ -950,7 +958,8 @@ async function applyStarterSiteDefaults(
 
   let { error: updateError } = await supabase.from("menu_sites").update(payload).eq("id", menuSiteId);
 
-  if (updateError && ["restaurant_type", "menu_cover_label"].some((column) => updateError.message.toLowerCase().includes(column))) {
+  const updateErrorMessage = updateError?.message.toLowerCase() ?? "";
+  if (updateError && ["restaurant_type", "menu_cover_label"].some((column) => updateErrorMessage.includes(column))) {
     const legacyPayload: MenuSiteUpdate = { ...payload };
     delete legacyPayload.restaurant_type;
     delete legacyPayload.menu_cover_label;
@@ -959,7 +968,7 @@ async function applyStarterSiteDefaults(
   }
 
   if (updateError) {
-    throw new Error(`기본 메뉴판 정보 저장에 실패했습니다: ${updateError.message}`);
+    throw new Error(`기본 메뉴판 정보 저장에 실패했습니다: ${updateError?.message ?? "알 수 없는 오류"}`);
   }
 }
 

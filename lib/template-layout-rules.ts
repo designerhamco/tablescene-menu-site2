@@ -133,8 +133,9 @@ const fallbackLayoutRules: TemplateLayoutRules = {
 
 export function getTemplateLayoutRules(templateKey?: string | null, templateCategory?: string | null): TemplateLayoutRules {
   const normalizedTemplateKey = normalizeTemplateKey(templateKey, templateCategory);
+  const rules = TEMPLATE_LAYOUT_RULES[normalizedTemplateKey as keyof typeof TEMPLATE_LAYOUT_RULES];
 
-  return TEMPLATE_LAYOUT_RULES[normalizedTemplateKey] ?? {
+  return rules ?? {
     ...fallbackLayoutRules,
     templateKey: normalizedTemplateKey,
   };

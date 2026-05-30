@@ -104,6 +104,13 @@ type BusinessSubscription = {
   created_at: string | null;
 };
 
+type ServiceItem = {
+  key: string;
+  entitlement: ServiceEntitlement | null;
+  menuSite: MenuSite | undefined;
+  subscription: BusinessSubscription | null | undefined;
+};
+
 type PaymentRecord = {
   id: string | null;
   order_id: string | null;
@@ -279,7 +286,7 @@ function formatDateTime(date: string | null) {
   }).format(new Date(date));
 }
 
-function getSafeString(value: string | null | undefined) {
+function getSafeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
@@ -872,7 +879,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   let inquiriesErrorMessage: string | null = null;
 
   if (activeTab === "inquiries") {
-    let inquiriesResult = await runMypageQuery(
+    const inquiriesResult = await runMypageQuery(
       "inquiries",
       supabase
         .from("inquiries")
@@ -881,9 +888,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         .order("created_at", { ascending: false })
         .range(inquiryFrom, inquiryTo)
     );
+    let inquiriesData = inquiriesResult?.data ?? [];
+    let inquiriesError = inquiriesResult?.error ?? null;
+    let inquiryCount = inquiriesResult?.count ?? 0;
 
     if (inquiriesResult?.error?.code === "42703") {
-      inquiriesResult = await runMypageQuery(
+      const fallbackInquiriesResult = await runMypageQuery(
         "inquiries_without_category",
         supabase
           .from("inquiries")
@@ -892,11 +902,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           .order("created_at", { ascending: false })
           .range(inquiryFrom, inquiryTo)
       );
+      inquiriesData = fallbackInquiriesResult?.data as typeof inquiriesData;
+      inquiriesError = fallbackInquiriesResult?.error ?? null;
+      inquiryCount = fallbackInquiriesResult?.count ?? 0;
     }
-
-    const inquiriesData = inquiriesResult?.data ?? [];
-    const inquiriesError = inquiriesResult?.error ?? null;
-    const inquiryCount = inquiriesResult?.count ?? 0;
 
     inquiries = (inquiriesData ?? []) as InquirySectionInquiry[];
     inquiryTotalCount = inquiryCount ?? 0;
@@ -1145,11 +1154,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });
 
-  function getServiceItemMenuSiteId(item: (typeof serviceItems)[number]) {
+  function getServiceItemMenuSiteId(item: ServiceItem) {
     return item.menuSite?.id ?? item.entitlement?.menu_site_id ?? item.subscription?.menu_site_id ?? "";
   }
 
-  function isActiveServiceItem({ entitlement, menuSite, subscription }: (typeof serviceItems)[number]) {
+  function isActiveServiceItem({ entitlement, menuSite, subscription }: ServiceItem) {
     const planType = entitlement?.plan_type ?? subscription?.plan_type ?? null;
     const isMenuArchived = menuSite?.status === "archived";
 
@@ -1168,7 +1177,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return false;
   }
 
-  function isExpiredOrArchivedServiceItem({ entitlement, menuSite, subscription }: (typeof serviceItems)[number]) {
+  function isExpiredOrArchivedServiceItem({ entitlement, menuSite, subscription }: ServiceItem) {
     const planType = entitlement?.plan_type ?? subscription?.plan_type ?? null;
     const entitlementStatus = entitlement?.status ?? null;
     const subscriptionStatus = subscription?.status ?? null;
@@ -1188,7 +1197,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return planType === "personal_trial" || planType === "personal_trial_basic_1month" || planType === "business_basic" || planType === "business_display";
   }
 
-  function getArchivedServiceStatusLabel({ entitlement, menuSite, subscription }: (typeof serviceItems)[number]) {
+  function getArchivedServiceStatusLabel({ entitlement, menuSite, subscription }: ServiceItem) {
     const planType = entitlement?.plan_type ?? subscription?.plan_type ?? null;
     const entitlementStatus = entitlement?.status ?? null;
     const subscriptionStatus = subscription?.status ?? null;

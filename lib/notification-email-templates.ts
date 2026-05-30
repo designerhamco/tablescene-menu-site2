@@ -356,7 +356,7 @@ export function buildNotificationEmail(event: TemplateEvent): NotificationEmailT
   }
 
   if (event.event_type === "payment_failed") {
-    return buildPaymentFailedEmail(event);
+    return buildPaymentFailedEmail();
   }
 
   return {

@@ -7,7 +7,7 @@ import {
   normalizeContactProfileInput,
   normalizeKoreanPhoneNumber,
   validateContactProfileInput,
-} from "./contact-profile.ts";
+} from "./contact-profile";
 
 test("normalizeContactProfileInput trims and normalizes contact fields", () => {
   assert.deepEqual(

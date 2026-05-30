@@ -186,7 +186,7 @@ function getRetryCount(metadata: Json) {
   return typeof value === "number" && Number.isFinite(value) ? value : Number(value ?? 0) || 0;
 }
 
-function getEmailErrorInfo(emailResult: Awaited<ReturnType<typeof sendNotificationEmail>>) {
+function getEmailErrorInfo(emailResult: Extract<Awaited<ReturnType<typeof sendNotificationEmail>>, { ok: false }>) {
   const rawMessage = "error" in emailResult ? emailResult.error : emailResult.skippedReason;
   let errorCode: string | null = null;
 

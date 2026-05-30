@@ -152,14 +152,14 @@ function hasHangul(value: string) {
   return /[가-힣]/.test(value);
 }
 
-function isLikelyUntranslatedMenuItemValue(sourceText: string, translatedText: string, locale: TargetTranslationLocale) {
+function isLikelyUntranslatedMenuItemValue(sourceText: string, translatedText: string) {
   if (!hasHangul(sourceText)) return false;
 
   const normalizedSource = sourceText.trim();
   const normalizedTranslation = translatedText.trim();
 
   if (normalizedTranslation === normalizedSource) return true;
-  if (locale !== "ko" && hasHangul(normalizedTranslation)) return true;
+  if (hasHangul(normalizedTranslation)) return true;
 
   return false;
 }
@@ -962,7 +962,7 @@ function hasCompleteTranslatedFields(row: Record<string, unknown>, entity: Trans
       return translatedText === sourceText;
     }
 
-    if (entity.table === "menu_item_translations" && isLikelyUntranslatedMenuItemValue(sourceText, translatedText, locale)) {
+    if (entity.table === "menu_item_translations" && isLikelyUntranslatedMenuItemValue(sourceText, translatedText)) {
       return false;
     }
 
@@ -1136,7 +1136,7 @@ function validateTranslatedTextUnits(locale: TargetTranslationLocale, textUnits:
     if (!unit.key.startsWith("menu_item_translations:")) return false;
 
     const translatedValue = cleanText(translatedText[unit.key]);
-    return translatedValue ? isLikelyUntranslatedMenuItemValue(unit.text, translatedValue, locale) : false;
+    return translatedValue ? isLikelyUntranslatedMenuItemValue(unit.text, translatedValue) : false;
   }).length;
 
   if (untranslatedMenuItemCount > 0) {

@@ -10,7 +10,16 @@ import {
   type TemplateServiceKey,
 } from '@/lib/templates';
 
-const recommendedFilterKeys = ['all', 'cafe', 'bakery', 'dessert', 'restaurant', 'hair_salon', 'nail_shop', 'clinic'] as const;
+const recommendedFilterKeys: readonly TemplateCategoryFilterKey[] = [
+  'all',
+  'cafe',
+  'bakery',
+  'dessert',
+  'restaurant',
+  'hair_salon',
+  'nail_shop',
+  'clinic',
+] as const;
 const showcaseCategoryFilters = templateCategoryFilters.filter((filter) => recommendedFilterKeys.includes(filter.key));
 
 type TemplateShowcaseProps = {

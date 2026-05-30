@@ -9,11 +9,18 @@ import { createClient } from '@/lib/supabase/client';
 
 const logoImage = '/assets/tablescene-symbol.png';
 
-const NAV_ITEMS = [
+type NavItem = {
+  label: string;
+  path: string;
+  discount?: boolean;
+  disabled?: boolean;
+};
+
+const NAV_ITEMS: readonly NavItem[] = [
   { label: '메뉴링크 베이직', path: '/services/basic', discount: true },
   { label: '메뉴링크 디스플레이', path: '/services/display', discount: true },
   { label: '비주얼 스튜디오', path: '/branding/visual-studio', disabled: true },
-] as const;
+];
 
 function DiscountChip() {
   return (

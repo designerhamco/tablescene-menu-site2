@@ -183,7 +183,7 @@ export function formatPortionLabel(item: Pick<MenuItem, "portion_label" | "porti
   return portionLabel || null;
 }
 
-export function formatMenuPrice(item: Pick<MenuItem, "price" | "price_label" | "price_visible">) {
+export function formatMenuPrice(item: Pick<MenuItem, "price_label" | "price_visible"> & { price: number | null }) {
   if (item.price_visible === false) {
     return null;
   }

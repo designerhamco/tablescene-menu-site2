@@ -49,13 +49,14 @@ export default function DirtySubmitButton({
     const form = document.getElementById(formId);
     if (!(form instanceof HTMLFormElement)) return;
 
+    const formElement = form;
     const ignoredNameSet = new Set(ignoredNames);
     let frameId = 0;
 
     function updateDirtyState() {
       window.cancelAnimationFrame(frameId);
       frameId = window.requestAnimationFrame(() => {
-        const nextSignature = getFormSignature(form, ignoredNameSet);
+        const nextSignature = getFormSignature(formElement, ignoredNameSet);
 
         if (initialSignatureRef.current === null) {
           initialSignatureRef.current = nextSignature;
@@ -67,10 +68,10 @@ export default function DirtySubmitButton({
       });
     }
 
-    initialSignatureRef.current = getFormSignature(form, ignoredNameSet);
+    initialSignatureRef.current = getFormSignature(formElement, ignoredNameSet);
 
     const observer = new MutationObserver(updateDirtyState);
-    observer.observe(form, {
+    observer.observe(formElement, {
       attributes: true,
       childList: true,
       subtree: true,
@@ -78,14 +79,14 @@ export default function DirtySubmitButton({
     });
 
     const events = ["input", "change", "click", "keyup", "pointerup"];
-    events.forEach((eventName) => form.addEventListener(eventName, updateDirtyState, true));
+    events.forEach((eventName) => formElement.addEventListener(eventName, updateDirtyState, true));
     window.addEventListener("tablescene:cover-draft-reset", updateDirtyState);
     window.addEventListener("tablescene:image-upload-draft-reset", updateDirtyState);
 
     return () => {
       window.cancelAnimationFrame(frameId);
       observer.disconnect();
-      events.forEach((eventName) => form.removeEventListener(eventName, updateDirtyState, true));
+      events.forEach((eventName) => formElement.removeEventListener(eventName, updateDirtyState, true));
       window.removeEventListener("tablescene:cover-draft-reset", updateDirtyState);
       window.removeEventListener("tablescene:image-upload-draft-reset", updateDirtyState);
     };

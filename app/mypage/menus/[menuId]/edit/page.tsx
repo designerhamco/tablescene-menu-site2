@@ -389,6 +389,10 @@ const statusLabels: Record<MenuSiteStatus, string> = {
   archived: "비공개",
 };
 
+function isMenuSiteStatus(value: string | null | undefined): value is MenuSiteStatus {
+  return value === "draft" || value === "published" || value === "archived";
+}
+
 const baseMenuSiteSelect =
   "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, intro_image_url, intro_image_path, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, settings, page_settings";
 const menuSiteSelect = baseMenuSiteSelect
@@ -652,7 +656,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   let menuSite = primaryMenuSiteResult.data as unknown;
   let menuSiteError = primaryMenuSiteResult.error;
 
-  if (menuSiteError && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => menuSiteError.message.toLowerCase().includes(column))) {
+  const menuSiteErrorMessage = menuSiteError?.message.toLowerCase() ?? "";
+  if (menuSiteError && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => menuSiteErrorMessage.includes(column))) {
     const fallbackResult = await supabase
       .from("menu_sites")
       .select(baseMenuSiteSelect)
@@ -960,7 +965,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
   const previewUrl = `/mypage/menus/${site.id}/preview`;
-  const headerStatusLabel = accessState?.statusLabel ?? statusLabels[site.status];
+  const headerStatusLabel = accessState?.statusLabel ?? (isMenuSiteStatus(site.status) ? statusLabels[site.status] : "상태 확인 필요");
   const headerStatusClassName = accessState?.canViewPublic
     ? "bg-emerald-50 text-emerald-700"
     : isReadOnly
@@ -1401,8 +1406,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       menuName={site.name}
                       userId={user.id}
                       userEmail={user.email}
-                      storeId={portOneConfig.storeId}
-                      channelKey={portOneConfig.channelKey}
+                      storeId={portOneConfig.storeId ?? undefined}
+                      channelKey={portOneConfig.channelKey ?? undefined}
                       initialBalance={aiCreditBalance}
                     />
                   ) : (
@@ -1555,8 +1560,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     menuName={site.name}
                     userId={user.id}
                     userEmail={user.email}
-                    storeId={portOneConfig.storeId}
-                    channelKey={portOneConfig.channelKey}
+                    storeId={portOneConfig.storeId ?? undefined}
+                    channelKey={portOneConfig.channelKey ?? undefined}
                     initialBalance={aiCreditBalance}
                   />
                 ) : (
