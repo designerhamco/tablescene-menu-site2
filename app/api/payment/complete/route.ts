@@ -454,7 +454,6 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     parsedPayload.menuName,
     parsedPayload.restaurantName,
     parsedPayload.restaurantCategory,
-    parsedPayload.restaurantAddress,
     parsedPayload.restaurantPhone,
     parsedPayload.buyerName,
     parsedPayload.buyerPhone,

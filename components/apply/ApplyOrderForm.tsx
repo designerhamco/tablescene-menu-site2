@@ -24,6 +24,7 @@ import {
   type ScreenSetupPayload,
 } from "@/lib/payments";
 import { getPublicMenuUrl } from "@/lib/menu-url";
+import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import {
   getBusinessTypeOptions,
   getDefaultBusinessCoverLabel,
@@ -936,7 +937,9 @@ export default function ApplyOrderForm({
     : isMenuService && filteredTemplates.length === 0
       ? "선택 가능한 템플릿이 있는 카테고리를 선택해주세요."
       : null;
-  const restaurantAddressError = getRequiredMessage("주소", payload.restaurantAddress);
+  const restaurantAddressError = payload.restaurantAddress.length > MENU_FIELD_LIMITS.menuSites.restaurantAddress
+    ? `매장 주소는 최대 ${MENU_FIELD_LIMITS.menuSites.restaurantAddress}자까지 입력할 수 있습니다.`
+    : null;
   const restaurantPhoneError = validatePhoneNumber(payload.restaurantPhone);
   const buyerNameError = validatePersonName("담당자명", payload.buyerName);
   const buyerPhoneError = validatePhoneNumber(payload.buyerPhone);
@@ -1869,7 +1872,16 @@ export default function ApplyOrderForm({
               placeholder="업종을 선택해주세요"
               errorText={visibleRestaurantTypeError}
             />
-            <Field label="주소" value={form.restaurantAddress} onChange={(value) => updateField("restaurantAddress", value)} required helperText={isScreenService ? "설치 매장 또는 화면 운영 매장의 주소를 입력해주세요." : "공개 메뉴판의 소개 영역에 표시됩니다."} errorText={form.restaurantAddress.trim() ? restaurantAddressError : null} successText="입력 완료" className="md:col-span-2" />
+            <Field
+              label="매장 주소"
+              value={form.restaurantAddress}
+              onChange={(value) => updateField("restaurantAddress", value)}
+              maxLength={MENU_FIELD_LIMITS.menuSites.restaurantAddress}
+              helperText={isScreenService ? "선택 입력입니다. 설치 매장 또는 화면 운영 매장 주소로 사용할 수 있습니다." : "선택 입력입니다. 템플릿에 따라 공개 메뉴판에 표시될 수 있습니다."}
+              errorText={restaurantAddressError}
+              successText={form.restaurantAddress.trim() ? "입력 완료" : undefined}
+              className="md:col-span-2"
+            />
             <PhoneInput
               label="매장 전화번호"
               value={form.restaurantPhone}

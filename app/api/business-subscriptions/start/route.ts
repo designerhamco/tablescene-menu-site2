@@ -430,7 +430,6 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     order.menuName,
     order.restaurantName,
     order.restaurantCategory,
-    order.restaurantAddress,
     order.restaurantPhone,
     order.buyerName,
     order.buyerPhone,
