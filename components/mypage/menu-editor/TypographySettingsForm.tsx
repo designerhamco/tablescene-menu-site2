@@ -190,15 +190,18 @@ export default function TypographySettingsForm({
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">글자 크기</p>
               <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                공개 메뉴판에 표시되는 전체 글자 크기를 조정합니다.
+                메뉴판에 표시되는 메뉴명, 설명, 가격의 전체 크기를 조정합니다.
+              </p>
+              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                기본 크기는 대부분의 매장에 적합합니다. 글자를 크게 하면 멀리서 보기 좋지만 한 화면에 보이는 메뉴 수는 줄어들 수 있습니다.
               </p>
             </div>
           </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="글자 크기">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" role="radiogroup" aria-label="글자 크기">
             {FONT_SIZE_SCALE_OPTIONS.map((option) => (
               <label
                 key={option.key}
-                className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-4 py-3 transition ${
+                className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-4 py-3 transition xl:flex-col xl:items-start xl:justify-center ${
                   selectedFontSizeScale === option.key
                     ? "border-zinc-950 bg-zinc-950 text-white"
                     : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
@@ -213,8 +216,8 @@ export default function TypographySettingsForm({
                   onChange={() => setSelectedFontSizeScale(option.key)}
                   className="sr-only"
                 />
-                <span className="text-lg font-black">{option.label}</span>
-                <span className={`text-sm font-bold ${selectedFontSizeScale === option.key ? "text-white/70" : "text-zinc-400"}`}>
+                <span className="break-keep text-sm font-black leading-tight">{option.label}</span>
+                <span className={`menu-font-en text-xs font-bold ${selectedFontSizeScale === option.key ? "text-white/70" : "text-zinc-400"}`}>
                   {option.description}
                 </span>
               </label>

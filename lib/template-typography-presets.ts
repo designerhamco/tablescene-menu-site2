@@ -19,7 +19,7 @@ import {
 
 export type KoreanFontKey = KoreanFontValue;
 export type EnglishFontKey = EnglishFontValue;
-export type FontSizeScaleKey = "s" | "m" | "l";
+export type FontSizeScaleKey = "xs" | "s" | "m" | "l" | "xl";
 
 export type TypographySettings = {
   korean_font_key: KoreanFontKey;
@@ -49,9 +49,11 @@ export const ENGLISH_FONT_OPTIONS: readonly FontOption<EnglishFontKey>[] = REGIS
 }));
 
 export const FONT_SIZE_SCALE_OPTIONS = [
-  { key: "s", label: "S", description: "조금 작게", scale: 0.92 },
-  { key: "m", label: "M", description: "기본", scale: 1 },
-  { key: "l", label: "L", description: "조금 크게", scale: 1.08 },
+  { key: "xs", label: "작게", description: "XS", scale: 0.88 },
+  { key: "s", label: "조금 작게", description: "S", scale: 0.92 },
+  { key: "m", label: "기본", description: "M", scale: 1 },
+  { key: "l", label: "조금 크게", description: "L", scale: 1.08 },
+  { key: "xl", label: "크게", description: "XL", scale: 1.16 },
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
 
 export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
@@ -110,6 +112,10 @@ export function isFontSizeScaleKey(value: unknown): value is FontSizeScaleKey {
   return typeof value === "string" && fontSizeScaleKeys.has(value as FontSizeScaleKey);
 }
 
+export function normalizeFontSizeScaleKey(value: unknown, fallback: FontSizeScaleKey = "m"): FontSizeScaleKey {
+  return isFontSizeScaleKey(value) ? value : fallback;
+}
+
 function getRecord(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 }
@@ -146,7 +152,7 @@ export function normalizeTypographySettings(value: unknown): Partial<TypographyS
   const englishFontKey = normalizeEnglishFontKey(record.english_font_key);
   if (koreanFontKey) settings.korean_font_key = koreanFontKey;
   if (englishFontKey) settings.english_font_key = englishFontKey;
-  if (isFontSizeScaleKey(record.font_size_scale_key)) settings.font_size_scale_key = record.font_size_scale_key;
+  if ("font_size_scale_key" in record) settings.font_size_scale_key = normalizeFontSizeScaleKey(record.font_size_scale_key);
 
   return Object.keys(settings).length > 0 ? settings : null;
 }
@@ -157,11 +163,12 @@ export function getCustomTypographySettings(settings: unknown, pageSettings?: un
   const designRecord = getRecord(pageSettingsRecord?.design);
   const designKoreanFont = getCustomKoreanFontValue(pageSettings);
   const designEnglishFont = getCustomEnglishFontValue(pageSettings);
-  const designFontSizeScale = isFontSizeScaleKey(designRecord?.fontSizeScale)
-    ? designRecord.fontSizeScale
-    : isFontSizeScaleKey(designRecord?.font_size_scale_key)
-      ? designRecord.font_size_scale_key
-      : null;
+  const designFontSizeScale =
+    designRecord && "fontSizeScale" in designRecord
+      ? normalizeFontSizeScaleKey(designRecord.fontSizeScale)
+      : designRecord && "font_size_scale_key" in designRecord
+        ? normalizeFontSizeScaleKey(designRecord.font_size_scale_key)
+        : null;
   const legacyTypography = normalizeTypographySettings(settingsRecord?.typography) ?? normalizeTypographySettings(pageSettingsRecord?.typography);
   const mergedSettings = {
     ...(legacyTypography ?? {}),
@@ -185,7 +192,7 @@ export function mergeTypographySettings(templateKey?: string | null, customTypog
 }
 
 export function getFontSizeMultiplier(scaleKey: FontSizeScaleKey) {
-  return FONT_SIZE_SCALE_OPTIONS.find((option) => option.key === scaleKey)?.scale ?? 1;
+  return FONT_SIZE_SCALE_OPTIONS.find((option) => option.key === normalizeFontSizeScaleKey(scaleKey))?.scale ?? 1;
 }
 
 export function getKoreanFontFamily(fontKey: KoreanFontKey) {
