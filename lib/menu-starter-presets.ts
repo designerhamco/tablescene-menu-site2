@@ -172,6 +172,10 @@ function isCafeDesignATemplateKey(templateKey?: string | null) {
   return templateKey?.trim().toLowerCase() === "cafe_design_a";
 }
 
+function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: StarterServiceType) {
+  return !shouldUseLeanStarterPreset(serviceType) || preset === cafeDesignAStarterPreset;
+}
+
 function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefined {
   if (!Array.isArray(value)) return undefined;
   return value.map((option) => ({ ...(option as StarterPriceOption) }));
@@ -940,7 +944,9 @@ async function applyStarterSiteDefaults(
     menu_cover_label: valueOrDefault(site?.menu_cover_label, preset.site.menu_cover_label),
     intro_title: useLeanPreset ? (site?.intro_title ?? null) : valueOrDefault(site?.intro_title, preset.site.intro_title),
     intro_description: useLeanPreset ? (site?.intro_description ?? null) : valueOrDefault(site?.intro_description, preset.site.intro_description),
-    brand_description: useLeanPreset ? (site?.brand_description ?? null) : valueOrDefault(site?.brand_description, preset.site.brand_description),
+    brand_description: shouldApplyLeanStoreDescription(preset, serviceType)
+      ? valueOrDefault(site?.brand_description, preset.site.brand_description)
+      : (site?.brand_description ?? null),
     menu_cover_title: valueOrDefault(site?.menu_cover_title, preset.site.menu_cover_title),
     menu_cover_description: valueOrDefault(site?.menu_cover_description, preset.site.menu_cover_description),
     about_description: useLeanPreset ? (site?.about_description ?? null) : valueOrDefault(site?.about_description, preset.site.about_description),
