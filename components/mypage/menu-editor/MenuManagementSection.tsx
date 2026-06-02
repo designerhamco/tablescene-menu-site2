@@ -4194,6 +4194,12 @@ export default function MenuManagementSection({
 
   function resetMenuManagementToStarterDraft() {
     if (!starterPreset || isSampleResetApplying) return;
+    const fixedPageId = !canManagePages ? selectedPage?.id ?? firstVisiblePageId : "";
+    if (!canManagePages && !fixedPageId) {
+      toast.error("기본 메뉴 페이지를 찾을 수 없어 샘플로 되돌릴 수 없습니다.");
+      return;
+    }
+
     setIsSampleResetApplying(true);
 
     const resetSeed = Date.now().toString(36);
@@ -4204,17 +4210,19 @@ export default function MenuManagementSection({
     let firstCategoryId = "";
 
     starterPreset.pages.forEach((page, pageIndex) => {
-      const pageId = `temp-page-sample-${resetSeed}-${pageIndex + 1}`;
+      const pageId = fixedPageId || `temp-page-sample-${resetSeed}-${pageIndex + 1}`;
       if (!firstPageId) firstPageId = pageId;
 
-      nextPageDrafts[pageId] = {
-        isNew: true,
-        title: page.title,
-        description: capabilities.pageDescription ? "" : "",
-        descriptionVisible: false,
-        visible: true,
-        sortOrder: pageIndex,
-      };
+      if (canManagePages) {
+        nextPageDrafts[pageId] = {
+          isNew: true,
+          title: page.title,
+          description: capabilities.pageDescription ? "" : "",
+          descriptionVisible: false,
+          visible: true,
+          sortOrder: pageIndex,
+        };
+      }
 
       page.categories.forEach((category, categoryIndex) => {
         const categoryId = `temp-category-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}`;
@@ -4269,11 +4277,11 @@ export default function MenuManagementSection({
       });
     });
 
-    setPageBasicDrafts(nextPageDrafts);
+    setPageBasicDrafts(canManagePages ? nextPageDrafts : {});
     setCategoryBasicDrafts(nextCategoryDrafts);
     setItemBasicDrafts(nextItemDrafts);
     setPendingItemDrafts({});
-    setDeletedPageIds(new Set(menuPages.map((page) => page.id)));
+    setDeletedPageIds(canManagePages ? new Set(menuPages.map((page) => page.id)) : new Set());
     setDeletedCategoryIds(new Set(categories.map((category) => category.id)));
     setDeletedItemIds(new Set(items.map((item) => item.id)));
     resetModes();

@@ -3959,7 +3959,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
   const now = new Date().toISOString();
   const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
-  const categoryDrafts = parseDraftArray<MenuManagementBasicCategoryDraft>(formData, "category_basic_drafts");
+  let categoryDrafts = parseDraftArray<MenuManagementBasicCategoryDraft>(formData, "category_basic_drafts");
   const itemDrafts = parseDraftArray<MenuManagementBasicItemDraft>(formData, "item_basic_drafts");
   const deletedPageIds = parseDraftStringArray(formData, "deleted_page_ids");
   const deletedCategoryIds = parseDraftStringArray(formData, "deleted_category_ids");
@@ -3971,12 +3971,49 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     typeof pcTabletLayoutModeInput === "string" && supportsPcTabletLayoutMode(menuSite.template_key);
 
   if (!canManageMenuPages) {
+    const samplePageDraftIds = new Set(
+      pageDrafts
+        .map((page) => normalizeDraftString(page.id))
+        .filter((pageId) => pageId.startsWith("temp-page-sample-"))
+    );
+    const isSamplePageResetPayload =
+      samplePageDraftIds.size > 0 &&
+      pageDrafts.every((page) => {
+        const pageId = normalizeDraftString(page.id);
+        return pageId && samplePageDraftIds.has(pageId) && page.isNew === true;
+      });
+
     const hasNewPageDraft = pageDrafts.some((page) => {
       const pageId = normalizeDraftString(page.id);
-      return pageId && page.isNew === true && !deletedPageIds.includes(pageId);
+      return pageId && page.isNew === true && !samplePageDraftIds.has(pageId) && !deletedPageIds.includes(pageId);
     });
-    if (deletedPageIds.length > 0 || hasNewPageDraft) {
+    if (hasNewPageDraft || (deletedPageIds.length > 0 && !isSamplePageResetPayload)) {
       redirectToMenuEditWithError(menuId, pageManagementBlockedMessage);
+    }
+
+    if (isSamplePageResetPayload) {
+      const { data: defaultPages, error: defaultPagesError } = await supabase
+        .from("menu_pages")
+        .select("id")
+        .eq("menu_site_id", menuId)
+        .order("visible", { ascending: false })
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true })
+        .limit(1);
+
+      if (defaultPagesError) {
+        redirectToMenuEditWithError(menuId, `기본 페이지 확인에 실패했습니다: ${defaultPagesError.message}`);
+      }
+
+      const defaultPageId = defaultPages?.[0]?.id ?? "";
+      if (!defaultPageId) {
+        redirectToMenuEditWithError(menuId, "기본 메뉴 페이지를 찾을 수 없어 샘플로 되돌릴 수 없습니다.");
+      }
+
+      categoryDrafts = categoryDrafts.map((category) => {
+        const pageId = normalizeDraftString(category.pageId);
+        return samplePageDraftIds.has(pageId) ? { ...category, pageId: defaultPageId } : category;
+      });
     }
 
     const existingPageIds = pageDrafts
