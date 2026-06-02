@@ -23,6 +23,7 @@ import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
+import LiveCharacterCounter from "@/components/mypage/menu-editor/LiveCharacterCounter";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import MenuEditorToastBridge from "@/components/mypage/menu-editor/MenuEditorToastBridge";
@@ -420,6 +421,7 @@ function FieldHint({ children }: { children?: ReactNode }) {
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
   const displayValue = props.value ?? props.defaultValue ?? "";
   const currentLength = typeof displayValue === "string" || typeof displayValue === "number" ? String(displayValue).length : 0;
+  const fieldName = typeof props.name === "string" ? props.name : null;
 
   return (
     <>
@@ -432,7 +434,7 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
       {(helperText || props.maxLength) && (
         <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
           <span className="break-keep">{helperText}</span>
-          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+          {props.maxLength && fieldName && <LiveCharacterCounter fieldName={fieldName} initialLength={currentLength} maxLength={props.maxLength} />}
         </div>
       )}
     </>
@@ -442,6 +444,7 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
 function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { helperText?: ReactNode }) {
   const displayValue = props.value ?? props.defaultValue ?? "";
   const currentLength = typeof displayValue === "string" || typeof displayValue === "number" ? String(displayValue).length : 0;
+  const fieldName = typeof props.name === "string" ? props.name : null;
 
   return (
     <>
@@ -454,7 +457,7 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
       {(helperText || props.maxLength) && (
         <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
           <span className="break-keep">{helperText}</span>
-          {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
+          {props.maxLength && fieldName && <LiveCharacterCounter fieldName={fieldName} initialLength={currentLength} maxLength={props.maxLength} />}
         </div>
       )}
     </>
