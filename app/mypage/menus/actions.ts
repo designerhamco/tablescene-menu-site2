@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelForSave, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
 import { pageSettingKeys } from "@/lib/menu-editor";
+import { MENU_EDITOR_CAPABILITIES, getMenuEditorServiceTypeForMenuSite } from "@/lib/menu-editor-capabilities";
 import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
 import {
@@ -105,6 +106,18 @@ async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, me
   }
 
   return data?.product_key ?? null;
+}
+
+async function canManageMenuPagesForMenuSite(supabase: SupabaseServerClient, menuId: string, templateKey?: string | null) {
+  const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+  const serviceType = getMenuEditorServiceTypeForMenuSite(productKey, getTemplateType(templateKey));
+  return MENU_EDITOR_CAPABILITIES[serviceType].canManageMenuPages;
+}
+
+async function assertCanManageMenuPages(supabase: SupabaseServerClient, menuId: string, templateKey?: string | null) {
+  if (await canManageMenuPagesForMenuSite(supabase, menuId, templateKey)) return;
+
+  redirectToMenuEditWithError(menuId, "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.");
 }
 
 function getString(formData: FormData, key: string) {
@@ -2813,6 +2826,7 @@ export async function createMenuPageAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
   const title = getString(formData, "menu_page_title");
   const description = getNullableString(formData, "menu_page_description");
 
@@ -2886,6 +2900,7 @@ export async function updateMenuPageAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
   await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
 
   const title = getString(formData, "menu_page_title");
@@ -2926,6 +2941,7 @@ export async function reorderMenuPagesAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
   const { data: pages, error: pagesError } = await supabase.from("menu_pages").select("id").eq("menu_site_id", menuId);
 
   if (pagesError) {
@@ -2963,6 +2979,7 @@ export async function copyMenuPageAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
   await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
 
   const { count: pageCount, error: pageCountError } = await supabase
@@ -3258,6 +3275,7 @@ export async function deleteMenuPageAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
   await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
 
   const { count: pageCount, error: pageCountError } = await supabase
@@ -3940,12 +3958,66 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const deletedPageIds = parseDraftStringArray(formData, "deleted_page_ids");
   const deletedCategoryIds = parseDraftStringArray(formData, "deleted_category_ids");
   const deletedItemIds = parseDraftStringArray(formData, "deleted_item_ids");
-  const newPageDraftCount = pageDrafts.filter((page) => {
+  const canManageMenuPages = await canManageMenuPagesForMenuSite(supabase, menuId, menuSite.template_key);
+  const pageManagementBlockedMessage = "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
+
+  if (!canManageMenuPages) {
+    const hasNewPageDraft = pageDrafts.some((page) => {
+      const pageId = normalizeDraftString(page.id);
+      return pageId && page.isNew === true && !deletedPageIds.includes(pageId);
+    });
+    if (deletedPageIds.length > 0 || hasNewPageDraft) {
+      redirectToMenuEditWithError(menuId, pageManagementBlockedMessage);
+    }
+
+    const existingPageIds = pageDrafts
+      .map((page) => normalizeDraftString(page.id))
+      .filter((pageId) => pageId && !pageId.startsWith("temp-"));
+    if (existingPageIds.length > 0) {
+      const { data: existingPages, error: existingPagesError } = await supabase
+        .from("menu_pages")
+        .select("id, title, description, description_visible, visible, sort_order")
+        .eq("menu_site_id", menuId)
+        .in("id", existingPageIds);
+
+      if (existingPagesError) {
+        redirectToMenuEditWithError(menuId, `페이지 변경 가능 여부 확인에 실패했습니다: ${existingPagesError.message}`);
+      }
+
+      const existingPageById = new Map((existingPages ?? []).map((page) => [page.id, page]));
+      const hasPageChange = pageDrafts.some((page) => {
+        const pageId = normalizeDraftString(page.id);
+        if (!pageId || pageId.startsWith("temp-")) return false;
+        const existingPage = existingPageById.get(pageId);
+        if (!existingPage) return true;
+        const nextDescriptionVisible =
+          page.descriptionVisible === undefined ? Boolean(existingPage.description_visible) : normalizeDraftBoolean(page.descriptionVisible);
+        const nextVisible = page.visible === undefined ? Boolean(existingPage.visible) : normalizeDraftBoolean(page.visible);
+        const nextSortOrder = page.sortOrder === undefined ? normalizeDraftNumber(existingPage.sort_order) : normalizeDraftNumber(page.sortOrder);
+
+        return (
+          normalizeDraftString(page.title) !== normalizeDraftString(existingPage.title) ||
+          normalizeDraftString(page.description) !== normalizeDraftString(existingPage.description) ||
+          nextDescriptionVisible !== Boolean(existingPage.description_visible) ||
+          nextVisible !== Boolean(existingPage.visible) ||
+          nextSortOrder !== normalizeDraftNumber(existingPage.sort_order)
+        );
+      });
+
+      if (hasPageChange) {
+        redirectToMenuEditWithError(menuId, pageManagementBlockedMessage);
+      }
+    }
+  }
+
+  const effectivePageDrafts = canManageMenuPages ? pageDrafts : [];
+  const effectiveDeletedPageIds = canManageMenuPages ? deletedPageIds : [];
+  const newPageDraftCount = effectivePageDrafts.filter((page) => {
     const pageId = normalizeDraftString(page.id);
-    return pageId && page.isNew === true && !deletedPageIds.includes(pageId);
+    return pageId && page.isNew === true && !effectiveDeletedPageIds.includes(pageId);
   }).length;
 
-  if (deletedPageIds.length > 0) {
+  if (effectiveDeletedPageIds.length > 0) {
     const { count: pageCount, error: pageCountError } = await supabase
       .from("menu_pages")
       .select("id", { count: "exact", head: true })
@@ -3955,18 +4027,18 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, `페이지 삭제 가능 여부 확인에 실패했습니다: ${pageCountError.message}`);
     }
 
-    if ((pageCount ?? 0) - deletedPageIds.length + newPageDraftCount < 1) {
+    if ((pageCount ?? 0) - effectiveDeletedPageIds.length + newPageDraftCount < 1) {
       redirectToMenuEditWithError(menuId, "최소 1개의 페이지는 필요합니다.");
     }
   }
 
   let categoryIdsFromDeletedPages: string[] = [];
-  if (deletedPageIds.length > 0) {
+  if (effectiveDeletedPageIds.length > 0) {
     const { data: pageCategories, error: pageCategoriesError } = await supabase
       .from("menu_categories")
       .select("id")
       .eq("menu_site_id", menuId)
-      .in("menu_page_id", deletedPageIds);
+      .in("menu_page_id", effectiveDeletedPageIds);
 
     if (pageCategoriesError) {
       redirectToMenuEditWithError(menuId, `삭제할 페이지의 카테고리 확인에 실패했습니다: ${pageCategoriesError.message}`);
@@ -3975,7 +4047,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     categoryIdsFromDeletedPages = (pageCategories ?? []).map((category) => category.id);
   }
 
-  const deletedPageIdSet = new Set(deletedPageIds);
+  const deletedPageIdSet = new Set(effectiveDeletedPageIds);
   const categoryIdsToDelete = Array.from(new Set([...deletedCategoryIds, ...categoryIdsFromDeletedPages]));
   const categoryIdDeleteSet = new Set(categoryIdsToDelete);
   const deletedItemIdSet = new Set(deletedItemIds);
@@ -4007,7 +4079,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     }
   }
 
-  for (const page of pageDrafts) {
+  for (const page of effectivePageDrafts) {
     const pageId = normalizeDraftString(page.id);
     const title = normalizeDraftString(page.title);
     if (!pageId || deletedPageIdSet.has(pageId)) continue;
@@ -4167,17 +4239,17 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     if (categoryDeleteError) redirectToMenuEditWithError(menuId, `카테고리 draft 삭제에 실패했습니다: ${categoryDeleteError.message}`);
   }
 
-  if (deletedPageIds.length > 0) {
+  if (effectiveDeletedPageIds.length > 0) {
     const { error } = await supabase
       .from("menu_pages")
       .delete()
       .eq("menu_site_id", menuId)
-      .in("id", deletedPageIds);
+      .in("id", effectiveDeletedPageIds);
 
     if (error) redirectToMenuEditWithError(menuId, `페이지 draft 삭제에 실패했습니다: ${error.message}`);
   }
 
-  const newPageDrafts = pageDrafts
+  const newPageDrafts = effectivePageDrafts
     .map((page) => ({
       id: normalizeDraftString(page.id),
       title: normalizeDraftString(page.title),
@@ -4198,7 +4270,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `페이지 개수 확인에 실패했습니다: ${existingPageCountError.message}`);
   }
 
-  if ((existingPageCount ?? 0) + newPageDrafts.length - deletedPageIds.length > MENU_LIMITS.maxPagesPerSite) {
+  if ((existingPageCount ?? 0) + newPageDrafts.length - effectiveDeletedPageIds.length > MENU_LIMITS.maxPagesPerSite) {
     redirectToMenuEditWithError(menuId, `페이지는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`);
   }
 
@@ -4219,7 +4291,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   }
 
   const pageResults = await Promise.all(
-    pageDrafts
+    effectivePageDrafts
       .map((page) => ({
         id: normalizeDraftString(page.id),
         title: normalizeDraftString(page.title),

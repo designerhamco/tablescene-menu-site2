@@ -90,6 +90,7 @@ type MenuManagementSectionProps = {
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
+  canManagePages: boolean;
   aiDescriptionUsage: AiUsage;
   aiMenuCleanupUsage: AiUsage;
   badgeStyles: BadgeStyles;
@@ -2355,6 +2356,7 @@ export default function MenuManagementSection({
   priceOptions,
   traits,
   capabilities,
+  canManagePages,
   aiDescriptionUsage,
   aiMenuCleanupUsage,
   badgeStyles,
@@ -2561,7 +2563,6 @@ export default function MenuManagementSection({
     [categories, deletedCategoryIds, deletedItemIds, deletedPageIds, items, itemBasicDrafts]
   );
   const sortedPages = useMemo(() => sortMenuPages(draftedPages), [draftedPages]);
-  const canManagePages = true;
   const firstVisiblePageId = sortedPages.find((page) => page.visible)?.id ?? sortedPages[0]?.id ?? "";
   const firstVisibleCategoryIdForInitialPage = firstVisiblePageId
     ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === firstVisiblePageId)).find((category) => category.visible)?.id ??
@@ -2588,23 +2589,24 @@ export default function MenuManagementSection({
   const [isSampleResetApplying, setIsSampleResetApplying] = useState(false);
   const [hasRestoredBuilderState, setHasRestoredBuilderState] = useState(false);
   const newItemFormRef = useRef<HTMLDivElement | null>(null);
-  const selectedPage = sortedPages.find((page) => page.id === selectedPageId) ?? sortedPages.find((page) => page.visible) ?? sortedPages[0] ?? null;
+  const effectiveSelectedPageId = canManagePages ? selectedPageId : firstVisiblePageId;
+  const selectedPage = sortedPages.find((page) => page.id === effectiveSelectedPageId) ?? sortedPages.find((page) => page.visible) ?? sortedPages[0] ?? null;
   const visiblePageId = selectedPage?.id ?? "";
 
   const categoriesForPage = useMemo(() => {
-    if (!canManagePages) return sortCategories(draftedCategories);
     if (!visiblePageId) return [];
     return sortCategories(draftedCategories.filter((category) => category.menu_page_id === visiblePageId));
-  }, [canManagePages, draftedCategories, visiblePageId]);
+  }, [draftedCategories, visiblePageId]);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(firstVisibleCategoryIdForInitialPage);
   const selectedCategory =
     categoriesForPage.find((category) => category.id === selectedCategoryId) ??
-    draftedCategories.find((category) => category.id === selectedCategoryId) ??
+    (!canManagePages ? categoriesForPage.find((category) => category.visible) ?? categoriesForPage[0] : draftedCategories.find((category) => category.id === selectedCategoryId)) ??
     null;
   const visibleCategoryId = selectedCategory?.id ?? "";
   const itemsForCategory = sortItems(draftedItems.filter((item) => item.category_id === visibleCategoryId));
   const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
+  const visibleStructurePages = canManagePages ? sortedPages : selectedPage ? [selectedPage] : [];
   const reachedPageLimit = sortedPages.length >= MENU_LIMITS.maxPagesPerSite;
   const reachedCategoryLimit = categoriesForPage.length >= MENU_LIMITS.maxCategoriesPerPage;
   const reachedItemsPerCategoryLimit = itemsForCategory.length >= MENU_LIMITS.maxItemsPerCategory;
@@ -2614,7 +2616,7 @@ export default function MenuManagementSection({
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
   const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected;
-  const shouldShowPageCreateButton = hasNoSelection || isPageSelectedOnly;
+  const shouldShowPageCreateButton = canManagePages && (hasNoSelection || isPageSelectedOnly);
   const shouldShowCategoryCreateButton = Boolean(selectedPage && (isPageSelectedOnly || isCategorySelected));
   const shouldShowItemCreateButton = Boolean(selectedCategory && (isCategorySelected || Boolean(editingItemId)));
   const pageBasicDraftPayload = useMemo(
@@ -2715,7 +2717,7 @@ export default function MenuManagementSection({
       }
 
       const nextPageId =
-        savedBuilderState.selectedPageId && sortedPages.some((page) => page.id === savedBuilderState.selectedPageId)
+        canManagePages && savedBuilderState.selectedPageId && sortedPages.some((page) => page.id === savedBuilderState.selectedPageId)
           ? savedBuilderState.selectedPageId
           : sortedPages.find((page) => page.visible)?.id ?? sortedPages[0]?.id ?? "";
       const categoriesForNextPage = nextPageId
@@ -2734,7 +2736,7 @@ export default function MenuManagementSection({
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [draftedCategories, draftedItems, hasRestoredBuilderState, menuId, sortedPages]);
+  }, [canManagePages, draftedCategories, draftedItems, hasRestoredBuilderState, menuId, sortedPages]);
 
   useEffect(() => {
     try {
@@ -2935,7 +2937,7 @@ export default function MenuManagementSection({
     const targetPageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === targetPageId));
     const nextCategoryCount = targetPageCategories.length + categoriesToAdd.length;
     if (nextCategoryCount > MENU_LIMITS.maxCategoriesPerPage) {
-      toast.error(`현재 페이지에는 카테고리를 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다. 현재 ${targetPageCategories.length}개가 등록되어 있고, AI 정리 결과 ${categoriesToAdd.length}개를 추가하면 총 ${nextCategoryCount}개가 됩니다.`);
+      toast.error(`현재 메뉴판에는 카테고리를 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다. 현재 ${targetPageCategories.length}개가 등록되어 있고, AI 정리 결과 ${categoriesToAdd.length}개를 추가하면 총 ${nextCategoryCount}개가 됩니다.`);
       setMenuCleanupApplyMode(null);
       return;
     }
@@ -3022,10 +3024,11 @@ export default function MenuManagementSection({
     setExpandedCategoryIds(new Set(newCategoryIds[0] ? [newCategoryIds[0]] : []));
     markMenuManagementDirty();
     closeMenuCleanupDialog();
-    toast.success("AI가 정리한 메뉴가 현재 페이지에 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+    toast.success("AI가 정리한 메뉴가 현재 메뉴판에 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
   }
 
   function applyAiMenuCleanupNewPageResult() {
+    if (!canManagePages) return;
     if (menuCleanupApplyMode) return;
     setMenuCleanupApplyMode("append-new");
     const categoriesToAdd = getCleanedAiMenuCategories();
@@ -3432,6 +3435,7 @@ export default function MenuManagementSection({
   }
 
   function handlePageDrop(targetPageId: string) {
+    if (!canManagePages) return;
     if (dragState?.type !== "page") return;
     const orderedIds = moveId(sortedPages.map((page) => page.id), dragState.id, targetPageId);
     setDragState(null);
@@ -3455,6 +3459,7 @@ export default function MenuManagementSection({
   }
 
   function startCreatePage() {
+    if (!canManagePages) return;
     if (reachedPageLimit) return;
     if (!confirmDiscardDraft()) return;
     resetModes();
@@ -3463,12 +3468,14 @@ export default function MenuManagementSection({
   }
 
   function startEditPage(pageId: string) {
+    if (!canManagePages) return;
     if (!confirmDiscardDraft()) return;
     resetModes();
     setEditingPageId(pageId);
   }
 
   function commitPageDraft() {
+    if (!canManagePages) return;
     if (isCreatingPage) {
       const title = draftTarget?.type === "page" ? draftTarget.title.trim() : "";
       if (!title) return;
@@ -3700,6 +3707,7 @@ export default function MenuManagementSection({
   }
 
   function deletePageDraft(pageId: string) {
+    if (!canManagePages) return;
     markMenuManagementDirty();
     const remainingPages = sortedPages.filter((page) => page.id !== pageId);
     const categoryIds = draftedCategories.filter((category) => category.menu_page_id === pageId).map((category) => category.id);
@@ -3773,6 +3781,7 @@ export default function MenuManagementSection({
   }
 
   function copyPageDraft(pageId: string) {
+    if (!canManagePages) return;
     const disabledReason = getPageCopyDisabledReason(pageId);
     if (disabledReason) {
       setPageDraftFeedback(disabledReason);
@@ -4204,7 +4213,7 @@ export default function MenuManagementSection({
     aiMenuCleanupCategoryCount > 0 && aiMenuCleanupCategoryCount <= MENU_LIMITS.maxCategoriesPerPage;
   const aiMenuCleanupCurrentPageBlocked =
     Boolean(menuCleanupResult && aiMenuCleanupTargetPage && aiMenuCleanupCurrentPageTotal > MENU_LIMITS.maxCategoriesPerPage);
-  const aiMenuCleanupNewPageBlocked = Boolean(menuCleanupResult && sortedPages.length >= MENU_LIMITS.maxPagesPerSite);
+  const aiMenuCleanupNewPageBlocked = Boolean(menuCleanupResult && (!canManagePages || sortedPages.length >= MENU_LIMITS.maxPagesPerSite));
   const aiMenuCleanupTooManyCategories = Boolean(menuCleanupResult && aiMenuCleanupCategoryCount > MENU_LIMITS.maxCategoriesPerPage);
 
   return (
@@ -4256,7 +4265,9 @@ export default function MenuManagementSection({
               <h3 className="mt-1 flex min-w-0 items-center gap-2 text-lg font-black text-zinc-950">
                 <span className="min-w-0 truncate">메뉴판 구조</span>
                 <HelpTooltip label="메뉴판 구조 도움말">
-                  {labels.pageLabel} 안에 {labels.categoryLabel}가 있고, {labels.categoryLabel} 안에 {labels.itemLabel}이 들어갑니다. 왼쪽의 + {labels.categoryLabel}, + {labels.itemLabel} 버튼으로 항목을 추가할 수 있으며, 변경사항은 저장 후 공개 메뉴판에 반영됩니다.
+                  {canManagePages
+                    ? `${labels.pageLabel} 안에 ${labels.categoryLabel}가 있고, ${labels.categoryLabel} 안에 ${labels.itemLabel}이 들어갑니다.`
+                    : `${labels.categoryLabel} 안에 ${labels.itemLabel}이 들어갑니다.`} 왼쪽의 + {labels.categoryLabel}, + {labels.itemLabel} 버튼으로 항목을 추가할 수 있으며, 변경사항은 저장 후 공개 메뉴판에 반영됩니다.
                 </HelpTooltip>
               </h3>
             </div>
@@ -4295,25 +4306,27 @@ export default function MenuManagementSection({
 
             {sortedPages.length === 0 ? (
               <div className="mt-6 grid gap-3">
-                {draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
+                {canManagePages && draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
                 <EmptyState>{labels.pageLabel}가 없습니다</EmptyState>
               </div>
             ) : (
               <div className="mt-5 grid gap-3">
-                {draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
-                {sortedPages.map((page) => {
+                {canManagePages && draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
+                {visibleStructurePages.map((page) => {
                   const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
                   const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId;
-                  const pageCanCollapse = sortedPages.length > 1;
+                  const pageCanCollapse = canManagePages && sortedPages.length > 1;
                   const pageExpanded = !pageCanCollapse || expandedPageIds.has(page.id);
                   return (
                     <div
                       key={page.id}
                       onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => handlePageDrop(page.id)}
-                      className="min-w-0 overflow-hidden rounded-lg border border-zinc-100 bg-white p-2"
+                      onDrop={() => {
+                        if (canManagePages) handlePageDrop(page.id);
+                      }}
+                      className={`min-w-0 overflow-hidden ${canManagePages ? "rounded-lg border border-zinc-100 bg-white p-2" : ""}`}
                       >
-                      <div className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 transition ${pageActive ? "bg-zinc-950 text-white" : "text-zinc-800 hover:bg-zinc-100"}`}>
+                      {canManagePages && <div className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 transition ${pageActive ? "bg-zinc-950 text-white" : "text-zinc-800 hover:bg-zinc-100"}`}>
                         <button
                           type="button"
                           draggable
@@ -4348,8 +4361,8 @@ export default function MenuManagementSection({
                             {pageExpanded ? "⌃" : "⌄"}
                           </button>
                         )}
-                      </div>
-                      {pageExpanded && <div className="mt-2 grid min-w-0 gap-1 border-l border-zinc-200 pl-3">
+                      </div>}
+                      {pageExpanded && <div className={canManagePages ? "mt-2 grid min-w-0 gap-1 border-l border-zinc-200 pl-3" : "grid min-w-0 gap-1"}>
                         {draftTarget?.type === "category" && draftTarget.pageId === page.id && (
                           <DraftNameInput
                             value={draftTarget.title}
@@ -4463,7 +4476,7 @@ export default function MenuManagementSection({
           </aside>
 
           <section className="min-w-0 rounded-lg border border-zinc-100 bg-white p-4 lg:p-6">
-            {isCreatingPage ? (
+            {canManagePages && isCreatingPage ? (
               <div>
                 <PanelHeader eyebrow="New Page" title={`새 ${labels.pageLabel} 추가`} description={`${labels.pageLabel}를 추가하면 왼쪽 구조 트리에 새 구역이 생깁니다.`} />
                 <MenuPageForm
@@ -4482,7 +4495,7 @@ export default function MenuManagementSection({
                   supportsDescription={capabilities.pageDescription}
                 />
               </div>
-            ) : editingPageId && selectedPage ? (
+            ) : canManagePages && editingPageId && selectedPage ? (
               <div>
                 {(() => {
                   const isCopiedPage = selectedPage.id.startsWith("temp-page-copy-");
@@ -4536,7 +4549,15 @@ export default function MenuManagementSection({
               </div>
             ) : isCreatingCategory && selectedPage ? (
               <div>
-                <PanelHeader eyebrow="New Group" title={`새 ${labels.categoryLabel} 추가`} description={`${getMenuPageTitle(selectedPage)} 안에 새 ${labels.categoryLabel}을 추가합니다.`} />
+                <PanelHeader
+                  eyebrow="New Group"
+                  title={`새 ${labels.categoryLabel} 추가`}
+                  description={
+                    canManagePages
+                      ? `${getMenuPageTitle(selectedPage)} 안에 새 ${labels.categoryLabel}을 추가합니다.`
+                      : `메뉴판에 새 ${labels.categoryLabel}을 추가합니다.`
+                  }
+                />
                 <MenuCategoryForm
                   menuId={menuId}
                   pageId={selectedPage.id}
@@ -4680,7 +4701,7 @@ export default function MenuManagementSection({
                 />
                 <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
                   <DetailValue label={`${labels.categoryLabel} 이름`}>{selectedCategory.name}</DetailValue>
-                  {selectedPage && <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>}
+                  {canManagePages && selectedPage && <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>}
                   <DetailValue label="정렬 순서">{selectedCategory.sort_order}</DetailValue>
                   <DetailValue label="설명 표시">{selectedCategory.description_visible ? "사용함" : "사용 안 함"}</DetailValue>
                   <DetailValue label="메뉴판 표시">{selectedCategory.visible ? "표시" : "숨김"}</DetailValue>
@@ -4698,7 +4719,7 @@ export default function MenuManagementSection({
                     disabled={reachedCategoryLimit || reachedItemsPerSiteLimit}
                     title={
                       reachedCategoryLimit
-                        ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
+                        ? `${canManagePages ? `이 ${labels.pageLabel}` : "이 메뉴판"}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
                         : reachedItemsPerSiteLimit
                         ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
                         : undefined
@@ -4724,7 +4745,7 @@ export default function MenuManagementSection({
                 {(reachedCategoryLimit || reachedItemsPerSiteLimit) && (
                   <p className="mt-3 rounded-lg bg-zinc-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-zinc-400">
                     {reachedCategoryLimit
-                      ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
+                      ? `${canManagePages ? `이 ${labels.pageLabel}` : "이 메뉴판"}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
                       : `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`}
                   </p>
                 )}
@@ -4765,7 +4786,7 @@ export default function MenuManagementSection({
                   </div>
                 )}
               </div>
-            ) : selectedPage ? (
+            ) : canManagePages && selectedPage ? (
               <div>
                 <PanelHeader
                   eyebrow="Page Detail"
@@ -4820,6 +4841,12 @@ export default function MenuManagementSection({
                   </p>
                 )}
               </div>
+            ) : !canManagePages && selectedPage ? (
+              <EmptyState>
+                {categoriesForPage.length > 0
+                  ? `왼쪽에서 ${labels.categoryLabel} 또는 ${labels.itemLabel}을 선택해 수정할 수 있습니다.`
+                  : `${labels.categoryLabel}을 추가해 메뉴를 구성해 주세요.`}
+              </EmptyState>
             ) : (
               <EmptyState>{labels.pageLabel}를 선택하거나 새로 추가해주세요.</EmptyState>
             )}
@@ -4944,7 +4971,7 @@ export default function MenuManagementSection({
                 <div className="mt-6 rounded-lg border border-zinc-100 bg-white p-4">
                   <h3 className="text-sm font-black text-zinc-950">AI가 정리한 메뉴를 어떻게 적용할까요?</h3>
                   <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                    처음 메뉴판을 세팅하는 경우에는 ‘현재 메뉴를 AI 결과로 교체’를 추천합니다. 운영 중 신메뉴를 추가하는 경우에는 ‘현재 페이지에 추가’ 또는 ‘새 페이지에 추가’를 사용할 수 있습니다.
+                    처음 메뉴판을 세팅하는 경우에는 ‘현재 메뉴를 AI 결과로 교체’를 추천합니다. 운영 중 신메뉴를 추가하는 경우에는 ‘현재 메뉴판에 추가’{canManagePages ? " 또는 ‘새 페이지에 추가’" : ""}를 사용할 수 있습니다.
                   </p>
                   {aiMenuCleanupTooManyCategories ? (
                     <p className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-xs font-bold leading-relaxed text-red-700">
@@ -4952,7 +4979,7 @@ export default function MenuManagementSection({
                     </p>
                   ) : aiMenuCleanupCurrentPageBlocked ? (
                     <p className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
-                      현재 페이지에는 카테고리를 최대 {MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다. 현재 {aiMenuCleanupTargetPageCategoryCount}개가 등록되어 있고, AI 정리 결과 {aiMenuCleanupCategoryCount}개를 추가하면 총 {aiMenuCleanupCurrentPageTotal}개가 됩니다. 새 페이지에 추가하거나, 현재 메뉴를 AI 결과로 교체할 수 있습니다.
+                      현재 메뉴판에는 카테고리를 최대 {MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다. 현재 {aiMenuCleanupTargetPageCategoryCount}개가 등록되어 있고, AI 정리 결과 {aiMenuCleanupCategoryCount}개를 추가하면 총 {aiMenuCleanupCurrentPageTotal}개가 됩니다. {canManagePages ? "새 페이지에 추가하거나, 현재 메뉴를 AI 결과로 교체할 수 있습니다." : "현재 메뉴를 AI 결과로 교체할 수 있습니다."}
                     </p>
                   ) : null}
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -4963,17 +4990,17 @@ export default function MenuManagementSection({
                       </p>
                     </div>
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-                      <p className="text-sm font-black text-zinc-950">현재 페이지에 추가</p>
+                      <p className="text-sm font-black text-zinc-950">현재 메뉴판에 추가</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                        현재 페이지는 유지하고, AI가 정리한 카테고리와 아이템을 새 항목으로 추가합니다. 기존 카테고리와 자동으로 합치지 않습니다.
+                        현재 메뉴판은 유지하고, AI가 정리한 카테고리와 아이템을 새 항목으로 추가합니다. 기존 카테고리와 자동으로 합치지 않습니다.
                       </p>
                     </div>
-                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                    {canManagePages && <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
                       <p className="text-sm font-black text-zinc-950">새 페이지에 추가</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         새 페이지를 만들고 AI가 정리한 카테고리와 아이템을 그 아래에 추가합니다. 현재 페이지의 카테고리 수와 합산하지 않습니다.
                       </p>
-                    </div>
+                    </div>}
                   </div>
                 </div>
               ) : null}
@@ -5017,10 +5044,10 @@ export default function MenuManagementSection({
                           추가 중...
                         </>
                       ) : (
-                        "현재 페이지에 추가"
+                        "현재 메뉴판에 추가"
                       )}
                     </button>
-                    <button
+                    {canManagePages && <button
                       type="button"
                       onClick={applyAiMenuCleanupNewPageResult}
                       disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupNewPageBlocked || Boolean(menuCleanupApplyMode)}
@@ -5034,7 +5061,7 @@ export default function MenuManagementSection({
                       ) : (
                         "새 페이지에 추가"
                       )}
-                    </button>
+                    </button>}
                   </>
                 ) : (
                   <SubmitButton

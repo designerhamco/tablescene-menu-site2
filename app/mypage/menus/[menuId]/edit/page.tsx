@@ -38,7 +38,7 @@ import { getStarterPreset } from "@/lib/menu-starter-presets";
 import CoverDraftToggleSection from "@/components/mypage/menu-editor/CoverDraftToggleSection";
 import {
   MENU_EDITOR_CAPABILITIES,
-  getMenuEditorServiceType,
+  getMenuEditorServiceTypeForMenuSite,
   isMenuEditorTabEnabled,
 } from "@/lib/menu-editor-capabilities";
 import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
@@ -819,7 +819,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   ]);
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
-  const editorServiceType = getMenuEditorServiceType(latestOrder?.product_key);
+  const templateType = getTemplateType(site.template_key);
+  const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
 
   if (editorServiceType === "custom") {
@@ -828,7 +829,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const templateCapabilities = getTemplateCapabilities(site.template_key);
-  const templateType = getTemplateType(site.template_key);
   const templateTypeLabel = getTemplateTypeLabel(templateType);
   const isPriceListTemplate = templateType === "price_list";
   const menuCoverCapabilities = templateCapabilities.menuCover;
@@ -1429,6 +1429,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     priceOptions={priceOptions}
                     traits={traits}
                     capabilities={templateCapabilities}
+                    canManagePages={editorCapabilities.canManageMenuPages}
                     aiDescriptionUsage={aiUsage.ai_description}
                     aiMenuCleanupUsage={aiUsage.ai_menu_cleanup}
                     badgeStyles={badgeStyles}

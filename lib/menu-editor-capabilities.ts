@@ -8,6 +8,7 @@ export type MenuEditorCapabilities = {
   introPage: boolean;
   menuCoverPage: boolean;
   menuPages: boolean;
+  canManageMenuPages: boolean;
   aboutPage: boolean;
   eventPage: boolean;
   chefs: boolean;
@@ -24,6 +25,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     introPage: false,
     menuCoverPage: true,
     menuPages: true,
+    canManageMenuPages: false,
     aboutPage: true,
     eventPage: true,
     chefs: true,
@@ -38,6 +40,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     introPage: false,
     menuCoverPage: true,
     menuPages: true,
+    canManageMenuPages: true,
     aboutPage: true,
     eventPage: true,
     chefs: true,
@@ -52,6 +55,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     introPage: true,
     menuCoverPage: true,
     menuPages: true,
+    canManageMenuPages: true,
     aboutPage: true,
     eventPage: true,
     chefs: true,
@@ -66,6 +70,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     introPage: false,
     menuCoverPage: false,
     menuPages: false,
+    canManageMenuPages: false,
     aboutPage: false,
     eventPage: false,
     chefs: false,
@@ -80,6 +85,7 @@ export const MENU_EDITOR_CAPABILITIES = {
     introPage: true,
     menuCoverPage: true,
     menuPages: true,
+    canManageMenuPages: true,
     aboutPage: true,
     eventPage: true,
     chefs: true,
@@ -92,9 +98,21 @@ export const MENU_EDITOR_CAPABILITIES = {
 
 export function getMenuEditorServiceType(productKey?: string | null): MenuEditorServiceType {
   if (productKey === "basic") return "menu";
+  if (productKey === "personal_trial_basic_1month") return "menu";
+  if (productKey === "business_basic_monthly") return "menu";
+  if (productKey === "business_basic_yearly") return "menu";
   if (productKey === "large_screen") return "screen";
+  if (productKey === "business_display_monthly") return "screen";
+  if (productKey === "business_display_yearly") return "screen";
   if (productKey === "qr_order") return "order";
   if (productKey === "custom") return "custom";
+
+  return "legacy";
+}
+
+export function getMenuEditorServiceTypeForMenuSite(productKey?: string | null, templateType?: string | null): MenuEditorServiceType {
+  if (productKey) return getMenuEditorServiceType(productKey);
+  if (templateType === "menu") return "menu";
 
   return "legacy";
 }
