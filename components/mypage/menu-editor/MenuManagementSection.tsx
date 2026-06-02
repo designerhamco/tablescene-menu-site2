@@ -141,6 +141,7 @@ type ItemBasicDraft = {
   imagePath?: string | null;
   imageAction?: "keep" | "replace" | "delete";
   name: string;
+  setName: string;
   description: string;
   originInfo: string;
   price: string;
@@ -1262,6 +1263,7 @@ function MenuItemForm({
   onDraftItemChange,
   onDraftCommit,
   onDraftCommitMessageClear,
+  onDraftCopy,
   onCancel,
   cancelLabel = "취소",
   deleteAction,
@@ -1289,6 +1291,7 @@ function MenuItemForm({
   onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
   onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
   onDraftCommitMessageClear?: () => void;
+  onDraftCopy?: (patch: Partial<ItemBasicDraft>) => void;
   onCancel?: () => void;
   cancelLabel?: string;
   deleteAction?: ReactNode;
@@ -1306,6 +1309,7 @@ function MenuItemForm({
   const initialBadgeLabel = draftItem?.badgeLabel ?? (item ? getMenuItemBadgeLabel(item) : "");
   const initialDefaultBadgeLabel = normalizeMenuBadgeLabel(initialBadgeLabel);
   const [name, setName] = useState(draftItem?.name ?? item?.name ?? "");
+  const [setNameValue, setSetNameValue] = useState(draftItem?.setName ?? item?.set_name ?? "");
   const [selectedBadgeLabel, setSelectedBadgeLabel] = useState(initialBadgeLabel ? initialDefaultBadgeLabel ?? MENU_BADGE_CUSTOM_VALUE : "none");
   const [customBadgeLabel, setCustomBadgeLabel] = useState(initialDefaultBadgeLabel ? "" : initialBadgeLabel);
   const [categoryId, setCategoryId] = useState(item?.category_id ?? selectedCategoryId);
@@ -1396,6 +1400,7 @@ function MenuItemForm({
     !item ||
     normalizeDraftText(categoryId) !== normalizeDraftText(committedDraftItem?.categoryId ?? item.category_id ?? "") ||
     normalizeDraftText(nameValue) !== normalizeDraftText(committedDraftItem?.name ?? item.name) ||
+    normalizeDraftText(setNameValue) !== normalizeDraftText(committedDraftItem?.setName ?? item.set_name ?? "") ||
     normalizeDraftText(descriptionValue) !== normalizeDraftText(committedDraftItem?.description ?? item.description ?? "") ||
     normalizeDraftText(originInfoValue) !== normalizeDraftText(committedDraftItem?.originInfo ?? item.origin_info ?? "") ||
     normalizeDraftText(priceValue) !== normalizeDraftText(committedDraftItem?.price ?? (item.price == null ? "" : String(item.price))) ||
@@ -1454,6 +1459,7 @@ function MenuItemForm({
     return {
       categoryId: String(formData?.get("item_category_id") ?? categoryId),
       name: String(formData?.get("item_name") ?? nameValue),
+      setName: String(formData?.get("item_set_name") ?? setNameValue),
       description: String(formData?.get("item_description") ?? descriptionValue),
       originInfo: String(formData?.get("item_origin_info") ?? originInfoValue),
       price: String(formData?.get("item_price") ?? priceValue),
@@ -1613,6 +1619,16 @@ function MenuItemForm({
     }
   }
 
+  function handleDraftCopy() {
+    if (!item || itemDraftSaveDisabled) {
+      setAttemptedItemSubmit(true);
+      return;
+    }
+    const draftPatch = getCurrentFormDraftPatch();
+    onDraftCommit?.(draftPatch);
+    onDraftCopy?.(draftPatch);
+  }
+
   return (
     <div className="mt-4 grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
       <form
@@ -1691,6 +1707,27 @@ function MenuItemForm({
                     : ""}
               </span>
               <span className={nameValue.length > MENU_FIELD_LIMITS.menuItems.name ? "text-red-600" : "text-zinc-400"}>{nameValue.length} / {MENU_FIELD_LIMITS.menuItems.name}</span>
+            </div>
+          </div>
+          <div className="md:col-span-2">
+            <FieldLabel>보조 언어 표기</FieldLabel>
+            <input
+              name="item_set_name"
+              form={formId}
+              value={setNameValue}
+              maxLength={MENU_FIELD_LIMITS.menuItems.setName}
+              placeholder="예: BASIL CREAM LATTE"
+              onChange={(event) => {
+                setSetNameValue(event.target.value);
+                updateDraftItem({ setName: event.target.value });
+              }}
+              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+            />
+            <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+              <span className="break-keep">
+                한국어 메뉴명 아래에 작게 함께 표시됩니다. 언어 전환 화면에서는 원래 한글 메뉴명이 보조 줄로 표시됩니다.
+              </span>
+              <span className="shrink-0">{setNameValue.length} / {MENU_FIELD_LIMITS.menuItems.setName}</span>
             </div>
           </div>
           {capabilities.itemDescription ? (
@@ -2064,6 +2101,11 @@ function MenuItemForm({
                 {cancelLabel}
               </button>
             )}
+            {item && onDraftCopy && (
+              <SubmitButton type="button" tone="light" disabled={itemDraftSaveDisabled} onClick={handleDraftCopy}>
+                복사
+              </SubmitButton>
+            )}
             {deleteAction}
             {itemSaveDisabledReason && (
               <p className="basis-full break-keep text-right text-xs font-bold leading-relaxed text-amber-700">
@@ -2421,6 +2463,7 @@ export default function MenuManagementSection({
         item.id,
         {
           name: item.name,
+          setName: item.set_name ?? "",
           categoryId: item.category_id ?? undefined,
           isNew: false,
           description: item.description ?? "",
@@ -2534,6 +2577,7 @@ export default function MenuManagementSection({
           ...item,
           category_id: draft.categoryId ?? item.category_id,
           name: draft.name,
+          set_name: draft.setName.trim() ? draft.setName : null,
           description: draft.description.trim() ? draft.description : null,
           origin_info: draft.originInfo.trim() ? draft.originInfo : null,
           price: Number.isFinite(numericPrice) ? numericPrice : item.price,
@@ -2561,7 +2605,7 @@ export default function MenuManagementSection({
             id,
             category_id: draft.categoryId ?? null,
             name: draft.name,
-            set_name: null,
+            set_name: draft.setName.trim() ? draft.setName : null,
             description: draft.description.trim() ? draft.description : null,
             price: Number.isFinite(numericPrice) && numericPrice != null ? numericPrice : 0,
             price_label: draft.priceLabel.trim() ? draft.priceLabel : null,
@@ -2689,6 +2733,7 @@ export default function MenuManagementSection({
               isNew: Boolean(draft?.isNew),
               categoryId: draft?.categoryId ?? item.category_id ?? "",
               name: draft?.name ?? item.name,
+              setName: draft?.setName ?? item.set_name ?? "",
               description: draft?.description ?? item.description ?? "",
               originInfo: draft?.originInfo ?? item.origin_info ?? "",
               price: draft?.price ?? (item.price == null ? "" : String(item.price)),
@@ -2896,6 +2941,7 @@ export default function MenuManagementSection({
       imagePath: null,
       imageAction: "keep",
       name: item.name.trim().slice(0, MENU_FIELD_LIMITS.menuItems.name),
+      setName: "",
       description: capabilities.itemDescription ? item.description.trim().slice(0, MENU_FIELD_LIMITS.menuItems.description) : "",
       originInfo: "",
       price,
@@ -3269,6 +3315,7 @@ export default function MenuManagementSection({
       imagePath: sourceItem?.image_path ?? null,
       imageAction: "keep",
       name: sourceItem?.name ?? "",
+      setName: sourceItem?.set_name ?? "",
       description: sourceItem?.description ?? "",
       originInfo: sourceItem?.origin_info ?? "",
       price: sourceItem?.price == null ? "" : String(sourceItem.price),
@@ -3295,6 +3342,7 @@ export default function MenuManagementSection({
       imagePath: existingDraft?.imagePath ?? sourceItem?.image_path ?? null,
       imageAction: existingDraft?.imageAction ?? "keep",
       name: existingDraft?.name ?? sourceItem?.name ?? "",
+      setName: existingDraft?.setName ?? sourceItem?.set_name ?? "",
       description: existingDraft?.description ?? sourceItem?.description ?? "",
       originInfo: existingDraft?.originInfo ?? sourceItem?.origin_info ?? "",
       price: existingDraft?.price ?? (sourceItem?.price == null ? "" : String(sourceItem.price)),
@@ -3629,6 +3677,7 @@ export default function MenuManagementSection({
         categoryId: visibleCategoryId,
         isNew: true,
         name: draftName,
+        setName: "",
         description: "",
         originInfo: "",
         price: "",
@@ -3895,6 +3944,7 @@ export default function MenuManagementSection({
             imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
             imageAction: sourceDraft?.imageAction ?? "keep",
             name: copiedItemName,
+            setName: sourceDraft?.setName ?? item.set_name ?? "",
             description: sourceDraft?.description ?? item.description ?? "",
             originInfo: sourceDraft?.originInfo ?? item.origin_info ?? "",
             price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
@@ -3927,7 +3977,7 @@ export default function MenuManagementSection({
     toast.success(message);
   }
 
-  function copyItemDraft(itemId: string) {
+  function copyItemDraft(itemId: string, draftPatch?: Partial<ItemBasicDraft>) {
     const sourceItem = draftedItems.find((item) => item.id === itemId);
     if (!sourceItem?.category_id) return;
     if (reachedItemsPerSiteLimit) return;
@@ -3938,28 +3988,34 @@ export default function MenuManagementSection({
     const copyCount = Object.keys(itemBasicDrafts).filter((id) => id.startsWith(`temp-item-copy-${itemId}-`)).length;
     const draftId = `temp-item-copy-${itemId}-${copyCount + 1}`;
     const nextOrderedIds = [draftId, ...categoryItems.map((item) => item.id)];
-    const sourceDraft = itemBasicDrafts[itemId];
+    const sourceDraft = draftPatch ? { ...itemBasicDrafts[itemId], ...draftPatch } : itemBasicDrafts[itemId];
 
     setItemBasicDrafts((currentDrafts) => {
       const copiedDraft: ItemBasicDraft = {
-        categoryId: sourceItem.category_id ?? undefined,
+        categoryId: sourceDraft?.categoryId ?? sourceItem.category_id ?? undefined,
         isNew: true,
-        imageUrl: sourceItem.image_url,
-        imagePath: sourceItem.image_path,
-        imageAction: "keep",
-        name: getCopyName(sourceItem.name, categoryItems.map((item) => item.name)),
-        description: sourceItem.description ?? "",
-        originInfo: sourceItem.origin_info ?? "",
-        price: sourceItem.price == null ? "" : String(sourceItem.price),
-        priceLabel: sourceItem.price_label ?? "",
-        badgeLabel: capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : "",
-        visible: sourceItem.visible,
+        imageUrl: sourceDraft?.imageUrl ?? sourceItem.image_url,
+        imagePath: sourceDraft?.imagePath ?? sourceItem.image_path,
+        imageAction: sourceDraft?.imageAction ?? "keep",
+        name: getCopyName(sourceDraft?.name ?? sourceItem.name, categoryItems.map((item) => item.name)),
+        setName: sourceDraft?.setName ?? sourceItem.set_name ?? "",
+        description: sourceDraft?.description ?? sourceItem.description ?? "",
+        originInfo: sourceDraft?.originInfo ?? sourceItem.origin_info ?? "",
+        price: sourceDraft?.price ?? (sourceItem.price == null ? "" : String(sourceItem.price)),
+        priceLabel: sourceDraft?.priceLabel ?? sourceItem.price_label ?? "",
+        badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
+        visible: sourceDraft?.visible ?? sourceItem.visible,
         sortOrder: 0,
-        priceVisible: sourceItem.price_visible,
-        portionLabel: sourceItem.portion_label ?? "",
-        portionVisible: sourceItem.portion_visible,
-        traitsVisible: sourceItem.traits_visible,
+        priceVisible: sourceDraft?.priceVisible ?? sourceItem.price_visible,
+        priceMode: sourceDraft?.priceMode,
+        portionLabel: sourceDraft?.portionLabel ?? sourceItem.portion_label ?? "",
+        portionVisible: sourceDraft?.portionVisible ?? sourceItem.portion_visible,
+        traitsVisible: sourceDraft?.traitsVisible ?? sourceItem.traits_visible,
         traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === sourceItem.id))),
+        priceOptions: sourceDraft?.priceOptions,
+        badgeStyleKey: sourceDraft?.badgeStyleKey,
+        badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
+        badgeTextColor: sourceDraft?.badgeTextColor,
       };
       const nextDrafts = {
         ...currentDrafts,
@@ -4055,6 +4111,7 @@ export default function MenuManagementSection({
           imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
           imageAction: sourceDraft?.imageAction ?? "keep",
           name: copiedItemName,
+          setName: sourceDraft?.setName ?? item.set_name ?? "",
           description: sourceDraft?.description ?? item.description ?? "",
           originInfo: sourceDraft?.originInfo ?? item.origin_info ?? "",
           price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
@@ -4184,6 +4241,7 @@ export default function MenuManagementSection({
             imagePath: null,
             imageAction: "keep",
             name: starterItem.name,
+            setName: starterItem.set_name ?? "",
             description: capabilities.itemDescription ? starterItem.description ?? "" : "",
             originInfo: "",
             price: starterItem.price == null ? "" : String(starterItem.price),
@@ -5276,7 +5334,7 @@ function MenuItemCard({
   onCancelDelete: () => void;
   onRequestDelete: () => void;
   onConfirmDelete: () => void;
-  onCopy: () => void;
+  onCopy: (draftPatch?: Partial<ItemBasicDraft>) => void;
 }) {
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const badgeStyle = badgeLabel ? badgeStyles[getBadgeStyleKey(item)] : null;
@@ -5316,6 +5374,7 @@ function MenuItemCard({
             onDraftItemChange={onDraftItemChange}
             onDraftCommit={onDraftCommit}
             onDraftCommitMessageClear={onDraftCommitMessageClear}
+            onDraftCopy={onCopy}
             draftOnly={draftOnly}
             itemCount={0}
             selectedCategoryId={item.category_id ?? ""}
@@ -5369,7 +5428,7 @@ function MenuItemCard({
           <button type="button" onClick={onEdit} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
             수정
           </button>
-          <SubmitButton type="button" tone="light" onClick={onCopy}>
+          <SubmitButton type="button" tone="light" onClick={() => onCopy()}>
             복사
           </SubmitButton>
           <DraftDeleteConfirmButton

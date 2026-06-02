@@ -3893,6 +3893,7 @@ type MenuManagementBasicItemDraft = {
   imagePath?: string | null;
   imageAction?: "keep" | "replace" | "delete";
   name: string;
+  setName?: string;
   description: string;
   originInfo?: string;
   price: string;
@@ -4104,6 +4105,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   for (const item of itemDrafts) {
     const itemId = normalizeDraftString(item.id);
     const name = normalizeDraftString(item.name);
+    const setName = normalizeDraftString(item.setName);
     const description = normalizeDraftString(item.description);
     const originInfo = normalizeDraftString(item.originInfo);
     const priceLabel = normalizeDraftString(item.priceLabel);
@@ -4116,6 +4118,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     if (!itemId || deletedItemIdSet.has(itemId) || categoryIdDeleteSet.has(categoryId)) continue;
 
     validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
+    validateOptionalText(menuId, setName || null, "보조 언어 표기", MENU_FIELD_LIMITS.menuItems.setName);
     validateOptionalText(menuId, description || null, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
     if (templateCapabilities.originInfo) {
       validateOptionalText(menuId, originInfo || null, "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
@@ -4459,6 +4462,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     }
     const payloadInput = {
       name: normalizeDraftString(item.name),
+      set_name: normalizeDraftString(item.setName) || null,
       description: normalizeDraftString(item.description) || null,
       origin_info: normalizeDraftString(item.originInfo) || null,
       price: usesOptionPricing ? 0 : numericPrice ?? 0,

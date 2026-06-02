@@ -39,6 +39,7 @@ export const MENU_FIELD_LIMITS = {
   },
   menuItems: {
     name: 40,
+    setName: 80,
     priceLabel: 20,
     portionLabel: 20,
     description: 160,

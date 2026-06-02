@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
+import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
@@ -116,6 +117,16 @@ function getItemTraits(traits: PublicMenuTemplateProps["traits"], itemId: string
     .filter((trait) => trait.menu_item_id === itemId && trait.visible)
     .sort((a, b) => a.sort_order - b.sort_order)
     .slice(0, MENU_LIMITS.maxTraitsPerItem);
+}
+
+function getMenuItemMetaText(item: MenuItem, locale: PublicMenuTemplateProps["locale"]) {
+  const displayName = item.name.trim();
+  if (locale === DEFAULT_LOCALE) {
+    return item.set_name?.trim() ?? "";
+  }
+
+  const defaultName = item.default_name?.trim() ?? "";
+  return defaultName && defaultName !== displayName ? defaultName : "";
 }
 
 function getItemPriceOptions(priceOptions: PublicMenuTemplateProps["priceOptions"], itemId: string) {
@@ -390,6 +401,7 @@ function MenuItemRow({
   density,
   templateKey,
   customBadgeStyles,
+  locale,
 }: {
   item: MenuItem;
   priceOptions: PublicMenuTemplateProps["priceOptions"];
@@ -398,6 +410,7 @@ function MenuItemRow({
   density: MenuLayoutDensity;
   templateKey: string | null;
   customBadgeStyles: unknown;
+  locale: PublicMenuTemplateProps["locale"];
 }) {
   const priceRows = getItemPriceRows(item, priceOptions, capabilities);
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
@@ -437,6 +450,7 @@ function MenuItemRow({
     compact: "cafe-a-menu-description-size-compact leading-[1.4]",
     ultraCompact: "cafe-a-menu-description-size-ultra-compact leading-[1.35]",
   }[density];
+  const metaText = getMenuItemMetaText(item, locale);
 
   return (
     <article className={`cafe-a-menu-item grid items-start ${itemGridClassName}`}>
@@ -446,8 +460,7 @@ function MenuItemRow({
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
           {item.is_sold_out && <SoldOutBadge />}
         </div>
-        {/* TODO(i18n): Avoid duplicate helper names when the current locale matches set_name language. */}
-        {item.set_name && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#5e5e5e] ${metaClassName}`}>{item.set_name}</p>}
+        {metaText && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#5e5e5e] ${metaClassName}`}>{metaText}</p>}
         {item.description && (
           <p className={`cafe-a-menu-description break-keep font-normal text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
         )}
@@ -635,6 +648,7 @@ function MenuGroupsGrid({
                       density={density}
                       templateKey={data.menuSite.template_key}
                       customBadgeStyles={customBadgeStyles}
+                      locale={data.locale}
                     />
                   </div>
                 ))}
@@ -700,6 +714,7 @@ function BalancedExperimentalMenuGrid({
                       density={density}
                       templateKey={data.menuSite.template_key}
                       customBadgeStyles={customBadgeStyles}
+                      locale={data.locale}
                     />
                   </div>
                 ))}

@@ -69,7 +69,9 @@ export type PublicMenuItem = Pick<
   | "traits_visible"
   | "visible"
   | "sort_order"
->;
+> & {
+  default_name?: string | null;
+};
 
 export type PublicMenuItemTrait = Pick<
   Database["public"]["Tables"]["menu_item_traits"]["Row"],

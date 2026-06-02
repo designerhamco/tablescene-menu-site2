@@ -365,7 +365,10 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     return null;
   }
 
-  const items = orderBySortThenCreated(((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[]);
+  const items = orderBySortThenCreated(((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[]).map((item) => ({
+    ...item,
+    default_name: item.name,
+  }));
   const itemIds = items.map((item) => item.id);
   const traitItemIds = items.filter((item) => item.traits_visible).map((item) => item.id);
 
