@@ -1514,6 +1514,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </p>
                       </div>
                       <BackgroundColorSettingsForm
+                        key={`background-${resolvedBackgroundColor}-${Boolean(customBackgroundColor)}`}
                         formId="design-settings-form"
                         initialColor={resolvedBackgroundColor}
                         defaultColor={defaultBackgroundColor}
@@ -1531,6 +1532,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </div>
                       </div>
                       <TypographySettingsForm
+                        key={`typography-${customKoreanFont ? "custom" : "default"}-${resolvedKoreanFont.value}-${customEnglishFont ? "custom" : "default"}-${resolvedEnglishFont.value}-${typographySettings.font_size_scale_key}`}
                         formId="design-settings-form"
                         initialFont={resolvedKoreanFont}
                         initialEnglishFont={resolvedEnglishFont}

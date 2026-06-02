@@ -38,7 +38,7 @@ import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateCategoryFromKey, isTemplateCategoryKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
-import { isFontSizeScaleKey } from "@/lib/template-typography-presets";
+import { normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { mergePageSettings, validateMenuItemTrait } from "@/types/menu";
 
 const allowedStatuses = ["draft", "published", "archived"] as const;
@@ -850,17 +850,13 @@ export async function updateTypographySettingsAction(formData: FormData) {
 
   const koreanFontKey = getString(formData, "korean_font_key");
   const englishFontKey = getString(formData, "english_font_key");
-  const fontSizeScaleKey = getString(formData, "font_size_scale_key") || "m";
+  const fontSizeScaleKey = normalizeFontSizeScaleKey(getString(formData, "font_size_scale_key") || "m");
   if (koreanFontKey && !isKoreanFontValue(koreanFontKey)) {
     redirectToTabEditWithError(menuId, "design", "한글 폰트 선택값이 올바르지 않습니다.");
   }
 
   if (englishFontKey && !isEnglishFontValue(englishFontKey)) {
     redirectToTabEditWithError(menuId, "design", "영문/숫자 폰트 선택값이 올바르지 않습니다.");
-  }
-
-  if (!isFontSizeScaleKey(fontSizeScaleKey)) {
-    redirectToTabEditWithError(menuId, "design", "글자 크기 선택값이 올바르지 않습니다.");
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
@@ -1724,7 +1720,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const backgroundColor = normalizeBackgroundColor(getString(formData, "background_color"));
   const koreanFontKey = getString(formData, "korean_font_key");
   const englishFontKey = getString(formData, "english_font_key");
-  const fontSizeScaleKey = getString(formData, "font_size_scale_key") || "m";
+  const fontSizeScaleKey = normalizeFontSizeScaleKey(getString(formData, "font_size_scale_key") || "m");
 
   if (!backgroundColor) {
     redirectToTabEditWithError(menuId, "design", "배경색은 #RRGGBB 형식으로 입력해주세요.");
@@ -1736,10 +1732,6 @@ export async function updateDesignSettingsAction(formData: FormData) {
 
   if (englishFontKey && !isEnglishFontValue(englishFontKey)) {
     redirectToTabEditWithError(menuId, "design", "영문/숫자 폰트 선택값이 올바르지 않습니다.");
-  }
-
-  if (!isFontSizeScaleKey(fontSizeScaleKey)) {
-    redirectToTabEditWithError(menuId, "design", "글자 크기 선택값이 올바르지 않습니다.");
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
