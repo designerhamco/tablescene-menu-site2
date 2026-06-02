@@ -246,7 +246,6 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price: 7500,
               price_label: "7.5",
               description: "진한 흑임자 크림치즈 케이크",
-              badge_label: "SIGNATURE",
             },
             {
               name: "티라미수 롤",
