@@ -5,23 +5,23 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 const pricingPlans = [
   {
-    name: "MenuLink Basic",
+    name: "메뉴링크 베이직",
     description: "디지털 메뉴판을 만들고 QR 링크로 공유하는 기본 상품입니다.",
-    price: "월 6,000원 / 연 60,000원",
+    price: "첫 달 체험가 6,600원 / 월 9,900원 / 연 95,000원",
     href: "/apply/basic",
     cta: "Basic 신청하기",
     available: true,
   },
   {
-    name: "MenuLink Display",
+    name: "메뉴링크 디스플레이",
     description: "매장 TV와 모니터용 디스플레이 메뉴보드 상품입니다.",
-    price: "월 12,000원 / 연 120,000원",
+    price: "월 19,800원 / 연 190,000원",
     href: "/apply/display",
     cta: "준비 중",
     available: false,
   },
   {
-    name: "MenuLink Custom",
+    name: "메뉴링크 커스텀",
     description: "브랜딩과 인터랙션을 담은 맞춤 제작 상담형 상품입니다.",
     price: "별도 견적",
     href: "/apply/custom",
@@ -44,6 +44,9 @@ export default function PricingPage() {
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">요금제 안내</h1>
               <p className="mt-4 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500">
                 요금제를 확인한 뒤 신청 페이지에서 상품을 선택해주세요. 실제 결제와 메뉴판 생성은 `/apply` 및 `/apply/basic` 흐름에서만 진행됩니다.
+              </p>
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">
+                ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
               </p>
             </div>
             <Link

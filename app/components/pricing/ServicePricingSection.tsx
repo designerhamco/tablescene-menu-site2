@@ -8,8 +8,10 @@ type ServicePricingKey = "basic" | "display";
 
 type BillingPlan = {
   label: string;
-  regularPrice: string;
-  salePrice: string;
+  badge: string;
+  title: string;
+  price: string;
+  subcopy: string;
   helper: string;
   savings: string;
   href: string;
@@ -31,20 +33,24 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
     plans: [
       {
         label: "월 결제",
-        regularPrice: "월 12,000원",
-        salePrice: "월 6,000원",
+        badge: "25% 할인",
+        title: "메뉴링크 베이직",
+        price: "9,900원 / 월",
+        subcopy: "정가 13,200원 · 오픈할인 25%",
         helper: "매월 자동 갱신",
-        savings: "부담 없이 시작하기",
+        savings: "※ 모든 금액은 부가세 포함가입니다.",
         href: "/apply/basic?billing=monthly",
         aiTitle: "Basic 기본 제공 AI 크레딧",
         aiUsage: "메뉴판 생성 시 기본 AI 크레딧 18개 제공",
       },
       {
         label: "연 결제",
-        regularPrice: "연 120,000원",
-        salePrice: "연 60,000원",
-        helper: "월 5,000원 수준",
-        savings: "월 결제보다 연 12,000원 절약",
+        badge: "약 40% 할인",
+        title: "메뉴링크 베이직",
+        price: "95,000원 / 년",
+        subcopy: "연 정가 158,400원 대비 약 40% 할인",
+        helper: "오픈 월결제 12개월 대비 약 20% 할인",
+        savings: "※ 모든 금액은 부가세 포함가입니다.",
         href: "/apply/basic?billing=yearly",
         aiTitle: "Basic 기본 제공 AI 크레딧",
         aiUsage: "메뉴판 생성 시 기본 AI 크레딧 18개 제공",
@@ -70,20 +76,24 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
     plans: [
       {
         label: "월 결제",
-        regularPrice: "월 24,000원",
-        salePrice: "월 12,000원",
+        badge: "50% 할인",
+        title: "메뉴링크 디스플레이",
+        price: "19,800원 / 월",
+        subcopy: "정가 39,600원 · 오픈할인 50%",
         helper: "매월 자동 갱신",
-        savings: "매장 화면부터 가볍게 시작",
+        savings: "※ 모든 금액은 부가세 포함가입니다.",
         href: "/apply/display?billing=monthly",
         aiTitle: "Display 기본 제공 AI 크레딧",
         aiUsage: "메뉴판 생성 시 기본 AI 크레딧 26개 제공",
       },
       {
         label: "연 결제",
-        regularPrice: "연 240,000원",
-        salePrice: "연 120,000원",
-        helper: "월 10,000원 수준",
-        savings: "월 결제보다 연 24,000원 절약",
+        badge: "약 60% 할인",
+        title: "메뉴링크 디스플레이",
+        price: "190,000원 / 년",
+        subcopy: "연 정가 475,200원 대비 약 60% 할인",
+        helper: "오픈 월결제 12개월 대비 약 20% 할인",
+        savings: "※ 모든 금액은 부가세 포함가입니다.",
         href: "/apply/display?billing=yearly",
         aiTitle: "Display 기본 제공 AI 크레딧",
         aiUsage: "메뉴판 생성 시 기본 AI 크레딧 26개 제공",
@@ -119,6 +129,11 @@ export default function ServicePricingSection({ service }: { service: ServicePri
           ) : null}
         </div>
 
+        <div className="mb-8 rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-bold leading-relaxed text-zinc-500">
+          <p>※ 모든 금액은 부가세 포함가입니다.</p>
+          <p>※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.</p>
+        </div>
+
         <div className="grid gap-5 md:grid-cols-2">
           {data.plans.map((plan) => {
             return (
@@ -127,20 +142,20 @@ export default function ServicePricingSection({ service }: { service: ServicePri
                 className="relative overflow-hidden rounded-[2rem] border border-zinc-950 bg-white p-7 text-zinc-950 md:p-9"
               >
                 <div className="absolute right-0 top-0 rounded-bl-[1.4rem] bg-[#F8E731] px-7 py-4 text-sm font-black text-zinc-950 md:text-base">
-                  50% 할인
+                  {plan.badge}
                 </div>
 
                 <div className="flex min-h-[360px] flex-col pt-6 md:min-h-[390px]">
                   <div>
                     <p className="text-base font-bold text-zinc-500">{plan.label}</p>
                     <h4 className="mt-5 break-keep text-2xl font-bold tracking-tight md:text-3xl">
-                      {service === "basic" ? "MenuLink Basic" : "MenuLink Display"}
+                      {plan.title}
                     </h4>
-                    <p className="mt-4 text-base font-bold text-zinc-400 line-through">
-                      {plan.regularPrice}
+                    <p className="mt-4 text-3xl font-black tracking-tight md:text-4xl">
+                      {plan.price}
                     </p>
-                    <p className="mt-2 text-3xl font-black tracking-tight md:text-4xl">
-                      {plan.salePrice}
+                    <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                      {plan.subcopy}
                     </p>
                   </div>
 

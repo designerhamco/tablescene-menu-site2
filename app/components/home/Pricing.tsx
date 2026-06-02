@@ -7,7 +7,7 @@ const PLANS = [
   {
     id: 'menu',
     name: '디지털 메뉴판/가격표',
-    tagline: 'MenuLink Basic',
+    tagline: '메뉴링크 베이직',
     keywords: ['모바일/QR', '가격표', '바로 수정'],
     narrative: '카페, 식당, 미용실, 네일샵까지 메뉴와 가격표를 하나의 링크로 관리합니다.',
     link: '/services/basic',
@@ -18,7 +18,7 @@ const PLANS = [
   {
     id: 'screen',
     name: '대형 화면 메뉴보드',
-    tagline: 'MenuLink Display',
+    tagline: '메뉴링크 디스플레이',
     keywords: ['TV/모니터', '메뉴보드', '안내 화면'],
     narrative: '매장 TV와 모니터에 띄우는 디지털 메뉴보드로 메뉴, 가격표, 이벤트 화면을 보여주세요.',
     link: '/services/display',
@@ -29,7 +29,7 @@ const PLANS = [
   {
     id: 'custom',
     name: '맞춤형 웹 메뉴 경험',
-    tagline: 'MenuLink Custom',
+    tagline: '메뉴링크 커스텀',
     keywords: ['브랜딩', '인터랙션', '프로젝트 제작'],
     narrative: '템플릿으로 담기 어려운 브랜드 경험은 프리미엄 맞춤 제작으로 완성합니다.',
     link: '/services/custom',

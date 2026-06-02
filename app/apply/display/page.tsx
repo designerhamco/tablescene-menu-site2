@@ -17,7 +17,7 @@ export default function ApplyDisplayPage() {
         <div className="mx-auto w-full max-w-4xl">
           <section className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm md:p-12">
             <h1 className="break-keep text-4xl font-black tracking-tight md:text-5xl">
-              MenuLink Display는 준비 중입니다.
+              메뉴링크 디스플레이는 준비 중입니다.
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
               메뉴링크 디스플레이 전용 템플릿 준비 후 신청할 수 있습니다. 현재는 결제, 템플릿 선택, 공개 주소 입력을 진행하지 않습니다.

@@ -285,23 +285,23 @@ const agreementDetails: Record<AgreementKey, string[]> = {
 const personalTrialAgreementLabels: Record<AgreementKey, string> = {
   terms: "[필수] 메뉴링크 이용약관에 동의합니다.",
   privacy: "[필수] 개인정보 수집·이용에 동의합니다.",
-  contentPolicy: "[필수] 무료 개인체험 이용 조건 및 종료 후 데이터 처리 기준을 확인했습니다.",
+  contentPolicy: "[필수] 첫 달 체험 이용 조건 및 종료 후 데이터 처리 기준을 확인했습니다.",
   marketing: agreementLabels.marketing,
 };
 
 const personalTrialAgreementDetails: Record<AgreementKey, string[]> = {
   ...agreementDetails,
   privacy: [
-    "무료 개인체험 메뉴판 생성, 체험 기간 관리, 고객지원, 부정 이용 방지, 체험 종료 및 데이터 삭제 예정 안내를 위해 이름, 이메일, 휴대전화번호, 체험 신청일, 체험 시작일, 체험 종료일, 메뉴판 ID, 메뉴판 상태 등을 수집·이용합니다.",
-    "보유기간은 무료 개인체험 기간 및 종료 후 7일까지이며, 유료서비스로 전환하는 경우 유료서비스 이용기간 동안 보관됩니다.",
-    "동의를 거부할 경우 무료 개인체험 신청 및 체험 메뉴판 제공이 제한될 수 있습니다.",
+    "첫 달 체험 메뉴판 생성, 체험 기간 관리, 고객지원, 부정 이용 방지, 체험 종료 및 데이터 삭제 예정 안내를 위해 이름, 이메일, 휴대전화번호, 체험 신청일, 체험 시작일, 체험 종료일, 메뉴판 ID, 메뉴판 상태 등을 수집·이용합니다.",
+    "보유기간은 첫 달 체험 기간 및 종료 후 7일까지이며, 사업자 플랜으로 전환하는 경우 유료서비스 이용기간 동안 보관됩니다.",
+    "동의를 거부할 경우 첫 달 체험 신청 및 체험 메뉴판 제공이 제한될 수 있습니다.",
   ],
   contentPolicy: [
-    "무료 개인체험은 MenuLink Basic 기준으로 신청일로부터 1개월간 제공됩니다.",
-    "체험 기간 동안 Basic 기준 AI 크레딧 18개가 제공됩니다.",
-    "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 7일 이내 유료 월구독 또는 연구독으로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
+    "첫 달 체험은 메뉴링크 베이직 기준으로 신청일로부터 1개월간 제공됩니다.",
+    "체험 기간 동안 메뉴링크 베이직 기준 AI 크레딧 18개가 제공됩니다.",
+    "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 7일 이내 사업자 월구독 또는 연구독으로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
     "7일이 경과하면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.",
-    "무료 개인체험 후 유료서비스로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
+    "첫 달 체험 후 사업자 플랜으로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
   ],
 };
 
@@ -335,7 +335,7 @@ const basicProductCards = [
   {
     product: basicPaymentProducts[0],
     bullets: ["1회 결제", "자동결제 없음", "사업자 인증 없이 시작", "메뉴링크 베이직 체험 메뉴판 생성 시 AI 크레딧 18개 제공"],
-    helperText: "체험 종료 후 비공개 전환 및 7일 데이터 보관",
+    helperText: "체험 종료 후 7일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
   },
   {
     product: basicPaymentProducts[1],
@@ -1534,7 +1534,10 @@ export default function ApplyOrderForm({
                 메뉴링크 베이직 메뉴판을 생성하면 AI 크레딧 18개가 계정에 지급됩니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                개인 1개월 체험은 계정당 1개만 이용할 수 있습니다.
+                ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
+              </p>
+              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                체험 종료 후 7일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-3">
@@ -1566,8 +1569,16 @@ export default function ApplyOrderForm({
                         {formatKrw(product.regular_amount)}
                       </p>
                       <p className="mt-1 text-2xl font-black">
-                        오픈 할인 {product.billing_cycle === "monthly" ? "월 " : product.billing_cycle === "yearly" ? "연 " : ""}
-                        {formatKrw(product.amount)}
+                        {product.product_key === personalTrialBasicProduct.product_key
+                          ? `첫 달 체험가 ${formatKrw(product.amount)}`
+                          : `${formatKrw(product.amount)} / ${product.billing_cycle === "monthly" ? "월" : "년"}`}
+                      </p>
+                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
+                        {product.product_key === personalTrialBasicProduct.product_key
+                          ? "정가 13,200원 · 오픈할인 50%"
+                          : product.billing_cycle === "monthly"
+                            ? "정가 13,200원 · 오픈할인 25%"
+                            : "연 정가 158,400원 대비 약 40% 할인 · 오픈 월결제 12개월 대비 약 20% 할인"}
                       </p>
                     </div>
                     <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
@@ -2095,7 +2106,7 @@ export default function ApplyOrderForm({
             {isMenuService
               ? activeProduct.is_subscription
                 ? `${openDiscountPolicy.note} VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다.`
-                : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환되며, 7일 후 데이터 삭제 또는 삭제 예정 처리될 수 있습니다."
+                : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환될 수 있으며, 7일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다."
               : "VAT 포함 금액입니다. 결제 검증 성공 후 신청 정보가 생성됩니다."}
           </p>
         </section>
@@ -2161,7 +2172,7 @@ export default function ApplyOrderForm({
             disabled={paymentButtonDisabled}
             className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
-            {activeProduct.product_key === personalTrialBasicProduct.product_key && paymentButtonLabel.includes("신청") ? "동의하고 무료체험 시작하기" : isFormReady && !isLoading ? "동의하고 메뉴판 생성하기" : paymentButtonLabel}
+            {activeProduct.product_key === personalTrialBasicProduct.product_key && paymentButtonLabel.includes("신청") ? "동의하고 첫 달 체험 시작하기" : isFormReady && !isLoading ? "동의하고 메뉴판 생성하기" : paymentButtonLabel}
           </button>
         </section>
       </aside>

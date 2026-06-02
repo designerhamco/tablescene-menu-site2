@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 const applyServices = [
   {
-    title: "MenuLink Basic",
+    title: "메뉴링크 베이직",
     description: "개인 1개월 체험 또는 사업자 정식 월/연 결제를 선택해 웹 메뉴판을 만듭니다.",
-    price: "개인 체험 6,600원 / 사업자 월 6,000원 / 연 60,000원",
+    price: "첫 달 체험가 6,600원 / 사업자 월 9,900원 / 연 95,000원",
     note: "메뉴링크 베이직 신청 화면에서 이용 방식과 템플릿을 함께 선택합니다.",
     type: "웹 메뉴판",
     cta: "베이직 만들기",
@@ -21,9 +21,9 @@ const applyServices = [
     active: true,
   },
   {
-    title: "MenuLink Display",
+    title: "메뉴링크 디스플레이",
     description: "사업자 전용 디스플레이 메뉴보드입니다.",
-    price: "오픈 할인 월 12,000원 / 연 120,000원",
+    price: "오픈 할인 월 19,800원 / 연 190,000원",
     note: "메뉴링크 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",
     type: "준비 중",
     cta: "준비 중",
@@ -55,6 +55,9 @@ export default function ApplyPage() {
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
               메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월/연 결제를 한 화면에서 선택할 수 있습니다.
               메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다.
+            </p>
+            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">
+              ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
             </p>
           </header>
 

@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 
 const devices = [
   {
-    title: '대형 스크린',
+    title: '대형 화면',
     image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=1200&auto=format&fit=crop',
     className: 'col-span-2 md:col-span-4 md:row-span-2',
   },
@@ -42,7 +42,7 @@ const DeviceSelection = ({
 }: DeviceSelectionProps) => {
   const visibleDevices = includeLargeScreen
     ? devices
-    : devices.filter((device) => device.title !== '대형 스크린');
+    : devices.filter((device) => device.title !== '대형 화면');
 
   return (
     <section className={`relative py-14 md:min-h-screen md:py-16 ${muted ? 'bg-zinc-50' : 'bg-white'}`}>
