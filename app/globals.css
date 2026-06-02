@@ -370,6 +370,20 @@ video {
     widows: 2;
   }
 
+  .cafe-a-typography .cafe-a-balanced-experimental-grid {
+    column-count: initial;
+    column-fill: initial;
+    display: grid;
+    gap: calc(var(--menu-board-column-gap) * var(--fit-gap-scale));
+    grid-template-columns: repeat(var(--fit-columns), minmax(0, 1fr));
+  }
+
+  .cafe-a-typography .cafe-a-balanced-column {
+    align-content: start;
+    display: grid;
+    min-height: 0;
+  }
+
   .cafe-a-typography .cafe-a-menu-category-block {
     min-width: 0;
     break-inside: auto;

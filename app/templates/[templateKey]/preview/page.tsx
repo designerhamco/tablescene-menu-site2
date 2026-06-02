@@ -10,6 +10,7 @@ import { getDefaultPageSettings } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ templateKey: string }>;
+  searchParams?: Promise<{ layoutMode?: string | string[] }>;
 };
 
 function buildPreviewData(templateKey: TemplateKey): MenuPageData {
@@ -196,8 +197,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function TemplatePreviewPage({ params }: PageProps) {
+export default async function TemplatePreviewPage({ params, searchParams }: PageProps) {
   const { templateKey } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const layoutModeParam = Array.isArray(resolvedSearchParams.layoutMode)
+    ? resolvedSearchParams.layoutMode[0]
+    : resolvedSearchParams.layoutMode;
+  const previewLayoutMode =
+    templateKey === "cafe_design_a" && layoutModeParam === "balancedExperimental"
+      ? "balancedExperimental"
+      : undefined;
 
   if (!isValidTemplateKey(templateKey)) {
     notFound();
@@ -205,5 +214,5 @@ export default async function TemplatePreviewPage({ params }: PageProps) {
 
   const data = buildPreviewData(templateKey);
 
-  return <MenuPageRenderer mode="preview" {...data} />;
+  return <MenuPageRenderer mode="preview" previewLayoutMode={previewLayoutMode} {...data} />;
 }

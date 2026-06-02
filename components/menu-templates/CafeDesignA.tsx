@@ -7,6 +7,7 @@ import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAsset
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
+import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
@@ -33,11 +34,17 @@ type MenuPageGroup = {
   page: MenuPage;
   groups: MenuGroup[];
 };
+type CafeDesignALayoutMode = "orderedFit" | "balanced";
 type CafeDesignAFitState = {
   columns: number;
   fontScale: number;
   gapScale: number;
   status: "idle" | "fit" | "warning";
+};
+type BalancedColumn = {
+  id: string;
+  groups: MenuGroup[];
+  estimatedHeight: number;
 };
 
 const FIT_COLUMN_CANDIDATES = [2, 3, 4, 5, 6] as const;
@@ -213,9 +220,74 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
     .filter((pageGroup) => pageGroup.groups.length > 0);
 }
 
+function getFlatMenuGroups(pageGroups: MenuPageGroup[]) {
+  return pageGroups.flatMap((pageGroup) => pageGroup.groups);
+}
+
 function isDefaultPageTitle(page: MenuPage) {
   const title = page.title.trim();
   return /^메뉴 페이지\s*\d+$/i.test(title) || /^page\s*\d+$/i.test(title);
+}
+
+function estimateMenuGroupHeight(
+  group: MenuGroup,
+  data: PublicMenuTemplateProps,
+  capabilities: TemplateCapabilities,
+) {
+  const headingWeight = 1.9 + (group.category.description_visible && group.category.description ? 0.75 : 0);
+  const itemWeight = group.items.reduce((weight, item) => {
+    const priceRows = getItemPriceRows(item, data.priceOptions, capabilities);
+    const traits = getItemTraits(data.traits, item.id);
+    const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
+
+    return (
+      weight +
+      1 +
+      (item.set_name ? 0.28 : 0) +
+      (item.description ? 0.55 : 0) +
+      (priceRows.length > 1 ? (priceRows.length - 1) * 0.22 : 0) +
+      (visibleTraits.length > 0 ? 0.35 : 0) +
+      (item.origin_info ? 0.3 : 0)
+    );
+  }, 0);
+
+  return headingWeight + itemWeight;
+}
+
+function getBalancedMenuColumns({
+  pageGroups,
+  columns,
+  data,
+  capabilities,
+}: {
+  pageGroups: MenuPageGroup[];
+  columns: number;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+}): BalancedColumn[] {
+  const safeColumns = Math.max(1, Math.min(6, Math.floor(columns)));
+  const balancedColumns: BalancedColumn[] = Array.from({ length: safeColumns }, (_, index) => ({
+    id: `balanced-column-${index + 1}`,
+    groups: [],
+    estimatedHeight: 0,
+  }));
+  const weightedGroups = getFlatMenuGroups(pageGroups)
+    .map((group, index) => ({
+      group,
+      index,
+      estimatedHeight: estimateMenuGroupHeight(group, data, capabilities),
+    }))
+    .sort((a, b) => b.estimatedHeight - a.estimatedHeight || a.index - b.index);
+
+  for (const weightedGroup of weightedGroups) {
+    const targetColumn = balancedColumns.reduce((shortestColumn, column) =>
+      column.estimatedHeight < shortestColumn.estimatedHeight ? column : shortestColumn
+    );
+    targetColumn.groups.push(weightedGroup.group);
+    targetColumn.estimatedHeight += weightedGroup.estimatedHeight;
+  }
+
+  return balancedColumns;
 }
 
 function getCategoryTitleSpacing(density: MenuLayoutDensity) {
@@ -575,6 +647,71 @@ function MenuGroupsGrid({
   );
 }
 
+function BalancedExperimentalMenuGrid({
+  pageGroups,
+  density,
+  data,
+  capabilities,
+  customBadgeStyles,
+  itemStackSpacing,
+  outerGridGapClassName,
+  menuAreaClassName,
+  columns,
+  fitRef,
+}: {
+  pageGroups: MenuPageGroup[];
+  density: MenuLayoutDensity;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  customBadgeStyles: unknown;
+  itemStackSpacing: string;
+  outerGridGapClassName: string;
+  menuAreaClassName: string;
+  columns: number;
+  fitRef?: RefObject<HTMLElement | null>;
+}) {
+  const balancedColumns = useMemo(
+    () => getBalancedMenuColumns({ pageGroups, columns, data, capabilities }),
+    [capabilities, columns, data, pageGroups]
+  );
+
+  return (
+    <section
+      ref={fitRef}
+      className={`cafe-a-fit-menu-grid cafe-a-balanced-experimental-grid min-w-0 content-start md:col-span-2 lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName} ${menuAreaClassName}`}
+    >
+      {balancedColumns.map((column) => (
+        <div key={column.id} className="cafe-a-balanced-column min-w-0">
+          {column.groups.map(({ page, category, items }) => (
+            <section
+              key={`${page.id}-${category.id}`}
+              className="cafe-a-menu-category-block min-w-0"
+              data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
+            >
+              <CategoryTitle category={category} density={density} />
+              <div className="cafe-a-category-items">
+                {items.map((item) => (
+                  <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`}>
+                    <MenuItemRow
+                      item={item}
+                      priceOptions={data.priceOptions}
+                      traits={getItemTraits(data.traits, item.id)}
+                      capabilities={capabilities}
+                      density={density}
+                      templateKey={data.menuSite.template_key}
+                      customBadgeStyles={customBadgeStyles}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
@@ -585,6 +722,9 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
   const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
   const featuredItem = getFeaturedItem(data, capabilities);
+  const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
+  const layoutMode: CafeDesignALayoutMode =
+    data.mode === "preview" && data.previewLayoutMode === "balancedExperimental" ? "balanced" : savedLayoutMode;
   const visiblePageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
   const desktopFitBoardRef = useRef<HTMLDivElement | null>(null);
   const desktopFitMenuRef = useRef<HTMLElement | null>(null);
@@ -799,7 +939,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       window.cancelAnimationFrame(frameId);
       resizeObserver.disconnect();
     };
-  }, [density, hasCoverSection, visibleItemCount, visiblePageGroups.length]);
+  }, [density, hasCoverSection, layoutMode, visibleItemCount, visiblePageGroups.length]);
 
   return (
     <>
@@ -838,6 +978,8 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             ref={desktopFitBoardRef}
             className={`cafe-a-desktop-fit-board hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
             data-fit-status={fitState.status}
+            data-layout-mode={layoutMode}
+            data-fit-columns={fitState.columns}
             style={{ ...fitGapStyle, ...fitStyle }}
           >
             <DesktopFixedRail data={data}>
@@ -856,6 +998,19 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
               <section className={hasCoverSection ? "lg:col-span-3" : "lg:col-span-4"}>
                 <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
               </section>
+            ) : layoutMode === "balanced" ? (
+              <BalancedExperimentalMenuGrid
+                fitRef={desktopFitMenuRef}
+                pageGroups={visiblePageGroups}
+                density={density}
+                data={data}
+                capabilities={capabilities}
+                customBadgeStyles={customBadgeStyles}
+                itemStackSpacing={itemStackSpacing}
+                outerGridGapClassName={outerGridGapClassName}
+                menuAreaClassName={menuAreaClassName}
+                columns={fitState.columns}
+              />
             ) : (
               <MenuGroupsGrid
                 fitRef={desktopFitMenuRef}

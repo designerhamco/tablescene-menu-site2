@@ -50,6 +50,7 @@ import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
+import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
 import {
@@ -842,6 +843,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const canUseFeaturedItemCover = templateType === "menu" && menuCoverCapabilities.usesFeaturedItem;
   const templateEditorLabels = getTemplateEditorLabels(site.template_key);
   const menuManagementStarterPreset = getStarterPreset(site.template_key, site.restaurant_category, site.template_category);
+  const canConfigurePcTabletLayoutMode = supportsPcTabletLayoutMode(site.template_key);
+  const pcTabletLayoutMode = getPcTabletLayoutModeFromPageSettings(site.page_settings);
   const customBadgeStyles = getCustomBadgeStyles(site.settings, site.page_settings);
   const badgeStyles = mergeBadgeStyles(site.template_key, customBadgeStyles);
   const customTypography = getCustomTypographySettings(site.settings, site.page_settings);
@@ -1435,6 +1438,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     badgeStyles={badgeStyles}
                     editorLabels={templateEditorLabels}
                     starterPreset={menuManagementStarterPreset}
+                    canConfigurePcTabletLayoutMode={canConfigurePcTabletLayoutMode}
+                    pcTabletLayoutMode={pcTabletLayoutMode}
                     finalSaveMessage={bannerMessage}
                     finalSaveError={finalSaveError}
                   />

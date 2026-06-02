@@ -30,6 +30,11 @@ import {
 } from "@/lib/menu-badges";
 import type { AiUsage } from "@/lib/menu-ai-usage";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
+import {
+  DEFAULT_PC_TABLET_LAYOUT_MODE,
+  normalizePcTabletLayoutMode,
+  type PcTabletLayoutMode,
+} from "@/lib/menu-layout-modes";
 import type { Database } from "@/lib/supabase/types";
 import {
   BADGE_STYLE_LABELS,
@@ -96,6 +101,8 @@ type MenuManagementSectionProps = {
   badgeStyles: BadgeStyles;
   editorLabels?: TemplateEditorLabels;
   starterPreset?: StarterPreset | null;
+  canConfigurePcTabletLayoutMode?: boolean;
+  pcTabletLayoutMode?: PcTabletLayoutMode;
   finalSaveMessage?: string | null;
   finalSaveError?: string | null;
 };
@@ -189,6 +196,18 @@ type DraftPriceOption = {
 };
 
 const MENU_BUILDER_STATE_KEY_PREFIX = "tablescene:menu-editor:builder";
+const PC_TABLET_LAYOUT_MODE_OPTIONS = [
+  {
+    value: "orderedFit",
+    title: "등록 순서 배치",
+    description: "등록한 카테고리 순서를 유지합니다.",
+  },
+  {
+    value: "balanced",
+    title: "자동 균형 배치",
+    description: "화면 여백을 줄이도록 카테고리 위치를 자동으로 조정합니다.",
+  },
+] as const satisfies readonly { value: PcTabletLayoutMode; title: string; description: string }[];
 
 type MenuBuilderSavedState = {
   selectedPageId?: string;
@@ -2362,6 +2381,8 @@ export default function MenuManagementSection({
   badgeStyles,
   editorLabels,
   starterPreset,
+  canConfigurePcTabletLayoutMode = false,
+  pcTabletLayoutMode = DEFAULT_PC_TABLET_LAYOUT_MODE,
   finalSaveMessage,
   finalSaveError,
 }: MenuManagementSectionProps) {
@@ -2381,6 +2402,9 @@ export default function MenuManagementSection({
   const [isMenuCleanupRunning, setIsMenuCleanupRunning] = useState(false);
   const [isMenuCleanupReplaceConfirming, setIsMenuCleanupReplaceConfirming] = useState(false);
   const [menuCleanupApplyMode, setMenuCleanupApplyMode] = useState<"replace" | "append-current" | "append-new" | null>(null);
+  const [pcTabletLayoutModeDraft, setPcTabletLayoutModeDraft] = useState<PcTabletLayoutMode>(() =>
+    normalizePcTabletLayoutMode(pcTabletLayoutMode)
+  );
   const menuFinalSaveError =
     !finalSaveMessage && finalSaveError && dismissedFinalSaveError !== finalSaveError
       ? finalSaveError
@@ -2771,6 +2795,11 @@ export default function MenuManagementSection({
   function markMenuManagementDirty() {
     clearFinalSaveSummary();
     setMenuManagementDirtyState({ dirty: true, saveMessage: finalSaveMessage ?? null });
+  }
+
+  function updatePcTabletLayoutModeDraft(nextMode: PcTabletLayoutMode) {
+    setPcTabletLayoutModeDraft(nextMode);
+    markMenuManagementDirty();
   }
 
   function resetModes() {
@@ -4271,6 +4300,47 @@ export default function MenuManagementSection({
                 </HelpTooltip>
               </h3>
             </div>
+            {canConfigurePcTabletLayoutMode && (
+              <section className="mb-4 rounded-lg border border-zinc-100 bg-white p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h4 className="break-keep text-sm font-black text-zinc-950">PC/태블릿 배치 방식</h4>
+                    <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                      PC와 태블릿에서 메뉴판 배치 방식을 선택합니다.
+                    </p>
+                    <p className="mt-1 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
+                      모바일은 등록한 순서대로 표시됩니다.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {PC_TABLET_LAYOUT_MODE_OPTIONS.map((option) => {
+                    const selected = pcTabletLayoutModeDraft === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => updatePcTabletLayoutModeDraft(option.value)}
+                        className={`rounded-lg border px-3 py-2.5 text-left transition ${
+                          selected
+                            ? "border-zinc-950 bg-zinc-950 text-white"
+                            : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
+                        }`}
+                        aria-pressed={selected}
+                      >
+                        <span className="block break-keep text-xs font-black">{option.title}</span>
+                        <span className={`mt-1 block break-keep text-[11px] font-bold leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-400"}`}>
+                          {option.description}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
+                  카테고리 순서가 중요하다면 ‘등록 순서 배치’를 선택해 주세요.
+                </p>
+              </section>
+            )}
             <div className="flex flex-wrap items-center justify-end gap-3">
               {shouldShowPageCreateButton && (
                 <button
@@ -4861,6 +4931,9 @@ export default function MenuManagementSection({
             <input type="hidden" name="deleted_page_ids" value={deletedPageIdsPayload} />
             <input type="hidden" name="deleted_category_ids" value={deletedCategoryIdsPayload} />
             <input type="hidden" name="deleted_item_ids" value={deletedItemIdsPayload} />
+            {canConfigurePcTabletLayoutMode && (
+              <input type="hidden" name="pc_tablet_layout_mode" value={pcTabletLayoutModeDraft} />
+            )}
             <FinalActionRow>
               <button
                 type="button"

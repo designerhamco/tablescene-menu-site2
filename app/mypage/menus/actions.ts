@@ -18,6 +18,11 @@ import type { EditableTranslationDraftValue, EditableTranslationEntityType, Edit
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
+import {
+  getPcTabletLayoutModeFromPageSettings,
+  normalizePcTabletLayoutMode,
+  supportsPcTabletLayoutMode,
+} from "@/lib/menu-layout-modes";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
 import {
@@ -3960,6 +3965,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const deletedItemIds = parseDraftStringArray(formData, "deleted_item_ids");
   const canManageMenuPages = await canManageMenuPagesForMenuSite(supabase, menuId, menuSite.template_key);
   const pageManagementBlockedMessage = "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
+  const pcTabletLayoutModeInput = formData.get("pc_tablet_layout_mode");
+  const shouldSavePcTabletLayoutMode =
+    typeof pcTabletLayoutModeInput === "string" && supportsPcTabletLayoutMode(menuSite.template_key);
 
   if (!canManageMenuPages) {
     const hasNewPageDraft = pageDrafts.some((page) => {
@@ -4169,6 +4177,25 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       .eq("id", menuId);
 
     if (error) redirectToMenuEditWithError(menuId, `배지 색상 draft 저장에 실패했습니다: ${error.message}`);
+  }
+
+  if (shouldSavePcTabletLayoutMode) {
+    const nextPcTabletLayoutMode = normalizePcTabletLayoutMode(pcTabletLayoutModeInput);
+    const currentPcTabletLayoutMode = getPcTabletLayoutModeFromPageSettings(menuSite.page_settings);
+
+    if (nextPcTabletLayoutMode !== currentPcTabletLayoutMode) {
+      const pageSettings = getJsonObject(menuSite.page_settings);
+      const designSettings = getJsonObject(pageSettings.design);
+      designSettings.pcTabletLayoutMode = nextPcTabletLayoutMode;
+      pageSettings.design = designSettings;
+
+      const { error } = await supabase
+        .from("menu_sites")
+        .update({ page_settings: pageSettings, updated_at: now })
+        .eq("id", menuId);
+
+      if (error) redirectToMenuEditWithError(menuId, `PC/태블릿 배치 방식 저장에 실패했습니다: ${error.message}`);
+    }
   }
 
   let itemIdsFromDeletedCategories: string[] = [];
