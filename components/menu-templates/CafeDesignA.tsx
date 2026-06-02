@@ -433,10 +433,10 @@ function MenuItemRow({
     ultraCompact: "cafe-a-menu-price-size-ultra-compact",
   }[density];
   const itemGridClassName = {
-    spacious: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.75rem,auto)] sm:gap-4 lg:grid-cols-[minmax(0,1fr)_auto]",
-    default: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.25rem,auto)] sm:gap-3 lg:grid-cols-[minmax(0,1fr)_auto]",
-    compact: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3rem,auto)] sm:gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto]",
-    ultraCompact: "grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(2.75rem,auto)] sm:gap-2 lg:grid-cols-[minmax(0,1fr)_auto]",
+    spacious: "grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.75rem,auto)] sm:gap-4 lg:grid-cols-[minmax(0,1fr)_auto]",
+    default: "grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.25rem,auto)] sm:gap-3 lg:grid-cols-[minmax(0,1fr)_auto]",
+    compact: "grid-cols-[minmax(0,1fr)_auto] gap-x-2.5 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3rem,auto)] sm:gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto]",
+    ultraCompact: "grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(2.75rem,auto)] sm:gap-2 lg:grid-cols-[minmax(0,1fr)_auto]",
   }[density];
   const metaClassName = {
     spacious: "cafe-a-menu-meta-size-spacious",
@@ -476,7 +476,7 @@ function MenuItemRow({
         {capabilities.originInfo && item.origin_info && <p className="cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words font-semibold leading-relaxed text-[#707975]">원산지 {item.origin_info}</p>}
       </div>
       {priceRows.length > 0 && (
-        <div className="menu-price cafe-a-price-stack flex flex-col items-start gap-1 text-left text-[#191c1b] sm:items-end sm:text-right lg:justify-self-end lg:text-right">
+        <div className="menu-price cafe-a-price-stack flex shrink-0 flex-col items-end justify-self-end gap-1 text-right text-[#191c1b] lg:justify-self-end">
           {priceRows.map((row, index) => (
             <div key={`${row.label}-${row.price}-${index}`} className="cafe-a-price-row grid grid-cols-[auto_auto] items-baseline gap-x-2">
               {row.label && <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none text-[#191c1b]">{row.label}</span>}
