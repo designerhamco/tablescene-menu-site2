@@ -104,6 +104,22 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               description: "",
               portion_label: "ICE",
             },
+            {
+              name: "헤이즐넛 라떼",
+              set_name: "HAZELNUT LATTE",
+              price: 5800,
+              price_label: "5.8",
+              description: "고소한 헤이즐넛 향이 부드럽게 감도는 라떼",
+              portion_label: "HOT / ICE",
+            },
+            {
+              name: "카라멜 마키아토",
+              set_name: "CARAMEL MACCHIATO",
+              price: 6000,
+              price_label: "6.0",
+              description: "진한 에스프레소와 달콤한 카라멜의 조화",
+              portion_label: "HOT / ICE",
+            },
           ],
         },
         {
