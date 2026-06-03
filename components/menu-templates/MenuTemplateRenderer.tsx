@@ -2,6 +2,7 @@ import { normalizeTemplateKey } from "@/lib/templates";
 
 import BasicMenuTemplate from "./BasicMenuTemplate";
 import CafeDesignA from "./CafeDesignA";
+import DisplayMenuA from "./DisplayMenuA";
 import type { PublicMenuTemplateProps } from "./types";
 
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
@@ -10,6 +11,8 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
   switch (templateKey) {
     case "cafe_design_a":
       return <CafeDesignA {...props} />;
+    case "display_menu_a":
+      return <DisplayMenuA {...props} />;
     case "cafe_design_b":
     case "cafe_design_c":
     case "fine_dining_design_a":

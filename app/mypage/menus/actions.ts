@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getLegacyBadgeTypeForLabel, MENU_BADGE_MAX_LENGTH, normalizeBadgeLabelForSave, normalizeMenuBadgeLabel } from "@/lib/menu-badges";
+import {
+  isPromotionDisplayPage,
+  normalizeMenuPageDisplaySettings,
+  serializeMenuPageDisplaySettings,
+  type MenuPageDisplaySettings,
+} from "@/lib/display-page-settings";
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { MENU_EDITOR_CAPABILITIES, getMenuEditorServiceTypeForMenuSite } from "@/lib/menu-editor-capabilities";
 import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
@@ -1687,7 +1693,7 @@ export async function translateMenuHeroPartialAction(input: {
       ok: true,
       data: meaningfulTranslatedFields,
       usage: { used: nextUsage.used, limit: nextUsage.limit },
-      message: "대표 영역 번역이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다.",
+      message: "커버 이미지 번역이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다.",
     };
   } catch (error) {
     console.error("[menu-translation] partial hero translation failed", {
@@ -1830,15 +1836,15 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
     })
     .eq("id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "cover", `메뉴 커버 초기화에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "cover", `커버 이미지 초기화에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(
     menuId,
     "cover",
     featuredItemId
-      ? "메뉴 커버를 샘플 상태로 되돌렸습니다."
-      : "메뉴 커버를 샘플 상태로 되돌렸습니다. 대표 추천 메뉴는 현재 메뉴 목록에서 찾을 수 없어 선택 해제되었습니다."
+      ? "커버 이미지 설정을 샘플 상태로 되돌렸습니다."
+      : "커버 이미지 설정을 샘플 상태로 되돌렸습니다. 대표 추천 메뉴는 현재 메뉴 목록에서 찾을 수 없어 선택 해제되었습니다."
   );
 }
 
@@ -2296,7 +2302,7 @@ export async function updateMenuCoverAction(formData: FormData) {
   const menuCoverLabel = hasMenuCoverLabelField ? getNullableString(formData, "menu_cover_label") : menuSite.menu_cover_label;
   const menuCoverCapabilities = getTemplateCapabilities(menuSite.template_key).menuCover;
   if (menuCoverCapabilities.coverMode === "none") {
-    redirectToTabEditWithError(menuId, "basic", "현재 템플릿은 메뉴 커버 기능을 지원하지 않습니다.");
+    redirectToTabEditWithError(menuId, "basic", "현재 템플릿은 커버 이미지 기능을 지원하지 않습니다.");
   }
   const menuCoverEnabled = getBoolean(formData, "menu_cover_enabled");
   const menuCoverTitle = menuCoverCapabilities.usesCoverTitle ? getNullableString(formData, "menu_cover_title") : menuSite.menu_cover_title;
@@ -2314,13 +2320,13 @@ export async function updateMenuCoverAction(formData: FormData) {
   let featuredItemId: string | null = null;
 
   if (hasMenuCoverLabelField) {
-    validateOptionalText(menuId, menuCoverLabel, "메뉴 커버 라벨", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
+    validateOptionalText(menuId, menuCoverLabel, "커버 이미지 라벨", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
   }
   if (menuCoverEnabled && menuCoverCapabilities.usesCoverTitle) {
-    validateRequiredText(menuId, menuCoverTitle ?? "", "메뉴 커버 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
+    validateRequiredText(menuId, menuCoverTitle ?? "", "커버 이미지 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
   }
   if (menuCoverEnabled && menuCoverCapabilities.usesCoverDescription) {
-    validateRequiredText(menuId, menuCoverDescription ?? "", "메뉴 커버 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
+    validateRequiredText(menuId, menuCoverDescription ?? "", "커버 이미지 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
   }
   if (wantsFeaturedItem && !requestedFeaturedItemId) {
     redirectToTabEditWithError(menuId, "cover", "대표 추천 메뉴를 선택해주세요.");
@@ -2408,10 +2414,10 @@ export async function updateMenuCoverAction(formData: FormData) {
     error = fallbackResult.error;
   }
 
-  if (error) redirectToTabEditWithError(menuId, "cover", `메뉴 커버 저장에 실패했습니다: ${error.message}`);
+  if (error) redirectToTabEditWithError(menuId, "cover", `커버 이미지 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "cover", "대표 영역이 저장되었습니다.");
+  redirectToTabEdit(menuId, "cover", "커버 이미지 설정이 저장되었습니다.");
 }
 
 type AboutSocialLinkDraft = {
@@ -3002,7 +3008,7 @@ export async function copyMenuPageAction(formData: FormData) {
 
   const { data: sourcePage, error: sourcePageError } = await supabase
     .from("menu_pages")
-    .select("id, title, description, description_visible, legacy_section_key, visible")
+    .select("id, title, description, description_visible, display_settings, legacy_section_key, visible")
     .eq("id", menuPageId)
     .eq("menu_site_id", menuId)
     .maybeSingle();
@@ -3013,11 +3019,31 @@ export async function copyMenuPageAction(formData: FormData) {
 
   const nextSortOrder = pageCount ?? 0;
   const copiedPageTitle = `${sourcePage.title || `메뉴 페이지 ${nextSortOrder}`} 복사본`;
+  const sourceDisplaySettings = normalizeMenuPageDisplaySettings(sourcePage.display_settings);
+  const sourcePageIsPromotion = isPromotionDisplayPage(sourceDisplaySettings);
+
+  if (sourcePageIsPromotion) {
+    const { count: promotionPageCount, error: promotionPageCountError } = await supabase
+      .from("menu_pages")
+      .select("id", { count: "exact", head: true })
+      .eq("menu_site_id", menuId)
+      .contains("display_settings", { pageType: "promotion" });
+
+    if (promotionPageCountError) {
+      redirectToMenuEditWithError(menuId, `프로모션 페이지 개수 확인에 실패했습니다: ${promotionPageCountError.message}`);
+    }
+
+    if ((promotionPageCount ?? 0) >= MENU_LIMITS.maxPromotionPagesPerSite) {
+      redirectToMenuEditWithError(menuId, `프로모션 페이지는 최대 ${MENU_LIMITS.maxPromotionPagesPerSite}개까지 추가할 수 있습니다.`);
+    }
+  }
+
   const pagePayload: MenuPageInsert = {
     menu_site_id: menuId,
     title: copiedPageTitle,
     description: sourcePage.description,
     description_visible: sourcePage.description_visible,
+    display_settings: serializeMenuPageDisplaySettings(sourceDisplaySettings),
     legacy_section_key: sourcePage.legacy_section_key,
     visible: sourcePage.visible ?? true,
     sort_order: nextSortOrder,
@@ -3027,6 +3053,11 @@ export async function copyMenuPageAction(formData: FormData) {
 
   if (copiedPageError || !copiedPage) {
     redirectToMenuEditWithError(menuId, copiedPageError ? `메뉴 페이지 복사에 실패했습니다: ${copiedPageError.message}` : "메뉴 페이지 복사에 실패했습니다.");
+  }
+
+  if (sourcePageIsPromotion) {
+    revalidateMenuPaths(menuId, menuSite.slug);
+    redirectToMenuEdit(menuId, "프로모션 페이지가 복사되었습니다.");
   }
 
   const { data: sourceCategories, error: categoriesError } = await supabase
@@ -3870,6 +3901,7 @@ type MenuManagementBasicPageDraft = {
   title: string;
   description?: string;
   descriptionVisible?: boolean;
+  displaySettings?: MenuPageDisplaySettings;
   visible?: boolean;
   sortOrder: number;
 };
@@ -3951,6 +3983,31 @@ function normalizeDraftBoolean(value: unknown) {
   return value === true;
 }
 
+function validateMenuPageDisplaySettingsDraft(menuId: string, settings: MenuPageDisplaySettings) {
+  validateOptionalText(menuId, settings.splitImage.url, "분할 이미지 URL", MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl);
+  validateOptionalText(menuId, settings.splitImage.title, "이미지 제목", MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageTitle);
+  validateOptionalText(menuId, settings.splitImage.description, "이미지 설명", MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageDescription);
+  validateOptionalText(menuId, settings.promotion.title, "프로모션 제목", MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionTitle);
+  validateOptionalText(menuId, settings.promotion.description, "프로모션 설명", MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionDescription);
+  validateOptionalText(menuId, settings.promotion.mediaUrl, "프로모션 이미지 URL", MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl);
+  validateOptionalText(menuId, settings.promotion.videoUrl, "영상 URL", MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl);
+}
+
+function getDisplayImageStoragePaths(settings: MenuPageDisplaySettings) {
+  const normalizedSettings = normalizeMenuPageDisplaySettings(settings);
+  return [
+    normalizedSettings.splitImage.path,
+    normalizedSettings.promotion.mediaType === "image" ? normalizedSettings.promotion.mediaPath : null,
+  ].filter((path): path is string => Boolean(path));
+}
+
+function getDisplayImagePathsToRemove(menuId: string, before: MenuPageDisplaySettings, after: MenuPageDisplaySettings) {
+  const nextPaths = new Set(getDisplayImageStoragePaths(after));
+  const sitePathPrefix = `menu-sites/${menuId}/`;
+
+  return getDisplayImageStoragePaths(before).filter((path) => path.startsWith(sitePathPrefix) && !nextPaths.has(path));
+}
+
 export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
@@ -3964,7 +4021,11 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const deletedPageIds = parseDraftStringArray(formData, "deleted_page_ids");
   const deletedCategoryIds = parseDraftStringArray(formData, "deleted_category_ids");
   const deletedItemIds = parseDraftStringArray(formData, "deleted_item_ids");
-  const canManageMenuPages = await canManageMenuPagesForMenuSite(supabase, menuId, menuSite.template_key);
+  const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+  const editorServiceType = getMenuEditorServiceTypeForMenuSite(productKey, getTemplateType(menuSite.template_key));
+  const menuEditorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
+  const canManageMenuPages = menuEditorCapabilities.canManageMenuPages;
+  const canConfigureDisplayPages = canManageMenuPages && menuEditorCapabilities.supportsDisplayPageTypes;
   const pageManagementBlockedMessage = "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
   const pcTabletLayoutModeInput = formData.get("pc_tablet_layout_mode");
   const shouldSavePcTabletLayoutMode =
@@ -4130,6 +4191,21 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const title = normalizeDraftString(page.title);
     if (!pageId || deletedPageIdSet.has(pageId)) continue;
     validateRequiredText(menuId, title, "페이지 이름", MENU_FIELD_LIMITS.menuPages.title);
+    if (canConfigureDisplayPages) {
+      validateMenuPageDisplaySettingsDraft(menuId, normalizeMenuPageDisplaySettings(page.displaySettings));
+    }
+  }
+
+  if (canConfigureDisplayPages) {
+    const promotionPageCount = effectivePageDrafts.filter((page) => {
+      const pageId = normalizeDraftString(page.id);
+      if (!pageId || deletedPageIdSet.has(pageId)) return false;
+      return isPromotionDisplayPage(normalizeMenuPageDisplaySettings(page.displaySettings));
+    }).length;
+
+    if (promotionPageCount > MENU_LIMITS.maxPromotionPagesPerSite) {
+      redirectToMenuEditWithError(menuId, `프로모션 페이지는 최대 ${MENU_LIMITS.maxPromotionPagesPerSite}개까지 추가할 수 있습니다.`);
+    }
   }
 
   for (const category of categoryDrafts) {
@@ -4316,12 +4392,36 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     if (error) redirectToMenuEditWithError(menuId, `페이지 draft 삭제에 실패했습니다: ${error.message}`);
   }
 
+  const existingDisplaySettingsByPageId = new Map<string, MenuPageDisplaySettings>();
+  const existingPageDraftIdsForDisplayCleanup = canConfigureDisplayPages
+    ? effectivePageDrafts
+        .map((page) => normalizeDraftString(page.id))
+        .filter((pageId) => pageId && !pageId.startsWith("temp-") && !deletedPageIdSet.has(pageId))
+    : [];
+
+  if (existingPageDraftIdsForDisplayCleanup.length > 0) {
+    const { data: existingDisplayPages, error: existingDisplayPagesError } = await supabase
+      .from("menu_pages")
+      .select("id, display_settings")
+      .eq("menu_site_id", menuId)
+      .in("id", existingPageDraftIdsForDisplayCleanup);
+
+    if (existingDisplayPagesError) {
+      redirectToMenuEditWithError(menuId, `디스플레이 이미지 정리 기준 확인에 실패했습니다: ${existingDisplayPagesError.message}`);
+    }
+
+    (existingDisplayPages ?? []).forEach((page) => {
+      existingDisplaySettingsByPageId.set(page.id, normalizeMenuPageDisplaySettings(page.display_settings));
+    });
+  }
+
   const newPageDrafts = effectivePageDrafts
     .map((page) => ({
       id: normalizeDraftString(page.id),
       title: normalizeDraftString(page.title),
       description: normalizeDraftString(page.description),
       descriptionVisible: normalizeDraftBoolean(page.descriptionVisible),
+      displaySettings: normalizeMenuPageDisplaySettings(page.displaySettings),
       visible: page.visible === undefined ? true : normalizeDraftBoolean(page.visible),
       sortOrder: normalizeDraftNumber(page.sortOrder),
       isNew: page.isNew === true,
@@ -4348,6 +4448,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       title: page.title,
       description: page.description || null,
       description_visible: Boolean(page.description && page.descriptionVisible),
+      ...(canConfigureDisplayPages ? { display_settings: serializeMenuPageDisplaySettings(page.displaySettings) } : {}),
       visible: page.visible,
       sort_order: page.sortOrder,
     };
@@ -4364,6 +4465,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         title: normalizeDraftString(page.title),
         description: normalizeDraftString(page.description),
         descriptionVisible: normalizeDraftBoolean(page.descriptionVisible),
+        displaySettings: normalizeMenuPageDisplaySettings(page.displaySettings),
         visible: page.visible === undefined ? true : normalizeDraftBoolean(page.visible),
         sortOrder: normalizeDraftNumber(page.sortOrder),
         isNew: page.isNew === true,
@@ -4376,6 +4478,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
             title: page.title,
             description: page.description || null,
             description_visible: Boolean(page.description && page.descriptionVisible),
+            ...(canConfigureDisplayPages ? { display_settings: serializeMenuPageDisplaySettings(page.displaySettings) } : {}),
             visible: page.visible,
             sort_order: page.sortOrder,
             updated_at: now,
@@ -4386,6 +4489,28 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   );
   const pageError = pageResults.find((result) => result.error)?.error;
   if (pageError) redirectToMenuEditWithError(menuId, `페이지 draft 저장에 실패했습니다: ${pageError.message}`);
+
+  if (canConfigureDisplayPages && existingDisplaySettingsByPageId.size > 0) {
+    const displayImagePathsToRemove = Array.from(
+      new Set(
+        effectivePageDrafts.flatMap((page) => {
+          const pageId = normalizeDraftString(page.id);
+          if (!pageId || page.isNew === true || deletedPageIdSet.has(pageId)) return [];
+          const previousSettings = existingDisplaySettingsByPageId.get(pageId);
+          if (!previousSettings) return [];
+          const nextSettings = normalizeMenuPageDisplaySettings(page.displaySettings);
+          return getDisplayImagePathsToRemove(menuId, previousSettings, nextSettings);
+        })
+      )
+    );
+
+    for (const imagePath of displayImagePathsToRemove) {
+      const removeError = await removeMenuImagePath(supabase, imagePath);
+      if (removeError) {
+        console.warn(`Display page image cleanup failed for ${imagePath}: ${removeError.message}`);
+      }
+    }
+  }
 
   const categoryIdMap = new Map<string, string>();
   const newCategoryDrafts = categoryDrafts

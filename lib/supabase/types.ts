@@ -449,6 +449,7 @@ export type Database = {
           created_at: string
           description: string | null
           description_visible: boolean
+          display_settings: Json
           id: string
           menu_page_id: string | null
           menu_site_id: string
@@ -462,6 +463,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_visible?: boolean
+          display_settings?: Json
           id?: string
           menu_page_id?: string | null
           menu_site_id: string
@@ -475,6 +477,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_visible?: boolean
+          display_settings?: Json
           id?: string
           menu_page_id?: string | null
           menu_site_id?: string
@@ -1190,6 +1193,7 @@ export type Database = {
           created_at: string
           description: string | null
           description_visible: boolean
+          display_settings: Json
           id: string
           legacy_section_key: string | null
           menu_site_id: string
@@ -1202,6 +1206,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_visible?: boolean
+          display_settings?: Json
           id?: string
           legacy_section_key?: string | null
           menu_site_id: string
@@ -1214,6 +1219,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_visible?: boolean
+          display_settings?: Json
           id?: string
           legacy_section_key?: string | null
           menu_site_id?: string

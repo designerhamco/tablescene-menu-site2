@@ -57,6 +57,32 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
 };
 
 export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
+  display_menu_a: {
+    ...DEFAULT_TEMPLATE_CAPABILITIES,
+    logoImage: false,
+    menuItemImages: true,
+    pageDescription: false,
+    categoryDescription: true,
+    itemDescription: true,
+    originInfo: false,
+    itemBadges: true,
+    itemTraits: false,
+    priceOptions: true,
+    featuredItemHero: false,
+    chefs: false,
+    events: false,
+    socialLinks: false,
+    menuCover: {
+      coverMode: "none",
+      usesStoreName: false,
+      usesStoreDescription: false,
+      usesCoverLabel: false,
+      usesCoverTitle: false,
+      usesCoverDescription: false,
+      usesCoverImage: false,
+      usesFeaturedItem: false,
+    },
+  },
   cafe_design_a: {
     ...DEFAULT_TEMPLATE_CAPABILITIES,
     logoImage: false,
@@ -135,21 +161,21 @@ export function getTemplateCapabilities(templateKey: string | null | undefined):
 
 export function getCoverTabLabel(coverMode: TemplateMenuCoverMode): string | null {
   if (coverMode === "none") return null;
-  if (coverMode === "section") return "대표 영역";
-  return "메뉴 커버";
+  return "커버 이미지";
 }
 
 export function getCoverToggleLabel(coverMode: TemplateMenuCoverMode): string {
-  return coverMode === "section" ? "대표 영역 사용" : "메뉴 커버 사용";
+  void coverMode;
+  return "커버 이미지 사용";
 }
 
 export function getCoverDescription(coverMode: TemplateMenuCoverMode): string {
   if (coverMode === "section") {
-    return "이 영역은 별도 커버 페이지가 아니라, 메뉴 화면 안에서 대표 이미지와 추천 항목을 강조해서 보여주는 영역입니다. 사용하지 않으면 해당 영역이 숨겨지고 메뉴 목록이 더 먼저 표시됩니다.";
+    return "메뉴판에 표시되는 대표 이미지와 추천 메뉴를 설정합니다.";
   }
 
   if (coverMode === "page") {
-    return "메뉴 커버는 메뉴 페이지 앞에 표시되는 첫 화면입니다. 사용하지 않으면 손님은 바로 메뉴 페이지부터 보게 됩니다.";
+    return "메뉴판 앞에 표시되는 커버 이미지와 소개 내용을 설정합니다. 사용하지 않으면 손님은 바로 메뉴 페이지부터 보게 됩니다.";
   }
 
   return "";

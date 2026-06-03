@@ -103,6 +103,7 @@ const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]>
 };
 
 const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
+  display_menu_a: "menu",
   cafe_design_a: "menu",
   cafe_design_b: "menu",
   cafe_design_c: "menu",
@@ -210,7 +211,7 @@ const TEMPLATE_EDITOR_TABS = {
   menu: [
     { key: "basic", label: "기본 정보" },
     { key: "pages", label: "페이지 설정" },
-    { key: "cover", label: "메뉴 커버" },
+    { key: "cover", label: "커버 이미지" },
     { key: "menu", label: "메뉴 관리" },
     { key: "design", label: "디자인" },
     { key: "about", label: "소개" },
@@ -220,7 +221,7 @@ const TEMPLATE_EDITOR_TABS = {
   price_list: [
     { key: "basic", label: "기본 정보" },
     { key: "pages", label: "페이지 설정" },
-    { key: "cover", label: "메뉴 커버" },
+    { key: "cover", label: "커버 이미지" },
     { key: "menu", label: "가격표 관리" },
     { key: "design", label: "디자인" },
     { key: "about", label: "소개" },
@@ -238,7 +239,7 @@ const TEMPLATE_EDITOR_TABS = {
 
 const CAFE_DESIGN_A_EDITOR_TABS = [
   { key: "basic", label: "기본 정보" },
-  { key: "cover", label: "대표 영역" },
+  { key: "cover", label: "커버 이미지" },
   { key: "menu", label: "메뉴 관리" },
   { key: "design", label: "디자인" },
   { key: "localization", label: "다국어" },

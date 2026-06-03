@@ -624,7 +624,7 @@ function MenuGroupsGrid({
   fitRef?: RefObject<HTMLElement | null>;
 }) {
   return (
-    <section ref={fitRef} className={`cafe-a-fit-menu-grid grid min-w-0 grid-flow-dense grid-cols-1 content-start md:col-span-2 md:grid-cols-2 lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName} ${menuAreaClassName}`}>
+    <section ref={fitRef} className={`cafe-a-fit-menu-grid cafe-a-ordered-menu-flow min-w-0 content-start md:col-span-2 lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName} ${menuAreaClassName}`}>
       {pageGroups.map((pageGroup) => (
         <div key={pageGroup.page.id} className="contents">
           {showPageTitles && !isDefaultPageTitle(pageGroup.page) && (
@@ -692,7 +692,7 @@ function BalancedExperimentalMenuGrid({
   return (
     <section
       ref={fitRef}
-      className={`cafe-a-fit-menu-grid cafe-a-balanced-experimental-grid min-w-0 content-start md:col-span-2 lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName} ${menuAreaClassName}`}
+      className={`cafe-a-fit-menu-grid cafe-a-balanced-menu-grid cafe-a-balanced-experimental-grid min-w-0 content-start md:col-span-2 lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName} ${menuAreaClassName}`}
     >
       {balancedColumns.map((column) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0">

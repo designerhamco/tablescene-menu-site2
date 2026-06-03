@@ -11,7 +11,17 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export type ImageUploadTarget = "site-logo" | "site-logo-draft" | "site-cover" | "site-cover-draft" | "site-intro-image-draft" | "menu-item" | "menu-item-draft" | "menu-event" | "menu-chef";
+export type ImageUploadTarget =
+  | "site-logo"
+  | "site-logo-draft"
+  | "site-cover"
+  | "site-cover-draft"
+  | "site-intro-image-draft"
+  | "display-page-image-draft"
+  | "menu-item"
+  | "menu-item-draft"
+  | "menu-event"
+  | "menu-chef";
 
 type ImageUploadFieldProps = {
   label: string;
@@ -93,7 +103,12 @@ export default function ImageUploadField({
   const [draftImageUrl, setDraftImageUrl] = useState("");
   const [draftImagePath, setDraftImagePath] = useState("");
   const isLoading = state.type === "loading";
-  const usesDraftUpload = target === "site-logo-draft" || target === "site-cover-draft" || target === "site-intro-image-draft" || target === "menu-item-draft";
+  const usesDraftUpload =
+    target === "site-logo-draft" ||
+    target === "site-cover-draft" ||
+    target === "site-intro-image-draft" ||
+    target === "display-page-image-draft" ||
+    target === "menu-item-draft";
   const isLogoUpload = target === "site-logo" || target === "site-logo-draft";
 
   useEffect(() => {

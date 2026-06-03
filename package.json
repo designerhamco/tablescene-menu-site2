@@ -11,7 +11,8 @@
     "build:debug-memory": "node --max-old-space-size=6144 node_modules/next/dist/bin/next build --webpack --experimental-debug-memory-usage",
     "start": "next start",
     "lint": "eslint",
-    "supabase:types": "node scripts/generate-supabase-types.mjs"
+    "supabase:types": "node scripts/generate-supabase-types.mjs",
+    "seed:display-qa": "node --env-file=.env.local scripts/seed-display-qa-menu-site.mjs"
   },
   "dependencies": {
     "@portone/browser-sdk": "^0.1.5",

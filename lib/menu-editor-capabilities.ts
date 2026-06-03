@@ -9,6 +9,9 @@ export type MenuEditorCapabilities = {
   menuCoverPage: boolean;
   menuPages: boolean;
   canManageMenuPages: boolean;
+  supportsDisplayPageTypes: boolean;
+  supportsDisplayPromotionPages: boolean;
+  supportsDisplayMenuLayoutTypes: boolean;
   aboutPage: boolean;
   eventPage: boolean;
   chefs: boolean;
@@ -26,6 +29,9 @@ export const MENU_EDITOR_CAPABILITIES = {
     menuCoverPage: true,
     menuPages: true,
     canManageMenuPages: false,
+    supportsDisplayPageTypes: false,
+    supportsDisplayPromotionPages: false,
+    supportsDisplayMenuLayoutTypes: false,
     aboutPage: true,
     eventPage: true,
     chefs: true,
@@ -36,15 +42,18 @@ export const MENU_EDITOR_CAPABILITIES = {
   },
   screen: {
     basicInfo: true,
-    pageSettings: true,
+    pageSettings: false,
     introPage: false,
-    menuCoverPage: true,
+    menuCoverPage: false,
     menuPages: true,
     canManageMenuPages: true,
-    aboutPage: true,
-    eventPage: true,
-    chefs: true,
-    socialLinks: true,
+    supportsDisplayPageTypes: true,
+    supportsDisplayPromotionPages: true,
+    supportsDisplayMenuLayoutTypes: true,
+    aboutPage: false,
+    eventPage: false,
+    chefs: false,
+    socialLinks: false,
     design: true,
     localization: true,
     publish: true,
@@ -56,6 +65,9 @@ export const MENU_EDITOR_CAPABILITIES = {
     menuCoverPage: true,
     menuPages: true,
     canManageMenuPages: true,
+    supportsDisplayPageTypes: false,
+    supportsDisplayPromotionPages: false,
+    supportsDisplayMenuLayoutTypes: false,
     aboutPage: true,
     eventPage: true,
     chefs: true,
@@ -71,6 +83,9 @@ export const MENU_EDITOR_CAPABILITIES = {
     menuCoverPage: false,
     menuPages: false,
     canManageMenuPages: false,
+    supportsDisplayPageTypes: false,
+    supportsDisplayPromotionPages: false,
+    supportsDisplayMenuLayoutTypes: false,
     aboutPage: false,
     eventPage: false,
     chefs: false,
@@ -86,6 +101,9 @@ export const MENU_EDITOR_CAPABILITIES = {
     menuCoverPage: true,
     menuPages: true,
     canManageMenuPages: true,
+    supportsDisplayPageTypes: false,
+    supportsDisplayPromotionPages: false,
+    supportsDisplayMenuLayoutTypes: false,
     aboutPage: true,
     eventPage: true,
     chefs: true,

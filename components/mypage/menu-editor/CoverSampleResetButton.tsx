@@ -97,7 +97,7 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
         })
       );
 
-      toast.success("대표 영역이 샘플 데이터로 임시 변경되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+      toast.success("커버 이미지 설정이 샘플 데이터로 임시 변경되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
       setOpen(false);
     }, 0);
   }
@@ -110,7 +110,7 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
           if (!disabled) setOpen(true);
         }}
         disabled={disabled}
-        title={disabled ? "이 템플릿의 대표 영역 샘플 데이터를 찾을 수 없습니다." : undefined}
+        title={disabled ? "이 템플릿의 커버 이미지 샘플 데이터를 찾을 수 없습니다." : undefined}
         className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
       >
         샘플로 되돌리기
@@ -125,10 +125,10 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
             className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
           >
             <h2 id="cover-sample-reset-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
-              대표 영역을 샘플 상태로 되돌릴까요?
+              커버 이미지 설정을 샘플 상태로 되돌릴까요?
             </h2>
             <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-              대표 영역 설정이 현재 템플릿의 샘플 데이터로 임시 변경됩니다. 저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.
+              커버 이미지 설정이 현재 템플릿의 샘플 데이터로 임시 변경됩니다. 저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.
             </p>
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button

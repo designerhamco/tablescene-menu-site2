@@ -38,7 +38,7 @@ export type PublicMenuSite = Pick<
 
 export type PublicMenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
-  "id" | "title" | "description" | "description_visible" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
+  "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
 >;
 
 export type PublicMenuCategory = Pick<

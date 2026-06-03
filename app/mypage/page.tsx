@@ -250,16 +250,6 @@ function getStatusLabel(status: MenuSite["status"]) {
   return status ? labels[status] ?? status : "상태 미확인";
 }
 
-function getStatusClassName(status: MenuSite["status"]) {
-  const classes: Record<string, string> = {
-    draft: "bg-zinc-100 text-zinc-600",
-    published: "bg-emerald-50 text-emerald-700",
-    archived: "bg-amber-50 text-amber-700",
-  };
-
-  return status ? classes[status] ?? "bg-zinc-100 text-zinc-600" : "bg-zinc-100 text-zinc-600";
-}
-
 function formatDate(date: string | null) {
   if (!date) {
     return "-";
@@ -427,6 +417,100 @@ function getServiceName(planType: string | null | undefined, billingCycle: strin
   if (planType === "business_basic") return billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
 
   return "메뉴링크 이용권";
+}
+
+function getMenuServiceBadge({
+  productKey,
+  planType,
+  templateKey,
+}: {
+  productKey: string | null | undefined;
+  planType: string | null | undefined;
+  templateKey: string | null | undefined;
+}) {
+  const normalizedProductKey = getSafeString(productKey);
+  const normalizedPlanType = getSafeString(planType);
+  const normalizedTemplateKey = getSafeString(templateKey);
+  const isDisplayService =
+    normalizedPlanType === "business_display"
+    || normalizedProductKey === "business_display_monthly"
+    || normalizedProductKey === "business_display_yearly"
+    || normalizedTemplateKey.startsWith("display_");
+
+  if (isDisplayService) {
+    return {
+      label: "메뉴링크 디스플레이",
+      className: "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100",
+    };
+  }
+
+  return {
+    label: "메뉴링크 베이직",
+    className: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-100",
+  };
+}
+
+type MenuCardBadge = {
+  key: string;
+  label: string;
+  className: string;
+};
+
+function getMenuVisibilityBadge(status: MenuSite["status"]): MenuCardBadge | null {
+  if (status === "draft") {
+    return {
+      key: "visibility:draft",
+      label: "작성중",
+      className: "bg-zinc-100 text-zinc-600",
+    };
+  }
+
+  if (status === "published") {
+    return {
+      key: "visibility:published",
+      label: "공개중",
+      className: "bg-emerald-50 text-emerald-700",
+    };
+  }
+
+  if (status === "private" || status === "unpublished") {
+    return {
+      key: "visibility:private",
+      label: "비공개",
+      className: "bg-zinc-100 text-zinc-600",
+    };
+  }
+
+  if (!status) {
+    return {
+      key: "visibility:unknown",
+      label: "상태 미확인",
+      className: "bg-zinc-100 text-zinc-600",
+    };
+  }
+
+  return null;
+}
+
+function getUniqueMenuCardBadges(
+  badges: MenuCardBadge[],
+) {
+  const seenKeys = new Set<string>();
+  const seenLabels = new Set<string>();
+
+  return badges.filter((badge) => {
+    if (seenKeys.has(badge.key)) {
+      return false;
+    }
+
+    if (seenLabels.has(badge.label)) {
+      return false;
+    }
+
+    seenKeys.add(badge.key);
+    seenLabels.add(badge.label);
+    return true;
+  });
 }
 
 function getBillingCycleLabel(billingCycle: string | null | undefined) {
@@ -1271,6 +1355,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const dataRetentionUntil = trialDisplayInfo?.dataRetentionUntil ?? "";
     const daysUntilExpiry = accessExpiresAt ? getRemainingDaysUntilKst(accessExpiresAt) : null;
     const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
+    const isRetentionActive = typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds >= 0;
     const isTrialPendingDelete = entitlementStatus === "pending_delete" || Boolean(trialDisplayInfo?.deletedScheduledAt);
     const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || (typeof daysUntilExpiry === "number" && daysUntilExpiry < 0);
     const hasActiveEntitlement = entitlementStatus === "active";
@@ -1278,27 +1363,52 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const hasInactiveEntitlement = ["expired", "archived", "pending_delete"].includes(entitlementStatus);
     const isAccessRestricted = isMenuArchived || !hasActiveEntitlement || (!hasActiveBusinessService && (isTrialExpired || hasInactiveEntitlement));
     const canOpenPublicPage = isPublished && Boolean(slug) && !isAccessRestricted;
-    const serviceStatusLabel = cancelAtPeriodEnd
-      ? "해지 예약됨"
-      : isBusinessService && hasActiveEntitlement
-        ? "사업자 플랜"
-        : isTrialPendingDelete
-          ? "복구 필요"
-          : isPersonalTrial && isTrialExpired
-            ? "체험 종료"
-            : isPersonalTrial
-              ? "개인 체험"
-              : isAccessRestricted
-                ? "공개 중지"
-                : "이용 중";
-    const menuStatusLabel = isAccessRestricted && !isMenuArchived
-      ? "공개 중지"
-      : getStatusLabel(site.status);
+    const subscriptionStatus = anyBusinessSubscription?.status ?? null;
+    const hasPaymentIssue = subscriptionStatus === "failed" || subscriptionStatus === "payment_failed" || subscriptionStatus === "past_due";
+    const isRetentionEnded = isTrialPendingDelete || (dataRetentionUntil ? daysUntilRetentionEnds !== null && daysUntilRetentionEnds < 0 : false);
+    const serviceBadge = getMenuServiceBadge({
+      productKey: entitlement?.product_key ?? activeBusinessSubscription?.product_key ?? anyBusinessSubscription?.product_key ?? null,
+      planType: planType || activeBusinessSubscription?.plan_type || anyBusinessSubscription?.plan_type || null,
+      templateKey: site.template_key,
+    });
+    const visibilityBadge = isAccessRestricted ? null : getMenuVisibilityBadge(site.status);
+    const serviceTypeBadge: MenuCardBadge = {
+      key: serviceBadge.label === "메뉴링크 디스플레이" ? "service:display" : "service:basic",
+      label: serviceBadge.label,
+      className: serviceBadge.className,
+    };
     const section = isMenuArchived || isTrialPendingDelete || anyBusinessSubscription?.status === "expired" || anyBusinessSubscription?.status === "canceled"
       ? "archived"
-      : isTrialExpired || hasInactiveEntitlement || anyBusinessSubscription?.status === "failed" || anyBusinessSubscription?.status === "payment_failed" || anyBusinessSubscription?.status === "past_due"
+      : isAccessRestricted || isTrialExpired || hasInactiveEntitlement || anyBusinessSubscription?.status === "failed" || anyBusinessSubscription?.status === "payment_failed" || anyBusinessSubscription?.status === "past_due"
         ? "needs_action"
         : "active";
+    let accessBadge: MenuCardBadge | null = null;
+
+    if (cancelAtPeriodEnd) {
+      accessBadge = { key: "subscription:cancel-scheduled", label: "해지 예약", className: "bg-amber-50 text-amber-700" };
+    } else if (hasPaymentIssue) {
+      accessBadge = { key: "access:payment-needed", label: "결제 확인 필요", className: "bg-red-50 text-red-700" };
+    } else if (isBusinessService && hasActiveEntitlement) {
+      accessBadge = { key: "plan:business", label: "사업자 플랜", className: "bg-emerald-50 text-emerald-700" };
+    } else if (isPersonalTrial && !isTrialExpired) {
+      accessBadge = { key: "plan:trial", label: "개인 체험", className: "bg-emerald-50 text-emerald-700" };
+    } else if (isRetentionEnded) {
+      accessBadge = { key: "access:retention-ended", label: "복구 기간 종료", className: "bg-amber-50 text-amber-700" };
+    } else if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isRetentionActive && isAccessRestricted) {
+      accessBadge = { key: "access:retention", label: "보관 중", className: "bg-amber-50 text-amber-700" };
+    } else if (isPersonalTrial && isTrialExpired) {
+      accessBadge = { key: "access:trial-ended", label: "체험 종료", className: "bg-amber-50 text-amber-700" };
+    } else if (isMenuArchived || entitlementStatus === "archived") {
+      accessBadge = { key: "access:retention", label: "보관 중", className: "bg-amber-50 text-amber-700" };
+    } else if (isAccessRestricted) {
+      accessBadge = { key: "access:restricted", label: "공개 제한", className: "bg-amber-50 text-amber-700" };
+    }
+
+    const badges = getUniqueMenuCardBadges([
+      ...(visibilityBadge ? [visibilityBadge] : []),
+      serviceTypeBadge,
+      ...(accessBadge ? [accessBadge] : []),
+    ]);
     const periodEnd = activeBusinessSubscription?.current_period_end ?? activeBusinessSubscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
     const activeBusinessProfile = activeBusinessSubscription?.business_profile_id
       ? businessProfileById.get(activeBusinessSubscription.business_profile_id) ?? businessProfile
@@ -1308,26 +1418,55 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     if (activeBusinessSubscription) {
       primaryMessage = cancelAtPeriodEnd
-        ? "해지 예약된 구독입니다. 이용 종료일까지 메뉴판을 사용할 수 있습니다."
-        : `${billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제"}로 이용 중입니다.`;
-      metaItems.push({
-        label: cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일",
-        value: formatDate(cancelAtPeriodEnd ? periodEnd : activeBusinessSubscription.next_billing_at),
-      });
+        ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."
+        : `${serviceBadge.label}으로 이용 중입니다.`;
+      if (cancelAtPeriodEnd && periodEnd) {
+        metaItems.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
+      } else if (activeBusinessSubscription.next_billing_at) {
+        metaItems.push({ label: "다음 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
+      } else if (periodEnd) {
+        metaItems.push({ label: "이용 기간 종료일", value: formatDate(periodEnd) });
+      } else {
+        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
+      }
       metaItems.push({ label: "결제수단", value: "NHN KCP 카드 정기결제" });
       metaItems.push({ label: "인증 사업자", value: activeBusinessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (isPersonalTrial && !isTrialExpired) {
       primaryMessage = "개인 1개월 체험으로 이용 중입니다.";
-      metaItems.push({ label: "체험 만료일", value: formatDate(accessExpiresAt || null) });
+      metaItems.push({ label: "체험 종료일", value: formatDate(accessExpiresAt || null) });
       metaItems.push({ label: "남은 기간", value: daysUntilExpiry === 0 ? "오늘 만료" : typeof daysUntilExpiry === "number" ? `${Math.max(0, daysUntilExpiry)}일` : "확인 중" });
     } else if (isTrialExpired) {
-      primaryMessage = isTrialPendingDelete
-        ? "복구 가능 기간이 종료되었습니다. 고객지원으로 문의해주세요."
-        : "체험 기간이 종료되어 공개와 편집이 제한되었습니다.";
-      metaItems.push({ label: isTrialPendingDelete ? "복구 가능 기간" : "보관 만료", value: dataRetentionUntil ? getRetentionMessage(daysUntilRetentionEnds) : "보관 기간 정보 없음" });
+      primaryMessage = isRetentionEnded
+        ? "보관 기간이 종료되어 현재 이용할 수 없습니다."
+        : trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isRetentionActive
+          ? "이용 기간이 종료되어 보관 중입니다. 보관 기간 안에 다시 구독하면 기존 메뉴판을 이어서 사용할 수 있습니다."
+          : "체험 기간이 종료되어 공개와 편집이 제한되었습니다.";
+      if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil) {
+        metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
+      } else if (accessExpiresAt) {
+        metaItems.push({ label: "이용 종료일", value: formatDate(accessExpiresAt) });
+      } else {
+        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
+      }
     } else {
-      primaryMessage = isAccessRestricted ? "현재 공개와 편집이 제한된 메뉴판입니다." : "메뉴판을 편집하고 공개할 수 있습니다.";
-      metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
+      primaryMessage = hasPaymentIssue
+        ? "결제 확인이 필요합니다. 결제 상태를 확인하면 다시 이용할 수 있습니다."
+        : isAccessRestricted
+          ? "현재 이용이 제한된 메뉴판입니다."
+          : site.status === "published"
+            ? "현재 공개 중인 메뉴판입니다."
+            : site.status === "private" || site.status === "unpublished"
+              ? "현재 공개되지 않은 메뉴판입니다. 편집 후 다시 공개할 수 있습니다."
+              : "메뉴판을 편집하고 공개할 수 있습니다.";
+      if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isAccessRestricted) {
+        metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
+      } else if (accessExpiresAt) {
+        metaItems.push({ label: "이용 기간 종료일", value: formatDate(accessExpiresAt) });
+      } else if (entitlement?.expired_at) {
+        metaItems.push({ label: "이용 종료일", value: formatDate(entitlement.expired_at) });
+      } else {
+        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
+      }
     }
 
     return {
@@ -1339,10 +1478,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       publicPath,
       qrDownloadUrl,
       templateLabel: site.template_key ? getTemplateDisplayName(site.template_key) : "-",
-      menuStatusLabel,
-      serviceStatusLabel,
-      menuStatusClassName: isAccessRestricted ? "bg-amber-50 text-amber-700" : getStatusClassName(site.status),
-      serviceStatusClassName: cancelAtPeriodEnd || section !== "active" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700",
+      serviceBadge,
+      badges,
       primaryMessage,
       metaItems: metaItems.slice(0, 3),
       isAccessRestricted,
@@ -1378,8 +1515,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
-            <span className={`rounded-full px-3 py-1 text-xs font-black ${card.menuStatusClassName}`}>{card.menuStatusLabel}</span>
-            <span className={`rounded-full px-3 py-1 text-xs font-black ${card.serviceStatusClassName}`}>{card.serviceStatusLabel}</span>
+            {card.badges.map((badge) => (
+              <span key={badge.key} className={`rounded-full px-3 py-1 text-xs font-black ${badge.className}`}>
+                {badge.label}
+              </span>
+            ))}
           </div>
         </div>
 

@@ -425,6 +425,7 @@ const menuTemplateRecommendationMap = {
 const defaultRecommendedMenuTemplateGroups = ["cafe_dessert", "dining"] as const satisfies readonly Exclude<MenuTemplateGroupKey, "recommended" | "all">[];
 const templateTagMap = {
   cafe: ["카페", "디저트", "이미지형", "모바일/QR"],
+  display: ["디스플레이", "메뉴보드", "16:9"],
   bakery: ["베이커리", "디저트", "모바일/QR"],
   dessert: ["디저트샵", "카페", "모바일/QR"],
   restaurant: ["식당", "메뉴판", "모바일/QR"],

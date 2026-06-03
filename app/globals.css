@@ -360,7 +360,7 @@ video {
     min-height: 0;
   }
 
-  .cafe-a-typography .cafe-a-fit-menu-grid {
+  .cafe-a-typography .cafe-a-ordered-menu-flow {
     display: block;
     column-count: var(--fit-columns);
     column-fill: auto;
@@ -370,9 +370,7 @@ video {
     widows: 2;
   }
 
-  .cafe-a-typography .cafe-a-balanced-experimental-grid {
-    column-count: initial;
-    column-fill: initial;
+  .cafe-a-typography .cafe-a-balanced-menu-grid {
     display: grid;
     gap: calc(var(--menu-board-column-gap) * var(--fit-gap-scale));
     grid-template-columns: repeat(var(--fit-columns), minmax(0, 1fr));
@@ -382,10 +380,12 @@ video {
     align-content: start;
     display: grid;
     min-height: 0;
+    width: 100%;
   }
 
   .cafe-a-typography .cafe-a-menu-category-block {
     min-width: 0;
+    width: 100%;
     break-inside: auto;
     margin-bottom: clamp(0.65rem, calc(var(--category-gap) * var(--fit-gap-scale)), 2rem);
   }

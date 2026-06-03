@@ -5,6 +5,7 @@ export const MENU_LIMITS = {
   maxItemsPerSite: 100,
   maxSocialLinksPerSite: 3,
   maxEventsPerSite: 5,
+  maxPromotionPagesPerSite: 5,
   maxChefsPerSite: 8,
   maxTraitsPerItem: 2,
   maxPriceOptionsPerItem: 5,
@@ -55,6 +56,13 @@ export const MENU_FIELD_LIMITS = {
   menuItemPriceOptions: {
     label: 20,
     priceLabel: 20,
+  },
+  menuPageDisplaySettings: {
+    splitImageTitle: 40,
+    splitImageDescription: 120,
+    promotionTitle: 40,
+    promotionDescription: 160,
+    mediaUrl: 500,
   },
   menuChefs: {
     chefName: 30,

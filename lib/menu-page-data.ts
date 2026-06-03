@@ -40,7 +40,7 @@ const siteSelect = baseSiteSelect
   .replace("restaurant_category", "restaurant_category, restaurant_type")
   .replace("menu_cover_title", "menu_cover_label, menu_cover_title");
 
-const pageSelect = "id, title, description, description_visible, legacy_section_key, visible, sort_order, created_at";
+const pageSelect = "id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at";
 const categorySelect = "id, menu_page_id, name, description, description_visible, sort_order, visible";
 const itemSelect =
   "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";

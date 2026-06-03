@@ -12,8 +12,21 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-type ImageTarget = "site-logo" | "site-logo-draft" | "site-cover" | "site-cover-draft" | "site-intro-image-draft" | "menu-item" | "menu-item-draft" | "menu-event" | "menu-chef";
-type PersistentImageTarget = Exclude<ImageTarget, "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "menu-item-draft">;
+type ImageTarget =
+  | "site-logo"
+  | "site-logo-draft"
+  | "site-cover"
+  | "site-cover-draft"
+  | "site-intro-image-draft"
+  | "display-page-image-draft"
+  | "menu-item"
+  | "menu-item-draft"
+  | "menu-event"
+  | "menu-chef";
+type PersistentImageTarget = Exclude<
+  ImageTarget,
+  "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "display-page-image-draft" | "menu-item-draft"
+>;
 
 type TargetRecord = {
   menuId: string;
@@ -23,11 +36,28 @@ type TargetRecord = {
 };
 
 function isImageTarget(value: string): value is ImageTarget {
-  return value === "site-logo" || value === "site-logo-draft" || value === "site-cover" || value === "site-cover-draft" || value === "site-intro-image-draft" || value === "menu-item" || value === "menu-item-draft" || value === "menu-event" || value === "menu-chef";
+  return (
+    value === "site-logo" ||
+    value === "site-logo-draft" ||
+    value === "site-cover" ||
+    value === "site-cover-draft" ||
+    value === "site-intro-image-draft" ||
+    value === "display-page-image-draft" ||
+    value === "menu-item" ||
+    value === "menu-item-draft" ||
+    value === "menu-event" ||
+    value === "menu-chef"
+  );
 }
 
 function isDraftImageTarget(target: ImageTarget) {
-  return target === "site-logo-draft" || target === "site-cover-draft" || target === "site-intro-image-draft" || target === "menu-item-draft";
+  return (
+    target === "site-logo-draft" ||
+    target === "site-cover-draft" ||
+    target === "site-intro-image-draft" ||
+    target === "display-page-image-draft" ||
+    target === "menu-item-draft"
+  );
 }
 
 function isLogoTarget(target: ImageTarget) {
@@ -70,6 +100,8 @@ function getPath(target: ImageTarget, menuId: string, recordId: string, extensio
       return `menu-sites/${menuId}/draft/cover-${crypto.randomUUID()}.${extension}`;
     case "site-intro-image-draft":
       return `menu-sites/${menuId}/draft/intro-${crypto.randomUUID()}.${extension}`;
+    case "display-page-image-draft":
+      return `menu-sites/${menuId}/draft/display-pages/${recordId || "page"}-${crypto.randomUUID()}.${extension}`;
     case "menu-item":
       return `menu-sites/${menuId}/items/${recordId}/main.${extension}`;
     case "menu-item-draft":
@@ -93,6 +125,8 @@ function getPathPrefix(target: ImageTarget, menuId: string, recordId: string) {
       return `menu-sites/${menuId}/draft/cover-`;
     case "site-intro-image-draft":
       return `menu-sites/${menuId}/draft/intro-`;
+    case "display-page-image-draft":
+      return `menu-sites/${menuId}/draft/display-pages/`;
     case "menu-item":
       return `menu-sites/${menuId}/items/${recordId}/main.`;
     case "menu-item-draft":
@@ -214,6 +248,18 @@ async function getTargetRecord(
   }
 
   if (target === "site-intro-image-draft") {
+    return {
+      error: null,
+      record: {
+        menuId,
+        slug: ownership.menuSite.slug,
+        imageUrl: null,
+        imagePath: null,
+      },
+    };
+  }
+
+  if (target === "display-page-image-draft") {
     return {
       error: null,
       record: {

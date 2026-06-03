@@ -128,7 +128,7 @@ type MenuCategory = Pick<
 >;
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
-  "id" | "title" | "description" | "description_visible" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
+  "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
 >;
 type MenuItem = Pick<
   Database["public"]["Tables"]["menu_items"]["Row"],
@@ -299,7 +299,7 @@ function buildEditableTranslationFields({
     entityType: "site",
     entityId: site.id,
     group: "site",
-    groupLabel: "대표 영역",
+    groupLabel: "커버 이미지",
     sourceFields: {
       restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
       brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
@@ -311,9 +311,9 @@ function buildEditableTranslationFields({
     fieldLabels: {
       restaurant_name: "매장명",
       brand_description: "브랜드 설명",
-      menu_cover_label: "대표 영역 라벨",
-      menu_cover_title: "대표 영역 제목",
-      menu_cover_description: "대표 영역 설명",
+      menu_cover_label: "커버 이미지 라벨",
+      menu_cover_title: "커버 이미지 제목",
+      menu_cover_description: "커버 이미지 설명",
     },
     multilineFields: ["brand_description", "menu_cover_description"],
   });
@@ -700,7 +700,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     await Promise.all([
       supabase
         .from("menu_pages")
-        .select("id, title, description, description_visible, legacy_section_key, visible, sort_order, created_at")
+        .select("id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at")
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -1271,7 +1271,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "cover" && (
               <SectionCard
-                title={coverTabLabel ?? "메뉴 커버"}
+                title={coverTabLabel ?? "커버 이미지"}
                 eyebrow="Cover"
               >
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
@@ -1280,7 +1280,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
                       {coverDescription ||
                         (usesStoreIdentityForCover
-                        ? "이 템플릿은 상단 제목과 설명에 기본 정보의 매장명과 매장 설명을 사용합니다. 메뉴 커버에서는 템플릿에 강조해서 보여줄 이미지와 대표 항목만 설정할 수 있습니다."
+                        ? "이 템플릿은 상단 제목과 설명에 기본 정보의 매장명과 매장 설명을 사용합니다. 이 탭에서는 메뉴판에 표시되는 커버 이미지와 추천 메뉴를 설정합니다."
                         : isPriceListTemplate
                         ? "가격표 상단에 보여줄 대표 문구와 이미지를 설정합니다. 등록된 서비스 중 하나를 고르는 방식이 아니라, 가격표 전체를 소개하는 커버 내용을 직접 입력합니다."
                         : "메뉴판 첫 화면이나 상단 영역에 강조해서 보여줄 내용을 설정합니다. 대표 추천 메뉴를 선택하면 템플릿에 따라 상단 강조 영역에 표시될 수 있습니다.")}
@@ -1340,7 +1340,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         <div className="mb-4">
                           <h3 className="text-lg font-bold tracking-tight text-zinc-950">대표 추천 메뉴</h3>
                           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                            대표 추천 메뉴는 일부 템플릿에서 대표 영역의 메뉴 정보로 표시됩니다. 커버 이미지는 별도로 등록한 이미지만 사용합니다.
+                            대표 추천 메뉴는 일부 템플릿에서 커버 이미지 영역의 메뉴 정보로 표시됩니다. 커버 이미지는 별도로 등록한 이미지만 사용합니다.
                           </p>
                         </div>
                         <div className="grid gap-5">
@@ -1433,6 +1433,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     traits={traits}
                     capabilities={templateCapabilities}
                     canManagePages={editorCapabilities.canManageMenuPages}
+                    supportsDisplayPageTypes={editorCapabilities.supportsDisplayPageTypes}
+                    supportsDisplayPromotionPages={editorCapabilities.supportsDisplayPromotionPages}
+                    supportsDisplayMenuLayoutTypes={editorCapabilities.supportsDisplayMenuLayoutTypes}
                     aiDescriptionUsage={aiUsage.ai_description}
                     aiMenuCleanupUsage={aiUsage.ai_menu_cleanup}
                     badgeStyles={badgeStyles}

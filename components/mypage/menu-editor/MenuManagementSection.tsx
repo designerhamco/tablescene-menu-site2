@@ -21,6 +21,19 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
+  DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
+  DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS,
+  DISPLAY_MENU_LAYOUT_TYPES,
+  DISPLAY_PAGE_TYPES,
+  DISPLAY_PROMOTION_MEDIA_TYPES,
+  getDisplayMenuLayoutTypeLabel,
+  getDisplayPageTypeLabel,
+  getDisplayPromotionMediaTypeLabel,
+  isPromotionDisplayPage,
+  normalizeMenuPageDisplaySettings,
+  type MenuPageDisplaySettings,
+} from "@/lib/display-page-settings";
+import {
   getMenuItemBadgeLabel,
   MENU_BADGE_CUSTOM_VALUE,
   MENU_BADGE_MAX_LENGTH,
@@ -50,7 +63,7 @@ import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } 
 
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
-  "id" | "title" | "description" | "description_visible" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
+  "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
 >;
 type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
@@ -96,6 +109,9 @@ type MenuManagementSectionProps = {
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
   canManagePages: boolean;
+  supportsDisplayPageTypes?: boolean;
+  supportsDisplayPromotionPages?: boolean;
+  supportsDisplayMenuLayoutTypes?: boolean;
   aiDescriptionUsage: AiUsage;
   aiMenuCleanupUsage: AiUsage;
   badgeStyles: BadgeStyles;
@@ -107,7 +123,7 @@ type MenuManagementSectionProps = {
   finalSaveError?: string | null;
 };
 type DraftTarget =
-  | { type: "page"; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean }
+  | { type: "page"; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean; displaySettings?: MenuPageDisplaySettings }
   | { type: "category"; pageId: string; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean };
 type DragState =
   | { type: "page"; id: string }
@@ -122,6 +138,7 @@ type PageBasicDraft = {
   descriptionVisible?: boolean;
   visible?: boolean;
   sortOrder: number;
+  displaySettings?: MenuPageDisplaySettings;
 };
 
 type CategoryBasicDraft = {
@@ -392,6 +409,7 @@ function ValidatedTextInput({
   maxLength,
   type = "text",
   min,
+  max,
   step,
   helperText,
   errorText,
@@ -407,6 +425,7 @@ function ValidatedTextInput({
   maxLength?: number;
   type?: React.HTMLInputTypeAttribute;
   min?: number;
+  max?: number;
   step?: number;
   helperText?: string;
   errorText?: string;
@@ -427,6 +446,7 @@ function ValidatedTextInput({
         type={type}
         value={value}
         min={min}
+        max={max}
         step={step}
         maxLength={maxLength}
         placeholder={placeholder}
@@ -929,6 +949,10 @@ function MenuPageForm({
   draftFeedback,
   draftOnly = false,
   supportsDescription = true,
+  supportsDisplaySettings = false,
+  supportsDisplayPromotionPages = false,
+  supportsDisplayMenuLayoutTypes = false,
+  displaySettingsDraft,
 }: {
   menuId: string;
   page?: MenuPage;
@@ -938,7 +962,7 @@ function MenuPageForm({
   draftTitle?: string;
   onDraftTitleChange?: (title: string) => void;
   onDraftChange?: (patch: Partial<PageBasicDraft>) => void;
-  onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
+  onDraftCommit?: (patch?: Partial<PageBasicDraft>) => void;
   onCancel?: () => void;
   cancelLabel?: string;
   deleteAction?: ReactNode;
@@ -946,11 +970,18 @@ function MenuPageForm({
   draftFeedback?: string;
   draftOnly?: boolean;
   supportsDescription?: boolean;
+  supportsDisplaySettings?: boolean;
+  supportsDisplayPromotionPages?: boolean;
+  supportsDisplayMenuLayoutTypes?: boolean;
+  displaySettingsDraft?: MenuPageDisplaySettings;
 }) {
   const [title, setTitle] = useState(draftTitle ?? page?.title ?? `${labels.pageLabel} ${count + 1}`);
   const [description, setDescription] = useState(page?.description ?? "");
   const [descriptionVisible, setDescriptionVisible] = useState(page?.description_visible ?? false);
   const [sortOrder, setSortOrder] = useState(page?.sort_order ?? 0);
+  const [displaySettings, setDisplaySettings] = useState<MenuPageDisplaySettings>(() =>
+    normalizeMenuPageDisplaySettings(displaySettingsDraft ?? page?.display_settings)
+  );
   const titleValue = page ? title : draftTitle !== undefined ? draftTitle : title;
   const titleInvalid = !titleValue.trim() || titleValue.length > MENU_FIELD_LIMITS.menuPages.title;
   const pageFormDirty =
@@ -958,13 +989,32 @@ function MenuPageForm({
     normalizeDraftText(titleValue) !== normalizeDraftText(page.title) ||
     (supportsDescription && normalizeDraftText(description) !== normalizeDraftText(page.description ?? "")) ||
     (supportsDescription && descriptionVisible !== (page.description_visible ?? false)) ||
-    normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(page.sort_order);
+    normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(page.sort_order) ||
+    (supportsDisplaySettings &&
+      JSON.stringify(displaySettings) !== JSON.stringify(normalizeMenuPageDisplaySettings(page.display_settings)));
 
   function handleDraftCommit() {
     if (page && !pageFormDirty) return;
     onDraftTitleChange?.(titleValue);
-    onDraftChange?.(supportsDescription ? { title: titleValue, description, descriptionVisible, sortOrder } : { title: titleValue, sortOrder });
+    onDraftChange?.({
+      ...(supportsDescription ? { title: titleValue, description, descriptionVisible, sortOrder } : { title: titleValue, sortOrder }),
+      ...(supportsDisplaySettings ? { displaySettings } : {}),
+    });
     onDraftCommit?.();
+  }
+
+  function updateDisplaySettings(patch: Partial<MenuPageDisplaySettings>) {
+    const nextSettings = normalizeMenuPageDisplaySettings({ ...displaySettings, ...patch });
+    setDisplaySettings(nextSettings);
+    if (!page) onDraftChange?.({ displaySettings: nextSettings });
+  }
+
+  function updateSplitImage(patch: Partial<MenuPageDisplaySettings["splitImage"]>) {
+    updateDisplaySettings({ splitImage: { ...displaySettings.splitImage, ...patch } });
+  }
+
+  function updatePromotion(patch: Partial<MenuPageDisplaySettings["promotion"]>) {
+    updateDisplaySettings({ promotion: { ...displaySettings.promotion, ...patch } });
   }
 
   return (
@@ -1028,6 +1078,221 @@ function MenuPageForm({
         helperText="숫자가 낮을수록 먼저 표시됩니다."
         onValueChange={(value) => setSortOrder(Number(value))}
       />
+      {supportsDisplaySettings && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">디스플레이 화면 설정</h4>
+          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+            TV/모니터에 표시될 페이지 유형과 화면 구성을 설정합니다. 저장 전까지 공개 화면에는 반영되지 않습니다.
+          </p>
+          <div className="mt-4 grid gap-4">
+            <div>
+              <FieldLabel required>페이지 유형</FieldLabel>
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                {DISPLAY_PAGE_TYPES.filter((type) => type === "menu" || supportsDisplayPromotionPages).map((type) => {
+                  const selected = displaySettings.pageType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() =>
+                        updateDisplaySettings(
+                          type === "promotion"
+                            ? DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS
+                            : {
+                                ...displaySettings,
+                                pageType: "menu",
+                                menuLayoutType: displaySettings.menuLayoutType ?? DEFAULT_MENU_PAGE_DISPLAY_SETTINGS.menuLayoutType,
+                              }
+                        )
+                      }
+                      className={`rounded-lg border p-4 text-left transition ${
+                        selected ? "border-zinc-950 bg-zinc-50 text-zinc-950" : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-400"
+                      }`}
+                    >
+                      <span className="block text-sm font-black">{getDisplayPageTypeLabel(type)}</span>
+                      <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed">
+                        {type === "promotion"
+                          ? "신메뉴, 시즌 이벤트, 안내 포스터를 디스플레이에 보여주는 화면입니다."
+                          : "카테고리와 메뉴 아이템을 보여주는 기본 메뉴 화면입니다."}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {displaySettings.pageType === "menu" && supportsDisplayMenuLayoutTypes && (
+              <div>
+                <FieldLabel required>화면 구성 방식</FieldLabel>
+                <div className="mt-2 grid gap-2 md:grid-cols-2">
+                  {DISPLAY_MENU_LAYOUT_TYPES.map((type) => {
+                    const selected = displaySettings.menuLayoutType === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => updateDisplaySettings({ pageType: "menu", menuLayoutType: type })}
+                        className={`rounded-lg border p-4 text-left transition ${
+                          selected ? "border-zinc-950 bg-zinc-50 text-zinc-950" : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-400"
+                        }`}
+                      >
+                        <span className="block text-sm font-black">{getDisplayMenuLayoutTypeLabel(type)}</span>
+                        <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed">
+                          {type === "split_image_menu"
+                            ? "한쪽에는 이미지와 짧은 문구를, 다른 한쪽에는 메뉴 목록을 보여주는 구성입니다."
+                            : "화면 전체를 메뉴 목록으로 사용하는 구성입니다."}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {displaySettings.pageType === "menu" && displaySettings.menuLayoutType === "split_image_menu" && (
+              <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <ImageUploadField
+                    label="분할 이미지"
+                    menuId={menuId}
+                    target="display-page-image-draft"
+                    recordId={page?.id ?? formId}
+                    currentUrl={displaySettings.splitImage.url}
+                    description="이미지 + 메뉴 분할형에서 왼쪽 영역에 표시할 이미지를 등록합니다."
+                    uploadSuccessMessage="새 분할 이미지는 저장 후 디스플레이 설정에 반영됩니다."
+                    deleteSuccessMessage="분할 이미지 삭제가 임시 반영되었습니다. 저장 후 디스플레이 설정에 반영됩니다."
+                    deleteConfirmTitle="분할 이미지를 삭제할까요?"
+                    deleteConfirmDescription="삭제하면 저장 후 디스플레이 설정에 반영됩니다."
+                    onDraftImageChange={(draft) =>
+                      updateSplitImage({
+                        url: draft.imageAction === "delete" ? null : draft.imageUrl,
+                        path: draft.imageAction === "delete" ? null : draft.imagePath,
+                      })
+                    }
+                  />
+                </div>
+                <ValidatedTextInput
+                  name="display_split_image_title"
+                  label="이미지 제목"
+                  defaultValue={displaySettings.splitImage.title ?? ""}
+                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageTitle}
+                  placeholder="예: 시즌 추천"
+                  helperText="이미지와 함께 보여줄 짧은 제목입니다."
+                  onValueChange={(value) => updateSplitImage({ title: value })}
+                />
+                <ValidatedTextInput
+                  name="display_split_image_description"
+                  label="이미지 설명"
+                  defaultValue={displaySettings.splitImage.description ?? ""}
+                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageDescription}
+                  placeholder="예: 이번 달에만 만나는 특별 메뉴"
+                  helperText="이미지 보조 문구입니다."
+                  onValueChange={(value) => updateSplitImage({ description: value })}
+                />
+              </div>
+            )}
+            {displaySettings.pageType === "promotion" && (
+              <div className="grid gap-4 rounded-lg border border-amber-100 bg-amber-50 p-4 md:grid-cols-2">
+                <p className="md:col-span-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                  프로모션 페이지로 변경하면 이 페이지의 카테고리와 메뉴 아이템은 디스플레이 화면에 표시되지 않습니다. 데이터는 삭제되지 않습니다.
+                </p>
+                <div className="md:col-span-2">
+                  <FieldLabel required>미디어 종류</FieldLabel>
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    {DISPLAY_PROMOTION_MEDIA_TYPES.map((type) => {
+                      const selected = displaySettings.promotion.mediaType === type;
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() =>
+                            updatePromotion(
+                              type === "video"
+                                ? { mediaType: "video", mediaUrl: null, mediaPath: null, videoLoop: true }
+                                : { mediaType: "image", videoUrl: null, videoLoop: true }
+                            )
+                          }
+                          className={`rounded-lg border p-4 text-left transition ${
+                            selected ? "border-zinc-950 bg-white text-zinc-950" : "border-amber-100 bg-white/70 text-zinc-500 hover:border-zinc-300"
+                          }`}
+                        >
+                          <span className="block text-sm font-black">{getDisplayPromotionMediaTypeLabel(type)}</span>
+                          <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed">
+                            {type === "video" ? "영상 URL을 등록합니다. 디스플레이에서는 반복 재생됩니다." : "이미지 파일을 직접 등록합니다."}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <ValidatedTextInput
+                  name="display_promotion_title"
+                  label="프로모션 제목"
+                  defaultValue={displaySettings.promotion.title ?? ""}
+                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionTitle}
+                  placeholder="예: 봄 시즌 안내"
+                  helperText="프로모션 화면의 제목입니다."
+                  onValueChange={(value) => updatePromotion({ title: value })}
+                />
+                <ValidatedTextInput
+                  name="display_promotion_description"
+                  label="프로모션 설명"
+                  defaultValue={displaySettings.promotion.description ?? ""}
+                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionDescription}
+                  placeholder="예: 신메뉴와 시즌 혜택을 확인해보세요."
+                  helperText="프로모션 화면의 보조 문구입니다."
+                  onValueChange={(value) => updatePromotion({ description: value })}
+                />
+                {displaySettings.promotion.mediaType === "image" ? (
+                  <div className="md:col-span-2">
+                    <ImageUploadField
+                      label="프로모션 이미지"
+                      menuId={menuId}
+                      target="display-page-image-draft"
+                      recordId={page?.id ?? formId}
+                      currentUrl={displaySettings.promotion.mediaUrl}
+                      description="프로모션 페이지에 표시할 이미지를 등록합니다."
+                      uploadSuccessMessage="새 프로모션 이미지는 저장 후 디스플레이 설정에 반영됩니다."
+                      deleteSuccessMessage="프로모션 이미지 삭제가 임시 반영되었습니다. 저장 후 디스플레이 설정에 반영됩니다."
+                      deleteConfirmTitle="프로모션 이미지를 삭제할까요?"
+                      deleteConfirmDescription="삭제하면 저장 후 디스플레이 설정에 반영됩니다."
+                      onDraftImageChange={(draft) =>
+                        updatePromotion({
+                          mediaType: "image",
+                          mediaUrl: draft.imageAction === "delete" ? null : draft.imageUrl,
+                          mediaPath: draft.imageAction === "delete" ? null : draft.imagePath,
+                          videoUrl: null,
+                          videoLoop: true,
+                        })
+                      }
+                    />
+                  </div>
+                ) : (
+                  <div className="md:col-span-2">
+                    <FieldLabel>영상 URL</FieldLabel>
+                    <input
+                      value={displaySettings.promotion.videoUrl ?? ""}
+                      maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl}
+                      placeholder="https://..."
+                      onChange={(event) =>
+                        updatePromotion({
+                          mediaType: "video",
+                          mediaUrl: null,
+                          mediaPath: null,
+                          videoUrl: event.target.value,
+                          videoLoop: true,
+                        })
+                      }
+                      className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                    />
+                    <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                      영상은 링크로 등록하며, 디스플레이에서는 반복 재생됩니다.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
       {supportsDescription && (
         <div className="grid gap-3">
           <Checkbox
@@ -2418,6 +2683,9 @@ export default function MenuManagementSection({
   traits,
   capabilities,
   canManagePages,
+  supportsDisplayPageTypes = false,
+  supportsDisplayPromotionPages = false,
+  supportsDisplayMenuLayoutTypes = false,
   aiDescriptionUsage,
   aiMenuCleanupUsage,
   badgeStyles,
@@ -2452,7 +2720,16 @@ export default function MenuManagementSection({
       ? finalSaveError
       : null;
   const [pageBasicDrafts, setPageBasicDrafts] = useState<Record<string, PageBasicDraft>>(() =>
-    Object.fromEntries(menuPages.map((page) => [page.id, { title: page.title, sortOrder: page.sort_order }]))
+    Object.fromEntries(
+      menuPages.map((page) => [
+        page.id,
+        {
+          title: page.title,
+          sortOrder: page.sort_order,
+          displaySettings: normalizeMenuPageDisplaySettings(page.display_settings),
+        },
+      ])
+    )
   );
   const [categoryBasicDrafts, setCategoryBasicDrafts] = useState<Record<string, CategoryBasicDraft>>(() =>
     Object.fromEntries(categories.map((category) => [category.id, { name: category.name, sortOrder: category.sort_order }]))
@@ -2493,6 +2770,7 @@ export default function MenuManagementSection({
     menuManagementDirtyState.saveMessage === (finalSaveMessage ?? null)
       ? menuManagementDirtyState.dirty
       : Boolean(finalSaveError && !finalSaveMessage);
+  const canConfigureDisplayPages = canManagePages && supportsDisplayPageTypes;
   const [deletedPageIds, setDeletedPageIds] = useState<Set<string>>(() => new Set());
   const [deletedCategoryIds, setDeletedCategoryIds] = useState<Set<string>>(() => new Set());
   const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(() => new Set());
@@ -2507,6 +2785,7 @@ export default function MenuManagementSection({
             title: draft?.title ?? page.title,
             description: draft?.description ?? page.description,
             description_visible: draft?.descriptionVisible ?? page.description_visible,
+            display_settings: draft?.displaySettings ?? normalizeMenuPageDisplaySettings(page.display_settings),
             visible: draft?.visible ?? page.visible,
             sort_order: draft?.sortOrder ?? page.sort_order,
           };
@@ -2518,6 +2797,7 @@ export default function MenuManagementSection({
           title: draft.title,
           description: draft.description ?? null,
           description_visible: draft.descriptionVisible ?? false,
+          display_settings: draft.displaySettings ?? DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
           legacy_section_key: null,
           visible: draft.visible ?? true,
           sort_order: draft.sortOrder,
@@ -2657,20 +2937,36 @@ export default function MenuManagementSection({
   const [isSampleResetApplying, setIsSampleResetApplying] = useState(false);
   const [hasRestoredBuilderState, setHasRestoredBuilderState] = useState(false);
   const newItemFormRef = useRef<HTMLDivElement | null>(null);
+
+  function getDraftedPageDisplaySettings(page?: MenuPage | null) {
+    return normalizeMenuPageDisplaySettings(page ? pageBasicDrafts[page.id]?.displaySettings ?? page.display_settings : null);
+  }
+
+  function getPromotionPageCountWithPatch(pageId: string | null, displaySettings: MenuPageDisplaySettings) {
+    return sortedPages.filter((page) => {
+      if (page.id === pageId || deletedPageIds.has(page.id)) return false;
+      return isPromotionDisplayPage(getDraftedPageDisplaySettings(page));
+    }).length + (isPromotionDisplayPage(displaySettings) ? 1 : 0);
+  }
+
   const effectiveSelectedPageId = canManagePages ? selectedPageId : firstVisiblePageId;
   const selectedPage = sortedPages.find((page) => page.id === effectiveSelectedPageId) ?? sortedPages.find((page) => page.visible) ?? sortedPages[0] ?? null;
   const visiblePageId = selectedPage?.id ?? "";
+  const selectedPageDisplaySettings = getDraftedPageDisplaySettings(selectedPage);
+  const selectedPageIsPromotion = canConfigureDisplayPages && isPromotionDisplayPage(selectedPageDisplaySettings);
 
-  const categoriesForPage = useMemo(() => {
-    if (!visiblePageId) return [];
-    return sortCategories(draftedCategories.filter((category) => category.menu_page_id === visiblePageId));
-  }, [draftedCategories, visiblePageId]);
+  const categoriesForPage =
+    visiblePageId && !selectedPageIsPromotion
+      ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === visiblePageId))
+      : [];
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(firstVisibleCategoryIdForInitialPage);
   const selectedCategory =
-    categoriesForPage.find((category) => category.id === selectedCategoryId) ??
-    (!canManagePages ? categoriesForPage.find((category) => category.visible) ?? categoriesForPage[0] : draftedCategories.find((category) => category.id === selectedCategoryId)) ??
-    null;
+    selectedPageIsPromotion
+      ? null
+      : categoriesForPage.find((category) => category.id === selectedCategoryId) ??
+        (!canManagePages ? categoriesForPage.find((category) => category.visible) ?? categoriesForPage[0] : draftedCategories.find((category) => category.id === selectedCategoryId)) ??
+        null;
   const visibleCategoryId = selectedCategory?.id ?? "";
   const itemsForCategory = sortItems(draftedItems.filter((item) => item.category_id === visibleCategoryId));
   const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
@@ -2685,7 +2981,7 @@ export default function MenuManagementSection({
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
   const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected;
   const shouldShowPageCreateButton = canManagePages && (hasNoSelection || isPageSelectedOnly);
-  const shouldShowCategoryCreateButton = Boolean(selectedPage && (isPageSelectedOnly || isCategorySelected));
+  const shouldShowCategoryCreateButton = Boolean(selectedPage && !selectedPageIsPromotion && (isPageSelectedOnly || isCategorySelected));
   const shouldShowItemCreateButton = Boolean(selectedCategory && (isCategorySelected || Boolean(editingItemId)));
   const pageBasicDraftPayload = useMemo(
     () =>
@@ -2698,6 +2994,7 @@ export default function MenuManagementSection({
             title: draft?.title ?? page.title,
             description: draft?.description ?? page.description ?? "",
             descriptionVisible: draft?.descriptionVisible ?? page.description_visible,
+            displaySettings: normalizeMenuPageDisplaySettings(draft?.displaySettings ?? page.display_settings),
             visible: draft?.visible ?? page.visible,
             sortOrder: draft?.sortOrder ?? page.sort_order,
           };
@@ -3042,6 +3339,7 @@ export default function MenuManagementSection({
           descriptionVisible: false,
           visible: true,
           sortOrder: 0,
+          displaySettings: DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
         },
       }));
     }
@@ -3138,6 +3436,7 @@ export default function MenuManagementSection({
           descriptionVisible: currentDrafts[page.id]?.descriptionVisible ?? page.description_visible,
           visible: currentDrafts[page.id]?.visible ?? page.visible,
           sortOrder: index + 1,
+          displaySettings: currentDrafts[page.id]?.displaySettings ?? normalizeMenuPageDisplaySettings(page.display_settings),
         };
         return drafts;
       }, {}),
@@ -3148,6 +3447,7 @@ export default function MenuManagementSection({
         descriptionVisible: false,
         visible: true,
         sortOrder: 0,
+        displaySettings: DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
       },
     }));
 
@@ -3212,6 +3512,7 @@ export default function MenuManagementSection({
         descriptionVisible: false,
         visible: true,
         sortOrder: 0,
+        displaySettings: DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
       },
     };
     const nextCategoryDrafts: Record<string, CategoryBasicDraft> = {};
@@ -3280,6 +3581,7 @@ export default function MenuManagementSection({
         descriptionVisible: currentDrafts[pageId]?.descriptionVisible ?? sourcePage?.description_visible ?? false,
         visible: currentDrafts[pageId]?.visible ?? sourcePage?.visible ?? true,
         sortOrder: currentDrafts[pageId]?.sortOrder ?? sourcePage?.sort_order ?? 0,
+        displaySettings: currentDrafts[pageId]?.displaySettings ?? normalizeMenuPageDisplaySettings(sourcePage?.display_settings),
         ...patch,
       },
     }));
@@ -3474,6 +3776,7 @@ export default function MenuManagementSection({
           visible: nextDrafts[id]?.visible ?? page?.visible ?? true,
           sortOrder: index,
           isNew: nextDrafts[id]?.isNew,
+          displaySettings: nextDrafts[id]?.displaySettings ?? normalizeMenuPageDisplaySettings(page?.display_settings),
         };
       });
       return nextDrafts;
@@ -3540,7 +3843,11 @@ export default function MenuManagementSection({
     if (reachedPageLimit) return;
     if (!confirmDiscardDraft()) return;
     resetModes();
-    setDraftTarget({ type: "page", title: "" });
+    setDraftTarget({
+      type: "page",
+      title: "",
+      displaySettings: canConfigureDisplayPages ? DEFAULT_MENU_PAGE_DISPLAY_SETTINGS : undefined,
+    });
     setIsCreatingPage(true);
   }
 
@@ -3556,6 +3863,18 @@ export default function MenuManagementSection({
     if (isCreatingPage) {
       const title = draftTarget?.type === "page" ? draftTarget.title.trim() : "";
       if (!title) return;
+      const displaySettings =
+        canConfigureDisplayPages && draftTarget?.type === "page"
+          ? normalizeMenuPageDisplaySettings(draftTarget.displaySettings)
+          : DEFAULT_MENU_PAGE_DISPLAY_SETTINGS;
+      if (
+        canConfigureDisplayPages &&
+        isPromotionDisplayPage(displaySettings) &&
+        getPromotionPageCountWithPatch(null, displaySettings) > MENU_LIMITS.maxPromotionPagesPerSite
+      ) {
+        setPageDraftFeedback(`프로모션 페이지는 최대 ${MENU_LIMITS.maxPromotionPagesPerSite}개까지 추가할 수 있습니다.`);
+        return;
+      }
       const draftCount = Object.values(pageBasicDrafts).filter((draft) => draft.isNew).length;
       const draftId = `temp-page-${draftCount + 1}`;
       setPageBasicDrafts((currentDrafts) => ({
@@ -3567,6 +3886,7 @@ export default function MenuManagementSection({
             visible: currentDrafts[page.id]?.visible ?? page.visible,
             sortOrder: index + 1,
             isNew: currentDrafts[page.id]?.isNew,
+            displaySettings: currentDrafts[page.id]?.displaySettings ?? normalizeMenuPageDisplaySettings(page.display_settings),
           };
           return drafts;
         }, {}),
@@ -3577,6 +3897,7 @@ export default function MenuManagementSection({
           descriptionVisible: draftTarget?.type === "page" ? draftTarget.descriptionVisible ?? false : false,
           visible: draftTarget?.type === "page" ? draftTarget.visible ?? true : true,
           sortOrder: 0,
+          displaySettings,
         },
       }));
       setSelectedPageId(draftId);
@@ -3592,6 +3913,21 @@ export default function MenuManagementSection({
     }
 
     if (editingPageId) {
+      const displaySettings = getDraftedPageDisplaySettings(selectedPage);
+      if (
+        canConfigureDisplayPages &&
+        isPromotionDisplayPage(displaySettings) &&
+        getPromotionPageCountWithPatch(editingPageId, displaySettings) > MENU_LIMITS.maxPromotionPagesPerSite
+      ) {
+        setPageDraftFeedback(`프로모션 페이지는 최대 ${MENU_LIMITS.maxPromotionPagesPerSite}개까지 추가할 수 있습니다.`);
+        return;
+      }
+      if (canConfigureDisplayPages && isPromotionDisplayPage(displaySettings)) {
+        setSelectedCategoryId("");
+        setEditingCategoryId("");
+        setEditingItemId("");
+        setExpandedCategoryIds(new Set());
+      }
       markMenuManagementDirty();
       const message = "수정 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.";
       toast.success(message);
@@ -3599,7 +3935,7 @@ export default function MenuManagementSection({
   }
 
   function startCreateCategory() {
-    if (!visiblePageId || reachedCategoryLimit) return;
+    if (!visiblePageId || selectedPageIsPromotion || reachedCategoryLimit) return;
     if (!confirmDiscardDraft()) return;
     resetModes();
     setDraftTarget({ type: "category", pageId: visiblePageId, title: "" });
@@ -3663,7 +3999,7 @@ export default function MenuManagementSection({
   }
 
   function startCreateItem() {
-    if (!visibleCategoryId || !visiblePageId || reachedItemLimit) return;
+    if (!visibleCategoryId || !visiblePageId || selectedPageIsPromotion || reachedItemLimit) return;
     if (!confirmDiscardDraft()) return;
     resetModes();
     setExpandedPageIds(new Set([visiblePageId]));
@@ -3837,6 +4173,18 @@ export default function MenuManagementSection({
       return `${labels.pageLabel}는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`;
     }
 
+    const sourcePage = sortedPages.find((page) => page.id === pageId);
+    const sourceDisplaySettings = getDraftedPageDisplaySettings(sourcePage);
+    if (
+      canConfigureDisplayPages &&
+      isPromotionDisplayPage(sourceDisplaySettings) &&
+      getPromotionPageCountWithPatch(null, sourceDisplaySettings) > MENU_LIMITS.maxPromotionPagesPerSite
+    ) {
+      return `프로모션 페이지는 최대 ${MENU_LIMITS.maxPromotionPagesPerSite}개까지 추가할 수 있습니다.`;
+    }
+
+    if (canConfigureDisplayPages && isPromotionDisplayPage(sourceDisplaySettings)) return "";
+
     const sourceCategories = draftedCategories.filter((category) => category.menu_page_id === pageId);
     if (sourceCategories.length > MENU_LIMITS.maxCategoriesPerPage) {
       return `복사할 ${labels.pageLabel}의 ${labels.categoryLabel} 수가 최대 개수를 초과합니다.`;
@@ -3869,7 +4217,9 @@ export default function MenuManagementSection({
     const sourcePage = sortedPages.find((page) => page.id === pageId);
     if (!sourcePage) return;
 
-    const sourceCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId));
+    const sourceDisplaySettings = getDraftedPageDisplaySettings(sourcePage);
+    const sourcePageIsPromotion = canConfigureDisplayPages && isPromotionDisplayPage(sourceDisplaySettings);
+    const sourceCategories = sourcePageIsPromotion ? [] : sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId));
     const copyCount = Object.keys(pageBasicDrafts).filter((id) => id.startsWith(`temp-page-copy-${pageId}-`)).length;
     const draftPageId = `temp-page-copy-${pageId}-${copyCount + 1}`;
     const categoryIdMap = new Map<string, string>();
@@ -3890,6 +4240,7 @@ export default function MenuManagementSection({
           descriptionVisible: nextDrafts[page.id]?.descriptionVisible ?? page.description_visible,
           visible: nextDrafts[page.id]?.visible ?? page.visible,
           sortOrder: index + 1,
+          displaySettings: nextDrafts[page.id]?.displaySettings ?? normalizeMenuPageDisplaySettings(page.display_settings),
         };
       });
       nextDrafts[draftPageId] = {
@@ -3899,6 +4250,7 @@ export default function MenuManagementSection({
         descriptionVisible: sourcePage.description_visible,
         visible: sourcePage.visible,
         sortOrder: 0,
+        displaySettings: sourceDisplaySettings,
       };
       return nextDrafts;
     });
@@ -4221,6 +4573,7 @@ export default function MenuManagementSection({
           descriptionVisible: false,
           visible: true,
           sortOrder: pageIndex,
+          displaySettings: DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
         };
       }
 
@@ -4449,7 +4802,9 @@ export default function MenuManagementSection({
               <div className="mt-5 grid gap-3">
                 {canManagePages && draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
                 {visibleStructurePages.map((page) => {
-                  const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
+                  const pageDisplaySettings = getDraftedPageDisplaySettings(page);
+                  const pageIsPromotion = canConfigureDisplayPages && isPromotionDisplayPage(pageDisplaySettings);
+                  const pageCategories = pageIsPromotion ? [] : sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
                   const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId;
                   const pageCanCollapse = canManagePages && sortedPages.length > 1;
                   const pageExpanded = !pageCanCollapse || expandedPageIds.has(page.id);
@@ -4479,9 +4834,17 @@ export default function MenuManagementSection({
                         <button
                           type="button"
                           onClick={() => selectPage(page.id)}
-                          className="min-w-0 flex-1 truncate text-left text-sm font-black"
+                          className="min-w-0 flex-1 text-left text-sm font-black"
                         >
-                          {getMenuPageTitle(page)}
+                          <span className="block truncate">{getMenuPageTitle(page)}</span>
+                          {canConfigureDisplayPages && (
+                            <span className={`mt-0.5 block truncate text-[10px] font-bold ${pageActive ? "text-zinc-300" : "text-zinc-400"}`}>
+                              {getDisplayPageTypeLabel(pageDisplaySettings.pageType)}
+                              {pageDisplaySettings.pageType === "menu" && pageDisplaySettings.menuLayoutType
+                                ? ` · ${getDisplayMenuLayoutTypeLabel(pageDisplaySettings.menuLayoutType)}`
+                                : ""}
+                            </span>
+                          )}
                         </button>
                         {pageCanCollapse && (
                           <button
@@ -4498,7 +4861,11 @@ export default function MenuManagementSection({
                           </button>
                         )}
                       </div>}
-                      {pageExpanded && <div className={canManagePages ? "mt-2 grid min-w-0 gap-1 border-l border-zinc-200 pl-3" : "grid min-w-0 gap-1"}>
+                      {pageExpanded && pageIsPromotion ? (
+                        <p className="mt-2 break-keep rounded-md bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-700">
+                          프로모션 페이지에서는 카테고리와 메뉴 아이템을 편집 화면에서 숨깁니다.
+                        </p>
+                      ) : pageExpanded && <div className={canManagePages ? "mt-2 grid min-w-0 gap-1 border-l border-zinc-200 pl-3" : "grid min-w-0 gap-1"}>
                         {draftTarget?.type === "category" && draftTarget.pageId === page.id && (
                           <DraftNameInput
                             value={draftTarget.title}
@@ -4629,6 +4996,10 @@ export default function MenuManagementSection({
                   draftActionLabel={`${labels.pageLabel} 추가`}
                   draftFeedback={pageDraftFeedback}
                   supportsDescription={capabilities.pageDescription}
+                  supportsDisplaySettings={canConfigureDisplayPages}
+                  supportsDisplayPromotionPages={supportsDisplayPromotionPages}
+                  supportsDisplayMenuLayoutTypes={supportsDisplayMenuLayoutTypes}
+                  displaySettingsDraft={draftTarget?.type === "page" ? draftTarget.displaySettings : undefined}
                 />
               </div>
             ) : canManagePages && editingPageId && selectedPage ? (
@@ -4663,6 +5034,10 @@ export default function MenuManagementSection({
                   draftActionLabel="수정 내용 반영"
                   draftFeedback={pageDraftFeedback}
                   supportsDescription={capabilities.pageDescription}
+                  supportsDisplaySettings={canConfigureDisplayPages}
+                  supportsDisplayPromotionPages={supportsDisplayPromotionPages}
+                  supportsDisplayMenuLayoutTypes={supportsDisplayMenuLayoutTypes}
+                  displaySettingsDraft={pageBasicDrafts[selectedPage.id]?.displaySettings ?? normalizeMenuPageDisplaySettings(selectedPage.display_settings)}
                   deleteAction={
                     <DraftDeleteConfirmButton
                       title={isCopiedPage ? "이 복사본을 삭제할까요?" : `${labels.pageLabel}를 삭제할까요?`}
@@ -4931,6 +5306,14 @@ export default function MenuManagementSection({
                 />
                 <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
                   <DetailValue label="페이지 이름">{selectedPage.title}</DetailValue>
+                  {canConfigureDisplayPages && (
+                    <>
+                      <DetailValue label="페이지 유형">{getDisplayPageTypeLabel(selectedPageDisplaySettings.pageType)}</DetailValue>
+                      {selectedPageDisplaySettings.pageType === "menu" && selectedPageDisplaySettings.menuLayoutType && (
+                        <DetailValue label="화면 구성">{getDisplayMenuLayoutTypeLabel(selectedPageDisplaySettings.menuLayoutType)}</DetailValue>
+                      )}
+                    </>
+                  )}
                   <DetailValue label={`${labels.categoryLabel} 수`}>{categoriesForPage.length}개</DetailValue>
                   <DetailValue label={`${labels.itemLabel} 수`}>{draftedItems.filter((item) => categoriesForPage.some((category) => category.id === item.category_id)).length}개</DetailValue>
                   <DetailValue label="정렬 순서">{selectedPage.sort_order}</DetailValue>

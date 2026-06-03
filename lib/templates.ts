@@ -19,6 +19,13 @@ export const TEMPLATE_CATEGORIES = [
     ],
   },
   {
+    key: "display",
+    label: "디스플레이",
+    templates: [
+      { key: "display_menu_a", label: "메뉴링크 디스플레이 A", design: "design_a" },
+    ],
+  },
+  {
     key: "bakery",
     label: "베이커리",
     templates: [],
@@ -258,6 +265,7 @@ export function getTemplateCategoryFromKey(templateKey?: string | null): Templat
   if (matchedTemplate) return matchedTemplate.template_category;
 
   if (templateKey.startsWith("cafe_")) return "cafe";
+  if (templateKey.startsWith("display_")) return "display";
   if (templateKey.startsWith("bakery_")) return "bakery";
   if (templateKey.startsWith("dessert_")) return "dessert";
   if (templateKey.startsWith("restaurant_")) return "restaurant";

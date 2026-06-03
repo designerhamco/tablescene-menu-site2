@@ -5,6 +5,7 @@ import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
+import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings } from "@/types/menu";
 
@@ -14,6 +15,10 @@ type PageProps = {
 };
 
 function buildPreviewData(templateKey: TemplateKey): MenuPageData {
+  if (templateKey === "display_menu_a") {
+    return buildDisplayMenuAPreviewData();
+  }
+
   const template = getTemplateByKey(templateKey);
   const preset = getStarterPreset(templateKey, template.categoryLabel, template.template_category);
   const now = new Date().toISOString();
@@ -24,6 +29,7 @@ function buildPreviewData(templateKey: TemplateKey): MenuPageData {
     title: page.title,
     description: null,
     description_visible: true,
+    display_settings: {},
     legacy_section_key: page.legacy_section_key,
     visible: true,
     sort_order: pageIndex,

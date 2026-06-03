@@ -183,7 +183,7 @@ type FullTranslationDraftPatch = {
 };
 
 const translationTargetLabels: Record<TranslationTargetGroup, string> = {
-  site: "대표 영역",
+  site: "커버 이미지",
   pages: "페이지",
   categories: "카테고리",
   items: "메뉴 아이템",
@@ -825,7 +825,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
               {activeLocale === "ko" ? (
                 <div className="space-y-4">
                   <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
-                    한국어 원문은 기본 정보, 대표 영역, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다.
+                    한국어 원문은 기본 정보, 커버 이미지, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다.
                   </p>
                   {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}
                 </div>
