@@ -15,6 +15,10 @@ type DisplayPage = PublicMenuTemplateProps["pages"][number];
 type DisplayCategory = PublicMenuTemplateProps["categories"][number];
 type DisplayItem = PublicMenuTemplateProps["items"][number];
 type DisplayPriceOption = PublicMenuTemplateProps["priceOptions"][number];
+type DisplayPriceRow = {
+  label: string | null;
+  price: string;
+};
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", {
   style: "currency",
@@ -34,16 +38,34 @@ function normalizeDisplayText(value: string | null | undefined) {
   return value?.trim() || null;
 }
 
-function getPriceOptionLabel(option: DisplayPriceOption) {
+function getPriceOptionRow(option: DisplayPriceOption): DisplayPriceRow | null {
+  const label = normalizeDisplayText(option.label);
   const price = option.price_label?.trim() || (typeof option.price === "number" ? numberFormatter.format(option.price) : "");
-  return price ? `${option.label} ${price}` : option.label;
+
+  if (!label && !price) return null;
+  if (!price && label) return { label: null, price: label };
+
+  return {
+    label,
+    price,
+  };
 }
 
-function getItemPrice(item: DisplayItem, priceOptions: DisplayPriceOption[]) {
-  const options = sortByOrder(priceOptions.filter((option) => option.menu_item_id === item.id && option.visible));
-  if (options.length > 0) return options.map(getPriceOptionLabel).join(" / ");
+function getItemPriceRows(item: DisplayItem, priceOptions: DisplayPriceOption[]): DisplayPriceRow[] {
+  if (item.price_visible === false) return [];
 
-  return formatMenuPrice(item);
+  const options = sortByOrder(priceOptions.filter((option) => option.menu_item_id === item.id && option.visible));
+  if (options.length > 0) return options.map(getPriceOptionRow).filter((row): row is DisplayPriceRow => Boolean(row));
+
+  const price = formatMenuPrice(item);
+  if (!price) return [];
+
+  return [
+    {
+      label: item.portion_visible === false ? null : normalizeDisplayText(item.portion_label),
+      price,
+    },
+  ];
 }
 
 function getYouTubeEmbedUrl(url: string) {
@@ -65,12 +87,12 @@ function isDirectVideoUrl(url: string) {
   return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
 }
 
-function EmptyDisplayPage({ title, description }: { title: string; description: string }) {
+function EmptyDisplayPage() {
   return (
-    <div className="flex h-full flex-col items-center justify-center rounded-[2rem] border border-white/10 bg-white/[0.04] px-12 text-center">
-      <p className="text-3xl font-black text-white">{title}</p>
-      <p className="mt-4 max-w-xl break-keep text-lg font-semibold leading-relaxed text-white/55">{description}</p>
-    </div>
+    <div
+      className="h-full rounded-[2rem] border border-[#d6dfd7]/15 bg-[radial-gradient(circle_at_30%_20%,rgba(214,223,215,0.08),transparent_30%),linear-gradient(135deg,rgba(236,238,236,0.05),rgba(236,238,236,0.015))]"
+      aria-hidden="true"
+    />
   );
 }
 
@@ -82,36 +104,47 @@ function MenuItemRow({
   priceOptions: DisplayPriceOption[];
 }) {
   const badge = getMenuItemBadgeLabel(item);
-  const price = getItemPrice(item, priceOptions);
+  const priceRows = getItemPriceRows(item, priceOptions);
 
   return (
-    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.055] px-[clamp(18px,1.45vw,28px)] py-[clamp(16px,1.1vw,24px)]">
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(120px,auto)] items-start gap-[clamp(18px,1.6vw,34px)]">
+    <div className="min-w-0 rounded-[1.35rem] border border-[#d6dfd7]/15 bg-[#f5f3e8]/[0.065] px-[clamp(18px,1.45vw,30px)] py-[clamp(16px,1.1vw,24px)] shadow-[inset_0_1px_0_rgba(255,255,255,0.045)]">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(clamp(132px,14vw,260px),auto)] items-start gap-[clamp(18px,1.6vw,34px)]">
         <div className="min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
-            <h4 className="min-w-0 break-keep text-[clamp(28px,2.3vw,48px)] font-black leading-[1.08] tracking-normal text-white">
+            <h4 className="min-w-0 break-keep text-[clamp(28px,2.25vw,48px)] font-black leading-[1.08] tracking-normal text-[#f4f0dc]">
               {item.name}
             </h4>
             {badge && (
-              <span className="rounded-full bg-lime-300 px-3 py-1 text-[clamp(16px,0.9vw,20px)] font-black uppercase tracking-[0.08em] text-zinc-950">
+              <span className="rounded-full border border-[#d9e37a]/40 bg-[#d9e37a] px-3 py-1 text-[clamp(16px,0.9vw,20px)] font-black uppercase tracking-[0.08em] text-[#172019]">
                 {badge}
               </span>
             )}
           </div>
           {item.set_name && (
-            <p className="mt-1 truncate text-[clamp(18px,1.2vw,24px)] font-bold uppercase tracking-[0.08em] text-lime-100/70">
+            <p className="mt-1 truncate text-[clamp(18px,1.2vw,24px)] font-bold uppercase tracking-[0.08em] text-[#c9d5c8]/75">
               {item.set_name}
             </p>
           )}
         </div>
-        {price && (
-          <p className="shrink-0 break-keep text-right text-[clamp(30px,2.4vw,52px)] font-black leading-[1.05] text-lime-200">
-            {price}
-          </p>
+        {priceRows.length > 0 && (
+          <div className="grid shrink-0 justify-items-end gap-1 text-right">
+            {priceRows.map((row, index) => (
+              <div key={`${row.label ?? "price"}-${row.price}-${index}`} className="grid grid-cols-[auto_auto] items-baseline gap-x-3">
+                {row.label ? (
+                  <span className="whitespace-nowrap text-[clamp(16px,1vw,22px)] font-black uppercase tracking-[0.08em] text-[#c9d5c8]/70">
+                    {row.label}
+                  </span>
+                ) : null}
+                <span className="whitespace-nowrap text-[clamp(30px,2.35vw,52px)] font-black leading-[1.05] text-[#d9e37a]">
+                  {row.price}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
       {item.description && (
-        <p className="mt-3 line-clamp-2 break-keep text-[clamp(18px,1.35vw,28px)] font-semibold leading-snug text-white/58">
+        <p className="mt-3 line-clamp-2 break-keep text-[clamp(18px,1.32vw,28px)] font-semibold leading-snug text-[#e6e2d1]/58">
           {item.description}
         </p>
       )}
@@ -130,11 +163,15 @@ function CategoryBlock({
 }) {
   return (
     <section className="min-w-0">
-      <div className="mb-[clamp(14px,1.1vw,24px)] flex items-end justify-between gap-4 border-b border-lime-200/40 pb-3">
-        <h3 className="break-keep text-[clamp(34px,3.2vw,64px)] font-black leading-none tracking-normal text-lime-200">
+      <div className="mb-[clamp(14px,1.1vw,24px)] border-b border-[#d9e37a]/42 pb-3">
+        <h3 className="break-keep text-[clamp(34px,3.05vw,64px)] font-black leading-none tracking-normal text-[#d9e37a]">
           {category.name}
         </h3>
-        <span className="shrink-0 text-[clamp(16px,1vw,22px)] font-black text-white/35">{items.length}</span>
+        {category.description_visible && category.description ? (
+          <p className="mt-2 line-clamp-1 break-keep text-[clamp(18px,1.15vw,24px)] font-semibold text-[#e6e2d1]/55">
+            {category.description}
+          </p>
+        ) : null}
       </div>
       <div className="grid gap-[clamp(12px,0.9vw,20px)]">
         {items.map((item) => (
@@ -167,7 +204,7 @@ function MenuList({
     .filter((group) => group.items.length > 0);
 
   if (categoryBlocks.length === 0) {
-    return <EmptyDisplayPage title="표시할 메뉴가 없습니다" description="이 페이지에 카테고리와 메뉴 아이템을 추가하면 디스플레이 메뉴보드에 표시됩니다." />;
+    return <EmptyDisplayPage />;
   }
 
   const gridClassName = columns === "single"
@@ -178,7 +215,7 @@ function MenuList({
 
   return (
     <div
-      className={`grid h-full min-h-0 content-start gap-[clamp(20px,1.8vw,36px)] overflow-hidden ${gridClassName}`}
+      className={`grid h-full min-h-0 content-start gap-[clamp(22px,1.9vw,40px)] overflow-hidden ${gridClassName}`}
       data-display-column-policy={columns === "single" ? "single" : "max-2"}
     >
       {categoryBlocks.map((group) => (
@@ -200,7 +237,7 @@ function SplitImagePanel({ settings }: { settings: MenuPageDisplaySettings }) {
   const hasOverlay = Boolean(title || description);
 
   return (
-    <aside className="relative min-h-0 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.055]">
+    <aside className="relative min-h-0 overflow-hidden rounded-[1.8rem] border border-[#d6dfd7]/15 bg-[#f5f3e8]/[0.055]">
       {splitImage.url ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -208,17 +245,17 @@ function SplitImagePanel({ settings }: { settings: MenuPageDisplaySettings }) {
           {hasOverlay ? <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/20 to-transparent" /> : null}
         </>
       ) : (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_20%,rgba(190,242,100,0.28),transparent_32%),linear-gradient(135deg,#18211e,#050707)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_20%,rgba(217,227,122,0.18),transparent_32%),linear-gradient(135deg,#16201a,#050807)]" aria-hidden="true" />
       )}
       {hasOverlay ? (
         <div className="relative flex h-full flex-col justify-end p-8">
           {title ? (
-            <h3 className="break-keep text-[clamp(34px,3.8vw,72px)] font-black leading-none text-white">
+            <h3 className="break-keep text-[clamp(34px,3.8vw,72px)] font-black leading-none text-[#f4f0dc]">
               {title}
             </h3>
           ) : null}
           {description ? (
-            <p className="mt-4 line-clamp-3 break-keep text-[clamp(18px,1.45vw,28px)] font-semibold leading-relaxed text-white/72">
+            <p className="mt-4 line-clamp-3 break-keep text-[clamp(18px,1.45vw,28px)] font-semibold leading-relaxed text-[#f4f0dc]/72">
               {description}
             </p>
           ) : null}
@@ -235,12 +272,12 @@ function FullMenuPageView(props: {
   priceOptions: DisplayPriceOption[];
 }) {
   return (
-    <section className="flex h-full min-h-0 flex-col gap-7">
+    <section className="flex h-full min-h-0 flex-col gap-[clamp(22px,1.8vw,34px)]">
       <div className="flex shrink-0 items-end justify-between gap-8">
         <div>
-          <p className="text-lg font-black text-lime-200">{props.page.title}</p>
+          <p className="text-[clamp(20px,1.5vw,30px)] font-black uppercase tracking-[0.14em] text-[#d9e37a]">{props.page.title}</p>
           {props.page.description_visible && props.page.description && (
-            <p className="mt-2 max-w-3xl break-keep text-[clamp(18px,1.35vw,28px)] font-semibold leading-relaxed text-white/55">{props.page.description}</p>
+            <p className="mt-2 max-w-4xl break-keep text-[clamp(18px,1.32vw,28px)] font-semibold leading-relaxed text-[#e6e2d1]/58">{props.page.description}</p>
           )}
         </div>
       </div>
@@ -299,10 +336,7 @@ function VideoPromotion({ videoUrl }: { videoUrl: string }) {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
-      <div className="max-w-2xl px-10 text-center">
-        <p className="text-2xl font-black text-white">등록된 영상 링크를 직접 재생할 수 없습니다.</p>
-        <p className="mt-4 break-all text-lg font-semibold leading-relaxed text-white/55">{videoUrl}</p>
-      </div>
+      <span className="sr-only">{videoUrl}</span>
     </div>
   );
 }
@@ -326,9 +360,7 @@ function PromotionPageView({ settings }: { settings: MenuPageDisplaySettings }) 
       ) : hasVideo && promotion.videoUrl ? (
         <VideoPromotion videoUrl={promotion.videoUrl} />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
-          <p className="text-2xl font-black text-white/45">등록된 프로모션 이미지 또는 영상이 없습니다.</p>
-        </div>
+        <div className="absolute inset-0 bg-zinc-950" aria-hidden="true" />
       )}
       {hasOverlay ? (
         <div className="relative flex h-full max-w-3xl flex-col justify-end p-12">
@@ -397,9 +429,9 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
 
   if (!activePage) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 p-8 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#050807] p-8 text-white">
         <div className="aspect-video w-full max-w-6xl">
-          <EmptyDisplayPage title="표시할 페이지가 없습니다" description="디스플레이 메뉴판에 표시할 페이지를 추가해주세요." />
+          <EmptyDisplayPage />
         </div>
       </main>
     );
@@ -408,14 +440,14 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050807] p-4 text-white">
       {showPreviewSelector && (
-        <div className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/10 bg-zinc-950/75 px-2 py-1 shadow-xl backdrop-blur">
+        <div className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-[#d6dfd7]/15 bg-[#050807]/82 px-2 py-1 shadow-xl backdrop-blur">
           {pages.map((page, index) => (
             <button
               key={page.id}
               type="button"
               onClick={() => setSelectedPageId(page.id)}
               className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                activePage.id === page.id ? "bg-lime-300 text-zinc-950" : "text-white/55 hover:bg-white/10 hover:text-white"
+                activePage.id === page.id ? "bg-[#d9e37a] text-[#172019]" : "text-[#e6e2d1]/55 hover:bg-white/10 hover:text-[#f4f0dc]"
               }`}
             >
               {index + 1}
@@ -425,14 +457,14 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
       )}
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[1800px] items-center justify-center">
         <section className={`relative aspect-video w-full max-h-[calc(100vh-2rem)] overflow-hidden bg-[#07100d] ${
-          isPromotionPage ? "" : "rounded-[2.25rem] border border-white/10 p-8 shadow-2xl"
+          isPromotionPage ? "" : "rounded-[2.15rem] border border-[#d6dfd7]/15 p-[clamp(28px,2.4vw,48px)] shadow-2xl"
         }`}>
-          {!isPromotionPage ? <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(190,242,100,0.16),transparent_24%),radial-gradient(circle_at_95%_90%,rgba(34,197,94,0.10),transparent_26%)]" /> : null}
-          <div className={`relative flex h-full min-h-0 flex-col ${isPromotionPage ? "" : "gap-6"}`}>
+          {!isPromotionPage ? <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(217,227,122,0.13),transparent_24%),radial-gradient(circle_at_95%_90%,rgba(214,223,215,0.08),transparent_26%)]" /> : null}
+          <div className={`relative flex h-full min-h-0 flex-col ${isPromotionPage ? "" : "gap-[clamp(22px,1.8vw,36px)]"}`}>
             {!isPromotionPage && displayName ? (
-              <header className="flex shrink-0 items-center justify-between gap-8 border-b border-white/10 pb-5">
+              <header className="flex shrink-0 items-center justify-between gap-8 border-b border-[#d6dfd7]/15 pb-[clamp(18px,1.5vw,30px)]">
               <div className="min-w-0">
-                <h1 className="truncate text-[clamp(2.2rem,4.2vw,5rem)] font-black leading-none tracking-normal text-white">
+                <h1 className="truncate text-[clamp(2.2rem,4.15vw,5rem)] font-black leading-none tracking-normal text-[#f4f0dc]">
                     {displayName}
                 </h1>
               </div>
