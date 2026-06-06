@@ -1,6 +1,7 @@
 import Footer from "@/app/components/layout/Footer";
 import ApplyOrderForm from "@/components/apply/ApplyOrderForm";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { getDisplayCheckoutQaTemplates, isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { createClient } from "@/lib/supabase/server";
 import { getAvailableTemplatesForService } from "@/lib/templates";
@@ -57,6 +58,10 @@ export default async function PaidApplyPage({ serviceType, nextPath }: PaidApply
   const copy = PAID_APPLY_COPY[serviceType];
   const portOneConfig = getPublicPortOneConfig();
   const templateServiceType = serviceType === "screen" ? "display" : "basic";
+  const displayCheckoutQaEnabled = serviceType === "screen" && isDisplayCheckoutQaEnabled();
+  const templates = displayCheckoutQaEnabled
+    ? getDisplayCheckoutQaTemplates()
+    : getAvailableTemplatesForService(templateServiceType);
 
   return (
     <>
@@ -78,7 +83,7 @@ export default async function PaidApplyPage({ serviceType, nextPath }: PaidApply
           </header>
 
           <ApplyOrderForm
-            templates={getAvailableTemplatesForService(templateServiceType)}
+            templates={templates}
             userEmail={user.email ?? ""}
             userId={user.id}
             storeId={portOneConfig.storeId}
@@ -86,6 +91,7 @@ export default async function PaidApplyPage({ serviceType, nextPath }: PaidApply
             billingChannelKey={portOneConfig.billingChannelKey}
             mockEnabled={portOneConfig.mockEnabled}
             serviceType={serviceType}
+            displayCheckoutQaEnabled={displayCheckoutQaEnabled}
           />
         </div>
       </main>

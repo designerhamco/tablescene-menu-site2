@@ -1223,7 +1223,13 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     }),
     [pages, props.categories, props.items, props.priceOptions]
   );
-  const [selectedPageId, setSelectedPageId] = useState(displayPages[0]?.id ?? "");
+  const initialSelectedPageId =
+    props.mode === "preview" &&
+    props.initialPreviewPageId &&
+    displayPages.some((page) => page.id === props.initialPreviewPageId)
+      ? props.initialPreviewPageId
+      : displayPages[0]?.id ?? "";
+  const [selectedPageId, setSelectedPageId] = useState(initialSelectedPageId);
   const activeRenderPage = displayPages.find((page) => page.id === selectedPageId) ?? displayPages[0] ?? null;
   const activePage = activeRenderPage?.page ?? null;
   const showPreviewSelector = props.mode === "preview" && displayPages.length > 1;

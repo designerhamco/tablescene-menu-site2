@@ -4,12 +4,20 @@ import { NextResponse } from "next/server";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
 import {
+  DISPLAY_CHECKOUT_QA_PLAN_TYPE,
+  DISPLAY_CHECKOUT_QA_PRODUCT_KEY,
+  DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY,
+  DISPLAY_CHECKOUT_QA_TEMPLATE_KEY,
+} from "@/lib/display-checkout-qa-constants";
+import { isDisplayCheckoutQaEnabled, isDisplayCheckoutQaMockBillingKey } from "@/lib/display-checkout-qa";
+import {
   isTemplateKey,
   isValidMenuSlug,
   normalizeMenuSlug,
   type MenuOrderPayload,
 } from "@/lib/payments";
 import { payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
+import { portOneMockEnabled } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { createStarterMenuData } from "@/lib/menu-starter-presets";
@@ -73,8 +81,8 @@ type SubscriptionBillingPeriod = {
 };
 
 type NormalizedBusinessOrder = MenuOrderPayload & {
-  product_key: "business_basic_monthly" | "business_basic_yearly";
-  plan_type: "business_basic";
+  product_key: "business_basic_monthly" | "business_basic_yearly" | typeof DISPLAY_CHECKOUT_QA_PRODUCT_KEY;
+  plan_type: "business_basic" | typeof DISPLAY_CHECKOUT_QA_PLAN_TYPE;
   payment_type: "subscription";
   billing_cycle: "monthly" | "yearly";
   template_key: NonNullable<MenuOrderPayload["template_key"]>;
@@ -348,9 +356,21 @@ function getRecord(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
+function isDisplayCheckoutQaProduct(product: SubscriptionProduct | null | undefined) {
+  return Boolean(
+    product &&
+    product.productKey === DISPLAY_CHECKOUT_QA_PRODUCT_KEY &&
+    product.planType === DISPLAY_CHECKOUT_QA_PLAN_TYPE &&
+    product.billingCycle === "monthly" &&
+    product.serviceType === "display" &&
+    isDisplayCheckoutQaEnabled()
+  );
+}
+
 function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null {
   const payload = getRecord(value);
   const product = getSubscriptionProduct(getString(payload.product_key));
+  const isDisplayQaOrder = isDisplayCheckoutQaProduct(product);
   const templateKey = getString(payload.template_key);
   const templateCategoryInput = getString(payload.template_category);
   const templateCategory = isTemplateCategoryKey(templateCategoryInput)
@@ -364,7 +384,7 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
   if (
     !product ||
     product.paymentType !== "subscription" ||
-    product.serviceType !== "basic" ||
+    product.serviceType !== (isDisplayQaOrder ? "display" : "basic") ||
     !isTemplateKey(templateKey) ||
     !templateCategory ||
     !isValidMenuSlug(desiredSlug) ||
@@ -372,18 +392,21 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     getString(payload.plan_type) !== product.planType ||
     getString(payload.payment_type) !== product.paymentType ||
     getString(payload.billing_cycle) !== product.billingCycle ||
-    planKey !== "basic" ||
-    !isTemplateSupportedForService(templateKey, "basic")
+    (isDisplayQaOrder && getString(payload.buyerType) !== "business") ||
+    planKey !== (isDisplayQaOrder ? "large_screen" : "basic") ||
+    (isDisplayQaOrder
+      ? templateKey !== DISPLAY_CHECKOUT_QA_TEMPLATE_KEY || templateCategory !== DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY
+      : !isTemplateSupportedForService(templateKey, "basic"))
   ) {
     return null;
   }
 
   const order: NormalizedBusinessOrder = {
-    product_key: product.productKey,
-    plan_type: "business_basic",
+    product_key: product.productKey as NormalizedBusinessOrder["product_key"],
+    plan_type: product.planType,
     payment_type: product.paymentType,
     billing_cycle: product.billingCycle,
-    plan_key: "basic",
+    plan_key: isDisplayQaOrder ? "large_screen" : "basic",
     template_category: templateCategory,
     template_key: templateKey,
     menuName: getString(payload.menuName),
@@ -779,7 +802,7 @@ async function createBusinessMenuSite({
       order.template_key,
       order.restaurantCategory,
       order.template_category,
-      "basic"
+      product.productKey
     );
   } catch (error) {
     throw new BusinessSubscriptionRouteError(
@@ -1172,7 +1195,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (mode === "new" && product.serviceType === "display") {
+  if (mode === "new" && product.serviceType === "display" && !isDisplayCheckoutQaProduct(product)) {
     return jsonStepError({
       step: "new_or_convert_precheck",
       debugCode: "DISPLAY_NEW_NOT_READY",
@@ -1182,7 +1205,7 @@ export async function POST(request: Request) {
       mode,
       productKey: product.productKey,
       billingCycle: product.billingCycle,
-      safeDebug: baseDebug,
+      safeDebug: { ...baseDebug, displayCheckoutQaEnabled: isDisplayCheckoutQaEnabled() },
     });
   }
 
@@ -1270,6 +1293,20 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "new") {
+      if (isDisplayCheckoutQaProduct(product) && getString(getRecord(body.order).buyerType) !== "business") {
+        return jsonStepError({
+          step: "new_or_convert_precheck",
+          debugCode: "DISPLAY_BUSINESS_BUYER_REQUIRED",
+          message: "메뉴링크 디스플레이는 사업자 전용 상품입니다.",
+          status: 400,
+          userId: user.id,
+          mode,
+          productKey: product.productKey,
+          billingCycle: product.billingCycle,
+          safeDebug: baseDebug,
+        });
+      }
+
       order = normalizeBusinessOrder(body.order);
 
       if (!order || order.product_key !== product.productKey || order.businessProfileId !== businessProfile.id) {
@@ -1401,18 +1438,32 @@ export async function POST(request: Request) {
   let billingPayment: Awaited<ReturnType<typeof payWithBillingKey>> | null = null;
 
   try {
-    billingPayment = await payWithBillingKey({
-      paymentId,
-      billingKey,
-      orderName: getSubscriptionOrderName(product),
-      amount: product.amount,
-      customer: {
-        id: user.id,
-        name: businessProfile.business_name ?? businessProfile.representative_name ?? undefined,
-        email: user.email,
-        phoneNumber: order?.buyerPhone,
-      },
-    });
+    if (isDisplayCheckoutQaProduct(product) && portOneMockEnabled && isDisplayCheckoutQaMockBillingKey(billingKey)) {
+      billingPayment = {
+        paymentId,
+        status: "PAID",
+        amount: product.amount,
+        rawPayment: {
+          id: paymentId,
+          paymentId,
+          status: "PAID",
+          amount: product.amount,
+        },
+      };
+    } else {
+      billingPayment = await payWithBillingKey({
+        paymentId,
+        billingKey,
+        orderName: getSubscriptionOrderName(product),
+        amount: product.amount,
+        customer: {
+          id: user.id,
+          name: businessProfile.business_name ?? businessProfile.representative_name ?? undefined,
+          email: user.email,
+          phoneNumber: order?.buyerPhone,
+        },
+      });
+    }
   } catch (error) {
     await markSubscriptionFailed(adminSupabase, subscriptionId);
     return jsonCaughtError({

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
+import PaidApplyPage from "@/app/apply/_components/PaidApplyPage";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
 
 export const metadata: Metadata = {
   title: "메뉴링크 디스플레이 준비 중 | MenuLink",
@@ -10,6 +12,10 @@ export const metadata: Metadata = {
 };
 
 export default function ApplyDisplayPage() {
+  if (isDisplayCheckoutQaEnabled()) {
+    return <PaidApplyPage serviceType="screen" nextPath="/apply/display" />;
+  }
+
   return (
     <>
       <OfficialSiteNavbar />

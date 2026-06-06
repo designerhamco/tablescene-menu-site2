@@ -2,6 +2,7 @@ import type { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
 import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
+import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
 import {
   getTemplateCategoryFromKey,
   isTemplateCategoryKey,
@@ -151,8 +152,13 @@ const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
 function getStarterServiceType(productKey?: string | null): StarterServiceType {
   if (productKey === "basic") return "menu";
   if (productKey === "large_screen") return "screen";
+  if (productKey === "business_display_monthly" || productKey === "business_display_yearly") return "screen";
 
   return "legacy";
+}
+
+function isDisplayMenuATemplateKey(templateKey?: string | null) {
+  return templateKey === "display_menu_a";
 }
 
 function shouldUseLeanStarterPreset(serviceType: StarterServiceType) {
@@ -978,6 +984,208 @@ async function applyStarterSiteDefaults(
   }
 }
 
+async function createDisplayMenuAStarterData(
+  supabase: SupabaseClient,
+  menuSiteId: string,
+  options: CreateStarterMenuDataOptions = {}
+) {
+  const previewData = buildDisplayMenuAPreviewData();
+  const { count, error: countError } = await supabase
+    .from("menu_pages")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_site_id", menuSiteId);
+
+  if (countError) {
+    throw new Error(`Display A 기본 메뉴 중복 확인에 실패했습니다: ${countError.message}`);
+  }
+
+  if ((count ?? 0) > 0 && !options.force) {
+    return { created: false, presetKey: "display", pageCount: 0, categoryCount: 0, itemCount: 0, chefCount: 0, eventCount: 0, socialLinkCount: 0 };
+  }
+
+  if (options.applySiteDefaults !== false) {
+    const { data: site, error: siteError } = await supabase
+      .from("menu_sites")
+      .select("restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, page_settings")
+      .eq("id", menuSiteId)
+      .maybeSingle();
+
+    if (siteError) {
+      throw new Error(`Display A 기본 메뉴판 정보 확인에 실패했습니다: ${siteError.message}`);
+    }
+
+    const sitePayload: MenuSiteUpdate = {
+      restaurant_name: valueOrDefault(site?.restaurant_name, previewData.menuSite.restaurant_name ?? "Display QA Cafe"),
+      restaurant_category: valueOrDefault(site?.restaurant_category, "디스플레이"),
+      restaurant_type: valueOrDefault(site?.restaurant_type, "cafe"),
+      restaurant_address: site?.restaurant_address ?? "",
+      restaurant_phone: site?.restaurant_phone ?? "",
+      page_settings: pageSettingsAreEmpty(site?.page_settings) ? (previewData.menuSite.page_settings as Json) : site?.page_settings,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error: updateError } = await supabase.from("menu_sites").update(sitePayload).eq("id", menuSiteId);
+    if (updateError) {
+      throw new Error(`Display A 기본 메뉴판 정보 저장에 실패했습니다: ${updateError.message}`);
+    }
+  }
+
+  const pageInserts: MenuPageInsert[] = previewData.pages.map((page) => ({
+    menu_site_id: menuSiteId,
+    title: page.title,
+    description: page.description,
+    description_visible: page.description_visible,
+    display_settings: page.display_settings as Json,
+    legacy_section_key: page.legacy_section_key,
+    visible: page.visible,
+    sort_order: page.sort_order,
+  }));
+
+  const { data: insertedPages, error: pagesError } = await supabase
+    .from("menu_pages")
+    .insert(pageInserts)
+    .select("id, title, sort_order");
+
+  if (pagesError) {
+    throw new Error(`Display A 기본 페이지 생성에 실패했습니다: ${pagesError.message}`);
+  }
+
+  const pageIdByPreviewId = new Map(
+    previewData.pages.flatMap((page) => {
+      const insertedPage = (insertedPages ?? []).find((row) => row.title === page.title && row.sort_order === page.sort_order);
+      return insertedPage ? [[page.id, insertedPage.id]] : [];
+    })
+  );
+
+  const categoryInserts: MenuCategoryInsert[] = previewData.categories.map((category) => ({
+    menu_site_id: menuSiteId,
+    menu_page_id: category.menu_page_id ? pageIdByPreviewId.get(category.menu_page_id) ?? null : null,
+    name: category.name,
+    description: null,
+    description_visible: false,
+    section_key: "main_menu",
+    visible: category.visible,
+    sort_order: category.sort_order,
+  }));
+
+  const { data: insertedCategories, error: categoriesError } = await supabase
+    .from("menu_categories")
+    .insert(categoryInserts)
+    .select("id, name, menu_page_id, sort_order");
+
+  if (categoriesError) {
+    throw new Error(`Display A 기본 카테고리 생성에 실패했습니다: ${categoriesError.message}`);
+  }
+
+  const categoryIdByPreviewId = new Map(
+    previewData.categories.flatMap((category) => {
+      const menuPageId = category.menu_page_id ? pageIdByPreviewId.get(category.menu_page_id) ?? null : null;
+      const insertedCategory = (insertedCategories ?? []).find((row) => (
+        row.name === category.name &&
+        row.menu_page_id === menuPageId &&
+        row.sort_order === category.sort_order
+      ));
+      return insertedCategory ? [[category.id, insertedCategory.id]] : [];
+    })
+  );
+
+  const itemInserts: MenuItemInsert[] = previewData.items.map((item) => ({
+    menu_site_id: menuSiteId,
+    category_id: item.category_id ? categoryIdByPreviewId.get(item.category_id) ?? null : null,
+    name: item.name,
+    set_name: item.set_name ?? null,
+    description: null,
+    price: item.price,
+    price_label: item.price_label,
+    portion_label: null,
+    image_url: null,
+    image_path: null,
+    badge_label: item.badge_label,
+    recommended: item.recommended,
+    price_visible: item.price_visible,
+    portion_visible: false,
+    traits_visible: false,
+    visible: item.visible,
+    sort_order: item.sort_order,
+  }));
+
+  let { data: insertedItems, error: itemsError } = await supabase
+    .from("menu_items")
+    .insert(itemInserts)
+    .select("id, name, category_id, sort_order");
+
+  if (
+    itemsError &&
+    (itemsError.message.toLowerCase().includes("badge_label") ||
+      itemsError.message.toLowerCase().includes("could not find") ||
+      itemsError.code === "42703")
+  ) {
+    const fallbackItemInserts = itemInserts.map((menuItem) => {
+      const fallbackMenuItem = { ...menuItem };
+      delete fallbackMenuItem.badge_label;
+      return fallbackMenuItem;
+    });
+    const fallbackResult = await supabase.from("menu_items").insert(fallbackItemInserts).select("id, name, category_id, sort_order");
+    insertedItems = fallbackResult.data;
+    itemsError = fallbackResult.error;
+  }
+
+  if (itemsError) {
+    throw new Error(`Display A 기본 아이템 생성에 실패했습니다: ${itemsError.message}`);
+  }
+
+  const itemIdByPreviewId = new Map(
+    previewData.items.flatMap((item) => {
+      const categoryId = item.category_id ? categoryIdByPreviewId.get(item.category_id) ?? null : null;
+      const insertedItem = (insertedItems ?? []).find((row) => (
+        row.name === item.name &&
+        row.category_id === categoryId &&
+        row.sort_order === item.sort_order
+      ));
+      return insertedItem ? [[item.id, insertedItem.id]] : [];
+    })
+  );
+
+  const priceOptionInserts: MenuItemPriceOptionInsert[] = previewData.priceOptions.flatMap((option) => {
+    const menuItemId = itemIdByPreviewId.get(option.menu_item_id);
+    if (!menuItemId) return [];
+
+    return [{
+      menu_site_id: menuSiteId,
+      menu_item_id: menuItemId,
+      label: option.label,
+      price: option.price,
+      price_label: option.price_label,
+      visible: option.visible,
+      sort_order: option.sort_order,
+    }];
+  });
+
+  if (priceOptionInserts.length > 0) {
+    const { error: priceOptionsError } = await supabase.from("menu_item_price_options").insert(priceOptionInserts);
+
+    if (
+      priceOptionsError &&
+      !priceOptionsError.message.toLowerCase().includes("menu_item_price_options") &&
+      !priceOptionsError.message.toLowerCase().includes("does not exist") &&
+      priceOptionsError.code !== "42P01"
+    ) {
+      throw new Error(`Display A 기본 가격 옵션 생성에 실패했습니다: ${priceOptionsError.message}`);
+    }
+  }
+
+  return {
+    created: true,
+    presetKey: "display",
+    pageCount: pageInserts.length,
+    categoryCount: categoryInserts.length,
+    itemCount: itemInserts.length,
+    chefCount: 0,
+    eventCount: 0,
+    socialLinkCount: 0,
+  };
+}
+
 export async function createStarterMenuData(
   supabase: SupabaseClient,
   menuSiteId: string,
@@ -987,6 +1195,10 @@ export async function createStarterMenuData(
   productKey?: string | null,
   options: CreateStarterMenuDataOptions = {}
 ) {
+  if (isDisplayMenuATemplateKey(templateKey)) {
+    return createDisplayMenuAStarterData(supabase, menuSiteId, options);
+  }
+
   const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory);
   if (isCafeDesignATemplateKey(templateKey) && preset.pages.length !== 1) {
     throw new Error("Cafe Design A 기본 메뉴는 메뉴 페이지 1개로만 생성되어야 합니다.");

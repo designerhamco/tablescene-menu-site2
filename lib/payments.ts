@@ -7,6 +7,7 @@ export type PlanType = "personal_trial" | "business_basic" | "business_display";
 export type PaymentType = "one_time" | "subscription";
 export type BillingCycle = "trial_1_month" | "monthly" | "yearly";
 export type BasicProductKey = "personal_trial_basic_1month" | "business_basic_monthly" | "business_basic_yearly";
+export type PaymentProductKey = BasicProductKey | "business_display_monthly" | "business_display_yearly";
 export type OrderSetupPayload = {
   tableCount?: string | null;
   posUsage?: string | null;
@@ -93,7 +94,7 @@ export const menuCreationProduct = personalTrialBasicProduct;
 export type MenuCreationProduct = typeof menuCreationProduct;
 
 export type MenuOrderPayload = {
-  product_key?: BasicProductKey;
+  product_key?: PaymentProductKey;
   plan_type?: PlanType;
   payment_type?: PaymentType;
   billing_cycle?: BillingCycle;

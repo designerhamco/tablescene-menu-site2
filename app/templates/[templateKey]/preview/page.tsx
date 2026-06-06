@@ -8,7 +8,7 @@ import type { MenuPageData } from "@/lib/menu-page-data";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
-import { getDefaultPageSettings } from "@/types/menu";
+import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ templateKey: string }>;
@@ -193,22 +193,10 @@ function getDisplayPreviewPageIndex(value: string | string[] | undefined) {
   return Number.isFinite(pageIndex) && pageIndex >= 1 ? pageIndex - 1 : null;
 }
 
-function orderDisplayPreviewPages(data: MenuPageData, requestedPageIndex: number | null): MenuPageData {
-  if (requestedPageIndex === null || requestedPageIndex <= 0 || requestedPageIndex >= data.pages.length) {
-    return data;
-  }
+function getDisplayPreviewInitialPageId(data: MenuPageData, requestedPageIndex: number | null) {
+  if (requestedPageIndex === null) return null;
 
-  const pages = [...data.pages];
-  const [requestedPage] = pages.splice(requestedPageIndex, 1);
-  if (!requestedPage) return data;
-
-  return {
-    ...data,
-    pages: [requestedPage, ...pages].map((page, index) => ({
-      ...page,
-      sort_order: index,
-    })),
-  };
+  return sortMenuPages(data.pages.filter((page) => page.visible))[requestedPageIndex]?.id ?? null;
 }
 
 function getDisplayPreviewSplitImagePosition(value: string | string[] | undefined) {
@@ -282,9 +270,16 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   }
 
   const data = applyDisplayPreviewSplitImagePosition(
-    orderDisplayPreviewPages(buildPreviewData(templateKey, displayPreviewQaCase), displayPreviewPageIndex),
+    buildPreviewData(templateKey, displayPreviewQaCase),
     displayPreviewSplitImagePosition
   );
 
-  return <MenuPageRenderer mode="preview" previewLayoutMode={previewLayoutMode} {...data} />;
+  return (
+    <MenuPageRenderer
+      mode="preview"
+      previewLayoutMode={previewLayoutMode}
+      initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
+      {...data}
+    />
+  );
 }

@@ -5,6 +5,11 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { SUBSCRIPTION_PRODUCTS } from "@/lib/billing-products";
+import {
+  DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX,
+  DISPLAY_CHECKOUT_QA_PRODUCT_KEY,
+} from "@/lib/display-checkout-qa-constants";
 import { openDiscountPolicy } from "@/lib/promotion-policy";
 import {
   basicPaymentProducts,
@@ -20,6 +25,7 @@ import {
   type BuyerType,
   type MenuOrderPayload,
   type OrderSetupPayload,
+  type PaymentProductKey,
   type PlanKey,
   type ScreenSetupPayload,
 } from "@/lib/payments";
@@ -54,6 +60,7 @@ type ApplyOrderFormProps = {
   billingChannelKey: string | null;
   mockEnabled: boolean;
   serviceType?: "menu" | "screen" | "order";
+  displayCheckoutQaEnabled?: boolean;
 };
 
 type AgreementKey = "terms" | "privacy" | "contentPolicy" | "marketing";
@@ -179,7 +186,7 @@ type PaidApplyProduct = {
   regular_amount?: number;
   discount_rate?: number;
   currency: typeof menuCreationProduct.currency;
-  product_key?: string;
+  product_key?: PaymentProductKey;
   plan_type?: MenuOrderPayload["plan_type"];
   payment_type?: MenuOrderPayload["payment_type"];
   billing_cycle?: MenuOrderPayload["billing_cycle"];
@@ -312,6 +319,23 @@ const screenCreationProduct = {
   name: "메뉴링크 디스플레이 생성권",
   description: "매장 화면용 디지털 메뉴보드 운영을 준비합니다.",
 } as const;
+
+const displayCheckoutQaProduct = {
+  key: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].productKey,
+  product_key: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].productKey,
+  name: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].name,
+  label: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].label,
+  description: "QA flag가 켜진 로컬/dev 환경에서만 메뉴링크 디스플레이 A 결제를 테스트합니다.",
+  plan_type: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].planType,
+  payment_type: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].paymentType,
+  billing_cycle: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].billingCycle,
+  amount: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].amount,
+  regular_amount: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].amount,
+  discount_rate: 0,
+  currency: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].currency,
+  requires_business_verification: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].requiresBusinessVerification,
+  is_subscription: true,
+} as const satisfies PaidApplyProduct;
 
 const orderCreationProduct = {
   ...menuCreationProduct,
@@ -480,6 +504,12 @@ function createMockPaymentId() {
   const timestamp = Date.now().toString(36);
   const randomId = crypto.randomUUID().replaceAll("-", "").slice(0, 20);
   return `mock_ts_${timestamp}_${randomId}`;
+}
+
+function createMockDisplayBillingKey() {
+  const timestamp = Date.now().toString(36);
+  const randomId = crypto.randomUUID().replaceAll("-", "").slice(0, 20);
+  return `${DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX}${timestamp}_${randomId}`;
 }
 
 function nullable(value: string) {
@@ -735,11 +765,13 @@ export default function ApplyOrderForm({
   billingChannelKey,
   mockEnabled,
   serviceType = "menu",
+  displayCheckoutQaEnabled = false,
 }: ApplyOrderFormProps) {
   const router = useRouter();
   const isMenuService = serviceType === "menu";
   const isScreenService = serviceType === "screen";
   const isOrderService = serviceType === "order";
+  const isDisplayBusinessOnly = isScreenService && displayCheckoutQaEnabled;
   const templateServiceType: TemplateServiceType = isScreenService ? "display" : "basic";
   const serviceTemplates = useMemo(() => [...templates], [templates]);
   const templateTypeOptions = useMemo(() => getTemplateTypeOptionsForService(templateServiceType), [templateServiceType]);
@@ -748,7 +780,11 @@ export default function ApplyOrderForm({
   const firstTemplate = serviceTemplates.find((template) => template.template_category === firstCategory) ?? serviceTemplates[0] ?? templates[0];
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(personalTrialBasicProduct.product_key);
   const selectedBasicProduct = getBasicPaymentProduct(selectedBasicProductKey) ?? personalTrialBasicProduct;
-  const activeProduct: PaidApplyProduct = isMenuService ? selectedBasicProduct : serviceProducts[serviceType];
+  const activeProduct: PaidApplyProduct = isMenuService
+    ? selectedBasicProduct
+    : isScreenService && displayCheckoutQaEnabled
+      ? displayCheckoutQaProduct
+      : serviceProducts[serviceType];
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate?.template_category ?? firstCategory);
   const [selectedMenuTemplateGroup, setSelectedMenuTemplateGroup] = useState<MenuTemplateGroupKey>("recommended");
   const [agreements, setAgreements] = useState(initialAgreements);
@@ -760,7 +796,7 @@ export default function ApplyOrderForm({
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
   const [slugState, setSlugState] = useState<SlugState>({ slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT });
   const [form, setForm] = useState<FormState>({
-    buyerType: "individual",
+    buyerType: isDisplayBusinessOnly ? "business" : "individual",
     template_category: firstTemplate?.template_category ?? firstCategory,
     template_key: firstTemplate?.key ?? "",
     menuName: "",
@@ -833,10 +869,10 @@ export default function ApplyOrderForm({
 
   const payload = useMemo<DraftMenuOrderPayload>(
     () => ({
-      product_key: isMenuService ? selectedBasicProduct.product_key : personalTrialBasicProduct.product_key,
-      plan_type: isMenuService ? selectedBasicProduct.plan_type : personalTrialBasicProduct.plan_type,
-      payment_type: isMenuService ? selectedBasicProduct.payment_type : personalTrialBasicProduct.payment_type,
-      billing_cycle: isMenuService ? selectedBasicProduct.billing_cycle : personalTrialBasicProduct.billing_cycle,
+      product_key: activeProduct.product_key,
+      plan_type: activeProduct.plan_type,
+      payment_type: activeProduct.payment_type,
+      billing_cycle: activeProduct.billing_cycle,
       plan_key: currentPlanKey,
       template_category: form.template_category,
       template_key: form.template_key,
@@ -879,6 +915,9 @@ export default function ApplyOrderForm({
     }),
     [
       activeProduct.amount,
+      activeProduct.billing_cycle,
+      activeProduct.payment_type,
+      activeProduct.plan_type,
       activeProduct.product_key,
       activeProductRequiresBusinessVerification,
       agreements.contentPolicy,
@@ -888,12 +927,10 @@ export default function ApplyOrderForm({
       businessVerificationState,
       currentPlanKey,
       form,
-      isMenuService,
       isOrderService,
       isScreenService,
       orderSetup,
       screenSetup,
-      selectedBasicProduct,
       selectedScreenTemplateCategory.label,
     ]
   );
@@ -1085,7 +1122,9 @@ export default function ApplyOrderForm({
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({
       ...current,
+      ...(isDisplayBusinessOnly ? { buyerType: "business" as BuyerType } : {}),
       [key]: key === "desiredSlug" ? normalizeMenuAddressInput(String(value)) : key === "businessNumber" ? formatBusinessNumber(String(value)) : value,
+      ...(isDisplayBusinessOnly && key === "buyerType" ? { buyerType: "business" as BuyerType } : {}),
     }));
 
     if (["businessName", "representativeName", "businessNumber", "businessOpeningDate"].includes(String(key))) {
@@ -1336,7 +1375,44 @@ export default function ApplyOrderForm({
         return;
       }
 
+      const canUseDisplayCheckoutQaMock =
+        isScreenService && displayCheckoutQaEnabled && isDevelopment && mockEnabled;
+
       if (!storeId || !billingChannelKey) {
+        if (canUseDisplayCheckoutQaMock) {
+          setUiState({ type: "loading", message: "개발 환경 mock 빌링키로 Display 결제 QA 흐름을 확인하고 있습니다." });
+
+          try {
+            const response = await fetch("/api/business-subscriptions/start", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                mode: "new",
+                billingKey: createMockDisplayBillingKey(),
+                businessProfileId: businessVerificationState.result.businessProfileId,
+                productKey: activeProduct.product_key,
+                billingCycle: activeProduct.billing_cycle,
+                order: payload,
+              }),
+            });
+            const result = (await response.json()) as BusinessSubscriptionResponse;
+
+            if (!response.ok || !result.ok) {
+              throw new Error(getBusinessSubscriptionErrorMessage(result));
+            }
+
+            router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
+          } catch (error) {
+            setUiState({
+              type: "error",
+              message: error instanceof Error ? error.message : "Display mock 정기결제 처리 중 알 수 없는 오류가 발생했습니다.",
+            });
+          }
+          return;
+        }
+
         setUiState({
           type: "error",
           message: "사업자 정기결제용 PortOne 빌링키 채널 환경변수가 필요합니다. NEXT_PUBLIC_PORTONE_BILLING_CHANNEL_KEY 설정을 확인해주세요.",
@@ -1681,7 +1757,32 @@ export default function ApplyOrderForm({
           </div>
 
           <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
-            {isScreenService
+            {isScreenService && displayCheckoutQaEnabled
+              ? Array.from(new Set(serviceTemplates.map((template) => template.template_category))).map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => {
+                      const nextTemplate = serviceTemplates.find((template) => template.template_category === category);
+                      setSelectedCategory(category);
+                      if (nextTemplate) {
+                        setForm((current) => ({
+                          ...current,
+                          template_category: category,
+                          template_key: nextTemplate.key,
+                        }));
+                      }
+                    }}
+                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                      selectedCategory === category
+                        ? "border-zinc-950 bg-zinc-950 text-white"
+                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
+                    }`}
+                  >
+                    {getTemplateCategoryLabel(category)}
+                  </button>
+                ))
+              : isScreenService
               ? screenTemplateCategories.map((filter) => (
                   <button
                     key={filter.key}
@@ -1781,7 +1882,7 @@ export default function ApplyOrderForm({
                       <h3 className="text-lg font-bold">{template.name}</h3>
                       <p className={`mt-1 font-mono text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>{template.key}</p>
                       <p className={`mt-1 text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>
-                        {isScreenService ? selectedScreenTemplateCategory.label : getTemplateCategoryLabel(template.template_category)}
+                        {isScreenService && !displayCheckoutQaEnabled ? selectedScreenTemplateCategory.label : getTemplateCategoryLabel(template.template_category)}
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -1956,8 +2057,10 @@ export default function ApplyOrderForm({
           <h2 className="mb-6 text-3xl font-bold tracking-tight">구매자 및 담당자 정보</h2>
           <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
-              {isScreenService
-                ? "메뉴링크 디스플레이는 전용 템플릿 준비 전까지 결제를 진행하지 않습니다."
+              {isDisplayBusinessOnly
+                ? "메뉴링크 디스플레이는 사업자 전용 상품입니다. 사업자 정보를 확인한 뒤 정기 결제를 진행할 수 있습니다."
+                : isScreenService
+                  ? "메뉴링크 디스플레이는 전용 템플릿 준비 전까지 결제를 진행하지 않습니다."
                 : activeProductRequiresBusinessVerification
                   ? "사업자 월/연 결제는 사업자 인증 후 자동결제로 이용합니다. 현재 화면은 인증 입력 구조와 자동결제 연결 전 상태를 명확히 구분합니다."
                   : "개인 체험은 사업자 인증 없이 1개월 동안 사용하는 단건 결제 상품입니다. 자동결제 없이 1회 결제로 이용합니다."}
@@ -1966,7 +2069,14 @@ export default function ApplyOrderForm({
           <div className="grid gap-5 md:grid-cols-2">
             <div className="md:col-span-2">
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">구매자 유형 *</span>
-              {isMenuService ? (
+              {isDisplayBusinessOnly ? (
+                <div className="mt-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                  <p className="text-sm font-black text-emerald-900">사업자 전용</p>
+                  <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                    디스플레이 메뉴보드는 사업자 정보 확인 후 결제할 수 있습니다. 개인 구매자로는 신청할 수 없습니다.
+                  </p>
+                </div>
+              ) : isMenuService ? (
                 <div className="mt-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-black text-zinc-700">
                   {activeProductRequiresBusinessVerification ? "사업자 정식 이용" : "개인 체험 이용"}
                 </div>
