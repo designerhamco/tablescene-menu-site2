@@ -86,6 +86,12 @@ const DISPLAY_PUBLIC_PAGE_INTERVAL_MS = 8000;
 const DISPLAY_FIT_MAX_ITERATIONS = 10;
 const DISPLAY_FIT_MAX_PHASE = 4;
 const DISPLAY_FIT_MIN_SCALE = 0.08;
+const DISPLAY_SURFACE_COLOR = "#FFFFFF";
+const DISPLAY_TEXT_COLOR = "#17211F";
+const DISPLAY_MUTED_TEXT_COLOR = "#5F6F6B";
+const DISPLAY_COOL_ACCENT_COLOR = "#007C89";
+const DISPLAY_COOL_ACCENT_SOFT_COLOR = "#D7F4F3";
+const DISPLAY_COOL_ACCENT_BORDER_COLOR = "#88DAD7";
 const DISPLAY_FIT_INITIAL_STATE: DisplayFitState = {
   key: "",
   scale: 1,
@@ -133,14 +139,14 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
   const gapScale = (0.96 + (fontScale - 1) * 0.45) * phaseGapScale;
   const spaciousFillScale = Math.min(Math.max((rowCqh - 3.2) / 2.8, 0), 1);
   const verticalFillScale = Math.min(Math.max((rowCqh - 5.2) / 2.4, 0), 1);
-  const categoryTitleScale = 0.415 + 0.04 * spaciousFillScale + 0.012 * verticalFillScale;
+  const menuTitleScale = 0.354 + 0.06 * spaciousFillScale + 0.0185 * verticalFillScale;
+  const categoryTitleScale = menuTitleScale * 1.21;
   const categoryHeadingGapScale = 0.28 + 0.05 * spaciousFillScale + 0.035 * verticalFillScale;
   const categoryRuleGapScale = 0.12 + 0.02 * spaciousFillScale + 0.01 * verticalFillScale;
   const itemGapScale = 0.255 + 0.105 * spaciousFillScale + 0.05 * verticalFillScale;
   const titleGapScale = 0.18 + 0.03 * spaciousFillScale + 0.012 * verticalFillScale;
   const titleRowGapScale = 0.06 + 0.02 * spaciousFillScale;
-  const menuTitleScale = 0.354 + 0.06 * spaciousFillScale + 0.0185 * verticalFillScale;
-  const badgeFontScale = 0.19 + 0.026 * spaciousFillScale;
+  const badgeFontScale = 0.205 + 0.022 * spaciousFillScale;
   const metaFontScale = 0.17 + 0.018 * spaciousFillScale + 0.006 * verticalFillScale;
   const optionHeaderScale = 0.235 + 0.04 * spaciousFillScale + 0.01 * verticalFillScale;
   const priceScale = 0.344 + 0.058 * spaciousFillScale + 0.0185 * verticalFillScale;
@@ -159,7 +165,7 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
     titleRowStyle: { columnGap: `calc(var(--display-row) * ${titleGapScale * gapScale})`, rowGap: `calc(var(--display-row) * ${titleRowGapScale * gapScale})` },
     menuTitleStyle: { fontSize: `calc(var(--display-row) * ${menuTitleScale * fontScale})`, lineHeight: 1.14 },
     badgeStyle: showBadge
-      ? { fontSize: `calc(var(--display-row) * ${badgeFontScale * fontScale * phaseBadgeScale})`, padding: `calc(var(--display-row) * ${0.125 * gapScale * phaseBadgeScale}) calc(var(--display-row) * ${0.205 * gapScale * phaseBadgeScale})`, borderRadius: "2px" }
+      ? { fontSize: `calc(var(--display-row) * ${badgeFontScale * fontScale * phaseBadgeScale})`, padding: `calc(var(--display-row) * ${0.07 * gapScale * phaseBadgeScale}) calc(var(--display-row) * ${0.155 * gapScale * phaseBadgeScale})`, borderRadius: "3px" }
       : { display: "none" },
     metaStyle: showMeta ? { fontSize: `calc(var(--display-row) * ${metaFontScale * fontScale * phaseMetaScale})`, lineHeight: 1.2 } : { display: "none" },
     optionHeaderStyle: { fontSize: `calc(var(--display-row) * ${optionHeaderScale * fontScale})`, lineHeight: 1.05 },
@@ -711,7 +717,7 @@ function buildDisplayRenderPages({
 function EmptyDisplayPage() {
   return (
     <div
-      className="h-full border border-[#c8d0cb] bg-white"
+      className="h-full border border-[#DDE8E7] bg-white"
       aria-hidden="true"
     />
   );
@@ -731,7 +737,7 @@ function MenuItemRow({
   const badge = getMenuItemBadgeLabel(item);
   const itemName = normalizeDisplayText(item.name) || "";
   const priceRows = getItemPriceRows(item, priceOptions);
-  const badgeStyle = badge ? getBadgeStyleForItem(item, "cafe_design_a") : null;
+  const badgeStyle = badge ? getBadgeStyleForItem(item, "display_menu_a") : null;
   const optionPriceByLabel = optionHeaders.length > 0 ? getItemPriceByOptionLabel(item, priceOptions) : null;
   const optionGridStyle = optionHeaders.length > 0 ? getOptionGridStyle(optionHeaders) : null;
 
@@ -744,7 +750,7 @@ function MenuItemRow({
         <div className="min-w-0">
           <div className="cafe-a-menu-title-row flex min-w-0 flex-wrap items-center" style={densityConfig.titleRowStyle}>
             <span className="cafe-a-menu-title-badge inline-flex max-w-full shrink-0 items-center" style={{ columnGap: densityConfig.titleRowStyle.columnGap }}>
-              <h4 className="cafe-a-menu-title min-w-0 break-keep font-bold tracking-normal text-[#191c1b]" style={densityConfig.menuTitleStyle}>
+              <h4 className="cafe-a-menu-title min-w-0 break-keep font-bold tracking-normal text-[var(--display-text-color)]" style={densityConfig.menuTitleStyle}>
                 {itemName}
               </h4>
               {densityConfig.showBadge && badge && (
@@ -760,36 +766,36 @@ function MenuItemRow({
               )}
             </span>
             {densityConfig.showMeta && item.set_name && (
-              <span className="menu-font-en cafe-a-menu-meta min-w-0 max-w-[52%] break-words font-semibold uppercase tracking-normal text-[#5e5e5e]" style={densityConfig.metaStyle}>
+              <span className="menu-font-en cafe-a-menu-meta min-w-0 max-w-[52%] break-words font-semibold uppercase tracking-normal text-[var(--display-muted-text-color)]" style={densityConfig.metaStyle}>
                 {item.set_name}
               </span>
             )}
           </div>
         </div>
         {optionHeaders.length > 0 && optionGridStyle ? (
-          <div className="menu-price cafe-a-price-options-grid grid shrink-0 justify-items-center text-center text-[#191c1b]" style={optionGridStyle}>
+          <div className="menu-price cafe-a-price-options-grid grid shrink-0 justify-items-center text-center text-[var(--display-text-color)]" style={optionGridStyle}>
             {optionPriceByLabel && optionPriceByLabel.size > 0 ? (
               optionHeaders.map((header) => (
-                <span key={header.label} className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[#191c1b]" style={densityConfig.priceStyle}>
+                <span key={header.label} className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[var(--display-text-color)]" style={densityConfig.priceStyle}>
                   {optionPriceByLabel.get(header.label) ?? "-"}
                 </span>
               ))
             ) : priceRows[0]?.price ? (
-              <span className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[#191c1b]" style={{ ...densityConfig.priceStyle, gridColumn: "1 / -1" }}>
+              <span className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[var(--display-text-color)]" style={{ ...densityConfig.priceStyle, gridColumn: "1 / -1" }}>
                 {priceRows[0].price}
               </span>
             ) : null}
           </div>
         ) : priceRows.length > 0 ? (
-          <div className="menu-price cafe-a-price-stack grid shrink-0 justify-items-end text-right text-[#191c1b]" style={densityConfig.priceStackStyle}>
+          <div className="menu-price cafe-a-price-stack grid shrink-0 justify-items-end text-right text-[var(--display-text-color)]" style={densityConfig.priceStackStyle}>
             {priceRows.map((row, index) => (
               <div key={`${row.label ?? "price"}-${row.price}-${index}`} className="cafe-a-price-row grid grid-cols-[auto_auto] items-baseline" style={densityConfig.priceRowStyle}>
                 {row.label ? (
-                  <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none tracking-normal text-[#191c1b]" style={densityConfig.priceLabelStyle}>
+                  <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none tracking-normal text-[var(--display-text-color)]" style={densityConfig.priceLabelStyle}>
                     {row.label}
                   </span>
                 ) : null}
-                <span className="cafe-a-menu-price whitespace-nowrap font-bold leading-none text-[#191c1b]" style={densityConfig.priceStyle}>
+                <span className="cafe-a-menu-price whitespace-nowrap font-bold leading-none text-[var(--display-text-color)]" style={densityConfig.priceStyle}>
                   {row.price}
                 </span>
               </div>
@@ -822,20 +828,20 @@ function CategoryBlock({
     <section className="min-w-0" data-display-category-section="" data-display-category-block="">
       <div className="cafe-a-category-heading" style={densityConfig.categoryHeadingStyle}>
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end" style={densityConfig.itemGridStyle}>
-          <h3 className="cafe-a-category-title break-keep font-black uppercase leading-tight tracking-normal text-[#191c1b]" style={densityConfig.categoryTitleStyle}>
+          <h3 className="cafe-a-category-title break-keep font-black uppercase leading-tight tracking-normal text-[var(--display-accent-color)]" style={densityConfig.categoryTitleStyle}>
             {categoryName}
           </h3>
           {optionHeaders.length > 0 && optionGridStyle ? (
             <div className="menu-font-en cafe-a-option-header-grid grid shrink-0 justify-items-center text-center" style={optionGridStyle}>
               {optionHeaders.map((header) => (
-                <span key={header.label} className="block w-full whitespace-nowrap text-center font-black uppercase tracking-normal text-[#3f4945]" style={densityConfig.optionHeaderStyle}>
+                <span key={header.label} className="block w-full whitespace-nowrap text-center font-black uppercase tracking-normal text-[var(--display-accent-color)]" style={densityConfig.optionHeaderStyle}>
                   {header.label}
                 </span>
               ))}
             </div>
           ) : null}
         </div>
-        <div className="cafe-a-category-rule border-b border-[#191c1b]" style={densityConfig.categoryRuleStyle} />
+        <div className="cafe-a-category-rule border-b border-[var(--display-accent-border-color)]" style={densityConfig.categoryRuleStyle} />
       </div>
       <div
         className="cafe-a-category-items grid grid-cols-1"
@@ -863,10 +869,10 @@ function DisplayMenuColumn({
 }) {
   return (
     <div
-      className="h-full min-h-0 overflow-hidden bg-[#f8faf7] px-[var(--display-column-padding-x)] py-[var(--display-column-padding-y)]"
+      className="h-full min-h-0 overflow-hidden bg-[var(--display-surface-color)] px-[var(--display-column-padding-x)] py-[var(--display-column-padding-y)]"
       style={{
-        "--display-column-padding-x": "clamp(30px, 3.15vw, 56px)",
-        "--display-column-padding-y": "clamp(22px, 2.25vw, 42px)",
+        "--display-column-padding-x": "clamp(33px, 3.45vw, 62px)",
+        "--display-column-padding-y": "clamp(24px, 2.5vw, 46px)",
         containerType: "size",
       } as CSSProperties}
       data-display-menu-column=""
@@ -1046,12 +1052,12 @@ function SplitImagePanel({ settings }: { settings: MenuPageDisplaySettings }) {
   const { splitImage } = settings;
 
   return (
-    <aside className="relative min-h-0 overflow-hidden bg-[#eceeec]" data-display-split-image-panel="">
+    <aside className="relative min-h-0 overflow-hidden bg-[#EFF7F6]" data-display-split-image-panel="">
       {splitImage.url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={splitImage.url} alt="" className="absolute inset-0 h-full w-full object-cover" />
       ) : (
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_44%,#f7f8f6_100%)]" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,#F5FFFE_0%,#DFF6F4_45%,#FFFFFF_100%)]" aria-hidden="true" />
       )}
     </aside>
   );
@@ -1083,7 +1089,7 @@ function SplitMenuPageView(props: {
 }) {
   const imageFirst = props.settings.splitImagePosition !== "right";
   const menuPanel = (
-    <div className="min-h-0 bg-[#f8faf7]" data-display-split-menu-panel="">
+    <div className="min-h-0 bg-[var(--display-surface-color)]" data-display-split-menu-panel="">
       <MenuList {...props} columns="single" />
     </div>
   );
@@ -1203,6 +1209,41 @@ function DisplayPageView({
   );
 }
 
+function DisplayPageIndicator({
+  pages,
+  activePageId,
+  onSelect,
+}: {
+  pages: DisplayRenderPage[];
+  activePageId: string | null | undefined;
+  onSelect: (pageId: string) => void;
+}) {
+  return (
+    <div className="pointer-events-none absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-slate-200/75 bg-white/78 px-2.5 py-2 opacity-0 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+      {pages.map((displayPage, index) => {
+        const isActive = activePageId === displayPage.id;
+
+        return (
+          <button
+            key={displayPage.id}
+            type="button"
+            onClick={() => onSelect(displayPage.id)}
+            title={displayPage.page.title}
+            aria-current={isActive ? "page" : undefined}
+            className={`grid h-7 min-w-7 place-items-center rounded-full px-2 text-[11px] font-black transition ${
+              isActive
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:bg-slate-100 focus-visible:text-slate-900"
+            }`}
+          >
+            {index + 1}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const pages = useMemo(
     () => sortMenuPages(props.pages.filter((page) => page.visible)),
@@ -1212,8 +1253,16 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const typographySettings = mergeTypographySettings(props.menuSite.template_key, customTypography);
   const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
-  const typographyStyle = getTypographyCssVariables(typographySettings);
-  const fontSizeScale = getFontSizeMultiplier(typographySettings.font_size_scale_key);
+  const typographyStyle = {
+    ...getTypographyCssVariables(typographySettings, props.menuSite.template_key),
+    "--display-surface-color": DISPLAY_SURFACE_COLOR,
+    "--display-text-color": DISPLAY_TEXT_COLOR,
+    "--display-muted-text-color": DISPLAY_MUTED_TEXT_COLOR,
+    "--display-accent-color": DISPLAY_COOL_ACCENT_COLOR,
+    "--display-accent-soft-color": DISPLAY_COOL_ACCENT_SOFT_COLOR,
+    "--display-accent-border-color": DISPLAY_COOL_ACCENT_BORDER_COLOR,
+  } as CSSProperties;
+  const fontSizeScale = getFontSizeMultiplier(typographySettings.font_size_scale_key, props.menuSite.template_key);
   const displayPages = useMemo(
     () => buildDisplayRenderPages({
       pages,
@@ -1255,7 +1304,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     return (
       <>
         <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
-        <main className="flex min-h-screen items-center justify-center bg-[#dfe6e2] p-8 text-[#191c1b]" style={typographyStyle}>
+        <main className="flex min-h-screen items-center justify-center bg-white p-8 text-[var(--display-text-color)]" style={typographyStyle}>
           <div className="aspect-video w-full max-w-6xl">
             <EmptyDisplayPage />
           </div>
@@ -1267,26 +1316,12 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   return (
     <>
       <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
-      <main className="menu-typography group relative h-screen w-screen overflow-hidden bg-[#f8faf7] text-[#191c1b]" style={typographyStyle}>
+      <main className="menu-typography group relative h-screen w-screen overflow-hidden bg-[var(--display-surface-color)] text-[var(--display-text-color)]" style={typographyStyle}>
         {showPreviewSelector && (
-          <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border border-[#191c1b] bg-white/88 px-2 py-1 opacity-0 shadow-sm backdrop-blur transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-            {displayPages.map((displayPage, index) => (
-              <button
-                key={displayPage.id}
-                type="button"
-                onClick={() => setSelectedPageId(displayPage.id)}
-                title={displayPage.page.title}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                  activeRenderPage?.id === displayPage.id ? "bg-[#191c1b] text-white" : "text-[#3f4945] hover:bg-[#d8dedb]"
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
-          </div>
+          <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={setSelectedPageId} />
         )}
         <section className={`relative h-screen w-screen overflow-hidden ${
-          isPromotionPage ? "bg-zinc-950" : isSplitMenuPage ? "bg-[#f8faf7]" : "bg-[#f8faf7]"
+          isPromotionPage ? "bg-zinc-950" : isSplitMenuPage ? "bg-[var(--display-surface-color)]" : "bg-[var(--display-surface-color)]"
         }`}>
           <div className="relative flex h-full min-h-0 flex-col">
             <div className="min-h-0 flex-1">

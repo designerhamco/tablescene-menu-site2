@@ -374,6 +374,16 @@ function HelpTooltip({ label, children }: { label: string; children: ReactNode }
   );
 }
 
+function PromotionPageHelpText() {
+  return (
+    <>
+      프로모션 페이지는 이미지 또는 영상으로 매장 소식과 이벤트를 보여주는 화면입니다.
+      <br />
+      이 페이지에는 메뉴 카테고리와 메뉴 아이템을 추가하지 않습니다.
+    </>
+  );
+}
+
 function LabelWithHelp({ children, help }: { children: ReactNode; help: ReactNode }) {
   return (
     <span className="inline-flex items-center gap-2">
@@ -874,7 +884,7 @@ function PanelHeader({
   action,
 }: {
   eyebrow: string;
-  title: string;
+  title: ReactNode;
   description?: string;
   action?: ReactNode;
 }) {
@@ -926,27 +936,28 @@ type DisplayMenuQualityNotice = {
   quality: DisplayMenuPageQuality;
 };
 type DisplayMenuCategoryQualityNotice = {
+  tone: "notice" | "strong";
   itemCount: number;
   message: string;
 };
 
 const DISPLAY_A_MENU_QUALITY_NOTICE_TEXT =
-  "이 페이지의 메뉴가 Display A 권장 개수를 초과했습니다.";
+  "표시 품질 안내";
 const DISPLAY_A_MENU_QUALITY_STRONG_TEXT =
-  "이 페이지는 디스플레이 화면에서 읽기 어려울 수 있을 만큼 메뉴가 많습니다.";
+  "표시 품질을 더 좋게 다듬을 수 있습니다";
 const DISPLAY_A_MENU_QUALITY_CTA_TEXT =
-  "Display A는 고객이 만든 페이지를 그대로 표시합니다. 메뉴가 많다면 페이지를 추가하거나 카테고리를 나누는 것을 권장합니다.";
+  "저장은 그대로 가능하며, Display A가 화면에 맞춰 글자와 간격을 자동으로 조정합니다.";
 
 function DisplayMenuQualityNoticeBox({ notice }: { notice: DisplayMenuQualityNotice }) {
   const isStrong = notice.tone === "strong";
 
   return (
-    <div className={`rounded-lg border p-4 ${isStrong ? "border-red-200 bg-red-50 text-red-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+    <div className={`rounded-lg border p-4 ${isStrong ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-100 bg-sky-50 text-sky-900"}`}>
       <p className="break-keep text-sm font-black leading-relaxed">
         {isStrong ? DISPLAY_A_MENU_QUALITY_STRONG_TEXT : DISPLAY_A_MENU_QUALITY_NOTICE_TEXT}
       </p>
       <p className="mt-2 break-keep text-xs font-black leading-relaxed opacity-90">
-        현재 구성: 카테고리 {notice.quality.categoryCount}개, 메뉴 {notice.quality.itemCount}개, column 기준 예상 {notice.quality.estimatedRowsPerColumn}행
+        현재 구성: 카테고리 {notice.quality.categoryCount}개, 메뉴 {notice.quality.itemCount}개
       </p>
       <p className="mt-2 break-keep text-xs font-bold leading-relaxed opacity-80">{DISPLAY_A_MENU_QUALITY_CTA_TEXT}</p>
       {notice.quality.messages.map((message) => (
@@ -963,10 +974,12 @@ function DisplayMenuCategoryQualityNoticeBox({
   notice: DisplayMenuCategoryQualityNotice;
   compact?: boolean;
 }) {
+  const isStrong = notice.tone === "strong";
+
   return (
-    <div className={`rounded-md border border-amber-200 bg-amber-50 text-amber-800 ${compact ? "px-2 py-1.5" : "p-4"}`}>
+    <div className={`rounded-md border ${isStrong ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-100 bg-sky-50 text-sky-900"} ${compact ? "px-2 py-1.5" : "p-4"}`}>
       <p className={`${compact ? "text-[11px]" : "text-sm"} break-keep font-black leading-relaxed`}>
-        이 카테고리에 메뉴가 많습니다.
+        카테고리 표시 품질 안내
       </p>
       <p className={`${compact ? "mt-0.5 text-[10px]" : "mt-2 text-xs"} break-keep font-bold leading-relaxed opacity-80`}>
         현재 {notice.itemCount}개 메뉴입니다. {notice.message}
@@ -1009,8 +1022,11 @@ function getDisplayMenuCategoryQualityNotice(
   if (itemCount < DISPLAY_MENU_QUALITY_RULES.category.warningItemMin) return null;
 
   return {
+    tone: itemCount >= DISPLAY_MENU_QUALITY_RULES.category.strongWarningItemMin ? "strong" : "notice",
     itemCount,
-    message: "TV 화면 가독성을 위해 카테고리를 나누는 것을 권장합니다.",
+    message: itemCount >= DISPLAY_MENU_QUALITY_RULES.category.strongWarningItemMin
+      ? "글자가 작게 보일 수 있습니다. 더 읽기 좋게 보이려면 카테고리를 나누어보세요."
+      : "표시에는 문제가 없지만, 더 읽기 좋게 보이려면 카테고리를 나누는 것도 좋습니다.",
   };
 }
 
@@ -1215,7 +1231,14 @@ function MenuPageForm({
       />
       {supportsDisplaySettings && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">디스플레이 화면 설정</h4>
+          <h4 className="inline-flex items-center gap-2 text-sm font-black text-zinc-950">
+            <span>디스플레이 화면 설정</span>
+            {displaySettings.pageType === "promotion" && (
+              <HelpTooltip label="프로모션 페이지 도움말">
+                <PromotionPageHelpText />
+              </HelpTooltip>
+            )}
+          </h4>
           <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
             TV/모니터에 표시될 페이지 유형과 화면 구성을 설정합니다. 저장 전까지 공개 화면에는 반영되지 않습니다.
           </p>
@@ -1321,6 +1344,12 @@ function MenuPageForm({
                     recordId={page?.id ?? formId}
                     currentUrl={displaySettings.splitImage.url}
                     description="이미지 + 메뉴 분할형에서 선택한 이미지 영역에 표시할 이미지를 등록합니다."
+                    fileGuidance={
+                      <>
+                        <p>JPG, PNG, WebP / 최대 10MB</p>
+                        <p>권장 비율: 16:9 또는 1:1에 가까운 고해상도 이미지</p>
+                      </>
+                    }
                     uploadSuccessMessage="새 분할 이미지는 저장 후 디스플레이 설정에 반영됩니다."
                     deleteSuccessMessage="분할 이미지 삭제가 임시 반영되었습니다. 저장 후 디스플레이 설정에 반영됩니다."
                     deleteConfirmTitle="분할 이미지를 삭제할까요?"
@@ -1359,9 +1388,6 @@ function MenuPageForm({
             )}
             {displaySettings.pageType === "promotion" && (
               <div className="grid gap-4 rounded-lg border border-amber-100 bg-amber-50 p-4 md:grid-cols-2">
-                <p className="md:col-span-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                  프로모션 페이지로 변경하면 이 페이지의 카테고리와 메뉴 아이템은 디스플레이 화면에 표시되지 않습니다. 데이터는 삭제되지 않습니다.
-                </p>
                 <div className="md:col-span-2">
                   <FieldLabel required>미디어 종류</FieldLabel>
                   <div className="mt-2 grid gap-2 md:grid-cols-2">
@@ -1422,6 +1448,12 @@ function MenuPageForm({
                       recordId={page?.id ?? formId}
                       currentUrl={displaySettings.promotion.mediaUrl}
                       description="프로모션 페이지에 표시할 이미지를 등록합니다."
+                      fileGuidance={
+                        <>
+                          <p>JPG, PNG, WebP / 최대 10MB</p>
+                          <p>권장 크기: 1920×1080px 이상</p>
+                        </>
+                      }
                       uploadSuccessMessage="새 프로모션 이미지는 저장 후 디스플레이 설정에 반영됩니다."
                       deleteSuccessMessage="프로모션 이미지 삭제가 임시 반영되었습니다. 저장 후 디스플레이 설정에 반영됩니다."
                       deleteConfirmTitle="프로모션 이미지를 삭제할까요?"
@@ -3447,9 +3479,35 @@ export default function MenuManagementSection({
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
   const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected;
-  const shouldShowPageCreateButton = canManagePages && (hasNoSelection || isPageSelectedOnly);
-  const shouldShowCategoryCreateButton = Boolean(selectedPage && !selectedPageIsPromotion && (isPageSelectedOnly || isCategorySelected));
+  const shouldShowPageCreateButton = canManagePages && !isItemSelected && (hasNoSelection || isPageSelectedOnly || isCategorySelected);
+  const shouldShowCategoryCreateButton = Boolean(selectedPage && !selectedPageIsPromotion && !isItemSelected && (isPageSelectedOnly || isCategorySelected));
   const shouldShowItemCreateButton = Boolean(selectedCategory && (isCategorySelected || Boolean(editingItemId)));
+  const selectedOrderMoveTarget = (() => {
+    if (editingItemId) {
+      const selectedItem = draftedItems.find((item) => item.id === editingItemId);
+      const categoryId = selectedItem?.category_id ?? "";
+      const siblingIds = categoryId ? sortItems(draftedItems.filter((item) => item.category_id === categoryId)).map((item) => item.id) : [];
+      return { type: "item" as const, label: labels.itemLabel, selectedId: editingItemId, siblingIds };
+    }
+
+    if (selectedCategory) {
+      const pageId = selectedCategory.menu_page_id ?? visiblePageId;
+      const siblingIds = pageId ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId)).map((category) => category.id) : [];
+      return { type: "category" as const, label: labels.categoryLabel, selectedId: selectedCategory.id, siblingIds };
+    }
+
+    if (canManagePages && selectedPage) {
+      return { type: "page" as const, label: labels.pageLabel, selectedId: selectedPage.id, siblingIds: sortedPages.map((page) => page.id) };
+    }
+
+    return null;
+  })();
+  const selectedOrderMoveIndex = selectedOrderMoveTarget ? selectedOrderMoveTarget.siblingIds.indexOf(selectedOrderMoveTarget.selectedId) : -1;
+  const canMoveSelectedOrderUp = selectedOrderMoveIndex > 0;
+  const canMoveSelectedOrderDown =
+    selectedOrderMoveTarget != null &&
+    selectedOrderMoveIndex >= 0 &&
+    selectedOrderMoveIndex < selectedOrderMoveTarget.siblingIds.length - 1;
   const pageBasicDraftPayload = useMemo(
     () =>
       JSON.stringify(
@@ -4221,17 +4279,58 @@ export default function MenuManagementSection({
   }
 
   function toggleExpandedPage(pageId: string) {
-    setExpandedPageIds(new Set([pageId]));
-    const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId));
-    const nextCategoryId =
-      pageId === visiblePageId && visibleCategoryId && pageCategories.some((category) => category.id === visibleCategoryId)
-        ? visibleCategoryId
-        : pageCategories.find((category) => category.visible)?.id ?? pageCategories[0]?.id ?? "";
-    setExpandedCategoryIds(new Set(nextCategoryId ? [nextCategoryId] : []));
+    const isExpanded = expandedPageIds.has(pageId);
+
+    setExpandedPageIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      if (isExpanded) {
+        nextIds.delete(pageId);
+      } else {
+        nextIds.add(pageId);
+      }
+      return nextIds;
+    });
+
+    if (isExpanded) {
+      const pageCategoryIds = new Set(draftedCategories.filter((category) => category.menu_page_id === pageId).map((category) => category.id));
+      setExpandedCategoryIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        pageCategoryIds.forEach((categoryId) => nextIds.delete(categoryId));
+        return nextIds;
+      });
+
+      const selectedChildIsInPage = Boolean(visibleCategoryId && pageCategoryIds.has(visibleCategoryId));
+      const editingItemIsInPage = Boolean(
+        editingItemId &&
+        draftedItems.some((item) => item.id === editingItemId && item.category_id && pageCategoryIds.has(item.category_id))
+      );
+      if (selectedChildIsInPage || editingItemIsInPage) {
+        resetModes();
+        setSelectedPageId(pageId);
+        setSelectedCategoryId("");
+      }
+    }
   }
 
   function toggleExpandedCategory(categoryId: string) {
-    setExpandedCategoryIds(new Set([categoryId]));
+    const isExpanded = expandedCategoryIds.has(categoryId);
+
+    setExpandedCategoryIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      if (isExpanded) {
+        nextIds.delete(categoryId);
+      } else {
+        nextIds.add(categoryId);
+      }
+      return nextIds;
+    });
+
+    if (isExpanded && editingItemId && draftedItems.some((item) => item.id === editingItemId && item.category_id === categoryId)) {
+      resetModes();
+      const category = draftedCategories.find((entry) => entry.id === categoryId);
+      if (category?.menu_page_id) setSelectedPageId(category.menu_page_id);
+      setSelectedCategoryId(categoryId);
+    }
   }
 
   function moveId(ids: string[], draggedId: string, targetId: string) {
@@ -4317,6 +4416,26 @@ export default function MenuManagementSection({
     const orderedIds = moveId(categoryItemIds, dragState.id, targetItemId);
     setDragState(null);
     applyItemOrderDraft(orderedIds);
+  }
+
+  function moveSelectedOrder(direction: -1 | 1) {
+    if (!selectedOrderMoveTarget) return;
+    const currentIndex = selectedOrderMoveTarget.siblingIds.indexOf(selectedOrderMoveTarget.selectedId);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= selectedOrderMoveTarget.siblingIds.length) return;
+
+    const orderedIds = [...selectedOrderMoveTarget.siblingIds];
+    [orderedIds[currentIndex], orderedIds[nextIndex]] = [orderedIds[nextIndex], orderedIds[currentIndex]];
+
+    if (selectedOrderMoveTarget.type === "page") {
+      applyPageOrderDraft(orderedIds);
+    } else if (selectedOrderMoveTarget.type === "category") {
+      applyCategoryOrderDraft(orderedIds);
+    } else {
+      applyItemOrderDraft(orderedIds);
+    }
+
+    toast.success("순서가 변경되었습니다. 하단의 최종 저장을 눌러야 공개 메뉴판에 반영됩니다.");
   }
 
   function startCreatePage() {
@@ -5007,8 +5126,6 @@ export default function MenuManagementSection({
     resetModes();
     setSelectedPageId(pageId);
     setSelectedCategoryId("");
-    setExpandedPageIds(new Set([pageId]));
-    setExpandedCategoryIds(new Set());
   }
 
   function selectCategory(pageId: string, categoryId: string) {
@@ -5016,8 +5133,6 @@ export default function MenuManagementSection({
     resetModes();
     setSelectedPageId(pageId);
     setSelectedCategoryId(categoryId);
-    setExpandedPageIds(new Set([pageId]));
-    setExpandedCategoryIds(new Set([categoryId]));
   }
 
   function selectItem(pageId: string, categoryId: string, itemId: string) {
@@ -5027,8 +5142,6 @@ export default function MenuManagementSection({
     setSelectedCategoryId(categoryId);
     setEditingItemId(itemId);
     setItemEditorEntryMode("list");
-    setExpandedPageIds(new Set([pageId]));
-    setExpandedCategoryIds(new Set([categoryId]));
   }
 
   function resetMenuManagementToStarterDraft() {
@@ -5366,7 +5479,7 @@ export default function MenuManagementSection({
                 <HelpTooltip label="메뉴판 구조 도움말">
                   {canManagePages
                     ? `${labels.pageLabel} 안에 ${labels.categoryLabel}가 있고, ${labels.categoryLabel} 안에 ${labels.itemLabel}이 들어갑니다.`
-                    : `${labels.categoryLabel} 안에 ${labels.itemLabel}이 들어갑니다.`} 왼쪽의 + {labels.categoryLabel}, + {labels.itemLabel} 버튼으로 항목을 추가할 수 있으며, 변경사항은 저장 후 공개 메뉴판에 반영됩니다.
+                    : `${labels.categoryLabel} 안에 ${labels.itemLabel}이 들어갑니다.`} 왼쪽 순서 이동 아이콘을 드래그하거나, 아래의 위/아래 버튼으로 선택한 항목의 순서를 바꿀 수 있습니다. 페이지를 닫으면 하위 카테고리와 메뉴 아이템이 접혀서 숨겨집니다. 변경사항은 저장 후 공개 메뉴판에 반영됩니다.
                 </HelpTooltip>
               </h3>
             </div>
@@ -5450,15 +5563,15 @@ export default function MenuManagementSection({
                 <EmptyState>{labels.pageLabel}가 없습니다</EmptyState>
               </div>
             ) : (
-              <div className="mt-5 grid gap-3">
+              <div className="mt-5 grid gap-1.5">
                 {canManagePages && draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
                 {visibleStructurePages.map((page) => {
                   const pageDisplaySettings = getDraftedPageDisplaySettings(page);
                   const pageIsPromotion = canConfigureDisplayPages && isPromotionDisplayPage(pageDisplaySettings);
                   const pageCategories = pageIsPromotion ? [] : sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
                   const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId;
-                  const pageCanCollapse = canManagePages && sortedPages.length > 1;
-                  const pageExpanded = !pageCanCollapse || expandedPageIds.has(page.id);
+                  const pageCanCollapse = canManagePages && !pageIsPromotion && pageCategories.length > 0;
+                  const pageExpanded = expandedPageIds.has(page.id);
                   return (
                     <div
                       key={page.id}
@@ -5466,9 +5579,9 @@ export default function MenuManagementSection({
                       onDrop={() => {
                         if (canManagePages) handlePageDrop(page.id);
                       }}
-                      className={`min-w-0 overflow-hidden ${canManagePages ? "rounded-lg border border-zinc-100 bg-white p-2" : ""}`}
+                      className="min-w-0 overflow-hidden"
                       >
-                      {canManagePages && <div className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 transition ${pageActive ? "bg-zinc-950 text-white" : "text-zinc-800 hover:bg-zinc-100"}`}>
+                      {canManagePages && <div className={`flex min-w-0 items-center gap-1 rounded-md border px-2 py-2 transition ${pageActive ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-100 bg-white text-zinc-800 hover:border-zinc-200 hover:bg-zinc-100"}`}>
                         <button
                           type="button"
                           draggable
@@ -5512,11 +5625,7 @@ export default function MenuManagementSection({
                           </button>
                         )}
                       </div>}
-                      {pageExpanded && pageIsPromotion ? (
-                        <p className="mt-2 break-keep rounded-md bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-700">
-                          프로모션 페이지에서는 카테고리와 메뉴 아이템을 편집 화면에서 숨깁니다.
-                        </p>
-                      ) : pageExpanded && <div className={canManagePages ? "mt-2 grid min-w-0 gap-1 border-l border-zinc-200 pl-3" : "grid min-w-0 gap-1"}>
+                      {!pageIsPromotion && pageExpanded && <div className={canManagePages ? "mt-1.5 grid min-w-0 gap-1 border-l border-zinc-200 pl-3" : "grid min-w-0 gap-1"}>
                         {draftTarget?.type === "category" && draftTarget.pageId === page.id && (
                           <DraftNameInput
                             value={draftTarget.title}
@@ -5529,8 +5638,8 @@ export default function MenuManagementSection({
                           const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === category.id));
                           const categoryQualityNotice = getDisplayMenuCategoryQualityNotice(category, categoryItems, supportsDisplayMenuQualityWarnings);
                           const categoryActive = category.id === visibleCategoryId && !editingItemId;
-                          const categoryCanCollapse = pageCategories.length > 1;
-                          const categoryExpanded = !categoryCanCollapse || expandedCategoryIds.has(category.id);
+                          const categoryCanCollapse = categoryItems.length > 0;
+                          const categoryExpanded = expandedCategoryIds.has(category.id);
                           return (
                             <div
                               key={category.id}
@@ -5633,6 +5742,28 @@ export default function MenuManagementSection({
                 })}
               </div>
             )}
+            <div className="mt-3 flex items-center justify-end gap-1.5">
+              <button
+                type="button"
+                onClick={() => moveSelectedOrder(-1)}
+                disabled={!canMoveSelectedOrderUp}
+                aria-label="위로 이동"
+                title="위로 이동"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-black leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                onClick={() => moveSelectedOrder(1)}
+                disabled={!canMoveSelectedOrderDown}
+                aria-label="아래로 이동"
+                title="아래로 이동"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-black leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+              >
+                ↓
+              </button>
+            </div>
           </aside>
 
           <section className="min-w-0 rounded-lg border border-zinc-100 bg-white p-4 lg:p-6">
@@ -5918,6 +6049,21 @@ export default function MenuManagementSection({
                   </div>
                 ) : null}
                 <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={startCreateItem}
+                    disabled={reachedItemLimit}
+                    title={
+                      reachedItemsPerCategoryLimit
+                        ? `이 ${labels.categoryLabel}에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerCategory}개까지 추가할 수 있습니다.`
+                        : reachedItemsPerSiteLimit
+                        ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
+                        : undefined
+                    }
+                    className="mr-auto rounded-full border border-zinc-200 bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  >
+                    + {labels.itemLabel} 추가
+                  </button>
                   <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
                     수정
                   </button>
@@ -5999,7 +6145,18 @@ export default function MenuManagementSection({
               <div>
                 <PanelHeader
                   eyebrow="Page Detail"
-                  title={getMenuPageTitle(selectedPage)}
+                  title={
+                    selectedPageIsPromotion ? (
+                      <span className="inline-flex min-w-0 items-center gap-2">
+                        <span className="min-w-0 truncate">{getMenuPageTitle(selectedPage)}</span>
+                        <HelpTooltip label="프로모션 페이지 도움말">
+                          <PromotionPageHelpText />
+                        </HelpTooltip>
+                      </span>
+                    ) : (
+                      getMenuPageTitle(selectedPage)
+                    )
+                  }
                   description={`${labels.pageLabel} 정보를 확인합니다.`}
                 />
                 <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
@@ -6030,6 +6187,21 @@ export default function MenuManagementSection({
                   </div>
                 ) : null}
                 <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+                  {!selectedPageIsPromotion && (
+                    <button
+                      type="button"
+                      onClick={startCreateCategory}
+                      disabled={reachedCategoryLimit}
+                      title={
+                        reachedCategoryLimit
+                          ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
+                          : undefined
+                      }
+                      className="mr-auto rounded-full border border-zinc-200 bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    >
+                      + {labels.categoryLabel} 추가
+                    </button>
+                  )}
                   <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
                     수정
                   </button>

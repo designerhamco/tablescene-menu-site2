@@ -42,22 +42,23 @@ export type DisplayMenuPageQuality = {
 export const DISPLAY_MENU_QUALITY_RULES = {
   fullMenu: {
     recommendedItemMin: 16,
-    recommendedItemMax: 24,
-    warningItemMin: 25,
-    strongWarningItemMin: 33,
-    warningEstimatedRowsPerColumnMin: 18,
-    strongWarningEstimatedRowsPerColumnMin: 23,
+    recommendedItemMax: 28,
+    warningItemMin: 29,
+    strongWarningItemMin: 37,
+    warningEstimatedRowsPerColumnMin: 30,
+    strongWarningEstimatedRowsPerColumnMin: 39,
   },
   splitImageMenu: {
     recommendedItemMin: 8,
     recommendedItemMax: 12,
     warningItemMin: 13,
     strongWarningItemMin: 17,
-    warningEstimatedRowsPerColumnMin: 17,
-    strongWarningEstimatedRowsPerColumnMin: 22,
+    warningEstimatedRowsPerColumnMin: 24,
+    strongWarningEstimatedRowsPerColumnMin: 31,
   },
   category: {
-    warningItemMin: 13,
+    warningItemMin: 15,
+    strongWarningItemMin: 17,
   },
 } as const;
 
@@ -122,25 +123,32 @@ export function getDisplayMenuPageQuality({
   const rules = isSplit ? DISPLAY_MENU_QUALITY_RULES.splitImageMenu : DISPLAY_MENU_QUALITY_RULES.fullMenu;
   let level: DisplayMenuQualityLevel = "ok";
 
-  if (itemCount >= rules.strongWarningItemMin || estimatedRowsPerColumn >= rules.strongWarningEstimatedRowsPerColumnMin) {
+  const hasEnoughItemsForRowNotice = itemCount >= rules.warningItemMin;
+  const hasStrongRowDensity = hasEnoughItemsForRowNotice && estimatedRowsPerColumn >= rules.strongWarningEstimatedRowsPerColumnMin;
+  const hasWarningRowDensity = hasEnoughItemsForRowNotice && estimatedRowsPerColumn >= rules.warningEstimatedRowsPerColumnMin;
+
+  if (itemCount >= rules.strongWarningItemMin || hasStrongRowDensity) {
     level = "strongWarning";
     messages.push(
       isSplit
-        ? "이미지 + 메뉴 분할형에 메뉴가 너무 많습니다. 전체 메뉴형 페이지를 사용하거나 새 페이지로 나누는 것을 권장합니다."
-        : "이 페이지는 디스플레이 화면에서 읽기 어려울 수 있을 만큼 메뉴가 많습니다. 메뉴 페이지를 추가하거나 카테고리를 나누는 것을 권장합니다."
+        ? "메뉴가 많아 TV 화면에서 글자가 작게 보일 수 있습니다. 더 크게 보이게 하려면 전체 메뉴형 페이지를 사용하거나 페이지를 나누어보세요."
+        : "메뉴가 많아 TV 화면에서 글자가 작게 보일 수 있습니다. 더 크게 보이게 하려면 페이지를 나누거나 카테고리를 정리해보세요."
     );
-  } else if (itemCount >= rules.warningItemMin || estimatedRowsPerColumn >= rules.warningEstimatedRowsPerColumnMin) {
+  } else if (itemCount >= rules.warningItemMin || hasWarningRowDensity) {
     level = "warning";
     messages.push(
       isSplit
-        ? "이미지 + 메뉴 분할형은 핵심 메뉴를 보여줄 때 가장 보기 좋습니다. 메뉴가 많으면 글자가 작게 보일 수 있습니다."
-        : "이 페이지의 메뉴가 권장 개수를 초과했습니다. 디스플레이 화면에서 글자가 작게 보일 수 있습니다."
+        ? "이 페이지는 표시 가능한 범위입니다. 다만 메뉴가 많아 글자와 간격이 조금 더 촘촘하게 보일 수 있습니다."
+        : "메뉴가 조금 많은 편이라 화면에서 글자와 간격이 자동으로 작게 조정될 수 있습니다."
     );
   }
 
-  if (maxCategoryItemCount >= DISPLAY_MENU_QUALITY_RULES.category.warningItemMin) {
+  if (maxCategoryItemCount >= DISPLAY_MENU_QUALITY_RULES.category.strongWarningItemMin) {
+    level = "strongWarning";
+    messages.push("이 카테고리에 메뉴가 많아 TV 화면에서 글자가 작게 보일 수 있습니다. 더 읽기 좋게 보이려면 카테고리를 나누어보세요.");
+  } else if (maxCategoryItemCount >= DISPLAY_MENU_QUALITY_RULES.category.warningItemMin) {
     if (level === "ok") level = "warning";
-    messages.push("이 카테고리에 메뉴가 많습니다. TV 화면 가독성을 위해 카테고리를 나누는 것을 권장합니다.");
+    messages.push("이 카테고리에 메뉴가 많은 편입니다. 표시에는 문제가 없지만, 더 읽기 좋게 보이려면 카테고리를 나누는 것도 좋습니다.");
   }
 
   return {

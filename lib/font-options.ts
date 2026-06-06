@@ -1,3 +1,5 @@
+export type FontCategoryKey = "modern" | "classic" | "handwriting" | "retro";
+
 export type KoreanFontValue =
   | "pretendard"
   | "asta-sans"
@@ -22,6 +24,7 @@ export type KoreanFontValue =
 export type FontOption<Value extends string = string> = {
   label: string;
   value: Value;
+  category: FontCategoryKey;
   fontFamily: string;
   href?: string;
   cssText?: string;
@@ -29,18 +32,7 @@ export type FontOption<Value extends string = string> = {
 
 export type KoreanFontOption = FontOption<KoreanFontValue>;
 
-export type EnglishFontValue =
-  | "outfit"
-  | "inter"
-  | "montserrat"
-  | "poppins"
-  | "playfair-display"
-  | "cormorant-garamond"
-  | "libre-baskerville"
-  | "lora"
-  | "dm-sans"
-  | "manrope"
-  | "roboto";
+export type EnglishFontValue = string;
 
 export type EnglishFontOption = FontOption<EnglishFontValue>;
 
@@ -50,88 +42,142 @@ export type FontLoadAssets = {
   cssText?: string;
 };
 
+export const KOREAN_FONT_CATEGORY_OPTIONS = [
+  { key: "modern", label: "모던 / 고딕체" },
+  { key: "classic", label: "클래식 / 명조체" },
+  { key: "handwriting", label: "필기체" },
+  { key: "retro", label: "레트로 / 개성형" },
+] as const satisfies readonly { key: FontCategoryKey; label: string }[];
+
+export const ENGLISH_FONT_CATEGORY_OPTIONS = [
+  { key: "modern", label: "모던 / 고딕체" },
+  { key: "classic", label: "클래식 / 세리프" },
+  { key: "handwriting", label: "필기체" },
+  { key: "retro", label: "레트로 / 개성형" },
+] as const satisfies readonly { key: FontCategoryKey; label: string }[];
+
+function toFontValue(label: string): EnglishFontValue {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function getGoogleFontHref(label: string) {
+  return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(label).replace(/%20/g, "+")}&display=swap`;
+}
+
+function getGoogleFontFamily(label: string, fallback: "sans-serif" | "serif" | "cursive" | "monospace" = "sans-serif") {
+  return `'${label}', ${fallback}`;
+}
+
+function googleEnglishFont(
+  label: string,
+  category: FontCategoryKey,
+  fallback: "sans-serif" | "serif" | "cursive" | "monospace" = "sans-serif"
+): EnglishFontOption {
+  return {
+    label,
+    value: toFontValue(label),
+    category,
+    fontFamily: getGoogleFontFamily(label, fallback),
+    href: getGoogleFontHref(label),
+  };
+}
+
 export const KOREAN_FONT_OPTIONS = [
   {
     label: "Pretendard",
     value: "pretendard",
+    category: "modern",
     fontFamily: "'Pretendard', sans-serif",
     href: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css",
   },
   {
     label: "Asta Sans",
     value: "asta-sans",
+    category: "modern",
     fontFamily: "'Asta Sans', sans-serif",
     href: "https://fonts.googleapis.com/css2?family=Asta+Sans&display=swap",
   },
   {
     label: "Gothic A1",
     value: "gothic-a1",
+    category: "modern",
     fontFamily: "'Gothic A1', sans-serif",
     href: "https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&display=swap",
   },
   {
     label: "Gowun Batang",
     value: "gowun-batang",
+    category: "classic",
     fontFamily: "'Gowun Batang', serif",
     href: "https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap",
   },
   {
     label: "Gowun Dodum",
     value: "gowun-dodum",
+    category: "modern",
     fontFamily: "'Gowun Dodum', sans-serif",
     href: "https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap",
   },
   {
     label: "Hahmlet",
     value: "hahmlet",
+    category: "classic",
     fontFamily: "'Hahmlet', serif",
     href: "https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;600;700&display=swap",
   },
   {
     label: "IBM Plex Sans KR",
     value: "ibm-plex-sans-kr",
+    category: "modern",
     fontFamily: "'IBM Plex Sans KR', sans-serif",
     href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap",
   },
   {
     label: "Nanum Gothic",
     value: "nanum-gothic",
+    category: "modern",
     fontFamily: "'Nanum Gothic', sans-serif",
     href: "https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap",
   },
   {
     label: "Nanum Myeongjo",
     value: "nanum-myeongjo",
+    category: "classic",
     fontFamily: "'Nanum Myeongjo', serif",
     href: "https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap",
   },
   {
     label: "Noto Sans KR",
     value: "noto-sans-kr",
+    category: "modern",
     fontFamily: "'Noto Sans KR', sans-serif",
     href: "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap",
   },
   {
     label: "Noto Serif KR",
     value: "noto-serif-kr",
+    category: "classic",
     fontFamily: "'Noto Serif KR', serif",
     href: "https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap",
   },
   {
     label: "Poor Story",
     value: "poor-story",
+    category: "handwriting",
     fontFamily: "'Poor Story', cursive",
     href: "https://fonts.googleapis.com/css2?family=Poor+Story&display=swap",
   },
   {
     label: "Yeon Sung",
     value: "yeon-sung",
+    category: "handwriting",
     fontFamily: "'Yeon Sung', cursive",
     href: "https://fonts.googleapis.com/css2?family=Yeon+Sung&display=swap",
   },
   {
     label: "Hangulnuri",
     value: "hangulnuri",
+    category: "retro",
     fontFamily: "'Hangulnuri', sans-serif",
     cssText: `@font-face {
   font-family: 'Hangulnuri';
@@ -143,6 +189,7 @@ export const KOREAN_FONT_OPTIONS = [
   {
     label: "Cafe24 Danjeonghae",
     value: "cafe24-danjeonghae",
+    category: "classic",
     fontFamily: "'Cafe24Danjeonghae', serif",
     cssText: `@font-face {
   font-family: 'Cafe24Danjeonghae';
@@ -154,6 +201,7 @@ export const KOREAN_FONT_OPTIONS = [
   {
     label: "Changwon Dangam Rounded",
     value: "changwon-dangam-rounded",
+    category: "retro",
     fontFamily: "'ChangwonDangamRounded', sans-serif",
     cssText: `@font-face {
   font-family: 'ChangwonDangamRounded';
@@ -165,12 +213,14 @@ export const KOREAN_FONT_OPTIONS = [
   {
     label: "Jeju Gothic",
     value: "jeju-gothic",
+    category: "modern",
     fontFamily: "'Jeju Gothic', sans-serif",
     href: "https://fonts.googleapis.com/earlyaccess/jejugothic.css",
   },
   {
     label: "Lotte Mart Dream",
     value: "lotte-mart-dream",
+    category: "retro",
     fontFamily: "'LotteMartDream', sans-serif",
     cssText: `@font-face {
   font-family: 'LotteMartDream';
@@ -197,78 +247,164 @@ export const KOREAN_FONT_OPTIONS = [
   {
     label: "NanumSquare",
     value: "nanum-square",
+    category: "modern",
     fontFamily: "'NanumSquare', sans-serif",
     href: "https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@master/nanumsquare.css",
   },
 ] as const satisfies readonly KoreanFontOption[];
 
-export const ENGLISH_FONT_OPTIONS = [
-  {
-    label: "Inter",
-    value: "inter",
-    fontFamily: "'Inter', sans-serif",
-    href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "Montserrat",
-    value: "montserrat",
-    fontFamily: "'Montserrat', sans-serif",
-    href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "Poppins",
-    value: "poppins",
-    fontFamily: "'Poppins', sans-serif",
-    href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "Playfair Display",
-    value: "playfair-display",
-    fontFamily: "'Playfair Display', serif",
-    href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "Cormorant Garamond",
-    value: "cormorant-garamond",
-    fontFamily: "'Cormorant Garamond', serif",
-    href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "Libre Baskerville",
-    value: "libre-baskerville",
-    fontFamily: "'Libre Baskerville', serif",
-    href: "https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap",
-  },
-  {
-    label: "Lora",
-    value: "lora",
-    fontFamily: "'Lora', serif",
-    href: "https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "DM Sans",
-    value: "dm-sans",
-    fontFamily: "'DM Sans', sans-serif",
-    href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "Manrope",
-    value: "manrope",
-    fontFamily: "'Manrope', sans-serif",
-    href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap",
-  },
-  {
-    label: "Roboto",
-    value: "roboto",
-    fontFamily: "'Roboto', sans-serif",
-    href: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
-  },
-] as const satisfies readonly EnglishFontOption[];
+const MODERN_ENGLISH_FONT_LABELS = [
+  "Afacad",
+  "Alata",
+  "Albert Sans",
+  "Cabin",
+  "Capriola",
+  "Carme",
+  "DM Sans",
+  "Encode Sans Expanded",
+  "Figtree",
+  "Hepta Slab",
+  "Inter",
+  "KoHo",
+  "Libertinus Sans",
+  "Manrope",
+  "Montserrat",
+  "Oswald",
+  "Outfit",
+  "PT Sans",
+  "Poppins",
+  "Proza Libre",
+  "Roboto",
+  "TASA Explorer",
+  "Teachers",
+  "Tomorrow",
+  "Unbounded",
+  "Urbanist",
+  "Viga",
+  "Wix Madefor Display",
+  "Wix Madefor Text",
+  "Yaldevi",
+  "Ysabeau Office",
+] as const;
+
+const CLASSIC_ENGLISH_FONT_LABELS = [
+  "Aboreto",
+  "Belleza",
+  "Caudex",
+  "Castoro Titling",
+  "Cinzel",
+  "Cormorant Garamond",
+  "Cormorant Infant",
+  "EB Garamond",
+  "Federant",
+  "Federo",
+  "Forum",
+  "Gotu",
+  "Italiana",
+  "Julius Sans One",
+  "Junge",
+  "Lancelot",
+  "Libre Baskerville",
+  "Lora",
+  "Marcellus",
+  "Philosopher",
+  "Playfair Display",
+  "Tenor Sans",
+  "Uncial Antiqua",
+  "Yeseva One",
+] as const;
+
+const HANDWRITING_ENGLISH_FONT_LABELS = [
+  "Bellota Text",
+  "Caveat Brush",
+  "Delius",
+  "Delius Unicase",
+  "Edu SA Hand",
+  "Edu VIC WA NT Hand Pre",
+  "Handlee",
+  "Kalam",
+  "Klee One",
+  "Lemonada",
+  "Lumanosimo",
+  "Playpen Sans Hebrew",
+  "Playwrite AU VIC",
+  "Rock Salt",
+  "Schoolbell",
+  "Shadows Into Light Two",
+  "Tillana",
+  "Walter Turncoat",
+  "Winky Rough",
+  "Winky Sans",
+] as const;
+
+const RETRO_ENGLISH_FONT_LABELS = [
+  "Bevan",
+  "Bigshot One",
+  "Bitcount Prop Single",
+  "Black Ops One",
+  "Boldonse",
+  "Bpmf Iansui",
+  "Caesar Dressing",
+  "Cagliostro",
+  "Cause",
+  "Chelsea Market",
+  "Cutive Mono",
+  "Darumadrop One",
+  "Denk One",
+  "Expletus Sans",
+  "Fahkwang",
+  "Finger Paint",
+  "Geom",
+  "Happy Monkey",
+  "Iansui",
+  "Kite One",
+  "Kranky",
+  "LXGW WenKai TC",
+  "Lacquer",
+  "Lakki Reddy",
+  "Lemon",
+  "Mogra",
+  "Paprika",
+  "Passero One",
+  "Poiret One",
+  "Pompiere",
+  "Racing Sans One",
+  "Reggae One",
+  "Ribeye",
+  "Ribeye Marrow",
+  "RocknRoll One",
+  "Stick",
+  "Tilt Warp",
+  "Trade Winds",
+  "Triodion",
+  "Tsukimi Rounded",
+  "VT323",
+  "Vast Shadow",
+  "Wellfleet",
+] as const;
+
+function dedupeFontOptions<Value extends string>(options: readonly FontOption<Value>[]) {
+  const seen = new Set<string>();
+
+  return options.filter((option) => {
+    if (seen.has(option.value)) return false;
+    seen.add(option.value);
+    return true;
+  });
+}
+
+export const ENGLISH_FONT_OPTIONS = dedupeFontOptions([
+  ...MODERN_ENGLISH_FONT_LABELS.map((label) => googleEnglishFont(label, "modern", "sans-serif")),
+  ...CLASSIC_ENGLISH_FONT_LABELS.map((label) => googleEnglishFont(label, "classic", "serif")),
+  ...HANDWRITING_ENGLISH_FONT_LABELS.map((label) => googleEnglishFont(label, "handwriting", "cursive")),
+  ...RETRO_ENGLISH_FONT_LABELS.map((label) => googleEnglishFont(label, "retro", label === "Cutive Mono" || label === "VT323" ? "monospace" : "sans-serif")),
+] as const satisfies readonly EnglishFontOption[]);
 
 const SYSTEM_ENGLISH_FONT_OPTIONS = [
   {
     label: "Outfit",
     value: "outfit",
+    category: "modern",
     fontFamily: "'Outfit', sans-serif",
     href: "https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap",
   },

@@ -1,27 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { saveMenuEditorScrollPosition } from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-
-export type ImageUploadTarget =
-  | "site-logo"
-  | "site-logo-draft"
-  | "site-cover"
-  | "site-cover-draft"
-  | "site-intro-image-draft"
-  | "display-page-image-draft"
-  | "menu-item"
-  | "menu-item-draft"
-  | "menu-event"
-  | "menu-chef";
+import { getImageUploadPolicy, validateImageUploadFile, type ImageUploadTarget } from "@/lib/image-upload-policy";
 
 type ImageUploadFieldProps = {
   label: string;
@@ -37,7 +22,8 @@ type ImageUploadFieldProps = {
   deleteSuccessMessage?: string;
   deleteConfirmTitle?: string;
   deleteConfirmDescription?: string;
-  fileGuidance?: string;
+  fileGuidance?: ReactNode;
+  optimizationGuidance?: ReactNode;
   onDraftImageChange?: (draft: { imageUrl: string | null; imagePath: string | null; imageAction: "replace" | "delete" }) => void;
 };
 
@@ -59,24 +45,6 @@ function getStateClassName(type: UploadState["type"]) {
   return "border-zinc-100 bg-zinc-50 text-zinc-500";
 }
 
-function validateFile(file: File, target: ImageUploadTarget) {
-  const isLogoUpload = target === "site-logo" || target === "site-logo-draft";
-
-  if (!ALLOWED_TYPES.has(file.type)) {
-    return isLogoUpload ? "PNG, JPG, WebP 형식의 이미지만 업로드할 수 있습니다." : "JPG, PNG, WebP 이미지만 업로드할 수 있습니다.";
-  }
-
-  if (isLogoUpload && file.size > LOGO_MAX_FILE_SIZE) {
-    return "로고 이미지는 최대 2MB까지 업로드할 수 있습니다.";
-  }
-
-  if (!isLogoUpload && file.size > MAX_FILE_SIZE) {
-    return "이미지는 5MB 이하만 업로드할 수 있습니다.";
-  }
-
-  return null;
-}
-
 export default function ImageUploadField({
   label,
   menuId,
@@ -91,7 +59,8 @@ export default function ImageUploadField({
   deleteSuccessMessage = "이미지 삭제가 임시 반영되었습니다. 저장을 눌러야 공개 메뉴판에 반영됩니다.",
   deleteConfirmTitle = "이 이미지를 삭제할까요?",
   deleteConfirmDescription = "삭제하면 저장 후 공개 메뉴판에 반영됩니다.",
-  fileGuidance = "JPG, PNG, WebP / 최대 5MB",
+  fileGuidance,
+  optimizationGuidance = "업로드된 이미지는 화면에 맞게 자동 최적화될 수 있습니다.",
   onDraftImageChange,
 }: ImageUploadFieldProps) {
   const router = useRouter();
@@ -110,6 +79,7 @@ export default function ImageUploadField({
     target === "display-page-image-draft" ||
     target === "menu-item-draft";
   const isLogoUpload = target === "site-logo" || target === "site-logo-draft";
+  const uploadPolicy = getImageUploadPolicy(target);
 
   useEffect(() => {
     function handleDraftReset(event: Event) {
@@ -137,7 +107,7 @@ export default function ImageUploadField({
   }, [draftImageUrlInputName]);
 
   async function uploadFile(file: File) {
-    const validationMessage = validateFile(file, target);
+    const validationMessage = validateImageUploadFile(file, target);
 
     if (validationMessage) {
       setState({ type: "error", message: validationMessage });
@@ -247,7 +217,10 @@ export default function ImageUploadField({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</p>
           {description && <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">{description}</p>}
-          <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{fileGuidance}</p>
+          <div className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{fileGuidance ?? uploadPolicy.label}</div>
+          {optimizationGuidance ? (
+            <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{optimizationGuidance}</p>
+          ) : null}
           <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
             본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
           </p>

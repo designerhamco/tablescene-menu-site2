@@ -13,6 +13,7 @@ import {
   isEnglishFontValue,
   isKoreanFontValue,
   type FontLoadAssets,
+  type FontCategoryKey,
   type EnglishFontValue,
   type KoreanFontValue,
 } from "@/lib/font-options";
@@ -31,6 +32,7 @@ export type FontOption<Key extends string> = {
   key: Key;
   label: string;
   sample: string;
+  category: FontCategoryKey;
   fontFamily: string;
 };
 
@@ -38,6 +40,7 @@ export const KOREAN_FONT_OPTIONS: readonly FontOption<KoreanFontKey>[] = REGISTE
   key: option.value,
   label: option.label,
   sample: "아메리카노 4,500",
+  category: option.category,
   fontFamily: option.fontFamily,
 }));
 
@@ -45,6 +48,7 @@ export const ENGLISH_FONT_OPTIONS: readonly FontOption<EnglishFontKey>[] = REGIS
   key: option.value,
   label: option.label,
   sample: "Signature Coffee 5,500",
+  category: option.category,
   fontFamily: option.fontFamily,
 }));
 
@@ -54,6 +58,12 @@ export const FONT_SIZE_SCALE_OPTIONS = [
   { key: "m", label: "기본", description: "M", scale: 1 },
   { key: "l", label: "조금 크게", description: "L", scale: 1.08 },
   { key: "xl", label: "크게", description: "XL", scale: 1.16 },
+] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
+
+export const DISPLAY_FONT_SIZE_SCALE_OPTIONS = [
+  { key: "s", label: "더 촘촘하게", description: "S", scale: 0.88 },
+  { key: "m", label: "기본", description: "M", scale: 1 },
+  { key: "l", label: "더 크게", description: "L", scale: 1.16 },
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
 
 export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
@@ -116,6 +126,22 @@ export function normalizeFontSizeScaleKey(value: unknown, fallback: FontSizeScal
   return isFontSizeScaleKey(value) ? value : fallback;
 }
 
+export function isDisplayTypographyTemplate(templateKey?: string | null) {
+  return templateKey?.trim().toLowerCase().startsWith("display_") ?? false;
+}
+
+export function normalizeFontSizeScaleKeyForTemplate(
+  value: unknown,
+  templateKey?: string | null,
+  fallback: FontSizeScaleKey = "m"
+): FontSizeScaleKey {
+  const normalized = normalizeFontSizeScaleKey(value, fallback);
+  if (!isDisplayTypographyTemplate(templateKey)) return normalized;
+  if (normalized === "xs") return "s";
+  if (normalized === "xl") return "l";
+  return normalized;
+}
+
 function getRecord(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 }
@@ -126,7 +152,10 @@ export function getDefaultTypographyPreset(templateKey?: string | null): Typogra
   return {
     korean_font_key: preset?.korean_font_key ?? getDefaultKoreanFontForTemplate(templateKey).value,
     english_font_key: preset?.english_font_key ?? getDefaultEnglishFontForTemplate(templateKey).value,
-    font_size_scale_key: preset?.font_size_scale_key ?? DEFAULT_TYPOGRAPHY_PRESET.font_size_scale_key,
+    font_size_scale_key: normalizeFontSizeScaleKeyForTemplate(
+      preset?.font_size_scale_key ?? DEFAULT_TYPOGRAPHY_PRESET.font_size_scale_key,
+      templateKey
+    ),
   };
 }
 
@@ -187,12 +216,17 @@ export function mergeTypographySettings(templateKey?: string | null, customTypog
   return {
     korean_font_key: custom?.korean_font_key ?? defaults.korean_font_key,
     english_font_key: custom?.english_font_key ?? defaults.english_font_key,
-    font_size_scale_key: custom?.font_size_scale_key ?? defaults.font_size_scale_key,
+    font_size_scale_key: normalizeFontSizeScaleKeyForTemplate(custom?.font_size_scale_key ?? defaults.font_size_scale_key, templateKey),
   };
 }
 
-export function getFontSizeMultiplier(scaleKey: FontSizeScaleKey) {
-  return FONT_SIZE_SCALE_OPTIONS.find((option) => option.key === normalizeFontSizeScaleKey(scaleKey))?.scale ?? 1;
+export function getFontSizeScaleOptionsForTemplate(templateKey?: string | null) {
+  return isDisplayTypographyTemplate(templateKey) ? DISPLAY_FONT_SIZE_SCALE_OPTIONS : FONT_SIZE_SCALE_OPTIONS;
+}
+
+export function getFontSizeMultiplier(scaleKey: FontSizeScaleKey, templateKey?: string | null) {
+  const normalized = normalizeFontSizeScaleKeyForTemplate(scaleKey, templateKey);
+  return getFontSizeScaleOptionsForTemplate(templateKey).find((option) => option.key === normalized)?.scale ?? 1;
 }
 
 export function getKoreanFontFamily(fontKey: KoreanFontKey) {
@@ -211,10 +245,10 @@ export function getEnglishFontLoadAssets(fontKey: EnglishFontKey): FontLoadAsset
   return getFontLoadAssets(getEnglishFontOption(fontKey) ?? getDefaultEnglishFontForTemplate());
 }
 
-export function getTypographyCssVariables(settings: TypographySettings): CSSProperties {
+export function getTypographyCssVariables(settings: TypographySettings, templateKey?: string | null): CSSProperties {
   return {
     "--menu-font-ko": getKoreanFontFamily(settings.korean_font_key),
     "--menu-font-en": getEnglishFontFamily(settings.english_font_key),
-    "--menu-font-size-scale": String(getFontSizeMultiplier(settings.font_size_scale_key)),
+    "--menu-font-size-scale": String(getFontSizeMultiplier(settings.font_size_scale_key, templateKey)),
   } as CSSProperties;
 }

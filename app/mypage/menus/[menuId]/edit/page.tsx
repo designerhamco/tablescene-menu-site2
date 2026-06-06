@@ -835,6 +835,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const menuCoverCapabilities = templateCapabilities.menuCover;
   const coverMode = menuCoverCapabilities.coverMode;
   const supportsMenuCover = coverMode !== "none";
+  const supportsBasicBrandDescription = site.template_key !== "display_menu_a";
   const menuCoverEnabled = pageSettings.menu_cover_enabled !== false;
   const coverTabLabel = getCoverTabLabel(coverMode);
   const coverToggleLabel = getCoverToggleLabel(coverMode);
@@ -1137,16 +1138,18 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       }
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <FieldLabel>매장 설명</FieldLabel>
-                    <TextArea
-                      name="brand_description"
-                      defaultValue={site.brand_description ?? ""}
-                      maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription}
-                      placeholder="예: 신선한 재료와 정성스러운 서비스로 매일의 시간을 더 특별하게 만드는 공간입니다."
-                      helperText="공개 메뉴판 상단에 매장 소개 문구로 표시됩니다."
-                    />
-                  </div>
+                  {supportsBasicBrandDescription && (
+                    <div className="md:col-span-2">
+                      <FieldLabel>매장 설명</FieldLabel>
+                      <TextArea
+                        name="brand_description"
+                        defaultValue={site.brand_description ?? ""}
+                        maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription}
+                        placeholder="예: 신선한 재료와 정성스러운 서비스로 매일의 시간을 더 특별하게 만드는 공간입니다."
+                        helperText="공개 메뉴판 상단에 매장 소개 문구로 표시됩니다."
+                      />
+                    </div>
+                  )}
                   <div>
                     <FieldLabel>공개 메뉴판 주소</FieldLabel>
                     <TextInput
@@ -1551,6 +1554,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         hasCustomEnglishFont={Boolean(customEnglishFont)}
                         initialFontSizeScale={typographySettings.font_size_scale_key}
                         templateType={templateType}
+                        templateKey={site.template_key}
                       />
                     </div>
                     <FinalActionRow>

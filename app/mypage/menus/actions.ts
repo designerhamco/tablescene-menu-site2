@@ -50,7 +50,7 @@ import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/templa
 import { getTemplateCategoryFromKey, isTemplateCategoryKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
-import { normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
+import { normalizeFontSizeScaleKeyForTemplate } from "@/lib/template-typography-presets";
 import { mergePageSettings, validateMenuItemTrait } from "@/types/menu";
 
 const allowedStatuses = ["draft", "published", "archived"] as const;
@@ -895,7 +895,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
 
   const koreanFontKey = getString(formData, "korean_font_key");
   const englishFontKey = getString(formData, "english_font_key");
-  const fontSizeScaleKey = normalizeFontSizeScaleKey(getString(formData, "font_size_scale_key") || "m");
+  const rawFontSizeScaleKey = getString(formData, "font_size_scale_key") || "m";
   if (koreanFontKey && !isKoreanFontValue(koreanFontKey)) {
     redirectToTabEditWithError(menuId, "design", "한글 폰트 선택값이 올바르지 않습니다.");
   }
@@ -905,6 +905,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
   const pageSettings = getJsonObject(menuSite.page_settings);
   const designSettings = getJsonObject(pageSettings.design);
 
@@ -1765,7 +1766,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const backgroundColor = normalizeBackgroundColor(getString(formData, "background_color"));
   const koreanFontKey = getString(formData, "korean_font_key");
   const englishFontKey = getString(formData, "english_font_key");
-  const fontSizeScaleKey = normalizeFontSizeScaleKey(getString(formData, "font_size_scale_key") || "m");
+  const rawFontSizeScaleKey = getString(formData, "font_size_scale_key") || "m";
 
   if (!backgroundColor) {
     redirectToTabEditWithError(menuId, "design", "배경색은 #RRGGBB 형식으로 입력해주세요.");
@@ -1780,6 +1781,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
   const pageSettings = getJsonObject(menuSite.page_settings);
   const designSettings = getJsonObject(pageSettings.design);
 
@@ -2187,7 +2189,8 @@ export async function updateMenuSiteAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const name = getString(formData, "name");
   const restaurantName = getNullableString(formData, "restaurant_name");
-  const brandDescription = getNullableString(formData, "brand_description");
+  const hasBrandDescriptionField = formData.has("brand_description");
+  const brandDescription = hasBrandDescriptionField ? getNullableString(formData, "brand_description") : menuSite.brand_description;
   const shouldDeleteLogoImage = getBoolean(formData, "delete_logo_image");
   const draftLogoImageUrl = getNullableString(formData, "draft_logo_image_url");
   const draftLogoImagePath = getNullableString(formData, "draft_logo_image_path");
@@ -2198,14 +2201,16 @@ export async function updateMenuSiteAction(formData: FormData) {
 
   validateRequiredText(menuId, name, "메뉴판 이름", MENU_FIELD_LIMITS.menuSites.name, "basic");
   validateRequiredText(menuId, restaurantName ?? "", "실제 매장명", MENU_FIELD_LIMITS.menuSites.restaurantName, "basic");
-  validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "basic");
+  if (hasBrandDescriptionField) {
+    validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "basic");
+  }
 
   const updatePayload: MenuSiteUpdate = {
     name,
     restaurant_name: restaurantName,
-    brand_description: brandDescription,
     updated_at: new Date().toISOString(),
   };
+  if (hasBrandDescriptionField) updatePayload.brand_description = brandDescription;
 
   if (shouldDeleteLogoImage) {
     updatePayload.logo_url = null;
@@ -2223,7 +2228,7 @@ export async function updateMenuSiteAction(formData: FormData) {
       .update({
         name,
         restaurant_name: restaurantName,
-        brand_description: brandDescription,
+        ...(hasBrandDescriptionField ? { brand_description: brandDescription } : {}),
         ...(shouldDeleteLogoImage
           ? { logo_url: null, logo_path: null }
           : draftLogoImageUrl && draftLogoImagePath

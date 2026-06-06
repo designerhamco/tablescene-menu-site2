@@ -46,6 +46,13 @@ export const DEFAULT_BADGE_STYLES: BadgeStyles = {
 };
 
 export const TEMPLATE_BADGE_STYLE_PRESETS: Record<string, Partial<BadgeStyles>> = {
+  display_menu_a: {
+    best: { background_color: "#2D9CDB", text_color: "#FFFFFF" },
+    signature: { background_color: "#006D77", text_color: "#FFFFFF" },
+    new: { background_color: "#B8F1EA", text_color: "#064E52" },
+    recommended: { background_color: "#D7F4F3", text_color: "#005F6B" },
+    default: { background_color: "#0E8F96", text_color: "#FFFFFF" },
+  },
   cafe_design_a: {
     best: { background_color: "#4CAF50", text_color: "#FFFFFF" },
     signature: { background_color: "#004D40", text_color: "#FFFFFF" },

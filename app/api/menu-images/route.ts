@@ -2,27 +2,18 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  validateImageUploadFile,
+  type ImageUploadTarget as SharedImageUploadTarget,
+} from "@/lib/image-upload-policy";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_EDIT_MESSAGE } from "@/lib/server/menu-site-access-service";
 
 export const runtime = "nodejs";
 
 const BUCKET = "menu-images";
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-type ImageTarget =
-  | "site-logo"
-  | "site-logo-draft"
-  | "site-cover"
-  | "site-cover-draft"
-  | "site-intro-image-draft"
-  | "display-page-image-draft"
-  | "menu-item"
-  | "menu-item-draft"
-  | "menu-event"
-  | "menu-chef";
+type ImageTarget = SharedImageUploadTarget;
 type PersistentImageTarget = Exclude<
   ImageTarget,
   "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "display-page-image-draft" | "menu-item-draft"
@@ -58,10 +49,6 @@ function isDraftImageTarget(target: ImageTarget) {
     target === "display-page-image-draft" ||
     target === "menu-item-draft"
   );
-}
-
-function isLogoTarget(target: ImageTarget) {
-  return target === "site-logo" || target === "site-logo-draft";
 }
 
 function jsonError(message: string, status = 400) {
@@ -407,16 +394,9 @@ export async function POST(request: Request) {
     return jsonError("업로드할 파일이 없습니다.");
   }
 
-  if (!ALLOWED_TYPES.has(file.type)) {
-    return jsonError(isLogoTarget(target) ? "PNG, JPG, WebP 형식의 이미지만 업로드할 수 있습니다." : "JPG, PNG, WebP 이미지만 업로드할 수 있습니다.");
-  }
-
-  if (isLogoTarget(target) && file.size > LOGO_MAX_FILE_SIZE) {
-    return jsonError("로고 이미지는 최대 2MB까지 업로드할 수 있습니다.");
-  }
-
-  if (!isLogoTarget(target) && file.size > MAX_FILE_SIZE) {
-    return jsonError("이미지는 5MB 이하만 업로드할 수 있습니다.");
+  const validationMessage = validateImageUploadFile(file, target);
+  if (validationMessage) {
+    return jsonError(validationMessage);
   }
 
   const extension = getExtension(file);
