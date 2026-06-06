@@ -21,6 +21,11 @@ export type TemplateCapabilities = {
   itemBadges: boolean;
   itemTraits: boolean;
   priceOptions: boolean;
+  categoryPriceOptionColumns: boolean;
+  itemPortionLabel: boolean;
+  splitImageText: boolean;
+  promotionText: boolean;
+  maxPriceOptionsPerItem: number;
   featuredItemHero: boolean;
   chefs: boolean;
   events: boolean;
@@ -49,6 +54,11 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   itemBadges: true,
   itemTraits: true,
   priceOptions: true,
+  categoryPriceOptionColumns: false,
+  itemPortionLabel: true,
+  splitImageText: true,
+  promotionText: true,
+  maxPriceOptionsPerItem: 5,
   featuredItemHero: true,
   chefs: true,
   events: true,
@@ -62,12 +72,17 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     logoImage: false,
     menuItemImages: true,
     pageDescription: false,
-    categoryDescription: true,
-    itemDescription: true,
+    categoryDescription: false,
+    itemDescription: false,
     originInfo: false,
     itemBadges: true,
     itemTraits: false,
     priceOptions: true,
+    categoryPriceOptionColumns: true,
+    itemPortionLabel: false,
+    splitImageText: false,
+    promotionText: false,
+    maxPriceOptionsPerItem: 3,
     featuredItemHero: false,
     chefs: false,
     events: false,
@@ -116,6 +131,11 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     itemBadges: true,
     itemTraits: false,
     priceOptions: true,
+    categoryPriceOptionColumns: false,
+    itemPortionLabel: true,
+    splitImageText: true,
+    promotionText: true,
+    maxPriceOptionsPerItem: 5,
     featuredItemHero: false,
     chefs: false,
     events: true,

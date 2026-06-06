@@ -13,6 +13,8 @@
 # testing
 /coverage
 /test-results
+tmp/qa/
+*.auth.json
 
 # next.js
 /.next/

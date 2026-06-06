@@ -46,7 +46,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
-import { getTemplateCapabilities } from "@/lib/template-capabilities";
+import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateCategoryFromKey, isTemplateCategoryKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
@@ -198,8 +198,26 @@ function validatePriceOptionForm(menuId: string, formData: FormData) {
   };
 }
 
-function getNewMenuItemPriceOptions(menuId: string, formData: FormData) {
-  return Array.from({ length: MENU_LIMITS.maxPriceOptionsPerItem }, (_, index) => {
+function getMaxPriceOptionsPerItem(capabilities: TemplateCapabilities) {
+  return capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
+}
+
+function getPriceOptionLimitError(maxOptions: number) {
+  if (maxOptions === 3) {
+    return "메뉴링크 디스플레이 A에서는 TV 메뉴판 가독성을 위해 가격 옵션을 최대 3개까지 사용할 수 있습니다.";
+  }
+
+  return `가격 옵션은 아이템당 최대 ${maxOptions}개까지 등록할 수 있습니다.`;
+}
+
+function assertPriceOptionLimit(menuId: string, optionCount: number, maxOptions: number) {
+  if (optionCount > maxOptions) {
+    redirectToMenuEditWithError(menuId, getPriceOptionLimitError(maxOptions));
+  }
+}
+
+function getNewMenuItemPriceOptions(menuId: string, formData: FormData, maxOptions: number = MENU_LIMITS.maxPriceOptionsPerItem) {
+  const options = Array.from({ length: MENU_LIMITS.maxPriceOptionsPerItem }, (_, index) => {
     const label = getString(formData, `new_price_option_${index}_label`);
     const price = getOptionalNumber(formData, `new_price_option_${index}_price`);
     const priceLabel = getNullableString(formData, `new_price_option_${index}_price_label`);
@@ -222,6 +240,9 @@ function getNewMenuItemPriceOptions(menuId: string, formData: FormData) {
       sort_order: sortOrder,
     };
   }).filter((option): option is NonNullable<typeof option> => Boolean(option));
+
+  assertPriceOptionLimit(menuId, options.length, maxOptions);
+  return options;
 }
 
 type MenuItemTraitSlotInput = {
@@ -3410,12 +3431,15 @@ export async function createCategoryAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
   const name = getString(formData, "category_name");
-  const description = getNullableString(formData, "category_description");
+  const description = templateCapabilities.categoryDescription ? getNullableString(formData, "category_description") : null;
   const menuPageId = getString(formData, "category_menu_page_id");
 
   validateRequiredText(menuId, name, "메뉴 카테고리 이름", MENU_FIELD_LIMITS.menuCategories.name);
-  validateOptionalText(menuId, description, "메뉴 카테고리 설명", MENU_FIELD_LIMITS.menuCategories.description);
+  if (templateCapabilities.categoryDescription) {
+    validateOptionalText(menuId, description, "메뉴 카테고리 설명", MENU_FIELD_LIMITS.menuCategories.description);
+  }
 
   if (!menuPageId) {
     redirectToMenuEditWithError(menuId, "메뉴 카테고리를 추가할 메뉴 페이지를 선택해주세요.");
@@ -3494,15 +3518,18 @@ export async function updateCategoryAction(formData: FormData) {
   }
 
   const { menuSite } = await requireOwnedMenuSite(menuId);
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
   await assertCategoryBelongsToMenuSite(menuId, categoryId);
 
   const supabase = await createClient();
   const name = getString(formData, "category_name");
-  const description = getNullableString(formData, "category_description");
+  const description = templateCapabilities.categoryDescription ? getNullableString(formData, "category_description") : null;
   const menuPageId = getString(formData, "category_menu_page_id");
 
   validateRequiredText(menuId, name, "메뉴 카테고리 이름", MENU_FIELD_LIMITS.menuCategories.name);
-  validateOptionalText(menuId, description, "메뉴 카테고리 설명", MENU_FIELD_LIMITS.menuCategories.description);
+  if (templateCapabilities.categoryDescription) {
+    validateOptionalText(menuId, description, "메뉴 카테고리 설명", MENU_FIELD_LIMITS.menuCategories.description);
+  }
 
   if (!menuPageId) {
     redirectToMenuEditWithError(menuId, "메뉴 카테고리가 속할 메뉴 페이지를 선택해주세요.");
@@ -3513,8 +3540,12 @@ export async function updateCategoryAction(formData: FormData) {
   const payload: MenuCategoryUpdate = {
     menu_page_id: menuPageId,
     name,
-    description,
-    description_visible: Boolean(description && getBoolean(formData, "category_description_visible")),
+    ...(templateCapabilities.categoryDescription
+      ? {
+          description,
+          description_visible: Boolean(description && getBoolean(formData, "category_description_visible")),
+        }
+      : {}),
     section_key: getMenuPageSectionKey(menuPage.legacy_section_key),
     sort_order: getNumber(formData, "category_sort_order"),
     visible: getBoolean(formData, "category_visible"),
@@ -3636,20 +3667,26 @@ export async function createMenuItemAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   const name = getString(formData, "item_name");
   const priceLabel = getNullableString(formData, "item_price_label");
-  const portionLabel = getNullableString(formData, "item_portion_label");
-  const description = getNullableString(formData, "item_description");
+  const portionLabel = templateCapabilities.itemPortionLabel ? getNullableString(formData, "item_portion_label") : null;
+  const description = templateCapabilities.itemDescription ? getNullableString(formData, "item_description") : null;
   const priceMode = getString(formData, "item_price_mode") === "options" ? "options" : "single";
 
   validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
   validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
-  validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
-  validateOptionalText(menuId, description, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+  if (templateCapabilities.itemPortionLabel) {
+    validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+  }
+  if (templateCapabilities.itemDescription) {
+    validateOptionalText(menuId, description, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+  }
   validateOptionalText(menuId, getNullableString(formData, "item_origin_info"), "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
 
   const price = getOptionalNumber(formData, "item_price");
-  const newPriceOptions = getNewMenuItemPriceOptions(menuId, formData);
+  const newPriceOptions = getNewMenuItemPriceOptions(menuId, formData, maxPriceOptionsPerItem);
 
   if (priceMode === "single" && price === undefined) {
     redirectToMenuEditWithError(menuId, "기본 가격을 입력해주세요.");
@@ -3710,7 +3747,7 @@ export async function createMenuItemAction(formData: FormData) {
     price_label: priceMode === "single" ? priceLabel : null,
     price_visible: getBoolean(formData, "item_price_visible"),
     portion_label: portionLabel,
-    portion_visible: Boolean(getBoolean(formData, "item_portion_visible") && portionLabel),
+    portion_visible: Boolean(templateCapabilities.itemPortionLabel && getBoolean(formData, "item_portion_visible") && portionLabel),
     badge_label: badgeLabel,
     badge_type: badgeType,
     recommended: Boolean(badgeLabel),
@@ -3772,19 +3809,25 @@ export async function updateMenuItemAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   await assertItemBelongsToMenuSite(menuId, itemId);
 
   const name = getString(formData, "item_name");
   const priceLabel = getNullableString(formData, "item_price_label");
-  const portionLabel = getNullableString(formData, "item_portion_label");
-  const description = getNullableString(formData, "item_description");
+  const portionLabel = templateCapabilities.itemPortionLabel ? getNullableString(formData, "item_portion_label") : null;
+  const description = templateCapabilities.itemDescription ? getNullableString(formData, "item_description") : null;
   const priceMode = getString(formData, "item_price_mode") === "options" ? "options" : "single";
   const price = getOptionalNumber(formData, "item_price");
 
   validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
   validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
-  validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
-  validateOptionalText(menuId, description, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+  if (templateCapabilities.itemPortionLabel) {
+    validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+  }
+  if (templateCapabilities.itemDescription) {
+    validateOptionalText(menuId, description, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+  }
   validateOptionalText(menuId, getNullableString(formData, "item_origin_info"), "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
 
   if (priceMode === "single" && price === undefined) {
@@ -3807,6 +3850,9 @@ export async function updateMenuItemAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, "옵션별 가격 모드에서는 가격 옵션을 1개 이상 등록하고 표시 상태로 켜주세요.");
     }
 
+    if ((count ?? 0) > maxPriceOptionsPerItem) {
+      redirectToMenuEditWithError(menuId, getPriceOptionLimitError(maxPriceOptionsPerItem));
+    }
   }
 
   const categoryId = getString(formData, "item_category_id");
@@ -3827,10 +3873,7 @@ export async function updateMenuItemAction(formData: FormData) {
     category_id: categoryId,
     name,
     set_name: setName,
-    description,
     price_visible: getBoolean(formData, "item_price_visible"),
-    portion_label: portionLabel,
-    portion_visible: Boolean(getBoolean(formData, "item_portion_visible") && portionLabel),
     badge_label: badgeLabel,
     badge_type: badgeType,
     recommended: Boolean(badgeLabel),
@@ -3842,6 +3885,13 @@ export async function updateMenuItemAction(formData: FormData) {
     sort_order: getNumber(formData, "item_sort_order"),
     updated_at: new Date().toISOString(),
   };
+  if (templateCapabilities.itemDescription) {
+    payload.description = description;
+  }
+  if (templateCapabilities.itemPortionLabel) {
+    payload.portion_label = portionLabel;
+    payload.portion_visible = Boolean(getBoolean(formData, "item_portion_visible") && portionLabel);
+  }
 
   if (priceMode === "single") {
     payload.price = price;
@@ -3915,6 +3965,7 @@ type MenuManagementBasicCategoryDraft = {
   descriptionVisible?: boolean;
   visible?: boolean;
   sortOrder: number;
+  priceOptionLabels?: string[];
 };
 
 type MenuManagementBasicItemDraft = {
@@ -3979,16 +4030,40 @@ function normalizeDraftString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeDraftPriceOptionLabels(value: unknown, maxOptions: number) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+
+  return value
+    .map((label) => normalizeDraftString(label))
+    .filter((label) => {
+      if (!label) return false;
+      const key = label.toLocaleUpperCase("ko-KR");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, maxOptions);
+}
+
 function normalizeDraftBoolean(value: unknown) {
   return value === true;
 }
 
-function validateMenuPageDisplaySettingsDraft(menuId: string, settings: MenuPageDisplaySettings) {
+function validateMenuPageDisplaySettingsDraft(
+  menuId: string,
+  settings: MenuPageDisplaySettings,
+  templateCapabilities: TemplateCapabilities
+) {
   validateOptionalText(menuId, settings.splitImage.url, "분할 이미지 URL", MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl);
-  validateOptionalText(menuId, settings.splitImage.title, "이미지 제목", MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageTitle);
-  validateOptionalText(menuId, settings.splitImage.description, "이미지 설명", MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageDescription);
-  validateOptionalText(menuId, settings.promotion.title, "프로모션 제목", MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionTitle);
-  validateOptionalText(menuId, settings.promotion.description, "프로모션 설명", MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionDescription);
+  if (templateCapabilities.splitImageText) {
+    validateOptionalText(menuId, settings.splitImage.title, "이미지 제목", MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageTitle);
+    validateOptionalText(menuId, settings.splitImage.description, "이미지 설명", MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageDescription);
+  }
+  if (templateCapabilities.promotionText) {
+    validateOptionalText(menuId, settings.promotion.title, "프로모션 제목", MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionTitle);
+    validateOptionalText(menuId, settings.promotion.description, "프로모션 설명", MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionDescription);
+  }
   validateOptionalText(menuId, settings.promotion.mediaUrl, "프로모션 이미지 URL", MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl);
   validateOptionalText(menuId, settings.promotion.videoUrl, "영상 URL", MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl);
 }
@@ -4014,6 +4089,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   const now = new Date().toISOString();
   const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
   let categoryDrafts = parseDraftArray<MenuManagementBasicCategoryDraft>(formData, "category_basic_drafts");
@@ -4026,6 +4102,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const menuEditorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const canManageMenuPages = menuEditorCapabilities.canManageMenuPages;
   const canConfigureDisplayPages = canManageMenuPages && menuEditorCapabilities.supportsDisplayPageTypes;
+  const usesCategoryPriceOptionColumns = Boolean(templateCapabilities.categoryPriceOptionColumns && templateCapabilities.priceOptions);
   const pageManagementBlockedMessage = "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
   const pcTabletLayoutModeInput = formData.get("pc_tablet_layout_mode");
   const shouldSavePcTabletLayoutMode =
@@ -4192,7 +4269,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     if (!pageId || deletedPageIdSet.has(pageId)) continue;
     validateRequiredText(menuId, title, "페이지 이름", MENU_FIELD_LIMITS.menuPages.title);
     if (canConfigureDisplayPages) {
-      validateMenuPageDisplaySettingsDraft(menuId, normalizeMenuPageDisplaySettings(page.displaySettings));
+      validateMenuPageDisplaySettingsDraft(menuId, normalizeMenuPageDisplaySettings(page.displaySettings), templateCapabilities);
     }
   }
 
@@ -4213,7 +4290,22 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const name = normalizeDraftString(category.name);
     if (!categoryId || categoryIdDeleteSet.has(categoryId)) continue;
     validateRequiredText(menuId, name, "메뉴 카테고리 이름", MENU_FIELD_LIMITS.menuCategories.name);
+    if (usesCategoryPriceOptionColumns) {
+      const labels = normalizeDraftPriceOptionLabels(category.priceOptionLabels, maxPriceOptionsPerItem);
+      if (Array.isArray(category.priceOptionLabels) && category.priceOptionLabels.length > maxPriceOptionsPerItem) {
+        redirectToMenuEditWithError(menuId, "가격 옵션 열은 최대 3개까지 사용할 수 있습니다.");
+      }
+      for (const label of labels) {
+        validateRequiredText(menuId, label, "가격 옵션 열", MENU_FIELD_LIMITS.menuItemPriceOptions.label);
+      }
+    }
   }
+
+  const categoryPriceOptionLabelsById = new Map(
+    categoryDrafts
+      .map((category) => [normalizeDraftString(category.id), normalizeDraftPriceOptionLabels(category.priceOptionLabels, maxPriceOptionsPerItem)] as const)
+      .filter(([categoryId]) => Boolean(categoryId))
+  );
 
   for (const item of itemDrafts) {
     const itemId = normalizeDraftString(item.id);
@@ -4232,12 +4324,29 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
 
     validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
     validateOptionalText(menuId, setName || null, "보조 언어 표기", MENU_FIELD_LIMITS.menuItems.setName);
-    validateOptionalText(menuId, description || null, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+    if (templateCapabilities.itemDescription) {
+      validateOptionalText(menuId, description || null, "아이템 설명", MENU_FIELD_LIMITS.menuItems.description);
+    }
     if (templateCapabilities.originInfo) {
       validateOptionalText(menuId, originInfo || null, "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
     }
     validateOptionalText(menuId, priceLabel || null, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
-    validateOptionalText(menuId, portionLabel || null, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+    if (templateCapabilities.itemPortionLabel) {
+      validateOptionalText(menuId, portionLabel || null, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+    }
+    if (templateCapabilities.priceOptions && Array.isArray(item.priceOptions)) {
+      assertPriceOptionLimit(menuId, item.priceOptions.length, maxPriceOptionsPerItem);
+      if (usesCategoryPriceOptionColumns) {
+        const allowedLabels = categoryPriceOptionLabelsById.get(categoryId) ?? [];
+        const allowedLabelSet = new Set(allowedLabels.map((label) => label.toLocaleUpperCase("ko-KR")));
+        const invalidLabel = item.priceOptions
+          .map((option) => normalizeDraftString(option.label))
+          .find((label) => label && !allowedLabelSet.has(label.toLocaleUpperCase("ko-KR")));
+        if (invalidLabel) {
+          redirectToMenuEditWithError(menuId, "디스플레이 A에서는 카테고리에 설정된 가격 옵션 열만 사용할 수 있습니다.");
+        }
+      }
+    }
     if (templateCapabilities.itemTraits) {
       getMenuItemTraitSlotsFromDraft(menuId, item.traitDrafts);
     }
@@ -4599,9 +4708,14 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const traitSlots = templateCapabilities.itemTraits ? getMenuItemTraitSlotsFromDraft(menuId, item.traitDrafts) : [];
     const hasPriceOptionDraft = item.priceOptions !== undefined;
     const priceMode = normalizeDraftString(item.priceMode);
+    const rawPriceOptionDrafts = templateCapabilities.priceOptions ? (item.priceOptions ?? []) : [];
+    assertPriceOptionLimit(menuId, rawPriceOptionDrafts.length, maxPriceOptionsPerItem);
+    const categoryPriceOptionLabels = usesCategoryPriceOptionColumns
+      ? categoryPriceOptionLabelsById.get(rawCategoryId) ?? []
+      : [];
+    const categoryPriceOptionLabelSet = new Set(categoryPriceOptionLabels.map((label) => label.toLocaleUpperCase("ko-KR")));
     const priceOptionDrafts = templateCapabilities.priceOptions
-      ? (item.priceOptions ?? [])
-          .slice(0, MENU_LIMITS.maxPriceOptionsPerItem)
+      ? rawPriceOptionDrafts
           .map((option, index) => {
             const rawOptionPrice = typeof option.price === "number" ? String(option.price) : normalizeDraftString(option.price);
             return {
@@ -4611,6 +4725,10 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
               visible: option.visible === undefined ? true : normalizeDraftBoolean(option.visible),
               sortOrder: normalizeDraftNumber(option.sortOrder ?? index),
             };
+          })
+          .filter((option) => {
+            if (!usesCategoryPriceOptionColumns) return true;
+            return categoryPriceOptionLabelSet.has(option.label.toLocaleUpperCase("ko-KR"));
           })
           .filter((option) => option.label && (option.price != null || option.priceLabel))
       : [];
@@ -4625,11 +4743,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const payloadInput = {
       name: normalizeDraftString(item.name),
       set_name: normalizeDraftString(item.setName) || null,
-      description: normalizeDraftString(item.description) || null,
       origin_info: normalizeDraftString(item.originInfo) || null,
       price: usesOptionPricing ? 0 : numericPrice ?? 0,
       price_label: usesOptionPricing ? null : priceLabel || null,
-      portion_label: normalizeDraftString(item.portionLabel) || null,
       badge_label: badgeLabel,
       badge_type: getLegacyBadgeTypeForLabel(badgeLabel),
       recommended: Boolean(badgeLabel),
@@ -4639,10 +4755,22 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       image_url: imageAction === "delete" ? null : draftImageUrl || null,
       image_path: imageAction === "delete" ? null : draftImagePath || null,
       price_visible: item.priceVisible !== undefined ? normalizeDraftBoolean(item.priceVisible) : true,
-      portion_visible: item.portionVisible !== undefined ? normalizeDraftBoolean(item.portionVisible) : true,
       traits_visible: item.traitsVisible !== undefined ? normalizeDraftBoolean(item.traitsVisible) : true,
       updated_at: now,
     };
+    const portionPayload = templateCapabilities.itemPortionLabel
+      ? {
+          portion_label: normalizeDraftString(item.portionLabel) || null,
+          portion_visible: item.portionVisible !== undefined ? normalizeDraftBoolean(item.portionVisible) : true,
+        }
+      : item.isNew
+        ? { portion_label: null, portion_visible: false }
+        : {};
+    const descriptionPayload = templateCapabilities.itemDescription
+      ? { description: normalizeDraftString(item.description) || null }
+      : item.isNew
+        ? { description: null }
+        : {};
 
     if (item.isNew) {
       if (!categoryId) redirectToMenuEditWithError(menuId, "새 아이템을 추가할 카테고리를 선택해주세요.");
@@ -4678,7 +4806,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       const insertPayload: MenuItemInsert = {
         menu_site_id: menuId,
         category_id: categoryId,
+        ...descriptionPayload,
         ...payloadInput,
+        ...portionPayload,
       };
       delete insertPayload.updated_at;
 
@@ -4724,7 +4854,11 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       continue;
     }
 
-    const payload: MenuItemUpdate = payloadInput;
+    const payload: MenuItemUpdate = {
+      ...descriptionPayload,
+      ...payloadInput,
+      ...portionPayload,
+    };
 
     const updateResult = await supabase
       .from("menu_items")
@@ -4802,6 +4936,8 @@ export async function copyMenuItemAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   await assertItemBelongsToMenuSite(menuId, itemId);
 
   const menuItemCopySelect =
@@ -4875,8 +5011,8 @@ export async function copyMenuItemAction(formData: FormData) {
     price: sourceItem.price,
     price_label: sourceItem.price_label,
     price_visible: sourceItem.price_visible,
-    portion_label: sourceItem.portion_label,
-    portion_visible: sourceItem.portion_visible,
+    portion_label: templateCapabilities.itemPortionLabel ? sourceItem.portion_label : null,
+    portion_visible: templateCapabilities.itemPortionLabel ? sourceItem.portion_visible : false,
     image_url: sourceItem.image_url,
     image_path: sourceItem.image_path,
     badge_label: itemWithOptionalBadgeLabel.badge_label ?? null,
@@ -4919,7 +5055,7 @@ export async function copyMenuItemAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `아이템 복사 중 가격 옵션 확인에 실패했습니다: ${priceOptionsError.message}`);
   }
 
-  const priceOptionPayloads: MenuItemPriceOptionInsert[] = (sourcePriceOptions ?? []).map((option) => ({
+  const priceOptionPayloads: MenuItemPriceOptionInsert[] = (sourcePriceOptions ?? []).slice(0, maxPriceOptionsPerItem).map((option) => ({
     menu_site_id: menuId,
     menu_item_id: copiedItem.id,
     label: option.label,
@@ -5082,6 +5218,8 @@ export async function createMenuItemPriceOptionAction(formData: FormData) {
   if (!menuId || !itemId) redirect("/mypage?error=missing-menu-item-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   await assertItemBelongsToMenuSite(menuId, itemId);
 
   const { count: optionCount, error: optionCountError } = await supabase
@@ -5094,8 +5232,8 @@ export async function createMenuItemPriceOptionAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `가격 옵션 개수 확인에 실패했습니다: ${optionCountError.message}`);
   }
 
-  if ((optionCount ?? 0) >= MENU_LIMITS.maxPriceOptionsPerItem) {
-    redirectToMenuEditWithError(menuId, `가격 옵션은 아이템당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`);
+  if ((optionCount ?? 0) >= maxPriceOptionsPerItem) {
+    redirectToMenuEditWithError(menuId, getPriceOptionLimitError(maxPriceOptionsPerItem));
   }
 
   const payloadInput = validatePriceOptionForm(menuId, formData);

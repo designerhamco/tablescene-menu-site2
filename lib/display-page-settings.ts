@@ -3,11 +3,12 @@ import type { Json } from "@/lib/supabase/types";
 export type DisplayPageType = "menu" | "promotion";
 export type DisplayMenuLayoutType = "full_menu" | "split_image_menu";
 export type DisplayMediaType = "image" | "video";
-export type DisplaySplitImagePosition = "left";
+export type DisplaySplitImagePosition = "left" | "right";
 
 export type MenuPageDisplaySettings = {
   pageType: DisplayPageType;
   menuLayoutType: DisplayMenuLayoutType | null;
+  splitImagePosition: DisplaySplitImagePosition;
   splitImage: {
     url: string | null;
     path: string | null;
@@ -33,6 +34,7 @@ export const DISPLAY_PROMOTION_MEDIA_TYPES = ["image", "video"] as const satisfi
 export const DEFAULT_MENU_PAGE_DISPLAY_SETTINGS: MenuPageDisplaySettings = {
   pageType: "menu",
   menuLayoutType: "full_menu",
+  splitImagePosition: "left",
   splitImage: {
     url: null,
     path: null,
@@ -89,10 +91,13 @@ export function normalizeMenuPageDisplaySettings(input: unknown): MenuPageDispla
   const splitImage = isRecord(source.splitImage) ? source.splitImage : {};
   const promotion = isRecord(source.promotion) ? source.promotion : {};
   const promotionMediaType: DisplayMediaType = promotion.mediaType === "video" ? "video" : "image";
+  const splitImagePosition: DisplaySplitImagePosition =
+    pageType === "menu" && menuLayoutType === "split_image_menu" && source.splitImagePosition === "right" ? "right" : "left";
 
   return {
     pageType,
     menuLayoutType,
+    splitImagePosition,
     splitImage: {
       url: pageType === "menu" && menuLayoutType === "split_image_menu" ? normalizeOptionalString(splitImage.url) : null,
       path: pageType === "menu" && menuLayoutType === "split_image_menu" ? normalizeOptionalString(splitImage.path) : null,

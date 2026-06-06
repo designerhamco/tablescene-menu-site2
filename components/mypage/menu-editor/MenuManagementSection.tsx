@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
@@ -42,6 +42,7 @@ import {
   normalizeMenuBadgeLabel,
 } from "@/lib/menu-badges";
 import type { AiUsage } from "@/lib/menu-ai-usage";
+import { DISPLAY_MENU_QUALITY_RULES, getDisplayMenuPageQuality, type DisplayMenuPageQuality } from "@/lib/display-menu-quality";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import {
   DEFAULT_PC_TABLET_LAYOUT_MODE,
@@ -57,6 +58,7 @@ import {
   type BadgeStyleKey,
   type BadgeStyles,
 } from "@/lib/template-badge-styles";
+import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
 import type { TemplateCapabilities } from "@/lib/template-capabilities";
 import { getEditorLabelsByTemplateType, type TemplateEditorLabels } from "@/lib/template-types";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
@@ -124,7 +126,7 @@ type MenuManagementSectionProps = {
 };
 type DraftTarget =
   | { type: "page"; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean; displaySettings?: MenuPageDisplaySettings }
-  | { type: "category"; pageId: string; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean };
+  | { type: "category"; pageId: string; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean; priceOptionLabels?: string[] };
 type DragState =
   | { type: "page"; id: string }
   | { type: "category"; id: string; pageId: string }
@@ -149,6 +151,7 @@ type CategoryBasicDraft = {
   descriptionVisible?: boolean;
   visible?: boolean;
   sortOrder: number;
+  priceOptionLabels?: string[];
 };
 
 type ItemBasicDraft = {
@@ -212,6 +215,39 @@ type DraftPriceOption = {
   visible: boolean;
   sortOrder: number;
 };
+
+function normalizeDraftPriceOptionLabels(labels: readonly string[] | undefined, maxOptions: number = MENU_LIMITS.maxPriceOptionsPerItem) {
+  const seen = new Set<string>();
+
+  return (labels ?? [])
+    .map((label) => label.trim())
+    .filter((label) => {
+      if (!label) return false;
+      const key = label.toLocaleUpperCase("ko-KR");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, maxOptions);
+}
+
+function toDraftPriceOptionFromColumn(label: string, index: number, source?: DraftPriceOption | MenuItemPriceOption | null): DraftPriceOption {
+  const sourcePrice = source && "price" in source && source.price != null ? String(source.price) : "";
+  const sourcePriceLabel = source && "price_label" in source ? source.price_label ?? "" : source && "priceLabel" in source ? source.priceLabel : "";
+
+  return {
+    id: source && "id" in source ? source.id : `display-price-column-${index}-${label}`,
+    label,
+    price: sourcePrice,
+    priceLabel: sourcePriceLabel,
+    visible: source && "visible" in source ? source.visible : true,
+    sortOrder: index,
+  };
+}
+
+function getPriceOptionSortOrder(option: DraftPriceOption | MenuItemPriceOption) {
+  return "sortOrder" in option ? option.sortOrder : option.sort_order;
+}
 
 const MENU_BUILDER_STATE_KEY_PREFIX = "tablescene:menu-editor:builder";
 const PC_TABLET_LAYOUT_MODE_OPTIONS = [
@@ -885,6 +921,99 @@ function DetailValue({ label, children }: { label: string; children: ReactNode }
   );
 }
 
+type DisplayMenuQualityNotice = {
+  tone: "notice" | "strong";
+  quality: DisplayMenuPageQuality;
+};
+type DisplayMenuCategoryQualityNotice = {
+  itemCount: number;
+  message: string;
+};
+
+const DISPLAY_A_MENU_QUALITY_NOTICE_TEXT =
+  "이 페이지의 메뉴가 Display A 권장 개수를 초과했습니다.";
+const DISPLAY_A_MENU_QUALITY_STRONG_TEXT =
+  "이 페이지는 디스플레이 화면에서 읽기 어려울 수 있을 만큼 메뉴가 많습니다.";
+const DISPLAY_A_MENU_QUALITY_CTA_TEXT =
+  "Display A는 고객이 만든 페이지를 그대로 표시합니다. 메뉴가 많다면 페이지를 추가하거나 카테고리를 나누는 것을 권장합니다.";
+
+function DisplayMenuQualityNoticeBox({ notice }: { notice: DisplayMenuQualityNotice }) {
+  const isStrong = notice.tone === "strong";
+
+  return (
+    <div className={`rounded-lg border p-4 ${isStrong ? "border-red-200 bg-red-50 text-red-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+      <p className="break-keep text-sm font-black leading-relaxed">
+        {isStrong ? DISPLAY_A_MENU_QUALITY_STRONG_TEXT : DISPLAY_A_MENU_QUALITY_NOTICE_TEXT}
+      </p>
+      <p className="mt-2 break-keep text-xs font-black leading-relaxed opacity-90">
+        현재 구성: 카테고리 {notice.quality.categoryCount}개, 메뉴 {notice.quality.itemCount}개, column 기준 예상 {notice.quality.estimatedRowsPerColumn}행
+      </p>
+      <p className="mt-2 break-keep text-xs font-bold leading-relaxed opacity-80">{DISPLAY_A_MENU_QUALITY_CTA_TEXT}</p>
+      {notice.quality.messages.map((message) => (
+        <p key={message} className="mt-2 break-keep text-xs font-semibold leading-relaxed opacity-70">{message}</p>
+      ))}
+    </div>
+  );
+}
+
+function DisplayMenuCategoryQualityNoticeBox({
+  notice,
+  compact = false,
+}: {
+  notice: DisplayMenuCategoryQualityNotice;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`rounded-md border border-amber-200 bg-amber-50 text-amber-800 ${compact ? "px-2 py-1.5" : "p-4"}`}>
+      <p className={`${compact ? "text-[11px]" : "text-sm"} break-keep font-black leading-relaxed`}>
+        이 카테고리에 메뉴가 많습니다.
+      </p>
+      <p className={`${compact ? "mt-0.5 text-[10px]" : "mt-2 text-xs"} break-keep font-bold leading-relaxed opacity-80`}>
+        현재 {notice.itemCount}개 메뉴입니다. {notice.message}
+      </p>
+    </div>
+  );
+}
+
+function getDisplayMenuQualityNotice(
+  settings: MenuPageDisplaySettings,
+  categories: MenuCategory[],
+  items: MenuItem[],
+  priceOptions: MenuItemPriceOption[]
+): DisplayMenuQualityNotice | null {
+  if (settings.pageType !== "menu") return null;
+
+  const quality = getDisplayMenuPageQuality({
+    layoutType: settings.menuLayoutType === "split_image_menu" ? "split_image_menu" : "full_menu",
+    categories,
+    items,
+    priceOptions,
+  });
+
+  if (quality.level === "ok") return null;
+
+  return {
+    tone: quality.level === "strongWarning" ? "strong" : "notice",
+    quality,
+  };
+}
+
+function getDisplayMenuCategoryQualityNotice(
+  category: MenuCategory,
+  items: MenuItem[],
+  enabled: boolean
+): DisplayMenuCategoryQualityNotice | null {
+  if (!enabled || category.visible === false) return null;
+
+  const itemCount = items.filter((item) => item.visible !== false).length;
+  if (itemCount < DISPLAY_MENU_QUALITY_RULES.category.warningItemMin) return null;
+
+  return {
+    itemCount,
+    message: "TV 화면 가독성을 위해 카테고리를 나누는 것을 권장합니다.",
+  };
+}
+
 function DraftDeleteConfirmButton({
   title = "정말 삭제하시겠습니까?",
   description,
@@ -952,7 +1081,10 @@ function MenuPageForm({
   supportsDisplaySettings = false,
   supportsDisplayPromotionPages = false,
   supportsDisplayMenuLayoutTypes = false,
+  supportsSplitImageText = true,
+  supportsPromotionText = true,
   displaySettingsDraft,
+  displayQualityNotice,
 }: {
   menuId: string;
   page?: MenuPage;
@@ -973,7 +1105,10 @@ function MenuPageForm({
   supportsDisplaySettings?: boolean;
   supportsDisplayPromotionPages?: boolean;
   supportsDisplayMenuLayoutTypes?: boolean;
+  supportsSplitImageText?: boolean;
+  supportsPromotionText?: boolean;
   displaySettingsDraft?: MenuPageDisplaySettings;
+  displayQualityNotice?: ReactNode;
 }) {
   const [title, setTitle] = useState(draftTitle ?? page?.title ?? `${labels.pageLabel} ${count + 1}`);
   const [description, setDescription] = useState(page?.description ?? "");
@@ -1084,6 +1219,7 @@ function MenuPageForm({
           <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
             TV/모니터에 표시될 페이지 유형과 화면 구성을 설정합니다. 저장 전까지 공개 화면에는 반영되지 않습니다.
           </p>
+          {displayQualityNotice ? <div className="mt-4">{displayQualityNotice}</div> : null}
           <div className="mt-4 grid gap-4">
             <div>
               <FieldLabel required>페이지 유형</FieldLabel>
@@ -1138,7 +1274,9 @@ function MenuPageForm({
                         <span className="block text-sm font-black">{getDisplayMenuLayoutTypeLabel(type)}</span>
                         <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed">
                           {type === "split_image_menu"
-                            ? "한쪽에는 이미지와 짧은 문구를, 다른 한쪽에는 메뉴 목록을 보여주는 구성입니다."
+                            ? supportsSplitImageText
+                              ? "한쪽에는 이미지와 짧은 문구를, 다른 한쪽에는 메뉴 목록을 보여주는 구성입니다."
+                              : "한쪽에는 이미지를, 다른 한쪽에는 메뉴 목록을 보여주는 구성입니다."
                             : "화면 전체를 메뉴 목록으로 사용하는 구성입니다."}
                         </span>
                       </button>
@@ -1150,13 +1288,39 @@ function MenuPageForm({
             {displaySettings.pageType === "menu" && displaySettings.menuLayoutType === "split_image_menu" && (
               <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 md:grid-cols-2">
                 <div className="md:col-span-2">
+                  <FieldLabel required>이미지 위치</FieldLabel>
+                  <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+                    이미지와 메뉴가 50:50으로 나뉘며, 선택한 방향에 따라 이미지 위치가 바뀝니다.
+                  </p>
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    {[
+                      { value: "left", label: "왼쪽에 이미지" },
+                      { value: "right", label: "오른쪽에 이미지" },
+                    ].map((option) => {
+                      const selected = displaySettings.splitImagePosition === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => updateDisplaySettings({ splitImagePosition: option.value as MenuPageDisplaySettings["splitImagePosition"] })}
+                          className={`rounded-lg border p-4 text-left transition ${
+                            selected ? "border-zinc-950 bg-white text-zinc-950" : "border-zinc-200 bg-white/70 text-zinc-500 hover:border-zinc-400"
+                          }`}
+                        >
+                          <span className="block text-sm font-black">{option.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
                   <ImageUploadField
                     label="분할 이미지"
                     menuId={menuId}
                     target="display-page-image-draft"
                     recordId={page?.id ?? formId}
                     currentUrl={displaySettings.splitImage.url}
-                    description="이미지 + 메뉴 분할형에서 왼쪽 영역에 표시할 이미지를 등록합니다."
+                    description="이미지 + 메뉴 분할형에서 선택한 이미지 영역에 표시할 이미지를 등록합니다."
                     uploadSuccessMessage="새 분할 이미지는 저장 후 디스플레이 설정에 반영됩니다."
                     deleteSuccessMessage="분할 이미지 삭제가 임시 반영되었습니다. 저장 후 디스플레이 설정에 반영됩니다."
                     deleteConfirmTitle="분할 이미지를 삭제할까요?"
@@ -1169,24 +1333,28 @@ function MenuPageForm({
                     }
                   />
                 </div>
-                <ValidatedTextInput
-                  name="display_split_image_title"
-                  label="이미지 제목"
-                  defaultValue={displaySettings.splitImage.title ?? ""}
-                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageTitle}
-                  placeholder="예: 시즌 추천"
-                  helperText="이미지와 함께 보여줄 짧은 제목입니다."
-                  onValueChange={(value) => updateSplitImage({ title: value })}
-                />
-                <ValidatedTextInput
-                  name="display_split_image_description"
-                  label="이미지 설명"
-                  defaultValue={displaySettings.splitImage.description ?? ""}
-                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageDescription}
-                  placeholder="예: 이번 달에만 만나는 특별 메뉴"
-                  helperText="이미지 보조 문구입니다."
-                  onValueChange={(value) => updateSplitImage({ description: value })}
-                />
+                {supportsSplitImageText && (
+                  <>
+                    <ValidatedTextInput
+                      name="display_split_image_title"
+                      label="이미지 제목"
+                      defaultValue={displaySettings.splitImage.title ?? ""}
+                      maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageTitle}
+                      placeholder="예: 시즌 추천"
+                      helperText="이미지와 함께 보여줄 짧은 제목입니다."
+                      onValueChange={(value) => updateSplitImage({ title: value })}
+                    />
+                    <ValidatedTextInput
+                      name="display_split_image_description"
+                      label="이미지 설명"
+                      defaultValue={displaySettings.splitImage.description ?? ""}
+                      maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.splitImageDescription}
+                      placeholder="예: 이번 달에만 만나는 특별 메뉴"
+                      helperText="이미지 보조 문구입니다."
+                      onValueChange={(value) => updateSplitImage({ description: value })}
+                    />
+                  </>
+                )}
               </div>
             )}
             {displaySettings.pageType === "promotion" && (
@@ -1223,24 +1391,28 @@ function MenuPageForm({
                     })}
                   </div>
                 </div>
-                <ValidatedTextInput
-                  name="display_promotion_title"
-                  label="프로모션 제목"
-                  defaultValue={displaySettings.promotion.title ?? ""}
-                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionTitle}
-                  placeholder="예: 봄 시즌 안내"
-                  helperText="프로모션 화면의 제목입니다."
-                  onValueChange={(value) => updatePromotion({ title: value })}
-                />
-                <ValidatedTextInput
-                  name="display_promotion_description"
-                  label="프로모션 설명"
-                  defaultValue={displaySettings.promotion.description ?? ""}
-                  maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionDescription}
-                  placeholder="예: 신메뉴와 시즌 혜택을 확인해보세요."
-                  helperText="프로모션 화면의 보조 문구입니다."
-                  onValueChange={(value) => updatePromotion({ description: value })}
-                />
+                {supportsPromotionText && (
+                  <>
+                    <ValidatedTextInput
+                      name="display_promotion_title"
+                      label="프로모션 제목"
+                      defaultValue={displaySettings.promotion.title ?? ""}
+                      maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionTitle}
+                      placeholder="예: 봄 시즌 안내"
+                      helperText="프로모션 화면의 제목입니다."
+                      onValueChange={(value) => updatePromotion({ title: value })}
+                    />
+                    <ValidatedTextInput
+                      name="display_promotion_description"
+                      label="프로모션 설명"
+                      defaultValue={displaySettings.promotion.description ?? ""}
+                      maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.promotionDescription}
+                      placeholder="예: 신메뉴와 시즌 혜택을 확인해보세요."
+                      helperText="프로모션 화면의 보조 문구입니다."
+                      onValueChange={(value) => updatePromotion({ description: value })}
+                    />
+                  </>
+                )}
                 {displaySettings.promotion.mediaType === "image" ? (
                   <div className="md:col-span-2">
                     <ImageUploadField
@@ -1348,6 +1520,10 @@ function MenuCategoryForm({
   formId,
   labels,
   draftName,
+  priceOptionLabels,
+  supportsDescription = true,
+  supportCategoryPriceOptionColumns = false,
+  maxPriceOptionColumns = MENU_LIMITS.maxPriceOptionsPerItem,
   onDraftNameChange,
   onDraftChange,
   onDraftCommit,
@@ -1365,9 +1541,13 @@ function MenuCategoryForm({
   formId: string;
   labels: TemplateEditorLabels;
   draftName?: string;
+  priceOptionLabels?: string[];
+  supportsDescription?: boolean;
+  supportCategoryPriceOptionColumns?: boolean;
+  maxPriceOptionColumns?: number;
   onDraftNameChange?: (name: string) => void;
   onDraftChange?: (patch: Partial<CategoryBasicDraft>) => void;
-  onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
+  onDraftCommit?: (patch?: Partial<CategoryBasicDraft>) => void;
   draftActionLabel?: string;
   draftFeedback?: string;
   draftOnly?: boolean;
@@ -1381,20 +1561,56 @@ function MenuCategoryForm({
   const [descriptionVisible, setDescriptionVisible] = useState(category?.description_visible ?? false);
   const [visible, setVisible] = useState(category?.visible ?? true);
   const [sortOrder, setSortOrder] = useState(category?.sort_order ?? 0);
+  const [categoryPriceOptionLabels, setCategoryPriceOptionLabels] = useState(() =>
+    normalizeDraftPriceOptionLabels(priceOptionLabels, maxPriceOptionColumns)
+  );
+  const [initialCategoryPriceOptionLabels] = useState(() => normalizeDraftPriceOptionLabels(priceOptionLabels, maxPriceOptionColumns));
   const nameValue = category ? name : draftName !== undefined ? draftName : name;
+  const normalizedCategoryPriceOptionLabels = normalizeDraftPriceOptionLabels(categoryPriceOptionLabels, maxPriceOptionColumns);
   const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuCategories.name;
+  const priceOptionLabelsChanged =
+    supportCategoryPriceOptionColumns &&
+    JSON.stringify(normalizedCategoryPriceOptionLabels) !== JSON.stringify(initialCategoryPriceOptionLabels);
   const categoryFormDirty =
     !category ||
     normalizeDraftText(nameValue) !== normalizeDraftText(category.name) ||
-    normalizeDraftText(description) !== normalizeDraftText(category.description ?? "") ||
-    descriptionVisible !== (category.description_visible ?? false) ||
+    (supportsDescription && normalizeDraftText(description) !== normalizeDraftText(category.description ?? "")) ||
+    (supportsDescription && descriptionVisible !== (category.description_visible ?? false)) ||
     visible !== (category.visible ?? true) ||
-    normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(category.sort_order);
+    normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(category.sort_order) ||
+    priceOptionLabelsChanged;
+
+  function updateCategoryPriceOptionLabel(index: number, value: string) {
+    const nextLabels = [...categoryPriceOptionLabels];
+    nextLabels[index] = value;
+    const normalizedLabels = normalizeDraftPriceOptionLabels(nextLabels, maxPriceOptionColumns);
+    setCategoryPriceOptionLabels(nextLabels.slice(0, maxPriceOptionColumns));
+    onDraftChange?.({ priceOptionLabels: normalizedLabels });
+  }
+
+  function addCategoryPriceOptionLabel() {
+    if (categoryPriceOptionLabels.length >= maxPriceOptionColumns) return;
+    const nextLabels = [...categoryPriceOptionLabels, ""];
+    setCategoryPriceOptionLabels(nextLabels);
+    onDraftChange?.({ priceOptionLabels: normalizeDraftPriceOptionLabels(nextLabels, maxPriceOptionColumns) });
+  }
+
+  function removeCategoryPriceOptionLabel(index: number) {
+    const nextLabels = categoryPriceOptionLabels.filter((_, labelIndex) => labelIndex !== index);
+    setCategoryPriceOptionLabels(nextLabels);
+    onDraftChange?.({ priceOptionLabels: normalizeDraftPriceOptionLabels(nextLabels, maxPriceOptionColumns) });
+  }
 
   function handleDraftCommit() {
     if (category && !categoryFormDirty) return;
     onDraftNameChange?.(nameValue);
-    onDraftChange?.({ name: nameValue, description, descriptionVisible, visible, sortOrder });
+    onDraftChange?.({
+      name: nameValue,
+      ...(supportsDescription ? { description, descriptionVisible } : {}),
+      visible,
+      sortOrder,
+      ...(supportCategoryPriceOptionColumns ? { priceOptionLabels: normalizedCategoryPriceOptionLabels } : {}),
+    });
     onDraftCommit?.();
   }
 
@@ -1434,18 +1650,20 @@ function MenuCategoryForm({
           <span className={nameValue.length > MENU_FIELD_LIMITS.menuCategories.name ? "text-red-600" : "text-zinc-400"}>{nameValue.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
         </div>
       </div>
-      <ValidatedTextArea
-        name="category_description"
-        label={`${labels.categoryLabel} 설명`}
-        defaultValue={description}
-        placeholder={`${labels.categoryLabel} 설명을 입력하세요`}
-        maxLength={MENU_FIELD_LIMITS.menuCategories.description}
-        helperText={descriptionVisible ? `${labels.categoryLabel} 소개 문구입니다.` : "사용 안 함 상태에서는 공개 메뉴판에 설명이 표시되지 않습니다."}
-        onValueChange={(value) => {
-          setDescription(value);
-          if (!category) onDraftChange?.({ description: value });
-        }}
-      />
+      {supportsDescription && (
+        <ValidatedTextArea
+          name="category_description"
+          label={`${labels.categoryLabel} 설명`}
+          defaultValue={description}
+          placeholder={`${labels.categoryLabel} 설명을 입력하세요`}
+          maxLength={MENU_FIELD_LIMITS.menuCategories.description}
+          helperText={descriptionVisible ? `${labels.categoryLabel} 소개 문구입니다.` : "사용 안 함 상태에서는 공개 메뉴판에 설명이 표시되지 않습니다."}
+          onValueChange={(value) => {
+            setDescription(value);
+            if (!category) onDraftChange?.({ description: value });
+          }}
+        />
+      )}
       <ValidatedTextInput
         name="category_sort_order"
         label="정렬 순서"
@@ -1458,22 +1676,65 @@ function MenuCategoryForm({
         helperText="숫자가 낮을수록 먼저 표시됩니다."
         onValueChange={(value) => setSortOrder(Number(value))}
       />
+      {supportCategoryPriceOptionColumns && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">가격 옵션 열</h4>
+          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+            메뉴링크 디스플레이 A는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
+          </p>
+          <div className="mt-4 grid gap-3">
+            {categoryPriceOptionLabels.map((label, index) => (
+              <div key={`category-price-option-label-${index}`} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <ValidatedTextInput
+                  name={`category_price_option_label_${index}`}
+                  label={`옵션 열 ${index + 1}`}
+                  defaultValue={label}
+                  placeholder={index === 0 ? "HOT" : index === 1 ? "ICE" : "LARGE"}
+                  maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label}
+                  helperText="이 카테고리의 모든 메뉴가 공유하는 가격 열 이름입니다."
+                  onValueChange={(value) => updateCategoryPriceOptionLabel(index, value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeCategoryPriceOptionLabel(index)}
+                  className="rounded-full border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                >
+                  삭제
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addCategoryPriceOptionLabel}
+              disabled={categoryPriceOptionLabels.length >= maxPriceOptionColumns}
+              className="w-fit rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:border-zinc-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+            >
+              옵션 열 추가
+            </button>
+          </div>
+          <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+            메뉴링크 디스플레이 A에서는 가격 옵션 열을 최대 {maxPriceOptionColumns}개까지 사용할 수 있습니다.
+          </p>
+        </section>
+      )}
       <div className="grid gap-3">
-        <Checkbox
-          name="category_description_visible"
-          label={
-            <LabelWithHelp help="사용 안 함으로 바꿔도 입력한 설명은 삭제되지 않습니다. 공개 메뉴판에만 표시되지 않습니다.">
-              설명글 사용
-            </LabelWithHelp>
-          }
-          defaultChecked={descriptionVisible}
-          onText="사용함"
-          offText="사용 안 함"
-          onCheckedChange={(checked) => {
-            setDescriptionVisible(checked);
-            if (!category) onDraftChange?.({ descriptionVisible: checked });
-          }}
-        />
+        {supportsDescription && (
+          <Checkbox
+            name="category_description_visible"
+            label={
+              <LabelWithHelp help="사용 안 함으로 바꿔도 입력한 설명은 삭제되지 않습니다. 공개 메뉴판에만 표시되지 않습니다.">
+                설명글 사용
+              </LabelWithHelp>
+            }
+            defaultChecked={descriptionVisible}
+            onText="사용함"
+            offText="사용 안 함"
+            onCheckedChange={(checked) => {
+              setDescriptionVisible(checked);
+              if (!category) onDraftChange?.({ descriptionVisible: checked });
+            }}
+          />
+        )}
         <Checkbox
           name="category_visible"
           label="메뉴판 표시"
@@ -1525,6 +1786,7 @@ function MenuItemForm({
   item,
   draftItem,
   committedDraftItem,
+  categoryPriceOptionLabels = [],
   onDraftItemChange,
   onDraftCommit,
   onDraftCommitMessageClear,
@@ -1553,6 +1815,7 @@ function MenuItemForm({
   item?: MenuItem;
   draftItem?: ItemBasicDraft;
   committedDraftItem?: ItemBasicDraft;
+  categoryPriceOptionLabels?: string[];
   onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
   onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
   onDraftCommitMessageClear?: () => void;
@@ -1583,9 +1846,14 @@ function MenuItemForm({
   const categoryInvalid = !categoryId;
   const [draftPriceMode, setDraftPriceMode] = useState<PriceMode>(priceMode);
   const requestedPriceMode = item ? priceMode : draftPriceMode;
+  const maxPriceOptionsPerItem = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
   const currentPriceMode = capabilities.priceOptions ? requestedPriceMode : "single";
-  const isOptionsMode = currentPriceMode === "options";
+  const usesCategoryPriceOptionColumns = Boolean(capabilities.categoryPriceOptionColumns && capabilities.priceOptions);
+  const normalizedCategoryPriceOptionLabels = normalizeDraftPriceOptionLabels(categoryPriceOptionLabels, maxPriceOptionsPerItem);
+  const isOptionsMode = usesCategoryPriceOptionColumns ? normalizedCategoryPriceOptionLabels.length > 0 : currentPriceMode === "options";
   const isSingleMode = !isOptionsMode;
+  const supportsPortionLabel = capabilities.itemPortionLabel;
+  const priceOptionLimitMessage = getPriceOptionLimitMessage(labels, maxPriceOptionsPerItem);
   const formId = item ? `menu-item-form-${item.id}` : "menu-item-form-new";
   const [priceValue, setPriceValue] = useState(draftItem?.price ?? (item?.price == null ? "" : String(item.price)));
   const [priceLabelValue, setPriceLabelValue] = useState(draftItem?.priceLabel ?? item?.price_label ?? "");
@@ -1605,13 +1873,25 @@ function MenuItemForm({
     imagePath: draftItem?.imagePath ?? item?.image_path ?? null,
     imageAction: draftItem?.imageAction ?? "keep",
   });
-  const [draftPriceOptions, setDraftPriceOptions] = useState<DraftPriceOption[]>(() =>
-    draftItem?.priceOptions ??
-    priceOptions
-      .slice(0, MENU_LIMITS.maxPriceOptionsPerItem)
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map(toDraftPriceOption)
-  );
+  const [draftPriceOptions, setDraftPriceOptions] = useState<DraftPriceOption[]>(() => {
+    const sourceOptions =
+      draftItem?.priceOptions ??
+      priceOptions
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map(toDraftPriceOption);
+
+    if (usesCategoryPriceOptionColumns && normalizedCategoryPriceOptionLabels.length > 0) {
+      const sourceOptionByLabel = new Map(
+        sourceOptions.map((option) => [option.label.trim().toLocaleUpperCase("ko-KR"), option])
+      );
+
+      return normalizedCategoryPriceOptionLabels.map((label, index) =>
+        toDraftPriceOptionFromColumn(label, index, sourceOptionByLabel.get(label.toLocaleUpperCase("ko-KR")))
+      );
+    }
+
+    return sourceOptions;
+  });
   const [draftPriceOptionLabel, setDraftPriceOptionLabel] = useState("");
   const [draftPriceOptionPrice, setDraftPriceOptionPrice] = useState("");
   const [draftPriceOptionPriceLabel, setDraftPriceOptionPriceLabel] = useState("");
@@ -1620,16 +1900,33 @@ function MenuItemForm({
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [descriptionOverwritePending, setDescriptionOverwritePending] = useState(false);
   const [portionLabelValue, setPortionLabelValue] = useState(draftItem?.portionLabel ?? item?.portion_label ?? "");
+  const effectiveDraftPriceOptions = useMemo(() => {
+    if (!usesCategoryPriceOptionColumns || normalizedCategoryPriceOptionLabels.length === 0) return draftPriceOptions;
+    const draftOptionByLabel = new Map(
+      draftPriceOptions.map((option) => [option.label.trim().toLocaleUpperCase("ko-KR"), option])
+    );
+
+    return normalizedCategoryPriceOptionLabels.map((label, index) =>
+      toDraftPriceOptionFromColumn(label, index, draftOptionByLabel.get(label.toLocaleUpperCase("ko-KR")))
+    );
+  }, [draftPriceOptions, normalizedCategoryPriceOptionLabels, usesCategoryPriceOptionColumns]);
+
   const initialTraitDrafts = draftItem?.traitDrafts ?? toItemTraitDrafts(traits);
   const [traitLabelValues, setTraitLabelValues] = useState(() =>
     Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => initialTraitDrafts[index]?.label ?? "")
   );
-  const hasDraftPriceOption = draftPriceOptions.some((option) => option.visible);
+  const hasDraftPriceOption = usesCategoryPriceOptionColumns
+    ? effectiveDraftPriceOptions.some((option) => option.visible && (String(option.price).trim() || option.priceLabel.trim()))
+    : effectiveDraftPriceOptions.some((option) => option.visible);
   const singlePriceInvalid = isSingleMode && !priceValue.trim() && !priceLabelValue.trim();
   const optionsPriceInvalid = isOptionsMode && !hasDraftPriceOption;
+  const draftPriceOptionLimitExceeded = isOptionsMode && effectiveDraftPriceOptions.length > maxPriceOptionsPerItem;
   const draftPriceOptionInvalid =
     isOptionsMode &&
-    draftPriceOptions.some((option) => option.visible && (!option.label.trim() || (!String(option.price).trim() && !option.priceLabel.trim())));
+    effectiveDraftPriceOptions.some((option) =>
+      option.visible &&
+      (!option.label.trim() || (!usesCategoryPriceOptionColumns && !String(option.price).trim() && !option.priceLabel.trim()))
+    );
   const singlePriceErrorText = attemptedItemSubmit && singlePriceInvalid ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해주세요.` : undefined;
   const isCustomBadge = selectedBadgeLabel === MENU_BADGE_CUSTOM_VALUE;
   const customBadgeTooLong = isCustomBadge && customBadgeLabel.length > MENU_BADGE_MAX_LENGTH;
@@ -1641,12 +1938,14 @@ function MenuItemForm({
         ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해야 반영할 수 있습니다.`
         : optionsPriceInvalid
           ? "옵션별 가격을 1개 이상 추가해야 반영할 수 있습니다."
-          : draftPriceOptionInvalid
-            ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
-            : customBadgeTooLong
-              ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
-              : "";
-  const itemDraftSaveDisabled = nameInvalid || categoryInvalid || singlePriceInvalid || optionsPriceInvalid || draftPriceOptionInvalid || customBadgeTooLong;
+          : draftPriceOptionLimitExceeded
+            ? priceOptionLimitMessage
+            : draftPriceOptionInvalid
+              ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
+              : customBadgeTooLong
+                ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
+                : "";
+  const itemDraftSaveDisabled = nameInvalid || categoryInvalid || singlePriceInvalid || optionsPriceInvalid || draftPriceOptionLimitExceeded || draftPriceOptionInvalid || customBadgeTooLong;
   const itemDraftActionLabel = item ? "수정 내용 반영" : labels.itemLabel === "서비스" ? "서비스 추가" : "아이템 추가";
   const hasPortionData = Boolean(portionLabelValue.trim());
   const hasTraitData = traitLabelValues.some((label) => label.trim());
@@ -1656,7 +1955,7 @@ function MenuItemForm({
   const selectedCategoryName = categories.find((category) => category.id === categoryId)?.name ?? "";
   const aiDescriptionUsageExceeded = aiDescriptionUsage.used >= aiDescriptionUsage.limit;
   const committedPriceOptions = useMemo(
-    () => committedDraftItem?.priceOptions ?? priceOptions.slice(0, MENU_LIMITS.maxPriceOptionsPerItem).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+    () => committedDraftItem?.priceOptions ?? [...priceOptions].sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
     [committedDraftItem?.priceOptions, priceOptions]
   );
   const committedPriceMode =
@@ -1675,10 +1974,10 @@ function MenuItemForm({
     normalizeDraftNumberText(sortOrderValue) !== normalizeDraftNumberText(committedDraftItem?.sortOrder ?? item.sort_order ?? itemCount) ||
     priceVisibleValue !== (committedDraftItem?.priceVisible ?? item.price_visible ?? true) ||
     currentPriceMode !== committedPriceMode ||
-    normalizeDraftText(portionLabelValue) !== normalizeDraftText(committedDraftItem?.portionLabel ?? item.portion_label ?? "") ||
-    portionVisibleValue !== (committedDraftItem?.portionVisible ?? item.portion_visible ?? true) ||
+    (supportsPortionLabel && normalizeDraftText(portionLabelValue) !== normalizeDraftText(committedDraftItem?.portionLabel ?? item.portion_label ?? "")) ||
+    (supportsPortionLabel && portionVisibleValue !== (committedDraftItem?.portionVisible ?? item.portion_visible ?? true)) ||
     traitsVisibleValue !== (committedDraftItem?.traitsVisible ?? item.traits_visible ?? true) ||
-    !areDraftPriceOptionsEqual(draftPriceOptions, committedPriceOptions) ||
+    !areDraftPriceOptionsEqual(effectiveDraftPriceOptions, committedPriceOptions) ||
     draftImageState.imageUrl !== (committedDraftItem?.imageUrl ?? item.image_url ?? null) ||
     draftImageState.imagePath !== (committedDraftItem?.imagePath ?? item.image_path ?? null) ||
     draftImageState.imageAction !== (committedDraftItem?.imageAction ?? "keep") ||
@@ -1733,12 +2032,16 @@ function MenuItemForm({
       visible: formData ? formData.has("item_visible") : visibleValue,
       sortOrder: Number(String(formData?.get("item_sort_order") ?? item?.sort_order ?? itemCount)) || 0,
       priceVisible: formData ? formData.has("item_price_visible") : priceVisibleValue,
-      priceMode: currentPriceMode,
-      portionLabel: String(formData?.get("item_portion_label") ?? portionLabelValue),
-      portionVisible: formData ? formData.has("item_portion_visible") : portionVisibleValue,
+      priceMode: isOptionsMode ? "options" : currentPriceMode,
+      ...(supportsPortionLabel
+        ? {
+            portionLabel: String(formData?.get("item_portion_label") ?? portionLabelValue),
+            portionVisible: formData ? formData.has("item_portion_visible") : portionVisibleValue,
+          }
+        : {}),
       traitsVisible: formData ? formData.has("item_traits_visible") : traitsVisibleValue,
       traitDrafts,
-      priceOptions: currentPriceMode === "options" ? draftPriceOptions : [],
+      priceOptions: isOptionsMode ? effectiveDraftPriceOptions : [],
       imageUrl: draftImageState.imageUrl,
       imagePath: draftImageState.imagePath,
       imageAction: draftImageState.imageAction,
@@ -1773,8 +2076,8 @@ function MenuItemForm({
       return;
     }
 
-    if (draftPriceOptions.length >= MENU_LIMITS.maxPriceOptionsPerItem) {
-      setDraftPriceOptionError(`가격 옵션은 ${labels.itemLabel}당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`);
+    if (draftPriceOptions.length >= maxPriceOptionsPerItem) {
+      setDraftPriceOptionError(priceOptionLimitMessage);
       return;
     }
 
@@ -1811,8 +2114,8 @@ function MenuItemForm({
 
     const optionPriceLabel = isOptionsMode
       ? [
-          ...priceOptions.filter((option) => option.visible).map((option) => `${option.label} ${formatPriceOption(option)}`.trim()),
-          ...draftPriceOptions.filter((option) => option.visible).map((option) => `${option.label} ${option.priceLabel || option.price}`.trim()),
+          ...priceOptions.slice(0, maxPriceOptionsPerItem).filter((option) => option.visible).map((option) => `${option.label} ${formatPriceOption(option)}`.trim()),
+          ...effectiveDraftPriceOptions.slice(0, maxPriceOptionsPerItem).filter((option) => option.visible).map((option) => `${option.label} ${option.priceLabel || option.price}`.trim()),
         ]
           .filter(Boolean)
           .join(" / ")
@@ -1865,7 +2168,19 @@ function MenuItemForm({
 
   function updateDraftPriceOption(optionId: string, patch: Partial<DraftPriceOption>) {
     setDraftPriceOptions((currentOptions) =>
-      currentOptions.map((option) => (option.id === optionId ? { ...option, ...patch } : option))
+      currentOptions.some((option) => option.id === optionId)
+        ? currentOptions.map((option) => (option.id === optionId ? { ...option, ...patch } : option))
+        : [
+            ...currentOptions,
+            {
+              id: optionId,
+              label: patch.label ?? "",
+              price: patch.price ?? "",
+              priceLabel: patch.priceLabel ?? "",
+              visible: patch.visible ?? true,
+              sortOrder: patch.sortOrder ?? currentOptions.length,
+            },
+          ]
     );
   }
 
@@ -1904,9 +2219,9 @@ function MenuItemForm({
       />
       <HiddenMenuId menuId={menuId} form={formId} />
       {item && <input type="hidden" name="itemId" value={item.id} form={formId} />}
-      <input type="hidden" name="item_price_mode" value={currentPriceMode} form={formId} />
+      <input type="hidden" name="item_price_mode" value={isOptionsMode ? "options" : currentPriceMode} form={formId} />
       {item?.is_sold_out && <input type="hidden" name="item_is_sold_out" value="on" form={formId} />}
-      {draftPriceOptions.map((option, index) => (
+      {effectiveDraftPriceOptions.map((option, index) => (
         <span key={option.id}>
           <input type="hidden" name={`new_price_option_${index}_label`} value={option.label} form={formId} />
           <input type="hidden" name={`new_price_option_${index}_price`} value={option.price} form={formId} />
@@ -2156,40 +2471,44 @@ function MenuItemForm({
             단일 가격은 하나의 가격을 보여줄 때 사용하고, 옵션별 가격은 HOT/ICE나 사이즈별 가격처럼 여러 가격을 보여줄 때 사용합니다.
           </HelpTooltip>
         </h4>
-        <div className="mt-4">
-          <FieldLabel>
-            <LabelWithHelp help="단일 가격은 기본 가격 또는 표시용 가격을 한 번만 보여줍니다. 옵션별 가격은 여러 가격 문구를 보여줄 때 사용합니다.">
-              가격 표시 방식
-            </LabelWithHelp>
-          </FieldLabel>
-        </div>
-        <div className="mt-3 grid gap-2 md:grid-cols-2">
-          {(capabilities.priceOptions ? (["single", "options"] as const) : (["single"] as const)).map((mode) => (
-            <label
-              key={mode}
-              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-sm font-bold ${
-                currentPriceMode === mode ? "border-zinc-950 bg-zinc-50 text-zinc-950" : "border-zinc-200 bg-white text-zinc-500"
-              }`}
-            >
-              <input
-                type="radio"
-                name="price_mode_selector"
-                value={mode}
-                checked={currentPriceMode === mode}
-                onChange={() => setPriceMode(mode)}
-                className="mt-1 accent-zinc-950"
-              />
-              <span>
-                {mode === "single" ? "단일 가격" : "옵션별 가격"}
-                <span className="mt-1 block text-xs font-semibold leading-relaxed text-zinc-400">
-                  {mode === "single"
-                    ? `기본 가격 또는 ${labels.priceLabelLabel}을 한 번만 보여줍니다.`
-                    : "HOT/ICE, 사이즈, 중량처럼 가격이 나뉘는 경우 사용합니다."}
-                </span>
-              </span>
-            </label>
-          ))}
-        </div>
+        {!usesCategoryPriceOptionColumns && (
+          <>
+            <div className="mt-4">
+              <FieldLabel>
+                <LabelWithHelp help="단일 가격은 기본 가격 또는 표시용 가격을 한 번만 보여줍니다. 옵션별 가격은 여러 가격 문구를 보여줄 때 사용합니다.">
+                  가격 표시 방식
+                </LabelWithHelp>
+              </FieldLabel>
+            </div>
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              {(capabilities.priceOptions ? (["single", "options"] as const) : (["single"] as const)).map((mode) => (
+                <label
+                  key={mode}
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-sm font-bold ${
+                    currentPriceMode === mode ? "border-zinc-950 bg-zinc-50 text-zinc-950" : "border-zinc-200 bg-white text-zinc-500"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="price_mode_selector"
+                    value={mode}
+                    checked={currentPriceMode === mode}
+                    onChange={() => setPriceMode(mode)}
+                    className="mt-1 accent-zinc-950"
+                  />
+                  <span>
+                    {mode === "single" ? "단일 가격" : "옵션별 가격"}
+                    <span className="mt-1 block text-xs font-semibold leading-relaxed text-zinc-400">
+                      {mode === "single"
+                        ? `기본 가격 또는 ${labels.priceLabelLabel}을 한 번만 보여줍니다.`
+                        : "HOT/ICE, 사이즈, 중량처럼 가격이 나뉘는 경우 사용합니다."}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
         {isSingleMode && (
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <ValidatedTextInput
@@ -2227,7 +2546,55 @@ function MenuItemForm({
         <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
           실제 매장에서 제공하는 가격과 일치하는지 확인해주세요.
         </p>
-        {isOptionsMode && (
+        {usesCategoryPriceOptionColumns ? (
+          <div className="mt-4 rounded-lg bg-zinc-50 p-4">
+            <p className="break-keep text-xs font-bold leading-relaxed text-zinc-500">
+              이 메뉴는 카테고리에 설정된 가격 옵션 열만 사용할 수 있습니다. 옵션명을 바꾸려면 카테고리의 “가격 옵션 열”을 수정해주세요.
+            </p>
+            {normalizedCategoryPriceOptionLabels.length === 0 ? (
+              <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
+                먼저 카테고리에서 가격 옵션 열을 추가해주세요. 예: HOT / ICE / LARGE
+              </p>
+            ) : (
+              <div className="mt-4 grid gap-4">
+                {effectiveDraftPriceOptions.map((option, index) => (
+                  <div key={`${option.label}-${index}`} className="rounded-lg border border-zinc-100 bg-white p-4">
+                    <h5 className="text-sm font-black text-zinc-950">{option.label}</h5>
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      <ValidatedTextInput
+                        form={formId}
+                        name={`display_price_option_${index}_price`}
+                        label={`${option.label} 가격`}
+                        type="number"
+                        min={0}
+                        step={1}
+                        defaultValue={option.price}
+                        placeholder="6500"
+                        helperText="제공하지 않는 옵션은 비워둘 수 있습니다."
+                        onValueChange={(value) => updateDraftPriceOption(option.id, { label: option.label, price: value.replace(/[^0-9]/g, ""), sortOrder: index })}
+                      />
+                      <ValidatedTextInput
+                        form={formId}
+                        name={`display_price_option_${index}_price_label`}
+                        label={`${option.label} 표시용 가격`}
+                        defaultValue={option.priceLabel}
+                        placeholder="예: 6.5, 문의"
+                        maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel}
+                        helperText="있으면 이 문구를 우선 표시합니다."
+                        onValueChange={(value) => updateDraftPriceOption(option.id, { label: option.label, priceLabel: value, sortOrder: index })}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {(draftPriceOptionLimitExceeded || optionsPriceInvalid) && (
+              <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-red-600">
+                {draftPriceOptionLimitExceeded ? priceOptionLimitMessage : "옵션 가격을 1개 이상 입력해주세요."}
+              </p>
+            )}
+          </div>
+        ) : isOptionsMode ? (
           <div className="mt-4">
             <DraftPriceOptionsEditor
               options={draftPriceOptions}
@@ -2235,7 +2602,9 @@ function MenuItemForm({
               label={draftPriceOptionLabel}
               price={draftPriceOptionPrice}
               priceLabel={draftPriceOptionPriceLabel}
-              error={draftPriceOptionError || (optionsPriceInvalid ? "옵션별 가격을 1개 이상 추가해주세요." : "")}
+              error={draftPriceOptionError || (draftPriceOptionLimitExceeded ? priceOptionLimitMessage : optionsPriceInvalid ? "옵션별 가격을 1개 이상 추가해주세요." : "")}
+              maxOptions={maxPriceOptionsPerItem}
+              limitMessage={priceOptionLimitMessage}
               onLabelChange={setDraftPriceOptionLabel}
               onPriceChange={setDraftPriceOptionPrice}
               onPriceLabelChange={setDraftPriceOptionPriceLabel}
@@ -2244,7 +2613,7 @@ function MenuItemForm({
               onOptionChange={updateDraftPriceOption}
             />
           </div>
-        )}
+        ) : null}
         <div className="mt-4">
           <Checkbox
             form={formId}
@@ -2260,38 +2629,40 @@ function MenuItemForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-zinc-100 bg-white p-4">
-        <h4 className="text-sm font-black text-zinc-950">제공량</h4>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <ValidatedTextInput
-            form={formId}
-            name="item_portion_label"
-            label="제공량 표시 문구"
-            defaultValue={portionLabelValue}
-            placeholder="예: 150g, 1인분, 2pcs, 355ml, Small"
-            maxLength={MENU_FIELD_LIMITS.menuItems.portionLabel}
-            helperText="용량, 중량, 구성 정보를 짧게 입력하세요."
-            onValueChange={(value) => {
-              setPortionLabelValue(value);
-              updateDraftItem({ portionLabel: value });
-            }}
-          />
-          <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-            <Checkbox
+      {supportsPortionLabel && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">제공량</h4>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <ValidatedTextInput
               form={formId}
-              name="item_portion_visible"
-              label="공개 메뉴판에 제공량 표시"
-              defaultChecked={Boolean(portionVisibleValue && hasPortionData)}
-              canTurnOn={hasPortionData}
-              blockedMessage="제공량 표시 문구를 먼저 입력해주세요."
-              onCheckedChange={(checked) => {
-                setPortionVisibleValue(checked);
-                updateDraftItem({ portionVisible: checked });
+              name="item_portion_label"
+              label="제공량 표시 문구"
+              defaultValue={portionLabelValue}
+              placeholder="예: 150g, 1인분, 2pcs, 355ml, Small"
+              maxLength={MENU_FIELD_LIMITS.menuItems.portionLabel}
+              helperText="용량, 중량, 구성 정보를 짧게 입력하세요."
+              onValueChange={(value) => {
+                setPortionLabelValue(value);
+                updateDraftItem({ portionLabel: value });
               }}
             />
+            <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+              <Checkbox
+                form={formId}
+                name="item_portion_visible"
+                label="공개 메뉴판에 제공량 표시"
+                defaultChecked={Boolean(portionVisibleValue && hasPortionData)}
+                canTurnOn={hasPortionData}
+                blockedMessage="제공량 표시 문구를 먼저 입력해주세요."
+                onCheckedChange={(checked) => {
+                  setPortionVisibleValue(checked);
+                  updateDraftItem({ portionVisible: checked });
+                }}
+              />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {capabilities.itemTraits && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
@@ -2452,10 +2823,18 @@ function formatPriceOption(option: Pick<MenuItemPriceOption, "price" | "price_la
   return "";
 }
 
-function priceOptionSummary(options: MenuItemPriceOption[]) {
+function getPriceOptionLimitMessage(labels: TemplateEditorLabels, maxOptions: number) {
+  if (maxOptions === 3) {
+    return "메뉴링크 디스플레이 A에서는 TV 메뉴판 가독성을 위해 가격 옵션을 최대 3개까지 사용할 수 있습니다.";
+  }
+
+  return `가격 옵션은 ${labels.itemLabel}당 최대 ${maxOptions}개까지 등록할 수 있습니다.`;
+}
+
+function priceOptionSummary(options: MenuItemPriceOption[], maxOptions: number = MENU_LIMITS.maxPriceOptionsPerItem) {
   return options
     .filter((option) => option.visible)
-    .slice(0, MENU_LIMITS.maxPriceOptionsPerItem)
+    .slice(0, maxOptions)
     .map((option) => `${option.label} ${formatPriceOption(option)}`.trim())
     .join(" · ");
 }
@@ -2476,6 +2855,8 @@ function DraftPriceOptionsEditor({
   price,
   priceLabel,
   error,
+  maxOptions,
+  limitMessage,
   onLabelChange,
   onPriceChange,
   onPriceLabelChange,
@@ -2489,6 +2870,8 @@ function DraftPriceOptionsEditor({
   price: string;
   priceLabel: string;
   error?: string;
+  maxOptions: number;
+  limitMessage: string;
   onLabelChange: (value: string) => void;
   onPriceChange: (value: string) => void;
   onPriceLabelChange: (value: string) => void;
@@ -2496,7 +2879,7 @@ function DraftPriceOptionsEditor({
   onRemove: (optionId: string) => void;
   onOptionChange: (optionId: string, patch: Partial<DraftPriceOption>) => void;
 }) {
-  const reachedPriceOptionLimit = options.length >= MENU_LIMITS.maxPriceOptionsPerItem;
+  const reachedPriceOptionLimit = options.length >= maxOptions;
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
   const [editingOptionDraft, setEditingOptionDraft] = useState({
     label: "",
@@ -2547,7 +2930,7 @@ function DraftPriceOptionsEditor({
   return (
     <div className="mt-4 rounded-lg bg-zinc-50 p-4">
       <p className={`break-keep text-xs font-bold leading-relaxed ${error ? "text-red-600" : "text-zinc-400"}`}>
-        {error || `옵션은 ${labels.itemLabel}당 최대 ${MENU_LIMITS.maxPriceOptionsPerItem}개까지 등록할 수 있습니다.`}
+        {error || limitMessage}
       </p>
 
       <div className="mt-4 rounded-lg border border-zinc-100 bg-white p-4">
@@ -2862,7 +3245,7 @@ export default function MenuManagementSection({
           origin_info: draft.originInfo.trim() ? draft.originInfo : null,
           price: Number.isFinite(numericPrice) ? numericPrice : item.price,
           price_label: draft.priceLabel.trim() ? draft.priceLabel : null,
-          portion_label: draft.portionLabel?.trim() ? draft.portionLabel : null,
+          portion_label: capabilities.itemPortionLabel ? (draft.portionLabel?.trim() ? draft.portionLabel : null) : item.portion_label,
           badge_label: draft.badgeLabel.trim() ? draft.badgeLabel : null,
           badge_type: getBadgeStyleKey(draft.badgeLabel),
           recommended: Boolean(draft.badgeLabel.trim()),
@@ -2872,7 +3255,7 @@ export default function MenuManagementSection({
           image_url: nextImageUrl,
           image_path: nextImagePath,
           price_visible: draft.priceVisible ?? item.price_visible,
-          portion_visible: draft.portionVisible ?? item.portion_visible,
+          portion_visible: capabilities.itemPortionLabel ? (draft.portionVisible ?? item.portion_visible) : item.portion_visible,
           traits_visible: draft.traitsVisible ?? item.traits_visible,
         };
       });
@@ -2890,8 +3273,8 @@ export default function MenuManagementSection({
             price: Number.isFinite(numericPrice) && numericPrice != null ? numericPrice : 0,
             price_label: draft.priceLabel.trim() ? draft.priceLabel : null,
             price_visible: draft.priceVisible ?? true,
-            portion_label: draft.portionLabel?.trim() ? draft.portionLabel : null,
-            portion_visible: draft.portionVisible ?? true,
+            portion_label: capabilities.itemPortionLabel && draft.portionLabel?.trim() ? draft.portionLabel : null,
+            portion_visible: capabilities.itemPortionLabel ? (draft.portionVisible ?? true) : false,
             image_url: draft.imageUrl ?? null,
             image_path: draft.imagePath ?? null,
             badge_label: badgeLabel,
@@ -2908,7 +3291,7 @@ export default function MenuManagementSection({
 
       return [...existingDraftedItems, ...createdDraftItems];
     },
-    [categories, deletedCategoryIds, deletedItemIds, deletedPageIds, items, itemBasicDrafts]
+    [capabilities.itemPortionLabel, categories, deletedCategoryIds, deletedItemIds, deletedPageIds, items, itemBasicDrafts]
   );
   const sortedPages = useMemo(() => sortMenuPages(draftedPages), [draftedPages]);
   const firstVisiblePageId = sortedPages.find((page) => page.visible)?.id ?? sortedPages[0]?.id ?? "";
@@ -2954,11 +3337,35 @@ export default function MenuManagementSection({
   const visiblePageId = selectedPage?.id ?? "";
   const selectedPageDisplaySettings = getDraftedPageDisplaySettings(selectedPage);
   const selectedPageIsPromotion = canConfigureDisplayPages && isPromotionDisplayPage(selectedPageDisplaySettings);
+  const supportsDisplayMenuQualityWarnings = Boolean(
+    canConfigureDisplayPages &&
+    capabilities.categoryPriceOptionColumns &&
+    capabilities.priceOptions &&
+    !capabilities.itemDescription &&
+    !capabilities.itemPortionLabel &&
+    !capabilities.splitImageText &&
+    !capabilities.promotionText
+  );
 
   const categoriesForPage =
     visiblePageId && !selectedPageIsPromotion
       ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === visiblePageId))
       : [];
+  const visibleCategoriesForSelectedPage = categoriesForPage.filter((category) => category.visible);
+  const visibleCategoryIdsForSelectedPage = new Set(visibleCategoriesForSelectedPage.map((category) => category.id));
+  const visibleItemsForSelectedPage = draftedItems.filter((item) => {
+    const categoryId = item.category_id;
+    return item.visible && typeof categoryId === "string" && visibleCategoryIdsForSelectedPage.has(categoryId);
+  });
+  const selectedPageDisplayQualityNotice =
+    supportsDisplayMenuQualityWarnings
+      ? getDisplayMenuQualityNotice(
+          selectedPageDisplaySettings,
+          visibleCategoriesForSelectedPage,
+          visibleItemsForSelectedPage,
+          priceOptions
+        )
+      : null;
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(firstVisibleCategoryIdForInitialPage);
   const selectedCategory =
@@ -2969,7 +3376,67 @@ export default function MenuManagementSection({
         null;
   const visibleCategoryId = selectedCategory?.id ?? "";
   const itemsForCategory = sortItems(draftedItems.filter((item) => item.category_id === visibleCategoryId));
+  const selectedCategoryDisplayQualityNotice = selectedCategory
+    ? getDisplayMenuCategoryQualityNotice(selectedCategory, itemsForCategory, supportsDisplayMenuQualityWarnings)
+    : null;
   const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
+  const usesCategoryPriceOptionColumns = Boolean(capabilities.categoryPriceOptionColumns && capabilities.priceOptions);
+  const maxCategoryPriceOptionColumns = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
+  const getCategoryPriceOptionLabels = useCallback((categoryId: string) => {
+    const draftLabels = categoryBasicDrafts[categoryId]?.priceOptionLabels;
+    if (draftLabels !== undefined) {
+      return normalizeDraftPriceOptionLabels(draftLabels, maxCategoryPriceOptionColumns);
+    }
+
+    const labels = new Map<string, { label: string; count: number; firstSortOrder: number }>();
+    const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === categoryId));
+    for (const item of categoryItems) {
+      const draftOptions = itemBasicDrafts[item.id]?.priceOptions;
+      const sourceOptions = draftOptions
+        ? draftOptions.map((option) => ({ label: option.label, sort_order: option.sortOrder }))
+        : priceOptions.filter((option) => option.menu_item_id === item.id && option.visible);
+      for (const option of sourceOptions.sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))) {
+        const label = option.label.trim();
+        if (!label) continue;
+        const key = label.toLocaleUpperCase("ko-KR");
+        const current = labels.get(key);
+        if (current) {
+          current.count += 1;
+          current.firstSortOrder = Math.min(current.firstSortOrder, option.sort_order ?? 0);
+        } else {
+          labels.set(key, { label, count: 1, firstSortOrder: option.sort_order ?? 0 });
+        }
+      }
+    }
+
+    return normalizeDraftPriceOptionLabels(
+      Array.from(labels.values())
+        .sort((left, right) => left.firstSortOrder - right.firstSortOrder || right.count - left.count)
+        .map((option) => option.label),
+      maxCategoryPriceOptionColumns
+    );
+  }, [categoryBasicDrafts, draftedItems, itemBasicDrafts, maxCategoryPriceOptionColumns, priceOptions]);
+  const getCategoryPriceOptionsForItem = useCallback((item: MenuItem, draft: ItemBasicDraft | undefined, categoryLabels: string[]) => {
+    if (!usesCategoryPriceOptionColumns || categoryLabels.length === 0) return draft?.priceOptions;
+
+    const draftOptions = draft?.priceOptions ?? [];
+    const sourceOptions = draftOptions.length > 0
+      ? draftOptions
+      : priceOptions.filter((option) => option.menu_item_id === item.id && option.visible);
+    const sourceOptionsByColumn = [...sourceOptions].sort((left, right) => getPriceOptionSortOrder(left) - getPriceOptionSortOrder(right));
+    const sourceOptionByLabel = new Map(
+      sourceOptionsByColumn.map((option) => [option.label.trim().toLocaleUpperCase("ko-KR"), option])
+    );
+    const canFallbackByColumnIndex = sourceOptionsByColumn.length === categoryLabels.length;
+
+    return categoryLabels.map((label, index) =>
+      toDraftPriceOptionFromColumn(
+        label,
+        index,
+        sourceOptionByLabel.get(label.toLocaleUpperCase("ko-KR")) ?? (canFallbackByColumnIndex ? sourceOptionsByColumn[index] : undefined)
+      )
+    );
+  }, [priceOptions, usesCategoryPriceOptionColumns]);
   const visibleStructurePages = canManagePages ? sortedPages : selectedPage ? [selectedPage] : [];
   const reachedPageLimit = sortedPages.length >= MENU_LIMITS.maxPagesPerSite;
   const reachedCategoryLimit = categoriesForPage.length >= MENU_LIMITS.maxCategoriesPerPage;
@@ -3014,9 +3481,10 @@ export default function MenuManagementSection({
           descriptionVisible: categoryBasicDrafts[category.id]?.descriptionVisible ?? category.description_visible,
           visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
           sortOrder: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
+          priceOptionLabels: usesCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(category.id) : undefined,
         }))
       ),
-    [categoryBasicDrafts, draftedCategories]
+    [categoryBasicDrafts, draftedCategories, getCategoryPriceOptionLabels, usesCategoryPriceOptionColumns]
   );
   const itemBasicDraftPayload = useMemo(
     () =>
@@ -3025,10 +3493,19 @@ export default function MenuManagementSection({
           .filter((item) => items.some((sourceItem) => sourceItem.id === item.id) || Boolean(itemBasicDrafts[item.id]))
           .map((item) => {
             const draft = itemBasicDrafts[item.id];
+            const categoryId = draft?.categoryId ?? item.category_id ?? "";
+            const categoryPriceOptionLabels = usesCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(categoryId) : [];
+            const categoryPriceOptions = getCategoryPriceOptionsForItem(item, draft, categoryPriceOptionLabels);
+            const hasCategoryPriceOptionValue = Boolean(
+              categoryPriceOptions?.some((option) => {
+                const priceValue = typeof option.price === "string" ? option.price.trim() : String(option.price ?? "").trim();
+                return Boolean(priceValue || option.priceLabel.trim());
+              })
+            );
             return {
               id: item.id,
               isNew: Boolean(draft?.isNew),
-              categoryId: draft?.categoryId ?? item.category_id ?? "",
+              categoryId,
               name: draft?.name ?? item.name,
               setName: draft?.setName ?? item.set_name ?? "",
               description: draft?.description ?? item.description ?? "",
@@ -3042,19 +3519,19 @@ export default function MenuManagementSection({
               imagePath: draft?.imagePath ?? item.image_path ?? null,
               imageAction: draft?.imageAction ?? "keep",
               priceVisible: draft?.priceVisible ?? item.price_visible,
-              priceMode: draft?.priceMode,
-              portionLabel: draft?.portionLabel ?? item.portion_label ?? "",
-              portionVisible: draft?.portionVisible ?? item.portion_visible,
+              priceMode: usesCategoryPriceOptionColumns && hasCategoryPriceOptionValue ? "options" : draft?.priceMode,
+              portionLabel: capabilities.itemPortionLabel ? (draft?.portionLabel ?? item.portion_label ?? "") : item.portion_label ?? "",
+              portionVisible: capabilities.itemPortionLabel ? (draft?.portionVisible ?? item.portion_visible) : item.portion_visible,
               traitsVisible: draft?.traitsVisible ?? item.traits_visible,
               traitDrafts: draft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
-              priceOptions: draft?.priceOptions,
+              priceOptions: categoryPriceOptions,
               badgeStyleKey: draft?.badgeStyleKey,
               badgeBackgroundColor: draft?.badgeBackgroundColor,
               badgeTextColor: draft?.badgeTextColor,
             };
           })
       ),
-    [draftedItems, itemBasicDrafts, items, traits]
+    [capabilities.itemPortionLabel, draftedItems, getCategoryPriceOptionLabels, getCategoryPriceOptionsForItem, itemBasicDrafts, items, traits, usesCategoryPriceOptionColumns]
   );
   const deletedPageIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedPageIds)), [deletedPageIds]);
   const deletedCategoryIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedCategoryIds)), [deletedCategoryIds]);
@@ -3600,6 +4077,7 @@ export default function MenuManagementSection({
         descriptionVisible: currentDrafts[categoryId]?.descriptionVisible ?? sourceCategory?.description_visible ?? false,
         visible: currentDrafts[categoryId]?.visible ?? sourceCategory?.visible ?? true,
         sortOrder: currentDrafts[categoryId]?.sortOrder ?? sourceCategory?.sort_order ?? 0,
+        priceOptionLabels: currentDrafts[categoryId]?.priceOptionLabels,
         ...patch,
       },
     }));
@@ -3630,6 +4108,7 @@ export default function MenuManagementSection({
       portionVisible: sourceItem?.portion_visible ?? true,
       traitsVisible: sourceItem?.traits_visible ?? true,
       traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === itemId)),
+      priceOptions: priceOptions.filter((option) => option.menu_item_id === itemId).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
     };
   }
 
@@ -3657,6 +4136,7 @@ export default function MenuManagementSection({
       portionVisible: existingDraft?.portionVisible ?? sourceItem?.portion_visible ?? true,
       traitsVisible: existingDraft?.traitsVisible ?? sourceItem?.traits_visible ?? true,
       traitDrafts: existingDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === id)),
+      priceOptions: existingDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
       badgeStyleKey: existingDraft?.badgeStyleKey,
       badgeBackgroundColor: existingDraft?.badgeBackgroundColor,
       badgeTextColor: existingDraft?.badgeTextColor,
@@ -3797,6 +4277,7 @@ export default function MenuManagementSection({
           descriptionVisible: nextDrafts[id]?.descriptionVisible ?? category?.description_visible ?? false,
           visible: nextDrafts[id]?.visible ?? category?.visible ?? true,
           sortOrder: index,
+          priceOptionLabels: nextDrafts[id]?.priceOptionLabels,
         };
       });
       return nextDrafts;
@@ -3977,6 +4458,7 @@ export default function MenuManagementSection({
           descriptionVisible: draftTarget?.type === "category" ? draftTarget.descriptionVisible ?? false : false,
           visible: draftTarget?.type === "category" ? draftTarget.visible ?? true : true,
           sortOrder: 0,
+          priceOptionLabels: draftTarget?.type === "category" ? draftTarget.priceOptionLabels : undefined,
         },
       }));
       setSelectedPageId(pageId);
@@ -4271,6 +4753,7 @@ export default function MenuManagementSection({
           descriptionVisible: currentDrafts[category.id]?.descriptionVisible ?? category.description_visible,
           visible: currentDrafts[category.id]?.visible ?? category.visible,
           sortOrder: index,
+          priceOptionLabels: currentDrafts[category.id]?.priceOptionLabels ?? getCategoryPriceOptionLabels(category.id),
         };
       });
       return nextDrafts;
@@ -4309,6 +4792,7 @@ export default function MenuManagementSection({
             portionVisible: sourceDraft?.portionVisible ?? item.portion_visible,
             traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
             traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
+            priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === item.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
             badgeStyleKey: sourceDraft?.badgeStyleKey,
             badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
             badgeTextColor: sourceDraft?.badgeTextColor,
@@ -4364,7 +4848,7 @@ export default function MenuManagementSection({
         portionVisible: sourceDraft?.portionVisible ?? sourceItem.portion_visible,
         traitsVisible: sourceDraft?.traitsVisible ?? sourceItem.traits_visible,
         traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === sourceItem.id))),
-        priceOptions: sourceDraft?.priceOptions,
+        priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === sourceItem.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
         badgeStyleKey: sourceDraft?.badgeStyleKey,
         badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
         badgeTextColor: sourceDraft?.badgeTextColor,
@@ -4434,6 +4918,7 @@ export default function MenuManagementSection({
           descriptionVisible: nextDrafts[category.id]?.descriptionVisible ?? category.description_visible,
           visible: nextDrafts[category.id]?.visible ?? category.visible,
           sortOrder: index + 1,
+          priceOptionLabels: nextDrafts[category.id]?.priceOptionLabels ?? getCategoryPriceOptionLabels(category.id),
         };
       });
       nextDrafts[draftCategoryId] = {
@@ -4444,6 +4929,7 @@ export default function MenuManagementSection({
         descriptionVisible: sourceCategory.description_visible,
         visible: sourceCategory.visible,
         sortOrder: 0,
+        priceOptionLabels: getCategoryPriceOptionLabels(sourceCategory.id),
       };
       return nextDrafts;
     });
@@ -4476,6 +4962,7 @@ export default function MenuManagementSection({
           portionVisible: sourceDraft?.portionVisible ?? item.portion_visible,
           traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
           traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
+          priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === item.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
           badgeStyleKey: sourceDraft?.badgeStyleKey,
           badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
           badgeTextColor: sourceDraft?.badgeTextColor,
@@ -4546,6 +5033,10 @@ export default function MenuManagementSection({
 
   function resetMenuManagementToStarterDraft() {
     if (!starterPreset || isSampleResetApplying) return;
+    if (usesCategoryPriceOptionColumns) {
+      resetDisplayMenuAToPreviewDraft();
+      return;
+    }
     const fixedPageId = !canManagePages ? selectedPage?.id ?? firstVisiblePageId : "";
     if (!canManagePages && !fixedPageId) {
       toast.error("기본 메뉴 페이지를 찾을 수 없어 샘플로 되돌릴 수 없습니다.");
@@ -4554,7 +5045,7 @@ export default function MenuManagementSection({
 
     setIsSampleResetApplying(true);
 
-    const resetSeed = Date.now().toString(36);
+    const resetSeed = window.crypto?.randomUUID?.() ?? "sample-reset";
     const nextPageDrafts: Record<string, PageBasicDraft> = {};
     const nextCategoryDrafts: Record<string, CategoryBasicDraft> = {};
     const nextItemDrafts: Record<string, ItemBasicDraft> = {};
@@ -4611,12 +5102,12 @@ export default function MenuManagementSection({
             visible: starterPreset.sample_items_visible ?? true,
             sortOrder: itemIndex,
             priceVisible: true,
-            portionLabel: starterItem.portion_label ?? "",
-            portionVisible: Boolean(starterItem.portion_label),
+            portionLabel: capabilities.itemPortionLabel ? starterItem.portion_label ?? "" : "",
+            portionVisible: capabilities.itemPortionLabel ? Boolean(starterItem.portion_label) : false,
             traitsVisible: false,
             traitDrafts: [],
             priceOptions: capabilities.priceOptions
-              ? starterItem.price_options?.slice(0, MENU_LIMITS.maxPriceOptionsPerItem).map((option, optionIndex) => ({
+              ? starterItem.price_options?.slice(0, capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem).map((option, optionIndex) => ({
                   id: `temp-price-option-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}-${itemIndex + 1}-${optionIndex + 1}`,
                   label: option.label,
                   price: option.price == null ? "" : String(option.price),
@@ -4645,6 +5136,166 @@ export default function MenuManagementSection({
     setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
     markMenuManagementDirty();
     toast.success("메뉴 관리 내용이 샘플 데이터로 임시 변경되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+    setIsSampleResetApplying(false);
+  }
+
+  function resetDisplayMenuAToPreviewDraft() {
+    if (isSampleResetApplying) return;
+
+    setIsSampleResetApplying(true);
+
+    const resetSeed = window.crypto?.randomUUID?.() ?? "display-sample-reset";
+    const previewData = buildDisplayMenuAPreviewData();
+    const sortedPreviewPages = sortMenuPages(previewData.pages.filter((page) => page.visible));
+    const previewPageIdMap = new Map(sortedPreviewPages.map((page, pageIndex) => [page.id, `temp-page-sample-${resetSeed}-${pageIndex + 1}`]));
+    const previewPageOrderById = new Map(sortedPreviewPages.map((page, pageIndex) => [page.id, pageIndex]));
+    const nextPageDrafts: Record<string, PageBasicDraft> = {};
+    const nextCategoryDrafts: Record<string, CategoryBasicDraft> = {};
+    const nextItemDrafts: Record<string, ItemBasicDraft> = {};
+    const priceOptionsByItemId = new Map<string, typeof previewData.priceOptions>();
+    const previewItemsByCategoryId = new Map<string, typeof previewData.items>();
+
+    previewData.priceOptions.forEach((option) => {
+      const options = priceOptionsByItemId.get(option.menu_item_id) ?? [];
+      options.push(option);
+      priceOptionsByItemId.set(option.menu_item_id, options);
+    });
+
+    previewData.items.forEach((item) => {
+      if (!item.category_id) return;
+      const categoryItems = previewItemsByCategoryId.get(item.category_id) ?? [];
+      categoryItems.push(item);
+      previewItemsByCategoryId.set(item.category_id, categoryItems);
+    });
+
+    sortedPreviewPages.forEach((page, pageIndex) => {
+      const draftPageId = previewPageIdMap.get(page.id);
+      if (!draftPageId) return;
+
+      nextPageDrafts[draftPageId] = {
+        isNew: true,
+        title: page.title,
+        description: "",
+        descriptionVisible: false,
+        visible: true,
+        sortOrder: pageIndex,
+        displaySettings: normalizeMenuPageDisplaySettings(page.display_settings),
+      };
+    });
+
+    previewData.categories
+      .filter((category) => category.visible)
+      .sort((left, right) => {
+        const leftPageOrder = previewPageOrderById.get(left.menu_page_id ?? "") ?? Number.MAX_SAFE_INTEGER;
+        const rightPageOrder = previewPageOrderById.get(right.menu_page_id ?? "") ?? Number.MAX_SAFE_INTEGER;
+        return leftPageOrder - rightPageOrder || (left.sort_order ?? 0) - (right.sort_order ?? 0);
+      })
+      .forEach((category) => {
+        const draftPageId = previewPageIdMap.get(category.menu_page_id ?? "");
+        if (!draftPageId) return;
+
+        const categoryIndex = Object.values(nextCategoryDrafts).filter((draft) => draft.pageId === draftPageId).length;
+        const draftCategoryId = `temp-category-sample-${resetSeed}-${category.id}`;
+        const categoryItems = previewItemsByCategoryId.get(category.id) ?? [];
+        const categoryOptionLabelsByKey = new Map<string, { label: string; count: number; firstSortOrder: number }>();
+        categoryItems.forEach((item) => {
+          (priceOptionsByItemId.get(item.id) ?? [])
+            .filter((option) => option.visible)
+            .forEach((option) => {
+              const label = option.label.trim();
+              if (!label) return;
+              const key = label.toLocaleUpperCase("ko-KR");
+              const current = categoryOptionLabelsByKey.get(key);
+              if (current) {
+                current.count += 1;
+                current.firstSortOrder = Math.min(current.firstSortOrder, option.sort_order ?? 0);
+              } else {
+                categoryOptionLabelsByKey.set(key, { label, count: 1, firstSortOrder: option.sort_order ?? 0 });
+              }
+            });
+        });
+        const categoryOptionLabels = normalizeDraftPriceOptionLabels(
+          Array.from(categoryOptionLabelsByKey.values())
+            .sort((left, right) => left.firstSortOrder - right.firstSortOrder || right.count - left.count)
+            .map((option) => option.label),
+          capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem
+        );
+
+        nextCategoryDrafts[draftCategoryId] = {
+          isNew: true,
+          pageId: draftPageId,
+          name: category.name,
+          description: "",
+          descriptionVisible: false,
+          visible: true,
+          sortOrder: categoryIndex,
+          priceOptionLabels: categoryOptionLabels,
+        };
+
+        categoryItems
+          .filter((item) => item.visible)
+          .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+          .forEach((item, itemIndex) => {
+            const itemOptions = (priceOptionsByItemId.get(item.id) ?? [])
+              .filter((option) => option.visible)
+              .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0));
+
+            nextItemDrafts[`temp-item-sample-${resetSeed}-${item.id}`] = {
+              categoryId: draftCategoryId,
+              isNew: true,
+              imageUrl: null,
+              imagePath: null,
+              imageAction: "keep",
+              name: item.name,
+              setName: item.set_name ?? "",
+              description: "",
+              originInfo: "",
+              price: item.price == null ? "" : String(item.price),
+              priceLabel: item.price_label ?? "",
+              badgeLabel: capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : "",
+              visible: true,
+              sortOrder: itemIndex,
+              priceVisible: item.price_visible,
+              portionLabel: "",
+              portionVisible: false,
+              traitsVisible: false,
+              traitDrafts: [],
+              priceOptions: itemOptions.length > 0
+                ? itemOptions.slice(0, capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem).map((option, optionIndex) => ({
+                    id: `temp-price-option-sample-${resetSeed}-${item.id}-${optionIndex + 1}`,
+                    label: option.label,
+                    price: option.price == null ? "" : String(option.price),
+                    priceLabel: option.price_label ?? "",
+                    visible: true,
+                    sortOrder: option.sort_order ?? optionIndex,
+                  }))
+                : undefined,
+            };
+          });
+      });
+
+    const preferredPreviewPage = sortedPreviewPages.find((page) => {
+      const settings = normalizeMenuPageDisplaySettings(page.display_settings);
+      return settings.pageType === "menu" && settings.menuLayoutType === "full_menu";
+    }) ?? sortedPreviewPages.find((page) => normalizeMenuPageDisplaySettings(page.display_settings).pageType === "menu") ?? sortedPreviewPages[0] ?? null;
+    const firstPageId = preferredPreviewPage ? previewPageIdMap.get(preferredPreviewPage.id) ?? "" : "";
+    const firstCategoryId = Object.entries(nextCategoryDrafts).find(([, draft]) => draft.pageId === firstPageId)?.[0] ?? Object.keys(nextCategoryDrafts)[0] ?? "";
+
+    setPageBasicDrafts(nextPageDrafts);
+    setCategoryBasicDrafts(nextCategoryDrafts);
+    setItemBasicDrafts(nextItemDrafts);
+    setPendingItemDrafts({});
+    setDeletedPageIds(new Set(menuPages.map((page) => page.id)));
+    setDeletedCategoryIds(new Set(categories.map((category) => category.id)));
+    setDeletedItemIds(new Set(items.map((item) => item.id)));
+    resetModes();
+    setIsSampleResetConfirming(false);
+    setSelectedPageId(firstPageId);
+    setSelectedCategoryId(firstCategoryId);
+    setExpandedPageIds(new Set(firstPageId ? [firstPageId] : []));
+    setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
+    markMenuManagementDirty();
+    toast.success("디스플레이 A 샘플 데이터가 임시 변경되었습니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.");
     setIsSampleResetApplying(false);
   }
 
@@ -4876,6 +5527,7 @@ export default function MenuManagementSection({
                         )}
                         {pageCategories.map((category) => {
                           const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === category.id));
+                          const categoryQualityNotice = getDisplayMenuCategoryQualityNotice(category, categoryItems, supportsDisplayMenuQualityWarnings);
                           const categoryActive = category.id === visibleCategoryId && !editingItemId;
                           const categoryCanCollapse = pageCategories.length > 1;
                           const categoryExpanded = !categoryCanCollapse || expandedCategoryIds.has(category.id);
@@ -4923,6 +5575,11 @@ export default function MenuManagementSection({
                                   </button>
                                 )}
                               </div>
+                              {categoryQualityNotice && (
+                                <div className="ml-3 mt-1">
+                                  <DisplayMenuCategoryQualityNoticeBox notice={categoryQualityNotice} compact />
+                                </div>
+                              )}
                               {categoryExpanded && categoryItems.length > 0 && (
                                 <div className="ml-3 mt-1 grid min-w-0 gap-1 border-l border-zinc-100 pl-3">
                                   {categoryItems.map((item) => (
@@ -4999,6 +5656,8 @@ export default function MenuManagementSection({
                   supportsDisplaySettings={canConfigureDisplayPages}
                   supportsDisplayPromotionPages={supportsDisplayPromotionPages}
                   supportsDisplayMenuLayoutTypes={supportsDisplayMenuLayoutTypes}
+                  supportsSplitImageText={capabilities.splitImageText}
+                  supportsPromotionText={capabilities.promotionText}
                   displaySettingsDraft={draftTarget?.type === "page" ? draftTarget.displaySettings : undefined}
                 />
               </div>
@@ -5037,7 +5696,12 @@ export default function MenuManagementSection({
                   supportsDisplaySettings={canConfigureDisplayPages}
                   supportsDisplayPromotionPages={supportsDisplayPromotionPages}
                   supportsDisplayMenuLayoutTypes={supportsDisplayMenuLayoutTypes}
+                  supportsSplitImageText={capabilities.splitImageText}
+                  supportsPromotionText={capabilities.promotionText}
                   displaySettingsDraft={pageBasicDrafts[selectedPage.id]?.displaySettings ?? normalizeMenuPageDisplaySettings(selectedPage.display_settings)}
+                  displayQualityNotice={
+                    selectedPageDisplayQualityNotice ? <DisplayMenuQualityNoticeBox notice={selectedPageDisplayQualityNotice} /> : null
+                  }
                   deleteAction={
                     <DraftDeleteConfirmButton
                       title={isCopiedPage ? "이 복사본을 삭제할까요?" : `${labels.pageLabel}를 삭제할까요?`}
@@ -5076,6 +5740,10 @@ export default function MenuManagementSection({
                   labels={labels}
                   draftOnly
                   draftName={draftTarget?.type === "category" ? draftTarget.title : undefined}
+                  priceOptionLabels={draftTarget?.type === "category" ? draftTarget.priceOptionLabels : []}
+                  supportsDescription={capabilities.categoryDescription}
+                  supportCategoryPriceOptionColumns={usesCategoryPriceOptionColumns}
+                  maxPriceOptionColumns={maxCategoryPriceOptionColumns}
                   onDraftNameChange={updateDraftTitle}
                   onDraftChange={updateDraftTargetDetails}
                   onDraftCommit={commitCategoryDraft}
@@ -5090,7 +5758,15 @@ export default function MenuManagementSection({
                   const isCopiedCategory = selectedCategory.id.startsWith("temp-category-copy-") || selectedCategory.id.startsWith("temp-category-page-copy-");
                   return (
                     <>
-                <PanelHeader eyebrow="Group Detail" title={`${labels.categoryLabel} 수정`} description={`${labels.categoryLabel}의 이름, 설명, 표시 여부를 수정합니다.`} />
+                <PanelHeader
+                  eyebrow="Group Detail"
+                  title={`${labels.categoryLabel} 수정`}
+                  description={
+                    capabilities.categoryDescription
+                      ? `${labels.categoryLabel}의 이름, 설명, 표시 여부를 수정합니다.`
+                      : `${labels.categoryLabel}의 이름과 표시 여부를 수정합니다.`
+                  }
+                />
                 <MenuCategoryForm
                   key={selectedCategory.id}
                   menuId={menuId}
@@ -5100,6 +5776,10 @@ export default function MenuManagementSection({
                   labels={labels}
                   draftOnly
                   draftName={categoryBasicDrafts[selectedCategory.id]?.name ?? selectedCategory.name}
+                  priceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
+                  supportsDescription={capabilities.categoryDescription}
+                  supportCategoryPriceOptionColumns={usesCategoryPriceOptionColumns}
+                  maxPriceOptionColumns={maxCategoryPriceOptionColumns}
                   onDraftNameChange={(name) => updateCategoryBasicDraft(selectedCategory.id, { name })}
                   onDraftChange={(patch) => updateCategoryBasicDraft(selectedCategory.id, patch)}
                   onDraftCommit={commitCategoryDraft}
@@ -5127,6 +5807,11 @@ export default function MenuManagementSection({
                       : undefined
                   }
                 />
+                {selectedCategoryDisplayQualityNotice ? (
+                  <div className="mt-4">
+                    <DisplayMenuCategoryQualityNoticeBox notice={selectedCategoryDisplayQualityNotice} />
+                  </div>
+                ) : null}
                     </>
                   );
                 })()}
@@ -5144,6 +5829,7 @@ export default function MenuManagementSection({
                   labels={labels}
                   itemCount={itemsForCategory.length}
                   selectedCategoryId={selectedCategory.id}
+                  categoryPriceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
                   draftOnly
                   draftItem={editingItemId ? pendingItemDrafts[editingItemId] : undefined}
                   draftName={editingItemId ? pendingItemDrafts[editingItemId]?.name : undefined}
@@ -5181,6 +5867,7 @@ export default function MenuManagementSection({
                   onDraftCommitMessageClear={() => setItemDraftFeedback("")}
                   draftOnly
                   priceOptions={priceOptions.filter((option) => option.menu_item_id === selectedEditingItem.id)}
+                  categoryPriceOptionLabels={getCategoryPriceOptionLabels(selectedEditingItem.category_id ?? "")}
                   traits={traits.filter((trait) => trait.menu_item_id === selectedEditingItem.id)}
                   capabilities={capabilities}
                   aiDescriptionUsage={localAiDescriptionUsage}
@@ -5214,12 +5901,22 @@ export default function MenuManagementSection({
                   <DetailValue label={`${labels.categoryLabel} 이름`}>{selectedCategory.name}</DetailValue>
                   {canManagePages && selectedPage && <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>}
                   <DetailValue label="정렬 순서">{selectedCategory.sort_order}</DetailValue>
-                  <DetailValue label="설명 표시">{selectedCategory.description_visible ? "사용함" : "사용 안 함"}</DetailValue>
+                  {capabilities.categoryDescription && <DetailValue label="설명 표시">{selectedCategory.description_visible ? "사용함" : "사용 안 함"}</DetailValue>}
                   <DetailValue label="메뉴판 표시">{selectedCategory.visible ? "표시" : "숨김"}</DetailValue>
-                  <div className="md:col-span-2">
-                    <DetailValue label={`${labels.categoryLabel} 설명`}>{selectedCategory.description}</DetailValue>
-                  </div>
+                  {usesCategoryPriceOptionColumns && (
+                    <DetailValue label="가격 옵션 열">{getCategoryPriceOptionLabels(selectedCategory.id).join(" / ") || "입력 전"}</DetailValue>
+                  )}
+                  {capabilities.categoryDescription && (
+                    <div className="md:col-span-2">
+                      <DetailValue label={`${labels.categoryLabel} 설명`}>{selectedCategory.description}</DetailValue>
+                    </div>
+                  )}
                 </div>
+                {selectedCategoryDisplayQualityNotice ? (
+                  <div className="mt-4">
+                    <DisplayMenuCategoryQualityNoticeBox notice={selectedCategoryDisplayQualityNotice} />
+                  </div>
+                ) : null}
                 <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
                   <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
                     수정
@@ -5276,6 +5973,7 @@ export default function MenuManagementSection({
                           onDraftCommit={(patch) => commitPendingItemDraft(item.id, patch)}
                           draftOnly
                           priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
+                          categoryPriceOptionLabels={getCategoryPriceOptionLabels(item.category_id ?? "")}
                           traits={traits.filter((trait) => trait.menu_item_id === item.id)}
                           capabilities={capabilities}
                           aiDescriptionUsage={localAiDescriptionUsage}
@@ -5326,6 +6024,11 @@ export default function MenuManagementSection({
                     </>
                   )}
                 </div>
+                {selectedPageDisplayQualityNotice ? (
+                  <div className="mt-4">
+                    <DisplayMenuQualityNoticeBox notice={selectedPageDisplayQualityNotice} />
+                  </div>
+                ) : null}
                 <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
                   <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
                     수정
@@ -5383,6 +6086,11 @@ export default function MenuManagementSection({
             {canConfigurePcTabletLayoutMode && (
               <input type="hidden" name="pc_tablet_layout_mode" value={pcTabletLayoutModeDraft} />
             )}
+            {selectedPageDisplayQualityNotice ? (
+              <div className="mb-4">
+                <DisplayMenuQualityNoticeBox notice={selectedPageDisplayQualityNotice} />
+              </div>
+            ) : null}
             <FinalActionRow>
               <button
                 type="button"
@@ -5679,6 +6387,7 @@ function MenuItemCard({
   categories,
   item,
   priceOptions,
+  categoryPriceOptionLabels = [],
   traits,
   capabilities,
   aiDescriptionUsage,
@@ -5705,6 +6414,7 @@ function MenuItemCard({
   categories: MenuCategory[];
   item: MenuItem;
   priceOptions: MenuItemPriceOption[];
+  categoryPriceOptionLabels?: string[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
   aiDescriptionUsage: { used: number; limit: number };
@@ -5730,8 +6440,8 @@ function MenuItemCard({
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const badgeStyle = badgeLabel ? badgeStyles[getBadgeStyleKey(item)] : null;
   const price = formatMenuPrice(item);
-  const portion = formatPortionLabel(item);
-  const priceOptionText = capabilities.priceOptions ? priceOptionSummary(priceOptions) : "";
+  const portion = capabilities.itemPortionLabel ? formatPortionLabel(item) : "";
+  const priceOptionText = capabilities.priceOptions ? priceOptionSummary(priceOptions, capabilities.maxPriceOptionsPerItem) : "";
   const traitText = capabilities.itemTraits ? traitSummary(traits) : "";
   const [priceMode, setPriceMode] = useState<PriceMode>(
     draftItem?.priceMode ?? (capabilities.priceOptions && priceOptions.some((option) => option.visible) ? "options" : "single")
@@ -5762,6 +6472,7 @@ function MenuItemCard({
             item={item}
             draftItem={draftItem}
             committedDraftItem={committedDraftItem}
+            categoryPriceOptionLabels={categoryPriceOptionLabels}
             onDraftItemChange={onDraftItemChange}
             onDraftCommit={onDraftCommit}
             onDraftCommitMessageClear={onDraftCommitMessageClear}

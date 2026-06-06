@@ -8,7 +8,7 @@ const DEFAULT_PRODUCT_KEY = "business_display_monthly";
 const DEFAULT_SLUG_PREFIX = "display-qa";
 const DEFAULT_DURATION_DAYS = 365;
 
-const MENU_PAGE_DISPLAY_SETTINGS = {
+const FULL_MENU_PAGE_DISPLAY_SETTINGS = {
   pageType: "menu",
   menuLayoutType: "full_menu",
   splitImage: {
@@ -29,21 +29,28 @@ const MENU_PAGE_DISPLAY_SETTINGS = {
   },
 };
 
-const PROMOTION_PAGE_DISPLAY_SETTINGS = {
-  pageType: "promotion",
-  menuLayoutType: null,
+const SPLIT_MENU_PAGE_DISPLAY_SETTINGS = {
+  ...FULL_MENU_PAGE_DISPLAY_SETTINGS,
+  menuLayoutType: "split_image_menu",
+  splitImagePosition: "left",
   splitImage: {
-    url: null,
+    url: "/placeholders/starter/cafe-a-cover.png",
     path: null,
     title: null,
     description: null,
     position: "left",
   },
+};
+
+const PROMOTION_PAGE_DISPLAY_SETTINGS = {
+  ...FULL_MENU_PAGE_DISPLAY_SETTINGS,
+  pageType: "promotion",
+  menuLayoutType: null,
   promotion: {
-    title: "시즌 프로모션",
-    description: "QA용 프로모션 페이지입니다. 카테고리와 메뉴 데이터 없이 페이지 설정만 저장됩니다.",
+    title: null,
+    description: null,
     mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
+    mediaUrl: "/placeholders/starter/cafe-a-cover.png",
     mediaPath: null,
     videoUrl: null,
     videoLoop: true,
@@ -167,6 +174,577 @@ const SAMPLE_CATEGORIES = [
   },
 ];
 
+function createDenseSampleCategories() {
+  const extraItemsByCategoryName = new Map([
+    [
+      "SIGNATURE COFFEE",
+      [
+        {
+          name: "피스타치오 크림 콜드브루",
+          setName: "PISTACHIO CREAM COLD BREW",
+          description: "묵직한 콜드브루 위에 고소한 피스타치오 크림을 얹은 디스플레이 QA용 긴 설명 메뉴",
+          price: 6900,
+          priceLabel: null,
+          portionLabel: "ICE",
+          badgeLabel: "NEW",
+          recommended: true,
+          sortOrder: 3,
+        },
+        {
+          name: "바닐라빈 슈페너",
+          setName: "VANILLA BEAN EINSPANNER",
+          description: "바닐라빈 크림과 에스프레소가 부드럽게 이어지는 크림 커피",
+          price: 6400,
+          priceLabel: null,
+          portionLabel: "ICE",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 4,
+        },
+        {
+          name: "솔티드 카라멜 크림 라떼",
+          setName: "SALTED CARAMEL CREAM LATTE",
+          description: "짭조름한 카라멜 크림과 우유의 균형을 확인하기 위한 긴 메뉴명",
+          price: 6700,
+          priceLabel: null,
+          portionLabel: "HOT / ICE",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 5,
+          priceOptions: [
+            { label: "HOT", price: 6700, priceLabel: "6,700원", sortOrder: 0 },
+            { label: "ICE", price: 7000, priceLabel: "7,000원", sortOrder: 1 },
+          ],
+        },
+      ],
+    ],
+    [
+      "CLASSIC COFFEE",
+      [
+        {
+          name: "플랫 화이트",
+          setName: "FLAT WHITE",
+          description: "진한 에스프레소와 촘촘한 우유 거품",
+          price: 5600,
+          priceLabel: null,
+          portionLabel: "HOT",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 3,
+        },
+        {
+          name: "콜드브루",
+          setName: "COLD BREW",
+          description: "긴 시간 추출해 깔끔한 산미와 단맛을 살린 커피",
+          price: 5500,
+          priceLabel: null,
+          portionLabel: "ICE",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 4,
+        },
+        {
+          name: "헤이즐넛 더블샷 라떼",
+          setName: "HAZELNUT DOUBLE SHOT LATTE",
+          description: "고소한 헤이즐넛 향과 더블샷의 진한 풍미",
+          price: 6200,
+          priceLabel: null,
+          portionLabel: "HOT / ICE",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 5,
+        },
+      ],
+    ],
+    [
+      "DESSERT",
+      [
+        {
+          name: "티라미수 컵",
+          setName: "TIRAMISU CUP",
+          description: "마스카포네 크림과 커피 시럽이 촉촉하게 어우러진 디저트",
+          price: 6800,
+          priceLabel: null,
+          portionLabel: null,
+          badgeLabel: "BEST",
+          recommended: true,
+          sortOrder: 2,
+        },
+        {
+          name: "초코 가나슈 타르트",
+          setName: "CHOCOLATE GANACHE TART",
+          description: "진한 초콜릿 가나슈와 바삭한 타르트 쉘",
+          price: 6500,
+          priceLabel: null,
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 3,
+        },
+        {
+          name: "얼그레이 쉬폰 케이크",
+          setName: "EARL GREY CHIFFON CAKE",
+          description: "은은한 얼그레이 향과 가벼운 식감의 쉬폰 케이크",
+          price: 6200,
+          priceLabel: null,
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 4,
+        },
+        {
+          name: "계절 과일 크럼블",
+          setName: "SEASONAL FRUIT CRUMBLE",
+          description: "계절 과일과 고소한 크럼블을 따뜻하게 즐기는 디저트",
+          price: 7200,
+          priceLabel: null,
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 5,
+        },
+      ],
+    ],
+  ]);
+
+  const extraCategories = [
+    {
+      name: "TEA & NON COFFEE",
+      sortOrder: 3,
+      items: [
+        {
+          name: "제주 말차 라떼",
+          setName: "JEJU MATCHA LATTE",
+          description: "진한 제주 말차와 우유의 부드러운 조합",
+          price: 6200,
+          priceLabel: null,
+          portionLabel: "HOT / ICE",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 0,
+        },
+        {
+          name: "로얄 밀크티",
+          setName: "ROYAL MILK TEA",
+          description: "홍차의 향과 우유의 고소함이 균형 잡힌 음료",
+          price: 5900,
+          priceLabel: null,
+          portionLabel: "HOT / ICE",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 1,
+        },
+        {
+          name: "레몬 허브티",
+          setName: "LEMON HERB TEA",
+          description: "상큼한 레몬과 허브 향을 가볍게 즐기는 티",
+          price: 5200,
+          priceLabel: null,
+          portionLabel: "HOT",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 2,
+        },
+        {
+          name: "딸기 크림 초콜릿",
+          setName: "STRAWBERRY CREAM CHOCOLATE",
+          description: "딸기 크림과 진한 초콜릿이 어우러진 논커피 음료",
+          price: 6500,
+          priceLabel: null,
+          portionLabel: "ICE",
+          badgeLabel: "NEW",
+          recommended: true,
+          sortOrder: 3,
+        },
+        {
+          name: "오트 고구마 라떼",
+          setName: "OAT SWEET POTATO LATTE",
+          description: "오트 밀크와 고구마의 담백한 단맛",
+          price: 6100,
+          priceLabel: null,
+          portionLabel: "HOT",
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 4,
+        },
+      ],
+    },
+  ];
+
+  return [
+    ...SAMPLE_CATEGORIES.map((category) => ({
+      ...category,
+      items: [...category.items, ...(extraItemsByCategoryName.get(category.name) ?? [])],
+    })),
+    ...extraCategories,
+  ];
+}
+
+function displayPriceOption(label, price, sortOrder) {
+  return {
+    label,
+    price,
+    priceLabel: `${(price / 1000).toFixed(1)}`,
+    sortOrder,
+  };
+}
+
+function displayHotIce(hotPrice, icePrice) {
+  return [
+    displayPriceOption("HOT", hotPrice, 0),
+    displayPriceOption("ICE", icePrice, 1),
+  ];
+}
+
+function displayIceOnly(icePrice) {
+  return [displayPriceOption("ICE", icePrice, 1)];
+}
+
+function createDisplayMenuASampleCategories() {
+  return [
+    {
+      name: "SIGNATURE COFFEE",
+      sortOrder: 0,
+      items: [
+        {
+          name: "바질 크림 라떼",
+          setName: "BASIL CREAM LATTE",
+          description: null,
+          price: 6500,
+          priceLabel: "6.5",
+          portionLabel: null,
+          badgeLabel: "SIGNATURE",
+          recommended: true,
+          sortOrder: 0,
+          priceOptions: displayIceOnly(6500),
+        },
+        {
+          name: "오트 너티 라떼",
+          setName: "OAT NUTTY LATTE",
+          description: null,
+          price: 6500,
+          priceLabel: "6.5",
+          portionLabel: null,
+          badgeLabel: "BEST",
+          recommended: true,
+          sortOrder: 1,
+          priceOptions: displayHotIce(6500, 6500),
+        },
+        {
+          name: "흑임자 크림 라떼",
+          setName: "BLACK SESAME LATTE",
+          description: null,
+          price: 6500,
+          priceLabel: "6.5",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 2,
+          priceOptions: displayIceOnly(6500),
+        },
+        {
+          name: "솔티드 카라멜 라떼",
+          setName: "SALTED CARAMEL LATTE",
+          description: null,
+          price: 6000,
+          priceLabel: "6.0",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 3,
+          priceOptions: displayHotIce(6000, 6000),
+        },
+        {
+          name: "말차 에스프레소",
+          setName: "MATCHA ESPRESSO",
+          description: null,
+          price: 6300,
+          priceLabel: "6.3",
+          portionLabel: null,
+          badgeLabel: "NEW",
+          recommended: true,
+          sortOrder: 4,
+          priceOptions: displayIceOnly(6300),
+        },
+      ],
+    },
+    {
+      name: "CLASSIC COFFEE",
+      sortOrder: 1,
+      items: [
+        {
+          name: "아메리카노",
+          setName: "AMERICANO",
+          description: null,
+          price: 4500,
+          priceLabel: "4.5",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 0,
+          priceOptions: displayHotIce(4500, 4500),
+        },
+        {
+          name: "카페 라떼",
+          setName: "CAFE LATTE",
+          description: null,
+          price: 5000,
+          priceLabel: "5.0",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 1,
+          priceOptions: displayHotIce(5000, 5000),
+        },
+        {
+          name: "플랫 화이트",
+          setName: "FLAT WHITE",
+          description: null,
+          price: 5000,
+          priceLabel: "5.0",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 2,
+          priceOptions: displayHotIce(5000, 5000),
+        },
+        {
+          name: "바닐라 빈 라떼",
+          setName: "VANILLA BEAN LATTE",
+          description: null,
+          price: 5500,
+          priceLabel: "5.5",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 3,
+          priceOptions: displayHotIce(5500, 5500),
+        },
+        {
+          name: "콜드브루",
+          setName: "COLD BREW",
+          description: null,
+          price: 5000,
+          priceLabel: "5.0",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 4,
+          priceOptions: displayIceOnly(5000),
+        },
+      ],
+    },
+    {
+      name: "NON-COFFEE",
+      sortOrder: 2,
+      items: [
+        {
+          name: "제주 말차 라떼",
+          setName: "JEJU MATCHA LATTE",
+          description: null,
+          price: 6000,
+          priceLabel: "6.0",
+          portionLabel: null,
+          badgeLabel: "BEST",
+          recommended: true,
+          sortOrder: 0,
+          priceOptions: displayHotIce(6000, 6000),
+        },
+        {
+          name: "밀크티 보틀",
+          setName: "MILK TEA BOTTLE",
+          description: null,
+          price: 6500,
+          priceLabel: "6.5",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 1,
+          priceOptions: displayIceOnly(6500),
+        },
+        {
+          name: "발로나 초코 라떼",
+          setName: "VALRHONA CHOCO LATTE",
+          description: null,
+          price: 6000,
+          priceLabel: "6.0",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 2,
+          priceOptions: displayHotIce(6000, 6000),
+        },
+        {
+          name: "딸기 라떼",
+          setName: "STRAWBERRY LATTE",
+          description: null,
+          price: 6500,
+          priceLabel: "6.5",
+          portionLabel: null,
+          badgeLabel: "NEW",
+          recommended: true,
+          sortOrder: 3,
+          priceOptions: displayIceOnly(6500),
+        },
+        {
+          name: "로얄 밀크티",
+          setName: "ROYAL MILK TEA",
+          description: null,
+          price: 5800,
+          priceLabel: "5.8",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 4,
+          priceOptions: displayHotIce(5800, 5800),
+        },
+      ],
+    },
+    {
+      name: "BAKERY",
+      sortOrder: 3,
+      items: [
+        {
+          name: "클래식 버터 스콘",
+          setName: "CLASSIC BUTTER SCONE",
+          description: null,
+          price: 4500,
+          priceLabel: "4.5",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 0,
+        },
+        {
+          name: "무화과 휘낭시에",
+          setName: "FIG FINANCIER",
+          description: null,
+          price: 3500,
+          priceLabel: "3.5",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 1,
+        },
+        {
+          name: "솔티 초코 휘낭시에",
+          setName: "SALTY CHOCO FINANCIER",
+          description: null,
+          price: 3800,
+          priceLabel: "3.8",
+          portionLabel: null,
+          badgeLabel: "NEW",
+          recommended: true,
+          sortOrder: 2,
+        },
+        {
+          name: "흑임자 바스크 치즈케이크",
+          setName: "BLACK SESAME BASQUE CHEESECAKE",
+          description: null,
+          price: 7800,
+          priceLabel: "7.8",
+          portionLabel: null,
+          badgeLabel: "NEW",
+          recommended: true,
+          sortOrder: 3,
+        },
+      ],
+    },
+  ];
+}
+
+function createDisplaySplitSampleCategories(fullCategories) {
+  const signature = fullCategories.find((category) => category.name === "SIGNATURE COFFEE");
+  const nonCoffee = fullCategories.find((category) => category.name === "NON-COFFEE" || category.name === "TEA & NON COFFEE");
+
+  return [
+    {
+      name: "SIGNATURE COFFEE",
+      sortOrder: 0,
+      items: [
+        ...(signature?.items.slice(0, 3) ?? []),
+        ...(nonCoffee?.items.slice(0, 2) ?? []),
+      ].map((item, index) => ({ ...item, sortOrder: index })),
+    },
+    {
+      name: "SEASONAL DRINK",
+      sortOrder: 1,
+      items: [
+        {
+          name: "청귤 에이드",
+          setName: "GREEN TANGERINE ADE",
+          description: null,
+          price: 6200,
+          priceLabel: "6.2",
+          portionLabel: null,
+          badgeLabel: "NEW",
+          recommended: true,
+          sortOrder: 0,
+          priceOptions: displayIceOnly(6200),
+        },
+        {
+          name: "유자 캐모마일 티",
+          setName: "YUJA CHAMOMILE TEA",
+          description: null,
+          price: 5800,
+          priceLabel: "5.8",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 1,
+          priceOptions: displayHotIce(5800, 5800),
+        },
+        {
+          name: "피치 얼그레이",
+          setName: "PEACH EARL GREY",
+          description: null,
+          price: 6000,
+          priceLabel: "6.0",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 2,
+          priceOptions: displayIceOnly(6000),
+        },
+        {
+          name: "오트 고구마 라떼",
+          setName: "OAT SWEET POTATO LATTE",
+          description: null,
+          price: 6100,
+          priceLabel: "6.1",
+          portionLabel: null,
+          badgeLabel: "BEST",
+          recommended: true,
+          sortOrder: 3,
+          priceOptions: displayHotIce(6100, 6100),
+        },
+        {
+          name: "자몽 허니 블랙티",
+          setName: "GRAPEFRUIT HONEY BLACK TEA",
+          description: null,
+          price: 5900,
+          priceLabel: "5.9",
+          portionLabel: null,
+          badgeLabel: null,
+          recommended: false,
+          sortOrder: 4,
+          priceOptions: displayHotIce(5900, 5900),
+        },
+      ],
+    },
+  ];
+}
+
+function formatDisplaySeedPriceLabel(option) {
+  if (typeof option.price === "number" && Number.isFinite(option.price)) {
+    return (option.price / 1000).toFixed(1);
+  }
+
+  const numericText = String(option.priceLabel ?? "").replace(/[,\s₩원]/g, "");
+  const numericValue = Number(numericText);
+  return Number.isFinite(numericValue) && numericValue > 0 ? (numericValue / 1000).toFixed(1) : option.priceLabel;
+}
+
 function parseArgs(argv) {
   const args = {
     email: "",
@@ -176,6 +754,7 @@ function parseArgs(argv) {
     templateCategoryExplicit: false,
     slugPrefix: DEFAULT_SLUG_PREFIX,
     withPromotion: false,
+    denseMenu: false,
     dryRun: false,
     durationDays: DEFAULT_DURATION_DAYS,
   };
@@ -205,6 +784,8 @@ function parseArgs(argv) {
       index += 1;
     } else if (value === "--with-promotion") {
       args.withPromotion = true;
+    } else if (value === "--dense-menu") {
+      args.denseMenu = true;
     } else if (value === "--dry-run") {
       args.dryRun = true;
     } else if (value === "--help" || value === "-h") {
@@ -237,6 +818,7 @@ Options:
   --slug-prefix <prefix>         Defaults to ${DEFAULT_SLUG_PREFIX}.
   --duration-days <days>         Entitlement duration. Defaults to ${DEFAULT_DURATION_DAYS}.
   --with-promotion               Also create one promotion page with display_settings only.
+  --dense-menu                   Create 4 categories and 27 menu items for filled-but-readable display QA.
   --dry-run                      Print planned data without inserting rows.
 `);
 }
@@ -371,110 +953,228 @@ function getPlannedRows({ user, slug, args, now, expiresAt }) {
   };
 }
 
-async function insertStarterData(supabase, menuSiteId, withPromotion) {
-  const pageRows = [
-    {
-      menu_site_id: menuSiteId,
-      title: "메뉴 페이지 1",
-      description: null,
-      description_visible: true,
-      display_settings: MENU_PAGE_DISPLAY_SETTINGS,
-      legacy_section_key: "main_menu",
-      visible: true,
-      sort_order: 0,
-    },
-  ];
+function getStarterPlan({ withPromotion, denseMenu, templateKey, menuSiteId = null }) {
+  const isDisplayMenuA = templateKey === "display_menu_a";
+  const fullMenuCategories = isDisplayMenuA ? createDisplayMenuASampleCategories() : denseMenu ? createDenseSampleCategories() : SAMPLE_CATEGORIES;
+  const splitMenuCategories = isDisplayMenuA ? createDisplaySplitSampleCategories(fullMenuCategories) : fullMenuCategories;
+  const pageSpecs = isDisplayMenuA
+    ? [
+        {
+          key: "promotion_hero",
+          title: "시즌 프로모션",
+          displaySettings: PROMOTION_PAGE_DISPLAY_SETTINGS,
+          legacySectionKey: null,
+          sortOrder: 0,
+        },
+        {
+          key: "split_image_menu",
+          title: "시그니처 추천",
+          displaySettings: SPLIT_MENU_PAGE_DISPLAY_SETTINGS,
+          legacySectionKey: "main_menu",
+          sortOrder: 1,
+          categories: splitMenuCategories,
+        },
+        {
+          key: "full_menu",
+          title: "전체 메뉴",
+          displaySettings: FULL_MENU_PAGE_DISPLAY_SETTINGS,
+          legacySectionKey: "main_menu",
+          sortOrder: 2,
+          categories: fullMenuCategories,
+        },
+        {
+          key: "promotion_dessert",
+          title: "디저트 프로모션",
+          displaySettings: PROMOTION_PAGE_DISPLAY_SETTINGS,
+          legacySectionKey: null,
+          sortOrder: 3,
+        },
+      ]
+    : [
+        {
+          key: "full_menu",
+          title: "전체 메뉴",
+          displaySettings: FULL_MENU_PAGE_DISPLAY_SETTINGS,
+          legacySectionKey: "main_menu",
+          sortOrder: 0,
+          categories: fullMenuCategories,
+        },
+        ...(withPromotion
+          ? [
+              {
+                key: "promotion",
+                title: "프로모션 페이지",
+                displaySettings: PROMOTION_PAGE_DISPLAY_SETTINGS,
+                legacySectionKey: null,
+                sortOrder: 1,
+              },
+            ]
+          : []),
+      ];
+  const menuPageSpecs = pageSpecs.filter((pageSpec) => pageSpec.displaySettings.pageType === "menu");
 
-  if (withPromotion) {
-    pageRows.push({
-      menu_site_id: menuSiteId,
-      title: "프로모션 페이지 1",
-      description: null,
-      description_visible: false,
-      display_settings: PROMOTION_PAGE_DISPLAY_SETTINGS,
-      legacy_section_key: null,
-      visible: true,
-      sort_order: 1,
-    });
-  }
+  const pageRows = pageSpecs.map((pageSpec) => ({
+    key: pageSpec.key,
+    menu_site_id: menuSiteId,
+    title: pageSpec.title,
+    description: null,
+    description_visible: Boolean(pageSpec.displaySettings.pageType === "menu" && !isDisplayMenuA),
+    display_settings: pageSpec.displaySettings,
+    legacy_section_key: pageSpec.legacySectionKey,
+    visible: true,
+    sort_order: pageSpec.sortOrder,
+  }));
+
+  const categoryPlans = menuPageSpecs.flatMap((pageSpec) =>
+    (pageSpec.categories ?? fullMenuCategories).map((category) => ({
+      pageKey: pageSpec.key,
+      row: {
+        menu_site_id: menuSiteId,
+        menu_page_id: null,
+        name: category.name,
+        description: null,
+        description_visible: !isDisplayMenuA,
+        section_key: category.name === "DESSERT" ? "dessert_drink" : "main_menu",
+        visible: true,
+        sort_order: category.sortOrder,
+      },
+    }))
+  );
+
+  const itemPlans = menuPageSpecs.flatMap((pageSpec) =>
+    (pageSpec.categories ?? fullMenuCategories).flatMap((category) =>
+      category.items.map((item) => ({
+        pageKey: pageSpec.key,
+        categoryName: category.name,
+        itemName: item.name,
+        priceOptions: item.priceOptions ?? [],
+        row: {
+          menu_site_id: menuSiteId,
+          category_id: null,
+          name: item.name,
+          set_name: item.setName,
+          description: isDisplayMenuA ? null : item.description,
+          price: item.price,
+          price_label: item.priceLabel,
+          price_visible: true,
+          portion_label: isDisplayMenuA ? null : item.portionLabel,
+          portion_visible: isDisplayMenuA ? false : Boolean(item.portionLabel),
+          badge_label: item.badgeLabel,
+          badge_type: item.badgeLabel ? item.badgeLabel.toLowerCase() : null,
+          recommended: item.recommended,
+          origin_info: null,
+          is_best: item.badgeLabel === "BEST",
+          is_sold_out: false,
+          traits_visible: false,
+          visible: true,
+          sort_order: item.sortOrder,
+        },
+      }))
+    )
+  );
+
+  const priceOptionPlans = itemPlans.flatMap((itemPlan) =>
+    itemPlan.priceOptions.map((option) => ({
+        pageKey: itemPlan.pageKey,
+        categoryName: itemPlan.categoryName,
+        itemName: itemPlan.itemName,
+        row: {
+        menu_site_id: menuSiteId,
+        menu_item_id: null,
+        label: option.label,
+        price: option.price,
+        price_label: isDisplayMenuA ? formatDisplaySeedPriceLabel(option) : option.priceLabel,
+        visible: true,
+        sort_order: option.sortOrder,
+      },
+    }))
+  );
+
+  return {
+    pageRows,
+    categoryPlans,
+    itemPlans,
+    priceOptionPlans,
+  };
+}
+
+function summarizeStarterPlan(starterPlan) {
+  const itemRows = starterPlan.itemPlans.map((plan) => plan.row);
+
+  return {
+    pageCount: starterPlan.pageRows.length,
+    pageLayouts: starterPlan.pageRows.map((page) => ({
+      title: page.title,
+      pageType: page.display_settings.pageType,
+      menuLayoutType: page.display_settings.menuLayoutType,
+    })),
+    categoryCount: starterPlan.categoryPlans.length,
+    itemCount: itemRows.length,
+    priceOptionCount: starterPlan.priceOptionPlans.length,
+    priceOptionLabels: [...new Set(starterPlan.priceOptionPlans.map((plan) => plan.row.label))],
+    hasItemDescriptionData: itemRows.some((row) => Boolean(row.description)),
+    hasPortionLabelData: itemRows.some((row) => Boolean(row.portion_label) || row.portion_visible),
+  };
+}
+
+async function insertStarterData(supabase, menuSiteId, { withPromotion, denseMenu, templateKey }) {
+  const starterPlan = getStarterPlan({ withPromotion, denseMenu, templateKey, menuSiteId });
 
   const { data: pages, error: pageError } = await supabase
     .from("menu_pages")
-    .insert(pageRows)
+    .insert(starterPlan.pageRows.map((page) => {
+      const row = { ...page };
+      delete row.key;
+      return row;
+    }))
     .select("id, title");
   if (pageError) throw new Error(`menu_pages insert failed: ${pageError.message}`);
 
-  const menuPage = pages.find((page) => page.title === "메뉴 페이지 1");
-  if (!menuPage) throw new Error("Created menu page was not returned.");
+  const pageKeyByTitle = new Map(starterPlan.pageRows.map((page) => [page.title, page.key]));
+  const pageIdByKey = new Map(
+    pages.flatMap((page) => {
+      const pageKey = pageKeyByTitle.get(page.title);
+      return pageKey ? [[pageKey, page.id]] : [];
+    })
+  );
 
-  const categoryRows = SAMPLE_CATEGORIES.map((category) => ({
-    menu_site_id: menuSiteId,
-    menu_page_id: menuPage.id,
-    name: category.name,
-    description: null,
-    description_visible: true,
-    section_key: category.name === "DESSERT" ? "dessert_drink" : "main_menu",
-    visible: true,
-    sort_order: category.sortOrder,
-  }));
+  const categoryRows = starterPlan.categoryPlans.flatMap((plan) => {
+    const pageId = pageIdByKey.get(plan.pageKey);
+    return pageId ? [{ ...plan.row, menu_page_id: pageId }] : [];
+  });
 
   const { data: categories, error: categoryError } = await supabase
     .from("menu_categories")
     .insert(categoryRows)
-    .select("id, name");
+    .select("id, name, menu_page_id");
   if (categoryError) throw new Error(`menu_categories insert failed: ${categoryError.message}`);
 
-  const categoryIdByName = new Map(categories.map((category) => [category.name, category.id]));
-  const itemRows = SAMPLE_CATEGORIES.flatMap((category) => {
-    const categoryId = categoryIdByName.get(category.name);
-    if (!categoryId) return [];
-
-    return category.items.map((item) => ({
-      menu_site_id: menuSiteId,
-      category_id: categoryId,
-      name: item.name,
-      set_name: item.setName,
-      description: item.description,
-      price: item.price,
-      price_label: item.priceLabel,
-      price_visible: true,
-      portion_label: item.portionLabel,
-      portion_visible: Boolean(item.portionLabel),
-      badge_label: item.badgeLabel,
-      badge_type: item.badgeLabel ? item.badgeLabel.toLowerCase() : null,
-      recommended: item.recommended,
-      origin_info: null,
-      is_best: item.badgeLabel === "BEST",
-      is_sold_out: false,
-      traits_visible: false,
-      visible: true,
-      sort_order: item.sortOrder,
-    }));
+  const categoryIdByPageAndName = new Map(categories.map((category) => [`${category.menu_page_id}:${category.name}`, category.id]));
+  const itemRows = starterPlan.itemPlans.flatMap((plan) => {
+    const pageId = pageIdByKey.get(plan.pageKey);
+    const categoryId = pageId ? categoryIdByPageAndName.get(`${pageId}:${plan.categoryName}`) : null;
+    return categoryId ? [{ ...plan.row, category_id: categoryId }] : [];
   });
 
   const { data: items, error: itemError } = await supabase
     .from("menu_items")
     .insert(itemRows)
-    .select("id, name");
+    .select("id, name, category_id");
   if (itemError) throw new Error(`menu_items insert failed: ${itemError.message}`);
 
-  const itemIdByName = new Map(items.map((item) => [item.name, item.id]));
-  const priceOptionRows = SAMPLE_CATEGORIES.flatMap((category) =>
-    category.items.flatMap((item) => {
-      const menuItemId = itemIdByName.get(item.name);
-      if (!menuItemId || !item.priceOptions) return [];
-
-      return item.priceOptions.map((option) => ({
-        menu_site_id: menuSiteId,
-        menu_item_id: menuItemId,
-        label: option.label,
-        price: option.price,
-        price_label: option.priceLabel,
-        visible: true,
-        sort_order: option.sortOrder,
-      }));
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
+  const itemIdByPageCategoryAndName = new Map(
+    items.flatMap((item) => {
+      const category = categoryById.get(item.category_id);
+      if (!category) return [];
+      return [[`${category.menu_page_id}:${category.name}:${item.name}`, item.id]];
     })
   );
+  const priceOptionRows = starterPlan.priceOptionPlans.flatMap((plan) => {
+    const pageId = pageIdByKey.get(plan.pageKey);
+    const menuItemId = pageId ? itemIdByPageCategoryAndName.get(`${pageId}:${plan.categoryName}:${plan.itemName}`) : null;
+    return menuItemId ? [{ ...plan.row, menu_item_id: menuItemId }] : [];
+  });
 
   if (priceOptionRows.length > 0) {
     const { error: priceOptionError } = await supabase
@@ -484,10 +1184,12 @@ async function insertStarterData(supabase, menuSiteId, withPromotion) {
   }
 
   return {
-    pageCount: pageRows.length,
+    pageLayouts: summarizeStarterPlan(starterPlan).pageLayouts,
+    pageCount: starterPlan.pageRows.length,
     categoryCount: categoryRows.length,
     itemCount: itemRows.length,
     priceOptionCount: priceOptionRows.length,
+    priceOptionLabels: [...new Set(priceOptionRows.map((row) => row.label))],
   };
 }
 
@@ -521,15 +1223,25 @@ async function main() {
   const now = new Date();
   const expiresAt = addDays(now, args.durationDays);
   const plannedRows = getPlannedRows({ user, slug, args, now, expiresAt });
+  const starterPlan = getStarterPlan({
+    withPromotion: args.withPromotion,
+    denseMenu: args.denseMenu,
+    templateKey: args.templateKey,
+  });
+  const starterSummary = summarizeStarterPlan(starterPlan);
 
   console.log("Display QA seed plan");
   console.log(JSON.stringify({
     user: { id: user.id, email: user.email },
     templateKey: args.templateKey,
+    templateCategory: args.templateCategory,
     slug,
     productKey: DEFAULT_PRODUCT_KEY,
+    entitlementPlanType: plannedRows.entitlement.plan_type,
     withPromotion: args.withPromotion,
+    denseMenu: args.denseMenu,
     dryRun: args.dryRun,
+    starterData: starterSummary,
   }, null, 2));
 
   if (args.dryRun) {
@@ -547,7 +1259,11 @@ async function main() {
     throw new Error(`menu_sites insert failed: ${menuSiteError?.message ?? "missing inserted row"}`);
   }
 
-  const starterResult = await insertStarterData(supabase, menuSite.id, args.withPromotion);
+  const starterResult = await insertStarterData(supabase, menuSite.id, {
+    withPromotion: args.withPromotion,
+    denseMenu: args.denseMenu,
+    templateKey: args.templateKey,
+  });
 
   const { data: order, error: orderError } = await supabase
     .from("orders")

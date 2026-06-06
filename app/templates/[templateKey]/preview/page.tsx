@@ -2,21 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
-import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
+import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ templateKey: string }>;
-  searchParams?: Promise<{ layoutMode?: string | string[] }>;
+  searchParams?: Promise<{ layoutMode?: string | string[]; page?: string | string[]; qaCase?: string | string[]; qaSplitImagePosition?: string | string[] }>;
 };
 
-function buildPreviewData(templateKey: TemplateKey): MenuPageData {
+function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null): MenuPageData {
   if (templateKey === "display_menu_a") {
-    return buildDisplayMenuAPreviewData();
+    return buildDisplayMenuAPreviewData(normalizeDisplayMenuAQaCase(qaCase));
   }
 
   const template = getTemplateByKey(templateKey);
@@ -184,6 +185,57 @@ function buildPreviewData(templateKey: TemplateKey): MenuPageData {
   };
 }
 
+function getDisplayPreviewPageIndex(value: string | string[] | undefined) {
+  const pageValue = Array.isArray(value) ? value[0] : value;
+  if (!pageValue) return null;
+
+  const pageIndex = Number.parseInt(pageValue, 10);
+  return Number.isFinite(pageIndex) && pageIndex >= 1 ? pageIndex - 1 : null;
+}
+
+function orderDisplayPreviewPages(data: MenuPageData, requestedPageIndex: number | null): MenuPageData {
+  if (requestedPageIndex === null || requestedPageIndex <= 0 || requestedPageIndex >= data.pages.length) {
+    return data;
+  }
+
+  const pages = [...data.pages];
+  const [requestedPage] = pages.splice(requestedPageIndex, 1);
+  if (!requestedPage) return data;
+
+  return {
+    ...data,
+    pages: [requestedPage, ...pages].map((page, index) => ({
+      ...page,
+      sort_order: index,
+    })),
+  };
+}
+
+function getDisplayPreviewSplitImagePosition(value: string | string[] | undefined) {
+  const positionValue = Array.isArray(value) ? value[0] : value;
+  return positionValue === "right" ? "right" : positionValue === "left" ? "left" : null;
+}
+
+function applyDisplayPreviewSplitImagePosition(data: MenuPageData, splitImagePosition: "left" | "right" | null): MenuPageData {
+  if (!splitImagePosition) return data;
+
+  return {
+    ...data,
+    pages: data.pages.map((page) => {
+      const settings = normalizeMenuPageDisplaySettings(page.display_settings);
+      if (settings.pageType !== "menu" || settings.menuLayoutType !== "split_image_menu") return page;
+
+      return {
+        ...page,
+        display_settings: serializeMenuPageDisplaySettings({
+          ...settings,
+          splitImagePosition,
+        }),
+      };
+    }),
+  };
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { templateKey } = await params;
 
@@ -213,12 +265,26 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     templateKey === "cafe_design_a" && layoutModeParam === "balancedExperimental"
       ? "balancedExperimental"
       : undefined;
+  const displayPreviewPageIndex = templateKey === "display_menu_a"
+    ? getDisplayPreviewPageIndex(resolvedSearchParams.page)
+    : null;
+  const displayPreviewQaCase = templateKey === "display_menu_a"
+    ? Array.isArray(resolvedSearchParams.qaCase)
+      ? resolvedSearchParams.qaCase[0] ?? null
+      : resolvedSearchParams.qaCase ?? null
+    : null;
+  const displayPreviewSplitImagePosition = templateKey === "display_menu_a"
+    ? getDisplayPreviewSplitImagePosition(resolvedSearchParams.qaSplitImagePosition)
+    : null;
 
   if (!isValidTemplateKey(templateKey)) {
     notFound();
   }
 
-  const data = buildPreviewData(templateKey);
+  const data = applyDisplayPreviewSplitImagePosition(
+    orderDisplayPreviewPages(buildPreviewData(templateKey, displayPreviewQaCase), displayPreviewPageIndex),
+    displayPreviewSplitImagePosition
+  );
 
   return <MenuPageRenderer mode="preview" previewLayoutMode={previewLayoutMode} {...data} />;
 }

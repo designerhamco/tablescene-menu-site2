@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import { normalizeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { normalizeLocale } from "@/lib/locales";
-import { getOwnerPreviewMenuPageData } from "@/lib/menu-page-data";
+import { getOwnerPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
-  searchParams?: Promise<{ lang?: string | string[] }>;
+  searchParams?: Promise<{ lang?: string | string[]; page?: string | string[] }>;
 };
 
 export const metadata: Metadata = {
@@ -24,10 +25,44 @@ function getSearchParamValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function getPreviewPageIndex(value: string | string[] | undefined) {
+  const pageValue = getSearchParamValue(value);
+  if (!pageValue) return null;
+
+  const pageIndex = Number.parseInt(pageValue, 10);
+  return Number.isFinite(pageIndex) && pageIndex >= 1 ? pageIndex - 1 : null;
+}
+
+function orderDisplayOwnerPreviewPages(data: MenuPageData, requestedPageIndex: number | null): MenuPageData {
+  if (data.menuSite.template_key !== "display_menu_a") return data;
+
+  const visiblePages = data.pages.filter((page) => page.visible).sort((left, right) => left.sort_order - right.sort_order);
+  const targetPage = requestedPageIndex === null
+    ? visiblePages.find((page) => {
+        const settings = normalizeMenuPageDisplaySettings(page.display_settings);
+        return settings.pageType === "menu" && settings.menuLayoutType === "full_menu";
+      })
+    : visiblePages[requestedPageIndex] ?? null;
+
+  if (!targetPage || visiblePages[0]?.id === targetPage.id) return data;
+
+  return {
+    ...data,
+    pages: [
+      targetPage,
+      ...data.pages.filter((page) => page.id !== targetPage.id),
+    ].map((page, index) => ({
+      ...page,
+      sort_order: index,
+    })),
+  };
+}
+
 export default async function MenuPreviewPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
   const query = searchParams ? await searchParams : {};
   const locale = normalizeLocale(getSearchParamValue(query.lang));
+  const requestedPageIndex = getPreviewPageIndex(query.page);
   const supabase = await createClient();
   const {
     data: { user },
@@ -48,5 +83,5 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     redirect("/mypage?error=menu-preview-not-allowed");
   }
 
-  return <MenuPageRenderer mode="preview" {...data} />;
+  return <MenuPageRenderer mode="preview" {...orderDisplayOwnerPreviewPages(data, requestedPageIndex)} />;
 }

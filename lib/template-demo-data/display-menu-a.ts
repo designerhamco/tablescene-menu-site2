@@ -14,6 +14,12 @@ function pageId(index: number) {
   return `${siteId}-page-${index}`;
 }
 
+function menuPageIdForDemoIndex(index: number) {
+  if (index === 0) return pageId(2);
+  if (index === 1) return pageId(1);
+  return pageId(index);
+}
+
 function categoryId(pageIndex: number, categoryIndex: number) {
   return `${siteId}-category-${pageIndex}-${categoryIndex}`;
 }
@@ -22,8 +28,659 @@ function itemId(pageIndex: number, categoryIndex: number, itemIndex: number) {
   return `${siteId}-item-${pageIndex}-${categoryIndex}-${itemIndex}`;
 }
 
-export function buildDisplayMenuAPreviewData(): MenuPageData {
+function priceOptionId(pageIndex: number, categoryIndex: number, itemIndex: number, optionIndex: number) {
+  return `${itemId(pageIndex, categoryIndex, itemIndex)}-price-option-${optionIndex}`;
+}
+
+type DemoCategory = {
+  pageIndex: number;
+  categoryIndex: number;
+  name: string;
+  sortOrder: number;
+};
+
+type DemoOption = {
+  label: string;
+  priceLabel: string;
+  sortOrder: number;
+};
+
+type DemoItem = {
+  pageIndex: number;
+  categoryIndex: number;
+  itemIndex: number;
+  name: string;
+  setName: string;
+  priceLabel: string;
+  sortOrder: number;
+  badge?: "SIGNATURE" | "BEST" | "NEW";
+  recommended?: boolean;
+  options?: DemoOption[];
+};
+
+export type DisplayMenuAQaCase =
+  | "sparse_1"
+  | "sparse_2"
+  | "sparse"
+  | "sparse_2cat"
+  | "recommended"
+  | "filled"
+  | "dense"
+  | "autoSplit"
+  | "capacity_warning"
+  | "capacity_strong"
+  | "category_heavy"
+  | "extreme_fit"
+  | "longSecondary"
+  | "unbalanced_left"
+  | "unbalanced_right";
+
+const DISPLAY_MENU_A_QA_CASES = new Set<DisplayMenuAQaCase>([
+  "sparse_1",
+  "sparse_2",
+  "sparse",
+  "sparse_2cat",
+  "recommended",
+  "filled",
+  "dense",
+  "autoSplit",
+  "capacity_warning",
+  "capacity_strong",
+  "category_heavy",
+  "extreme_fit",
+  "longSecondary",
+  "unbalanced_left",
+  "unbalanced_right",
+]);
+
+const fullCategories: DemoCategory[] = [
+  { pageIndex: 0, categoryIndex: 0, name: "SIGNATURE COFFEE", sortOrder: 1 },
+  { pageIndex: 0, categoryIndex: 1, name: "CLASSIC COFFEE", sortOrder: 2 },
+  { pageIndex: 0, categoryIndex: 2, name: "NON-COFFEE", sortOrder: 3 },
+  { pageIndex: 0, categoryIndex: 3, name: "BAKERY", sortOrder: 4 },
+];
+
+const splitCategories: DemoCategory[] = [
+  { pageIndex: 1, categoryIndex: 0, name: "SIGNATURE COFFEE", sortOrder: 1 },
+  { pageIndex: 1, categoryIndex: 1, name: "SEASONAL DRINK", sortOrder: 2 },
+];
+
+function hotIce(hot: string, ice: string): DemoOption[] {
+  return [
+    { label: "HOT", priceLabel: hot, sortOrder: 1 },
+    { label: "ICE", priceLabel: ice, sortOrder: 2 },
+  ];
+}
+
+function hotIceLarge(hot: string, ice: string, large: string): DemoOption[] {
+  return [
+    { label: "HOT", priceLabel: hot, sortOrder: 1 },
+    { label: "ICE", priceLabel: ice, sortOrder: 2 },
+    { label: "LARGE", priceLabel: large, sortOrder: 3 },
+  ];
+}
+
+function iceOnly(ice: string): DemoOption[] {
+  return [{ label: "ICE", priceLabel: ice, sortOrder: 2 }];
+}
+
+function priceFromLabel(priceLabel: string) {
+  const parsed = Number.parseFloat(priceLabel.replace(/,/g, ""));
+  return Number.isFinite(parsed) ? Math.round(parsed * 1000) : 0;
+}
+
+export function normalizeDisplayMenuAQaCase(value: string | null | undefined): DisplayMenuAQaCase | null {
+  return value && DISPLAY_MENU_A_QA_CASES.has(value as DisplayMenuAQaCase) ? (value as DisplayMenuAQaCase) : null;
+}
+
+const fullItems: DemoItem[] = [
+  {
+    pageIndex: 0,
+    categoryIndex: 0,
+    itemIndex: 0,
+    name: "바질 크림 라떼",
+    setName: "BASIL CREAM LATTE",
+    priceLabel: "6.5",
+    sortOrder: 1,
+    badge: "SIGNATURE",
+    recommended: true,
+    options: iceOnly("6.5"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 0,
+    itemIndex: 1,
+    name: "오트 너티 라떼",
+    setName: "OAT NUTTY LATTE",
+    priceLabel: "6.5",
+    sortOrder: 2,
+    badge: "BEST",
+    recommended: true,
+    options: hotIce("6.5", "6.5"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 0,
+    itemIndex: 2,
+    name: "흑임자 크림 라떼",
+    setName: "BLACK SESAME LATTE",
+    priceLabel: "6.5",
+    sortOrder: 3,
+    options: iceOnly("6.5"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 0,
+    itemIndex: 3,
+    name: "솔티드 카라멜 라떼",
+    setName: "SALTED CARAMEL LATTE",
+    priceLabel: "6.0",
+    sortOrder: 4,
+    options: hotIce("6.0", "6.0"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 0,
+    itemIndex: 4,
+    name: "말차 에스프레소",
+    setName: "MATCHA ESPRESSO",
+    priceLabel: "6.3",
+    sortOrder: 5,
+    badge: "NEW",
+    options: iceOnly("6.3"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 1,
+    itemIndex: 0,
+    name: "아메리카노",
+    setName: "AMERICANO",
+    priceLabel: "4.5",
+    sortOrder: 1,
+    options: hotIce("4.5", "4.5"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 1,
+    itemIndex: 1,
+    name: "카페 라떼",
+    setName: "CAFE LATTE",
+    priceLabel: "5.0",
+    sortOrder: 2,
+    options: hotIce("5.0", "5.0"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 1,
+    itemIndex: 2,
+    name: "플랫 화이트",
+    setName: "FLAT WHITE",
+    priceLabel: "5.0",
+    sortOrder: 3,
+    options: hotIce("5.0", "5.0"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 1,
+    itemIndex: 3,
+    name: "바닐라 빈 라떼",
+    setName: "VANILLA BEAN LATTE",
+    priceLabel: "5.5",
+    sortOrder: 4,
+    options: hotIce("5.5", "5.5"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 1,
+    itemIndex: 4,
+    name: "콜드브루",
+    setName: "COLD BREW",
+    priceLabel: "5.0",
+    sortOrder: 5,
+    options: iceOnly("5.0"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 2,
+    itemIndex: 0,
+    name: "제주 말차 라떼",
+    setName: "JEJU MATCHA LATTE",
+    priceLabel: "6.0",
+    sortOrder: 1,
+    badge: "BEST",
+    recommended: true,
+    options: hotIce("6.0", "6.0"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 2,
+    itemIndex: 1,
+    name: "밀크티 보틀",
+    setName: "MILK TEA BOTTLE",
+    priceLabel: "6.5",
+    sortOrder: 2,
+    options: iceOnly("6.5"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 2,
+    itemIndex: 2,
+    name: "발로나 초코 라떼",
+    setName: "VALRHONA CHOCO LATTE",
+    priceLabel: "6.0",
+    sortOrder: 3,
+    options: hotIce("6.0", "6.0"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 2,
+    itemIndex: 3,
+    name: "딸기 라떼",
+    setName: "STRAWBERRY LATTE",
+    priceLabel: "6.5",
+    sortOrder: 4,
+    badge: "NEW",
+    options: iceOnly("6.5"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 2,
+    itemIndex: 4,
+    name: "로얄 밀크티",
+    setName: "ROYAL MILK TEA",
+    priceLabel: "5.8",
+    sortOrder: 5,
+    options: hotIce("5.8", "5.8"),
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 3,
+    itemIndex: 0,
+    name: "클래식 버터 스콘",
+    setName: "CLASSIC BUTTER SCONE",
+    priceLabel: "4.5",
+    sortOrder: 1,
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 3,
+    itemIndex: 1,
+    name: "무화과 휘낭시에",
+    setName: "FIG FINANCIER",
+    priceLabel: "3.5",
+    sortOrder: 2,
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 3,
+    itemIndex: 2,
+    name: "솔티 초코 휘낭시에",
+    setName: "SALTY CHOCO FINANCIER",
+    priceLabel: "3.8",
+    sortOrder: 3,
+    badge: "NEW",
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 3,
+    itemIndex: 3,
+    name: "흑임자 바스크 치즈케이크",
+    setName: "BLACK SESAME BASQUE CHEESECAKE",
+    priceLabel: "7.8",
+    sortOrder: 4,
+    badge: "NEW",
+  },
+  {
+    pageIndex: 0,
+    categoryIndex: 3,
+    itemIndex: 4,
+    name: "레몬 파운드 케이크",
+    setName: "LEMON POUND CAKE",
+    priceLabel: "4.2",
+    sortOrder: 5,
+  },
+];
+
+const splitItems: DemoItem[] = [
+  {
+    pageIndex: 1,
+    categoryIndex: 0,
+    itemIndex: 0,
+    name: "바질 크림 라떼",
+    setName: "BASIL CREAM LATTE",
+    priceLabel: "6.5",
+    sortOrder: 1,
+    badge: "SIGNATURE",
+    recommended: true,
+    options: iceOnly("6.5"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 0,
+    itemIndex: 1,
+    name: "제주 말차 라떼",
+    setName: "JEJU MATCHA LATTE",
+    priceLabel: "6.0",
+    sortOrder: 2,
+    badge: "BEST",
+    recommended: true,
+    options: hotIce("6.0", "6.0"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 0,
+    itemIndex: 2,
+    name: "오트 너티 라떼",
+    setName: "OAT NUTTY LATTE",
+    priceLabel: "6.5",
+    sortOrder: 3,
+    options: hotIce("6.5", "6.5"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 0,
+    itemIndex: 3,
+    name: "레몬 바질 에이드",
+    setName: "LEMON BASIL ADE",
+    priceLabel: "6.0",
+    sortOrder: 4,
+    badge: "BEST",
+    recommended: true,
+    options: iceOnly("6.0"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 0,
+    itemIndex: 4,
+    name: "딸기 라떼",
+    setName: "STRAWBERRY LATTE",
+    priceLabel: "6.5",
+    sortOrder: 5,
+    badge: "NEW",
+    options: iceOnly("6.5"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 1,
+    itemIndex: 0,
+    name: "청귤 에이드",
+    setName: "GREEN TANGERINE ADE",
+    priceLabel: "6.2",
+    sortOrder: 1,
+    badge: "NEW",
+    options: iceOnly("6.2"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 1,
+    itemIndex: 1,
+    name: "유자 캐모마일 티",
+    setName: "YUJA CHAMOMILE TEA",
+    priceLabel: "5.8",
+    sortOrder: 2,
+    options: hotIce("5.8", "5.8"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 1,
+    itemIndex: 2,
+    name: "피치 얼그레이",
+    setName: "PEACH EARL GREY",
+    priceLabel: "6.0",
+    sortOrder: 3,
+    options: iceOnly("6.0"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 1,
+    itemIndex: 3,
+    name: "오트 고구마 라떼",
+    setName: "OAT SWEET POTATO LATTE",
+    priceLabel: "6.1",
+    sortOrder: 4,
+    badge: "BEST",
+    recommended: true,
+    options: hotIce("6.1", "6.1"),
+  },
+  {
+    pageIndex: 1,
+    categoryIndex: 1,
+    itemIndex: 4,
+    name: "자몽 허니 블랙티",
+    setName: "GRAPEFRUIT HONEY BLACK TEA",
+    priceLabel: "5.9",
+    sortOrder: 5,
+    options: hotIce("5.9", "5.9"),
+  },
+];
+
+function buildCategory(category: DemoCategory) {
+  return {
+    id: categoryId(category.pageIndex, category.categoryIndex),
+    menu_page_id: menuPageIdForDemoIndex(category.pageIndex),
+    name: category.name,
+    description: null,
+    description_visible: false,
+    sort_order: category.sortOrder,
+    visible: true,
+  };
+}
+
+function buildItem(item: DemoItem) {
+  return {
+    id: itemId(item.pageIndex, item.categoryIndex, item.itemIndex),
+    category_id: categoryId(item.pageIndex, item.categoryIndex),
+    name: item.name,
+    set_name: item.setName,
+    description: null,
+    price: priceFromLabel(item.priceLabel),
+    price_label: item.priceLabel,
+    price_visible: true,
+    portion_label: null,
+    portion_visible: false,
+    image_url: null,
+    badge: item.badge ?? null,
+    badge_label: item.badge ?? null,
+    badge_type: null,
+    recommended: item.recommended ?? false,
+    origin_info: null,
+    is_best: item.badge === "BEST",
+    is_sold_out: false,
+    traits_visible: true,
+    visible: true,
+    sort_order: item.sortOrder,
+  };
+}
+
+function buildPriceOptions(items: DemoItem[]) {
+  return items.flatMap((item) =>
+    (item.options ?? []).map((option, optionIndex) => ({
+      id: priceOptionId(item.pageIndex, item.categoryIndex, item.itemIndex, optionIndex),
+      menu_item_id: itemId(item.pageIndex, item.categoryIndex, item.itemIndex),
+      label: option.label,
+      price: priceFromLabel(option.priceLabel),
+      price_label: option.priceLabel,
+      visible: true,
+      sort_order: option.sortOrder,
+    }))
+  );
+}
+
+const qaMenuNames = [
+  ["바질 크림 라떼", "BASIL CREAM LATTE"],
+  ["오트 너티 라떼", "OAT NUTTY LATTE"],
+  ["흑임자 크림 라떼", "BLACK SESAME LATTE"],
+  ["솔티드 카라멜 라떼", "SALTED CARAMEL LATTE"],
+  ["피스타치오 슈페너", "PISTACHIO EINSPANNER"],
+  ["바닐라빈 슈페너", "VANILLA BEAN EINSPANNER"],
+  ["메이플 오트 라떼", "MAPLE OAT LATTE"],
+  ["제주 말차 라떼", "JEJU MATCHA LATTE"],
+  ["발로나 초코 라떼", "VALRHONA CHOCO LATTE"],
+  ["레몬 바질 에이드", "LEMON BASIL ADE"],
+  ["자몽 블랙티 에이드", "GRAPEFRUIT BLACK TEA ADE"],
+  ["클래식 버터 스콘", "CLASSIC BUTTER SCONE"],
+  ["무화과 휘낭시에", "FIG FINANCIER"],
+  ["솔티 초코 휘낭시에", "SALTY CHOCO FINANCIER"],
+  ["레몬 파운드 케이크", "LEMON POUND CAKE"],
+  ["티라미수 컵", "TIRAMISU CUP"],
+  ["얼그레이 쉬폰", "EARL GREY CHIFFON"],
+  ["디카페인 아메리카노", "DECAF AMERICANO"],
+  ["로얄 밀크티", "ROYAL MILK TEA"],
+  ["오트 고구마 라떼", "OAT SWEET POTATO LATTE"],
+] as const;
+
+const fullQaCategoryNames = [
+  "SIGNATURE COFFEE",
+  "CLASSIC COFFEE",
+  "NON-COFFEE",
+  "TEA & BAKERY",
+  "SEASONAL PICK",
+  "DESSERT BAR",
+  "DECAF & TEA",
+  "LIMITED",
+];
+
+const splitQaCategoryNames = ["RECOMMENDED", "BAKERY PICK", "NON-COFFEE", "SEASONAL"];
+
+function getQaCounts(qaCase: DisplayMenuAQaCase, pageIndex: number) {
+  const split = pageIndex === 1;
+
+  switch (qaCase) {
+    case "sparse_1":
+      return [1];
+    case "sparse_2":
+      return [2];
+    case "sparse":
+      return split ? [5] : [6];
+    case "sparse_2cat":
+      return split ? [3, 2] : [4, 4];
+    case "recommended":
+      return split ? [6, 4] : [5, 5, 5, 5];
+    case "filled":
+      return split ? [9, 7] : [8, 7, 8, 7];
+    case "dense":
+      return split ? [7, 6, 5, 4] : [5, 5, 5, 5, 5, 5, 5, 5];
+    case "autoSplit":
+      return split ? [24, 24, 18] : [12, 12, 12, 12, 12, 12];
+    case "capacity_warning":
+      return split ? [7, 6] : [7, 6, 6, 6];
+    case "capacity_strong":
+      return split ? [9, 8] : [9, 8, 8, 8];
+    case "category_heavy":
+      return split ? [13] : [13, 4, 4, 4];
+    case "extreme_fit":
+      return split ? [100] : [25, 25, 25, 25];
+    case "longSecondary":
+      return split ? [5, 4] : [4, 4, 4, 4];
+    case "unbalanced_left":
+      return split ? [10, 4] : [16, 3, 3, 2];
+    case "unbalanced_right":
+      return split ? [4, 10] : [2, 3, 3, 16];
+  }
+}
+
+function buildQaCategories(qaCase: DisplayMenuAQaCase, pageIndex: number): DemoCategory[] {
+  const names = pageIndex === 1 ? splitQaCategoryNames : fullQaCategoryNames;
+
+  return getQaCounts(qaCase, pageIndex).map((_, categoryIndex) => ({
+    pageIndex,
+    categoryIndex,
+    name: names[categoryIndex] ?? `CATEGORY ${categoryIndex + 1}`,
+    sortOrder: categoryIndex + 1,
+  }));
+}
+
+function buildQaItem({
+  pageIndex,
+  categoryIndex,
+  itemIndex,
+  globalIndex,
+  dense,
+  longSecondary,
+}: {
+  pageIndex: number;
+  categoryIndex: number;
+  itemIndex: number;
+  globalIndex: number;
+  dense: boolean;
+  longSecondary: boolean;
+}): DemoItem {
+  if (longSecondary && categoryIndex === 0 && itemIndex === 0) {
+    return {
+      pageIndex,
+      categoryIndex,
+      itemIndex,
+      name: "흑임자 바스크 치즈케이크",
+      setName: "BLACK SESAME BASQUE CHEESECAKE",
+      priceLabel: "7.8",
+      sortOrder: itemIndex + 1,
+      badge: "NEW",
+      recommended: true,
+      options: hotIceLarge("7.8", "7.8", "8.8"),
+    };
+  }
+
+  const [name, setName] = qaMenuNames[globalIndex % qaMenuNames.length];
+  const price = (4.5 + (globalIndex % 9) * 0.3).toFixed(1);
+  const longSetName = dense && globalIndex % 7 === 0
+    ? `${setName} HOUSE SEASONAL RESERVE`
+    : setName;
+  const badge = globalIndex % 11 === 0 ? "SIGNATURE" : globalIndex % 5 === 0 ? "BEST" : globalIndex % 7 === 0 ? "NEW" : undefined;
+  const options = globalIndex % 6 === 0
+    ? hotIceLarge(price, price, (Number(price) + 0.7).toFixed(1))
+    : globalIndex % 3 === 0
+      ? hotIce(price, price)
+      : globalIndex % 4 === 0
+        ? iceOnly(price)
+        : undefined;
+
+  return {
+    pageIndex,
+    categoryIndex,
+    itemIndex,
+    name,
+    setName: longSetName,
+    priceLabel: price,
+    sortOrder: itemIndex + 1,
+    badge,
+    recommended: badge === "BEST" || badge === "SIGNATURE",
+    options,
+  };
+}
+
+function buildQaItems(qaCase: DisplayMenuAQaCase, pageIndex: number): DemoItem[] {
+  const counts = getQaCounts(qaCase, pageIndex);
+  const dense = qaCase === "dense";
+  const longSecondary = qaCase === "longSecondary";
+  let globalIndex = 0;
+
+  return counts.flatMap((count, categoryIndex) =>
+    Array.from({ length: count }, (_, itemIndex) => {
+      const item = buildQaItem({ pageIndex, categoryIndex, itemIndex, globalIndex, dense, longSecondary });
+      globalIndex += 1;
+      return item;
+    })
+  );
+}
+
+function buildDisplayMenuAQaFixture(qaCase: DisplayMenuAQaCase) {
+  const categories = [
+    ...buildQaCategories(qaCase, 0),
+    ...buildQaCategories(qaCase, 1),
+  ];
+  const items = [
+    ...buildQaItems(qaCase, 0),
+    ...buildQaItems(qaCase, 1),
+  ];
+
+  return { categories, items };
+}
+
+export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null = null): MenuPageData {
   const pageSettings = getDefaultPageSettings();
+  const fixture = qaCase ? buildDisplayMenuAQaFixture(qaCase) : null;
+  const categories = fixture?.categories ?? [...fullCategories, ...splitCategories];
+  const items = fixture?.items ?? [...fullItems, ...splitItems];
 
   return {
     locale: DEFAULT_LOCALE,
@@ -66,10 +723,21 @@ export function buildDisplayMenuAPreviewData(): MenuPageData {
     pages: [
       {
         id: pageId(0),
-        title: "전체 메뉴",
-        description: "디스플레이 화면에 맞춰 메뉴와 가격을 크게 보여줍니다.",
-        description_visible: true,
-        display_settings: serializeMenuPageDisplaySettings(DEFAULT_MENU_PAGE_DISPLAY_SETTINGS),
+        title: "시즌 프로모션",
+        description: null,
+        description_visible: false,
+        display_settings: serializeMenuPageDisplaySettings({
+          ...DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS,
+          promotion: {
+            ...DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS.promotion,
+            title: null,
+            description: null,
+            mediaType: "image",
+            mediaUrl: "/placeholders/starter/cafe-a-cover.png",
+            mediaPath: null,
+            videoUrl: null,
+          },
+        }),
         legacy_section_key: null,
         visible: true,
         sort_order: 0,
@@ -78,16 +746,17 @@ export function buildDisplayMenuAPreviewData(): MenuPageData {
       {
         id: pageId(1),
         title: "시그니처 추천",
-        description: "이미지와 메뉴 목록을 함께 보여주는 분할형 예시입니다.",
-        description_visible: true,
+        description: null,
+        description_visible: false,
         display_settings: serializeMenuPageDisplaySettings({
           ...DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
           menuLayoutType: "split_image_menu",
+          splitImagePosition: "left",
           splitImage: {
             url: "/placeholders/starter/cafe-a-cover.png",
             path: null,
-            title: "오늘의 시그니처",
-            description: "바질 크림 라떼와 시즌 디저트를 함께 추천합니다.",
+            title: null,
+            description: null,
             position: "left",
           },
         }),
@@ -98,20 +767,10 @@ export function buildDisplayMenuAPreviewData(): MenuPageData {
       },
       {
         id: pageId(2),
-        title: "이미지 프로모션",
+        title: "전체 메뉴",
         description: null,
         description_visible: false,
-        display_settings: serializeMenuPageDisplaySettings({
-          ...DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS,
-          promotion: {
-            ...DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS.promotion,
-            title: "MATCHA WEEK",
-            description: "제주 말차 라떼와 말차 디저트를 한 주 동안 특별하게 만나보세요.",
-            mediaType: "image",
-            mediaUrl: "/placeholders/starter/cafe-a-cover.png",
-            mediaPath: null,
-          },
-        }),
+        display_settings: serializeMenuPageDisplaySettings(DEFAULT_MENU_PAGE_DISPLAY_SETTINGS),
         legacy_section_key: null,
         visible: true,
         sort_order: 2,
@@ -119,19 +778,19 @@ export function buildDisplayMenuAPreviewData(): MenuPageData {
       },
       {
         id: pageId(3),
-        title: "영상 프로모션",
+        title: "디저트 프로모션",
         description: null,
         description_visible: false,
         display_settings: serializeMenuPageDisplaySettings({
           ...DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS,
           promotion: {
             ...DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS.promotion,
-            title: "BREW MOMENT",
-            description: "매장에서 흘러가는 짧은 영상 프로모션 예시입니다.",
-            mediaType: "video",
-            mediaUrl: null,
+            title: null,
+            description: null,
+            mediaType: "image",
+            mediaUrl: "/placeholders/starter/cafe-a-cover.png",
             mediaPath: null,
-            videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            videoUrl: null,
           },
         }),
         legacy_section_key: null,
@@ -140,277 +799,9 @@ export function buildDisplayMenuAPreviewData(): MenuPageData {
         created_at: now,
       },
     ],
-    categories: [
-      {
-        id: categoryId(0, 0),
-        menu_page_id: pageId(0),
-        name: "SIGNATURE COFFEE",
-        description: null,
-        description_visible: true,
-        sort_order: 1,
-        visible: true,
-      },
-      {
-        id: categoryId(0, 1),
-        menu_page_id: pageId(0),
-        name: "CLASSIC COFFEE",
-        description: null,
-        description_visible: true,
-        sort_order: 2,
-        visible: true,
-      },
-      {
-        id: categoryId(0, 2),
-        menu_page_id: pageId(0),
-        name: "DESSERT",
-        description: null,
-        description_visible: true,
-        sort_order: 3,
-        visible: true,
-      },
-      {
-        id: categoryId(1, 0),
-        menu_page_id: pageId(1),
-        name: "RECOMMENDED",
-        description: null,
-        description_visible: true,
-        sort_order: 1,
-        visible: true,
-      },
-    ],
-    items: [
-      {
-        id: itemId(0, 0, 0),
-        category_id: categoryId(0, 0),
-        name: "바질 크림 라떼",
-        set_name: "BASIL CREAM LATTE",
-        description: "생바질로 만든 수제 크림이 올라간 시그니처 라떼",
-        price: 6500,
-        price_label: "6.5",
-        price_visible: true,
-        portion_label: "ICE ONLY",
-        portion_visible: true,
-        image_url: null,
-        badge: "SIGNATURE",
-        badge_label: "SIGNATURE",
-        badge_type: null,
-        recommended: true,
-        origin_info: null,
-        is_best: true,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 1,
-      },
-      {
-        id: itemId(0, 0, 1),
-        category_id: categoryId(0, 0),
-        name: "오트 너티 라떼",
-        set_name: "OAT NUTTY LATTE",
-        description: "고소한 귀리 우유와 구운 견과류 블렌딩",
-        price: 6500,
-        price_label: "6.5",
-        price_visible: true,
-        portion_label: "HOT / ICE",
-        portion_visible: true,
-        image_url: null,
-        badge: "BEST",
-        badge_label: "BEST",
-        badge_type: null,
-        recommended: true,
-        origin_info: null,
-        is_best: true,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 2,
-      },
-      {
-        id: itemId(0, 0, 2),
-        category_id: categoryId(0, 0),
-        name: "흑임자 크림 라떼",
-        set_name: "BLACK SESAME LATTE",
-        description: "진한 흑임자 크림이 올라간 고소한 라떼",
-        price: 6500,
-        price_label: "6.5",
-        price_visible: true,
-        portion_label: "ICE",
-        portion_visible: true,
-        image_url: null,
-        badge: null,
-        badge_label: null,
-        badge_type: null,
-        recommended: false,
-        origin_info: null,
-        is_best: false,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 3,
-      },
-      {
-        id: itemId(0, 1, 0),
-        category_id: categoryId(0, 1),
-        name: "아메리카노",
-        set_name: "AMERICANO",
-        description: "",
-        price: 4500,
-        price_label: "4.5",
-        price_visible: true,
-        portion_label: "HOT / ICE",
-        portion_visible: true,
-        image_url: null,
-        badge: null,
-        badge_label: null,
-        badge_type: null,
-        recommended: false,
-        origin_info: null,
-        is_best: false,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 1,
-      },
-      {
-        id: itemId(0, 1, 1),
-        category_id: categoryId(0, 1),
-        name: "카페 라떼",
-        set_name: "CAFE LATTE",
-        description: "",
-        price: 5000,
-        price_label: "5.0",
-        price_visible: true,
-        portion_label: "HOT / ICE",
-        portion_visible: true,
-        image_url: null,
-        badge: null,
-        badge_label: null,
-        badge_type: null,
-        recommended: false,
-        origin_info: null,
-        is_best: false,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 2,
-      },
-      {
-        id: itemId(0, 1, 2),
-        category_id: categoryId(0, 1),
-        name: "카라멜 마키아토",
-        set_name: "CARAMEL MACCHIATO",
-        description: "진한 에스프레소와 달콤한 카라멜의 조화",
-        price: 6000,
-        price_label: "6.0",
-        price_visible: true,
-        portion_label: "HOT / ICE",
-        portion_visible: true,
-        image_url: null,
-        badge: null,
-        badge_label: null,
-        badge_type: null,
-        recommended: false,
-        origin_info: null,
-        is_best: false,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 3,
-      },
-      {
-        id: itemId(0, 2, 0),
-        category_id: categoryId(0, 2),
-        name: "흑임자 바스크 치즈케이크",
-        set_name: "SESAME CHEESECAKE",
-        description: "진한 흑임자 크림치즈 케이크",
-        price: 7500,
-        price_label: "7.5",
-        price_visible: true,
-        portion_label: null,
-        portion_visible: false,
-        image_url: null,
-        badge: null,
-        badge_label: null,
-        badge_type: null,
-        recommended: false,
-        origin_info: null,
-        is_best: false,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 1,
-      },
-      {
-        id: itemId(0, 2, 1),
-        category_id: categoryId(0, 2),
-        name: "시즌 과일 타르트",
-        set_name: "SEASONAL FRUIT TART",
-        description: "계절 과일과 바닐라 크림을 올린 타르트",
-        price: 8000,
-        price_label: "8.0",
-        price_visible: true,
-        portion_label: null,
-        portion_visible: false,
-        image_url: null,
-        badge: "NEW",
-        badge_label: "NEW",
-        badge_type: null,
-        recommended: false,
-        origin_info: null,
-        is_best: false,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 2,
-      },
-      {
-        id: itemId(1, 0, 0),
-        category_id: categoryId(1, 0),
-        name: "바질 크림 라떼",
-        set_name: "BASIL CREAM LATTE",
-        description: "생바질 크림과 진한 에스프레소가 어우러지는 인기 조합",
-        price: 6500,
-        price_label: "6.5",
-        price_visible: true,
-        portion_label: "ICE ONLY",
-        portion_visible: true,
-        image_url: null,
-        badge: "SIGNATURE",
-        badge_label: "SIGNATURE",
-        badge_type: null,
-        recommended: true,
-        origin_info: null,
-        is_best: true,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 1,
-      },
-      {
-        id: itemId(1, 0, 1),
-        category_id: categoryId(1, 0),
-        name: "제주 말차 라떼",
-        set_name: "JEJU MATCHA LATTE",
-        description: "제주산 유기농 말차의 진한 풍미",
-        price: 6000,
-        price_label: "6.0",
-        price_visible: true,
-        portion_label: "HOT / ICE",
-        portion_visible: true,
-        image_url: null,
-        badge: "BEST",
-        badge_label: "BEST",
-        badge_type: null,
-        recommended: true,
-        origin_info: null,
-        is_best: true,
-        is_sold_out: false,
-        traits_visible: true,
-        visible: true,
-        sort_order: 2,
-      },
-    ],
-    priceOptions: [],
+    categories: categories.map(buildCategory),
+    items: items.map(buildItem),
+    priceOptions: buildPriceOptions(items),
     traits: [],
     events: [],
     chefs: [],
