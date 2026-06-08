@@ -2857,7 +2857,7 @@ function formatPriceOption(option: Pick<MenuItemPriceOption, "price" | "price_la
 
 function getPriceOptionLimitMessage(labels: TemplateEditorLabels, maxOptions: number) {
   if (maxOptions === 3) {
-    return "메뉴링크 디스플레이 A에서는 TV 메뉴판 가독성을 위해 가격 옵션을 최대 3개까지 사용할 수 있습니다.";
+    return "이 템플릿에서는 옵션별 가격을 최대 3개까지 표시할 수 있습니다.";
   }
 
   return `가격 옵션은 ${labels.itemLabel}당 최대 ${maxOptions}개까지 등록할 수 있습니다.`;

@@ -3,6 +3,7 @@ import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
 import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
 import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import {
   getTemplateCategoryFromKey,
   isTemplateCategoryKey,
@@ -1207,6 +1208,7 @@ export async function createStarterMenuData(
   const serviceType = getStarterServiceType(productKey);
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const starterMenuItemsVisible = preset.sample_items_visible ?? !useLeanPreset;
+  const maxPriceOptionsPerItem = getTemplateCapabilities(templateKey).maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
   const { count, error: countError } = await supabase
     .from("menu_pages")
     .select("id", { count: "exact", head: true })
@@ -1357,7 +1359,7 @@ export async function createStarterMenuData(
         const menuItemId = itemIdByKey.get(`${categoryId}:${menuItem.name}`);
         if (!menuItemId || !menuItem.price_options?.length) return [];
 
-        return menuItem.price_options.slice(0, MENU_LIMITS.maxPriceOptionsPerItem).map((option, index) => ({
+        return menuItem.price_options.slice(0, maxPriceOptionsPerItem).map((option, index) => ({
           menu_site_id: menuSiteId,
           menu_item_id: menuItemId,
           label: option.label,

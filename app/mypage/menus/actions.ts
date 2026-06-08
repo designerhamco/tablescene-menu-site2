@@ -204,7 +204,7 @@ function getMaxPriceOptionsPerItem(capabilities: TemplateCapabilities) {
 
 function getPriceOptionLimitError(maxOptions: number) {
   if (maxOptions === 3) {
-    return "메뉴링크 디스플레이 A에서는 TV 메뉴판 가독성을 위해 가격 옵션을 최대 3개까지 사용할 수 있습니다.";
+    return "이 템플릿에서는 옵션별 가격을 최대 3개까지 표시할 수 있습니다.";
   }
 
   return `가격 옵션은 아이템당 최대 ${maxOptions}개까지 등록할 수 있습니다.`;
@@ -3018,6 +3018,7 @@ export async function copyMenuPageAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
   await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(getTemplateCapabilities(menuSite.template_key));
 
   const { count: pageCount, error: pageCountError } = await supabase
     .from("menu_pages")
@@ -3255,7 +3256,8 @@ export async function copyMenuPageAction(formData: FormData) {
       .from("menu_item_price_options")
       .select("menu_item_id, label, price, price_label, visible, sort_order")
       .eq("menu_site_id", menuId)
-      .in("menu_item_id", sourceItemIds);
+      .in("menu_item_id", sourceItemIds)
+      .order("sort_order", { ascending: true });
 
     if (
       priceOptionsError &&
@@ -3266,9 +3268,14 @@ export async function copyMenuPageAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, `페이지 복사 중 가격 옵션 확인에 실패했습니다: ${priceOptionsError.message}`);
     }
 
+    const copiedPriceOptionCountsBySourceItemId = new Map<string, number>();
     const priceOptionPayloads: MenuItemPriceOptionInsert[] = (sourcePriceOptions ?? []).flatMap((option) => {
       const copiedItemId = itemIdBySourceId.get(option.menu_item_id);
       if (!copiedItemId) return [];
+      const copiedOptionCount = copiedPriceOptionCountsBySourceItemId.get(option.menu_item_id) ?? 0;
+      if (copiedOptionCount >= maxPriceOptionsPerItem) return [];
+      copiedPriceOptionCountsBySourceItemId.set(option.menu_item_id, copiedOptionCount + 1);
+
       return {
         menu_site_id: menuId,
         menu_item_id: copiedItemId,
@@ -5049,7 +5056,8 @@ export async function copyMenuItemAction(formData: FormData) {
     .from("menu_item_price_options")
     .select("label, price, price_label, visible, sort_order")
     .eq("menu_site_id", menuId)
-    .eq("menu_item_id", itemId);
+    .eq("menu_item_id", itemId)
+    .order("sort_order", { ascending: true });
 
   if (
     priceOptionsError &&

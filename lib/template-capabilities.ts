@@ -107,6 +107,7 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     itemDescription: true,
     originInfo: false,
     itemTraits: false,
+    maxPriceOptionsPerItem: 3,
     chefs: false,
     events: false,
     socialLinks: false,

@@ -30,6 +30,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.5",
               description: "생바질로 만든 수제 크림이 올라간 아인슈페너 스타일",
               portion_label: "ICE ONLY",
+              price_options: [{ label: "ICE", price: 6500, price_label: "6.5" }],
               image_url: "/placeholders/starter/cafe-a-cover.png",
               badge_label: "SIGNATURE",
               recommended: true,
@@ -41,6 +42,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.5",
               description: "고소한 귀리 우유와 구운 견과류 블렌딩",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 6500, price_label: "6.5" },
+                { label: "ICE", price: 6800, price_label: "6.8" },
+              ],
               badge_label: "BEST",
             },
             {
@@ -50,6 +55,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.5",
               description: "진한 흑임자 크림이 올라간 시그니처 라떼",
               portion_label: "ICE",
+              price_options: [{ label: "ICE", price: 6500, price_label: "6.5" }],
             },
             {
               name: "솔티드 카라멜 라떼",
@@ -58,6 +64,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.0",
               description: "단짠 조화가 좋은 카라멜 라떼",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 6000, price_label: "6.0" },
+                { label: "ICE", price: 6500, price_label: "6.5" },
+              ],
             },
           ],
         },
@@ -70,7 +80,12 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price: 4500,
               price_label: "4.5",
               description: "",
-              portion_label: "HOT / ICE",
+              portion_label: "HOT / ICE / LARGE",
+              price_options: [
+                { label: "HOT", price: 4500, price_label: "4.5" },
+                { label: "ICE", price: 5000, price_label: "5.0" },
+                { label: "LARGE", price: 5800, price_label: "5.8" },
+              ],
             },
             {
               name: "카페 라떼",
@@ -79,6 +94,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "5.0",
               description: "",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 5000, price_label: "5.0" },
+                { label: "ICE", price: 5500, price_label: "5.5" },
+              ],
             },
             {
               name: "바닐라 빈 라떼",
@@ -87,6 +106,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "5.5",
               description: "",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 5500, price_label: "5.5" },
+                { label: "ICE", price: 6000, price_label: "6.0" },
+              ],
             },
             {
               name: "플랫 화이트",
@@ -94,7 +117,8 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price: 5000,
               price_label: "5.0",
               description: "",
-              portion_label: "HOT / ICE",
+              portion_label: "HOT",
+              price_options: [{ label: "HOT", price: 5000, price_label: "5.0" }],
             },
             {
               name: "콜드브루",
@@ -103,6 +127,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "5.0",
               description: "",
               portion_label: "ICE",
+              price_options: [{ label: "ICE", price: 5000, price_label: "5.0" }],
             },
             {
               name: "헤이즐넛 라떼",
@@ -111,6 +136,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "5.8",
               description: "고소한 헤이즐넛 향이 부드럽게 감도는 라떼",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 5800, price_label: "5.8" },
+                { label: "ICE", price: 6200, price_label: "6.2" },
+              ],
             },
             {
               name: "카라멜 마키아토",
@@ -119,6 +148,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.0",
               description: "진한 에스프레소와 달콤한 카라멜의 조화",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 6000, price_label: "6.0" },
+                { label: "ICE", price: 6500, price_label: "6.5" },
+              ],
             },
           ],
         },
@@ -133,6 +166,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.0",
               description: "제주산 유기농 말차의 진한 풍미",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 6000, price_label: "6.0" },
+                { label: "ICE", price: 6000, price_label: "6.0" },
+              ],
               badge_label: "BEST",
             },
             {
@@ -142,6 +179,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.5",
               description: "24시간 냉침한 수제 밀크티",
               portion_label: "ICE ONLY",
+              price_options: [{ label: "ICE", price: 6500, price_label: "6.5" }],
             },
             {
               name: "발로나 초코 라떼",
@@ -150,6 +188,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.0",
               description: "",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 6000, price_label: "6.0" },
+                { label: "ICE", price: 6500, price_label: "6.5" },
+              ],
             },
             {
               name: "딸기 라떼",
@@ -158,6 +200,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.5",
               description: "생딸기 과육이 씹히는 달콤한 라떼",
               portion_label: "ICE",
+              price_options: [{ label: "ICE", price: 6500, price_label: "6.5" }],
               badge_label: "NEW",
             },
           ],
@@ -173,6 +216,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.0",
               description: "생레몬즙과 바질의 청량함",
               portion_label: "ICE",
+              price_options: [{ label: "ICE", price: 6000, price_label: "6.0" }],
               badge_label: "BEST",
             },
             {
@@ -182,6 +226,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "6.0",
               description: "",
               portion_label: "ICE",
+              price_options: [{ label: "ICE", price: 6000, price_label: "6.0" }],
             },
             {
               name: "유기농 캐모마일",
@@ -189,7 +234,8 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price: 5000,
               price_label: "5.0",
               description: "",
-              portion_label: "HOT / ICE",
+              portion_label: "HOT",
+              price_options: [{ label: "HOT", price: 5000, price_label: "5.0" }],
             },
             {
               name: "얼그레이 리저브",
@@ -198,6 +244,10 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_label: "5.0",
               description: "",
               portion_label: "HOT / ICE",
+              price_options: [
+                { label: "HOT", price: 5000, price_label: "5.0" },
+                { label: "ICE", price: 5500, price_label: "5.5" },
+              ],
             },
           ],
         },
