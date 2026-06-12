@@ -7,12 +7,19 @@ import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
+import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ templateKey: string }>;
-  searchParams?: Promise<{ layoutMode?: string | string[]; page?: string | string[]; qaCase?: string | string[]; qaSplitImagePosition?: string | string[] }>;
+  searchParams?: Promise<{
+    fontSizeScale?: string | string[];
+    layoutMode?: string | string[];
+    page?: string | string[];
+    qaCase?: string | string[];
+    qaSplitImagePosition?: string | string[];
+  }>;
 };
 
 function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null): MenuPageData {
@@ -224,6 +231,36 @@ function applyDisplayPreviewSplitImagePosition(data: MenuPageData, splitImagePos
   };
 }
 
+function applyPreviewFontSizeScale(data: MenuPageData, fontSizeScale: string | string[] | undefined): MenuPageData {
+  const rawFontSizeScale = Array.isArray(fontSizeScale) ? fontSizeScale[0] : fontSizeScale;
+  if (!rawFontSizeScale) return data;
+  if (!isDisplayTypographyTemplate(data.menuSite.template_key)) return data;
+
+  const normalizedFontSizeScale = normalizeFontSizeScaleKey(rawFontSizeScale);
+  const pageSettings = data.menuSite.page_settings && typeof data.menuSite.page_settings === "object" && !Array.isArray(data.menuSite.page_settings)
+    ? (data.menuSite.page_settings as Record<string, unknown>)
+    : {};
+  const designSettings = pageSettings.design && typeof pageSettings.design === "object" && !Array.isArray(pageSettings.design)
+    ? (pageSettings.design as Record<string, unknown>)
+    : {};
+  const nextPageSettings = {
+    ...pageSettings,
+    design: {
+      ...designSettings,
+      fontSizeScale: normalizedFontSizeScale,
+    },
+  };
+
+  return {
+    ...data,
+    pageSettings: nextPageSettings as unknown as MenuPageData["pageSettings"],
+    menuSite: {
+      ...data.menuSite,
+      page_settings: nextPageSettings as unknown as MenuPageData["menuSite"]["page_settings"],
+    },
+  };
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { templateKey } = await params;
 
@@ -250,8 +287,9 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ? resolvedSearchParams.layoutMode[0]
     : resolvedSearchParams.layoutMode;
   const previewLayoutMode =
-    templateKey === "cafe_design_a" && layoutModeParam === "balancedExperimental"
-      ? "balancedExperimental"
+    templateKey === "cafe_design_a" &&
+    (layoutModeParam === "balancedExperimental" || layoutModeParam === "orderedBalancedFit" || layoutModeParam === "orderedFit")
+      ? layoutModeParam
       : undefined;
   const displayPreviewPageIndex = templateKey === "display_menu_a"
     ? getDisplayPreviewPageIndex(resolvedSearchParams.page)
@@ -269,9 +307,12 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     notFound();
   }
 
-  const data = applyDisplayPreviewSplitImagePosition(
-    buildPreviewData(templateKey, displayPreviewQaCase),
-    displayPreviewSplitImagePosition
+  const data = applyPreviewFontSizeScale(
+    applyDisplayPreviewSplitImagePosition(
+      buildPreviewData(templateKey, displayPreviewQaCase),
+      displayPreviewSplitImagePosition
+    ),
+    resolvedSearchParams.fontSizeScale
   );
 
   return (

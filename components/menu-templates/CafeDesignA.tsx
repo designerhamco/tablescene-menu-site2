@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
@@ -19,7 +19,13 @@ import {
   getTemplateLayoutRules,
   type MenuLayoutDensity,
 } from "@/lib/template-layout-rules";
-import { getCustomTypographySettings, getEnglishFontLoadAssets, getKoreanFontLoadAssets, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
+import {
+  getCustomTypographySettings,
+  getEnglishFontLoadAssets,
+  getKoreanFontLoadAssets,
+  getTypographyCssVariables,
+  mergeTypographySettings,
+} from "@/lib/template-typography-presets";
 import { formatMenuPrice, shouldShowMenuItemTraits } from "@/types/menu";
 
 type MenuItem = PublicMenuTemplateProps["items"][number];
@@ -39,13 +45,15 @@ type MenuPageGroup = {
   page: MenuPage;
   groups: MenuGroup[];
 };
-type CafeDesignALayoutMode = "orderedFit" | "balanced";
+type CafeDesignALayoutMode = "orderedFit" | "balanced" | "orderedBalancedFit";
 type CafeDesignABalancedVariant = "estimatedGreedy" | "sourceSequential" | "sourceRoundRobin" | "lastAwareGreedy" | "visibleExhaustive";
 type CafeDesignAFitState = {
   columns: number;
   fontScale: number;
   gapScale: number;
   balancedVariant: CafeDesignABalancedVariant;
+  orderedBalancedBreaks: string;
+  orderedBalancedFingerprint: string;
   status: "idle" | "fit" | "warning";
   measuredColumns: number;
   boardInnerHeight: number;
@@ -161,6 +169,56 @@ const FIT_FONT_SCALE_CANDIDATES = [
   0.879,
   0.87,
   0.85,
+  0.834,
+  0.805,
+  0.8,
+  0.798,
+  0.796,
+  0.795,
+  0.792,
+  0.79,
+  0.785,
+  0.784,
+  0.78,
+  0.75,
+  0.72,
+  0.68,
+  0.64,
+] as const;
+const ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES = [
+  1.34,
+  1.32,
+  1.3,
+  1.29,
+  1.28,
+  1.27,
+  1.26,
+  1.25,
+  1.24,
+  1.23,
+  1.22,
+  1.21,
+  1.2,
+  1.16,
+  1.12,
+  1.1,
+  1.08,
+  1.04,
+  1.03,
+  1.02,
+  1.01,
+  1,
+  0.99,
+  0.98,
+  0.97,
+  0.95,
+  0.9,
+  0.89,
+  0.88,
+  0.879,
+  0.87,
+  0.85,
+  0.815,
   0.805,
   0.8,
   0.798,
@@ -183,6 +241,13 @@ const BALANCED_TARGET_MAX_GAP = 4;
 const BALANCED_VISIBLE_GAP = 8;
 const BALANCED_FAILED_GAP = 10;
 const BALANCED_MIN_QUALITY_FONT_SCALE = 0.78;
+const ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE = 0.75;
+const ORDERED_BALANCED_MAX_EXHAUSTIVE_BLOCKS = 12;
+const ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS = 4;
+const ORDERED_BALANCED_DEFAULT_MAX_COLUMNS = 3;
+const ORDERED_BALANCED_GAP_IMPROVEMENT_EPSILON = 2;
+const ORDERED_BALANCED_SCALE_EPSILON = 0.005;
+const ORDERED_BALANCED_CROP_TOLERANCE = 2;
 const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.28, 1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.9, 0.85, 0.84, 0.83, 0.82, 0.8, 0.78, 0.76, 0.75, 0.72, 0.71] as const;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
@@ -191,6 +256,8 @@ const DEFAULT_FIT_STATE: CafeDesignAFitState = {
   fontScale: 1,
   gapScale: 1,
   balancedVariant: DEFAULT_BALANCED_VARIANT,
+  orderedBalancedBreaks: "",
+  orderedBalancedFingerprint: "",
   status: "idle",
   measuredColumns: 0,
   boardInnerHeight: 0,
@@ -248,6 +315,24 @@ function getOrderedFitColumnCandidates(width: number) {
   return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxColumns).sort((a, b) => b - a);
 }
 
+function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number) {
+  if (groupCount <= 1) return [1];
+
+  const defaultMaxColumns = Math.min(ORDERED_BALANCED_DEFAULT_MAX_COLUMNS, groupCount);
+  const maxWidthColumns =
+    width < 520
+      ? 2
+      : width < 760
+        ? 2
+        : width < 1120
+        ? 3
+        : Math.min(defaultMaxColumns, getMaxFitColumns(width));
+  const minColumns = width >= 1760 && groupCount >= 6 ? 3 : 2;
+  const maxUsefulColumns = Math.max(2, Math.min(maxWidthColumns, defaultMaxColumns));
+
+  return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxUsefulColumns).sort((a, b) => b - a);
+}
+
 function getFitGapScale(fontScale: number) {
   return Math.max(0.68, Math.min(1.16, fontScale + 0.04));
 }
@@ -256,6 +341,19 @@ function getBalancedFitGapScale(fontScale: number, menuWidth: number) {
   if (menuWidth < 760) return Math.max(0.68, Math.min(0.78, fontScale - 0.02));
   if (menuWidth < 1080) return Math.max(0.74, Math.min(0.95, fontScale + 0.02));
   return getFitGapScale(fontScale);
+}
+
+function getOrderedBalancedFitGapScale(fontScale: number, menuWidth: number) {
+  if (menuWidth < 760) return Math.max(0.68, Math.min(0.78, fontScale - 0.02));
+  if (fontScale > 0.805 && fontScale <= 0.815) return 0.805;
+  if (menuWidth < 1440) return Math.max(0.74, Math.min(0.825, fontScale + 0.02));
+  return getFitGapScale(fontScale);
+}
+
+function getOrderedBalancedFitFontScaleCandidates(viewportWidth: number, menuWidth: number) {
+  if (viewportWidth <= 1050) return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.834 || fontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE);
+  if (menuWidth < 760) return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.85);
+  return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES;
 }
 
 function getOrderedFitGapScale(fontScale: number, menuWidth: number) {
@@ -286,6 +384,8 @@ function areFitStatesEqual(currentState: CafeDesignAFitState, nextState: CafeDes
     currentState.fontScale === nextState.fontScale &&
     currentState.gapScale === nextState.gapScale &&
     currentState.balancedVariant === nextState.balancedVariant &&
+    currentState.orderedBalancedBreaks === nextState.orderedBalancedBreaks &&
+    currentState.orderedBalancedFingerprint === nextState.orderedBalancedFingerprint &&
     currentState.status === nextState.status &&
     currentState.measuredColumns === nextState.measuredColumns &&
     currentState.boardInnerHeight === nextState.boardInnerHeight &&
@@ -311,6 +411,83 @@ function areFitStatesEqual(currentState: CafeDesignAFitState, nextState: CafeDes
     currentState.visibleLastColumnFillRatio === nextState.visibleLastColumnFillRatio &&
     currentState.overflow === nextState.overflow
   );
+}
+
+function areOrderedBalancedCandidateIdentitiesEqual(currentState: CafeDesignAFitState, nextState: CafeDesignAFitState) {
+  return (
+    currentState.columns === nextState.columns &&
+    Math.abs(currentState.fontScale - nextState.fontScale) < ORDERED_BALANCED_SCALE_EPSILON &&
+    Math.abs(currentState.gapScale - nextState.gapScale) < ORDERED_BALANCED_SCALE_EPSILON &&
+    currentState.orderedBalancedBreaks === nextState.orderedBalancedBreaks &&
+    currentState.orderedBalancedFingerprint === nextState.orderedBalancedFingerprint
+  );
+}
+
+function shouldKeepOrderedBalancedCurrentState(currentState: CafeDesignAFitState, nextState: CafeDesignAFitState) {
+  if (currentState.status === "idle") return false;
+  if (currentState.orderedBalancedFingerprint !== nextState.orderedBalancedFingerprint) return false;
+  if (currentState.overflow && !nextState.overflow) return false;
+  if (!currentState.overflow && nextState.overflow) return false;
+  if (!areOrderedBalancedCandidateIdentitiesEqual(currentState, nextState)) return false;
+
+  const currentGap = currentState.visibleContentBottomGap;
+  const nextGap = nextState.visibleContentBottomGap;
+  const gapImprovement = currentGap - nextGap;
+  const currentIsSafe = !currentState.overflow && currentGap >= BALANCED_TARGET_MIN_GAP;
+
+  return currentIsSafe && gapImprovement < ORDERED_BALANCED_GAP_IMPROVEMENT_EPSILON;
+}
+
+function getOrderedBalancedCandidateKey(state: CafeDesignAFitState) {
+  return [
+    state.orderedBalancedFingerprint,
+    state.columns,
+    state.fontScale.toFixed(3),
+    state.gapScale.toFixed(3),
+    state.orderedBalancedBreaks || "none",
+  ].join("|");
+}
+
+function getNextOrderedBalancedSafeFontScale(currentFontScale: number) {
+  const targetFontScale = currentFontScale - 0.035;
+  return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.find((fontScale) => fontScale < currentFontScale - ORDERED_BALANCED_SCALE_EPSILON && fontScale <= targetFontScale) ?? null;
+}
+
+function getOrderedBalancedCandidateSortKey({
+  score,
+  state,
+}: {
+  score: number;
+  state: CafeDesignAFitState;
+}) {
+  return [
+    roundFitMetric(score).toFixed(1),
+    (1 - state.primaryFillRatio).toFixed(3),
+    state.visibleContentBottomGap.toFixed(1).padStart(7, "0"),
+    (1 - state.visibleMinFillRatio).toFixed(3),
+    (1 - state.visibleLastColumnFillRatio).toFixed(3),
+    (2 - state.fontScale).toFixed(3),
+    String(state.columns).padStart(2, "0"),
+    state.orderedBalancedBreaks || "z",
+  ].join("|");
+}
+
+function isOrderedBalancedCandidateBetter({
+  candidateScore,
+  candidateState,
+  currentScore,
+  currentState,
+}: {
+  candidateScore: number;
+  candidateState: CafeDesignAFitState;
+  currentScore: number;
+  currentState: CafeDesignAFitState;
+}) {
+  if (candidateScore < currentScore - 0.01) return true;
+  if (candidateScore > currentScore + 0.01) return false;
+
+  return getOrderedBalancedCandidateSortKey({ score: candidateScore, state: candidateState }) <
+    getOrderedBalancedCandidateSortKey({ score: currentScore, state: currentState });
 }
 
 function getFitGapStyle(density: MenuLayoutDensity): CSSProperties {
@@ -505,6 +682,39 @@ function getBalancedBlockMeasurements(menuElement: HTMLElement): CafeDesignABala
     .sort((a, b) => a.order - b.order || a.key.localeCompare(b.key));
 }
 
+function getOrderedBalancedSafeScale(value: number, fallback: number) {
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function getOrderedBalancedScaledBlockMeasurements(
+  blocks: CafeDesignABalancedBlockMeasurement[],
+  currentFontScale: number,
+  currentGapScale: number,
+  nextFontScale: number,
+  nextGapScale: number,
+  menuWidth: number,
+  viewportWidth: number,
+): CafeDesignABalancedBlockMeasurement[] {
+  const fontRatio = nextFontScale / getOrderedBalancedSafeScale(currentFontScale, 1);
+  const gapRatio = nextGapScale / getOrderedBalancedSafeScale(currentGapScale, 1);
+  const contentRatio =
+    viewportWidth <= 1050
+      ? Math.max(0.42, fontRatio * 0.46 + gapRatio * 0.12 + 0.08)
+      : menuWidth < 760
+      ? Math.max(0.42, fontRatio * 0.64 + gapRatio * 0.16 + 0.06)
+      : Math.max(0.42, fontRatio * 0.78 + gapRatio * 0.22);
+
+  return blocks.map((block) => ({
+    ...block,
+    height: block.height * contentRatio,
+    visibleItemHeight: block.visibleItemHeight * contentRatio,
+    visibleTextHeight: block.visibleTextHeight * contentRatio,
+    visiblePriceHeight: block.visiblePriceHeight * contentRatio,
+    visibleContentHeight: block.visibleContentHeight * contentRatio,
+    marginBottom: block.marginBottom * gapRatio,
+  }));
+}
+
 function createBalancedSimulatedColumns(
   blocks: CafeDesignABalancedBlockMeasurement[],
   columns: number,
@@ -670,6 +880,265 @@ function getVisibleBalancedExhaustiveColumns(blocks: CafeDesignABalancedBlockMea
   return bestColumns;
 }
 
+function createSimulatedColumnFromBlocks(blocks: CafeDesignABalancedBlockMeasurement[]): CafeDesignABalancedSimulatedColumn {
+  return {
+    blocks,
+    height: getBalancedSimulatedColumnHeight(blocks),
+  };
+}
+
+function createOrderedBalancedColumnsFromBreakIndices(
+  blocks: CafeDesignABalancedBlockMeasurement[],
+  safeColumns: number,
+  breakIndices: number[],
+): CafeDesignABalancedSimulatedColumn[] {
+  const columns: CafeDesignABalancedSimulatedColumn[] = [];
+  let startIndex = 0;
+
+  [...breakIndices, blocks.length].forEach((endIndex) => {
+    columns.push(createSimulatedColumnFromBlocks(blocks.slice(startIndex, endIndex)));
+    startIndex = endIndex;
+  });
+
+  while (columns.length < safeColumns) columns.push(createSimulatedColumnFromBlocks([]));
+  return columns.slice(0, safeColumns);
+}
+
+function getOrderedBalancedBreaksFromColumns(columns: CafeDesignABalancedSimulatedColumn[]) {
+  let cursor = 0;
+  const breaks: number[] = [];
+
+  columns.slice(0, -1).forEach((column) => {
+    cursor += column.blocks.length;
+    if (cursor > 0) breaks.push(cursor);
+  });
+
+  return breaks.join(",");
+}
+
+function parseOrderedBalancedBreaks(value: string, groupCount: number, columns: number) {
+  const breaks = value
+    .split(",")
+    .map((breakValue) => Number.parseInt(breakValue, 10))
+    .filter((breakIndex) => Number.isInteger(breakIndex) && breakIndex > 0 && breakIndex < groupCount)
+    .sort((a, b) => a - b);
+  const uniqueBreaks = Array.from(new Set(breaks));
+
+  return uniqueBreaks.length === Math.max(0, columns - 1) ? uniqueBreaks : null;
+}
+
+function getOrderedBalancedColumnFillMetrics(columns: CafeDesignABalancedSimulatedColumn[], targetHeight?: number) {
+  const visibleHeights = columns.map((column) => getBalancedVisibleColumnFillHeights(column).visibleContentHeight || column.height);
+  const maxHeight = Math.max(...visibleHeights, 0);
+  const averageHeight = visibleHeights.length > 0 ? visibleHeights.reduce((total, height) => total + height, 0) / visibleHeights.length : 0;
+  const fillHeight = Number.isFinite(targetHeight) && (targetHeight ?? 0) > 0 ? targetHeight ?? maxHeight : maxHeight;
+  const fillRatios = visibleHeights.map((height) => (fillHeight > 0 ? height / fillHeight : 0));
+  const bottomGaps = visibleHeights.map((height) => Math.max(0, fillHeight - height));
+  const firstIndex = 0;
+  const middleIndex = columns.length >= 3 ? 1 : Math.max(0, columns.length - 1);
+  const lastIndex = Math.max(0, columns.length - 1);
+  const averageFillRatio = fillRatios.length > 0 ? fillRatios.reduce((total, fillRatio) => total + fillRatio, 0) / fillRatios.length : 0;
+  const fillVariance =
+    fillRatios.length > 0
+      ? fillRatios.reduce((total, fillRatio) => total + Math.pow(fillRatio - averageFillRatio, 2), 0) / fillRatios.length
+      : 0;
+
+  return {
+    visibleHeights,
+    maxHeight,
+    minHeight: visibleHeights.length > 0 ? Math.min(...visibleHeights) : 0,
+    averageHeight,
+    fillHeight,
+    firstHeight: visibleHeights[firstIndex] ?? 0,
+    secondHeight: visibleHeights[middleIndex] ?? visibleHeights[firstIndex] ?? 0,
+    lastHeight: visibleHeights[lastIndex] ?? 0,
+    firstFillRatio: fillRatios[firstIndex] ?? 0,
+    secondFillRatio: fillRatios[middleIndex] ?? fillRatios[firstIndex] ?? 0,
+    lastFillRatio: fillRatios[lastIndex] ?? 0,
+    minFillRatio: fillRatios.length > 0 ? Math.min(...fillRatios) : 0,
+    firstGap: bottomGaps[firstIndex] ?? 0,
+    secondGap: bottomGaps[middleIndex] ?? bottomGaps[firstIndex] ?? 0,
+    lastGap: bottomGaps[lastIndex] ?? 0,
+    fillVariance,
+    secondBlockCount: columns[middleIndex]?.blocks.length ?? 0,
+  };
+}
+
+function getOrderedBalancedSimulatedSpreadScore(columns: CafeDesignABalancedSimulatedColumn[], targetHeight?: number) {
+  const {
+    maxHeight,
+    minHeight,
+    averageHeight,
+    firstHeight,
+    secondHeight,
+    lastHeight,
+    firstFillRatio,
+    secondFillRatio,
+    lastFillRatio,
+    minFillRatio,
+    firstGap,
+    secondGap,
+    lastGap,
+    fillVariance,
+    secondBlockCount,
+  } = getOrderedBalancedColumnFillMetrics(columns, targetHeight);
+  const targetGap = Number.isFinite(targetHeight) ? Math.max(0, (targetHeight ?? 0) - maxHeight) : 0;
+  const targetGapPenalty = Number.isFinite(targetHeight)
+    ? Math.max(0, maxHeight - (targetHeight ?? 0)) * 1000 +
+      Math.max(0, targetGap - 8) * 48 +
+      Math.max(0, targetGap - 14) * 96 +
+      Math.max(0, targetGap - 20) * 140
+    : 0;
+  const firstColumnIsShortestPenalty =
+    firstHeight <= minHeight + 1 && maxHeight - firstHeight > 40 ? 12000 + (maxHeight - firstHeight) * 42 : 0;
+  const firstFillPenalty =
+    Math.max(0, 0.8 - firstFillRatio) * 3600 +
+    Math.max(0, 0.88 - firstFillRatio) * 1200 +
+    Math.max(0, firstGap - 40) * 18 +
+    Math.max(0, maxHeight - firstHeight - 80) * 7.2;
+  const secondFillPenalty =
+    Math.max(0, 0.72 - secondFillRatio) * 3600 +
+    Math.max(0, 0.78 - secondFillRatio) * 1400 +
+    Math.max(0, secondGap - 40) * 11 +
+    Math.max(0, secondGap - 60) * 22;
+  const singletonMiddlePenalty =
+    columns.length >= 3 && secondBlockCount <= 1 && secondFillRatio < 0.84
+      ? 1800 + Math.max(0, 0.84 - secondFillRatio) * 2600 + Math.max(0, secondGap - 40) * 16
+      : 0;
+  const lastFillPenalty = Math.max(0, 0.6 - lastFillRatio) * 960 + Math.max(0, 0.66 - lastFillRatio) * 420 + Math.max(0, lastGap - 140) * 2.2;
+  const minFillPenalty = Math.max(0, 0.64 - minFillRatio) * 1200 + Math.max(0, 0.7 - minFillRatio) * 520;
+  const fillVariancePenalty = fillVariance * 2400;
+  const leftRhythmPenalty = Math.max(0, secondHeight - firstHeight - 40) * 26 + Math.max(0, lastHeight - firstHeight - 70) * 14;
+
+  return (
+    targetGapPenalty +
+    firstColumnIsShortestPenalty +
+    firstFillPenalty +
+    secondFillPenalty +
+    singletonMiddlePenalty +
+    lastFillPenalty +
+    minFillPenalty +
+    fillVariancePenalty +
+    leftRhythmPenalty +
+    (maxHeight - minHeight) * 2.6 +
+    Math.max(0, averageHeight - lastHeight) * 3.2 +
+    Math.max(0, maxHeight * 0.74 - lastHeight) * 2.4 +
+    Math.max(0, maxHeight * 0.68 - minHeight) * 2.8 +
+    columns.filter((column) => column.blocks.length === 0).length * 800
+  );
+}
+
+function getOrderedBalancedSequentialColumns(blocks: CafeDesignABalancedBlockMeasurement[], safeColumns: number) {
+  const columns: CafeDesignABalancedSimulatedColumn[] = Array.from({ length: safeColumns }, () => ({ blocks: [], height: 0 }));
+  const totalHeight = blocks.reduce((total, block) => total + block.height, 0);
+  const targetHeight = safeColumns > 0 ? totalHeight / safeColumns : totalHeight;
+  let columnIndex = 0;
+
+  blocks.forEach((block, blockIndex) => {
+    const currentColumn = columns[columnIndex] ?? columns[columns.length - 1];
+    const remainingBlocks = blocks.length - blockIndex;
+    const remainingColumns = safeColumns - columnIndex;
+    const projectedHeight =
+      currentColumn.height +
+      (currentColumn.blocks.length > 0 ? currentColumn.blocks[currentColumn.blocks.length - 1]?.marginBottom ?? 0 : 0) +
+      block.height;
+    const shouldAdvance =
+      currentColumn.blocks.length > 0 &&
+      columnIndex < safeColumns - 1 &&
+      projectedHeight > targetHeight &&
+      remainingBlocks >= remainingColumns;
+
+    if (shouldAdvance) columnIndex += 1;
+    const targetColumn = columns[columnIndex] ?? columns[columns.length - 1];
+    targetColumn.blocks.push(block);
+    targetColumn.height = getBalancedSimulatedColumnHeight(targetColumn.blocks);
+  });
+
+  return columns;
+}
+
+function getOrderedBalancedContiguousColumns(blocks: CafeDesignABalancedBlockMeasurement[], columns: number, targetHeight?: number) {
+  const safeColumns = Math.max(1, Math.min(ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS, Math.floor(columns), blocks.length || 1));
+  if (blocks.length === 0) return Array.from({ length: safeColumns }, () => createSimulatedColumnFromBlocks([]));
+  if (blocks.length < safeColumns) return getOrderedBalancedSequentialColumns(blocks, blocks.length);
+
+  if (blocks.length > ORDERED_BALANCED_MAX_EXHAUSTIVE_BLOCKS || safeColumns > ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS) {
+    return getOrderedBalancedSequentialColumns(blocks, safeColumns);
+  }
+
+  let bestColumns = getOrderedBalancedSequentialColumns(blocks, safeColumns);
+  let bestScore = getOrderedBalancedSimulatedSpreadScore(bestColumns, targetHeight);
+  const selectedBreaks: number[] = [];
+
+  function visit(nextBreakStart: number, remainingBreaks: number) {
+    if (remainingBreaks === 0) {
+      const candidateColumns = createOrderedBalancedColumnsFromBreakIndices(blocks, safeColumns, selectedBreaks);
+      if (candidateColumns.some((column) => column.blocks.length === 0)) return;
+
+      const score = getOrderedBalancedSimulatedSpreadScore(candidateColumns, targetHeight);
+      if (score < bestScore) {
+        bestScore = score;
+        bestColumns = candidateColumns;
+      }
+      return;
+    }
+
+    const maxBreak = blocks.length - remainingBreaks;
+    for (let breakIndex = nextBreakStart; breakIndex <= maxBreak; breakIndex += 1) {
+      selectedBreaks.push(breakIndex);
+      visit(breakIndex + 1, remainingBreaks - 1);
+      selectedBreaks.pop();
+    }
+  }
+
+  visit(1, safeColumns - 1);
+  return bestColumns;
+}
+
+function getOrderedBalancedMenuColumns({
+  pageGroups,
+  columns,
+  data,
+  capabilities,
+  orderedBalancedBreaks,
+}: {
+  pageGroups: MenuPageGroup[];
+  columns: number;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  orderedBalancedBreaks: string;
+}): BalancedColumn[] {
+  const groups = getFlatMenuGroups(pageGroups);
+  const safeColumns = Math.max(1, Math.min(ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS, Math.floor(columns), groups.length || 1));
+  const breakIndices = parseOrderedBalancedBreaks(orderedBalancedBreaks, groups.length, safeColumns);
+  const weightedGroups = groups.map((group, index) => ({
+    group,
+    index,
+    estimatedHeight: estimateMenuGroupHeight(group, data, capabilities),
+  }));
+  const fallbackBlocks = weightedGroups.map((weightedGroup) => ({
+    key: getMenuGroupKey(weightedGroup.group),
+    order: weightedGroup.index,
+    height: weightedGroup.estimatedHeight,
+    visibleItemHeight: weightedGroup.estimatedHeight,
+    visibleTextHeight: weightedGroup.estimatedHeight,
+    visiblePriceHeight: weightedGroup.estimatedHeight,
+    visibleContentHeight: weightedGroup.estimatedHeight,
+    marginBottom: 0,
+    estimatedHeight: weightedGroup.estimatedHeight,
+  }));
+  const partitionColumns = breakIndices
+    ? createOrderedBalancedColumnsFromBreakIndices(fallbackBlocks, safeColumns, breakIndices)
+    : getOrderedBalancedContiguousColumns(fallbackBlocks, safeColumns);
+  const groupByKey = new Map(groups.map((group) => [getMenuGroupKey(group), group]));
+
+  return partitionColumns.map((column, columnIndex) => ({
+    id: `ordered-balanced-column-${columnIndex + 1}`,
+    groups: column.blocks.map((block) => groupByKey.get(block.key)).filter((group): group is MenuGroup => Boolean(group)),
+    estimatedHeight: column.height,
+  }));
+}
+
 function getBalancedSimulatedSpreadScore(columns: CafeDesignABalancedSimulatedColumn[]) {
   const heights = columns.map((column) => getBalancedVisibleColumnFillHeights(column).visibleContentHeight || column.height);
   const maxHeight = Math.max(...heights, 0);
@@ -690,12 +1159,14 @@ function getBalancedMeasurementFromColumns({
   columns,
   expectedColumns,
   includeDomOverflow = true,
+  cropTolerance = 1,
 }: {
   boardElement: HTMLElement;
   menuElement: HTMLElement;
   columns: CafeDesignABalancedSimulatedColumn[];
   expectedColumns: number;
   includeDomOverflow?: boolean;
+  cropTolerance?: number;
 }): CafeDesignAFitMeasurement {
   const boardRect = boardElement.getBoundingClientRect();
   const menuRect = menuElement.getBoundingClientRect();
@@ -739,7 +1210,10 @@ function getBalancedMeasurementFromColumns({
   const visibleLastColumnFillRatio = visibleFillRatios[visibleFillRatios.length - 1] ?? 0;
   const overflowsHeight =
     (includeDomOverflow && menuElement.scrollHeight > menuElement.clientHeight + 1) ||
-    longestColumnBottom > flowHeight + 1 ||
+    longestColumnBottom > flowHeight + cropTolerance ||
+    longestVisibleItemBottom > flowHeight + cropTolerance ||
+    longestVisibleTextBottom > flowHeight + cropTolerance ||
+    longestVisiblePriceBottom > flowHeight + cropTolerance ||
     visibleContentBottomGap < BALANCED_MIN_SAFETY_GAP;
   const overflowsWidth = includeDomOverflow && menuElement.scrollWidth > menuElement.clientWidth + 1;
 
@@ -770,7 +1244,13 @@ function getBalancedMeasurementFromColumns({
   };
 }
 
-function measureCafeABalancedFit(boardElement: HTMLElement, menuElement: HTMLElement, expectedColumns?: number): CafeDesignAFitMeasurement {
+function measureCafeABalancedFit(
+  boardElement: HTMLElement,
+  menuElement: HTMLElement,
+  expectedColumns?: number,
+  clampColumnHeight = true,
+  cropTolerance = 1,
+): CafeDesignAFitMeasurement {
   const menuRect = menuElement.getBoundingClientRect();
   const flowHeight = menuElement.clientHeight || menuRect.height;
   const columnElements = Array.from(menuElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-column]"));
@@ -799,7 +1279,7 @@ function measureCafeABalancedFit(boardElement: HTMLElement, menuElement: HTMLEle
 
     return {
       blocks,
-      height: Math.min(flowHeight, Math.max(0, visibleBottom)),
+      height: clampColumnHeight ? Math.min(flowHeight, Math.max(0, visibleBottom)) : Math.max(0, visibleBottom),
     };
   });
 
@@ -808,6 +1288,7 @@ function measureCafeABalancedFit(boardElement: HTMLElement, menuElement: HTMLEle
     menuElement,
     columns: simulatedColumns,
     expectedColumns: Math.max(1, expectedColumns ?? columnElements.length),
+    cropTolerance,
   });
 }
 
@@ -1566,6 +2047,89 @@ function BalancedExperimentalMenuGrid({
   );
 }
 
+function OrderedBalancedFitMenuGrid({
+  pageGroups,
+  density,
+  data,
+  capabilities,
+  customBadgeStyles,
+  itemStackSpacing,
+  outerGridGapClassName,
+  menuAreaClassName,
+  columns,
+  orderedBalancedBreaks,
+  fitRef,
+}: {
+  pageGroups: MenuPageGroup[];
+  density: MenuLayoutDensity;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  customBadgeStyles: unknown;
+  itemStackSpacing: string;
+  outerGridGapClassName: string;
+  menuAreaClassName: string;
+  columns: number;
+  orderedBalancedBreaks: string;
+  fitRef?: RefObject<HTMLElement | null>;
+}) {
+  const groupOrderByKey = useMemo(
+    () => new Map(getFlatMenuGroups(pageGroups).map((group, index) => [getMenuGroupKey(group), index])),
+    [pageGroups],
+  );
+  const orderedBalancedColumns = useMemo(
+    () => getOrderedBalancedMenuColumns({ pageGroups, columns, data, capabilities, orderedBalancedBreaks }),
+    [capabilities, columns, data, orderedBalancedBreaks, pageGroups],
+  );
+
+  return (
+    <section
+      ref={fitRef}
+      className={`cafe-a-fit-menu-grid cafe-a-balanced-menu-grid cafe-a-ordered-balanced-fit-grid min-w-0 content-start md:col-span-2 lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName} ${menuAreaClassName}`}
+      data-cafe-a-fit-menu=""
+      data-cafe-a-flow-mode="ordered-balanced"
+      data-cafe-a-balanced-grid=""
+      data-cafe-a-ordered-balanced-breaks={orderedBalancedBreaks}
+    >
+      {orderedBalancedColumns.map((column) => (
+        <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
+          {column.groups.map(({ page, category, items }) => {
+            const groupKey = `${page.id}:${category.id}`;
+
+            return (
+              <section
+                key={`${page.id}-${category.id}`}
+                className="cafe-a-menu-category-block min-w-0"
+                data-cafe-a-category-block=""
+                data-cafe-a-balanced-category-block={groupKey}
+                data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
+                data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
+              >
+                <CategoryTitle category={category} density={density} />
+                <div className="cafe-a-category-items">
+                  {items.map((item) => (
+                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
+                      <MenuItemRow
+                        item={item}
+                        priceOptions={data.priceOptions}
+                        traits={getItemTraits(data.traits, item.id)}
+                        capabilities={capabilities}
+                        density={density}
+                        templateKey={data.menuSite.template_key}
+                        customBadgeStyles={customBadgeStyles}
+                        locale={data.locale}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
@@ -1578,12 +2142,23 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const featuredItem = getFeaturedItem(data, capabilities);
   const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
   const layoutMode: CafeDesignALayoutMode =
-    data.mode === "preview" && data.previewLayoutMode === "balancedExperimental" ? "balanced" : savedLayoutMode;
+    data.mode === "preview" && data.previewLayoutMode === "balancedExperimental"
+      ? "balanced"
+      : data.mode === "preview" && data.previewLayoutMode === "orderedBalancedFit"
+        ? "orderedBalancedFit"
+        : data.mode === "preview" && data.previewLayoutMode === "orderedFit"
+          ? "orderedFit"
+          : savedLayoutMode;
   const visiblePageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
   const visibleMenuGroupCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.groups.length, 0);
   const desktopFitBoardRef = useRef<HTMLDivElement | null>(null);
   const desktopFitMenuRef = useRef<HTMLElement | null>(null);
   const [fitState, setFitState] = useState<CafeDesignAFitState>(DEFAULT_FIT_STATE);
+  const [orderedBalancedInitialColumns, setOrderedBalancedInitialColumns] = useState(2);
+  const [orderedBalancedFitRevision, setOrderedBalancedFitRevision] = useState(0);
+  const fitStateRef = useRef<CafeDesignAFitState>(DEFAULT_FIT_STATE);
+  const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
+  const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
   const visibleItemCount = data.items.filter((item) => item.visible !== false).length;
   const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
@@ -1598,8 +2173,51 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings);
-  const fitStyle = useMemo(() => getFitStyle(fitState), [fitState]);
+  const renderFitState = useMemo<CafeDesignAFitState>(() => {
+    if (layoutMode !== "orderedBalancedFit" || fitState.orderedBalancedFingerprint) return fitState;
+
+    return {
+      ...fitState,
+      columns: Math.max(1, Math.min(orderedBalancedInitialColumns, visibleMenuGroupCount || orderedBalancedInitialColumns)),
+    };
+  }, [fitState, layoutMode, orderedBalancedInitialColumns, visibleMenuGroupCount]);
+  const fitStyle = useMemo(() => getFitStyle(renderFitState), [renderFitState]);
   const fitGapStyle = useMemo(() => getFitGapStyle(density), [density]);
+  const orderedBalancedPriceOptionSignature = useMemo(
+    () =>
+      data.priceOptions
+        .filter((option) => option.visible !== false)
+        .map((option) => `${option.menu_item_id}:${option.label}:${option.sort_order}`)
+        .sort()
+        .join(","),
+    [data.priceOptions],
+  );
+
+  useEffect(() => {
+    fitStateRef.current = fitState;
+  }, [fitState]);
+
+  useLayoutEffect(() => {
+    if (layoutMode !== "orderedBalancedFit") return;
+    const boardElement = desktopFitBoardRef.current;
+    const menuElement = desktopFitMenuRef.current;
+    if (!boardElement || !menuElement) return;
+
+    const syncInitialColumns = () => {
+      const measuredWidth = menuElement.clientWidth || boardElement.clientWidth;
+      const nextColumns = measuredWidth >= 1100 ? 3 : 2;
+      setOrderedBalancedInitialColumns((currentColumns) => (currentColumns === nextColumns ? currentColumns : nextColumns));
+    };
+
+    syncInitialColumns();
+    const resizeObserver = new ResizeObserver(syncInitialColumns);
+    resizeObserver.observe(boardElement);
+    resizeObserver.observe(menuElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [layoutMode]);
 
   useEffect(() => {
     const boardElement = desktopFitBoardRef.current;
@@ -1610,9 +2228,20 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
 
     let frameId = 0;
     let cancelled = false;
+    let measurePending = false;
+    let isMeasuring = false;
+    let fontReadyScheduled = false;
 
     function updateFitState(nextState: CafeDesignAFitState) {
-      setFitState((currentState) => (areFitStatesEqual(currentState, nextState) ? currentState : nextState));
+      setFitState((currentState) => {
+        const resolvedState =
+          areFitStatesEqual(currentState, nextState) ||
+          (layoutMode === "orderedBalancedFit" && shouldKeepOrderedBalancedCurrentState(currentState, nextState))
+            ? currentState
+            : nextState;
+        fitStateRef.current = resolvedState;
+        return resolvedState;
+      });
     }
 
     function applyFitCandidate(columns: number, fontScale: number) {
@@ -1620,7 +2249,13 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       fitBoardElement.style.setProperty("--fit-font-scale", String(fontScale));
       fitBoardElement.style.setProperty(
         "--fit-gap-scale",
-        String(layoutMode === "orderedFit" ? getOrderedFitGapScale(fontScale, fitMenuElement.clientWidth) : getBalancedFitGapScale(fontScale, fitMenuElement.clientWidth))
+        String(
+          layoutMode === "orderedFit"
+            ? getOrderedFitGapScale(fontScale, fitMenuElement.clientWidth)
+            : layoutMode === "orderedBalancedFit"
+              ? getOrderedBalancedFitGapScale(fontScale, fitMenuElement.clientWidth)
+              : getBalancedFitGapScale(fontScale, fitMenuElement.clientWidth)
+        )
       );
     }
 
@@ -1630,12 +2265,21 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       status: CafeDesignAFitState["status"],
       measurement: CafeDesignAFitMeasurement,
       balancedVariant: CafeDesignABalancedVariant = DEFAULT_BALANCED_VARIANT,
+      orderedBalancedBreaks = "",
+      orderedBalancedFingerprint = "",
     ): CafeDesignAFitState {
       return {
         columns,
         fontScale,
-        gapScale: layoutMode === "orderedFit" ? getOrderedFitGapScale(fontScale, fitMenuElement.clientWidth) : getBalancedFitGapScale(fontScale, fitMenuElement.clientWidth),
+        gapScale:
+          layoutMode === "orderedFit"
+            ? getOrderedFitGapScale(fontScale, fitMenuElement.clientWidth)
+            : layoutMode === "orderedBalancedFit"
+              ? getOrderedBalancedFitGapScale(fontScale, fitMenuElement.clientWidth)
+              : getBalancedFitGapScale(fontScale, fitMenuElement.clientWidth),
         balancedVariant,
+        orderedBalancedBreaks,
+        orderedBalancedFingerprint,
         status,
         measuredColumns: measurement.measuredColumns,
         boardInnerHeight: measurement.boardInnerHeight,
@@ -1888,70 +2532,333 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       return selectedState ?? fallbackState;
     }
 
-    function measureFit() {
-      if (cancelled) return;
-      const isDesktopFitActive = window.matchMedia("(min-width: 1024px)").matches;
-      if (!isDesktopFitActive) {
-        updateFitState(DEFAULT_FIT_STATE);
-        return;
-      }
+    function getOrderedBalancedFitScore(
+      columns: number,
+      fontScale: number,
+      measurement: CafeDesignAFitMeasurement,
+      simulatedColumns: CafeDesignABalancedSimulatedColumn[],
+      blockCount: number,
+    ) {
+      if (measurement.measuredColumns === 0) return Number.POSITIVE_INFINITY;
 
-      const menuWidth = fitMenuElement.clientWidth;
-      if (menuWidth <= 0 || fitMenuElement.clientHeight <= 0) return;
+      const columnFillMetrics = getOrderedBalancedColumnFillMetrics(simulatedColumns, measurement.flowHeight);
+      const tightGapPenalty =
+        measurement.visibleContentBottomGap < BALANCED_TARGET_MIN_GAP
+          ? (BALANCED_TARGET_MIN_GAP - measurement.visibleContentBottomGap) * 240
+          : 0;
+      const visibleItemGapPenalty = Math.max(0, measurement.visibleItemBottomGap - 8) * 74;
+      const visibleContentGapPenalty = Math.max(0, measurement.visibleContentBottomGap - 10) * 62;
+      const looseVisibleGapPenalty =
+        Math.max(0, measurement.visibleContentBottomGap - 16) * 120 +
+        Math.max(0, measurement.visibleContentBottomGap - 20) * 180;
+      const textGapPenalty = Math.max(0, measurement.visibleTextBottomGap - 14) * 32;
+      const priceGapPenalty = Math.max(0, measurement.visiblePriceBottomGap - 18) * 18;
+      const averageFillPenalty = Math.max(0, 0.84 - measurement.visibleAverageFillRatio) * 760;
+      const minFillPenalty = Math.max(0, 0.7 - measurement.visibleMinFillRatio) * 1250;
+      const firstColumnFillPenalty =
+        Math.max(0, 0.8 - measurement.primaryFillRatio) * 3600 +
+        Math.max(0, 0.88 - measurement.primaryFillRatio) * 1200 +
+        Math.max(0, measurement.primaryBottomGap - 40) * 20;
+      const secondColumnFillPenalty =
+        columns >= 3
+          ? Math.max(0, 0.72 - columnFillMetrics.secondFillRatio) * 3800 +
+            Math.max(0, 0.78 - columnFillMetrics.secondFillRatio) * 1500 +
+            Math.max(0, columnFillMetrics.secondGap - 40) * 14 +
+            Math.max(0, columnFillMetrics.secondGap - 60) * 26
+          : Math.max(0, 0.68 - columnFillMetrics.secondFillRatio) * 900 + Math.max(0, columnFillMetrics.secondGap - 120) * 4;
+      const firstColumnIsShortestPenalty =
+        columnFillMetrics.firstHeight <= columnFillMetrics.minHeight + 1 &&
+        columnFillMetrics.maxHeight - columnFillMetrics.firstHeight > 40
+          ? 12000 + (columnFillMetrics.maxHeight - columnFillMetrics.firstHeight) * 42
+          : 0;
+      const leftRhythmPenalty =
+        Math.max(0, columnFillMetrics.secondHeight - columnFillMetrics.firstHeight - 40) * 26 +
+        Math.max(0, columnFillMetrics.lastHeight - columnFillMetrics.firstHeight - 70) * 14;
+      const singletonMiddlePenalty =
+        columns >= 3 && columnFillMetrics.secondBlockCount <= 1 && columnFillMetrics.secondFillRatio < 0.84
+          ? 1900 + Math.max(0, 0.84 - columnFillMetrics.secondFillRatio) * 2600 + Math.max(0, columnFillMetrics.secondGap - 40) * 18
+          : 0;
+      const fillVariancePenalty = columnFillMetrics.fillVariance * 2600;
+      const lastColumnPenalty = Math.max(0, 0.72 - measurement.visibleLastColumnFillRatio) * 980;
+      const veryShortLastColumnPenalty = Math.max(0, 0.56 - measurement.visibleLastColumnFillRatio) * 1900;
+      const emptyColumnPenalty = Math.max(0, columns - measurement.measuredColumns) * 420;
+      const sparseColumnPenalty = Math.max(0, 1.6 - blockCount / columns) * 120;
+      const excessiveColumnPenalty = Math.max(0, columns - 4) * 80 + columns * 1.8;
+      const tinyTextPenalty = Math.max(0, ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE - fontScale) * 2200;
+      const readableTextPenalty = Math.max(0, 0.88 - fontScale) * 420;
+      const qualityTextPenalty = Math.max(0, 0.98 - fontScale) * 80;
+      const veryLargeTextPenalty = Math.max(0, fontScale - 1.24) * 24;
 
-      const previousColumns = fitBoardElement.style.getPropertyValue("--fit-columns");
-      const previousFontScale = fitBoardElement.style.getPropertyValue("--fit-font-scale");
-      const previousGapScale = fitBoardElement.style.getPropertyValue("--fit-gap-scale");
-      const columnCandidates =
-        layoutMode === "orderedFit"
-          ? getOrderedFitColumnCandidates(menuWidth)
-          : getBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount);
+      return (
+        tightGapPenalty +
+        visibleItemGapPenalty +
+        visibleContentGapPenalty +
+        looseVisibleGapPenalty +
+        textGapPenalty +
+        priceGapPenalty +
+        averageFillPenalty +
+        minFillPenalty +
+        firstColumnFillPenalty +
+        secondColumnFillPenalty +
+        firstColumnIsShortestPenalty +
+        leftRhythmPenalty +
+        singletonMiddlePenalty +
+        fillVariancePenalty +
+        lastColumnPenalty +
+        veryShortLastColumnPenalty +
+        emptyColumnPenalty +
+        sparseColumnPenalty +
+        excessiveColumnPenalty +
+        tinyTextPenalty +
+        readableTextPenalty +
+        qualityTextPenalty +
+        veryLargeTextPenalty
+      );
+    }
+
+    function getOrderedBalancedFallbackScore(columns: number, fontScale: number, measurement: CafeDesignAFitMeasurement, blockCount: number) {
+      const overflowPenalty = measurement.overflow ? 100000 + Math.abs(Math.min(0, measurement.visibleContentBottomGap)) * 500 : 0;
+      const visibleGapPenalty = Math.max(0, measurement.visibleContentBottomGap - 12) * 58;
+      const readableTextPenalty = Math.max(0, ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE - fontScale) * 650;
+      const lastColumnPenalty = Math.max(0, 0.62 - measurement.visibleLastColumnFillRatio) * 260;
+      const sparseColumnPenalty = Math.max(0, 1.6 - blockCount / columns) * 80;
+
+      return overflowPenalty + visibleGapPenalty + readableTextPenalty + lastColumnPenalty + sparseColumnPenalty + columns * 2;
+    }
+
+    function getOrderedBalancedFingerprint(blockMeasurements: CafeDesignABalancedBlockMeasurement[]) {
+      const fontStatus = "fonts" in document ? document.fonts.status : "unsupported";
+      const categorySignature = blockMeasurements.map((block) => block.key).join(",");
+      const boardRect = fitBoardElement.getBoundingClientRect();
+      const menuRect = fitMenuElement.getBoundingClientRect();
+
+      return [
+        layoutMode,
+        Math.round(window.innerWidth),
+        Math.round(window.innerHeight),
+        Math.round(boardRect.width),
+        Math.round(boardRect.height),
+        Math.round(menuRect.width),
+        density,
+        visibleItemCount,
+        visibleMenuGroupCount,
+        categorySignature,
+        orderedBalancedPriceOptionSignature,
+        fontStatus,
+      ].join("|");
+    }
+
+    function getOrderedBalancedFitState(columnCandidates: number[]) {
       let selectedState: CafeDesignAFitState | null = null;
+      let selectedScore = Number.POSITIVE_INFINITY;
+      let fallbackState: CafeDesignAFitState | null = null;
+      let fallbackScore = Number.POSITIVE_INFINITY;
+      const baseBlockMeasurements = getBalancedBlockMeasurements(fitMenuElement);
+      if (baseBlockMeasurements.length === 0) return null;
 
-      if (layoutMode === "orderedFit") {
-        selectedState = getOrderedFitState(columnCandidates);
-      } else {
-        selectedState = getBalancedFitState(columnCandidates);
+      const orderedBalancedFingerprint = getOrderedBalancedFingerprint(baseBlockMeasurements);
+      const cachedState = orderedBalancedFitCacheRef.current.get(orderedBalancedFingerprint);
+      if (cachedState && !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(cachedState))) return cachedState;
+
+      const currentFontScale = Number.parseFloat(fitBoardElement.style.getPropertyValue("--fit-font-scale")) || fitStateRef.current.fontScale || 1;
+      const currentGapScale = Number.parseFloat(fitBoardElement.style.getPropertyValue("--fit-gap-scale")) || fitStateRef.current.gapScale || 1;
+      const menuWidth = fitMenuElement.clientWidth;
+      const viewportWidth = window.innerWidth;
+      const targetHeight = fitMenuElement.clientWidth >= 760 ? fitMenuElement.clientHeight : undefined;
+      const fitsWidth = fitMenuElement.scrollWidth <= fitMenuElement.clientWidth + 1;
+      const fontScaleCandidates = getOrderedBalancedFitFontScaleCandidates(viewportWidth, menuWidth);
+
+      for (const columns of columnCandidates) {
+        for (const fontScale of fontScaleCandidates) {
+          const gapScale = getOrderedBalancedFitGapScale(fontScale, menuWidth);
+          const blockMeasurements = getOrderedBalancedScaledBlockMeasurements(
+            baseBlockMeasurements,
+            currentFontScale,
+            currentGapScale,
+            fontScale,
+            gapScale,
+            menuWidth,
+            viewportWidth,
+          );
+          const simulatedColumns = getOrderedBalancedContiguousColumns(blockMeasurements, columns, targetHeight);
+          const orderedBalancedBreaks = getOrderedBalancedBreaksFromColumns(simulatedColumns);
+          const measurement = getBalancedMeasurementFromColumns({
+            boardElement: fitBoardElement,
+            menuElement: fitMenuElement,
+            columns: simulatedColumns,
+            expectedColumns: columns,
+            includeDomOverflow: false,
+            cropTolerance: ORDERED_BALANCED_CROP_TOLERANCE,
+          });
+          const candidateState = getFitStateFromMeasurement(
+            columns,
+            fontScale,
+            measurement.overflow || fontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE ? "warning" : "fit",
+            measurement,
+            DEFAULT_BALANCED_VARIANT,
+            orderedBalancedBreaks,
+            orderedBalancedFingerprint,
+          );
+          if (orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(candidateState))) continue;
+          const nextFallbackScore = getOrderedBalancedFallbackScore(columns, fontScale, measurement, baseBlockMeasurements.length);
+
+          if (
+            fitsWidth &&
+            (fontScale >= ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE || !fallbackState) &&
+            (!fallbackState ||
+              isOrderedBalancedCandidateBetter({
+                candidateScore: nextFallbackScore,
+                candidateState,
+                currentScore: fallbackScore,
+                currentState: fallbackState,
+              }))
+          ) {
+            fallbackScore = nextFallbackScore;
+            fallbackState = candidateState;
+          }
+
+          if (!fitsWidth || measurement.overflow || fontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE) continue;
+          if (measurement.visibleAverageFillRatio < 0.56 || measurement.visibleMinFillRatio < 0.25) continue;
+
+          const score = getOrderedBalancedFitScore(columns, fontScale, measurement, simulatedColumns, baseBlockMeasurements.length);
+          if (
+            !selectedState ||
+            isOrderedBalancedCandidateBetter({
+              candidateScore: score,
+              candidateState,
+              currentScore: selectedScore,
+              currentState: selectedState,
+            })
+          ) {
+            selectedScore = score;
+            selectedState = candidateState;
+          }
+        }
       }
 
-      if (!selectedState) {
-        const fallbackFontScale =
+      const nextState = selectedState ?? fallbackState;
+      if (!nextState) return null;
+
+      return nextState;
+    }
+
+    function measureFit() {
+      measurePending = false;
+      if (cancelled || isMeasuring) return;
+      isMeasuring = true;
+
+      try {
+        const isDesktopFitActive = window.matchMedia("(min-width: 1024px)").matches;
+        if (!isDesktopFitActive) {
+          updateFitState(DEFAULT_FIT_STATE);
+          return;
+        }
+
+        if (layoutMode === "orderedBalancedFit" && "fonts" in document && document.fonts.status !== "loaded") {
+          if (!fontReadyScheduled) {
+            fontReadyScheduled = true;
+            void document.fonts.ready.then(() => {
+              if (!cancelled) scheduleMeasure();
+            });
+          }
+          return;
+        }
+
+        const menuWidth = fitMenuElement.clientWidth;
+        if (menuWidth <= 0 || fitMenuElement.clientHeight <= 0) return;
+
+        const previousColumns = fitBoardElement.style.getPropertyValue("--fit-columns");
+        const previousFontScale = fitBoardElement.style.getPropertyValue("--fit-font-scale");
+        const previousGapScale = fitBoardElement.style.getPropertyValue("--fit-gap-scale");
+        const columnCandidates =
           layoutMode === "orderedFit"
-            ? ORDERED_FIT_FONT_SCALE_CANDIDATES[ORDERED_FIT_FONT_SCALE_CANDIDATES.length - 1] ?? 0.64
-            : FIT_FONT_SCALE_CANDIDATES[FIT_FONT_SCALE_CANDIDATES.length - 1] ?? 0.64;
-        const fallbackColumns = columnCandidates[0] ?? DEFAULT_FIT_STATE.columns;
-        applyFitCandidate(fallbackColumns, fallbackFontScale);
-        selectedState = getFitStateFromMeasurement(
-          fallbackColumns,
-          fallbackFontScale,
-          "warning",
-          layoutMode === "orderedFit"
-            ? measureCafeAOrderedFit(fitBoardElement, fitMenuElement, fallbackColumns)
-            : measureCafeABalancedFit(fitBoardElement, fitMenuElement, fallbackColumns),
-        );
-      }
+            ? getOrderedFitColumnCandidates(menuWidth)
+            : layoutMode === "orderedBalancedFit"
+              ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount)
+              : getBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount);
+        let selectedState: CafeDesignAFitState | null = null;
 
-      if (previousColumns) {
-        fitBoardElement.style.setProperty("--fit-columns", previousColumns);
-      } else {
-        fitBoardElement.style.removeProperty("--fit-columns");
-      }
-      if (previousFontScale) {
-        fitBoardElement.style.setProperty("--fit-font-scale", previousFontScale);
-      } else {
-        fitBoardElement.style.removeProperty("--fit-font-scale");
-      }
-      if (previousGapScale) {
-        fitBoardElement.style.setProperty("--fit-gap-scale", previousGapScale);
-      } else {
-        fitBoardElement.style.removeProperty("--fit-gap-scale");
-      }
+        if (layoutMode === "orderedFit") {
+          selectedState = getOrderedFitState(columnCandidates);
+        } else if (layoutMode === "orderedBalancedFit") {
+          selectedState = getOrderedBalancedFitState(columnCandidates);
+        } else {
+          selectedState = getBalancedFitState(columnCandidates);
+        }
 
-      updateFitState(selectedState);
+        if (!selectedState) {
+          const fallbackFontScale =
+            layoutMode === "orderedFit"
+              ? ORDERED_FIT_FONT_SCALE_CANDIDATES[ORDERED_FIT_FONT_SCALE_CANDIDATES.length - 1] ?? 0.64
+              : layoutMode === "orderedBalancedFit"
+                ? ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE
+                : FIT_FONT_SCALE_CANDIDATES[FIT_FONT_SCALE_CANDIDATES.length - 1] ?? 0.64;
+          const fallbackColumns = columnCandidates[0] ?? DEFAULT_FIT_STATE.columns;
+          applyFitCandidate(fallbackColumns, fallbackFontScale);
+          const orderedBalancedFallbackBlocks = layoutMode === "orderedBalancedFit" ? getBalancedBlockMeasurements(fitMenuElement) : [];
+          const orderedBalancedFallbackColumns =
+            layoutMode === "orderedBalancedFit"
+              ? getOrderedBalancedContiguousColumns(
+                  orderedBalancedFallbackBlocks,
+                  fallbackColumns,
+                  fitMenuElement.clientWidth >= 760 ? fitMenuElement.clientHeight : undefined,
+                )
+              : [];
+          selectedState = getFitStateFromMeasurement(
+            fallbackColumns,
+            fallbackFontScale,
+            "warning",
+            layoutMode === "orderedFit"
+              ? measureCafeAOrderedFit(fitBoardElement, fitMenuElement, fallbackColumns)
+              : layoutMode === "orderedBalancedFit"
+                ? getBalancedMeasurementFromColumns({
+                    boardElement: fitBoardElement,
+                    menuElement: fitMenuElement,
+                    columns: orderedBalancedFallbackColumns,
+                    expectedColumns: fallbackColumns,
+                    includeDomOverflow: false,
+                    cropTolerance: ORDERED_BALANCED_CROP_TOLERANCE,
+                  })
+                : measureCafeABalancedFit(fitBoardElement, fitMenuElement, fallbackColumns),
+            DEFAULT_BALANCED_VARIANT,
+            layoutMode === "orderedBalancedFit" ? getOrderedBalancedBreaksFromColumns(orderedBalancedFallbackColumns) : "",
+          );
+        }
+
+        if (previousColumns) {
+          fitBoardElement.style.setProperty("--fit-columns", previousColumns);
+        } else {
+          fitBoardElement.style.removeProperty("--fit-columns");
+        }
+        if (previousFontScale) {
+          fitBoardElement.style.setProperty("--fit-font-scale", previousFontScale);
+        } else {
+          fitBoardElement.style.removeProperty("--fit-font-scale");
+        }
+        if (previousGapScale) {
+          fitBoardElement.style.setProperty("--fit-gap-scale", previousGapScale);
+        } else {
+          fitBoardElement.style.removeProperty("--fit-gap-scale");
+        }
+
+        updateFitState(selectedState);
+      } finally {
+        isMeasuring = false;
+      }
     }
 
     function scheduleMeasure() {
+      if (cancelled || isMeasuring) return;
+      if (measurePending) return;
+      measurePending = true;
       window.cancelAnimationFrame(frameId);
+      if (layoutMode === "orderedBalancedFit") {
+        frameId = window.requestAnimationFrame(() => {
+          frameId = window.requestAnimationFrame(measureFit);
+        });
+        return;
+      }
+
       frameId = window.requestAnimationFrame(measureFit);
     }
 
@@ -1960,8 +2867,11 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     resizeObserver.observe(fitMenuElement);
     scheduleMeasure();
 
-    if ("fonts" in document) {
-      void document.fonts.ready.then(scheduleMeasure);
+    if ("fonts" in document && !fontReadyScheduled) {
+      fontReadyScheduled = true;
+      void document.fonts.ready.then(() => {
+        if (!cancelled) scheduleMeasure();
+      });
     }
 
     return () => {
@@ -1971,19 +2881,18 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     };
   }, [
     density,
-    fitState.balancedVariant,
-    fitState.columns,
-    fitState.fontScale,
-    fitState.gapScale,
     hasCoverSection,
     layoutMode,
+    orderedBalancedFitRevision,
+    orderedBalancedPriceOptionSignature,
     visibleItemCount,
     visibleMenuGroupCount,
     visiblePageGroups.length,
   ]);
 
   useEffect(() => {
-    if (layoutMode !== "balanced") return;
+    if (layoutMode !== "balanced" && layoutMode !== "orderedBalancedFit") return;
+    if (layoutMode === "orderedBalancedFit" && !fitState.orderedBalancedFingerprint) return;
     const boardElement = desktopFitBoardRef.current;
     const menuElement = desktopFitMenuRef.current;
     if (!boardElement || !menuElement) return;
@@ -1992,10 +2901,172 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     const frameId = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         if (cancelled) return;
-        const measurement = measureCafeABalancedFit(boardElement, menuElement, fitState.columns);
+        const measurement =
+          layoutMode === "orderedBalancedFit"
+            ? measureCafeABalancedFit(boardElement, menuElement, fitState.columns, false, ORDERED_BALANCED_CROP_TOLERANCE)
+            : measureCafeABalancedFit(boardElement, menuElement, fitState.columns);
+        if (layoutMode === "orderedBalancedFit" && measurement.overflow) {
+          const rejectedCandidateKey = getOrderedBalancedCandidateKey(fitState);
+          if (!orderedBalancedRejectedCandidateRef.current.has(rejectedCandidateKey)) {
+            orderedBalancedRejectedCandidateRef.current.add(rejectedCandidateKey);
+          }
+          if (fitState.orderedBalancedFingerprint) {
+            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+          }
+          const applyNextColumnFallback = () => {
+            const maxFallbackColumns = Math.min(ORDERED_BALANCED_DEFAULT_MAX_COLUMNS, visibleMenuGroupCount);
+            const widerColumnCandidates = Array.from({ length: Math.max(0, maxFallbackColumns - fitState.columns) }, (_, index) => fitState.columns + index + 1);
+            const roomierColumnCandidates = Array.from({ length: Math.max(0, fitState.columns - 1) }, (_, index) => fitState.columns - index - 1);
+            const fallbackColumnCandidates = [...widerColumnCandidates, ...roomierColumnCandidates];
+            const blockMeasurements = fallbackColumnCandidates.length > 0 ? getBalancedBlockMeasurements(menuElement) : [];
+            for (const nextColumnCount of fallbackColumnCandidates) {
+              const nextColumns = getOrderedBalancedContiguousColumns(blockMeasurements, nextColumnCount, menuElement.clientHeight);
+              const nextCandidateState: CafeDesignAFitState = {
+                ...fitState,
+                columns: nextColumnCount,
+                gapScale: getOrderedBalancedFitGapScale(fitState.fontScale, menuElement.clientWidth),
+                orderedBalancedBreaks: getOrderedBalancedBreaksFromColumns(nextColumns),
+              };
+              if (orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(nextCandidateState))) continue;
+              const nextMeasurement = getBalancedMeasurementFromColumns({
+                boardElement,
+                menuElement,
+                columns: nextColumns,
+                expectedColumns: nextColumnCount,
+                includeDomOverflow: false,
+                cropTolerance: ORDERED_BALANCED_CROP_TOLERANCE,
+              });
+              if (!nextMeasurement.overflow) {
+                const nextColumnState: CafeDesignAFitState = {
+                  ...nextCandidateState,
+                  status: "fit",
+                  measuredColumns: nextMeasurement.measuredColumns,
+                  boardInnerHeight: nextMeasurement.boardInnerHeight,
+                  flowHeight: nextMeasurement.flowHeight,
+                  primaryColumnBottom: nextMeasurement.primaryColumnBottom,
+                  primaryBottomGap: nextMeasurement.primaryBottomGap,
+                  longestColumnBottom: nextMeasurement.longestColumnBottom,
+                  primaryFillRatio: nextMeasurement.primaryFillRatio,
+                  averageFillRatio: nextMeasurement.averageFillRatio,
+                  minFillRatio: nextMeasurement.minFillRatio,
+                  lastColumnFillRatio: nextMeasurement.lastColumnFillRatio,
+                  bottomGap: nextMeasurement.bottomGap,
+                  contentGap: nextMeasurement.contentGap,
+                  itemBoxGap: nextMeasurement.itemBoxGap,
+                  textVisualGap: nextMeasurement.textVisualGap,
+                  categoryBlockGap: nextMeasurement.categoryBlockGap,
+                  visibleItemBottomGap: nextMeasurement.visibleItemBottomGap,
+                  visibleTextBottomGap: nextMeasurement.visibleTextBottomGap,
+                  visiblePriceBottomGap: nextMeasurement.visiblePriceBottomGap,
+                  visibleContentBottomGap: nextMeasurement.visibleContentBottomGap,
+                  visibleAverageFillRatio: nextMeasurement.visibleAverageFillRatio,
+                  visibleMinFillRatio: nextMeasurement.visibleMinFillRatio,
+                  visibleLastColumnFillRatio: nextMeasurement.visibleLastColumnFillRatio,
+                  overflow: false,
+                };
+                fitStateRef.current = nextColumnState;
+                setFitState(nextColumnState);
+                return true;
+              }
+            }
+            return false;
+          };
+          const nextSafeFontScale = getNextOrderedBalancedSafeFontScale(fitState.fontScale);
+          const shouldTryColumnBeforeSmallerType = !nextSafeFontScale || nextSafeFontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE;
+          const didApplyOverflowFallback = shouldTryColumnBeforeSmallerType && applyNextColumnFallback();
+          if (!didApplyOverflowFallback && nextSafeFontScale) {
+            const nextSafeState: CafeDesignAFitState = {
+              ...fitState,
+              fontScale: nextSafeFontScale,
+              gapScale: getOrderedBalancedFitGapScale(nextSafeFontScale, menuElement.clientWidth),
+              status: "warning",
+              overflow: false,
+            };
+            fitStateRef.current = nextSafeState;
+            setFitState(nextSafeState);
+          }
+          if (didApplyOverflowFallback || nextSafeFontScale) {
+            setOrderedBalancedFitRevision((revision) => revision + 1);
+            return;
+          }
+        }
+        if (
+          layoutMode === "orderedBalancedFit" &&
+          !measurement.overflow &&
+          window.innerWidth >= 1280 &&
+          window.innerHeight >= 900 &&
+          menuElement.clientWidth >= 1000 &&
+          fitState.columns === 2 &&
+          fitState.fontScale >= 0.805 &&
+          fitState.fontScale < 0.815 &&
+          measurement.visibleContentBottomGap <= 6
+        ) {
+          const nextFillFontScale = 0.815;
+          const nextFillState: CafeDesignAFitState = {
+            ...fitState,
+            fontScale: nextFillFontScale,
+            gapScale: getOrderedBalancedFitGapScale(nextFillFontScale, menuElement.clientWidth),
+            status: "fit",
+            overflow: false,
+          };
+          if (fitState.orderedBalancedFingerprint) {
+            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+          }
+          fitStateRef.current = nextFillState;
+          setFitState(nextFillState);
+          return;
+        }
+        if (
+          layoutMode === "orderedBalancedFit" &&
+          !measurement.overflow &&
+          window.innerWidth >= 1280 &&
+          window.innerHeight >= 900 &&
+          menuElement.clientWidth >= 1000 &&
+          fitState.columns === 2 &&
+          fitState.fontScale < 0.805 &&
+          measurement.visibleContentBottomGap > 20
+        ) {
+          const nextFillFontScale = 0.805;
+          const nextFillState: CafeDesignAFitState = {
+            ...fitState,
+            fontScale: nextFillFontScale,
+            gapScale: getOrderedBalancedFitGapScale(nextFillFontScale, menuElement.clientWidth),
+            status: "fit",
+            overflow: false,
+          };
+          if (fitState.orderedBalancedFingerprint) {
+            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+          }
+          fitStateRef.current = nextFillState;
+          setFitState(nextFillState);
+          return;
+        }
+        if (
+          layoutMode === "orderedBalancedFit" &&
+          !measurement.overflow &&
+          window.innerWidth <= 1050 &&
+          fitState.columns === 2 &&
+          fitState.fontScale < 0.834 &&
+          measurement.visibleContentBottomGap > 20
+        ) {
+          const nextFillFontScale = 0.834;
+          const nextFillState: CafeDesignAFitState = {
+            ...fitState,
+            fontScale: nextFillFontScale,
+            gapScale: getOrderedBalancedFitGapScale(nextFillFontScale, menuElement.clientWidth),
+            status: "fit",
+            overflow: false,
+          };
+          if (fitState.orderedBalancedFingerprint) {
+            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+          }
+          fitStateRef.current = nextFillState;
+          setFitState(nextFillState);
+          return;
+        }
         const nextState: CafeDesignAFitState = {
           ...fitState,
-          status: measurement.overflow ? "warning" : fitState.status === "idle" ? "fit" : fitState.status,
+          status: measurement.overflow ? "warning" : layoutMode === "orderedBalancedFit" || fitState.status === "idle" ? "fit" : fitState.status,
           measuredColumns: measurement.measuredColumns,
           boardInnerHeight: measurement.boardInnerHeight,
           flowHeight: measurement.flowHeight,
@@ -2020,8 +3091,19 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
           visibleLastColumnFillRatio: measurement.visibleLastColumnFillRatio,
           overflow: measurement.overflow,
         };
+        if (layoutMode === "orderedBalancedFit" && !measurement.overflow && fitState.orderedBalancedFingerprint) {
+          orderedBalancedFitCacheRef.current.set(fitState.orderedBalancedFingerprint, nextState);
+        }
 
-        setFitState((currentState) => (areFitStatesEqual(currentState, nextState) ? currentState : nextState));
+        setFitState((currentState) => {
+          const resolvedState =
+            areFitStatesEqual(currentState, nextState) ||
+            (layoutMode === "orderedBalancedFit" && shouldKeepOrderedBalancedCurrentState(currentState, nextState))
+              ? currentState
+              : nextState;
+          fitStateRef.current = resolvedState;
+          return resolvedState;
+        });
       });
     });
 
@@ -2029,7 +3111,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [fitState, layoutMode]);
+  }, [fitState, layoutMode, visibleMenuGroupCount]);
 
   return (
     <>
@@ -2069,10 +3151,12 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             className={`cafe-a-desktop-fit-board hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
             data-fit-status={fitState.status}
             data-layout-mode={layoutMode}
-            data-fit-columns={fitState.columns}
-            data-fit-font-scale={fitState.fontScale}
-            data-fit-gap-scale={fitState.gapScale}
+            data-fit-columns={renderFitState.columns}
+            data-fit-font-scale={renderFitState.fontScale}
+            data-fit-gap-scale={renderFitState.gapScale}
             data-fit-balanced-variant={fitState.balancedVariant}
+            data-fit-ordered-balanced-breaks={fitState.orderedBalancedBreaks}
+            data-fit-ordered-balanced-fingerprint={fitState.orderedBalancedFingerprint}
             data-fit-measured-columns={fitState.measuredColumns}
             data-fit-board-inner-height={fitState.boardInnerHeight}
             data-fit-flow-height={fitState.flowHeight}
@@ -2125,8 +3209,22 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
                 itemStackSpacing={itemStackSpacing}
                 outerGridGapClassName={outerGridGapClassName}
                 menuAreaClassName={menuAreaClassName}
-                columns={fitState.columns}
+                columns={renderFitState.columns}
                 variant={fitState.balancedVariant}
+              />
+            ) : layoutMode === "orderedBalancedFit" ? (
+              <OrderedBalancedFitMenuGrid
+                fitRef={desktopFitMenuRef}
+                pageGroups={visiblePageGroups}
+                density={density}
+                data={data}
+                capabilities={capabilities}
+                customBadgeStyles={customBadgeStyles}
+                itemStackSpacing={itemStackSpacing}
+                outerGridGapClassName={outerGridGapClassName}
+                menuAreaClassName={menuAreaClassName}
+                columns={renderFitState.columns}
+                orderedBalancedBreaks={fitState.orderedBalancedBreaks}
               />
             ) : (
               <MenuGroupsGrid

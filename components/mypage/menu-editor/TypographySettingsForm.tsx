@@ -3,6 +3,7 @@
 import { useId, useMemo, useState, type CSSProperties } from "react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import {
   ENGLISH_FONT_CATEGORY_OPTIONS,
   ENGLISH_FONT_OPTIONS,
@@ -151,6 +152,7 @@ export default function TypographySettingsForm({
   templateKey,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
+  const showFontSizeControl = getTemplateCapabilities(templateKey).typographyFontSizeControl === "simple";
   const fontSizeScaleOptions = getFontSizeScaleOptionsForTemplate(templateKey);
   const initialDisplaySafeFontSizeScale = normalizeFontSizeScaleKeyForTemplate(initialFontSizeScale, templateKey);
   const [selectedFontValue, setSelectedFontValue] = useState<KoreanFontValue | "">(hasCustomKoreanFont ? initialFont.value : "");
@@ -207,41 +209,54 @@ export default function TypographySettingsForm({
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">글자 크기</p>
               <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                메뉴판에 표시되는 메뉴명, 설명, 가격의 전체 크기를 조정합니다.
+                {showFontSizeControl
+                  ? "메뉴판에 표시되는 메뉴명, 설명, 가격의 전체 크기를 조정합니다."
+                  : "이 템플릿은 화면 크기와 메뉴 수에 맞춰 글자 크기와 간격이 자동으로 조정됩니다."}
               </p>
-              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                {isDisplayTypography
-                  ? "디스플레이 화면에서는 선택한 크기에 맞춰 글자와 간격이 자동으로 조정됩니다."
-                  : "기본 크기는 대부분의 매장에 적합합니다. 글자를 크게 하면 멀리서 보기 좋지만 한 화면에 보이는 메뉴 수는 줄어들 수 있습니다."}
-              </p>
+              {showFontSizeControl ? (
+                <>
+                  <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                    {isDisplayTypography
+                      ? "디스플레이 화면에서는 선택한 크기에 맞춰 글자와 간격이 자동으로 조정됩니다."
+                      : "기본 크기는 대부분의 매장에 적합합니다. 글자를 크게 하면 멀리서 보기 좋지만 한 화면에 보이는 메뉴 수는 줄어들 수 있습니다."}
+                  </p>
+                  <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                    화면 크기와 메뉴 수에 따라 글자 크기는 자동으로 보정됩니다.
+                  </p>
+                </>
+              ) : null}
             </div>
           </div>
-          <div className={`mt-3 grid gap-2 sm:grid-cols-2 ${isDisplayTypography ? "xl:grid-cols-3" : "xl:grid-cols-5"}`} role="radiogroup" aria-label="글자 크기">
-            {fontSizeScaleOptions.map((option) => (
-              <label
-                key={option.key}
-                className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-4 py-3 transition xl:flex-col xl:items-start xl:justify-center ${
-                  selectedFontSizeScale === option.key
-                    ? "border-zinc-950 bg-zinc-950 text-white"
-                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
-                }`}
-              >
-                <input
-                  form={formId}
-                  type="radio"
-                  name="font_size_scale_key"
-                  value={option.key}
-                  checked={selectedFontSizeScale === option.key}
-                  onChange={() => setSelectedFontSizeScale(option.key)}
-                  className="sr-only"
-                />
-                <span className="break-keep text-sm font-black leading-tight">{option.label}</span>
-                <span className={`menu-font-en text-xs font-bold ${selectedFontSizeScale === option.key ? "text-white/70" : "text-zinc-400"}`}>
-                  {option.description}
-                </span>
-              </label>
-            ))}
-          </div>
+          {showFontSizeControl ? (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3" role="radiogroup" aria-label="글자 크기">
+              {fontSizeScaleOptions.map((option) => (
+                <label
+                  key={option.key}
+                  className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-4 py-3 transition xl:flex-col xl:items-start xl:justify-center ${
+                    selectedFontSizeScale === option.key
+                      ? "border-zinc-950 bg-zinc-950 text-white"
+                      : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
+                  }`}
+                >
+                  <input
+                    form={formId}
+                    type="radio"
+                    name="font_size_scale_key"
+                    value={option.key}
+                    checked={selectedFontSizeScale === option.key}
+                    onChange={() => setSelectedFontSizeScale(option.key)}
+                    className="sr-only"
+                  />
+                  <span className="break-keep text-sm font-black leading-tight">{option.label}</span>
+                  <span className={`menu-font-en text-xs font-bold ${selectedFontSizeScale === option.key ? "text-white/70" : "text-zinc-400"}`}>
+                    {option.description}
+                  </span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <input form={formId} type="hidden" name="font_size_scale_key" value="m" />
+          )}
         </div>
 
         <section

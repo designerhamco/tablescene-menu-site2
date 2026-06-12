@@ -12,6 +12,7 @@ export type TemplateMenuCoverCapabilities = {
 };
 
 export type TemplateCapabilities = {
+  typographyFontSizeControl?: "hidden" | "simple";
   logoImage: boolean;
   menuItemImages: boolean;
   pageDescription: boolean;
@@ -45,6 +46,7 @@ export const DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES: TemplateMenuCoverCapabili
 };
 
 export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
+  typographyFontSizeControl: "hidden",
   logoImage: true,
   menuItemImages: true,
   pageDescription: true,
@@ -69,6 +71,7 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
 export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
   display_menu_a: {
     ...DEFAULT_TEMPLATE_CAPABILITIES,
+    typographyFontSizeControl: "simple",
     logoImage: false,
     menuItemImages: true,
     pageDescription: false,

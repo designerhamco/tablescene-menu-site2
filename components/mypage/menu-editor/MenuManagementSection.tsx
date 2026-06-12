@@ -253,13 +253,18 @@ const MENU_BUILDER_STATE_KEY_PREFIX = "tablescene:menu-editor:builder";
 const PC_TABLET_LAYOUT_MODE_OPTIONS = [
   {
     value: "orderedFit",
-    title: "등록 순서 배치",
-    description: "등록한 카테고리 순서를 유지합니다.",
+    title: "등록순서 배치",
+    description: "등록한 순서대로 메뉴를 자연스럽게 이어서 배치합니다.",
   },
   {
     value: "balanced",
     title: "자동 균형 배치",
-    description: "화면 여백을 줄이도록 카테고리 위치를 자동으로 조정합니다.",
+    description: "카테고리 순서를 일부 조정해 열별 높이가 균형 잡히도록 배치합니다.",
+  },
+  {
+    value: "orderedBalancedFit",
+    title: "등록순 균형 배치",
+    description: "카테고리 순서는 유지하면서, 열별 높이가 최대한 균형 잡히도록 배치합니다.",
   },
 ] as const satisfies readonly { value: PcTabletLayoutMode; title: string; description: string }[];
 

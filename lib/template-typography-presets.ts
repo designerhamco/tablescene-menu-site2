@@ -20,7 +20,7 @@ import {
 
 export type KoreanFontKey = KoreanFontValue;
 export type EnglishFontKey = EnglishFontValue;
-export type FontSizeScaleKey = "xs" | "s" | "m" | "l" | "xl";
+export type FontSizeScaleKey = "s" | "m" | "l";
 
 export type TypographySettings = {
   korean_font_key: KoreanFontKey;
@@ -53,17 +53,15 @@ export const ENGLISH_FONT_OPTIONS: readonly FontOption<EnglishFontKey>[] = REGIS
 }));
 
 export const FONT_SIZE_SCALE_OPTIONS = [
-  { key: "xs", label: "작게", description: "XS", scale: 0.88 },
-  { key: "s", label: "조금 작게", description: "S", scale: 0.92 },
-  { key: "m", label: "기본", description: "M", scale: 1 },
-  { key: "l", label: "조금 크게", description: "L", scale: 1.08 },
-  { key: "xl", label: "크게", description: "XL", scale: 1.16 },
+  { key: "s", label: "S", description: "조금 더 작게", scale: 0.92 },
+  { key: "m", label: "M", description: "기본 크기", scale: 1 },
+  { key: "l", label: "L", description: "조금 더 크게", scale: 1.08 },
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
 
 export const DISPLAY_FONT_SIZE_SCALE_OPTIONS = [
-  { key: "s", label: "더 촘촘하게", description: "S", scale: 0.88 },
-  { key: "m", label: "기본", description: "M", scale: 1 },
-  { key: "l", label: "더 크게", description: "L", scale: 1.16 },
+  { key: "s", label: "S", description: "조금 더 작게", scale: 0.88 },
+  { key: "m", label: "M", description: "기본 크기", scale: 1 },
+  { key: "l", label: "L", description: "조금 더 크게", scale: 1.16 },
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
 
 export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
@@ -122,8 +120,25 @@ export function isFontSizeScaleKey(value: unknown): value is FontSizeScaleKey {
   return typeof value === "string" && fontSizeScaleKeys.has(value as FontSizeScaleKey);
 }
 
+function normalizeLegacyFontSizeScaleKey(value: unknown): FontSizeScaleKey | null {
+  if (typeof value !== "string") return null;
+
+  switch (value.trim().toLowerCase()) {
+    case "xs":
+    case "s":
+      return "s";
+    case "m":
+      return "m";
+    case "l":
+    case "xl":
+      return "l";
+    default:
+      return null;
+  }
+}
+
 export function normalizeFontSizeScaleKey(value: unknown, fallback: FontSizeScaleKey = "m"): FontSizeScaleKey {
-  return isFontSizeScaleKey(value) ? value : fallback;
+  return normalizeLegacyFontSizeScaleKey(value) ?? normalizeLegacyFontSizeScaleKey(fallback) ?? "m";
 }
 
 export function isDisplayTypographyTemplate(templateKey?: string | null) {
@@ -135,11 +150,8 @@ export function normalizeFontSizeScaleKeyForTemplate(
   templateKey?: string | null,
   fallback: FontSizeScaleKey = "m"
 ): FontSizeScaleKey {
-  const normalized = normalizeFontSizeScaleKey(value, fallback);
-  if (!isDisplayTypographyTemplate(templateKey)) return normalized;
-  if (normalized === "xs") return "s";
-  if (normalized === "xl") return "l";
-  return normalized;
+  if (!isDisplayTypographyTemplate(templateKey)) return "m";
+  return normalizeFontSizeScaleKey(value, fallback);
 }
 
 function getRecord(value: unknown) {

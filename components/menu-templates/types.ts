@@ -112,7 +112,7 @@ export type PublicMenuSocialLink = Pick<
 
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
-  previewLayoutMode?: "orderedFit" | "balancedExperimental";
+  previewLayoutMode?: "orderedFit" | "balancedExperimental" | "orderedBalancedFit";
   initialPreviewPageId?: string | null;
   locale: SupportedLocale;
   enabledLocales: SupportedLocale[];
