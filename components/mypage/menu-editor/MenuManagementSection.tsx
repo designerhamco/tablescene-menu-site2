@@ -21,6 +21,16 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
+  MENU_WIDGET_LIMITS,
+  MENU_WIDGET_TYPE_DESCRIPTIONS,
+  MENU_WIDGET_TYPE_LABELS,
+  getWidgetTypeLabel,
+  isWidgetType,
+  type MenuWidgetDraft,
+  type MenuWidgetItemDraft,
+  type WidgetType,
+} from "@/lib/menu-widgets";
+import {
   DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
   DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS,
   DISPLAY_MENU_LAYOUT_TYPES,
@@ -101,6 +111,8 @@ type MenuItem = Omit<Pick<
 };
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
+type MenuWidget = Database["public"]["Tables"]["menu_widgets"]["Row"];
+type MenuWidgetItem = Database["public"]["Tables"]["menu_widget_items"]["Row"];
 
 type MenuManagementSectionProps = {
   menuId: string;
@@ -109,6 +121,8 @@ type MenuManagementSectionProps = {
   items: MenuItem[];
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
+  widgets: MenuWidget[];
+  widgetItems: MenuWidgetItem[];
   capabilities: TemplateCapabilities;
   canManagePages: boolean;
   supportsDisplayPageTypes?: boolean;
@@ -130,6 +144,7 @@ type DraftTarget =
 type DragState =
   | { type: "page"; id: string }
   | { type: "category"; id: string; pageId: string }
+  | { type: "widget"; id: string; pageId: string }
   | { type: "item"; id: string; categoryId: string }
   | null;
 
@@ -180,6 +195,8 @@ type ItemBasicDraft = {
   badgeBackgroundColor?: string;
   badgeTextColor?: string;
 };
+
+type WidgetBasicDraft = MenuWidgetDraft;
 
 type AiMenuCleanupItem = {
   name: string;
@@ -2841,6 +2858,10 @@ function sortItems(items: MenuItem[]) {
   return [...items].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, "ko"));
 }
 
+function sortWidgets(widgets: WidgetBasicDraft[]) {
+  return [...widgets].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || (a.title || getWidgetTypeLabel(a.widgetType)).localeCompare(b.title || getWidgetTypeLabel(b.widgetType), "ko"));
+}
+
 function traitSummary(traits: MenuItemTrait[]) {
   return traits
     .filter((trait) => trait.visible)
@@ -3089,6 +3110,229 @@ function DraftPriceOptionsEditor({
   );
 }
 
+function WidgetEditor({
+  widget,
+  onChange,
+  onAddItem,
+  onUpdateItem,
+  onRemoveItem,
+  onCopy,
+  onDelete,
+  isConfirmingDelete,
+  onRequestDelete,
+  onCancelDelete,
+}: {
+  widget: WidgetBasicDraft;
+  onChange: (patch: Partial<WidgetBasicDraft>) => void;
+  onAddItem: () => void;
+  onUpdateItem: (itemId: string, patch: Partial<MenuWidgetItemDraft>) => void;
+  onRemoveItem: (itemId: string) => void;
+  onCopy: () => void;
+  onDelete: () => void;
+  isConfirmingDelete: boolean;
+  onRequestDelete: () => void;
+  onCancelDelete: () => void;
+}) {
+  const widgetType = widget.widgetType;
+  const listItems = [...(widget.items ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title, "ko"));
+  const isListWidget = widgetType === "option_list" || widgetType === "store_info";
+  const reachedItemLimit = listItems.length >= MENU_WIDGET_LIMITS.maxItemsPerWidget;
+
+  return (
+    <div>
+      <PanelHeader
+        eyebrow="Widget Detail"
+        title={widget.title?.trim() || getWidgetTypeLabel(widgetType)}
+        description={`${MENU_WIDGET_TYPE_LABELS[widgetType]} 위젯을 편집합니다. 변경사항은 최종 저장 전까지 공개 메뉴판에 반영되지 않습니다.`}
+      />
+      <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+        <div className="rounded-lg border border-zinc-100 bg-white p-4">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">위젯 종류</p>
+          <p className="mt-2 text-sm font-black text-zinc-950">{MENU_WIDGET_TYPE_LABELS[widgetType]}</p>
+          <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">{MENU_WIDGET_TYPE_DESCRIPTIONS[widgetType]}</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <FieldLabel required={widgetType !== "notice_text"}>위젯 제목</FieldLabel>
+            <TextInput
+              value={widget.title ?? ""}
+              onChange={(event) => onChange({ title: event.target.value })}
+              placeholder="와이파이 안내"
+              maxLength={MENU_WIDGET_LIMITS.title}
+            />
+          </div>
+          <div>
+            <FieldLabel>표시 여부</FieldLabel>
+            <div className="mt-2">
+              <SwitchField
+                name={`widget_${widget.id}_visible`}
+                label="공개 메뉴판에 표시"
+                defaultChecked={widget.visible ?? true}
+                onCheckedChange={(checked) => onChange({ visible: checked })}
+              />
+            </div>
+          </div>
+        </div>
+        <div>
+          <FieldLabel required={widgetType === "notice_text"}>{widgetType === "notice_text" ? "안내 내용" : "위젯 설명"}</FieldLabel>
+          <TextArea
+            value={widget.description ?? ""}
+            onChange={(event) => onChange({ description: event.target.value })}
+            placeholder={widgetType === "notice_text" ? "ID는 moodbrew, 비밀번호는 12345678입니다." : "위젯에 함께 표시할 설명을 입력하세요."}
+            maxLength={MENU_WIDGET_LIMITS.description}
+          />
+        </div>
+        {widgetType === "image_banner" && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <FieldLabel required>이미지 URL</FieldLabel>
+              <TextInput
+                value={widget.imageUrl ?? ""}
+                onChange={(event) => onChange({ imageUrl: event.target.value, imagePath: "" })}
+                placeholder="https://..."
+                maxLength={MENU_WIDGET_LIMITS.url}
+                helperText="1차 구현에서는 URL 입력으로 저장합니다. 업로드 연결은 후속 TODO입니다."
+              />
+            </div>
+            <div>
+              <FieldLabel>링크 URL</FieldLabel>
+              <TextInput
+                value={widget.linkUrl ?? ""}
+                onChange={(event) => onChange({ linkUrl: event.target.value })}
+                placeholder="https://..."
+                maxLength={MENU_WIDGET_LIMITS.url}
+              />
+            </div>
+          </div>
+        )}
+        {isListWidget && (
+          <div className="rounded-lg border border-zinc-100 bg-white p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-black text-zinc-950">{widgetType === "store_info" ? "정보 항목" : "선택 항목"}</h4>
+                <p className="mt-1 break-keep text-xs font-bold text-zinc-400">최대 {MENU_WIDGET_LIMITS.maxItemsPerWidget}개까지 추가할 수 있습니다.</p>
+              </div>
+              <button
+                type="button"
+                onClick={onAddItem}
+                disabled={reachedItemLimit}
+                className="rounded-full border border-zinc-200 bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+              >
+                항목 추가
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {listItems.map((item, index) => (
+                <div key={item.id} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-black text-zinc-400">항목 {index + 1}</p>
+                    <button type="button" onClick={() => onRemoveItem(item.id)} className="text-xs font-bold text-red-600">
+                      삭제
+                    </button>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div>
+                      <FieldLabel required>{widgetType === "store_info" ? "라벨" : "항목명"}</FieldLabel>
+                      <TextInput
+                        value={item.title}
+                        onChange={(event) => onUpdateItem(item.id, { title: event.target.value })}
+                        placeholder={widgetType === "store_info" ? "영업시간" : "디카페인"}
+                        maxLength={MENU_WIDGET_LIMITS.itemTitle}
+                      />
+                    </div>
+                    {widgetType === "store_info" ? (
+                      <div>
+                        <FieldLabel required>내용</FieldLabel>
+                        <TextInput
+                          value={item.value ?? ""}
+                          onChange={(event) => onUpdateItem(item.id, { value: event.target.value })}
+                          placeholder="매일 10:00 - 21:00"
+                          maxLength={MENU_WIDGET_LIMITS.itemValue}
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <FieldLabel>표시용 가격</FieldLabel>
+                        <TextInput
+                          value={item.priceLabel ?? ""}
+                          onChange={(event) => onUpdateItem(item.id, { priceLabel: event.target.value })}
+                          placeholder="+500원"
+                          maxLength={MENU_WIDGET_LIMITS.priceLabel}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div>
+                      <FieldLabel>설명</FieldLabel>
+                      <TextInput
+                        value={item.description ?? ""}
+                        onChange={(event) => onUpdateItem(item.id, { description: event.target.value })}
+                        placeholder={widgetType === "store_info" ? "주차 가능 시간 등 보조 설명" : "카페인을 줄인 부드러운 원두"}
+                        maxLength={MENU_WIDGET_LIMITS.itemDescription}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>{widgetType === "store_info" ? "링크 URL" : "가격"}</FieldLabel>
+                      <TextInput
+                        value={widgetType === "store_info" ? item.linkUrl ?? "" : item.price == null ? "" : String(item.price)}
+                        onChange={(event) =>
+                          widgetType === "store_info"
+                            ? onUpdateItem(item.id, { linkUrl: event.target.value })
+                            : onUpdateItem(item.id, { price: event.target.value.replace(/[^0-9]/g, "") })
+                        }
+                        type={widgetType === "store_info" ? "url" : "number"}
+                        min={widgetType === "store_info" ? undefined : 0}
+                        step={widgetType === "store_info" ? undefined : 1}
+                        placeholder={widgetType === "store_info" ? "https://..." : "500"}
+                        maxLength={widgetType === "store_info" ? MENU_WIDGET_LIMITS.url : undefined}
+                      />
+                    </div>
+                  </div>
+                  {widgetType === "option_list" && (
+                    <div className="mt-3">
+                      <FieldLabel>이미지 URL</FieldLabel>
+                      <TextInput
+                        value={item.imageUrl ?? ""}
+                        onChange={(event) => onUpdateItem(item.id, { imageUrl: event.target.value, imagePath: "" })}
+                        placeholder="https://..."
+                        maxLength={MENU_WIDGET_LIMITS.url}
+                        helperText="1차 구현에서는 URL 입력으로 저장합니다. 업로드 연결은 후속 TODO입니다."
+                      />
+                    </div>
+                  )}
+                  <div className="mt-3">
+                    <SwitchField
+                      name={`widget_${widget.id}_item_${item.id}_visible`}
+                      label="항목 표시"
+                      defaultChecked={item.visible ?? true}
+                      onCheckedChange={(checked) => onUpdateItem(item.id, { visible: checked })}
+                    />
+                  </div>
+                </div>
+              ))}
+              {listItems.length === 0 && <EmptyState>아직 항목이 없습니다. 항목 추가를 눌러 위젯 내용을 구성하세요.</EmptyState>}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+        <button type="button" onClick={onCopy} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+          복사
+        </button>
+        <DraftDeleteConfirmButton
+          title="위젯을 삭제할까요?"
+          description="이 위젯과 위젯 항목이 함께 삭제됩니다. 저장 전까지 실제 데이터에는 반영되지 않습니다."
+          isConfirming={isConfirmingDelete}
+          onRequestConfirm={onRequestDelete}
+          onConfirm={onDelete}
+          onCancel={onCancelDelete}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function MenuManagementSection({
   menuId,
   menuPages,
@@ -3096,6 +3340,8 @@ export default function MenuManagementSection({
   items,
   priceOptions,
   traits,
+  widgets,
+  widgetItems,
   capabilities,
   canManagePages,
   supportsDisplayPageTypes = false,
@@ -3176,6 +3422,44 @@ export default function MenuManagementSection({
       ])
     )
   );
+  const [widgetBasicDrafts, setWidgetBasicDrafts] = useState<Record<string, WidgetBasicDraft>>(() =>
+    Object.fromEntries(
+      widgets.map((widget) => [
+        widget.id,
+        {
+          id: widget.id,
+          isNew: false,
+          menuPageId: widget.menu_page_id,
+          widgetType: isWidgetType(widget.widget_type) ? widget.widget_type : "notice_text",
+          title: widget.title ?? "",
+          description: widget.description ?? "",
+          imageUrl: widget.image_url,
+          imagePath: widget.image_path,
+          linkUrl: widget.link_url,
+          visible: widget.visible,
+          sortOrder: widget.sort_order,
+          settings: widget.settings,
+          items: widgetItems
+            .filter((item) => item.widget_id === widget.id)
+            .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at))
+            .map((item) => ({
+              id: item.id,
+              title: item.title,
+              description: item.description ?? "",
+              value: item.value ?? "",
+              price: item.price == null ? "" : String(item.price),
+              priceLabel: item.price_label ?? "",
+              imageUrl: item.image_url,
+              imagePath: item.image_path,
+              linkUrl: item.link_url,
+              visible: item.visible,
+              sortOrder: item.sort_order,
+              settings: item.settings,
+            })),
+        },
+      ])
+    )
+  );
   const [pendingItemDrafts, setPendingItemDrafts] = useState<Record<string, ItemBasicDraft>>({});
   const [menuManagementDirtyState, setMenuManagementDirtyState] = useState({
     dirty: Boolean(finalSaveError && !finalSaveMessage),
@@ -3189,6 +3473,7 @@ export default function MenuManagementSection({
   const [deletedPageIds, setDeletedPageIds] = useState<Set<string>>(() => new Set());
   const [deletedCategoryIds, setDeletedCategoryIds] = useState<Set<string>>(() => new Set());
   const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(() => new Set());
+  const [deletedWidgetIds, setDeletedWidgetIds] = useState<Set<string>>(() => new Set());
   const draftedPages = useMemo(
     () => {
       const existingPages = menuPages
@@ -3325,6 +3610,28 @@ export default function MenuManagementSection({
     },
     [capabilities.itemPortionLabel, categories, deletedCategoryIds, deletedItemIds, deletedPageIds, items, itemBasicDrafts]
   );
+  const draftedWidgets = useMemo(
+    () =>
+      Object.entries(widgetBasicDrafts)
+        .filter(([id, draft]) => !deletedWidgetIds.has(id) && draft.menuPageId && !deletedPageIds.has(draft.menuPageId))
+        .map(([id, draft]) => ({
+          id,
+          isNew: draft.isNew,
+          menuPageId: draft.menuPageId ?? "",
+          widgetType: draft.widgetType,
+          title: draft.title ?? "",
+          description: draft.description ?? "",
+          imageUrl: draft.imageUrl ?? null,
+          imagePath: draft.imagePath ?? null,
+          linkUrl: draft.linkUrl ?? null,
+          visible: draft.visible ?? true,
+          sortOrder: draft.sortOrder ?? 0,
+          settings: draft.settings ?? {},
+          items: draft.items ?? [],
+        }))
+        .sort((a, b) => a.sortOrder - b.sortOrder || (a.title || getWidgetTypeLabel(a.widgetType)).localeCompare(b.title || getWidgetTypeLabel(b.widgetType), "ko")),
+    [deletedPageIds, deletedWidgetIds, widgetBasicDrafts]
+  );
   const sortedPages = useMemo(() => sortMenuPages(draftedPages), [draftedPages]);
   const firstVisiblePageId = sortedPages.find((page) => page.visible)?.id ?? sortedPages[0]?.id ?? "";
   const firstVisibleCategoryIdForInitialPage = firstVisiblePageId
@@ -3389,6 +3696,12 @@ export default function MenuManagementSection({
     const categoryId = item.category_id;
     return item.visible && typeof categoryId === "string" && visibleCategoryIdsForSelectedPage.has(categoryId);
   });
+  const widgetsEnabled = Boolean(capabilities.widgets.enabled);
+  const allowedWidgetTypes = capabilities.widgets.allowedTypes;
+  const widgetsForPage =
+    widgetsEnabled && visiblePageId && !selectedPageIsPromotion
+      ? draftedWidgets.filter((widget) => widget.menuPageId === visiblePageId)
+      : [];
   const selectedPageDisplayQualityNotice =
     supportsDisplayMenuQualityWarnings
       ? getDisplayMenuQualityNotice(
@@ -3400,6 +3713,8 @@ export default function MenuManagementSection({
       : null;
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(firstVisibleCategoryIdForInitialPage);
+  const [selectedWidgetId, setSelectedWidgetId] = useState("");
+  const [isWidgetTypePickerOpen, setIsWidgetTypePickerOpen] = useState(false);
   const selectedCategory =
     selectedPageIsPromotion
       ? null
@@ -3412,6 +3727,7 @@ export default function MenuManagementSection({
     ? getDisplayMenuCategoryQualityNotice(selectedCategory, itemsForCategory, supportsDisplayMenuQualityWarnings)
     : null;
   const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
+  const selectedWidget = widgetsEnabled && selectedWidgetId ? draftedWidgets.find((widget) => widget.id === selectedWidgetId) ?? null : null;
   const usesCategoryPriceOptionColumns = Boolean(capabilities.categoryPriceOptionColumns && capabilities.priceOptions);
   const maxCategoryPriceOptionColumns = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
   const getCategoryPriceOptionLabels = useCallback((categoryId: string) => {
@@ -3475,19 +3791,27 @@ export default function MenuManagementSection({
   const reachedItemsPerCategoryLimit = itemsForCategory.length >= MENU_LIMITS.maxItemsPerCategory;
   const reachedItemsPerSiteLimit = draftedItems.length >= MENU_LIMITS.maxItemsPerSite;
   const reachedItemLimit = reachedItemsPerCategoryLimit || reachedItemsPerSiteLimit;
+  const reachedWidgetLimit = widgetsForPage.length >= (capabilities.widgets.maxWidgetsPerPage || MENU_WIDGET_LIMITS.maxWidgetsPerPage);
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
-  const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
-  const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
-  const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected;
+  const isWidgetSelected = Boolean(selectedWidget);
+  const isCategorySelected = Boolean(selectedCategory && !isItemSelected && !isWidgetSelected);
+  const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected);
+  const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected;
   const shouldShowPageCreateButton = canManagePages && !isItemSelected && (hasNoSelection || isPageSelectedOnly || isCategorySelected);
   const shouldShowCategoryCreateButton = Boolean(selectedPage && !selectedPageIsPromotion && !isItemSelected && (isPageSelectedOnly || isCategorySelected));
   const shouldShowItemCreateButton = Boolean(selectedCategory && (isCategorySelected || Boolean(editingItemId)));
+  const shouldShowWidgetCreateButton = Boolean(widgetsEnabled && selectedPage && !selectedPageIsPromotion && !isItemSelected);
   const selectedOrderMoveTarget = (() => {
     if (editingItemId) {
       const selectedItem = draftedItems.find((item) => item.id === editingItemId);
       const categoryId = selectedItem?.category_id ?? "";
       const siblingIds = categoryId ? sortItems(draftedItems.filter((item) => item.category_id === categoryId)).map((item) => item.id) : [];
       return { type: "item" as const, label: labels.itemLabel, selectedId: editingItemId, siblingIds };
+    }
+
+    if (selectedWidget) {
+      const siblingIds = selectedWidget.menuPageId ? sortWidgets(draftedWidgets.filter((widget) => widget.menuPageId === selectedWidget.menuPageId)).map((widget) => widget.id) : [];
+      return { type: "widget" as const, label: "위젯", selectedId: selectedWidget.id, siblingIds };
     }
 
     if (selectedCategory) {
@@ -3591,9 +3915,45 @@ export default function MenuManagementSection({
       ),
     [capabilities.itemPortionLabel, draftedItems, getCategoryPriceOptionLabels, getCategoryPriceOptionsForItem, itemBasicDrafts, items, traits, usesCategoryPriceOptionColumns]
   );
+  const widgetBasicDraftPayload = useMemo(
+    () =>
+      JSON.stringify(
+        draftedWidgets.map((widget) => ({
+          id: widget.id,
+          isNew: Boolean(widgetBasicDrafts[widget.id]?.isNew),
+          menuPageId: widget.menuPageId,
+          widgetType: widget.widgetType,
+          title: widget.title,
+          description: widget.description,
+          imageUrl: widget.imageUrl,
+          imagePath: widget.imagePath,
+          linkUrl: widget.linkUrl,
+          visible: widget.visible,
+          sortOrder: widget.sortOrder,
+          settings: widget.settings,
+          items: (widget.items ?? []).map((item, index) => ({
+            id: item.id,
+            isNew: Boolean(item.isNew),
+            title: item.title,
+            description: item.description ?? "",
+            value: item.value ?? "",
+            price: item.price ?? "",
+            priceLabel: item.priceLabel ?? "",
+            imageUrl: item.imageUrl ?? null,
+            imagePath: item.imagePath ?? null,
+            linkUrl: item.linkUrl ?? null,
+            visible: item.visible ?? true,
+            sortOrder: item.sortOrder ?? index,
+            settings: item.settings ?? {},
+          })),
+        }))
+      ),
+    [draftedWidgets, widgetBasicDrafts]
+  );
   const deletedPageIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedPageIds)), [deletedPageIds]);
   const deletedCategoryIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedCategoryIds)), [deletedCategoryIds]);
   const deletedItemIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedItemIds)), [deletedItemIds]);
+  const deletedWidgetIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedWidgetIds)), [deletedWidgetIds]);
 
   useEffect(() => {
     if (hasRestoredBuilderState) return;
@@ -3684,10 +4044,12 @@ export default function MenuManagementSection({
     setEditingPageId("");
     setEditingCategoryId("");
     setEditingItemId("");
+    setSelectedWidgetId("");
     setItemEditorEntryMode("list");
     setIsCreatingPage(false);
     setIsCreatingCategory(false);
     setIsCreatingItem(false);
+    setIsWidgetTypePickerOpen(false);
     setDraftTarget(null);
     setConfirmingDeleteKey("");
     setPageDraftFeedback("");
@@ -4141,6 +4503,102 @@ export default function MenuManagementSection({
     }));
   }
 
+  function updateWidgetBasicDraft(widgetId: string, patch: Partial<WidgetBasicDraft>) {
+    clearFinalSaveSummary();
+    setWidgetBasicDrafts((currentDrafts) => {
+      const currentDraft = currentDrafts[widgetId];
+      if (!currentDraft) return currentDrafts;
+      return {
+        ...currentDrafts,
+        [widgetId]: {
+          ...currentDraft,
+          ...patch,
+        },
+      };
+    });
+    markMenuManagementDirty();
+  }
+
+  function addWidgetDraft(widgetType: WidgetType) {
+    if (!widgetsEnabled || !visiblePageId || selectedPageIsPromotion || reachedWidgetLimit) return;
+    const draftCount = Object.keys(widgetBasicDrafts).filter((id) => id.startsWith(`temp-widget-${widgetType}-`)).length;
+    const draftId = `temp-widget-${widgetType}-${draftCount + 1}`;
+    setWidgetBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      sortWidgets(draftedWidgets.filter((widget) => widget.menuPageId === visiblePageId)).forEach((widget, index) => {
+        nextDrafts[widget.id] = {
+          ...nextDrafts[widget.id],
+          sortOrder: index + 1,
+        };
+      });
+      nextDrafts[draftId] = {
+        id: draftId,
+        isNew: true,
+        menuPageId: visiblePageId,
+        widgetType,
+        title: MENU_WIDGET_TYPE_LABELS[widgetType],
+        description: widgetType === "notice_text" ? "" : "",
+        imageUrl: null,
+        imagePath: null,
+        linkUrl: null,
+        visible: true,
+        sortOrder: 0,
+        settings: {},
+        items: [],
+      };
+      return nextDrafts;
+    });
+    resetModes();
+    setSelectedPageId(visiblePageId);
+    setSelectedCategoryId("");
+    setSelectedWidgetId(draftId);
+    setExpandedPageIds(new Set([visiblePageId]));
+    markMenuManagementDirty();
+    toast.success("위젯이 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+  }
+
+  function addWidgetItemDraft(widgetId: string) {
+    const widget = widgetBasicDrafts[widgetId];
+    if (!widget || (widget.items ?? []).length >= MENU_WIDGET_LIMITS.maxItemsPerWidget) return;
+    const draftCount = (widget.items ?? []).filter((item) => item.id.startsWith(`temp-widget-item-${widgetId}-`)).length;
+    const nextItem: MenuWidgetItemDraft = {
+      id: `temp-widget-item-${widgetId}-${draftCount + 1}`,
+      isNew: true,
+      title: "",
+      description: "",
+      value: "",
+      price: "",
+      priceLabel: "",
+      imageUrl: null,
+      imagePath: null,
+      linkUrl: null,
+      visible: true,
+      sortOrder: widget.items?.length ?? 0,
+      settings: {},
+    };
+    updateWidgetBasicDraft(widgetId, { items: [...(widget.items ?? []), nextItem] });
+    toast.success("위젯 항목이 임시 추가되었습니다.");
+  }
+
+  function updateWidgetItemDraft(widgetId: string, itemId: string, patch: Partial<MenuWidgetItemDraft>) {
+    const widget = widgetBasicDrafts[widgetId];
+    if (!widget) return;
+    updateWidgetBasicDraft(widgetId, {
+      items: (widget.items ?? []).map((item) => (item.id === itemId ? { ...item, ...patch } : item)),
+    });
+  }
+
+  function removeWidgetItemDraft(widgetId: string, itemId: string) {
+    const widget = widgetBasicDrafts[widgetId];
+    if (!widget) return;
+    updateWidgetBasicDraft(widgetId, {
+      items: (widget.items ?? [])
+        .filter((item) => item.id !== itemId)
+        .map((item, index) => ({ ...item, sortOrder: index })),
+    });
+    toast.success("위젯 항목이 임시 삭제되었습니다.");
+  }
+
   function getItemDraftBase(itemId: string): ItemBasicDraft {
     const committedDraft = itemBasicDrafts[itemId];
     if (committedDraft) return committedDraft;
@@ -4383,6 +4841,21 @@ export default function MenuManagementSection({
     });
   }
 
+  function applyWidgetOrderDraft(orderedIds: string[]) {
+    markMenuManagementDirty();
+    setWidgetBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      orderedIds.forEach((id, index) => {
+        if (!nextDrafts[id]) return;
+        nextDrafts[id] = {
+          ...nextDrafts[id],
+          sortOrder: index,
+        };
+      });
+      return nextDrafts;
+    });
+  }
+
   function applyItemOrderDraft(orderedIds: string[]) {
     markMenuManagementDirty();
     setItemBasicDrafts((currentDrafts) => {
@@ -4410,6 +4883,14 @@ export default function MenuManagementSection({
     applyCategoryOrderDraft(orderedIds);
   }
 
+  function handleWidgetDrop(pageId: string, targetWidgetId: string) {
+    if (dragState?.type !== "widget" || dragState.pageId !== pageId) return;
+    const pageWidgetIds = sortWidgets(draftedWidgets.filter((widget) => widget.menuPageId === pageId)).map((widget) => widget.id);
+    const orderedIds = moveId(pageWidgetIds, dragState.id, targetWidgetId);
+    setDragState(null);
+    applyWidgetOrderDraft(orderedIds);
+  }
+
   function handleItemDrop(categoryId: string, targetItemId: string) {
     if (dragState?.type !== "item" || dragState.categoryId !== categoryId) return;
     const categoryItemIds = sortItems(draftedItems.filter((item) => item.category_id === categoryId)).map((item) => item.id);
@@ -4431,6 +4912,8 @@ export default function MenuManagementSection({
       applyPageOrderDraft(orderedIds);
     } else if (selectedOrderMoveTarget.type === "category") {
       applyCategoryOrderDraft(orderedIds);
+    } else if (selectedOrderMoveTarget.type === "widget") {
+      applyWidgetOrderDraft(orderedIds);
     } else {
       applyItemOrderDraft(orderedIds);
     }
@@ -4721,6 +5204,67 @@ export default function MenuManagementSection({
     setExpandedCategoryIds(new Set(nextCategoryId ? [nextCategoryId] : []));
   }
 
+  function deleteWidgetDraft(widgetId: string) {
+    markMenuManagementDirty();
+    const widget = draftedWidgets.find((entry) => entry.id === widgetId);
+    if (widgetBasicDrafts[widgetId]?.isNew) {
+      setWidgetBasicDrafts((currentDrafts) => {
+        const nextDrafts = { ...currentDrafts };
+        delete nextDrafts[widgetId];
+        return nextDrafts;
+      });
+    } else {
+      setDeletedWidgetIds((currentIds) => new Set(currentIds).add(widgetId));
+    }
+    setConfirmingDeleteKey("");
+    setSelectedWidgetId("");
+    if (widget?.menuPageId) {
+      setSelectedPageId(widget.menuPageId);
+      setSelectedCategoryId("");
+      setExpandedPageIds(new Set([widget.menuPageId]));
+    }
+    toast.success("위젯이 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+  }
+
+  function copyWidgetDraft(widgetId: string) {
+    if (!widgetsEnabled || reachedWidgetLimit) return;
+    const sourceWidget = draftedWidgets.find((widget) => widget.id === widgetId);
+    if (!sourceWidget) return;
+    const copyCount = Object.keys(widgetBasicDrafts).filter((id) => id.startsWith(`temp-widget-copy-${widgetId}-`)).length;
+    const draftId = `temp-widget-copy-${widgetId}-${copyCount + 1}`;
+    const pageId = sourceWidget.menuPageId;
+    setWidgetBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      sortWidgets(draftedWidgets.filter((widget) => widget.menuPageId === pageId)).forEach((widget, index) => {
+        nextDrafts[widget.id] = {
+          ...nextDrafts[widget.id],
+          sortOrder: index + 1,
+        };
+      });
+      nextDrafts[draftId] = {
+        ...sourceWidget,
+        id: draftId,
+        isNew: true,
+        title: getUniqueName(`${sourceWidget.title || getWidgetTypeLabel(sourceWidget.widgetType)} 복사본`, draftedWidgets.map((widget) => widget.title || getWidgetTypeLabel(widget.widgetType))),
+        sortOrder: 0,
+        items: (sourceWidget.items ?? []).map((item, index) => ({
+          ...item,
+          id: `temp-widget-item-copy-${widgetId}-${copyCount + 1}-${index + 1}`,
+          isNew: true,
+          sortOrder: index,
+        })),
+      };
+      return nextDrafts;
+    });
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId("");
+    setSelectedWidgetId(draftId);
+    setExpandedPageIds(new Set([pageId]));
+    markMenuManagementDirty();
+    toast.success("위젯 복사본이 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+  }
+
   function deletePageDraft(pageId: string) {
     if (!canManagePages) return;
     markMenuManagementDirty();
@@ -4728,6 +5272,17 @@ export default function MenuManagementSection({
     const categoryIds = draftedCategories.filter((category) => category.menu_page_id === pageId).map((category) => category.id);
     categoryIds.forEach((categoryId) => {
       draftedItems.filter((item) => item.category_id === categoryId).forEach((item) => markItemDeleted(item.id));
+    });
+    draftedWidgets.filter((widget) => widget.menuPageId === pageId).forEach((widget) => {
+      if (widgetBasicDrafts[widget.id]?.isNew) {
+        setWidgetBasicDrafts((currentDrafts) => {
+          const nextDrafts = { ...currentDrafts };
+          delete nextDrafts[widget.id];
+          return nextDrafts;
+        });
+      } else {
+        setDeletedWidgetIds((currentIds) => new Set(currentIds).add(widget.id));
+      }
     });
     setCategoryBasicDrafts((currentDrafts) => {
       const nextDrafts = { ...currentDrafts };
@@ -5133,6 +5688,15 @@ export default function MenuManagementSection({
     resetModes();
     setSelectedPageId(pageId);
     setSelectedCategoryId(categoryId);
+  }
+
+  function selectWidget(pageId: string, widgetId: string) {
+    if (!confirmDiscardDraft()) return;
+    resetModes();
+    setSelectedPageId(pageId);
+    setSelectedCategoryId("");
+    setSelectedWidgetId(widgetId);
+    setExpandedPageIds(new Set([pageId]));
   }
 
   function selectItem(pageId: string, categoryId: string, itemId: string) {
@@ -5555,7 +6119,33 @@ export default function MenuManagementSection({
                   + {labels.itemLabel}
                 </button>
               )}
+              {shouldShowWidgetCreateButton && (
+                <button
+                  type="button"
+                  onClick={() => setIsWidgetTypePickerOpen((current) => !current)}
+                  disabled={reachedWidgetLimit}
+                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                >
+                  + 위젯 추가
+                </button>
+              )}
             </div>
+            {widgetsEnabled && isWidgetTypePickerOpen && (
+              <div className="mt-3 grid gap-2 rounded-lg border border-zinc-100 bg-white p-3">
+                {allowedWidgetTypes.map((widgetType) => (
+                  <button
+                    key={widgetType}
+                    type="button"
+                    onClick={() => addWidgetDraft(widgetType)}
+                    disabled={reachedWidgetLimit}
+                    className="rounded-md border border-zinc-100 bg-zinc-50 px-3 py-2 text-left transition hover:border-zinc-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100"
+                  >
+                    <span className="block text-xs font-black text-zinc-950">{MENU_WIDGET_TYPE_LABELS[widgetType]}</span>
+                    <span className="mt-1 block break-keep text-[11px] font-bold leading-relaxed text-zinc-400">{MENU_WIDGET_TYPE_DESCRIPTIONS[widgetType]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {sortedPages.length === 0 ? (
               <div className="mt-6 grid gap-3">
@@ -5569,8 +6159,9 @@ export default function MenuManagementSection({
                   const pageDisplaySettings = getDraftedPageDisplaySettings(page);
                   const pageIsPromotion = canConfigureDisplayPages && isPromotionDisplayPage(pageDisplaySettings);
                   const pageCategories = pageIsPromotion ? [] : sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
-                  const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId;
-                  const pageCanCollapse = canManagePages && !pageIsPromotion && pageCategories.length > 0;
+                  const pageWidgets = widgetsEnabled && !pageIsPromotion ? sortWidgets(draftedWidgets.filter((widget) => widget.menuPageId === page.id)) : [];
+                  const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId && !selectedWidgetId;
+                  const pageCanCollapse = canManagePages && !pageIsPromotion && (pageCategories.length > 0 || pageWidgets.length > 0);
                   const pageExpanded = expandedPageIds.has(page.id);
                   return (
                     <div
@@ -5736,6 +6327,43 @@ export default function MenuManagementSection({
                             </div>
                           );
                         })}
+                        {widgetsEnabled && pageWidgets.length > 0 && (
+                          <div className="mt-1.5 grid gap-1 border-t border-zinc-100 pt-1.5">
+                            {pageWidgets.map((widget) => {
+                              const widgetActive = widget.id === selectedWidgetId;
+                              const widgetTitle = (widget.title ?? "").trim() || getWidgetTypeLabel(widget.widgetType);
+                              return (
+                                <div
+                                  key={widget.id}
+                                  onDragOver={(event) => event.preventDefault()}
+                                  onDrop={() => handleWidgetDrop(page.id, widget.id)}
+                                  className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 transition ${
+                                    widgetActive ? "bg-zinc-950 text-white" : "text-zinc-600 hover:bg-zinc-100"
+                                  }`}
+                                >
+                                  <button
+                                    type="button"
+                                    draggable
+                                    onDragStart={(event) => {
+                                      event.stopPropagation();
+                                      setDragState({ type: "widget", id: widget.id, pageId: page.id });
+                                    }}
+                                    onClick={(event) => event.stopPropagation()}
+                                    className={`inline-flex shrink-0 cursor-grab select-none items-center justify-center rounded px-1 active:cursor-grabbing ${widgetActive ? "text-zinc-300 hover:text-white" : "text-zinc-300 hover:text-zinc-500"}`}
+                                    aria-label="위젯 순서 이동"
+                                  >
+                                    <DragHandleIcon />
+                                  </button>
+                                  <button type="button" onClick={() => selectWidget(page.id, widget.id)} className="flex min-w-0 flex-1 items-center gap-1 text-left text-xs font-bold">
+                                    <span className={`shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-black ${widgetActive ? "text-zinc-700" : "text-zinc-500"}`}>위젯</span>
+                                    <span className="min-w-0 truncate">{widgetTitle}</span>
+                                    <span className={`shrink-0 ${widgetActive ? "text-zinc-300" : "text-zinc-400"}`}>{MENU_WIDGET_TYPE_LABELS[widget.widgetType]}</span>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>}
                     </div>
                   );
@@ -6021,6 +6649,20 @@ export default function MenuManagementSection({
                   </p>
                 )}
               </div>
+            ) : selectedWidget ? (
+              <WidgetEditor
+                key={selectedWidget.id}
+                widget={selectedWidget}
+                onChange={(patch) => updateWidgetBasicDraft(selectedWidget.id, patch)}
+                onAddItem={() => addWidgetItemDraft(selectedWidget.id)}
+                onUpdateItem={(itemId, patch) => updateWidgetItemDraft(selectedWidget.id, itemId, patch)}
+                onRemoveItem={(itemId) => removeWidgetItemDraft(selectedWidget.id, itemId)}
+                onCopy={() => copyWidgetDraft(selectedWidget.id)}
+                onDelete={() => deleteWidgetDraft(selectedWidget.id)}
+                isConfirmingDelete={confirmingDeleteKey === `widget:${selectedWidget.id}`}
+                onRequestDelete={() => startConfirmDelete(`widget:${selectedWidget.id}`)}
+                onCancelDelete={() => setConfirmingDeleteKey("")}
+              />
             ) : selectedCategory ? (
               <div>
                 <PanelHeader
@@ -6171,6 +6813,7 @@ export default function MenuManagementSection({
                   )}
                   <DetailValue label={`${labels.categoryLabel} 수`}>{categoriesForPage.length}개</DetailValue>
                   <DetailValue label={`${labels.itemLabel} 수`}>{draftedItems.filter((item) => categoriesForPage.some((category) => category.id === item.category_id)).length}개</DetailValue>
+                  {widgetsEnabled && <DetailValue label="위젯 수">{widgetsForPage.length}개</DetailValue>}
                   <DetailValue label="정렬 순서">{selectedPage.sort_order}</DetailValue>
                   {capabilities.pageDescription && (
                     <>
@@ -6200,6 +6843,16 @@ export default function MenuManagementSection({
                       className="mr-auto rounded-full border border-zinc-200 bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                     >
                       + {labels.categoryLabel} 추가
+                    </button>
+                  )}
+                  {widgetsEnabled && !selectedPageIsPromotion && (
+                    <button
+                      type="button"
+                      onClick={() => setIsWidgetTypePickerOpen(true)}
+                      disabled={reachedWidgetLimit}
+                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    >
+                      위젯 추가
                     </button>
                   )}
                   <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
@@ -6252,9 +6905,11 @@ export default function MenuManagementSection({
             <input type="hidden" name="page_basic_drafts" value={pageBasicDraftPayload} />
             <input type="hidden" name="category_basic_drafts" value={categoryBasicDraftPayload} />
             <input type="hidden" name="item_basic_drafts" value={itemBasicDraftPayload} />
+            {widgetsEnabled && <input type="hidden" name="widget_basic_drafts" value={widgetBasicDraftPayload} />}
             <input type="hidden" name="deleted_page_ids" value={deletedPageIdsPayload} />
             <input type="hidden" name="deleted_category_ids" value={deletedCategoryIdsPayload} />
             <input type="hidden" name="deleted_item_ids" value={deletedItemIdsPayload} />
+            {widgetsEnabled && <input type="hidden" name="deleted_widget_ids" value={deletedWidgetIdsPayload} />}
             {canConfigurePcTabletLayoutMode && (
               <input type="hidden" name="pc_tablet_layout_mode" value={pcTabletLayoutModeDraft} />
             )}

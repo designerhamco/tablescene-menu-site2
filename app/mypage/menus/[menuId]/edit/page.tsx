@@ -156,6 +156,8 @@ type MenuItem = Pick<
 >;
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
+type MenuWidget = Database["public"]["Tables"]["menu_widgets"]["Row"];
+type MenuWidgetItem = Database["public"]["Tables"]["menu_widget_items"]["Row"];
 type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
 type MenuSocialLink = Database["public"]["Tables"]["menu_social_links"]["Row"];
@@ -691,6 +693,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     { data: itemsData, error: itemsError },
     { data: priceOptionsData, error: priceOptionsError },
     { data: traitsData },
+    { data: widgetsData, error: widgetsError },
     { data: chefsData },
     { data: eventsData },
     { data: socialLinksData },
@@ -727,6 +730,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       supabase
         .from("menu_item_traits")
         .select("id, menu_site_id, menu_item_id, label, value, max_value, visible, sort_order, created_at, updated_at")
+        .eq("menu_site_id", menuId)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("menu_widgets")
+        .select("id, menu_site_id, menu_page_id, widget_type, title, description, image_url, image_path, link_url, visible, sort_order, settings, created_at, updated_at")
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -790,6 +799,27 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       priceOptionsError.code === "42P01");
   const priceOptions = (isMissingPriceOptionsTable ? [] : priceOptionsData ?? []) as MenuItemPriceOption[];
   const traits = (traitsData ?? []) as MenuItemTrait[];
+  const isMissingWidgetsTable =
+    widgetsError &&
+    (widgetsError.message.toLowerCase().includes("menu_widgets") ||
+      widgetsError.message.toLowerCase().includes("does not exist") ||
+      widgetsError.code === "42P01");
+  const widgets = (isMissingWidgetsTable ? [] : widgetsData ?? []) as MenuWidget[];
+  const widgetIds = widgets.map((widget) => widget.id);
+  const { data: widgetItemsData, error: widgetItemsError } = widgetIds.length > 0
+    ? await supabase
+        .from("menu_widget_items")
+        .select("id, widget_id, title, description, value, price, price_label, image_url, image_path, link_url, visible, sort_order, settings, created_at, updated_at")
+        .in("widget_id", widgetIds)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true })
+    : { data: [], error: null };
+  const isMissingWidgetItemsTable =
+    widgetItemsError &&
+    (widgetItemsError.message.toLowerCase().includes("menu_widget_items") ||
+      widgetItemsError.message.toLowerCase().includes("does not exist") ||
+      widgetItemsError.code === "42P01");
+  const widgetItems = (isMissingWidgetItemsTable ? [] : widgetItemsData ?? []) as MenuWidgetItem[];
   const chefs = (chefsData ?? []) as MenuChef[];
   const events = (eventsData ?? []) as MenuEvent[];
   const socialLinks = (socialLinksData ?? []) as MenuSocialLink[];
@@ -1441,6 +1471,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     items={items}
                     priceOptions={priceOptions}
                     traits={traits}
+                    widgets={widgets}
+                    widgetItems={widgetItems}
                     capabilities={templateCapabilities}
                     canManagePages={editorCapabilities.canManageMenuPages}
                     supportsDisplayPageTypes={editorCapabilities.supportsDisplayPageTypes}

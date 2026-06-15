@@ -18,6 +18,8 @@ type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
+type MenuWidget = PublicMenuTemplateProps["widgets"][number];
+type MenuWidgetItem = PublicMenuTemplateProps["widgetItems"][number];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"]["Row"];
 type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
@@ -48,6 +50,8 @@ const legacyItemSelect =
   "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
 const priceOptionSelect = "id, menu_item_id, label, price, price_label, visible, sort_order";
 const traitSelect = "id, menu_item_id, label, value, max_value, visible, sort_order";
+const widgetSelect = "id, menu_site_id, menu_page_id, widget_type, title, description, image_url, image_path, link_url, visible, sort_order, settings, created_at";
+const widgetItemSelect = "id, widget_id, title, description, value, price, price_label, image_url, image_path, link_url, visible, sort_order, settings, created_at";
 const eventSelect =
   "id, event_title, event_subtitle, event_description, event_period, event_image_url, event_benefit, event_detail, event_regular_price_label, event_sale_price_label, event_price_visible, visible, sort_order";
 const chefSelect = "id, chef_name, chef_role, chef_description, chef_image_url, visible, sort_order";
@@ -333,6 +337,48 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
 
   const categories = orderBySortThenCreated((categoriesData ?? []) as MenuCategory[]);
   const categoryIds = categories.map((category) => category.id);
+  const { data: widgetsData, error: widgetsError } = pageIds.length
+    ? await supabase
+        .from("menu_widgets")
+        .select(widgetSelect)
+        .eq("menu_site_id", menuSite.id)
+        .in("menu_page_id", pageIds)
+        .eq("visible", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true })
+    : { data: [], error: null };
+
+  const isMissingWidgetsTable =
+    widgetsError &&
+    (widgetsError.message.toLowerCase().includes("menu_widgets") ||
+      widgetsError.message.toLowerCase().includes("does not exist") ||
+      widgetsError.code === "42P01");
+
+  if (widgetsError && !isMissingWidgetsTable) {
+    return null;
+  }
+
+  const widgets = isMissingWidgetsTable ? [] : orderBySortThenCreated((widgetsData ?? []) as MenuWidget[]);
+  const widgetIds = widgets.map((widget) => widget.id);
+  const { data: widgetItemsData, error: widgetItemsError } = widgetIds.length
+    ? await supabase
+        .from("menu_widget_items")
+        .select(widgetItemSelect)
+        .in("widget_id", widgetIds)
+        .eq("visible", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true })
+    : { data: [], error: null };
+
+  const isMissingWidgetItemsTable =
+    widgetItemsError &&
+    (widgetItemsError.message.toLowerCase().includes("menu_widget_items") ||
+      widgetItemsError.message.toLowerCase().includes("does not exist") ||
+      widgetItemsError.code === "42P01");
+
+  if (widgetItemsError && !isMissingWidgetItemsTable) {
+    return null;
+  }
 
   const { data: itemsData, error: itemsError } = categoryIds.length
     ? await supabase
@@ -445,6 +491,8 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     items,
     priceOptions: isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]),
     traits: (traitsData ?? []) as MenuItemTrait[],
+    widgets,
+    widgetItems: isMissingWidgetItemsTable ? [] : ((widgetItemsData ?? []) as MenuWidgetItem[]),
     events: (eventsData ?? []) as MenuPageData["events"],
     chefs: (chefsData ?? []) as MenuPageData["chefs"],
     socialLinks: (socialLinksData ?? []) as MenuPageData["socialLinks"],

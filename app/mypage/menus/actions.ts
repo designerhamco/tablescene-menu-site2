@@ -24,6 +24,14 @@ import type { EditableTranslationDraftValue, EditableTranslationEntityType, Edit
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
+import {
+  isWidgetType,
+  validateMenuWidget,
+  validateMenuWidgetItems,
+  type MenuWidgetDraft,
+  type MenuWidgetItemDraft,
+  type WidgetType,
+} from "@/lib/menu-widgets";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
@@ -69,6 +77,9 @@ type MenuItemPriceOptionInsert = Database["public"]["Tables"]["menu_item_price_o
 type MenuItemPriceOptionUpdate = Database["public"]["Tables"]["menu_item_price_options"]["Update"];
 type MenuItemTraitInsert = Database["public"]["Tables"]["menu_item_traits"]["Insert"];
 type MenuItemTraitUpdate = Database["public"]["Tables"]["menu_item_traits"]["Update"];
+type MenuWidgetInsert = Database["public"]["Tables"]["menu_widgets"]["Insert"];
+type MenuWidgetUpdate = Database["public"]["Tables"]["menu_widgets"]["Update"];
+type MenuWidgetItemInsert = Database["public"]["Tables"]["menu_widget_items"]["Insert"];
 type MenuTranslationJobUpdate = Database["public"]["Tables"]["menu_translation_jobs"]["Update"];
 type MenuSiteTranslationInsert = Database["public"]["Tables"]["menu_site_translations"]["Insert"];
 type MenuPageTranslationInsert = Database["public"]["Tables"]["menu_page_translations"]["Insert"];
@@ -4028,6 +4039,10 @@ type MenuManagementBasicItemDraft = {
   badgeTextColor?: string;
 };
 
+type MenuManagementWidgetItemDraft = MenuWidgetItemDraft;
+
+type MenuManagementWidgetDraft = MenuWidgetDraft;
+
 function parseDraftArray<T extends Record<string, unknown>>(formData: FormData, key: string): T[] {
   const rawValue = getString(formData, key);
   if (!rawValue) return [];
@@ -4109,6 +4124,100 @@ function getDisplayImagePathsToRemove(menuId: string, before: MenuPageDisplaySet
   return getDisplayImageStoragePaths(before).filter((path) => path.startsWith(sitePathPrefix) && !nextPaths.has(path));
 }
 
+function normalizeWidgetDraft(widget: MenuManagementWidgetDraft): MenuWidgetDraft {
+  const widgetType = isWidgetType(widget.widgetType) ? widget.widgetType : "notice_text";
+  return {
+    id: normalizeDraftString(widget.id),
+    isNew: widget.isNew === true,
+    menuPageId: normalizeDraftString(widget.menuPageId),
+    widgetType,
+    title: normalizeDraftString(widget.title),
+    description: normalizeDraftString(widget.description),
+    imageUrl: normalizeDraftString(widget.imageUrl) || null,
+    imagePath: normalizeDraftString(widget.imagePath) || null,
+    linkUrl: normalizeDraftString(widget.linkUrl) || null,
+    visible: widget.visible === undefined ? true : normalizeDraftBoolean(widget.visible),
+    sortOrder: normalizeDraftNumber(widget.sortOrder),
+    settings: widget.settings && typeof widget.settings === "object" && !Array.isArray(widget.settings) ? widget.settings : {},
+    items: (widget.items ?? []).map((item, index) => normalizeWidgetItemDraft(item, index)),
+  };
+}
+
+function normalizeWidgetItemDraft(item: MenuManagementWidgetItemDraft, index: number): MenuWidgetItemDraft {
+  const rawPrice = item.price;
+  const normalizedPrice =
+    typeof rawPrice === "number"
+      ? Number.isFinite(rawPrice)
+        ? rawPrice
+        : null
+      : rawPrice == null || normalizeDraftString(rawPrice) === ""
+        ? null
+        : normalizeDraftNumber(rawPrice);
+
+  return {
+    id: normalizeDraftString(item.id),
+    isNew: item.isNew === true,
+    title: normalizeDraftString(item.title),
+    description: normalizeDraftString(item.description),
+    value: normalizeDraftString(item.value),
+    price: normalizedPrice,
+    priceLabel: normalizeDraftString(item.priceLabel),
+    imageUrl: normalizeDraftString(item.imageUrl) || null,
+    imagePath: normalizeDraftString(item.imagePath) || null,
+    linkUrl: normalizeDraftString(item.linkUrl) || null,
+    visible: item.visible === undefined ? true : normalizeDraftBoolean(item.visible),
+    sortOrder: normalizeDraftNumber(item.sortOrder, index),
+    settings: item.settings && typeof item.settings === "object" && !Array.isArray(item.settings) ? item.settings : {},
+  };
+}
+
+async function syncWidgetItems(
+  supabase: SupabaseServerClient,
+  menuId: string,
+  widgetId: string,
+  widgetType: WidgetType,
+  items: MenuWidgetItemDraft[],
+  maxItems: number
+) {
+  const normalizedItems = items
+    .map((item, index) => normalizeWidgetItemDraft(item, index))
+    .filter((item) => item.title || item.description || item.value || item.price != null || item.priceLabel || item.imageUrl || item.imagePath || item.linkUrl)
+    .slice(0, maxItems);
+
+  const validation = validateMenuWidgetItems(widgetType, normalizedItems, maxItems);
+  if (!validation.ok) {
+    redirectToMenuEditWithError(menuId, validation.message);
+  }
+
+  const { error: deleteError } = await supabase.from("menu_widget_items").delete().eq("widget_id", widgetId);
+  if (deleteError) {
+    redirectToMenuEditWithError(menuId, `위젯 항목 정리에 실패했습니다: ${deleteError.message}`);
+  }
+
+  if (widgetType !== "option_list" && widgetType !== "store_info") return;
+  if (normalizedItems.length === 0) return;
+
+  const insertPayloads: MenuWidgetItemInsert[] = normalizedItems.map((item, index) => ({
+    widget_id: widgetId,
+    title: item.title,
+    description: item.description || null,
+    value: item.value || null,
+    price: item.price == null ? null : Number(item.price),
+    price_label: item.priceLabel || null,
+    image_url: item.imageUrl || null,
+    image_path: item.imagePath || null,
+    link_url: item.linkUrl || null,
+    visible: item.visible ?? true,
+    sort_order: item.sortOrder ?? index,
+    settings: item.settings ?? {},
+  }));
+
+  const { error } = await supabase.from("menu_widget_items").insert(insertPayloads);
+  if (error) {
+    redirectToMenuEditWithError(menuId, `위젯 항목 저장에 실패했습니다: ${error.message}`);
+  }
+}
+
 export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
@@ -4120,15 +4229,19 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
   let categoryDrafts = parseDraftArray<MenuManagementBasicCategoryDraft>(formData, "category_basic_drafts");
   const itemDrafts = parseDraftArray<MenuManagementBasicItemDraft>(formData, "item_basic_drafts");
+  const widgetDrafts = parseDraftArray<MenuManagementWidgetDraft>(formData, "widget_basic_drafts");
   const deletedPageIds = parseDraftStringArray(formData, "deleted_page_ids");
   const deletedCategoryIds = parseDraftStringArray(formData, "deleted_category_ids");
   const deletedItemIds = parseDraftStringArray(formData, "deleted_item_ids");
+  const deletedWidgetIds = parseDraftStringArray(formData, "deleted_widget_ids");
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(productKey, getTemplateType(menuSite.template_key));
   const menuEditorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const canManageMenuPages = menuEditorCapabilities.canManageMenuPages;
   const canConfigureDisplayPages = canManageMenuPages && menuEditorCapabilities.supportsDisplayPageTypes;
   const usesCategoryPriceOptionColumns = Boolean(templateCapabilities.categoryPriceOptionColumns && templateCapabilities.priceOptions);
+  const widgetCapabilities = templateCapabilities.widgets;
+  const widgetsEnabled = Boolean(widgetCapabilities.enabled);
   const pageManagementBlockedMessage = "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
   const pcTabletLayoutModeInput = formData.get("pc_tablet_layout_mode");
   const shouldSavePcTabletLayoutMode =
@@ -4308,6 +4421,32 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
 
     if (promotionPageCount > MENU_LIMITS.maxPromotionPagesPerSite) {
       redirectToMenuEditWithError(menuId, `프로모션 페이지는 최대 ${MENU_LIMITS.maxPromotionPagesPerSite}개까지 추가할 수 있습니다.`);
+    }
+  }
+
+  if (!widgetsEnabled && (widgetDrafts.length > 0 || deletedWidgetIds.length > 0)) {
+    redirectToMenuEditWithError(menuId, "이 템플릿에서는 위젯을 사용할 수 없습니다.");
+  }
+
+  const normalizedWidgetDrafts = widgetsEnabled ? widgetDrafts.map(normalizeWidgetDraft) : [];
+  const deletedWidgetIdSet = new Set(deletedWidgetIds);
+  const activeWidgetDrafts = normalizedWidgetDrafts.filter((widget) => widget.id && !deletedWidgetIdSet.has(widget.id));
+  const widgetCountByPageId = new Map<string, number>();
+
+  for (const widget of activeWidgetDrafts) {
+    const validation = validateMenuWidget(widget, widgetCapabilities.allowedTypes);
+    if (!validation.ok) {
+      redirectToMenuEditWithError(menuId, validation.message);
+    }
+    const itemValidation = validateMenuWidgetItems(widget.widgetType, widget.items ?? [], widgetCapabilities.maxItemsPerWidget);
+    if (!itemValidation.ok) {
+      redirectToMenuEditWithError(menuId, itemValidation.message);
+    }
+
+    const countKey = widget.menuPageId ?? "";
+    widgetCountByPageId.set(countKey, (widgetCountByPageId.get(countKey) ?? 0) + 1);
+    if ((widgetCountByPageId.get(countKey) ?? 0) > widgetCapabilities.maxWidgetsPerPage) {
+      redirectToMenuEditWithError(menuId, `한 페이지에는 위젯을 최대 ${widgetCapabilities.maxWidgetsPerPage}개까지 추가할 수 있습니다.`);
     }
   }
 
@@ -4647,6 +4786,96 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       if (removeError) {
         console.warn(`Display page image cleanup failed for ${imagePath}: ${removeError.message}`);
       }
+    }
+  }
+
+  if (widgetsEnabled) {
+    const existingWidgetIdsToDelete = deletedWidgetIds.filter((widgetId) => widgetId && !widgetId.startsWith("temp-"));
+    if (existingWidgetIdsToDelete.length > 0) {
+      const { error } = await supabase
+        .from("menu_widgets")
+        .delete()
+        .eq("menu_site_id", menuId)
+        .in("id", existingWidgetIdsToDelete);
+
+      if (error) {
+        redirectToMenuEditWithError(menuId, `위젯 draft 삭제에 실패했습니다: ${error.message}`);
+      }
+    }
+
+    const widgetIdMap = new Map<string, string>();
+    const normalizedWidgetDraftsForSave = activeWidgetDrafts
+      .map((widget) => {
+        const resolvedPageId = pageIdMap.get(widget.menuPageId ?? "") ?? widget.menuPageId ?? "";
+        return { ...widget, menuPageId: resolvedPageId };
+      })
+      .filter((widget) => {
+        if (!widget.menuPageId || deletedPageIdSet.has(widget.menuPageId)) return false;
+        return true;
+      });
+
+    for (const widget of normalizedWidgetDraftsForSave.filter((entry) => entry.isNew)) {
+      if (!widget.menuPageId) redirectToMenuEditWithError(menuId, "새 위젯을 추가할 페이지를 찾을 수 없습니다.");
+      await assertMenuPageBelongsToMenuSite(menuId, widget.menuPageId);
+
+      const payload: MenuWidgetInsert = {
+        menu_site_id: menuId,
+        menu_page_id: widget.menuPageId,
+        widget_type: widget.widgetType,
+        title: widget.title || null,
+        description: widget.description || null,
+        image_url: widget.imageUrl || null,
+        image_path: widget.imagePath || null,
+        link_url: widget.linkUrl || null,
+        visible: widget.visible ?? true,
+        sort_order: widget.sortOrder ?? 0,
+        settings: widget.settings ?? {},
+      };
+
+      const { data, error } = await supabase.from("menu_widgets").insert(payload).select("id").single();
+      if (error) {
+        redirectToMenuEditWithError(menuId, `새 위젯 draft 저장에 실패했습니다: ${error.message}`);
+      }
+      if (data?.id) {
+        widgetIdMap.set(widget.id, data.id);
+        await syncWidgetItems(supabase, menuId, data.id, widget.widgetType, widget.items ?? [], widgetCapabilities.maxItemsPerWidget);
+      }
+    }
+
+    const widgetUpdateResults = await Promise.all(
+      normalizedWidgetDraftsForSave
+        .filter((widget) => !widget.isNew && widget.id && !widget.id.startsWith("temp-"))
+        .map((widget) => {
+          const payload: MenuWidgetUpdate = {
+            menu_page_id: widget.menuPageId,
+            widget_type: widget.widgetType,
+            title: widget.title || null,
+            description: widget.description || null,
+            image_url: widget.imageUrl || null,
+            image_path: widget.imagePath || null,
+            link_url: widget.linkUrl || null,
+            visible: widget.visible ?? true,
+            sort_order: widget.sortOrder ?? 0,
+            settings: widget.settings ?? {},
+            updated_at: now,
+          };
+
+          return supabase
+            .from("menu_widgets")
+            .update(payload)
+            .eq("id", widget.id)
+            .eq("menu_site_id", menuId)
+            .select("id")
+            .maybeSingle();
+        })
+    );
+    const widgetUpdateError = widgetUpdateResults.find((result) => result.error)?.error;
+    if (widgetUpdateError) {
+      redirectToMenuEditWithError(menuId, `위젯 draft 저장에 실패했습니다: ${widgetUpdateError.message}`);
+    }
+
+    for (const widget of normalizedWidgetDraftsForSave.filter((entry) => !entry.isNew && entry.id && !entry.id.startsWith("temp-"))) {
+      await syncWidgetItems(supabase, menuId, widgetIdMap.get(widget.id) ?? widget.id, widget.widgetType, widget.items ?? [], widgetCapabilities.maxItemsPerWidget);
     }
   }
 

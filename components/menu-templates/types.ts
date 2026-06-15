@@ -110,6 +110,16 @@ export type PublicMenuSocialLink = Pick<
   "id" | "type" | "label" | "display_name" | "url" | "visible" | "sort_order"
 >;
 
+export type PublicMenuWidget = Pick<
+  Database["public"]["Tables"]["menu_widgets"]["Row"],
+  "id" | "menu_site_id" | "menu_page_id" | "widget_type" | "title" | "description" | "image_url" | "image_path" | "link_url" | "visible" | "sort_order" | "settings" | "created_at"
+>;
+
+export type PublicMenuWidgetItem = Pick<
+  Database["public"]["Tables"]["menu_widget_items"]["Row"],
+  "id" | "widget_id" | "title" | "description" | "value" | "price" | "price_label" | "image_url" | "image_path" | "link_url" | "visible" | "sort_order" | "settings" | "created_at"
+>;
+
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
   previewLayoutMode?: "orderedFit" | "balancedExperimental" | "orderedBalancedFit";
@@ -127,4 +137,6 @@ export type PublicMenuTemplateProps = {
   events: PublicMenuEvent[];
   chefs: PublicMenuChef[];
   socialLinks: PublicMenuSocialLink[];
+  widgets: PublicMenuWidget[];
+  widgetItems: PublicMenuWidgetItem[];
 };

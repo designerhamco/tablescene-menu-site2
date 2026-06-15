@@ -449,7 +449,6 @@ export type Database = {
           created_at: string
           description: string | null
           description_visible: boolean
-          display_settings: Json
           id: string
           menu_page_id: string | null
           menu_site_id: string
@@ -463,7 +462,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_visible?: boolean
-          display_settings?: Json
           id?: string
           menu_page_id?: string | null
           menu_site_id: string
@@ -477,7 +475,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_visible?: boolean
-          display_settings?: Json
           id?: string
           menu_page_id?: string | null
           menu_site_id?: string
@@ -1572,6 +1569,134 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "menu_translation_jobs_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_widget_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_path: string | null
+          image_url: string | null
+          link_url: string | null
+          price: number | null
+          price_label: string | null
+          settings: Json
+          sort_order: number
+          title: string
+          updated_at: string | null
+          value: string | null
+          visible: boolean
+          widget_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          price?: number | null
+          price_label?: string | null
+          settings?: Json
+          sort_order?: number
+          title: string
+          updated_at?: string | null
+          value?: string | null
+          visible?: boolean
+          widget_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          price?: number | null
+          price_label?: string | null
+          settings?: Json
+          sort_order?: number
+          title?: string
+          updated_at?: string | null
+          value?: string | null
+          visible?: boolean
+          widget_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_widget_items_widget_id_fkey"
+            columns: ["widget_id"]
+            isOneToOne: false
+            referencedRelation: "menu_widgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_widgets: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_path: string | null
+          image_url: string | null
+          link_url: string | null
+          menu_page_id: string
+          menu_site_id: string
+          settings: Json
+          sort_order: number
+          title: string | null
+          updated_at: string | null
+          visible: boolean
+          widget_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          menu_page_id: string
+          menu_site_id: string
+          settings?: Json
+          sort_order?: number
+          title?: string | null
+          updated_at?: string | null
+          visible?: boolean
+          widget_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          menu_page_id?: string
+          menu_site_id?: string
+          settings?: Json
+          sort_order?: number
+          title?: string | null
+          updated_at?: string | null
+          visible?: boolean
+          widget_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_widgets_menu_page_id_fkey"
+            columns: ["menu_page_id"]
+            isOneToOne: false
+            referencedRelation: "menu_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_widgets_menu_site_id_fkey"
             columns: ["menu_site_id"]
             isOneToOne: false
             referencedRelation: "menu_sites"
