@@ -295,8 +295,8 @@ async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, me
   return data?.product_key ?? null;
 }
 
-async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOptions = {}): Promise<MenuPageData | null> {
-  const supabase = await createClient();
+async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOptions = {}, client?: SupabaseServerClient): Promise<MenuPageData | null> {
+  const supabase = client ?? await createClient();
   const pageSettings = mergePageSettings(menuSite.page_settings);
   const enabledLocales = getEnabledLocales(menuSite.settings);
   const locale = getEffectiveLocale(options.locale ?? DEFAULT_LOCALE, enabledLocales);

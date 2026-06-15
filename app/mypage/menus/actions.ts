@@ -24,11 +24,7 @@ import type { EditableTranslationDraftValue, EditableTranslationEntityType, Edit
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
-import {
-  getPcTabletLayoutModeFromPageSettings,
-  normalizePcTabletLayoutMode,
-  supportsPcTabletLayoutMode,
-} from "@/lib/menu-layout-modes";
+import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
 import {
@@ -1841,6 +1837,24 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
     }
 
     featuredItemId = featuredItem?.id ?? null;
+  }
+
+  if (!featuredItemId) {
+    const { data: recommendedItem, error: recommendedItemError } = await supabase
+      .from("menu_items")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .eq("visible", true)
+      .eq("recommended", true)
+      .order("sort_order", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (recommendedItemError) {
+      redirectToTabEditWithError(menuId, "cover", `대표 추천 메뉴 확인에 실패했습니다: ${recommendedItemError.message}`);
+    }
+
+    featuredItemId = recommendedItem?.id ?? null;
   }
 
   const nextPageSettings = {
@@ -4418,10 +4432,13 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
 
   if (shouldSavePcTabletLayoutMode) {
     const nextPcTabletLayoutMode = normalizePcTabletLayoutMode(pcTabletLayoutModeInput);
-    const currentPcTabletLayoutMode = getPcTabletLayoutModeFromPageSettings(menuSite.page_settings);
+    const currentPageSettings = getJsonObject(menuSite.page_settings);
+    const currentDesignSettings = getJsonObject(currentPageSettings.design);
+    const currentRawPcTabletLayoutMode = currentDesignSettings.pcTabletLayoutMode;
+    const currentPcTabletLayoutMode = normalizePcTabletLayoutMode(currentRawPcTabletLayoutMode);
 
-    if (nextPcTabletLayoutMode !== currentPcTabletLayoutMode) {
-      const pageSettings = getJsonObject(menuSite.page_settings);
+    if (nextPcTabletLayoutMode !== currentPcTabletLayoutMode || currentRawPcTabletLayoutMode !== nextPcTabletLayoutMode) {
+      const pageSettings = currentPageSettings;
       const designSettings = getJsonObject(pageSettings.design);
       designSettings.pcTabletLayoutMode = nextPcTabletLayoutMode;
       pageSettings.design = designSettings;

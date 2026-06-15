@@ -907,8 +907,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       pageSettings.featured_item_id &&
       (!selectedFeaturedItem || selectedFeaturedItem.visible === false)
   );
-  const sampleFeaturedItem = menuManagementStarterPreset?.featured_item_name
-    ? items.find((item) => item.name === menuManagementStarterPreset.featured_item_name && item.visible !== false)
+  const sampleFeaturedItem = menuManagementStarterPreset
+    ? (
+        (menuManagementStarterPreset.featured_item_name
+          ? items.find((item) => item.name === menuManagementStarterPreset.featured_item_name && item.visible !== false)
+          : null) ??
+        items.find((item) => item.visible !== false && item.recommended === true && Boolean(item.image_url)) ??
+        items.find((item) => item.visible !== false && item.recommended === true) ??
+        null
+      )
     : null;
   const coverSampleDraft = menuManagementStarterPreset && supportsMenuCover
     ? {

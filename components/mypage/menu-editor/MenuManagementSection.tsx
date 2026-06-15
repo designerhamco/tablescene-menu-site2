@@ -253,18 +253,13 @@ const MENU_BUILDER_STATE_KEY_PREFIX = "tablescene:menu-editor:builder";
 const PC_TABLET_LAYOUT_MODE_OPTIONS = [
   {
     value: "orderedFit",
-    title: "등록순서 배치",
-    description: "등록한 순서대로 메뉴를 자연스럽게 이어서 배치합니다.",
-  },
-  {
-    value: "balanced",
-    title: "자동 균형 배치",
-    description: "카테고리 순서를 일부 조정해 열별 높이가 균형 잡히도록 배치합니다.",
+    title: "채움형 배치",
+    description: "메뉴를 등록한 순서대로 이어서 배치해 화면을 자연스럽게 채웁니다.",
   },
   {
     value: "orderedBalancedFit",
-    title: "등록순 균형 배치",
-    description: "카테고리 순서는 유지하면서, 열별 높이가 최대한 균형 잡히도록 배치합니다.",
+    title: "묶음형 자동 배치",
+    description: "카테고리와 메뉴를 한 묶음으로 유지합니다. 메뉴 수와 화면 크기에 따라 글자 크기와 간격이 자동 조정될 수 있습니다.",
   },
 ] as const satisfies readonly { value: PcTabletLayoutMode; title: string; description: string }[];
 
@@ -5494,10 +5489,10 @@ export default function MenuManagementSection({
                   <div className="min-w-0">
                     <h4 className="break-keep text-sm font-black text-zinc-950">PC/태블릿 배치 방식</h4>
                     <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                      PC와 태블릿에서 메뉴판 배치 방식을 선택합니다.
+                      PC와 태블릿에서 메뉴판이 보이는 방식을 선택합니다.
                     </p>
                     <p className="mt-1 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
-                      모바일은 등록한 순서대로 표시됩니다.
+                      모바일은 등록 순서대로 표시됩니다.
                     </p>
                   </div>
                 </div>
@@ -5525,7 +5520,7 @@ export default function MenuManagementSection({
                   })}
                 </div>
                 <p className="mt-3 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
-                  카테고리 순서가 중요하다면 ‘등록 순서 배치’를 선택해 주세요.
+                  안정적인 비율은 채움형, 카테고리 구분은 묶음형 자동 배치를 추천합니다.
                 </p>
               </section>
             )}

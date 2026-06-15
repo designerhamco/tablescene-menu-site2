@@ -79,6 +79,10 @@ type CafeDesignAFitState = {
   visibleLastColumnFillRatio: number;
   overflow: boolean;
 };
+type CafeDesignAFinalFillBoost = {
+  fontScale: number;
+  gapScale: number;
+};
 type BalancedColumn = {
   id: string;
   groups: MenuGroup[];
@@ -184,6 +188,14 @@ const FIT_FONT_SCALE_CANDIDATES = [
   0.72,
   0.68,
   0.64,
+  0.62,
+  0.6,
+  0.58,
+  0.56,
+  0.54,
+  0.5,
+  0.48,
+  0.46,
 ] as const;
 const ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES = [
   1.34,
@@ -231,6 +243,7 @@ const ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES = [
   0.78,
   0.75,
   0.72,
+  0.7,
   0.68,
   0.64,
 ] as const;
@@ -247,8 +260,36 @@ const ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS = 4;
 const ORDERED_BALANCED_DEFAULT_MAX_COLUMNS = 3;
 const ORDERED_BALANCED_GAP_IMPROVEMENT_EPSILON = 2;
 const ORDERED_BALANCED_SCALE_EPSILON = 0.005;
-const ORDERED_BALANCED_CROP_TOLERANCE = 2;
-const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.28, 1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.9, 0.85, 0.84, 0.83, 0.82, 0.8, 0.78, 0.76, 0.75, 0.72, 0.71] as const;
+const ORDERED_BALANCED_CROP_TOLERANCE = 0.5;
+const ORDERED_BALANCED_STABLE_MIN_BOTTOM_GAP = 1.5;
+const ORDERED_BALANCED_TARGET_MIN_VISIBLE_GAP = 2;
+const ORDERED_BALANCED_TARGET_VISIBLE_GAP = 4;
+const ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP = 6;
+const ORDERED_BALANCED_ORPHAN_SAFETY_GAP = 2;
+const ORDERED_BALANCED_SIMULATION_CROP_BUFFER = 1;
+const ORDERED_BALANCED_ZOOM_SIMULATION_CROP_BUFFER = 28;
+const ORDERED_BALANCED_SETTLED_SWITCH_GAP = 6;
+const ORDERED_BALANCED_SETTLED_SCALE_DELTA = 0.12;
+const ORDERED_BALANCED_SCORE_HYSTERESIS = 4;
+const ORDERED_BALANCED_VIEWPORT_BUCKET = 24;
+const ORDERED_BALANCED_SIZE_BUCKET = 8;
+const ORDERED_BALANCED_DENSE_CATEGORY_THRESHOLD = 5;
+const ORDERED_BALANCED_DENSE_ITEM_THRESHOLD = 20;
+const ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP = 12;
+const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = 2;
+const ORDERED_BALANCED_FINAL_FILL_BOOST_LEVELS = [
+  { fontScale: 1.015, gapScale: 1.01 },
+  { fontScale: 1.025, gapScale: 1.018 },
+  { fontScale: 1.04, gapScale: 1.03 },
+] as const satisfies readonly CafeDesignAFinalFillBoost[];
+const DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST: CafeDesignAFinalFillBoost = { fontScale: 1, gapScale: 1 };
+const ORDERED_FIT_BASE_MENU_VISUAL_SCALE = 0.95;
+const DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION = 1;
+const ORDERED_FIT_FINAL_FILL_COMPENSATION_LEVELS = [1.015, 1.025, 1.035, 1.045, 1.055, 1.06] as const;
+const ORDERED_FIT_FINAL_FILL_TRIGGER_GAP = 12;
+const ORDERED_FIT_FINAL_FILL_TARGET_GAP = 8;
+const ORDERED_FIT_FINAL_FILL_MIN_GAP = 2;
+const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71] as const;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
 const DEFAULT_FIT_STATE: CafeDesignAFitState = {
@@ -315,19 +356,24 @@ function getOrderedFitColumnCandidates(width: number) {
   return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxColumns).sort((a, b) => b - a);
 }
 
-function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number) {
+function isDenseOrderedBalancedMenu(groupCount: number, itemCount: number) {
+  return groupCount >= ORDERED_BALANCED_DENSE_CATEGORY_THRESHOLD || itemCount >= ORDERED_BALANCED_DENSE_ITEM_THRESHOLD;
+}
+
+function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number, itemCount: number) {
   if (groupCount <= 1) return [1];
+  if (isDenseOrderedBalancedMenu(groupCount, itemCount)) return [3];
 
   const defaultMaxColumns = Math.min(ORDERED_BALANCED_DEFAULT_MAX_COLUMNS, groupCount);
   const maxWidthColumns =
     width < 520
       ? 2
-      : width < 760
+        : width < 640
         ? 2
         : width < 1120
         ? 3
         : Math.min(defaultMaxColumns, getMaxFitColumns(width));
-  const minColumns = width >= 1760 && groupCount >= 6 ? 3 : 2;
+  const minColumns = 2;
   const maxUsefulColumns = Math.max(2, Math.min(maxWidthColumns, defaultMaxColumns));
 
   return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxUsefulColumns).sort((a, b) => b - a);
@@ -344,14 +390,18 @@ function getBalancedFitGapScale(fontScale: number, menuWidth: number) {
 }
 
 function getOrderedBalancedFitGapScale(fontScale: number, menuWidth: number) {
-  if (menuWidth < 760) return Math.max(0.68, Math.min(0.78, fontScale - 0.02));
+  if (fontScale <= 0.54) return Math.max(0.44, Math.min(0.52, fontScale + 0.02));
+  if (fontScale <= 0.62) return Math.max(0.52, Math.min(0.62, fontScale));
+  if (menuWidth < 760) {
+    if (fontScale <= 0.68) return Math.max(0.62, Math.min(0.68, fontScale));
+    return Math.max(0.68, Math.min(0.78, fontScale - 0.02));
+  }
   if (fontScale > 0.805 && fontScale <= 0.815) return 0.805;
   if (menuWidth < 1440) return Math.max(0.74, Math.min(0.825, fontScale + 0.02));
   return getFitGapScale(fontScale);
 }
 
-function getOrderedBalancedFitFontScaleCandidates(viewportWidth: number, menuWidth: number) {
-  if (viewportWidth <= 1050) return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.834 || fontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE);
+function getOrderedBalancedFitFontScaleCandidates(_viewportWidth: number, menuWidth: number) {
   if (menuWidth < 760) return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.85);
   return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES;
 }
@@ -362,16 +412,36 @@ function getOrderedFitGapScale(fontScale: number, menuWidth: number) {
   return Math.max(0.84, Math.min(0.96, fontScale - 0.16));
 }
 
-function getFitStyle(fitState: CafeDesignAFitState): CSSProperties {
+function getFitStyle(fitState: CafeDesignAFitState, menuFitState: CafeDesignAFitState = fitState): CSSProperties {
   return {
     "--fit-columns": String(fitState.columns),
     "--fit-font-scale": String(fitState.fontScale),
     "--fit-gap-scale": String(fitState.gapScale),
+    "--fit-menu-font-scale": String(menuFitState.fontScale),
+    "--fit-menu-gap-scale": String(menuFitState.gapScale),
   } as CSSProperties;
+}
+
+function areFinalFillBoostsEqual(currentBoost: CafeDesignAFinalFillBoost, nextBoost: CafeDesignAFinalFillBoost) {
+  return currentBoost.fontScale === nextBoost.fontScale && currentBoost.gapScale === nextBoost.gapScale;
+}
+
+function getBoostedFitState(fitState: CafeDesignAFitState, boost: CafeDesignAFinalFillBoost): CafeDesignAFitState {
+  if (boost.fontScale === 1 && boost.gapScale === 1) return fitState;
+
+  return {
+    ...fitState,
+    fontScale: roundFitScale(fitState.fontScale * boost.fontScale),
+    gapScale: roundFitScale(fitState.gapScale * boost.gapScale),
+  };
 }
 
 function roundFitMetric(value: number) {
   return Number.isFinite(value) ? Math.round(value * 10) / 10 : 0;
+}
+
+function roundFitScale(value: number) {
+  return Number.isFinite(value) ? Math.round(value * 1000) / 1000 : 1;
 }
 
 function roundFitRatio(value: number) {
@@ -448,11 +518,6 @@ function getOrderedBalancedCandidateKey(state: CafeDesignAFitState) {
   ].join("|");
 }
 
-function getNextOrderedBalancedSafeFontScale(currentFontScale: number) {
-  const targetFontScale = currentFontScale - 0.035;
-  return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.find((fontScale) => fontScale < currentFontScale - ORDERED_BALANCED_SCALE_EPSILON && fontScale <= targetFontScale) ?? null;
-}
-
 function getOrderedBalancedCandidateSortKey({
   score,
   state,
@@ -483,11 +548,30 @@ function isOrderedBalancedCandidateBetter({
   currentScore: number;
   currentState: CafeDesignAFitState;
 }) {
-  if (candidateScore < currentScore - 0.01) return true;
+  if (candidateScore < currentScore - ORDERED_BALANCED_SCORE_HYSTERESIS) return true;
   if (candidateScore > currentScore + 0.01) return false;
 
   return getOrderedBalancedCandidateSortKey({ score: candidateScore, state: candidateState }) <
     getOrderedBalancedCandidateSortKey({ score: currentScore, state: currentState });
+}
+
+function shouldKeepOrderedBalancedSettledCandidate(currentState: CafeDesignAFitState, nextState: CafeDesignAFitState) {
+  if (currentState.status === "idle") return false;
+  if (currentState.overflow || nextState.overflow) return false;
+  if (!currentState.orderedBalancedFingerprint || currentState.orderedBalancedFingerprint !== nextState.orderedBalancedFingerprint) return false;
+  if (currentState.visibleContentBottomGap < ORDERED_BALANCED_STABLE_MIN_BOTTOM_GAP) return false;
+  if (nextState.visibleContentBottomGap < ORDERED_BALANCED_STABLE_MIN_BOTTOM_GAP) return false;
+  if (currentState.columns !== nextState.columns) return false;
+  if (Math.abs(currentState.fontScale - nextState.fontScale) > ORDERED_BALANCED_SETTLED_SCALE_DELTA) return false;
+  if (
+    currentState.visibleContentBottomGap > ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP &&
+    nextState.visibleContentBottomGap <= ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP
+  ) {
+    return false;
+  }
+
+  const nextFillImprovement = currentState.visibleContentBottomGap - nextState.visibleContentBottomGap;
+  return nextFillImprovement < ORDERED_BALANCED_SETTLED_SWITCH_GAP;
 }
 
 function getFitGapStyle(density: MenuLayoutDensity): CSSProperties {
@@ -682,37 +766,9 @@ function getBalancedBlockMeasurements(menuElement: HTMLElement): CafeDesignABala
     .sort((a, b) => a.order - b.order || a.key.localeCompare(b.key));
 }
 
-function getOrderedBalancedSafeScale(value: number, fallback: number) {
-  return Number.isFinite(value) && value > 0 ? value : fallback;
-}
-
-function getOrderedBalancedScaledBlockMeasurements(
-  blocks: CafeDesignABalancedBlockMeasurement[],
-  currentFontScale: number,
-  currentGapScale: number,
-  nextFontScale: number,
-  nextGapScale: number,
-  menuWidth: number,
-  viewportWidth: number,
-): CafeDesignABalancedBlockMeasurement[] {
-  const fontRatio = nextFontScale / getOrderedBalancedSafeScale(currentFontScale, 1);
-  const gapRatio = nextGapScale / getOrderedBalancedSafeScale(currentGapScale, 1);
-  const contentRatio =
-    viewportWidth <= 1050
-      ? Math.max(0.42, fontRatio * 0.46 + gapRatio * 0.12 + 0.08)
-      : menuWidth < 760
-      ? Math.max(0.42, fontRatio * 0.64 + gapRatio * 0.16 + 0.06)
-      : Math.max(0.42, fontRatio * 0.78 + gapRatio * 0.22);
-
-  return blocks.map((block) => ({
-    ...block,
-    height: block.height * contentRatio,
-    visibleItemHeight: block.visibleItemHeight * contentRatio,
-    visibleTextHeight: block.visibleTextHeight * contentRatio,
-    visiblePriceHeight: block.visiblePriceHeight * contentRatio,
-    visibleContentHeight: block.visibleContentHeight * contentRatio,
-    marginBottom: block.marginBottom * gapRatio,
-  }));
+function getOrderedBalancedBucketedMetric(value: number, bucketSize: number) {
+  if (!Number.isFinite(value) || bucketSize <= 0) return 0;
+  return Math.round(value / bucketSize) * bucketSize;
 }
 
 function createBalancedSimulatedColumns(
@@ -985,9 +1041,9 @@ function getOrderedBalancedSimulatedSpreadScore(columns: CafeDesignABalancedSimu
   const targetGap = Number.isFinite(targetHeight) ? Math.max(0, (targetHeight ?? 0) - maxHeight) : 0;
   const targetGapPenalty = Number.isFinite(targetHeight)
     ? Math.max(0, maxHeight - (targetHeight ?? 0)) * 1000 +
-      Math.max(0, targetGap - 8) * 48 +
-      Math.max(0, targetGap - 14) * 96 +
-      Math.max(0, targetGap - 20) * 140
+      Math.max(0, targetGap - ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP) * 420 +
+      Math.max(0, targetGap - 14) * 720 +
+      Math.max(0, targetGap - 24) * 1100
     : 0;
   const firstColumnIsShortestPenalty =
     firstHeight <= minHeight + 1 && maxHeight - firstHeight > 40 ? 12000 + (maxHeight - firstHeight) * 42 : 0;
@@ -1005,9 +1061,9 @@ function getOrderedBalancedSimulatedSpreadScore(columns: CafeDesignABalancedSimu
     columns.length >= 3 && secondBlockCount <= 1 && secondFillRatio < 0.84
       ? 1800 + Math.max(0, 0.84 - secondFillRatio) * 2600 + Math.max(0, secondGap - 40) * 16
       : 0;
-  const lastFillPenalty = Math.max(0, 0.6 - lastFillRatio) * 960 + Math.max(0, 0.66 - lastFillRatio) * 420 + Math.max(0, lastGap - 140) * 2.2;
-  const minFillPenalty = Math.max(0, 0.64 - minFillRatio) * 1200 + Math.max(0, 0.7 - minFillRatio) * 520;
-  const fillVariancePenalty = fillVariance * 2400;
+  const lastFillPenalty = Math.max(0, 0.58 - lastFillRatio) * 520 + Math.max(0, 0.66 - lastFillRatio) * 260 + Math.max(0, lastGap - 160) * 1.2;
+  const minFillPenalty = Math.max(0, 0.58 - minFillRatio) * 720 + Math.max(0, 0.68 - minFillRatio) * 360;
+  const fillVariancePenalty = fillVariance * 1200;
   const leftRhythmPenalty = Math.max(0, secondHeight - firstHeight - 40) * 26 + Math.max(0, lastHeight - firstHeight - 70) * 14;
 
   return (
@@ -1160,6 +1216,7 @@ function getBalancedMeasurementFromColumns({
   expectedColumns,
   includeDomOverflow = true,
   cropTolerance = 1,
+  includeClippingBottom = false,
 }: {
   boardElement: HTMLElement;
   menuElement: HTMLElement;
@@ -1167,10 +1224,19 @@ function getBalancedMeasurementFromColumns({
   expectedColumns: number;
   includeDomOverflow?: boolean;
   cropTolerance?: number;
+  includeClippingBottom?: boolean;
 }): CafeDesignAFitMeasurement {
   const boardRect = boardElement.getBoundingClientRect();
   const menuRect = menuElement.getBoundingClientRect();
-  const flowHeight = menuElement.clientHeight || menuRect.height;
+  const rawFlowHeight = menuElement.clientHeight || menuRect.height;
+  const simulationCropBuffer =
+    includeClippingBottom && (window.visualViewport?.scale ?? 1) > 1.01
+      ? ORDERED_BALANCED_ZOOM_SIMULATION_CROP_BUFFER
+      : includeClippingBottom
+        ? ORDERED_BALANCED_SIMULATION_CROP_BUFFER
+        : 0;
+  const clippedFlowHeight = includeClippingBottom ? Math.max(0, getCafeAClippingBottom(boardElement, menuElement) - menuRect.top - simulationCropBuffer) : rawFlowHeight;
+  const flowHeight = includeClippingBottom ? Math.min(rawFlowHeight, clippedFlowHeight || rawFlowHeight) : rawFlowHeight;
   const safeExpectedColumns = Math.max(1, expectedColumns);
   const measuredColumns = Math.max(columns.length, safeExpectedColumns);
   const categoryColumnFillRatios = Array.from({ length: safeExpectedColumns }, (_, index) => {
@@ -1244,12 +1310,92 @@ function getBalancedMeasurementFromColumns({
   };
 }
 
+function getCafeAClippingBottom(boardElement: HTMLElement, menuElement: HTMLElement) {
+  const boardRect = boardElement.getBoundingClientRect();
+  const menuRect = menuElement.getBoundingClientRect();
+  const viewportBottom = window.visualViewport ? window.visualViewport.offsetTop + window.visualViewport.height : window.innerHeight;
+  let safeBottom = Math.min(boardRect.bottom, menuRect.bottom, viewportBottom);
+  let ancestor: HTMLElement | null = menuElement;
+  while (ancestor && ancestor !== document.body) {
+    const style = window.getComputedStyle(ancestor);
+    const clipsY = /(hidden|clip|auto|scroll)/.test(style.overflowY) || /(hidden|clip|auto|scroll)/.test(style.overflow);
+    if (clipsY) {
+      safeBottom = Math.min(safeBottom, ancestor.getBoundingClientRect().bottom);
+    }
+    if (ancestor === boardElement) break;
+    ancestor = ancestor.parentElement;
+  }
+  return safeBottom;
+}
+
+function getCafeAActualDomCropMeasurement(boardElement: HTMLElement, menuElement: HTMLElement, cropTolerance: number) {
+  const menuRect = menuElement.getBoundingClientRect();
+  const safeBottom = getCafeAClippingBottom(boardElement, menuElement);
+  const safetyGap = Math.max(cropTolerance, ORDERED_BALANCED_ORPHAN_SAFETY_GAP);
+  const visibleElements = Array.from(
+    menuElement.querySelectorAll<HTMLElement>(
+      [
+        "[data-cafe-a-category-heading]",
+        "[data-cafe-a-menu-name]",
+        "[data-cafe-a-menu-price]",
+        ".cafe-a-menu-description",
+        ".cafe-a-menu-meta",
+        ".cafe-a-menu-badge",
+        ".cafe-a-menu-chip",
+      ].join(",")
+    )
+  );
+  const visibleBottom = getVisibleElementBottom(visibleElements);
+  const bottomGap = Number.isFinite(visibleBottom) ? safeBottom - visibleBottom : menuElement.clientHeight || menuRect.height;
+  const scrollOverflow = menuElement.scrollHeight > menuElement.clientHeight + Math.max(1, cropTolerance);
+  const rectOverflow = Number.isFinite(visibleBottom) && bottomGap < -cropTolerance;
+  const categoryBlocks = Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-category-block]"));
+  let orphanCategoryHeading = false;
+
+  for (const blockElement of categoryBlocks) {
+    const headingElement = blockElement.querySelector<HTMLElement>("[data-cafe-a-category-heading]");
+    const firstItemElement = blockElement.querySelector<HTMLElement>("[data-cafe-a-item-stack]");
+    if (!headingElement || !firstItemElement) continue;
+
+    const headingRect = headingElement.getBoundingClientRect();
+    if (headingRect.width <= 0 || headingRect.height <= 0) continue;
+    const headingVisible = headingRect.bottom > menuRect.top + cropTolerance && headingRect.top < safeBottom - safetyGap;
+    if (!headingVisible) continue;
+
+    const firstItemLeafBottom = getVisibleElementBottom(
+      Array.from(
+        firstItemElement.querySelectorAll<HTMLElement>(
+          [
+            "[data-cafe-a-menu-name]",
+            "[data-cafe-a-menu-price]",
+            ".cafe-a-menu-description",
+            ".cafe-a-menu-meta",
+            ".cafe-a-menu-badge",
+            ".cafe-a-menu-chip",
+          ].join(",")
+        )
+      )
+    );
+    if (Number.isFinite(firstItemLeafBottom) && firstItemLeafBottom > safeBottom - safetyGap) {
+      orphanCategoryHeading = true;
+      break;
+    }
+  }
+
+  return {
+    bottomGap,
+    orphanCategoryHeading,
+    overflow: orphanCategoryHeading || rectOverflow || scrollOverflow,
+  };
+}
+
 function measureCafeABalancedFit(
   boardElement: HTMLElement,
   menuElement: HTMLElement,
   expectedColumns?: number,
   clampColumnHeight = true,
   cropTolerance = 1,
+  includeActualDomCrop = false,
 ): CafeDesignAFitMeasurement {
   const menuRect = menuElement.getBoundingClientRect();
   const flowHeight = menuElement.clientHeight || menuRect.height;
@@ -1283,13 +1429,34 @@ function measureCafeABalancedFit(
     };
   });
 
-  return getBalancedMeasurementFromColumns({
+  const measurement = getBalancedMeasurementFromColumns({
     boardElement,
     menuElement,
     columns: simulatedColumns,
     expectedColumns: Math.max(1, expectedColumns ?? columnElements.length),
     cropTolerance,
+    includeClippingBottom: includeActualDomCrop,
   });
+
+  if (!includeActualDomCrop) return measurement;
+
+  const actualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
+  if (!actualCropMeasurement.overflow) return measurement;
+
+  const actualBottomGap = roundFitMetric(actualCropMeasurement.bottomGap);
+
+  return {
+    ...measurement,
+    bottomGap: Math.min(measurement.bottomGap, actualBottomGap),
+    contentGap: Math.max(0, Math.min(measurement.contentGap, actualBottomGap)),
+    itemBoxGap: Math.max(0, Math.min(measurement.itemBoxGap, actualBottomGap)),
+    textVisualGap: Math.max(0, Math.min(measurement.textVisualGap, actualBottomGap)),
+    visibleItemBottomGap: actualBottomGap,
+    visibleTextBottomGap: actualBottomGap,
+    visiblePriceBottomGap: actualBottomGap,
+    visibleContentBottomGap: actualBottomGap,
+    overflow: true,
+  };
 }
 
 function getDisplayName(site: PublicMenuTemplateProps["menuSite"]) {
@@ -1342,22 +1509,48 @@ function formatPriceOption(option: PriceOption) {
   return "";
 }
 
-function getItemPriceDisplay(item: MenuItem, priceOptions: PublicMenuTemplateProps["priceOptions"], capabilities: TemplateCapabilities) {
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stripFeaturedPriceOptionLabel(price: string, label?: string | null) {
+  const trimmedPrice = price.trim();
+  const trimmedLabel = label?.trim();
+  if (trimmedLabel) {
+    return trimmedPrice.replace(new RegExp(`^${escapeRegExp(trimmedLabel)}[\\s:·/-]+`, "i"), "").trim();
+  }
+
+  return trimmedPrice.replace(/^(HOT|ICE)[\s:·/-]+/i, "").trim();
+}
+
+function getItemPriceDisplay(
+  item: MenuItem,
+  priceOptions: PublicMenuTemplateProps["priceOptions"],
+  capabilities: TemplateCapabilities,
+  options: { showOptionLabel?: boolean; dedupeSamePrices?: boolean } = {},
+) {
   if (item.price_visible === false) return null;
 
+  const showOptionLabel = options.showOptionLabel ?? true;
+  const dedupeSamePrices = options.dedupeSamePrices ?? false;
   const maxOptions = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
   const visibleOptions = capabilities.priceOptions ? getItemPriceOptions(priceOptions, item.id, maxOptions) : [];
   if (visibleOptions.length > 0) {
-    return visibleOptions
+    const optionPrices = visibleOptions
       .map((option) => {
         const optionPrice = formatPriceOption(option);
-        return optionPrice ? `${option.label} ${optionPrice}` : option.label;
+        if (showOptionLabel) return optionPrice ? `${option.label} ${optionPrice}` : option.label;
+        return optionPrice ? stripFeaturedPriceOptionLabel(optionPrice, option.label) : "";
       })
-      .filter(Boolean)
-      .join(" / ");
+      .filter(Boolean);
+    const displayPrices = dedupeSamePrices ? Array.from(new Set(optionPrices)) : optionPrices;
+
+    return displayPrices.join(" / ");
   }
 
-  if (item.price_label?.trim()) return item.price_label.trim();
+  if (item.price_label?.trim()) {
+    return showOptionLabel ? item.price_label.trim() : stripFeaturedPriceOptionLabel(item.price_label);
+  }
 
   return formatMenuPrice(item);
 }
@@ -1368,12 +1561,45 @@ function getItemPriceTokens(item: MenuItem, priceOptions: PublicMenuTemplateProp
   const maxOptions = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
   const visibleOptions = capabilities.priceOptions ? getItemPriceOptions(priceOptions, item.id, maxOptions) : [];
   if (visibleOptions.length > 0) {
-    return visibleOptions
+    const optionTokens = visibleOptions
       .map((option) => ({
-        label: option.label,
+        label: option.label.trim(),
+        normalizedLabel: option.label.trim().toUpperCase(),
         price: formatPriceOption(option),
       }))
       .filter((token) => token.label || token.price);
+
+    if (optionTokens.length === 1) {
+      const [token] = optionTokens;
+      const isTemperatureOption = token.normalizedLabel === "HOT" || token.normalizedLabel === "ICE";
+      return [
+        {
+          label: isTemperatureOption ? `${token.normalizedLabel} ONLY` : token.label,
+          price: token.price,
+        },
+      ].filter((priceToken) => priceToken.label || priceToken.price);
+    }
+
+    const hotToken = optionTokens.find((token) => token.normalizedLabel === "HOT");
+    const iceToken = optionTokens.find((token) => token.normalizedLabel === "ICE");
+    if (hotToken && iceToken && hotToken.price && hotToken.price === iceToken.price) {
+      const otherTokens = optionTokens.filter((token) => token.normalizedLabel !== "HOT" && token.normalizedLabel !== "ICE");
+      return [
+        {
+          label: "HOT/ICE",
+          price: hotToken.price,
+        },
+        ...otherTokens.map((token) => ({
+          label: token.label,
+          price: token.price,
+        })),
+      ].filter((token) => token.label || token.price);
+    }
+
+    return optionTokens.map((token) => ({
+      label: token.label,
+      price: token.price,
+    }));
   }
 
   const price = item.price_label?.trim() || formatMenuPrice(item);
@@ -1388,13 +1614,19 @@ function getItemPriceTokens(item: MenuItem, priceOptions: PublicMenuTemplateProp
 }
 
 function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
-  if (!data.pageSettings.featured_item_enabled || !data.pageSettings.featured_item_id) return null;
+  if (!data.pageSettings.featured_item_enabled) return null;
   if (!capabilities.featuredItemHero) return null;
 
-  const featuredItem = data.items.find((item) => item.id === data.pageSettings.featured_item_id);
-  if (!featuredItem || featuredItem.visible === false) return null;
+  const featuredItem = data.pageSettings.featured_item_id
+    ? data.items.find((item) => item.id === data.pageSettings.featured_item_id)
+    : null;
+  if (featuredItem && featuredItem.visible !== false) return featuredItem;
 
-  return featuredItem;
+  return (
+    data.items.find((item) => item.visible !== false && item.recommended === true && Boolean(item.image_url)) ??
+    data.items.find((item) => item.visible !== false && item.recommended === true) ??
+    null
+  );
 }
 
 function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[] {
@@ -1803,7 +2035,9 @@ function CoverHero({
   density: MenuLayoutDensity;
   desktopClassName?: string;
 }) {
-  const price = featuredItem ? getItemPriceDisplay(featuredItem, data.priceOptions, capabilities) : null;
+  const price = featuredItem
+    ? getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true })
+    : null;
   const coverImageUrl = data.menuSite.cover_image_url;
   const heroMinHeightClassName = {
     spacious: "min-h-[400px]",
@@ -1822,10 +2056,10 @@ function CoverHero({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
         {featuredItem && (
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
+          <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
             <div className="min-w-0">
-              <div className="mb-2 flex flex-wrap gap-2">
-                <span className="menu-badge cafe-a-menu-badge inline-flex rounded-none bg-[#00342b] px-1.5 py-1 font-black uppercase leading-none text-white">대표 추천</span>
+              <div className="cafe-a-featured-badges mb-2 flex flex-wrap gap-2">
+                <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none bg-[#00342b] px-1.5 py-1 font-black uppercase leading-none text-white">대표 추천</span>
                 <Badge
                   item={featuredItem}
                   capabilities={capabilities}
@@ -1833,10 +2067,14 @@ function CoverHero({
                   customBadgeStyles={customBadgeStyles}
                 />
               </div>
-              <h2 className="break-words text-2xl font-bold leading-tight">{featuredItem.name}</h2>
-              {featuredItem.description && <p className="mt-2 line-clamp-2 break-keep text-xs font-semibold leading-relaxed text-white/82">{featuredItem.description}</p>}
+              <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
+              {featuredItem.description && (
+                <p className="cafe-a-featured-description mt-2 line-clamp-2 break-keep font-semibold leading-relaxed text-white/82" data-cafe-a-featured-description="">
+                  {featuredItem.description}
+                </p>
+              )}
             </div>
-            {price && <p className="menu-price shrink-0 whitespace-nowrap text-xl font-black leading-none">{price}</p>}
+            {price && <p className="menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none" data-cafe-a-featured-price="">{price}</p>}
           </div>
         )}
       </div>
@@ -1853,8 +2091,8 @@ function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; 
     <header className={`w-full shrink-0 border-b border-[#191c1b] px-[clamp(24px,4vw,96px)] py-8 lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
       <div className="flex min-w-0 items-start justify-between gap-[clamp(16px,2vw,32px)]">
         <div className="min-w-0 max-w-5xl">
-          <h1 className="break-words text-5xl font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]">{title}</h1>
-          {description && <p className="mt-2 break-keep text-[11px] font-normal leading-[1.5] text-[#3f4945]">{description}</p>}
+          <h1 className="cafe-a-store-title break-words font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]" data-cafe-a-store-title="">{title}</h1>
+          {description && <p className="cafe-a-store-description mt-2 break-keep font-normal leading-[1.5] text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
         </div>
         <div className="menu-font-en group relative shrink-0 cursor-default text-right text-[#191c1b]">
           <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
@@ -1879,12 +2117,12 @@ function DesktopFixedRail({
     <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col">
       <div className="cafe-a-fixed-rail-copy min-w-0">
         <div className="flex min-w-0 items-start justify-between gap-3">
-          <h1 className="cafe-a-rail-title break-words font-black uppercase leading-[0.96] text-[#191c1b]">{title}</h1>
+          <h1 className="cafe-a-store-title cafe-a-rail-title break-words font-black uppercase leading-[0.96] text-[#191c1b]" data-cafe-a-store-title="">{title}</h1>
           <div className="menu-font-en shrink-0 text-right text-[#191c1b]">
             <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
           </div>
         </div>
-        {description && <p className="cafe-a-rail-description mt-3 break-keep font-normal leading-[1.55] text-[#3f4945]">{description}</p>}
+        {description && <p className="cafe-a-store-description cafe-a-rail-description mt-3 break-keep font-normal leading-[1.55] text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
       </div>
       {children}
     </aside>
@@ -2124,6 +2362,7 @@ function OrderedBalancedFitMenuGrid({
               </section>
             );
           })}
+          <span aria-hidden="true" className="block h-px w-px opacity-0" data-cafe-a-column-sentinel="" />
         </div>
       ))}
     </section>
@@ -2156,10 +2395,15 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const [fitState, setFitState] = useState<CafeDesignAFitState>(DEFAULT_FIT_STATE);
   const [orderedBalancedInitialColumns, setOrderedBalancedInitialColumns] = useState(2);
   const [orderedBalancedFitRevision, setOrderedBalancedFitRevision] = useState(0);
+  const [orderedBalancedValidationRevision, setOrderedBalancedValidationRevision] = useState(0);
+  const [orderedBalancedFinalFillBoost, setOrderedBalancedFinalFillBoost] = useState<CafeDesignAFinalFillBoost>(DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST);
+  const [orderedFitFinalFillCompensation, setOrderedFitFinalFillCompensation] = useState(DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION);
   const fitStateRef = useRef<CafeDesignAFitState>(DEFAULT_FIT_STATE);
   const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
   const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
+  const orderedBalancedRejectedColumnRef = useRef<Set<string>>(new Set());
   const visibleItemCount = data.items.filter((item) => item.visible !== false).length;
+  const isDenseOrderedBalanced = isDenseOrderedBalancedMenu(visibleMenuGroupCount, visibleItemCount);
   const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
   const hasCoverSection =
@@ -2173,15 +2417,30 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings);
-  const renderFitState = useMemo<CafeDesignAFitState>(() => {
+  const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
     if (layoutMode !== "orderedBalancedFit" || fitState.orderedBalancedFingerprint) return fitState;
 
     return {
       ...fitState,
-      columns: Math.max(1, Math.min(orderedBalancedInitialColumns, visibleMenuGroupCount || orderedBalancedInitialColumns)),
+      columns: isDenseOrderedBalanced
+        ? 3
+        : Math.max(1, Math.min(orderedBalancedInitialColumns, visibleMenuGroupCount || orderedBalancedInitialColumns)),
     };
-  }, [fitState, layoutMode, orderedBalancedInitialColumns, visibleMenuGroupCount]);
-  const fitStyle = useMemo(() => getFitStyle(renderFitState), [renderFitState]);
+  }, [fitState, isDenseOrderedBalanced, layoutMode, orderedBalancedInitialColumns, visibleMenuGroupCount]);
+  const renderFitState = useMemo<CafeDesignAFitState>(
+    () => (layoutMode === "orderedBalancedFit" ? getBoostedFitState(baseRenderFitState, orderedBalancedFinalFillBoost) : baseRenderFitState),
+    [baseRenderFitState, layoutMode, orderedBalancedFinalFillBoost],
+  );
+  const fitStyle = useMemo(() => getFitStyle(baseRenderFitState, renderFitState), [baseRenderFitState, renderFitState]);
+  const orderedFitFillStyle = useMemo<CSSProperties>(
+    () =>
+      layoutMode === "orderedFit"
+        ? ({
+            "--ordered-fit-final-fill-compensation": String(orderedFitFinalFillCompensation),
+          } as CSSProperties)
+        : {},
+    [layoutMode, orderedFitFinalFillCompensation],
+  );
   const fitGapStyle = useMemo(() => getFitGapStyle(density), [density]);
   const orderedBalancedPriceOptionSignature = useMemo(
     () =>
@@ -2195,7 +2454,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
 
   useEffect(() => {
     fitStateRef.current = fitState;
-  }, [fitState]);
+  }, [fitState, layoutMode]);
 
   useLayoutEffect(() => {
     if (layoutMode !== "orderedBalancedFit") return;
@@ -2205,7 +2464,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
 
     const syncInitialColumns = () => {
       const measuredWidth = menuElement.clientWidth || boardElement.clientWidth;
-      const nextColumns = measuredWidth >= 1100 ? 3 : 2;
+      const nextColumns = isDenseOrderedBalanced ? 3 : measuredWidth >= 1100 ? 3 : 2;
       setOrderedBalancedInitialColumns((currentColumns) => (currentColumns === nextColumns ? currentColumns : nextColumns));
     };
 
@@ -2217,7 +2476,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [layoutMode]);
+  }, [isDenseOrderedBalanced, layoutMode]);
 
   useEffect(() => {
     const boardElement = desktopFitBoardRef.current;
@@ -2245,18 +2504,27 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     }
 
     function applyFitCandidate(columns: number, fontScale: number) {
+      const gapScale =
+        layoutMode === "orderedFit"
+          ? getOrderedFitGapScale(fontScale, fitMenuElement.clientWidth)
+          : layoutMode === "orderedBalancedFit"
+            ? getOrderedBalancedFitGapScale(fontScale, fitMenuElement.clientWidth)
+            : getBalancedFitGapScale(fontScale, fitMenuElement.clientWidth);
+
       fitBoardElement.style.setProperty("--fit-columns", String(columns));
       fitBoardElement.style.setProperty("--fit-font-scale", String(fontScale));
-      fitBoardElement.style.setProperty(
-        "--fit-gap-scale",
-        String(
-          layoutMode === "orderedFit"
-            ? getOrderedFitGapScale(fontScale, fitMenuElement.clientWidth)
-            : layoutMode === "orderedBalancedFit"
-              ? getOrderedBalancedFitGapScale(fontScale, fitMenuElement.clientWidth)
-              : getBalancedFitGapScale(fontScale, fitMenuElement.clientWidth)
-        )
-      );
+      fitBoardElement.style.setProperty("--fit-gap-scale", String(gapScale));
+      fitBoardElement.style.setProperty("--fit-menu-font-scale", String(fontScale));
+      fitBoardElement.style.setProperty("--fit-menu-gap-scale", String(gapScale));
+      if (layoutMode === "orderedFit") {
+        fitBoardElement.style.setProperty("--ordered-fit-menu-visual-scale", "1");
+        fitBoardElement.style.setProperty("--ordered-fit-final-fill-compensation", "1");
+        fitBoardElement.style.setProperty("--ordered-fit-item-rhythm-scale", "1");
+        fitBoardElement.style.setProperty("--ordered-fit-category-rhythm-scale", "1");
+        fitBoardElement.style.setProperty("--ordered-fit-text-rhythm-scale", "1");
+      } else if (layoutMode === "orderedBalancedFit") {
+        fitBoardElement.style.setProperty("--ordered-balanced-menu-visual-scale", "1");
+      }
     }
 
     function getFitStateFromMeasurement(
@@ -2542,34 +2810,40 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       if (measurement.measuredColumns === 0) return Number.POSITIVE_INFINITY;
 
       const columnFillMetrics = getOrderedBalancedColumnFillMetrics(simulatedColumns, measurement.flowHeight);
+      const longestVisibleGap = measurement.visibleContentBottomGap;
       const tightGapPenalty =
-        measurement.visibleContentBottomGap < BALANCED_TARGET_MIN_GAP
-          ? (BALANCED_TARGET_MIN_GAP - measurement.visibleContentBottomGap) * 240
+        longestVisibleGap < ORDERED_BALANCED_TARGET_MIN_VISIBLE_GAP
+          ? (ORDERED_BALANCED_TARGET_MIN_VISIBLE_GAP - longestVisibleGap) * 1800
           : 0;
-      const visibleItemGapPenalty = Math.max(0, measurement.visibleItemBottomGap - 8) * 74;
-      const visibleContentGapPenalty = Math.max(0, measurement.visibleContentBottomGap - 10) * 62;
-      const looseVisibleGapPenalty =
-        Math.max(0, measurement.visibleContentBottomGap - 16) * 120 +
-        Math.max(0, measurement.visibleContentBottomGap - 20) * 180;
-      const textGapPenalty = Math.max(0, measurement.visibleTextBottomGap - 14) * 32;
-      const priceGapPenalty = Math.max(0, measurement.visiblePriceBottomGap - 18) * 18;
-      const averageFillPenalty = Math.max(0, 0.84 - measurement.visibleAverageFillRatio) * 760;
-      const minFillPenalty = Math.max(0, 0.7 - measurement.visibleMinFillRatio) * 1250;
+      const targetGapPenalty =
+        longestVisibleGap > ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP
+          ? Math.max(0, longestVisibleGap - ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP) * 980 +
+            Math.max(0, longestVisibleGap - 12) * 2200 +
+            Math.max(0, longestVisibleGap - 24) * 3200
+          : Math.abs(longestVisibleGap - ORDERED_BALANCED_TARGET_VISIBLE_GAP) * 36;
+      const itemGapPenalty = Math.max(0, measurement.visibleItemBottomGap - ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP) * 240;
+      const textGapPenalty = Math.max(0, measurement.visibleTextBottomGap - 10) * 120;
+      const priceGapPenalty = Math.max(0, measurement.visiblePriceBottomGap - 12) * 90;
+      const averageFillPenalty = Math.max(0, 0.88 - measurement.visibleAverageFillRatio) * 1650;
+      const minFillPenalty =
+        Math.max(0, 0.72 - measurement.visibleMinFillRatio) * 2400 +
+        Math.max(0, 0.52 - measurement.visibleMinFillRatio) * 12000 +
+        Math.max(0, 0.34 - measurement.visibleMinFillRatio) * 24000;
       const firstColumnFillPenalty =
-        Math.max(0, 0.8 - measurement.primaryFillRatio) * 3600 +
-        Math.max(0, 0.88 - measurement.primaryFillRatio) * 1200 +
-        Math.max(0, measurement.primaryBottomGap - 40) * 20;
+        Math.max(0, 0.82 - measurement.primaryFillRatio) * 3600 +
+        Math.max(0, 0.9 - measurement.primaryFillRatio) * 1400 +
+        Math.max(0, measurement.primaryBottomGap - 28) * 26;
       const secondColumnFillPenalty =
         columns >= 3
-          ? Math.max(0, 0.72 - columnFillMetrics.secondFillRatio) * 3800 +
-            Math.max(0, 0.78 - columnFillMetrics.secondFillRatio) * 1500 +
-            Math.max(0, columnFillMetrics.secondGap - 40) * 14 +
-            Math.max(0, columnFillMetrics.secondGap - 60) * 26
-          : Math.max(0, 0.68 - columnFillMetrics.secondFillRatio) * 900 + Math.max(0, columnFillMetrics.secondGap - 120) * 4;
+          ? Math.max(0, 0.74 - columnFillMetrics.secondFillRatio) * 4200 +
+            Math.max(0, 0.82 - columnFillMetrics.secondFillRatio) * 1900 +
+            Math.max(0, columnFillMetrics.secondGap - 32) * 20 +
+            Math.max(0, columnFillMetrics.secondGap - 56) * 34
+          : Math.max(0, 0.74 - columnFillMetrics.secondFillRatio) * 1350 + Math.max(0, columnFillMetrics.secondGap - 96) * 8;
       const firstColumnIsShortestPenalty =
         columnFillMetrics.firstHeight <= columnFillMetrics.minHeight + 1 &&
         columnFillMetrics.maxHeight - columnFillMetrics.firstHeight > 40
-          ? 12000 + (columnFillMetrics.maxHeight - columnFillMetrics.firstHeight) * 42
+          ? 14000 + (columnFillMetrics.maxHeight - columnFillMetrics.firstHeight) * 48
           : 0;
       const leftRhythmPenalty =
         Math.max(0, columnFillMetrics.secondHeight - columnFillMetrics.firstHeight - 40) * 26 +
@@ -2578,22 +2852,27 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
         columns >= 3 && columnFillMetrics.secondBlockCount <= 1 && columnFillMetrics.secondFillRatio < 0.84
           ? 1900 + Math.max(0, 0.84 - columnFillMetrics.secondFillRatio) * 2600 + Math.max(0, columnFillMetrics.secondGap - 40) * 18
           : 0;
-      const fillVariancePenalty = columnFillMetrics.fillVariance * 2600;
-      const lastColumnPenalty = Math.max(0, 0.72 - measurement.visibleLastColumnFillRatio) * 980;
-      const veryShortLastColumnPenalty = Math.max(0, 0.56 - measurement.visibleLastColumnFillRatio) * 1900;
+      const fillVariancePenalty = columnFillMetrics.fillVariance * 3600;
+      const lastColumnPenalty =
+        Math.max(0, 0.76 - measurement.visibleLastColumnFillRatio) * 2200 +
+        Math.max(0, 0.52 - measurement.visibleLastColumnFillRatio) * 12000;
+      const veryShortLastColumnPenalty =
+        Math.max(0, 0.62 - measurement.visibleLastColumnFillRatio) * 6000 +
+        Math.max(0, 0.4 - measurement.visibleLastColumnFillRatio) * 5000;
       const emptyColumnPenalty = Math.max(0, columns - measurement.measuredColumns) * 420;
       const sparseColumnPenalty = Math.max(0, 1.6 - blockCount / columns) * 120;
-      const excessiveColumnPenalty = Math.max(0, columns - 4) * 80 + columns * 1.8;
+      const excessiveColumnPenalty = Math.max(0, columns - 3) * 120 + columns * 1.4;
       const tinyTextPenalty = Math.max(0, ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE - fontScale) * 2200;
-      const readableTextPenalty = Math.max(0, 0.88 - fontScale) * 420;
-      const qualityTextPenalty = Math.max(0, 0.98 - fontScale) * 80;
+      const readableTextPenalty = Math.max(0, 0.84 - fontScale) * 360;
+      const qualityTextPenalty = Math.max(0, 0.92 - fontScale) * 70;
       const veryLargeTextPenalty = Math.max(0, fontScale - 1.24) * 24;
+      const gapScale = getOrderedBalancedFitGapScale(fontScale, fitMenuElement.clientWidth);
+      const crampedGapPenalty = Math.max(0, 0.64 - gapScale) * 1200;
 
       return (
         tightGapPenalty +
-        visibleItemGapPenalty +
-        visibleContentGapPenalty +
-        looseVisibleGapPenalty +
+        targetGapPenalty +
+        itemGapPenalty +
         textGapPenalty +
         priceGapPenalty +
         averageFillPenalty +
@@ -2612,13 +2891,19 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
         tinyTextPenalty +
         readableTextPenalty +
         qualityTextPenalty +
-        veryLargeTextPenalty
+        veryLargeTextPenalty +
+        crampedGapPenalty
       );
     }
 
-    function getOrderedBalancedFallbackScore(columns: number, fontScale: number, measurement: CafeDesignAFitMeasurement, blockCount: number) {
+    function getOrderedBalancedFallbackScore(
+      columns: number,
+      fontScale: number,
+      measurement: CafeDesignAFitMeasurement,
+      blockCount: number,
+    ) {
       const overflowPenalty = measurement.overflow ? 100000 + Math.abs(Math.min(0, measurement.visibleContentBottomGap)) * 500 : 0;
-      const visibleGapPenalty = Math.max(0, measurement.visibleContentBottomGap - 12) * 58;
+      const visibleGapPenalty = Math.max(0, measurement.visibleContentBottomGap - 12) * 72;
       const readableTextPenalty = Math.max(0, ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE - fontScale) * 650;
       const lastColumnPenalty = Math.max(0, 0.62 - measurement.visibleLastColumnFillRatio) * 260;
       const sparseColumnPenalty = Math.max(0, 1.6 - blockCount / columns) * 80;
@@ -2631,14 +2916,19 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       const categorySignature = blockMeasurements.map((block) => block.key).join(",");
       const boardRect = fitBoardElement.getBoundingClientRect();
       const menuRect = fitMenuElement.getBoundingClientRect();
+      const visualViewport = window.visualViewport;
 
       return [
         layoutMode,
-        Math.round(window.innerWidth),
-        Math.round(window.innerHeight),
-        Math.round(boardRect.width),
-        Math.round(boardRect.height),
-        Math.round(menuRect.width),
+        getOrderedBalancedBucketedMetric(window.innerWidth, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(window.innerHeight, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(visualViewport?.width ?? window.innerWidth, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(visualViewport?.height ?? window.innerHeight, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        Math.round((window.devicePixelRatio || 1) * 20) / 20,
+        Math.round((visualViewport?.scale ?? 1) * 20) / 20,
+        getOrderedBalancedBucketedMetric(boardRect.width, ORDERED_BALANCED_SIZE_BUCKET),
+        getOrderedBalancedBucketedMetric(boardRect.height, ORDERED_BALANCED_SIZE_BUCKET),
+        getOrderedBalancedBucketedMetric(menuRect.width, ORDERED_BALANCED_SIZE_BUCKET),
         density,
         visibleItemCount,
         visibleMenuGroupCount,
@@ -2648,38 +2938,86 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       ].join("|");
     }
 
+    function getOrderedBalancedViewportColumnRejectKey(columns: number) {
+      const boardRect = fitBoardElement.getBoundingClientRect();
+      const menuRect = fitMenuElement.getBoundingClientRect();
+      const visualViewport = window.visualViewport;
+
+      return [
+        "viewport",
+        layoutMode,
+        getOrderedBalancedBucketedMetric(window.innerWidth, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(window.innerHeight, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(visualViewport?.width ?? window.innerWidth, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(visualViewport?.height ?? window.innerHeight, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        Math.round((window.devicePixelRatio || 1) * 20) / 20,
+        Math.round((visualViewport?.scale ?? 1) * 20) / 20,
+        getOrderedBalancedBucketedMetric(boardRect.width, ORDERED_BALANCED_SIZE_BUCKET),
+        getOrderedBalancedBucketedMetric(boardRect.height, ORDERED_BALANCED_SIZE_BUCKET),
+        getOrderedBalancedBucketedMetric(menuRect.width, ORDERED_BALANCED_SIZE_BUCKET),
+        density,
+        visibleItemCount,
+        visibleMenuGroupCount,
+        `columns:${columns}`,
+      ].join("|");
+    }
+
+    function getOrderedBalancedColumnRejectKeys(orderedBalancedFingerprint: string, columns: number) {
+      const keys = [getOrderedBalancedViewportColumnRejectKey(columns)];
+      if (orderedBalancedFingerprint) keys.push(`${orderedBalancedFingerprint}|columns:${columns}`);
+      return keys;
+    }
+
+    function isOrderedBalancedColumnRejected(orderedBalancedFingerprint: string, columns: number) {
+      return getOrderedBalancedColumnRejectKeys(orderedBalancedFingerprint, columns).some((key) =>
+        orderedBalancedRejectedColumnRef.current.has(key)
+      );
+    }
+
+    function getOrderedBalancedEffectiveColumnCandidates(columnCandidates: number[], orderedBalancedFingerprint: string) {
+      const rejectedTwoColumns = isOrderedBalancedColumnRejected(orderedBalancedFingerprint, 2);
+      const candidates = columnCandidates.filter((columns) => !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, columns));
+      if (rejectedTwoColumns && visibleMenuGroupCount >= 3 && !candidates.includes(3) && !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, 3)) {
+        return [3, ...candidates];
+      }
+      return candidates;
+    }
+
     function getOrderedBalancedFitState(columnCandidates: number[]) {
       let selectedState: CafeDesignAFitState | null = null;
       let selectedScore = Number.POSITIVE_INFINITY;
       let fallbackState: CafeDesignAFitState | null = null;
       let fallbackScore = Number.POSITIVE_INFINITY;
+
       const baseBlockMeasurements = getBalancedBlockMeasurements(fitMenuElement);
       if (baseBlockMeasurements.length === 0) return null;
 
       const orderedBalancedFingerprint = getOrderedBalancedFingerprint(baseBlockMeasurements);
       const cachedState = orderedBalancedFitCacheRef.current.get(orderedBalancedFingerprint);
-      if (cachedState && !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(cachedState))) return cachedState;
+      if (
+        cachedState &&
+        !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(cachedState)) &&
+        !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, cachedState.columns)
+      ) {
+        return cachedState;
+      }
+      const effectiveColumnCandidates = getOrderedBalancedEffectiveColumnCandidates(columnCandidates, orderedBalancedFingerprint);
 
-      const currentFontScale = Number.parseFloat(fitBoardElement.style.getPropertyValue("--fit-font-scale")) || fitStateRef.current.fontScale || 1;
-      const currentGapScale = Number.parseFloat(fitBoardElement.style.getPropertyValue("--fit-gap-scale")) || fitStateRef.current.gapScale || 1;
       const menuWidth = fitMenuElement.clientWidth;
       const viewportWidth = window.innerWidth;
-      const targetHeight = fitMenuElement.clientWidth >= 760 ? fitMenuElement.clientHeight : undefined;
+      const clippingTargetHeight =
+        fitMenuElement.clientWidth >= 760
+          ? Math.min(fitMenuElement.clientHeight, Math.max(0, getCafeAClippingBottom(fitBoardElement, fitMenuElement) - fitMenuElement.getBoundingClientRect().top))
+          : undefined;
+      const targetHeight = clippingTargetHeight && clippingTargetHeight > 0 ? clippingTargetHeight : fitMenuElement.clientWidth >= 760 ? fitMenuElement.clientHeight : undefined;
       const fitsWidth = fitMenuElement.scrollWidth <= fitMenuElement.clientWidth + 1;
       const fontScaleCandidates = getOrderedBalancedFitFontScaleCandidates(viewportWidth, menuWidth);
 
-      for (const columns of columnCandidates) {
+      for (const columns of effectiveColumnCandidates) {
+        if (isOrderedBalancedColumnRejected(orderedBalancedFingerprint, columns)) continue;
         for (const fontScale of fontScaleCandidates) {
-          const gapScale = getOrderedBalancedFitGapScale(fontScale, menuWidth);
-          const blockMeasurements = getOrderedBalancedScaledBlockMeasurements(
-            baseBlockMeasurements,
-            currentFontScale,
-            currentGapScale,
-            fontScale,
-            gapScale,
-            menuWidth,
-            viewportWidth,
-          );
+          applyFitCandidate(columns, fontScale);
+          const blockMeasurements = getBalancedBlockMeasurements(fitMenuElement);
           const simulatedColumns = getOrderedBalancedContiguousColumns(blockMeasurements, columns, targetHeight);
           const orderedBalancedBreaks = getOrderedBalancedBreaksFromColumns(simulatedColumns);
           const measurement = getBalancedMeasurementFromColumns({
@@ -2689,6 +3027,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             expectedColumns: columns,
             includeDomOverflow: false,
             cropTolerance: ORDERED_BALANCED_CROP_TOLERANCE,
+            includeClippingBottom: true,
           });
           const candidateState = getFitStateFromMeasurement(
             columns,
@@ -2699,12 +3038,12 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             orderedBalancedBreaks,
             orderedBalancedFingerprint,
           );
-          if (orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(candidateState))) continue;
+          if (columns !== 2 && orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(candidateState))) continue;
           const nextFallbackScore = getOrderedBalancedFallbackScore(columns, fontScale, measurement, baseBlockMeasurements.length);
 
           if (
             fitsWidth &&
-            (fontScale >= ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE || !fallbackState) &&
+            !measurement.overflow &&
             (!fallbackState ||
               isOrderedBalancedCandidateBetter({
                 candidateScore: nextFallbackScore,
@@ -2738,6 +3077,16 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
 
       const nextState = selectedState ?? fallbackState;
       if (!nextState) return null;
+      const currentState = fitStateRef.current;
+      if (
+        !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(currentState)) &&
+        shouldKeepOrderedBalancedSettledCandidate(currentState, nextState)
+      ) {
+        return currentState;
+      }
+      if (!nextState.overflow && nextState.orderedBalancedFingerprint) {
+        orderedBalancedFitCacheRef.current.set(nextState.orderedBalancedFingerprint, nextState);
+      }
 
       return nextState;
     }
@@ -2770,11 +3119,19 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
         const previousColumns = fitBoardElement.style.getPropertyValue("--fit-columns");
         const previousFontScale = fitBoardElement.style.getPropertyValue("--fit-font-scale");
         const previousGapScale = fitBoardElement.style.getPropertyValue("--fit-gap-scale");
+        const previousMenuFontScale = fitBoardElement.style.getPropertyValue("--fit-menu-font-scale");
+        const previousMenuGapScale = fitBoardElement.style.getPropertyValue("--fit-menu-gap-scale");
+        const previousOrderedFitMenuVisualScale = fitBoardElement.style.getPropertyValue("--ordered-fit-menu-visual-scale");
+        const previousOrderedBalancedMenuVisualScale = fitBoardElement.style.getPropertyValue("--ordered-balanced-menu-visual-scale");
+        const previousOrderedFitFinalFillCompensation = fitBoardElement.style.getPropertyValue("--ordered-fit-final-fill-compensation");
+        const previousOrderedFitItemRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-item-rhythm-scale");
+        const previousOrderedFitCategoryRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-category-rhythm-scale");
+        const previousOrderedFitTextRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-text-rhythm-scale");
         const columnCandidates =
           layoutMode === "orderedFit"
             ? getOrderedFitColumnCandidates(menuWidth)
             : layoutMode === "orderedBalancedFit"
-              ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount)
+              ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount, visibleItemCount)
               : getBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount);
         let selectedState: CafeDesignAFitState | null = null;
 
@@ -2791,9 +3148,11 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             layoutMode === "orderedFit"
               ? ORDERED_FIT_FONT_SCALE_CANDIDATES[ORDERED_FIT_FONT_SCALE_CANDIDATES.length - 1] ?? 0.64
               : layoutMode === "orderedBalancedFit"
-                ? ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE
+                ? ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES[ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.length - 1] ?? 0.64
                 : FIT_FONT_SCALE_CANDIDATES[FIT_FONT_SCALE_CANDIDATES.length - 1] ?? 0.64;
-          const fallbackColumns = columnCandidates[0] ?? DEFAULT_FIT_STATE.columns;
+          const effectiveFallbackColumnCandidates =
+            layoutMode === "orderedBalancedFit" ? getOrderedBalancedEffectiveColumnCandidates(columnCandidates, "") : columnCandidates;
+          const fallbackColumns = effectiveFallbackColumnCandidates[0] ?? columnCandidates[0] ?? DEFAULT_FIT_STATE.columns;
           applyFitCandidate(fallbackColumns, fallbackFontScale);
           const orderedBalancedFallbackBlocks = layoutMode === "orderedBalancedFit" ? getBalancedBlockMeasurements(fitMenuElement) : [];
           const orderedBalancedFallbackColumns =
@@ -2801,9 +3160,23 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
               ? getOrderedBalancedContiguousColumns(
                   orderedBalancedFallbackBlocks,
                   fallbackColumns,
-                  fitMenuElement.clientWidth >= 760 ? fitMenuElement.clientHeight : undefined,
+                  fitMenuElement.clientWidth >= 760
+                    ? Math.min(fitMenuElement.clientHeight, Math.max(0, getCafeAClippingBottom(fitBoardElement, fitMenuElement) - fitMenuElement.getBoundingClientRect().top))
+                    : undefined,
                 )
               : [];
+          const orderedBalancedFallbackMeasurement =
+            layoutMode === "orderedBalancedFit"
+              ? getBalancedMeasurementFromColumns({
+                  boardElement: fitBoardElement,
+                  menuElement: fitMenuElement,
+                  columns: orderedBalancedFallbackColumns,
+                  expectedColumns: fallbackColumns,
+                  includeDomOverflow: false,
+                  cropTolerance: ORDERED_BALANCED_CROP_TOLERANCE,
+                  includeClippingBottom: true,
+                })
+              : null;
           selectedState = getFitStateFromMeasurement(
             fallbackColumns,
             fallbackFontScale,
@@ -2811,17 +3184,11 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             layoutMode === "orderedFit"
               ? measureCafeAOrderedFit(fitBoardElement, fitMenuElement, fallbackColumns)
               : layoutMode === "orderedBalancedFit"
-                ? getBalancedMeasurementFromColumns({
-                    boardElement: fitBoardElement,
-                    menuElement: fitMenuElement,
-                    columns: orderedBalancedFallbackColumns,
-                    expectedColumns: fallbackColumns,
-                    includeDomOverflow: false,
-                    cropTolerance: ORDERED_BALANCED_CROP_TOLERANCE,
-                  })
+                ? orderedBalancedFallbackMeasurement ?? measureCafeABalancedFit(fitBoardElement, fitMenuElement, fallbackColumns)
                 : measureCafeABalancedFit(fitBoardElement, fitMenuElement, fallbackColumns),
             DEFAULT_BALANCED_VARIANT,
             layoutMode === "orderedBalancedFit" ? getOrderedBalancedBreaksFromColumns(orderedBalancedFallbackColumns) : "",
+            "",
           );
         }
 
@@ -2840,7 +3207,46 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
         } else {
           fitBoardElement.style.removeProperty("--fit-gap-scale");
         }
-
+        if (previousMenuFontScale) {
+          fitBoardElement.style.setProperty("--fit-menu-font-scale", previousMenuFontScale);
+        } else {
+          fitBoardElement.style.removeProperty("--fit-menu-font-scale");
+        }
+        if (previousMenuGapScale) {
+          fitBoardElement.style.setProperty("--fit-menu-gap-scale", previousMenuGapScale);
+        } else {
+          fitBoardElement.style.removeProperty("--fit-menu-gap-scale");
+        }
+        if (previousOrderedFitMenuVisualScale) {
+          fitBoardElement.style.setProperty("--ordered-fit-menu-visual-scale", previousOrderedFitMenuVisualScale);
+        } else {
+          fitBoardElement.style.removeProperty("--ordered-fit-menu-visual-scale");
+        }
+        if (previousOrderedBalancedMenuVisualScale) {
+          fitBoardElement.style.setProperty("--ordered-balanced-menu-visual-scale", previousOrderedBalancedMenuVisualScale);
+        } else {
+          fitBoardElement.style.removeProperty("--ordered-balanced-menu-visual-scale");
+        }
+        if (previousOrderedFitFinalFillCompensation) {
+          fitBoardElement.style.setProperty("--ordered-fit-final-fill-compensation", previousOrderedFitFinalFillCompensation);
+        } else {
+          fitBoardElement.style.removeProperty("--ordered-fit-final-fill-compensation");
+        }
+        if (previousOrderedFitItemRhythmScale) {
+          fitBoardElement.style.setProperty("--ordered-fit-item-rhythm-scale", previousOrderedFitItemRhythmScale);
+        } else {
+          fitBoardElement.style.removeProperty("--ordered-fit-item-rhythm-scale");
+        }
+        if (previousOrderedFitCategoryRhythmScale) {
+          fitBoardElement.style.setProperty("--ordered-fit-category-rhythm-scale", previousOrderedFitCategoryRhythmScale);
+        } else {
+          fitBoardElement.style.removeProperty("--ordered-fit-category-rhythm-scale");
+        }
+        if (previousOrderedFitTextRhythmScale) {
+          fitBoardElement.style.setProperty("--ordered-fit-text-rhythm-scale", previousOrderedFitTextRhythmScale);
+        } else {
+          fitBoardElement.style.removeProperty("--ordered-fit-text-rhythm-scale");
+        }
         updateFitState(selectedState);
       } finally {
         isMeasuring = false;
@@ -2867,6 +3273,39 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     resizeObserver.observe(fitMenuElement);
     scheduleMeasure();
 
+    const handleViewportChange = () => {
+      if (layoutMode === "orderedBalancedFit") {
+        orderedBalancedFitCacheRef.current.clear();
+        setOrderedBalancedValidationRevision((revision) => revision + 1);
+      }
+      scheduleMeasure();
+    };
+    const getViewportSignature = () => {
+      const visualViewport = window.visualViewport;
+      return [
+        window.innerWidth,
+        window.innerHeight,
+        visualViewport?.width ?? window.innerWidth,
+        visualViewport?.height ?? window.innerHeight,
+        visualViewport?.scale ?? 1,
+        visualViewport?.offsetTop ?? 0,
+        visualViewport?.offsetLeft ?? 0,
+      ].map((value) => Math.round(value * 100) / 100).join("|");
+    };
+    let viewportSignature = getViewportSignature();
+    const viewportPollId =
+      layoutMode === "orderedBalancedFit"
+        ? window.setInterval(() => {
+            const nextViewportSignature = getViewportSignature();
+            if (nextViewportSignature === viewportSignature) return;
+            viewportSignature = nextViewportSignature;
+            handleViewportChange();
+          }, 250)
+        : 0;
+    window.addEventListener("resize", handleViewportChange);
+    window.visualViewport?.addEventListener("resize", handleViewportChange);
+    window.visualViewport?.addEventListener("scroll", handleViewportChange);
+
     if ("fonts" in document && !fontReadyScheduled) {
       fontReadyScheduled = true;
       void document.fonts.ready.then(() => {
@@ -2877,6 +3316,10 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     return () => {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", handleViewportChange);
+      window.visualViewport?.removeEventListener("resize", handleViewportChange);
+      window.visualViewport?.removeEventListener("scroll", handleViewportChange);
+      if (viewportPollId) window.clearInterval(viewportPollId);
       resizeObserver.disconnect();
     };
   }, [
@@ -2885,6 +3328,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     layoutMode,
     orderedBalancedFitRevision,
     orderedBalancedPriceOptionSignature,
+    orderedBalancedValidationRevision,
     visibleItemCount,
     visibleMenuGroupCount,
     visiblePageGroups.length,
@@ -2892,100 +3336,180 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
 
   useEffect(() => {
     if (layoutMode !== "balanced" && layoutMode !== "orderedBalancedFit") return;
-    if (layoutMode === "orderedBalancedFit" && !fitState.orderedBalancedFingerprint) return;
     const boardElement = desktopFitBoardRef.current;
     const menuElement = desktopFitMenuRef.current;
     if (!boardElement || !menuElement) return;
+    if (layoutMode === "orderedBalancedFit" && fitState.status === "idle") return;
+    const validationBoardElement = boardElement;
+    const validationMenuElement = menuElement;
 
     let cancelled = false;
+    function rejectOrderedBalancedColumn(orderedBalancedFingerprint: string, columns: number) {
+      const boardRect = validationBoardElement.getBoundingClientRect();
+      const menuRect = validationMenuElement.getBoundingClientRect();
+      const visualViewport = window.visualViewport;
+      const viewportRejectKey = [
+        "viewport",
+        layoutMode,
+        getOrderedBalancedBucketedMetric(window.innerWidth, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(window.innerHeight, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(visualViewport?.width ?? window.innerWidth, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        getOrderedBalancedBucketedMetric(visualViewport?.height ?? window.innerHeight, ORDERED_BALANCED_VIEWPORT_BUCKET),
+        Math.round((window.devicePixelRatio || 1) * 20) / 20,
+        Math.round((visualViewport?.scale ?? 1) * 20) / 20,
+        getOrderedBalancedBucketedMetric(boardRect.width, ORDERED_BALANCED_SIZE_BUCKET),
+        getOrderedBalancedBucketedMetric(boardRect.height, ORDERED_BALANCED_SIZE_BUCKET),
+        getOrderedBalancedBucketedMetric(menuRect.width, ORDERED_BALANCED_SIZE_BUCKET),
+        density,
+        visibleItemCount,
+        visibleMenuGroupCount,
+        `columns:${columns}`,
+      ].join("|");
+
+      orderedBalancedRejectedColumnRef.current.add(viewportRejectKey);
+      if (orderedBalancedFingerprint) {
+        orderedBalancedRejectedColumnRef.current.add(`${orderedBalancedFingerprint}|columns:${columns}`);
+      }
+    }
+
     const frameId = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         if (cancelled) return;
-        const measurement =
+        let measurement =
           layoutMode === "orderedBalancedFit"
-            ? measureCafeABalancedFit(boardElement, menuElement, fitState.columns, false, ORDERED_BALANCED_CROP_TOLERANCE)
+            ? measureCafeABalancedFit(boardElement, menuElement, fitState.columns, false, ORDERED_BALANCED_CROP_TOLERANCE, true)
             : measureCafeABalancedFit(boardElement, menuElement, fitState.columns);
-        if (layoutMode === "orderedBalancedFit" && measurement.overflow) {
-          const rejectedCandidateKey = getOrderedBalancedCandidateKey(fitState);
-          if (!orderedBalancedRejectedCandidateRef.current.has(rejectedCandidateKey)) {
-            orderedBalancedRejectedCandidateRef.current.add(rejectedCandidateKey);
-          }
-          if (fitState.orderedBalancedFingerprint) {
-            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
-          }
-          const applyNextColumnFallback = () => {
-            const maxFallbackColumns = Math.min(ORDERED_BALANCED_DEFAULT_MAX_COLUMNS, visibleMenuGroupCount);
-            const widerColumnCandidates = Array.from({ length: Math.max(0, maxFallbackColumns - fitState.columns) }, (_, index) => fitState.columns + index + 1);
-            const roomierColumnCandidates = Array.from({ length: Math.max(0, fitState.columns - 1) }, (_, index) => fitState.columns - index - 1);
-            const fallbackColumnCandidates = [...widerColumnCandidates, ...roomierColumnCandidates];
-            const blockMeasurements = fallbackColumnCandidates.length > 0 ? getBalancedBlockMeasurements(menuElement) : [];
-            for (const nextColumnCount of fallbackColumnCandidates) {
-              const nextColumns = getOrderedBalancedContiguousColumns(blockMeasurements, nextColumnCount, menuElement.clientHeight);
-              const nextCandidateState: CafeDesignAFitState = {
-                ...fitState,
-                columns: nextColumnCount,
-                gapScale: getOrderedBalancedFitGapScale(fitState.fontScale, menuElement.clientWidth),
-                orderedBalancedBreaks: getOrderedBalancedBreaksFromColumns(nextColumns),
-              };
-              if (orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(nextCandidateState))) continue;
-              const nextMeasurement = getBalancedMeasurementFromColumns({
-                boardElement,
-                menuElement,
-                columns: nextColumns,
-                expectedColumns: nextColumnCount,
-                includeDomOverflow: false,
-                cropTolerance: ORDERED_BALANCED_CROP_TOLERANCE,
-              });
-              if (!nextMeasurement.overflow) {
-                const nextColumnState: CafeDesignAFitState = {
-                  ...nextCandidateState,
-                  status: "fit",
-                  measuredColumns: nextMeasurement.measuredColumns,
-                  boardInnerHeight: nextMeasurement.boardInnerHeight,
-                  flowHeight: nextMeasurement.flowHeight,
-                  primaryColumnBottom: nextMeasurement.primaryColumnBottom,
-                  primaryBottomGap: nextMeasurement.primaryBottomGap,
-                  longestColumnBottom: nextMeasurement.longestColumnBottom,
-                  primaryFillRatio: nextMeasurement.primaryFillRatio,
-                  averageFillRatio: nextMeasurement.averageFillRatio,
-                  minFillRatio: nextMeasurement.minFillRatio,
-                  lastColumnFillRatio: nextMeasurement.lastColumnFillRatio,
-                  bottomGap: nextMeasurement.bottomGap,
-                  contentGap: nextMeasurement.contentGap,
-                  itemBoxGap: nextMeasurement.itemBoxGap,
-                  textVisualGap: nextMeasurement.textVisualGap,
-                  categoryBlockGap: nextMeasurement.categoryBlockGap,
-                  visibleItemBottomGap: nextMeasurement.visibleItemBottomGap,
-                  visibleTextBottomGap: nextMeasurement.visibleTextBottomGap,
-                  visiblePriceBottomGap: nextMeasurement.visiblePriceBottomGap,
-                  visibleContentBottomGap: nextMeasurement.visibleContentBottomGap,
-                  visibleAverageFillRatio: nextMeasurement.visibleAverageFillRatio,
-                  visibleMinFillRatio: nextMeasurement.visibleMinFillRatio,
-                  visibleLastColumnFillRatio: nextMeasurement.visibleLastColumnFillRatio,
-                  overflow: false,
-                };
-                fitStateRef.current = nextColumnState;
-                setFitState(nextColumnState);
-                return true;
-              }
+        if (layoutMode === "orderedBalancedFit") {
+          const actualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
+          const actualCropDetected = actualCropMeasurement.overflow;
+          if (actualCropDetected) {
+            const rejectedCandidateKey = getOrderedBalancedCandidateKey(fitState);
+            if (fitState.columns === 2) {
+              rejectOrderedBalancedColumn(fitState.orderedBalancedFingerprint, 2);
+            } else if (!orderedBalancedRejectedCandidateRef.current.has(rejectedCandidateKey)) {
+              orderedBalancedRejectedCandidateRef.current.add(rejectedCandidateKey);
             }
-            return false;
-          };
-          const nextSafeFontScale = getNextOrderedBalancedSafeFontScale(fitState.fontScale);
-          const shouldTryColumnBeforeSmallerType = !nextSafeFontScale || nextSafeFontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE;
-          const didApplyOverflowFallback = shouldTryColumnBeforeSmallerType && applyNextColumnFallback();
-          if (!didApplyOverflowFallback && nextSafeFontScale) {
-            const nextSafeState: CafeDesignAFitState = {
-              ...fitState,
-              fontScale: nextSafeFontScale,
-              gapScale: getOrderedBalancedFitGapScale(nextSafeFontScale, menuElement.clientWidth),
-              status: "warning",
+            if (fitState.orderedBalancedFingerprint) {
+              orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+            }
+            setOrderedBalancedFitRevision((revision) => revision + 1);
+            return;
+          }
+          if (actualCropMeasurement.bottomGap > 12) {
+            const previousFontScale = boardElement.style.getPropertyValue("--fit-font-scale");
+            const previousGapScale = boardElement.style.getPropertyValue("--fit-gap-scale");
+            const previousMenuFontScale = boardElement.style.getPropertyValue("--fit-menu-font-scale");
+            const previousMenuGapScale = boardElement.style.getPropertyValue("--fit-menu-gap-scale");
+            const currentFontScale = fitState.fontScale;
+            let nextFillState: CafeDesignAFitState | null = null;
+
+            for (const candidateFontScale of ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES) {
+              if (candidateFontScale <= currentFontScale + ORDERED_BALANCED_SCALE_EPSILON) continue;
+              const candidateGapScale = getOrderedBalancedFitGapScale(candidateFontScale, menuElement.clientWidth);
+              boardElement.style.setProperty("--fit-font-scale", String(candidateFontScale));
+              boardElement.style.setProperty("--fit-gap-scale", String(candidateGapScale));
+              boardElement.style.setProperty("--fit-menu-font-scale", String(candidateFontScale));
+              boardElement.style.setProperty("--fit-menu-gap-scale", String(candidateGapScale));
+
+              const candidateMeasurement = measureCafeABalancedFit(boardElement, menuElement, fitState.columns, false, ORDERED_BALANCED_CROP_TOLERANCE, true);
+              const candidateActualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
+              const candidateCropDetected = candidateActualCropMeasurement.overflow || candidateActualCropMeasurement.bottomGap < ORDERED_BALANCED_TARGET_MIN_VISIBLE_GAP;
+              if (candidateCropDetected) continue;
+              if (candidateActualCropMeasurement.bottomGap >= actualCropMeasurement.bottomGap - ORDERED_BALANCED_GAP_IMPROVEMENT_EPSILON) continue;
+
+              nextFillState = {
+                ...fitState,
+                fontScale: candidateFontScale,
+                gapScale: getOrderedBalancedFitGapScale(candidateFontScale, menuElement.clientWidth),
+                status: "fit",
+                measuredColumns: candidateMeasurement.measuredColumns,
+                boardInnerHeight: candidateMeasurement.boardInnerHeight,
+                flowHeight: candidateMeasurement.flowHeight,
+                primaryColumnBottom: candidateMeasurement.primaryColumnBottom,
+                primaryBottomGap: candidateMeasurement.primaryBottomGap,
+                longestColumnBottom: candidateMeasurement.longestColumnBottom,
+                primaryFillRatio: candidateMeasurement.primaryFillRatio,
+                averageFillRatio: candidateMeasurement.averageFillRatio,
+                minFillRatio: candidateMeasurement.minFillRatio,
+                lastColumnFillRatio: candidateMeasurement.lastColumnFillRatio,
+                bottomGap: Math.max(candidateMeasurement.bottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                contentGap: Math.max(candidateMeasurement.contentGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                itemBoxGap: Math.max(candidateMeasurement.itemBoxGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                textVisualGap: Math.max(candidateMeasurement.textVisualGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                categoryBlockGap: candidateMeasurement.categoryBlockGap,
+                visibleItemBottomGap: Math.max(candidateMeasurement.visibleItemBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                visibleTextBottomGap: Math.max(candidateMeasurement.visibleTextBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                visiblePriceBottomGap: Math.max(candidateMeasurement.visiblePriceBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                visibleContentBottomGap: Math.max(candidateMeasurement.visibleContentBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                visibleAverageFillRatio: candidateMeasurement.visibleAverageFillRatio,
+                visibleMinFillRatio: candidateMeasurement.visibleMinFillRatio,
+                visibleLastColumnFillRatio: candidateMeasurement.visibleLastColumnFillRatio,
+                overflow: false,
+              };
+              break;
+            }
+
+            if (previousFontScale) {
+              boardElement.style.setProperty("--fit-font-scale", previousFontScale);
+            } else {
+              boardElement.style.removeProperty("--fit-font-scale");
+            }
+            if (previousGapScale) {
+              boardElement.style.setProperty("--fit-gap-scale", previousGapScale);
+            } else {
+              boardElement.style.removeProperty("--fit-gap-scale");
+            }
+            if (previousMenuFontScale) {
+              boardElement.style.setProperty("--fit-menu-font-scale", previousMenuFontScale);
+            } else {
+              boardElement.style.removeProperty("--fit-menu-font-scale");
+            }
+            if (previousMenuGapScale) {
+              boardElement.style.setProperty("--fit-menu-gap-scale", previousMenuGapScale);
+            } else {
+              boardElement.style.removeProperty("--fit-menu-gap-scale");
+            }
+            if (nextFillState) {
+              fitStateRef.current = nextFillState;
+              setFitState(nextFillState);
+              if (nextFillState.orderedBalancedFingerprint) {
+                orderedBalancedFitCacheRef.current.set(nextFillState.orderedBalancedFingerprint, nextFillState);
+              }
+              return;
+            }
+          }
+        }
+        if (layoutMode === "orderedBalancedFit" && measurement.overflow) {
+          const actualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
+          const actualCropDetected = actualCropMeasurement.overflow;
+          if (!actualCropDetected) {
+            measurement = {
+              ...measurement,
+              bottomGap: Math.max(measurement.bottomGap, roundFitMetric(actualCropMeasurement.bottomGap)),
+              contentGap: Math.max(measurement.contentGap, roundFitMetric(actualCropMeasurement.bottomGap)),
+              itemBoxGap: Math.max(measurement.itemBoxGap, roundFitMetric(actualCropMeasurement.bottomGap)),
+              textVisualGap: Math.max(measurement.textVisualGap, roundFitMetric(actualCropMeasurement.bottomGap)),
+              visibleItemBottomGap: Math.max(measurement.visibleItemBottomGap, roundFitMetric(actualCropMeasurement.bottomGap)),
+              visibleTextBottomGap: Math.max(measurement.visibleTextBottomGap, roundFitMetric(actualCropMeasurement.bottomGap)),
+              visiblePriceBottomGap: Math.max(measurement.visiblePriceBottomGap, roundFitMetric(actualCropMeasurement.bottomGap)),
+              visibleContentBottomGap: Math.max(measurement.visibleContentBottomGap, roundFitMetric(actualCropMeasurement.bottomGap)),
               overflow: false,
             };
-            fitStateRef.current = nextSafeState;
-            setFitState(nextSafeState);
           }
-          if (didApplyOverflowFallback || nextSafeFontScale) {
+        }
+        if (layoutMode === "orderedBalancedFit" && measurement.overflow) {
+          const actualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
+          const actualCropDetected = actualCropMeasurement.overflow;
+          if (actualCropDetected) {
+            const rejectedCandidateKey = getOrderedBalancedCandidateKey(fitState);
+            if (fitState.columns === 2) {
+              rejectOrderedBalancedColumn(fitState.orderedBalancedFingerprint, 2);
+            } else if (!orderedBalancedRejectedCandidateRef.current.has(rejectedCandidateKey)) {
+              orderedBalancedRejectedCandidateRef.current.add(rejectedCandidateKey);
+            }
+            if (fitState.orderedBalancedFingerprint) {
+              orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+            }
             setOrderedBalancedFitRevision((revision) => revision + 1);
             return;
           }
@@ -2993,77 +3517,12 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
         if (
           layoutMode === "orderedBalancedFit" &&
           !measurement.overflow &&
-          window.innerWidth >= 1280 &&
-          window.innerHeight >= 900 &&
-          menuElement.clientWidth >= 1000 &&
-          fitState.columns === 2 &&
-          fitState.fontScale >= 0.805 &&
-          fitState.fontScale < 0.815 &&
-          measurement.visibleContentBottomGap <= 6
+          fitState.orderedBalancedFingerprint &&
+          !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(fitState))
         ) {
-          const nextFillFontScale = 0.815;
-          const nextFillState: CafeDesignAFitState = {
-            ...fitState,
-            fontScale: nextFillFontScale,
-            gapScale: getOrderedBalancedFitGapScale(nextFillFontScale, menuElement.clientWidth),
-            status: "fit",
-            overflow: false,
-          };
-          if (fitState.orderedBalancedFingerprint) {
-            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
-          }
-          fitStateRef.current = nextFillState;
-          setFitState(nextFillState);
-          return;
+          orderedBalancedFitCacheRef.current.set(fitState.orderedBalancedFingerprint, fitState);
         }
-        if (
-          layoutMode === "orderedBalancedFit" &&
-          !measurement.overflow &&
-          window.innerWidth >= 1280 &&
-          window.innerHeight >= 900 &&
-          menuElement.clientWidth >= 1000 &&
-          fitState.columns === 2 &&
-          fitState.fontScale < 0.805 &&
-          measurement.visibleContentBottomGap > 20
-        ) {
-          const nextFillFontScale = 0.805;
-          const nextFillState: CafeDesignAFitState = {
-            ...fitState,
-            fontScale: nextFillFontScale,
-            gapScale: getOrderedBalancedFitGapScale(nextFillFontScale, menuElement.clientWidth),
-            status: "fit",
-            overflow: false,
-          };
-          if (fitState.orderedBalancedFingerprint) {
-            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
-          }
-          fitStateRef.current = nextFillState;
-          setFitState(nextFillState);
-          return;
-        }
-        if (
-          layoutMode === "orderedBalancedFit" &&
-          !measurement.overflow &&
-          window.innerWidth <= 1050 &&
-          fitState.columns === 2 &&
-          fitState.fontScale < 0.834 &&
-          measurement.visibleContentBottomGap > 20
-        ) {
-          const nextFillFontScale = 0.834;
-          const nextFillState: CafeDesignAFitState = {
-            ...fitState,
-            fontScale: nextFillFontScale,
-            gapScale: getOrderedBalancedFitGapScale(nextFillFontScale, menuElement.clientWidth),
-            status: "fit",
-            overflow: false,
-          };
-          if (fitState.orderedBalancedFingerprint) {
-            orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
-          }
-          fitStateRef.current = nextFillState;
-          setFitState(nextFillState);
-          return;
-        }
+
         const nextState: CafeDesignAFitState = {
           ...fitState,
           status: measurement.overflow ? "warning" : layoutMode === "orderedBalancedFit" || fitState.status === "idle" ? "fit" : fitState.status,
@@ -3111,7 +3570,181 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [fitState, layoutMode, visibleMenuGroupCount]);
+  }, [density, fitState, layoutMode, orderedBalancedValidationRevision, visibleItemCount, visibleMenuGroupCount]);
+
+  useEffect(() => {
+    if (layoutMode !== "orderedFit") {
+      const resetFrameId = window.requestAnimationFrame(() => {
+        setOrderedFitFinalFillCompensation((currentCompensation) =>
+          currentCompensation === DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION ? currentCompensation : DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION
+        );
+      });
+      return () => {
+        window.cancelAnimationFrame(resetFrameId);
+      };
+    }
+
+    const boardElement = desktopFitBoardRef.current;
+    const menuElement = desktopFitMenuRef.current;
+    if (!boardElement || !menuElement) return;
+
+    let cancelled = false;
+    const frameId = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if (cancelled) return;
+
+        const shouldResetCompensation =
+          fitState.status === "idle" ||
+          fitState.overflow ||
+          !window.matchMedia("(min-width: 1024px)").matches;
+
+        if (shouldResetCompensation) {
+          setOrderedFitFinalFillCompensation((currentCompensation) =>
+            currentCompensation === DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION ? currentCompensation : DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION
+          );
+          return;
+        }
+
+        const hasPageScroll = () => document.documentElement.scrollHeight > window.innerHeight + 1 || document.body.scrollHeight > window.innerHeight + 1;
+        const previousCompensation = boardElement.style.getPropertyValue("--ordered-fit-final-fill-compensation");
+
+        boardElement.style.setProperty("--ordered-fit-final-fill-compensation", String(DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION));
+        const baseMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_FIT_MIN_SAFETY_GAP);
+
+        if (
+          baseMeasurement.overflow ||
+          hasPageScroll() ||
+          baseMeasurement.bottomGap < ORDERED_FIT_FINAL_FILL_MIN_GAP ||
+          baseMeasurement.bottomGap < ORDERED_FIT_FINAL_FILL_TRIGGER_GAP
+        ) {
+          if (previousCompensation) {
+            boardElement.style.setProperty("--ordered-fit-final-fill-compensation", previousCompensation);
+          } else {
+            boardElement.style.removeProperty("--ordered-fit-final-fill-compensation");
+          }
+          setOrderedFitFinalFillCompensation((currentCompensation) =>
+            currentCompensation === DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION ? currentCompensation : DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION
+          );
+          return;
+        }
+
+        let selectedCompensation = DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION;
+        let selectedGap = baseMeasurement.bottomGap;
+
+        for (const compensation of ORDERED_FIT_FINAL_FILL_COMPENSATION_LEVELS) {
+          boardElement.style.setProperty("--ordered-fit-final-fill-compensation", String(compensation));
+          const compensatedMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_FIT_MIN_SAFETY_GAP);
+          const isSafe =
+            !compensatedMeasurement.overflow &&
+            !hasPageScroll() &&
+            compensatedMeasurement.bottomGap >= ORDERED_FIT_FINAL_FILL_MIN_GAP;
+
+          if (!isSafe) break;
+          if (compensatedMeasurement.bottomGap < selectedGap) {
+            selectedCompensation = compensation;
+            selectedGap = compensatedMeasurement.bottomGap;
+          }
+          if (compensatedMeasurement.bottomGap <= ORDERED_FIT_FINAL_FILL_TARGET_GAP) break;
+        }
+
+        if (previousCompensation) {
+          boardElement.style.setProperty("--ordered-fit-final-fill-compensation", previousCompensation);
+        } else {
+          boardElement.style.removeProperty("--ordered-fit-final-fill-compensation");
+        }
+
+        setOrderedFitFinalFillCompensation((currentCompensation) =>
+          currentCompensation === selectedCompensation ? currentCompensation : selectedCompensation
+        );
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [fitState.columns, fitState.fontScale, fitState.gapScale, fitState.overflow, fitState.status, layoutMode, orderedFitFinalFillCompensation]);
+
+  useEffect(() => {
+    if (layoutMode !== "orderedBalancedFit") return;
+
+    const boardElement = desktopFitBoardRef.current;
+    const menuElement = desktopFitMenuRef.current;
+    if (!boardElement || !menuElement) return;
+
+    let cancelled = false;
+    const frameId = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if (cancelled) return;
+
+        const shouldResetBoost =
+          fitState.status === "idle" ||
+          fitState.overflow ||
+          !fitState.orderedBalancedFingerprint ||
+          baseRenderFitState.columns >= 4 ||
+          !window.matchMedia("(min-width: 1024px)").matches;
+
+        if (shouldResetBoost) {
+          setOrderedBalancedFinalFillBoost((currentBoost) =>
+            areFinalFillBoostsEqual(currentBoost, DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST) ? currentBoost : DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST
+          );
+          return;
+        }
+
+        const hasPageScroll = () => document.documentElement.scrollHeight > window.innerHeight + 1 || document.body.scrollHeight > window.innerHeight + 1;
+        const currentMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
+
+        if (currentMeasurement.overflow || hasPageScroll() || currentMeasurement.bottomGap < ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP) {
+          setOrderedBalancedFinalFillBoost((currentBoost) =>
+            areFinalFillBoostsEqual(currentBoost, DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST) ? currentBoost : DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST
+          );
+          return;
+        }
+
+        if (currentMeasurement.bottomGap < ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP) return;
+
+        const previousMenuFontScale = boardElement.style.getPropertyValue("--fit-menu-font-scale");
+        const previousMenuGapScale = boardElement.style.getPropertyValue("--fit-menu-gap-scale");
+        let selectedBoost: CafeDesignAFinalFillBoost | null = null;
+
+        for (const boost of ORDERED_BALANCED_FINAL_FILL_BOOST_LEVELS) {
+          boardElement.style.setProperty("--fit-menu-font-scale", String(roundFitScale(baseRenderFitState.fontScale * boost.fontScale)));
+          boardElement.style.setProperty("--fit-menu-gap-scale", String(roundFitScale(baseRenderFitState.gapScale * boost.gapScale)));
+
+          const boostedMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
+          const boostedHasPageScroll = hasPageScroll();
+          const isSafe =
+            !boostedMeasurement.overflow &&
+            !boostedHasPageScroll &&
+            boostedMeasurement.bottomGap >= ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP;
+
+          if (!isSafe) break;
+
+          selectedBoost = boost;
+          if (boostedMeasurement.bottomGap <= ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP) break;
+        }
+
+        if (previousMenuFontScale) {
+          boardElement.style.setProperty("--fit-menu-font-scale", previousMenuFontScale);
+        } else {
+          boardElement.style.removeProperty("--fit-menu-font-scale");
+        }
+        if (previousMenuGapScale) {
+          boardElement.style.setProperty("--fit-menu-gap-scale", previousMenuGapScale);
+        } else {
+          boardElement.style.removeProperty("--fit-menu-gap-scale");
+        }
+
+        const nextBoost = selectedBoost ?? DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST;
+        setOrderedBalancedFinalFillBoost((currentBoost) => (areFinalFillBoostsEqual(currentBoost, nextBoost) ? currentBoost : nextBoost));
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [baseRenderFitState, fitState.orderedBalancedFingerprint, fitState.overflow, fitState.status, layoutMode, orderedBalancedFinalFillBoost]);
 
   return (
     <>
@@ -3154,6 +3787,13 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             data-fit-columns={renderFitState.columns}
             data-fit-font-scale={renderFitState.fontScale}
             data-fit-gap-scale={renderFitState.gapScale}
+            data-fit-final-font-boost={orderedBalancedFinalFillBoost.fontScale}
+            data-fit-final-gap-boost={orderedBalancedFinalFillBoost.gapScale}
+            data-fit-ordered-fit-base-visual-scale={layoutMode === "orderedFit" ? ORDERED_FIT_BASE_MENU_VISUAL_SCALE : undefined}
+            data-fit-ordered-fit-final-fill-compensation={layoutMode === "orderedFit" ? orderedFitFinalFillCompensation : undefined}
+            data-fit-ordered-fit-effective-visual-scale={
+              layoutMode === "orderedFit" ? roundFitScale(ORDERED_FIT_BASE_MENU_VISUAL_SCALE * orderedFitFinalFillCompensation) : undefined
+            }
             data-fit-balanced-variant={fitState.balancedVariant}
             data-fit-ordered-balanced-breaks={fitState.orderedBalancedBreaks}
             data-fit-ordered-balanced-fingerprint={fitState.orderedBalancedFingerprint}
@@ -3180,7 +3820,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
             data-fit-visible-min-fill-ratio={fitState.visibleMinFillRatio}
             data-fit-visible-last-column-fill-ratio={fitState.visibleLastColumnFillRatio}
             data-fit-overflow={fitState.overflow ? "true" : "false"}
-            style={{ ...fitGapStyle, ...fitStyle }}
+            style={{ ...fitGapStyle, ...fitStyle, ...orderedFitFillStyle }}
           >
             <DesktopFixedRail data={data}>
               {shouldRenderMenuCoverSection && (

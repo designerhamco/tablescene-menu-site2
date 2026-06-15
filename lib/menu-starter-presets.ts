@@ -188,6 +188,21 @@ function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefi
   return value.map((option) => ({ ...(option as StarterPriceOption) }));
 }
 
+function getStarterFeaturedItemNames(preset: StarterPreset) {
+  const names = [
+    preset.featured_item_name,
+    ...preset.pages.flatMap((page) =>
+      page.categories.flatMap((category) =>
+        category.items
+          .filter((menuItem) => menuItem.recommended === true)
+          .map((menuItem) => menuItem.name)
+      )
+    ),
+  ].filter((name): name is string => Boolean(name));
+
+  return Array.from(new Set(names));
+}
+
 const cafeDesignAStarterPreset: StarterPreset = {
   key: "cafe",
   site: CAFE_DESIGN_A_STITCH_SAMPLE.site,
@@ -1317,8 +1332,11 @@ export async function createStarterMenuData(
 
   const itemIdByKey = new Map((insertedItems ?? []).map((menuItem) => [`${menuItem.category_id ?? ""}:${menuItem.name}`, menuItem.id]));
 
-  if (preset.featured_item_name) {
-    const featuredItem = (insertedItems ?? []).find((menuItem) => menuItem.name === preset.featured_item_name);
+  const starterFeaturedItemNames = getStarterFeaturedItemNames(preset);
+  if (starterFeaturedItemNames.length > 0) {
+    const featuredItem = starterFeaturedItemNames
+      .map((name) => (insertedItems ?? []).find((menuItem) => menuItem.name === name))
+      .find((menuItem) => Boolean(menuItem?.id));
 
     if (featuredItem?.id) {
       const { data: siteSettings, error: siteSettingsError } = await supabase
