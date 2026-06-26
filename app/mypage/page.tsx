@@ -41,6 +41,8 @@ type SearchParams = Promise<{
   error?: string | string[];
   message?: string | string[];
   inquiryPage?: string | string[];
+  subscriptionId?: string | string[];
+  modal?: string | string[];
 }>;
 
 export const dynamic = "force-dynamic";
@@ -280,6 +282,10 @@ function getSafeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function getSearchParamString(value: string | string[] | undefined) {
+  return getSafeString(Array.isArray(value) ? value[0] : value);
+}
+
 function getRecord(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
@@ -456,6 +462,26 @@ type MenuCardBadge = {
   className: string;
 };
 
+type RecoveryCta = {
+  label: string;
+  href: string;
+};
+
+type RetentionDdayInfo = {
+  days: number;
+  label: string;
+  message: string;
+};
+
+type ArchivedDisplayState = {
+  key: string;
+  label: string;
+  className: string;
+  message: string;
+  cta: RecoveryCta | null;
+  ddayInfo: RetentionDdayInfo | null;
+};
+
 function getMenuVisibilityBadge(status: MenuSite["status"]): MenuCardBadge | null {
   if (status === "draft") {
     return {
@@ -547,7 +573,8 @@ function getSubscriptionStatusLabel(status: string | null | undefined) {
 }
 
 function getBusinessSubscriptionCardStatusLabel(subscription: BusinessSubscription | null | undefined, fallbackStatus: string | null | undefined) {
-  if (subscription?.status === "active" && subscription.cancel_at_period_end) return "해지 예약됨";
+  if (isActiveCancelScheduledSubscription(subscription)) return "해지 예약";
+  if (subscription?.cancel_at_period_end) return "해지 종료";
   return getSubscriptionStatusLabel(subscription?.status ?? fallbackStatus);
 }
 
@@ -570,7 +597,19 @@ function getPaymentStatusLabel(status: string | null | undefined) {
 function getStateBadgeClassName(status: string | null | undefined) {
   if (status === "active" || status === "paid" || status === "completed") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
   if (status === "failed" || status === "past_due" || status === "payment_failed") return "bg-red-50 text-red-700 ring-red-100";
-  if (status === "expired" || status === "archived" || status === "pending_delete" || status === "cancelled" || status === "canceled" || status === "refunded") {
+  if (
+    status === "cancel_scheduled"
+    || status === "cancel_ended"
+    || status === "admin_archived"
+    || status === "archived_fallback"
+    || status === "public_restricted"
+    || status === "expired"
+    || status === "archived"
+    || status === "pending_delete"
+    || status === "cancelled"
+    || status === "canceled"
+    || status === "refunded"
+  ) {
     return "bg-amber-50 text-amber-700 ring-amber-100";
   }
 
@@ -585,6 +624,26 @@ function getPaymentStatusTone(status: string | null | undefined): "success" | "w
   }
 
   return "neutral";
+}
+
+function getSubscriptionPeriodEnd(subscription: BusinessSubscription | null | undefined) {
+  return subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
+}
+
+function hasFutureDate(value: string | null | undefined) {
+  if (!value) return false;
+  const time = Date.parse(value);
+  return Number.isFinite(time) && time > Date.now();
+}
+
+function isActiveCancelScheduledSubscription(subscription: BusinessSubscription | null | undefined) {
+  return subscription?.status === "active" && Boolean(subscription.cancel_at_period_end) && hasFutureDate(getSubscriptionPeriodEnd(subscription));
+}
+
+function isPastCancelScheduledSubscription(subscription: BusinessSubscription | null | undefined, accessExpiresAt?: string | null) {
+  if (!subscription?.cancel_at_period_end) return false;
+  const periodEnd = getSubscriptionPeriodEnd(subscription) ?? accessExpiresAt ?? null;
+  return !hasFutureDate(periodEnd);
 }
 
 function maskPaymentId(paymentId: string | null | undefined) {
@@ -764,6 +823,134 @@ function getRetentionMessage(daysUntilRetentionEnds: number | null) {
   return "데이터 보관 기간이 종료되어 삭제 예정 상태입니다.";
 }
 
+function getRetentionDdayInfo(retentionEndsAt: string | null | undefined): RetentionDdayInfo | null {
+  if (!retentionEndsAt) {
+    return null;
+  }
+
+  const days = getRemainingDaysUntilKst(retentionEndsAt);
+
+  if (days === null) {
+    return null;
+  }
+
+  if (days > 0) {
+    return {
+      days,
+      label: `보관 만료 D-${days}`,
+      message: `보관 만료 D-${days}`,
+    };
+  }
+
+  if (days === 0) {
+    return {
+      days,
+      label: "보관 만료 D-Day",
+      message: "보관 만료 D-Day",
+    };
+  }
+
+  return {
+    days,
+    label: "삭제 예정",
+    message: "보관 기간이 종료되었습니다.",
+  };
+}
+
+function withRetentionDday(message: string, ddayInfo: RetentionDdayInfo | null) {
+  return ddayInfo && ddayInfo.days >= 0 ? `${message} ${ddayInfo.message}.` : message;
+}
+
+function getArchivedDisplayState({
+  isRetentionDue,
+  hasPaymentIssue,
+  isCancelScheduledEnded,
+  isTrialEnded,
+  isAdminArchived,
+  isAccessRestricted,
+  siteId,
+  ddayInfo,
+}: {
+  isRetentionDue: boolean;
+  hasPaymentIssue: boolean;
+  isCancelScheduledEnded: boolean;
+  isTrialEnded: boolean;
+  isAdminArchived: boolean;
+  isAccessRestricted: boolean;
+  siteId: string;
+  ddayInfo: RetentionDdayInfo | null;
+}): ArchivedDisplayState | null {
+  if (isRetentionDue) {
+    return {
+      key: "pending-delete",
+      label: "삭제 예정",
+      className: "bg-amber-50 text-amber-700",
+      message: "보관 기간이 종료되어 삭제 예정입니다. 복구 가능 여부는 제한될 수 있습니다.",
+      cta: null,
+      ddayInfo,
+    };
+  }
+
+  if (hasPaymentIssue) {
+    return {
+      key: "payment-needed",
+      label: "결제 확인 필요",
+      className: "bg-red-50 text-red-700",
+      message: withRetentionDday("자동 결제가 완료되지 않아 보관 중입니다. 결제를 재개하면 기존 링크와 QR을 다시 사용할 수 있습니다.", ddayInfo),
+      cta: null,
+      ddayInfo,
+    };
+  }
+
+  if (isCancelScheduledEnded) {
+    return {
+      key: "cancel-ended",
+      label: "해지 종료",
+      className: "bg-amber-50 text-amber-700",
+      message: withRetentionDday("해지 예약에 따라 이용이 종료되어 보관 중입니다. 결제를 재개하면 기존 메뉴판, 링크, QR을 다시 사용할 수 있습니다.", ddayInfo),
+      cta: null,
+      ddayInfo,
+    };
+  }
+
+  if (isTrialEnded) {
+    return {
+      key: "trial-ended",
+      label: "체험 종료",
+      className: "bg-amber-50 text-amber-700",
+      message: withRetentionDday("무료 체험 기간이 종료되어 보관 중입니다. 사업자 플랜으로 전환하면 기존 메뉴판을 계속 사용할 수 있습니다.", ddayInfo),
+      cta: siteId && ddayInfo && ddayInfo.days > 0
+        ? { label: "사업자 플랜으로 전환", href: `/mypage/menus/${siteId}/convert` }
+        : null,
+      ddayInfo,
+    };
+  }
+
+  if (isAdminArchived) {
+    return {
+      key: "admin-archived",
+      label: "관리자 보관",
+      className: "bg-amber-50 text-amber-700",
+      message: "관리자에 의해 보관 처리된 메뉴판입니다.",
+      cta: null,
+      ddayInfo: null,
+    };
+  }
+
+  if (isAccessRestricted) {
+    return {
+      key: "archived-fallback",
+      label: "보관 중",
+      className: "bg-amber-50 text-amber-700",
+      message: withRetentionDday("현재 보관 상태입니다. 복구 가능 여부는 상태 확인이 필요합니다.", ddayInfo),
+      cta: null,
+      ddayInfo,
+    };
+  }
+
+  return null;
+}
+
 async function getServiceEntitlementsForMenuSites(
   supabase: Awaited<ReturnType<typeof createClient>>,
   menuSiteIds: string[]
@@ -823,10 +1010,13 @@ async function getServiceEntitlementsForMenuSites(
 }
 
 export default async function MyPage({ searchParams }: { searchParams: SearchParams }) {
-  const { tab, menuTab, billingTab, error, message, inquiryPage } = await searchParams;
+  const { tab, menuTab, billingTab, error, message, inquiryPage, subscriptionId, modal } = await searchParams;
   const activeTab = getActiveTab(tab);
   const activeMenuTab = getMenuTab(menuTab);
   const activeBillingTab = getBillingTab(billingTab);
+  const requestedSubscriptionId = getSearchParamString(subscriptionId);
+  const requestedModal = getSearchParamString(modal);
+  const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
   const userResult = await runMypageQuery("auth.getUser", supabase.auth.getUser());
   const user = userResult?.data.user ?? null;
@@ -1255,6 +1445,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     }
 
     if (planType === "business_basic" || planType === "business_display") {
+      if (isPastCancelScheduledSubscription(subscription, entitlement?.access_expires_at ?? null)) {
+        return false;
+      }
+
       return subscription?.status === "active" || (!subscription && entitlement?.status === "active");
     }
 
@@ -1278,6 +1472,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       return true;
     }
 
+    if (isPastCancelScheduledSubscription(subscription, entitlement?.access_expires_at ?? null)) {
+      return true;
+    }
+
     return planType === "personal_trial" || planType === "personal_trial_basic_1month" || planType === "business_basic" || planType === "business_display";
   }
 
@@ -1286,9 +1484,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const entitlementStatus = entitlement?.status ?? null;
     const subscriptionStatus = subscription?.status ?? null;
 
-    if (entitlementStatus === "pending_delete") return "복구 기간 종료";
+    if (entitlementStatus === "pending_delete") return "삭제 예정";
     if (menuSite?.status === "archived" || entitlementStatus === "archived") return "보관됨";
     if ((planType === "personal_trial" || planType === "personal_trial_basic_1month") && entitlementStatus === "expired") return "체험 기간 종료";
+    if (isPastCancelScheduledSubscription(subscription, entitlement?.access_expires_at ?? null)) return "해지 종료";
     if (subscriptionStatus === "canceled" || subscriptionStatus === "cancelled") return "해지 완료";
     if (subscriptionStatus === "expired" || entitlementStatus === "expired") return "구독 만료";
 
@@ -1356,9 +1555,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const daysUntilExpiry = accessExpiresAt ? getRemainingDaysUntilKst(accessExpiresAt) : null;
     const subscriptionAccessExpiresAt = activeBusinessSubscription?.current_period_end ?? activeBusinessSubscription?.next_billing_at ?? "";
     const daysUntilSubscriptionExpiry = subscriptionAccessExpiresAt ? getRemainingDaysUntilKst(subscriptionAccessExpiresAt) : null;
-    const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
+    const retentionEndDate = dataRetentionUntil || trialDisplayInfo?.deletedScheduledAt || "";
+    const retentionDdayInfo = getRetentionDdayInfo(retentionEndDate);
+    const daysUntilRetentionEnds = retentionEndDate ? getRemainingDaysUntilKst(retentionEndDate) : null;
     const isRetentionActive = typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds >= 0;
-    const isTrialPendingDelete = entitlementStatus === "pending_delete" || Boolean(trialDisplayInfo?.deletedScheduledAt);
+    const isRetentionDue = Boolean(retentionDdayInfo && retentionDdayInfo.days <= 0);
+    const isTrialPendingDelete = entitlementStatus === "pending_delete" || isRetentionDue;
     const isAccessExpired = typeof daysUntilExpiry === "number" && daysUntilExpiry < 0;
     const isSubscriptionExpired = typeof daysUntilSubscriptionExpiry === "number" && daysUntilSubscriptionExpiry < 0;
     const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || isAccessExpired;
@@ -1375,6 +1577,22 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const canOpenPublicPage = isPublished && Boolean(slug) && !isAccessRestricted && !hasPaymentIssue;
     const canOwnerPreview = Boolean(siteId) && !isTrialPendingDelete;
     const canUseMenuActions = Boolean(siteId) && !isAccessRestricted && !hasPaymentIssue && !isTrialPendingDelete;
+    const isCancelScheduledActive = isActiveCancelScheduledSubscription(activeBusinessSubscription);
+    const isCancelScheduledEnded = isPastCancelScheduledSubscription(activeBusinessSubscription ?? anyBusinessSubscription, accessExpiresAt);
+    const isAdminArchived = (isMenuArchived || entitlementStatus === "archived") && !hasPaymentIssue && !isCancelScheduledEnded && !(isPersonalTrial && isTrialExpired);
+    const archivedDisplayState = getArchivedDisplayState({
+      isRetentionDue: isTrialPendingDelete || isRetentionDue,
+      hasPaymentIssue,
+      isCancelScheduledEnded,
+      isTrialEnded: isPersonalTrial && isTrialExpired,
+      isAdminArchived,
+      isAccessRestricted,
+      siteId,
+      ddayInfo: retentionDdayInfo,
+    });
+    const resumeCancellationHref = isCancelScheduledActive && canUseMenuActions && activeBusinessSubscription?.id
+      ? `/mypage?tab=payments&billingTab=active&subscriptionId=${encodeURIComponent(activeBusinessSubscription.id)}&modal=subscription-management`
+      : null;
     const isRetentionEnded = isTrialPendingDelete || (dataRetentionUntil ? daysUntilRetentionEnds !== null && daysUntilRetentionEnds < 0 : false);
     const serviceBadge = getMenuServiceBadge({
       productKey: entitlement?.product_key ?? activeBusinessSubscription?.product_key ?? anyBusinessSubscription?.product_key ?? null,
@@ -1392,26 +1610,27 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       : isAccessRestricted || isTrialExpired || hasInactiveEntitlement || anyBusinessSubscription?.status === "failed" || anyBusinessSubscription?.status === "payment_failed" || anyBusinessSubscription?.status === "past_due"
         ? "needs_action"
         : "active";
+    const unavailableActionReason = isTrialPendingDelete
+      ? "복구 가능 기간이 종료되어 사용할 수 없습니다. 고객지원으로 문의해주세요."
+      : isAccessRestricted || hasPaymentIssue
+        ? "보관 중에는 사용할 수 없습니다. 결제를 재개하면 다시 사용할 수 있습니다."
+        : "현재 상태에서는 사용할 수 없습니다.";
+    const unpublishedActionReason = "아직 공개 전입니다. 공개 후 사용할 수 있습니다.";
+    const noMenuSiteReason = "메뉴판 정보를 확인할 수 없어 사용할 수 없습니다.";
     let accessBadge: MenuCardBadge | null = null;
 
-    if (cancelAtPeriodEnd) {
+    if (isCancelScheduledActive) {
       accessBadge = { key: "subscription:cancel-scheduled", label: "해지 예약", className: "bg-amber-50 text-amber-700" };
-    } else if (hasPaymentIssue) {
-      accessBadge = { key: "access:payment-needed", label: "결제 확인 필요", className: "bg-red-50 text-red-700" };
+    } else if (archivedDisplayState) {
+      accessBadge = {
+        key: `access:${archivedDisplayState.key}`,
+        label: archivedDisplayState.label,
+        className: archivedDisplayState.className,
+      };
     } else if (isBusinessService && hasActiveEntitlement && !isAccessRestricted) {
       accessBadge = { key: "plan:business", label: "사업자 플랜", className: "bg-emerald-50 text-emerald-700" };
     } else if (isPersonalTrial && !isTrialExpired) {
-      accessBadge = { key: "plan:trial", label: "개인 체험", className: "bg-emerald-50 text-emerald-700" };
-    } else if (isRetentionEnded) {
-      accessBadge = { key: "access:retention-ended", label: "복구 기간 종료", className: "bg-amber-50 text-amber-700" };
-    } else if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isRetentionActive && isAccessRestricted) {
-      accessBadge = { key: "access:retention", label: "보관 중", className: "bg-amber-50 text-amber-700" };
-    } else if (isPersonalTrial && isTrialExpired) {
-      accessBadge = { key: "access:trial-ended", label: "체험 종료", className: "bg-amber-50 text-amber-700" };
-    } else if (isMenuArchived || entitlementStatus === "archived") {
-      accessBadge = { key: "access:retention", label: "보관 중", className: "bg-amber-50 text-amber-700" };
-    } else if (isAccessRestricted) {
-      accessBadge = { key: "access:restricted", label: "공개 제한", className: "bg-amber-50 text-amber-700" };
+      accessBadge = { key: "plan:trial-active", label: "체험 중", className: "bg-emerald-50 text-emerald-700" };
     }
 
     const badges = getUniqueMenuCardBadges([
@@ -1426,10 +1645,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const metaItems: Array<{ label: string; value: string }> = [];
     let primaryMessage = "";
 
-    if (activeBusinessSubscription) {
-      primaryMessage = cancelAtPeriodEnd
+    if (archivedDisplayState && !isCancelScheduledActive) {
+      primaryMessage = archivedDisplayState.message;
+      if (archivedDisplayState.ddayInfo && archivedDisplayState.ddayInfo.days >= 0) {
+        metaItems.push({ label: "보관 만료", value: archivedDisplayState.ddayInfo.label });
+      }
+      if (retentionEndDate) {
+        metaItems.push({ label: "삭제 예정일", value: formatDate(retentionEndDate) });
+      } else if (periodEnd) {
+        metaItems.push({ label: "이용 종료일", value: formatDate(periodEnd) });
+      }
+    } else if (activeBusinessSubscription) {
+      primaryMessage = isCancelScheduledActive
         ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."
-        : `${serviceBadge.label}으로 이용 중입니다.`;
+        : site.status === "published"
+          ? "현재 손님에게 공개 중입니다."
+          : site.status === "draft"
+            ? "아직 공개 전입니다. 편집 후 공개할 수 있습니다."
+            : `${serviceBadge.label}으로 이용 중입니다.`;
       if (cancelAtPeriodEnd && periodEnd) {
         metaItems.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
       } else if (activeBusinessSubscription.next_billing_at) {
@@ -1442,16 +1675,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       metaItems.push({ label: "결제수단", value: "NHN KCP 카드 정기결제" });
       metaItems.push({ label: "인증 사업자", value: activeBusinessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (isPersonalTrial && !isTrialExpired) {
-      primaryMessage = "개인 1개월 체험으로 이용 중입니다.";
+      primaryMessage = "무료 체험으로 이용 중입니다.";
       metaItems.push({ label: "체험 종료일", value: formatDate(accessExpiresAt || null) });
       metaItems.push({ label: "남은 기간", value: daysUntilExpiry === 0 ? "오늘 만료" : typeof daysUntilExpiry === "number" ? `${Math.max(0, daysUntilExpiry)}일` : "확인 중" });
     } else if (isTrialExpired) {
       primaryMessage = isRetentionEnded
-        ? "보관 기간이 종료되어 현재 이용할 수 없습니다."
+        ? "보관 기간이 종료되어 삭제 예정입니다. 복구 가능 여부는 제한될 수 있습니다."
         : trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isRetentionActive
           ? "이용 기간이 종료되어 보관 중입니다. 보관 기간 안에 다시 구독하면 기존 메뉴판을 이어서 사용할 수 있습니다."
           : isPersonalTrial
-            ? "체험 기간이 종료되어 공개와 편집이 제한되었습니다."
+            ? "무료 체험 기간이 종료되어 편집과 공개가 제한됩니다."
             : "이용 기간이 종료되어 공개와 편집이 제한되었습니다.";
       if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil) {
         metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
@@ -1462,14 +1695,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       }
     } else {
       primaryMessage = hasPaymentIssue
-        ? "결제 확인이 필요합니다. 결제 상태를 확인하면 다시 이용할 수 있습니다."
+        ? "자동 결제가 완료되지 않았습니다. 결제 확인 후 다시 이용할 수 있습니다."
         : isAccessRestricted
-          ? "현재 이용이 제한된 메뉴판입니다."
+          ? isCancelScheduledEnded
+            ? "해지 예약에 따라 이용이 종료되었습니다. 결제를 재개하면 기존 링크와 QR을 다시 사용할 수 있습니다."
+            : "보관 기간 동안 미리보기만 가능하며, 결제를 재개하면 기존 메뉴판을 복구할 수 있습니다."
           : site.status === "published"
-            ? "현재 공개 중인 메뉴판입니다."
+            ? "현재 손님에게 공개 중입니다."
             : site.status === "private" || site.status === "unpublished"
               ? "현재 공개되지 않은 메뉴판입니다. 편집 후 다시 공개할 수 있습니다."
-              : "메뉴판을 편집하고 공개할 수 있습니다.";
+              : "아직 공개 전입니다. 편집 후 공개할 수 있습니다.";
       if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isAccessRestricted) {
         metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
       } else if (accessExpiresAt) {
@@ -1497,12 +1732,30 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       isAccessRestricted,
       isTrialPendingDelete,
       isPersonalTrial,
-      canConvertToBusiness: isPersonalTrial && !isTrialPendingDelete && Boolean(siteId),
+      canConvertToBusiness: isPersonalTrial && !isTrialExpired && !isTrialPendingDelete && Boolean(siteId),
+      recoveryCta: archivedDisplayState?.cta ?? null,
+      resumeCancellationHref,
       actions: {
         canEdit: canUseMenuActions,
-        canPreview: canOwnerPreview,
+        canOwnerPreview,
         canViewPublic: canOpenPublicPage,
         canDownloadQr: canOpenPublicPage && Boolean(qrDownloadUrl),
+        editDisabledReason: canUseMenuActions ? null : siteId ? unavailableActionReason : noMenuSiteReason,
+        previewDisabledReason: canOwnerPreview ? null : siteId ? unavailableActionReason : noMenuSiteReason,
+        publicDisabledReason: canOpenPublicPage
+          ? null
+          : !slug
+            ? "공개 주소가 없어 사용할 수 없습니다."
+            : !isPublished && !isAccessRestricted && !hasPaymentIssue
+              ? unpublishedActionReason
+              : unavailableActionReason,
+        qrDisabledReason: canOpenPublicPage && qrDownloadUrl
+          ? null
+          : !slug
+            ? "공개 주소가 없어 QR을 다운로드할 수 없습니다."
+            : !isPublished && !isAccessRestricted && !hasPaymentIssue
+              ? unpublishedActionReason
+              : unavailableActionReason,
       },
       subscription: activeBusinessSubscription,
       entitlement,
@@ -1519,6 +1772,52 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const visibleMenuCards = activeMenuTab === "active" ? activeMenuCards : inactiveMenuCards;
 
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
+    const primaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800";
+    const secondaryActionClassName = "inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100";
+    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400 opacity-70";
+
+    function renderActionButton({
+      label,
+      href,
+      enabled,
+      disabledReason,
+      primary = false,
+      newWindow = false,
+    }: {
+      label: string;
+      href: string | null;
+      enabled: boolean;
+      disabledReason: string | null;
+      primary?: boolean;
+      newWindow?: boolean;
+    }) {
+      if (enabled && href) {
+        return (
+          <Link
+            href={href}
+            target={newWindow ? "_blank" : undefined}
+            rel={newWindow ? "noopener noreferrer" : undefined}
+            className={primary ? primaryActionClassName : secondaryActionClassName}
+          >
+            {label}
+          </Link>
+        );
+      }
+
+      const reason = disabledReason ?? "현재 상태에서는 사용할 수 없습니다.";
+      return (
+        <button
+          type="button"
+          disabled
+          title={reason}
+          aria-label={`${label} 비활성화: ${reason}`}
+          className={disabledActionClassName}
+        >
+          {label}
+        </button>
+      );
+    }
+
     return (
       <article key={card.key} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -1551,34 +1850,46 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         </dl>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {card.actions.canEdit ? (
-            <Link href={`/mypage/menus/${card.siteId}/edit`} className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800">
-              {card.isAccessRestricted ? "내용 확인" : "편집하기"}
+          {renderActionButton({
+            label: "편집하기",
+            href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null,
+            enabled: card.actions.canEdit,
+            disabledReason: card.actions.editDisabledReason,
+            primary: true,
+          })}
+          {renderActionButton({
+            label: "미리보기",
+            href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
+            enabled: card.actions.canOwnerPreview,
+            disabledReason: card.actions.previewDisabledReason,
+            newWindow: true,
+          })}
+          {renderActionButton({
+            label: "공개 메뉴판 보기",
+            href: card.publicPath,
+            enabled: card.actions.canViewPublic,
+            disabledReason: card.actions.publicDisabledReason,
+            newWindow: true,
+          })}
+          {renderActionButton({
+            label: "QR 다운로드",
+            href: card.qrDownloadUrl,
+            enabled: card.actions.canDownloadQr,
+            disabledReason: card.actions.qrDisabledReason,
+          })}
+          {card.resumeCancellationHref ? (
+            <Link href={card.resumeCancellationHref} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
+              해지 예약 취소하기
             </Link>
           ) : null}
-          {card.actions.canPreview ? (
-            <Link href={`/mypage/menus/${card.siteId}/preview`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100">
-              미리보기
+          {card.recoveryCta ? (
+            <Link href={card.recoveryCta.href} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
+              {card.recoveryCta.label}
             </Link>
           ) : null}
-          {card.actions.canViewPublic ? (
-            <Link href={card.publicPath} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100">
-              공개 메뉴판 보기
-            </Link>
-          ) : null}
-          {card.actions.canDownloadQr && card.qrDownloadUrl ? (
-            <Link href={card.qrDownloadUrl} className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100">
-              QR 다운로드
-            </Link>
-          ) : null}
-          {card.canConvertToBusiness ? (
+          {!card.recoveryCta && card.canConvertToBusiness ? (
             <Link href={`/mypage/menus/${card.siteId}/convert`} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
               {card.isAccessRestricted ? "사업자 플랜으로 전환하고 복구" : "사업자 플랜 전환"}
-            </Link>
-          ) : null}
-          {card.isTrialPendingDelete ? (
-            <Link href="/mypage/inquiries" className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
-              고객지원 문의
             </Link>
           ) : null}
         </div>
@@ -1815,6 +2126,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const paymentDetailReceiptUrl = getPaymentReceiptUrl(latestPayment?.payment, latestPayment?.order);
                         const cancelAtPeriodEnd = Boolean(subscription?.cancel_at_period_end);
                         const periodEnd = subscription?.current_period_end ?? subscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
+                        const subscriptionBadgeTone = isActiveCancelScheduledSubscription(subscription) ? "cancel_scheduled" : status;
                         const subscriptionCardStatusLabel = isBusinessSubscription
                           ? getBusinessSubscriptionCardStatusLabel(subscription, status)
                           : isPersonalTrial
@@ -1831,7 +2143,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <h4 className="text-lg font-black tracking-tight">{getServiceName(planType, billingCycle)}</h4>
-                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(status)}`}>
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStateBadgeClassName(subscriptionBadgeTone)}`}>
                                     {subscriptionCardStatusLabel}
                                   </span>
                                 </div>
@@ -1890,6 +2202,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     pgLabel="NHN KCP 카드 정기결제"
                                     serviceEntitlementLabel={getEntitlementStatusLabel(entitlement?.status)}
                                     canManage={Boolean(typeof subscription.cancel_at_period_end === "boolean")}
+                                    defaultOpen={shouldAutoOpenSubscriptionModal && requestedSubscriptionId === subscription.id}
                                   />
                                 ) : null}
                                 <PaymentDetailModal
@@ -1950,8 +2263,38 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const isPersonalTrial = planType === "personal_trial" || planType === "personal_trial_basic_1month";
                         const latestPayment = getLatestPaymentForService({ menuSiteId: menuSite?.id, productKey });
                         const amount = subscription?.amount ?? product?.amount ?? (isPersonalTrial ? personalTrialBasicProduct.amount : null);
-                        const statusForTone = entitlement?.status ?? subscription?.status ?? menuSite?.status ?? null;
-                        const statusLabel = getArchivedServiceStatusLabel({ key, entitlement, menuSite, subscription });
+                        const entitlementStatus = entitlement?.status ?? null;
+                        const subscriptionStatus = subscription?.status ?? null;
+                        const retentionEndDate = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
+                        const retentionDdayInfo = getRetentionDdayInfo(retentionEndDate);
+                        const isPaymentIssue = subscriptionStatus === "failed" || subscriptionStatus === "payment_failed" || subscriptionStatus === "past_due";
+                        const isCancelScheduledEnded = isPastCancelScheduledSubscription(subscription, entitlement?.access_expires_at ?? null);
+                        const daysUntilTrialAccessEnds = entitlement?.access_expires_at ? getRemainingDaysUntilKst(entitlement.access_expires_at) : null;
+                        const isTrialEnded = isPersonalTrial && (entitlementStatus === "expired" || (daysUntilTrialAccessEnds !== null && daysUntilTrialAccessEnds < 0));
+                        const isRetentionDue = entitlementStatus === "pending_delete" || Boolean(retentionDdayInfo && retentionDdayInfo.days <= 0);
+                        const isAdminArchived = (menuSite?.status === "archived" || entitlementStatus === "archived") && !isPaymentIssue && !isCancelScheduledEnded && !isTrialEnded;
+                        const archivedDisplayState = getArchivedDisplayState({
+                          isRetentionDue,
+                          hasPaymentIssue: isPaymentIssue,
+                          isCancelScheduledEnded,
+                          isTrialEnded,
+                          isAdminArchived,
+                          isAccessRestricted: true,
+                          siteId: menuSite?.id ?? "",
+                          ddayInfo: retentionDdayInfo,
+                        });
+                        const statusForTone = archivedDisplayState?.key === "payment-needed"
+                          ? "payment_failed"
+                          : archivedDisplayState?.key === "cancel-ended"
+                            ? "cancel_ended"
+                            : archivedDisplayState?.key === "pending-delete"
+                              ? "pending_delete"
+                              : archivedDisplayState?.key === "admin-archived"
+                                ? "admin_archived"
+                                : archivedDisplayState?.key === "archived-fallback"
+                                  ? "archived_fallback"
+                                  : entitlement?.status ?? subscription?.status ?? menuSite?.status ?? null;
+                        const statusLabel = archivedDisplayState?.label ?? getArchivedServiceStatusLabel({ key, entitlement, menuSite, subscription });
                         const dataRetentionUntil = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
                         const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
                         const expiresAt = entitlement?.access_expires_at ?? subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
@@ -1990,8 +2333,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     <dd className="mt-1 font-bold text-zinc-900">{formatDate(expiresAt)}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-black text-zinc-400">보관 상태</dt>
-                                    <dd className="mt-1 break-keep font-bold text-zinc-900">{dataDeletionScheduledAt ? getRetentionMessage(dataRetentionUntil ? daysUntilRetentionEnds : getRemainingDaysUntilKst(dataDeletionScheduledAt)) : "보관 기간 정보 없음"}</dd>
+                                    <dt className="text-xs font-black text-zinc-400">보관 만료</dt>
+                                    <dd className="mt-1 break-keep font-bold text-zinc-900">
+                                      {archivedDisplayState?.ddayInfo && archivedDisplayState.ddayInfo.days >= 0
+                                        ? archivedDisplayState.ddayInfo.label
+                                        : dataDeletionScheduledAt
+                                          ? getRetentionMessage(dataRetentionUntil ? daysUntilRetentionEnds : getRemainingDaysUntilKst(dataDeletionScheduledAt))
+                                          : "보관 기간 정보 없음"}
+                                    </dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">결제수단 / PG</dt>
@@ -2003,20 +2352,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   </div>
                                 </dl>
                                 <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs font-bold leading-relaxed text-amber-800">
-                                  <p>이 메뉴판의 이용기간이 종료되어 비공개 처리되었습니다.</p>
-                                  <p className="mt-2">종료 후 7일 이내 사업자 플랜으로 전환하거나 구독을 재개하면 기존 메뉴판을 복구할 수 있습니다.</p>
+                                  <p>{archivedDisplayState?.message ?? "이 메뉴판의 이용기간이 종료되어 비공개 처리되었습니다."}</p>
+                                  <p className="mt-2">보관 기간 안에 실제 연결된 결제 또는 전환 흐름이 있는 경우 기존 메뉴판을 이어서 사용할 수 있습니다.</p>
                                   <p className="mt-2">보관 기간이 종료되면 메뉴판 데이터와 업로드 이미지는 정책에 따라 삭제될 수 있습니다.</p>
                                   <p className="mt-3 font-black text-amber-950">데이터 삭제 예정일: {formatDate(dataDeletionScheduledAt)}</p>
                                 </div>
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
-                                {menuSite?.id && isPersonalTrial ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/convert`} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
-                                    기존 메뉴판 유지하고 유료 전환하기
-                                  </Link>
-                                ) : subscription ? (
-                                  <Link href="/mypage/inquiries" className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
-                                    구독 재개하기
+                                {archivedDisplayState?.cta ? (
+                                  <Link href={archivedDisplayState.cta.href} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
+                                    {archivedDisplayState.cta.label}
                                   </Link>
                                 ) : null}
                                 {latestPayment ? (

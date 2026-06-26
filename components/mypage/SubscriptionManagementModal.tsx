@@ -19,6 +19,7 @@ export type SubscriptionManagementModalProps = {
   pgLabel: string;
   serviceEntitlementLabel: string;
   canManage: boolean;
+  defaultOpen?: boolean;
 };
 
 type ApiResult = {
@@ -52,13 +53,21 @@ export default function SubscriptionManagementModal({
   pgLabel,
   serviceEntitlementLabel,
   canManage,
+  defaultOpen = false,
 }: SubscriptionManagementModalProps) {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function closeModal() {
+    setIsOpen(false);
+    if (defaultOpen) {
+      router.replace("/mypage?tab=payments&billingTab=active", { scroll: false });
+    }
+  }
 
   async function submitCancellation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,7 +82,7 @@ export default function SubscriptionManagementModal({
       });
       await parseApiResult(response);
       setIsConfirmingCancel(false);
-      setIsOpen(false);
+      closeModal();
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "구독 해지 예약에 실패했습니다.");
@@ -91,7 +100,7 @@ export default function SubscriptionManagementModal({
         method: "POST",
       });
       await parseApiResult(response);
-      setIsOpen(false);
+      closeModal();
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "해지 예약 취소에 실패했습니다.");
@@ -120,7 +129,7 @@ export default function SubscriptionManagementModal({
               <div>
                 <h2 className="text-2xl font-black tracking-tight text-zinc-950">구독 관리</h2>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-600">
+              <button type="button" onClick={closeModal} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-600">
                 닫기
               </button>
             </div>
