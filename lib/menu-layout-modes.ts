@@ -5,22 +5,31 @@ export type PcTabletLayoutMode = (typeof PC_TABLET_LAYOUT_MODES)[number];
 
 export const BASIC_DEFAULT_LAYOUT_MODE: PcTabletLayoutMode = "orderedBalancedFit";
 export const DEFAULT_PC_TABLET_LAYOUT_MODE: PcTabletLayoutMode = BASIC_DEFAULT_LAYOUT_MODE;
-const LEGACY_PC_TABLET_LAYOUT_MODES = ["balanced", "balancedExperimental"] as const;
-const LEGACY_PC_TABLET_LAYOUT_MODE_FALLBACK: PcTabletLayoutMode = "orderedBalancedFit";
+const PC_TABLET_LAYOUT_MODE_ALIASES = {
+  orderedBalancedFit: "orderedBalancedFit",
+  orderedFit: "orderedFit",
+  balanced: "orderedBalancedFit",
+  balancedExperimental: "orderedBalancedFit",
+  "자동 균형 배치": "orderedBalancedFit",
+  "자동 균형": "orderedBalancedFit",
+  "묶음형 자동 배치": "orderedBalancedFit",
+  "채움형 배치": "orderedFit",
+} as const satisfies Record<string, PcTabletLayoutMode>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 export function normalizePcTabletLayoutMode(value: unknown): PcTabletLayoutMode {
-  if (PC_TABLET_LAYOUT_MODES.includes(value as PcTabletLayoutMode)) {
-    return value as PcTabletLayoutMode;
-  }
-  if (LEGACY_PC_TABLET_LAYOUT_MODES.includes(value as (typeof LEGACY_PC_TABLET_LAYOUT_MODES)[number])) {
-    return LEGACY_PC_TABLET_LAYOUT_MODE_FALLBACK;
+  if (typeof value !== "string") return DEFAULT_PC_TABLET_LAYOUT_MODE;
+  const normalizedValue = value.trim();
+  if (normalizedValue in PC_TABLET_LAYOUT_MODE_ALIASES) {
+    return PC_TABLET_LAYOUT_MODE_ALIASES[normalizedValue as keyof typeof PC_TABLET_LAYOUT_MODE_ALIASES];
   }
   return DEFAULT_PC_TABLET_LAYOUT_MODE;
 }
+
+export const normalizeBasicLayoutMode = normalizePcTabletLayoutMode;
 
 export function getPcTabletLayoutModeFromPageSettings(pageSettings: unknown): PcTabletLayoutMode {
   if (!isRecord(pageSettings)) return DEFAULT_PC_TABLET_LAYOUT_MODE;

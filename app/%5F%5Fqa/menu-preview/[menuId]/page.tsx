@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
+import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { normalizeMenuPageData } from "@/lib/menu-page-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -29,13 +30,6 @@ function getSearchParamValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function getPreviewLayoutMode(value: string | string[] | undefined) {
-  const layoutMode = getSearchParamValue(value);
-  return layoutMode === "orderedFit" || layoutMode === "balancedExperimental" || layoutMode === "orderedBalancedFit"
-    ? layoutMode
-    : undefined;
-}
-
 export default async function QaMenuPreviewPage({ params, searchParams }: PageProps) {
   if (process.env.NODE_ENV === "production") {
     notFound();
@@ -44,7 +38,6 @@ export default async function QaMenuPreviewPage({ params, searchParams }: PagePr
   const { menuId } = await params;
   const query = searchParams ? await searchParams : {};
   const locale = normalizeLocale(getSearchParamValue(query.lang));
-  const previewLayoutMode = getPreviewLayoutMode(query.layoutMode);
   const debugEnabled = getSearchParamValue(query.debugLayout) === "1";
   const admin = createAdminClient();
   const primarySiteResult = await admin.from("menu_sites").select(siteSelect).eq("id", menuId).maybeSingle();
@@ -72,6 +65,9 @@ export default async function QaMenuPreviewPage({ params, searchParams }: PagePr
     notFound();
   }
 
+  const previewLayoutMode = supportsPcTabletLayoutMode(data.menuSite.template_key)
+    ? normalizePcTabletLayoutMode(getSearchParamValue(query.layoutMode))
+    : undefined;
   const route = `/__qa/menu-preview/${menuId}`;
   const restaurantName = data.menuSite.restaurant_name || data.menuSite.name || menuId;
 

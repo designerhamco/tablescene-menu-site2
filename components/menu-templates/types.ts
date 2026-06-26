@@ -1,6 +1,7 @@
 import type { Database } from "@/lib/supabase/types";
 import type { SupportedLocale } from "@/lib/locales";
 import type { MenuEditorServiceType } from "@/lib/menu-editor-capabilities";
+import type { PcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import type { PageSettings } from "@/types/menu";
 
 export type PublicMenuSite = Pick<
@@ -122,7 +123,7 @@ export type PublicMenuWidgetItem = Pick<
 
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
-  previewLayoutMode?: "orderedFit" | "balancedExperimental" | "orderedBalancedFit";
+  previewLayoutMode?: PcTabletLayoutMode;
   initialPreviewPageId?: string | null;
   locale: SupportedLocale;
   enabledLocales: SupportedLocale[];

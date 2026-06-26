@@ -2380,14 +2380,8 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
   const featuredItem = getFeaturedItem(data, capabilities);
   const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
-  const layoutMode: CafeDesignALayoutMode =
-    data.mode === "preview" && data.previewLayoutMode === "balancedExperimental"
-      ? "balanced"
-      : data.mode === "preview" && data.previewLayoutMode === "orderedBalancedFit"
-        ? "orderedBalancedFit"
-        : data.mode === "preview" && data.previewLayoutMode === "orderedFit"
-          ? "orderedFit"
-          : savedLayoutMode;
+  const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
+  const layoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
   const visiblePageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
   const visibleMenuGroupCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.groups.length, 0);
   const desktopFitBoardRef = useRef<HTMLDivElement | null>(null);
