@@ -59,6 +59,7 @@ import { mergePageSettings, validateMenuItemTrait } from "@/types/menu";
 
 const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
+const PUBLIC_PRESET_IMAGE_PREFIXES = ["/placeholders/", "/menu-templates/"] as const;
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
 type MenuSite = Database["public"]["Tables"]["menu_sites"]["Row"];
@@ -87,6 +88,10 @@ type MenuCategoryTranslationInsert = Database["public"]["Tables"]["menu_category
 type MenuItemTranslationInsert = Database["public"]["Tables"]["menu_item_translations"]["Insert"];
 type LooseInsert = Record<string, unknown>;
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+function isPublicPresetImageUrl(value: string | null | undefined) {
+  return Boolean(value && PUBLIC_PRESET_IMAGE_PREFIXES.some((prefix) => value.startsWith(prefix)));
+}
 
 function getOrderedIds(formData: FormData) {
   const rawValue = getString(formData, "orderedIds");
@@ -1879,6 +1884,8 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
     .update({
       menu_cover_title: preset.site.menu_cover_title,
       menu_cover_description: preset.site.menu_cover_description,
+      cover_image_url: preset.site.cover_image_url,
+      cover_image_path: null,
       page_settings: nextPageSettings,
       updated_at: new Date().toISOString(),
     })
@@ -2435,7 +2442,7 @@ export async function updateMenuCoverAction(formData: FormData) {
   if (shouldDeleteCoverImage) {
     updatePayload.cover_image_url = null;
     updatePayload.cover_image_path = null;
-  } else if (draftCoverImageUrl && (draftCoverImagePath || draftCoverImageUrl.startsWith("/placeholders/"))) {
+  } else if (draftCoverImageUrl && (draftCoverImagePath || isPublicPresetImageUrl(draftCoverImageUrl))) {
     updatePayload.cover_image_url = draftCoverImageUrl;
     updatePayload.cover_image_path = draftCoverImagePath;
   }
@@ -2454,7 +2461,7 @@ export async function updateMenuCoverAction(formData: FormData) {
         menu_cover_description: menuCoverDescription,
         ...(shouldDeleteCoverImage
           ? { cover_image_url: null, cover_image_path: null }
-          : draftCoverImageUrl && (draftCoverImagePath || draftCoverImageUrl.startsWith("/placeholders/"))
+          : draftCoverImageUrl && (draftCoverImagePath || isPublicPresetImageUrl(draftCoverImageUrl))
           ? { cover_image_url: draftCoverImageUrl, cover_image_path: draftCoverImagePath }
           : {}),
         page_settings: nextSettings,

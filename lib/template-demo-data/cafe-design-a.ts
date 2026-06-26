@@ -13,7 +13,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
     opening_hours: "매일 10:00 - 21:00",
     restaurant_address: "서울시 예시구 오브로 12",
     restaurant_phone: "02-0000-0000",
-    cover_image_url: "/placeholders/starter/cafe-a-cover.png",
+    cover_image_url: "/menu-templates/cafe_design_a/basil-featured.jpg",
   },
   pages: [
     {
@@ -29,7 +29,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price: 6500,
               price_label: "6.5",
               description: "생바질로 만든 수제 크림이 올라간 아인슈페너 스타일",
-              image_url: "/placeholders/starter/cafe-a-cover.png",
+              image_url: "/menu-templates/cafe_design_a/basil-featured.jpg",
               badge_label: "SIGNATURE",
               recommended: true,
             },

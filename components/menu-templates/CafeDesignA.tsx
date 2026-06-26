@@ -2073,6 +2073,14 @@ function SoldOutBadge() {
   return <span className="menu-badge cafe-a-menu-badge inline-flex rounded-none bg-[#e1e3e0] px-1.5 py-1 font-black uppercase leading-none text-[#3f4945]">품절</span>;
 }
 
+function HeroOverlayBadge({ children }: { children: ReactNode }) {
+  return (
+    <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none bg-white px-1.5 py-1 font-black uppercase leading-none text-[#191c1b]">
+      {children}
+    </span>
+  );
+}
+
 function MenuItemRow({
   item,
   category,
@@ -2179,14 +2187,12 @@ function CoverHero({
   data,
   featuredItem,
   capabilities,
-  customBadgeStyles,
   density,
   desktopClassName = "",
 }: {
   data: PublicMenuTemplateProps;
   featuredItem: MenuItem | null;
   capabilities: TemplateCapabilities;
-  customBadgeStyles: unknown;
   density: MenuLayoutDensity;
   desktopClassName?: string;
 }) {
@@ -2209,30 +2215,25 @@ function CoverHero({
         ) : (
           <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_42%,#f7f8f6_100%)]" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[72%] bg-[linear-gradient(to_top,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.46)_38%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0)_100%)]" />
         {featuredItem && (
-          <>
-            <div className="cafe-a-featured-badges absolute right-4 top-4 z-10 flex max-w-[calc(100%-2rem)] flex-wrap justify-end gap-2">
-              <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none bg-[#00b975] px-1.5 py-1 font-black uppercase leading-none text-white">대표 추천</span>
-              <Badge
-                item={featuredItem}
-                capabilities={capabilities}
-                templateKey={data.menuSite.template_key}
-                customBadgeStyles={customBadgeStyles}
-              />
-            </div>
-            <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
-              <div className="min-w-0">
-                <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
-                {featuredItem.description && (
-                  <p className="cafe-a-featured-description mt-2 line-clamp-2 break-keep font-semibold leading-relaxed text-white/82" data-cafe-a-featured-description="">
-                    {featuredItem.description}
-                  </p>
+          <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
+            <div className="min-w-0">
+              <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
+                <HeroOverlayBadge>대표 추천</HeroOverlayBadge>
+                {capabilities.itemBadges && getMenuItemBadgeLabel(featuredItem) && (
+                  <HeroOverlayBadge>{getMenuItemBadgeLabel(featuredItem)}</HeroOverlayBadge>
                 )}
               </div>
-              {price && <p className="menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none" data-cafe-a-featured-price="">{price}</p>}
+              <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
+              {featuredItem.description && (
+                <p className="cafe-a-featured-description mt-2 line-clamp-2 break-keep font-semibold leading-relaxed text-white/82" data-cafe-a-featured-description="">
+                  {featuredItem.description}
+                </p>
+              )}
             </div>
-          </>
+            {price && <p className="menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none" data-cafe-a-featured-price="">{price}</p>}
+          </div>
         )}
       </div>
     </section>
@@ -3940,7 +3941,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
           <HeaderBlock data={data} className="lg:hidden" />
           <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] py-8 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
             {shouldRenderMenuCoverSection && (
-              <CoverHero data={data} featuredItem={featuredItem} capabilities={capabilities} customBadgeStyles={customBadgeStyles} density={density} />
+              <CoverHero data={data} featuredItem={featuredItem} capabilities={capabilities} density={density} />
             )}
 
             {visiblePageGroups.length === 0 ? (
@@ -4018,7 +4019,6 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
                   data={data}
                   featuredItem={featuredItem}
                   capabilities={capabilities}
-                  customBadgeStyles={customBadgeStyles}
                   density={density}
                 />
               )}
