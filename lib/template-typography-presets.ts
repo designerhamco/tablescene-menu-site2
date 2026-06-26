@@ -73,7 +73,7 @@ export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
 export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySettings>> = {
   cafe_design_a: {
     korean_font_key: "pretendard",
-    english_font_key: "outfit",
+    english_font_key: "alata",
     font_size_scale_key: "m",
   },
   cafe_design_b: {

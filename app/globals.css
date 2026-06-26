@@ -202,7 +202,7 @@ video {
 }
 
 .cafe-a-typography {
-  --cafe-a-category-title-size: 1.1875rem;
+  --cafe-a-category-title-size: 1.234375rem;
   --cafe-a-menu-title-size: 1rem;
   --cafe-a-menu-meta-size: 0.75rem;
   --cafe-a-menu-description-size: 0.8125rem;
@@ -210,19 +210,19 @@ video {
 }
 
 .cafe-a-category-title-size-spacious {
-  --cafe-a-category-title-size: 1.25rem;
+  --cafe-a-category-title-size: 1.3rem;
 }
 
 .cafe-a-category-title-size-default {
-  --cafe-a-category-title-size: 1.1875rem;
+  --cafe-a-category-title-size: 1.234375rem;
 }
 
 .cafe-a-category-title-size-compact {
-  --cafe-a-category-title-size: 1.125rem;
+  --cafe-a-category-title-size: 1.171875rem;
 }
 
 .cafe-a-category-title-size-ultra-compact {
-  --cafe-a-category-title-size: 1.0625rem;
+  --cafe-a-category-title-size: 1.105rem;
 }
 
 .cafe-a-menu-title-size-spacious {
@@ -309,7 +309,6 @@ video {
   --featured-title-base: 1.5rem;
   --featured-description-base: 0.75rem;
   --featured-price-base: 1.25rem;
-  --featured-badge-base: 0.625rem;
   --featured-space-base: 1rem;
 }
 
@@ -337,15 +336,6 @@ video {
   );
 }
 
-.cafe-a-typography .cafe-a-featured-badges .cafe-a-menu-badge {
-  font-size: clamp(
-    calc(var(--featured-badge-base) * 0.88),
-    calc(var(--featured-badge-base) * 0.72 + 0.1875vw),
-    calc(var(--featured-badge-base) * 1.06)
-  );
-  padding: clamp(0.18rem, calc(0.15rem + 0.12vw), 0.25rem) clamp(0.32rem, calc(0.25rem + 0.18vw), 0.44rem);
-}
-
 .cafe-a-typography .cafe-a-menu-badge,
 .cafe-a-typography .cafe-a-menu-chip,
 .cafe-a-typography .cafe-a-price-label {
@@ -354,9 +344,9 @@ video {
 
 @media (min-width: 1024px) {
   .cafe-a-typography {
-    --board-padding: clamp(30px, 4vmin, 64px);
+    --board-padding: clamp(32px, 4.2vmin, 68px);
     --fixed-column-width: clamp(280px, 26vw, 420px);
-    --menu-board-column-gap: clamp(36px, 3.3vw, 60px);
+    --menu-board-column-gap: clamp(39px, 3.55vw, 65px);
     --fit-columns: 4;
     --fit-font-scale: 1;
     --fit-gap-scale: 1;
@@ -383,7 +373,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] {
-    padding: clamp(34px, 4.35vmin, 70px);
+    padding: clamp(36px, 4.55vmin, 74px);
     --fit-menu-typography-scale: 0.98;
     --ordered-fit-menu-visual-scale: 0.95;
     --ordered-fit-item-rhythm-scale: 1.06;
@@ -447,11 +437,6 @@ video {
     gap: clamp(calc(var(--featured-space-base) * 0.76), calc(var(--featured-space-base) * 0.68 + 0.2vw), var(--featured-space-base));
     left: clamp(calc(var(--featured-space-base) * 0.88), calc(var(--featured-space-base) * 0.72 + 0.3vw), calc(var(--featured-space-base) * 1.06));
     right: clamp(calc(var(--featured-space-base) * 0.88), calc(var(--featured-space-base) * 0.72 + 0.3vw), calc(var(--featured-space-base) * 1.06));
-  }
-
-  .cafe-a-typography .cafe-a-featured-badges {
-    gap: clamp(0.32rem, calc(0.25rem + 0.15vw), 0.5rem);
-    margin-bottom: clamp(0.36rem, calc(0.3rem + 0.15vw), 0.62rem);
   }
 
   .cafe-a-typography .cafe-a-ordered-menu-flow {
@@ -589,7 +574,8 @@ video {
 
   .cafe-a-typography .cafe-a-fit-menu-grid .cafe-a-menu-badge,
   .cafe-a-typography .cafe-a-fit-menu-grid .cafe-a-menu-chip,
-  .cafe-a-typography .cafe-a-fit-menu-grid .cafe-a-price-label {
+  .cafe-a-typography .cafe-a-fit-menu-grid .cafe-a-price-label,
+  .cafe-a-typography .cafe-a-featured-badges .cafe-a-menu-badge {
     font-size: clamp(0.38rem, calc(0.625rem * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-balanced-menu-visual-scale) * var(--ordered-fit-final-fill-compensation)), 0.78rem);
   }
 

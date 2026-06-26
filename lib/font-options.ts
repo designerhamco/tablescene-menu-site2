@@ -428,7 +428,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
 };
 
 export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = {
-  cafe_design_a: "outfit",
+  cafe_design_a: "alata",
   cafe_design_b: "outfit",
   cafe_design_c: "outfit",
   fine_dining_design_a: "playfair-display",

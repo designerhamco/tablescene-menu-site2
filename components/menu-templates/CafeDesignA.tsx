@@ -1688,7 +1688,21 @@ function getItemPriceDisplay(
   return formatMenuPrice(item);
 }
 
-function getItemPriceTokens(item: MenuItem, priceOptions: PublicMenuTemplateProps["priceOptions"], capabilities: TemplateCapabilities): CafeDesignAPriceToken[] {
+function isCafeADrinkCategory(category: MenuCategory) {
+  const categoryName = category.name.trim().toLowerCase();
+  if (!categoryName) return false;
+
+  if (/(bakery|dessert|bread|cake|pastry|베이커리|디저트|케이크|구움|빵)/i.test(categoryName)) return false;
+
+  return /(coffee|non-?coffee|tea|ade|drink|beverage|espresso|latte|brew|커피|음료|티|차|에이드|라떼)/i.test(categoryName);
+}
+
+function getItemPriceTokens(
+  item: MenuItem,
+  priceOptions: PublicMenuTemplateProps["priceOptions"],
+  capabilities: TemplateCapabilities,
+  options: { isDrink?: boolean } = {},
+): CafeDesignAPriceToken[] {
   if (item.price_visible === false) return [];
 
   const maxOptions = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
@@ -1737,10 +1751,12 @@ function getItemPriceTokens(item: MenuItem, priceOptions: PublicMenuTemplateProp
 
   const price = item.price_label?.trim() || formatMenuPrice(item);
   if (!price) return [];
+  const portionLabel = item.portion_label?.trim() ?? "";
+  const fallbackTemperatureLabel = options.isDrink ? "HOT/ICE" : "";
 
   return [
     {
-      label: item.portion_visible === false ? "" : item.portion_label?.trim() ?? "",
+      label: portionLabel || fallbackTemperatureLabel,
       price,
     },
   ];
@@ -1806,7 +1822,7 @@ function estimateMenuGroupHeight(
 ) {
   const headingWeight = 1.9 + (group.category.description_visible && group.category.description ? 0.75 : 0);
   const itemWeight = group.items.reduce((weight, item) => {
-    const priceTokens = getItemPriceTokens(item, data.priceOptions, capabilities);
+    const priceTokens = getItemPriceTokens(item, data.priceOptions, capabilities, { isDrink: isCafeADrinkCategory(group.category) });
     const traits = getItemTraits(data.traits, item.id);
     const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
 
@@ -2059,6 +2075,7 @@ function SoldOutBadge() {
 
 function MenuItemRow({
   item,
+  category,
   priceOptions,
   traits,
   capabilities,
@@ -2068,6 +2085,7 @@ function MenuItemRow({
   locale,
 }: {
   item: MenuItem;
+  category: MenuCategory;
   priceOptions: PublicMenuTemplateProps["priceOptions"];
   traits: PublicMenuTemplateProps["traits"];
   capabilities: TemplateCapabilities;
@@ -2076,7 +2094,7 @@ function MenuItemRow({
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
 }) {
-  const priceTokens = getItemPriceTokens(item, priceOptions, capabilities);
+  const priceTokens = getItemPriceTokens(item, priceOptions, capabilities, { isDrink: isCafeADrinkCategory(category) });
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
   const titleClassName = {
     spacious: "cafe-a-menu-title-size-spacious",
@@ -2125,7 +2143,7 @@ function MenuItemRow({
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
           {item.is_sold_out && <SoldOutBadge />}
         </div>
-        {metaText && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#5e5e5e] ${metaClassName}`}>{metaText}</p>}
+        {metaText && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>{metaText}</p>}
         {item.description && (
           <p className={`cafe-a-menu-description break-keep font-normal text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
         )}
@@ -2193,26 +2211,28 @@ function CoverHero({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
         {featuredItem && (
-          <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
-            <div className="min-w-0">
-              <div className="cafe-a-featured-badges mb-2 flex flex-wrap gap-2">
-                <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none bg-[#00342b] px-1.5 py-1 font-black uppercase leading-none text-white">대표 추천</span>
-                <Badge
-                  item={featuredItem}
-                  capabilities={capabilities}
-                  templateKey={data.menuSite.template_key}
-                  customBadgeStyles={customBadgeStyles}
-                />
-              </div>
-              <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
-              {featuredItem.description && (
-                <p className="cafe-a-featured-description mt-2 line-clamp-2 break-keep font-semibold leading-relaxed text-white/82" data-cafe-a-featured-description="">
-                  {featuredItem.description}
-                </p>
-              )}
+          <>
+            <div className="cafe-a-featured-badges absolute right-4 top-4 z-10 flex max-w-[calc(100%-2rem)] flex-wrap justify-end gap-2">
+              <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none bg-[#00b975] px-1.5 py-1 font-black uppercase leading-none text-white">대표 추천</span>
+              <Badge
+                item={featuredItem}
+                capabilities={capabilities}
+                templateKey={data.menuSite.template_key}
+                customBadgeStyles={customBadgeStyles}
+              />
             </div>
-            {price && <p className="menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none" data-cafe-a-featured-price="">{price}</p>}
-          </div>
+            <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
+              <div className="min-w-0">
+                <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
+                {featuredItem.description && (
+                  <p className="cafe-a-featured-description mt-2 line-clamp-2 break-keep font-semibold leading-relaxed text-white/82" data-cafe-a-featured-description="">
+                    {featuredItem.description}
+                  </p>
+                )}
+              </div>
+              {price && <p className="menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none" data-cafe-a-featured-price="">{price}</p>}
+            </div>
+          </>
         )}
       </div>
     </section>
@@ -2325,6 +2345,7 @@ function MenuGroupsGrid({
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                     <MenuItemRow
                       item={item}
+                      category={category}
                       priceOptions={data.priceOptions}
                       traits={getItemTraits(data.traits, item.id)}
                       capabilities={capabilities}
@@ -2406,6 +2427,7 @@ function BalancedExperimentalMenuGrid({
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                     <MenuItemRow
                       item={item}
+                      category={category}
                       priceOptions={data.priceOptions}
                       traits={getItemTraits(data.traits, item.id)}
                       capabilities={capabilities}
@@ -2489,6 +2511,7 @@ function OrderedBalancedFitMenuGrid({
                     <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                       <MenuItemRow
                         item={item}
+                        category={category}
                         priceOptions={data.priceOptions}
                         traits={getItemTraits(data.traits, item.id)}
                         capabilities={capabilities}
