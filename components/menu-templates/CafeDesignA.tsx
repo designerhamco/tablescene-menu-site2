@@ -2073,10 +2073,27 @@ function SoldOutBadge() {
   return <span className="menu-badge cafe-a-menu-badge inline-flex rounded-none bg-[#e1e3e0] px-1.5 py-1 font-black uppercase leading-none text-[#3f4945]">품절</span>;
 }
 
-function HeroOverlayBadge({ children }: { children: ReactNode }) {
+function HeroOverlayBadge({
+  item,
+  capabilities,
+  templateKey,
+  customBadgeStyles,
+}: {
+  item: MenuItem;
+  capabilities: TemplateCapabilities;
+  templateKey: string | null;
+  customBadgeStyles: unknown;
+}) {
+  if (!capabilities.itemBadges) return null;
+
+  const label = getMenuItemBadgeLabel(item);
+  if (!label) return null;
+
+  const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
+
   return (
-    <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none bg-white px-1.5 py-1 font-black uppercase leading-none text-[#191c1b]">
-      {children}
+    <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
+      {label}
     </span>
   );
 }
@@ -2188,17 +2205,20 @@ function CoverHero({
   featuredItem,
   capabilities,
   density,
+  customBadgeStyles,
   desktopClassName = "",
 }: {
   data: PublicMenuTemplateProps;
   featuredItem: MenuItem | null;
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
+  customBadgeStyles: unknown;
   desktopClassName?: string;
 }) {
   const price = featuredItem
     ? getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true })
     : null;
+  const featuredBadgeLabel = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : "";
   const coverImageUrl = data.menuSite.cover_image_url;
   const heroMinHeightClassName = {
     spacious: "min-h-[400px]",
@@ -2219,12 +2239,11 @@ function CoverHero({
         {featuredItem && (
           <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
             <div className="min-w-0">
-              <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
-                <HeroOverlayBadge>대표 추천</HeroOverlayBadge>
-                {capabilities.itemBadges && getMenuItemBadgeLabel(featuredItem) && (
-                  <HeroOverlayBadge>{getMenuItemBadgeLabel(featuredItem)}</HeroOverlayBadge>
-                )}
-              </div>
+              {featuredBadgeLabel ? (
+                <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
+                  <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} />
+                </div>
+              ) : null}
               <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
               {featuredItem.description && (
                 <p className="cafe-a-featured-description mt-2 line-clamp-2 break-keep font-semibold leading-relaxed text-white/82" data-cafe-a-featured-description="">
@@ -3941,7 +3960,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
           <HeaderBlock data={data} className="lg:hidden" />
           <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] py-8 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
             {shouldRenderMenuCoverSection && (
-              <CoverHero data={data} featuredItem={featuredItem} capabilities={capabilities} density={density} />
+              <CoverHero data={data} featuredItem={featuredItem} capabilities={capabilities} density={density} customBadgeStyles={customBadgeStyles} />
             )}
 
             {visiblePageGroups.length === 0 ? (
@@ -4020,6 +4039,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
                   featuredItem={featuredItem}
                   capabilities={capabilities}
                   density={density}
+                  customBadgeStyles={customBadgeStyles}
                 />
               )}
             </DesktopFixedRail>
