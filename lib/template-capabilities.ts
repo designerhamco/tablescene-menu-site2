@@ -1,5 +1,3 @@
-import type { WidgetType } from "@/lib/menu-widgets";
-
 export type TemplateMenuCoverMode = "none" | "section" | "page";
 
 export type TemplateMenuCoverCapabilities = {
@@ -33,12 +31,6 @@ export type TemplateCapabilities = {
   chefs: boolean;
   events: boolean;
   socialLinks: boolean;
-  widgets: {
-    enabled: boolean;
-    allowedTypes: WidgetType[];
-    maxWidgetsPerPage: number;
-    maxItemsPerWidget: number;
-  };
   menuCover: TemplateMenuCoverCapabilities;
 };
 
@@ -73,12 +65,6 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   chefs: true,
   events: true,
   socialLinks: true,
-  widgets: {
-    enabled: false,
-    allowedTypes: [],
-    maxWidgetsPerPage: 0,
-    maxItemsPerWidget: 0,
-  },
   menuCover: DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES,
 };
 
@@ -104,12 +90,6 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     chefs: false,
     events: false,
     socialLinks: false,
-    widgets: {
-      enabled: false,
-      allowedTypes: [],
-      maxWidgetsPerPage: 0,
-      maxItemsPerWidget: 0,
-    },
     menuCover: {
       coverMode: "none",
       usesStoreName: false,
@@ -164,12 +144,6 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     chefs: false,
     events: true,
     socialLinks: true,
-    widgets: {
-      enabled: true,
-      allowedTypes: ["notice_text", "image_banner", "option_list", "store_info"],
-      maxWidgetsPerPage: 8,
-      maxItemsPerWidget: 8,
-    },
     menuCover: {
       ...DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES,
       coverMode: "section",

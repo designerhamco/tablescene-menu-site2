@@ -857,8 +857,6 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
     items: items.map(buildItem),
     priceOptions: buildPriceOptions(items),
     traits: [],
-    widgets: [],
-    widgetItems: [],
     events: [],
     chefs: [],
     socialLinks: [],

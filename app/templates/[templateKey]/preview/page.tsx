@@ -157,8 +157,6 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     items,
     priceOptions,
     traits: [],
-    widgets: [],
-    widgetItems: [],
     events: preset.events.map((event, index) => ({
       id: `${siteId}-event-${index}`,
       event_title: event.event_title,
