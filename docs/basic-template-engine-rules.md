@@ -173,9 +173,10 @@ Safe fit/fill principle:
 
 Fit/fill should be handled inside typography, row rhythm, and gap density. It should not repeatedly change page padding, visual shell ratio, or core column ratio just to chase a target column count.
 
-Future engine reinforcement:
+Current and future engine reinforcement:
 
-- Add explicit right-edge per-element safety gap.
+- CafeA now measures explicit right-edge per-element safety for menu names, secondary names, prices, price tokens, badges/chips, and category titles.
+- Future Basic templates should reuse the same right-edge safety check instead of relying only on scroll width.
 - Do not rely only on `documentScrollWidth === clientWidth`.
 - Do not rely only on `pageScroll === false`.
 - Confirm the last visible item, price, and category block are inside the board.
@@ -195,7 +196,7 @@ Required safety checks for Basic templates:
 - No orphan category title without visible items in `orderedBalancedFit`.
 - No ellipsis as a normal layout solution.
 
-CafeA already has strong bottom crop and clipping checks through actual DOM measurement in `CafeDesignA.tsx`. It also checks scroll dimensions and rendered rectangles. However, right-edge per-element safety is not yet a clearly separated rule and should be added before treating the engine as fully reusable.
+CafeA already has strong bottom crop and clipping checks through actual DOM measurement in `CafeDesignA.tsx`. It also checks scroll dimensions, rendered rectangles, and explicit right-edge safety metrics. Future templates should preserve this check before treating a candidate as safe.
 
 ## 8. Capability rules
 
@@ -257,7 +258,7 @@ Current risks:
   - Status: 향후 리팩토링 TODO.
 - `orderedFit` and `orderedBalancedFit` do not use perfectly identical padding corrections.
   - Status: 문서로만 주의. Decide later whether this is a CafeA skin correction or a Basic-wide rule.
-- Right-edge per-element safety is not explicit enough.
+- Right-edge per-element safety is now explicit in CafeA, but the constants and helper still live inside `CafeDesignA.tsx`.
   - Status: 향후 리팩토링 TODO.
 - Legacy `balanced` / `balancedExperimental` paths remain internally.
   - Status: 문서로만 주의. New templates should not add new customer-facing legacy modes.
@@ -348,7 +349,7 @@ Before rebuilding CafeB from CafeA, consider these refactor steps:
 - Document and centralize safety gaps.
 - Document and centralize fill penalty thresholds.
 - Decide whether `orderedFit` padding correction is CafeA-only or Basic-wide.
-- Add explicit right-edge per-element safety checks.
+- Extract explicit right-edge per-element safety checks into the future Basic engine layer.
 - Add explicit ellipsis detection or at least text clipping detection where practical.
 - Reduce legacy mode confusion around `balanced` / `balancedExperimental`.
 - Define a skin token interface for cover rail, board color, typography multipliers, rules, price chips, and badge styles.
