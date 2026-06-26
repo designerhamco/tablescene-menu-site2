@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
+import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -291,7 +292,6 @@ const ORDERED_BALANCED_DENSE_CATEGORY_THRESHOLD = 5;
 const ORDERED_BALANCED_DENSE_ITEM_THRESHOLD = 20;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP = 12;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = 2;
-const CAFE_A_RIGHT_EDGE_SAFETY_GAP = 8;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_LEVELS = [
   { fontScale: 1.015, gapScale: 1.01 },
   { fontScale: 1.025, gapScale: 1.018 },
@@ -807,7 +807,7 @@ function getCafeARightEdgeSafetyMeasurement(boardElement: HTMLElement, menuEleme
     rightmostChipRight: roundFitMetric(Number.isFinite(rightmostChipRight) ? rightmostChipRight : 0),
     rightmostCategoryRight: roundFitMetric(Number.isFinite(rightmostCategoryRight) ? rightmostCategoryRight : 0),
     rightSafetyGap: roundFitMetric(rightSafetyGap),
-    rightOverflow: hasMeasuredElement && rightSafetyGap < CAFE_A_RIGHT_EDGE_SAFETY_GAP,
+    rightOverflow: hasMeasuredElement && rightSafetyGap < BASIC_RIGHT_EDGE_SAFETY_GAP_PX,
   };
 }
 

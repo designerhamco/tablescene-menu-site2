@@ -36,7 +36,7 @@ Basic templates expose two customer-facing layout modes:
 
 `orderedBalancedFit` is the Basic default. `orderedFit` is the secondary option. This order is defined by `BASIC_LAYOUT_MODE_ORDER` in `lib/menu-layout-modes.ts`, and the default is `BASIC_DEFAULT_LAYOUT_MODE = "orderedBalancedFit"`.
 
-Existing saved values must be respected. Missing, invalid, or legacy layout values should fall back to `orderedBalancedFit` instead of forcing a data rewrite.
+Existing saved values must be respected. Missing, invalid, or legacy layout values should fall back to `orderedBalancedFit` through `BASIC_LAYOUT_MODE_ALIASES` and `normalizePcTabletLayoutMode` instead of forcing a data rewrite.
 
 ### orderedBalancedFit / 묶음형 자동 배치
 
@@ -176,10 +176,24 @@ Fit/fill should be handled inside typography, row rhythm, and gap density. It sh
 Current and future engine reinforcement:
 
 - CafeA now measures explicit right-edge per-element safety for menu names, secondary names, prices, price tokens, badges/chips, and category titles.
+- The shared right-edge safety threshold is `BASIC_RIGHT_EDGE_SAFETY_GAP_PX = 8` in `lib/basic-template-constants.ts`.
 - Future Basic templates should reuse the same right-edge safety check instead of relying only on scroll width.
 - Do not rely only on `documentScrollWidth === clientWidth`.
 - Do not rely only on `pageScroll === false`.
 - Confirm the last visible item, price, and category block are inside the board.
+
+Policy constants centralized in this stage:
+
+- `BASIC_DEFAULT_LAYOUT_MODE` and `BASIC_LAYOUT_MODE_ORDER` stay in `lib/menu-layout-modes.ts`.
+- `BASIC_LAYOUT_MODE_ALIASES` stays in `lib/menu-layout-modes.ts`.
+- `BASIC_RIGHT_EDGE_SAFETY_GAP_PX` lives in `lib/basic-template-constants.ts`.
+- QA viewport lists live in `lib/basic-template-constants.ts`.
+
+Values intentionally not centralized yet:
+
+- CafeA page padding, column gap, category gap, row gap, and CSS layout variables.
+- CafeA font scale, gap scale, candidate scale, fit/fill scoring, and density threshold values.
+- CafeA visual skin tokens such as cover rail, divider, badge/chip, and typography multipliers.
 
 ## 7. Crop/overflow/ellipsis safety rules
 
@@ -301,7 +315,7 @@ The column count is a result. Design ratio and safety margin come first.
 
 ## 12. QA policy
 
-Use representative QA for normal changes and wider DOM sweeps only for layout engine risk.
+Use representative QA for normal changes and wider DOM sweeps only for layout engine risk. The viewport lists are also recorded as constants in `lib/basic-template-constants.ts`.
 
 Lightweight QA viewports:
 

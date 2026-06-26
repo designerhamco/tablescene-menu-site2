@@ -1,0 +1,23 @@
+export const BASIC_RIGHT_EDGE_SAFETY_GAP_PX = 8;
+
+export const BASIC_REPRESENTATIVE_VISUAL_QA_VIEWPORTS = [1440, 1280, 1024, 768, 390] as const;
+export const BASIC_ADDITIONAL_PROBLEM_QA_VIEWPORTS = [1366, 1240, 900] as const;
+export const BASIC_FINAL_DOM_SWEEP_VIEWPORTS = [
+  1440,
+  1366,
+  1320,
+  1280,
+  1240,
+  1200,
+  1180,
+  1140,
+  1100,
+  1060,
+  1024,
+  1000,
+  960,
+  900,
+  834,
+  768,
+  390,
+] as const;

@@ -5,7 +5,7 @@ export type PcTabletLayoutMode = (typeof PC_TABLET_LAYOUT_MODES)[number];
 
 export const BASIC_DEFAULT_LAYOUT_MODE: PcTabletLayoutMode = "orderedBalancedFit";
 export const DEFAULT_PC_TABLET_LAYOUT_MODE: PcTabletLayoutMode = BASIC_DEFAULT_LAYOUT_MODE;
-const PC_TABLET_LAYOUT_MODE_ALIASES = {
+export const BASIC_LAYOUT_MODE_ALIASES = {
   orderedBalancedFit: "orderedBalancedFit",
   orderedFit: "orderedFit",
   balanced: "orderedBalancedFit",
@@ -23,8 +23,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function normalizePcTabletLayoutMode(value: unknown): PcTabletLayoutMode {
   if (typeof value !== "string") return DEFAULT_PC_TABLET_LAYOUT_MODE;
   const normalizedValue = value.trim();
-  if (normalizedValue in PC_TABLET_LAYOUT_MODE_ALIASES) {
-    return PC_TABLET_LAYOUT_MODE_ALIASES[normalizedValue as keyof typeof PC_TABLET_LAYOUT_MODE_ALIASES];
+  if (normalizedValue in BASIC_LAYOUT_MODE_ALIASES) {
+    return BASIC_LAYOUT_MODE_ALIASES[normalizedValue as keyof typeof BASIC_LAYOUT_MODE_ALIASES];
   }
   return DEFAULT_PC_TABLET_LAYOUT_MODE;
 }
