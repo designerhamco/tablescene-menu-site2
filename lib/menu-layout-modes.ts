@@ -1,8 +1,10 @@
-export const PC_TABLET_LAYOUT_MODES = ["orderedFit", "orderedBalancedFit"] as const;
+export const BASIC_LAYOUT_MODE_ORDER = ["orderedBalancedFit", "orderedFit"] as const;
+export const PC_TABLET_LAYOUT_MODES = BASIC_LAYOUT_MODE_ORDER;
 
 export type PcTabletLayoutMode = (typeof PC_TABLET_LAYOUT_MODES)[number];
 
-export const DEFAULT_PC_TABLET_LAYOUT_MODE: PcTabletLayoutMode = "orderedFit";
+export const BASIC_DEFAULT_LAYOUT_MODE: PcTabletLayoutMode = "orderedBalancedFit";
+export const DEFAULT_PC_TABLET_LAYOUT_MODE: PcTabletLayoutMode = BASIC_DEFAULT_LAYOUT_MODE;
 const LEGACY_PC_TABLET_LAYOUT_MODES = ["balanced", "balancedExperimental"] as const;
 const LEGACY_PC_TABLET_LAYOUT_MODE_FALLBACK: PcTabletLayoutMode = "orderedBalancedFit";
 

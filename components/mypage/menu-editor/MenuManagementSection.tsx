@@ -55,6 +55,7 @@ import type { AiUsage } from "@/lib/menu-ai-usage";
 import { DISPLAY_MENU_QUALITY_RULES, getDisplayMenuPageQuality, type DisplayMenuPageQuality } from "@/lib/display-menu-quality";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import {
+  BASIC_LAYOUT_MODE_ORDER,
   DEFAULT_PC_TABLET_LAYOUT_MODE,
   normalizePcTabletLayoutMode,
   type PcTabletLayoutMode,
@@ -267,18 +268,20 @@ function getPriceOptionSortOrder(option: DraftPriceOption | MenuItemPriceOption)
 }
 
 const MENU_BUILDER_STATE_KEY_PREFIX = "tablescene:menu-editor:builder";
-const PC_TABLET_LAYOUT_MODE_OPTIONS = [
-  {
-    value: "orderedFit",
-    title: "채움형 배치",
-    description: "메뉴를 등록한 순서대로 이어서 배치해 화면을 자연스럽게 채웁니다.",
-  },
-  {
-    value: "orderedBalancedFit",
+const PC_TABLET_LAYOUT_MODE_OPTION_LABELS = {
+  orderedBalancedFit: {
     title: "묶음형 자동 배치",
-    description: "카테고리와 메뉴를 한 묶음으로 유지합니다. 메뉴 수와 화면 크기에 따라 글자 크기와 간격이 자동 조정될 수 있습니다.",
+    description: "카테고리 묶음을 유지하면서 화면에 균형 있게 배치합니다.",
   },
-] as const satisfies readonly { value: PcTabletLayoutMode; title: string; description: string }[];
+  orderedFit: {
+    title: "채움형 배치",
+    description: "등록한 순서대로 메뉴를 이어서 배치합니다.",
+  },
+} as const satisfies Record<PcTabletLayoutMode, { title: string; description: string }>;
+const PC_TABLET_LAYOUT_MODE_OPTIONS = BASIC_LAYOUT_MODE_ORDER.map((value) => ({
+  value,
+  ...PC_TABLET_LAYOUT_MODE_OPTION_LABELS[value],
+})) satisfies { value: PcTabletLayoutMode; title: string; description: string }[];
 
 type MenuBuilderSavedState = {
   selectedPageId?: string;
@@ -6084,7 +6087,7 @@ export default function MenuManagementSection({
                   })}
                 </div>
                 <p className="mt-3 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
-                  안정적인 비율은 채움형, 카테고리 구분은 묶음형 자동 배치를 추천합니다.
+                  기본 추천은 묶음형 자동 배치이며, 필요하면 채움형 배치로 변경할 수 있습니다.
                 </p>
               </section>
             )}

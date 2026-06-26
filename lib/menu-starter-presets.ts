@@ -1,4 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
+import { BASIC_DEFAULT_LAYOUT_MODE } from "@/lib/menu-layout-modes";
 import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
 import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
@@ -134,6 +135,9 @@ const STARTER_PAGE_SETTINGS = {
   social_links_enabled: true,
   featured_item_enabled: false,
   featured_item_id: null,
+  design: {
+    pcTabletLayoutMode: BASIC_DEFAULT_LAYOUT_MODE,
+  },
 } as const;
 
 const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
@@ -148,6 +152,9 @@ const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
   social_links_enabled: false,
   featured_item_enabled: false,
   featured_item_id: null,
+  design: {
+    pcTabletLayoutMode: BASIC_DEFAULT_LAYOUT_MODE,
+  },
 } as const;
 
 function getStarterServiceType(productKey?: string | null): StarterServiceType {

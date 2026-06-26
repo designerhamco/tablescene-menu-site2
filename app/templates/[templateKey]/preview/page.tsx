@@ -5,6 +5,7 @@ import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
+import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
@@ -288,11 +289,9 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const layoutModeParam = Array.isArray(resolvedSearchParams.layoutMode)
     ? resolvedSearchParams.layoutMode[0]
     : resolvedSearchParams.layoutMode;
-  const previewLayoutMode =
-    templateKey === "cafe_design_a" &&
-    (layoutModeParam === "balancedExperimental" || layoutModeParam === "orderedBalancedFit" || layoutModeParam === "orderedFit")
-      ? layoutModeParam
-      : undefined;
+  const previewLayoutMode = supportsPcTabletLayoutMode(templateKey)
+    ? normalizePcTabletLayoutMode(layoutModeParam)
+    : undefined;
   const displayPreviewPageIndex = templateKey === "display_menu_a"
     ? getDisplayPreviewPageIndex(resolvedSearchParams.page)
     : null;
