@@ -229,6 +229,8 @@ Current CafeA capability rules are defined in `lib/template-capabilities.ts`.
 
 ## 9. Engine vs skin separation
 
+CafeA is not yet extracted into a shared Basic engine package. In this stage, `components/menu-templates/CafeDesignA.tsx` marks the main engine-candidate and CafeA-skin-candidate sections with lightweight comments only. This is a visual no-op refactor: it documents reuse boundaries without changing layout behavior.
+
 ### Basic common engine
 
 These should be reusable across compatible Basic templates:
@@ -246,6 +248,16 @@ These should be reusable across compatible Basic templates:
 - Starter/preview layout-mode connection.
 - Actual DOM measurement and visual QA policy.
 
+Current CafeA file markers:
+
+- `Basic engine candidate: data contracts, grouping, and fit/fill measurement types`
+- `Basic engine candidate: fit/fill candidate constants and safety thresholds`
+- `Basic engine candidate: layout candidates, scale helpers, and state comparison`
+- `Basic engine safety candidate: DOM measurement, crop, and right-edge checks`
+- `Basic engine candidate: ordered balanced partition and balanced measurement`
+- `Basic engine candidate: data filtering, price rendering, and grouping helpers`
+- `Basic engine candidate: layout mode renderers for ordered and grouped flows`
+
 ### CafeA skin
 
 These should remain CafeA-specific or become skin tokens:
@@ -260,7 +272,15 @@ These should remain CafeA-specific or become skin tokens:
 - Store title and store description visual rhythm.
 - CafeA starter sample data.
 
+Current CafeA file markers:
+
+- `CafeA skin candidate: visual rhythm variables that still live in this renderer`
+- `CafeA skin candidate: component class names, cover rail, and menu row visuals`
+- `CafeA skin shell: mobile scroll layout and desktop board share the same CafeA visual components`
+
 Future CafeB/CafeC templates should not recreate the Basic engine when their structure is compatible. They should reuse the engine and replace skin tokens plus sample data.
+
+CafeA is still not a fully separated common engine. Future CafeB/CafeC work should use these marked boundaries to decide what to reuse and what to replace.
 
 ## 10. Risks and ambiguous areas
 
@@ -269,7 +289,7 @@ Current risks:
 - Many magic numbers exist in candidate scales, safety gaps, fill penalties, and density thresholds.
   - Status: 향후 리팩토링 TODO.
 - Engine and skin are mixed across `CafeDesignA.tsx` and `app/globals.css`.
-  - Status: 향후 리팩토링 TODO.
+  - Status: 당장 유지. `CafeDesignA.tsx` now marks engine and skin candidate sections, but no shared engine extraction has happened yet.
 - `orderedFit` and `orderedBalancedFit` do not use perfectly identical padding corrections.
   - Status: 문서로만 주의. Decide later whether this is a CafeA skin correction or a Basic-wide rule.
 - Right-edge per-element safety is now explicit in CafeA, but the constants and helper still live inside `CafeDesignA.tsx`.

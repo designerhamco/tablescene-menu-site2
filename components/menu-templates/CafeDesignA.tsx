@@ -29,6 +29,10 @@ import {
 } from "@/lib/template-typography-presets";
 import { formatMenuPrice, shouldShowMenuItemTraits } from "@/types/menu";
 
+// -----------------------------------------------------------------------------
+// Basic engine candidate: data contracts, grouping, and fit/fill measurement types
+// -----------------------------------------------------------------------------
+
 type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuPage = PublicMenuTemplateProps["pages"][number];
@@ -154,6 +158,10 @@ type CafeDesignABalancedSimulatedColumn = {
   blocks: CafeDesignABalancedBlockMeasurement[];
   height: number;
 };
+
+// -----------------------------------------------------------------------------
+// Basic engine candidate: fit/fill candidate constants and safety thresholds
+// -----------------------------------------------------------------------------
 
 const FIT_COLUMN_CANDIDATES = [2, 3, 4, 5, 6] as const;
 const FIT_FONT_SCALE_CANDIDATES = [
@@ -354,6 +362,10 @@ const ORDERED_FIT_MIN_SAFETY_GAP = 2;
 const ORDERED_FIT_LOOSE_GAP = 20;
 const ORDERED_FIT_COLUMN_TOLERANCE = 8;
 const ORDERED_FIT_DESKTOP_MAX_COLUMNS = 4;
+
+// -----------------------------------------------------------------------------
+// Basic engine candidate: layout candidates, scale helpers, and state comparison
+// -----------------------------------------------------------------------------
 
 function getMaxFitColumns(width: number) {
   if (width < 720) return 2;
@@ -603,6 +615,10 @@ function shouldKeepOrderedBalancedSettledCandidate(currentState: CafeDesignAFitS
   return nextFillImprovement < ORDERED_BALANCED_SETTLED_SWITCH_GAP;
 }
 
+// -----------------------------------------------------------------------------
+// CafeA skin candidate: visual rhythm variables that still live in this renderer
+// -----------------------------------------------------------------------------
+
 function getFitGapStyle(density: MenuLayoutDensity): CSSProperties {
   const gapByDensity = {
     spacious: { x: "clamp(48px, 3.4vw, 68px)", y: "2.5rem", stack: "1.5rem", line: "1.5", inline: "0.5rem" },
@@ -620,6 +636,10 @@ function getFitGapStyle(density: MenuLayoutDensity): CSSProperties {
     "--menu-inline-gap": gap.inline,
   } as CSSProperties;
 }
+
+// -----------------------------------------------------------------------------
+// Basic engine safety candidate: DOM measurement, crop, and right-edge checks
+// -----------------------------------------------------------------------------
 
 function getColumnMeasurements(menuElement: HTMLElement, measurementSelector: string): CafeDesignAColumnMeasurement[] {
   const menuRect = menuElement.getBoundingClientRect();
@@ -810,6 +830,10 @@ function getCafeARightEdgeSafetyMeasurement(boardElement: HTMLElement, menuEleme
     rightOverflow: hasMeasuredElement && rightSafetyGap < BASIC_RIGHT_EDGE_SAFETY_GAP_PX,
   };
 }
+
+// -----------------------------------------------------------------------------
+// Basic engine candidate: ordered balanced partition and balanced measurement
+// -----------------------------------------------------------------------------
 
 function getBalancedBlockVisibleHeights(blockElement: HTMLElement) {
   const blockRect = blockElement.getBoundingClientRect();
@@ -1564,6 +1588,10 @@ function measureCafeABalancedFit(
   };
 }
 
+// -----------------------------------------------------------------------------
+// Basic engine candidate: data filtering, price rendering, and grouping helpers
+// -----------------------------------------------------------------------------
+
 function getDisplayName(site: PublicMenuTemplateProps["menuSite"]) {
   return site.restaurant_name || site.name || "MenuLink";
 }
@@ -1933,6 +1961,10 @@ function getBalancedMenuColumns({
   return createBalancedColumnsFromWeightedGroups(weightedGroups, safeColumns, variant);
 }
 
+// -----------------------------------------------------------------------------
+// CafeA skin candidate: component class names, cover rail, and menu row visuals
+// -----------------------------------------------------------------------------
+
 function getCategoryTitleSpacing(density: MenuLayoutDensity) {
   return {
     spacious: "mb-4",
@@ -2242,6 +2274,10 @@ function EmptyState({ children }: { children: ReactNode }) {
   );
 }
 
+// -----------------------------------------------------------------------------
+// Basic engine candidate: layout mode renderers for ordered and grouped flows
+// -----------------------------------------------------------------------------
+
 function MenuGroupsGrid({
   pageGroups,
   density,
@@ -2475,6 +2511,7 @@ function OrderedBalancedFitMenuGrid({
 }
 
 export default function CafeDesignA(data: PublicMenuTemplateProps) {
+  // Basic engine wiring: capabilities, layout mode, visibility, density, and fit state.
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
@@ -2516,6 +2553,8 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings);
+
+  // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
     if (layoutMode !== "orderedBalancedFit" || fitState.orderedBalancedFingerprint) return fitState;
 
@@ -3866,6 +3905,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
     };
   }, [baseRenderFitState, fitState.orderedBalancedFingerprint, fitState.overflow, fitState.status, layoutMode, orderedBalancedFinalFillBoost]);
 
+  // CafeA skin shell: mobile scroll layout and desktop board share the same CafeA visual components.
   return (
     <>
       <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
