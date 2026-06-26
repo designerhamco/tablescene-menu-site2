@@ -41,12 +41,12 @@ function getDisplayOwnerPreviewInitialPageId(data: MenuPageData, requestedPageIn
 }
 
 function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessState: MenuSiteAccessState | null }) {
-  const message = accessState?.message ?? "서비스 이용 기간이 종료되었거나 결제 확인이 필요합니다. 결제를 재개하면 미리보기를 다시 확인할 수 있습니다.";
+  const message = accessState?.message ?? "보관 기간이 종료되어 미리보기를 사용할 수 없습니다. 복구 가능 기간이 종료되었습니다.";
 
   return (
     <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
-        <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+        <Link href="/mypage?tab=menus&menuTab=deleted" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
           ← 메뉴판 목록으로
         </Link>
         <div className="rounded-3xl border border-amber-100 bg-white p-8 shadow-sm">
@@ -59,7 +59,7 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
                 사업자 플랜으로 전환하고 복구
               </Link>
             ) : null}
-            <Link href="/mypage?tab=payments&billingTab=expired" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100">
+            <Link href="/mypage?tab=payments&billingTab=deleted" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100">
               구독/결제 상태 확인
             </Link>
           </div>
