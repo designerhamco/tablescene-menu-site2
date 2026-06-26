@@ -569,7 +569,7 @@ async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?:
   }
 
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
-  if (!accessState?.canEdit) {
+  if (!accessState?.canUseWriteActions) {
     redirectToEditWithError(menuId, options.inactiveMessage ?? MENU_SITE_INACTIVE_EDIT_MESSAGE);
   }
 

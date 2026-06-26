@@ -69,7 +69,7 @@ function getUnavailableCopy(accessState: MenuSiteAccessState) {
   return {
     eyebrow: "공개 중지됨",
     title: "이 메뉴판은 현재 비공개 상태입니다.",
-    message: "체험 기간이 종료되어 공개가 중지되었습니다. 관리자는 마이페이지에서 사업자 플랜으로 전환해 복구할 수 있습니다.",
+    message: "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 공개가 중지되었습니다. 관리자는 마이페이지에서 결제를 재개해 복구할 수 있습니다.",
   };
 }
 

@@ -165,7 +165,7 @@ async function requireOwnedMenuSite(
   }
 
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
-  if (!accessState?.canEdit) {
+  if (!accessState?.canUseWriteActions) {
     return { error: jsonError(MENU_SITE_INACTIVE_EDIT_MESSAGE, 403), menuSite: null };
   }
 

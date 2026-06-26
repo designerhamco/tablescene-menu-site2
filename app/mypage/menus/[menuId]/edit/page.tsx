@@ -47,7 +47,7 @@ import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
-import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
+import { getMenuSiteAccessStateForMenuSite, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
@@ -397,6 +397,58 @@ function isMenuSiteStatus(value: string | null | undefined): value is MenuSiteSt
   return value === "draft" || value === "published" || value === "archived";
 }
 
+function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessState: MenuSiteAccessState | null }) {
+  const statusLabel = accessState?.statusLabel ?? (isMenuSiteStatus(site.status) ? statusLabels[site.status] : "이용 제한");
+  const message =
+    accessState?.message ??
+    "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 이 메뉴판을 편집할 수 없습니다. 결제를 재개하면 기존 데이터를 다시 사용할 수 있습니다.";
+  const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
+
+  return (
+    <>
+      <OfficialSiteNavbar />
+      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+        <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center">
+          <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+            ← 메뉴판 목록으로
+          </Link>
+          <div className="rounded-3xl border border-amber-100 bg-white p-8 shadow-sm">
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">{statusLabel}</span>
+              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-500">{templateDisplayName}</span>
+            </div>
+            <h1 className="mt-6 break-keep text-3xl font-black tracking-tight text-zinc-950 md:text-4xl">이 메뉴판은 현재 편집할 수 없습니다.</h1>
+            <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
+            <p className="mt-4 break-keep rounded-2xl bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+              보관/만료 상태에서는 편집, 저장, 이미지 업로드, 샘플 되돌리기, 공개 설정 변경이 제한됩니다. 미리보기로 기존 메뉴판 상태는 확인할 수 있습니다.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {accessState?.canOwnerPreview ? (
+                <Link href={`/mypage/menus/${site.id}/preview`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100">
+                  미리보기
+                </Link>
+              ) : null}
+              {accessState?.canConvertToBusiness ? (
+                <Link href={`/mypage/menus/${site.id}/convert`} className="rounded-full bg-amber-700 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-amber-800">
+                  사업자 플랜으로 전환하고 복구
+                </Link>
+              ) : (
+                <Link href="/mypage?tab=payments&billingTab=expired" className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800">
+                  구독/결제 상태 확인
+                </Link>
+              )}
+              <Link href="/mypage?tab=inquiries" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100">
+                고객지원 문의
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
 const baseMenuSiteSelect =
   "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, intro_image_url, intro_image_path, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, settings, page_settings";
 const menuSiteSelect = baseMenuSiteSelect
@@ -681,8 +733,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const site = menuSite as MenuSite;
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id, userId: user.id });
+  if (!accessState?.canEdit) {
+    return <LockedMenuEditorScreen site={site} accessState={accessState} />;
+  }
+
   const isReadOnly = !accessState?.canEdit;
-  const canPreview = Boolean(accessState?.canPreview);
+  const canPreview = Boolean(accessState?.canOwnerPreview);
   const canViewPublic = Boolean(accessState?.canViewPublic);
   const canDownloadQr = Boolean(accessState?.canDownloadQr);
   const readOnlyMessage =

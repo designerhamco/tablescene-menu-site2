@@ -1354,17 +1354,27 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const accessExpiresAt = trialDisplayInfo?.accessExpiresAt ?? "";
     const dataRetentionUntil = trialDisplayInfo?.dataRetentionUntil ?? "";
     const daysUntilExpiry = accessExpiresAt ? getRemainingDaysUntilKst(accessExpiresAt) : null;
+    const subscriptionAccessExpiresAt = activeBusinessSubscription?.current_period_end ?? activeBusinessSubscription?.next_billing_at ?? "";
+    const daysUntilSubscriptionExpiry = subscriptionAccessExpiresAt ? getRemainingDaysUntilKst(subscriptionAccessExpiresAt) : null;
     const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
     const isRetentionActive = typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds >= 0;
     const isTrialPendingDelete = entitlementStatus === "pending_delete" || Boolean(trialDisplayInfo?.deletedScheduledAt);
-    const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || (typeof daysUntilExpiry === "number" && daysUntilExpiry < 0);
+    const isAccessExpired = typeof daysUntilExpiry === "number" && daysUntilExpiry < 0;
+    const isSubscriptionExpired = typeof daysUntilSubscriptionExpiry === "number" && daysUntilSubscriptionExpiry < 0;
+    const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || isAccessExpired;
     const hasActiveEntitlement = entitlementStatus === "active";
-    const hasActiveBusinessService = isBusinessService && entitlementStatus === "active";
     const hasInactiveEntitlement = ["expired", "archived", "pending_delete"].includes(entitlementStatus);
-    const isAccessRestricted = isMenuArchived || !hasActiveEntitlement || (!hasActiveBusinessService && (isTrialExpired || hasInactiveEntitlement));
-    const canOpenPublicPage = isPublished && Boolean(slug) && !isAccessRestricted;
     const subscriptionStatus = anyBusinessSubscription?.status ?? null;
     const hasPaymentIssue = subscriptionStatus === "failed" || subscriptionStatus === "payment_failed" || subscriptionStatus === "past_due";
+    const hasValidBusinessWindow =
+      !isBusinessService ||
+      (!hasPaymentIssue &&
+        activeBusinessSubscription?.status === "active" &&
+        (accessExpiresAt ? !isAccessExpired : Boolean(subscriptionAccessExpiresAt) && !isSubscriptionExpired));
+    const isAccessRestricted = isMenuArchived || !hasActiveEntitlement || hasInactiveEntitlement || isTrialExpired || !hasValidBusinessWindow;
+    const canOpenPublicPage = isPublished && Boolean(slug) && !isAccessRestricted && !hasPaymentIssue;
+    const canOwnerPreview = Boolean(siteId) && !isTrialPendingDelete;
+    const canUseMenuActions = Boolean(siteId) && !isAccessRestricted && !hasPaymentIssue && !isTrialPendingDelete;
     const isRetentionEnded = isTrialPendingDelete || (dataRetentionUntil ? daysUntilRetentionEnds !== null && daysUntilRetentionEnds < 0 : false);
     const serviceBadge = getMenuServiceBadge({
       productKey: entitlement?.product_key ?? activeBusinessSubscription?.product_key ?? anyBusinessSubscription?.product_key ?? null,
@@ -1388,7 +1398,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       accessBadge = { key: "subscription:cancel-scheduled", label: "해지 예약", className: "bg-amber-50 text-amber-700" };
     } else if (hasPaymentIssue) {
       accessBadge = { key: "access:payment-needed", label: "결제 확인 필요", className: "bg-red-50 text-red-700" };
-    } else if (isBusinessService && hasActiveEntitlement) {
+    } else if (isBusinessService && hasActiveEntitlement && !isAccessRestricted) {
       accessBadge = { key: "plan:business", label: "사업자 플랜", className: "bg-emerald-50 text-emerald-700" };
     } else if (isPersonalTrial && !isTrialExpired) {
       accessBadge = { key: "plan:trial", label: "개인 체험", className: "bg-emerald-50 text-emerald-700" };
@@ -1440,7 +1450,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ? "보관 기간이 종료되어 현재 이용할 수 없습니다."
         : trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isRetentionActive
           ? "이용 기간이 종료되어 보관 중입니다. 보관 기간 안에 다시 구독하면 기존 메뉴판을 이어서 사용할 수 있습니다."
-          : "체험 기간이 종료되어 공개와 편집이 제한되었습니다.";
+          : isPersonalTrial
+            ? "체험 기간이 종료되어 공개와 편집이 제한되었습니다."
+            : "이용 기간이 종료되어 공개와 편집이 제한되었습니다.";
       if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil) {
         metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
       } else if (accessExpiresAt) {
@@ -1487,8 +1499,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       isPersonalTrial,
       canConvertToBusiness: isPersonalTrial && !isTrialPendingDelete && Boolean(siteId),
       actions: {
-        canEdit: Boolean(siteId) && !isTrialPendingDelete,
-        canPreview: Boolean(siteId) && !isTrialPendingDelete,
+        canEdit: canUseMenuActions,
+        canPreview: canOwnerPreview,
         canViewPublic: canOpenPublicPage,
         canDownloadQr: canOpenPublicPage && Boolean(qrDownloadUrl),
       },
