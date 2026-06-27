@@ -44,6 +44,33 @@ const PARENT_ID_TABLES = {
 
 const MENU_SITE_SELECT =
   "id, user_id, name, slug, status, template_key, logo_path, logo_url, cover_image_path, cover_image_url, intro_image_path, intro_image_url, created_at, updated_at";
+const TABLE_POLICIES = {
+  menu_pages: { category: "required_content", required: true, reason: "menu page shell and display settings" },
+  menu_categories: { category: "required_content", required: true, reason: "menu category content" },
+  menu_items: { category: "required_content", required: true, reason: "menu item content and item image paths" },
+  menu_item_price_options: { category: "required_content", required: true, reason: "menu item price option content" },
+  menu_item_traits: { category: "required_content", required: true, reason: "menu item trait content" },
+  menu_site_translations: { category: "required_content", required: true, reason: "site translation content" },
+  menu_page_translations: { category: "required_content", required: true, reason: "page translation content" },
+  menu_category_translations: { category: "required_content", required: true, reason: "category translation content" },
+  menu_item_translations: { category: "required_content", required: true, reason: "item translation content" },
+  menu_item_price_option_translations: { category: "required_content", required: true, reason: "price option translation content" },
+  menu_item_trait_translations: { category: "required_content", required: true, reason: "trait translation content" },
+  menu_translation_jobs: { category: "required_content", required: true, reason: "translation job content tied to the menu site" },
+  menu_chefs: { category: "required_content", required: true, reason: "chef content and image paths" },
+  menu_chef_translations: { category: "required_content", required: true, reason: "chef translation content" },
+  menu_events: { category: "required_content", required: true, reason: "event content and image paths" },
+  menu_event_translations: { category: "required_content", required: true, reason: "event translation content" },
+  menu_social_links: { category: "required_content", required: true, reason: "social link content" },
+  menu_social_link_translations: { category: "required_content", required: true, reason: "social link translation content" },
+  menu_widgets: { category: "removed_runtime_legacy", required: false, reason: "widget runtime was removed but historical rows may exist" },
+  menu_widget_items: { category: "removed_runtime_legacy", required: false, reason: "widget runtime was removed but historical rows may exist" },
+  menu_sites: { category: "preserved_shell", required: true, reason: "menu site shell must be preserved" },
+  service_entitlements: { category: "preserved_record", required: true, reason: "lifecycle marker and service record must be preserved" },
+  business_subscriptions: { category: "preserved_record", required: true, reason: "billing/subscription record must be preserved" },
+  orders: { category: "preserved_record", required: true, reason: "payment/legal record must be preserved" },
+  payments: { category: "preserved_record", required: true, reason: "payment/legal record must be preserved" },
+};
 
 function parseArgs(argv) {
   const options = {
@@ -103,6 +130,33 @@ function createSupabaseAdminClient() {
 
 function isMissingTableOrColumn(error) {
   return error?.code === "42P01" || error?.code === "42703" || error?.message?.toLowerCase().includes("could not find");
+}
+
+function getBaseScope(scope) {
+  return String(scope ?? "").split(".")[0];
+}
+
+function getTablePolicy(scope) {
+  return TABLE_POLICIES[getBaseScope(scope)] ?? { category: "remote_unverified", required: true, reason: "not classified in hard-delete table policy" };
+}
+
+function formatSupabaseError(error) {
+  const parts = [error?.message, error?.details, error?.hint, error?.code].filter(Boolean);
+  return parts.length > 0 ? parts.join(" | ") : "Unknown Supabase error";
+}
+
+function createPlanError(scope, error, extra = {}) {
+  const policy = getTablePolicy(scope);
+
+  return {
+    scope,
+    table: getBaseScope(scope),
+    category: policy.category,
+    required: policy.required,
+    blocksExecute: true,
+    message: typeof error === "string" ? error : formatSupabaseError(error),
+    ...extra,
+  };
 }
 
 function getKstDateParts(date) {
@@ -282,7 +336,7 @@ async function buildMenuSitePlan(supabase, entitlement, options) {
 
   const { data: menuSite, error: siteError } = await supabase.from("menu_sites").select(MENU_SITE_SELECT).eq("id", menuSiteId).maybeSingle();
   if (siteError) {
-    errors.push({ scope: "menu_sites", message: siteError.message });
+    errors.push(createPlanError("menu_sites", siteError));
   }
 
   if (menuSite) {
@@ -300,7 +354,7 @@ async function buildMenuSitePlan(supabase, entitlement, options) {
     }
 
     if (result.error) {
-      errors.push({ scope: definition.name, message: result.error.message });
+      errors.push(createPlanError(definition.name, result.error));
       parentRowsByKey[key] = [];
       continue;
     }
@@ -330,7 +384,7 @@ async function buildMenuSitePlan(supabase, entitlement, options) {
     }
 
     if (countResult.error) {
-      errors.push({ scope: table.name, message: countResult.error.message });
+      errors.push(createPlanError(table.name, countResult.error));
       tableCounts[table.name] = 0;
       continue;
     }
@@ -341,7 +395,7 @@ async function buildMenuSitePlan(supabase, entitlement, options) {
   if (options.includeStoragePrefix) {
     const prefixResult = await listStorageFiles(supabase, `menu-sites/${menuSiteId}`);
     if (prefixResult.error) {
-      errors.push({ scope: "storage.list", message: prefixResult.error.message });
+      errors.push(createPlanError("storage.list", prefixResult.error, { category: "storage", required: true }));
     } else {
       for (const path of prefixResult.paths) storagePaths.add(path);
     }
@@ -375,18 +429,18 @@ async function executePlan(supabase, plan) {
 
   if (plan.errors.length > 0) {
     return [
-      {
-        scope: "preflight",
-        message: "Dry-run plan has unresolved table/storage errors. Fix permissions or schema coverage before execute.",
-        details: plan.errors,
-      },
+      createPlanError(
+        "preflight",
+        "Dry-run plan has unresolved table/storage errors. Fix permissions or schema coverage before execute.",
+        { details: plan.errors }
+      ),
     ];
   }
 
   for (const [key, definition] of Object.entries(PARENT_ID_TABLES)) {
     const result = await selectRows(supabase, definition.name, "id", definition.siteColumn, menuSiteId);
     if (result.error) {
-      errors.push({ scope: `${definition.name}.preload`, message: result.error.message });
+      errors.push(createPlanError(`${definition.name}.preload`, result.error));
     }
     parentRowsByKey[key] = result.rows;
   }
@@ -401,7 +455,7 @@ async function executePlan(supabase, plan) {
       : await deleteBySite(supabase, table.name, table.siteColumn, menuSiteId);
 
     if (error && !isMissingTableOrColumn(error)) {
-      errors.push({ scope: table.name, message: error.message });
+      errors.push(createPlanError(table.name, error));
     }
   }
 
@@ -412,7 +466,7 @@ async function executePlan(supabase, plan) {
   if (plan.storagePaths.length > 0) {
     const { error } = await supabase.storage.from(MENU_IMAGES_BUCKET).remove(plan.storagePaths);
     if (error) {
-      errors.push({ scope: "storage.remove", message: error.message });
+      errors.push(createPlanError("storage.remove", error, { category: "storage", required: true }));
     }
   }
 
@@ -436,7 +490,7 @@ async function executePlan(supabase, plan) {
     .eq("id", menuSiteId);
 
   if (siteError) {
-    errors.push({ scope: "menu_sites.shell_update", message: siteError.message });
+    errors.push(createPlanError("menu_sites.shell_update", siteError));
   }
 
   const { error: entitlementError } = await supabase
@@ -445,7 +499,7 @@ async function executePlan(supabase, plan) {
     .eq("id", plan.entitlement.id);
 
   if (entitlementError) {
-    errors.push({ scope: "service_entitlements.deleted_marker", message: entitlementError.message });
+    errors.push(createPlanError("service_entitlements.deleted_marker", entitlementError));
   }
 
   return errors;
@@ -457,6 +511,8 @@ function summarizePlans(plans) {
     tableCounts: {},
     storagePaths: 0,
     errors: 0,
+    unresolvedErrors: [],
+    blockedMenuSites: [],
   };
 
   for (const plan of plans) {
@@ -465,9 +521,31 @@ function summarizePlans(plans) {
     }
     totals.storagePaths += plan.storagePaths.length;
     totals.errors += plan.errors.length;
+    totals.unresolvedErrors.push(...plan.errors);
+    if (plan.errors.length > 0) {
+      totals.blockedMenuSites.push({
+        menuSiteId: plan.entitlement.menu_site_id,
+        slug: plan.menuSite?.slug ?? null,
+        reason: "unresolved_preflight_errors",
+        errorCount: plan.errors.length,
+      });
+    }
   }
 
   return totals;
+}
+
+function getTablePolicyReport() {
+  return Object.fromEntries(
+    Object.entries(TABLE_POLICIES).map(([table, policy]) => [
+      table,
+      {
+        category: policy.category,
+        required: policy.required,
+        reason: policy.reason,
+      },
+    ])
+  );
 }
 
 async function main() {
@@ -491,6 +569,7 @@ async function main() {
     ok: true,
     dryRun,
     execute,
+    canExecuteSafely: plans.every((plan) => plan.errors.length === 0),
     candidateCount: candidates.length,
     allowlist: {
       menuSiteIds: options.menuSiteIds,
@@ -502,7 +581,11 @@ async function main() {
       onlyPendingDelete: true,
       menuSiteShellPreserved: true,
       presetAndPlaceholderImagesProtected: true,
+      unresolvedErrorsBlockExecute: true,
+      dbDeleteMustSucceedBeforeStorageRemove: true,
+      storageRemoveMustSucceedBeforeDeletedMarker: true,
     },
+    tablePolicy: getTablePolicyReport(),
     totals: summarizePlans(plans),
     plans,
   };
