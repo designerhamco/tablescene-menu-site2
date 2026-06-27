@@ -9,7 +9,7 @@ import {
   getPaymentFailedPeriodKey,
 } from "@/lib/notification-events";
 import { payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
-import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
+import { getServiceDataRetentionUntil, isRetentionEndedAfterKstDday } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -72,12 +72,44 @@ type CronItem = {
   message?: string;
 };
 
+type RetentionEntitlement = {
+  id: string;
+  user_id: string | null;
+  menu_site_id: string | null;
+  subscription_id: string | null;
+  plan_type: string | null;
+  product_key: string | null;
+  billing_type: string | null;
+  status: string | null;
+  access_expires_at: string | null;
+  expired_at: string | null;
+  data_retention_until: string | null;
+  deleted_scheduled_at: string | null;
+};
+
+type RetentionMaintenanceResult = {
+  retentionStarted: number;
+  pendingDeleteEntitlements: number;
+  archivedMenuSites: number;
+  alreadyPendingDelete: number;
+  anomalies: Array<{
+    type: "legacy_missing_retention" | "stale_active_entitlement" | "expired_access_without_retention_date";
+    entitlementId: string;
+    menuSiteId: string | null;
+    status: string | null;
+    accessExpiresAt: string | null;
+  }>;
+  errors: string[];
+};
+
 const SUBSCRIPTION_PRODUCT_KEYS = [
   "business_basic_monthly",
   "business_basic_yearly",
   "business_display_monthly",
   "business_display_yearly",
 ] as const;
+const BUSINESS_PLAN_TYPES = ["business_basic", "business_display"] as const;
+const PAYMENT_ISSUE_STATUSES = ["past_due", "payment_failed", "failed", "needs_action"] as const;
 
 function jsonResponse(payload: Record<string, unknown>, status = 200) {
   return NextResponse.json(payload, { status });
@@ -478,6 +510,259 @@ async function markSubscriptionPastDue(adminSupabase: ReturnType<typeof createAd
   // TODO(subscription-renewal): add grace-period expiration, retry, and customer notification policies.
 }
 
+function createEmptyRetentionMaintenanceResult(): RetentionMaintenanceResult {
+  return {
+    retentionStarted: 0,
+    pendingDeleteEntitlements: 0,
+    archivedMenuSites: 0,
+    alreadyPendingDelete: 0,
+    anomalies: [],
+    errors: [],
+  };
+}
+
+function isPastIso(value: string | null | undefined, now: Date) {
+  if (!value) return false;
+  const time = Date.parse(value);
+  return Number.isFinite(time) && time <= now.getTime();
+}
+
+function getUniqueStrings(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
+}
+
+async function archiveBusinessMenuSites(adminSupabase: ReturnType<typeof createAdminClient>, menuSiteIds: string[]) {
+  const ids = getUniqueStrings(menuSiteIds);
+  if (ids.length === 0) {
+    return { count: 0, error: null };
+  }
+
+  const { error } = await adminSupabase
+    .from("menu_sites")
+    .update({ status: "archived" })
+    .in("id", ids);
+
+  return { count: error ? 0 : ids.length, error };
+}
+
+async function startRetentionForPaymentIssueSubscriptions({
+  adminSupabase,
+  dryRun,
+  execute,
+  now,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  dryRun: boolean;
+  execute: boolean;
+  now: Date;
+}): Promise<RetentionMaintenanceResult> {
+  const result = createEmptyRetentionMaintenanceResult();
+  const nowIso = now.toISOString();
+  const { data, error } = await adminSupabase
+    .from("business_subscriptions" as never)
+    .select("id, user_id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, billing_key_ref, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, current_period_start, current_period_end, created_at")
+    .in("status" as never, [...PAYMENT_ISSUE_STATUSES] as never)
+    .in("product_key" as never, [...SUBSCRIPTION_PRODUCT_KEYS] as never);
+
+  if (error) {
+    result.errors.push(`결제 이슈 구독 조회 실패: ${error.message}`);
+    return result;
+  }
+
+  const subscriptions = ((data ?? []) as unknown as DueSubscription[]).filter((subscription) =>
+    isPastIso(subscription.current_period_end ?? subscription.next_billing_at, now)
+  );
+
+  for (const subscription of subscriptions) {
+    if (!subscription.menu_site_id) continue;
+
+    const { data: entitlementRows, error: entitlementError } = await adminSupabase
+      .from("service_entitlements")
+      .select("id, user_id, menu_site_id, subscription_id, plan_type, product_key, billing_type, status, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at")
+      .eq("subscription_id", subscription.id)
+      .eq("menu_site_id", subscription.menu_site_id)
+      .eq("status", "active")
+      .in("plan_type", [...BUSINESS_PLAN_TYPES])
+      .lte("access_expires_at", nowIso);
+
+    if (entitlementError) {
+      result.errors.push(`결제 이슈 entitlement 조회 실패(${subscription.id}): ${entitlementError.message}`);
+      continue;
+    }
+
+    const entitlements = (entitlementRows ?? []) as RetentionEntitlement[];
+    if (entitlements.length === 0) continue;
+
+    const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
+    if (!dataRetentionUntil) {
+      result.errors.push(`보관 종료일 계산 실패(${subscription.id})`);
+      continue;
+    }
+
+    result.retentionStarted += entitlements.length;
+
+    if (dryRun || !execute) {
+      continue;
+    }
+
+    const { error: updateError } = await adminSupabase
+      .from("service_entitlements")
+      .update({
+        status: "expired",
+        expired_at: nowIso,
+        data_retention_until: dataRetentionUntil,
+        deleted_scheduled_at: null,
+      })
+      .in("id", entitlements.map((entitlement) => entitlement.id));
+
+    if (updateError) {
+      result.errors.push(`결제 이슈 entitlement 보관 전환 실패(${subscription.id}): ${updateError.message}`);
+      continue;
+    }
+
+    const archiveResult = await archiveBusinessMenuSites(adminSupabase, [subscription.menu_site_id]);
+    if (archiveResult.error) {
+      result.errors.push(`결제 이슈 메뉴판 보관 전환 실패(${subscription.menu_site_id}): ${archiveResult.error.message}`);
+    } else {
+      result.archivedMenuSites += archiveResult.count;
+    }
+
+    try {
+      await createDataRetentionStartedNotification({ adminSupabase, subscription, dataRetentionUntil, nowIso });
+    } catch (notificationError) {
+      result.errors.push(notificationError instanceof Error ? notificationError.message : "결제 이슈 보관 시작 알림 이벤트 생성 실패");
+    }
+  }
+
+  return result;
+}
+
+async function markRetentionEndedBusinessEntitlements({
+  adminSupabase,
+  dryRun,
+  execute,
+  now,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  dryRun: boolean;
+  execute: boolean;
+  now: Date;
+}): Promise<RetentionMaintenanceResult> {
+  const result = createEmptyRetentionMaintenanceResult();
+  const nowIso = now.toISOString();
+  const { data, error } = await adminSupabase
+    .from("service_entitlements")
+    .select("id, user_id, menu_site_id, subscription_id, plan_type, product_key, billing_type, status, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at")
+    .in("plan_type", [...BUSINESS_PLAN_TYPES])
+    .in("status", ["expired", "archived", "payment_failed", "past_due", "failed", "pending_delete"]);
+
+  if (error) {
+    result.errors.push(`유료 보관 종료 entitlement 조회 실패: ${error.message}`);
+    return result;
+  }
+
+  const entitlements = (data ?? []) as RetentionEntitlement[];
+  const alreadyPending = entitlements.filter((entitlement) => entitlement.status === "pending_delete");
+  const dueEntitlements = entitlements.filter((entitlement) => {
+    if (entitlement.status === "pending_delete") return false;
+    const retentionEndsAt = entitlement.data_retention_until ?? entitlement.deleted_scheduled_at;
+    return isRetentionEndedAfterKstDday(retentionEndsAt, now);
+  });
+  const anomalyEntitlements = entitlements.filter((entitlement) => {
+    if (entitlement.status === "pending_delete") return false;
+    if (entitlement.data_retention_until || entitlement.deleted_scheduled_at) return false;
+    return isPastIso(entitlement.access_expires_at, now);
+  });
+
+  result.alreadyPendingDelete = alreadyPending.length;
+  result.anomalies.push(
+    ...anomalyEntitlements.map((entitlement) => ({
+      type: "expired_access_without_retention_date" as const,
+      entitlementId: entitlement.id,
+      menuSiteId: entitlement.menu_site_id,
+      status: entitlement.status,
+      accessExpiresAt: entitlement.access_expires_at,
+    }))
+  );
+
+  if (dueEntitlements.length === 0) {
+    return result;
+  }
+
+  result.pendingDeleteEntitlements = dueEntitlements.length;
+
+  if (dryRun || !execute) {
+    return result;
+  }
+
+  const dueIds = dueEntitlements.map((entitlement) => entitlement.id);
+  const dueIdsMissingDeletedScheduledAt = dueEntitlements
+    .filter((entitlement) => !entitlement.deleted_scheduled_at)
+    .map((entitlement) => entitlement.id);
+
+  const { error: updateError } = await adminSupabase
+    .from("service_entitlements")
+    .update({ status: "pending_delete" })
+    .in("id", dueIds);
+
+  if (updateError) {
+    result.errors.push(`유료 보관 종료 pending_delete 전환 실패: ${updateError.message}`);
+    return result;
+  }
+
+  if (dueIdsMissingDeletedScheduledAt.length > 0) {
+    const { error: deletedAtError } = await adminSupabase
+      .from("service_entitlements")
+      .update({ deleted_scheduled_at: nowIso })
+      .in("id", dueIdsMissingDeletedScheduledAt);
+
+    if (deletedAtError) {
+      result.errors.push(`유료 보관 종료 삭제 예정 시각 업데이트 실패: ${deletedAtError.message}`);
+    }
+  }
+
+  const archiveResult = await archiveBusinessMenuSites(
+    adminSupabase,
+    dueEntitlements.map((entitlement) => entitlement.menu_site_id).filter((menuSiteId): menuSiteId is string => Boolean(menuSiteId))
+  );
+  if (archiveResult.error) {
+    result.errors.push(`유료 보관 종료 메뉴판 보관 상태 전환 실패: ${archiveResult.error.message}`);
+  } else {
+    result.archivedMenuSites += archiveResult.count;
+  }
+
+  return result;
+}
+
+async function findStaleActiveEntitlementAnomalies(adminSupabase: ReturnType<typeof createAdminClient>, now: Date) {
+  const { data, error } = await adminSupabase
+    .from("service_entitlements")
+    .select("id, user_id, menu_site_id, subscription_id, plan_type, product_key, billing_type, status, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at")
+    .eq("status", "active")
+    .in("plan_type", [...BUSINESS_PLAN_TYPES])
+    .lte("access_expires_at", now.toISOString())
+    .is("data_retention_until", null)
+    .is("deleted_scheduled_at", null);
+
+  if (error) {
+    return {
+      anomalies: [],
+      error: `stale active entitlement 조회 실패: ${error.message}`,
+    };
+  }
+
+  return {
+    anomalies: ((data ?? []) as RetentionEntitlement[]).map((entitlement) => ({
+      type: "stale_active_entitlement" as const,
+      entitlementId: entitlement.id,
+      menuSiteId: entitlement.menu_site_id,
+      status: entitlement.status,
+      accessExpiresAt: entitlement.access_expires_at,
+    })),
+    error: null,
+  };
+}
+
 async function markSubscriptionRenewed({
   adminSupabase,
   subscription,
@@ -687,6 +972,30 @@ async function processSubscriptions({ dryRun, execute, trigger }: ProcessSubscri
     items.push(item);
   }
 
+  const paymentIssueRetentionResult = await startRetentionForPaymentIssueSubscriptions({
+    adminSupabase,
+    dryRun,
+    execute,
+    now,
+  });
+  const retentionEndedResult = await markRetentionEndedBusinessEntitlements({
+    adminSupabase,
+    dryRun,
+    execute,
+    now,
+  });
+  const staleActiveResult = await findStaleActiveEntitlementAnomalies(adminSupabase, now);
+  const lifecycleAnomalies = [
+    ...paymentIssueRetentionResult.anomalies,
+    ...retentionEndedResult.anomalies,
+    ...staleActiveResult.anomalies,
+  ];
+  const lifecycleErrors = [
+    ...paymentIssueRetentionResult.errors,
+    ...retentionEndedResult.errors,
+    ...(staleActiveResult.error ? [staleActiveResult.error] : []),
+  ];
+
   const summary = {
     trigger,
     dryRun,
@@ -698,6 +1007,12 @@ async function processSubscriptions({ dryRun, execute, trigger }: ProcessSubscri
     canceled: items.filter((item) => item.action === "canceled_at_period_end").length,
     failed: items.filter((item) => item.action === "failed").length,
     skipped: items.filter((item) => item.action.startsWith("skipped")).length,
+    paymentIssueRetentionStarted: paymentIssueRetentionResult.retentionStarted,
+    businessPendingDeleteEntitlements: retentionEndedResult.pendingDeleteEntitlements,
+    businessAlreadyPendingDeleteEntitlements: retentionEndedResult.alreadyPendingDelete,
+    lifecycleArchivedMenuSites: paymentIssueRetentionResult.archivedMenuSites + retentionEndedResult.archivedMenuSites,
+    lifecycleAnomalies: lifecycleAnomalies.length,
+    lifecycleErrors: lifecycleErrors.length,
   };
 
   console.info("[cron/process-subscriptions] completed", summary);
@@ -706,6 +1021,18 @@ async function processSubscriptions({ dryRun, execute, trigger }: ProcessSubscri
     ok: true,
     ...summary,
     items,
+    lifecycleMaintenance: {
+      paymentIssueRetentionStarted: paymentIssueRetentionResult.retentionStarted,
+      businessPendingDeleteEntitlements: retentionEndedResult.pendingDeleteEntitlements,
+      alreadyPendingDeleteEntitlements: retentionEndedResult.alreadyPendingDelete,
+      archivedMenuSites: paymentIssueRetentionResult.archivedMenuSites + retentionEndedResult.archivedMenuSites,
+      anomalies: lifecycleAnomalies.slice(0, 50),
+      errors: lifecycleErrors,
+      notes: [
+        "D-Day는 KST 기준 마지막 복구 가능일로 유지하고, 다음날부터 pending_delete 대상으로 봅니다.",
+        "access_expires_at이 지났지만 보관 종료일이 없는 legacy/stale entitlement는 자동 삭제하지 않고 anomaly로 보고합니다.",
+      ],
+    },
   });
 }
 

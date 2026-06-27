@@ -131,7 +131,7 @@ function getAdminActionButtonClassName(tone: "primary" | "secondary" | "danger")
 
 async function getTableCount(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  table: "menu_sites" | "inquiries" | "orders" | "payments",
+  table: "menu_sites" | "inquiries" | "orders" | "payments" | "service_entitlements",
   filters?: (query: ReturnType<typeof supabase.from>) => unknown
 ): Promise<CountResult> {
   let query = supabase.from(table).select("*", { count: "exact", head: true });
@@ -223,6 +223,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     openInquiries,
     totalOrders,
     totalPayments,
+    pendingDeleteEntitlements,
+    deletedEntitlements,
     recentMenusResult,
     inquiriesResult,
     recentOrdersResult,
@@ -235,6 +237,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     getTableCount(supabase, "inquiries", (query) => query.eq("status", "open")),
     getTableCount(supabase, "orders"),
     getTableCount(supabase, "payments"),
+    getTableCount(supabase, "service_entitlements", (query) => query.eq("status", "pending_delete")),
+    getTableCount(supabase, "service_entitlements", (query) => query.eq("status", "deleted")),
     supabase
       .from("menu_sites")
       .select("id, name, slug, user_id, template_key, status, created_at")
@@ -284,6 +288,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     { label: "답변 대기 문의 수", value: openInquiries.count, error: openInquiries.error },
     { label: "전체 주문 수", value: totalOrders.count, error: totalOrders.error },
     { label: "전체 결제 수", value: totalPayments.count, error: totalPayments.error },
+    { label: "삭제 예정 이용권", value: pendingDeleteEntitlements.count, error: pendingDeleteEntitlements.error },
+    { label: "삭제 완료 이용권", value: deletedEntitlements.count, error: deletedEntitlements.error },
   ];
 
   return (

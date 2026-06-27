@@ -6,7 +6,7 @@ import {
   getDataRetentionStartedPeriodKey,
 } from "@/lib/notification-events";
 import { reclaimUnusedPersonalTrialGrantCredits } from "@/lib/server/ai-credits-service";
-import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
+import { getServiceDataRetentionUntil, isRetentionEndedAfterKstDday } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -263,7 +263,9 @@ async function markRetentionEndedTrials(nowIso: string): Promise<CronResult> {
     throw new Error(`보관 만료 대상 조회 실패: ${retentionEndedTrialsError.message}`);
   }
 
-  const trials = (retentionEndedTrials ?? []) as TrialEntitlement[];
+  const trials = ((retentionEndedTrials ?? []) as TrialEntitlement[]).filter((trial) =>
+    isRetentionEndedAfterKstDday(trial.data_retention_until, new Date(nowIso))
+  );
   const trialIds = trials.map((trial) => trial.id);
   const trialIdsMissingDeletedScheduledAt = trials
     .filter((trial) => !trial.deleted_scheduled_at)
