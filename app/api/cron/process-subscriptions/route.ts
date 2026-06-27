@@ -9,7 +9,11 @@ import {
   getPaymentFailedPeriodKey,
 } from "@/lib/notification-events";
 import { payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
-import { getServiceDataRetentionUntil, isRetentionEndedAfterKstDday } from "@/lib/service-retention-policy";
+import {
+  getPaidSubscriptionDataRetentionUntil,
+  getPaymentIssueDataRetentionUntil,
+  isRetentionEndedAfterKstDday,
+} from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -439,7 +443,7 @@ async function expireSubscriptionAtPeriodEnd({
 }) {
   const nowIso = new Date().toISOString();
   const accessExpiresAt = (subscription.current_period_end ?? subscription.next_billing_at ?? periodStart.toISOString());
-  const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
+  const dataRetentionUntil = getPaidSubscriptionDataRetentionUntil(accessExpiresAt);
   if (!dataRetentionUntil) {
     throw new Error("DATA_RETENTION_UNTIL_CALCULATION_FAILED");
   }
@@ -593,7 +597,7 @@ async function startRetentionForPaymentIssueSubscriptions({
     const entitlements = (entitlementRows ?? []) as RetentionEntitlement[];
     if (entitlements.length === 0) continue;
 
-    const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
+    const dataRetentionUntil = getPaymentIssueDataRetentionUntil(nowIso);
     if (!dataRetentionUntil) {
       result.errors.push(`보관 종료일 계산 실패(${subscription.id})`);
       continue;

@@ -30,7 +30,7 @@ import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
 import { formatNotificationBadgeCount, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
-import { SERVICE_DATA_RETENTION_DAYS } from "@/lib/service-retention-policy";
+import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
 import type { Json } from "@/lib/supabase/types";
 
@@ -706,8 +706,10 @@ function getServiceItemHasExpiredAccessWindow(entitlement: ServiceEntitlement | 
   );
 }
 
-function getServiceItemRetentionDdayInfo({ entitlement }: ServiceItem) {
-  return getRetentionDdayInfo(entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null);
+function getServiceItemHasActiveRetention({ entitlement }: ServiceItem) {
+  const retentionEndsAt = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
+  const daysUntilRetentionEnds = retentionEndsAt ? getRemainingDaysUntilKst(retentionEndsAt) : null;
+  return typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds >= 0;
 }
 
 function maskPaymentId(paymentId: string | null | undefined) {
@@ -867,7 +869,7 @@ function getRetentionDdayInfo(retentionEndsAt: string | null | undefined): Reten
     return null;
   }
 
-  if (days > SERVICE_DATA_RETENTION_DAYS || days < 0) {
+  if (days > RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS || days < 0) {
     return null;
   }
 
@@ -974,7 +976,7 @@ function getArchivedDisplayState({
       label: "체험 종료",
       className: "bg-amber-50 text-amber-700",
       message,
-      cta: siteId && ddayInfo && ddayInfo.days >= 0
+      cta: siteId
         ? { label: "사업자 플랜으로 전환", href: `/mypage/menus/${siteId}/convert` }
         : null,
       ddayInfo,
@@ -1578,7 +1580,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       return false;
     }
 
-    const isHoldingService = !isActiveServiceItem(item) && isExpiredOrArchivedServiceItem(item) && Boolean(getServiceItemRetentionDdayInfo(item));
+    const isHoldingService = !isActiveServiceItem(item) && isExpiredOrArchivedServiceItem(item) && getServiceItemHasActiveRetention(item);
 
     if (isHoldingService && menuSiteId) {
       holdingServiceMenuSiteIds.add(menuSiteId);
@@ -1661,7 +1663,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const daysUntilRetentionEnds = retentionEndDate ? getRemainingDaysUntilKst(retentionEndDate) : null;
     const isRetentionActive = typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds >= 0;
     const isRetentionDue = typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds < 0;
-    const isRecoveryWindowOpen = Boolean(retentionDdayInfo && retentionDdayInfo.days >= 0);
+    const isRecoveryWindowOpen = isRetentionActive;
     const isTrialPendingDelete = (entitlementStatus === "pending_delete" && !isRecoveryWindowOpen) || isRetentionDue;
     const isAccessExpired = typeof daysUntilExpiry === "number" && daysUntilExpiry < 0;
     const isSubscriptionExpired = typeof daysUntilSubscriptionExpiry === "number" && daysUntilSubscriptionExpiry < 0;
@@ -2303,7 +2305,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                 ) : null}
                                 {isBusinessSubscription ? (
                                   <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-500">
-                                    구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있으며, 이용기간 종료 후 메뉴판은 비공개 처리되고 7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
+                                    구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있으며, 이용기간 종료 후 메뉴판은 비공개 처리되고 90일 보관 기간이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
                                   </div>
                                 ) : null}
                               </div>
@@ -2395,11 +2397,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const subscriptionStatus = subscription?.status ?? null;
                         const retentionEndDate = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
                         const retentionDdayInfo = getRetentionDdayInfo(retentionEndDate);
+                        const daysUntilRetentionEnds = retentionEndDate ? getRemainingDaysUntilKst(retentionEndDate) : null;
                         const isPaymentIssue = subscriptionStatus === "failed" || subscriptionStatus === "payment_failed" || subscriptionStatus === "past_due";
                         const isCancelScheduledEnded = isPastCancelScheduledSubscription(subscription, entitlement?.access_expires_at ?? null);
                         const daysUntilTrialAccessEnds = entitlement?.access_expires_at ? getRemainingDaysUntilKst(entitlement.access_expires_at) : null;
                         const isTrialEnded = isPersonalTrial && (entitlementStatus === "expired" || (daysUntilTrialAccessEnds !== null && daysUntilTrialAccessEnds < 0));
-                        const isRecoveryWindowOpen = Boolean(retentionDdayInfo && retentionDdayInfo.days >= 0);
+                        const isRecoveryWindowOpen = typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds >= 0;
                         const isRetentionDue = isDeletedTab || (entitlementStatus === "pending_delete" && !isRecoveryWindowOpen) || !isRecoveryWindowOpen;
                         const isAdminArchived = (menuSite?.status === "archived" || entitlementStatus === "archived") && !isPaymentIssue && !isCancelScheduledEnded && !isTrialEnded;
                         const archivedDisplayState = getArchivedDisplayState({
@@ -2425,7 +2428,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   : entitlement?.status ?? subscription?.status ?? menuSite?.status ?? null;
                         const statusLabel = archivedDisplayState?.label ?? getArchivedServiceStatusLabel({ key, entitlement, menuSite, subscription });
                         const dataRetentionUntil = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
-                        const daysUntilRetentionEnds = dataRetentionUntil ? getRemainingDaysUntilKst(dataRetentionUntil) : null;
                         const expiresAt = entitlement?.access_expires_at ?? subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
                         const dataDeletionScheduledAt = dataRetentionUntil;
                         const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle);
@@ -2437,8 +2439,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                           ? archivedDisplayState.ddayInfo.label
                           : daysUntilRetentionEnds !== null && daysUntilRetentionEnds <= 0
                             ? "복구 불가"
-                            : daysUntilRetentionEnds !== null && daysUntilRetentionEnds > SERVICE_DATA_RETENTION_DAYS
-                              ? "보관 중"
+                            : daysUntilRetentionEnds !== null && daysUntilRetentionEnds > RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS
+                              ? `${formatDate(dataRetentionUntil)}까지 복구 가능`
                               : "보관 기간 정보 없음";
 
                         return (

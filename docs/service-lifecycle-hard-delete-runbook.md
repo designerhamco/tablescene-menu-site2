@@ -9,7 +9,7 @@ MenuLink service lifecycle:
 ```text
 Active service
 -> service ended
--> 7-day retention window
+-> policy-specific retention window
 -> D-Day remains recoverable
 -> the day after D-Day becomes unrecoverable
 -> content rows and uploaded images may be deleted
@@ -17,6 +17,22 @@ Active service
 ```
 
 D-Day is the final customer-friendly recovery day. The day after D-Day is the earliest hard-delete eligibility date.
+
+Retention windows:
+
+```text
+Personal trial ended: 30-day retention / recovery window
+Paid subscription ended: 90-day retention / recovery window
+Payment failed or unpaid: 30-day retention / recovery window
+```
+
+After the retention window ends, menu content rows and uploaded menu images may be deleted. Minimal service shell records plus billing, settlement, payment, and legal records must remain preserved.
+
+Implementation note:
+
+- Before any production execute, confirm cron code and `data_retention_until` generation match the policy-specific windows above.
+- Do not hard-delete records whose retention date was generated from an older fixed retention policy.
+- Existing records that were generated with the previous fixed 7-day policy require a separate backfill/dry-run review before they can be treated as hard-delete candidates.
 
 ## 2. Holding vs Deleted
 
@@ -48,10 +64,12 @@ Cron coverage:
 
 - `app/api/cron/expire-personal-trials/route.ts`
   - expires personal trials
+  - starts a 30-day retention / recovery window
   - moves expired trials to `pending_delete` after D-Day
 - `app/api/cron/process-subscriptions/route.ts`
   - processes paid subscription renewal/cancel-at-period-end
-  - starts retention for eligible payment issue cases
+  - starts a 90-day retention / recovery window for paid subscription end cases
+  - starts a 30-day retention / recovery window for eligible payment failed or unpaid cases
   - moves business entitlements to `pending_delete` after D-Day
 
 Legacy/stale entitlements with expired access and no retention date should be reported as anomalies, not auto-deleted.
@@ -104,6 +122,7 @@ Before execute:
 - Confirm no `permission denied` table remains in the dry-run report.
 - Confirm `service_entitlements_status_check` permits `deleted` in the remote DB.
 - Confirm the candidate is `status = pending_delete`.
+- Confirm the candidate's `data_retention_until` was calculated from the correct policy window: 30 days for personal-trial end, 90 days for paid subscription end, or 30 days for payment failed/unpaid.
 - Confirm D-Day has passed in KST.
 - Confirm the reported DB row counts match expectations.
 - Confirm reported Storage paths are under `menu-sites/<menuSiteId>/`.
@@ -128,6 +147,89 @@ Resolve why the table cannot be selected before attempting execute. Possible cau
 - schema cache drift
 
 Do not apply GRANT, RLS, or migration changes as part of a hard-delete execute.
+
+### Current Grant Plan
+
+Remote read-only checks on 2026-06-27 confirmed:
+
+- `service_entitlements.status = deleted` is allowed by the remote check constraint.
+- cleanup tables exist in the `public` schema.
+- the blocker is missing `service_role` `SELECT`/`DELETE` table privileges on several content tables.
+- RLS is enabled on those tables, but the observed failure is table privilege/Data API access, not a missing table or unsupported `deleted` status value.
+
+Grant migration draft:
+
+```text
+supabase/migrations/20260627105546_grant_service_role_menu_content_cleanup.sql
+```
+
+The draft grants only `SELECT` and `DELETE` to `service_role` for menu content cleanup tables:
+
+- translation content:
+  - `menu_site_translations`
+  - `menu_page_translations`
+  - `menu_category_translations`
+  - `menu_item_translations`
+  - `menu_item_price_option_translations`
+  - `menu_item_trait_translations`
+  - `menu_chef_translations`
+  - `menu_event_translations`
+  - `menu_social_link_translations`
+- optional content modules:
+  - `menu_chefs`
+  - `menu_events`
+  - `menu_social_links`
+- translation workflow rows:
+  - `menu_translation_jobs`
+- removed runtime legacy rows:
+  - `menu_widgets`
+  - `menu_widget_items`
+
+The grant migration intentionally does not include preserved service, billing, payment, or legal records:
+
+- `menu_sites`
+- `service_entitlements`
+- `business_subscriptions`
+- `orders`
+- `payments`
+
+The hard-delete script preserves those records and only updates the menu-site shell and entitlement marker after DB content deletion and Storage removal complete successfully.
+
+Rollback candidate if the grant must be reverted:
+
+```sql
+revoke select, delete on table public.menu_site_translations from service_role;
+revoke select, delete on table public.menu_page_translations from service_role;
+revoke select, delete on table public.menu_category_translations from service_role;
+revoke select, delete on table public.menu_item_translations from service_role;
+revoke select, delete on table public.menu_item_price_option_translations from service_role;
+revoke select, delete on table public.menu_item_trait_translations from service_role;
+revoke select, delete on table public.menu_chefs from service_role;
+revoke select, delete on table public.menu_chef_translations from service_role;
+revoke select, delete on table public.menu_events from service_role;
+revoke select, delete on table public.menu_event_translations from service_role;
+revoke select, delete on table public.menu_social_links from service_role;
+revoke select, delete on table public.menu_social_link_translations from service_role;
+revoke select, delete on table public.menu_translation_jobs from service_role;
+revoke select, delete on table public.menu_widgets from service_role;
+revoke select, delete on table public.menu_widget_items from service_role;
+```
+
+Do not run the rollback SQL during normal hard-delete execution. Keep grant application and hard-delete execution as separate operational steps.
+
+After the grant migration is applied in a separately approved step, rerun dry-run before any execute:
+
+```bash
+node --env-file=.env.local scripts/hard-delete-expired-menu-sites.mjs --limit 10
+node --env-file=.env.local scripts/hard-delete-expired-menu-sites.mjs --slug <slug>
+```
+
+Execute remains forbidden until dry-run reports:
+
+- `canExecuteSafely: true`
+- `totals.unresolvedErrors: []`
+- no permission denied errors
+- expected row counts and Storage paths only
 
 ## 8. Remote Constraint Check
 

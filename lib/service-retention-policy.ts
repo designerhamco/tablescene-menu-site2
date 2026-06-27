@@ -1,16 +1,46 @@
-export const SERVICE_DATA_RETENTION_DAYS = 7;
+export const PERSONAL_TRIAL_RETENTION_DAYS = 30;
+export const PAID_SUBSCRIPTION_RETENTION_DAYS = 90;
+export const PAYMENT_ISSUE_RETENTION_DAYS = 30;
+export const RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS = 7;
 const KST_TIME_ZONE = "Asia/Seoul";
 const DAY_MS = 1000 * 60 * 60 * 24;
 
-export function getServiceDataRetentionUntil(expiredAt: string | Date) {
-  const date = typeof expiredAt === "string" ? new Date(expiredAt) : new Date(expiredAt);
+export type ServiceRetentionLifecycleReason =
+  | "personal_trial_ended"
+  | "paid_subscription_ended"
+  | "payment_issue";
+
+export function getRetentionDaysForLifecycleReason(reason: ServiceRetentionLifecycleReason) {
+  if (reason === "paid_subscription_ended") return PAID_SUBSCRIPTION_RETENTION_DAYS;
+  if (reason === "personal_trial_ended") return PERSONAL_TRIAL_RETENTION_DAYS;
+  return PAYMENT_ISSUE_RETENTION_DAYS;
+}
+
+export function getRetentionDeadline(startedAt: string | Date, retentionDays: number) {
+  const date = typeof startedAt === "string" ? new Date(startedAt) : new Date(startedAt);
 
   if (!Number.isFinite(date.getTime())) {
     return null;
   }
 
-  date.setDate(date.getDate() + SERVICE_DATA_RETENTION_DAYS);
+  date.setDate(date.getDate() + retentionDays);
   return date.toISOString();
+}
+
+export function getServiceDataRetentionUntil(startedAt: string | Date, reason: ServiceRetentionLifecycleReason) {
+  return getRetentionDeadline(startedAt, getRetentionDaysForLifecycleReason(reason));
+}
+
+export function getPersonalTrialDataRetentionUntil(expiredAt: string | Date) {
+  return getServiceDataRetentionUntil(expiredAt, "personal_trial_ended");
+}
+
+export function getPaidSubscriptionDataRetentionUntil(endedAt: string | Date) {
+  return getServiceDataRetentionUntil(endedAt, "paid_subscription_ended");
+}
+
+export function getPaymentIssueDataRetentionUntil(retentionStartedAt: string | Date) {
+  return getServiceDataRetentionUntil(retentionStartedAt, "payment_issue");
 }
 
 function getKstDateParts(date: Date) {
@@ -62,4 +92,9 @@ export function getRemainingRetentionDaysKst(value: string | null | undefined, n
 export function isRetentionEndedAfterKstDday(value: string | null | undefined, now: Date = new Date()) {
   const daysLeft = getRemainingRetentionDaysKst(value, now);
   return daysLeft !== null && daysLeft < 0;
+}
+
+export function isRetentionActiveKst(value: string | null | undefined, now: Date = new Date()) {
+  const daysLeft = getRemainingRetentionDaysKst(value, now);
+  return daysLeft !== null && daysLeft >= 0;
 }

@@ -1,6 +1,5 @@
 import "server-only";
 
-import { SERVICE_DATA_RETENTION_DAYS } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 
@@ -143,8 +142,7 @@ function getRetentionWindowState(entitlement: ServiceEntitlementRow | null | und
   const daysUntilRetentionEnds = getRemainingDaysUntilKst(retentionEndsAt);
   const isOpen =
     daysUntilRetentionEnds !== null &&
-    daysUntilRetentionEnds >= 0 &&
-    daysUntilRetentionEnds <= SERVICE_DATA_RETENTION_DAYS;
+    daysUntilRetentionEnds >= 0;
 
   return {
     retentionEndsAt,

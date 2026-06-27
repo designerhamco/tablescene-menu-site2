@@ -6,7 +6,7 @@ import {
   getDataRetentionStartedPeriodKey,
 } from "@/lib/notification-events";
 import { reclaimUnusedPersonalTrialGrantCredits } from "@/lib/server/ai-credits-service";
-import { getServiceDataRetentionUntil, isRetentionEndedAfterKstDday } from "@/lib/service-retention-policy";
+import { getPersonalTrialDataRetentionUntil, isRetentionEndedAfterKstDday } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -176,28 +176,26 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
   const menuSiteIds = trials
     .map((trial) => trial.menu_site_id)
     .filter((menuSiteId): menuSiteId is string => Boolean(menuSiteId));
-  const dataRetentionUntil = getServiceDataRetentionUntil(nowIso);
-  if (!dataRetentionUntil) {
-    throw new Error("데이터 보관 종료일 계산 실패");
-  }
-
   if (trialIds.length > 0) {
-    const { error: updateError } = await adminSupabase
-      .from("service_entitlements")
-      .update({
-        status: "expired",
-        data_retention_until: dataRetentionUntil,
-        deleted_scheduled_at: null,
-      })
-      .in("id", trialIds);
-
-    if (updateError) {
-      throw new Error(`만료 상태 업데이트 실패: ${updateError.message}`);
-    }
-
-    result.expiredEntitlements = trialIds.length;
-
     for (const trial of trials) {
+      const dataRetentionUntil = getPersonalTrialDataRetentionUntil(trial.access_expires_at ?? nowIso);
+      if (!dataRetentionUntil) {
+        throw new Error(`데이터 보관 종료일 계산 실패: ${trial.id}`);
+      }
+
+      const { error: updateError } = await adminSupabase
+        .from("service_entitlements")
+        .update({
+          status: "expired",
+          data_retention_until: dataRetentionUntil,
+          deleted_scheduled_at: null,
+        })
+        .eq("id", trial.id);
+
+      if (updateError) {
+        throw new Error(`만료 상태 업데이트 실패(${trial.id}): ${updateError.message}`);
+      }
+
       try {
         await createDataRetentionStartedNotification({
           adminSupabase,
@@ -209,6 +207,8 @@ async function expireActiveTrials(nowIso: string): Promise<CronResult> {
         result.errors.push(error instanceof Error ? error.message : "보관 시작 알림 이벤트 생성 실패");
       }
     }
+
+    result.expiredEntitlements = trialIds.length;
   }
 
   if (trialIdsMissingExpiredAt.length > 0) {

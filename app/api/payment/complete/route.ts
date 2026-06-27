@@ -13,7 +13,7 @@ import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { hasUsedPersonalTrial } from "@/lib/server/personal-trial-eligibility";
-import { getServiceDataRetentionUntil } from "@/lib/service-retention-policy";
+import { getPersonalTrialDataRetentionUntil } from "@/lib/service-retention-policy";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
@@ -242,7 +242,7 @@ function getTrialAccessPeriod(now = new Date()): TrialAccessPeriod {
   const accessExpiresAt = new Date(accessStartsAt);
   accessExpiresAt.setMonth(accessExpiresAt.getMonth() + personalTrialBasicProduct.duration_months);
 
-  const dataRetentionUntil = getServiceDataRetentionUntil(accessExpiresAt) ?? accessExpiresAt.toISOString();
+  const dataRetentionUntil = getPersonalTrialDataRetentionUntil(accessExpiresAt) ?? accessExpiresAt.toISOString();
 
   return {
     accessStartsAt: accessStartsAt.toISOString(),
