@@ -135,7 +135,7 @@ export default function SubscriptionManagementModal({
             </div>
 
             <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
-              구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있습니다. 이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
+              구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있습니다. 이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
             </div>
 
             <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
@@ -223,7 +223,7 @@ export default function SubscriptionManagementModal({
               해지해도 이미 결제된 이용기간은 종료일까지 사용할 수 있습니다. 다음 결제일부터 결제는 중단됩니다.
             </p>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-              이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 7일 이내 다시 구독하면 기존 데이터를 계속 사용할 수 있습니다. 7일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
+              이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일 이내 다시 구독하면 기존 데이터를 계속 사용할 수 있습니다. 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
             </p>
             <label className="mt-5 block">
               <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">해지 사유</span>
