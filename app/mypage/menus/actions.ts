@@ -1135,11 +1135,18 @@ async function saveEditableTranslationDrafts(
   supabase: SupabaseServerClient,
   menuId: string,
   draftValues: EditableTranslationDraftValue[],
+  templateKey?: string | null,
   errorLabel = "다국어 저장"
 ) {
   if (draftValues.length === 0) return;
 
-  const allowedFields: Record<EditableTranslationEntityType, readonly string[]> = {
+  const isDisplayLocalization = templateKey === "display_menu_a";
+  const allowedFields: Record<EditableTranslationEntityType, readonly string[]> = isDisplayLocalization ? {
+    site: ["restaurant_name"],
+    page: [],
+    category: ["name"],
+    item: ["name", "set_name", "price_label", "badge_label"],
+  } : {
     site: [
       "restaurant_name",
       "brand_description",
@@ -1155,6 +1162,21 @@ async function saveEditableTranslationDrafts(
     category: ["name", "description"],
     item: ["name", "description", "price_label", "portion_label", "badge_label"],
   };
+  const saveableDraftValues = draftValues.filter((draft) => {
+    const isAllowedField = allowedFields[draft.entityType].includes(draft.field);
+    if (!isAllowedField && isDisplayLocalization) {
+      console.info("[localization:save] filtered unsupported display translation item", {
+        templateKey,
+        entityType: draft.entityType,
+        entityId: draft.entityId,
+        field: draft.field,
+      });
+    }
+    return isAllowedField;
+  });
+
+  if (saveableDraftValues.length === 0) return;
+
   const targetLocales = TRANSLATABLE_LOCALES as readonly EditableTranslationLocale[];
   const groupedRows = {
     site: new Map<string, Record<string, unknown>>(),
@@ -1163,7 +1185,7 @@ async function saveEditableTranslationDrafts(
     item: new Map<string, Record<string, unknown>>(),
   };
 
-  const idsByType = draftValues.reduce<Record<EditableTranslationEntityType, Set<string>>>(
+  const idsByType = saveableDraftValues.reduce<Record<EditableTranslationEntityType, Set<string>>>(
     (result, draft) => {
       result[draft.entityType].add(draft.entityId);
       return result;
@@ -1171,7 +1193,7 @@ async function saveEditableTranslationDrafts(
     { site: new Set(), page: new Set(), category: new Set(), item: new Set() }
   );
 
-  if (idsByType.site.size !== 1 || !idsByType.site.has(menuId)) {
+  if (idsByType.site.size > 1 || (idsByType.site.size === 1 && !idsByType.site.has(menuId))) {
     redirectToTabEditWithError(menuId, "localization", "번역 저장 대상 메뉴판을 확인할 수 없습니다.");
   }
 
@@ -1199,8 +1221,14 @@ async function saveEditableTranslationDrafts(
     item: new Set((itemsResult.data ?? []).map((row) => row.id)),
   };
 
-  draftValues.forEach((draft) => {
+  saveableDraftValues.forEach((draft) => {
     if (!allowedFields[draft.entityType].includes(draft.field) || !allowedIds[draft.entityType].has(draft.entityId)) {
+      console.warn("[localization:save] rejected translation item", {
+        templateKey,
+        entityType: draft.entityType,
+        entityId: draft.entityId,
+        field: draft.field,
+      });
       redirectToTabEditWithError(menuId, "localization", "저장할 수 없는 번역 항목이 포함되어 있습니다.");
     }
 
@@ -1259,7 +1287,13 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
   const currentSettings = getJsonObject(menuSite.settings);
 
   if (saveMode !== "languages") {
-    await saveEditableTranslationDrafts(supabase, menuId, translationDraftValues, saveMode === "translations" ? "번역 저장" : "다국어 저장");
+    await saveEditableTranslationDrafts(
+      supabase,
+      menuId,
+      translationDraftValues,
+      menuSite.template_key,
+      saveMode === "translations" ? "번역 저장" : "다국어 저장"
+    );
   }
 
   if (saveMode !== "translations") {
@@ -1517,7 +1551,7 @@ export async function translateMenuItemPartialAction(input: {
 
     const { data: item, error: itemError } = await supabase
       .from("menu_items")
-      .select("id, menu_site_id, category_id, name, description, price_label, portion_label, badge_label")
+      .select("id, menu_site_id, category_id, name, set_name, description, price_label, portion_label, badge_label")
       .eq("id", itemId)
       .eq("menu_site_id", menuId)
       .maybeSingle();
@@ -1526,15 +1560,17 @@ export async function translateMenuItemPartialAction(input: {
       return { ok: false, message: "부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요." };
     }
 
-    const supportsItemBadges = getTemplateCapabilities(menuSite.template_key).itemBadges;
+    const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+    const supportsItemBadges = templateCapabilities.itemBadges;
     const { data: category } = item.category_id
       ? await supabase.from("menu_categories").select("name").eq("id", item.category_id).eq("menu_site_id", menuId).maybeSingle()
       : { data: null };
     const sourceFields = {
       name: item.name,
-      description: item.description,
+      set_name: menuSite.template_key === "display_menu_a" ? item.set_name : null,
+      description: templateCapabilities.itemDescription ? item.description : null,
       price_label: item.price_label,
-      portion_label: item.portion_label,
+      portion_label: templateCapabilities.itemPortionLabel ? item.portion_label : null,
       badge_label: supportsItemBadges ? item.badge_label : null,
     };
     const hasTranslatableText = Object.values(sourceFields).some(hasMeaningfulTranslationText);
@@ -1722,7 +1758,7 @@ export async function translateMenuHeroPartialAction(input: {
       ? getJsonString(settings.footer_notice_3)
       : getJsonString(settings.footer_sns_text) || getJsonString(settings.footer_note);
     const sourceFields = {
-      restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
+      restaurant_name: site.template_key === "display_menu_a" ? site.restaurant_name : menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
       brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
       menu_cover_label: menuCoverCapabilities.usesCoverLabel ? site.menu_cover_label : null,
       menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,

@@ -26,6 +26,7 @@ export type EditableTranslationDraftValue = Pick<
 
 export type PartialMenuItemTranslationResult = {
   name?: string;
+  set_name?: string;
   description?: string;
   price_label?: string;
   portion_label?: string;

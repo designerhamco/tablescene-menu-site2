@@ -99,6 +99,7 @@ export type MenuTranslationDraftResult = MenuTranslationUpdateResult & {
 
 export type PartialMenuItemTranslationInput = {
   name: string | null;
+  set_name?: string | null;
   description?: string | null;
   price_label?: string | null;
   portion_label?: string | null;
@@ -884,6 +885,27 @@ function getResidualHangulTextUnits(textUnits: TranslationTextUnit[], translated
   });
 }
 
+function getMissingTextUnits(textUnits: TranslationTextUnit[], translatedText: Record<string, string>) {
+  return textUnits.filter((unit) => !cleanText(translatedText[unit.key]));
+}
+
+function logMissingTextUnits(stage: string, locale: TargetTranslationLocale, units: TranslationTextUnit[]) {
+  logTranslationStage(stage, {
+    locale,
+    count: units.length,
+    samples: units.slice(0, 5).map((unit) => {
+      const meta = getTextUnitMeta(unit.key);
+      return {
+        key: unit.key,
+        table: meta.table,
+        entityId: meta.entityId,
+        field: meta.fieldName,
+        source: unit.text,
+      };
+    }),
+  });
+}
+
 function logResidualHangulTextUnits(stage: string, locale: TargetTranslationLocale, units: TranslationTextUnit[], translatedText: Record<string, string>) {
   logTranslationStage(stage, {
     locale,
@@ -900,6 +922,40 @@ function logResidualHangulTextUnits(stage: string, locale: TargetTranslationLoca
       };
     }),
   });
+}
+
+async function retryMissingTextUnits(locale: TargetTranslationLocale, textUnits: TranslationTextUnit[], translatedText: Record<string, string>) {
+  const missingTextUnits = getMissingTextUnits(textUnits, translatedText);
+
+  if (missingTextUnits.length === 0) {
+    return 0;
+  }
+
+  logMissingTextUnits("missing warning", locale, missingTextUnits);
+  logTranslationStage("retry missing start", { locale, count: missingTextUnits.length });
+
+  try {
+    const retriedText = await translateTextUnits(locale, missingTextUnits);
+    Object.entries(retriedText).forEach(([key, value]) => {
+      translatedText[key] = value;
+    });
+    logTranslationStage("retry missing success", { locale, count: Object.keys(retriedText).length });
+  } catch (error) {
+    logTranslationStage("retry missing failed", {
+      locale,
+      count: missingTextUnits.length,
+      message: getErrorMessage(error),
+      stack: getErrorStack(error),
+    });
+  }
+
+  const remainingMissingTextUnits = getMissingTextUnits(textUnits, translatedText);
+
+  if (remainingMissingTextUnits.length > 0) {
+    logMissingTextUnits("missing remaining", locale, remainingMissingTextUnits);
+  }
+
+  return remainingMissingTextUnits.length;
 }
 
 async function retryResidualHangulTextUnits(locale: TargetTranslationLocale, textUnits: TranslationTextUnit[], translatedText: Record<string, string>) {
@@ -969,6 +1025,7 @@ export async function translatePartialMenuItemFields(
 ) {
   const sourceFields = {
     name: source.name,
+    set_name: source.set_name,
     description: source.description,
     price_label: source.price_label,
     portion_label: source.portion_label,
@@ -1153,6 +1210,7 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
 
   const templateCapabilities = getTemplateCapabilities(siteResult.data?.template_key);
   const usesBasicVisibleLocalization = templateCapabilities.footerStoreInfo;
+  const usesDisplayLocalization = siteResult.data?.template_key === "display_menu_a";
   const menuCoverCapabilities = templateCapabilities.menuCover;
   const siteSettings = getJsonRecord(siteResult.data?.settings);
   const hasFooterNotice1 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_1");
@@ -1174,6 +1232,10 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
           restaurant_address: footerNotice2,
           restaurant_phone: footerNotice3,
         }
+      : usesDisplayLocalization
+        ? {
+            restaurant_name: siteResult.data.restaurant_name,
+          }
       : {
           restaurant_name: menuCoverCapabilities.usesStoreName ? siteResult.data.restaurant_name : null,
           restaurant_category: siteResult.data.restaurant_category,
@@ -1192,9 +1254,14 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
     : null;
   const entities = [
     siteResult.data && siteTranslationFields ? buildEntity("menu_site_translations", "menu_site_id", siteResult.data.id, siteTranslationFields) : null,
-    ...(usesBasicVisibleLocalization
+    ...(usesBasicVisibleLocalization || usesDisplayLocalization
       ? []
-      : (pagesResult.data ?? []).map((row) => buildEntity("menu_page_translations", "menu_page_id", row.id, { title: row.title, description: row.description }))),
+      : (pagesResult.data ?? []).map((row) =>
+          buildEntity("menu_page_translations", "menu_page_id", row.id, {
+            title: row.title,
+            description: templateCapabilities.pageDescription ? row.description : null,
+          })
+        )),
     ...(categoriesResult.data ?? []).map((row) =>
       buildEntity("menu_category_translations", "category_id", row.id, {
         name: row.name,
@@ -1211,26 +1278,33 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
               name: row.name,
               description: templateCapabilities.itemDescription ? row.description : null,
             }
+          : usesDisplayLocalization
+            ? {
+                name: row.name,
+                set_name: row.set_name,
+                price_label: row.price_label,
+                badge_label: row.badge_label,
+              }
           : {
               name: row.name,
               set_name: row.set_name,
-              description: row.description,
+              description: templateCapabilities.itemDescription ? row.description : null,
               price_label: row.price_label,
-              portion_label: row.portion_label,
+              portion_label: templateCapabilities.itemPortionLabel ? row.portion_label : null,
               badge_label: row.badge_label,
-              origin_info: row.origin_info,
+              origin_info: templateCapabilities.originInfo ? row.origin_info : null,
             }
       )
     ),
-    ...(usesBasicVisibleLocalization || !templateCapabilities.priceOptions
+    ...(usesBasicVisibleLocalization || usesDisplayLocalization || !templateCapabilities.priceOptions
       ? []
       : (priceOptionsResult.data ?? []).map((row) =>
           buildEntity("menu_item_price_option_translations", "price_option_id", row.id, { label: row.label, price_label: row.price_label })
         )),
-    ...(usesBasicVisibleLocalization || !templateCapabilities.itemTraits
+    ...(usesBasicVisibleLocalization || usesDisplayLocalization || !templateCapabilities.itemTraits
       ? []
       : (traitsResult.data ?? []).map((row) => buildEntity("menu_item_trait_translations", "trait_id", row.id, { label: row.label }))),
-    ...(usesBasicVisibleLocalization || !templateCapabilities.events
+    ...(usesBasicVisibleLocalization || usesDisplayLocalization || !templateCapabilities.events
       ? []
       : (eventsResult.data ?? []).map((row) =>
           buildEntity("menu_event_translations", "event_id", row.id, {
@@ -1244,7 +1318,7 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
             event_sale_price_label: row.event_sale_price_label,
           })
         )),
-    ...(usesBasicVisibleLocalization || !templateCapabilities.chefs
+    ...(usesBasicVisibleLocalization || usesDisplayLocalization || !templateCapabilities.chefs
       ? []
       : (chefsResult.data ?? []).map((row) =>
           buildEntity("menu_chef_translations", "chef_id", row.id, {
@@ -1253,7 +1327,7 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
             chef_description: row.chef_description,
           })
         )),
-    ...(usesBasicVisibleLocalization || !templateCapabilities.socialLinks
+    ...(usesBasicVisibleLocalization || usesDisplayLocalization || !templateCapabilities.socialLinks
       ? []
       : (socialLinksResult.data ?? []).map((row) => buildEntity("menu_social_link_translations", "social_link_id", row.id, { label: row.label }))),
   ].filter((entity): entity is TranslationEntity => Boolean(entity));
@@ -1474,11 +1548,20 @@ function validateTranslatedTextUnits(
   locale: TargetTranslationLocale,
   textUnits: TranslationTextUnit[],
   translatedText: Record<string, string>,
-  options: { allowLikelyUntranslatedMenuItems?: boolean } = {}
+  options: { allowLikelyUntranslatedMenuItems?: boolean; allowMissingTextUnits?: boolean } = {}
 ) {
   const missingCount = textUnits.filter((unit) => !cleanText(translatedText[unit.key])).length;
 
   if (missingCount > 0) {
+    if (options.allowMissingTextUnits) {
+      logTranslationStage("validation warning", {
+        locale,
+        missingCount,
+        message: "Some translated fields were missing from the AI response; leaving those draft fields empty instead of failing the full draft.",
+      });
+      return;
+    }
+
     throw new Error(`번역 API 응답에서 ${missingCount}개 필드가 누락되었습니다. 다시 시도해주세요.`);
   }
 
@@ -1841,10 +1924,14 @@ export async function runMenuTranslationDraft(
         throw new Error("번역 API 결과가 비어 있습니다.");
       }
 
+      const missingWarningCount = await retryMissingTextUnits(locale, translatableTextUnits, translatedText);
       const untranslatedWarningCount = await retryResidualHangulTextUnits(locale, translatableTextUnits, translatedText);
 
       logTranslationStage("validation start", { mode: "draft", menuSiteId, locale });
-      validateTranslatedTextUnits(locale, translatableTextUnits, translatedText, { allowLikelyUntranslatedMenuItems: true });
+      validateTranslatedTextUnits(locale, translatableTextUnits, translatedText, {
+        allowLikelyUntranslatedMenuItems: true,
+        allowMissingTextUnits: true,
+      });
 
       const rowsByTable = buildRowsForLocale(locale, entitiesToTranslate, translatedText);
       const draftRows = buildDraftRows(rowsByTable);
@@ -1857,7 +1944,7 @@ export async function runMenuTranslationDraft(
         draftRowCount: draftRows.length,
         translatedEntities: entitiesToTranslate.length,
         translatedTextUnits: translatableTextUnits.length,
-        untranslatedWarningCount,
+        untranslatedWarningCount: missingWarningCount + untranslatedWarningCount,
       });
       logTranslationStage("language done", {
         mode: "draft",
@@ -1865,7 +1952,7 @@ export async function runMenuTranslationDraft(
         locale,
         durationMs: Date.now() - languageStartedAt,
         draftRowCount: draftRows.length,
-        untranslatedWarningCount,
+        untranslatedWarningCount: missingWarningCount + untranslatedWarningCount,
       });
     } catch (error) {
       logTranslationFailure({

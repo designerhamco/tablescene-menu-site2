@@ -246,10 +246,21 @@ const CAFE_DESIGN_A_EDITOR_TABS = [
   { key: "publish", label: "공개 설정" },
 ] as const satisfies readonly TemplateEditorTab[];
 
+const DISPLAY_MENU_A_EDITOR_TABS = [
+  { key: "basic", label: "기본 정보" },
+  { key: "menu", label: "메뉴 관리" },
+  { key: "design", label: "디자인" },
+  { key: "localization", label: "다국어" },
+  { key: "publish", label: "공개 설정" },
+] as const satisfies readonly TemplateEditorTab[];
+
 export const TEMPLATE_EDIT_CONFIG = {
   cafe_design_a: {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
+  },
+  display_menu_a: {
+    tabs: DISPLAY_MENU_A_EDITOR_TABS,
   },
 } as const satisfies Record<string, { tabs: readonly TemplateEditorTab[]; heroMode?: "featured" | "cover" }>;
 

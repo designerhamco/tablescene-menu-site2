@@ -33,7 +33,7 @@ type LocalizationSectionProps = {
   aiUsage: AiUsageSnapshot;
   latestTranslationJob: TranslationJob;
   editableTranslationFields: EditableTranslationField[];
-  isBasicLocalization?: boolean;
+  localizationStructure?: "basic" | "display" | "default";
 };
 
 type TranslationTargetGroup = EditableTranslationField["group"];
@@ -220,6 +220,12 @@ const basicTranslationTargetLabels = {
   items: "메뉴 목록",
 } satisfies Partial<Record<TranslationTargetGroup, string>>;
 
+const displayTranslationTargetLabels = {
+  site: "기본 정보",
+  categories: "메뉴 그룹",
+  items: "메뉴 목록",
+} satisfies Partial<Record<TranslationTargetGroup, string>>;
+
 const partialTranslationFieldAliases: Record<string, string[]> = {
   restaurant_name: ["restaurant_name", "site_name", "name"],
   brand_description: ["brand_description", "hero_description", "cover_description", "description"],
@@ -230,6 +236,7 @@ const partialTranslationFieldAliases: Record<string, string[]> = {
   restaurant_address: ["restaurant_address", "footer_notice_2", "notice_2"],
   restaurant_phone: ["restaurant_phone", "footer_notice_3", "notice_3"],
   name: ["name", "title"],
+  set_name: ["set_name", "secondary_name", "secondaryName", "subtitle"],
   description: ["description"],
   price_label: ["price_label"],
   portion_label: ["portion_label", "serving_label", "servingLabel", "portionLabel"],
@@ -513,7 +520,7 @@ function ReadOnlyItemGroups({ fields }: { fields: EditableTranslationField[] }) 
   );
 }
 
-function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTranslationJob, editableTranslationFields, isBasicLocalization = false }: LocalizationSectionProps) {
+function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTranslationJob, editableTranslationFields, localizationStructure = "default" }: LocalizationSectionProps) {
   const partialTranslationUsage = aiUsage.ai_translate_partial;
   const initialAiCreditUsage = {
     used: Math.max(aiUsage.ai_translate_full.used, partialTranslationUsage.used),
@@ -536,8 +543,12 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
   const [pendingPartialEntityKey, setPendingPartialEntityKey] = useState<string | null>(null);
   const [overwriteRequest, setOverwriteRequest] = useState<EditableTranslationField[] | null>(null);
   const translationTargetLabels = useMemo<Partial<Record<TranslationTargetGroup, string>>>(
-    () => (isBasicLocalization ? basicTranslationTargetLabels : defaultTranslationTargetLabels),
-    [isBasicLocalization]
+    () => {
+      if (localizationStructure === "basic") return basicTranslationTargetLabels;
+      if (localizationStructure === "display") return displayTranslationTargetLabels;
+      return defaultTranslationTargetLabels;
+    },
+    [localizationStructure]
   );
   const translationTargetGroups = useMemo(
     () => Object.keys(translationTargetLabels) as TranslationTargetGroup[],
@@ -840,8 +851,10 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
           <h3 className="text-lg font-bold tracking-tight text-zinc-950">번역 확인 및 수정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-            {isBasicLocalization
+            {localizationStructure === "basic"
               ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판의 언어 선택에 반영됩니다."
+              : localizationStructure === "display"
+              ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 디스플레이 미리보기와 공개 화면에 반영됩니다."
               : "자동 번역 초안을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다."}
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
@@ -891,8 +904,10 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
               {activeLocale === "ko" ? (
                 <div className="space-y-4">
                   <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
-                    {isBasicLocalization
+                    {localizationStructure === "basic"
                       ? "한국어 원문은 기본 정보와 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 자동 번역 결과를 확인하고 필요한 문구만 직접 수정할 수 있습니다."
+                      : localizationStructure === "display"
+                      ? "한국어 원문은 기본 정보와 메뉴 관리 탭의 메뉴 그룹, 메뉴 목록에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다."
                       : "한국어 원문은 기본 정보, 커버 이미지, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다."}
                   </p>
                   {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}

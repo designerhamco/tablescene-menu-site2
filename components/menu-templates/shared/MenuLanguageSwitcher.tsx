@@ -9,12 +9,14 @@ type MenuLanguageSwitcherProps = {
   currentLocale: SupportedLocale;
   enabledLocales: SupportedLocale[];
   compact?: boolean;
+  menuPlacement?: "top" | "bottom";
 };
 
-export default function MenuLanguageSwitcher({ currentLocale, enabledLocales, compact = false }: MenuLanguageSwitcherProps) {
+export default function MenuLanguageSwitcher({ currentLocale, enabledLocales, compact = false, menuPlacement = "bottom" }: MenuLanguageSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const visibleLocales = enabledLocales.filter((locale, index) => enabledLocales.indexOf(locale) === index);
+  const menuPlacementClassName = menuPlacement === "top" ? "bottom-12" : "top-12";
 
   if (visibleLocales.length <= 1) return null;
 
@@ -36,7 +38,7 @@ export default function MenuLanguageSwitcher({ currentLocale, enabledLocales, co
         <Globe2 className="h-5 w-5" aria-hidden="true" />
         {!compact && <span>{LOCALE_LABELS[currentLocale]}</span>}
       </summary>
-      <div className="absolute right-0 top-12 z-30 min-w-36 overflow-hidden rounded-lg border border-zinc-200 bg-white py-1 text-left shadow-xl">
+      <div className={`absolute right-0 z-30 min-w-36 overflow-hidden rounded-lg border border-zinc-200 bg-white py-1 text-left shadow-xl ${menuPlacementClassName}`}>
         {visibleLocales.map((locale) => (
           <a
             key={locale}

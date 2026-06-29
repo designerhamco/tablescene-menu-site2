@@ -209,8 +209,11 @@ function buildEditableTranslationFields({
   itemTranslations,
   includeItemBadges,
   includeCategoryDescriptions,
+  includeItemDescriptions,
+  includeItemPortionLabel,
+  includePageDescriptions,
   menuCoverCapabilities,
-  useBasicLocalizationStructure,
+  localizationStructure,
 }: {
   site: MenuSite;
   pages: MenuPage[];
@@ -222,8 +225,11 @@ function buildEditableTranslationFields({
   itemTranslations: MenuItemTranslation[];
   includeItemBadges: boolean;
   includeCategoryDescriptions: boolean;
+  includeItemDescriptions: boolean;
+  includeItemPortionLabel: boolean;
+  includePageDescriptions: boolean;
   menuCoverCapabilities: ReturnType<typeof getTemplateCapabilities>["menuCover"];
-  useBasicLocalizationStructure: boolean;
+  localizationStructure: "basic" | "display" | "default";
 }) {
   const fields: EditableTranslationField[] = [];
   const siteTranslationsByLocale = new Map(
@@ -297,7 +303,7 @@ function buildEditableTranslationFields({
     });
   }
 
-  if (useBasicLocalizationStructure) {
+  if (localizationStructure === "basic") {
     const siteSettings = getJsonRecord(site.settings);
     const hasFooterNotice1 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_1");
     const hasFooterNotice2 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_2");
@@ -331,6 +337,20 @@ function buildEditableTranslationFields({
         restaurant_phone: "안내사항 3",
       },
       multilineFields: ["brand_description", "opening_hours", "restaurant_address", "restaurant_phone"],
+    });
+  } else if (localizationStructure === "display") {
+    pushFields({
+      entityType: "site",
+      entityId: site.id,
+      group: "site",
+      groupLabel: "기본 정보",
+      sourceFields: {
+        restaurant_name: site.restaurant_name,
+      },
+      translationsByLocale: siteTranslationsByLocale,
+      fieldLabels: {
+        restaurant_name: "매장명",
+      },
     });
   } else {
     pushFields({
@@ -366,7 +386,7 @@ function buildEditableTranslationFields({
           groupLabel: page.title,
           sourceFields: {
             title: page.title,
-            description: page.description_visible ? page.description : null,
+            description: includePageDescriptions && page.description_visible ? page.description : null,
           },
           translationsByLocale: pageTranslationsById.get(page.id) ?? new Map(),
           fieldLabels: { title: "페이지명", description: "페이지 설명" },
@@ -388,7 +408,7 @@ function buildEditableTranslationFields({
           description: includeCategoryDescriptions && category.description_visible ? category.description : null,
         },
         translationsByLocale: categoryTranslationsById.get(category.id) ?? new Map(),
-        fieldLabels: useBasicLocalizationStructure
+        fieldLabels: localizationStructure === "basic" || localizationStructure === "display"
           ? { name: "메뉴 그룹명", description: "메뉴 그룹 설명" }
           : { name: "카테고리명", description: "카테고리 설명" },
         multilineFields: ["description"],
@@ -407,13 +427,14 @@ function buildEditableTranslationFields({
         parentGroupLabel: categoryName,
         sourceFields: {
           name: item.name,
-          description: item.description,
+          set_name: localizationStructure === "display" ? item.set_name : null,
+          description: includeItemDescriptions ? item.description : null,
           price_label: item.price_label,
-          portion_label: item.portion_visible === false ? null : item.portion_label,
+          portion_label: includeItemPortionLabel && item.portion_visible !== false ? item.portion_label : null,
           badge_label: includeItemBadges ? item.badge_label : null,
         },
         translationsByLocale: itemTranslationsById.get(item.id) ?? new Map(),
-        fieldLabels: { name: "메뉴명", description: "메뉴 설명", price_label: "표시 가격 문구", portion_label: "제공량 표시 문구", badge_label: "배지 문구" },
+        fieldLabels: { name: "메뉴명", set_name: "보조 메뉴명", description: "메뉴 설명", price_label: "표시 가격 문구", portion_label: "제공량 표시 문구", badge_label: "배지 문구" },
         multilineFields: ["description"],
       });
     });
@@ -936,6 +957,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const templateCapabilities = getTemplateCapabilities(site.template_key);
+  const localizationStructure =
+    editorServiceType === "screen" || site.template_key === "display_menu_a"
+      ? "display"
+      : editorServiceType === "menu"
+      ? "basic"
+      : "default";
   const siteSettings = getJsonRecord(site.settings);
   const templateTypeLabel = getTemplateTypeLabel(templateType);
   const isPriceListTemplate = templateType === "price_list";
@@ -1008,8 +1035,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     itemTranslations: (itemTranslationsData ?? []) as MenuItemTranslation[],
     includeItemBadges: templateCapabilities.itemBadges,
     includeCategoryDescriptions: templateCapabilities.categoryDescription,
+    includeItemDescriptions: templateCapabilities.itemDescription,
+    includeItemPortionLabel: templateCapabilities.itemPortionLabel,
+    includePageDescriptions: templateCapabilities.pageDescription,
     menuCoverCapabilities,
-    useBasicLocalizationStructure: editorServiceType === "menu",
+    localizationStructure,
   });
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
   const featuredItemOptions = items
@@ -1082,7 +1112,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         : latestTranslationJob?.status === "failed"
           ? getSafeTranslationErrorMessage(latestTranslationJob.error_message)
           : error
-            ? getSafeTranslationErrorMessage(error)
+            ? error
             : null
       : error;
   const basicNameError = activeTab === "basic" && bannerError?.includes("메뉴판 이름") ? bannerError : null;
@@ -1782,7 +1812,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   aiUsage={aiUsage}
                   latestTranslationJob={latestTranslationJob}
                   editableTranslationFields={editableTranslationFields}
-                  isBasicLocalization={editorServiceType === "menu"}
+                  localizationStructure={localizationStructure}
                 />
               </SectionCard>
             )}

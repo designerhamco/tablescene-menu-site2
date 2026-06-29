@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import {
   normalizeMenuPageDisplaySettings,
   type MenuPageDisplaySettings,
@@ -1320,6 +1321,9 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
         {showPreviewSelector && (
           <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={setSelectedPageId} />
         )}
+        <div className="pointer-events-none absolute bottom-5 right-5 z-20 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+          <MenuLanguageSwitcher currentLocale={props.locale} enabledLocales={props.enabledLocales} compact menuPlacement="top" />
+        </div>
         <section className={`relative h-screen w-screen overflow-hidden ${
           isPromotionPage ? "bg-zinc-950" : isSplitMenuPage ? "bg-[var(--display-surface-color)]" : "bg-[var(--display-surface-color)]"
         }`}>
