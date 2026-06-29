@@ -43,6 +43,9 @@ export type PartialMenuHeroTranslationResult = {
   menu_cover_label?: string;
   menu_cover_title?: string;
   menu_cover_description?: string;
+  opening_hours?: string;
+  restaurant_address?: string;
+  restaurant_phone?: string;
 };
 
 export type PartialTranslationResult =

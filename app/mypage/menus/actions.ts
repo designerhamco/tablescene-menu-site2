@@ -19,7 +19,7 @@ import {
   MENU_SITE_INACTIVE_EDIT_MESSAGE,
   MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
 } from "@/lib/server/menu-site-access-service";
-import { DEFAULT_LOCALE, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
+import { DEFAULT_LOCALE, LOCALE_LABELS, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import type { EditableTranslationDraftValue, EditableTranslationEntityType, EditableTranslationLocale, PartialTranslationActionResult } from "@/lib/menu-localization-draft";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
@@ -102,6 +102,14 @@ function getMenuItemBadgeLabelFromForm(menuId: string, formData: FormData) {
 
 function getJsonObject(value: unknown): Record<string, Json> {
   return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, Json>) } : {};
+}
+
+function getJsonString(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function formatServerActionLogContext(context: Record<string, unknown>) {
+  return JSON.stringify(context);
 }
 
 async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, menuId: string) {
@@ -804,6 +812,11 @@ export async function generateMenuSiteTranslationDraftAction(input: {
     }
 
     const result = await runMenuTranslationDraft(supabase, menuId, targetLocales);
+    const failedLocaleLabels = result.localeResults
+      .filter((localeResult) => !localeResult.ok)
+      .map((localeResult) => LOCALE_LABELS[localeResult.locale])
+      .join(", ");
+    const untranslatedWarningCount = result.localeResults.reduce((total, localeResult) => total + localeResult.untranslatedWarningCount, 0);
     let usage = fullTranslationUsage;
 
     if (result.translatedEntities > 0) {
@@ -842,11 +855,21 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       data,
       usage,
       message:
-        result.translatedEntities > 0
+        failedLocaleLabels && result.translatedEntities > 0
+          ? `${failedLocaleLabels} 번역은 실패했지만, 생성된 번역 초안을 표시했습니다. 저장 전 내용을 확인해주세요.`
+          : untranslatedWarningCount > 0
+          ? "전체 자동 번역 초안이 생성되었습니다. 일부 항목은 원문이 남아 있을 수 있으니 저장 전 내용을 확인해주세요."
+          : result.translatedEntities > 0
           ? "전체 자동 번역 초안이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
           : "최신 번역이 이미 준비되어 있습니다.",
     };
   } catch (error) {
+    console.error(`[localization:auto-translate] draft action failed ${formatServerActionLogContext({
+      menuId,
+      targetLocales,
+      message: error instanceof Error ? error.message : "unknown",
+      stack: error instanceof Error ? error.stack : undefined,
+    })}`);
     return {
       ok: false,
       message: getSafeTranslationErrorMessage(error instanceof Error ? error.message : "자동 번역 초안 생성 중 오류가 발생했습니다."),
@@ -1117,7 +1140,17 @@ async function saveEditableTranslationDrafts(
   if (draftValues.length === 0) return;
 
   const allowedFields: Record<EditableTranslationEntityType, readonly string[]> = {
-    site: ["restaurant_name", "brand_description", "menu_cover_title", "menu_cover_description", "menu_cover_label", "description"],
+    site: [
+      "restaurant_name",
+      "brand_description",
+      "menu_cover_title",
+      "menu_cover_description",
+      "menu_cover_label",
+      "description",
+      "opening_hours",
+      "restaurant_address",
+      "restaurant_phone",
+    ],
     page: ["title", "description"],
     category: ["name", "description"],
     item: ["name", "description", "price_label", "portion_label", "badge_label"],
@@ -1667,7 +1700,7 @@ export async function translateMenuHeroPartialAction(input: {
 
     const { data: site, error: siteError } = await supabase
       .from("menu_sites")
-      .select("id, restaurant_name, restaurant_category, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, template_key")
+      .select("id, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, opening_hours, settings, template_key")
       .eq("id", menuId)
       .maybeSingle();
 
@@ -1676,12 +1709,27 @@ export async function translateMenuHeroPartialAction(input: {
     }
 
     const menuCoverCapabilities = getTemplateCapabilities(site.template_key).menuCover;
+    const templateCapabilities = getTemplateCapabilities(site.template_key);
+    const settings = getJsonObject(site.settings);
+    const hasFooterNotice1 = Object.prototype.hasOwnProperty.call(settings, "footer_notice_1");
+    const hasFooterNotice2 = Object.prototype.hasOwnProperty.call(settings, "footer_notice_2");
+    const hasFooterNotice3 = Object.prototype.hasOwnProperty.call(settings, "footer_notice_3");
+    // Basic/CafeA footer notice translation compatibility mapping:
+    // footer_notice_1/2/3 reuse opening_hours/address/phone translation columns to avoid a schema change.
+    const footerNotice1 = hasFooterNotice1 ? getJsonString(settings.footer_notice_1) : site.opening_hours ?? "";
+    const footerNotice2 = hasFooterNotice2 ? getJsonString(settings.footer_notice_2) : site.restaurant_address ?? "";
+    const footerNotice3 = hasFooterNotice3
+      ? getJsonString(settings.footer_notice_3)
+      : getJsonString(settings.footer_sns_text) || getJsonString(settings.footer_note);
     const sourceFields = {
       restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
       brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
       menu_cover_label: menuCoverCapabilities.usesCoverLabel ? site.menu_cover_label : null,
       menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,
       menu_cover_description: menuCoverCapabilities.usesCoverDescription ? site.menu_cover_description : null,
+      opening_hours: templateCapabilities.footerStoreInfo ? footerNotice1 : null,
+      restaurant_address: templateCapabilities.footerStoreInfo ? footerNotice2 : null,
+      restaurant_phone: templateCapabilities.footerStoreInfo ? footerNotice3 : null,
     };
     const hasTranslatableText = Object.values(sourceFields).some(hasMeaningfulTranslationText);
 

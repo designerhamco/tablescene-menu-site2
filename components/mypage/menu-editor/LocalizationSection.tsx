@@ -33,11 +33,26 @@ type LocalizationSectionProps = {
   aiUsage: AiUsageSnapshot;
   latestTranslationJob: TranslationJob;
   editableTranslationFields: EditableTranslationField[];
+  isBasicLocalization?: boolean;
 };
 
 type TranslationTargetGroup = EditableTranslationField["group"];
 
 const STALE_TRANSLATION_JOB_MS = 5 * 60 * 1000;
+const AI_CREDIT_BALANCE_UPDATED_EVENT = "tablescene:ai-credit-balance-updated";
+
+function notifyAiCreditBalanceUpdated(usage?: { used: number; limit: number } | null) {
+  if (!usage || typeof window === "undefined") return;
+
+  window.dispatchEvent(
+    new CustomEvent(AI_CREDIT_BALANCE_UPDATED_EVENT, {
+      detail: {
+        usedCredits: usage.used,
+        totalCredits: usage.limit,
+      },
+    })
+  );
+}
 
 function isStaleRunningJob(job: TranslationJob) {
   if (!job || (job.status !== "pending" && job.status !== "running")) return false;
@@ -124,7 +139,17 @@ function LocalizationSaveButton({ disabled = false, children = "저장" }: { dis
   );
 }
 
-function TranslationSubmitButton({ disabled, pending, onClick }: { disabled?: boolean; pending?: boolean; onClick: () => void }) {
+function TranslationSubmitButton({
+  disabled,
+  pending,
+  pendingLabel,
+  onClick,
+}: {
+  disabled?: boolean;
+  pending?: boolean;
+  pendingLabel?: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
@@ -135,7 +160,7 @@ function TranslationSubmitButton({ disabled, pending, onClick }: { disabled?: bo
       {pending ? (
         <>
           <LoadingSpinner className="h-4 w-4" />
-          번역 중...
+          {pendingLabel ?? "번역 중..."}
         </>
       ) : (
         "전체 자동 번역 초안 만들기 · 5크레딧"
@@ -182,12 +207,18 @@ type FullTranslationDraftPatch = {
   value: string;
 };
 
-const translationTargetLabels: Record<TranslationTargetGroup, string> = {
+const defaultTranslationTargetLabels: Record<TranslationTargetGroup, string> = {
   site: "커버 이미지",
   pages: "페이지",
   categories: "카테고리",
   items: "메뉴 아이템",
 };
+
+const basicTranslationTargetLabels = {
+  site: "기본 정보",
+  categories: "메뉴 그룹",
+  items: "메뉴 목록",
+} satisfies Partial<Record<TranslationTargetGroup, string>>;
 
 const partialTranslationFieldAliases: Record<string, string[]> = {
   restaurant_name: ["restaurant_name", "site_name", "name"],
@@ -195,6 +226,9 @@ const partialTranslationFieldAliases: Record<string, string[]> = {
   menu_cover_label: ["menu_cover_label", "hero_label", "cover_label", "label"],
   menu_cover_title: ["menu_cover_title", "hero_title", "cover_title", "title"],
   menu_cover_description: ["menu_cover_description", "hero_description", "cover_description", "description"],
+  opening_hours: ["opening_hours", "footer_notice_1", "notice_1"],
+  restaurant_address: ["restaurant_address", "footer_notice_2", "notice_2"],
+  restaurant_phone: ["restaurant_phone", "footer_notice_3", "notice_3"],
   name: ["name", "title"],
   description: ["description"],
   price_label: ["price_label"],
@@ -325,6 +359,7 @@ function TranslationEditorItemGroups({
   partialUsage,
   pendingPartialEntityKey,
   onPartialTranslate,
+  title = "메뉴 아이템",
 }: {
   fields: EditableTranslationField[];
   activeLocale: EditableTranslationLocale;
@@ -333,6 +368,7 @@ function TranslationEditorItemGroups({
   partialUsage?: { used: number; limit: number };
   pendingPartialEntityKey?: string | null;
   onPartialTranslate?: (fields: EditableTranslationField[]) => void;
+  title?: string;
 }) {
   const categoryGroups = useMemo(() => {
     const groups = new Map<string, EditableTranslationField[]>();
@@ -352,7 +388,7 @@ function TranslationEditorItemGroups({
 
   return (
     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-      <h4 className="text-sm font-black text-zinc-950">메뉴 아이템</h4>
+      <h4 className="text-sm font-black text-zinc-950">{title}</h4>
       <div className="mt-4 space-y-3">
         {categoryGroups.map((category) => {
           const isOpen = openCategoryLabels.has(category.categoryLabel);
@@ -477,16 +513,20 @@ function ReadOnlyItemGroups({ fields }: { fields: EditableTranslationField[] }) 
   );
 }
 
-function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTranslationJob, editableTranslationFields }: LocalizationSectionProps) {
+function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTranslationJob, editableTranslationFields, isBasicLocalization = false }: LocalizationSectionProps) {
   const partialTranslationUsage = aiUsage.ai_translate_partial;
+  const initialAiCreditUsage = {
+    used: Math.max(aiUsage.ai_translate_full.used, partialTranslationUsage.used),
+    limit: Math.max(aiUsage.ai_translate_full.limit, partialTranslationUsage.limit),
+  };
   const [localFullUsage, setLocalFullUsage] = useState({
-    used: aiUsage.ai_translate_full.used,
-    limit: aiUsage.ai_translate_full.limit,
+    used: initialAiCreditUsage.used,
+    limit: initialAiCreditUsage.limit,
   });
   const isUsageExceeded = localFullUsage.used >= localFullUsage.limit;
   const [localPartialUsage, setLocalPartialUsage] = useState({
-    used: partialTranslationUsage.used,
-    limit: partialTranslationUsage.limit,
+    used: initialAiCreditUsage.used,
+    limit: initialAiCreditUsage.limit,
   });
   const [selectedLocales, setSelectedLocales] = useState<SupportedLocale[]>(enabledLocales);
   const [activeLocale, setActiveLocale] = useState<SupportedLocale>("ko");
@@ -495,6 +535,14 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
   const [isGeneratingFullDraft, setIsGeneratingFullDraft] = useState(false);
   const [pendingPartialEntityKey, setPendingPartialEntityKey] = useState<string | null>(null);
   const [overwriteRequest, setOverwriteRequest] = useState<EditableTranslationField[] | null>(null);
+  const translationTargetLabels = useMemo<Partial<Record<TranslationTargetGroup, string>>>(
+    () => (isBasicLocalization ? basicTranslationTargetLabels : defaultTranslationTargetLabels),
+    [isBasicLocalization]
+  );
+  const translationTargetGroups = useMemo(
+    () => Object.keys(translationTargetLabels) as TranslationTargetGroup[],
+    [translationTargetLabels]
+  );
   const initialDraftValues = useMemo(() => buildInitialDraft(editableTranslationFields), [editableTranslationFields]);
   const translationDraftPayload = useMemo(
     () =>
@@ -531,6 +579,10 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     [editableTranslationFields]
   );
   const activeTargetFields = fieldsByGroup[activeTargetGroup];
+  const selectedTargetLocaleLabels = selectedLocales
+    .filter((locale) => locale !== "ko")
+    .map((locale) => LOCALE_LABELS[locale])
+    .join(" / ");
 
   function toggleLocale(locale: EditableTranslationLocale) {
     setSelectedLocales((current) => {
@@ -587,6 +639,13 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     });
   }
 
+  function applyAiCreditUsage(usage?: { used: number; limit: number } | null) {
+    if (!usage) return;
+    setLocalFullUsage(usage);
+    setLocalPartialUsage(usage);
+    notifyAiCreditBalanceUpdated(usage);
+  }
+
   async function runFullTranslationDraft() {
     if (isTranslationDisabled) return;
 
@@ -606,12 +665,12 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
 
       if (!result.ok) {
         toast.error(result.message);
-        if (result.usage) setLocalFullUsage(result.usage);
+        applyAiCreditUsage(result.usage);
         return;
       }
 
       applyFullTranslationDraft(result.data);
-      setLocalFullUsage(result.usage);
+      applyAiCreditUsage(result.usage);
       toast.success(result.message);
     } catch {
       toast.error("전체 자동 번역 초안 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
@@ -654,7 +713,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
 
       if (!result.ok) {
         toast.error(result.message);
-        if (result.usage) setLocalPartialUsage(result.usage);
+        applyAiCreditUsage(result.usage);
         return;
       }
 
@@ -665,7 +724,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
       }
 
       applyPartialTranslation(patches, locale);
-      setLocalPartialUsage(result.usage);
+      applyAiCreditUsage(result.usage);
       toast.success(result.message);
     } catch {
       toast.error("부분 자동 번역 중 오류가 발생했습니다. 다시 시도해주세요.");
@@ -744,7 +803,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
                 <AiUsageMeter label="부분 자동 번역" used={localPartialUsage.used} limit={localPartialUsage.limit} />
               </div>
               <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 기능별 AI 크레딧이 차감됩니다.
+                전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 계정 AI 크레딧이 차감됩니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                 AI가 생성한 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
@@ -766,7 +825,12 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
               <p className="mt-3 break-keep text-sm font-bold text-zinc-500">{translationStatus.message}</p>
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-              <TranslationSubmitButton disabled={isTranslationDisabled} pending={isGeneratingFullDraft} onClick={() => void runFullTranslationDraft()} />
+              <TranslationSubmitButton
+                disabled={isTranslationDisabled}
+                pending={isGeneratingFullDraft}
+                pendingLabel={selectedTargetLocaleLabels ? `${selectedTargetLocaleLabels} 번역 중...` : undefined}
+                onClick={() => void runFullTranslationDraft()}
+              />
               <TranslationPendingMessage pending={isGeneratingFullDraft} />
             </div>
             </div>
@@ -776,7 +840,9 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
           <h3 className="text-lg font-bold tracking-tight text-zinc-950">번역 확인 및 수정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-            자동 번역 초안을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다.
+            {isBasicLocalization
+              ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판의 언어 선택에 반영됩니다."
+              : "자동 번역 초안을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다."}
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
             항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역은 1크레딧이 차감됩니다.
@@ -805,7 +871,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
           </div>
           <div className="mt-5 overflow-hidden rounded-lg border border-zinc-200 bg-white">
             <div className="flex flex-wrap border-b border-zinc-200 bg-zinc-50 p-1">
-              {(Object.keys(translationTargetLabels) as TranslationTargetGroup[]).map((group) => (
+              {translationTargetGroups.map((group) => (
                 <button
                   key={group}
                   type="button"
@@ -825,7 +891,9 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
               {activeLocale === "ko" ? (
                 <div className="space-y-4">
                   <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
-                    한국어 원문은 기본 정보, 커버 이미지, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다.
+                    {isBasicLocalization
+                      ? "한국어 원문은 기본 정보와 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 자동 번역 결과를 확인하고 필요한 문구만 직접 수정할 수 있습니다."
+                      : "한국어 원문은 기본 정보, 커버 이미지, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다."}
                   </p>
                   {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}
                 </div>
@@ -844,10 +912,11 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
                       partialUsage={localPartialUsage}
                       pendingPartialEntityKey={pendingPartialEntityKey}
                       onPartialTranslate={requestPartialTranslation}
+                      title={translationTargetLabels.items ?? "메뉴 아이템"}
                     />
                   ) : (
                     <TranslationEditorGroup
-                      title={translationTargetLabels[activeTargetGroup]}
+                      title={translationTargetLabels[activeTargetGroup] ?? activeTargetGroup}
                       fields={activeTargetFields}
                       activeLocale={activeLocale}
                       draftValues={draftValues}

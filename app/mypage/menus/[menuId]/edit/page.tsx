@@ -210,6 +210,7 @@ function buildEditableTranslationFields({
   includeItemBadges,
   includeCategoryDescriptions,
   menuCoverCapabilities,
+  useBasicLocalizationStructure,
 }: {
   site: MenuSite;
   pages: MenuPage[];
@@ -222,6 +223,7 @@ function buildEditableTranslationFields({
   includeItemBadges: boolean;
   includeCategoryDescriptions: boolean;
   menuCoverCapabilities: ReturnType<typeof getTemplateCapabilities>["menuCover"];
+  useBasicLocalizationStructure: boolean;
 }) {
   const fields: EditableTranslationField[] = [];
   const siteTranslationsByLocale = new Map(
@@ -295,46 +297,83 @@ function buildEditableTranslationFields({
     });
   }
 
-  pushFields({
-    entityType: "site",
-    entityId: site.id,
-    group: "site",
-    groupLabel: "커버 이미지",
-    sourceFields: {
-      restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
-      brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
-      menu_cover_label: menuCoverCapabilities.usesCoverLabel ? site.menu_cover_label : null,
-      menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,
-      menu_cover_description: menuCoverCapabilities.usesCoverDescription ? site.menu_cover_description : null,
-    },
-    translationsByLocale: siteTranslationsByLocale,
-    fieldLabels: {
-      restaurant_name: "매장명",
-      brand_description: "브랜드 설명",
-      menu_cover_label: "커버 이미지 라벨",
-      menu_cover_title: "커버 이미지 제목",
-      menu_cover_description: "커버 이미지 설명",
-    },
-    multilineFields: ["brand_description", "menu_cover_description"],
-  });
+  if (useBasicLocalizationStructure) {
+    const siteSettings = getJsonRecord(site.settings);
+    const hasFooterNotice1 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_1");
+    const hasFooterNotice2 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_2");
+    const hasFooterNotice3 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_3");
+    // Basic/CafeA footer notice translation compatibility mapping:
+    // footer_notice_1/2/3 reuse opening_hours/address/phone translation columns to avoid a schema change.
+    const footerNotice1 = hasFooterNotice1 ? getSettingsString(siteSettings, "footer_notice_1") : site.opening_hours ?? "";
+    const footerNotice2 = hasFooterNotice2 ? getSettingsString(siteSettings, "footer_notice_2") : site.restaurant_address ?? "";
+    const footerNotice3 = hasFooterNotice3
+      ? getSettingsString(siteSettings, "footer_notice_3")
+      : getSettingsString(siteSettings, "footer_sns_text") || getSettingsString(siteSettings, "footer_note");
 
-  pages
-    .filter((page) => page.visible)
-    .forEach((page) => {
-      pushFields({
-        entityType: "page",
-        entityId: page.id,
-        group: "pages",
-        groupLabel: page.title,
-        sourceFields: {
-          title: page.title,
-          description: page.description_visible ? page.description : null,
-        },
-        translationsByLocale: pageTranslationsById.get(page.id) ?? new Map(),
-        fieldLabels: { title: "페이지명", description: "페이지 설명" },
-        multilineFields: ["description"],
-      });
+    pushFields({
+      entityType: "site",
+      entityId: site.id,
+      group: "site",
+      groupLabel: "기본 정보",
+      sourceFields: {
+        restaurant_name: site.restaurant_name,
+        brand_description: site.brand_description,
+        opening_hours: footerNotice1,
+        restaurant_address: footerNotice2,
+        restaurant_phone: footerNotice3,
+      },
+      translationsByLocale: siteTranslationsByLocale,
+      fieldLabels: {
+        restaurant_name: "매장명",
+        brand_description: "매장 설명",
+        opening_hours: "안내사항 1",
+        restaurant_address: "안내사항 2",
+        restaurant_phone: "안내사항 3",
+      },
+      multilineFields: ["brand_description", "opening_hours", "restaurant_address", "restaurant_phone"],
     });
+  } else {
+    pushFields({
+      entityType: "site",
+      entityId: site.id,
+      group: "site",
+      groupLabel: "커버 이미지",
+      sourceFields: {
+        restaurant_name: menuCoverCapabilities.usesStoreName ? site.restaurant_name : null,
+        brand_description: menuCoverCapabilities.usesStoreDescription ? site.brand_description : null,
+        menu_cover_label: menuCoverCapabilities.usesCoverLabel ? site.menu_cover_label : null,
+        menu_cover_title: menuCoverCapabilities.usesCoverTitle ? site.menu_cover_title : null,
+        menu_cover_description: menuCoverCapabilities.usesCoverDescription ? site.menu_cover_description : null,
+      },
+      translationsByLocale: siteTranslationsByLocale,
+      fieldLabels: {
+        restaurant_name: "매장명",
+        brand_description: "브랜드 설명",
+        menu_cover_label: "커버 이미지 라벨",
+        menu_cover_title: "커버 이미지 제목",
+        menu_cover_description: "커버 이미지 설명",
+      },
+      multilineFields: ["brand_description", "menu_cover_description"],
+    });
+
+    pages
+      .filter((page) => page.visible)
+      .forEach((page) => {
+        pushFields({
+          entityType: "page",
+          entityId: page.id,
+          group: "pages",
+          groupLabel: page.title,
+          sourceFields: {
+            title: page.title,
+            description: page.description_visible ? page.description : null,
+          },
+          translationsByLocale: pageTranslationsById.get(page.id) ?? new Map(),
+          fieldLabels: { title: "페이지명", description: "페이지 설명" },
+          multilineFields: ["description"],
+        });
+      });
+  }
 
   categories
     .filter((category) => category.visible)
@@ -349,7 +388,9 @@ function buildEditableTranslationFields({
           description: includeCategoryDescriptions && category.description_visible ? category.description : null,
         },
         translationsByLocale: categoryTranslationsById.get(category.id) ?? new Map(),
-        fieldLabels: { name: "카테고리명", description: "카테고리 설명" },
+        fieldLabels: useBasicLocalizationStructure
+          ? { name: "메뉴 그룹명", description: "메뉴 그룹 설명" }
+          : { name: "카테고리명", description: "카테고리 설명" },
         multilineFields: ["description"],
       });
     });
@@ -968,6 +1009,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     includeItemBadges: templateCapabilities.itemBadges,
     includeCategoryDescriptions: templateCapabilities.categoryDescription,
     menuCoverCapabilities,
+    useBasicLocalizationStructure: editorServiceType === "menu",
   });
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
   const featuredItemOptions = items
@@ -1740,6 +1782,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   aiUsage={aiUsage}
                   latestTranslationJob={latestTranslationJob}
                   editableTranslationFields={editableTranslationFields}
+                  isBasicLocalization={editorServiceType === "menu"}
                 />
               </SectionCard>
             )}

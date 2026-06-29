@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import AiCreditPurchaseModal from "@/components/ai/AiCreditPurchaseModal";
 import { formatAiCredits, type AiCreditBalance, type AiCreditPackKey } from "@/lib/ai-credits";
@@ -16,6 +16,13 @@ type AiCreditRechargePanelProps = {
   initialBalance: AiCreditBalance | null;
   compact?: boolean;
   accountSummaryOnly?: boolean;
+};
+
+const AI_CREDIT_BALANCE_UPDATED_EVENT = "tablescene:ai-credit-balance-updated";
+
+type AiCreditBalanceUpdatedEventDetail = {
+  usedCredits: number;
+  totalCredits: number;
 };
 
 export default function AiCreditRechargePanel({
@@ -34,6 +41,46 @@ export default function AiCreditRechargePanel({
   const [isOpen, setIsOpen] = useState(false);
   const [pendingProductKey, setPendingProductKey] = useState<AiCreditPackKey | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleBalanceUpdated(event: Event) {
+      const detail = (event as CustomEvent<AiCreditBalanceUpdatedEventDetail>).detail;
+      if (!detail || !Number.isFinite(detail.usedCredits) || !Number.isFinite(detail.totalCredits)) return;
+
+      setBalance((currentBalance) => {
+        const totalCredits = Math.max(0, Math.floor(detail.totalCredits));
+        const usedCredits = Math.max(0, Math.floor(detail.usedCredits));
+        const remainingCredits = Math.max(0, totalCredits - usedCredits);
+
+        if (!currentBalance) {
+          return {
+            accountGrantedCredits: totalCredits,
+            accountPurchasedCredits: 0,
+            accountUsedCredits: usedCredits,
+            accountRemainingCredits: remainingCredits,
+            totalRemainingCredits: remainingCredits,
+            includedCredits: totalCredits,
+            purchasedCredits: 0,
+            usedCredits,
+            remainingCredits,
+          };
+        }
+
+        return {
+          ...currentBalance,
+          accountUsedCredits: usedCredits,
+          accountRemainingCredits: remainingCredits,
+          totalRemainingCredits: remainingCredits,
+          usedCredits,
+          remainingCredits,
+        };
+      });
+    }
+
+    window.addEventListener(AI_CREDIT_BALANCE_UPDATED_EVENT, handleBalanceUpdated);
+    return () => window.removeEventListener(AI_CREDIT_BALANCE_UPDATED_EVENT, handleBalanceUpdated);
+  }, []);
+
   const totalRemainingCredits = balance?.totalRemainingCredits ?? 0;
   const totalGrantedCredits = balance?.accountGrantedCredits ?? 0;
   const totalPurchasedCredits = balance?.accountPurchasedCredits ?? 0;

@@ -37,6 +37,10 @@ function emptyBalance(): AiCreditBalance {
   return toBalance(null);
 }
 
+function isAmbiguousColumnError(error: { code?: string; message?: string } | null | undefined) {
+  return error?.code === "42702" || (error?.message ?? "").includes("column reference") && (error?.message ?? "").includes("is ambiguous");
+}
+
 function toBalance(row: Pick<AccountCreditBalanceRow, "granted_credits" | "purchased_credits" | "used_credits"> | null): AiCreditBalance {
   const accountGrantedCredits = positiveInteger(row?.granted_credits);
   const accountPurchasedCredits = positiveInteger(row?.purchased_credits);
@@ -133,6 +137,95 @@ export async function getAiCreditBalancesForMenuSites(menuSiteIds: string[]) {
   }
 
   return balances;
+}
+
+async function spendAiCreditsWithAccountBalanceFallback({
+  adminSupabase,
+  userId,
+  menuSiteId,
+  featureKey,
+  cost,
+}: {
+  adminSupabase: AdminClient;
+  userId: string;
+  menuSiteId: string;
+  featureKey: AiFeatureKey;
+  cost: number;
+}) {
+  const accountBalance = await getAccountBalance(adminSupabase, userId);
+  if (!accountBalance) {
+    throw new Error("AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.");
+  }
+
+  const grantedCredits = positiveInteger(accountBalance.granted_credits);
+  const purchasedCredits = positiveInteger(accountBalance.purchased_credits);
+  const usedCreditsBefore = positiveInteger(accountBalance.used_credits);
+  const totalCredits = grantedCredits + purchasedCredits;
+  const remainingBefore = Math.max(0, totalCredits - usedCreditsBefore);
+
+  if (remainingBefore < cost) {
+    throw new Error("AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.");
+  }
+
+  const grantedRemainingBefore = Math.max(0, grantedCredits - usedCreditsBefore);
+  const grantedCreditsUsed = Math.min(cost, grantedRemainingBefore);
+  const purchasedCreditsUsed = cost - grantedCreditsUsed;
+  const creditSource = grantedCreditsUsed === cost ? "granted" : grantedCreditsUsed === 0 ? "purchased" : "mixed";
+  const usedCreditsAfter = usedCreditsBefore + cost;
+  const remainingCredits = Math.max(0, totalCredits - usedCreditsAfter);
+
+  const { data: updatedBalance, error: updateError } = await adminSupabase
+    .from("ai_account_credit_balances" as never)
+    .update({ used_credits: usedCreditsAfter, updated_at: new Date().toISOString() } as never)
+    .eq("id" as never, accountBalance.id as never)
+    .eq("used_credits" as never, usedCreditsBefore as never)
+    .select("id" as never)
+    .maybeSingle();
+
+  if (updateError) {
+    if (isMissingAiCreditTable(updateError)) {
+      throw new Error("AI 크레딧 테이블 migration 적용이 필요합니다.");
+    }
+    throw new Error(updateError.message || "AI 크레딧 차감에 실패했습니다.");
+  }
+
+  if (!updatedBalance) {
+    throw new Error("AI 크레딧 차감 중 잔액이 변경되었습니다. 다시 시도해주세요.");
+  }
+
+  const { error: insertError } = await adminSupabase.from("ai_credit_transactions" as never).insert({
+    user_id: userId,
+    menu_site_id: menuSiteId,
+    transaction_type: "usage",
+    credit_source: creditSource,
+    feature_key: featureKey,
+    credit_amount: -cost,
+    balance_after: remainingCredits,
+    account_balance_after: remainingCredits,
+    included_credits_used: grantedCreditsUsed,
+    purchased_credits_used: purchasedCreditsUsed,
+    metadata: { fallback: "consume_ai_account_credits_ambiguous_column" },
+  } as never);
+
+  if (insertError) {
+    await adminSupabase
+      .from("ai_account_credit_balances" as never)
+      .update({ used_credits: usedCreditsBefore, updated_at: new Date().toISOString() } as never)
+      .eq("id" as never, accountBalance.id as never)
+      .eq("used_credits" as never, usedCreditsAfter as never);
+
+    throw new Error(insertError.message || "AI 크레딧 사용 내역 저장에 실패했습니다.");
+  }
+
+  const latestAccountBalance = await getAccountBalance(adminSupabase, userId);
+  const latestBalance = latestAccountBalance ? toBalance(latestAccountBalance) : null;
+
+  return {
+    cost,
+    usedCredits: latestBalance?.usedCredits ?? usedCreditsAfter,
+    totalCredits: latestBalance ? latestBalance.usedCredits + latestBalance.remainingCredits : totalCredits,
+    remainingCredits: latestBalance?.remainingCredits ?? remainingCredits,
+  };
 }
 
 export async function ensureAiCreditBalanceForMenuSite({
@@ -344,6 +437,15 @@ export async function spendAiCredits({
     if (isMissingAiCreditTable(error)) {
       throw new Error("AI 크레딧 테이블 migration 적용이 필요합니다.");
     }
+    if (isAmbiguousColumnError(error)) {
+      return spendAiCreditsWithAccountBalanceFallback({
+        adminSupabase,
+        userId,
+        menuSiteId,
+        featureKey,
+        cost,
+      });
+    }
     throw new Error(error.message || "AI 크레딧 차감에 실패했습니다.");
   }
 
@@ -359,12 +461,13 @@ export async function spendAiCredits({
   const usedCredits = typeof (result as { used_credits?: unknown } | null)?.used_credits === "number"
     ? (result as { used_credits: number }).used_credits
     : cost;
-  const totalCredits = remainingCredits + usedCredits;
+  const latestAccountBalance = await getAccountBalance(adminSupabase, userId);
+  const latestBalance = latestAccountBalance ? toBalance(latestAccountBalance) : null;
 
   return {
     cost,
-    usedCredits,
-    totalCredits,
-    remainingCredits,
+    usedCredits: latestBalance?.usedCredits ?? usedCredits,
+    totalCredits: latestBalance ? latestBalance.usedCredits + latestBalance.remainingCredits : remainingCredits + usedCredits,
+    remainingCredits: latestBalance?.remainingCredits ?? remainingCredits,
   };
 }

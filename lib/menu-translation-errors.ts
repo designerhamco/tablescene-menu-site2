@@ -10,6 +10,15 @@ export function getSafeTranslationErrorMessage(message: string | null | undefine
     return PARTIAL_TRANSLATION_FAILURE_MESSAGE;
   }
 
+  if (
+    normalizedMessage.includes("시간이 초과") ||
+    normalizedMessage.includes("timeout") ||
+    normalizedMessage.includes("timed out") ||
+    normalizedMessage.includes("abort")
+  ) {
+    return "AI 번역 요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.";
+  }
+
   if (normalizedMessage.includes("openai_api_key") || normalizedMessage.includes("environment") || normalizedMessage.includes("환경변수")) {
     return "자동 번역 기능이 아직 설정되지 않았습니다. 관리자에게 문의해주세요.";
   }

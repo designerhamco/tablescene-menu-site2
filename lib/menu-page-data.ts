@@ -3,7 +3,7 @@ import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValu
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import type { Database, Json } from "@/lib/supabase/types";
 import { mergePageSettings, sortMenuPages } from "@/types/menu";
 
 type MenuSite = PublicMenuTemplateProps["menuSite"] &
@@ -67,8 +67,25 @@ function mapById<T extends Record<TKey, string>, TKey extends keyof T>(rows: T[]
   return new Map(rows.map((row) => [row[idKey], row]));
 }
 
+function getJsonRecord(value: unknown): Record<string, Json> {
+  return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, Json>) } : {};
+}
+
+function setLocalizedFooterNotice(settings: Record<string, Json>, key: string, value: string | null | undefined) {
+  if (typeof value === "string" && value.trim()) {
+    settings[key] = value.trim();
+  }
+}
+
 function mergeMenuSiteTranslation(menuSite: MenuSite, translation: MenuSiteTranslation | null | undefined): MenuSite {
   if (!translation) return menuSite;
+
+  const localizedSettings = getJsonRecord(menuSite.settings);
+  // Basic/CafeA footer notice translation compatibility mapping:
+  // footer_notice_1/2/3 reuse opening_hours/address/phone translation columns to avoid a schema change.
+  setLocalizedFooterNotice(localizedSettings, "footer_notice_1", translation.opening_hours);
+  setLocalizedFooterNotice(localizedSettings, "footer_notice_2", translation.restaurant_address);
+  setLocalizedFooterNotice(localizedSettings, "footer_notice_3", translation.restaurant_phone);
 
   return {
     ...menuSite,
@@ -85,6 +102,7 @@ function mergeMenuSiteTranslation(menuSite: MenuSite, translation: MenuSiteTrans
     opening_hours: getLocalizedValue(menuSite.opening_hours, translation.opening_hours),
     restaurant_address: getLocalizedValue(menuSite.restaurant_address, translation.restaurant_address),
     restaurant_phone: getLocalizedValue(menuSite.restaurant_phone, translation.restaurant_phone),
+    settings: localizedSettings,
   };
 }
 
