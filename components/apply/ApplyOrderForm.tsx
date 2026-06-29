@@ -1604,9 +1604,9 @@ export default function ApplyOrderForm({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         {isMenuService && (
-          <section className="rounded-3xl bg-white p-7 shadow-sm">
+          <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
@@ -1677,7 +1677,7 @@ export default function ApplyOrderForm({
         )}
 
         {isScreenService && (
-          <section className="rounded-3xl bg-white p-7 shadow-sm">
+          <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">디스플레이 용도 / 설치 정보</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
@@ -1724,7 +1724,7 @@ export default function ApplyOrderForm({
           </section>
         )}
 
-        <section className="rounded-3xl bg-white p-7 shadow-sm">
+        <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
           <div className="mb-6">
             <h2 className="text-3xl font-bold tracking-tight">
               {isScreenService ? "디스플레이 템플릿 카테고리 / 디스플레이 템플릿 선택" : "템플릿 선택"}
@@ -1931,7 +1931,7 @@ export default function ApplyOrderForm({
           )}
         </section>
 
-        <section className="rounded-3xl bg-white p-7 shadow-sm">
+        <section className="order-1 rounded-3xl bg-white p-7 shadow-sm">
           <h2 className="mb-6 text-3xl font-bold tracking-tight">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <Field
@@ -1995,7 +1995,7 @@ export default function ApplyOrderForm({
         </section>
 
         {isOrderService && (
-          <section className="rounded-3xl bg-white p-7 shadow-sm">
+          <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <h2 className="text-3xl font-bold tracking-tight">오더 도입 정보</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               입력해주신 정보는 메뉴링크 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
@@ -2053,7 +2053,7 @@ export default function ApplyOrderForm({
           </section>
         )}
 
-        <section className="rounded-3xl bg-white p-7 shadow-sm">
+        <section className="order-4 rounded-3xl bg-white p-7 shadow-sm">
           <h2 className="mb-6 text-3xl font-bold tracking-tight">구매자 및 담당자 정보</h2>
           <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
