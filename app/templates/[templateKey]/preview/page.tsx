@@ -20,6 +20,7 @@ type PageProps = {
     page?: string | string[];
     qaCase?: string | string[];
     qaSplitImagePosition?: string | string[];
+    footerStress?: string | string[];
   }>;
 };
 
@@ -149,7 +150,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       opening_hours: preset.site.opening_hours,
       map_url: null,
       page_settings: pageSettings,
-      settings: {},
+      settings: preset.site.settings ? { ...preset.site.settings } : {},
     },
     pageSettings,
     pages,
@@ -262,6 +263,92 @@ function applyPreviewFontSizeScale(data: MenuPageData, fontSizeScale: string | s
   };
 }
 
+function isPreviewFlagEnabled(value: string | string[] | undefined) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  return rawValue === "1" || rawValue === "true" || rawValue === "yes";
+}
+
+function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | string[] | undefined): MenuPageData {
+  if (data.menuSite.template_key !== "cafe_design_a" || !isPreviewFlagEnabled(footerStress)) return data;
+
+  const stressItems = [
+    { categoryName: "SIGNATURE COFFEE", name: "헤이즐넛 크림 모카", set_name: "HAZELNUT CREAM MOCHA", price: 6200, price_label: "6.2", description: "헤이즐넛 크림과 다크 초콜릿의 진한 조화", badge_label: "BEST" },
+    { categoryName: "CLASSIC COFFEE", name: "롱 블랙", set_name: "LONG BLACK", price: 4800, price_label: "4.8", description: "에스프레소 향이 선명한 클래식 커피" },
+    { categoryName: "CLASSIC COFFEE", name: "카푸치노", set_name: "CAPPUCCINO", price: 5200, price_label: "5.2", description: "부드러운 거품과 고소한 에스프레소", portion_label: "HOT ONLY", price_options: [{ label: "HOT ONLY", price: 5200, price_label: "5.2" }] },
+    { categoryName: "CLASSIC COFFEE", name: "디카페인 아메리카노", set_name: "DECAF AMERICANO", price: 5000, price_label: "5.0", description: "저녁에도 부담 없이 마시는 디카페인" },
+    { categoryName: "CLASSIC COFFEE", name: "콜드브루 라떼", set_name: "COLD BREW LATTE", price: 5800, price_label: "5.8", description: "콜드브루와 우유의 부드러운 밸런스", portion_label: "ICE ONLY", price_options: [{ label: "ICE ONLY", price: 5800, price_label: "5.8" }] },
+    { categoryName: "NON-COFFEE", name: "오트 말차 크림", set_name: "OAT MATCHA CREAM", price: 6800, price_label: "6.8", description: "오트 밀크와 말차 크림의 산뜻한 풍미", badge_label: "SIGNATURE" },
+    { categoryName: "NON-COFFEE", name: "바닐라 루이보스 밀크티", set_name: "VANILLA ROOIBOS MILK TEA", price: 6200, price_label: "6.2", description: "루이보스와 바닐라 향이 은은한 밀크티" },
+    { categoryName: "TEA & ADE", name: "청포도 민트 에이드", set_name: "GREEN GRAPE MINT ADE", price: 6200, price_label: "6.2", description: "청포도와 민트의 시원한 조합", portion_label: "ICE ONLY", price_options: [{ label: "ICE ONLY", price: 6200, price_label: "6.2" }] },
+    { categoryName: "TEA & ADE", name: "자스민 피치 티", set_name: "JASMINE PEACH TEA", price: 5600, price_label: "5.6", description: "복숭아 향과 자스민 티의 산뜻한 여운" },
+    { categoryName: "TEA & ADE", name: "히비스커스 베리 티", set_name: "HIBISCUS BERRY TEA", price: 5600, price_label: "5.6", description: "새콤한 히비스커스와 베리의 밸런스" },
+    { categoryName: "DESSERT", name: "말차 테린느", set_name: "MATCHA TERRINE", price: 7200, price_label: "7.2", description: "진한 말차와 화이트 초콜릿의 밀도 있는 디저트", badge_label: "NEW" },
+  ];
+
+  const nextItems = [...data.items];
+  const nextPriceOptions = [...data.priceOptions];
+
+  stressItems.forEach((stressItem, stressIndex) => {
+    const category = data.categories.find((candidate) => candidate.name === stressItem.categoryName);
+    if (!category) return;
+
+    const itemId = `${data.menuSite.id}-footer-stress-item-${stressIndex}`;
+    const sortOrder = nextItems.filter((item) => item.category_id === category.id).length + 1;
+    nextItems.push({
+      id: itemId,
+      category_id: category.id,
+      name: stressItem.name,
+      set_name: stressItem.set_name,
+      description: stressItem.description,
+      price: stressItem.price,
+      price_label: stressItem.price_label,
+      price_visible: true,
+      portion_label: stressItem.portion_label ?? null,
+      portion_visible: Boolean(stressItem.portion_label),
+      image_url: null,
+      badge: stressItem.badge_label ?? null,
+      badge_label: stressItem.badge_label ?? null,
+      badge_type: null,
+      recommended: false,
+      origin_info: null,
+      is_best: false,
+      is_sold_out: false,
+      traits_visible: true,
+      visible: true,
+      sort_order: sortOrder,
+    });
+
+    stressItem.price_options?.forEach((option, optionIndex) => {
+      nextPriceOptions.push({
+        id: `${itemId}-price-option-${optionIndex}`,
+        menu_item_id: itemId,
+        label: option.label,
+        price: option.price,
+        price_label: option.price_label,
+        visible: true,
+        sort_order: optionIndex + 1,
+      });
+    });
+  });
+
+  const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)
+    ? { ...data.menuSite.settings }
+    : {};
+  settings.footer_notice_1 = "10:00~22:00";
+  settings.footer_notice_2 = "서울시 강남구 테이블로 12";
+  settings.footer_notice_3 = "Instagram @menulink_official · 포장 가능";
+
+  return {
+    ...data,
+    menuSite: {
+      ...data.menuSite,
+      settings: settings as MenuPageData["menuSite"]["settings"],
+    },
+    items: nextItems,
+    priceOptions: nextPriceOptions,
+  };
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { templateKey } = await params;
 
@@ -308,7 +395,10 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
 
   const data = applyPreviewFontSizeScale(
     applyDisplayPreviewSplitImagePosition(
-      buildPreviewData(templateKey, displayPreviewQaCase),
+      applyCafeAFooterStressData(
+        buildPreviewData(templateKey, displayPreviewQaCase),
+        resolvedSearchParams.footerStress
+      ),
       displayPreviewSplitImagePosition
     ),
     resolvedSearchParams.fontSizeScale

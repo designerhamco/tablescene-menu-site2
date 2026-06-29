@@ -62,6 +62,7 @@ type StarterSiteDefaults = {
   restaurant_address: string;
   restaurant_phone: string;
   cover_image_url: string;
+  settings?: Record<string, Json>;
 };
 
 type StarterChef = {
@@ -942,10 +943,11 @@ async function applyStarterSiteDefaults(
 ) {
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
+  const presetSettings = getJsonRecord((preset.site.settings ?? null) as Json | null);
   const siteSelect =
-    "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings";
+    "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings, settings";
   const legacySiteSelect =
-    "restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings";
+    "restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings, settings";
 
   const primaryResult = await supabase
     .from("menu_sites")
@@ -965,6 +967,9 @@ async function applyStarterSiteDefaults(
   if (error) {
     throw new Error(`기본 메뉴판 정보 확인에 실패했습니다: ${error?.message ?? "알 수 없는 오류"}`);
   }
+
+  const existingSettings = getJsonRecord(site?.settings as Json | null | undefined);
+  const nextSettings = { ...presetSettings, ...existingSettings };
 
   const payload: MenuSiteUpdate = {
     restaurant_name: valueOrDefault(site?.restaurant_name, preset.site.restaurant_name),
@@ -988,6 +993,7 @@ async function applyStarterSiteDefaults(
     cover_image_url: valueOrDefault(site?.cover_image_url, preset.site.cover_image_url),
     cover_image_path: site?.cover_image_path ?? null,
     page_settings: pageSettingsAreEmpty(site?.page_settings) ? (starterPageSettings as unknown as Json) : site?.page_settings,
+    ...(Object.keys(nextSettings).length > 0 ? { settings: nextSettings } : {}),
     updated_at: new Date().toISOString(),
   };
 

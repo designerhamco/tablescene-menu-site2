@@ -14,6 +14,10 @@ export type TemplateMenuCoverCapabilities = {
 export type TemplateCapabilities = {
   typographyFontSizeControl?: "hidden" | "simple";
   logoImage: boolean;
+  brandLogo: boolean;
+  brandLogoReplacesName: boolean;
+  footerStoreInfo: boolean;
+  footerSocialLinks: boolean;
   menuItemImages: boolean;
   pageDescription: boolean;
   categoryDescription: boolean;
@@ -48,6 +52,10 @@ export const DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES: TemplateMenuCoverCapabili
 export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   typographyFontSizeControl: "hidden",
   logoImage: true,
+  brandLogo: false,
+  brandLogoReplacesName: false,
+  footerStoreInfo: false,
+  footerSocialLinks: false,
   menuItemImages: true,
   pageDescription: true,
   categoryDescription: true,
@@ -73,6 +81,10 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     ...DEFAULT_TEMPLATE_CAPABILITIES,
     typographyFontSizeControl: "simple",
     logoImage: false,
+    brandLogo: true,
+    brandLogoReplacesName: true,
+    footerStoreInfo: false,
+    footerSocialLinks: false,
     menuItemImages: true,
     pageDescription: false,
     categoryDescription: false,
@@ -104,6 +116,10 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
   cafe_design_a: {
     ...DEFAULT_TEMPLATE_CAPABILITIES,
     logoImage: false,
+    brandLogo: true,
+    brandLogoReplacesName: true,
+    footerStoreInfo: true,
+    footerSocialLinks: false,
     menuItemImages: false,
     pageDescription: false,
     categoryDescription: true,
@@ -127,6 +143,10 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
   },
   cafe_design_b: {
     logoImage: true,
+    brandLogo: false,
+    brandLogoReplacesName: false,
+    footerStoreInfo: false,
+    footerSocialLinks: false,
     menuItemImages: false,
     pageDescription: true,
     categoryDescription: true,

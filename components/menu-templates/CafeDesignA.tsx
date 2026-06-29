@@ -268,6 +268,8 @@ const ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES = [
   0.72,
   0.7,
   0.68,
+  0.67,
+  0.66,
   0.64,
 ] as const;
 const BALANCED_LAYOUT_VARIANTS = ["estimatedGreedy", "sourceSequential", "sourceRoundRobin", "lastAwareGreedy", "visibleExhaustive"] as const satisfies readonly CafeDesignABalancedVariant[];
@@ -362,6 +364,10 @@ const ORDERED_FIT_MIN_SAFETY_GAP = 2;
 const ORDERED_FIT_LOOSE_GAP = 20;
 const ORDERED_FIT_COLUMN_TOLERANCE = 8;
 const ORDERED_FIT_DESKTOP_MAX_COLUMNS = 4;
+const ORDERED_FIT_MIN_READABLE_COLUMN_WIDTH_PX = 188;
+const ORDERED_FIT_COLUMN_EXPANSION_FONT_FLOOR = 0.82;
+const CAFE_A_FOOTER_INFO_TOP_SAFETY_GAP_PX = 24;
+const CAFE_A_FOOTER_INFO_TABLET_TOP_SAFETY_GAP_PX = 16;
 
 // -----------------------------------------------------------------------------
 // Basic engine candidate: layout candidates, scale helpers, and state comparison
@@ -385,7 +391,8 @@ function getBalancedFitColumnCandidates(width: number, groupCount: number) {
 }
 
 function getOrderedFitColumnCandidates(width: number) {
-  const maxColumns = Math.min(ORDERED_FIT_DESKTOP_MAX_COLUMNS, Math.max(3, getMaxFitColumns(width)));
+  const maxReadableColumns = width >= 820 ? ORDERED_FIT_DESKTOP_MAX_COLUMNS : 3;
+  const maxColumns = Math.min(ORDERED_FIT_DESKTOP_MAX_COLUMNS, Math.max(3, maxReadableColumns));
   const minColumns = 2;
   return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxColumns).sort((a, b) => b - a);
 }
@@ -430,13 +437,19 @@ function getOrderedBalancedFitGapScale(fontScale: number, menuWidth: number) {
     if (fontScale <= 0.68) return Math.max(0.62, Math.min(0.68, fontScale));
     return Math.max(0.68, Math.min(0.78, fontScale - 0.02));
   }
+  if (menuWidth < 900 && fontScale <= 0.68) {
+    if (fontScale >= 0.68) return 0.6;
+    if (fontScale >= 0.67) return 0.62;
+    if (fontScale >= 0.66) return 0.64;
+    return Math.max(0.64, Math.min(0.68, fontScale + 0.04));
+  }
   if (fontScale > 0.805 && fontScale <= 0.815) return 0.805;
   if (menuWidth < 1440) return Math.max(0.74, Math.min(0.825, fontScale + 0.02));
   return getFitGapScale(fontScale);
 }
 
 function getOrderedBalancedFitFontScaleCandidates(_viewportWidth: number, menuWidth: number) {
-  if (menuWidth < 760) return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.85);
+  if (menuWidth < 760) return [...ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.85), 0.62];
   return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES;
 }
 
@@ -734,6 +747,7 @@ function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElem
     longestColumnBottom > flowHeight + 1;
   const overflowsWidth = menuElement.scrollWidth > menuElement.clientWidth + 1;
   const rightEdgeSafety = getCafeARightEdgeSafetyMeasurement(boardElement, menuElement);
+  const actualDomCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_FIT_MIN_SAFETY_GAP);
 
   return {
     boardInnerHeight: roundFitMetric(boardElement.clientHeight || boardRect.height),
@@ -765,7 +779,7 @@ function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElem
     rightmostChipRight: rightEdgeSafety.rightmostChipRight,
     rightmostCategoryRight: rightEdgeSafety.rightmostCategoryRight,
     rightSafetyGap: rightEdgeSafety.rightSafetyGap,
-    overflow: overflowsHeight || overflowsWidth || rightEdgeSafety.rightOverflow,
+    overflow: overflowsHeight || overflowsWidth || actualDomCropMeasurement.overflow || rightEdgeSafety.rightOverflow,
   };
 }
 
@@ -1446,6 +1460,15 @@ function getCafeAClippingBottom(boardElement: HTMLElement, menuElement: HTMLElem
   return safeBottom;
 }
 
+function hasCafeADesktopFooterAnchor(boardElement: HTMLElement) {
+  const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
+  if (!footerElement) return false;
+
+  const footerRect = footerElement.getBoundingClientRect();
+  const footerStyle = window.getComputedStyle(footerElement);
+  return footerRect.width > 0 && footerRect.height > 0 && footerStyle.display !== "none" && footerStyle.visibility !== "hidden";
+}
+
 function getCafeAActualDomCropMeasurement(boardElement: HTMLElement, menuElement: HTMLElement, cropTolerance: number) {
   const menuRect = menuElement.getBoundingClientRect();
   const safeBottom = getCafeAClippingBottom(boardElement, menuElement);
@@ -1471,6 +1494,41 @@ function getCafeAActualDomCropMeasurement(boardElement: HTMLElement, menuElement
     menuElement.scrollWidth > menuElement.clientWidth + 1 ||
     document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
   const rectOverflow = Number.isFinite(visibleBottom) && bottomGap < -cropTolerance;
+  const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
+  const footerRect = footerElement?.getBoundingClientRect();
+  const boardRect = boardElement.getBoundingClientRect();
+  const footerIsVisible = Boolean(footerRect && footerRect.width > 0 && footerRect.height > 0);
+  const footerSafetyGap = Math.max(BASIC_RIGHT_EDGE_SAFETY_GAP_PX, cropTolerance);
+  const footerTopSafetyGap =
+    footerIsVisible && boardRect.width < 1120 ? CAFE_A_FOOTER_INFO_TABLET_TOP_SAFETY_GAP_PX : CAFE_A_FOOTER_INFO_TOP_SAFETY_GAP_PX;
+  const footerNoGoTop = footerIsVisible ? footerRect!.top - footerTopSafetyGap : 0;
+  const footerOutOfBounds = footerIsVisible
+    ? footerRect!.bottom > boardRect.bottom - footerSafetyGap ||
+      footerRect!.right > boardRect.right - footerSafetyGap ||
+      footerRect!.left < boardRect.left + footerSafetyGap ||
+      footerRect!.top < boardRect.top + footerSafetyGap
+    : false;
+  const footerNoGoOverflow = footerIsVisible
+    ? Array.from(
+        menuElement.querySelectorAll<HTMLElement>(
+          [
+            "[data-cafe-a-item-stack]",
+            "[data-cafe-a-menu-name]",
+            "[data-cafe-a-menu-price]",
+            ".cafe-a-menu-description",
+            ".cafe-a-menu-meta",
+            ".cafe-a-menu-badge",
+            ".cafe-a-menu-chip",
+            ".cafe-a-price-token",
+          ].join(",")
+        )
+      ).some((element) => {
+        const rect = element.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return false;
+        const overlapsFooterX = rect.right > footerRect!.left - 1 && rect.left < footerRect!.right + 1;
+        return overlapsFooterX && rect.bottom > footerNoGoTop - footerSafetyGap;
+      })
+    : false;
   const categoryBlocks = Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-category-block]"));
   let orphanCategoryHeading = false;
 
@@ -1514,7 +1572,14 @@ function getCafeAActualDomCropMeasurement(boardElement: HTMLElement, menuElement
     rightmostCategoryRight: rightEdgeSafety.rightmostCategoryRight,
     rightSafetyGap: rightEdgeSafety.rightSafetyGap,
     orphanCategoryHeading,
-    overflow: orphanCategoryHeading || rectOverflow || scrollOverflow || horizontalScrollOverflow || rightEdgeSafety.rightOverflow,
+    overflow:
+      orphanCategoryHeading ||
+      rectOverflow ||
+      scrollOverflow ||
+      horizontalScrollOverflow ||
+      footerOutOfBounds ||
+      footerNoGoOverflow ||
+      rightEdgeSafety.rightOverflow,
   };
 }
 
@@ -1531,6 +1596,7 @@ function measureCafeABalancedFit(
   const columnElements = Array.from(menuElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-column]"));
   const simulatedColumns = columnElements.map((columnElement) => {
     const blockElements = Array.from(columnElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-category-block]"));
+    const footerElement = columnElement.querySelector<HTMLElement>(":scope > [data-cafe-a-footer-info]");
     const blocks = blockElements.map((blockElement) => {
       const rect = blockElement.getBoundingClientRect();
       const order = Number.parseInt(blockElement.dataset.cafeABalancedSourceOrder ?? "", 10);
@@ -1547,14 +1613,20 @@ function measureCafeABalancedFit(
       };
     });
     const columnRect = columnElement.getBoundingClientRect();
-    const visibleBottom = blockElements.reduce((bottom, blockElement) => {
+    const categoryVisibleBottom = blockElements.reduce((bottom, blockElement) => {
       const rect = blockElement.getBoundingClientRect();
       return Math.max(bottom, rect.bottom - menuRect.top);
     }, Math.max(0, columnRect.top - menuRect.top));
+    const footerRect = footerElement?.getBoundingClientRect();
+    const footerVisibleBottom = footerRect && footerRect.width > 0 && footerRect.height > 0
+      ? Math.max(0, footerRect.bottom - menuRect.top)
+      : Number.NEGATIVE_INFINITY;
+    const visibleBottom = Math.max(categoryVisibleBottom, footerVisibleBottom);
+    const columnHeight = Math.max(0, visibleBottom);
 
     return {
       blocks,
-      height: clampColumnHeight ? Math.min(flowHeight, Math.max(0, visibleBottom)) : Math.max(0, visibleBottom),
+      height: footerElement ? columnHeight : clampColumnHeight ? Math.min(flowHeight, columnHeight) : columnHeight,
     };
   });
 
@@ -1594,6 +1666,44 @@ function measureCafeABalancedFit(
 
 function getDisplayName(site: PublicMenuTemplateProps["menuSite"]) {
   return site.restaurant_name || site.name || "MenuLink";
+}
+
+function getMenuSiteSettings(site: PublicMenuTemplateProps["menuSite"]) {
+  return site.settings && typeof site.settings === "object" && !Array.isArray(site.settings) ? (site.settings as Record<string, unknown>) : {};
+}
+
+function getMenuSiteSettingString(site: PublicMenuTemplateProps["menuSite"], key: string) {
+  const value = getMenuSiteSettings(site)[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function hasMenuSiteSetting(site: PublicMenuTemplateProps["menuSite"], key: string) {
+  return Object.prototype.hasOwnProperty.call(getMenuSiteSettings(site), key);
+}
+
+function shouldUseBrandLogo(site: PublicMenuTemplateProps["menuSite"], capabilities: TemplateCapabilities) {
+  return Boolean(capabilities.brandLogo && capabilities.brandLogoReplacesName && site.logo_url && getMenuSiteSettings(site).logo_replaces_name === true);
+}
+
+function getCafeAFooterInfo(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
+  if (!capabilities.footerStoreInfo) return [];
+
+  const site = data.menuSite;
+  const footerNotice1 = hasMenuSiteSetting(site, "footer_notice_1")
+    ? getMenuSiteSettingString(site, "footer_notice_1")
+    : site.opening_hours?.trim() ?? "";
+  const footerNotice2 = hasMenuSiteSetting(site, "footer_notice_2")
+    ? getMenuSiteSettingString(site, "footer_notice_2")
+    : site.restaurant_address?.trim() ?? "";
+  const footerNotice3 = hasMenuSiteSetting(site, "footer_notice_3")
+    ? getMenuSiteSettingString(site, "footer_notice_3")
+    : getMenuSiteSettingString(site, "footer_sns_text") || getMenuSiteSettingString(site, "footer_note");
+
+  return [
+    footerNotice1,
+    footerNotice2,
+    footerNotice3,
+  ].filter(Boolean);
 }
 
 function getCategoryItems(items: PublicMenuTemplateProps["items"], categoryId: string) {
@@ -2038,7 +2148,7 @@ function CategoryTitle({ category, density }: { category: MenuCategory; density:
       <h2 className={`cafe-a-category-title break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}>{category.name}</h2>
       <div className="cafe-a-category-rule mt-2 border-b border-[#191c1b]" />
       {category.description_visible && category.description && (
-        <p className={`cafe-a-menu-description mt-2 break-keep font-semibold leading-relaxed text-[#3f4945] ${descriptionClassName}`}>{category.description}</p>
+        <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>{category.description}</p>
       )}
     </div>
   );
@@ -2128,10 +2238,10 @@ function MenuItemRow({
     ultraCompact: "cafe-a-menu-title-size-ultra-compact",
   }[density];
   const descriptionClassName = {
-    spacious: "line-clamp-3",
-    default: "line-clamp-2",
-    compact: "line-clamp-2",
-    ultraCompact: "line-clamp-1",
+    spacious: "lg:line-clamp-3",
+    default: "lg:line-clamp-2",
+    compact: "lg:line-clamp-2",
+    ultraCompact: "lg:line-clamp-1",
   }[density];
   const priceClassName = {
     spacious: "cafe-a-menu-price-size-spacious",
@@ -2152,10 +2262,10 @@ function MenuItemRow({
     ultraCompact: "cafe-a-menu-meta-size-ultra-compact",
   }[density];
   const descriptionTextClassName = {
-    spacious: "cafe-a-menu-description-size-spacious leading-[1.5]",
-    default: "cafe-a-menu-description-size-default leading-[1.45]",
-    compact: "cafe-a-menu-description-size-compact leading-[1.4]",
-    ultraCompact: "cafe-a-menu-description-size-ultra-compact leading-[1.35]",
+    spacious: "cafe-a-menu-description-size-spacious",
+    default: "cafe-a-menu-description-size-default",
+    compact: "cafe-a-menu-description-size-compact",
+    ultraCompact: "cafe-a-menu-description-size-ultra-compact",
   }[density];
   const metaText = getMenuItemMetaText(item, locale);
   const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}`;
@@ -2170,7 +2280,7 @@ function MenuItemRow({
         </div>
         {metaText && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>{metaText}</p>}
         {item.description && (
-          <p className={`cafe-a-menu-description break-keep font-normal text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
+          <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
         )}
         {visibleTraits.length > 0 && (
           <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
@@ -2181,7 +2291,7 @@ function MenuItemRow({
             ))}
           </div>
         )}
-        {capabilities.originInfo && item.origin_info && <p className="cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words font-semibold leading-relaxed text-[#707975]">원산지 {item.origin_info}</p>}
+        {capabilities.originInfo && item.origin_info && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info}</p>}
       </div>
       {priceTokens.length > 0 && (
         <div className="menu-price cafe-a-price-stack cafe-a-price-inline flex shrink-0 flex-wrap items-baseline justify-end text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
@@ -2246,7 +2356,7 @@ function CoverHero({
               ) : null}
               <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
               {featuredItem.description && (
-                <p className="cafe-a-featured-description mt-2 line-clamp-2 break-keep font-semibold leading-relaxed text-white/82" data-cafe-a-featured-description="">
+                <p className="cafe-a-description-text cafe-a-featured-description mt-2 break-keep text-white/82 lg:line-clamp-2" data-cafe-a-featured-description="">
                   {featuredItem.description}
                 </p>
               )}
@@ -2259,17 +2369,80 @@ function CoverHero({
   );
 }
 
+function StoreIdentity({
+  data,
+  capabilities,
+  titleClassName,
+  logoClassName,
+}: {
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  titleClassName: string;
+  logoClassName: string;
+}) {
+  const title = getDisplayName(data.menuSite) || "MenuLink";
+  const [logoFailed, setLogoFailed] = useState(false);
+  const useLogo = shouldUseBrandLogo(data.menuSite, capabilities) && !logoFailed;
+
+  if (useLogo) {
+    return (
+      <div className="cafe-a-store-logo-wrap min-w-0" data-cafe-a-store-logo="">
+        <img
+          src={data.menuSite.logo_url ?? ""}
+          alt={`${title} 로고`}
+          className={`cafe-a-store-logo ${logoClassName}`}
+          onError={() => setLogoFailed(true)}
+        />
+        <span className="sr-only">{title}</span>
+      </div>
+    );
+  }
+
+  return <h1 className={titleClassName} data-cafe-a-store-title="">{title}</h1>;
+}
+
+function CafeAFooterInfo({
+  data,
+  capabilities,
+  placement = "desktop",
+}: {
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  placement?: "desktop" | "mobile";
+}) {
+  const infoRows = getCafeAFooterInfo(data, capabilities);
+  if (infoRows.length === 0) return null;
+
+  return (
+    <aside
+      className={`cafe-a-footer-info break-inside-avoid text-right text-[#58645f] ${
+        placement === "desktop" ? "cafe-a-footer-info-anchor hidden lg:block" : "mt-6 md:col-span-2 lg:hidden"
+      }`}
+      data-cafe-a-footer-info=""
+      data-cafe-a-footer-placement={placement}
+    >
+      <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep">
+        {infoRows.join("\n")}
+      </p>
+    </aside>
+  );
+}
+
 function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; className?: string }) {
-  const displayName = getDisplayName(data.menuSite);
-  const title = displayName || "MenuLink";
+  const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
 
   return (
     <header className={`w-full shrink-0 border-b border-[#191c1b] px-[clamp(24px,4vw,96px)] py-8 lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
       <div className="flex min-w-0 items-start justify-between gap-[clamp(16px,2vw,32px)]">
         <div className="min-w-0 max-w-5xl">
-          <h1 className="cafe-a-store-title break-words font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]" data-cafe-a-store-title="">{title}</h1>
-          {description && <p className="cafe-a-store-description mt-2 break-keep font-normal leading-[1.5] text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
+          <StoreIdentity
+            data={data}
+            capabilities={capabilities}
+            titleClassName="cafe-a-store-title break-words font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]"
+            logoClassName="max-h-[72px] max-w-[220px] object-contain"
+          />
+          {description && <p className="cafe-a-description-text cafe-a-store-description mt-2 break-keep text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
         </div>
         <div className="menu-font-en group relative shrink-0 cursor-default text-right text-[#191c1b]">
           <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
@@ -2286,20 +2459,24 @@ function DesktopFixedRail({
   data: PublicMenuTemplateProps;
   children: ReactNode;
 }) {
-  const displayName = getDisplayName(data.menuSite);
-  const title = displayName || "MenuLink";
+  const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
 
   return (
     <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col">
       <div className="cafe-a-fixed-rail-copy min-w-0">
         <div className="flex min-w-0 items-start justify-between gap-3">
-          <h1 className="cafe-a-store-title cafe-a-rail-title break-words font-black uppercase leading-[0.96] text-[#191c1b]" data-cafe-a-store-title="">{title}</h1>
+          <StoreIdentity
+            data={data}
+            capabilities={capabilities}
+            titleClassName="cafe-a-store-title cafe-a-rail-title break-words font-black uppercase leading-[0.96] text-[#191c1b]"
+            logoClassName="max-h-[84px] max-w-[210px] object-contain"
+          />
           <div className="menu-font-en shrink-0 text-right text-[#191c1b]">
             <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
           </div>
         </div>
-        {description && <p className="cafe-a-store-description cafe-a-rail-description mt-3 break-keep font-normal leading-[1.55] text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
+        {description && <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description mt-3 break-keep text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
       </div>
       {children}
     </aside>
@@ -2329,6 +2506,7 @@ function MenuGroupsGrid({
   menuAreaClassName,
   showPageTitles,
   fitRef,
+  footerInfo,
 }: {
   pageGroups: MenuPageGroup[];
   density: MenuLayoutDensity;
@@ -2340,6 +2518,7 @@ function MenuGroupsGrid({
   menuAreaClassName: string;
   showPageTitles: boolean;
   fitRef?: RefObject<HTMLElement | null>;
+  footerInfo?: ReactNode;
 }) {
   return (
     <section
@@ -2381,6 +2560,7 @@ function MenuGroupsGrid({
           ))}
         </div>
       ))}
+      {footerInfo}
     </section>
   );
 }
@@ -2397,6 +2577,7 @@ function BalancedExperimentalMenuGrid({
   columns,
   variant,
   fitRef,
+  footerInfo,
 }: {
   pageGroups: MenuPageGroup[];
   density: MenuLayoutDensity;
@@ -2409,6 +2590,7 @@ function BalancedExperimentalMenuGrid({
   columns: number;
   variant: CafeDesignABalancedVariant;
   fitRef?: RefObject<HTMLElement | null>;
+  footerInfo?: ReactNode;
 }) {
   const groupOrderByKey = useMemo(
     () => new Map(getFlatMenuGroups(pageGroups).map((group, index) => [getMenuGroupKey(group), index])),
@@ -2427,7 +2609,7 @@ function BalancedExperimentalMenuGrid({
       data-cafe-a-flow-mode="balanced"
       data-cafe-a-balanced-grid=""
     >
-      {balancedColumns.map((column) => (
+      {balancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
           {column.groups.map(({ page, category, items }) => {
             const groupKey = `${page.id}:${category.id}`;
@@ -2462,6 +2644,7 @@ function BalancedExperimentalMenuGrid({
             </section>
             );
           })}
+          {columnIndex === balancedColumns.length - 1 && footerInfo}
         </div>
       ))}
     </section>
@@ -2480,6 +2663,7 @@ function OrderedBalancedFitMenuGrid({
   columns,
   orderedBalancedBreaks,
   fitRef,
+  footerInfo,
 }: {
   pageGroups: MenuPageGroup[];
   density: MenuLayoutDensity;
@@ -2492,6 +2676,7 @@ function OrderedBalancedFitMenuGrid({
   columns: number;
   orderedBalancedBreaks: string;
   fitRef?: RefObject<HTMLElement | null>;
+  footerInfo?: ReactNode;
 }) {
   const groupOrderByKey = useMemo(
     () => new Map(getFlatMenuGroups(pageGroups).map((group, index) => [getMenuGroupKey(group), index])),
@@ -2511,7 +2696,7 @@ function OrderedBalancedFitMenuGrid({
       data-cafe-a-balanced-grid=""
       data-cafe-a-ordered-balanced-breaks={orderedBalancedBreaks}
     >
-      {orderedBalancedColumns.map((column) => (
+      {orderedBalancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
           {column.groups.map(({ page, category, items }) => {
             const groupKey = `${page.id}:${category.id}`;
@@ -2546,6 +2731,7 @@ function OrderedBalancedFitMenuGrid({
               </section>
             );
           })}
+          {columnIndex === orderedBalancedColumns.length - 1 && footerInfo}
           <span aria-hidden="true" className="block h-px w-px opacity-0" data-cafe-a-column-sentinel="" />
         </div>
       ))}
@@ -2596,6 +2782,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings);
+  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
@@ -2763,10 +2950,19 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       };
     }
 
+    function getOrderedFitCandidateColumnWidth(columns: number) {
+      const menuRect = fitMenuElement.getBoundingClientRect();
+      const columnGap = Number.parseFloat(window.getComputedStyle(fitMenuElement).columnGap || "0") || 0;
+      return (menuRect.width - columnGap * Math.max(0, columns - 1)) / Math.max(1, columns);
+    }
+
     function getOrderedFitScore(columns: number, fontScale: number, measurement: CafeDesignAFitMeasurement) {
       if (measurement.measuredColumns === 0) return Number.POSITIVE_INFINITY;
 
       const primaryBottomGap = measurement.primaryBottomGap;
+      const candidateColumnWidth = getOrderedFitCandidateColumnWidth(columns);
+      const hasReadableExtraColumn = columns >= 4 && candidateColumnWidth >= ORDERED_FIT_MIN_READABLE_COLUMN_WIDTH_PX;
+      const canUseReadableExtraColumn = fitMenuElement.getBoundingClientRect().width >= 820;
       const targetGapPenalty =
         primaryBottomGap < ORDERED_FIT_TARGET_MIN_GAP
           ? (ORDERED_FIT_TARGET_MIN_GAP - primaryBottomGap) * 20
@@ -2784,7 +2980,13 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       const veryShortLastColumnPenalty = Math.max(0, 0.36 - measurement.lastColumnFillRatio) * 720;
       const minColumnPenalty = Math.max(0, 0.5 - measurement.minFillRatio) * 160;
       const missingColumnPenalty = Math.max(0, columns - measurement.measuredColumns) * 260;
-      const excessiveColumnPenalty = Math.max(0, columns - 3) * 12 + columns * 1.4;
+      const excessiveColumnPenalty = hasReadableExtraColumn && fontScale >= ORDERED_FIT_COLUMN_EXPANSION_FONT_FLOOR
+        ? columns * 0.8
+        : Math.max(0, columns - 3) * 28 + columns * 1.4;
+      const narrowExtraColumnPenalty = columns >= 4 ? Math.max(0, ORDERED_FIT_MIN_READABLE_COLUMN_WIDTH_PX - candidateColumnWidth) * 18 : 0;
+      const readableExtraColumnCredit = hasReadableExtraColumn && fontScale >= ORDERED_FIT_COLUMN_EXPANSION_FONT_FLOOR ? 160 : 0;
+      const missedReadableExtraColumnPenalty =
+        columns < 4 && canUseReadableExtraColumn ? Math.max(0, ORDERED_FIT_COLUMN_EXPANSION_FONT_FLOOR - fontScale) * 1600 : 0;
       const smallTextPenalty = Math.max(0, 0.95 - fontScale) * 110;
       const qualityTextPenalty = Math.max(0, 1.04 - fontScale) * 95;
       const readableTextPenalty = Math.max(0, 0.8 - fontScale) * 600;
@@ -2805,11 +3007,14 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
         minColumnPenalty +
         missingColumnPenalty +
         excessiveColumnPenalty +
+        narrowExtraColumnPenalty +
+        missedReadableExtraColumnPenalty +
         smallTextPenalty +
         qualityTextPenalty +
         readableTextPenalty +
         tinyTextPenalty +
-        veryLargeTextPenalty
+        veryLargeTextPenalty -
+        readableExtraColumnCredit
       );
     }
 
@@ -3884,6 +4089,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
           fitState.overflow ||
           !fitState.orderedBalancedFingerprint ||
           baseRenderFitState.columns >= 4 ||
+          hasCafeADesktopFooterAnchor(boardElement) ||
           !window.matchMedia("(min-width: 1024px)").matches;
 
         if (shouldResetBoost) {
@@ -3978,13 +4184,14 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
                 outerGridGapClassName={outerGridGapClassName}
                 menuAreaClassName={menuAreaClassName}
                 showPageTitles
+                footerInfo={<CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
               />
             )}
           </div>
 
           <div
             ref={desktopFitBoardRef}
-            className={`cafe-a-desktop-fit-board hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
+            className={`cafe-a-desktop-fit-board relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
             data-fit-status={fitState.status}
             data-layout-mode={layoutMode}
             data-fit-columns={renderFitState.columns}
@@ -4090,6 +4297,7 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
                 showPageTitles
               />
             )}
+            {footerInfo}
           </div>
         </div>
       </main>

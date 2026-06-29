@@ -14,6 +14,11 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
     restaurant_address: "서울시 예시구 오브로 12",
     restaurant_phone: "02-0000-0000",
     cover_image_url: "/menu-templates/cafe_design_a/basil-featured.jpg",
+    settings: {
+      footer_notice_1: "Wi-Fi AUBE_GUEST · PW 1234-5678",
+      footer_notice_2: "Instagram @aube_coffee",
+      footer_notice_3: "",
+    },
   },
   pages: [
     {

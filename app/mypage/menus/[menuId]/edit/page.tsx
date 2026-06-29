@@ -52,7 +52,7 @@ import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { createClient } from "@/lib/supabase/server";
-import type { Database, MenuSiteStatus } from "@/lib/supabase/types";
+import type { Database, Json, MenuSiteStatus } from "@/lib/supabase/types";
 import {
   getCoverDescription,
   getCoverTabLabel,
@@ -471,6 +471,15 @@ function FieldHint({ children }: { children?: ReactNode }) {
   return <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{children}</p>;
 }
 
+function getJsonRecord(value: unknown): Record<string, Json> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, Json>) : {};
+}
+
+function getSettingsString(settings: Record<string, Json>, key: string) {
+  const value = settings[key];
+  return typeof value === "string" ? value : "";
+}
+
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
   const displayValue = props.value ?? props.defaultValue ?? "";
   const currentLength = typeof displayValue === "string" || typeof displayValue === "number" ? String(displayValue).length : 0;
@@ -886,12 +895,25 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const templateCapabilities = getTemplateCapabilities(site.template_key);
+  const siteSettings = getJsonRecord(site.settings);
   const templateTypeLabel = getTemplateTypeLabel(templateType);
   const isPriceListTemplate = templateType === "price_list";
   const menuCoverCapabilities = templateCapabilities.menuCover;
   const coverMode = menuCoverCapabilities.coverMode;
   const supportsMenuCover = coverMode !== "none";
   const supportsBasicBrandDescription = site.template_key !== "display_menu_a";
+  const supportsBrandLogo = templateCapabilities.logoImage || templateCapabilities.brandLogo;
+  const supportsBrandLogoReplacesName = templateCapabilities.brandLogo && templateCapabilities.brandLogoReplacesName;
+  const supportsFooterStoreInfo = templateCapabilities.footerStoreInfo;
+  const logoReplacesName = siteSettings.logo_replaces_name === true;
+  const hasFooterNotice1 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_1");
+  const hasFooterNotice2 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_2");
+  const hasFooterNotice3 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_3");
+  const footerNotice1 = hasFooterNotice1 ? getSettingsString(siteSettings, "footer_notice_1") : site.opening_hours ?? "";
+  const footerNotice2 = hasFooterNotice2 ? getSettingsString(siteSettings, "footer_notice_2") : site.restaurant_address ?? "";
+  const footerNotice3 = hasFooterNotice3
+    ? getSettingsString(siteSettings, "footer_notice_3")
+    : getSettingsString(siteSettings, "footer_sns_text") || getSettingsString(siteSettings, "footer_note");
   const menuCoverEnabled = pageSettings.menu_cover_enabled !== false;
   const coverTabLabel = getCoverTabLabel(coverMode);
   const coverToggleLabel = getCoverToggleLabel(coverMode);
@@ -1168,8 +1190,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
         <div className={`space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
             {activeTab === "basic" && (
-              <SectionCard title="기본 정보" eyebrow="Basic">
-                <form id="basic-info-form" action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
+              <>
+                <SectionCard title="기본 정보" eyebrow="Basic">
+                  <form id="basic-info-form" action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div>
                     <FieldLabel required>{templateEditorLabels.pageLabel} 관리용 이름</FieldLabel>
@@ -1236,23 +1259,83 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
                     />
                   </div>
-                  {templateCapabilities.logoImage && (
-                    <div className="md:col-span-2">
-                      <ImageUploadField
-                        label="로고 이미지"
-                        menuId={site.id}
-                        target="site-logo-draft"
-                        currentUrl={site.logo_url}
-                        description="공개 메뉴판에서는 최대 높이 32~48px, 최대 너비 120~180px 안에서 비율에 맞춰 표시됩니다."
-                        fileGuidance="PNG, JPG, WebP · 최대 2MB / 권장: 가로 512px 이상, 투명 배경 이미지"
-                        deferredDeleteName="delete_logo_image"
-                        draftImageUrlInputName="draft_logo_image_url"
-                        draftImagePathInputName="draft_logo_image_path"
-                        uploadSuccessMessage="새 로고 이미지는 저장 후 공개 메뉴판에 반영됩니다."
-                        deleteSuccessMessage="로고 이미지가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
-                        deleteConfirmTitle="이 로고 이미지를 삭제할까요?"
-                        deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
-                      />
+                  {(supportsBrandLogo || supportsFooterStoreInfo) && (
+                    <div className="space-y-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-5 md:col-span-2">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">Store Display</p>
+                        <h3 className="mt-1 text-lg font-black tracking-tight text-zinc-950">매장 표시 정보</h3>
+                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          템플릿이 지원하는 경우 공개 메뉴판의 매장명, 하단 매장 안내 정보에 반영됩니다.
+                        </p>
+                      </div>
+
+                      {supportsBrandLogo && (
+                        <div className="space-y-4">
+                          <ImageUploadField
+                            label="로고 이미지"
+                            menuId={site.id}
+                            target="site-logo-draft"
+                            currentUrl={site.logo_url}
+                            description="공개 메뉴판에서는 템플릿별 안전 크기 안에서 비율에 맞춰 표시됩니다."
+                            fileGuidance="PNG, JPG, WebP · 최대 2MB / 권장: 가로 512px 이상, 투명 배경 이미지"
+                            deferredDeleteName="delete_logo_image"
+                            draftImageUrlInputName="draft_logo_image_url"
+                            draftImagePathInputName="draft_logo_image_path"
+                            uploadSuccessMessage="새 로고 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+                            deleteSuccessMessage="로고 이미지가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
+                            deleteConfirmTitle="이 로고 이미지를 삭제할까요?"
+                            deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
+                          />
+                          {supportsBrandLogoReplacesName && (
+                            <div>
+                              <input type="hidden" name="logo_replaces_name_present" value="1" />
+                              <SwitchField
+                                name="logo_replaces_name"
+                                label="공개 메뉴판에서 매장명 대신 로고를 표시"
+                                description="로고가 등록되어 있고 이 옵션이 켜져 있으면, 공개 메뉴판의 매장명 위치에 로고가 표시됩니다."
+                                defaultChecked={logoReplacesName}
+                                onText="로고 표시"
+                                offText="매장명 표시"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {supportsFooterStoreInfo && (
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div>
+                            <FieldLabel>안내사항 1</FieldLabel>
+                            <TextArea
+                              name="footer_notice_1"
+                              defaultValue={footerNotice1}
+                              maxLength={MENU_FIELD_LIMITS.menuSites.footerNotice}
+                              placeholder="예: 매일 10:00~22:00"
+                              helperText="메뉴판 하단에 입력한 문구만 표시됩니다."
+                            />
+                          </div>
+                          <div>
+                            <FieldLabel>안내사항 2</FieldLabel>
+                            <TextArea
+                              name="footer_notice_2"
+                              defaultValue={footerNotice2}
+                              maxLength={MENU_FIELD_LIMITS.menuSites.footerNotice}
+                              placeholder="예: 포장 가능 · 주차 가능"
+                              helperText="업종에 맞는 짧은 안내를 입력하세요."
+                            />
+                          </div>
+                          <div>
+                            <FieldLabel>안내사항 3</FieldLabel>
+                            <TextArea
+                              name="footer_notice_3"
+                              defaultValue={footerNotice3}
+                              maxLength={MENU_FIELD_LIMITS.menuSites.footerNotice}
+                              placeholder="예: Instagram @menulink_official"
+                              helperText="링크가 아닌 단순 텍스트로 표시됩니다."
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="md:col-span-2">
@@ -1264,8 +1347,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       </p>
                     </FinalActionRow>
                   </div>
-                </form>
-              </SectionCard>
+                  </form>
+                </SectionCard>
+              </>
             )}
 
             {activeTab === "pages" && (

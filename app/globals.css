@@ -293,6 +293,12 @@ video {
   font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale)), 1rem);
 }
 
+.cafe-a-typography .cafe-a-description-text {
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+
 .cafe-a-typography .cafe-a-menu-price {
   font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale)), 1.36rem);
 }
@@ -305,9 +311,33 @@ video {
   font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale)), 1rem);
 }
 
+.cafe-a-typography .cafe-a-store-logo-wrap {
+  display: block;
+  max-width: 100%;
+}
+
+.cafe-a-typography .cafe-a-store-logo {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.cafe-a-typography .cafe-a-footer-info {
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.cafe-a-typography .cafe-a-footer-info-anchor {
+  bottom: var(--board-padding);
+  max-width: min(360px, calc(100% - var(--board-padding) * 2));
+  position: absolute;
+  right: var(--board-padding);
+  z-index: 3;
+}
+
 .cafe-a-typography .cafe-a-cover-hero {
   --featured-title-base: 1.5rem;
-  --featured-description-base: 0.75rem;
+  --featured-description-base: var(--cafe-a-menu-description-size);
   --featured-price-base: 1.25rem;
   --featured-space-base: 1rem;
 }
@@ -321,11 +351,7 @@ video {
 }
 
 .cafe-a-typography .cafe-a-featured-description {
-  font-size: clamp(
-    calc(var(--featured-description-base) * 0.88),
-    calc(var(--featured-description-base) * 0.72 + 0.225vw),
-    calc(var(--featured-description-base) * 1.06)
-  );
+  font-size: clamp(0.8125rem, calc(var(--featured-description-base) * var(--menu-font-size-scale)), 1rem);
 }
 
 .cafe-a-typography .cafe-a-featured-price {
@@ -471,9 +497,21 @@ video {
 
   .cafe-a-typography .cafe-a-balanced-column {
     align-content: start;
-    display: grid;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     width: 100%;
+  }
+
+  .cafe-a-typography .cafe-a-ordered-menu-flow > .cafe-a-footer-info {
+    break-inside: avoid;
+    display: block;
+    margin-top: clamp(0.45rem, calc(var(--menu-item-gap) * var(--fit-menu-gap-scale)), 1rem);
+  }
+
+  .cafe-a-typography .cafe-a-balanced-column > .cafe-a-footer-info {
+    margin-top: auto;
+    padding-top: clamp(0.5rem, calc(var(--menu-item-gap) * var(--fit-menu-gap-scale)), 1rem);
   }
 
   .cafe-a-typography .cafe-a-menu-category-block {
@@ -499,7 +537,23 @@ video {
     margin-bottom: clamp(0.45rem, calc(var(--menu-item-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-item-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 1.5rem);
   }
 
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-menu-category-block {
+    margin-bottom: clamp(0.5rem, calc(var(--category-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--ordered-fit-final-fill-compensation) * 0.74), 1.35rem);
+  }
+
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-category-heading {
+    margin-bottom: clamp(0.34rem, calc(0.75rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--ordered-fit-final-fill-compensation) * 0.76), 0.78rem);
+  }
+
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-menu-item-stack {
+    margin-bottom: clamp(0.55rem, calc(var(--menu-item-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-item-rhythm-scale) * var(--ordered-fit-final-fill-compensation) * 0.74), 1.15rem);
+  }
+
   .cafe-a-typography .cafe-a-desktop-fit-board:is([data-layout-mode="balanced"], [data-layout-mode="orderedBalancedFit"]) .cafe-a-balanced-column > .cafe-a-menu-category-block:last-child {
+    margin-bottom: 0;
+  }
+
+  .cafe-a-typography .cafe-a-desktop-fit-board:is([data-layout-mode="balanced"], [data-layout-mode="orderedBalancedFit"]) .cafe-a-balanced-column > .cafe-a-menu-category-block:last-of-type {
     margin-bottom: 0;
   }
 
@@ -559,7 +613,7 @@ video {
 
   .cafe-a-typography .cafe-a-menu-description {
     font-size: clamp(0.44rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation)), 1rem);
-    line-height: clamp(1.16, calc(var(--menu-line-gap) * var(--fit-menu-gap-scale) + 0.18), var(--menu-line-gap));
+    line-height: 1.45;
   }
 
   .cafe-a-typography .cafe-a-menu-price {
@@ -701,20 +755,23 @@ video {
     font-size: clamp(calc(1.85rem * var(--rail-title-scale)), calc(20cqw * var(--rail-title-scale)), calc(3.25rem * var(--rail-title-scale)));
   }
 
-  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] .cafe-a-rail-description {
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] .cafe-a-rail-description,
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] .cafe-a-featured-description {
     font-size: clamp(0.44rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-font-scale) * 1.02), 0.92rem);
   }
 
-  .cafe-a-typography .cafe-a-desktop-fit-board:is([data-layout-mode="balanced"], [data-layout-mode="orderedBalancedFit"]) .cafe-a-rail-description {
+  .cafe-a-typography .cafe-a-desktop-fit-board:is([data-layout-mode="balanced"], [data-layout-mode="orderedBalancedFit"]) .cafe-a-rail-description,
+  .cafe-a-typography .cafe-a-desktop-fit-board:is([data-layout-mode="balanced"], [data-layout-mode="orderedBalancedFit"]) .cafe-a-featured-description {
     font-size: clamp(0.44rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-font-scale) * 1.02), 0.9rem);
   }
 
-  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-rail-description {
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-rail-description,
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-featured-description {
     font-size: clamp(0.44rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-font-scale) * 1.02), 1.08rem);
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board .cafe-a-featured-description {
-    line-height: clamp(1.28, calc(1.22 + 0.012vw), 1.45);
+    line-height: 1.45;
     margin-top: clamp(0.38rem, calc(0.28rem + 0.15vw), 0.56rem);
   }
 }

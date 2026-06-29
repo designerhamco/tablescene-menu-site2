@@ -2212,6 +2212,14 @@ export async function updateMenuSiteAction(formData: FormData) {
   const restaurantName = getNullableString(formData, "restaurant_name");
   const hasBrandDescriptionField = formData.has("brand_description");
   const brandDescription = hasBrandDescriptionField ? getNullableString(formData, "brand_description") : menuSite.brand_description;
+  const hasFooterNotice1Field = formData.has("footer_notice_1");
+  const hasFooterNotice2Field = formData.has("footer_notice_2");
+  const hasFooterNotice3Field = formData.has("footer_notice_3");
+  const hasLogoReplacesNameField = formData.has("logo_replaces_name_present");
+  const footerNotice1 = hasFooterNotice1Field ? getNullableString(formData, "footer_notice_1") : null;
+  const footerNotice2 = hasFooterNotice2Field ? getNullableString(formData, "footer_notice_2") : null;
+  const footerNotice3 = hasFooterNotice3Field ? getNullableString(formData, "footer_notice_3") : null;
+  const logoReplacesName = getBoolean(formData, "logo_replaces_name");
   const shouldDeleteLogoImage = getBoolean(formData, "delete_logo_image");
   const draftLogoImageUrl = getNullableString(formData, "draft_logo_image_url");
   const draftLogoImagePath = getNullableString(formData, "draft_logo_image_path");
@@ -2225,6 +2233,15 @@ export async function updateMenuSiteAction(formData: FormData) {
   if (hasBrandDescriptionField) {
     validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "basic");
   }
+  if (hasFooterNotice1Field) {
+    validateOptionalText(menuId, footerNotice1, "안내사항 1", MENU_FIELD_LIMITS.menuSites.footerNotice, "basic");
+  }
+  if (hasFooterNotice2Field) {
+    validateOptionalText(menuId, footerNotice2, "안내사항 2", MENU_FIELD_LIMITS.menuSites.footerNotice, "basic");
+  }
+  if (hasFooterNotice3Field) {
+    validateOptionalText(menuId, footerNotice3, "안내사항 3", MENU_FIELD_LIMITS.menuSites.footerNotice, "basic");
+  }
 
   const updatePayload: MenuSiteUpdate = {
     name,
@@ -2232,6 +2249,22 @@ export async function updateMenuSiteAction(formData: FormData) {
     updated_at: new Date().toISOString(),
   };
   if (hasBrandDescriptionField) updatePayload.brand_description = brandDescription;
+  if (hasLogoReplacesNameField || hasFooterNotice1Field || hasFooterNotice2Field || hasFooterNotice3Field) {
+    const settings = getJsonObject(menuSite.settings);
+    if (hasLogoReplacesNameField) {
+      settings.logo_replaces_name = logoReplacesName;
+    }
+    if (hasFooterNotice1Field) {
+      settings.footer_notice_1 = footerNotice1;
+    }
+    if (hasFooterNotice2Field) {
+      settings.footer_notice_2 = footerNotice2;
+    }
+    if (hasFooterNotice3Field) {
+      settings.footer_notice_3 = footerNotice3;
+    }
+    updatePayload.settings = settings;
+  }
 
   if (shouldDeleteLogoImage) {
     updatePayload.logo_url = null;
@@ -2250,6 +2283,7 @@ export async function updateMenuSiteAction(formData: FormData) {
         name,
         restaurant_name: restaurantName,
         ...(hasBrandDescriptionField ? { brand_description: brandDescription } : {}),
+        ...(updatePayload.settings ? { settings: updatePayload.settings } : {}),
         ...(shouldDeleteLogoImage
           ? { logo_url: null, logo_path: null }
           : draftLogoImageUrl && draftLogoImagePath
