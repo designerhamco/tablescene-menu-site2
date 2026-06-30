@@ -99,7 +99,9 @@ const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]>
     "yoga_schedule_a",
     "pilates_schedule_a",
   ],
-  display: [],
+  display: [
+    "display_menu_a",
+  ],
 };
 
 const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {

@@ -3,13 +3,15 @@ import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
 
 export const metadata: Metadata = {
   title: "서비스 신청 | MenuLink",
   description: "메뉴링크 베이직, 메뉴링크 디스플레이, 메뉴링크 커스텀 신청 페이지를 선택하세요.",
 };
 
-const applyServices = [
+function getApplyServices(displayCheckoutQaEnabled: boolean) {
+  return [
   {
     title: "메뉴링크 베이직",
     description: "개인 1개월 체험 또는 사업자 정식 월/연 결제를 선택해 웹 메뉴판을 만듭니다.",
@@ -24,11 +26,13 @@ const applyServices = [
     title: "메뉴링크 디스플레이",
     description: "사업자 전용 디스플레이 메뉴보드입니다.",
     price: "오픈 할인 월 19,800원 / 연 190,000원",
-    note: "메뉴링크 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",
-    type: "준비 중",
-    cta: "준비 중",
+    note: displayCheckoutQaEnabled
+      ? "QA/dev 환경에서만 메뉴링크 디스플레이 A 신청/결제 흐름을 확인할 수 있습니다."
+      : "메뉴링크 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",
+    type: displayCheckoutQaEnabled ? "QA 테스트" : "준비 중",
+    cta: displayCheckoutQaEnabled ? "디스플레이 만들기" : "준비 중",
     href: "/apply/display",
-    active: false,
+    active: displayCheckoutQaEnabled,
   },
   {
     title: "메뉴링크 커스텀",
@@ -40,9 +44,13 @@ const applyServices = [
     href: "/apply/custom",
     active: true,
   },
-] as const;
+  ] as const;
+}
 
 export default function ApplyPage() {
+  const displayCheckoutQaEnabled = isDisplayCheckoutQaEnabled();
+  const applyServices = getApplyServices(displayCheckoutQaEnabled);
+
   return (
     <>
       <OfficialSiteNavbar />
@@ -54,7 +62,9 @@ export default function ApplyPage() {
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
               메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월/연 결제를 한 화면에서 선택할 수 있습니다.
-              메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다.
+              {displayCheckoutQaEnabled
+                ? " 메뉴링크 디스플레이는 QA/dev 환경에서만 신청 흐름을 확인할 수 있습니다."
+                : " 메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다."}
             </p>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">
               ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.

@@ -207,7 +207,7 @@ function logBusinessSubscriptionError({
   billingCycle?: string | null;
   safeDebug?: SafeDebug;
 }) {
-  console.error("[business-subscriptions/start]", {
+  console.error("[business-subscriptions/start]", JSON.stringify({
     step,
     debugCode,
     message,
@@ -216,7 +216,16 @@ function logBusinessSubscriptionError({
     productKey,
     billingCycle,
     ...(safeDebug ?? {}),
-  });
+  }));
+}
+
+function logBusinessSubscriptionDebug(event: string, safeDebug: SafeDebug = {}) {
+  if (process.env.NODE_ENV === "production") return;
+
+  console.info("[business-subscriptions/start]", JSON.stringify({
+    event,
+    ...safeDebug,
+  }));
 }
 
 function jsonStepError({
@@ -1451,6 +1460,14 @@ export async function POST(request: Request) {
         },
       };
     } else {
+      logBusinessSubscriptionDebug("portone_first_payment_request_start", {
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        paymentId,
+        subscriptionId,
+        hasBillingKey: Boolean(billingKey),
+      });
       billingPayment = await payWithBillingKey({
         paymentId,
         billingKey,
@@ -1462,6 +1479,13 @@ export async function POST(request: Request) {
           email: user.email,
           phoneNumber: order?.buyerPhone,
         },
+      });
+      logBusinessSubscriptionDebug("portone_first_payment_done", {
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        paymentId,
+        subscriptionId,
       });
     }
   } catch (error) {
@@ -1481,6 +1505,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    logBusinessSubscriptionDebug("display_menu_site_create_start", {
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
+      paymentId,
+      subscriptionId,
+      isDisplayCheckoutQa: isDisplayCheckoutQaProduct(product),
+    });
     const menuSite = mode === "new"
       ? await createBusinessMenuSite({
           supabase,
@@ -1496,7 +1528,17 @@ export async function POST(request: Request) {
           product,
           subscriptionId,
           billingPeriod,
-        });
+      });
+
+    logBusinessSubscriptionDebug("display_menu_site_create_done", {
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
+      paymentId,
+      subscriptionId,
+      menuSiteId: menuSite.id,
+      slug: menuSite.slug,
+    });
 
     await markSubscriptionActive({
       adminSupabase,

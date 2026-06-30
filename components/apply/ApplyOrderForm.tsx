@@ -5,15 +5,14 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { SUBSCRIPTION_PRODUCTS } from "@/lib/billing-products";
-import {
-  DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX,
-  DISPLAY_CHECKOUT_QA_PRODUCT_KEY,
-} from "@/lib/display-checkout-qa-constants";
+import { DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX } from "@/lib/display-checkout-qa-constants";
 import { openDiscountPolicy } from "@/lib/promotion-policy";
 import {
   basicPaymentProducts,
+  businessDisplayMonthlyProduct,
+  businessDisplayYearlyProduct,
   canIndividualPurchasePlan,
+  displayPaymentProducts,
   formatKrw,
   getBasicPaymentProduct,
   isValidMenuSlug,
@@ -23,6 +22,7 @@ import {
   type BasicPaymentProduct,
   type BasicProductKey,
   type BuyerType,
+  type DisplayPaymentProduct,
   type MenuOrderPayload,
   type OrderSetupPayload,
   type PaymentProductKey,
@@ -105,6 +105,11 @@ type BusinessSubscriptionResponse = {
   };
 };
 
+type PaymentPreflightResponse = {
+  ok?: boolean;
+  message?: string;
+};
+
 type PersonalTrialEligibilityResponse = {
   eligible?: boolean;
   reason?: string;
@@ -134,8 +139,6 @@ type FormState = {
   restaurantType: BusinessTypeKey | "";
   screenPurpose: string;
   screenTemplateCategory: string;
-  screenOrientation: string;
-  screenDevice: string;
   businessName: string;
   representativeName: string;
   businessNumber: string;
@@ -172,10 +175,17 @@ type DraftMenuOrderPayload = Omit<MenuOrderPayload, "template_key"> & {
   template_key: TemplateKey | "";
 };
 
+type PendingPaymentCompletion = {
+  paymentId: string;
+  order: DraftMenuOrderPayload;
+  savedAt: number;
+};
+
 const MENU_ADDRESS_HELPER_TEXT =
   "결제 후 변경할 수 없습니다. QR 코드와 공유 링크에 사용되므로 신중하게 입력해주세요. 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
 const PERSONAL_TRIAL_LIMIT_MESSAGE =
   "개인 1개월 체험은 계정당 1개만 이용할 수 있습니다. 기존 체험 메뉴판을 사업자 플랜으로 전환하거나 새 사업자 메뉴판을 신청해주세요.";
+const DISPLAY_PAYMENT_COMPLETION_STORAGE_KEY = "menulink:display-payment-completion:v1";
 
 type PaidApplyProduct = {
   key: string;
@@ -320,23 +330,6 @@ const screenCreationProduct = {
   description: "매장 화면용 디지털 메뉴보드 운영을 준비합니다.",
 } as const;
 
-const displayCheckoutQaProduct = {
-  key: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].productKey,
-  product_key: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].productKey,
-  name: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].name,
-  label: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].label,
-  description: "QA flag가 켜진 로컬/dev 환경에서만 메뉴링크 디스플레이 A 결제를 테스트합니다.",
-  plan_type: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].planType,
-  payment_type: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].paymentType,
-  billing_cycle: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].billingCycle,
-  amount: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].amount,
-  regular_amount: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].amount,
-  discount_rate: 0,
-  currency: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].currency,
-  requires_business_verification: SUBSCRIPTION_PRODUCTS[DISPLAY_CHECKOUT_QA_PRODUCT_KEY].requiresBusinessVerification,
-  is_subscription: true,
-} as const satisfies PaidApplyProduct;
-
 const orderCreationProduct = {
   ...menuCreationProduct,
   key: "qr_order",
@@ -374,6 +367,23 @@ const basicProductCards = [
   },
 ] as const satisfies readonly {
   product: BasicPaymentProduct;
+  bullets: readonly string[];
+  helperText: string;
+}[];
+
+const displayProductCards = [
+  {
+    product: businessDisplayMonthlyProduct,
+    bullets: ["매월 자동결제", "언제든 해지 가능", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
+    helperText: "PortOne 빌링키 발급 후 첫 결제와 이후 정기결제를 연결합니다.",
+  },
+  {
+    product: businessDisplayYearlyProduct,
+    bullets: ["1년 이용권", "자동 정기결제 없음", "월 결제 대비 할인", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
+    helperText: "일반 1회 결제로 1년 이용권을 부여합니다. 월결제 빌링키 문제와 분리해 생성 QA가 가능합니다.",
+  },
+] as const satisfies readonly {
+  product: DisplayPaymentProduct;
   bullets: readonly string[];
   helperText: string;
 }[];
@@ -479,8 +489,6 @@ const screenPurposeOptions = [
   "대기 화면",
   "기타",
 ] as const;
-const screenOrientationOptions = ["가로형 16:9", "세로형 9:16, 추후", "아직 미정"] as const;
-const screenDeviceOptions = ["TV", "모니터", "PC", "미니PC/TV스틱", "아직 미정"] as const;
 const screenTemplateCategories = [
   { key: "cafe_screen", label: "카페 디스플레이", templateCategory: "cafe" },
   { key: "bakery_screen", label: "베이커리 디스플레이", templateCategory: "cafe" },
@@ -632,8 +640,6 @@ function getScreenSetupNotes(screenSetup: ScreenSetupPayload) {
     "[메뉴링크 디스플레이 도입 정보]",
     `디스플레이 용도: ${screenSetup.purpose || "-"}`,
     `디스플레이 템플릿 카테고리: ${screenSetup.templateCategory || "-"}`,
-    `화면 방향: ${screenSetup.orientation || "-"}`,
-    `설치 기기: ${screenSetup.device || "-"}`,
   ].join("\n");
 }
 
@@ -725,6 +731,60 @@ function getUiStateClassName(type: UiState["type"]) {
   return "border-zinc-200 bg-zinc-50 text-zinc-600";
 }
 
+function normalizeRecoverablePaymentId(value: string) {
+  const paymentId = value.trim();
+
+  if (!paymentId || paymentId.length > 120 || !/^[A-Za-z0-9._:-]+$/.test(paymentId)) {
+    return "";
+  }
+
+  return paymentId;
+}
+
+function readPendingPaymentCompletion() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const rawValue = window.sessionStorage.getItem(DISPLAY_PAYMENT_COMPLETION_STORAGE_KEY);
+    if (!rawValue) return null;
+
+    const parsed = JSON.parse(rawValue) as Partial<PendingPaymentCompletion>;
+    const paymentId = normalizeRecoverablePaymentId(typeof parsed.paymentId === "string" ? parsed.paymentId : "");
+
+    if (!paymentId || !parsed.order || typeof parsed.order !== "object" || typeof parsed.savedAt !== "number") {
+      return null;
+    }
+
+    return {
+      paymentId,
+      order: parsed.order as DraftMenuOrderPayload,
+      savedAt: parsed.savedAt,
+    } satisfies PendingPaymentCompletion;
+  } catch {
+    return null;
+  }
+}
+
+function writePendingPaymentCompletion(pendingCompletion: PendingPaymentCompletion) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.setItem(DISPLAY_PAYMENT_COMPLETION_STORAGE_KEY, JSON.stringify(pendingCompletion));
+  } catch {
+    // Recovery storage is best-effort only. The live form payload is still available in the current session.
+  }
+}
+
+function clearPendingPaymentCompletion() {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.removeItem(DISPLAY_PAYMENT_COMPLETION_STORAGE_KEY);
+  } catch {
+    // Ignore browser storage failures.
+  }
+}
+
 function getAgreementModalTitle(key: AgreementKey) {
   if (key === "terms") return "서비스 이용약관 및 플랜별 이용 조건";
   if (key === "privacy") return "개인정보 수집 및 이용 동의";
@@ -779,11 +839,13 @@ export default function ApplyOrderForm({
   const firstCategory = TEMPLATE_CATEGORIES[0].key;
   const firstTemplate = serviceTemplates.find((template) => template.template_category === firstCategory) ?? serviceTemplates[0] ?? templates[0];
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(personalTrialBasicProduct.product_key);
+  const [selectedDisplayProductKey, setSelectedDisplayProductKey] = useState<PaymentProductKey>(businessDisplayMonthlyProduct.product_key);
   const selectedBasicProduct = getBasicPaymentProduct(selectedBasicProductKey) ?? personalTrialBasicProduct;
+  const selectedDisplayProduct = displayPaymentProducts.find((product) => product.product_key === selectedDisplayProductKey) ?? businessDisplayMonthlyProduct;
   const activeProduct: PaidApplyProduct = isMenuService
     ? selectedBasicProduct
     : isScreenService && displayCheckoutQaEnabled
-      ? displayCheckoutQaProduct
+      ? selectedDisplayProduct
       : serviceProducts[serviceType];
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate?.template_category ?? firstCategory);
   const [selectedMenuTemplateGroup, setSelectedMenuTemplateGroup] = useState<MenuTemplateGroupKey>("recommended");
@@ -794,6 +856,18 @@ export default function ApplyOrderForm({
     message: "사업자등록번호, 대표자명, 개업일자, 상호명을 입력한 뒤 확인합니다.",
   });
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
+  const [pendingPaymentCompletion, setPendingPaymentCompletion] = useState<PendingPaymentCompletion | null>(() => readPendingPaymentCompletion());
+  const [recoveryPaymentIdInput, setRecoveryPaymentIdInput] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    const queryPaymentId = normalizeRecoverablePaymentId(
+      new URLSearchParams(window.location.search).get("recoverPaymentId") ?? ""
+    );
+
+    return queryPaymentId || readPendingPaymentCompletion()?.paymentId || "";
+  });
   const [slugState, setSlugState] = useState<SlugState>({ slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT });
   const [form, setForm] = useState<FormState>({
     buyerType: isDisplayBusinessOnly ? "business" : "individual",
@@ -810,8 +884,6 @@ export default function ApplyOrderForm({
     restaurantType: "",
     screenPurpose: "카페 메뉴보드",
     screenTemplateCategory: "cafe_screen",
-    screenOrientation: "",
-    screenDevice: "",
     businessName: "",
     representativeName: "",
     businessNumber: "",
@@ -861,10 +933,8 @@ export default function ApplyOrderForm({
     () => ({
       purpose: nullable(form.screenPurpose),
       templateCategory: selectedScreenTemplateCategory.label,
-      orientation: nullable(form.screenOrientation),
-      device: nullable(form.screenDevice),
     }),
-    [form.screenDevice, form.screenOrientation, form.screenPurpose, selectedScreenTemplateCategory.label]
+    [form.screenPurpose, selectedScreenTemplateCategory.label]
   );
 
   const payload = useMemo<DraftMenuOrderPayload>(
@@ -938,6 +1008,7 @@ export default function ApplyOrderForm({
   const isPortOneReady = Boolean(storeId && channelKey);
   const isBillingPortOneReady = Boolean(storeId && billingChannelKey);
   const isDevelopment = process.env.NODE_ENV !== "production";
+  const canShowPaymentCompletionRecovery = isScreenService && displayCheckoutQaEnabled && isDevelopment && !isSubscriptionProduct;
   const menuAddressError = getMenuAddressError(payload.desiredSlug);
   const isSlugValid = !menuAddressError && isValidMenuSlug(payload.desiredSlug);
   const visibleSlugState = useMemo<SlugState>(() => {
@@ -1022,28 +1093,33 @@ export default function ApplyOrderForm({
     agreements.terms &&
     agreements.privacy &&
     agreements.contentPolicy;
-  const isFormReady = isBaseFormReady && (!isSubscriptionProduct || hasVerifiedBusinessProfile);
+  const isFormReady = isBaseFormReady && (!activeProductRequiresBusinessVerification || hasVerifiedBusinessProfile);
   const isLoading = uiState.type === "loading";
   const paymentButtonDisabled = !isFormReady || isLoading;
-  const subscriptionActionMessage = isSubscriptionProduct
+  const businessPaymentActionMessage = activeProductRequiresBusinessVerification
     ? isBusinessVerificationChecking
       ? "사업자 정보를 확인하고 있습니다. 확인이 끝날 때까지 기다려주세요."
       : hasVerifiedBusinessProfile
-        ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 첫 결제를 진행합니다."
+        ? isSubscriptionProduct
+          ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 첫 결제를 진행합니다."
+          : "사업자 인증이 완료되었습니다. 일반 1회 결제로 이용권을 생성합니다."
         : businessVerificationState.type === "failed"
           ? "사업자 정보가 확인되지 않았습니다. 입력 정보를 다시 확인해주세요."
-          : "사업자 월/연 결제는 사업자 인증 완료 후 진행할 수 있습니다."
+          : isSubscriptionProduct
+            ? "사업자 월결제는 사업자 인증 완료 후 진행할 수 있습니다."
+            : "사업자 연결제는 사업자 인증 완료 후 진행할 수 있습니다."
     : null;
+
   const paymentButtonLabel = isLoading
     ? "처리 중..."
     : isScreenService && !hasSelectableTemplate
       ? "메뉴링크 디스플레이 템플릿 준비 중"
-      : isSubscriptionProduct
+      : activeProductRequiresBusinessVerification && !hasVerifiedBusinessProfile
         ? isBusinessVerificationChecking
           ? "사업자 인증 확인 중"
-          : hasVerifiedBusinessProfile
-            ? "정기결제 테스트 진행"
-            : "사업자 인증 후 진행 가능"
+          : "사업자 인증 후 진행 가능"
+      : isSubscriptionProduct
+        ? "정기결제 테스트 진행"
         : visibleSlugState.type === "checking"
           ? "메뉴판 주소 확인 중..."
           : isPortOneReady
@@ -1137,6 +1213,7 @@ export default function ApplyOrderForm({
 
   function selectBasicProduct(product: BasicPaymentProduct) {
     setSelectedBasicProductKey(product.product_key);
+    setUiState({ type: "idle", message: null });
     setForm((current) => ({
       ...current,
       buyerType: product.requires_business_verification ? "business" : "individual",
@@ -1146,6 +1223,21 @@ export default function ApplyOrderForm({
       message: product.requires_business_verification
         ? "사업자 월/연 결제는 국세청 사업자 인증 성공 후 자동결제를 진행합니다."
         : "개인 체험은 사업자 인증 없이 1개월 동안 사용할 수 있습니다.",
+    });
+  }
+
+  function selectDisplayProduct(product: DisplayPaymentProduct) {
+    setSelectedDisplayProductKey(product.product_key);
+    setUiState({ type: "idle", message: null });
+    setForm((current) => ({
+      ...current,
+      buyerType: "business",
+    }));
+    setBusinessVerificationState({
+      type: "idle",
+      message: product.is_subscription
+        ? "디스플레이 월결제는 사업자 인증 성공 후 빌링키 자동결제를 진행합니다."
+        : "디스플레이 연결제는 사업자 인증 성공 후 일반 1회 결제로 1년 이용권을 생성합니다.",
     });
   }
 
@@ -1240,7 +1332,7 @@ export default function ApplyOrderForm({
     }
   }
 
-  async function completePayment(paymentId: string) {
+  async function completePayment(paymentId: string, orderPayload: DraftMenuOrderPayload = payload) {
     const response = await fetch("/api/payment/complete", {
       method: "POST",
       headers: {
@@ -1248,16 +1340,48 @@ export default function ApplyOrderForm({
       },
       body: JSON.stringify({
         paymentId,
-        order: payload,
+        order: orderPayload,
       }),
     });
     const result = (await response.json()) as PaymentCompleteResponse;
 
     if (!response.ok || !result.ok) {
-      throw new Error(result.message ?? "결제 검증 또는 메뉴판 생성에 실패했습니다.");
+      throw new Error(getPaymentCompleteErrorMessage(result));
     }
 
+    clearPendingPaymentCompletion();
+    setPendingPaymentCompletion(null);
     router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
+  }
+
+  async function retryApprovedPaymentCompletion() {
+    const paymentId = normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "");
+
+    if (!paymentId) {
+      setUiState({ type: "error", message: "후처리할 paymentId를 입력해주세요." });
+      return;
+    }
+
+    const storedOrder = pendingPaymentCompletion?.paymentId === paymentId ? pendingPaymentCompletion.order : null;
+
+    if (!storedOrder && !isFormReady) {
+      setUiState({
+        type: "error",
+        message: "저장된 주문 정보가 없어서 현재 신청 정보를 기준으로 재처리해야 합니다. 필수 신청 정보를 먼저 확인해주세요.",
+      });
+      return;
+    }
+
+    setUiState({ type: "loading", message: "새 결제창 없이 승인된 결제의 생성 처리만 다시 진행하고 있습니다." });
+
+    try {
+      await completePayment(paymentId, storedOrder ?? payload);
+    } catch (error) {
+      setUiState({
+        type: "error",
+        message: error instanceof Error ? error.message : "승인 결제 후처리 중 알 수 없는 오류가 발생했습니다.",
+      });
+    }
   }
 
   function getBillingKeyFromIssueResponse(response: unknown) {
@@ -1282,6 +1406,24 @@ export default function ApplyOrderForm({
     ].filter(Boolean);
 
     return details.length > 0 ? `${baseMessage}\n${details.join("\n")}` : baseMessage;
+  }
+
+  function getPaymentCompleteErrorMessage(result: PaymentCompleteResponse) {
+    const message = result.message ?? "";
+
+    if (
+      message.includes("사용할 수 없는 템플릿") ||
+      message.includes("메뉴판 생성") ||
+      message.includes("신청 정보를 생성")
+    ) {
+      return "결제는 승인되었지만 메뉴판 생성 처리에 실패했습니다. 재결제하지 말고 고객지원으로 문의해주세요.";
+    }
+
+    if (message.includes("빌링키") || message.includes("자동결제")) {
+      return "결제 완료 처리에 실패했습니다. 잠시 후 다시 시도해주세요.";
+    }
+
+    return message || "결제 검증 또는 메뉴판 생성에 실패했습니다.";
   }
 
   async function verifySlugBeforePayment() {
@@ -1361,7 +1503,52 @@ export default function ApplyOrderForm({
     }
   }
 
+  async function verifyOrderBeforePayment() {
+    setUiState({ type: "loading", message: "결제 전 상품과 템플릿 조합을 확인하고 있습니다." });
+
+    try {
+      const response = await fetch("/api/payment/preflight", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          order: payload,
+        }),
+      });
+      const result = (await response.json()) as PaymentPreflightResponse;
+
+      if (!response.ok || !result.ok) {
+        setUiState({
+          type: "error",
+          message: result.message ?? "결제 전 검증에 실패했습니다. 신청 정보를 다시 확인해주세요.",
+        });
+        return false;
+      }
+
+      return true;
+    } catch {
+      setUiState({
+        type: "error",
+        message: "결제 전 검증 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      });
+      return false;
+    }
+  }
+
   async function handlePayment() {
+    setUiState({ type: "idle", message: null });
+
+    if (process.env.NODE_ENV !== "production") {
+      console.info("[apply:submit]", {
+        productKey: activeProduct.product_key,
+        paymentType: activeProduct.payment_type,
+        billingCycle: activeProduct.billing_cycle,
+        isSubscriptionProduct,
+        route: isSubscriptionProduct ? "/api/business-subscriptions/start" : "/api/payment/complete",
+      });
+    }
+
     if (isSubscriptionProduct) {
       if (!hasVerifiedBusinessProfile || businessVerificationState.type !== "verified") {
         setUiState({
@@ -1372,6 +1559,11 @@ export default function ApplyOrderForm({
       }
 
       if (!isFormReady || isLoading) {
+        return;
+      }
+
+      const isOrderAccepted = await verifyOrderBeforePayment();
+      if (!isOrderAccepted) {
         return;
       }
 
@@ -1440,7 +1632,7 @@ export default function ApplyOrderForm({
             plan_type: activeProduct.plan_type,
             billing_cycle: activeProduct.billing_cycle,
             billing_channel: "subscription",
-            source: "apply_basic",
+            source: isScreenService ? "apply_display" : "apply_basic",
             terms_accepted: agreements.terms,
             privacy_accepted: agreements.privacy,
             content_policy_accepted: agreements.contentPolicy,
@@ -1495,6 +1687,14 @@ export default function ApplyOrderForm({
       return;
     }
 
+    if (activeProductRequiresBusinessVerification && (!hasVerifiedBusinessProfile || businessVerificationState.type !== "verified")) {
+      setUiState({
+        type: "error",
+        message: "사업자 인증 완료 후 결제를 진행할 수 있습니다.",
+      });
+      return;
+    }
+
     if (!hasSelectableTemplate || !payload.template_key) {
       setUiState({ type: "error", message: templateSelectionError ?? "선택 가능한 템플릿이 없습니다." });
       return;
@@ -1507,6 +1707,11 @@ export default function ApplyOrderForm({
 
     const isPersonalTrialEligible = await verifyPersonalTrialEligibilityBeforePayment();
     if (!isPersonalTrialEligible) {
+      return;
+    }
+
+    const isOrderAccepted = await verifyOrderBeforePayment();
+    if (!isOrderAccepted) {
       return;
     }
 
@@ -1583,8 +1788,17 @@ export default function ApplyOrderForm({
         return;
       }
 
+      const pendingCompletion = {
+        paymentId: payment.paymentId,
+        order: payload,
+        savedAt: Date.now(),
+      } satisfies PendingPaymentCompletion;
+
+      writePendingPaymentCompletion(pendingCompletion);
+      setPendingPaymentCompletion(pendingCompletion);
+      setRecoveryPaymentIdInput(payment.paymentId);
       setUiState({ type: "loading", message: "서버에서 결제를 검증하고 신청 정보를 생성하고 있습니다." });
-      await completePayment(payment.paymentId);
+      await completePayment(payment.paymentId, payload);
     } catch (error) {
       setUiState({
         type: "error",
@@ -1681,7 +1895,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">디스플레이 용도 / 설치 정보</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                매장 TV나 모니터에 띄울 화면의 목적과 설치 환경을 알려주세요. 입력값은 초기 세팅 안내와 추후 디스플레이 전용 템플릿 분리에 활용됩니다.
+                매장 TV나 모니터에 띄울 화면의 목적을 알려주세요. 입력값은 초기 세팅 안내와 추후 디스플레이 전용 템플릿 분리에 활용됩니다.
               </p>
             </div>
             <div>
@@ -1707,19 +1921,66 @@ export default function ApplyOrderForm({
                 })}
               </div>
             </div>
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
-              <SelectField
-                label="화면 방향"
-                value={form.screenOrientation}
-                onChange={(value) => updateField("screenOrientation", value)}
-                options={screenOrientationOptions}
-              />
-              <SelectField
-                label="설치 기기"
-                value={form.screenDevice}
-                onChange={(value) => updateField("screenDevice", value)}
-                options={screenDeviceOptions}
-              />
+          </section>
+        )}
+
+        {isScreenService && displayCheckoutQaEnabled && (
+          <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
+              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                월 결제는 빌링키 정기결제로, 연 결제는 자동결제 없는 1년 이용권으로 진행합니다.
+              </p>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                ※ 모든 금액은 부가세 포함가입니다. Display QA는 개발 환경에서만 열립니다.
+              </p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {displayProductCards.map(({ product, bullets, helperText }) => {
+                const isSelected = selectedDisplayProductKey === product.product_key;
+
+                return (
+                  <button
+                    key={product.product_key}
+                    type="button"
+                    onClick={() => selectDisplayProduct(product)}
+                    className={`flex min-h-[230px] flex-col rounded-2xl border p-5 text-left transition ${
+                      isSelected
+                        ? "border-zinc-950 bg-zinc-950 text-white shadow-md"
+                        : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
+                      </div>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                        {isSelected ? "선택됨" : product.is_subscription ? "자동결제" : "1회 결제"}
+                      </span>
+                    </div>
+                    <div className="mt-5">
+                      <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
+                        정가 {product.billing_cycle === "monthly" ? "월 " : "연 "}
+                        {formatKrw(product.regular_amount)}
+                      </p>
+                      <p className="mt-1 text-2xl font-black">
+                        {formatKrw(product.amount)} / {product.billing_cycle === "monthly" ? "월" : "년"}
+                      </p>
+                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
+                        {product.is_subscription ? "매월 자동결제 · 빌링키 필요" : "1년 이용권 · 자동결제 없음"}
+                      </p>
+                    </div>
+                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
+                      {bullets.map((bullet) => (
+                        <li key={bullet}>• {bullet}</li>
+                      ))}
+                    </ul>
+                    <p className={`mt-auto pt-5 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/50" : "text-zinc-400"}`}>
+                      {helperText}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </section>
         )}
@@ -2196,28 +2457,32 @@ export default function ApplyOrderForm({
                   activeProduct.billing_cycle === "monthly"
                     ? "사업자 월 자동결제"
                     : activeProduct.billing_cycle === "yearly"
-                      ? "사업자 연 자동결제"
+                      ? activeProduct.is_subscription ? "사업자 연 자동결제" : "사업자 1년 이용권"
                       : "개인 1개월 단건 결제"
                 }
               />
             )}
-            {isMenuService && <SummaryRow label="자동결제" value={activeProduct.is_subscription ? "필요" : "없음"} />}
+            {isScreenService && displayCheckoutQaEnabled && (
+              <SummaryRow
+                label="이용 방식"
+                value={activeProduct.is_subscription ? "디스플레이 월 자동결제" : "디스플레이 1년 이용권"}
+              />
+            )}
+            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && <SummaryRow label="자동결제" value={activeProduct.is_subscription ? "필요" : "없음"} />}
             {isScreenService && <SummaryRow label="디스플레이 용도" value={form.screenPurpose || "-"} />}
             {isScreenService && <SummaryRow label="디스플레이 카테고리" value={selectedScreenTemplateCategory.label} />}
-            {isScreenService && <SummaryRow label="화면 방향" value={form.screenOrientation || "-"} />}
-            {isScreenService && <SummaryRow label="설치 기기" value={form.screenDevice || "-"} />}
             {isMenuService && <SummaryRow label="템플릿 그룹" value={getMenuTemplateGroupLabel(selectedMenuTemplateGroup)} />}
             <SummaryRow label="선택 템플릿" value={selectedTemplate ? `${selectedTemplate.name} (${selectedTemplate.key})` : "-"} />
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
             <SummaryRow label="구매자 유형" value={payload.buyerType === "business" ? "사업자" : "개인"} />
-            {isMenuService && activeProduct.regular_amount && (
+            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activeProduct.regular_amount && (
               <SummaryRow
                 label="정가"
                 value={`${activeProduct.billing_cycle === "monthly" ? "월 " : activeProduct.billing_cycle === "yearly" ? "연 " : ""}${formatKrw(activeProduct.regular_amount)}`}
               />
             )}
-            {isMenuService && activeProduct.regular_amount ? (
+            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activeProduct.regular_amount ? (
               <SummaryRow label="오픈 할인 적용" value={`${activeProduct.discount_rate ?? 0}% 할인`} />
             ) : null}
             {isMenuService ? <SummaryRow label="오픈 할인 적용 기간" value={openDiscountPolicy.durationLabel} /> : null}
@@ -2230,7 +2495,9 @@ export default function ApplyOrderForm({
               ? activeProduct.is_subscription
                 ? `${openDiscountPolicy.note} VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다.`
                 : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환될 수 있으며, 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다."
-              : "VAT 포함 금액입니다. 결제 검증 성공 후 신청 정보가 생성됩니다."}
+              : activeProduct.is_subscription
+                ? "VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다."
+                : "VAT 포함 금액입니다. 일반 1회 결제 검증 성공 후 1년 이용권과 디스플레이 메뉴판이 생성됩니다."}
           </p>
         </section>
 
@@ -2283,9 +2550,41 @@ export default function ApplyOrderForm({
             <div className={`mt-6 whitespace-pre-line rounded-2xl border p-4 text-sm font-bold leading-relaxed ${getUiStateClassName(uiState.type)}`}>{uiState.message}</div>
           )}
 
-          {subscriptionActionMessage && (
+          {canShowPaymentCompletionRecovery && (
+            <div className="mt-6 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm font-bold leading-relaxed text-sky-800">
+              <p>이미 승인된 Display 연결제 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.</p>
+              {pendingPaymentCompletion && (
+                <p className="mt-2 text-xs text-sky-700">
+                  마지막 승인 결제: {pendingPaymentCompletion.paymentId}
+                </p>
+              )}
+              <label className="mt-3 block">
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-500">paymentId</span>
+                <input
+                  type="text"
+                  value={recoveryPaymentIdInput}
+                  onChange={(event) => setRecoveryPaymentIdInput(event.target.value)}
+                  placeholder="승인된 paymentId"
+                  className="mt-2 w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-xs font-semibold text-zinc-900 outline-none transition focus:border-sky-600"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={retryApprovedPaymentCompletion}
+                disabled={isLoading || !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "")}
+                className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-sky-950 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-sky-200"
+              >
+                결제창 없이 후처리만 재시도
+              </button>
+              <p className="mt-2 text-xs text-sky-700">
+                현재 신청 정보 또는 이 탭에 임시 저장된 주문 정보로 `/api/payment/complete`만 호출합니다.
+              </p>
+            </div>
+          )}
+
+          {businessPaymentActionMessage && (
             <div className={`mt-6 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${hasVerifiedBusinessProfile ? "border-emerald-100 bg-emerald-50 text-emerald-700" : businessVerificationState.type === "failed" ? "border-red-100 bg-red-50 text-red-700" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
-              {subscriptionActionMessage}
+              {businessPaymentActionMessage}
             </div>
           )}
 

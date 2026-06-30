@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import {
-  getBasicPaymentProduct,
+  getPaymentProductDefinition,
   isTemplateKey,
   isValidMenuSlug,
   menuCreationProduct,
@@ -13,7 +13,7 @@ import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { hasUsedPersonalTrial } from "@/lib/server/personal-trial-eligibility";
-import { getPersonalTrialDataRetentionUntil } from "@/lib/service-retention-policy";
+import { getPaidSubscriptionDataRetentionUntil, getPersonalTrialDataRetentionUntil } from "@/lib/service-retention-policy";
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
@@ -237,17 +237,22 @@ function getPaymentAmount(payment: PortOnePayment) {
   return null;
 }
 
-function getTrialAccessPeriod(now = new Date()): TrialAccessPeriod {
+function getProductAccessPeriod(product: NonNullable<ReturnType<typeof getPaymentProductDefinition>>, now = new Date()): TrialAccessPeriod {
   const accessStartsAt = new Date(now);
   const accessExpiresAt = new Date(accessStartsAt);
-  accessExpiresAt.setMonth(accessExpiresAt.getMonth() + personalTrialBasicProduct.duration_months);
+  const durationMonths = product.duration_months ?? personalTrialBasicProduct.duration_months;
 
-  const dataRetentionUntil = getPersonalTrialDataRetentionUntil(accessExpiresAt) ?? accessExpiresAt.toISOString();
+  accessExpiresAt.setMonth(accessExpiresAt.getMonth() + durationMonths);
+
+  const dataRetentionUntil =
+    product.plan_type === "personal_trial"
+      ? getPersonalTrialDataRetentionUntil(accessExpiresAt)
+      : getPaidSubscriptionDataRetentionUntil(accessExpiresAt);
 
   return {
     accessStartsAt: accessStartsAt.toISOString(),
     accessExpiresAt: accessExpiresAt.toISOString(),
-    dataRetentionUntil,
+    dataRetentionUntil: dataRetentionUntil ?? accessExpiresAt.toISOString(),
   };
 }
 
@@ -330,8 +335,6 @@ function getScreenSetupPayload(value: unknown): MenuOrderPayload["screenSetup"] 
   return {
     purpose: getNullableString(payload.purpose),
     templateCategory: getNullableString(payload.templateCategory),
-    orientation: getNullableString(payload.orientation),
-    device: getNullableString(payload.device),
   };
 }
 
@@ -351,7 +354,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
   const desiredSlug = normalizeMenuSlug(getString(payload.desiredSlug));
   const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
   const productKey = getString(payload.product_key);
-  const requestedProduct = getBasicPaymentProduct(productKey);
+  const requestedProduct = getPaymentProductDefinition(productKey);
   const planType = getString(payload.plan_type);
   const paymentType = getString(payload.payment_type);
   const billingCycle = getString(payload.billing_cycle);
@@ -473,9 +476,12 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     (!parsedPayload.businessName ||
       !parsedPayload.representativeName ||
       !parsedPayload.businessNumber ||
-      !parsedPayload.businessOpeningDate ||
-      !parsedPayload.businessPhone)
+      !parsedPayload.businessOpeningDate)
   ) {
+    return null;
+  }
+
+  if (requestedProduct.requires_business_verification && !parsedPayload.businessProfileId) {
     return null;
   }
 
@@ -483,7 +489,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
 }
 
 function getPaymentProduct(orderPayload: MenuOrderPayload) {
-  const basicProduct = getBasicPaymentProduct(orderPayload.product_key);
+  const basicProduct = getPaymentProductDefinition(orderPayload.product_key);
 
   if (basicProduct) {
     return {
@@ -511,6 +517,88 @@ function getPaymentProduct(orderPayload: MenuOrderPayload) {
     key: menuCreationProduct.key,
     name: menuCreationProduct.name,
   };
+}
+
+function getOrderPayloadDebug(value: unknown) {
+  const payload = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const templateKey = getString(payload.template_key);
+  const templateCategoryInput = getString(payload.template_category);
+  const templateCategory = isTemplateCategoryKey(templateCategoryInput)
+    ? templateCategoryInput
+    : getTemplateCategoryFromKey(templateKey);
+  const productKey = getString(payload.product_key);
+  const requestedProduct = getPaymentProductDefinition(productKey);
+  const planKey = getString(payload.plan_key) || "basic";
+  const desiredSlug = normalizeMenuSlug(getString(payload.desiredSlug));
+  const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
+  const rawSocialLinks = Array.isArray(payload.socialLinks) ? payload.socialLinks.slice(0, 3) : [];
+  const socialLinksValidation = validateSocialLinks(
+    rawSocialLinks.map((link) => {
+      const socialLink = link && typeof link === "object" ? (link as Record<string, unknown>) : {};
+      const type = getString(socialLink.type);
+
+      return {
+        type: isSocialLinkType(type) ? type : "",
+        display_name: getString(socialLink.display_name),
+        url: getString(socialLink.url),
+      };
+    })
+  );
+  const templateServiceType = getTemplateServiceTypeForPlan(planKey);
+  const buyerTypeInput = getString(payload.buyerType);
+  const buyerType = buyerTypeInput === "business" ? "business" : "individual";
+  const requiredFields = {
+    hasMenuName: Boolean(getString(payload.menuName)),
+    hasRestaurantName: Boolean(getString(payload.restaurantName)),
+    hasRestaurantCategory: Boolean(getString(payload.restaurantCategory) || templateCategory),
+    hasRestaurantPhone: Boolean(getString(payload.restaurantPhone)),
+    hasBuyerName: Boolean(getString(payload.buyerName)),
+    hasBuyerPhone: Boolean(getString(payload.buyerPhone)),
+    hasBuyerEmail: Boolean(getString(payload.buyerEmail)),
+    hasBusinessName: buyerType !== "business" || Boolean(getNullableString(payload.businessName)),
+    hasRepresentativeName: buyerType !== "business" || Boolean(getNullableString(payload.representativeName)),
+    hasBusinessNumber: buyerType !== "business" || Boolean(getNullableString(payload.businessNumber)),
+    hasBusinessOpeningDate: buyerType !== "business" || Boolean(getNullableString(payload.businessOpeningDate)),
+    hasBusinessProfileId:
+      !requestedProduct?.requires_business_verification || Boolean(getNullableString(payload.businessProfileId)),
+    termsAccepted: payload.termsAccepted === true,
+    privacyAccepted: payload.privacyAccepted === true,
+    contentPolicyAccepted: payload.contentPolicyAccepted === true,
+  };
+
+  return {
+    productKey,
+    planKey,
+    templateKey,
+    templateServiceType,
+    hasTemplateCategory: Boolean(templateCategory),
+    desiredSlug,
+    amount,
+    expectedAmount: requestedProduct?.amount,
+    hasRequestedProduct: Boolean(requestedProduct),
+    planType: getString(payload.plan_type),
+    expectedPlanType: requestedProduct?.plan_type,
+    paymentType: getString(payload.payment_type),
+    expectedPaymentType: requestedProduct?.payment_type,
+    billingCycle: getString(payload.billing_cycle),
+    expectedBillingCycle: requestedProduct?.billing_cycle,
+    socialLinksOk: socialLinksValidation.ok,
+    socialLinksMessage: socialLinksValidation.message,
+    templateSupported: isTemplateSupportedForService(templateKey, templateServiceType),
+    requiredFields,
+  };
+}
+
+function getMenuCreationGrantContext(orderPayload: MenuOrderPayload) {
+  const serviceType = orderPayload.plan_type === "business_display" ? "display" : "basic";
+  const reason =
+    orderPayload.plan_type === "personal_trial"
+      ? "personal_trial_created"
+      : serviceType === "display"
+        ? "display_subscription_created"
+        : "business_subscription_created";
+
+  return { serviceType, reason } as const;
 }
 
 async function getCompletedMenuFromOrder(
@@ -725,8 +813,8 @@ async function createMenuSiteWithStarterPreset(
   userId: string,
   orderPayload: MenuOrderPayload
 ) {
-  const trialAccessPeriod = getTrialAccessPeriod();
-  const product = getBasicPaymentProduct(orderPayload.product_key) ?? personalTrialBasicProduct;
+  const product = getPaymentProductDefinition(orderPayload.product_key) ?? personalTrialBasicProduct;
+  const accessPeriod = getProductAccessPeriod(product);
   const menuSiteInsert: Database["public"]["Tables"]["menu_sites"]["Insert"] = {
     user_id: userId,
     name: orderPayload.menuName,
@@ -757,9 +845,9 @@ async function createMenuSiteWithStarterPreset(
       plan_type: product.plan_type,
       payment_type: product.payment_type,
       billing_cycle: product.billing_cycle,
-      access_starts_at: trialAccessPeriod.accessStartsAt,
-      access_expires_at: trialAccessPeriod.accessExpiresAt,
-      data_retention_until: trialAccessPeriod.dataRetentionUntil,
+      access_starts_at: accessPeriod.accessStartsAt,
+      access_expires_at: accessPeriod.accessExpiresAt,
+      data_retention_until: accessPeriod.dataRetentionUntil,
       auto_renewal: product.is_subscription,
       buyer_email: orderPayload.buyerEmail,
     },
@@ -1016,13 +1104,16 @@ async function createServiceEntitlement(
   menuSiteId: string,
   orderPayload: MenuOrderPayload
 ) {
-  const period = getTrialAccessPeriod();
+  const product = getPaymentProductDefinition(orderPayload.product_key) ?? personalTrialBasicProduct;
+  const period = getProductAccessPeriod(product);
   const { error } = await supabase.from("service_entitlements").insert({
     user_id: userId,
     menu_site_id: menuSiteId,
-    business_profile_id: null,
+    business_profile_id: orderPayload.businessProfileId ?? null,
     plan_type: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+    product_key: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
     billing_type: orderPayload.payment_type ?? personalTrialBasicProduct.payment_type,
+    billing_cycle: orderPayload.billing_cycle ?? personalTrialBasicProduct.billing_cycle,
     status: "active",
     access_starts_at: period.accessStartsAt,
     access_expires_at: period.accessExpiresAt,
@@ -1043,7 +1134,7 @@ async function createServiceEntitlement(
     return;
   }
 
-  throw new Error(`개인 체험 이용 상태 저장에 실패했습니다: ${error.message}`);
+  throw new Error(`서비스 이용 상태 저장에 실패했습니다: ${error.message}`);
 }
 
 function createMockPortOnePayment(paymentId: string, orderPayload: MenuOrderPayload): VerifiedPayment {
@@ -1219,20 +1310,35 @@ export async function POST(request: Request) {
   }
 
   if (!isTemplateSupportedForService(templateKey, getTemplateServiceTypeForPlan(requestedPlanKey))) {
+    console.error("[payment-complete] template service validation failed", {
+      paymentId,
+      requestedPlanKey,
+      requestedTemplateKey,
+      templateKey,
+      productKey: orderPayload?.product_key,
+      planType: orderPayload?.plan_type,
+      hasOrderPayload: Boolean(orderPayload),
+    });
     return jsonError("선택한 상품에서 사용할 수 없는 템플릿입니다.");
   }
 
   if (!orderPayload) {
+    console.error("[payment-complete] order payload parse failed", {
+      paymentId,
+      requestedPlanKey,
+      requestedTemplateKey,
+      debug: getOrderPayloadDebug(orderSource),
+    });
     return jsonError("메뉴판 생성을 위한 주문 payload가 올바르지 않습니다.");
   }
 
   if (orderPayload.payment_type === "subscription") {
     // TODO(billing): 사업자 자동결제 구현 시 businessProfileId 소유권, verified 상태,
-    // business_profiles.verification_status, business_basic/display 월/연 product_key,
+    // business_profiles.verification_status, business_basic/display 월 product_key,
     // billing_cycle 매칭, billing key 생성 성공, subscription 생성 성공 후 entitlement 생성,
     // subscription renewal 처리를 별도 API에서 검증합니다.
     return jsonError(
-      "사업자 월/연 자동결제는 아직 준비 중입니다.",
+      "사업자 월 자동결제는 빌링키 결제 경로로 진행해주세요.",
       501
     );
   }
@@ -1244,14 +1350,15 @@ export async function POST(request: Request) {
 
     try {
       adminSupabaseForExisting = createAdminClient();
+      const grantContext = getMenuCreationGrantContext(orderPayload);
       const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
         adminSupabase: adminSupabaseForExisting,
         userId: user.id,
         menuSiteId: existingCompletion.menuSiteId,
-        serviceType: "basic",
+        serviceType: grantContext.serviceType,
         productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
         planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
-        reason: "personal_trial_created",
+        reason: grantContext.reason,
       });
       if (!aiCreditGrant.ok) {
         throw Object.assign(new Error("AI 크레딧 테이블 migration 적용이 필요합니다."), aiCreditGrant.error ?? {});
@@ -1308,33 +1415,43 @@ export async function POST(request: Request) {
   try {
     verifiedPayment = await verifyPayment(paymentId, orderPayload);
   } catch (error) {
+    console.error("[payment-complete] payment verification failed", {
+      paymentId,
+      productKey: orderPayload.product_key,
+      planType: orderPayload.plan_type,
+      templateKey: orderPayload.template_key,
+      amount: orderPayload.amount,
+      message: error instanceof Error ? error.message : "unknown",
+    });
     return jsonError(error instanceof Error ? error.message : "결제 검증에 실패했습니다.", 502);
   }
 
-  try {
-    const hasPersonalTrial = await hasExistingPersonalTrial(supabase, user.id);
+  if (orderPayload.product_key === personalTrialBasicProduct.product_key) {
+    try {
+      const hasPersonalTrial = await hasExistingPersonalTrial(supabase, user.id);
 
-    if (hasPersonalTrial) {
-      let writeSupabase: ReturnType<typeof createAdminClient> | Awaited<ReturnType<typeof createClient>> = supabase;
+      if (hasPersonalTrial) {
+        let writeSupabase: ReturnType<typeof createAdminClient> | Awaited<ReturnType<typeof createClient>> = supabase;
 
-      try {
-        writeSupabase = createAdminClient();
-      } catch {
-        writeSupabase = supabase;
+        try {
+          writeSupabase = createAdminClient();
+        } catch {
+          writeSupabase = supabase;
+        }
+
+        await createIncompletePaymentRecords(writeSupabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE);
+        return jsonError(DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE, 409, {
+          step: "payment_verification",
+          debugCode: "PERSONAL_TRIAL_ALREADY_USED_AFTER_PAYMENT",
+          paymentId,
+          userId: user.id,
+          productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
+          planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
+        });
       }
-
-      await createIncompletePaymentRecords(writeSupabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE);
-      return jsonError(DUPLICATE_PERSONAL_TRIAL_PAYMENT_MESSAGE, 409, {
-        step: "payment_verification",
-        debugCode: "PERSONAL_TRIAL_ALREADY_USED_AFTER_PAYMENT",
-        paymentId,
-        userId: user.id,
-        productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
-        planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
-      });
+    } catch (error) {
+      return jsonError(error instanceof Error ? error.message : "개인 체험 이용 이력 확인에 실패했습니다.", 500);
     }
-  } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "개인 체험 이용 이력 확인에 실패했습니다.", 500);
   }
 
   let adminSupabase: ReturnType<typeof createAdminClient>;
@@ -1367,6 +1484,14 @@ export async function POST(request: Request) {
     menuSite = await createMenuSiteWithStarterPreset(supabase, user.id, orderPayload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "메뉴판 생성 중 오류가 발생했습니다.";
+    console.error("[payment-complete] menu site creation failed", {
+      paymentId,
+      productKey: orderPayload.product_key,
+      planType: orderPayload.plan_type,
+      templateKey: orderPayload.template_key,
+      desiredSlug: orderPayload.desiredSlug,
+      message,
+    });
     if (message === SLUG_DUPLICATE_AFTER_PAYMENT_MESSAGE) {
       await createIncompletePaymentRecords(supabase, user.id, user.email, paymentId, orderPayload, verifiedPayment, message);
       return jsonError(message, 409);
@@ -1380,6 +1505,14 @@ export async function POST(request: Request) {
   try {
     order = await createOrderRecord(supabase, user.id, user.email, paymentId, menuSite.id, orderPayload, verifiedPayment);
   } catch (error) {
+    console.error("[payment-complete] order record creation failed", {
+      paymentId,
+      menuSiteId: menuSite.id,
+      productKey: orderPayload.product_key,
+      planType: orderPayload.plan_type,
+      templateKey: orderPayload.template_key,
+      message: error instanceof Error ? error.message : "unknown",
+    });
     await cleanupMenuSiteAfterPaymentFailure(
       supabase,
       menuSite,
@@ -1394,24 +1527,41 @@ export async function POST(request: Request) {
   try {
     paymentRecord = await createPaymentRecord(supabase, user.id, paymentId, order.id, orderPayload, verifiedPayment);
   } catch (error) {
+    console.error("[payment-complete] payment record creation failed", {
+      paymentId,
+      orderId: order.id,
+      productKey: orderPayload.product_key,
+      planType: orderPayload.plan_type,
+      templateKey: orderPayload.template_key,
+      message: error instanceof Error ? error.message : "unknown",
+    });
     return jsonError(error instanceof Error ? error.message : "결제 기록 저장 중 오류가 발생했습니다.", 500);
   }
 
   try {
     await createServiceEntitlement(adminSupabase, user.id, menuSite.id, orderPayload);
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "개인 체험 이용 상태 저장 중 오류가 발생했습니다.", 500);
+    console.error("[payment-complete] service entitlement creation failed", {
+      paymentId,
+      menuSiteId: menuSite.id,
+      productKey: orderPayload.product_key,
+      planType: orderPayload.plan_type,
+      templateKey: orderPayload.template_key,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return jsonError(error instanceof Error ? error.message : "서비스 이용 상태 저장 중 오류가 발생했습니다.", 500);
   }
 
   try {
+    const grantContext = getMenuCreationGrantContext(orderPayload);
     const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
       adminSupabase,
       userId: user.id,
       menuSiteId: menuSite.id,
-      serviceType: "basic",
+      serviceType: grantContext.serviceType,
       productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
       planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
-      reason: "personal_trial_created",
+      reason: grantContext.reason,
     });
     if (!aiCreditGrant.ok) {
       throw Object.assign(new Error("AI 크레딧 테이블 migration 적용이 필요합니다."), aiCreditGrant.error ?? {});

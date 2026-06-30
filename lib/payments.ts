@@ -21,8 +21,6 @@ export type OrderSetupPayload = {
 export type ScreenSetupPayload = {
   purpose?: string | null;
   templateCategory?: string | null;
-  orientation?: string | null;
-  device?: string | null;
 };
 
 export const personalTrialBasicProduct = {
@@ -90,6 +88,58 @@ export const basicPaymentProducts = [
 
 export type BasicPaymentProduct = (typeof basicPaymentProducts)[number];
 
+export const businessDisplayMonthlyProduct = {
+  key: "business_display_monthly",
+  product_key: "business_display_monthly",
+  name: "메뉴링크 디스플레이 월결제",
+  label: "메뉴링크 디스플레이 월결제",
+  description: "사업자 인증 후 메뉴링크 디스플레이 메뉴보드를 월 자동결제로 이용합니다.",
+  plan_type: "business_display",
+  payment_type: "subscription",
+  billing_cycle: "monthly",
+  regular_amount: 19800,
+  amount: 19800,
+  discount_rate: 0,
+  duration_months: null,
+  currency: "KRW",
+  template_service: "display",
+  requires_business_verification: true,
+  is_subscription: true,
+} as const;
+
+export const businessDisplayYearlyProduct = {
+  key: "business_display_yearly",
+  product_key: "business_display_yearly",
+  name: "메뉴링크 디스플레이 연결제",
+  label: "메뉴링크 디스플레이 연결제",
+  description: "사업자 인증 후 메뉴링크 디스플레이 메뉴보드를 1년 이용권으로 이용합니다.",
+  plan_type: "business_display",
+  payment_type: "one_time",
+  billing_cycle: "yearly",
+  regular_amount: 237600,
+  amount: 190000,
+  discount_rate: 20,
+  duration_months: 12,
+  currency: "KRW",
+  template_service: "display",
+  requires_business_verification: true,
+  is_subscription: false,
+} as const;
+
+export const displayPaymentProducts = [
+  businessDisplayMonthlyProduct,
+  businessDisplayYearlyProduct,
+] as const;
+
+export type DisplayPaymentProduct = (typeof displayPaymentProducts)[number];
+
+export const paidApplyPaymentProducts = [
+  ...basicPaymentProducts,
+  ...displayPaymentProducts,
+] as const;
+
+export type PaidApplyPaymentProduct = (typeof paidApplyPaymentProducts)[number];
+
 export const menuCreationProduct = personalTrialBasicProduct;
 export type MenuCreationProduct = typeof menuCreationProduct;
 
@@ -143,6 +193,10 @@ export type MenuOrderPayload = {
 
 export function getBasicPaymentProduct(productKey: string | null | undefined) {
   return basicPaymentProducts.find((product) => product.product_key === productKey) ?? null;
+}
+
+export function getPaymentProductDefinition(productKey: string | null | undefined) {
+  return paidApplyPaymentProducts.find((product) => product.product_key === productKey) ?? null;
 }
 
 export function isTemplateKey(value: string): value is TemplateKey {

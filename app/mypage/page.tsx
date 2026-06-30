@@ -1640,10 +1640,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const entitlement = siteId ? entitlementByMenuSiteId.get(siteId) : undefined;
     const trialDisplayInfo = getTrialDisplayInfo(settings, entitlement);
     const planType = trialDisplayInfo?.planType ?? "";
+    const billingType = trialDisplayInfo?.billingType ?? "";
     const billingCycle = trialDisplayInfo?.billingCycle ?? "";
     const entitlementStatus = trialDisplayInfo?.status ?? "";
     const isPersonalTrial = planType === "personal_trial" || planType === "personal_trial_basic_1month";
     const isBusinessService = planType === "business_basic" || planType === "business_display";
+    const isOneTimeBusinessService = isBusinessService && billingType === "one_time";
     const activeBusinessSubscription = siteId
       ? businessSubscriptions.find((subscription) => subscription.menu_site_id === siteId && subscription.status === "active")
       : undefined;
@@ -1675,8 +1677,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const hasValidBusinessWindow =
       !isBusinessService ||
       (!hasPaymentIssue &&
-        activeBusinessSubscription?.status === "active" &&
-        (accessExpiresAt ? !isAccessExpired : Boolean(subscriptionAccessExpiresAt) && !isSubscriptionExpired));
+        (isOneTimeBusinessService
+          ? hasActiveEntitlement && (accessExpiresAt ? !isAccessExpired : true)
+          : activeBusinessSubscription?.status === "active" &&
+            (accessExpiresAt ? !isAccessExpired : Boolean(subscriptionAccessExpiresAt) && !isSubscriptionExpired)));
     const isAccessRestricted = isMenuArchived || !hasActiveEntitlement || hasInactiveEntitlement || isTrialExpired || !hasValidBusinessWindow;
     const canOpenPublicPage = isPublished && Boolean(slug) && !isAccessRestricted && !hasPaymentIssue;
     const canOwnerPreview = Boolean(siteId) && (!isAccessRestricted || isRecoveryWindowOpen);
@@ -1760,6 +1764,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       } else if (periodEnd) {
         metaItems.push({ label: "이용 종료일", value: formatDate(periodEnd) });
       }
+    } else if (isOneTimeBusinessService && hasActiveEntitlement && !isAccessRestricted) {
+      primaryMessage = site.status === "published"
+        ? "현재 손님에게 공개 중입니다."
+        : site.status === "draft"
+          ? "아직 공개 전입니다. 편집 후 공개할 수 있습니다."
+          : `${serviceBadge.label} 1년 이용권으로 이용 중입니다.`;
+      if (accessExpiresAt) {
+        metaItems.push({ label: "이용 만료일", value: formatDate(accessExpiresAt) });
+      } else {
+        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
+      }
+      metaItems.push({ label: "결제방식", value: billingCycle === "yearly" ? "연결제 / 자동결제 없음" : "1회 결제 / 자동결제 없음" });
+      metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
       primaryMessage = isCancelScheduledActive
         ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."

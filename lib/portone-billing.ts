@@ -21,6 +21,8 @@ export type PortOneBillingPaymentResult = {
 };
 
 type PortOneSafeDebug = {
+  path?: string;
+  paymentId?: string;
   portoneStatus?: number;
   portoneType?: string;
   portoneCode?: string;
@@ -93,6 +95,12 @@ function sanitizePortOneMessage(value: string | undefined) {
     .slice(0, 500);
 }
 
+function logPortOneBillingDebug(event: string, debug: PortOneSafeDebug) {
+  if (process.env.NODE_ENV === "production") return;
+
+  console.info(`[portone-billing] ${event}`, JSON.stringify(debug));
+}
+
 async function getSafePortOneErrorDebug(response: Response, requestSummary?: PortOneSafeDebug) {
   const text = await response.text();
   let parsed: unknown = null;
@@ -120,6 +128,8 @@ async function getSafePortOneErrorDebug(response: Response, requestSummary?: Por
 
 async function requestPortOne(path: string, init: RequestInit, requestSummary?: PortOneSafeDebug) {
   const apiSecret = requirePortOneApiSecret();
+  const safeRequestSummary = { ...requestSummary, path };
+  logPortOneBillingDebug("request_start", safeRequestSummary);
   const response = await fetch(`https://api.portone.io${path}`, {
     ...init,
     headers: {
@@ -131,10 +141,12 @@ async function requestPortOne(path: string, init: RequestInit, requestSummary?: 
   });
 
   if (!response.ok) {
-    const safeDebug = await getSafePortOneErrorDebug(response, requestSummary);
+    const safeDebug = await getSafePortOneErrorDebug(response, safeRequestSummary);
+    logPortOneBillingDebug("request_failed", safeDebug);
     throw new PortOneBillingError("PortOne 빌링키 첫 결제 요청에 실패했습니다.", safeDebug, 502);
   }
 
+  logPortOneBillingDebug("request_success", { ...safeRequestSummary, portoneStatus: response.status });
   return response;
 }
 
@@ -166,6 +178,7 @@ export async function payWithBillingKey({
     ...(normalizedPhoneNumber ? { phoneNumber: normalizedPhoneNumber } : {}),
   };
   const requestSummary = {
+    paymentId,
     hasStoreId: Boolean(storeId),
     hasBillingKey: Boolean(billingKey),
     hasChannelKey: Boolean(channelKey),
@@ -188,10 +201,11 @@ export async function payWithBillingKey({
     throw new PortOneBillingError("PortOne 정기결제 채널 환경변수가 필요합니다.", requestSummary, 500);
   }
 
+  logPortOneBillingDebug("portone_first_payment_request_start", requestSummary);
   await requestPortOne(`/payments/${encodeURIComponent(paymentId)}/billing-key`, {
     method: "POST",
     headers: {
-      "Idempotency-Key": paymentId,
+      "Idempotency-Key": `"${paymentId}"`,
     },
     body: JSON.stringify({
       storeId,
@@ -206,6 +220,7 @@ export async function payWithBillingKey({
       productCount: 1,
     }),
   }, requestSummary);
+  logPortOneBillingDebug("portone_first_payment_response", { ...requestSummary, portoneStatus: 200 });
 
   const paymentResponse = await requestPortOne(`/payments/${encodeURIComponent(paymentId)}`, {
     method: "GET",
@@ -215,17 +230,21 @@ export async function payWithBillingKey({
   const paidAmount = getPaymentAmount(payment);
 
   if (verifiedPaymentId !== paymentId) {
+    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: "payment id mismatch" });
     throw new Error("PortOne billing payment id mismatch.");
   }
 
   if (payment.status !== "PAID") {
+    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: `payment is not paid: ${payment.status ?? "unknown"}` });
     throw new Error(`PortOne billing payment is not paid: ${payment.status ?? "unknown"}`);
   }
 
   if (paidAmount !== amount) {
+    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: `amount mismatch: ${paidAmount ?? "unknown"}` });
     throw new Error(`PortOne billing amount mismatch: ${paidAmount ?? "unknown"}`);
   }
 
+  logPortOneBillingDebug("portone_first_payment_done", { ...requestSummary, portoneStatus: 200 });
   return {
     paymentId,
     status: "PAID",
