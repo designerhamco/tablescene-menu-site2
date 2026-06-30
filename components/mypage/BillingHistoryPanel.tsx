@@ -19,7 +19,7 @@ export type BillingHistoryEntry = {
   statusBucket: "paid" | "failed" | "cancelled" | "refund_processing" | "refunded" | "needs_review" | "pending" | "unknown";
   statusLabel: string;
   statusTone: "success" | "warning" | "danger" | "neutral";
-  serviceStatusBucket: "active" | "cancel_scheduled" | "refund_processing" | "archived" | "unrecoverable" | "needs_review" | "unknown";
+  serviceStatusBucket: "active" | "cancel_scheduled" | "refund_processing" | "archived" | "restored" | "unrecoverable" | "needs_review" | "unknown";
   serviceStatusLabel: string;
   serviceStatusTone: "success" | "warning" | "danger" | "neutral";
   paymentStatusBucket: BillingHistoryEntry["statusBucket"];
@@ -601,6 +601,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
               { value: "cancel_scheduled", label: "해지예약중" },
               { value: "refund_processing", label: "환불처리중" },
               { value: "archived", label: "보관중" },
+              { value: "restored", label: "재구독 완료" },
               { value: "unrecoverable", label: "복구불가" },
               { value: "needs_review", label: "처리확인 필요" },
             ]}

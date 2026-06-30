@@ -695,11 +695,13 @@ function getBillingServiceStatus({
   subscription,
   entitlement,
   menuSite,
+  hasNewerActiveService = false,
 }: {
   refundRequest?: RefundRequestRecord | null;
   subscription?: BusinessSubscription | null;
   entitlement?: ServiceEntitlement | null;
   menuSite?: MenuSite | null;
+  hasNewerActiveService?: boolean;
 }): {
   bucket: BillingHistoryEntry["serviceStatusBucket"];
   label: string;
@@ -732,6 +734,15 @@ function getBillingServiceStatus({
   const isArchived = menuSite?.status === "archived" || entitlement?.status === "archived";
 
   if (refundStatus === "completed") {
+    if (hasNewerActiveService) {
+      return {
+        bucket: "restored",
+        label: "재구독 완료",
+        tone: "success",
+        message: "기존 메뉴판이 새 구독으로 복구되었습니다.",
+      };
+    }
+
     if (isArchived && hasRetentionWindow) {
       return {
         bucket: "archived",
@@ -1956,16 +1967,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       const paymentStatusBucket = paymentStatusFromRefund?.bucket ?? getPaymentStatusBucket(status);
       const paymentStatusLabel = paymentStatusFromRefund?.label ?? getPaymentStatusLabel(status);
       const paymentStatusTone = paymentStatusFromRefund?.tone ?? getPaymentStatusTone(status);
+      const activeSubscriptionForMenu = resolvedMenuSite?.id
+        ? businessSubscriptions.find((subscription) => subscription.menu_site_id === resolvedMenuSite.id && subscription.status === "active")
+        : null;
+      const activeEntitlementForMenu = resolvedMenuSite?.id
+        ? (serviceEntitlements ?? []).find((serviceEntitlement) => serviceEntitlement.menu_site_id === resolvedMenuSite.id && serviceEntitlement.status === "active")
+        : null;
+      const hasActiveSubscriptionForMenu = Boolean(activeSubscriptionForMenu);
+      const hasNewerActiveServiceForRefundedMenu =
+        refundRequest?.status === "completed" &&
+        Boolean(activeSubscriptionForMenu || activeEntitlementForMenu);
       const serviceStatus = getBillingServiceStatus({
         refundRequest,
         subscription: matchingSubscription,
         entitlement,
         menuSite: resolvedMenuSite,
+        hasNewerActiveService: hasNewerActiveServiceForRefundedMenu,
       });
       const retentionEndDate = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
-      const hasActiveSubscriptionForMenu = resolvedMenuSite?.id
-        ? businessSubscriptions.some((subscription) => subscription.menu_site_id === resolvedMenuSite.id && subscription.status === "active")
-        : false;
       const restoreSubscription = getRestoreSubscriptionCta({
         serviceType,
         serviceStatusBucket: serviceStatus.bucket,
@@ -1973,12 +1992,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         retentionEndDate,
         hasActiveSubscription: hasActiveSubscriptionForMenu,
       });
-      const renewalLabel = serviceStatus.bucket === "archived" || serviceStatus.bucket === "unrecoverable"
+      const renewalLabel = serviceStatus.bucket === "restored"
+        ? "복구 완료일"
+        : serviceStatus.bucket === "archived" || serviceStatus.bucket === "unrecoverable"
         ? "보관 만료일"
         : billingMethod === "one_time" || billingMethod === "trial"
           ? "이용 만료일"
           : "다음 결제 예정일";
-      const renewalDate = serviceStatus.bucket === "archived" || serviceStatus.bucket === "unrecoverable"
+      const renewalDate = serviceStatus.bucket === "restored"
+        ? activeSubscriptionForMenu?.current_period_start ?? activeEntitlementForMenu?.access_starts_at ?? null
+        : serviceStatus.bucket === "archived" || serviceStatus.bucket === "unrecoverable"
         ? retentionEndDate ?? subscriptionPeriodEnd
         : billingMethod === "one_time" || billingMethod === "trial"
           ? entitlement?.access_expires_at ?? matchingSubscription?.current_period_end ?? null
