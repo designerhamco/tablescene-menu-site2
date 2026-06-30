@@ -9,8 +9,23 @@ type PortOnePaymentResponse = {
   amount?: number | {
     total?: number;
     paid?: number;
+    cancelled?: number;
+    canceled?: number;
   };
   paidAmount?: number;
+  cancelledAmount?: number;
+  canceledAmount?: number;
+};
+
+type PortOneCancellationResponse = {
+  cancellation?: {
+    id?: string;
+    cancellationId?: string;
+    status?: "FAILED" | "REQUESTED" | "SUCCEEDED" | string;
+    amount?: number | {
+      total?: number;
+    };
+  };
 };
 
 export type PortOneBillingPaymentResult = {
@@ -18,6 +33,14 @@ export type PortOneBillingPaymentResult = {
   status: string;
   amount: number;
   rawPayment: PortOnePaymentResponse;
+};
+
+export type PortOnePaymentCancellationResult = {
+  paymentId: string;
+  cancellationId: string | null;
+  status: "FAILED" | "REQUESTED" | "SUCCEEDED" | string;
+  amount: number;
+  rawCancellation: PortOneCancellationResponse;
 };
 
 type PortOneSafeDebug = {
@@ -43,6 +66,7 @@ type PortOneSafeDebug = {
   paymentAmount?: number;
   recheckAttempt?: number;
   recheckDelayMs?: number;
+  currentCancellableAmount?: number;
 };
 
 export class PortOneBillingError extends Error {
@@ -60,6 +84,17 @@ function getPaymentAmount(payment: PortOnePaymentResponse) {
   if (typeof payment.amount?.total === "number") return payment.amount.total;
   if (typeof payment.amount?.paid === "number") return payment.amount.paid;
   if (typeof payment.paidAmount === "number") return payment.paidAmount;
+  return null;
+}
+
+function getPaymentCancelledAmount(payment: PortOnePaymentResponse) {
+  if (typeof payment.amount === "object") {
+    if (typeof payment.amount.cancelled === "number") return payment.amount.cancelled;
+    if (typeof payment.amount.canceled === "number") return payment.amount.canceled;
+  }
+
+  if (typeof payment.cancelledAmount === "number") return payment.cancelledAmount;
+  if (typeof payment.canceledAmount === "number") return payment.canceledAmount;
   return null;
 }
 
@@ -164,7 +199,12 @@ async function getSafePortOneErrorDebug(response: Response, requestSummary?: Por
   } satisfies PortOneSafeDebug;
 }
 
-async function requestPortOne(path: string, init: RequestInit, requestSummary?: PortOneSafeDebug) {
+async function requestPortOne(
+  path: string,
+  init: RequestInit,
+  requestSummary?: PortOneSafeDebug,
+  errorMessage = "PortOne 빌링키 첫 결제 요청에 실패했습니다."
+) {
   const apiSecret = requirePortOneApiSecret();
   const safeRequestSummary = { ...requestSummary, path };
   logPortOneBillingDebug("request_start", safeRequestSummary);
@@ -181,11 +221,95 @@ async function requestPortOne(path: string, init: RequestInit, requestSummary?: 
   if (!response.ok) {
     const safeDebug = await getSafePortOneErrorDebug(response, safeRequestSummary);
     logPortOneBillingDebug("request_failed", safeDebug);
-    throw new PortOneBillingError("PortOne 빌링키 첫 결제 요청에 실패했습니다.", safeDebug, 502);
+    throw new PortOneBillingError(errorMessage, safeDebug, 502);
   }
 
   logPortOneBillingDebug("request_success", { ...safeRequestSummary, portoneStatus: response.status });
   return response;
+}
+
+export function getPortOnePaymentAmountSummary(payment: PortOnePaymentResponse) {
+  const total = typeof payment.amount === "number" ? payment.amount : payment.amount?.total ?? null;
+  const paid = typeof payment.amount === "object" && typeof payment.amount.paid === "number"
+    ? payment.amount.paid
+    : typeof payment.paidAmount === "number"
+      ? payment.paidAmount
+      : null;
+  const cancelled = getPaymentCancelledAmount(payment);
+
+  return { total, paid, cancelled };
+}
+
+function getCancellationAmount(cancellation: NonNullable<PortOneCancellationResponse["cancellation"]>, fallbackAmount: number) {
+  if (typeof cancellation.amount === "number") return cancellation.amount;
+  if (typeof cancellation.amount?.total === "number") return cancellation.amount.total;
+  return fallbackAmount;
+}
+
+export async function getPortOnePayment({ paymentId }: { paymentId: string }) {
+  const requestSummary = { paymentId } satisfies PortOneSafeDebug;
+  const paymentResponse = await requestPortOne(`/payments/${encodeURIComponent(paymentId)}`, {
+    method: "GET",
+  }, requestSummary, "PortOne 결제 조회에 실패했습니다.");
+
+  return (await paymentResponse.json()) as PortOnePaymentResponse;
+}
+
+export async function cancelPortOnePayment({
+  paymentId,
+  amount,
+  reason,
+  currentCancellableAmount,
+}: {
+  paymentId: string;
+  amount: number;
+  reason: string;
+  currentCancellableAmount?: number;
+}) {
+  const storeId = portOneStoreId;
+  const requestSummary = {
+    paymentId,
+    hasStoreId: Boolean(storeId),
+    amount,
+    currency: "KRW",
+    currentCancellableAmount,
+  } satisfies PortOneSafeDebug;
+
+  if (!storeId) {
+    throw new PortOneBillingError("PortOne Store ID 환경변수가 필요합니다.", requestSummary, 500);
+  }
+
+  logPortOneBillingDebug("portone_payment_cancel_request_start", requestSummary);
+  const response = await requestPortOne(`/payments/${encodeURIComponent(paymentId)}/cancel`, {
+    method: "POST",
+    body: JSON.stringify({
+      storeId,
+      amount,
+      reason,
+      requester: "CUSTOMER",
+      ...(typeof currentCancellableAmount === "number" ? { currentCancellableAmount } : {}),
+    }),
+  }, requestSummary, "PortOne 결제 취소 요청에 실패했습니다.");
+  const rawCancellation = (await response.json()) as PortOneCancellationResponse;
+  const cancellation = rawCancellation.cancellation ?? {};
+  const status = cancellation.status ?? "UNKNOWN";
+  const cancellationId = cancellation.id ?? cancellation.cancellationId ?? null;
+  const cancelledAmount = getCancellationAmount(cancellation, amount);
+
+  logPortOneBillingDebug("portone_payment_cancel_response", {
+    ...requestSummary,
+    portoneStatus: response.status,
+    paymentStatus: status,
+    paymentAmount: cancelledAmount,
+  });
+
+  return {
+    paymentId,
+    cancellationId,
+    status,
+    amount: cancelledAmount,
+    rawCancellation,
+  } satisfies PortOnePaymentCancellationResult;
 }
 
 export async function payWithBillingKey({

@@ -47,6 +47,7 @@ export type BillingHistoryEntry = {
     canManage: boolean;
     defaultOpen: boolean;
     billingMethod: "monthly" | "yearly" | "unknown";
+    refundConfirmEnabled?: boolean;
   } | null;
 };
 

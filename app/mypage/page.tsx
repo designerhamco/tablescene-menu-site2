@@ -34,6 +34,7 @@ import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
 import type { Json } from "@/lib/supabase/types";
+import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
 
 type SearchParams = Promise<{
   tab?: string | string[];
@@ -1101,6 +1102,7 @@ async function getServiceEntitlementsForMenuSites(
 
 export default async function MyPage({ searchParams }: { searchParams: SearchParams }) {
   const { tab, menuTab, billingTab, error, message, inquiryPage, subscriptionId, modal } = await searchParams;
+  const yearlyRefundConfirmEnabled = isYearlyRefundConfirmQaEnabled();
   const activeTab = getActiveTab(tab);
   const activeMenuTab = getMenuTab(menuTab);
   const activeBillingTab = getBillingTab(billingTab);
@@ -1719,6 +1721,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               canManage: Boolean(typeof matchingSubscription.cancel_at_period_end === "boolean"),
               defaultOpen: shouldAutoOpenSubscriptionModal && requestedSubscriptionId === matchingSubscription.id,
               billingMethod: billingMethod === "yearly" ? "yearly" : billingMethod === "monthly" ? "monthly" : "unknown",
+              refundConfirmEnabled: yearlyRefundConfirmEnabled,
             }
           : null,
       };
@@ -2450,6 +2453,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     canManage={Boolean(typeof subscription.cancel_at_period_end === "boolean")}
                                     defaultOpen={shouldAutoOpenSubscriptionModal && requestedSubscriptionId === subscription.id}
                                     billingMethod={billingCycle === "yearly" ? "yearly" : billingCycle === "monthly" ? "monthly" : "unknown"}
+                                    refundConfirmEnabled={yearlyRefundConfirmEnabled}
                                   />
                                 ) : null}
                                 <PaymentDetailModal

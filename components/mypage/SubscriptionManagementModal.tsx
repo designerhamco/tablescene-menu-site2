@@ -21,11 +21,15 @@ export type SubscriptionManagementModalProps = {
   canManage: boolean;
   defaultOpen?: boolean;
   billingMethod?: "monthly" | "yearly" | "unknown";
+  refundConfirmEnabled?: boolean;
 };
 
 type ApiResult = {
   ok?: boolean;
   message?: string;
+  status?: string;
+  finalRefundAmount?: number | null;
+  refundRequestId?: string;
 };
 
 type RefundQuote = {
@@ -53,7 +57,15 @@ type RefundQuoteState =
   | { status: "success"; quote: RefundQuote; message: null }
   | { status: "error"; quote: null; message: string };
 
+type RefundConfirmState =
+  | { status: "idle"; message: null; finalRefundAmount: null }
+  | { status: "processing"; message: null; finalRefundAmount: null }
+  | { status: "completed"; message: string; finalRefundAmount: number | null }
+  | { status: "needs_review"; message: string; finalRefundAmount: number | null }
+  | { status: "error"; message: string; finalRefundAmount: null };
+
 const initialRefundQuoteState: RefundQuoteState = { status: "idle", quote: null, message: null };
+const initialRefundConfirmState: RefundConfirmState = { status: "idle", message: null, finalRefundAmount: null };
 
 async function parseApiResult(response: Response) {
   const result = (await response.json().catch(() => ({}))) as ApiResult;
@@ -102,6 +114,7 @@ export default function SubscriptionManagementModal({
   canManage,
   defaultOpen = false,
   billingMethod = "unknown",
+  refundConfirmEnabled = false,
 }: SubscriptionManagementModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -111,12 +124,16 @@ export default function SubscriptionManagementModal({
   const [error, setError] = useState<string | null>(null);
   const [isViewingRefundGuide, setIsViewingRefundGuide] = useState(false);
   const [refundQuoteState, setRefundQuoteState] = useState<RefundQuoteState>(initialRefundQuoteState);
+  const [refundConfirmState, setRefundConfirmState] = useState<RefundConfirmState>(initialRefundConfirmState);
+  const [refundReason, setRefundReason] = useState("");
   const isYearlyBilling = billingMethod === "yearly";
 
   function closeModal() {
     setIsOpen(false);
     setIsViewingRefundGuide(false);
     setRefundQuoteState(initialRefundQuoteState);
+    setRefundConfirmState(initialRefundConfirmState);
+    setRefundReason("");
     if (defaultOpen) {
       router.replace("/mypage?tab=payments&billingTab=active", { scroll: false });
     }
@@ -124,6 +141,7 @@ export default function SubscriptionManagementModal({
 
   async function loadRefundQuote() {
     setRefundQuoteState({ status: "loading", quote: null, message: null });
+    setRefundConfirmState(initialRefundConfirmState);
 
     try {
       const response = await fetch("/api/business-subscriptions/refund/quote", {
@@ -187,6 +205,67 @@ export default function SubscriptionManagementModal({
     }
   }
 
+  async function submitRefundConfirm() {
+    if (refundQuoteState.status !== "success" || !refundQuoteState.quote.canAutoRefundLater) return;
+    if (!refundConfirmEnabled) {
+      setRefundConfirmState({
+        status: "error",
+        message: "연결제 자동 환불 기능은 현재 QA 준비 중입니다.",
+        finalRefundAmount: null,
+      });
+      return;
+    }
+
+    const ok = window.confirm(
+      `예상 환불금액 ${formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}으로 환불을 진행합니다.\n\n환불이 완료되면 메뉴판은 보관 상태로 전환되고, 실제 카드 취소 반영은 결제수단에 따라 영업일 기준 3~7일이 걸릴 수 있습니다.`
+    );
+
+    if (!ok) return;
+
+    setRefundConfirmState({ status: "processing", message: null, finalRefundAmount: null });
+    setError(null);
+
+    try {
+      const response = await fetch("/api/business-subscriptions/refund/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscriptionId,
+          customerReason: refundReason,
+          acceptedRefundQuote: true,
+        }),
+      });
+      const result = (await response.json().catch(() => ({}))) as ApiResult;
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message || "환불 처리에 실패했습니다.");
+      }
+
+      if (result.status === "completed") {
+        setRefundConfirmState({
+          status: "completed",
+          message: result.message || "환불 처리가 접수되었습니다.",
+          finalRefundAmount: typeof result.finalRefundAmount === "number" ? result.finalRefundAmount : refundQuoteState.quote.estimatedRefundAmount,
+        });
+        router.refresh();
+        return;
+      }
+
+      setRefundConfirmState({
+        status: "needs_review",
+        message: result.message || "자동 환불 처리 확인이 필요합니다.",
+        finalRefundAmount: typeof result.finalRefundAmount === "number" ? result.finalRefundAmount : null,
+      });
+      router.refresh();
+    } catch (confirmError) {
+      setRefundConfirmState({
+        status: "error",
+        message: confirmError instanceof Error ? confirmError.message : "환불 처리에 실패했습니다.",
+        finalRefundAmount: null,
+      });
+    }
+  }
+
   return (
     <>
       <button
@@ -195,6 +274,8 @@ export default function SubscriptionManagementModal({
           setError(null);
           setIsViewingRefundGuide(false);
           setRefundQuoteState(initialRefundQuoteState);
+          setRefundConfirmState(initialRefundConfirmState);
+          setRefundReason("");
           setIsOpen(true);
         }}
         className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
@@ -307,6 +388,55 @@ export default function SubscriptionManagementModal({
                         {refundQuoteState.quote.reasonIfNotRefundable}
                       </p>
                     ) : null}
+
+                    {!refundConfirmEnabled ? (
+                      <p className="mt-3 rounded-xl bg-zinc-50 p-3 text-sm font-bold text-zinc-500">
+                        연결제 자동 환불 기능은 현재 QA 준비 중입니다. 예상 환불금액만 확인할 수 있습니다.
+                      </p>
+                    ) : null}
+
+                    <label className="mt-4 block">
+                      <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">요청 사유</span>
+                      <textarea
+                        value={refundReason}
+                        onChange={(event) => setRefundReason(event.target.value)}
+                        maxLength={500}
+                        placeholder="중도해지/환불 사유를 남겨주세요. 선택 사항입니다."
+                        className="mt-2 min-h-24 w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm font-bold text-zinc-900 outline-none focus:border-zinc-950"
+                      />
+                    </label>
+                  </div>
+                ) : null}
+
+                {refundConfirmState.status === "processing" ? (
+                  <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
+                    환불 처리를 진행하고 있습니다. 창을 닫지 말고 잠시만 기다려주세요.
+                  </div>
+                ) : null}
+
+                {refundConfirmState.status === "completed" ? (
+                  <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
+                    <h4 className="text-base font-black text-emerald-950">환불 처리가 접수되었습니다</h4>
+                    <p className="mt-2">{refundConfirmState.message}</p>
+                    {typeof refundConfirmState.finalRefundAmount === "number" ? (
+                      <p className="mt-2">환불금액: {formatKrwLabel(refundConfirmState.finalRefundAmount)}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {refundConfirmState.status === "needs_review" ? (
+                  <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
+                    <h4 className="text-base font-black text-amber-950">고객지원 확인이 필요합니다</h4>
+                    <p className="mt-2">{refundConfirmState.message}</p>
+                    <p className="mt-2">추가 결제나 재요청 없이 메뉴링크 고객지원 안내를 기다려주세요.</p>
+                  </div>
+                ) : null}
+
+                {refundConfirmState.status === "error" ? (
+                  <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
+                    <h4 className="text-base font-black text-red-800">환불 처리에 실패했습니다</h4>
+                    <p className="mt-2">{refundConfirmState.message}</p>
+                    <p className="mt-2">추가 결제나 재요청 없이 고객지원으로 문의해주세요.</p>
                   </div>
                 ) : null}
 
@@ -327,10 +457,21 @@ export default function SubscriptionManagementModal({
                   </button>
                   <button
                     type="button"
-                    disabled
-                    className="rounded-full bg-zinc-100 px-5 py-3 text-sm font-black text-zinc-400"
+                    disabled={
+                      refundQuoteState.status !== "success" ||
+                      !refundQuoteState.quote.canAutoRefundLater ||
+                      !refundConfirmEnabled ||
+                      refundConfirmState.status === "processing" ||
+                      refundConfirmState.status === "completed"
+                    }
+                    onClick={submitRefundConfirm}
+                    className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                   >
-                    환불 진행 - 다음 단계에서 제공 예정
+                    {refundConfirmState.status === "processing"
+                      ? "환불 처리 중..."
+                      : refundConfirmEnabled
+                        ? "환불 진행"
+                        : "환불 진행 - 준비 중"}
                   </button>
                 </div>
               </div>
