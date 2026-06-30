@@ -149,6 +149,20 @@ type AiCreditPurchaseTransaction = {
   created_at: string | null;
 };
 
+type RefundRequestRecord = {
+  id: string | null;
+  business_subscription_id: string | null;
+  menu_site_id: string | null;
+  payment_id: string | null;
+  portone_payment_id: string | null;
+  status: string | null;
+  estimated_refund_amount: number | null;
+  final_refund_amount: number | null;
+  processed_at: string | null;
+  failure_reason: string | null;
+  created_at: string | null;
+};
+
 type BusinessProfile = {
   id: string | null;
   business_registration_number: string | null;
@@ -600,6 +614,39 @@ function getPaymentStatusLabel(status: string | null | undefined) {
   return status ? labels[status] ?? status : "상태 확인 필요";
 }
 
+function getBillingPaymentStatusFromRefund(refundRequest: RefundRequestRecord | null | undefined) {
+  const status = refundRequest?.status ?? null;
+
+  if (status === "needs_review") {
+    return {
+      bucket: "needs_review" as const,
+      label: "처리확인 필요",
+      tone: "warning" as const,
+      message: "자동 처리 확인이 필요합니다. 추가 결제나 재요청 없이 고객지원에서 확인 후 안내드리겠습니다.",
+    };
+  }
+
+  if (status === "requested" || status === "processing") {
+    return {
+      bucket: "refund_processing" as const,
+      label: "환불처리중",
+      tone: "warning" as const,
+      message: "환불 처리를 진행 중입니다.",
+    };
+  }
+
+  if (status === "completed") {
+    return {
+      bucket: "refunded" as const,
+      label: "환불완료",
+      tone: "warning" as const,
+      message: null,
+    };
+  }
+
+  return null;
+}
+
 function getStateBadgeClassName(status: string | null | undefined) {
   if (status === "active" || status === "paid" || status === "completed") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
   if (status === "failed" || status === "past_due" || status === "payment_failed") return "bg-red-50 text-red-700 ring-red-100";
@@ -642,16 +689,130 @@ function getPaymentStatusBucket(status: string | null | undefined): BillingHisto
   return "unknown";
 }
 
+function getBillingServiceStatus({
+  refundRequest,
+  subscription,
+  entitlement,
+  menuSite,
+}: {
+  refundRequest?: RefundRequestRecord | null;
+  subscription?: BusinessSubscription | null;
+  entitlement?: ServiceEntitlement | null;
+  menuSite?: MenuSite | null;
+}): {
+  bucket: BillingHistoryEntry["serviceStatusBucket"];
+  label: string;
+  tone: BillingHistoryEntry["serviceStatusTone"];
+  message: string | null;
+} {
+  const refundStatus = refundRequest?.status ?? null;
+
+  if (refundStatus === "needs_review") {
+    return {
+      bucket: "needs_review",
+      label: "처리확인 필요",
+      tone: "warning",
+      message: "자동 처리 확인이 필요합니다. 추가 결제나 재요청 없이 고객지원에서 확인 후 안내드리겠습니다.",
+    };
+  }
+
+  if (refundStatus === "requested" || refundStatus === "processing") {
+    return {
+      bucket: "refund_processing",
+      label: "환불처리중",
+      tone: "warning",
+      message: "환불 처리를 진행 중입니다.",
+    };
+  }
+
+  const retentionEnd = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
+  const retentionDays = retentionEnd ? getRemainingDaysUntilKst(retentionEnd) : null;
+  const hasRetentionWindow = typeof retentionDays === "number" && retentionDays >= 0;
+  const isArchived = menuSite?.status === "archived" || entitlement?.status === "archived";
+
+  if (refundStatus === "completed") {
+    if (isArchived && hasRetentionWindow) {
+      return {
+        bucket: "archived",
+        label: "보관중",
+        tone: "warning",
+        message: `${formatDate(retentionEnd)}까지 복구 가능`,
+      };
+    }
+
+    return {
+      bucket: "unrecoverable",
+      label: "복구불가",
+      tone: "neutral",
+      message: "보관 기간이 지나 메뉴판을 복구할 수 없습니다.",
+    };
+  }
+
+  if (subscription?.status === "active" && subscription.cancel_at_period_end) {
+    return {
+      bucket: "cancel_scheduled",
+      label: "해지예약중",
+      tone: "warning",
+      message: "다음 결제일부터 자동결제가 중단될 예정이며, 현재는 이용할 수 있습니다.",
+    };
+  }
+
+  if (isArchived) {
+    if (hasRetentionWindow) {
+      return {
+        bucket: "archived",
+        label: "보관중",
+        tone: "warning",
+        message: `${formatDate(retentionEnd)}까지 복구 가능`,
+      };
+    }
+
+    return {
+      bucket: "unrecoverable",
+      label: "복구불가",
+      tone: "neutral",
+      message: "보관 기간이 지나 메뉴판을 복구할 수 없습니다.",
+    };
+  }
+
+  if (entitlement?.status === "active" && menuSite?.status !== "archived") {
+    return {
+      bucket: "active",
+      label: "이용중",
+      tone: "success",
+      message: null,
+    };
+  }
+
+  if (subscription?.status === "failed" || subscription?.status === "payment_failed" || subscription?.status === "past_due") {
+    return {
+      bucket: "needs_review",
+      label: "처리확인 필요",
+      tone: "warning",
+      message: "결제 상태 확인이 필요합니다. 추가 결제나 재요청 전에 고객지원 안내를 확인해주세요.",
+    };
+  }
+
+  return {
+    bucket: "unknown",
+    label: "상태 확인 필요",
+    tone: "neutral",
+    message: null,
+  };
+}
+
 function getBillingHistoryServiceType(productKey: string | null | undefined, templateKey?: string | null): BillingHistoryEntry["serviceType"] {
   const key = getSafeString(productKey);
   const template = getSafeString(templateKey);
 
+  if (key.includes("trial")) return "trial";
   if (key.includes("display") || template.startsWith("display_")) return "display";
   if (key.includes("basic") || template.startsWith("cafe_") || template.startsWith("restaurant_")) return "basic";
   return "other";
 }
 
 function getBillingHistoryServiceTypeLabel(serviceType: BillingHistoryEntry["serviceType"]) {
+  if (serviceType === "trial") return "체험";
   if (serviceType === "display") return "Display";
   if (serviceType === "basic") return "Basic";
   return "기타";
@@ -662,15 +823,71 @@ function getBillingHistoryMethod(productKey: string | null | undefined, billingC
 
   if (billingCycle === "monthly" || key.endsWith("_monthly")) return "monthly";
   if (billingCycle === "yearly" || key.endsWith("_yearly")) return "yearly";
-  if (billingCycle === "trial_1_month" || key.includes("trial") || key.includes("ai_credit")) return "one_time";
+  if (billingCycle === "trial_1_month" || key.includes("trial")) return "trial";
+  if (key.includes("ai_credit")) return "one_time";
   return "unknown";
 }
 
 function getBillingHistoryMethodLabel(method: BillingHistoryEntry["billingMethod"]) {
   if (method === "monthly") return "월결제 · 정기결제";
   if (method === "yearly") return "연결제 · 연 정기결제";
+  if (method === "trial") return "체험 결제";
   if (method === "one_time") return "일회성 · 자동결제 없음";
   return "결제 방식 확인 필요";
+}
+
+function getRestoreSubscriptionOptions(serviceType: BillingHistoryEntry["serviceType"]) {
+  const productKeys = serviceType === "basic"
+    ? ["business_basic_monthly", "business_basic_yearly"]
+    : serviceType === "display"
+      ? ["business_display_monthly", "business_display_yearly"]
+      : [];
+
+  return productKeys
+    .map((productKey) => getSubscriptionProduct(productKey))
+    .filter((product): product is NonNullable<ReturnType<typeof getSubscriptionProduct>> => Boolean(product))
+    .map((product) => ({
+      productKey: product.productKey,
+      label: product.label,
+      amountLabel: formatKrw(product.amount),
+      renewalDescription: product.billingCycle === "monthly"
+        ? "새 구독은 결제 완료일 기준으로 시작되며, 다음 결제 예정일은 결제 완료일로부터 1개월 후입니다."
+        : "새 구독은 결제 완료일 기준으로 시작되며, 다음 결제 예정일은 결제 완료일로부터 1년 후입니다.",
+    }));
+}
+
+function getRestoreSubscriptionCta({
+  serviceType,
+  serviceStatusBucket,
+  menuSite,
+  retentionEndDate,
+  hasActiveSubscription,
+}: {
+  serviceType: BillingHistoryEntry["serviceType"];
+  serviceStatusBucket: BillingHistoryEntry["serviceStatusBucket"];
+  menuSite?: MenuSite | null;
+  retentionEndDate?: string | null;
+  hasActiveSubscription: boolean;
+}): BillingHistoryEntry["restoreSubscription"] {
+  if (serviceStatusBucket !== "archived") return null;
+  if (serviceType !== "basic" && serviceType !== "display") return null;
+  if (!menuSite?.id) return null;
+  if (hasActiveSubscription) return null;
+
+  const daysUntilRetentionEnds = retentionEndDate ? getRemainingDaysUntilKst(retentionEndDate) : null;
+  if (typeof daysUntilRetentionEnds !== "number" || daysUntilRetentionEnds < 0) return null;
+
+  const options = getRestoreSubscriptionOptions(serviceType);
+  if (options.length === 0) return null;
+
+  return {
+    menuSiteId: menuSite.id,
+    menuName: menuSite.name ?? "이름 없는 메뉴판",
+    menuPath: formatPublicMenuPath(menuSite.slug),
+    serviceTypeLabel: getBillingHistoryServiceTypeLabel(serviceType),
+    retentionLabel: `${formatDate(retentionEndDate ?? null)}까지 복구 가능`,
+    options,
+  };
 }
 
 function getSubscriptionPeriodEnd(subscription: BusinessSubscription | null | undefined) {
@@ -1320,6 +1537,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   let payments: PaymentRecord[] = [];
   let orders: OrderRecord[] = [];
   let aiCreditPurchases: AiCreditPurchaseTransaction[] = [];
+  let refundRequests: RefundRequestRecord[] = [];
   const paymentsErrors: string[] = [];
 
   try {
@@ -1362,6 +1580,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         paymentsResult,
         ordersResult,
         aiCreditPurchasesResult,
+        refundRequestsResult,
       ] = await Promise.all([
         runMypageQuery(
           "business_subscriptions",
@@ -1394,6 +1613,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             .select("id, menu_site_id, product_key, payment_id, credit_amount, balance_after, created_at")
             .eq("user_id" as never, user.id as never)
             .eq("transaction_type" as never, "purchase" as never)
+            .order("created_at" as never, { ascending: false } as never)
+        ),
+        runMypageQuery(
+          "refund_requests",
+          adminSupabase
+            .from("refund_requests" as never)
+            .select("id, business_subscription_id, menu_site_id, payment_id, portone_payment_id, status, estimated_refund_amount, final_refund_amount, processed_at, failure_reason, created_at")
+            .eq("user_id" as never, user.id as never)
             .order("created_at" as never, { ascending: false } as never)
         ),
       ]);
@@ -1452,6 +1679,21 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           message: aiCreditPurchasesResult.error.message,
         });
         paymentsErrors.push("AI 크레딧 충전 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      }
+
+      if (!refundRequestsResult) {
+        paymentsErrors.push("환불 처리 상태를 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
+      } else if (isMissingRelationError(refundRequestsResult.error, "refund_requests")) {
+        refundRequests = [];
+      } else if (refundRequestsResult.error) {
+        console.error("[mypage/payments] refund requests query failed", {
+          userId: user.id,
+          code: refundRequestsResult.error.code,
+          message: refundRequestsResult.error.message,
+        });
+        paymentsErrors.push("환불 처리 상태를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      } else {
+        refundRequests = (refundRequestsResult.data ?? []) as unknown as RefundRequestRecord[];
       }
 
       if (businessSubscriptions.length === 0) {
@@ -1651,11 +1893,33 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     return { payment, order, productKey, menuSite };
   });
+  const refundRequestByPaymentRowId = new Map<string, RefundRequestRecord>();
+  const refundRequestByPortonePaymentId = new Map<string, RefundRequestRecord>();
+  const refundRequestBySubscriptionId = new Map<string, RefundRequestRecord>();
+
+  for (const refundRequest of refundRequests) {
+    const paymentRowId = getSafeString(refundRequest.payment_id);
+    const portonePaymentId = getSafeString(refundRequest.portone_payment_id);
+    const businessSubscriptionId = getSafeString(refundRequest.business_subscription_id);
+
+    if (paymentRowId && !refundRequestByPaymentRowId.has(paymentRowId)) {
+      refundRequestByPaymentRowId.set(paymentRowId, refundRequest);
+    }
+
+    if (portonePaymentId && !refundRequestByPortonePaymentId.has(portonePaymentId)) {
+      refundRequestByPortonePaymentId.set(portonePaymentId, refundRequest);
+    }
+
+    if (businessSubscriptionId && !refundRequestBySubscriptionId.has(businessSubscriptionId)) {
+      refundRequestBySubscriptionId.set(businessSubscriptionId, refundRequest);
+    }
+  }
   const displayedAiCreditPurchases = aiCreditPurchases.slice(0, 8);
   const billingHistoryEntries: BillingHistoryEntry[] = paymentHistory
     .filter(({ productKey }) => !getSafeString(productKey).startsWith("ai_credit"))
     .map(({ payment, order, productKey, menuSite }) => {
       const paymentId = getSafeString(payment.payment_id ?? payment.portone_payment_id ?? order?.payment_id ?? null);
+      const paymentRowId = getSafeString(payment.id);
       const matchingSubscription = businessSubscriptions.find((subscription) => {
         const subscriptionPaymentId = getSafeString(subscription.portone_payment_id);
         const subscriptionMenuSiteId = getSafeString(subscription.menu_site_id);
@@ -1665,18 +1929,56 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         if (paymentId && subscriptionPaymentId && paymentId === subscriptionPaymentId) return true;
         return Boolean(menuSiteId && subscriptionMenuSiteId === menuSiteId && productMatches);
       });
-      const entitlement = menuSite?.id ? entitlementByMenuSiteId.get(menuSite.id) : undefined;
+      const refundRequest =
+        (paymentRowId ? refundRequestByPaymentRowId.get(paymentRowId) : undefined) ??
+        (paymentId ? refundRequestByPortonePaymentId.get(paymentId) : undefined) ??
+        (matchingSubscription?.id ? refundRequestBySubscriptionId.get(matchingSubscription.id) : undefined) ??
+        null;
+      const resolvedMenuSite =
+        menuSite ??
+        (refundRequest?.menu_site_id ? siteById.get(refundRequest.menu_site_id) : undefined) ??
+        (matchingSubscription?.menu_site_id ? siteById.get(matchingSubscription.menu_site_id) : undefined);
+      const entitlement = resolvedMenuSite?.id ? entitlementByMenuSiteId.get(resolvedMenuSite.id) : undefined;
       const billingCycle = entitlement?.billing_cycle ?? matchingSubscription?.billing_cycle ?? null;
       const billingMethod = getBillingHistoryMethod(productKey, billingCycle);
-      const serviceType = getBillingHistoryServiceType(productKey, menuSite?.template_key ?? null);
+      const serviceType = getBillingHistoryServiceType(productKey, resolvedMenuSite?.template_key ?? null);
       const pgLabel = matchingSubscription ? "NHN KCP 카드 정기결제" : "PortOne 일반 결제";
-      const renewalLabel = billingMethod === "one_time" ? "이용 만료일" : "다음 결제 예정일";
-      const renewalDate = billingMethod === "one_time"
-        ? entitlement?.access_expires_at ?? matchingSubscription?.current_period_end ?? null
-        : matchingSubscription?.next_billing_at ?? matchingSubscription?.current_period_end ?? entitlement?.access_expires_at ?? null;
       const amount = payment.amount ?? order?.total_amount ?? matchingSubscription?.amount ?? null;
       const status = payment.status ?? order?.status ?? null;
       const subscriptionPeriodEnd = matchingSubscription?.current_period_end ?? matchingSubscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
+      const paymentStatusFromRefund = getBillingPaymentStatusFromRefund(refundRequest);
+      const paymentStatusBucket = paymentStatusFromRefund?.bucket ?? getPaymentStatusBucket(status);
+      const paymentStatusLabel = paymentStatusFromRefund?.label ?? getPaymentStatusLabel(status);
+      const paymentStatusTone = paymentStatusFromRefund?.tone ?? getPaymentStatusTone(status);
+      const serviceStatus = getBillingServiceStatus({
+        refundRequest,
+        subscription: matchingSubscription,
+        entitlement,
+        menuSite: resolvedMenuSite,
+      });
+      const retentionEndDate = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
+      const hasActiveSubscriptionForMenu = resolvedMenuSite?.id
+        ? businessSubscriptions.some((subscription) => subscription.menu_site_id === resolvedMenuSite.id && subscription.status === "active")
+        : false;
+      const restoreSubscription = getRestoreSubscriptionCta({
+        serviceType,
+        serviceStatusBucket: serviceStatus.bucket,
+        menuSite: resolvedMenuSite,
+        retentionEndDate,
+        hasActiveSubscription: hasActiveSubscriptionForMenu,
+      });
+      const renewalLabel = serviceStatus.bucket === "archived" || serviceStatus.bucket === "unrecoverable"
+        ? "보관 만료일"
+        : billingMethod === "one_time" || billingMethod === "trial"
+          ? "이용 만료일"
+          : "다음 결제 예정일";
+      const renewalDate = serviceStatus.bucket === "archived" || serviceStatus.bucket === "unrecoverable"
+        ? retentionEndDate ?? subscriptionPeriodEnd
+        : billingMethod === "one_time" || billingMethod === "trial"
+          ? entitlement?.access_expires_at ?? matchingSubscription?.current_period_end ?? null
+          : matchingSubscription?.next_billing_at ?? matchingSubscription?.current_period_end ?? entitlement?.access_expires_at ?? null;
+      const refundAmount = refundRequest?.final_refund_amount ?? refundRequest?.estimated_refund_amount ?? null;
+      const supportMessage = paymentStatusFromRefund?.message ?? serviceStatus.message;
 
       return {
         id: getSafeString(payment.id) || paymentId || `${productKey ?? "payment"}-${payment.created_at ?? "unknown"}`,
@@ -1688,26 +1990,36 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         billingMethodLabel: getBillingHistoryMethodLabel(billingMethod),
         paymentMethod: pgLabel,
         paymentMethodLabel: pgLabel,
-        statusBucket: getPaymentStatusBucket(status),
-        statusLabel: getPaymentStatusLabel(status),
-        statusTone: getPaymentStatusTone(status),
+        statusBucket: paymentStatusBucket,
+        statusLabel: paymentStatusLabel,
+        statusTone: paymentStatusTone,
+        serviceStatusBucket: serviceStatus.bucket,
+        serviceStatusLabel: serviceStatus.label,
+        serviceStatusTone: serviceStatus.tone,
+        paymentStatusBucket,
+        paymentStatusLabel,
+        paymentStatusTone,
         paidAt: payment.created_at ?? order?.created_at ?? matchingSubscription?.last_paid_at ?? null,
         paidAtLabel: formatDateTime(payment.created_at ?? order?.created_at ?? matchingSubscription?.last_paid_at ?? null),
         amountLabel: typeof amount === "number" ? formatKrw(amount) : "-",
+        originalAmountLabel: typeof amount === "number" ? formatKrw(amount) : "-",
+        refundAmountLabel: typeof refundAmount === "number" ? formatKrw(refundAmount) : null,
         pgLabel,
         paymentIdLabel: paymentId || "결제번호 확인 필요",
         receiptUrl: getPaymentReceiptUrl(payment, order),
-        menuName: menuSite?.name ?? null,
-        menuSlug: menuSite?.slug ?? null,
-        menuPath: formatPublicMenuPath(menuSite?.slug),
+        menuName: resolvedMenuSite?.name ?? null,
+        menuSlug: resolvedMenuSite?.slug ?? null,
+        menuPath: formatPublicMenuPath(resolvedMenuSite?.slug),
         renewalLabel,
         renewalDateLabel: formatDate(renewalDate),
+        supportMessage,
+        restoreSubscription,
         subscriptionManagement: matchingSubscription?.id && (billingMethod === "monthly" || billingMethod === "yearly")
           ? {
               subscriptionId: matchingSubscription.id,
               productName: getServiceName(matchingSubscription.plan_type, matchingSubscription.billing_cycle),
-              menuName: menuSite?.name ?? "연결된 메뉴판 확인 필요",
-              menuStatus: menuSite?.status ? getStatusLabel(menuSite.status) : "상태 확인 필요",
+              menuName: resolvedMenuSite?.name ?? "연결된 메뉴판 확인 필요",
+              menuStatus: resolvedMenuSite?.status ? getStatusLabel(resolvedMenuSite.status) : "상태 확인 필요",
               amountLabel: typeof matchingSubscription.amount === "number" ? formatKrw(matchingSubscription.amount) : "-",
               billingCycleLabel: getBillingCycleLabel(matchingSubscription.billing_cycle),
               nextBillingLabel: formatDate(matchingSubscription.next_billing_at ?? null),

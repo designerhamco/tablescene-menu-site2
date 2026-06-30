@@ -9,18 +9,26 @@ export type BillingHistoryEntry = {
   id: string;
   productName: string;
   productKey: string;
-  serviceType: "basic" | "display" | "other";
+  serviceType: "basic" | "display" | "trial" | "other";
   serviceTypeLabel: string;
-  billingMethod: "monthly" | "yearly" | "one_time" | "unknown";
+  billingMethod: "monthly" | "yearly" | "trial" | "one_time" | "unknown";
   billingMethodLabel: string;
   paymentMethod: string;
   paymentMethodLabel: string;
-  statusBucket: "paid" | "failed" | "cancelled" | "refunded" | "pending" | "unknown";
+  statusBucket: "paid" | "failed" | "cancelled" | "refund_processing" | "refunded" | "needs_review" | "pending" | "unknown";
   statusLabel: string;
   statusTone: "success" | "warning" | "danger" | "neutral";
+  serviceStatusBucket: "active" | "cancel_scheduled" | "refund_processing" | "archived" | "unrecoverable" | "needs_review" | "unknown";
+  serviceStatusLabel: string;
+  serviceStatusTone: "success" | "warning" | "danger" | "neutral";
+  paymentStatusBucket: BillingHistoryEntry["statusBucket"];
+  paymentStatusLabel: string;
+  paymentStatusTone: BillingHistoryEntry["statusTone"];
   paidAt: string | null;
   paidAtLabel: string;
   amountLabel: string;
+  originalAmountLabel: string;
+  refundAmountLabel?: string | null;
   pgLabel: string;
   paymentIdLabel: string;
   receiptUrl?: string | null;
@@ -29,6 +37,20 @@ export type BillingHistoryEntry = {
   menuPath: string;
   renewalLabel: string;
   renewalDateLabel: string;
+  supportMessage?: string | null;
+  restoreSubscription?: {
+    menuSiteId: string;
+    menuName: string;
+    menuPath: string;
+    serviceTypeLabel: string;
+    retentionLabel: string;
+    options: Array<{
+      productKey: string;
+      label: string;
+      amountLabel: string;
+      renewalDescription: string;
+    }>;
+  } | null;
   subscriptionManagement?: {
     subscriptionId: string;
     productName: string;
@@ -60,8 +82,8 @@ type FilterState = {
   to: string;
   serviceType: "all" | BillingHistoryEntry["serviceType"];
   billingMethod: "all" | BillingHistoryEntry["billingMethod"];
-  status: "all" | BillingHistoryEntry["statusBucket"];
-  paymentMethod: string;
+  serviceStatus: "all" | BillingHistoryEntry["serviceStatusBucket"];
+  paymentStatus: "all" | BillingHistoryEntry["paymentStatusBucket"];
   query: string;
 };
 
@@ -70,8 +92,8 @@ const initialFilters: FilterState = {
   to: "",
   serviceType: "all",
   billingMethod: "all",
-  status: "all",
-  paymentMethod: "all",
+  serviceStatus: "all",
+  paymentStatus: "all",
   query: "",
 };
 
@@ -126,15 +148,106 @@ function FilterSelect({
   );
 }
 
+function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHistoryEntry["restoreSubscription"]> }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
+      >
+        재구독하고 복구
+      </button>
+
+      {open ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 px-4 py-6">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Restore subscription</p>
+                <h3 className="mt-2 break-keep text-2xl font-black tracking-tight text-zinc-950">
+                  기존 메뉴판을 복구할 구독 상품을 선택해주세요
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-black text-zinc-500 transition-colors hover:bg-zinc-100"
+                aria-label="복구 안내 닫기"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
+              <p>{restore.retentionLabel}</p>
+              <p className="mt-2">보관 기간 안에 재구독하면 기존 메뉴판을 다시 사용할 수 있습니다.</p>
+              <p className="mt-2">
+                새 구독은 결제 완료일 기준으로 시작되며, 기존 환불 내역과 결제 내역은 그대로 보관됩니다.
+              </p>
+            </div>
+
+            <dl className="mt-5 grid gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm md:grid-cols-2">
+              <div>
+                <dt className="text-xs font-black text-zinc-400">복구 대상</dt>
+                <dd className="mt-1 break-keep font-black text-zinc-900">{restore.menuName}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-black text-zinc-400">서비스</dt>
+                <dd className="mt-1 font-black text-zinc-900">{restore.serviceTypeLabel}</dd>
+              </div>
+              <div className="md:col-span-2">
+                <dt className="text-xs font-black text-zinc-400">공개 주소</dt>
+                <dd className="mt-1 break-all font-black text-zinc-900">{restore.menuPath}</dd>
+              </div>
+            </dl>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {restore.options.map((option) => (
+                <div key={option.productKey} className="rounded-2xl border border-zinc-200 bg-white p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h4 className="break-keep text-base font-black text-zinc-950">{option.label}</h4>
+                      <p className="mt-2 text-2xl font-black tracking-tight text-zinc-950">{option.amountLabel}</p>
+                    </div>
+                    <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-500">현재가</span>
+                  </div>
+                  <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">{option.renewalDescription}</p>
+                  <button
+                    type="button"
+                    disabled
+                    className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-xs font-black text-zinc-400"
+                  >
+                    결제 연결 준비 중
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
+              이번 단계에서는 실제 결제를 실행하지 않습니다. 다음 단계에서 복구 전용 결제 흐름이 연결되면 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다.
+            </div>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProps) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
-  const paymentMethodOptions = useMemo(() => {
-    const labels = Array.from(new Set(entries.map((entry) => entry.paymentMethodLabel).filter(Boolean)));
-    return [
-      { value: "all", label: "전체" },
-      ...labels.map((label) => ({ value: label, label })),
-    ];
-  }, [entries]);
   const filteredEntries = useMemo(() => {
     const normalizedQuery = filters.query.trim().toLowerCase();
 
@@ -142,8 +255,8 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
       if (!isInDateRange(entry.paidAt, filters.from, filters.to)) return false;
       if (filters.serviceType !== "all" && entry.serviceType !== filters.serviceType) return false;
       if (filters.billingMethod !== "all" && entry.billingMethod !== filters.billingMethod) return false;
-      if (filters.status !== "all" && entry.statusBucket !== filters.status) return false;
-      if (filters.paymentMethod !== "all" && entry.paymentMethodLabel !== filters.paymentMethod) return false;
+      if (filters.serviceStatus !== "all" && entry.serviceStatusBucket !== filters.serviceStatus) return false;
+      if (filters.paymentStatus !== "all" && entry.paymentStatusBucket !== filters.paymentStatus) return false;
 
       if (normalizedQuery) {
         const searchText = [
@@ -173,7 +286,7 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
           <div>
             <h3 className="text-xl font-black tracking-tight text-zinc-950">결제내역 필터</h3>
             <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-              결제일, 서비스 유형, 결제 방식, 상태, 결제수단, 메뉴판명 또는 주소로 결제 기록을 찾을 수 있습니다.
+              결제일, 서비스 유형, 결제 방식, 서비스 상태, 결제/환불 상태, 메뉴판명 또는 주소로 결제 기록을 찾을 수 있습니다.
             </p>
           </div>
           <button
@@ -213,6 +326,7 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
               { value: "all", label: "전체" },
               { value: "basic", label: "Basic" },
               { value: "display", label: "Display" },
+              { value: "trial", label: "체험" },
             ]}
           />
           <FilterSelect
@@ -223,30 +337,40 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
               { value: "all", label: "전체" },
               { value: "monthly", label: "월결제" },
               { value: "yearly", label: "연결제" },
-              { value: "one_time", label: "일회성" },
+              { value: "trial", label: "체험 결제" },
+              { value: "one_time", label: "일회성 결제" },
             ]}
           />
           <FilterSelect
-            label="결제 상태"
-            value={filters.status}
-            onChange={(value) => setFilters((current) => ({ ...current, status: value as FilterState["status"] }))}
+            label="서비스 상태"
+            value={filters.serviceStatus}
+            onChange={(value) => setFilters((current) => ({ ...current, serviceStatus: value as FilterState["serviceStatus"] }))}
+            options={[
+              { value: "all", label: "전체" },
+              { value: "active", label: "이용중" },
+              { value: "cancel_scheduled", label: "해지예약중" },
+              { value: "refund_processing", label: "환불처리중" },
+              { value: "archived", label: "보관중" },
+              { value: "unrecoverable", label: "복구불가" },
+              { value: "needs_review", label: "처리확인 필요" },
+            ]}
+          />
+          <FilterSelect
+            label="결제/환불 상태"
+            value={filters.paymentStatus}
+            onChange={(value) => setFilters((current) => ({ ...current, paymentStatus: value as FilterState["paymentStatus"] }))}
             options={[
               { value: "all", label: "전체" },
               { value: "paid", label: "결제완료" },
-              { value: "failed", label: "실패" },
-              { value: "cancelled", label: "취소" },
-              { value: "refunded", label: "환불" },
-              { value: "pending", label: "처리 중" },
+              { value: "failed", label: "결제실패" },
+              { value: "cancelled", label: "결제취소" },
+              { value: "refund_processing", label: "환불처리중" },
+              { value: "refunded", label: "환불완료" },
+              { value: "needs_review", label: "처리확인 필요" },
             ]}
           />
-          <FilterSelect
-            label="결제수단"
-            value={filters.paymentMethod}
-            onChange={(value) => setFilters((current) => ({ ...current, paymentMethod: value as FilterState["paymentMethod"] }))}
-            options={paymentMethodOptions}
-          />
           <label className="block md:col-span-2">
-            <span className="text-xs font-black text-zinc-400">메뉴판명 / slug / 결제번호 검색</span>
+            <span className="text-xs font-black text-zinc-400">매장명 / 메뉴판 주소 / 결제번호 검색</span>
             <input
               value={filters.query}
               onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
@@ -260,7 +384,7 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
       <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-900">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
         <p className="mt-2">
-          연결제 중도해지/환불은 정액 수수료 방식이 아니라, 월정가 기준 사용료와 이미 적용받은 연간 할인 혜택을 사용 기간 기준으로 재정산하는 방식으로 안내합니다. 실제 환불 API와 복구 API는 아직 연결하지 않았습니다.
+          연결제 중도해지/환불은 정액 수수료 방식이 아니라, 월정가 기준 사용료와 이미 적용받은 연간 할인 혜택을 사용 기간 기준으로 재정산하는 방식으로 안내합니다.
         </p>
       </div>
 
@@ -279,8 +403,8 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h4 className="text-lg font-black tracking-tight text-zinc-950">{entry.productName}</h4>
-                    <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getBadgeClassName(entry.statusTone)}`}>
-                      {entry.statusLabel}
+                    <span className={`rounded-full px-4 py-1.5 text-sm font-black ring-1 ${getBadgeClassName(entry.serviceStatusTone)}`}>
+                      {entry.serviceStatusLabel}
                     </span>
                     <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
                       {entry.serviceTypeLabel}
@@ -305,12 +429,16 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
                       <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethodLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">금액</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.amountLabel}</dd>
+                      <dt className="text-xs font-black text-zinc-400">결제금액</dt>
+                      <dd className="mt-1 font-bold text-zinc-900">{entry.originalAmountLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">결제수단</dt>
-                      <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.paymentMethodLabel}</dd>
+                      <dt className="text-xs font-black text-zinc-400">결제/환불 상태</dt>
+                      <dd className="mt-1">
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-black ring-1 ${getBadgeClassName(entry.paymentStatusTone)}`}>
+                          {entry.paymentStatusLabel}
+                        </span>
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-xs font-black text-zinc-400">{entry.renewalLabel}</dt>
@@ -318,9 +446,25 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
                     </div>
                     <div>
                       <dt className="text-xs font-black text-zinc-400">정기결제</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "one_time" ? "자동결제 없음" : "정기결제"}</dd>
+                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "one_time" || entry.billingMethod === "trial" ? "자동결제 없음" : "정기결제"}</dd>
+                    </div>
+                    {entry.refundAmountLabel ? (
+                      <div>
+                        <dt className="text-xs font-black text-zinc-400">환불금액</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{entry.refundAmountLabel}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt className="text-xs font-black text-zinc-400">결제수단</dt>
+                      <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.paymentMethodLabel}</dd>
                     </div>
                   </dl>
+
+                  {entry.supportMessage ? (
+                    <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-600">
+                      {entry.supportMessage}
+                    </div>
+                  ) : null}
 
                   {entry.billingMethod === "yearly" ? (
                     <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-500">
@@ -330,6 +474,9 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
                 </div>
 
                 <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
+                  {entry.restoreSubscription ? (
+                    <RestoreSubscriptionModal restore={entry.restoreSubscription} />
+                  ) : null}
                   {entry.subscriptionManagement ? (
                     <SubscriptionManagementModal {...entry.subscriptionManagement} />
                   ) : null}
