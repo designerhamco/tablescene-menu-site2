@@ -112,18 +112,18 @@ export const businessDisplayYearlyProduct = {
   product_key: "business_display_yearly",
   name: "메뉴링크 디스플레이 연결제",
   label: "메뉴링크 디스플레이 연결제",
-  description: "사업자 인증 후 메뉴링크 디스플레이 메뉴보드를 1년 이용권으로 이용합니다.",
+  description: "사업자 인증 후 메뉴링크 디스플레이 메뉴보드를 연 자동결제로 이용합니다.",
   plan_type: "business_display",
-  payment_type: "one_time",
+  payment_type: "subscription",
   billing_cycle: "yearly",
   regular_amount: 237600,
   amount: 190000,
   discount_rate: 20,
-  duration_months: 12,
+  duration_months: null,
   currency: "KRW",
   template_service: "display",
   requires_business_verification: true,
-  is_subscription: false,
+  is_subscription: true,
 } as const;
 
 export const displayPaymentProducts = [

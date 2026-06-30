@@ -62,7 +62,7 @@ export default function MarketingConsentSettings({
   return (
     <section className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
+        <div className="min-w-0">
           <h3 className="text-lg font-black tracking-tight text-zinc-950">광고성 정보 수신 동의</h3>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
             이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내 등을 이메일, 문자메시지, 카카오 메시지 등으로 받을 수 있습니다.
@@ -84,15 +84,15 @@ export default function MarketingConsentSettings({
           aria-checked={accepted}
           disabled={isSaving}
           onClick={() => void updateConsent(!accepted)}
-          className={`relative h-8 w-14 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-            accepted ? "bg-zinc-950" : "bg-zinc-300"
-          }`}
+          className="flex w-full items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto md:min-w-52"
         >
-          <span
-            className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
-              accepted ? "translate-x-7" : "translate-x-1"
-            }`}
-          />
+          <span className="min-w-0">
+            <span className="block text-sm font-black text-zinc-900">{accepted ? "수신 동의 중" : "수신 동의 안 함"}</span>
+            <span className="mt-1 block text-xs font-bold text-zinc-400">{isSaving ? "저장 중..." : "클릭해서 변경"}</span>
+          </span>
+          <span className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${accepted ? "bg-zinc-950" : "bg-zinc-200"}`}>
+            <span className={`absolute left-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${accepted ? "translate-x-5" : ""}`} />
+          </span>
           <span className="sr-only">광고성 정보 수신 동의 변경</span>
         </button>
       </div>

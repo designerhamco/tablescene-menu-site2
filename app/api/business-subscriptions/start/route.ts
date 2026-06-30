@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
 import {
   DISPLAY_CHECKOUT_QA_PLAN_TYPE,
-  DISPLAY_CHECKOUT_QA_PRODUCT_KEY,
+  DISPLAY_CHECKOUT_QA_PRODUCT_KEYS,
   DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY,
   DISPLAY_CHECKOUT_QA_TEMPLATE_KEY,
 } from "@/lib/display-checkout-qa-constants";
@@ -96,7 +96,7 @@ type RecoverableFailedSubscription = {
 };
 
 type NormalizedBusinessOrder = MenuOrderPayload & {
-  product_key: "business_basic_monthly" | "business_basic_yearly" | typeof DISPLAY_CHECKOUT_QA_PRODUCT_KEY;
+  product_key: "business_basic_monthly" | "business_basic_yearly" | "business_display_monthly" | "business_display_yearly";
   plan_type: "business_basic" | typeof DISPLAY_CHECKOUT_QA_PLAN_TYPE;
   payment_type: "subscription";
   billing_cycle: "monthly" | "yearly";
@@ -393,9 +393,9 @@ function getRecord(value: unknown) {
 function isDisplayCheckoutQaProduct(product: SubscriptionProduct | null | undefined) {
   return Boolean(
     product &&
-    product.productKey === DISPLAY_CHECKOUT_QA_PRODUCT_KEY &&
+    DISPLAY_CHECKOUT_QA_PRODUCT_KEYS.some((productKey) => product.productKey === productKey) &&
     product.planType === DISPLAY_CHECKOUT_QA_PLAN_TYPE &&
-    product.billingCycle === "monthly" &&
+    (product.billingCycle === "monthly" || product.billingCycle === "yearly") &&
     product.serviceType === "display" &&
     isDisplayCheckoutQaEnabled()
   );

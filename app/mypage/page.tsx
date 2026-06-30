@@ -8,6 +8,7 @@ import AccountDeletionPanel from "@/components/mypage/AccountDeletionPanel";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
 import ContactProfileEditor from "@/components/mypage/ContactProfileEditor";
 import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettings";
+import BillingHistoryPanel, { type BillingHistoryEntry } from "@/components/mypage/BillingHistoryPanel";
 import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
@@ -54,7 +55,7 @@ const DAY_MS = 1000 * 60 * 60 * 24;
 
 type MyPageTab = "menus" | "payments" | "inquiries" | "notifications" | "account";
 type MenuTab = "active" | "holding" | "deleted";
-type BillingTab = "active" | "holding" | "deleted" | "ai-credits";
+type BillingTab = "history" | "active" | "holding" | "deleted" | "ai-credits";
 
 type MenuSite = {
   id: string | null;
@@ -342,19 +343,11 @@ function getMenuTab(value: string | string[] | undefined): MenuTab {
 function getBillingTab(value: string | string[] | undefined): BillingTab {
   const tab = Array.isArray(value) ? value[0] : value;
 
-  if (tab === "holding" || tab === "expired") {
-    return "holding";
-  }
-
-  if (tab === "deleted") {
-    return "deleted";
-  }
-
   if (tab === "ai-credits") {
     return "ai-credits";
   }
 
-  return "active";
+  return "history";
 }
 
 function getBillingTabClassName(isActive: boolean) {
@@ -637,6 +630,46 @@ function getPaymentStatusTone(status: string | null | undefined): "success" | "w
   }
 
   return "neutral";
+}
+
+function getPaymentStatusBucket(status: string | null | undefined): BillingHistoryEntry["statusBucket"] {
+  if (status === "paid" || status === "completed" || status === "active") return "paid";
+  if (status === "failed" || status === "payment_failed" || status === "past_due") return "failed";
+  if (status === "cancelled" || status === "canceled") return "cancelled";
+  if (status === "refunded") return "refunded";
+  if (status === "pending" || status === "ready") return "pending";
+  return "unknown";
+}
+
+function getBillingHistoryServiceType(productKey: string | null | undefined, templateKey?: string | null): BillingHistoryEntry["serviceType"] {
+  const key = getSafeString(productKey);
+  const template = getSafeString(templateKey);
+
+  if (key.includes("display") || template.startsWith("display_")) return "display";
+  if (key.includes("basic") || template.startsWith("cafe_") || template.startsWith("restaurant_")) return "basic";
+  return "other";
+}
+
+function getBillingHistoryServiceTypeLabel(serviceType: BillingHistoryEntry["serviceType"]) {
+  if (serviceType === "display") return "Display";
+  if (serviceType === "basic") return "Basic";
+  return "기타";
+}
+
+function getBillingHistoryMethod(productKey: string | null | undefined, billingCycle: string | null | undefined): BillingHistoryEntry["billingMethod"] {
+  const key = getSafeString(productKey);
+
+  if (billingCycle === "monthly" || key.endsWith("_monthly")) return "monthly";
+  if (billingCycle === "yearly" || key.endsWith("_yearly")) return "yearly";
+  if (billingCycle === "trial_1_month" || key.includes("trial") || key.includes("ai_credit")) return "one_time";
+  return "unknown";
+}
+
+function getBillingHistoryMethodLabel(method: BillingHistoryEntry["billingMethod"]) {
+  if (method === "monthly") return "월결제 · 정기결제";
+  if (method === "yearly") return "연결제 · 연 정기결제";
+  if (method === "one_time") return "일회성 · 자동결제 없음";
+  return "결제 방식 확인 필요";
 }
 
 function getSubscriptionPeriodEnd(subscription: BusinessSubscription | null | undefined) {
@@ -1617,6 +1650,79 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return { payment, order, productKey, menuSite };
   });
   const displayedAiCreditPurchases = aiCreditPurchases.slice(0, 8);
+  const billingHistoryEntries: BillingHistoryEntry[] = paymentHistory
+    .filter(({ productKey }) => !getSafeString(productKey).startsWith("ai_credit"))
+    .map(({ payment, order, productKey, menuSite }) => {
+      const paymentId = getSafeString(payment.payment_id ?? payment.portone_payment_id ?? order?.payment_id ?? null);
+      const matchingSubscription = businessSubscriptions.find((subscription) => {
+        const subscriptionPaymentId = getSafeString(subscription.portone_payment_id);
+        const subscriptionMenuSiteId = getSafeString(subscription.menu_site_id);
+        const menuSiteId = getSafeString(menuSite?.id ?? order?.menu_site_id);
+        const productMatches = productKey ? subscription.product_key === productKey : true;
+
+        if (paymentId && subscriptionPaymentId && paymentId === subscriptionPaymentId) return true;
+        return Boolean(menuSiteId && subscriptionMenuSiteId === menuSiteId && productMatches);
+      });
+      const entitlement = menuSite?.id ? entitlementByMenuSiteId.get(menuSite.id) : undefined;
+      const billingCycle = entitlement?.billing_cycle ?? matchingSubscription?.billing_cycle ?? null;
+      const billingMethod = getBillingHistoryMethod(productKey, billingCycle);
+      const serviceType = getBillingHistoryServiceType(productKey, menuSite?.template_key ?? null);
+      const pgLabel = matchingSubscription ? "NHN KCP 카드 정기결제" : "PortOne 일반 결제";
+      const renewalLabel = billingMethod === "one_time" ? "이용 만료일" : "다음 결제 예정일";
+      const renewalDate = billingMethod === "one_time"
+        ? entitlement?.access_expires_at ?? matchingSubscription?.current_period_end ?? null
+        : matchingSubscription?.next_billing_at ?? matchingSubscription?.current_period_end ?? entitlement?.access_expires_at ?? null;
+      const amount = payment.amount ?? order?.total_amount ?? matchingSubscription?.amount ?? null;
+      const status = payment.status ?? order?.status ?? null;
+      const subscriptionPeriodEnd = matchingSubscription?.current_period_end ?? matchingSubscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
+
+      return {
+        id: getSafeString(payment.id) || paymentId || `${productKey ?? "payment"}-${payment.created_at ?? "unknown"}`,
+        productName: productKey ? getProductLabel(productKey) : getServiceName(entitlement?.plan_type ?? matchingSubscription?.plan_type ?? null, billingCycle),
+        productKey: getSafeString(productKey),
+        serviceType,
+        serviceTypeLabel: getBillingHistoryServiceTypeLabel(serviceType),
+        billingMethod,
+        billingMethodLabel: getBillingHistoryMethodLabel(billingMethod),
+        paymentMethod: pgLabel,
+        paymentMethodLabel: pgLabel,
+        statusBucket: getPaymentStatusBucket(status),
+        statusLabel: getPaymentStatusLabel(status),
+        statusTone: getPaymentStatusTone(status),
+        paidAt: payment.created_at ?? order?.created_at ?? matchingSubscription?.last_paid_at ?? null,
+        paidAtLabel: formatDateTime(payment.created_at ?? order?.created_at ?? matchingSubscription?.last_paid_at ?? null),
+        amountLabel: typeof amount === "number" ? formatKrw(amount) : "-",
+        pgLabel,
+        paymentIdLabel: paymentId || "결제번호 확인 필요",
+        receiptUrl: getPaymentReceiptUrl(payment, order),
+        menuName: menuSite?.name ?? null,
+        menuSlug: menuSite?.slug ?? null,
+        menuPath: formatPublicMenuPath(menuSite?.slug),
+        renewalLabel,
+        renewalDateLabel: formatDate(renewalDate),
+        subscriptionManagement: matchingSubscription?.id && (billingMethod === "monthly" || billingMethod === "yearly")
+          ? {
+              subscriptionId: matchingSubscription.id,
+              productName: getServiceName(matchingSubscription.plan_type, matchingSubscription.billing_cycle),
+              menuName: menuSite?.name ?? "연결된 메뉴판 확인 필요",
+              menuStatus: menuSite?.status ? getStatusLabel(menuSite.status) : "상태 확인 필요",
+              amountLabel: typeof matchingSubscription.amount === "number" ? formatKrw(matchingSubscription.amount) : "-",
+              billingCycleLabel: getBillingCycleLabel(matchingSubscription.billing_cycle),
+              nextBillingLabel: formatDate(matchingSubscription.next_billing_at ?? null),
+              periodEndLabel: formatDate(subscriptionPeriodEnd),
+              status: matchingSubscription.status ?? "",
+              statusLabel: getSubscriptionStatusLabel(matchingSubscription.status),
+              cancelAtPeriodEnd: Boolean(matchingSubscription.cancel_at_period_end),
+              cancelRequestedLabel: formatDateTime(matchingSubscription.cancel_requested_at ?? null),
+              pgLabel: "NHN KCP 카드 정기결제",
+              serviceEntitlementLabel: getEntitlementStatusLabel(entitlement?.status),
+              canManage: Boolean(typeof matchingSubscription.cancel_at_period_end === "boolean"),
+              defaultOpen: shouldAutoOpenSubscriptionModal && requestedSubscriptionId === matchingSubscription.id,
+              billingMethod: billingMethod === "yearly" ? "yearly" : billingMethod === "monthly" ? "monthly" : "unknown",
+            }
+          : null,
+      };
+    });
   function getLatestPaymentForService({
     menuSiteId,
     productKey,
@@ -1645,7 +1751,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const entitlementStatus = trialDisplayInfo?.status ?? "";
     const isPersonalTrial = planType === "personal_trial" || planType === "personal_trial_basic_1month";
     const isBusinessService = planType === "business_basic" || planType === "business_display";
-    const isOneTimeBusinessService = isBusinessService && billingType === "one_time";
+    const isOneTimeBusinessService = isBusinessService && billingType === "one_time" && billingCycle !== "yearly";
     const activeBusinessSubscription = siteId
       ? businessSubscriptions.find((subscription) => subscription.menu_site_id === siteId && subscription.status === "active")
       : undefined;
@@ -1769,13 +1875,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ? "현재 손님에게 공개 중입니다."
         : site.status === "draft"
           ? "아직 공개 전입니다. 편집 후 공개할 수 있습니다."
-          : `${serviceBadge.label} 1년 이용권으로 이용 중입니다.`;
+          : `${serviceBadge.label} 일회성 결제로 이용 중입니다.`;
       if (accessExpiresAt) {
         metaItems.push({ label: "이용 만료일", value: formatDate(accessExpiresAt) });
       } else {
         metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
-      metaItems.push({ label: "결제방식", value: billingCycle === "yearly" ? "연결제 / 자동결제 없음" : "1회 결제 / 자동결제 없음" });
+      metaItems.push({ label: "결제방식", value: "1회 결제 / 자동결제 없음" });
       metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
       primaryMessage = isCancelScheduledActive
@@ -2206,23 +2312,17 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div>
                     <h2 className="text-3xl font-bold tracking-tight">구독/결제 내역</h2>
                     <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                      이용 중인 서비스, 보관 중인 메뉴판, 삭제된 메뉴판, AI 크레딧 충전 내역을 확인할 수 있습니다.
+                      결제 기록과 AI 크레딧 충전 내역을 확인할 수 있습니다. 메뉴판 이용 상태 관리는 내 메뉴판 탭에서 확인해주세요.
                     </p>
                   </div>
                 </div>
 
                 <nav className="mb-5 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200" aria-label="구독/결제 내역 탭">
-                  <Link href="/mypage?tab=payments&billingTab=active" className={getBillingTabClassName(activeBillingTab === "active")}>
-                    이용 중
-                  </Link>
-                  <Link href="/mypage?tab=payments&billingTab=holding" className={getBillingTabClassName(activeBillingTab === "holding")}>
-                    보관 중
-                  </Link>
-                  <Link href="/mypage?tab=payments&billingTab=deleted" className={getBillingTabClassName(activeBillingTab === "deleted")}>
-                    삭제됨
+                  <Link href="/mypage?tab=payments&billingTab=history" className={getBillingTabClassName(activeBillingTab === "history")}>
+                    결제내역
                   </Link>
                   <Link href="/mypage?tab=payments&billingTab=ai-credits" className={getBillingTabClassName(activeBillingTab === "ai-credits")}>
-                    AI 크레딧 충전
+                    AI 충전내역
                   </Link>
                 </nav>
 
@@ -2232,6 +2332,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       <p key={paymentsError}>{paymentsError}</p>
                     ))}
                   </div>
+                ) : null}
+
+                {activeBillingTab === "history" ? (
+                  <BillingHistoryPanel entries={billingHistoryEntries} />
                 ) : null}
 
                 {activeBillingTab === "active" ? (
@@ -2345,6 +2449,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     serviceEntitlementLabel={getEntitlementStatusLabel(entitlement?.status)}
                                     canManage={Boolean(typeof subscription.cancel_at_period_end === "boolean")}
                                     defaultOpen={shouldAutoOpenSubscriptionModal && requestedSubscriptionId === subscription.id}
+                                    billingMethod={billingCycle === "yearly" ? "yearly" : billingCycle === "monthly" ? "monthly" : "unknown"}
                                   />
                                 ) : null}
                                 <PaymentDetailModal

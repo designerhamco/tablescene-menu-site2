@@ -381,8 +381,8 @@ const displayProductCards = [
   },
   {
     product: businessDisplayYearlyProduct,
-    bullets: ["1년 이용권", "자동 정기결제 없음", "월 결제 대비 할인", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
-    helperText: "일반 1회 결제로 1년 이용권을 부여합니다. 월결제 빌링키 문제와 분리해 생성 QA가 가능합니다.",
+    bullets: ["연 자동결제", "월 결제 대비 할인", "해지 예약 가능", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
+    helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 연 정기결제를 진행합니다.",
   },
 ] as const satisfies readonly {
   product: DisplayPaymentProduct;
@@ -1120,12 +1120,12 @@ export default function ApplyOrderForm({
       : hasVerifiedBusinessProfile
         ? isSubscriptionProduct
           ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 첫 결제를 진행합니다."
-          : "사업자 인증이 완료되었습니다. 일반 1회 결제로 이용권을 생성합니다."
+          : "사업자 인증이 완료되었습니다. 결제를 진행합니다."
         : businessVerificationState.type === "failed"
           ? "사업자 정보가 확인되지 않았습니다. 입력 정보를 다시 확인해주세요."
           : isSubscriptionProduct
-            ? "사업자 월결제는 사업자 인증 완료 후 진행할 수 있습니다."
-            : "사업자 연결제는 사업자 인증 완료 후 진행할 수 있습니다."
+            ? "사업자 월/연 정기결제는 사업자 인증 완료 후 진행할 수 있습니다."
+            : "사업자 결제는 사업자 인증 완료 후 진행할 수 있습니다."
     : null;
 
   const paymentButtonLabel = isLoading
@@ -1253,9 +1253,9 @@ export default function ApplyOrderForm({
     }));
     setBusinessVerificationState({
       type: "idle",
-      message: product.is_subscription
-        ? "디스플레이 월결제는 사업자 인증 성공 후 빌링키 자동결제를 진행합니다."
-        : "디스플레이 연결제는 사업자 인증 성공 후 일반 1회 결제로 1년 이용권을 생성합니다.",
+      message: product.billing_cycle === "yearly"
+        ? "디스플레이 연결제는 사업자 인증 성공 후 빌링키 연 자동결제를 진행합니다."
+        : "디스플레이 월결제는 사업자 인증 성공 후 빌링키 월 자동결제를 진행합니다.",
     });
   }
 
@@ -1889,9 +1889,9 @@ export default function ApplyOrderForm({
   const activeAgreementDetails = activeProduct.product_key === personalTrialBasicProduct.product_key ? personalTrialAgreementDetails : agreementDetails;
   const allAgreementsChecked = Object.values(agreements).every(Boolean);
   const nextBillingLabel = activeProduct.billing_cycle === "monthly"
-    ? "첫 결제일 기준 매월"
+    ? "결제 완료일로부터 1개월 후"
     : activeProduct.billing_cycle === "yearly"
-      ? "첫 결제일 기준 매년"
+      ? "결제 완료일로부터 1년 후"
       : "-";
 
   return (
@@ -1932,7 +1932,7 @@ export default function ApplyOrderForm({
                         <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                        {isSelected ? "선택됨" : product.payment_type === "one_time" ? "단건" : "자동결제"}
+                        {isSelected ? "선택됨" : product.payment_type === "one_time" ? "단건" : product.billing_cycle === "yearly" ? "연 자동결제" : "자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
@@ -2007,7 +2007,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                월 결제는 빌링키 정기결제로, 연 결제는 자동결제 없는 1년 이용권으로 진행합니다.
+                월 결제와 연 결제 모두 빌링키 정기결제로 진행합니다. 연결제는 매년 자동결제되는 연 정기결제 상품입니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 ※ 모든 금액은 부가세 포함가입니다. Display QA는 개발 환경에서만 열립니다.
@@ -2033,7 +2033,7 @@ export default function ApplyOrderForm({
                         <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                        {isSelected ? "선택됨" : product.is_subscription ? "자동결제" : "1회 결제"}
+                        {isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
@@ -2045,7 +2045,7 @@ export default function ApplyOrderForm({
                         {formatKrw(product.amount)} / {product.billing_cycle === "monthly" ? "월" : "년"}
                       </p>
                       <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
-                        {product.is_subscription ? "매월 자동결제 · 빌링키 필요" : "1년 이용권 · 자동결제 없음"}
+                        {product.billing_cycle === "yearly" ? "연 자동결제 · 빌링키 필요" : "매월 자동결제 · 빌링키 필요"}
                       </p>
                     </div>
                     <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
@@ -2535,7 +2535,7 @@ export default function ApplyOrderForm({
                   activeProduct.billing_cycle === "monthly"
                     ? "사업자 월 자동결제"
                     : activeProduct.billing_cycle === "yearly"
-                      ? activeProduct.is_subscription ? "사업자 연 자동결제" : "사업자 1년 이용권"
+                      ? activeProduct.is_subscription ? "사업자 연 자동결제" : "사업자 연 결제"
                       : "개인 1개월 단건 결제"
                 }
               />
@@ -2543,7 +2543,7 @@ export default function ApplyOrderForm({
             {isScreenService && displayCheckoutQaEnabled && (
               <SummaryRow
                 label="이용 방식"
-                value={activeProduct.is_subscription ? "디스플레이 월 자동결제" : "디스플레이 1년 이용권"}
+                value={activeProduct.billing_cycle === "yearly" ? "디스플레이 연 자동결제" : "디스플레이 월 자동결제"}
               />
             )}
             {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && <SummaryRow label="자동결제" value={activeProduct.is_subscription ? "필요" : "없음"} />}
@@ -2575,7 +2575,7 @@ export default function ApplyOrderForm({
                 : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환될 수 있으며, 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다."
               : activeProduct.is_subscription
                 ? "VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다."
-                : "VAT 포함 금액입니다. 일반 1회 결제 검증 성공 후 1년 이용권과 디스플레이 메뉴판이 생성됩니다."}
+                : "VAT 포함 금액입니다. 일반 결제 검증 후 메뉴판이 생성됩니다."}
           </p>
         </section>
 
@@ -2631,7 +2631,7 @@ export default function ApplyOrderForm({
           {canShowPaymentCompletionRecovery && (
             <div className="mt-6 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm font-bold leading-relaxed text-sky-800">
               <p>
-                이미 승인된 Display {isSubscriptionProduct ? "월결제" : "연결제"} 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.
+                이미 승인된 Display {activeProduct.billing_cycle === "yearly" ? "연결제" : "월결제"} 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.
               </p>
               {pendingPaymentCompletion && (
                 <p className="mt-2 text-xs text-sky-700">
