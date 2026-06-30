@@ -609,7 +609,7 @@ function getPaymentStatusLabel(status: string | null | undefined) {
     failed: "결제 실패",
     cancelled: "취소됨",
     canceled: "취소됨",
-    refunded: "환불됨",
+    refunded: "환불 처리 완료",
   };
 
   return status ? labels[status] ?? status : "상태 확인 필요";
@@ -639,9 +639,9 @@ function getBillingPaymentStatusFromRefund(refundRequest: RefundRequestRecord | 
   if (status === "completed") {
     return {
       bucket: "refunded" as const,
-      label: "환불완료",
+      label: "환불 처리 완료",
       tone: "warning" as const,
-      message: null,
+      message: "카드사 또는 결제수단에 따라 실제 취소 반영까지 영업일 기준 3~7일이 걸릴 수 있습니다.",
     };
   }
 

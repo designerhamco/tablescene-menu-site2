@@ -130,7 +130,7 @@ const paymentStatusFilterOptions = [
   { value: "failed", label: "결제실패" },
   { value: "cancelled", label: "결제취소" },
   { value: "refund_processing", label: "환불처리중" },
-  { value: "refunded", label: "환불완료" },
+  { value: "refunded", label: "환불 처리 완료" },
   { value: "needs_review", label: "처리확인 필요" },
 ];
 
