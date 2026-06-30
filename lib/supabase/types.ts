@@ -118,6 +118,7 @@ export type Database = {
         Row: {
           account_balance_after: number | null
           balance_after: number | null
+          business_subscription_id: string | null
           created_at: string
           credit_amount: number
           credit_source: string | null
@@ -137,6 +138,7 @@ export type Database = {
         Insert: {
           account_balance_after?: number | null
           balance_after?: number | null
+          business_subscription_id?: string | null
           created_at?: string
           credit_amount: number
           credit_source?: string | null
@@ -156,6 +158,7 @@ export type Database = {
         Update: {
           account_balance_after?: number | null
           balance_after?: number | null
+          business_subscription_id?: string | null
           created_at?: string
           credit_amount?: number
           credit_source?: string | null
@@ -173,6 +176,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_credit_transactions_business_subscription_id_fkey"
+            columns: ["business_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "business_subscriptions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ai_credit_transactions_menu_site_id_fkey"
             columns: ["menu_site_id"]
@@ -2243,6 +2253,28 @@ export type Database = {
           granted_credits: number
           purchased_credits: number
           remaining_credits: number
+          used_credits: number
+        }[]
+      }
+      grant_ai_subscription_included_credits: {
+        Args: {
+          p_business_subscription_id: string
+          p_credits: number
+          p_menu_site_id: string
+          p_metadata?: Json
+          p_payment_id: string
+          p_plan_type: string
+          p_product_key: string
+          p_reason?: string
+          p_user_id: string
+        }
+        Returns: {
+          already_processed: boolean
+          credited_amount: number
+          granted_credits: number
+          purchased_credits: number
+          remaining_credits: number
+          transaction_id: string
           used_credits: number
         }[]
       }
