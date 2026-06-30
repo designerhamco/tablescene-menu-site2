@@ -28,6 +28,33 @@ type ApiResult = {
   message?: string;
 };
 
+type RefundQuote = {
+  paidAmount: number;
+  annualPrice: number;
+  monthlyListPrice: number;
+  billingStartedAt: string;
+  nextBillingAt: string;
+  refundBasisDate: string;
+  usedDays: number;
+  totalDays: number;
+  remainingDays: number;
+  monthlyBasisUsedAmount: number;
+  annualBasisUsedAmount: number;
+  discountClawbackAmount: number;
+  estimatedRefundAmount: number;
+  canAutoRefundLater: boolean;
+  reasonIfNotRefundable: string | null;
+  customerNotice: string;
+};
+
+type RefundQuoteState =
+  | { status: "idle"; quote: null; message: null }
+  | { status: "loading"; quote: null; message: null }
+  | { status: "success"; quote: RefundQuote; message: null }
+  | { status: "error"; quote: null; message: string };
+
+const initialRefundQuoteState: RefundQuoteState = { status: "idle", quote: null, message: null };
+
 async function parseApiResult(response: Response) {
   const result = (await response.json().catch(() => ({}))) as ApiResult;
 
@@ -36,6 +63,25 @@ async function parseApiResult(response: Response) {
   }
 
   return result;
+}
+
+function formatKrwLabel(amount: number) {
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function formatDateLabel(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 export default function SubscriptionManagementModal({
@@ -64,13 +110,40 @@ export default function SubscriptionManagementModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isViewingRefundGuide, setIsViewingRefundGuide] = useState(false);
+  const [refundQuoteState, setRefundQuoteState] = useState<RefundQuoteState>(initialRefundQuoteState);
   const isYearlyBilling = billingMethod === "yearly";
 
   function closeModal() {
     setIsOpen(false);
     setIsViewingRefundGuide(false);
+    setRefundQuoteState(initialRefundQuoteState);
     if (defaultOpen) {
       router.replace("/mypage?tab=payments&billingTab=active", { scroll: false });
+    }
+  }
+
+  async function loadRefundQuote() {
+    setRefundQuoteState({ status: "loading", quote: null, message: null });
+
+    try {
+      const response = await fetch("/api/business-subscriptions/refund/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscriptionId }),
+      });
+      const result = (await response.json().catch(() => ({}))) as ApiResult & { quote?: RefundQuote };
+
+      if (!response.ok || !result.ok || !result.quote) {
+        throw new Error(result.message || "예상 환불금액을 계산하지 못했습니다.");
+      }
+
+      setRefundQuoteState({ status: "success", quote: result.quote, message: null });
+    } catch (quoteError) {
+      setRefundQuoteState({
+        status: "error",
+        quote: null,
+        message: quoteError instanceof Error ? quoteError.message : "예상 환불금액을 계산하지 못했습니다.",
+      });
     }
   }
 
@@ -121,6 +194,7 @@ export default function SubscriptionManagementModal({
         onClick={() => {
           setError(null);
           setIsViewingRefundGuide(false);
+          setRefundQuoteState(initialRefundQuoteState);
           setIsOpen(true);
         }}
         className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
@@ -159,9 +233,82 @@ export default function SubscriptionManagementModal({
                   </p>
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
-                  메뉴링크의 자동 환불 금액 계산과 요청 접수 기능은 다음 단계에서 제공될 예정입니다. 지금은 이 안내를 확인한 뒤 필요한 경우 고객지원 채널로 문의해주세요.
-                </div>
+                {refundQuoteState.status === "loading" ? (
+                  <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
+                    예상 환불금액을 계산하고 있습니다.
+                  </div>
+                ) : null}
+
+                {refundQuoteState.status === "error" ? (
+                  <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
+                    <h4 className="text-base font-black text-red-800">자동 계산이 어렵습니다</h4>
+                    <p className="mt-2">{refundQuoteState.message}</p>
+                    <p className="mt-2 text-red-600">
+                      실제 환불은 실행되지 않았습니다. 결제번호와 메뉴판명을 고객지원 채널로 알려주시면 확인을 도와드릴 수 있습니다.
+                    </p>
+                  </div>
+                ) : null}
+
+                {refundQuoteState.status === "success" ? (
+                  <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                      <div>
+                        <h4 className="text-base font-black text-zinc-950">예상 환불금액</h4>
+                        <p className="mt-1 text-sm font-bold leading-relaxed text-zinc-500">{refundQuoteState.quote.customerNotice}</p>
+                      </div>
+                      <p className="text-2xl font-black text-zinc-950">
+                        {formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}
+                      </p>
+                    </div>
+
+                    <dl className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">결제금액</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.paidAmount)}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">월결제 기준 금액</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.monthlyListPrice)} / 월</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">결제일</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatDateLabel(refundQuoteState.quote.billingStartedAt)}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">다음 결제 예정일</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatDateLabel(refundQuoteState.quote.nextBillingAt)}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">사용일수 / 전체 이용일수</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">
+                          {refundQuoteState.quote.usedDays}일 / {refundQuoteState.quote.totalDays}일
+                        </dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">남은 일수</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{refundQuoteState.quote.remainingDays}일</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">월결제 기준 사용료</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.monthlyBasisUsedAmount)}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">연간 할인 혜택 재정산</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.discountClawbackAmount)}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4 md:col-span-2">
+                        <dt className="text-xs font-black text-zinc-400">환불 기준일</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatDateLabel(refundQuoteState.quote.refundBasisDate)}</dd>
+                      </div>
+                    </dl>
+
+                    {refundQuoteState.quote.reasonIfNotRefundable ? (
+                      <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-800">
+                        {refundQuoteState.quote.reasonIfNotRefundable}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="mt-6 flex flex-wrap justify-end gap-3">
                   <button
@@ -284,6 +431,7 @@ export default function SubscriptionManagementModal({
                   onClick={() => {
                     setError(null);
                     setIsViewingRefundGuide(true);
+                    void loadRefundQuote();
                   }}
                   className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100"
                 >
