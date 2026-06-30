@@ -9,15 +9,24 @@ type MarketingConsentSettingsProps = {
   withdrawnAt?: string | null;
 };
 
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
 function formatDateTime(value?: string | null) {
   if (!value) return null;
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return null;
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Seoul",
-  }).format(date);
+  const timestamp = date.getTime();
+  if (!Number.isFinite(timestamp)) return null;
+
+  const kstDate = new Date(timestamp + KST_OFFSET_MS);
+  const year = kstDate.getUTCFullYear();
+  const month = kstDate.getUTCMonth() + 1;
+  const day = kstDate.getUTCDate();
+  const hour24 = kstDate.getUTCHours();
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  const period = hour24 < 12 ? "오전" : "오후";
+  const minute = String(kstDate.getUTCMinutes()).padStart(2, "0");
+
+  return `${year}. ${month}. ${day}. ${period} ${hour12}:${minute}`;
 }
 
 export default function MarketingConsentSettings({
