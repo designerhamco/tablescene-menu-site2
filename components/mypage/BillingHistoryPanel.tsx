@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
@@ -48,6 +48,8 @@ export type BillingHistoryEntry = {
       productKey: string;
       label: string;
       amountLabel: string;
+      billingCycle: "monthly" | "yearly";
+      nextBillingDescription: string;
       renewalDescription: string;
     }>;
   } | null;
@@ -148,8 +150,90 @@ function FilterSelect({
   );
 }
 
+type RestorePreflightState =
+  | { status: "idle"; message: string | null; nextBillingDescription: string | null; canRestore: boolean | null }
+  | { status: "loading"; message: string | null; nextBillingDescription: string | null; canRestore: boolean | null }
+  | { status: "success"; message: string; nextBillingDescription: string | null; canRestore: boolean }
+  | { status: "error"; message: string; nextBillingDescription: string | null; canRestore: false };
+
 function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHistoryEntry["restoreSubscription"]> }) {
   const [open, setOpen] = useState(false);
+  const [selectedProductKey, setSelectedProductKey] = useState(restore.options[0]?.productKey ?? "");
+  const [preflightState, setPreflightState] = useState<RestorePreflightState>({
+    status: "idle",
+    message: null,
+    nextBillingDescription: restore.options[0]?.nextBillingDescription ?? null,
+    canRestore: null,
+  });
+  const selectedOption = restore.options.find((option) => option.productKey === selectedProductKey) ?? restore.options[0] ?? null;
+
+  useEffect(() => {
+    if (!open || !selectedProductKey) return;
+
+    let cancelled = false;
+
+    async function runPreflight() {
+      setPreflightState({
+        status: "loading",
+        message: "복구 가능 상태를 확인하고 있습니다.",
+        nextBillingDescription: selectedOption?.nextBillingDescription ?? null,
+        canRestore: null,
+      });
+
+      try {
+        const response = await fetch("/api/business-subscriptions/restore/preflight", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            restoreMenuSiteId: restore.menuSiteId,
+            selectedProductKey,
+          }),
+        });
+        const result = (await response.json()) as {
+          ok?: boolean;
+          message?: string;
+          preflight?: {
+            canRestore?: boolean;
+            message?: string;
+            nextBillingDescription?: string | null;
+          };
+        };
+
+        if (cancelled) return;
+
+        if (!response.ok || !result.ok || !result.preflight) {
+          setPreflightState({
+            status: "error",
+            message: result.message ?? "복구 가능 상태를 확인하지 못했습니다.",
+            nextBillingDescription: selectedOption?.nextBillingDescription ?? null,
+            canRestore: false,
+          });
+          return;
+        }
+
+        setPreflightState({
+          status: "success",
+          message: result.preflight.message ?? "복구 가능한 메뉴판입니다.",
+          nextBillingDescription: result.preflight.nextBillingDescription ?? selectedOption?.nextBillingDescription ?? null,
+          canRestore: Boolean(result.preflight.canRestore),
+        });
+      } catch {
+        if (cancelled) return;
+        setPreflightState({
+          status: "error",
+          message: "복구 가능 상태 확인 중 문제가 발생했습니다.",
+          nextBillingDescription: selectedOption?.nextBillingDescription ?? null,
+          canRestore: false,
+        });
+      }
+    }
+
+    void runPreflight();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, restore.menuSiteId, selectedOption?.nextBillingDescription, selectedProductKey]);
 
   return (
     <>
@@ -187,6 +271,7 @@ function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHis
               <p className="mt-2">
                 새 구독은 결제 완료일 기준으로 시작되며, 기존 환불 내역과 결제 내역은 그대로 보관됩니다.
               </p>
+              <p className="mt-2">요금제에 포함된 AI 기본 제공량은 새 구독 기준으로 지급됩니다.</p>
             </div>
 
             <dl className="mt-5 grid gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm md:grid-cols-2">
@@ -206,25 +291,52 @@ function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHis
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {restore.options.map((option) => (
-                <div key={option.productKey} className="rounded-2xl border border-zinc-200 bg-white p-4">
+                <button
+                  key={option.productKey}
+                  type="button"
+                  onClick={() => setSelectedProductKey(option.productKey)}
+                  className={`rounded-2xl border bg-white p-4 text-left transition-colors ${
+                    selectedProductKey === option.productKey
+                      ? "border-zinc-950 ring-2 ring-zinc-950/10"
+                      : "border-zinc-200 hover:border-zinc-400"
+                  }`}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h4 className="break-keep text-base font-black text-zinc-950">{option.label}</h4>
                       <p className="mt-2 text-2xl font-black tracking-tight text-zinc-950">{option.amountLabel}</p>
                     </div>
-                    <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-500">현재가</span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-black ${
+                      selectedProductKey === option.productKey ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-500"
+                    }`}>
+                      {selectedProductKey === option.productKey ? "선택됨" : "현재가"}
+                    </span>
                   </div>
                   <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">{option.renewalDescription}</p>
-                  <button
-                    type="button"
-                    disabled
-                    className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-xs font-black text-zinc-400"
-                  >
-                    결제 연결 준비 중
-                  </button>
-                </div>
+                </button>
               ))}
             </div>
+
+            <div className={`mt-5 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${
+              preflightState.status === "error" || preflightState.canRestore === false
+                ? "border-red-100 bg-red-50 text-red-700"
+                : preflightState.status === "loading"
+                  ? "border-zinc-100 bg-zinc-50 text-zinc-600"
+                  : "border-emerald-100 bg-emerald-50 text-emerald-700"
+            }`}>
+              <p>{preflightState.message ?? "복구할 구독 상품을 선택해주세요."}</p>
+              {preflightState.nextBillingDescription ? (
+                <p className="mt-2">다음 결제 예정일: {preflightState.nextBillingDescription}</p>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              disabled
+              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-4 py-3 text-sm font-black text-zinc-400"
+            >
+              결제 연결 준비 중
+            </button>
 
             <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
               이번 단계에서는 실제 결제를 실행하지 않습니다. 다음 단계에서 복구 전용 결제 흐름이 연결되면 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다.

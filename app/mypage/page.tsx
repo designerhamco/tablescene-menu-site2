@@ -850,6 +850,10 @@ function getRestoreSubscriptionOptions(serviceType: BillingHistoryEntry["service
       productKey: product.productKey,
       label: product.label,
       amountLabel: formatKrw(product.amount),
+      billingCycle: product.billingCycle,
+      nextBillingDescription: product.billingCycle === "monthly"
+        ? "결제 완료일로부터 1개월 후"
+        : "결제 완료일로부터 1년 후",
       renewalDescription: product.billingCycle === "monthly"
         ? "새 구독은 결제 완료일 기준으로 시작되며, 다음 결제 예정일은 결제 완료일로부터 1개월 후입니다."
         : "새 구독은 결제 완료일 기준으로 시작되며, 다음 결제 예정일은 결제 완료일로부터 1년 후입니다.",
