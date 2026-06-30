@@ -67,7 +67,7 @@ export default async function NewMenuSitePage({
           </div>
 
           <span className="inline-flex w-fit items-center rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700 shadow-sm ring-1 ring-zinc-200">
-            {limitState.usedCount}/{displayLimit}개 사용 중
+            Basic 메뉴판 {limitState.usedCount}/{displayLimit}개 사용 중
           </span>
         </div>
 

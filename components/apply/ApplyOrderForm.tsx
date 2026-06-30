@@ -1903,7 +1903,10 @@ export default function ApplyOrderForm({
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월/연 결제는 사업자 인증과 자동결제 구조로 이어집니다.
-                체험은 메뉴판 1개, 사업자 Basic 구독은 구독 1개당 메뉴판 최대 3개까지 만들 수 있습니다.
+                Basic 구독 1개로 메뉴판을 최대 3개까지 만들 수 있습니다. 결제 시 첫 메뉴판을 만들고, 추가 메뉴판은 마이페이지에서 언제든 생성할 수 있습니다.
+              </p>
+              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                체험 기간에는 메뉴판 1개만 만들 수 있습니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.

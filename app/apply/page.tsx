@@ -14,9 +14,9 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   return [
   {
     title: "메뉴링크 베이직",
-    description: "개인 1개월 체험은 메뉴판 1개, 사업자 Basic 구독은 한 구독으로 메뉴판을 최대 3개까지 만듭니다.",
+    description: "Basic 구독 1개로 메뉴판을 최대 3개까지 만들 수 있습니다.",
     price: "첫 달 체험가 6,600원 / 사업자 월 9,900원 / 연 95,000원",
-    note: "체험 기간에는 메뉴판 1개가 제공되고, 유료 Basic 월/연 구독은 구독 1개당 Basic 메뉴판 최대 3개까지 생성할 수 있습니다.",
+    note: "결제 시 첫 메뉴판을 만들고, 추가 메뉴판은 마이페이지에서 언제든 생성할 수 있습니다. 체험 기간에는 메뉴판 1개만 만들 수 있습니다.",
     type: "웹 메뉴판",
     cta: "베이직 만들기",
     href: "/apply/basic",
