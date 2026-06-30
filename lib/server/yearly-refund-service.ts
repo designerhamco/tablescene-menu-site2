@@ -12,7 +12,8 @@ import type { Database, Json } from "@/lib/supabase/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RETENTION_DAYS_AFTER_REFUND = 90;
-const REFUND_CALCULATION_VERSION = "yearly_discount_clawback_v1";
+const MIDTERM_CANCELLATION_FEE_RATE = 0.1;
+const REFUND_CALCULATION_VERSION = "yearly_discount_clawback_midterm_fee_v2";
 
 const yearlyRefundProductPairs = {
   business_basic_yearly: {
@@ -92,6 +93,9 @@ export type YearlyRefundQuote = {
   monthlyBasisUsedAmount: number;
   annualBasisUsedAmount: number;
   discountClawbackAmount: number;
+  preFeeRefundAmount: number;
+  midtermCancellationFeeRate: number;
+  midtermCancellationFeeAmount: number;
   estimatedRefundAmount: number;
   canAutoRefundLater: boolean;
   reasonIfNotRefundable: string | null;
@@ -307,8 +311,10 @@ export async function calculateYearlyRefundQuote({
   const monthlyBasisUsedAmount = prorateCeil(monthlyListPrice * 12, usedDays, totalDays);
   const annualBasisUsedAmount = prorateCeil(paidAmount, usedDays, totalDays);
   const discountClawbackAmount = Math.max(0, monthlyBasisUsedAmount - annualBasisUsedAmount);
-  const estimatedRefundAmount = Math.max(0, paidAmount - monthlyBasisUsedAmount);
-  const reasonIfNotRefundable = estimatedRefundAmount > 0 ? null : "사용 기간 기준 재정산 금액이 결제금액 이상입니다.";
+  const preFeeRefundAmount = Math.max(0, paidAmount - monthlyBasisUsedAmount);
+  const midtermCancellationFeeAmount = Math.ceil(preFeeRefundAmount * MIDTERM_CANCELLATION_FEE_RATE);
+  const estimatedRefundAmount = Math.max(0, preFeeRefundAmount - midtermCancellationFeeAmount);
+  const reasonIfNotRefundable = estimatedRefundAmount > 0 ? null : "사용 기간 기준 재정산 금액과 중도해지 수수료가 결제금액 이상입니다.";
 
   return {
     subscriptionId: subscription.id,
@@ -332,12 +338,15 @@ export async function calculateYearlyRefundQuote({
     monthlyBasisUsedAmount,
     annualBasisUsedAmount,
     discountClawbackAmount,
+    preFeeRefundAmount,
+    midtermCancellationFeeRate: MIDTERM_CANCELLATION_FEE_RATE,
+    midtermCancellationFeeAmount,
     estimatedRefundAmount,
     canAutoRefundLater: estimatedRefundAmount > 0,
     reasonIfNotRefundable,
-    roundingPolicy: "월결제 기준 사용료는 원 단위 올림으로 계산합니다.",
+    roundingPolicy: "월결제 기준 사용료와 중도해지 수수료는 원 단위 올림으로 계산합니다.",
     customerNotice:
-      "연결제는 월결제 대비 할인된 연 정기결제 상품입니다. 중도해지 시 사용한 기간은 월결제 기준 금액으로 재정산되며, 예상 환불금액은 다음 단계에서 고객 확인 후 확정됩니다.",
+      "연결제는 월결제 대비 할인된 연 정기결제 상품입니다. 중도해지 시 사용한 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.",
     calculationVersion: REFUND_CALCULATION_VERSION,
   } satisfies YearlyRefundQuote;
 }
@@ -395,6 +404,9 @@ function buildRefundRequestInsert({
     idempotency_key: idempotencyKey,
     metadata: {
       remaining_days: quote.remainingDays,
+      pre_fee_refund_amount: quote.preFeeRefundAmount,
+      midterm_cancellation_fee_rate: quote.midtermCancellationFeeRate,
+      midterm_cancellation_fee_amount: quote.midtermCancellationFeeAmount,
       rounding_policy: quote.roundingPolicy,
       customer_notice: quote.customerNotice,
     },

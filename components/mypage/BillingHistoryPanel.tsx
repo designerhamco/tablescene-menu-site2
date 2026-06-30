@@ -644,7 +644,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
       <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-900">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
         <p className="mt-2">
-          연결제 중도해지/환불은 정액 수수료 방식이 아니라, 월정가 기준 사용료와 이미 적용받은 연간 할인 혜택을 사용 기간 기준으로 재정산하는 방식으로 안내합니다.
+          연결제 중도해지/환불은 사용 기간을 월결제 기준 금액으로 재정산한 뒤, 잔여 환불 가능액에서 중도해지 수수료 10%를 공제하는 방식으로 안내합니다.
         </p>
       </div>
 
@@ -728,7 +728,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
                   {entry.billingMethod === "yearly" ? (
                     <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-500">
-                      연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불 요청 시 사용 기간은 월결제 기준 금액으로 재정산되며, 사용 기간에 해당하는 연간 할인 혜택이 환불금에서 공제될 수 있습니다.
+                      연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불 요청 시 사용 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                     </div>
                   ) : null}
                 </div>

@@ -49,6 +49,9 @@ type RefundQuote = {
   monthlyBasisUsedAmount: number;
   annualBasisUsedAmount: number;
   discountClawbackAmount: number;
+  preFeeRefundAmount: number;
+  midtermCancellationFeeRate: number;
+  midtermCancellationFeeAmount: number;
   estimatedRefundAmount: number;
   canAutoRefundLater: boolean;
   reasonIfNotRefundable: string | null;
@@ -222,7 +225,7 @@ export default function SubscriptionManagementModal({
     }
 
     const ok = window.confirm(
-      `예상 환불금액 ${formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}으로 환불을 진행합니다.\n\n환불이 완료되면 메뉴판은 보관 상태로 전환되고, 실제 카드 취소 반영은 결제수단에 따라 영업일 기준 3~7일이 걸릴 수 있습니다.`
+      `최종 예상 환불금액 ${formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}으로 환불을 진행합니다.\n\n잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다. 환불이 완료되면 메뉴판은 보관 상태로 전환되고, 실제 카드 취소 반영은 결제수단에 따라 영업일 기준 3~7일이 걸릴 수 있습니다.`
     );
 
     if (!ok) return;
@@ -308,14 +311,14 @@ export default function SubscriptionManagementModal({
                     연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불을 요청하면 환불금액은 요청일을 기준으로 산정됩니다.
                   </p>
                   <p className="mt-3">
-                    사용한 기간은 월결제 기준 금액으로 재정산되며, 이미 적용받은 연간 할인 혜택 중 사용 기간에 해당하는 금액이 환불금에서 공제될 수 있습니다.
+                    사용한 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                   </p>
                   <p className="mt-3">
-                    환불 요청 후 처리 전까지는 요청을 취소할 수 있으며, 환불 처리가 시작되면 고객지원 확인이 필요합니다.
+                    환불 요청 후 처리 전까지는 환불 요청 취소가 가능할 수 있으며, 환불 처리가 시작되면 고객지원 확인이 필요합니다.
                   </p>
                   <p className="mt-3">
-                    다음 단계에서는 고객 최종 확인 후 자동 환불 처리를 목표로 합니다. 카드사 또는 결제수단에 따라 실제 취소 반영까지 영업일 기준 3~7일이 걸릴 수 있습니다.
-                    환불 완료 후 메뉴판은 비공개 또는 보관 상태로 전환되며, 보관 기간 내 재결제하면 기존 메뉴판을 복구할 수 있습니다.
+                    고객 최종 확인 후 자동 환불 처리를 진행하며, 카드사 또는 결제수단에 따라 실제 취소 반영까지 영업일 기준 3~7일이 걸릴 수 있습니다.
+                    환불 완료 후 메뉴판은 보관 상태로 전환되며, 보관 기간 내 재구독하면 기존 메뉴판을 복구할 수 있습니다.
                   </p>
                 </div>
 
@@ -339,7 +342,7 @@ export default function SubscriptionManagementModal({
                   <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                       <div>
-                        <h4 className="text-base font-black text-zinc-950">예상 환불금액</h4>
+                        <h4 className="text-base font-black text-zinc-950">최종 예상 환불금액</h4>
                         <p className="mt-1 text-sm font-bold leading-relaxed text-zinc-500">{refundQuoteState.quote.customerNotice}</p>
                       </div>
                       <p className="text-2xl font-black text-zinc-950">
@@ -379,8 +382,16 @@ export default function SubscriptionManagementModal({
                         <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.monthlyBasisUsedAmount)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">연간 할인 혜택 재정산</dt>
+                        <dt className="text-xs font-black text-zinc-400">연간 할인 혜택 재정산분</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.discountClawbackAmount)}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">1차 환불 가능액</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.preFeeRefundAmount)}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-zinc-50 p-4">
+                        <dt className="text-xs font-black text-zinc-400">중도해지 수수료 10%</dt>
+                        <dd className="mt-1 font-bold text-zinc-900">-{formatKrwLabel(refundQuoteState.quote.midtermCancellationFeeAmount)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4 md:col-span-2">
                         <dt className="text-xs font-black text-zinc-400">환불 기준일</dt>
@@ -501,10 +512,10 @@ export default function SubscriptionManagementModal({
             {isYearlyBilling && !restoredNotice ? (
               <div className="mt-4 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
                 <p>
-                  중도해지 및 환불이 필요한 경우 별도로 요청할 수 있습니다. 사용한 기간은 월결제 기준 금액으로 재정산되며, 이미 적용받은 연간 할인 혜택 중 사용 기간에 해당하는 금액이 환불금에서 공제될 수 있습니다.
+                  중도해지 및 환불이 필요한 경우 별도로 요청할 수 있습니다. 사용한 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                 </p>
                 <p className="mt-2">
-                  환불 요청 후 검토 또는 처리 전까지는 요청 취소가 가능할 수 있으며, 환불 처리가 시작되면 고객지원 확인이 필요합니다. 실제 환불 처리는 관리자 검토 후 안내됩니다.
+                  환불 요청 후 처리 전까지는 환불 요청 취소가 가능할 수 있으며, 환불 완료 후 메뉴판은 보관 상태로 전환됩니다.
                 </p>
               </div>
             ) : null}
