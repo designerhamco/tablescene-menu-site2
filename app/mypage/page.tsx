@@ -2155,9 +2155,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       siteId,
       ddayInfo: retentionDdayInfo,
     });
-    const resumeCancellationHref = isCancelScheduledActive && canUseMenuActions && activeBusinessSubscription?.id
-      ? `/mypage?tab=payments&billingTab=active&subscriptionId=${encodeURIComponent(activeBusinessSubscription.id)}&modal=subscription-management`
-      : null;
     const isRetentionEnded = isTrialPendingDelete || (dataRetentionUntil ? daysUntilRetentionEnds !== null && daysUntilRetentionEnds < 0 : false);
     const serviceBadge = getMenuServiceBadge({
       productKey: entitlement?.product_key ?? activeBusinessSubscription?.product_key ?? anyBusinessSubscription?.product_key ?? null,
@@ -2310,9 +2307,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       isAccessRestricted,
       isTrialPendingDelete,
       isPersonalTrial,
-      canConvertToBusiness: isPersonalTrial && !isTrialExpired && !isTrialPendingDelete && Boolean(siteId),
-      recoveryCta: section === "holding" ? archivedDisplayState?.cta ?? null : null,
-      resumeCancellationHref,
       actions: {
         canEdit: canUseMenuActions,
         canOwnerPreview,
@@ -2463,21 +2457,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               enabled: card.actions.canDownloadQr,
               disabledReason: card.actions.qrDisabledReason,
             })}
-            {card.resumeCancellationHref ? (
-              <Link href={card.resumeCancellationHref} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
-                해지 예약 취소하기
-              </Link>
-            ) : null}
-            {card.recoveryCta ? (
-              <Link href={card.recoveryCta.href} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
-                {card.recoveryCta.label}
-              </Link>
-            ) : null}
-            {!card.recoveryCta && card.canConvertToBusiness ? (
-              <Link href={`/mypage/menus/${card.siteId}/convert`} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 transition-colors hover:bg-amber-100">
-                {card.isAccessRestricted ? "사업자 플랜으로 전환하고 복구" : "사업자 플랜 전환"}
-              </Link>
-            ) : null}
           </div>
         )}
       </article>
