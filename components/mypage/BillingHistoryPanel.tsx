@@ -503,15 +503,51 @@ function RestoreSubscriptionModal({
 
 export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = false, restoreCheckoutConfig }: BillingHistoryPanelProps) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const serviceTypeOptions = useMemo(() => {
+    const values = new Set(entries.map((entry) => entry.serviceType));
+    return [
+      { value: "all", label: "전체" },
+      ...(values.has("basic") ? [{ value: "basic", label: "Basic" }] : []),
+      ...(values.has("display") ? [{ value: "display", label: "Display" }] : []),
+    ];
+  }, [entries]);
+  const billingMethodOptions = useMemo(() => {
+    const values = new Set(entries.map((entry) => entry.billingMethod));
+    return [
+      { value: "all", label: "전체" },
+      ...(values.has("monthly") ? [{ value: "monthly", label: "월결제" }] : []),
+      ...(values.has("yearly") ? [{ value: "yearly", label: "연결제" }] : []),
+      ...(values.has("trial") ? [{ value: "trial", label: "체험 결제" }] : []),
+    ];
+  }, [entries]);
+  const paymentStatusOptions = useMemo(() => {
+    const values = new Set(entries.map((entry) => entry.paymentStatusBucket));
+    return [
+      { value: "all", label: "전체" },
+      ...(values.has("paid") ? [{ value: "paid", label: "결제완료" }] : []),
+      ...(values.has("failed") ? [{ value: "failed", label: "결제실패" }] : []),
+      ...(values.has("refund_processing") ? [{ value: "refund_processing", label: "환불처리중" }] : []),
+      ...(values.has("refunded") ? [{ value: "refunded", label: "환불완료" }] : []),
+      ...(values.has("needs_review") ? [{ value: "needs_review", label: "처리확인 필요" }] : []),
+    ];
+  }, [entries]);
+
+  const effectiveFilters = useMemo(() => ({
+    ...filters,
+    serviceType: serviceTypeOptions.some((option) => option.value === filters.serviceType) ? filters.serviceType : "all",
+    billingMethod: billingMethodOptions.some((option) => option.value === filters.billingMethod) ? filters.billingMethod : "all",
+    paymentStatus: paymentStatusOptions.some((option) => option.value === filters.paymentStatus) ? filters.paymentStatus : "all",
+  }), [billingMethodOptions, filters, paymentStatusOptions, serviceTypeOptions]);
+
   const filteredEntries = useMemo(() => {
-    const normalizedQuery = filters.query.trim().toLowerCase();
+    const normalizedQuery = effectiveFilters.query.trim().toLowerCase();
 
     return entries.filter((entry) => {
-      if (!isInDateRange(entry.paidAt, filters.from, filters.to)) return false;
-      if (filters.serviceType !== "all" && entry.serviceType !== filters.serviceType) return false;
-      if (filters.billingMethod !== "all" && entry.billingMethod !== filters.billingMethod) return false;
-      if (filters.serviceStatus !== "all" && entry.serviceStatusBucket !== filters.serviceStatus) return false;
-      if (filters.paymentStatus !== "all" && entry.paymentStatusBucket !== filters.paymentStatus) return false;
+      if (!isInDateRange(entry.paidAt, effectiveFilters.from, effectiveFilters.to)) return false;
+      if (effectiveFilters.serviceType !== "all" && entry.serviceType !== effectiveFilters.serviceType) return false;
+      if (effectiveFilters.billingMethod !== "all" && entry.billingMethod !== effectiveFilters.billingMethod) return false;
+      if (effectiveFilters.serviceStatus !== "all" && entry.serviceStatusBucket !== effectiveFilters.serviceStatus) return false;
+      if (effectiveFilters.paymentStatus !== "all" && entry.paymentStatusBucket !== effectiveFilters.paymentStatus) return false;
 
       if (normalizedQuery) {
         const searchText = [
@@ -530,9 +566,9 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
       return true;
     });
-  }, [entries, filters]);
+  }, [effectiveFilters, entries]);
 
-  const hasActiveFilters = JSON.stringify(filters) !== JSON.stringify(initialFilters);
+  const hasActiveFilters = JSON.stringify(effectiveFilters) !== JSON.stringify(initialFilters);
 
   return (
     <section className="space-y-5">
@@ -575,26 +611,15 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
           </label>
           <FilterSelect
             label="서비스 유형"
-            value={filters.serviceType}
+            value={effectiveFilters.serviceType}
             onChange={(value) => setFilters((current) => ({ ...current, serviceType: value as FilterState["serviceType"] }))}
-            options={[
-              { value: "all", label: "전체" },
-              { value: "basic", label: "Basic" },
-              { value: "display", label: "Display" },
-              { value: "trial", label: "체험" },
-            ]}
+            options={serviceTypeOptions}
           />
           <FilterSelect
             label="결제 방식"
-            value={filters.billingMethod}
+            value={effectiveFilters.billingMethod}
             onChange={(value) => setFilters((current) => ({ ...current, billingMethod: value as FilterState["billingMethod"] }))}
-            options={[
-              { value: "all", label: "전체" },
-              { value: "monthly", label: "월결제" },
-              { value: "yearly", label: "연결제" },
-              { value: "trial", label: "체험 결제" },
-              { value: "one_time", label: "일회성 결제" },
-            ]}
+            options={billingMethodOptions}
           />
           <FilterSelect
             label="서비스 상태"
@@ -613,17 +638,9 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
           />
           <FilterSelect
             label="결제/환불 상태"
-            value={filters.paymentStatus}
+            value={effectiveFilters.paymentStatus}
             onChange={(value) => setFilters((current) => ({ ...current, paymentStatus: value as FilterState["paymentStatus"] }))}
-            options={[
-              { value: "all", label: "전체" },
-              { value: "paid", label: "결제완료" },
-              { value: "failed", label: "결제실패" },
-              { value: "cancelled", label: "결제취소" },
-              { value: "refund_processing", label: "환불처리중" },
-              { value: "refunded", label: "환불완료" },
-              { value: "needs_review", label: "처리확인 필요" },
-            ]}
+            options={paymentStatusOptions}
           />
           <label className="block md:col-span-2">
             <span className="text-xs font-black text-zinc-400">매장명 / 메뉴판 주소 / 결제번호 검색</span>
