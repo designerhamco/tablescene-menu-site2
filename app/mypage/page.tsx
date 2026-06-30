@@ -2063,6 +2063,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               defaultOpen: shouldAutoOpenSubscriptionModal && requestedSubscriptionId === matchingSubscription.id,
               billingMethod: billingMethod === "yearly" ? "yearly" : billingMethod === "monthly" ? "monthly" : "unknown",
               refundConfirmEnabled: yearlyRefundConfirmEnabled,
+              restoredNotice: serviceStatus.bucket === "restored"
+                ? {
+                    title: "재구독 완료",
+                    message: "기존 메뉴판이 새 구독으로 복구되었습니다.",
+                  }
+                : null,
             }
           : null,
       };

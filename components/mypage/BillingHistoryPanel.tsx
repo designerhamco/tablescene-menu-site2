@@ -73,6 +73,10 @@ export type BillingHistoryEntry = {
     defaultOpen: boolean;
     billingMethod: "monthly" | "yearly" | "unknown";
     refundConfirmEnabled?: boolean;
+    restoredNotice?: {
+      title: string;
+      message: string;
+    } | null;
   } | null;
 };
 
@@ -357,7 +361,7 @@ function RestoreSubscriptionModal({
         onClick={() => setOpen(true)}
         className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
       >
-        재구독하고 복구
+        구독 관리
       </button>
 
       {open ? (
@@ -365,10 +369,11 @@ function RestoreSubscriptionModal({
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Restore subscription</p>
-                <h3 className="mt-2 break-keep text-2xl font-black tracking-tight text-zinc-950">
-                  기존 메뉴판을 복구할 구독 상품을 선택해주세요
-                </h3>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Subscription management</p>
+                <h3 className="mt-2 break-keep text-2xl font-black tracking-tight text-zinc-950">재구독하고 복구</h3>
+                <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                  기존 메뉴판을 복구할 구독 상품을 선택해주세요.
+                </p>
               </div>
               <button
                 type="button"
@@ -731,8 +736,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                       restoreCheckoutEnabled={restoreCheckoutEnabled}
                       restoreCheckoutConfig={restoreCheckoutConfig}
                     />
-                  ) : null}
-                  {entry.subscriptionManagement ? (
+                  ) : entry.subscriptionManagement ? (
                     <SubscriptionManagementModal {...entry.subscriptionManagement} />
                   ) : null}
                   <PaymentDetailModal

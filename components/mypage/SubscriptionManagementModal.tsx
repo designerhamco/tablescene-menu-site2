@@ -22,6 +22,10 @@ export type SubscriptionManagementModalProps = {
   defaultOpen?: boolean;
   billingMethod?: "monthly" | "yearly" | "unknown";
   refundConfirmEnabled?: boolean;
+  restoredNotice?: {
+    title: string;
+    message: string;
+  } | null;
 };
 
 type ApiResult = {
@@ -115,6 +119,7 @@ export default function SubscriptionManagementModal({
   defaultOpen = false,
   billingMethod = "unknown",
   refundConfirmEnabled = false,
+  restoredNotice = null,
 }: SubscriptionManagementModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -477,13 +482,23 @@ export default function SubscriptionManagementModal({
               </div>
             ) : (
               <>
+            {restoredNotice ? (
+              <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
+                <h3 className="text-lg font-black text-emerald-950">{restoredNotice.title}</h3>
+                <p className="mt-2">{restoredNotice.message}</p>
+                <p className="mt-2">이 결제 기록은 환불 완료 내역으로 보관되며, 현재 이용 중인 새 구독은 별도 카드에서 확인할 수 있습니다.</p>
+              </div>
+            ) : null}
+
             <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
-              {isYearlyBilling
+              {restoredNotice
+                ? "기존 결제/환불 내역과 새 구독 내역은 분리되어 보관됩니다."
+                : isYearlyBilling
                 ? "연결제는 매년 자동결제되는 연 정기결제 상품입니다. 해지 예약 시 다음 연 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다."
                 : "구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있습니다. 이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다."}
             </div>
 
-            {isYearlyBilling ? (
+            {isYearlyBilling && !restoredNotice ? (
               <div className="mt-4 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
                 <p>
                   중도해지 및 환불이 필요한 경우 별도로 요청할 수 있습니다. 사용한 기간은 월결제 기준 금액으로 재정산되며, 이미 적용받은 연간 할인 혜택 중 사용 기간에 해당하는 금액이 환불금에서 공제될 수 있습니다.
@@ -539,7 +554,7 @@ export default function SubscriptionManagementModal({
             {error && <p className="mt-4 break-keep rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
 
             <div className="mt-6 flex flex-wrap justify-end gap-3">
-              {status === "active" && !cancelAtPeriodEnd && canManage ? (
+              {status === "active" && !cancelAtPeriodEnd && canManage && !restoredNotice ? (
                 <button
                   type="button"
                   onClick={() => {
@@ -551,7 +566,7 @@ export default function SubscriptionManagementModal({
                   {isYearlyBilling ? "다음 연 결제일부터 해지 예약" : "구독 해지 예약"}
                 </button>
               ) : null}
-              {status === "active" && cancelAtPeriodEnd && canManage ? (
+              {status === "active" && cancelAtPeriodEnd && canManage && !restoredNotice ? (
                 <button
                   type="button"
                   disabled={isSubmitting}
@@ -561,12 +576,12 @@ export default function SubscriptionManagementModal({
                   {isSubmitting ? "처리 중..." : "구독 유지하기 / 해지 예약 취소"}
                 </button>
               ) : null}
-              {status === "expired" || status === "failed" ? (
+              {(status === "expired" || status === "failed") && !restoredNotice ? (
                 <a href="/mypage/inquiries" className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700">
                   고객지원 문의
                 </a>
               ) : null}
-              {isYearlyBilling && status === "active" && canManage ? (
+              {isYearlyBilling && status === "active" && canManage && !restoredNotice ? (
                 <button
                   type="button"
                   onClick={() => {
