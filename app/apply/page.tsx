@@ -14,9 +14,9 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   return [
   {
     title: "메뉴링크 베이직",
-    description: "개인 1개월 체험 또는 사업자 정식 월/연 결제를 선택해 웹 메뉴판을 만듭니다.",
+    description: "개인 1개월 체험은 메뉴판 1개, 사업자 Basic 구독은 한 구독으로 메뉴판을 최대 3개까지 만듭니다.",
     price: "첫 달 체험가 6,600원 / 사업자 월 9,900원 / 연 95,000원",
-    note: "메뉴링크 베이직 신청 화면에서 이용 방식과 템플릿을 함께 선택합니다.",
+    note: "체험 기간에는 메뉴판 1개가 제공되고, 유료 Basic 월/연 구독은 구독 1개당 Basic 메뉴판 최대 3개까지 생성할 수 있습니다.",
     type: "웹 메뉴판",
     cta: "베이직 만들기",
     href: "/apply/basic",
@@ -24,7 +24,7 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   },
   {
     title: "메뉴링크 디스플레이",
-    description: "사업자 전용 디스플레이 메뉴보드입니다.",
+    description: "사업자 전용 디스플레이 메뉴보드입니다. 구독 1개당 Display 메뉴판 1개를 기준으로 제공합니다.",
     price: "오픈 할인 월 19,800원 / 연 190,000원",
     note: displayCheckoutQaEnabled
       ? "QA/dev 환경에서만 메뉴링크 디스플레이 A 신청/결제 흐름을 확인할 수 있습니다."

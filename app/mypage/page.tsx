@@ -25,6 +25,7 @@ import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuPath } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
+import { getBasicMenuCreateLabel, getBasicMenuSiteLimitState, type BasicMenuSiteLimitState } from "@/lib/server/basic-menu-site-limit-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
@@ -73,6 +74,7 @@ type MenuSite = {
 type ServiceEntitlement = {
   id: string | null;
   menu_site_id: string | null;
+  subscription_id?: string | null;
   product_key?: string | null;
   plan_key?: string | null;
   plan_type: string | null;
@@ -1287,7 +1289,7 @@ async function getServiceEntitlementsForMenuSites(
     "service_entitlements",
     supabase
       .from("service_entitlements")
-      .select("id, menu_site_id, product_key, plan_key, plan_type, billing_type, billing_cycle, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
+      .select("id, menu_site_id, subscription_id, product_key, plan_key, plan_type, billing_type, billing_cycle, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
       .in("menu_site_id", menuSiteIds)
   );
 
@@ -1316,7 +1318,7 @@ async function getServiceEntitlementsForMenuSites(
     "service_entitlements_fallback",
     supabase
       .from("service_entitlements")
-      .select("id, menu_site_id, product_key, plan_key, plan_type, billing_type, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
+      .select("id, menu_site_id, subscription_id, product_key, plan_key, plan_type, billing_type, status, access_starts_at, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at, created_at")
       .in("menu_site_id", menuSiteIds)
   );
 
@@ -1555,6 +1557,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   let orders: OrderRecord[] = [];
   let aiCreditPurchases: AiCreditPurchaseTransaction[] = [];
   let refundRequests: RefundRequestRecord[] = [];
+  let basicMenuSiteLimitState: BasicMenuSiteLimitState | null = null;
   const paymentsErrors: string[] = [];
 
   try {
@@ -1587,6 +1590,20 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       userId: user.id,
       message: subscriptionError instanceof Error ? subscriptionError.message : "unknown",
     });
+  }
+
+  if (activeTab === "menus") {
+    try {
+      basicMenuSiteLimitState = await getBasicMenuSiteLimitState({
+        adminSupabase: createAdminClient(),
+        userId: user.id,
+      });
+    } catch (limitError) {
+      console.error("[mypage] basic menu site limit query failed", {
+        userId: user.id,
+        message: limitError instanceof Error ? limitError.message : "unknown",
+      });
+    }
   }
 
   if (activeTab === "payments") {
@@ -1742,7 +1759,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const entitlementServiceItems = (serviceEntitlementsError ? [] : serviceEntitlements)
     .map((entitlement) => {
       const menuSite = entitlement.menu_site_id ? siteById.get(entitlement.menu_site_id) : undefined;
-      const subscription = businessSubscriptions.find((item) => item.menu_site_id && item.menu_site_id === entitlement.menu_site_id);
+      const subscription = businessSubscriptions.find((item) =>
+        (entitlement.subscription_id && item.id === entitlement.subscription_id) ||
+        (item.menu_site_id && item.menu_site_id === entitlement.menu_site_id)
+      );
 
       return { key: entitlement.id ?? `entitlement-${entitlement.menu_site_id}`, entitlement, menuSite, subscription };
     })
@@ -2103,10 +2123,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const isBusinessService = planType === "business_basic" || planType === "business_display";
     const isOneTimeBusinessService = isBusinessService && billingType === "one_time" && billingCycle !== "yearly";
     const activeBusinessSubscription = siteId
-      ? businessSubscriptions.find((subscription) => subscription.menu_site_id === siteId && subscription.status === "active")
+      ? businessSubscriptions.find((subscription) =>
+          subscription.status === "active" &&
+          (subscription.menu_site_id === siteId || Boolean(entitlement?.subscription_id && subscription.id === entitlement.subscription_id))
+        )
       : undefined;
     const anyBusinessSubscription = siteId
-      ? businessSubscriptions.find((subscription) => subscription.menu_site_id === siteId)
+      ? businessSubscriptions.find((subscription) =>
+          subscription.menu_site_id === siteId || Boolean(entitlement?.subscription_id && subscription.id === entitlement.subscription_id)
+        )
       : undefined;
     const cancelAtPeriodEnd = Boolean(activeBusinessSubscription?.cancel_at_period_end);
     const isPublished = site.status === "published";
@@ -2345,6 +2370,37 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     : activeMenuTab === "holding"
       ? holdingMenuCards
       : deletedMenuCards;
+  const createMenuButtonLabel = getBasicMenuCreateLabel(basicMenuSiteLimitState);
+  const hasActiveBasicSubscription = Boolean(basicMenuSiteLimitState?.activeBasicSubscription);
+  const canCreateBasicMenuSite = Boolean(basicMenuSiteLimitState?.activeBasicSubscription && basicMenuSiteLimitState.canCreate);
+  const isPersonalTrialMenuLimited = Boolean(basicMenuSiteLimitState?.isPersonalTrialLimited);
+
+  function renderCreateMenuButton(extraClassName = "") {
+    const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
+
+    if (isPersonalTrialMenuLimited || (hasActiveBasicSubscription && !canCreateBasicMenuSite)) {
+      const disabledReason = isPersonalTrialMenuLimited
+        ? "개인 체험은 메뉴판 1개만 만들 수 있습니다. 사업자 Basic 구독으로 전환하면 추가 메뉴판을 만들 수 있습니다."
+        : "Basic 메뉴판은 구독 1개당 최대 3개까지 만들 수 있습니다.";
+
+      return (
+        <button
+          type="button"
+          disabled
+          className={`${extraClassName} inline-flex cursor-not-allowed items-center justify-center rounded-full bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400`.trim()}
+          title={disabledReason}
+        >
+          {createMenuButtonLabel}
+        </button>
+      );
+    }
+
+    return (
+      <Link href={hasActiveBasicSubscription ? "/mypage/menus/new" : "/apply"} className={className}>
+        {createMenuButtonLabel}
+      </Link>
+    );
+  }
 
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
     const primaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800";
@@ -2544,12 +2600,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </p>
                 </div>
 
-                <Link
-                  href="/apply"
-                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
-                >
-                  새 메뉴판 만들기
-                </Link>
+                {renderCreateMenuButton()}
               </div>
 
               <nav className="mb-5 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200" aria-label="내 메뉴판 탭">
@@ -2624,12 +2675,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
                 상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다.
               </p>
-              <Link
-                href="/apply"
-                className="mt-7 inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
-              >
-                새 메뉴판 만들기
-              </Link>
+              {renderCreateMenuButton("mt-7")}
             </div>
           )}
             </section>

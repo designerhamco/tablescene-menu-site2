@@ -19,6 +19,7 @@ import {
   MENU_SITE_INACTIVE_EDIT_MESSAGE,
   MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
 } from "@/lib/server/menu-site-access-service";
+import { getBasicMenuSiteLimitState } from "@/lib/server/basic-menu-site-limit-service";
 import { DEFAULT_LOCALE, LOCALE_LABELS, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import type { EditableTranslationDraftValue, EditableTranslationEntityType, EditableTranslationLocale, PartialTranslationActionResult } from "@/lib/menu-localization-draft";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
@@ -38,12 +39,13 @@ import {
   translatePartialMenuItemFields,
   type MenuCleanupStructuredResult,
 } from "@/lib/server/menu-translation-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
-import { getTemplateCategoryFromKey, isTemplateCategoryKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
+import { getTemplateCategoryFromKey, isTemplateCategoryKey, isTemplateSupportedForService, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import { normalizeFontSizeScaleKeyForTemplate } from "@/lib/template-typography-presets";
@@ -2229,8 +2231,34 @@ export async function createMenuSiteAction(formData: FormData) {
     redirectWithError("템플릿을 선택해주세요.");
   }
 
+  if (!isTemplateSupportedForService(templateKey, "basic")) {
+    redirectWithError("Basic에서 사용할 수 있는 템플릿만 선택해주세요.");
+  }
+
   if (!templateCategory) {
     redirectWithError("템플릿 카테고리를 선택해주세요.");
+  }
+
+  const adminSupabase = createAdminClient();
+  const basicMenuLimitState = await getBasicMenuSiteLimitState({
+    adminSupabase,
+    userId: user.id,
+  });
+  const activeBasicSubscription = basicMenuLimitState.activeBasicSubscription;
+
+  if (!activeBasicSubscription) {
+    redirectWithError("이용 중인 Basic 구독이 있어야 새 메뉴판을 추가할 수 있습니다.");
+  }
+
+  if (!basicMenuLimitState.canCreate) {
+    redirectWithError("Basic 메뉴판은 한 구독당 최대 3개까지 만들 수 있습니다.");
+  }
+
+  const accessStartsAt = activeBasicSubscription.current_period_start ?? new Date().toISOString();
+  const accessExpiresAt = activeBasicSubscription.current_period_end ?? activeBasicSubscription.next_billing_at;
+
+  if (!accessExpiresAt) {
+    redirectWithError("구독 이용 기간을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.");
   }
 
   const { data: existingSite, error: duplicateCheckError } = await supabase
@@ -2256,6 +2284,21 @@ export async function createMenuSiteAction(formData: FormData) {
     template_key: templateKey,
     template_category: templateCategory,
     status,
+    settings: {
+      source: "basic_subscription_additional_menu_site",
+      product_key: activeBasicSubscription.product_key,
+      plan_type: "business_basic",
+      payment_type: "subscription",
+      billing_cycle: activeBasicSubscription.billing_cycle,
+      subscription_id: activeBasicSubscription.id,
+      access_starts_at: accessStartsAt,
+      access_expires_at: accessExpiresAt,
+      current_period_start: activeBasicSubscription.current_period_start,
+      current_period_end: activeBasicSubscription.current_period_end,
+      next_billing_at: activeBasicSubscription.next_billing_at,
+      auto_renewal: true,
+      basic_menu_site_limit: basicMenuLimitState.limit,
+    },
   };
 
   let { data: createdSite, error } = await supabase.from("menu_sites").insert(menuSiteInsert).select("id").single();
@@ -2278,9 +2321,32 @@ export async function createMenuSiteAction(formData: FormData) {
   }
 
   if (createdSite?.id) {
-    await createStarterMenuData(supabase, createdSite.id, templateKey, null, templateCategory);
+    await createStarterMenuData(supabase, createdSite.id, templateKey, null, templateCategory, activeBasicSubscription.product_key);
+
+    const { error: entitlementError } = await adminSupabase.from("service_entitlements").insert({
+      user_id: user.id,
+      menu_site_id: createdSite.id,
+      business_profile_id: activeBasicSubscription.business_profile_id,
+      product_key: activeBasicSubscription.product_key,
+      plan_key: "basic",
+      plan_type: "business_basic",
+      billing_type: "subscription",
+      billing_cycle: activeBasicSubscription.billing_cycle,
+      subscription_id: activeBasicSubscription.id,
+      status: "active",
+      access_starts_at: accessStartsAt,
+      access_expires_at: accessExpiresAt,
+      expired_at: null,
+      data_retention_until: null,
+      deleted_scheduled_at: null,
+    });
+
+    if (entitlementError) {
+      redirectWithError(`메뉴판 권한 연결에 실패했습니다: ${entitlementError.message}`);
+    }
   }
 
+  revalidatePath("/mypage");
   redirect("/mypage?message=menu-created");
 }
 

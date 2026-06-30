@@ -354,17 +354,17 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    bullets: ["1회 결제", "자동결제 없음", "사업자 인증 없이 시작", "메뉴링크 베이직 체험 메뉴판 생성 시 AI 크레딧 18개 제공"],
+    bullets: ["1회 결제", "자동결제 없음", "체험 메뉴판 1개 제공", "메뉴링크 베이직 체험 메뉴판 생성 시 AI 크레딧 18개 제공"],
     helperText: "체험 종료 후 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
   },
   {
     product: basicPaymentProducts[1],
-    bullets: ["사업자 인증 필요", "월 자동결제", "메뉴링크 베이직 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
+    bullets: ["사업자 인증 필요", "월 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "첫 메뉴판 생성 시 AI 크레딧 18개 제공"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["사업자 인증 필요", "연 자동결제", "메뉴링크 베이직 메뉴판 생성 시 AI 크레딧 18개 제공", "계속 이용 가능"],
+    bullets: ["사업자 인증 필요", "연 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "첫 메뉴판 생성 시 AI 크레딧 18개 제공"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
 ] as const satisfies readonly {
@@ -376,12 +376,12 @@ const basicProductCards = [
 const displayProductCards = [
   {
     product: businessDisplayMonthlyProduct,
-    bullets: ["매월 자동결제", "언제든 해지 가능", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
+    bullets: ["매월 자동결제", "언제든 해지 가능", "Display 메뉴판 1개 제공", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
     helperText: "PortOne 빌링키 발급 후 첫 결제와 이후 정기결제를 연결합니다.",
   },
   {
     product: businessDisplayYearlyProduct,
-    bullets: ["연 자동결제", "월 결제 대비 할인", "해지 예약 가능", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
+    bullets: ["연 자동결제", "월 결제 대비 할인", "Display 메뉴판 1개 제공", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 연 정기결제를 진행합니다.",
   },
 ] as const satisfies readonly {
@@ -1903,7 +1903,7 @@ export default function ApplyOrderForm({
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월/연 결제는 사업자 인증과 자동결제 구조로 이어집니다.
-                메뉴링크 베이직 메뉴판을 생성하면 AI 크레딧 18개가 계정에 지급됩니다.
+                체험은 메뉴판 1개, 사업자 Basic 구독은 구독 1개당 메뉴판 최대 3개까지 만들 수 있습니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
@@ -2007,7 +2007,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                월 결제와 연 결제 모두 빌링키 정기결제로 진행합니다. 연결제는 매년 자동결제되는 연 정기결제 상품입니다.
+                월 결제와 연 결제 모두 빌링키 정기결제로 진행합니다. Display는 구독 1개당 메뉴판 1개를 기준으로 제공합니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 ※ 모든 금액은 부가세 포함가입니다. Display QA는 개발 환경에서만 열립니다.
