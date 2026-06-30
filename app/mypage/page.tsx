@@ -35,6 +35,7 @@ import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-p
 import { getTemplateDisplayName } from "@/lib/templates";
 import type { Json } from "@/lib/supabase/types";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
+import { isRestoreSubscriptionQaEnabled } from "@/lib/restore-subscription-qa";
 
 type SearchParams = Promise<{
   tab?: string | string[];
@@ -1324,6 +1325,7 @@ async function getServiceEntitlementsForMenuSites(
 export default async function MyPage({ searchParams }: { searchParams: SearchParams }) {
   const { tab, menuTab, billingTab, error, message, inquiryPage, subscriptionId, modal } = await searchParams;
   const yearlyRefundConfirmEnabled = isYearlyRefundConfirmQaEnabled();
+  const restoreSubscriptionQaEnabled = isRestoreSubscriptionQaEnabled();
   const activeTab = getActiveTab(tab);
   const activeMenuTab = getMenuTab(menuTab);
   const activeBillingTab = getBillingTab(billingTab);
@@ -2654,7 +2656,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 ) : null}
 
                 {activeBillingTab === "history" ? (
-                  <BillingHistoryPanel entries={billingHistoryEntries} />
+                  <BillingHistoryPanel
+                    entries={billingHistoryEntries}
+                    restoreCheckoutEnabled={restoreSubscriptionQaEnabled}
+                    restoreCheckoutConfig={{
+                      userId: user.id,
+                      userEmail: user.email,
+                      storeId: portOneConfig.storeId,
+                      billingChannelKey: portOneConfig.billingChannelKey,
+                    }}
+                  />
                 ) : null}
 
                 {activeBillingTab === "active" ? (

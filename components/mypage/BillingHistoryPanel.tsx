@@ -1,5 +1,6 @@
 "use client";
 
+import * as PortOne from "@portone/browser-sdk/v2";
 import { useEffect, useMemo, useState } from "react";
 
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
@@ -77,6 +78,13 @@ export type BillingHistoryEntry = {
 
 type BillingHistoryPanelProps = {
   entries: BillingHistoryEntry[];
+  restoreCheckoutEnabled?: boolean;
+  restoreCheckoutConfig?: {
+    userId: string;
+    userEmail?: string | null;
+    storeId?: string | null;
+    billingChannelKey?: string | null;
+  };
 };
 
 type FilterState = {
@@ -156,7 +164,35 @@ type RestorePreflightState =
   | { status: "success"; message: string; nextBillingDescription: string | null; canRestore: boolean }
   | { status: "error"; message: string; nextBillingDescription: string | null; canRestore: false };
 
-function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHistoryEntry["restoreSubscription"]> }) {
+type RestoreStartState =
+  | { status: "idle"; message: string | null }
+  | { status: "loading"; message: string }
+  | { status: "success"; message: string }
+  | { status: "error"; message: string };
+
+type BillingKeyIssueResponse = {
+  code?: string;
+  message?: string;
+  billingKey?: string;
+  billingKeyInfo?: {
+    billingKey?: string;
+  };
+};
+
+function getBillingKeyFromIssueResponse(response: unknown) {
+  const billingKeyResponse = response as BillingKeyIssueResponse | null | undefined;
+  return billingKeyResponse?.billingKeyInfo?.billingKey ?? billingKeyResponse?.billingKey ?? "";
+}
+
+function RestoreSubscriptionModal({
+  restore,
+  restoreCheckoutEnabled = false,
+  restoreCheckoutConfig,
+}: {
+  restore: NonNullable<BillingHistoryEntry["restoreSubscription"]>;
+  restoreCheckoutEnabled?: boolean;
+  restoreCheckoutConfig?: BillingHistoryPanelProps["restoreCheckoutConfig"];
+}) {
   const [open, setOpen] = useState(false);
   const [selectedProductKey, setSelectedProductKey] = useState(restore.options[0]?.productKey ?? "");
   const [preflightState, setPreflightState] = useState<RestorePreflightState>({
@@ -165,7 +201,15 @@ function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHis
     nextBillingDescription: restore.options[0]?.nextBillingDescription ?? null,
     canRestore: null,
   });
+  const [startState, setStartState] = useState<RestoreStartState>({ status: "idle", message: null });
   const selectedOption = restore.options.find((option) => option.productKey === selectedProductKey) ?? restore.options[0] ?? null;
+  const canStartRestore =
+    restoreCheckoutEnabled &&
+    Boolean(restoreCheckoutConfig?.userId && restoreCheckoutConfig.storeId && restoreCheckoutConfig.billingChannelKey) &&
+    preflightState.status === "success" &&
+    preflightState.canRestore === true &&
+    Boolean(selectedProductKey) &&
+    startState.status !== "loading";
 
   useEffect(() => {
     if (!open || !selectedProductKey) return;
@@ -234,6 +278,77 @@ function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHis
       cancelled = true;
     };
   }, [open, restore.menuSiteId, selectedOption?.nextBillingDescription, selectedProductKey]);
+
+  async function startRestoreCheckout() {
+    if (!canStartRestore || !restoreCheckoutConfig?.storeId || !restoreCheckoutConfig.billingChannelKey || !restoreCheckoutConfig.userId) {
+      setStartState({ status: "error", message: "재구독 복구 결제는 현재 QA 준비 중입니다." });
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "선택한 요금제로 재구독 결제를 진행합니다. 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환되고, 새 구독 기준 AI 기본 제공량이 지급됩니다. 진행할까요?"
+    );
+
+    if (!confirmed) return;
+
+    setStartState({ status: "loading", message: "PortOne 빌링키 발급창을 준비하고 있습니다." });
+
+    try {
+      const issueResponse = await PortOne.requestIssueBillingKey({
+        storeId: restoreCheckoutConfig.storeId,
+        channelKey: restoreCheckoutConfig.billingChannelKey,
+        billingKeyMethod: "CARD",
+        customer: {
+          id: restoreCheckoutConfig.userId,
+          ...(restoreCheckoutConfig.userEmail ? { email: restoreCheckoutConfig.userEmail } : {}),
+        },
+        customData: {
+          source: "mypage_restore_subscription",
+          restore_menu_site_id: restore.menuSiteId,
+          product_key: selectedProductKey,
+        },
+      } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0]);
+      const issueResult = issueResponse as BillingKeyIssueResponse | null | undefined;
+
+      if (!issueResponse || issueResult?.code) {
+        throw new Error(issueResult?.message ?? "빌링키 발급이 취소되었거나 실패했습니다.");
+      }
+
+      const billingKey = getBillingKeyFromIssueResponse(issueResponse);
+      if (!billingKey) {
+        throw new Error("빌링키 발급 결과를 확인하지 못했습니다.");
+      }
+
+      setStartState({ status: "loading", message: "재구독 첫 결제를 요청하고 있습니다." });
+
+      const response = await fetch("/api/business-subscriptions/restore/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          restoreMenuSiteId: restore.menuSiteId,
+          selectedProductKey,
+          billingKey,
+          acceptedRestoreTerms: true,
+        }),
+      });
+      const result = (await response.json()) as {
+        ok?: boolean;
+        message?: string;
+      };
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message ?? "재구독 복구 결제에 실패했습니다.");
+      }
+
+      setStartState({ status: "success", message: result.message ?? "재구독 복구가 완료되었습니다." });
+      window.location.href = `/mypage?tab=payments&message=${encodeURIComponent("재구독 복구가 완료되었습니다.")}`;
+    } catch (error) {
+      setStartState({
+        status: "error",
+        message: error instanceof Error ? error.message : "재구독 복구 결제 중 문제가 발생했습니다.",
+      });
+    }
+  }
 
   return (
     <>
@@ -332,14 +447,37 @@ function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHis
 
             <button
               type="button"
-              disabled
-              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-4 py-3 text-sm font-black text-zinc-400"
+              disabled={!canStartRestore}
+              onClick={startRestoreCheckout}
+              className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-black transition-colors ${
+                canStartRestore
+                  ? "bg-zinc-950 text-white hover:bg-zinc-800"
+                  : "border border-zinc-200 bg-zinc-100 text-zinc-400"
+              }`}
             >
-              결제 연결 준비 중
+              {startState.status === "loading"
+                ? "재구독 결제 진행 중"
+                : restoreCheckoutEnabled
+                  ? "선택한 요금제로 재구독"
+                  : "결제 연결 준비 중"}
             </button>
 
+            {startState.message ? (
+              <div className={`mt-3 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${
+                startState.status === "error"
+                  ? "border-red-100 bg-red-50 text-red-700"
+                  : startState.status === "success"
+                    ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                    : "border-zinc-100 bg-zinc-50 text-zinc-600"
+              }`}>
+                {startState.message}
+              </div>
+            ) : null}
+
             <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
-              이번 단계에서는 실제 결제를 실행하지 않습니다. 다음 단계에서 복구 전용 결제 흐름이 연결되면 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다.
+              {restoreCheckoutEnabled
+                ? "QA 환경에서만 복구 전용 결제 흐름이 활성화됩니다. 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다."
+                : "이번 단계에서는 실제 결제를 실행하지 않습니다. 다음 단계에서 복구 전용 결제 흐름이 연결되면 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다."}
             </div>
 
             <div className="mt-5 flex justify-end">
@@ -358,7 +496,7 @@ function RestoreSubscriptionModal({ restore }: { restore: NonNullable<BillingHis
   );
 }
 
-export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProps) {
+export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = false, restoreCheckoutConfig }: BillingHistoryPanelProps) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const filteredEntries = useMemo(() => {
     const normalizedQuery = filters.query.trim().toLowerCase();
@@ -587,7 +725,11 @@ export default function BillingHistoryPanel({ entries }: BillingHistoryPanelProp
 
                 <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
                   {entry.restoreSubscription ? (
-                    <RestoreSubscriptionModal restore={entry.restoreSubscription} />
+                    <RestoreSubscriptionModal
+                      restore={entry.restoreSubscription}
+                      restoreCheckoutEnabled={restoreCheckoutEnabled}
+                      restoreCheckoutConfig={restoreCheckoutConfig}
+                    />
                   ) : null}
                   {entry.subscriptionManagement ? (
                     <SubscriptionManagementModal {...entry.subscriptionManagement} />

@@ -331,6 +331,77 @@ export async function grantAiCreditsForMenuSiteCreation({
   return { ok: true, missingTable: false, grantedCredits, alreadyProcessed, planType: grantPlanType };
 }
 
+export async function grantAiCreditsForSubscriptionIncludedGrant({
+  adminSupabase = createAdminClient(),
+  userId,
+  menuSiteId,
+  businessSubscriptionId,
+  paymentId,
+  serviceType,
+  productKey,
+  planType,
+  reason,
+}: {
+  adminSupabase?: AdminClient;
+  userId: string;
+  menuSiteId: string;
+  businessSubscriptionId: string;
+  paymentId: string;
+  serviceType: "basic" | "display";
+  productKey: string;
+  planType?: string | null;
+  reason: "subscription_restore_created" | "business_subscription_created" | "display_subscription_created";
+}) {
+  const grantPlanType = getMenuCreationGrantPlanType({ serviceType, productKey, planType });
+  const grantedCredits = getIncludedAiCredits(grantPlanType);
+  const { data, error } = await adminSupabase.rpc("grant_ai_subscription_included_credits" as never, {
+    p_user_id: userId,
+    p_menu_site_id: menuSiteId,
+    p_business_subscription_id: businessSubscriptionId,
+    p_payment_id: paymentId,
+    p_plan_type: grantPlanType,
+    p_product_key: productKey,
+    p_credits: grantedCredits,
+    p_reason: reason,
+    p_metadata: {
+      restore_menu_site_id: menuSiteId,
+      business_subscription_id: businessSubscriptionId,
+      payment_id: paymentId,
+      product_key: productKey,
+      plan_type: grantPlanType,
+      service_type: serviceType,
+      policy: "account_shared_subscription_included_grant",
+    },
+  } as never);
+
+  if (error) {
+    if (isMissingAiCreditTable(error)) {
+      return {
+        ok: false,
+        missingTable: true,
+        grantedCredits: 0,
+        alreadyProcessed: false,
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        },
+      };
+    }
+    throw Object.assign(new Error(error.message || "AI 크레딧 기본 지급에 실패했습니다."), {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+  const alreadyProcessed = Boolean((result as { already_processed?: unknown } | null)?.already_processed);
+
+  return { ok: true, missingTable: false, grantedCredits, alreadyProcessed, planType: grantPlanType };
+}
+
 export async function reclaimUnusedPersonalTrialGrantCredits({
   adminSupabase = createAdminClient(),
   menuSiteId,
