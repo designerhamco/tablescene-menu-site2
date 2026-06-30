@@ -1891,6 +1891,171 @@ export type Database = {
           },
         ]
       }
+      refund_requests: {
+        Row: {
+          admin_note: string | null
+          annual_basis_used_amount: number
+          annual_price: number
+          billing_cycle: string
+          business_subscription_id: string | null
+          calculation_version: string
+          canceled_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          currency: string
+          customer_reason: string | null
+          discount_clawback_amount: number
+          estimated_refund_amount: number
+          failure_reason: string | null
+          final_refund_amount: number | null
+          id: string
+          idempotency_key: string | null
+          menu_site_id: string | null
+          metadata: Json | null
+          monthly_basis_used_amount: number
+          monthly_list_price: number
+          order_id: string | null
+          paid_amount: number
+          payment_id: string | null
+          portone_cancel_id: string | null
+          portone_payment_id: string | null
+          portone_response: Json | null
+          processed_at: string | null
+          product_key: string
+          quoted_at: string | null
+          refund_basis_date: string
+          request_type: string
+          requested_at: string | null
+          service_entitlement_id: string | null
+          service_type: string | null
+          status: string
+          total_days: number
+          updated_at: string
+          used_days: number
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          annual_basis_used_amount: number
+          annual_price: number
+          billing_cycle: string
+          business_subscription_id?: string | null
+          calculation_version?: string
+          canceled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_reason?: string | null
+          discount_clawback_amount: number
+          estimated_refund_amount: number
+          failure_reason?: string | null
+          final_refund_amount?: number | null
+          id?: string
+          idempotency_key?: string | null
+          menu_site_id?: string | null
+          metadata?: Json | null
+          monthly_basis_used_amount: number
+          monthly_list_price: number
+          order_id?: string | null
+          paid_amount: number
+          payment_id?: string | null
+          portone_cancel_id?: string | null
+          portone_payment_id?: string | null
+          portone_response?: Json | null
+          processed_at?: string | null
+          product_key: string
+          quoted_at?: string | null
+          refund_basis_date: string
+          request_type?: string
+          requested_at?: string | null
+          service_entitlement_id?: string | null
+          service_type?: string | null
+          status?: string
+          total_days: number
+          updated_at?: string
+          used_days: number
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          annual_basis_used_amount?: number
+          annual_price?: number
+          billing_cycle?: string
+          business_subscription_id?: string | null
+          calculation_version?: string
+          canceled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_reason?: string | null
+          discount_clawback_amount?: number
+          estimated_refund_amount?: number
+          failure_reason?: string | null
+          final_refund_amount?: number | null
+          id?: string
+          idempotency_key?: string | null
+          menu_site_id?: string | null
+          metadata?: Json | null
+          monthly_basis_used_amount?: number
+          monthly_list_price?: number
+          order_id?: string | null
+          paid_amount?: number
+          payment_id?: string | null
+          portone_cancel_id?: string | null
+          portone_payment_id?: string | null
+          portone_response?: Json | null
+          processed_at?: string | null
+          product_key?: string
+          quoted_at?: string | null
+          refund_basis_date?: string
+          request_type?: string
+          requested_at?: string | null
+          service_entitlement_id?: string | null
+          service_type?: string | null
+          status?: string
+          total_days?: number
+          updated_at?: string
+          used_days?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_requests_business_subscription_id_fkey"
+            columns: ["business_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "business_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_requests_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_requests_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_requests_service_entitlement_id_fkey"
+            columns: ["service_entitlement_id"]
+            isOneToOne: false
+            referencedRelation: "service_entitlements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_entitlements: {
         Row: {
           access_expires_at: string | null
