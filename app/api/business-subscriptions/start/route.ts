@@ -16,7 +16,7 @@ import {
   normalizeMenuSlug,
   type MenuOrderPayload,
 } from "@/lib/payments";
-import { payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
+import { getPaidBillingPayment, payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
 import { portOneMockEnabled } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
@@ -37,6 +37,8 @@ type StartBusinessSubscriptionRequest = {
   productKey?: unknown;
   billingCycle?: unknown;
   menuSiteId?: unknown;
+  recoverPaymentId?: unknown;
+  recoverSubscriptionId?: unknown;
   order?: unknown;
   consentSnapshot?: unknown;
 };
@@ -78,6 +80,19 @@ type SubscriptionBillingPeriod = {
   currentPeriodStart: string;
   currentPeriodEnd: string;
   nextBillingAt: string;
+};
+
+type RecoverableFailedSubscription = {
+  id: string;
+  user_id: string;
+  business_profile_id: string | null;
+  product_key: string;
+  plan_type: string;
+  billing_cycle: string;
+  status: string;
+  amount: number;
+  menu_site_id: string | null;
+  portone_payment_id: string | null;
 };
 
 type NormalizedBusinessOrder = MenuOrderPayload & {
@@ -352,6 +367,16 @@ function getString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function getRecoverablePaymentId(value: unknown) {
+  const paymentId = getString(value);
+
+  if (!paymentId || paymentId.length > 120 || !/^[A-Za-z0-9._:-]+$/.test(paymentId)) {
+    return "";
+  }
+
+  return paymentId;
+}
+
 function getPortOneSafeDebug(error: unknown): SafeDebug {
   return error instanceof PortOneBillingError ? error.safeDebug : {};
 }
@@ -623,6 +648,109 @@ async function createPendingSubscription({
   }
 
   return (data as { id: string }).id;
+}
+
+async function getRecoverableFailedSubscription({
+  adminSupabase,
+  subscriptionId,
+  userId,
+  businessProfileId,
+  product,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  subscriptionId: string;
+  userId: string;
+  businessProfileId: string;
+  product: SubscriptionProduct;
+}) {
+  const { data, error } = await adminSupabase
+    .from("business_subscriptions" as never)
+    .select("id, user_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, menu_site_id, portone_payment_id")
+    .eq("id" as never, subscriptionId as never)
+    .eq("user_id" as never, userId as never)
+    .maybeSingle();
+
+  if (error) {
+    throw new BusinessSubscriptionRouteError(
+      "business_subscription_insert",
+      "RECOVERY_SUBSCRIPTION_QUERY_FAILED",
+      "복구할 구독 준비 기록 확인에 실패했습니다.",
+      500,
+      getSupabaseSafeDebug(error)
+    );
+  }
+
+  const subscription = data as RecoverableFailedSubscription | null;
+
+  if (
+    !subscription ||
+    subscription.business_profile_id !== businessProfileId ||
+    subscription.product_key !== product.productKey ||
+    subscription.plan_type !== product.planType ||
+    subscription.billing_cycle !== product.billingCycle ||
+    subscription.status !== "failed" ||
+    subscription.amount !== product.amount ||
+    subscription.menu_site_id ||
+    subscription.portone_payment_id
+  ) {
+    throw new BusinessSubscriptionRouteError(
+      "business_subscription_insert",
+      "RECOVERY_SUBSCRIPTION_NOT_RECOVERABLE",
+      "복구 가능한 실패 구독 기록을 찾지 못했습니다.",
+      409,
+      {
+        hasSubscription: Boolean(subscription),
+        status: subscription?.status,
+        productKey: subscription?.product_key,
+        billingCycle: subscription?.billing_cycle,
+        amount: subscription?.amount,
+        hasMenuSiteId: Boolean(subscription?.menu_site_id),
+        hasPortonePaymentId: Boolean(subscription?.portone_payment_id),
+      }
+    );
+  }
+
+  return subscription;
+}
+
+async function ensureNoExistingPaymentRecords({
+  adminSupabase,
+  paymentId,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  paymentId: string;
+}) {
+  const [orderResult, paymentResult, subscriptionResult] = await Promise.all([
+    adminSupabase.from("orders").select("id").eq("payment_id", paymentId).limit(1),
+    adminSupabase.from("payments").select("id").or(`payment_id.eq.${paymentId},portone_payment_id.eq.${paymentId}`).limit(1),
+    adminSupabase.from("business_subscriptions" as never).select("id").eq("portone_payment_id" as never, paymentId as never).limit(1),
+  ]);
+
+  const error = orderResult.error ?? paymentResult.error ?? subscriptionResult.error;
+
+  if (error) {
+    throw new BusinessSubscriptionRouteError(
+      "business_subscription_insert",
+      "RECOVERY_DUPLICATE_CHECK_FAILED",
+      "기존 결제 기록 중복 확인에 실패했습니다.",
+      500,
+      getSupabaseSafeDebug(error)
+    );
+  }
+
+  if ((orderResult.data?.length ?? 0) > 0 || (paymentResult.data?.length ?? 0) > 0 || (subscriptionResult.data?.length ?? 0) > 0) {
+    throw new BusinessSubscriptionRouteError(
+      "business_subscription_insert",
+      "RECOVERY_PAYMENT_ALREADY_PERSISTED",
+      "이미 처리된 결제건입니다.",
+      409,
+      {
+        hasOrder: (orderResult.data?.length ?? 0) > 0,
+        hasPayment: (paymentResult.data?.length ?? 0) > 0,
+        hasSubscriptionPayment: (subscriptionResult.data?.length ?? 0) > 0,
+      }
+    );
+  }
 }
 
 async function markSubscriptionFailed(adminSupabase: ReturnType<typeof createAdminClient>, subscriptionId: string) {
@@ -1126,11 +1254,16 @@ export async function POST(request: Request) {
   const businessProfileId = getString(body.businessProfileId);
   const requestedProductKey = getString(body.product_key) || getString(body.productKey);
   const requestedBillingCycle = getString(body.billingCycle);
+  const recoverPaymentId = getRecoverablePaymentId(body.recoverPaymentId);
+  const recoverSubscriptionId = getString(body.recoverSubscriptionId);
+  const isPaymentRecovery = Boolean(recoverPaymentId || recoverSubscriptionId);
   const product = getSubscriptionProduct(requestedProductKey);
   const baseDebug = {
     hasBillingKey: Boolean(billingKey),
     hasBusinessProfileId: Boolean(businessProfileId),
     hasMenuSiteId: Boolean(getString(body.menuSiteId)),
+    hasRecoverPaymentId: Boolean(recoverPaymentId),
+    hasRecoverSubscriptionId: Boolean(recoverSubscriptionId),
     amount: product?.amount ?? null,
   };
 
@@ -1162,7 +1295,35 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!billingKey) {
+  if (isPaymentRecovery && (!recoverPaymentId || !recoverSubscriptionId)) {
+    return jsonStepError({
+      step: "billing_key_presence_check",
+      debugCode: "RECOVERY_PAYMENT_CONTEXT_MISSING",
+      message: "후처리 복구에는 paymentId와 실패 구독 기록 ID가 모두 필요합니다.",
+      status: 400,
+      userId: user.id,
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
+      safeDebug: baseDebug,
+    });
+  }
+
+  if (isPaymentRecovery && !isDisplayCheckoutQaProduct(product)) {
+    return jsonStepError({
+      step: "product_key_validation",
+      debugCode: "RECOVERY_PRODUCT_NOT_SUPPORTED",
+      message: "현재 후처리 복구는 Display 월결제 QA 건만 지원합니다.",
+      status: 409,
+      userId: user.id,
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
+      safeDebug: baseDebug,
+    });
+  }
+
+  if (!billingKey && !isPaymentRecovery) {
     return jsonStepError({
       step: "billing_key_presence_check",
       debugCode: "BILLING_KEY_MISSING",
@@ -1416,38 +1577,84 @@ export async function POST(request: Request) {
     });
   }
 
-  const paymentId = `billing_${Date.now()}_${randomUUID()}`;
+  const paymentId = recoverPaymentId || `billing_${Date.now()}_${randomUUID()}`;
   const billingPeriod = getSubscriptionBillingPeriod(product);
   const nextBillingAt = billingPeriod.nextBillingAt;
   let subscriptionId: string;
 
-  try {
-    subscriptionId = await createPendingSubscription({
-      adminSupabase,
-      userId: user.id,
-      businessProfileId: businessProfile.id,
-      billingKey,
-      product,
-      menuSiteId: existingMenuSite?.id ?? null,
-    });
-  } catch (error) {
-    return jsonCaughtError({
-      error,
-      fallbackStep: "business_subscription_insert",
-      fallbackDebugCode: "BUSINESS_SUBSCRIPTION_INSERT_FAILED",
-      fallbackMessage: "구독 준비 기록 생성에 실패했습니다.",
-      userId: user.id,
-      mode,
-      productKey: product.productKey,
-      billingCycle: product.billingCycle,
-      safeDebug: { ...baseDebug, paymentId },
-    });
+  if (isPaymentRecovery) {
+    try {
+      const recoverableSubscription = await getRecoverableFailedSubscription({
+        adminSupabase,
+        subscriptionId: recoverSubscriptionId,
+        userId: user.id,
+        businessProfileId: businessProfile.id,
+        product,
+      });
+      await ensureNoExistingPaymentRecords({ adminSupabase, paymentId });
+      subscriptionId = recoverableSubscription.id;
+    } catch (error) {
+      return jsonCaughtError({
+        error,
+        fallbackStep: "business_subscription_insert",
+        fallbackDebugCode: error instanceof BusinessSubscriptionRouteError ? error.debugCode : "RECOVERY_SUBSCRIPTION_CHECK_FAILED",
+        fallbackMessage: "복구할 구독 결제 상태 확인에 실패했습니다.",
+        userId: user.id,
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        safeDebug: { ...baseDebug, paymentId, recoverSubscriptionId },
+      });
+    }
+  } else {
+    try {
+      subscriptionId = await createPendingSubscription({
+        adminSupabase,
+        userId: user.id,
+        businessProfileId: businessProfile.id,
+        billingKey,
+        product,
+        menuSiteId: existingMenuSite?.id ?? null,
+      });
+    } catch (error) {
+      return jsonCaughtError({
+        error,
+        fallbackStep: "business_subscription_insert",
+        fallbackDebugCode: "BUSINESS_SUBSCRIPTION_INSERT_FAILED",
+        fallbackMessage: "구독 준비 기록 생성에 실패했습니다.",
+        userId: user.id,
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        safeDebug: { ...baseDebug, paymentId },
+      });
+    }
   }
 
   let billingPayment: Awaited<ReturnType<typeof payWithBillingKey>> | null = null;
 
   try {
-    if (isDisplayCheckoutQaProduct(product) && portOneMockEnabled && isDisplayCheckoutQaMockBillingKey(billingKey)) {
+    if (isPaymentRecovery) {
+      logBusinessSubscriptionDebug("portone_existing_payment_verify_start", {
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        paymentId,
+        subscriptionId,
+      });
+      billingPayment = await getPaidBillingPayment({
+        paymentId,
+        orderName: getSubscriptionOrderName(product),
+        amount: product.amount,
+      });
+      logBusinessSubscriptionDebug("portone_existing_payment_verify_done", {
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        paymentId,
+        subscriptionId,
+      });
+    } else if (isDisplayCheckoutQaProduct(product) && portOneMockEnabled && isDisplayCheckoutQaMockBillingKey(billingKey)) {
       billingPayment = {
         paymentId,
         status: "PAID",
@@ -1489,7 +1696,9 @@ export async function POST(request: Request) {
       });
     }
   } catch (error) {
-    await markSubscriptionFailed(adminSupabase, subscriptionId);
+    if (!isPaymentRecovery) {
+      await markSubscriptionFailed(adminSupabase, subscriptionId);
+    }
     return jsonCaughtError({
       error,
       fallbackStep: getPortOneStep(error),

@@ -11,9 +11,46 @@ export const metadata: Metadata = {
   description: "메뉴링크 디스플레이는 전용 템플릿 준비 후 신청할 수 있습니다.",
 };
 
-export default function ApplyDisplayPage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+function createPathWithQuery(pathname: string, searchParams: Record<string, string | string[] | undefined>) {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) {
+      value.forEach((item) => params.append(key, item));
+      continue;
+    }
+
+    if (typeof value === "string") {
+      params.set(key, value);
+    }
+  }
+
+  const query = params.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
+function getSingleSearchParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
+export default async function ApplyDisplayPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const resolvedSearchParams = await searchParams;
+
   if (isDisplayCheckoutQaEnabled()) {
-    return <PaidApplyPage serviceType="screen" nextPath="/apply/display" />;
+    return (
+      <PaidApplyPage
+        serviceType="screen"
+        nextPath={createPathWithQuery("/apply/display", resolvedSearchParams)}
+        initialRecoverPaymentId={getSingleSearchParam(resolvedSearchParams.recoverPaymentId)}
+        initialRecoverSubscriptionId={getSingleSearchParam(resolvedSearchParams.recoverSubscriptionId)}
+      />
+    );
   }
 
   return (

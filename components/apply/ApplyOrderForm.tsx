@@ -61,6 +61,8 @@ type ApplyOrderFormProps = {
   mockEnabled: boolean;
   serviceType?: "menu" | "screen" | "order";
   displayCheckoutQaEnabled?: boolean;
+  initialRecoverPaymentId?: string;
+  initialRecoverSubscriptionId?: string;
 };
 
 type AgreementKey = "terms" | "privacy" | "contentPolicy" | "marketing";
@@ -826,6 +828,8 @@ export default function ApplyOrderForm({
   mockEnabled,
   serviceType = "menu",
   displayCheckoutQaEnabled = false,
+  initialRecoverPaymentId = "",
+  initialRecoverSubscriptionId = "",
 }: ApplyOrderFormProps) {
   const router = useRouter();
   const isMenuService = serviceType === "menu";
@@ -856,18 +860,11 @@ export default function ApplyOrderForm({
     message: "사업자등록번호, 대표자명, 개업일자, 상호명을 입력한 뒤 확인합니다.",
   });
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
-  const [pendingPaymentCompletion, setPendingPaymentCompletion] = useState<PendingPaymentCompletion | null>(() => readPendingPaymentCompletion());
+  const [pendingPaymentCompletion, setPendingPaymentCompletion] = useState<PendingPaymentCompletion | null>(null);
   const [recoveryPaymentIdInput, setRecoveryPaymentIdInput] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    const queryPaymentId = normalizeRecoverablePaymentId(
-      new URLSearchParams(window.location.search).get("recoverPaymentId") ?? ""
-    );
-
-    return queryPaymentId || readPendingPaymentCompletion()?.paymentId || "";
+    return normalizeRecoverablePaymentId(initialRecoverPaymentId);
   });
+  const [recoverySubscriptionIdInput, setRecoverySubscriptionIdInput] = useState(initialRecoverSubscriptionId);
   const [slugState, setSlugState] = useState<SlugState>({ slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT });
   const [form, setForm] = useState<FormState>({
     buyerType: isDisplayBusinessOnly ? "business" : "individual",
@@ -897,6 +894,25 @@ export default function ApplyOrderForm({
     launchTimeline: "",
     additionalRequests: "",
   });
+
+  useEffect(() => {
+    let isActive = true;
+
+    queueMicrotask(() => {
+      if (!isActive) return;
+
+      const storedCompletion = readPendingPaymentCompletion();
+      setPendingPaymentCompletion(storedCompletion);
+
+      if (!normalizeRecoverablePaymentId(initialRecoverPaymentId) && storedCompletion?.paymentId) {
+        setRecoveryPaymentIdInput((currentValue) => currentValue || storedCompletion.paymentId);
+      }
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [initialRecoverPaymentId]);
 
   const filteredTemplates = useMemo(() => {
     if (isMenuService) {
@@ -1008,7 +1024,9 @@ export default function ApplyOrderForm({
   const isPortOneReady = Boolean(storeId && channelKey);
   const isBillingPortOneReady = Boolean(storeId && billingChannelKey);
   const isDevelopment = process.env.NODE_ENV !== "production";
-  const canShowPaymentCompletionRecovery = isScreenService && displayCheckoutQaEnabled && isDevelopment && !isSubscriptionProduct;
+  const hasInitialRecoveryParams =
+    Boolean(normalizeRecoverablePaymentId(initialRecoverPaymentId)) || Boolean(initialRecoverSubscriptionId.trim());
+  const canShowPaymentCompletionRecovery = isScreenService && displayCheckoutQaEnabled && isDevelopment && hasInitialRecoveryParams;
   const menuAddressError = getMenuAddressError(payload.desiredSlug);
   const isSlugValid = !menuAddressError && isValidMenuSlug(payload.desiredSlug);
   const visibleSlugState = useMemo<SlugState>(() => {
@@ -1356,9 +1374,69 @@ export default function ApplyOrderForm({
 
   async function retryApprovedPaymentCompletion() {
     const paymentId = normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "");
+    const subscriptionId = recoverySubscriptionIdInput.trim();
 
     if (!paymentId) {
       setUiState({ type: "error", message: "후처리할 paymentId를 입력해주세요." });
+      return;
+    }
+
+    if (isSubscriptionProduct) {
+      if (!hasVerifiedBusinessProfile || businessVerificationState.type !== "verified") {
+        setUiState({ type: "error", message: "구독 결제 후처리 복구는 사업자 인증 완료 후 진행할 수 있습니다." });
+        return;
+      }
+
+      if (!subscriptionId) {
+        setUiState({ type: "error", message: "후처리할 실패 구독 기록 ID를 입력해주세요." });
+        return;
+      }
+
+      if (!isFormReady) {
+        setUiState({
+          type: "error",
+          message: "현재 신청 정보를 기준으로 재처리해야 합니다. 필수 신청 정보를 먼저 확인해주세요.",
+        });
+        return;
+      }
+
+      const isOrderAccepted = await verifyOrderBeforePayment();
+      if (!isOrderAccepted) {
+        return;
+      }
+
+      setUiState({ type: "loading", message: "새 결제창 없이 승인된 월결제의 생성 처리만 다시 진행하고 있습니다." });
+
+      try {
+        const response = await fetch("/api/business-subscriptions/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode: "new",
+            businessProfileId: businessVerificationState.result.businessProfileId,
+            productKey: activeProduct.product_key,
+            billingCycle: activeProduct.billing_cycle,
+            recoverPaymentId: paymentId,
+            recoverSubscriptionId: subscriptionId,
+            order: payload,
+          }),
+        });
+        const result = (await response.json()) as BusinessSubscriptionResponse;
+
+        if (!response.ok || !result.ok) {
+          throw new Error(getBusinessSubscriptionErrorMessage(result));
+        }
+
+        router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
+      } catch (error) {
+        setUiState({
+          type: "error",
+          message: error instanceof Error ? error.message : "승인 월결제 후처리 중 알 수 없는 오류가 발생했습니다.",
+        });
+      }
+
       return;
     }
 
@@ -2552,7 +2630,9 @@ export default function ApplyOrderForm({
 
           {canShowPaymentCompletionRecovery && (
             <div className="mt-6 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm font-bold leading-relaxed text-sky-800">
-              <p>이미 승인된 Display 연결제 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.</p>
+              <p>
+                이미 승인된 Display {isSubscriptionProduct ? "월결제" : "연결제"} 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.
+              </p>
               {pendingPaymentCompletion && (
                 <p className="mt-2 text-xs text-sky-700">
                   마지막 승인 결제: {pendingPaymentCompletion.paymentId}
@@ -2568,16 +2648,34 @@ export default function ApplyOrderForm({
                   className="mt-2 w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-xs font-semibold text-zinc-900 outline-none transition focus:border-sky-600"
                 />
               </label>
+              {isSubscriptionProduct && (
+                <label className="mt-3 block">
+                  <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-500">failed subscriptionId</span>
+                  <input
+                    type="text"
+                    value={recoverySubscriptionIdInput}
+                    onChange={(event) => setRecoverySubscriptionIdInput(event.target.value)}
+                    placeholder="실패 구독 기록 ID"
+                    className="mt-2 w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-xs font-semibold text-zinc-900 outline-none transition focus:border-sky-600"
+                  />
+                </label>
+              )}
               <button
                 type="button"
                 onClick={retryApprovedPaymentCompletion}
-                disabled={isLoading || !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "")}
+                disabled={
+                  isLoading ||
+                  !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "") ||
+                  (isSubscriptionProduct && !recoverySubscriptionIdInput.trim())
+                }
                 className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-sky-950 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-sky-200"
               >
                 결제창 없이 후처리만 재시도
               </button>
               <p className="mt-2 text-xs text-sky-700">
-                현재 신청 정보 또는 이 탭에 임시 저장된 주문 정보로 `/api/payment/complete`만 호출합니다.
+                {isSubscriptionProduct
+                  ? "현재 신청 정보로 `/api/business-subscriptions/start`의 복구 모드만 호출합니다."
+                  : "현재 신청 정보 또는 이 탭에 임시 저장된 주문 정보로 `/api/payment/complete`만 호출합니다."}
               </p>
             </div>
           )}

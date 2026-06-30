@@ -43,9 +43,16 @@ const PAID_APPLY_COPY: Record<
 type PaidApplyPageProps = {
   serviceType: PaidApplyService;
   nextPath?: string;
+  initialRecoverPaymentId?: string;
+  initialRecoverSubscriptionId?: string;
 };
 
-export default async function PaidApplyPage({ serviceType, nextPath }: PaidApplyPageProps) {
+export default async function PaidApplyPage({
+  serviceType,
+  nextPath,
+  initialRecoverPaymentId,
+  initialRecoverSubscriptionId,
+}: PaidApplyPageProps) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -92,6 +99,8 @@ export default async function PaidApplyPage({ serviceType, nextPath }: PaidApply
             mockEnabled={portOneConfig.mockEnabled}
             serviceType={serviceType}
             displayCheckoutQaEnabled={displayCheckoutQaEnabled}
+            initialRecoverPaymentId={initialRecoverPaymentId}
+            initialRecoverSubscriptionId={initialRecoverSubscriptionId}
           />
         </div>
       </main>

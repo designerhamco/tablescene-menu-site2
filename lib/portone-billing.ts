@@ -39,6 +39,10 @@ type PortOneSafeDebug = {
     hasFullName: boolean;
     hasPhoneNumber: boolean;
   };
+  paymentStatus?: string;
+  paymentAmount?: number;
+  recheckAttempt?: number;
+  recheckDelayMs?: number;
 };
 
 export class PortOneBillingError extends Error {
@@ -57,6 +61,36 @@ function getPaymentAmount(payment: PortOnePaymentResponse) {
   if (typeof payment.amount?.paid === "number") return payment.amount.paid;
   if (typeof payment.paidAmount === "number") return payment.paidAmount;
   return null;
+}
+
+function assertPaidPayment({
+  payment,
+  paymentId,
+  amount,
+  requestSummary,
+}: {
+  payment: PortOnePaymentResponse;
+  paymentId: string;
+  amount: number;
+  requestSummary: PortOneSafeDebug;
+}) {
+  const verifiedPaymentId = payment.id ?? payment.paymentId ?? paymentId;
+  const paidAmount = getPaymentAmount(payment);
+
+  if (verifiedPaymentId !== paymentId) {
+    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: "payment id mismatch" });
+    throw new Error("PortOne billing payment id mismatch.");
+  }
+
+  if (payment.status !== "PAID") {
+    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: `payment is not paid: ${payment.status ?? "unknown"}` });
+    throw new Error(`PortOne billing payment is not paid: ${payment.status ?? "unknown"}`);
+  }
+
+  if (paidAmount !== amount) {
+    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: `amount mismatch: ${paidAmount ?? "unknown"}` });
+    throw new Error(`PortOne billing amount mismatch: ${paidAmount ?? "unknown"}`);
+  }
 }
 
 function getString(value: unknown) {
@@ -99,6 +133,10 @@ function logPortOneBillingDebug(event: string, debug: PortOneSafeDebug) {
   if (process.env.NODE_ENV === "production") return;
 
   console.info(`[portone-billing] ${event}`, JSON.stringify(debug));
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function getSafePortOneErrorDebug(response: Response, requestSummary?: PortOneSafeDebug) {
@@ -202,49 +240,135 @@ export async function payWithBillingKey({
   }
 
   logPortOneBillingDebug("portone_first_payment_request_start", requestSummary);
-  await requestPortOne(`/payments/${encodeURIComponent(paymentId)}/billing-key`, {
-    method: "POST",
-    headers: {
-      "Idempotency-Key": `"${paymentId}"`,
-    },
-    body: JSON.stringify({
-      storeId,
-      billingKey,
-      channelKey,
-      orderName,
-      customer: customerInput,
-      amount: {
-        total: amount,
-      },
-      currency: "KRW",
-      productCount: 1,
-    }),
-  }, requestSummary);
-  logPortOneBillingDebug("portone_first_payment_response", { ...requestSummary, portoneStatus: 200 });
+  let firstPaymentRequestError: unknown = null;
 
+  try {
+    await requestPortOne(`/payments/${encodeURIComponent(paymentId)}/billing-key`, {
+      method: "POST",
+      headers: {
+        "Idempotency-Key": paymentId,
+      },
+      body: JSON.stringify({
+        storeId,
+        billingKey,
+        channelKey,
+        orderName,
+        customer: customerInput,
+        amount: {
+          total: amount,
+        },
+        currency: "KRW",
+        productCount: 1,
+      }),
+    }, requestSummary);
+    logPortOneBillingDebug("portone_first_payment_response", { ...requestSummary, portoneStatus: 200 });
+  } catch (error) {
+    firstPaymentRequestError = error;
+    const safeDebug =
+      error instanceof PortOneBillingError
+        ? error.safeDebug
+        : { ...requestSummary, portoneMessage: error instanceof Error ? error.message : "unknown" };
+
+    logPortOneBillingDebug("portone_first_payment_response_uncertain", {
+      ...requestSummary,
+      ...safeDebug,
+      portoneMessage: "first payment request failed; verifying payment status before failing",
+    });
+  }
+
+  let paymentResponse: Response;
+
+  try {
+    if (firstPaymentRequestError) {
+      logPortOneBillingDebug("portone_first_payment_verify_after_failure_start", requestSummary);
+    }
+
+    paymentResponse = await requestPortOne(`/payments/${encodeURIComponent(paymentId)}`, {
+      method: "GET",
+    }, requestSummary);
+  } catch (error) {
+    if (firstPaymentRequestError) {
+      throw firstPaymentRequestError;
+    }
+
+    throw error;
+  }
+
+  let payment = (await paymentResponse.json()) as PortOnePaymentResponse;
+  let paidAmount = getPaymentAmount(payment);
+
+  if (firstPaymentRequestError && payment.status !== "PAID") {
+    const recheckDelaysMs = [1000, 3000, 5000];
+
+    for (const [index, delayMs] of recheckDelaysMs.entries()) {
+      logPortOneBillingDebug("portone_first_payment_delayed_recheck_start", {
+        ...requestSummary,
+        paymentStatus: payment.status,
+        paymentAmount: paidAmount ?? undefined,
+        recheckAttempt: index + 1,
+        recheckDelayMs: delayMs,
+      });
+
+      await wait(delayMs);
+
+      const recheckResponse = await requestPortOne(`/payments/${encodeURIComponent(paymentId)}`, {
+        method: "GET",
+      }, requestSummary);
+      const recheckedPayment = (await recheckResponse.json()) as PortOnePaymentResponse;
+      const recheckedAmount = getPaymentAmount(recheckedPayment);
+
+      logPortOneBillingDebug("portone_first_payment_delayed_recheck_result", {
+        ...requestSummary,
+        paymentStatus: recheckedPayment.status,
+        paymentAmount: recheckedAmount ?? undefined,
+        recheckAttempt: index + 1,
+      });
+
+      payment = recheckedPayment;
+      paidAmount = recheckedAmount;
+
+      if (payment.status === "PAID") break;
+    }
+  }
+
+  assertPaidPayment({ payment, paymentId, amount, requestSummary });
+
+  if (firstPaymentRequestError) {
+    logPortOneBillingDebug("portone_first_payment_verify_after_failure_paid", { ...requestSummary, portoneStatus: 200 });
+  }
+
+  logPortOneBillingDebug("portone_first_payment_done", { ...requestSummary, portoneStatus: 200 });
+  return {
+    paymentId,
+    status: "PAID",
+    amount,
+    rawPayment: payment,
+  } satisfies PortOneBillingPaymentResult;
+}
+
+export async function getPaidBillingPayment({
+  paymentId,
+  orderName,
+  amount,
+}: {
+  paymentId: string;
+  orderName: string;
+  amount: number;
+}) {
+  const requestSummary = {
+    paymentId,
+    orderName,
+    amount,
+    currency: "KRW",
+  } satisfies PortOneSafeDebug;
   const paymentResponse = await requestPortOne(`/payments/${encodeURIComponent(paymentId)}`, {
     method: "GET",
   }, requestSummary);
   const payment = (await paymentResponse.json()) as PortOnePaymentResponse;
-  const verifiedPaymentId = payment.id ?? payment.paymentId ?? paymentId;
-  const paidAmount = getPaymentAmount(payment);
 
-  if (verifiedPaymentId !== paymentId) {
-    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: "payment id mismatch" });
-    throw new Error("PortOne billing payment id mismatch.");
-  }
+  assertPaidPayment({ payment, paymentId, amount, requestSummary });
+  logPortOneBillingDebug("portone_existing_payment_verified_paid", { ...requestSummary, portoneStatus: 200 });
 
-  if (payment.status !== "PAID") {
-    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: `payment is not paid: ${payment.status ?? "unknown"}` });
-    throw new Error(`PortOne billing payment is not paid: ${payment.status ?? "unknown"}`);
-  }
-
-  if (paidAmount !== amount) {
-    logPortOneBillingDebug("portone_first_payment_failed", { ...requestSummary, portoneMessage: `amount mismatch: ${paidAmount ?? "unknown"}` });
-    throw new Error(`PortOne billing amount mismatch: ${paidAmount ?? "unknown"}`);
-  }
-
-  logPortOneBillingDebug("portone_first_payment_done", { ...requestSummary, portoneStatus: 200 });
   return {
     paymentId,
     status: "PAID",
