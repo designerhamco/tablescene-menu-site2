@@ -264,7 +264,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 메뉴링크는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 메뉴링크 베이직은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
     "[개인 체험 1개월] 개인 체험은 사업자 인증 없이 메뉴링크 베이직 템플릿 메뉴판을 1개월 동안 사용할 수 있는 단건 결제 상품입니다. 자동결제는 제공되지 않습니다.",
-    "[사업자 정식 이용] 메뉴링크 베이직 월/연 결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. 실제 자동결제는 PG/PortOne 빌링키 설정과 인증 API 연결이 완료된 뒤 진행됩니다.",
+    "[사업자 정식 이용] 메뉴링크 베이직 월결제/연결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. Basic 유료 구독은 구독 1개당 Basic 메뉴판을 최대 3개까지 만들 수 있습니다.",
     "[서비스 안내] 메뉴링크 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 메뉴링크 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
     "[서비스 이용 시작] 결제가 완료되고 메뉴판이 생성되면 서비스 이용이 시작된 것으로 봅니다. 생성된 메뉴판은 마이페이지에서 확인하고 편집할 수 있습니다.",
     "[메뉴판 주소] 사용자가 입력한 희망 메뉴판 주소는 중복 여부, 정책 위반 여부, 기술적 제한 등에 따라 사용할 수 없을 수 있습니다. 회사는 부적절하거나 오해를 유발하거나 제3자의 권리를 침해할 우려가 있는 주소 사용을 제한할 수 있습니다.",
@@ -288,8 +288,8 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   ],
   contentPolicy: [
     "결제 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용 등 유료서비스 제공이 시작됩니다.",
-    "또한 요금제에 포함된 AI 크레딧이 지급됩니다.",
-    "월구독 또는 연구독 상품은 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 선택한 결제 주기에 따라 자동 결제됩니다.",
+    "또한 요금제에 포함된 AI 기본 제공량이 구독 기준으로 지급됩니다.",
+    "월결제 또는 연결제 상품은 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 선택한 결제 주기에 따라 자동 결제됩니다.",
     "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
     "서비스 제공이 개시된 이후에는 관련 법령상 허용되는 범위 내에서 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.",
     "단, 중복 결제, 결제 오류, 회사의 귀책사유로 서비스가 정상적으로 제공되지 않은 경우 등 회사가 환불이 필요하다고 인정하거나 관련 법령상 환불이 필요한 경우에는 회사의 환불 정책 및 관계 법령에 따라 처리됩니다.",
@@ -318,8 +318,9 @@ const personalTrialAgreementDetails: Record<AgreementKey, string[]> = {
   ],
   contentPolicy: [
     "첫 달 체험은 메뉴링크 베이직 기준으로 신청일로부터 1개월간 제공됩니다.",
+    "체험 기간에는 메뉴판 1개만 만들 수 있습니다.",
     "체험 기간 동안 메뉴링크 베이직 기준 AI 크레딧 18개가 제공됩니다.",
-    "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 30일 이내 사업자 월구독 또는 연구독으로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
+    "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 30일 이내 사업자 월결제 또는 연결제로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
     "30일이 경과하면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.",
     "첫 달 체험 후 사업자 플랜으로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
   ],
@@ -354,17 +355,17 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    bullets: ["1회 결제", "자동결제 없음", "체험 메뉴판 1개 제공", "메뉴링크 베이직 체험 메뉴판 생성 시 AI 크레딧 18개 제공"],
+    bullets: ["체험 결제", "정기결제 전환 없음", "체험 메뉴판 1개 제공", "체험 기준 AI 크레딧 18개 제공"],
     helperText: "체험 종료 후 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
   },
   {
     product: basicPaymentProducts[1],
-    bullets: ["사업자 인증 필요", "월 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "첫 메뉴판 생성 시 AI 크레딧 18개 제공"],
+    bullets: ["사업자 인증 필요", "월 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "구독 기준 AI 크레딧 18개 제공"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["사업자 인증 필요", "연 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "첫 메뉴판 생성 시 AI 크레딧 18개 제공"],
+    bullets: ["사업자 인증 필요", "연 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "구독 기준 AI 크레딧 18개 제공"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
   },
 ] as const satisfies readonly {
@@ -376,12 +377,12 @@ const basicProductCards = [
 const displayProductCards = [
   {
     product: businessDisplayMonthlyProduct,
-    bullets: ["매월 자동결제", "언제든 해지 가능", "Display 메뉴판 1개 제공", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
+    bullets: ["매월 자동결제", "언제든 해지 가능", "Display 메뉴판 1개 제공", "구독 기준 AI 크레딧 26개 제공"],
     helperText: "PortOne 빌링키 발급 후 첫 결제와 이후 정기결제를 연결합니다.",
   },
   {
     product: businessDisplayYearlyProduct,
-    bullets: ["연 자동결제", "월 결제 대비 할인", "Display 메뉴판 1개 제공", "메뉴링크 디스플레이 메뉴판 생성 시 AI 크레딧 26개 제공"],
+    bullets: ["연 자동결제", "월결제 대비 할인", "Display 메뉴판 1개 제공", "구독 기준 AI 크레딧 26개 제공"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 연 정기결제를 진행합니다.",
   },
 ] as const satisfies readonly {
@@ -1239,7 +1240,7 @@ export default function ApplyOrderForm({
     setBusinessVerificationState({
       type: "idle",
       message: product.requires_business_verification
-        ? "사업자 월/연 결제는 국세청 사업자 인증 성공 후 자동결제를 진행합니다."
+        ? "사업자 월결제/연결제는 국세청 사업자 인증 성공 후 자동결제를 진행합니다."
         : "개인 체험은 사업자 인증 없이 1개월 동안 사용할 수 있습니다.",
     });
   }
@@ -1631,7 +1632,7 @@ export default function ApplyOrderForm({
       if (!hasVerifiedBusinessProfile || businessVerificationState.type !== "verified") {
         setUiState({
           type: "error",
-          message: "사업자 월/연 결제는 사업자 인증 완료 후 진행할 수 있습니다.",
+          message: "사업자 월결제/연결제는 사업자 인증 완료 후 진행할 수 있습니다.",
         });
         return;
       }
@@ -1902,7 +1903,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월/연 결제는 사업자 인증과 자동결제 구조로 이어집니다.
+                개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월결제/연결제는 사업자 인증과 자동결제 구조로 이어집니다.
                 Basic 구독 1개로 메뉴판을 최대 3개까지 만들 수 있습니다. 결제 시 첫 메뉴판을 만들고, 추가 메뉴판은 마이페이지에서 언제든 생성할 수 있습니다.
               </p>
               <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
@@ -2010,7 +2011,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                월 결제와 연 결제 모두 빌링키 정기결제로 진행합니다. Display는 구독 1개당 메뉴판 1개를 기준으로 제공합니다.
+                월결제와 연결제 모두 빌링키 정기결제로 진행합니다. Display는 구독 1개당 메뉴판 1개를 기준으로 제공합니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 ※ 모든 금액은 부가세 포함가입니다. Display QA는 개발 환경에서만 열립니다.
@@ -2404,7 +2405,7 @@ export default function ApplyOrderForm({
                 : isScreenService
                   ? "메뉴링크 디스플레이는 전용 템플릿 준비 전까지 결제를 진행하지 않습니다."
                 : activeProductRequiresBusinessVerification
-                  ? "사업자 월/연 결제는 사업자 인증 후 자동결제로 이용합니다. 현재 화면은 인증 입력 구조와 자동결제 연결 전 상태를 명확히 구분합니다."
+                  ? "사업자 월결제/연결제는 사업자 인증 후 자동결제로 이용합니다. 현재 화면은 인증 입력 구조와 자동결제 연결 전 상태를 명확히 구분합니다."
                   : "개인 체험은 사업자 인증 없이 1개월 동안 사용하는 단건 결제 상품입니다. 자동결제 없이 1회 결제로 이용합니다."}
             </p>
           </div>
@@ -2490,7 +2491,7 @@ export default function ApplyOrderForm({
                     <div>
                       <p className="font-black text-amber-900">사업자 인증</p>
                       <p className="mt-1 break-keep">
-                        사업자 월/연 결제는 사업자 정보 확인 후 이용할 수 있습니다. 자동결제는 아직 준비 중이며, 이번 단계에서는 인증만 진행됩니다.
+                        사업자 월결제/연결제는 사업자 정보 확인 후 이용할 수 있습니다. 자동결제는 아직 준비 중이며, 이번 단계에서는 인증만 진행됩니다.
                       </p>
                       <p className={`mt-2 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-amber-800"}`}>
                         {businessVerificationState.message}
@@ -2538,7 +2539,7 @@ export default function ApplyOrderForm({
                   activeProduct.billing_cycle === "monthly"
                     ? "사업자 월 자동결제"
                     : activeProduct.billing_cycle === "yearly"
-                      ? activeProduct.is_subscription ? "사업자 연 자동결제" : "사업자 연 결제"
+                      ? activeProduct.is_subscription ? "사업자 연 자동결제" : "사업자 연결제"
                       : "개인 1개월 단건 결제"
                 }
               />

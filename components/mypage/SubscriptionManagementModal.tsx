@@ -225,7 +225,7 @@ export default function SubscriptionManagementModal({
     }
 
     const ok = window.confirm(
-      `최종 예상 환불금액 ${formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}으로 환불을 진행합니다.\n\n잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다. 환불이 완료되면 메뉴판은 보관 상태로 전환되고, 실제 카드 취소 반영은 결제수단에 따라 영업일 기준 3~7일이 걸릴 수 있습니다.`
+      `최종 예상 환불금액 ${formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}으로 환불을 진행합니다.\n\n잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다. 환불 처리가 완료되면 메뉴판은 보관 상태로 전환되고, 실제 카드 취소 반영은 결제수단에 따라 영업일 기준 3~7일이 걸릴 수 있습니다.`
     );
 
     if (!ok) return;
@@ -318,7 +318,7 @@ export default function SubscriptionManagementModal({
                   </p>
                   <p className="mt-3">
                     고객 최종 확인 후 자동 환불 처리를 진행하며, 카드사 또는 결제수단에 따라 실제 취소 반영까지 영업일 기준 3~7일이 걸릴 수 있습니다.
-                    환불 완료 후 메뉴판은 보관 상태로 전환되며, 보관 기간 내 재구독하면 기존 메뉴판을 복구할 수 있습니다.
+                    환불 처리 완료 후 메뉴판은 보관 상태로 전환되며, 보관 기간 내 재구독하면 기존 메뉴판을 복구할 수 있습니다.
                   </p>
                 </div>
 
@@ -497,7 +497,7 @@ export default function SubscriptionManagementModal({
               <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
                 <h3 className="text-lg font-black text-emerald-950">{restoredNotice.title}</h3>
                 <p className="mt-2">{restoredNotice.message}</p>
-                <p className="mt-2">이 결제 기록은 환불 완료 내역으로 보관되며, 현재 이용 중인 새 구독은 별도 카드에서 확인할 수 있습니다.</p>
+                <p className="mt-2">이 결제 기록은 환불 처리 완료 내역으로 보관되며, 현재 이용 중인 새 구독은 별도 카드에서 확인할 수 있습니다.</p>
               </div>
             ) : null}
 
@@ -505,7 +505,7 @@ export default function SubscriptionManagementModal({
               {restoredNotice
                 ? "기존 결제/환불 내역과 새 구독 내역은 분리되어 보관됩니다."
                 : isYearlyBilling
-                ? "연결제는 매년 자동결제되는 연 정기결제 상품입니다. 해지 예약 시 다음 연 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다."
+                ? "연결제는 매년 자동결제되는 연 정기결제 상품입니다. 해지 예약 시 다음 연간 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다."
                 : "구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있습니다. 이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다."}
             </div>
 
@@ -515,7 +515,7 @@ export default function SubscriptionManagementModal({
                   중도해지 및 환불이 필요한 경우 별도로 요청할 수 있습니다. 사용한 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                 </p>
                 <p className="mt-2">
-                  환불 요청 후 처리 전까지는 환불 요청 취소가 가능할 수 있으며, 환불 완료 후 메뉴판은 보관 상태로 전환됩니다.
+                  환불 요청 후 처리 전까지는 환불 요청 취소가 가능할 수 있으며, 환불 처리 완료 후 메뉴판은 보관 상태로 전환됩니다.
                 </p>
               </div>
             ) : null}
@@ -574,7 +574,7 @@ export default function SubscriptionManagementModal({
                   }}
                   className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800"
                 >
-                  {isYearlyBilling ? "다음 연 결제일부터 해지 예약" : "구독 해지 예약"}
+                  {isYearlyBilling ? "다음 연간 결제일부터 해지 예약" : "구독 해지 예약"}
                 </button>
               ) : null}
               {status === "active" && cancelAtPeriodEnd && canManage && !restoredNotice ? (
@@ -617,7 +617,7 @@ export default function SubscriptionManagementModal({
           <form onSubmit={submitCancellation} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
             <h2 className="text-2xl font-black tracking-tight text-zinc-950">정말 구독을 해지하시겠어요?</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-              해지해도 이미 결제된 이용기간은 종료일까지 사용할 수 있습니다. {isYearlyBilling ? "다음 연 결제일부터 결제는 중단됩니다." : "다음 결제일부터 결제는 중단됩니다."}
+              해지해도 이미 결제된 이용기간은 종료일까지 사용할 수 있습니다. {isYearlyBilling ? "다음 연간 결제일부터 결제는 중단됩니다." : "다음 결제일부터 결제는 중단됩니다."}
             </p>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일 이내 다시 구독하면 기존 데이터를 계속 사용할 수 있습니다. 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
@@ -642,7 +642,7 @@ export default function SubscriptionManagementModal({
                 disabled={isSubmitting}
                 className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
               >
-                {isSubmitting ? "처리 중..." : isYearlyBilling ? "다음 연 결제일부터 해지하기" : "다음 결제일부터 해지하기"}
+                {isSubmitting ? "처리 중..." : isYearlyBilling ? "다음 연간 결제일부터 해지하기" : "다음 결제일부터 해지하기"}
               </button>
             </div>
           </form>

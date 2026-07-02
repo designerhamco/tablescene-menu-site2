@@ -68,9 +68,9 @@ export type MenuSiteAccessState = {
 };
 
 export const MENU_SITE_INACTIVE_EDIT_MESSAGE =
-  "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 편집과 공개가 제한되었습니다. 결제를 재개하면 기존 메뉴판을 이어서 사용할 수 있습니다.";
+  "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 편집과 공개가 제한되었습니다. 보관 기간 안에 재구독하거나 결제를 정상화하면 기존 메뉴판을 이어서 사용할 수 있습니다.";
 export const MENU_SITE_INACTIVE_PUBLISH_MESSAGE =
-  "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 공개 상태를 변경할 수 없습니다. 결제를 재개한 뒤 다시 이용해주세요.";
+  "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 공개 상태를 변경할 수 없습니다. 보관 기간 안에 재구독하거나 결제를 정상화한 뒤 다시 이용해주세요.";
 export const MENU_SITE_INACTIVE_AI_MESSAGE =
   "현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.";
 

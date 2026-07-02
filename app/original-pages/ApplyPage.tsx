@@ -261,7 +261,7 @@ const ApplyPage = () => {
                    <span className="font-bold text-zinc-900 mr-2">[필수]</span>
                    <span className="text-zinc-700">계약 유지 및 혜택 반환 규정 동의</span>
                    <p className="text-sm text-zinc-500 mt-1 leading-relaxed bg-zinc-100 p-3 rounded-lg">
-                      "본 서비스는 별도의 해지 위약금이 없으나, 계약 후 1년 이내 해지 시 설치 시점에 면제받은 초기 세팅비(19.9만 원)가 반환 청구됨을 확인합니다."
+                      "본 서비스는 별도 해지 비용이 없으나, 계약 후 1년 이내 해지 시 설치 시점에 면제받은 초기 세팅비(19.9만 원)가 반환 청구됨을 확인합니다."
                    </p>
                 </div>
              </label>

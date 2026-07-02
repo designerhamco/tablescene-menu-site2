@@ -61,7 +61,7 @@ export default function ApplyPage() {
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월/연 결제를 한 화면에서 선택할 수 있습니다.
+              메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월결제/연결제를 한 화면에서 선택할 수 있습니다.
               {displayCheckoutQaEnabled
                 ? " 메뉴링크 디스플레이는 QA/dev 환경에서만 신청 흐름을 확인할 수 있습니다."
                 : " 메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다."}

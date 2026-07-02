@@ -80,7 +80,7 @@ function OwnerPreviewReadOnlyBanner({ accessState }: { accessState: MenuSiteAcce
   return (
     <div className="fixed left-0 right-0 top-0 z-[1000] px-3 py-3">
       <div className="mx-auto max-w-3xl rounded-2xl border border-amber-200 bg-white/95 px-4 py-3 text-center text-sm font-bold leading-relaxed text-amber-900 shadow-lg backdrop-blur">
-        보관 중 미리보기입니다. 현재 메뉴판은 손님에게 공개되지 않으며, 편집과 QR 다운로드가 제한됩니다. 결제를 재개하면 기존 공개 링크와 QR을 다시 사용할 수 있습니다.
+        보관 중 미리보기입니다. 현재 메뉴판은 손님에게 공개되지 않으며, 편집과 QR 다운로드가 제한됩니다. 보관 기간 안에 재구독하면 기존 공개 링크와 QR을 다시 사용할 수 있습니다.
       </div>
     </div>
   );

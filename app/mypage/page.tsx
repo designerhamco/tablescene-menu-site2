@@ -846,7 +846,7 @@ function getBillingHistoryMethodLabel(method: BillingHistoryEntry["billingMethod
   if (method === "monthly") return "월결제 · 정기결제";
   if (method === "yearly") return "연결제 · 연 정기결제";
   if (method === "trial") return "체험 결제";
-  if (method === "one_time") return "일회성 · 자동결제 없음";
+  if (method === "one_time") return "1회 결제";
   return "결제 방식 확인 필요";
 }
 
@@ -1203,7 +1203,7 @@ function getArchivedDisplayState({
     const message = getRetentionDdayMessage(
       "자동 결제가 완료되지 않아 공개와 편집이 제한되었습니다.",
       ddayInfo,
-      "오늘까지 결제를 재개하면 기존 메뉴판을 복구할 수 있습니다.",
+      "오늘까지 결제를 정상화하면 기존 메뉴판을 복구할 수 있습니다.",
     );
 
     return {
@@ -2200,7 +2200,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       : section === "deleted"
         ? "삭제된 메뉴판은 사용할 수 없습니다."
         : isAccessRestricted || hasPaymentIssue
-        ? "보관 중에는 사용할 수 없습니다. 결제를 재개하면 다시 사용할 수 있습니다."
+        ? "보관 중에는 사용할 수 없습니다. 보관 기간 안에 재구독하면 다시 사용할 수 있습니다."
         : "현재 상태에서는 사용할 수 없습니다.";
     const unpublishedActionReason = "아직 공개 전입니다. 공개 후 사용할 수 있습니다.";
     const noMenuSiteReason = "메뉴판 정보를 확인할 수 없어 사용할 수 없습니다.";
@@ -2253,7 +2253,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       } else {
         metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
-      metaItems.push({ label: "결제방식", value: "1회 결제 / 자동결제 없음" });
+      metaItems.push({ label: "결제방식", value: "체험 결제" });
       metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
       primaryMessage = isCancelScheduledActive
@@ -2298,8 +2298,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ? "자동 결제가 완료되지 않았습니다. 결제 확인 후 다시 이용할 수 있습니다."
         : isAccessRestricted
           ? isCancelScheduledEnded
-            ? "해지 예약에 따라 이용이 종료되었습니다. 결제를 재개하면 기존 링크와 QR을 다시 사용할 수 있습니다."
-            : "보관 기간 동안 미리보기만 가능하며, 결제를 재개하면 기존 메뉴판을 복구할 수 있습니다."
+            ? "해지 예약에 따라 이용이 종료되었습니다. 보관 기간 안에 재구독하면 기존 링크와 QR을 다시 사용할 수 있습니다."
+            : "보관 기간 동안 미리보기만 가능하며, 재구독하면 기존 메뉴판을 복구할 수 있습니다."
           : site.status === "published"
             ? "현재 손님에게 공개 중입니다."
             : site.status === "private" || site.status === "unpublished"
@@ -2641,7 +2641,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     {activeMenuTab === "active"
                       ? "현재 편집과 운영이 가능한 메뉴판입니다."
                       : activeMenuTab === "holding"
-                        ? "이용이 종료되었지만 보관 기간 안에 있어 미리보기와 실제 연결된 복구 흐름을 사용할 수 있습니다."
+                        ? "이용이 종료되었지만 보관 기간 안에 있어 미리보기와 재구독 복구 흐름을 사용할 수 있습니다."
                         : "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다."}
                   </p>
                 </div>
@@ -2687,7 +2687,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div>
                     <h2 className="text-3xl font-bold tracking-tight">구독/결제 내역</h2>
                     <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                      결제 기록과 AI 크레딧 충전 내역을 확인할 수 있습니다. 메뉴판 이용 상태 관리는 내 메뉴판 탭에서 확인해주세요.
+                      결제 기록과 AI 크레딧 충전 내역을 확인할 수 있습니다. 구독 해지, 환불 요청, 재구독 복구는 구독/결제 내역에서 관리하고, 메뉴판 운영은 내 메뉴판 탭에서 확인해주세요.
                     </p>
                   </div>
                 </div>
@@ -2788,7 +2788,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">결제 주기 / 금액</dt>
-                                    <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "자동결제 없음" : getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
+                                    <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "체험 결제" : getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일"}</dt>
@@ -3275,7 +3275,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     </dl>
                   ) : (
                     <p className="mt-5 break-keep rounded-2xl bg-white p-4 text-sm font-bold leading-relaxed text-zinc-500">
-                      사업자 월/연 결제를 이용하려면 /apply/basic에서 사업자 인증을 먼저 진행해주세요.
+                      사업자 월결제/연결제를 이용하려면 /apply/basic에서 사업자 인증을 먼저 진행해주세요.
                     </p>
                   )}
 

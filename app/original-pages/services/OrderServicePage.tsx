@@ -1405,7 +1405,7 @@ const OrderServicePage = () => {
                     </div>
                     
                     <div className="mt-8 p-4 bg-white rounded-xl border border-zinc-200 text-sm text-zinc-500">
-                        <p className="mb-1"><span className="font-bold text-zinc-900">중도 해지 시:</span> 위약금 없음</p>
+                        <p className="mb-1"><span className="font-bold text-zinc-900">중도 해지 시:</span> 별도 해지 비용 없음</p>
                         <p>이용 기간 내 제공받은 할인 금액(월 이용료 및 설치비) 전액 반환</p>
                     </div>
                   </div>
@@ -1645,7 +1645,7 @@ const OrderServicePage = () => {
            {/* Traditional */}
            <div className="text-center md:text-right opacity-60 hover:opacity-100 transition-opacity duration-300">
              <h3 className="text-xl font-bold text-zinc-400 mb-8">
-               타사 서비스 개별 이용 시 <span className="text-base font-normal block md:inline mt-1 md:mt-0">(약정 평균 3년 / 위약금 2~30%)</span>
+               타사 서비스 개별 이용 시 <span className="text-base font-normal block md:inline mt-1 md:mt-0">(약정 평균 3년 / 중도해지 비용 2~30%)</span>
              </h3>
              <div className="space-y-6 font-medium text-lg">
                <div className="flex justify-between md:justify-end gap-8">
@@ -1692,7 +1692,7 @@ const OrderServicePage = () => {
              </div>
              <h3 className="text-2xl font-bold text-white mb-8 mt-2 md:mt-0 flex flex-col md:flex-row items-center md:items-baseline gap-2 justify-center md:justify-start">
                메뉴링크 PRO (All-in-One)
-               <span className="text-base font-normal text-white/70">(약정 1년 / 위약금 없음)</span>
+               <span className="text-base font-normal text-white/70">(약정 1년 / 별도 해지 비용 없음)</span>
              </h3>
              <div className="space-y-4 font-medium text-lg">
                <div className="flex justify-between md:justify-start gap-8">

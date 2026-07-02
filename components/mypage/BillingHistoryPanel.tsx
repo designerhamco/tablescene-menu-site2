@@ -646,6 +646,9 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         <p className="mt-2">
           연결제 중도해지/환불은 사용 기간을 월결제 기준 금액으로 재정산한 뒤, 잔여 환불 가능액에서 중도해지 수수료 10%를 공제하는 방식으로 안내합니다.
         </p>
+        <p className="mt-2">
+          구독 해지, 환불 요청, 재구독하고 복구는 구독/결제내역에서 관리하고, 편집·미리보기·공개 메뉴판 보기·QR 다운로드는 내 메뉴판에서 사용할 수 있습니다.
+        </p>
       </div>
 
       <div className="flex items-center justify-between gap-3">
@@ -706,7 +709,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                     </div>
                     <div>
                       <dt className="text-xs font-black text-zinc-400">정기결제</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "one_time" || entry.billingMethod === "trial" ? "자동결제 없음" : "정기결제"}</dd>
+                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "trial" ? "체험 결제" : entry.billingMethod === "one_time" ? "1회 결제" : "정기결제"}</dd>
                     </div>
                     {entry.refundAmountLabel ? (
                       <div>

@@ -461,7 +461,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
   const statusLabel = accessState?.statusLabel ?? (isMenuSiteStatus(site.status) ? statusLabels[site.status] : "이용 제한");
   const message =
     accessState?.message ??
-    "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 이 메뉴판을 편집할 수 없습니다. 결제를 재개하면 기존 데이터를 다시 사용할 수 있습니다.";
+    "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 이 메뉴판을 편집할 수 없습니다. 보관 기간 안에 재구독하거나 결제를 정상화하면 기존 데이터를 다시 사용할 수 있습니다.";
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
 
   return (
