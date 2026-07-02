@@ -1138,13 +1138,13 @@ export default function ApplyOrderForm({
           ? "사업자 인증 확인 중"
           : "사업자 인증 후 진행 가능"
       : isSubscriptionProduct
-        ? "정기결제 테스트 진행"
+        ? "신청하고 결제하기"
         : visibleSlugState.type === "checking"
           ? "메뉴판 주소 확인 중..."
           : isPortOneReady
             ? "신청하고 결제하기"
             : isDevelopment && mockEnabled
-              ? "mock 결제로 신청 테스트"
+              ? "신청하고 결제하기"
               : "결제 설정 필요";
 
   useEffect(() => {
@@ -1651,7 +1651,7 @@ export default function ApplyOrderForm({
 
       if (!storeId || !billingChannelKey) {
         if (canUseDisplayCheckoutQaMock) {
-          setUiState({ type: "loading", message: "개발 환경 mock 빌링키로 Display 결제 QA 흐름을 확인하고 있습니다." });
+          setUiState({ type: "loading", message: "신청 정보를 확인하고 결제를 준비하고 있습니다." });
 
           try {
             const response = await fetch("/api/business-subscriptions/start", {
@@ -1804,7 +1804,7 @@ export default function ApplyOrderForm({
         return;
       }
 
-        setUiState({ type: "loading", message: "개발 환경 mock 결제로 신청 생성 흐름을 확인하고 있습니다." });
+        setUiState({ type: "loading", message: "신청 정보를 확인하고 메뉴판 생성을 준비하고 있습니다." });
 
       try {
         await completePayment(createMockPaymentId());
@@ -2014,7 +2014,7 @@ export default function ApplyOrderForm({
                 월결제와 연결제 모두 빌링키 정기결제로 진행합니다. Display는 구독 1개당 메뉴판 1개를 기준으로 제공합니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                ※ 모든 금액은 부가세 포함가입니다. Display QA는 개발 환경에서만 열립니다.
+                ※ 모든 금액은 부가세 포함가입니다. Display는 구독 1개당 메뉴판 1개를 기준으로 제공합니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -2616,7 +2616,7 @@ export default function ApplyOrderForm({
           {!isPortOneReady && (
             <div className="mt-6 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
               {isDevelopment && mockEnabled
-                ? "PortOne 공개 환경변수가 없어서 개발 환경 mock 결제로 신청 생성 흐름을 테스트합니다."
+                ? "결제 설정 확인 전에도 신청 화면을 확인할 수 있습니다."
                 : "PortOne 공개 환경변수가 없어서 결제를 진행할 수 없습니다. 개발 mock은 PORTONE_MOCK_ENABLED=true일 때만 동작합니다."}
             </div>
           )}

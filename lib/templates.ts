@@ -22,7 +22,7 @@ export const TEMPLATE_CATEGORIES = [
     key: "display",
     label: "디스플레이",
     templates: [
-      { key: "display_menu_a", label: "메뉴링크 디스플레이 A", design: "design_a" },
+      { key: "display_menu_a", label: "메뉴링크 디스플레이", design: "design_a" },
     ],
   },
   {

@@ -949,7 +949,7 @@ const DISPLAY_A_MENU_QUALITY_NOTICE_TEXT =
 const DISPLAY_A_MENU_QUALITY_STRONG_TEXT =
   "표시 품질을 더 좋게 다듬을 수 있습니다";
 const DISPLAY_A_MENU_QUALITY_CTA_TEXT =
-  "저장은 그대로 가능하며, Display A가 화면에 맞춰 글자와 간격을 자동으로 조정합니다.";
+  "저장은 그대로 가능하며, Display가 화면에 맞춰 글자와 간격을 자동으로 조정합니다.";
 
 function DisplayMenuQualityNoticeBox({ notice }: { notice: DisplayMenuQualityNotice }) {
   const isStrong = notice.tone === "strong";
@@ -1715,7 +1715,7 @@ function MenuCategoryForm({
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <h4 className="text-sm font-black text-zinc-950">가격 옵션 열</h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-            메뉴링크 디스플레이 A는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
+            메뉴링크 디스플레이는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
           </p>
           <div className="mt-4 grid gap-3">
             {categoryPriceOptionLabels.map((label, index) => (
@@ -1748,7 +1748,7 @@ function MenuCategoryForm({
             </button>
           </div>
           <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-            메뉴링크 디스플레이 A에서는 가격 옵션 열을 최대 {maxPriceOptionColumns}개까지 사용할 수 있습니다.
+            메뉴링크 디스플레이에서는 가격 옵션 열을 최대 {maxPriceOptionColumns}개까지 사용할 수 있습니다.
           </p>
         </section>
       )}
@@ -5411,7 +5411,7 @@ export default function MenuManagementSection({
     setExpandedPageIds(new Set(firstPageId ? [firstPageId] : []));
     setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
     markMenuManagementDirty();
-    toast.success("디스플레이 A 샘플 데이터가 임시 변경되었습니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.");
+    toast.success("디스플레이 샘플 데이터가 임시 변경되었습니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.");
     setIsSampleResetApplying(false);
   }
 

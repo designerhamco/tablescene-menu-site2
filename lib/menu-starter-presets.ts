@@ -1025,7 +1025,7 @@ async function createDisplayMenuAStarterData(
     .eq("menu_site_id", menuSiteId);
 
   if (countError) {
-    throw new Error(`Display A 기본 메뉴 중복 확인에 실패했습니다: ${countError.message}`);
+    throw new Error(`Display 기본 메뉴 중복 확인에 실패했습니다: ${countError.message}`);
   }
 
   if ((count ?? 0) > 0 && !options.force) {
@@ -1040,11 +1040,11 @@ async function createDisplayMenuAStarterData(
       .maybeSingle();
 
     if (siteError) {
-      throw new Error(`Display A 기본 메뉴판 정보 확인에 실패했습니다: ${siteError.message}`);
+      throw new Error(`Display 기본 메뉴판 정보 확인에 실패했습니다: ${siteError.message}`);
     }
 
     const sitePayload: MenuSiteUpdate = {
-      restaurant_name: valueOrDefault(site?.restaurant_name, previewData.menuSite.restaurant_name ?? "Display QA Cafe"),
+      restaurant_name: valueOrDefault(site?.restaurant_name, previewData.menuSite.restaurant_name ?? "MenuLink Display Cafe"),
       restaurant_category: valueOrDefault(site?.restaurant_category, "디스플레이"),
       restaurant_type: valueOrDefault(site?.restaurant_type, "cafe"),
       restaurant_address: site?.restaurant_address ?? "",
@@ -1055,7 +1055,7 @@ async function createDisplayMenuAStarterData(
 
     const { error: updateError } = await supabase.from("menu_sites").update(sitePayload).eq("id", menuSiteId);
     if (updateError) {
-      throw new Error(`Display A 기본 메뉴판 정보 저장에 실패했습니다: ${updateError.message}`);
+      throw new Error(`Display 기본 메뉴판 정보 저장에 실패했습니다: ${updateError.message}`);
     }
   }
 
@@ -1076,7 +1076,7 @@ async function createDisplayMenuAStarterData(
     .select("id, title, sort_order");
 
   if (pagesError) {
-    throw new Error(`Display A 기본 페이지 생성에 실패했습니다: ${pagesError.message}`);
+    throw new Error(`Display 기본 페이지 생성에 실패했습니다: ${pagesError.message}`);
   }
 
   const pageIdByPreviewId = new Map(
@@ -1103,7 +1103,7 @@ async function createDisplayMenuAStarterData(
     .select("id, name, menu_page_id, sort_order");
 
   if (categoriesError) {
-    throw new Error(`Display A 기본 카테고리 생성에 실패했습니다: ${categoriesError.message}`);
+    throw new Error(`Display 기본 카테고리 생성에 실패했습니다: ${categoriesError.message}`);
   }
 
   const categoryIdByPreviewId = new Map(
@@ -1160,7 +1160,7 @@ async function createDisplayMenuAStarterData(
   }
 
   if (itemsError) {
-    throw new Error(`Display A 기본 아이템 생성에 실패했습니다: ${itemsError.message}`);
+    throw new Error(`Display 기본 아이템 생성에 실패했습니다: ${itemsError.message}`);
   }
 
   const itemIdByPreviewId = new Map(
@@ -1199,7 +1199,7 @@ async function createDisplayMenuAStarterData(
       !priceOptionsError.message.toLowerCase().includes("does not exist") &&
       priceOptionsError.code !== "42P01"
     ) {
-      throw new Error(`Display A 기본 가격 옵션 생성에 실패했습니다: ${priceOptionsError.message}`);
+      throw new Error(`Display 기본 가격 옵션 생성에 실패했습니다: ${priceOptionsError.message}`);
     }
   }
 

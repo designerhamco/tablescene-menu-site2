@@ -27,9 +27,9 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
     description: "사업자 전용 디스플레이 메뉴보드입니다. 구독 1개당 Display 메뉴판 1개를 기준으로 제공합니다.",
     price: "오픈 할인 월 19,800원 / 연 190,000원",
     note: displayCheckoutQaEnabled
-      ? "QA/dev 환경에서만 메뉴링크 디스플레이 A 신청/결제 흐름을 확인할 수 있습니다."
+      ? "TV/모니터용 디지털 메뉴보드를 사업자 전용 정기결제로 신청할 수 있습니다."
       : "메뉴링크 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",
-    type: displayCheckoutQaEnabled ? "QA 테스트" : "준비 중",
+    type: displayCheckoutQaEnabled ? "오픈 할인" : "준비 중",
     cta: displayCheckoutQaEnabled ? "디스플레이 만들기" : "준비 중",
     href: "/apply/display",
     active: displayCheckoutQaEnabled,
@@ -63,7 +63,7 @@ export default function ApplyPage() {
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
               메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월결제/연결제를 한 화면에서 선택할 수 있습니다.
               {displayCheckoutQaEnabled
-                ? " 메뉴링크 디스플레이는 QA/dev 환경에서만 신청 흐름을 확인할 수 있습니다."
+                ? " 메뉴링크 디스플레이는 사업자 전용 디지털 메뉴보드로 구독 1개당 Display 메뉴판 1개를 제공합니다."
                 : " 메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다."}
             </p>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">

@@ -4560,7 +4560,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
           .map((option) => normalizeDraftString(option.label))
           .find((label) => label && !allowedLabelSet.has(label.toLocaleUpperCase("ko-KR")));
         if (invalidLabel) {
-          redirectToMenuEditWithError(menuId, "디스플레이 A에서는 카테고리에 설정된 가격 옵션 열만 사용할 수 있습니다.");
+          redirectToMenuEditWithError(menuId, "디스플레이에서는 카테고리에 설정된 가격 옵션 열만 사용할 수 있습니다.");
         }
       }
     }
