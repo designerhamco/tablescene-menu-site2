@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
@@ -1286,6 +1287,8 @@ function DisplayPageIndicator({
 }
 
 export default function DisplayMenuA(props: PublicMenuTemplateProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const pages = useMemo(
     () => sortMenuPages(props.pages.filter((page) => page.visible)),
     [props.pages]
@@ -1319,7 +1322,10 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
       ? props.initialPreviewPageId
       : displayPages[0]?.id ?? "";
   const [selectedPageId, setSelectedPageId] = useState(initialSelectedPageId);
-  const activeRenderPage = displayPages.find((page) => page.id === selectedPageId) ?? displayPages[0] ?? null;
+  const effectiveSelectedPageId = displayPages.some((page) => page.id === selectedPageId)
+    ? selectedPageId
+    : initialSelectedPageId;
+  const activeRenderPage = displayPages.find((page) => page.id === effectiveSelectedPageId) ?? displayPages[0] ?? null;
   const activePage = activeRenderPage?.page ?? null;
   const activePageIndex = activeRenderPage ? displayPages.findIndex((page) => page.id === activeRenderPage.id) : -1;
   const activePageParam = activePageIndex >= 0 ? String(activePageIndex + 1) : null;
@@ -1327,6 +1333,19 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const activeSettings = activePage ? normalizeMenuPageDisplaySettings(activePage.display_settings) : null;
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
+
+  function selectDisplayPage(pageId: string) {
+    setSelectedPageId(pageId);
+
+    const nextPageIndex = displayPages.findIndex((page) => page.id === pageId);
+    if (nextPageIndex < 0) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(nextPageIndex + 1));
+    const queryString = params.toString();
+    const hash = window.location.hash;
+    window.history.replaceState(null, "", `${pathname}${queryString ? `?${queryString}` : ""}${hash}`);
+  }
 
   useEffect(() => {
     if (props.mode !== "public" || displayPages.length <= 1) return undefined;
@@ -1360,7 +1379,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
       <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
       <main className="menu-typography group relative h-screen w-screen overflow-hidden bg-[var(--display-surface-color)] text-[var(--display-text-color)]" style={typographyStyle}>
         {showPreviewSelector && (
-          <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={setSelectedPageId} />
+          <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={selectDisplayPage} />
         )}
         <div className="pointer-events-none absolute bottom-5 right-5 z-30 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
           <MenuLanguageSwitcher
