@@ -8,6 +8,7 @@ import {
 import { normalizeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { getDisplayVideoUploadAccess } from "@/lib/server/display-video-upload-access";
 import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_EDIT_MESSAGE } from "@/lib/server/menu-site-access-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -22,7 +23,41 @@ type MenuPageRow = {
 };
 
 function jsonError(message: string, status = 400) {
-  return NextResponse.json({ ok: false, message }, { status });
+  return NextResponse.json({ ok: false, message, error: message }, { status });
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return "";
+}
+
+function getStorageUploadClientMessage(error: unknown) {
+  const message = getErrorMessage(error).toLowerCase();
+
+  if (message.includes("bucket") && (message.includes("not found") || message.includes("does not exist"))) {
+    return "menu-videos 저장소 버킷을 찾을 수 없습니다.";
+  }
+
+  if (message.includes("row-level security") || message.includes("unauthorized") || message.includes("permission")) {
+    return "동영상 저장소 업로드 권한을 확인해주세요.";
+  }
+
+  if (message.includes("mime") || message.includes("content type")) {
+    return "MP4 파일만 업로드할 수 있습니다.";
+  }
+
+  if (message.includes("size") || message.includes("too large")) {
+    return `동영상 파일은 최대 ${DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB}MB까지 업로드할 수 있습니다.`;
+  }
+
+  return "동영상 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
 }
 
 function getString(value: FormDataEntryValue | null) {
@@ -170,19 +205,38 @@ export async function POST(request: Request) {
 
   const path = getVideoPath(menuId, pageId);
   const bytes = await file.arrayBuffer();
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, bytes, {
+  let adminSupabase: ReturnType<typeof createAdminClient>;
+
+  try {
+    adminSupabase = createAdminClient();
+  } catch (error) {
+    console.error("[menu-videos] Missing Supabase admin client configuration", {
+      message: getErrorMessage(error),
+      bucket: BUCKET,
+    });
+    return jsonError("동영상 저장소 업로드 권한을 확인해주세요.", 500);
+  }
+
+  const { error: uploadError } = await adminSupabase.storage.from(BUCKET).upload(path, bytes, {
     cacheControl: "31536000",
     contentType: file.type,
     upsert: false,
   });
 
   if (uploadError) {
-    return jsonError(`동영상 업로드에 실패했습니다: ${uploadError.message}`, 500);
+    console.error("[menu-videos] Storage upload failed", {
+      message: uploadError.message,
+      bucket: BUCKET,
+      path,
+      contentType: file.type,
+      size: file.size,
+    });
+    return jsonError(getStorageUploadClientMessage(uploadError), 500);
   }
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  } = adminSupabase.storage.from(BUCKET).getPublicUrl(path);
 
   return NextResponse.json({
     ok: true,

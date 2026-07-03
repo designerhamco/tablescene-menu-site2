@@ -1185,18 +1185,18 @@ function MenuPageForm({
     onDraftCommit?.();
   }
 
-  function updateDisplaySettings(patch: Partial<MenuPageDisplaySettings>, options: { commitDraft?: boolean } = {}) {
+  function updateDisplaySettings(patch: Partial<MenuPageDisplaySettings>) {
     const nextSettings = normalizeMenuPageDisplaySettings({ ...displaySettings, ...patch });
     setDisplaySettings(nextSettings);
-    if (!page || options.commitDraft) onDraftChange?.({ displaySettings: nextSettings });
+    if (!page) onDraftChange?.({ displaySettings: nextSettings });
   }
 
   function updateSplitImage(patch: Partial<MenuPageDisplaySettings["splitImage"]>) {
     updateDisplaySettings({ splitImage: { ...displaySettings.splitImage, ...patch } });
   }
 
-  function updatePromotion(patch: Partial<MenuPageDisplaySettings["promotion"]>, options: { commitDraft?: boolean } = {}) {
-    updateDisplaySettings({ promotion: { ...displaySettings.promotion, ...patch } }, options);
+  function updatePromotion(patch: Partial<MenuPageDisplaySettings["promotion"]>) {
+    updateDisplaySettings({ promotion: { ...displaySettings.promotion, ...patch } });
   }
 
   function getDisplayVideoClientValidationMessage(file: File) {
@@ -1248,9 +1248,11 @@ function MenuPageForm({
       const result = (await response.json().catch(() => null)) as {
         ok?: boolean;
         message?: string;
+        error?: string;
         path?: string | null;
         publicUrl?: string | null;
       } | null;
+      const serverErrorMessage = result?.message ?? result?.error;
 
       if (!response.ok || !result?.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -1261,8 +1263,8 @@ function MenuPageForm({
           throw new Error(`동영상 파일은 최대 ${DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB}MB까지 업로드할 수 있습니다.`);
         }
 
-        if (response.status === 400 && result?.message) {
-          throw new Error(result.message);
+        if (serverErrorMessage) {
+          throw new Error(serverErrorMessage);
         }
 
         throw new Error("동영상 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
@@ -1280,9 +1282,9 @@ function MenuPageForm({
         videoPath: result.path,
         videoSource: "upload",
         videoLoop: true,
-      }, { commitDraft: true });
-      setDisplayVideoUploadState({ type: "success", message: "동영상이 업로드되었습니다. 저장 후 디스플레이 설정에 반영됩니다." });
-      toast.success("동영상이 업로드되었습니다. 저장 후 디스플레이 설정에 반영됩니다.");
+      });
+      setDisplayVideoUploadState({ type: "success", message: "동영상이 업로드되었습니다. 수정 내용 반영 후 저장하면 공개 메뉴판에 반영됩니다." });
+      toast.success("동영상이 업로드되었습니다. 수정 내용 반영 후 저장하면 공개 메뉴판에 반영됩니다.");
     } catch (error) {
       setDisplayVideoUploadState({
         type: "error",
@@ -1530,8 +1532,7 @@ function MenuPageForm({
                             updatePromotion(
                               type === "video"
                                 ? { mediaType: "video", mediaUrl: null, mediaPath: null, videoPath: null, videoSource: displaySettings.promotion.videoUrl ? "url" : null, videoLoop: true }
-                                : { mediaType: "image", videoUrl: null, videoPath: null, videoSource: null, videoLoop: true },
-                              { commitDraft: true }
+                                : { mediaType: "image", videoUrl: null, videoPath: null, videoSource: null, videoLoop: true }
                             )
                           }
                           className={`rounded-lg border p-4 text-left transition ${
@@ -1589,18 +1590,15 @@ function MenuPageForm({
                       deleteConfirmTitle="프로모션 이미지를 삭제할까요?"
                       deleteConfirmDescription="삭제하면 저장 후 디스플레이 설정에 반영됩니다."
                       onDraftImageChange={(draft) =>
-                        updatePromotion(
-                          {
-                            mediaType: "image",
-                            mediaUrl: draft.imageAction === "delete" ? null : draft.imageUrl,
-                            mediaPath: draft.imageAction === "delete" ? null : draft.imagePath,
-                            videoUrl: null,
-                            videoPath: null,
-                            videoSource: null,
-                            videoLoop: true,
-                          },
-                          { commitDraft: true }
-                        )
+                        updatePromotion({
+                          mediaType: "image",
+                          mediaUrl: draft.imageAction === "delete" ? null : draft.imageUrl,
+                          mediaPath: draft.imageAction === "delete" ? null : draft.imagePath,
+                          videoUrl: null,
+                          videoPath: null,
+                          videoSource: null,
+                          videoLoop: true,
+                        })
                       }
                     />
                   </div>
@@ -1613,18 +1611,15 @@ function MenuPageForm({
                       placeholder="https://..."
                       onChange={(event) => {
                         setDisplayVideoUploadState({ type: "idle", message: null });
-                        updatePromotion(
-                          {
-                            mediaType: "video",
-                            mediaUrl: null,
-                            mediaPath: null,
-                            videoUrl: event.target.value,
-                            videoPath: null,
-                            videoSource: event.target.value.trim() ? "url" : null,
-                            videoLoop: true,
-                          },
-                          { commitDraft: true }
-                        );
+                        updatePromotion({
+                          mediaType: "video",
+                          mediaUrl: null,
+                          mediaPath: null,
+                          videoUrl: event.target.value,
+                          videoPath: null,
+                          videoSource: event.target.value.trim() ? "url" : null,
+                          videoLoop: true,
+                        });
                       }}
                       className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
                     />
