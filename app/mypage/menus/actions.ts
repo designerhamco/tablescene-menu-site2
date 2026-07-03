@@ -53,6 +53,7 @@ import { mergePageSettings, validateMenuItemTrait } from "@/types/menu";
 
 const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
+const MENU_VIDEOS_BUCKET = "menu-videos";
 const PUBLIC_PRESET_IMAGE_PREFIXES = ["/placeholders/", "/menu-templates/"] as const;
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
@@ -520,6 +521,18 @@ async function removeMenuImagePath(
   }
 
   const { error } = await supabase.storage.from(MENU_IMAGES_BUCKET).remove([imagePath]);
+  return error;
+}
+
+async function removeMenuVideoPath(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  videoPath: string | null | undefined
+) {
+  if (!videoPath) {
+    return null;
+  }
+
+  const { error } = await supabase.storage.from(MENU_VIDEOS_BUCKET).remove([videoPath]);
   return error;
 }
 
@@ -4300,6 +4313,36 @@ function getDisplayImagePathsToRemove(menuId: string, before: MenuPageDisplaySet
   return getDisplayImageStoragePaths(before).filter((path) => path.startsWith(sitePathPrefix) && !nextPaths.has(path));
 }
 
+function getDisplayVideoStoragePaths(menuId: string, settings: MenuPageDisplaySettings) {
+  const normalizedSettings = normalizeMenuPageDisplaySettings(settings);
+  const videoPath = normalizedSettings.promotion.videoPath;
+  const siteVideoPathPrefix = `menu-sites/${menuId}/draft/display-videos/`;
+
+  if (!videoPath || !videoPath.startsWith(siteVideoPathPrefix)) {
+    return [];
+  }
+
+  return [videoPath];
+}
+
+function getDisplayVideoPathsToRemove(menuId: string, previousSettingsByPageId: Map<string, MenuPageDisplaySettings>, nextSettingsByPageId: Map<string, MenuPageDisplaySettings>) {
+  const nextVideoPaths = new Set(
+    Array.from(nextSettingsByPageId.values()).flatMap((settings) => getDisplayVideoStoragePaths(menuId, settings))
+  );
+
+  return Array.from(
+    new Set(
+      Array.from(previousSettingsByPageId.entries()).flatMap(([pageId, previousSettings]) => {
+        const previousVideoPaths = getDisplayVideoStoragePaths(menuId, previousSettings);
+        const nextSettings = nextSettingsByPageId.get(pageId);
+        const nextPageVideoPaths = nextSettings ? new Set(getDisplayVideoStoragePaths(menuId, nextSettings)) : new Set<string>();
+
+        return previousVideoPaths.filter((path) => !nextPageVideoPaths.has(path) && !nextVideoPaths.has(path));
+      })
+    )
+  );
+}
+
 export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
@@ -4711,6 +4754,23 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     if (categoryDeleteError) redirectToMenuEditWithError(menuId, `카테고리 draft 삭제에 실패했습니다: ${categoryDeleteError.message}`);
   }
 
+  const existingDisplaySettingsByPageId = new Map<string, MenuPageDisplaySettings>();
+
+  if (canConfigureDisplayPages) {
+    const { data: existingDisplayPages, error: existingDisplayPagesError } = await supabase
+      .from("menu_pages")
+      .select("id, display_settings")
+      .eq("menu_site_id", menuId);
+
+    if (existingDisplayPagesError) {
+      redirectToMenuEditWithError(menuId, `디스플레이 미디어 정리 기준 확인에 실패했습니다: ${existingDisplayPagesError.message}`);
+    }
+
+    (existingDisplayPages ?? []).forEach((page) => {
+      existingDisplaySettingsByPageId.set(page.id, normalizeMenuPageDisplaySettings(page.display_settings));
+    });
+  }
+
   if (effectiveDeletedPageIds.length > 0) {
     const { error } = await supabase
       .from("menu_pages")
@@ -4719,29 +4779,6 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       .in("id", effectiveDeletedPageIds);
 
     if (error) redirectToMenuEditWithError(menuId, `페이지 draft 삭제에 실패했습니다: ${error.message}`);
-  }
-
-  const existingDisplaySettingsByPageId = new Map<string, MenuPageDisplaySettings>();
-  const existingPageDraftIdsForDisplayCleanup = canConfigureDisplayPages
-    ? effectivePageDrafts
-        .map((page) => normalizeDraftString(page.id))
-        .filter((pageId) => pageId && !pageId.startsWith("temp-") && !deletedPageIdSet.has(pageId))
-    : [];
-
-  if (existingPageDraftIdsForDisplayCleanup.length > 0) {
-    const { data: existingDisplayPages, error: existingDisplayPagesError } = await supabase
-      .from("menu_pages")
-      .select("id, display_settings")
-      .eq("menu_site_id", menuId)
-      .in("id", existingPageDraftIdsForDisplayCleanup);
-
-    if (existingDisplayPagesError) {
-      redirectToMenuEditWithError(menuId, `디스플레이 이미지 정리 기준 확인에 실패했습니다: ${existingDisplayPagesError.message}`);
-    }
-
-    (existingDisplayPages ?? []).forEach((page) => {
-      existingDisplaySettingsByPageId.set(page.id, normalizeMenuPageDisplaySettings(page.display_settings));
-    });
   }
 
   const newPageDrafts = effectivePageDrafts
@@ -4817,9 +4854,21 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       )
   );
   const pageError = pageResults.find((result) => result.error)?.error;
+  // TODO(display-video-upload): Add transaction-aware compensation for newly uploaded draft videos if page saving fails.
   if (pageError) redirectToMenuEditWithError(menuId, `페이지 draft 저장에 실패했습니다: ${pageError.message}`);
 
   if (canConfigureDisplayPages && existingDisplaySettingsByPageId.size > 0) {
+    const nextDisplaySettingsByPageId = new Map<string, MenuPageDisplaySettings>(
+      Array.from(existingDisplaySettingsByPageId.entries()).filter(([pageId]) => !deletedPageIdSet.has(pageId))
+    );
+
+    effectivePageDrafts.forEach((page) => {
+      const pageId = normalizeDraftString(page.id);
+      if (!pageId || deletedPageIdSet.has(pageId)) return;
+      const resolvedPageId = pageIdMap.get(pageId) ?? pageId;
+      nextDisplaySettingsByPageId.set(resolvedPageId, normalizeMenuPageDisplaySettings(page.displaySettings));
+    });
+
     const displayImagePathsToRemove = Array.from(
       new Set(
         effectivePageDrafts.flatMap((page) => {
@@ -4837,6 +4886,15 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       const removeError = await removeMenuImagePath(supabase, imagePath);
       if (removeError) {
         console.warn(`Display page image cleanup failed for ${imagePath}: ${removeError.message}`);
+      }
+    }
+
+    const displayVideoPathsToRemove = getDisplayVideoPathsToRemove(menuId, existingDisplaySettingsByPageId, nextDisplaySettingsByPageId);
+
+    for (const videoPath of displayVideoPathsToRemove) {
+      const removeError = await removeMenuVideoPath(supabase, videoPath);
+      if (removeError) {
+        console.warn(`Display page video cleanup failed for ${videoPath}: ${removeError.message}`);
       }
     }
   }
