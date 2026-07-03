@@ -9,6 +9,7 @@ import { getDefaultPageSettings } from "@/types/menu";
 
 const now = "2026-06-03T00:00:00.000Z";
 const siteId = "template-preview-display-menu-a";
+const summerBlueSignatureImageUrl = "/menu-templates/display_menu_a/summer-blue-signature.png";
 
 function pageId(index: number) {
   return `${siteId}-page-${index}`;
@@ -807,7 +808,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
           menuLayoutType: "split_image_menu",
           splitImagePosition: "left",
           splitImage: {
-            url: "/placeholders/starter/cafe-a-cover.png",
+            url: summerBlueSignatureImageUrl,
             path: null,
             title: null,
             description: null,

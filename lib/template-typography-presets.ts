@@ -86,6 +86,9 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     english_font_key: "outfit",
     font_size_scale_key: "m",
   },
+  display_menu_a: {
+    english_font_key: "alata",
+  },
   fine_dining_design_a: {
     korean_font_key: "noto-serif-kr",
     english_font_key: "playfair-display",

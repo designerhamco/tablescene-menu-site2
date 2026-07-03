@@ -431,6 +431,7 @@ export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = 
   cafe_design_a: "alata",
   cafe_design_b: "outfit",
   cafe_design_c: "outfit",
+  display_menu_a: "alata",
   fine_dining_design_a: "playfair-display",
   fine_dining_design_b: "playfair-display",
   casual_dining_design_a: "manrope",
