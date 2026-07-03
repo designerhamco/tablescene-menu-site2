@@ -9,6 +9,7 @@ import {
   personalTrialBasicProduct,
   type MenuOrderPayload,
 } from "@/lib/payments";
+import { validatePromotionForOrder } from "@/lib/promotions";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
@@ -386,6 +387,11 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
       ? socialLinksValidation.socialLinks
       : validateSocialLinks([{ type: "instagram", display_name: "인스타그램", url: legacyInstagramUrl }]).socialLinks;
   const instagramUrl = socialLinks.find((link) => link.type === "instagram")?.url ?? legacyInstagramUrl;
+  const promotionValidation = validatePromotionForOrder({
+    productKey,
+    promotionCode: payload.promotionCode,
+    promotion: payload.promotion,
+  });
 
   if (
     (planKey !== "basic" && planKey !== "large_screen" && planKey !== "qr_order") ||
@@ -398,6 +404,10 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     paymentType !== requestedProduct.payment_type ||
     billingCycle !== requestedProduct.billing_cycle
   ) {
+    return null;
+  }
+
+  if (!promotionValidation.ok) {
     return null;
   }
 
@@ -450,6 +460,8 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     marketingAccepted: payload.marketingAccepted === true,
     consentAgreedAt: getNullableString(payload.consentAgreedAt),
     consentContext: getNullableString(payload.consentContext),
+    promotionCode: promotionValidation.promotion?.promotionCode ?? null,
+    promotion: promotionValidation.promotion,
     amount,
   };
 

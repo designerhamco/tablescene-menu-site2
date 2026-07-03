@@ -16,6 +16,7 @@ import {
   normalizeMenuSlug,
   type MenuOrderPayload,
 } from "@/lib/payments";
+import { validatePromotionForOrder } from "@/lib/promotions";
 import { getPaidBillingPayment, payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
 import { portOneMockEnabled } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
@@ -414,6 +415,11 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
   const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
   const planKey = getString(payload.plan_key) || "basic";
   const restaurantType = getString(payload.restaurantType);
+  const promotionValidation = validatePromotionForOrder({
+    productKey: product?.productKey,
+    promotionCode: payload.promotionCode,
+    promotion: payload.promotion,
+  });
 
   if (
     !product ||
@@ -432,6 +438,10 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
       ? templateKey !== DISPLAY_CHECKOUT_QA_TEMPLATE_KEY || templateCategory !== DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY
       : !isTemplateSupportedForService(templateKey, "basic"))
   ) {
+    return null;
+  }
+
+  if (!promotionValidation.ok) {
     return null;
   }
 
@@ -480,6 +490,8 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     marketingAccepted: payload.marketingAccepted === true,
     consentAgreedAt: getNullableString(payload.consentAgreedAt),
     consentContext: getNullableString(payload.consentContext),
+    promotionCode: promotionValidation.promotion?.promotionCode ?? null,
+    promotion: promotionValidation.promotion,
     amount,
   };
 
@@ -1146,6 +1158,7 @@ async function createOrderAndPaymentRecords({
   businessProfile,
   portonePayment,
   consentSnapshot,
+  promotionSnapshot,
 }: {
   supabase: ServerSupabaseClient;
   userId: string;
@@ -1155,6 +1168,7 @@ async function createOrderAndPaymentRecords({
   businessProfile: BusinessProfile;
   portonePayment?: unknown;
   consentSnapshot?: Json | null;
+  promotionSnapshot?: Json | null;
 }) {
   const safeRawPayload = JSON.parse(
     JSON.stringify({
@@ -1162,6 +1176,7 @@ async function createOrderAndPaymentRecords({
       billing_cycle: product.billingCycle,
       product_key: product.productKey,
       plan_type: product.planType,
+      promotion: promotionSnapshot ?? null,
       consent_snapshot: consentSnapshot ?? null,
       portone_payment_id: paymentId,
       portone_payment: portonePayment ?? null,
@@ -1802,6 +1817,7 @@ export async function POST(request: Request) {
       product,
       businessProfile,
       portonePayment: billingPayment?.rawPayment,
+      promotionSnapshot: (order?.promotion ?? null) as Json | null,
       consentSnapshot: (order ? {
         termsAccepted: order.termsAccepted,
         privacyAccepted: order.privacyAccepted,

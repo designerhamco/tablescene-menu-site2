@@ -1,4 +1,5 @@
 import { isValidTemplateKey, type TemplateCategoryKey, type TemplateKey } from "@/lib/templates";
+import type { AppliedPromotionSnapshot } from "@/lib/promotions";
 import type { SocialLinkInput } from "@/lib/social-links";
 
 export type PlanKey = "basic" | "pro" | "large_screen" | "qr_order" | "premium_dining_tablet";
@@ -97,9 +98,9 @@ export const businessDisplayMonthlyProduct = {
   plan_type: "business_display",
   payment_type: "subscription",
   billing_cycle: "monthly",
-  regular_amount: 19800,
+  regular_amount: 39600,
   amount: 19800,
-  discount_rate: 0,
+  discount_rate: 50,
   duration_months: null,
   currency: "KRW",
   template_service: "display",
@@ -116,9 +117,9 @@ export const businessDisplayYearlyProduct = {
   plan_type: "business_display",
   payment_type: "subscription",
   billing_cycle: "yearly",
-  regular_amount: 237600,
+  regular_amount: 475200,
   amount: 190000,
-  discount_rate: 20,
+  discount_rate: 60,
   duration_months: null,
   currency: "KRW",
   template_service: "display",
@@ -188,6 +189,8 @@ export type MenuOrderPayload = {
   marketingAccepted?: boolean;
   consentAgreedAt?: string | null;
   consentContext?: string | null;
+  promotionCode?: string | null;
+  promotion?: AppliedPromotionSnapshot | null;
   amount: number;
 };
 

@@ -32,6 +32,13 @@ import {
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import {
+  getOpenPromotionSnapshot,
+  getPromotionApplyResult,
+  isOpenPromotionProduct,
+  normalizePromotionCode,
+  type AppliedPromotionSnapshot,
+} from "@/lib/promotions";
+import {
   getBusinessTypeOptions,
   getDefaultBusinessCoverLabel,
   type BusinessTypeKey,
@@ -173,6 +180,11 @@ type SlugState =
 type UiState =
   | { type: "idle"; message: string | null }
   | { type: "loading"; message: string }
+  | { type: "success"; message: string }
+  | { type: "error"; message: string };
+
+type PromotionUiState =
+  | { type: "idle"; message: string | null }
   | { type: "success"; message: string }
   | { type: "error"; message: string };
 
@@ -819,6 +831,16 @@ export default function ApplyOrderForm({
     message: "사업자등록번호, 대표자명, 개업일자, 상호명을 입력한 뒤 확인합니다.",
   });
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
+  const [promotionCodeInput, setPromotionCodeInput] = useState("OPEN");
+  const [promotionState, setPromotionState] = useState<PromotionUiState>({ type: "success", message: "오픈 할인이 적용되었습니다." });
+  const [appliedPromotion, setAppliedPromotion] = useState<AppliedPromotionSnapshot | null | undefined>(undefined);
+  const canUsePromotionCode = Boolean(activeProduct.product_key && isOpenPromotionProduct(activeProduct.product_key));
+  const defaultOpenPromotion = canUsePromotionCode ? getOpenPromotionSnapshot(activeProduct.product_key) : null;
+  const activePromotion = canUsePromotionCode
+    ? appliedPromotion === undefined
+      ? defaultOpenPromotion
+      : appliedPromotion
+    : null;
   const [pendingPaymentCompletion, setPendingPaymentCompletion] = useState<PendingPaymentCompletion | null>(null);
   const [recoveryPaymentIdInput, setRecoveryPaymentIdInput] = useState(() => {
     return normalizeRecoverablePaymentId(initialRecoverPaymentId);
@@ -961,6 +983,8 @@ export default function ApplyOrderForm({
       marketingAccepted: agreements.marketing,
       consentAgreedAt: agreements.terms && agreements.privacy && agreements.contentPolicy ? new Date().toISOString() : null,
       consentContext: activeProduct.product_key === personalTrialBasicProduct.product_key ? "personal_trial_apply" : "paid_apply",
+      promotionCode: activePromotion?.promotionCode ?? null,
+      promotion: activePromotion,
       amount: activeProduct.amount,
     }),
     [
@@ -974,6 +998,7 @@ export default function ApplyOrderForm({
       agreements.marketing,
       agreements.privacy,
       agreements.terms,
+      activePromotion,
       businessVerificationState,
       currentPlanKey,
       form,
@@ -1197,6 +1222,9 @@ export default function ApplyOrderForm({
   function selectBasicProduct(product: BasicPaymentProduct) {
     setSelectedBasicProductKey(product.product_key);
     setUiState({ type: "idle", message: null });
+    setPromotionCodeInput("OPEN");
+    setPromotionState({ type: "success", message: "오픈 할인이 적용되었습니다." });
+    setAppliedPromotion(undefined);
     setForm((current) => ({
       ...current,
       buyerType: product.requires_business_verification ? "business" : "individual",
@@ -1212,6 +1240,9 @@ export default function ApplyOrderForm({
   function selectDisplayProduct(product: DisplayPaymentProduct) {
     setSelectedDisplayProductKey(product.product_key);
     setUiState({ type: "idle", message: null });
+    setPromotionCodeInput("OPEN");
+    setPromotionState({ type: "success", message: "오픈 할인이 적용되었습니다." });
+    setAppliedPromotion(undefined);
     setForm((current) => ({
       ...current,
       buyerType: "business",
@@ -1564,6 +1595,20 @@ export default function ApplyOrderForm({
     }
   }
 
+  function handleApplyPromotionCode() {
+    const result = getPromotionApplyResult(activeProduct.product_key, promotionCodeInput);
+
+    if (!result.ok || !result.promotion) {
+      setAppliedPromotion(null);
+      setPromotionState({ type: "error", message: result.message });
+      return;
+    }
+
+    setPromotionCodeInput(normalizePromotionCode(promotionCodeInput));
+    setAppliedPromotion(result.promotion);
+    setPromotionState({ type: "success", message: result.message });
+  }
+
   async function handlePayment() {
     setUiState({ type: "idle", message: null });
 
@@ -1661,6 +1706,11 @@ export default function ApplyOrderForm({
             billing_cycle: activeProduct.billing_cycle,
             billing_channel: "subscription",
             source: isScreenService ? "apply_display" : "apply_basic",
+            promotion_code: activePromotion?.promotionCode,
+            promotion_name: activePromotion?.promotionName,
+            promotion_discount_amount: activePromotion?.discountAmount,
+            promotion_original_amount: activePromotion?.originalAmount,
+            promotion_final_amount: activePromotion?.finalAmount,
             terms_accepted: agreements.terms,
             privacy_accepted: agreements.privacy,
             content_policy_accepted: agreements.contentPolicy,
@@ -1801,6 +1851,11 @@ export default function ApplyOrderForm({
           menu_template_group: isMenuService ? selectedMenuTemplateGroup : undefined,
           screen_purpose: isScreenService ? form.screenPurpose : undefined,
           screen_template_category: isScreenService ? selectedScreenTemplateCategory.label : undefined,
+          promotion_code: activePromotion?.promotionCode,
+          promotion_name: activePromotion?.promotionName,
+          promotion_discount_amount: activePromotion?.discountAmount,
+          promotion_original_amount: activePromotion?.originalAmount,
+          promotion_final_amount: activePromotion?.finalAmount,
         },
       } as unknown as Parameters<typeof PortOne.requestPayment>[0];
 
@@ -1843,6 +1898,10 @@ export default function ApplyOrderForm({
     : activeProduct.billing_cycle === "yearly"
       ? "결제 완료일로부터 1년 후"
       : "-";
+  const promotionDiscountLabel = activePromotion
+    ? `-${formatKrw(activePromotion.discountAmount)}`
+    : `${activeProduct.discount_rate ?? 0}% 할인`;
+  const isOpenPromotionApplied = Boolean(activePromotion && normalizePromotionCode(promotionCodeInput) === activePromotion.promotionCode);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -2481,17 +2540,64 @@ export default function ApplyOrderForm({
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
             <SummaryRow label="구매자 유형" value={payload.buyerType === "business" ? "사업자" : "개인"} />
-            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activeProduct.regular_amount && (
-              <SummaryRow
-                label="정가"
-                value={`${activeProduct.billing_cycle === "monthly" ? "월 " : activeProduct.billing_cycle === "yearly" ? "연 " : ""}${formatKrw(activeProduct.regular_amount)}`}
-              />
-            )}
-            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activeProduct.regular_amount ? (
-              <SummaryRow label="오픈 할인 적용" value={`${activeProduct.discount_rate ?? 0}% 할인`} />
+            {canUsePromotionCode ? (
+              <div className="border-t border-zinc-100 pt-4">
+                <dt className="text-zinc-400">프로모션 코드</dt>
+                <dd className="mt-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promotionCodeInput}
+                      onChange={(event) => {
+                        setPromotionCodeInput(event.target.value);
+                        setAppliedPromotion(null);
+                        if (promotionState.type !== "idle") {
+                          setPromotionState({ type: "idle", message: null });
+                        }
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleApplyPromotionCode();
+                        }
+                      }}
+                      placeholder="프로모션 코드를 입력하세요"
+                      className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 outline-none transition focus:border-zinc-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPromotionCode}
+                      className="shrink-0 rounded-full bg-zinc-950 px-4 py-2 text-sm font-black text-white transition hover:bg-zinc-800"
+                    >
+                      {isOpenPromotionApplied ? "적용됨" : "적용"}
+                    </button>
+                  </div>
+                  {promotionState.message ? (
+                    <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${promotionState.type === "success" ? "text-emerald-700" : "text-red-600"}`}>
+                      {promotionState.message}
+                    </p>
+                  ) : null}
+                  {activePromotion ? (
+                    <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                      현재 오픈 할인가로 결제됩니다.
+                    </p>
+                  ) : null}
+                </dd>
+              </div>
             ) : null}
-            {isMenuService ? <SummaryRow label="오픈 할인 적용 기간" value={openDiscountPolicy.durationLabel} /> : null}
-            <SummaryRow label={isMenuService ? "오늘 결제 금액" : "금액"} value={formatKrw(activeProduct.amount)} strong />
+            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activePromotion ? (
+              <>
+                <SummaryRow
+                  label="정상가"
+                  value={`${activeProduct.billing_cycle === "monthly" ? "월 " : activeProduct.billing_cycle === "yearly" ? "연 " : ""}${formatKrw(activePromotion.originalAmount)}`}
+                />
+                <SummaryRow label="오픈 할인" value={promotionDiscountLabel} />
+                <SummaryRow label="최종 결제금액" value={formatKrw(activePromotion.finalAmount)} strong />
+              </>
+            ) : (
+              <SummaryRow label={isMenuService ? "오늘 결제 금액" : "금액"} value={formatKrw(activeProduct.amount)} strong />
+            )}
+            {activePromotion ? <SummaryRow label="오픈 할인 적용 기간" value={openDiscountPolicy.durationLabel} /> : null}
             {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정일" value={nextBillingLabel} /> : null}
             {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정 금액" value={formatKrw(activeProduct.amount)} /> : null}
           </dl>

@@ -7,6 +7,7 @@ import {
   isValidMenuSlug,
   normalizeMenuSlug,
 } from "@/lib/payments";
+import { validatePromotionForOrder } from "@/lib/promotions";
 import { createClient } from "@/lib/supabase/server";
 import {
   getTemplateCategoryFromKey,
@@ -77,9 +78,21 @@ export async function POST(request: Request) {
   const amount = typeof order.amount === "number" ? order.amount : Number(order.amount);
   const templateServiceType = getTemplateServiceTypeForPlan(planKey);
   const buyerType = getString(order.buyerType) === "business" ? "business" : "individual";
+  const promotionValidation = validatePromotionForOrder({
+    productKey,
+    promotionCode: order.promotionCode,
+    promotion: order.promotion,
+  });
 
   if (!product) {
     return jsonError("선택한 상품 정보가 올바르지 않습니다.", 400, { productKey });
+  }
+
+  if (!promotionValidation.ok) {
+    return jsonError(promotionValidation.message || "사용할 수 없는 프로모션 코드입니다.", 400, {
+      productKey,
+      hasPromotionCode: Boolean(getString(order.promotionCode)),
+    });
   }
 
   if (product.template_service === "display" && !isDisplayCheckoutQaEnabled()) {
@@ -167,5 +180,6 @@ export async function POST(request: Request) {
     productKey: product.product_key,
     templateKey,
     templateServiceType,
+    promotion: promotionValidation.promotion,
   });
 }
