@@ -41,7 +41,6 @@ import {
   DISPLAY_VIDEO_UPLOAD_RECOMMENDED_DURATION,
   DISPLAY_VIDEO_UPLOAD_RECOMMENDED_FILE_SIZE_MB,
   DISPLAY_VIDEO_UPLOAD_YEARLY_PRICE,
-  hasDisplayVideoUploadAddon,
 } from "@/lib/display-video-upload-policy";
 import {
   getMenuItemBadgeLabel,
@@ -132,6 +131,7 @@ type MenuManagementSectionProps = {
   starterPreset?: StarterPreset | null;
   canConfigurePcTabletLayoutMode?: boolean;
   pcTabletLayoutMode?: PcTabletLayoutMode;
+  canUseDisplayVideoUpload?: boolean;
   finalSaveMessage?: string | null;
   finalSaveError?: string | null;
 };
@@ -1114,6 +1114,7 @@ function MenuPageForm({
   supportsPromotionText = true,
   displaySettingsDraft,
   displayQualityNotice,
+  canUseDisplayVideoUpload = false,
 }: {
   menuId: string;
   page?: MenuPage;
@@ -1138,6 +1139,7 @@ function MenuPageForm({
   supportsPromotionText?: boolean;
   displaySettingsDraft?: MenuPageDisplaySettings;
   displayQualityNotice?: ReactNode;
+  canUseDisplayVideoUpload?: boolean;
 }) {
   const [title, setTitle] = useState(draftTitle ?? page?.title ?? `${labels.pageLabel} ${count + 1}`);
   const [description, setDescription] = useState(page?.description ?? "");
@@ -1146,7 +1148,6 @@ function MenuPageForm({
   const [displaySettings, setDisplaySettings] = useState<MenuPageDisplaySettings>(() =>
     normalizeMenuPageDisplaySettings(displaySettingsDraft ?? page?.display_settings)
   );
-  const canUseDisplayVideoUpload = hasDisplayVideoUploadAddon(null);
   const titleValue = page ? title : draftTitle !== undefined ? draftTitle : title;
   const titleInvalid = !titleValue.trim() || titleValue.length > MENU_FIELD_LIMITS.menuPages.title;
   const pageFormDirty =
@@ -1535,6 +1536,11 @@ function MenuPageForm({
                       {!canUseDisplayVideoUpload && (
                         <p className="mt-3 break-keep rounded-md bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-800">
                           MP4 파일을 직접 업로드하려면 동영상 업로드 옵션이 필요합니다. 업로드 버튼은 아직 제공되지 않습니다.
+                        </p>
+                      )}
+                      {canUseDisplayVideoUpload && (
+                        <p className="mt-3 break-keep rounded-md bg-emerald-50 px-3 py-2 text-xs font-bold leading-relaxed text-emerald-800">
+                          업로드 권한이 확인되었습니다. 실제 파일 업로드 기능은 다음 단계에서 제공됩니다.
                         </p>
                       )}
                     </div>
@@ -3156,6 +3162,7 @@ export default function MenuManagementSection({
   starterPreset,
   canConfigurePcTabletLayoutMode = false,
   pcTabletLayoutMode = DEFAULT_PC_TABLET_LAYOUT_MODE,
+  canUseDisplayVideoUpload = false,
   finalSaveMessage,
   finalSaveError,
 }: MenuManagementSectionProps) {
@@ -5838,6 +5845,7 @@ export default function MenuManagementSection({
                   supportsSplitImageText={capabilities.splitImageText}
                   supportsPromotionText={capabilities.promotionText}
                   displaySettingsDraft={draftTarget?.type === "page" ? draftTarget.displaySettings : undefined}
+                  canUseDisplayVideoUpload={canUseDisplayVideoUpload}
                 />
               </div>
             ) : canManagePages && editingPageId && selectedPage ? (
@@ -5881,6 +5889,7 @@ export default function MenuManagementSection({
                   displayQualityNotice={
                     selectedPageDisplayQualityNotice ? <DisplayMenuQualityNoticeBox notice={selectedPageDisplayQualityNotice} /> : null
                   }
+                  canUseDisplayVideoUpload={canUseDisplayVideoUpload}
                   deleteAction={
                     <DraftDeleteConfirmButton
                       title={isCopiedPage ? "이 복사본을 삭제할까요?" : `${labels.pageLabel}를 삭제할까요?`}

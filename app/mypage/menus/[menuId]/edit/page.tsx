@@ -47,6 +47,7 @@ import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
+import { getDisplayVideoUploadAccess } from "@/lib/server/display-video-upload-access";
 import { getMenuSiteAccessStateForMenuSite, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
@@ -950,6 +951,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const templateType = getTemplateType(site.template_key);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
+  const displayVideoUploadAccess = getDisplayVideoUploadAccess({
+    templateKey: site.template_key,
+    productKey: latestOrder?.product_key,
+    accessState,
+    addonKeys: null,
+  });
 
   if (editorServiceType === "custom") {
     return <CustomEditorUnavailable siteName={site.name} />;
@@ -1665,6 +1672,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     starterPreset={menuManagementStarterPreset}
                     canConfigurePcTabletLayoutMode={canConfigurePcTabletLayoutMode}
                     pcTabletLayoutMode={pcTabletLayoutMode}
+                    canUseDisplayVideoUpload={displayVideoUploadAccess.canUse}
                     finalSaveMessage={bannerMessage}
                     finalSaveError={finalSaveError}
                   />
