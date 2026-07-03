@@ -524,15 +524,20 @@ async function removeMenuImagePath(
   return error;
 }
 
-async function removeMenuVideoPath(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  videoPath: string | null | undefined
-) {
+async function removeMenuVideoPath(videoPath: string | null | undefined) {
   if (!videoPath) {
     return null;
   }
 
-  const { error } = await supabase.storage.from(MENU_VIDEOS_BUCKET).remove([videoPath]);
+  let adminSupabase: ReturnType<typeof createAdminClient>;
+
+  try {
+    adminSupabase = createAdminClient();
+  } catch (error) {
+    return error instanceof Error ? error : new Error("Supabase admin client를 생성할 수 없습니다.");
+  }
+
+  const { error } = await adminSupabase.storage.from(MENU_VIDEOS_BUCKET).remove([videoPath]);
   return error;
 }
 
@@ -4892,7 +4897,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const displayVideoPathsToRemove = getDisplayVideoPathsToRemove(menuId, existingDisplaySettingsByPageId, nextDisplaySettingsByPageId);
 
     for (const videoPath of displayVideoPathsToRemove) {
-      const removeError = await removeMenuVideoPath(supabase, videoPath);
+      const removeError = await removeMenuVideoPath(videoPath);
       if (removeError) {
         console.warn(`Display page video cleanup failed for ${videoPath}: ${removeError.message}`);
       }
