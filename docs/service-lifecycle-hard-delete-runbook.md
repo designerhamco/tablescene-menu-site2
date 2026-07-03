@@ -26,7 +26,7 @@ Paid subscription ended: 90-day retention / recovery window
 Payment failed or unpaid: 30-day retention / recovery window
 ```
 
-After the retention window ends, menu content rows and uploaded menu images may be deleted. Minimal service shell records plus billing, settlement, payment, and legal records must remain preserved.
+After the retention window ends, menu content rows, uploaded menu images, and uploaded Display video files may be deleted. Minimal service shell records plus billing, settlement, payment, and legal records must remain preserved.
 
 Implementation note:
 
@@ -95,6 +95,7 @@ The dry-run report should be reviewed for:
 - `canExecuteSafely`
 - `totals.tableCounts`
 - `totals.storagePaths`
+- `totals.storagePathsByBucket`
 - `totals.unresolvedErrors`
 - each plan's `menuSite.id`, `menuSite.slug`, and `errors`
 
@@ -125,7 +126,8 @@ Before execute:
 - Confirm the candidate's `data_retention_until` was calculated from the correct policy window: 30 days for personal-trial end, 90 days for paid subscription end, or 30 days for payment failed/unpaid.
 - Confirm D-Day has passed in KST.
 - Confirm the reported DB row counts match expectations.
-- Confirm reported Storage paths are under `menu-sites/<menuSiteId>/`.
+- Confirm reported `menu-images` paths are under `menu-sites/<menuSiteId>/`.
+- Confirm reported `menu-videos` paths are under `menu-sites/<menuSiteId>/draft/display-videos/`.
 - Confirm no `/menu-templates/...`, `/placeholders/...`, or external URL appears as a Storage deletion target.
 - Confirm `menu_sites`, `service_entitlements`, `business_subscriptions`, `orders`, and `payments` are not deleted.
 - Confirm the user understands this is hard to roll back.

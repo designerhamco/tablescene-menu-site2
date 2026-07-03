@@ -3,6 +3,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const MENU_IMAGES_BUCKET = "menu-images";
+const MENU_VIDEOS_BUCKET = "menu-videos";
 const EXECUTE_CONFIRMATION = "HARD_DELETE_EXPIRED_MENU_CONTENT";
 const KST_TIME_ZONE = "Asia/Seoul";
 const DAY_MS = 1000 * 60 * 60 * 24;
@@ -225,6 +226,9 @@ function normalizeStoragePath(value, menuSiteId) {
   const publicMarker = `/storage/v1/object/public/${MENU_IMAGES_BUCKET}/`;
   const markerIndex = trimmed.indexOf(publicMarker);
   const path = markerIndex >= 0 ? trimmed.slice(markerIndex + publicMarker.length) : trimmed.replace(/^\/+/, "");
+  const displayVideoPrefix = `menu-sites/${menuSiteId}/draft/display-videos/`;
+
+  if (path.startsWith(displayVideoPrefix)) return null;
 
   return path.startsWith(`menu-sites/${menuSiteId}/`) ? path : null;
 }
@@ -232,6 +236,36 @@ function normalizeStoragePath(value, menuSiteId) {
 function addStoragePath(paths, value, menuSiteId) {
   const path = normalizeStoragePath(value, menuSiteId);
   if (path) paths.add(path);
+}
+
+function normalizeDisplayVideoStoragePath(value, menuSiteId) {
+  if (!value || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  const path = trimmed.replace(/^\/+/, "");
+  const displayVideoPrefix = `menu-sites/${menuSiteId}/draft/display-videos/`;
+
+  return path.startsWith(displayVideoPrefix) ? path : null;
+}
+
+function collectDisplayVideoStoragePaths(value, menuSiteId, results = []) {
+  if (Array.isArray(value)) {
+    for (const item of value) collectDisplayVideoStoragePaths(item, menuSiteId, results);
+    return results;
+  }
+
+  if (!value || typeof value !== "object") {
+    return results;
+  }
+
+  for (const [key, item] of Object.entries(value)) {
+    if (key === "videoPath") {
+      const path = normalizeDisplayVideoStoragePath(item, menuSiteId);
+      if (path) results.push(path);
+    }
+    collectDisplayVideoStoragePaths(item, menuSiteId, results);
+  }
+
+  return results;
 }
 
 async function selectRows(supabase, table, select, column, value) {
@@ -274,14 +308,14 @@ async function countBySite(supabase, table, siteColumn, menuSiteId) {
   return { count: count ?? 0, skipped: false, error: null };
 }
 
-async function listStorageFiles(supabase, prefix) {
+async function listStorageFiles(supabase, bucket, prefix) {
   const results = [];
   const stack = [prefix.replace(/\/+$/, "")];
 
   while (stack.length > 0) {
     const currentPrefix = stack.pop();
     if (!currentPrefix) continue;
-    const { data, error } = await supabase.storage.from(MENU_IMAGES_BUCKET).list(currentPrefix, { limit: 1000 });
+    const { data, error } = await supabase.storage.from(bucket).list(currentPrefix, { limit: 1000 });
     if (error) {
       return { paths: results, error };
     }
@@ -329,6 +363,7 @@ async function loadPendingDeleteCandidates(supabase, options) {
 async function buildMenuSitePlan(supabase, entitlement, options) {
   const menuSiteId = entitlement.menu_site_id;
   const storagePaths = new Set();
+  const videoStoragePaths = new Set();
   const tableCounts = {};
   const skippedTables = [];
   const errors = [];
@@ -368,6 +403,9 @@ async function buildMenuSitePlan(supabase, entitlement, options) {
         for (const value of collectJsonStrings(row.display_settings)) {
           addStoragePath(storagePaths, value, menuSiteId);
         }
+        for (const path of collectDisplayVideoStoragePaths(row.display_settings, menuSiteId)) {
+          videoStoragePaths.add(path);
+        }
       }
     }
   }
@@ -393,20 +431,38 @@ async function buildMenuSitePlan(supabase, entitlement, options) {
   }
 
   if (options.includeStoragePrefix) {
-    const prefixResult = await listStorageFiles(supabase, `menu-sites/${menuSiteId}`);
-    if (prefixResult.error) {
-      errors.push(createPlanError("storage.list", prefixResult.error, { category: "storage", required: true }));
+    const imagePrefixResult = await listStorageFiles(supabase, MENU_IMAGES_BUCKET, `menu-sites/${menuSiteId}`);
+    if (imagePrefixResult.error) {
+      errors.push(createPlanError("storage.list.menu-images", imagePrefixResult.error, { category: "storage", required: true }));
     } else {
-      for (const path of prefixResult.paths) storagePaths.add(path);
+      for (const path of imagePrefixResult.paths) storagePaths.add(path);
+    }
+
+    const videoPrefixResult = await listStorageFiles(supabase, MENU_VIDEOS_BUCKET, `menu-sites/${menuSiteId}/draft/display-videos`);
+    if (videoPrefixResult.error) {
+      errors.push(createPlanError("storage.list.menu-videos", videoPrefixResult.error, { category: "storage", required: true }));
+    } else {
+      for (const path of videoPrefixResult.paths) {
+        const safePath = normalizeDisplayVideoStoragePath(path, menuSiteId);
+        if (safePath) videoStoragePaths.add(safePath);
+      }
     }
   }
+
+  const sortedImageStoragePaths = Array.from(storagePaths).sort();
+  const sortedVideoStoragePaths = Array.from(videoStoragePaths).sort();
 
   return {
     entitlement,
     menuSite,
     tableCounts,
     skippedTables: Array.from(new Set(skippedTables)),
-    storagePaths: Array.from(storagePaths).sort(),
+    storagePaths: sortedImageStoragePaths,
+    videoStoragePaths: sortedVideoStoragePaths,
+    storagePathsByBucket: {
+      [MENU_IMAGES_BUCKET]: sortedImageStoragePaths,
+      [MENU_VIDEOS_BUCKET]: sortedVideoStoragePaths,
+    },
     errors,
   };
 }
@@ -466,7 +522,14 @@ async function executePlan(supabase, plan) {
   if (plan.storagePaths.length > 0) {
     const { error } = await supabase.storage.from(MENU_IMAGES_BUCKET).remove(plan.storagePaths);
     if (error) {
-      errors.push(createPlanError("storage.remove", error, { category: "storage", required: true }));
+      errors.push(createPlanError("storage.remove.menu-images", error, { category: "storage", required: true }));
+    }
+  }
+
+  if ((plan.videoStoragePaths ?? []).length > 0) {
+    const { error } = await supabase.storage.from(MENU_VIDEOS_BUCKET).remove(plan.videoStoragePaths);
+    if (error) {
+      errors.push(createPlanError("storage.remove.menu-videos", error, { category: "storage", required: true }));
     }
   }
 
@@ -510,6 +573,10 @@ function summarizePlans(plans) {
     menuSites: plans.length,
     tableCounts: {},
     storagePaths: 0,
+    storagePathsByBucket: {
+      [MENU_IMAGES_BUCKET]: 0,
+      [MENU_VIDEOS_BUCKET]: 0,
+    },
     errors: 0,
     unresolvedErrors: [],
     blockedMenuSites: [],
@@ -520,6 +587,9 @@ function summarizePlans(plans) {
       totals.tableCounts[table] = (totals.tableCounts[table] ?? 0) + count;
     }
     totals.storagePaths += plan.storagePaths.length;
+    totals.storagePathsByBucket[MENU_IMAGES_BUCKET] += plan.storagePaths.length;
+    totals.storagePaths += (plan.videoStoragePaths ?? []).length;
+    totals.storagePathsByBucket[MENU_VIDEOS_BUCKET] += (plan.videoStoragePaths ?? []).length;
     totals.errors += plan.errors.length;
     totals.unresolvedErrors.push(...plan.errors);
     if (plan.errors.length > 0) {
