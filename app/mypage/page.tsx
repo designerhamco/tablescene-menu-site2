@@ -24,7 +24,7 @@ import { isDeletedAccountStatus } from "@/lib/account-status";
 import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuPath } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
-import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
+import { getAiCreditBalanceForUser } from "@/lib/server/ai-credits-service";
 import { getBasicMenuCreateLabel, getBasicMenuSiteLimitState, type BasicMenuSiteLimitState } from "@/lib/server/basic-menu-site-limit-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -1378,24 +1378,23 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     .map((site) => getSafeString(site.id))
     .filter(Boolean);
   const { data: serviceEntitlements, error: serviceEntitlementsError } = await getServiceEntitlementsForMenuSites(supabase, menuSiteIds);
-  const aiCreditContextMenuSite = sites.find((site) => site.id && site.name);
   const portOneConfig = getPublicPortOneConfig();
   let accountAiCreditBalance: AiCreditBalance | null = null;
 
-  if (aiCreditContextMenuSite?.id) {
-    try {
-      accountAiCreditBalance = await runMypageQuery(
-        "ai_credit_balance",
-        getAiCreditBalanceForMenuSite(aiCreditContextMenuSite.id)
-      );
-    } catch (error) {
-      console.error("[mypage] AI credit balance query failed", {
-        userId: user.id,
-        message: error instanceof Error ? error.message : "unknown",
-      });
-      accountAiCreditBalance = null;
-    }
+  try {
+    accountAiCreditBalance = await runMypageQuery(
+      "ai_credit_balance",
+      getAiCreditBalanceForUser(user.id)
+    );
+  } catch (error) {
+    console.error("[mypage] AI credit balance query failed", {
+      userId: user.id,
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    accountAiCreditBalance = null;
   }
+  const aiCreditContextMenuSite = sites.find((site) => site.id && site.name);
+  const accountAiCreditRemaining = Math.max(0, Math.floor(accountAiCreditBalance?.totalRemainingCredits ?? 0));
   const businessProfilesResult = await runMypageQuery(
     "business_profiles",
     supabase
@@ -2552,6 +2551,25 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
               <h2 className="break-all text-lg font-black tracking-tight">{user.email}</h2>
               <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {user.id}</p>
+              <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">AI 도우미 크레딧</p>
+                    <p className="mt-2 text-lg font-black tracking-tight text-zinc-950">
+                      잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")} 크레딧
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-800/80">
+                  설명 작성, 메뉴 정리, 번역에 사용할 수 있어요.
+                </p>
+                <Link
+                  href="/mypage?tab=payments&billingTab=ai-credits"
+                  className="mt-3 inline-flex text-xs font-black text-emerald-800 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-950"
+                >
+                  AI 충전내역 보기
+                </Link>
+              </div>
               <form action={signOutAction} className="mt-5">
                 <button
                   type="submit"
