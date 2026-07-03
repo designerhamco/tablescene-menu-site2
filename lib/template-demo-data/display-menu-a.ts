@@ -9,7 +9,9 @@ import { getDefaultPageSettings } from "@/types/menu";
 
 const now = "2026-06-03T00:00:00.000Z";
 const siteId = "template-preview-display-menu-a";
+const summerBlueSeasonPromoImageUrl = "/menu-templates/display_menu_a/summer-blue-season-promo.png";
 const summerBlueSignatureImageUrl = "/menu-templates/display_menu_a/summer-blue-signature.png";
+const summerBlueDessertPromoVideoUrl = "/menu-templates/display_menu_a/summer-blue-dessert-promo.mp4";
 
 function pageId(index: number) {
   return `${siteId}-page-${index}`;
@@ -788,9 +790,11 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
             title: null,
             description: null,
             mediaType: "image",
-            mediaUrl: "/placeholders/starter/cafe-a-cover.png",
+            mediaUrl: summerBlueSeasonPromoImageUrl,
             mediaPath: null,
             videoUrl: null,
+            videoPath: null,
+            videoSource: null,
           },
         }),
         legacy_section_key: null,
@@ -842,10 +846,12 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
             ...DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS.promotion,
             title: null,
             description: null,
-            mediaType: "image",
-            mediaUrl: "/placeholders/starter/cafe-a-cover.png",
+            mediaType: "video",
+            mediaUrl: null,
             mediaPath: null,
-            videoUrl: null,
+            videoUrl: summerBlueDessertPromoVideoUrl,
+            videoPath: null,
+            videoSource: "url",
           },
         }),
         legacy_section_key: null,
