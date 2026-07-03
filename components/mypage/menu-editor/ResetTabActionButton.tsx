@@ -61,7 +61,14 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
   const action = resetActions[kind];
   const disabled = kind === "menu";
 
+  function closeDialog() {
+    if (isPending) return;
+    setOpen(false);
+  }
+
   function handleReset() {
+    if (isPending) return;
+    setOpen(false);
     const formData = new FormData();
     formData.set("menuId", menuId);
     startTransition(() => {
@@ -98,7 +105,8 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={closeDialog}
+                disabled={isPending}
                 className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
               >
                 취소
