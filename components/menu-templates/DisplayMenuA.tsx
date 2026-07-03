@@ -138,6 +138,11 @@ function getDisplayRowCqhFromUnits(rowUnits: number) {
   return baseRowCqh;
 }
 
+function getDisplayRhythmAirScale(rowCqh: number, fitPhase: number) {
+  if (fitPhase > 0) return 1;
+  return 1 + 0.08 * clampNumber((rowCqh - 3) / 2.4, 0, 1);
+}
+
 function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0): DisplayDensityConfig {
   const showMeta = fitPhase < 2;
   const showBadge = fitPhase < 4;
@@ -160,12 +165,15 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
   const optionHeaderScale = 0.235 + 0.04 * spaciousFillScale + 0.01 * verticalFillScale;
   const priceScale = 0.344 + 0.058 * spaciousFillScale + 0.0185 * verticalFillScale;
   const columnGapScale = 0.75 + 0.18 * spaciousFillScale + 0.095 * verticalFillScale;
+  const rhythmAirScale = getDisplayRhythmAirScale(rowCqh, fitPhase);
+  const categoryHeadingAirScale = 1 + (rhythmAirScale - 1) * 0.75;
+  const categoryStackAirScale = 1 + (rhythmAirScale - 1) * 0.5;
 
   return {
     categoryTitleStyle: { fontSize: `calc(var(--display-row) * ${categoryTitleScale * fontScale})`, lineHeight: 1.05 },
-    categoryHeadingStyle: { marginBottom: `calc(var(--display-row) * ${categoryHeadingGapScale * gapScale})` },
+    categoryHeadingStyle: { marginBottom: `calc(var(--display-row) * ${categoryHeadingGapScale * gapScale * categoryHeadingAirScale})` },
     categoryRuleStyle: rowCqh > 1.2 ? { marginTop: `calc(var(--display-row) * ${categoryRuleGapScale})`, borderBottomWidth: "2px" } : { display: "none" },
-    categoryItemsStyle: { rowGap: `calc(var(--display-row) * ${itemGapScale * gapScale})` },
+    categoryItemsStyle: { rowGap: `calc(var(--display-row) * ${itemGapScale * gapScale * rhythmAirScale})` },
     itemStyle: {
       paddingTop: 0,
       paddingBottom: 0,
@@ -185,7 +193,7 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
     showMeta,
     showBadge,
     gridGapClassName: "",
-    columnStackStyle: { rowGap: `calc(var(--display-row) * ${columnGapScale * gapScale})` },
+    columnStackStyle: { rowGap: `calc(var(--display-row) * ${columnGapScale * gapScale * categoryStackAirScale})` },
   };
 }
 
