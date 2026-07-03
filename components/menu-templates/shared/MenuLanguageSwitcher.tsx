@@ -10,9 +10,16 @@ type MenuLanguageSwitcherProps = {
   enabledLocales: SupportedLocale[];
   compact?: boolean;
   menuPlacement?: "top" | "bottom";
+  extraSearchParams?: Record<string, string | null | undefined>;
 };
 
-export default function MenuLanguageSwitcher({ currentLocale, enabledLocales, compact = false, menuPlacement = "bottom" }: MenuLanguageSwitcherProps) {
+export default function MenuLanguageSwitcher({
+  currentLocale,
+  enabledLocales,
+  compact = false,
+  menuPlacement = "bottom",
+  extraSearchParams,
+}: MenuLanguageSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const visibleLocales = enabledLocales.filter((locale, index) => enabledLocales.indexOf(locale) === index);
@@ -23,6 +30,13 @@ export default function MenuLanguageSwitcher({ currentLocale, enabledLocales, co
   const getLocaleHref = (locale: SupportedLocale) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("lang", locale);
+    Object.entries(extraSearchParams ?? {}).forEach(([key, value]) => {
+      if (value == null || value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
 
     return `${pathname}?${params.toString()}`;
   };

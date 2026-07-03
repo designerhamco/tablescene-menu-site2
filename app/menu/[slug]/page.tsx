@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
-import { getPublicMenuDataBySlug } from "@/lib/menu-page-data";
+import { getPublicMenuDataBySlug, type MenuPageData } from "@/lib/menu-page-data";
 import { getMenuSiteAccessStateBySlug, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
+import { sortMenuPages } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
-  searchParams?: Promise<{ lang?: string | string[] }>;
+  searchParams?: Promise<{ lang?: string | string[]; page?: string | string[] }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -57,6 +58,20 @@ function getSearchParamValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function getDisplayPageIndex(value: string | string[] | undefined) {
+  const pageValue = getSearchParamValue(value);
+  if (!pageValue) return null;
+
+  const pageIndex = Number.parseInt(pageValue, 10);
+  return Number.isFinite(pageIndex) && pageIndex >= 1 ? pageIndex - 1 : null;
+}
+
+function getDisplayInitialPageId(data: MenuPageData, requestedPageIndex: number | null) {
+  if (data.menuSite.template_key !== "display_menu_a" || requestedPageIndex === null) return null;
+
+  return sortMenuPages(data.pages.filter((page) => page.visible))[requestedPageIndex]?.id ?? null;
+}
+
 function getUnavailableCopy(accessState: MenuSiteAccessState) {
   if (accessState.entitlementStatus === "active" && accessState.menuSiteStatus === "draft") {
     return {
@@ -101,11 +116,18 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
 
   const query = searchParams ? await searchParams : {};
   const locale = normalizeLocale(getSearchParamValue(query.lang));
+  const requestedPageIndex = getDisplayPageIndex(query.page);
   const data = await getPublicMenuDataBySlug(slug, { locale });
 
   if (!data) {
     notFound();
   }
 
-  return <MenuPageRenderer mode="public" {...data} />;
+  return (
+    <MenuPageRenderer
+      mode="public"
+      initialPreviewPageId={getDisplayInitialPageId(data, requestedPageIndex)}
+      {...data}
+    />
+  );
 }

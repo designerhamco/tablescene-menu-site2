@@ -1306,7 +1306,6 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     [pages, props.categories, props.items, props.priceOptions]
   );
   const initialSelectedPageId =
-    props.mode === "preview" &&
     props.initialPreviewPageId &&
     displayPages.some((page) => page.id === props.initialPreviewPageId)
       ? props.initialPreviewPageId
@@ -1314,6 +1313,8 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const [selectedPageId, setSelectedPageId] = useState(initialSelectedPageId);
   const activeRenderPage = displayPages.find((page) => page.id === selectedPageId) ?? displayPages[0] ?? null;
   const activePage = activeRenderPage?.page ?? null;
+  const activePageIndex = activeRenderPage ? displayPages.findIndex((page) => page.id === activeRenderPage.id) : -1;
+  const activePageParam = activePageIndex >= 0 ? String(activePageIndex + 1) : null;
   const showPreviewSelector = props.mode === "preview" && displayPages.length > 1;
   const activeSettings = activePage ? normalizeMenuPageDisplaySettings(activePage.display_settings) : null;
   const isPromotionPage = activeSettings?.pageType === "promotion";
@@ -1354,7 +1355,13 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
           <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={setSelectedPageId} />
         )}
         <div className="pointer-events-none absolute bottom-5 right-5 z-20 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-          <MenuLanguageSwitcher currentLocale={props.locale} enabledLocales={props.enabledLocales} compact menuPlacement="top" />
+          <MenuLanguageSwitcher
+            currentLocale={props.locale}
+            enabledLocales={props.enabledLocales}
+            compact
+            menuPlacement="top"
+            extraSearchParams={{ page: activePageParam }}
+          />
         </div>
         <section className={`relative h-screen w-screen overflow-hidden ${
           isPromotionPage ? "bg-zinc-950" : isSplitMenuPage ? "bg-[var(--display-surface-color)]" : "bg-[var(--display-surface-color)]"
