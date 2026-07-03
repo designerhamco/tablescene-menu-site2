@@ -743,7 +743,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
     menuSite: {
       id: siteId,
       user_id: "template-preview",
-      name: "Display Menu A",
+      name: "썸머 블루",
       slug: "preview-display-menu-a",
       template_key: "display_menu_a",
       template_category: "display",

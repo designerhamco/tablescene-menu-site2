@@ -192,7 +192,7 @@ const Hero = () => {
             </h1>
             <p className="mx-auto max-w-xl text-base font-medium text-white/90 drop-shadow-md md:mx-0 md:text-lg">
               메뉴와 가격표를 하나의 링크로 관리하세요.<br/>
-              카페, 식당, 미용실, 네일샵까지 쉽게 만들고 바로 수정할 수 있습니다.
+              카페/베이커리, 음식점/다이닝, 뷰티/웰니스, 클래스/공방, 병원/클리닉까지 쉽게 만들고 바로 수정할 수 있습니다.
             </p>
           </div>
         </motion.div>

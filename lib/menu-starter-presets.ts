@@ -1230,7 +1230,7 @@ export async function createStarterMenuData(
 
   const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory);
   if (isCafeDesignATemplateKey(templateKey) && preset.pages.length !== 1) {
-    throw new Error("Cafe Design A 기본 메뉴는 메뉴 페이지 1개로만 생성되어야 합니다.");
+    throw new Error("cafe_design_a 기본 메뉴는 메뉴 페이지 1개로만 생성되어야 합니다.");
   }
 
   const serviceType = getStarterServiceType(productKey);

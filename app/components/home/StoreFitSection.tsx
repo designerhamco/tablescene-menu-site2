@@ -6,44 +6,24 @@ import { Check } from "lucide-react";
 
 const storeTypes = [
   {
-    label: "카페",
+    label: "카페/베이커리",
     image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1400&auto=format&fit=crop",
   },
   {
-    label: "식당",
+    label: "음식점/다이닝",
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=1400&auto=format&fit=crop",
   },
   {
-    label: "디저트샵",
-    image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=1400&auto=format&fit=crop",
-  },
-  {
-    label: "미용실",
+    label: "뷰티/웰니스",
     image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=1400&auto=format&fit=crop",
   },
   {
-    label: "네일샵",
-    image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1400&auto=format&fit=crop",
-  },
-  {
-    label: "피부관리샵",
-    image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=1400&auto=format&fit=crop",
-  },
-  {
-    label: "공방",
+    label: "클래스/공방",
     image: "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=1400&auto=format&fit=crop",
   },
   {
-    label: "클래스",
-    image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1400&auto=format&fit=crop",
-  },
-  {
-    label: "PT / 피트니스",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1400&auto=format&fit=crop",
-  },
-  {
-    label: "팝업스토어",
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=1400&auto=format&fit=crop",
+    label: "병원/클리닉",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1400&auto=format&fit=crop",
   },
 ];
 

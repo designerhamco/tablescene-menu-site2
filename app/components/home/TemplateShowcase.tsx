@@ -2,25 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import TemplateCard from '@/components/templates/TemplateCard';
 import {
-  getFeaturedTemplatesForBasicPage,
-  getFeaturedTemplatesForDisplayPage,
-  templateCategoryFilters,
-  type TemplateCategoryFilterKey,
+  BASIC_TEMPLATE_CATEGORY_GROUPS,
+  DISPLAY_TEMPLATE_CATEGORY_GROUPS,
+  getAvailableTemplatesForService,
+  getTemplateCategoryKeysForBasicGroup,
+  getTemplateCategoryKeysForDisplayGroup,
+  type BasicTemplateCategoryGroupKey,
+  type DisplayTemplateCategoryGroupKey,
   type TemplateCatalogItem,
   type TemplateServiceKey,
 } from '@/lib/templates';
 
-const recommendedFilterKeys: readonly TemplateCategoryFilterKey[] = [
-  'all',
-  'cafe',
-  'bakery',
-  'dessert',
-  'restaurant',
-  'hair_salon',
-  'nail_shop',
-  'clinic',
-] as const;
-const showcaseCategoryFilters = templateCategoryFilters.filter((filter) => recommendedFilterKeys.includes(filter.key));
+const firstBasicCategoryGroupKey = BASIC_TEMPLATE_CATEGORY_GROUPS[0].key;
+const firstDisplayCategoryGroupKey = DISPLAY_TEMPLATE_CATEGORY_GROUPS[0].key;
 
 type TemplateShowcaseProps = {
   service?: TemplateServiceKey | 'all';
@@ -40,13 +34,14 @@ const serviceTabs = [
 ] as const satisfies readonly { key: TemplateServiceKey; label: string; description: string }[];
 
 function getShowcaseTemplates(service: TemplateServiceKey): TemplateCatalogItem[] {
-  if (service === 'display') return getFeaturedTemplatesForDisplayPage();
-  return getFeaturedTemplatesForBasicPage();
+  return getAvailableTemplatesForService(service);
 }
 
 const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const [activeService, setActiveService] = useState<TemplateServiceKey>('basic');
-  const [activeCategory, setActiveCategory] = useState<TemplateCategoryFilterKey>('all');
+  const [activeCategory, setActiveCategory] = useState<BasicTemplateCategoryGroupKey | DisplayTemplateCategoryGroupKey>(
+    service === 'display' ? firstDisplayCategoryGroupKey : firstBasicCategoryGroupKey
+  );
   const [activePage, setActivePage] = useState(0);
   const [cardsPerPage, setCardsPerPage] = useState(4);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -54,10 +49,12 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const selectedService = isHomeShowcase ? activeService : service;
   const activeServiceCopy = serviceTabs.find((tab) => tab.key === selectedService) ?? serviceTabs[0];
   const showcaseTemplates = getShowcaseTemplates(selectedService);
+  const activeCategoryGroups =
+    selectedService === 'basic' ? BASIC_TEMPLATE_CATEGORY_GROUPS : DISPLAY_TEMPLATE_CATEGORY_GROUPS;
   const visibleTemplates =
-    activeCategory === 'all'
-      ? showcaseTemplates
-      : showcaseTemplates.filter((template) => template.template_category === activeCategory);
+    selectedService === 'basic'
+      ? showcaseTemplates.filter((template) => getTemplateCategoryKeysForBasicGroup(activeCategory as BasicTemplateCategoryGroupKey).includes(template.template_category))
+      : showcaseTemplates.filter((template) => getTemplateCategoryKeysForDisplayGroup(activeCategory as DisplayTemplateCategoryGroupKey).includes(template.template_category));
   const pageCount = Math.ceil(visibleTemplates.length / cardsPerPage);
   const showDots = visibleTemplates.length > cardsPerPage;
 
@@ -124,7 +121,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                   type="button"
                   onClick={() => {
                     setActiveService(tab.key);
-                    setActiveCategory('all');
+                    setActiveCategory(tab.key === 'basic' ? firstBasicCategoryGroupKey : firstDisplayCategoryGroupKey);
                   }}
                   className={`rounded-[1.1rem] px-5 py-4 text-left transition-colors ${
                     isSelected ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-50'
@@ -144,7 +141,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
         ) : null}
 
         <div className="mb-12 flex flex-wrap justify-center gap-3">
-          {showcaseCategoryFilters.map((category) => (
+          {activeCategoryGroups.map((category) => (
             <button
               key={category.key}
               type="button"
@@ -194,7 +191,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
             <div className="w-full shrink-0 rounded-[1.5rem] border border-dashed border-zinc-200 bg-white px-6 py-16 text-center">
               <p className="text-lg font-bold text-zinc-900">등록된 템플릿이 아직 없습니다.</p>
               <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                해당 업종 템플릿은 준비 중입니다. 현재는 카페 베이직 템플릿부터 순차적으로 운영하고 있습니다.
+                이 {selectedService === 'basic' ? 'Basic' : 'Display'} 카테고리의 템플릿은 준비 중입니다.
               </p>
             </div>
           )}

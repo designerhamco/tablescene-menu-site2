@@ -13,7 +13,7 @@ export const TEMPLATE_CATEGORIES = [
     key: "cafe",
     label: "카페",
     templates: [
-      { key: "cafe_design_a", label: "Cafe Design A", design: "design_a" },
+      { key: "cafe_design_a", label: "오브 커피", design: "design_a" },
       { key: "cafe_design_b", label: "Cafe Design B", design: "design_b" },
       { key: "cafe_design_c", label: "Cafe Design C", design: "design_c" },
     ],
@@ -22,7 +22,7 @@ export const TEMPLATE_CATEGORIES = [
     key: "display",
     label: "디스플레이",
     templates: [
-      { key: "display_menu_a", label: "메뉴링크 디스플레이", design: "design_a" },
+      { key: "display_menu_a", label: "썸머 블루", design: "design_a" },
     ],
   },
   {
@@ -136,6 +136,61 @@ export type TemplateServiceKey = TemplateServiceType;
 export type TemplateCatalogStatus = "available" | "coming_soon" | "hidden";
 export type { TemplateType };
 
+export const BASIC_TEMPLATE_CATEGORY_GROUPS = [
+  { key: "cafe_bakery", label: "카페/베이커리", categoryKeys: ["cafe", "bakery", "dessert"] },
+  { key: "food_dining", label: "음식점/다이닝", categoryKeys: ["restaurant", "brunch", "casual_dining", "fine_dining", "fast_food", "pub_bar"] },
+  { key: "beauty_wellness", label: "뷰티/웰니스", categoryKeys: ["hair_salon", "nail_shop", "beauty_esthetic", "fitness_pt", "pet_shop"] },
+  { key: "class_workshop", label: "클래스/공방", categoryKeys: ["workshop_class", "popup_event", "etc"] },
+  { key: "clinic", label: "병원/클리닉", categoryKeys: ["clinic"] },
+] as const satisfies readonly {
+  key: string;
+  label: string;
+  categoryKeys: readonly TemplateCategoryKey[];
+}[];
+
+export type BasicTemplateCategoryGroupKey = (typeof BASIC_TEMPLATE_CATEGORY_GROUPS)[number]["key"];
+
+export function getTemplateCategoryKeysForBasicGroup(groupKey: BasicTemplateCategoryGroupKey): readonly TemplateCategoryKey[] {
+  return BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) => group.key === groupKey)?.categoryKeys ?? BASIC_TEMPLATE_CATEGORY_GROUPS[0].categoryKeys;
+}
+
+export function getBasicTemplateCategoryGroupLabel(groupKey: BasicTemplateCategoryGroupKey) {
+  return BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) => group.key === groupKey)?.label ?? BASIC_TEMPLATE_CATEGORY_GROUPS[0].label;
+}
+
+export function getBasicTemplateCategoryLabel(categoryKey?: string | null) {
+  const matchedGroup = BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) =>
+    group.categoryKeys.some((key) => key === categoryKey)
+  );
+
+  return matchedGroup?.label ?? BASIC_TEMPLATE_CATEGORY_GROUPS[0].label;
+}
+
+export const DISPLAY_TEMPLATE_CATEGORY_GROUPS = [
+  { key: "display_cafe_bakery", label: "카페/베이커리", categoryKeys: ["display", "cafe", "bakery", "dessert"] },
+  { key: "display_food_dining", label: "음식점/다이닝", categoryKeys: ["restaurant", "brunch", "casual_dining", "fine_dining", "pub_bar"] },
+  { key: "display_fast_food", label: "패스트푸드/분식", categoryKeys: ["fast_food"] },
+  { key: "display_foodcourt", label: "푸드코트/복합매장", categoryKeys: [] },
+] as const satisfies readonly {
+  key: string;
+  label: string;
+  categoryKeys: readonly TemplateCategoryKey[];
+}[];
+
+export type DisplayTemplateCategoryGroupKey = (typeof DISPLAY_TEMPLATE_CATEGORY_GROUPS)[number]["key"];
+
+export function getTemplateCategoryKeysForDisplayGroup(groupKey: DisplayTemplateCategoryGroupKey): readonly TemplateCategoryKey[] {
+  return DISPLAY_TEMPLATE_CATEGORY_GROUPS.find((group) => group.key === groupKey)?.categoryKeys ?? DISPLAY_TEMPLATE_CATEGORY_GROUPS[0].categoryKeys;
+}
+
+export function getDisplayTemplateCategoryLabel(categoryKey?: string | null) {
+  const matchedGroup = DISPLAY_TEMPLATE_CATEGORY_GROUPS.find((group) =>
+    group.categoryKeys.some((key) => key === categoryKey)
+  );
+
+  return matchedGroup?.label ?? DISPLAY_TEMPLATE_CATEGORY_GROUPS[0].label;
+}
+
 const templateToneByDesign: Record<TemplateDesignKey, "light" | "warm" | "dark"> = {
   design_a: "light",
   design_b: "warm",
@@ -154,7 +209,12 @@ const templateDescriptionByDesign: Record<TemplateDesignKey, string> = {
   design_c: "코스, 스토리, 브랜드 분위기를 차분하게 보여주는 프리미엄 다이닝 템플릿입니다.",
 };
 
-const availableTemplateKeys = ["cafe_design_a"] as const satisfies readonly string[];
+const templateDescriptionByKey: Partial<Record<string, string>> = {
+  cafe_design_a: "차분한 카페 무드에 어울리는 기본 메뉴판 템플릿입니다.\n메뉴가 많아도 깔끔하게 정리해 보여주기 좋습니다.",
+  display_menu_a: "시원하고 선명한 화면 구성이 돋보이는 디스플레이 템플릿입니다.\n카페와 베이커리 매장의 메뉴를 TV·모니터에 보기 좋게 보여줍니다.",
+};
+
+const availableTemplateKeys = ["cafe_design_a", "display_menu_a"] as const satisfies readonly string[];
 
 const featuredHomeTemplateKeys = [
   "cafe_design_a",
@@ -174,11 +234,7 @@ const featuredBasicTemplateKeys = [
 ] as const satisfies readonly string[];
 
 const featuredDisplayTemplateKeys = [
-  "cafe_design_a",
-  "casual_dining_design_a",
-  "fast_food_design_a",
-  "brunch_design_a",
-  "fine_dining_design_a",
+  "display_menu_a",
 ] as const satisfies readonly string[];
 
 function getTemplateCatalogStatus(templateKey: string): TemplateCatalogStatus {
@@ -194,13 +250,16 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
   category.templates.map((template, templateIndex) => {
     const templateType = getTemplateType(template.key);
     const supportedServices = getSupportedServices(template.key);
+    const primaryService: TemplateServiceKey = supportedServices.includes("display") && !supportedServices.includes("basic")
+      ? "display"
+      : "basic";
     const status = getTemplateCatalogStatus(template.key);
 
     return {
       key: template.key,
       templateKey: template.key,
-      service: "basic" as const satisfies TemplateServiceKey,
-      serviceLabel: "메뉴링크 베이직",
+      service: primaryService,
+      serviceLabel: primaryService === "display" ? "메뉴링크 디스플레이" : "메뉴링크 베이직",
       name: template.label,
       displayName: template.label,
       label: template.label,
@@ -209,7 +268,7 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
       design: template.design,
       description: templateType === "price_list"
         ? getTemplateTypeShortDescription("price_list")
-        : templateDescriptionByDesign[template.design],
+        : templateDescriptionByKey[template.key] ?? templateDescriptionByDesign[template.design],
       categories: [category.key],
       categoryLabels: [category.label],
       badge: templateBadgeByDesign[template.design],

@@ -59,15 +59,15 @@ export const TEMPLATE_TYPE_LABELS = {
 export const TEMPLATE_TYPE_DESCRIPTIONS = {
   menu: {
     short: "메뉴명과 가격을 카테고리별로 보여주는 메뉴형 템플릿",
-    description: "음식점, 카페, 디저트샵처럼 메뉴명, 가격, 설명, 이미지를 보여주는 매장에 적합합니다.",
+    description: "카페/베이커리, 음식점/다이닝처럼 메뉴명, 가격, 설명, 이미지를 보여주는 매장에 적합합니다.",
   },
   price_list: {
     short: "서비스명과 가격을 깔끔하게 보여주는 가격표형 템플릿",
-    description: "미용실, 네일샵, 클리닉, 헬스장처럼 서비스 항목과 가격을 보여주는 매장에 적합합니다.",
+    description: "뷰티/웰니스, 병원/클리닉처럼 서비스 항목과 가격을 보여주는 매장에 적합합니다.",
   },
   schedule: {
     short: "요일과 시간 중심으로 수업을 보여주는 일정표형 템플릿",
-    description: "요가, 필라테스, 클래스처럼 요일, 시간, 강사, 장소를 보여주는 일정표형 템플릿입니다. 준비 중입니다.",
+    description: "클래스/공방처럼 요일, 시간, 강사, 장소를 보여주는 일정표형 템플릿입니다. 준비 중입니다.",
   },
 } as const satisfies Record<TemplateType, { short: string; description: string }>;
 

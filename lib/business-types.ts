@@ -19,11 +19,21 @@ export const BUSINESS_TYPE_OPTIONS = [
   { value: "etc", label: "기타", defaultCoverLabel: "TODAY'S MENU" },
 ] as const;
 
+const BASIC_BUSINESS_CATEGORY_OPTIONS = [
+  { value: "cafe", label: "카페/베이커리", defaultCoverLabel: "SPECIALTY COFFEE" },
+  { value: "restaurant", label: "음식점/다이닝", defaultCoverLabel: "TODAY'S MENU" },
+  { value: "beauty_esthetic", label: "뷰티/웰니스", defaultCoverLabel: "BEAUTY WELLNESS" },
+  { value: "workshop_class", label: "클래스/공방", defaultCoverLabel: "WORKSHOP CLASS" },
+  { value: "clinic", label: "병원/클리닉", defaultCoverLabel: "CLINIC" },
+] as const;
+
 export type BusinessTypeKey = (typeof BUSINESS_TYPE_OPTIONS)[number]["value"];
 export type ApplyBusinessServiceType = "menu" | "screen" | "order" | "custom";
 
 export function getBusinessTypeOptions(serviceType?: ApplyBusinessServiceType) {
-  void serviceType;
+  if (serviceType === "menu") {
+    return BASIC_BUSINESS_CATEGORY_OPTIONS;
+  }
 
   return BUSINESS_TYPE_OPTIONS;
 }
