@@ -93,6 +93,14 @@ const DISPLAY_MUTED_TEXT_COLOR = "#5F6F6B";
 const DISPLAY_COOL_ACCENT_COLOR = "#007C89";
 const DISPLAY_COOL_ACCENT_SOFT_COLOR = "#D7F4F3";
 const DISPLAY_COOL_ACCENT_BORDER_COLOR = "#88DAD7";
+const DISPLAY_KOREAN_TEXT_FONT_STYLE: CSSProperties = {
+  fontFamily: "var(--menu-font-ko), var(--menu-font-en), system-ui, sans-serif",
+};
+const DISPLAY_ENGLISH_TEXT_FONT_STYLE: CSSProperties = {
+  fontFamily: "var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif",
+};
+const HANGUL_TEXT_PATTERN = /([\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]+)/g;
+const HANGUL_CHAR_PATTERN = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/;
 const DISPLAY_FIT_INITIAL_STATE: DisplayFitState = {
   key: "",
   scale: 1,
@@ -188,6 +196,19 @@ function sortByOrder<T extends { sort_order: number }>(rows: T[]) {
 
 function normalizeDisplayText(value: string | null | undefined) {
   return value?.trim() || null;
+}
+
+function renderDisplayTypographyText(text: string) {
+  const parts = text.split(HANGUL_TEXT_PATTERN).filter(Boolean);
+
+  return parts.map((part, index) => (
+    <span
+      key={`${part}-${index}`}
+      style={HANGUL_CHAR_PATTERN.test(part) ? DISPLAY_KOREAN_TEXT_FONT_STYLE : DISPLAY_ENGLISH_TEXT_FONT_STYLE}
+    >
+      {part}
+    </span>
+  ));
 }
 
 function formatDisplayMenuAKrwPrice(price: number) {
@@ -751,8 +772,11 @@ function MenuItemRow({
         <div className="min-w-0">
           <div className="cafe-a-menu-title-row flex min-w-0 flex-wrap items-center" style={densityConfig.titleRowStyle}>
             <span className="cafe-a-menu-title-badge inline-flex max-w-full shrink-0 items-center" style={{ columnGap: densityConfig.titleRowStyle.columnGap }}>
-              <h4 className="cafe-a-menu-title min-w-0 break-keep font-bold tracking-normal text-[var(--display-text-color)]" style={densityConfig.menuTitleStyle}>
-                {itemName}
+              <h4
+                className="cafe-a-menu-title min-w-0 break-keep font-bold tracking-normal text-[var(--display-text-color)]"
+                style={densityConfig.menuTitleStyle}
+              >
+                {renderDisplayTypographyText(itemName)}
               </h4>
               {densityConfig.showBadge && badge && (
                 <span
@@ -829,8 +853,11 @@ function CategoryBlock({
     <section className="min-w-0" data-display-category-section="" data-display-category-block="">
       <div className="cafe-a-category-heading" style={densityConfig.categoryHeadingStyle}>
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end" style={densityConfig.itemGridStyle}>
-          <h3 className="cafe-a-category-title break-keep font-black uppercase leading-tight tracking-normal text-[var(--display-accent-color)]" style={densityConfig.categoryTitleStyle}>
-            {categoryName}
+          <h3
+            className="cafe-a-category-title break-keep font-black uppercase leading-tight tracking-normal text-[var(--display-accent-color)]"
+            style={densityConfig.categoryTitleStyle}
+          >
+            {renderDisplayTypographyText(categoryName)}
           </h3>
           {optionHeaders.length > 0 && optionGridStyle ? (
             <div className="menu-font-en cafe-a-option-header-grid grid shrink-0 justify-items-center text-center" style={optionGridStyle}>
