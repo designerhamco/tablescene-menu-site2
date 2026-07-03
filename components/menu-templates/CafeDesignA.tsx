@@ -2428,6 +2428,28 @@ function CafeAFooterInfo({
   );
 }
 
+function CafeLanguageHoverControl({
+  data,
+  className = "",
+}: {
+  data: PublicMenuTemplateProps;
+  className?: string;
+}) {
+  const visibleLocaleCount = Array.from(new Set(data.enabledLocales)).length;
+  if (visibleLocaleCount <= 1) return null;
+
+  return (
+    <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`}>
+      <div className="transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover/cafe-board:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:group-hover/cafe-board:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-within/cafe-board:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:group-focus-within/cafe-board:opacity-100">
+        <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
+      </div>
+      <p className="pointer-events-none absolute right-0 top-[calc(100%+0.5rem)] z-10 hidden w-72 max-w-[72vw] rounded-full bg-[rgba(17,17,17,0.74)] px-3 py-1.5 text-right text-[11px] font-bold leading-relaxed text-white opacity-0 shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-opacity duration-200 [text-shadow:0_1px_2px_rgba(0,0,0,0.45)] [@media(hover:hover)_and_(pointer:fine)]:block [@media(hover:hover)_and_(pointer:fine)]:group-hover/cafe-board:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-within/cafe-board:opacity-100">
+        마우스를 메뉴판 밖으로 옮기면 언어 선택이 자동으로 숨겨집니다.
+      </p>
+    </div>
+  );
+}
+
 function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; className?: string }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
@@ -2444,9 +2466,7 @@ function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; 
           />
           {description && <p className="cafe-a-description-text cafe-a-store-description mt-2 break-keep text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
         </div>
-        <div className="menu-font-en group relative shrink-0 cursor-default text-right text-[#191c1b]">
-          <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
-        </div>
+        <CafeLanguageHoverControl data={data} className="cursor-default" />
       </div>
     </header>
   );
@@ -2472,9 +2492,7 @@ function DesktopFixedRail({
             titleClassName="cafe-a-store-title cafe-a-rail-title break-words font-black uppercase leading-[0.96] text-[#191c1b]"
             logoClassName="max-h-[84px] max-w-[210px] object-contain"
           />
-          <div className="menu-font-en shrink-0 text-right text-[#191c1b]">
-            <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
-          </div>
+          <CafeLanguageHoverControl data={data} />
         </div>
         {description && <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description mt-3 break-keep text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
       </div>
