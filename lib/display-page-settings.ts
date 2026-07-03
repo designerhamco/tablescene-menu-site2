@@ -3,6 +3,7 @@ import type { Json } from "@/lib/supabase/types";
 export type DisplayPageType = "menu" | "promotion";
 export type DisplayMenuLayoutType = "full_menu" | "split_image_menu";
 export type DisplayMediaType = "image" | "video";
+export type DisplayVideoSource = "url" | "upload";
 export type DisplaySplitImagePosition = "left" | "right";
 
 export type MenuPageDisplaySettings = {
@@ -23,6 +24,8 @@ export type MenuPageDisplaySettings = {
     mediaUrl: string | null;
     mediaPath: string | null;
     videoUrl: string | null;
+    videoPath: string | null;
+    videoSource: DisplayVideoSource | null;
     videoLoop: true;
   };
 };
@@ -49,6 +52,8 @@ export const DEFAULT_MENU_PAGE_DISPLAY_SETTINGS: MenuPageDisplaySettings = {
     mediaUrl: null,
     mediaPath: null,
     videoUrl: null,
+    videoPath: null,
+    videoSource: null,
     videoLoop: true,
   },
 };
@@ -91,6 +96,13 @@ export function normalizeMenuPageDisplaySettings(input: unknown): MenuPageDispla
   const splitImage = isRecord(source.splitImage) ? source.splitImage : {};
   const promotion = isRecord(source.promotion) ? source.promotion : {};
   const promotionMediaType: DisplayMediaType = promotion.mediaType === "video" ? "video" : "image";
+  const promotionVideoUrl = normalizeOptionalString(promotion.videoUrl ?? promotion.mediaUrl);
+  const promotionVideoPath = normalizeOptionalString(promotion.videoPath);
+  const promotionVideoSource = getNormalizedVideoSource(
+    pageType === "promotion" && promotionMediaType === "video" ? promotion.videoSource : null,
+    promotionVideoUrl,
+    promotionVideoPath
+  );
   const splitImagePosition: DisplaySplitImagePosition =
     pageType === "menu" && menuLayoutType === "split_image_menu" && source.splitImagePosition === "right" ? "right" : "left";
 
@@ -111,7 +123,9 @@ export function normalizeMenuPageDisplaySettings(input: unknown): MenuPageDispla
       mediaType: promotionMediaType,
       mediaUrl: pageType === "promotion" && promotionMediaType === "image" ? normalizeOptionalString(promotion.mediaUrl) : null,
       mediaPath: pageType === "promotion" && promotionMediaType === "image" ? normalizeOptionalString(promotion.mediaPath) : null,
-      videoUrl: pageType === "promotion" && promotionMediaType === "video" ? normalizeOptionalString(promotion.videoUrl ?? promotion.mediaUrl) : null,
+      videoUrl: pageType === "promotion" && promotionMediaType === "video" ? promotionVideoUrl : null,
+      videoPath: pageType === "promotion" && promotionMediaType === "video" ? promotionVideoPath : null,
+      videoSource: promotionVideoSource,
       videoLoop: true,
     },
   };
@@ -125,6 +139,13 @@ function normalizeOptionalString(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmedValue = value.trim();
   return trimmedValue || null;
+}
+
+function getNormalizedVideoSource(value: unknown, videoUrl: string | null, videoPath: string | null): DisplayVideoSource | null {
+  if (value === "upload") return videoPath ? "upload" : null;
+  if (value === "url") return "url";
+  if (videoUrl) return "url";
+  return null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
