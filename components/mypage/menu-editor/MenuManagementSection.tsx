@@ -35,6 +35,7 @@ import {
 } from "@/lib/display-page-settings";
 import {
   DISPLAY_VIDEO_UPLOAD_ADDON_NAME,
+  DISPLAY_VIDEO_UPLOAD_ACCEPTED_MIME_TYPES,
   DISPLAY_VIDEO_UPLOAD_MAX_ACTIVE_FILES,
   DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB,
   DISPLAY_VIDEO_UPLOAD_MONTHLY_PRICE,
@@ -226,6 +227,11 @@ type DraftPriceOption = {
   visible: boolean;
   sortOrder: number;
 };
+type DisplayVideoUploadState =
+  | { type: "idle"; message: string | null }
+  | { type: "loading"; message: string }
+  | { type: "success"; message: string }
+  | { type: "error"; message: string };
 
 function normalizeDraftPriceOptionLabels(labels: readonly string[] | undefined, maxOptions: number = MENU_LIMITS.maxPriceOptionsPerItem) {
   const seen = new Set<string>();
@@ -1148,8 +1154,18 @@ function MenuPageForm({
   const [displaySettings, setDisplaySettings] = useState<MenuPageDisplaySettings>(() =>
     normalizeMenuPageDisplaySettings(displaySettingsDraft ?? page?.display_settings)
   );
+  const displayVideoInputRef = useRef<HTMLInputElement>(null);
+  const [displayVideoUploadState, setDisplayVideoUploadState] = useState<DisplayVideoUploadState>({ type: "idle", message: null });
   const titleValue = page ? title : draftTitle !== undefined ? draftTitle : title;
   const titleInvalid = !titleValue.trim() || titleValue.length > MENU_FIELD_LIMITS.menuPages.title;
+  const canUploadDisplayVideoForPage = Boolean(canUseDisplayVideoUpload && page?.id && !page.id.startsWith("temp-"));
+  const displayVideoUploadMessageClassName =
+    displayVideoUploadState.type === "success"
+      ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+      : displayVideoUploadState.type === "error"
+        ? "border-red-100 bg-red-50 text-red-700"
+        : "border-zinc-100 bg-zinc-50 text-zinc-500";
+  const isDisplayVideoUploading = displayVideoUploadState.type === "loading";
   const pageFormDirty =
     !page ||
     normalizeDraftText(titleValue) !== normalizeDraftText(page.title) ||
@@ -1169,18 +1185,114 @@ function MenuPageForm({
     onDraftCommit?.();
   }
 
-  function updateDisplaySettings(patch: Partial<MenuPageDisplaySettings>) {
+  function updateDisplaySettings(patch: Partial<MenuPageDisplaySettings>, options: { commitDraft?: boolean } = {}) {
     const nextSettings = normalizeMenuPageDisplaySettings({ ...displaySettings, ...patch });
     setDisplaySettings(nextSettings);
-    if (!page) onDraftChange?.({ displaySettings: nextSettings });
+    if (!page || options.commitDraft) onDraftChange?.({ displaySettings: nextSettings });
   }
 
   function updateSplitImage(patch: Partial<MenuPageDisplaySettings["splitImage"]>) {
     updateDisplaySettings({ splitImage: { ...displaySettings.splitImage, ...patch } });
   }
 
-  function updatePromotion(patch: Partial<MenuPageDisplaySettings["promotion"]>) {
-    updateDisplaySettings({ promotion: { ...displaySettings.promotion, ...patch } });
+  function updatePromotion(patch: Partial<MenuPageDisplaySettings["promotion"]>, options: { commitDraft?: boolean } = {}) {
+    updateDisplaySettings({ promotion: { ...displaySettings.promotion, ...patch } }, options);
+  }
+
+  function getDisplayVideoClientValidationMessage(file: File) {
+    const acceptedMimeTypes = DISPLAY_VIDEO_UPLOAD_ACCEPTED_MIME_TYPES as readonly string[];
+    const isMp4 = acceptedMimeTypes.includes(file.type) && file.name.trim().toLowerCase().endsWith(".mp4");
+
+    if (!isMp4) {
+      return "MP4 파일만 업로드할 수 있습니다.";
+    }
+
+    if (file.size > DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB * 1024 * 1024) {
+      return `동영상 파일은 최대 ${DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB}MB까지 업로드할 수 있습니다.`;
+    }
+
+    return "";
+  }
+
+  async function uploadDisplayVideoFile(file: File) {
+    if (!canUploadDisplayVideoForPage || !page?.id) {
+      setDisplayVideoUploadState({ type: "error", message: "이 페이지를 먼저 저장한 뒤 동영상을 업로드할 수 있습니다." });
+      if (displayVideoInputRef.current) {
+        displayVideoInputRef.current.value = "";
+      }
+      return;
+    }
+
+    const validationMessage = getDisplayVideoClientValidationMessage(file);
+
+    if (validationMessage) {
+      setDisplayVideoUploadState({ type: "error", message: validationMessage });
+      if (displayVideoInputRef.current) {
+        displayVideoInputRef.current.value = "";
+      }
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("file", file);
+    formData.set("menuId", menuId);
+    formData.set("pageId", page.id);
+
+    setDisplayVideoUploadState({ type: "loading", message: "동영상을 업로드하고 있습니다." });
+
+    try {
+      const response = await fetch("/api/menu-videos", {
+        method: "POST",
+        body: formData,
+      });
+      const result = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        message?: string;
+        path?: string | null;
+        publicUrl?: string | null;
+      } | null;
+
+      if (!response.ok || !result?.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("동영상 파일 직접 업로드 권한이 없습니다.");
+        }
+
+        if (response.status === 413) {
+          throw new Error(`동영상 파일은 최대 ${DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB}MB까지 업로드할 수 있습니다.`);
+        }
+
+        if (response.status === 400 && result?.message) {
+          throw new Error(result.message);
+        }
+
+        throw new Error("동영상 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      }
+
+      if (!result.path || !result.publicUrl) {
+        throw new Error("동영상 업로드 응답이 올바르지 않습니다.");
+      }
+
+      updatePromotion({
+        mediaType: "video",
+        mediaUrl: null,
+        mediaPath: null,
+        videoUrl: result.publicUrl,
+        videoPath: result.path,
+        videoSource: "upload",
+        videoLoop: true,
+      }, { commitDraft: true });
+      setDisplayVideoUploadState({ type: "success", message: "동영상이 업로드되었습니다. 저장 후 디스플레이 설정에 반영됩니다." });
+      toast.success("동영상이 업로드되었습니다. 저장 후 디스플레이 설정에 반영됩니다.");
+    } catch (error) {
+      setDisplayVideoUploadState({
+        type: "error",
+        message: error instanceof Error ? error.message : "동영상 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      if (displayVideoInputRef.current) {
+        displayVideoInputRef.current.value = "";
+      }
+    }
   }
 
   return (
@@ -1418,7 +1530,8 @@ function MenuPageForm({
                             updatePromotion(
                               type === "video"
                                 ? { mediaType: "video", mediaUrl: null, mediaPath: null, videoPath: null, videoSource: displaySettings.promotion.videoUrl ? "url" : null, videoLoop: true }
-                                : { mediaType: "image", videoUrl: null, videoPath: null, videoSource: null, videoLoop: true }
+                                : { mediaType: "image", videoUrl: null, videoPath: null, videoSource: null, videoLoop: true },
+                              { commitDraft: true }
                             )
                           }
                           className={`rounded-lg border p-4 text-left transition ${
@@ -1476,15 +1589,18 @@ function MenuPageForm({
                       deleteConfirmTitle="프로모션 이미지를 삭제할까요?"
                       deleteConfirmDescription="삭제하면 저장 후 디스플레이 설정에 반영됩니다."
                       onDraftImageChange={(draft) =>
-                        updatePromotion({
-                          mediaType: "image",
-                          mediaUrl: draft.imageAction === "delete" ? null : draft.imageUrl,
-                          mediaPath: draft.imageAction === "delete" ? null : draft.imagePath,
-                          videoUrl: null,
-                          videoPath: null,
-                          videoSource: null,
-                          videoLoop: true,
-                        })
+                        updatePromotion(
+                          {
+                            mediaType: "image",
+                            mediaUrl: draft.imageAction === "delete" ? null : draft.imageUrl,
+                            mediaPath: draft.imageAction === "delete" ? null : draft.imagePath,
+                            videoUrl: null,
+                            videoPath: null,
+                            videoSource: null,
+                            videoLoop: true,
+                          },
+                          { commitDraft: true }
+                        )
                       }
                     />
                   </div>
@@ -1495,17 +1611,21 @@ function MenuPageForm({
                       value={displaySettings.promotion.videoUrl ?? ""}
                       maxLength={MENU_FIELD_LIMITS.menuPageDisplaySettings.mediaUrl}
                       placeholder="https://..."
-                      onChange={(event) =>
-                        updatePromotion({
-                          mediaType: "video",
-                          mediaUrl: null,
-                          mediaPath: null,
-                          videoUrl: event.target.value,
-                          videoPath: null,
-                          videoSource: event.target.value.trim() ? "url" : null,
-                          videoLoop: true,
-                        })
-                      }
+                      onChange={(event) => {
+                        setDisplayVideoUploadState({ type: "idle", message: null });
+                        updatePromotion(
+                          {
+                            mediaType: "video",
+                            mediaUrl: null,
+                            mediaPath: null,
+                            videoUrl: event.target.value,
+                            videoPath: null,
+                            videoSource: event.target.value.trim() ? "url" : null,
+                            videoLoop: true,
+                          },
+                          { commitDraft: true }
+                        );
+                      }}
                       className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
                     />
                     <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
@@ -1535,13 +1655,60 @@ function MenuPageForm({
                       </div>
                       {!canUseDisplayVideoUpload && (
                         <p className="mt-3 break-keep rounded-md bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-800">
-                          MP4 파일을 직접 업로드하려면 동영상 업로드 옵션이 필요합니다. 업로드 버튼은 아직 제공되지 않습니다.
+                          MP4 파일을 직접 업로드하려면 동영상 업로드 옵션이 필요합니다.
                         </p>
                       )}
                       {canUseDisplayVideoUpload && (
-                        <p className="mt-3 break-keep rounded-md bg-emerald-50 px-3 py-2 text-xs font-bold leading-relaxed text-emerald-800">
-                          업로드 권한이 확인되었습니다. 실제 파일 업로드 기능은 다음 단계에서 제공됩니다.
-                        </p>
+                        <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50/70 p-4">
+                          <input
+                            ref={displayVideoInputRef}
+                            type="file"
+                            accept={DISPLAY_VIDEO_UPLOAD_ACCEPTED_MIME_TYPES.join(",")}
+                            className="hidden"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) void uploadDisplayVideoFile(file);
+                            }}
+                          />
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="break-keep text-xs font-black text-zinc-950">MP4 파일을 업로드하면 메뉴링크에서 직접 재생됩니다.</p>
+                              <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+                                업로드 성공 시 현재 영상 URL 대신 업로드된 파일이 임시 반영됩니다.
+                              </p>
+                              {!canUploadDisplayVideoForPage && (
+                                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                                  새 프로모션 페이지는 먼저 저장한 뒤 동영상을 업로드할 수 있습니다.
+                                </p>
+                              )}
+                              {displaySettings.promotion.videoSource === "upload" && displaySettings.promotion.videoPath && (
+                                <p className="mt-2 break-all text-[11px] font-bold leading-relaxed text-emerald-700">
+                                  현재 업로드 영상: {displaySettings.promotion.videoPath}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              disabled={isDisplayVideoUploading || !canUploadDisplayVideoForPage}
+                              onClick={() => displayVideoInputRef.current?.click()}
+                              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                            >
+                              {isDisplayVideoUploading ? (
+                                <>
+                                  <LoadingSpinner className="h-3 w-3" />
+                                  업로드 중...
+                                </>
+                              ) : (
+                                "MP4 파일 선택"
+                              )}
+                            </button>
+                          </div>
+                          {displayVideoUploadState.message && (
+                            <p className={`mt-3 break-keep rounded-md border px-3 py-2 text-xs font-bold leading-relaxed ${displayVideoUploadMessageClassName}`}>
+                              {displayVideoUploadState.message}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
