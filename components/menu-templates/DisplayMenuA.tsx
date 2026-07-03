@@ -1155,7 +1155,7 @@ function VideoPromotion({ videoUrl }: { videoUrl: string }) {
     return (
       <video
         src={videoUrl}
-        className="absolute inset-0 h-full w-full object-cover"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         autoPlay
         muted
         loop
@@ -1170,7 +1170,7 @@ function VideoPromotion({ videoUrl }: { videoUrl: string }) {
       <iframe
         src={embedUrl}
         title="프로모션 영상"
-        className="absolute inset-0 h-full w-full"
+        className="pointer-events-none absolute inset-0 h-full w-full"
         allow="autoplay; encrypted-media; picture-in-picture"
         allowFullScreen
       />
@@ -1178,7 +1178,7 @@ function VideoPromotion({ videoUrl }: { videoUrl: string }) {
   }
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-zinc-950">
       <span className="sr-only">{videoUrl}</span>
     </div>
   );
@@ -1193,11 +1193,11 @@ function PromotionPageView({ settings }: { settings: MenuPageDisplaySettings }) 
     <section className="relative h-full w-full overflow-hidden bg-zinc-950">
       {hasImage && promotion.mediaUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={promotion.mediaUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={promotion.mediaUrl} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
       ) : hasVideo && promotion.videoUrl ? (
         <VideoPromotion videoUrl={promotion.videoUrl} />
       ) : (
-        <div className="absolute inset-0 bg-zinc-950" aria-hidden="true" />
+        <div className="pointer-events-none absolute inset-0 bg-zinc-950" aria-hidden="true" />
       )}
     </section>
   );
@@ -1255,11 +1255,11 @@ function DisplayPageIndicator({
   onSelect: (pageId: string) => void;
 }) {
   return (
-    <div className="pointer-events-none absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
+    <div className="pointer-events-none absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
       <p className="hidden rounded-full bg-slate-950/18 px-3 py-1 text-center text-[11px] font-bold leading-relaxed text-white shadow-[0_8px_24px_rgba(15,23,42,0.14)] [text-shadow:0_1px_8px_rgba(0,0,0,0.6)] md:block">
         마우스를 메뉴판 밖으로 옮기면 페이지 버튼과 언어 선택이 자동으로 숨겨집니다.
       </p>
-      <div className="pointer-events-none flex items-center gap-1.5 rounded-full border border-slate-200/75 bg-white/78 px-2.5 py-2 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md transition-opacity duration-200 group-hover:pointer-events-auto group-focus-within:pointer-events-auto">
+      <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-slate-200/75 bg-white/78 px-2.5 py-2 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md transition-opacity duration-200">
         {pages.map((displayPage, index) => {
           const isActive = activePageId === displayPage.id;
 
@@ -1362,7 +1362,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
         {showPreviewSelector && (
           <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={setSelectedPageId} />
         )}
-        <div className="pointer-events-none absolute bottom-5 right-5 z-20 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+        <div className="pointer-events-none absolute bottom-5 right-5 z-30 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
           <MenuLanguageSwitcher
             currentLocale={props.locale}
             enabledLocales={props.enabledLocales}
