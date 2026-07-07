@@ -271,7 +271,7 @@ const cafeNoirAStarterPreset: StarterPreset = {
     restaurant_address: "14, Menulink-ro, Seoul",
     restaurant_phone: "02-0000-0000",
     cover_image_url: "",
-    logo_url: "/menu-templates/cafe_noir_a/noir-logo.png",
+    logo_url: "/menu-templates/cafe_noir_a/noir-logo2.png",
     logo_path: null,
     settings: {
       logo_replaces_name: true,
