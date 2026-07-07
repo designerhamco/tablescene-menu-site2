@@ -13,13 +13,14 @@ type NavItem = {
   label: string;
   path: string;
   discount?: boolean;
+  premium?: boolean;
   disabled?: boolean;
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
   { label: '메뉴링크 베이직', path: '/services/basic', discount: true },
   { label: '메뉴링크 디스플레이', path: '/services/display', discount: true },
-  { label: '비주얼 스튜디오', path: '/branding/visual-studio', disabled: true },
+  { label: '커스텀', path: '/custom', premium: true },
 ];
 
 function DiscountChip() {
@@ -34,6 +35,14 @@ function DisabledChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold leading-none text-zinc-500">
       준비중
+    </span>
+  );
+}
+
+function PremiumChip() {
+  return (
+    <span className="inline-flex shrink-0 rounded-full border border-[#A88745]/35 bg-[#2F2418] px-1.5 py-0.5 text-[9px] font-black leading-none tracking-[0.08em] text-[#F4E7C5]">
+      PREMIUM
     </span>
   );
 }
@@ -218,7 +227,7 @@ const Navbar = () => {
   }, []);
 
   const transparentNavPaths = ['/', '/services/basic', '/services/display', '/services/menu', '/services/screen', '/services/signature', '/store'];
-  const solidNavPaths = ['/services/order', '/services/custom', '/services/simple-template', '/services/pro-v1', '/services/design-customizing'];
+  const solidNavPaths = ['/custom', '/services/order', '/services/custom', '/services/simple-template', '/services/pro-v1', '/services/design-customizing'];
   const isApplyPath = pathname === '/apply' || pathname.startsWith('/apply/');
   const navVariant = isApplyPath || solidNavPaths.includes(pathname)
     ? 'solid'
@@ -314,6 +323,7 @@ const Navbar = () => {
               >
                 <span>{item.label}</span>
                 {item.discount ? <DiscountChip /> : null}
+                {item.premium ? <PremiumChip /> : null}
                 {item.disabled ? <DisabledChip /> : null}
               </Link>
             ))}
@@ -475,6 +485,7 @@ const Navbar = () => {
                       <span>{item.label}</span>
                       <span className="flex shrink-0 items-center gap-1.5">
                         {item.discount ? <DiscountChip /> : null}
+                        {item.premium ? <PremiumChip /> : null}
                         {item.disabled ? <DisabledChip /> : null}
                       </span>
                     </Link>
