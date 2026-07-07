@@ -4,8 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-export async function POST(_request: NextRequest, context: RouteContext<"/api/notifications/[id]/read">) {
-  const { id } = await context.params;
+type NotificationReadRouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function POST(_request: NextRequest, { params }: NotificationReadRouteContext) {
+  const { id } = await params;
   const supabase = await createClient();
   const {
     data: { user },
