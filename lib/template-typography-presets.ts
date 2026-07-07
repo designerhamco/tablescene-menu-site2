@@ -9,6 +9,7 @@ import {
   getEnglishFontOption,
   getFontLoadAssets,
   getKoreanFontOption,
+  getSafeEnglishFontValueForTemplate,
   getCustomKoreanFontValue,
   isEnglishFontValue,
   isKoreanFontValue,
@@ -74,6 +75,11 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   cafe_design_a: {
     korean_font_key: "pretendard",
     english_font_key: "alata",
+    font_size_scale_key: "m",
+  },
+  cafe_noir_a: {
+    korean_font_key: "pretendard",
+    english_font_key: "cutive-mono",
     font_size_scale_key: "m",
   },
   cafe_design_b: {
@@ -230,7 +236,7 @@ export function mergeTypographySettings(templateKey?: string | null, customTypog
 
   return {
     korean_font_key: custom?.korean_font_key ?? defaults.korean_font_key,
-    english_font_key: custom?.english_font_key ?? defaults.english_font_key,
+    english_font_key: getSafeEnglishFontValueForTemplate(templateKey, custom?.english_font_key ?? defaults.english_font_key),
     font_size_scale_key: normalizeFontSizeScaleKeyForTemplate(custom?.font_size_scale_key ?? defaults.font_size_scale_key, templateKey),
   };
 }

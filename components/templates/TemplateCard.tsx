@@ -26,6 +26,42 @@ export function TemplateThumbnail({ template }: { template: TemplateCatalogItem 
   const isDark = template.thumbnailTone === "dark";
   const previewImage = template.previewImage ?? template.thumbnailUrl;
 
+  if (template.key === "cafe_noir_a") {
+    return (
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-zinc-200 bg-[#f8f8f5] p-5 text-zinc-950">
+        <div className="grid h-full grid-cols-[0.8fr_1fr_1fr] gap-4">
+          <div className="flex flex-col justify-between border-r border-zinc-900 pr-3">
+            <div className="flex">
+              <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-900 text-[11px] font-semibold">N</span>
+              <span className="-ml-2 grid h-8 w-8 place-items-center rounded-full border border-zinc-900 bg-[#f8f8f5] text-[11px] font-semibold">R</span>
+            </div>
+            <p className="text-5xl font-light uppercase leading-none tracking-[-0.12em] [writing-mode:vertical-rl]">MENU</p>
+            <div className="space-y-1 text-[6px] uppercase tracking-[0.12em] text-zinc-500">
+              <p>Cold desserts</p>
+              <p>Quiet coffee</p>
+            </div>
+          </div>
+          {[0, 1].map((column) => (
+            <div key={column} className="flex flex-col gap-4">
+              <div className="h-3 w-20 bg-zinc-950" />
+              {[0, 1].map((group) => (
+                <div key={group} className="space-y-2 border-t border-zinc-900 pt-2">
+                  <div className="h-2 w-16 bg-zinc-900" />
+                  {[0, 1, 2].map((row) => (
+                    <div key={row} className="flex items-center justify-between gap-2">
+                      <span className="h-1.5 w-16 bg-zinc-500/70" />
+                      <span className="h-1.5 w-5 bg-zinc-800" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (previewImage) {
     return (
       <div

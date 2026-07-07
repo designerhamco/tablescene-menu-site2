@@ -84,6 +84,7 @@ export const TEMPLATE_TYPE_OPTIONS_BY_SERVICE = {
 const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]> = {
   basic: [
     "cafe_design_a",
+    "cafe_noir_a",
     "cafe_design_b",
     "cafe_design_c",
     "fine_dining_design_a",
@@ -107,6 +108,7 @@ const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]>
 const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
   display_menu_a: "menu",
   cafe_design_a: "menu",
+  cafe_noir_a: "menu",
   cafe_design_b: "menu",
   cafe_design_c: "menu",
   fine_dining_design_a: "menu",
@@ -261,6 +263,10 @@ export const TEMPLATE_EDIT_CONFIG = {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
   },
+  cafe_noir_a: {
+    tabs: CAFE_DESIGN_A_EDITOR_TABS,
+    heroMode: "featured",
+  },
   display_menu_a: {
     tabs: DISPLAY_MENU_A_EDITOR_TABS,
   },
@@ -270,6 +276,7 @@ const TEMPLATE_EDIT_CONFIG_ALIASES: Record<string, keyof typeof TEMPLATE_EDIT_CO
   cafea: "cafe_design_a",
   cafe_a: "cafe_design_a",
   cafe_design_a: "cafe_design_a",
+  cafe_noir_a: "cafe_noir_a",
 };
 
 function normalizeTemplateConfigKey(templateKey: string | null | undefined) {

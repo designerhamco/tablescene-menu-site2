@@ -762,6 +762,42 @@ function getAgreementModalTitle(key: AgreementKey) {
 }
 
 function TemplatePreview({ template }: { template: TemplateCatalogItem }) {
+  if (template.key === "cafe_noir_a") {
+    return (
+      <div className="mb-4 h-44 rounded-lg border border-zinc-200 bg-[#f8f8f5] p-4 text-zinc-950">
+        <div className="grid h-full grid-cols-[0.75fr_1fr_1fr] gap-3">
+          <div className="flex flex-col justify-between border-r border-zinc-900 pr-2">
+            <div className="flex">
+              <span className="grid h-7 w-7 place-items-center rounded-full border border-zinc-900 text-[10px] font-semibold">N</span>
+              <span className="-ml-2 grid h-7 w-7 place-items-center rounded-full border border-zinc-900 bg-[#f8f8f5] text-[10px] font-semibold">R</span>
+            </div>
+            <p className="text-4xl font-light uppercase leading-none tracking-[-0.12em] [writing-mode:vertical-rl]">MENU</p>
+            <div className="space-y-1 text-[6px] uppercase tracking-[0.12em] text-zinc-500">
+              <p>Cold desserts</p>
+              <p>Quiet coffee</p>
+            </div>
+          </div>
+          {[0, 1].map((column) => (
+            <div key={column} className="flex flex-col gap-3">
+              <div className="h-2.5 w-16 bg-zinc-950" />
+              {[0, 1].map((group) => (
+                <div key={group} className="space-y-1.5 border-t border-zinc-900 pt-2">
+                  <div className="h-1.5 w-12 bg-zinc-900" />
+                  {[0, 1, 2].map((row) => (
+                    <div key={row} className="flex items-center justify-between gap-2">
+                      <span className="h-1.5 w-12 bg-zinc-500/70" />
+                      <span className="h-1.5 w-4 bg-zinc-800" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`mb-4 h-44 rounded-lg border border-zinc-100 p-4 ${getThumbnailClassName(template.thumbnailTone)}`}>
       <div className="flex h-full flex-col">

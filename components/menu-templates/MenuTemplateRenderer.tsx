@@ -10,6 +10,7 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
 
   switch (templateKey) {
     case "cafe_design_a":
+    case "cafe_noir_a":
       return <CafeDesignA {...props} />;
     case "display_menu_a":
       return <DisplayMenuA {...props} />;

@@ -24,6 +24,7 @@ export type TemplateCapabilities = {
   itemDescription: boolean;
   originInfo: boolean;
   itemBadges: boolean;
+  itemBadgeColorControl?: boolean;
   itemTraits: boolean;
   priceOptions: boolean;
   categoryPriceOptionColumns: boolean;
@@ -62,6 +63,7 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   itemDescription: true,
   originInfo: true,
   itemBadges: true,
+  itemBadgeColorControl: true,
   itemTraits: true,
   priceOptions: true,
   categoryPriceOptionColumns: false,
@@ -141,6 +143,38 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
       usesFeaturedItem: true,
     },
   },
+  cafe_noir_a: {
+    ...DEFAULT_TEMPLATE_CAPABILITIES,
+    logoImage: false,
+    brandLogo: true,
+    brandLogoReplacesName: true,
+    footerStoreInfo: true,
+    footerSocialLinks: false,
+    menuItemImages: false,
+    pageDescription: false,
+    categoryDescription: false,
+    itemDescription: true,
+    originInfo: false,
+    itemTraits: false,
+    itemBadgeColorControl: false,
+    priceOptions: false,
+    itemPortionLabel: false,
+    maxPriceOptionsPerItem: 3,
+    featuredItemHero: false,
+    chefs: false,
+    events: false,
+    socialLinks: false,
+    menuCover: {
+      coverMode: "none",
+      usesStoreName: false,
+      usesStoreDescription: false,
+      usesCoverLabel: false,
+      usesCoverTitle: false,
+      usesCoverDescription: false,
+      usesCoverImage: false,
+      usesFeaturedItem: false,
+    },
+  },
   cafe_design_b: {
     logoImage: true,
     brandLogo: false,
@@ -186,6 +220,7 @@ const TEMPLATE_CAPABILITY_ALIASES: Record<string, keyof typeof TEMPLATE_CAPABILI
   cafea: "cafe_design_a",
   cafe_a: "cafe_design_a",
   cafe_design_a: "cafe_design_a",
+  cafe_noir_a: "cafe_noir_a",
 };
 
 function normalizeTemplateCapabilityKey(templateKey: string | null | undefined) {

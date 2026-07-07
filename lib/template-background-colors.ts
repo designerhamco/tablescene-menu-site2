@@ -2,6 +2,7 @@ const FALLBACK_BACKGROUND_COLOR = "#FFFFFF";
 
 const TEMPLATE_DEFAULT_BACKGROUND_COLORS: Record<string, string> = {
   cafe_design_a: "#FFFFFF",
+  cafe_noir_a: "#FFFFFF",
   cafe_design_b: "#FFF7ED",
   cafe_design_c: "#F8FAFC",
   fine_dining_design_a: "#F7F3EA",

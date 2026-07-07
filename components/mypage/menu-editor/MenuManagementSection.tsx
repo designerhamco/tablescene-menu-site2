@@ -2655,8 +2655,12 @@ function MenuItemForm({
                 />
                 {visibleBadgeLabel && (
                   <span
-                    className="inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-black"
-                    style={getBadgeStyleCss(badgeStyles[getBadgeStyleKey(visibleBadgeLabel)])}
+                    className={
+                      capabilities.itemBadgeColorControl === false
+                        ? "inline-flex w-fit rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.04em] text-zinc-950"
+                        : "inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-black"
+                    }
+                    style={capabilities.itemBadgeColorControl === false ? undefined : getBadgeStyleCss(badgeStyles[getBadgeStyleKey(visibleBadgeLabel)])}
                   >
                     {visibleBadgeLabel}
                   </span>
@@ -2686,13 +2690,15 @@ function MenuItemForm({
                   </div>
                 </div>
               )}
-              <BadgeColorInlineSettings
-                formId={formId}
-                selectedBadgeLabel={visibleBadgeLabel}
-                forceStyleKey={isCustomBadge ? "default" : undefined}
-                badgeStyles={badgeStyles}
-                onColorChange={(patch) => updateDraftItem(patch)}
-              />
+              {capabilities.itemBadgeColorControl !== false && (
+                <BadgeColorInlineSettings
+                  formId={formId}
+                  selectedBadgeLabel={visibleBadgeLabel}
+                  forceStyleKey={isCustomBadge ? "default" : undefined}
+                  badgeStyles={badgeStyles}
+                  onColorChange={(patch) => updateDraftItem(patch)}
+                />
+              )}
             </div>
           ) : (
             <input type="hidden" name="item_badge_label" value={item ? getMenuItemBadgeLabel(item) || "none" : "none"} form={formId} />
@@ -6830,6 +6836,7 @@ function MenuItemCard({
 }) {
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const badgeStyle = badgeLabel ? badgeStyles[getBadgeStyleKey(item)] : null;
+  const usesFixedBadgePreviewStyle = capabilities.itemBadgeColorControl === false;
   const price = formatMenuPrice(item);
   const portion = capabilities.itemPortionLabel ? formatPortionLabel(item) : "";
   const priceOptionText = capabilities.priceOptions ? priceOptionSummary(priceOptions, capabilities.maxPriceOptionsPerItem) : "";
@@ -6906,7 +6913,14 @@ function MenuItemCard({
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h3 className="min-w-0 max-w-full truncate text-base font-black text-zinc-950">{item.name}</h3>
             {badgeLabel && badgeStyle && (
-              <span className="max-w-full truncate rounded-full px-3 py-1 text-xs font-bold" style={getBadgeStyleCss(badgeStyle)}>
+              <span
+                className={
+                  usesFixedBadgePreviewStyle
+                    ? "max-w-full truncate rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.04em] text-zinc-950"
+                    : "max-w-full truncate rounded-full px-3 py-1 text-xs font-bold"
+                }
+                style={usesFixedBadgePreviewStyle ? undefined : getBadgeStyleCss(badgeStyle)}
+              >
                 {badgeLabel}
               </span>
             )}

@@ -62,6 +62,8 @@ type StarterSiteDefaults = {
   restaurant_address: string;
   restaurant_phone: string;
   cover_image_url: string;
+  logo_url?: string | null;
+  logo_path?: string | null;
   settings?: Record<string, Json>;
 };
 
@@ -178,7 +180,14 @@ function item(
   name: string,
   price: number,
   description: string,
-  options: { portion_label?: string; recommended?: boolean; price_options?: StarterPriceOption[] } = {}
+  options: {
+    set_name?: string;
+    price_label?: string | null;
+    portion_label?: string;
+    badge_label?: string | null;
+    recommended?: boolean;
+    price_options?: StarterPriceOption[];
+  } = {}
 ): StarterItem {
   return { name, price, description, ...options };
 }
@@ -188,7 +197,7 @@ function isCafeDesignATemplateKey(templateKey?: string | null) {
 }
 
 function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: StarterServiceType) {
-  return !shouldUseLeanStarterPreset(serviceType) || preset === cafeDesignAStarterPreset;
+  return !shouldUseLeanStarterPreset(serviceType) || preset === cafeDesignAStarterPreset || preset === cafeNoirAStarterPreset;
 }
 
 function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefined {
@@ -245,8 +254,94 @@ const cafeDesignAStarterPreset: StarterPreset = {
   ],
 };
 
+const cafeNoirAStarterPreset: StarterPreset = {
+  key: "cafe",
+  site: {
+    restaurant_name: "NOIR CAFE",
+    restaurant_category: "카페",
+    restaurant_type: "cafe",
+    menu_cover_label: "",
+    intro_title: "NOIR CAFE",
+    intro_description: "cold desserts & coffee",
+    brand_description: "cold desserts & coffee",
+    menu_cover_title: "",
+    menu_cover_description: "",
+    about_description: "차분한 온도의 커피와 디저트를 전하는 미니멀 카페입니다.",
+    opening_hours: "Everyday 10:00 - 21:00",
+    restaurant_address: "14, Menulink-ro, Seoul",
+    restaurant_phone: "02-0000-0000",
+    cover_image_url: "",
+    logo_url: "/menu-templates/cafe_noir_a/noir-logo.png",
+    logo_path: null,
+    settings: {
+      logo_replaces_name: true,
+      footer_notice_1: "차분한 온도의 커피와 디저트를 전하는 미니멀 카페입니다.",
+      footer_notice_2: "Address · 14, Menulink-ro, Seoul",
+      footer_notice_3: "QUIET SIPS. SOFT FINISH.",
+    },
+  },
+  featured_item_name: "Vanilla Pudding",
+  sample_items_visible: true,
+  chefs: [],
+  events: [],
+  socialLinks: [],
+  pages: [
+    {
+      title: "MENU",
+      legacy_section_key: "main_menu",
+      categories: [
+        {
+          name: "HOT COFFEE",
+          section_key: "main_menu",
+          items: [
+            item("Espresso", 3800, "짙고 선명한 첫 모금", { price_label: "3.8" }),
+            item("Americano", 4500, "깔끔한 산미와 고소한 밸런스", { price_label: "4.5" }),
+            item("Flat White", 5200, "부드러운 우유와 에스프레소", { price_label: "5.2" }),
+            item("Vanilla Latte", 5800, "바닐라빈의 은은한 단맛", { price_label: "5.8" }),
+          ],
+        },
+        {
+          name: "ICED COFFEE",
+          section_key: "main_menu",
+          items: [
+            item("Iced Americano", 4500, "차갑고 산뜻한 데일리 커피", { price_label: "4.5" }),
+            item("Iced Latte", 5200, "고소한 우유와 에스프레소", { price_label: "5.2" }),
+            item("Cold Brew", 5500, "천천히 추출한 부드러운 커피", { price_label: "5.5" }),
+            item("Cream Cold Brew", 6200, "차가운 크림과 콜드브루", { price_label: "6.2" }),
+          ],
+        },
+        {
+          name: "DESSERT",
+          section_key: "dessert_drink",
+          items: [
+            item("Vanilla Pudding", 5800, "부드러운 바닐라 커스터드", { price_label: "5.8", recommended: true }),
+            item("Caramel Financier", 4200, "짭조름한 캐러멜 풍미", { price_label: "4.2", badge_label: "인기", recommended: true }),
+            item("Lemon Pound", 4800, "상큼한 레몬 아이싱", { price_label: "4.8" }),
+            item("Tiramisu Roll", 6500, "마스카포네 크림과 커피 향", { price_label: "6.5" }),
+            item("Seasonal Tart", 7200, "제철 과일과 바삭한 타르트지", { price_label: "7.2" }),
+            item("Butter Scone", 4600, "담백한 버터와 크림", { price_label: "4.6" }),
+          ],
+        },
+        {
+          name: "ADD ONS",
+          section_key: "dessert_drink",
+          items: [
+            item("Oat Milk", 800, "고소한 식물성 우유", { price_label: "+0.8" }),
+            item("Almond Milk", 800, "은은한 견과 향", { price_label: "+0.8" }),
+            item("Extra Shot", 700, "진한 한 샷 추가", { price_label: "+0.7" }),
+            item("Vanilla Syrup", 600, "바닐라 단맛", { price_label: "+0.6" }),
+            item("Ice Cream", 1500, "차가운 바닐라", { price_label: "+1.5" }),
+            item("Cream Topping", 1200, "가벼운 수제 크림", { price_label: "+1.2" }),
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
+  cafe_noir_a: cafeNoirAStarterPreset,
 };
 
 const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe: StarterPreset } = {
@@ -927,6 +1022,10 @@ function valueOrDefault(value: string | null | undefined, defaultValue: string) 
   return hasValue(value) ? value : defaultValue;
 }
 
+function valueOrNullableDefault(value: string | null | undefined, defaultValue: string | null) {
+  return hasValue(value) ? value : defaultValue;
+}
+
 function pageSettingsAreEmpty(settings: Json | null | undefined) {
   return !settings || (typeof settings === "object" && !Array.isArray(settings) && Object.keys(settings).length === 0);
 }
@@ -970,6 +1069,10 @@ async function applyStarterSiteDefaults(
 
   const existingSettings = getJsonRecord(site?.settings as Json | null | undefined);
   const nextSettings = { ...presetSettings, ...existingSettings };
+  const hasPresetLogoUrl = Object.prototype.hasOwnProperty.call(preset.site, "logo_url");
+  const hasPresetLogoPath = Object.prototype.hasOwnProperty.call(preset.site, "logo_path");
+  const presetLogoUrl = hasPresetLogoUrl ? (preset.site.logo_url ?? null) : STARTER_PLACEHOLDERS.logo;
+  const presetLogoPath = hasPresetLogoPath ? (preset.site.logo_path ?? null) : null;
 
   const payload: MenuSiteUpdate = {
     restaurant_name: valueOrDefault(site?.restaurant_name, preset.site.restaurant_name),
@@ -988,8 +1091,8 @@ async function applyStarterSiteDefaults(
     restaurant_address: valueOrDefault(site?.restaurant_address, preset.site.restaurant_address),
     restaurant_phone: valueOrDefault(site?.restaurant_phone, preset.site.restaurant_phone),
     map_url: site?.map_url ?? null,
-    logo_url: valueOrDefault(site?.logo_url, STARTER_PLACEHOLDERS.logo),
-    logo_path: site?.logo_path ?? null,
+    logo_url: valueOrNullableDefault(site?.logo_url, presetLogoUrl),
+    logo_path: valueOrNullableDefault(site?.logo_path, presetLogoPath),
     cover_image_url: valueOrDefault(site?.cover_image_url, preset.site.cover_image_url),
     cover_image_path: site?.cover_image_path ?? null,
     page_settings: pageSettingsAreEmpty(site?.page_settings) ? (starterPageSettings as unknown as Json) : site?.page_settings,

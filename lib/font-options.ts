@@ -400,6 +400,79 @@ export const ENGLISH_FONT_OPTIONS = dedupeFontOptions([
   ...RETRO_ENGLISH_FONT_LABELS.map((label) => googleEnglishFont(label, "retro", label === "Cutive Mono" || label === "VT323" ? "monospace" : "sans-serif")),
 ] as const satisfies readonly EnglishFontOption[]);
 
+const CAFE_NOIR_A_SAFE_ENGLISH_FONT_VALUES = [
+  "ysabeau-office",
+  "yaldevi",
+  "wix-madefor-text",
+  "wix-madefor-display",
+  "winky-sans",
+  "winky-rough",
+  "walter-turncoat",
+  "viga",
+  "vt323",
+  "urbanist",
+  "triodion",
+  "tomorrow",
+  "tilt-warp",
+  "tillana",
+  "teachers",
+  "tasa-explorer",
+  "stick",
+  "shadows-into-light-two",
+  "schoolbell",
+  "racing-sans-one",
+  "pompiere",
+  "poppins",
+  "poiret-one",
+  "philosopher",
+  "passero-one",
+  "pt-sans",
+  "outfit",
+  "oswald",
+  "mogra",
+  "marcellus",
+  "libertinus-sans",
+  "lancelot",
+  "lxgw-wenkai-tc",
+  "koho",
+  "klee-one",
+  "kite-one",
+  "italiana",
+  "iansui",
+  "happy-monkey",
+  "geom",
+  "forum",
+  "finger-paint",
+  "figtree",
+  "federo",
+  "federant",
+  "eb-garamond",
+  "denk-one",
+  "delius",
+  "darumadrop-one",
+  "cutive-mono",
+  "cormorant-infant",
+  "chelsea-market",
+  "caveat-brush",
+  "cause",
+  "carme",
+  "caesar-dressing",
+  "cabin",
+  "bpmf-iansui",
+  "bitcount-prop-single",
+  "bigshot-one",
+  "bellota-text",
+  "belleza",
+  "albert-sans",
+  "alata",
+  "afacad",
+  "aboreto",
+] as const satisfies readonly EnglishFontValue[];
+
+const TEMPLATE_ENGLISH_FONT_ALLOWLISTS: Record<string, readonly EnglishFontValue[]> = {
+  cafe_noir_a: CAFE_NOIR_A_SAFE_ENGLISH_FONT_VALUES,
+};
+
 const SYSTEM_ENGLISH_FONT_OPTIONS = [
   {
     label: "Outfit",
@@ -415,6 +488,7 @@ export const FALLBACK_ENGLISH_FONT_VALUE: EnglishFontValue = "outfit";
 
 export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
   cafe_design_a: "pretendard",
+  cafe_noir_a: "pretendard",
   cafe_design_b: "pretendard",
   cafe_design_c: "pretendard",
   fine_dining_design_a: "noto-serif-kr",
@@ -429,6 +503,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
 
 export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = {
   cafe_design_a: "alata",
+  cafe_noir_a: "cutive-mono",
   cafe_design_b: "outfit",
   cafe_design_c: "outfit",
   display_menu_a: "alata",
@@ -475,6 +550,29 @@ export function getDefaultKoreanFontForTemplate(templateKey?: string | null): Ko
 export function getDefaultEnglishFontForTemplate(templateKey?: string | null): EnglishFontOption {
   const defaultValue = templateKey ? TEMPLATE_DEFAULT_ENGLISH_FONTS[templateKey] : null;
   return getEnglishFontOption(defaultValue) ?? getEnglishFontOption(FALLBACK_ENGLISH_FONT_VALUE)!;
+}
+
+function getTemplateEnglishFontAllowlist(templateKey?: string | null): readonly EnglishFontValue[] | null {
+  return templateKey ? TEMPLATE_ENGLISH_FONT_ALLOWLISTS[templateKey] ?? null : null;
+}
+
+export function getAvailableEnglishFontsForTemplate(templateKey?: string | null): readonly EnglishFontOption[] {
+  const allowlist = getTemplateEnglishFontAllowlist(templateKey);
+  if (!allowlist) return ENGLISH_FONT_OPTIONS;
+
+  const safeValues = new Set(allowlist);
+  return ENGLISH_FONT_OPTIONS.filter((option) => safeValues.has(option.value));
+}
+
+export function getSafeEnglishFontValueForTemplate(templateKey?: string | null, value?: unknown): EnglishFontValue {
+  const allowlist = getTemplateEnglishFontAllowlist(templateKey);
+  const fallback = getDefaultEnglishFontForTemplate(templateKey).value;
+  const normalizedFallback = allowlist?.includes(fallback) ? fallback : "cutive-mono";
+
+  if (!isEnglishFontValue(value)) return normalizedFallback;
+  if (!allowlist) return value;
+
+  return allowlist.includes(value) ? value : normalizedFallback;
 }
 
 export function getCustomKoreanFontValue(pageSettings: unknown): KoreanFontValue | null {

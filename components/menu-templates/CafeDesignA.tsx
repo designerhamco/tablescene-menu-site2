@@ -2450,6 +2450,379 @@ function CafeLanguageHoverControl({
   );
 }
 
+function getCafeNoirMenuColumns(groups: MenuGroup[]) {
+  if (groups.length <= 4) {
+    return [
+      groups.slice(0, 2),
+      groups.slice(2, 3),
+      groups.slice(3),
+    ];
+  }
+
+  const columns: MenuGroup[][] = [[], [], []];
+  groups.forEach((group, index) => {
+    columns[index % columns.length].push(group);
+  });
+  return columns;
+}
+
+function getCafeNoirColumnBodyClassName(groupCount: number) {
+  const baseClassName = "flex h-full min-h-0 flex-col overflow-visible lg:overflow-hidden";
+
+  return groupCount > 1 ? `${baseClassName} justify-between gap-[clamp(1rem,2.35vh,1.8rem)]` : baseClassName;
+}
+
+function getCafeNoirGroupClassName() {
+  return "break-inside-avoid";
+}
+
+function getCafeNoirItemListClassName() {
+  return "space-y-[clamp(0.5rem,1.12vh,0.76rem)]";
+}
+
+const CAFE_NOIR_DESCRIPTION_TEXT_CLASS_NAME = "text-[10px] leading-relaxed";
+const CAFE_NOIR_BRAND_RAIL_TEXT = "cold desserts & coffee";
+
+function getCafeNoirTextFontClassName(value: string) {
+  const hasLatinLikeText = /[A-Za-z0-9]/.test(value);
+  const hasHangulText = /[가-힣]/.test(value);
+  return hasLatinLikeText && !hasHangulText ? "menu-font-en" : "";
+}
+
+function getCafeNoirBrandDescription(site: PublicMenuTemplateProps["menuSite"]) {
+  return site.brand_description?.trim() || CAFE_NOIR_BRAND_RAIL_TEXT;
+}
+
+function getCafeNoirSupportCopySizeClassName(value: string) {
+  const length = Array.from(value.trim()).length;
+  if (length > 42) {
+    return "max-h-full text-[clamp(24px,3.55vh,34px)] leading-[0.9]";
+  }
+  if (length > 28) {
+    return "max-h-full text-[clamp(34px,5.05vh,48px)] leading-[0.8]";
+  }
+  return "text-[clamp(42px,5.2vh,54px)] leading-[0.72]";
+}
+
+function getCafeNoirNoticeTexts(site: PublicMenuTemplateProps["menuSite"]) {
+  return {
+    intro:
+      (hasMenuSiteSetting(site, "footer_notice_1") ? getMenuSiteSettingString(site, "footer_notice_1") : site.opening_hours?.trim()) ||
+      "차분한 온도의 커피와 디저트를 전하는 미니멀 카페입니다.",
+    address:
+      (hasMenuSiteSetting(site, "footer_notice_2") ? getMenuSiteSettingString(site, "footer_notice_2") : site.restaurant_address?.trim()) ||
+      "Address · 14, Menulink-ro, Seoul",
+    footer:
+      (hasMenuSiteSetting(site, "footer_notice_3") ? getMenuSiteSettingString(site, "footer_notice_3") : site.restaurant_phone?.trim()) ||
+      "QUIET SIPS. SOFT FINISH.",
+  };
+}
+
+function getCafeNoirStoreTitle(site: PublicMenuTemplateProps["menuSite"]) {
+  const restaurantName = site.restaurant_name?.trim() || site.name?.trim();
+  return restaurantName || "NOIR CAFE";
+}
+
+function isCafeNoirStarterPlaceholderLogo(logoUrl: string | null | undefined) {
+  return logoUrl?.trim() === "/placeholders/starter/logo.svg";
+}
+
+function CafeNoirMonogram({
+  logoUrl,
+  title,
+  onLogoError,
+  className = "",
+  style,
+}: {
+  logoUrl: string | null;
+  title: string;
+  onLogoError: () => void;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  if (logoUrl) {
+    return (
+      <div className={`flex items-start justify-start ${className}`} style={style} data-noir-logo-slot="">
+        <img
+          src={logoUrl}
+          alt={`${title} 로고`}
+          className="block"
+          style={{
+            display: "block",
+            width: "100%",
+            height: "100%",
+            maxWidth: "100%",
+            maxHeight: "100%",
+            objectFit: "contain",
+            objectPosition: "left top",
+          }}
+          onError={onLogoError}
+        />
+      </div>
+    );
+  }
+
+  return <div className={className} style={style} data-noir-logo-slot="" aria-hidden="true" />;
+}
+
+function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
+  const capabilities = getTemplateCapabilities(data.menuSite.template_key);
+  const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
+  const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
+  const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
+  const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
+  const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
+  const typographyStyle = getTypographyCssVariables(typographySettings);
+  const pageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
+  const menuGroups = getFlatMenuGroups(pageGroups);
+  const menuColumns = getCafeNoirMenuColumns(menuGroups);
+  const storeTitle = getCafeNoirStoreTitle(data.menuSite);
+  const supportCopy = getCafeNoirBrandDescription(data.menuSite);
+  const supportCopySizeClassName = getCafeNoirSupportCopySizeClassName(supportCopy);
+  const supportCopyFontClassName = getCafeNoirTextFontClassName(supportCopy);
+  const notices = getCafeNoirNoticeTexts(data.menuSite);
+  const introNoticeFontClassName = getCafeNoirTextFontClassName(notices.intro);
+  const addressNoticeFontClassName = getCafeNoirTextFontClassName(notices.address);
+  const footerNoticeFontClassName = getCafeNoirTextFontClassName(notices.footer);
+  const [logoFailed, setLogoFailed] = useState(false);
+  const mobileBrandStackRef = useRef<HTMLDivElement>(null);
+  const desktopStoreTitleRef = useRef<HTMLHeadingElement>(null);
+  const [logoFitSize, setLogoFitSize] = useState({
+    mobileHeight: 52,
+    mobileWidth: 124,
+    desktopHeight: 56,
+    desktopWidth: 134,
+  });
+  const shouldShowLogo = shouldUseBrandLogo(data.menuSite, capabilities);
+  const logoUrl = shouldShowLogo && !logoFailed && !isCafeNoirStarterPlaceholderLogo(data.menuSite.logo_url) ? data.menuSite.logo_url : null;
+
+  useLayoutEffect(() => {
+    const updateLogoFitSize = () => {
+      const mobileRect = mobileBrandStackRef.current?.getBoundingClientRect();
+      const desktopRect = desktopStoreTitleRef.current?.getBoundingClientRect();
+      const nextMobileHeight = mobileRect ? Math.max(36, Math.round(mobileRect.height)) : 52;
+      const nextDesktopHeight = desktopRect ? Math.max(42, Math.round(desktopRect.height)) : 56;
+      const nextMobileWidth = mobileRect
+        ? Math.max(nextMobileHeight, Math.min(Math.round(mobileRect.width), Math.round(nextMobileHeight * 2.4)))
+        : 124;
+      const nextDesktopWidth = desktopRect ? Math.max(nextDesktopHeight, Math.min(142, Math.round(nextDesktopHeight * 2.4))) : 134;
+
+      setLogoFitSize((current) => {
+        if (
+          current.mobileHeight === nextMobileHeight &&
+          current.mobileWidth === nextMobileWidth &&
+          current.desktopHeight === nextDesktopHeight &&
+          current.desktopWidth === nextDesktopWidth
+        ) {
+          return current;
+        }
+
+        return {
+          mobileHeight: nextMobileHeight,
+          mobileWidth: nextMobileWidth,
+          desktopHeight: nextDesktopHeight,
+          desktopWidth: nextDesktopWidth,
+        };
+      });
+    };
+
+    updateLogoFitSize();
+
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateLogoFitSize);
+    if (resizeObserver) {
+      if (mobileBrandStackRef.current) resizeObserver.observe(mobileBrandStackRef.current);
+      if (desktopStoreTitleRef.current) resizeObserver.observe(desktopStoreTitleRef.current);
+    }
+    window.addEventListener("resize", updateLogoFitSize);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateLogoFitSize);
+    };
+  }, [storeTitle, supportCopy]);
+
+  return (
+    <>
+      <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
+      <main
+        className="menu-typography menu-font-ko min-h-screen overflow-x-hidden bg-[#f9f9f6] text-[#111111] lg:h-[100dvh] lg:overflow-hidden"
+        style={{ ...typographyStyle, backgroundColor: "#f9f9f6", "--noir-top-band-height": "clamp(56px,7vh,76px)" } as CSSProperties}
+      >
+        <div className="group/cafe-board relative mx-auto w-full max-w-none px-4 py-5 sm:px-7 sm:py-7 md:px-10 lg:h-full lg:p-[clamp(32px,4.2vmin,68px)] lg:pl-[clamp(26px,3.45vmin,56px)]">
+          <CafeLanguageHoverControl data={data} className="absolute right-4 top-4 z-20 sm:right-7 sm:top-7 lg:right-[clamp(32px,4.2vmin,68px)] lg:top-[clamp(32px,4.2vmin,68px)]" />
+
+          <section className="grid min-h-0 grid-cols-1 gap-6 bg-[#f9f9f6] lg:h-full lg:grid-cols-[minmax(328px,1.06fr)_minmax(0,3.08fr)] lg:gap-[clamp(28px,2.8vw,46px)]">
+            <aside className="relative min-h-0 overflow-visible border-b border-[#d8d8d2] pb-5 lg:border-b-0 lg:pb-0 lg:pl-[clamp(18px,1.7vmin,26px)] lg:pr-[clamp(10px,1.35vmin,20px)]">
+              <div className="flex items-center justify-between gap-4 lg:hidden">
+                <CafeNoirMonogram
+                  logoUrl={logoUrl}
+                  title={storeTitle}
+                  onLogoError={() => setLogoFailed(true)}
+                  className="shrink-0"
+                  style={{
+                    width: `${logoFitSize.mobileWidth}px`,
+                    height: `${logoFitSize.mobileHeight}px`,
+                    maxWidth: `${logoFitSize.mobileWidth}px`,
+                    maxHeight: `${logoFitSize.mobileHeight}px`,
+                  }}
+                />
+                <div ref={mobileBrandStackRef} className="flex min-w-0 flex-col justify-center text-right" data-noir-mobile-brand-stack="">
+                  <p className="menu-font-en text-[34px] font-semibold uppercase leading-[0.92] tracking-normal" data-noir-mobile-store-title="">{storeTitle}</p>
+                  <p className={`${supportCopyFontClassName} mt-2 break-keep text-[11px] leading-relaxed text-[#4b4b48]`} data-noir-mobile-store-description="">{supportCopy}</p>
+                </div>
+              </div>
+
+              <div className="hidden h-full min-h-0 overflow-hidden lg:grid lg:grid-rows-[var(--noir-top-band-height)_minmax(0,1fr)]">
+                <div className="menu-font-en relative min-h-0 overflow-visible">
+                  <CafeNoirMonogram
+                    logoUrl={logoUrl}
+                    title={storeTitle}
+                    onLogoError={() => setLogoFailed(true)}
+                    className="absolute left-0 top-0 h-full max-h-full w-[clamp(104px,14vh,142px)]"
+                    style={{
+                      width: `${logoFitSize.desktopWidth}px`,
+                      height: `${logoFitSize.desktopHeight}px`,
+                      maxWidth: `${logoFitSize.desktopWidth}px`,
+                      maxHeight: `${logoFitSize.desktopHeight}px`,
+                    }}
+                  />
+                  <span className="menu-font-en absolute right-0 top-1 text-right text-[10px] font-medium uppercase leading-tight tracking-[0.08em] text-[#4b4b48]">
+                    Bitter cacao
+                    <br />
+                    Quiet butter
+                    <br />
+                    Soft finish
+                  </span>
+                </div>
+
+                <div className="relative flex min-h-0 flex-1 items-stretch pb-[clamp(5px,0.9vh,10px)] pl-[clamp(3px,0.5vw,8px)] pr-[clamp(48px,4.25vw,70px)] pt-[clamp(10px,1.5vh,16px)]">
+                  <div className="flex min-h-0 items-end gap-[clamp(30px,2.45vw,46px)]">
+                    <p
+                      className="menu-font-en relative max-h-full text-[clamp(150px,26.6vh,244px)] font-light uppercase leading-[0.56] tracking-normal text-[#111111]"
+                      style={{
+                        left: "clamp(10px,0.85vw,18px)",
+                        writingMode: "vertical-rl",
+                        transform: "rotate(180deg)",
+                      } as CSSProperties}
+                      data-noir-menu-lettering=""
+                    >
+                      MENU
+                    </p>
+                    <div className="relative h-full max-h-full w-[clamp(74px,6.8vw,106px)] shrink-0 overflow-visible">
+                      <p
+                        className={`${supportCopyFontClassName} ${supportCopySizeClassName} absolute bottom-0 left-[50%] w-[clamp(450px,54vh,590px)] origin-bottom-left whitespace-nowrap break-keep font-light tracking-normal text-[#202020]`}
+                        style={{ transform: "rotate(-90deg)" } as CSSProperties}
+                        data-noir-brand-rail=""
+                      >
+                        {supportCopy}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="menu-font-en absolute bottom-[clamp(8px,1.2vh,14px)] right-0 top-[clamp(10px,1.5vh,16px)] flex flex-col items-end justify-between text-right uppercase tracking-[0.08em] text-[#5d5d58]">
+                    <p className={CAFE_NOIR_DESCRIPTION_TEXT_CLASS_NAME} style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" } as CSSProperties}>House brew line</p>
+                    <p className={CAFE_NOIR_DESCRIPTION_TEXT_CLASS_NAME} style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" } as CSSProperties}>Daily sweet selection</p>
+                    <p className={CAFE_NOIR_DESCRIPTION_TEXT_CLASS_NAME} style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" } as CSSProperties}>02 730 0000</p>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            {menuGroups.length === 0 ? (
+              <section>
+                <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
+              </section>
+            ) : (
+              <section className="min-h-0 overflow-visible lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
+                <div className="hidden min-h-0 shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)] gap-[clamp(28px,2.8vw,46px)] lg:mb-[clamp(14px,1.9vh,21px)] lg:grid lg:h-[var(--noir-top-band-height)] lg:items-start">
+	                  <p className={`${introNoticeFontClassName} max-w-[16rem] text-[10px] font-medium leading-relaxed text-[#5b5b55]`}>
+	                    {notices.intro}
+	                  </p>
+	                  <p className={`${addressNoticeFontClassName} max-w-[16rem] text-[10px] font-medium leading-relaxed text-[#5b5b55]`}>{notices.address}</p>
+                  <h1 ref={desktopStoreTitleRef} className="menu-font-en w-full whitespace-nowrap text-right text-[clamp(31px,3.05vw,44px)] font-semibold uppercase leading-[0.9] tracking-normal text-[#101010] xl:text-[clamp(45px,3.5vw,54px)] 2xl:text-[clamp(54px,3.9vw,62px)]">
+                    {storeTitle}
+                  </h1>
+                </div>
+
+                <div className="grid min-h-0 grid-cols-1 gap-6 overflow-visible lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)] lg:gap-[clamp(28px,2.8vw,46px)] lg:overflow-hidden">
+                  {menuColumns.map((columnGroups) => (
+                    <section key={`noir-column-${columnGroups.map((group) => group.category.id).join("-")}`} className="flex min-h-0 flex-col overflow-visible border-b border-[#deded8] pb-5 last:border-b-0 lg:h-full lg:overflow-hidden lg:border-b-0 lg:pb-0">
+                      <div className={getCafeNoirColumnBodyClassName(columnGroups.length)}>
+                        {columnGroups.map((group, groupIndex) => {
+                          const categoryNumber = String(menuGroups.findIndex((candidate) => candidate.category.id === group.category.id) + 1).padStart(2, "0");
+                          const hasMobileGroupDivider = groupIndex > 0;
+                          return (
+                            <section
+                              key={group.category.id}
+                              className={`${getCafeNoirGroupClassName()} ${hasMobileGroupDivider ? "border-t border-[#deded8] pt-5 lg:border-t-0 lg:pt-0" : ""}`}
+                            >
+                              <div className="mb-[clamp(0.52rem,1.05vh,0.72rem)] flex items-baseline gap-2 pb-0">
+                                <h2 className="menu-font-en text-[clamp(18px,2.15vh,21px)] font-black uppercase tracking-[0.025em] text-[#111111]">
+                                  {categoryNumber} - {group.category.name}
+                                </h2>
+                              </div>
+                              <ul className={getCafeNoirItemListClassName()}>
+                                {group.items.map((item) => {
+                                  const price =
+                                    item.price_visible === false
+                                      ? null
+                                      : getItemPriceDisplay(item, data.priceOptions, capabilities, {
+                                          showOptionLabel: false,
+                                          dedupeSamePrices: true,
+                                        });
+                                  const metaText = getMenuItemMetaText(item, data.locale);
+                                  const badgeLabel = getMenuItemBadgeLabel(item);
+
+                                  return (
+                                    <li key={item.id} className="text-[#161616]">
+                                      <div className="flex min-w-0 items-baseline gap-2">
+                                        <div className="flex min-w-0 max-w-[72%] flex-wrap items-baseline gap-x-2 gap-y-1">
+                                          <p className="menu-font-en min-w-0 max-w-full whitespace-normal break-words text-[clamp(15px,1.68vh,16px)] font-semibold leading-tight tracking-[-0.002em]">{item.name}</p>
+                                          {badgeLabel && (
+                                            <span className="menu-font-en shrink-0 rounded-full border border-[#1f1f1f] px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]">
+                                              {badgeLabel}
+                                            </span>
+                                          )}
+                                        </div>
+                                        {price && (
+                                          <span
+                                            className="mb-[4px] h-px min-w-4 flex-1 opacity-80"
+                                            style={{
+                                              backgroundImage: "radial-gradient(circle, #8a8a82 1px, transparent 1.35px)",
+                                              backgroundPosition: "left center",
+                                              backgroundRepeat: "repeat-x",
+                                              backgroundSize: "7px 1px",
+                                            }}
+                                            aria-hidden="true"
+                                          />
+                                        )}
+                                        {price && <p className="menu-font-en shrink-0 pt-[1px] text-right text-[clamp(14px,1.58vh,15px)] font-medium tabular-nums tracking-[-0.002em]">{price}</p>}
+                                      </div>
+                                      {metaText && <p className="menu-font-en mt-0.5 text-[10px] uppercase tracking-[0.08em] text-[#76766f]">{metaText}</p>}
+                                      {item.description && <p className={`mt-0.5 truncate text-[#676760] ${CAFE_NOIR_DESCRIPTION_TEXT_CLASS_NAME}`}>{item.description}</p>}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </section>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+
+	                <p className={`${footerNoticeFontClassName} hidden shrink-0 pt-[clamp(6px,1vh,10px)] text-right uppercase tracking-[0.08em] text-[#686862] lg:block ${CAFE_NOIR_DESCRIPTION_TEXT_CLASS_NAME}`}>
+	                  {notices.footer}
+	                </p>
+              </section>
+            )}
+          </section>
+        </div>
+      </main>
+    </>
+  );
+}
+
 function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; className?: string }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
@@ -2757,7 +3130,7 @@ function OrderedBalancedFitMenuGrid({
   );
 }
 
-export default function CafeDesignA(data: PublicMenuTemplateProps) {
+function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   // Basic engine wiring: capabilities, layout mode, visibility, density, and fit state.
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
@@ -4321,4 +4694,12 @@ export default function CafeDesignA(data: PublicMenuTemplateProps) {
       </main>
     </>
   );
+}
+
+export default function CafeDesignA(data: PublicMenuTemplateProps) {
+  if (data.menuSite.template_key === "cafe_noir_a") {
+    return <CafeNoirA data={data} />;
+  }
+
+  return <CafeDesignAClassic {...data} />;
 }

@@ -4927,11 +4927,18 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       menu_site_id: menuId,
       menu_page_id: resolvedPageId,
       name: category.name,
-      description: category.description || null,
-      description_visible: Boolean(category.description && category.descriptionVisible),
       section_key: getMenuPageSectionKey(menuPage.legacy_section_key),
       sort_order: category.sortOrder,
       visible: category.visible,
+      ...(templateCapabilities.categoryDescription
+        ? {
+            description: category.description || null,
+            description_visible: Boolean(category.description && category.descriptionVisible),
+          }
+        : {
+            description: null,
+            description_visible: false,
+          }),
     };
 
     const { data, error } = await supabase.from("menu_categories").insert(payload).select("id").single();
@@ -4952,20 +4959,22 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         isNew: category.isNew === true,
       }))
       .filter((category) => category.id && !category.isNew && !categoryIdDeleteSet.has(category.id))
-      .map((category) =>
-        supabase
-          .from("menu_categories")
-          .update({
-            name: category.name,
-            description: category.description || null,
-            description_visible: Boolean(category.description && category.descriptionVisible),
-            visible: category.visible,
-            sort_order: category.sortOrder,
-            updated_at: now,
-          })
-          .eq("id", category.id)
-          .eq("menu_site_id", menuId)
-      )
+      .map((category) => {
+        const payload: MenuCategoryUpdate = {
+          name: category.name,
+          visible: category.visible,
+          sort_order: category.sortOrder,
+          updated_at: now,
+          ...(templateCapabilities.categoryDescription
+            ? {
+                description: category.description || null,
+                description_visible: Boolean(category.description && category.descriptionVisible),
+              }
+            : {}),
+        };
+
+        return supabase.from("menu_categories").update(payload).eq("id", category.id).eq("menu_site_id", menuId);
+      })
   );
   const categoryError = categoryResults.find((result) => result.error)?.error;
   if (categoryError) redirectToMenuEditWithError(menuId, `카테고리 draft 저장에 실패했습니다: ${categoryError.message}`);

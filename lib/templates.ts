@@ -14,6 +14,7 @@ export const TEMPLATE_CATEGORIES = [
     label: "카페",
     templates: [
       { key: "cafe_design_a", label: "오브 커피", design: "design_a" },
+      { key: "cafe_noir_a", label: "누아 메뉴", design: "design_a" },
       { key: "cafe_design_b", label: "Cafe Design B", design: "design_b" },
       { key: "cafe_design_c", label: "Cafe Design C", design: "design_c" },
     ],
@@ -211,13 +212,15 @@ const templateDescriptionByDesign: Record<TemplateDesignKey, string> = {
 
 const templateDescriptionByKey: Partial<Record<string, string>> = {
   cafe_design_a: "차분한 카페 무드에 어울리는 기본 메뉴판 템플릿입니다.\n메뉴가 많아도 깔끔하게 정리해 보여주기 좋습니다.",
+  cafe_noir_a: "화이트 배경과 절제된 타이포그래피로 구성한 에디토리얼 카페 메뉴판입니다.\n커피와 디저트 메뉴를 여러 열로 정갈하게 보여줍니다.",
   display_menu_a: "시원하고 선명한 화면 구성이 돋보이는 디스플레이 템플릿입니다.\n카페와 베이커리 매장의 메뉴를 TV·모니터에 보기 좋게 보여줍니다.",
 };
 
-const availableTemplateKeys = ["cafe_design_a", "display_menu_a"] as const satisfies readonly string[];
+const availableTemplateKeys = ["cafe_design_a", "cafe_noir_a", "display_menu_a"] as const satisfies readonly string[];
 
 const featuredHomeTemplateKeys = [
   "cafe_design_a",
+  "cafe_noir_a",
   "cafe_design_b",
   "cafe_design_c",
   "casual_dining_design_a",
@@ -225,6 +228,7 @@ const featuredHomeTemplateKeys = [
 
 const featuredBasicTemplateKeys = [
   "cafe_design_a",
+  "cafe_noir_a",
   "cafe_design_b",
   "cafe_design_c",
   "fine_dining_design_a",

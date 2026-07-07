@@ -979,6 +979,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const supportsBasicBrandDescription = site.template_key !== "display_menu_a";
   const supportsBrandLogo = templateCapabilities.logoImage || templateCapabilities.brandLogo;
   const supportsBrandLogoReplacesName = templateCapabilities.brandLogo && templateCapabilities.brandLogoReplacesName;
+  const usesSeparateLogoSlot = site.template_key === "cafe_noir_a";
+  const logoReplacesNameLabel = usesSeparateLogoSlot ? "공개 메뉴판에 로고 표시" : "공개 메뉴판에서 매장명 대신 로고를 표시";
+  const logoReplacesNameDescription = usesSeparateLogoSlot
+    ? "로고가 등록되어 있고 이 옵션이 켜져 있으면, 공개 메뉴판의 로고 영역에 로고가 표시됩니다."
+    : "로고가 등록되어 있고 이 옵션이 켜져 있으면, 공개 메뉴판의 매장명 위치에 로고가 표시됩니다.";
   const supportsFooterStoreInfo = templateCapabilities.footerStoreInfo;
   const logoReplacesName = siteSettings.logo_replaces_name === true;
   const hasFooterNotice1 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_1");
@@ -1370,8 +1375,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                               <input type="hidden" name="logo_replaces_name_present" value="1" />
                               <SwitchField
                                 name="logo_replaces_name"
-                                label="공개 메뉴판에서 매장명 대신 로고를 표시"
-                                description="로고가 등록되어 있고 이 옵션이 켜져 있으면, 공개 메뉴판의 매장명 위치에 로고가 표시됩니다."
+                                label={logoReplacesNameLabel}
+                                description={logoReplacesNameDescription}
                                 defaultChecked={logoReplacesName}
                                 onText="로고 표시"
                                 offText="매장명 표시"

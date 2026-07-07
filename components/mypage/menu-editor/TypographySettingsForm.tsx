@@ -6,12 +6,13 @@ import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAsset
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import {
   ENGLISH_FONT_CATEGORY_OPTIONS,
-  ENGLISH_FONT_OPTIONS,
   KOREAN_FONT_CATEGORY_OPTIONS,
   KOREAN_FONT_OPTIONS,
+  getAvailableEnglishFontsForTemplate,
   getEnglishFontOption,
   getFontLoadAssets,
   getKoreanFontOption,
+  getSafeEnglishFontValueForTemplate,
   type EnglishFontOption,
   type EnglishFontValue,
   type FontCategoryKey,
@@ -155,15 +156,23 @@ export default function TypographySettingsForm({
   const showFontSizeControl = getTemplateCapabilities(templateKey).typographyFontSizeControl === "simple";
   const fontSizeScaleOptions = getFontSizeScaleOptionsForTemplate(templateKey);
   const initialDisplaySafeFontSizeScale = normalizeFontSizeScaleKeyForTemplate(initialFontSizeScale, templateKey);
+  const englishFontOptions = useMemo(() => getAvailableEnglishFontsForTemplate(templateKey), [templateKey]);
+  const safeDefaultEnglishFont = useMemo(
+    () => getEnglishFontOption(getSafeEnglishFontValueForTemplate(templateKey, defaultEnglishFont.value)) ?? defaultEnglishFont,
+    [defaultEnglishFont, templateKey],
+  );
   const [selectedFontValue, setSelectedFontValue] = useState<KoreanFontValue | "">(hasCustomKoreanFont ? initialFont.value : "");
   const [selectedEnglishFontValue, setSelectedEnglishFontValue] = useState<EnglishFontValue | "">(
-    hasCustomEnglishFont ? initialEnglishFont.value : "",
+    hasCustomEnglishFont ? getSafeEnglishFontValueForTemplate(templateKey, initialEnglishFont.value) : "",
   );
   const [selectedFontSizeScale, setSelectedFontSizeScale] = useState<FontSizeScaleKey>(initialDisplaySafeFontSizeScale);
+  const safeSelectedEnglishFontValue = selectedEnglishFontValue
+    ? getSafeEnglishFontValueForTemplate(templateKey, selectedEnglishFontValue)
+    : "";
   const previewKoreanFont = useMemo(() => getKoreanFontOption(selectedFontValue) ?? defaultFont, [defaultFont, selectedFontValue]);
   const previewEnglishFont = useMemo(
-    () => getEnglishFontOption(selectedEnglishFontValue) ?? defaultEnglishFont,
-    [defaultEnglishFont, selectedEnglishFontValue],
+    () => getEnglishFontOption(safeSelectedEnglishFontValue) ?? safeDefaultEnglishFont,
+    [safeDefaultEnglishFont, safeSelectedEnglishFontValue],
   );
   const previewFontSizeScale = getFontSizeMultiplier(selectedFontSizeScale, templateKey);
   const editorFontAssets = useMemo(
@@ -192,10 +201,10 @@ export default function TypographySettingsForm({
             label="영문 / 숫자 폰트"
             description="영문 보조명, 가격, HOT/ICE, 텍스트칩에 적용됩니다."
             name="english_font_key"
-            options={ENGLISH_FONT_OPTIONS}
+            options={englishFontOptions}
             categoryOptions={ENGLISH_FONT_CATEGORY_OPTIONS}
-            value={selectedEnglishFontValue}
-            defaultOption={defaultEnglishFont}
+            value={safeSelectedEnglishFontValue}
+            defaultOption={safeDefaultEnglishFont}
             formId={formId}
             onChange={setSelectedEnglishFontValue}
           />

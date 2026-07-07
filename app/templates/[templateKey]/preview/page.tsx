@@ -128,7 +128,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       template_category: template.template_category,
       status: "published",
       description: template.description,
-      logo_url: null,
+      logo_url: template.key === "cafe_noir_a" ? (preset.site.logo_url ?? null) : null,
       cover_image_url: preset.site.cover_image_url,
       intro_image_url: null,
       brand_color: "#111111",
