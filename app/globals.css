@@ -531,6 +531,10 @@ video {
     margin-top: clamp(0.25rem, calc(0.5rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 0.5rem);
   }
 
+  .cafe-a-typography .cafe-a-category-items {
+    padding-top: clamp(0.25rem, calc(0.42rem * var(--fit-menu-gap-scale) * var(--ordered-fit-final-fill-compensation)), 0.55rem);
+  }
+
   .cafe-a-typography .cafe-a-menu-item-stack {
     break-inside: avoid;
     page-break-inside: avoid;
@@ -543,6 +547,10 @@ video {
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-category-heading {
     margin-bottom: clamp(0.34rem, calc(0.75rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--ordered-fit-final-fill-compensation) * 0.76), 0.78rem);
+  }
+
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-category-items {
+    padding-top: clamp(0.3rem, calc(0.5rem * var(--fit-menu-gap-scale)), 0.62rem);
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-menu-item-stack {
