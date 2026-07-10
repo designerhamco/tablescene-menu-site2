@@ -511,6 +511,60 @@ export type Database = {
           },
         ]
       }
+      menu_category_price_columns: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          key: string
+          label: string
+          menu_site_id: string
+          settings: Json
+          sort_order: number
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          key: string
+          label: string
+          menu_site_id: string
+          settings?: Json
+          sort_order?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          key?: string
+          label?: string
+          menu_site_id?: string
+          settings?: Json
+          sort_order?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_category_price_columns_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_category_price_columns_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_category_translations: {
         Row: {
           category_id: string
@@ -791,6 +845,57 @@ export type Database = {
           },
         ]
       }
+      menu_item_price_column_values: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string
+          price: number | null
+          price_column_id: string
+          price_label: string | null
+          settings: Json
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          price?: number | null
+          price_column_id: string
+          price_label?: string | null
+          settings?: Json
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          price?: number | null
+          price_column_id?: string
+          price_label?: string | null
+          settings?: Json
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_price_column_values_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_item_price_column_values_price_column_id_fkey"
+            columns: ["price_column_id"]
+            isOneToOne: false
+            referencedRelation: "menu_category_price_columns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_item_price_option_translations: {
         Row: {
           created_at: string
@@ -996,6 +1101,7 @@ export type Database = {
           origin_info: string | null
           portion_label: string | null
           price_label: string | null
+          price_note: string | null
           set_name: string | null
           source_text_hash: string | null
           status: string
@@ -1012,6 +1118,7 @@ export type Database = {
           origin_info?: string | null
           portion_label?: string | null
           price_label?: string | null
+          price_note?: string | null
           set_name?: string | null
           source_text_hash?: string | null
           status?: string
@@ -1028,6 +1135,7 @@ export type Database = {
           origin_info?: string | null
           portion_label?: string | null
           price_label?: string | null
+          price_note?: string | null
           set_name?: string | null
           source_text_hash?: string | null
           status?: string
@@ -1065,6 +1173,7 @@ export type Database = {
           portion_visible: boolean
           price: number
           price_label: string | null
+          price_note: string | null
           price_visible: boolean
           recommended: boolean
           set_name: string | null
@@ -1095,6 +1204,7 @@ export type Database = {
           portion_visible?: boolean
           price?: number
           price_label?: string | null
+          price_note?: string | null
           price_visible?: boolean
           recommended?: boolean
           set_name?: string | null
@@ -1125,6 +1235,7 @@ export type Database = {
           portion_visible?: boolean
           price?: number
           price_label?: string | null
+          price_note?: string | null
           price_visible?: boolean
           recommended?: boolean
           set_name?: string | null
