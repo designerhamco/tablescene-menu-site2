@@ -40,6 +40,7 @@ type MenuPage = PublicMenuTemplateProps["pages"][number];
 type PriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type PublicTimeSale = PublicMenuTemplateProps["timeSales"][number];
 type PublicTimeSaleItem = PublicTimeSale["items"][number];
+type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
 type CafeDesignAPriceToken = {
   label: string;
   price: string;
@@ -1840,6 +1841,85 @@ function getItemPriceTokens(
   ];
 }
 
+function getVisibleCategoryPriceColumns(category: MenuCategory) {
+  return category.priceColumns
+    .filter((column) => column.visible)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .slice(0, 3);
+}
+
+function getVisibleItemPriceColumnValueMap(item: MenuItem, category: MenuCategory) {
+  const visibleColumnIds = new Set(getVisibleCategoryPriceColumns(category).map((column) => column.id));
+  const values = new Map<string, PublicItemPriceColumnValue>();
+
+  for (const value of item.priceColumnValues) {
+    if (!value.visible || value.price == null || !visibleColumnIds.has(value.priceColumnId)) continue;
+    values.set(value.priceColumnId, value);
+  }
+
+  return values;
+}
+
+function formatPriceColumnValue(value: PublicItemPriceColumnValue) {
+  const priceLabel = value.priceLabel?.trim();
+  if (priceLabel) return priceLabel;
+
+  if (typeof value.price === "number" && Number.isFinite(value.price)) {
+    return new Intl.NumberFormat("ko-KR").format(value.price) + "원";
+  }
+
+  return "";
+}
+
+function getItemPriceColumnTokens(item: MenuItem, category: MenuCategory): CafeDesignAPriceToken[] {
+  if (item.price_visible === false) return [];
+
+  const columns = getVisibleCategoryPriceColumns(category);
+  if (columns.length === 0) return [];
+
+  const valueByColumnId = getVisibleItemPriceColumnValueMap(item, category);
+  if (valueByColumnId.size === 0) return [];
+
+  return columns
+    .map((column) => {
+      const value = valueByColumnId.get(column.id);
+      const price = value ? formatPriceColumnValue(value) : "";
+      return {
+        label: column.label.trim(),
+        price,
+      };
+    })
+    .filter((token) => token.label || token.price);
+}
+
+function getItemPriceTokensForCategory(
+  item: MenuItem,
+  category: MenuCategory,
+  priceOptions: PublicMenuTemplateProps["priceOptions"],
+  capabilities: TemplateCapabilities,
+) {
+  const columnPriceTokens = getItemPriceColumnTokens(item, category);
+  if (columnPriceTokens.some((token) => token.price)) {
+    return {
+      priceTokens: columnPriceTokens,
+      usesPriceColumns: true,
+    };
+  }
+
+  return {
+    priceTokens: getItemPriceTokens(item, priceOptions, capabilities),
+    usesPriceColumns: false,
+  };
+}
+
+function getItemPriceColumnDisplay(item: MenuItem, category: MenuCategory, options: { showOptionLabel?: boolean } = {}) {
+  const showOptionLabel = options.showOptionLabel ?? true;
+  const tokens = getItemPriceColumnTokens(item, category).filter((token) => token.price);
+  if (tokens.length === 0) return null;
+
+  return tokens.map((token) => (showOptionLabel && token.label ? `${token.label} ${token.price}` : token.price)).join(" / ");
+}
+
 function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
   return templateKey === "cafe_design_a";
 }
@@ -2097,7 +2177,7 @@ function estimateMenuGroupHeight(
 ) {
   const headingWeight = 1.9 + (group.category.description_visible && group.category.description ? 0.75 : 0);
   const itemWeight = group.items.reduce((weight, item) => {
-    const priceTokens = getItemPriceTokens(item, data.priceOptions, capabilities);
+    const { priceTokens } = getItemPriceTokensForCategory(item, group.category, data.priceOptions, capabilities);
     const traits = getItemTraits(data.traits, item.id);
     const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
 
@@ -2319,6 +2399,34 @@ function CategoryTitle({ category, density }: { category: MenuCategory; density:
   );
 }
 
+function CategoryPriceColumnHeader({
+  category,
+  items,
+}: {
+  category: MenuCategory;
+  items: MenuItem[];
+}) {
+  const columns = getVisibleCategoryPriceColumns(category);
+  if (columns.length === 0) return null;
+
+  const hasColumnPriceValues = items.some((item) => getVisibleItemPriceColumnValueMap(item, category).size > 0);
+  if (!hasColumnPriceValues) return null;
+
+  return (
+    <div
+      className="menu-font-en cafe-a-price-column-header"
+      style={{ "--cafe-a-price-column-count": columns.length } as CSSProperties}
+      aria-label="가격 옵션 컬럼"
+    >
+      {columns.map((column) => (
+        <span key={column.id} className="cafe-a-price-column-heading">
+          {column.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Badge({
   item,
   capabilities,
@@ -2375,6 +2483,7 @@ function HeroOverlayBadge({
 
 function MenuItemRow({
   item,
+  category,
   priceOptions,
   traits,
   capabilities,
@@ -2385,6 +2494,7 @@ function MenuItemRow({
   locale,
 }: {
   item: MenuItem;
+  category: MenuCategory;
   priceOptions: PublicMenuTemplateProps["priceOptions"];
   traits: PublicMenuTemplateProps["traits"];
   capabilities: TemplateCapabilities;
@@ -2394,8 +2504,9 @@ function MenuItemRow({
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
 }) {
-  const priceTokens = getItemPriceTokens(item, priceOptions, capabilities);
+  const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities);
   const showTimeSale =
+    !usesPriceColumns &&
     isCafeDesignATimeSaleTemplate(templateKey) &&
     item.price_visible !== false &&
     priceTokens.length === 1 &&
@@ -2443,7 +2554,7 @@ function MenuItemRow({
     ultraCompact: "cafe-a-menu-description-size-ultra-compact",
   }[density];
   const metaText = getMenuItemMetaText(item, locale);
-  const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}`;
+  const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}${usesPriceColumns ? " cafe-a-menu-item-has-price-columns" : ""}`;
 
   return (
     <article className={`cafe-a-menu-item grid items-start ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
@@ -2470,7 +2581,21 @@ function MenuItemRow({
         )}
         {capabilities.originInfo && item.origin_info && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info}</p>}
       </div>
-      {priceTokens.length > 0 && (
+      {priceTokens.length > 0 && usesPriceColumns && (
+        <div
+          className="menu-price cafe-a-price-columns-grid shrink-0 text-right text-[#191c1b] lg:justify-self-end"
+          style={{ "--cafe-a-price-column-count": priceTokens.length } as CSSProperties}
+          data-cafe-a-menu-price=""
+          data-cafe-a-price-columns=""
+        >
+          {priceTokens.map((token, index) => (
+            <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-column-cell">
+              {token.price ? <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span> : <span aria-hidden="true">&nbsp;</span>}
+            </span>
+          ))}
+        </div>
+      )}
+      {priceTokens.length > 0 && !usesPriceColumns && (
         <div className="menu-price cafe-a-price-stack cafe-a-price-inline flex shrink-0 flex-wrap items-baseline justify-end text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
           {priceTokens.map((token, index) => (
             <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-token inline-flex items-baseline whitespace-nowrap">
@@ -2511,8 +2636,12 @@ function CoverHero({
   customBadgeStyles: unknown;
   desktopClassName?: string;
 }) {
+  const featuredCategory = featuredItem ? data.categories.find((category) => category.id === featuredItem.category_id) ?? null : null;
   const price = featuredItem
-    ? getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true })
+    ? featuredCategory
+      ? getItemPriceColumnDisplay(featuredItem, featuredCategory, { showOptionLabel: false }) ??
+        getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true })
+      : getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true })
     : null;
   const featuredBadgeLabel = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : "";
   const coverImageUrl = data.menuSite.cover_image_url;
@@ -3118,11 +3247,13 @@ function MenuGroupsGrid({
           {pageGroup.groups.map(({ page, category, items }) => (
             <section key={`${page.id}-${category.id}`} className="cafe-a-menu-category-block min-w-0" data-cafe-a-category-block="">
               <CategoryTitle category={category} density={density} />
+              <CategoryPriceColumnHeader category={category} items={items} />
               <div className="cafe-a-category-items">
                 {items.map((item) => (
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                     <MenuItemRow
                       item={item}
+                      category={category}
                       priceOptions={data.priceOptions}
                       traits={getItemTraits(data.traits, item.id)}
                       capabilities={capabilities}
@@ -3205,11 +3336,13 @@ function BalancedExperimentalMenuGrid({
               data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
             >
               <CategoryTitle category={category} density={density} />
+              <CategoryPriceColumnHeader category={category} items={items} />
               <div className="cafe-a-category-items">
                 {items.map((item) => (
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                     <MenuItemRow
                       item={item}
+                      category={category}
                       priceOptions={data.priceOptions}
                       traits={getItemTraits(data.traits, item.id)}
                       capabilities={capabilities}
@@ -3294,11 +3427,13 @@ function OrderedBalancedFitMenuGrid({
                 data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
               >
                 <CategoryTitle category={category} density={density} />
+                <CategoryPriceColumnHeader category={category} items={items} />
                 <div className="cafe-a-category-items">
                   {items.map((item) => (
                     <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                       <MenuItemRow
                         item={item}
+                        category={category}
                         priceOptions={data.priceOptions}
                         traits={getItemTraits(data.traits, item.id)}
                         capabilities={capabilities}

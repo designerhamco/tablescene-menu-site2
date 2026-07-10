@@ -4739,7 +4739,8 @@ async function syncMenuTimeSalesFromDrafts({
   }
 
   if (!missingPriceColumnValuesTable && (priceColumnValueCount ?? 0) > 0) {
-    redirectToMenuEditWithError(menuId, "옵션 컬럼 가격 메뉴는 타임세일 MVP에서 지원하지 않습니다.");
+    await deleteMenuTimeSalePromotions(supabase, menuId);
+    return;
   }
 
   const { data: existingPromotions, error: existingPromotionsError } = await supabase
@@ -5374,6 +5375,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     validateOptionalText(menuId, priceLabel || null, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
     if (templateCapabilities.itemPortionLabel) {
       validateOptionalText(menuId, portionLabel || null, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
+    }
+    if (canManageCategoryPriceColumns && Array.isArray(item.priceOptions) && item.priceOptions.length > 0) {
+      redirectToMenuEditWithError(menuId, "오브 커피 신규 편집에서는 옵션별 가격 대신 카테고리 옵션 컬럼 가격을 사용해주세요.");
     }
     if (templateCapabilities.priceOptions && Array.isArray(item.priceOptions)) {
       assertPriceOptionLimit(menuId, item.priceOptions.length, maxPriceOptionsPerItem);

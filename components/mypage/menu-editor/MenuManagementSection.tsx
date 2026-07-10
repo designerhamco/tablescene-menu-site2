@@ -2472,9 +2472,17 @@ function MenuItemForm({
   const maxPriceOptionsPerItem = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
   const currentPriceMode = capabilities.priceOptions ? requestedPriceMode : "single";
   const usesCategoryPriceOptionColumns = Boolean(capabilities.categoryPriceOptionColumns && capabilities.priceOptions);
-  const normalizedCategoryPriceOptionLabels = normalizeDraftPriceOptionLabels(categoryPriceOptionLabels, maxPriceOptionsPerItem);
-  const isOptionsMode = usesCategoryPriceOptionColumns ? normalizedCategoryPriceOptionLabels.length > 0 : currentPriceMode === "options";
-  const isSingleMode = !isOptionsMode;
+  const usesLegacyCategoryPriceOptionColumns = usesCategoryPriceOptionColumns && !canManageCategoryPriceColumns;
+  const hasCategoryPriceColumns = canManageCategoryPriceColumns && currentCategoryPriceColumns.length > 0;
+  const normalizedCategoryPriceOptionLabels = useMemo(
+    () =>
+      usesLegacyCategoryPriceOptionColumns
+        ? normalizeDraftPriceOptionLabels(categoryPriceOptionLabels, maxPriceOptionsPerItem)
+        : [],
+    [categoryPriceOptionLabels, maxPriceOptionsPerItem, usesLegacyCategoryPriceOptionColumns]
+  );
+  const isOptionsMode = usesLegacyCategoryPriceOptionColumns ? normalizedCategoryPriceOptionLabels.length > 0 : !canManageCategoryPriceColumns && currentPriceMode === "options";
+  const isSingleMode = !hasCategoryPriceColumns && !isOptionsMode;
   const supportsPortionLabel = capabilities.itemPortionLabel;
   const priceOptionLimitMessage = getPriceOptionLimitMessage(labels, maxPriceOptionsPerItem);
   const formId = item ? `menu-item-form-${item.id}` : "menu-item-form-new";
@@ -2516,7 +2524,7 @@ function MenuItemForm({
         .sort((a, b) => a.sort_order - b.sort_order)
         .map(toDraftPriceOption);
 
-    if (usesCategoryPriceOptionColumns && normalizedCategoryPriceOptionLabels.length > 0) {
+    if (usesLegacyCategoryPriceOptionColumns && normalizedCategoryPriceOptionLabels.length > 0) {
       const sourceOptionByLabel = new Map(
         sourceOptions.map((option) => [option.label.trim().toLocaleUpperCase("ko-KR"), option])
       );
@@ -2540,7 +2548,7 @@ function MenuItemForm({
   const [descriptionOverwritePending, setDescriptionOverwritePending] = useState(false);
   const [portionLabelValue, setPortionLabelValue] = useState(draftItem?.portionLabel ?? item?.portion_label ?? "");
   const effectiveDraftPriceOptions = useMemo(() => {
-    if (!usesCategoryPriceOptionColumns || normalizedCategoryPriceOptionLabels.length === 0) return draftPriceOptions;
+    if (!usesLegacyCategoryPriceOptionColumns || normalizedCategoryPriceOptionLabels.length === 0) return draftPriceOptions;
     const draftOptionByLabel = new Map(
       draftPriceOptions.map((option) => [option.label.trim().toLocaleUpperCase("ko-KR"), option])
     );
@@ -2548,7 +2556,7 @@ function MenuItemForm({
     return normalizedCategoryPriceOptionLabels.map((label, index) =>
       toDraftPriceOptionFromColumn(label, index, draftOptionByLabel.get(label.toLocaleUpperCase("ko-KR")))
     );
-  }, [draftPriceOptions, normalizedCategoryPriceOptionLabels, usesCategoryPriceOptionColumns]);
+  }, [draftPriceOptions, normalizedCategoryPriceOptionLabels, usesLegacyCategoryPriceOptionColumns]);
   const effectiveDraftPriceColumnValues = useMemo(
     () => getItemPriceColumnValuesForColumns(draftPriceColumnValues, currentCategoryPriceColumns),
     [currentCategoryPriceColumns, draftPriceColumnValues]
@@ -2558,7 +2566,7 @@ function MenuItemForm({
   const [traitLabelValues, setTraitLabelValues] = useState(() =>
     Array.from({ length: MENU_LIMITS.maxTraitsPerItem }, (_, index) => initialTraitDrafts[index]?.label ?? "")
   );
-  const hasDraftPriceOption = usesCategoryPriceOptionColumns
+  const hasDraftPriceOption = usesLegacyCategoryPriceOptionColumns
     ? effectiveDraftPriceOptions.some((option) => option.visible && (String(option.price).trim() || option.priceLabel.trim()))
     : effectiveDraftPriceOptions.some((option) => option.visible);
   const hasVisiblePriceColumnValue = effectiveDraftPriceColumnValues.some((value) => value.visible);
@@ -2566,9 +2574,12 @@ function MenuItemForm({
   const hasTimeSaleOnAnotherItem = Boolean(timeSaleOwnerItemId && timeSaleOwnerItemId !== currentTimeSaleItemId);
   const basePriceNumber = Number(priceValue);
   const hasNumericBasePrice = Number.isFinite(basePriceNumber) && basePriceNumber > 0;
-  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && !hasVisiblePriceColumnValue && priceVisibleValue && hasNumericBasePrice;
+  const effectiveTimeSaleEnabled = timeSaleEnabled && !hasCategoryPriceColumns;
+  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && !hasCategoryPriceColumns && !hasVisiblePriceColumnValue && priceVisibleValue && hasNumericBasePrice;
   const timeSaleBlockedMessage = hasTimeSaleOnAnotherItem
     ? "MVP에서는 메뉴판당 타임세일 1개만 설정할 수 있습니다."
+    : hasCategoryPriceColumns
+      ? "옵션 컬럼 가격 메뉴의 타임세일은 다음 단계에서 지원됩니다."
     : isOptionsMode
       ? "옵션 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
       : hasVisiblePriceColumnValue
@@ -2582,17 +2593,17 @@ function MenuItemForm({
   const timeSaleStartsAtMs = timeSaleStartsAt ? new Date(timeSaleStartsAt).getTime() : NaN;
   const timeSaleEndsAtMs = timeSaleEndsAt ? new Date(timeSaleEndsAt).getTime() : NaN;
   const timeSaleInvalidReason =
-    canManageTimeSales && timeSaleEnabled && !timeSaleEligible
+    canManageTimeSales && effectiveTimeSaleEnabled && !timeSaleEligible
       ? timeSaleBlockedMessage || "타임세일 설정 조건을 확인해주세요."
-      : canManageTimeSales && timeSaleEnabled && !timeSaleName.trim()
+      : canManageTimeSales && effectiveTimeSaleEnabled && !timeSaleName.trim()
         ? "타임세일 이름을 입력해주세요."
-        : canManageTimeSales && timeSaleEnabled && (!Number.isFinite(timeSalePriceNumber) || timeSalePriceNumber <= 0)
+        : canManageTimeSales && effectiveTimeSaleEnabled && (!Number.isFinite(timeSalePriceNumber) || timeSalePriceNumber <= 0)
           ? "타임세일 할인가를 4.5 또는 4500처럼 입력해주세요."
-          : canManageTimeSales && timeSaleEnabled && timeSalePriceNumber >= basePriceNumber
+          : canManageTimeSales && effectiveTimeSaleEnabled && timeSalePriceNumber >= basePriceNumber
             ? "타임세일 할인가는 기본 가격보다 낮아야 합니다."
-            : canManageTimeSales && timeSaleEnabled && (!Number.isFinite(timeSaleStartsAtMs) || !Number.isFinite(timeSaleEndsAtMs))
+            : canManageTimeSales && effectiveTimeSaleEnabled && (!Number.isFinite(timeSaleStartsAtMs) || !Number.isFinite(timeSaleEndsAtMs))
               ? "타임세일 시작/종료 일시를 입력해주세요."
-              : canManageTimeSales && timeSaleEnabled && timeSaleEndsAtMs <= timeSaleStartsAtMs
+              : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleEndsAtMs <= timeSaleStartsAtMs
                 ? "타임세일 종료 일시는 시작 일시보다 뒤여야 합니다."
                 : "";
   const singlePriceInvalid = isSingleMode && !priceValue.trim() && !priceLabelValue.trim();
@@ -2609,7 +2620,7 @@ function MenuItemForm({
     isOptionsMode &&
     effectiveDraftPriceOptions.some((option) =>
       option.visible &&
-      (!option.label.trim() || (!usesCategoryPriceOptionColumns && !String(option.price).trim() && !option.priceLabel.trim()))
+      (!option.label.trim() || (!usesLegacyCategoryPriceOptionColumns && !String(option.price).trim() && !option.priceLabel.trim()))
     );
   const singlePriceErrorText = attemptedItemSubmit && singlePriceInvalid ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해주세요.` : undefined;
   const isCustomBadge = selectedBadgeLabel === MENU_BADGE_CUSTOM_VALUE;
@@ -2684,7 +2695,7 @@ function MenuItemForm({
     (canManageTimeSales &&
       !areItemTimeSaleDraftsEqual(
         {
-          enabled: timeSaleEnabled,
+          enabled: effectiveTimeSaleEnabled,
           name: timeSaleName,
           salePrice: timeSalePrice,
           startsAt: timeSaleStartsAt,
@@ -2747,7 +2758,7 @@ function MenuItemForm({
       visible: formData ? formData.has("item_visible") : visibleValue,
       sortOrder: Number(String(formData?.get("item_sort_order") ?? item?.sort_order ?? itemCount)) || 0,
       priceVisible: formData ? formData.has("item_price_visible") : priceVisibleValue,
-      priceMode: isOptionsMode ? "options" : currentPriceMode,
+      priceMode: isOptionsMode ? "options" : "single",
       ...(supportsPortionLabel
         ? {
             portionLabel: String(formData?.get("item_portion_label") ?? portionLabelValue),
@@ -2756,12 +2767,12 @@ function MenuItemForm({
         : {}),
       traitsVisible: formData ? formData.has("item_traits_visible") : traitsVisibleValue,
       traitDrafts,
-      priceOptions: isOptionsMode ? effectiveDraftPriceOptions : [],
+      priceOptions: canManageCategoryPriceColumns ? undefined : isOptionsMode ? effectiveDraftPriceOptions : [],
       priceColumnValues: canManageCategoryPriceColumns ? effectiveDraftPriceColumnValues : [],
       ...(canManageTimeSales
         ? {
             timeSale: {
-              enabled: formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
+              enabled: hasCategoryPriceColumns ? false : formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
               name: String(formData?.get("item_time_sale_name") ?? timeSaleName),
               salePrice: String(formData?.get("item_time_sale_price") ?? timeSalePrice),
               startsAt: String(formData?.get("item_time_sale_starts_at") ?? timeSaleStartsAt),
@@ -2973,9 +2984,9 @@ function MenuItemForm({
       />
       <HiddenMenuId menuId={menuId} form={formId} />
       {item && <input type="hidden" name="itemId" value={item.id} form={formId} />}
-      <input type="hidden" name="item_price_mode" value={isOptionsMode ? "options" : currentPriceMode} form={formId} />
+      <input type="hidden" name="item_price_mode" value={isOptionsMode ? "options" : "single"} form={formId} />
       {item?.is_sold_out && <input type="hidden" name="item_is_sold_out" value="on" form={formId} />}
-      {effectiveDraftPriceOptions.map((option, index) => (
+      {!canManageCategoryPriceColumns && effectiveDraftPriceOptions.map((option, index) => (
         <span key={option.id}>
           <input type="hidden" name={`new_price_option_${index}_label`} value={option.label} form={formId} />
           <input type="hidden" name={`new_price_option_${index}_price`} value={option.price} form={formId} />
@@ -3231,7 +3242,7 @@ function MenuItemForm({
             단일 가격은 하나의 가격을 보여줄 때 사용하고, 옵션별 가격은 HOT/ICE나 사이즈별 가격처럼 여러 가격을 보여줄 때 사용합니다.
           </HelpTooltip>
         </h4>
-        {!usesCategoryPriceOptionColumns && (
+        {!usesCategoryPriceOptionColumns && !canManageCategoryPriceColumns && (
           <>
             <div className="mt-4">
               <FieldLabel>
@@ -3302,6 +3313,11 @@ function MenuItemForm({
               }}
             />
           </div>
+        )}
+        {canManageCategoryPriceColumns && !hasCategoryPriceColumns && priceOptions.some((option) => option.visible) && (
+          <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
+            기존 옵션별 가격 데이터가 있습니다. 새 가격 구조에서는 카테고리 옵션 컬럼 사용을 권장합니다.
+          </p>
         )}
         {canManageCategoryPriceColumns && currentCategoryPriceColumns.length > 0 && (
           <div className="mt-4 rounded-lg bg-zinc-50 p-4">
@@ -3393,7 +3409,7 @@ function MenuItemForm({
         <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
           실제 매장에서 제공하는 가격과 일치하는지 확인해주세요.
         </p>
-        {usesCategoryPriceOptionColumns ? (
+        {usesLegacyCategoryPriceOptionColumns ? (
           <div className="mt-4 rounded-lg bg-zinc-50 p-4">
             <p className="break-keep text-xs font-bold leading-relaxed text-zinc-500">
               이 메뉴는 카테고리에 설정된 가격 옵션 열만 사용할 수 있습니다. 옵션명을 바꾸려면 카테고리의 “가격 옵션 열”을 수정해주세요.
@@ -3480,7 +3496,7 @@ function MenuItemForm({
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <h4 className="text-sm font-black text-zinc-950">
             타임세일
-            {timeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-black text-white">사용 중</span> : null}
+            {effectiveTimeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-black text-white">사용 중</span> : null}
           </h4>
           <div className="mt-4 space-y-4">
             <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
@@ -3489,11 +3505,11 @@ function MenuItemForm({
                 name="item_time_sale_enabled"
                 label="이 메뉴에 타임세일 적용"
                 description="메뉴판당 1개 메뉴에만 적용됩니다. 하단 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
-                defaultChecked={timeSaleEnabled}
-                canTurnOn={timeSaleEligible || timeSaleEnabled}
+                defaultChecked={effectiveTimeSaleEnabled}
+                canTurnOn={timeSaleEligible || effectiveTimeSaleEnabled}
                 blockedMessage={timeSaleBlockedMessage}
                 onCheckedChange={(checked) => {
-                  const nextEnabled = checked && (timeSaleEligible || timeSaleEnabled);
+                  const nextEnabled = !hasCategoryPriceColumns && checked && (timeSaleEligible || effectiveTimeSaleEnabled);
                   setTimeSaleEnabled(nextEnabled);
                   updateDraftItem({
                     timeSale: {
@@ -3510,11 +3526,11 @@ function MenuItemForm({
                   });
                 }}
               />
-              {timeSaleBlockedMessage && !timeSaleEnabled ? (
+              {timeSaleBlockedMessage && !effectiveTimeSaleEnabled ? (
                 <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">{timeSaleBlockedMessage}</p>
               ) : null}
             </div>
-            {timeSaleEnabled ? (
+            {effectiveTimeSaleEnabled ? (
               <>
                 <div className="grid gap-4 md:grid-cols-2">
                   <ValidatedTextInput
@@ -4521,6 +4537,7 @@ export default function MenuManagementSection({
     : null;
   const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
   const usesCategoryPriceOptionColumns = Boolean(capabilities.categoryPriceOptionColumns && capabilities.priceOptions);
+  const usesLegacyCategoryPriceOptionColumns = usesCategoryPriceOptionColumns && !canManageCategoryPriceColumns;
   const maxCategoryPriceOptionColumns = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
   const getCategoryPriceColumns = useCallback((categoryId: string) => {
     const draftColumns = categoryBasicDrafts[categoryId]?.priceColumns;
@@ -4566,7 +4583,7 @@ export default function MenuManagementSection({
     );
   }, [categoryBasicDrafts, draftedItems, itemBasicDrafts, maxCategoryPriceOptionColumns, priceOptions]);
   const getCategoryPriceOptionsForItem = useCallback((item: MenuItem, draft: ItemBasicDraft | undefined, categoryLabels: string[]) => {
-    if (!usesCategoryPriceOptionColumns || categoryLabels.length === 0) return draft?.priceOptions;
+    if (!usesLegacyCategoryPriceOptionColumns || categoryLabels.length === 0) return draft?.priceOptions;
 
     const draftOptions = draft?.priceOptions ?? [];
     const sourceOptions = draftOptions.length > 0
@@ -4585,7 +4602,7 @@ export default function MenuManagementSection({
         sourceOptionByLabel.get(label.toLocaleUpperCase("ko-KR")) ?? (canFallbackByColumnIndex ? sourceOptionsByColumn[index] : undefined)
       )
     );
-  }, [priceOptions, usesCategoryPriceOptionColumns]);
+  }, [priceOptions, usesLegacyCategoryPriceOptionColumns]);
   const visibleStructurePages = canManagePages ? sortedPages : selectedPage ? [selectedPage] : [];
   const reachedPageLimit = sortedPages.length >= MENU_LIMITS.maxPagesPerSite;
   const reachedCategoryLimit = categoriesForPage.length >= MENU_LIMITS.maxCategoriesPerPage;
@@ -4596,9 +4613,10 @@ export default function MenuManagementSection({
     () =>
       Object.entries(itemBasicDrafts).find(([itemId, draft]) => {
         if (deletedItemIds.has(itemId)) return false;
+        if (canManageCategoryPriceColumns && getCategoryPriceColumns(draft.categoryId ?? "").length > 0) return false;
         return draft.timeSale?.enabled === true;
       })?.[0] ?? null,
-    [deletedItemIds, itemBasicDrafts]
+    [canManageCategoryPriceColumns, deletedItemIds, getCategoryPriceColumns, itemBasicDrafts]
   );
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
@@ -4664,11 +4682,11 @@ export default function MenuManagementSection({
           descriptionVisible: categoryBasicDrafts[category.id]?.descriptionVisible ?? category.description_visible,
           visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
           sortOrder: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
-          priceOptionLabels: usesCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(category.id) : undefined,
+          priceOptionLabels: usesLegacyCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(category.id) : undefined,
           priceColumns: canManageCategoryPriceColumns ? getCategoryPriceColumns(category.id) : undefined,
         }))
       ),
-    [canManageCategoryPriceColumns, categoryBasicDrafts, draftedCategories, getCategoryPriceColumns, getCategoryPriceOptionLabels, usesCategoryPriceOptionColumns]
+    [canManageCategoryPriceColumns, categoryBasicDrafts, draftedCategories, getCategoryPriceColumns, getCategoryPriceOptionLabels, usesLegacyCategoryPriceOptionColumns]
   );
   const itemBasicDraftPayload = useMemo(
     () =>
@@ -4678,7 +4696,7 @@ export default function MenuManagementSection({
           .map((item) => {
             const draft = itemBasicDrafts[item.id];
             const categoryId = draft?.categoryId ?? item.category_id ?? "";
-            const categoryPriceOptionLabels = usesCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(categoryId) : [];
+            const categoryPriceOptionLabels = usesLegacyCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(categoryId) : [];
             const categoryPriceOptions = getCategoryPriceOptionsForItem(item, draft, categoryPriceOptionLabels);
             const categoryPriceColumns = canManageCategoryPriceColumns ? getCategoryPriceColumns(categoryId) : [];
             const priceColumnValues = canManageCategoryPriceColumns
@@ -4707,12 +4725,12 @@ export default function MenuManagementSection({
               imagePath: draft?.imagePath ?? item.image_path ?? null,
               imageAction: draft?.imageAction ?? "keep",
               priceVisible: draft?.priceVisible ?? item.price_visible,
-              priceMode: usesCategoryPriceOptionColumns && hasCategoryPriceOptionValue ? "options" : draft?.priceMode,
+              priceMode: usesLegacyCategoryPriceOptionColumns && hasCategoryPriceOptionValue ? "options" : draft?.priceMode,
               portionLabel: capabilities.itemPortionLabel ? (draft?.portionLabel ?? item.portion_label ?? "") : item.portion_label ?? "",
               portionVisible: capabilities.itemPortionLabel ? (draft?.portionVisible ?? item.portion_visible) : item.portion_visible,
               traitsVisible: draft?.traitsVisible ?? item.traits_visible,
               traitDrafts: draft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
-              priceOptions: categoryPriceOptions,
+              priceOptions: canManageCategoryPriceColumns ? undefined : categoryPriceOptions,
               priceColumnValues,
               timeSale: draft?.timeSale,
               badgeStyleKey: draft?.badgeStyleKey,
@@ -4721,7 +4739,7 @@ export default function MenuManagementSection({
             };
           })
       ),
-    [canManageCategoryPriceColumns, capabilities.itemPortionLabel, draftedItems, getCategoryPriceColumns, getCategoryPriceOptionLabels, getCategoryPriceOptionsForItem, itemBasicDrafts, items, traits, usesCategoryPriceOptionColumns]
+    [canManageCategoryPriceColumns, capabilities.itemPortionLabel, draftedItems, getCategoryPriceColumns, getCategoryPriceOptionLabels, getCategoryPriceOptionsForItem, itemBasicDrafts, items, traits, usesLegacyCategoryPriceOptionColumns]
   );
   const deletedPageIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedPageIds)), [deletedPageIds]);
   const deletedCategoryIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedCategoryIds)), [deletedCategoryIds]);
@@ -6291,7 +6309,7 @@ export default function MenuManagementSection({
 
   function resetMenuManagementToStarterDraft() {
     if (!starterPreset || isSampleResetApplying) return;
-    if (usesCategoryPriceOptionColumns) {
+    if (usesLegacyCategoryPriceOptionColumns) {
       resetDisplayMenuAToPreviewDraft();
       return;
     }
@@ -7023,7 +7041,7 @@ export default function MenuManagementSection({
                   priceOptionLabels={draftTarget?.type === "category" ? draftTarget.priceOptionLabels : []}
                   priceColumns={draftTarget?.type === "category" ? draftTarget.priceColumns : []}
                   supportsDescription={capabilities.categoryDescription}
-                  supportCategoryPriceOptionColumns={usesCategoryPriceOptionColumns}
+                  supportCategoryPriceOptionColumns={usesLegacyCategoryPriceOptionColumns}
                   supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
                   onDraftNameChange={updateDraftTitle}
@@ -7061,7 +7079,7 @@ export default function MenuManagementSection({
                   priceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
                   priceColumns={getCategoryPriceColumns(selectedCategory.id)}
                   supportsDescription={capabilities.categoryDescription}
-                  supportCategoryPriceOptionColumns={usesCategoryPriceOptionColumns}
+                  supportCategoryPriceOptionColumns={usesLegacyCategoryPriceOptionColumns}
                   supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
                   onDraftNameChange={(name) => updateCategoryBasicDraft(selectedCategory.id, { name })}
@@ -7195,7 +7213,7 @@ export default function MenuManagementSection({
                   <DetailValue label="정렬 순서">{selectedCategory.sort_order}</DetailValue>
                   {capabilities.categoryDescription && <DetailValue label="설명 표시">{selectedCategory.description_visible ? "사용함" : "사용 안 함"}</DetailValue>}
                   <DetailValue label="메뉴판 표시">{selectedCategory.visible ? "표시" : "숨김"}</DetailValue>
-                  {usesCategoryPriceOptionColumns && (
+                  {usesLegacyCategoryPriceOptionColumns && (
                     <DetailValue label="가격 옵션 열">{getCategoryPriceOptionLabels(selectedCategory.id).join(" / ") || "입력 전"}</DetailValue>
                   )}
                   {capabilities.categoryDescription && (
