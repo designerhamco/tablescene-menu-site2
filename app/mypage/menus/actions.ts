@@ -83,6 +83,8 @@ type MenuSocialLinkInsert = Database["public"]["Tables"]["menu_social_links"]["I
 type MenuSocialLinkUpdate = Database["public"]["Tables"]["menu_social_links"]["Update"];
 type MenuItemPriceOptionInsert = Database["public"]["Tables"]["menu_item_price_options"]["Insert"];
 type MenuItemPriceOptionUpdate = Database["public"]["Tables"]["menu_item_price_options"]["Update"];
+type MenuCategoryPriceColumnInsert = Database["public"]["Tables"]["menu_category_price_columns"]["Insert"];
+type MenuCategoryPriceColumnUpdate = Database["public"]["Tables"]["menu_category_price_columns"]["Update"];
 type MenuPromotionInsert = Database["public"]["Tables"]["menu_promotions"]["Insert"];
 type MenuPromotionUpdate = Database["public"]["Tables"]["menu_promotions"]["Update"];
 type MenuPromotionItemInsert = Database["public"]["Tables"]["menu_promotion_items"]["Insert"];
@@ -4216,6 +4218,13 @@ type MenuManagementBasicCategoryDraft = {
   visible?: boolean;
   sortOrder: number;
   priceOptionLabels?: string[];
+  priceColumns?: {
+    id?: string;
+    key?: string;
+    label?: string;
+    visible?: boolean;
+    sortOrder?: number;
+  }[];
 };
 
 type MenuManagementBasicItemDraft = {
@@ -4305,6 +4314,57 @@ function normalizeDraftPriceOptionLabels(value: unknown, maxOptions: number) {
       return true;
     })
     .slice(0, maxOptions);
+}
+
+function getBasicPriceColumnKey(label: string, index: number) {
+  const slug = label
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return slug || `column_${index + 1}`;
+}
+
+function normalizeBasicPriceColumnDrafts(
+  menuId: string,
+  value: unknown,
+  maxColumns = 3
+): {
+  id?: string;
+  key: string;
+  label: string;
+  visible: boolean;
+  sortOrder: number;
+}[] {
+  if (!Array.isArray(value)) return [];
+  if (value.length > maxColumns) {
+    redirectToMenuEditWithError(menuId, `가격 옵션 컬럼은 최대 ${maxColumns}개까지 사용할 수 있습니다.`);
+  }
+
+  const labelSet = new Set<string>();
+  const keySet = new Set<string>();
+  return value.map((entry, index) => {
+    const draft = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+    const label = normalizeDraftString(draft.label);
+    validateRequiredText(menuId, label, "가격 옵션 컬럼 이름", MENU_FIELD_LIMITS.menuItemPriceOptions.label);
+
+    const key = normalizeDraftString(draft.key) || getBasicPriceColumnKey(label, index);
+    const labelKey = label.toLocaleUpperCase("ko-KR");
+    if (labelSet.has(labelKey) || keySet.has(key)) {
+      redirectToMenuEditWithError(menuId, "가격 옵션 컬럼 이름은 중복될 수 없습니다.");
+    }
+    labelSet.add(labelKey);
+    keySet.add(key);
+
+    return {
+      id: normalizeDraftString(draft.id) || undefined,
+      key,
+      label,
+      visible: draft.visible === undefined ? true : normalizeDraftBoolean(draft.visible),
+      sortOrder: normalizeDraftNumber(draft.sortOrder ?? index),
+    };
+  });
 }
 
 function normalizeDraftBoolean(value: unknown) {
@@ -4686,6 +4746,134 @@ async function syncMenuTimeSalesFromDrafts({
   }
 }
 
+async function syncBasicCategoryPriceColumnsFromDrafts({
+  supabase,
+  menuId,
+  categoryDrafts,
+  categoryIdMap,
+  categoryIdDeleteSet,
+  canManageCategoryPriceColumns,
+}: {
+  supabase: SupabaseServerClient;
+  menuId: string;
+  categoryDrafts: MenuManagementBasicCategoryDraft[];
+  categoryIdMap: Map<string, string>;
+  categoryIdDeleteSet: Set<string>;
+  canManageCategoryPriceColumns: boolean;
+}) {
+  const draftsWithColumns = categoryDrafts.filter((category) => Array.isArray(category.priceColumns));
+  if (!canManageCategoryPriceColumns) {
+    const hasColumnPayload = draftsWithColumns.some((category) => (category.priceColumns ?? []).length > 0);
+    if (hasColumnPayload) {
+      redirectToMenuEditWithError(menuId, "이 템플릿에서는 가격 옵션 컬럼을 사용할 수 없습니다.");
+    }
+    return;
+  }
+
+  const activeDrafts = draftsWithColumns
+    .map((category) => {
+      const draftCategoryId = normalizeDraftString(category.id);
+      const resolvedCategoryId = categoryIdMap.get(draftCategoryId) ?? draftCategoryId;
+      return {
+        draftCategoryId,
+        categoryId: resolvedCategoryId,
+        columns: normalizeBasicPriceColumnDrafts(menuId, category.priceColumns),
+      };
+    })
+    .filter((category) => category.categoryId && !categoryIdDeleteSet.has(category.draftCategoryId) && !categoryIdDeleteSet.has(category.categoryId));
+
+  if (activeDrafts.length === 0) return;
+
+  const categoryIds = activeDrafts.map((category) => category.categoryId);
+  const { data: categoriesData, error: categoriesError } = await supabase
+    .from("menu_categories")
+    .select("id")
+    .eq("menu_site_id", menuId)
+    .in("id", categoryIds);
+
+  if (categoriesError) {
+    redirectToMenuEditWithError(menuId, `가격 옵션 컬럼 카테고리 확인에 실패했습니다: ${categoriesError.message}`);
+  }
+
+  const categoryIdSet = new Set((categoriesData ?? []).map((category) => category.id));
+  const invalidCategory = activeDrafts.find((category) => !categoryIdSet.has(category.categoryId));
+  if (invalidCategory) {
+    redirectToMenuEditWithError(menuId, "가격 옵션 컬럼을 저장할 카테고리를 찾지 못했습니다.");
+  }
+
+  const { data: existingColumns, error: existingColumnsError } = await supabase
+    .from("menu_category_price_columns")
+    .select("id, category_id")
+    .eq("menu_site_id", menuId)
+    .in("category_id", categoryIds);
+
+  if (existingColumnsError) {
+    redirectToMenuEditWithError(menuId, `가격 옵션 컬럼 기존 값 확인에 실패했습니다: ${existingColumnsError.message}`);
+  }
+
+  const existingByCategoryId = new Map<string, { id: string; category_id: string }[]>();
+  (existingColumns ?? []).forEach((column) => {
+    const entries = existingByCategoryId.get(column.category_id) ?? [];
+    entries.push(column);
+    existingByCategoryId.set(column.category_id, entries);
+  });
+
+  for (const draft of activeDrafts) {
+    const existingForCategory = existingByCategoryId.get(draft.categoryId) ?? [];
+    const existingIdSet = new Set(existingForCategory.map((column) => column.id));
+    const nextIds = new Set(draft.columns.map((column) => column.id).filter((id): id is string => Boolean(id)));
+    const idsToDelete = existingForCategory.map((column) => column.id).filter((id) => !nextIds.has(id));
+
+    if (idsToDelete.length > 0) {
+      const { error } = await supabase
+        .from("menu_category_price_columns")
+        .delete()
+        .eq("menu_site_id", menuId)
+        .eq("category_id", draft.categoryId)
+        .in("id", idsToDelete);
+      if (error) {
+        redirectToMenuEditWithError(menuId, `가격 옵션 컬럼 삭제에 실패했습니다: ${error.message}`);
+      }
+    }
+
+    for (const column of draft.columns) {
+      if (column.id && existingIdSet.has(column.id)) {
+        const payload: MenuCategoryPriceColumnUpdate = {
+          key: column.key,
+          label: column.label,
+          visible: column.visible,
+          sort_order: column.sortOrder,
+          updated_at: new Date().toISOString(),
+        };
+        const { error } = await supabase
+          .from("menu_category_price_columns")
+          .update(payload)
+          .eq("id", column.id)
+          .eq("menu_site_id", menuId)
+          .eq("category_id", draft.categoryId);
+        if (error) {
+          redirectToMenuEditWithError(menuId, `가격 옵션 컬럼 저장에 실패했습니다: ${error.message}`);
+        }
+        continue;
+      }
+
+      const payload: MenuCategoryPriceColumnInsert = {
+        menu_site_id: menuId,
+        category_id: draft.categoryId,
+        key: column.key,
+        label: column.label,
+        visible: column.visible,
+        sort_order: column.sortOrder,
+        settings: {},
+      };
+      const { error } = await supabase.from("menu_category_price_columns").insert(payload);
+      if (error) {
+        redirectToMenuEditWithError(menuId, `가격 옵션 컬럼 생성에 실패했습니다: ${error.message}`);
+      }
+    }
+  }
+}
+
 export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
@@ -4706,6 +4894,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const canManageMenuPages = menuEditorCapabilities.canManageMenuPages;
   const canConfigureDisplayPages = canManageMenuPages && menuEditorCapabilities.supportsDisplayPageTypes;
   const usesCategoryPriceOptionColumns = Boolean(templateCapabilities.categoryPriceOptionColumns && templateCapabilities.priceOptions);
+  const canManageCategoryPriceColumns = menuSite.template_key === "cafe_design_a";
   const pageManagementBlockedMessage = "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
   const pcTabletLayoutModeInput = formData.get("pc_tablet_layout_mode");
   const shouldSavePcTabletLayoutMode =
@@ -4900,6 +5089,14 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       }
       for (const label of labels) {
         validateRequiredText(menuId, label, "가격 옵션 열", MENU_FIELD_LIMITS.menuItemPriceOptions.label);
+      }
+    }
+    if (Array.isArray(category.priceColumns)) {
+      if (!canManageCategoryPriceColumns && category.priceColumns.length > 0) {
+        redirectToMenuEditWithError(menuId, "이 템플릿에서는 가격 옵션 컬럼을 사용할 수 없습니다.");
+      }
+      if (canManageCategoryPriceColumns) {
+        normalizeBasicPriceColumnDrafts(menuId, category.priceColumns);
       }
     }
   }
@@ -5316,6 +5513,15 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   );
   const categoryError = categoryResults.find((result) => result.error)?.error;
   if (categoryError) redirectToMenuEditWithError(menuId, `카테고리 draft 저장에 실패했습니다: ${categoryError.message}`);
+
+  await syncBasicCategoryPriceColumnsFromDrafts({
+    supabase,
+    menuId,
+    categoryDrafts,
+    categoryIdMap,
+    categoryIdDeleteSet,
+    canManageCategoryPriceColumns,
+  });
 
   const itemIdMap = new Map<string, string>();
   for (const item of itemDrafts) {

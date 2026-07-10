@@ -95,6 +95,7 @@ type MenuCategory = Pick<
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "sort_order" | "visible"
 > & {
   section_key: string | null;
+  priceColumns?: CategoryPriceColumnDraft[];
 };
 type MenuItem = Omit<Pick<
   Database["public"]["Tables"]["menu_items"]["Row"],
@@ -134,6 +135,7 @@ type MenuManagementSectionProps = {
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
   canManageTimeSales?: boolean;
+  canManageCategoryPriceColumns?: boolean;
   timeSales?: MenuEditorTimeSale[];
   canManagePages: boolean;
   supportsDisplayPageTypes?: boolean;
@@ -152,7 +154,16 @@ type MenuManagementSectionProps = {
 };
 type DraftTarget =
   | { type: "page"; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean; displaySettings?: MenuPageDisplaySettings }
-  | { type: "category"; pageId: string; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean; priceOptionLabels?: string[] };
+  | {
+      type: "category";
+      pageId: string;
+      title: string;
+      description?: string;
+      descriptionVisible?: boolean;
+      visible?: boolean;
+      priceOptionLabels?: string[];
+      priceColumns?: CategoryPriceColumnDraft[];
+    };
 type DragState =
   | { type: "page"; id: string }
   | { type: "category"; id: string; pageId: string }
@@ -178,6 +189,15 @@ type CategoryBasicDraft = {
   visible?: boolean;
   sortOrder: number;
   priceOptionLabels?: string[];
+  priceColumns?: CategoryPriceColumnDraft[];
+};
+
+type CategoryPriceColumnDraft = {
+  id?: string;
+  key: string;
+  label: string;
+  visible: boolean;
+  sortOrder: number;
 };
 
 type ItemBasicDraft = {
@@ -272,6 +292,76 @@ function normalizeDraftPriceOptionLabels(labels: readonly string[] | undefined, 
       return true;
     })
     .slice(0, maxOptions);
+}
+
+function getCategoryPriceColumnKey(label: string, index: number) {
+  const slug = label
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return slug || `column_${index + 1}`;
+}
+
+function normalizeCategoryPriceColumnDrafts(
+  columns: readonly Partial<CategoryPriceColumnDraft>[] | undefined,
+  maxColumns = 3
+): CategoryPriceColumnDraft[] {
+  return (columns ?? []).slice(0, maxColumns).map((column, index) => {
+    const label = normalizeDraftText(column.label);
+    return {
+      id: normalizeDraftText(column.id) || undefined,
+      key: normalizeDraftText(column.key) || getCategoryPriceColumnKey(label, index),
+      label,
+      visible: normalizeDraftBoolean(column.visible),
+      sortOrder: Number.isFinite(Number(column.sortOrder)) ? Number(column.sortOrder) : index,
+    };
+  });
+}
+
+function copyCategoryPriceColumnDrafts(columns: readonly Partial<CategoryPriceColumnDraft>[] | undefined) {
+  return normalizeCategoryPriceColumnDrafts(columns).map((column, index) => ({
+    ...column,
+    id: undefined,
+    sortOrder: index,
+  }));
+}
+
+function createCategoryPriceColumnDraft(index: number): CategoryPriceColumnDraft {
+  return {
+    key: `column_${index + 1}`,
+    label: "",
+    visible: true,
+    sortOrder: index,
+  };
+}
+
+function getCategoryPriceColumnValidationMessage(columns: readonly CategoryPriceColumnDraft[], maxColumns = 3) {
+  if (columns.length > maxColumns) return `가격 옵션 컬럼은 최대 ${maxColumns}개까지 사용할 수 있습니다.`;
+
+  const labelSet = new Set<string>();
+  const keySet = new Set<string>();
+  for (const column of columns) {
+    const label = normalizeDraftText(column.label);
+    if (!label) return "가격 옵션 컬럼 이름을 입력해주세요.";
+    const labelKey = label.toLocaleUpperCase("ko-KR");
+    if (labelSet.has(labelKey)) return "가격 옵션 컬럼 이름은 중복될 수 없습니다.";
+    labelSet.add(labelKey);
+
+    const key = normalizeDraftText(column.key) || getCategoryPriceColumnKey(label, column.sortOrder);
+    if (keySet.has(key)) return "가격 옵션 컬럼 내부 키가 중복되었습니다.";
+    keySet.add(key);
+  }
+
+  return "";
+}
+
+function areCategoryPriceColumnDraftsEqual(
+  left: readonly Partial<CategoryPriceColumnDraft>[] | undefined,
+  right: readonly Partial<CategoryPriceColumnDraft>[] | undefined
+) {
+  return JSON.stringify(normalizeCategoryPriceColumnDrafts(left)) === JSON.stringify(normalizeCategoryPriceColumnDrafts(right));
 }
 
 function toDraftPriceOptionFromColumn(label: string, index: number, source?: DraftPriceOption | MenuItemPriceOption | null): DraftPriceOption {
@@ -1837,8 +1927,10 @@ function MenuCategoryForm({
   labels,
   draftName,
   priceOptionLabels,
+  priceColumns,
   supportsDescription = true,
   supportCategoryPriceOptionColumns = false,
+  supportBasicPriceColumns = false,
   maxPriceOptionColumns = MENU_LIMITS.maxPriceOptionsPerItem,
   onDraftNameChange,
   onDraftChange,
@@ -1858,8 +1950,10 @@ function MenuCategoryForm({
   labels: TemplateEditorLabels;
   draftName?: string;
   priceOptionLabels?: string[];
+  priceColumns?: CategoryPriceColumnDraft[];
   supportsDescription?: boolean;
   supportCategoryPriceOptionColumns?: boolean;
+  supportBasicPriceColumns?: boolean;
   maxPriceOptionColumns?: number;
   onDraftNameChange?: (name: string) => void;
   onDraftChange?: (patch: Partial<CategoryBasicDraft>) => void;
@@ -1881,12 +1975,21 @@ function MenuCategoryForm({
     normalizeDraftPriceOptionLabels(priceOptionLabels, maxPriceOptionColumns)
   );
   const [initialCategoryPriceOptionLabels] = useState(() => normalizeDraftPriceOptionLabels(priceOptionLabels, maxPriceOptionColumns));
+  const [categoryPriceColumns, setCategoryPriceColumns] = useState(() => normalizeCategoryPriceColumnDrafts(priceColumns));
+  const [initialCategoryPriceColumns] = useState(() => normalizeCategoryPriceColumnDrafts(priceColumns));
   const nameValue = category ? name : draftName !== undefined ? draftName : name;
   const normalizedCategoryPriceOptionLabels = normalizeDraftPriceOptionLabels(categoryPriceOptionLabels, maxPriceOptionColumns);
+  const normalizedCategoryPriceColumns = normalizeCategoryPriceColumnDrafts(categoryPriceColumns);
+  const categoryPriceColumnValidationMessage = supportBasicPriceColumns
+    ? getCategoryPriceColumnValidationMessage(categoryPriceColumns)
+    : "";
   const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuCategories.name;
   const priceOptionLabelsChanged =
     supportCategoryPriceOptionColumns &&
     JSON.stringify(normalizedCategoryPriceOptionLabels) !== JSON.stringify(initialCategoryPriceOptionLabels);
+  const priceColumnsChanged =
+    supportBasicPriceColumns &&
+    !areCategoryPriceColumnDraftsEqual(normalizedCategoryPriceColumns, initialCategoryPriceColumns);
   const categoryFormDirty =
     !category ||
     normalizeDraftText(nameValue) !== normalizeDraftText(category.name) ||
@@ -1894,7 +1997,8 @@ function MenuCategoryForm({
     (supportsDescription && descriptionVisible !== (category.description_visible ?? false)) ||
     visible !== (category.visible ?? true) ||
     normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(category.sort_order) ||
-    priceOptionLabelsChanged;
+    priceOptionLabelsChanged ||
+    priceColumnsChanged;
 
   function updateCategoryPriceOptionLabel(index: number, value: string) {
     const nextLabels = [...categoryPriceOptionLabels];
@@ -1917,8 +2021,49 @@ function MenuCategoryForm({
     onDraftChange?.({ priceOptionLabels: normalizeDraftPriceOptionLabels(nextLabels, maxPriceOptionColumns) });
   }
 
+  function updateCategoryPriceColumn(index: number, patch: Partial<CategoryPriceColumnDraft>) {
+    const nextColumns = categoryPriceColumns.map((column, columnIndex) => {
+      if (columnIndex !== index) return column;
+      const label = patch.label !== undefined ? patch.label : column.label;
+      return {
+        ...column,
+        ...patch,
+        label,
+        key: patch.label !== undefined ? getCategoryPriceColumnKey(label, index) : patch.key ?? column.key,
+      };
+    });
+    setCategoryPriceColumns(nextColumns);
+    if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(nextColumns) });
+  }
+
+  function addCategoryPriceColumn() {
+    if (categoryPriceColumns.length >= 3) return;
+    const nextColumns = [...categoryPriceColumns, createCategoryPriceColumnDraft(categoryPriceColumns.length)];
+    setCategoryPriceColumns(nextColumns);
+    if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(nextColumns) });
+  }
+
+  function removeCategoryPriceColumn(index: number) {
+    const nextColumns = categoryPriceColumns
+      .filter((_, columnIndex) => columnIndex !== index)
+      .map((column, columnIndex) => ({ ...column, sortOrder: columnIndex }));
+    setCategoryPriceColumns(nextColumns);
+    if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(nextColumns) });
+  }
+
+  function moveCategoryPriceColumn(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= categoryPriceColumns.length) return;
+    const nextColumns = [...categoryPriceColumns];
+    [nextColumns[index], nextColumns[targetIndex]] = [nextColumns[targetIndex], nextColumns[index]];
+    const reorderedColumns = nextColumns.map((column, columnIndex) => ({ ...column, sortOrder: columnIndex }));
+    setCategoryPriceColumns(reorderedColumns);
+    if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(reorderedColumns) });
+  }
+
   function handleDraftCommit() {
     if (category && !categoryFormDirty) return;
+    if (categoryPriceColumnValidationMessage) return;
     onDraftNameChange?.(nameValue);
     onDraftChange?.({
       name: nameValue,
@@ -1926,6 +2071,7 @@ function MenuCategoryForm({
       visible,
       sortOrder,
       ...(supportCategoryPriceOptionColumns ? { priceOptionLabels: normalizedCategoryPriceOptionLabels } : {}),
+      ...(supportBasicPriceColumns ? { priceColumns: normalizedCategoryPriceColumns } : {}),
     });
     onDraftCommit?.();
   }
@@ -2033,6 +2179,84 @@ function MenuCategoryForm({
           </p>
         </section>
       )}
+      {supportBasicPriceColumns && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h4 className="text-sm font-black text-zinc-950">가격 옵션 컬럼</h4>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                이 카테고리 안의 메뉴에 공통으로 사용할 가격 옵션입니다. 예: HOT, ICE, LARGE
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addCategoryPriceColumn}
+              disabled={categoryPriceColumns.length >= 3}
+              className="rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:border-zinc-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+            >
+              컬럼 추가
+            </button>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {categoryPriceColumns.map((column, index) => (
+              <div key={column.id ?? `new-price-column-${index}`} className="rounded-lg border border-zinc-100 bg-zinc-50 p-3">
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                  <ValidatedTextInput
+                    name={`category_price_column_label_${index}`}
+                    label={`컬럼 ${index + 1}`}
+                    defaultValue={column.label}
+                    placeholder={index === 0 ? "HOT" : index === 1 ? "ICE" : "LARGE"}
+                    maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label}
+                    helperText="메뉴별 가격 입력 단계에서 이 이름의 가격 칸이 생깁니다."
+                    errorText={!column.label.trim() ? "컬럼 이름을 입력해주세요." : undefined}
+                    onValueChange={(value) => updateCategoryPriceColumn(index, { label: value })}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveCategoryPriceColumn(index, -1)}
+                      disabled={index === 0}
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      aria-label={`${column.label || `컬럼 ${index + 1}`} 위로 이동`}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveCategoryPriceColumn(index, 1)}
+                      disabled={index === categoryPriceColumns.length - 1}
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      aria-label={`${column.label || `컬럼 ${index + 1}`} 아래로 이동`}
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateCategoryPriceColumn(index, { visible: !column.visible })}
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                    >
+                      {column.visible ? "표시" : "숨김"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeCategoryPriceColumn(index)}
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {categoryPriceColumns.length === 0 && (
+              <EmptyState>아직 설정된 가격 옵션 컬럼이 없습니다. HOT / ICE / LARGE 같은 공통 가격 컬럼을 추가할 수 있습니다.</EmptyState>
+            )}
+          </div>
+          <p className={`mt-3 break-keep text-xs font-bold leading-relaxed ${categoryPriceColumnValidationMessage ? "text-red-600" : "text-zinc-400"}`}>
+            {categoryPriceColumnValidationMessage || "가격 옵션 컬럼은 카테고리당 최대 3개까지 사용할 수 있습니다."}
+          </p>
+        </section>
+      )}
       <div className="grid gap-3">
         {supportsDescription && (
           <Checkbox
@@ -2063,7 +2287,12 @@ function MenuCategoryForm({
       </div>
       <div className="flex flex-wrap items-center justify-end gap-3">
         {draftOnly ? (
-          <SubmitButton type="button" tone="final" disabled={nameInvalid || (Boolean(category) && !categoryFormDirty)} onClick={handleDraftCommit}>
+          <SubmitButton
+            type="button"
+            tone="final"
+            disabled={nameInvalid || Boolean(categoryPriceColumnValidationMessage) || (Boolean(category) && !categoryFormDirty)}
+            onClick={handleDraftCommit}
+          >
             {draftActionLabel ?? (category ? "수정 내용 반영" : `${labels.categoryLabel} 추가`)}
           </SubmitButton>
         ) : (
@@ -3761,6 +3990,7 @@ export default function MenuManagementSection({
   traits,
   capabilities,
   canManageTimeSales = false,
+  canManageCategoryPriceColumns = false,
   timeSales = [],
   canManagePages,
   supportsDisplayPageTypes = false,
@@ -3906,6 +4136,7 @@ export default function MenuManagementSection({
           description_visible: categoryBasicDrafts[category.id]?.descriptionVisible ?? category.description_visible,
           visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
           sort_order: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
+          priceColumns: categoryBasicDrafts[category.id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category.priceColumns),
         }));
       const createdCategories: MenuCategory[] = Object.entries(categoryBasicDrafts)
         .filter(([id, draft]) => draft.isNew && draft.pageId && !deletedCategoryIds.has(id) && !deletedPageIds.has(draft.pageId))
@@ -3918,6 +4149,7 @@ export default function MenuManagementSection({
           section_key: null,
           sort_order: draft.sortOrder,
           visible: draft.visible ?? true,
+          priceColumns: normalizeCategoryPriceColumnDrafts(draft.priceColumns),
         }));
 
       return [...existingCategories, ...createdCategories];
@@ -4086,6 +4318,15 @@ export default function MenuManagementSection({
   const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
   const usesCategoryPriceOptionColumns = Boolean(capabilities.categoryPriceOptionColumns && capabilities.priceOptions);
   const maxCategoryPriceOptionColumns = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
+  const getCategoryPriceColumns = useCallback((categoryId: string) => {
+    const draftColumns = categoryBasicDrafts[categoryId]?.priceColumns;
+    if (draftColumns !== undefined) {
+      return normalizeCategoryPriceColumnDrafts(draftColumns);
+    }
+
+    const category = draftedCategories.find((entry) => entry.id === categoryId) ?? categories.find((entry) => entry.id === categoryId);
+    return normalizeCategoryPriceColumnDrafts(category?.priceColumns);
+  }, [categories, categoryBasicDrafts, draftedCategories]);
   const getCategoryPriceOptionLabels = useCallback((categoryId: string) => {
     const draftLabels = categoryBasicDrafts[categoryId]?.priceOptionLabels;
     if (draftLabels !== undefined) {
@@ -4220,9 +4461,10 @@ export default function MenuManagementSection({
           visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
           sortOrder: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
           priceOptionLabels: usesCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(category.id) : undefined,
+          priceColumns: canManageCategoryPriceColumns ? getCategoryPriceColumns(category.id) : undefined,
         }))
       ),
-    [categoryBasicDrafts, draftedCategories, getCategoryPriceOptionLabels, usesCategoryPriceOptionColumns]
+    [canManageCategoryPriceColumns, categoryBasicDrafts, draftedCategories, getCategoryPriceColumns, getCategoryPriceOptionLabels, usesCategoryPriceOptionColumns]
   );
   const itemBasicDraftPayload = useMemo(
     () =>
@@ -5060,6 +5302,7 @@ export default function MenuManagementSection({
           visible: nextDrafts[id]?.visible ?? category?.visible ?? true,
           sortOrder: index,
           priceOptionLabels: nextDrafts[id]?.priceOptionLabels,
+          priceColumns: nextDrafts[id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category?.priceColumns),
         };
       });
       return nextDrafts;
@@ -5249,6 +5492,7 @@ export default function MenuManagementSection({
             descriptionVisible: currentDrafts[category.id]?.descriptionVisible ?? category.description_visible,
             visible: currentDrafts[category.id]?.visible ?? category.visible,
             sortOrder: index + 1,
+            priceColumns: currentDrafts[category.id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category.priceColumns),
           };
           return drafts;
         }, {}),
@@ -5261,6 +5505,7 @@ export default function MenuManagementSection({
           visible: draftTarget?.type === "category" ? draftTarget.visible ?? true : true,
           sortOrder: 0,
           priceOptionLabels: draftTarget?.type === "category" ? draftTarget.priceOptionLabels : undefined,
+          priceColumns: draftTarget?.type === "category" ? normalizeCategoryPriceColumnDrafts(draftTarget.priceColumns) : undefined,
         },
       }));
       setSelectedPageId(pageId);
@@ -5556,6 +5801,7 @@ export default function MenuManagementSection({
           visible: currentDrafts[category.id]?.visible ?? category.visible,
           sortOrder: index,
           priceOptionLabels: currentDrafts[category.id]?.priceOptionLabels ?? getCategoryPriceOptionLabels(category.id),
+          priceColumns: copyCategoryPriceColumnDrafts(currentDrafts[category.id]?.priceColumns ?? getCategoryPriceColumns(category.id)),
         };
       });
       return nextDrafts;
@@ -5721,6 +5967,7 @@ export default function MenuManagementSection({
           visible: nextDrafts[category.id]?.visible ?? category.visible,
           sortOrder: index + 1,
           priceOptionLabels: nextDrafts[category.id]?.priceOptionLabels ?? getCategoryPriceOptionLabels(category.id),
+          priceColumns: nextDrafts[category.id]?.priceColumns ?? getCategoryPriceColumns(category.id),
         };
       });
       nextDrafts[draftCategoryId] = {
@@ -5732,6 +5979,7 @@ export default function MenuManagementSection({
         visible: sourceCategory.visible,
         sortOrder: 0,
         priceOptionLabels: getCategoryPriceOptionLabels(sourceCategory.id),
+        priceColumns: copyCategoryPriceColumnDrafts(getCategoryPriceColumns(sourceCategory.id)),
       };
       return nextDrafts;
     });
@@ -5876,6 +6124,7 @@ export default function MenuManagementSection({
           descriptionVisible: false,
           visible: true,
           sortOrder: categoryIndex,
+          priceColumns: [],
         };
 
         category.items.forEach((starterItem, itemIndex) => {
@@ -6557,8 +6806,10 @@ export default function MenuManagementSection({
                   draftOnly
                   draftName={draftTarget?.type === "category" ? draftTarget.title : undefined}
                   priceOptionLabels={draftTarget?.type === "category" ? draftTarget.priceOptionLabels : []}
+                  priceColumns={draftTarget?.type === "category" ? draftTarget.priceColumns : []}
                   supportsDescription={capabilities.categoryDescription}
                   supportCategoryPriceOptionColumns={usesCategoryPriceOptionColumns}
+                  supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
                   onDraftNameChange={updateDraftTitle}
                   onDraftChange={updateDraftTargetDetails}
@@ -6593,8 +6844,10 @@ export default function MenuManagementSection({
                   draftOnly
                   draftName={categoryBasicDrafts[selectedCategory.id]?.name ?? selectedCategory.name}
                   priceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
+                  priceColumns={getCategoryPriceColumns(selectedCategory.id)}
                   supportsDescription={capabilities.categoryDescription}
                   supportCategoryPriceOptionColumns={usesCategoryPriceOptionColumns}
+                  supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
                   onDraftNameChange={(name) => updateCategoryBasicDraft(selectedCategory.id, { name })}
                   onDraftChange={(patch) => updateCategoryBasicDraft(selectedCategory.id, patch)}

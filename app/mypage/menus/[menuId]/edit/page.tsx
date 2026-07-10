@@ -134,7 +134,20 @@ type MenuSite = Pick<
 type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "section_key" | "sort_order" | "visible"
+> & {
+  priceColumns?: MenuCategoryPriceColumnDraft[];
+};
+type MenuCategoryPriceColumn = Pick<
+  Database["public"]["Tables"]["menu_category_price_columns"]["Row"],
+  "id" | "category_id" | "key" | "label" | "visible" | "sort_order"
 >;
+type MenuCategoryPriceColumnDraft = {
+  id: string;
+  key: string;
+  label: string;
+  visible: boolean;
+  sortOrder: number;
+};
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
   "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
@@ -905,6 +918,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const [
     { data: menuPagesData },
     { data: categoriesData },
+    { data: categoryPriceColumnsData, error: categoryPriceColumnsError },
     { data: itemsData, error: itemsError },
     { data: priceOptionsData, error: priceOptionsError },
     { data: traitsData },
@@ -924,6 +938,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       supabase
         .from("menu_categories")
         .select("id, menu_page_id, name, description, description_visible, section_key, sort_order, visible")
+        .eq("menu_site_id", menuId)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("menu_category_price_columns")
+        .select("id, category_id, key, label, visible, sort_order")
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -982,7 +1002,27 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     ]);
 
   const menuPages = (menuPagesData ?? []) as MenuPage[];
-  const categories = (categoriesData ?? []) as MenuCategory[];
+  const isMissingCategoryPriceColumnsTable =
+    categoryPriceColumnsError &&
+    (categoryPriceColumnsError.message.toLowerCase().includes("menu_category_price_columns") ||
+      categoryPriceColumnsError.message.toLowerCase().includes("does not exist") ||
+      categoryPriceColumnsError.code === "42P01");
+  const priceColumnsByCategoryId = new Map<string, MenuCategoryPriceColumnDraft[]>();
+  ((isMissingCategoryPriceColumnsTable ? [] : categoryPriceColumnsData ?? []) as MenuCategoryPriceColumn[]).forEach((column) => {
+    const entries = priceColumnsByCategoryId.get(column.category_id) ?? [];
+    entries.push({
+      id: column.id,
+      key: column.key,
+      label: column.label,
+      visible: column.visible,
+      sortOrder: column.sort_order,
+    });
+    priceColumnsByCategoryId.set(column.category_id, entries);
+  });
+  const categories = ((categoriesData ?? []) as MenuCategory[]).map((category) => ({
+    ...category,
+    priceColumns: priceColumnsByCategoryId.get(category.id) ?? [],
+  }));
   const isMissingBadgeLabelColumn =
     itemsError &&
     (itemsError.message.toLowerCase().includes("badge_label") ||
@@ -1758,6 +1798,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     traits={traits}
                     capabilities={templateCapabilities}
                     canManageTimeSales={canManageTimeSales}
+                    canManageCategoryPriceColumns={site.template_key === "cafe_design_a"}
                     timeSales={editorTimeSales}
                     canManagePages={editorCapabilities.canManageMenuPages}
                     supportsDisplayPageTypes={editorCapabilities.supportsDisplayPageTypes}
