@@ -2555,6 +2555,7 @@ function MenuItemRow({
   }[density];
   const metaText = getMenuItemMetaText(item, locale);
   const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}${usesPriceColumns ? " cafe-a-menu-item-has-price-columns" : ""}`;
+  const priceNote = item.price_visible === false ? "" : item.priceNote?.trim() ?? "";
 
   return (
     <article className={`cafe-a-menu-item grid items-start ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
@@ -2582,39 +2583,44 @@ function MenuItemRow({
         {capabilities.originInfo && item.origin_info && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info}</p>}
       </div>
       {priceTokens.length > 0 && usesPriceColumns && (
-        <div
-          className="menu-price cafe-a-price-columns-grid shrink-0 text-right text-[#191c1b] lg:justify-self-end"
-          style={{ "--cafe-a-price-column-count": priceTokens.length } as CSSProperties}
-          data-cafe-a-menu-price=""
-          data-cafe-a-price-columns=""
-        >
-          {priceTokens.map((token, index) => (
-            <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-column-cell">
-              {token.price ? <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span> : <span aria-hidden="true">&nbsp;</span>}
-            </span>
-          ))}
+        <div className="menu-price cafe-a-price-area shrink-0 text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
+          <div
+            className="cafe-a-price-columns-grid"
+            style={{ "--cafe-a-price-column-count": priceTokens.length } as CSSProperties}
+            data-cafe-a-price-columns=""
+          >
+            {priceTokens.map((token, index) => (
+              <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-column-cell">
+                {token.price ? <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span> : <span aria-hidden="true">&nbsp;</span>}
+              </span>
+            ))}
+          </div>
+          {priceNote && <p className="cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug text-[#65706b]">{priceNote}</p>}
         </div>
       )}
       {priceTokens.length > 0 && !usesPriceColumns && (
-        <div className="menu-price cafe-a-price-stack cafe-a-price-inline flex shrink-0 flex-wrap items-baseline justify-end text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
-          {priceTokens.map((token, index) => (
-            <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-token inline-flex items-baseline whitespace-nowrap">
-              {index > 0 && <span className="cafe-a-price-separator font-bold text-[#191c1b]/45">/</span>}
-              <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
-                {token.label && <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none text-[#191c1b]">{token.label}</span>}
-                {showTimeSale && timeSalePrice && index === 0 ? (
-                  <TimeSalePriceBlock
-                    timeSale={timeSale.promotion}
-                    originalPrice={token.price}
-                    salePrice={timeSalePrice}
-                    priceClassName={priceClassName}
-                  />
-                ) : (
-                  <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
-                )}
+        <div className="menu-price cafe-a-price-area shrink-0 text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
+          <div className="cafe-a-price-stack cafe-a-price-inline flex flex-wrap items-baseline justify-end">
+            {priceTokens.map((token, index) => (
+              <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-token inline-flex items-baseline whitespace-nowrap">
+                {index > 0 && <span className="cafe-a-price-separator font-bold text-[#191c1b]/45">/</span>}
+                <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
+                  {token.label && <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none text-[#191c1b]">{token.label}</span>}
+                  {showTimeSale && timeSalePrice && index === 0 ? (
+                    <TimeSalePriceBlock
+                      timeSale={timeSale.promotion}
+                      originalPrice={token.price}
+                      salePrice={timeSalePrice}
+                      priceClassName={priceClassName}
+                    />
+                  ) : (
+                    <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
+                  )}
+                </span>
               </span>
-            </span>
-          ))}
+            ))}
+          </div>
+          {priceNote && <p className="cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug text-[#65706b]">{priceNote}</p>}
         </div>
       )}
     </article>

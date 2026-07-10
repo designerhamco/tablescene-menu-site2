@@ -3925,12 +3925,17 @@ export async function createMenuItemAction(formData: FormData) {
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   const name = getString(formData, "item_name");
   const priceLabel = getNullableString(formData, "item_price_label");
+  const hasPriceNoteField = formData.has("item_price_note");
+  const priceNote = hasPriceNoteField ? getNullableString(formData, "item_price_note") : null;
   const portionLabel = templateCapabilities.itemPortionLabel ? getNullableString(formData, "item_portion_label") : null;
   const description = templateCapabilities.itemDescription ? getNullableString(formData, "item_description") : null;
   const priceMode = getString(formData, "item_price_mode") === "options" ? "options" : "single";
 
   validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
   validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
+  if (hasPriceNoteField) {
+    validateOptionalText(menuId, priceNote, "가격 안내 문구", MENU_FIELD_LIMITS.menuItems.priceNote);
+  }
   if (templateCapabilities.itemPortionLabel) {
     validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
   }
@@ -3999,6 +4004,7 @@ export async function createMenuItemAction(formData: FormData) {
     description,
     price: priceMode === "single" ? price : undefined,
     price_label: priceMode === "single" ? priceLabel : null,
+    ...(hasPriceNoteField ? { price_note: priceNote } : {}),
     price_visible: getBoolean(formData, "item_price_visible"),
     portion_label: portionLabel,
     portion_visible: Boolean(templateCapabilities.itemPortionLabel && getBoolean(formData, "item_portion_visible") && portionLabel),
@@ -4069,6 +4075,8 @@ export async function updateMenuItemAction(formData: FormData) {
 
   const name = getString(formData, "item_name");
   const priceLabel = getNullableString(formData, "item_price_label");
+  const hasPriceNoteField = formData.has("item_price_note");
+  const priceNote = hasPriceNoteField ? getNullableString(formData, "item_price_note") : null;
   const portionLabel = templateCapabilities.itemPortionLabel ? getNullableString(formData, "item_portion_label") : null;
   const description = templateCapabilities.itemDescription ? getNullableString(formData, "item_description") : null;
   const priceMode = getString(formData, "item_price_mode") === "options" ? "options" : "single";
@@ -4076,6 +4084,9 @@ export async function updateMenuItemAction(formData: FormData) {
 
   validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
   validateOptionalText(menuId, priceLabel, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
+  if (hasPriceNoteField) {
+    validateOptionalText(menuId, priceNote, "가격 안내 문구", MENU_FIELD_LIMITS.menuItems.priceNote);
+  }
   if (templateCapabilities.itemPortionLabel) {
     validateOptionalText(menuId, portionLabel, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
   }
@@ -4127,6 +4138,7 @@ export async function updateMenuItemAction(formData: FormData) {
     category_id: categoryId,
     name,
     set_name: setName,
+    ...(hasPriceNoteField ? { price_note: priceNote } : {}),
     price_visible: getBoolean(formData, "item_price_visible"),
     badge_label: badgeLabel,
     badge_type: badgeType,
@@ -4242,6 +4254,7 @@ type MenuManagementBasicItemDraft = {
   originInfo?: string;
   price: string;
   priceLabel: string;
+  priceNote?: string;
   badgeLabel: string;
   visible: boolean;
   sortOrder: number;
@@ -5356,6 +5369,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const description = normalizeDraftString(item.description);
     const originInfo = normalizeDraftString(item.originInfo);
     const priceLabel = normalizeDraftString(item.priceLabel);
+    const priceNote = normalizeDraftString(item.priceNote);
     const portionLabel = normalizeDraftString(item.portionLabel);
     const badgeLabel = normalizeDraftString(item.badgeLabel);
     const badgeStyleKey = normalizeDraftString(item.badgeStyleKey) as BadgeStyleKey;
@@ -5373,6 +5387,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       validateOptionalText(menuId, originInfo || null, "원산지 정보", MENU_FIELD_LIMITS.menuItems.originInfo);
     }
     validateOptionalText(menuId, priceLabel || null, "가격 표시 문구", MENU_FIELD_LIMITS.menuItems.priceLabel);
+    validateOptionalText(menuId, priceNote || null, "가격 안내 문구", MENU_FIELD_LIMITS.menuItems.priceNote);
     if (templateCapabilities.itemPortionLabel) {
       validateOptionalText(menuId, portionLabel || null, "제공량", MENU_FIELD_LIMITS.menuItems.portionLabel);
     }
@@ -5790,6 +5805,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, "가격은 숫자로 입력해주세요.");
     }
     const priceLabel = normalizeDraftString(item.priceLabel);
+    const priceNote = normalizeDraftString(item.priceNote);
 
     const badgeLabel = normalizeDraftString(item.badgeLabel) || null;
     const imageAction = normalizeDraftString(item.imageAction);
@@ -5836,6 +5852,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       origin_info: normalizeDraftString(item.originInfo) || null,
       price: usesOptionPricing ? 0 : numericPrice ?? 0,
       price_label: usesOptionPricing ? null : priceLabel || null,
+      price_note: priceNote || null,
       badge_label: badgeLabel,
       badge_type: getLegacyBadgeTypeForLabel(badgeLabel),
       recommended: Boolean(badgeLabel),

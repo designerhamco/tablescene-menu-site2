@@ -396,6 +396,15 @@ video {
   overflow-wrap: anywhere;
 }
 
+.cafe-a-typography .cafe-a-price-area {
+  max-width: min(100%, 13rem);
+}
+
+.cafe-a-typography .cafe-a-price-note {
+  font-size: clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale)), 0.72rem);
+  max-width: 100%;
+}
+
 .cafe-a-typography .cafe-a-price-columns-grid {
   align-items: baseline;
   gap: 0.42rem;

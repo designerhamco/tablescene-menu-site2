@@ -173,6 +173,7 @@ type MenuItem = Pick<
   | "description"
   | "price"
   | "price_label"
+  | "price_note"
   | "price_visible"
   | "portion_label"
   | "portion_visible"
@@ -964,7 +965,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       supabase
         .from("menu_items")
         .select(
-          "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+          "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
         )
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
@@ -1047,7 +1048,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       ? await supabase
           .from("menu_items")
           .select(
-            "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+            "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
           )
           .eq("menu_site_id", menuId)
           .order("sort_order", { ascending: true })

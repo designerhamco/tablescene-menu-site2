@@ -106,6 +106,7 @@ type MenuItem = Omit<Pick<
   | "description"
   | "price"
   | "price_label"
+  | "price_note"
   | "price_visible"
   | "portion_label"
   | "portion_visible"
@@ -213,6 +214,7 @@ type ItemBasicDraft = {
   originInfo: string;
   price: string;
   priceLabel: string;
+  priceNote?: string;
   badgeLabel: string;
   visible: boolean;
   sortOrder: number;
@@ -2488,6 +2490,7 @@ function MenuItemForm({
   const formId = item ? `menu-item-form-${item.id}` : "menu-item-form-new";
   const [priceValue, setPriceValue] = useState(draftItem?.price ?? (item?.price == null ? "" : String(item.price)));
   const [priceLabelValue, setPriceLabelValue] = useState(draftItem?.priceLabel ?? item?.price_label ?? "");
+  const [priceNoteValue, setPriceNoteValue] = useState(draftItem?.priceNote ?? item?.price_note ?? "");
   const [descriptionValue, setDescriptionValue] = useState(draftItem?.description ?? item?.description ?? "");
   const [originInfoValue, setOriginInfoValue] = useState(draftItem?.originInfo ?? item?.origin_info ?? "");
   const [visibleValue, setVisibleValue] = useState(draftItem?.visible ?? item?.visible ?? true);
@@ -2679,6 +2682,7 @@ function MenuItemForm({
     normalizeDraftText(originInfoValue) !== normalizeDraftText(committedDraftItem?.originInfo ?? item.origin_info ?? "") ||
     normalizeDraftText(priceValue) !== normalizeDraftText(committedDraftItem?.price ?? (item.price == null ? "" : String(item.price))) ||
     normalizeDraftText(priceLabelValue) !== normalizeDraftText(committedDraftItem?.priceLabel ?? item.price_label ?? "") ||
+    normalizeDraftText(priceNoteValue) !== normalizeDraftText(committedDraftItem?.priceNote ?? item.price_note ?? "") ||
     normalizeDraftText(visibleBadgeLabel) !== normalizeDraftText(committedDraftItem?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "") ||
     visibleValue !== (committedDraftItem?.visible ?? item.visible ?? true) ||
     normalizeDraftNumberText(sortOrderValue) !== normalizeDraftNumberText(committedDraftItem?.sortOrder ?? item.sort_order ?? itemCount) ||
@@ -2754,6 +2758,7 @@ function MenuItemForm({
       originInfo: String(formData?.get("item_origin_info") ?? originInfoValue),
       price: String(formData?.get("item_price") ?? priceValue),
       priceLabel: String(formData?.get("item_price_label") ?? priceLabelValue),
+      priceNote: String(formData?.get("item_price_note") ?? priceNoteValue),
       badgeLabel: nextBadgeLabel,
       visible: formData ? formData.has("item_visible") : visibleValue,
       sortOrder: Number(String(formData?.get("item_sort_order") ?? item?.sort_order ?? itemCount)) || 0,
@@ -3477,6 +3482,23 @@ function MenuItemForm({
             />
           </div>
         ) : null}
+        {canManageCategoryPriceColumns && (
+          <div className="mt-4">
+            <ValidatedTextInput
+              form={formId}
+              name="item_price_note"
+              label="가격 안내 문구"
+              defaultValue={priceNoteValue}
+              placeholder="예: HOT/ICE 동일가, 시즌 한정, 매장 문의"
+              maxLength={MENU_FIELD_LIMITS.menuItems.priceNote}
+              helperText="가격 옆이나 아래에 표시되는 안내 문구입니다. 할인 계산에는 사용되지 않습니다."
+              onValueChange={(value) => {
+                setPriceNoteValue(value);
+                updateDraftItem({ priceNote: value });
+              }}
+            />
+          </div>
+        )}
         <div className="mt-4">
           <Checkbox
             form={formId}
@@ -4282,6 +4304,7 @@ export default function MenuManagementSection({
           originInfo: item.origin_info ?? "",
           price: item.price == null ? "" : String(item.price),
           priceLabel: item.price_label ?? "",
+          priceNote: item.price_note ?? "",
           badgeLabel: getMenuItemBadgeLabel(item) ?? "",
           visible: item.visible,
           sortOrder: item.sort_order,
@@ -4401,6 +4424,7 @@ export default function MenuManagementSection({
           origin_info: draft.originInfo.trim() ? draft.originInfo : null,
           price: Number.isFinite(numericPrice) ? numericPrice : item.price,
           price_label: draft.priceLabel.trim() ? draft.priceLabel : null,
+          price_note: draft.priceNote?.trim() ? draft.priceNote : null,
           portion_label: capabilities.itemPortionLabel ? (draft.portionLabel?.trim() ? draft.portionLabel : null) : item.portion_label,
           badge_label: draft.badgeLabel.trim() ? draft.badgeLabel : null,
           badge_type: getBadgeStyleKey(draft.badgeLabel),
@@ -4428,6 +4452,7 @@ export default function MenuManagementSection({
             description: draft.description.trim() ? draft.description : null,
             price: Number.isFinite(numericPrice) && numericPrice != null ? numericPrice : 0,
             price_label: draft.priceLabel.trim() ? draft.priceLabel : null,
+            price_note: draft.priceNote?.trim() ? draft.priceNote : null,
             price_visible: draft.priceVisible ?? true,
             portion_label: capabilities.itemPortionLabel && draft.portionLabel?.trim() ? draft.portionLabel : null,
             portion_visible: capabilities.itemPortionLabel ? (draft.portionVisible ?? true) : false,
@@ -4718,6 +4743,7 @@ export default function MenuManagementSection({
               originInfo: draft?.originInfo ?? item.origin_info ?? "",
               price: draft?.price ?? (item.price == null ? "" : String(item.price)),
               priceLabel: draft?.priceLabel ?? item.price_label ?? "",
+              priceNote: draft?.priceNote ?? item.price_note ?? "",
               badgeLabel: draft?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "",
               visible: draft?.visible ?? item.visible,
               sortOrder: draft?.sortOrder ?? item.sort_order,
@@ -5308,6 +5334,7 @@ export default function MenuManagementSection({
       originInfo: sourceItem?.origin_info ?? "",
       price: sourceItem?.price == null ? "" : String(sourceItem.price),
       priceLabel: sourceItem?.price_label ?? "",
+      priceNote: sourceItem?.price_note ?? "",
       badgeLabel: sourceItem ? getMenuItemBadgeLabel(sourceItem) ?? "" : "",
       visible: sourceItem?.visible ?? true,
       sortOrder: sourceItem?.sort_order ?? itemsForCategory.length,
@@ -5338,6 +5365,7 @@ export default function MenuManagementSection({
       originInfo: existingDraft?.originInfo ?? sourceItem?.origin_info ?? "",
       price: existingDraft?.price ?? (sourceItem?.price == null ? "" : String(sourceItem.price)),
       priceLabel: existingDraft?.priceLabel ?? sourceItem?.price_label ?? "",
+      priceNote: existingDraft?.priceNote ?? sourceItem?.price_note ?? "",
       badgeLabel: existingDraft?.badgeLabel ?? (sourceItem ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
       visible: existingDraft?.visible ?? sourceItem?.visible ?? true,
       sortOrder,
@@ -6061,6 +6089,7 @@ export default function MenuManagementSection({
             originInfo: sourceDraft?.originInfo ?? item.origin_info ?? "",
             price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
             priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
+            priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
             badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
             visible: sourceDraft?.visible ?? item.visible,
             sortOrder: index,
@@ -6117,6 +6146,7 @@ export default function MenuManagementSection({
         originInfo: sourceDraft?.originInfo ?? sourceItem.origin_info ?? "",
         price: sourceDraft?.price ?? (sourceItem.price == null ? "" : String(sourceItem.price)),
         priceLabel: sourceDraft?.priceLabel ?? sourceItem.price_label ?? "",
+        priceNote: sourceDraft?.priceNote ?? sourceItem.price_note ?? "",
         badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
         visible: sourceDraft?.visible ?? sourceItem.visible,
         sortOrder: 0,
@@ -6235,6 +6265,7 @@ export default function MenuManagementSection({
           originInfo: sourceDraft?.originInfo ?? item.origin_info ?? "",
           price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
           priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
+          priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
           badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
           visible: sourceDraft?.visible ?? item.visible,
           sortOrder: index,
@@ -6375,6 +6406,7 @@ export default function MenuManagementSection({
             originInfo: "",
             price: starterItem.price == null ? "" : String(starterItem.price),
             priceLabel: starterItem.price_label ?? "",
+            priceNote: "",
             badgeLabel,
             visible: starterPreset.sample_items_visible ?? true,
             sortOrder: itemIndex,
@@ -6530,6 +6562,7 @@ export default function MenuManagementSection({
               originInfo: "",
               price: item.price == null ? "" : String(item.price),
               priceLabel: item.price_label ?? "",
+              priceNote: "",
               badgeLabel: capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : "",
               visible: true,
               sortOrder: itemIndex,
