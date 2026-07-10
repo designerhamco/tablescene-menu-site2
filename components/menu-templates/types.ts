@@ -45,7 +45,18 @@ export type PublicMenuPage = Pick<
 export type PublicMenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "sort_order" | "visible"
->;
+> & {
+  priceColumns: PublicMenuCategoryPriceColumn[];
+};
+
+export type PublicMenuCategoryPriceColumn = {
+  id: string;
+  categoryId: string;
+  key: string;
+  label: string;
+  sortOrder: number;
+  visible: boolean;
+};
 
 export type PublicMenuItem = Pick<
   Database["public"]["Tables"]["menu_items"]["Row"],
@@ -72,6 +83,16 @@ export type PublicMenuItem = Pick<
   | "sort_order"
 > & {
   default_name?: string | null;
+  priceNote: string | null;
+  priceColumnValues: PublicMenuItemPriceColumnValue[];
+};
+
+export type PublicMenuItemPriceColumnValue = {
+  id: string;
+  priceColumnId: string;
+  price: number | null;
+  priceLabel: string | null;
+  visible: boolean;
 };
 
 export type PublicMenuItemTrait = Pick<

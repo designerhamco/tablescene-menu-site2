@@ -63,6 +63,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         description_visible: true,
         sort_order: categoryIndex + 1,
         visible: true,
+        priceColumns: [],
       });
 
       category.items.forEach((menuItem, itemIndex) => {
@@ -75,6 +76,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           description: menuItem.description,
           price: menuItem.price,
           price_label: menuItem.price_label ?? null,
+          priceNote: null,
           price_visible: true,
           portion_label: menuItem.portion_label ?? null,
           portion_visible: Boolean(menuItem.portion_label),
@@ -89,6 +91,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           traits_visible: true,
           visible: true,
           sort_order: itemIndex + 1,
+          priceColumnValues: [],
         });
 
         menuItem.price_options?.forEach((option, optionIndex) => {
@@ -303,6 +306,7 @@ function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | s
       description: stressItem.description,
       price: stressItem.price,
       price_label: stressItem.price_label,
+      priceNote: null,
       price_visible: true,
       portion_label: stressItem.portion_label ?? null,
       portion_visible: Boolean(stressItem.portion_label),
@@ -317,6 +321,7 @@ function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | s
       traits_visible: true,
       visible: true,
       sort_order: sortOrder,
+      priceColumnValues: [],
     });
 
     stressItem.price_options?.forEach((option, optionIndex) => {

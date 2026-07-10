@@ -520,6 +520,7 @@ function buildCategory(category: DemoCategory) {
     description_visible: false,
     sort_order: category.sortOrder,
     visible: true,
+    priceColumns: [],
   };
 }
 
@@ -532,6 +533,7 @@ function buildItem(item: DemoItem) {
     description: null,
     price: priceFromLabel(item.priceLabel),
     price_label: item.priceLabel,
+    priceNote: null,
     price_visible: true,
     portion_label: null,
     portion_visible: false,
@@ -546,6 +548,7 @@ function buildItem(item: DemoItem) {
     traits_visible: true,
     visible: true,
     sort_order: item.sortOrder,
+    priceColumnValues: [],
   };
 }
 

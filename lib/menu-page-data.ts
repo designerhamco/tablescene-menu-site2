@@ -23,6 +23,9 @@ type MenuPageData = Omit<PublicMenuTemplateProps, "mode"> & {
 type MenuPage = PublicMenuTemplateProps["pages"][number];
 type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuItem = PublicMenuTemplateProps["items"][number];
+type MenuCategoryPriceColumn = MenuCategory["priceColumns"][number];
+type MenuItemPriceColumnValue = MenuItem["priceColumnValues"][number];
+type MenuItemQueryRow = Omit<MenuItem, "default_name" | "priceNote" | "priceColumnValues"> & { price_note?: string | null };
 type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
 type MenuTimeSalePromotionRow = Database["public"]["Tables"]["menu_promotions"]["Row"];
@@ -52,9 +55,11 @@ const siteSelect = baseSiteSelect
 const pageSelect = "id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at";
 const categorySelect = "id, menu_page_id, name, description, description_visible, sort_order, visible";
 const itemSelect =
-  "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
+  "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, badge, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
 const legacyItemSelect =
   "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, badge, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order";
+const categoryPriceColumnSelect = "id, category_id, key, label, sort_order, visible";
+const itemPriceColumnValueSelect = "id, menu_item_id, price_column_id, price, price_label, visible";
 const priceOptionSelect = "id, menu_item_id, label, price, price_label, visible, sort_order";
 const traitSelect = "id, menu_item_id, label, value, max_value, visible, sort_order";
 const eventSelect =
@@ -80,6 +85,15 @@ function mapById<T extends Record<TKey, string>, TKey extends keyof T>(rows: T[]
 
 function getJsonRecord(value: unknown): Record<string, Json> {
   return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, Json>) } : {};
+}
+
+function isMissingTableError(error: { message: string; code?: string | null } | null, tableName: string) {
+  return Boolean(
+    error &&
+      (error.message.toLowerCase().includes(tableName) ||
+        error.message.toLowerCase().includes("does not exist") ||
+        error.code === "42P01"),
+  );
 }
 
 function shouldLoadTimeSales(menuSite: MenuSite) {
@@ -258,6 +272,27 @@ function mergePriceOptionTranslation(
   };
 }
 
+function normalizeCategoryPriceColumn(row: Database["public"]["Tables"]["menu_category_price_columns"]["Row"]): MenuCategoryPriceColumn {
+  return {
+    id: row.id,
+    categoryId: row.category_id,
+    key: row.key,
+    label: row.label,
+    sortOrder: row.sort_order,
+    visible: row.visible,
+  };
+}
+
+function normalizeItemPriceColumnValue(row: Database["public"]["Tables"]["menu_item_price_column_values"]["Row"]): MenuItemPriceColumnValue {
+  return {
+    id: row.id,
+    priceColumnId: row.price_column_id,
+    price: row.price,
+    priceLabel: row.price_label,
+    visible: row.visible,
+  };
+}
+
 async function applyMenuTranslations(
   supabase: SupabaseServerClient,
   data: MenuPageData,
@@ -373,6 +408,7 @@ async function applyMenuTranslations(
             set_name: getLocalizedValue(item.set_name, translation.set_name),
             description: getLocalizedValue(item.description, translation.description),
             price_label: getLocalizedValue(item.price_label, translation.price_label),
+            priceNote: getLocalizedValue(item.priceNote, translation.price_note),
             portion_label: getLocalizedValue(item.portion_label, translation.portion_label),
             badge_label: getLocalizedValue(item.badge_label, translation.badge_label),
             origin_info: getLocalizedValue(item.origin_info, translation.origin_info),
@@ -480,7 +516,10 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     return null;
   }
 
-  const categories = orderBySortThenCreated((categoriesData ?? []) as MenuCategory[]);
+  const categories = orderBySortThenCreated((categoriesData ?? []) as Omit<MenuCategory, "priceColumns">[]).map((category) => ({
+    ...category,
+    priceColumns: [],
+  }));
   const categoryIds = categories.map((category) => category.id);
 
   const { data: itemsData, error: itemsError } = categoryIds.length
@@ -514,20 +553,41 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     return null;
   }
 
-  const items = orderBySortThenCreated(((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[]).map((item) => ({
+  const items = orderBySortThenCreated(((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItemQueryRow[]).map((item) => ({
     ...item,
     default_name: item.name,
+    priceNote: item.price_note ?? null,
+    priceColumnValues: [],
   }));
   const itemIds = items.map((item) => item.id);
   const traitItemIds = items.filter((item) => item.traits_visible).map((item) => item.id);
 
   const [
+    { data: categoryPriceColumnsData, error: categoryPriceColumnsError },
+    { data: itemPriceColumnValuesData, error: itemPriceColumnValuesError },
     { data: priceOptionsData, error: priceOptionsError },
     { data: traitsData, error: traitsError },
     { data: eventsData },
     { data: chefsData },
     { data: socialLinksData },
   ] = await Promise.all([
+    categoryIds.length
+      ? supabase
+          .from("menu_category_price_columns")
+          .select(categoryPriceColumnSelect)
+          .in("category_id", categoryIds)
+          .eq("visible", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
+    itemIds.length
+      ? supabase
+          .from("menu_item_price_column_values")
+          .select(itemPriceColumnValueSelect)
+          .in("menu_item_id", itemIds)
+          .eq("visible", true)
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
     itemIds.length
       ? supabase
           .from("menu_item_price_options")
@@ -569,11 +629,17 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
       .order("created_at", { ascending: true }),
   ]);
 
-  const isMissingPriceOptionsTable =
-    priceOptionsError &&
-    (priceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||
-      priceOptionsError.message.toLowerCase().includes("does not exist") ||
-      priceOptionsError.code === "42P01");
+  const isMissingCategoryPriceColumnsTable = isMissingTableError(categoryPriceColumnsError, "menu_category_price_columns");
+  const isMissingItemPriceColumnValuesTable = isMissingTableError(itemPriceColumnValuesError, "menu_item_price_column_values");
+  const isMissingPriceOptionsTable = isMissingTableError(priceOptionsError, "menu_item_price_options");
+
+  if (categoryPriceColumnsError && !isMissingCategoryPriceColumnsTable) {
+    return null;
+  }
+
+  if (itemPriceColumnValuesError && !isMissingItemPriceColumnValuesTable) {
+    return null;
+  }
 
   if (priceOptionsError && !isMissingPriceOptionsTable) {
     return null;
@@ -583,11 +649,49 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     return null;
   }
 
+  const categoryPriceColumns = isMissingCategoryPriceColumnsTable
+    ? []
+    : ((categoryPriceColumnsData ?? []) as Database["public"]["Tables"]["menu_category_price_columns"]["Row"][]).map(normalizeCategoryPriceColumn);
+  const categoryPriceColumnsById = new Map(categoryPriceColumns.map((column) => [column.id, column]));
+  const categoryPriceColumnsByCategoryId = new Map<string, MenuCategoryPriceColumn[]>();
+
+  for (const column of categoryPriceColumns) {
+    const currentColumns = categoryPriceColumnsByCategoryId.get(column.categoryId) ?? [];
+    currentColumns.push(column);
+    categoryPriceColumnsByCategoryId.set(column.categoryId, currentColumns);
+  }
+
+  const itemsById = new Map(items.map((item) => [item.id, item]));
+  const itemPriceColumnValuesByItemId = new Map<string, MenuItemPriceColumnValue[]>();
+
+  if (!isMissingItemPriceColumnValuesTable) {
+    for (const row of (itemPriceColumnValuesData ?? []) as Database["public"]["Tables"]["menu_item_price_column_values"]["Row"][]) {
+      const item = itemsById.get(row.menu_item_id);
+      const column = categoryPriceColumnsById.get(row.price_column_id);
+
+      if (!item || !column || item.price_visible === false || row.price === null || column.categoryId !== item.category_id) {
+        continue;
+      }
+
+      const currentValues = itemPriceColumnValuesByItemId.get(item.id) ?? [];
+      currentValues.push(normalizeItemPriceColumnValue(row));
+      itemPriceColumnValuesByItemId.set(item.id, currentValues);
+    }
+  }
+
+  const categoriesWithPriceColumns = categories.map((category) => ({
+    ...category,
+    priceColumns: categoryPriceColumnsByCategoryId.get(category.id) ?? [],
+  }));
+  const itemsWithPriceColumnValues = items.map((item) => ({
+    ...item,
+    priceColumnValues: itemPriceColumnValuesByItemId.get(item.id) ?? [],
+  }));
   const priceOptions = isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]);
   const timeSales = await loadPublicTimeSales({
     supabase,
     menuSite,
-    items,
+    items: itemsWithPriceColumnValues,
     priceOptions,
   });
 
@@ -598,8 +702,8 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     menuSite,
     pageSettings,
     pages,
-    categories,
-    items,
+    categories: categoriesWithPriceColumns,
+    items: itemsWithPriceColumnValues,
     priceOptions,
     traits: (traitsData ?? []) as MenuItemTrait[],
     events: (eventsData ?? []) as MenuPageData["events"],
