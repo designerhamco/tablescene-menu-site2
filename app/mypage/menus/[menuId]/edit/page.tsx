@@ -148,6 +148,18 @@ type MenuCategoryPriceColumnDraft = {
   visible: boolean;
   sortOrder: number;
 };
+type MenuItemPriceColumnValue = Pick<
+  Database["public"]["Tables"]["menu_item_price_column_values"]["Row"],
+  "id" | "menu_item_id" | "price_column_id" | "price" | "price_label" | "visible"
+>;
+type MenuItemPriceColumnValueDraft = {
+  id: string;
+  priceColumnId: string;
+  price: string;
+  priceLabel: string;
+  visible: boolean;
+  sortOrder: number;
+};
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
   "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
@@ -175,7 +187,9 @@ type MenuItem = Pick<
   | "traits_visible"
   | "visible"
   | "sort_order"
->;
+> & {
+  priceColumnValues?: MenuItemPriceColumnValueDraft[];
+};
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
 type MenuPromotion = Pick<
@@ -1039,7 +1053,46 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true })
       : { data: null };
-  const items = ((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[];
+  const baseItems = ((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[];
+  const baseItemIds = baseItems.map((item) => item.id);
+  const { data: itemPriceColumnValuesData, error: itemPriceColumnValuesError } =
+    baseItemIds.length > 0
+      ? await supabase
+          .from("menu_item_price_column_values")
+          .select("id, menu_item_id, price_column_id, price, price_label, visible")
+          .in("menu_item_id", baseItemIds)
+      : { data: [], error: null };
+  const isMissingItemPriceColumnValuesTable =
+    itemPriceColumnValuesError &&
+    (itemPriceColumnValuesError.message.toLowerCase().includes("menu_item_price_column_values") ||
+      itemPriceColumnValuesError.message.toLowerCase().includes("does not exist") ||
+      itemPriceColumnValuesError.code === "42P01");
+  if (itemPriceColumnValuesError && !isMissingItemPriceColumnValuesTable) {
+    redirect(`/mypage/menus/${menuId}/edit?tab=menu&error=${encodeURIComponent(`가격 옵션 컬럼 가격값 확인에 실패했습니다: ${itemPriceColumnValuesError.message}`)}`);
+  }
+  const priceColumnValueSortOrderByColumnId = new Map<string, number>();
+  priceColumnsByCategoryId.forEach((columns) => {
+    columns.forEach((column) => {
+      priceColumnValueSortOrderByColumnId.set(column.id, column.sortOrder);
+    });
+  });
+  const priceColumnValuesByItemId = new Map<string, MenuItemPriceColumnValueDraft[]>();
+  ((isMissingItemPriceColumnValuesTable ? [] : itemPriceColumnValuesData ?? []) as MenuItemPriceColumnValue[]).forEach((value) => {
+    const entries = priceColumnValuesByItemId.get(value.menu_item_id) ?? [];
+    entries.push({
+      id: value.id,
+      priceColumnId: value.price_column_id,
+      price: value.price == null ? "" : String(value.price),
+      priceLabel: value.price_label ?? "",
+      visible: value.visible,
+      sortOrder: priceColumnValueSortOrderByColumnId.get(value.price_column_id) ?? entries.length,
+    });
+    priceColumnValuesByItemId.set(value.menu_item_id, entries);
+  });
+  const items = baseItems.map((item) => ({
+    ...item,
+    priceColumnValues: priceColumnValuesByItemId.get(item.id) ?? [],
+  }));
   const isMissingPriceOptionsTable =
     priceOptionsError &&
     (priceOptionsError.message.toLowerCase().includes("menu_item_price_options") ||

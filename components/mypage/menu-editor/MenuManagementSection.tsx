@@ -122,6 +122,7 @@ type MenuItem = Omit<Pick<
   | "sort_order"
 >, "price"> & {
   price: number | null;
+  priceColumnValues?: ItemPriceColumnValueDraft[];
 };
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
@@ -222,6 +223,7 @@ type ItemBasicDraft = {
   traitsVisible?: boolean;
   traitDrafts?: ItemTraitDraft[];
   priceOptions?: DraftPriceOption[];
+  priceColumnValues?: ItemPriceColumnValueDraft[];
   timeSale?: ItemTimeSaleDraft;
   badgeStyleKey?: BadgeStyleKey;
   badgeBackgroundColor?: string;
@@ -268,6 +270,14 @@ type ItemTimeSaleDraft = {
 type DraftPriceOption = {
   id: string;
   label: string;
+  price: string;
+  priceLabel: string;
+  visible: boolean;
+  sortOrder: number;
+};
+type ItemPriceColumnValueDraft = {
+  id?: string;
+  priceColumnId: string;
   price: string;
   priceLabel: string;
   visible: boolean;
@@ -362,6 +372,59 @@ function areCategoryPriceColumnDraftsEqual(
   right: readonly Partial<CategoryPriceColumnDraft>[] | undefined
 ) {
   return JSON.stringify(normalizeCategoryPriceColumnDrafts(left)) === JSON.stringify(normalizeCategoryPriceColumnDrafts(right));
+}
+
+function normalizeItemPriceColumnValueDrafts(
+  values: readonly Partial<ItemPriceColumnValueDraft>[] | undefined
+): ItemPriceColumnValueDraft[] {
+  return (values ?? [])
+    .map((value, index) => ({
+      id: normalizeDraftText(value.id) || undefined,
+      priceColumnId: normalizeDraftText(value.priceColumnId),
+      price: normalizeDraftText(value.price),
+      priceLabel: normalizeDraftText(value.priceLabel),
+      visible: normalizeDraftBoolean(value.visible),
+      sortOrder: Number.isFinite(Number(value.sortOrder)) ? Number(value.sortOrder) : index,
+    }))
+    .filter((value) => value.priceColumnId)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.priceColumnId.localeCompare(b.priceColumnId));
+}
+
+function getItemPriceColumnValuesForColumns(
+  values: readonly Partial<ItemPriceColumnValueDraft>[] | undefined,
+  columns: readonly Partial<CategoryPriceColumnDraft>[] | undefined
+): ItemPriceColumnValueDraft[] {
+  const normalizedValues = normalizeItemPriceColumnValueDrafts(values);
+  const valueByColumnId = new Map(normalizedValues.map((value) => [value.priceColumnId, value]));
+
+  return normalizeCategoryPriceColumnDrafts(columns)
+    .filter((column) => column.visible && column.id)
+    .map((column, index) => {
+      const source = valueByColumnId.get(column.id ?? "");
+      return {
+        id: source?.id,
+        priceColumnId: column.id ?? "",
+        price: source?.price ?? "",
+        priceLabel: source?.priceLabel ?? "",
+        visible: source?.visible ?? false,
+        sortOrder: index,
+      };
+    });
+}
+
+function areItemPriceColumnValueDraftsEqual(
+  left: readonly Partial<ItemPriceColumnValueDraft>[] | undefined,
+  right: readonly Partial<ItemPriceColumnValueDraft>[] | undefined
+) {
+  return JSON.stringify(normalizeItemPriceColumnValueDrafts(left)) === JSON.stringify(normalizeItemPriceColumnValueDrafts(right));
+}
+
+function copyItemPriceColumnValueDrafts(values: readonly Partial<ItemPriceColumnValueDraft>[] | undefined) {
+  return normalizeItemPriceColumnValueDrafts(values).map((value, index) => ({
+    ...value,
+    id: undefined,
+    sortOrder: index,
+  }));
 }
 
 function toDraftPriceOptionFromColumn(label: string, index: number, source?: DraftPriceOption | MenuItemPriceOption | null): DraftPriceOption {
@@ -2350,6 +2413,7 @@ function MenuItemForm({
   priceMode = "single",
   onPriceModeChange,
   canManageTimeSales = false,
+  canManageCategoryPriceColumns = false,
   timeSaleOwnerItemId = null,
   timeSaleItemId,
 }: {
@@ -2382,6 +2446,7 @@ function MenuItemForm({
   priceMode?: PriceMode;
   onPriceModeChange?: (mode: PriceMode) => void;
   canManageTimeSales?: boolean;
+  canManageCategoryPriceColumns?: boolean;
   timeSaleOwnerItemId?: string | null;
   timeSaleItemId?: string;
 }) {
@@ -2392,6 +2457,13 @@ function MenuItemForm({
   const [selectedBadgeLabel, setSelectedBadgeLabel] = useState(initialBadgeLabel ? initialDefaultBadgeLabel ?? MENU_BADGE_CUSTOM_VALUE : "none");
   const [customBadgeLabel, setCustomBadgeLabel] = useState(initialDefaultBadgeLabel ? "" : initialBadgeLabel);
   const [categoryId, setCategoryId] = useState(item?.category_id ?? selectedCategoryId);
+  const currentCategoryPriceColumns = useMemo(
+    () =>
+      canManageCategoryPriceColumns
+        ? normalizeCategoryPriceColumnDrafts(categories.find((category) => category.id === categoryId)?.priceColumns)
+        : [],
+    [canManageCategoryPriceColumns, categories, categoryId]
+  );
   const nameValue = !item && draftName !== undefined ? draftName : name;
   const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuItems.name;
   const categoryInvalid = !categoryId;
@@ -2456,6 +2528,9 @@ function MenuItemForm({
 
     return sourceOptions;
   });
+  const [draftPriceColumnValues, setDraftPriceColumnValues] = useState<ItemPriceColumnValueDraft[]>(() =>
+    getItemPriceColumnValuesForColumns(draftItem?.priceColumnValues ?? item?.priceColumnValues, currentCategoryPriceColumns)
+  );
   const [draftPriceOptionLabel, setDraftPriceOptionLabel] = useState("");
   const [draftPriceOptionPrice, setDraftPriceOptionPrice] = useState("");
   const [draftPriceOptionPriceLabel, setDraftPriceOptionPriceLabel] = useState("");
@@ -2474,6 +2549,10 @@ function MenuItemForm({
       toDraftPriceOptionFromColumn(label, index, draftOptionByLabel.get(label.toLocaleUpperCase("ko-KR")))
     );
   }, [draftPriceOptions, normalizedCategoryPriceOptionLabels, usesCategoryPriceOptionColumns]);
+  const effectiveDraftPriceColumnValues = useMemo(
+    () => getItemPriceColumnValuesForColumns(draftPriceColumnValues, currentCategoryPriceColumns),
+    [currentCategoryPriceColumns, draftPriceColumnValues]
+  );
 
   const initialTraitDrafts = draftItem?.traitDrafts ?? toItemTraitDrafts(traits);
   const [traitLabelValues, setTraitLabelValues] = useState(() =>
@@ -2482,20 +2561,23 @@ function MenuItemForm({
   const hasDraftPriceOption = usesCategoryPriceOptionColumns
     ? effectiveDraftPriceOptions.some((option) => option.visible && (String(option.price).trim() || option.priceLabel.trim()))
     : effectiveDraftPriceOptions.some((option) => option.visible);
+  const hasVisiblePriceColumnValue = effectiveDraftPriceColumnValues.some((value) => value.visible);
   const currentTimeSaleItemId = timeSaleItemId ?? item?.id ?? "";
   const hasTimeSaleOnAnotherItem = Boolean(timeSaleOwnerItemId && timeSaleOwnerItemId !== currentTimeSaleItemId);
   const basePriceNumber = Number(priceValue);
   const hasNumericBasePrice = Number.isFinite(basePriceNumber) && basePriceNumber > 0;
-  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && priceVisibleValue && hasNumericBasePrice;
+  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && !hasVisiblePriceColumnValue && priceVisibleValue && hasNumericBasePrice;
   const timeSaleBlockedMessage = hasTimeSaleOnAnotherItem
     ? "MVP에서는 메뉴판당 타임세일 1개만 설정할 수 있습니다."
     : isOptionsMode
       ? "옵션 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
-      : !priceVisibleValue
-        ? "가격을 숨긴 메뉴에는 타임세일을 사용할 수 없습니다."
-        : !hasNumericBasePrice
-          ? "숫자 가격이 있는 메뉴에만 타임세일을 사용할 수 있습니다."
-          : "";
+      : hasVisiblePriceColumnValue
+        ? "옵션 컬럼 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
+        : !priceVisibleValue
+          ? "가격을 숨긴 메뉴에는 타임세일을 사용할 수 없습니다."
+          : !hasNumericBasePrice
+            ? "숫자 가격이 있는 메뉴에만 타임세일을 사용할 수 있습니다."
+            : "";
   const timeSalePriceNumber = parseTimeSalePriceInputToWon(timeSalePrice);
   const timeSaleStartsAtMs = timeSaleStartsAt ? new Date(timeSaleStartsAt).getTime() : NaN;
   const timeSaleEndsAtMs = timeSaleEndsAt ? new Date(timeSaleEndsAt).getTime() : NaN;
@@ -2515,6 +2597,13 @@ function MenuItemForm({
                 : "";
   const singlePriceInvalid = isSingleMode && !priceValue.trim() && !priceLabelValue.trim();
   const optionsPriceInvalid = isOptionsMode && !hasDraftPriceOption;
+  const priceColumnValueInvalid =
+    canManageCategoryPriceColumns &&
+    effectiveDraftPriceColumnValues.some((value) =>
+      value.visible
+        ? !normalizeDraftText(value.price) || Boolean(normalizeDraftText(value.priceLabel) && !/\d/.test(value.priceLabel))
+        : Boolean(normalizeDraftText(value.priceLabel) && (!normalizeDraftText(value.price) || !/\d/.test(value.priceLabel)))
+    );
   const draftPriceOptionLimitExceeded = isOptionsMode && effectiveDraftPriceOptions.length > maxPriceOptionsPerItem;
   const draftPriceOptionInvalid =
     isOptionsMode &&
@@ -2533,10 +2622,12 @@ function MenuItemForm({
         ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해야 반영할 수 있습니다.`
         : optionsPriceInvalid
           ? "옵션별 가격을 1개 이상 추가해야 반영할 수 있습니다."
-          : draftPriceOptionLimitExceeded
-            ? priceOptionLimitMessage
-            : draftPriceOptionInvalid
-              ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
+        : draftPriceOptionLimitExceeded
+          ? priceOptionLimitMessage
+          : draftPriceOptionInvalid
+            ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
+            : priceColumnValueInvalid
+              ? "표시할 옵션 컬럼 가격은 숫자 가격이 필요합니다."
               : customBadgeTooLong
                 ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
                 : timeSaleInvalidReason;
@@ -2547,6 +2638,7 @@ function MenuItemForm({
     optionsPriceInvalid ||
     draftPriceOptionLimitExceeded ||
     draftPriceOptionInvalid ||
+    priceColumnValueInvalid ||
     customBadgeTooLong ||
     Boolean(timeSaleInvalidReason);
   const itemDraftActionLabel = item ? "수정 내용 반영" : labels.itemLabel === "서비스" ? "서비스 추가" : "아이템 추가";
@@ -2560,6 +2652,10 @@ function MenuItemForm({
   const committedPriceOptions = useMemo(
     () => committedDraftItem?.priceOptions ?? [...priceOptions].sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
     [committedDraftItem?.priceOptions, priceOptions]
+  );
+  const committedPriceColumnValues = useMemo(
+    () => getItemPriceColumnValuesForColumns(committedDraftItem?.priceColumnValues ?? item?.priceColumnValues, currentCategoryPriceColumns),
+    [committedDraftItem?.priceColumnValues, currentCategoryPriceColumns, item?.priceColumnValues]
   );
   const committedPriceMode =
     committedDraftItem?.priceMode ?? (capabilities.priceOptions && committedPriceOptions.some((option) => option.visible !== false) ? "options" : "single");
@@ -2581,6 +2677,7 @@ function MenuItemForm({
     (supportsPortionLabel && portionVisibleValue !== (committedDraftItem?.portionVisible ?? item.portion_visible ?? true)) ||
     traitsVisibleValue !== (committedDraftItem?.traitsVisible ?? item.traits_visible ?? true) ||
     !areDraftPriceOptionsEqual(effectiveDraftPriceOptions, committedPriceOptions) ||
+    !areItemPriceColumnValueDraftsEqual(effectiveDraftPriceColumnValues, committedPriceColumnValues) ||
     draftImageState.imageUrl !== (committedDraftItem?.imageUrl ?? item.image_url ?? null) ||
     draftImageState.imagePath !== (committedDraftItem?.imagePath ?? item.image_path ?? null) ||
     draftImageState.imageAction !== (committedDraftItem?.imageAction ?? "keep") ||
@@ -2660,6 +2757,7 @@ function MenuItemForm({
       traitsVisible: formData ? formData.has("item_traits_visible") : traitsVisibleValue,
       traitDrafts,
       priceOptions: isOptionsMode ? effectiveDraftPriceOptions : [],
+      priceColumnValues: canManageCategoryPriceColumns ? effectiveDraftPriceColumnValues : [],
       ...(canManageTimeSales
         ? {
             timeSale: {
@@ -2822,6 +2920,24 @@ function MenuItemForm({
     );
   }
 
+  function updateDraftPriceColumnValue(priceColumnId: string, patch: Partial<ItemPriceColumnValueDraft>) {
+    setDraftPriceColumnValues((currentValues) => {
+      const nextValues = currentValues.some((value) => value.priceColumnId === priceColumnId)
+        ? currentValues.map((value) => (value.priceColumnId === priceColumnId ? { ...value, ...patch } : value))
+        : [
+            ...currentValues,
+            {
+              priceColumnId,
+              price: patch.price ?? "",
+              priceLabel: patch.priceLabel ?? "",
+              visible: patch.visible ?? false,
+              sortOrder: patch.sortOrder ?? currentValues.length,
+            },
+          ];
+      return normalizeItemPriceColumnValueDrafts(nextValues);
+    });
+  }
+
   function handleTraitLabelChange(index: number, value: string) {
     setTraitLabelValues((currentValues) => {
       const nextValues = [...currentValues];
@@ -2832,7 +2948,7 @@ function MenuItemForm({
 
   function handleItemSubmit(event: React.FormEvent<HTMLFormElement>) {
     setAttemptedItemSubmit(true);
-    if (singlePriceInvalid || optionsPriceInvalid) {
+    if (singlePriceInvalid || optionsPriceInvalid || priceColumnValueInvalid) {
       event.preventDefault();
     }
   }
@@ -3185,6 +3301,93 @@ function MenuItemForm({
                 updateDraftItem({ priceLabel: value });
               }}
             />
+          </div>
+        )}
+        {canManageCategoryPriceColumns && currentCategoryPriceColumns.length > 0 && (
+          <div className="mt-4 rounded-lg bg-zinc-50 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h5 className="text-sm font-black text-zinc-950">옵션 컬럼 가격</h5>
+                <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                  이 메뉴가 속한 카테고리의 공통 가격 옵션입니다. 비어 있는 옵션은 공개 메뉴판에서 표시하지 않습니다.
+                </p>
+              </div>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-zinc-500">
+                {currentCategoryPriceColumns.length}개 컬럼
+              </span>
+            </div>
+            <div className="mt-4 grid gap-4">
+              {effectiveDraftPriceColumnValues.map((value, index) => {
+                const column = currentCategoryPriceColumns.find((entry) => entry.id === value.priceColumnId);
+                const columnLabel = column?.label || `옵션 ${index + 1}`;
+                const valueInvalid = value.visible && !normalizeDraftText(value.price);
+                const labelOnlyInvalid = !value.visible && Boolean(normalizeDraftText(value.priceLabel) && !normalizeDraftText(value.price));
+                const labelFormatInvalid = Boolean(normalizeDraftText(value.priceLabel) && !/\d/.test(value.priceLabel));
+
+                return (
+                  <div key={value.priceColumnId} className="rounded-lg border border-zinc-100 bg-white p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h6 className="text-sm font-black text-zinc-950">{columnLabel}</h6>
+                      <Checkbox
+                        form={formId}
+                        name={`item_price_column_${index}_visible`}
+                        label="이 옵션 표시"
+                        defaultChecked={value.visible}
+                        onCheckedChange={(checked) => updateDraftPriceColumnValue(value.priceColumnId, { visible: checked, sortOrder: index })}
+                      />
+                    </div>
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      <ValidatedTextInput
+                        form={formId}
+                        name={`item_price_column_${index}_price`}
+                        label={`${columnLabel} 가격`}
+                        type="number"
+                        min={0}
+                        step={1}
+                        defaultValue={value.price}
+                        placeholder="4500"
+                        requiredIndicator={value.visible}
+                        errorText={attemptedItemSubmit && valueInvalid ? "표시할 옵션은 숫자 가격이 필요합니다." : undefined}
+                        helperText="숫자 원 단위로 입력해주세요."
+                        onValueChange={(nextValue) =>
+                          updateDraftPriceColumnValue(value.priceColumnId, {
+                            price: nextValue.replace(/[^0-9]/g, ""),
+                            sortOrder: index,
+                          })
+                        }
+                      />
+                      <ValidatedTextInput
+                        form={formId}
+                        name={`item_price_column_${index}_price_label`}
+                        label={`${columnLabel} 표시 가격`}
+                        defaultValue={value.priceLabel}
+                        placeholder="예: 4.5, 4,500원"
+                        maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel}
+                        errorText={
+                          attemptedItemSubmit && labelOnlyInvalid
+                            ? "표시 가격만으로는 저장할 수 없습니다."
+                            : attemptedItemSubmit && labelFormatInvalid
+                              ? "표시 가격에는 숫자가 포함되어야 합니다."
+                              : undefined
+                        }
+                        helperText="숫자 가격의 표시 override입니다. 비가격 문구는 향후 가격 안내 문구에서 관리합니다."
+                        onValueChange={(nextValue) =>
+                          updateDraftPriceColumnValue(value.priceColumnId, {
+                            priceLabel: nextValue,
+                            sortOrder: index,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {priceColumnValueInvalid && (
+              <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-red-600">
+                표시할 옵션 컬럼 가격은 숫자 가격이 필요합니다. 표시 가격은 숫자 가격의 override로만 사용할 수 있습니다.
+              </p>
+            )}
           </div>
         )}
         <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
@@ -4073,6 +4276,7 @@ export default function MenuManagementSection({
           portionVisible: item.portion_visible,
           traitsVisible: item.traits_visible,
           traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
+          priceColumnValues: normalizeItemPriceColumnValueDrafts(item.priceColumnValues),
           timeSale: initialTimeSaleDraftByItemId.get(item.id),
         },
       ])
@@ -4476,6 +4680,10 @@ export default function MenuManagementSection({
             const categoryId = draft?.categoryId ?? item.category_id ?? "";
             const categoryPriceOptionLabels = usesCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(categoryId) : [];
             const categoryPriceOptions = getCategoryPriceOptionsForItem(item, draft, categoryPriceOptionLabels);
+            const categoryPriceColumns = canManageCategoryPriceColumns ? getCategoryPriceColumns(categoryId) : [];
+            const priceColumnValues = canManageCategoryPriceColumns
+              ? getItemPriceColumnValuesForColumns(draft?.priceColumnValues ?? item.priceColumnValues, categoryPriceColumns)
+              : undefined;
             const hasCategoryPriceOptionValue = Boolean(
               categoryPriceOptions?.some((option) => {
                 const priceValue = typeof option.price === "string" ? option.price.trim() : String(option.price ?? "").trim();
@@ -4505,6 +4713,7 @@ export default function MenuManagementSection({
               traitsVisible: draft?.traitsVisible ?? item.traits_visible,
               traitDrafts: draft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
               priceOptions: categoryPriceOptions,
+              priceColumnValues,
               timeSale: draft?.timeSale,
               badgeStyleKey: draft?.badgeStyleKey,
               badgeBackgroundColor: draft?.badgeBackgroundColor,
@@ -4512,7 +4721,7 @@ export default function MenuManagementSection({
             };
           })
       ),
-    [capabilities.itemPortionLabel, draftedItems, getCategoryPriceOptionLabels, getCategoryPriceOptionsForItem, itemBasicDrafts, items, traits, usesCategoryPriceOptionColumns]
+    [canManageCategoryPriceColumns, capabilities.itemPortionLabel, draftedItems, getCategoryPriceColumns, getCategoryPriceOptionLabels, getCategoryPriceOptionsForItem, itemBasicDrafts, items, traits, usesCategoryPriceOptionColumns]
   );
   const deletedPageIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedPageIds)), [deletedPageIds]);
   const deletedCategoryIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedCategoryIds)), [deletedCategoryIds]);
@@ -5090,6 +5299,7 @@ export default function MenuManagementSection({
       traitsVisible: sourceItem?.traits_visible ?? true,
       traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === itemId)),
       priceOptions: priceOptions.filter((option) => option.menu_item_id === itemId).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+      priceColumnValues: normalizeItemPriceColumnValueDrafts(sourceItem?.priceColumnValues),
       timeSale: itemBasicDrafts[itemId]?.timeSale,
     };
   }
@@ -5119,6 +5329,7 @@ export default function MenuManagementSection({
       traitsVisible: existingDraft?.traitsVisible ?? sourceItem?.traits_visible ?? true,
       traitDrafts: existingDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === id)),
       priceOptions: existingDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+      priceColumnValues: existingDraft?.priceColumnValues ?? normalizeItemPriceColumnValueDrafts(sourceItem?.priceColumnValues),
       timeSale: existingDraft?.timeSale,
       badgeStyleKey: existingDraft?.badgeStyleKey,
       badgeBackgroundColor: existingDraft?.badgeBackgroundColor,
@@ -5841,6 +6052,7 @@ export default function MenuManagementSection({
             traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
             traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
             priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === item.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+            priceColumnValues: [],
             badgeStyleKey: sourceDraft?.badgeStyleKey,
             badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
             badgeTextColor: sourceDraft?.badgeTextColor,
@@ -5897,6 +6109,7 @@ export default function MenuManagementSection({
         traitsVisible: sourceDraft?.traitsVisible ?? sourceItem.traits_visible,
         traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === sourceItem.id))),
         priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === sourceItem.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+        priceColumnValues: copyItemPriceColumnValueDrafts(sourceDraft?.priceColumnValues ?? sourceItem.priceColumnValues),
         badgeStyleKey: sourceDraft?.badgeStyleKey,
         badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
         badgeTextColor: sourceDraft?.badgeTextColor,
@@ -6013,6 +6226,7 @@ export default function MenuManagementSection({
           traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
           traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
           priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === item.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+          priceColumnValues: [],
           badgeStyleKey: sourceDraft?.badgeStyleKey,
           badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
           badgeTextColor: sourceDraft?.badgeTextColor,
@@ -6161,6 +6375,7 @@ export default function MenuManagementSection({
                   sortOrder: optionIndex,
                 }))
               : undefined,
+            priceColumnValues: [],
           };
         });
       });
@@ -6900,6 +7115,7 @@ export default function MenuManagementSection({
                   selectedCategoryId={selectedCategory.id}
                   categoryPriceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
                   canManageTimeSales={canManageTimeSales}
+                  canManageCategoryPriceColumns={canManageCategoryPriceColumns}
                   timeSaleOwnerItemId={timeSaleOwnerItemId}
                   timeSaleItemId={editingItemId}
                   draftOnly
@@ -6943,6 +7159,7 @@ export default function MenuManagementSection({
                   traits={traits.filter((trait) => trait.menu_item_id === selectedEditingItem.id)}
                   capabilities={capabilities}
                   canManageTimeSales={canManageTimeSales}
+                  canManageCategoryPriceColumns={canManageCategoryPriceColumns}
                   timeSaleOwnerItemId={timeSaleOwnerItemId}
                   timeSaleItemId={selectedEditingItem.id}
                   aiDescriptionUsage={localAiDescriptionUsage}
@@ -7067,6 +7284,7 @@ export default function MenuManagementSection({
                           traits={traits.filter((trait) => trait.menu_item_id === item.id)}
                           capabilities={capabilities}
                           canManageTimeSales={canManageTimeSales}
+                          canManageCategoryPriceColumns={canManageCategoryPriceColumns}
                           timeSaleOwnerItemId={timeSaleOwnerItemId}
                           timeSaleItemId={item.id}
                           aiDescriptionUsage={localAiDescriptionUsage}
@@ -7510,6 +7728,7 @@ function MenuItemCard({
   traits,
   capabilities,
   canManageTimeSales = false,
+  canManageCategoryPriceColumns = false,
   timeSaleOwnerItemId = null,
   timeSaleItemId,
   aiDescriptionUsage,
@@ -7540,6 +7759,7 @@ function MenuItemCard({
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
   canManageTimeSales?: boolean;
+  canManageCategoryPriceColumns?: boolean;
   timeSaleOwnerItemId?: string | null;
   timeSaleItemId?: string;
   aiDescriptionUsage: { used: number; limit: number };
@@ -7611,6 +7831,7 @@ function MenuItemCard({
             priceMode={priceMode}
             onPriceModeChange={setPriceMode}
             canManageTimeSales={canManageTimeSales}
+            canManageCategoryPriceColumns={canManageCategoryPriceColumns}
             timeSaleOwnerItemId={timeSaleOwnerItemId}
             timeSaleItemId={timeSaleItemId ?? item.id}
             onCancel={onCancel}
