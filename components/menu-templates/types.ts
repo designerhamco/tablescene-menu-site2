@@ -111,6 +111,24 @@ export type PublicMenuSocialLink = Pick<
   "id" | "type" | "label" | "display_name" | "url" | "visible" | "sort_order"
 >;
 
+export type PublicMenuTimeSale = {
+  id: string;
+  name: string;
+  startsAt: string;
+  endsAt: string;
+  timezone: string;
+  timeDisplayMode: "deadline" | "countdown";
+  badgeText: string;
+  badgeBackgroundColor: string;
+  items: Array<{
+    id: string;
+    menuItemId: string;
+    salePrice: number | null;
+    salePriceLabel: string | null;
+    visible: boolean;
+  }>;
+};
+
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
   previewLayoutMode?: PcTabletLayoutMode;
@@ -128,4 +146,5 @@ export type PublicMenuTemplateProps = {
   events: PublicMenuEvent[];
   chefs: PublicMenuChef[];
   socialLinks: PublicMenuSocialLink[];
+  timeSales: PublicMenuTimeSale[];
 };

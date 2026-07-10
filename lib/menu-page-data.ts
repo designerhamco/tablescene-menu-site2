@@ -1,6 +1,13 @@
-import type { PublicMenuTemplateProps } from "@/components/menu-templates/MenuTemplateRenderer";
+import type { PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
 import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
+import {
+  getTimeSaleBadgeBackgroundColorFromSettings,
+  getTimeSaleBadgeTextFromSettings,
+  getTimeSaleDisplayModeFromSettings,
+  isBasicTimeSaleTemplate,
+  TIME_SALE_TYPE,
+} from "@/lib/menu-time-sales";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
@@ -18,6 +25,8 @@ type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
+type MenuTimeSalePromotionRow = Database["public"]["Tables"]["menu_promotions"]["Row"];
+type MenuTimeSalePromotionItemRow = Database["public"]["Tables"]["menu_promotion_items"]["Row"];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"]["Row"];
 type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
@@ -52,6 +61,8 @@ const eventSelect =
   "id, event_title, event_subtitle, event_description, event_period, event_image_url, event_benefit, event_detail, event_regular_price_label, event_sale_price_label, event_price_visible, visible, sort_order";
 const chefSelect = "id, chef_name, chef_role, chef_description, chef_image_url, visible, sort_order";
 const socialLinkSelect = "id, type, label, display_name, url, visible, sort_order";
+const promotionSelect = "id, name, starts_at, ends_at, timezone, settings";
+const promotionItemSelect = "id, promotion_id, menu_item_id, sale_price, sale_price_label, visible";
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {
   return [...rows].sort((a, b) => {
@@ -69,6 +80,126 @@ function mapById<T extends Record<TKey, string>, TKey extends keyof T>(rows: T[]
 
 function getJsonRecord(value: unknown): Record<string, Json> {
   return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, Json>) } : {};
+}
+
+function shouldLoadTimeSales(menuSite: MenuSite) {
+  return isBasicTimeSaleTemplate(menuSite.template_key, menuSite.template_category);
+}
+
+async function loadPublicTimeSales({
+  supabase,
+  menuSite,
+  items,
+  priceOptions,
+}: {
+  supabase: SupabaseServerClient;
+  menuSite: MenuSite;
+  items: MenuItem[];
+  priceOptions: MenuItemPriceOption[];
+}): Promise<PublicMenuTimeSale[]> {
+  if (!shouldLoadTimeSales(menuSite) || items.length === 0) {
+    return [];
+  }
+
+  const now = new Date().toISOString();
+  const priceOptionItemIds = new Set(priceOptions.map((option) => option.menu_item_id));
+  const visibleSinglePriceItemIds = new Set(
+    items
+      .filter((item) => item.price_visible !== false)
+      .filter((item) => !priceOptionItemIds.has(item.id))
+      .map((item) => item.id),
+  );
+
+  if (visibleSinglePriceItemIds.size === 0) {
+    return [];
+  }
+
+  const { data: promotionsData, error: promotionsError } = await supabase
+    .from("menu_promotions")
+    .select(promotionSelect)
+    .eq("menu_site_id", menuSite.id)
+    .eq("type", TIME_SALE_TYPE)
+    .eq("active", true)
+    .lte("starts_at", now)
+    .gt("ends_at", now)
+    .order("starts_at", { ascending: true });
+
+  const isMissingPromotionTable =
+    promotionsError &&
+    (promotionsError.message.toLowerCase().includes("menu_promotions") ||
+      promotionsError.message.toLowerCase().includes("does not exist") ||
+      promotionsError.code === "42P01");
+
+  if (isMissingPromotionTable) {
+    return [];
+  }
+
+  if (promotionsError) {
+    return [];
+  }
+
+  const promotions = (promotionsData ?? []) as MenuTimeSalePromotionRow[];
+  const promotionIds = promotions.map((promotion) => promotion.id);
+
+  if (promotionIds.length === 0) {
+    return [];
+  }
+
+  const { data: promotionItemsData, error: promotionItemsError } = await supabase
+    .from("menu_promotion_items")
+    .select(promotionItemSelect)
+    .in("promotion_id", promotionIds)
+    .eq("visible", true);
+
+  const isMissingPromotionItemsTable =
+    promotionItemsError &&
+    (promotionItemsError.message.toLowerCase().includes("menu_promotion_items") ||
+      promotionItemsError.message.toLowerCase().includes("does not exist") ||
+      promotionItemsError.code === "42P01");
+
+  if (isMissingPromotionItemsTable) {
+    return [];
+  }
+
+  if (promotionItemsError) {
+    return [];
+  }
+
+  const itemsByPromotionId = new Map<string, MenuTimeSalePromotionItemRow[]>();
+
+  for (const item of (promotionItemsData ?? []) as MenuTimeSalePromotionItemRow[]) {
+    if (!visibleSinglePriceItemIds.has(item.menu_item_id)) {
+      continue;
+    }
+
+    const currentItems = itemsByPromotionId.get(item.promotion_id) ?? [];
+    currentItems.push(item);
+    itemsByPromotionId.set(item.promotion_id, currentItems);
+  }
+
+  return promotions
+    .map((promotion) => {
+      const promotionItems = itemsByPromotionId.get(promotion.id) ?? [];
+
+      return {
+        id: promotion.id,
+        name: promotion.name,
+        startsAt: promotion.starts_at,
+        endsAt: promotion.ends_at,
+        timezone: promotion.timezone,
+        timeDisplayMode: getTimeSaleDisplayModeFromSettings(promotion.settings),
+        badgeText: getTimeSaleBadgeTextFromSettings(promotion.settings),
+        badgeBackgroundColor: getTimeSaleBadgeBackgroundColorFromSettings(promotion.settings),
+        items: promotionItems.map((item) => ({
+          id: item.id,
+          menuItemId: item.menu_item_id,
+          salePrice: item.sale_price,
+          salePriceLabel: item.sale_price_label,
+          visible: item.visible,
+        })),
+      };
+    })
+    .filter((promotion) => promotion.items.length > 0);
 }
 
 function setLocalizedFooterNotice(settings: Record<string, Json>, key: string, value: string | null | undefined) {
@@ -452,6 +583,14 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     return null;
   }
 
+  const priceOptions = isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]);
+  const timeSales = await loadPublicTimeSales({
+    supabase,
+    menuSite,
+    items,
+    priceOptions,
+  });
+
   const data = {
     locale,
     enabledLocales,
@@ -461,11 +600,12 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     pages,
     categories,
     items,
-    priceOptions: isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]),
+    priceOptions,
     traits: (traitsData ?? []) as MenuItemTrait[],
     events: (eventsData ?? []) as MenuPageData["events"],
     chefs: (chefsData ?? []) as MenuPageData["chefs"],
     socialLinks: (socialLinksData ?? []) as MenuPageData["socialLinks"],
+    timeSales,
   };
 
   return applyMenuTranslations(supabase, data, locale);

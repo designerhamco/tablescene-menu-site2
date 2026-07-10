@@ -43,6 +43,14 @@ import {
 } from "@/lib/menu-editor-capabilities";
 import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
+import {
+  getTimeSaleBadgeBackgroundColorFromSettings,
+  getTimeSaleBadgeTextFromSettings,
+  getTimeSaleDisplayModeFromSettings,
+  isBasicTimeSaleTemplate,
+  TIME_SALE_TYPE,
+  type MenuEditorTimeSale,
+} from "@/lib/menu-time-sales";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getPublicPortOneConfig } from "@/lib/portone";
@@ -157,6 +165,14 @@ type MenuItem = Pick<
 >;
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
+type MenuPromotion = Pick<
+  Database["public"]["Tables"]["menu_promotions"]["Row"],
+  "id" | "name" | "active" | "starts_at" | "ends_at" | "timezone" | "settings"
+>;
+type MenuPromotionItem = Pick<
+  Database["public"]["Tables"]["menu_promotion_items"]["Row"],
+  "id" | "promotion_id" | "menu_item_id" | "sale_price" | "sale_price_label" | "visible"
+>;
 type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
 type MenuSocialLink = Database["public"]["Tables"]["menu_social_links"]["Row"];
@@ -441,6 +457,79 @@ function buildEditableTranslationFields({
     });
 
   return fields;
+}
+
+async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data: promotionsData, error: promotionsError } = await supabase
+    .from("menu_promotions")
+    .select("id, name, active, starts_at, ends_at, timezone, settings")
+    .eq("menu_site_id", menuId)
+    .eq("type", TIME_SALE_TYPE)
+    .order("created_at", { ascending: true });
+
+  const isMissingPromotionTable =
+    promotionsError &&
+    (promotionsError.message.toLowerCase().includes("menu_promotions") ||
+      promotionsError.message.toLowerCase().includes("does not exist") ||
+      promotionsError.code === "42P01");
+
+  if (isMissingPromotionTable || promotionsError) {
+    return [];
+  }
+
+  const promotions = (promotionsData ?? []) as MenuPromotion[];
+  const promotionIds = promotions.map((promotion) => promotion.id);
+  if (promotionIds.length === 0) {
+    return [];
+  }
+
+  const { data: promotionItemsData, error: promotionItemsError } = await supabase
+    .from("menu_promotion_items")
+    .select("id, promotion_id, menu_item_id, sale_price, sale_price_label, visible")
+    .in("promotion_id", promotionIds)
+    .order("created_at", { ascending: true });
+
+  const isMissingPromotionItemsTable =
+    promotionItemsError &&
+    (promotionItemsError.message.toLowerCase().includes("menu_promotion_items") ||
+      promotionItemsError.message.toLowerCase().includes("does not exist") ||
+      promotionItemsError.code === "42P01");
+
+  if (isMissingPromotionItemsTable || promotionItemsError) {
+    return [];
+  }
+
+  const promotionItemsByPromotionId = new Map<string, MenuPromotionItem[]>();
+  ((promotionItemsData ?? []) as MenuPromotionItem[]).forEach((item) => {
+    const entries = promotionItemsByPromotionId.get(item.promotion_id) ?? [];
+    entries.push(item);
+    promotionItemsByPromotionId.set(item.promotion_id, entries);
+  });
+
+  return promotions.map<MenuEditorTimeSale>((promotion) => {
+    const promotionItem = promotionItemsByPromotionId.get(promotion.id)?.[0] ?? null;
+
+    return {
+      id: promotion.id,
+      name: promotion.name,
+      active: promotion.active,
+      startsAt: promotion.starts_at,
+      endsAt: promotion.ends_at,
+      timezone: promotion.timezone,
+      timeDisplayMode: getTimeSaleDisplayModeFromSettings(promotion.settings),
+      badgeText: getTimeSaleBadgeTextFromSettings(promotion.settings),
+      badgeBackgroundColor: getTimeSaleBadgeBackgroundColorFromSettings(promotion.settings),
+      item: promotionItem
+        ? {
+            id: promotionItem.id,
+            menuItemId: promotionItem.menu_item_id,
+            salePrice: promotionItem.sale_price,
+            salePriceLabel: promotionItem.sale_price_label,
+            visible: promotionItem.visible,
+          }
+        : null,
+    };
+  });
 }
 
 type PageProps = {
@@ -964,6 +1053,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const templateCapabilities = getTemplateCapabilities(site.template_key);
+  const canManageTimeSales = isBasicTimeSaleTemplate(site.template_key, site.template_category);
+  const editorTimeSales = canManageTimeSales ? await loadEditorTimeSales(site.id, supabase) : [];
   const localizationStructure =
     editorServiceType === "screen" || site.template_key === "display_menu_a"
       ? "display"
@@ -1666,6 +1757,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     priceOptions={priceOptions}
                     traits={traits}
                     capabilities={templateCapabilities}
+                    canManageTimeSales={canManageTimeSales}
+                    timeSales={editorTimeSales}
                     canManagePages={editorCapabilities.canManageMenuPages}
                     supportsDisplayPageTypes={editorCapabilities.supportsDisplayPageTypes}
                     supportsDisplayPromotionPages={editorCapabilities.supportsDisplayPromotionPages}

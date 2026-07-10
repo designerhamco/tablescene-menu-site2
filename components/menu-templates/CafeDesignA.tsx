@@ -11,6 +11,7 @@ import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
+import { getReadableTextColorForTimeSaleBadge, normalizeTimeSaleBadgeBackgroundColor } from "@/lib/menu-time-sales";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
 import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
@@ -37,9 +38,15 @@ type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuPage = PublicMenuTemplateProps["pages"][number];
 type PriceOption = PublicMenuTemplateProps["priceOptions"][number];
+type PublicTimeSale = PublicMenuTemplateProps["timeSales"][number];
+type PublicTimeSaleItem = PublicTimeSale["items"][number];
 type CafeDesignAPriceToken = {
   label: string;
   price: string;
+};
+type CafeDesignATimeSaleMatch = {
+  promotion: PublicTimeSale;
+  item: PublicTimeSaleItem;
 };
 type MenuGroup = {
   page: MenuPage;
@@ -1798,20 +1805,10 @@ function getItemPriceDisplay(
   return formatMenuPrice(item);
 }
 
-function isCafeADrinkCategory(category: MenuCategory) {
-  const categoryName = category.name.trim().toLowerCase();
-  if (!categoryName) return false;
-
-  if (/(bakery|dessert|bread|cake|pastry|베이커리|디저트|케이크|구움|빵)/i.test(categoryName)) return false;
-
-  return /(coffee|non-?coffee|tea|ade|drink|beverage|espresso|latte|brew|커피|음료|티|차|에이드|라떼)/i.test(categoryName);
-}
-
 function getItemPriceTokens(
   item: MenuItem,
   priceOptions: PublicMenuTemplateProps["priceOptions"],
   capabilities: TemplateCapabilities,
-  options: { isDrink?: boolean } = {},
 ): CafeDesignAPriceToken[] {
   if (item.price_visible === false) return [];
 
@@ -1821,37 +1818,9 @@ function getItemPriceTokens(
     const optionTokens = visibleOptions
       .map((option) => ({
         label: option.label.trim(),
-        normalizedLabel: option.label.trim().toUpperCase(),
         price: formatPriceOption(option),
       }))
       .filter((token) => token.label || token.price);
-
-    if (optionTokens.length === 1) {
-      const [token] = optionTokens;
-      const isTemperatureOption = token.normalizedLabel === "HOT" || token.normalizedLabel === "ICE";
-      return [
-        {
-          label: isTemperatureOption ? `${token.normalizedLabel} ONLY` : token.label,
-          price: token.price,
-        },
-      ].filter((priceToken) => priceToken.label || priceToken.price);
-    }
-
-    const hotToken = optionTokens.find((token) => token.normalizedLabel === "HOT");
-    const iceToken = optionTokens.find((token) => token.normalizedLabel === "ICE");
-    if (hotToken && iceToken && hotToken.price && hotToken.price === iceToken.price) {
-      const otherTokens = optionTokens.filter((token) => token.normalizedLabel !== "HOT" && token.normalizedLabel !== "ICE");
-      return [
-        {
-          label: "HOT/ICE",
-          price: hotToken.price,
-        },
-        ...otherTokens.map((token) => ({
-          label: token.label,
-          price: token.price,
-        })),
-      ].filter((token) => token.label || token.price);
-    }
 
     return optionTokens.map((token) => ({
       label: token.label,
@@ -1862,14 +1831,210 @@ function getItemPriceTokens(
   const price = item.price_label?.trim() || formatMenuPrice(item);
   if (!price) return [];
   const portionLabel = item.portion_label?.trim() ?? "";
-  const fallbackTemperatureLabel = options.isDrink ? "HOT/ICE" : "";
 
   return [
     {
-      label: portionLabel || fallbackTemperatureLabel,
+      label: portionLabel,
       price,
     },
   ];
+}
+
+function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
+  return templateKey === "cafe_design_a";
+}
+
+function getSafeDateMs(value: string | null | undefined) {
+  if (!value) return NaN;
+  const ms = new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : NaN;
+}
+
+function isTimeSaleCurrentlyActive(timeSale: PublicTimeSale, nowMs: number = Date.now()) {
+  const startsAtMs = getSafeDateMs(timeSale.startsAt);
+  const endsAtMs = getSafeDateMs(timeSale.endsAt);
+  return Number.isFinite(startsAtMs) && Number.isFinite(endsAtMs) && startsAtMs <= nowMs && endsAtMs > nowMs;
+}
+
+function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], templateKey?: string | null) {
+  const map = new Map<string, CafeDesignATimeSaleMatch>();
+  if (!isCafeDesignATimeSaleTemplate(templateKey)) return map;
+
+  const nowMs = Date.now();
+  for (const promotion of timeSales) {
+    if (!isTimeSaleCurrentlyActive(promotion, nowMs)) continue;
+
+    for (const item of promotion.items) {
+      if (item.visible === false || item.salePrice == null || !Number.isFinite(item.salePrice) || item.salePrice <= 0) continue;
+      if (!map.has(item.menuItemId)) {
+        map.set(item.menuItemId, { promotion, item });
+      }
+    }
+  }
+
+  return map;
+}
+
+function formatTimeSalePrice(price: number | null) {
+  if (typeof price !== "number" || !Number.isFinite(price)) return "";
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+
+function getTimeSalePriceDisplay(item: PublicTimeSaleItem) {
+  const label = item.salePriceLabel?.trim();
+  if (label) return label;
+  return formatTimeSalePrice(item.salePrice);
+}
+
+function getDatePartsInTimeZone(value: string, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("ko-KR", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(value));
+
+  const getPart = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((part) => part.type === type)?.value);
+  return {
+    year: getPart("year"),
+    month: getPart("month"),
+    day: getPart("day"),
+    hour: getPart("hour"),
+    minute: getPart("minute"),
+  };
+}
+
+function formatTwoDigit(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function formatTimeSaleDeadlineLabel(endsAt: string, timezone: string) {
+  const timeZone = timezone || "Asia/Seoul";
+  const target = getDatePartsInTimeZone(endsAt, timeZone);
+  const today = getDatePartsInTimeZone(new Date().toISOString(), timeZone);
+
+  if (![target.year, target.month, target.day, target.hour, target.minute].every(Number.isFinite)) {
+    return "마감 시간까지";
+  }
+
+  const timeText = `${formatTwoDigit(target.hour)}:${formatTwoDigit(target.minute)}`;
+  if (target.year === today.year && target.month === today.month && target.day === today.day) {
+    return `오늘 ${timeText}까지`;
+  }
+
+  if (target.year === today.year && target.month === today.month) {
+    return `${target.day}일 ${timeText}까지`;
+  }
+
+  if (target.year === today.year) {
+    return `${target.month}월 ${target.day}일 ${timeText}까지`;
+  }
+
+  return `${target.year}년 ${target.month}월 ${target.day}일 ${timeText}까지`;
+}
+
+function formatCountdownLabel(endsAtMs: number, nowMs: number) {
+  const remainingMs = Math.max(0, endsAtMs - nowMs);
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const days = Math.floor(totalSeconds / 86_400);
+  const hours = Math.floor((totalSeconds % 86_400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const clock = `${formatTwoDigit(hours)}:${formatTwoDigit(minutes)}:${formatTwoDigit(seconds)}`;
+  return days > 0 ? `${days}일 ${clock} 남음` : `${clock} 남음`;
+}
+
+function TimeSalePriceBlock({
+  timeSale,
+  originalPrice,
+  salePrice,
+  priceClassName,
+}: {
+  timeSale: PublicTimeSale;
+  originalPrice: string;
+  salePrice: string;
+  priceClassName: string;
+}) {
+  const [nowMs, setNowMs] = useState<number | null>(null);
+
+  useEffect(() => {
+    const updateNow = () => setNowMs(Date.now());
+    updateNow();
+    if (timeSale.timeDisplayMode !== "countdown") return;
+
+    const intervalId = window.setInterval(updateNow, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [timeSale.timeDisplayMode]);
+
+  if (nowMs != null && !isTimeSaleCurrentlyActive(timeSale, nowMs)) {
+    return <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{originalPrice}</span>;
+  }
+
+  return (
+    <span className="cafe-a-time-sale-price-block inline-flex items-baseline justify-end gap-1 whitespace-nowrap text-right" data-cafe-a-time-sale-price="">
+      <span className="cafe-a-time-sale-regular-price whitespace-nowrap text-[0.72em] font-bold leading-none text-[#191c1b]/45 line-through decoration-[#191c1b]/45 decoration-1">
+        {originalPrice}
+      </span>
+      <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none text-[#191c1b] ${priceClassName}`}>{salePrice}</span>
+    </span>
+  );
+}
+
+function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundColor"]): CSSProperties {
+  const normalizedBackgroundColor = normalizeTimeSaleBadgeBackgroundColor(backgroundColor);
+  return {
+    backgroundColor: normalizedBackgroundColor,
+    borderColor: normalizedBackgroundColor,
+    color: getReadableTextColorForTimeSaleBadge(normalizedBackgroundColor),
+  };
+}
+
+function TimeSaleBadge({ timeSale }: { timeSale: PublicTimeSale }) {
+  return (
+    <span
+      className="menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none"
+      style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor)}
+    >
+      {timeSale.badgeText}
+    </span>
+  );
+}
+
+function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
+  const [nowMs, setNowMs] = useState<number | null>(null);
+  const endsAtMs = getSafeDateMs(timeSale.endsAt);
+  const deadlineLabel = formatTimeSaleDeadlineLabel(timeSale.endsAt, timeSale.timezone);
+
+  useEffect(() => {
+    const updateNow = () => setNowMs(Date.now());
+    updateNow();
+
+    if (timeSale.timeDisplayMode !== "countdown") return;
+    const intervalId = window.setInterval(updateNow, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [timeSale.timeDisplayMode]);
+
+  if (nowMs != null && !isTimeSaleCurrentlyActive(timeSale, nowMs)) {
+    return null;
+  }
+
+  const label =
+    timeSale.timeDisplayMode === "countdown" && nowMs != null && Number.isFinite(endsAtMs)
+      ? formatCountdownLabel(endsAtMs, nowMs)
+      : deadlineLabel;
+
+  return (
+    <span className="cafe-a-time-sale-time-text menu-font-en mb-0.5 block text-[0.64rem] font-black uppercase leading-snug tracking-[0.08em] text-[#6f5834]">
+      <span className="tracking-normal">{label}</span>
+    </span>
+  );
 }
 
 function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
@@ -1932,7 +2097,7 @@ function estimateMenuGroupHeight(
 ) {
   const headingWeight = 1.9 + (group.category.description_visible && group.category.description ? 0.75 : 0);
   const itemWeight = group.items.reduce((weight, item) => {
-    const priceTokens = getItemPriceTokens(item, data.priceOptions, capabilities, { isDrink: isCafeADrinkCategory(group.category) });
+    const priceTokens = getItemPriceTokens(item, data.priceOptions, capabilities);
     const traits = getItemTraits(data.traits, item.id);
     const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
 
@@ -2210,26 +2375,36 @@ function HeroOverlayBadge({
 
 function MenuItemRow({
   item,
-  category,
   priceOptions,
   traits,
   capabilities,
   density,
   templateKey,
+  timeSale,
   customBadgeStyles,
   locale,
 }: {
   item: MenuItem;
-  category: MenuCategory;
   priceOptions: PublicMenuTemplateProps["priceOptions"];
   traits: PublicMenuTemplateProps["traits"];
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
   templateKey: string | null;
+  timeSale?: CafeDesignATimeSaleMatch;
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
 }) {
-  const priceTokens = getItemPriceTokens(item, priceOptions, capabilities, { isDrink: isCafeADrinkCategory(category) });
+  const priceTokens = getItemPriceTokens(item, priceOptions, capabilities);
+  const showTimeSale =
+    isCafeDesignATimeSaleTemplate(templateKey) &&
+    item.price_visible !== false &&
+    priceTokens.length === 1 &&
+    timeSale &&
+    timeSale.item.visible !== false &&
+    timeSale.item.salePrice != null &&
+    Number.isFinite(timeSale.item.salePrice) &&
+    isTimeSaleCurrentlyActive(timeSale.promotion);
+  const timeSalePrice = showTimeSale ? getTimeSalePriceDisplay(timeSale.item) : "";
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
   const titleClassName = {
     spacious: "cafe-a-menu-title-size-spacious",
@@ -2276,9 +2451,11 @@ function MenuItemRow({
         <div className="cafe-a-menu-title-row mb-0.5 flex flex-wrap items-center gap-1.5">
           <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
+          {showTimeSale && timeSalePrice && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
           {item.is_sold_out && <SoldOutBadge />}
         </div>
         {metaText && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>{metaText}</p>}
+        {showTimeSale && timeSalePrice && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
         {item.description && (
           <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
         )}
@@ -2298,9 +2475,18 @@ function MenuItemRow({
           {priceTokens.map((token, index) => (
             <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-token inline-flex items-baseline whitespace-nowrap">
               {index > 0 && <span className="cafe-a-price-separator font-bold text-[#191c1b]/45">/</span>}
-              <span className="cafe-a-price-pair inline-flex items-baseline whitespace-nowrap">
+              <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
                 {token.label && <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none text-[#191c1b]">{token.label}</span>}
-                <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
+                {showTimeSale && timeSalePrice && index === 0 ? (
+                  <TimeSalePriceBlock
+                    timeSale={timeSale.promotion}
+                    originalPrice={token.price}
+                    salePrice={timeSalePrice}
+                    priceClassName={priceClassName}
+                  />
+                ) : (
+                  <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
+                )}
               </span>
             </span>
           ))}
@@ -2896,6 +3082,7 @@ function MenuGroupsGrid({
   outerGridGapClassName,
   menuAreaClassName,
   showPageTitles,
+  timeSaleByItemId,
   fitRef,
   footerInfo,
 }: {
@@ -2908,6 +3095,7 @@ function MenuGroupsGrid({
   outerGridGapClassName: string;
   menuAreaClassName: string;
   showPageTitles: boolean;
+  timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -2935,12 +3123,12 @@ function MenuGroupsGrid({
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                     <MenuItemRow
                       item={item}
-                      category={category}
                       priceOptions={data.priceOptions}
                       traits={getItemTraits(data.traits, item.id)}
                       capabilities={capabilities}
                       density={density}
                       templateKey={data.menuSite.template_key}
+                      timeSale={timeSaleByItemId.get(item.id)}
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
                     />
@@ -2967,6 +3155,7 @@ function BalancedExperimentalMenuGrid({
   menuAreaClassName,
   columns,
   variant,
+  timeSaleByItemId,
   fitRef,
   footerInfo,
 }: {
@@ -2980,6 +3169,7 @@ function BalancedExperimentalMenuGrid({
   menuAreaClassName: string;
   columns: number;
   variant: CafeDesignABalancedVariant;
+  timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -3020,12 +3210,12 @@ function BalancedExperimentalMenuGrid({
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                     <MenuItemRow
                       item={item}
-                      category={category}
                       priceOptions={data.priceOptions}
                       traits={getItemTraits(data.traits, item.id)}
                       capabilities={capabilities}
                       density={density}
                       templateKey={data.menuSite.template_key}
+                      timeSale={timeSaleByItemId.get(item.id)}
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
                     />
@@ -3053,6 +3243,7 @@ function OrderedBalancedFitMenuGrid({
   menuAreaClassName,
   columns,
   orderedBalancedBreaks,
+  timeSaleByItemId,
   fitRef,
   footerInfo,
 }: {
@@ -3066,6 +3257,7 @@ function OrderedBalancedFitMenuGrid({
   menuAreaClassName: string;
   columns: number;
   orderedBalancedBreaks: string;
+  timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -3107,12 +3299,12 @@ function OrderedBalancedFitMenuGrid({
                     <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
                       <MenuItemRow
                         item={item}
-                        category={category}
                         priceOptions={data.priceOptions}
                         traits={getItemTraits(data.traits, item.id)}
                         capabilities={capabilities}
                         density={density}
                         templateKey={data.menuSite.template_key}
+                        timeSale={timeSaleByItemId.get(item.id)}
                         customBadgeStyles={customBadgeStyles}
                         locale={data.locale}
                       />
@@ -3174,6 +3366,10 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings);
   const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
+  const timeSaleByItemId = useMemo(
+    () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key),
+    [data.menuSite.template_key, data.timeSales],
+  );
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
@@ -4575,6 +4771,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 outerGridGapClassName={outerGridGapClassName}
                 menuAreaClassName={menuAreaClassName}
                 showPageTitles
+                timeSaleByItemId={timeSaleByItemId}
                 footerInfo={<CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
               />
             )}
@@ -4659,6 +4856,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 menuAreaClassName={menuAreaClassName}
                 columns={renderFitState.columns}
                 variant={fitState.balancedVariant}
+                timeSaleByItemId={timeSaleByItemId}
               />
             ) : layoutMode === "orderedBalancedFit" ? (
               <OrderedBalancedFitMenuGrid
@@ -4673,6 +4871,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 menuAreaClassName={menuAreaClassName}
                 columns={renderFitState.columns}
                 orderedBalancedBreaks={fitState.orderedBalancedBreaks}
+                timeSaleByItemId={timeSaleByItemId}
               />
             ) : (
               <MenuGroupsGrid
@@ -4686,6 +4885,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 outerGridGapClassName={outerGridGapClassName}
                 menuAreaClassName={menuAreaClassName}
                 showPageTitles
+                timeSaleByItemId={timeSaleByItemId}
               />
             )}
             {footerInfo}

@@ -1245,6 +1245,107 @@ export type Database = {
           },
         ]
       }
+      menu_promotion_items: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string
+          promotion_id: string
+          sale_price: number | null
+          sale_price_label: string | null
+          settings: Json
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          promotion_id: string
+          sale_price?: number | null
+          sale_price_label?: string | null
+          settings?: Json
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          promotion_id?: string
+          sale_price?: number | null
+          sale_price_label?: string | null
+          settings?: Json
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_promotion_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_promotion_items_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "menu_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_promotions: {
+        Row: {
+          active: boolean
+          created_at: string
+          ends_at: string
+          id: string
+          menu_site_id: string
+          name: string
+          settings: Json
+          starts_at: string
+          timezone: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          ends_at: string
+          id?: string
+          menu_site_id: string
+          name: string
+          settings?: Json
+          starts_at: string
+          timezone?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          ends_at?: string
+          id?: string
+          menu_site_id?: string
+          name?: string
+          settings?: Json
+          starts_at?: string
+          timezone?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_promotions_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_site_translations: {
         Row: {
           about_description: string | null

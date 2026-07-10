@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
@@ -54,6 +54,18 @@ import {
 import type { AiUsage } from "@/lib/menu-ai-usage";
 import { DISPLAY_MENU_QUALITY_RULES, getDisplayMenuPageQuality, type DisplayMenuPageQuality } from "@/lib/display-menu-quality";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
+import {
+  DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
+  DEFAULT_TIME_SALE_DISPLAY_MODE,
+  DEFAULT_TIME_SALE_BADGE_TEXT,
+  TIME_SALE_BADGE_TEXT_MAX_LENGTH,
+  getReadableTextColorForTimeSaleBadge,
+  normalizeTimeSaleBadgeBackgroundColor,
+  parseTimeSalePriceInputToWon,
+  toLocalDateTimeInputValue,
+  type MenuEditorTimeSale,
+  type TimeSaleDisplayMode,
+} from "@/lib/menu-time-sales";
 import {
   BASIC_LAYOUT_MODE_ORDER,
   DEFAULT_PC_TABLET_LAYOUT_MODE,
@@ -121,6 +133,8 @@ type MenuManagementSectionProps = {
   priceOptions: MenuItemPriceOption[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
+  canManageTimeSales?: boolean;
+  timeSales?: MenuEditorTimeSale[];
   canManagePages: boolean;
   supportsDisplayPageTypes?: boolean;
   supportsDisplayPromotionPages?: boolean;
@@ -188,6 +202,7 @@ type ItemBasicDraft = {
   traitsVisible?: boolean;
   traitDrafts?: ItemTraitDraft[];
   priceOptions?: DraftPriceOption[];
+  timeSale?: ItemTimeSaleDraft;
   badgeStyleKey?: BadgeStyleKey;
   badgeBackgroundColor?: string;
   badgeTextColor?: string;
@@ -219,6 +234,17 @@ type ItemTraitDraft = {
   maxValue?: number;
 };
 type PriceMode = "single" | "options";
+type ItemTimeSaleDraft = {
+  enabled: boolean;
+  name: string;
+  salePrice: string;
+  startsAt: string;
+  endsAt: string;
+  timeDisplayMode: TimeSaleDisplayMode;
+  badgeText: string;
+  badgeBackgroundColor: string;
+  active: boolean;
+};
 type DraftPriceOption = {
   id: string;
   label: string;
@@ -345,6 +371,45 @@ function toDraftPriceOption(option: MenuItemPriceOption, index: number): DraftPr
     visible: option.visible,
     sortOrder: option.sort_order ?? index,
   };
+}
+
+function toItemTimeSaleDraft(timeSale?: MenuEditorTimeSale | null): ItemTimeSaleDraft | undefined {
+  const promotionItem = timeSale?.item;
+  if (!timeSale || !promotionItem) return undefined;
+
+  return {
+    enabled: promotionItem.visible !== false,
+    name: timeSale.name || "타임세일",
+    salePrice: promotionItem.salePriceLabel?.trim() || (promotionItem.salePrice == null ? "" : String(promotionItem.salePrice)),
+    startsAt: toLocalDateTimeInputValue(timeSale.startsAt),
+    endsAt: toLocalDateTimeInputValue(timeSale.endsAt),
+    timeDisplayMode: timeSale.timeDisplayMode ?? DEFAULT_TIME_SALE_DISPLAY_MODE,
+    badgeText: timeSale.badgeText || DEFAULT_TIME_SALE_BADGE_TEXT,
+    badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor),
+    active: timeSale.active,
+  };
+}
+
+function normalizeItemTimeSaleDraft(value?: ItemTimeSaleDraft) {
+  if (!value) {
+    return null;
+  }
+
+  return {
+    enabled: Boolean(value.enabled),
+    name: normalizeDraftText(value.name) || "타임세일",
+    salePrice: normalizeDraftText(value.salePrice),
+    startsAt: normalizeDraftText(value.startsAt),
+    endsAt: normalizeDraftText(value.endsAt),
+    timeDisplayMode: value.timeDisplayMode === "countdown" ? "countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE,
+    badgeText: normalizeDraftText(value.badgeText) || DEFAULT_TIME_SALE_BADGE_TEXT,
+    badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(value.badgeBackgroundColor),
+    active: Boolean(value.active),
+  };
+}
+
+function areItemTimeSaleDraftsEqual(left?: ItemTimeSaleDraft, right?: ItemTimeSaleDraft) {
+  return JSON.stringify(normalizeItemTimeSaleDraft(left)) === JSON.stringify(normalizeItemTimeSaleDraft(right));
 }
 
 function normalizeDraftPriceOptions(options: DraftPriceOption[] | undefined) {
@@ -476,6 +541,7 @@ function ValidatedTextInput({
   min,
   max,
   step,
+  inputMode,
   helperText,
   errorText,
   form,
@@ -492,6 +558,7 @@ function ValidatedTextInput({
   min?: number;
   max?: number;
   step?: number;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
   helperText?: string;
   errorText?: string;
   form?: string;
@@ -513,6 +580,7 @@ function ValidatedTextInput({
         min={min}
         max={max}
         step={step}
+        inputMode={inputMode}
         maxLength={maxLength}
         placeholder={placeholder}
         required={required}
@@ -2052,6 +2120,9 @@ function MenuItemForm({
   traits = [],
   priceMode = "single",
   onPriceModeChange,
+  canManageTimeSales = false,
+  timeSaleOwnerItemId = null,
+  timeSaleItemId,
 }: {
   menuId: string;
   categories: MenuCategory[];
@@ -2081,6 +2152,9 @@ function MenuItemForm({
   traits?: MenuItemTrait[];
   priceMode?: PriceMode;
   onPriceModeChange?: (mode: PriceMode) => void;
+  canManageTimeSales?: boolean;
+  timeSaleOwnerItemId?: string | null;
+  timeSaleItemId?: string;
 }) {
   const initialBadgeLabel = draftItem?.badgeLabel ?? (item ? getMenuItemBadgeLabel(item) : "");
   const initialDefaultBadgeLabel = normalizeMenuBadgeLabel(initialBadgeLabel);
@@ -2109,6 +2183,19 @@ function MenuItemForm({
   const [originInfoValue, setOriginInfoValue] = useState(draftItem?.originInfo ?? item?.origin_info ?? "");
   const [visibleValue, setVisibleValue] = useState(draftItem?.visible ?? item?.visible ?? true);
   const [priceVisibleValue, setPriceVisibleValue] = useState(draftItem?.priceVisible ?? item?.price_visible ?? true);
+  const [timeSaleEnabled, setTimeSaleEnabled] = useState(draftItem?.timeSale?.enabled ?? false);
+  const [timeSaleName, setTimeSaleName] = useState(draftItem?.timeSale?.name ?? "타임세일");
+  const [timeSalePrice, setTimeSalePrice] = useState(draftItem?.timeSale?.salePrice ?? "");
+  const [timeSaleStartsAt, setTimeSaleStartsAt] = useState(draftItem?.timeSale?.startsAt ?? "");
+  const [timeSaleEndsAt, setTimeSaleEndsAt] = useState(draftItem?.timeSale?.endsAt ?? "");
+  const [timeSaleDisplayMode, setTimeSaleDisplayMode] = useState<TimeSaleDisplayMode>(
+    draftItem?.timeSale?.timeDisplayMode ?? DEFAULT_TIME_SALE_DISPLAY_MODE
+  );
+  const [timeSaleBadgeText, setTimeSaleBadgeText] = useState(draftItem?.timeSale?.badgeText ?? DEFAULT_TIME_SALE_BADGE_TEXT);
+  const [timeSaleBadgeBackgroundColor, setTimeSaleBadgeBackgroundColor] = useState(
+    normalizeTimeSaleBadgeBackgroundColor(draftItem?.timeSale?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR)
+  );
+  const [timeSaleActive, setTimeSaleActive] = useState(draftItem?.timeSale?.active ?? true);
   const [portionVisibleValue, setPortionVisibleValue] = useState(draftItem?.portionVisible ?? item?.portion_visible ?? true);
   const [traitsVisibleValue, setTraitsVisibleValue] = useState(draftItem?.traitsVisible ?? item?.traits_visible ?? true);
   const [sortOrderValue, setSortOrderValue] = useState(draftItem?.sortOrder ?? item?.sort_order ?? itemCount);
@@ -2166,6 +2253,37 @@ function MenuItemForm({
   const hasDraftPriceOption = usesCategoryPriceOptionColumns
     ? effectiveDraftPriceOptions.some((option) => option.visible && (String(option.price).trim() || option.priceLabel.trim()))
     : effectiveDraftPriceOptions.some((option) => option.visible);
+  const currentTimeSaleItemId = timeSaleItemId ?? item?.id ?? "";
+  const hasTimeSaleOnAnotherItem = Boolean(timeSaleOwnerItemId && timeSaleOwnerItemId !== currentTimeSaleItemId);
+  const basePriceNumber = Number(priceValue);
+  const hasNumericBasePrice = Number.isFinite(basePriceNumber) && basePriceNumber > 0;
+  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && priceVisibleValue && hasNumericBasePrice;
+  const timeSaleBlockedMessage = hasTimeSaleOnAnotherItem
+    ? "MVP에서는 메뉴판당 타임세일 1개만 설정할 수 있습니다."
+    : isOptionsMode
+      ? "옵션 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
+      : !priceVisibleValue
+        ? "가격을 숨긴 메뉴에는 타임세일을 사용할 수 없습니다."
+        : !hasNumericBasePrice
+          ? "숫자 가격이 있는 메뉴에만 타임세일을 사용할 수 있습니다."
+          : "";
+  const timeSalePriceNumber = parseTimeSalePriceInputToWon(timeSalePrice);
+  const timeSaleStartsAtMs = timeSaleStartsAt ? new Date(timeSaleStartsAt).getTime() : NaN;
+  const timeSaleEndsAtMs = timeSaleEndsAt ? new Date(timeSaleEndsAt).getTime() : NaN;
+  const timeSaleInvalidReason =
+    canManageTimeSales && timeSaleEnabled && !timeSaleEligible
+      ? timeSaleBlockedMessage || "타임세일 설정 조건을 확인해주세요."
+      : canManageTimeSales && timeSaleEnabled && !timeSaleName.trim()
+        ? "타임세일 이름을 입력해주세요."
+        : canManageTimeSales && timeSaleEnabled && (!Number.isFinite(timeSalePriceNumber) || timeSalePriceNumber <= 0)
+          ? "타임세일 할인가를 4.5 또는 4500처럼 입력해주세요."
+          : canManageTimeSales && timeSaleEnabled && timeSalePriceNumber >= basePriceNumber
+            ? "타임세일 할인가는 기본 가격보다 낮아야 합니다."
+            : canManageTimeSales && timeSaleEnabled && (!Number.isFinite(timeSaleStartsAtMs) || !Number.isFinite(timeSaleEndsAtMs))
+              ? "타임세일 시작/종료 일시를 입력해주세요."
+              : canManageTimeSales && timeSaleEnabled && timeSaleEndsAtMs <= timeSaleStartsAtMs
+                ? "타임세일 종료 일시는 시작 일시보다 뒤여야 합니다."
+                : "";
   const singlePriceInvalid = isSingleMode && !priceValue.trim() && !priceLabelValue.trim();
   const optionsPriceInvalid = isOptionsMode && !hasDraftPriceOption;
   const draftPriceOptionLimitExceeded = isOptionsMode && effectiveDraftPriceOptions.length > maxPriceOptionsPerItem;
@@ -2192,8 +2310,16 @@ function MenuItemForm({
               ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
               : customBadgeTooLong
                 ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
-                : "";
-  const itemDraftSaveDisabled = nameInvalid || categoryInvalid || singlePriceInvalid || optionsPriceInvalid || draftPriceOptionLimitExceeded || draftPriceOptionInvalid || customBadgeTooLong;
+                : timeSaleInvalidReason;
+  const itemDraftSaveDisabled =
+    nameInvalid ||
+    categoryInvalid ||
+    singlePriceInvalid ||
+    optionsPriceInvalid ||
+    draftPriceOptionLimitExceeded ||
+    draftPriceOptionInvalid ||
+    customBadgeTooLong ||
+    Boolean(timeSaleInvalidReason);
   const itemDraftActionLabel = item ? "수정 내용 반영" : labels.itemLabel === "서비스" ? "서비스 추가" : "아이템 추가";
   const hasPortionData = Boolean(portionLabelValue.trim());
   const hasTraitData = traitLabelValues.some((label) => label.trim());
@@ -2229,6 +2355,21 @@ function MenuItemForm({
     draftImageState.imageUrl !== (committedDraftItem?.imageUrl ?? item.image_url ?? null) ||
     draftImageState.imagePath !== (committedDraftItem?.imagePath ?? item.image_path ?? null) ||
     draftImageState.imageAction !== (committedDraftItem?.imageAction ?? "keep") ||
+    (canManageTimeSales &&
+      !areItemTimeSaleDraftsEqual(
+        {
+          enabled: timeSaleEnabled,
+          name: timeSaleName,
+          salePrice: timeSalePrice,
+          startsAt: timeSaleStartsAt,
+          endsAt: timeSaleEndsAt,
+          timeDisplayMode: timeSaleDisplayMode,
+          badgeText: timeSaleBadgeText,
+          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+          active: timeSaleActive,
+        },
+        committedDraftItem?.timeSale
+      )) ||
     normalizeDraftText(draftItem?.badgeBackgroundColor) !== normalizeDraftText(committedDraftItem?.badgeBackgroundColor) ||
     normalizeDraftText(draftItem?.badgeTextColor) !== normalizeDraftText(committedDraftItem?.badgeTextColor);
 
@@ -2290,6 +2431,26 @@ function MenuItemForm({
       traitsVisible: formData ? formData.has("item_traits_visible") : traitsVisibleValue,
       traitDrafts,
       priceOptions: isOptionsMode ? effectiveDraftPriceOptions : [],
+      ...(canManageTimeSales
+        ? {
+            timeSale: {
+              enabled: formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
+              name: String(formData?.get("item_time_sale_name") ?? timeSaleName),
+              salePrice: String(formData?.get("item_time_sale_price") ?? timeSalePrice),
+              startsAt: String(formData?.get("item_time_sale_starts_at") ?? timeSaleStartsAt),
+              endsAt: String(formData?.get("item_time_sale_ends_at") ?? timeSaleEndsAt),
+              timeDisplayMode:
+                String(formData?.get("item_time_sale_display_mode") ?? timeSaleDisplayMode) === "countdown"
+                  ? "countdown"
+                  : DEFAULT_TIME_SALE_DISPLAY_MODE,
+              badgeText: String(formData?.get("item_time_sale_badge_text") ?? timeSaleBadgeText),
+              badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(
+                formData?.get("item_time_sale_badge_background_color") ?? timeSaleBadgeBackgroundColor
+              ),
+              active: formData ? formData.has("item_time_sale_active") : timeSaleActive,
+            },
+          }
+        : {}),
       imageUrl: draftImageState.imageUrl,
       imagePath: draftImageState.imagePath,
       imageAction: draftImageState.imageAction,
@@ -2883,6 +3044,286 @@ function MenuItemForm({
         </div>
       </section>
 
+      {canManageTimeSales && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">
+            타임세일
+            {timeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-black text-white">사용 중</span> : null}
+          </h4>
+          <div className="mt-4 space-y-4">
+            <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+              <Checkbox
+                form={formId}
+                name="item_time_sale_enabled"
+                label="이 메뉴에 타임세일 적용"
+                description="메뉴판당 1개 메뉴에만 적용됩니다. 하단 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
+                defaultChecked={timeSaleEnabled}
+                canTurnOn={timeSaleEligible || timeSaleEnabled}
+                blockedMessage={timeSaleBlockedMessage}
+                onCheckedChange={(checked) => {
+                  const nextEnabled = checked && (timeSaleEligible || timeSaleEnabled);
+                  setTimeSaleEnabled(nextEnabled);
+                  updateDraftItem({
+                    timeSale: {
+                      enabled: nextEnabled,
+                      name: timeSaleName,
+                      salePrice: timeSalePrice,
+                      startsAt: timeSaleStartsAt,
+                      endsAt: timeSaleEndsAt,
+                      timeDisplayMode: timeSaleDisplayMode,
+                      badgeText: timeSaleBadgeText,
+                      badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                      active: timeSaleActive,
+                    },
+                  });
+                }}
+              />
+              {timeSaleBlockedMessage && !timeSaleEnabled ? (
+                <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">{timeSaleBlockedMessage}</p>
+              ) : null}
+            </div>
+            {timeSaleEnabled ? (
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <ValidatedTextInput
+                    form={formId}
+                    name="item_time_sale_name"
+                    label="타임세일 이름"
+                    defaultValue={timeSaleName}
+                    placeholder="타임세일"
+                    maxLength={40}
+                    helperText="관리용 이름입니다."
+                    onValueChange={(value) => {
+                      setTimeSaleName(value);
+                      updateDraftItem({
+                        timeSale: {
+                          enabled: timeSaleEnabled,
+                          name: value,
+                          salePrice: timeSalePrice,
+                          startsAt: timeSaleStartsAt,
+                          endsAt: timeSaleEndsAt,
+                          timeDisplayMode: timeSaleDisplayMode,
+                          badgeText: timeSaleBadgeText,
+                          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                          active: timeSaleActive,
+                        },
+                      });
+                    }}
+                  />
+                  <ValidatedTextInput
+                    form={formId}
+                    name="item_time_sale_price"
+                    label="할인가 표시"
+                    inputMode="decimal"
+                    defaultValue={timeSalePrice}
+                    placeholder="4.5"
+                    helperText="오브 커피 가격처럼 4.5로 입력하면 4,500원으로 저장되고 메뉴판에는 4.5로 표시됩니다."
+                    onValueChange={(value) => {
+                      setTimeSalePrice(value);
+                      updateDraftItem({
+                        timeSale: {
+                          enabled: timeSaleEnabled,
+                          name: timeSaleName,
+                          salePrice: value,
+                          startsAt: timeSaleStartsAt,
+                          endsAt: timeSaleEndsAt,
+                          timeDisplayMode: timeSaleDisplayMode,
+                          badgeText: timeSaleBadgeText,
+                          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                          active: timeSaleActive,
+                        },
+                      });
+                    }}
+                  />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <ValidatedTextInput
+                    form={formId}
+                    name="item_time_sale_starts_at"
+                    label="시작 일시"
+                    type="datetime-local"
+                    defaultValue={timeSaleStartsAt}
+                    placeholder="2026-07-07T10:00"
+                    onValueChange={(value) => {
+                      setTimeSaleStartsAt(value);
+                      updateDraftItem({
+                        timeSale: {
+                          enabled: timeSaleEnabled,
+                          name: timeSaleName,
+                          salePrice: timeSalePrice,
+                          startsAt: value,
+                          endsAt: timeSaleEndsAt,
+                          timeDisplayMode: timeSaleDisplayMode,
+                          badgeText: timeSaleBadgeText,
+                          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                          active: timeSaleActive,
+                        },
+                      });
+                    }}
+                  />
+                  <ValidatedTextInput
+                    form={formId}
+                    name="item_time_sale_ends_at"
+                    label="종료 일시"
+                    type="datetime-local"
+                    defaultValue={timeSaleEndsAt}
+                    placeholder="2026-07-07T17:00"
+                    onValueChange={(value) => {
+                      setTimeSaleEndsAt(value);
+                      updateDraftItem({
+                        timeSale: {
+                          enabled: timeSaleEnabled,
+                          name: timeSaleName,
+                          salePrice: timeSalePrice,
+                          startsAt: timeSaleStartsAt,
+                          endsAt: value,
+                          timeDisplayMode: timeSaleDisplayMode,
+                          badgeText: timeSaleBadgeText,
+                          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                          active: timeSaleActive,
+                        },
+                      });
+                    }}
+                  />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <FieldLabel>표시 방식</FieldLabel>
+                    <Select
+                      form={formId}
+                      name="item_time_sale_display_mode"
+                      value={timeSaleDisplayMode}
+                      onChange={(event) => {
+                        const nextMode = event.target.value === "countdown" ? "countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE;
+                        setTimeSaleDisplayMode(nextMode);
+                        updateDraftItem({
+                          timeSale: {
+                            enabled: timeSaleEnabled,
+                            name: timeSaleName,
+                            salePrice: timeSalePrice,
+                            startsAt: timeSaleStartsAt,
+                            endsAt: timeSaleEndsAt,
+                            timeDisplayMode: nextMode,
+                            badgeText: timeSaleBadgeText,
+                            badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                            active: timeSaleActive,
+                          },
+                        });
+                      }}
+                    >
+                      <option value="deadline">문구 표시 · 오늘 17:00까지</option>
+                      <option value="countdown">카운트다운 · 00:42:18 남음</option>
+                    </Select>
+                    <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                      문구 표시는 마감 시각을 차분하게 보여주고, 카운트다운은 남은 시간을 1초 단위로 보여줍니다.
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                    <Checkbox
+                      form={formId}
+                      name="item_time_sale_active"
+                      label="타임세일 활성화"
+                      description="끄면 설정값은 저장하되 공개 메뉴판에서는 비활성 상태로 둘 수 있습니다."
+                      defaultChecked={timeSaleActive}
+                      onCheckedChange={(checked) => {
+                        setTimeSaleActive(checked);
+                        updateDraftItem({
+                          timeSale: {
+                            enabled: timeSaleEnabled,
+                            name: timeSaleName,
+                            salePrice: timeSalePrice,
+                            startsAt: timeSaleStartsAt,
+                            endsAt: timeSaleEndsAt,
+                            timeDisplayMode: timeSaleDisplayMode,
+                            badgeText: timeSaleBadgeText,
+                            badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                            active: checked,
+                          },
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <ValidatedTextInput
+                    form={formId}
+                    name="item_time_sale_badge_text"
+                    label="타임세일 배지 문구"
+                    defaultValue={timeSaleBadgeText}
+                    placeholder="타임세일"
+                    maxLength={TIME_SALE_BADGE_TEXT_MAX_LENGTH}
+                    helperText="메뉴명 옆에 표시할 짧은 문구입니다. 예: 타임세일, HAPPY HOUR"
+                    onValueChange={(value) => {
+                      setTimeSaleBadgeText(value);
+                      updateDraftItem({
+                        timeSale: {
+                          enabled: timeSaleEnabled,
+                          name: timeSaleName,
+                          salePrice: timeSalePrice,
+                          startsAt: timeSaleStartsAt,
+                          endsAt: timeSaleEndsAt,
+                          timeDisplayMode: timeSaleDisplayMode,
+                          badgeText: value,
+                          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                          active: timeSaleActive,
+                        },
+                      });
+                    }}
+                  />
+                  <div>
+                    <FieldLabel>타임세일 배지 배경색</FieldLabel>
+                    <div className="mt-2 flex items-center gap-3">
+                      <input
+                        form={formId}
+                        name="item_time_sale_badge_background_color"
+                        type="color"
+                        value={timeSaleBadgeBackgroundColor}
+                        onChange={(event) => {
+                          const nextColor = normalizeTimeSaleBadgeBackgroundColor(event.target.value);
+                          setTimeSaleBadgeBackgroundColor(nextColor);
+                          updateDraftItem({
+                            timeSale: {
+                              enabled: timeSaleEnabled,
+                              name: timeSaleName,
+                              salePrice: timeSalePrice,
+                              startsAt: timeSaleStartsAt,
+                              endsAt: timeSaleEndsAt,
+                              timeDisplayMode: timeSaleDisplayMode,
+                              badgeText: timeSaleBadgeText,
+                              badgeBackgroundColor: nextColor,
+                              active: timeSaleActive,
+                            },
+                          });
+                        }}
+                        className="h-11 w-16 rounded-lg border border-zinc-200 bg-white p-1"
+                        aria-label="타임세일 배지 배경색"
+                      />
+                      <span
+                        className="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-black leading-none"
+                        style={{
+                          backgroundColor: timeSaleBadgeBackgroundColor,
+                          borderColor: timeSaleBadgeBackgroundColor,
+                          color: getReadableTextColorForTimeSaleBadge(timeSaleBadgeBackgroundColor),
+                        }}
+                      >
+                        {timeSaleBadgeText || DEFAULT_TIME_SALE_BADGE_TEXT}
+                      </span>
+                    </div>
+                    <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                      원하는 색을 직접 고를 수 있습니다. 텍스트색은 배경 명도에 맞춰 자동으로 조정됩니다.
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                단일 가격 메뉴에 한해 타임세일가와 마감 표시 방식을 저장할 수 있습니다.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
       {supportsPortionLabel && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <h4 className="text-sm font-black text-zinc-950">제공량</h4>
@@ -3319,6 +3760,8 @@ export default function MenuManagementSection({
   priceOptions,
   traits,
   capabilities,
+  canManageTimeSales = false,
+  timeSales = [],
   canManagePages,
   supportsDisplayPageTypes = false,
   supportsDisplayPromotionPages = false,
@@ -3335,6 +3778,11 @@ export default function MenuManagementSection({
   finalSaveError,
 }: MenuManagementSectionProps) {
   const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
+  const initialTimeSaleDraftByItemId = new Map(
+    timeSales
+      .map((timeSale) => [timeSale.item?.menuItemId ?? "", toItemTimeSaleDraft(timeSale)] as const)
+      .filter((entry): entry is [string, ItemTimeSaleDraft] => Boolean(entry[0] && entry[1]))
+  );
   const [dismissedFinalSaveError, setDismissedFinalSaveError] = useState<string | null>(null);
   const [localAiDescriptionUsage, setLocalAiDescriptionUsage] = useState({
     used: aiDescriptionUsage.used,
@@ -3395,6 +3843,7 @@ export default function MenuManagementSection({
           portionVisible: item.portion_visible,
           traitsVisible: item.traits_visible,
           traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
+          timeSale: initialTimeSaleDraftByItemId.get(item.id),
         },
       ])
     )
@@ -3698,6 +4147,14 @@ export default function MenuManagementSection({
   const reachedItemsPerCategoryLimit = itemsForCategory.length >= MENU_LIMITS.maxItemsPerCategory;
   const reachedItemsPerSiteLimit = draftedItems.length >= MENU_LIMITS.maxItemsPerSite;
   const reachedItemLimit = reachedItemsPerCategoryLimit || reachedItemsPerSiteLimit;
+  const timeSaleOwnerItemId = useMemo(
+    () =>
+      Object.entries(itemBasicDrafts).find(([itemId, draft]) => {
+        if (deletedItemIds.has(itemId)) return false;
+        return draft.timeSale?.enabled === true;
+      })?.[0] ?? null,
+    [deletedItemIds, itemBasicDrafts]
+  );
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
@@ -3806,6 +4263,7 @@ export default function MenuManagementSection({
               traitsVisible: draft?.traitsVisible ?? item.traits_visible,
               traitDrafts: draft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
               priceOptions: categoryPriceOptions,
+              timeSale: draft?.timeSale,
               badgeStyleKey: draft?.badgeStyleKey,
               badgeBackgroundColor: draft?.badgeBackgroundColor,
               badgeTextColor: draft?.badgeTextColor,
@@ -4390,6 +4848,7 @@ export default function MenuManagementSection({
       traitsVisible: sourceItem?.traits_visible ?? true,
       traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === itemId)),
       priceOptions: priceOptions.filter((option) => option.menu_item_id === itemId).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+      timeSale: itemBasicDrafts[itemId]?.timeSale,
     };
   }
 
@@ -4418,6 +4877,7 @@ export default function MenuManagementSection({
       traitsVisible: existingDraft?.traitsVisible ?? sourceItem?.traits_visible ?? true,
       traitDrafts: existingDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === id)),
       priceOptions: existingDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+      timeSale: existingDraft?.timeSale,
       badgeStyleKey: existingDraft?.badgeStyleKey,
       badgeBackgroundColor: existingDraft?.badgeBackgroundColor,
       badgeTextColor: existingDraft?.badgeTextColor,
@@ -6186,6 +6646,9 @@ export default function MenuManagementSection({
                   itemCount={itemsForCategory.length}
                   selectedCategoryId={selectedCategory.id}
                   categoryPriceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
+                  canManageTimeSales={canManageTimeSales}
+                  timeSaleOwnerItemId={timeSaleOwnerItemId}
+                  timeSaleItemId={editingItemId}
                   draftOnly
                   draftItem={editingItemId ? pendingItemDrafts[editingItemId] : undefined}
                   draftName={editingItemId ? pendingItemDrafts[editingItemId]?.name : undefined}
@@ -6226,6 +6689,9 @@ export default function MenuManagementSection({
                   categoryPriceOptionLabels={getCategoryPriceOptionLabels(selectedEditingItem.category_id ?? "")}
                   traits={traits.filter((trait) => trait.menu_item_id === selectedEditingItem.id)}
                   capabilities={capabilities}
+                  canManageTimeSales={canManageTimeSales}
+                  timeSaleOwnerItemId={timeSaleOwnerItemId}
+                  timeSaleItemId={selectedEditingItem.id}
                   aiDescriptionUsage={localAiDescriptionUsage}
                   onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                   badgeStyles={badgeStyles}
@@ -6347,6 +6813,9 @@ export default function MenuManagementSection({
                           categoryPriceOptionLabels={getCategoryPriceOptionLabels(item.category_id ?? "")}
                           traits={traits.filter((trait) => trait.menu_item_id === item.id)}
                           capabilities={capabilities}
+                          canManageTimeSales={canManageTimeSales}
+                          timeSaleOwnerItemId={timeSaleOwnerItemId}
+                          timeSaleItemId={item.id}
                           aiDescriptionUsage={localAiDescriptionUsage}
                           onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                           badgeStyles={badgeStyles}
@@ -6787,6 +7256,9 @@ function MenuItemCard({
   categoryPriceOptionLabels = [],
   traits,
   capabilities,
+  canManageTimeSales = false,
+  timeSaleOwnerItemId = null,
+  timeSaleItemId,
   aiDescriptionUsage,
   onAiDescriptionUsageChange,
   badgeStyles,
@@ -6814,6 +7286,9 @@ function MenuItemCard({
   categoryPriceOptionLabels?: string[];
   traits: MenuItemTrait[];
   capabilities: TemplateCapabilities;
+  canManageTimeSales?: boolean;
+  timeSaleOwnerItemId?: string | null;
+  timeSaleItemId?: string;
   aiDescriptionUsage: { used: number; limit: number };
   onAiDescriptionUsageChange: (usage: { used: number; limit: number }) => void;
   badgeStyles: BadgeStyles;
@@ -6882,6 +7357,9 @@ function MenuItemCard({
             traits={traits}
             priceMode={priceMode}
             onPriceModeChange={setPriceMode}
+            canManageTimeSales={canManageTimeSales}
+            timeSaleOwnerItemId={timeSaleOwnerItemId}
+            timeSaleItemId={timeSaleItemId ?? item.id}
             onCancel={onCancel}
             cancelLabel={isCopiedDraftItem ? "목록으로" : cancelLabel}
             deleteAction={

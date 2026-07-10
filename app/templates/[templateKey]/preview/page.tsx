@@ -191,6 +191,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       visible: true,
       sort_order: index + 1,
     })),
+    timeSales: [],
   };
 }
 
