@@ -91,10 +91,27 @@ type StarterSocialLink = {
   url: string;
 };
 
+export type StarterFeaturedSlide = {
+  id: string;
+  image_url: string;
+  image_path?: string | null;
+  featured_item_name: string;
+  sort_order: number;
+};
+
+export type ResolvedStarterFeaturedSlide = {
+  id: string;
+  image_url: string | null;
+  image_path: string | null;
+  featured_item_id: string | null;
+  sort_order: number;
+};
+
 export type StarterPreset = {
   key: StarterPresetKey;
   site: StarterSiteDefaults;
   featured_item_name?: string;
+  featured_slides?: StarterFeaturedSlide[];
   sample_items_visible?: boolean;
   chefs: StarterChef[];
   events: StarterEvent[];
@@ -208,6 +225,7 @@ function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefi
 function getStarterFeaturedItemNames(preset: StarterPreset) {
   const names = [
     preset.featured_item_name,
+    ...(preset.featured_slides ?? []).map((slide) => slide.featured_item_name),
     ...preset.pages.flatMap((page) =>
       page.categories.flatMap((category) =>
         category.items
@@ -220,10 +238,34 @@ function getStarterFeaturedItemNames(preset: StarterPreset) {
   return Array.from(new Set(names));
 }
 
+export function getStarterFeaturedSlides(preset: StarterPreset): StarterFeaturedSlide[] {
+  return [...(preset.featured_slides ?? [])].sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id));
+}
+
+export function resolveStarterFeaturedSlides<T extends { id: string; name: string; visible?: boolean | null }>(
+  preset: StarterPreset,
+  items: T[]
+): ResolvedStarterFeaturedSlide[] {
+  const itemByName = new Map(items.filter((item) => item.visible !== false).map((item) => [item.name, item.id]));
+
+  return getStarterFeaturedSlides(preset).map((slide, index) => ({
+    id: slide.id,
+    image_url: slide.image_url,
+    image_path: slide.image_path ?? null,
+    featured_item_id: itemByName.get(slide.featured_item_name) ?? null,
+    sort_order: index,
+  }));
+}
+
+export function getFirstCompleteStarterFeaturedSlide(slides: ResolvedStarterFeaturedSlide[]) {
+  return slides.find((slide) => Boolean(slide.image_url && slide.featured_item_id)) ?? null;
+}
+
 const cafeDesignAStarterPreset: StarterPreset = {
   key: "cafe",
   site: CAFE_DESIGN_A_STITCH_SAMPLE.site,
   featured_item_name: "바질 크림 라떼",
+  featured_slides: CAFE_DESIGN_A_STITCH_SAMPLE.featured_slides.map((slide) => ({ ...slide })),
   sample_items_visible: true,
   chefs: [],
   events: [],
@@ -1448,13 +1490,16 @@ export async function createStarterMenuData(
 
   const itemIdByKey = new Map((insertedItems ?? []).map((menuItem) => [`${menuItem.category_id ?? ""}:${menuItem.name}`, menuItem.id]));
 
+  const starterFeaturedSlides = resolveStarterFeaturedSlides(preset, insertedItems ?? []);
+  const firstCompleteStarterFeaturedSlide = getFirstCompleteStarterFeaturedSlide(starterFeaturedSlides);
   const starterFeaturedItemNames = getStarterFeaturedItemNames(preset);
   if (starterFeaturedItemNames.length > 0) {
     const featuredItem = starterFeaturedItemNames
       .map((name) => (insertedItems ?? []).find((menuItem) => menuItem.name === name))
       .find((menuItem) => Boolean(menuItem?.id));
+    const featuredItemId = firstCompleteStarterFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null;
 
-    if (featuredItem?.id) {
+    if (featuredItemId) {
       const { data: siteSettings, error: siteSettingsError } = await supabase
         .from("menu_sites")
         .select("page_settings")
@@ -1468,12 +1513,19 @@ export async function createStarterMenuData(
       const nextPageSettings = {
         ...getJsonRecord(siteSettings?.page_settings),
         featured_item_enabled: true,
-        featured_item_id: featuredItem.id,
+        featured_item_id: featuredItemId,
+        ...(starterFeaturedSlides.length > 0 ? { featured_slides: starterFeaturedSlides as unknown as Json } : {}),
       } satisfies Record<string, Json>;
 
       const { error: featuredSettingsError } = await supabase
         .from("menu_sites")
         .update({
+          ...(firstCompleteStarterFeaturedSlide
+            ? {
+                cover_image_url: firstCompleteStarterFeaturedSlide.image_url,
+                cover_image_path: firstCompleteStarterFeaturedSlide.image_path,
+              }
+            : {}),
           page_settings: nextPageSettings as Json,
           updated_at: new Date().toISOString(),
         })

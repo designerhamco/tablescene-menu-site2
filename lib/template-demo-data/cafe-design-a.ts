@@ -20,6 +20,29 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       footer_notice_3: "",
     },
   },
+  featured_slides: [
+    {
+      id: "cafe-a-featured-basil-cream-latte",
+      image_url: "/menu-templates/cafe_design_a/basil-featured.jpg",
+      image_path: null,
+      featured_item_name: "바질 크림 라떼",
+      sort_order: 0,
+    },
+    {
+      id: "cafe-a-featured-oat-nutty-latte",
+      image_url: "/menu-templates/cafe_design_a/basil-featured.jpg",
+      image_path: null,
+      featured_item_name: "오트 너티 라떼",
+      sort_order: 1,
+    },
+    {
+      id: "cafe-a-featured-jeju-matcha-latte",
+      image_url: "/menu-templates/cafe_design_a/basil-featured.jpg",
+      image_path: null,
+      featured_item_name: "제주 말차 라떼",
+      sort_order: 2,
+    },
+  ],
   pages: [
     {
       title: "메뉴 페이지 1",

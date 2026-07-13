@@ -35,7 +35,7 @@ import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySe
 import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import type { AiCreditBalance } from "@/lib/ai-credits";
-import { getStarterPreset } from "@/lib/menu-starter-presets";
+import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import CoverDraftToggleSection from "@/components/mypage/menu-editor/CoverDraftToggleSection";
 import {
   MENU_EDITOR_CAPABILITIES,
@@ -1314,7 +1314,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       pageSettings.featured_item_id &&
       (!selectedFeaturedItem || selectedFeaturedItem.visible === false)
   );
-  const sampleFeaturedItem = menuManagementStarterPreset
+  const sampleFeaturedSlideSettings =
+    menuManagementStarterPreset && canUseFeaturedSlides ? resolveStarterFeaturedSlides(menuManagementStarterPreset, items) : [];
+  const firstCompleteSampleFeaturedSlide = getFirstCompleteStarterFeaturedSlide(sampleFeaturedSlideSettings);
+  const legacySampleFeaturedItem = menuManagementStarterPreset
     ? (
         (menuManagementStarterPreset.featured_item_name
           ? items.find((item) => item.name === menuManagementStarterPreset.featured_item_name && item.visible !== false)
@@ -1324,17 +1327,35 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         null
       )
     : null;
+  const sampleFeaturedItem =
+    (firstCompleteSampleFeaturedSlide?.featured_item_id
+      ? items.find((item) => item.id === firstCompleteSampleFeaturedSlide.featured_item_id && item.visible !== false)
+      : null) ?? legacySampleFeaturedItem;
+  const sampleFeaturedSlideDrafts = normalizeFeaturedSlideDrafts(
+    sampleFeaturedSlideSettings.map((slide) => ({
+      id: slide.id,
+      imageUrl: slide.image_url,
+      imagePath: slide.image_path,
+      featuredItemId: slide.featured_item_id,
+      sortOrder: slide.sort_order,
+    }))
+  );
   const coverSampleDraft = menuManagementStarterPreset && supportsMenuCover
     ? {
         menuCoverEnabled: true,
         menuCoverTitle: menuCoverCapabilities.usesCoverTitle ? menuManagementStarterPreset.site.menu_cover_title : null,
         menuCoverDescription: menuCoverCapabilities.usesCoverDescription ? menuManagementStarterPreset.site.menu_cover_description : null,
-        coverImageUrl: menuCoverCapabilities.usesCoverImage ? menuManagementStarterPreset.site.cover_image_url : null,
+        coverImageUrl: menuCoverCapabilities.usesCoverImage
+          ? firstCompleteSampleFeaturedSlide?.image_url ?? menuManagementStarterPreset.site.cover_image_url
+          : null,
         featuredItemEnabled: Boolean(canUseFeaturedItemCover && sampleFeaturedItem),
         featuredItemId: canUseFeaturedItemCover ? sampleFeaturedItem?.id ?? null : null,
         featuredSlides:
-          canUseFeaturedSlides && (menuManagementStarterPreset.site.cover_image_url || sampleFeaturedItem)
-            ? normalizeFeaturedSlideDrafts([
+          canUseFeaturedSlides
+            ? sampleFeaturedSlideDrafts.length > 0
+              ? sampleFeaturedSlideDrafts
+              : menuManagementStarterPreset.site.cover_image_url || sampleFeaturedItem
+                ? normalizeFeaturedSlideDrafts([
                 {
                   id: "legacy-featured-slide",
                   imageUrl: menuManagementStarterPreset.site.cover_image_url ?? null,
@@ -1342,7 +1363,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   featuredItemId: sampleFeaturedItem?.id ?? null,
                   sortOrder: 0,
                 },
-              ])
+                  ])
+                : []
             : [],
       }
     : null;

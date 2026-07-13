@@ -6,7 +6,7 @@ import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } fr
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
-import { getStarterPreset } from "@/lib/menu-starter-presets";
+import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
@@ -112,10 +112,13 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const featuredItem = preset.featured_item_name
     ? items.find((item) => item.name === preset.featured_item_name)
     : null;
+  const featuredSlides = resolveStarterFeaturedSlides(preset, items);
+  const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
-    featured_item_enabled: Boolean(featuredItem?.id),
-    featured_item_id: featuredItem?.id ?? null,
+    featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
+    featured_item_id: firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null,
+    ...(featuredSlides.length > 0 ? { featured_slides: featuredSlides } : {}),
   };
 
   return {
@@ -132,7 +135,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       status: "published",
       description: template.description,
       logo_url: template.key === "cafe_noir_a" ? (preset.site.logo_url ?? null) : null,
-      cover_image_url: preset.site.cover_image_url,
+      cover_image_url: firstCompleteFeaturedSlide?.image_url ?? preset.site.cover_image_url,
       intro_image_url: null,
       brand_color: "#111111",
       business_name: preset.site.restaurant_name,
@@ -196,6 +199,18 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     })),
     timeSales: [],
     nextTimeSaleStartAt: null,
+    featuredSlides: featuredSlides.flatMap((slide) => {
+      const item = slide.featured_item_id ? items.find((menuItem) => menuItem.id === slide.featured_item_id) : null;
+      if (!slide.image_url || !item || item.visible === false) return [];
+      return [
+        {
+          id: slide.id,
+          imageUrl: slide.image_url,
+          featuredItemId: item.id,
+          sortOrder: slide.sort_order,
+        },
+      ];
+    }),
   };
 }
 

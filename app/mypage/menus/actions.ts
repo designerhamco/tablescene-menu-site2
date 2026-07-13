@@ -23,7 +23,12 @@ import { getBasicMenuSiteLimitState } from "@/lib/server/basic-menu-site-limit-s
 import { DEFAULT_LOCALE, LOCALE_LABELS, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import type { EditableTranslationDraftValue, EditableTranslationEntityType, EditableTranslationLocale, PartialTranslationActionResult } from "@/lib/menu-localization-draft";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
-import { createStarterMenuData, getStarterPreset } from "@/lib/menu-starter-presets";
+import {
+  createStarterMenuData,
+  getFirstCompleteStarterFeaturedSlide,
+  getStarterPreset,
+  resolveStarterFeaturedSlides,
+} from "@/lib/menu-starter-presets";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { isPriceDisplayMode } from "@/lib/menu-price-format";
@@ -2073,47 +2078,31 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const preset = getStarterPreset(menuSite.template_key, menuSite.restaurant_category, menuSite.template_category);
-  const featuredItemName = preset.featured_item_name;
-  let featuredItemId: string | null = null;
+  const { data: visibleItems, error: visibleItemsError } = await supabase
+    .from("menu_items")
+    .select("id, name, image_url, recommended, sort_order, visible")
+    .eq("menu_site_id", menuId)
+    .eq("visible", true)
+    .order("sort_order", { ascending: true });
 
-  if (featuredItemName) {
-    const { data: featuredItem, error: featuredItemError } = await supabase
-      .from("menu_items")
-      .select("id")
-      .eq("menu_site_id", menuId)
-      .eq("name", featuredItemName)
-      .eq("visible", true)
-      .maybeSingle();
-
-    if (featuredItemError) {
-      redirectToTabEditWithError(menuId, "cover", `대표 추천 메뉴 확인에 실패했습니다: ${featuredItemError.message}`);
-    }
-
-    featuredItemId = featuredItem?.id ?? null;
+  if (visibleItemsError) {
+    redirectToTabEditWithError(menuId, "cover", `대표 추천 메뉴 확인에 실패했습니다: ${visibleItemsError.message}`);
   }
 
-  if (!featuredItemId) {
-    const { data: recommendedItem, error: recommendedItemError } = await supabase
-      .from("menu_items")
-      .select("id")
-      .eq("menu_site_id", menuId)
-      .eq("visible", true)
-      .eq("recommended", true)
-      .order("sort_order", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (recommendedItemError) {
-      redirectToTabEditWithError(menuId, "cover", `대표 추천 메뉴 확인에 실패했습니다: ${recommendedItemError.message}`);
-    }
-
-    featuredItemId = recommendedItem?.id ?? null;
-  }
+  const starterFeaturedSlides = resolveStarterFeaturedSlides(preset, visibleItems ?? []);
+  const firstCompleteStarterFeaturedSlide = getFirstCompleteStarterFeaturedSlide(starterFeaturedSlides);
+  const featuredItemId =
+    firstCompleteStarterFeaturedSlide?.featured_item_id ??
+    (preset.featured_item_name ? (visibleItems ?? []).find((item) => item.name === preset.featured_item_name)?.id ?? null : null) ??
+    (visibleItems ?? []).find((item) => item.recommended === true && Boolean(item.image_url))?.id ??
+    (visibleItems ?? []).find((item) => item.recommended === true)?.id ??
+    null;
 
   const nextPageSettings = {
     ...getJsonObject(menuSite.page_settings),
     featured_item_enabled: Boolean(featuredItemId),
     featured_item_id: featuredItemId,
+    ...(preset.featured_slides ? { [FEATURED_SLIDES_PAGE_SETTINGS_KEY]: starterFeaturedSlides } : {}),
   };
 
   const { error } = await supabase
@@ -2121,8 +2110,8 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
     .update({
       menu_cover_title: preset.site.menu_cover_title,
       menu_cover_description: preset.site.menu_cover_description,
-      cover_image_url: preset.site.cover_image_url,
-      cover_image_path: null,
+      cover_image_url: firstCompleteStarterFeaturedSlide?.image_url ?? preset.site.cover_image_url,
+      cover_image_path: firstCompleteStarterFeaturedSlide?.image_path ?? null,
       page_settings: nextPageSettings,
       updated_at: new Date().toISOString(),
     })
