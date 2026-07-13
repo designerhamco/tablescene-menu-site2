@@ -4122,9 +4122,12 @@ function MenuItemForm({
           <h4 className="inline-flex items-center gap-2 text-sm font-black text-zinc-950">
             이미지
             <HelpTooltip label="이미지 도움말">
-              이미지는 선택 사항입니다. 이미지가 없으면 공개 메뉴판에서는 이미지 없는 형태로 표시됩니다.
+              이미지는 선택 사항입니다. 등록한 메뉴 이미지는 이미지형 메뉴판 배치에 사용할 수 있습니다.
             </HelpTooltip>
           </h4>
+          <p className="mt-2 text-xs font-bold leading-relaxed text-zinc-500">
+            이미지가 있는 메뉴는 공개 메뉴판에서 이미지형 배치로 표시됩니다.
+          </p>
           <div className="mt-4">
           <ImageUploadField
             key={item?.id ?? "new-item"}

@@ -433,12 +433,47 @@ video {
   max-width: min(100%, 13rem);
 }
 
+.cafe-a-typography .cafe-a-menu-item-with-image {
+  --cafe-a-menu-item-image-size: 3.5rem;
+  align-items: start;
+  column-gap: 0.75rem;
+  grid-template-columns: var(--cafe-a-menu-item-image-size) minmax(0, 1fr) max-content;
+}
+
+.cafe-a-typography .cafe-a-menu-item-image-slot {
+  aspect-ratio: 1 / 1;
+  background: rgb(25 28 27 / 5%);
+  grid-column: 1;
+  overflow: hidden;
+  width: var(--cafe-a-menu-item-image-size);
+}
+
+.cafe-a-typography .cafe-a-menu-item-image {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.cafe-a-typography .cafe-a-menu-item-with-image .cafe-a-menu-copy {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.cafe-a-typography .cafe-a-menu-item-with-image .cafe-a-price-area {
+  grid-column: 3;
+}
+
 .cafe-a-typography .cafe-a-menu-item-has-price-columns {
   --cafe-a-price-rail-safe-gap: 0.0625rem;
   align-items: start;
   column-gap: 0.75rem;
   grid-template-columns: minmax(0, 1fr) max-content;
   padding-inline-end: var(--cafe-a-price-rail-safe-gap);
+}
+
+.cafe-a-typography .cafe-a-menu-item-with-image.cafe-a-menu-item-has-price-columns {
+  grid-template-columns: var(--cafe-a-menu-item-image-size) minmax(0, 1fr) max-content;
 }
 
 .cafe-a-typography .cafe-a-menu-item-has-price-columns .cafe-a-price-area {
@@ -803,6 +838,11 @@ video {
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] .cafe-a-menu-item {
     column-gap: clamp(0.5rem, calc(0.9rem * var(--fit-menu-gap-scale)), 0.9rem);
     row-gap: clamp(0.2rem, calc(var(--menu-inline-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-text-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 0.5rem);
+  }
+
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-cafe-a-menu-image-mode="true"] .cafe-a-menu-item-with-image {
+    --cafe-a-menu-item-image-size: clamp(2.875rem, calc(3.75rem * var(--fit-menu-font-scale)), 4rem);
+    column-gap: clamp(0.5rem, calc(0.75rem * var(--fit-menu-gap-scale)), 0.82rem);
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] .cafe-a-menu-title-row {

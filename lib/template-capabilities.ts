@@ -147,7 +147,7 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     brandLogoReplacesName: true,
     footerStoreInfo: true,
     footerSocialLinks: false,
-    menuItemImages: false,
+    menuItemImages: true,
     pageDescription: false,
     categoryDescription: true,
     itemDescription: true,

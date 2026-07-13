@@ -449,6 +449,22 @@ function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number
   return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxUsefulColumns).sort((a, b) => b - a);
 }
 
+function getImageMenuColumnCandidates(width: number, groupCount: number) {
+  if (groupCount <= 1) return [1];
+  if (width < 760) return [2];
+
+  const maxColumns = Math.min(3, groupCount);
+  return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= 2 && columns <= maxColumns).sort((a, b) => b - a);
+}
+
+function hasVisibleMenuItemImage(item: MenuItem) {
+  return item.visible !== false && Boolean(item.image_url?.trim());
+}
+
+function categoryHasVisibleMenuItemImage(items: MenuItem[]) {
+  return items.some(hasVisibleMenuItemImage);
+}
+
 function getFitGapScale(fontScale: number) {
   return Math.max(0.68, Math.min(1.16, fontScale + 0.04));
 }
@@ -2728,6 +2744,7 @@ function MenuItemRow({
   customBadgeStyles,
   locale,
   priceDisplayMode,
+  reserveImageSlot = false,
 }: {
   item: MenuItem;
   category: MenuCategory;
@@ -2740,6 +2757,7 @@ function MenuItemRow({
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
+  reserveImageSlot?: boolean;
 }) {
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const singleTimeSaleItem = timeSale?.item;
@@ -2822,10 +2840,22 @@ function MenuItemRow({
   const metaText = getMenuItemMetaText(item, locale);
   const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}${usesPriceColumns ? " cafe-a-menu-item-has-price-columns" : ""}`;
   const priceNote = "";
+  const imageUrl = item.image_url?.trim() ?? "";
 
   return (
-    <article className={`cafe-a-menu-item grid items-start ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
-      <div className="min-w-0">
+    <article className={`cafe-a-menu-item grid items-start ${reserveImageSlot ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
+      {reserveImageSlot && imageUrl && (
+        <div className="cafe-a-menu-item-image-slot">
+          <img
+            src={imageUrl}
+            alt={`${item.name} 이미지`}
+            className="cafe-a-menu-item-image"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      )}
+      <div className="cafe-a-menu-copy min-w-0">
         <div className={`cafe-a-menu-title-row ${showMenuTimeSale && timeSale && !metaText ? "mb-0" : "mb-0.5"} flex flex-wrap items-center gap-1.5`}>
           <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
@@ -3740,23 +3770,28 @@ function MenuGroupsGrid({
             <section key={`${page.id}-${category.id}`} className="cafe-a-menu-category-block min-w-0" data-cafe-a-category-block="">
               <CategoryTitle category={category} density={density} items={items} />
               <div className="cafe-a-category-items">
-                {items.map((item) => (
-                  <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
-                    <MenuItemRow
-                      item={item}
-                      category={category}
-                      priceOptions={data.priceOptions}
-                      traits={getItemTraits(data.traits, item.id)}
-                      capabilities={capabilities}
-                      density={density}
-                      templateKey={data.menuSite.template_key}
-                      timeSale={timeSaleByItemId.get(item.id)}
-                      customBadgeStyles={customBadgeStyles}
-                      locale={data.locale}
-                      priceDisplayMode={priceDisplayMode}
-                    />
-                  </div>
-                ))}
+                {items.map((item) => {
+                  const reserveImageSlot = categoryHasVisibleMenuItemImage(items);
+
+                  return (
+                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
+                      <MenuItemRow
+                        item={item}
+                        category={category}
+                        priceOptions={data.priceOptions}
+                        traits={getItemTraits(data.traits, item.id)}
+                        capabilities={capabilities}
+                        density={density}
+                        templateKey={data.menuSite.template_key}
+                        timeSale={timeSaleByItemId.get(item.id)}
+                        customBadgeStyles={customBadgeStyles}
+                        locale={data.locale}
+                        priceDisplayMode={priceDisplayMode}
+                        reserveImageSlot={reserveImageSlot}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </section>
           ))}
@@ -3819,6 +3854,7 @@ function BalancedExperimentalMenuGrid({
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
           {column.groups.map(({ page, category, items }) => {
             const groupKey = `${page.id}:${category.id}`;
+            const reserveImageSlot = categoryHasVisibleMenuItemImage(items);
 
             return (
             <section
@@ -3845,6 +3881,7 @@ function BalancedExperimentalMenuGrid({
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
                       priceDisplayMode={priceDisplayMode}
+                      reserveImageSlot={reserveImageSlot}
                     />
                   </div>
                 ))}
@@ -3912,6 +3949,7 @@ function OrderedBalancedFitMenuGrid({
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
           {column.groups.map(({ page, category, items }) => {
             const groupKey = `${page.id}:${category.id}`;
+            const reserveImageSlot = categoryHasVisibleMenuItemImage(items);
 
             return (
               <section
@@ -3938,6 +3976,7 @@ function OrderedBalancedFitMenuGrid({
                         customBadgeStyles={customBadgeStyles}
                         locale={data.locale}
                         priceDisplayMode={priceDisplayMode}
+                        reserveImageSlot={reserveImageSlot}
                       />
                     </div>
                   ))}
@@ -3974,6 +4013,19 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const layoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
   const visiblePageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
   const visibleMenuGroupCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.groups.length, 0);
+  const hasVisibleItemImages = visiblePageGroups.some((pageGroup) =>
+    pageGroup.groups.some((group) => group.items.some(hasVisibleMenuItemImage)),
+  );
+  const visibleImageSignature = visiblePageGroups
+    .flatMap((pageGroup) =>
+      pageGroup.groups.flatMap((group) =>
+        group.items
+          .filter(hasVisibleMenuItemImage)
+          .map((item) => `${group.category.id}:${item.id}:${item.image_url?.trim() ?? ""}`),
+      ),
+    )
+    .sort()
+    .join(",");
   const desktopFitBoardRef = useRef<HTMLDivElement | null>(null);
   const desktopFitMenuRef = useRef<HTMLElement | null>(null);
   const [fitState, setFitState] = useState<CafeDesignAFitState>(DEFAULT_FIT_STATE);
@@ -4011,15 +4063,24 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
+    const imageModeColumns = visibleMenuGroupCount > 1 ? 3 : 1;
+    if (hasVisibleItemImages && (layoutMode !== "orderedBalancedFit" || fitState.orderedBalancedFingerprint)) {
+      return {
+        ...fitState,
+        columns: Math.min(fitState.columns, imageModeColumns),
+      };
+    }
     if (layoutMode !== "orderedBalancedFit" || fitState.orderedBalancedFingerprint) return fitState;
 
     return {
       ...fitState,
-      columns: isDenseOrderedBalanced
+      columns: hasVisibleItemImages
+        ? imageModeColumns
+        : isDenseOrderedBalanced
         ? 3
         : Math.max(1, Math.min(orderedBalancedInitialColumns, visibleMenuGroupCount || orderedBalancedInitialColumns)),
     };
-  }, [fitState, isDenseOrderedBalanced, layoutMode, orderedBalancedInitialColumns, visibleMenuGroupCount]);
+  }, [fitState, hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, orderedBalancedInitialColumns, visibleMenuGroupCount]);
   const renderFitState = useMemo<CafeDesignAFitState>(
     () => (layoutMode === "orderedBalancedFit" ? getBoostedFitState(baseRenderFitState, orderedBalancedFinalFillBoost) : baseRenderFitState),
     [baseRenderFitState, layoutMode, orderedBalancedFinalFillBoost],
@@ -4057,7 +4118,13 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
 
     const syncInitialColumns = () => {
       const measuredWidth = menuElement.clientWidth || boardElement.clientWidth;
-      const nextColumns = isDenseOrderedBalanced ? 3 : measuredWidth >= 1100 ? 3 : 2;
+      const nextColumns = hasVisibleItemImages
+        ? getImageMenuColumnCandidates(measuredWidth, visibleMenuGroupCount)[0] ?? 2
+        : isDenseOrderedBalanced
+          ? 3
+          : measuredWidth >= 1100
+            ? 3
+            : 2;
       setOrderedBalancedInitialColumns((currentColumns) => (currentColumns === nextColumns ? currentColumns : nextColumns));
     };
 
@@ -4069,7 +4136,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [isDenseOrderedBalanced, layoutMode]);
+  }, [hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, visibleMenuGroupCount]);
 
   useEffect(() => {
     const boardElement = desktopFitBoardRef.current;
@@ -4550,6 +4617,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         density,
         visibleItemCount,
         visibleMenuGroupCount,
+        hasVisibleItemImages ? "image-menu" : "text-menu",
+        visibleImageSignature,
         categorySignature,
         orderedBalancedPriceOptionSignature,
         fontStatus,
@@ -4576,6 +4645,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         density,
         visibleItemCount,
         visibleMenuGroupCount,
+        hasVisibleItemImages ? "image-menu" : "text-menu",
+        visibleImageSignature,
         `columns:${columns}`,
       ].join("|");
     }
@@ -4746,11 +4817,13 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         const previousOrderedFitCategoryRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-category-rhythm-scale");
         const previousOrderedFitTextRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-text-rhythm-scale");
         const columnCandidates =
-          layoutMode === "orderedFit"
-            ? getOrderedFitColumnCandidates(menuWidth)
-            : layoutMode === "orderedBalancedFit"
-              ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount, visibleItemCount)
-              : getBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount);
+          hasVisibleItemImages
+            ? getImageMenuColumnCandidates(menuWidth, visibleMenuGroupCount)
+            : layoutMode === "orderedFit"
+              ? getOrderedFitColumnCandidates(menuWidth)
+              : layoutMode === "orderedBalancedFit"
+                ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount, visibleItemCount)
+                : getBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount);
         let selectedState: CafeDesignAFitState | null = null;
 
         if (layoutMode === "orderedFit") {
@@ -4943,10 +5016,12 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   }, [
     density,
     hasCoverSection,
+    hasVisibleItemImages,
     layoutMode,
     orderedBalancedFitRevision,
     orderedBalancedPriceOptionSignature,
     orderedBalancedValidationRevision,
+    visibleImageSignature,
     visibleItemCount,
     visibleMenuGroupCount,
     visiblePageGroups.length,
@@ -4981,6 +5056,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         density,
         visibleItemCount,
         visibleMenuGroupCount,
+        hasVisibleItemImages ? "image-menu" : "text-menu",
+        visibleImageSignature,
         `columns:${columns}`,
       ].join("|");
 
@@ -5202,7 +5279,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [density, fitState, layoutMode, orderedBalancedValidationRevision, visibleItemCount, visibleMenuGroupCount]);
+  }, [density, fitState, hasVisibleItemImages, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleMenuGroupCount]);
 
   useEffect(() => {
     if (layoutMode !== "orderedFit") {
@@ -5385,6 +5462,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
       <main
         className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
+        data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
         style={{ ...typographyStyle, backgroundColor }}
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
@@ -5471,6 +5549,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
             data-fit-rightmost-category-right={fitState.rightmostCategoryRight}
             data-fit-right-safety-gap={fitState.rightSafetyGap}
             data-fit-overflow={fitState.overflow ? "true" : "false"}
+            data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
             style={{ ...fitGapStyle, ...fitStyle, ...orderedFitFillStyle }}
           >
             <DesktopFixedRail data={data}>
