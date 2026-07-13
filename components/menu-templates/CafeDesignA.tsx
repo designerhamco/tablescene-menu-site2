@@ -50,10 +50,14 @@ type CafeDesignAPriceDisplayMode = PriceDisplayMode | null;
 type CafeDesignAPriceToken = {
   label: string;
   price: string;
+  priceColumnId?: string;
+  originalPrice?: number | null;
+  salePrice?: string;
 };
 type CafeDesignATimeSaleMatch = {
   promotion: PublicTimeSale;
-  item: PublicTimeSaleItem;
+  item?: PublicTimeSaleItem;
+  optionItemsByPriceColumnId: Map<string, PublicTimeSaleItem>;
 };
 type MenuGroup = {
   page: MenuPage;
@@ -1918,6 +1922,8 @@ function getItemPriceColumnTokens(
       return {
         label: column.label.trim(),
         price,
+        priceColumnId: column.id,
+        originalPrice: value?.price ?? null,
       };
     })
     .filter((token) => token.price);
@@ -1982,10 +1988,26 @@ function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], te
     if (!isTimeSaleCurrentlyActive(promotion, nowMs)) continue;
 
     for (const item of promotion.items) {
-      if (item.priceColumnId !== null) continue;
       if (item.visible === false || item.salePrice == null || !Number.isFinite(item.salePrice) || item.salePrice <= 0) continue;
-      if (!map.has(item.menuItemId)) {
-        map.set(item.menuItemId, { promotion, item });
+
+      let match = map.get(item.menuItemId);
+      if (!match) {
+        match = {
+          promotion,
+          optionItemsByPriceColumnId: new Map<string, PublicTimeSaleItem>(),
+        };
+        map.set(item.menuItemId, match);
+      }
+
+      if (match.promotion.id !== promotion.id) continue;
+
+      if (item.priceColumnId === null) {
+        match.item ??= item;
+        continue;
+      }
+
+      if (!match.optionItemsByPriceColumnId.has(item.priceColumnId)) {
+        match.optionItemsByPriceColumnId.set(item.priceColumnId, item);
       }
     }
   }
@@ -2549,6 +2571,7 @@ function MenuItemRow({
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
 }) {
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
+  const singleTimeSaleItem = timeSale?.item;
   const showTimeSale =
     !usesPriceColumns &&
     isCafeDesignATimeSaleTemplate(templateKey) &&
@@ -2556,11 +2579,38 @@ function MenuItemRow({
     !item.price_label?.trim() &&
     priceTokens.length === 1 &&
     timeSale &&
-    timeSale.item.visible !== false &&
-    timeSale.item.salePrice != null &&
-    Number.isFinite(timeSale.item.salePrice) &&
+    singleTimeSaleItem &&
+    singleTimeSaleItem.visible !== false &&
+    singleTimeSaleItem.salePrice != null &&
+    Number.isFinite(singleTimeSaleItem.salePrice) &&
     isTimeSaleCurrentlyActive(timeSale.promotion);
-  const timeSalePrice = showTimeSale ? getTimeSalePriceDisplay(timeSale.item, priceDisplayMode) : "";
+  const timeSalePrice = showTimeSale && singleTimeSaleItem ? getTimeSalePriceDisplay(singleTimeSaleItem, priceDisplayMode) : "";
+  const priceTokensWithColumnTimeSale = usesPriceColumns
+    ? priceTokens.map((token) => {
+        const originalPrice = token.originalPrice;
+        const saleTarget = token.priceColumnId ? timeSale?.optionItemsByPriceColumnId.get(token.priceColumnId) : undefined;
+        const salePrice = saleTarget?.salePrice;
+        const showColumnTimeSale =
+          isCafeDesignATimeSaleTemplate(templateKey) &&
+          timeSale &&
+          isTimeSaleCurrentlyActive(timeSale.promotion) &&
+          saleTarget?.visible !== false &&
+          typeof originalPrice === "number" &&
+          Number.isFinite(originalPrice) &&
+          originalPrice > 0 &&
+          typeof salePrice === "number" &&
+          Number.isFinite(salePrice) &&
+          salePrice > 0 &&
+          salePrice < originalPrice;
+
+        return {
+          ...token,
+          salePrice: showColumnTimeSale && saleTarget ? getTimeSalePriceDisplay(saleTarget, priceDisplayMode) : "",
+        };
+      })
+    : priceTokens;
+  const showColumnTimeSale = usesPriceColumns && priceTokensWithColumnTimeSale.some((token) => Boolean(token.salePrice));
+  const showMenuTimeSale = Boolean(timeSale && ((showTimeSale && timeSalePrice) || showColumnTimeSale));
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
   const titleClassName = {
     spacious: "cafe-a-menu-title-size-spacious",
@@ -2608,11 +2658,11 @@ function MenuItemRow({
         <div className="cafe-a-menu-title-row mb-0.5 flex flex-wrap items-center gap-1.5">
           <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
-          {showTimeSale && timeSalePrice && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
+          {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
           {item.is_sold_out && <SoldOutBadge />}
         </div>
         {metaText && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>{metaText}</p>}
-        {showTimeSale && timeSalePrice && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
+        {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
         {item.description && (
           <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
         )}
@@ -2634,9 +2684,20 @@ function MenuItemRow({
             style={{ "--cafe-a-price-column-count": priceTokens.length } as CSSProperties}
             data-cafe-a-price-columns=""
           >
-            {priceTokens.map((token, index) => (
+            {priceTokensWithColumnTimeSale.map((token, index) => (
               <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-column-cell">
-                {token.price ? <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span> : <span aria-hidden="true">&nbsp;</span>}
+                {token.price && token.salePrice && timeSale ? (
+                  <TimeSalePriceBlock
+                    timeSale={timeSale.promotion}
+                    originalPrice={token.price}
+                    salePrice={token.salePrice}
+                    priceClassName={priceClassName}
+                  />
+                ) : token.price ? (
+                  <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
+                ) : (
+                  <span aria-hidden="true">&nbsp;</span>
+                )}
               </span>
             ))}
           </div>
