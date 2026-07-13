@@ -23,10 +23,19 @@ export type MenuEditorTimeSale = {
   item: {
     id: string;
     menuItemId: string;
+    priceColumnId: string | null;
     salePrice: number | null;
     salePriceLabel: string | null;
     visible: boolean;
   } | null;
+  items: Array<{
+    id: string;
+    menuItemId: string;
+    priceColumnId: string | null;
+    salePrice: number | null;
+    salePriceLabel: string | null;
+    visible: boolean;
+  }>;
 };
 
 const BASIC_TIME_SALE_TEMPLATE_LIMITS = new Map<string, number>([

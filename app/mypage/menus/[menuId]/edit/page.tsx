@@ -201,7 +201,7 @@ type MenuPromotion = Pick<
 >;
 type MenuPromotionItem = Pick<
   Database["public"]["Tables"]["menu_promotion_items"]["Row"],
-  "id" | "promotion_id" | "menu_item_id" | "sale_price" | "sale_price_label" | "visible"
+  "id" | "promotion_id" | "menu_item_id" | "price_column_id" | "sale_price" | "sale_price_label" | "visible"
 >;
 type MenuChef = Database["public"]["Tables"]["menu_chefs"]["Row"];
 type MenuEvent = Database["public"]["Tables"]["menu_events"]["Row"];
@@ -515,7 +515,7 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
 
   const { data: promotionItemsData, error: promotionItemsError } = await supabase
     .from("menu_promotion_items")
-    .select("id, promotion_id, menu_item_id, sale_price, sale_price_label, visible")
+    .select("id, promotion_id, menu_item_id, price_column_id, sale_price, sale_price_label, visible")
     .in("promotion_id", promotionIds)
     .order("created_at", { ascending: true });
 
@@ -537,7 +537,16 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
   });
 
   return promotions.map<MenuEditorTimeSale>((promotion) => {
-    const promotionItem = promotionItemsByPromotionId.get(promotion.id)?.[0] ?? null;
+    const promotionItems = promotionItemsByPromotionId.get(promotion.id) ?? [];
+    const promotionItem = promotionItems[0] ?? null;
+    const normalizedItems = promotionItems.map((item) => ({
+      id: item.id,
+      menuItemId: item.menu_item_id,
+      priceColumnId: item.price_column_id,
+      salePrice: item.sale_price,
+      salePriceLabel: item.sale_price_label,
+      visible: item.visible,
+    }));
 
     return {
       id: promotion.id,
@@ -553,11 +562,13 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
         ? {
             id: promotionItem.id,
             menuItemId: promotionItem.menu_item_id,
+            priceColumnId: promotionItem.price_column_id,
             salePrice: promotionItem.sale_price,
             salePriceLabel: promotionItem.sale_price_label,
             visible: promotionItem.visible,
           }
         : null,
+      items: normalizedItems,
     };
   });
 }

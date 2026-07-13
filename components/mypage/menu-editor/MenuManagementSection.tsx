@@ -271,12 +271,19 @@ type ItemTimeSaleDraft = {
   enabled: boolean;
   name: string;
   salePrice: string;
+  targets?: ItemTimeSaleTargetDraft[];
   startsAt: string;
   endsAt: string;
   timeDisplayMode: TimeSaleDisplayMode;
   badgeText: string;
   badgeBackgroundColor: string;
   active: boolean;
+};
+type ItemTimeSaleTargetDraft = {
+  priceColumnId: string | null;
+  salePrice: string;
+  salePriceLabel?: string | null;
+  visible: boolean;
 };
 type DraftPriceOption = {
   id: string;
@@ -556,11 +563,21 @@ function toDraftPriceOption(option: MenuItemPriceOption, index: number): DraftPr
 function toItemTimeSaleDraft(timeSale?: MenuEditorTimeSale | null): ItemTimeSaleDraft | undefined {
   const promotionItem = timeSale?.item;
   if (!timeSale || !promotionItem) return undefined;
+  const targets = (timeSale.items.length > 0 ? timeSale.items : [promotionItem])
+    .filter((item) => item.visible !== false)
+    .map((item) => ({
+      priceColumnId: item.priceColumnId,
+      salePrice: item.salePriceLabel?.trim() || (item.salePrice == null ? "" : String(item.salePrice)),
+      salePriceLabel: item.salePriceLabel,
+      visible: item.visible,
+    }));
+  const singleTarget = targets.find((target) => target.priceColumnId === null) ?? targets[0];
 
   return {
     enabled: promotionItem.visible !== false,
     name: timeSale.name || "타임세일",
-    salePrice: promotionItem.salePriceLabel?.trim() || (promotionItem.salePrice == null ? "" : String(promotionItem.salePrice)),
+    salePrice: singleTarget?.salePrice ?? "",
+    targets,
     startsAt: toLocalDateTimeInputValue(timeSale.startsAt),
     endsAt: toLocalDateTimeInputValue(timeSale.endsAt),
     timeDisplayMode: timeSale.timeDisplayMode ?? DEFAULT_TIME_SALE_DISPLAY_MODE,
@@ -579,6 +596,15 @@ function normalizeItemTimeSaleDraft(value?: ItemTimeSaleDraft) {
     enabled: Boolean(value.enabled),
     name: normalizeDraftText(value.name) || "타임세일",
     salePrice: normalizeDraftText(value.salePrice),
+    targets: (value.targets ?? [])
+      .map((target) => ({
+        priceColumnId: target.priceColumnId ?? null,
+        salePrice: normalizeDraftText(target.salePrice),
+        salePriceLabel: normalizeDraftText(target.salePriceLabel ?? "") || null,
+        visible: normalizeDraftBoolean(target.visible),
+      }))
+      .filter((target) => target.visible && target.salePrice)
+      .sort((a, b) => String(a.priceColumnId ?? "").localeCompare(String(b.priceColumnId ?? ""))),
     startsAt: normalizeDraftText(value.startsAt),
     endsAt: normalizeDraftText(value.endsAt),
     timeDisplayMode: value.timeDisplayMode === "countdown" ? "countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE,
@@ -2538,6 +2564,7 @@ function MenuItemForm({
   const [timeSaleEnabled, setTimeSaleEnabled] = useState(draftItem?.timeSale?.enabled ?? false);
   const [timeSaleName, setTimeSaleName] = useState(draftItem?.timeSale?.name ?? "타임세일");
   const [timeSalePrice, setTimeSalePrice] = useState(draftItem?.timeSale?.salePrice ?? "");
+  const [timeSaleTargets, setTimeSaleTargets] = useState<ItemTimeSaleTargetDraft[]>(draftItem?.timeSale?.targets ?? []);
   const [timeSaleStartsAt, setTimeSaleStartsAt] = useState(draftItem?.timeSale?.startsAt ?? "");
   const [timeSaleEndsAt, setTimeSaleEndsAt] = useState(draftItem?.timeSale?.endsAt ?? "");
   const [timeSaleDisplayMode, setTimeSaleDisplayMode] = useState<TimeSaleDisplayMode>(
@@ -2613,6 +2640,27 @@ function MenuItemForm({
     ? effectiveDraftPriceOptions.some((option) => option.visible && (String(option.price).trim() || option.priceLabel.trim()))
     : effectiveDraftPriceOptions.some((option) => option.visible);
   const hasVisiblePriceColumnValue = effectiveDraftPriceColumnValues.some((value) => value.visible);
+  const visiblePriceColumnTimeSaleRows = effectiveDraftPriceColumnValues
+    .filter((value) => value.visible && normalizeDraftText(value.price))
+    .map((value) => {
+      const column = currentCategoryPriceColumns.find((entry) => entry.id === value.priceColumnId);
+      const target = timeSaleTargets.find((entry) => entry.priceColumnId === value.priceColumnId);
+      return {
+        priceColumnId: value.priceColumnId,
+        label: column?.label ?? "옵션",
+        originalPrice: Number(value.price),
+        salePrice: target?.salePrice ?? "",
+      };
+    })
+    .filter((row) => Number.isFinite(row.originalPrice) && row.originalPrice > 0);
+  const activePriceColumnTimeSaleTargets = visiblePriceColumnTimeSaleRows
+    .map((row) => ({
+      priceColumnId: row.priceColumnId,
+      salePrice: normalizeDraftText(row.salePrice),
+      salePriceLabel: null,
+      visible: true,
+    }))
+    .filter((target) => target.salePrice);
   const priceColumnValueInvalid = false;
   const canEditPriceNote = supportsPriceNote && (!hasVisiblePriceColumnValue || supportsPriceNoteWithPriceColumns);
   const isDirectPriceTextMode = isSingleMode && singlePriceInputMode === "text";
@@ -2620,22 +2668,37 @@ function MenuItemForm({
   const hasTimeSaleOnAnotherItem = Boolean(timeSaleOwnerItemId && timeSaleOwnerItemId !== currentTimeSaleItemId);
   const basePriceNumber = Number(priceValue);
   const hasNumericBasePrice = Number.isFinite(basePriceNumber) && basePriceNumber > 0;
-  const effectiveTimeSaleEnabled = timeSaleEnabled && !hasVisiblePriceColumnValue && !isDirectPriceTextMode;
-  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && !hasVisiblePriceColumnValue && !isDirectPriceTextMode && priceVisibleValue && hasNumericBasePrice;
+  const effectiveTimeSaleEnabled = timeSaleEnabled && !isDirectPriceTextMode;
+  const timeSaleEligible =
+    canManageTimeSales &&
+    !hasTimeSaleOnAnotherItem &&
+    !isOptionsMode &&
+    !isDirectPriceTextMode &&
+    priceVisibleValue &&
+    (hasVisiblePriceColumnValue ? visiblePriceColumnTimeSaleRows.length > 0 : hasNumericBasePrice);
   const timeSaleBlockedMessage = hasTimeSaleOnAnotherItem
     ? "MVP에서는 메뉴판당 타임세일 1개만 설정할 수 있습니다."
     : isOptionsMode
       ? "옵션 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
       : isDirectPriceTextMode
         ? "직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다."
-      : hasVisiblePriceColumnValue
-        ? "옵션 컬럼별 타임세일은 별도 기능으로 준비 중입니다."
+      : hasVisiblePriceColumnValue && visiblePriceColumnTimeSaleRows.length === 0
+        ? "가격이 입력된 옵션에만 타임세일을 적용할 수 있습니다."
         : !priceVisibleValue
           ? "가격을 숨긴 메뉴에는 타임세일을 사용할 수 없습니다."
-          : !hasNumericBasePrice
+          : !hasVisiblePriceColumnValue && !hasNumericBasePrice
             ? "숫자 가격이 있는 메뉴에만 타임세일을 사용할 수 있습니다."
             : "";
   const timeSalePriceNumber = parseTimeSalePriceInputToWon(timeSalePrice);
+  const invalidPriceColumnTarget = activePriceColumnTimeSaleTargets
+    .map((target) => {
+      const row = visiblePriceColumnTimeSaleRows.find((entry) => entry.priceColumnId === target.priceColumnId);
+      const salePriceNumber = parseTimeSalePriceInputToWon(target.salePrice);
+      if (!Number.isFinite(salePriceNumber) || salePriceNumber <= 0) return "타임세일 할인가를 4.5 또는 4500처럼 입력해주세요.";
+      if (row && salePriceNumber >= row.originalPrice) return "타임세일 가격은 기존 가격보다 낮아야 합니다.";
+      return "";
+    })
+    .find(Boolean) ?? "";
   const timeSaleStartsAtMs = timeSaleStartsAt ? new Date(timeSaleStartsAt).getTime() : NaN;
   const timeSaleEndsAtMs = timeSaleEndsAt ? new Date(timeSaleEndsAt).getTime() : NaN;
   const timeSaleInvalidReason =
@@ -2643,9 +2706,13 @@ function MenuItemForm({
       ? timeSaleBlockedMessage || "타임세일 설정 조건을 확인해주세요."
       : canManageTimeSales && effectiveTimeSaleEnabled && !timeSaleName.trim()
         ? "타임세일 이름을 입력해주세요."
-        : canManageTimeSales && effectiveTimeSaleEnabled && (!Number.isFinite(timeSalePriceNumber) || timeSalePriceNumber <= 0)
+        : canManageTimeSales && effectiveTimeSaleEnabled && hasVisiblePriceColumnValue && activePriceColumnTimeSaleTargets.length === 0
+          ? "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요."
+        : canManageTimeSales && effectiveTimeSaleEnabled && hasVisiblePriceColumnValue && invalidPriceColumnTarget
+          ? invalidPriceColumnTarget
+        : canManageTimeSales && effectiveTimeSaleEnabled && !hasVisiblePriceColumnValue && (!Number.isFinite(timeSalePriceNumber) || timeSalePriceNumber <= 0)
           ? "타임세일 할인가를 4.5 또는 4500처럼 입력해주세요."
-          : canManageTimeSales && effectiveTimeSaleEnabled && timeSalePriceNumber >= basePriceNumber
+          : canManageTimeSales && effectiveTimeSaleEnabled && !hasVisiblePriceColumnValue && timeSalePriceNumber >= basePriceNumber
             ? "타임세일 할인가는 기본 가격보다 낮아야 합니다."
             : canManageTimeSales && effectiveTimeSaleEnabled && (!Number.isFinite(timeSaleStartsAtMs) || !Number.isFinite(timeSaleEndsAtMs))
               ? "타임세일 시작/종료 일시를 입력해주세요."
@@ -2748,6 +2815,7 @@ function MenuItemForm({
           enabled: effectiveTimeSaleEnabled,
           name: timeSaleName,
           salePrice: timeSalePrice,
+          targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : [],
           startsAt: timeSaleStartsAt,
           endsAt: timeSaleEndsAt,
           timeDisplayMode: timeSaleDisplayMode,
@@ -2839,9 +2907,10 @@ function MenuItemForm({
       ...(canManageTimeSales
         ? {
             timeSale: {
-              enabled: hasVisiblePriceColumnValue || nextSinglePriceInputMode === "text" ? false : formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
+              enabled: nextSinglePriceInputMode === "text" ? false : formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
               name: String(formData?.get("item_time_sale_name") ?? timeSaleName),
               salePrice: String(formData?.get("item_time_sale_price") ?? timeSalePrice),
+              targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : [],
               startsAt: String(formData?.get("item_time_sale_starts_at") ?? timeSaleStartsAt),
               endsAt: String(formData?.get("item_time_sale_ends_at") ?? timeSaleEndsAt),
               timeDisplayMode:
@@ -3642,16 +3711,7 @@ function MenuItemForm({
             타임세일
             {effectiveTimeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-black text-white">사용 중</span> : null}
           </h4>
-          {hasVisiblePriceColumnValue ? (
-            <div className="mt-4 rounded-lg bg-zinc-50 px-4 py-3">
-              <p className="break-keep text-xs font-bold leading-relaxed text-zinc-600">
-                현재 타임세일은 단일 숫자 가격에서 사용할 수 있습니다.
-              </p>
-              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                옵션 컬럼별 타임세일은 별도 기능으로 준비 중입니다.
-              </p>
-            </div>
-          ) : isDirectPriceTextMode ? (
+          {isDirectPriceTextMode ? (
             <div className="mt-4 space-y-3 rounded-lg bg-amber-50 px-4 py-3">
               <p className="break-keep text-xs font-bold leading-relaxed text-amber-700">
                 직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다.
@@ -3677,13 +3737,14 @@ function MenuItemForm({
                 canTurnOn={timeSaleEligible || effectiveTimeSaleEnabled}
                 blockedMessage={timeSaleBlockedMessage}
                 onCheckedChange={(checked) => {
-                  const nextEnabled = !hasVisiblePriceColumnValue && checked && (timeSaleEligible || effectiveTimeSaleEnabled);
+                  const nextEnabled = checked && (timeSaleEligible || effectiveTimeSaleEnabled);
                   setTimeSaleEnabled(nextEnabled);
                   updateDraftItem({
                     timeSale: {
                       enabled: nextEnabled,
                       name: timeSaleName,
                       salePrice: timeSalePrice,
+                      targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                       startsAt: timeSaleStartsAt,
                       endsAt: timeSaleEndsAt,
                       timeDisplayMode: timeSaleDisplayMode,
@@ -3716,6 +3777,7 @@ function MenuItemForm({
                           enabled: timeSaleEnabled,
                           name: value,
                           salePrice: timeSalePrice,
+                          targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                           startsAt: timeSaleStartsAt,
                           endsAt: timeSaleEndsAt,
                           timeDisplayMode: timeSaleDisplayMode,
@@ -3726,32 +3788,84 @@ function MenuItemForm({
                       });
                     }}
                   />
-                  <ValidatedTextInput
-                    form={formId}
-                    name="item_time_sale_price"
-                    label="할인가 표시"
-                    inputMode="decimal"
-                    defaultValue={timeSalePrice}
-                    placeholder="4.5"
-                    helperText="입력한 숫자 가격은 선택한 가격 표시 형식에 따라 공개 메뉴판에 표시됩니다."
-                    onValueChange={(value) => {
-                      setTimeSalePrice(value);
-                      updateDraftItem({
-                        timeSale: {
-                          enabled: timeSaleEnabled,
-                          name: timeSaleName,
-                          salePrice: value,
-                          startsAt: timeSaleStartsAt,
-                          endsAt: timeSaleEndsAt,
-                          timeDisplayMode: timeSaleDisplayMode,
-                          badgeText: timeSaleBadgeText,
-                          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
-                          active: timeSaleActive,
-                        },
-                      });
-                    }}
-                  />
+                  {!hasVisiblePriceColumnValue && (
+                    <ValidatedTextInput
+                      form={formId}
+                      name="item_time_sale_price"
+                      label="할인가 표시"
+                      inputMode="decimal"
+                      defaultValue={timeSalePrice}
+                      placeholder="4.5"
+                      helperText="입력한 숫자 가격은 선택한 가격 표시 형식에 따라 공개 메뉴판에 표시됩니다."
+                      onValueChange={(value) => {
+                        setTimeSalePrice(value);
+                        updateDraftItem({
+                          timeSale: {
+                            enabled: timeSaleEnabled,
+                            name: timeSaleName,
+                            salePrice: value,
+                            targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
+                            startsAt: timeSaleStartsAt,
+                            endsAt: timeSaleEndsAt,
+                            timeDisplayMode: timeSaleDisplayMode,
+                            badgeText: timeSaleBadgeText,
+                            badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                            active: timeSaleActive,
+                          },
+                        });
+                      }}
+                    />
+                  )}
                 </div>
+                {hasVisiblePriceColumnValue ? (
+                  <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-3">
+                    <div className="grid grid-cols-[minmax(52px,0.7fr)_minmax(64px,0.8fr)_minmax(92px,1fr)] items-center gap-2 border-b border-zinc-200 pb-2 text-[11px] font-black text-zinc-500">
+                      <span>옵션</span>
+                      <span>기존 가격</span>
+                      <span>할인가</span>
+                    </div>
+                    <div className="divide-y divide-zinc-100">
+                      {visiblePriceColumnTimeSaleRows.map((row) => (
+                        <div key={row.priceColumnId} className="grid grid-cols-[minmax(52px,0.7fr)_minmax(64px,0.8fr)_minmax(92px,1fr)] items-center gap-2 py-2">
+                          <span className="min-w-0 truncate text-xs font-black text-zinc-800">{row.label}</span>
+                          <span className="text-xs font-bold text-zinc-500">{row.originalPrice}</span>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={row.salePrice}
+                            placeholder="3.9"
+                            onChange={(event) => {
+                              const nextValue = event.target.value;
+                              const nextTargets = [
+                                ...timeSaleTargets.filter((target) => target.priceColumnId !== row.priceColumnId),
+                                { priceColumnId: row.priceColumnId, salePrice: nextValue, salePriceLabel: null, visible: Boolean(nextValue.trim()) },
+                              ];
+                              setTimeSaleTargets(nextTargets);
+                              updateDraftItem({
+                                timeSale: {
+                                  enabled: timeSaleEnabled,
+                                  name: timeSaleName,
+                                  salePrice: timeSalePrice,
+                                  targets: nextTargets.filter((target) => normalizeDraftText(target.salePrice)),
+                                  startsAt: timeSaleStartsAt,
+                                  endsAt: timeSaleEndsAt,
+                                  timeDisplayMode: timeSaleDisplayMode,
+                                  badgeText: timeSaleBadgeText,
+                                  badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+                                  active: timeSaleActive,
+                                },
+                              });
+                            }}
+                            className="min-h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-950 outline-none transition focus:border-zinc-950"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                      가격이 입력된 옵션만 타임세일을 적용할 수 있습니다. 빈 할인가 항목은 타임세일에서 제외됩니다.
+                    </p>
+                  </div>
+                ) : null}
                 <div className="grid gap-4 md:grid-cols-2">
                   <ValidatedTextInput
                     form={formId}
@@ -3767,6 +3881,7 @@ function MenuItemForm({
                           enabled: timeSaleEnabled,
                           name: timeSaleName,
                           salePrice: timeSalePrice,
+                          targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                           startsAt: value,
                           endsAt: timeSaleEndsAt,
                           timeDisplayMode: timeSaleDisplayMode,
@@ -3791,6 +3906,7 @@ function MenuItemForm({
                           enabled: timeSaleEnabled,
                           name: timeSaleName,
                           salePrice: timeSalePrice,
+                          targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                           startsAt: timeSaleStartsAt,
                           endsAt: value,
                           timeDisplayMode: timeSaleDisplayMode,
@@ -3817,6 +3933,7 @@ function MenuItemForm({
                             enabled: timeSaleEnabled,
                             name: timeSaleName,
                             salePrice: timeSalePrice,
+                            targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                             startsAt: timeSaleStartsAt,
                             endsAt: timeSaleEndsAt,
                             timeDisplayMode: nextMode,
@@ -3848,6 +3965,7 @@ function MenuItemForm({
                             enabled: timeSaleEnabled,
                             name: timeSaleName,
                             salePrice: timeSalePrice,
+                            targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                             startsAt: timeSaleStartsAt,
                             endsAt: timeSaleEndsAt,
                             timeDisplayMode: timeSaleDisplayMode,
@@ -3876,6 +3994,7 @@ function MenuItemForm({
                           enabled: timeSaleEnabled,
                           name: timeSaleName,
                           salePrice: timeSalePrice,
+                          targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                           startsAt: timeSaleStartsAt,
                           endsAt: timeSaleEndsAt,
                           timeDisplayMode: timeSaleDisplayMode,
@@ -3902,6 +4021,7 @@ function MenuItemForm({
                               enabled: timeSaleEnabled,
                               name: timeSaleName,
                               salePrice: timeSalePrice,
+                              targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
                               startsAt: timeSaleStartsAt,
                               endsAt: timeSaleEndsAt,
                               timeDisplayMode: timeSaleDisplayMode,
@@ -3933,7 +4053,7 @@ function MenuItemForm({
                 </>
               ) : (
                 <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                  단일 숫자 가격 메뉴에 한해 타임세일가와 마감 표시 방식을 저장할 수 있습니다.
+                  타임세일을 켜면 할인가와 마감 표시 방식을 저장할 수 있습니다.
                 </p>
               )}
             </div>
