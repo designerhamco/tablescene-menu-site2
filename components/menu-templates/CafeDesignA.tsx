@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 import { Clock3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -49,6 +49,11 @@ type PublicTimeSale = PublicMenuTemplateProps["timeSales"][number];
 type PublicTimeSaleItem = PublicTimeSale["items"][number];
 type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]>[number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
+type CafeDesignAFeaturedHeroSlide = {
+  id: string;
+  imageUrl: string | null;
+  item: MenuItem;
+};
 type CafeDesignAPriceDisplayMode = PriceDisplayMode | null;
 type CafeDesignAPriceToken = {
   label: string;
@@ -62,6 +67,9 @@ type CafeDesignATimeSaleMatch = {
   item?: PublicTimeSaleItem;
   optionItemsByPriceColumnId: Map<string, PublicTimeSaleItem>;
 };
+const FEATURED_CAROUSEL_INTERVAL_MS = 5000;
+const FEATURED_CAROUSEL_DRAG_START_THRESHOLD_PX = 6;
+const FEATURED_CAROUSEL_SWIPE_THRESHOLD_PX = 40;
 type MenuGroup = {
   page: MenuPage;
   category: MenuCategory;
@@ -2313,22 +2321,7 @@ function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
   );
 }
 
-function getFeaturedSlide(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities): PublicFeaturedSlide | null {
-  if (!capabilities.featuredItemHero) return null;
-  return data.featuredSlides?.[0] ?? null;
-}
-
-function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
-  if (!capabilities.featuredItemHero) return null;
-
-  if (data.featuredSlides !== undefined) {
-    const featuredSlide = getFeaturedSlide(data, capabilities);
-    const slideItem = featuredSlide ? data.items.find((item) => item.id === featuredSlide.featuredItemId) : null;
-    return slideItem && slideItem.visible !== false ? slideItem : null;
-  }
-
-  if (!data.pageSettings.featured_item_enabled) return null;
-
+function getLegacyFeaturedItem(data: PublicMenuTemplateProps) {
   const featuredItem = data.pageSettings.featured_item_id
     ? data.items.find((item) => item.id === data.pageSettings.featured_item_id)
     : null;
@@ -2339,6 +2332,25 @@ function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCa
     data.items.find((item) => item.visible !== false && item.recommended === true) ??
     null
   );
+}
+
+function getFeaturedHeroSlides(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities): CafeDesignAFeaturedHeroSlide[] {
+  if (!capabilities.featuredItemHero) return [];
+
+  if (data.featuredSlides !== undefined) {
+    return data.featuredSlides.flatMap((slide: PublicFeaturedSlide) => {
+      const slideItem = data.items.find((item) => item.id === slide.featuredItemId);
+      if (!slide.imageUrl || !slideItem || slideItem.visible === false) return [];
+      return [{ id: slide.id, imageUrl: slide.imageUrl, item: slideItem }];
+    });
+  }
+
+  if (!data.pageSettings.featured_item_enabled) return [];
+
+  const featuredItem = getLegacyFeaturedItem(data);
+  if (!featuredItem) return [];
+
+  return [{ id: "legacy-featured-slide", imageUrl: data.menuSite.cover_image_url ?? null, item: featuredItem }];
 }
 
 function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[] {
@@ -2899,23 +2911,39 @@ function MenuItemRow({
 
 function CoverHero({
   data,
-  featuredItem,
+  featuredSlides,
   capabilities,
   density,
   customBadgeStyles,
   priceDisplayMode,
-  coverImageUrl,
   desktopClassName = "",
 }: {
   data: PublicMenuTemplateProps;
-  featuredItem: MenuItem | null;
+  featuredSlides: CafeDesignAFeaturedHeroSlide[];
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
   customBadgeStyles: unknown;
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
-  coverImageUrl?: string | null;
   desktopClassName?: string;
 }) {
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [isFocusPaused, setIsFocusPaused] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDocumentHidden, setIsDocumentHidden] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [carouselProgress, setCarouselProgress] = useState(0);
+  const progressElapsedMsRef = useRef(0);
+  const progressFrameRef = useRef<number | null>(null);
+  const dragStartXRef = useRef<number | null>(null);
+  const dragStartYRef = useRef<number | null>(null);
+  const dragDeltaXRef = useRef(0);
+  const dragDeltaYRef = useRef(0);
+  const dragIntentActiveRef = useRef(false);
+  const dragPointerIdRef = useRef<number | null>(null);
+  const hasCarousel = featuredSlides.length > 1;
+  const safeActiveSlideIndex = featuredSlides.length === 0 ? 0 : Math.min(activeSlideIndex, featuredSlides.length - 1);
+  const activeSlide = featuredSlides[safeActiveSlideIndex] ?? featuredSlides[0] ?? null;
+  const featuredItem = activeSlide?.item ?? null;
   const featuredCategory = featuredItem ? data.categories.find((category) => category.id === featuredItem.category_id) ?? null : null;
   const price = featuredItem
     ? featuredCategory
@@ -2924,23 +2952,205 @@ function CoverHero({
       : getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true }, priceDisplayMode)
     : null;
   const featuredBadgeLabel = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : "";
-  const resolvedCoverImageUrl = coverImageUrl === undefined ? data.menuSite.cover_image_url : coverImageUrl;
   const heroMinHeightClassName = {
     spacious: "min-h-[400px]",
     default: "min-h-[380px]",
     compact: "min-h-[340px]",
     ultraCompact: "min-h-[320px]",
   }[density];
+  const carouselPaused = isFocusPaused || isDragging || isDocumentHidden;
+  const canAutoAdvance = hasCarousel && !prefersReducedMotion && !carouselPaused;
+  const progressCircumference = 2 * Math.PI * 5;
+
+  const goToSlide = useCallback(
+    (nextIndex: number) => {
+      if (featuredSlides.length === 0) return;
+      progressElapsedMsRef.current = 0;
+      setCarouselProgress(0);
+      setActiveSlideIndex(((nextIndex % featuredSlides.length) + featuredSlides.length) % featuredSlides.length);
+    },
+    [featuredSlides.length],
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateReducedMotionPreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    updateReducedMotionPreference();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updateReducedMotionPreference);
+      return () => mediaQuery.removeEventListener("change", updateReducedMotionPreference);
+    }
+
+    mediaQuery.addListener(updateReducedMotionPreference);
+    return () => mediaQuery.removeListener(updateReducedMotionPreference);
+  }, []);
+
+  useEffect(() => {
+    const updateVisibility = () => setIsDocumentHidden(document.hidden);
+    updateVisibility();
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (!canAutoAdvance) {
+      if (progressFrameRef.current != null) {
+        window.cancelAnimationFrame(progressFrameRef.current);
+        progressFrameRef.current = null;
+      }
+      return;
+    }
+
+    let startedAtMs: number | null = null;
+    const tick = (nowMs: number) => {
+      if (startedAtMs == null) {
+        startedAtMs = nowMs - progressElapsedMsRef.current;
+      }
+
+      const elapsedMs = nowMs - startedAtMs;
+      progressElapsedMsRef.current = elapsedMs;
+      const nextProgress = Math.min(elapsedMs / FEATURED_CAROUSEL_INTERVAL_MS, 1);
+      setCarouselProgress(nextProgress);
+
+      if (nextProgress >= 1) {
+        progressElapsedMsRef.current = 0;
+        setCarouselProgress(0);
+        setActiveSlideIndex((currentIndex) => (currentIndex + 1) % featuredSlides.length);
+        return;
+      }
+
+      progressFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    progressFrameRef.current = window.requestAnimationFrame(tick);
+    return () => {
+      if (progressFrameRef.current != null) {
+        window.cancelAnimationFrame(progressFrameRef.current);
+        progressFrameRef.current = null;
+      }
+    };
+  }, [safeActiveSlideIndex, canAutoAdvance, featuredSlides.length]);
+
+  const endDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragPointerIdRef.current === event.pointerId && event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    if (dragIntentActiveRef.current && Math.abs(dragDeltaXRef.current) >= FEATURED_CAROUSEL_SWIPE_THRESHOLD_PX) {
+      goToSlide(safeActiveSlideIndex + (dragDeltaXRef.current < 0 ? 1 : -1));
+    } else if (dragIntentActiveRef.current) {
+      goToSlide(safeActiveSlideIndex);
+    }
+
+    dragStartXRef.current = null;
+    dragStartYRef.current = null;
+    dragDeltaXRef.current = 0;
+    dragDeltaYRef.current = 0;
+    dragIntentActiveRef.current = false;
+    dragPointerIdRef.current = null;
+    setIsDragging(false);
+  };
 
   return (
-    <section className={`cafe-a-cover-hero flex min-w-0 ${heroMinHeightClassName} flex-col bg-[#eceeec] md:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0 ${desktopClassName}`}>
-      <div className={`cafe-a-cover-frame relative h-full ${heroMinHeightClassName} flex-1 overflow-hidden lg:min-h-0`}>
-        {resolvedCoverImageUrl ? (
-          <img src={resolvedCoverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        ) : (
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_42%,#f7f8f6_100%)]" />
+    <section
+      className={`cafe-a-cover-hero flex min-w-0 ${heroMinHeightClassName} flex-col bg-[#eceeec] md:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0 ${desktopClassName}`}
+      onFocusCapture={() => setIsFocusPaused(true)}
+      onBlurCapture={(event) => {
+        const nextFocusedElement = event.relatedTarget instanceof Node ? event.relatedTarget : null;
+        if (!event.currentTarget.contains(nextFocusedElement)) {
+          setIsFocusPaused(false);
+        }
+      }}
+    >
+      <div
+        className={`cafe-a-cover-frame relative h-full ${heroMinHeightClassName} flex-1 touch-pan-y overflow-hidden lg:min-h-0`}
+        onPointerDown={(event) => {
+          if (!hasCarousel || (event.pointerType === "mouse" && event.button !== 0)) return;
+          dragStartXRef.current = event.clientX;
+          dragStartYRef.current = event.clientY;
+          dragDeltaXRef.current = 0;
+          dragDeltaYRef.current = 0;
+          dragIntentActiveRef.current = false;
+          dragPointerIdRef.current = event.pointerId;
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (dragStartXRef.current == null || dragStartYRef.current == null || dragPointerIdRef.current !== event.pointerId) return;
+          dragDeltaXRef.current = event.clientX - dragStartXRef.current;
+          dragDeltaYRef.current = event.clientY - dragStartYRef.current;
+
+          if (!dragIntentActiveRef.current) {
+            const absoluteX = Math.abs(dragDeltaXRef.current);
+            const absoluteY = Math.abs(dragDeltaYRef.current);
+            if (absoluteX >= FEATURED_CAROUSEL_DRAG_START_THRESHOLD_PX && absoluteX > absoluteY) {
+              dragIntentActiveRef.current = true;
+              setIsDragging(true);
+            }
+          }
+        }}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onLostPointerCapture={() => {
+          dragStartXRef.current = null;
+          dragStartYRef.current = null;
+          dragDeltaXRef.current = 0;
+          dragDeltaYRef.current = 0;
+          dragIntentActiveRef.current = false;
+          dragPointerIdRef.current = null;
+          setIsDragging(false);
+        }}
+      >
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_42%,#f7f8f6_100%)]" />
+        {featuredSlides.map((slide, index) =>
+          slide.imageUrl ? (
+            <img
+              key={slide.id}
+              src={slide.imageUrl}
+              alt=""
+              className={`absolute inset-0 h-full w-full select-none object-cover transition-opacity duration-500 ${
+                index === safeActiveSlideIndex ? "opacity-100" : "opacity-0"
+              }`}
+              draggable={false}
+            />
+          ) : null,
         )}
         <div className="absolute inset-x-0 bottom-0 h-[72%] bg-[linear-gradient(to_top,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.46)_38%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0)_100%)]" />
+        {hasCarousel && (
+          <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+            {featuredSlides.map((slide, index) => {
+              const isActive = index === safeActiveSlideIndex;
+              return (
+                <button
+                  key={slide.id}
+                  type="button"
+                  className="relative h-4 w-4 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  aria-label={`${index + 1}번째 대표 슬라이드 보기`}
+                  aria-current={isActive ? "true" : undefined}
+                  onClick={() => goToSlide(index)}
+                >
+                  <span className={`absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${isActive ? "bg-white" : "bg-white/55"}`} />
+                  {isActive && (
+                    <svg className="absolute inset-0 h-4 w-4 -rotate-90" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                      <circle cx="7" cy="7" r="5" fill="none" stroke="rgba(255,255,255,0.34)" strokeWidth="1.5" />
+                      <circle
+                        cx="7"
+                        cy="7"
+                        r="5"
+                        fill="none"
+                        stroke="white"
+                        strokeLinecap="round"
+                        strokeWidth="1.5"
+                        strokeDasharray={progressCircumference}
+                        strokeDashoffset={progressCircumference * (1 - carouselProgress)}
+                      />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
         {featuredItem && (
           <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
             <div className="min-w-0">
@@ -3758,9 +3968,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
   const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
   const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
-  const featuredSlide = getFeaturedSlide(data, capabilities);
-  const featuredItem = getFeaturedItem(data, capabilities);
-  const featuredCoverImageUrl = data.featuredSlides !== undefined ? featuredSlide?.imageUrl ?? null : data.menuSite.cover_image_url;
+  const featuredHeroSlides = getFeaturedHeroSlides(data, capabilities);
   const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
   const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
   const layoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
@@ -5185,12 +5393,11 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
             {shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
-                featuredItem={featuredItem}
+                featuredSlides={featuredHeroSlides}
                 capabilities={capabilities}
                 density={density}
                 customBadgeStyles={customBadgeStyles}
                 priceDisplayMode={priceDisplayMode}
-                coverImageUrl={featuredCoverImageUrl}
               />
             )}
 
@@ -5270,12 +5477,11 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
               {shouldRenderMenuCoverSection && (
                 <CoverHero
                   data={data}
-                  featuredItem={featuredItem}
+                  featuredSlides={featuredHeroSlides}
                   capabilities={capabilities}
                   density={density}
                   customBadgeStyles={customBadgeStyles}
                   priceDisplayMode={priceDisplayMode}
-                  coverImageUrl={featuredCoverImageUrl}
                 />
               )}
             </DesktopFixedRail>
