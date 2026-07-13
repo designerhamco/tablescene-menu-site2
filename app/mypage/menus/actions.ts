@@ -4285,6 +4285,12 @@ type MenuManagementBasicItemDraft = {
     enabled?: boolean;
     name?: string;
     salePrice?: string | number | null;
+    targets?: {
+      priceColumnId?: string | null;
+      salePrice?: string | number | null;
+      salePriceLabel?: string | null;
+      visible?: boolean;
+    }[];
     startsAt?: string;
     endsAt?: string;
     timeDisplayMode?: string;
@@ -4508,14 +4514,20 @@ function getDisplayVideoPathsToRemove(menuId: string, previousSettingsByPageId: 
 type NormalizedTimeSaleDraft = {
   itemDraftId: string;
   name: string;
-  salePrice: number;
-  salePriceLabel: string | null;
+  targets: NormalizedTimeSaleTargetDraft[];
   startsAt: Date;
   endsAt: Date;
   timeDisplayMode: TimeSaleDisplayMode;
   badgeText: string;
   badgeBackgroundColor: string;
   active: boolean;
+};
+
+type NormalizedTimeSaleTargetDraft = {
+  priceColumnId: string | null;
+  salePrice: number;
+  salePriceLabel: string | null;
+  visible: boolean;
 };
 
 function getTimeSaleSettingsJson({
@@ -4551,6 +4563,58 @@ function parseTimeSaleDateTime(menuId: string, value: unknown, label: string) {
   return date;
 }
 
+function normalizeTimeSaleTargetDrafts(menuId: string, draft: NonNullable<MenuManagementBasicItemDraft["timeSale"]>): NormalizedTimeSaleTargetDraft[] {
+  const rawTargets = Array.isArray(draft.targets) ? draft.targets : null;
+  const targetInputs = rawTargets ?? [
+    {
+      priceColumnId: null,
+      salePrice: draft.salePrice,
+      visible: true,
+    },
+  ];
+  const seenTargetKeys = new Set<string>();
+  const targets: NormalizedTimeSaleTargetDraft[] = [];
+
+  for (const targetInput of targetInputs) {
+    const target = targetInput && typeof targetInput === "object" ? targetInput : {};
+    const visible = target.visible === undefined ? true : normalizeDraftBoolean(target.visible);
+    if (!visible) continue;
+
+    const priceColumnId = normalizeDraftString(target.priceColumnId) || null;
+    const rawSalePrice =
+      typeof target.salePrice === "number"
+        ? String(target.salePrice)
+        : normalizeDraftString(target.salePrice);
+    const salePrice = parseTimeSalePriceInputToWon(rawSalePrice);
+    const targetKey = priceColumnId ?? "single";
+
+    if (seenTargetKeys.has(targetKey)) {
+      redirectToMenuEditWithError(menuId, "같은 옵션 가격에 타임세일을 중복 적용할 수 없습니다.");
+    }
+    seenTargetKeys.add(targetKey);
+
+    if (!Number.isFinite(salePrice) || salePrice <= 0 || !Number.isInteger(salePrice)) {
+      redirectToMenuEditWithError(menuId, "타임세일 할인가를 4.5 또는 4500처럼 입력해주세요.");
+    }
+
+    targets.push({
+      priceColumnId,
+      salePrice,
+      salePriceLabel:
+        typeof target.salePriceLabel === "string" && target.salePriceLabel.trim()
+          ? target.salePriceLabel.trim()
+          : getTimeSalePriceLabelForSave(rawSalePrice, salePrice),
+      visible: true,
+    });
+  }
+
+  if (targets.length === 0) {
+    redirectToMenuEditWithError(menuId, "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요.");
+  }
+
+  return targets;
+}
+
 function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasicItemDraft): NormalizedTimeSaleDraft | null {
   const draft = item.timeSale;
   if (!draft || draft.enabled !== true) {
@@ -4559,9 +4623,7 @@ function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasic
 
   const itemDraftId = normalizeDraftString(item.id);
   const name = normalizeDraftString(draft.name) || "타임세일";
-  const rawSalePrice = normalizeDraftString(draft.salePrice);
-  const salePrice = parseTimeSalePriceInputToWon(rawSalePrice);
-  const salePriceLabel = getTimeSalePriceLabelForSave(rawSalePrice, salePrice);
+  const targets = normalizeTimeSaleTargetDrafts(menuId, draft);
   const startsAt = parseTimeSaleDateTime(menuId, draft.startsAt, "타임세일 시작 일시");
   const endsAt = parseTimeSaleDateTime(menuId, draft.endsAt, "타임세일 종료 일시");
   const badgeText = normalizeTimeSaleBadgeText(draft.badgeText);
@@ -4570,10 +4632,6 @@ function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasic
   validateRequiredText(menuId, name, "타임세일 이름", 40);
   validateRequiredText(menuId, badgeText, "타임세일 배지 문구", TIME_SALE_BADGE_TEXT_MAX_LENGTH);
 
-  if (!Number.isFinite(salePrice) || salePrice <= 0 || !Number.isInteger(salePrice)) {
-    redirectToMenuEditWithError(menuId, "타임세일 할인가를 4.5 또는 4500처럼 입력해주세요.");
-  }
-
   if (endsAt.getTime() <= startsAt.getTime()) {
     redirectToMenuEditWithError(menuId, "타임세일 종료 일시는 시작 일시보다 뒤여야 합니다.");
   }
@@ -4581,8 +4639,7 @@ function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasic
   return {
     itemDraftId,
     name,
-    salePrice,
-    salePriceLabel,
+    targets,
     startsAt,
     endsAt,
     timeDisplayMode: normalizeTimeSaleDisplayMode(draft.timeDisplayMode),
@@ -4679,7 +4736,7 @@ async function syncMenuTimeSalesFromDrafts({
 
   const { data: menuItem, error: menuItemError } = await supabase
     .from("menu_items")
-    .select("id, price, price_visible")
+    .select("id, category_id, price, price_label, price_visible")
     .eq("id", resolvedItemId)
     .eq("menu_site_id", menuId)
     .maybeSingle();
@@ -4694,15 +4751,6 @@ async function syncMenuTimeSalesFromDrafts({
 
   if (menuItem.price_visible === false) {
     redirectToMenuEditWithError(menuId, "가격을 숨긴 메뉴에는 타임세일을 적용할 수 없습니다.");
-  }
-
-  const originalPrice = Number(menuItem.price);
-  if (!Number.isFinite(originalPrice) || originalPrice <= 0) {
-    redirectToMenuEditWithError(menuId, "숫자 기본 가격이 있는 메뉴만 타임세일을 사용할 수 있습니다.");
-  }
-
-  if (draft.salePrice >= originalPrice) {
-    redirectToMenuEditWithError(menuId, "타임세일 할인가는 기본 가격보다 낮아야 합니다.");
   }
 
   const { count: priceOptionCount, error: priceOptionCountError } = await supabase
@@ -4726,9 +4774,9 @@ async function syncMenuTimeSalesFromDrafts({
     redirectToMenuEditWithError(menuId, "옵션별 가격 메뉴는 타임세일 MVP에서 지원하지 않습니다.");
   }
 
-  const { count: priceColumnValueCount, error: priceColumnValueCountError } = await supabase
+  const { data: priceColumnValues, error: priceColumnValueCountError } = await supabase
     .from("menu_item_price_column_values")
-    .select("id", { count: "exact", head: true })
+    .select("id, price_column_id, price, visible")
     .eq("menu_item_id", resolvedItemId)
     .eq("visible", true);
 
@@ -4742,9 +4790,71 @@ async function syncMenuTimeSalesFromDrafts({
     redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 옵션 컬럼 가격 확인에 실패했습니다: ${priceColumnValueCountError.message}`);
   }
 
-  if (!missingPriceColumnValuesTable && (priceColumnValueCount ?? 0) > 0) {
-    await deleteMenuTimeSalePromotions(supabase, menuId);
-    return;
+  const usablePriceColumnValues = missingPriceColumnValuesTable
+    ? []
+    : (priceColumnValues ?? []).filter((value) => typeof value.price === "number" && Number.isFinite(value.price) && value.price > 0);
+  const usablePriceColumnValueByColumnId = new Map(usablePriceColumnValues.map((value) => [value.price_column_id, value]));
+  const hasOptionColumnPrices = usablePriceColumnValues.length > 0;
+  const hasSingleTarget = draft.targets.some((target) => target.priceColumnId === null);
+  const optionTargets = draft.targets.filter((target) => target.priceColumnId !== null);
+
+  if (hasOptionColumnPrices && hasSingleTarget) {
+    redirectToMenuEditWithError(menuId, "옵션 컬럼 가격의 타임세일은 옵션별 할인가가 필요합니다.");
+  }
+
+  if (!hasOptionColumnPrices && optionTargets.length > 0) {
+    redirectToMenuEditWithError(menuId, "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요.");
+  }
+
+  const originalPrice = Number(menuItem.price);
+  if (hasSingleTarget && (!Number.isFinite(originalPrice) || originalPrice <= 0 || normalizeDraftString(menuItem.price_label))) {
+    redirectToMenuEditWithError(menuId, "숫자 기본 가격이 있는 메뉴만 타임세일을 사용할 수 있습니다.");
+  }
+
+  const optionTargetColumnIds = Array.from(new Set(optionTargets.map((target) => target.priceColumnId).filter((id): id is string => Boolean(id))));
+  const { data: priceColumns, error: priceColumnsError } = optionTargetColumnIds.length > 0
+    ? await supabase
+        .from("menu_category_price_columns")
+        .select("id, category_id, menu_site_id, visible")
+        .eq("menu_site_id", menuId)
+        .in("id", optionTargetColumnIds)
+    : { data: [], error: null };
+
+  if (priceColumnsError) {
+    redirectToMenuEditWithError(menuId, `타임세일 옵션 컬럼 확인에 실패했습니다: ${priceColumnsError.message}`);
+  }
+
+  const priceColumnById = new Map((priceColumns ?? []).map((column) => [column.id, column]));
+
+  for (const target of draft.targets) {
+    const originalTargetPrice =
+      target.priceColumnId === null
+        ? originalPrice
+        : Number(usablePriceColumnValueByColumnId.get(target.priceColumnId)?.price);
+
+    if (target.priceColumnId !== null) {
+      const column = priceColumnById.get(target.priceColumnId);
+      if (!column) {
+        redirectToMenuEditWithError(menuId, "선택한 옵션 가격을 찾을 수 없습니다.");
+      }
+      if (column.visible === false) {
+        redirectToMenuEditWithError(menuId, "숨김 처리된 옵션 가격에는 타임세일을 적용할 수 없습니다.");
+      }
+      if (column.category_id !== menuItem.category_id) {
+        redirectToMenuEditWithError(menuId, "선택한 옵션 가격이 이 메뉴의 카테고리에 속하지 않습니다.");
+      }
+      if (!usablePriceColumnValueByColumnId.has(target.priceColumnId)) {
+        redirectToMenuEditWithError(menuId, "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요.");
+      }
+    }
+
+    if (!Number.isFinite(originalTargetPrice) || originalTargetPrice <= 0) {
+      redirectToMenuEditWithError(menuId, "숫자 가격이 있는 메뉴만 타임세일을 사용할 수 있습니다.");
+    }
+
+    if (target.salePrice >= originalTargetPrice) {
+      redirectToMenuEditWithError(menuId, "타임세일 가격은 기존 가격보다 낮아야 합니다.");
+    }
   }
 
   const { data: existingPromotions, error: existingPromotionsError } = await supabase
@@ -4824,14 +4934,15 @@ async function syncMenuTimeSalesFromDrafts({
     redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 정리에 실패했습니다: ${deleteItemsError.message}`);
   }
 
-  const itemPayload: MenuPromotionItemInsert = {
+  const itemPayload: MenuPromotionItemInsert[] = draft.targets.map((target) => ({
     promotion_id: promotionId,
     menu_item_id: resolvedItemId,
-    sale_price: draft.salePrice,
-    sale_price_label: draft.salePriceLabel,
-    visible: true,
+    price_column_id: target.priceColumnId,
+    sale_price: target.salePrice,
+    sale_price_label: target.salePriceLabel,
+    visible: target.visible,
     settings: {},
-  };
+  }));
   const { error: insertItemError } = await supabase.from("menu_promotion_items").insert(itemPayload);
   if (insertItemError) {
     redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 저장에 실패했습니다: ${insertItemError.message}`);
