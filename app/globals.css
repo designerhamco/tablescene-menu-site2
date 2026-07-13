@@ -510,8 +510,8 @@ video {
 }
 
 .cafe-a-typography .cafe-a-time-sale-regular-price {
-  color: rgb(25 28 27 / 42%);
-  text-decoration-color: rgb(25 28 27 / 42%);
+  color: rgb(158 160 159);
+  text-decoration-color: currentColor;
 }
 
 .cafe-a-typography .cafe-a-time-sale-price {

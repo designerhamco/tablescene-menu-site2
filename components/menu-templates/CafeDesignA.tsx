@@ -461,10 +461,6 @@ function hasVisibleMenuItemImage(item: MenuItem) {
   return item.visible !== false && Boolean(item.image_url?.trim());
 }
 
-function categoryHasVisibleMenuItemImage(items: MenuItem[]) {
-  return items.some(hasVisibleMenuItemImage);
-}
-
 function getFitGapScale(fontScale: number) {
   return Math.max(0.68, Math.min(1.16, fontScale + 0.04));
 }
@@ -2744,7 +2740,6 @@ function MenuItemRow({
   customBadgeStyles,
   locale,
   priceDisplayMode,
-  reserveImageSlot = false,
 }: {
   item: MenuItem;
   category: MenuCategory;
@@ -2757,7 +2752,6 @@ function MenuItemRow({
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
-  reserveImageSlot?: boolean;
 }) {
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const singleTimeSaleItem = timeSale?.item;
@@ -2841,10 +2835,11 @@ function MenuItemRow({
   const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}${usesPriceColumns ? " cafe-a-menu-item-has-price-columns" : ""}`;
   const priceNote = "";
   const imageUrl = item.image_url?.trim() ?? "";
+  const hasItemImage = Boolean(imageUrl);
 
   return (
-    <article className={`cafe-a-menu-item grid items-start ${reserveImageSlot ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
-      {reserveImageSlot && imageUrl && (
+    <article className={`cafe-a-menu-item grid items-start ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
+      {hasItemImage && (
         <div className="cafe-a-menu-item-image-slot">
           <img
             src={imageUrl}
@@ -3770,28 +3765,23 @@ function MenuGroupsGrid({
             <section key={`${page.id}-${category.id}`} className="cafe-a-menu-category-block min-w-0" data-cafe-a-category-block="">
               <CategoryTitle category={category} density={density} items={items} />
               <div className="cafe-a-category-items">
-                {items.map((item) => {
-                  const reserveImageSlot = categoryHasVisibleMenuItemImage(items);
-
-                  return (
-                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
-                      <MenuItemRow
-                        item={item}
-                        category={category}
-                        priceOptions={data.priceOptions}
-                        traits={getItemTraits(data.traits, item.id)}
-                        capabilities={capabilities}
-                        density={density}
-                        templateKey={data.menuSite.template_key}
-                        timeSale={timeSaleByItemId.get(item.id)}
-                        customBadgeStyles={customBadgeStyles}
-                        locale={data.locale}
-                        priceDisplayMode={priceDisplayMode}
-                        reserveImageSlot={reserveImageSlot}
-                      />
-                    </div>
-                  );
-                })}
+                {items.map((item) => (
+                  <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
+                    <MenuItemRow
+                      item={item}
+                      category={category}
+                      priceOptions={data.priceOptions}
+                      traits={getItemTraits(data.traits, item.id)}
+                      capabilities={capabilities}
+                      density={density}
+                      templateKey={data.menuSite.template_key}
+                      timeSale={timeSaleByItemId.get(item.id)}
+                      customBadgeStyles={customBadgeStyles}
+                      locale={data.locale}
+                      priceDisplayMode={priceDisplayMode}
+                    />
+                  </div>
+                ))}
               </div>
             </section>
           ))}
@@ -3854,7 +3844,6 @@ function BalancedExperimentalMenuGrid({
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
           {column.groups.map(({ page, category, items }) => {
             const groupKey = `${page.id}:${category.id}`;
-            const reserveImageSlot = categoryHasVisibleMenuItemImage(items);
 
             return (
             <section
@@ -3881,7 +3870,6 @@ function BalancedExperimentalMenuGrid({
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
                       priceDisplayMode={priceDisplayMode}
-                      reserveImageSlot={reserveImageSlot}
                     />
                   </div>
                 ))}
@@ -3949,7 +3937,6 @@ function OrderedBalancedFitMenuGrid({
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
           {column.groups.map(({ page, category, items }) => {
             const groupKey = `${page.id}:${category.id}`;
-            const reserveImageSlot = categoryHasVisibleMenuItemImage(items);
 
             return (
               <section
@@ -3976,7 +3963,6 @@ function OrderedBalancedFitMenuGrid({
                         customBadgeStyles={customBadgeStyles}
                         locale={data.locale}
                         priceDisplayMode={priceDisplayMode}
-                        reserveImageSlot={reserveImageSlot}
                       />
                     </div>
                   ))}
