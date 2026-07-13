@@ -5,9 +5,18 @@ import {
   getTimeSaleBadgeBackgroundColorFromSettings,
   getTimeSaleBadgeTextFromSettings,
   getTimeSaleDisplayModeFromSettings,
+  getTimeSaleDisplayTextFromSettings,
   isBasicTimeSaleTemplate,
   TIME_SALE_TYPE,
 } from "@/lib/menu-time-sales";
+import {
+  getNextTimeSaleStartMs,
+  isTimeSaleActiveAt,
+  normalizeDailyTime,
+  normalizeTimeSaleScheduleType,
+  TIME_SALE_SCHEDULE_TIME_ZONE,
+  type NormalizedTimeSaleSchedule,
+} from "@/lib/menu-time-sale-schedule";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -69,8 +78,9 @@ const eventSelect =
   "id, event_title, event_subtitle, event_description, event_period, event_image_url, event_benefit, event_detail, event_regular_price_label, event_sale_price_label, event_price_visible, visible, sort_order";
 const chefSelect = "id, chef_name, chef_role, chef_description, chef_image_url, visible, sort_order";
 const socialLinkSelect = "id, type, label, display_name, url, visible, sort_order";
-const promotionSelect = "id, name, starts_at, ends_at, timezone, settings";
+const promotionSelect = "id, name, active, schedule_type, starts_at, ends_at, daily_start_time, daily_end_time, timezone, settings";
 const promotionItemSelect = "id, promotion_id, menu_item_id, price_column_id, sale_price, sale_price_label, visible";
+const futurePromotionItemSelect = "promotion_id, menu_item_id, price_column_id, visible";
 const legacyFeaturedSlideId = "legacy-featured-slide";
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {
@@ -106,6 +116,35 @@ function shouldLoadTimeSales(menuSite: MenuSite) {
 
 function hasUsableNumericPrice(price: number | null | undefined) {
   return typeof price === "number" && Number.isFinite(price) && price > 0;
+}
+
+function buildTimeSaleScheduleFromPromotion(promotion: Pick<
+  MenuTimeSalePromotionRow,
+  "active" | "schedule_type" | "starts_at" | "ends_at" | "daily_start_time" | "daily_end_time"
+>): NormalizedTimeSaleSchedule {
+  const scheduleType = normalizeTimeSaleScheduleType(promotion.schedule_type);
+  return {
+    active: promotion.active,
+    scheduleType,
+    startsAt: promotion.starts_at,
+    endsAt: promotion.ends_at,
+    dailyStartTime: scheduleType === "daily_window" ? normalizeDailyTime(promotion.daily_start_time) : null,
+    dailyEndTime: scheduleType === "daily_window" ? normalizeDailyTime(promotion.daily_end_time) : null,
+    timeZone: TIME_SALE_SCHEDULE_TIME_ZONE,
+  };
+}
+
+function isPromotionActiveForPublic(promotion: MenuTimeSalePromotionRow, nowMs: number) {
+  return isTimeSaleActiveAt(buildTimeSaleScheduleFromPromotion(promotion), nowMs);
+}
+
+function getPublicTimeSaleScheduleFields(promotion: MenuTimeSalePromotionRow) {
+  const scheduleType = normalizeTimeSaleScheduleType(promotion.schedule_type);
+  return {
+    scheduleType,
+    dailyStartTime: scheduleType === "daily_window" ? normalizeDailyTime(promotion.daily_start_time) : null,
+    dailyEndTime: scheduleType === "daily_window" ? normalizeDailyTime(promotion.daily_end_time) : null,
+  };
 }
 
 function getFeaturedSlideLimit(templateKey: string | null | undefined) {
@@ -199,7 +238,8 @@ async function loadPublicTimeSales({
     return [];
   }
 
-  const now = new Date().toISOString();
+  const nowMs = Date.now();
+  const now = new Date(nowMs).toISOString();
   const itemsById = new Map(items.map((item) => [item.id, item]));
   const priceOptionItemIds = new Set(priceOptions.map((option) => option.menu_item_id));
   const visibleOptionPriceColumnIdsByItemId = new Map<string, Set<string>>();
@@ -255,7 +295,8 @@ async function loadPublicTimeSales({
     return [];
   }
 
-  const promotions = (promotionsData ?? []) as MenuTimeSalePromotionRow[];
+  const promotions = ((promotionsData ?? []) as MenuTimeSalePromotionRow[])
+    .filter((promotion) => isPromotionActiveForPublic(promotion, nowMs));
   const promotionIds = promotions.map((promotion) => promotion.id);
 
   if (promotionIds.length === 0) {
@@ -315,14 +356,19 @@ async function loadPublicTimeSales({
   return promotions
     .map((promotion) => {
       const promotionItems = itemsByPromotionId.get(promotion.id) ?? [];
+      const scheduleFields = getPublicTimeSaleScheduleFields(promotion);
 
       return {
         id: promotion.id,
         name: promotion.name,
+        scheduleType: scheduleFields.scheduleType,
         startsAt: promotion.starts_at,
         endsAt: promotion.ends_at,
+        dailyStartTime: scheduleFields.dailyStartTime,
+        dailyEndTime: scheduleFields.dailyEndTime,
         timezone: promotion.timezone,
         timeDisplayMode: getTimeSaleDisplayModeFromSettings(promotion.settings),
+        displayText: getTimeSaleDisplayTextFromSettings(promotion.settings),
         badgeText: getTimeSaleBadgeTextFromSettings(promotion.settings),
         badgeBackgroundColor: getTimeSaleBadgeBackgroundColorFromSettings(promotion.settings),
         items: promotionItems.map((item) => ({
@@ -353,7 +399,8 @@ async function loadNextPublicTimeSaleStartAt({
     return null;
   }
 
-  const now = new Date().toISOString();
+  const nowMs = Date.now();
+  const now = new Date(nowMs).toISOString();
   const itemsById = new Map(items.map((item) => [item.id, item]));
   const priceOptionItemIds = new Set(priceOptions.map((option) => option.menu_item_id));
   const visibleOptionPriceColumnIdsByItemId = new Map<string, Set<string>>();
@@ -394,14 +441,13 @@ async function loadNextPublicTimeSaleStartAt({
 
   const { data: promotionsData, error: promotionsError } = await futurePromotionClient
     .from("menu_promotions")
-    .select("id, starts_at, ends_at")
+    .select("id, active, schedule_type, starts_at, ends_at, daily_start_time, daily_end_time, timezone")
     .eq("menu_site_id", menuSite.id)
     .eq("type", TIME_SALE_TYPE)
     .eq("active", true)
-    .gt("starts_at", now)
     .gt("ends_at", now)
     .order("starts_at", { ascending: true })
-    .limit(8);
+    .limit(32);
 
   const isMissingPromotionTable = isMissingTableError(promotionsError, "menu_promotions");
 
@@ -409,13 +455,19 @@ async function loadNextPublicTimeSaleStartAt({
     return null;
   }
 
-  const promotions = ((promotionsData ?? []) as Pick<MenuTimeSalePromotionRow, "id" | "starts_at" | "ends_at">[])
-    .filter((promotion) => {
-      const startsAtMs = new Date(promotion.starts_at).getTime();
-      const endsAtMs = new Date(promotion.ends_at).getTime();
-      return Number.isFinite(startsAtMs) && Number.isFinite(endsAtMs) && endsAtMs > startsAtMs;
-    });
-  const promotionIds = promotions.map((promotion) => promotion.id);
+  const promotionEntries = ((promotionsData ?? []) as Pick<
+    MenuTimeSalePromotionRow,
+    "id" | "active" | "schedule_type" | "starts_at" | "ends_at" | "daily_start_time" | "daily_end_time" | "timezone"
+  >[])
+    .map((promotion) => ({
+      promotion,
+      nextStartMs: getNextTimeSaleStartMs(buildTimeSaleScheduleFromPromotion(promotion), nowMs),
+    }))
+    .filter((entry): entry is { promotion: Pick<
+      MenuTimeSalePromotionRow,
+      "id" | "active" | "schedule_type" | "starts_at" | "ends_at" | "daily_start_time" | "daily_end_time" | "timezone"
+    >; nextStartMs: number } => entry.nextStartMs != null);
+  const promotionIds = promotionEntries.map((entry) => entry.promotion.id);
 
   if (promotionIds.length === 0) {
     return null;
@@ -423,7 +475,7 @@ async function loadNextPublicTimeSaleStartAt({
 
   const { data: promotionItemsData, error: promotionItemsError } = await futurePromotionClient
     .from("menu_promotion_items")
-    .select(promotionItemSelect)
+    .select(futurePromotionItemSelect)
     .in("promotion_id", promotionIds)
     .eq("visible", true);
 
@@ -435,10 +487,13 @@ async function loadNextPublicTimeSaleStartAt({
 
   const validPromotionIds = new Set<string>();
 
-  for (const item of (promotionItemsData ?? []) as MenuTimeSalePromotionItemRow[]) {
+  for (const item of (promotionItemsData ?? []) as Pick<
+    MenuTimeSalePromotionItemRow,
+    "promotion_id" | "menu_item_id" | "price_column_id" | "visible"
+  >[]) {
     const menuItem = itemsById.get(item.menu_item_id);
 
-    if (!menuItem || menuItem.price_visible === false || !hasUsableNumericPrice(item.sale_price)) {
+    if (!menuItem || menuItem.price_visible === false) {
       continue;
     }
 
@@ -457,7 +512,11 @@ async function loadNextPublicTimeSaleStartAt({
     validPromotionIds.add(item.promotion_id);
   }
 
-  return promotions.find((promotion) => validPromotionIds.has(promotion.id))?.starts_at ?? null;
+  const nextStartMs = promotionEntries
+    .filter((entry) => validPromotionIds.has(entry.promotion.id))
+    .reduce<number | null>((earliest, entry) => earliest == null ? entry.nextStartMs : Math.min(earliest, entry.nextStartMs), null);
+
+  return nextStartMs == null ? null : new Date(nextStartMs).toISOString();
 }
 
 function setLocalizedFooterNotice(settings: Record<string, Json>, key: string, value: string | null | undefined) {

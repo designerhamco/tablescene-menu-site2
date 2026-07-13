@@ -4,6 +4,7 @@ import type { MenuEditorServiceType } from "@/lib/menu-editor-capabilities";
 import type { PcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import type { PageSettings } from "@/types/menu";
 import type { TimeSaleDisplayMode } from "@/lib/menu-time-sales";
+import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 
 export type PublicMenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -136,10 +137,14 @@ export type PublicMenuSocialLink = Pick<
 export type PublicMenuTimeSale = {
   id: string;
   name: string;
+  scheduleType: TimeSaleScheduleType;
   startsAt: string;
   endsAt: string;
+  dailyStartTime: string | null;
+  dailyEndTime: string | null;
   timezone: string;
   timeDisplayMode: TimeSaleDisplayMode;
+  displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
   items: Array<{

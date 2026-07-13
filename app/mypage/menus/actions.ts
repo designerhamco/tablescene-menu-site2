@@ -35,15 +35,24 @@ import { isPriceDisplayMode } from "@/lib/menu-price-format";
 import {
   getTimeSalePriceLabelForSave,
   normalizeTimeSaleDisplayMode,
+  normalizeTimeSaleDisplayText,
   parseTimeSalePriceInputToWon,
   isBasicTimeSaleTemplate,
   normalizeTimeSaleBadgeBackgroundColor,
   normalizeTimeSaleBadgeText,
+  TIME_SALE_DISPLAY_TEXT_MAX_LENGTH,
   TIME_SALE_TIMEZONE,
   TIME_SALE_TYPE,
   TIME_SALE_BADGE_TEXT_MAX_LENGTH,
   type TimeSaleDisplayMode,
 } from "@/lib/menu-time-sales";
+import {
+  getNextTimeSaleStartMs,
+  normalizeDailyTime,
+  normalizeTimeSaleScheduleType,
+  TIME_SALE_SCHEDULE_TIME_ZONE,
+  type TimeSaleScheduleType,
+} from "@/lib/menu-time-sale-schedule";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
 import {
@@ -4461,9 +4470,14 @@ type MenuManagementBasicItemDraft = {
       salePriceLabel?: string | null;
       visible?: boolean;
     }[];
+    scheduleType?: string | null;
     startsAt?: string;
     endsAt?: string;
+    dailyStartTime?: string | null;
+    dailyEndTime?: string | null;
+    displayMode?: string | null;
     timeDisplayMode?: string;
+    displayText?: string | null;
     badgeText?: string;
     badgeBackgroundColor?: string;
     active?: boolean;
@@ -4685,9 +4699,13 @@ type NormalizedTimeSaleDraft = {
   itemDraftId: string;
   name: string;
   targets: NormalizedTimeSaleTargetDraft[];
+  scheduleType: TimeSaleScheduleType;
   startsAt: Date;
   endsAt: Date;
+  dailyStartTime: string | null;
+  dailyEndTime: string | null;
   timeDisplayMode: TimeSaleDisplayMode;
+  displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
   active: boolean;
@@ -4702,18 +4720,30 @@ type NormalizedTimeSaleTargetDraft = {
 
 function getTimeSaleSettingsJson({
   timeDisplayMode,
+  displayText,
   badgeText,
   badgeBackgroundColor,
+  existingSettings,
 }: {
   timeDisplayMode: TimeSaleDisplayMode;
+  displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  existingSettings?: Json | null;
 }): Json {
-  return {
-    time_display_mode: timeDisplayMode,
-    badge_text: badgeText,
-    badge_background_color: badgeBackgroundColor,
-  };
+  const settings =
+    existingSettings && typeof existingSettings === "object" && !Array.isArray(existingSettings)
+      ? { ...(existingSettings as Record<string, Json>) }
+      : {};
+  settings.time_display_mode = timeDisplayMode;
+  settings.badge_text = badgeText;
+  settings.badge_background_color = badgeBackgroundColor;
+  if (displayText) {
+    settings.time_display_text = displayText;
+  } else {
+    delete settings.time_display_text;
+  }
+  return settings;
 }
 
 function parseTimeSaleDateTime(menuId: string, value: unknown, label: string) {
@@ -4731,6 +4761,86 @@ function parseTimeSaleDateTime(menuId: string, value: unknown, label: string) {
   }
 
   return date;
+}
+
+function parseDailyTimeToSeconds(value: string | null) {
+  const normalized = normalizeDailyTime(value);
+  if (!normalized) return null;
+  const [hour, minute, second] = normalized.split(":").map(Number);
+  return hour * 3600 + minute * 60 + second;
+}
+
+function normalizeTimeSaleDisplayTextForSave(menuId: string, value: unknown, timeDisplayMode: TimeSaleDisplayMode) {
+  const rawValue = typeof value === "string" ? value : value == null ? "" : String(value);
+  const normalizedValue = rawValue.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+  const requiresText = timeDisplayMode === "message" || timeDisplayMode === "message_and_countdown";
+
+  if (requiresText && !normalizedValue) {
+    redirectToMenuEditWithError(menuId, "타임세일 표시 문구를 입력해주세요.");
+  }
+
+  if (normalizedValue.length > TIME_SALE_DISPLAY_TEXT_MAX_LENGTH) {
+    redirectToMenuEditWithError(menuId, `타임세일 표시 문구는 ${TIME_SALE_DISPLAY_TEXT_MAX_LENGTH}자 이하로 입력해주세요.`);
+  }
+
+  return normalizeTimeSaleDisplayText(normalizedValue);
+}
+
+function normalizeTimeSaleDailyWindow({
+  menuId,
+  scheduleType,
+  startsAt,
+  endsAt,
+  dailyStartTime,
+  dailyEndTime,
+}: {
+  menuId: string;
+  scheduleType: TimeSaleScheduleType;
+  startsAt: Date;
+  endsAt: Date;
+  dailyStartTime: unknown;
+  dailyEndTime: unknown;
+}) {
+  if (scheduleType === "once") {
+    return {
+      dailyStartTime: null,
+      dailyEndTime: null,
+    };
+  }
+
+  const normalizedStartTime = normalizeDailyTime(dailyStartTime);
+  const normalizedEndTime = normalizeDailyTime(dailyEndTime);
+  if (!normalizedStartTime || !normalizedEndTime) {
+    redirectToMenuEditWithError(menuId, "매일 반복 할인 시작 시간과 종료 시간을 입력해주세요.");
+  }
+
+  const startSeconds = parseDailyTimeToSeconds(normalizedStartTime);
+  const endSeconds = parseDailyTimeToSeconds(normalizedEndTime);
+  if (startSeconds == null || endSeconds == null || endSeconds <= startSeconds) {
+    redirectToMenuEditWithError(menuId, "매일 종료 시간은 시작 시간보다 늦어야 합니다. 자정을 넘기는 반복 할인은 아직 지원하지 않습니다.");
+  }
+
+  const nextStartMs = getNextTimeSaleStartMs(
+    {
+      active: true,
+      scheduleType,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      dailyStartTime: normalizedStartTime,
+      dailyEndTime: normalizedEndTime,
+      timeZone: TIME_SALE_SCHEDULE_TIME_ZONE,
+    },
+    startsAt.getTime() - 1,
+  );
+
+  if (nextStartMs == null || nextStartMs >= endsAt.getTime()) {
+    redirectToMenuEditWithError(menuId, "행사 기간 안에 적용 가능한 할인 시간대가 없습니다.");
+  }
+
+  return {
+    dailyStartTime: normalizedStartTime,
+    dailyEndTime: normalizedEndTime,
+  };
 }
 
 function normalizeTimeSaleTargetDrafts(menuId: string, draft: NonNullable<MenuManagementBasicItemDraft["timeSale"]>): NormalizedTimeSaleTargetDraft[] {
@@ -4796,6 +4906,17 @@ function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasic
   const targets = normalizeTimeSaleTargetDrafts(menuId, draft);
   const startsAt = parseTimeSaleDateTime(menuId, draft.startsAt, "타임세일 시작 일시");
   const endsAt = parseTimeSaleDateTime(menuId, draft.endsAt, "타임세일 종료 일시");
+  const scheduleType = normalizeTimeSaleScheduleType(draft.scheduleType);
+  const timeDisplayMode = normalizeTimeSaleDisplayMode(draft.displayMode ?? draft.timeDisplayMode);
+  const displayText = normalizeTimeSaleDisplayTextForSave(menuId, draft.displayText, timeDisplayMode);
+  const dailyWindow = normalizeTimeSaleDailyWindow({
+    menuId,
+    scheduleType,
+    startsAt,
+    endsAt,
+    dailyStartTime: draft.dailyStartTime,
+    dailyEndTime: draft.dailyEndTime,
+  });
   const badgeText = normalizeTimeSaleBadgeText(draft.badgeText);
   const badgeBackgroundColor = normalizeTimeSaleBadgeBackgroundColor(draft.badgeBackgroundColor);
 
@@ -4810,9 +4931,13 @@ function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasic
     itemDraftId,
     name,
     targets,
+    scheduleType,
     startsAt,
     endsAt,
-    timeDisplayMode: normalizeTimeSaleDisplayMode(draft.timeDisplayMode),
+    dailyStartTime: dailyWindow.dailyStartTime,
+    dailyEndTime: dailyWindow.dailyEndTime,
+    timeDisplayMode,
+    displayText,
     badgeText,
     badgeBackgroundColor,
     active: draft.active !== false,
@@ -5029,7 +5154,7 @@ async function syncMenuTimeSalesFromDrafts({
 
   const { data: existingPromotions, error: existingPromotionsError } = await supabase
     .from("menu_promotions")
-    .select("id")
+    .select("id, settings")
     .eq("menu_site_id", menuId)
     .eq("type", TIME_SALE_TYPE)
     .order("created_at", { ascending: true });
@@ -5039,6 +5164,7 @@ async function syncMenuTimeSalesFromDrafts({
   }
 
   const primaryPromotionId = existingPromotions?.[0]?.id ?? "";
+  const primaryPromotionSettings = existingPromotions?.[0]?.settings ?? null;
   const duplicatePromotionIds = (existingPromotions ?? []).slice(1).map((promotion) => promotion.id);
 
   if (duplicatePromotionIds.length > 0) {
@@ -5058,13 +5184,18 @@ async function syncMenuTimeSalesFromDrafts({
     type: TIME_SALE_TYPE,
     name: draft.name,
     active: draft.active,
+    schedule_type: draft.scheduleType,
     starts_at: draft.startsAt.toISOString(),
     ends_at: draft.endsAt.toISOString(),
+    daily_start_time: draft.dailyStartTime,
+    daily_end_time: draft.dailyEndTime,
     timezone: TIME_SALE_TIMEZONE,
     settings: getTimeSaleSettingsJson({
       timeDisplayMode: draft.timeDisplayMode,
+      displayText: draft.displayText,
       badgeText: draft.badgeText,
       badgeBackgroundColor: draft.badgeBackgroundColor,
+      existingSettings: primaryPromotionSettings,
     }),
     updated_at: new Date().toISOString(),
   };
