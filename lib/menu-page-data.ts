@@ -133,6 +133,7 @@ function buildPublicFeaturedSlides({
 }): PublicFeaturedSlide[] {
   const maxSlides = getFeaturedSlideLimit(menuSite.template_key);
   if (maxSlides <= 0) return [];
+  if (pageSettings.featured_item_enabled === false) return [];
 
   const visibleItemIds = new Set(items.filter((item) => item.visible !== false).map((item) => item.id));
   const seenFeaturedItemIds = new Set<string>();
@@ -172,10 +173,6 @@ function buildPublicFeaturedSlides({
     }
 
     return publicSlides;
-  }
-
-  if (pageSettings.featured_item_enabled === false) {
-    return [];
   }
 
   addSlide({

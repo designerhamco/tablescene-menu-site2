@@ -20,6 +20,7 @@ import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
 import BackgroundColorSettingsForm from "@/components/mypage/menu-editor/BackgroundColorSettingsForm";
 import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
+import FeaturedSlidesEditor, { type FeaturedSlideDraft } from "@/components/mypage/menu-editor/FeaturedSlidesEditor";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
@@ -98,7 +99,7 @@ import {
   getCustomTypographySettings,
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
-import { formatMenuPrice, mergePageSettings } from "@/types/menu";
+import { formatMenuPrice, mergePageSettings, type FeaturedSlideSettings } from "@/types/menu";
 
 type MenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -127,6 +128,7 @@ type MenuSite = Pick<
   | "logo_url"
   | "logo_path"
   | "cover_image_url"
+  | "cover_image_path"
   | "intro_image_url"
   | "intro_image_path"
   | "settings"
@@ -641,7 +643,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
 }
 
 const baseMenuSiteSelect =
-  "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, intro_image_url, intro_image_path, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, settings, page_settings";
+  "id, user_id, name, slug, template_key, status, published_at, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, intro_title, intro_description, intro_image_url, intro_image_path, brand_description, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, settings, page_settings";
 const menuSiteSelect = baseMenuSiteSelect
   .replace("template_key", "template_key, template_category")
   .replace("restaurant_category", "restaurant_category, restaurant_type")
@@ -671,6 +673,48 @@ function getJsonRecord(value: unknown): Record<string, Json> {
 function getSettingsString(settings: Record<string, Json>, key: string) {
   const value = settings[key];
   return typeof value === "string" ? value : "";
+}
+
+function normalizeFeaturedSlideDrafts(slides: FeaturedSlideDraft[]) {
+  return slides.slice(0, 5).map((slide, index) => ({ ...slide, sortOrder: index }));
+}
+
+function mapFeaturedSlideSettingsToDraft(slide: FeaturedSlideSettings): FeaturedSlideDraft {
+  return {
+    id: slide.id,
+    imageUrl: slide.image_url,
+    imagePath: slide.image_path,
+    featuredItemId: slide.featured_item_id,
+    sortOrder: slide.sort_order,
+  };
+}
+
+function buildFeaturedSlideDrafts({
+  pageSettings,
+  coverImageUrl,
+  coverImagePath,
+}: {
+  pageSettings: ReturnType<typeof mergePageSettings>;
+  coverImageUrl: string | null;
+  coverImagePath: string | null;
+}) {
+  if (pageSettings.featured_slides !== undefined) {
+    return normalizeFeaturedSlideDrafts(pageSettings.featured_slides.map(mapFeaturedSlideSettingsToDraft));
+  }
+
+  if (!coverImageUrl && !pageSettings.featured_item_id) {
+    return [];
+  }
+
+  return [
+    {
+      id: "legacy-featured-slide",
+      imageUrl: coverImageUrl,
+      imagePath: coverImagePath,
+      featuredItemId: pageSettings.featured_item_id,
+      sortOrder: 0,
+    },
+  ];
 }
 
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
@@ -1199,6 +1243,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const coverDescription = getCoverDescription(coverMode);
   const usesStoreIdentityForCover = menuCoverCapabilities.usesStoreName || menuCoverCapabilities.usesStoreDescription;
   const canUseFeaturedItemCover = templateType === "menu" && menuCoverCapabilities.usesFeaturedItem;
+  const canUseFeaturedSlides = canUseFeaturedItemCover && templateCapabilities.featuredItemCarousel === true;
+  const featuredSlideMaxSlides = Math.max(1, Math.min(5, Math.trunc(templateCapabilities.featuredItemMaxSlides ?? 1)));
   const templateEditorLabels = getTemplateEditorLabels(site.template_key);
   const menuManagementStarterPreset = getStarterPreset(site.template_key, site.restaurant_category, site.template_category);
   const canConfigurePcTabletLayoutMode = supportsPcTabletLayoutMode(site.template_key);
@@ -1286,8 +1332,27 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         coverImageUrl: menuCoverCapabilities.usesCoverImage ? menuManagementStarterPreset.site.cover_image_url : null,
         featuredItemEnabled: Boolean(canUseFeaturedItemCover && sampleFeaturedItem),
         featuredItemId: canUseFeaturedItemCover ? sampleFeaturedItem?.id ?? null : null,
+        featuredSlides:
+          canUseFeaturedSlides && (menuManagementStarterPreset.site.cover_image_url || sampleFeaturedItem)
+            ? normalizeFeaturedSlideDrafts([
+                {
+                  id: "legacy-featured-slide",
+                  imageUrl: menuManagementStarterPreset.site.cover_image_url ?? null,
+                  imagePath: null,
+                  featuredItemId: sampleFeaturedItem?.id ?? null,
+                  sortOrder: 0,
+                },
+              ])
+            : [],
       }
     : null;
+  const featuredSlideDrafts = canUseFeaturedSlides
+    ? buildFeaturedSlideDrafts({
+        pageSettings,
+        coverImageUrl: site.cover_image_url,
+        coverImagePath: site.cover_image_path,
+      })
+    : [];
   const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const visibleEditorTabs = configuredEditorTabs.flatMap((item) => {
@@ -1751,7 +1816,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         />
                       </div>
                     )}
-                    {menuCoverCapabilities.usesCoverImage && (
+                    {menuCoverCapabilities.usesCoverImage && !canUseFeaturedSlides && (
                       <div className="md:col-span-2">
                         <ImageUploadField
                           label="커버 이미지"
@@ -1768,7 +1833,23 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         />
                       </div>
                     )}
-                    {canUseFeaturedItemCover && (
+                    {canUseFeaturedSlides ? (
+                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                        <div className="mb-5">
+                          <Checkbox name="featured_item_enabled" label="대표 영역 사용" defaultChecked={pageSettings.featured_item_enabled} />
+                          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                            꺼도 등록한 대표 슬라이드는 삭제되지 않습니다. 다시 켜면 저장된 슬라이드를 그대로 사용할 수 있습니다.
+                          </p>
+                        </div>
+                        <FeaturedSlidesEditor
+                          menuId={site.id}
+                          formId="menu-cover-form"
+                          initialSlides={featuredSlideDrafts}
+                          itemOptions={featuredItemOptions}
+                          maxSlides={featuredSlideMaxSlides}
+                        />
+                      </div>
+                    ) : canUseFeaturedItemCover && (
                       <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                         <div className="mb-4">
                           <h3 className="text-lg font-bold tracking-tight text-zinc-950">대표 추천 메뉴</h3>

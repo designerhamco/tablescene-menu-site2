@@ -62,7 +62,12 @@ import { getTemplateCategoryFromKey, isTemplateCategoryKey, isTemplateSupportedF
 import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import { normalizeFontSizeScaleKeyForTemplate } from "@/lib/template-typography-presets";
-import { mergePageSettings, validateMenuItemTrait } from "@/types/menu";
+import {
+  FEATURED_SLIDES_PAGE_SETTINGS_KEY,
+  mergePageSettings,
+  validateMenuItemTrait,
+  type FeaturedSlideSettings,
+} from "@/types/menu";
 
 const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
@@ -103,6 +108,125 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 function isPublicPresetImageUrl(value: string | null | undefined) {
   return Boolean(value && PUBLIC_PRESET_IMAGE_PREFIXES.some((prefix) => value.startsWith(prefix)));
+}
+
+function normalizeFeaturedSlideString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function parseFeaturedSlidesPayload(menuId: string, formData: FormData, maxSlides: number) {
+  const rawValue = getString(formData, "featured_slides");
+
+  if (!rawValue) {
+    return [] satisfies FeaturedSlideSettings[];
+  }
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(rawValue);
+  } catch {
+    redirectToTabEditWithError(menuId, "cover", "대표 슬라이드 정보를 다시 확인해주세요.");
+  }
+
+  if (!Array.isArray(parsed)) {
+    redirectToTabEditWithError(menuId, "cover", "대표 슬라이드 정보 형식이 올바르지 않습니다.");
+  }
+
+  const limit = Math.max(1, Math.min(5, Math.trunc(maxSlides)));
+
+  if (parsed.length > limit) {
+    redirectToTabEditWithError(menuId, "cover", `대표 슬라이드는 최대 ${limit}개까지 등록할 수 있습니다.`);
+  }
+
+  const seenSlideIds = new Set<string>();
+  const seenFeaturedItemIds = new Set<string>();
+
+  return parsed.map((rawSlide, index) => {
+    if (!rawSlide || typeof rawSlide !== "object" || Array.isArray(rawSlide)) {
+      redirectToTabEditWithError(menuId, "cover", "대표 슬라이드 정보 형식이 올바르지 않습니다.");
+    }
+
+    const slide = rawSlide as Record<string, unknown>;
+    const id = normalizeFeaturedSlideString(slide.id);
+    const imageUrl = normalizeFeaturedSlideString(slide.imageUrl) ?? normalizeFeaturedSlideString(slide.image_url);
+    const imagePath = normalizeFeaturedSlideString(slide.imagePath) ?? normalizeFeaturedSlideString(slide.image_path);
+    const featuredItemId = normalizeFeaturedSlideString(slide.featuredItemId) ?? normalizeFeaturedSlideString(slide.featured_item_id);
+
+    if (!id) {
+      redirectToTabEditWithError(menuId, "cover", "대표 슬라이드 ID가 올바르지 않습니다.");
+    }
+
+    if (seenSlideIds.has(id)) {
+      redirectToTabEditWithError(menuId, "cover", "대표 슬라이드 ID가 중복되었습니다.");
+    }
+    seenSlideIds.add(id);
+
+    if (featuredItemId) {
+      if (seenFeaturedItemIds.has(featuredItemId)) {
+        redirectToTabEditWithError(menuId, "cover", "같은 대표 상품은 한 번만 선택할 수 있습니다.");
+      }
+      seenFeaturedItemIds.add(featuredItemId);
+    }
+
+    for (const [label, value] of [
+      ["이미지 URL", imageUrl],
+      ["이미지 경로", imagePath],
+    ] as const) {
+      if (value && value.length > 2048) {
+        redirectToTabEditWithError(menuId, "cover", `대표 슬라이드 ${label}이 너무 깁니다.`);
+      }
+    }
+
+    if (imagePath && !imagePath.startsWith(`menu-sites/${menuId}/`)) {
+      redirectToTabEditWithError(menuId, "cover", "대표 슬라이드 이미지 경로가 올바르지 않습니다.");
+    }
+
+    if (imageUrl && !imagePath && !isPublicPresetImageUrl(imageUrl)) {
+      redirectToTabEditWithError(menuId, "cover", "대표 슬라이드 이미지 정보가 올바르지 않습니다.");
+    }
+
+    return {
+      id,
+      image_url: imageUrl,
+      image_path: imagePath,
+      featured_item_id: featuredItemId,
+      sort_order: index,
+    } satisfies FeaturedSlideSettings;
+  });
+}
+
+async function getValidFeaturedItemIds(supabase: SupabaseServerClient, menuId: string, featuredSlides: FeaturedSlideSettings[]) {
+  const requestedItemIds = [...new Set(featuredSlides.map((slide) => slide.featured_item_id).filter((id): id is string => Boolean(id)))];
+
+  if (requestedItemIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const { data, error } = await supabase
+    .from("menu_items")
+    .select("id")
+    .eq("menu_site_id", menuId)
+    .eq("visible", true)
+    .in("id", requestedItemIds);
+
+  if (error) {
+    redirectToTabEditWithError(menuId, "cover", `대표 상품 확인에 실패했습니다: ${error.message}`);
+  }
+
+  const validItemIds = new Set((data ?? []).map((item) => item.id));
+
+  for (const itemId of requestedItemIds) {
+    if (!validItemIds.has(itemId)) {
+      redirectToTabEditWithError(menuId, "cover", "대표 상품은 공개/활성 메뉴 중에서 선택해주세요.");
+    }
+  }
+
+  return validItemIds;
+}
+
+function getFirstCompleteFeaturedSlide(featuredSlides: FeaturedSlideSettings[], validItemIds: Set<string>) {
+  return featuredSlides.find((slide) => Boolean(slide.image_url && slide.featured_item_id && validItemIds.has(slide.featured_item_id))) ?? null;
 }
 
 function getOrderedIds(formData: FormData) {
@@ -571,8 +695,8 @@ async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?:
     redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
   }
 
-  const menuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, template_category, restaurant_name, restaurant_category, menu_cover_label, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
-  const fallbackMenuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, restaurant_name, restaurant_category, menu_cover_title, menu_cover_description, brand_description, settings, page_settings";
+  const menuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, template_category, restaurant_name, restaurant_category, menu_cover_label, menu_cover_title, menu_cover_description, brand_description, cover_image_url, cover_image_path, settings, page_settings";
+  const fallbackMenuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, restaurant_name, restaurant_category, menu_cover_title, menu_cover_description, brand_description, cover_image_url, cover_image_path, settings, page_settings";
 
   const primaryResult = await supabase
     .from("menu_sites")
@@ -2583,6 +2707,9 @@ export async function updateMenuCoverAction(formData: FormData) {
   const currentSettings = mergePageSettings(menuSite.page_settings);
   const templateType = getTemplateType(menuSite.template_key);
   const canUseFeaturedItem = templateType === "menu" && menuCoverCapabilities.usesFeaturedItem;
+  const canUseFeaturedSlides = canUseFeaturedItem && getTemplateCapabilities(menuSite.template_key).featuredItemCarousel === true;
+  const featuredSlideMaxSlides = Math.max(1, Math.min(5, Math.trunc(getTemplateCapabilities(menuSite.template_key).featuredItemMaxSlides ?? 1)));
+  const hasFeaturedSlidesPayload = formData.has("featured_slides");
   const wantsFeaturedItem = menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled");
   const requestedFeaturedItemId = menuCoverEnabled && canUseFeaturedItem ? getNullableString(formData, "featured_item_id") : null;
   const featuredItemEnabled = wantsFeaturedItem && Boolean(requestedFeaturedItemId);
@@ -2591,14 +2718,68 @@ export async function updateMenuCoverAction(formData: FormData) {
   if (hasMenuCoverLabelField) {
     validateOptionalText(menuId, menuCoverLabel, "커버 이미지 라벨", MENU_FIELD_LIMITS.menuSites.menuCoverLabel, "cover");
   }
+  if (hasFeaturedSlidesPayload && !canUseFeaturedSlides) {
+    redirectToTabEditWithError(menuId, "cover", "현재 템플릿은 대표 슬라이드를 지원하지 않습니다.");
+  }
   if (menuCoverEnabled && menuCoverCapabilities.usesCoverTitle) {
     validateRequiredText(menuId, menuCoverTitle ?? "", "커버 이미지 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle, "cover");
   }
   if (menuCoverEnabled && menuCoverCapabilities.usesCoverDescription) {
     validateRequiredText(menuId, menuCoverDescription ?? "", "커버 이미지 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription, "cover");
   }
-  if (wantsFeaturedItem && !requestedFeaturedItemId) {
+  if (!hasFeaturedSlidesPayload && wantsFeaturedItem && !requestedFeaturedItemId) {
     redirectToTabEditWithError(menuId, "cover", "대표 추천 메뉴를 선택해주세요.");
+  }
+
+  if (hasFeaturedSlidesPayload && canUseFeaturedSlides) {
+    const featuredSlides = parseFeaturedSlidesPayload(menuId, formData, featuredSlideMaxSlides);
+    const validFeaturedItemIds = await getValidFeaturedItemIds(supabase, menuId, featuredSlides);
+    const firstCompleteSlide = getFirstCompleteFeaturedSlide(featuredSlides, validFeaturedItemIds);
+    const featuredSlidesEnabled = menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled");
+    const nextSettings = {
+      ...pageSettingsRecord,
+      ...currentSettings,
+      menu_cover_enabled: menuCoverEnabled,
+      featured_item_enabled: featuredSlidesEnabled,
+      featured_item_id: firstCompleteSlide?.featured_item_id ?? null,
+      [FEATURED_SLIDES_PAGE_SETTINGS_KEY]: featuredSlides,
+    };
+
+    const updatePayload: MenuSiteUpdate = {
+      menu_cover_title: menuCoverTitle,
+      menu_cover_description: menuCoverDescription,
+      cover_image_url: firstCompleteSlide?.image_url ?? null,
+      cover_image_path: firstCompleteSlide?.image_path ?? null,
+      page_settings: nextSettings,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (hasMenuCoverLabelField) {
+      updatePayload.menu_cover_label = menuCoverLabel;
+    }
+
+    let { error } = await supabase.from("menu_sites").update(updatePayload).eq("id", menuId);
+
+    if (error && error.message.toLowerCase().includes("menu_cover_label")) {
+      const fallbackResult = await supabase
+        .from("menu_sites")
+        .update({
+          menu_cover_title: menuCoverTitle,
+          menu_cover_description: menuCoverDescription,
+          cover_image_url: firstCompleteSlide?.image_url ?? null,
+          cover_image_path: firstCompleteSlide?.image_path ?? null,
+          page_settings: nextSettings,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", menuId);
+
+      error = fallbackResult.error;
+    }
+
+    if (error) redirectToTabEditWithError(menuId, "cover", `커버 이미지 저장에 실패했습니다: ${error.message}`);
+
+    revalidateMenuPaths(menuId, menuSite.slug);
+    redirectToTabEdit(menuId, "cover", "커버 이미지 설정이 저장되었습니다.");
   }
 
   if (featuredItemEnabled && requestedFeaturedItemId) {

@@ -10,6 +10,13 @@ type CoverSampleDraft = {
   coverImageUrl?: string | null;
   featuredItemEnabled: boolean;
   featuredItemId?: string | null;
+  featuredSlides?: Array<{
+    id: string;
+    imageUrl: string | null;
+    imagePath: string | null;
+    featuredItemId: string | null;
+    sortOrder: number;
+  }>;
 };
 
 type CoverSampleResetButtonProps = {
@@ -93,6 +100,15 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
             imageUrl: sampleDraft.coverImageUrl ?? null,
             imagePath: null,
             deleteImage: !sampleDraft.coverImageUrl,
+          },
+        })
+      );
+
+      window.dispatchEvent(
+        new CustomEvent("tablescene:featured-slides-reset", {
+          detail: {
+            formId,
+            slides: sampleDraft.featuredSlides ?? [],
           },
         })
       );
