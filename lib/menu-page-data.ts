@@ -12,6 +12,7 @@ import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { mergePageSettings, sortMenuPages } from "@/types/menu";
 
 type MenuSite = PublicMenuTemplateProps["menuSite"] &
@@ -26,6 +27,7 @@ type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuCategoryPriceColumn = MenuCategory["priceColumns"][number];
 type MenuItemPriceColumnValue = MenuItem["priceColumnValues"][number];
+type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]>[number];
 type MenuItemQueryRow = Omit<MenuItem, "default_name" | "priceNote" | "priceColumnValues"> & { price_note?: string | null };
 type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
@@ -69,6 +71,7 @@ const chefSelect = "id, chef_name, chef_role, chef_description, chef_image_url, 
 const socialLinkSelect = "id, type, label, display_name, url, visible, sort_order";
 const promotionSelect = "id, name, starts_at, ends_at, timezone, settings";
 const promotionItemSelect = "id, promotion_id, menu_item_id, price_column_id, sale_price, sale_price_label, visible";
+const legacyFeaturedSlideId = "legacy-featured-slide";
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {
   return [...rows].sort((a, b) => {
@@ -103,6 +106,85 @@ function shouldLoadTimeSales(menuSite: MenuSite) {
 
 function hasUsableNumericPrice(price: number | null | undefined) {
   return typeof price === "number" && Number.isFinite(price) && price > 0;
+}
+
+function getFeaturedSlideLimit(templateKey: string | null | undefined) {
+  const capabilities = getTemplateCapabilities(templateKey);
+  if (!capabilities.featuredItemHero) return 0;
+  if (!capabilities.featuredItemCarousel) return 1;
+
+  return Math.max(0, Math.trunc(capabilities.featuredItemMaxSlides ?? 5));
+}
+
+function findLegacyFeaturedItemId(pageSettings: MenuPageData["pageSettings"], items: MenuItem[]) {
+  if (!pageSettings.featured_item_id) return null;
+
+  return items.find((item) => item.visible !== false && item.id === pageSettings.featured_item_id)?.id ?? null;
+}
+
+function buildPublicFeaturedSlides({
+  menuSite,
+  pageSettings,
+  items,
+}: {
+  menuSite: MenuSite;
+  pageSettings: MenuPageData["pageSettings"];
+  items: MenuItem[];
+}): PublicFeaturedSlide[] {
+  const maxSlides = getFeaturedSlideLimit(menuSite.template_key);
+  if (maxSlides <= 0) return [];
+
+  const visibleItemIds = new Set(items.filter((item) => item.visible !== false).map((item) => item.id));
+  const seenFeaturedItemIds = new Set<string>();
+  const publicSlides: PublicFeaturedSlide[] = [];
+
+  const addSlide = ({
+    id,
+    imageUrl,
+    featuredItemId,
+  }: {
+    id: string;
+    imageUrl: string | null;
+    featuredItemId: string | null;
+  }) => {
+    const normalizedImageUrl = typeof imageUrl === "string" ? imageUrl.trim() : "";
+    const normalizedItemId = typeof featuredItemId === "string" ? featuredItemId.trim() : "";
+    if (!id || !normalizedImageUrl || !normalizedItemId) return;
+    if (!visibleItemIds.has(normalizedItemId) || seenFeaturedItemIds.has(normalizedItemId)) return;
+    if (publicSlides.length >= maxSlides) return;
+
+    seenFeaturedItemIds.add(normalizedItemId);
+    publicSlides.push({
+      id,
+      imageUrl: normalizedImageUrl,
+      featuredItemId: normalizedItemId,
+      sortOrder: publicSlides.length,
+    });
+  };
+
+  if (pageSettings.featured_slides !== undefined) {
+    for (const slide of pageSettings.featured_slides) {
+      addSlide({
+        id: slide.id,
+        imageUrl: slide.image_url,
+        featuredItemId: slide.featured_item_id,
+      });
+    }
+
+    return publicSlides;
+  }
+
+  if (pageSettings.featured_item_enabled === false) {
+    return [];
+  }
+
+  addSlide({
+    id: legacyFeaturedSlideId,
+    imageUrl: menuSite.cover_image_url,
+    featuredItemId: findLegacyFeaturedItemId(pageSettings, items),
+  });
+
+  return publicSlides;
 }
 
 async function loadPublicTimeSales({
@@ -852,6 +934,11 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     ...item,
     priceColumnValues: itemPriceColumnValuesByItemId.get(item.id) ?? [],
   }));
+  const featuredSlides = buildPublicFeaturedSlides({
+    menuSite,
+    pageSettings,
+    items: itemsWithPriceColumnValues,
+  });
   const priceOptions = isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]);
   const timeSales = await loadPublicTimeSales({
     supabase,
@@ -875,6 +962,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     pages,
     categories: categoriesWithPriceColumns,
     items: itemsWithPriceColumnValues,
+    featuredSlides,
     priceOptions,
     traits: (traitsData ?? []) as MenuItemTrait[],
     events: (eventsData ?? []) as MenuPageData["events"],

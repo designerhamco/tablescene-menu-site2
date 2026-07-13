@@ -33,6 +33,8 @@ export type TemplateCapabilities = {
   promotionText: boolean;
   maxPriceOptionsPerItem: number;
   featuredItemHero: boolean;
+  featuredItemCarousel?: boolean;
+  featuredItemMaxSlides?: number;
   chefs: boolean;
   events: boolean;
   socialLinks: boolean;
@@ -87,6 +89,8 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   promotionText: true,
   maxPriceOptionsPerItem: 5,
   featuredItemHero: true,
+  featuredItemCarousel: false,
+  featuredItemMaxSlides: 1,
   chefs: true,
   events: true,
   socialLinks: true,
@@ -150,6 +154,8 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     originInfo: false,
     itemTraits: false,
     maxPriceOptionsPerItem: 3,
+    featuredItemCarousel: true,
+    featuredItemMaxSlides: 5,
     supportsBasicPriceColumns: true,
     maxCategoryPriceColumns: 3,
     supportsPriceDisplayMode: true,

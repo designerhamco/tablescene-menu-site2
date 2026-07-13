@@ -40,6 +40,15 @@ export type PageSettings = {
   social_links_enabled: boolean;
   featured_item_enabled: boolean;
   featured_item_id: string | null;
+  featured_slides?: FeaturedSlideSettings[];
+};
+
+export type FeaturedSlideSettings = {
+  id: string;
+  image_url: string | null;
+  image_path: string | null;
+  featured_item_id: string | null;
+  sort_order: number;
 };
 
 export type MenuItemTraitInput = {
@@ -86,7 +95,22 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   featured_item_id: null,
 };
 
+const PAGE_SETTING_BOOLEAN_KEYS = [
+  "intro_enabled",
+  "menu_cover_enabled",
+  "set_menu_enabled",
+  "main_menu_enabled",
+  "dessert_drink_enabled",
+  "about_enabled",
+  "chefs_enabled",
+  "events_enabled",
+  "social_links_enabled",
+  "featured_item_enabled",
+] as const satisfies readonly (keyof PageSettings)[];
+
 export const UNASSIGNED_MENU_PAGE_KEY = "__unassigned__";
+export const FEATURED_SLIDES_PAGE_SETTINGS_KEY = "featured_slides";
+export const DEFAULT_FEATURED_ITEM_MAX_SLIDES = 5;
 
 // Public menu visibility policy:
 // 1. Page-level switches live in menu_sites.page_settings.
@@ -97,6 +121,59 @@ export function getDefaultPageSettings(): PageSettings {
   return { ...DEFAULT_PAGE_SETTINGS };
 }
 
+function getTrimmedString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function getNormalizedSortOrder(value: unknown, fallback: number) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.trunc(value));
+  }
+
+  return fallback;
+}
+
+export function hasFeaturedSlidesSetting(settings: Json | Partial<PageSettings> | null | undefined) {
+  return Boolean(
+    settings &&
+      typeof settings === "object" &&
+      !Array.isArray(settings) &&
+      Object.prototype.hasOwnProperty.call(settings, FEATURED_SLIDES_PAGE_SETTINGS_KEY)
+  );
+}
+
+export function normalizeFeaturedSlideSettings(value: unknown, maxSlides = DEFAULT_FEATURED_ITEM_MAX_SLIDES): FeaturedSlideSettings[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const normalized: FeaturedSlideSettings[] = [];
+  const seenIds = new Set<string>();
+  const limit = Math.max(0, Math.trunc(maxSlides));
+
+  for (const [index, rawSlide] of value.entries()) {
+    if (normalized.length >= limit) break;
+    if (!rawSlide || typeof rawSlide !== "object" || Array.isArray(rawSlide)) continue;
+
+    const slide = rawSlide as Record<string, unknown>;
+    const id = getTrimmedString(slide.id);
+    if (!id || seenIds.has(id)) continue;
+
+    seenIds.add(id);
+    normalized.push({
+      id,
+      image_url: getTrimmedString(slide.image_url),
+      image_path: getTrimmedString(slide.image_path),
+      featured_item_id: getTrimmedString(slide.featured_item_id),
+      sort_order: getNormalizedSortOrder(slide.sort_order, index),
+    });
+  }
+
+  return normalized
+    .sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id))
+    .map((slide, index) => ({ ...slide, sort_order: index }));
+}
+
 export function mergePageSettings(settings: Json | Partial<PageSettings> | null | undefined): PageSettings {
   if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
     return getDefaultPageSettings();
@@ -105,12 +182,17 @@ export function mergePageSettings(settings: Json | Partial<PageSettings> | null 
   const merged = getDefaultPageSettings();
   const input = settings as Record<string, unknown>;
 
-  for (const key of Object.keys(merged) as (keyof PageSettings)[]) {
-    if (key === "featured_item_id") {
-      merged[key] = typeof input[key] === "string" && input[key].trim() ? input[key].trim() : null;
-    } else if (typeof input[key] === "boolean") {
+  for (const key of PAGE_SETTING_BOOLEAN_KEYS) {
+    if (typeof input[key] === "boolean") {
       merged[key] = input[key];
     }
+  }
+
+  merged.featured_item_id =
+    typeof input.featured_item_id === "string" && input.featured_item_id.trim() ? input.featured_item_id.trim() : null;
+
+  if (hasFeaturedSlidesSetting(settings)) {
+    merged.featured_slides = normalizeFeaturedSlideSettings(input[FEATURED_SLIDES_PAGE_SETTINGS_KEY]);
   }
 
   return merged;

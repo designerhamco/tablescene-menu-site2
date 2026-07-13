@@ -151,6 +151,13 @@ export type PublicMenuTimeSale = {
   }>;
 };
 
+export type PublicFeaturedSlide = {
+  id: string;
+  imageUrl: string;
+  featuredItemId: string;
+  sortOrder: number;
+};
+
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
   previewLayoutMode?: PcTabletLayoutMode;
@@ -169,5 +176,6 @@ export type PublicMenuTemplateProps = {
   chefs: PublicMenuChef[];
   socialLinks: PublicMenuSocialLink[];
   timeSales: PublicMenuTimeSale[];
+  featuredSlides?: PublicFeaturedSlide[];
   nextTimeSaleStartAt: string | null;
 };

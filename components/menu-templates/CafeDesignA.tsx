@@ -47,6 +47,7 @@ type MenuPage = PublicMenuTemplateProps["pages"][number];
 type PriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type PublicTimeSale = PublicMenuTemplateProps["timeSales"][number];
 type PublicTimeSaleItem = PublicTimeSale["items"][number];
+type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]>[number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
 type CafeDesignAPriceDisplayMode = PriceDisplayMode | null;
 type CafeDesignAPriceToken = {
@@ -2312,9 +2313,21 @@ function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
   );
 }
 
-function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
-  if (!data.pageSettings.featured_item_enabled) return null;
+function getFeaturedSlide(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities): PublicFeaturedSlide | null {
   if (!capabilities.featuredItemHero) return null;
+  return data.featuredSlides?.[0] ?? null;
+}
+
+function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
+  if (!capabilities.featuredItemHero) return null;
+
+  if (data.featuredSlides !== undefined) {
+    const featuredSlide = getFeaturedSlide(data, capabilities);
+    const slideItem = featuredSlide ? data.items.find((item) => item.id === featuredSlide.featuredItemId) : null;
+    return slideItem && slideItem.visible !== false ? slideItem : null;
+  }
+
+  if (!data.pageSettings.featured_item_enabled) return null;
 
   const featuredItem = data.pageSettings.featured_item_id
     ? data.items.find((item) => item.id === data.pageSettings.featured_item_id)
@@ -2891,6 +2904,7 @@ function CoverHero({
   density,
   customBadgeStyles,
   priceDisplayMode,
+  coverImageUrl,
   desktopClassName = "",
 }: {
   data: PublicMenuTemplateProps;
@@ -2899,6 +2913,7 @@ function CoverHero({
   density: MenuLayoutDensity;
   customBadgeStyles: unknown;
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
+  coverImageUrl?: string | null;
   desktopClassName?: string;
 }) {
   const featuredCategory = featuredItem ? data.categories.find((category) => category.id === featuredItem.category_id) ?? null : null;
@@ -2909,7 +2924,7 @@ function CoverHero({
       : getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true }, priceDisplayMode)
     : null;
   const featuredBadgeLabel = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : "";
-  const coverImageUrl = data.menuSite.cover_image_url;
+  const resolvedCoverImageUrl = coverImageUrl === undefined ? data.menuSite.cover_image_url : coverImageUrl;
   const heroMinHeightClassName = {
     spacious: "min-h-[400px]",
     default: "min-h-[380px]",
@@ -2920,8 +2935,8 @@ function CoverHero({
   return (
     <section className={`cafe-a-cover-hero flex min-w-0 ${heroMinHeightClassName} flex-col bg-[#eceeec] md:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0 ${desktopClassName}`}>
       <div className={`cafe-a-cover-frame relative h-full ${heroMinHeightClassName} flex-1 overflow-hidden lg:min-h-0`}>
-        {coverImageUrl ? (
-          <img src={coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        {resolvedCoverImageUrl ? (
+          <img src={resolvedCoverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_42%,#f7f8f6_100%)]" />
         )}
@@ -3743,7 +3758,9 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
   const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
   const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
+  const featuredSlide = getFeaturedSlide(data, capabilities);
   const featuredItem = getFeaturedItem(data, capabilities);
+  const featuredCoverImageUrl = data.featuredSlides !== undefined ? featuredSlide?.imageUrl ?? null : data.menuSite.cover_image_url;
   const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
   const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
   const layoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
@@ -5173,6 +5190,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 density={density}
                 customBadgeStyles={customBadgeStyles}
                 priceDisplayMode={priceDisplayMode}
+                coverImageUrl={featuredCoverImageUrl}
               />
             )}
 
@@ -5257,6 +5275,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                   density={density}
                   customBadgeStyles={customBadgeStyles}
                   priceDisplayMode={priceDisplayMode}
+                  coverImageUrl={featuredCoverImageUrl}
                 />
               )}
             </DesktopFixedRail>
