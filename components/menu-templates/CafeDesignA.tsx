@@ -1982,6 +1982,7 @@ function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], te
     if (!isTimeSaleCurrentlyActive(promotion, nowMs)) continue;
 
     for (const item of promotion.items) {
+      if (item.priceColumnId !== null) continue;
       if (item.visible === false || item.salePrice == null || !Number.isFinite(item.salePrice) || item.salePrice <= 0) continue;
       if (!map.has(item.menuItemId)) {
         map.set(item.menuItemId, { promotion, item });

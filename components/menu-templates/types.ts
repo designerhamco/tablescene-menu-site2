@@ -144,6 +144,7 @@ export type PublicMenuTimeSale = {
   items: Array<{
     id: string;
     menuItemId: string;
+    priceColumnId: string | null;
     salePrice: number | null;
     salePriceLabel: string | null;
     visible: boolean;

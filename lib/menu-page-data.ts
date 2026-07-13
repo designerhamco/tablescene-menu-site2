@@ -67,7 +67,7 @@ const eventSelect =
 const chefSelect = "id, chef_name, chef_role, chef_description, chef_image_url, visible, sort_order";
 const socialLinkSelect = "id, type, label, display_name, url, visible, sort_order";
 const promotionSelect = "id, name, starts_at, ends_at, timezone, settings";
-const promotionItemSelect = "id, promotion_id, menu_item_id, sale_price, sale_price_label, visible";
+const promotionItemSelect = "id, promotion_id, menu_item_id, price_column_id, sale_price, sale_price_label, visible";
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {
   return [...rows].sort((a, b) => {
@@ -100,6 +100,10 @@ function shouldLoadTimeSales(menuSite: MenuSite) {
   return isBasicTimeSaleTemplate(menuSite.template_key, menuSite.template_category);
 }
 
+function hasUsableNumericPrice(price: number | null | undefined) {
+  return typeof price === "number" && Number.isFinite(price) && price > 0;
+}
+
 async function loadPublicTimeSales({
   supabase,
   menuSite,
@@ -116,15 +120,34 @@ async function loadPublicTimeSales({
   }
 
   const now = new Date().toISOString();
+  const itemsById = new Map(items.map((item) => [item.id, item]));
   const priceOptionItemIds = new Set(priceOptions.map((option) => option.menu_item_id));
+  const visibleOptionPriceColumnIdsByItemId = new Map<string, Set<string>>();
+
+  for (const item of items) {
+    if (item.price_visible === false) continue;
+
+    const visibleColumnIds = new Set(
+      item.priceColumnValues
+        .filter((value) => value.visible !== false && hasUsableNumericPrice(value.price))
+        .map((value) => value.priceColumnId),
+    );
+
+    if (visibleColumnIds.size > 0) {
+      visibleOptionPriceColumnIdsByItemId.set(item.id, visibleColumnIds);
+    }
+  }
+
   const visibleSinglePriceItemIds = new Set(
     items
       .filter((item) => item.price_visible !== false)
+      .filter((item) => hasUsableNumericPrice(item.price))
       .filter((item) => !priceOptionItemIds.has(item.id))
+      .filter((item) => !visibleOptionPriceColumnIdsByItemId.has(item.id))
       .map((item) => item.id),
   );
 
-  if (visibleSinglePriceItemIds.size === 0) {
+  if (visibleSinglePriceItemIds.size === 0 && visibleOptionPriceColumnIdsByItemId.size === 0) {
     return [];
   }
 
@@ -182,7 +205,25 @@ async function loadPublicTimeSales({
   const itemsByPromotionId = new Map<string, MenuTimeSalePromotionItemRow[]>();
 
   for (const item of (promotionItemsData ?? []) as MenuTimeSalePromotionItemRow[]) {
-    if (!visibleSinglePriceItemIds.has(item.menu_item_id)) {
+    const menuItem = itemsById.get(item.menu_item_id);
+
+    if (!menuItem || menuItem.price_visible === false) {
+      continue;
+    }
+
+    if (item.price_column_id === null) {
+      if (!visibleSinglePriceItemIds.has(item.menu_item_id)) {
+        continue;
+      }
+    } else {
+      const visibleColumnIds = visibleOptionPriceColumnIdsByItemId.get(item.menu_item_id);
+
+      if (!visibleColumnIds?.has(item.price_column_id)) {
+        continue;
+      }
+    }
+
+    if (!hasUsableNumericPrice(item.sale_price)) {
       continue;
     }
 
@@ -207,6 +248,7 @@ async function loadPublicTimeSales({
         items: promotionItems.map((item) => ({
           id: item.id,
           menuItemId: item.menu_item_id,
+          priceColumnId: item.price_column_id,
           salePrice: item.sale_price,
           salePriceLabel: item.sale_price_label,
           visible: item.visible,
