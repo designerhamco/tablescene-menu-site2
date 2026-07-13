@@ -7,8 +7,9 @@ export const DEFAULT_TIME_SALE_DISPLAY_MODE = "deadline";
 export const DEFAULT_TIME_SALE_BADGE_TEXT = "타임세일";
 export const DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR = "#8A5A2B";
 export const TIME_SALE_BADGE_TEXT_MAX_LENGTH = 16;
+export const TIME_SALE_DISPLAY_TEXT_MAX_LENGTH = 40;
 
-export type TimeSaleDisplayMode = "deadline" | "countdown";
+export type TimeSaleDisplayMode = "deadline" | "countdown" | "message" | "message_and_countdown";
 
 export type MenuEditorTimeSale = {
   id: string;
@@ -52,7 +53,15 @@ export function isBasicTimeSaleTemplate(templateKey?: string | null, templateCat
 }
 
 export function normalizeTimeSaleDisplayMode(value: unknown): TimeSaleDisplayMode {
-  return value === "countdown" ? "countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE;
+  return value === "countdown" || value === "message" || value === "message_and_countdown"
+    ? value
+    : DEFAULT_TIME_SALE_DISPLAY_MODE;
+}
+
+export function normalizeTimeSaleDisplayText(value: unknown) {
+  const text = typeof value === "string" ? value : value == null ? "" : String(value);
+  const normalized = text.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+  return normalized ? normalized.slice(0, TIME_SALE_DISPLAY_TEXT_MAX_LENGTH) : null;
 }
 
 export function normalizeTimeSaleBadgeText(value: unknown) {
@@ -116,6 +125,11 @@ export function getTimeSaleBadgeTextFromSettings(settings: Json | null | undefin
 export function getTimeSaleBadgeBackgroundColorFromSettings(settings: Json | null | undefined) {
   const record = settings && typeof settings === "object" && !Array.isArray(settings) ? settings as Record<string, Json> : {};
   return normalizeTimeSaleBadgeBackgroundColor(record.badge_background_color);
+}
+
+export function getTimeSaleDisplayTextFromSettings(settings: Json | null | undefined) {
+  const record = settings && typeof settings === "object" && !Array.isArray(settings) ? settings as Record<string, Json> : {};
+  return normalizeTimeSaleDisplayText(record.time_display_text);
 }
 
 export function toLocalDateTimeInputValue(value: string | null | undefined) {

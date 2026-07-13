@@ -3,6 +3,7 @@ import type { SupportedLocale } from "@/lib/locales";
 import type { MenuEditorServiceType } from "@/lib/menu-editor-capabilities";
 import type { PcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import type { PageSettings } from "@/types/menu";
+import type { TimeSaleDisplayMode } from "@/lib/menu-time-sales";
 
 export type PublicMenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -138,7 +139,7 @@ export type PublicMenuTimeSale = {
   startsAt: string;
   endsAt: string;
   timezone: string;
-  timeDisplayMode: "deadline" | "countdown";
+  timeDisplayMode: TimeSaleDisplayMode;
   badgeText: string;
   badgeBackgroundColor: string;
   items: Array<{
