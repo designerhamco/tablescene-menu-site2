@@ -1361,6 +1361,7 @@ export type Database = {
           created_at: string
           id: string
           menu_item_id: string
+          price_column_id: string | null
           promotion_id: string
           sale_price: number | null
           sale_price_label: string | null
@@ -1372,6 +1373,7 @@ export type Database = {
           created_at?: string
           id?: string
           menu_item_id: string
+          price_column_id?: string | null
           promotion_id: string
           sale_price?: number | null
           sale_price_label?: string | null
@@ -1383,6 +1385,7 @@ export type Database = {
           created_at?: string
           id?: string
           menu_item_id?: string
+          price_column_id?: string | null
           promotion_id?: string
           sale_price?: number | null
           sale_price_label?: string | null
@@ -1396,6 +1399,13 @@ export type Database = {
             columns: ["menu_item_id"]
             isOneToOne: false
             referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_promotion_items_price_column_id_fkey"
+            columns: ["price_column_id"]
+            isOneToOne: false
+            referencedRelation: "menu_category_price_columns"
             referencedColumns: ["id"]
           },
           {
