@@ -368,25 +368,51 @@ video {
   font-size: clamp(0.625rem, calc(0.625rem * var(--menu-font-size-scale)), 0.78rem);
 }
 
+.cafe-a-typography .cafe-a-category-heading {
+  container-type: inline-size;
+}
+
+.cafe-a-typography .cafe-a-category-heading-row {
+  --cafe-a-price-rail-safe-gap: 0.0625rem;
+  align-items: center;
+  column-gap: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+  padding-inline-end: var(--cafe-a-price-rail-safe-gap);
+}
+
+.cafe-a-typography .cafe-a-category-title {
+  flex: 0 1 auto;
+}
+
+.cafe-a-typography .cafe-a-category-price-column-slot {
+  align-self: end;
+  justify-self: end;
+  max-width: 100%;
+  min-width: 0;
+  padding-bottom: 0.08rem;
+}
+
 .cafe-a-typography .cafe-a-price-column-header,
 .cafe-a-typography .cafe-a-price-columns-grid {
-  --cafe-a-price-column-min: clamp(2rem, 4.4vw, 3.1rem);
+  --cafe-a-price-column-gap: 0.24rem;
+  --cafe-a-price-column-width: clamp(1.95rem, 3.25vw, 2.24rem);
   display: grid;
-  gap: 0.35rem;
-  grid-template-columns: repeat(var(--cafe-a-price-column-count), minmax(var(--cafe-a-price-column-min), auto));
+  gap: var(--cafe-a-price-column-gap);
+  grid-template-columns: repeat(var(--cafe-a-price-column-count), minmax(0, var(--cafe-a-price-column-width)));
   justify-content: end;
-  justify-items: end;
+  justify-items: center;
   min-width: 0;
 }
 
 .cafe-a-typography .cafe-a-price-column-header {
-  color: #65706b;
+  color: #191c1b;
   font-size: clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale)), 0.72rem);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1;
-  margin-bottom: 0.45rem;
-  text-align: right;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -394,10 +420,31 @@ video {
 .cafe-a-typography .cafe-a-price-column-cell {
   min-width: 0;
   overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.cafe-a-typography .cafe-a-price-column-cell {
+  align-items: flex-start;
+  display: flex;
+  justify-content: center;
 }
 
 .cafe-a-typography .cafe-a-price-area {
   max-width: min(100%, 13rem);
+}
+
+.cafe-a-typography .cafe-a-menu-item-has-price-columns {
+  --cafe-a-price-rail-safe-gap: 0.0625rem;
+  align-items: start;
+  column-gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  padding-inline-end: var(--cafe-a-price-rail-safe-gap);
+}
+
+.cafe-a-typography .cafe-a-menu-item-has-price-columns .cafe-a-price-area {
+  align-self: start;
+  justify-self: end;
+  min-width: max-content;
 }
 
 .cafe-a-typography .cafe-a-price-note {
@@ -406,15 +453,68 @@ video {
 }
 
 .cafe-a-typography .cafe-a-price-columns-grid {
+  align-items: start;
+}
+
+.cafe-a-typography .cafe-a-time-sale-price-block {
+  --cafe-a-time-sale-accent: #8a5a2b;
+}
+
+.cafe-a-typography .cafe-a-time-sale-price-block-inline {
   align-items: baseline;
-  gap: 0.42rem;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.cafe-a-typography .cafe-a-time-sale-price-block-stacked {
+  align-items: center;
+  flex-direction: column;
+  gap: 0.08rem;
+  justify-content: center;
+  line-height: 1;
+}
+
+.cafe-a-typography .cafe-a-time-sale-regular-price {
+  color: rgb(25 28 27 / 42%);
+  text-decoration-color: rgb(25 28 27 / 42%);
+}
+
+.cafe-a-typography .cafe-a-time-sale-price {
+  color: inherit;
+}
+
+.cafe-a-typography .cafe-a-time-sale-time-icon {
+  color: currentColor;
+  flex-shrink: 0;
+  height: 0.9em;
+  width: 0.9em;
+}
+
+@container (max-width: 240px) {
+  .cafe-a-typography .cafe-a-category-heading-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.38rem;
+  }
+
+  .cafe-a-typography .cafe-a-category-price-column-slot {
+    justify-self: end;
+  }
+
+  .cafe-a-typography .cafe-a-menu-item-has-price-columns {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .cafe-a-typography .cafe-a-menu-item-has-price-columns .cafe-a-price-area {
+    justify-self: end;
+  }
 }
 
 @media (min-width: 1024px) {
   .cafe-a-typography {
     --board-padding: clamp(32px, 4.2vmin, 68px);
-    --fixed-column-width: clamp(280px, 26vw, 420px);
-    --menu-board-column-gap: clamp(39px, 3.55vw, 65px);
+    --fixed-column-width: clamp(260px, 23.5vw, 380px);
+    --menu-board-column-gap: clamp(32px, 3vw, 54px);
     --fit-columns: 4;
     --fit-font-scale: 1;
     --fit-gap-scale: 1;
@@ -578,13 +678,12 @@ video {
   }
 
   .cafe-a-typography .cafe-a-price-column-header {
+    --cafe-a-price-column-gap: clamp(0.16rem, calc(0.26rem * var(--fit-menu-gap-scale)), 0.34rem);
     font-size: clamp(0.36rem, calc(0.58rem * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation)), 0.72rem);
-    gap: clamp(0.24rem, calc(0.42rem * var(--fit-menu-gap-scale)), 0.56rem);
-    margin-bottom: clamp(0.2rem, calc(0.44rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 0.58rem);
   }
 
   .cafe-a-typography .cafe-a-price-columns-grid {
-    gap: clamp(0.28rem, calc(0.48rem * var(--fit-menu-gap-scale)), 0.6rem);
+    --cafe-a-price-column-gap: clamp(0.16rem, calc(0.26rem * var(--fit-menu-gap-scale)), 0.34rem);
     max-width: min(100%, 13rem);
   }
 

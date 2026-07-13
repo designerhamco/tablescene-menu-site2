@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { Clock3 } from "lucide-react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
@@ -1915,18 +1916,16 @@ function getItemPriceColumnTokens(
   const valueByColumnId = getVisibleItemPriceColumnValueMap(item, category);
   if (valueByColumnId.size === 0) return [];
 
-  return columns
-    .map((column) => {
-      const value = valueByColumnId.get(column.id);
-      const price = value ? formatPriceColumnValue(value, priceDisplayMode) : "";
-      return {
-        label: column.label.trim(),
-        price,
-        priceColumnId: column.id,
-        originalPrice: value?.price ?? null,
-      };
-    })
-    .filter((token) => token.price);
+  return columns.map((column) => {
+    const value = valueByColumnId.get(column.id);
+    const price = value ? formatPriceColumnValue(value, priceDisplayMode) : "";
+    return {
+      label: column.label.trim(),
+      price,
+      priceColumnId: column.id,
+      originalPrice: value?.price ?? null,
+    };
+  });
 }
 
 function getItemPriceTokensForCategory(
@@ -2100,13 +2099,16 @@ function TimeSalePriceBlock({
   originalPrice,
   salePrice,
   priceClassName,
+  stacked = false,
 }: {
   timeSale: PublicTimeSale;
   originalPrice: string;
   salePrice: string;
   priceClassName: string;
+  stacked?: boolean;
 }) {
   const [nowMs, setNowMs] = useState<number | null>(null);
+  const accentColor = normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor);
 
   useEffect(() => {
     const updateNow = () => setNowMs(Date.now());
@@ -2122,11 +2124,26 @@ function TimeSalePriceBlock({
   }
 
   return (
-    <span className="cafe-a-time-sale-price-block inline-flex items-baseline justify-end gap-1 whitespace-nowrap text-right" data-cafe-a-time-sale-price="">
-      <span className="cafe-a-time-sale-regular-price whitespace-nowrap text-[0.72em] font-bold leading-none text-[#191c1b]/45 line-through decoration-[#191c1b]/45 decoration-1">
-        {originalPrice}
-      </span>
-      <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none text-[#191c1b] ${priceClassName}`}>{salePrice}</span>
+    <span
+      className={`cafe-a-time-sale-price-block ${stacked ? "cafe-a-time-sale-price-block-stacked" : "cafe-a-time-sale-price-block-inline"} inline-flex whitespace-nowrap text-right`}
+      style={{ "--cafe-a-time-sale-accent": accentColor } as CSSProperties}
+      data-cafe-a-time-sale-price=""
+    >
+      {stacked ? (
+        <>
+          <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none ${priceClassName}`}>{salePrice}</span>
+          <span className="cafe-a-time-sale-regular-price whitespace-nowrap text-[0.72em] font-bold leading-none line-through decoration-1">
+            {originalPrice}
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="cafe-a-time-sale-regular-price whitespace-nowrap text-[0.72em] font-bold leading-none line-through decoration-1">
+            {originalPrice}
+          </span>
+          <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none ${priceClassName}`}>{salePrice}</span>
+        </>
+      )}
     </span>
   );
 }
@@ -2175,7 +2192,11 @@ function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
       : deadlineLabel;
 
   return (
-    <span className="cafe-a-time-sale-time-text menu-font-en mb-0.5 block text-[0.64rem] font-black uppercase leading-snug tracking-[0.08em] text-[#6f5834]">
+    <span
+      className="cafe-a-time-sale-time-text menu-font-en mb-0.5 mt-[0.3125rem] flex w-fit items-center gap-[0.25rem] text-[0.64rem] font-black uppercase leading-snug tracking-[0.08em] tabular-nums"
+      style={{ color: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor) }}
+    >
+      <Clock3 aria-hidden="true" focusable="false" className="cafe-a-time-sale-time-icon" strokeWidth={2} />
       <span className="tracking-normal">{label}</span>
     </span>
   );
@@ -2437,7 +2458,15 @@ function getDesktopGridClassName(hasCoverSection: boolean) {
     : "lg:grid-cols-1";
 }
 
-function CategoryTitle({ category, density }: { category: MenuCategory; density: MenuLayoutDensity }) {
+function CategoryTitle({
+  category,
+  density,
+  items,
+}: {
+  category: MenuCategory;
+  density: MenuLayoutDensity;
+  items?: MenuItem[];
+}) {
   const spacingClassName = getCategoryTitleSpacing(density);
   const titleClassName = {
     spacious: "cafe-a-category-title-size-spacious",
@@ -2454,7 +2483,14 @@ function CategoryTitle({ category, density }: { category: MenuCategory; density:
 
   return (
     <div className={`cafe-a-category-heading ${spacingClassName}`} data-cafe-a-category-heading="">
-      <h2 className={`cafe-a-category-title break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}>{category.name}</h2>
+      <div className="cafe-a-category-heading-row">
+        <h2 className={`cafe-a-category-title min-w-0 break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}>{category.name}</h2>
+        {items ? (
+          <div className="cafe-a-category-price-column-slot">
+            <CategoryPriceColumnHeader category={category} items={items} />
+          </div>
+        ) : null}
+      </div>
       <div className="cafe-a-category-rule mt-2 border-b border-[#191c1b]" />
       {category.description_visible && category.description && (
         <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>{category.description}</p>
@@ -2655,13 +2691,17 @@ function MenuItemRow({
   return (
     <article className={`cafe-a-menu-item grid items-start ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
       <div className="min-w-0">
-        <div className="cafe-a-menu-title-row mb-0.5 flex flex-wrap items-center gap-1.5">
+        <div className={`cafe-a-menu-title-row ${showMenuTimeSale && timeSale && !metaText ? "mb-0" : "mb-0.5"} flex flex-wrap items-center gap-1.5`}>
           <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
           {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
           {item.is_sold_out && <SoldOutBadge />}
         </div>
-        {metaText && <p className={`menu-font-en cafe-a-menu-meta mb-0.5 break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>{metaText}</p>}
+        {metaText && (
+          <p className={`menu-font-en cafe-a-menu-meta ${showMenuTimeSale && timeSale ? "mb-0" : "mb-0.5"} break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>
+            {metaText}
+          </p>
+        )}
         {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
         {item.description && (
           <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
@@ -2692,6 +2732,7 @@ function MenuItemRow({
                     originalPrice={token.price}
                     salePrice={token.salePrice}
                     priceClassName={priceClassName}
+                    stacked
                   />
                 ) : token.price ? (
                   <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
@@ -3362,8 +3403,7 @@ function MenuGroupsGrid({
           )}
           {pageGroup.groups.map(({ page, category, items }) => (
             <section key={`${page.id}-${category.id}`} className="cafe-a-menu-category-block min-w-0" data-cafe-a-category-block="">
-              <CategoryTitle category={category} density={density} />
-              <CategoryPriceColumnHeader category={category} items={items} />
+              <CategoryTitle category={category} density={density} items={items} />
               <div className="cafe-a-category-items">
                 {items.map((item) => (
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
@@ -3454,8 +3494,7 @@ function BalancedExperimentalMenuGrid({
               data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
               data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
             >
-              <CategoryTitle category={category} density={density} />
-              <CategoryPriceColumnHeader category={category} items={items} />
+              <CategoryTitle category={category} density={density} items={items} />
               <div className="cafe-a-category-items">
                 {items.map((item) => (
                   <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
@@ -3548,8 +3587,7 @@ function OrderedBalancedFitMenuGrid({
                 data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
                 data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
               >
-                <CategoryTitle category={category} density={density} />
-                <CategoryPriceColumnHeader category={category} items={items} />
+                <CategoryTitle category={category} density={density} items={items} />
                 <div className="cafe-a-category-items">
                   {items.map((item) => (
                     <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
