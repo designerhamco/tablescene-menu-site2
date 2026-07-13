@@ -607,6 +607,13 @@ video {
     right: clamp(calc(var(--featured-space-base) * 0.88), calc(var(--featured-space-base) * 0.72 + 0.3vw), calc(var(--featured-space-base) * 1.06));
   }
 
+  @container (max-width: 360px) {
+    .cafe-a-typography .cafe-a-cover-hero {
+      --featured-title-base: 1.39rem;
+      --featured-price-base: 1.17rem;
+    }
+  }
+
   .cafe-a-typography .cafe-a-ordered-menu-flow {
     display: block;
     column-count: var(--fit-columns);
