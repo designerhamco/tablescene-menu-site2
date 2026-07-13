@@ -1421,10 +1421,13 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          daily_end_time: string | null
+          daily_start_time: string | null
           ends_at: string
           id: string
           menu_site_id: string
           name: string
+          schedule_type: string
           settings: Json
           starts_at: string
           timezone: string
@@ -1434,10 +1437,13 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          daily_end_time?: string | null
+          daily_start_time?: string | null
           ends_at: string
           id?: string
           menu_site_id: string
           name: string
+          schedule_type?: string
           settings?: Json
           starts_at: string
           timezone?: string
@@ -1447,10 +1453,13 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          daily_end_time?: string | null
+          daily_start_time?: string | null
           ends_at?: string
           id?: string
           menu_site_id?: string
           name?: string
+          schedule_type?: string
           settings?: Json
           starts_at?: string
           timezone?: string
@@ -2501,6 +2510,19 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
+      is_menu_promotion_active_now: {
+        Args: {
+          p_active: boolean
+          p_daily_end_time: string
+          p_daily_start_time: string
+          p_ends_at: string
+          p_now?: string
+          p_schedule_type: string
+          p_starts_at: string
+          p_timezone: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
