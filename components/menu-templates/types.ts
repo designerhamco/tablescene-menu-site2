@@ -169,4 +169,5 @@ export type PublicMenuTemplateProps = {
   chefs: PublicMenuChef[];
   socialLinks: PublicMenuSocialLink[];
   timeSales: PublicMenuTimeSale[];
+  nextTimeSaleStartAt: string | null;
 };

@@ -9,6 +9,7 @@ import {
   TIME_SALE_TYPE,
 } from "@/lib/menu-time-sales";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
 import { mergePageSettings, sortMenuPages } from "@/types/menu";
@@ -256,6 +257,128 @@ async function loadPublicTimeSales({
       };
     })
     .filter((promotion) => promotion.items.length > 0);
+}
+
+async function loadNextPublicTimeSaleStartAt({
+  supabase,
+  menuSite,
+  items,
+  priceOptions,
+}: {
+  supabase: SupabaseServerClient;
+  menuSite: MenuSite;
+  items: MenuItem[];
+  priceOptions: MenuItemPriceOption[];
+}): Promise<string | null> {
+  if (!shouldLoadTimeSales(menuSite) || items.length === 0) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  const itemsById = new Map(items.map((item) => [item.id, item]));
+  const priceOptionItemIds = new Set(priceOptions.map((option) => option.menu_item_id));
+  const visibleOptionPriceColumnIdsByItemId = new Map<string, Set<string>>();
+
+  for (const item of items) {
+    if (item.price_visible === false) continue;
+
+    const visibleColumnIds = new Set(
+      item.priceColumnValues
+        .filter((value) => value.visible !== false && hasUsableNumericPrice(value.price))
+        .map((value) => value.priceColumnId),
+    );
+
+    if (visibleColumnIds.size > 0) {
+      visibleOptionPriceColumnIdsByItemId.set(item.id, visibleColumnIds);
+    }
+  }
+
+  const visibleSinglePriceItemIds = new Set(
+    items
+      .filter((item) => item.price_visible !== false)
+      .filter((item) => hasUsableNumericPrice(item.price))
+      .filter((item) => !priceOptionItemIds.has(item.id))
+      .filter((item) => !visibleOptionPriceColumnIdsByItemId.has(item.id))
+      .map((item) => item.id),
+  );
+
+  if (visibleSinglePriceItemIds.size === 0 && visibleOptionPriceColumnIdsByItemId.size === 0) {
+    return null;
+  }
+
+  let futurePromotionClient: Pick<SupabaseServerClient, "from">;
+  try {
+    futurePromotionClient = createAdminClient();
+  } catch {
+    futurePromotionClient = supabase;
+  }
+
+  const { data: promotionsData, error: promotionsError } = await futurePromotionClient
+    .from("menu_promotions")
+    .select("id, starts_at, ends_at")
+    .eq("menu_site_id", menuSite.id)
+    .eq("type", TIME_SALE_TYPE)
+    .eq("active", true)
+    .gt("starts_at", now)
+    .gt("ends_at", now)
+    .order("starts_at", { ascending: true })
+    .limit(8);
+
+  const isMissingPromotionTable = isMissingTableError(promotionsError, "menu_promotions");
+
+  if (isMissingPromotionTable || promotionsError) {
+    return null;
+  }
+
+  const promotions = ((promotionsData ?? []) as Pick<MenuTimeSalePromotionRow, "id" | "starts_at" | "ends_at">[])
+    .filter((promotion) => {
+      const startsAtMs = new Date(promotion.starts_at).getTime();
+      const endsAtMs = new Date(promotion.ends_at).getTime();
+      return Number.isFinite(startsAtMs) && Number.isFinite(endsAtMs) && endsAtMs > startsAtMs;
+    });
+  const promotionIds = promotions.map((promotion) => promotion.id);
+
+  if (promotionIds.length === 0) {
+    return null;
+  }
+
+  const { data: promotionItemsData, error: promotionItemsError } = await futurePromotionClient
+    .from("menu_promotion_items")
+    .select(promotionItemSelect)
+    .in("promotion_id", promotionIds)
+    .eq("visible", true);
+
+  const isMissingPromotionItemsTable = isMissingTableError(promotionItemsError, "menu_promotion_items");
+
+  if (isMissingPromotionItemsTable || promotionItemsError) {
+    return null;
+  }
+
+  const validPromotionIds = new Set<string>();
+
+  for (const item of (promotionItemsData ?? []) as MenuTimeSalePromotionItemRow[]) {
+    const menuItem = itemsById.get(item.menu_item_id);
+
+    if (!menuItem || menuItem.price_visible === false || !hasUsableNumericPrice(item.sale_price)) {
+      continue;
+    }
+
+    if (item.price_column_id === null) {
+      if (!visibleSinglePriceItemIds.has(item.menu_item_id)) {
+        continue;
+      }
+    } else {
+      const visibleColumnIds = visibleOptionPriceColumnIdsByItemId.get(item.menu_item_id);
+
+      if (!visibleColumnIds?.has(item.price_column_id)) {
+        continue;
+      }
+    }
+
+    validPromotionIds.add(item.promotion_id);
+  }
+
+  return promotions.find((promotion) => validPromotionIds.has(promotion.id))?.starts_at ?? null;
 }
 
 function setLocalizedFooterNotice(settings: Record<string, Json>, key: string, value: string | null | undefined) {
@@ -736,6 +859,12 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     items: itemsWithPriceColumnValues,
     priceOptions,
   });
+  const nextTimeSaleStartAt = await loadNextPublicTimeSaleStartAt({
+    supabase,
+    menuSite,
+    items: itemsWithPriceColumnValues,
+    priceOptions,
+  });
 
   const data = {
     locale,
@@ -752,6 +881,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     chefs: (chefsData ?? []) as MenuPageData["chefs"],
     socialLinks: (socialLinksData ?? []) as MenuPageData["socialLinks"],
     timeSales,
+    nextTimeSaleStartAt,
   };
 
   return applyMenuTranslations(supabase, data, locale);

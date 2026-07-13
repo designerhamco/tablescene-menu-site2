@@ -3,6 +3,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { Clock3 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
@@ -1978,11 +1979,10 @@ function isTimeSaleCurrentlyActive(timeSale: PublicTimeSale, nowMs: number = Dat
   return Number.isFinite(startsAtMs) && Number.isFinite(endsAtMs) && startsAtMs <= nowMs && endsAtMs > nowMs;
 }
 
-function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], templateKey?: string | null) {
+function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], templateKey?: string | null, nowMs: number = Date.now()) {
   const map = new Map<string, CafeDesignATimeSaleMatch>();
   if (!isCafeDesignATimeSaleTemplate(templateKey)) return map;
 
-  const nowMs = Date.now();
   for (const promotion of timeSales) {
     if (!isTimeSaleCurrentlyActive(promotion, nowMs)) continue;
 
@@ -2012,6 +2012,116 @@ function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], te
   }
 
   return map;
+}
+
+function getNextTimeSaleBoundaryMs(
+  timeSales: PublicMenuTemplateProps["timeSales"],
+  templateKey?: string | null,
+  nowMs: number = Date.now(),
+) {
+  if (!isCafeDesignATimeSaleTemplate(templateKey)) return null;
+
+  let nextBoundaryMs = Number.POSITIVE_INFINITY;
+  for (const promotion of timeSales) {
+    const startsAtMs = getSafeDateMs(promotion.startsAt);
+    const endsAtMs = getSafeDateMs(promotion.endsAt);
+    if (!Number.isFinite(startsAtMs) || !Number.isFinite(endsAtMs) || endsAtMs <= startsAtMs) continue;
+
+    if (nowMs < startsAtMs) {
+      nextBoundaryMs = Math.min(nextBoundaryMs, startsAtMs);
+      continue;
+    }
+
+    if (startsAtMs <= nowMs && nowMs < endsAtMs) {
+      nextBoundaryMs = Math.min(nextBoundaryMs, endsAtMs);
+    }
+  }
+
+  return Number.isFinite(nextBoundaryMs) ? nextBoundaryMs : null;
+}
+
+function useTimeSaleBoundaryNowMs(timeSales: PublicMenuTemplateProps["timeSales"], templateKey?: string | null) {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!isCafeDesignATimeSaleTemplate(templateKey)) return;
+
+    const refreshNow = () => setNowMs(Date.now());
+    const nextBoundaryMs = getNextTimeSaleBoundaryMs(timeSales, templateKey, Date.now());
+    const timeoutDelayMs = nextBoundaryMs == null
+      ? null
+      : Math.min(Math.max(0, nextBoundaryMs - Date.now() + 25), 2_147_483_647);
+    const timeoutId = timeoutDelayMs == null ? null : window.setTimeout(refreshNow, timeoutDelayMs);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") refreshNow();
+    };
+
+    window.addEventListener("focus", refreshNow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+      window.removeEventListener("focus", refreshNow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [templateKey, timeSales, nowMs]);
+
+  return nowMs;
+}
+
+function useNextTimeSaleStartRefresh(nextTimeSaleStartAt: string | null | undefined, enabled: boolean) {
+  const router = useRouter();
+  const handledBoundaryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!enabled || !nextTimeSaleStartAt) return;
+
+    const boundaryMs = getSafeDateMs(nextTimeSaleStartAt);
+    if (!Number.isFinite(boundaryMs)) return;
+
+    const refreshForBoundary = () => {
+      if (handledBoundaryRef.current === nextTimeSaleStartAt) return;
+
+      handledBoundaryRef.current = nextTimeSaleStartAt;
+      router.refresh();
+    };
+    const scheduleFromNow = () => {
+      const nowMs = Date.now();
+
+      if (boundaryMs <= nowMs) {
+        refreshForBoundary();
+        return null;
+      }
+
+      return window.setTimeout(refreshForBoundary, Math.min(boundaryMs - nowMs + 100, 2_147_483_647));
+    };
+    let timeoutId = scheduleFromNow();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+
+      if (timeoutId != null) {
+        window.clearTimeout(timeoutId);
+      }
+
+      timeoutId = scheduleFromNow();
+    };
+    const handleFocus = () => {
+      if (timeoutId != null) {
+        window.clearTimeout(timeoutId);
+      }
+
+      timeoutId = scheduleFromNow();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [enabled, nextTimeSaleStartAt, router]);
 }
 
 function formatTimeSalePrice(price: number | null, priceDisplayMode: CafeDesignAPriceDisplayMode = null) {
@@ -3667,9 +3777,11 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings);
   const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
+  const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key);
+  useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
   const timeSaleByItemId = useMemo(
-    () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key),
-    [data.menuSite.template_key, data.timeSales],
+    () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key, timeSaleBoundaryNowMs),
+    [data.menuSite.template_key, data.timeSales, timeSaleBoundaryNowMs],
   );
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.

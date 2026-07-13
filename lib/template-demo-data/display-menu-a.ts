@@ -871,5 +871,6 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
     chefs: [],
     socialLinks: [],
     timeSales: [],
+    nextTimeSaleStartAt: null,
   };
 }
