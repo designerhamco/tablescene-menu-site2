@@ -37,6 +37,21 @@ export type TemplateCapabilities = {
   events: boolean;
   socialLinks: boolean;
   menuCover: TemplateMenuCoverCapabilities;
+  supportsBasicPriceColumns?: boolean;
+  maxCategoryPriceColumns?: number;
+  supportsPriceDisplayMode?: boolean;
+  supportsPriceNote?: boolean;
+  supportsPriceNoteWithPriceColumns?: boolean;
+  defaultPriceDisplayMode?: "compact_decimal" | "krw";
+};
+
+export type BasicPricingCapabilities = {
+  supportsBasicPriceColumns: boolean;
+  maxCategoryPriceColumns: number;
+  supportsPriceDisplayMode: boolean;
+  supportsPriceNote: boolean;
+  supportsPriceNoteWithPriceColumns: boolean;
+  defaultPriceDisplayMode: "compact_decimal" | "krw";
 };
 
 export const DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES: TemplateMenuCoverCapabilities = {
@@ -76,6 +91,12 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   events: true,
   socialLinks: true,
   menuCover: DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES,
+  supportsBasicPriceColumns: false,
+  maxCategoryPriceColumns: 0,
+  supportsPriceDisplayMode: false,
+  supportsPriceNote: false,
+  supportsPriceNoteWithPriceColumns: false,
+  defaultPriceDisplayMode: "krw",
 };
 
 export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
@@ -129,6 +150,12 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     originInfo: false,
     itemTraits: false,
     maxPriceOptionsPerItem: 3,
+    supportsBasicPriceColumns: true,
+    maxCategoryPriceColumns: 3,
+    supportsPriceDisplayMode: true,
+    supportsPriceNote: true,
+    supportsPriceNoteWithPriceColumns: false,
+    defaultPriceDisplayMode: "compact_decimal",
     chefs: false,
     events: false,
     socialLinks: false,
@@ -236,6 +263,22 @@ export function getTemplateCapabilities(templateKey: string | null | undefined):
   const capabilityKey = TEMPLATE_CAPABILITY_ALIASES[normalizedKey] ?? normalizedKey;
 
   return TEMPLATE_CAPABILITIES[capabilityKey] ?? DEFAULT_TEMPLATE_CAPABILITIES;
+}
+
+export function getBasicPricingCapabilities(templateKey: string | null | undefined): BasicPricingCapabilities {
+  const capabilities = getTemplateCapabilities(templateKey);
+  const supportsBasicPriceColumns = Boolean(capabilities.supportsBasicPriceColumns);
+
+  return {
+    supportsBasicPriceColumns,
+    maxCategoryPriceColumns: supportsBasicPriceColumns
+      ? Math.max(0, capabilities.maxCategoryPriceColumns ?? 3)
+      : 0,
+    supportsPriceDisplayMode: Boolean(capabilities.supportsPriceDisplayMode),
+    supportsPriceNote: Boolean(capabilities.supportsPriceNote),
+    supportsPriceNoteWithPriceColumns: Boolean(capabilities.supportsPriceNoteWithPriceColumns),
+    defaultPriceDisplayMode: capabilities.defaultPriceDisplayMode === "compact_decimal" ? "compact_decimal" : "krw",
+  };
 }
 
 export function getCoverTabLabel(coverMode: TemplateMenuCoverMode): string | null {

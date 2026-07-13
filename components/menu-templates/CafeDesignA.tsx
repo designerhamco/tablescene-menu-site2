@@ -10,12 +10,17 @@ import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
+import {
+  formatMenuPriceByMode,
+  getPriceDisplayModeFromSettings,
+  type PriceDisplayMode,
+} from "@/lib/menu-price-format";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { getReadableTextColorForTimeSaleBadge, normalizeTimeSaleBadgeBackgroundColor } from "@/lib/menu-time-sales";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
 import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
-import { getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
+import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import {
   getMenuLayoutDensity,
   getTemplateLayoutRules,
@@ -41,6 +46,7 @@ type PriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type PublicTimeSale = PublicMenuTemplateProps["timeSales"][number];
 type PublicTimeSaleItem = PublicTimeSale["items"][number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
+type CafeDesignAPriceDisplayMode = PriceDisplayMode | null;
 type CafeDesignAPriceToken = {
   label: string;
   price: string;
@@ -1744,17 +1750,27 @@ function getItemPriceOptions(priceOptions: PublicMenuTemplateProps["priceOptions
     .slice(0, maxOptions);
 }
 
-function formatPriceOption(option: PriceOption) {
+function formatPriceOption(option: PriceOption, priceDisplayMode: CafeDesignAPriceDisplayMode = null) {
+  const rawPrice = option.price as unknown;
+  if (priceDisplayMode) {
+    if (typeof rawPrice === "number" && Number.isFinite(rawPrice)) return formatMenuPriceByMode(rawPrice, priceDisplayMode);
+    if (typeof rawPrice === "string" && rawPrice.trim()) {
+      const numericPrice = Number(rawPrice.replace(/,/g, ""));
+      return Number.isFinite(numericPrice) ? formatMenuPriceByMode(numericPrice, priceDisplayMode) : "";
+    }
+    return "";
+  }
+
   const priceLabel = option.price_label?.trim();
   if (priceLabel) return priceLabel;
 
-  const rawPrice = option.price as unknown;
   if (typeof rawPrice === "number" && Number.isFinite(rawPrice)) {
     return new Intl.NumberFormat("ko-KR").format(rawPrice) + "원";
   }
   if (typeof rawPrice === "string" && rawPrice.trim()) {
     const numericPrice = Number(rawPrice.replace(/,/g, ""));
-    return Number.isFinite(numericPrice) ? new Intl.NumberFormat("ko-KR").format(numericPrice) + "원" : rawPrice.trim();
+    if (!Number.isFinite(numericPrice)) return rawPrice.trim();
+    return new Intl.NumberFormat("ko-KR").format(numericPrice) + "원";
   }
 
   return "";
@@ -1779,6 +1795,7 @@ function getItemPriceDisplay(
   priceOptions: PublicMenuTemplateProps["priceOptions"],
   capabilities: TemplateCapabilities,
   options: { showOptionLabel?: boolean; dedupeSamePrices?: boolean } = {},
+  priceDisplayMode: CafeDesignAPriceDisplayMode = null,
 ) {
   if (item.price_visible === false) return null;
 
@@ -1789,7 +1806,7 @@ function getItemPriceDisplay(
   if (visibleOptions.length > 0) {
     const optionPrices = visibleOptions
       .map((option) => {
-        const optionPrice = formatPriceOption(option);
+        const optionPrice = formatPriceOption(option, priceDisplayMode);
         if (showOptionLabel) return optionPrice ? `${option.label} ${optionPrice}` : option.label;
         return optionPrice ? stripFeaturedPriceOptionLabel(optionPrice, option.label) : "";
       })
@@ -1803,6 +1820,10 @@ function getItemPriceDisplay(
     return showOptionLabel ? item.price_label.trim() : stripFeaturedPriceOptionLabel(item.price_label);
   }
 
+  if (priceDisplayMode) {
+    return formatMenuPriceByMode(item.price, priceDisplayMode);
+  }
+
   return formatMenuPrice(item);
 }
 
@@ -1810,6 +1831,7 @@ function getItemPriceTokens(
   item: MenuItem,
   priceOptions: PublicMenuTemplateProps["priceOptions"],
   capabilities: TemplateCapabilities,
+  priceDisplayMode: CafeDesignAPriceDisplayMode = null,
 ): CafeDesignAPriceToken[] {
   if (item.price_visible === false) return [];
 
@@ -1819,7 +1841,7 @@ function getItemPriceTokens(
     const optionTokens = visibleOptions
       .map((option) => ({
         label: option.label.trim(),
-        price: formatPriceOption(option),
+        price: formatPriceOption(option, priceDisplayMode),
       }))
       .filter((token) => token.label || token.price);
 
@@ -1829,13 +1851,14 @@ function getItemPriceTokens(
     }));
   }
 
-  const price = item.price_label?.trim() || formatMenuPrice(item);
+  const priceLabel = item.price_label?.trim() ?? "";
+  const price = priceLabel || (priceDisplayMode ? formatMenuPriceByMode(item.price, priceDisplayMode) : formatMenuPrice(item));
   if (!price) return [];
-  const portionLabel = item.portion_label?.trim() ?? "";
+  const priceNote = item.priceNote?.trim() ?? "";
 
   return [
     {
-      label: portionLabel,
+      label: priceNote,
       price,
     },
   ];
@@ -1860,7 +1883,11 @@ function getVisibleItemPriceColumnValueMap(item: MenuItem, category: MenuCategor
   return values;
 }
 
-function formatPriceColumnValue(value: PublicItemPriceColumnValue) {
+function formatPriceColumnValue(value: PublicItemPriceColumnValue, priceDisplayMode: CafeDesignAPriceDisplayMode = null) {
+  if (priceDisplayMode) {
+    return typeof value.price === "number" && Number.isFinite(value.price) ? formatMenuPriceByMode(value.price, priceDisplayMode) : "";
+  }
+
   const priceLabel = value.priceLabel?.trim();
   if (priceLabel) return priceLabel;
 
@@ -1871,7 +1898,11 @@ function formatPriceColumnValue(value: PublicItemPriceColumnValue) {
   return "";
 }
 
-function getItemPriceColumnTokens(item: MenuItem, category: MenuCategory): CafeDesignAPriceToken[] {
+function getItemPriceColumnTokens(
+  item: MenuItem,
+  category: MenuCategory,
+  priceDisplayMode: CafeDesignAPriceDisplayMode = null,
+): CafeDesignAPriceToken[] {
   if (item.price_visible === false) return [];
 
   const columns = getVisibleCategoryPriceColumns(category);
@@ -1883,13 +1914,13 @@ function getItemPriceColumnTokens(item: MenuItem, category: MenuCategory): CafeD
   return columns
     .map((column) => {
       const value = valueByColumnId.get(column.id);
-      const price = value ? formatPriceColumnValue(value) : "";
+      const price = value ? formatPriceColumnValue(value, priceDisplayMode) : "";
       return {
         label: column.label.trim(),
         price,
       };
     })
-    .filter((token) => token.label || token.price);
+    .filter((token) => token.price);
 }
 
 function getItemPriceTokensForCategory(
@@ -1897,8 +1928,9 @@ function getItemPriceTokensForCategory(
   category: MenuCategory,
   priceOptions: PublicMenuTemplateProps["priceOptions"],
   capabilities: TemplateCapabilities,
+  priceDisplayMode: CafeDesignAPriceDisplayMode = null,
 ) {
-  const columnPriceTokens = getItemPriceColumnTokens(item, category);
+  const columnPriceTokens = getItemPriceColumnTokens(item, category, priceDisplayMode);
   if (columnPriceTokens.some((token) => token.price)) {
     return {
       priceTokens: columnPriceTokens,
@@ -1907,14 +1939,19 @@ function getItemPriceTokensForCategory(
   }
 
   return {
-    priceTokens: getItemPriceTokens(item, priceOptions, capabilities),
+    priceTokens: getItemPriceTokens(item, priceOptions, capabilities, priceDisplayMode),
     usesPriceColumns: false,
   };
 }
 
-function getItemPriceColumnDisplay(item: MenuItem, category: MenuCategory, options: { showOptionLabel?: boolean } = {}) {
+function getItemPriceColumnDisplay(
+  item: MenuItem,
+  category: MenuCategory,
+  options: { showOptionLabel?: boolean } = {},
+  priceDisplayMode: CafeDesignAPriceDisplayMode = null,
+) {
   const showOptionLabel = options.showOptionLabel ?? true;
-  const tokens = getItemPriceColumnTokens(item, category).filter((token) => token.price);
+  const tokens = getItemPriceColumnTokens(item, category, priceDisplayMode).filter((token) => token.price);
   if (tokens.length === 0) return null;
 
   return tokens.map((token) => (showOptionLabel && token.label ? `${token.label} ${token.price}` : token.price)).join(" / ");
@@ -1955,8 +1992,10 @@ function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], te
   return map;
 }
 
-function formatTimeSalePrice(price: number | null) {
+function formatTimeSalePrice(price: number | null, priceDisplayMode: CafeDesignAPriceDisplayMode = null) {
   if (typeof price !== "number" || !Number.isFinite(price)) return "";
+  if (priceDisplayMode) return formatMenuPriceByMode(price, priceDisplayMode);
+
   return new Intl.NumberFormat("ko-KR", {
     style: "currency",
     currency: "KRW",
@@ -1964,10 +2003,12 @@ function formatTimeSalePrice(price: number | null) {
   }).format(price);
 }
 
-function getTimeSalePriceDisplay(item: PublicTimeSaleItem) {
+function getTimeSalePriceDisplay(item: PublicTimeSaleItem, priceDisplayMode: CafeDesignAPriceDisplayMode = null) {
+  if (priceDisplayMode) return formatTimeSalePrice(item.salePrice, priceDisplayMode);
+
   const label = item.salePriceLabel?.trim();
   if (label) return label;
-  return formatTimeSalePrice(item.salePrice);
+  return formatTimeSalePrice(item.salePrice, priceDisplayMode);
 }
 
 function getDatePartsInTimeZone(value: string, timeZone: string) {
@@ -2492,6 +2533,7 @@ function MenuItemRow({
   timeSale,
   customBadgeStyles,
   locale,
+  priceDisplayMode,
 }: {
   item: MenuItem;
   category: MenuCategory;
@@ -2503,19 +2545,21 @@ function MenuItemRow({
   timeSale?: CafeDesignATimeSaleMatch;
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
+  priceDisplayMode?: CafeDesignAPriceDisplayMode;
 }) {
-  const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities);
+  const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const showTimeSale =
     !usesPriceColumns &&
     isCafeDesignATimeSaleTemplate(templateKey) &&
     item.price_visible !== false &&
+    !item.price_label?.trim() &&
     priceTokens.length === 1 &&
     timeSale &&
     timeSale.item.visible !== false &&
     timeSale.item.salePrice != null &&
     Number.isFinite(timeSale.item.salePrice) &&
     isTimeSaleCurrentlyActive(timeSale.promotion);
-  const timeSalePrice = showTimeSale ? getTimeSalePriceDisplay(timeSale.item) : "";
+  const timeSalePrice = showTimeSale ? getTimeSalePriceDisplay(timeSale.item, priceDisplayMode) : "";
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
   const titleClassName = {
     spacious: "cafe-a-menu-title-size-spacious",
@@ -2555,7 +2599,7 @@ function MenuItemRow({
   }[density];
   const metaText = getMenuItemMetaText(item, locale);
   const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}${usesPriceColumns ? " cafe-a-menu-item-has-price-columns" : ""}`;
-  const priceNote = item.price_visible === false ? "" : item.priceNote?.trim() ?? "";
+  const priceNote = "";
 
   return (
     <article className={`cafe-a-menu-item grid items-start ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
@@ -2633,6 +2677,7 @@ function CoverHero({
   capabilities,
   density,
   customBadgeStyles,
+  priceDisplayMode,
   desktopClassName = "",
 }: {
   data: PublicMenuTemplateProps;
@@ -2640,14 +2685,15 @@ function CoverHero({
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
   customBadgeStyles: unknown;
+  priceDisplayMode?: CafeDesignAPriceDisplayMode;
   desktopClassName?: string;
 }) {
   const featuredCategory = featuredItem ? data.categories.find((category) => category.id === featuredItem.category_id) ?? null : null;
   const price = featuredItem
     ? featuredCategory
-      ? getItemPriceColumnDisplay(featuredItem, featuredCategory, { showOptionLabel: false }) ??
-        getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true })
-      : getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true })
+      ? getItemPriceColumnDisplay(featuredItem, featuredCategory, { showOptionLabel: false }, priceDisplayMode) ??
+        getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true }, priceDisplayMode)
+      : getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true }, priceDisplayMode)
     : null;
   const featuredBadgeLabel = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : "";
   const coverImageUrl = data.menuSite.cover_image_url;
@@ -3218,6 +3264,7 @@ function MenuGroupsGrid({
   menuAreaClassName,
   showPageTitles,
   timeSaleByItemId,
+  priceDisplayMode,
   fitRef,
   footerInfo,
 }: {
@@ -3231,6 +3278,7 @@ function MenuGroupsGrid({
   menuAreaClassName: string;
   showPageTitles: boolean;
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -3268,6 +3316,7 @@ function MenuGroupsGrid({
                       timeSale={timeSaleByItemId.get(item.id)}
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
+                      priceDisplayMode={priceDisplayMode}
                     />
                   </div>
                 ))}
@@ -3293,6 +3342,7 @@ function BalancedExperimentalMenuGrid({
   columns,
   variant,
   timeSaleByItemId,
+  priceDisplayMode,
   fitRef,
   footerInfo,
 }: {
@@ -3307,6 +3357,7 @@ function BalancedExperimentalMenuGrid({
   columns: number;
   variant: CafeDesignABalancedVariant;
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -3357,6 +3408,7 @@ function BalancedExperimentalMenuGrid({
                       timeSale={timeSaleByItemId.get(item.id)}
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
+                      priceDisplayMode={priceDisplayMode}
                     />
                   </div>
                 ))}
@@ -3383,6 +3435,7 @@ function OrderedBalancedFitMenuGrid({
   columns,
   orderedBalancedBreaks,
   timeSaleByItemId,
+  priceDisplayMode,
   fitRef,
   footerInfo,
 }: {
@@ -3397,6 +3450,7 @@ function OrderedBalancedFitMenuGrid({
   columns: number;
   orderedBalancedBreaks: string;
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -3448,6 +3502,7 @@ function OrderedBalancedFitMenuGrid({
                         timeSale={timeSaleByItemId.get(item.id)}
                         customBadgeStyles={customBadgeStyles}
                         locale={data.locale}
+                        priceDisplayMode={priceDisplayMode}
                       />
                     </div>
                   ))}
@@ -3466,6 +3521,11 @@ function OrderedBalancedFitMenuGrid({
 function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   // Basic engine wiring: capabilities, layout mode, visibility, density, and fit state.
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
+  const basicPricingCapabilities = getBasicPricingCapabilities(data.menuSite.template_key);
+  const priceDisplayMode: CafeDesignAPriceDisplayMode =
+    basicPricingCapabilities.supportsPriceDisplayMode
+      ? getPriceDisplayModeFromSettings(data.menuSite.settings, data.menuSite.template_key)
+      : null;
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
@@ -4894,7 +4954,14 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           <HeaderBlock data={data} className="lg:hidden" />
           <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] py-8 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
             {shouldRenderMenuCoverSection && (
-              <CoverHero data={data} featuredItem={featuredItem} capabilities={capabilities} density={density} customBadgeStyles={customBadgeStyles} />
+              <CoverHero
+                data={data}
+                featuredItem={featuredItem}
+                capabilities={capabilities}
+                density={density}
+                customBadgeStyles={customBadgeStyles}
+                priceDisplayMode={priceDisplayMode}
+              />
             )}
 
             {visiblePageGroups.length === 0 ? (
@@ -4913,6 +4980,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 menuAreaClassName={menuAreaClassName}
                 showPageTitles
                 timeSaleByItemId={timeSaleByItemId}
+                priceDisplayMode={priceDisplayMode}
                 footerInfo={<CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
               />
             )}
@@ -4976,6 +5044,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                   capabilities={capabilities}
                   density={density}
                   customBadgeStyles={customBadgeStyles}
+                  priceDisplayMode={priceDisplayMode}
                 />
               )}
             </DesktopFixedRail>
@@ -4998,6 +5067,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 columns={renderFitState.columns}
                 variant={fitState.balancedVariant}
                 timeSaleByItemId={timeSaleByItemId}
+                priceDisplayMode={priceDisplayMode}
               />
             ) : layoutMode === "orderedBalancedFit" ? (
               <OrderedBalancedFitMenuGrid
@@ -5013,6 +5083,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 columns={renderFitState.columns}
                 orderedBalancedBreaks={fitState.orderedBalancedBreaks}
                 timeSaleByItemId={timeSaleByItemId}
+                priceDisplayMode={priceDisplayMode}
               />
             ) : (
               <MenuGroupsGrid
@@ -5027,6 +5098,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 menuAreaClassName={menuAreaClassName}
                 showPageTitles
                 timeSaleByItemId={timeSaleByItemId}
+                priceDisplayMode={priceDisplayMode}
               />
             )}
             {footerInfo}

@@ -66,6 +66,7 @@ import {
   type MenuEditorTimeSale,
   type TimeSaleDisplayMode,
 } from "@/lib/menu-time-sales";
+import { normalizePriceDisplayMode, type PriceDisplayMode } from "@/lib/menu-price-format";
 import {
   BASIC_LAYOUT_MODE_ORDER,
   DEFAULT_PC_TABLET_LAYOUT_MODE,
@@ -138,6 +139,11 @@ type MenuManagementSectionProps = {
   capabilities: TemplateCapabilities;
   canManageTimeSales?: boolean;
   canManageCategoryPriceColumns?: boolean;
+  maxCategoryPriceColumns?: number;
+  supportsPriceDisplayMode?: boolean;
+  supportsPriceNote?: boolean;
+  supportsPriceNoteWithPriceColumns?: boolean;
+  priceDisplayMode?: PriceDisplayMode;
   timeSales?: MenuEditorTimeSale[];
   canManagePages: boolean;
   supportsDisplayPageTypes?: boolean;
@@ -214,6 +220,7 @@ type ItemBasicDraft = {
   originInfo: string;
   price: string;
   priceLabel: string;
+  singlePriceInputMode?: SinglePriceInputMode;
   priceNote?: string;
   badgeLabel: string;
   visible: boolean;
@@ -231,6 +238,8 @@ type ItemBasicDraft = {
   badgeBackgroundColor?: string;
   badgeTextColor?: string;
 };
+
+type SinglePriceInputMode = "number" | "text";
 
 type AiMenuCleanupItem = {
   name: string;
@@ -408,7 +417,7 @@ function getItemPriceColumnValuesForColumns(
         priceColumnId: column.id ?? "",
         price: source?.price ?? "",
         priceLabel: source?.priceLabel ?? "",
-        visible: source?.visible ?? false,
+        visible: Boolean(normalizeDraftText(source?.price)),
         sortOrder: index,
       };
     });
@@ -504,6 +513,22 @@ function copyItemTraitDrafts(traitDrafts?: ItemTraitDraft[]) {
 
 function normalizeDraftText(value: unknown) {
   return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim();
+}
+
+function normalizeSinglePriceInputMode(value: unknown): SinglePriceInputMode {
+  return value === "text" ? "text" : "number";
+}
+
+function getSinglePriceInputMode(draft?: Partial<ItemBasicDraft> | null, item?: MenuItem | null): SinglePriceInputMode {
+  if (draft?.singlePriceInputMode) {
+    return normalizeSinglePriceInputMode(draft.singlePriceInputMode);
+  }
+
+  const priceLabel = normalizeDraftText(draft?.priceLabel ?? item?.price_label ?? "");
+  const rawPrice = normalizeDraftText(draft?.price ?? (item?.price == null ? "" : String(item.price)));
+  const numericPrice = rawPrice ? Number(rawPrice) : null;
+  const hasNumericPrice = Number.isFinite(numericPrice) && numericPrice != null && numericPrice > 0;
+  return priceLabel && !hasNumericPrice ? "text" : "number";
 }
 
 function normalizeDraftBoolean(value: unknown, fallback = true) {
@@ -1997,6 +2022,7 @@ function MenuCategoryForm({
   supportCategoryPriceOptionColumns = false,
   supportBasicPriceColumns = false,
   maxPriceOptionColumns = MENU_LIMITS.maxPriceOptionsPerItem,
+  maxCategoryPriceColumns = 0,
   onDraftNameChange,
   onDraftChange,
   onDraftCommit,
@@ -2020,6 +2046,7 @@ function MenuCategoryForm({
   supportCategoryPriceOptionColumns?: boolean;
   supportBasicPriceColumns?: boolean;
   maxPriceOptionColumns?: number;
+  maxCategoryPriceColumns?: number;
   onDraftNameChange?: (name: string) => void;
   onDraftChange?: (patch: Partial<CategoryBasicDraft>) => void;
   onDraftCommit?: (patch?: Partial<CategoryBasicDraft>) => void;
@@ -2045,8 +2072,9 @@ function MenuCategoryForm({
   const nameValue = category ? name : draftName !== undefined ? draftName : name;
   const normalizedCategoryPriceOptionLabels = normalizeDraftPriceOptionLabels(categoryPriceOptionLabels, maxPriceOptionColumns);
   const normalizedCategoryPriceColumns = normalizeCategoryPriceColumnDrafts(categoryPriceColumns);
+  const effectiveMaxCategoryPriceColumns = supportBasicPriceColumns ? Math.max(0, maxCategoryPriceColumns) : 0;
   const categoryPriceColumnValidationMessage = supportBasicPriceColumns
-    ? getCategoryPriceColumnValidationMessage(categoryPriceColumns)
+    ? getCategoryPriceColumnValidationMessage(categoryPriceColumns, effectiveMaxCategoryPriceColumns)
     : "";
   const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuCategories.name;
   const priceOptionLabelsChanged =
@@ -2102,7 +2130,7 @@ function MenuCategoryForm({
   }
 
   function addCategoryPriceColumn() {
-    if (categoryPriceColumns.length >= 3) return;
+    if (categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns) return;
     const nextColumns = [...categoryPriceColumns, createCategoryPriceColumnDraft(categoryPriceColumns.length)];
     setCategoryPriceColumns(nextColumns);
     if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(nextColumns) });
@@ -2244,7 +2272,7 @@ function MenuCategoryForm({
           </p>
         </section>
       )}
-      {supportBasicPriceColumns && (
+      {supportBasicPriceColumns && effectiveMaxCategoryPriceColumns > 0 && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -2256,7 +2284,7 @@ function MenuCategoryForm({
             <button
               type="button"
               onClick={addCategoryPriceColumn}
-              disabled={categoryPriceColumns.length >= 3}
+              disabled={categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns}
               className="rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:border-zinc-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
             >
               컬럼 추가
@@ -2318,7 +2346,7 @@ function MenuCategoryForm({
             )}
           </div>
           <p className={`mt-3 break-keep text-xs font-bold leading-relaxed ${categoryPriceColumnValidationMessage ? "text-red-600" : "text-zinc-400"}`}>
-            {categoryPriceColumnValidationMessage || "가격 옵션 컬럼은 카테고리당 최대 3개까지 사용할 수 있습니다."}
+            {categoryPriceColumnValidationMessage || `가격 옵션 컬럼은 카테고리당 최대 ${effectiveMaxCategoryPriceColumns}개까지 사용할 수 있습니다.`}
           </p>
         </section>
       )}
@@ -2416,6 +2444,11 @@ function MenuItemForm({
   onPriceModeChange,
   canManageTimeSales = false,
   canManageCategoryPriceColumns = false,
+  supportsPriceDisplayMode = false,
+  supportsPriceNote = false,
+  supportsPriceNoteWithPriceColumns = false,
+  priceDisplayMode,
+  onPriceDisplayModeChange,
   timeSaleOwnerItemId = null,
   timeSaleItemId,
 }: {
@@ -2449,6 +2482,11 @@ function MenuItemForm({
   onPriceModeChange?: (mode: PriceMode) => void;
   canManageTimeSales?: boolean;
   canManageCategoryPriceColumns?: boolean;
+  supportsPriceDisplayMode?: boolean;
+  supportsPriceNote?: boolean;
+  supportsPriceNoteWithPriceColumns?: boolean;
+  priceDisplayMode?: PriceDisplayMode;
+  onPriceDisplayModeChange?: (mode: PriceDisplayMode) => void;
   timeSaleOwnerItemId?: string | null;
   timeSaleItemId?: string;
 }) {
@@ -2484,12 +2522,14 @@ function MenuItemForm({
     [categoryPriceOptionLabels, maxPriceOptionsPerItem, usesLegacyCategoryPriceOptionColumns]
   );
   const isOptionsMode = usesLegacyCategoryPriceOptionColumns ? normalizedCategoryPriceOptionLabels.length > 0 : !canManageCategoryPriceColumns && currentPriceMode === "options";
-  const isSingleMode = !hasCategoryPriceColumns && !isOptionsMode;
+  const isSingleMode = !isOptionsMode;
   const supportsPortionLabel = capabilities.itemPortionLabel;
+  const canEditPortionLabel = supportsPortionLabel && !canManageCategoryPriceColumns;
   const priceOptionLimitMessage = getPriceOptionLimitMessage(labels, maxPriceOptionsPerItem);
   const formId = item ? `menu-item-form-${item.id}` : "menu-item-form-new";
   const [priceValue, setPriceValue] = useState(draftItem?.price ?? (item?.price == null ? "" : String(item.price)));
   const [priceLabelValue, setPriceLabelValue] = useState(draftItem?.priceLabel ?? item?.price_label ?? "");
+  const [singlePriceInputMode, setSinglePriceInputMode] = useState<SinglePriceInputMode>(() => getSinglePriceInputMode(draftItem, item));
   const [priceNoteValue, setPriceNoteValue] = useState(draftItem?.priceNote ?? item?.price_note ?? "");
   const [descriptionValue, setDescriptionValue] = useState(draftItem?.description ?? item?.description ?? "");
   const [originInfoValue, setOriginInfoValue] = useState(draftItem?.originInfo ?? item?.origin_info ?? "");
@@ -2573,20 +2613,23 @@ function MenuItemForm({
     ? effectiveDraftPriceOptions.some((option) => option.visible && (String(option.price).trim() || option.priceLabel.trim()))
     : effectiveDraftPriceOptions.some((option) => option.visible);
   const hasVisiblePriceColumnValue = effectiveDraftPriceColumnValues.some((value) => value.visible);
+  const priceColumnValueInvalid = false;
+  const canEditPriceNote = supportsPriceNote && (!hasVisiblePriceColumnValue || supportsPriceNoteWithPriceColumns);
+  const isDirectPriceTextMode = isSingleMode && singlePriceInputMode === "text";
   const currentTimeSaleItemId = timeSaleItemId ?? item?.id ?? "";
   const hasTimeSaleOnAnotherItem = Boolean(timeSaleOwnerItemId && timeSaleOwnerItemId !== currentTimeSaleItemId);
   const basePriceNumber = Number(priceValue);
   const hasNumericBasePrice = Number.isFinite(basePriceNumber) && basePriceNumber > 0;
-  const effectiveTimeSaleEnabled = timeSaleEnabled && !hasCategoryPriceColumns;
-  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && !hasCategoryPriceColumns && !hasVisiblePriceColumnValue && priceVisibleValue && hasNumericBasePrice;
+  const effectiveTimeSaleEnabled = timeSaleEnabled && !hasVisiblePriceColumnValue && !isDirectPriceTextMode;
+  const timeSaleEligible = canManageTimeSales && !hasTimeSaleOnAnotherItem && !isOptionsMode && !hasVisiblePriceColumnValue && !isDirectPriceTextMode && priceVisibleValue && hasNumericBasePrice;
   const timeSaleBlockedMessage = hasTimeSaleOnAnotherItem
     ? "MVP에서는 메뉴판당 타임세일 1개만 설정할 수 있습니다."
-    : hasCategoryPriceColumns
-      ? "옵션 컬럼 가격 메뉴의 타임세일은 다음 단계에서 지원됩니다."
     : isOptionsMode
       ? "옵션 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
+      : isDirectPriceTextMode
+        ? "직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다."
       : hasVisiblePriceColumnValue
-        ? "옵션 컬럼 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
+        ? "옵션 컬럼별 타임세일은 별도 기능으로 준비 중입니다."
         : !priceVisibleValue
           ? "가격을 숨긴 메뉴에는 타임세일을 사용할 수 없습니다."
           : !hasNumericBasePrice
@@ -2609,15 +2652,8 @@ function MenuItemForm({
               : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleEndsAtMs <= timeSaleStartsAtMs
                 ? "타임세일 종료 일시는 시작 일시보다 뒤여야 합니다."
                 : "";
-  const singlePriceInvalid = isSingleMode && !priceValue.trim() && !priceLabelValue.trim();
+  const singlePriceInvalid = isSingleMode && (isDirectPriceTextMode ? !priceLabelValue.trim() : !priceValue.trim());
   const optionsPriceInvalid = isOptionsMode && !hasDraftPriceOption;
-  const priceColumnValueInvalid =
-    canManageCategoryPriceColumns &&
-    effectiveDraftPriceColumnValues.some((value) =>
-      value.visible
-        ? !normalizeDraftText(value.price) || Boolean(normalizeDraftText(value.priceLabel) && !/\d/.test(value.priceLabel))
-        : Boolean(normalizeDraftText(value.priceLabel) && (!normalizeDraftText(value.price) || !/\d/.test(value.priceLabel)))
-    );
   const draftPriceOptionLimitExceeded = isOptionsMode && effectiveDraftPriceOptions.length > maxPriceOptionsPerItem;
   const draftPriceOptionInvalid =
     isOptionsMode &&
@@ -2625,7 +2661,11 @@ function MenuItemForm({
       option.visible &&
       (!option.label.trim() || (!usesLegacyCategoryPriceOptionColumns && !String(option.price).trim() && !option.priceLabel.trim()))
     );
-  const singlePriceErrorText = attemptedItemSubmit && singlePriceInvalid ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해주세요.` : undefined;
+  const singlePriceErrorText = attemptedItemSubmit && singlePriceInvalid
+    ? isDirectPriceTextMode
+      ? "표시 문구를 입력해주세요."
+      : `${labels.priceLabel}을 숫자로 입력해주세요.`
+    : undefined;
   const isCustomBadge = selectedBadgeLabel === MENU_BADGE_CUSTOM_VALUE;
   const customBadgeTooLong = isCustomBadge && customBadgeLabel.length > MENU_BADGE_MAX_LENGTH;
   const itemSaveDisabledReason = nameInvalid
@@ -2633,26 +2673,28 @@ function MenuItemForm({
     : categoryInvalid
       ? `${labels.categoryLabel}을 선택해야 반영할 수 있습니다.`
       : singlePriceInvalid
-        ? `${labels.priceLabel} 또는 ${labels.priceLabelLabel} 중 하나를 입력해야 반영할 수 있습니다.`
+        ? isDirectPriceTextMode
+          ? "표시 문구를 입력해야 반영할 수 있습니다."
+          : `${labels.priceLabel}을 숫자로 입력해야 반영할 수 있습니다.`
+        : priceColumnValueInvalid
+          ? "옵션 컬럼 가격을 하나 이상 입력해주세요."
         : optionsPriceInvalid
           ? "옵션별 가격을 1개 이상 추가해야 반영할 수 있습니다."
         : draftPriceOptionLimitExceeded
           ? priceOptionLimitMessage
-          : draftPriceOptionInvalid
-            ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
-            : priceColumnValueInvalid
-              ? "표시할 옵션 컬럼 가격은 숫자 가격이 필요합니다."
-              : customBadgeTooLong
-                ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
-                : timeSaleInvalidReason;
+        : draftPriceOptionInvalid
+          ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
+            : customBadgeTooLong
+              ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
+              : timeSaleInvalidReason;
   const itemDraftSaveDisabled =
     nameInvalid ||
     categoryInvalid ||
     singlePriceInvalid ||
+    priceColumnValueInvalid ||
     optionsPriceInvalid ||
     draftPriceOptionLimitExceeded ||
     draftPriceOptionInvalid ||
-    priceColumnValueInvalid ||
     customBadgeTooLong ||
     Boolean(timeSaleInvalidReason);
   const itemDraftActionLabel = item ? "수정 내용 반영" : labels.itemLabel === "서비스" ? "서비스 추가" : "아이템 추가";
@@ -2681,15 +2723,19 @@ function MenuItemForm({
     normalizeDraftText(descriptionValue) !== normalizeDraftText(committedDraftItem?.description ?? item.description ?? "") ||
     normalizeDraftText(originInfoValue) !== normalizeDraftText(committedDraftItem?.originInfo ?? item.origin_info ?? "") ||
     normalizeDraftText(priceValue) !== normalizeDraftText(committedDraftItem?.price ?? (item.price == null ? "" : String(item.price))) ||
-    normalizeDraftText(priceLabelValue) !== normalizeDraftText(committedDraftItem?.priceLabel ?? item.price_label ?? "") ||
-    normalizeDraftText(priceNoteValue) !== normalizeDraftText(committedDraftItem?.priceNote ?? item.price_note ?? "") ||
+    (isSingleMode &&
+      singlePriceInputMode !== getSinglePriceInputMode(committedDraftItem, item)) ||
+    ((isDirectPriceTextMode || !canManageCategoryPriceColumns) &&
+      normalizeDraftText(priceLabelValue) !== normalizeDraftText(committedDraftItem?.priceLabel ?? item.price_label ?? "")) ||
+    (canEditPriceNote &&
+      normalizeDraftText(priceNoteValue) !== normalizeDraftText(committedDraftItem?.priceNote ?? item.price_note ?? "")) ||
     normalizeDraftText(visibleBadgeLabel) !== normalizeDraftText(committedDraftItem?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "") ||
     visibleValue !== (committedDraftItem?.visible ?? item.visible ?? true) ||
     normalizeDraftNumberText(sortOrderValue) !== normalizeDraftNumberText(committedDraftItem?.sortOrder ?? item.sort_order ?? itemCount) ||
     priceVisibleValue !== (committedDraftItem?.priceVisible ?? item.price_visible ?? true) ||
     currentPriceMode !== committedPriceMode ||
-    (supportsPortionLabel && normalizeDraftText(portionLabelValue) !== normalizeDraftText(committedDraftItem?.portionLabel ?? item.portion_label ?? "")) ||
-    (supportsPortionLabel && portionVisibleValue !== (committedDraftItem?.portionVisible ?? item.portion_visible ?? true)) ||
+    (canEditPortionLabel && normalizeDraftText(portionLabelValue) !== normalizeDraftText(committedDraftItem?.portionLabel ?? item.portion_label ?? "")) ||
+    (canEditPortionLabel && portionVisibleValue !== (committedDraftItem?.portionVisible ?? item.portion_visible ?? true)) ||
     traitsVisibleValue !== (committedDraftItem?.traitsVisible ?? item.traits_visible ?? true) ||
     !areDraftPriceOptionsEqual(effectiveDraftPriceOptions, committedPriceOptions) ||
     !areItemPriceColumnValueDraftsEqual(effectiveDraftPriceColumnValues, committedPriceColumnValues) ||
@@ -2733,6 +2779,14 @@ function MenuItemForm({
   function getCurrentFormDraftPatch(): Partial<ItemBasicDraft> {
     const formElement = document.getElementById(formId) as HTMLFormElement | null;
     const formData = formElement ? new FormData(formElement) : null;
+    const nextSinglePriceInputMode = isSingleMode ? singlePriceInputMode : "number";
+    const nextPrice = nextSinglePriceInputMode === "text" ? "" : String(formData?.get("item_price") ?? priceValue);
+    const nextPriceLabel =
+      nextSinglePriceInputMode === "text"
+        ? String(formData?.get("item_price_label") ?? priceLabelValue)
+        : canManageCategoryPriceColumns
+          ? ""
+          : String(formData?.get("item_price_label") ?? priceLabelValue);
     const badgeValue = String(formData?.get("item_badge_label") ?? selectedBadgeLabel);
     const customBadgeValue = String(formData?.get("item_custom_badge_label") ?? customBadgeLabel);
     const nextBadgeLabel =
@@ -2756,9 +2810,12 @@ function MenuItemForm({
       setName: String(formData?.get("item_set_name") ?? setNameValue),
       description: String(formData?.get("item_description") ?? descriptionValue),
       originInfo: String(formData?.get("item_origin_info") ?? originInfoValue),
-      price: String(formData?.get("item_price") ?? priceValue),
-      priceLabel: String(formData?.get("item_price_label") ?? priceLabelValue),
-      priceNote: String(formData?.get("item_price_note") ?? priceNoteValue),
+      price: nextPrice,
+      priceLabel: nextPriceLabel,
+      singlePriceInputMode: nextSinglePriceInputMode,
+      priceNote: canEditPriceNote
+        ? String(formData?.get("item_price_note") ?? priceNoteValue)
+        : (committedDraftItem?.priceNote ?? item?.price_note ?? ""),
       badgeLabel: nextBadgeLabel,
       visible: formData ? formData.has("item_visible") : visibleValue,
       sortOrder: Number(String(formData?.get("item_sort_order") ?? item?.sort_order ?? itemCount)) || 0,
@@ -2773,11 +2830,16 @@ function MenuItemForm({
       traitsVisible: formData ? formData.has("item_traits_visible") : traitsVisibleValue,
       traitDrafts,
       priceOptions: canManageCategoryPriceColumns ? undefined : isOptionsMode ? effectiveDraftPriceOptions : [],
-      priceColumnValues: canManageCategoryPriceColumns ? effectiveDraftPriceColumnValues : [],
+      priceColumnValues: canManageCategoryPriceColumns
+        ? effectiveDraftPriceColumnValues.map((value) => {
+            const price = normalizeDraftText(value.price);
+            return { ...value, price, priceLabel: "", visible: Boolean(price) };
+          })
+        : [],
       ...(canManageTimeSales
         ? {
             timeSale: {
-              enabled: hasCategoryPriceColumns ? false : formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
+              enabled: hasVisiblePriceColumnValue || nextSinglePriceInputMode === "text" ? false : formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
               name: String(formData?.get("item_time_sale_name") ?? timeSaleName),
               salePrice: String(formData?.get("item_time_sale_price") ?? timeSalePrice),
               startsAt: String(formData?.get("item_time_sale_starts_at") ?? timeSaleStartsAt),
@@ -2964,7 +3026,7 @@ function MenuItemForm({
 
   function handleItemSubmit(event: React.FormEvent<HTMLFormElement>) {
     setAttemptedItemSubmit(true);
-    if (singlePriceInvalid || optionsPriceInvalid || priceColumnValueInvalid) {
+    if (singlePriceInvalid || priceColumnValueInvalid || optionsPriceInvalid) {
       event.preventDefault();
     }
   }
@@ -3247,6 +3309,79 @@ function MenuItemForm({
             단일 가격은 하나의 가격을 보여줄 때 사용하고, 옵션별 가격은 HOT/ICE나 사이즈별 가격처럼 여러 가격을 보여줄 때 사용합니다.
           </HelpTooltip>
         </h4>
+        {isSingleMode && canManageCategoryPriceColumns && (
+          <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+            <h5 className="text-sm font-black text-zinc-950">가격 입력 방식</h5>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {[
+                { value: "number" as const, label: "숫자 가격", description: "4500처럼 숫자로 입력하고 표시 형식으로 자동 변환합니다." },
+                { value: "text" as const, label: "직접 표시 문구", description: "4.5/5.5처럼 그대로 보여줄 문구를 입력합니다." },
+              ].map((option) => {
+                const selected = singlePriceInputMode === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setSinglePriceInputMode(option.value);
+                      if (option.value === "number") {
+                        setPriceLabelValue("");
+                        updateDraftItem({ singlePriceInputMode: "number", priceLabel: "" });
+                      } else {
+                        setPriceValue("");
+                        updateDraftItem({ singlePriceInputMode: "text", price: "" });
+                      }
+                    }}
+                    className={`min-h-16 rounded-lg border px-4 py-3 text-left transition-colors ${
+                      selected
+                        ? "border-zinc-950 bg-white text-zinc-950 shadow-sm"
+                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-800"
+                    }`}
+                    aria-pressed={selected}
+                  >
+                    <span className="block text-sm font-black">{option.label}</span>
+                    <span className="mt-1 block break-keep text-xs font-bold leading-relaxed text-zinc-400">{option.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {supportsPriceDisplayMode && priceDisplayMode && onPriceDisplayModeChange && !isDirectPriceTextMode && (
+          <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h5 className="text-sm font-black text-zinc-950">가격 표시 형식</h5>
+                <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                  이 메뉴판의 숫자 가격을 공개 메뉴판에 표시하는 기본 형식입니다.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 rounded-xl bg-white p-1">
+                {[
+                  { value: "compact_decimal" as const, label: "간단 표기 · 4.5" },
+                  { value: "krw" as const, label: "원화 표기 · 4,500원" },
+                ].map((option) => {
+                  const selected = priceDisplayMode === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => onPriceDisplayModeChange(option.value)}
+                      className={`min-h-10 rounded-lg px-4 text-xs font-black transition-colors ${
+                        selected
+                          ? "bg-zinc-950 text-white shadow-sm"
+                          : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+                      }`}
+                      aria-pressed={selected}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
         {!usesCategoryPriceOptionColumns && !canManageCategoryPriceColumns && (
           <>
             <div className="mt-4">
@@ -3286,37 +3421,48 @@ function MenuItemForm({
           </>
         )}
         {isSingleMode && (
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <ValidatedTextInput
-              form={formId}
-              name="item_price"
-              label={`기본 ${labels.priceLabel}`}
-              type="number"
-              min={0}
-              step={1}
-              defaultValue={priceValue}
-              placeholder={labels.pricePlaceholder}
-              requiredIndicator
-              helperText="숫자만 입력해주세요. 예: 4500"
-              errorText={singlePriceErrorText}
-              onValueChange={(value) => {
-                setPriceValue(value);
-                updateDraftItem({ price: value });
-              }}
-            />
-            <ValidatedTextInput
-              form={formId}
-              name="item_price_label"
-              label={labels.priceLabelLabel}
-              defaultValue={priceLabelValue}
-              placeholder={labels.priceLabelPlaceholder}
-              maxLength={MENU_FIELD_LIMITS.menuItems.priceLabel}
-              helperText={labels.priceLabelHelperText}
-              onValueChange={(value) => {
-                setPriceLabelValue(value);
-                updateDraftItem({ priceLabel: value });
-              }}
-            />
+          <div className="mt-4">
+            {isDirectPriceTextMode ? (
+              <ValidatedTextInput
+                form={formId}
+                name="item_price_label"
+                label="표시 문구"
+                defaultValue={priceLabelValue}
+                placeholder="예: 4.5/5.5"
+                requiredIndicator
+                maxLength={MENU_FIELD_LIMITS.menuItems.priceLabel}
+                helperText="입력한 문구가 공개 메뉴판 가격 자리에 그대로 표시됩니다."
+                errorText={singlePriceErrorText}
+                onValueChange={(value) => {
+                  setPriceLabelValue(value);
+                  updateDraftItem({ priceLabel: value, singlePriceInputMode: "text" });
+                }}
+              />
+            ) : (
+              <ValidatedTextInput
+                form={formId}
+                name="item_price"
+                label={`기본 ${labels.priceLabel}`}
+                type="number"
+                min={0}
+                step={1}
+                defaultValue={priceValue}
+                placeholder={labels.pricePlaceholder}
+                requiredIndicator
+                helperText="숫자만 입력해주세요. 예: 4500"
+                errorText={singlePriceErrorText}
+                onValueChange={(value) => {
+                  const numericValue = value.replace(/[^0-9]/g, "");
+                  setPriceValue(numericValue);
+                  updateDraftItem({ price: numericValue, priceLabel: "", singlePriceInputMode: "number" });
+                }}
+              />
+            )}
+            {isDirectPriceTextMode ? (
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다.
+              </p>
+            ) : null}
           </div>
         )}
         {canManageCategoryPriceColumns && !hasCategoryPriceColumns && priceOptions.some((option) => option.visible) && (
@@ -3330,90 +3476,63 @@ function MenuItemForm({
               <div>
                 <h5 className="text-sm font-black text-zinc-950">옵션 컬럼 가격</h5>
                 <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                  이 메뉴가 속한 카테고리의 공통 가격 옵션입니다. 비어 있는 옵션은 공개 메뉴판에서 표시하지 않습니다.
+                  이 메뉴가 속한 카테고리의 공통 가격 옵션입니다. 숫자 가격을 입력하면 선택한 표시 형식으로 자동 표시됩니다.
+                </p>
+                <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                  가격을 입력한 옵션만 공개 메뉴판에 표시됩니다.
                 </p>
               </div>
               <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-zinc-500">
                 {currentCategoryPriceColumns.length}개 컬럼
               </span>
             </div>
-            <div className="mt-4 grid gap-4">
+            <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-white">
+              <div className="hidden grid-cols-[minmax(4rem,0.65fr)_minmax(0,1fr)] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-[11px] font-black text-zinc-500 sm:grid">
+                <span>옵션</span>
+                <span>가격</span>
+              </div>
               {effectiveDraftPriceColumnValues.map((value, index) => {
                 const column = currentCategoryPriceColumns.find((entry) => entry.id === value.priceColumnId);
                 const columnLabel = column?.label || `옵션 ${index + 1}`;
-                const valueInvalid = value.visible && !normalizeDraftText(value.price);
-                const labelOnlyInvalid = !value.visible && Boolean(normalizeDraftText(value.priceLabel) && !normalizeDraftText(value.price));
-                const labelFormatInvalid = Boolean(normalizeDraftText(value.priceLabel) && !/\d/.test(value.priceLabel));
 
                 return (
-                  <div key={value.priceColumnId} className="rounded-lg border border-zinc-100 bg-white p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <h6 className="text-sm font-black text-zinc-950">{columnLabel}</h6>
-                      <Checkbox
-                        form={formId}
-                        name={`item_price_column_${index}_visible`}
-                        label="이 옵션 표시"
-                        defaultChecked={value.visible}
-                        onCheckedChange={(checked) => updateDraftPriceColumnValue(value.priceColumnId, { visible: checked, sortOrder: index })}
-                      />
-                    </div>
-                    <div className="mt-3 grid gap-3 md:grid-cols-2">
-                      <ValidatedTextInput
+                  <div key={value.priceColumnId} className="border-b border-zinc-100 px-3 py-3 last:border-b-0">
+                    <div className="grid grid-cols-[minmax(3.5rem,0.6fr)_minmax(0,1fr)] items-center gap-3">
+                      <div>
+                        <span className="block text-xs font-black uppercase text-zinc-950">{columnLabel}</span>
+                        <span className="mt-0.5 block text-[10px] font-bold text-zinc-400 sm:hidden">옵션</span>
+                      </div>
+                      <input
                         form={formId}
                         name={`item_price_column_${index}_price`}
-                        label={`${columnLabel} 가격`}
                         type="number"
                         min={0}
                         step={1}
                         defaultValue={value.price}
                         placeholder="4500"
-                        requiredIndicator={value.visible}
-                        errorText={attemptedItemSubmit && valueInvalid ? "표시할 옵션은 숫자 가격이 필요합니다." : undefined}
-                        helperText="숫자 원 단위로 입력해주세요."
-                        onValueChange={(nextValue) =>
+                        aria-label={`${columnLabel} 가격`}
+                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-900 outline-none transition focus:border-zinc-950"
+                        onChange={(event) => {
+                          const price = event.target.value.replace(/[^0-9]/g, "");
                           updateDraftPriceColumnValue(value.priceColumnId, {
-                            price: nextValue.replace(/[^0-9]/g, ""),
+                            price,
+                            visible: Boolean(price),
                             sortOrder: index,
-                          })
-                        }
-                      />
-                      <ValidatedTextInput
-                        form={formId}
-                        name={`item_price_column_${index}_price_label`}
-                        label={`${columnLabel} 표시 가격`}
-                        defaultValue={value.priceLabel}
-                        placeholder="예: 4.5, 4,500원"
-                        maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.priceLabel}
-                        errorText={
-                          attemptedItemSubmit && labelOnlyInvalid
-                            ? "표시 가격만으로는 저장할 수 없습니다."
-                            : attemptedItemSubmit && labelFormatInvalid
-                              ? "표시 가격에는 숫자가 포함되어야 합니다."
-                              : undefined
-                        }
-                        helperText="숫자 가격의 표시 override입니다. 비가격 문구는 향후 가격 안내 문구에서 관리합니다."
-                        onValueChange={(nextValue) =>
-                          updateDraftPriceColumnValue(value.priceColumnId, {
-                            priceLabel: nextValue,
-                            sortOrder: index,
-                          })
-                        }
+                          });
+                        }}
                       />
                     </div>
                   </div>
                 );
               })}
             </div>
-            {priceColumnValueInvalid && (
+            {attemptedItemSubmit && priceColumnValueInvalid ? (
               <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-red-600">
-                표시할 옵션 컬럼 가격은 숫자 가격이 필요합니다. 표시 가격은 숫자 가격의 override로만 사용할 수 있습니다.
+                옵션 컬럼 가격을 하나 이상 입력해주세요.
               </p>
-            )}
+            ) : null}
           </div>
         )}
-        <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-          실제 매장에서 제공하는 가격과 일치하는지 확인해주세요.
-        </p>
         {usesLegacyCategoryPriceOptionColumns ? (
           <div className="mt-4 rounded-lg bg-zinc-50 p-4">
             <p className="break-keep text-xs font-bold leading-relaxed text-zinc-500">
@@ -3482,16 +3601,16 @@ function MenuItemForm({
             />
           </div>
         ) : null}
-        {canManageCategoryPriceColumns && (
+        {canEditPriceNote && isSingleMode && (
           <div className="mt-4">
             <ValidatedTextInput
               form={formId}
               name="item_price_note"
-              label="가격 안내 문구"
+              label="가격 옆 문구"
               defaultValue={priceNoteValue}
-              placeholder="예: HOT/ICE 동일가, 시즌 한정, 매장 문의"
+              placeholder="예: HOT/ICE, HOT/ICE 동일가, 시즌 한정"
               maxLength={MENU_FIELD_LIMITS.menuItems.priceNote}
-              helperText="가격 옆이나 아래에 표시되는 안내 문구입니다. 할인 계산에는 사용되지 않습니다."
+              helperText="가격 오른쪽에 짧게 표시할 문구를 입력하세요."
               onValueChange={(value) => {
                 setPriceNoteValue(value);
                 updateDraftItem({ priceNote: value });
@@ -3499,6 +3618,9 @@ function MenuItemForm({
             />
           </div>
         )}
+        <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+          실제 매장에서 제공하는 가격과 일치하는지 확인해주세요.
+        </p>
         <div className="mt-4">
           <Checkbox
             form={formId}
@@ -3520,8 +3642,32 @@ function MenuItemForm({
             타임세일
             {effectiveTimeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-black text-white">사용 중</span> : null}
           </h4>
-          <div className="mt-4 space-y-4">
-            <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+          {hasVisiblePriceColumnValue ? (
+            <div className="mt-4 rounded-lg bg-zinc-50 px-4 py-3">
+              <p className="break-keep text-xs font-bold leading-relaxed text-zinc-600">
+                현재 타임세일은 단일 숫자 가격에서 사용할 수 있습니다.
+              </p>
+              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                옵션 컬럼별 타임세일은 별도 기능으로 준비 중입니다.
+              </p>
+            </div>
+          ) : isDirectPriceTextMode ? (
+            <div className="mt-4 space-y-3 rounded-lg bg-amber-50 px-4 py-3">
+              <p className="break-keep text-xs font-bold leading-relaxed text-amber-700">
+                직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다.
+              </p>
+              <p className="break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                숫자 가격을 선택하면 타임세일을 사용할 수 있습니다.
+              </p>
+              {timeSaleEnabled ? (
+                <p className="break-keep text-xs font-black leading-relaxed text-amber-800">
+                  현재 이 메뉴에 타임세일이 설정되어 있습니다. 직접 표시 문구로 저장하면 이 메뉴의 타임세일은 해제됩니다.
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <div className="mt-4 space-y-4">
+              <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
               <Checkbox
                 form={formId}
                 name="item_time_sale_enabled"
@@ -3531,7 +3677,7 @@ function MenuItemForm({
                 canTurnOn={timeSaleEligible || effectiveTimeSaleEnabled}
                 blockedMessage={timeSaleBlockedMessage}
                 onCheckedChange={(checked) => {
-                  const nextEnabled = !hasCategoryPriceColumns && checked && (timeSaleEligible || effectiveTimeSaleEnabled);
+                  const nextEnabled = !hasVisiblePriceColumnValue && checked && (timeSaleEligible || effectiveTimeSaleEnabled);
                   setTimeSaleEnabled(nextEnabled);
                   updateDraftItem({
                     timeSale: {
@@ -3551,10 +3697,10 @@ function MenuItemForm({
               {timeSaleBlockedMessage && !effectiveTimeSaleEnabled ? (
                 <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">{timeSaleBlockedMessage}</p>
               ) : null}
-            </div>
-            {effectiveTimeSaleEnabled ? (
-              <>
-                <div className="grid gap-4 md:grid-cols-2">
+              </div>
+              {effectiveTimeSaleEnabled ? (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2">
                   <ValidatedTextInput
                     form={formId}
                     name="item_time_sale_name"
@@ -3587,7 +3733,7 @@ function MenuItemForm({
                     inputMode="decimal"
                     defaultValue={timeSalePrice}
                     placeholder="4.5"
-                    helperText="오브 커피 가격처럼 4.5로 입력하면 4,500원으로 저장되고 메뉴판에는 4.5로 표시됩니다."
+                    helperText="입력한 숫자 가격은 선택한 가격 표시 형식에 따라 공개 메뉴판에 표시됩니다."
                     onValueChange={(value) => {
                       setTimeSalePrice(value);
                       updateDraftItem({
@@ -3784,17 +3930,18 @@ function MenuItemForm({
                     </p>
                   </div>
                 </div>
-              </>
-            ) : (
-              <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                단일 가격 메뉴에 한해 타임세일가와 마감 표시 방식을 저장할 수 있습니다.
-              </p>
-            )}
-          </div>
+                </>
+              ) : (
+                <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                  단일 숫자 가격 메뉴에 한해 타임세일가와 마감 표시 방식을 저장할 수 있습니다.
+                </p>
+              )}
+            </div>
+          )}
         </section>
       )}
 
-      {supportsPortionLabel && (
+      {canEditPortionLabel && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <h4 className="text-sm font-black text-zinc-950">제공량</h4>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -4232,6 +4379,11 @@ export default function MenuManagementSection({
   capabilities,
   canManageTimeSales = false,
   canManageCategoryPriceColumns = false,
+  maxCategoryPriceColumns = 0,
+  supportsPriceDisplayMode = false,
+  supportsPriceNote = false,
+  supportsPriceNoteWithPriceColumns = false,
+  priceDisplayMode = "compact_decimal",
   timeSales = [],
   canManagePages,
   supportsDisplayPageTypes = false,
@@ -4272,6 +4424,9 @@ export default function MenuManagementSection({
   const [pcTabletLayoutModeDraft, setPcTabletLayoutModeDraft] = useState<PcTabletLayoutMode>(() =>
     normalizePcTabletLayoutMode(pcTabletLayoutMode)
   );
+  const [priceDisplayModeDraft, setPriceDisplayModeDraft] = useState<PriceDisplayMode>(() =>
+    normalizePriceDisplayMode(priceDisplayMode, null)
+  );
   const menuFinalSaveError =
     !finalSaveMessage && finalSaveError && dismissedFinalSaveError !== finalSaveError
       ? finalSaveError
@@ -4304,6 +4459,7 @@ export default function MenuManagementSection({
           originInfo: item.origin_info ?? "",
           price: item.price == null ? "" : String(item.price),
           priceLabel: item.price_label ?? "",
+          singlePriceInputMode: getSinglePriceInputMode(null, item),
           priceNote: item.price_note ?? "",
           badgeLabel: getMenuItemBadgeLabel(item) ?? "",
           visible: item.visible,
@@ -4638,7 +4794,11 @@ export default function MenuManagementSection({
     () =>
       Object.entries(itemBasicDrafts).find(([itemId, draft]) => {
         if (deletedItemIds.has(itemId)) return false;
-        if (canManageCategoryPriceColumns && getCategoryPriceColumns(draft.categoryId ?? "").length > 0) return false;
+        if (canManageCategoryPriceColumns) {
+          const categoryPriceColumns = getCategoryPriceColumns(draft.categoryId ?? "");
+          const priceColumnValues = getItemPriceColumnValuesForColumns(draft.priceColumnValues, categoryPriceColumns);
+          if (priceColumnValues.some((value) => value.visible)) return false;
+        }
         return draft.timeSale?.enabled === true;
       })?.[0] ?? null,
     [canManageCategoryPriceColumns, deletedItemIds, getCategoryPriceColumns, itemBasicDrafts]
@@ -4743,6 +4903,7 @@ export default function MenuManagementSection({
               originInfo: draft?.originInfo ?? item.origin_info ?? "",
               price: draft?.price ?? (item.price == null ? "" : String(item.price)),
               priceLabel: draft?.priceLabel ?? item.price_label ?? "",
+              singlePriceInputMode: getSinglePriceInputMode(draft, item),
               priceNote: draft?.priceNote ?? item.price_note ?? "",
               badgeLabel: draft?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "",
               visible: draft?.visible ?? item.visible,
@@ -4852,6 +5013,11 @@ export default function MenuManagementSection({
 
   function updatePcTabletLayoutModeDraft(nextMode: PcTabletLayoutMode) {
     setPcTabletLayoutModeDraft(nextMode);
+    markMenuManagementDirty();
+  }
+
+  function updatePriceDisplayModeDraft(nextMode: PriceDisplayMode) {
+    setPriceDisplayModeDraft(nextMode);
     markMenuManagementDirty();
   }
 
@@ -6405,7 +6571,8 @@ export default function MenuManagementSection({
             description: capabilities.itemDescription ? starterItem.description ?? "" : "",
             originInfo: "",
             price: starterItem.price == null ? "" : String(starterItem.price),
-            priceLabel: starterItem.price_label ?? "",
+            priceLabel: canManageCategoryPriceColumns ? "" : starterItem.price_label ?? "",
+            singlePriceInputMode: "number",
             priceNote: "",
             badgeLabel,
             visible: starterPreset.sample_items_visible ?? true,
@@ -7077,6 +7244,7 @@ export default function MenuManagementSection({
                   supportCategoryPriceOptionColumns={usesLegacyCategoryPriceOptionColumns}
                   supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
+                  maxCategoryPriceColumns={maxCategoryPriceColumns}
                   onDraftNameChange={updateDraftTitle}
                   onDraftChange={updateDraftTargetDetails}
                   onDraftCommit={commitCategoryDraft}
@@ -7115,6 +7283,7 @@ export default function MenuManagementSection({
                   supportCategoryPriceOptionColumns={usesLegacyCategoryPriceOptionColumns}
                   supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
+                  maxCategoryPriceColumns={maxCategoryPriceColumns}
                   onDraftNameChange={(name) => updateCategoryBasicDraft(selectedCategory.id, { name })}
                   onDraftChange={(patch) => updateCategoryBasicDraft(selectedCategory.id, patch)}
                   onDraftCommit={commitCategoryDraft}
@@ -7167,6 +7336,11 @@ export default function MenuManagementSection({
                   categoryPriceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
                   canManageTimeSales={canManageTimeSales}
                   canManageCategoryPriceColumns={canManageCategoryPriceColumns}
+                  supportsPriceDisplayMode={supportsPriceDisplayMode}
+                  supportsPriceNote={supportsPriceNote}
+                  supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
+                  priceDisplayMode={priceDisplayModeDraft}
+                  onPriceDisplayModeChange={updatePriceDisplayModeDraft}
                   timeSaleOwnerItemId={timeSaleOwnerItemId}
                   timeSaleItemId={editingItemId}
                   draftOnly
@@ -7211,6 +7385,11 @@ export default function MenuManagementSection({
                   capabilities={capabilities}
                   canManageTimeSales={canManageTimeSales}
                   canManageCategoryPriceColumns={canManageCategoryPriceColumns}
+                  supportsPriceDisplayMode={supportsPriceDisplayMode}
+                  supportsPriceNote={supportsPriceNote}
+                  supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
+                  priceDisplayMode={priceDisplayModeDraft}
+                  onPriceDisplayModeChange={updatePriceDisplayModeDraft}
                   timeSaleOwnerItemId={timeSaleOwnerItemId}
                   timeSaleItemId={selectedEditingItem.id}
                   aiDescriptionUsage={localAiDescriptionUsage}
@@ -7336,6 +7515,11 @@ export default function MenuManagementSection({
                           capabilities={capabilities}
                           canManageTimeSales={canManageTimeSales}
                           canManageCategoryPriceColumns={canManageCategoryPriceColumns}
+                          supportsPriceDisplayMode={supportsPriceDisplayMode}
+                          supportsPriceNote={supportsPriceNote}
+                          supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
+                          priceDisplayMode={priceDisplayModeDraft}
+                          onPriceDisplayModeChange={updatePriceDisplayModeDraft}
                           timeSaleOwnerItemId={timeSaleOwnerItemId}
                           timeSaleItemId={item.id}
                           aiDescriptionUsage={localAiDescriptionUsage}
@@ -7473,6 +7657,9 @@ export default function MenuManagementSection({
             <input type="hidden" name="deleted_item_ids" value={deletedItemIdsPayload} />
             {canConfigurePcTabletLayoutMode && (
               <input type="hidden" name="pc_tablet_layout_mode" value={pcTabletLayoutModeDraft} />
+            )}
+            {supportsPriceDisplayMode && (
+              <input type="hidden" name="price_display_mode" value={priceDisplayModeDraft} />
             )}
             {selectedPageDisplayQualityNotice ? (
               <div className="mb-4">
@@ -7780,6 +7967,11 @@ function MenuItemCard({
   capabilities,
   canManageTimeSales = false,
   canManageCategoryPriceColumns = false,
+  supportsPriceDisplayMode = false,
+  supportsPriceNote = false,
+  supportsPriceNoteWithPriceColumns = false,
+  priceDisplayMode,
+  onPriceDisplayModeChange,
   timeSaleOwnerItemId = null,
   timeSaleItemId,
   aiDescriptionUsage,
@@ -7811,6 +8003,11 @@ function MenuItemCard({
   capabilities: TemplateCapabilities;
   canManageTimeSales?: boolean;
   canManageCategoryPriceColumns?: boolean;
+  supportsPriceDisplayMode?: boolean;
+  supportsPriceNote?: boolean;
+  supportsPriceNoteWithPriceColumns?: boolean;
+  priceDisplayMode?: PriceDisplayMode;
+  onPriceDisplayModeChange?: (mode: PriceDisplayMode) => void;
   timeSaleOwnerItemId?: string | null;
   timeSaleItemId?: string;
   aiDescriptionUsage: { used: number; limit: number };
@@ -7883,6 +8080,11 @@ function MenuItemCard({
             onPriceModeChange={setPriceMode}
             canManageTimeSales={canManageTimeSales}
             canManageCategoryPriceColumns={canManageCategoryPriceColumns}
+            supportsPriceDisplayMode={supportsPriceDisplayMode}
+            supportsPriceNote={supportsPriceNote}
+            supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
+            priceDisplayMode={priceDisplayMode}
+            onPriceDisplayModeChange={onPriceDisplayModeChange}
             timeSaleOwnerItemId={timeSaleOwnerItemId}
             timeSaleItemId={timeSaleItemId ?? item.id}
             onCancel={onCancel}

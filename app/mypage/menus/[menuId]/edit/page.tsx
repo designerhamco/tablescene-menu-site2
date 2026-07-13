@@ -60,12 +60,14 @@ import { getMenuSiteAccessStateForMenuSite, type MenuSiteAccessState } from "@/l
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSiteStatus } from "@/lib/supabase/types";
 import {
   getCoverDescription,
   getCoverTabLabel,
   getCoverToggleLabel,
+  getBasicPricingCapabilities,
   getTemplateCapabilities,
 } from "@/lib/template-capabilities";
 import {
@@ -1147,6 +1149,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
   const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
   const templateCapabilities = getTemplateCapabilities(site.template_key);
+  const basicPricingCapabilities = getBasicPricingCapabilities(site.template_key);
   const canManageTimeSales = isBasicTimeSaleTemplate(site.template_key, site.template_category);
   const editorTimeSales = canManageTimeSales ? await loadEditorTimeSales(site.id, supabase) : [];
   const localizationStructure =
@@ -1852,7 +1855,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     traits={traits}
                     capabilities={templateCapabilities}
                     canManageTimeSales={canManageTimeSales}
-                    canManageCategoryPriceColumns={site.template_key === "cafe_design_a"}
+                    canManageCategoryPriceColumns={basicPricingCapabilities.supportsBasicPriceColumns}
+                    maxCategoryPriceColumns={basicPricingCapabilities.maxCategoryPriceColumns}
+                    supportsPriceDisplayMode={basicPricingCapabilities.supportsPriceDisplayMode}
+                    supportsPriceNote={basicPricingCapabilities.supportsPriceNote}
+                    supportsPriceNoteWithPriceColumns={basicPricingCapabilities.supportsPriceNoteWithPriceColumns}
+                    priceDisplayMode={getPriceDisplayModeFromSettings(site.settings, site.template_key)}
                     timeSales={editorTimeSales}
                     canManagePages={editorCapabilities.canManageMenuPages}
                     supportsDisplayPageTypes={editorCapabilities.supportsDisplayPageTypes}
