@@ -1,4 +1,5 @@
 import type { Json } from "@/lib/supabase/types";
+import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 import { normalizeTemplateKey } from "@/lib/templates";
 
 export const TIME_SALE_TYPE = "time_sale";
@@ -18,7 +19,11 @@ export type MenuEditorTimeSale = {
   startsAt: string;
   endsAt: string;
   timezone: string;
+  scheduleType: TimeSaleScheduleType;
+  dailyStartTime: string | null;
+  dailyEndTime: string | null;
   timeDisplayMode: TimeSaleDisplayMode;
+  displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
   item: {

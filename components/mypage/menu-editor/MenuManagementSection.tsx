@@ -59,13 +59,22 @@ import {
   DEFAULT_TIME_SALE_DISPLAY_MODE,
   DEFAULT_TIME_SALE_BADGE_TEXT,
   TIME_SALE_BADGE_TEXT_MAX_LENGTH,
+  TIME_SALE_DISPLAY_TEXT_MAX_LENGTH,
   getReadableTextColorForTimeSaleBadge,
   normalizeTimeSaleBadgeBackgroundColor,
+  normalizeTimeSaleDisplayMode,
   parseTimeSalePriceInputToWon,
   toLocalDateTimeInputValue,
   type MenuEditorTimeSale,
   type TimeSaleDisplayMode,
 } from "@/lib/menu-time-sales";
+import {
+  getNextTimeSaleStartMs,
+  normalizeDailyTime,
+  normalizeTimeSaleScheduleType,
+  TIME_SALE_SCHEDULE_TIME_ZONE,
+  type TimeSaleScheduleType,
+} from "@/lib/menu-time-sale-schedule";
 import { normalizePriceDisplayMode, type PriceDisplayMode } from "@/lib/menu-price-format";
 import {
   BASIC_LAYOUT_MODE_ORDER,
@@ -274,7 +283,11 @@ type ItemTimeSaleDraft = {
   targets?: ItemTimeSaleTargetDraft[];
   startsAt: string;
   endsAt: string;
+  scheduleType: TimeSaleScheduleType;
+  dailyStartTime: string;
+  dailyEndTime: string;
   timeDisplayMode: TimeSaleDisplayMode;
+  displayText: string;
   badgeText: string;
   badgeBackgroundColor: string;
   active: boolean;
@@ -284,6 +297,9 @@ type ItemTimeSaleTargetDraft = {
   salePrice: string;
   salePriceLabel?: string | null;
   visible: boolean;
+};
+type ItemBasicDraftPatch = Omit<Partial<ItemBasicDraft>, "timeSale"> & {
+  timeSale?: Partial<ItemTimeSaleDraft>;
 };
 type DraftPriceOption = {
   id: string;
@@ -522,6 +538,11 @@ function normalizeDraftText(value: unknown) {
   return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim();
 }
 
+function normalizeTimeSaleDisplayTextForDraft(value: unknown) {
+  const text = typeof value === "string" ? value : value == null ? "" : String(value);
+  return text.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function normalizeSinglePriceInputMode(value: unknown): SinglePriceInputMode {
   return value === "text" ? "text" : "number";
 }
@@ -580,7 +601,11 @@ function toItemTimeSaleDraft(timeSale?: MenuEditorTimeSale | null): ItemTimeSale
     targets,
     startsAt: toLocalDateTimeInputValue(timeSale.startsAt),
     endsAt: toLocalDateTimeInputValue(timeSale.endsAt),
+    scheduleType: normalizeTimeSaleScheduleType(timeSale.scheduleType),
+    dailyStartTime: timeSale.dailyStartTime?.slice(0, 5) ?? "",
+    dailyEndTime: timeSale.dailyEndTime?.slice(0, 5) ?? "",
     timeDisplayMode: timeSale.timeDisplayMode ?? DEFAULT_TIME_SALE_DISPLAY_MODE,
+    displayText: timeSale.displayText ?? "",
     badgeText: timeSale.badgeText || DEFAULT_TIME_SALE_BADGE_TEXT,
     badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor),
     active: timeSale.active,
@@ -591,6 +616,15 @@ function normalizeItemTimeSaleDraft(value?: ItemTimeSaleDraft) {
   if (!value) {
     return null;
   }
+
+  const scheduleType = normalizeTimeSaleScheduleType(value.scheduleType);
+  const timeDisplayMode = normalizeTimeSaleDisplayMode(value.timeDisplayMode);
+  const dailyStartTime = scheduleType === "daily_window" ? normalizeDailyTime(value.dailyStartTime)?.slice(0, 5) ?? "" : "";
+  const dailyEndTime = scheduleType === "daily_window" ? normalizeDailyTime(value.dailyEndTime)?.slice(0, 5) ?? "" : "";
+  const displayText =
+    timeDisplayMode === "message" || timeDisplayMode === "message_and_countdown"
+      ? normalizeTimeSaleDisplayTextForDraft(value.displayText)
+      : "";
 
   return {
     enabled: Boolean(value.enabled),
@@ -607,7 +641,11 @@ function normalizeItemTimeSaleDraft(value?: ItemTimeSaleDraft) {
       .sort((a, b) => String(a.priceColumnId ?? "").localeCompare(String(b.priceColumnId ?? ""))),
     startsAt: normalizeDraftText(value.startsAt),
     endsAt: normalizeDraftText(value.endsAt),
-    timeDisplayMode: value.timeDisplayMode === "countdown" ? "countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE,
+    scheduleType,
+    dailyStartTime,
+    dailyEndTime,
+    timeDisplayMode,
+    displayText,
     badgeText: normalizeDraftText(value.badgeText) || DEFAULT_TIME_SALE_BADGE_TEXT,
     badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(value.badgeBackgroundColor),
     active: Boolean(value.active),
@@ -2567,9 +2605,15 @@ function MenuItemForm({
   const [timeSaleTargets, setTimeSaleTargets] = useState<ItemTimeSaleTargetDraft[]>(draftItem?.timeSale?.targets ?? []);
   const [timeSaleStartsAt, setTimeSaleStartsAt] = useState(draftItem?.timeSale?.startsAt ?? "");
   const [timeSaleEndsAt, setTimeSaleEndsAt] = useState(draftItem?.timeSale?.endsAt ?? "");
-  const [timeSaleDisplayMode, setTimeSaleDisplayMode] = useState<TimeSaleDisplayMode>(
-    draftItem?.timeSale?.timeDisplayMode ?? DEFAULT_TIME_SALE_DISPLAY_MODE
+  const [timeSaleScheduleType, setTimeSaleScheduleType] = useState<TimeSaleScheduleType>(
+    normalizeTimeSaleScheduleType(draftItem?.timeSale?.scheduleType)
   );
+  const [timeSaleDailyStartTime, setTimeSaleDailyStartTime] = useState(draftItem?.timeSale?.dailyStartTime ?? "");
+  const [timeSaleDailyEndTime, setTimeSaleDailyEndTime] = useState(draftItem?.timeSale?.dailyEndTime ?? "");
+  const [timeSaleDisplayMode, setTimeSaleDisplayMode] = useState<TimeSaleDisplayMode>(
+    normalizeTimeSaleDisplayMode(draftItem?.timeSale?.timeDisplayMode ?? DEFAULT_TIME_SALE_DISPLAY_MODE)
+  );
+  const [timeSaleDisplayText, setTimeSaleDisplayText] = useState(draftItem?.timeSale?.displayText ?? "");
   const [timeSaleBadgeText, setTimeSaleBadgeText] = useState(draftItem?.timeSale?.badgeText ?? DEFAULT_TIME_SALE_BADGE_TEXT);
   const [timeSaleBadgeBackgroundColor, setTimeSaleBadgeBackgroundColor] = useState(
     normalizeTimeSaleBadgeBackgroundColor(draftItem?.timeSale?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR)
@@ -2701,6 +2745,34 @@ function MenuItemForm({
     .find(Boolean) ?? "";
   const timeSaleStartsAtMs = timeSaleStartsAt ? new Date(timeSaleStartsAt).getTime() : NaN;
   const timeSaleEndsAtMs = timeSaleEndsAt ? new Date(timeSaleEndsAt).getTime() : NaN;
+  const normalizedTimeSaleDailyStartTime = normalizeDailyTime(timeSaleDailyStartTime);
+  const normalizedTimeSaleDailyEndTime = normalizeDailyTime(timeSaleDailyEndTime);
+  const timeSaleDailyStartMinutes = normalizedTimeSaleDailyStartTime
+    ? Number(normalizedTimeSaleDailyStartTime.slice(0, 2)) * 60 + Number(normalizedTimeSaleDailyStartTime.slice(3, 5))
+    : NaN;
+  const timeSaleDailyEndMinutes = normalizedTimeSaleDailyEndTime
+    ? Number(normalizedTimeSaleDailyEndTime.slice(0, 2)) * 60 + Number(normalizedTimeSaleDailyEndTime.slice(3, 5))
+    : NaN;
+  const normalizedTimeSaleDisplayText = normalizeTimeSaleDisplayTextForDraft(timeSaleDisplayText);
+  const timeSaleDisplayTextRequired =
+    timeSaleDisplayMode === "message" || timeSaleDisplayMode === "message_and_countdown";
+  const dailyWindowHasValidOccurrence =
+    timeSaleScheduleType !== "daily_window" ||
+    (
+      Number.isFinite(timeSaleStartsAtMs) &&
+      getNextTimeSaleStartMs(
+        {
+          active: true,
+          scheduleType: "daily_window",
+          startsAt: timeSaleStartsAt,
+          endsAt: timeSaleEndsAt,
+          dailyStartTime: normalizedTimeSaleDailyStartTime,
+          dailyEndTime: normalizedTimeSaleDailyEndTime,
+          timeZone: TIME_SALE_SCHEDULE_TIME_ZONE,
+        },
+        timeSaleStartsAtMs - 1
+      ) != null
+    );
   const timeSaleInvalidReason =
     canManageTimeSales && effectiveTimeSaleEnabled && !timeSaleEligible
       ? timeSaleBlockedMessage || "타임세일 설정 조건을 확인해주세요."
@@ -2718,6 +2790,18 @@ function MenuItemForm({
               ? "타임세일 시작/종료 일시를 입력해주세요."
               : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleEndsAtMs <= timeSaleStartsAtMs
                 ? "타임세일 종료 일시는 시작 일시보다 뒤여야 합니다."
+                : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleScheduleType === "daily_window" && (!normalizedTimeSaleDailyStartTime || !normalizedTimeSaleDailyEndTime)
+                  ? "매일 시작 시간과 종료 시간을 입력해주세요."
+                : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleScheduleType === "daily_window" && timeSaleDailyEndMinutes === timeSaleDailyStartMinutes
+                  ? "매일 종료 시간은 시작 시간보다 늦어야 합니다."
+                : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleScheduleType === "daily_window" && timeSaleDailyEndMinutes < timeSaleDailyStartMinutes
+                  ? "자정을 넘기는 반복 할인은 아직 지원하지 않습니다."
+                : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleScheduleType === "daily_window" && !dailyWindowHasValidOccurrence
+                  ? "행사 기간 안에 적용 가능한 반복 시간대가 없습니다."
+                : canManageTimeSales && effectiveTimeSaleEnabled && timeSaleDisplayTextRequired && !normalizedTimeSaleDisplayText
+                  ? "타임세일 표시 문구를 입력해주세요."
+                : canManageTimeSales && effectiveTimeSaleEnabled && normalizedTimeSaleDisplayText.length > TIME_SALE_DISPLAY_TEXT_MAX_LENGTH
+                  ? `타임세일 표시 문구는 ${TIME_SALE_DISPLAY_TEXT_MAX_LENGTH}자 이내로 입력해주세요.`
                 : "";
   const singlePriceInvalid = isSingleMode && (isDirectPriceTextMode ? !priceLabelValue.trim() : !priceValue.trim());
   const optionsPriceInvalid = isOptionsMode && !hasDraftPriceOption;
@@ -2811,18 +2895,10 @@ function MenuItemForm({
     draftImageState.imageAction !== (committedDraftItem?.imageAction ?? "keep") ||
     (canManageTimeSales &&
       !areItemTimeSaleDraftsEqual(
-        {
+        buildCurrentTimeSaleDraft({
           enabled: effectiveTimeSaleEnabled,
-          name: timeSaleName,
-          salePrice: timeSalePrice,
           targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : [],
-          startsAt: timeSaleStartsAt,
-          endsAt: timeSaleEndsAt,
-          timeDisplayMode: timeSaleDisplayMode,
-          badgeText: timeSaleBadgeText,
-          badgeBackgroundColor: timeSaleBadgeBackgroundColor,
-          active: timeSaleActive,
-        },
+        }),
         committedDraftItem?.timeSale
       )) ||
     normalizeDraftText(draftItem?.badgeBackgroundColor) !== normalizeDraftText(committedDraftItem?.badgeBackgroundColor) ||
@@ -2839,9 +2915,39 @@ function MenuItemForm({
     updateDraftItem({ badgeLabel: nextBadgeLabel });
   }
 
-  function updateDraftItem(patch: Partial<ItemBasicDraft>) {
+  function buildCurrentTimeSaleDraft(overrides: Partial<ItemTimeSaleDraft> = {}): ItemTimeSaleDraft {
+    const nextScheduleType = normalizeTimeSaleScheduleType(overrides.scheduleType ?? timeSaleScheduleType);
+    const nextDisplayMode = normalizeTimeSaleDisplayMode(overrides.timeDisplayMode ?? timeSaleDisplayMode);
+    const nextDailyStartTime = overrides.dailyStartTime ?? timeSaleDailyStartTime;
+    const nextDailyEndTime = overrides.dailyEndTime ?? timeSaleDailyEndTime;
+
+    return {
+      enabled: overrides.enabled ?? timeSaleEnabled,
+      name: overrides.name ?? timeSaleName,
+      salePrice: overrides.salePrice ?? timeSalePrice,
+      targets: overrides.targets ?? (hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets),
+      startsAt: overrides.startsAt ?? timeSaleStartsAt,
+      endsAt: overrides.endsAt ?? timeSaleEndsAt,
+      scheduleType: nextScheduleType,
+      dailyStartTime: nextScheduleType === "daily_window" ? nextDailyStartTime : "",
+      dailyEndTime: nextScheduleType === "daily_window" ? nextDailyEndTime : "",
+      timeDisplayMode: nextDisplayMode,
+      displayText:
+        nextDisplayMode === "message" || nextDisplayMode === "message_and_countdown"
+          ? overrides.displayText ?? timeSaleDisplayText
+          : "",
+      badgeText: overrides.badgeText ?? timeSaleBadgeText,
+      badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(overrides.badgeBackgroundColor ?? timeSaleBadgeBackgroundColor),
+      active: overrides.active ?? timeSaleActive,
+    };
+  }
+
+  function updateDraftItem(patch: ItemBasicDraftPatch) {
     onDraftCommitMessageClear?.();
-    onDraftItemChange?.(patch);
+    const nextPatch = patch.timeSale
+      ? ({ ...patch, timeSale: buildCurrentTimeSaleDraft(patch.timeSale) } satisfies Partial<ItemBasicDraft>)
+      : (patch as Partial<ItemBasicDraft>);
+    onDraftItemChange?.(nextPatch);
   }
 
   function getCurrentFormDraftPatch(): Partial<ItemBasicDraft> {
@@ -2906,23 +3012,24 @@ function MenuItemForm({
         : [],
       ...(canManageTimeSales
         ? {
-            timeSale: {
+            timeSale: buildCurrentTimeSaleDraft({
               enabled: nextSinglePriceInputMode === "text" ? false : formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
               name: String(formData?.get("item_time_sale_name") ?? timeSaleName),
               salePrice: String(formData?.get("item_time_sale_price") ?? timeSalePrice),
               targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : [],
               startsAt: String(formData?.get("item_time_sale_starts_at") ?? timeSaleStartsAt),
               endsAt: String(formData?.get("item_time_sale_ends_at") ?? timeSaleEndsAt),
-              timeDisplayMode:
-                String(formData?.get("item_time_sale_display_mode") ?? timeSaleDisplayMode) === "countdown"
-                  ? "countdown"
-                  : DEFAULT_TIME_SALE_DISPLAY_MODE,
+              scheduleType: normalizeTimeSaleScheduleType(formData?.get("item_time_sale_schedule_type") ?? timeSaleScheduleType),
+              dailyStartTime: String(formData?.get("item_time_sale_daily_start_time") ?? timeSaleDailyStartTime),
+              dailyEndTime: String(formData?.get("item_time_sale_daily_end_time") ?? timeSaleDailyEndTime),
+              timeDisplayMode: normalizeTimeSaleDisplayMode(formData?.get("item_time_sale_display_mode") ?? timeSaleDisplayMode),
+              displayText: normalizeTimeSaleDisplayTextForDraft(formData?.get("item_time_sale_display_text") ?? timeSaleDisplayText),
               badgeText: String(formData?.get("item_time_sale_badge_text") ?? timeSaleBadgeText),
               badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(
                 formData?.get("item_time_sale_badge_background_color") ?? timeSaleBadgeBackgroundColor
               ),
               active: formData ? formData.has("item_time_sale_active") : timeSaleActive,
-            },
+            }),
           }
         : {}),
       imageUrl: draftImageState.imageUrl,
@@ -3866,11 +3973,47 @@ function MenuItemForm({
                     </p>
                   </div>
                 ) : null}
+                <input type="hidden" form={formId} name="item_time_sale_schedule_type" value={timeSaleScheduleType} />
+                <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                  <FieldLabel>할인 일정</FieldLabel>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {[
+                      { value: "once" as const, label: "한 번만 적용", description: "정해진 시작/종료 일시에 한 번만 할인가를 적용합니다." },
+                      { value: "daily_window" as const, label: "매일 정해진 시간에 적용", description: "행사 기간 동안 매일 같은 시간대에 할인가를 적용합니다." },
+                    ].map((option) => {
+                      const selected = timeSaleScheduleType === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setTimeSaleScheduleType(option.value);
+                            updateDraftItem({ timeSale: { scheduleType: option.value } as Partial<ItemTimeSaleDraft> });
+                          }}
+                          className={`min-h-16 rounded-lg border px-4 py-3 text-left transition-colors ${
+                            selected
+                              ? "border-zinc-950 bg-white text-zinc-950 shadow-sm"
+                              : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-800"
+                          }`}
+                          aria-pressed={selected}
+                        >
+                          <span className="block text-sm font-black">{option.label}</span>
+                          <span className="mt-1 block break-keep text-xs font-bold leading-relaxed text-zinc-400">{option.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {timeSaleScheduleType === "daily_window" ? (
+                    <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                      설정한 행사 기간 동안 매일 같은 시간에 할인가가 적용됩니다. 예: 7월 15일부터 8월 14일까지 매일 오전 8시~10시
+                    </p>
+                  ) : null}
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <ValidatedTextInput
                     form={formId}
                     name="item_time_sale_starts_at"
-                    label="시작 일시"
+                    label={timeSaleScheduleType === "daily_window" ? "행사 시작일시" : "시작 일시"}
                     type="datetime-local"
                     defaultValue={timeSaleStartsAt}
                     placeholder="2026-07-07T10:00"
@@ -3895,7 +4038,7 @@ function MenuItemForm({
                   <ValidatedTextInput
                     form={formId}
                     name="item_time_sale_ends_at"
-                    label="종료 일시"
+                    label={timeSaleScheduleType === "daily_window" ? "행사 종료일시" : "종료 일시"}
                     type="datetime-local"
                     defaultValue={timeSaleEndsAt}
                     placeholder="2026-07-07T17:00"
@@ -3918,6 +4061,34 @@ function MenuItemForm({
                     }}
                   />
                 </div>
+                {timeSaleScheduleType === "daily_window" ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <ValidatedTextInput
+                      form={formId}
+                      name="item_time_sale_daily_start_time"
+                      label="매일 시작 시간"
+                      type="time"
+                      defaultValue={timeSaleDailyStartTime}
+                      placeholder="08:00"
+                      onValueChange={(value) => {
+                        setTimeSaleDailyStartTime(value);
+                        updateDraftItem({ timeSale: { dailyStartTime: value } as Partial<ItemTimeSaleDraft> });
+                      }}
+                    />
+                    <ValidatedTextInput
+                      form={formId}
+                      name="item_time_sale_daily_end_time"
+                      label="매일 종료 시간"
+                      type="time"
+                      defaultValue={timeSaleDailyEndTime}
+                      placeholder="10:00"
+                      onValueChange={(value) => {
+                        setTimeSaleDailyEndTime(value);
+                        updateDraftItem({ timeSale: { dailyEndTime: value } as Partial<ItemTimeSaleDraft> });
+                      }}
+                    />
+                  </div>
+                ) : null}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <FieldLabel>표시 방식</FieldLabel>
@@ -3926,7 +4097,7 @@ function MenuItemForm({
                       name="item_time_sale_display_mode"
                       value={timeSaleDisplayMode}
                       onChange={(event) => {
-                        const nextMode = event.target.value === "countdown" ? "countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE;
+                        const nextMode = normalizeTimeSaleDisplayMode(event.target.value);
                         setTimeSaleDisplayMode(nextMode);
                         updateDraftItem({
                           timeSale: {
@@ -3944,13 +4115,38 @@ function MenuItemForm({
                         });
                       }}
                     >
-                      <option value="deadline">문구 표시 · 오늘 17:00까지</option>
-                      <option value="countdown">카운트다운 · 00:42:18 남음</option>
+                      <option value="deadline">종료 일시 표시 · 오늘 17:00까지</option>
+                      <option value="countdown">남은 시간 카운트다운 · 00:42:18 남음</option>
+                      <option value="message">원하는 문구 · 매일 오전 8시부터 10시까지</option>
+                      <option value="message_and_countdown">문구 + 카운트다운 · 오늘만 특별 할인가 · 00:42:18 남음</option>
                     </Select>
                     <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                       문구 표시는 마감 시각을 차분하게 보여주고, 카운트다운은 남은 시간을 1초 단위로 보여줍니다.
                     </p>
                   </div>
+                  {timeSaleDisplayTextRequired ? (
+                    <ValidatedTextInput
+                      form={formId}
+                      name="item_time_sale_display_text"
+                      label="타임세일 표시 문구"
+                      defaultValue={timeSaleDisplayText}
+                      placeholder="예: 매일 오전 8시부터 10시까지"
+                      maxLength={TIME_SALE_DISPLAY_TEXT_MAX_LENGTH}
+                      helperText="타임세일이 적용되는 동안 시계 아이콘과 함께 표시됩니다."
+                      onValueChange={(value) => {
+                        const nextValue = value.replace(/[\r\n]+/g, " ");
+                        setTimeSaleDisplayText(nextValue);
+                        updateDraftItem({ timeSale: { displayText: nextValue } as Partial<ItemTimeSaleDraft> });
+                      }}
+                    />
+                  ) : null}
+                </div>
+                {timeSaleDisplayTextRequired ? (
+                  <p className="break-keep rounded-lg bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
+                    공개 표시 예: [시계] {normalizedTimeSaleDisplayText || "매일 오전 8시부터 10시까지"}
+                  </p>
+                ) : null}
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
                     <Checkbox
                       form={formId}

@@ -47,11 +47,13 @@ import { getPublicMenuUrl } from "@/lib/menu-url";
 import {
   getTimeSaleBadgeBackgroundColorFromSettings,
   getTimeSaleBadgeTextFromSettings,
+  getTimeSaleDisplayTextFromSettings,
   getTimeSaleDisplayModeFromSettings,
   isBasicTimeSaleTemplate,
   TIME_SALE_TYPE,
   type MenuEditorTimeSale,
 } from "@/lib/menu-time-sales";
+import { normalizeTimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getPublicPortOneConfig } from "@/lib/portone";
@@ -199,7 +201,16 @@ type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
 type MenuPromotion = Pick<
   Database["public"]["Tables"]["menu_promotions"]["Row"],
-  "id" | "name" | "active" | "starts_at" | "ends_at" | "timezone" | "settings"
+  | "id"
+  | "name"
+  | "active"
+  | "starts_at"
+  | "ends_at"
+  | "timezone"
+  | "settings"
+  | "schedule_type"
+  | "daily_start_time"
+  | "daily_end_time"
 >;
 type MenuPromotionItem = Pick<
   Database["public"]["Tables"]["menu_promotion_items"]["Row"],
@@ -494,7 +505,7 @@ function buildEditableTranslationFields({
 async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: promotionsData, error: promotionsError } = await supabase
     .from("menu_promotions")
-    .select("id, name, active, starts_at, ends_at, timezone, settings")
+    .select("id, name, active, starts_at, ends_at, timezone, settings, schedule_type, daily_start_time, daily_end_time")
     .eq("menu_site_id", menuId)
     .eq("type", TIME_SALE_TYPE)
     .order("created_at", { ascending: true });
@@ -557,7 +568,11 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
       startsAt: promotion.starts_at,
       endsAt: promotion.ends_at,
       timezone: promotion.timezone,
+      scheduleType: normalizeTimeSaleScheduleType(promotion.schedule_type),
+      dailyStartTime: promotion.daily_start_time,
+      dailyEndTime: promotion.daily_end_time,
       timeDisplayMode: getTimeSaleDisplayModeFromSettings(promotion.settings),
+      displayText: getTimeSaleDisplayTextFromSettings(promotion.settings),
       badgeText: getTimeSaleBadgeTextFromSettings(promotion.settings),
       badgeBackgroundColor: getTimeSaleBadgeBackgroundColorFromSettings(promotion.settings),
       item: promotionItem
