@@ -43,6 +43,7 @@ export default function DirtySubmitButton({
 }: DirtySubmitButtonProps) {
   const { pending } = useFormStatus();
   const initialSignatureRef = useRef<string | null>(null);
+  const wasPendingRef = useRef(false);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -91,6 +92,33 @@ export default function DirtySubmitButton({
       window.removeEventListener("tablescene:image-upload-draft-reset", updateDirtyState);
     };
   }, [formId, ignoredNames]);
+
+  useEffect(() => {
+    let resetFrameId = 0;
+
+    if (wasPendingRef.current && !pending) {
+      const params = new URLSearchParams(window.location.search);
+      const hasSuccessMessage = Boolean(params.get("message"));
+      const hasErrorMessage = Boolean(params.get("error"));
+
+      if (hasSuccessMessage && !hasErrorMessage) {
+        const form = document.getElementById(formId);
+
+        if (form instanceof HTMLFormElement) {
+          initialSignatureRef.current = getFormSignature(form, new Set(ignoredNames));
+          resetFrameId = window.requestAnimationFrame(() => {
+            setIsDirty(false);
+          });
+        }
+      }
+    }
+
+    wasPendingRef.current = pending;
+
+    return () => {
+      window.cancelAnimationFrame(resetFrameId);
+    };
+  }, [formId, ignoredNames, pending]);
 
   return (
     <button

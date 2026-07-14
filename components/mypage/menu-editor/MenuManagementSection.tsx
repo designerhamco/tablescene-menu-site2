@@ -952,6 +952,7 @@ function SubmitButton({
   disabled = false,
   loading = false,
   loadingLabel,
+  onSuccessfulSubmit,
   className: customClassName,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -959,8 +960,10 @@ function SubmitButton({
   tone?: "dark" | "light" | "danger" | "final";
   loading?: boolean;
   loadingLabel?: string;
+  onSuccessfulSubmit?: (message: string) => void;
 }) {
   const { pending } = useFormStatus();
+  const wasPendingRef = useRef(false);
   const className = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
@@ -971,6 +974,28 @@ function SubmitButton({
   const isSubmitButton = props.type !== "button";
   const isPending = isSubmitButton && pending;
   const isLoading = loading || isPending;
+
+  useEffect(() => {
+    let successFrameId = 0;
+
+    if (wasPendingRef.current && !isPending) {
+      const params = new URLSearchParams(window.location.search);
+      const successMessage = params.get("message");
+      const hasErrorMessage = Boolean(params.get("error"));
+
+      if (successMessage && !hasErrorMessage) {
+        successFrameId = window.requestAnimationFrame(() => {
+          onSuccessfulSubmit?.(successMessage);
+        });
+      }
+    }
+
+    wasPendingRef.current = isPending;
+
+    return () => {
+      window.cancelAnimationFrame(successFrameId);
+    };
+  }, [isPending, onSuccessfulSubmit]);
 
   return (
     <button
@@ -5318,6 +5343,10 @@ export default function MenuManagementSection({
     setMenuManagementDirtyState({ dirty: true, saveMessage: finalSaveMessage ?? null });
   }
 
+  const markMenuManagementApplied = useCallback((successMessage: string) => {
+    setMenuManagementDirtyState({ dirty: false, saveMessage: successMessage });
+  }, []);
+
   function updatePcTabletLayoutModeDraft(nextMode: PcTabletLayoutMode) {
     setPcTabletLayoutModeDraft(nextMode);
     markMenuManagementDirty();
@@ -8071,7 +8100,7 @@ export default function MenuManagementSection({
               >
                 샘플 메뉴로 되돌리기
               </button>
-              <SubmitButton tone="final" disabled={!menuManagementDirty}>
+              <SubmitButton tone="final" disabled={!menuManagementDirty} onSuccessfulSubmit={markMenuManagementApplied}>
                 저장
               </SubmitButton>
               {finalSaveMessage && !menuManagementDirty && (
