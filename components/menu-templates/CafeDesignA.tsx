@@ -19,6 +19,12 @@ import {
 } from "@/lib/menu-price-format";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { getReadableTextColorForTimeSaleBadge, normalizeTimeSaleBadgeBackgroundColor } from "@/lib/menu-time-sales";
+import {
+  getActiveTimeSaleWindowEndMs,
+  getNextTimeSaleBoundaryMs as getScheduleNextTimeSaleBoundaryMs,
+  isTimeSaleActiveAt,
+  type NormalizedTimeSaleSchedule,
+} from "@/lib/menu-time-sale-schedule";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
 import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
@@ -1994,10 +2000,20 @@ function getSafeDateMs(value: string | null | undefined) {
   return Number.isFinite(ms) ? ms : NaN;
 }
 
+function getTimeSaleSchedule(timeSale: PublicTimeSale): NormalizedTimeSaleSchedule {
+  return {
+    active: true,
+    scheduleType: timeSale.scheduleType,
+    startsAt: timeSale.startsAt,
+    endsAt: timeSale.endsAt,
+    dailyStartTime: timeSale.dailyStartTime,
+    dailyEndTime: timeSale.dailyEndTime,
+    timeZone: "Asia/Seoul",
+  };
+}
+
 function isTimeSaleCurrentlyActive(timeSale: PublicTimeSale, nowMs: number = Date.now()) {
-  const startsAtMs = getSafeDateMs(timeSale.startsAt);
-  const endsAtMs = getSafeDateMs(timeSale.endsAt);
-  return Number.isFinite(startsAtMs) && Number.isFinite(endsAtMs) && startsAtMs <= nowMs && endsAtMs > nowMs;
+  return isTimeSaleActiveAt(getTimeSaleSchedule(timeSale), nowMs);
 }
 
 function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], templateKey?: string | null, nowMs: number = Date.now()) {
@@ -2044,18 +2060,8 @@ function getNextTimeSaleBoundaryMs(
 
   let nextBoundaryMs = Number.POSITIVE_INFINITY;
   for (const promotion of timeSales) {
-    const startsAtMs = getSafeDateMs(promotion.startsAt);
-    const endsAtMs = getSafeDateMs(promotion.endsAt);
-    if (!Number.isFinite(startsAtMs) || !Number.isFinite(endsAtMs) || endsAtMs <= startsAtMs) continue;
-
-    if (nowMs < startsAtMs) {
-      nextBoundaryMs = Math.min(nextBoundaryMs, startsAtMs);
-      continue;
-    }
-
-    if (startsAtMs <= nowMs && nowMs < endsAtMs) {
-      nextBoundaryMs = Math.min(nextBoundaryMs, endsAtMs);
-    }
+    const boundaryMs = getScheduleNextTimeSaleBoundaryMs(getTimeSaleSchedule(promotion), nowMs);
+    if (boundaryMs != null) nextBoundaryMs = Math.min(nextBoundaryMs, boundaryMs);
   }
 
   return Number.isFinite(nextBoundaryMs) ? nextBoundaryMs : null;
@@ -2225,6 +2231,10 @@ function formatCountdownLabel(endsAtMs: number, nowMs: number) {
   return days > 0 ? `${days}일 ${clock} 남음` : `${clock} 남음`;
 }
 
+function getActiveTimeSaleEndMs(timeSale: PublicTimeSale, nowMs: number) {
+  return getActiveTimeSaleWindowEndMs(getTimeSaleSchedule(timeSale), nowMs);
+}
+
 function TimeSalePriceBlock({
   timeSale,
   originalPrice,
@@ -2300,27 +2310,40 @@ function TimeSaleBadge({ timeSale }: { timeSale: PublicTimeSale }) {
 }
 
 function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
-  const [nowMs, setNowMs] = useState<number | null>(null);
-  const endsAtMs = getSafeDateMs(timeSale.endsAt);
-  const deadlineLabel = formatTimeSaleDeadlineLabel(timeSale.endsAt, timeSale.timezone);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
     const updateNow = () => setNowMs(Date.now());
     updateNow();
 
-    if (timeSale.timeDisplayMode !== "countdown") return;
+    if (timeSale.timeDisplayMode !== "countdown" && timeSale.timeDisplayMode !== "message_and_countdown") return;
     const intervalId = window.setInterval(updateNow, 1000);
     return () => window.clearInterval(intervalId);
   }, [timeSale.timeDisplayMode]);
 
-  if (nowMs != null && !isTimeSaleCurrentlyActive(timeSale, nowMs)) {
+  if (!isTimeSaleCurrentlyActive(timeSale, nowMs)) {
     return null;
   }
 
-  const label =
-    timeSale.timeDisplayMode === "countdown" && nowMs != null && Number.isFinite(endsAtMs)
-      ? formatCountdownLabel(endsAtMs, nowMs)
-      : deadlineLabel;
+  const activeEndsAtMs = getActiveTimeSaleEndMs(timeSale, nowMs);
+  const displayText = timeSale.displayText?.trim() ?? "";
+  let label = "";
+
+  if (timeSale.timeDisplayMode === "message") {
+    label = displayText;
+  } else if (timeSale.timeDisplayMode === "message_and_countdown") {
+    if (displayText && activeEndsAtMs != null && activeEndsAtMs > nowMs) {
+      label = `${displayText} · ${formatCountdownLabel(activeEndsAtMs, nowMs)}`;
+    }
+  } else if (timeSale.timeDisplayMode === "countdown") {
+    if (activeEndsAtMs != null && activeEndsAtMs > nowMs) {
+      label = formatCountdownLabel(activeEndsAtMs, nowMs);
+    }
+  } else if (activeEndsAtMs != null && activeEndsAtMs > nowMs) {
+    label = formatTimeSaleDeadlineLabel(new Date(activeEndsAtMs).toISOString(), timeSale.timezone);
+  }
+
+  if (!label) return null;
 
   return (
     <span
