@@ -73,6 +73,7 @@ type CafeDesignATimeSaleMatch = {
   item?: PublicTimeSaleItem;
   optionItemsByPriceColumnId: Map<string, PublicTimeSaleItem>;
 };
+const CAFE_A_TIME_SALE_ACCENT = "#C62828";
 const FEATURED_CAROUSEL_INTERVAL_MS = 5000;
 const FEATURED_CAROUSEL_DRAG_START_THRESHOLD_PX = 6;
 const FEATURED_CAROUSEL_SWIPE_THRESHOLD_PX = 40;
@@ -2249,7 +2250,7 @@ function TimeSalePriceBlock({
   stacked?: boolean;
 }) {
   const [nowMs, setNowMs] = useState<number | null>(null);
-  const accentColor = normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor);
+  const accentColor = getCafeATimeSaleAccentColor(timeSale.badgeBackgroundColor);
 
   useEffect(() => {
     const updateNow = () => setNowMs(Date.now());
@@ -2289,8 +2290,12 @@ function TimeSalePriceBlock({
   );
 }
 
+function getCafeATimeSaleAccentColor(backgroundColor: PublicTimeSale["badgeBackgroundColor"]) {
+  return normalizeTimeSaleBadgeBackgroundColor(backgroundColor || CAFE_A_TIME_SALE_ACCENT);
+}
+
 function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundColor"]): CSSProperties {
-  const normalizedBackgroundColor = normalizeTimeSaleBadgeBackgroundColor(backgroundColor);
+  const normalizedBackgroundColor = getCafeATimeSaleAccentColor(backgroundColor);
   return {
     backgroundColor: normalizedBackgroundColor,
     borderColor: normalizedBackgroundColor,
@@ -2348,7 +2353,7 @@ function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
   return (
     <span
       className="cafe-a-time-sale-time-text menu-font-en mb-0.5 mt-[0.3125rem] flex w-fit items-center gap-[0.25rem] text-[0.64rem] font-black uppercase leading-snug tracking-[0.08em] tabular-nums"
-      style={{ color: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor) }}
+      style={{ color: getCafeATimeSaleAccentColor(timeSale.badgeBackgroundColor) }}
     >
       <Clock3 aria-hidden="true" focusable="false" className="cafe-a-time-sale-time-icon" strokeWidth={2} />
       <span className="tracking-normal">{label}</span>

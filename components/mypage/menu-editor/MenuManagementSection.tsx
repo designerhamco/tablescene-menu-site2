@@ -5109,19 +5109,7 @@ export default function MenuManagementSection({
   const reachedItemsPerCategoryLimit = itemsForCategory.length >= MENU_LIMITS.maxItemsPerCategory;
   const reachedItemsPerSiteLimit = draftedItems.length >= MENU_LIMITS.maxItemsPerSite;
   const reachedItemLimit = reachedItemsPerCategoryLimit || reachedItemsPerSiteLimit;
-  const timeSaleOwnerItemId = useMemo(
-    () =>
-      Object.entries(itemBasicDrafts).find(([itemId, draft]) => {
-        if (deletedItemIds.has(itemId)) return false;
-        if (canManageCategoryPriceColumns) {
-          const categoryPriceColumns = getCategoryPriceColumns(draft.categoryId ?? "");
-          const priceColumnValues = getItemPriceColumnValuesForColumns(draft.priceColumnValues, categoryPriceColumns);
-          if (priceColumnValues.some((value) => value.visible)) return false;
-        }
-        return draft.timeSale?.enabled === true;
-      })?.[0] ?? null,
-    [canManageCategoryPriceColumns, deletedItemIds, getCategoryPriceColumns, itemBasicDrafts]
-  );
+  const timeSaleOwnerItemId = null;
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
@@ -6841,6 +6829,9 @@ export default function MenuManagementSection({
     const nextPageDrafts: Record<string, PageBasicDraft> = {};
     const nextCategoryDrafts: Record<string, CategoryBasicDraft> = {};
     const nextItemDrafts: Record<string, ItemBasicDraft> = {};
+    const itemDraftIdByName = new Map<string, string>();
+    const itemCategoryDraftIdByName = new Map<string, string>();
+    const priceColumnDraftIdByCategoryAndKey = new Map<string, string>();
     let firstPageId = "";
     let firstCategoryId = "";
 
@@ -6863,21 +6854,56 @@ export default function MenuManagementSection({
       page.categories.forEach((category, categoryIndex) => {
         const categoryId = `temp-category-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}`;
         if (!firstCategoryId) firstCategoryId = categoryId;
+        const categoryPriceColumnDrafts =
+          canManageCategoryPriceColumns
+            ? (category.price_columns ?? [])
+                .slice(0, maxCategoryPriceColumns)
+                .map((column, columnIndex) => {
+                  const key = column.key || getCategoryPriceColumnKey(column.label, columnIndex);
+                  const columnId = `temp-price-column-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}-${key}`;
+                  priceColumnDraftIdByCategoryAndKey.set(`${categoryId}:${key}`, columnId);
+                  return {
+                    id: columnId,
+                    key,
+                    label: column.label,
+                    visible: column.visible !== false,
+                    sortOrder: columnIndex,
+                  } satisfies CategoryPriceColumnDraft;
+                })
+            : [];
 
         nextCategoryDrafts[categoryId] = {
           isNew: true,
           pageId,
           name: category.name,
-          description: "",
-          descriptionVisible: false,
+          description: capabilities.categoryDescription ? category.description ?? "" : "",
+          descriptionVisible: capabilities.categoryDescription ? Boolean(category.description && (category.description_visible ?? true)) : false,
           visible: true,
           sortOrder: categoryIndex,
-          priceColumns: [],
+          priceColumns: categoryPriceColumnDrafts,
         };
 
         category.items.forEach((starterItem, itemIndex) => {
           const badgeLabel = capabilities.itemBadges ? starterItem.badge_label ?? (starterItem.recommended ? "추천" : "") : "";
           const itemId = `temp-item-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}-${itemIndex + 1}`;
+          itemDraftIdByName.set(starterItem.name, itemId);
+          itemCategoryDraftIdByName.set(starterItem.name, categoryId);
+          const priceColumnValues: ItemPriceColumnValueDraft[] =
+            canManageCategoryPriceColumns
+              ? (starterItem.price_column_values ?? [])
+                  .flatMap((value, valueIndex) => {
+                    const columnId = priceColumnDraftIdByCategoryAndKey.get(`${categoryId}:${value.key}`);
+                    if (!columnId || value.price == null) return [];
+                    return [{
+                      id: `temp-price-column-value-sample-${resetSeed}-${pageIndex + 1}-${categoryIndex + 1}-${itemIndex + 1}-${value.key}`,
+                      priceColumnId: columnId,
+                      price: String(value.price),
+                      priceLabel: "",
+                      visible: value.visible !== false,
+                      sortOrder: valueIndex,
+                    } satisfies ItemPriceColumnValueDraft];
+                  })
+              : [];
 
           nextItemDrafts[itemId] = {
             categoryId,
@@ -6892,7 +6918,7 @@ export default function MenuManagementSection({
             price: starterItem.price == null ? "" : String(starterItem.price),
             priceLabel: canManageCategoryPriceColumns ? "" : starterItem.price_label ?? "",
             singlePriceInputMode: "number",
-            priceNote: "",
+            priceNote: supportsPriceNote && priceColumnValues.length === 0 ? starterItem.price_note ?? "" : "",
             badgeLabel,
             visible: starterPreset.sample_items_visible ?? true,
             sortOrder: itemIndex,
@@ -6911,10 +6937,60 @@ export default function MenuManagementSection({
                   sortOrder: optionIndex,
                 }))
               : undefined,
-            priceColumnValues: [],
+            priceColumnValues,
           };
         });
       });
+    });
+
+    const timeSaleWindowStart = new Date();
+    const timeSaleWindowEnd = new Date(timeSaleWindowStart.getTime());
+    timeSaleWindowEnd.setDate(timeSaleWindowEnd.getDate() + 30);
+    const timeSaleStartsAt = toLocalDateTimeInputValue(timeSaleWindowStart.toISOString());
+    const timeSaleEndsAt = toLocalDateTimeInputValue(timeSaleWindowEnd.toISOString());
+
+    (starterPreset.time_sales ?? []).forEach((timeSale) => {
+      const firstTarget = timeSale.targets?.[0];
+      const ownerItemName = firstTarget?.target_item_name ?? "";
+      const ownerItemId = itemDraftIdByName.get(ownerItemName);
+      const ownerCategoryId = itemCategoryDraftIdByName.get(ownerItemName);
+      if (!ownerItemId || !ownerCategoryId) return;
+
+      const targets: ItemTimeSaleTargetDraft[] = (timeSale.targets ?? [])
+        .filter((target) => target.target_item_name === ownerItemName)
+        .flatMap((target) => {
+          const priceColumnId = target.target_price_column_key
+            ? priceColumnDraftIdByCategoryAndKey.get(`${ownerCategoryId}:${target.target_price_column_key}`) ?? null
+            : null;
+          if (target.target_price_column_key && !priceColumnId) return [];
+          return [{
+            priceColumnId,
+            salePrice: String(target.sale_price),
+            salePriceLabel: null,
+            visible: true,
+          } satisfies ItemTimeSaleTargetDraft];
+        });
+      if (targets.length === 0) return;
+
+      nextItemDrafts[ownerItemId] = {
+        ...nextItemDrafts[ownerItemId],
+        timeSale: {
+          enabled: true,
+          name: timeSale.name || "타임세일",
+          salePrice: targets.find((target) => target.priceColumnId === null)?.salePrice ?? targets[0]?.salePrice ?? "",
+          targets,
+          startsAt: timeSaleStartsAt,
+          endsAt: timeSaleEndsAt,
+          scheduleType: normalizeTimeSaleScheduleType(timeSale.schedule_type),
+          dailyStartTime: timeSale.daily_start_time?.slice(0, 5) ?? "",
+          dailyEndTime: timeSale.daily_end_time?.slice(0, 5) ?? "",
+          timeDisplayMode: normalizeTimeSaleDisplayMode(timeSale.time_display_mode ?? DEFAULT_TIME_SALE_DISPLAY_MODE),
+          displayText: timeSale.time_display_text ?? "",
+          badgeText: timeSale.badge_text || DEFAULT_TIME_SALE_BADGE_TEXT,
+          badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(timeSale.badge_background_color ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR),
+          active: true,
+        },
+      };
     });
 
     setPageBasicDrafts(canManagePages ? nextPageDrafts : {});
@@ -7993,7 +8069,7 @@ export default function MenuManagementSection({
                 title={sampleResetDisabledReason || undefined}
                 className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
               >
-                샘플로 되돌리기
+                샘플 메뉴로 되돌리기
               </button>
               <SubmitButton tone="final" disabled={!menuManagementDirty}>
                 저장
@@ -8243,7 +8319,7 @@ export default function MenuManagementSection({
               className="w-full max-w-md rounded-xl border border-red-100 bg-white p-6 shadow-xl"
             >
               <h2 id="menu-sample-reset-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
-                메뉴 관리 내용을 샘플로 되돌릴까요?
+                메뉴 관리 내용을 샘플 메뉴로 되돌릴까요?
               </h2>
               <div className="mt-3 space-y-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">
                 <p>현재 메뉴 관리 탭에서 편집 중인 페이지, 카테고리, 메뉴 아이템 내용이 선택한 템플릿의 샘플 데이터로 바뀝니다.</p>
@@ -8265,7 +8341,7 @@ export default function MenuManagementSection({
                   loadingLabel="적용 중..."
                   onClick={resetMenuManagementToStarterDraft}
                 >
-                  샘플로 되돌리기
+                  샘플 메뉴로 되돌리기
                 </SubmitButton>
               </div>
             </div>

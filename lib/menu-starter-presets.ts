@@ -11,6 +11,15 @@ import {
   type TemplateCategoryKey,
 } from "@/lib/templates";
 import { MENU_LIMITS } from "@/lib/menu-limits";
+import {
+  DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
+  DEFAULT_TIME_SALE_BADGE_TEXT,
+  DEFAULT_TIME_SALE_DISPLAY_MODE,
+  TIME_SALE_TIMEZONE,
+  TIME_SALE_TYPE,
+  type TimeSaleDisplayMode,
+} from "@/lib/menu-time-sales";
+import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 
 export { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 
@@ -21,12 +30,14 @@ type StarterItem = {
   set_name?: string;
   price: number;
   price_label?: string | null;
+  price_note?: string | null;
   portion_label?: string;
   description: string;
   image_url?: string | null;
   badge_label?: string | null;
   recommended?: boolean;
   price_options?: StarterPriceOption[];
+  price_column_values?: StarterItemPriceColumnValue[];
 };
 
 type StarterPriceOption = {
@@ -35,9 +46,25 @@ type StarterPriceOption = {
   price_label?: string;
 };
 
+type StarterCategoryPriceColumn = {
+  key: string;
+  label: string;
+  visible?: boolean;
+};
+
+type StarterItemPriceColumnValue = {
+  key: string;
+  price?: number | null;
+  price_label?: string | null;
+  visible?: boolean;
+};
+
 type StarterCategory = {
   name: string;
   section_key?: MenuSectionKey;
+  description?: string | null;
+  description_visible?: boolean;
+  price_columns?: StarterCategoryPriceColumn[];
   items: StarterItem[];
 };
 
@@ -99,6 +126,25 @@ export type StarterFeaturedSlide = {
   sort_order: number;
 };
 
+export type StarterTimeSale = {
+  name: string;
+  targets?: StarterTimeSaleTarget[];
+  schedule_type?: TimeSaleScheduleType;
+  daily_start_time?: string | null;
+  daily_end_time?: string | null;
+  badge_text?: string;
+  badge_background_color?: string;
+  time_display_mode?: TimeSaleDisplayMode;
+  time_display_text?: string | null;
+};
+
+export type StarterTimeSaleTarget = {
+  target_item_name: string;
+  target_price_column_key?: string | null;
+  sale_price: number;
+  sale_price_label?: string | null;
+};
+
 export type ResolvedStarterFeaturedSlide = {
   id: string;
   image_url: string | null;
@@ -112,6 +158,7 @@ export type StarterPreset = {
   site: StarterSiteDefaults;
   featured_item_name?: string;
   featured_slides?: StarterFeaturedSlide[];
+  time_sales?: StarterTimeSale[];
   sample_items_visible?: boolean;
   chefs: StarterChef[];
   events: StarterEvent[];
@@ -130,8 +177,12 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 type MenuSiteUpdate = Database["public"]["Tables"]["menu_sites"]["Update"];
 type MenuPageInsert = Database["public"]["Tables"]["menu_pages"]["Insert"];
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
+type MenuCategoryPriceColumnInsert = Database["public"]["Tables"]["menu_category_price_columns"]["Insert"];
 type MenuItemInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
+type MenuItemPriceColumnValueInsert = Database["public"]["Tables"]["menu_item_price_column_values"]["Insert"];
 type MenuItemPriceOptionInsert = Database["public"]["Tables"]["menu_item_price_options"]["Insert"];
+type MenuPromotionInsert = Database["public"]["Tables"]["menu_promotions"]["Insert"];
+type MenuPromotionItemInsert = Database["public"]["Tables"]["menu_promotion_items"]["Insert"];
 type MenuChefInsert = Database["public"]["Tables"]["menu_chefs"]["Insert"];
 type MenuEventInsert = Database["public"]["Tables"]["menu_events"]["Insert"];
 type MenuSocialLinkInsert = Database["public"]["Tables"]["menu_social_links"]["Insert"];
@@ -222,6 +273,31 @@ function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefi
   return value.map((option) => ({ ...(option as StarterPriceOption) }));
 }
 
+function cloneStarterPriceColumns(value: unknown): StarterCategoryPriceColumn[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((column) => ({ ...(column as StarterCategoryPriceColumn) }));
+}
+
+function cloneStarterPriceColumnValues(value: unknown): StarterItemPriceColumnValue[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((columnValue) => ({ ...(columnValue as StarterItemPriceColumnValue) }));
+}
+
+function cloneStarterTimeSales(value: unknown): StarterTimeSale[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((timeSale) => ({ ...(timeSale as StarterTimeSale) }));
+}
+
+function getStarterTimeSaleCampaignWindow(now = new Date()) {
+  const start = Number.isFinite(now.getTime()) ? now : new Date();
+  const end = new Date(start.getTime());
+  end.setDate(end.getDate() + 30);
+  return {
+    startsAt: start.toISOString(),
+    endsAt: end.toISOString(),
+  };
+}
+
 function getStarterFeaturedItemNames(preset: StarterPreset) {
   const names = [
     preset.featured_item_name,
@@ -264,8 +340,9 @@ export function getFirstCompleteStarterFeaturedSlide(slides: ResolvedStarterFeat
 const cafeDesignAStarterPreset: StarterPreset = {
   key: "cafe",
   site: CAFE_DESIGN_A_STITCH_SAMPLE.site,
-  featured_item_name: "바질 크림 라떼",
+  featured_item_name: "제주 말차 크림 라떼",
   featured_slides: CAFE_DESIGN_A_STITCH_SAMPLE.featured_slides.map((slide) => ({ ...slide })),
+  time_sales: cloneStarterTimeSales(CAFE_DESIGN_A_STITCH_SAMPLE.time_sales),
   sample_items_visible: true,
   chefs: [],
   events: [],
@@ -278,18 +355,26 @@ const cafeDesignAStarterPreset: StarterPreset = {
         page.categories.map((category) => ({
           name: category.name,
           section_key: "section_key" in category ? (category.section_key as MenuSectionKey) : (page.legacy_section_key as MenuSectionKey),
-          items: category.items.map((menuItem) => ({
-            name: menuItem.name,
-            set_name: menuItem.set_name,
-            price: menuItem.price,
-            price_label: menuItem.price_label,
-            portion_label: "portion_label" in menuItem ? menuItem.portion_label : undefined,
-            description: menuItem.description,
-            image_url: "image_url" in menuItem ? menuItem.image_url : undefined,
-            badge_label: "badge_label" in menuItem ? menuItem.badge_label : undefined,
-            recommended: "recommended" in menuItem ? menuItem.recommended : undefined,
-            price_options: "price_options" in menuItem ? cloneStarterPriceOptions(menuItem.price_options) : undefined,
-          })),
+          description: "description" in category ? category.description : undefined,
+          description_visible: "description_visible" in category ? category.description_visible : undefined,
+          price_columns: "price_columns" in category ? cloneStarterPriceColumns(category.price_columns) : undefined,
+          items: category.items.map((menuItem) => {
+            const sourceItem = menuItem as Partial<StarterItem> & Pick<StarterItem, "name" | "price" | "description">;
+            return {
+              name: sourceItem.name,
+              set_name: sourceItem.set_name,
+              price: sourceItem.price,
+              price_label: sourceItem.price_label,
+              price_note: sourceItem.price_note,
+              portion_label: sourceItem.portion_label,
+              description: sourceItem.description,
+              image_url: sourceItem.image_url,
+              badge_label: sourceItem.badge_label,
+              recommended: sourceItem.recommended,
+              price_options: cloneStarterPriceOptions(sourceItem.price_options),
+              price_column_values: cloneStarterPriceColumnValues(sourceItem.price_column_values),
+            };
+          }),
         }))
       ),
     },
@@ -1422,8 +1507,8 @@ export async function createStarterMenuData(
       menu_site_id: menuSiteId,
       menu_page_id: pageId ?? null,
       name: category.name,
-      description: null,
-      description_visible: true,
+      description: category.description ?? null,
+      description_visible: category.description_visible ?? Boolean(category.description),
       section_key: category.section_key ?? page.legacy_section_key,
       visible: true,
       sort_order: index + 1,
@@ -1440,6 +1525,42 @@ export async function createStarterMenuData(
   }
 
   const categoryIdByKey = new Map((categories ?? []).map((category) => [`${category.menu_page_id ?? ""}:${category.name}`, category.id]));
+  const categoryPriceColumnInserts: MenuCategoryPriceColumnInsert[] = preset.pages.flatMap((page) => {
+    const pageId = pageIdByTitle.get(page.title) ?? "";
+    return page.categories.flatMap((category) => {
+      const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`);
+      if (!categoryId || !category.price_columns?.length) return [];
+
+      return category.price_columns.map((column, index) => ({
+        menu_site_id: menuSiteId,
+        category_id: categoryId,
+        key: column.key,
+        label: column.label,
+        visible: column.visible ?? true,
+        sort_order: index,
+      }));
+    });
+  });
+
+  let insertedPriceColumns:
+    | Array<Pick<Database["public"]["Tables"]["menu_category_price_columns"]["Row"], "id" | "category_id" | "key">>
+    | null = null;
+  if (categoryPriceColumnInserts.length > 0) {
+    const { data, error } = await supabase
+      .from("menu_category_price_columns")
+      .insert(categoryPriceColumnInserts)
+      .select("id, category_id, key");
+
+    if (error && error.code !== "42P01" && !error.message.toLowerCase().includes("menu_category_price_columns")) {
+      throw new Error(`기본 가격 컬럼 생성에 실패했습니다: ${error.message}`);
+    }
+
+    insertedPriceColumns = data;
+  }
+
+  const priceColumnIdByKey = new Map(
+    (insertedPriceColumns ?? []).map((column) => [`${column.category_id}:${column.key}`, column.id])
+  );
   const itemInserts: MenuItemInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title) ?? "";
     return page.categories.flatMap((category) => {
@@ -1452,13 +1573,14 @@ export async function createStarterMenuData(
         description: menuItem.description,
         price: menuItem.price,
         price_label: menuItem.price_label ?? null,
+        price_note: menuItem.price_note ?? null,
         portion_label: menuItem.portion_label ?? null,
-        image_url: menuItem.image_url ?? STARTER_PLACEHOLDERS.item,
+        image_url: menuItem.image_url ?? (isCafeDesignATemplateKey(templateKey) ? null : STARTER_PLACEHOLDERS.item),
         image_path: null,
         badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
         recommended: menuItem.recommended ?? false,
         price_visible: true,
-        portion_visible: true,
+        portion_visible: Boolean(menuItem.portion_label),
         traits_visible: true,
         visible: starterMenuItemsVisible,
         sort_order: index + 1,
@@ -1537,6 +1659,39 @@ export async function createStarterMenuData(
     }
   }
 
+  const priceColumnValueInserts: MenuItemPriceColumnValueInsert[] = preset.pages.flatMap((page) => {
+    const pageId = pageIdByTitle.get(page.title) ?? "";
+    return page.categories.flatMap((category) => {
+      const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
+      return category.items.flatMap((menuItem) => {
+        const menuItemId = itemIdByKey.get(`${categoryId}:${menuItem.name}`);
+        if (!menuItemId || !menuItem.price_column_values?.length) return [];
+
+        return menuItem.price_column_values.flatMap((columnValue) => {
+          const priceColumnId = priceColumnIdByKey.get(`${categoryId}:${columnValue.key}`);
+          const hasPrice = typeof columnValue.price === "number" && Number.isFinite(columnValue.price);
+          if (!priceColumnId || !hasPrice) return [];
+
+          return [{
+            menu_item_id: menuItemId,
+            price_column_id: priceColumnId,
+            price: columnValue.price ?? null,
+            price_label: columnValue.price_label ?? null,
+            visible: columnValue.visible ?? true,
+          }];
+        });
+      });
+    });
+  });
+
+  if (priceColumnValueInserts.length > 0) {
+    const { error } = await supabase.from("menu_item_price_column_values").insert(priceColumnValueInserts);
+
+    if (error && error.code !== "42P01" && !error.message.toLowerCase().includes("menu_item_price_column_values")) {
+      throw new Error(`기본 옵션 컬럼 가격 생성에 실패했습니다: ${error.message}`);
+    }
+  }
+
   const priceOptionInserts: MenuItemPriceOptionInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title) ?? "";
     return page.categories.flatMap((category) => {
@@ -1568,6 +1723,93 @@ export async function createStarterMenuData(
       priceOptionsError.code !== "42P01"
     ) {
       throw new Error(`기본 가격 옵션 생성에 실패했습니다: ${priceOptionsError.message}`);
+    }
+  }
+
+  const starterTimeSales = preset.time_sales ?? [];
+  if (starterTimeSales.length > 0) {
+    const campaignWindow = getStarterTimeSaleCampaignWindow();
+
+    for (const timeSale of starterTimeSales) {
+      const resolvedTargets = (timeSale.targets ?? []).flatMap((saleTarget) => {
+        const targetItems = preset.pages.flatMap((page) => {
+          const pageId = pageIdByTitle.get(page.title) ?? "";
+          return page.categories.flatMap((category) => {
+            const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
+            const menuItemId = itemIdByKey.get(`${categoryId}:${saleTarget.target_item_name}`);
+            return menuItemId ? [{ categoryId, menuItemId }] : [];
+          });
+        });
+        const target = targetItems[0];
+        if (!target) return [];
+
+        const priceColumnId = saleTarget.target_price_column_key
+          ? priceColumnIdByKey.get(`${target.categoryId}:${saleTarget.target_price_column_key}`) ?? null
+          : null;
+        if (saleTarget.target_price_column_key && !priceColumnId) return [];
+
+        return [{
+          menuItemId: target.menuItemId,
+          priceColumnId,
+          salePrice: saleTarget.sale_price,
+          salePriceLabel: saleTarget.sale_price_label ?? null,
+        }];
+      });
+      if (resolvedTargets.length === 0) continue;
+
+      const promotionSettings: Record<string, Json> = {
+        time_display_mode: timeSale.time_display_mode ?? DEFAULT_TIME_SALE_DISPLAY_MODE,
+        badge_text: timeSale.badge_text ?? DEFAULT_TIME_SALE_BADGE_TEXT,
+        badge_background_color: timeSale.badge_background_color ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
+      };
+      if (timeSale.time_display_text) {
+        promotionSettings.time_display_text = timeSale.time_display_text;
+      }
+
+      const promotionPayload: MenuPromotionInsert = {
+        menu_site_id: menuSiteId,
+        type: TIME_SALE_TYPE,
+        name: timeSale.name,
+        active: true,
+        schedule_type: timeSale.schedule_type ?? "daily_window",
+        starts_at: campaignWindow.startsAt,
+        ends_at: campaignWindow.endsAt,
+        daily_start_time: timeSale.daily_start_time ?? null,
+        daily_end_time: timeSale.daily_end_time ?? null,
+        timezone: TIME_SALE_TIMEZONE,
+        settings: promotionSettings as Json,
+      };
+
+      const { data: promotion, error: promotionError } = await supabase
+        .from("menu_promotions")
+        .insert(promotionPayload)
+        .select("id")
+        .single();
+
+      if (promotionError) {
+        if (promotionError.code === "42P01" || promotionError.message.toLowerCase().includes("menu_promotions")) continue;
+        throw new Error(`기본 타임세일 생성에 실패했습니다: ${promotionError.message}`);
+      }
+
+      const promotionItemPayload: MenuPromotionItemInsert[] = resolvedTargets.map((target) => ({
+        promotion_id: promotion.id,
+        menu_item_id: target.menuItemId,
+        price_column_id: target.priceColumnId,
+        sale_price: target.salePrice,
+        sale_price_label: target.salePriceLabel,
+        visible: true,
+      }));
+      const { error: promotionItemError } = await supabase
+        .from("menu_promotion_items")
+        .insert(promotionItemPayload);
+
+      if (
+        promotionItemError &&
+        promotionItemError.code !== "42P01" &&
+        !promotionItemError.message.toLowerCase().includes("menu_promotion_items")
+      ) {
+        throw new Error(`기본 타임세일 대상 생성에 실패했습니다: ${promotionItemError.message}`);
+      }
     }
   }
 

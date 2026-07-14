@@ -7,6 +7,13 @@ import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
+import {
+  DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
+  DEFAULT_TIME_SALE_BADGE_TEXT,
+  DEFAULT_TIME_SALE_DISPLAY_MODE,
+  TIME_SALE_TIMEZONE,
+} from "@/lib/menu-time-sales";
+import { getNextTimeSaleStartMs } from "@/lib/menu-time-sale-schedule";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
@@ -32,6 +39,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const template = getTemplateByKey(templateKey);
   const preset = getStarterPreset(templateKey, template.categoryLabel, template.template_category);
   const now = new Date().toISOString();
+  const timeSaleCampaignEnd = new Date(new Date(now).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const siteId = `template-preview-${template.key}`;
 
   const pages: MenuPageData["pages"] = preset.pages.map((page, pageIndex) => ({
@@ -49,25 +57,49 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const categories: MenuPageData["categories"] = [];
   const items: MenuPageData["items"] = [];
   const priceOptions: MenuPageData["priceOptions"] = [];
+  const priceColumnIdByCategoryKey = new Map<string, string>();
 
   preset.pages.forEach((page, pageIndex) => {
     const pageId = pages[pageIndex]?.id ?? null;
 
     page.categories.forEach((category, categoryIndex) => {
       const categoryId = `${siteId}-category-${pageIndex}-${categoryIndex}`;
+      const priceColumns = (category.price_columns ?? []).map((column, columnIndex) => {
+        const priceColumnId = `${categoryId}-price-column-${column.key}`;
+        priceColumnIdByCategoryKey.set(`${categoryId}:${column.key}`, priceColumnId);
+        return {
+          id: priceColumnId,
+          categoryId,
+          key: column.key,
+          label: column.label,
+          sortOrder: columnIndex,
+          visible: column.visible ?? true,
+        };
+      });
       categories.push({
         id: categoryId,
         menu_page_id: pageId,
         name: category.name,
-        description: null,
-        description_visible: true,
+        description: category.description ?? null,
+        description_visible: category.description_visible ?? Boolean(category.description),
         sort_order: categoryIndex + 1,
         visible: true,
-        priceColumns: [],
+        priceColumns,
       });
 
       category.items.forEach((menuItem, itemIndex) => {
         const itemId = `${siteId}-item-${pageIndex}-${categoryIndex}-${itemIndex}`;
+        const priceColumnValues = (menuItem.price_column_values ?? []).flatMap((columnValue) => {
+          const priceColumnId = priceColumnIdByCategoryKey.get(`${categoryId}:${columnValue.key}`);
+          if (!priceColumnId || columnValue.price == null) return [];
+          return [{
+            id: `${itemId}-price-column-value-${columnValue.key}`,
+            priceColumnId,
+            price: columnValue.price,
+            priceLabel: columnValue.price_label ?? null,
+            visible: columnValue.visible ?? true,
+          }];
+        });
         items.push({
           id: itemId,
           category_id: categoryId,
@@ -76,7 +108,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           description: menuItem.description,
           price: menuItem.price,
           price_label: menuItem.price_label ?? null,
-          priceNote: null,
+          priceNote: menuItem.price_note ?? null,
           price_visible: true,
           portion_label: menuItem.portion_label ?? null,
           portion_visible: Boolean(menuItem.portion_label),
@@ -91,7 +123,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           traits_visible: true,
           visible: true,
           sort_order: itemIndex + 1,
-          priceColumnValues: [],
+          priceColumnValues,
         });
 
         menuItem.price_options?.forEach((option, optionIndex) => {
@@ -120,6 +152,56 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     featured_item_id: firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null,
     ...(featuredSlides.length > 0 ? { featured_slides: featuredSlides } : {}),
   };
+  const timeSales: MenuPageData["timeSales"] = (preset.time_sales ?? []).flatMap((timeSale, promotionIndex) => {
+    const saleItems = (timeSale.targets ?? []).flatMap((saleTarget, targetIndex) => {
+      const item = items.find((candidate) => candidate.name === saleTarget.target_item_name);
+      if (!item) return [];
+
+      const priceColumnId = saleTarget.target_price_column_key
+        ? priceColumnIdByCategoryKey.get(`${item.category_id}:${saleTarget.target_price_column_key}`) ?? null
+        : null;
+      if (saleTarget.target_price_column_key && !priceColumnId) return [];
+
+      return [{
+        id: `${siteId}-time-sale-${promotionIndex}-item-${targetIndex}`,
+        menuItemId: item.id,
+        priceColumnId,
+        salePrice: saleTarget.sale_price,
+        salePriceLabel: saleTarget.sale_price_label ?? null,
+        visible: true,
+      }];
+    });
+    if (saleItems.length === 0) return [];
+
+    return [{
+      id: `${siteId}-time-sale-${promotionIndex}`,
+      name: timeSale.name,
+      scheduleType: timeSale.schedule_type ?? "daily_window",
+      startsAt: now,
+      endsAt: timeSaleCampaignEnd,
+      dailyStartTime: timeSale.daily_start_time ?? null,
+      dailyEndTime: timeSale.daily_end_time ?? null,
+      timezone: TIME_SALE_TIMEZONE,
+      timeDisplayMode: timeSale.time_display_mode ?? DEFAULT_TIME_SALE_DISPLAY_MODE,
+      displayText: timeSale.time_display_text ?? null,
+      badgeText: timeSale.badge_text ?? DEFAULT_TIME_SALE_BADGE_TEXT,
+      badgeBackgroundColor: timeSale.badge_background_color ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
+      items: saleItems,
+    }];
+  });
+  const nextTimeSaleStartMs = timeSales.reduce<number | null>((nextStart, timeSale) => {
+    const startMs = getNextTimeSaleStartMs({
+      active: true,
+      scheduleType: timeSale.scheduleType,
+      startsAt: timeSale.startsAt,
+      endsAt: timeSale.endsAt,
+      dailyStartTime: timeSale.dailyStartTime,
+      dailyEndTime: timeSale.dailyEndTime,
+      timeZone: "Asia/Seoul",
+    }, Date.now());
+    if (startMs == null) return nextStart;
+    return nextStart == null ? startMs : Math.min(nextStart, startMs);
+  }, null);
 
   return {
     locale: DEFAULT_LOCALE,
@@ -197,8 +279,8 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       visible: true,
       sort_order: index + 1,
     })),
-    timeSales: [],
-    nextTimeSaleStartAt: null,
+    timeSales,
+    nextTimeSaleStartAt: nextTimeSaleStartMs == null ? null : new Date(nextTimeSaleStartMs).toISOString(),
     featuredSlides: featuredSlides.flatMap((slide) => {
       const item = slide.featured_item_id ? items.find((menuItem) => menuItem.id === slide.featured_item_id) : null;
       if (!slide.image_url || !item || item.visible === false) return [];

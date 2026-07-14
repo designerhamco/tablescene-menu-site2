@@ -129,7 +129,7 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
         title={disabled ? "이 템플릿의 커버 이미지 샘플 데이터를 찾을 수 없습니다." : undefined}
         className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
       >
-        샘플로 되돌리기
+        커버 샘플로 되돌리기
       </button>
 
       {open && (
@@ -159,7 +159,7 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
                 onClick={applySampleDraft}
                 className="inline-flex w-full items-center justify-center rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 sm:w-auto"
               >
-                샘플로 되돌리기
+                커버 샘플로 되돌리기
               </button>
             </div>
           </div>
