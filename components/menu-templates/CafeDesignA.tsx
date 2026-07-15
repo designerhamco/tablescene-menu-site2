@@ -2666,7 +2666,7 @@ function CategoryTitle({
           </div>
         ) : null}
       </div>
-      <div className="cafe-a-category-rule mt-2 border-b border-[#191c1b]" />
+      <div className="cafe-a-category-rule mt-2 border-b border-[#D9D9D9]" />
       {category.description_visible && category.description && (
         <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>{category.description}</p>
       )}
