@@ -872,5 +872,6 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
     socialLinks: [],
     timeSales: [],
     nextTimeSaleStartAt: null,
+    initialNowMs: Date.now(),
   };
 }

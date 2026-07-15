@@ -38,7 +38,8 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
 
   const template = getTemplateByKey(templateKey);
   const preset = getStarterPreset(templateKey, template.categoryLabel, template.template_category);
-  const now = new Date().toISOString();
+  const initialNowMs = Date.now();
+  const now = new Date(initialNowMs).toISOString();
   const siteId = `template-preview-${template.key}`;
 
   const pages: MenuPageData["pages"] = preset.pages.map((page, pageIndex) => ({
@@ -204,7 +205,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       dailyStartTime: timeSale.dailyStartTime,
       dailyEndTime: timeSale.dailyEndTime,
       timeZone: "Asia/Seoul",
-    }, Date.now());
+    }, initialNowMs);
     if (startMs == null) return nextStart;
     return nextStart == null ? startMs : Math.min(nextStart, startMs);
   }, null);
@@ -287,6 +288,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     })),
     timeSales,
     nextTimeSaleStartAt: nextTimeSaleStartMs == null ? null : new Date(nextTimeSaleStartMs).toISOString(),
+    initialNowMs,
     featuredSlides: featuredSlides.flatMap((slide) => {
       const item = slide.featured_item_id ? items.find((menuItem) => menuItem.id === slide.featured_item_id) : null;
       if (!slide.image_url || !item || item.visible === false) return [];

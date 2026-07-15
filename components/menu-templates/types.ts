@@ -184,4 +184,5 @@ export type PublicMenuTemplateProps = {
   timeSales: PublicMenuTimeSale[];
   featuredSlides?: PublicFeaturedSlide[];
   nextTimeSaleStartAt: string | null;
+  initialNowMs: number;
 };

@@ -228,17 +228,18 @@ async function loadPublicTimeSales({
   menuSite,
   items,
   priceOptions,
+  nowMs,
 }: {
   supabase: SupabaseServerClient;
   menuSite: MenuSite;
   items: MenuItem[];
   priceOptions: MenuItemPriceOption[];
+  nowMs: number;
 }): Promise<PublicMenuTimeSale[]> {
   if (!shouldLoadTimeSales(menuSite) || items.length === 0) {
     return [];
   }
 
-  const nowMs = Date.now();
   const now = new Date(nowMs).toISOString();
   const itemsById = new Map(items.map((item) => [item.id, item]));
   const priceOptionItemIds = new Set(priceOptions.map((option) => option.menu_item_id));
@@ -389,17 +390,18 @@ async function loadNextPublicTimeSaleStartAt({
   menuSite,
   items,
   priceOptions,
+  nowMs,
 }: {
   supabase: SupabaseServerClient;
   menuSite: MenuSite;
   items: MenuItem[];
   priceOptions: MenuItemPriceOption[];
+  nowMs: number;
 }): Promise<string | null> {
   if (!shouldLoadTimeSales(menuSite) || items.length === 0) {
     return null;
   }
 
-  const nowMs = Date.now();
   const now = new Date(nowMs).toISOString();
   const itemsById = new Map(items.map((item) => [item.id, item]));
   const priceOptionItemIds = new Set(priceOptions.map((option) => option.menu_item_id));
@@ -785,6 +787,7 @@ async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, me
 
 async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOptions = {}, client?: SupabaseServerClient): Promise<MenuPageData | null> {
   const supabase = client ?? await createClient();
+  const initialNowMs = Date.now();
   const pageSettings = mergePageSettings(menuSite.page_settings);
   const enabledLocales = getEnabledLocales(menuSite.settings);
   const locale = getEffectiveLocale(options.locale ?? DEFAULT_LOCALE, enabledLocales);
@@ -1001,12 +1004,14 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     menuSite,
     items: itemsWithPriceColumnValues,
     priceOptions,
+    nowMs: initialNowMs,
   });
   const nextTimeSaleStartAt = await loadNextPublicTimeSaleStartAt({
     supabase,
     menuSite,
     items: itemsWithPriceColumnValues,
     priceOptions,
+    nowMs: initialNowMs,
   });
 
   const data = {
@@ -1026,6 +1031,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     socialLinks: (socialLinksData ?? []) as MenuPageData["socialLinks"],
     timeSales,
     nextTimeSaleStartAt,
+    initialNowMs,
   };
 
   return applyMenuTranslations(supabase, data, locale);

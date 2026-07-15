@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 import { Clock3, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -78,6 +78,16 @@ type CafeMenuImagePreview = {
   title: string;
   secondaryTitle?: string | null;
 };
+
+const CafeATimeSaleInitialNowContext = createContext(0);
+
+function normalizeInitialNowMs(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function useCafeATimeSaleInitialNowMs() {
+  return useContext(CafeATimeSaleInitialNowContext);
+}
 const CAFE_A_TIME_SALE_ACCENT = "#C62828";
 const FEATURED_CAROUSEL_INTERVAL_MS = 5000;
 const FEATURED_CAROUSEL_DRAG_START_THRESHOLD_PX = 6;
@@ -2018,11 +2028,11 @@ function getTimeSaleSchedule(timeSale: PublicTimeSale): NormalizedTimeSaleSchedu
   };
 }
 
-function isTimeSaleCurrentlyActive(timeSale: PublicTimeSale, nowMs: number = Date.now()) {
+function isTimeSaleCurrentlyActive(timeSale: PublicTimeSale, nowMs: number) {
   return isTimeSaleActiveAt(getTimeSaleSchedule(timeSale), nowMs);
 }
 
-function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], templateKey?: string | null, nowMs: number = Date.now()) {
+function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], templateKey: string | null | undefined, nowMs: number) {
   const map = new Map<string, CafeDesignATimeSaleMatch>();
   if (!isCafeDesignATimeSaleTemplate(templateKey)) return map;
 
@@ -2059,8 +2069,8 @@ function getTimeSaleByItemId(timeSales: PublicMenuTemplateProps["timeSales"], te
 
 function getNextTimeSaleBoundaryMs(
   timeSales: PublicMenuTemplateProps["timeSales"],
-  templateKey?: string | null,
-  nowMs: number = Date.now(),
+  templateKey: string | null | undefined,
+  nowMs: number,
 ) {
   if (!isCafeDesignATimeSaleTemplate(templateKey)) return null;
 
@@ -2073,8 +2083,8 @@ function getNextTimeSaleBoundaryMs(
   return Number.isFinite(nextBoundaryMs) ? nextBoundaryMs : null;
 }
 
-function useTimeSaleBoundaryNowMs(timeSales: PublicMenuTemplateProps["timeSales"], templateKey?: string | null) {
-  const [nowMs, setNowMs] = useState(() => Date.now());
+function useTimeSaleBoundaryNowMs(timeSales: PublicMenuTemplateProps["timeSales"], templateKey: string | null | undefined, initialNowMs: number) {
+  const [nowMs, setNowMs] = useState(() => normalizeInitialNowMs(initialNowMs));
 
   useEffect(() => {
     if (!isCafeDesignATimeSaleTemplate(templateKey)) return;
@@ -2201,10 +2211,10 @@ function formatTwoDigit(value: number) {
   return String(value).padStart(2, "0");
 }
 
-function formatTimeSaleDeadlineLabel(endsAt: string, timezone: string) {
+function formatTimeSaleDeadlineLabel(endsAt: string, timezone: string, nowMs: number) {
   const timeZone = timezone || "Asia/Seoul";
   const target = getDatePartsInTimeZone(endsAt, timeZone);
-  const today = getDatePartsInTimeZone(new Date().toISOString(), timeZone);
+  const today = getDatePartsInTimeZone(new Date(nowMs).toISOString(), timeZone);
 
   if (![target.year, target.month, target.day, target.hour, target.minute].every(Number.isFinite)) {
     return "마감 시간까지";
@@ -2320,7 +2330,8 @@ function TimeSaleBadge({ timeSale }: { timeSale: PublicTimeSale }) {
 }
 
 function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
-  const [nowMs, setNowMs] = useState(() => Date.now());
+  const initialNowMs = useCafeATimeSaleInitialNowMs();
+  const [nowMs, setNowMs] = useState(() => initialNowMs);
 
   useEffect(() => {
     const updateNow = () => setNowMs(Date.now());
@@ -2350,7 +2361,7 @@ function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
       label = formatCountdownLabel(activeEndsAtMs, nowMs);
     }
   } else if (activeEndsAtMs != null && activeEndsAtMs > nowMs) {
-    label = formatTimeSaleDeadlineLabel(new Date(activeEndsAtMs).toISOString(), timeSale.timezone);
+    label = formatTimeSaleDeadlineLabel(new Date(activeEndsAtMs).toISOString(), timeSale.timezone, nowMs);
   }
 
   if (!label) return null;
@@ -2787,6 +2798,7 @@ function MenuItemRow({
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
+  const initialNowMs = useCafeATimeSaleInitialNowMs();
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const singleTimeSaleItem = timeSale?.item;
   const showTimeSale =
@@ -2800,7 +2812,7 @@ function MenuItemRow({
     singleTimeSaleItem.visible !== false &&
     singleTimeSaleItem.salePrice != null &&
     Number.isFinite(singleTimeSaleItem.salePrice) &&
-    isTimeSaleCurrentlyActive(timeSale.promotion);
+    isTimeSaleCurrentlyActive(timeSale.promotion, initialNowMs);
   const timeSalePrice = showTimeSale && singleTimeSaleItem ? getTimeSalePriceDisplay(singleTimeSaleItem, priceDisplayMode) : "";
   const priceTokensWithColumnTimeSale = usesPriceColumns
     ? priceTokens.map((token) => {
@@ -2810,7 +2822,7 @@ function MenuItemRow({
         const showColumnTimeSale =
           isCafeDesignATimeSaleTemplate(templateKey) &&
           timeSale &&
-          isTimeSaleCurrentlyActive(timeSale.promotion) &&
+          isTimeSaleCurrentlyActive(timeSale.promotion, initialNowMs) &&
           saleTarget?.visible !== false &&
           typeof originalPrice === "number" &&
           Number.isFinite(originalPrice) &&
@@ -4215,7 +4227,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings);
   const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
-  const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key);
+  const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
+  const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
   const timeSaleByItemId = useMemo(
     () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key, timeSaleBoundaryNowMs),
@@ -5633,7 +5646,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
 
   // CafeA skin shell: mobile scroll layout and desktop board share the same CafeA visual components.
   return (
-    <>
+    <CafeATimeSaleInitialNowContext.Provider value={initialNowMs}>
       <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
       <main
         className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
@@ -5801,7 +5814,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         </div>
       </main>
       <CafeMenuImageLightbox preview={menuImagePreview} onClose={closeMenuImagePreview} />
-    </>
+    </CafeATimeSaleInitialNowContext.Provider>
   );
 }
 
