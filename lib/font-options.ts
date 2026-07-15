@@ -469,8 +469,21 @@ const CAFE_NOIR_A_SAFE_ENGLISH_FONT_VALUES = [
   "aboreto",
 ] as const satisfies readonly EnglishFontValue[];
 
+const CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES = [
+  "lakki-reddy",
+  "playwrite-au-vic",
+  "boldonse",
+  "edu-sa-hand",
+  "edu-vic-wa-nt-hand-pre",
+  "rock-salt",
+] as const satisfies readonly EnglishFontValue[];
+
 const TEMPLATE_ENGLISH_FONT_ALLOWLISTS: Record<string, readonly EnglishFontValue[]> = {
   cafe_noir_a: CAFE_NOIR_A_SAFE_ENGLISH_FONT_VALUES,
+};
+
+const TEMPLATE_ENGLISH_FONT_HIDDEN_OPTIONS: Record<string, readonly EnglishFontValue[]> = {
+  cafe_design_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
 };
 
 const SYSTEM_ENGLISH_FONT_OPTIONS = [
@@ -556,12 +569,18 @@ function getTemplateEnglishFontAllowlist(templateKey?: string | null): readonly 
   return templateKey ? TEMPLATE_ENGLISH_FONT_ALLOWLISTS[templateKey] ?? null : null;
 }
 
+function getTemplateHiddenEnglishFontOptions(templateKey?: string | null): readonly EnglishFontValue[] {
+  return templateKey ? TEMPLATE_ENGLISH_FONT_HIDDEN_OPTIONS[templateKey] ?? [] : [];
+}
+
 export function getAvailableEnglishFontsForTemplate(templateKey?: string | null): readonly EnglishFontOption[] {
   const allowlist = getTemplateEnglishFontAllowlist(templateKey);
-  if (!allowlist) return ENGLISH_FONT_OPTIONS;
+  const hiddenOptions = getTemplateHiddenEnglishFontOptions(templateKey);
+  const hiddenValues = hiddenOptions.length > 0 ? new Set(hiddenOptions) : null;
+  if (!allowlist) return hiddenValues ? ENGLISH_FONT_OPTIONS.filter((option) => !hiddenValues.has(option.value)) : ENGLISH_FONT_OPTIONS;
 
   const safeValues = new Set(allowlist);
-  return ENGLISH_FONT_OPTIONS.filter((option) => safeValues.has(option.value));
+  return ENGLISH_FONT_OPTIONS.filter((option) => safeValues.has(option.value) && !hiddenValues?.has(option.value));
 }
 
 export function getSafeEnglishFontValueForTemplate(templateKey?: string | null, value?: unknown): EnglishFontValue {
