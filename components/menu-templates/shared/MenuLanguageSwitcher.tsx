@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe2 } from "lucide-react";
+import { ChevronDown, Globe2 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -12,7 +12,38 @@ type MenuLanguageSwitcherProps = {
   compact?: boolean;
   menuPlacement?: "top" | "bottom";
   extraSearchParams?: Record<string, string | null | undefined>;
+  triggerVariant?: "default" | "cafe";
 };
+
+const CAFE_TRIGGER_LOCALE_LABELS: Record<SupportedLocale, string> = {
+  ko: "KR",
+  en: "EN",
+  zh: "CN",
+  ja: "JP",
+};
+
+function CafeWireframeGlobeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9" />
+      <path d="M12 3c-2.5 2.5-4 5.5-4 9s1.5 6.5 4 9" />
+      <path d="M5.5 6.5C7.4 7.5 9.7 8 12 8s4.6-.5 6.5-1.5" />
+      <path d="M5.5 17.5C7.4 16.5 9.7 16 12 16s4.6.5 6.5 1.5" />
+    </svg>
+  );
+}
 
 export default function MenuLanguageSwitcher({
   currentLocale,
@@ -20,6 +51,7 @@ export default function MenuLanguageSwitcher({
   compact = false,
   menuPlacement = "bottom",
   extraSearchParams,
+  triggerVariant = "default",
 }: MenuLanguageSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -54,6 +86,17 @@ export default function MenuLanguageSwitcher({
 
   if (visibleLocales.length <= 1) return null;
 
+  const triggerClassName =
+    triggerVariant === "cafe"
+      ? `inline-flex cursor-pointer list-none items-center justify-center border border-transparent bg-transparent text-[#191c1b] shadow-none transition-colors hover:bg-black/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 [&::-webkit-details-marker]:hidden ${
+          compact ? "h-9 gap-1.5 rounded-md px-1.5 text-[13px] font-medium" : "h-10 gap-2 rounded-md px-2.5 text-xs font-bold"
+        }`
+      : `flex cursor-pointer list-none items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 [&::-webkit-details-marker]:hidden ${
+          compact ? "h-10 w-10" : "h-10 gap-2 px-3 text-xs font-black"
+        }`;
+  const iconClassName = triggerVariant === "cafe" ? "h-[18px] w-[18px]" : "h-5 w-5";
+  const chevronClassName = `h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`;
+
   const getLocaleHref = (locale: SupportedLocale) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("lang", locale);
@@ -72,17 +115,26 @@ export default function MenuLanguageSwitcher({
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        className={`flex cursor-pointer list-none items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 [&::-webkit-details-marker]:hidden ${
-          compact ? "h-10 w-10" : "h-10 gap-2 px-3 text-xs font-black"
-        }`}
+        className={triggerClassName}
         aria-label="언어 변경"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         title="언어 변경"
         onClick={() => setIsOpen((current) => !current)}
       >
-        <Globe2 className="h-5 w-5" aria-hidden="true" />
-        {!compact && <span>{LOCALE_LABELS[currentLocale]}</span>}
+        {triggerVariant === "cafe" ? (
+          <CafeWireframeGlobeIcon className={iconClassName} />
+        ) : (
+          <Globe2 className={iconClassName} strokeWidth={2} aria-hidden="true" />
+        )}
+        {triggerVariant === "cafe" ? (
+          <>
+            <span className="leading-none">{CAFE_TRIGGER_LOCALE_LABELS[currentLocale]}</span>
+            <ChevronDown className={chevronClassName} strokeWidth={1.8} aria-hidden="true" />
+          </>
+        ) : (
+          !compact && <span>{LOCALE_LABELS[currentLocale]}</span>
+        )}
       </button>
       {isOpen && (
         <div

@@ -2666,7 +2666,6 @@ function CategoryTitle({
           </div>
         ) : null}
       </div>
-      <div className="cafe-a-category-rule mt-2 border-b border-[#D9D9D9]" />
       {category.description_visible && category.description && (
         <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>{category.description}</p>
       )}
@@ -3299,7 +3298,7 @@ function CafeLanguageHoverControl({
   return (
     <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`}>
       <div>
-        <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact />
+        <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact triggerVariant="cafe" />
       </div>
     </div>
   );

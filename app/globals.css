@@ -202,7 +202,7 @@ video {
 }
 
 .cafe-a-typography {
-  --cafe-a-category-title-size: 1.234375rem;
+  --cafe-a-category-title-size: 1.296875rem;
   --cafe-a-menu-title-size: 1rem;
   --cafe-a-menu-meta-size: 0.75rem;
   --cafe-a-menu-description-size: 0.8125rem;
@@ -210,19 +210,19 @@ video {
 }
 
 .cafe-a-category-title-size-spacious {
-  --cafe-a-category-title-size: 1.3rem;
+  --cafe-a-category-title-size: 1.365rem;
 }
 
 .cafe-a-category-title-size-default {
-  --cafe-a-category-title-size: 1.234375rem;
+  --cafe-a-category-title-size: 1.296875rem;
 }
 
 .cafe-a-category-title-size-compact {
-  --cafe-a-category-title-size: 1.171875rem;
+  --cafe-a-category-title-size: 1.2305rem;
 }
 
 .cafe-a-category-title-size-ultra-compact {
-  --cafe-a-category-title-size: 1.105rem;
+  --cafe-a-category-title-size: 1.16rem;
 }
 
 .cafe-a-menu-title-size-spacious {
@@ -711,12 +711,8 @@ video {
     margin-bottom: clamp(0.45rem, calc(0.75rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 1rem);
   }
 
-  .cafe-a-typography .cafe-a-category-rule {
-    margin-top: clamp(0.25rem, calc(0.5rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 0.5rem);
-  }
-
   .cafe-a-typography .cafe-a-category-items {
-    padding-top: clamp(0.25rem, calc(0.42rem * var(--fit-menu-gap-scale) * var(--ordered-fit-final-fill-compensation)), 0.55rem);
+    padding-top: clamp(0.38rem, calc(0.58rem * var(--fit-menu-gap-scale) * var(--ordered-fit-final-fill-compensation)), 0.72rem);
   }
 
   .cafe-a-typography .cafe-a-price-column-header {
@@ -744,7 +740,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-category-items {
-    padding-top: clamp(0.3rem, calc(0.5rem * var(--fit-menu-gap-scale)), 0.62rem);
+    padding-top: clamp(0.4rem, calc(0.62rem * var(--fit-menu-gap-scale)), 0.76rem);
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] .cafe-a-menu-item-stack {
