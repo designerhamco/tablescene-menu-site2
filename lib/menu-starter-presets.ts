@@ -130,6 +130,7 @@ export type StarterTimeSale = {
   name: string;
   targets?: StarterTimeSaleTarget[];
   schedule_type?: TimeSaleScheduleType;
+  duration_minutes?: number;
   daily_start_time?: string | null;
   daily_end_time?: string | null;
   badge_text?: string;
@@ -288,10 +289,15 @@ function cloneStarterTimeSales(value: unknown): StarterTimeSale[] | undefined {
   return value.map((timeSale) => ({ ...(timeSale as StarterTimeSale) }));
 }
 
-function getStarterTimeSaleCampaignWindow(now = new Date()) {
+function getStarterTimeSaleCampaignWindow(timeSale?: StarterTimeSale, now = new Date()) {
   const start = Number.isFinite(now.getTime()) ? now : new Date();
   const end = new Date(start.getTime());
-  end.setDate(end.getDate() + 30);
+  const durationMinutes = timeSale?.duration_minutes;
+  if (typeof durationMinutes === "number" && Number.isFinite(durationMinutes) && durationMinutes > 0) {
+    end.setMinutes(end.getMinutes() + durationMinutes);
+  } else {
+    end.setDate(end.getDate() + 30);
+  }
   return {
     startsAt: start.toISOString(),
     endsAt: end.toISOString(),
@@ -1728,9 +1734,8 @@ export async function createStarterMenuData(
 
   const starterTimeSales = preset.time_sales ?? [];
   if (starterTimeSales.length > 0) {
-    const campaignWindow = getStarterTimeSaleCampaignWindow();
-
     for (const timeSale of starterTimeSales) {
+      const campaignWindow = getStarterTimeSaleCampaignWindow(timeSale);
       const resolvedTargets = (timeSale.targets ?? []).flatMap((saleTarget) => {
         const targetItems = preset.pages.flatMap((page) => {
           const pageId = pageIdByTitle.get(page.title) ?? "";

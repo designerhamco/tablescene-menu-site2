@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
-import { Clock3 } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
+import { Clock3, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
@@ -72,6 +72,11 @@ type CafeDesignATimeSaleMatch = {
   promotion: PublicTimeSale;
   item?: PublicTimeSaleItem;
   optionItemsByPriceColumnId: Map<string, PublicTimeSaleItem>;
+};
+type CafeMenuImagePreview = {
+  src: string;
+  title: string;
+  secondaryTitle?: string | null;
 };
 const CAFE_A_TIME_SALE_ACCENT = "#C62828";
 const FEATURED_CAROUSEL_INTERVAL_MS = 5000;
@@ -2767,6 +2772,7 @@ function MenuItemRow({
   customBadgeStyles,
   locale,
   priceDisplayMode,
+  onOpenImage,
 }: {
   item: MenuItem;
   category: MenuCategory;
@@ -2779,6 +2785,7 @@ function MenuItemRow({
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
+  onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const singleTimeSaleItem = timeSale?.item;
@@ -2880,6 +2887,18 @@ function MenuItemRow({
   const canCenterSparseContent = contentVariant !== "full" && !usesPriceColumns && !showMenuTimeSale && visibleTraits.length === 0 && !hasOriginInfo;
   const titleRowSpacingClassName = !hasContentAfterTitle ? "mb-0" : showMenuTimeSale && timeSale && !hasSecondaryText ? "mb-0" : "mb-0.5";
   const metaSpacingClassName = !hasContentAfterMeta ? "mb-0" : showMenuTimeSale && timeSale ? "mb-0" : "mb-0.5";
+  const handleOpenImage = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
+    if (!imageUrl || !onOpenImage) return;
+
+    onOpenImage(
+      {
+        src: imageUrl,
+        title: item.name,
+        secondaryTitle: trimmedMetaText || null,
+      },
+      event.currentTarget,
+    );
+  }, [imageUrl, item.name, onOpenImage, trimmedMetaText]);
 
   return (
     <article
@@ -2888,7 +2907,12 @@ function MenuItemRow({
       data-cafe-a-menu-item=""
     >
       {hasItemImage && (
-        <div className="cafe-a-menu-item-image-slot">
+        <button
+          type="button"
+          className="cafe-a-menu-item-image-slot"
+          onClick={handleOpenImage}
+          aria-label={`${item.name} 이미지 크게 보기`}
+        >
           <img
             src={imageUrl}
             alt={`${item.name} 이미지`}
@@ -2896,7 +2920,10 @@ function MenuItemRow({
             loading="lazy"
             decoding="async"
           />
-        </div>
+          <span className="cafe-a-menu-item-image-zoom" aria-hidden="true">
+            <ZoomIn className="h-3.5 w-3.5" strokeWidth={2} />
+          </span>
+        </button>
       )}
       <div className="cafe-a-menu-copy min-w-0">
         <div className={`cafe-a-menu-title-row ${titleRowSpacingClassName} flex flex-wrap items-center gap-1.5`}>
@@ -2979,6 +3006,98 @@ function MenuItemRow({
         </div>
       )}
     </article>
+  );
+}
+
+function CafeMenuImageLightbox({
+  preview,
+  onClose,
+}: {
+  preview: CafeMenuImagePreview | null;
+  onClose: () => void;
+}) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!preview) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusFrameId = window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus({ preventScroll: true });
+    });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key === "Tab") {
+        const focusableElements = Array.from(
+          dialogRef.current?.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          ) ?? [],
+        ).filter((element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true");
+        const firstFocusable = focusableElements[0];
+        const lastFocusable = focusableElements[focusableElements.length - 1];
+        if (!firstFocusable || !lastFocusable) return;
+
+        if (event.shiftKey && document.activeElement === firstFocusable) {
+          event.preventDefault();
+          lastFocusable.focus();
+        } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+          event.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrameId);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose, preview]);
+
+  if (!preview) return null;
+
+  return (
+    <div
+      ref={dialogRef}
+      className="cafe-a-image-lightbox fixed inset-0 z-[80] flex items-center justify-center bg-black/78 px-[max(1rem,env(safe-area-inset-left))] py-[max(1rem,env(safe-area-inset-top))] text-white"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${preview.title} 이미지 크게 보기`}
+      onClick={onClose}
+    >
+      <div className="relative flex max-h-[85vh] w-fit max-w-[90vw] flex-col items-center gap-3" onClick={(event) => event.stopPropagation()}>
+        <button
+          ref={closeButtonRef}
+          type="button"
+          className="fixed right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-10 inline-flex h-11 w-11 items-center justify-center bg-transparent text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)] transition-[opacity,transform] hover:opacity-75 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent md:absolute md:right-[-3.75rem] md:top-[-0.75rem]"
+          onClick={onClose}
+          aria-label="이미지 크게 보기 닫기"
+        >
+          <X aria-hidden="true" className="h-6 w-6" strokeWidth={1.9} />
+        </button>
+        <img
+          src={preview.src}
+          alt={`${preview.title} 이미지`}
+          className="max-h-[78vh] max-w-full object-contain"
+          decoding="async"
+        />
+        <div className="max-w-full text-center">
+          <p className="break-keep text-sm font-black leading-tight">{preview.title}</p>
+          {preview.secondaryTitle ? (
+            <p className="menu-font-en mt-1 text-[0.68rem] font-semibold uppercase leading-tight text-white/72">{preview.secondaryTitle}</p>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -3773,6 +3892,7 @@ function MenuGroupsGrid({
   showPageTitles,
   timeSaleByItemId,
   priceDisplayMode,
+  onOpenImage,
   fitRef,
   footerInfo,
 }: {
@@ -3787,6 +3907,7 @@ function MenuGroupsGrid({
   showPageTitles: boolean;
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
+  onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -3824,6 +3945,7 @@ function MenuGroupsGrid({
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
                       priceDisplayMode={priceDisplayMode}
+                      onOpenImage={onOpenImage}
                     />
                   </div>
                 ))}
@@ -3850,6 +3972,7 @@ function BalancedExperimentalMenuGrid({
   variant,
   timeSaleByItemId,
   priceDisplayMode,
+  onOpenImage,
   fitRef,
   footerInfo,
 }: {
@@ -3865,6 +3988,7 @@ function BalancedExperimentalMenuGrid({
   variant: CafeDesignABalancedVariant;
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
+  onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -3915,6 +4039,7 @@ function BalancedExperimentalMenuGrid({
                       customBadgeStyles={customBadgeStyles}
                       locale={data.locale}
                       priceDisplayMode={priceDisplayMode}
+                      onOpenImage={onOpenImage}
                     />
                   </div>
                 ))}
@@ -3942,6 +4067,7 @@ function OrderedBalancedFitMenuGrid({
   orderedBalancedBreaks,
   timeSaleByItemId,
   priceDisplayMode,
+  onOpenImage,
   fitRef,
   footerInfo,
 }: {
@@ -3957,6 +4083,7 @@ function OrderedBalancedFitMenuGrid({
   orderedBalancedBreaks: string;
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
+  onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
@@ -4008,6 +4135,7 @@ function OrderedBalancedFitMenuGrid({
                         customBadgeStyles={customBadgeStyles}
                         locale={data.locale}
                         priceDisplayMode={priceDisplayMode}
+                        onOpenImage={onOpenImage}
                       />
                     </div>
                   ))}
@@ -4065,7 +4193,9 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const [orderedBalancedValidationRevision, setOrderedBalancedValidationRevision] = useState(0);
   const [orderedBalancedFinalFillBoost, setOrderedBalancedFinalFillBoost] = useState<CafeDesignAFinalFillBoost>(DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST);
   const [orderedFitFinalFillCompensation, setOrderedFitFinalFillCompensation] = useState(DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION);
+  const [menuImagePreview, setMenuImagePreview] = useState<CafeMenuImagePreview | null>(null);
   const fitStateRef = useRef<CafeDesignAFitState>(DEFAULT_FIT_STATE);
+  const menuImagePreviewTriggerRef = useRef<HTMLElement | null>(null);
   const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
   const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
   const orderedBalancedRejectedColumnRef = useRef<Set<string>>(new Set());
@@ -4091,6 +4221,20 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key, timeSaleBoundaryNowMs),
     [data.menuSite.template_key, data.timeSales, timeSaleBoundaryNowMs],
   );
+  const openMenuImagePreview = useCallback((preview: CafeMenuImagePreview, trigger: HTMLElement) => {
+    menuImagePreviewTriggerRef.current = trigger;
+    setMenuImagePreview(preview);
+  }, [setMenuImagePreview]);
+  const closeMenuImagePreview = useCallback(() => {
+    const trigger = menuImagePreviewTriggerRef.current;
+    setMenuImagePreview(null);
+    menuImagePreviewTriggerRef.current = null;
+    if (trigger) {
+      window.requestAnimationFrame(() => {
+        trigger.focus({ preventScroll: true });
+      });
+    }
+  }, [setMenuImagePreview]);
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
@@ -5527,6 +5671,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 showPageTitles
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
+                onOpenImage={openMenuImagePreview}
                 footerInfo={<CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
               />
             )}
@@ -5615,6 +5760,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 variant={fitState.balancedVariant}
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
+                onOpenImage={openMenuImagePreview}
               />
             ) : layoutMode === "orderedBalancedFit" ? (
               <OrderedBalancedFitMenuGrid
@@ -5631,6 +5777,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 orderedBalancedBreaks={fitState.orderedBalancedBreaks}
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
+                onOpenImage={openMenuImagePreview}
               />
             ) : (
               <MenuGroupsGrid
@@ -5646,12 +5793,14 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 showPageTitles
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
+                onOpenImage={openMenuImagePreview}
               />
             )}
             {footerInfo}
           </div>
         </div>
       </main>
+      <CafeMenuImageLightbox preview={menuImagePreview} onClose={closeMenuImagePreview} />
     </>
   );
 }

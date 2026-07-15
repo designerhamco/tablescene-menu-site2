@@ -78,6 +78,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
     {
       name: "클래식 버터 스콘 재고 마감",
       schedule_type: "once",
+      duration_minutes: 60,
       badge_text: "재고 마감",
       badge_background_color: "#C62828",
       time_display_mode: "countdown",

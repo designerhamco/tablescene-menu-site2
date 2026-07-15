@@ -39,7 +39,6 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const template = getTemplateByKey(templateKey);
   const preset = getStarterPreset(templateKey, template.categoryLabel, template.template_category);
   const now = new Date().toISOString();
-  const timeSaleCampaignEnd = new Date(new Date(now).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const siteId = `template-preview-${template.key}`;
 
   const pages: MenuPageData["pages"] = preset.pages.map((page, pageIndex) => ({
@@ -153,6 +152,13 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     ...(featuredSlides.length > 0 ? { featured_slides: featuredSlides } : {}),
   };
   const timeSales: MenuPageData["timeSales"] = (preset.time_sales ?? []).flatMap((timeSale, promotionIndex) => {
+    const timeSaleDurationMinutes = timeSale.duration_minutes;
+    const timeSaleCampaignEnd = new Date(
+      new Date(now).getTime() +
+        (typeof timeSaleDurationMinutes === "number" && Number.isFinite(timeSaleDurationMinutes) && timeSaleDurationMinutes > 0
+          ? timeSaleDurationMinutes * 60 * 1000
+          : 30 * 24 * 60 * 60 * 1000)
+    ).toISOString();
     const saleItems = (timeSale.targets ?? []).flatMap((saleTarget, targetIndex) => {
       const item = items.find((candidate) => candidate.name === saleTarget.target_item_name);
       if (!item) return [];
