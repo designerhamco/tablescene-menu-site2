@@ -3298,12 +3298,9 @@ function CafeLanguageHoverControl({
 
   return (
     <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`}>
-      <div className="transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover/cafe-board:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:group-hover/cafe-board:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-within/cafe-board:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:group-focus-within/cafe-board:opacity-100">
-        <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} />
+      <div>
+        <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact />
       </div>
-      <p className="pointer-events-none absolute right-0 top-[calc(100%+0.5rem)] z-10 hidden w-72 max-w-[72vw] rounded-full bg-[rgba(17,17,17,0.74)] px-3 py-1.5 text-right text-[11px] font-bold leading-relaxed text-white opacity-0 shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-opacity duration-200 [text-shadow:0_1px_2px_rgba(0,0,0,0.45)] [@media(hover:hover)_and_(pointer:fine)]:block [@media(hover:hover)_and_(pointer:fine)]:group-hover/cafe-board:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-within/cafe-board:opacity-100">
-        마우스를 메뉴판 밖으로 옮기면 언어 선택이 자동으로 숨겨집니다.
-      </p>
     </div>
   );
 }
