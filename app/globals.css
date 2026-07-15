@@ -464,6 +464,15 @@ video {
   grid-column: 3;
 }
 
+.cafe-a-typography .cafe-a-menu-item-align-center {
+  align-items: center;
+}
+
+.cafe-a-typography .cafe-a-menu-item-align-center .cafe-a-menu-copy,
+.cafe-a-typography .cafe-a-menu-item-align-center .cafe-a-price-area {
+  align-self: center;
+}
+
 .cafe-a-typography .cafe-a-menu-item-has-price-columns {
   --cafe-a-price-rail-safe-gap: 0.0625rem;
   align-items: start;

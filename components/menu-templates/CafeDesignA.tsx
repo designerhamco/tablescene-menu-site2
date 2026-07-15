@@ -2859,13 +2859,34 @@ function MenuItemRow({
     ultraCompact: "cafe-a-menu-description-size-ultra-compact",
   }[density];
   const metaText = getMenuItemMetaText(item, locale);
+  const trimmedMetaText = metaText.trim();
+  const descriptionText = item.description?.trim() ?? "";
+  const hasSecondaryText = Boolean(trimmedMetaText);
+  const hasDescriptionText = Boolean(descriptionText);
   const priceCountClassName = `cafe-a-menu-item-price-count-${Math.min(priceTokens.length, 3)}${usesPriceColumns ? " cafe-a-menu-item-has-price-columns" : ""}`;
   const priceNote = "";
   const imageUrl = item.image_url?.trim() ?? "";
   const hasItemImage = Boolean(imageUrl);
+  const hasOriginInfo = capabilities.originInfo && Boolean(item.origin_info?.trim());
+  const contentVariant = hasSecondaryText && hasDescriptionText
+    ? "full"
+    : hasSecondaryText
+      ? "secondary-only"
+      : hasDescriptionText
+        ? "description-only"
+        : "title-only";
+  const hasContentAfterTitle = hasSecondaryText || showMenuTimeSale || hasDescriptionText || visibleTraits.length > 0 || hasOriginInfo;
+  const hasContentAfterMeta = showMenuTimeSale || hasDescriptionText || visibleTraits.length > 0 || hasOriginInfo;
+  const canCenterSparseContent = contentVariant !== "full" && !usesPriceColumns && !showMenuTimeSale && visibleTraits.length === 0 && !hasOriginInfo;
+  const titleRowSpacingClassName = !hasContentAfterTitle ? "mb-0" : showMenuTimeSale && timeSale && !hasSecondaryText ? "mb-0" : "mb-0.5";
+  const metaSpacingClassName = !hasContentAfterMeta ? "mb-0" : showMenuTimeSale && timeSale ? "mb-0" : "mb-0.5";
 
   return (
-    <article className={`cafe-a-menu-item grid items-start ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`} data-cafe-a-menu-item="">
+    <article
+      className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
+      data-cafe-a-content-variant={contentVariant}
+      data-cafe-a-menu-item=""
+    >
       {hasItemImage && (
         <div className="cafe-a-menu-item-image-slot">
           <img
@@ -2878,20 +2899,20 @@ function MenuItemRow({
         </div>
       )}
       <div className="cafe-a-menu-copy min-w-0">
-        <div className={`cafe-a-menu-title-row ${showMenuTimeSale && timeSale && !metaText ? "mb-0" : "mb-0.5"} flex flex-wrap items-center gap-1.5`}>
+        <div className={`cafe-a-menu-title-row ${titleRowSpacingClassName} flex flex-wrap items-center gap-1.5`}>
           <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
           <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
           {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
           {item.is_sold_out && <SoldOutBadge />}
         </div>
-        {metaText && (
-          <p className={`menu-font-en cafe-a-menu-meta ${showMenuTimeSale && timeSale ? "mb-0" : "mb-0.5"} break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>
-            {metaText}
+        {hasSecondaryText && (
+          <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>
+            {trimmedMetaText}
           </p>
         )}
         {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
-        {item.description && (
-          <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{item.description}</p>
+        {hasDescriptionText && (
+          <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{descriptionText}</p>
         )}
         {visibleTraits.length > 0 && (
           <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
@@ -2902,7 +2923,7 @@ function MenuItemRow({
             ))}
           </div>
         )}
-        {capabilities.originInfo && item.origin_info && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info}</p>}
+        {hasOriginInfo && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info?.trim()}</p>}
       </div>
       {priceTokens.length > 0 && usesPriceColumns && (
         <div className="menu-price cafe-a-price-area shrink-0 text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
