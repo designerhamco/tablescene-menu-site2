@@ -79,10 +79,9 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       name: "클래식 버터 스콘 재고 마감",
       schedule_type: "once",
       badge_text: "재고 마감",
-      badge_background_color: "#a30000",
-      time_display_mode: "message",
-      time_display_text: "남은 수량이 적어 오늘만 할인해요",
-      targets: [{ target_item_name: "클래식 버터 스콘", sale_price: 2500 }],
+      badge_background_color: "#C62828",
+      time_display_mode: "countdown",
+      targets: [{ target_item_name: "클래식 버터 스콘", sale_price: 2200 }],
     },
   ],
   pages: [
