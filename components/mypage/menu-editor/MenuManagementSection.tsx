@@ -964,16 +964,25 @@ function SubmitButton({
 }) {
   const { pending } = useFormStatus();
   const wasPendingRef = useRef(false);
-  const className = {
+  const enabledClassName = {
     dark: "bg-zinc-950 text-white hover:bg-zinc-800",
     light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
     danger: "border border-red-100 bg-red-50 text-red-700 hover:bg-red-100",
     final: "rounded-lg bg-zinc-950 text-white shadow-sm hover:bg-zinc-800",
   }[tone];
+  const disabledClassName =
+    tone === "light"
+      ? "border border-zinc-100 bg-zinc-100 text-zinc-400"
+      : tone === "danger"
+        ? "border border-zinc-100 bg-zinc-100 text-zinc-400"
+        : tone === "final"
+          ? "rounded-lg bg-zinc-200 text-zinc-400 shadow-none"
+          : "bg-zinc-200 text-zinc-400";
 
   const isSubmitButton = props.type !== "button";
   const isPending = isSubmitButton && pending;
   const isLoading = loading || isPending;
+  const buttonDisabled = disabled || isLoading;
 
   useEffect(() => {
     let successFrameId = 0;
@@ -1000,9 +1009,11 @@ function SubmitButton({
   return (
     <button
       type="submit"
-      disabled={disabled || isLoading}
+      disabled={buttonDisabled}
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors ${
+        buttonDisabled ? `cursor-not-allowed ${disabledClassName}` : enabledClassName
+      } ${customClassName ?? ""}`}
     >
       {isLoading ? (
         <>
@@ -2513,6 +2524,7 @@ function MenuItemForm({
   item,
   draftItem,
   committedDraftItem,
+  hasPendingItemChanges = false,
   categoryPriceOptionLabels = [],
   onDraftItemChange,
   onDraftCommit,
@@ -2551,6 +2563,7 @@ function MenuItemForm({
   item?: MenuItem;
   draftItem?: ItemBasicDraft;
   committedDraftItem?: ItemBasicDraft;
+  hasPendingItemChanges?: boolean;
   categoryPriceOptionLabels?: string[];
   onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
   onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
@@ -2928,6 +2941,7 @@ function MenuItemForm({
       )) ||
     normalizeDraftText(draftItem?.badgeBackgroundColor) !== normalizeDraftText(committedDraftItem?.badgeBackgroundColor) ||
     normalizeDraftText(draftItem?.badgeTextColor) !== normalizeDraftText(committedDraftItem?.badgeTextColor);
+  const itemApplyDisabled = item ? itemDraftSaveDisabled || !hasPendingItemChanges : itemDraftSaveDisabled;
 
   function updateBadgeDraft(nextSelectedBadgeLabel: string, nextCustomBadgeLabel = customBadgeLabel) {
     const nextBadgeLabel =
@@ -3063,6 +3077,10 @@ function MenuItemForm({
     };
   }
 
+  function applyCurrentItemDraft() {
+    onDraftCommit?.(getCurrentFormDraftPatch());
+  }
+
   function setPriceMode(mode: PriceMode) {
     if (!capabilities.priceOptions && mode === "options") {
       return;
@@ -3070,10 +3088,12 @@ function MenuItemForm({
 
     if (item) {
       onPriceModeChange?.(mode);
+      updateDraftItem({ priceMode: mode });
       return;
     }
 
     setDraftPriceMode(mode);
+    updateDraftItem({ priceMode: mode });
   }
 
   function addDraftPriceOption() {
@@ -3096,17 +3116,20 @@ function MenuItemForm({
       return;
     }
 
-    setDraftPriceOptions((currentOptions) => [
-      ...currentOptions,
+    const nextOptions = [
+      ...draftPriceOptions,
       {
-        id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${currentOptions.length}`,
+        id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${draftPriceOptions.length}`,
         label,
         price,
         priceLabel,
         visible: true,
-        sortOrder: currentOptions.length + 1,
+        sortOrder: draftPriceOptions.length + 1,
       },
-    ]);
+    ];
+
+    setDraftPriceOptions(nextOptions);
+    updateDraftItem({ priceOptions: nextOptions });
     setDraftPriceOptionLabel("");
     setDraftPriceOptionPrice("");
     setDraftPriceOptionPriceLabel("");
@@ -3158,6 +3181,7 @@ function MenuItemForm({
       }
 
       setDescriptionValue(result.description);
+      updateDraftItem({ description: result.description });
       onAiDescriptionUsageChange(result.usage);
       toast.success(result.message);
     } catch {
@@ -3178,50 +3202,61 @@ function MenuItemForm({
   }
 
   function removeDraftPriceOption(optionId: string) {
-    setDraftPriceOptions((currentOptions) => currentOptions.filter((option) => option.id !== optionId));
+    const nextOptions = draftPriceOptions.filter((option) => option.id !== optionId);
+    setDraftPriceOptions(nextOptions);
+    updateDraftItem({ priceOptions: nextOptions });
   }
 
   function updateDraftPriceOption(optionId: string, patch: Partial<DraftPriceOption>) {
-    setDraftPriceOptions((currentOptions) =>
-      currentOptions.some((option) => option.id === optionId)
-        ? currentOptions.map((option) => (option.id === optionId ? { ...option, ...patch } : option))
-        : [
-            ...currentOptions,
-            {
-              id: optionId,
-              label: patch.label ?? "",
-              price: patch.price ?? "",
-              priceLabel: patch.priceLabel ?? "",
-              visible: patch.visible ?? true,
-              sortOrder: patch.sortOrder ?? currentOptions.length,
-            },
-          ]
-    );
+    const nextOptions = draftPriceOptions.some((option) => option.id === optionId)
+      ? draftPriceOptions.map((option) => (option.id === optionId ? { ...option, ...patch } : option))
+      : [
+          ...draftPriceOptions,
+          {
+            id: optionId,
+            label: patch.label ?? "",
+            price: patch.price ?? "",
+            priceLabel: patch.priceLabel ?? "",
+            visible: patch.visible ?? true,
+            sortOrder: patch.sortOrder ?? draftPriceOptions.length,
+          },
+        ];
+    setDraftPriceOptions(nextOptions);
+    updateDraftItem({ priceOptions: nextOptions });
   }
 
   function updateDraftPriceColumnValue(priceColumnId: string, patch: Partial<ItemPriceColumnValueDraft>) {
-    setDraftPriceColumnValues((currentValues) => {
-      const nextValues = currentValues.some((value) => value.priceColumnId === priceColumnId)
-        ? currentValues.map((value) => (value.priceColumnId === priceColumnId ? { ...value, ...patch } : value))
+    const nextValues = normalizeItemPriceColumnValueDrafts(
+      draftPriceColumnValues.some((value) => value.priceColumnId === priceColumnId)
+        ? draftPriceColumnValues.map((value) => (value.priceColumnId === priceColumnId ? { ...value, ...patch } : value))
         : [
-            ...currentValues,
+            ...draftPriceColumnValues,
             {
               priceColumnId,
               price: patch.price ?? "",
               priceLabel: patch.priceLabel ?? "",
               visible: patch.visible ?? false,
-              sortOrder: patch.sortOrder ?? currentValues.length,
+              sortOrder: patch.sortOrder ?? draftPriceColumnValues.length,
             },
-          ];
-      return normalizeItemPriceColumnValueDrafts(nextValues);
-    });
+          ]
+    );
+    setDraftPriceColumnValues(nextValues);
+    updateDraftItem({ priceColumnValues: nextValues });
   }
 
   function handleTraitLabelChange(index: number, value: string) {
-    setTraitLabelValues((currentValues) => {
-      const nextValues = [...currentValues];
-      nextValues[index] = value;
-      return nextValues;
+    const nextValues = [...traitLabelValues];
+    nextValues[index] = value;
+    setTraitLabelValues(nextValues);
+    updateDraftItem({
+      traitDrafts: nextValues.map((label, traitIndex) => ({
+        id: initialTraitDrafts[traitIndex]?.id,
+        label,
+        value: initialTraitDrafts[traitIndex]?.value ?? MENU_FIELD_LIMITS.menuItemTraits.minValue,
+        visible: initialTraitDrafts[traitIndex]?.visible ?? false,
+        sortOrder: traitIndex,
+        maxValue: initialTraitDrafts[traitIndex]?.maxValue ?? MENU_FIELD_LIMITS.menuItemTraits.defaultMaxValue,
+      })),
     });
   }
 
@@ -3423,7 +3458,11 @@ function MenuItemForm({
             placeholder="정렬 순서를 입력하세요"
             required
             helperText="숫자가 낮을수록 먼저 표시됩니다."
-            onValueChange={(value) => setSortOrderValue(Number(value))}
+            onValueChange={(value) => {
+              const nextSortOrder = Number(value);
+              setSortOrderValue(nextSortOrder);
+              updateDraftItem({ sortOrder: Number.isFinite(nextSortOrder) ? nextSortOrder : 0 });
+            }}
           />
           {capabilities.itemBadges ? (
             <div className="min-w-0">
@@ -4379,11 +4418,11 @@ function MenuItemForm({
             <SubmitButton
               type="button"
               tone="final"
-              disabled={itemDraftSaveDisabled || (Boolean(item) && !itemFormDirty)}
+              disabled={itemApplyDisabled}
               onClick={() => {
                 setAttemptedItemSubmit(true);
-                if (itemDraftSaveDisabled || (item && !itemFormDirty)) return;
-                onDraftCommit?.(getCurrentFormDraftPatch());
+                if (itemApplyDisabled) return;
+                applyCurrentItemDraft();
               }}
             >
               {itemDraftActionLabel}
@@ -7770,6 +7809,7 @@ export default function MenuManagementSection({
                   draftOnly
                   draftItem={editingItemId ? pendingItemDrafts[editingItemId] : undefined}
                   draftName={editingItemId ? pendingItemDrafts[editingItemId]?.name : undefined}
+                  hasPendingItemChanges={Boolean(editingItemId && pendingItemDrafts[editingItemId])}
                   onDraftNameChange={(name) => {
                     if (editingItemId) updatePendingItemDraft(editingItemId, { name });
                   }}
@@ -7799,6 +7839,7 @@ export default function MenuManagementSection({
                   item={selectedEditingItem}
                   draftItem={pendingItemDrafts[selectedEditingItem.id] ?? itemBasicDrafts[selectedEditingItem.id]}
                   committedDraftItem={itemBasicDrafts[selectedEditingItem.id]}
+                  hasPendingItemChanges={Boolean(pendingItemDrafts[selectedEditingItem.id])}
                   onDraftItemChange={(patch) => updatePendingItemDraft(selectedEditingItem.id, patch)}
                   onDraftCommit={(patch) => commitPendingItemDraft(selectedEditingItem.id, patch)}
                   onDraftCommitMessageClear={() => setItemDraftFeedback("")}
@@ -7930,6 +7971,7 @@ export default function MenuManagementSection({
                           item={item}
                           draftItem={itemBasicDrafts[item.id]}
                           committedDraftItem={itemBasicDrafts[item.id]}
+                          hasPendingItemChanges={Boolean(pendingItemDrafts[item.id])}
                           onDraftItemChange={(patch) => updatePendingItemDraft(item.id, patch)}
                           onDraftCommit={(patch) => commitPendingItemDraft(item.id, patch)}
                           draftOnly
@@ -8405,6 +8447,7 @@ function MenuItemCard({
   cancelLabel,
   draftItem,
   committedDraftItem,
+  hasPendingItemChanges = false,
   onDraftItemChange,
   onDraftCommit,
   onDraftCommitMessageClear,
@@ -8441,6 +8484,7 @@ function MenuItemCard({
   cancelLabel: string;
   draftItem?: ItemBasicDraft;
   committedDraftItem?: ItemBasicDraft;
+  hasPendingItemChanges?: boolean;
   onDraftItemChange?: (patch: Partial<ItemBasicDraft>) => void;
   onDraftCommit?: (patch?: Partial<ItemBasicDraft>) => void;
   onDraftCommitMessageClear?: () => void;
@@ -8490,6 +8534,7 @@ function MenuItemCard({
             item={item}
             draftItem={draftItem}
             committedDraftItem={committedDraftItem}
+            hasPendingItemChanges={hasPendingItemChanges}
             categoryPriceOptionLabels={categoryPriceOptionLabels}
             onDraftItemChange={onDraftItemChange}
             onDraftCommit={onDraftCommit}
