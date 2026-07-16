@@ -53,6 +53,11 @@ import {
   TIME_SALE_SCHEDULE_TIME_ZONE,
   type TimeSaleScheduleType,
 } from "@/lib/menu-time-sale-schedule";
+import {
+  findOverlappingTimeSales,
+  validateTimeSaleLimit,
+  type TimeSaleValidationEntry,
+} from "@/lib/menu-time-sale-validation";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
 import {
@@ -5151,10 +5156,16 @@ async function syncMenuTimeSalesFromDrafts({
     return;
   }
 
+  const limitError = validateTimeSaleLimit(enabledDrafts.length);
+  if (limitError) {
+    redirectToMenuEditWithError(menuId, limitError);
+  }
+
   const preparedTimeSales: {
     promotion: MenuPromotionInsert;
     items: Omit<MenuPromotionItemInsert, "promotion_id">[];
   }[] = [];
+  const timeSaleValidationEntries: TimeSaleValidationEntry[] = [];
 
   for (const rawDraft of enabledDrafts) {
     const draft: NormalizedTimeSaleDraft = {
@@ -5168,7 +5179,7 @@ async function syncMenuTimeSalesFromDrafts({
 
     const { data: menuItem, error: menuItemError } = await supabase
       .from("menu_items")
-      .select("id, category_id, price, price_label, price_visible")
+      .select("id, category_id, name, price, price_label, price_visible")
       .eq("id", resolvedItemId)
       .eq("menu_site_id", menuId)
       .maybeSingle();
@@ -5247,7 +5258,7 @@ async function syncMenuTimeSalesFromDrafts({
     const { data: priceColumns, error: priceColumnsError } = optionTargetColumnIds.length > 0
       ? await supabase
           .from("menu_category_price_columns")
-          .select("id, category_id, menu_site_id, visible")
+          .select("id, category_id, menu_site_id, label, visible")
           .eq("menu_site_id", menuId)
           .in("id", optionTargetColumnIds)
       : { data: [], error: null };
@@ -5317,6 +5328,27 @@ async function syncMenuTimeSalesFromDrafts({
         settings: {},
       })),
     });
+
+    timeSaleValidationEntries.push({
+      id: draft.itemDraftId,
+      name: draft.name,
+      scheduleType: draft.scheduleType,
+      startsAt: draft.startsAt.toISOString(),
+      endsAt: draft.endsAt.toISOString(),
+      dailyStartTime: draft.dailyStartTime,
+      dailyEndTime: draft.dailyEndTime,
+      targets: draft.targets.map((target) => ({
+        menuItemId: resolvedItemId,
+        itemName: menuItem.name,
+        priceColumnId: target.priceColumnId,
+        priceColumnLabel: target.priceColumnId ? priceColumnById.get(target.priceColumnId)?.label ?? null : null,
+      })),
+    });
+  }
+
+  const overlapError = findOverlappingTimeSales(timeSaleValidationEntries);
+  if (overlapError) {
+    redirectToMenuEditWithError(menuId, overlapError);
   }
 
   await deleteMenuTimeSalePromotions(supabase, menuId);

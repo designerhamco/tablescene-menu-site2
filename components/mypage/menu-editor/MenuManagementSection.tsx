@@ -75,6 +75,7 @@ import {
   TIME_SALE_SCHEDULE_TIME_ZONE,
   type TimeSaleScheduleType,
 } from "@/lib/menu-time-sale-schedule";
+import { MAX_TIME_SALES_PER_MENU_SITE } from "@/lib/menu-time-sale-validation";
 import { normalizePriceDisplayMode, type PriceDisplayMode } from "@/lib/menu-price-format";
 import {
   BASIC_LAYOUT_MODE_ORDER,
@@ -5013,6 +5014,16 @@ export default function MenuManagementSection({
     },
     [capabilities.itemPortionLabel, categories, deletedCategoryIds, deletedItemIds, deletedPageIds, items, itemBasicDrafts]
   );
+  const enabledTimeSaleDraftCount = useMemo(() => {
+    if (!canManageTimeSales) return 0;
+
+    const visibleDraftedItemIds = new Set(draftedItems.map((item) => item.id));
+    return Object.entries(itemBasicDrafts).filter(
+      ([itemId, draft]) => visibleDraftedItemIds.has(itemId) && draft.timeSale?.enabled === true
+    ).length;
+  }, [canManageTimeSales, draftedItems, itemBasicDrafts]);
+  const timeSaleLimitExceeded = canManageTimeSales && enabledTimeSaleDraftCount > MAX_TIME_SALES_PER_MENU_SITE;
+  const timeSaleLimitMessage = `한 메뉴판에는 타임세일을 최대 ${MAX_TIME_SALES_PER_MENU_SITE}개까지 등록할 수 있습니다. 사용하지 않는 타임세일을 정리한 후 다시 저장해주세요.`;
   const sortedPages = useMemo(() => sortMenuPages(draftedPages), [draftedPages]);
   const firstVisiblePageId = sortedPages.find((page) => page.visible)?.id ?? sortedPages[0]?.id ?? "";
   const firstVisibleCategoryIdForInitialPage = firstVisiblePageId
@@ -8132,6 +8143,11 @@ export default function MenuManagementSection({
                 <DisplayMenuQualityNoticeBox notice={selectedPageDisplayQualityNotice} />
               </div>
             ) : null}
+            {timeSaleLimitExceeded ? (
+              <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-center text-xs font-bold leading-relaxed text-amber-700">
+                {timeSaleLimitMessage}
+              </p>
+            ) : null}
             <FinalActionRow>
               <button
                 type="button"
@@ -8142,7 +8158,7 @@ export default function MenuManagementSection({
               >
                 샘플 메뉴로 되돌리기
               </button>
-              <SubmitButton tone="final" disabled={!menuManagementDirty} onSuccessfulSubmit={markMenuManagementApplied}>
+              <SubmitButton tone="final" disabled={!menuManagementDirty || timeSaleLimitExceeded} onSuccessfulSubmit={markMenuManagementApplied}>
                 저장
               </SubmitButton>
               {finalSaveMessage && !menuManagementDirty && (
