@@ -35,7 +35,7 @@ export default function CafeACategoryPreviewBlock({ block, showDivider, allowSpl
           </div>
         ))}
       </div>
-      {showDivider ? <div className={styles.divider} aria-hidden="true" /> : null}
+      {showDivider ? <div className={styles.divider} aria-hidden="true" data-cafe-a-category-divider /> : null}
     </section>
   );
 }

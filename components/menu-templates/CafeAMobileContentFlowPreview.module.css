@@ -1,0 +1,82 @@
+.preview {
+  --cafe-a-mobile-flow-ink: var(--cafe-a-ink, #191c1b);
+  --cafe-a-mobile-flow-muted: rgb(25 28 27 / 62%);
+  --cafe-a-mobile-flow-border: rgb(25 28 27 / 68%);
+  --cafe-a-mobile-flow-soft: rgb(25 28 27 / 12%);
+  color: var(--cafe-a-mobile-flow-ink);
+  min-width: 0;
+}
+
+.stage {
+  border: 1px solid var(--cafe-a-mobile-flow-border);
+  min-width: 0;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.page {
+  display: grid;
+  gap: 1.12rem;
+  min-width: 0;
+}
+
+.page + .page {
+  border-top: 1px solid var(--cafe-a-mobile-flow-soft);
+  margin-top: 1.35rem;
+  padding-top: 1.35rem;
+}
+
+.block {
+  min-width: 0;
+  overflow: visible;
+  width: 100%;
+}
+
+.widgetBlock {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.diagnostics {
+  background: rgb(25 28 27 / 5%);
+  border: 1px solid var(--cafe-a-mobile-flow-soft);
+  display: grid;
+  gap: 0.42rem;
+  margin-top: 0.8rem;
+  padding: 0.72rem;
+}
+
+.diagnosticRow {
+  display: grid;
+  gap: 0.3rem;
+  grid-template-columns: minmax(6.5rem, max-content) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.diagnosticTerm {
+  color: var(--cafe-a-mobile-flow-muted);
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.diagnosticValue {
+  color: var(--cafe-a-mobile-flow-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.4;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 420px) {
+  .stage {
+    padding: 0.86rem;
+  }
+
+  .page,
+  .page + .page {
+    gap: 1.08rem;
+  }
+}

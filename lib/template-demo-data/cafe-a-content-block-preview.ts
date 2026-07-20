@@ -198,6 +198,14 @@ export type CafeAOrderedContentBlockLabFixture = CafeABalancedContentBlockLabFix
   heightPx?: number;
 };
 
+export type CafeAMobileContentBlockLabFixture = {
+  id: string;
+  title: string;
+  description: string;
+  blocks?: readonly CafeAContentBlock[];
+  pages?: readonly (readonly CafeAContentBlock[])[];
+};
+
 export const CAFE_A_BALANCED_CONTENT_BLOCK_LAB_FIXTURES: CafeABalancedContentBlockLabFixture[] = [
   {
     id: "balanced-mixed-three-column",
@@ -388,5 +396,118 @@ export const CAFE_A_ORDERED_CONTENT_BLOCK_LAB_FIXTURES: CafeAOrderedContentBlock
       categoryBlock("ordered-tie-category-third", 10, DESSERT_CATEGORY),
     ],
     columns: 3,
+  },
+];
+
+export const CAFE_A_MOBILE_CONTENT_BLOCK_LAB_FIXTURES: CafeAMobileContentBlockLabFixture[] = [
+  {
+    id: "mobile-mixed-basic",
+    title: "A. 기본 혼합",
+    description: "SIGNATURE, 2:1 이미지, CLASSIC, text, ADE, 4:3 image+text, DESSERT를 한 줄 세로 흐름으로 렌더합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE,
+  },
+  {
+    id: "mobile-widget-first",
+    title: "B. widget first",
+    description: "첫 block이 widget이어도 하단으로 모으지 않고 등록 순서 그대로 렌더합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_WIDGET_FIRST_FIXTURE,
+  },
+  {
+    id: "mobile-widget-last",
+    title: "C. widget last",
+    description: "마지막 widget 뒤에는 category divider나 큰 terminal margin을 추가하지 않습니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_WIDGET_LAST_FIXTURE,
+  },
+  {
+    id: "mobile-category-last",
+    title: "D. category last",
+    description: "마지막 visible block이 category여도 모바일 정책상 terminal divider를 표시합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_CATEGORY_LAST_FIXTURE,
+  },
+  {
+    id: "mobile-consecutive-widgets",
+    title: "E. 연속 widget 3개",
+    description: "연속 widget은 각각 자체 border를 유지하고 공통 block gap으로만 분리합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE,
+  },
+  {
+    id: "mobile-category-widget-category",
+    title: "F. category → widget → category",
+    description: "category 종료 divider 뒤에 widget이 오고, widget 뒤에는 다음 category title이 바로 이어집니다.",
+    blocks: [
+      categoryBlock("mobile-cwc-signature", 10, SIGNATURE_CATEGORY),
+      widgetBlock("mobile-cwc-image", 20, 0),
+      categoryBlock("mobile-cwc-classic", 30, CLASSIC_CATEGORY),
+    ],
+  },
+  {
+    id: "mobile-long-text-widget",
+    title: "G. 긴 text widget",
+    description: "긴 본문 text widget이 line-clamp나 내부 scroll 없이 자연스럽게 높이를 늘리는지 확인합니다.",
+    blocks: [
+      categoryBlock("mobile-long-signature", 10, SIGNATURE_CATEGORY),
+      widgetBlock("mobile-long-text", 20, 1),
+      categoryBlock("mobile-long-classic", 30, CLASSIC_CATEGORY),
+      categoryBlock("mobile-long-ade", 40, ADE_CATEGORY),
+    ],
+  },
+  {
+    id: "mobile-image-3-4",
+    title: "H. image 3:4",
+    description: "세로형 image widget이 모바일 폭 전체에서 과도한 crop 없이 렌더되는지 확인합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE,
+  },
+  {
+    id: "mobile-image-text-3-4",
+    title: "I. image_text 3:4",
+    description: "3:4 media는 이미지 영역에만 적용하고 텍스트는 자동 높이로 이어지는지 확인합니다.",
+    blocks: [
+      categoryBlock("mobile-image-text-signature", 10, SIGNATURE_CATEGORY),
+      customWidgetBlock("mobile-image-text-vertical", 20, CAFE_A_WIDGET_IMAGE_TEXT_FIXTURES[1]),
+      categoryBlock("mobile-image-text-dessert", 30, DESSERT_CATEGORY),
+    ],
+  },
+  {
+    id: "mobile-missing-image",
+    title: "J. 이미지 누락 fallback",
+    description: "이미지가 없는 image_text fallback도 overflow 없이 고정 media 영역과 copy를 유지합니다.",
+    blocks: [
+      categoryBlock("mobile-missing-signature", 10, SIGNATURE_CATEGORY),
+      customWidgetBlock("mobile-missing-widget", 20, CAFE_A_WIDGET_IMAGE_TEXT_FIXTURES[2]),
+      categoryBlock("mobile-missing-dessert", 30, DESSERT_CATEGORY),
+    ],
+  },
+  {
+    id: "mobile-hidden-block",
+    title: "K. visible=false block",
+    description: "숨김 category/widget은 모바일 DOM에서도 완전히 제외합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
+  },
+  {
+    id: "mobile-same-sort-order",
+    title: "L. same sortOrder",
+    description: "동일 sortOrder에서는 원본 배열 순서가 DOM 순서로 유지됩니다.",
+    blocks: [
+      categoryBlock("mobile-tie-category-first", 10, SIGNATURE_CATEGORY),
+      widgetBlock("mobile-tie-widget-second", 10, 0),
+      categoryBlock("mobile-tie-category-third", 10, DESSERT_CATEGORY),
+    ],
+  },
+  {
+    id: "mobile-two-pages",
+    title: "M. 2개 가상 page 연속 흐름",
+    description: "page 1과 page 2가 각각 source order를 유지하며 세로로 이어지는지 확인합니다.",
+    pages: [
+      [
+        categoryBlock("mobile-page-1-signature", 10, SIGNATURE_CATEGORY),
+        widgetBlock("mobile-page-1-image", 20, 0),
+        categoryBlock("mobile-page-1-classic", 30, CLASSIC_CATEGORY),
+      ],
+      [
+        widgetBlock("mobile-page-2-text", 10, 1),
+        categoryBlock("mobile-page-2-ade", 20, ADE_CATEGORY),
+        categoryBlock("mobile-page-2-dessert", 30, DESSERT_CATEGORY),
+      ],
+    ],
   },
 ];

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import CafeABalancedContentFlowPreview from "@/components/menu-templates/CafeABalancedContentFlowPreview";
 import CafeAContentFlowPreview from "@/components/menu-templates/CafeAContentFlowPreview";
+import CafeAMobileContentFlowPreview from "@/components/menu-templates/CafeAMobileContentFlowPreview";
 import CafeAOrderedContentFlowPreview from "@/components/menu-templates/CafeAOrderedContentFlowPreview";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import type { CafeAContentBlock } from "@/components/menu-templates/cafe-a-content-blocks";
@@ -13,6 +14,7 @@ import {
   CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE,
   CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
   CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE,
+  CAFE_A_MOBILE_CONTENT_BLOCK_LAB_FIXTURES,
   CAFE_A_ORDERED_CONTENT_BLOCK_LAB_FIXTURES,
   CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE,
   CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE,
@@ -155,6 +157,32 @@ function OrderedContentLabSection({
         <p className="mt-2 max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/60">{description}</p>
       </div>
       <CafeAOrderedContentFlowPreview blocks={blocks} columns={columns} heightPx={heightPx} />
+    </section>
+  );
+}
+
+function MobileContentLabSection({
+  title,
+  description,
+  blocks,
+  pages,
+}: {
+  title: string;
+  description: string;
+  blocks?: readonly CafeAContentBlock[];
+  pages?: readonly (readonly CafeAContentBlock[])[];
+}) {
+  return (
+    <section className="min-w-0">
+      <div className="mb-4">
+        <h2 className="text-[clamp(1.25rem,2.2vw,1.85rem)] font-black leading-[0.95] tracking-[-0.01em] text-[#191c1b]">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/60">{description}</p>
+      </div>
+      <div className="mx-auto w-full max-w-[27rem]">
+        <CafeAMobileContentFlowPreview blocks={blocks} pages={pages} />
+      </div>
     </section>
   );
 }
@@ -342,6 +370,29 @@ export default function CafeAWidgetLabPage() {
                 blocks={fixture.blocks}
                 columns={fixture.columns}
                 heightPx={fixture.heightPx}
+              />
+            ))}
+          </div>
+
+          <section className="grid gap-4 border-t border-[#191c1b]/70 pt-8">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#191c1b]/55">Mobile Renderer</p>
+            <h2 className="text-[clamp(2rem,5vw,4rem)] font-black leading-[0.9] tracking-[-0.02em] text-[#191c1b]">
+              MOBILE STACKED CONTENT BLOCKS
+            </h2>
+            <p className="max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/62">
+              모바일에서는 PC·태블릿 배치 모드와 무관하게 category와 widget을 등록 순서대로 한 줄 세로 흐름에 둡니다.
+              category는 항상 divider를 표시하고 widget은 자체 border를 가진 atomic block으로 유지합니다.
+            </p>
+          </section>
+
+          <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-3">
+            {CAFE_A_MOBILE_CONTENT_BLOCK_LAB_FIXTURES.map((fixture) => (
+              <MobileContentLabSection
+                key={fixture.id}
+                title={fixture.title}
+                description={fixture.description}
+                blocks={fixture.blocks}
+                pages={fixture.pages}
               />
             ))}
           </div>
