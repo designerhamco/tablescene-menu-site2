@@ -1,0 +1,123 @@
+.widget {
+  --cafe-a-widget-ink: var(--cafe-a-ink, #191c1b);
+  --cafe-a-widget-muted: rgb(25 28 27 / 66%);
+  --cafe-a-widget-border: rgb(25 28 27 / 68%);
+  --cafe-a-widget-soft-border: rgb(25 28 27 / 18%);
+  break-inside: avoid;
+  color: var(--cafe-a-widget-ink);
+  min-width: 0;
+  overflow: visible;
+  page-break-inside: avoid;
+  width: 100%;
+}
+
+.shell {
+  border: 1px solid var(--cafe-a-widget-border);
+  min-width: 0;
+  overflow: visible;
+}
+
+.mediaFrame {
+  aspect-ratio: var(--cafe-a-widget-ratio, 4 / 3);
+  background:
+    linear-gradient(135deg, rgb(25 28 27 / 5%), rgb(25 28 27 / 0%) 45%),
+    rgb(25 28 27 / 4%);
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.media {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.mediaCover {
+  object-fit: cover;
+}
+
+.mediaContain {
+  object-fit: contain;
+}
+
+.fallback {
+  align-items: center;
+  color: var(--cafe-a-widget-muted);
+  display: flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  height: 100%;
+  justify-content: center;
+  letter-spacing: 0;
+  padding: 1rem;
+  text-align: center;
+}
+
+.copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.78rem 0.86rem 0.82rem;
+}
+
+.copyLeft {
+  text-align: left;
+}
+
+.copyCenter {
+  text-align: center;
+}
+
+.title {
+  color: var(--cafe-a-widget-ink);
+  font-size: 1.02rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.body {
+  color: var(--cafe-a-widget-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.48;
+  margin: 0.42rem 0 0;
+}
+
+.bodyOnly {
+  margin-top: 0;
+}
+
+.textOnly {
+  border-color: var(--cafe-a-widget-soft-border);
+}
+
+.textOnly .copy {
+  padding: 0.92rem 0;
+}
+
+.imageText .copy {
+  border-top: 1px solid var(--cafe-a-widget-soft-border);
+}
+
+@media (max-width: 767px) {
+  .copy {
+    padding: 0.82rem 0.78rem 0.86rem;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .body {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .textOnly .copy {
+    padding: 0.9rem 0;
+  }
+}
