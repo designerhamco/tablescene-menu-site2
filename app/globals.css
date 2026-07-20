@@ -540,6 +540,27 @@ video {
   max-width: 100%;
 }
 
+@media (max-width: 767px) {
+  .cafe-a-typography .cafe-a-price-pair-with-note {
+    column-gap: 0.375rem;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .cafe-a-image-lightbox-close {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cafe-a-image-lightbox-close:focus,
+  .cafe-a-image-lightbox-close:focus-visible {
+    --tw-ring-color: transparent;
+    --tw-ring-offset-shadow: 0 0 #0000;
+    --tw-ring-shadow: 0 0 #0000;
+    box-shadow: none;
+    outline: none;
+  }
+}
+
 .cafe-a-typography .cafe-a-price-columns-grid {
   align-items: start;
 }

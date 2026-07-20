@@ -4,6 +4,7 @@ const CAFE_A_BLACK_SESAME_FEATURED_IMAGE = "/menu-templates/cafe_design_a/black-
 const CAFE_A_MATCHA_ITEM_IMAGE = "/menu-templates/cafe_design_a/malcha.jpg";
 const CAFE_A_NUTTY_ITEM_IMAGE = "/menu-templates/cafe_design_a/nutty-cream.jpeg";
 const CAFE_A_BLACK_SESAME_ITEM_IMAGE = "/menu-templates/cafe_design_a/black-sesame.jpeg";
+const CAFE_A_STARTER_TIME_SALE_ACCENT = "#A30000";
 
 const HOT_ICE_COLUMNS = [
   { key: "hot", label: "HOT" },
@@ -67,7 +68,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       name: "아메리카노 모닝딜",
       schedule_type: "once",
       badge_text: "모닝딜",
-      badge_background_color: "#a30000",
+      badge_background_color: CAFE_A_STARTER_TIME_SALE_ACCENT,
       time_display_mode: "message",
       time_display_text: "매일 오전 8시부터 10시까지",
       targets: [
@@ -80,7 +81,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       schedule_type: "once",
       duration_minutes: 60,
       badge_text: "재고 마감",
-      badge_background_color: "#C62828",
+      badge_background_color: CAFE_A_STARTER_TIME_SALE_ACCENT,
       time_display_mode: "countdown",
       targets: [{ target_item_name: "클래식 버터 스콘", sale_price: 2200 }],
     },

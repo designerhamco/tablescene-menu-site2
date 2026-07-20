@@ -2981,7 +2981,7 @@ function MenuItemRow({
             {priceTokens.map((token, index) => (
               <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-token inline-flex items-baseline whitespace-nowrap">
                 {index > 0 && <span className="cafe-a-price-separator font-bold text-[#191c1b]/45">/</span>}
-                <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
+                <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${token.label ? "cafe-a-price-pair-with-note" : ""} ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
                   {token.label && <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none text-[#191c1b]">{token.label}</span>}
                   {showTimeSale && timeSalePrice && index === 0 ? (
                     <TimeSalePriceBlock
@@ -3112,7 +3112,7 @@ function CafeMenuImageLightbox({
         <button
           ref={closeButtonRef}
           type="button"
-          className="fixed right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-10 inline-flex h-11 w-11 items-center justify-center bg-transparent text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)] transition-[opacity,transform] hover:opacity-75 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent md:absolute md:right-[-3.75rem] md:top-[-0.75rem]"
+          className="cafe-a-image-lightbox-close fixed right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-10 inline-flex h-11 w-11 items-center justify-center bg-transparent text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)] transition-[opacity,transform] hover:opacity-75 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent md:absolute md:right-[-3.75rem] md:top-[-0.75rem]"
           onClick={onClose}
           aria-label="이미지 크게 보기 닫기"
         >
