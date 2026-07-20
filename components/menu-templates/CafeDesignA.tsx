@@ -5205,6 +5205,128 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       }
     }
 
+    function rejectOrderedBalancedCandidate(state: CafeDesignAFitState) {
+      if (state.columns === 2) {
+        rejectOrderedBalancedColumn(state.orderedBalancedFingerprint, 2);
+        return;
+      }
+
+      orderedBalancedRejectedCandidateRef.current.add(getOrderedBalancedCandidateKey(state));
+    }
+
+    function getOrderedBalancedStateFromSettledMeasurement(
+      baseState: CafeDesignAFitState,
+      fontScale: number,
+      measurement: CafeDesignAFitMeasurement,
+      actualMeasurement: ReturnType<typeof getCafeAActualDomCropMeasurement>,
+    ): CafeDesignAFitState {
+      const actualBottomGap = roundFitMetric(actualMeasurement.bottomGap);
+      const gapScale = getOrderedBalancedFitGapScale(fontScale, validationMenuElement.clientWidth);
+
+      return {
+        ...baseState,
+        fontScale,
+        gapScale,
+        status: measurement.overflow || fontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE ? "warning" : "fit",
+        measuredColumns: measurement.measuredColumns,
+        boardInnerHeight: measurement.boardInnerHeight,
+        flowHeight: measurement.flowHeight,
+        primaryColumnBottom: measurement.primaryColumnBottom,
+        primaryBottomGap: measurement.primaryBottomGap,
+        longestColumnBottom: measurement.longestColumnBottom,
+        primaryFillRatio: measurement.primaryFillRatio,
+        averageFillRatio: measurement.averageFillRatio,
+        minFillRatio: measurement.minFillRatio,
+        lastColumnFillRatio: measurement.lastColumnFillRatio,
+        bottomGap: Math.min(measurement.bottomGap, actualBottomGap),
+        contentGap: Math.min(measurement.contentGap, actualBottomGap),
+        itemBoxGap: Math.min(measurement.itemBoxGap, actualBottomGap),
+        textVisualGap: Math.min(measurement.textVisualGap, actualBottomGap),
+        categoryBlockGap: measurement.categoryBlockGap,
+        visibleItemBottomGap: Math.min(measurement.visibleItemBottomGap, actualBottomGap),
+        visibleTextBottomGap: Math.min(measurement.visibleTextBottomGap, actualBottomGap),
+        visiblePriceBottomGap: Math.min(measurement.visiblePriceBottomGap, actualBottomGap),
+        visibleContentBottomGap: Math.min(measurement.visibleContentBottomGap, actualBottomGap),
+        visibleAverageFillRatio: measurement.visibleAverageFillRatio,
+        visibleMinFillRatio: measurement.visibleMinFillRatio,
+        visibleLastColumnFillRatio: measurement.visibleLastColumnFillRatio,
+        boardInnerRight: actualMeasurement.boardInnerRight,
+        rightmostMenuNameRight: actualMeasurement.rightmostMenuNameRight,
+        rightmostSecondaryRight: actualMeasurement.rightmostSecondaryRight,
+        rightmostPriceRight: actualMeasurement.rightmostPriceRight,
+        rightmostChipRight: actualMeasurement.rightmostChipRight,
+        rightmostCategoryRight: actualMeasurement.rightmostCategoryRight,
+        rightSafetyGap: actualMeasurement.rightSafetyGap,
+        overflow: measurement.overflow || actualMeasurement.overflow,
+      };
+    }
+
+    function getOrderedBalancedSafeBackoffState(baseState: CafeDesignAFitState) {
+      const previousFontScale = validationBoardElement.style.getPropertyValue("--fit-font-scale");
+      const previousGapScale = validationBoardElement.style.getPropertyValue("--fit-gap-scale");
+      const previousMenuFontScale = validationBoardElement.style.getPropertyValue("--fit-menu-font-scale");
+      const previousMenuGapScale = validationBoardElement.style.getPropertyValue("--fit-menu-gap-scale");
+      const fontScaleCandidates = getOrderedBalancedFitFontScaleCandidates(window.innerWidth, validationMenuElement.clientWidth).filter(
+        (candidateFontScale) => candidateFontScale < baseState.fontScale - ORDERED_BALANCED_SCALE_EPSILON,
+      );
+
+      try {
+        for (const candidateFontScale of fontScaleCandidates) {
+          const candidateGapScale = getOrderedBalancedFitGapScale(candidateFontScale, validationMenuElement.clientWidth);
+          validationBoardElement.style.setProperty("--fit-font-scale", String(candidateFontScale));
+          validationBoardElement.style.setProperty("--fit-gap-scale", String(candidateGapScale));
+          validationBoardElement.style.setProperty("--fit-menu-font-scale", String(candidateFontScale));
+          validationBoardElement.style.setProperty("--fit-menu-gap-scale", String(candidateGapScale));
+
+          const candidateMeasurement = measureCafeABalancedFit(
+            validationBoardElement,
+            validationMenuElement,
+            baseState.columns,
+            false,
+            ORDERED_BALANCED_CROP_TOLERANCE,
+            true,
+          );
+          const candidateActualMeasurement = getCafeAActualDomCropMeasurement(
+            validationBoardElement,
+            validationMenuElement,
+            ORDERED_BALANCED_CROP_TOLERANCE,
+          );
+
+          if (candidateMeasurement.overflow || candidateActualMeasurement.overflow) continue;
+
+          return getOrderedBalancedStateFromSettledMeasurement(
+            baseState,
+            candidateFontScale,
+            candidateMeasurement,
+            candidateActualMeasurement,
+          );
+        }
+      } finally {
+        if (previousFontScale) {
+          validationBoardElement.style.setProperty("--fit-font-scale", previousFontScale);
+        } else {
+          validationBoardElement.style.removeProperty("--fit-font-scale");
+        }
+        if (previousGapScale) {
+          validationBoardElement.style.setProperty("--fit-gap-scale", previousGapScale);
+        } else {
+          validationBoardElement.style.removeProperty("--fit-gap-scale");
+        }
+        if (previousMenuFontScale) {
+          validationBoardElement.style.setProperty("--fit-menu-font-scale", previousMenuFontScale);
+        } else {
+          validationBoardElement.style.removeProperty("--fit-menu-font-scale");
+        }
+        if (previousMenuGapScale) {
+          validationBoardElement.style.setProperty("--fit-menu-gap-scale", previousMenuGapScale);
+        } else {
+          validationBoardElement.style.removeProperty("--fit-menu-gap-scale");
+        }
+      }
+
+      return null;
+    }
+
     const frameId = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         if (cancelled) return;
@@ -5216,14 +5338,18 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           const actualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
           const actualCropDetected = actualCropMeasurement.overflow;
           if (actualCropDetected) {
-            const rejectedCandidateKey = getOrderedBalancedCandidateKey(fitState);
-            if (fitState.columns === 2) {
-              rejectOrderedBalancedColumn(fitState.orderedBalancedFingerprint, 2);
-            } else if (!orderedBalancedRejectedCandidateRef.current.has(rejectedCandidateKey)) {
-              orderedBalancedRejectedCandidateRef.current.add(rejectedCandidateKey);
-            }
+            rejectOrderedBalancedCandidate(fitState);
             if (fitState.orderedBalancedFingerprint) {
               orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+            }
+            const safeBackoffState = getOrderedBalancedSafeBackoffState(fitState);
+            if (safeBackoffState) {
+              fitStateRef.current = safeBackoffState;
+              setFitState(safeBackoffState);
+              if (!safeBackoffState.overflow && safeBackoffState.orderedBalancedFingerprint) {
+                orderedBalancedFitCacheRef.current.set(safeBackoffState.orderedBalancedFingerprint, safeBackoffState);
+              }
+              return;
             }
             setOrderedBalancedFitRevision((revision) => revision + 1);
             return;
@@ -5341,14 +5467,18 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           const actualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
           const actualCropDetected = actualCropMeasurement.overflow;
           if (actualCropDetected) {
-            const rejectedCandidateKey = getOrderedBalancedCandidateKey(fitState);
-            if (fitState.columns === 2) {
-              rejectOrderedBalancedColumn(fitState.orderedBalancedFingerprint, 2);
-            } else if (!orderedBalancedRejectedCandidateRef.current.has(rejectedCandidateKey)) {
-              orderedBalancedRejectedCandidateRef.current.add(rejectedCandidateKey);
-            }
+            rejectOrderedBalancedCandidate(fitState);
             if (fitState.orderedBalancedFingerprint) {
               orderedBalancedFitCacheRef.current.delete(fitState.orderedBalancedFingerprint);
+            }
+            const safeBackoffState = getOrderedBalancedSafeBackoffState(fitState);
+            if (safeBackoffState) {
+              fitStateRef.current = safeBackoffState;
+              setFitState(safeBackoffState);
+              if (!safeBackoffState.overflow && safeBackoffState.orderedBalancedFingerprint) {
+                orderedBalancedFitCacheRef.current.set(safeBackoffState.orderedBalancedFingerprint, safeBackoffState);
+              }
+              return;
             }
             setOrderedBalancedFitRevision((revision) => revision + 1);
             return;
