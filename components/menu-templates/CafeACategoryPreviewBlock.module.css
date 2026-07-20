@@ -10,6 +10,11 @@
   width: 100%;
 }
 
+.categorySplit {
+  break-inside: auto;
+  page-break-inside: auto;
+}
+
 .heading {
   align-items: end;
   display: flex;

@@ -1,0 +1,108 @@
+.preview {
+  --cafe-a-ordered-lab-ink: var(--cafe-a-ink, #191c1b);
+  --cafe-a-ordered-lab-muted: rgb(25 28 27 / 62%);
+  --cafe-a-ordered-lab-border: rgb(25 28 27 / 68%);
+  --cafe-a-ordered-lab-soft: rgb(25 28 27 / 12%);
+  --cafe-a-ordered-lab-gap: clamp(1rem, 1.8vw, 1.45rem);
+  color: var(--cafe-a-ordered-lab-ink);
+  min-width: 0;
+}
+
+.stage {
+  border: 1px solid var(--cafe-a-ordered-lab-border);
+  min-width: 0;
+  overflow: hidden;
+  padding: 1.1rem;
+}
+
+.flow {
+  box-sizing: border-box;
+  column-count: var(--cafe-a-ordered-lab-columns, 3);
+  column-fill: auto;
+  column-gap: var(--cafe-a-ordered-lab-gap);
+  height: var(--cafe-a-ordered-lab-height, 42rem);
+  min-width: 0;
+  overflow: hidden;
+  padding-inline-end: 0.5rem;
+}
+
+.block {
+  min-width: 0;
+  overflow: visible;
+  width: 100%;
+}
+
+.block:not(:last-child) {
+  margin-bottom: 1.125rem;
+}
+
+.categoryBlock {
+  break-inside: auto;
+  page-break-inside: auto;
+}
+
+.widgetBlock {
+  -webkit-column-break-inside: avoid;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.footerNoGo {
+  border-top: 1px solid var(--cafe-a-ordered-lab-soft);
+  color: var(--cafe-a-ordered-lab-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.68rem;
+  font-weight: 800;
+  gap: 0.4rem 0.7rem;
+  justify-content: flex-end;
+  line-height: 1.35;
+  margin-top: 1rem;
+  padding-top: 0.7rem;
+  text-align: right;
+}
+
+.diagnostics {
+  background: rgb(25 28 27 / 5%);
+  border: 1px solid var(--cafe-a-ordered-lab-soft);
+  display: grid;
+  gap: 0.42rem;
+  margin-top: 0.8rem;
+  padding: 0.72rem;
+}
+
+.diagnosticRow {
+  display: grid;
+  gap: 0.3rem;
+  grid-template-columns: minmax(6.25rem, max-content) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.diagnosticTerm {
+  color: var(--cafe-a-ordered-lab-muted);
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.diagnosticValue {
+  color: var(--cafe-a-ordered-lab-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.4;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .stage {
+    padding: 0.85rem;
+  }
+
+  .flow {
+    column-count: 1;
+    height: auto;
+    overflow: visible;
+  }
+}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import CafeABalancedContentFlowPreview from "@/components/menu-templates/CafeABalancedContentFlowPreview";
 import CafeAContentFlowPreview from "@/components/menu-templates/CafeAContentFlowPreview";
+import CafeAOrderedContentFlowPreview from "@/components/menu-templates/CafeAOrderedContentFlowPreview";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import type { CafeAContentBlock } from "@/components/menu-templates/cafe-a-content-blocks";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
@@ -12,6 +13,7 @@ import {
   CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE,
   CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
   CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE,
+  CAFE_A_ORDERED_CONTENT_BLOCK_LAB_FIXTURES,
   CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE,
   CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE,
   CAFE_A_CONTENT_BLOCK_VERTICAL_NOTICE,
@@ -127,6 +129,32 @@ function BalancedContentLabSection({
         <p className="mt-2 max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/60">{description}</p>
       </div>
       <CafeABalancedContentFlowPreview blocks={blocks} columns={columns} />
+    </section>
+  );
+}
+
+function OrderedContentLabSection({
+  title,
+  description,
+  blocks,
+  columns = 3,
+  heightPx,
+}: {
+  title: string;
+  description: string;
+  blocks: readonly CafeAContentBlock[];
+  columns?: number;
+  heightPx?: number;
+}) {
+  return (
+    <section className="min-w-0">
+      <div className="mb-4">
+        <h2 className="text-[clamp(1.25rem,2.2vw,1.85rem)] font-black leading-[0.95] tracking-[-0.01em] text-[#191c1b]">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/60">{description}</p>
+      </div>
+      <CafeAOrderedContentFlowPreview blocks={blocks} columns={columns} heightPx={heightPx} />
     </section>
   );
 }
@@ -290,6 +318,30 @@ export default function CafeAWidgetLabPage() {
                 description={fixture.description}
                 blocks={fixture.blocks}
                 columns={fixture.columns}
+              />
+            ))}
+          </div>
+
+          <section className="grid gap-4 border-t border-[#191c1b]/70 pt-8">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#191c1b]/55">OrderedFit Engine</p>
+            <h2 className="text-[clamp(2rem,5vw,4rem)] font-black leading-[0.9] tracking-[-0.02em] text-[#191c1b]">
+              ATOMIC WIDGET FLOW
+            </h2>
+            <p className="max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/62">
+              실제 CafeA 채움형의 CSS multi-column 흐름에 category와 widget fixture를 함께 넣어 검증합니다.
+              category는 기존처럼 분할 가능하고 widget은 atomic block으로 유지합니다. 고객 메뉴판, loader, editor에는 연결하지 않습니다.
+            </p>
+          </section>
+
+          <div className="grid gap-10 xl:grid-cols-2">
+            {CAFE_A_ORDERED_CONTENT_BLOCK_LAB_FIXTURES.map((fixture) => (
+              <OrderedContentLabSection
+                key={fixture.id}
+                title={fixture.title}
+                description={fixture.description}
+                blocks={fixture.blocks}
+                columns={fixture.columns}
+                heightPx={fixture.heightPx}
               />
             ))}
           </div>

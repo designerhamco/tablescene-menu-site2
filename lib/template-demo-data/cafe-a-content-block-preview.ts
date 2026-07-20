@@ -115,6 +115,21 @@ function widgetBlock(id: string, sortOrder: number, widgetIndex: number, visible
   };
 }
 
+function customWidgetBlock(
+  id: string,
+  sortOrder: number,
+  widget: Extract<CafeAContentBlock, { blockType: "widget" }>["widget"],
+  visible = true,
+): CafeAContentBlock {
+  return {
+    id,
+    blockType: "widget",
+    sortOrder,
+    visible,
+    widget,
+  };
+}
+
 export const CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE: CafeAContentBlock[] = [
   categoryBlock("mixed-signature", 10, SIGNATURE_CATEGORY),
   widgetBlock("mixed-image-widget", 20, 0),
@@ -177,6 +192,10 @@ export type CafeABalancedContentBlockLabFixture = {
   description: string;
   blocks: readonly CafeAContentBlock[];
   columns?: number;
+};
+
+export type CafeAOrderedContentBlockLabFixture = CafeABalancedContentBlockLabFixture & {
+  heightPx?: number;
 };
 
 export const CAFE_A_BALANCED_CONTENT_BLOCK_LAB_FIXTURES: CafeABalancedContentBlockLabFixture[] = [
@@ -253,6 +272,121 @@ export const CAFE_A_BALANCED_CONTENT_BLOCK_LAB_FIXTURES: CafeABalancedContentBlo
     title: "visible=false + 동일 sortOrder",
     description: "숨김 block은 제외하고 같은 sortOrder는 원본 배열 순서를 유지합니다.",
     blocks: CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
+    columns: 3,
+  },
+];
+
+export const CAFE_A_ORDERED_CONTENT_BLOCK_LAB_FIXTURES: CafeAOrderedContentBlockLabFixture[] = [
+  {
+    id: "ordered-mixed-basic",
+    title: "A. 기본 혼합",
+    description: "SIGNATURE, 2:1 이미지, CLASSIC, text, ADE, 4:3 image+text, DESSERT 순서로 CSS multi-column에 흘립니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "ordered-widget-first",
+    title: "B. widget first",
+    description: "첫 block이 widget이어도 source order와 다음 category divider가 유지됩니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_WIDGET_FIRST_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "ordered-widget-last",
+    title: "C. widget last",
+    description: "마지막 block이 widget이면 widget 자체 border만 유지하고 category divider는 추가하지 않습니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_WIDGET_LAST_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "ordered-consecutive-widgets",
+    title: "D. 연속 widget 3개",
+    description: "연속 widget이 각각 atomic block으로 다음 column으로 이동 가능한지 확인합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "ordered-category-widget-category",
+    title: "E. category → widget → category",
+    description: "category 종료 divider 뒤에 widget이 오고, widget 뒤에는 별도 divider 없이 다음 category가 이어집니다.",
+    blocks: [
+      categoryBlock("ordered-cwc-signature", 10, SIGNATURE_CATEGORY),
+      widgetBlock("ordered-cwc-image", 20, 0),
+      categoryBlock("ordered-cwc-classic", 30, CLASSIC_CATEGORY),
+    ],
+    columns: 3,
+  },
+  {
+    id: "ordered-long-text-widget",
+    title: "F. 긴 text widget",
+    description: "긴 text widget도 쪼개지지 않고 하나의 atomic block으로 유지되는지 확인합니다.",
+    blocks: [
+      categoryBlock("ordered-long-signature", 10, SIGNATURE_CATEGORY),
+      widgetBlock("ordered-long-text", 20, 1),
+      categoryBlock("ordered-long-classic", 30, CLASSIC_CATEGORY),
+      categoryBlock("ordered-long-ade", 40, ADE_CATEGORY),
+      categoryBlock("ordered-long-dessert", 50, DESSERT_CATEGORY),
+    ],
+    columns: 3,
+  },
+  {
+    id: "ordered-image-3-4",
+    title: "G. 3:4 image widget",
+    description: "세로형 이미지 widget이 column 중간에서 분할되지 않고 통째로 이동하는지 확인합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "ordered-image-text-3-4",
+    title: "H. image_text 3:4",
+    description: "3:4 media와 텍스트 copy가 서로 다른 column으로 갈라지지 않는지 확인합니다.",
+    blocks: [
+      categoryBlock("ordered-image-text-signature", 10, SIGNATURE_CATEGORY),
+      customWidgetBlock("ordered-image-text-vertical", 20, CAFE_A_WIDGET_IMAGE_TEXT_FIXTURES[1]),
+      categoryBlock("ordered-image-text-classic", 30, CLASSIC_CATEGORY),
+    ],
+    columns: 3,
+  },
+  {
+    id: "ordered-missing-image",
+    title: "I. 이미지 누락 fallback",
+    description: "이미지가 없는 image_text fallback도 고정 ratio 영역과 copy를 유지합니다.",
+    blocks: [
+      categoryBlock("ordered-missing-signature", 10, SIGNATURE_CATEGORY),
+      customWidgetBlock("ordered-missing-widget", 20, CAFE_A_WIDGET_IMAGE_TEXT_FIXTURES[2]),
+      categoryBlock("ordered-missing-dessert", 30, DESSERT_CATEGORY),
+    ],
+    columns: 3,
+  },
+  {
+    id: "ordered-footer-near-widget",
+    title: "J. footer 근처 widget",
+    description: "하단 안내 영역 근처에 widget이 놓여도 visible leaf가 no-go에 들어가지 않는지 진단합니다.",
+    blocks: [
+      categoryBlock("ordered-footer-signature", 10, SIGNATURE_CATEGORY),
+      categoryBlock("ordered-footer-classic", 20, CLASSIC_CATEGORY),
+      categoryBlock("ordered-footer-ade", 30, ADE_CATEGORY),
+      customWidgetBlock("ordered-footer-image-text", 40, CAFE_A_WIDGET_IMAGE_TEXT_FIXTURES[0]),
+      categoryBlock("ordered-footer-dessert", 50, DESSERT_CATEGORY),
+    ],
+    columns: 3,
+  },
+  {
+    id: "ordered-hidden-block",
+    title: "K. hidden block",
+    description: "visible=false category/widget은 orderedFit source flow에서 제외됩니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "ordered-same-sort-order",
+    title: "L. same sortOrder",
+    description: "동일 sortOrder에서는 원본 배열 순서를 안정적으로 유지합니다.",
+    blocks: [
+      categoryBlock("ordered-tie-category-first", 10, SIGNATURE_CATEGORY),
+      widgetBlock("ordered-tie-widget-second", 10, 0),
+      categoryBlock("ordered-tie-category-third", 10, DESSERT_CATEGORY),
+    ],
     columns: 3,
   },
 ];
