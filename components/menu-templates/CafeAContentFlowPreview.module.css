@@ -1,0 +1,26 @@
+.flow {
+  display: grid;
+  gap: 1.18rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.block {
+  min-width: 0;
+}
+
+.notice {
+  border-top: 1px solid rgb(25 28 27 / 68%);
+  color: rgb(25 28 27 / 58%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 0.2rem;
+  padding-top: 0.65rem;
+}
+
+@media (max-width: 767px) {
+  .flow {
+    gap: 1.12rem;
+  }
+}

@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import CafeAContentFlowPreview from "@/components/menu-templates/CafeAContentFlowPreview";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
+import type { CafeAContentBlock } from "@/components/menu-templates/cafe-a-content-blocks";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import {
+  CAFE_A_CONTENT_BLOCK_CATEGORY_LAST_FIXTURE,
+  CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE,
+  CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
+  CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE,
+  CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE,
+  CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE,
+  CAFE_A_CONTENT_BLOCK_VERTICAL_NOTICE,
+  CAFE_A_CONTENT_BLOCK_WIDGET_FIRST_FIXTURE,
+  CAFE_A_CONTENT_BLOCK_WIDGET_LAST_FIXTURE,
+} from "@/lib/template-demo-data/cafe-a-content-block-preview";
 import {
   CAFE_A_WIDGET_ALL_FIXTURES,
   CAFE_A_WIDGET_CONSECUTIVE_FIXTURES,
@@ -32,6 +45,14 @@ type WidgetLabSectionProps = {
   columns?: "single" | "grid";
 };
 
+type ContentFlowLabSectionProps = {
+  title: string;
+  description: string;
+  blocks: readonly CafeAContentBlock[];
+  showTerminalCategoryDivider?: boolean;
+  notice?: string;
+};
+
 function WidgetLabSection({ title, description, widgets, columns = "grid" }: WidgetLabSectionProps) {
   return (
     <section className="min-w-0">
@@ -53,6 +74,32 @@ function WidgetLabSection({ title, description, widgets, columns = "grid" }: Wid
             <CafeAWidgetBlock widget={widget} />
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function ContentFlowLabSection({
+  title,
+  description,
+  blocks,
+  showTerminalCategoryDivider = false,
+  notice,
+}: ContentFlowLabSectionProps) {
+  return (
+    <section className="min-w-0">
+      <div className="mb-4">
+        <h2 className="text-[clamp(1.25rem,2.2vw,1.85rem)] font-black leading-[0.95] tracking-[-0.01em] text-[#191c1b]">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/60">{description}</p>
+      </div>
+      <div className="max-w-[27rem]">
+        <CafeAContentFlowPreview
+          blocks={blocks}
+          showTerminalCategoryDivider={showTerminalCategoryDivider}
+          notice={notice}
+        />
       </div>
     </section>
   );
@@ -140,6 +187,63 @@ export default function CafeAWidgetLabPage() {
           <section className="border-t border-[#191c1b]/70 pt-5 text-xs font-bold leading-relaxed text-[#191c1b]/55">
             Hidden fixture count: {hiddenRenderedCount}. visible=false 위젯은 실제 목록에 렌더링하지 않습니다.
           </section>
+
+          <section className="grid gap-4 border-t border-[#191c1b]/70 pt-8">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#191c1b]/55">Content Block Contract</p>
+            <h2 className="text-[clamp(2rem,5vw,4rem)] font-black leading-[0.9] tracking-[-0.02em] text-[#191c1b]">
+              CATEGORY + WIDGET FLOW
+            </h2>
+            <p className="max-w-[44rem] text-sm font-semibold leading-relaxed text-[#191c1b]/62">
+              category와 widget을 같은 sortOrder 흐름으로 다룰 때의 시각 관계만 확인합니다. 실제 CafeDesignA
+              orderedFit/orderedBalancedFit에는 아직 연결하지 않았습니다.
+            </p>
+          </section>
+
+          <div className="grid gap-10 lg:grid-cols-2 xl:grid-cols-3">
+            <ContentFlowLabSection
+              title="카테고리 + 위젯 혼합 순서"
+              description="category, image widget, category, text widget, category 흐름입니다."
+              blocks={CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE}
+            />
+            <ContentFlowLabSection
+              title="위젯이 첫 블록인 경우"
+              description="첫 블록이 widget이어도 category divider와 block gap이 자연스러운지 확인합니다."
+              blocks={CAFE_A_CONTENT_BLOCK_WIDGET_FIRST_FIXTURE}
+            />
+            <ContentFlowLabSection
+              title="위젯이 마지막 블록인 경우"
+              description="마지막 widget 뒤에 불필요한 category divider가 생기지 않는지 확인합니다."
+              blocks={CAFE_A_CONTENT_BLOCK_WIDGET_LAST_FIXTURE}
+            />
+            <ContentFlowLabSection
+              title="연속 위젯"
+              description="위젯 3개가 연속될 때 border와 gap이 과하게 무겁지 않은지 확인합니다."
+              blocks={CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE}
+            />
+            <ContentFlowLabSection
+              title="마지막 블록이 카테고리인 경우"
+              description="기본 terminal 상태입니다. 마지막 category 아래에는 divider가 없습니다."
+              blocks={CAFE_A_CONTENT_BLOCK_CATEGORY_LAST_FIXTURE}
+            />
+            <ContentFlowLabSection
+              title="숨김 및 동일 순서값"
+              description="visible=false는 제외하고, 같은 sortOrder는 원본 배열 순서를 유지합니다."
+              blocks={CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE}
+            />
+            <ContentFlowLabSection
+              title="3:4 강조 위젯"
+              description="세로형 image widget을 category 사이에 넣어 시각적 비중을 확인합니다."
+              blocks={CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE}
+              notice={CAFE_A_CONTENT_BLOCK_VERTICAL_NOTICE}
+            />
+            <ContentFlowLabSection
+              title="모바일 terminal divider 비교"
+              description="모바일 정책 검토용으로 마지막 category에도 divider를 표시한 상태입니다."
+              blocks={CAFE_A_CONTENT_BLOCK_CATEGORY_LAST_FIXTURE}
+              showTerminalCategoryDivider
+              notice={CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE}
+            />
+          </div>
         </div>
       </div>
     </main>
