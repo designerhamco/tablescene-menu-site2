@@ -2441,6 +2441,10 @@ function getMenuGroupKey(group: MenuGroup) {
   return `${group.page.id}:${group.category.id}`;
 }
 
+function getCategoryBlockClassName(hasDivider: boolean) {
+  return `cafe-a-menu-category-block min-w-0${hasDivider ? " cafe-a-menu-category-block-has-divider" : ""}`;
+}
+
 function isDefaultPageTitle(page: MenuPage) {
   const title = page.title.trim();
   return /^메뉴 페이지\s*\d+$/i.test(title) || /^page\s*\d+$/i.test(title);
@@ -2896,7 +2900,7 @@ function MenuItemRow({
         : "title-only";
   const hasContentAfterTitle = hasSecondaryText || showMenuTimeSale || hasDescriptionText || visibleTraits.length > 0 || hasOriginInfo;
   const hasContentAfterMeta = showMenuTimeSale || hasDescriptionText || visibleTraits.length > 0 || hasOriginInfo;
-  const canCenterSparseContent = contentVariant !== "full" && !usesPriceColumns && !showMenuTimeSale && visibleTraits.length === 0 && !hasOriginInfo;
+  const canCenterSparseContent = !hasItemImage && contentVariant !== "full" && !usesPriceColumns && !showMenuTimeSale && visibleTraits.length === 0 && !hasOriginInfo;
   const titleRowSpacingClassName = !hasContentAfterTitle ? "mb-0" : showMenuTimeSale && timeSale && !hasSecondaryText ? "mb-0" : "mb-0.5";
   const metaSpacingClassName = !hasContentAfterMeta ? "mb-0" : showMenuTimeSale && timeSale ? "mb-0" : "mb-0.5";
   const handleOpenImage = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
@@ -2912,58 +2916,37 @@ function MenuItemRow({
     );
   }, [imageUrl, item.name, onOpenImage, trimmedMetaText]);
 
-  return (
-    <article
-      className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
-      data-cafe-a-content-variant={contentVariant}
-      data-cafe-a-menu-item=""
-    >
-      {hasItemImage && (
-        <button
-          type="button"
-          className="cafe-a-menu-item-image-slot"
-          onClick={handleOpenImage}
-          aria-label={`${item.name} 이미지 크게 보기`}
-        >
-          <img
-            src={imageUrl}
-            alt={`${item.name} 이미지`}
-            className="cafe-a-menu-item-image"
-            loading="lazy"
-            decoding="async"
-          />
-          <span className="cafe-a-menu-item-image-zoom" aria-hidden="true">
-            <ZoomIn className="h-3.5 w-3.5" strokeWidth={2} />
-          </span>
-        </button>
-      )}
-      <div className="cafe-a-menu-copy min-w-0">
-        <div className={`cafe-a-menu-title-row ${titleRowSpacingClassName} flex flex-wrap items-center gap-1.5`}>
-          <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
-          <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
-          {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
-          {item.is_sold_out && <SoldOutBadge />}
-        </div>
-        {hasSecondaryText && (
-          <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>
-            {trimmedMetaText}
-          </p>
-        )}
-        {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
-        {hasDescriptionText && (
-          <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{descriptionText}</p>
-        )}
-        {visibleTraits.length > 0 && (
-          <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
-            {visibleTraits.map((trait) => (
-              <span key={trait.id} className="menu-chip cafe-a-menu-chip border border-[#bfc9c4] px-1.5 py-1 font-black text-[#3f4945]">
-                {trait.label} {trait.value}/{trait.max_value}
-              </span>
-            ))}
-          </div>
-        )}
-        {hasOriginInfo && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info?.trim()}</p>}
+  const menuCopyElement = (
+    <div className="cafe-a-menu-copy min-w-0">
+      <div className={`cafe-a-menu-title-row ${titleRowSpacingClassName} flex flex-wrap items-center gap-1.5`}>
+        <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
+        <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
+        {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
+        {item.is_sold_out && <SoldOutBadge />}
       </div>
+      {hasSecondaryText && (
+        <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>
+          {trimmedMetaText}
+        </p>
+      )}
+      {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
+      {hasDescriptionText && (
+        <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{descriptionText}</p>
+      )}
+      {visibleTraits.length > 0 && (
+        <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
+          {visibleTraits.map((trait) => (
+            <span key={trait.id} className="menu-chip cafe-a-menu-chip border border-[#bfc9c4] px-1.5 py-1 font-black text-[#3f4945]">
+              {trait.label} {trait.value}/{trait.max_value}
+            </span>
+          ))}
+        </div>
+      )}
+      {hasOriginInfo && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info?.trim()}</p>}
+    </div>
+  );
+  const priceAreaElement = (
+    <>
       {priceTokens.length > 0 && usesPriceColumns && (
         <div className="menu-price cafe-a-price-area shrink-0 text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
           <div
@@ -3016,6 +2999,45 @@ function MenuItemRow({
           </div>
           {priceNote && <p className="cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug text-[#65706b]">{priceNote}</p>}
         </div>
+      )}
+    </>
+  );
+
+  return (
+    <article
+      className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
+      data-cafe-a-content-variant={contentVariant}
+      data-cafe-a-menu-item=""
+    >
+      {hasItemImage && (
+        <button
+          type="button"
+          className="cafe-a-menu-item-image-slot"
+          onClick={handleOpenImage}
+          aria-label={`${item.name} 이미지 크게 보기`}
+        >
+          <img
+            src={imageUrl}
+            alt={`${item.name} 이미지`}
+            className="cafe-a-menu-item-image"
+            loading="lazy"
+            decoding="async"
+          />
+          <span className="cafe-a-menu-item-image-zoom" aria-hidden="true">
+            <ZoomIn className="h-3.5 w-3.5" strokeWidth={2} />
+          </span>
+        </button>
+      )}
+      {hasItemImage ? (
+        <div className="cafe-a-menu-item-content-shell">
+          {menuCopyElement}
+          {priceAreaElement}
+        </div>
+      ) : (
+        <>
+          {menuCopyElement}
+          {priceAreaElement}
+        </>
       )}
     </article>
   );
@@ -3834,7 +3856,7 @@ function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; 
   const description = data.menuSite.brand_description || data.menuSite.description;
 
   return (
-    <header className={`w-full shrink-0 border-b border-[#191c1b] px-[clamp(24px,4vw,96px)] py-8 lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
+    <header className={`w-full shrink-0 px-[clamp(24px,4vw,96px)] pt-8 pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
       <div className="flex min-w-0 items-start justify-between gap-[clamp(16px,2vw,32px)]">
         <div className="min-w-0 max-w-5xl">
           <StoreIdentity
@@ -3902,6 +3924,7 @@ function MenuGroupsGrid({
   outerGridGapClassName,
   menuAreaClassName,
   showPageTitles,
+  categoryDividerScope = "all",
   timeSaleByItemId,
   priceDisplayMode,
   onOpenImage,
@@ -3917,12 +3940,16 @@ function MenuGroupsGrid({
   outerGridGapClassName: string;
   menuAreaClassName: string;
   showPageTitles: boolean;
+  categoryDividerScope?: "all" | "page";
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
+  const orderedGroupKeys = useMemo(() => getFlatMenuGroups(pageGroups).map(getMenuGroupKey), [pageGroups]);
+  const lastGroupKey = orderedGroupKeys[orderedGroupKeys.length - 1] ?? "";
+
   return (
     <section
       ref={fitRef}
@@ -3939,31 +3966,42 @@ function MenuGroupsGrid({
               </h2>
             </section>
           )}
-          {pageGroup.groups.map(({ page, category, items }) => (
-            <section key={`${page.id}-${category.id}`} className="cafe-a-menu-category-block min-w-0" data-cafe-a-category-block="">
-              <CategoryTitle category={category} density={density} items={items} />
-              <div className="cafe-a-category-items">
-                {items.map((item) => (
-                  <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
-                    <MenuItemRow
-                      item={item}
-                      category={category}
-                      priceOptions={data.priceOptions}
-                      traits={getItemTraits(data.traits, item.id)}
-                      capabilities={capabilities}
-                      density={density}
-                      templateKey={data.menuSite.template_key}
-                      timeSale={timeSaleByItemId.get(item.id)}
-                      customBadgeStyles={customBadgeStyles}
-                      locale={data.locale}
-                      priceDisplayMode={priceDisplayMode}
-                      onOpenImage={onOpenImage}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))}
+          {pageGroup.groups.map(({ page, category, items }, groupIndex) => {
+            const groupKey = `${page.id}:${category.id}`;
+            const hasDivider =
+              categoryDividerScope === "page" ? groupIndex < pageGroup.groups.length - 1 : groupKey !== lastGroupKey;
+
+            return (
+              <section
+                key={groupKey}
+                className={getCategoryBlockClassName(hasDivider)}
+                data-cafe-a-category-block=""
+                data-cafe-a-category-divider={hasDivider ? "true" : undefined}
+              >
+                <CategoryTitle category={category} density={density} items={items} />
+                <div className="cafe-a-category-items">
+                  {items.map((item) => (
+                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
+                      <MenuItemRow
+                        item={item}
+                        category={category}
+                        priceOptions={data.priceOptions}
+                        traits={getItemTraits(data.traits, item.id)}
+                        capabilities={capabilities}
+                        density={density}
+                        templateKey={data.menuSite.template_key}
+                        timeSale={timeSaleByItemId.get(item.id)}
+                        customBadgeStyles={customBadgeStyles}
+                        locale={data.locale}
+                        priceDisplayMode={priceDisplayMode}
+                        onOpenImage={onOpenImage}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
       ))}
       {footerInfo}
@@ -4023,40 +4061,42 @@ function BalancedExperimentalMenuGrid({
     >
       {balancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
-          {column.groups.map(({ page, category, items }) => {
+          {column.groups.map(({ page, category, items }, groupIndex) => {
             const groupKey = `${page.id}:${category.id}`;
+            const hasDivider = groupIndex < column.groups.length - 1;
 
             return (
-            <section
-              key={`${page.id}-${category.id}`}
-              className="cafe-a-menu-category-block min-w-0"
-              data-cafe-a-category-block=""
-              data-cafe-a-balanced-category-block={groupKey}
-              data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
-              data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
-            >
-              <CategoryTitle category={category} density={density} items={items} />
-              <div className="cafe-a-category-items">
-                {items.map((item) => (
-                  <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
-                    <MenuItemRow
-                      item={item}
-                      category={category}
-                      priceOptions={data.priceOptions}
-                      traits={getItemTraits(data.traits, item.id)}
-                      capabilities={capabilities}
-                      density={density}
-                      templateKey={data.menuSite.template_key}
-                      timeSale={timeSaleByItemId.get(item.id)}
-                      customBadgeStyles={customBadgeStyles}
-                      locale={data.locale}
-                      priceDisplayMode={priceDisplayMode}
-                      onOpenImage={onOpenImage}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
+              <section
+                key={groupKey}
+                className={getCategoryBlockClassName(hasDivider)}
+                data-cafe-a-category-block=""
+                data-cafe-a-category-divider={hasDivider ? "true" : undefined}
+                data-cafe-a-balanced-category-block={groupKey}
+                data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
+                data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
+              >
+                <CategoryTitle category={category} density={density} items={items} />
+                <div className="cafe-a-category-items">
+                  {items.map((item) => (
+                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
+                      <MenuItemRow
+                        item={item}
+                        category={category}
+                        priceOptions={data.priceOptions}
+                        traits={getItemTraits(data.traits, item.id)}
+                        capabilities={capabilities}
+                        density={density}
+                        templateKey={data.menuSite.template_key}
+                        timeSale={timeSaleByItemId.get(item.id)}
+                        customBadgeStyles={customBadgeStyles}
+                        locale={data.locale}
+                        priceDisplayMode={priceDisplayMode}
+                        onOpenImage={onOpenImage}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
             );
           })}
           {columnIndex === balancedColumns.length - 1 && footerInfo}
@@ -4119,14 +4159,16 @@ function OrderedBalancedFitMenuGrid({
     >
       {orderedBalancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
-          {column.groups.map(({ page, category, items }) => {
+          {column.groups.map(({ page, category, items }, groupIndex) => {
             const groupKey = `${page.id}:${category.id}`;
+            const hasDivider = groupIndex < column.groups.length - 1;
 
             return (
               <section
-                key={`${page.id}-${category.id}`}
-                className="cafe-a-menu-category-block min-w-0"
+                key={groupKey}
+                className={getCategoryBlockClassName(hasDivider)}
                 data-cafe-a-category-block=""
+                data-cafe-a-category-divider={hasDivider ? "true" : undefined}
                 data-cafe-a-balanced-category-block={groupKey}
                 data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
                 data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
@@ -5655,7 +5697,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           <HeaderBlock data={data} className="lg:hidden" />
-          <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] py-8 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
+          <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] pt-6 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
             {shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
@@ -5682,6 +5724,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 outerGridGapClassName={outerGridGapClassName}
                 menuAreaClassName={menuAreaClassName}
                 showPageTitles
+                categoryDividerScope="page"
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
