@@ -847,7 +847,8 @@ function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElem
     boardElement,
     menuElement,
     ORDERED_FIT_MIN_SAFETY_GAP,
-    ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX
+    undefined,
+    { footerNoGoLeafOnly: true }
   );
 
   return {
@@ -1387,6 +1388,7 @@ function getCafeAActualDomCropMeasurement(
   menuElement: HTMLElement,
   cropTolerance: number,
   footerNoGoSafetyGapOverride?: number,
+  options: { footerNoGoLeafOnly?: boolean } = {},
 ) {
   const menuRect = menuElement.getBoundingClientRect();
   const safeBottom = getCafeAClippingBottom(boardElement, menuElement);
@@ -1437,39 +1439,40 @@ function getCafeAActualDomCropMeasurement(
       footerRect!.left < boardRect.left + footerSafetyGap ||
       footerRect!.top < boardRect.top + footerSafetyGap
     : false;
+  const footerNoGoLeafSelectors = [
+    "[data-cafe-a-category-heading]",
+    "[data-cafe-a-menu-name]",
+    "[data-cafe-a-menu-price]",
+    ".cafe-a-menu-description",
+    ".cafe-a-menu-meta",
+    ".cafe-a-menu-badge",
+    ".cafe-a-menu-chip",
+    ".cafe-a-menu-item-image-slot",
+    ".cafe-a-menu-item-image",
+    ".cafe-a-price-area",
+    ".cafe-a-price-stack",
+    ".cafe-a-price-columns-grid",
+    ".cafe-a-price-column-cell",
+    ".cafe-a-price-pair",
+    ".cafe-a-price-token",
+    ".cafe-a-price-label",
+    ".cafe-a-price-note",
+    ".cafe-a-time-sale-price-block",
+    ".cafe-a-time-sale-time-text",
+    "[data-cafe-a-balanced-atomic-block]",
+    "[data-cafe-a-widget-block]",
+    "[data-cafe-a-widget-media]",
+    "[data-cafe-a-widget-copy]",
+    "[data-cafe-a-widget-title]",
+    "[data-cafe-a-widget-body]",
+  ];
+  const footerNoGoWrapperSelectors = ["[data-cafe-a-item-stack]", "[data-cafe-a-menu-item]"];
+  const footerNoGoSelectors = options.footerNoGoLeafOnly
+    ? footerNoGoLeafSelectors
+    : [...footerNoGoLeafSelectors, ...footerNoGoWrapperSelectors];
   const footerNoGoOverlapElements = footerNoGoRect
     ? Array.from(
-        menuElement.querySelectorAll<HTMLElement>(
-          [
-            "[data-cafe-a-category-heading]",
-            "[data-cafe-a-item-stack]",
-            "[data-cafe-a-menu-item]",
-            "[data-cafe-a-menu-name]",
-            "[data-cafe-a-menu-price]",
-            ".cafe-a-menu-description",
-            ".cafe-a-menu-meta",
-            ".cafe-a-menu-badge",
-            ".cafe-a-menu-chip",
-            ".cafe-a-menu-item-image-slot",
-            ".cafe-a-menu-item-image",
-            ".cafe-a-price-area",
-            ".cafe-a-price-stack",
-            ".cafe-a-price-columns-grid",
-            ".cafe-a-price-column-cell",
-            ".cafe-a-price-pair",
-            ".cafe-a-price-token",
-            ".cafe-a-price-label",
-            ".cafe-a-price-note",
-            ".cafe-a-time-sale-price-block",
-            ".cafe-a-time-sale-time-text",
-            "[data-cafe-a-balanced-atomic-block]",
-            "[data-cafe-a-widget-block]",
-            "[data-cafe-a-widget-media]",
-            "[data-cafe-a-widget-copy]",
-            "[data-cafe-a-widget-title]",
-            "[data-cafe-a-widget-body]",
-          ].join(",")
-        )
+        menuElement.querySelectorAll<HTMLElement>(footerNoGoSelectors.join(","))
       ).filter((element) => {
         const rect = element.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) return false;
@@ -4955,10 +4958,10 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         const previousOrderedFitCategoryRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-category-rhythm-scale");
         const previousOrderedFitTextRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-text-rhythm-scale");
         const columnCandidates =
-          hasVisibleItemImages
-            ? getImageMenuColumnCandidates(menuWidth, visibleMenuGroupCount)
-            : layoutMode === "orderedFit"
-              ? getOrderedFitColumnCandidates(menuWidth)
+          layoutMode === "orderedFit"
+            ? getOrderedFitColumnCandidates(menuWidth)
+            : hasVisibleItemImages
+              ? getImageMenuColumnCandidates(menuWidth, visibleMenuGroupCount)
               : layoutMode === "orderedBalancedFit"
                 ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount, visibleItemCount)
                 : getBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount);
@@ -5590,7 +5593,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           boardElement,
           menuElement,
           ORDERED_FIT_MIN_SAFETY_GAP,
-          ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX
+          undefined,
+          { footerNoGoLeafOnly: true }
         );
         const baseOrderedMeasurement = measureCafeAOrderedFit(boardElement, menuElement, fitState.columns);
 
@@ -5621,7 +5625,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
             boardElement,
             menuElement,
             ORDERED_FIT_MIN_SAFETY_GAP,
-            ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX
+            undefined,
+            { footerNoGoLeafOnly: true }
           );
           const compensatedOrderedMeasurement = measureCafeAOrderedFit(boardElement, menuElement, fitState.columns);
           const compensatedGap = compensatedOrderedMeasurement.visibleContentBottomGap;
