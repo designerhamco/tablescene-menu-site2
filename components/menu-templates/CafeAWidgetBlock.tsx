@@ -72,7 +72,7 @@ function renderMedia(widget: CafeAImageWidget | CafeAImageTextWidget) {
   } as CSSProperties;
 
   return (
-    <div className={styles.mediaFrame} style={mediaStyle}>
+    <div className={styles.mediaFrame} style={mediaStyle} data-cafe-a-widget-media>
       {widget.imageUrl ? (
         <img
           src={widget.imageUrl}
@@ -101,9 +101,9 @@ function renderCopy({
   const normalizedTitle = title.trim();
 
   return (
-    <div className={joinClassNames(styles.copy, textAlign === "center" ? styles.copyCenter : styles.copyLeft)}>
-      {normalizedTitle ? <p className={styles.title}>{normalizedTitle}</p> : null}
-      <p className={joinClassNames(styles.body, !normalizedTitle && styles.bodyOnly)}>{body}</p>
+    <div className={joinClassNames(styles.copy, textAlign === "center" ? styles.copyCenter : styles.copyLeft)} data-cafe-a-widget-copy>
+      {normalizedTitle ? <p className={styles.title} data-cafe-a-widget-title>{normalizedTitle}</p> : null}
+      <p className={joinClassNames(styles.body, !normalizedTitle && styles.bodyOnly)} data-cafe-a-widget-body>{body}</p>
     </div>
   );
 }

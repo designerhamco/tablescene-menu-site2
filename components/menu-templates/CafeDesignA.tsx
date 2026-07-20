@@ -8,6 +8,12 @@ import { useRouter } from "next/navigation";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
+import {
+  createCafeAOrderedBalancedColumnsFromBreakIndices,
+  getCafeAOrderedBalancedBreaksFromColumns,
+  getCafeAOrderedBalancedColumnFillMetrics,
+  getCafeAOrderedBalancedContiguousColumns,
+} from "@/components/menu-templates/cafe-a-balanced-layout";
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
@@ -965,7 +971,7 @@ function getBalancedBlockVisibleHeights(blockElement: HTMLElement) {
 }
 
 function getBalancedBlockMeasurements(menuElement: HTMLElement): CafeDesignABalancedBlockMeasurement[] {
-  return Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-category-block]"))
+  return Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-atomic-block], [data-cafe-a-balanced-category-block]"))
     .map((blockElement) => {
       const rect = blockElement.getBoundingClientRect();
       const order = Number.parseInt(blockElement.dataset.cafeABalancedSourceOrder ?? "", 10);
@@ -973,7 +979,7 @@ function getBalancedBlockMeasurements(menuElement: HTMLElement): CafeDesignABala
       const visibleHeights = getBalancedBlockVisibleHeights(blockElement);
 
       return {
-        key: blockElement.dataset.cafeABalancedCategoryBlock ?? "",
+        key: blockElement.dataset.cafeABalancedBlockId ?? blockElement.dataset.cafeABalancedCategoryBlock ?? "",
         order: Number.isFinite(order) ? order : Number.MAX_SAFE_INTEGER,
         height: rect.height,
         ...visibleHeights,
@@ -1155,40 +1161,16 @@ function getVisibleBalancedExhaustiveColumns(blocks: CafeDesignABalancedBlockMea
   return bestColumns;
 }
 
-function createSimulatedColumnFromBlocks(blocks: CafeDesignABalancedBlockMeasurement[]): CafeDesignABalancedSimulatedColumn {
-  return {
-    blocks,
-    height: getBalancedSimulatedColumnHeight(blocks),
-  };
-}
-
 function createOrderedBalancedColumnsFromBreakIndices(
   blocks: CafeDesignABalancedBlockMeasurement[],
   safeColumns: number,
   breakIndices: number[],
 ): CafeDesignABalancedSimulatedColumn[] {
-  const columns: CafeDesignABalancedSimulatedColumn[] = [];
-  let startIndex = 0;
-
-  [...breakIndices, blocks.length].forEach((endIndex) => {
-    columns.push(createSimulatedColumnFromBlocks(blocks.slice(startIndex, endIndex)));
-    startIndex = endIndex;
-  });
-
-  while (columns.length < safeColumns) columns.push(createSimulatedColumnFromBlocks([]));
-  return columns.slice(0, safeColumns);
+  return createCafeAOrderedBalancedColumnsFromBreakIndices(blocks, safeColumns, breakIndices);
 }
 
 function getOrderedBalancedBreaksFromColumns(columns: CafeDesignABalancedSimulatedColumn[]) {
-  let cursor = 0;
-  const breaks: number[] = [];
-
-  columns.slice(0, -1).forEach((column) => {
-    cursor += column.blocks.length;
-    if (cursor > 0) breaks.push(cursor);
-  });
-
-  return breaks.join(",");
+  return getCafeAOrderedBalancedBreaksFromColumns(columns);
 }
 
 function parseOrderedBalancedBreaks(value: string, groupCount: number, columns: number) {
@@ -1203,174 +1185,16 @@ function parseOrderedBalancedBreaks(value: string, groupCount: number, columns: 
 }
 
 function getOrderedBalancedColumnFillMetrics(columns: CafeDesignABalancedSimulatedColumn[], targetHeight?: number) {
-  const visibleHeights = columns.map((column) => getBalancedVisibleColumnFillHeights(column).visibleContentHeight || column.height);
-  const maxHeight = Math.max(...visibleHeights, 0);
-  const averageHeight = visibleHeights.length > 0 ? visibleHeights.reduce((total, height) => total + height, 0) / visibleHeights.length : 0;
-  const fillHeight = Number.isFinite(targetHeight) && (targetHeight ?? 0) > 0 ? targetHeight ?? maxHeight : maxHeight;
-  const fillRatios = visibleHeights.map((height) => (fillHeight > 0 ? height / fillHeight : 0));
-  const bottomGaps = visibleHeights.map((height) => Math.max(0, fillHeight - height));
-  const firstIndex = 0;
-  const middleIndex = columns.length >= 3 ? 1 : Math.max(0, columns.length - 1);
-  const lastIndex = Math.max(0, columns.length - 1);
-  const averageFillRatio = fillRatios.length > 0 ? fillRatios.reduce((total, fillRatio) => total + fillRatio, 0) / fillRatios.length : 0;
-  const fillVariance =
-    fillRatios.length > 0
-      ? fillRatios.reduce((total, fillRatio) => total + Math.pow(fillRatio - averageFillRatio, 2), 0) / fillRatios.length
-      : 0;
-
-  return {
-    visibleHeights,
-    maxHeight,
-    minHeight: visibleHeights.length > 0 ? Math.min(...visibleHeights) : 0,
-    averageHeight,
-    fillHeight,
-    firstHeight: visibleHeights[firstIndex] ?? 0,
-    secondHeight: visibleHeights[middleIndex] ?? visibleHeights[firstIndex] ?? 0,
-    lastHeight: visibleHeights[lastIndex] ?? 0,
-    firstFillRatio: fillRatios[firstIndex] ?? 0,
-    secondFillRatio: fillRatios[middleIndex] ?? fillRatios[firstIndex] ?? 0,
-    lastFillRatio: fillRatios[lastIndex] ?? 0,
-    minFillRatio: fillRatios.length > 0 ? Math.min(...fillRatios) : 0,
-    firstGap: bottomGaps[firstIndex] ?? 0,
-    secondGap: bottomGaps[middleIndex] ?? bottomGaps[firstIndex] ?? 0,
-    lastGap: bottomGaps[lastIndex] ?? 0,
-    fillVariance,
-    secondBlockCount: columns[middleIndex]?.blocks.length ?? 0,
-  };
-}
-
-function getOrderedBalancedSimulatedSpreadScore(columns: CafeDesignABalancedSimulatedColumn[], targetHeight?: number) {
-  const {
-    maxHeight,
-    minHeight,
-    averageHeight,
-    firstHeight,
-    secondHeight,
-    lastHeight,
-    firstFillRatio,
-    secondFillRatio,
-    lastFillRatio,
-    minFillRatio,
-    firstGap,
-    secondGap,
-    lastGap,
-    fillVariance,
-    secondBlockCount,
-  } = getOrderedBalancedColumnFillMetrics(columns, targetHeight);
-  const targetGap = Number.isFinite(targetHeight) ? Math.max(0, (targetHeight ?? 0) - maxHeight) : 0;
-  const targetGapPenalty = Number.isFinite(targetHeight)
-    ? Math.max(0, maxHeight - (targetHeight ?? 0)) * 1000 +
-      Math.max(0, targetGap - ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP) * 420 +
-      Math.max(0, targetGap - 14) * 720 +
-      Math.max(0, targetGap - 24) * 1100
-    : 0;
-  const firstColumnIsShortestPenalty =
-    firstHeight <= minHeight + 1 && maxHeight - firstHeight > 40 ? 12000 + (maxHeight - firstHeight) * 42 : 0;
-  const firstFillPenalty =
-    Math.max(0, 0.8 - firstFillRatio) * 3600 +
-    Math.max(0, 0.88 - firstFillRatio) * 1200 +
-    Math.max(0, firstGap - 40) * 18 +
-    Math.max(0, maxHeight - firstHeight - 80) * 7.2;
-  const secondFillPenalty =
-    Math.max(0, 0.72 - secondFillRatio) * 3600 +
-    Math.max(0, 0.78 - secondFillRatio) * 1400 +
-    Math.max(0, secondGap - 40) * 11 +
-    Math.max(0, secondGap - 60) * 22;
-  const singletonMiddlePenalty =
-    columns.length >= 3 && secondBlockCount <= 1 && secondFillRatio < 0.84
-      ? 1800 + Math.max(0, 0.84 - secondFillRatio) * 2600 + Math.max(0, secondGap - 40) * 16
-      : 0;
-  const lastFillPenalty =
-    Math.max(0, 0.58 - lastFillRatio) * 520 +
-    Math.max(0, 0.66 - lastFillRatio) * 260 +
-    Math.max(0, lastGap - 160) * 1.2;
-  const minFillPenalty = Math.max(0, 0.58 - minFillRatio) * 720 + Math.max(0, 0.68 - minFillRatio) * 360;
-  const fillVariancePenalty = fillVariance * 1200;
-  const leftRhythmPenalty = Math.max(0, secondHeight - firstHeight - 40) * 26 + Math.max(0, lastHeight - firstHeight - 70) * 14;
-
-  return (
-    targetGapPenalty +
-    firstColumnIsShortestPenalty +
-    firstFillPenalty +
-    secondFillPenalty +
-    singletonMiddlePenalty +
-    lastFillPenalty +
-    minFillPenalty +
-    fillVariancePenalty +
-    leftRhythmPenalty +
-    (maxHeight - minHeight) * 2.6 +
-    Math.max(0, averageHeight - lastHeight) * 3.2 +
-    Math.max(0, maxHeight * 0.74 - lastHeight) * 2.4 +
-    Math.max(0, maxHeight * 0.68 - minHeight) * 2.8 +
-    columns.filter((column) => column.blocks.length === 0).length * 800
-  );
-}
-
-function getOrderedBalancedSequentialColumns(blocks: CafeDesignABalancedBlockMeasurement[], safeColumns: number) {
-  const columns: CafeDesignABalancedSimulatedColumn[] = Array.from({ length: safeColumns }, () => ({ blocks: [], height: 0 }));
-  const totalHeight = blocks.reduce((total, block) => total + block.height, 0);
-  const targetHeight = safeColumns > 0 ? totalHeight / safeColumns : totalHeight;
-  let columnIndex = 0;
-
-  blocks.forEach((block, blockIndex) => {
-    const currentColumn = columns[columnIndex] ?? columns[columns.length - 1];
-    const remainingBlocks = blocks.length - blockIndex;
-    const remainingColumns = safeColumns - columnIndex;
-    const projectedHeight =
-      currentColumn.height +
-      (currentColumn.blocks.length > 0 ? currentColumn.blocks[currentColumn.blocks.length - 1]?.marginBottom ?? 0 : 0) +
-      block.height;
-    const shouldAdvance =
-      currentColumn.blocks.length > 0 &&
-      columnIndex < safeColumns - 1 &&
-      projectedHeight > targetHeight &&
-      remainingBlocks >= remainingColumns;
-
-    if (shouldAdvance) columnIndex += 1;
-    const targetColumn = columns[columnIndex] ?? columns[columns.length - 1];
-    targetColumn.blocks.push(block);
-    targetColumn.height = getBalancedSimulatedColumnHeight(targetColumn.blocks);
-  });
-
-  return columns;
+  return getCafeAOrderedBalancedColumnFillMetrics(columns, targetHeight);
 }
 
 function getOrderedBalancedContiguousColumns(blocks: CafeDesignABalancedBlockMeasurement[], columns: number, targetHeight?: number) {
-  const safeColumns = Math.max(1, Math.min(ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS, Math.floor(columns), blocks.length || 1));
-  if (blocks.length === 0) return Array.from({ length: safeColumns }, () => createSimulatedColumnFromBlocks([]));
-  if (blocks.length < safeColumns) return getOrderedBalancedSequentialColumns(blocks, blocks.length);
-
-  if (blocks.length > ORDERED_BALANCED_MAX_EXHAUSTIVE_BLOCKS || safeColumns > ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS) {
-    return getOrderedBalancedSequentialColumns(blocks, safeColumns);
-  }
-
-  let bestColumns = getOrderedBalancedSequentialColumns(blocks, safeColumns);
-  let bestScore = getOrderedBalancedSimulatedSpreadScore(bestColumns, targetHeight);
-  const selectedBreaks: number[] = [];
-
-  function visit(nextBreakStart: number, remainingBreaks: number) {
-    if (remainingBreaks === 0) {
-      const candidateColumns = createOrderedBalancedColumnsFromBreakIndices(blocks, safeColumns, selectedBreaks);
-      if (candidateColumns.some((column) => column.blocks.length === 0)) return;
-
-      const score = getOrderedBalancedSimulatedSpreadScore(candidateColumns, targetHeight);
-      if (score < bestScore) {
-        bestScore = score;
-        bestColumns = candidateColumns;
-      }
-      return;
-    }
-
-    const maxBreak = blocks.length - remainingBreaks;
-    for (let breakIndex = nextBreakStart; breakIndex <= maxBreak; breakIndex += 1) {
-      selectedBreaks.push(breakIndex);
-      visit(breakIndex + 1, remainingBreaks - 1);
-      selectedBreaks.pop();
-    }
-  }
-
-  visit(1, safeColumns - 1);
-  return bestColumns;
+  return getCafeAOrderedBalancedContiguousColumns(blocks, columns, {
+    targetHeight,
+    maxExhaustiveBlocks: ORDERED_BALANCED_MAX_EXHAUSTIVE_BLOCKS,
+    maxExhaustiveColumns: ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS,
+    targetMaxVisibleGap: ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP,
+  });
 }
 
 function getOrderedBalancedMenuColumns({
@@ -1638,6 +1462,12 @@ function getCafeAActualDomCropMeasurement(
             ".cafe-a-price-note",
             ".cafe-a-time-sale-price-block",
             ".cafe-a-time-sale-time-text",
+            "[data-cafe-a-balanced-atomic-block]",
+            "[data-cafe-a-widget-block]",
+            "[data-cafe-a-widget-media]",
+            "[data-cafe-a-widget-copy]",
+            "[data-cafe-a-widget-title]",
+            "[data-cafe-a-widget-body]",
           ].join(",")
         )
       ).filter((element) => {
@@ -1717,7 +1547,7 @@ function measureCafeABalancedFit(
   const flowHeight = menuElement.clientHeight || menuRect.height;
   const columnElements = Array.from(menuElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-column]"));
   const simulatedColumns = columnElements.map((columnElement) => {
-    const blockElements = Array.from(columnElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-category-block]"));
+    const blockElements = Array.from(columnElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-atomic-block], :scope > [data-cafe-a-balanced-category-block]"));
     const footerElement = columnElement.querySelector<HTMLElement>(":scope > [data-cafe-a-footer-info]");
     const blocks = blockElements.map((blockElement) => {
       const rect = blockElement.getBoundingClientRect();
@@ -1726,7 +1556,7 @@ function measureCafeABalancedFit(
       const visibleHeights = getBalancedBlockVisibleHeights(blockElement);
 
       return {
-        key: blockElement.dataset.cafeABalancedCategoryBlock ?? "",
+        key: blockElement.dataset.cafeABalancedBlockId ?? blockElement.dataset.cafeABalancedCategoryBlock ?? "",
         order: Number.isFinite(order) ? order : Number.MAX_SAFE_INTEGER,
         height: Math.max(0, rect.height),
         ...visibleHeights,
@@ -4136,6 +3966,9 @@ function BalancedExperimentalMenuGrid({
                 className={getCategoryBlockClassName(hasDivider)}
                 data-cafe-a-category-block=""
                 data-cafe-a-category-divider={hasDivider ? "true" : undefined}
+                data-cafe-a-balanced-atomic-block=""
+                data-cafe-a-balanced-block-type="category"
+                data-cafe-a-balanced-block-id={groupKey}
                 data-cafe-a-balanced-category-block={groupKey}
                 data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
                 data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
@@ -4232,6 +4065,9 @@ function OrderedBalancedFitMenuGrid({
                 className={getCategoryBlockClassName(hasDivider)}
                 data-cafe-a-category-block=""
                 data-cafe-a-category-divider={hasDivider ? "true" : undefined}
+                data-cafe-a-balanced-atomic-block=""
+                data-cafe-a-balanced-block-type="category"
+                data-cafe-a-balanced-block-id={groupKey}
                 data-cafe-a-balanced-category-block={groupKey}
                 data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
                 data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}

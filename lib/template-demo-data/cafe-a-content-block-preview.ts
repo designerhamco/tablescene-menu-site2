@@ -170,3 +170,89 @@ export const CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE =
 
 export const CAFE_A_CONTENT_BLOCK_VERTICAL_NOTICE =
   "3:4 세로 위젯은 메뉴 열에서 높은 비중을 차지하므로 강조 콘텐츠에 제한적으로 사용하는 비율입니다.";
+
+export type CafeABalancedContentBlockLabFixture = {
+  id: string;
+  title: string;
+  description: string;
+  blocks: readonly CafeAContentBlock[];
+  columns?: number;
+};
+
+export const CAFE_A_BALANCED_CONTENT_BLOCK_LAB_FIXTURES: CafeABalancedContentBlockLabFixture[] = [
+  {
+    id: "balanced-mixed-three-column",
+    title: "기본 3열 혼합",
+    description: "SIGNATURE, 2:1 이미지, CLASSIC, 긴 text, ADE, 4:3 image+text, DESSERT 순서를 유지합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "balanced-vertical-widget",
+    title: "3:4 위젯 포함",
+    description: "세로형 이미지 위젯을 높은 atomic block으로 계산해 category와 함께 배치합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "balanced-long-text-widget",
+    title: "긴 text 위젯",
+    description: "긴 본문 text widget이 단순 고정 weight가 아니라 실제 높이 후보로 반영되는지 확인합니다.",
+    blocks: [
+      categoryBlock("long-text-signature", 10, SIGNATURE_CATEGORY),
+      widgetBlock("long-text-widget", 20, 1),
+      categoryBlock("long-text-classic", 30, CLASSIC_CATEGORY),
+      categoryBlock("long-text-ade", 40, ADE_CATEGORY),
+      categoryBlock("long-text-dessert", 50, DESSERT_CATEGORY),
+    ],
+    columns: 3,
+  },
+  {
+    id: "balanced-consecutive-widgets",
+    title: "연속 widget 3개",
+    description: "연속 위젯도 source 순서를 섞지 않고 column break만 선택합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "balanced-widget-first",
+    title: "widget first",
+    description: "첫 block이 widget이어도 다음 category와 같은 atomic flow로 배치합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_WIDGET_FIRST_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "balanced-widget-last",
+    title: "widget last",
+    description: "마지막 block이 widget이면 widget 자체 border만 유지하고 category divider를 만들지 않습니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_WIDGET_LAST_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "balanced-category-last",
+    title: "category last",
+    description: "column 마지막 category 아래 divider가 제거되는지 확인합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_CATEGORY_LAST_FIXTURE,
+    columns: 3,
+  },
+  {
+    id: "balanced-footer-near-image-text",
+    title: "footer 근처 image_text",
+    description: "image_text widget과 하단 안내 영역의 no-go 충돌 여부를 진단합니다.",
+    blocks: [
+      categoryBlock("footer-signature", 10, SIGNATURE_CATEGORY),
+      categoryBlock("footer-classic", 20, CLASSIC_CATEGORY),
+      widgetBlock("footer-image-text", 30, 2),
+      categoryBlock("footer-ade", 40, ADE_CATEGORY),
+      categoryBlock("footer-dessert", 50, DESSERT_CATEGORY),
+    ],
+    columns: 3,
+  },
+  {
+    id: "balanced-hidden-and-tie",
+    title: "visible=false + 동일 sortOrder",
+    description: "숨김 block은 제외하고 같은 sortOrder는 원본 배열 순서를 유지합니다.",
+    blocks: CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
+    columns: 3,
+  },
+];

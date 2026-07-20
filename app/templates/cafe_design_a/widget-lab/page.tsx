@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import CafeABalancedContentFlowPreview from "@/components/menu-templates/CafeABalancedContentFlowPreview";
 import CafeAContentFlowPreview from "@/components/menu-templates/CafeAContentFlowPreview";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import type { CafeAContentBlock } from "@/components/menu-templates/cafe-a-content-blocks";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import {
+  CAFE_A_BALANCED_CONTENT_BLOCK_LAB_FIXTURES,
   CAFE_A_CONTENT_BLOCK_CATEGORY_LAST_FIXTURE,
   CAFE_A_CONTENT_BLOCK_CONSECUTIVE_WIDGET_FIXTURE,
   CAFE_A_CONTENT_BLOCK_HIDDEN_AND_TIE_FIXTURE,
@@ -101,6 +103,30 @@ function ContentFlowLabSection({
           notice={notice}
         />
       </div>
+    </section>
+  );
+}
+
+function BalancedContentLabSection({
+  title,
+  description,
+  blocks,
+  columns = 3,
+}: {
+  title: string;
+  description: string;
+  blocks: readonly CafeAContentBlock[];
+  columns?: number;
+}) {
+  return (
+    <section className="min-w-0">
+      <div className="mb-4">
+        <h2 className="text-[clamp(1.25rem,2.2vw,1.85rem)] font-black leading-[0.95] tracking-[-0.01em] text-[#191c1b]">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/60">{description}</p>
+      </div>
+      <CafeABalancedContentFlowPreview blocks={blocks} columns={columns} />
     </section>
   );
 }
@@ -243,6 +269,29 @@ export default function CafeAWidgetLabPage() {
               showTerminalCategoryDivider
               notice={CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE}
             />
+          </div>
+
+          <section className="grid gap-4 border-t border-[#191c1b]/70 pt-8">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#191c1b]/55">OrderedBalancedFit Engine</p>
+            <h2 className="text-[clamp(2rem,5vw,4rem)] font-black leading-[0.9] tracking-[-0.02em] text-[#191c1b]">
+              ATOMIC BLOCK COLUMNS
+            </h2>
+            <p className="max-w-[46rem] text-sm font-semibold leading-relaxed text-[#191c1b]/62">
+              실제 CafeA 묶음형 열 분배 helper에 category와 widget fixture를 함께 넣어 검증하는 개발 전용 섹션입니다.
+              고객 메뉴판, public loader, editor에는 아직 위젯 데이터를 연결하지 않습니다.
+            </p>
+          </section>
+
+          <div className="grid gap-10 xl:grid-cols-2">
+            {CAFE_A_BALANCED_CONTENT_BLOCK_LAB_FIXTURES.map((fixture) => (
+              <BalancedContentLabSection
+                key={fixture.id}
+                title={fixture.title}
+                description={fixture.description}
+                blocks={fixture.blocks}
+                columns={fixture.columns}
+              />
+            ))}
           </div>
         </div>
       </div>
