@@ -354,6 +354,9 @@ const ORDERED_BALANCED_DENSE_ITEM_THRESHOLD = 20;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP = 12;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = 2;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_LEVELS = [
+  { fontScale: 1.004, gapScale: 1.003 },
+  { fontScale: 1.008, gapScale: 1.005 },
+  { fontScale: 1.012, gapScale: 1.008 },
   { fontScale: 1.015, gapScale: 1.01 },
   { fontScale: 1.025, gapScale: 1.018 },
   { fontScale: 1.04, gapScale: 1.03 },
@@ -1277,7 +1280,10 @@ function getOrderedBalancedSimulatedSpreadScore(columns: CafeDesignABalancedSimu
     columns.length >= 3 && secondBlockCount <= 1 && secondFillRatio < 0.84
       ? 1800 + Math.max(0, 0.84 - secondFillRatio) * 2600 + Math.max(0, secondGap - 40) * 16
       : 0;
-  const lastFillPenalty = Math.max(0, 0.58 - lastFillRatio) * 520 + Math.max(0, 0.66 - lastFillRatio) * 260 + Math.max(0, lastGap - 160) * 1.2;
+  const lastFillPenalty =
+    Math.max(0, 0.58 - lastFillRatio) * 520 +
+    Math.max(0, 0.66 - lastFillRatio) * 260 +
+    Math.max(0, lastGap - 160) * 1.2;
   const minFillPenalty = Math.max(0, 0.58 - minFillRatio) * 720 + Math.max(0, 0.68 - minFillRatio) * 360;
   const fillVariancePenalty = fillVariance * 1200;
   const leftRhythmPenalty = Math.max(0, secondHeight - firstHeight - 40) * 26 + Math.max(0, lastHeight - firstHeight - 70) * 14;
@@ -1550,15 +1556,6 @@ function getCafeAClippingBottom(boardElement: HTMLElement, menuElement: HTMLElem
     ancestor = ancestor.parentElement;
   }
   return safeBottom;
-}
-
-function hasCafeADesktopFooterAnchor(boardElement: HTMLElement) {
-  const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
-  if (!footerElement) return false;
-
-  const footerRect = footerElement.getBoundingClientRect();
-  const footerStyle = window.getComputedStyle(footerElement);
-  return footerRect.width > 0 && footerRect.height > 0 && footerStyle.display !== "none" && footerStyle.visibility !== "hidden";
 }
 
 function getCafeAActualDomCropMeasurement(
@@ -5712,7 +5709,6 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           fitState.overflow ||
           !fitState.orderedBalancedFingerprint ||
           baseRenderFitState.columns >= 4 ||
-          hasCafeADesktopFooterAnchor(boardElement) ||
           !window.matchMedia("(min-width: 1024px)").matches;
 
         if (shouldResetBoost) {
