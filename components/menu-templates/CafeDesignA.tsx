@@ -363,9 +363,9 @@ const ORDERED_FIT_BASE_MENU_VISUAL_SCALE = 0.95;
 const DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION = 1;
 const ORDERED_FIT_FINAL_FILL_COMPENSATION_LEVELS = [1.015, 1.025, 1.035, 1.045, 1.055, 1.06] as const;
 const ORDERED_FIT_FINAL_FILL_TRIGGER_GAP = 12;
-const ORDERED_FIT_FINAL_FILL_TARGET_GAP = 8;
+const ORDERED_FIT_FINAL_FILL_TARGET_GAP = 12;
 const ORDERED_FIT_FINAL_FILL_MIN_GAP = 2;
-const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71] as const;
+const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64] as const;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
 const DEFAULT_FIT_STATE: CafeDesignAFitState = {
@@ -417,6 +417,10 @@ const ORDERED_FIT_COLUMN_TOLERANCE = 8;
 const ORDERED_FIT_DESKTOP_MAX_COLUMNS = 4;
 const ORDERED_FIT_MIN_READABLE_COLUMN_WIDTH_PX = 188;
 const ORDERED_FIT_COLUMN_EXPANSION_FONT_FLOOR = 0.82;
+const ORDERED_FIT_MIN_STANDARD_FONT_SCALE = 0.71;
+const ORDERED_FIT_EMERGENCY_FONT_SCALE_MENU_WIDTH_PX = 820;
+const ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX = 16;
+const CAFE_A_FOOTER_NO_GO_HORIZONTAL_SAFETY_GAP_PX = 12;
 const CAFE_A_FOOTER_INFO_TOP_SAFETY_GAP_PX = 24;
 const CAFE_A_FOOTER_INFO_TABLET_TOP_SAFETY_GAP_PX = 16;
 
@@ -797,6 +801,25 @@ function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElem
   });
   const primaryColumnBottom = columns[0]?.bottom ?? 0;
   const longestColumnBottom = columns.reduce((bottom, column) => Math.max(bottom, column.bottom), 0);
+  const lastColumn = columns[columns.length - 1];
+  const clippingBottom = getCafeAClippingBottom(boardElement, menuElement);
+  const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
+  const footerRect = footerElement?.getBoundingClientRect();
+  const footerIsVisible = Boolean(footerRect && footerRect.width > 0 && footerRect.height > 0);
+  const lastColumnLeft = lastColumn ? menuRect.left + lastColumn.left : 0;
+  const lastColumnRight = lastColumn
+    ? Math.max(menuRect.left + lastColumn.left, ...lastColumn.elements.map((rect) => rect.right))
+    : 0;
+  const lastColumnOverlapsFooterX =
+    Boolean(lastColumn && footerIsVisible) &&
+    lastColumnLeft < footerRect!.right + 1 &&
+    lastColumnRight > footerRect!.left - 1;
+  const lastColumnEffectiveBottom = lastColumnOverlapsFooterX
+    ? footerRect!.top - ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX
+    : Math.min(boardRect.bottom, menuRect.bottom, clippingBottom) - ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX;
+  const lastColumnEffectiveFlowHeight = Math.max(1, lastColumnEffectiveBottom - menuRect.top);
+  const lastColumnVisibleBottomGap = lastColumn ? lastColumnEffectiveFlowHeight - lastColumn.bottom : flowHeight;
+  const visibleLastColumnFillRatio = lastColumn ? Math.min(1, Math.max(0, lastColumn.bottom / lastColumnEffectiveFlowHeight)) : 0;
   const primaryBottomGap = flowHeight - primaryColumnBottom;
   const primaryFillRatio = columnFillRatios[0] ?? 0;
   const averageFillRatio =
@@ -807,10 +830,16 @@ function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElem
   const overflowsHeight =
     menuElement.scrollHeight > menuElement.clientHeight + 1 ||
     primaryColumnBottom > flowHeight - ORDERED_FIT_MIN_SAFETY_GAP ||
-    longestColumnBottom > flowHeight + 1;
+    longestColumnBottom > flowHeight + 1 ||
+    lastColumnVisibleBottomGap < ORDERED_FIT_MIN_SAFETY_GAP;
   const overflowsWidth = menuElement.scrollWidth > menuElement.clientWidth + 1;
   const rightEdgeSafety = getCafeARightEdgeSafetyMeasurement(boardElement, menuElement);
-  const actualDomCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_FIT_MIN_SAFETY_GAP);
+  const actualDomCropMeasurement = getCafeAActualDomCropMeasurement(
+    boardElement,
+    menuElement,
+    ORDERED_FIT_MIN_SAFETY_GAP,
+    ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX
+  );
 
   return {
     boardInnerHeight: roundFitMetric(boardElement.clientHeight || boardRect.height),
@@ -831,10 +860,10 @@ function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElem
     visibleItemBottomGap: roundFitMetric(Math.max(0, bottomGap)),
     visibleTextBottomGap: roundFitMetric(getAverageTextVisualGap(menuElement)),
     visiblePriceBottomGap: roundFitMetric(Math.max(0, bottomGap)),
-    visibleContentBottomGap: roundFitMetric(Math.max(0, bottomGap)),
+    visibleContentBottomGap: roundFitMetric(Math.max(0, lastColumnVisibleBottomGap)),
     visibleAverageFillRatio: roundFitRatio(averageFillRatio),
     visibleMinFillRatio: roundFitRatio(minFillRatio),
-    visibleLastColumnFillRatio: roundFitRatio(lastColumnFillRatio),
+    visibleLastColumnFillRatio: roundFitRatio(visibleLastColumnFillRatio),
     boardInnerRight: rightEdgeSafety.boardInnerRight,
     rightmostMenuNameRight: rightEdgeSafety.rightmostMenuNameRight,
     rightmostSecondaryRight: rightEdgeSafety.rightmostSecondaryRight,
@@ -1532,7 +1561,12 @@ function hasCafeADesktopFooterAnchor(boardElement: HTMLElement) {
   return footerRect.width > 0 && footerRect.height > 0 && footerStyle.display !== "none" && footerStyle.visibility !== "hidden";
 }
 
-function getCafeAActualDomCropMeasurement(boardElement: HTMLElement, menuElement: HTMLElement, cropTolerance: number) {
+function getCafeAActualDomCropMeasurement(
+  boardElement: HTMLElement,
+  menuElement: HTMLElement,
+  cropTolerance: number,
+  footerNoGoSafetyGapOverride?: number,
+) {
   const menuRect = menuElement.getBoundingClientRect();
   const safeBottom = getCafeAClippingBottom(boardElement, menuElement);
   const safetyGap = Math.max(cropTolerance, ORDERED_BALANCED_ORPHAN_SAFETY_GAP);
@@ -1564,34 +1598,60 @@ function getCafeAActualDomCropMeasurement(boardElement: HTMLElement, menuElement
   const footerSafetyGap = Math.max(BASIC_RIGHT_EDGE_SAFETY_GAP_PX, cropTolerance);
   const footerTopSafetyGap =
     footerIsVisible && boardRect.width < 1120 ? CAFE_A_FOOTER_INFO_TABLET_TOP_SAFETY_GAP_PX : CAFE_A_FOOTER_INFO_TOP_SAFETY_GAP_PX;
-  const footerNoGoTop = footerIsVisible ? footerRect!.top - footerTopSafetyGap : 0;
+  const footerNoGoVerticalGap = footerNoGoSafetyGapOverride ?? footerTopSafetyGap + footerSafetyGap;
+  const footerNoGoTop = footerIsVisible
+    ? footerRect!.top - footerNoGoVerticalGap
+    : 0;
+  const footerNoGoRect = footerIsVisible
+    ? {
+        left: footerRect!.left - CAFE_A_FOOTER_NO_GO_HORIZONTAL_SAFETY_GAP_PX,
+        right: footerRect!.right + CAFE_A_FOOTER_NO_GO_HORIZONTAL_SAFETY_GAP_PX,
+        top: footerNoGoTop,
+        bottom: boardRect.bottom,
+      }
+    : null;
   const footerOutOfBounds = footerIsVisible
     ? footerRect!.bottom > boardRect.bottom - footerSafetyGap ||
       footerRect!.right > boardRect.right - footerSafetyGap ||
       footerRect!.left < boardRect.left + footerSafetyGap ||
       footerRect!.top < boardRect.top + footerSafetyGap
     : false;
-  const footerNoGoOverflow = footerIsVisible
+  const footerNoGoOverlapElements = footerNoGoRect
     ? Array.from(
         menuElement.querySelectorAll<HTMLElement>(
           [
+            "[data-cafe-a-category-heading]",
             "[data-cafe-a-item-stack]",
+            "[data-cafe-a-menu-item]",
             "[data-cafe-a-menu-name]",
             "[data-cafe-a-menu-price]",
             ".cafe-a-menu-description",
             ".cafe-a-menu-meta",
             ".cafe-a-menu-badge",
             ".cafe-a-menu-chip",
+            ".cafe-a-menu-item-image-slot",
+            ".cafe-a-menu-item-image",
+            ".cafe-a-price-area",
+            ".cafe-a-price-stack",
+            ".cafe-a-price-columns-grid",
+            ".cafe-a-price-column-cell",
+            ".cafe-a-price-pair",
             ".cafe-a-price-token",
+            ".cafe-a-price-label",
+            ".cafe-a-price-note",
+            ".cafe-a-time-sale-price-block",
+            ".cafe-a-time-sale-time-text",
           ].join(",")
         )
-      ).some((element) => {
+      ).filter((element) => {
         const rect = element.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) return false;
-        const overlapsFooterX = rect.right > footerRect!.left - 1 && rect.left < footerRect!.right + 1;
-        return overlapsFooterX && rect.bottom > footerNoGoTop - footerSafetyGap;
+        const horizontalOverlap = rect.right > footerNoGoRect.left && rect.left < footerNoGoRect.right;
+        const verticalOverlap = rect.bottom > footerNoGoRect.top && rect.top < footerNoGoRect.bottom;
+        return horizontalOverlap && verticalOverlap;
       })
-    : false;
+    : [];
+  const footerNoGoOverflow = footerNoGoOverlapElements.length > 0;
   const categoryBlocks = Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-category-block]"));
   let orphanCategoryHeading = false;
 
@@ -1634,6 +1694,8 @@ function getCafeAActualDomCropMeasurement(boardElement: HTMLElement, menuElement
     rightmostChipRight: rightEdgeSafety.rightmostChipRight,
     rightmostCategoryRight: rightEdgeSafety.rightmostCategoryRight,
     rightSafetyGap: rightEdgeSafety.rightSafetyGap,
+    footerNoGoTop,
+    footerOverlapElementCount: footerNoGoOverlapElements.length,
     orphanCategoryHeading,
     overflow:
       orphanCategoryHeading ||
@@ -2441,8 +2503,10 @@ function getMenuGroupKey(group: MenuGroup) {
   return `${group.page.id}:${group.category.id}`;
 }
 
-function getCategoryBlockClassName(hasDivider: boolean) {
-  return `cafe-a-menu-category-block min-w-0${hasDivider ? " cafe-a-menu-category-block-has-divider" : ""}`;
+function getCategoryBlockClassName(hasDivider: boolean, isTerminalDivider = false) {
+  return `cafe-a-menu-category-block min-w-0${hasDivider ? " cafe-a-menu-category-block-has-divider" : ""}${
+    hasDivider && isTerminalDivider ? " cafe-a-menu-category-block-terminal-divider" : ""
+  }`;
 }
 
 function isDefaultPageTitle(page: MenuPage) {
@@ -3940,7 +4004,7 @@ function MenuGroupsGrid({
   outerGridGapClassName: string;
   menuAreaClassName: string;
   showPageTitles: boolean;
-  categoryDividerScope?: "all" | "page";
+  categoryDividerScope?: "all" | "page" | "always";
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
@@ -3969,12 +4033,17 @@ function MenuGroupsGrid({
           {pageGroup.groups.map(({ page, category, items }, groupIndex) => {
             const groupKey = `${page.id}:${category.id}`;
             const hasDivider =
-              categoryDividerScope === "page" ? groupIndex < pageGroup.groups.length - 1 : groupKey !== lastGroupKey;
+              categoryDividerScope === "always"
+                ? true
+                : categoryDividerScope === "page"
+                  ? groupIndex < pageGroup.groups.length - 1
+                  : groupKey !== lastGroupKey;
+            const isTerminalDivider = categoryDividerScope === "always" && groupKey === lastGroupKey;
 
             return (
               <section
                 key={groupKey}
-                className={getCategoryBlockClassName(hasDivider)}
+                className={getCategoryBlockClassName(hasDivider, isTerminalDivider)}
                 data-cafe-a-category-block=""
                 data-cafe-a-category-divider={hasDivider ? "true" : undefined}
               >
@@ -4042,10 +4111,9 @@ function BalancedExperimentalMenuGrid({
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
-  const groupOrderByKey = useMemo(
-    () => new Map(getFlatMenuGroups(pageGroups).map((group, index) => [getMenuGroupKey(group), index])),
-    [pageGroups],
-  );
+  const orderedGroupKeys = useMemo(() => getFlatMenuGroups(pageGroups).map(getMenuGroupKey), [pageGroups]);
+  const lastGroupKey = orderedGroupKeys[orderedGroupKeys.length - 1] ?? "";
+  const groupOrderByKey = useMemo(() => new Map(orderedGroupKeys.map((groupKey, index) => [groupKey, index])), [orderedGroupKeys]);
   const balancedColumns = useMemo(
     () => getBalancedMenuColumns({ pageGroups, columns, data, capabilities, variant }),
     [capabilities, columns, data, pageGroups, variant]
@@ -4061,9 +4129,9 @@ function BalancedExperimentalMenuGrid({
     >
       {balancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
-          {column.groups.map(({ page, category, items }, groupIndex) => {
+          {column.groups.map(({ page, category, items }) => {
             const groupKey = `${page.id}:${category.id}`;
-            const hasDivider = groupIndex < column.groups.length - 1;
+            const hasDivider = groupKey !== lastGroupKey;
 
             return (
               <section
@@ -4139,10 +4207,8 @@ function OrderedBalancedFitMenuGrid({
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
-  const groupOrderByKey = useMemo(
-    () => new Map(getFlatMenuGroups(pageGroups).map((group, index) => [getMenuGroupKey(group), index])),
-    [pageGroups],
-  );
+  const orderedGroupKeys = useMemo(() => getFlatMenuGroups(pageGroups).map(getMenuGroupKey), [pageGroups]);
+  const groupOrderByKey = useMemo(() => new Map(orderedGroupKeys.map((groupKey, index) => [groupKey, index])), [orderedGroupKeys]);
   const orderedBalancedColumns = useMemo(
     () => getOrderedBalancedMenuColumns({ pageGroups, columns, data, capabilities, orderedBalancedBreaks }),
     [capabilities, columns, data, orderedBalancedBreaks, pageGroups],
@@ -4481,25 +4547,26 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     function getOrderedFitScore(columns: number, fontScale: number, measurement: CafeDesignAFitMeasurement) {
       if (measurement.measuredColumns === 0) return Number.POSITIVE_INFINITY;
 
-      const primaryBottomGap = measurement.primaryBottomGap;
+      const footerAwareLastColumnGap = measurement.visibleContentBottomGap;
+      const footerAwareLastColumnFillRatio = measurement.visibleLastColumnFillRatio;
       const candidateColumnWidth = getOrderedFitCandidateColumnWidth(columns);
       const hasReadableExtraColumn = columns >= 4 && candidateColumnWidth >= ORDERED_FIT_MIN_READABLE_COLUMN_WIDTH_PX;
       const canUseReadableExtraColumn = fitMenuElement.getBoundingClientRect().width >= 820;
       const targetGapPenalty =
-        primaryBottomGap < ORDERED_FIT_TARGET_MIN_GAP
-          ? (ORDERED_FIT_TARGET_MIN_GAP - primaryBottomGap) * 20
-          : primaryBottomGap > ORDERED_FIT_TARGET_MAX_GAP
-            ? (Math.min(primaryBottomGap, ORDERED_FIT_ACCEPTABLE_MAX_GAP) - ORDERED_FIT_TARGET_MAX_GAP) * 3
+        footerAwareLastColumnGap < ORDERED_FIT_TARGET_MIN_GAP
+          ? (ORDERED_FIT_TARGET_MIN_GAP - footerAwareLastColumnGap) * 20
+          : footerAwareLastColumnGap > ORDERED_FIT_TARGET_MAX_GAP
+            ? (Math.min(footerAwareLastColumnGap, ORDERED_FIT_ACCEPTABLE_MAX_GAP) - ORDERED_FIT_TARGET_MAX_GAP) * 3
             : 0;
-      const acceptableGapPenalty = Math.max(0, primaryBottomGap - ORDERED_FIT_ACCEPTABLE_MAX_GAP) * 3.5;
-      const visibleGapPenalty = Math.max(0, primaryBottomGap - 10) * 3;
-      const looseGapPenalty = Math.max(0, primaryBottomGap - ORDERED_FIT_LOOSE_GAP) * 18;
-      const tightGapPenalty = Math.max(0, ORDERED_FIT_MIN_SAFETY_GAP - primaryBottomGap) * 90;
+      const acceptableGapPenalty = Math.max(0, footerAwareLastColumnGap - ORDERED_FIT_ACCEPTABLE_MAX_GAP) * 3.5;
+      const visibleGapPenalty = Math.max(0, footerAwareLastColumnGap - 10) * 3;
+      const looseGapPenalty = Math.max(0, footerAwareLastColumnGap - ORDERED_FIT_LOOSE_GAP) * 18;
+      const tightGapPenalty = Math.max(0, ORDERED_FIT_MIN_SAFETY_GAP - footerAwareLastColumnGap) * 90;
       const primaryFillPenalty = Math.max(0, 0.982 - measurement.primaryFillRatio) * 22;
       const averageFillPenalty = Math.max(0, 0.88 - measurement.averageFillRatio) * 130;
-      const lastColumnPenalty = Math.max(0, 0.82 - measurement.lastColumnFillRatio) * 520;
-      const shortLastColumnPenalty = Math.max(0, 0.68 - measurement.lastColumnFillRatio) * 420;
-      const veryShortLastColumnPenalty = Math.max(0, 0.36 - measurement.lastColumnFillRatio) * 720;
+      const lastColumnPenalty = Math.max(0, 0.82 - footerAwareLastColumnFillRatio) * 520;
+      const shortLastColumnPenalty = Math.max(0, 0.68 - footerAwareLastColumnFillRatio) * 420;
+      const veryShortLastColumnPenalty = Math.max(0, 0.36 - footerAwareLastColumnFillRatio) * 720;
       const minColumnPenalty = Math.max(0, 0.5 - measurement.minFillRatio) * 160;
       const missingColumnPenalty = Math.max(0, columns - measurement.measuredColumns) * 260;
       const excessiveColumnPenalty = hasReadableExtraColumn && fontScale >= ORDERED_FIT_COLUMN_EXPANSION_FONT_FLOOR
@@ -4541,8 +4608,9 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     }
 
     function getOrderedFallbackScore(columns: number, fontScale: number, measurement: CafeDesignAFitMeasurement) {
-      const overflowPenalty = measurement.overflow ? 1000 + Math.abs(Math.min(0, measurement.primaryBottomGap)) * 80 : 0;
-      const bottomGapPenalty = Math.max(0, measurement.primaryBottomGap - ORDERED_FIT_TARGET_GAP) * 4;
+      const footerAwareLastColumnGap = measurement.visibleContentBottomGap;
+      const overflowPenalty = measurement.overflow ? 1000 + Math.abs(Math.min(0, footerAwareLastColumnGap)) * 80 : 0;
+      const bottomGapPenalty = Math.max(0, footerAwareLastColumnGap - ORDERED_FIT_TARGET_GAP) * 4;
       const missingColumnPenalty = Math.max(0, columns - measurement.measuredColumns) * 24;
       const tinyTextPenalty = Math.max(0, 0.75 - fontScale) * 80;
 
@@ -4554,9 +4622,12 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       let selectedScore = Number.POSITIVE_INFINITY;
       let fallbackState: CafeDesignAFitState | null = null;
       let fallbackScore = Number.POSITIVE_INFINITY;
+      const canUseEmergencyFontScale = fitMenuElement.clientWidth < ORDERED_FIT_EMERGENCY_FONT_SCALE_MENU_WIDTH_PX;
 
       for (const columns of columnCandidates) {
         for (const fontScale of ORDERED_FIT_FONT_SCALE_CANDIDATES) {
+          if (!canUseEmergencyFontScale && fontScale < ORDERED_FIT_MIN_STANDARD_FONT_SCALE) continue;
+
           applyFitCandidate(columns, fontScale);
           const measurement = measureCafeAOrderedFit(fitBoardElement, fitMenuElement, columns);
           const candidateState = getFitStateFromMeasurement(
@@ -4575,7 +4646,11 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
             };
           }
 
-          if (measurement.overflow || measurement.primaryBottomGap < ORDERED_FIT_MIN_SAFETY_GAP) continue;
+          if (
+            measurement.overflow ||
+            measurement.primaryBottomGap < ORDERED_FIT_MIN_SAFETY_GAP ||
+            measurement.visibleContentBottomGap < ORDERED_FIT_MIN_SAFETY_GAP
+          ) continue;
 
           const score = getOrderedFitScore(columns, fontScale, measurement);
           if (score < selectedScore) {
@@ -5548,13 +5623,20 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         const previousCompensation = boardElement.style.getPropertyValue("--ordered-fit-final-fill-compensation");
 
         boardElement.style.setProperty("--ordered-fit-final-fill-compensation", String(DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION));
-        const baseMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_FIT_MIN_SAFETY_GAP);
+        const baseMeasurement = getCafeAActualDomCropMeasurement(
+          boardElement,
+          menuElement,
+          ORDERED_FIT_MIN_SAFETY_GAP,
+          ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX
+        );
+        const baseOrderedMeasurement = measureCafeAOrderedFit(boardElement, menuElement, fitState.columns);
 
         if (
           baseMeasurement.overflow ||
+          baseOrderedMeasurement.overflow ||
           hasPageScroll() ||
           baseMeasurement.bottomGap < ORDERED_FIT_FINAL_FILL_MIN_GAP ||
-          baseMeasurement.bottomGap < ORDERED_FIT_FINAL_FILL_TRIGGER_GAP
+          baseOrderedMeasurement.visibleContentBottomGap < ORDERED_FIT_FINAL_FILL_TRIGGER_GAP
         ) {
           if (previousCompensation) {
             boardElement.style.setProperty("--ordered-fit-final-fill-compensation", previousCompensation);
@@ -5568,22 +5650,31 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         }
 
         let selectedCompensation = DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION;
-        let selectedGap = baseMeasurement.bottomGap;
+        let selectedGap = baseOrderedMeasurement.visibleContentBottomGap;
 
         for (const compensation of ORDERED_FIT_FINAL_FILL_COMPENSATION_LEVELS) {
           boardElement.style.setProperty("--ordered-fit-final-fill-compensation", String(compensation));
-          const compensatedMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_FIT_MIN_SAFETY_GAP);
+          const compensatedMeasurement = getCafeAActualDomCropMeasurement(
+            boardElement,
+            menuElement,
+            ORDERED_FIT_MIN_SAFETY_GAP,
+            ORDERED_FIT_FOOTER_AWARE_BOTTOM_SAFETY_GAP_PX
+          );
+          const compensatedOrderedMeasurement = measureCafeAOrderedFit(boardElement, menuElement, fitState.columns);
+          const compensatedGap = compensatedOrderedMeasurement.visibleContentBottomGap;
           const isSafe =
             !compensatedMeasurement.overflow &&
+            !compensatedOrderedMeasurement.overflow &&
             !hasPageScroll() &&
-            compensatedMeasurement.bottomGap >= ORDERED_FIT_FINAL_FILL_MIN_GAP;
+            compensatedMeasurement.bottomGap >= ORDERED_FIT_FINAL_FILL_MIN_GAP &&
+            compensatedGap >= ORDERED_FIT_FINAL_FILL_TARGET_GAP;
 
           if (!isSafe) break;
-          if (compensatedMeasurement.bottomGap < selectedGap) {
+          if (compensatedGap < selectedGap) {
             selectedCompensation = compensation;
-            selectedGap = compensatedMeasurement.bottomGap;
+            selectedGap = compensatedGap;
           }
-          if (compensatedMeasurement.bottomGap <= ORDERED_FIT_FINAL_FILL_TARGET_GAP) break;
+          if (compensatedGap <= ORDERED_FIT_FINAL_FILL_TARGET_GAP) break;
         }
 
         if (previousCompensation) {
@@ -5724,7 +5815,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 outerGridGapClassName={outerGridGapClassName}
                 menuAreaClassName={menuAreaClassName}
                 showPageTitles
-                categoryDividerScope="page"
+                categoryDividerScope="always"
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
