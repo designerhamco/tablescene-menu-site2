@@ -252,7 +252,52 @@ Delete and asset policy:
 - Asset diffing may mark a previous image path for cleanup when the next widget path differs or the widget becomes text-only.
 - Actual DB delete and Storage cleanup are later server-action work and must not run from pure mapping helpers.
 
-## 16. Rendering Policy
+## 16. Server Persistence Service Policy
+
+The first server persistence layer is an internal server-only module. It is not a server action, API route,
+editor mutation, public loader, or template renderer integration point yet.
+
+Required ownership boundary:
+
+- Authenticate the current user with the standard Supabase server client.
+- Load `menu_sites` by `id` and `user_id`; do not trust a client-provided `menuSiteId` alone.
+- Check the menu site access state before write operations.
+- Verify that `menu_pages.menu_site_id` matches the owned `menu_sites.id`.
+- Verify that a loaded widget row belongs to the same `menu_site_id` before update or delete.
+
+CRUD support:
+
+- Only new MVP types `image`, `text`, and `image_text` can be created or updated.
+- Legacy rows are not automatically converted, modified, or deleted by the MVP service.
+- List operations return valid MVP widgets plus structured parse issues for legacy/invalid rows.
+- Create and page-move update operations count hidden widgets toward the per-page maximum of 3.
+- Update payloads clear stale image/text fields through the mapper when a widget changes type.
+- Delete returns a delete plan with the image path, but does not remove Storage files.
+
+Asset and cleanup policy:
+
+- Image cleanup is a follow-up action responsibility.
+- The service may return an asset-change plan when a widget's `imagePath` changes.
+- Do not infer Storage paths from `imageUrl`.
+- Do not call Storage `remove()` from the persistence service.
+
+Ordering and revalidation policy:
+
+- Combined category/widget order writes remain intentionally out of scope.
+- Category rows and widget rows live in different tables, so a combined order save should be atomic.
+- A later SQL RPC transaction is the preferred direction to update both tables together.
+- Sequential Supabase JS updates with manual compensation are a fallback only, because partial failure could corrupt
+  the public order.
+- Revalidation belongs to the later server action wrapper that calls this service. The persistence service itself
+  should only read/write DB rows and return plans/results.
+
+Known concurrency gap:
+
+- The DB currently does not enforce a per-page maximum of 3 widgets.
+- Server-side count-before-insert/update validation protects normal UI flows, but concurrent requests can still race.
+- A future RPC/advisory-lock or constraint-backed approach should close this gap before high-volume widget writes.
+
+## 17. Rendering Policy
 
 Desktop/tablet ordered balanced:
 
@@ -273,7 +318,7 @@ Mobile:
 - Vertical page scroll is allowed.
 - Horizontal overflow and nested scroll are not allowed.
 
-## 17. Future Migration Needs
+## 18. Future Migration Needs
 
 The current DB `widget_type` check constraint reportedly allows legacy values:
 
@@ -301,7 +346,7 @@ Recommended migration direction:
 - Prefer adding new MVP values first if legacy rows may exist.
 - Tighten constraints only after data cleanup/backfill is explicit.
 
-## 18. Future Editor And Save Work
+## 19. Future Editor And Save Work
 
 Later stages must add:
 
