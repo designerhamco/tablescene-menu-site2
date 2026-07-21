@@ -1,3 +1,5 @@
+import { MAX_MENU_WIDGETS_PER_PAGE, MENU_WIDGET_TYPES, type MenuWidgetType } from "@/lib/menu-widgets";
+
 export type TemplateMenuCoverMode = "none" | "section" | "page";
 
 export type TemplateMenuCoverCapabilities = {
@@ -9,6 +11,12 @@ export type TemplateMenuCoverCapabilities = {
   usesCoverDescription: boolean;
   usesCoverImage: boolean;
   usesFeaturedItem: boolean;
+};
+
+export type TemplateMenuWidgetCapabilities = {
+  enabled: boolean;
+  maxPerPage: number;
+  supportedTypes: readonly MenuWidgetType[];
 };
 
 export type TemplateCapabilities = {
@@ -45,6 +53,7 @@ export type TemplateCapabilities = {
   supportsPriceNote?: boolean;
   supportsPriceNoteWithPriceColumns?: boolean;
   defaultPriceDisplayMode?: "compact_decimal" | "krw";
+  menuWidgets: TemplateMenuWidgetCapabilities;
 };
 
 export type BasicPricingCapabilities = {
@@ -65,6 +74,12 @@ export const DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES: TemplateMenuCoverCapabili
   usesCoverDescription: true,
   usesCoverImage: true,
   usesFeaturedItem: true,
+};
+
+export const DEFAULT_TEMPLATE_MENU_WIDGET_CAPABILITIES: TemplateMenuWidgetCapabilities = {
+  enabled: false,
+  maxPerPage: 0,
+  supportedTypes: [],
 };
 
 export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
@@ -101,6 +116,7 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   supportsPriceNote: false,
   supportsPriceNoteWithPriceColumns: false,
   defaultPriceDisplayMode: "krw",
+  menuWidgets: DEFAULT_TEMPLATE_MENU_WIDGET_CAPABILITIES,
 };
 
 export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
@@ -162,6 +178,11 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     supportsPriceNote: true,
     supportsPriceNoteWithPriceColumns: false,
     defaultPriceDisplayMode: "compact_decimal",
+    menuWidgets: {
+      enabled: true,
+      maxPerPage: MAX_MENU_WIDGETS_PER_PAGE,
+      supportedTypes: MENU_WIDGET_TYPES,
+    },
     chefs: false,
     events: false,
     socialLinks: false,
@@ -231,6 +252,7 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     chefs: false,
     events: true,
     socialLinks: true,
+    menuWidgets: DEFAULT_TEMPLATE_MENU_WIDGET_CAPABILITIES,
     menuCover: {
       ...DEFAULT_TEMPLATE_MENU_COVER_CAPABILITIES,
       coverMode: "section",

@@ -60,6 +60,7 @@ import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
 import { getDisplayVideoUploadAccess } from "@/lib/server/display-video-upload-access";
 import { getMenuSiteAccessStateForMenuSite, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
+import { getMenuWidgetsForMenuSite } from "@/lib/server/menu-widget-service";
 import { getEnabledLocales } from "@/lib/locales";
 import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
@@ -78,6 +79,7 @@ import {
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
+import type { MenuWidget } from "@/lib/menu-widgets";
 import {
   getCustomBackgroundColor,
   getResolvedBackgroundColor,
@@ -1222,6 +1224,34 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const basicPricingCapabilities = getBasicPricingCapabilities(site.template_key);
   const canManageTimeSales = isBasicTimeSaleTemplate(site.template_key, site.template_category);
   const editorTimeSales = canManageTimeSales ? await loadEditorTimeSales(site.id, supabase) : [];
+  let initialMenuWidgets: MenuWidget[] = [];
+
+  if (templateCapabilities.menuWidgets.enabled) {
+    const widgetResult = await getMenuWidgetsForMenuSite({ menuSiteId: site.id });
+    if (widgetResult.ok) {
+      initialMenuWidgets = Object.values(widgetResult.widgetsByPageId).flat();
+      if (widgetResult.issues.length > 0) {
+        console.warn("[menu-editor] menu widget parse issues", {
+          operation: "getMenuWidgetsForMenuSite",
+          menuSiteId: site.id,
+          issueCount: widgetResult.issues.length,
+          issues: widgetResult.issues.map((issue) => ({
+            code: issue.code,
+            field: issue.field,
+            widgetId: issue.widgetId,
+          })),
+        });
+      }
+    } else {
+      console.warn("[menu-editor] menu widget load failed", {
+        operation: "getMenuWidgetsForMenuSite",
+        menuSiteId: site.id,
+        code: widgetResult.error.code,
+        field: widgetResult.error.field,
+      });
+    }
+  }
+
   const localizationStructure =
     editorServiceType === "screen" || site.template_key === "display_menu_a"
       ? "display"
@@ -1976,6 +2006,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
                   </div>
                   <MenuManagementSection
+                    key={site.id}
                     menuId={site.id}
                     menuPages={menuPages}
                     categories={categories}
@@ -1991,6 +2022,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     supportsPriceNoteWithPriceColumns={basicPricingCapabilities.supportsPriceNoteWithPriceColumns}
                     priceDisplayMode={getPriceDisplayModeFromSettings(site.settings, site.template_key)}
                     timeSales={editorTimeSales}
+                    initialMenuWidgets={initialMenuWidgets}
+                    menuWidgetCapability={templateCapabilities.menuWidgets}
                     canManagePages={editorCapabilities.canManageMenuPages}
                     supportsDisplayPageTypes={editorCapabilities.supportsDisplayPageTypes}
                     supportsDisplayPromotionPages={editorCapabilities.supportsDisplayPromotionPages}

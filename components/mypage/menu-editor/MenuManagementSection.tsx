@@ -21,6 +21,11 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
+  createInitialMenuWidgetEditorDraft,
+  type InitialMenuWidgetEditorDraft,
+} from "@/lib/menu-widget-editor-draft";
+import type { MenuWidget } from "@/lib/menu-widgets";
+import {
   DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
   DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS,
   DISPLAY_MENU_LAYOUT_TYPES,
@@ -93,7 +98,7 @@ import {
   type BadgeStyles,
 } from "@/lib/template-badge-styles";
 import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
-import type { TemplateCapabilities } from "@/lib/template-capabilities";
+import type { TemplateCapabilities, TemplateMenuWidgetCapabilities } from "@/lib/template-capabilities";
 import { getEditorLabelsByTemplateType, type TemplateEditorLabels } from "@/lib/template-types";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
 
@@ -155,6 +160,8 @@ type MenuManagementSectionProps = {
   supportsPriceNoteWithPriceColumns?: boolean;
   priceDisplayMode?: PriceDisplayMode;
   timeSales?: MenuEditorTimeSale[];
+  initialMenuWidgets?: MenuWidget[];
+  menuWidgetCapability?: TemplateMenuWidgetCapabilities;
   canManagePages: boolean;
   supportsDisplayPageTypes?: boolean;
   supportsDisplayPromotionPages?: boolean;
@@ -4769,6 +4776,8 @@ export default function MenuManagementSection({
   supportsPriceNoteWithPriceColumns = false,
   priceDisplayMode = "compact_decimal",
   timeSales = [],
+  initialMenuWidgets = [],
+  menuWidgetCapability = capabilities.menuWidgets,
   canManagePages,
   supportsDisplayPageTypes = false,
   supportsDisplayPromotionPages = false,
@@ -4810,6 +4819,19 @@ export default function MenuManagementSection({
   );
   const [priceDisplayModeDraft, setPriceDisplayModeDraft] = useState<PriceDisplayMode>(() =>
     normalizePriceDisplayMode(priceDisplayMode, null)
+  );
+  const [menuWidgetEditorDraft] = useState<InitialMenuWidgetEditorDraft>(() =>
+    createInitialMenuWidgetEditorDraft({
+      pages: menuPages,
+      categories,
+      widgets: menuWidgetCapability.enabled ? initialMenuWidgets : [],
+    })
+  );
+  const [deletedWidgetIds] = useState<Set<string>>(() => new Set());
+  const widgetDraftCount = Object.keys(menuWidgetEditorDraft.widgetDraftsById).length;
+  const contentBlockDraftCount = Object.values(menuWidgetEditorDraft.contentBlockDraftsByPageId).reduce(
+    (count, blocks) => count + blocks.length,
+    0
   );
   const menuFinalSaveError =
     !finalSaveMessage && finalSaveError && dismissedFinalSaveError !== finalSaveError
@@ -7268,7 +7290,13 @@ export default function MenuManagementSection({
   const aiMenuCleanupTooManyCategories = Boolean(menuCleanupResult && aiMenuCleanupCategoryCount > MENU_LIMITS.maxCategoriesPerPage);
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6"
+      data-menu-widgets-enabled={menuWidgetCapability.enabled ? "true" : "false"}
+      data-widget-draft-count={widgetDraftCount}
+      data-content-block-draft-count={contentBlockDraftCount}
+      data-deleted-widget-draft-count={deletedWidgetIds.size}
+    >
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <div className="mb-8 border-b border-zinc-100 pb-6">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
