@@ -1,15 +1,22 @@
 /* eslint-disable @next/next/no-img-element */
 import type { CSSProperties } from "react";
 
+import type {
+  MenuWidgetAspectRatio,
+  MenuWidgetObjectFit,
+  MenuWidgetTextAlign,
+  MenuWidgetType,
+} from "@/lib/menu-widgets";
+
 import styles from "./CafeAWidgetBlock.module.css";
 
-export type CafeAWidgetType = "image" | "text" | "image_text";
+export type CafeAWidgetType = MenuWidgetType;
 
-export type CafeAWidgetAspectRatio = "2:1" | "3:2" | "4:3" | "1:1" | "3:4";
+export type CafeAWidgetAspectRatio = MenuWidgetAspectRatio;
 
-export type CafeAWidgetObjectFit = "cover" | "contain";
+export type CafeAWidgetObjectFit = MenuWidgetObjectFit;
 
-export type CafeAWidgetTextAlign = "left" | "center";
+export type CafeAWidgetTextAlign = MenuWidgetTextAlign;
 
 type CafeAWidgetBase = {
   id: string;
