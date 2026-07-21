@@ -297,7 +297,73 @@ Known concurrency gap:
 - Server-side count-before-insert/update validation protects normal UI flows, but concurrent requests can still race.
 - A future RPC/advisory-lock or constraint-backed approach should close this gap before high-volume widget writes.
 
-## 17. Rendering Policy
+## 17. Shared Category/Widget Order RPC
+
+Categories and widgets share one `menu_page_id + sort_order` ordering space, but they live in separate DB tables.
+To avoid partial ordering writes, the combined order must be saved through a dedicated SQL RPC:
+
+```text
+public.save_menu_page_content_order(
+  p_user_id uuid,
+  p_menu_site_id uuid,
+  p_menu_page_id uuid,
+  p_blocks jsonb
+)
+```
+
+RPC responsibility:
+
+- Save only category/widget `sort_order` values.
+- Verify the menu site belongs to `p_user_id`.
+- Verify the menu page belongs to the menu site.
+- Lock the `menu_pages` row with `select ... for update`.
+- Validate the full payload before writing.
+- Update `menu_categories` and `menu_widgets` in one PostgreSQL function call.
+- Return counts only, not customer content.
+
+Payload contract:
+
+```json
+[
+  { "block_type": "category", "id": "category-uuid", "sort_order": 0 },
+  { "block_type": "widget", "id": "widget-uuid", "sort_order": 1 }
+]
+```
+
+Validation policy:
+
+- `p_blocks` must be a JSON array of objects.
+- `block_type` must be `category` or `widget`.
+- `id` must be a valid UUID.
+- `sort_order` must be an integer.
+- `sort_order` values must be exactly `0..n-1`.
+- Duplicate `(block_type, id)` pairs are rejected.
+- Duplicate sort orders are rejected.
+- The payload must contain the page's full category/widget block set.
+- Hidden categories/widgets are included.
+- Unknown IDs, missing DB rows, and rows from another page or menu site fail the whole save.
+- Legacy widget types (`notice_text`, `image_banner`, `option_list`, `store_info`) fail the save and require separate review.
+- More than 3 widget rows on the page fail the save, including hidden rows.
+
+Security and caller policy:
+
+- The RPC is intended for Next.js server-side `service_role` calls only.
+- `p_user_id` must come from the authenticated server session, not from client payload.
+- The function also verifies `menu_sites.user_id = p_user_id`.
+- `anon`, `authenticated`, and `public` execute privileges are revoked.
+- `service_role` is the only execute grantee.
+- The migration uses `security invoker`; the server-side service-role caller supplies DB privileges while the function performs explicit ownership checks.
+- The function uses a fixed `search_path` and does not rely on `auth.uid()`.
+
+Non-responsibilities:
+
+- Widget create/update/delete remains in the server widget persistence service.
+- Category create/update/delete remains in the existing menu save flow.
+- Storage cleanup remains a follow-up action responsibility.
+- Revalidation belongs to the future server action wrapper.
+- This RPC does not add entitlement or billing checks; CafeA widgets are part of the free/base feature set.
+
+## 18. Rendering Policy
 
 Desktop/tablet ordered balanced:
 
@@ -318,7 +384,7 @@ Mobile:
 - Vertical page scroll is allowed.
 - Horizontal overflow and nested scroll are not allowed.
 
-## 18. Future Migration Needs
+## 19. Future Migration Needs
 
 The current DB `widget_type` check constraint reportedly allows legacy values:
 

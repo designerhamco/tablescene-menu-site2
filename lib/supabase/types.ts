@@ -2523,6 +2523,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      save_menu_page_content_order: {
+        Args: {
+          p_blocks: Json
+          p_menu_page_id: string
+          p_menu_site_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
