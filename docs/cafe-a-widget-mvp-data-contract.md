@@ -433,11 +433,75 @@ Save order policy:
 
 Current integration status:
 
-- No hidden input is connected.
-- No editor action calls this final save service yet.
+- The editor hidden input is connected when `menuWidgets.enabled` is true.
+- The menu final save action calls the widget final save service only when widget drafts or deleted widget IDs exist.
+- Existing zero-widget customer saves continue through the previous save path without invoking the widget RPC.
 - No public loader or CafeA renderer reads widgets in production flow yet.
-- No RPC test call has been made from the app.
+- No end-to-end widget create/update/delete save has been run from the UI yet.
 - No Storage cleanup is implemented or executed.
+
+## 17.6 Widget Image Upload Boundary
+
+Image-backed widgets use a dedicated server route boundary before the editor UI is connected.
+
+Route:
+
+```text
+POST /api/menu-widget-images
+DELETE /api/menu-widget-images
+```
+
+Supported widget types:
+
+- `image`
+- `image_text`
+
+The `text` widget type is rejected by the upload boundary.
+
+Path policy:
+
+```text
+menu-sites/{menuSiteId}/widgets/{widgetId}/versions/{assetId}.{jpg|png|webp}
+```
+
+Rules:
+
+- `menuSiteId` comes from an owned menu site after server-side authentication and access checks.
+- `widgetId` must be a UUID. Existing widget rows must belong to the same menu site; a new client-generated widget ID is allowed.
+- `assetId` is generated on the server for every upload.
+- User filenames, client-selected paths, and bucket names are never trusted.
+- Uploads create a new version path and never overwrite the current DB-backed public path.
+- The DB points at the new image only after the later final save flow persists the widget draft.
+
+Upload validation:
+
+- Reuses the existing `menu-images` bucket and image upload size/MIME policy.
+- Accepts JPEG, PNG, and WebP only.
+- Rejects empty files.
+- Verifies file bytes with image magic numbers instead of trusting only MIME type or extension.
+- SVG and arbitrary files are rejected.
+- No new image transform dependency is added in this step; stored extensions match the accepted source format.
+
+Temporary cleanup policy:
+
+- `previousUnsavedImagePath` may be removed only after the new upload succeeds.
+- Previous unsaved cleanup is limited to the same `menuSiteId + widgetId + versions/` prefix.
+- A DB-referenced `image_path` is never removed by this draft route.
+- Cleanup failure logs a warning but does not fail the successful upload response.
+- Abandoned draft assets remain orphan candidates for the separate read-only audit and future cleanup flow.
+
+Delete policy:
+
+- DELETE accepts `menuSiteId`, `widgetId`, and `imagePath`.
+- `imagePath` is the only cleanup key; never infer a Storage path from `imageUrl`.
+- The route verifies owner/write access, widget capability, exact version prefix, current DB image protection, and DB reference protection before `remove`.
+- The route is not connected to the editor UI or final save action in this stage.
+
+Final-save cleanup remains separate:
+
+- The final save service may return cleanup candidates after DB mutations.
+- Actual persisted-image cleanup must be added as a later server-action responsibility.
+- This route does not call the category/widget order RPC and does not change DB rows.
 
 ## 18. Rendering Policy
 
