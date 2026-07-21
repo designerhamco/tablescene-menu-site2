@@ -1,5 +1,7 @@
 import type { MenuWidget, MenuWidgetDraft } from "@/lib/menu-widgets";
 
+const MENU_WIDGET_EDITOR_PREVIEW_MAX_LENGTH = 28;
+
 export type MenuWidgetEditorPageInput = {
   id: string;
 };
@@ -321,6 +323,31 @@ export function pageHasWidgetContentBlocks(
   return Boolean(state[pageId]?.some((block) => block.blockType === "widget"));
 }
 
+export function getMenuWidgetEditorTypeLabel(type: string): string {
+  if (type === "image") return "이미지 위젯";
+  if (type === "text") return "텍스트 위젯";
+  if (type === "image_text") return "이미지 + 텍스트 위젯";
+  return "지원하지 않는 위젯";
+}
+
+export function getMenuWidgetEditorDisplayName(widget: MenuWidgetDraft | null | undefined): string {
+  if (!widget) return "지원하지 않는 위젯";
+
+  const title = normalizeEditorPreviewText(widget.title);
+  const description = normalizeEditorPreviewText(widget.description);
+  const altText = normalizeEditorPreviewText(widget.settings.altText);
+
+  if (widget.type === "image") {
+    return title || altText || getMenuWidgetEditorTypeLabel(widget.type);
+  }
+
+  if (widget.type === "text" || widget.type === "image_text") {
+    return title || description || getMenuWidgetEditorTypeLabel(widget.type);
+  }
+
+  return "지원하지 않는 위젯";
+}
+
 type IndexedContentBlockDraft = MenuEditorContentBlockDraft & {
   inputIndex: number;
 };
@@ -371,4 +398,10 @@ function removeCategoryContentBlocksById(
   });
 
   return changed ? Object.fromEntries(nextEntries) : state;
+}
+
+function normalizeEditorPreviewText(value: string | null | undefined): string {
+  const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (normalized.length <= MENU_WIDGET_EDITOR_PREVIEW_MAX_LENGTH) return normalized;
+  return `${normalized.slice(0, MENU_WIDGET_EDITOR_PREVIEW_MAX_LENGTH - 1)}…`;
 }

@@ -17,6 +17,7 @@ import {
 } from "@/app/mypage/menus/actions";
 import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
+import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
@@ -27,6 +28,7 @@ import {
   createCategoryContentBlocksForPage,
   createCategoryOnlyContentBlockDraftsByPageId,
   createInitialMenuWidgetEditorDraft,
+  type MenuEditorContentBlockDraft,
   moveCategoryContentBlock,
   pageHasWidgetContentBlocks,
   prependCategoryContentBlocks,
@@ -7424,6 +7426,35 @@ export default function MenuManagementSection({
     Boolean(menuCleanupResult && aiMenuCleanupTargetPage && aiMenuCleanupCurrentPageTotal > MENU_LIMITS.maxCategoriesPerPage);
   const aiMenuCleanupNewPageBlocked = Boolean(menuCleanupResult && (!canManagePages || sortedPages.length >= MENU_LIMITS.maxPagesPerSite));
   const aiMenuCleanupTooManyCategories = Boolean(menuCleanupResult && aiMenuCleanupCategoryCount > MENU_LIMITS.maxCategoriesPerPage);
+  const renderedContentBlockCount = visibleStructurePages.reduce((count, page) => {
+    if (canConfigureDisplayPages && isPromotionDisplayPage(getDraftedPageDisplaySettings(page))) return count;
+    const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
+    return count + getStructureContentBlocksForPage(page.id, pageCategories).length;
+  }, 0);
+  const renderedWidgetRowCount = menuWidgetCapability.enabled
+    ? visibleStructurePages.reduce((count, page) => {
+        if (canConfigureDisplayPages && isPromotionDisplayPage(getDraftedPageDisplaySettings(page))) return count;
+        const pageCategories = sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
+        return count + getStructureContentBlocksForPage(page.id, pageCategories).filter((block) => block.blockType === "widget").length;
+      }, 0)
+    : 0;
+
+  function getStructureContentBlocksForPage(pageId: string, pageCategories: typeof draftedCategories): MenuEditorContentBlockDraft[] {
+    if (menuWidgetCapability.enabled) {
+      const blocks = contentBlockDraftsByPageId[pageId];
+      if (blocks) return blocks;
+    }
+
+    return createCategoryContentBlocksForPage(
+      pageId,
+      pageCategories.map((category) => ({
+        id: category.id,
+        menuPageId: category.menu_page_id ?? "",
+        sortOrder: category.sort_order ?? 0,
+        visible: category.visible,
+      })),
+    );
+  }
 
   return (
     <div
@@ -7432,6 +7463,8 @@ export default function MenuManagementSection({
       data-widget-draft-count={widgetDraftCount}
       data-content-block-draft-count={contentBlockDraftCount}
       data-deleted-widget-draft-count={deletedWidgetIds.size}
+      data-rendered-widget-row-count={renderedWidgetRowCount}
+      data-rendered-content-block-count={renderedContentBlockCount}
     >
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <div className="mb-8 border-b border-zinc-100 pb-6">
@@ -7572,8 +7605,10 @@ export default function MenuManagementSection({
                   const pageDisplaySettings = getDraftedPageDisplaySettings(page);
                   const pageIsPromotion = canConfigureDisplayPages && isPromotionDisplayPage(pageDisplaySettings);
                   const pageCategories = pageIsPromotion ? [] : sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
+                  const pageCategoryById = new Map(pageCategories.map((category) => [category.id, category]));
+                  const pageContentBlocks = pageIsPromotion ? [] : getStructureContentBlocksForPage(page.id, pageCategories);
                   const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId;
-                  const pageCanCollapse = canManagePages && !pageIsPromotion && pageCategories.length > 0;
+                  const pageCanCollapse = canManagePages && !pageIsPromotion && pageContentBlocks.length > 0;
                   const pageExpanded = expandedPageIds.has(page.id);
                   return (
                     <div
@@ -7637,7 +7672,20 @@ export default function MenuManagementSection({
                             level="category"
                           />
                         )}
-                        {pageCategories.map((category) => {
+                        {pageContentBlocks.map((block) => {
+                          if (block.blockType === "widget") {
+                            if (!menuWidgetCapability.enabled) return null;
+                            return (
+                              <MenuWidgetStructureRow
+                                key={`widget:${block.id}`}
+                                block={block}
+                                widget={widgetDraftsById[block.id] ?? null}
+                              />
+                            );
+                          }
+
+                          const category = pageCategoryById.get(block.id);
+                          if (!category) return null;
                           const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === category.id));
                           const categoryQualityNotice = getDisplayMenuCategoryQualityNotice(category, categoryItems, supportsDisplayMenuQualityWarnings);
                           const categoryActive = category.id === visibleCategoryId && !editingItemId;
