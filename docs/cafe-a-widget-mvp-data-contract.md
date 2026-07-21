@@ -436,13 +436,15 @@ Current integration status:
 - The editor hidden input is connected when `menuWidgets.enabled` is true.
 - The menu final save action calls the widget final save service only when widget drafts or deleted widget IDs exist.
 - Existing zero-widget customer saves continue through the previous save path without invoking the widget RPC.
+- The editor can add, select, edit, copy, hide, and delete local widget drafts for supported CafeA pages.
+- Pending widget create/copy editors do not enter the hidden final-save payload until the user applies the widget draft.
 - No public loader or CafeA renderer reads widgets in production flow yet.
 - No end-to-end widget create/update/delete save has been run from the UI yet.
-- Widget image cleanup is connected after successful final save, but no real widget UI save has executed it yet.
+- Widget image cleanup is connected after successful final save, but no real widget UI final save has executed it yet.
 
 ## 17.6 Widget Image Upload Boundary
 
-Image-backed widgets use a dedicated server route boundary before the editor UI is connected.
+Image-backed widgets use a dedicated server route boundary from the editor draft UI.
 
 Route:
 
@@ -495,13 +497,50 @@ Delete policy:
 - DELETE accepts `menuSiteId`, `widgetId`, and `imagePath`.
 - `imagePath` is the only cleanup key; never infer a Storage path from `imageUrl`.
 - The route verifies owner/write access, widget capability, exact version prefix, current DB image protection, and DB reference protection before `remove`.
-- The route is not connected to the editor UI or final save action in this stage.
+- The route is connected to the editor image field for draft upload/remove.
+- Real remote upload/remove QA has not been run in this stage.
+- The route is not connected to the final save action and does not persist DB rows.
 
 Final-save cleanup remains separate:
 
 - The final save service may return cleanup candidates after DB mutations.
 - Actual persisted-image cleanup must be added as a later server-action responsibility.
 - This route does not call the category/widget order RPC and does not change DB rows.
+
+## 17.8 Editor Widget Draft UI
+
+The first customer-facing editor step is local-draft only.
+
+Supported editor operations:
+
+- Add a pending widget from the menu structure panel.
+- Select an existing widget row and open a widget editor panel.
+- Change type between `image`, `text`, and `image_text`.
+- Edit visibility, title, description, image settings, text alignment, and alt text.
+- Copy an existing widget into a pending editor. Image paths are cleared on copy.
+- Delete an existing or unsaved widget from the local final-save payload.
+
+Draft boundary:
+
+- Pending create/copy state is not included in `menuWidgetFinalSavePayload`.
+- The widget enters `widgetDraftsById` and the page content block list only after the editor apply action.
+- Existing widget edits remain local to the editor until applied.
+- The bottom final save remains the only DB persistence path.
+
+Image boundary:
+
+- Image replacement uploads a new version path through `/api/menu-widget-images`.
+- If the current image is an unsaved draft image, its path may be sent as `previousUnsavedImagePath`.
+- Persisted image paths are never sent as `previousUnsavedImagePath`.
+- Removing a persisted image only clears local draft state; Storage cleanup is deferred to final-save cleanup.
+- Removing an unsaved draft image calls the draft DELETE route before clearing local state.
+
+Not connected in this stage:
+
+- Public/owner preview loader widget reads.
+- CafeA renderer output.
+- Real DB final-save QA.
+- Real Storage upload/remove QA.
 
 ## 17.7 Post-Save Widget Image Cleanup
 

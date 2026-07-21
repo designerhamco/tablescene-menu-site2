@@ -250,6 +250,75 @@ export function removeCategoryContentBlock(
   return removeCategoryContentBlocksById(state, new Set([categoryId]));
 }
 
+export function addWidgetContentBlock(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { pageId: string; widgetId: string; visible?: boolean; afterBlockId?: string | null },
+): MenuEditorContentBlockDraftsByPageId {
+  if (!args.pageId || !args.widgetId) return state;
+
+  const withoutWidget = removeWidgetContentBlock(state, args.widgetId);
+  const pageBlocks = sortPageBlocks(withoutWidget[args.pageId] ?? []);
+  const insertedBlock: MenuWidgetContentBlockDraft = {
+    blockType: "widget",
+    id: args.widgetId,
+    menuPageId: args.pageId,
+    sortOrder: 0,
+    visible: args.visible ?? true,
+  };
+  const afterIndex = args.afterBlockId
+    ? pageBlocks.findIndex((block) => block.id === args.afterBlockId)
+    : -1;
+
+  const nextBlocks =
+    afterIndex >= 0
+      ? [
+          ...pageBlocks.slice(0, afterIndex + 1),
+          insertedBlock,
+          ...pageBlocks.slice(afterIndex + 1),
+        ]
+      : [insertedBlock, ...pageBlocks];
+
+  return replacePageContentBlocks(withoutWidget, args.pageId, nextBlocks);
+}
+
+export function removeWidgetContentBlock(
+  state: MenuEditorContentBlockDraftsByPageId,
+  widgetId: string,
+): MenuEditorContentBlockDraftsByPageId {
+  if (!widgetId) return state;
+
+  let changed = false;
+  const nextEntries = Object.entries(state).map(([pageId, blocks]) => {
+    const nextBlocks = blocks.filter((block) => block.blockType !== "widget" || block.id !== widgetId);
+    if (nextBlocks.length === blocks.length) return [pageId, blocks] as const;
+    changed = true;
+    return [pageId, normalizeMenuEditorContentBlockDrafts(pageId, nextBlocks)] as const;
+  });
+
+  return changed ? Object.fromEntries(nextEntries) : state;
+}
+
+export function updateWidgetContentBlockVisibility(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { widgetId: string; visible: boolean },
+): MenuEditorContentBlockDraftsByPageId {
+  if (!args.widgetId) return state;
+
+  let changed = false;
+  const nextEntries = Object.entries(state).map(([pageId, blocks]) => {
+    let pageChanged = false;
+    const nextBlocks = blocks.map((block) => {
+      if (block.blockType !== "widget" || block.id !== args.widgetId) return block;
+      changed = true;
+      pageChanged = true;
+      return { ...block, visible: args.visible };
+    });
+    return [pageId, pageChanged ? nextBlocks : blocks] as const;
+  });
+
+  return changed ? Object.fromEntries(nextEntries) : state;
+}
+
 export function moveCategoryContentBlock(
   state: MenuEditorContentBlockDraftsByPageId,
   args: { categoryId: string; targetPageId: string; visible?: boolean },

@@ -17,12 +17,14 @@ import {
 } from "@/app/mypage/menus/actions";
 import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
+import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDraftEditor";
 import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
   addCategoryContentBlock,
+  addWidgetContentBlock,
   addPageContentBlockList,
   copyCategoryContentBlock,
   createCategoryContentBlocksForPage,
@@ -34,12 +36,21 @@ import {
   pageHasWidgetContentBlocks,
   prependCategoryContentBlocks,
   removeCategoryContentBlock,
+  removeWidgetContentBlock,
   removePageContentBlockList,
   reorderCategoryContentBlocks,
   updateCategoryContentBlockVisibility,
+  updateWidgetContentBlockVisibility,
   type InitialMenuWidgetEditorDraft,
 } from "@/lib/menu-widget-editor-draft";
-import type { MenuWidget } from "@/lib/menu-widgets";
+import {
+  createDefaultMenuWidgetDraft,
+  MAX_MENU_WIDGETS_PER_PAGE,
+  validateMenuWidgetDraft,
+  type MenuWidget,
+  type MenuWidgetDraft,
+  type MenuWidgetType,
+} from "@/lib/menu-widgets";
 import {
   DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
   DEFAULT_PROMOTION_PAGE_DISPLAY_SETTINGS,
@@ -209,6 +220,13 @@ type DragState =
   | { type: "category"; id: string; pageId: string }
   | { type: "item"; id: string; categoryId: string }
   | null;
+
+type WidgetEditorState = {
+  mode: "create" | "copy" | "edit";
+  draft: MenuWidgetDraft;
+  baseDraft: MenuWidgetDraft | null;
+  afterBlockId?: string | null;
+};
 
 type PageBasicDraft = {
   isNew?: boolean;
@@ -1242,6 +1260,19 @@ function getCopyName(name: string, existingNames: string[] = []) {
   }
 
   return `${baseName} ${copyIndex}`;
+}
+
+function cloneMenuWidgetDraft(draft: MenuWidgetDraft): MenuWidgetDraft {
+  return {
+    ...draft,
+    settings: { ...draft.settings },
+  };
+}
+
+function hasWidgetEditorChanges(editor: WidgetEditorState) {
+  if (editor.mode === "create" || editor.mode === "copy") return true;
+  if (!editor.baseDraft) return true;
+  return JSON.stringify(editor.draft) !== JSON.stringify(editor.baseDraft);
 }
 
 function getUniqueName(name: string, existingNames: string[] = []) {
@@ -4845,6 +4876,10 @@ export default function MenuManagementSection({
   const [widgetDraftsById, setWidgetDraftsById] = useState(menuWidgetEditorDraft.widgetDraftsById);
   const [contentBlockDraftsByPageId, setContentBlockDraftsByPageId] = useState(menuWidgetEditorDraft.contentBlockDraftsByPageId);
   const [deletedWidgetIds, setDeletedWidgetIds] = useState<Set<string>>(() => new Set());
+  const persistedWidgetImagePathById = useMemo(
+    () => new Map(initialMenuWidgets.map((widget) => [widget.id, widget.imagePath] as const)),
+    [initialMenuWidgets],
+  );
   const widgetDraftCount = Object.keys(widgetDraftsById).length;
   const contentBlockDraftCount = Object.values(contentBlockDraftsByPageId).reduce(
     (count, blocks) => count + blocks.length,
@@ -5138,6 +5173,8 @@ export default function MenuManagementSection({
       : null;
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(firstVisibleCategoryIdForInitialPage);
+  const [selectedWidgetId, setSelectedWidgetId] = useState("");
+  const [activeWidgetEditor, setActiveWidgetEditor] = useState<WidgetEditorState | null>(null);
   const selectedCategory =
     selectedPageIsPromotion
       ? null
@@ -5150,6 +5187,7 @@ export default function MenuManagementSection({
     ? getDisplayMenuCategoryQualityNotice(selectedCategory, itemsForCategory, supportsDisplayMenuQualityWarnings)
     : null;
   const selectedEditingItem = editingItemId ? draftedItems.find((item) => item.id === editingItemId) ?? null : null;
+  const selectedWidgetDraft = selectedWidgetId ? widgetDraftsById[selectedWidgetId] ?? null : null;
   const usesCategoryPriceOptionColumns = Boolean(capabilities.categoryPriceOptionColumns && capabilities.priceOptions);
   const usesLegacyCategoryPriceOptionColumns = usesCategoryPriceOptionColumns && !canManageCategoryPriceColumns;
   const maxCategoryPriceOptionColumns = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
@@ -5223,14 +5261,23 @@ export default function MenuManagementSection({
   const reachedItemsPerCategoryLimit = itemsForCategory.length >= MENU_LIMITS.maxItemsPerCategory;
   const reachedItemsPerSiteLimit = draftedItems.length >= MENU_LIMITS.maxItemsPerSite;
   const reachedItemLimit = reachedItemsPerCategoryLimit || reachedItemsPerSiteLimit;
+  const maxMenuWidgetsPerPage = menuWidgetCapability.enabled
+    ? menuWidgetCapability.maxPerPage || MAX_MENU_WIDGETS_PER_PAGE
+    : 0;
+  const widgetCountForVisiblePage = menuWidgetCapability.enabled && visiblePageId
+    ? Object.values(widgetDraftsById).filter((widget) => widget.menuPageId === visiblePageId && !deletedWidgetIds.has(widget.id)).length
+    : 0;
+  const reachedWidgetLimit = menuWidgetCapability.enabled && widgetCountForVisiblePage >= maxMenuWidgetsPerPage;
   const timeSaleOwnerItemId = null;
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
-  const isCategorySelected = Boolean(selectedCategory && !isItemSelected);
-  const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected);
-  const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected;
+  const isWidgetSelected = Boolean(selectedWidgetId || activeWidgetEditor);
+  const isCategorySelected = Boolean(selectedCategory && !isItemSelected && !isWidgetSelected);
+  const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected);
+  const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected;
   const shouldShowPageCreateButton = canManagePages && !isItemSelected && (hasNoSelection || isPageSelectedOnly || isCategorySelected);
-  const shouldShowCategoryCreateButton = Boolean(selectedPage && !selectedPageIsPromotion && !isItemSelected && (isPageSelectedOnly || isCategorySelected));
+  const shouldShowCategoryCreateButton = Boolean(selectedPage && !selectedPageIsPromotion && !isItemSelected && !isWidgetSelected && (isPageSelectedOnly || isCategorySelected));
   const shouldShowItemCreateButton = Boolean(selectedCategory && (isCategorySelected || Boolean(editingItemId)));
+  const shouldShowWidgetCreateButton = Boolean(menuWidgetCapability.enabled && selectedPage && !selectedPageIsPromotion && !isItemSelected);
   const selectedOrderMoveTarget = (() => {
     if (editingItemId) {
       const selectedItem = draftedItems.find((item) => item.id === editingItemId);
@@ -5461,6 +5508,8 @@ export default function MenuManagementSection({
     setEditingPageId("");
     setEditingCategoryId("");
     setEditingItemId("");
+    setSelectedWidgetId("");
+    setActiveWidgetEditor(null);
     setItemEditorEntryMode("list");
     setIsCreatingPage(false);
     setIsCreatingCategory(false);
@@ -5904,6 +5953,9 @@ export default function MenuManagementSection({
   }
 
   function confirmDiscardDraft() {
+    if (activeWidgetEditor && hasWidgetEditorChanges(activeWidgetEditor)) {
+      return window.confirm("저장하지 않은 위젯 수정 내용이 있습니다. 이동하면 입력 내용이 사라집니다.");
+    }
     if (!draftTarget) return true;
     return window.confirm("저장하지 않은 새 항목이 있습니다. 이동하면 입력 내용이 사라집니다.");
   }
@@ -6280,6 +6332,241 @@ export default function MenuManagementSection({
     }
 
     toast.success("순서가 변경되었습니다. 하단의 최종 저장을 눌러야 공개 메뉴판에 반영됩니다.");
+  }
+
+  function getSelectedTopLevelBlockIdForWidgetInsert() {
+    const pageBlocks = contentBlockDraftsByPageId[visiblePageId] ?? [];
+
+    if (selectedWidgetId && pageBlocks.some((block) => block.blockType === "widget" && block.id === selectedWidgetId)) {
+      return selectedWidgetId;
+    }
+
+    if (visibleCategoryId && pageBlocks.some((block) => block.blockType === "category" && block.id === visibleCategoryId)) {
+      return visibleCategoryId;
+    }
+
+    return null;
+  }
+
+  function getWidgetCountForPage(pageId: string) {
+    if (!pageId) return 0;
+    return Object.values(widgetDraftsById).filter((widget) => widget.menuPageId === pageId && !deletedWidgetIds.has(widget.id)).length;
+  }
+
+  function getPersistedWidgetImagePath(widgetId: string) {
+    return persistedWidgetImagePathById.get(widgetId) ?? null;
+  }
+
+  function getWidgetDraftImageIsUnsaved(draft: MenuWidgetDraft | null | undefined, baseDraft: MenuWidgetDraft | null | undefined) {
+    if (!draft?.imagePath) return false;
+    const persistedPath = getPersistedWidgetImagePath(draft.id);
+    if (draft.imagePath === persistedPath) return false;
+    if (baseDraft?.imagePath === draft.imagePath) return false;
+    return true;
+  }
+
+  async function cleanupUnsavedWidgetImagePath(draft: MenuWidgetDraft | null | undefined, imagePath: string | null | undefined) {
+    if (!draft || !imagePath) return;
+    if (imagePath === getPersistedWidgetImagePath(draft.id)) return;
+
+    try {
+      await fetch("/api/menu-widget-images", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          menuSiteId: menuId,
+          menuPageId: draft.menuPageId,
+          widgetId: draft.id,
+          imagePath,
+        }),
+      });
+    } catch {
+      // Temporary cleanup is best-effort; final-save cleanup remains the source of truth.
+    }
+  }
+
+  function updateActiveWidgetEditorDraft(nextDraft: MenuWidgetDraft) {
+    setActiveWidgetEditor((currentEditor) => {
+      if (!currentEditor) return currentEditor;
+
+      const previousImagePath = currentEditor.draft.imagePath;
+      if (
+        previousImagePath &&
+        previousImagePath !== nextDraft.imagePath &&
+        previousImagePath !== getPersistedWidgetImagePath(currentEditor.draft.id) &&
+        previousImagePath !== currentEditor.baseDraft?.imagePath
+      ) {
+        void cleanupUnsavedWidgetImagePath(currentEditor.draft, previousImagePath);
+      }
+
+      return { ...currentEditor, draft: nextDraft };
+    });
+  }
+
+  function createPendingWidgetDraft(mode: "create" | "copy", type: MenuWidgetType, source?: MenuWidgetDraft) {
+    if (!visiblePageId || selectedPageIsPromotion) return;
+    if (getWidgetCountForPage(visiblePageId) >= maxMenuWidgetsPerPage) {
+      toast.error(`한 페이지에는 위젯을 최대 ${maxMenuWidgetsPerPage}개까지 등록할 수 있습니다.`);
+      return;
+    }
+    if (!confirmDiscardDraft()) return;
+
+    const widgetId = window.crypto?.randomUUID?.();
+    if (!widgetId) {
+      toast.error("위젯 ID를 생성하지 못했습니다. 브라우저를 새로고침한 뒤 다시 시도해주세요.");
+      return;
+    }
+
+    const afterBlockId = mode === "copy" && source ? source.id : getSelectedTopLevelBlockIdForWidgetInsert();
+    const baseDraft = source
+      ? {
+          ...source,
+          id: widgetId,
+          title: source.title ? getCopyName(source.title) : source.title,
+          imageUrl: null,
+          imagePath: null,
+        }
+      : createDefaultMenuWidgetDraft(type, {
+          id: widgetId,
+          menuPageId: visiblePageId,
+          sortOrder: 0,
+        });
+
+    resetModes();
+    setSelectedPageId(visiblePageId);
+    setSelectedCategoryId("");
+    setSelectedWidgetId(widgetId);
+    setExpandedPageIds(new Set([visiblePageId]));
+    setActiveWidgetEditor({
+      mode,
+      draft: {
+        ...baseDraft,
+        menuPageId: visiblePageId,
+      },
+      baseDraft: null,
+      afterBlockId,
+    });
+  }
+
+  function startCreateWidget() {
+    const defaultType = menuWidgetCapability.supportedTypes[0] ?? "image";
+    createPendingWidgetDraft("create", defaultType);
+  }
+
+  function startEditWidget(widgetId: string) {
+    if (!confirmDiscardDraft()) return;
+    const draft = widgetDraftsById[widgetId];
+    if (!draft) return;
+
+    resetModes();
+    setSelectedPageId(draft.menuPageId);
+    setSelectedCategoryId("");
+    setSelectedWidgetId(widgetId);
+    setExpandedPageIds(new Set([draft.menuPageId]));
+    setActiveWidgetEditor({
+      mode: "edit",
+      draft: cloneMenuWidgetDraft(draft),
+      baseDraft: cloneMenuWidgetDraft(draft),
+      afterBlockId: null,
+    });
+  }
+
+  function copyWidgetDraft(widgetId: string) {
+    const source = activeWidgetEditor?.draft.id === widgetId
+      ? activeWidgetEditor.draft
+      : widgetDraftsById[widgetId];
+    if (!source) return;
+    createPendingWidgetDraft("copy", source.type, source);
+  }
+
+  function commitActiveWidgetEditor() {
+    if (!activeWidgetEditor) return;
+
+    const draft = cloneMenuWidgetDraft(activeWidgetEditor.draft);
+    const validation = validateMenuWidgetDraft(draft);
+    if (!validation.valid) {
+      toast.error(validation.errors[0]?.message ?? "위젯 내용을 확인해주세요.");
+      return;
+    }
+
+    const pageWidgetCount = getWidgetCountForPage(draft.menuPageId);
+    const isNewWidget = !widgetDraftsById[draft.id];
+    if (isNewWidget && pageWidgetCount >= maxMenuWidgetsPerPage) {
+      toast.error(`한 페이지에는 위젯을 최대 ${maxMenuWidgetsPerPage}개까지 등록할 수 있습니다.`);
+      return;
+    }
+
+    setWidgetDraftsById((currentDrafts) => ({
+      ...currentDrafts,
+      [draft.id]: draft,
+    }));
+    setContentBlockDraftsByPageId((currentDrafts) => {
+      if (activeWidgetEditor.mode === "edit") {
+        return updateWidgetContentBlockVisibility(currentDrafts, {
+          widgetId: draft.id,
+          visible: draft.visible,
+        });
+      }
+
+      return addWidgetContentBlock(currentDrafts, {
+        pageId: draft.menuPageId,
+        widgetId: draft.id,
+        visible: draft.visible,
+        afterBlockId: activeWidgetEditor.afterBlockId,
+      });
+    });
+    setDeletedWidgetIds((currentIds) => {
+      if (!currentIds.has(draft.id)) return currentIds;
+      const nextIds = new Set(currentIds);
+      nextIds.delete(draft.id);
+      return nextIds;
+    });
+    setSelectedPageId(draft.menuPageId);
+    setSelectedCategoryId("");
+    setSelectedWidgetId(draft.id);
+    setActiveWidgetEditor({
+      mode: "edit",
+      draft,
+      baseDraft: cloneMenuWidgetDraft(draft),
+      afterBlockId: null,
+    });
+    markMenuManagementDirty();
+    toast.success("위젯 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+  }
+
+  function cancelActiveWidgetEditor() {
+    if (activeWidgetEditor && getWidgetDraftImageIsUnsaved(activeWidgetEditor.draft, activeWidgetEditor.baseDraft)) {
+      void cleanupUnsavedWidgetImagePath(activeWidgetEditor.draft, activeWidgetEditor.draft.imagePath);
+    }
+
+    const nextSelectedWidgetId = activeWidgetEditor?.mode === "edit" ? activeWidgetEditor.draft.id : "";
+    setActiveWidgetEditor(null);
+    setConfirmingDeleteKey("");
+    setSelectedWidgetId(nextSelectedWidgetId);
+  }
+
+  function deleteWidgetDraft(widgetId: string) {
+    const draft = widgetDraftsById[widgetId] ?? activeWidgetEditor?.draft;
+    if (!draft) return;
+
+    if (draft.imagePath && draft.imagePath !== getPersistedWidgetImagePath(widgetId)) {
+      void cleanupUnsavedWidgetImagePath(draft, draft.imagePath);
+    }
+
+    setWidgetDraftsById((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      delete nextDrafts[widgetId];
+      return nextDrafts;
+    });
+    setContentBlockDraftsByPageId((currentDrafts) => removeWidgetContentBlock(currentDrafts, widgetId));
+    if (persistedWidgetImagePathById.has(widgetId)) {
+      setDeletedWidgetIds((currentIds) => new Set(currentIds).add(widgetId));
+    }
+    setActiveWidgetEditor(null);
+    setSelectedWidgetId("");
+    setConfirmingDeleteKey("");
+    markMenuManagementDirty();
+    toast.success("위젯이 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
   }
 
   function startCreatePage() {
@@ -7592,6 +7879,17 @@ export default function MenuManagementSection({
                   + {labels.categoryLabel}
                 </button>
               )}
+              {shouldShowWidgetCreateButton && (
+                <button
+                  type="button"
+                  onClick={startCreateWidget}
+                  disabled={reachedWidgetLimit}
+                  title={reachedWidgetLimit ? `한 페이지에는 위젯을 최대 ${maxMenuWidgetsPerPage}개까지 등록할 수 있습니다.` : undefined}
+                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                >
+                  + 위젯
+                </button>
+              )}
               {shouldShowItemCreateButton && (
                 <button
                   type="button"
@@ -7691,6 +7989,8 @@ export default function MenuManagementSection({
                                 key={`widget:${block.id}`}
                                 block={block}
                                 widget={widgetDraftsById[block.id] ?? null}
+                                selected={block.id === selectedWidgetId}
+                                onSelect={() => startEditWidget(block.id)}
                               />
                             );
                           }
@@ -7916,6 +8216,74 @@ export default function MenuManagementSection({
                     </>
                   );
                 })()}
+              </div>
+            ) : activeWidgetEditor ? (
+              <MenuWidgetDraftEditor
+                mode={activeWidgetEditor.mode}
+                menuSiteId={menuId}
+                draft={activeWidgetEditor.draft}
+                persistedImagePath={getPersistedWidgetImagePath(activeWidgetEditor.draft.id)}
+                widgetCount={getWidgetCountForPage(activeWidgetEditor.draft.menuPageId) + (widgetDraftsById[activeWidgetEditor.draft.id] ? 0 : 1)}
+                maxWidgetCount={maxMenuWidgetsPerPage}
+                isConfirmingDelete={confirmingDeleteKey === `widget:${activeWidgetEditor.draft.id}`}
+                hasChanges={hasWidgetEditorChanges(activeWidgetEditor)}
+                onChange={updateActiveWidgetEditorDraft}
+                onSave={commitActiveWidgetEditor}
+                onCancel={cancelActiveWidgetEditor}
+                onCopy={activeWidgetEditor.mode === "edit" ? () => copyWidgetDraft(activeWidgetEditor.draft.id) : undefined}
+                onRequestDelete={activeWidgetEditor.mode === "edit" ? () => setConfirmingDeleteKey(`widget:${activeWidgetEditor.draft.id}`) : undefined}
+                onCancelDelete={() => setConfirmingDeleteKey("")}
+                onConfirmDelete={() => deleteWidgetDraft(activeWidgetEditor.draft.id)}
+              />
+            ) : selectedWidgetDraft ? (
+              <div>
+                <PanelHeader
+                  eyebrow="Widget Detail"
+                  title="위젯"
+                  description="위젯은 카테고리와 같은 최상위 콘텐츠입니다. 수정 내용은 하단의 최종 저장 후 공개 메뉴판에 반영됩니다."
+                />
+                <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+                  <DetailValue label="위젯 유형">{selectedWidgetDraft.type === "image" ? "이미지" : selectedWidgetDraft.type === "text" ? "텍스트" : "이미지 + 텍스트"}</DetailValue>
+                  <DetailValue label="메뉴판 표시">{selectedWidgetDraft.visible ? "표시함" : "표시 안 함"}</DetailValue>
+                  {(selectedWidgetDraft.type === "text" || selectedWidgetDraft.type === "image_text") && (
+                    <>
+                      <DetailValue label="제목">{selectedWidgetDraft.title}</DetailValue>
+                      <div className="md:col-span-2">
+                        <DetailValue label="본문">{selectedWidgetDraft.description}</DetailValue>
+                      </div>
+                    </>
+                  )}
+                  {(selectedWidgetDraft.type === "image" || selectedWidgetDraft.type === "image_text") && (
+                    <>
+                      <DetailValue label="이미지">{selectedWidgetDraft.imageUrl || selectedWidgetDraft.imagePath ? "등록됨" : "없음"}</DetailValue>
+                      <DetailValue label="이미지 비율">{selectedWidgetDraft.settings.aspectRatio}</DetailValue>
+                    </>
+                  )}
+                </div>
+                <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => copyWidgetDraft(selectedWidgetDraft.id)}
+                    disabled={widgetCountForVisiblePage >= maxMenuWidgetsPerPage}
+                    className="mr-auto rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  >
+                    복사
+                  </button>
+                  <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                    수정
+                  </button>
+                  {confirmingDeleteKey === `widget:${selectedWidgetDraft.id}` ? (
+                    <span className="flex flex-wrap items-center justify-end gap-2">
+                      <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
+                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white">삭제</button>
+                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600">취소</button>
+                    </span>
+                  ) : (
+                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="rounded-full border border-red-100 bg-white px-5 py-3 text-sm font-bold text-red-600">
+                      삭제
+                    </button>
+                  )}
+                </div>
               </div>
             ) : isCreatingCategory && selectedPage ? (
               <div>

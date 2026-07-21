@@ -10,7 +10,7 @@ export const MENU_WIDGET_OBJECT_FITS = ["cover", "contain"] as const;
 
 export type MenuWidgetObjectFit = (typeof MENU_WIDGET_OBJECT_FITS)[number];
 
-export const MENU_WIDGET_TEXT_ALIGNS = ["left", "center"] as const;
+export const MENU_WIDGET_TEXT_ALIGNS = ["left", "center", "right"] as const;
 
 export type MenuWidgetTextAlign = (typeof MENU_WIDGET_TEXT_ALIGNS)[number];
 
