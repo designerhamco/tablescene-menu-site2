@@ -50,6 +50,7 @@ export type MenuWidgetFinalSaveResult =
       createdWidgets: MenuWidget[];
       updatedWidgets: MenuWidget[];
       deletedWidgetIds: string[];
+      assetCleanupPlans: MenuWidgetSavePlan["deletes"];
       assetChanges: MenuWidgetSavePlan["assetChanges"];
       orderResults: Array<{
         menuPageId: string;
@@ -190,6 +191,7 @@ export async function saveParsedMenuWidgetsForFinalDraft(args: {
     createdWidgets,
     updatedWidgets,
     deletedWidgetIds,
+    assetCleanupPlans: planResult.plan.deletes,
     assetChanges: planResult.plan.assetChanges,
     orderResults,
   };

@@ -8,6 +8,9 @@ export type MenuWidgetDeletePlan = {
 };
 
 export type MenuWidgetAssetChange = {
+  widgetId: string;
+  menuSiteId: string;
+  menuPageId: string;
   previousImagePath: string | null;
   nextImagePath: string | null;
   shouldCleanupPreviousImage: boolean;
@@ -27,6 +30,9 @@ export function getMenuWidgetAssetChange(previous: MenuWidget, next: MenuWidget)
   const nextImagePath = next.imagePath;
 
   return {
+    widgetId: previous.id,
+    menuSiteId: previous.menuSiteId,
+    menuPageId: previous.menuPageId,
     previousImagePath,
     nextImagePath,
     shouldCleanupPreviousImage: Boolean(previousImagePath && previousImagePath !== nextImagePath),

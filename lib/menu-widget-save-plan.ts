@@ -133,6 +133,9 @@ export function createMenuWidgetSavePlan(args: {
   deletes.forEach((deletePlan) => {
     if (deletePlan.imagePath) {
       assetChanges.push({
+        widgetId: deletePlan.widgetId,
+        menuSiteId: deletePlan.menuSiteId,
+        menuPageId: deletePlan.menuPageId,
         previousImagePath: deletePlan.imagePath,
         nextImagePath: null,
         shouldCleanupPreviousImage: true,
@@ -199,6 +202,9 @@ function getDraftAssetChange(previous: MenuWidget, draft: MenuWidgetDraft): Menu
   const nextImagePath = getDraftEffectiveImagePath(draft);
 
   return {
+    widgetId: previous.id,
+    menuSiteId: previous.menuSiteId,
+    menuPageId: previous.menuPageId,
     previousImagePath,
     nextImagePath,
     shouldCleanupPreviousImage: Boolean(previousImagePath && previousImagePath !== nextImagePath),

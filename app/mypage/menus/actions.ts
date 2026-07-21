@@ -79,6 +79,7 @@ import {
   type MenuCleanupStructuredResult,
 } from "@/lib/server/menu-translation-service";
 import { saveMenuWidgetsForFinalDraft, type MenuWidgetFinalSaveError } from "@/lib/server/menu-widget-final-save-service";
+import { cleanupSavedMenuWidgetImages } from "@/lib/server/menu-widget-image-cleanup-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
@@ -6755,6 +6756,23 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         field: widgetSaveResult.error.field,
       });
       redirectToMenuEditWithError(menuId, getMenuWidgetFinalSaveActionErrorMessage(widgetSaveResult.error));
+    }
+
+    if (widgetSaveResult.assetCleanupPlans.length > 0 || widgetSaveResult.assetChanges.length > 0) {
+      const cleanupResult = await cleanupSavedMenuWidgetImages({
+        menuSiteId: menuId,
+        assetCleanupPlans: widgetSaveResult.assetCleanupPlans,
+        assetChanges: widgetSaveResult.assetChanges,
+      });
+
+      if (!cleanupResult.ok) {
+        console.warn("[saveMenuManagementBasicDraftAction] menu widget image cleanup failed", {
+          menuId,
+          candidateCount: widgetSaveResult.assetCleanupPlans.length + widgetSaveResult.assetChanges.length,
+          removedCount: cleanupResult.removedPaths.length,
+          warningCodes: cleanupResult.warnings.map((warning) => warning.code),
+        });
+      }
     }
   }
 

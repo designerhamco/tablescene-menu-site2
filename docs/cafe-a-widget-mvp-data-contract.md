@@ -276,10 +276,10 @@ CRUD support:
 
 Asset and cleanup policy:
 
-- Image cleanup is a follow-up action responsibility.
+- Image cleanup runs only after all widget DB mutations and category/widget order RPC writes succeed.
 - The service may return an asset-change plan when a widget's `imagePath` changes.
 - Do not infer Storage paths from `imageUrl`.
-- Do not call Storage `remove()` from the persistence service.
+- Do not call Storage `remove()` from the persistence service; the action layer delegates post-save cleanup to a server-only cleanup service.
 
 Ordering and revalidation policy:
 
@@ -359,7 +359,7 @@ Non-responsibilities:
 
 - Widget create/update/delete remains in the server widget persistence service.
 - Category create/update/delete remains in the existing menu save flow.
-- Storage cleanup remains a follow-up action responsibility.
+- Storage cleanup remains outside the RPC and is handled only by the server action after all DB/RPC writes succeed.
 - Revalidation belongs to the future server action wrapper.
 - This RPC does not add entitlement or billing checks; CafeA widgets are part of the free/base feature set.
 
@@ -428,8 +428,8 @@ Save order policy:
 6. Update existing widgets, including page moves.
 7. Create new widgets.
 8. Save the combined category/widget order through the RPC.
-9. Return asset cleanup candidates to the future action layer.
-10. Let the future action handle cache revalidation and user-facing redirects.
+9. Run post-save widget image cleanup for previous stored images that are no longer referenced.
+10. Let the action handle cache revalidation and user-facing redirects.
 
 Current integration status:
 
@@ -438,7 +438,7 @@ Current integration status:
 - Existing zero-widget customer saves continue through the previous save path without invoking the widget RPC.
 - No public loader or CafeA renderer reads widgets in production flow yet.
 - No end-to-end widget create/update/delete save has been run from the UI yet.
-- No Storage cleanup is implemented or executed.
+- Widget image cleanup is connected after successful final save, but no real widget UI save has executed it yet.
 
 ## 17.6 Widget Image Upload Boundary
 
@@ -503,6 +503,58 @@ Final-save cleanup remains separate:
 - Actual persisted-image cleanup must be added as a later server-action responsibility.
 - This route does not call the category/widget order RPC and does not change DB rows.
 
+## 17.7 Post-Save Widget Image Cleanup
+
+After a widget final save succeeds, previous stored widget image paths may be removed from Storage.
+
+Cleanup trigger:
+
+```text
+widget create/update/delete service success
+→ category/widget order RPC success
+→ post-save image cleanup
+→ revalidate menu paths
+→ success redirect
+```
+
+Cleanup candidates:
+
+- `MenuWidgetDeletePlan.imagePath` from a deleted widget.
+- `MenuWidgetAssetChange.previousImagePath` when an existing widget changes to a different image.
+- `MenuWidgetAssetChange.previousImagePath` when an image/image_text widget becomes text-only.
+
+Candidate collection rules:
+
+- `null` paths are ignored.
+- Previous and next paths that are identical are ignored.
+- Duplicate previous paths are removed; the path is attempted at most once.
+- `nextImagePath` is never a delete candidate.
+- Candidates retain `menuSiteId` and `widgetId`; the cleanup service does not parse ownership out of URLs.
+
+Safety checks before Storage remove:
+
+- Path must match `menu-sites/{menuSiteId}/widgets/{widgetId}/versions/{assetId}.{jpg|png|webp}`.
+- A path from another menu site or another widget is skipped.
+- Paths outside `versions/`, paths with traversal, and unsupported extensions are skipped.
+- The cleanup service re-reads current `menu_widgets.image_path` values for the menu site immediately before remove.
+- Any currently referenced path is skipped, including references from hidden widgets.
+- If the DB reference check fails, Storage removal is skipped entirely and the save remains successful.
+
+Storage policy:
+
+- Bucket is `menu-images`.
+- Storage removal uses the server-only service-role client.
+- Zero candidates do not call Storage.
+- Cleanup failure does not roll back the already-successful DB save and does not delete the new image.
+- Failed cleanup paths remain orphan candidates for the separate audit/cleanup flow.
+- Logs may include operation, menu site ID, counts, and safe error codes/messages, but must not include customer content, image URLs, or service credentials.
+
+Draft cleanup remains separate:
+
+- `/api/menu-widget-images` may remove a previous unsaved draft version before final save.
+- Post-save cleanup removes only old stored paths after DB/RPC success.
+- Both paths protect DB-referenced images and use `imagePath`, never `imageUrl`.
+
 ## 18. Rendering Policy
 
 Desktop/tablet ordered balanced:
@@ -561,6 +613,7 @@ Later stages must add:
 - Server save validation using the helpers in `lib/menu-widgets.ts`
 - Combined category/widget reorder save
 - Copy/reset/delete behavior for widget rows and images
-- Storage cleanup policy after image replacement or widget deletion
+- Public CafeA renderer connection
 
-Storage cleanup is intentionally out of scope for this contract step.
+Storage cleanup after image replacement or widget deletion is connected at the final-save action boundary, but real
+widget UI saves have not exercised it yet.
