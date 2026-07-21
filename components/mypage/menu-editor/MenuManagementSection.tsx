@@ -28,6 +28,7 @@ import {
   createCategoryContentBlocksForPage,
   createCategoryOnlyContentBlockDraftsByPageId,
   createInitialMenuWidgetEditorDraft,
+  createMenuWidgetFinalSavePayloadFromEditorState,
   type MenuEditorContentBlockDraft,
   moveCategoryContentBlock,
   pageHasWidgetContentBlocks,
@@ -5351,6 +5352,16 @@ export default function MenuManagementSection({
   const deletedPageIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedPageIds)), [deletedPageIds]);
   const deletedCategoryIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedCategoryIds)), [deletedCategoryIds]);
   const deletedItemIdsPayload = useMemo(() => JSON.stringify(Array.from(deletedItemIds)), [deletedItemIds]);
+  const menuWidgetFinalSavePayload = useMemo(() => {
+    if (!menuWidgetCapability.enabled) return "";
+    return JSON.stringify(
+      createMenuWidgetFinalSavePayloadFromEditorState({
+        widgetDraftsById,
+        deletedWidgetIds,
+        contentBlockDraftsByPageId,
+      })
+    );
+  }, [contentBlockDraftsByPageId, deletedWidgetIds, menuWidgetCapability.enabled, widgetDraftsById]);
 
   useEffect(() => {
     if (hasRestoredBuilderState) return;
@@ -8344,6 +8355,9 @@ export default function MenuManagementSection({
             <input type="hidden" name="deleted_page_ids" value={deletedPageIdsPayload} />
             <input type="hidden" name="deleted_category_ids" value={deletedCategoryIdsPayload} />
             <input type="hidden" name="deleted_item_ids" value={deletedItemIdsPayload} />
+            {menuWidgetCapability.enabled && (
+              <input type="hidden" name="menuWidgetFinalSavePayload" value={menuWidgetFinalSavePayload} />
+            )}
             {canConfigurePcTabletLayoutMode && (
               <input type="hidden" name="pc_tablet_layout_mode" value={pcTabletLayoutModeDraft} />
             )}

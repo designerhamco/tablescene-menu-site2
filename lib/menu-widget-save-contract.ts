@@ -62,6 +62,65 @@ export type MenuWidgetFinalSaveParseResult =
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function parseMenuWidgetFinalSavePayload(value: unknown): MenuWidgetFinalSaveParseResult {
+  return parseMenuWidgetFinalSavePayloadInternal(value, { allowDraftPageAndCategoryIds: false });
+}
+
+export function parseMenuWidgetFinalSaveDraftPayload(value: unknown): MenuWidgetFinalSaveParseResult {
+  return parseMenuWidgetFinalSavePayloadInternal(value, { allowDraftPageAndCategoryIds: true });
+}
+
+export function remapMenuWidgetFinalSavePayloadIds(args: {
+  payload: MenuWidgetFinalSavePayload;
+  pageIdMap: ReadonlyMap<string, string>;
+  categoryIdMap: ReadonlyMap<string, string>;
+}): MenuWidgetFinalSaveParseResult {
+  const remappedPayload: MenuWidgetFinalSavePayload = {
+    widgetDrafts: args.payload.widgetDrafts.map((draft) => ({
+      ...draft,
+      menuPageId: args.pageIdMap.get(draft.menuPageId) ?? draft.menuPageId,
+    })),
+    deletedWidgetIds: [...args.payload.deletedWidgetIds],
+    contentBlocksByPage: args.payload.contentBlocksByPage.map((pageBlocks) => ({
+      menuPageId: args.pageIdMap.get(pageBlocks.menuPageId) ?? pageBlocks.menuPageId,
+      blocks: pageBlocks.blocks.map((block) => ({
+        ...block,
+        id: block.blockType === "category"
+          ? args.categoryIdMap.get(block.id) ?? block.id
+          : block.id,
+      })),
+    })),
+  };
+
+  return parseMenuWidgetFinalSavePayload(remappedPayload);
+}
+
+export function shouldRunMenuWidgetFinalSave(payload: MenuWidgetFinalSavePayload): boolean {
+  return payload.widgetDrafts.length > 0 || payload.deletedWidgetIds.length > 0;
+}
+
+export function validateMenuWidgetFinalSavePayload(
+  payload: MenuWidgetFinalSavePayload,
+): MenuWidgetFinalSaveParseResult {
+  return parseMenuWidgetFinalSavePayload(payload);
+}
+
+export function isUuid(value: unknown): value is string {
+  return typeof value === "string" && UUID_PATTERN.test(value);
+}
+
+function isValidReferenceId(value: unknown, allowDraftId: boolean): value is string {
+  if (isUuid(value)) return true;
+  return allowDraftId && typeof value === "string" && value.trim().length > 0;
+}
+
+type MenuWidgetFinalSaveParseOptions = {
+  allowDraftPageAndCategoryIds: boolean;
+};
+
+function parseMenuWidgetFinalSavePayloadInternal(
+  value: unknown,
+  options: MenuWidgetFinalSaveParseOptions,
+): MenuWidgetFinalSaveParseResult {
   const errors: MenuWidgetFinalSaveValidationError[] = [];
 
   if (!isPlainObject(value)) {
@@ -88,9 +147,9 @@ export function parseMenuWidgetFinalSavePayload(value: unknown): MenuWidgetFinal
     return parseFailure(errors);
   }
 
-  const widgetDrafts = parseWidgetDrafts(rawWidgetDrafts as unknown[], errors);
+  const widgetDrafts = parseWidgetDrafts(rawWidgetDrafts as unknown[], errors, options);
   const deletedWidgetIds = parseDeletedWidgetIds(rawDeletedWidgetIds as unknown[], errors);
-  const contentBlocksByPage = parseContentBlocksByPage(rawContentBlocksByPage as unknown[], errors);
+  const contentBlocksByPage = parseContentBlocksByPage(rawContentBlocksByPage as unknown[], errors, options);
 
   validateFinalSavePayloadRelations(
     {
@@ -116,17 +175,11 @@ export function parseMenuWidgetFinalSavePayload(value: unknown): MenuWidgetFinal
   };
 }
 
-export function validateMenuWidgetFinalSavePayload(
-  payload: MenuWidgetFinalSavePayload,
-): MenuWidgetFinalSaveParseResult {
-  return parseMenuWidgetFinalSavePayload(payload);
-}
-
-export function isUuid(value: unknown): value is string {
-  return typeof value === "string" && UUID_PATTERN.test(value);
-}
-
-function parseWidgetDrafts(rawDrafts: unknown[], errors: MenuWidgetFinalSaveValidationError[]) {
+function parseWidgetDrafts(
+  rawDrafts: unknown[],
+  errors: MenuWidgetFinalSaveValidationError[],
+  options: MenuWidgetFinalSaveParseOptions,
+) {
   const widgetDrafts: MenuWidgetDraft[] = [];
   const seenWidgetIds = new Set<string>();
 
@@ -144,7 +197,7 @@ function parseWidgetDrafts(rawDrafts: unknown[], errors: MenuWidgetFinalSaveVali
       errors.push(createError("INVALID_UUID", `${field}.id`, "위젯 ID는 UUID여야 합니다."));
     }
 
-    if (!isUuid(draft.menuPageId)) {
+    if (!isValidReferenceId(draft.menuPageId, options.allowDraftPageAndCategoryIds)) {
       errors.push(createError("INVALID_UUID", `${field}.menuPageId`, "위젯 페이지 ID는 UUID여야 합니다."));
     }
 
@@ -191,7 +244,11 @@ function parseDeletedWidgetIds(rawDeletedWidgetIds: unknown[], errors: MenuWidge
   return deletedWidgetIds;
 }
 
-function parseContentBlocksByPage(rawPages: unknown[], errors: MenuWidgetFinalSaveValidationError[]) {
+function parseContentBlocksByPage(
+  rawPages: unknown[],
+  errors: MenuWidgetFinalSaveValidationError[],
+  options: MenuWidgetFinalSaveParseOptions,
+) {
   const pages: MenuWidgetFinalSavePageContentBlocks[] = [];
   const seenPageIds = new Set<string>();
 
@@ -203,7 +260,7 @@ function parseContentBlocksByPage(rawPages: unknown[], errors: MenuWidgetFinalSa
     }
 
     const menuPageId = rawPage.menuPageId;
-    if (!isUuid(menuPageId)) {
+    if (!isValidReferenceId(menuPageId, options.allowDraftPageAndCategoryIds)) {
       errors.push(createError("INVALID_UUID", `${pageField}.menuPageId`, "메뉴 페이지 ID는 UUID여야 합니다."));
     } else if (seenPageIds.has(menuPageId)) {
       errors.push(createError("DUPLICATE_PAGE_ID", `${pageField}.menuPageId`, "중복된 메뉴 페이지 순서 payload가 있습니다."));
@@ -216,7 +273,7 @@ function parseContentBlocksByPage(rawPages: unknown[], errors: MenuWidgetFinalSa
       return;
     }
 
-    const blocks = parseContentBlocks(rawPage.blocks, pageField, errors);
+    const blocks = parseContentBlocks(rawPage.blocks, pageField, errors, options);
     pages.push({
       menuPageId: typeof menuPageId === "string" ? menuPageId : "",
       blocks,
@@ -226,7 +283,12 @@ function parseContentBlocksByPage(rawPages: unknown[], errors: MenuWidgetFinalSa
   return pages;
 }
 
-function parseContentBlocks(rawBlocks: unknown[], pageField: string, errors: MenuWidgetFinalSaveValidationError[]) {
+function parseContentBlocks(
+  rawBlocks: unknown[],
+  pageField: string,
+  errors: MenuWidgetFinalSaveValidationError[],
+  options: MenuWidgetFinalSaveParseOptions,
+) {
   const blocks: MenuWidgetFinalSaveContentBlock[] = [];
   const seenBlockKeys = new Set<string>();
   const seenSortOrders = new Set<number>();
@@ -246,7 +308,9 @@ function parseContentBlocks(rawBlocks: unknown[], pageField: string, errors: Men
       errors.push(createError("INVALID_BLOCK_TYPE", `${field}.blockType`, "블록 유형은 category 또는 widget이어야 합니다."));
     }
 
-    if (!isUuid(id)) {
+    const normalizedBlockType = blockType === "category" || blockType === "widget" ? blockType : "category";
+    const allowsDraftId = normalizedBlockType === "category" && options.allowDraftPageAndCategoryIds;
+    if (!isValidReferenceId(id, allowsDraftId)) {
       errors.push(createError("INVALID_UUID", `${field}.id`, "블록 ID는 UUID여야 합니다."));
     }
 
@@ -256,7 +320,6 @@ function parseContentBlocks(rawBlocks: unknown[], pageField: string, errors: Men
       errors.push(createError("INVALID_SORT_ORDER", `${field}.sortOrder`, "중복된 sortOrder가 있습니다."));
     }
 
-    const normalizedBlockType = blockType === "category" || blockType === "widget" ? blockType : "category";
     const normalizedId = typeof id === "string" ? id : "";
     const normalizedSortOrder = sortOrder ?? -1;
     const blockKey = `${normalizedBlockType}:${normalizedId}`;

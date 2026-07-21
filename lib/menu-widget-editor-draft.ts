@@ -1,4 +1,5 @@
 import type { MenuWidget, MenuWidgetDraft } from "@/lib/menu-widgets";
+import type { MenuWidgetFinalSavePayload } from "@/lib/menu-widget-save-contract";
 
 const MENU_WIDGET_EDITOR_PREVIEW_MAX_LENGTH = 28;
 
@@ -321,6 +322,37 @@ export function pageHasWidgetContentBlocks(
   pageId: string,
 ): boolean {
   return Boolean(state[pageId]?.some((block) => block.blockType === "widget"));
+}
+
+export function createMenuWidgetFinalSavePayloadFromEditorState(args: {
+  widgetDraftsById: Record<string, MenuWidgetDraft>;
+  deletedWidgetIds: ReadonlySet<string>;
+  contentBlockDraftsByPageId: MenuEditorContentBlockDraftsByPageId;
+}): MenuWidgetFinalSavePayload {
+  const deletedWidgetIds = new Set(args.deletedWidgetIds);
+  const widgetDrafts = Object.values(args.widgetDraftsById)
+    .filter((draft) => !deletedWidgetIds.has(draft.id))
+    .map((draft) => ({ ...draft }))
+    .sort((left, right) => left.menuPageId.localeCompare(right.menuPageId) || left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
+
+  const contentBlocksByPage = Object.entries(args.contentBlockDraftsByPageId)
+    .map(([menuPageId, blocks]) => ({
+      menuPageId,
+      blocks: sortPageBlocks(blocks)
+        .filter((block) => block.blockType !== "widget" || !deletedWidgetIds.has(block.id))
+        .map((block, sortOrder) => ({
+          blockType: block.blockType,
+          id: block.id,
+          sortOrder,
+        })),
+    }))
+    .sort((left, right) => left.menuPageId.localeCompare(right.menuPageId));
+
+  return {
+    widgetDrafts,
+    deletedWidgetIds: Array.from(deletedWidgetIds).sort(),
+    contentBlocksByPage,
+  };
 }
 
 export function getMenuWidgetEditorTypeLabel(type: string): string {

@@ -58,6 +58,13 @@ import {
   validateTimeSaleLimit,
   type TimeSaleValidationEntry,
 } from "@/lib/menu-time-sale-validation";
+import {
+  parseMenuWidgetFinalSaveDraftPayload,
+  remapMenuWidgetFinalSavePayloadIds,
+  shouldRunMenuWidgetFinalSave,
+  type MenuWidgetFinalSavePayload,
+  type MenuWidgetFinalSaveValidationError,
+} from "@/lib/menu-widget-save-contract";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
 import {
@@ -71,6 +78,7 @@ import {
   translatePartialMenuItemFields,
   type MenuCleanupStructuredResult,
 } from "@/lib/server/menu-translation-service";
+import { saveMenuWidgetsForFinalDraft, type MenuWidgetFinalSaveError } from "@/lib/server/menu-widget-final-save-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
@@ -92,6 +100,7 @@ import {
 const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
 const MENU_VIDEOS_BUCKET = "menu-videos";
+const MENU_WIDGET_FINAL_SAVE_PAYLOAD_FIELD = "menuWidgetFinalSavePayload";
 const PUBLIC_PRESET_IMAGE_PREFIXES = ["/placeholders/", "/menu-templates/"] as const;
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
@@ -335,6 +344,48 @@ function getOptionalNumber(formData: FormData, key: string) {
   if (!rawValue) return undefined;
   const value = Number(rawValue);
   return Number.isFinite(value) ? value : undefined;
+}
+
+function parseMenuWidgetFinalSavePayloadFromForm(
+  menuId: string,
+  formData: FormData,
+  widgetsEnabled: boolean,
+): MenuWidgetFinalSavePayload | null {
+  const rawValue = getString(formData, MENU_WIDGET_FINAL_SAVE_PAYLOAD_FIELD);
+  if (!rawValue) return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawValue);
+  } catch {
+    redirectToMenuEditWithError(menuId, "위젯 저장 정보 형식이 올바르지 않습니다.");
+  }
+
+  const parseResult = parseMenuWidgetFinalSaveDraftPayload(parsed);
+  if (!parseResult.ok) {
+    redirectToMenuEditWithError(menuId, getMenuWidgetFinalSaveValidationMessage(parseResult.errors));
+  }
+
+  if (!widgetsEnabled) {
+    if (shouldRunMenuWidgetFinalSave(parseResult.value)) {
+      redirectToMenuEditWithError(menuId, "이 템플릿에서는 메뉴 위젯을 사용할 수 없습니다.");
+    }
+    return null;
+  }
+
+  return parseResult.value;
+}
+
+function getMenuWidgetFinalSaveValidationMessage(errors: readonly MenuWidgetFinalSaveValidationError[]) {
+  return errors[0]?.message ?? "위젯 저장 정보를 확인해주세요.";
+}
+
+function getMenuWidgetFinalSaveActionErrorMessage(error: MenuWidgetFinalSaveError) {
+  if (error.code === "VALIDATION_FAILED" || error.code === "UNSUPPORTED_TEMPLATE" || error.code === "FORBIDDEN") {
+    return error.message;
+  }
+
+  return "위젯 저장 중 문제가 발생했습니다. 내용을 확인한 뒤 다시 저장해주세요.";
 }
 
 function validateRequiredText(menuId: string, value: string, label: string, maxLength: number, tab = "menu") {
@@ -5676,6 +5727,11 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const menuWidgetFinalSaveDraftPayload = parseMenuWidgetFinalSavePayloadFromForm(
+    menuId,
+    formData,
+    templateCapabilities.menuWidgets.enabled,
+  );
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   const now = new Date().toISOString();
   const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
@@ -6675,6 +6731,32 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     previousItemNameById,
     updatedAt: now,
   });
+
+  if (menuWidgetFinalSaveDraftPayload && shouldRunMenuWidgetFinalSave(menuWidgetFinalSaveDraftPayload)) {
+    const remappedWidgetPayloadResult = remapMenuWidgetFinalSavePayloadIds({
+      payload: menuWidgetFinalSaveDraftPayload,
+      pageIdMap,
+      categoryIdMap,
+    });
+
+    if (!remappedWidgetPayloadResult.ok) {
+      redirectToMenuEditWithError(menuId, getMenuWidgetFinalSaveValidationMessage(remappedWidgetPayloadResult.errors));
+    }
+
+    const widgetSaveResult = await saveMenuWidgetsForFinalDraft({
+      menuSiteId: menuId,
+      payload: remappedWidgetPayloadResult.value,
+    });
+
+    if (!widgetSaveResult.ok) {
+      console.warn("[saveMenuManagementBasicDraftAction] menu widget final save failed", {
+        menuId,
+        code: widgetSaveResult.error.code,
+        field: widgetSaveResult.error.field,
+      });
+      redirectToMenuEditWithError(menuId, getMenuWidgetFinalSaveActionErrorMessage(widgetSaveResult.error));
+    }
+  }
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToMenuEdit(menuId, "메뉴 관리 내용이 저장되었습니다.");
