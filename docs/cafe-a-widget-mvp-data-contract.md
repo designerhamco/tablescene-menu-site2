@@ -196,7 +196,63 @@ Existing table treatment:
 - Keep cleanup and hard-delete support.
 - Reconsider it when a multi-item widget type is introduced.
 
-## 15. Rendering Policy
+## 15. DB Row And Domain Mapping
+
+Supabase generated types expose `menu_widgets.widget_type` as `string`, so DB rows must not be cast directly to
+`MenuWidget`.
+
+Required boundary:
+
+```text
+Supabase menu_widgets Row
+→ runtime widget_type and settings validation
+→ valid image/text/image_text rows become MenuWidget
+→ invalid or legacy rows become structured issues
+```
+
+Runtime policy:
+
+- New runtime supports only `image`, `text`, and `image_text`.
+- Legacy values `notice_text`, `image_banner`, `option_list`, and `store_info` are not automatically converted.
+- A legacy row should produce an issue such as `UNSUPPORTED_LEGACY_TYPE` and be excluded from rendered widgets.
+- Unknown widget types should produce `INVALID_WIDGET_TYPE`.
+- Loader/editor/save code should use the mapping helpers instead of trusting generated `string` values.
+
+Settings policy:
+
+- `settings` must be a plain JSON object when present.
+- `schemaVersion: 1` is the only supported explicit version.
+- Missing or empty settings may be completed with V1 defaults:
+  - `image`: `aspectRatio: "2:1"`, `objectFit: "cover"`
+  - `text`: `textAlign: "left"`
+  - `image_text`: `aspectRatio: "4:3"`, `objectFit: "cover"`, `textAlign: "left"`
+- Unsupported explicit schema versions fail parsing instead of being coerced to V1.
+- Unknown settings keys are ignored during mapping.
+- Expected settings values must be primitive strings; nested objects/arrays are invalid for MVP settings fields.
+
+Payload policy:
+
+- Insert payloads are created from validated drafts, normalized domain widgets, and snake_case DB fields.
+- Update payloads do not include `id` or `menu_site_id`.
+- Update payloads include `menu_page_id` only when the caller explicitly opts in for a combined reorder/save flow.
+- Type changes must clear stale DB fields with explicit `null`, not `undefined`.
+- Settings are serialized to the minimal V1 object for the widget type; empty `altText` is not persisted.
+- DB writes are still reserved for later server actions.
+
+Ordering policy:
+
+- Category and widget blocks share one page-level order.
+- Server save should create a combined category/widget order update plan and assign `sortOrder` as `0..n-1`.
+- Hidden blocks remain part of the saved order.
+
+Delete and asset policy:
+
+- Delete planning records `widgetId`, `menuSiteId`, `menuPageId`, and `imagePath`.
+- `imagePath` is the storage cleanup key. Do not infer storage paths from `imageUrl`.
+- Asset diffing may mark a previous image path for cleanup when the next widget path differs or the widget becomes text-only.
+- Actual DB delete and Storage cleanup are later server-action work and must not run from pure mapping helpers.
+
+## 16. Rendering Policy
 
 Desktop/tablet ordered balanced:
 
@@ -217,7 +273,7 @@ Mobile:
 - Vertical page scroll is allowed.
 - Horizontal overflow and nested scroll are not allowed.
 
-## 16. Future Migration Needs
+## 17. Future Migration Needs
 
 The current DB `widget_type` check constraint reportedly allows legacy values:
 
@@ -245,7 +301,7 @@ Recommended migration direction:
 - Prefer adding new MVP values first if legacy rows may exist.
 - Tighten constraints only after data cleanup/backfill is explicit.
 
-## 17. Future Editor And Save Work
+## 18. Future Editor And Save Work
 
 Later stages must add:
 

@@ -16,6 +16,20 @@ export type MenuPageWidgetBlock = {
 
 export type MenuPageContentBlock = MenuPageCategoryBlock | MenuPageWidgetBlock;
 
+export type MenuPageContentOrderUpdate =
+  | {
+      blockType: "category";
+      id: string;
+      menuPageId: string;
+      sortOrder: number;
+    }
+  | {
+      blockType: "widget";
+      id: string;
+      menuPageId: string;
+      sortOrder: number;
+    };
+
 export type MenuPageContentBlockValidationErrorCode =
   | "INVALID_PAGE_ID"
   | "INVALID_BLOCK_ID"
@@ -32,6 +46,18 @@ export type MenuPageContentBlockValidationError = {
 export type MenuPageContentBlockValidationResult =
   | { valid: true; errors: [] }
   | { valid: false; errors: MenuPageContentBlockValidationError[] };
+
+export type MenuPageContentOrderUpdateResult =
+  | {
+      ok: true;
+      updates: MenuPageContentOrderUpdate[];
+      errors: [];
+    }
+  | {
+      ok: false;
+      updates: [];
+      errors: MenuPageContentBlockValidationError[];
+    };
 
 export function sortMenuPageContentBlocks(
   blocks: readonly MenuPageContentBlock[],
@@ -91,6 +117,39 @@ export function validateMenuPageContentBlocks(
   });
 
   return errors.length > 0 ? { valid: false, errors } : { valid: true, errors: [] };
+}
+
+export function createMenuPageContentOrderUpdates(
+  blocks: readonly MenuPageContentBlock[],
+): MenuPageContentOrderUpdateResult {
+  const validation = validateMenuPageContentBlocks(blocks);
+  const errors: MenuPageContentBlockValidationError[] = validation.valid ? [] : [...validation.errors];
+  const seenIds = new Set<string>();
+
+  blocks.forEach((block, index) => {
+    const id = block.id.trim();
+    if (!id) return;
+
+    if (seenIds.has(id)) {
+      errors.push(createContentBlockValidationError("DUPLICATE_BLOCK_ID", `blocks.${index}.id`, "중복된 콘텐츠 블록 ID가 있습니다."));
+    }
+    seenIds.add(id);
+  });
+
+  if (errors.length > 0) {
+    return { ok: false, updates: [], errors };
+  }
+
+  return {
+    ok: true,
+    updates: blocks.map((block, index) => ({
+      blockType: block.blockType,
+      id: block.id,
+      menuPageId: block.menuPageId,
+      sortOrder: index,
+    })),
+    errors: [],
+  };
 }
 
 function assertSingleMenuPage(blocks: readonly MenuPageContentBlock[]) {
