@@ -33,7 +33,16 @@ export type MenuEditorContentBlockDraft =
 
 export type InitialMenuWidgetEditorDraft = {
   widgetDraftsById: Record<string, MenuWidgetDraft>;
-  contentBlockDraftsByPageId: Record<string, MenuEditorContentBlockDraft[]>;
+  contentBlockDraftsByPageId: MenuEditorContentBlockDraftsByPageId;
+};
+
+export type MenuEditorContentBlockDraftsByPageId = Record<string, MenuEditorContentBlockDraft[]>;
+
+export type MenuEditorCategoryContentBlockInput = {
+  id: string;
+  menuPageId: string;
+  sortOrder: number;
+  visible: boolean;
 };
 
 export function createMenuWidgetDraftFromWidget(widget: MenuWidget): MenuWidgetDraft {
@@ -112,20 +121,254 @@ export function createInitialMenuWidgetEditorDraft(args: {
     contentBlockDraftsByPageId: Object.fromEntries(
       Object.entries(contentBlockDraftsByPageId).map(([pageId, blocks]) => [
         pageId,
-        [...blocks]
-          .sort((left, right) => left.sortOrder - right.sortOrder || left.inputIndex - right.inputIndex)
-          .map((block) => ({
-            blockType: block.blockType,
-            id: block.id,
-            menuPageId: block.menuPageId,
-            sortOrder: block.sortOrder,
-            visible: block.visible,
-          })),
+        normalizeIndexedContentBlockDrafts(pageId, blocks),
       ]),
     ),
   };
 }
 
+export function normalizeMenuEditorContentBlockDrafts(
+  pageId: string,
+  blocks: readonly MenuEditorContentBlockDraft[],
+): MenuEditorContentBlockDraft[] {
+  return blocks.map((block, index) => ({
+    ...block,
+    menuPageId: pageId,
+    sortOrder: index,
+  }));
+}
+
+export function createCategoryContentBlocksForPage(
+  pageId: string,
+  categories: readonly MenuEditorCategoryContentBlockInput[],
+): MenuCategoryContentBlockDraft[] {
+  return categories
+    .filter((category) => category.menuPageId === pageId)
+    .map((category, inputIndex) => ({ category, inputIndex }))
+    .sort((left, right) => left.category.sortOrder - right.category.sortOrder || left.inputIndex - right.inputIndex)
+    .map(({ category }, index) => ({
+      blockType: "category",
+      id: category.id,
+      menuPageId: pageId,
+      sortOrder: index,
+      visible: category.visible,
+    }));
+}
+
+export function createCategoryOnlyContentBlockDraftsByPageId(args: {
+  pages: readonly MenuWidgetEditorPageInput[];
+  categories: readonly MenuEditorCategoryContentBlockInput[];
+}): MenuEditorContentBlockDraftsByPageId {
+  return Object.fromEntries(
+    args.pages.map((page) => [
+      page.id,
+      createCategoryContentBlocksForPage(page.id, args.categories),
+    ]),
+  );
+}
+
+export function addPageContentBlockList(
+  state: MenuEditorContentBlockDraftsByPageId,
+  pageId: string,
+  blocks: readonly MenuEditorContentBlockDraft[] = [],
+): MenuEditorContentBlockDraftsByPageId {
+  if (!pageId || state[pageId]) return state;
+
+  return {
+    ...state,
+    [pageId]: normalizeMenuEditorContentBlockDrafts(pageId, [...blocks]),
+  };
+}
+
+export function removePageContentBlockList(
+  state: MenuEditorContentBlockDraftsByPageId,
+  pageId: string,
+): MenuEditorContentBlockDraftsByPageId {
+  if (!state[pageId]) return state;
+
+  const nextState = { ...state };
+  delete nextState[pageId];
+  return nextState;
+}
+
+export function addCategoryContentBlock(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { pageId: string; categoryId: string; visible?: boolean },
+): MenuEditorContentBlockDraftsByPageId {
+  return prependCategoryContentBlocks(state, {
+    pageId: args.pageId,
+    categories: [{
+      id: args.categoryId,
+      visible: args.visible ?? true,
+    }],
+  });
+}
+
+export function copyCategoryContentBlock(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { pageId: string; categoryId: string; visible?: boolean },
+): MenuEditorContentBlockDraftsByPageId {
+  return addCategoryContentBlock(state, args);
+}
+
+export function prependCategoryContentBlocks(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { pageId: string; categories: readonly { id: string; visible?: boolean }[] },
+): MenuEditorContentBlockDraftsByPageId {
+  if (!args.pageId || args.categories.length === 0) return state;
+
+  const validCategories = args.categories.filter((category) => category.id.trim());
+  if (validCategories.length === 0) return state;
+
+  const withoutCategories = removeCategoryContentBlocksById(
+    state,
+    new Set(validCategories.map((category) => category.id)),
+  );
+  const pageBlocks = sortPageBlocks(withoutCategories[args.pageId] ?? []);
+  const insertedBlocks: MenuCategoryContentBlockDraft[] = validCategories.map((category) => ({
+    blockType: "category",
+    id: category.id,
+    menuPageId: args.pageId,
+    sortOrder: 0,
+    visible: category.visible ?? true,
+  }));
+
+  return replacePageContentBlocks(withoutCategories, args.pageId, [
+    ...insertedBlocks,
+    ...pageBlocks,
+  ]);
+}
+
+export function removeCategoryContentBlock(
+  state: MenuEditorContentBlockDraftsByPageId,
+  categoryId: string,
+): MenuEditorContentBlockDraftsByPageId {
+  if (!categoryId) return state;
+  return removeCategoryContentBlocksById(state, new Set([categoryId]));
+}
+
+export function moveCategoryContentBlock(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { categoryId: string; targetPageId: string; visible?: boolean },
+): MenuEditorContentBlockDraftsByPageId {
+  if (!args.categoryId || !args.targetPageId) return state;
+
+  const existingBlock = Object.values(state)
+    .flat()
+    .find((block): block is MenuCategoryContentBlockDraft => block.blockType === "category" && block.id === args.categoryId);
+
+  if (!existingBlock && args.visible == null) return state;
+
+  return addCategoryContentBlock(state, {
+    pageId: args.targetPageId,
+    categoryId: args.categoryId,
+    visible: args.visible ?? existingBlock?.visible ?? true,
+  });
+}
+
+export function reorderCategoryContentBlocks(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { pageId: string; orderedCategoryIds: readonly string[] },
+): MenuEditorContentBlockDraftsByPageId {
+  const pageBlocks = state[args.pageId];
+  if (!pageBlocks) return state;
+
+  const sortedBlocks = sortPageBlocks(pageBlocks);
+  const categoryBlocks = sortedBlocks.filter((block): block is MenuCategoryContentBlockDraft => block.blockType === "category");
+  const categoryById = new Map(categoryBlocks.map((block) => [block.id, block]));
+  const reorderedCategories = args.orderedCategoryIds.flatMap((categoryId) => {
+    const block = categoryById.get(categoryId);
+    return block ? [block] : [];
+  });
+  const orderedCategoryIds = new Set(reorderedCategories.map((block) => block.id));
+  const remainingCategories = categoryBlocks.filter((block) => !orderedCategoryIds.has(block.id));
+  const nextCategories = [...reorderedCategories, ...remainingCategories];
+  let categoryIndex = 0;
+
+  const nextBlocks = sortedBlocks.map((block) => {
+    if (block.blockType !== "category") return block;
+    return nextCategories[categoryIndex++] ?? block;
+  });
+
+  return replacePageContentBlocks(state, args.pageId, nextBlocks);
+}
+
+export function updateCategoryContentBlockVisibility(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: { categoryId: string; visible: boolean },
+): MenuEditorContentBlockDraftsByPageId {
+  if (!args.categoryId) return state;
+
+  let changed = false;
+  const nextEntries = Object.entries(state).map(([pageId, blocks]) => {
+    let pageChanged = false;
+    const nextBlocks = blocks.map((block) => {
+      if (block.blockType !== "category" || block.id !== args.categoryId) return block;
+      changed = true;
+      pageChanged = true;
+      return { ...block, visible: args.visible };
+    });
+    return [pageId, pageChanged ? nextBlocks : blocks] as const;
+  });
+
+  return changed ? Object.fromEntries(nextEntries) : state;
+}
+
+export function pageHasWidgetContentBlocks(
+  state: MenuEditorContentBlockDraftsByPageId,
+  pageId: string,
+): boolean {
+  return Boolean(state[pageId]?.some((block) => block.blockType === "widget"));
+}
+
 type IndexedContentBlockDraft = MenuEditorContentBlockDraft & {
   inputIndex: number;
 };
+
+function normalizeIndexedContentBlockDrafts(
+  pageId: string,
+  blocks: readonly IndexedContentBlockDraft[],
+): MenuEditorContentBlockDraft[] {
+  return [...blocks]
+    .sort((left, right) => left.sortOrder - right.sortOrder || left.inputIndex - right.inputIndex)
+    .map((block, index) => ({
+      blockType: block.blockType,
+      id: block.id,
+      menuPageId: pageId,
+      sortOrder: index,
+      visible: block.visible,
+    }));
+}
+
+function replacePageContentBlocks(
+  state: MenuEditorContentBlockDraftsByPageId,
+  pageId: string,
+  blocks: readonly MenuEditorContentBlockDraft[],
+): MenuEditorContentBlockDraftsByPageId {
+  return {
+    ...state,
+    [pageId]: normalizeMenuEditorContentBlockDrafts(pageId, blocks),
+  };
+}
+
+function sortPageBlocks(blocks: readonly MenuEditorContentBlockDraft[]): MenuEditorContentBlockDraft[] {
+  return blocks
+    .map((block, inputIndex) => ({ block, inputIndex }))
+    .sort((left, right) => left.block.sortOrder - right.block.sortOrder || left.inputIndex - right.inputIndex)
+    .map(({ block }) => block);
+}
+
+function removeCategoryContentBlocksById(
+  state: MenuEditorContentBlockDraftsByPageId,
+  categoryIds: ReadonlySet<string>,
+): MenuEditorContentBlockDraftsByPageId {
+  let changed = false;
+  const nextEntries = Object.entries(state).map(([pageId, blocks]) => {
+    const nextBlocks = blocks.filter((block) => block.blockType !== "category" || !categoryIds.has(block.id));
+    if (nextBlocks.length === blocks.length) return [pageId, blocks] as const;
+    changed = true;
+    return [pageId, normalizeMenuEditorContentBlockDrafts(pageId, nextBlocks)] as const;
+  });
+
+  return changed ? Object.fromEntries(nextEntries) : state;
+}

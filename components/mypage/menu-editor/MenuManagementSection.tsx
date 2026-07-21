@@ -21,7 +21,19 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
+  addCategoryContentBlock,
+  addPageContentBlockList,
+  copyCategoryContentBlock,
+  createCategoryContentBlocksForPage,
+  createCategoryOnlyContentBlockDraftsByPageId,
   createInitialMenuWidgetEditorDraft,
+  moveCategoryContentBlock,
+  pageHasWidgetContentBlocks,
+  prependCategoryContentBlocks,
+  removeCategoryContentBlock,
+  removePageContentBlockList,
+  reorderCategoryContentBlocks,
+  updateCategoryContentBlockVisibility,
   type InitialMenuWidgetEditorDraft,
 } from "@/lib/menu-widget-editor-draft";
 import type { MenuWidget } from "@/lib/menu-widgets";
@@ -4827,9 +4839,11 @@ export default function MenuManagementSection({
       widgets: menuWidgetCapability.enabled ? initialMenuWidgets : [],
     })
   );
-  const [deletedWidgetIds] = useState<Set<string>>(() => new Set());
-  const widgetDraftCount = Object.keys(menuWidgetEditorDraft.widgetDraftsById).length;
-  const contentBlockDraftCount = Object.values(menuWidgetEditorDraft.contentBlockDraftsByPageId).reduce(
+  const [widgetDraftsById, setWidgetDraftsById] = useState(menuWidgetEditorDraft.widgetDraftsById);
+  const [contentBlockDraftsByPageId, setContentBlockDraftsByPageId] = useState(menuWidgetEditorDraft.contentBlockDraftsByPageId);
+  const [deletedWidgetIds, setDeletedWidgetIds] = useState<Set<string>>(() => new Set());
+  const widgetDraftCount = Object.keys(widgetDraftsById).length;
+  const contentBlockDraftCount = Object.values(contentBlockDraftsByPageId).reduce(
     (count, blocks) => count + blocks.length,
     0
   );
@@ -5675,6 +5689,14 @@ export default function MenuManagementSection({
       return nextDrafts;
     });
 
+    setContentBlockDraftsByPageId((currentDrafts) => {
+      const withPage = shouldCreatePage ? addPageContentBlockList(currentDrafts, targetPageId) : currentDrafts;
+      return prependCategoryContentBlocks(withPage, {
+        pageId: targetPageId,
+        categories: newCategoryIds.map((categoryId) => ({ id: categoryId, visible: true })),
+      });
+    });
+
     resetModes();
     setSelectedPageId(targetPageId);
     setSelectedCategoryId(newCategoryIds[0] ?? "");
@@ -5767,6 +5789,22 @@ export default function MenuManagementSection({
       return nextDrafts;
     });
 
+    setContentBlockDraftsByPageId((currentDrafts) =>
+      addPageContentBlockList(
+        currentDrafts,
+        pageId,
+        createCategoryContentBlocksForPage(
+          pageId,
+          newCategoryIds.map((categoryId, index) => ({
+            id: categoryId,
+            menuPageId: pageId,
+            sortOrder: index,
+            visible: true,
+          })),
+        ),
+      )
+    );
+
     resetModes();
     setSelectedPageId(pageId);
     setSelectedCategoryId(newCategoryIds[0] ?? "");
@@ -5826,6 +5864,19 @@ export default function MenuManagementSection({
     setCategoryBasicDrafts(nextCategoryDrafts);
     setItemBasicDrafts(nextItemDrafts);
     setPendingItemDrafts({});
+    setWidgetDraftsById({});
+    setContentBlockDraftsByPageId(
+      createCategoryOnlyContentBlockDraftsByPageId({
+        pages: [{ id: pageId }],
+        categories: Object.entries(nextCategoryDrafts).map(([id, draft]) => ({
+          id,
+          menuPageId: draft.pageId ?? "",
+          sortOrder: draft.sortOrder,
+          visible: draft.visible ?? true,
+        })),
+      })
+    );
+    setDeletedWidgetIds(new Set(Object.keys(widgetDraftsById)));
     setDeletedPageIds(new Set(menuPages.map((page) => page.id)));
     setDeletedCategoryIds(new Set(categories.map((category) => category.id)));
     setDeletedItemIds(new Set(items.map((item) => item.id)));
@@ -5875,6 +5926,23 @@ export default function MenuManagementSection({
   function updateCategoryBasicDraft(categoryId: string, patch: Partial<CategoryBasicDraft>) {
     clearFinalSaveSummary();
     const sourceCategory = draftedCategories.find((category) => category.id === categoryId) ?? categories.find((category) => category.id === categoryId);
+    const currentPageId = categoryBasicDrafts[categoryId]?.pageId ?? sourceCategory?.menu_page_id ?? visiblePageId;
+    if (patch.pageId && patch.pageId !== currentPageId) {
+      setContentBlockDraftsByPageId((currentDrafts) =>
+        moveCategoryContentBlock(currentDrafts, {
+          categoryId,
+          targetPageId: patch.pageId ?? "",
+          visible: patch.visible ?? categoryBasicDrafts[categoryId]?.visible ?? sourceCategory?.visible ?? true,
+        })
+      );
+    } else if (patch.visible != null) {
+      setContentBlockDraftsByPageId((currentDrafts) =>
+        updateCategoryContentBlockVisibility(currentDrafts, {
+          categoryId,
+          visible: patch.visible ?? true,
+        })
+      );
+    }
     setCategoryBasicDrafts((currentDrafts) => ({
       ...currentDrafts,
       [categoryId]: {
@@ -6118,15 +6186,21 @@ export default function MenuManagementSection({
     });
   }
 
-  function applyCategoryOrderDraft(orderedIds: string[]) {
+  function applyCategoryOrderDraft(orderedIds: string[], pageId = visiblePageId) {
     markMenuManagementDirty();
+    setContentBlockDraftsByPageId((currentDrafts) =>
+      reorderCategoryContentBlocks(currentDrafts, {
+        pageId,
+        orderedCategoryIds: orderedIds,
+      })
+    );
     setCategoryBasicDrafts((currentDrafts) => {
       const nextDrafts = { ...currentDrafts };
       orderedIds.forEach((id, index) => {
         const category = categories.find((entry) => entry.id === id);
         nextDrafts[id] = {
           isNew: nextDrafts[id]?.isNew,
-          pageId: nextDrafts[id]?.pageId ?? category?.menu_page_id ?? visiblePageId,
+          pageId: nextDrafts[id]?.pageId ?? category?.menu_page_id ?? pageId,
           name: nextDrafts[id]?.name ?? category?.name ?? "",
           description: nextDrafts[id]?.description ?? category?.description ?? "",
           descriptionVisible: nextDrafts[id]?.descriptionVisible ?? category?.description_visible ?? false,
@@ -6164,7 +6238,7 @@ export default function MenuManagementSection({
     const pageCategoryIds = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId)).map((category) => category.id);
     const orderedIds = moveId(pageCategoryIds, dragState.id, targetCategoryId);
     setDragState(null);
-    applyCategoryOrderDraft(orderedIds);
+    applyCategoryOrderDraft(orderedIds, pageId);
   }
 
   function handleItemDrop(categoryId: string, targetItemId: string) {
@@ -6187,7 +6261,7 @@ export default function MenuManagementSection({
     if (selectedOrderMoveTarget.type === "page") {
       applyPageOrderDraft(orderedIds);
     } else if (selectedOrderMoveTarget.type === "category") {
-      applyCategoryOrderDraft(orderedIds);
+      applyCategoryOrderDraft(orderedIds, selectedCategory?.menu_page_id ?? visiblePageId);
     } else {
       applyItemOrderDraft(orderedIds);
     }
@@ -6261,6 +6335,7 @@ export default function MenuManagementSection({
       setSelectedCategoryId("");
       setExpandedPageIds(new Set([draftId]));
       setExpandedCategoryIds(new Set());
+      setContentBlockDraftsByPageId((currentDrafts) => addPageContentBlockList(currentDrafts, draftId));
       setDraftTarget(null);
       setIsCreatingPage(false);
       markMenuManagementDirty();
@@ -6339,6 +6414,13 @@ export default function MenuManagementSection({
           priceColumns: draftTarget?.type === "category" ? normalizeCategoryPriceColumnDrafts(draftTarget.priceColumns) : undefined,
         },
       }));
+      setContentBlockDraftsByPageId((currentDrafts) =>
+        addCategoryContentBlock(currentDrafts, {
+          pageId,
+          categoryId: draftId,
+          visible: draftTarget?.type === "category" ? draftTarget.visible ?? true : true,
+        })
+      );
       setSelectedPageId(pageId);
       setSelectedCategoryId(draftId);
       setExpandedPageIds(new Set([pageId]));
@@ -6463,6 +6545,7 @@ export default function MenuManagementSection({
     } else {
       setDeletedCategoryIds((currentIds) => new Set(currentIds).add(categoryId));
     }
+    setContentBlockDraftsByPageId((currentDrafts) => removeCategoryContentBlock(currentDrafts, categoryId));
     const message = isCopiedDraft
       ? `복사본 ${labels.categoryLabel}가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
       : `${labels.categoryLabel}가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`;
@@ -6511,6 +6594,7 @@ export default function MenuManagementSection({
     } else {
       setDeletedPageIds((currentIds) => new Set(currentIds).add(pageId));
     }
+    setContentBlockDraftsByPageId((currentDrafts) => removePageContentBlockList(currentDrafts, pageId));
     setConfirmingDeleteKey("");
     resetModes();
     const isCopiedDraft = pageBasicDrafts[pageId]?.isNew && pageId.startsWith("temp-page-copy-");
@@ -6544,6 +6628,10 @@ export default function MenuManagementSection({
     }
 
     if (canConfigureDisplayPages && isPromotionDisplayPage(sourceDisplaySettings)) return "";
+
+    if (pageHasWidgetContentBlocks(contentBlockDraftsByPageId, pageId)) {
+      return "위젯이 포함된 페이지 복사는 위젯 편집 연결 후 지원됩니다.";
+    }
 
     const sourceCategories = draftedCategories.filter((category) => category.menu_page_id === pageId);
     if (sourceCategories.length > MENU_LIMITS.maxCategoriesPerPage) {
@@ -6681,6 +6769,20 @@ export default function MenuManagementSection({
         });
       });
       return nextDrafts;
+    });
+
+    setContentBlockDraftsByPageId((currentDrafts) => {
+      const copiedCategoryBlocks = sourceCategories.flatMap((category) => {
+        const draftCategoryId = categoryIdMap.get(category.id);
+        if (!draftCategoryId) return [];
+        return [{
+          id: draftCategoryId,
+          menuPageId: draftPageId,
+          sortOrder: category.sort_order ?? 0,
+          visible: category.visible,
+        }];
+      });
+      return addPageContentBlockList(currentDrafts, draftPageId, createCategoryContentBlocksForPage(draftPageId, copiedCategoryBlocks));
     });
 
     resetModes();
@@ -6857,6 +6959,14 @@ export default function MenuManagementSection({
       });
       return nextDrafts;
     });
+
+    setContentBlockDraftsByPageId((currentDrafts) =>
+      copyCategoryContentBlock(currentDrafts, {
+        pageId,
+        categoryId: draftCategoryId,
+        visible: sourceCategory.visible,
+      })
+    );
 
     resetModes();
     setSelectedPageId(pageId);
@@ -7098,6 +7208,19 @@ export default function MenuManagementSection({
     setCategoryBasicDrafts(nextCategoryDrafts);
     setItemBasicDrafts(nextItemDrafts);
     setPendingItemDrafts({});
+    setWidgetDraftsById({});
+    setContentBlockDraftsByPageId(
+      createCategoryOnlyContentBlockDraftsByPageId({
+        pages: canManagePages ? Object.keys(nextPageDrafts).map((id) => ({ id })) : [{ id: fixedPageId }],
+        categories: Object.entries(nextCategoryDrafts).map(([id, draft]) => ({
+          id,
+          menuPageId: draft.pageId ?? "",
+          sortOrder: draft.sortOrder,
+          visible: draft.visible ?? true,
+        })),
+      })
+    );
+    setDeletedWidgetIds(new Set(Object.keys(widgetDraftsById)));
     setDeletedPageIds(canManagePages ? new Set(menuPages.map((page) => page.id)) : new Set());
     setDeletedCategoryIds(new Set(categories.map((category) => category.id)));
     setDeletedItemIds(new Set(items.map((item) => item.id)));
@@ -7259,6 +7382,19 @@ export default function MenuManagementSection({
     setCategoryBasicDrafts(nextCategoryDrafts);
     setItemBasicDrafts(nextItemDrafts);
     setPendingItemDrafts({});
+    setWidgetDraftsById({});
+    setContentBlockDraftsByPageId(
+      createCategoryOnlyContentBlockDraftsByPageId({
+        pages: Object.keys(nextPageDrafts).map((id) => ({ id })),
+        categories: Object.entries(nextCategoryDrafts).map(([id, draft]) => ({
+          id,
+          menuPageId: draft.pageId ?? "",
+          sortOrder: draft.sortOrder,
+          visible: draft.visible ?? true,
+        })),
+      })
+    );
+    setDeletedWidgetIds(new Set(Object.keys(widgetDraftsById)));
     setDeletedPageIds(new Set(menuPages.map((page) => page.id)));
     setDeletedCategoryIds(new Set(categories.map((category) => category.id)));
     setDeletedItemIds(new Set(items.map((item) => item.id)));
