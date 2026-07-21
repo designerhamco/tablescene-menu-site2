@@ -363,6 +363,82 @@ Non-responsibilities:
 - Revalidation belongs to the future server action wrapper.
 - This RPC does not add entitlement or billing checks; CafeA widgets are part of the free/base feature set.
 
+## 17.5 Final Save Server Contract
+
+The editor-facing final save contract is staged in code before wiring it into
+`app/mypage/menus/actions.ts`.
+
+Modules:
+
+- `lib/menu-widget-save-contract.ts`
+  - Parses the unknown client payload.
+  - Clones the payload into a typed `MenuWidgetFinalSavePayload`.
+  - Validates UUID shape, arrays, duplicate IDs, exact `sortOrder` sequences,
+    page-level widget count, block/draft consistency, delete conflicts, and
+    widget draft domain rules.
+  - Does not mutate the original payload.
+- `lib/menu-widget-save-plan.ts`
+  - Compares parsed drafts with existing DB widgets.
+  - Produces create/update/delete buckets, page order payloads, and image asset
+    cleanup candidates.
+  - Treats same-ID retries as updates, not duplicate creates.
+  - Ignores already-missing deleted widget IDs so a retry after a partial delete
+    can continue safely.
+  - Does not execute DB or Storage operations.
+- `lib/server/menu-page-content-order-service.ts`
+  - Server-only wrapper for `public.save_menu_page_content_order`.
+  - Uses the Supabase admin/service-role client because the RPC grants execute
+    only to `service_role`.
+  - Maps the RPC response to counts only.
+- `lib/server/menu-widget-final-save-service.ts`
+  - Server-only orchestration boundary for the future final save action.
+  - Authenticates the current user with the normal server client.
+  - Verifies menu site ownership, write access, template widget capability, and
+    menu page ownership before mutations.
+  - Uses existing widget create/update/delete services, then calls the order RPC
+    per page.
+  - Returns image cleanup candidates but does not delete Storage files.
+  - Does not call `revalidatePath`; revalidation remains the action wrapper's
+    responsibility.
+
+Payload shape:
+
+```ts
+type MenuWidgetFinalSavePayload = {
+  widgetDrafts: MenuWidgetDraft[];
+  deletedWidgetIds: string[];
+  contentBlocksByPage: Array<{
+    menuPageId: string;
+    blocks: Array<{
+      blockType: "category" | "widget";
+      id: string;
+      sortOrder: number;
+    }>;
+  }>;
+};
+```
+
+Save order policy:
+
+1. Parse and validate the full payload.
+2. Verify owner/access/template/page boundaries.
+3. Load existing widgets and reject invalid or legacy rows.
+4. Build a plan before any mutation.
+5. Delete widgets requested for removal.
+6. Update existing widgets, including page moves.
+7. Create new widgets.
+8. Save the combined category/widget order through the RPC.
+9. Return asset cleanup candidates to the future action layer.
+10. Let the future action handle cache revalidation and user-facing redirects.
+
+Current integration status:
+
+- No hidden input is connected.
+- No editor action calls this final save service yet.
+- No public loader or CafeA renderer reads widgets in production flow yet.
+- No RPC test call has been made from the app.
+- No Storage cleanup is implemented or executed.
+
 ## 18. Rendering Policy
 
 Desktop/tablet ordered balanced:
