@@ -41,6 +41,29 @@ export type InitialMenuWidgetEditorDraft = {
 
 export type MenuEditorContentBlockDraftsByPageId = Record<string, MenuEditorContentBlockDraft[]>;
 
+export type MenuContentSortableId =
+  | `menu-content:category:${string}`
+  | `menu-content:widget:${string}`;
+
+export type ParsedMenuContentSortableId = {
+  blockType: MenuEditorContentBlockDraft["blockType"];
+  id: string;
+};
+
+export type MenuEditorContentBlockReorderResult =
+  | {
+      ok: true;
+      changed: boolean;
+      state: MenuEditorContentBlockDraftsByPageId;
+      blocks: MenuEditorContentBlockDraft[];
+    }
+  | {
+      ok: false;
+      reason: "INVALID_SORTABLE_ID" | "PAGE_NOT_FOUND" | "BLOCK_NOT_FOUND";
+      state: MenuEditorContentBlockDraftsByPageId;
+      blocks: MenuEditorContentBlockDraft[];
+    };
+
 export type MenuEditorCategoryContentBlockInput = {
   id: string;
   menuPageId: string;
@@ -248,6 +271,70 @@ export function removeCategoryContentBlock(
 ): MenuEditorContentBlockDraftsByPageId {
   if (!categoryId) return state;
   return removeCategoryContentBlocksById(state, new Set([categoryId]));
+}
+
+export function createMenuContentSortableId(block: Pick<MenuEditorContentBlockDraft, "blockType" | "id">): MenuContentSortableId {
+  return `menu-content:${block.blockType}:${block.id}` as MenuContentSortableId;
+}
+
+export function parseMenuContentSortableId(value: unknown): ParsedMenuContentSortableId | null {
+  if (typeof value !== "string") return null;
+
+  const categoryPrefix = "menu-content:category:";
+  if (value.startsWith(categoryPrefix)) {
+    const id = value.slice(categoryPrefix.length).trim();
+    return id ? { blockType: "category", id } : null;
+  }
+
+  const widgetPrefix = "menu-content:widget:";
+  if (value.startsWith(widgetPrefix)) {
+    const id = value.slice(widgetPrefix.length).trim();
+    return id ? { blockType: "widget", id } : null;
+  }
+
+  return null;
+}
+
+export function reorderMenuEditorContentBlocks(
+  state: MenuEditorContentBlockDraftsByPageId,
+  args: {
+    menuPageId: string;
+    activeSortableId: MenuContentSortableId | string;
+    overSortableId: MenuContentSortableId | string;
+  },
+): MenuEditorContentBlockReorderResult {
+  const blocks = sortPageBlocks(state[args.menuPageId] ?? []);
+  const active = parseMenuContentSortableId(args.activeSortableId);
+  const over = parseMenuContentSortableId(args.overSortableId);
+
+  if (!active || !over) {
+    return { ok: false, reason: "INVALID_SORTABLE_ID", state, blocks };
+  }
+
+  if (!state[args.menuPageId]) {
+    return { ok: false, reason: "PAGE_NOT_FOUND", state, blocks };
+  }
+
+  const activeIndex = blocks.findIndex((block) => block.blockType === active.blockType && block.id === active.id);
+  const overIndex = blocks.findIndex((block) => block.blockType === over.blockType && block.id === over.id);
+
+  if (activeIndex < 0 || overIndex < 0) {
+    return { ok: false, reason: "BLOCK_NOT_FOUND", state, blocks };
+  }
+
+  if (activeIndex === overIndex) {
+    return { ok: true, changed: false, state, blocks: normalizeMenuEditorContentBlockDrafts(args.menuPageId, blocks) };
+  }
+
+  const nextBlocks = moveBlock(blocks, activeIndex, overIndex);
+  const nextState = replacePageContentBlocks(state, args.menuPageId, nextBlocks);
+
+  return {
+    ok: true,
+    changed: true,
+    state: nextState,
+    blocks: nextState[args.menuPageId] ?? [],
+  };
 }
 
 export function addWidgetContentBlock(
@@ -484,6 +571,14 @@ function sortPageBlocks(blocks: readonly MenuEditorContentBlockDraft[]): MenuEdi
     .map((block, inputIndex) => ({ block, inputIndex }))
     .sort((left, right) => left.block.sortOrder - right.block.sortOrder || left.inputIndex - right.inputIndex)
     .map(({ block }) => block);
+}
+
+function moveBlock<T>(blocks: readonly T[], activeIndex: number, overIndex: number): T[] {
+  const nextBlocks = [...blocks];
+  const [activeBlock] = nextBlocks.splice(activeIndex, 1);
+  if (activeBlock === undefined) return [...blocks];
+  nextBlocks.splice(overIndex, 0, activeBlock);
+  return nextBlocks;
 }
 
 function removeCategoryContentBlocksById(

@@ -542,6 +542,27 @@ Not connected in this stage:
 - Real DB final-save QA.
 - Real Storage upload/remove QA.
 
+## 17.9 Editor Mixed Content Reorder
+
+The editor structure list treats categories and applied widgets as one page-level content list.
+
+Sortable identity:
+
+- Category: `menu-content:category:{categoryId}`
+- Widget: `menu-content:widget:{widgetId}`
+
+Rules:
+
+- Reorder is limited to blocks on the same menu page.
+- Items remain category-internal and are not included in the page-level block list.
+- Hidden categories and hidden widgets remain in the list and keep reorder support.
+- Pending widget create/copy editors are excluded until the widget draft is applied.
+- If a widget editor has unapplied local changes, page-level content reorder controls are disabled until the user applies or cancels that draft.
+- Reorder normalizes `contentBlockDraftsByPageId`, `categoryBasicDrafts.sortOrder`, and `widgetDraftsById.sortOrder` to the same `0..n-1` sequence.
+- The hidden final-save payload is derived from the mixed block list, so category/widget order is preserved without including item rows.
+
+This stage does not click final save, call the content order RPC, write DB rows, or upload/remove Storage objects.
+
 ## 17.7 Post-Save Widget Image Cleanup
 
 After a widget final save succeeds, previous stored widget image paths may be removed from Storage.

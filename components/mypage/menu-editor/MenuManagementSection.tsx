@@ -31,13 +31,16 @@ import {
   createCategoryOnlyContentBlockDraftsByPageId,
   createInitialMenuWidgetEditorDraft,
   createMenuWidgetFinalSavePayloadFromEditorState,
+  createMenuContentSortableId,
   type MenuEditorContentBlockDraft,
+  type MenuContentSortableId,
   moveCategoryContentBlock,
   pageHasWidgetContentBlocks,
   prependCategoryContentBlocks,
   removeCategoryContentBlock,
   removeWidgetContentBlock,
   removePageContentBlockList,
+  reorderMenuEditorContentBlocks,
   reorderCategoryContentBlocks,
   updateCategoryContentBlockVisibility,
   updateWidgetContentBlockVisibility,
@@ -217,7 +220,7 @@ type DraftTarget =
     };
 type DragState =
   | { type: "page"; id: string }
-  | { type: "category"; id: string; pageId: string }
+  | { type: "contentBlock"; sortableId: MenuContentSortableId; pageId: string }
   | { type: "item"; id: string; categoryId: string }
   | null;
 
@@ -5271,6 +5274,7 @@ export default function MenuManagementSection({
   const timeSaleOwnerItemId = null;
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
   const isWidgetSelected = Boolean(selectedWidgetId || activeWidgetEditor);
+  const hasActiveWidgetEditorChanges = Boolean(activeWidgetEditor && hasWidgetEditorChanges(activeWidgetEditor));
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected && !isWidgetSelected);
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected);
   const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected;
@@ -5286,8 +5290,27 @@ export default function MenuManagementSection({
       return { type: "item" as const, label: labels.itemLabel, selectedId: editingItemId, siblingIds };
     }
 
+    if (selectedWidgetDraft) {
+      const pageBlocks = contentBlockDraftsByPageId[selectedWidgetDraft.menuPageId] ?? [];
+      return {
+        type: "contentBlock" as const,
+        label: "콘텐츠",
+        selectedId: createMenuContentSortableId({ blockType: "widget", id: selectedWidgetDraft.id }),
+        siblingIds: pageBlocks.map((block) => createMenuContentSortableId(block)),
+      };
+    }
+
     if (selectedCategory) {
       const pageId = selectedCategory.menu_page_id ?? visiblePageId;
+      if (menuWidgetCapability.enabled) {
+        const pageBlocks = contentBlockDraftsByPageId[pageId] ?? [];
+        return {
+          type: "contentBlock" as const,
+          label: "콘텐츠",
+          selectedId: createMenuContentSortableId({ blockType: "category", id: selectedCategory.id }),
+          siblingIds: pageBlocks.map((block) => createMenuContentSortableId(block)),
+        };
+      }
       const siblingIds = pageId ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId)).map((category) => category.id) : [];
       return { type: "category" as const, label: labels.categoryLabel, selectedId: selectedCategory.id, siblingIds };
     }
@@ -5298,10 +5321,15 @@ export default function MenuManagementSection({
 
     return null;
   })();
-  const selectedOrderMoveIndex = selectedOrderMoveTarget ? selectedOrderMoveTarget.siblingIds.indexOf(selectedOrderMoveTarget.selectedId) : -1;
-  const canMoveSelectedOrderUp = selectedOrderMoveIndex > 0;
+  const selectedOrderMoveIndex = selectedOrderMoveTarget
+    ? selectedOrderMoveTarget.siblingIds.findIndex((id) => id === selectedOrderMoveTarget.selectedId)
+    : -1;
+  const selectedOrderMoveBlockedByWidgetEditor =
+    hasActiveWidgetEditorChanges && selectedOrderMoveTarget?.type === "contentBlock";
+  const canMoveSelectedOrderUp = selectedOrderMoveIndex > 0 && !selectedOrderMoveBlockedByWidgetEditor;
   const canMoveSelectedOrderDown =
     selectedOrderMoveTarget != null &&
+    !selectedOrderMoveBlockedByWidgetEditor &&
     selectedOrderMoveIndex >= 0 &&
     selectedOrderMoveIndex < selectedOrderMoveTarget.siblingIds.length - 1;
   const pageBasicDraftPayload = useMemo(
@@ -6279,6 +6307,66 @@ export default function MenuManagementSection({
     });
   }
 
+  function syncContentBlockSortOrders(blocks: readonly MenuEditorContentBlockDraft[], pageId: string) {
+    setCategoryBasicDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      blocks.forEach((block) => {
+        if (block.blockType !== "category") return;
+        const category = draftedCategories.find((entry) => entry.id === block.id) ?? categories.find((entry) => entry.id === block.id);
+        nextDrafts[block.id] = {
+          isNew: nextDrafts[block.id]?.isNew,
+          pageId: nextDrafts[block.id]?.pageId ?? category?.menu_page_id ?? pageId,
+          name: nextDrafts[block.id]?.name ?? category?.name ?? "",
+          description: nextDrafts[block.id]?.description ?? category?.description ?? "",
+          descriptionVisible: nextDrafts[block.id]?.descriptionVisible ?? category?.description_visible ?? false,
+          visible: nextDrafts[block.id]?.visible ?? category?.visible ?? block.visible,
+          sortOrder: block.sortOrder,
+          priceOptionLabels: nextDrafts[block.id]?.priceOptionLabels,
+          priceColumns: nextDrafts[block.id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category?.priceColumns),
+        };
+      });
+      return nextDrafts;
+    });
+
+    setWidgetDraftsById((currentDrafts) => {
+      let changed = false;
+      const nextDrafts = { ...currentDrafts };
+      blocks.forEach((block) => {
+        if (block.blockType !== "widget") return;
+        const draft = nextDrafts[block.id];
+        if (!draft) return;
+        changed = true;
+        nextDrafts[block.id] = {
+          ...draft,
+          menuPageId: pageId,
+          sortOrder: block.sortOrder,
+        };
+      });
+      return changed ? nextDrafts : currentDrafts;
+    });
+
+    setActiveWidgetEditor((currentEditor) => {
+      if (!currentEditor) return currentEditor;
+      const activeWidgetBlock = blocks.find((block) => block.blockType === "widget" && block.id === currentEditor.draft.id);
+      if (!activeWidgetBlock) return currentEditor;
+      return {
+        ...currentEditor,
+        draft: {
+          ...currentEditor.draft,
+          menuPageId: pageId,
+          sortOrder: activeWidgetBlock.sortOrder,
+        },
+        baseDraft: currentEditor.baseDraft
+          ? {
+              ...currentEditor.baseDraft,
+              menuPageId: pageId,
+              sortOrder: activeWidgetBlock.sortOrder,
+            }
+          : currentEditor.baseDraft,
+      };
+    });
+  }
+
   function applyItemOrderDraft(orderedIds: string[]) {
     markMenuManagementDirty();
     setItemBasicDrafts((currentDrafts) => {
@@ -6298,12 +6386,18 @@ export default function MenuManagementSection({
     applyPageOrderDraft(orderedIds);
   }
 
-  function handleCategoryDrop(pageId: string, targetCategoryId: string) {
-    if (dragState?.type !== "category" || dragState.pageId !== pageId) return;
-    const pageCategoryIds = sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId)).map((category) => category.id);
-    const orderedIds = moveId(pageCategoryIds, dragState.id, targetCategoryId);
+  function handleContentBlockDrop(pageId: string, targetSortableId: MenuContentSortableId) {
+    if (dragState?.type !== "contentBlock" || dragState.pageId !== pageId) return;
+    const result = reorderMenuEditorContentBlocks(contentBlockDraftsByPageId, {
+      menuPageId: pageId,
+      activeSortableId: dragState.sortableId,
+      overSortableId: targetSortableId,
+    });
     setDragState(null);
-    applyCategoryOrderDraft(orderedIds, pageId);
+    if (!result.ok || !result.changed) return;
+    setContentBlockDraftsByPageId(result.state);
+    syncContentBlockSortOrders(result.blocks, pageId);
+    markMenuManagementDirty();
   }
 
   function handleItemDrop(categoryId: string, targetItemId: string) {
@@ -6316,7 +6410,7 @@ export default function MenuManagementSection({
 
   function moveSelectedOrder(direction: -1 | 1) {
     if (!selectedOrderMoveTarget) return;
-    const currentIndex = selectedOrderMoveTarget.siblingIds.indexOf(selectedOrderMoveTarget.selectedId);
+    const currentIndex = selectedOrderMoveTarget.siblingIds.findIndex((id) => id === selectedOrderMoveTarget.selectedId);
     const nextIndex = currentIndex + direction;
     if (currentIndex < 0 || nextIndex < 0 || nextIndex >= selectedOrderMoveTarget.siblingIds.length) return;
 
@@ -6325,6 +6419,18 @@ export default function MenuManagementSection({
 
     if (selectedOrderMoveTarget.type === "page") {
       applyPageOrderDraft(orderedIds);
+    } else if (selectedOrderMoveTarget.type === "contentBlock") {
+      const pageId = selectedWidgetDraft?.menuPageId ?? selectedCategory?.menu_page_id ?? visiblePageId;
+      const result = reorderMenuEditorContentBlocks(contentBlockDraftsByPageId, {
+        menuPageId: pageId,
+        activeSortableId: selectedOrderMoveTarget.selectedId,
+        overSortableId: orderedIds[nextIndex],
+      });
+      if (result.ok && result.changed) {
+        setContentBlockDraftsByPageId(result.state);
+        syncContentBlockSortOrders(result.blocks, pageId);
+        markMenuManagementDirty();
+      }
     } else if (selectedOrderMoveTarget.type === "category") {
       applyCategoryOrderDraft(orderedIds, selectedCategory?.menu_page_id ?? visiblePageId);
     } else {
@@ -6500,21 +6606,19 @@ export default function MenuManagementSection({
       ...currentDrafts,
       [draft.id]: draft,
     }));
-    setContentBlockDraftsByPageId((currentDrafts) => {
-      if (activeWidgetEditor.mode === "edit") {
-        return updateWidgetContentBlockVisibility(currentDrafts, {
+    const nextContentBlockDrafts = activeWidgetEditor.mode === "edit"
+      ? updateWidgetContentBlockVisibility(contentBlockDraftsByPageId, {
           widgetId: draft.id,
           visible: draft.visible,
-        });
-      }
-
-      return addWidgetContentBlock(currentDrafts, {
+        })
+      : addWidgetContentBlock(contentBlockDraftsByPageId, {
         pageId: draft.menuPageId,
         widgetId: draft.id,
         visible: draft.visible,
         afterBlockId: activeWidgetEditor.afterBlockId,
       });
-    });
+    setContentBlockDraftsByPageId(nextContentBlockDrafts);
+    syncContentBlockSortOrders(nextContentBlockDrafts[draft.menuPageId] ?? [], draft.menuPageId);
     setDeletedWidgetIds((currentIds) => {
       if (!currentIds.has(draft.id)) return currentIds;
       const nextIds = new Set(currentIds);
@@ -6558,7 +6662,9 @@ export default function MenuManagementSection({
       delete nextDrafts[widgetId];
       return nextDrafts;
     });
-    setContentBlockDraftsByPageId((currentDrafts) => removeWidgetContentBlock(currentDrafts, widgetId));
+    const nextContentBlockDrafts = removeWidgetContentBlock(contentBlockDraftsByPageId, widgetId);
+    setContentBlockDraftsByPageId(nextContentBlockDrafts);
+    syncContentBlockSortOrders(nextContentBlockDrafts[draft.menuPageId] ?? [], draft.menuPageId);
     if (persistedWidgetImagePathById.has(widgetId)) {
       setDeletedWidgetIds((currentIds) => new Set(currentIds).add(widgetId));
     }
@@ -7901,6 +8007,11 @@ export default function MenuManagementSection({
                 </button>
               )}
             </div>
+            {hasActiveWidgetEditorChanges && (
+              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-bold leading-relaxed text-amber-700">
+                현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요.
+              </p>
+            )}
 
             {sortedPages.length === 0 ? (
               <div className="mt-6 grid gap-3">
@@ -7982,6 +8093,8 @@ export default function MenuManagementSection({
                           />
                         )}
                         {pageContentBlocks.map((block) => {
+                          const contentSortableId = createMenuContentSortableId(block);
+                          const contentDragDisabled = hasActiveWidgetEditorChanges;
                           if (block.blockType === "widget") {
                             if (!menuWidgetCapability.enabled) return null;
                             return (
@@ -7990,7 +8103,10 @@ export default function MenuManagementSection({
                                 block={block}
                                 widget={widgetDraftsById[block.id] ?? null}
                                 selected={block.id === selectedWidgetId}
+                                dragDisabled={contentDragDisabled}
                                 onSelect={() => startEditWidget(block.id)}
+                                onDragStart={() => setDragState({ type: "contentBlock", sortableId: contentSortableId, pageId: page.id })}
+                                onDrop={() => handleContentBlockDrop(page.id, contentSortableId)}
                               />
                             );
                           }
@@ -8006,7 +8122,7 @@ export default function MenuManagementSection({
                             <div
                               key={category.id}
                               onDragOver={(event) => event.preventDefault()}
-                              onDrop={() => handleCategoryDrop(page.id, category.id)}
+                              onDrop={() => handleContentBlockDrop(page.id, contentSortableId)}
                               className="min-w-0"
                             >
                               <div
@@ -8016,13 +8132,23 @@ export default function MenuManagementSection({
                               >
                                 <button
                                   type="button"
-                                  draggable
+                                  draggable={!contentDragDisabled}
                                   onDragStart={(event) => {
                                     event.stopPropagation();
-                                    setDragState({ type: "category", id: category.id, pageId: page.id });
+                                    if (contentDragDisabled) {
+                                      event.preventDefault();
+                                      return;
+                                    }
+                                    setDragState({ type: "contentBlock", sortableId: contentSortableId, pageId: page.id });
                                   }}
                                   onClick={(event) => event.stopPropagation()}
-                                  className={`inline-flex shrink-0 cursor-grab select-none items-center justify-center rounded px-1 active:cursor-grabbing ${categoryActive ? "text-zinc-300 hover:text-white" : "text-zinc-300 hover:text-zinc-500"}`}
+                                  className={`inline-flex shrink-0 select-none items-center justify-center rounded px-1 ${
+                                    contentDragDisabled
+                                      ? "cursor-not-allowed text-zinc-200"
+                                      : categoryActive
+                                        ? "cursor-grab text-zinc-300 hover:text-white active:cursor-grabbing"
+                                        : "cursor-grab text-zinc-300 hover:text-zinc-500 active:cursor-grabbing"
+                                  }`}
                                   aria-label={`${labels.categoryLabel} 순서 이동`}
                                 >
                                   <DragHandleIcon />
