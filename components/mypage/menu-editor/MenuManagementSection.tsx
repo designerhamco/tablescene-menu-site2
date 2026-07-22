@@ -5178,8 +5178,9 @@ export default function MenuManagementSection({
   const [selectedCategoryId, setSelectedCategoryId] = useState(firstVisibleCategoryIdForInitialPage);
   const [selectedWidgetId, setSelectedWidgetId] = useState("");
   const [activeWidgetEditor, setActiveWidgetEditor] = useState<WidgetEditorState | null>(null);
+  const hasWidgetSelection = Boolean(selectedWidgetId || activeWidgetEditor);
   const selectedCategory =
-    selectedPageIsPromotion
+    selectedPageIsPromotion || hasWidgetSelection
       ? null
       : categoriesForPage.find((category) => category.id === selectedCategoryId) ??
         (!canManagePages ? categoriesForPage.find((category) => category.visible) ?? categoriesForPage[0] : draftedCategories.find((category) => category.id === selectedCategoryId)) ??
@@ -5273,7 +5274,7 @@ export default function MenuManagementSection({
   const reachedWidgetLimit = menuWidgetCapability.enabled && widgetCountForVisiblePage >= maxMenuWidgetsPerPage;
   const timeSaleOwnerItemId = null;
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
-  const isWidgetSelected = Boolean(selectedWidgetId || activeWidgetEditor);
+  const isWidgetSelected = hasWidgetSelection;
   const hasActiveWidgetEditorChanges = Boolean(activeWidgetEditor && hasWidgetEditorChanges(activeWidgetEditor));
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected && !isWidgetSelected);
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected);
@@ -8027,7 +8028,7 @@ export default function MenuManagementSection({
                   const pageCategories = pageIsPromotion ? [] : sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
                   const pageCategoryById = new Map(pageCategories.map((category) => [category.id, category]));
                   const pageContentBlocks = pageIsPromotion ? [] : getStructureContentBlocksForPage(page.id, pageCategories);
-                  const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId;
+                  const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId && !isWidgetSelected;
                   const pageCanCollapse = canManagePages && !pageIsPromotion && pageContentBlocks.length > 0;
                   const pageExpanded = expandedPageIds.has(page.id);
                   return (
@@ -8115,7 +8116,7 @@ export default function MenuManagementSection({
                           if (!category) return null;
                           const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === category.id));
                           const categoryQualityNotice = getDisplayMenuCategoryQualityNotice(category, categoryItems, supportsDisplayMenuQualityWarnings);
-                          const categoryActive = category.id === visibleCategoryId && !editingItemId;
+                          const categoryActive = category.id === visibleCategoryId && !editingItemId && !isWidgetSelected;
                           const categoryCanCollapse = categoryItems.length > 0;
                           const categoryExpanded = expandedCategoryIds.has(category.id);
                           return (
