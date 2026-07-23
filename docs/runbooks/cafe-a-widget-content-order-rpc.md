@@ -90,6 +90,12 @@ It is called only with the server-side service-role client, and it still verifie
 `menu_sites.user_id = p_user_id` internally. This avoids adding a security-definer
 function to the exposed `public` schema.
 
+Because the function is `security invoker`, the service-role caller also needs
+the underlying table/column privileges used by the function body. Those grants
+are tracked separately in
+`supabase/migrations/20260722093000_grant_menu_content_order_rpc_privileges.sql`
+and `docs/runbooks/menu-content-order-rpc-service-role-grants.md`.
+
 The migration file is wrapped in an explicit `begin; ... commit;` block for
 manual SQL Editor application. If any statement fails, the function and grants
 should roll back together.
@@ -202,6 +208,8 @@ Confirmed after apply:
 - `menu_widget_items` remained 0 rows.
 - The RPC was not test-called.
 - No test `INSERT`, `UPDATE`, or `DELETE` was executed.
+- A follow-up service-role table privilege migration is required before the
+  first runtime final-save test.
 
 ## Expected Runtime Payload
 

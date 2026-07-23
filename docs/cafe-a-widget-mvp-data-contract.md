@@ -354,6 +354,9 @@ Security and caller policy:
 - `service_role` is the only execute grantee.
 - The migration uses `security invoker`; the server-side service-role caller supplies DB privileges while the function performs explicit ownership checks.
 - The function uses a fixed `search_path` and does not rely on `auth.uid()`.
+- Because the RPC is `security invoker`, the server-side service-role caller
+  must also have the minimum table/column privileges used by the function body.
+  These grants are tracked separately from the function creation migration.
 
 Non-responsibilities:
 
