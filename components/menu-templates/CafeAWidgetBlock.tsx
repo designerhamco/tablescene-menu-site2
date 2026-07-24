@@ -130,7 +130,7 @@ export default function CafeAWidgetBlock({ widget, className }: CafeAWidgetBlock
         data-widget-type={widget.type}
         data-widget-aspect-ratio={aspectRatio ?? undefined}
       >
-        <div className={styles.shell}>{renderMedia(widget)}</div>
+        <div className={styles.shell} data-cafe-a-widget-shell>{renderMedia(widget)}</div>
       </section>
     );
   }
@@ -143,7 +143,7 @@ export default function CafeAWidgetBlock({ widget, className }: CafeAWidgetBlock
         data-widget-type={widget.type}
         data-widget-aspect-ratio={undefined}
       >
-        <div className={joinClassNames(styles.shell, styles.textOnly)}>
+        <div className={joinClassNames(styles.shell, styles.textOnly)} data-cafe-a-widget-shell>
           {renderCopy({ title: widget.title, body: widget.body, textAlign: widget.textAlign })}
         </div>
       </section>
@@ -157,7 +157,7 @@ export default function CafeAWidgetBlock({ widget, className }: CafeAWidgetBlock
       data-widget-type={widget.type}
       data-widget-aspect-ratio={aspectRatio ?? undefined}
     >
-      <div className={joinClassNames(styles.shell, styles.imageText)}>
+      <div className={joinClassNames(styles.shell, styles.imageText)} data-cafe-a-widget-shell>
         {renderMedia(widget)}
         {renderCopy({ title: widget.title, body: widget.body, textAlign: widget.textAlign })}
       </div>

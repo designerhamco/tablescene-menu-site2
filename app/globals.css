@@ -592,6 +592,11 @@ video {
   color: inherit;
 }
 
+.cafe-a-typography {
+  --cafe-a-widget-transition-gap: clamp(1.25rem, 4.6vw, 1.65rem);
+  --cafe-a-widget-stack-gap: clamp(1rem, 3.8vw, 1.35rem);
+}
+
 .cafe-a-typography .cafe-a-time-sale-time-icon {
   color: currentColor;
   flex-shrink: 0;
@@ -621,6 +626,15 @@ video {
 
 .cafe-a-typography .cafe-a-menu-category-block-has-divider {
   position: relative;
+}
+
+.cafe-a-typography .cafe-a-menu-category-block[data-cafe-a-next-block-type="widget"],
+.cafe-a-typography .cafe-a-menu-widget-block[data-cafe-a-next-block-type="category"] {
+  margin-bottom: var(--cafe-a-widget-transition-gap);
+}
+
+.cafe-a-typography .cafe-a-menu-widget-block[data-cafe-a-next-block-type="widget"] {
+  margin-bottom: var(--cafe-a-widget-stack-gap);
 }
 
 .cafe-a-typography .cafe-a-menu-category-block-has-divider::after {
@@ -684,6 +698,8 @@ video {
     --cafe-a-shell-menu-copy-boost: 1.02;
     --cafe-a-category-divider-before-gap: clamp(0.24rem, calc(var(--menu-item-gap) * var(--fit-menu-gap-scale) * 0.22), 0.5rem);
     --cafe-a-category-divider-after-gap: clamp(0.625rem, calc(var(--category-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--cafe-a-shell-category-block-rhythm-scale) * var(--ordered-fit-final-fill-compensation) - 0.24rem), 1rem);
+    --cafe-a-widget-transition-gap: clamp(0.375rem, calc(var(--category-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--cafe-a-shell-category-block-rhythm-scale) * var(--ordered-fit-final-fill-compensation) * 0.42), 0.55rem);
+    --cafe-a-widget-stack-gap: clamp(0.35rem, calc(var(--category-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--cafe-a-shell-category-block-rhythm-scale) * var(--ordered-fit-final-fill-compensation) * 0.36), 0.5rem);
     --fit-gap-y: 2rem;
     --fit-stack-gap: 1.25rem;
     --category-gap: var(--fit-gap-y);
@@ -819,10 +835,17 @@ video {
 
   .cafe-a-typography .cafe-a-menu-widget-block {
     break-inside: avoid;
+    column-break-inside: avoid;
+    -webkit-column-break-inside: avoid;
     margin-bottom: clamp(0.5rem, calc(var(--category-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--cafe-a-shell-category-block-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 1.35rem);
     min-width: 0;
     page-break-inside: avoid;
     width: 100%;
+  }
+
+  .cafe-a-typography .cafe-a-ordered-menu-flow > .cafe-a-menu-widget-block {
+    display: inline-block;
+    vertical-align: top;
   }
 
   .cafe-a-typography .cafe-a-menu-category-block-has-divider {

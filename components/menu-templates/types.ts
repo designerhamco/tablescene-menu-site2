@@ -169,6 +169,7 @@ export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
   previewLayoutMode?: PcTabletLayoutMode;
   initialPreviewPageId?: string | null;
+  debugCafeA?: boolean;
   locale: SupportedLocale;
   enabledLocales: SupportedLocale[];
   publicServiceType: MenuEditorServiceType;

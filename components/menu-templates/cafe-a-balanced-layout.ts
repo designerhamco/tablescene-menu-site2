@@ -11,6 +11,7 @@ export type CafeABalancedAtomicBlock<TPayload> = {
 
 export type CafeAOrderedBalancedMeasuredBlock = {
   key: string;
+  blockType?: "category" | "widget";
   order: number;
   height: number;
   visibleContentHeight: number;
@@ -48,6 +49,8 @@ type CafeAOrderedBalancedScoreOptions = {
 };
 
 type CafeAOrderedBalancedContiguousOptions = CafeAOrderedBalancedScoreOptions & {
+  columnTargetHeights?: readonly number[];
+  isCandidateRejected?: (breakIndices: readonly number[]) => boolean;
   maxExhaustiveBlocks: number;
   maxExhaustiveColumns: number;
   targetHeight?: number;
@@ -146,6 +149,33 @@ export function getCafeAOrderedBalancedColumnFillMetrics<TBlock extends CafeAOrd
     fillVariance,
     secondBlockCount: columns[middleIndex]?.blocks.length ?? 0,
   };
+}
+
+function hasCafeAOrderedBalancedAtomicBlockOverflow<TBlock extends CafeAOrderedBalancedMeasuredBlock>(
+  columns: readonly CafeAOrderedBalancedColumn<TBlock>[],
+  targetHeight?: number,
+  columnTargetHeights?: readonly number[],
+) {
+  const hasGlobalTargetHeight = Number.isFinite(targetHeight) && (targetHeight ?? 0) > 0;
+  const hasColumnTargetHeight = Boolean(columnTargetHeights?.some((height) => Number.isFinite(height) && height > 0));
+  if (!hasGlobalTargetHeight && !hasColumnTargetHeight) return false;
+
+  return columns.some((column, columnIndex) => {
+    const columnTargetHeight = columnTargetHeights?.[columnIndex];
+    const safeTargetHeight =
+      Number.isFinite(columnTargetHeight) && (columnTargetHeight ?? 0) > 0
+        ? columnTargetHeight ?? 0
+        : targetHeight ?? 0;
+    if (!Number.isFinite(safeTargetHeight) || safeTargetHeight <= 0) return false;
+    let cursor = 0;
+
+    return column.blocks.some((block, index) => {
+      const blockBottom = cursor + Math.max(block.height, block.visibleContentHeight);
+      const overflows = blockBottom > safeTargetHeight;
+      cursor += block.height + (index < column.blocks.length - 1 ? block.marginBottom : 0);
+      return overflows;
+    });
+  });
 }
 
 export function getCafeAOrderedBalancedSimulatedSpreadScore<TBlock extends CafeAOrderedBalancedMeasuredBlock>(
@@ -256,27 +286,53 @@ export function getCafeAOrderedBalancedContiguousColumns<TBlock extends CafeAOrd
   options: CafeAOrderedBalancedContiguousOptions,
 ) {
   const safeColumns = Math.max(1, Math.min(options.maxExhaustiveColumns, Math.floor(columns), blocks.length || 1));
-  if (blocks.length === 0) return Array.from({ length: safeColumns }, () => createCafeAOrderedBalancedColumnFromBlocks<TBlock>([]));
-  if (blocks.length < safeColumns) return getCafeAOrderedBalancedSequentialColumns(blocks, blocks.length);
+  return getCafeAOrderedBalancedContiguousColumnCandidates(blocks, columns, options)[0] ??
+    getCafeAOrderedBalancedSequentialColumns(blocks, safeColumns);
+}
+
+export function getCafeAOrderedBalancedContiguousColumnCandidates<TBlock extends CafeAOrderedBalancedMeasuredBlock>(
+  blocks: readonly TBlock[],
+  columns: number,
+  options: CafeAOrderedBalancedContiguousOptions,
+) {
+  const safeColumns = Math.max(1, Math.min(options.maxExhaustiveColumns, Math.floor(columns), blocks.length || 1));
+  if (blocks.length === 0) return [Array.from({ length: safeColumns }, () => createCafeAOrderedBalancedColumnFromBlocks<TBlock>([]))];
+  if (blocks.length < safeColumns) return [getCafeAOrderedBalancedSequentialColumns(blocks, blocks.length)];
 
   if (blocks.length > options.maxExhaustiveBlocks || safeColumns > options.maxExhaustiveColumns) {
-    return getCafeAOrderedBalancedSequentialColumns(blocks, safeColumns);
+    return [getCafeAOrderedBalancedSequentialColumns(blocks, safeColumns)];
   }
 
-  let bestColumns = getCafeAOrderedBalancedSequentialColumns(blocks, safeColumns);
-  let bestScore = getCafeAOrderedBalancedSimulatedSpreadScore(bestColumns, options);
+  const candidates: Array<{ columns: CafeAOrderedBalancedColumn<TBlock>[]; score: number }> = [];
+  const sequentialColumns = getCafeAOrderedBalancedSequentialColumns(blocks, safeColumns);
+  const sequentialBreaks = getCafeAOrderedBalancedBreaksFromColumns(sequentialColumns)
+    .split(",")
+    .map((breakValue) => Number.parseInt(breakValue, 10))
+    .filter(Number.isInteger);
+
+  if (
+    !options.isCandidateRejected?.(sequentialBreaks) &&
+    !hasCafeAOrderedBalancedAtomicBlockOverflow(sequentialColumns, options.targetHeight, options.columnTargetHeights)
+  ) {
+    candidates.push({
+      columns: sequentialColumns,
+      score: getCafeAOrderedBalancedSimulatedSpreadScore(sequentialColumns, options),
+    });
+  }
+
   const selectedBreaks: number[] = [];
 
   function visit(nextBreakStart: number, remainingBreaks: number) {
     if (remainingBreaks === 0) {
+      if (options.isCandidateRejected?.(selectedBreaks)) return;
       const candidateColumns = createCafeAOrderedBalancedColumnsFromBreakIndices(blocks, safeColumns, selectedBreaks);
       if (candidateColumns.some((column) => column.blocks.length === 0)) return;
+      if (hasCafeAOrderedBalancedAtomicBlockOverflow(candidateColumns, options.targetHeight, options.columnTargetHeights)) return;
 
-      const score = getCafeAOrderedBalancedSimulatedSpreadScore(candidateColumns, options);
-      if (score < bestScore) {
-        bestScore = score;
-        bestColumns = candidateColumns;
-      }
+      candidates.push({
+        columns: candidateColumns,
+        score: getCafeAOrderedBalancedSimulatedSpreadScore(candidateColumns, options),
+      });
       return;
     }
 
@@ -289,5 +345,7 @@ export function getCafeAOrderedBalancedContiguousColumns<TBlock extends CafeAOrd
   }
 
   visit(1, safeColumns - 1);
-  return bestColumns;
+  return candidates
+    .sort((current, next) => current.score - next.score)
+    .map((candidate) => candidate.columns);
 }

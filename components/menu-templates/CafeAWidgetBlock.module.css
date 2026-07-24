@@ -3,8 +3,14 @@
   --cafe-a-widget-muted: rgb(25 28 27 / 66%);
   --cafe-a-widget-border: rgb(25 28 27 / 68%);
   --cafe-a-widget-soft-border: rgb(25 28 27 / 18%);
+  --cafe-a-widget-font-scale: var(--fit-menu-font-scale, var(--fit-font-scale, 1));
+  --cafe-a-widget-gap-scale: var(--fit-menu-gap-scale, var(--fit-gap-scale, 1));
+  --cafe-a-widget-visual-scale: max(var(--ordered-fit-menu-visual-scale, 1), var(--ordered-balanced-menu-visual-scale, 1));
+  --cafe-a-widget-final-fill-scale: var(--ordered-fit-final-fill-compensation, 1);
   break-inside: avoid;
+  column-break-inside: avoid;
   color: var(--cafe-a-widget-ink);
+  -webkit-column-break-inside: avoid;
   min-width: 0;
   overflow: visible;
   page-break-inside: avoid;
@@ -58,7 +64,10 @@
 .copy {
   min-width: 0;
   overflow-wrap: anywhere;
-  padding: 0.78rem 0.86rem 0.82rem;
+  padding:
+    clamp(0.46rem, calc(0.68rem * var(--cafe-a-widget-gap-scale) * var(--cafe-a-widget-final-fill-scale)), 0.78rem)
+    clamp(0.5rem, calc(0.78rem * var(--cafe-a-widget-gap-scale) * var(--cafe-a-widget-final-fill-scale)), 0.86rem)
+    clamp(0.5rem, calc(0.7rem * var(--cafe-a-widget-gap-scale) * var(--cafe-a-widget-final-fill-scale)), 0.82rem);
 }
 
 .copyLeft {
@@ -75,20 +84,44 @@
 
 .title {
   color: var(--cafe-a-widget-ink);
-  font-size: 1.02rem;
+  font-size: clamp(
+    0.52rem,
+    calc(
+      var(--cafe-a-menu-title-size, 1rem) *
+      var(--menu-font-size-scale, 1) *
+      var(--cafe-a-widget-font-scale) *
+      var(--fit-menu-typography-scale, 1) *
+      var(--cafe-a-widget-visual-scale) *
+      var(--cafe-a-widget-final-fill-scale) *
+      var(--cafe-a-shell-menu-title-boost, 1)
+    ),
+    1.28rem
+  );
   font-weight: 900;
   letter-spacing: 0;
-  line-height: 1.08;
+  line-height: 1.12;
   margin: 0;
 }
 
 .body {
   color: var(--cafe-a-widget-muted);
-  font-size: 0.78rem;
+  font-size: clamp(
+    0.44rem,
+    calc(
+      var(--cafe-a-menu-description-size, 0.8125rem) *
+      var(--menu-font-size-scale, 1) *
+      var(--cafe-a-widget-font-scale) *
+      var(--fit-menu-typography-scale, 1) *
+      var(--cafe-a-widget-visual-scale) *
+      var(--cafe-a-widget-final-fill-scale) *
+      var(--cafe-a-shell-menu-copy-boost, 1)
+    ),
+    1rem
+  );
   font-weight: 600;
   letter-spacing: 0;
-  line-height: 1.48;
-  margin: 0.42rem 0 0;
+  line-height: var(--menu-line-gap, 1.45);
+  margin: clamp(0.24rem, calc(0.38rem * var(--cafe-a-widget-gap-scale)), 0.42rem) 0 0;
 }
 
 .bodyOnly {
@@ -100,7 +133,9 @@
 }
 
 .textOnly .copy {
-  padding: 0.92rem 0;
+  padding:
+    clamp(0.58rem, calc(0.82rem * var(--cafe-a-widget-gap-scale)), 0.92rem)
+    0;
 }
 
 .imageText .copy {
@@ -109,16 +144,7 @@
 
 @media (max-width: 767px) {
   .copy {
-    padding: 0.82rem 0.78rem 0.86rem;
-  }
-
-  .title {
-    font-size: 1rem;
-  }
-
-  .body {
-    font-size: 0.8rem;
-    line-height: 1.5;
+    padding: 0.78rem;
   }
 
   .textOnly .copy {

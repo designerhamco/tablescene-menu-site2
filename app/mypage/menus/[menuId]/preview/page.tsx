@@ -11,7 +11,7 @@ import { sortMenuPages } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
-  searchParams?: Promise<{ lang?: string | string[]; page?: string | string[] }>;
+  searchParams?: Promise<{ debugCafeA?: string | string[]; lang?: string | string[]; page?: string | string[] }>;
 };
 
 export const metadata: Metadata = {
@@ -89,6 +89,7 @@ function OwnerPreviewReadOnlyBanner({ accessState }: { accessState: MenuSiteAcce
 export default async function MenuPreviewPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
   const query = searchParams ? await searchParams : {};
+  const debugCafeA = process.env.NODE_ENV !== "production" && getSearchParamValue(query.debugCafeA) === "1";
   const locale = normalizeLocale(getSearchParamValue(query.lang));
   const requestedPageIndex = getPreviewPageIndex(query.page);
   const supabase = await createClient();
@@ -116,6 +117,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       <OwnerPreviewReadOnlyBanner accessState={accessState} />
       <MenuPageRenderer
         mode="preview"
+        debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayOwnerPreviewInitialPageId(data, requestedPageIndex)}
         {...data}
       />

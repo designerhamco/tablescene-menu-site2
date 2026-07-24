@@ -11,6 +11,7 @@ import QaMenuPreviewDebugOverlay from "./QaMenuPreviewDebugOverlay";
 type PageProps = {
   params: Promise<{ menuId: string }>;
   searchParams?: Promise<{
+    debugCafeA?: string | string[];
     debugLayout?: string | string[];
     lang?: string | string[];
     layoutMode?: string | string[];
@@ -39,6 +40,7 @@ export default async function QaMenuPreviewPage({ params, searchParams }: PagePr
   const query = searchParams ? await searchParams : {};
   const locale = normalizeLocale(getSearchParamValue(query.lang));
   const debugEnabled = getSearchParamValue(query.debugLayout) === "1";
+  const debugCafeA = getSearchParamValue(query.debugCafeA) === "1";
   const admin = createAdminClient();
   const primarySiteResult = await admin.from("menu_sites").select(siteSelect).eq("id", menuId).maybeSingle();
   let site = primarySiteResult.data as unknown;
@@ -73,7 +75,7 @@ export default async function QaMenuPreviewPage({ params, searchParams }: PagePr
 
   return (
     <>
-      <MenuPageRenderer mode="preview" previewLayoutMode={previewLayoutMode} {...data} />
+      <MenuPageRenderer mode="preview" debugCafeA={debugCafeA} previewLayoutMode={previewLayoutMode} {...data} />
       <QaMenuPreviewDebugOverlay debugEnabled={debugEnabled} menuId={menuId} restaurantName={restaurantName} route={route} />
     </>
   );
