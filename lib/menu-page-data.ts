@@ -1,5 +1,6 @@
 import type { PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
 import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
+import { parseMenuWidgetRows, type MenuWidgetRow } from "@/lib/menu-widget-db-mappers";
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
 import {
   getTimeSaleBadgeBackgroundColorFromSettings,
@@ -82,6 +83,10 @@ const promotionSelect = "id, name, active, schedule_type, starts_at, ends_at, da
 const promotionItemSelect = "id, promotion_id, menu_item_id, price_column_id, sale_price, sale_price_label, visible";
 const futurePromotionItemSelect = "promotion_id, menu_item_id, price_column_id, visible";
 const legacyFeaturedSlideId = "legacy-featured-slide";
+
+function shouldLoadMenuWidgets(menuSite: MenuSite) {
+  return menuSite.template_key === "cafe_design_a";
+}
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {
   return [...rows].sort((a, b) => {
@@ -519,6 +524,49 @@ async function loadNextPublicTimeSaleStartAt({
     .reduce<number | null>((earliest, entry) => earliest == null ? entry.nextStartMs : Math.min(earliest, entry.nextStartMs), null);
 
   return nextStartMs == null ? null : new Date(nextStartMs).toISOString();
+}
+
+async function loadPublicMenuWidgets({
+  supabase,
+  menuSite,
+}: {
+  supabase: SupabaseServerClient;
+  menuSite: MenuSite;
+}): Promise<MenuPageData["widgets"]> {
+  if (!shouldLoadMenuWidgets(menuSite)) return [];
+
+  const { data, error } = await supabase
+    .from("menu_widgets")
+    .select("*")
+    .eq("menu_site_id", menuSite.id)
+    .eq("visible", true)
+    .order("menu_page_id", { ascending: true })
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    console.warn("[menu-page-data] menu widget load failed", {
+      menuSiteId: menuSite.id,
+      code: error.code,
+    });
+    return [];
+  }
+
+  const parsed = parseMenuWidgetRows((data ?? []) as MenuWidgetRow[]);
+  if (parsed.issues.length > 0) {
+    const issueCounts = parsed.issues.reduce<Record<string, number>>((counts, issue) => {
+      counts[issue.code] = (counts[issue.code] ?? 0) + 1;
+      return counts;
+    }, {});
+
+    console.warn("[menu-page-data] menu widget rows skipped", {
+      menuSiteId: menuSite.id,
+      issueCounts,
+    });
+  }
+
+  return parsed.widgets.filter((widget) => widget.visible);
 }
 
 function setLocalizedFooterNotice(settings: Record<string, Json>, key: string, value: string | null | undefined) {
@@ -1013,6 +1061,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     priceOptions,
     nowMs: initialNowMs,
   });
+  const widgets = await loadPublicMenuWidgets({ supabase, menuSite });
 
   const data = {
     locale,
@@ -1030,6 +1079,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     chefs: (chefsData ?? []) as MenuPageData["chefs"],
     socialLinks: (socialLinksData ?? []) as MenuPageData["socialLinks"],
     timeSales,
+    widgets,
     nextTimeSaleStartAt,
     initialNowMs,
   };

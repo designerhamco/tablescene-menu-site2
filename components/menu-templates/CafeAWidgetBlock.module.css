@@ -69,6 +69,10 @@
   text-align: center;
 }
 
+.copyRight {
+  text-align: right;
+}
+
 .title {
   color: var(--cafe-a-widget-ink);
   font-size: 1.02rem;

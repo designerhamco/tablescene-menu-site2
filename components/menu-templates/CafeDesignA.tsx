@@ -6,6 +6,7 @@ import { Clock3, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import {
@@ -60,6 +61,7 @@ type PriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type PublicTimeSale = PublicMenuTemplateProps["timeSales"][number];
 type PublicTimeSaleItem = PublicTimeSale["items"][number];
 type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]>[number];
+type PublicMenuWidget = NonNullable<PublicMenuTemplateProps["widgets"]>[number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
 type CafeDesignAFeaturedHeroSlide = {
   id: string;
@@ -103,9 +105,26 @@ type MenuGroup = {
   category: MenuCategory;
   items: MenuItem[];
 };
+type CafeDesignACategoryContentBlock = {
+  blockType: "category";
+  key: string;
+  page: MenuPage;
+  category: MenuCategory;
+  items: MenuItem[];
+  sortOrder: number;
+};
+type CafeDesignAWidgetContentBlock = {
+  blockType: "widget";
+  key: string;
+  page: MenuPage;
+  widget: CafeAWidgetPreview;
+  sortOrder: number;
+};
+type CafeDesignAContentBlock = CafeDesignACategoryContentBlock | CafeDesignAWidgetContentBlock;
 type MenuPageGroup = {
   page: MenuPage;
   groups: MenuGroup[];
+  blocks: CafeDesignAContentBlock[];
 };
 type CafeDesignALayoutMode = "orderedFit" | "balanced" | "orderedBalancedFit";
 type CafeDesignABalancedVariant = "estimatedGreedy" | "sourceSequential" | "sourceRoundRobin" | "lastAwareGreedy" | "visibleExhaustive";
@@ -154,7 +173,7 @@ type CafeDesignAFinalFillBoost = {
 };
 type BalancedColumn = {
   id: string;
-  groups: MenuGroup[];
+  blocks: CafeDesignAContentBlock[];
   estimatedHeight: number;
 };
 type CafeDesignAColumnMeasurement = {
@@ -195,8 +214,8 @@ type CafeDesignAFitMeasurement = {
   rightSafetyGap: number;
   overflow: boolean;
 };
-type CafeDesignABalancedWeightedGroup = {
-  group: MenuGroup;
+type CafeDesignABalancedWeightedBlock = {
+  block: CafeDesignAContentBlock;
   index: number;
   estimatedHeight: number;
 };
@@ -1211,33 +1230,33 @@ function getOrderedBalancedMenuColumns({
   capabilities: TemplateCapabilities;
   orderedBalancedBreaks: string;
 }): BalancedColumn[] {
-  const groups = getFlatMenuGroups(pageGroups);
-  const safeColumns = Math.max(1, Math.min(ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS, Math.floor(columns), groups.length || 1));
-  const breakIndices = parseOrderedBalancedBreaks(orderedBalancedBreaks, groups.length, safeColumns);
-  const weightedGroups = groups.map((group, index) => ({
-    group,
+  const blocks = getFlatContentBlocks(pageGroups);
+  const safeColumns = Math.max(1, Math.min(ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS, Math.floor(columns), blocks.length || 1));
+  const breakIndices = parseOrderedBalancedBreaks(orderedBalancedBreaks, blocks.length, safeColumns);
+  const weightedBlocks = blocks.map((block, index) => ({
+    block,
     index,
-    estimatedHeight: estimateMenuGroupHeight(group, data, capabilities),
+    estimatedHeight: estimateContentBlockHeight(block, data, capabilities),
   }));
-  const fallbackBlocks = weightedGroups.map((weightedGroup) => ({
-    key: getMenuGroupKey(weightedGroup.group),
-    order: weightedGroup.index,
-    height: weightedGroup.estimatedHeight,
-    visibleItemHeight: weightedGroup.estimatedHeight,
-    visibleTextHeight: weightedGroup.estimatedHeight,
-    visiblePriceHeight: weightedGroup.estimatedHeight,
-    visibleContentHeight: weightedGroup.estimatedHeight,
+  const fallbackBlocks = weightedBlocks.map((weightedBlock) => ({
+    key: weightedBlock.block.key,
+    order: weightedBlock.index,
+    height: weightedBlock.estimatedHeight,
+    visibleItemHeight: weightedBlock.estimatedHeight,
+    visibleTextHeight: weightedBlock.estimatedHeight,
+    visiblePriceHeight: weightedBlock.estimatedHeight,
+    visibleContentHeight: weightedBlock.estimatedHeight,
     marginBottom: 0,
-    estimatedHeight: weightedGroup.estimatedHeight,
+    estimatedHeight: weightedBlock.estimatedHeight,
   }));
   const partitionColumns = breakIndices
     ? createOrderedBalancedColumnsFromBreakIndices(fallbackBlocks, safeColumns, breakIndices)
     : getOrderedBalancedContiguousColumns(fallbackBlocks, safeColumns);
-  const groupByKey = new Map(groups.map((group) => [getMenuGroupKey(group), group]));
+  const blockByKey = new Map(blocks.map((block) => [block.key, block]));
 
   return partitionColumns.map((column, columnIndex) => ({
     id: `ordered-balanced-column-${columnIndex + 1}`,
-    groups: column.blocks.map((block) => groupByKey.get(block.key)).filter((group): group is MenuGroup => Boolean(group)),
+    blocks: column.blocks.map((block) => blockByKey.get(block.key)).filter((block): block is CafeDesignAContentBlock => Boolean(block)),
     estimatedHeight: column.height,
   }));
 }
@@ -2305,6 +2324,8 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
   const visiblePages = data.pages
     .filter((page) => page.visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
+  const shouldRenderWidgets = data.menuSite.template_key === "cafe_design_a";
+  const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 
   return visiblePages
     .map((page) => {
@@ -2320,17 +2341,88 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
       }))
       .filter((group) => group.items.length > 0);
 
-      return { page, groups };
+      const categoryBlocks: CafeDesignACategoryContentBlock[] = groups.map((group) => ({
+        ...group,
+        blockType: "category",
+        key: getMenuGroupKey(group),
+        sortOrder: group.category.sort_order,
+      }));
+      const widgetBlocks: CafeDesignAWidgetContentBlock[] = widgets
+        .filter((widget) => widget.visible && widget.menuPageId === page.id)
+        .map((widget) => {
+          const previewWidget = getCafeAWidgetPreview(widget);
+          if (!previewWidget) return null;
+
+          return {
+            blockType: "widget" as const,
+            key: `${page.id}:widget:${widget.id}`,
+            page,
+            widget: previewWidget,
+            sortOrder: widget.sortOrder,
+          };
+        })
+        .filter((block): block is CafeDesignAWidgetContentBlock => Boolean(block));
+      const blocks = [...categoryBlocks, ...widgetBlocks]
+        .map((block, index) => ({ block, index }))
+        .sort((left, right) => left.block.sortOrder - right.block.sortOrder || left.index - right.index)
+        .map(({ block }) => block);
+
+      return { page, groups, blocks };
     })
-    .filter((pageGroup) => pageGroup.groups.length > 0);
+    .filter((pageGroup) => pageGroup.blocks.length > 0);
 }
 
 function getFlatMenuGroups(pageGroups: MenuPageGroup[]) {
   return pageGroups.flatMap((pageGroup) => pageGroup.groups);
 }
 
+function getFlatContentBlocks(pageGroups: MenuPageGroup[]) {
+  return pageGroups.flatMap((pageGroup) => pageGroup.blocks);
+}
+
 function getMenuGroupKey(group: MenuGroup) {
   return `${group.page.id}:${group.category.id}`;
+}
+
+function getCafeAWidgetPreview(widget: PublicMenuWidget): CafeAWidgetPreview | null {
+  if (!widget.visible) return null;
+  const altText = widget.settings.altText?.trim() || widget.title?.trim() || "메뉴 이미지";
+
+  if (widget.type === "image") {
+    return {
+      id: widget.id,
+      type: "image",
+      visible: widget.visible,
+      imageUrl: widget.imageUrl,
+      altText,
+      aspectRatio: widget.settings.aspectRatio,
+      objectFit: widget.settings.objectFit,
+    };
+  }
+
+  if (widget.type === "text") {
+    return {
+      id: widget.id,
+      type: "text",
+      visible: widget.visible,
+      title: widget.title ?? "",
+      body: widget.description,
+      textAlign: widget.settings.textAlign,
+    };
+  }
+
+  return {
+    id: widget.id,
+    type: "image_text",
+    visible: widget.visible,
+    imageUrl: widget.imageUrl,
+    altText,
+    title: widget.title ?? "",
+    body: widget.description,
+    aspectRatio: widget.settings.aspectRatio,
+    objectFit: widget.settings.objectFit,
+    textAlign: widget.settings.textAlign,
+  };
 }
 
 function getCategoryBlockClassName(hasDivider: boolean, isTerminalDivider = false) {
@@ -2369,17 +2461,50 @@ function estimateMenuGroupHeight(
   return headingWeight + itemWeight;
 }
 
+function estimateWidgetHeight(widget: CafeAWidgetPreview) {
+  const ratioWeight = widget.type === "text"
+    ? 0
+    : {
+        "2:1": 1.45,
+        "3:2": 1.8,
+        "4:3": 2.1,
+        "1:1": 2.7,
+        "3:4": 3.3,
+      }[widget.aspectRatio];
+
+  if (widget.type === "image") return ratioWeight + 0.3;
+
+  const textWeight =
+    1.1 +
+    (widget.title.trim() ? 0.65 : 0) +
+    Math.max(1, Math.ceil(widget.body.trim().length / 44)) * 0.42;
+
+  return widget.type === "text" ? textWeight : ratioWeight + textWeight + 0.55;
+}
+
+function estimateContentBlockHeight(
+  block: CafeDesignAContentBlock,
+  data: PublicMenuTemplateProps,
+  capabilities: TemplateCapabilities,
+) {
+  if (block.blockType === "category") {
+    return estimateMenuGroupHeight(block, data, capabilities);
+  }
+
+  return estimateWidgetHeight(block.widget);
+}
+
 function createBalancedColumns(safeColumns: number): BalancedColumn[] {
   return Array.from({ length: safeColumns }, (_, index) => ({
     id: `balanced-column-${index + 1}`,
-    groups: [],
+    blocks: [],
     estimatedHeight: 0,
   }));
 }
 
-function appendWeightedGroupToColumn(column: BalancedColumn, weightedGroup: CafeDesignABalancedWeightedGroup) {
-  column.groups.push(weightedGroup.group);
-  column.estimatedHeight += weightedGroup.estimatedHeight;
+function appendWeightedBlockToColumn(column: BalancedColumn, weightedBlock: CafeDesignABalancedWeightedBlock) {
+  column.blocks.push(weightedBlock.block);
+  column.estimatedHeight += weightedBlock.estimatedHeight;
 }
 
 function getShortestBalancedColumn(columns: BalancedColumn[]) {
@@ -2398,53 +2523,53 @@ function getBalancedColumnsSpreadScore(columns: BalancedColumn[]) {
   return (
     (maxHeight - minHeight) * 3 +
     Math.max(0, averageHeight - lastHeight) * 2.4 +
-    columns.filter((column) => column.groups.length === 0).length * 100
+    columns.filter((column) => column.blocks.length === 0).length * 100
   );
 }
 
-function createBalancedColumnsFromWeightedGroups(
-  weightedGroups: CafeDesignABalancedWeightedGroup[],
+function createBalancedColumnsFromWeightedBlocks(
+  weightedBlocks: CafeDesignABalancedWeightedBlock[],
   safeColumns: number,
   variant: CafeDesignABalancedVariant,
 ): BalancedColumn[] {
   const columns = createBalancedColumns(safeColumns);
-  if (weightedGroups.length === 0) return columns;
+  if (weightedBlocks.length === 0) return columns;
 
   if (variant === "sourceSequential") {
-    const totalHeight = weightedGroups.reduce((total, group) => total + group.estimatedHeight, 0);
+    const totalHeight = weightedBlocks.reduce((total, block) => total + block.estimatedHeight, 0);
     const targetHeight = totalHeight / safeColumns;
     let columnIndex = 0;
 
-    weightedGroups.forEach((weightedGroup, groupIndex) => {
-      const remainingGroups = weightedGroups.length - groupIndex;
+    weightedBlocks.forEach((weightedBlock, blockIndex) => {
+      const remainingBlocks = weightedBlocks.length - blockIndex;
       const remainingColumns = safeColumns - columnIndex;
       const currentColumn = columns[columnIndex] ?? columns[columns.length - 1];
       const shouldAdvance =
-        currentColumn.groups.length > 0 &&
+        currentColumn.blocks.length > 0 &&
         columnIndex < safeColumns - 1 &&
-        currentColumn.estimatedHeight + weightedGroup.estimatedHeight > targetHeight &&
-        remainingGroups >= remainingColumns;
+        currentColumn.estimatedHeight + weightedBlock.estimatedHeight > targetHeight &&
+        remainingBlocks >= remainingColumns;
 
       if (shouldAdvance) columnIndex += 1;
-      appendWeightedGroupToColumn(columns[columnIndex] ?? columns[columns.length - 1], weightedGroup);
+      appendWeightedBlockToColumn(columns[columnIndex] ?? columns[columns.length - 1], weightedBlock);
     });
 
     return columns;
   }
 
   if (variant === "sourceRoundRobin") {
-    weightedGroups.forEach((weightedGroup, index) => {
-      appendWeightedGroupToColumn(columns[index % safeColumns], weightedGroup);
+    weightedBlocks.forEach((weightedBlock, index) => {
+      appendWeightedBlockToColumn(columns[index % safeColumns], weightedBlock);
     });
     return columns;
   }
 
-  const sortedGroups = [...weightedGroups].sort((a, b) => b.estimatedHeight - a.estimatedHeight || a.index - b.index);
-  sortedGroups.forEach((weightedGroup) => appendWeightedGroupToColumn(getShortestBalancedColumn(columns), weightedGroup));
+  const sortedBlocks = [...weightedBlocks].sort((a, b) => b.estimatedHeight - a.estimatedHeight || a.index - b.index);
+  sortedBlocks.forEach((weightedBlock) => appendWeightedBlockToColumn(getShortestBalancedColumn(columns), weightedBlock));
 
   if (variant !== "lastAwareGreedy") return columns;
 
-  let bestColumns = columns.map((column) => ({ ...column, groups: [...column.groups] }));
+  let bestColumns = columns.map((column) => ({ ...column, blocks: [...column.blocks] }));
   let bestScore = getBalancedColumnsSpreadScore(bestColumns);
 
   for (let sourceIndex = 0; sourceIndex < safeColumns; sourceIndex += 1) {
@@ -2452,23 +2577,23 @@ function createBalancedColumnsFromWeightedGroups(
       if (sourceIndex === targetIndex) continue;
       const sourceColumn = columns[sourceIndex];
       const targetColumn = columns[targetIndex];
-      if (!sourceColumn || !targetColumn || sourceColumn.groups.length <= 1) continue;
+      if (!sourceColumn || !targetColumn || sourceColumn.blocks.length <= 1) continue;
 
-      for (const group of sourceColumn.groups) {
-        const weightedGroup = weightedGroups.find((candidate) => candidate.group === group);
-        if (!weightedGroup) continue;
+      for (const block of sourceColumn.blocks) {
+        const weightedBlock = weightedBlocks.find((candidate) => candidate.block === block);
+        if (!weightedBlock) continue;
 
         const nextColumns = columns.map((column) => ({
           ...column,
-          groups: column.groups.filter((candidateGroup) => candidateGroup !== group),
-          estimatedHeight: column.groups
-            .filter((candidateGroup) => candidateGroup !== group)
-            .reduce((total, candidateGroup) => {
-              const candidateWeightedGroup = weightedGroups.find((candidate) => candidate.group === candidateGroup);
-              return total + (candidateWeightedGroup?.estimatedHeight ?? 0);
+          blocks: column.blocks.filter((candidateBlock) => candidateBlock !== block),
+          estimatedHeight: column.blocks
+            .filter((candidateBlock) => candidateBlock !== block)
+            .reduce((total, candidateBlock) => {
+              const candidateWeightedBlock = weightedBlocks.find((candidate) => candidate.block === candidateBlock);
+              return total + (candidateWeightedBlock?.estimatedHeight ?? 0);
             }, 0),
         }));
-        appendWeightedGroupToColumn(nextColumns[targetIndex], weightedGroup);
+        appendWeightedBlockToColumn(nextColumns[targetIndex], weightedBlock);
 
         const score = getBalancedColumnsSpreadScore(nextColumns);
         if (score < bestScore) {
@@ -2496,14 +2621,14 @@ function getBalancedMenuColumns({
   variant?: CafeDesignABalancedVariant;
 }): BalancedColumn[] {
   const safeColumns = Math.max(1, Math.min(6, Math.floor(columns)));
-  const weightedGroups = getFlatMenuGroups(pageGroups)
-    .map((group, index) => ({
-      group,
+  const weightedBlocks = getFlatContentBlocks(pageGroups)
+    .map((block, index) => ({
+      block,
       index,
-      estimatedHeight: estimateMenuGroupHeight(group, data, capabilities),
+      estimatedHeight: estimateContentBlockHeight(block, data, capabilities),
     }));
 
-  return createBalancedColumnsFromWeightedGroups(weightedGroups, safeColumns, variant);
+  return createBalancedColumnsFromWeightedBlocks(weightedBlocks, safeColumns, variant);
 }
 
 // -----------------------------------------------------------------------------
@@ -3804,6 +3929,162 @@ function EmptyState({ children }: { children: ReactNode }) {
   );
 }
 
+function MenuCategoryContentBlock({
+  block,
+  density,
+  data,
+  capabilities,
+  customBadgeStyles,
+  itemStackSpacing,
+  timeSaleByItemId,
+  priceDisplayMode,
+  onOpenImage,
+  hasDivider,
+  isTerminalDivider,
+  balancedSourceOrder,
+}: {
+  block: CafeDesignACategoryContentBlock;
+  density: MenuLayoutDensity;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  customBadgeStyles: unknown;
+  itemStackSpacing: string;
+  timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
+  onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
+  hasDivider: boolean;
+  isTerminalDivider?: boolean;
+  balancedSourceOrder?: number;
+}) {
+  const groupKey = block.key;
+  const balancedAttributes =
+    balancedSourceOrder == null
+      ? {}
+      : {
+          "data-cafe-a-balanced-atomic-block": "",
+          "data-cafe-a-balanced-block-type": "category",
+          "data-cafe-a-balanced-block-id": groupKey,
+          "data-cafe-a-balanced-category-block": groupKey,
+          "data-cafe-a-balanced-source-order": balancedSourceOrder,
+          "data-balanced-estimated-height": estimateContentBlockHeight(block, data, capabilities).toFixed(2),
+        };
+
+  return (
+    <section
+      key={groupKey}
+      className={getCategoryBlockClassName(hasDivider, isTerminalDivider)}
+      data-cafe-a-category-block=""
+      data-cafe-a-category-divider={hasDivider ? "true" : undefined}
+      {...balancedAttributes}
+    >
+      <CategoryTitle category={block.category} density={density} items={block.items} />
+      <div className="cafe-a-category-items">
+        {block.items.map((item) => (
+          <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
+            <MenuItemRow
+              item={item}
+              category={block.category}
+              priceOptions={data.priceOptions}
+              traits={getItemTraits(data.traits, item.id)}
+              capabilities={capabilities}
+              density={density}
+              templateKey={data.menuSite.template_key}
+              timeSale={timeSaleByItemId.get(item.id)}
+              customBadgeStyles={customBadgeStyles}
+              locale={data.locale}
+              priceDisplayMode={priceDisplayMode}
+              onOpenImage={onOpenImage}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MenuWidgetContentBlock({
+  block,
+  data,
+  capabilities,
+  balancedSourceOrder,
+}: {
+  block: CafeDesignAWidgetContentBlock;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  balancedSourceOrder?: number;
+}) {
+  const balancedAttributes =
+    balancedSourceOrder == null
+      ? {}
+      : {
+          "data-cafe-a-balanced-atomic-block": "",
+          "data-cafe-a-balanced-block-type": "widget",
+          "data-cafe-a-balanced-block-id": block.key,
+          "data-cafe-a-balanced-source-order": balancedSourceOrder,
+          "data-balanced-estimated-height": estimateContentBlockHeight(block, data, capabilities).toFixed(2),
+        };
+
+  return (
+    <section
+      key={block.key}
+      className="cafe-a-menu-widget-block min-w-0 break-inside-avoid"
+      data-cafe-a-menu-widget-block=""
+      {...balancedAttributes}
+    >
+      <CafeAWidgetBlock widget={block.widget} />
+    </section>
+  );
+}
+
+function MenuContentBlock({
+  block,
+  density,
+  data,
+  capabilities,
+  customBadgeStyles,
+  itemStackSpacing,
+  timeSaleByItemId,
+  priceDisplayMode,
+  onOpenImage,
+  hasDivider,
+  isTerminalDivider,
+  balancedSourceOrder,
+}: {
+  block: CafeDesignAContentBlock;
+  density: MenuLayoutDensity;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  customBadgeStyles: unknown;
+  itemStackSpacing: string;
+  timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
+  onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
+  hasDivider: boolean;
+  isTerminalDivider?: boolean;
+  balancedSourceOrder?: number;
+}) {
+  if (block.blockType === "widget") {
+    return <MenuWidgetContentBlock block={block} data={data} capabilities={capabilities} balancedSourceOrder={balancedSourceOrder} />;
+  }
+
+  return (
+    <MenuCategoryContentBlock
+      block={block}
+      density={density}
+      data={data}
+      capabilities={capabilities}
+      customBadgeStyles={customBadgeStyles}
+      itemStackSpacing={itemStackSpacing}
+      timeSaleByItemId={timeSaleByItemId}
+      priceDisplayMode={priceDisplayMode}
+      onOpenImage={onOpenImage}
+      hasDivider={hasDivider}
+      isTerminalDivider={isTerminalDivider}
+      balancedSourceOrder={balancedSourceOrder}
+    />
+  );
+}
+
 // -----------------------------------------------------------------------------
 // Basic engine candidate: layout mode renderers for ordered and grouped flows
 // -----------------------------------------------------------------------------
@@ -3841,8 +4122,8 @@ function MenuGroupsGrid({
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
-  const orderedGroupKeys = useMemo(() => getFlatMenuGroups(pageGroups).map(getMenuGroupKey), [pageGroups]);
-  const lastGroupKey = orderedGroupKeys[orderedGroupKeys.length - 1] ?? "";
+  const orderedBlockKeys = useMemo(() => getFlatContentBlocks(pageGroups).map((block) => block.key), [pageGroups]);
+  const lastBlockKey = orderedBlockKeys[orderedBlockKeys.length - 1] ?? "";
 
   return (
     <section
@@ -3860,45 +4141,33 @@ function MenuGroupsGrid({
               </h2>
             </section>
           )}
-          {pageGroup.groups.map(({ page, category, items }, groupIndex) => {
-            const groupKey = `${page.id}:${category.id}`;
+          {pageGroup.blocks.map((block, blockIndex) => {
             const hasDivider =
+              block.blockType !== "category"
+                ? false
+                :
               categoryDividerScope === "always"
                 ? true
                 : categoryDividerScope === "page"
-                  ? groupIndex < pageGroup.groups.length - 1
-                  : groupKey !== lastGroupKey;
-            const isTerminalDivider = categoryDividerScope === "always" && groupKey === lastGroupKey;
+                  ? blockIndex < pageGroup.blocks.length - 1
+                  : block.key !== lastBlockKey;
+            const isTerminalDivider = categoryDividerScope === "always" && block.key === lastBlockKey;
 
             return (
-              <section
-                key={groupKey}
-                className={getCategoryBlockClassName(hasDivider, isTerminalDivider)}
-                data-cafe-a-category-block=""
-                data-cafe-a-category-divider={hasDivider ? "true" : undefined}
-              >
-                <CategoryTitle category={category} density={density} items={items} />
-                <div className="cafe-a-category-items">
-                  {items.map((item) => (
-                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
-                      <MenuItemRow
-                        item={item}
-                        category={category}
-                        priceOptions={data.priceOptions}
-                        traits={getItemTraits(data.traits, item.id)}
-                        capabilities={capabilities}
-                        density={density}
-                        templateKey={data.menuSite.template_key}
-                        timeSale={timeSaleByItemId.get(item.id)}
-                        customBadgeStyles={customBadgeStyles}
-                        locale={data.locale}
-                        priceDisplayMode={priceDisplayMode}
-                        onOpenImage={onOpenImage}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <MenuContentBlock
+                key={block.key}
+                block={block}
+                density={density}
+                data={data}
+                capabilities={capabilities}
+                customBadgeStyles={customBadgeStyles}
+                itemStackSpacing={itemStackSpacing}
+                timeSaleByItemId={timeSaleByItemId}
+                priceDisplayMode={priceDisplayMode}
+                onOpenImage={onOpenImage}
+                hasDivider={hasDivider}
+                isTerminalDivider={isTerminalDivider}
+              />
             );
           })}
         </div>
@@ -3941,9 +4210,9 @@ function BalancedExperimentalMenuGrid({
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
-  const orderedGroupKeys = useMemo(() => getFlatMenuGroups(pageGroups).map(getMenuGroupKey), [pageGroups]);
-  const lastGroupKey = orderedGroupKeys[orderedGroupKeys.length - 1] ?? "";
-  const groupOrderByKey = useMemo(() => new Map(orderedGroupKeys.map((groupKey, index) => [groupKey, index])), [orderedGroupKeys]);
+  const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
+  const lastBlockKey = orderedBlocks[orderedBlocks.length - 1]?.key ?? "";
+  const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
   const balancedColumns = useMemo(
     () => getBalancedMenuColumns({ pageGroups, columns, data, capabilities, variant }),
     [capabilities, columns, data, pageGroups, variant]
@@ -3959,45 +4228,24 @@ function BalancedExperimentalMenuGrid({
     >
       {balancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
-          {column.groups.map(({ page, category, items }) => {
-            const groupKey = `${page.id}:${category.id}`;
-            const hasDivider = groupKey !== lastGroupKey;
+          {column.blocks.map((block) => {
+            const hasDivider = block.blockType === "category" && block.key !== lastBlockKey;
 
             return (
-              <section
-                key={groupKey}
-                className={getCategoryBlockClassName(hasDivider)}
-                data-cafe-a-category-block=""
-                data-cafe-a-category-divider={hasDivider ? "true" : undefined}
-                data-cafe-a-balanced-atomic-block=""
-                data-cafe-a-balanced-block-type="category"
-                data-cafe-a-balanced-block-id={groupKey}
-                data-cafe-a-balanced-category-block={groupKey}
-                data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
-                data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
-              >
-                <CategoryTitle category={category} density={density} items={items} />
-                <div className="cafe-a-category-items">
-                  {items.map((item) => (
-                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
-                      <MenuItemRow
-                        item={item}
-                        category={category}
-                        priceOptions={data.priceOptions}
-                        traits={getItemTraits(data.traits, item.id)}
-                        capabilities={capabilities}
-                        density={density}
-                        templateKey={data.menuSite.template_key}
-                        timeSale={timeSaleByItemId.get(item.id)}
-                        customBadgeStyles={customBadgeStyles}
-                        locale={data.locale}
-                        priceDisplayMode={priceDisplayMode}
-                        onOpenImage={onOpenImage}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <MenuContentBlock
+                key={block.key}
+                block={block}
+                density={density}
+                data={data}
+                capabilities={capabilities}
+                customBadgeStyles={customBadgeStyles}
+                itemStackSpacing={itemStackSpacing}
+                timeSaleByItemId={timeSaleByItemId}
+                priceDisplayMode={priceDisplayMode}
+                onOpenImage={onOpenImage}
+                hasDivider={hasDivider}
+                balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
+              />
             );
           })}
           {columnIndex === balancedColumns.length - 1 && footerInfo}
@@ -4040,8 +4288,8 @@ function OrderedBalancedFitMenuGrid({
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
 }) {
-  const orderedGroupKeys = useMemo(() => getFlatMenuGroups(pageGroups).map(getMenuGroupKey), [pageGroups]);
-  const groupOrderByKey = useMemo(() => new Map(orderedGroupKeys.map((groupKey, index) => [groupKey, index])), [orderedGroupKeys]);
+  const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
+  const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
   const orderedBalancedColumns = useMemo(
     () => getOrderedBalancedMenuColumns({ pageGroups, columns, data, capabilities, orderedBalancedBreaks }),
     [capabilities, columns, data, orderedBalancedBreaks, pageGroups],
@@ -4058,45 +4306,24 @@ function OrderedBalancedFitMenuGrid({
     >
       {orderedBalancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
-          {column.groups.map(({ page, category, items }, groupIndex) => {
-            const groupKey = `${page.id}:${category.id}`;
-            const hasDivider = groupIndex < column.groups.length - 1;
+          {column.blocks.map((block, blockIndex) => {
+            const hasDivider = block.blockType === "category" && blockIndex < column.blocks.length - 1;
 
             return (
-              <section
-                key={groupKey}
-                className={getCategoryBlockClassName(hasDivider)}
-                data-cafe-a-category-block=""
-                data-cafe-a-category-divider={hasDivider ? "true" : undefined}
-                data-cafe-a-balanced-atomic-block=""
-                data-cafe-a-balanced-block-type="category"
-                data-cafe-a-balanced-block-id={groupKey}
-                data-cafe-a-balanced-category-block={groupKey}
-                data-cafe-a-balanced-source-order={groupOrderByKey.get(groupKey) ?? 0}
-                data-balanced-estimated-height={estimateMenuGroupHeight({ page, category, items }, data, capabilities).toFixed(2)}
-              >
-                <CategoryTitle category={category} density={density} items={items} />
-                <div className="cafe-a-category-items">
-                  {items.map((item) => (
-                    <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
-                      <MenuItemRow
-                        item={item}
-                        category={category}
-                        priceOptions={data.priceOptions}
-                        traits={getItemTraits(data.traits, item.id)}
-                        capabilities={capabilities}
-                        density={density}
-                        templateKey={data.menuSite.template_key}
-                        timeSale={timeSaleByItemId.get(item.id)}
-                        customBadgeStyles={customBadgeStyles}
-                        locale={data.locale}
-                        priceDisplayMode={priceDisplayMode}
-                        onOpenImage={onOpenImage}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <MenuContentBlock
+                key={block.key}
+                block={block}
+                density={density}
+                data={data}
+                capabilities={capabilities}
+                customBadgeStyles={customBadgeStyles}
+                itemStackSpacing={itemStackSpacing}
+                timeSaleByItemId={timeSaleByItemId}
+                priceDisplayMode={priceDisplayMode}
+                onOpenImage={onOpenImage}
+                hasDivider={hasDivider}
+                balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
+              />
             );
           })}
           {columnIndex === orderedBalancedColumns.length - 1 && footerInfo}
@@ -4128,6 +4355,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const layoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
   const visiblePageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
   const visibleMenuGroupCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.groups.length, 0);
+  const visibleContentBlockCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.blocks.length, 0);
+  const visibleFitBlockCount = Math.max(visibleMenuGroupCount, visibleContentBlockCount);
   const hasVisibleItemImages = visiblePageGroups.some((pageGroup) =>
     pageGroup.groups.some((group) => group.items.some(hasVisibleMenuItemImage)),
   );
@@ -4195,7 +4424,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
-    const imageModeColumns = visibleMenuGroupCount > 1 ? 3 : 1;
+    const imageModeColumns = visibleFitBlockCount > 1 ? 3 : 1;
     if (hasVisibleItemImages && (layoutMode !== "orderedBalancedFit" || fitState.orderedBalancedFingerprint)) {
       return {
         ...fitState,
@@ -4210,9 +4439,9 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         ? imageModeColumns
         : isDenseOrderedBalanced
         ? 3
-        : Math.max(1, Math.min(orderedBalancedInitialColumns, visibleMenuGroupCount || orderedBalancedInitialColumns)),
+        : Math.max(1, Math.min(orderedBalancedInitialColumns, visibleContentBlockCount || orderedBalancedInitialColumns)),
     };
-  }, [fitState, hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, orderedBalancedInitialColumns, visibleMenuGroupCount]);
+  }, [fitState, hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, orderedBalancedInitialColumns, visibleContentBlockCount, visibleFitBlockCount]);
   const renderFitState = useMemo<CafeDesignAFitState>(
     () => (layoutMode === "orderedBalancedFit" ? getBoostedFitState(baseRenderFitState, orderedBalancedFinalFillBoost) : baseRenderFitState),
     [baseRenderFitState, layoutMode, orderedBalancedFinalFillBoost],
@@ -4251,7 +4480,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     const syncInitialColumns = () => {
       const measuredWidth = menuElement.clientWidth || boardElement.clientWidth;
       const nextColumns = hasVisibleItemImages
-        ? getImageMenuColumnCandidates(measuredWidth, visibleMenuGroupCount)[0] ?? 2
+        ? getImageMenuColumnCandidates(measuredWidth, visibleFitBlockCount)[0] ?? 2
         : isDenseOrderedBalanced
           ? 3
           : measuredWidth >= 1100
@@ -4268,7 +4497,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, visibleMenuGroupCount]);
+  }, [hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, visibleFitBlockCount]);
 
   useEffect(() => {
     const boardElement = desktopFitBoardRef.current;
@@ -4757,7 +4986,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         getOrderedBalancedBucketedMetric(menuRect.width, ORDERED_BALANCED_SIZE_BUCKET),
         density,
         visibleItemCount,
-        visibleMenuGroupCount,
+        visibleFitBlockCount,
         hasVisibleItemImages ? "image-menu" : "text-menu",
         visibleImageSignature,
         categorySignature,
@@ -4785,7 +5014,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         getOrderedBalancedBucketedMetric(menuRect.width, ORDERED_BALANCED_SIZE_BUCKET),
         density,
         visibleItemCount,
-        visibleMenuGroupCount,
+        visibleFitBlockCount,
         hasVisibleItemImages ? "image-menu" : "text-menu",
         visibleImageSignature,
         `columns:${columns}`,
@@ -4807,7 +5036,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     function getOrderedBalancedEffectiveColumnCandidates(columnCandidates: number[], orderedBalancedFingerprint: string) {
       const rejectedTwoColumns = isOrderedBalancedColumnRejected(orderedBalancedFingerprint, 2);
       const candidates = columnCandidates.filter((columns) => !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, columns));
-      if (rejectedTwoColumns && visibleMenuGroupCount >= 3 && !candidates.includes(3) && !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, 3)) {
+      if (rejectedTwoColumns && visibleFitBlockCount >= 3 && !candidates.includes(3) && !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, 3)) {
         return [3, ...candidates];
       }
       return candidates;
@@ -4961,10 +5190,10 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           layoutMode === "orderedFit"
             ? getOrderedFitColumnCandidates(menuWidth)
             : hasVisibleItemImages
-              ? getImageMenuColumnCandidates(menuWidth, visibleMenuGroupCount)
+              ? getImageMenuColumnCandidates(menuWidth, visibleFitBlockCount)
               : layoutMode === "orderedBalancedFit"
-                ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount, visibleItemCount)
-                : getBalancedFitColumnCandidates(menuWidth, visibleMenuGroupCount);
+                ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount)
+                : getBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount);
         let selectedState: CafeDesignAFitState | null = null;
 
         if (layoutMode === "orderedFit") {
@@ -5164,7 +5393,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     orderedBalancedValidationRevision,
     visibleImageSignature,
     visibleItemCount,
-    visibleMenuGroupCount,
+    visibleFitBlockCount,
     visiblePageGroups.length,
   ]);
 
@@ -5196,7 +5425,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         getOrderedBalancedBucketedMetric(menuRect.width, ORDERED_BALANCED_SIZE_BUCKET),
         density,
         visibleItemCount,
-        visibleMenuGroupCount,
+        visibleFitBlockCount,
         hasVisibleItemImages ? "image-menu" : "text-menu",
         visibleImageSignature,
         `columns:${columns}`,
@@ -5550,7 +5779,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [density, fitState, hasVisibleItemImages, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleMenuGroupCount]);
+  }, [density, fitState, hasVisibleItemImages, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleFitBlockCount]);
 
   useEffect(() => {
     if (layoutMode !== "orderedFit") {

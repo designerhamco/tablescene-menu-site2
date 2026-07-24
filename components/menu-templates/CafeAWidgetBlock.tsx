@@ -106,9 +106,11 @@ function renderCopy({
   textAlign: CafeAWidgetTextAlign;
 }) {
   const normalizedTitle = title.trim();
+  const copyAlignmentClassName =
+    textAlign === "center" ? styles.copyCenter : textAlign === "right" ? styles.copyRight : styles.copyLeft;
 
   return (
-    <div className={joinClassNames(styles.copy, textAlign === "center" ? styles.copyCenter : styles.copyLeft)} data-cafe-a-widget-copy>
+    <div className={joinClassNames(styles.copy, copyAlignmentClassName)} data-cafe-a-widget-copy>
       {normalizedTitle ? <p className={styles.title} data-cafe-a-widget-title>{normalizedTitle}</p> : null}
       <p className={joinClassNames(styles.body, !normalizedTitle && styles.bodyOnly)} data-cafe-a-widget-body>{body}</p>
     </div>

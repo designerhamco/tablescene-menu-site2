@@ -2,6 +2,7 @@ import type { Database } from "@/lib/supabase/types";
 import type { SupportedLocale } from "@/lib/locales";
 import type { MenuEditorServiceType } from "@/lib/menu-editor-capabilities";
 import type { PcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import type { MenuWidget } from "@/lib/menu-widgets";
 import type { PageSettings } from "@/types/menu";
 import type { TimeSaleDisplayMode } from "@/lib/menu-time-sales";
 import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
@@ -182,6 +183,7 @@ export type PublicMenuTemplateProps = {
   chefs: PublicMenuChef[];
   socialLinks: PublicMenuSocialLink[];
   timeSales: PublicMenuTimeSale[];
+  widgets?: MenuWidget[];
   featuredSlides?: PublicFeaturedSlide[];
   nextTimeSaleStartAt: string | null;
   initialNowMs: number;
