@@ -11,6 +11,7 @@ import {
   getCafeAOrderedBalancedContiguousColumns,
 } from "@/components/menu-templates/cafe-a-balanced-layout";
 import {
+  shouldShowCafeACategoryPreviewDivider,
   sortCafeAContentBlocks,
   type CafeAContentBlock,
 } from "@/components/menu-templates/cafe-a-content-blocks";
@@ -112,7 +113,9 @@ function toBalancedContentBlocks(
   actualHeights: Record<string, number>,
   columnWidthPx: number,
 ): BalancedContentBlock[] {
-  return sortCafeAContentBlocks(blocks).map((block, sourceIndex) => {
+  const sortedBlocks = sortCafeAContentBlocks(blocks);
+
+  return sortedBlocks.map((block, sourceIndex) => {
     const estimatedHeight = estimateContentBlockHeight(block, columnWidthPx);
     const actualHeight = actualHeights[block.id];
     const height = Number.isFinite(actualHeight) && actualHeight > 0 ? actualHeight : estimatedHeight;
@@ -168,6 +171,7 @@ export default function CafeABalancedContentFlowPreview({
       }),
     [balancedBlocks, safeColumns],
   );
+  const visibleBlocks = useMemo(() => sortCafeAContentBlocks(blocks), [blocks]);
   const breaks = useMemo(() => getCafeAOrderedBalancedBreaksFromColumns(balancedColumns), [balancedColumns]);
 
   useLayoutEffect(() => {
@@ -240,7 +244,10 @@ export default function CafeABalancedContentFlowPreview({
           {balancedColumns.map((column, columnIndex) => (
             <div key={`balanced-lab-column-${columnIndex}`} className={styles.column} data-cafe-a-balanced-column>
               {column.blocks.map((block, blockIndex) => {
-                const hasNextBlockInColumn = blockIndex < column.blocks.length - 1;
+                const showDividerBeforeCategory =
+                  block.payload.blockType === "category"
+                    ? shouldShowCafeACategoryPreviewDivider(visibleBlocks, block.sourceIndex)
+                    : false;
 
                 return (
                   <div
@@ -253,7 +260,11 @@ export default function CafeABalancedContentFlowPreview({
                     data-balanced-estimated-height={block.estimatedHeight.toFixed(2)}
                   >
                     {block.payload.blockType === "category" ? (
-                      <CafeACategoryPreviewBlock block={block.payload} showDivider={hasNextBlockInColumn} />
+                      <CafeACategoryPreviewBlock
+                        block={block.payload}
+                        showDividerBeforeCategory={showDividerBeforeCategory}
+                        suppressDesktopColumnStartDivider={blockIndex === 0}
+                      />
                     ) : (
                       <CafeAWidgetBlock widget={block.payload.widget} />
                     )}

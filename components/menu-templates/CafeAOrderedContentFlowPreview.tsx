@@ -5,6 +5,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "
 import CafeACategoryPreviewBlock from "@/components/menu-templates/CafeACategoryPreviewBlock";
 import CafeAWidgetBlock from "@/components/menu-templates/CafeAWidgetBlock";
 import {
+  shouldShowCafeACategoryPreviewDivider,
   sortCafeAContentBlocks,
   type CafeAContentBlock,
 } from "@/components/menu-templates/cafe-a-content-blocks";
@@ -116,15 +117,19 @@ export default function CafeAOrderedContentFlowPreview({
           }
         : null;
 
+    const suppressedCategoryElements = new Set<HTMLElement>();
     const blockSummaries = blockElements.map((blockElement) => {
       const rects = Array.from(blockElement.getClientRects());
       const columnsForBlock = getUniqueRectColumns(rects);
       const blockId = blockElement.dataset.cafeAOrderedBlockId ?? "unknown";
       const blockType = blockElement.dataset.cafeAOrderedBlockType ?? "unknown";
       const primaryRect = getRectSummary(blockElement);
+      const firstFragmentLeft = columnsForBlock[0] ?? primaryRect.left;
 
       return {
         id: blockId,
+        element: blockElement,
+        firstFragmentLeft,
         type: blockType,
         columns: columnsForBlock,
         left: primaryRect.left,
@@ -141,10 +146,25 @@ export default function CafeAOrderedContentFlowPreview({
     const columnSummaries = columnLefts.map((columnLeft, columnIndex) => {
       const blocksInColumn = blockSummaries
         .filter((block) => block.columns.some((blockColumnLeft) => Math.abs(blockColumnLeft - columnLeft) <= 4))
-        .sort((left, right) => left.top - right.top)
+        .sort((left, right) => left.top - right.top || left.left - right.left)
+        .map((block, blockIndex) => {
+          const isFirstFragmentColumn = Math.abs(block.firstFragmentLeft - columnLeft) <= 4;
+          if (blockIndex === 0 && block.type === "category" && isFirstFragmentColumn) {
+            suppressedCategoryElements.add(block.element);
+          }
+          return block;
+        })
         .map((block) => `${block.type}:${block.id}`);
 
       return `C${columnIndex + 1}: ${blocksInColumn.join(" > ") || "empty"}`;
+    });
+    blockElements.forEach((blockElement) => {
+      if (suppressedCategoryElements.has(blockElement)) {
+        blockElement.setAttribute("data-cafe-a-category-divider-desktop-suppressed", "true");
+        return;
+      }
+
+      blockElement.removeAttribute("data-cafe-a-category-divider-desktop-suppressed");
     });
     const categorySplitCount = blockSummaries.filter((block) => block.type === "category" && block.columns.length > 1).length;
     const widgetSplitIds = blockSummaries
@@ -212,7 +232,7 @@ export default function CafeAOrderedContentFlowPreview({
       <div className={styles.stage}>
         <div className={styles.flow} data-cafe-a-ordered-content-flow data-cafe-a-flow-mode="ordered">
           {visibleBlocks.map((block, index) => {
-            const hasNextVisibleBlock = index < visibleBlocks.length - 1;
+            const showDividerBeforeCategory = shouldShowCafeACategoryPreviewDivider(visibleBlocks, index);
 
             if (block.blockType === "category") {
               return (
@@ -224,7 +244,7 @@ export default function CafeAOrderedContentFlowPreview({
                   data-cafe-a-ordered-block-id={block.id}
                   data-cafe-a-ordered-source-order={index}
                 >
-                  <CafeACategoryPreviewBlock block={block} showDivider={hasNextVisibleBlock} allowSplit />
+                  <CafeACategoryPreviewBlock block={block} showDividerBeforeCategory={showDividerBeforeCategory} allowSplit />
                 </div>
               );
             }

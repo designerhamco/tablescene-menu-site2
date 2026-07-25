@@ -16,7 +16,6 @@ import {
   CAFE_A_CONTENT_BLOCK_MIXED_FIXTURE,
   CAFE_A_MOBILE_CONTENT_BLOCK_LAB_FIXTURES,
   CAFE_A_ORDERED_CONTENT_BLOCK_LAB_FIXTURES,
-  CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE,
   CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE,
   CAFE_A_CONTENT_BLOCK_VERTICAL_NOTICE,
   CAFE_A_CONTENT_BLOCK_WIDGET_FIRST_FIXTURE,
@@ -55,7 +54,6 @@ type ContentFlowLabSectionProps = {
   title: string;
   description: string;
   blocks: readonly CafeAContentBlock[];
-  showTerminalCategoryDivider?: boolean;
   notice?: string;
 };
 
@@ -89,7 +87,6 @@ function ContentFlowLabSection({
   title,
   description,
   blocks,
-  showTerminalCategoryDivider = false,
   notice,
 }: ContentFlowLabSectionProps) {
   return (
@@ -101,11 +98,7 @@ function ContentFlowLabSection({
         <p className="mt-2 max-w-[48rem] text-sm font-semibold leading-relaxed text-[#191c1b]/60">{description}</p>
       </div>
       <div className="max-w-[27rem]">
-        <CafeAContentFlowPreview
-          blocks={blocks}
-          showTerminalCategoryDivider={showTerminalCategoryDivider}
-          notice={notice}
-        />
+        <CafeAContentFlowPreview blocks={blocks} notice={notice} />
       </div>
     </section>
   );
@@ -317,13 +310,6 @@ export default function CafeAWidgetLabPage() {
               description="세로형 image widget을 category 사이에 넣어 시각적 비중을 확인합니다."
               blocks={CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE}
               notice={CAFE_A_CONTENT_BLOCK_VERTICAL_NOTICE}
-            />
-            <ContentFlowLabSection
-              title="모바일 terminal divider 비교"
-              description="모바일 정책 검토용으로 마지막 category에도 divider를 표시한 상태입니다."
-              blocks={CAFE_A_CONTENT_BLOCK_CATEGORY_LAST_FIXTURE}
-              showTerminalCategoryDivider
-              notice={CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE}
             />
           </div>
 

@@ -95,7 +95,13 @@
 
 .divider {
   border-top: 1px solid var(--cafe-a-category-preview-divider);
-  margin-top: 1.12rem;
+  margin-bottom: 0.84rem;
+}
+
+@media (min-width: 768px) {
+  .category[data-cafe-a-category-divider-desktop-suppressed="true"] > .divider {
+    display: none;
+  }
 }
 
 @media (max-width: 767px) {

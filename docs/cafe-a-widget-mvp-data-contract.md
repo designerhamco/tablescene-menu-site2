@@ -635,11 +635,38 @@ Mobile:
 
 - Ignore desktop/tablet layout mode.
 - Render category/widget blocks in source order.
-- Every visible category displays a divider, including the last category.
+- Apply the template content separator policy in the same logical source order.
 - Vertical page scroll is allowed.
 - Horizontal overflow and nested scroll are not allowed.
 
-## 19. Future Migration Needs
+## 19. Template Content Separator Policy
+
+Separator behavior is a template visual configuration, not a capability, entitlement, or billing rule.
+
+CafeA uses its category divider line as the shared visual separator. The divider is owned by category blocks, not
+widget blocks, and is rendered at the next category's top boundary:
+
+- On mobile, render a divider before a visible category when that category has any previous visible block on the same page.
+- On desktop/tablet, suppress that divider when the category is the first rendered block in its visual column.
+- On desktop/tablet, render the divider when the category starts after another visible category or widget in the same visual column.
+- Do not render a divider before the first visible block when that block is a category.
+- If a page starts with a widget and then a category, render the divider before that category.
+- Render no category bottom divider or terminal divider.
+- Do not render a divider above widgets.
+- Do not render a divider below widgets.
+- Do not render a divider between consecutive widgets.
+- Do not render a divider on ordered-fit category continuation fragments.
+- Keep desktop/tablet divider spacing balanced around the line: the preceding block owns the divider-before gap,
+  and the category top divider owns the divider-after gap.
+- Keep widgets visually separated with their own border and the template transition gaps.
+- Exclude hidden category and widget blocks from separator decisions.
+- Keep the logical order policy shared, then apply only the desktop/tablet visual-column-start suppression after layout decides where blocks sit.
+
+CafeA uses `categoryDivider: "before-category-except-first-block"` and `widgetBoundary: "none"`. Templates without
+category divider lines should use `categoryDivider: "none"` and `widgetBoundary: "none"`. Other templates remain on
+the fallback `none` policy until their visual language explicitly opts in.
+
+## 20. Future Migration Needs
 
 The current DB `widget_type` check constraint reportedly allows legacy values:
 

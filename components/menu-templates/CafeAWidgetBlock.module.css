@@ -2,7 +2,6 @@
   --cafe-a-widget-ink: var(--cafe-a-ink, #191c1b);
   --cafe-a-widget-muted: rgb(25 28 27 / 66%);
   --cafe-a-widget-border: rgb(25 28 27 / 68%);
-  --cafe-a-widget-soft-border: rgb(25 28 27 / 18%);
   --cafe-a-widget-gap-scale: var(--fit-menu-gap-scale, var(--fit-gap-scale, 1));
   --cafe-a-widget-final-fill-scale: var(--ordered-fit-final-fill-compensation, 1);
   break-inside: avoid;
@@ -95,25 +94,17 @@
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.45;
-  margin: clamp(0.24rem, calc(0.38rem * var(--cafe-a-widget-gap-scale)), 0.42rem) 0 0;
+  margin: var(--cafe-a-menu-name-to-description-gap, clamp(0.24rem, calc(0.38rem * var(--cafe-a-widget-gap-scale)), 0.42rem)) 0 0;
 }
 
 .bodyOnly {
   margin-top: 0;
 }
 
-.textOnly {
-  border-color: var(--cafe-a-widget-soft-border);
-}
-
 .textOnly .copy {
   padding:
     clamp(0.58rem, calc(0.82rem * var(--cafe-a-widget-gap-scale)), 0.92rem)
     0;
-}
-
-.imageText .copy {
-  border-top: 1px solid var(--cafe-a-widget-soft-border);
 }
 
 @media (max-width: 767px) {

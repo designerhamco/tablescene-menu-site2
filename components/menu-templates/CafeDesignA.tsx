@@ -38,6 +38,10 @@ import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/
 import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import {
+  getTemplateContentSeparatorRules,
+  shouldShowCategoryContentDivider,
+} from "@/lib/template-content-separator-rules";
+import {
   getMenuLayoutDensity,
   getTemplateLayoutRules,
   type MenuLayoutDensity,
@@ -116,7 +120,7 @@ type CafeDesignACategoryContentBlock = {
   sortOrder: number;
   previousVisibleBlockType: CafeDesignAContentBlockType | null;
   nextVisibleBlockType: CafeDesignAContentBlockType | null;
-  showCategoryDivider: boolean;
+  showDividerBeforeCategory: boolean;
 };
 type CafeDesignAWidgetContentBlock = {
   blockType: "widget";
@@ -2486,6 +2490,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
     .filter((page) => page.visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
   const shouldRenderWidgets = data.menuSite.template_key === "cafe_design_a";
+  const separatorRules = getTemplateContentSeparatorRules(data.menuSite.template_key);
   const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 
   return visiblePages
@@ -2509,7 +2514,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
         sortOrder: group.category.sort_order,
         previousVisibleBlockType: null,
         nextVisibleBlockType: null,
-        showCategoryDivider: false,
+        showDividerBeforeCategory: false,
       }));
       const widgetBlocks: CafeDesignAWidgetContentBlock[] = widgets
         .filter((widget) => widget.visible && widget.menuPageId === page.id)
@@ -2541,7 +2546,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
               ...block,
               previousVisibleBlockType,
               nextVisibleBlockType,
-              showCategoryDivider: nextVisibleBlockType === "category",
+              showDividerBeforeCategory: shouldShowCategoryContentDivider(separatorRules, previousVisibleBlockType !== null),
             }
           : {
               ...block,
@@ -2608,10 +2613,83 @@ function getCafeAWidgetPreview(widget: PublicMenuWidget): CafeAWidgetPreview | n
   };
 }
 
-function getCategoryBlockClassName(hasDivider: boolean, isTerminalDivider = false) {
-  return `cafe-a-menu-category-block min-w-0${hasDivider ? " cafe-a-menu-category-block-has-divider" : ""}${
-    hasDivider && isTerminalDivider ? " cafe-a-menu-category-block-terminal-divider" : ""
-  }`;
+function getCategoryBlockClassName() {
+  return "cafe-a-menu-category-block min-w-0";
+}
+
+const CAFE_A_COLUMN_START_TOLERANCE_PX = 3;
+
+function getCafeAColumnKey(columns: number[], left: number) {
+  const existingLeft = columns.find((columnLeft) => Math.abs(columnLeft - left) <= CAFE_A_COLUMN_START_TOLERANCE_PX);
+  if (existingLeft != null) return existingLeft;
+
+  columns.push(left);
+  return left;
+}
+
+function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement) {
+  const categoryElements = Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-category-block]"));
+  const suppressedCategoryElements = new Set<HTMLElement>();
+
+  const blockElements = Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-block-type]"))
+    .map((element, index) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        element,
+        index,
+        rect,
+        type: element.dataset.cafeABlockType,
+      };
+    })
+    .filter(({ rect }) => rect.width > 0 && rect.height > 0);
+  if (blockElements.length === 0) return;
+
+  const columnLefts: number[] = [];
+  const columns = new Map<number, typeof blockElements>();
+  blockElements.forEach((block) => {
+    const columnKey = getCafeAColumnKey(columnLefts, block.rect.left);
+    const columnBlocks = columns.get(columnKey) ?? [];
+    columnBlocks.push(block);
+    columns.set(columnKey, columnBlocks);
+  });
+
+  const visualNextBlockTypes = new Map<HTMLElement, CafeDesignAContentBlockType>();
+  columns.forEach((columnBlocks) => {
+    const sortedColumnBlocks = columnBlocks
+      .slice()
+      .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left || left.index - right.index);
+    const firstBlock = sortedColumnBlocks[0];
+
+    if (firstBlock?.type === "category") {
+      suppressedCategoryElements.add(firstBlock.element);
+    }
+
+    sortedColumnBlocks.forEach((block, blockIndex) => {
+      const nextBlockType = sortedColumnBlocks[blockIndex + 1]?.type;
+      if (nextBlockType === "category" || nextBlockType === "widget") {
+        visualNextBlockTypes.set(block.element, nextBlockType);
+      }
+    });
+  });
+
+  blockElements.forEach(({ element }) => {
+    const visualNextBlockType = visualNextBlockTypes.get(element);
+    if (visualNextBlockType) {
+      element.setAttribute("data-cafe-a-visual-next-block-type", visualNextBlockType);
+      return;
+    }
+
+    element.removeAttribute("data-cafe-a-visual-next-block-type");
+  });
+
+  categoryElements.forEach((element) => {
+    if (suppressedCategoryElements.has(element)) {
+      element.setAttribute("data-cafe-a-category-divider-desktop-suppressed", "true");
+      return;
+    }
+
+    element.removeAttribute("data-cafe-a-category-divider-desktop-suppressed");
+  });
 }
 
 function isDefaultPageTitle(page: MenuPage) {
@@ -2881,7 +2959,12 @@ function CategoryTitle({
   return (
     <div className={`cafe-a-category-heading ${spacingClassName}`} data-cafe-a-category-heading="">
       <div className="cafe-a-category-heading-row">
-        <h2 className={`cafe-a-category-title min-w-0 break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}>{category.name}</h2>
+        <h2
+          className={`cafe-a-category-title min-w-0 break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}
+          data-cafe-a-category-title-text=""
+        >
+          {category.name}
+        </h2>
         {items ? (
           <div className="cafe-a-category-price-column-slot">
             <CategoryPriceColumnHeader category={category} items={items} />
@@ -3702,6 +3785,7 @@ type CafeADebugMetrics = {
   routeKind: string;
   safety: Record<string, string | number | boolean>;
   selectorCounts: Record<string, number>;
+  widgetToCategoryTransition: Record<string, string | number | boolean | null>;
   viewport: Record<string, number>;
 };
 
@@ -3783,6 +3867,310 @@ function getCafeADebugClippingByAncestor(widgetElement: HTMLElement | null) {
   return false;
 }
 
+function getCafeADebugComputedSpacing(element: HTMLElement | null | undefined) {
+  if (!element) {
+    return {
+      display: "-",
+      marginBottom: "-",
+      marginTop: "-",
+      paddingBottom: "-",
+      paddingTop: "-",
+    };
+  }
+
+  const style = window.getComputedStyle(element);
+  return {
+    display: style.display,
+    marginBottom: style.marginBottom,
+    marginTop: style.marginTop,
+    paddingBottom: style.paddingBottom,
+    paddingTop: style.paddingTop,
+  };
+}
+
+function getCafeADebugStyleValue(element: HTMLElement | null | undefined, propertyName: string) {
+  if (!element) return "";
+  return window.getComputedStyle(element).getPropertyValue(propertyName).trim();
+}
+
+function getCafeADebugCssPixelValue(value: string) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getCafeADebugLineHeightPx(style: CSSStyleDeclaration, elementRect: DOMRect) {
+  const parsedLineHeight = getCafeADebugCssPixelValue(style.lineHeight);
+  if (parsedLineHeight != null) return parsedLineHeight;
+
+  const parsedFontSize = getCafeADebugCssPixelValue(style.fontSize);
+  if (parsedFontSize != null) return parsedFontSize * 1.2;
+
+  return elementRect.height;
+}
+
+function getCafeADebugTitleTextMetrics(titleElement: HTMLElement | null | undefined) {
+  if (!titleElement) {
+    return {
+      actualBoundingBoxAscent: null,
+      actualBoundingBoxDescent: null,
+      estimatedInkTop: null,
+      fontBoundingBoxAscent: null,
+      fontBoundingBoxDescent: null,
+      lineBoxTopLeading: null,
+    };
+  }
+
+  const titleRect = titleElement.getBoundingClientRect();
+  const titleStyle = window.getComputedStyle(titleElement);
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return {
+      actualBoundingBoxAscent: null,
+      actualBoundingBoxDescent: null,
+      estimatedInkTop: null,
+      fontBoundingBoxAscent: null,
+      fontBoundingBoxDescent: null,
+      lineBoxTopLeading: null,
+    };
+  }
+
+  context.font = titleStyle.font;
+  const text = titleElement.textContent?.trim() || "CATEGORY";
+  const metrics = context.measureText(text);
+  const actualAscent = metrics.actualBoundingBoxAscent;
+  const actualDescent = metrics.actualBoundingBoxDescent;
+  const fontAscent = metrics.fontBoundingBoxAscent;
+  const fontDescent = metrics.fontBoundingBoxDescent;
+  const hasActualMetrics = Number.isFinite(actualAscent) && Number.isFinite(actualDescent);
+
+  const lineHeightPx = getCafeADebugLineHeightPx(titleStyle, titleRect);
+  const inkHeight = hasActualMetrics ? actualAscent + actualDescent : titleRect.height;
+  const lineBoxTopLeading = Math.max(0, (lineHeightPx - inkHeight) / 2);
+  const estimatedInkTop = titleRect.top + lineBoxTopLeading;
+
+  return {
+    actualBoundingBoxAscent: hasActualMetrics ? roundFitMetric(actualAscent) : null,
+    actualBoundingBoxDescent: hasActualMetrics ? roundFitMetric(actualDescent) : null,
+    estimatedInkTop: roundFitMetric(estimatedInkTop),
+    fontBoundingBoxAscent: Number.isFinite(fontAscent) ? roundFitMetric(fontAscent) : null,
+    fontBoundingBoxDescent: Number.isFinite(fontDescent) ? roundFitMetric(fontDescent) : null,
+    lineBoxTopLeading: roundFitMetric(lineBoxTopLeading),
+  };
+}
+
+function getCafeADebugSafeDataAttributes(element: HTMLElement | null | undefined) {
+  if (!element) return "";
+
+  return Array.from(element.attributes)
+    .filter((attribute) => attribute.name.startsWith("data-cafe-a-") || attribute.name.startsWith("data-fit-"))
+    .map((attribute) => `${attribute.name}=${attribute.value || "true"}`)
+    .filter((attribute) => !/id|key|signature|fingerprint|path|url|src/i.test(attribute))
+    .slice(0, 16)
+    .join(" | ");
+}
+
+type CafeADebugBlockElement = {
+  element: HTMLElement;
+  index: number;
+  rect: DOMRect;
+  type: string | undefined;
+};
+
+type CafeADebugWidgetToCategoryTarget = {
+  categoryElement: HTMLElement;
+  columnIndex: number;
+  indexInVisualColumn: number;
+  isLastBlockInVisualColumn: boolean;
+  widgetElement: HTMLElement;
+};
+
+function getCafeADebugWidgetToCategoryTarget(columns: Map<number, CafeADebugBlockElement[]>) {
+  const sortedColumns = Array.from(columns.entries()).sort((left, right) => left[0] - right[0]);
+
+  for (let columnIndex = 0; columnIndex < sortedColumns.length; columnIndex += 1) {
+    const [, columnBlocks] = sortedColumns[columnIndex];
+    const sortedColumnBlocks = columnBlocks
+      .slice()
+      .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left || left.index - right.index);
+
+    for (let blockIndex = 0; blockIndex < sortedColumnBlocks.length - 1; blockIndex += 1) {
+      const block = sortedColumnBlocks[blockIndex];
+      const nextBlock = sortedColumnBlocks[blockIndex + 1];
+      if (block.type === "widget" && nextBlock?.type === "category") {
+        return {
+          categoryElement: nextBlock.element,
+          columnIndex,
+          indexInVisualColumn: blockIndex,
+          isLastBlockInVisualColumn: blockIndex === sortedColumnBlocks.length - 1,
+          widgetElement: block.element,
+        } satisfies CafeADebugWidgetToCategoryTarget;
+      }
+    }
+  }
+
+  return null;
+}
+
+function getCafeADebugWidgetToCategoryTransition(boardElement: HTMLElement) {
+  const blockElements: CafeADebugBlockElement[] = Array.from(boardElement.querySelectorAll<HTMLElement>("[data-cafe-a-block-type]"))
+    .map((element, index) => ({
+      element,
+      index,
+      rect: element.getBoundingClientRect(),
+      type: element.dataset.cafeABlockType,
+    }))
+    .filter(({ rect }) => rect.width > 0 && rect.height > 0);
+  const columnLefts: number[] = [];
+  const columns = new Map<number, CafeADebugBlockElement[]>();
+
+  blockElements.forEach((block) => {
+    const columnKey = getCafeAColumnKey(columnLefts, block.rect.left);
+    const columnBlocks = columns.get(columnKey) ?? [];
+    columnBlocks.push(block);
+    columns.set(columnKey, columnBlocks);
+  });
+
+  const target = getCafeADebugWidgetToCategoryTarget(columns);
+
+  if (!target) {
+    return {
+      categoryBlockExists: false,
+      categoryData: null,
+      categoryMarginTop: "-",
+      categoryPaddingTop: "-",
+      categoryTitleToFirstItemGap: null,
+      categoryVisualColumnIndex: null,
+      categoryVisualIndex: null,
+      categoryWrapperTop: null,
+      dividerDisplay: "-",
+      dividerExists: false,
+      dividerHiddenByColumnStart: false,
+      dividerMarginBottom: "-",
+      dividerMarginTop: "-",
+      dividerLeft: null,
+      dividerRight: null,
+      dividerToCategoryGap: null,
+      dividerToEstimatedInkGap: null,
+      firstItemTop: null,
+      glyphActualAscent: null,
+      glyphActualDescent: null,
+      glyphFontAscent: null,
+      glyphFontDescent: null,
+      lineBoxTopLeading: null,
+      parentColumnGap: "-",
+      parentRowGap: "-",
+      semanticGap: getCafeADebugStyleValue(boardElement, "--cafe-a-category-title-to-items-gap"),
+      titleFontFamily: "-",
+      titleFontSize: "-",
+      titleFontWeight: "-",
+      titleLineBoxBottom: null,
+      titleLineBoxHeight: null,
+      titleLineBoxLeft: null,
+      titleLineBoxRight: null,
+      titleLineBoxTop: null,
+      titleLineBoxWidth: null,
+      titleLineHeight: "-",
+      titleLetterSpacing: "-",
+      titleTransform: "-",
+      titleZoom: "-",
+      estimatedInkTop: null,
+      widgetOuterBottom: null,
+      widgetOuterLeft: null,
+      widgetOuterRight: null,
+      dividerBottom: null,
+      dividerTop: null,
+      widgetBlockExists: blockElements.some((block) => block.type === "widget"),
+      widgetData: null,
+      widgetIsLastBlockInVisualColumn: false,
+      widgetMarginBottom: "-",
+      widgetPaddingBottom: "-",
+      widgetToDividerGap: null,
+      widgetVisualColumnIndex: null,
+      widgetVisualIndex: null,
+      widgetVisualNext: null,
+    };
+  }
+
+  const { categoryElement, columnIndex, indexInVisualColumn, isLastBlockInVisualColumn, widgetElement } = target;
+  const dividerElement = categoryElement.querySelector<HTMLElement>(":scope > .cafe-a-menu-category-top-divider");
+  const categoryHeadingElement = categoryElement.querySelector<HTMLElement>("[data-cafe-a-category-heading]");
+  const categoryTitleElement = categoryElement.querySelector<HTMLElement>("[data-cafe-a-category-title-text]");
+  const firstItemElement = categoryElement.querySelector<HTMLElement>("[data-cafe-a-item-stack]");
+  const widgetRect = widgetElement.getBoundingClientRect();
+  const dividerRect = dividerElement?.getBoundingClientRect();
+  const categoryHeadingRect = categoryHeadingElement?.getBoundingClientRect();
+  const categoryTitleRect = categoryTitleElement?.getBoundingClientRect();
+  const firstItemRect = firstItemElement?.getBoundingClientRect();
+  const widgetStyle = getCafeADebugComputedSpacing(widgetElement);
+  const categoryStyle = getCafeADebugComputedSpacing(categoryElement);
+  const dividerStyle = getCafeADebugComputedSpacing(dividerElement);
+  const titleStyle = categoryTitleElement ? window.getComputedStyle(categoryTitleElement) : null;
+  const titleMetrics = getCafeADebugTitleTextMetrics(categoryTitleElement);
+  const menuElement = boardElement.querySelector<HTMLElement>("[data-cafe-a-fit-menu]") ?? boardElement;
+  const menuStyle = window.getComputedStyle(menuElement);
+
+  return {
+    categoryBlockExists: true,
+    categoryData: getCafeADebugSafeDataAttributes(categoryElement),
+    categoryMarginTop: categoryStyle.marginTop,
+    categoryPaddingTop: categoryStyle.paddingTop,
+    categoryTitleToFirstItemGap:
+      categoryHeadingRect && firstItemRect ? roundFitMetric(firstItemRect.top - categoryHeadingRect.bottom) : null,
+    categoryVisualColumnIndex: columnIndex,
+    categoryVisualIndex: indexInVisualColumn + 1,
+    categoryWrapperTop: roundFitMetric(categoryElement.getBoundingClientRect().top),
+    dividerDisplay: dividerStyle.display,
+    dividerBottom: dividerRect ? roundFitMetric(dividerRect.bottom) : null,
+    dividerExists: Boolean(dividerElement),
+    dividerHiddenByColumnStart: categoryElement.dataset.cafeACategoryDividerDesktopSuppressed === "true",
+    dividerMarginBottom: dividerStyle.marginBottom,
+    dividerMarginTop: dividerStyle.marginTop,
+    dividerLeft: dividerRect ? roundFitMetric(dividerRect.left) : null,
+    dividerRight: dividerRect ? roundFitMetric(dividerRect.right) : null,
+    dividerTop: dividerRect ? roundFitMetric(dividerRect.top) : null,
+    dividerToCategoryGap:
+      dividerRect && categoryHeadingRect ? roundFitMetric(categoryHeadingRect.top - dividerRect.bottom) : null,
+    dividerToEstimatedInkGap:
+      dividerRect && titleMetrics.estimatedInkTop != null ? roundFitMetric(titleMetrics.estimatedInkTop - dividerRect.bottom) : null,
+    firstItemTop: firstItemRect ? roundFitMetric(firstItemRect.top) : null,
+    glyphActualAscent: titleMetrics.actualBoundingBoxAscent,
+    glyphActualDescent: titleMetrics.actualBoundingBoxDescent,
+    glyphFontAscent: titleMetrics.fontBoundingBoxAscent,
+    glyphFontDescent: titleMetrics.fontBoundingBoxDescent,
+    lineBoxTopLeading: titleMetrics.lineBoxTopLeading,
+    parentColumnGap: menuStyle.columnGap,
+    parentRowGap: menuStyle.rowGap,
+    semanticGap: getCafeADebugStyleValue(boardElement, "--cafe-a-category-title-to-items-gap"),
+    titleFontFamily: titleStyle?.fontFamily ?? "-",
+    titleFontSize: titleStyle?.fontSize ?? "-",
+    titleFontWeight: titleStyle?.fontWeight ?? "-",
+    titleLineBoxBottom: categoryTitleRect ? roundFitMetric(categoryTitleRect.bottom) : null,
+    titleLineBoxHeight: categoryTitleRect ? roundFitMetric(categoryTitleRect.height) : null,
+    titleLineBoxLeft: categoryTitleRect ? roundFitMetric(categoryTitleRect.left) : null,
+    titleLineBoxRight: categoryTitleRect ? roundFitMetric(categoryTitleRect.right) : null,
+    titleLineBoxTop: categoryTitleRect ? roundFitMetric(categoryTitleRect.top) : null,
+    titleLineBoxWidth: categoryTitleRect ? roundFitMetric(categoryTitleRect.width) : null,
+    titleLineHeight: titleStyle?.lineHeight ?? "-",
+    titleLetterSpacing: titleStyle?.letterSpacing ?? "-",
+    titleTransform: titleStyle?.transform === "none" ? "none" : titleStyle?.transform ?? "-",
+    titleZoom: titleStyle?.getPropertyValue("zoom") || "-",
+    estimatedInkTop: titleMetrics.estimatedInkTop,
+    widgetBlockExists: true,
+    widgetData: getCafeADebugSafeDataAttributes(widgetElement),
+    widgetIsLastBlockInVisualColumn: isLastBlockInVisualColumn,
+    widgetMarginBottom: widgetStyle.marginBottom,
+    widgetOuterBottom: roundFitMetric(widgetRect.bottom),
+    widgetOuterLeft: roundFitMetric(widgetRect.left),
+    widgetOuterRight: roundFitMetric(widgetRect.right),
+    widgetPaddingBottom: widgetStyle.paddingBottom,
+    widgetToDividerGap: dividerRect ? roundFitMetric(dividerRect.top - widgetRect.bottom) : null,
+    widgetVisualColumnIndex: columnIndex,
+    widgetVisualIndex: indexInVisualColumn,
+    widgetVisualNext: widgetElement.dataset.cafeAVisualNextBlockType ?? null,
+  };
+}
+
 function getCafeADebugMetrics({
   boardElement,
   counters,
@@ -3852,6 +4240,7 @@ function getCafeADebugMetrics({
   const widgetBodyRect = widgetBodyElement?.getBoundingClientRect();
   const widgetBodySafe = Boolean(widgetBodyRect && widgetBodyRect.bottom <= safeBoundary - 1);
   const rootElement = document.querySelector<HTMLElement>(".cafe-a-typography") ?? boardElement;
+  const widgetToCategoryTransition = getCafeADebugWidgetToCategoryTransition(boardElement);
 
   return {
     routeKind: getCafeADebugRouteKind(),
@@ -3935,6 +4324,7 @@ function getCafeADebugMetrics({
       widgetMedia: boardElement.querySelectorAll("[data-cafe-a-widget-media]").length,
       widgetTitles: boardElement.querySelectorAll("[data-cafe-a-widget-title]").length,
     },
+    widgetToCategoryTransition,
   };
 }
 
@@ -3950,6 +4340,63 @@ function CafeADebugRectOutline({ className, rect }: { className: string; rect: C
         left: `${rect.left}px`,
         top: `${rect.top}px`,
         width: `${rect.width}px`,
+      }}
+    />
+  );
+}
+
+function getCafeADebugNumber(value: string | number | boolean | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function CafeADebugHorizontalLine({
+  className,
+  left,
+  right,
+  top,
+}: {
+  className: string;
+  left: number | null;
+  right: number | null;
+  top: number | null;
+}) {
+  if (left == null || right == null || top == null || right <= left) return null;
+
+  return (
+    <div
+      aria-hidden="true"
+      className={`pointer-events-none fixed z-[9998] border-t-2 ${className}`}
+      style={{
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${right - left}px`,
+      }}
+    />
+  );
+}
+
+function CafeADebugLineBoxFill({
+  bottom,
+  left,
+  right,
+  top,
+}: {
+  bottom: number | null;
+  left: number | null;
+  right: number | null;
+  top: number | null;
+}) {
+  if (left == null || right == null || top == null || bottom == null || right <= left || bottom <= top) return null;
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed z-[9997] bg-orange-400/25 ring-1 ring-orange-300/80"
+      style={{
+        height: `${bottom - top}px`,
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${right - left}px`,
       }}
     />
   );
@@ -4042,11 +4489,26 @@ function CafeADebugOverlay({
   const widgetCopyRect = metrics.rects.widgetCopy;
   const contentSafeBoundary = typeof metrics.rects.contentSafeBoundary === "number" ? metrics.rects.contentSafeBoundary : null;
   const footerSafeBoundary = typeof metrics.rects.footerSafeBoundary === "number" ? metrics.rects.footerSafeBoundary : null;
+  const transition = metrics.widgetToCategoryTransition;
+  const titleLineBoxLeft = getCafeADebugNumber(transition.titleLineBoxLeft);
+  const titleLineBoxRight = getCafeADebugNumber(transition.titleLineBoxRight);
+  const titleLineBoxTop = getCafeADebugNumber(transition.titleLineBoxTop);
+  const titleLineBoxBottom = getCafeADebugNumber(transition.titleLineBoxBottom);
+  const dividerLeft = getCafeADebugNumber(transition.dividerLeft);
+  const dividerRight = getCafeADebugNumber(transition.dividerRight);
+  const widgetGuideLeft = getCafeADebugNumber(transition.widgetOuterLeft);
+  const widgetGuideRight = getCafeADebugNumber(transition.widgetOuterRight);
 
   return (
     <div data-cafe-a-debug-overlay="" className="pointer-events-none fixed inset-0 z-[9999] font-mono text-[11px]">
       <CafeADebugRectOutline rect={widgetOuterRect} className="border-2 border-blue-400/90" />
       <CafeADebugRectOutline rect={widgetCopyRect} className="border-2 border-purple-400/90" />
+      <CafeADebugLineBoxFill left={titleLineBoxLeft} right={titleLineBoxRight} top={titleLineBoxTop} bottom={titleLineBoxBottom} />
+      <CafeADebugHorizontalLine className="border-blue-300" left={widgetGuideLeft} right={widgetGuideRight} top={getCafeADebugNumber(transition.widgetOuterBottom)} />
+      <CafeADebugHorizontalLine className="border-red-400" left={dividerLeft} right={dividerRight} top={getCafeADebugNumber(transition.dividerTop)} />
+      <CafeADebugHorizontalLine className="border-red-600" left={dividerLeft} right={dividerRight} top={getCafeADebugNumber(transition.dividerBottom)} />
+      <CafeADebugHorizontalLine className="border-emerald-300" left={titleLineBoxLeft} right={titleLineBoxRight} top={getCafeADebugNumber(transition.estimatedInkTop)} />
+      <CafeADebugHorizontalLine className="border-fuchsia-300" left={titleLineBoxLeft} right={titleLineBoxRight} top={getCafeADebugNumber(transition.firstItemTop)} />
       {contentSafeBoundary != null && <div aria-hidden="true" className="fixed left-0 right-0 z-[9998] border-t-2 border-emerald-400" style={{ top: `${contentSafeBoundary}px` }} />}
       {footerSafeBoundary != null && <div aria-hidden="true" className="fixed left-0 right-0 z-[9998] border-t-2 border-red-500" style={{ top: `${footerSafeBoundary}px` }} />}
       <div className="pointer-events-auto absolute left-3 top-3 max-h-[calc(100vh-24px)] w-[420px] max-w-[calc(100vw-24px)] overflow-auto rounded bg-black/86 p-3 leading-5 text-white shadow-xl">
@@ -4075,10 +4537,23 @@ function CafeADebugOverlay({
         <div>safe lines: content {String(metrics.rects.contentSafeBoundary)} / footer {String(metrics.rects.footerSafeBoundary)}</div>
         <div>css: display {metrics.computedCss.display} · break {metrics.computedCss.breakInside} · overflow {metrics.computedCss.overflow}</div>
         <div>parent columns: {metrics.computedCss.parentColumnCount} / {metrics.computedCss.parentColumnFill}</div>
+        <div className="mt-2 border-t border-white/20 pt-2 font-bold">widget → category</div>
+        <div>target: w {String(metrics.widgetToCategoryTransition.widgetBlockExists)} · c {String(metrics.widgetToCategoryTransition.categoryBlockExists)} · divider {String(metrics.widgetToCategoryTransition.dividerExists)}</div>
+        <div>visual: col {String(metrics.widgetToCategoryTransition.widgetVisualColumnIndex)} · idx {String(metrics.widgetToCategoryTransition.widgetVisualIndex)} → {String(metrics.widgetToCategoryTransition.categoryVisualIndex)} · next {String(metrics.widgetToCategoryTransition.widgetVisualNext)}</div>
+        <div>gaps: widget→divider {String(metrics.widgetToCategoryTransition.widgetToDividerGap)} · divider→title {String(metrics.widgetToCategoryTransition.dividerToCategoryGap)} · title→item {String(metrics.widgetToCategoryTransition.categoryTitleToFirstItemGap)}</div>
+        <div>ink: divider→ink {String(metrics.widgetToCategoryTransition.dividerToEstimatedInkGap)} · top leading {String(metrics.widgetToCategoryTransition.lineBoxTopLeading)} · ink top {String(metrics.widgetToCategoryTransition.estimatedInkTop)}</div>
+        <div>title box: top {String(metrics.widgetToCategoryTransition.titleLineBoxTop)} · bottom {String(metrics.widgetToCategoryTransition.titleLineBoxBottom)} · h {String(metrics.widgetToCategoryTransition.titleLineBoxHeight)}</div>
+        <div>title css: fs {String(metrics.widgetToCategoryTransition.titleFontSize)} · lh {String(metrics.widgetToCategoryTransition.titleLineHeight)} · weight {String(metrics.widgetToCategoryTransition.titleFontWeight)}</div>
+        <div>semantic: {String(metrics.widgetToCategoryTransition.semanticGap)} · widget mb {String(metrics.widgetToCategoryTransition.widgetMarginBottom)} · divider mb {String(metrics.widgetToCategoryTransition.dividerMarginBottom)}</div>
+        <div>category divider hidden: {String(metrics.widgetToCategoryTransition.dividerHiddenByColumnStart)} · display {String(metrics.widgetToCategoryTransition.dividerDisplay)}</div>
         <div>selector counts: {JSON.stringify(metrics.selectorCounts)}</div>
         <details className="mt-2">
           <summary className="cursor-pointer font-bold">parent chain</summary>
           <pre className="mt-1 whitespace-pre-wrap text-[10px] leading-4">{JSON.stringify(metrics.parentChain, null, 2)}</pre>
+        </details>
+        <details className="mt-2">
+          <summary className="cursor-pointer font-bold">widget/category transition</summary>
+          <pre className="mt-1 whitespace-pre-wrap text-[10px] leading-4">{JSON.stringify(metrics.widgetToCategoryTransition, null, 2)}</pre>
         </details>
       </div>
     </div>
@@ -4546,8 +5021,8 @@ function MenuCategoryContentBlock({
   timeSaleByItemId,
   priceDisplayMode,
   onOpenImage,
-  hasDivider,
-  isTerminalDivider,
+  suppressDesktopColumnStartDivider,
+  visualNextBlockType,
   balancedSourceOrder,
 }: {
   block: CafeDesignACategoryContentBlock;
@@ -4559,8 +5034,8 @@ function MenuCategoryContentBlock({
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
-  hasDivider: boolean;
-  isTerminalDivider?: boolean;
+  suppressDesktopColumnStartDivider?: boolean;
+  visualNextBlockType?: CafeDesignAContentBlockType | null;
   balancedSourceOrder?: number;
 }) {
   const groupKey = block.key;
@@ -4579,14 +5054,24 @@ function MenuCategoryContentBlock({
   return (
     <section
       key={groupKey}
-      className={getCategoryBlockClassName(hasDivider, isTerminalDivider)}
+      className={getCategoryBlockClassName()}
       data-cafe-a-category-block=""
       data-cafe-a-block-type="category"
-      data-cafe-a-category-divider={hasDivider ? "true" : undefined}
+      data-cafe-a-category-divider-before={block.showDividerBeforeCategory ? "true" : undefined}
+      data-cafe-a-category-divider-desktop-suppressed={suppressDesktopColumnStartDivider ? "true" : undefined}
       data-cafe-a-previous-block-type={block.previousVisibleBlockType ?? undefined}
       data-cafe-a-next-block-type={block.nextVisibleBlockType ?? undefined}
+      data-cafe-a-visual-next-block-type={visualNextBlockType ?? undefined}
       {...balancedAttributes}
     >
+      {block.showDividerBeforeCategory ? (
+        <div
+          className="cafe-a-menu-category-top-divider"
+          aria-hidden="true"
+          data-cafe-a-category-divider=""
+          data-cafe-a-category-divider-position="before"
+        />
+      ) : null}
       <CategoryTitle category={block.category} density={density} items={block.items} />
       <div className="cafe-a-category-items">
         {block.items.map((item) => (
@@ -4616,11 +5101,13 @@ function MenuWidgetContentBlock({
   block,
   data,
   capabilities,
+  visualNextBlockType,
   balancedSourceOrder,
 }: {
   block: CafeDesignAWidgetContentBlock;
   data: PublicMenuTemplateProps;
   capabilities: TemplateCapabilities;
+  visualNextBlockType?: CafeDesignAContentBlockType | null;
   balancedSourceOrder?: number;
 }) {
   const balancedAttributes =
@@ -4642,6 +5129,7 @@ function MenuWidgetContentBlock({
       data-cafe-a-block-type="widget"
       data-cafe-a-previous-block-type={block.previousVisibleBlockType ?? undefined}
       data-cafe-a-next-block-type={block.nextVisibleBlockType ?? undefined}
+      data-cafe-a-visual-next-block-type={visualNextBlockType ?? undefined}
       {...balancedAttributes}
     >
       <CafeAWidgetBlock widget={block.widget} />
@@ -4659,8 +5147,8 @@ function MenuContentBlock({
   timeSaleByItemId,
   priceDisplayMode,
   onOpenImage,
-  hasDivider,
-  isTerminalDivider,
+  suppressDesktopColumnStartDivider,
+  visualNextBlockType,
   balancedSourceOrder,
 }: {
   block: CafeDesignAContentBlock;
@@ -4672,12 +5160,20 @@ function MenuContentBlock({
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
-  hasDivider: boolean;
-  isTerminalDivider?: boolean;
+  suppressDesktopColumnStartDivider?: boolean;
+  visualNextBlockType?: CafeDesignAContentBlockType | null;
   balancedSourceOrder?: number;
 }) {
   if (block.blockType === "widget") {
-    return <MenuWidgetContentBlock block={block} data={data} capabilities={capabilities} balancedSourceOrder={balancedSourceOrder} />;
+    return (
+      <MenuWidgetContentBlock
+        block={block}
+        data={data}
+        capabilities={capabilities}
+        visualNextBlockType={visualNextBlockType}
+        balancedSourceOrder={balancedSourceOrder}
+      />
+    );
   }
 
   return (
@@ -4691,8 +5187,8 @@ function MenuContentBlock({
       timeSaleByItemId={timeSaleByItemId}
       priceDisplayMode={priceDisplayMode}
       onOpenImage={onOpenImage}
-      hasDivider={hasDivider}
-      isTerminalDivider={isTerminalDivider}
+      suppressDesktopColumnStartDivider={suppressDesktopColumnStartDivider}
+      visualNextBlockType={visualNextBlockType}
       balancedSourceOrder={balancedSourceOrder}
     />
   );
@@ -4750,8 +5246,6 @@ function MenuGroupsGrid({
             </section>
           )}
           {pageGroup.blocks.map((block) => {
-            const hasDivider = block.blockType === "category" && block.showCategoryDivider;
-
             return (
               <MenuContentBlock
                 key={block.key}
@@ -4764,7 +5258,6 @@ function MenuGroupsGrid({
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={onOpenImage}
-                hasDivider={hasDivider}
               />
             );
           })}
@@ -4825,9 +5318,7 @@ function BalancedExperimentalMenuGrid({
     >
       {balancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
-          {column.blocks.map((block) => {
-            const hasDivider = block.blockType === "category" && block.showCategoryDivider;
-
+          {column.blocks.map((block, blockIndex) => {
             return (
               <MenuContentBlock
                 key={block.key}
@@ -4840,7 +5331,8 @@ function BalancedExperimentalMenuGrid({
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={onOpenImage}
-                hasDivider={hasDivider}
+                suppressDesktopColumnStartDivider={block.blockType === "category" && blockIndex === 0}
+                visualNextBlockType={column.blocks[blockIndex + 1]?.blockType ?? null}
                 balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
               />
             );
@@ -4903,9 +5395,7 @@ function OrderedBalancedFitMenuGrid({
     >
       {orderedBalancedColumns.map((column, columnIndex) => (
         <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
-          {column.blocks.map((block) => {
-            const hasDivider = block.blockType === "category" && block.showCategoryDivider;
-
+          {column.blocks.map((block, blockIndex) => {
             return (
               <MenuContentBlock
                 key={block.key}
@@ -4918,7 +5408,8 @@ function OrderedBalancedFitMenuGrid({
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={onOpenImage}
-                hasDivider={hasDivider}
+                suppressDesktopColumnStartDivider={block.blockType === "category" && blockIndex === 0}
+                visualNextBlockType={column.blocks[blockIndex + 1]?.blockType ?? null}
                 balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
               />
             );
@@ -5008,6 +5499,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
+
   const timeSaleByItemId = useMemo(
     () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key, timeSaleBoundaryNowMs),
     [data.menuSite.template_key, data.timeSales, timeSaleBoundaryNowMs],
@@ -5166,6 +5658,52 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       resizeObserver.disconnect();
     };
   }, [hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, visibleFitBlockCount]);
+
+  useLayoutEffect(() => {
+    const menuElement = desktopFitMenuRef.current;
+    if (!menuElement) return;
+    if (layoutMode !== "orderedFit") return;
+
+    let frameId = 0;
+    let cancelled = false;
+
+    const sync = () => {
+      if (cancelled) return;
+      syncOrderedFitColumnStartCategoryDividers(menuElement);
+    };
+
+    const scheduleSync = () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(() => {
+        sync();
+        frameId = window.requestAnimationFrame(sync);
+      });
+    };
+
+    scheduleSync();
+    const resizeObserver = new ResizeObserver(scheduleSync);
+    resizeObserver.observe(menuElement);
+    if (desktopFitBoardRef.current) {
+      resizeObserver.observe(desktopFitBoardRef.current);
+    }
+
+    return () => {
+      cancelled = true;
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+      resizeObserver.disconnect();
+    };
+  }, [
+    layoutMode,
+    renderFitState.columns,
+    renderFitState.fontScale,
+    renderFitState.gapScale,
+    orderedFitFinalFillCompensation,
+    layoutInputSignature,
+  ]);
 
   useEffect(() => {
     const boardElement = desktopFitBoardRef.current;

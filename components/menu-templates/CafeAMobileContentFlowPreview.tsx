@@ -5,6 +5,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import CafeACategoryPreviewBlock from "@/components/menu-templates/CafeACategoryPreviewBlock";
 import CafeAWidgetBlock from "@/components/menu-templates/CafeAWidgetBlock";
 import {
+  shouldShowCafeACategoryPreviewDivider,
   sortCafeAContentBlocks,
   type CafeAContentBlock,
 } from "@/components/menu-templates/cafe-a-content-blocks";
@@ -15,7 +16,7 @@ type MobileContentDiagnostics = {
   blockOrder: string;
   visibleBlockCount: number;
   categoryDividerCount: number;
-  terminalCategoryDivider: boolean;
+  lastCategoryTopDivider: boolean;
   horizontalOverflow: boolean;
   nestedScroll: boolean;
   cropCount: number;
@@ -94,7 +95,7 @@ export default function CafeAMobileContentFlowPreview({ blocks, pages }: CafeAMo
       );
     }).length;
     const lastVisibleBlock = blockElements.at(-1);
-    const terminalCategoryDivider =
+    const lastCategoryTopDivider =
       lastVisibleBlock?.dataset.cafeAMobileBlockType === "category" &&
       Boolean(lastVisibleBlock.querySelector("[data-cafe-a-category-divider]"));
     const horizontalOverflow =
@@ -108,7 +109,7 @@ export default function CafeAMobileContentFlowPreview({ blocks, pages }: CafeAMo
         .join(" > "),
       visibleBlockCount: blockElements.length,
       categoryDividerCount: dividerElements.length,
-      terminalCategoryDivider,
+      lastCategoryTopDivider,
       horizontalOverflow,
       nestedScroll,
       cropCount,
@@ -138,7 +139,10 @@ export default function CafeAMobileContentFlowPreview({ blocks, pages }: CafeAMo
                     data-cafe-a-mobile-block-id={block.id}
                     data-cafe-a-mobile-source-order={blockIndex}
                   >
-                    <CafeACategoryPreviewBlock block={block} showDivider />
+                    <CafeACategoryPreviewBlock
+                      block={block}
+                      showDividerBeforeCategory={shouldShowCafeACategoryPreviewDivider(visibleBlocks, blockIndex)}
+                    />
                   </div>
                 );
               }
@@ -168,8 +172,8 @@ export default function CafeAMobileContentFlowPreview({ blocks, pages }: CafeAMo
         <div className={styles.diagnosticRow}>
           <dt className={styles.diagnosticTerm}>blocks</dt>
           <dd className={styles.diagnosticValue}>
-            visible {diagnostics?.visibleBlockCount ?? 0} / dividers {diagnostics?.categoryDividerCount ?? 0} / terminal category{" "}
-            {diagnostics?.terminalCategoryDivider ? "yes" : "no"}
+            visible {diagnostics?.visibleBlockCount ?? 0} / dividers {diagnostics?.categoryDividerCount ?? 0} / last category{" "}
+            {diagnostics?.lastCategoryTopDivider ? "top" : "none"}
           </dd>
         </div>
         <div className={styles.diagnosticRow}>

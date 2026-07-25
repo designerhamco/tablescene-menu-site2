@@ -4,7 +4,8 @@ import styles from "./CafeACategoryPreviewBlock.module.css";
 
 type CafeACategoryPreviewBlockProps = {
   block: CafeACategoryPreviewBlockType;
-  showDivider: boolean;
+  showDividerBeforeCategory: boolean;
+  suppressDesktopColumnStartDivider?: boolean;
   allowSplit?: boolean;
 };
 
@@ -12,13 +13,27 @@ function joinClassNames(...classNames: Array<string | false | null | undefined>)
   return classNames.filter(Boolean).join(" ");
 }
 
-export default function CafeACategoryPreviewBlock({ block, showDivider, allowSplit = false }: CafeACategoryPreviewBlockProps) {
+export default function CafeACategoryPreviewBlock({
+  block,
+  showDividerBeforeCategory,
+  suppressDesktopColumnStartDivider = false,
+  allowSplit = false,
+}: CafeACategoryPreviewBlockProps) {
   return (
     <section
       className={joinClassNames(styles.category, allowSplit && styles.categorySplit)}
       data-cafe-a-content-block="category"
       data-cafe-a-category-preview-block
+      data-cafe-a-category-divider-desktop-suppressed={suppressDesktopColumnStartDivider ? "true" : undefined}
     >
+      {showDividerBeforeCategory ? (
+        <div
+          className={styles.divider}
+          aria-hidden="true"
+          data-cafe-a-category-divider
+          data-cafe-a-category-divider-position="before"
+        />
+      ) : null}
       <div className={styles.heading} data-cafe-a-category-heading>
         <h3 className={styles.title}>{block.category.name}</h3>
       </div>
@@ -35,7 +50,6 @@ export default function CafeACategoryPreviewBlock({ block, showDivider, allowSpl
           </div>
         ))}
       </div>
-      {showDivider ? <div className={styles.divider} aria-hidden="true" data-cafe-a-category-divider /> : null}
     </section>
   );
 }

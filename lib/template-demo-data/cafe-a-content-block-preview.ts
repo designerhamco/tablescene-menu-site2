@@ -180,9 +180,6 @@ export const CAFE_A_CONTENT_BLOCK_VERTICAL_EMPHASIS_FIXTURE: CafeAContentBlock[]
   categoryBlock("vertical-dessert", 30, DESSERT_CATEGORY),
 ];
 
-export const CAFE_A_CONTENT_BLOCK_TERMINAL_DIVIDER_NOTICE =
-  "모바일 정책 검토용: 마지막 카테고리에도 divider를 표시했을 때 footer와 이어지는 리듬을 확인합니다.";
-
 export const CAFE_A_CONTENT_BLOCK_VERTICAL_NOTICE =
   "3:4 세로 위젯은 메뉴 열에서 높은 비중을 차지하므로 강조 콘텐츠에 제한적으로 사용하는 비율입니다.";
 
