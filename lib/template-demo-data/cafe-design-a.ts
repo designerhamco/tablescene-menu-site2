@@ -45,6 +45,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       id: "cafe-a-featured-jeju-matcha-cream-latte",
       image_url: CAFE_A_MATCHA_FEATURED_IMAGE,
       image_path: null,
+      featured_item_key: "jeju-matcha-cream-latte",
       featured_item_name: "제주 말차 크림 라떼",
       sort_order: 0,
     },
@@ -52,6 +53,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       id: "cafe-a-featured-nutty-cream-latte",
       image_url: CAFE_A_NUTTY_FEATURED_IMAGE,
       image_path: null,
+      featured_item_key: "nutty-cream-latte",
       featured_item_name: "너티 크림 라떼",
       sort_order: 1,
     },
@@ -59,12 +61,14 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       id: "cafe-a-featured-black-sesame-cream-latte",
       image_url: CAFE_A_BLACK_SESAME_FEATURED_IMAGE,
       image_path: null,
+      featured_item_key: "black-sesame-cream-latte",
       featured_item_name: "흑임자 크림 라떼",
       sort_order: 2,
     },
   ],
   time_sales: [
     {
+      key: "americano-morning-deal",
       name: "아메리카노 모닝딜",
       schedule_type: "once",
       badge_text: "모닝딜",
@@ -72,29 +76,62 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       time_display_mode: "message",
       time_display_text: "매일 오전 8시부터 10시까지",
       targets: [
-        { target_item_name: "아메리카노", target_price_column_key: "hot", sale_price: 2500 },
-        { target_item_name: "아메리카노", target_price_column_key: "ice", sale_price: 3000 },
+        { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "hot", sale_price: 2500 },
+        { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "ice", sale_price: 3000 },
       ],
     },
     {
+      key: "classic-butter-scone-closeout",
       name: "클래식 버터 스콘 재고 마감",
       schedule_type: "once",
       duration_minutes: 60,
       badge_text: "재고 마감",
       badge_background_color: CAFE_A_STARTER_TIME_SALE_ACCENT,
       time_display_mode: "countdown",
-      targets: [{ target_item_name: "클래식 버터 스콘", sale_price: 2200 }],
+      targets: [{ target_item_key: "classic-butter-scone", target_item_name: "클래식 버터 스콘", sale_price: 2200 }],
     },
+  ],
+  widgets: [
+    {
+      key: "today-notice",
+      page_key: "main-menu",
+      type: "image_text",
+      title: "오늘의 안내",
+      description: "매장에서 준비한 메뉴와 안내를 확인해 보세요.",
+      image_url: CAFE_A_MATCHA_ITEM_IMAGE,
+      image_path: null,
+      visible: true,
+      sort_order: 0,
+      settings: {
+        aspectRatio: "3:2",
+        objectFit: "cover",
+        textAlign: "left",
+        altText: "제주 말차 크림 라떼",
+      },
+    },
+  ],
+  mixed_content_order: [
+    { block_type: "category", page_key: "main-menu", category_key: "signature-coffee", sort_order: 0 },
+    { block_type: "category", page_key: "main-menu", category_key: "classic-coffee", sort_order: 1 },
+    { block_type: "category", page_key: "main-menu", category_key: "non-coffee", sort_order: 2 },
+    { block_type: "category", page_key: "main-menu", category_key: "tea", sort_order: 3 },
+    { block_type: "category", page_key: "main-menu", category_key: "ade", sort_order: 4 },
+    { block_type: "widget", page_key: "main-menu", widget_key: "today-notice", sort_order: 5 },
+    { block_type: "category", page_key: "main-menu", category_key: "bakery", sort_order: 6 },
+    { block_type: "category", page_key: "main-menu", category_key: "dessert", sort_order: 7 },
   ],
   pages: [
     {
+      key: "main-menu",
       title: "메뉴 페이지 1",
       legacy_section_key: "main_menu",
       categories: [
         {
+          key: "signature-coffee",
           name: "SIGNATURE COFFEE",
           items: [
             {
+              key: "jeju-matcha-cream-latte",
               name: "제주 말차 크림 라떼",
               set_name: "JEJU MATCHA CREAM LATTE",
               price: 5800,
@@ -105,6 +142,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_note: "ICE ONLY",
             },
             {
+              key: "nutty-cream-latte",
               name: "너티 크림 라떼",
               set_name: "NUTTY CREAM LATTE",
               price: 5500,
@@ -115,6 +153,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_note: "ICE ONLY",
             },
             {
+              key: "black-sesame-cream-latte",
               name: "흑임자 크림 라떼",
               set_name: "BLACK SESAME CREAM LATTE",
               price: 5800,
@@ -125,12 +164,14 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
           ],
         },
         {
+          key: "classic-coffee",
           name: "CLASSIC COFFEE",
           description: "원두 선택: 고소한 블렌드 / 산뜻한 싱글오리진 / 디카페인 +500원",
           description_visible: true,
           price_columns: HOT_ICE_COLUMNS,
           items: [
             {
+              key: "americano",
               name: "아메리카노",
               set_name: "AMERICANO",
               price: 3500,
@@ -138,6 +179,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(3500, 4000),
             },
             {
+              key: "cafe-latte",
               name: "카페 라떼",
               set_name: "CAFE LATTE",
               price: 4000,
@@ -145,6 +187,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(4000, 4500),
             },
             {
+              key: "vanilla-bean-latte",
               name: "바닐라 빈 라떼",
               set_name: "VANILLA BEAN LATTE",
               price: 4800,
@@ -152,6 +195,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(4800, 5300),
             },
             {
+              key: "flat-white",
               name: "플랫 화이트",
               set_name: "FLAT WHITE",
               price: 4300,
@@ -159,6 +203,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(4300, 4800),
             },
             {
+              key: "cold-brew",
               name: "콜드브루",
               set_name: "COLD BREW",
               price: 4500,
@@ -168,11 +213,13 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
           ],
         },
         {
+          key: "non-coffee",
           name: "NON-COFFEE",
           section_key: "dessert_drink",
           price_columns: HOT_ICE_COLUMNS,
           items: [
             {
+              key: "valrhona-choco-latte",
               name: "발로나 초코 라떼",
               set_name: "VALRHONA CHOCO LATTE",
               price: 5000,
@@ -180,6 +227,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(5000, 5500),
             },
             {
+              key: "sweet-potato-latte",
               name: "고구마 라떼",
               set_name: "SWEET POTATO LATTE",
               price: 4800,
@@ -188,6 +236,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(4800, 5300),
             },
             {
+              key: "black-tea-milk-tea",
               name: "블랙티 밀크티",
               set_name: "BLACK TEA MILK TEA",
               price: 4800,
@@ -197,11 +246,13 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
           ],
         },
         {
+          key: "tea",
           name: "TEA",
           section_key: "dessert_drink",
           price_columns: HOT_ICE_COLUMNS,
           items: [
             {
+              key: "organic-chamomile",
               name: "유기농 캐모마일",
               set_name: "ORGANIC CHAMOMILE",
               price: 4300,
@@ -209,6 +260,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(4300, 4800),
             },
             {
+              key: "earl-grey-reserve",
               name: "얼그레이 리저브",
               set_name: "EARL GREY RESERVE",
               price: 4300,
@@ -216,6 +268,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_column_values: hotIce(4300, 4800),
             },
             {
+              key: "jeju-yuja-tea",
               name: "제주 유자차",
               set_name: "JEJU YUJA TEA",
               price: 4800,
@@ -226,10 +279,12 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
           ],
         },
         {
+          key: "ade",
           name: "ADE",
           section_key: "dessert_drink",
           items: [
             {
+              key: "lemon-basil-ade",
               name: "레몬 바질 에이드",
               set_name: "LEMON BASIL ADE",
               price: 5500,
@@ -237,6 +292,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_note: "ICE ONLY",
             },
             {
+              key: "grapefruit-ade",
               name: "자몽 에이드",
               set_name: "GRAPEFRUIT ADE",
               price: 5300,
@@ -244,6 +300,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price_note: "ICE ONLY",
             },
             {
+              key: "green-tangerine-ade",
               name: "청귤 에이드",
               set_name: "GREEN TANGERINE ADE",
               price: 5300,
@@ -253,28 +310,33 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
           ],
         },
         {
+          key: "bakery",
           name: "BAKERY",
           section_key: "dessert_drink",
           items: [
             {
+              key: "classic-butter-scone",
               name: "클래식 버터 스콘",
               set_name: "CLASSIC BUTTER SCONE",
               price: 3200,
               description: "프랑스산 고메버터 풍미",
             },
             {
+              key: "salt-bread",
               name: "소금빵",
               set_name: "SALT BREAD",
               price: 2500,
               description: "짭조름한 버터 풍미의 담백한 빵",
             },
             {
+              key: "almond-croissant",
               name: "아몬드 크루아상",
               set_name: "ALMOND CROISSANT",
               price: 3800,
               description: "고소한 아몬드 크림을 채운 크루아상",
             },
             {
+              key: "financier",
               name: "휘낭시에",
               set_name: "FINANCIER",
               price: 1800,
@@ -283,16 +345,19 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
           ],
         },
         {
+          key: "dessert",
           name: "DESSERT",
           section_key: "dessert_drink",
           items: [
             {
+              key: "black-sesame-basque-cheesecake",
               name: "흑임자 바스크 치즈케이크",
               set_name: "BLACK SESAME BASQUE CHEESECAKE",
               price: 6200,
               description: "진한 흑임자 크림치즈 케이크",
             },
             {
+              key: "tiramisu",
               name: "티라미수",
               set_name: "TIRAMISU",
               price: 5800,
@@ -300,12 +365,14 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               badge_label: "NEW",
             },
             {
+              key: "lemon-pound-cake",
               name: "레몬 파운드케이크",
               set_name: "LEMON POUND CAKE",
               price: 3800,
               description: "상큼한 레몬 아이싱",
             },
             {
+              key: "chocolate-terrine",
               name: "초콜릿 테린느",
               set_name: "CHOCOLATE TERRINE",
               price: 5800,

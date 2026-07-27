@@ -20,12 +20,19 @@ import {
   type TimeSaleDisplayMode,
 } from "@/lib/menu-time-sales";
 import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
+import type {
+  MenuWidgetAspectRatio,
+  MenuWidgetObjectFit,
+  MenuWidgetTextAlign,
+  MenuWidgetType,
+} from "@/lib/menu-widgets";
 
 export { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 
 export type StarterPresetKey = TemplateCategoryKey;
 
-type StarterItem = {
+export type StarterItem = {
+  key?: string;
   name: string;
   set_name?: string;
   price: number;
@@ -36,30 +43,32 @@ type StarterItem = {
   image_url?: string | null;
   badge_label?: string | null;
   recommended?: boolean;
+  is_sold_out?: boolean;
   price_options?: StarterPriceOption[];
   price_column_values?: StarterItemPriceColumnValue[];
 };
 
-type StarterPriceOption = {
+export type StarterPriceOption = {
   label: string;
   price?: number;
   price_label?: string;
 };
 
-type StarterCategoryPriceColumn = {
+export type StarterCategoryPriceColumn = {
   key: string;
   label: string;
   visible?: boolean;
 };
 
-type StarterItemPriceColumnValue = {
+export type StarterItemPriceColumnValue = {
   key: string;
   price?: number | null;
   price_label?: string | null;
   visible?: boolean;
 };
 
-type StarterCategory = {
+export type StarterCategory = {
+  key?: string;
   name: string;
   section_key?: MenuSectionKey;
   description?: string | null;
@@ -68,7 +77,8 @@ type StarterCategory = {
   items: StarterItem[];
 };
 
-type StarterPage = {
+export type StarterPage = {
+  key?: string;
   title: string;
   legacy_section_key: MenuSectionKey;
   categories: StarterCategory[];
@@ -122,11 +132,13 @@ export type StarterFeaturedSlide = {
   id: string;
   image_url: string;
   image_path?: string | null;
+  featured_item_key?: string;
   featured_item_name: string;
   sort_order: number;
 };
 
 export type StarterTimeSale = {
+  key?: string;
   name: string;
   targets?: StarterTimeSaleTarget[];
   schedule_type?: TimeSaleScheduleType;
@@ -140,11 +152,46 @@ export type StarterTimeSale = {
 };
 
 export type StarterTimeSaleTarget = {
+  target_item_key?: string;
   target_item_name: string;
   target_price_column_key?: string | null;
   sale_price: number;
   sale_price_label?: string | null;
 };
+
+export type StarterWidget = {
+  key: string;
+  page_key?: string;
+  type: MenuWidgetType;
+  title?: string | null;
+  description?: string | null;
+  image_url?: string | null;
+  image_path?: string | null;
+  sort_order?: number;
+  visible?: boolean;
+  settings?: {
+    aspectRatio?: MenuWidgetAspectRatio;
+    objectFit?: MenuWidgetObjectFit;
+    textAlign?: MenuWidgetTextAlign;
+    altText?: string;
+  };
+};
+
+export type StarterMixedContentBlock =
+  | {
+      block_type: "category";
+      page_key?: string;
+      category_key: string;
+      sort_order?: number;
+      visible?: boolean;
+    }
+  | {
+      block_type: "widget";
+      page_key?: string;
+      widget_key: string;
+      sort_order?: number;
+      visible?: boolean;
+    };
 
 export type ResolvedStarterFeaturedSlide = {
   id: string;
@@ -157,9 +204,13 @@ export type ResolvedStarterFeaturedSlide = {
 export type StarterPreset = {
   key: StarterPresetKey;
   site: StarterSiteDefaults;
+  template_key?: string;
   featured_item_name?: string;
+  featured_item_key?: string;
   featured_slides?: StarterFeaturedSlide[];
   time_sales?: StarterTimeSale[];
+  widgets?: StarterWidget[];
+  mixed_content_order?: StarterMixedContentBlock[];
   sample_items_visible?: boolean;
   chefs: StarterChef[];
   events: StarterEvent[];
@@ -289,6 +340,19 @@ function cloneStarterTimeSales(value: unknown): StarterTimeSale[] | undefined {
   return value.map((timeSale) => ({ ...(timeSale as StarterTimeSale) }));
 }
 
+function cloneStarterWidgets(value: unknown): StarterWidget[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((widget) => ({
+    ...(widget as StarterWidget),
+    settings: (widget as StarterWidget).settings ? { ...(widget as StarterWidget).settings } : undefined,
+  }));
+}
+
+function cloneStarterMixedContentOrder(value: unknown): StarterMixedContentBlock[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((block) => ({ ...(block as StarterMixedContentBlock) }));
+}
+
 function getStarterTimeSaleCampaignWindow(timeSale?: StarterTimeSale, now = new Date()) {
   const start = Number.isFinite(now.getTime()) ? now : new Date();
   const end = new Date(start.getTime());
@@ -345,20 +409,26 @@ export function getFirstCompleteStarterFeaturedSlide(slides: ResolvedStarterFeat
 
 const cafeDesignAStarterPreset: StarterPreset = {
   key: "cafe",
+  template_key: "cafe_design_a",
   site: CAFE_DESIGN_A_STITCH_SAMPLE.site,
   featured_item_name: "제주 말차 크림 라떼",
+  featured_item_key: "jeju-matcha-cream-latte",
   featured_slides: CAFE_DESIGN_A_STITCH_SAMPLE.featured_slides.map((slide) => ({ ...slide })),
   time_sales: cloneStarterTimeSales(CAFE_DESIGN_A_STITCH_SAMPLE.time_sales),
+  widgets: cloneStarterWidgets(CAFE_DESIGN_A_STITCH_SAMPLE.widgets),
+  mixed_content_order: cloneStarterMixedContentOrder(CAFE_DESIGN_A_STITCH_SAMPLE.mixed_content_order),
   sample_items_visible: true,
   chefs: [],
   events: [],
   socialLinks: [],
   pages: [
     {
+      key: "main-menu",
       title: "메뉴 페이지 1",
       legacy_section_key: "main_menu",
       categories: CAFE_DESIGN_A_STITCH_SAMPLE.pages.flatMap((page) =>
         page.categories.map((category) => ({
+          key: "key" in category ? category.key : undefined,
           name: category.name,
           section_key: "section_key" in category ? (category.section_key as MenuSectionKey) : (page.legacy_section_key as MenuSectionKey),
           description: "description" in category ? category.description : undefined,
@@ -367,6 +437,7 @@ const cafeDesignAStarterPreset: StarterPreset = {
           items: category.items.map((menuItem) => {
             const sourceItem = menuItem as Partial<StarterItem> & Pick<StarterItem, "name" | "price" | "description">;
             return {
+              key: sourceItem.key,
               name: sourceItem.name,
               set_name: sourceItem.set_name,
               price: sourceItem.price,
@@ -377,6 +448,7 @@ const cafeDesignAStarterPreset: StarterPreset = {
               image_url: sourceItem.image_url,
               badge_label: sourceItem.badge_label,
               recommended: sourceItem.recommended,
+              is_sold_out: sourceItem.is_sold_out ?? false,
               price_options: cloneStarterPriceOptions(sourceItem.price_options),
               price_column_values: cloneStarterPriceColumnValues(sourceItem.price_column_values),
             };
@@ -1585,6 +1657,7 @@ export async function createStarterMenuData(
         image_path: null,
         badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
         recommended: menuItem.recommended ?? false,
+        is_sold_out: menuItem.is_sold_out ?? false,
         price_visible: true,
         portion_visible: Boolean(menuItem.portion_label),
         traits_visible: true,
