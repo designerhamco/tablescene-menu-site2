@@ -68,6 +68,7 @@ type PublicTimeSaleItem = PublicTimeSale["items"][number];
 type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]>[number];
 type PublicMenuWidget = NonNullable<PublicMenuTemplateProps["widgets"]>[number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
+type CafeDesignALocale = PublicMenuTemplateProps["locale"];
 type CafeDesignAFeaturedHeroSlide = {
   id: string;
   imageUrl: string | null;
@@ -102,6 +103,12 @@ function useCafeATimeSaleInitialNowMs() {
   return useContext(CafeATimeSaleInitialNowContext);
 }
 const CAFE_A_TIME_SALE_ACCENT = "#C62828";
+const CAFE_A_SOLD_OUT_LABELS: Record<CafeDesignALocale, string> = {
+  ko: "품절",
+  en: "SOLD OUT",
+  zh: "售罄",
+  ja: "売り切れ",
+};
 const FEATURED_CAROUSEL_INTERVAL_MS = 5000;
 const FEATURED_CAROUSEL_DRAG_START_THRESHOLD_PX = 6;
 const FEATURED_CAROUSEL_SWIPE_THRESHOLD_PX = 40;
@@ -2086,6 +2093,10 @@ function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
   return templateKey === "cafe_design_a";
 }
 
+function getCafeASoldOutLabel(locale: CafeDesignALocale) {
+  return CAFE_A_SOLD_OUT_LABELS[locale] ?? CAFE_A_SOLD_OUT_LABELS[DEFAULT_LOCALE];
+}
+
 function getSafeDateMs(value: string | null | undefined) {
   if (!value) return NaN;
   const ms = new Date(value).getTime();
@@ -3031,8 +3042,12 @@ function Badge({
   );
 }
 
-function SoldOutBadge() {
-  return <span className="menu-badge cafe-a-menu-badge inline-flex rounded-none bg-[#e1e3e0] px-1.5 py-1 font-black uppercase leading-none text-[#3f4945]">품절</span>;
+function SoldOutBadge({ locale, className = "" }: { locale: CafeDesignALocale; className?: string }) {
+  return (
+    <span className={`menu-badge cafe-a-menu-badge cafe-a-sold-out-chip inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}>
+      {getCafeASoldOutLabel(locale)}
+    </span>
+  );
 }
 
 function HeroOverlayBadge({
@@ -3088,9 +3103,11 @@ function MenuItemRow({
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
+  const isSoldOut = item.is_sold_out === true;
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const singleTimeSaleItem = timeSale?.item;
   const showTimeSale =
+    !isSoldOut &&
     !usesPriceColumns &&
     isCafeDesignATimeSaleTemplate(templateKey) &&
     item.price_visible !== false &&
@@ -3109,6 +3126,7 @@ function MenuItemRow({
         const saleTarget = token.priceColumnId ? timeSale?.optionItemsByPriceColumnId.get(token.priceColumnId) : undefined;
         const salePrice = saleTarget?.salePrice;
         const showColumnTimeSale =
+          !isSoldOut &&
           isCafeDesignATimeSaleTemplate(templateKey) &&
           timeSale &&
           isTimeSaleCurrentlyActive(timeSale.promotion, initialNowMs) &&
@@ -3200,40 +3218,47 @@ function MenuItemRow({
       event.currentTarget,
     );
   }, [imageUrl, item.name, onOpenImage, trimmedMetaText]);
+  const titleTextColorClassName = isSoldOut ? "cafe-a-sold-out-text" : "text-[#191c1b]";
+  const metaTextColorClassName = isSoldOut ? "cafe-a-sold-out-muted" : "text-[#333333]";
+  const descriptionTextColorClassName = isSoldOut ? "cafe-a-sold-out-muted" : "text-[#3f4945]";
+  const priceTextColorClassName = isSoldOut ? "cafe-a-sold-out-text" : "text-[#191c1b]";
+  const priceMutedColorClassName = isSoldOut ? "cafe-a-sold-out-muted" : "text-[#191c1b]/45";
+  const showSoldOutBadge = isSoldOut;
+  const showRegularBadge = !isSoldOut && !showMenuTimeSale;
 
   const menuCopyElement = (
     <div className="cafe-a-menu-copy min-w-0">
       <div className={`cafe-a-menu-title-row ${titleRowSpacingClassName} flex flex-wrap items-center gap-1.5`}>
-        <h3 className={`cafe-a-menu-title break-words font-bold leading-snug text-[#191c1b] ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
-        <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} />
+        <h3 className={`cafe-a-menu-title break-words font-bold leading-snug ${titleTextColorClassName} ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
+        {showSoldOutBadge ? <SoldOutBadge locale={locale} /> : null}
+        {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} /> : null}
         {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
-        {item.is_sold_out && <SoldOutBadge />}
       </div>
       {hasSecondaryText && (
-        <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug text-[#333333] ${metaClassName}`}>
+        <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug ${metaTextColorClassName} ${metaClassName}`}>
           {trimmedMetaText}
         </p>
       )}
       {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
       {hasDescriptionText && (
-        <p className={`cafe-a-description-text cafe-a-menu-description break-keep text-[#3f4945] ${descriptionTextClassName} ${descriptionClassName}`}>{descriptionText}</p>
+        <p className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}>{descriptionText}</p>
       )}
       {visibleTraits.length > 0 && (
         <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
           {visibleTraits.map((trait) => (
-            <span key={trait.id} className="menu-chip cafe-a-menu-chip border border-[#bfc9c4] px-1.5 py-1 font-black text-[#3f4945]">
+            <span key={trait.id} className={`menu-chip cafe-a-menu-chip border border-[#bfc9c4] px-1.5 py-1 font-black ${descriptionTextColorClassName}`}>
               {trait.label} {trait.value}/{trait.max_value}
             </span>
           ))}
         </div>
       )}
-      {hasOriginInfo && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words text-[#707975]">원산지 {item.origin_info?.trim()}</p>}
+      {hasOriginInfo && <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#707975]"}`}>원산지 {item.origin_info?.trim()}</p>}
     </div>
   );
   const priceAreaElement = (
     <>
       {priceTokens.length > 0 && usesPriceColumns && (
-        <div className="menu-price cafe-a-price-area shrink-0 text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
+        <div className={`menu-price cafe-a-price-area shrink-0 text-right ${priceTextColorClassName} lg:justify-self-end`} data-cafe-a-menu-price="">
           <div
             className="cafe-a-price-columns-grid"
             style={{ "--cafe-a-price-column-count": priceTokens.length } as CSSProperties}
@@ -3250,24 +3275,24 @@ function MenuItemRow({
                     stacked
                   />
                 ) : token.price ? (
-                  <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
+                  <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceTextColorClassName} ${priceClassName}`}>{token.price}</span>
                 ) : (
                   <span aria-hidden="true">&nbsp;</span>
                 )}
               </span>
             ))}
           </div>
-          {priceNote && <p className="cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug text-[#65706b]">{priceNote}</p>}
+          {priceNote && <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>{priceNote}</p>}
         </div>
       )}
       {priceTokens.length > 0 && !usesPriceColumns && (
-        <div className="menu-price cafe-a-price-area shrink-0 text-right text-[#191c1b] lg:justify-self-end" data-cafe-a-menu-price="">
+        <div className={`menu-price cafe-a-price-area shrink-0 text-right ${priceTextColorClassName} lg:justify-self-end`} data-cafe-a-menu-price="">
           <div className="cafe-a-price-stack cafe-a-price-inline flex flex-wrap items-baseline justify-end">
             {priceTokens.map((token, index) => (
               <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-token inline-flex items-baseline whitespace-nowrap">
-                {index > 0 && <span className="cafe-a-price-separator font-bold text-[#191c1b]/45">/</span>}
+                {index > 0 && <span className={`cafe-a-price-separator font-bold ${priceMutedColorClassName}`}>/</span>}
                 <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${token.label ? "cafe-a-price-pair-with-note" : ""} ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
-                  {token.label && <span className="cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none text-[#191c1b]">{token.label}</span>}
+                  {token.label && <span className={`cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none ${priceTextColorClassName}`}>{token.label}</span>}
                   {showTimeSale && timeSalePrice && index === 0 ? (
                     <TimeSalePriceBlock
                       timeSale={timeSale.promotion}
@@ -3276,13 +3301,13 @@ function MenuItemRow({
                       priceClassName={priceClassName}
                     />
                   ) : (
-                    <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{token.price}</span>
+                    <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceTextColorClassName} ${priceClassName}`}>{token.price}</span>
                   )}
                 </span>
               </span>
             ))}
           </div>
-          {priceNote && <p className="cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug text-[#65706b]">{priceNote}</p>}
+          {priceNote && <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>{priceNote}</p>}
         </div>
       )}
     </>
@@ -3293,6 +3318,7 @@ function MenuItemRow({
       className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
       data-cafe-a-content-variant={contentVariant}
       data-cafe-a-menu-item=""
+      data-cafe-a-sold-out={isSoldOut ? "true" : undefined}
     >
       {hasItemImage && (
         <button
@@ -3455,6 +3481,7 @@ function CoverHero({
   const safeActiveSlideIndex = featuredSlides.length === 0 ? 0 : Math.min(activeSlideIndex, featuredSlides.length - 1);
   const activeSlide = featuredSlides[safeActiveSlideIndex] ?? featuredSlides[0] ?? null;
   const featuredItem = activeSlide?.item ?? null;
+  const featuredItemSoldOut = featuredItem?.is_sold_out === true;
   const featuredCategory = featuredItem ? data.categories.find((category) => category.id === featuredItem.category_id) ?? null : null;
   const price = featuredItem
     ? featuredCategory
@@ -3462,7 +3489,7 @@ function CoverHero({
         getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true }, priceDisplayMode)
       : getItemPriceDisplay(featuredItem, data.priceOptions, capabilities, { showOptionLabel: false, dedupeSamePrices: true }, priceDisplayMode)
     : null;
-  const featuredBadgeLabel = featuredItem && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : "";
+  const featuredBadgeLabel = featuredItem && !featuredItemSoldOut && capabilities.itemBadges ? getMenuItemBadgeLabel(featuredItem) : "";
   const heroMinHeightClassName = {
     spacious: "min-h-[400px]",
     default: "min-h-[380px]",
@@ -3664,21 +3691,28 @@ function CoverHero({
           </div>
         )}
         {featuredItem && (
-          <div className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
+          <div
+            className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white"
+            data-cafe-a-sold-out={featuredItemSoldOut ? "true" : undefined}
+          >
             <div className="min-w-0">
-              {featuredBadgeLabel ? (
+              {featuredItemSoldOut ? (
+                <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
+                  <SoldOutBadge locale={data.locale} className="cafe-a-featured-badge" />
+                </div>
+              ) : featuredBadgeLabel ? (
                 <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
                   <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} />
                 </div>
               ) : null}
-              <h2 className="cafe-a-featured-title break-words font-bold leading-tight" data-cafe-a-featured-title="">{featuredItem.name}</h2>
+              <h2 className={`cafe-a-featured-title break-words font-bold leading-tight ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-title="">{featuredItem.name}</h2>
               {featuredItem.description && (
-                <p className="cafe-a-description-text cafe-a-featured-description mt-2 break-keep text-white/82 lg:line-clamp-2" data-cafe-a-featured-description="">
+                <p className={`cafe-a-description-text cafe-a-featured-description mt-2 break-keep lg:line-clamp-2 ${featuredItemSoldOut ? "cafe-a-featured-sold-out-muted" : "text-white/82"}`} data-cafe-a-featured-description="">
                   {featuredItem.description}
                 </p>
               )}
             </div>
-            {price && <p className="menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none" data-cafe-a-featured-price="">{price}</p>}
+            {price && <p className={`menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-price="">{price}</p>}
           </div>
         )}
       </div>

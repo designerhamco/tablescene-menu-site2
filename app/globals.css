@@ -208,6 +208,13 @@ video {
   --cafe-a-menu-description-size: 0.8125rem;
   --cafe-a-menu-price-size: 1.0625rem;
   --cafe-a-menu-name-to-description-gap: 0.125rem;
+  --cafe-a-sold-out-chip-background: #eef0ee;
+  --cafe-a-sold-out-chip-border: #c7ccc8;
+  --cafe-a-sold-out-chip-text: #3f4945;
+  --cafe-a-sold-out-content-color: #707975;
+  --cafe-a-sold-out-muted-color: #7f8783;
+  --cafe-a-featured-sold-out-color: rgb(255 255 255 / 72%);
+  --cafe-a-featured-sold-out-muted-color: rgb(255 255 255 / 62%);
 }
 
 .cafe-a-category-title-size-spacious {
@@ -405,6 +412,28 @@ video {
 .cafe-a-typography .cafe-a-menu-chip,
 .cafe-a-typography .cafe-a-price-label {
   font-size: clamp(0.625rem, calc(0.625rem * var(--menu-font-size-scale)), 0.78rem);
+}
+
+.cafe-a-typography .cafe-a-sold-out-chip {
+  background-color: var(--cafe-a-sold-out-chip-background);
+  border-color: var(--cafe-a-sold-out-chip-border);
+  color: var(--cafe-a-sold-out-chip-text);
+}
+
+.cafe-a-typography .cafe-a-sold-out-text {
+  color: var(--cafe-a-sold-out-content-color);
+}
+
+.cafe-a-typography .cafe-a-sold-out-muted {
+  color: var(--cafe-a-sold-out-muted-color);
+}
+
+.cafe-a-typography .cafe-a-featured-sold-out-text {
+  color: var(--cafe-a-featured-sold-out-color);
+}
+
+.cafe-a-typography .cafe-a-featured-sold-out-muted {
+  color: var(--cafe-a-featured-sold-out-muted-color);
 }
 
 .cafe-a-typography .cafe-a-category-heading {
