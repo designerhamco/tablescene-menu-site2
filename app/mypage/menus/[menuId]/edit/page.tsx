@@ -18,6 +18,12 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
 import BackgroundColorSettingsForm from "@/components/mypage/menu-editor/BackgroundColorSettingsForm";
+import { CafeAStarterResetProvider } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
+import {
+  CafeAStarterFeaturedEnabledSwitch,
+  CafeAStarterCoverTextArea,
+  CafeAStarterCoverTextInput,
+} from "@/components/mypage/menu-editor/CafeAStarterCoverDraftFields";
 import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
 import FeaturedSlidesEditor, { type FeaturedSlideDraft } from "@/components/mypage/menu-editor/FeaturedSlidesEditor";
@@ -1393,6 +1399,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         coverImageUrl: menuCoverCapabilities.usesCoverImage
           ? firstCompleteSampleFeaturedSlide?.image_url ?? menuManagementStarterPreset.site.cover_image_url
           : null,
+        coverImagePath: menuCoverCapabilities.usesCoverImage
+          ? firstCompleteSampleFeaturedSlide?.image_path ?? null
+          : null,
         featuredItemEnabled: Boolean(canUseFeaturedItemCover && sampleFeaturedItem),
         featuredItemId: canUseFeaturedItemCover ? sampleFeaturedItem?.id ?? null : null,
         featuredSlides:
@@ -1601,6 +1610,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           </div>
         )}
 
+        <CafeAStarterResetProvider menuId={site.id}>
         <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
 
         <div className={`space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
@@ -1860,9 +1870,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     {menuCoverCapabilities.usesCoverTitle && (
                       <div className="md:col-span-2">
                         <FieldLabel required>커버 제목</FieldLabel>
-                        <TextInput
+                        <CafeAStarterCoverTextInput
                           name="menu_cover_title"
                           defaultValue={site.menu_cover_title ?? ""}
+                          formId="menu-cover-form"
                           required
                           maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverTitle}
                           placeholder={isPriceListTemplate ? "예: 우리 매장의 대표 서비스 안내" : "예: 오늘의 대표 메뉴"}
@@ -1873,9 +1884,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     {menuCoverCapabilities.usesCoverDescription && (
                       <div className="md:col-span-2">
                         <FieldLabel required>커버 설명</FieldLabel>
-                        <TextArea
+                        <CafeAStarterCoverTextArea
                           name="menu_cover_description"
                           defaultValue={site.menu_cover_description ?? ""}
+                          formId="menu-cover-form"
                           required
                           maxLength={MENU_FIELD_LIMITS.menuSites.menuCoverDescription}
                           placeholder={isPriceListTemplate ? "예: 기본 관리부터 프리미엄 케어까지, 필요한 서비스를 한눈에 확인해보세요." : "예: 매장의 대표 메뉴와 추천 구성을 소개해보세요."}
@@ -1903,7 +1915,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     {canUseFeaturedSlides ? (
                       <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                         <div className="mb-5">
-                          <Checkbox name="featured_item_enabled" label="대표 영역 사용" defaultChecked={pageSettings.featured_item_enabled} />
+                          <CafeAStarterFeaturedEnabledSwitch
+                            defaultChecked={pageSettings.featured_item_enabled}
+                            formId="menu-cover-form"
+                            label="대표 영역 사용"
+                          />
                           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                             꺼도 등록한 대표 슬라이드는 삭제되지 않습니다. 다시 켜면 저장된 슬라이드를 그대로 사용할 수 있습니다.
                           </p>
@@ -1925,7 +1941,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           </p>
                         </div>
                         <div className="grid gap-5">
-                          <Checkbox name="featured_item_enabled" label="대표 추천 메뉴 사용" defaultChecked={pageSettings.featured_item_enabled} />
+                          <CafeAStarterFeaturedEnabledSwitch
+                            defaultChecked={pageSettings.featured_item_enabled}
+                            formId="menu-cover-form"
+                            label="대표 추천 메뉴 사용"
+                          />
                           <div>
                             <FieldLabel required>대표 추천 메뉴</FieldLabel>
                             <Select
@@ -2286,6 +2306,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               </SectionCard>
             )}
         </div>
+        </CafeAStarterResetProvider>
         </div>
       </main>
       <Footer />

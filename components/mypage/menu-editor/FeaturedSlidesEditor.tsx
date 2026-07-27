@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 
 export type FeaturedSlideDraft = {
@@ -51,9 +52,33 @@ export default function FeaturedSlidesEditor({
   itemOptions,
   maxSlides,
 }: FeaturedSlidesEditorProps) {
+  const coordinator = useCafeAStarterResetCoordinator();
+  const resetSnapshot = coordinator?.snapshot ?? null;
   const [slides, setSlides] = useState(() => normalizeSlides(initialSlides));
   const hiddenInputRef = useRef<HTMLInputElement | null>(null);
-  const itemOptionIds = useMemo(() => new Set(itemOptions.map((item) => item.id)), [itemOptions]);
+  const effectiveItemOptions = resetSnapshot
+    ? (() => {
+        const categoryNameById = new Map(resetSnapshot.categories.map((category) => [category.id, category.name]));
+        return resetSnapshot.items
+          .filter((item) => item.visible)
+          .map((item) => ({
+            id: item.id,
+            label: item.name,
+            categoryName: categoryNameById.get(item.categoryId) ?? "미분류",
+            price: item.price || item.priceColumnValues.find((value) => value.visible)?.price || "문의",
+            imageStatus: item.imageUrl ? "이미지 있음" : "이미지 없음",
+          }));
+      })()
+    : itemOptions;
+  const itemOptionIds = new Set(effectiveItemOptions.map((item) => item.id));
+
+  useEffect(() => {
+    if (!resetSnapshot) return;
+    const frameId = window.requestAnimationFrame(() => {
+      setSlides(normalizeSlides(resetSnapshot.featuredSlides));
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [coordinator?.resetKey, resetSnapshot]);
 
   useEffect(() => {
     const input = hiddenInputRef.current;
@@ -192,7 +217,7 @@ export default function FeaturedSlidesEditor({
                         선택된 상품 · 숨김 또는 삭제됨
                       </option>
                     )}
-                    {itemOptions.map((item) => (
+                    {effectiveItemOptions.map((item) => (
                       <option key={item.id} value={item.id} disabled={takenItemIds.has(item.id)}>
                         {item.label} · {item.categoryName} · {item.price} · {item.imageStatus}
                       </option>

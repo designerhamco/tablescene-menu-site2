@@ -4,6 +4,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 type DirtySubmitButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -42,6 +43,7 @@ export default function DirtySubmitButton({
   ...props
 }: DirtySubmitButtonProps) {
   const { pending } = useFormStatus();
+  const cafeAStarterReset = useCafeAStarterResetCoordinator();
   const initialSignatureRef = useRef<string | null>(null);
   const wasPendingRef = useRef(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -92,6 +94,14 @@ export default function DirtySubmitButton({
       window.removeEventListener("tablescene:image-upload-draft-reset", updateDirtyState);
     };
   }, [formId, ignoredNames]);
+
+  useEffect(() => {
+    if (formId !== "menu-cover-form" || !cafeAStarterReset?.snapshot) return;
+    const frameId = window.requestAnimationFrame(() => {
+      setIsDirty(true);
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [cafeAStarterReset?.resetKey, cafeAStarterReset?.snapshot, formId]);
 
   useEffect(() => {
     let resetFrameId = 0;

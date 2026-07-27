@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-type CoverSampleDraft = {
+export type CoverSampleDraft = {
   menuCoverEnabled: boolean;
   menuCoverTitle?: string | null;
   menuCoverDescription?: string | null;
   coverImageUrl?: string | null;
+  coverImagePath?: string | null;
   featuredItemEnabled: boolean;
   featuredItemId?: string | null;
   featuredSlides?: Array<{
@@ -24,43 +25,6 @@ type CoverSampleResetButtonProps = {
   sampleDraft: CoverSampleDraft | null;
 };
 
-function setTextValue(form: HTMLFormElement, name: string, value: string | null | undefined) {
-  const field = form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null;
-  if (!field) return;
-
-  field.value = value ?? "";
-  field.dispatchEvent(new Event("input", { bubbles: true }));
-  field.dispatchEvent(new Event("change", { bubbles: true }));
-}
-
-function setSelectValue(form: HTMLFormElement, name: string, value: string | null | undefined) {
-  const field = form.elements.namedItem(name) as HTMLSelectElement | null;
-  if (!field) return;
-
-  field.value = value ?? "";
-  field.dispatchEvent(new Event("change", { bubbles: true }));
-}
-
-function setCheckboxValue(form: HTMLFormElement, name: string, checked: boolean) {
-  const field = form.elements.namedItem(name) as HTMLInputElement | null;
-  if (!field || field.checked === checked) return;
-
-  field.click();
-}
-
-function removeHiddenInput(form: HTMLFormElement, name: string) {
-  form.querySelectorAll<HTMLInputElement>(`input[type="hidden"][name="${name}"]`).forEach((input) => input.remove());
-}
-
-function setHiddenInput(form: HTMLFormElement, name: string, value: string) {
-  removeHiddenInput(form, name);
-  const input = document.createElement("input");
-  input.type = "hidden";
-  input.name = name;
-  input.value = value;
-  form.appendChild(input);
-}
-
 export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSampleResetButtonProps) {
   const [open, setOpen] = useState(false);
   const disabled = !sampleDraft;
@@ -68,54 +32,34 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
   function applySampleDraft() {
     if (!sampleDraft) return;
 
-    const form = document.getElementById(formId) as HTMLFormElement | null;
-    if (!form) return;
-
     window.dispatchEvent(
       new CustomEvent("tablescene:cover-draft-reset", {
-        detail: { formId, menuCoverEnabled: sampleDraft.menuCoverEnabled },
+        detail: { formId, draft: sampleDraft, menuCoverEnabled: sampleDraft.menuCoverEnabled },
       })
     );
 
-    window.setTimeout(() => {
-      setTextValue(form, "menu_cover_title", sampleDraft.menuCoverTitle);
-      setTextValue(form, "menu_cover_description", sampleDraft.menuCoverDescription);
-      setCheckboxValue(form, "featured_item_enabled", sampleDraft.featuredItemEnabled);
-      setSelectValue(form, "featured_item_id", sampleDraft.featuredItemId);
+    window.dispatchEvent(
+      new CustomEvent("tablescene:image-upload-draft-reset", {
+        detail: {
+          draftImageUrlInputName: "draft_cover_image_url",
+          imageUrl: sampleDraft.coverImageUrl ?? null,
+          imagePath: sampleDraft.coverImagePath ?? null,
+          deleteImage: !sampleDraft.coverImageUrl,
+        },
+      })
+    );
 
-      removeHiddenInput(form, "delete_cover_image");
-      removeHiddenInput(form, "draft_cover_image_url");
-      removeHiddenInput(form, "draft_cover_image_path");
+    window.dispatchEvent(
+      new CustomEvent("tablescene:featured-slides-reset", {
+        detail: {
+          formId,
+          slides: sampleDraft.featuredSlides ?? [],
+        },
+      })
+    );
 
-      if (sampleDraft.coverImageUrl) {
-        setHiddenInput(form, "draft_cover_image_url", sampleDraft.coverImageUrl);
-      } else {
-        setHiddenInput(form, "delete_cover_image", "on");
-      }
-
-      window.dispatchEvent(
-        new CustomEvent("tablescene:image-upload-draft-reset", {
-          detail: {
-            draftImageUrlInputName: "draft_cover_image_url",
-            imageUrl: sampleDraft.coverImageUrl ?? null,
-            imagePath: null,
-            deleteImage: !sampleDraft.coverImageUrl,
-          },
-        })
-      );
-
-      window.dispatchEvent(
-        new CustomEvent("tablescene:featured-slides-reset", {
-          detail: {
-            formId,
-            slides: sampleDraft.featuredSlides ?? [],
-          },
-        })
-      );
-
-      toast.success("커버 이미지 설정이 샘플 데이터로 임시 변경되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
-      setOpen(false);
-    }, 0);
+    toast.success("커버 이미지 설정이 샘플 데이터로 임시 변경되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+    setOpen(false);
   }
 
   return (

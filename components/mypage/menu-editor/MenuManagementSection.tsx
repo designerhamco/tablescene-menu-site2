@@ -20,6 +20,7 @@ import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDraftEditor";
 import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
+import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
@@ -4848,6 +4849,7 @@ export default function MenuManagementSection({
   finalSaveMessage,
   finalSaveError,
 }: MenuManagementSectionProps) {
+  const cafeAStarterReset = useCafeAStarterResetCoordinator();
   const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
   const initialTimeSaleDraftByItemId = new Map(
     timeSales
@@ -7658,7 +7660,8 @@ export default function MenuManagementSection({
     setExpandedPageIds(new Set(firstPageId ? [firstPageId] : []));
     setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
     markMenuManagementDirty();
-    toast.success("샘플 메뉴가 임시 상태로 복원되었습니다. 최종 저장을 눌러 반영해주세요.");
+    cafeAStarterReset?.applySnapshot(snapshot);
+    toast.success("오브커피 샘플이 임시 상태로 복원되었습니다. 위젯, 대표 영역, 특가세일은 최종 저장 후 반영됩니다.");
     return true;
   }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
+import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 
 type CoverDraftToggleSectionProps = {
@@ -19,9 +20,19 @@ export default function CoverDraftToggleSection({
   inactiveMessage,
   children,
 }: CoverDraftToggleSectionProps) {
+  const coordinator = useCafeAStarterResetCoordinator();
   const [enabled, setEnabled] = useState(defaultChecked);
   const [resetVersion, setResetVersion] = useState(0);
   const hasDraftToggleChange = enabled !== defaultChecked;
+
+  useEffect(() => {
+    if (!coordinator?.snapshot) return;
+    const frameId = window.requestAnimationFrame(() => {
+      setEnabled(true);
+      setResetVersion((version) => version + 1);
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [coordinator?.resetKey, coordinator?.snapshot]);
 
   useEffect(() => {
     function handleCoverDraftReset(event: Event) {
