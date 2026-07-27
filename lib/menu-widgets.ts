@@ -16,8 +16,8 @@ export type MenuWidgetTextAlign = (typeof MENU_WIDGET_TEXT_ALIGNS)[number];
 
 export const MENU_WIDGET_SETTINGS_VERSION = 1;
 export const MAX_MENU_WIDGETS_PER_PAGE = 3;
-export const MAX_MENU_WIDGET_TITLE_LENGTH = 60;
-export const MAX_MENU_WIDGET_DESCRIPTION_LENGTH = 300;
+export const MAX_MENU_WIDGET_TITLE_LENGTH = 30;
+export const MAX_MENU_WIDGET_DESCRIPTION_LENGTH = 120;
 export const MAX_MENU_WIDGET_ALT_TEXT_LENGTH = 120;
 
 export type MenuWidgetSettingsV1 = {
@@ -303,9 +303,11 @@ export function toMenuWidgetPersistenceShape(widget: MenuWidget): MenuWidgetPers
 
 export function validateMenuWidgetDraft(draft: MenuWidgetDraft): MenuWidgetValidationResult {
   const errors: MenuWidgetValidationError[] = [];
+  const rawTitle = getTextLengthValue(draft.title);
+  const rawDescription = getTextLengthValue(draft.description);
+  const rawAltText = getTextLengthValue(draft.settings.altText);
   const title = normalizeText(draft.title);
   const description = normalizeText(draft.description);
-  const altText = normalizeText(draft.settings.altText);
   const hasImage = Boolean(normalizeNullableText(draft.imageUrl) || normalizeNullableText(draft.imagePath));
   const hasText = Boolean(title || description);
 
@@ -321,21 +323,21 @@ export function validateMenuWidgetDraft(draft: MenuWidgetDraft): MenuWidgetValid
     errors.push(createMenuWidgetValidationError("INVALID_SORT_ORDER", "sortOrder", "정렬 순서는 0 이상의 정수여야 합니다."));
   }
 
-  if (title.length > MAX_MENU_WIDGET_TITLE_LENGTH) {
-    errors.push(createMenuWidgetValidationError("TITLE_TOO_LONG", "title", `제목은 ${MAX_MENU_WIDGET_TITLE_LENGTH}자 이하로 입력해주세요.`));
+  if (rawTitle.length > MAX_MENU_WIDGET_TITLE_LENGTH) {
+    errors.push(createMenuWidgetValidationError("TITLE_TOO_LONG", "title", `위젯 제목은 ${MAX_MENU_WIDGET_TITLE_LENGTH}자 이하로 입력해주세요.`));
   }
 
-  if (description.length > MAX_MENU_WIDGET_DESCRIPTION_LENGTH) {
+  if (rawDescription.length > MAX_MENU_WIDGET_DESCRIPTION_LENGTH) {
     errors.push(
       createMenuWidgetValidationError(
         "DESCRIPTION_TOO_LONG",
         "description",
-        `본문은 ${MAX_MENU_WIDGET_DESCRIPTION_LENGTH}자 이하로 입력해주세요.`,
+        `위젯 내용은 ${MAX_MENU_WIDGET_DESCRIPTION_LENGTH}자 이하로 입력해주세요.`,
       ),
     );
   }
 
-  if (altText.length > MAX_MENU_WIDGET_ALT_TEXT_LENGTH) {
+  if (rawAltText.length > MAX_MENU_WIDGET_ALT_TEXT_LENGTH) {
     errors.push(
       createMenuWidgetValidationError("ALT_TEXT_TOO_LONG", "settings.altText", `대체 텍스트는 ${MAX_MENU_WIDGET_ALT_TEXT_LENGTH}자 이하로 입력해주세요.`),
     );
@@ -406,6 +408,10 @@ export function validateMenuWidgetsForPage(widgets: readonly MenuWidgetDraft[]):
 
 function normalizeText(value: unknown): string {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+}
+
+function getTextLengthValue(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }
 
 function normalizeNullableText(value: unknown): string | null {

@@ -164,6 +164,7 @@ export default function MenuWidgetDraftEditor({
                 placeholder="예: 오늘의 안내"
                 className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
               />
+              <CharacterCounter value={draft.title} maxLength={MAX_MENU_WIDGET_TITLE_LENGTH} />
             </FieldBlock>
             <FieldBlock label="본문">
               <textarea
@@ -174,6 +175,7 @@ export default function MenuWidgetDraftEditor({
                 rows={5}
                 className="w-full resize-y rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
               />
+              <CharacterCounter value={draft.description} maxLength={MAX_MENU_WIDGET_DESCRIPTION_LENGTH} />
             </FieldBlock>
           </div>
         )}
@@ -294,5 +296,15 @@ function FieldBlock({ label, children }: { label: string; children: ReactNode })
       <span className="mb-2 block text-xs font-black text-zinc-500">{label}</span>
       {children}
     </div>
+  );
+}
+
+function CharacterCounter({ value, maxLength }: { value: string; maxLength: number }) {
+  const isTooLong = value.length > maxLength;
+
+  return (
+    <p className={`mt-1.5 text-right text-xs font-bold ${isTooLong ? "text-red-600" : "text-zinc-400"}`}>
+      {value.length} / {maxLength}
+    </p>
   );
 }
