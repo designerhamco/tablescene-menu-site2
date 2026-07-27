@@ -25,7 +25,9 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
   buildCafeAStarterResetSnapshot,
+  createCafeAStarterResetFinalSavePayload,
   validateCafeAStarterResetSnapshot,
+  type CafeAStarterResetIdFactory,
   type CafeAStarterResetSnapshot,
 } from "@/lib/cafe-a-starter-reset";
 import {
@@ -308,6 +310,13 @@ type AiMenuCleanupItem = {
   description: string;
   badge_label: string;
 };
+
+function createCafeAStarterResetClientDraftId(kind: Parameters<CafeAStarterResetIdFactory>[0], key: string, index: number) {
+  const randomId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  if (kind === "widget") return randomId;
+  const suffix = key.replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || String(index + 1);
+  return `temp-${kind}-starter-${suffix}-${randomId}`;
+}
 
 type AiMenuCleanupCategory = {
   name: string;
@@ -5449,6 +5458,10 @@ export default function MenuManagementSection({
       })
     );
   }, [contentBlockDraftsByPageId, deletedWidgetIds, menuWidgetCapability.enabled, widgetDraftsById]);
+  const cafeAStarterResetFinalSavePayload = useMemo(() => {
+    if (!cafeAStarterReset?.snapshot) return "";
+    return JSON.stringify(createCafeAStarterResetFinalSavePayload(cafeAStarterReset.snapshot));
+  }, [cafeAStarterReset]);
 
   useEffect(() => {
     if (hasRestoredBuilderState) return;
@@ -7666,6 +7679,11 @@ export default function MenuManagementSection({
   }
 
   function resetCafeAMenuManagementToStarterDraft(fixedPageId = "") {
+    if (menuWidgetCapability.enabled && !globalThis.crypto?.randomUUID) {
+      toast.error("브라우저가 위젯 ID 생성을 지원하지 않아 오브커피 샘플을 복원할 수 없습니다.");
+      return false;
+    }
+
     const result = buildCafeAStarterResetSnapshot({
       preset: starterPreset as StarterPreset,
       persistedIds: {
@@ -7674,6 +7692,7 @@ export default function MenuManagementSection({
         itemIds: items.map((item) => item.id),
         widgetIds: initialMenuWidgets.map((widget) => widget.id),
       },
+      idFactory: createCafeAStarterResetClientDraftId,
       now: new Date(),
     });
 
@@ -9117,6 +9136,9 @@ export default function MenuManagementSection({
             {menuWidgetCapability.enabled && (
               <input type="hidden" name="menuWidgetFinalSavePayload" value={menuWidgetFinalSavePayload} />
             )}
+            {cafeAStarterResetFinalSavePayload ? (
+              <input type="hidden" name="cafeAStarterResetFinalSavePayload" value={cafeAStarterResetFinalSavePayload} />
+            ) : null}
             {canConfigurePcTabletLayoutMode && (
               <input type="hidden" name="pc_tablet_layout_mode" value={pcTabletLayoutModeDraft} />
             )}

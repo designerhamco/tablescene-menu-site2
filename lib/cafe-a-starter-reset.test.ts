@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   buildCafeAStarterResetSnapshot,
+  createCafeAStarterResetFinalSavePayload,
+  parseCafeAStarterResetFinalSavePayload,
   type CafeAStarterResetIdFactory,
 } from "./cafe-a-starter-reset";
 import { getStarterPreset, type StarterPreset } from "./menu-starter-presets";
@@ -178,6 +180,41 @@ test("buildCafeAStarterResetSnapshot rejects more than three widgets per page", 
 
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((error) => error.code === "TOO_MANY_WIDGETS"), true);
+});
+
+test("parseCafeAStarterResetFinalSavePayload accepts the versioned reset payload", () => {
+  const result = buildCafeAStarterResetSnapshot({
+    preset: getStarterPreset("cafe_design_a"),
+    idFactory: deterministicIdFactory,
+    now: fixedNow,
+  });
+
+  if (!result.ok) {
+    assert.fail(result.errors.map((error) => `${error.code}:${error.field}`).join(", "));
+  }
+
+  const payload = createCafeAStarterResetFinalSavePayload(result.snapshot);
+  const parseResult = parseCafeAStarterResetFinalSavePayload(payload);
+
+  assert.equal(parseResult.ok, true);
+  if (parseResult.ok) {
+    assert.equal(parseResult.payload.source, "cafe_a_starter_reset");
+    assert.equal(parseResult.payload.schemaVersion, 1);
+    assert.equal(parseResult.payload.snapshot.featuredItemId, result.snapshot.featuredItemId);
+  }
+});
+
+test("parseCafeAStarterResetFinalSavePayload rejects malformed snapshots before validation", () => {
+  const parseResult = parseCafeAStarterResetFinalSavePayload({
+    source: "cafe_a_starter_reset",
+    schemaVersion: 1,
+    snapshot: {
+      pages: {},
+    },
+  });
+
+  assert.equal(parseResult.ok, false);
+  assert.equal(parseResult.errors[0]?.code, "INVALID_FINAL_SAVE_PAYLOAD");
 });
 
 function clonePreset(preset: StarterPreset): StarterPreset {

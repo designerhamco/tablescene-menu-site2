@@ -29,6 +29,12 @@ import {
   getStarterPreset,
   resolveStarterFeaturedSlides,
 } from "@/lib/menu-starter-presets";
+import {
+  parseCafeAStarterResetFinalSavePayload,
+  validateCafeAStarterResetSnapshot,
+  type CafeAStarterResetFinalSavePayload,
+  type CafeAStarterResetSnapshot,
+} from "@/lib/cafe-a-starter-reset";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { isPriceDisplayMode } from "@/lib/menu-price-format";
@@ -62,6 +68,7 @@ import {
   parseMenuWidgetFinalSaveDraftPayload,
   remapMenuWidgetFinalSavePayloadIds,
   shouldRunMenuWidgetFinalSave,
+  isUuid,
   type MenuWidgetFinalSavePayload,
   type MenuWidgetFinalSaveValidationError,
 } from "@/lib/menu-widget-save-contract";
@@ -102,6 +109,7 @@ const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
 const MENU_VIDEOS_BUCKET = "menu-videos";
 const MENU_WIDGET_FINAL_SAVE_PAYLOAD_FIELD = "menuWidgetFinalSavePayload";
+const CAFE_A_STARTER_RESET_FINAL_SAVE_PAYLOAD_FIELD = "cafeAStarterResetFinalSavePayload";
 const PUBLIC_PRESET_IMAGE_PREFIXES = ["/placeholders/", "/menu-templates/"] as const;
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
@@ -375,6 +383,37 @@ function parseMenuWidgetFinalSavePayloadFromForm(
   }
 
   return parseResult.value;
+}
+
+function parseCafeAStarterResetFinalSavePayloadFromForm({
+  menuId,
+  formData,
+  menuSite,
+}: {
+  menuId: string;
+  formData: FormData;
+  menuSite: MenuSite;
+}): CafeAStarterResetFinalSavePayload | null {
+  const rawValue = getString(formData, CAFE_A_STARTER_RESET_FINAL_SAVE_PAYLOAD_FIELD);
+  if (!rawValue) return null;
+
+  if (menuSite.template_key !== "cafe_design_a") {
+    redirectToMenuEditWithError(menuId, "오브커피 샘플 저장 정보가 현재 템플릿과 맞지 않습니다.");
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawValue);
+  } catch {
+    redirectToMenuEditWithError(menuId, "오브커피 샘플 저장 정보 형식이 올바르지 않습니다.");
+  }
+
+  const parseResult = parseCafeAStarterResetFinalSavePayload(parsed);
+  if (!parseResult.ok) {
+    redirectToMenuEditWithError(menuId, parseResult.errors[0]?.message ?? "오브커피 샘플 저장 정보를 확인해주세요.");
+  }
+
+  return parseResult.payload;
 }
 
 function getMenuWidgetFinalSaveValidationMessage(errors: readonly MenuWidgetFinalSaveValidationError[]) {
@@ -4539,6 +4578,7 @@ type MenuManagementBasicItemDraft = {
     badgeBackgroundColor?: string;
     active?: boolean;
   };
+  isSoldOut?: boolean;
   badgeStyleKey?: string;
   badgeBackgroundColor?: string;
   badgeTextColor?: string;
@@ -4927,6 +4967,197 @@ async function remapFeaturedSlidesAfterMenuDraftSave({
 
   if (error) {
     redirectToMenuEditWithError(menuId, `대표 슬라이드 상품 연결 보정에 실패했습니다: ${error.message}`);
+  }
+}
+
+function validateCafeAStarterResetDraftAlignment({
+  menuId,
+  snapshot,
+  pageDrafts,
+  categoryDrafts,
+  itemDrafts,
+  widgetPayload,
+  canManageMenuPages,
+}: {
+  menuId: string;
+  snapshot: CafeAStarterResetSnapshot;
+  pageDrafts: MenuManagementBasicPageDraft[];
+  categoryDrafts: MenuManagementBasicCategoryDraft[];
+  itemDrafts: MenuManagementBasicItemDraft[];
+  widgetPayload: MenuWidgetFinalSavePayload | null;
+  canManageMenuPages: boolean;
+}) {
+  const validation = validateCafeAStarterResetSnapshot(snapshot);
+  if (!validation.ok) {
+    redirectToMenuEditWithError(menuId, validation.errors[0]?.message ?? "오브커피 샘플 저장 정보를 확인해주세요.");
+  }
+
+  const pageDraftIds = new Set(pageDrafts.map((page) => normalizeDraftString(page.id)).filter(Boolean));
+  const categoryDraftIds = new Set(categoryDrafts.map((category) => normalizeDraftString(category.id)).filter(Boolean));
+  const itemDraftIds = new Set(itemDrafts.map((item) => normalizeDraftString(item.id)).filter(Boolean));
+  const widgetDraftIds = new Set((widgetPayload?.widgetDrafts ?? []).map((widget) => normalizeDraftString(widget.id)).filter(Boolean));
+
+  if (canManageMenuPages) {
+    const missingPageId = snapshot.pages.map((page) => page.id).find((pageId) => !pageDraftIds.has(pageId));
+    if (missingPageId) {
+      redirectToMenuEditWithError(menuId, "오브커피 샘플 페이지 저장 정보가 누락되었습니다.");
+    }
+  }
+
+  const missingCategoryId = snapshot.categories.map((category) => category.id).find((categoryId) => !categoryDraftIds.has(categoryId));
+  if (missingCategoryId) {
+    redirectToMenuEditWithError(menuId, "오브커피 샘플 카테고리 저장 정보가 누락되었습니다.");
+  }
+
+  const missingItemId = snapshot.items.map((item) => item.id).find((itemId) => !itemDraftIds.has(itemId));
+  if (missingItemId) {
+    redirectToMenuEditWithError(menuId, "오브커피 샘플 메뉴 저장 정보가 누락되었습니다.");
+  }
+
+  const missingWidgetId = snapshot.widgets.map((widget) => widget.id).find((widgetId) => !widgetDraftIds.has(widgetId));
+  if (missingWidgetId) {
+    redirectToMenuEditWithError(menuId, "오브커피 샘플 위젯 저장 정보가 누락되었습니다.");
+  }
+}
+
+async function assertCafeAStarterResetDeletedRowsBelongToMenuSite({
+  supabase,
+  menuId,
+  snapshot,
+}: {
+  supabase: SupabaseServerClient;
+  menuId: string;
+  snapshot: CafeAStarterResetSnapshot;
+}) {
+  if (snapshot.deletedPageIds.length > 0) {
+    const { data, error } = await supabase
+      .from("menu_pages")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .in("id", snapshot.deletedPageIds);
+    if (error) redirectToMenuEditWithError(menuId, `오브커피 샘플 기존 페이지 확인에 실패했습니다: ${error.message}`);
+    const foundIds = new Set((data ?? []).map((row) => row.id));
+    if (snapshot.deletedPageIds.some((id) => !foundIds.has(id))) {
+      redirectToMenuEditWithError(menuId, "오브커피 샘플 삭제 대상 페이지가 현재 메뉴판과 맞지 않습니다.");
+    }
+  }
+
+  if (snapshot.deletedCategoryIds.length > 0) {
+    const { data, error } = await supabase
+      .from("menu_categories")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .in("id", snapshot.deletedCategoryIds);
+    if (error) redirectToMenuEditWithError(menuId, `오브커피 샘플 기존 카테고리 확인에 실패했습니다: ${error.message}`);
+    const foundIds = new Set((data ?? []).map((row) => row.id));
+    if (snapshot.deletedCategoryIds.some((id) => !foundIds.has(id))) {
+      redirectToMenuEditWithError(menuId, "오브커피 샘플 삭제 대상 카테고리가 현재 메뉴판과 맞지 않습니다.");
+    }
+  }
+
+  if (snapshot.deletedItemIds.length > 0) {
+    const { data, error } = await supabase
+      .from("menu_items")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .in("id", snapshot.deletedItemIds);
+    if (error) redirectToMenuEditWithError(menuId, `오브커피 샘플 기존 메뉴 확인에 실패했습니다: ${error.message}`);
+    const foundIds = new Set((data ?? []).map((row) => row.id));
+    if (snapshot.deletedItemIds.some((id) => !foundIds.has(id))) {
+      redirectToMenuEditWithError(menuId, "오브커피 샘플 삭제 대상 메뉴가 현재 메뉴판과 맞지 않습니다.");
+    }
+  }
+
+  if (snapshot.deletedWidgetIds.length > 0) {
+    const { data, error } = await supabase
+      .from("menu_widgets")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .in("id", snapshot.deletedWidgetIds);
+    if (error) redirectToMenuEditWithError(menuId, `오브커피 샘플 기존 위젯 확인에 실패했습니다: ${error.message}`);
+    const foundIds = new Set((data ?? []).map((row) => row.id));
+    if (snapshot.deletedWidgetIds.some((id) => !foundIds.has(id))) {
+      redirectToMenuEditWithError(menuId, "오브커피 샘플 삭제 대상 위젯이 현재 메뉴판과 맞지 않습니다.");
+    }
+  }
+}
+
+async function saveCafeAStarterResetCoverAndFeaturedAfterMenuDraftSave({
+  supabase,
+  menuId,
+  menuSite,
+  snapshot,
+  itemIdMap,
+  updatedAt,
+}: {
+  supabase: SupabaseServerClient;
+  menuId: string;
+  menuSite: MenuSite;
+  snapshot: CafeAStarterResetSnapshot;
+  itemIdMap: ReadonlyMap<string, string>;
+  updatedAt: string;
+}) {
+  const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const menuCoverCapabilities = templateCapabilities.menuCover;
+  const remapStarterItemId = (itemId: string | null, label: string) => {
+    const normalizedItemId = normalizeDraftString(itemId);
+    if (!normalizedItemId) return null;
+    const remappedItemId = itemIdMap.get(normalizedItemId);
+    if (!remappedItemId || !isUuid(remappedItemId)) {
+      redirectToMenuEditWithError(menuId, `${label}의 메뉴 연결을 저장하지 못했습니다.`);
+    }
+    return remappedItemId;
+  };
+
+  const remappedSlides: FeaturedSlideSettings[] = snapshot.featuredSlides.map((slide, index) => ({
+    id: normalizeDraftString(slide.id) || `starter-slide-${index + 1}`,
+    image_url: normalizeDraftString(slide.imageUrl) || null,
+    image_path: normalizeDraftString(slide.imagePath) || null,
+    featured_item_id: remapStarterItemId(slide.featuredItemId, `대표 슬라이드 ${index + 1}`),
+    sort_order: normalizeDraftNumber(slide.sortOrder ?? index),
+  }));
+  const firstCompleteSlide = remappedSlides.find((slide) => Boolean(slide.image_url && slide.featured_item_id)) ?? null;
+  const remappedFeaturedItemId = snapshot.featuredEnabled
+    ? firstCompleteSlide?.featured_item_id ?? remapStarterItemId(snapshot.featuredItemId, "대표 상품")
+    : null;
+  const menuCoverTitle = normalizeDraftString(snapshot.coverSettings.menuCoverTitle);
+  const menuCoverDescription = normalizeDraftString(snapshot.coverSettings.menuCoverDescription);
+
+  if (menuCoverCapabilities.usesCoverTitle) {
+    validateRequiredText(menuId, menuCoverTitle, "커버 이미지 제목", MENU_FIELD_LIMITS.menuSites.menuCoverTitle);
+  }
+  if (menuCoverCapabilities.usesCoverDescription) {
+    validateRequiredText(menuId, menuCoverDescription, "커버 이미지 설명", MENU_FIELD_LIMITS.menuSites.menuCoverDescription);
+  }
+
+  const nextPageSettings = getJsonObject(menuSite.page_settings);
+  if (menuCoverCapabilities.coverMode !== "none") {
+    nextPageSettings.menu_cover_enabled = true;
+  }
+  if (menuCoverCapabilities.usesFeaturedItem) {
+    nextPageSettings.featured_item_enabled = Boolean(remappedFeaturedItemId);
+    nextPageSettings.featured_item_id = remappedFeaturedItemId;
+  }
+  if (templateCapabilities.featuredItemCarousel) {
+    nextPageSettings[FEATURED_SLIDES_PAGE_SETTINGS_KEY] = remappedSlides as unknown as Json;
+  }
+
+  const updatePayload: MenuSiteUpdate = {
+    ...(menuCoverCapabilities.usesCoverTitle ? { menu_cover_title: menuCoverTitle } : {}),
+    ...(menuCoverCapabilities.usesCoverDescription ? { menu_cover_description: menuCoverDescription } : {}),
+    cover_image_url: normalizeDraftString(snapshot.coverSettings.coverImageUrl) || null,
+    cover_image_path: normalizeDraftString(snapshot.coverSettings.coverImagePath) || null,
+    page_settings: nextPageSettings,
+    updated_at: updatedAt,
+  };
+
+  const { error } = await supabase
+    .from("menu_sites")
+    .update(updatePayload)
+    .eq("id", menuId);
+
+  if (error) {
+    redirectToMenuEditWithError(menuId, `오브커피 대표 영역 저장에 실패했습니다: ${error.message}`);
   }
 }
 
@@ -5733,6 +5964,11 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     formData,
     templateCapabilities.menuWidgets.enabled,
   );
+  const cafeAStarterResetFinalSavePayload = parseCafeAStarterResetFinalSavePayloadFromForm({
+    menuId,
+    formData,
+    menuSite,
+  });
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   const now = new Date().toISOString();
   const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
@@ -5763,6 +5999,23 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   }
   const nextPriceDisplayMode =
     supportsPriceDisplayMode && isPriceDisplayMode(priceDisplayModeInput) ? priceDisplayModeInput : null;
+
+  if (cafeAStarterResetFinalSavePayload) {
+    validateCafeAStarterResetDraftAlignment({
+      menuId,
+      snapshot: cafeAStarterResetFinalSavePayload.snapshot,
+      pageDrafts,
+      categoryDrafts,
+      itemDrafts,
+      widgetPayload: menuWidgetFinalSaveDraftPayload,
+      canManageMenuPages,
+    });
+    await assertCafeAStarterResetDeletedRowsBelongToMenuSite({
+      supabase,
+      menuId,
+      snapshot: cafeAStarterResetFinalSavePayload.snapshot,
+    });
+  }
 
   const { data: previousItemsForFeaturedSlides, error: previousItemsForFeaturedSlidesError } = await supabase
     .from("menu_items")
@@ -6008,6 +6261,10 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const badgeTextColor = normalizeDraftString(item.badgeTextColor);
     const categoryId = normalizeDraftString(item.categoryId);
     if (!itemId || deletedItemIdSet.has(itemId) || categoryIdDeleteSet.has(categoryId)) continue;
+
+    if (item.isSoldOut !== undefined && typeof item.isSoldOut !== "boolean") {
+      redirectToMenuEditWithError(menuId, "품절 상태 값이 올바르지 않습니다.");
+    }
 
     validateRequiredText(menuId, name, "아이템 이름", MENU_FIELD_LIMITS.menuItems.name);
     validateOptionalText(menuId, setName || null, "보조 언어 표기", MENU_FIELD_LIMITS.menuItems.setName);
@@ -6530,6 +6787,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       image_path: imageAction === "delete" ? null : draftImagePath || null,
       price_visible: item.priceVisible !== undefined ? normalizeDraftBoolean(item.priceVisible) : true,
       traits_visible: item.traitsVisible !== undefined ? normalizeDraftBoolean(item.traitsVisible) : true,
+      ...(typeof item.isSoldOut === "boolean" ? { is_sold_out: item.isSoldOut } : item.isNew ? { is_sold_out: false } : {}),
       updated_at: now,
     };
     const portionPayload = templateCapabilities.itemPortionLabel
@@ -6721,17 +6979,21 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     categoryIdDeleteSet,
   });
 
-  await remapFeaturedSlidesAfterMenuDraftSave({
-    supabase,
-    menuId,
-    menuSite,
-    itemDrafts,
-    itemIdMap,
-    deletedItemIdSet,
-    categoryIdDeleteSet,
-    previousItemNameById,
-    updatedAt: now,
-  });
+  if (!cafeAStarterResetFinalSavePayload) {
+    await remapFeaturedSlidesAfterMenuDraftSave({
+      supabase,
+      menuId,
+      menuSite,
+      itemDrafts,
+      itemIdMap,
+      deletedItemIdSet,
+      categoryIdDeleteSet,
+      previousItemNameById,
+      updatedAt: now,
+    });
+  }
+
+  let menuWidgetImageCleanupInput: Parameters<typeof cleanupSavedMenuWidgetImages>[0] | null = null;
 
   if (menuWidgetFinalSaveDraftPayload && shouldRunMenuWidgetFinalSave(menuWidgetFinalSaveDraftPayload)) {
     const remappedWidgetPayloadResult = remapMenuWidgetFinalSavePayloadIds({
@@ -6759,20 +7021,35 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     }
 
     if (widgetSaveResult.assetCleanupPlans.length > 0 || widgetSaveResult.assetChanges.length > 0) {
-      const cleanupResult = await cleanupSavedMenuWidgetImages({
+      menuWidgetImageCleanupInput = {
         menuSiteId: menuId,
         assetCleanupPlans: widgetSaveResult.assetCleanupPlans,
         assetChanges: widgetSaveResult.assetChanges,
-      });
+      };
+    }
+  }
 
-      if (!cleanupResult.ok) {
-        console.warn("[saveMenuManagementBasicDraftAction] menu widget image cleanup failed", {
-          menuId,
-          candidateCount: widgetSaveResult.assetCleanupPlans.length + widgetSaveResult.assetChanges.length,
-          removedCount: cleanupResult.removedPaths.length,
-          warningCodes: cleanupResult.warnings.map((warning) => warning.code),
-        });
-      }
+  if (cafeAStarterResetFinalSavePayload) {
+    await saveCafeAStarterResetCoverAndFeaturedAfterMenuDraftSave({
+      supabase,
+      menuId,
+      menuSite,
+      snapshot: cafeAStarterResetFinalSavePayload.snapshot,
+      itemIdMap,
+      updatedAt: now,
+    });
+  }
+
+  if (menuWidgetImageCleanupInput) {
+    const cleanupResult = await cleanupSavedMenuWidgetImages(menuWidgetImageCleanupInput);
+
+    if (!cleanupResult.ok) {
+      console.warn("[saveMenuManagementBasicDraftAction] menu widget image cleanup failed", {
+        menuId,
+        candidateCount: menuWidgetImageCleanupInput.assetCleanupPlans.length + menuWidgetImageCleanupInput.assetChanges.length,
+        removedCount: cleanupResult.removedPaths.length,
+        warningCodes: cleanupResult.warnings.map((warning) => warning.code),
+      });
     }
   }
 

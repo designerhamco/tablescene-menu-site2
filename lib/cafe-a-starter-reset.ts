@@ -180,6 +180,15 @@ export type CafeAStarterResetSnapshot = {
   saveContractGaps: string[];
 };
 
+export const CAFE_A_STARTER_RESET_FINAL_SAVE_SOURCE = "cafe_a_starter_reset" as const;
+export const CAFE_A_STARTER_RESET_FINAL_SAVE_SCHEMA_VERSION = 1 as const;
+
+export type CafeAStarterResetFinalSavePayload = {
+  source: typeof CAFE_A_STARTER_RESET_FINAL_SAVE_SOURCE;
+  schemaVersion: typeof CAFE_A_STARTER_RESET_FINAL_SAVE_SCHEMA_VERSION;
+  snapshot: CafeAStarterResetSnapshot;
+};
+
 export type CafeAStarterResetValidationErrorCode =
   | "MISSING_PAGE"
   | "DUPLICATE_ID"
@@ -193,7 +202,8 @@ export type CafeAStarterResetValidationErrorCode =
   | "INVALID_VISIBLE"
   | "INVALID_IS_SOLD_OUT"
   | "MIXED_PERSISTED_AND_TEMP_ID"
-  | "SAVE_CONTRACT_GAP";
+  | "SAVE_CONTRACT_GAP"
+  | "INVALID_FINAL_SAVE_PAYLOAD";
 
 export type CafeAStarterResetValidationError = {
   code: CafeAStarterResetValidationErrorCode;
@@ -553,6 +563,72 @@ export function validateCafeAStarterResetSnapshot(
   return errors.length === 0 ? { ok: true, errors: [] } : { ok: false, errors };
 }
 
+export function createCafeAStarterResetFinalSavePayload(
+  snapshot: CafeAStarterResetSnapshot,
+): CafeAStarterResetFinalSavePayload {
+  return {
+    source: CAFE_A_STARTER_RESET_FINAL_SAVE_SOURCE,
+    schemaVersion: CAFE_A_STARTER_RESET_FINAL_SAVE_SCHEMA_VERSION,
+    snapshot,
+  };
+}
+
+export function parseCafeAStarterResetFinalSavePayload(
+  value: unknown,
+): { ok: true; payload: CafeAStarterResetFinalSavePayload; errors: [] } | { ok: false; payload: null; errors: CafeAStarterResetValidationError[] } {
+  if (!isPlainObject(value)) {
+    return {
+      ok: false,
+      payload: null,
+      errors: [createError("INVALID_FINAL_SAVE_PAYLOAD", "payload", "starter reset final-save payload는 object여야 합니다.")],
+    };
+  }
+
+  if (value.source !== CAFE_A_STARTER_RESET_FINAL_SAVE_SOURCE) {
+    return {
+      ok: false,
+      payload: null,
+      errors: [createError("INVALID_FINAL_SAVE_PAYLOAD", "source", "starter reset final-save source가 올바르지 않습니다.")],
+    };
+  }
+
+  if (value.schemaVersion !== CAFE_A_STARTER_RESET_FINAL_SAVE_SCHEMA_VERSION) {
+    return {
+      ok: false,
+      payload: null,
+      errors: [createError("INVALID_FINAL_SAVE_PAYLOAD", "schemaVersion", "starter reset final-save schemaVersion이 올바르지 않습니다.")],
+    };
+  }
+
+  const snapshot = value.snapshot;
+  if (!isCafeAStarterResetSnapshotShape(snapshot)) {
+    return {
+      ok: false,
+      payload: null,
+      errors: [createError("INVALID_FINAL_SAVE_PAYLOAD", "snapshot", "starter reset snapshot이 올바르지 않습니다.")],
+    };
+  }
+
+  const validation = validateCafeAStarterResetSnapshot(snapshot as CafeAStarterResetSnapshot);
+  if (!validation.ok) {
+    return {
+      ok: false,
+      payload: null,
+      errors: validation.errors,
+    };
+  }
+
+  return {
+    ok: true,
+    payload: {
+      source: CAFE_A_STARTER_RESET_FINAL_SAVE_SOURCE,
+      schemaVersion: CAFE_A_STARTER_RESET_FINAL_SAVE_SCHEMA_VERSION,
+      snapshot: snapshot as CafeAStarterResetSnapshot,
+    },
+    errors: [],
+  };
+}
+
 function validateStarterPresetSource(preset: StarterPreset): CafeAStarterResetValidationError[] {
   const errors: CafeAStarterResetValidationError[] = [];
   const pageKeys = preset.pages.map((page, index) => getStarterPageKey(page, index));
@@ -901,6 +977,35 @@ function normalizePresetKey(value: unknown) {
 function parseFiniteNumber(value: unknown) {
   const number = typeof value === "number" ? value : Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isCafeAStarterResetSnapshotShape(value: unknown): value is CafeAStarterResetSnapshot {
+  if (!isPlainObject(value)) return false;
+  const arrayFields = [
+    "pages",
+    "categories",
+    "categoryPriceColumns",
+    "items",
+    "itemPriceColumnValues",
+    "widgets",
+    "featuredSlides",
+    "timeSales",
+    "deletedPageIds",
+    "deletedCategoryIds",
+    "deletedItemIds",
+    "deletedWidgetIds",
+    "saveContractGaps",
+  ] as const;
+  if (!arrayFields.every((field) => Array.isArray(value[field]))) return false;
+  if (!isPlainObject(value.mixedContentOrder) || !isPlainObject(value.coverSettings) || !isPlainObject(value.referenceMap)) return false;
+  if (!(value.categories as unknown[]).every((category) => isPlainObject(category) && Array.isArray(category.priceColumns))) return false;
+  if (!(value.items as unknown[]).every((item) => isPlainObject(item) && Array.isArray(item.priceColumnValues))) return false;
+  if (!(value.timeSales as unknown[]).every((timeSale) => isPlainObject(timeSale) && Array.isArray(timeSale.targets))) return false;
+  return true;
 }
 
 function defaultStarterResetIdFactory(kind: CafeAStarterResetIdKind, key: string, index: number) {
