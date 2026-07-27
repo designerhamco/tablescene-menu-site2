@@ -7894,7 +7894,7 @@ export default function MenuManagementSection({
     setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
     markMenuManagementDirty();
     cafeAStarterReset?.applySnapshot(snapshot);
-    toast.success("오브커피 샘플이 임시 상태로 복원되었습니다. 위젯, 대표 영역, 특가세일은 최종 저장 후 반영됩니다.");
+    toast.success("오브커피 샘플이 임시 상태로 복원되었습니다. 메뉴, 대표 영역, 특가세일은 최종 저장 후 반영됩니다.");
     return true;
   }
 

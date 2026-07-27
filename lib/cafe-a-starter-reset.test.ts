@@ -34,10 +34,8 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   }
 
   const { snapshot } = result;
-  assert.equal(snapshot.widgets.length, 1);
-  assert.equal(snapshot.widgets[0]?.type, "image_text");
-  assert.equal(snapshot.widgets[0]?.imagePath, null);
-  assert.match(snapshot.widgets[0]?.imageUrl ?? "", /^\/menu-templates\/cafe_design_a\//);
+  assert.equal(snapshot.widgets.length, 0);
+  assert.deepEqual(snapshot.referenceMap.widget, {});
   assert.equal(snapshot.categoryPriceColumns.length > 0, true);
   assert.equal(snapshot.itemPriceColumnValues.length > 0, true);
   assert.deepEqual(snapshot.deletedPageIds, ["existing-page"]);
@@ -49,10 +47,14 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   const pageId = snapshot.pages[0]?.id;
   assert.ok(pageId);
   const blocks = snapshot.mixedContentOrder[pageId] ?? [];
-  assert.equal(blocks.length, snapshot.categories.length + snapshot.widgets.length);
+  assert.equal(blocks.length, 7);
+  assert.equal(blocks.length, snapshot.categories.length);
+  assert.equal(blocks.every((block) => block.blockType === "category"), true);
   assert.deepEqual(blocks.map((block) => block.sortOrder), blocks.map((_, index) => index));
-  assert.equal(blocks[5]?.blockType, "widget");
-  assert.equal(blocks[5]?.id, snapshot.widgets[0]?.id);
+  assert.deepEqual(
+    blocks.map((block) => snapshot.categories.find((category) => category.id === block.id)?.presetKey),
+    ["signature-coffee", "classic-coffee", "non-coffee", "tea", "ade", "bakery", "dessert"],
+  );
 
   assert.equal(snapshot.featuredItemId, snapshot.referenceMap.item["jeju-matcha-cream-latte"]);
   assert.equal(snapshot.featuredSlides.length > 0, true);
@@ -94,8 +96,7 @@ test("buildCafeAStarterResetSnapshot falls back for starters without widgets or 
 
 test("buildCafeAStarterResetSnapshot rejects duplicate starter keys", () => {
   const preset = clonePreset(getStarterPreset("cafe_design_a"));
-  const widget = preset.widgets?.[0];
-  assert.ok(widget);
+  const widget = createTestStarterWidget();
   preset.widgets = [widget, { ...widget }];
 
   const result = buildCafeAStarterResetSnapshot({
@@ -154,8 +155,7 @@ test("buildCafeAStarterResetSnapshot rejects missing featured and time-sale refe
 
 test("buildCafeAStarterResetSnapshot rejects more than three widgets per page", () => {
   const preset = clonePreset(getStarterPreset("cafe_design_a"));
-  const widget = preset.widgets?.[0];
-  assert.ok(widget);
+  const widget = createTestStarterWidget();
   preset.widgets = Array.from({ length: 4 }, (_, index) => ({
     ...widget,
     key: `starter-widget-${index + 1}`,
@@ -219,4 +219,24 @@ test("parseCafeAStarterResetFinalSavePayload rejects malformed snapshots before 
 
 function clonePreset(preset: StarterPreset): StarterPreset {
   return JSON.parse(JSON.stringify(preset)) as StarterPreset;
+}
+
+function createTestStarterWidget(): NonNullable<StarterPreset["widgets"]>[number] {
+  return {
+    key: "test-widget",
+    page_key: "main-menu",
+    type: "image_text",
+    title: "테스트 안내",
+    description: "테스트 위젯입니다.",
+    image_url: "/menu-templates/cafe_design_a/malcha.jpg",
+    image_path: null,
+    visible: true,
+    sort_order: 5,
+    settings: {
+      aspectRatio: "3:2",
+      objectFit: "cover",
+      textAlign: "left",
+      altText: "테스트 이미지",
+    },
+  };
 }

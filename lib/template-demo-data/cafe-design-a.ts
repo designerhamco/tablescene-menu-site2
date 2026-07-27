@@ -91,34 +91,15 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       targets: [{ target_item_key: "classic-butter-scone", target_item_name: "클래식 버터 스콘", sale_price: 2200 }],
     },
   ],
-  widgets: [
-    {
-      key: "today-notice",
-      page_key: "main-menu",
-      type: "image_text",
-      title: "오늘의 안내",
-      description: "매장에서 준비한 메뉴와 안내를 확인해 보세요.",
-      image_url: CAFE_A_MATCHA_ITEM_IMAGE,
-      image_path: null,
-      visible: true,
-      sort_order: 0,
-      settings: {
-        aspectRatio: "3:2",
-        objectFit: "cover",
-        textAlign: "left",
-        altText: "제주 말차 크림 라떼",
-      },
-    },
-  ],
+  widgets: [],
   mixed_content_order: [
     { block_type: "category", page_key: "main-menu", category_key: "signature-coffee", sort_order: 0 },
     { block_type: "category", page_key: "main-menu", category_key: "classic-coffee", sort_order: 1 },
     { block_type: "category", page_key: "main-menu", category_key: "non-coffee", sort_order: 2 },
     { block_type: "category", page_key: "main-menu", category_key: "tea", sort_order: 3 },
     { block_type: "category", page_key: "main-menu", category_key: "ade", sort_order: 4 },
-    { block_type: "widget", page_key: "main-menu", widget_key: "today-notice", sort_order: 5 },
-    { block_type: "category", page_key: "main-menu", category_key: "bakery", sort_order: 6 },
-    { block_type: "category", page_key: "main-menu", category_key: "dessert", sort_order: 7 },
+    { block_type: "category", page_key: "main-menu", category_key: "bakery", sort_order: 5 },
+    { block_type: "category", page_key: "main-menu", category_key: "dessert", sort_order: 6 },
   ],
   pages: [
     {
