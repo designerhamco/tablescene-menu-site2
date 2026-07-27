@@ -412,7 +412,7 @@ const ORDERED_FIT_FINAL_FILL_COMPENSATION_LEVELS = [1.015, 1.025, 1.035, 1.045, 
 const ORDERED_FIT_FINAL_FILL_TRIGGER_GAP = 12;
 const ORDERED_FIT_FINAL_FILL_TARGET_GAP = 12;
 const ORDERED_FIT_FINAL_FILL_MIN_GAP = 2;
-const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64] as const;
+const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64, 0.62, 0.6, 0.58, 0.56, 0.54, 0.5, 0.48, 0.46] as const;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
 const DEFAULT_FIT_STATE: CafeDesignAFitState = {
@@ -493,7 +493,7 @@ function getBalancedFitColumnCandidates(width: number, groupCount: number) {
 }
 
 function getOrderedFitColumnCandidates(width: number) {
-  const maxReadableColumns = width >= 820 ? ORDERED_FIT_DESKTOP_MAX_COLUMNS : 3;
+  const maxReadableColumns = width >= 680 ? ORDERED_FIT_DESKTOP_MAX_COLUMNS : 3;
   const maxColumns = Math.min(ORDERED_FIT_DESKTOP_MAX_COLUMNS, Math.max(3, maxReadableColumns));
   const minColumns = 2;
   return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxColumns).sort((a, b) => b - a);
@@ -5922,40 +5922,55 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       return overflowPenalty + bottomGapPenalty + missingColumnPenalty + tinyTextPenalty;
     }
 
+    function isOrderedFitCandidateSafe(measurement: CafeDesignAFitMeasurement) {
+      return (
+        !measurement.overflow &&
+        measurement.primaryBottomGap >= ORDERED_FIT_MIN_SAFETY_GAP &&
+        measurement.visibleContentBottomGap >= ORDERED_FIT_MIN_SAFETY_GAP
+      );
+    }
+
     function getOrderedFitState(columnCandidates: number[]) {
       let selectedState: CafeDesignAFitState | null = null;
       let selectedScore = Number.POSITIVE_INFINITY;
       let fallbackState: CafeDesignAFitState | null = null;
       let fallbackScore = Number.POSITIVE_INFINITY;
       const canUseEmergencyFontScale = fitMenuElement.clientWidth < ORDERED_FIT_EMERGENCY_FONT_SCALE_MENU_WIDTH_PX;
+      const unsafeCandidateKeys = new Set<string>();
 
       for (const columns of columnCandidates) {
         for (const fontScale of ORDERED_FIT_FONT_SCALE_CANDIDATES) {
-          if (!canUseEmergencyFontScale && fontScale < ORDERED_FIT_MIN_STANDARD_FONT_SCALE) continue;
+          const candidateKey = `${columns}:${fontScale}`;
+          if (unsafeCandidateKeys.has(candidateKey)) continue;
+
+          const canUseAsPrimaryCandidate = canUseEmergencyFontScale || fontScale >= ORDERED_FIT_MIN_STANDARD_FONT_SCALE;
 
           applyFitCandidate(columns, fontScale);
           const measurement = measureCafeAOrderedFit(fitBoardElement, fitMenuElement, columns);
           const candidateState = getFitStateFromMeasurement(
             columns,
             fontScale,
-            fontScale <= FIT_WARNING_FONT_SCALE ? "warning" : "fit",
+            fontScale <= FIT_WARNING_FONT_SCALE || fontScale < ORDERED_FIT_MIN_STANDARD_FONT_SCALE ? "warning" : "fit",
             measurement,
           );
+          const candidateSafe = isOrderedFitCandidateSafe(measurement);
+
+          if (!candidateSafe) {
+            unsafeCandidateKeys.add(candidateKey);
+            continue;
+          }
+
           const nextFallbackScore = getOrderedFallbackScore(columns, fontScale, measurement);
 
           if (nextFallbackScore < fallbackScore) {
             fallbackScore = nextFallbackScore;
             fallbackState = {
               ...candidateState,
-              status: measurement.overflow || fontScale <= FIT_WARNING_FONT_SCALE ? "warning" : "fit",
+              status: fontScale <= FIT_WARNING_FONT_SCALE || fontScale < ORDERED_FIT_MIN_STANDARD_FONT_SCALE ? "warning" : "fit",
             };
           }
 
-          if (
-            measurement.overflow ||
-            measurement.primaryBottomGap < ORDERED_FIT_MIN_SAFETY_GAP ||
-            measurement.visibleContentBottomGap < ORDERED_FIT_MIN_SAFETY_GAP
-          ) continue;
+          if (!canUseAsPrimaryCandidate) continue;
 
           const score = getOrderedFitScore(columns, fontScale, measurement);
           if (score < selectedScore) {
