@@ -23,6 +23,11 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
+  buildCafeAStarterResetSnapshot,
+  validateCafeAStarterResetSnapshot,
+  type CafeAStarterResetSnapshot,
+} from "@/lib/cafe-a-starter-reset";
+import {
   addCategoryContentBlock,
   addWidgetContentBlock,
   addPageContentBlockList,
@@ -287,6 +292,7 @@ type ItemBasicDraft = {
   priceOptions?: DraftPriceOption[];
   priceColumnValues?: ItemPriceColumnValueDraft[];
   timeSale?: ItemTimeSaleDraft;
+  isSoldOut?: boolean;
   badgeStyleKey?: BadgeStyleKey;
   badgeBackgroundColor?: string;
   badgeTextColor?: string;
@@ -4934,6 +4940,7 @@ export default function MenuManagementSection({
           traitDrafts: toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id)),
           priceColumnValues: normalizeItemPriceColumnValueDrafts(item.priceColumnValues),
           timeSale: initialTimeSaleDraftByItemId.get(item.id),
+          isSoldOut: item.is_sold_out,
         },
       ])
     )
@@ -5047,6 +5054,7 @@ export default function MenuManagementSection({
           badge_type: getBadgeStyleKey(draft.badgeLabel),
           recommended: Boolean(draft.badgeLabel.trim()),
           is_best: draft.badgeLabel === "BEST",
+          is_sold_out: draft.isSoldOut ?? item.is_sold_out,
           visible: draft.visible,
           sort_order: draft.sortOrder,
           image_url: nextImageUrl,
@@ -5080,7 +5088,7 @@ export default function MenuManagementSection({
             recommended: Boolean(badgeLabel),
             origin_info: draft.originInfo.trim() ? draft.originInfo : null,
             is_best: badgeLabel === "BEST",
-            is_sold_out: false,
+            is_sold_out: draft.isSoldOut ?? false,
             traits_visible: draft.traitsVisible ?? true,
             visible: draft.visible,
             sort_order: draft.sortOrder,
@@ -5417,6 +5425,7 @@ export default function MenuManagementSection({
               priceOptions: canManageCategoryPriceColumns ? undefined : categoryPriceOptions,
               priceColumnValues,
               timeSale: draft?.timeSale,
+              isSoldOut: draft?.isSoldOut ?? item.is_sold_out,
               badgeStyleKey: draft?.badgeStyleKey,
               badgeBackgroundColor: draft?.badgeBackgroundColor,
               badgeTextColor: draft?.badgeTextColor,
@@ -7429,6 +7438,250 @@ export default function MenuManagementSection({
     setItemEditorEntryMode("list");
   }
 
+  function applyCafeAStarterResetSnapshot(snapshot: CafeAStarterResetSnapshot, fallbackPageId = "") {
+    const validation = validateCafeAStarterResetSnapshot(snapshot, {
+      pageIds: canManagePages ? menuPages.map((page) => page.id) : [],
+      categoryIds: categories.map((category) => category.id),
+      itemIds: items.map((item) => item.id),
+      widgetIds: initialMenuWidgets.map((widget) => widget.id),
+    });
+    if (!validation.ok) {
+      toast.error(`샘플 데이터 검증에 실패했습니다: ${validation.errors[0]?.message ?? "starter snapshot을 확인해주세요."}`);
+      return false;
+    }
+
+    const pageIdMap = new Map(
+      snapshot.pages.map((page, index) => [
+        page.id,
+        canManagePages ? page.id : index === 0 ? fallbackPageId : page.id,
+      ] as const),
+    );
+    const remapPageId = (pageId: string) => pageIdMap.get(pageId) ?? pageId;
+    const nextPageDrafts: Record<string, PageBasicDraft> = canManagePages
+      ? Object.fromEntries(
+          snapshot.pages.map((page) => [
+            page.id,
+            {
+              isNew: true,
+              title: page.title,
+              description: capabilities.pageDescription ? page.description : "",
+              descriptionVisible: capabilities.pageDescription ? page.descriptionVisible : false,
+              visible: page.visible,
+              sortOrder: page.sortOrder,
+              displaySettings: DEFAULT_MENU_PAGE_DISPLAY_SETTINGS,
+            } satisfies PageBasicDraft,
+          ]),
+        )
+      : {};
+    const nextCategoryDrafts: Record<string, CategoryBasicDraft> = Object.fromEntries(
+      snapshot.categories.map((category) => {
+        const allowedPriceColumnIds = new Set(category.priceColumns.map((column) => column.id));
+        return [
+          category.id,
+          {
+            isNew: true,
+            pageId: remapPageId(category.pageId),
+            name: category.name,
+            description: capabilities.categoryDescription ? category.description : "",
+            descriptionVisible: capabilities.categoryDescription ? category.descriptionVisible : false,
+            visible: category.visible,
+            sortOrder: category.sortOrder,
+            priceColumns: canManageCategoryPriceColumns
+              ? category.priceColumns
+                  .slice(0, maxCategoryPriceColumns)
+                  .map((column) => ({
+                    id: column.id,
+                    key: column.key || getCategoryPriceColumnKey(column.label, column.sortOrder),
+                    label: column.label,
+                    visible: column.visible,
+                    sortOrder: column.sortOrder,
+                  } satisfies CategoryPriceColumnDraft))
+              : [],
+            priceOptionLabels: usesLegacyCategoryPriceOptionColumns
+              ? category.priceColumns
+                  .filter((column) => allowedPriceColumnIds.has(column.id) && column.visible)
+                  .map((column) => column.label)
+              : undefined,
+          } satisfies CategoryBasicDraft,
+        ] as const;
+      }),
+    );
+    const visiblePriceColumnIds = new Set(
+      Object.values(nextCategoryDrafts).flatMap((category) => category.priceColumns?.map((column) => column.id ?? "") ?? []),
+    );
+    const nextItemDrafts: Record<string, ItemBasicDraft> = Object.fromEntries(
+      snapshot.items.map((item) => {
+        const priceColumnValues = canManageCategoryPriceColumns
+          ? item.priceColumnValues
+              .filter((value) => visiblePriceColumnIds.has(value.priceColumnId))
+              .map((value) => ({
+                id: value.id,
+                priceColumnId: value.priceColumnId,
+                price: value.price,
+                priceLabel: value.priceLabel,
+                visible: value.visible,
+                sortOrder: value.sortOrder,
+              } satisfies ItemPriceColumnValueDraft))
+          : [];
+
+        return [
+          item.id,
+          {
+            categoryId: item.categoryId,
+            isNew: true,
+            imageUrl: capabilities.menuItemImages ? item.imageUrl : null,
+            imagePath: capabilities.menuItemImages ? item.imagePath : null,
+            imageAction: "keep",
+            name: item.name,
+            setName: item.setName,
+            description: capabilities.itemDescription ? item.description : "",
+            originInfo: capabilities.originInfo ? item.originInfo : "",
+            price: item.price,
+            priceLabel: canManageCategoryPriceColumns ? "" : item.priceLabel,
+            singlePriceInputMode: "number",
+            priceNote: supportsPriceNote && priceColumnValues.length === 0 ? item.priceNote : "",
+            badgeLabel: capabilities.itemBadges ? item.badgeLabel : "",
+            visible: item.visible,
+            sortOrder: item.sortOrder,
+            priceVisible: item.priceVisible,
+            portionLabel: capabilities.itemPortionLabel ? item.portionLabel : "",
+            portionVisible: capabilities.itemPortionLabel ? item.portionVisible : false,
+            traitsVisible: item.traitsVisible,
+            traitDrafts: [],
+            priceOptions: capabilities.priceOptions && !canManageCategoryPriceColumns ? [] : undefined,
+            priceColumnValues,
+            isSoldOut: item.isSoldOut,
+          } satisfies ItemBasicDraft,
+        ] as const;
+      }),
+    );
+
+    if (canManageTimeSales) {
+      snapshot.timeSales.forEach((timeSale) => {
+        const ownerItemDraft = nextItemDrafts[timeSale.ownerItemId];
+        if (!ownerItemDraft) return;
+        const targets = timeSale.targets.map((target) => ({
+          priceColumnId: target.priceColumnId,
+          salePrice: String(target.salePrice),
+          salePriceLabel: target.salePriceLabel ?? null,
+          visible: target.visible,
+        } satisfies ItemTimeSaleTargetDraft));
+        ownerItemDraft.timeSale = {
+          enabled: true,
+          name: timeSale.name || "타임세일",
+          salePrice: targets.find((target) => target.priceColumnId === null)?.salePrice ?? targets[0]?.salePrice ?? "",
+          targets,
+          startsAt: toLocalDateTimeInputValue(timeSale.startsAt),
+          endsAt: toLocalDateTimeInputValue(timeSale.endsAt),
+          scheduleType: normalizeTimeSaleScheduleType(timeSale.scheduleType),
+          dailyStartTime: timeSale.dailyStartTime?.slice(0, 5) ?? "",
+          dailyEndTime: timeSale.dailyEndTime?.slice(0, 5) ?? "",
+          timeDisplayMode: normalizeTimeSaleDisplayMode(timeSale.timeDisplayMode),
+          displayText: timeSale.timeDisplayText ?? "",
+          badgeText: timeSale.badgeText,
+          badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor),
+          active: timeSale.active,
+        };
+      });
+    }
+
+    const nextWidgetDraftsById: Record<string, MenuWidgetDraft> = menuWidgetCapability.enabled
+      ? Object.fromEntries(
+          snapshot.widgets.map((widget) => [
+            widget.id,
+            {
+              ...widget,
+              menuPageId: remapPageId(widget.menuPageId),
+            },
+          ]),
+        )
+      : {};
+    const nextContentBlocksByPageId = menuWidgetCapability.enabled
+      ? Object.fromEntries(
+          Object.entries(snapshot.mixedContentOrder).map(([pageId, blocks]) => {
+            const remappedPageId = remapPageId(pageId);
+            return [
+              remappedPageId,
+              blocks
+                .filter((block) => block.blockType === "category" || nextWidgetDraftsById[block.id])
+                .map((block, index) => ({
+                  ...block,
+                  menuPageId: remappedPageId,
+                  sortOrder: index,
+                })),
+            ] as const;
+          }),
+        )
+      : createCategoryOnlyContentBlockDraftsByPageId({
+          pages: canManagePages
+            ? snapshot.pages.map((page) => ({ id: page.id }))
+            : fallbackPageId
+              ? [{ id: fallbackPageId }]
+              : [],
+          categories: Object.entries(nextCategoryDrafts).map(([id, draft]) => ({
+            id,
+            menuPageId: draft.pageId ?? "",
+            sortOrder: draft.sortOrder,
+            visible: draft.visible ?? true,
+          })),
+        });
+
+    const firstPageId = remapPageId(snapshot.pages.find((page) => page.visible)?.id ?? snapshot.pages[0]?.id ?? fallbackPageId);
+    const firstCategoryId =
+      snapshot.categories.find((category) => category.visible && remapPageId(category.pageId) === firstPageId)?.id ??
+      snapshot.categories.find((category) => category.visible)?.id ??
+      snapshot.categories[0]?.id ??
+      "";
+    const firstItemId =
+      firstCategoryId
+        ? snapshot.items.find((item) => item.visible && item.categoryId === firstCategoryId)?.id ??
+          snapshot.items.find((item) => item.categoryId === firstCategoryId)?.id ??
+          ""
+        : "";
+
+    setPageBasicDrafts(nextPageDrafts);
+    setCategoryBasicDrafts(nextCategoryDrafts);
+    setItemBasicDrafts(nextItemDrafts);
+    setPendingItemDrafts({});
+    setWidgetDraftsById(nextWidgetDraftsById);
+    setContentBlockDraftsByPageId(nextContentBlocksByPageId);
+    setDeletedWidgetIds(new Set(menuWidgetCapability.enabled ? snapshot.deletedWidgetIds : []));
+    setDeletedPageIds(canManagePages ? new Set(snapshot.deletedPageIds) : new Set());
+    setDeletedCategoryIds(new Set(snapshot.deletedCategoryIds));
+    setDeletedItemIds(new Set(snapshot.deletedItemIds));
+    resetModes();
+    setIsSampleResetConfirming(false);
+    setSelectedPageId(firstPageId);
+    setSelectedCategoryId(firstCategoryId);
+    setEditingItemId(firstItemId);
+    setItemEditorEntryMode("list");
+    setExpandedPageIds(new Set(firstPageId ? [firstPageId] : []));
+    setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
+    markMenuManagementDirty();
+    toast.success("샘플 메뉴가 임시 상태로 복원되었습니다. 최종 저장을 눌러 반영해주세요.");
+    return true;
+  }
+
+  function resetCafeAMenuManagementToStarterDraft(fixedPageId = "") {
+    const result = buildCafeAStarterResetSnapshot({
+      preset: starterPreset as StarterPreset,
+      persistedIds: {
+        pageIds: canManagePages ? menuPages.map((page) => page.id) : [],
+        categoryIds: categories.map((category) => category.id),
+        itemIds: items.map((item) => item.id),
+        widgetIds: initialMenuWidgets.map((widget) => widget.id),
+      },
+      now: new Date(),
+    });
+
+    if (!result.ok) {
+      toast.error(`샘플 데이터 검증에 실패했습니다: ${result.errors[0]?.message ?? "starter snapshot을 확인해주세요."}`);
+      return false;
+    }
+
+    return applyCafeAStarterResetSnapshot(result.snapshot, fixedPageId);
+  }
+
   function resetMenuManagementToStarterDraft() {
     if (!starterPreset || isSampleResetApplying) return;
     if (usesLegacyCategoryPriceOptionColumns) {
@@ -7442,6 +7695,14 @@ export default function MenuManagementSection({
     }
 
     setIsSampleResetApplying(true);
+    if (starterPreset.template_key === "cafe_design_a") {
+      try {
+        resetCafeAMenuManagementToStarterDraft(fixedPageId);
+      } finally {
+        setIsSampleResetApplying(false);
+      }
+      return;
+    }
 
     const resetSeed = window.crypto?.randomUUID?.() ?? "sample-reset";
     const nextPageDrafts: Record<string, PageBasicDraft> = {};
@@ -9131,6 +9392,7 @@ export default function MenuManagementSection({
               </h2>
               <div className="mt-3 space-y-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">
                 <p>현재 메뉴 관리 탭에서 편집 중인 페이지, 카테고리, 메뉴 아이템 내용이 선택한 템플릿의 샘플 데이터로 바뀝니다.</p>
+                <p>오브커피 템플릿은 위젯, 표시 순서, 타임세일 draft도 함께 샘플 상태로 복원됩니다.</p>
                 <p>저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.</p>
               </div>
               <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
