@@ -2709,6 +2709,7 @@ function MenuItemForm({
   const [descriptionValue, setDescriptionValue] = useState(draftItem?.description ?? item?.description ?? "");
   const [originInfoValue, setOriginInfoValue] = useState(draftItem?.originInfo ?? item?.origin_info ?? "");
   const [visibleValue, setVisibleValue] = useState(draftItem?.visible ?? item?.visible ?? true);
+  const [soldOutValue, setSoldOutValue] = useState(draftItem?.isSoldOut ?? item?.is_sold_out ?? false);
   const [priceVisibleValue, setPriceVisibleValue] = useState(draftItem?.priceVisible ?? item?.price_visible ?? true);
   const [timeSaleEnabled, setTimeSaleEnabled] = useState(draftItem?.timeSale?.enabled ?? false);
   const [timeSaleName, setTimeSaleName] = useState(draftItem?.timeSale?.name ?? "타임세일");
@@ -2993,6 +2994,7 @@ function MenuItemForm({
       normalizeDraftText(priceNoteValue) !== normalizeDraftText(committedDraftItem?.priceNote ?? item.price_note ?? "")) ||
     normalizeDraftText(visibleBadgeLabel) !== normalizeDraftText(committedDraftItem?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "") ||
     visibleValue !== (committedDraftItem?.visible ?? item.visible ?? true) ||
+    soldOutValue !== (committedDraftItem?.isSoldOut ?? item.is_sold_out ?? false) ||
     normalizeDraftNumberText(sortOrderValue) !== normalizeDraftNumberText(committedDraftItem?.sortOrder ?? item.sort_order ?? itemCount) ||
     priceVisibleValue !== (committedDraftItem?.priceVisible ?? item.price_visible ?? true) ||
     currentPriceMode !== committedPriceMode ||
@@ -3104,6 +3106,7 @@ function MenuItemForm({
         : (committedDraftItem?.priceNote ?? item?.price_note ?? ""),
       badgeLabel: nextBadgeLabel,
       visible: formData ? formData.has("item_visible") : visibleValue,
+      isSoldOut: formData ? formData.has("item_is_sold_out") : soldOutValue,
       sortOrder: Number(String(formData?.get("item_sort_order") ?? item?.sort_order ?? itemCount)) || 0,
       priceVisible: formData ? formData.has("item_price_visible") : priceVisibleValue,
       priceMode: isOptionsMode ? "options" : "single",
@@ -3361,7 +3364,6 @@ function MenuItemForm({
       <HiddenMenuId menuId={menuId} form={formId} />
       {item && <input type="hidden" name="itemId" value={item.id} form={formId} />}
       <input type="hidden" name="item_price_mode" value={isOptionsMode ? "options" : "single"} form={formId} />
-      {item?.is_sold_out && <input type="hidden" name="item_is_sold_out" value="on" form={formId} />}
       {!canManageCategoryPriceColumns && effectiveDraftPriceOptions.map((option, index) => (
         <span key={option.id}>
           <input type="hidden" name={`new_price_option_${index}_label`} value={option.label} form={formId} />
@@ -3609,6 +3611,19 @@ function MenuItemForm({
               onCheckedChange={(checked) => {
                 setVisibleValue(checked);
                 updateDraftItem({ visible: checked });
+              }}
+            />
+            <Checkbox
+              form={formId}
+              name="item_is_sold_out"
+              label="품절 처리"
+              description="켜면 최종 저장 후 공개 메뉴판에서 품절 상태로 표시됩니다."
+              defaultChecked={soldOutValue}
+              onText="품절"
+              offText="판매 중"
+              onCheckedChange={(checked) => {
+                setSoldOutValue(checked);
+                updateDraftItem({ isSoldOut: checked });
               }}
             />
           </div>
@@ -6896,6 +6911,7 @@ export default function MenuManagementSection({
         imagePath: null,
         imageAction: "keep",
         visible: true,
+        isSoldOut: false,
         sortOrder: 0,
         priceVisible: true,
         portionLabel: "",
@@ -7185,6 +7201,7 @@ export default function MenuManagementSection({
             priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
             badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
             visible: sourceDraft?.visible ?? item.visible,
+            isSoldOut: false,
             sortOrder: index,
             priceVisible: sourceDraft?.priceVisible ?? item.price_visible,
             portionLabel: sourceDraft?.portionLabel ?? item.portion_label ?? "",
@@ -7256,6 +7273,7 @@ export default function MenuManagementSection({
         priceNote: sourceDraft?.priceNote ?? sourceItem.price_note ?? "",
         badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
         visible: sourceDraft?.visible ?? sourceItem.visible,
+        isSoldOut: false,
         sortOrder: 0,
         priceVisible: sourceDraft?.priceVisible ?? sourceItem.price_visible,
         priceMode: sourceDraft?.priceMode,
@@ -7375,6 +7393,7 @@ export default function MenuManagementSection({
           priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
           badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
           visible: sourceDraft?.visible ?? item.visible,
+          isSoldOut: false,
           sortOrder: index,
           priceVisible: sourceDraft?.priceVisible ?? item.price_visible,
           portionLabel: sourceDraft?.portionLabel ?? item.portion_label ?? "",
