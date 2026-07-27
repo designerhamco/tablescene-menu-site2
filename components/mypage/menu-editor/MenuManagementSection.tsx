@@ -55,6 +55,7 @@ import {
   type InitialMenuWidgetEditorDraft,
 } from "@/lib/menu-widget-editor-draft";
 import {
+  buildCopiedMenuWidgetTitle,
   createDefaultMenuWidgetDraft,
   MAX_MENU_WIDGETS_PER_PAGE,
   validateMenuWidgetDraft,
@@ -6765,7 +6766,7 @@ export default function MenuManagementSection({
       ? {
           ...source,
           id: widgetId,
-          title: source.title ? getCopyName(source.title) : source.title,
+          title: buildCopiedMenuWidgetTitle(source.title),
           imageUrl: null,
           imagePath: null,
         }

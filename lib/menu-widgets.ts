@@ -19,6 +19,7 @@ export const MAX_MENU_WIDGETS_PER_PAGE = 3;
 export const MAX_MENU_WIDGET_TITLE_LENGTH = 30;
 export const MAX_MENU_WIDGET_DESCRIPTION_LENGTH = 120;
 export const MAX_MENU_WIDGET_ALT_TEXT_LENGTH = 120;
+const COPIED_MENU_WIDGET_TITLE_PREFIX = "[복사본] ";
 
 export type MenuWidgetSettingsV1 = {
   schemaVersion: typeof MENU_WIDGET_SETTINGS_VERSION;
@@ -215,6 +216,17 @@ export function createDefaultMenuWidgetDraft(
       altText: "",
     },
   };
+}
+
+export function buildCopiedMenuWidgetTitle(title: string | null | undefined): string {
+  const normalizedTitle = normalizeText(title);
+  if (!normalizedTitle) return "";
+
+  const sourceTitle = normalizedTitle.replace(/^(?:\[복사본\]\s*)+/u, "").trim();
+  if (!sourceTitle) return "";
+
+  const sourceMaxLength = MAX_MENU_WIDGET_TITLE_LENGTH - COPIED_MENU_WIDGET_TITLE_PREFIX.length;
+  return `${COPIED_MENU_WIDGET_TITLE_PREFIX}${truncateUtf16Safely(sourceTitle, sourceMaxLength)}`;
 }
 
 export function normalizeMenuWidgetDraft(
@@ -421,6 +433,19 @@ function normalizeNullableText(value: unknown): string | null {
 
 function normalizeSortOrder(value: number): number {
   return Number.isFinite(value) ? Math.trunc(value) : 0;
+}
+
+function truncateUtf16Safely(value: string, maxLength: number): string {
+  if (maxLength <= 0) return "";
+  if (value.length <= maxLength) return value;
+
+  let truncated = value.slice(0, maxLength);
+  const lastCodeUnit = truncated.charCodeAt(truncated.length - 1);
+  if (lastCodeUnit >= 0xd800 && lastCodeUnit <= 0xdbff) {
+    truncated = truncated.slice(0, -1);
+  }
+
+  return truncated;
 }
 
 function requireMenuWidgetAspectRatio(value: unknown): MenuWidgetAspectRatio {
