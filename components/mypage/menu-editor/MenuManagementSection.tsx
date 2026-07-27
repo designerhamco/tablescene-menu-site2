@@ -107,7 +107,11 @@ import {
   normalizeTimeSaleDisplayMode,
   parseTimeSalePriceInputToWon,
   toLocalDateTimeInputValue,
+  MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
   type MenuEditorTimeSale,
+  type MenuTimeSaleManagementDraft,
+  type MenuTimeSaleManagementTargetDraft,
+  type MenuTimeSaleSavePayload,
   type TimeSaleDisplayMode,
 } from "@/lib/menu-time-sales";
 import {
@@ -337,6 +341,8 @@ type ItemTraitDraft = {
 };
 type PriceMode = "single" | "options";
 type ItemTimeSaleDraft = {
+  clientKey?: string;
+  promotionId?: string | null;
   enabled: boolean;
   name: string;
   salePrice: string;
@@ -353,6 +359,8 @@ type ItemTimeSaleDraft = {
   active: boolean;
 };
 type ItemTimeSaleTargetDraft = {
+  targetId?: string | null;
+  itemId?: string;
   priceColumnId: string | null;
   salePrice: string;
   salePriceLabel?: string | null;
@@ -377,6 +385,8 @@ type ItemPriceColumnValueDraft = {
   visible: boolean;
   sortOrder: number;
 };
+
+const MENU_TIME_SALE_SAVE_PAYLOAD_FIELD = "time_sale_save_payload";
 type DisplayVideoUploadState =
   | { type: "idle"; message: string | null }
   | { type: "loading"; message: string }
@@ -603,6 +613,10 @@ function normalizeTimeSaleDisplayTextForDraft(value: unknown) {
   return text.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function getTimeSaleManagementEntryKey(entry: Pick<MenuTimeSaleManagementDraft, "clientKey" | "promotionId">) {
+  return entry.promotionId ? `promotion:${entry.promotionId}` : entry.clientKey;
+}
+
 function normalizeSinglePriceInputMode(value: unknown): SinglePriceInputMode {
   return value === "text" ? "text" : "number";
 }
@@ -647,6 +661,8 @@ function toItemTimeSaleDraft(timeSale?: MenuEditorTimeSale | null): ItemTimeSale
   const targets = (timeSale.items.length > 0 ? timeSale.items : [promotionItem])
     .filter((item) => item.visible !== false)
     .map((item) => ({
+      targetId: item.id,
+      itemId: item.menuItemId,
       priceColumnId: item.priceColumnId,
       salePrice: item.salePriceLabel?.trim() || (item.salePrice == null ? "" : String(item.salePrice)),
       salePriceLabel: item.salePriceLabel,
@@ -655,6 +671,8 @@ function toItemTimeSaleDraft(timeSale?: MenuEditorTimeSale | null): ItemTimeSale
   const singleTarget = targets.find((target) => target.priceColumnId === null) ?? targets[0];
 
   return {
+    clientKey: `promotion:${timeSale.id}`,
+    promotionId: timeSale.id,
     enabled: promotionItem.visible !== false,
     name: timeSale.name || "타임세일",
     salePrice: singleTarget?.salePrice ?? "",
@@ -669,6 +687,122 @@ function toItemTimeSaleDraft(timeSale?: MenuEditorTimeSale | null): ItemTimeSale
     badgeText: timeSale.badgeText || DEFAULT_TIME_SALE_BADGE_TEXT,
     badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor),
     active: timeSale.active,
+  };
+}
+
+function toTimeSaleManagementTargetDraft(
+  target: MenuEditorTimeSale["items"][number]
+): MenuTimeSaleManagementTargetDraft {
+  return {
+    targetId: target.id,
+    itemId: target.menuItemId,
+    priceColumnId: target.priceColumnId,
+    salePrice: target.salePriceLabel?.trim() || (target.salePrice == null ? "" : String(target.salePrice)),
+    salePriceLabel: target.salePriceLabel,
+    visible: target.visible,
+  };
+}
+
+function toTimeSaleManagementDraft(timeSale: MenuEditorTimeSale): MenuTimeSaleManagementDraft | null {
+  const targets = (timeSale.items.length > 0 ? timeSale.items : timeSale.item ? [timeSale.item] : [])
+    .map(toTimeSaleManagementTargetDraft);
+  if (targets.length === 0) return null;
+
+  return {
+    clientKey: `promotion:${timeSale.id}`,
+    promotionId: timeSale.id,
+    enabled: targets.some((target) => target.visible !== false),
+    name: timeSale.name || "타임세일",
+    active: timeSale.active,
+    startsAt: toLocalDateTimeInputValue(timeSale.startsAt),
+    endsAt: toLocalDateTimeInputValue(timeSale.endsAt),
+    scheduleType: normalizeTimeSaleScheduleType(timeSale.scheduleType),
+    dailyStartTime: timeSale.dailyStartTime?.slice(0, 5) ?? null,
+    dailyEndTime: timeSale.dailyEndTime?.slice(0, 5) ?? null,
+    timeDisplayMode: normalizeTimeSaleDisplayMode(timeSale.timeDisplayMode),
+    displayText: timeSale.displayText ?? null,
+    badgeText: timeSale.badgeText || DEFAULT_TIME_SALE_BADGE_TEXT,
+    badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor),
+    targets,
+  };
+}
+
+function toTimeSaleManagementDraftFromItemDraft(
+  ownerItemId: string,
+  draft: ItemTimeSaleDraft
+): MenuTimeSaleManagementDraft | null {
+  const targets = (draft.targets && draft.targets.length > 0
+    ? draft.targets
+    : [{
+        itemId: ownerItemId,
+        priceColumnId: null,
+        salePrice: draft.salePrice,
+        salePriceLabel: null,
+        visible: true,
+      } satisfies ItemTimeSaleTargetDraft]
+  )
+    .map((target) => ({
+      targetId: target.targetId ?? null,
+      itemId: target.itemId || ownerItemId,
+      priceColumnId: target.priceColumnId,
+      salePrice: target.salePrice,
+      salePriceLabel: target.salePriceLabel ?? null,
+      visible: target.visible,
+    }))
+    .filter((target) => target.itemId);
+  if (targets.length === 0) return null;
+
+  const scheduleType = normalizeTimeSaleScheduleType(draft.scheduleType);
+  const timeDisplayMode = normalizeTimeSaleDisplayMode(draft.timeDisplayMode);
+
+  return {
+    clientKey: normalizeDraftText(draft.clientKey) || (draft.promotionId ? `promotion:${draft.promotionId}` : `item:${ownerItemId}`),
+    promotionId: normalizeDraftText(draft.promotionId) || null,
+    enabled: Boolean(draft.enabled),
+    name: normalizeDraftText(draft.name) || "타임세일",
+    active: draft.enabled === false ? false : draft.active !== false,
+    startsAt: normalizeDraftText(draft.startsAt),
+    endsAt: normalizeDraftText(draft.endsAt),
+    scheduleType,
+    dailyStartTime: scheduleType === "daily_window" ? normalizeDailyTime(draft.dailyStartTime)?.slice(0, 5) ?? null : null,
+    dailyEndTime: scheduleType === "daily_window" ? normalizeDailyTime(draft.dailyEndTime)?.slice(0, 5) ?? null : null,
+    timeDisplayMode,
+    displayText:
+      timeDisplayMode === "message" || timeDisplayMode === "message_and_countdown"
+        ? normalizeTimeSaleDisplayTextForDraft(draft.displayText) || null
+        : null,
+    badgeText: normalizeDraftText(draft.badgeText) || DEFAULT_TIME_SALE_BADGE_TEXT,
+    badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(draft.badgeBackgroundColor),
+    targets,
+  };
+}
+
+function toTimeSaleManagementDraftFromStarterReset(
+  timeSale: CafeAStarterResetSnapshot["timeSales"][number]
+): MenuTimeSaleManagementDraft {
+  return {
+    clientKey: `starter:${timeSale.presetKey}`,
+    promotionId: null,
+    enabled: true,
+    name: timeSale.name || "타임세일",
+    active: timeSale.active,
+    startsAt: toLocalDateTimeInputValue(timeSale.startsAt),
+    endsAt: toLocalDateTimeInputValue(timeSale.endsAt),
+    scheduleType: normalizeTimeSaleScheduleType(timeSale.scheduleType),
+    dailyStartTime: timeSale.dailyStartTime?.slice(0, 5) ?? null,
+    dailyEndTime: timeSale.dailyEndTime?.slice(0, 5) ?? null,
+    timeDisplayMode: normalizeTimeSaleDisplayMode(timeSale.timeDisplayMode),
+    displayText: timeSale.timeDisplayText ?? null,
+    badgeText: timeSale.badgeText || DEFAULT_TIME_SALE_BADGE_TEXT,
+    badgeBackgroundColor: normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor),
+    targets: timeSale.targets.map((target) => ({
+      targetId: null,
+      itemId: target.itemId,
+      priceColumnId: target.priceColumnId,
+      salePrice: target.salePrice,
+      salePriceLabel: target.salePriceLabel,
+      visible: target.visible,
+    })),
   };
 }
 
@@ -687,18 +821,22 @@ function normalizeItemTimeSaleDraft(value?: ItemTimeSaleDraft) {
       : "";
 
   return {
+    clientKey: normalizeDraftText(value.clientKey),
+    promotionId: normalizeDraftText(value.promotionId) || null,
     enabled: Boolean(value.enabled),
     name: normalizeDraftText(value.name) || "타임세일",
     salePrice: normalizeDraftText(value.salePrice),
     targets: (value.targets ?? [])
       .map((target) => ({
+        targetId: normalizeDraftText(target.targetId) || null,
+        itemId: normalizeDraftText(target.itemId),
         priceColumnId: target.priceColumnId ?? null,
         salePrice: normalizeDraftText(target.salePrice),
         salePriceLabel: normalizeDraftText(target.salePriceLabel ?? "") || null,
         visible: normalizeDraftBoolean(target.visible),
       }))
       .filter((target) => target.visible && target.salePrice)
-      .sort((a, b) => String(a.priceColumnId ?? "").localeCompare(String(b.priceColumnId ?? ""))),
+      .sort((a, b) => `${a.itemId}:${a.priceColumnId ?? ""}`.localeCompare(`${b.itemId}:${b.priceColumnId ?? ""}`)),
     startsAt: normalizeDraftText(value.startsAt),
     endsAt: normalizeDraftText(value.endsAt),
     scheduleType,
@@ -2802,6 +2940,8 @@ function MenuItemForm({
       const column = currentCategoryPriceColumns.find((entry) => entry.id === value.priceColumnId);
       const target = timeSaleTargets.find((entry) => entry.priceColumnId === value.priceColumnId);
       return {
+        targetId: target?.targetId ?? null,
+        itemId: target?.itemId ?? item?.id ?? "",
         priceColumnId: value.priceColumnId,
         label: column?.label ?? "옵션",
         originalPrice: Number(value.price),
@@ -2811,6 +2951,8 @@ function MenuItemForm({
     .filter((row) => Number.isFinite(row.originalPrice) && row.originalPrice > 0);
   const activePriceColumnTimeSaleTargets = visiblePriceColumnTimeSaleRows
     .map((row) => ({
+      targetId: row.targetId,
+      itemId: row.itemId,
       priceColumnId: row.priceColumnId,
       salePrice: normalizeDraftText(row.salePrice),
       salePriceLabel: null,
@@ -3034,12 +3176,28 @@ function MenuItemForm({
     const nextDisplayMode = normalizeTimeSaleDisplayMode(overrides.timeDisplayMode ?? timeSaleDisplayMode);
     const nextDailyStartTime = overrides.dailyStartTime ?? timeSaleDailyStartTime;
     const nextDailyEndTime = overrides.dailyEndTime ?? timeSaleDailyEndTime;
+    const nextSalePrice = overrides.salePrice ?? timeSalePrice;
+    const existingSingleTarget = timeSaleTargets.find((target) => target.priceColumnId === null);
+    const nextTargets = hasVisiblePriceColumnValue
+      ? overrides.targets ?? activePriceColumnTimeSaleTargets
+      : [
+          {
+            targetId: existingSingleTarget?.targetId ?? null,
+            itemId: existingSingleTarget?.itemId ?? item?.id ?? "",
+            priceColumnId: null,
+            salePrice: nextSalePrice,
+            salePriceLabel: existingSingleTarget?.salePriceLabel ?? null,
+            visible: true,
+          },
+        ];
 
     return {
+      clientKey: overrides.clientKey ?? draftItem?.timeSale?.clientKey ?? (draftItem?.timeSale?.promotionId ? `promotion:${draftItem.timeSale.promotionId}` : ""),
+      promotionId: overrides.promotionId ?? draftItem?.timeSale?.promotionId ?? null,
       enabled: overrides.enabled ?? timeSaleEnabled,
       name: overrides.name ?? timeSaleName,
-      salePrice: overrides.salePrice ?? timeSalePrice,
-      targets: overrides.targets ?? (hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets),
+      salePrice: nextSalePrice,
+      targets: nextTargets,
       startsAt: overrides.startsAt ?? timeSaleStartsAt,
       endsAt: overrides.endsAt ?? timeSaleEndsAt,
       scheduleType: nextScheduleType,
@@ -3131,7 +3289,7 @@ function MenuItemForm({
               enabled: nextSinglePriceInputMode === "text" ? false : formData ? formData.has("item_time_sale_enabled") : timeSaleEnabled,
               name: String(formData?.get("item_time_sale_name") ?? timeSaleName),
               salePrice: String(formData?.get("item_time_sale_price") ?? timeSalePrice),
-              targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : [],
+              targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
               startsAt: String(formData?.get("item_time_sale_starts_at") ?? timeSaleStartsAt),
               endsAt: String(formData?.get("item_time_sale_ends_at") ?? timeSaleEndsAt),
               scheduleType: normalizeTimeSaleScheduleType(formData?.get("item_time_sale_schedule_type") ?? timeSaleScheduleType),
@@ -5477,6 +5635,42 @@ export default function MenuManagementSection({
     if (!cafeAStarterReset?.snapshot) return "";
     return JSON.stringify(createCafeAStarterResetFinalSavePayload(cafeAStarterReset.snapshot));
   }, [cafeAStarterReset]);
+  const timeSaleSavePayload = useMemo(() => {
+    if (!canManageTimeSales) return "";
+
+    if (cafeAStarterReset?.snapshot) {
+      const payload: MenuTimeSaleSavePayload = {
+        schemaVersion: MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
+        mode: "replace",
+        entries: cafeAStarterReset.snapshot.timeSales.map(toTimeSaleManagementDraftFromStarterReset),
+        deletedPromotionIds: [],
+      };
+      return JSON.stringify(payload);
+    }
+
+    const entriesByKey = new Map<string, MenuTimeSaleManagementDraft>();
+    timeSales.forEach((timeSale) => {
+      const entry = toTimeSaleManagementDraft(timeSale);
+      if (!entry) return;
+      entriesByKey.set(getTimeSaleManagementEntryKey(entry), entry);
+    });
+
+    Object.entries(itemBasicDrafts).forEach(([itemId, draft]) => {
+      if (!draft.timeSale) return;
+      const entry = toTimeSaleManagementDraftFromItemDraft(itemId, draft.timeSale);
+      if (!entry) return;
+      entriesByKey.set(getTimeSaleManagementEntryKey(entry), entry);
+    });
+
+    const payload: MenuTimeSaleSavePayload = {
+      schemaVersion: MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
+      mode: "merge",
+      entries: Array.from(entriesByKey.values()),
+      deletedPromotionIds: [],
+    };
+
+    return JSON.stringify(payload);
+  }, [canManageTimeSales, cafeAStarterReset, itemBasicDrafts, timeSales]);
 
   useEffect(() => {
     if (hasRestoredBuilderState) return;
@@ -7595,12 +7789,16 @@ export default function MenuManagementSection({
         const ownerItemDraft = nextItemDrafts[timeSale.ownerItemId];
         if (!ownerItemDraft) return;
         const targets = timeSale.targets.map((target) => ({
+          targetId: null,
+          itemId: target.itemId,
           priceColumnId: target.priceColumnId,
           salePrice: String(target.salePrice),
           salePriceLabel: target.salePriceLabel ?? null,
           visible: target.visible,
         } satisfies ItemTimeSaleTargetDraft));
         ownerItemDraft.timeSale = {
+          clientKey: `starter:${timeSale.presetKey}`,
+          promotionId: null,
           enabled: true,
           name: timeSale.name || "타임세일",
           salePrice: targets.find((target) => target.priceColumnId === null)?.salePrice ?? targets[0]?.salePrice ?? "",
@@ -7884,6 +8082,8 @@ export default function MenuManagementSection({
             : null;
           if (target.target_price_column_key && !priceColumnId) return [];
           return [{
+            targetId: null,
+            itemId: ownerItemId,
             priceColumnId,
             salePrice: String(target.sale_price),
             salePriceLabel: null,
@@ -7895,6 +8095,8 @@ export default function MenuManagementSection({
       nextItemDrafts[ownerItemId] = {
         ...nextItemDrafts[ownerItemId],
         timeSale: {
+          clientKey: `starter:${timeSale.key ?? ownerItemName}`,
+          promotionId: null,
           enabled: true,
           name: timeSale.name || "타임세일",
           salePrice: targets.find((target) => target.priceColumnId === null)?.salePrice ?? targets[0]?.salePrice ?? "",
@@ -9155,6 +9357,9 @@ export default function MenuManagementSection({
             {menuWidgetCapability.enabled && (
               <input type="hidden" name="menuWidgetFinalSavePayload" value={menuWidgetFinalSavePayload} />
             )}
+            {canManageTimeSales ? (
+              <input type="hidden" name={MENU_TIME_SALE_SAVE_PAYLOAD_FIELD} value={timeSaleSavePayload} />
+            ) : null}
             {cafeAStarterResetFinalSavePayload ? (
               <input type="hidden" name="cafeAStarterResetFinalSavePayload" value={cafeAStarterResetFinalSavePayload} />
             ) : null}

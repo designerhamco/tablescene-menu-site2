@@ -44,6 +44,44 @@ export type MenuEditorTimeSale = {
   }>;
 };
 
+export const MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION = 1;
+
+export type MenuTimeSaleSaveMode = "merge" | "replace";
+
+export type MenuTimeSaleManagementTargetDraft = {
+  targetId: string | null;
+  itemId: string;
+  priceColumnId: string | null;
+  salePrice: string | number | null;
+  salePriceLabel?: string | null;
+  visible: boolean;
+};
+
+export type MenuTimeSaleManagementDraft = {
+  clientKey: string;
+  promotionId: string | null;
+  enabled: boolean;
+  name: string;
+  active: boolean;
+  startsAt: string;
+  endsAt: string;
+  scheduleType: TimeSaleScheduleType;
+  dailyStartTime: string | null;
+  dailyEndTime: string | null;
+  timeDisplayMode: TimeSaleDisplayMode;
+  displayText: string | null;
+  badgeText: string;
+  badgeBackgroundColor: string;
+  targets: MenuTimeSaleManagementTargetDraft[];
+};
+
+export type MenuTimeSaleSavePayload = {
+  schemaVersion: typeof MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION;
+  mode: MenuTimeSaleSaveMode;
+  entries: MenuTimeSaleManagementDraft[];
+  deletedPromotionIds: string[];
+};
+
 const BASIC_TIME_SALE_TEMPLATE_LIMITS = new Map<string, number>([
   ["cafe_design_a", 1],
 ]);

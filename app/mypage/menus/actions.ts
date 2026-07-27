@@ -46,10 +46,13 @@ import {
   isBasicTimeSaleTemplate,
   normalizeTimeSaleBadgeBackgroundColor,
   normalizeTimeSaleBadgeText,
+  MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
   TIME_SALE_DISPLAY_TEXT_MAX_LENGTH,
   TIME_SALE_TIMEZONE,
   TIME_SALE_TYPE,
   TIME_SALE_BADGE_TEXT_MAX_LENGTH,
+  type MenuTimeSaleManagementDraft,
+  type MenuTimeSaleSavePayload,
   type TimeSaleDisplayMode,
 } from "@/lib/menu-time-sales";
 import {
@@ -110,6 +113,7 @@ const MENU_IMAGES_BUCKET = "menu-images";
 const MENU_VIDEOS_BUCKET = "menu-videos";
 const MENU_WIDGET_FINAL_SAVE_PAYLOAD_FIELD = "menuWidgetFinalSavePayload";
 const CAFE_A_STARTER_RESET_FINAL_SAVE_PAYLOAD_FIELD = "cafeAStarterResetFinalSavePayload";
+const MENU_TIME_SALE_SAVE_PAYLOAD_FIELD = "time_sale_save_payload";
 const PUBLIC_PRESET_IMAGE_PREFIXES = ["/placeholders/", "/menu-templates/"] as const;
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
@@ -132,7 +136,11 @@ type MenuCategoryPriceColumnUpdate = Database["public"]["Tables"]["menu_category
 type MenuItemPriceColumnValueInsert = Database["public"]["Tables"]["menu_item_price_column_values"]["Insert"];
 type MenuItemPriceColumnValueUpdate = Database["public"]["Tables"]["menu_item_price_column_values"]["Update"];
 type MenuPromotionInsert = Database["public"]["Tables"]["menu_promotions"]["Insert"];
+type MenuPromotionUpdate = Database["public"]["Tables"]["menu_promotions"]["Update"];
+type MenuPromotionRow = Database["public"]["Tables"]["menu_promotions"]["Row"];
 type MenuPromotionItemInsert = Database["public"]["Tables"]["menu_promotion_items"]["Insert"];
+type MenuPromotionItemUpdate = Database["public"]["Tables"]["menu_promotion_items"]["Update"];
+type MenuPromotionItemRow = Database["public"]["Tables"]["menu_promotion_items"]["Row"];
 type MenuItemTraitInsert = Database["public"]["Tables"]["menu_item_traits"]["Insert"];
 type MenuItemTraitUpdate = Database["public"]["Tables"]["menu_item_traits"]["Update"];
 type MenuTranslationJobUpdate = Database["public"]["Tables"]["menu_translation_jobs"]["Update"];
@@ -414,6 +422,110 @@ function parseCafeAStarterResetFinalSavePayloadFromForm({
   }
 
   return parseResult.payload;
+}
+
+function isMenuTimeSaleManagementDraft(value: unknown): value is MenuTimeSaleManagementDraft {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const draft = value as Record<string, unknown>;
+  if (typeof draft.clientKey !== "string") return false;
+  if (draft.promotionId !== null && typeof draft.promotionId !== "string") return false;
+  if (typeof draft.enabled !== "boolean") return false;
+  if (typeof draft.name !== "string") return false;
+  if (typeof draft.active !== "boolean") return false;
+  if (typeof draft.startsAt !== "string") return false;
+  if (typeof draft.endsAt !== "string") return false;
+  if (typeof draft.scheduleType !== "string") return false;
+  if (draft.dailyStartTime !== null && typeof draft.dailyStartTime !== "string") return false;
+  if (draft.dailyEndTime !== null && typeof draft.dailyEndTime !== "string") return false;
+  if (typeof draft.timeDisplayMode !== "string") return false;
+  if (draft.displayText !== null && typeof draft.displayText !== "string") return false;
+  if (typeof draft.badgeText !== "string") return false;
+  if (typeof draft.badgeBackgroundColor !== "string") return false;
+  if (!Array.isArray(draft.targets)) return false;
+
+  return draft.targets.every((target) => {
+    if (!target || typeof target !== "object" || Array.isArray(target)) return false;
+    const targetDraft = target as Record<string, unknown>;
+    return (
+      (targetDraft.targetId === null || typeof targetDraft.targetId === "string") &&
+      typeof targetDraft.itemId === "string" &&
+      (targetDraft.priceColumnId === null || typeof targetDraft.priceColumnId === "string") &&
+      (typeof targetDraft.salePrice === "string" || typeof targetDraft.salePrice === "number" || targetDraft.salePrice === null) &&
+      (targetDraft.salePriceLabel === undefined || targetDraft.salePriceLabel === null || typeof targetDraft.salePriceLabel === "string") &&
+      typeof targetDraft.visible === "boolean"
+    );
+  });
+}
+
+function parseMenuTimeSaleSavePayloadFromForm(menuId: string, formData: FormData): MenuTimeSaleSavePayload | null {
+  const rawValue = getString(formData, MENU_TIME_SALE_SAVE_PAYLOAD_FIELD);
+  if (!rawValue) return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawValue);
+  } catch {
+    redirectToMenuEditWithError(menuId, "타임세일 저장 정보 형식이 올바르지 않습니다.");
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    redirectToMenuEditWithError(menuId, "타임세일 저장 정보 형식이 올바르지 않습니다.");
+  }
+
+  const payload = parsed as Record<string, unknown>;
+  if (payload.schemaVersion !== MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION) {
+    redirectToMenuEditWithError(menuId, "타임세일 저장 정보 버전이 올바르지 않습니다. 새로고침 후 다시 저장해주세요.");
+  }
+  if (payload.mode !== "merge" && payload.mode !== "replace") {
+    redirectToMenuEditWithError(menuId, "타임세일 저장 방식을 확인해주세요.");
+  }
+  if (!Array.isArray(payload.entries) || !payload.entries.every(isMenuTimeSaleManagementDraft)) {
+    redirectToMenuEditWithError(menuId, "타임세일 저장 항목을 확인해주세요.");
+  }
+  if (!Array.isArray(payload.deletedPromotionIds) || !payload.deletedPromotionIds.every((id) => typeof id === "string")) {
+    redirectToMenuEditWithError(menuId, "타임세일 삭제 요청을 확인해주세요.");
+  }
+
+  return {
+    schemaVersion: MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
+    mode: payload.mode,
+    entries: payload.entries,
+    deletedPromotionIds: payload.deletedPromotionIds,
+  };
+}
+
+function createMenuTimeSaleSavePayloadFromCafeAStarterResetSnapshot(
+  snapshot: CafeAStarterResetSnapshot
+): MenuTimeSaleSavePayload {
+  return {
+    schemaVersion: MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
+    mode: "replace",
+    entries: snapshot.timeSales.map((timeSale) => ({
+      clientKey: `starter:${timeSale.presetKey}`,
+      promotionId: null,
+      enabled: true,
+      name: timeSale.name,
+      active: timeSale.active,
+      startsAt: timeSale.startsAt,
+      endsAt: timeSale.endsAt,
+      scheduleType: timeSale.scheduleType,
+      dailyStartTime: timeSale.dailyStartTime,
+      dailyEndTime: timeSale.dailyEndTime,
+      timeDisplayMode: timeSale.timeDisplayMode,
+      displayText: timeSale.timeDisplayText,
+      badgeText: timeSale.badgeText,
+      badgeBackgroundColor: timeSale.badgeBackgroundColor,
+      targets: timeSale.targets.map((target) => ({
+        targetId: null,
+        itemId: target.itemId,
+        priceColumnId: target.priceColumnId,
+        salePrice: target.salePrice,
+        salePriceLabel: target.salePriceLabel,
+        visible: target.visible,
+      })),
+    })),
+    deletedPromotionIds: [],
+  };
 }
 
 function getMenuWidgetFinalSaveValidationMessage(errors: readonly MenuWidgetFinalSaveValidationError[]) {
@@ -4557,10 +4669,14 @@ type MenuManagementBasicItemDraft = {
     sortOrder?: number;
   }[];
   timeSale?: {
+    clientKey?: string;
+    promotionId?: string | null;
     enabled?: boolean;
     name?: string;
     salePrice?: string | number | null;
     targets?: {
+      targetId?: string | null;
+      itemId?: string;
       priceColumnId?: string | null;
       salePrice?: string | number | null;
       salePriceLabel?: string | null;
@@ -4793,7 +4909,9 @@ function getDisplayVideoPathsToRemove(menuId: string, previousSettingsByPageId: 
 }
 
 type NormalizedTimeSaleDraft = {
-  itemDraftId: string;
+  clientKey: string;
+  promotionId: string | null;
+  enabled: boolean;
   name: string;
   targets: NormalizedTimeSaleTargetDraft[];
   scheduleType: TimeSaleScheduleType;
@@ -4809,6 +4927,8 @@ type NormalizedTimeSaleDraft = {
 };
 
 type NormalizedTimeSaleTargetDraft = {
+  targetId: string | null;
+  itemDraftId: string;
   priceColumnId: string | null;
   salePrice: number;
   salePriceLabel: string | null;
@@ -5258,30 +5378,33 @@ function normalizeTimeSaleDailyWindow({
   };
 }
 
-function normalizeTimeSaleTargetDrafts(menuId: string, draft: NonNullable<MenuManagementBasicItemDraft["timeSale"]>): NormalizedTimeSaleTargetDraft[] {
-  const rawTargets = Array.isArray(draft.targets) ? draft.targets : null;
-  const targetInputs = rawTargets ?? [
-    {
-      priceColumnId: null,
-      salePrice: draft.salePrice,
-      visible: true,
-    },
-  ];
+function normalizeMenuTimeSaleTargetDrafts(
+  menuId: string,
+  draft: MenuTimeSaleManagementDraft
+): NormalizedTimeSaleTargetDraft[] {
+  const targetInputs = draft.targets;
   const seenTargetKeys = new Set<string>();
   const targets: NormalizedTimeSaleTargetDraft[] = [];
 
   for (const targetInput of targetInputs) {
-    const target = targetInput && typeof targetInput === "object" ? targetInput : {};
-    const visible = target.visible === undefined ? true : normalizeDraftBoolean(target.visible);
-    if (!visible) continue;
-
+    const target = targetInput;
+    const targetId = normalizeDraftString(target.targetId) || null;
+    const itemDraftId = normalizeDraftString(target.itemId);
     const priceColumnId = normalizeDraftString(target.priceColumnId) || null;
     const rawSalePrice =
       typeof target.salePrice === "number"
         ? String(target.salePrice)
         : normalizeDraftString(target.salePrice);
     const salePrice = parseTimeSalePriceInputToWon(rawSalePrice);
-    const targetKey = priceColumnId ?? "single";
+    const visible = target.visible === undefined ? true : normalizeDraftBoolean(target.visible);
+    const targetKey = `${itemDraftId}:${priceColumnId ?? "single"}`;
+
+    if (!itemDraftId) {
+      redirectToMenuEditWithError(menuId, "타임세일 대상 메뉴 정보가 누락되었습니다.");
+    }
+    if (targetId && !isUuid(targetId)) {
+      redirectToMenuEditWithError(menuId, "타임세일 대상 ID 형식이 올바르지 않습니다.");
+    }
 
     if (seenTargetKeys.has(targetKey)) {
       redirectToMenuEditWithError(menuId, "같은 옵션 가격에 타임세일을 중복 적용할 수 없습니다.");
@@ -5293,13 +5416,15 @@ function normalizeTimeSaleTargetDrafts(menuId: string, draft: NonNullable<MenuMa
     }
 
     targets.push({
+      targetId,
+      itemDraftId,
       priceColumnId,
       salePrice,
       salePriceLabel:
         typeof target.salePriceLabel === "string" && target.salePriceLabel.trim()
           ? target.salePriceLabel.trim()
           : getTimeSalePriceLabelForSave(rawSalePrice, salePrice),
-      visible: true,
+      visible,
     });
   }
 
@@ -5310,19 +5435,21 @@ function normalizeTimeSaleTargetDrafts(menuId: string, draft: NonNullable<MenuMa
   return targets;
 }
 
-function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasicItemDraft): NormalizedTimeSaleDraft | null {
-  const draft = item.timeSale;
-  if (!draft || draft.enabled !== true) {
-    return null;
+function normalizeMenuTimeSaleDraft(menuId: string, draft: MenuTimeSaleManagementDraft): NormalizedTimeSaleDraft {
+  const clientKey = normalizeDraftString(draft.clientKey);
+  if (!clientKey) {
+    redirectToMenuEditWithError(menuId, "타임세일 저장 키가 누락되었습니다.");
   }
-
-  const itemDraftId = normalizeDraftString(item.id);
+  const promotionId = normalizeDraftString(draft.promotionId) || null;
+  if (promotionId && !isUuid(promotionId)) {
+    redirectToMenuEditWithError(menuId, "타임세일 ID 형식이 올바르지 않습니다.");
+  }
   const name = normalizeDraftString(draft.name) || "타임세일";
-  const targets = normalizeTimeSaleTargetDrafts(menuId, draft);
+  const targets = normalizeMenuTimeSaleTargetDrafts(menuId, draft);
   const startsAt = parseTimeSaleDateTime(menuId, draft.startsAt, "타임세일 시작 일시");
   const endsAt = parseTimeSaleDateTime(menuId, draft.endsAt, "타임세일 종료 일시");
   const scheduleType = normalizeTimeSaleScheduleType(draft.scheduleType);
-  const timeDisplayMode = normalizeTimeSaleDisplayMode(draft.displayMode ?? draft.timeDisplayMode);
+  const timeDisplayMode = normalizeTimeSaleDisplayMode(draft.timeDisplayMode);
   const displayText = normalizeTimeSaleDisplayTextForSave(menuId, draft.displayText, timeDisplayMode);
   const dailyWindow = normalizeTimeSaleDailyWindow({
     menuId,
@@ -5343,7 +5470,9 @@ function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasic
   }
 
   return {
-    itemDraftId,
+    clientKey,
+    promotionId,
+    enabled: Boolean(draft.enabled),
     name,
     targets,
     scheduleType,
@@ -5355,7 +5484,7 @@ function normalizeEnabledTimeSaleDraft(menuId: string, item: MenuManagementBasic
     displayText,
     badgeText,
     badgeBackgroundColor,
-    active: draft.active !== false,
+    active: draft.enabled === false ? false : draft.active !== false,
   };
 }
 
@@ -5397,68 +5526,99 @@ async function deleteMenuTimeSalePromotions(supabase: SupabaseServerClient, menu
   }
 }
 
-async function syncMenuTimeSalesFromDrafts({
+async function deleteSpecificMenuTimeSalePromotions(supabase: SupabaseServerClient, menuId: string, promotionIds: string[]) {
+  const uniquePromotionIds = Array.from(new Set(promotionIds));
+  if (uniquePromotionIds.length === 0) return;
+
+  const { error } = await supabase
+    .from("menu_promotions")
+    .delete()
+    .eq("menu_site_id", menuId)
+    .eq("type", TIME_SALE_TYPE)
+    .in("id", uniquePromotionIds);
+
+  if (error) {
+    redirectToMenuEditWithError(menuId, `타임세일 삭제에 실패했습니다: ${error.message}`);
+  }
+}
+
+async function cleanupZeroTargetTimeSalePromotions(supabase: SupabaseServerClient, menuId: string) {
+  const { data: promotions, error: promotionsError } = await supabase
+    .from("menu_promotions")
+    .select("id")
+    .eq("menu_site_id", menuId)
+    .eq("type", TIME_SALE_TYPE);
+
+  const missingPromotionTable =
+    promotionsError &&
+    (promotionsError.message.toLowerCase().includes("menu_promotions") ||
+      promotionsError.message.toLowerCase().includes("does not exist") ||
+      promotionsError.code === "42P01");
+
+  if (missingPromotionTable) return;
+  if (promotionsError) {
+    redirectToMenuEditWithError(menuId, `타임세일 정리 기준 확인에 실패했습니다: ${promotionsError.message}`);
+  }
+
+  const promotionIds = (promotions ?? []).map((promotion) => promotion.id);
+  if (promotionIds.length === 0) return;
+
+  const { data: promotionItems, error: promotionItemsError } = await supabase
+    .from("menu_promotion_items")
+    .select("promotion_id")
+    .in("promotion_id", promotionIds);
+
+  if (promotionItemsError) {
+    redirectToMenuEditWithError(menuId, `타임세일 대상 정리 기준 확인에 실패했습니다: ${promotionItemsError.message}`);
+  }
+
+  const promotionIdsWithTargets = new Set((promotionItems ?? []).map((item) => item.promotion_id));
+  const zeroTargetPromotionIds = promotionIds.filter((promotionId) => !promotionIdsWithTargets.has(promotionId));
+  await deleteSpecificMenuTimeSalePromotions(supabase, menuId, zeroTargetPromotionIds);
+}
+
+function getPromotionItemTargetKey(target: Pick<MenuPromotionItemRow, "menu_item_id" | "price_column_id">) {
+  return `${target.menu_item_id}:${target.price_column_id ?? "single"}`;
+}
+
+type PreparedTimeSaleTarget = Omit<MenuPromotionItemInsert, "promotion_id"> & {
+  targetId: string | null;
+  itemName: string;
+  priceColumnLabel: string | null;
+};
+
+type PreparedTimeSale = {
+  promotionId: string | null;
+  promotion: MenuPromotionInsert;
+  items: PreparedTimeSaleTarget[];
+  validationEntry: TimeSaleValidationEntry;
+};
+
+async function prepareMenuTimeSaleForSave({
   supabase,
   menuId,
-  menuSite,
-  itemDrafts,
+  draft,
   itemIdMap,
   priceColumnIdMap,
   deletedItemIdSet,
-  categoryIdDeleteSet,
+  existingPromotionIdSet,
 }: {
   supabase: SupabaseServerClient;
   menuId: string;
-  menuSite: MenuSite;
-  itemDrafts: MenuManagementBasicItemDraft[];
+  draft: NormalizedTimeSaleDraft;
   itemIdMap: Map<string, string>;
   priceColumnIdMap: Map<string, string>;
   deletedItemIdSet: Set<string>;
-  categoryIdDeleteSet: Set<string>;
-}) {
-  const enabledDrafts = itemDrafts
-    .filter((item) => {
-      const itemId = normalizeDraftString(item.id);
-      const categoryId = normalizeDraftString(item.categoryId);
-      return itemId && !deletedItemIdSet.has(itemId) && !categoryIdDeleteSet.has(categoryId);
-    })
-    .map((item) => normalizeEnabledTimeSaleDraft(menuId, item))
-    .filter((draft): draft is NormalizedTimeSaleDraft => draft != null);
+  existingPromotionIdSet: Set<string>;
+}): Promise<PreparedTimeSale | null> {
+  const preparedTargets: PreparedTimeSaleTarget[] = [];
 
-  const canUseTimeSales = isBasicTimeSaleTemplate(menuSite.template_key, menuSite.template_category);
-
-  if (!canUseTimeSales) {
-    if (enabledDrafts.length > 0) {
-      redirectToMenuEditWithError(menuId, "이 템플릿에서는 타임세일을 사용할 수 없습니다.");
+  for (const target of draft.targets) {
+    const resolvedItemId = itemIdMap.get(target.itemDraftId) ?? target.itemDraftId;
+    if (deletedItemIdSet.has(target.itemDraftId) || deletedItemIdSet.has(resolvedItemId)) {
+      continue;
     }
-    return;
-  }
-
-  if (enabledDrafts.length === 0) {
-    await deleteMenuTimeSalePromotions(supabase, menuId);
-    return;
-  }
-
-  const limitError = validateTimeSaleLimit(enabledDrafts.length);
-  if (limitError) {
-    redirectToMenuEditWithError(menuId, limitError);
-  }
-
-  const preparedTimeSales: {
-    promotion: MenuPromotionInsert;
-    items: Omit<MenuPromotionItemInsert, "promotion_id">[];
-  }[] = [];
-  const timeSaleValidationEntries: TimeSaleValidationEntry[] = [];
-
-  for (const rawDraft of enabledDrafts) {
-    const draft: NormalizedTimeSaleDraft = {
-      ...rawDraft,
-      targets: rawDraft.targets.map((target) => ({
-        ...target,
-        priceColumnId: target.priceColumnId ? priceColumnIdMap.get(target.priceColumnId) ?? target.priceColumnId : null,
-      })),
-    };
-    const resolvedItemId = itemIdMap.get(draft.itemDraftId) ?? draft.itemDraftId;
+    const resolvedPriceColumnId = target.priceColumnId ? priceColumnIdMap.get(target.priceColumnId) ?? target.priceColumnId : null;
 
     const { data: menuItem, error: menuItemError } = await supabase
       .from("menu_items")
@@ -5470,11 +5630,10 @@ async function syncMenuTimeSalesFromDrafts({
     if (menuItemError) {
       redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 확인에 실패했습니다: ${menuItemError.message}`);
     }
-
     if (!menuItem) {
+      if (draft.promotionId && existingPromotionIdSet.has(draft.promotionId)) continue;
       redirectToMenuEditWithError(menuId, "타임세일 대상 메뉴를 찾을 수 없습니다.");
     }
-
     if (menuItem.price_visible === false) {
       redirectToMenuEditWithError(menuId, "가격을 숨긴 메뉴에는 타임세일을 적용할 수 없습니다.");
     }
@@ -5495,166 +5654,478 @@ async function syncMenuTimeSalesFromDrafts({
     if (priceOptionCountError && !missingPriceOptionsTable) {
       redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 가격 옵션 확인에 실패했습니다: ${priceOptionCountError.message}`);
     }
-
     if (!missingPriceOptionsTable && (priceOptionCount ?? 0) > 0) {
       redirectToMenuEditWithError(menuId, "옵션별 가격 메뉴는 타임세일 MVP에서 지원하지 않습니다.");
     }
 
-    const { data: priceColumnValues, error: priceColumnValueCountError } = await supabase
-      .from("menu_item_price_column_values")
-      .select("id, price_column_id, price, visible")
-      .eq("menu_item_id", resolvedItemId)
-      .eq("visible", true);
+    let originalTargetPrice = Number(menuItem.price);
+    let priceColumnLabel: string | null = null;
 
-    const missingPriceColumnValuesTable =
-      priceColumnValueCountError &&
-      (priceColumnValueCountError.message.toLowerCase().includes("menu_item_price_column_values") ||
-        priceColumnValueCountError.message.toLowerCase().includes("does not exist") ||
-        priceColumnValueCountError.code === "42P01");
+    if (resolvedPriceColumnId === null) {
+      if (!Number.isFinite(originalTargetPrice) || originalTargetPrice <= 0 || normalizeDraftString(menuItem.price_label)) {
+        redirectToMenuEditWithError(menuId, "숫자 기본 가격이 있는 메뉴만 타임세일을 사용할 수 있습니다.");
+      }
+    } else {
+      const { data: priceColumn, error: priceColumnError } = await supabase
+        .from("menu_category_price_columns")
+        .select("id, category_id, label, visible")
+        .eq("menu_site_id", menuId)
+        .eq("id", resolvedPriceColumnId)
+        .maybeSingle();
 
-    if (priceColumnValueCountError && !missingPriceColumnValuesTable) {
-      redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 옵션 컬럼 가격 확인에 실패했습니다: ${priceColumnValueCountError.message}`);
-    }
-
-    const usablePriceColumnValues = missingPriceColumnValuesTable
-      ? []
-      : (priceColumnValues ?? []).filter((value) => typeof value.price === "number" && Number.isFinite(value.price) && value.price > 0);
-    const usablePriceColumnValueByColumnId = new Map(usablePriceColumnValues.map((value) => [value.price_column_id, value]));
-    const hasOptionColumnPrices = usablePriceColumnValues.length > 0;
-    const hasSingleTarget = draft.targets.some((target) => target.priceColumnId === null);
-    const optionTargets = draft.targets.filter((target) => target.priceColumnId !== null);
-
-    if (hasOptionColumnPrices && hasSingleTarget) {
-      redirectToMenuEditWithError(menuId, "옵션 컬럼 가격의 타임세일은 옵션별 할인가가 필요합니다.");
-    }
-
-    if (!hasOptionColumnPrices && optionTargets.length > 0) {
-      redirectToMenuEditWithError(menuId, "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요.");
-    }
-
-    const originalPrice = Number(menuItem.price);
-    if (hasSingleTarget && (!Number.isFinite(originalPrice) || originalPrice <= 0 || normalizeDraftString(menuItem.price_label))) {
-      redirectToMenuEditWithError(menuId, "숫자 기본 가격이 있는 메뉴만 타임세일을 사용할 수 있습니다.");
-    }
-
-    const optionTargetColumnIds = Array.from(new Set(optionTargets.map((target) => target.priceColumnId).filter((id): id is string => Boolean(id))));
-    const { data: priceColumns, error: priceColumnsError } = optionTargetColumnIds.length > 0
-      ? await supabase
-          .from("menu_category_price_columns")
-          .select("id, category_id, menu_site_id, label, visible")
-          .eq("menu_site_id", menuId)
-          .in("id", optionTargetColumnIds)
-      : { data: [], error: null };
-
-    if (priceColumnsError) {
-      redirectToMenuEditWithError(menuId, `타임세일 옵션 컬럼 확인에 실패했습니다: ${priceColumnsError.message}`);
-    }
-
-    const priceColumnById = new Map((priceColumns ?? []).map((column) => [column.id, column]));
-
-    for (const target of draft.targets) {
-      const originalTargetPrice =
-        target.priceColumnId === null
-          ? originalPrice
-          : Number(usablePriceColumnValueByColumnId.get(target.priceColumnId)?.price);
-
-      if (target.priceColumnId !== null) {
-        const column = priceColumnById.get(target.priceColumnId);
-        if (!column) {
-          redirectToMenuEditWithError(menuId, "선택한 옵션 가격을 찾을 수 없습니다.");
-        }
-        if (column.visible === false) {
-          redirectToMenuEditWithError(menuId, "숨김 처리된 옵션 가격에는 타임세일을 적용할 수 없습니다.");
-        }
-        if (column.category_id !== menuItem.category_id) {
-          redirectToMenuEditWithError(menuId, "선택한 옵션 가격이 이 메뉴의 카테고리에 속하지 않습니다.");
-        }
-        if (!usablePriceColumnValueByColumnId.has(target.priceColumnId)) {
-          redirectToMenuEditWithError(menuId, "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요.");
-        }
+      if (priceColumnError) {
+        redirectToMenuEditWithError(menuId, `타임세일 옵션 컬럼 확인에 실패했습니다: ${priceColumnError.message}`);
+      }
+      if (!priceColumn) {
+        if (draft.promotionId && existingPromotionIdSet.has(draft.promotionId)) continue;
+        redirectToMenuEditWithError(menuId, "선택한 옵션 가격을 찾을 수 없습니다.");
+      }
+      if (priceColumn.visible === false) {
+        redirectToMenuEditWithError(menuId, "숨김 처리된 옵션 가격에는 타임세일을 적용할 수 없습니다.");
+      }
+      if (priceColumn.category_id !== menuItem.category_id) {
+        redirectToMenuEditWithError(menuId, "선택한 옵션 가격이 이 메뉴의 카테고리에 속하지 않습니다.");
       }
 
-      if (!Number.isFinite(originalTargetPrice) || originalTargetPrice <= 0) {
-        redirectToMenuEditWithError(menuId, "숫자 가격이 있는 메뉴만 타임세일을 사용할 수 있습니다.");
+      const { data: priceColumnValue, error: priceColumnValueError } = await supabase
+        .from("menu_item_price_column_values")
+        .select("price, visible")
+        .eq("menu_item_id", resolvedItemId)
+        .eq("price_column_id", resolvedPriceColumnId)
+        .eq("visible", true)
+        .maybeSingle();
+
+      if (priceColumnValueError) {
+        redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 옵션 컬럼 가격 확인에 실패했습니다: ${priceColumnValueError.message}`);
+      }
+      if (!priceColumnValue || typeof priceColumnValue.price !== "number" || !Number.isFinite(priceColumnValue.price) || priceColumnValue.price <= 0) {
+        if (draft.promotionId && existingPromotionIdSet.has(draft.promotionId)) continue;
+        redirectToMenuEditWithError(menuId, "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요.");
       }
 
-      if (target.salePrice >= originalTargetPrice) {
-        redirectToMenuEditWithError(menuId, "타임세일 가격은 기존 가격보다 낮아야 합니다.");
-      }
+      originalTargetPrice = priceColumnValue.price;
+      priceColumnLabel = priceColumn.label;
     }
 
-    preparedTimeSales.push({
-      promotion: {
-        menu_site_id: menuId,
-        type: TIME_SALE_TYPE,
-        name: draft.name,
-        active: draft.active,
-        schedule_type: draft.scheduleType,
-        starts_at: draft.startsAt.toISOString(),
-        ends_at: draft.endsAt.toISOString(),
-        daily_start_time: draft.dailyStartTime,
-        daily_end_time: draft.dailyEndTime,
-        timezone: TIME_SALE_TIMEZONE,
-        settings: getTimeSaleSettingsJson({
-          timeDisplayMode: draft.timeDisplayMode,
-          displayText: draft.displayText,
-          badgeText: draft.badgeText,
-          badgeBackgroundColor: draft.badgeBackgroundColor,
-        }),
-      },
-      items: draft.targets.map((target) => ({
-        menu_item_id: resolvedItemId,
-        price_column_id: target.priceColumnId,
-        sale_price: target.salePrice,
-        sale_price_label: target.salePriceLabel,
-        visible: target.visible,
-        settings: {},
-      })),
+    if (!Number.isFinite(originalTargetPrice) || originalTargetPrice <= 0) {
+      redirectToMenuEditWithError(menuId, "숫자 가격이 있는 메뉴만 타임세일을 사용할 수 있습니다.");
+    }
+    if (target.salePrice >= originalTargetPrice) {
+      redirectToMenuEditWithError(menuId, "타임세일 가격은 기존 가격보다 낮아야 합니다.");
+    }
+
+    preparedTargets.push({
+      targetId: target.targetId,
+      menu_item_id: resolvedItemId,
+      price_column_id: resolvedPriceColumnId,
+      sale_price: target.salePrice,
+      sale_price_label: target.salePriceLabel,
+      visible: target.visible,
+      settings: {},
+      itemName: menuItem.name,
+      priceColumnLabel,
     });
+  }
 
-    timeSaleValidationEntries.push({
-      id: draft.itemDraftId,
+  if (preparedTargets.length === 0) {
+    if (draft.promotionId && existingPromotionIdSet.has(draft.promotionId)) return null;
+    redirectToMenuEditWithError(menuId, "타임세일을 적용할 옵션 가격을 하나 이상 입력해주세요.");
+  }
+
+  const promotionPayload: MenuPromotionInsert = {
+    menu_site_id: menuId,
+    type: TIME_SALE_TYPE,
+    name: draft.name,
+    active: draft.active,
+    schedule_type: draft.scheduleType,
+    starts_at: draft.startsAt.toISOString(),
+    ends_at: draft.endsAt.toISOString(),
+    daily_start_time: draft.dailyStartTime,
+    daily_end_time: draft.dailyEndTime,
+    timezone: TIME_SALE_TIMEZONE,
+    settings: getTimeSaleSettingsJson({
+      timeDisplayMode: draft.timeDisplayMode,
+      displayText: draft.displayText,
+      badgeText: draft.badgeText,
+      badgeBackgroundColor: draft.badgeBackgroundColor,
+    }),
+  };
+
+  return {
+    promotionId: draft.promotionId,
+    promotion: promotionPayload,
+    items: preparedTargets,
+    validationEntry: {
+      id: draft.promotionId ?? draft.clientKey,
       name: draft.name,
       scheduleType: draft.scheduleType,
       startsAt: draft.startsAt.toISOString(),
       endsAt: draft.endsAt.toISOString(),
       dailyStartTime: draft.dailyStartTime,
       dailyEndTime: draft.dailyEndTime,
-      targets: draft.targets.map((target) => ({
-        menuItemId: resolvedItemId,
-        itemName: menuItem.name,
-        priceColumnId: target.priceColumnId,
-        priceColumnLabel: target.priceColumnId ? priceColumnById.get(target.priceColumnId)?.label ?? null : null,
-      })),
-    });
+      targets: preparedTargets
+        .filter((target) => target.visible !== false)
+        .map((target) => ({
+          menuItemId: target.menu_item_id,
+          itemName: target.itemName,
+          priceColumnId: target.price_column_id ?? null,
+          priceColumnLabel: target.priceColumnLabel,
+        })),
+    },
+  };
+}
+
+async function buildExistingTimeSaleValidationEntries({
+  supabase,
+  menuId,
+  existingPromotions,
+  existingPromotionItems,
+  excludedPromotionIds,
+}: {
+  supabase: SupabaseServerClient;
+  menuId: string;
+  existingPromotions: MenuPromotionRow[];
+  existingPromotionItems: MenuPromotionItemRow[];
+  excludedPromotionIds: Set<string>;
+}) {
+  const retainedItems = existingPromotionItems.filter((item) => !excludedPromotionIds.has(item.promotion_id) && item.visible !== false);
+  const itemIds = Array.from(new Set(retainedItems.map((item) => item.menu_item_id)));
+  const priceColumnIds = Array.from(new Set(retainedItems.map((item) => item.price_column_id).filter((id): id is string => Boolean(id))));
+
+  const { data: menuItems, error: menuItemsError } = itemIds.length > 0
+    ? await supabase.from("menu_items").select("id, name").in("id", itemIds)
+    : { data: [], error: null };
+  if (menuItemsError) {
+    redirectToMenuEditWithError(menuId, `기존 타임세일 메뉴 확인에 실패했습니다: ${menuItemsError.message}`);
   }
 
-  const overlapError = findOverlappingTimeSales(timeSaleValidationEntries);
+  const { data: priceColumns, error: priceColumnsError } = priceColumnIds.length > 0
+    ? await supabase.from("menu_category_price_columns").select("id, label").in("id", priceColumnIds)
+    : { data: [], error: null };
+  if (priceColumnsError) {
+    redirectToMenuEditWithError(menuId, `기존 타임세일 옵션 컬럼 확인에 실패했습니다: ${priceColumnsError.message}`);
+  }
+
+  const itemNameById = new Map((menuItems ?? []).map((item) => [item.id, item.name]));
+  const priceColumnLabelById = new Map((priceColumns ?? []).map((column) => [column.id, column.label]));
+  const targetsByPromotionId = new Map<string, TimeSaleValidationEntry["targets"]>();
+  retainedItems.forEach((item) => {
+    const targets = targetsByPromotionId.get(item.promotion_id) ?? [];
+    targets.push({
+      menuItemId: item.menu_item_id,
+      itemName: itemNameById.get(item.menu_item_id) ?? "메뉴",
+      priceColumnId: item.price_column_id,
+      priceColumnLabel: item.price_column_id ? priceColumnLabelById.get(item.price_column_id) ?? null : null,
+    });
+    targetsByPromotionId.set(item.promotion_id, targets);
+  });
+
+  return existingPromotions
+    .filter((promotion) => !excludedPromotionIds.has(promotion.id))
+    .map((promotion) => ({
+      id: promotion.id,
+      name: promotion.name,
+      scheduleType: promotion.schedule_type,
+      startsAt: promotion.starts_at,
+      endsAt: promotion.ends_at,
+      dailyStartTime: promotion.daily_start_time,
+      dailyEndTime: promotion.daily_end_time,
+      targets: targetsByPromotionId.get(promotion.id) ?? [],
+    }))
+    .filter((entry) => entry.targets.length > 0);
+}
+
+async function syncPreparedTimeSaleTargets({
+  supabase,
+  menuId,
+  promotionId,
+  items,
+  existingTargets,
+}: {
+  supabase: SupabaseServerClient;
+  menuId: string;
+  promotionId: string;
+  items: PreparedTimeSaleTarget[];
+  existingTargets: MenuPromotionItemRow[];
+}) {
+  const existingById = new Map(existingTargets.map((target) => [target.id, target]));
+  const existingByKey = new Map(existingTargets.map((target) => [getPromotionItemTargetKey(target), target]));
+  const keptTargetIds = new Set<string>();
+
+  for (const item of items) {
+    const key = `${item.menu_item_id}:${item.price_column_id ?? "single"}`;
+    const existingTarget =
+      item.targetId && existingById.has(item.targetId)
+        ? existingById.get(item.targetId)
+        : existingByKey.get(key);
+    const payload: MenuPromotionItemUpdate = {
+      menu_item_id: item.menu_item_id,
+      price_column_id: item.price_column_id,
+      sale_price: item.sale_price,
+      sale_price_label: item.sale_price_label,
+      visible: item.visible,
+      settings: item.settings,
+    };
+
+    if (existingTarget) {
+      keptTargetIds.add(existingTarget.id);
+      const { error } = await supabase
+        .from("menu_promotion_items")
+        .update(payload)
+        .eq("id", existingTarget.id)
+        .eq("promotion_id", promotionId);
+      if (error) {
+        redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 저장에 실패했습니다: ${error.message}`);
+      }
+      continue;
+    }
+
+    const insertPayload: MenuPromotionItemInsert = {
+      promotion_id: promotionId,
+      menu_item_id: item.menu_item_id,
+      price_column_id: item.price_column_id,
+      sale_price: item.sale_price,
+      sale_price_label: item.sale_price_label,
+      visible: item.visible,
+      settings: item.settings,
+    };
+    const { data, error } = await supabase.from("menu_promotion_items").insert(insertPayload).select("id").single();
+    if (error) {
+      redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 저장에 실패했습니다: ${error.message}`);
+    }
+    if (data?.id) keptTargetIds.add(data.id);
+  }
+
+  const targetIdsToDelete = existingTargets.map((target) => target.id).filter((targetId) => !keptTargetIds.has(targetId));
+  if (targetIdsToDelete.length > 0) {
+    const { error } = await supabase
+      .from("menu_promotion_items")
+      .delete()
+      .eq("promotion_id", promotionId)
+      .in("id", targetIdsToDelete);
+    if (error) {
+      redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 정리에 실패했습니다: ${error.message}`);
+    }
+  }
+}
+
+async function syncMenuTimeSalesFromPayload({
+  supabase,
+  menuId,
+  menuSite,
+  payload,
+  cafeAStarterResetFinalSavePayload,
+  itemIdMap,
+  priceColumnIdMap,
+  deletedItemIdSet,
+}: {
+  supabase: SupabaseServerClient;
+  menuId: string;
+  menuSite: MenuSite;
+  payload: MenuTimeSaleSavePayload | null;
+  cafeAStarterResetFinalSavePayload: CafeAStarterResetFinalSavePayload | null;
+  itemIdMap: Map<string, string>;
+  priceColumnIdMap: Map<string, string>;
+  deletedItemIdSet: Set<string>;
+}) {
+  if (!payload) {
+    return;
+  }
+
+  const canUseTimeSales = isBasicTimeSaleTemplate(menuSite.template_key, menuSite.template_category);
+  if (!canUseTimeSales) {
+    if (payload.entries.length > 0 || payload.deletedPromotionIds.length > 0) {
+      redirectToMenuEditWithError(menuId, "이 템플릿에서는 타임세일을 사용할 수 없습니다.");
+    }
+    return;
+  }
+
+  if (payload.mode === "replace" && !cafeAStarterResetFinalSavePayload) {
+    redirectToMenuEditWithError(menuId, "타임세일 전체 교체는 오브커피 샘플 초기화 저장에서만 사용할 수 있습니다.");
+  }
+
+  const normalizedDrafts = payload.entries.map((entry) => normalizeMenuTimeSaleDraft(menuId, entry));
+  const seenEntryKeys = new Set<string>();
+  for (const draft of normalizedDrafts) {
+    const entryKey = draft.promotionId ? `promotion:${draft.promotionId}` : draft.clientKey;
+    if (seenEntryKeys.has(entryKey)) {
+      redirectToMenuEditWithError(menuId, "같은 타임세일 저장 항목이 중복되었습니다. 새로고침 후 다시 시도해주세요.");
+    }
+    seenEntryKeys.add(entryKey);
+  }
+  const promotionIdsInEntries = new Set(normalizedDrafts.map((draft) => draft.promotionId).filter((id): id is string => Boolean(id)));
+  const deletedPromotionIds = Array.from(new Set(payload.deletedPromotionIds.map((id) => normalizeDraftString(id)).filter(Boolean)));
+  if (payload.mode === "replace" && deletedPromotionIds.length > 0) {
+    redirectToMenuEditWithError(menuId, "오브커피 샘플 초기화에는 개별 타임세일 삭제 요청을 함께 보낼 수 없습니다.");
+  }
+  const invalidDeletedPromotionId = deletedPromotionIds.find((id) => !isUuid(id));
+  if (invalidDeletedPromotionId) {
+    redirectToMenuEditWithError(menuId, "타임세일 삭제 요청 ID를 확인해주세요.");
+  }
+  const deletedPromotionIdSet = new Set(deletedPromotionIds);
+  const entryAlsoDeleted = Array.from(promotionIdsInEntries).find((promotionId) => deletedPromotionIdSet.has(promotionId));
+  if (entryAlsoDeleted) {
+    redirectToMenuEditWithError(menuId, "삭제할 타임세일과 저장할 타임세일이 중복되었습니다. 새로고침 후 다시 시도해주세요.");
+  }
+
+  const { data: existingPromotionsData, error: existingPromotionsError } = await supabase
+    .from("menu_promotions")
+    .select("*")
+    .eq("menu_site_id", menuId)
+    .eq("type", TIME_SALE_TYPE);
+
+  const missingPromotionTable =
+    existingPromotionsError &&
+    (existingPromotionsError.message.toLowerCase().includes("menu_promotions") ||
+      existingPromotionsError.message.toLowerCase().includes("does not exist") ||
+      existingPromotionsError.code === "42P01");
+  if (missingPromotionTable) {
+    if (payload.entries.length > 0 || deletedPromotionIds.length > 0) {
+      redirectToMenuEditWithError(menuId, "타임세일 저장 테이블을 찾을 수 없습니다.");
+    }
+    return;
+  }
+  if (existingPromotionsError) {
+    redirectToMenuEditWithError(menuId, `타임세일 기존 설정 확인에 실패했습니다: ${existingPromotionsError.message}`);
+  }
+
+  const existingPromotions = (existingPromotionsData ?? []) as MenuPromotionRow[];
+  const existingPromotionIdSet = new Set(existingPromotions.map((promotion) => promotion.id));
+  const invalidEntryPromotionId = Array.from(promotionIdsInEntries).find((promotionId) => !existingPromotionIdSet.has(promotionId));
+  if (invalidEntryPromotionId) {
+    redirectToMenuEditWithError(menuId, "수정할 타임세일이 현재 메뉴판에 없습니다. 새로고침 후 다시 시도해주세요.");
+  }
+  const invalidDeletedOwnedId = deletedPromotionIds.find((promotionId) => !existingPromotionIdSet.has(promotionId));
+  if (invalidDeletedOwnedId && payload.mode === "merge") {
+    redirectToMenuEditWithError(menuId, "삭제할 타임세일이 현재 메뉴판에 없습니다. 새로고침 후 다시 시도해주세요.");
+  }
+
+  const existingPromotionIds = existingPromotions.map((promotion) => promotion.id);
+  const { data: existingPromotionItemsData, error: existingPromotionItemsError } = existingPromotionIds.length > 0
+    ? await supabase
+        .from("menu_promotion_items")
+        .select("*")
+        .in("promotion_id", existingPromotionIds)
+    : { data: [], error: null };
+  if (existingPromotionItemsError) {
+    redirectToMenuEditWithError(menuId, `타임세일 기존 대상 확인에 실패했습니다: ${existingPromotionItemsError.message}`);
+  }
+  const existingPromotionItems = (existingPromotionItemsData ?? []) as MenuPromotionItemRow[];
+  const existingTargetsByPromotionId = new Map<string, MenuPromotionItemRow[]>();
+  existingPromotionItems.forEach((item) => {
+    const targets = existingTargetsByPromotionId.get(item.promotion_id) ?? [];
+    targets.push(item);
+    existingTargetsByPromotionId.set(item.promotion_id, targets);
+  });
+
+  const preparedTimeSales: PreparedTimeSale[] = [];
+  const promotionIdsToDeleteBecauseEmpty: string[] = [];
+  for (const draft of normalizedDrafts) {
+    const prepared = await prepareMenuTimeSaleForSave({
+      supabase,
+      menuId,
+      draft,
+      itemIdMap,
+      priceColumnIdMap,
+      deletedItemIdSet,
+      existingPromotionIdSet,
+    });
+    if (!prepared) {
+      if (draft.promotionId) promotionIdsToDeleteBecauseEmpty.push(draft.promotionId);
+      continue;
+    }
+    if (prepared.validationEntry.targets.length > 0) {
+      preparedTimeSales.push(prepared);
+    }
+  }
+
+  const effectiveDeletedPromotionIds = new Set([
+    ...deletedPromotionIds,
+    ...promotionIdsToDeleteBecauseEmpty,
+  ]);
+  const nextPromotionCount =
+    payload.mode === "replace"
+      ? preparedTimeSales.length
+      : existingPromotions.filter((promotion) => !promotionIdsInEntries.has(promotion.id) && !effectiveDeletedPromotionIds.has(promotion.id)).length +
+        preparedTimeSales.length;
+  const limitError = validateTimeSaleLimit(nextPromotionCount);
+  if (limitError) {
+    redirectToMenuEditWithError(menuId, limitError);
+  }
+
+  const excludedFromExistingValidation = new Set<string>([
+    ...Array.from(promotionIdsInEntries),
+    ...Array.from(effectiveDeletedPromotionIds),
+  ]);
+  const existingValidationEntries = payload.mode === "replace"
+    ? []
+    : await buildExistingTimeSaleValidationEntries({
+        supabase,
+        menuId,
+        existingPromotions,
+        existingPromotionItems,
+        excludedPromotionIds: excludedFromExistingValidation,
+      });
+  const overlapError = findOverlappingTimeSales([
+    ...existingValidationEntries,
+    ...preparedTimeSales.map((entry) => entry.validationEntry),
+  ]);
   if (overlapError) {
     redirectToMenuEditWithError(menuId, overlapError);
   }
 
-  await deleteMenuTimeSalePromotions(supabase, menuId);
+  if (payload.mode === "replace") {
+    await deleteMenuTimeSalePromotions(supabase, menuId);
+  }
 
   for (const preparedTimeSale of preparedTimeSales) {
-    const { data, error } = await supabase.from("menu_promotions").insert(preparedTimeSale.promotion).select("id").single();
-    if (error) {
-      redirectToMenuEditWithError(menuId, `타임세일 설정 생성에 실패했습니다: ${error.message}`);
-    }
-    const promotionId = data?.id ?? "";
-    if (!promotionId) {
-      redirectToMenuEditWithError(menuId, "타임세일 설정을 저장할 수 없습니다.");
+    let promotionId = preparedTimeSale.promotionId ?? "";
+    if (promotionId) {
+      const updatePayload: MenuPromotionUpdate = {
+        ...preparedTimeSale.promotion,
+        updated_at: new Date().toISOString(),
+      };
+      delete updatePayload.menu_site_id;
+      delete updatePayload.type;
+      const { error } = await supabase
+        .from("menu_promotions")
+        .update(updatePayload)
+        .eq("id", promotionId)
+        .eq("menu_site_id", menuId)
+        .eq("type", TIME_SALE_TYPE);
+      if (error) {
+        redirectToMenuEditWithError(menuId, `타임세일 설정 저장에 실패했습니다: ${error.message}`);
+      }
+    } else {
+      const insertPayload: MenuPromotionInsert = {
+        ...preparedTimeSale.promotion,
+        menu_site_id: menuId,
+        type: TIME_SALE_TYPE,
+      };
+      const { data, error } = await supabase.from("menu_promotions").insert(insertPayload).select("id").single();
+      if (error) {
+        redirectToMenuEditWithError(menuId, `타임세일 설정 생성에 실패했습니다: ${error.message}`);
+      }
+      promotionId = data?.id ?? "";
+      if (!promotionId) {
+        redirectToMenuEditWithError(menuId, "타임세일 설정을 저장할 수 없습니다.");
+      }
     }
 
-    const itemPayload: MenuPromotionItemInsert[] = preparedTimeSale.items.map((item) => ({
-      promotion_id: promotionId,
-      ...item,
-    }));
-    const { error: insertItemError } = await supabase.from("menu_promotion_items").insert(itemPayload);
-    if (insertItemError) {
-      redirectToMenuEditWithError(menuId, `타임세일 대상 메뉴 저장에 실패했습니다: ${insertItemError.message}`);
-    }
+    await syncPreparedTimeSaleTargets({
+      supabase,
+      menuId,
+      promotionId,
+      items: preparedTimeSale.items,
+      existingTargets: payload.mode === "replace" ? [] : existingTargetsByPromotionId.get(promotionId) ?? [],
+    });
   }
+
+  if (payload.mode === "merge") {
+    await deleteSpecificMenuTimeSalePromotions(supabase, menuId, Array.from(effectiveDeletedPromotionIds));
+  }
+
+  await cleanupZeroTargetTimeSalePromotions(supabase, menuId);
 }
 
 async function syncBasicCategoryPriceColumnsFromDrafts({
@@ -5969,6 +6440,15 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     formData,
     menuSite,
   });
+  const parsedMenuTimeSaleSavePayload = parseMenuTimeSaleSavePayloadFromForm(menuId, formData);
+  const menuTimeSaleSavePayload =
+    parsedMenuTimeSaleSavePayload ??
+    (cafeAStarterResetFinalSavePayload
+      ? createMenuTimeSaleSavePayloadFromCafeAStarterResetSnapshot(cafeAStarterResetFinalSavePayload.snapshot)
+      : null);
+  if (cafeAStarterResetFinalSavePayload && menuTimeSaleSavePayload?.mode !== "replace") {
+    redirectToMenuEditWithError(menuId, "오브커피 샘플 타임세일 저장 방식이 올바르지 않습니다.");
+  }
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
   const now = new Date().toISOString();
   const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
@@ -6968,15 +7448,15 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     canManageCategoryPriceColumns,
   });
 
-  await syncMenuTimeSalesFromDrafts({
+  await syncMenuTimeSalesFromPayload({
     supabase,
     menuId,
     menuSite,
-    itemDrafts,
+    payload: menuTimeSaleSavePayload,
+    cafeAStarterResetFinalSavePayload,
     itemIdMap,
     priceColumnIdMap,
     deletedItemIdSet,
-    categoryIdDeleteSet,
   });
 
   if (!cafeAStarterResetFinalSavePayload) {
