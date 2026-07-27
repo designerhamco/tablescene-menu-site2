@@ -44,6 +44,7 @@ import {
   normalizeTimeSaleDisplayText,
   parseTimeSalePriceInputToWon,
   isBasicTimeSaleTemplate,
+  isEmptyNewMenuTimeSalePlaceholder,
   normalizeTimeSaleBadgeBackgroundColor,
   normalizeTimeSaleBadgeText,
   MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
@@ -489,7 +490,7 @@ function parseMenuTimeSaleSavePayloadFromForm(menuId: string, formData: FormData
   return {
     schemaVersion: MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
     mode: payload.mode,
-    entries: payload.entries,
+    entries: payload.entries.filter((entry) => !isEmptyNewMenuTimeSalePlaceholder(entry)),
     deletedPromotionIds: payload.deletedPromotionIds,
   };
 }

@@ -106,6 +106,7 @@ import {
   normalizeTimeSaleBadgeBackgroundColor,
   normalizeTimeSaleDisplayMode,
   parseTimeSalePriceInputToWon,
+  shouldIncludeMenuTimeSaleSaveEntry,
   toLocalDateTimeInputValue,
   MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
   type MenuEditorTimeSale,
@@ -5642,7 +5643,9 @@ export default function MenuManagementSection({
       const payload: MenuTimeSaleSavePayload = {
         schemaVersion: MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
         mode: "replace",
-        entries: cafeAStarterReset.snapshot.timeSales.map(toTimeSaleManagementDraftFromStarterReset),
+        entries: cafeAStarterReset.snapshot.timeSales
+          .map(toTimeSaleManagementDraftFromStarterReset)
+          .filter(shouldIncludeMenuTimeSaleSaveEntry),
         deletedPromotionIds: [],
       };
       return JSON.stringify(payload);
@@ -5665,7 +5668,7 @@ export default function MenuManagementSection({
     const payload: MenuTimeSaleSavePayload = {
       schemaVersion: MENU_TIME_SALE_SAVE_PAYLOAD_SCHEMA_VERSION,
       mode: "merge",
-      entries: Array.from(entriesByKey.values()),
+      entries: Array.from(entriesByKey.values()).filter(shouldIncludeMenuTimeSaleSaveEntry),
       deletedPromotionIds: [],
     };
 

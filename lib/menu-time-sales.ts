@@ -1,5 +1,5 @@
 import type { Json } from "@/lib/supabase/types";
-import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
+import { normalizeDailyTime, normalizeTimeSaleScheduleType, type TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 import { normalizeTemplateKey } from "@/lib/templates";
 
 export const TIME_SALE_TYPE = "time_sale";
@@ -81,6 +81,48 @@ export type MenuTimeSaleSavePayload = {
   entries: MenuTimeSaleManagementDraft[];
   deletedPromotionIds: string[];
 };
+
+function hasValidTimeSaleDateRange(startsAt: string, endsAt: string) {
+  if (!startsAt.trim() || !endsAt.trim()) return false;
+  const startMs = Date.parse(startsAt);
+  const endMs = Date.parse(endsAt);
+  return Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs;
+}
+
+function hasValidTimeSaleDailyWindow(draft: Pick<MenuTimeSaleManagementDraft, "scheduleType" | "dailyStartTime" | "dailyEndTime">) {
+  if (normalizeTimeSaleScheduleType(draft.scheduleType) !== "daily_window") return true;
+  const dailyStartTime = normalizeDailyTime(draft.dailyStartTime);
+  const dailyEndTime = normalizeDailyTime(draft.dailyEndTime);
+  return dailyStartTime != null && dailyEndTime != null && dailyEndTime > dailyStartTime;
+}
+
+function hasCompleteTimeSaleTargetDraft(target: MenuTimeSaleManagementTargetDraft) {
+  const hasPrice =
+    typeof target.salePrice === "number"
+      ? Number.isFinite(target.salePrice) && target.salePrice > 0
+      : typeof target.salePrice === "string"
+        ? target.salePrice.trim().length > 0
+        : false;
+  return target.visible !== false && target.itemId.trim().length > 0 && hasPrice;
+}
+
+export function isEmptyNewMenuTimeSalePlaceholder(draft: MenuTimeSaleManagementDraft) {
+  return !draft.promotionId && draft.enabled !== true;
+}
+
+export function isCompleteNewMenuTimeSaleDraft(draft: MenuTimeSaleManagementDraft) {
+  if (draft.promotionId) return true;
+  return (
+    draft.enabled === true &&
+    hasValidTimeSaleDateRange(draft.startsAt, draft.endsAt) &&
+    hasValidTimeSaleDailyWindow(draft) &&
+    draft.targets.some(hasCompleteTimeSaleTargetDraft)
+  );
+}
+
+export function shouldIncludeMenuTimeSaleSaveEntry(draft: MenuTimeSaleManagementDraft) {
+  return draft.promotionId ? true : isCompleteNewMenuTimeSaleDraft(draft);
+}
 
 const BASIC_TIME_SALE_TEMPLATE_LIMITS = new Map<string, number>([
   ["cafe_design_a", 1],
