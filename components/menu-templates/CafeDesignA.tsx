@@ -2302,16 +2302,28 @@ function formatTwoDigit(value: number) {
   return String(value).padStart(2, "0");
 }
 
-function formatTimeSaleDeadlineLabel(endsAt: string, timezone: string, nowMs: number) {
-  const timeZone = timezone || "Asia/Seoul";
-  const target = getDatePartsInTimeZone(endsAt, timeZone);
-  const today = getDatePartsInTimeZone(new Date(nowMs).toISOString(), timeZone);
-
-  if (![target.year, target.month, target.day, target.hour, target.minute].every(Number.isFinite)) {
-    return "마감 시간까지";
+function formatTimeSaleDateLabel(target: ReturnType<typeof getDatePartsInTimeZone>, today: ReturnType<typeof getDatePartsInTimeZone>, timeText: string, locale: CafeDesignALocale) {
+  if (locale === "en") {
+    if (target.year === today.year && target.month === today.month && target.day === today.day) return `Until today ${timeText}`;
+    if (target.year === today.year && target.month === today.month) return `Until ${target.day} ${timeText}`;
+    if (target.year === today.year) return `Until ${target.month}/${target.day} ${timeText}`;
+    return `Until ${target.year}/${target.month}/${target.day} ${timeText}`;
   }
 
-  const timeText = `${formatTwoDigit(target.hour)}:${formatTwoDigit(target.minute)}`;
+  if (locale === "zh") {
+    if (target.year === today.year && target.month === today.month && target.day === today.day) return `今天${timeText}截止`;
+    if (target.year === today.year && target.month === today.month) return `${target.day}日${timeText}截止`;
+    if (target.year === today.year) return `${target.month}月${target.day}日${timeText}截止`;
+    return `${target.year}年${target.month}月${target.day}日${timeText}截止`;
+  }
+
+  if (locale === "ja") {
+    if (target.year === today.year && target.month === today.month && target.day === today.day) return `本日${timeText}まで`;
+    if (target.year === today.year && target.month === today.month) return `${target.day}日${timeText}まで`;
+    if (target.year === today.year) return `${target.month}月${target.day}日${timeText}まで`;
+    return `${target.year}年${target.month}月${target.day}日${timeText}まで`;
+  }
+
   if (target.year === today.year && target.month === today.month && target.day === today.day) {
     return `오늘 ${timeText}까지`;
   }
@@ -2327,15 +2339,50 @@ function formatTimeSaleDeadlineLabel(endsAt: string, timezone: string, nowMs: nu
   return `${target.year}년 ${target.month}월 ${target.day}일 ${timeText}까지`;
 }
 
-function formatCountdownLabel(endsAtMs: number, nowMs: number) {
+function formatTimeSaleDeadlineLabel(endsAt: string, timezone: string, nowMs: number, locale: CafeDesignALocale) {
+  const timeZone = timezone || "Asia/Seoul";
+  const target = getDatePartsInTimeZone(endsAt, timeZone);
+  const today = getDatePartsInTimeZone(new Date(nowMs).toISOString(), timeZone);
+
+  if (![target.year, target.month, target.day, target.hour, target.minute].every(Number.isFinite)) {
+    if (locale === "en") return "Until closing time";
+    if (locale === "zh") return "截止时间前";
+    if (locale === "ja") return "終了時間まで";
+    return "마감 시간까지";
+  }
+
+  const timeText = `${formatTwoDigit(target.hour)}:${formatTwoDigit(target.minute)}`;
+  return formatTimeSaleDateLabel(target, today, timeText, locale);
+}
+
+function formatCountdownLabel(endsAtMs: number, nowMs: number, locale: CafeDesignALocale) {
   const remainingMs = Math.max(0, endsAtMs - nowMs);
-  const totalSeconds = Math.floor(remainingMs / 1000);
-  const days = Math.floor(totalSeconds / 86_400);
-  const hours = Math.floor((totalSeconds % 86_400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const clock = `${formatTwoDigit(hours)}:${formatTwoDigit(minutes)}:${formatTwoDigit(seconds)}`;
-  return days > 0 ? `${days}일 ${clock} 남음` : `${clock} 남음`;
+  const totalMinutes = Math.max(1, Math.ceil(remainingMs / 60_000));
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (locale === "en") {
+    if (days > 0) return hours > 0 ? `${days}d ${hours}h left` : `${days}d left`;
+    if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m left` : `${hours}h left`;
+    return `${minutes}m left`;
+  }
+
+  if (locale === "zh") {
+    if (days > 0) return hours > 0 ? `剩余${days}天${hours}小时` : `剩余${days}天`;
+    if (hours > 0) return minutes > 0 ? `剩余${hours}小时${minutes}分钟` : `剩余${hours}小时`;
+    return `剩余${minutes}分钟`;
+  }
+
+  if (locale === "ja") {
+    if (days > 0) return hours > 0 ? `残り${days}日${hours}時間` : `残り${days}日`;
+    if (hours > 0) return minutes > 0 ? `残り${hours}時間${minutes}分` : `残り${hours}時間`;
+    return `残り${minutes}分`;
+  }
+
+  if (days > 0) return hours > 0 ? `${days}일 ${hours}시간 남음` : `${days}일 남음`;
+  if (hours > 0) return minutes > 0 ? `${hours}시간 ${minutes}분 남음` : `${hours}시간 남음`;
+  return `${minutes}분 남음`;
 }
 
 function getActiveTimeSaleEndMs(timeSale: PublicTimeSale, nowMs: number) {
@@ -2420,7 +2467,7 @@ function TimeSaleBadge({ timeSale }: { timeSale: PublicTimeSale }) {
   );
 }
 
-function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
+function TimeSaleMenuBadge({ timeSale, locale }: { timeSale: PublicTimeSale; locale: CafeDesignALocale }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
   const [nowMs, setNowMs] = useState(() => initialNowMs);
 
@@ -2445,14 +2492,14 @@ function TimeSaleMenuBadge({ timeSale }: { timeSale: PublicTimeSale }) {
     label = displayText;
   } else if (timeSale.timeDisplayMode === "message_and_countdown") {
     if (displayText && activeEndsAtMs != null && activeEndsAtMs > nowMs) {
-      label = `${displayText} · ${formatCountdownLabel(activeEndsAtMs, nowMs)}`;
+      label = `${displayText} · ${formatCountdownLabel(activeEndsAtMs, nowMs, locale)}`;
     }
   } else if (timeSale.timeDisplayMode === "countdown") {
     if (activeEndsAtMs != null && activeEndsAtMs > nowMs) {
-      label = formatCountdownLabel(activeEndsAtMs, nowMs);
+      label = formatCountdownLabel(activeEndsAtMs, nowMs, locale);
     }
   } else if (activeEndsAtMs != null && activeEndsAtMs > nowMs) {
-    label = formatTimeSaleDeadlineLabel(new Date(activeEndsAtMs).toISOString(), timeSale.timezone, nowMs);
+    label = formatTimeSaleDeadlineLabel(new Date(activeEndsAtMs).toISOString(), timeSale.timezone, nowMs, locale);
   }
 
   if (!label) return null;
@@ -3243,7 +3290,7 @@ function MenuItemRow({
           {trimmedMetaText}
         </p>
       )}
-      {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} /> : null}
+      {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} locale={locale} /> : null}
       {hasDescriptionText && (
         <p className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}>{descriptionText}</p>
       )}

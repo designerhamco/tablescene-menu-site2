@@ -53,6 +53,7 @@ type MenuItemTraitTranslation = Database["public"]["Tables"]["menu_item_trait_tr
 type MenuEventTranslation = Database["public"]["Tables"]["menu_event_translations"]["Row"];
 type MenuChefTranslation = Database["public"]["Tables"]["menu_chef_translations"]["Row"];
 type MenuSocialLinkTranslation = Database["public"]["Tables"]["menu_social_link_translations"]["Row"];
+type MenuPromotionTranslation = Database["public"]["Tables"]["menu_promotion_translations"]["Row"];
 type MenuWidgetTranslation = Database["public"]["Tables"]["menu_widget_translations"]["Row"];
 
 type MenuPageDataOptions = {
@@ -666,6 +667,8 @@ async function applyMenuTranslations(
   const widgetIds = widgets
     .filter((widget) => widget.type === "text" || widget.type === "image_text")
     .map((widget) => widget.id);
+  const timeSaleIds = data.timeSales.map((timeSale) => timeSale.id);
+  const promotionTranslationClient = timeSaleIds.length > 0 ? createAdminClient() : supabase;
 
   const [
     siteResult,
@@ -677,6 +680,7 @@ async function applyMenuTranslations(
     eventResult,
     chefResult,
     socialLinkResult,
+    promotionResult,
     widgetResult,
   ] = await Promise.all([
     supabase
@@ -709,6 +713,9 @@ async function applyMenuTranslations(
     socialLinkIds.length
       ? supabase.from("menu_social_link_translations").select("*").eq("locale", locale).in("social_link_id", socialLinkIds)
       : Promise.resolve({ data: [], error: null }),
+    timeSaleIds.length
+      ? promotionTranslationClient.from("menu_promotion_translations").select("*").eq("locale", locale).in("menu_promotion_id", timeSaleIds)
+      : Promise.resolve({ data: [], error: null }),
     widgetIds.length
       ? supabase.from("menu_widget_translations").select("*").eq("locale", locale).in("menu_widget_id", widgetIds)
       : Promise.resolve({ data: [], error: null }),
@@ -723,6 +730,7 @@ async function applyMenuTranslations(
     eventResult.error ||
     chefResult.error ||
     socialLinkResult.error ||
+    promotionResult.error ||
     widgetResult.error
   ) {
     return data;
@@ -738,6 +746,7 @@ async function applyMenuTranslations(
   const eventTranslations = mapById((eventResult.data ?? []) as MenuEventTranslation[], "event_id");
   const chefTranslations = mapById((chefResult.data ?? []) as MenuChefTranslation[], "chef_id");
   const socialLinkTranslations = mapById((socialLinkResult.data ?? []) as MenuSocialLinkTranslation[], "social_link_id");
+  const promotionTranslations = mapById((promotionResult.data ?? []) as MenuPromotionTranslation[], "menu_promotion_id");
   const widgetTranslations = mapById((widgetResult.data ?? []) as MenuWidgetTranslation[], "menu_widget_id");
 
   return {
@@ -824,6 +833,16 @@ async function applyMenuTranslations(
             label: getLocalizedValue(link.label, translation.label),
           }
         : link;
+    }),
+    timeSales: data.timeSales.map((timeSale) => {
+      const translation = promotionTranslations.get(timeSale.id);
+      if (!translation) return timeSale;
+
+      return {
+        ...timeSale,
+        badgeText: getLocalizedRequiredValue(timeSale.badgeText, translation.badge_text),
+        displayText: getLocalizedValue(timeSale.displayText, translation.time_display_text),
+      };
     }),
     widgets: data.widgets == null
       ? undefined

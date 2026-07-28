@@ -160,6 +160,7 @@ type MenuSiteTranslationInsert = Database["public"]["Tables"]["menu_site_transla
 type MenuPageTranslationInsert = Database["public"]["Tables"]["menu_page_translations"]["Insert"];
 type MenuCategoryTranslationInsert = Database["public"]["Tables"]["menu_category_translations"]["Insert"];
 type MenuItemTranslationInsert = Database["public"]["Tables"]["menu_item_translations"]["Insert"];
+type MenuPromotionTranslationInsert = Database["public"]["Tables"]["menu_promotion_translations"]["Insert"];
 type MenuWidgetTranslationInsert = Database["public"]["Tables"]["menu_widget_translations"]["Insert"];
 type LooseInsert = Record<string, unknown>;
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
@@ -1464,6 +1465,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       menu_page_translations: "page",
       menu_category_translations: "category",
       menu_item_translations: "item",
+      menu_promotion_translations: "promotion",
       menu_widget_translations: "widget",
     } as const satisfies Record<string, EditableTranslationEntityType>;
     const data: AutoTranslationDraftPatch[] = result.rows.flatMap((row) => {
@@ -1769,6 +1771,7 @@ function getTranslationDraftValues(formData: FormData) {
           candidate.entityType === "page" ||
           candidate.entityType === "category" ||
           candidate.entityType === "item" ||
+          candidate.entityType === "promotion" ||
           candidate.entityType === "widget") &&
         typeof candidate.entityId === "string" &&
         typeof candidate.field === "string" &&
@@ -1890,6 +1893,7 @@ async function saveEditableTranslationDrafts(
     page: [],
     category: ["name"],
     item: ["name", "set_name", "price_label", "badge_label"],
+    promotion: [],
     widget: [],
   } : {
     site: [
@@ -1906,6 +1910,7 @@ async function saveEditableTranslationDrafts(
     page: ["title", "description"],
     category: ["name", "description"],
     item: ["name", "description", "price_label", "portion_label", "badge_label"],
+    promotion: isBasicTimeSaleTemplate(templateKey) ? ["badge_text", "time_display_text"] : [],
     widget: supportsWidgetLocalization ? ["title", "description"] : [],
   };
   const saveableDraftValues = draftValues.filter((draft) => {
@@ -1929,6 +1934,7 @@ async function saveEditableTranslationDrafts(
     page: new Map<string, Record<string, unknown>>(),
     category: new Map<string, Record<string, unknown>>(),
     item: new Map<string, Record<string, unknown>>(),
+    promotion: new Map<string, Record<string, unknown>>(),
     widget: new Map<string, Record<string, unknown>>(),
   };
 
@@ -1937,7 +1943,7 @@ async function saveEditableTranslationDrafts(
       result[draft.entityType].add(draft.entityId);
       return result;
     },
-    { site: new Set(), page: new Set(), category: new Set(), item: new Set(), widget: new Set() }
+    { site: new Set(), page: new Set(), category: new Set(), item: new Set(), promotion: new Set(), widget: new Set() }
   );
 
   if (idsByType.site.size > 1 || (idsByType.site.size === 1 && !idsByType.site.has(menuId))) {
@@ -1949,7 +1955,12 @@ async function saveEditableTranslationDrafts(
     redirectToTabEditWithError(menuId, "localization", "위젯 번역 저장 대상이 올바르지 않습니다.");
   }
 
-  const [pagesResult, categoriesResult, itemsResult, widgetsResult] = await Promise.all([
+  const invalidPromotionEntityId = [...idsByType.promotion].find((id) => !isUuid(id));
+  if (invalidPromotionEntityId) {
+    redirectToTabEditWithError(menuId, "localization", "특가세일 번역 저장 대상이 올바르지 않습니다.");
+  }
+
+  const [pagesResult, categoriesResult, itemsResult, promotionsResult, widgetsResult] = await Promise.all([
     idsByType.page.size > 0
       ? supabase.from("menu_pages").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.page])
       : Promise.resolve({ data: [], error: null }),
@@ -1959,12 +1970,15 @@ async function saveEditableTranslationDrafts(
     idsByType.item.size > 0
       ? supabase.from("menu_items").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.item])
       : Promise.resolve({ data: [], error: null }),
+    idsByType.promotion.size > 0
+      ? supabase.from("menu_promotions").select("id").eq("menu_site_id", menuId).eq("type", TIME_SALE_TYPE).in("id", [...idsByType.promotion])
+      : Promise.resolve({ data: [], error: null }),
     idsByType.widget.size > 0
       ? supabase.from("menu_widgets").select("id, widget_type").eq("menu_site_id", menuId).in("id", [...idsByType.widget])
       : Promise.resolve({ data: [], error: null }),
   ]);
 
-  const readError = pagesResult.error ?? categoriesResult.error ?? itemsResult.error ?? widgetsResult.error;
+  const readError = pagesResult.error ?? categoriesResult.error ?? itemsResult.error ?? promotionsResult.error ?? widgetsResult.error;
   if (readError) {
     redirectToTabEditWithError(menuId, "localization", `번역 저장 대상 확인에 실패했습니다: ${readError.message}`);
   }
@@ -1974,6 +1988,7 @@ async function saveEditableTranslationDrafts(
     page: new Set((pagesResult.data ?? []).map((row) => row.id)),
     category: new Set((categoriesResult.data ?? []).map((row) => row.id)),
     item: new Set((itemsResult.data ?? []).map((row) => row.id)),
+    promotion: new Set((promotionsResult.data ?? []).map((row) => row.id)),
     widget: new Set(
       ((widgetsResult.data ?? []) as { id: string; widget_type: string }[])
         .filter((row) => row.widget_type === "text" || row.widget_type === "image_text")
@@ -1993,23 +2008,29 @@ async function saveEditableTranslationDrafts(
     }
 
     targetLocales.forEach((locale) => {
-      if (draft.entityType === "widget") {
+      if (draft.entityType === "widget" || draft.entityType === "promotion") {
         const value = draft.translations[locale];
-        const maxLength =
-          draft.field === "title"
+        const maxLength = draft.entityType === "widget"
+          ? draft.field === "title"
             ? MAX_MENU_WIDGET_TITLE_LENGTH
             : draft.field === "description"
-            ? MAX_MENU_WIDGET_DESCRIPTION_LENGTH
-            : null;
+              ? MAX_MENU_WIDGET_DESCRIPTION_LENGTH
+              : null
+          : draft.field === "badge_text"
+            ? TIME_SALE_BADGE_TEXT_MAX_LENGTH
+            : draft.field === "time_display_text"
+              ? TIME_SALE_DISPLAY_TEXT_MAX_LENGTH
+              : null;
 
         if (typeof value === "string" && maxLength != null && value.length > maxLength) {
-          redirectToTabEditWithError(
-            menuId,
-            "localization",
-            draft.field === "title"
+          const message = draft.entityType === "widget"
+            ? draft.field === "title"
               ? `위젯 제목 번역은 ${MAX_MENU_WIDGET_TITLE_LENGTH}자 이하로 입력해주세요.`
-              : `위젯 내용 번역은 ${MAX_MENU_WIDGET_DESCRIPTION_LENGTH}자 이하로 입력해주세요.`,
-          );
+              : `위젯 내용 번역은 ${MAX_MENU_WIDGET_DESCRIPTION_LENGTH}자 이하로 입력해주세요.`
+            : draft.field === "badge_text"
+              ? `특가세일 배지 문구 번역은 ${TIME_SALE_BADGE_TEXT_MAX_LENGTH}자 이하로 입력해주세요.`
+              : `특가세일 시간 표시 문구 번역은 ${TIME_SALE_DISPLAY_TEXT_MAX_LENGTH}자 이하로 입력해주세요.`;
+          redirectToTabEditWithError(menuId, "localization", message);
         }
       }
 
@@ -2030,9 +2051,10 @@ async function saveEditableTranslationDrafts(
   const pageRows = [...groupedRows.page.entries()].map(([key, row]) => ({ ...row, menu_page_id: key.split(":")[0] })) as MenuPageTranslationInsert[];
   const categoryRows = [...groupedRows.category.entries()].map(([key, row]) => ({ ...row, category_id: key.split(":")[0] })) as MenuCategoryTranslationInsert[];
   const itemRows = [...groupedRows.item.entries()].map(([key, row]) => ({ ...row, item_id: key.split(":")[0] })) as MenuItemTranslationInsert[];
+  const promotionRows = [...groupedRows.promotion.entries()].map(([key, row]) => ({ ...row, menu_promotion_id: key.split(":")[0] })) as MenuPromotionTranslationInsert[];
   const widgetRows = [...groupedRows.widget.entries()].map(([key, row]) => ({ ...row, menu_widget_id: key.split(":")[0] })) as MenuWidgetTranslationInsert[];
 
-  const [{ error: siteError }, { error: pageError }, { error: categoryError }, { error: itemError }, { error: widgetError }] = await Promise.all([
+  const [{ error: siteError }, { error: pageError }, { error: categoryError }, { error: itemError }, { error: promotionError }, { error: widgetError }] = await Promise.all([
     siteRows.length > 0
       ? supabase.from("menu_site_translations").upsert(siteRows, { onConflict: "menu_site_id,locale" })
       : Promise.resolve({ error: null }),
@@ -2045,11 +2067,14 @@ async function saveEditableTranslationDrafts(
     itemRows.length > 0
       ? supabase.from("menu_item_translations").upsert(itemRows, { onConflict: "item_id,locale" })
       : Promise.resolve({ error: null }),
+    promotionRows.length > 0
+      ? supabase.from("menu_promotion_translations").upsert(promotionRows, { onConflict: "menu_promotion_id,locale" })
+      : Promise.resolve({ error: null }),
     widgetRows.length > 0
       ? supabase.from("menu_widget_translations").upsert(widgetRows, { onConflict: "menu_widget_id,locale" })
       : Promise.resolve({ error: null }),
   ]);
-  const saveError = siteError ?? pageError ?? categoryError ?? itemError ?? widgetError;
+  const saveError = siteError ?? pageError ?? categoryError ?? itemError ?? promotionError ?? widgetError;
 
   if (saveError) {
     redirectToTabEditWithError(menuId, "localization", `${errorLabel} 중 오류가 발생했습니다: ${saveError.message}`);

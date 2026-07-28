@@ -56,6 +56,8 @@ import {
   getTimeSaleDisplayTextFromSettings,
   getTimeSaleDisplayModeFromSettings,
   isBasicTimeSaleTemplate,
+  TIME_SALE_BADGE_TEXT_MAX_LENGTH,
+  TIME_SALE_DISPLAY_TEXT_MAX_LENGTH,
   TIME_SALE_TYPE,
   type MenuEditorTimeSale,
 } from "@/lib/menu-time-sales";
@@ -246,6 +248,7 @@ type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"
 type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
 type MenuCategoryTranslation = Database["public"]["Tables"]["menu_category_translations"]["Row"];
 type MenuItemTranslation = Database["public"]["Tables"]["menu_item_translations"]["Row"];
+type MenuPromotionTranslation = Database["public"]["Tables"]["menu_promotion_translations"]["Row"];
 type MenuWidgetTranslation = Database["public"]["Tables"]["menu_widget_translations"]["Row"];
 
 const editableTranslationLocales = ["en", "zh", "ja"] as const satisfies readonly EditableTranslationLocale[];
@@ -322,10 +325,12 @@ function buildEditableTranslationFields({
   pages,
   categories,
   items,
+  promotions,
   siteTranslations,
   pageTranslations,
   categoryTranslations,
   itemTranslations,
+  promotionTranslations,
   widgetTranslations,
   widgets,
   includeItemBadges,
@@ -340,11 +345,13 @@ function buildEditableTranslationFields({
   pages: MenuPage[];
   categories: MenuCategory[];
   items: MenuItem[];
+  promotions: MenuEditorTimeSale[];
   widgets: MenuWidget[];
   siteTranslations: MenuSiteTranslation[];
   pageTranslations: MenuPageTranslation[];
   categoryTranslations: MenuCategoryTranslation[];
   itemTranslations: MenuItemTranslation[];
+  promotionTranslations: MenuPromotionTranslation[];
   widgetTranslations: MenuWidgetTranslation[];
   includeItemBadges: boolean;
   includeCategoryDescriptions: boolean;
@@ -361,6 +368,7 @@ function buildEditableTranslationFields({
   const pageTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const categoryTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const itemTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
+  const promotionTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const widgetTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
 
   pageTranslations.forEach((translation) => {
@@ -380,6 +388,12 @@ function buildEditableTranslationFields({
     const translations = itemTranslationsById.get(translation.item_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
     translations.set(locale, translation as Record<string, unknown>);
     itemTranslationsById.set(translation.item_id, translations);
+  });
+  promotionTranslations.forEach((translation) => {
+    const locale = translation.locale as EditableTranslationLocale;
+    const translations = promotionTranslationsById.get(translation.menu_promotion_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
+    translations.set(locale, translation as Record<string, unknown>);
+    promotionTranslationsById.set(translation.menu_promotion_id, translations);
   });
   widgetTranslations.forEach((translation) => {
     const locale = translation.locale as EditableTranslationLocale;
@@ -569,6 +583,32 @@ function buildEditableTranslationFields({
         translationsByLocale: itemTranslationsById.get(item.id) ?? new Map(),
         fieldLabels: { name: "메뉴명", set_name: "보조 메뉴명", description: "메뉴 설명", price_label: "표시 가격 문구", portion_label: "제공량 표시 문구", badge_label: "배지 문구" },
         multilineFields: ["description"],
+      });
+    });
+
+  promotions
+    .filter((promotion) => promotion.active)
+    .forEach((promotion, index) => {
+      const firstTargetItemName = items.find((item) => item.id === promotion.items.find((target) => target.visible !== false)?.menuItemId)?.name;
+      const groupLabel = firstTargetItemName
+        ? `${promotion.badgeText} · ${firstTargetItemName}`
+        : promotion.name || `특가세일 ${index + 1}`;
+
+      pushFields({
+        entityType: "promotion",
+        entityId: promotion.id,
+        group: "promotions",
+        groupLabel,
+        sourceFields: {
+          badge_text: promotion.badgeText,
+          time_display_text: promotion.displayText,
+        },
+        translationsByLocale: promotionTranslationsById.get(promotion.id) ?? new Map(),
+        fieldLabels: { badge_text: "배지 문구", time_display_text: "시간 표시 문구" },
+        fieldMaxLengths: {
+          badge_text: TIME_SALE_BADGE_TEXT_MAX_LENGTH,
+          time_display_text: TIME_SALE_DISPLAY_TEXT_MAX_LENGTH,
+        },
       });
     });
 
@@ -1364,6 +1404,19 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const translatableWidgetIds = initialMenuWidgets
     .filter((widget) => widget.visible && (widget.type === "text" || widget.type === "image_text"))
     .map((widget) => widget.id);
+  const translatablePromotionIds = canManageTimeSales
+    ? editorTimeSales
+        .filter((promotion) => promotion.active && (promotion.badgeText.trim() || promotion.displayText?.trim()))
+        .map((promotion) => promotion.id)
+    : [];
+  const { data: promotionTranslationsData, error: promotionTranslationsError } =
+    translatablePromotionIds.length > 0
+      ? await supabase
+          .from("menu_promotion_translations")
+          .select("*")
+          .in("menu_promotion_id", translatablePromotionIds)
+          .in("locale", editableTranslationLocales)
+      : { data: [], error: null };
   const { data: widgetTranslationsData, error: widgetTranslationsError } =
     translatableWidgetIds.length > 0
       ? await supabase
@@ -1378,6 +1431,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       operation: "loadMenuWidgetTranslations",
       menuSiteId: site.id,
       code: widgetTranslationsError.code,
+      });
+  }
+
+  if (promotionTranslationsError) {
+    console.warn("[menu-editor] menu promotion translation load failed", {
+      operation: "loadMenuPromotionTranslations",
+      menuSiteId: site.id,
+      code: promotionTranslationsError.code,
     });
   }
 
@@ -1460,10 +1521,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     pages: menuPages,
     categories,
     items,
+    promotions: editorTimeSales,
     siteTranslations: (siteTranslationsData ?? []) as MenuSiteTranslation[],
     pageTranslations: (pageTranslationsData ?? []) as MenuPageTranslation[],
     categoryTranslations: (categoryTranslationsData ?? []) as MenuCategoryTranslation[],
     itemTranslations: (itemTranslationsData ?? []) as MenuItemTranslation[],
+    promotionTranslations: (promotionTranslationsData ?? []) as MenuPromotionTranslation[],
     widgetTranslations: (widgetTranslationsData ?? []) as MenuWidgetTranslation[],
     widgets: initialMenuWidgets,
     includeItemBadges: templateCapabilities.itemBadges,

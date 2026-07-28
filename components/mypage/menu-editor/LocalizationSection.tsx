@@ -247,6 +247,7 @@ const defaultTranslationTargetLabels: Record<TranslationTargetGroup, string> = {
   pages: "페이지",
   categories: "카테고리",
   items: "메뉴 아이템",
+  promotions: "특가세일",
   widgets: "위젯",
 };
 
@@ -254,6 +255,7 @@ const basicTranslationTargetLabels = {
   site: "기본 정보",
   categories: "메뉴 그룹",
   items: "메뉴 목록",
+  promotions: "특가세일",
   widgets: "위젯",
 } satisfies Partial<Record<TranslationTargetGroup, string>>;
 
@@ -261,6 +263,7 @@ const displayTranslationTargetLabels = {
   site: "기본 정보",
   categories: "메뉴 그룹",
   items: "메뉴 목록",
+  promotions: "특가세일",
   widgets: "위젯",
 } satisfies Partial<Record<TranslationTargetGroup, string>>;
 
@@ -608,8 +611,8 @@ function LocalizationSectionContent({
   const translationTargetGroups = useMemo(
     () =>
       (Object.keys(translationTargetLabels) as TranslationTargetGroup[]).filter((group) => {
-        if (group !== "widgets") return true;
-        return editableTranslationFields.some((field) => field.group === "widgets");
+        if (group !== "widgets" && group !== "promotions") return true;
+        return editableTranslationFields.some((field) => field.group === group);
       }),
     [editableTranslationFields, translationTargetLabels]
   );
@@ -645,7 +648,7 @@ function LocalizationSectionContent({
           result[field.group].push(field);
           return result;
         },
-        { site: [], pages: [], categories: [], items: [], widgets: [] }
+        { site: [], pages: [], categories: [], items: [], promotions: [], widgets: [] }
       ),
     [editableTranslationFields]
   );

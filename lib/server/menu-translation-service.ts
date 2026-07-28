@@ -3,6 +3,12 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE } from "@/lib/menu-translation-errors";
+import {
+  TIME_SALE_BADGE_TEXT_MAX_LENGTH,
+  TIME_SALE_DISPLAY_TEXT_MAX_LENGTH,
+  TIME_SALE_TYPE,
+  isBasicTimeSaleTemplate,
+} from "@/lib/menu-time-sales";
 import { MAX_MENU_WIDGET_DESCRIPTION_LENGTH, MAX_MENU_WIDGET_TITLE_LENGTH } from "@/lib/menu-widgets";
 import type { Database, Json } from "@/lib/supabase/types";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
@@ -21,6 +27,7 @@ export type TranslationTable =
   | "menu_event_translations"
   | "menu_chef_translations"
   | "menu_social_link_translations"
+  | "menu_promotion_translations"
   | "menu_widget_translations";
 
 type TranslationEntity = {
@@ -35,6 +42,7 @@ type TranslationEntity = {
     | "event_id"
     | "chef_id"
     | "social_link_id"
+    | "menu_promotion_id"
     | "menu_widget_id";
   id: string;
   fields: Record<string, string>;
@@ -251,8 +259,20 @@ function getWidgetTranslationMaxLength(fieldName: string) {
   return null;
 }
 
-function isWidgetTranslationFieldWithinLimit(fieldName: string, value: string) {
-  const maxLength = getWidgetTranslationMaxLength(fieldName);
+function getPromotionTranslationMaxLength(fieldName: string) {
+  if (fieldName === "badge_text") return TIME_SALE_BADGE_TEXT_MAX_LENGTH;
+  if (fieldName === "time_display_text") return TIME_SALE_DISPLAY_TEXT_MAX_LENGTH;
+  return null;
+}
+
+function getFieldLevelTranslationMaxLength(table: TranslationTable, fieldName: string) {
+  if (table === "menu_widget_translations") return getWidgetTranslationMaxLength(fieldName);
+  if (table === "menu_promotion_translations") return getPromotionTranslationMaxLength(fieldName);
+  return null;
+}
+
+function isTranslationFieldWithinLimit(table: TranslationTable, fieldName: string, value: string) {
+  const maxLength = getFieldLevelTranslationMaxLength(table, fieldName);
   return maxLength == null || value.length <= maxLength;
 }
 
@@ -1187,12 +1207,13 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
     eventsResult,
     chefsResult,
     socialLinksResult,
+    promotionsResult,
     widgetsResult,
   ] = await Promise.all([
     supabase
       .from("menu_sites")
       .select(
-        "id, template_key, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, brand_description, intro_title, intro_description, menu_cover_title, menu_cover_description, menu_cover_label, about_description, opening_hours, description, settings"
+        "id, template_key, template_category, restaurant_name, restaurant_category, restaurant_address, restaurant_phone, brand_description, intro_title, intro_description, menu_cover_title, menu_cover_description, menu_cover_label, about_description, opening_hours, description, settings"
       )
       .eq("id", menuSiteId)
       .maybeSingle(),
@@ -1207,6 +1228,11 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
       .eq("menu_site_id", menuSiteId),
     supabase.from("menu_chefs").select("id, chef_name, chef_role, chef_description").eq("menu_site_id", menuSiteId),
     supabase.from("menu_social_links").select("id, label").eq("menu_site_id", menuSiteId),
+    supabase
+      .from("menu_promotions")
+      .select("id, settings")
+      .eq("menu_site_id", menuSiteId)
+      .eq("type", TIME_SALE_TYPE),
     supabase
       .from("menu_widgets")
       .select("id, widget_type, title, description, visible")
@@ -1225,6 +1251,7 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
     eventsResult.error,
     chefsResult.error,
     socialLinksResult.error,
+    promotionsResult.error,
     widgetsResult.error,
   ].filter(Boolean);
 
@@ -1235,6 +1262,7 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
   const templateCapabilities = getTemplateCapabilities(siteResult.data?.template_key);
   const usesBasicVisibleLocalization = templateCapabilities.footerStoreInfo;
   const usesDisplayLocalization = siteResult.data?.template_key === "display_menu_a";
+  const usesBasicTimeSaleLocalization = isBasicTimeSaleTemplate(siteResult.data?.template_key, siteResult.data?.template_category);
   const menuCoverCapabilities = templateCapabilities.menuCover;
   const siteSettings = getJsonRecord(siteResult.data?.settings);
   const hasFooterNotice1 = Object.prototype.hasOwnProperty.call(siteSettings, "footer_notice_1");
@@ -1354,6 +1382,15 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
     ...(usesBasicVisibleLocalization || usesDisplayLocalization || !templateCapabilities.socialLinks
       ? []
       : (socialLinksResult.data ?? []).map((row) => buildEntity("menu_social_link_translations", "social_link_id", row.id, { label: row.label }))),
+    ...(usesBasicTimeSaleLocalization
+      ? (promotionsResult.data ?? []).map((row) => {
+          const settings = getJsonRecord(row.settings);
+          return buildEntity("menu_promotion_translations", "menu_promotion_id", row.id, {
+            badge_text: getJsonString(settings, "badge_text"),
+            time_display_text: getJsonString(settings, "time_display_text"),
+          });
+        })
+      : []),
     ...(templateCapabilities.menuWidgets.enabled
       ? (widgetsResult.data ?? []).map((row) =>
           buildEntity("menu_widget_translations", "menu_widget_id", row.id, {
@@ -1406,6 +1443,7 @@ const translationTableSourceIdFields = {
   menu_event_translations: "event_id",
   menu_chef_translations: "chef_id",
   menu_social_link_translations: "social_link_id",
+  menu_promotion_translations: "menu_promotion_id",
   menu_widget_translations: "menu_widget_id",
 } as const satisfies Record<TranslationTable, TranslationEntity["sourceIdField"]>;
 
@@ -1426,7 +1464,10 @@ function hasCompleteTranslatedFields(row: Record<string, unknown>, entity: Trans
       return false;
     }
 
-    if (entity.table === "menu_widget_translations" && !isWidgetTranslationFieldWithinLimit(fieldName, translatedText)) {
+    if (
+      (entity.table === "menu_widget_translations" || entity.table === "menu_promotion_translations") &&
+      !isTranslationFieldWithinLimit(entity.table, fieldName, translatedText)
+    ) {
       return false;
     }
 
@@ -1590,6 +1631,18 @@ async function loadExistingTranslationHashes(supabase: Supabase, entities: Trans
           });
           break;
         }
+        case "menu_promotion_translations": {
+          const { data, error } = await supabase
+            .from("menu_promotion_translations")
+            .select("*")
+            .in("menu_promotion_id", uniqueIds)
+            .in("locale", targetLocales);
+          if (error) throw new Error(`기존 특가세일 번역 상태 조회에 실패했습니다: ${error.message}`);
+          data?.forEach((row) => {
+            rememberCompletedTranslationHash(existingHashes, entityByTableAndId, "menu_promotion_translations", row as Record<string, unknown>);
+          });
+          break;
+        }
       }
     })
   );
@@ -1597,50 +1650,67 @@ async function loadExistingTranslationHashes(supabase: Supabase, entities: Trans
   return existingHashes;
 }
 
-async function loadExistingWidgetTranslatedFields(
+async function loadExistingFieldLevelTranslatedFields(
   supabase: Supabase,
   entities: TranslationEntity[],
   targetLocales: readonly TargetTranslationLocale[]
 ) {
   const existingTranslatedFields: ExistingTranslatedFields = new Map();
-  const widgetEntities = entities.filter((entity) => entity.table === "menu_widget_translations");
-  const widgetIds = [...new Set(widgetEntities.map((entity) => entity.id))];
 
-  if (widgetIds.length === 0 || targetLocales.length === 0) {
+  if (targetLocales.length === 0) {
     return existingTranslatedFields;
   }
 
-  const entityById = new Map(widgetEntities.map((entity) => [entity.id, entity]));
-  const { data, error } = await supabase
-    .from("menu_widget_translations")
-    .select("menu_widget_id, locale, source_text_hash, status, title, description")
-    .in("menu_widget_id", widgetIds)
-    .in("locale", targetLocales);
+  const collectExistingFields = (rows: Record<string, unknown>[], entityById: Map<string, TranslationEntity>, sourceIdField: TranslationEntity["sourceIdField"]) => {
+    rows.forEach((row) => {
+      const entityId = cleanText(row[sourceIdField]);
+      const locale = cleanText(row.locale) as TargetTranslationLocale | null;
+      const sourceTextHash = cleanText(row.source_text_hash);
 
-  if (error) throw new Error(`기존 위젯 번역 상태 조회에 실패했습니다: ${error.message}`);
+      if (!entityId || !locale || !sourceTextHash || row.status !== "completed") return;
 
-  data?.forEach((row) => {
-    const widgetId = cleanText(row.menu_widget_id);
-    const locale = cleanText(row.locale) as TargetTranslationLocale | null;
-    const sourceTextHash = cleanText(row.source_text_hash);
+      const entity = entityById.get(entityId);
+      if (!entity || sourceTextHash !== entity.sourceTextHash) return;
 
-    if (!widgetId || !locale || !sourceTextHash || row.status !== "completed") return;
+      const translatedFields = Object.keys(entity.fields).reduce<Set<string>>((fields, fieldName) => {
+        const translatedText = cleanText(row[fieldName]);
+        if (translatedText && isTranslationFieldWithinLimit(entity.table, fieldName, translatedText)) {
+          fields.add(fieldName);
+        }
+        return fields;
+      }, new Set());
 
-    const entity = entityById.get(widgetId);
-    if (!entity || sourceTextHash !== entity.sourceTextHash) return;
-
-    const translatedFields = Object.keys(entity.fields).reduce<Set<string>>((fields, fieldName) => {
-      const translatedText = cleanText(row[fieldName as "title" | "description"]);
-      if (translatedText && isWidgetTranslationFieldWithinLimit(fieldName, translatedText)) {
-        fields.add(fieldName);
+      if (translatedFields.size > 0) {
+        existingTranslatedFields.set(getExistingTranslatedFieldKey(entity, locale), translatedFields);
       }
-      return fields;
-    }, new Set());
+    });
+  };
 
-    if (translatedFields.size > 0) {
-      existingTranslatedFields.set(getExistingTranslatedFieldKey(entity, locale), translatedFields);
-    }
-  });
+  const widgetEntities = entities.filter((entity) => entity.table === "menu_widget_translations");
+  const widgetIds = [...new Set(widgetEntities.map((entity) => entity.id))];
+  if (widgetIds.length > 0) {
+    const { data, error } = await supabase
+      .from("menu_widget_translations")
+      .select("menu_widget_id, locale, source_text_hash, status, title, description")
+      .in("menu_widget_id", widgetIds)
+      .in("locale", targetLocales);
+
+    if (error) throw new Error(`기존 위젯 번역 상태 조회에 실패했습니다: ${error.message}`);
+    collectExistingFields((data ?? []) as Record<string, unknown>[], new Map(widgetEntities.map((entity) => [entity.id, entity])), "menu_widget_id");
+  }
+
+  const promotionEntities = entities.filter((entity) => entity.table === "menu_promotion_translations");
+  const promotionIds = [...new Set(promotionEntities.map((entity) => entity.id))];
+  if (promotionIds.length > 0) {
+    const { data, error } = await supabase
+      .from("menu_promotion_translations")
+      .select("menu_promotion_id, locale, source_text_hash, status, badge_text, time_display_text")
+      .in("menu_promotion_id", promotionIds)
+      .in("locale", targetLocales);
+
+    if (error) throw new Error(`기존 특가세일 번역 상태 조회에 실패했습니다: ${error.message}`);
+    collectExistingFields((data ?? []) as Record<string, unknown>[], new Map(promotionEntities.map((entity) => [entity.id, entity])), "menu_promotion_id");
+  }
 
   return existingTranslatedFields;
 }
@@ -1649,7 +1719,7 @@ function getEntitiesToTranslateForLocale(
   entities: TranslationEntity[],
   locale: TargetTranslationLocale,
   existingHashes: Map<string, string>,
-  existingWidgetTranslatedFields: ExistingTranslatedFields
+  existingFieldLevelTranslatedFields: ExistingTranslatedFields
 ) {
   let skippedEntities = 0;
   const entitiesToTranslate = entities.flatMap((entity) => {
@@ -1659,11 +1729,11 @@ function getEntitiesToTranslateForLocale(
       return [];
     }
 
-    if (entity.table !== "menu_widget_translations") {
+    if (entity.table !== "menu_widget_translations" && entity.table !== "menu_promotion_translations") {
       return [entity];
     }
 
-    const existingFields = existingWidgetTranslatedFields.get(getExistingTranslatedFieldKey(entity, locale));
+    const existingFields = existingFieldLevelTranslatedFields.get(getExistingTranslatedFieldKey(entity, locale));
     if (!existingFields || existingFields.size === 0) {
       return [entity];
     }
@@ -1733,16 +1803,25 @@ function validateTranslatedTextUnits(
   }
 
   const oversizedWidgetTextUnit = textUnits.find((unit) => {
-    if (!unit.key.startsWith("menu_widget_translations:")) return false;
+    if (!unit.key.startsWith("menu_widget_translations:") && !unit.key.startsWith("menu_promotion_translations:")) return false;
 
+    const [tableName] = unit.key.split(":");
     const fieldName = unit.key.split(":").at(-1) ?? "";
     const translatedValue = cleanText(translatedText[unit.key]);
-    return Boolean(translatedValue && !isWidgetTranslationFieldWithinLimit(fieldName, translatedValue));
+    return Boolean(translatedValue && !isTranslationFieldWithinLimit(tableName as TranslationTable, fieldName, translatedValue));
   });
 
   if (oversizedWidgetTextUnit) {
+    const [tableName] = oversizedWidgetTextUnit.key.split(":");
     const fieldName = oversizedWidgetTextUnit.key.split(":").at(-1) ?? "";
-    const maxLength = getWidgetTranslationMaxLength(fieldName);
+    const maxLength = getFieldLevelTranslationMaxLength(tableName as TranslationTable, fieldName);
+    if (tableName === "menu_promotion_translations") {
+      throw new Error(
+        fieldName === "badge_text"
+          ? `특가세일 배지 문구 번역은 ${maxLength ?? TIME_SALE_BADGE_TEXT_MAX_LENGTH}자 이하로 생성되어야 합니다.`
+          : `특가세일 시간 표시 문구 번역은 ${maxLength ?? TIME_SALE_DISPLAY_TEXT_MAX_LENGTH}자 이하로 생성되어야 합니다.`
+      );
+    }
     throw new Error(
       fieldName === "title"
         ? `위젯 제목 번역은 ${maxLength ?? MAX_MENU_WIDGET_TITLE_LENGTH}자 이하로 생성되어야 합니다.`
@@ -1874,6 +1953,13 @@ async function upsertRows(supabase: Supabase, table: TranslationTable, rows: Rec
       if (error) throw new Error(`SNS 링크 번역 저장에 실패했습니다: ${error.message}`);
       return;
     }
+    case "menu_promotion_translations": {
+      const { error } = await supabase
+        .from("menu_promotion_translations")
+        .upsert(rows as Database["public"]["Tables"]["menu_promotion_translations"]["Insert"][], { onConflict: "menu_promotion_id,locale" });
+      if (error) throw new Error(`특가세일 번역 저장에 실패했습니다: ${error.message}`);
+      return;
+    }
     case "menu_widget_translations": {
       const { error } = await supabase
         .from("menu_widget_translations")
@@ -1896,7 +1982,7 @@ export async function runMenuTranslationUpdate(
   logTranslationStage("start", { mode: "update", menuSiteId, targetLocales });
   const entities = await loadTranslationEntities(supabase, menuSiteId);
   const existingHashes = await loadExistingTranslationHashes(supabase, entities, targetLocales);
-  const existingWidgetTranslatedFields = await loadExistingWidgetTranslatedFields(supabase, entities, targetLocales);
+  const existingFieldLevelTranslatedFields = await loadExistingFieldLevelTranslatedFields(supabase, entities, targetLocales);
   let translatedEntities = 0;
   let skippedEntities = 0;
   let translatedTextUnits = 0;
@@ -1905,7 +1991,7 @@ export async function runMenuTranslationUpdate(
   try {
     for (const locale of targetLocales) {
       const languageStartedAt = Date.now();
-      const localeTranslationPlan = getEntitiesToTranslateForLocale(entities, locale, existingHashes, existingWidgetTranslatedFields);
+      const localeTranslationPlan = getEntitiesToTranslateForLocale(entities, locale, existingHashes, existingFieldLevelTranslatedFields);
       const entitiesToTranslate = localeTranslationPlan.entitiesToTranslate;
       skippedEntities += localeTranslationPlan.skippedEntities;
 
@@ -2021,7 +2107,7 @@ export async function runMenuTranslationDraft(
   logTranslationStage("start", { mode: "draft", menuSiteId, targetLocales });
   const entities = await loadTranslationEntities(supabase, menuSiteId);
   const existingHashes = await loadExistingTranslationHashes(supabase, entities, targetLocales);
-  const existingWidgetTranslatedFields = await loadExistingWidgetTranslatedFields(supabase, entities, targetLocales);
+  const existingFieldLevelTranslatedFields = await loadExistingFieldLevelTranslatedFields(supabase, entities, targetLocales);
   const rows: MenuTranslationDraftRow[] = [];
   const localeResults: MenuTranslationLocaleResult[] = [];
   let translatedEntities = 0;
@@ -2030,7 +2116,7 @@ export async function runMenuTranslationDraft(
 
   for (const locale of targetLocales) {
     const languageStartedAt = Date.now();
-    const localeTranslationPlan = getEntitiesToTranslateForLocale(entities, locale, existingHashes, existingWidgetTranslatedFields);
+    const localeTranslationPlan = getEntitiesToTranslateForLocale(entities, locale, existingHashes, existingFieldLevelTranslatedFields);
     const entitiesToTranslate = localeTranslationPlan.entitiesToTranslate;
     skippedEntities += localeTranslationPlan.skippedEntities;
 

@@ -1,13 +1,13 @@
 import type { SupportedLocale } from "@/lib/locales";
 
 export type EditableTranslationLocale = Exclude<SupportedLocale, "ko">;
-export type EditableTranslationEntityType = "site" | "page" | "category" | "item" | "widget";
+export type EditableTranslationEntityType = "site" | "page" | "category" | "item" | "promotion" | "widget";
 
 export type EditableTranslationField = {
   entityType: EditableTranslationEntityType;
   entityId: string;
   field: string;
-  group: "site" | "pages" | "categories" | "items" | "widgets";
+  group: "site" | "pages" | "categories" | "items" | "promotions" | "widgets";
   groupLabel: string;
   parentGroupLabel?: string;
   label: string;
@@ -53,7 +53,7 @@ export type RecoverableAutoTranslationJob = {
   staleRowCount: number;
 };
 
-const EDITABLE_TRANSLATION_ENTITY_TYPES = ["site", "page", "category", "item", "widget"] as const;
+const EDITABLE_TRANSLATION_ENTITY_TYPES = ["site", "page", "category", "item", "promotion", "widget"] as const;
 const EDITABLE_TRANSLATION_LOCALES = ["en", "zh", "ja"] as const;
 const TRANSLATION_RECOVERY_TEXT_MAX_LENGTH = 10000;
 const TRANSLATION_RECOVERY_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -72,6 +72,7 @@ const TRANSLATION_RECOVERY_ALLOWED_FIELDS = {
   page: ["title", "description"],
   category: ["name", "description"],
   item: ["name", "description", "price_label", "portion_label", "badge_label", "set_name"],
+  promotion: ["badge_text", "time_display_text"],
   widget: ["title", "description"],
 } as const satisfies Record<EditableTranslationEntityType, readonly string[]>;
 

@@ -1417,6 +1417,50 @@ export type Database = {
           },
         ]
       }
+      menu_promotion_translations: {
+        Row: {
+          badge_text: string | null
+          created_at: string
+          id: string
+          locale: string
+          menu_promotion_id: string
+          source_text_hash: string | null
+          status: string
+          time_display_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          badge_text?: string | null
+          created_at?: string
+          id?: string
+          locale: string
+          menu_promotion_id: string
+          source_text_hash?: string | null
+          status?: string
+          time_display_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          badge_text?: string | null
+          created_at?: string
+          id?: string
+          locale?: string
+          menu_promotion_id?: string
+          source_text_hash?: string | null
+          status?: string
+          time_display_text?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_promotion_translations_menu_promotion_id_fkey"
+            columns: ["menu_promotion_id"]
+            isOneToOne: false
+            referencedRelation: "menu_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_promotions: {
         Row: {
           active: boolean
