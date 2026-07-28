@@ -14,6 +14,7 @@ import {
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { MENU_EDITOR_CAPABILITIES, getMenuEditorServiceTypeForMenuSite } from "@/lib/menu-editor-capabilities";
 import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
+import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
 import {
   getMenuSiteAccessStateForMenuSite,
@@ -1265,7 +1266,7 @@ export async function translateMenuSiteAction(formData: FormData) {
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
   const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
-  const hasFullTranslationCredits = await hasEnoughAiCredits(menuId, 5);
+  const hasFullTranslationCredits = await hasEnoughAiCredits(menuId, AI_FEATURE_CREDIT_COSTS.full_translation);
   const targetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is (typeof TARGET_TRANSLATION_LOCALES)[number] =>
     TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
   );
@@ -1393,8 +1394,8 @@ export async function generateMenuSiteTranslationDraftAction(input: {
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const isFullRun = mode === "all";
-    const creditCost = isFullRun ? 5 : 1;
     const featureKey = isFullRun ? "full_translation" : "partial_translation";
+    const creditCost = AI_FEATURE_CREDIT_COSTS[featureKey];
     const usageType = isFullRun ? "ai_translate_full" : "ai_translate_partial";
     const currentUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, usageType);
     const hasTranslationCredits = await hasEnoughAiCredits(menuId, creditCost);

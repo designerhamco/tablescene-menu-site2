@@ -23,6 +23,7 @@ import type {
   PartialTranslationResult,
   RecoverableAutoTranslationJob,
 } from "@/lib/menu-localization-draft";
+import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 
 type TranslationJob = {
@@ -170,7 +171,7 @@ function TranslationSubmitButton({
           {pendingLabel ?? "번역 중..."}
         </>
       ) : (
-        "전체 자동 번역 초안 만들기 · 5크레딧"
+        `전체 자동 번역 초안 만들기 · ${AI_FEATURE_CREDIT_COSTS.full_translation}크레딧`
       )}
     </button>
   );
@@ -755,7 +756,7 @@ function LocalizationSectionContent({
     }
 
     const usage = isAllRun ? localFullUsage : localPartialUsage;
-    const cost = isAllRun ? 5 : 1;
+    const cost = isAllRun ? AI_FEATURE_CREDIT_COSTS.full_translation : AI_FEATURE_CREDIT_COSTS.partial_translation;
     if (usage.used >= usage.limit) {
       toast.error(`AI 크레딧이 부족합니다. ${isAllRun ? "전체 자동 번역" : "언어별 자동 번역"}은 ${cost}크레딧이 필요합니다. 현재 보유 AI 크레딧: ${Math.max(0, usage.limit - usage.used)}개`);
       return;
@@ -969,7 +970,7 @@ function LocalizationSectionContent({
               )}
               {localFullUsage.used >= localFullUsage.limit ? (
                 <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-red-700">
-                  AI 크레딧이 부족합니다. 전체 자동 번역은 5크레딧이 필요합니다. 현재 보유 AI 크레딧: {Math.max(0, localFullUsage.limit - localFullUsage.used)}개
+                  AI 크레딧이 부족합니다. 전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧이 필요합니다. 현재 보유 AI 크레딧: {Math.max(0, localFullUsage.limit - localFullUsage.used)}개
                 </p>
               ) : null}
               <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${translationStatus.tone}`}>
@@ -1077,7 +1078,7 @@ function LocalizationSectionContent({
             항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역은 1크레딧이 차감됩니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-            전체 자동 번역은 5크레딧, 부분 자동 번역은 1크레딧이 필요합니다. AI 크레딧이 부족하면 번역을 실행할 수 없습니다.
+            전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧, 부분 자동 번역은 {AI_FEATURE_CREDIT_COSTS.partial_translation}크레딧이 필요합니다. AI 크레딧이 부족하면 번역을 실행할 수 없습니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
             자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.

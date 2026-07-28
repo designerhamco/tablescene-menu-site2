@@ -239,7 +239,7 @@ export default function AiCreditPurchaseModal({
         ) : null}
 
         <p className="mt-5 break-keep rounded-2xl bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
-          AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 5크레딧. 충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
+          AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧. 충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
         </p>
       </div>
     </div>

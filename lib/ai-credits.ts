@@ -12,7 +12,7 @@ export const AI_FEATURE_CREDIT_COSTS = {
   description_write: 1,
   partial_translation: 1,
   menu_cleanup: 3,
-  full_translation: 5,
+  full_translation: 3,
 } as const satisfies Record<AiFeatureKey, number>;
 
 export const AI_CREDIT_PACKS = {
