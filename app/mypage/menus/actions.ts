@@ -1487,6 +1487,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       menu_page_translations: "page",
       menu_category_translations: "category",
       menu_item_translations: "item",
+      menu_widget_translations: "widget",
     } as const satisfies Record<string, EditableTranslationEntityType>;
     const data = result.rows.flatMap((row) => {
       const entityType = entityTypeByTable[row.table as keyof typeof entityTypeByTable];
