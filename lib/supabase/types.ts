@@ -1772,36 +1772,51 @@ export type Database = {
       }
       menu_translation_jobs: {
         Row: {
+          applied_at: string | null
           completed_at: string | null
           created_at: string
+          discarded_at: string | null
+          draft_payload: Json | null
           error_message: string | null
           id: string
+          locale_results: Json | null
           menu_site_id: string
           requested_by: string
+          result_version: number
           started_at: string | null
           status: string
           target_locales: string[]
           updated_at: string
         }
         Insert: {
+          applied_at?: string | null
           completed_at?: string | null
           created_at?: string
+          discarded_at?: string | null
+          draft_payload?: Json | null
           error_message?: string | null
           id?: string
+          locale_results?: Json | null
           menu_site_id: string
           requested_by: string
+          result_version?: number
           started_at?: string | null
           status?: string
           target_locales?: string[]
           updated_at?: string
         }
         Update: {
+          applied_at?: string | null
           completed_at?: string | null
           created_at?: string
+          discarded_at?: string | null
+          draft_payload?: Json | null
           error_message?: string | null
           id?: string
+          locale_results?: Json | null
           menu_site_id?: string
           requested_by?: string
+          result_version?: number
           started_at?: string | null
           status?: string
           target_locales?: string[]

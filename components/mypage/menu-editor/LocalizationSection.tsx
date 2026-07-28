@@ -16,7 +16,13 @@ import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { AiUsageSnapshot } from "@/lib/menu-ai-usage";
 import { LOCALE_LABELS, TRANSLATABLE_LOCALES, type SupportedLocale } from "@/lib/locales";
-import type { EditableTranslationField, EditableTranslationLocale, PartialTranslationResult } from "@/lib/menu-localization-draft";
+import type {
+  AutoTranslationDraftPatch,
+  EditableTranslationField,
+  EditableTranslationLocale,
+  PartialTranslationResult,
+  RecoverableAutoTranslationJob,
+} from "@/lib/menu-localization-draft";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 
 type TranslationJob = {
@@ -32,6 +38,7 @@ type LocalizationSectionProps = {
   enabledLocales: SupportedLocale[];
   aiUsage: AiUsageSnapshot;
   latestTranslationJob: TranslationJob;
+  recoverableAutoTranslationJob?: RecoverableAutoTranslationJob | null;
   editableTranslationFields: EditableTranslationField[];
   localizationStructure?: "basic" | "display" | "default";
 };
@@ -199,13 +206,7 @@ type PartialTranslationPatch = {
   value: string;
 };
 
-type FullTranslationDraftPatch = {
-  entityType: EditableTranslationField["entityType"];
-  entityId: string;
-  field: string;
-  locale: EditableTranslationLocale;
-  value: string;
-};
+type FullTranslationDraftPatch = Pick<AutoTranslationDraftPatch, "entityType" | "entityId" | "field" | "locale" | "value">;
 
 type TranslationRunMode = "all" | "single" | "retry_failed";
 
@@ -564,7 +565,15 @@ function ReadOnlyItemGroups({ fields }: { fields: EditableTranslationField[] }) 
   );
 }
 
-function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTranslationJob, editableTranslationFields, localizationStructure = "default" }: LocalizationSectionProps) {
+function LocalizationSectionContent({
+  menuId,
+  enabledLocales,
+  aiUsage,
+  latestTranslationJob,
+  recoverableAutoTranslationJob,
+  editableTranslationFields,
+  localizationStructure = "default",
+}: LocalizationSectionProps) {
   const partialTranslationUsage = aiUsage.ai_translate_partial;
   const initialAiCreditUsage = {
     used: Math.max(aiUsage.ai_translate_full.used, partialTranslationUsage.used),
@@ -587,6 +596,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
   const [localeTranslationStates, setLocaleTranslationStates] = useState(createInitialLocaleTranslationStates);
   const [pendingPartialEntityKey, setPendingPartialEntityKey] = useState<string | null>(null);
   const [overwriteRequest, setOverwriteRequest] = useState<EditableTranslationField[] | null>(null);
+  const [appliedRecoveryJobId, setAppliedRecoveryJobId] = useState<string | null>(null);
   const translationTargetLabels = useMemo<Partial<Record<TranslationTargetGroup, string>>>(
     () => {
       if (localizationStructure === "basic") return basicTranslationTargetLabels;
@@ -642,6 +652,9 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
   const activeTargetFields = fieldsByGroup[activeTargetGroup];
   const selectedTargetLocaleLabels = selectedLocales
     .filter((locale) => locale !== "ko")
+    .map((locale) => LOCALE_LABELS[locale])
+    .join(" / ");
+  const recoveryLocaleLabels = recoverableAutoTranslationJob?.targetLocales
     .map((locale) => LOCALE_LABELS[locale])
     .join(" / ");
 
@@ -701,6 +714,12 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
 
       return nextValues;
     });
+  }
+
+  function applyRecoverableTranslationDraft(job: RecoverableAutoTranslationJob) {
+    applyFullTranslationDraft(job.patches);
+    setAppliedRecoveryJobId(job.jobId);
+    toast.success("최근 자동 번역 결과를 불러왔습니다. 최종 저장을 눌러 반영해주세요.");
   }
 
   function applyAiCreditUsage(usage?: { used: number; limit: number } | null) {
@@ -763,7 +782,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
           returnedLocales.add(localeResult.locale);
           nextStates[localeResult.locale] = {
             status: localeResult.status,
-            message: localeResult.userMessage,
+            message: localeResult.userMessage ?? undefined,
             jobId: result.jobId ?? nextStates[localeResult.locale]?.jobId ?? null,
           };
         });
@@ -786,6 +805,9 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
       }
 
       applyFullTranslationDraft(result.data);
+      if (result.jobId && result.data.length > 0) {
+        setAppliedRecoveryJobId(result.jobId);
+      }
       applyAiCreditUsage(result.usage);
       if (result.overallStatus === "partial_success") {
         toast.warning(result.message);
@@ -882,6 +904,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
       <form id="localization-settings-form" action={updateLocalizationSettingsAction} className="space-y-6">
         <HiddenMenuId menuId={menuId} />
         <input type="hidden" name="translation_draft" value={JSON.stringify(translationDraftPayload)} />
+        {appliedRecoveryJobId ? <input type="hidden" name="translation_recovery_job_id" value={appliedRecoveryJobId} /> : null}
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
           <h3 className="text-lg font-bold tracking-tight text-zinc-950">다국어 설정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
@@ -1010,6 +1033,33 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
             </div>
           </div>
         </section>
+
+        {recoverableAutoTranslationJob && appliedRecoveryJobId !== recoverableAutoTranslationJob.jobId ? (
+          <section className="rounded-lg border border-emerald-100 bg-emerald-50 p-5">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <h3 className="text-base font-black tracking-tight text-emerald-900">최근 자동 번역 결과가 있습니다.</h3>
+                <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-emerald-800">
+                  {recoveryLocaleLabels ? `${recoveryLocaleLabels} 자동 번역 결과` : "최근 자동 번역 결과"}를 다시 불러올 수 있습니다.
+                  기존에 입력한 번역은 덮어쓰지 않고 비어 있는 칸만 채웁니다.
+                </p>
+                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                  적용 가능 {recoverableAutoTranslationJob.applicableRowCount}개
+                  {recoverableAutoTranslationJob.staleRowCount > 0
+                    ? ` · 원문이 변경되어 제외될 결과 ${recoverableAutoTranslationJob.staleRowCount}개`
+                    : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => applyRecoverableTranslationDraft(recoverableAutoTranslationJob)}
+                className="inline-flex shrink-0 items-center justify-center rounded-full bg-emerald-900 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-emerald-800"
+              >
+                최근 자동 번역 결과 불러오기
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
           <h3 className="text-lg font-bold tracking-tight text-zinc-950">번역 확인 및 수정</h3>
@@ -1159,7 +1209,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
 }
 
 export default function LocalizationSection(props: LocalizationSectionProps) {
-  const resetKey = `${getNormalizedLocales(props.enabledLocales)}:${props.latestTranslationJob?.completed_at ?? ""}:${props.editableTranslationFields
+  const resetKey = `${getNormalizedLocales(props.enabledLocales)}:${props.latestTranslationJob?.completed_at ?? ""}:${props.recoverableAutoTranslationJob?.jobId ?? ""}:${props.editableTranslationFields
     .map((field) => `${getFieldKey(field)}:${field.sourceHash}:${field.translations.en}:${field.translations.zh}:${field.translations.ja}`)
     .join("|")}`;
 

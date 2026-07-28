@@ -22,7 +22,14 @@ import {
 } from "@/lib/server/menu-site-access-service";
 import { getBasicMenuSiteLimitState } from "@/lib/server/basic-menu-site-limit-service";
 import { DEFAULT_LOCALE, LOCALE_LABELS, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
-import type { EditableTranslationDraftValue, EditableTranslationEntityType, EditableTranslationLocale, PartialTranslationActionResult } from "@/lib/menu-localization-draft";
+import type {
+  AutoTranslationDraftPatch,
+  AutoTranslationLocaleResult,
+  EditableTranslationDraftValue,
+  EditableTranslationEntityType,
+  EditableTranslationLocale,
+  PartialTranslationActionResult,
+} from "@/lib/menu-localization-draft";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE, getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import {
   createStarterMenuData,
@@ -117,6 +124,7 @@ const MENU_VIDEOS_BUCKET = "menu-videos";
 const MENU_WIDGET_FINAL_SAVE_PAYLOAD_FIELD = "menuWidgetFinalSavePayload";
 const CAFE_A_STARTER_RESET_FINAL_SAVE_PAYLOAD_FIELD = "cafeAStarterResetFinalSavePayload";
 const MENU_TIME_SALE_SAVE_PAYLOAD_FIELD = "time_sale_save_payload";
+const TRANSLATION_RECOVERY_JOB_ID_FIELD = "translation_recovery_job_id";
 const PUBLIC_PRESET_IMAGE_PREFIXES = ["/placeholders/", "/menu-templates/"] as const;
 type MenuCategoryInsert = Database["public"]["Tables"]["menu_categories"]["Insert"];
 type MenuCategoryUpdate = Database["public"]["Tables"]["menu_categories"]["Update"];
@@ -1435,7 +1443,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
         : succeededOrSkippedLocaleResults.length > 0 && result.translatedEntities > 0
         ? "partial_success"
         : "failed";
-    const localeResults = result.localeResults.map((localeResult) => {
+    const localeResults: AutoTranslationLocaleResult[] = result.localeResults.map((localeResult) => {
       const status: TranslationRunLocaleStatus = localeResult.ok
         ? localeResult.translatedEntities > 0 || localeResult.draftRowCount > 0
           ? "success"
@@ -1448,40 +1456,9 @@ export async function generateMenuSiteTranslationDraftAction(input: {
         translatedEntities: localeResult.translatedEntities,
         translatedTextUnits: localeResult.translatedTextUnits,
         draftRowCount: localeResult.draftRowCount,
-        userMessage: localeResult.ok ? undefined : getSafeTranslationErrorMessage(localeResult.error),
+        userMessage: localeResult.ok ? null : getSafeTranslationErrorMessage(localeResult.error),
       };
     });
-    const completedAt = new Date().toISOString();
-    const jobErrorMessage =
-      overallStatus === "success"
-        ? null
-        : failedLocaleLabels
-        ? `${failedLocaleLabels} 번역 실패`
-        : "자동 번역 초안 생성 실패";
-    const { error: updateJobError } = await supabase
-      .from("menu_translation_jobs")
-      .update({
-        status: overallStatus === "failed" ? "failed" : "completed",
-        error_message: jobErrorMessage,
-        completed_at: completedAt,
-        updated_at: completedAt,
-      })
-      .eq("id", job.id);
-
-    if (updateJobError) {
-      throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
-    }
-
-    let usage = currentUsage;
-    let creditCharged = false;
-
-    if (result.translatedEntities > 0) {
-      const usedAt = new Date();
-      const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey });
-      usage = getAiUsageFromCreditSpend(usageType, creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
-      creditCharged = true;
-    }
-
     const entityTypeByTable = {
       menu_site_translations: "site",
       menu_page_translations: "page",
@@ -1489,7 +1466,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       menu_item_translations: "item",
       menu_widget_translations: "widget",
     } as const satisfies Record<string, EditableTranslationEntityType>;
-    const data = result.rows.flatMap((row) => {
+    const data: AutoTranslationDraftPatch[] = result.rows.flatMap((row) => {
       const entityType = entityTypeByTable[row.table as keyof typeof entityTypeByTable];
       if (!entityType) return [];
 
@@ -1507,6 +1484,39 @@ export async function generateMenuSiteTranslationDraftAction(input: {
         ];
       });
     });
+    const completedAt = new Date().toISOString();
+    const jobErrorMessage =
+      overallStatus === "success"
+        ? null
+        : failedLocaleLabels
+        ? `${failedLocaleLabels} 번역 실패`
+        : "자동 번역 초안 생성 실패";
+    const { error: updateJobError } = await supabase
+      .from("menu_translation_jobs")
+      .update({
+        status: overallStatus === "failed" ? "failed" : "completed",
+        error_message: jobErrorMessage,
+        completed_at: completedAt,
+        updated_at: completedAt,
+        draft_payload: data.length > 0 ? (data as Json) : null,
+        locale_results: localeResults as Json,
+        result_version: 1,
+      })
+      .eq("id", job.id);
+
+    if (updateJobError) {
+      throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
+    }
+
+    let usage = currentUsage;
+    let creditCharged = false;
+
+    if (result.translatedEntities > 0) {
+      const usedAt = new Date();
+      const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey });
+      usage = getAiUsageFromCreditSpend(usageType, creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
+      creditCharged = true;
+    }
 
     if (overallStatus === "failed") {
       return {
@@ -1831,26 +1841,12 @@ type GenerateMenuCleanupActionResult =
 type FullTranslationDraftActionResult =
   | {
       ok: true;
-      data: {
-        entityType: EditableTranslationEntityType;
-        entityId: string;
-        field: string;
-        locale: EditableTranslationLocale;
-        value: string;
-        sourceHash: string;
-      }[];
+      data: AutoTranslationDraftPatch[];
       usage: { used: number; limit: number };
       message: string;
       jobId: string | null;
       overallStatus: "success" | "partial_success";
-      localeResults: {
-        locale: EditableTranslationLocale;
-        status: "success" | "failed" | "skipped";
-        translatedEntities: number;
-        translatedTextUnits: number;
-        draftRowCount: number;
-        userMessage?: string;
-      }[];
+      localeResults: AutoTranslationLocaleResult[];
       credit: {
         charged: boolean;
         transactionType: "full_translation" | "partial_translation" | null;
@@ -1863,14 +1859,7 @@ type FullTranslationDraftActionResult =
       usage?: { used: number; limit: number };
       jobId?: string | null;
       overallStatus?: "failed";
-      localeResults?: {
-        locale: EditableTranslationLocale;
-        status: "success" | "failed" | "skipped";
-        translatedEntities: number;
-        translatedTextUnits: number;
-        draftRowCount: number;
-        userMessage?: string;
-      }[];
+      localeResults?: AutoTranslationLocaleResult[];
       credit?: {
         charged: false;
         transactionType: "full_translation" | "partial_translation" | null;
@@ -2067,11 +2056,43 @@ async function saveEditableTranslationDrafts(
   }
 }
 
+async function markTranslationRecoveryJobApplied({
+  supabase,
+  menuId,
+  userId,
+  jobId,
+}: {
+  supabase: SupabaseServerClient;
+  menuId: string;
+  userId: string;
+  jobId: string | null;
+}) {
+  if (!jobId || !isUuid(jobId)) return;
+
+  const appliedAt = new Date().toISOString();
+  const { error } = await supabase
+    .from("menu_translation_jobs")
+    .update({
+      applied_at: appliedAt,
+      updated_at: appliedAt,
+    })
+    .eq("id", jobId)
+    .eq("menu_site_id", menuId)
+    .eq("requested_by", userId)
+    .eq("status", "completed")
+    .is("discarded_at", null);
+
+  if (error) {
+    redirectToTabEditWithError(menuId, "localization", `자동 번역 결과 적용 상태 저장에 실패했습니다: ${error.message}`);
+  }
+}
+
 export async function updateLocalizationSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const saveMode = getString(formData, "localization_save_mode") || "all";
+  const translationRecoveryJobId = getString(formData, TRANSLATION_RECOVERY_JOB_ID_FIELD) || null;
   const requestedLocales = formData
     .getAll("enabled_locales")
     .filter((value): value is string => typeof value === "string")
@@ -2110,6 +2131,15 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
       const errorLabel = saveMode === "languages" ? "언어 설정 저장" : "다국어 저장";
       redirectToTabEditWithError(menuId, "localization", `${errorLabel} 중 오류가 발생했습니다: ${error.message}`);
     }
+  }
+
+  if (saveMode !== "languages") {
+    await markTranslationRecoveryJobApplied({
+      supabase,
+      menuId,
+      userId: menuSite.user_id,
+      jobId: translationRecoveryJobId,
+    });
   }
 
   if (saveMode === "languages") {

@@ -68,7 +68,13 @@ import { getDisplayVideoUploadAccess } from "@/lib/server/display-video-upload-a
 import { getMenuSiteAccessStateForMenuSite, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { getMenuWidgetsForMenuSite } from "@/lib/server/menu-widget-service";
 import { getEnabledLocales } from "@/lib/locales";
-import type { EditableTranslationField, EditableTranslationLocale } from "@/lib/menu-localization-draft";
+import {
+  parseAutoTranslationDraftPayload,
+  parseAutoTranslationLocaleResults,
+  type EditableTranslationField,
+  type EditableTranslationLocale,
+  type RecoverableAutoTranslationJob,
+} from "@/lib/menu-localization-draft";
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { createClient } from "@/lib/supabase/server";
@@ -232,6 +238,10 @@ type MenuTranslationJob = Pick<
   Database["public"]["Tables"]["menu_translation_jobs"]["Row"],
   "id" | "status" | "error_message" | "target_locales" | "started_at" | "completed_at" | "created_at"
 >;
+type MenuTranslationRecoveryJob = Pick<
+  Database["public"]["Tables"]["menu_translation_jobs"]["Row"],
+  "id" | "target_locales" | "completed_at" | "draft_payload" | "locale_results"
+>;
 type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"]["Row"];
 type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
 type MenuCategoryTranslation = Database["public"]["Tables"]["menu_category_translations"]["Row"];
@@ -265,6 +275,46 @@ function buildTranslationLocaleValues(
     result[locale] = getTranslationValue(translationsByLocale, locale, field);
     return result;
   }, { en: "", zh: "", ja: "" });
+}
+
+function buildRecoverableAutoTranslationJob(
+  job: MenuTranslationRecoveryJob | null,
+  fields: EditableTranslationField[]
+): RecoverableAutoTranslationJob | null {
+  if (!job?.draft_payload) return null;
+
+  const parsedPatches = parseAutoTranslationDraftPayload(job.draft_payload);
+  if (parsedPatches.length === 0) return null;
+
+  const fieldByKey = new Map(fields.map((field) => [`${field.entityType}:${field.entityId}:${field.field}`, field]));
+  const patches = [];
+  let staleRowCount = 0;
+
+  for (const patch of parsedPatches) {
+    const field = fieldByKey.get(`${patch.entityType}:${patch.entityId}:${patch.field}`);
+    const exceedsFieldLimit = field?.maxLength != null && patch.value.length > field.maxLength;
+
+    if (!field || field.sourceHash !== patch.sourceHash || exceedsFieldLimit) {
+      staleRowCount += 1;
+      continue;
+    }
+
+    patches.push(patch);
+  }
+
+  if (patches.length === 0) return null;
+
+  return {
+    jobId: job.id,
+    completedAt: job.completed_at,
+    targetLocales: job.target_locales.filter((locale): locale is EditableTranslationLocale =>
+      editableTranslationLocales.includes(locale as EditableTranslationLocale)
+    ),
+    localeResults: parseAutoTranslationLocaleResults(job.locale_results),
+    patches,
+    applicableRowCount: patches.length,
+    staleRowCount,
+  };
 }
 
 function buildEditableTranslationFields({
@@ -1062,6 +1112,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     { data: socialLinksData },
     { data: orderData },
     { data: translationJobData },
+    { data: translationRecoveryJobData },
   ] =
     await Promise.all([
       supabase
@@ -1132,6 +1183,18 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .select("id, status, error_message, target_locales, started_at, completed_at, created_at")
         .eq("menu_site_id", menuId)
         .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("menu_translation_jobs")
+        .select("id, target_locales, completed_at, draft_payload, locale_results")
+        .eq("menu_site_id", menuId)
+        .eq("requested_by", user.id)
+        .eq("status", "completed")
+        .not("draft_payload", "is", null)
+        .is("applied_at", null)
+        .is("discarded_at", null)
+        .order("completed_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
     ]);
@@ -1225,6 +1288,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const events = (eventsData ?? []) as MenuEvent[];
   const socialLinks = (socialLinksData ?? []) as MenuSocialLink[];
   const latestTranslationJob = translationJobData as MenuTranslationJob | null;
+  const latestTranslationRecoveryJob = translationRecoveryJobData as MenuTranslationRecoveryJob | null;
   const pageIds = menuPages.map((page) => page.id);
   const categoryIds = categories.map((category) => category.id);
   const itemIds = items.map((item) => item.id);
@@ -1410,6 +1474,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     menuCoverCapabilities,
     localizationStructure,
   });
+  const recoverableAutoTranslationJob = buildRecoverableAutoTranslationJob(latestTranslationRecoveryJob, editableTranslationFields);
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
   const featuredItemOptions = items
     .filter((item) => item.visible === true)
@@ -2263,6 +2328,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   enabledLocales={enabledLocales}
                   aiUsage={aiUsage}
                   latestTranslationJob={latestTranslationJob}
+                  recoverableAutoTranslationJob={recoverableAutoTranslationJob}
                   editableTranslationFields={editableTranslationFields}
                   localizationStructure={localizationStructure}
                 />
