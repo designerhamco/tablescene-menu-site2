@@ -77,6 +77,7 @@ import {
   type MenuWidgetFinalSavePayload,
   type MenuWidgetFinalSaveValidationError,
 } from "@/lib/menu-widget-save-contract";
+import { MAX_MENU_WIDGET_DESCRIPTION_LENGTH, MAX_MENU_WIDGET_TITLE_LENGTH } from "@/lib/menu-widgets";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { isSocialLinkType } from "@/lib/social-links";
 import {
@@ -151,6 +152,7 @@ type MenuSiteTranslationInsert = Database["public"]["Tables"]["menu_site_transla
 type MenuPageTranslationInsert = Database["public"]["Tables"]["menu_page_translations"]["Insert"];
 type MenuCategoryTranslationInsert = Database["public"]["Tables"]["menu_category_translations"]["Insert"];
 type MenuItemTranslationInsert = Database["public"]["Tables"]["menu_item_translations"]["Insert"];
+type MenuWidgetTranslationInsert = Database["public"]["Tables"]["menu_widget_translations"]["Insert"];
 type LooseInsert = Record<string, unknown>;
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 type MenuSaveTraceValue = string | number | boolean | null | undefined;
@@ -1589,7 +1591,11 @@ function getTranslationDraftValues(formData: FormData) {
       if (!entry || typeof entry !== "object") return false;
       const candidate = entry as Partial<EditableTranslationDraftValue>;
       return (
-        (candidate.entityType === "site" || candidate.entityType === "page" || candidate.entityType === "category" || candidate.entityType === "item") &&
+        (candidate.entityType === "site" ||
+          candidate.entityType === "page" ||
+          candidate.entityType === "category" ||
+          candidate.entityType === "item" ||
+          candidate.entityType === "widget") &&
         typeof candidate.entityId === "string" &&
         typeof candidate.field === "string" &&
         typeof candidate.sourceHash === "string" &&
@@ -1692,11 +1698,13 @@ async function saveEditableTranslationDrafts(
   if (draftValues.length === 0) return;
 
   const isDisplayLocalization = templateKey === "display_menu_a";
+  const supportsWidgetLocalization = templateKey ? getTemplateCapabilities(templateKey).menuWidgets.enabled : false;
   const allowedFields: Record<EditableTranslationEntityType, readonly string[]> = isDisplayLocalization ? {
     site: ["restaurant_name"],
     page: [],
     category: ["name"],
     item: ["name", "set_name", "price_label", "badge_label"],
+    widget: [],
   } : {
     site: [
       "restaurant_name",
@@ -1712,6 +1720,7 @@ async function saveEditableTranslationDrafts(
     page: ["title", "description"],
     category: ["name", "description"],
     item: ["name", "description", "price_label", "portion_label", "badge_label"],
+    widget: supportsWidgetLocalization ? ["title", "description"] : [],
   };
   const saveableDraftValues = draftValues.filter((draft) => {
     const isAllowedField = allowedFields[draft.entityType].includes(draft.field);
@@ -1734,6 +1743,7 @@ async function saveEditableTranslationDrafts(
     page: new Map<string, Record<string, unknown>>(),
     category: new Map<string, Record<string, unknown>>(),
     item: new Map<string, Record<string, unknown>>(),
+    widget: new Map<string, Record<string, unknown>>(),
   };
 
   const idsByType = saveableDraftValues.reduce<Record<EditableTranslationEntityType, Set<string>>>(
@@ -1741,14 +1751,19 @@ async function saveEditableTranslationDrafts(
       result[draft.entityType].add(draft.entityId);
       return result;
     },
-    { site: new Set(), page: new Set(), category: new Set(), item: new Set() }
+    { site: new Set(), page: new Set(), category: new Set(), item: new Set(), widget: new Set() }
   );
 
   if (idsByType.site.size > 1 || (idsByType.site.size === 1 && !idsByType.site.has(menuId))) {
     redirectToTabEditWithError(menuId, "localization", "번역 저장 대상 메뉴판을 확인할 수 없습니다.");
   }
 
-  const [pagesResult, categoriesResult, itemsResult] = await Promise.all([
+  const invalidWidgetEntityId = [...idsByType.widget].find((id) => !isUuid(id));
+  if (invalidWidgetEntityId) {
+    redirectToTabEditWithError(menuId, "localization", "위젯 번역 저장 대상이 올바르지 않습니다.");
+  }
+
+  const [pagesResult, categoriesResult, itemsResult, widgetsResult] = await Promise.all([
     idsByType.page.size > 0
       ? supabase.from("menu_pages").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.page])
       : Promise.resolve({ data: [], error: null }),
@@ -1758,9 +1773,12 @@ async function saveEditableTranslationDrafts(
     idsByType.item.size > 0
       ? supabase.from("menu_items").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.item])
       : Promise.resolve({ data: [], error: null }),
+    idsByType.widget.size > 0
+      ? supabase.from("menu_widgets").select("id, widget_type").eq("menu_site_id", menuId).in("id", [...idsByType.widget])
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
-  const readError = pagesResult.error ?? categoriesResult.error ?? itemsResult.error;
+  const readError = pagesResult.error ?? categoriesResult.error ?? itemsResult.error ?? widgetsResult.error;
   if (readError) {
     redirectToTabEditWithError(menuId, "localization", `번역 저장 대상 확인에 실패했습니다: ${readError.message}`);
   }
@@ -1770,6 +1788,11 @@ async function saveEditableTranslationDrafts(
     page: new Set((pagesResult.data ?? []).map((row) => row.id)),
     category: new Set((categoriesResult.data ?? []).map((row) => row.id)),
     item: new Set((itemsResult.data ?? []).map((row) => row.id)),
+    widget: new Set(
+      ((widgetsResult.data ?? []) as { id: string; widget_type: string }[])
+        .filter((row) => row.widget_type === "text" || row.widget_type === "image_text")
+        .map((row) => row.id),
+    ),
   };
 
   saveableDraftValues.forEach((draft) => {
@@ -1784,6 +1807,26 @@ async function saveEditableTranslationDrafts(
     }
 
     targetLocales.forEach((locale) => {
+      if (draft.entityType === "widget") {
+        const value = draft.translations[locale];
+        const maxLength =
+          draft.field === "title"
+            ? MAX_MENU_WIDGET_TITLE_LENGTH
+            : draft.field === "description"
+            ? MAX_MENU_WIDGET_DESCRIPTION_LENGTH
+            : null;
+
+        if (typeof value === "string" && maxLength != null && value.length > maxLength) {
+          redirectToTabEditWithError(
+            menuId,
+            "localization",
+            draft.field === "title"
+              ? `위젯 제목 번역은 ${MAX_MENU_WIDGET_TITLE_LENGTH}자 이하로 입력해주세요.`
+              : `위젯 내용 번역은 ${MAX_MENU_WIDGET_DESCRIPTION_LENGTH}자 이하로 입력해주세요.`,
+          );
+        }
+      }
+
       const rowKey = `${draft.entityId}:${locale}`;
       const rows = groupedRows[draft.entityType];
       const existingRow = rows.get(rowKey) ?? {
@@ -1801,8 +1844,9 @@ async function saveEditableTranslationDrafts(
   const pageRows = [...groupedRows.page.entries()].map(([key, row]) => ({ ...row, menu_page_id: key.split(":")[0] })) as MenuPageTranslationInsert[];
   const categoryRows = [...groupedRows.category.entries()].map(([key, row]) => ({ ...row, category_id: key.split(":")[0] })) as MenuCategoryTranslationInsert[];
   const itemRows = [...groupedRows.item.entries()].map(([key, row]) => ({ ...row, item_id: key.split(":")[0] })) as MenuItemTranslationInsert[];
+  const widgetRows = [...groupedRows.widget.entries()].map(([key, row]) => ({ ...row, menu_widget_id: key.split(":")[0] })) as MenuWidgetTranslationInsert[];
 
-  const [{ error: siteError }, { error: pageError }, { error: categoryError }, { error: itemError }] = await Promise.all([
+  const [{ error: siteError }, { error: pageError }, { error: categoryError }, { error: itemError }, { error: widgetError }] = await Promise.all([
     siteRows.length > 0
       ? supabase.from("menu_site_translations").upsert(siteRows, { onConflict: "menu_site_id,locale" })
       : Promise.resolve({ error: null }),
@@ -1815,8 +1859,11 @@ async function saveEditableTranslationDrafts(
     itemRows.length > 0
       ? supabase.from("menu_item_translations").upsert(itemRows, { onConflict: "item_id,locale" })
       : Promise.resolve({ error: null }),
+    widgetRows.length > 0
+      ? supabase.from("menu_widget_translations").upsert(widgetRows, { onConflict: "menu_widget_id,locale" })
+      : Promise.resolve({ error: null }),
   ]);
-  const saveError = siteError ?? pageError ?? categoryError ?? itemError;
+  const saveError = siteError ?? pageError ?? categoryError ?? itemError ?? widgetError;
 
   if (saveError) {
     redirectToTabEditWithError(menuId, "localization", `${errorLabel} 중 오류가 발생했습니다: ${saveError.message}`);

@@ -85,7 +85,7 @@ import {
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
-import type { MenuWidget } from "@/lib/menu-widgets";
+import { MAX_MENU_WIDGET_DESCRIPTION_LENGTH, MAX_MENU_WIDGET_TITLE_LENGTH, type MenuWidget } from "@/lib/menu-widgets";
 import {
   getCustomBackgroundColor,
   getResolvedBackgroundColor,
@@ -236,6 +236,7 @@ type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"
 type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
 type MenuCategoryTranslation = Database["public"]["Tables"]["menu_category_translations"]["Row"];
 type MenuItemTranslation = Database["public"]["Tables"]["menu_item_translations"]["Row"];
+type MenuWidgetTranslation = Database["public"]["Tables"]["menu_widget_translations"]["Row"];
 
 const editableTranslationLocales = ["en", "zh", "ja"] as const satisfies readonly EditableTranslationLocale[];
 
@@ -275,6 +276,8 @@ function buildEditableTranslationFields({
   pageTranslations,
   categoryTranslations,
   itemTranslations,
+  widgetTranslations,
+  widgets,
   includeItemBadges,
   includeCategoryDescriptions,
   includeItemDescriptions,
@@ -287,10 +290,12 @@ function buildEditableTranslationFields({
   pages: MenuPage[];
   categories: MenuCategory[];
   items: MenuItem[];
+  widgets: MenuWidget[];
   siteTranslations: MenuSiteTranslation[];
   pageTranslations: MenuPageTranslation[];
   categoryTranslations: MenuCategoryTranslation[];
   itemTranslations: MenuItemTranslation[];
+  widgetTranslations: MenuWidgetTranslation[];
   includeItemBadges: boolean;
   includeCategoryDescriptions: boolean;
   includeItemDescriptions: boolean;
@@ -306,6 +311,7 @@ function buildEditableTranslationFields({
   const pageTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const categoryTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const itemTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
+  const widgetTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
 
   pageTranslations.forEach((translation) => {
     const locale = translation.locale as EditableTranslationLocale;
@@ -325,6 +331,12 @@ function buildEditableTranslationFields({
     translations.set(locale, translation as Record<string, unknown>);
     itemTranslationsById.set(translation.item_id, translations);
   });
+  widgetTranslations.forEach((translation) => {
+    const locale = translation.locale as EditableTranslationLocale;
+    const translations = widgetTranslationsById.get(translation.menu_widget_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
+    translations.set(locale, translation as Record<string, unknown>);
+    widgetTranslationsById.set(translation.menu_widget_id, translations);
+  });
 
   function pushFields({
     entityType,
@@ -334,6 +346,7 @@ function buildEditableTranslationFields({
     sourceFields,
     translationsByLocale,
     fieldLabels,
+    fieldMaxLengths = {},
     parentGroupLabel,
     multilineFields = [],
   }: {
@@ -344,6 +357,7 @@ function buildEditableTranslationFields({
     sourceFields: Record<string, unknown>;
     translationsByLocale: Map<EditableTranslationLocale, Record<string, unknown>>;
     fieldLabels: Record<string, string>;
+    fieldMaxLengths?: Record<string, number>;
     parentGroupLabel?: string;
     multilineFields?: string[];
   }) {
@@ -366,6 +380,7 @@ function buildEditableTranslationFields({
         sourceText,
         sourceHash,
         multiline: multilineFields.includes(field),
+        maxLength: fieldMaxLengths[field],
         translations: buildTranslationLocaleValues(translationsByLocale, field),
       });
     });
@@ -503,6 +518,31 @@ function buildEditableTranslationFields({
         },
         translationsByLocale: itemTranslationsById.get(item.id) ?? new Map(),
         fieldLabels: { name: "메뉴명", set_name: "보조 메뉴명", description: "메뉴 설명", price_label: "표시 가격 문구", portion_label: "제공량 표시 문구", badge_label: "배지 문구" },
+        multilineFields: ["description"],
+      });
+    });
+
+  widgets
+    .filter((widget) => widget.visible && (widget.type === "text" || widget.type === "image_text"))
+    .forEach((widget, index) => {
+      const fallbackLabel = widget.description || widget.title || `위젯 ${index + 1}`;
+      const groupLabel = widget.title || (fallbackLabel.length > 24 ? `${fallbackLabel.slice(0, 24)}...` : fallbackLabel);
+
+      pushFields({
+        entityType: "widget",
+        entityId: widget.id,
+        group: "widgets",
+        groupLabel,
+        sourceFields: {
+          title: widget.title,
+          description: widget.description,
+        },
+        translationsByLocale: widgetTranslationsById.get(widget.id) ?? new Map(),
+        fieldLabels: { title: "위젯 제목", description: "위젯 내용" },
+        fieldMaxLengths: {
+          title: MAX_MENU_WIDGET_TITLE_LENGTH,
+          description: MAX_MENU_WIDGET_DESCRIPTION_LENGTH,
+        },
         multilineFields: ["description"],
       });
     });
@@ -1257,6 +1297,25 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       });
     }
   }
+  const translatableWidgetIds = initialMenuWidgets
+    .filter((widget) => widget.visible && (widget.type === "text" || widget.type === "image_text"))
+    .map((widget) => widget.id);
+  const { data: widgetTranslationsData, error: widgetTranslationsError } =
+    translatableWidgetIds.length > 0
+      ? await supabase
+          .from("menu_widget_translations")
+          .select("*")
+          .in("menu_widget_id", translatableWidgetIds)
+          .in("locale", editableTranslationLocales)
+      : { data: [], error: null };
+
+  if (widgetTranslationsError) {
+    console.warn("[menu-editor] menu widget translation load failed", {
+      operation: "loadMenuWidgetTranslations",
+      menuSiteId: site.id,
+      code: widgetTranslationsError.code,
+    });
+  }
 
   const localizationStructure =
     editorServiceType === "screen" || site.template_key === "display_menu_a"
@@ -1341,6 +1400,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     pageTranslations: (pageTranslationsData ?? []) as MenuPageTranslation[],
     categoryTranslations: (categoryTranslationsData ?? []) as MenuCategoryTranslation[],
     itemTranslations: (itemTranslationsData ?? []) as MenuItemTranslation[],
+    widgetTranslations: (widgetTranslationsData ?? []) as MenuWidgetTranslation[],
+    widgets: initialMenuWidgets,
     includeItemBadges: templateCapabilities.itemBadges,
     includeCategoryDescriptions: templateCapabilities.categoryDescription,
     includeItemDescriptions: templateCapabilities.itemDescription,

@@ -212,18 +212,21 @@ const defaultTranslationTargetLabels: Record<TranslationTargetGroup, string> = {
   pages: "페이지",
   categories: "카테고리",
   items: "메뉴 아이템",
+  widgets: "위젯",
 };
 
 const basicTranslationTargetLabels = {
   site: "기본 정보",
   categories: "메뉴 그룹",
   items: "메뉴 목록",
+  widgets: "위젯",
 } satisfies Partial<Record<TranslationTargetGroup, string>>;
 
 const displayTranslationTargetLabels = {
   site: "기본 정보",
   categories: "메뉴 그룹",
   items: "메뉴 목록",
+  widgets: "위젯",
 } satisfies Partial<Record<TranslationTargetGroup, string>>;
 
 const partialTranslationFieldAliases: Record<string, string[]> = {
@@ -330,6 +333,7 @@ function TranslationEditorGroup({
                   const key = getFieldKey(field);
                   const value = draftValues[key]?.[activeLocale] ?? "";
                   const Input = field.multiline ? "textarea" : "input";
+                  const maxLength = field.maxLength;
 
                   return (
                     <div key={key} className="grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
@@ -342,9 +346,15 @@ function TranslationEditorGroup({
                         <Input
                           value={value}
                           onChange={(event) => onDraftChange(field, event.target.value)}
+                          maxLength={maxLength}
                           rows={field.multiline ? 3 : undefined}
                           className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
                         />
+                        {maxLength ? (
+                          <span className="mt-1 block text-right text-[11px] font-bold text-zinc-400">
+                            {value.length} / {maxLength}
+                          </span>
+                        ) : null}
                       </label>
                     </div>
                   );
@@ -551,8 +561,12 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     [localizationStructure]
   );
   const translationTargetGroups = useMemo(
-    () => Object.keys(translationTargetLabels) as TranslationTargetGroup[],
-    [translationTargetLabels]
+    () =>
+      (Object.keys(translationTargetLabels) as TranslationTargetGroup[]).filter((group) => {
+        if (group !== "widgets") return true;
+        return editableTranslationFields.some((field) => field.group === "widgets");
+      }),
+    [editableTranslationFields, translationTargetLabels]
   );
   const initialDraftValues = useMemo(() => buildInitialDraft(editableTranslationFields), [editableTranslationFields]);
   const translationDraftPayload = useMemo(
@@ -585,7 +599,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
           result[field.group].push(field);
           return result;
         },
-        { site: [], pages: [], categories: [], items: [] }
+        { site: [], pages: [], categories: [], items: [], widgets: [] }
       ),
     [editableTranslationFields]
   );

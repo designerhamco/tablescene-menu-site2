@@ -1,19 +1,20 @@
 import type { SupportedLocale } from "@/lib/locales";
 
 export type EditableTranslationLocale = Exclude<SupportedLocale, "ko">;
-export type EditableTranslationEntityType = "site" | "page" | "category" | "item";
+export type EditableTranslationEntityType = "site" | "page" | "category" | "item" | "widget";
 
 export type EditableTranslationField = {
   entityType: EditableTranslationEntityType;
   entityId: string;
   field: string;
-  group: "site" | "pages" | "categories" | "items";
+  group: "site" | "pages" | "categories" | "items" | "widgets";
   groupLabel: string;
   parentGroupLabel?: string;
   label: string;
   sourceText: string;
   sourceHash: string;
   multiline?: boolean;
+  maxLength?: number;
   translations: Record<EditableTranslationLocale, string>;
 };
 

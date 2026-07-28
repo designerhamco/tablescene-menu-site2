@@ -53,6 +53,7 @@ type MenuItemTraitTranslation = Database["public"]["Tables"]["menu_item_trait_tr
 type MenuEventTranslation = Database["public"]["Tables"]["menu_event_translations"]["Row"];
 type MenuChefTranslation = Database["public"]["Tables"]["menu_chef_translations"]["Row"];
 type MenuSocialLinkTranslation = Database["public"]["Tables"]["menu_social_link_translations"]["Row"];
+type MenuWidgetTranslation = Database["public"]["Tables"]["menu_widget_translations"]["Row"];
 
 type MenuPageDataOptions = {
   locale?: SupportedLocale;
@@ -661,6 +662,10 @@ async function applyMenuTranslations(
   const eventIds = data.events.map((event) => event.id);
   const chefIds = data.chefs.map((chef) => chef.id);
   const socialLinkIds = data.socialLinks.map((link) => link.id);
+  const widgets = data.widgets ?? [];
+  const widgetIds = widgets
+    .filter((widget) => widget.type === "text" || widget.type === "image_text")
+    .map((widget) => widget.id);
 
   const [
     siteResult,
@@ -672,6 +677,7 @@ async function applyMenuTranslations(
     eventResult,
     chefResult,
     socialLinkResult,
+    widgetResult,
   ] = await Promise.all([
     supabase
       .from("menu_site_translations")
@@ -703,6 +709,9 @@ async function applyMenuTranslations(
     socialLinkIds.length
       ? supabase.from("menu_social_link_translations").select("*").eq("locale", locale).in("social_link_id", socialLinkIds)
       : Promise.resolve({ data: [], error: null }),
+    widgetIds.length
+      ? supabase.from("menu_widget_translations").select("*").eq("locale", locale).in("menu_widget_id", widgetIds)
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   if (
@@ -713,7 +722,8 @@ async function applyMenuTranslations(
     traitResult.error ||
     eventResult.error ||
     chefResult.error ||
-    socialLinkResult.error
+    socialLinkResult.error ||
+    widgetResult.error
   ) {
     return data;
   }
@@ -728,6 +738,7 @@ async function applyMenuTranslations(
   const eventTranslations = mapById((eventResult.data ?? []) as MenuEventTranslation[], "event_id");
   const chefTranslations = mapById((chefResult.data ?? []) as MenuChefTranslation[], "chef_id");
   const socialLinkTranslations = mapById((socialLinkResult.data ?? []) as MenuSocialLinkTranslation[], "social_link_id");
+  const widgetTranslations = mapById((widgetResult.data ?? []) as MenuWidgetTranslation[], "menu_widget_id");
 
   return {
     ...data,
@@ -814,6 +825,20 @@ async function applyMenuTranslations(
           }
         : link;
     }),
+    widgets: data.widgets == null
+      ? undefined
+      : widgets.map((widget) => {
+          if (widget.type !== "text" && widget.type !== "image_text") return widget;
+
+          const translation = widgetTranslations.get(widget.id);
+          if (!translation) return widget;
+
+          return {
+            ...widget,
+            title: getLocalizedValue(widget.title, translation.title),
+            description: getLocalizedRequiredValue(widget.description, translation.description),
+          };
+        }),
   };
 }
 
