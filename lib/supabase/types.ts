@@ -1879,6 +1879,50 @@ export type Database = {
           },
         ]
       }
+      menu_widget_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          locale: string
+          menu_widget_id: string
+          source_text_hash: string | null
+          status: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          locale: string
+          menu_widget_id: string
+          source_text_hash?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          locale?: string
+          menu_widget_id?: string
+          source_text_hash?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_widget_translations_menu_widget_id_fkey"
+            columns: ["menu_widget_id"]
+            isOneToOne: false
+            referencedRelation: "menu_widgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_widgets: {
         Row: {
           created_at: string
