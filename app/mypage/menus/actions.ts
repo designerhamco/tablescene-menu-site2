@@ -1339,43 +1339,147 @@ export async function translateMenuSiteAction(formData: FormData) {
 export async function generateMenuSiteTranslationDraftAction(input: {
   menuId: string;
   targetLocales: SupportedLocale[];
+  mode?: TranslationRunMode;
+  retryOfJobId?: string;
 }): Promise<FullTranslationDraftActionResult> {
   const menuId = input.menuId?.trim();
   if (!menuId) {
     return { ok: false, message: "자동 번역 초안 생성 중 오류가 발생했습니다. 다시 시도해주세요." };
   }
 
+  const mode: TranslationRunMode = input.mode === "single" || input.mode === "retry_failed" ? input.mode : "all";
   const targetLocales = input.targetLocales.filter((locale): locale is EditableTranslationLocale =>
     TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
   );
+  const uniqueTargetLocales = [...new Set(targetLocales)] as EditableTranslationLocale[];
 
-  if (targetLocales.length === 0) {
+  if (uniqueTargetLocales.length === 0) {
     return { ok: false, message: "자동 번역을 실행할 외국어를 먼저 선택해주세요." };
   }
 
+  if ((mode === "single" || mode === "retry_failed") && uniqueTargetLocales.length !== 1) {
+    return { ok: false, message: "언어별 자동 번역은 한 번에 하나의 언어만 실행할 수 있습니다." };
+  }
+
+  if (mode === "retry_failed" && !input.retryOfJobId?.trim()) {
+    return { ok: false, message: "실패한 언어 재시도 정보가 없어 일반 언어별 번역으로 다시 실행해주세요." };
+  }
+
+  let draftJobId: string | null = null;
+  let draftSupabase: SupabaseServerClient | null = null;
+
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
-    const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
-    const hasFullTranslationCredits = await hasEnoughAiCredits(menuId, 5);
+    draftSupabase = supabase;
+    const enabledTargetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is EditableTranslationLocale =>
+      TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
+    );
+    const enabledTargetLocaleSet = new Set(enabledTargetLocales);
+    const requestedDisabledLocale = uniqueTargetLocales.find((locale) => !enabledTargetLocaleSet.has(locale));
 
-    if (hasFullTranslationCredits === false || (hasFullTranslationCredits === null && isAiUsageExceeded(fullTranslationUsage))) {
-      return { ok: false, message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.", usage: fullTranslationUsage };
+    if (requestedDisabledLocale) {
+      return { ok: false, message: `${LOCALE_LABELS[requestedDisabledLocale]}를 먼저 사용 언어로 설정하고 저장해주세요.` };
     }
 
-    const result = await runMenuTranslationDraft(supabase, menuId, targetLocales);
+    const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
+    const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
+    const isFullRun = mode === "all";
+    const creditCost = isFullRun ? 5 : 1;
+    const featureKey = isFullRun ? "full_translation" : "partial_translation";
+    const usageType = isFullRun ? "ai_translate_full" : "ai_translate_partial";
+    const currentUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, usageType);
+    const hasTranslationCredits = await hasEnoughAiCredits(menuId, creditCost);
+
+    if (hasTranslationCredits === false || (hasTranslationCredits === null && isAiUsageExceeded(currentUsage))) {
+      return { ok: false, message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.", usage: currentUsage };
+    }
+
+    const startedAt = new Date().toISOString();
+    const { data: job, error: jobError } = await supabase
+      .from("menu_translation_jobs")
+      .insert({
+        menu_site_id: menuId,
+        requested_by: menuSite.user_id,
+        status: "running",
+        target_locales: uniqueTargetLocales,
+        started_at: startedAt,
+        updated_at: startedAt,
+      })
+      .select("id")
+      .single();
+
+    if (jobError || !job) {
+      const safeMessage = getSafeTranslationErrorMessage(jobError?.message ?? null);
+      console.error("[localization:auto-translate] draft job creation failed", {
+        menuId,
+        mode,
+        targetLocales: uniqueTargetLocales,
+        message: jobError?.message ?? "unknown",
+      });
+      return { ok: false, message: safeMessage, usage: currentUsage };
+    }
+
+    draftJobId = job.id;
+
+    const result = await runMenuTranslationDraft(supabase, menuId, uniqueTargetLocales);
     const failedLocaleLabels = result.localeResults
       .filter((localeResult) => !localeResult.ok)
       .map((localeResult) => LOCALE_LABELS[localeResult.locale])
       .join(", ");
     const untranslatedWarningCount = result.localeResults.reduce((total, localeResult) => total + localeResult.untranslatedWarningCount, 0);
-    let usage = fullTranslationUsage;
+    const failedLocaleResults = result.localeResults.filter((localeResult) => !localeResult.ok);
+    const succeededOrSkippedLocaleResults = result.localeResults.filter((localeResult) => localeResult.ok);
+    const overallStatus =
+      failedLocaleResults.length === 0
+        ? "success"
+        : succeededOrSkippedLocaleResults.length > 0 && result.translatedEntities > 0
+        ? "partial_success"
+        : "failed";
+    const localeResults = result.localeResults.map((localeResult) => {
+      const status: TranslationRunLocaleStatus = localeResult.ok
+        ? localeResult.translatedEntities > 0 || localeResult.draftRowCount > 0
+          ? "success"
+          : "skipped"
+        : "failed";
+
+      return {
+        locale: localeResult.locale,
+        status,
+        translatedEntities: localeResult.translatedEntities,
+        translatedTextUnits: localeResult.translatedTextUnits,
+        draftRowCount: localeResult.draftRowCount,
+        userMessage: localeResult.ok ? undefined : getSafeTranslationErrorMessage(localeResult.error),
+      };
+    });
+    const completedAt = new Date().toISOString();
+    const jobErrorMessage =
+      overallStatus === "success"
+        ? null
+        : failedLocaleLabels
+        ? `${failedLocaleLabels} 번역 실패`
+        : "자동 번역 초안 생성 실패";
+    const { error: updateJobError } = await supabase
+      .from("menu_translation_jobs")
+      .update({
+        status: overallStatus === "failed" ? "failed" : "completed",
+        error_message: jobErrorMessage,
+        completed_at: completedAt,
+        updated_at: completedAt,
+      })
+      .eq("id", job.id);
+
+    if (updateJobError) {
+      throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
+    }
+
+    let usage = currentUsage;
+    let creditCharged = false;
 
     if (result.translatedEntities > 0) {
       const usedAt = new Date();
-      const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "full_translation" });
-      usage = getAiUsageFromCreditSpend("ai_translate_full", creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
+      const creditSpend = await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey });
+      usage = getAiUsageFromCreditSpend(usageType, creditSpend.usedCredits, creditSpend.totalCredits, usedAt);
+      creditCharged = true;
     }
 
     const entityTypeByTable = {
@@ -1403,29 +1507,88 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       });
     });
 
+    if (overallStatus === "failed") {
+      return {
+        ok: false,
+        message:
+          failedLocaleLabels
+            ? `${failedLocaleLabels} 번역에 실패했습니다. 성공한 번역 초안은 없습니다.`
+            : "자동 번역 초안 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
+        usage,
+        jobId: job.id,
+        overallStatus,
+        localeResults: localeResults.filter((localeResult) => localeResult.status !== "success"),
+        credit: {
+          charged: false,
+          transactionType: result.translatedEntities > 0 ? featureKey : null,
+          amount: 0,
+        },
+      };
+    }
+
     return {
       ok: true,
       data,
       usage,
       message:
-        failedLocaleLabels && result.translatedEntities > 0
-          ? `${failedLocaleLabels} 번역은 실패했지만, 생성된 번역 초안을 표시했습니다. 저장 전 내용을 확인해주세요.`
-          : untranslatedWarningCount > 0
-          ? "전체 자동 번역 초안이 생성되었습니다. 일부 항목은 원문이 남아 있을 수 있으니 저장 전 내용을 확인해주세요."
+        overallStatus === "partial_success" && failedLocaleLabels
+          ? `${failedLocaleLabels} 번역은 실패했지만, 완료된 번역 초안은 유지됩니다. 실패한 언어만 다시 시도할 수 있습니다.`
+        : untranslatedWarningCount > 0
+          ? "자동 번역 초안이 생성되었습니다. 일부 항목은 원문이 남아 있을 수 있으니 저장 전 내용을 확인해주세요."
           : result.translatedEntities > 0
-          ? "전체 자동 번역 초안이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
+          ? isFullRun
+            ? "전체 자동 번역 초안이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
+            : `${LOCALE_LABELS[uniqueTargetLocales[0]]} 자동 번역 초안이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
           : "최신 번역이 이미 준비되어 있습니다.",
+      jobId: job.id,
+      overallStatus,
+      localeResults,
+      credit: {
+        charged: creditCharged,
+        transactionType: creditCharged ? featureKey : null,
+        amount: creditCharged ? creditCost : 0,
+      },
     };
   } catch (error) {
+    if (draftSupabase && draftJobId) {
+      const failedAt = new Date().toISOString();
+      await draftSupabase
+        .from("menu_translation_jobs")
+        .update({
+          status: "failed",
+          error_message: getSafeTranslationErrorMessage(error instanceof Error ? error.message : null),
+          completed_at: failedAt,
+          updated_at: failedAt,
+        })
+        .eq("id", draftJobId);
+    }
+
     console.error(`[localization:auto-translate] draft action failed ${formatServerActionLogContext({
       menuId,
-      targetLocales,
+      mode,
+      targetLocales: uniqueTargetLocales,
+      retryOfJobId: input.retryOfJobId?.trim() || null,
       message: error instanceof Error ? error.message : "unknown",
       stack: error instanceof Error ? error.stack : undefined,
     })}`);
     return {
       ok: false,
       message: getSafeTranslationErrorMessage(error instanceof Error ? error.message : "자동 번역 초안 생성 중 오류가 발생했습니다."),
+      jobId: draftJobId,
+      overallStatus: "failed",
+      localeResults: uniqueTargetLocales.map((locale) => ({
+        locale,
+        status: "failed",
+        translatedEntities: 0,
+        translatedTextUnits: 0,
+        draftRowCount: 0,
+        userMessage: getSafeTranslationErrorMessage(error instanceof Error ? error.message : null),
+      })),
+      credit: {
+        charged: false,
+        transactionType: mode === "all" ? "full_translation" : "partial_translation",
+        amount: 0,
+      },
     };
   }
 }
@@ -1677,12 +1840,45 @@ type FullTranslationDraftActionResult =
       }[];
       usage: { used: number; limit: number };
       message: string;
+      jobId: string | null;
+      overallStatus: "success" | "partial_success";
+      localeResults: {
+        locale: EditableTranslationLocale;
+        status: "success" | "failed" | "skipped";
+        translatedEntities: number;
+        translatedTextUnits: number;
+        draftRowCount: number;
+        userMessage?: string;
+      }[];
+      credit: {
+        charged: boolean;
+        transactionType: "full_translation" | "partial_translation" | null;
+        amount: number;
+      };
     }
   | {
       ok: false;
       message: string;
       usage?: { used: number; limit: number };
+      jobId?: string | null;
+      overallStatus?: "failed";
+      localeResults?: {
+        locale: EditableTranslationLocale;
+        status: "success" | "failed" | "skipped";
+        translatedEntities: number;
+        translatedTextUnits: number;
+        draftRowCount: number;
+        userMessage?: string;
+      }[];
+      credit?: {
+        charged: false;
+        transactionType: "full_translation" | "partial_translation" | null;
+        amount: number;
+      };
     };
+
+type TranslationRunMode = "all" | "single" | "retry_failed";
+type TranslationRunLocaleStatus = "success" | "failed" | "skipped";
 
 function setEditableTranslationValue(row: Record<string, unknown>, field: string, value: string | null) {
   row[field] = value;

@@ -207,6 +207,40 @@ type FullTranslationDraftPatch = {
   value: string;
 };
 
+type TranslationRunMode = "all" | "single" | "retry_failed";
+
+type LocaleTranslationState = {
+  status: "idle" | "running" | "success" | "failed" | "skipped";
+  message?: string;
+  jobId?: string | null;
+};
+
+function createInitialLocaleTranslationStates(): Record<EditableTranslationLocale, LocaleTranslationState> {
+  return TRANSLATABLE_LOCALES.reduce(
+    (result, locale) => {
+      result[locale] = { status: "idle" };
+      return result;
+    },
+    {} as Record<EditableTranslationLocale, LocaleTranslationState>
+  );
+}
+
+function getLocaleTranslationStateLabel(state: LocaleTranslationState) {
+  if (state.status === "running") return "번역 중";
+  if (state.status === "success") return "완료";
+  if (state.status === "failed") return "실패";
+  if (state.status === "skipped") return "최신 상태";
+  return "번역 전";
+}
+
+function getLocaleTranslationStateTone(state: LocaleTranslationState) {
+  if (state.status === "running") return "border-amber-100 bg-amber-50 text-amber-700";
+  if (state.status === "success") return "border-emerald-100 bg-emerald-50 text-emerald-700";
+  if (state.status === "failed") return "border-red-100 bg-red-50 text-red-700";
+  if (state.status === "skipped") return "border-zinc-100 bg-zinc-50 text-zinc-500";
+  return "border-zinc-100 bg-white text-zinc-400";
+}
+
 const defaultTranslationTargetLabels: Record<TranslationTargetGroup, string> = {
   site: "커버 이미지",
   pages: "페이지",
@@ -549,7 +583,8 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
   const [activeLocale, setActiveLocale] = useState<SupportedLocale>("ko");
   const [activeTargetGroup, setActiveTargetGroup] = useState<TranslationTargetGroup>("site");
   const [draftValues, setDraftValues] = useState(() => buildInitialDraft(editableTranslationFields));
-  const [isGeneratingFullDraft, setIsGeneratingFullDraft] = useState(false);
+  const [pendingTranslationRun, setPendingTranslationRun] = useState<"all" | EditableTranslationLocale | null>(null);
+  const [localeTranslationStates, setLocaleTranslationStates] = useState(createInitialLocaleTranslationStates);
   const [pendingPartialEntityKey, setPendingPartialEntityKey] = useState<string | null>(null);
   const [overwriteRequest, setOverwriteRequest] = useState<EditableTranslationField[] | null>(null);
   const translationTargetLabels = useMemo<Partial<Record<TranslationTargetGroup, string>>>(
@@ -581,6 +616,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     [draftValues, editableTranslationFields]
   );
   const hasTargetLocales = selectedLocales.some((locale) => locale !== "ko");
+  const isGeneratingFullDraft = pendingTranslationRun !== null;
   const isTranslationDisabled = isGeneratingFullDraft || isUsageExceeded || !hasTargetLocales;
   const hasLocaleChanges = getNormalizedLocales(selectedLocales) !== getNormalizedLocales(enabledLocales);
   const hasTranslationChanges = JSON.stringify(draftValues) !== JSON.stringify(initialDraftValues);
@@ -654,6 +690,9 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
         const field = fieldByKey.get(`${patch.entityType}:${patch.entityId}:${patch.field}`);
         if (!field) return;
 
+        const currentValue = nextValues[getFieldKey(field)]?.[patch.locale] ?? field.translations[patch.locale] ?? "";
+        if (currentValue.trim().length > 0) return;
+
         nextValues[getFieldKey(field)] = {
           ...(nextValues[getFieldKey(field)] ?? field.translations),
           [patch.locale]: patch.value,
@@ -671,21 +710,73 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
     notifyAiCreditBalanceUpdated(usage);
   }
 
-  async function runFullTranslationDraft() {
-    if (isTranslationDisabled) return;
+  async function runTranslationDraft({
+    mode,
+    locale,
+    retryOfJobId,
+  }: {
+    mode: TranslationRunMode;
+    locale?: EditableTranslationLocale;
+    retryOfJobId?: string | null;
+  }) {
+    const isAllRun = mode === "all";
+    if (isGeneratingFullDraft) return;
 
-    const targetLocales = selectedLocales.filter((locale) => locale !== "ko");
+    const targetLocales = isAllRun
+      ? selectedLocales.filter((item): item is EditableTranslationLocale => item !== "ko")
+      : locale
+      ? [locale]
+      : [];
     if (targetLocales.length === 0) {
       toast.error("자동 번역을 실행할 외국어를 먼저 선택해주세요.");
       return;
     }
 
-    setIsGeneratingFullDraft(true);
+    const usage = isAllRun ? localFullUsage : localPartialUsage;
+    const cost = isAllRun ? 5 : 1;
+    if (usage.used >= usage.limit) {
+      toast.error(`AI 크레딧이 부족합니다. ${isAllRun ? "전체 자동 번역" : "언어별 자동 번역"}은 ${cost}크레딧이 필요합니다. 현재 보유 AI 크레딧: ${Math.max(0, usage.limit - usage.used)}개`);
+      return;
+    }
+
+    setPendingTranslationRun(isAllRun ? "all" : targetLocales[0]);
+    setLocaleTranslationStates((current) => {
+      const nextStates = { ...current };
+      targetLocales.forEach((targetLocale) => {
+        nextStates[targetLocale] = { status: "running", jobId: retryOfJobId ?? current[targetLocale]?.jobId ?? null };
+      });
+      return nextStates;
+    });
 
     try {
       const result = await generateMenuSiteTranslationDraftAction({
         menuId,
         targetLocales,
+        mode,
+        retryOfJobId: retryOfJobId ?? undefined,
+      });
+
+      setLocaleTranslationStates((current) => {
+        const nextStates = { ...current };
+        const returnedLocales = new Set<EditableTranslationLocale>();
+        result.localeResults?.forEach((localeResult) => {
+          returnedLocales.add(localeResult.locale);
+          nextStates[localeResult.locale] = {
+            status: localeResult.status,
+            message: localeResult.userMessage,
+            jobId: result.jobId ?? nextStates[localeResult.locale]?.jobId ?? null,
+          };
+        });
+        targetLocales.forEach((targetLocale) => {
+          if (!returnedLocales.has(targetLocale) && !result.ok) {
+            nextStates[targetLocale] = {
+              status: "failed",
+              message: result.message,
+              jobId: result.jobId ?? nextStates[targetLocale]?.jobId ?? null,
+            };
+          }
+        });
+        return nextStates;
       });
 
       if (!result.ok) {
@@ -696,11 +787,22 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
 
       applyFullTranslationDraft(result.data);
       applyAiCreditUsage(result.usage);
-      toast.success(result.message);
+      if (result.overallStatus === "partial_success") {
+        toast.warning(result.message);
+      } else {
+        toast.success(result.message);
+      }
     } catch {
       toast.error("전체 자동 번역 초안 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
+      setLocaleTranslationStates((current) => {
+        const nextStates = { ...current };
+        targetLocales.forEach((targetLocale) => {
+          nextStates[targetLocale] = { status: "failed", message: "자동 번역 초안 생성 중 오류가 발생했습니다." };
+        });
+        return nextStates;
+      });
     } finally {
-      setIsGeneratingFullDraft(false);
+      setPendingTranslationRun(null);
     }
   }
 
@@ -849,13 +951,60 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
               </p>
               <p className="mt-3 break-keep text-sm font-bold text-zinc-500">{translationStatus.message}</p>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-              <TranslationSubmitButton
-                disabled={isTranslationDisabled}
-                pending={isGeneratingFullDraft}
-                pendingLabel={selectedTargetLocaleLabels ? `${selectedTargetLocaleLabels} 번역 중...` : undefined}
-                onClick={() => void runFullTranslationDraft()}
-              />
+            <div className="flex shrink-0 flex-col items-stretch gap-3 md:min-w-[18rem] md:items-end">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <TranslationSubmitButton
+                  disabled={isTranslationDisabled}
+                  pending={pendingTranslationRun === "all"}
+                  pendingLabel={selectedTargetLocaleLabels ? `${selectedTargetLocaleLabels} 번역 중...` : undefined}
+                  onClick={() => void runTranslationDraft({ mode: "all" })}
+                />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3 md:w-full">
+                {TRANSLATABLE_LOCALES.map((locale) => {
+                  const state = localeTranslationStates[locale];
+                  const isEnabled = selectedLocales.includes(locale);
+                  const isPending = pendingTranslationRun === locale;
+                  const isSingleDisabled = isGeneratingFullDraft || !isEnabled || localPartialUsage.used >= localPartialUsage.limit;
+
+                  return (
+                    <div key={locale} className="rounded-lg border border-zinc-100 bg-white p-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-black text-zinc-700">{LOCALE_LABELS[locale]}</span>
+                        <span className={`rounded-full border px-2 py-0.5 text-[11px] font-black ${getLocaleTranslationStateTone(state)}`}>
+                          {getLocaleTranslationStateLabel(state)}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isSingleDisabled}
+                        onClick={() =>
+                          void runTranslationDraft({
+                            mode: state.status === "failed" ? "retry_failed" : "single",
+                            locale,
+                            retryOfJobId: state.status === "failed" ? state.jobId ?? null : null,
+                          })
+                        }
+                        className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-black text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      >
+                        {isPending ? (
+                          <>
+                            <LoadingSpinner className="h-3 w-3" />
+                            번역 중...
+                          </>
+                        ) : state.status === "failed" ? (
+                          "다시 시도 · 1크레딧"
+                        ) : (
+                          "자동 번역 · 1크레딧"
+                        )}
+                      </button>
+                      {state.status === "failed" && state.message ? (
+                        <p className="mt-2 break-keep text-[11px] font-bold leading-relaxed text-red-600">{state.message}</p>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
               <TranslationPendingMessage pending={isGeneratingFullDraft} />
             </div>
             </div>
@@ -878,7 +1027,7 @@ function LocalizationSectionContent({ menuId, enabledLocales, aiUsage, latestTra
             전체 자동 번역은 5크레딧, 부분 자동 번역은 1크레딧이 필요합니다. AI 크레딧이 부족하면 번역을 실행할 수 없습니다.
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-            다시 자동 번역을 실행하면 직접 수정한 번역이 새 번역 결과로 덮어써질 수 있습니다.
+            자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             {(["ko", ...TRANSLATABLE_LOCALES] as SupportedLocale[]).map((locale) => (

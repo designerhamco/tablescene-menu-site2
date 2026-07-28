@@ -1977,13 +1977,8 @@ export async function runMenuTranslationDraft(
     }
   }
 
-  const failedLocaleResults = localeResults.filter((result) => !result.ok);
   const untranslatedWarningCount = localeResults.reduce((total, result) => total + result.untranslatedWarningCount, 0);
-
-  if (rows.length === 0 && failedLocaleResults.length > 0) {
-    const firstFailure = failedLocaleResults[0];
-    throw new Error(firstFailure?.error ?? "자동 번역 초안 생성 중 오류가 발생했습니다.");
-  }
+  const failedLocaleResults = localeResults.filter((result) => !result.ok);
 
   logTranslationStage("all done", {
     mode: "draft",
