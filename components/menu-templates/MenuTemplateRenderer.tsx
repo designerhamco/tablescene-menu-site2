@@ -2,6 +2,7 @@ import { normalizeTemplateKey } from "@/lib/templates";
 
 import BasicMenuTemplate from "./BasicMenuTemplate";
 import CafeDesignA from "./CafeDesignA";
+import CafeMochaForestA from "./CafeMochaForestA";
 import DisplayMenuA from "./DisplayMenuA";
 import MultiPageMenuEngine from "./multi-page/MultiPageMenuEngine";
 import type { PublicMenuTemplateProps } from "./types";
@@ -15,6 +16,8 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
         return <MultiPageMenuEngine {...props} />;
       }
       return <CafeDesignA {...props} />;
+    case "cafe_mocha_forest_a":
+      return <CafeMochaForestA {...props} />;
     case "cafe_noir_a":
       return <CafeDesignA {...props} />;
     case "display_menu_a":

@@ -259,7 +259,7 @@ export default function TypographySettingsForm({
   templateKey,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
-  const showRoleTypographyControl = templateKey === "cafe_design_a";
+  const showRoleTypographyControl = templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a";
   const showFontSizeControl = getTemplateCapabilities(templateKey).typographyFontSizeControl === "simple";
   const fontSizeScaleOptions = getFontSizeScaleOptionsForTemplate(templateKey);
   const initialDisplaySafeFontSizeScale = normalizeFontSizeScaleKeyForTemplate(initialFontSizeScale, templateKey);

@@ -588,8 +588,8 @@ function parseCafeAStarterResetFinalSavePayloadFromForm({
   const rawValue = getString(formData, CAFE_A_STARTER_RESET_FINAL_SAVE_PAYLOAD_FIELD);
   if (!rawValue) return null;
 
-  if (menuSite.template_key !== "cafe_design_a") {
-    redirectToMenuEditWithError(menuId, "오브커피 샘플 저장 정보가 현재 템플릿과 맞지 않습니다.");
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a") {
+    redirectToMenuEditWithError(menuId, "CafeA starter family 샘플 저장 정보가 현재 템플릿과 맞지 않습니다.");
   }
 
   let parsed: unknown;
@@ -1692,7 +1692,7 @@ function getCafeATypographyRolePayload(roleSettings: TypographyRoleSettings) {
 }
 
 function setDesignTypographyRoleSettings(designSettings: Record<string, unknown>, roleSettings: TypographyRoleSettings, templateKey?: string | null) {
-  if (templateKey === "cafe_design_a") {
+  if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a") {
     const cafeARolePayload = getCafeATypographyRolePayload(roleSettings);
     if (cafeARolePayload) {
       designSettings.typographyRoles = cafeARolePayload;
@@ -1743,7 +1743,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  if (menuSite.template_key !== "cafe_design_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a") {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
@@ -2811,7 +2811,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  if (menuSite.template_key !== "cafe_design_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a") {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);

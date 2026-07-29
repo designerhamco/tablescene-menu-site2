@@ -6,6 +6,7 @@ export const DEFAULT_ONE_PAGE_LAYOUT_SHELL: OnePageLayoutShell = "brand_left_rai
 
 const TEMPLATE_FIXED_ONE_PAGE_LAYOUT_SHELLS = {
   cafe_design_a: "brand_left_rail",
+  cafe_mocha_forest_a: "brand_left_rail",
 } as const satisfies Record<string, OnePageLayoutShell>;
 
 const fixedOnePageLayoutShells: Partial<Record<string, OnePageLayoutShell>> = TEMPLATE_FIXED_ONE_PAGE_LAYOUT_SHELLS;

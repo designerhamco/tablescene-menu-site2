@@ -484,6 +484,7 @@ const TEMPLATE_ENGLISH_FONT_ALLOWLISTS: Record<string, readonly EnglishFontValue
 
 const TEMPLATE_ENGLISH_FONT_HIDDEN_OPTIONS: Record<string, readonly EnglishFontValue[]> = {
   cafe_design_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
+  cafe_mocha_forest_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
 };
 
 const SYSTEM_ENGLISH_FONT_OPTIONS = [
@@ -501,6 +502,7 @@ export const FALLBACK_ENGLISH_FONT_VALUE: EnglishFontValue = "outfit";
 
 export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
   cafe_design_a: "pretendard",
+  cafe_mocha_forest_a: "pretendard",
   cafe_noir_a: "pretendard",
   cafe_design_b: "pretendard",
   cafe_design_c: "pretendard",
@@ -516,6 +518,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
 
 export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = {
   cafe_design_a: "alata",
+  cafe_mocha_forest_a: "alata",
   cafe_noir_a: "cutive-mono",
   cafe_design_b: "outfit",
   cafe_design_c: "outfit",

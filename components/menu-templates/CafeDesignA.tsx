@@ -36,6 +36,7 @@ import {
   type NormalizedTimeSaleSchedule,
 } from "@/lib/menu-time-sale-schedule";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
+import { getMochaForestPanelRole, MOCHA_FOREST_PANEL_COLORS, type MochaForestPanel } from "@/lib/mocha-forest-panels";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
 import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
@@ -73,6 +74,10 @@ type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]
 type PublicMenuWidget = NonNullable<PublicMenuTemplateProps["widgets"]>[number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
 type CafeDesignALocale = PublicMenuTemplateProps["locale"];
+type CafeDesignASkin = "default" | "mocha_forest";
+type CafeDesignAProps = PublicMenuTemplateProps & {
+  templateSkin?: CafeDesignASkin;
+};
 type CafeDesignAFeaturedHeroSlide = {
   id: string;
   imageUrl: string | null;
@@ -2098,7 +2103,7 @@ function getItemPriceColumnDisplay(
 }
 
 function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
-  return templateKey === "cafe_design_a";
+  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a";
 }
 
 function getCafeASoldOutLabel(locale: CafeDesignALocale) {
@@ -2563,7 +2568,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
   const visiblePages = data.pages
     .filter((page) => page.visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
-  const shouldRenderWidgets = data.menuSite.template_key === "cafe_design_a";
+  const shouldRenderWidgets = data.menuSite.template_key === "cafe_design_a" || data.menuSite.template_key === "cafe_mocha_forest_a";
   const separatorRules = getTemplateContentSeparatorRules(data.menuSite.template_key);
   const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 
@@ -2691,6 +2696,32 @@ function getCategoryBlockClassName() {
   return "cafe-a-menu-category-block min-w-0";
 }
 
+function isMochaForestSkin(templateSkin: CafeDesignASkin | undefined): templateSkin is "mocha_forest" {
+  return templateSkin === "mocha_forest";
+}
+
+function getMochaForestMenuPanelRole(menuColumnIndex: number, menuColumnCount: number) {
+  return getMochaForestPanelRole(menuColumnIndex + 1, menuColumnCount + 1);
+}
+
+function getMochaForestPanelAttributes(
+  panel: MochaForestPanel,
+  columnIndex: number,
+  columnCount: number,
+) {
+  return {
+    "data-mocha-panel": panel,
+    "data-mocha-column-index": String(columnIndex),
+    "data-mocha-column-count": String(columnCount),
+  };
+}
+
+function clearMochaForestPanelAttributes(element: HTMLElement) {
+  element.removeAttribute("data-mocha-panel");
+  element.removeAttribute("data-mocha-column-index");
+  element.removeAttribute("data-mocha-column-count");
+}
+
 const CAFE_A_COLUMN_START_TOLERANCE_PX = 3;
 
 function getCafeAColumnKey(columns: number[], left: number) {
@@ -2701,7 +2732,7 @@ function getCafeAColumnKey(columns: number[], left: number) {
   return left;
 }
 
-function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement) {
+function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement, templateSkin: CafeDesignASkin = "default") {
   const categoryElements = Array.from(menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-category-block]"));
   const suppressedCategoryElements = new Set<HTMLElement>();
 
@@ -2728,7 +2759,8 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement) {
   });
 
   const visualNextBlockTypes = new Map<HTMLElement, CafeDesignAContentBlockType>();
-  columns.forEach((columnBlocks) => {
+  const sortedColumns = Array.from(columns.entries()).sort(([left], [right]) => left - right);
+  sortedColumns.forEach(([, columnBlocks], columnIndex) => {
     const sortedColumnBlocks = columnBlocks
       .slice()
       .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left || left.index - right.index);
@@ -2739,12 +2771,27 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement) {
     }
 
     sortedColumnBlocks.forEach((block, blockIndex) => {
+      if (isMochaForestSkin(templateSkin)) {
+        const visualColumnIndex = columnIndex + 1;
+        const visualColumnCount = sortedColumns.length + 1;
+        const panel = getMochaForestPanelRole(visualColumnIndex, visualColumnCount);
+        block.element.setAttribute("data-mocha-panel", panel);
+        block.element.setAttribute("data-mocha-column-index", String(visualColumnIndex));
+        block.element.setAttribute("data-mocha-column-count", String(visualColumnCount));
+      } else {
+        clearMochaForestPanelAttributes(block.element);
+      }
+
       const nextBlockType = sortedColumnBlocks[blockIndex + 1]?.type;
       if (nextBlockType === "category" || nextBlockType === "widget") {
         visualNextBlockTypes.set(block.element, nextBlockType);
       }
     });
   });
+
+  if (!isMochaForestSkin(templateSkin)) {
+    blockElements.forEach(({ element }) => clearMochaForestPanelAttributes(element));
+  }
 
   blockElements.forEach(({ element }) => {
     const visualNextBlockType = visualNextBlockTypes.get(element);
@@ -5126,16 +5173,21 @@ function DesktopFixedRail({
   data,
   children,
   variant = "brand_left_rail",
+  mochaColumnCount,
 }: {
-  data: PublicMenuTemplateProps;
+  data: CafeDesignAProps;
   children: ReactNode;
   variant?: OnePageLayoutShell;
+  mochaColumnCount?: number;
 }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
+  const mochaPanelAttributes = isMochaForestSkin(data.templateSkin)
+    ? getMochaForestPanelAttributes("brown", 0, Math.max(1, mochaColumnCount ?? 1))
+    : {};
 
   return (
-    <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col" data-cafe-a-brand-panel={variant}>
+    <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col" data-cafe-a-brand-panel={variant} {...mochaPanelAttributes}>
       <div className="cafe-a-fixed-rail-copy min-w-0">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <StoreIdentity
@@ -5367,6 +5419,7 @@ function MenuGroupsGrid({
   onOpenImage,
   fitRef,
   footerInfo,
+  templateSkin = "default",
 }: {
   pageGroups: MenuPageGroup[];
   density: MenuLayoutDensity;
@@ -5382,6 +5435,7 @@ function MenuGroupsGrid({
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
+  templateSkin?: CafeDesignASkin;
 }) {
   return (
     <section
@@ -5389,6 +5443,7 @@ function MenuGroupsGrid({
       className={`cafe-a-fit-menu-grid cafe-a-ordered-menu-flow min-w-0 content-start md:col-span-2 lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName} ${menuAreaClassName}`}
       data-cafe-a-fit-menu=""
       data-cafe-a-flow-mode="ordered"
+      data-cafe-a-skin={isMochaForestSkin(templateSkin) ? "mocha_forest" : undefined}
     >
       {pageGroups.map((pageGroup) => (
         <div key={pageGroup.page.id} className="contents">
@@ -5438,6 +5493,7 @@ function BalancedExperimentalMenuGrid({
   onOpenImage,
   fitRef,
   footerInfo,
+  templateSkin = "default",
 }: {
   pageGroups: MenuPageGroup[];
   density: MenuLayoutDensity;
@@ -5454,6 +5510,7 @@ function BalancedExperimentalMenuGrid({
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
+  templateSkin?: CafeDesignASkin;
 }) {
   const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
   const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
@@ -5469,9 +5526,15 @@ function BalancedExperimentalMenuGrid({
       data-cafe-a-fit-menu=""
       data-cafe-a-flow-mode="balanced"
       data-cafe-a-balanced-grid=""
+      data-mocha-menu-column-count={isMochaForestSkin(templateSkin) ? balancedColumns.length + 1 : undefined}
     >
-      {balancedColumns.map((column, columnIndex) => (
-        <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
+      {balancedColumns.map((column, columnIndex) => {
+        const mochaPanelAttributes = isMochaForestSkin(templateSkin)
+          ? getMochaForestPanelAttributes(getMochaForestMenuPanelRole(columnIndex, balancedColumns.length), columnIndex + 1, balancedColumns.length + 1)
+          : {};
+
+        return (
+        <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="" {...mochaPanelAttributes}>
           {column.blocks.map((block, blockIndex) => {
             return (
               <MenuContentBlock
@@ -5493,7 +5556,8 @@ function BalancedExperimentalMenuGrid({
           })}
           {columnIndex === balancedColumns.length - 1 && footerInfo}
         </div>
-      ))}
+        );
+      })}
     </section>
   );
 }
@@ -5514,6 +5578,7 @@ function OrderedBalancedFitMenuGrid({
   onOpenImage,
   fitRef,
   footerInfo,
+  templateSkin = "default",
 }: {
   pageGroups: MenuPageGroup[];
   density: MenuLayoutDensity;
@@ -5530,6 +5595,7 @@ function OrderedBalancedFitMenuGrid({
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
+  templateSkin?: CafeDesignASkin;
 }) {
   const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
   const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
@@ -5546,9 +5612,15 @@ function OrderedBalancedFitMenuGrid({
       data-cafe-a-flow-mode="ordered-balanced"
       data-cafe-a-balanced-grid=""
       data-cafe-a-ordered-balanced-breaks={orderedBalancedBreaks}
+      data-mocha-menu-column-count={isMochaForestSkin(templateSkin) ? orderedBalancedColumns.length + 1 : undefined}
     >
-      {orderedBalancedColumns.map((column, columnIndex) => (
-        <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
+      {orderedBalancedColumns.map((column, columnIndex) => {
+        const mochaPanelAttributes = isMochaForestSkin(templateSkin)
+          ? getMochaForestPanelAttributes(getMochaForestMenuPanelRole(columnIndex, orderedBalancedColumns.length), columnIndex + 1, orderedBalancedColumns.length + 1)
+          : {};
+
+        return (
+        <div key={column.id} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="" {...mochaPanelAttributes}>
           {column.blocks.map((block, blockIndex) => {
             return (
               <MenuContentBlock
@@ -5571,7 +5643,8 @@ function OrderedBalancedFitMenuGrid({
           {columnIndex === orderedBalancedColumns.length - 1 && footerInfo}
           <span aria-hidden="true" className="block h-px w-px opacity-0" data-cafe-a-column-sentinel="" />
         </div>
-      ))}
+        );
+      })}
     </section>
   );
 }
@@ -5679,7 +5752,7 @@ function CenterRailMenuGrid({
   );
 }
 
-function CafeDesignAClassic(data: PublicMenuTemplateProps) {
+function CafeDesignAClassic(data: CafeDesignAProps) {
   // Basic engine wiring: capabilities, layout mode, visibility, density, and fit state.
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const basicPricingCapabilities = getBasicPricingCapabilities(data.menuSite.template_key);
@@ -5763,6 +5836,14 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
+  const isMochaForest = isMochaForestSkin(data.templateSkin);
+  const skinStyle = isMochaForest
+    ? ({
+        "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown,
+        "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory,
+        "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green,
+      } as CSSProperties)
+    : {};
   const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
@@ -5937,7 +6018,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
 
     const sync = () => {
       if (cancelled) return;
-      syncOrderedFitColumnStartCategoryDividers(menuElement);
+      syncOrderedFitColumnStartCategoryDividers(menuElement, data.templateSkin);
     };
 
     const scheduleSync = () => {
@@ -5971,6 +6052,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     renderFitState.gapScale,
     orderedFitFinalFillCompensation,
     layoutInputSignature,
+    data.templateSkin,
   ]);
 
   useEffect(() => {
@@ -7856,6 +7938,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           priceDisplayMode={priceDisplayMode}
           onOpenImage={openMenuImagePreview}
           footerInfo={includeFooter ? footerInfo : undefined}
+          templateSkin={data.templateSkin}
         />
       );
     }
@@ -7878,6 +7961,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
           priceDisplayMode={priceDisplayMode}
           onOpenImage={openMenuImagePreview}
           footerInfo={includeFooter ? footerInfo : undefined}
+          templateSkin={data.templateSkin}
         />
       );
     }
@@ -7898,6 +7982,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         priceDisplayMode={priceDisplayMode}
         onOpenImage={openMenuImagePreview}
         footerInfo={includeFooter ? footerInfo : undefined}
+        templateSkin={data.templateSkin}
       />
     );
   };
@@ -7909,7 +7994,8 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       <main
         className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
-        style={{ ...typographyStyle, backgroundColor }}
+        data-cafe-a-skin={isMochaForest ? "mocha_forest" : undefined}
+        style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           <HeaderBlock data={data} className="lg:hidden" />
@@ -7944,6 +8030,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
                 footerInfo={<CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
+                templateSkin={data.templateSkin}
               />
             )}
           </div>
@@ -7998,12 +8085,13 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
             data-fit-overflow={fitState.overflow ? "true" : "false"}
             data-cafe-a-layout-input-signature={layoutInputSignature}
             data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
+            data-cafe-a-skin={isMochaForest ? "mocha_forest" : undefined}
             data-one-page-layout-shell={onePageLayoutShell}
             style={{ ...fitGapStyle, ...fitStyle, ...orderedFitFillStyle }}
           >
             {onePageLayoutShell === "brand_top_band" ? (
               <>
-                <DesktopFixedRail data={data} variant={onePageLayoutShell}>{null}</DesktopFixedRail>
+                <DesktopFixedRail data={data} variant={onePageLayoutShell} mochaColumnCount={renderFitState.columns + 1}>{null}</DesktopFixedRail>
                 {renderDesktopMenuGrid()}
                 {shouldRenderMenuCoverSection && (
                   <div className="cafe-a-shell-featured-slot min-w-0">
@@ -8022,7 +8110,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
             ) : onePageLayoutShell === "brand_center_rail" ? (
               <>
                 {renderDesktopMenuGrid({ centerRail: true, includeFooter: true })}
-                <DesktopFixedRail data={data} variant={onePageLayoutShell}>
+                <DesktopFixedRail data={data} variant={onePageLayoutShell} mochaColumnCount={renderFitState.columns + 1}>
                   {shouldRenderMenuCoverSection && (
                     <CoverHero
                       data={data}
@@ -8037,7 +8125,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
               </>
             ) : (
               <>
-                <DesktopFixedRail data={data}>
+                <DesktopFixedRail data={data} mochaColumnCount={renderFitState.columns + 1}>
                   {shouldRenderMenuCoverSection && (
                     <CoverHero
                       data={data}
@@ -8076,7 +8164,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   );
 }
 
-export default function CafeDesignA(data: PublicMenuTemplateProps) {
+export default function CafeDesignA(data: CafeDesignAProps) {
   if (data.menuSite.template_key === "cafe_noir_a") {
     return <CafeNoirA data={data} />;
   }

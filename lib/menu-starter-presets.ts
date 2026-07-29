@@ -312,12 +312,13 @@ function item(
   return { name, price, description, ...options };
 }
 
-function isCafeDesignATemplateKey(templateKey?: string | null) {
-  return templateKey?.trim().toLowerCase() === "cafe_design_a";
+function isCafeAStarterTemplateKey(templateKey?: string | null) {
+  const normalizedTemplateKey = templateKey?.trim().toLowerCase();
+  return normalizedTemplateKey === "cafe_design_a" || normalizedTemplateKey === "cafe_mocha_forest_a";
 }
 
 function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: StarterServiceType) {
-  return !shouldUseLeanStarterPreset(serviceType) || preset === cafeDesignAStarterPreset || preset === cafeNoirAStarterPreset;
+  return !shouldUseLeanStarterPreset(serviceType) || preset === cafeDesignAStarterPreset || preset === cafeMochaForestStarterPreset || preset === cafeNoirAStarterPreset;
 }
 
 function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefined {
@@ -351,6 +352,36 @@ function cloneStarterWidgets(value: unknown): StarterWidget[] | undefined {
 function cloneStarterMixedContentOrder(value: unknown): StarterMixedContentBlock[] | undefined {
   if (!Array.isArray(value)) return undefined;
   return value.map((block) => ({ ...(block as StarterMixedContentBlock) }));
+}
+
+function cloneStarterPresetForTemplate(preset: StarterPreset, templateKey: string): StarterPreset {
+  return {
+    ...preset,
+    template_key: templateKey,
+    site: {
+      ...preset.site,
+      settings: preset.site.settings ? { ...preset.site.settings } : undefined,
+    },
+    featured_slides: preset.featured_slides?.map((slide) => ({ ...slide })),
+    time_sales: cloneStarterTimeSales(preset.time_sales),
+    widgets: cloneStarterWidgets(preset.widgets),
+    mixed_content_order: cloneStarterMixedContentOrder(preset.mixed_content_order),
+    chefs: preset.chefs.map((chef) => ({ ...chef })),
+    events: preset.events.map((event) => ({ ...event })),
+    socialLinks: preset.socialLinks.map((link) => ({ ...link })),
+    pages: preset.pages.map((page) => ({
+      ...page,
+      categories: page.categories.map((category) => ({
+        ...category,
+        price_columns: cloneStarterPriceColumns(category.price_columns),
+        items: category.items.map((menuItem) => ({
+          ...menuItem,
+          price_options: cloneStarterPriceOptions(menuItem.price_options),
+          price_column_values: cloneStarterPriceColumnValues(menuItem.price_column_values),
+        })),
+      })),
+    })),
+  };
 }
 
 function getStarterTimeSaleCampaignWindow(timeSale?: StarterTimeSale, now = new Date()) {
@@ -459,6 +490,8 @@ const cafeDesignAStarterPreset: StarterPreset = {
   ],
 };
 
+const cafeMochaForestStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_mocha_forest_a");
+
 const cafeNoirAStarterPreset: StarterPreset = {
   key: "cafe",
   site: {
@@ -546,6 +579,7 @@ const cafeNoirAStarterPreset: StarterPreset = {
 
 const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
+  cafe_mocha_forest_a: cafeMochaForestStarterPreset,
   cafe_noir_a: cafeNoirAStarterPreset,
 };
 
@@ -1185,10 +1219,6 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
 };
 
 export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null): StarterPreset {
-  if (isCafeDesignATemplateKey(templateKey)) {
-    return cafeDesignAStarterPreset;
-  }
-
   const normalizedTemplateKey = templateKey?.trim().toLowerCase() ?? "";
   const templatePreset = normalizedTemplateKey ? templateStarterPresets[normalizedTemplateKey] : null;
   if (templatePreset) {
@@ -1537,8 +1567,8 @@ export async function createStarterMenuData(
   }
 
   const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory);
-  if (isCafeDesignATemplateKey(templateKey) && preset.pages.length !== 1) {
-    throw new Error("cafe_design_a 기본 메뉴는 메뉴 페이지 1개로만 생성되어야 합니다.");
+  if (isCafeAStarterTemplateKey(templateKey) && preset.pages.length !== 1) {
+    throw new Error("CafeA starter family 기본 메뉴는 메뉴 페이지 1개로만 생성되어야 합니다.");
   }
 
   const serviceType = getStarterServiceType(productKey);
@@ -1653,7 +1683,7 @@ export async function createStarterMenuData(
         price_label: menuItem.price_label ?? null,
         price_note: menuItem.price_note ?? null,
         portion_label: menuItem.portion_label ?? null,
-        image_url: menuItem.image_url ?? (isCafeDesignATemplateKey(templateKey) ? null : STARTER_PLACEHOLDERS.item),
+        image_url: menuItem.image_url ?? (isCafeAStarterTemplateKey(templateKey) ? null : STARTER_PLACEHOLDERS.item),
         image_path: null,
         badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
         recommended: menuItem.recommended ?? false,

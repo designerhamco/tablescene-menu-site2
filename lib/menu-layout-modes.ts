@@ -39,5 +39,5 @@ export function getPcTabletLayoutModeFromPageSettings(pageSettings: unknown): Pc
 }
 
 export function supportsPcTabletLayoutMode(templateKey: string | null | undefined) {
-  return templateKey === "cafe_design_a" || templateKey === "cafe_noir_a";
+  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_noir_a";
 }

@@ -7938,7 +7938,7 @@ export default function MenuManagementSection({
     }
 
     setIsSampleResetApplying(true);
-    if (starterPreset.template_key === "cafe_design_a") {
+    if (starterPreset.template_key === "cafe_design_a" || starterPreset.template_key === "cafe_mocha_forest_a") {
       try {
         resetCafeAMenuManagementToStarterDraft(fixedPageId);
       } finally {

@@ -68,6 +68,33 @@ const TEMPLATE_LAYOUT_RULES = {
       ultraCompact: "grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
     },
   },
+  cafe_mocha_forest_a: {
+    templateKey: "cafe_mocha_forest_a",
+    maxColumns: { mobile: 2, tablet: 2, desktop: 4 },
+    densityThresholds: {
+      mobile: [
+        { maxItems: 6, density: "spacious" },
+        { maxItems: 14, density: "default" },
+        { maxItems: 28, density: "compact" },
+      ],
+      tablet: [
+        { maxItems: 10, density: "spacious" },
+        { maxItems: 24, density: "default" },
+        { maxItems: 42, density: "compact" },
+      ],
+      desktop: [
+        { maxItems: 12, density: "spacious" },
+        { maxItems: 28, density: "default" },
+        { maxItems: 48, density: "compact" },
+      ],
+    },
+    gridClassNameByDensity: {
+      spacious: "grid gap-4 sm:grid-cols-2",
+      default: "grid gap-3 sm:grid-cols-2 lg:grid-cols-3",
+      compact: "grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+      ultraCompact: "grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+    },
+  },
   fine_dining_design_a: {
     templateKey: "fine_dining_design_a",
     maxColumns: { mobile: 1, tablet: 2, desktop: 2 },

@@ -109,6 +109,11 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     english_font_key: "alata",
     font_size_scale_key: "m",
   },
+  cafe_mocha_forest_a: {
+    korean_font_key: "pretendard",
+    english_font_key: "alata",
+    font_size_scale_key: "m",
+  },
   cafe_noir_a: {
     korean_font_key: "pretendard",
     english_font_key: "cutive-mono",
@@ -142,6 +147,10 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
 const fontSizeScaleKeys = new Set<FontSizeScaleKey>(FONT_SIZE_SCALE_OPTIONS.map((option) => option.key));
 const typographyRoleSizeKeys = new Set<TypographyRoleSizeKey>(TYPOGRAPHY_ROLE_SIZE_OPTIONS.map((option) => option.key));
 const typographyRoleWeightKeys = new Set<TypographyRoleWeightKey>(TYPOGRAPHY_ROLE_WEIGHT_OPTIONS.map((option) => option.key));
+
+function usesCafeARoleTypographyPolicy(templateKey?: string | null) {
+  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a";
+}
 
 const LEGACY_KOREAN_FONT_KEY_MAP: Record<string, KoreanFontKey> = {
   default_ko: "pretendard",
@@ -418,13 +427,13 @@ export function getTypographyCssVariables(settings: TypographySettings, template
   TYPOGRAPHY_ROLE_KEYS.forEach((role) => {
     const setting = settings.typography_roles[role];
     const cssRoleKey = role.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-    cssVariables[`--menu-role-${cssRoleKey}-size-scale`] = templateKey === "cafe_design_a" ? "1" : String(getTypographyRoleSizeMultiplier(setting.size));
+    cssVariables[`--menu-role-${cssRoleKey}-size-scale`] = usesCafeARoleTypographyPolicy(templateKey) ? "1" : String(getTypographyRoleSizeMultiplier(setting.size));
     if (setting.font_ko_key) cssVariables[`--menu-role-${cssRoleKey}-font-ko`] = getKoreanFontFamily(setting.font_ko_key);
     if (setting.font_en_key) cssVariables[`--menu-role-${cssRoleKey}-font-en`] = getEnglishFontFamily(setting.font_en_key);
     cssVariables[`--menu-role-${cssRoleKey}-font-family`] =
       `var(--menu-role-${cssRoleKey}-font-en, var(--menu-font-en)), var(--menu-role-${cssRoleKey}-font-ko, var(--menu-font-ko)), system-ui, sans-serif`;
     if (setting.color && (role === "brand" || role === "category")) cssVariables[`--menu-role-${cssRoleKey}-color`] = setting.color;
-    const weightValue = templateKey === "cafe_design_a" ? null : getTypographyRoleWeightValue(setting.weight);
+    const weightValue = usesCafeARoleTypographyPolicy(templateKey) ? null : getTypographyRoleWeightValue(setting.weight);
     if (weightValue) cssVariables[`--menu-role-${cssRoleKey}-font-weight`] = weightValue;
   });
 
