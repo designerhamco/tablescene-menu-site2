@@ -46,7 +46,6 @@ import {
 } from "@/lib/cafe-a-starter-reset";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
-import { normalizeOnePageLayoutShell, supportsOnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { isPriceDisplayMode } from "@/lib/menu-price-format";
 import {
   getTimeSalePriceLabelForSave,
@@ -2754,7 +2753,6 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
   const typographyRoleSettings = getTypographyRoleSettingsFromFormData(formData, menuSite.template_key);
-  const onePageLayoutShell = normalizeOnePageLayoutShell(getString(formData, "one_page_layout_shell"));
   const pageSettings = getJsonObject(menuSite.page_settings);
   const designSettings = getJsonObject(pageSettings.design);
 
@@ -2774,11 +2772,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
 
   designSettings.fontSizeScale = fontSizeScaleKey;
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings);
-  if (supportsOnePageLayoutShell(menuSite.template_key)) {
-    designSettings.onePageLayoutShell = onePageLayoutShell;
-  } else {
-    delete designSettings.onePageLayoutShell;
-  }
+  delete designSettings.onePageLayoutShell;
   delete designSettings.one_page_layout_shell;
 
   pageSettings.design = designSettings;

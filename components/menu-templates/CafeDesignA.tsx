@@ -20,7 +20,7 @@ import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
-import { getOnePageLayoutShellFromPageSettings, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
+import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import {
   formatMenuPriceByMode,
   getPriceDisplayModeFromSettings,
@@ -5702,7 +5702,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const isDenseOrderedBalanced = isDenseOrderedBalancedMenu(visibleMenuGroupCount, visibleItemCount);
   const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
-  const onePageLayoutShell = getOnePageLayoutShellFromPageSettings(data.menuSite.page_settings);
+  const onePageLayoutShell = getFixedOnePageLayoutShell(data.menuSite.template_key);
   const hasCoverSection =
     publicCapabilities.menuCoverPage &&
     capabilities.menuCover.coverMode === "section" &&

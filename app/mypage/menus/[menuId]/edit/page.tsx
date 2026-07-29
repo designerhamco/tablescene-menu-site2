@@ -35,7 +35,6 @@ import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagemen
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import MenuEditorToastBridge from "@/components/mypage/menu-editor/MenuEditorToastBridge";
 import PendingSubmitButton from "@/components/mypage/menu-editor/PendingSubmitButton";
-import OnePageLayoutShellSettingsForm from "@/components/mypage/menu-editor/OnePageLayoutShellSettingsForm";
 import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
@@ -79,7 +78,6 @@ import {
   type RecoverableAutoTranslationJob,
 } from "@/lib/menu-localization-draft";
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
-import { getOnePageLayoutShellFromPageSettings, supportsOnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSiteStatus } from "@/lib/supabase/types";
@@ -1486,8 +1484,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const menuManagementStarterPreset = getStarterPreset(site.template_key, site.restaurant_category, site.template_category);
   const canConfigurePcTabletLayoutMode = supportsPcTabletLayoutMode(site.template_key);
   const pcTabletLayoutMode = getPcTabletLayoutModeFromPageSettings(site.page_settings);
-  const canConfigureOnePageLayoutShell = supportsOnePageLayoutShell(site.template_key);
-  const onePageLayoutShell = getOnePageLayoutShellFromPageSettings(site.page_settings);
   const customBadgeStyles = getCustomBadgeStyles(site.settings, site.page_settings);
   const badgeStyles = mergeBadgeStyles(site.template_key, customBadgeStyles);
   const customTypography = getCustomTypographySettings(site.settings, site.page_settings);
@@ -2321,21 +2317,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
                       />
                     </div>
-                    {canConfigureOnePageLayoutShell && (
-                      <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-                        <div>
-                          <h3 className="text-lg font-bold tracking-tight text-zinc-950">레이아웃 구성</h3>
-                          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                            PC와 태블릿에서 브랜드 영역과 메뉴 영역의 큰 구성을 선택합니다. 메뉴 배치 방식은 메뉴 관리의 PC·태블릿 자동배치 설정을 그대로 따릅니다.
-                          </p>
-                        </div>
-                        <OnePageLayoutShellSettingsForm
-                          key={`one-page-layout-shell-${onePageLayoutShell}`}
-                          formId="design-settings-form"
-                          initialShell={onePageLayoutShell}
-                        />
-                      </div>
-                    )}
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>
                         <h3 className="text-lg font-bold tracking-tight text-zinc-950">배경색</h3>
