@@ -16,6 +16,7 @@ import {
 } from "@/lib/menu-time-sales";
 import { getNextTimeSaleStartMs } from "@/lib/menu-time-sale-schedule";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
+import { MENU_WIDGET_SETTINGS_VERSION } from "@/lib/menu-widgets";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
@@ -30,6 +31,7 @@ type PageProps = {
     qaSplitImagePosition?: string | string[];
     footerStress?: string | string[];
     layoutShell?: string | string[];
+    pagePresentation?: string | string[];
   }>;
 };
 
@@ -410,6 +412,64 @@ function isPreviewFlagEnabled(value: string | string[] | undefined) {
   return rawValue === "1" || rawValue === "true" || rawValue === "yes";
 }
 
+function isMultiPagePresentationPreview(value: string | string[] | undefined) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  return rawValue === "multi" || rawValue === "multi-page";
+}
+
+function applyCafeAMultiPagePreviewFixture(data: MenuPageData, pagePresentation: string | string[] | undefined): MenuPageData {
+  if (data.menuSite.template_key !== "cafe_design_a" || !isMultiPagePresentationPreview(pagePresentation)) return data;
+
+  const basePage = sortMenuPages(data.pages.filter((page) => page.visible !== false))[0];
+  if (!basePage) return data;
+
+  const now = basePage.created_at || new Date(data.initialNowMs).toISOString();
+  const pages: MenuPageData["pages"] = [
+    { ...basePage, id: `${data.menuSite.id}-multi-page-1`, title: "추천 메뉴", sort_order: 0, visible: true, created_at: now },
+    { ...basePage, id: `${data.menuSite.id}-multi-page-2`, title: "음료 메뉴", sort_order: 1, visible: true, created_at: now },
+    { ...basePage, id: `${data.menuSite.id}-multi-page-3`, title: "베이커리 안내", sort_order: 2, visible: true, created_at: now },
+    { ...basePage, id: `${data.menuSite.id}-multi-page-hidden`, title: "숨김 페이지", sort_order: 3, visible: false, created_at: now },
+  ];
+  const visibleCategories = [...data.categories]
+    .filter((category) => category.visible !== false)
+    .sort((left, right) => left.sort_order - right.sort_order || left.name.localeCompare(right.name, "ko"));
+  const pageIdByCategoryId = new Map<string, string>();
+
+  visibleCategories.forEach((category, categoryIndex) => {
+    const pageIndex = categoryIndex === 0 ? 0 : categoryIndex <= 2 ? 1 : 2;
+    pageIdByCategoryId.set(category.id, pages[pageIndex]?.id ?? pages[0].id);
+  });
+
+  const categories = data.categories.map((category) => ({
+    ...category,
+    menu_page_id: pageIdByCategoryId.get(category.id) ?? pages[3].id,
+    sort_order: visibleCategories.findIndex((candidate) => candidate.id === category.id) + 1,
+  }));
+  const page3Widget = {
+    id: `${data.menuSite.id}-multi-page-widget-1`,
+    menuSiteId: data.menuSite.id,
+    menuPageId: pages[2].id,
+    type: "text" as const,
+    title: "오늘의 안내",
+    description: "베이커리 메뉴는 한정 수량으로 준비됩니다.",
+    imageUrl: null,
+    imagePath: null,
+    sortOrder: 0,
+    visible: true,
+    settings: {
+      schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
+      textAlign: "left" as const,
+    },
+  } satisfies NonNullable<MenuPageData["widgets"]>[number];
+
+  return {
+    ...data,
+    pages,
+    categories,
+    widgets: [...(data.widgets ?? []), page3Widget],
+  };
+}
+
 function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | string[] | undefined): MenuPageData {
   if (data.menuSite.template_key !== "cafe_design_a" || !isPreviewFlagEnabled(footerStress)) return data;
 
@@ -540,9 +600,12 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const data = applyPreviewOnePageLayoutShell(
     applyPreviewFontSizeScale(
       applyDisplayPreviewSplitImagePosition(
-        applyCafeAFooterStressData(
-          buildPreviewData(templateKey, displayPreviewQaCase),
-          resolvedSearchParams.footerStress
+        applyCafeAMultiPagePreviewFixture(
+          applyCafeAFooterStressData(
+            buildPreviewData(templateKey, displayPreviewQaCase),
+            resolvedSearchParams.footerStress
+          ),
+          resolvedSearchParams.pagePresentation
         ),
         displayPreviewSplitImagePosition
       ),
@@ -556,6 +619,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       mode="preview"
       previewLayoutMode={previewLayoutMode}
       initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
+      pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}
       {...data}
     />
   );

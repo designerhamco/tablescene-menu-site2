@@ -4,6 +4,7 @@ import type { MenuPageData } from "@/lib/menu-page-data";
 type MenuPageRendererProps = MenuPageData & {
   mode: "public" | "preview";
   initialPreviewPageId?: string | null;
+  pagePresentation?: "one" | "multi";
 };
 
 export default function MenuPageRenderer({ mode, ...data }: MenuPageRendererProps) {
