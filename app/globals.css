@@ -333,6 +333,18 @@ video {
   line-height: 1.45;
 }
 
+.cafe-a-typography .cafe-a-menu-description.cafe-a-menu-description-wrap {
+  display: block;
+  line-break: auto;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: normal;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+}
+
 .cafe-a-typography .cafe-a-menu-price {
   font-family: var(--menu-role-price-font-family, inherit);
   font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--menu-role-price-size-scale, 1)), 1.36rem);

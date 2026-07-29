@@ -3220,12 +3220,7 @@ function MenuItemRow({
     compact: "cafe-a-menu-title-size-compact",
     ultraCompact: "cafe-a-menu-title-size-ultra-compact",
   }[density];
-  const descriptionClassName = {
-    spacious: "lg:line-clamp-3",
-    default: "lg:line-clamp-2",
-    compact: "lg:line-clamp-2",
-    ultraCompact: "lg:line-clamp-1",
-  }[density];
+  const descriptionClassName = "cafe-a-menu-description-wrap";
   const priceClassName = {
     spacious: "cafe-a-menu-price-size-spacious",
     default: "cafe-a-menu-price-size-default",
