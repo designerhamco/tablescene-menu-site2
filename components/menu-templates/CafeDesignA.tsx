@@ -20,6 +20,7 @@ import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
+import { getOnePageLayoutShellFromPageSettings, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import {
   formatMenuPriceByMode,
   getPriceDisplayModeFromSettings,
@@ -2978,7 +2979,9 @@ function getItemStackSpacing(density: MenuLayoutDensity) {
   }[density];
 }
 
-function getMenuAreaClassName(hasCoverSection: boolean) {
+function getMenuAreaClassName(hasCoverSection: boolean, shell: OnePageLayoutShell = "brand_left_rail") {
+  if (shell === "brand_top_band") return hasCoverSection ? "lg:col-span-1" : "lg:col-span-2";
+  if (shell === "brand_center_rail") return "lg:col-span-2";
   return hasCoverSection ? "lg:col-span-1" : "lg:col-span-1";
 }
 
@@ -2991,7 +2994,17 @@ function getOuterGridGapClassName(density: MenuLayoutDensity) {
   }[density];
 }
 
-function getDesktopGridClassName(hasCoverSection: boolean) {
+function getDesktopGridClassName(hasCoverSection: boolean, shell: OnePageLayoutShell = "brand_left_rail") {
+  if (shell === "brand_top_band") {
+    return hasCoverSection
+      ? "lg:grid-cols-[minmax(0,2.35fr)_minmax(220px,0.8fr)]"
+      : "lg:grid-cols-[minmax(0,1fr)]";
+  }
+
+  if (shell === "brand_center_rail") {
+    return "lg:grid-cols-[minmax(0,1fr)_minmax(190px,0.48fr)_minmax(0,1fr)]";
+  }
+
   return hasCoverSection
     ? "lg:grid-cols-[minmax(170px,0.42fr)_minmax(0,2.8fr)] xl:grid-cols-[minmax(220px,0.55fr)_minmax(0,2.8fr)] 2xl:grid-cols-[minmax(260px,0.55fr)_minmax(0,4fr)]"
     : "lg:grid-cols-1";
@@ -5072,15 +5085,17 @@ function CafeATypographyFontAssets({ typographySettings }: { typographySettings:
 function DesktopFixedRail({
   data,
   children,
+  variant = "brand_left_rail",
 }: {
   data: PublicMenuTemplateProps;
   children: ReactNode;
+  variant?: OnePageLayoutShell;
 }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
 
   return (
-    <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col">
+    <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col" data-cafe-a-brand-panel={variant}>
       <div className="cafe-a-fixed-rail-copy min-w-0">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <StoreIdentity
@@ -5517,6 +5532,109 @@ function OrderedBalancedFitMenuGrid({
   );
 }
 
+function getCenterRailContentColumns({
+  pageGroups,
+  data,
+  capabilities,
+  variant,
+}: {
+  pageGroups: MenuPageGroup[];
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  variant: CafeDesignABalancedVariant;
+}) {
+  const orderedBlocks = getFlatContentBlocks(pageGroups);
+  const columns: CafeDesignAContentBlock[][] = [[], []];
+
+  if (orderedBlocks.length === 0) return columns;
+
+  if (variant === "sourceSequential") {
+    const midpoint = Math.ceil(orderedBlocks.length / 2);
+    columns[0] = orderedBlocks.slice(0, midpoint);
+    columns[1] = orderedBlocks.slice(midpoint);
+    return columns;
+  }
+
+  const heights = [0, 0];
+  orderedBlocks.forEach((block) => {
+    const targetIndex = heights[0] <= heights[1] ? 0 : 1;
+    columns[targetIndex].push(block);
+    heights[targetIndex] += estimateContentBlockHeight(block, data, capabilities);
+  });
+
+  return columns;
+}
+
+function CenterRailMenuGrid({
+  pageGroups,
+  density,
+  data,
+  capabilities,
+  customBadgeStyles,
+  itemStackSpacing,
+  outerGridGapClassName,
+  columnsVariant,
+  timeSaleByItemId,
+  priceDisplayMode,
+  onOpenImage,
+  fitRef,
+  footerInfo,
+}: {
+  pageGroups: MenuPageGroup[];
+  density: MenuLayoutDensity;
+  data: PublicMenuTemplateProps;
+  capabilities: TemplateCapabilities;
+  customBadgeStyles: unknown;
+  itemStackSpacing: string;
+  outerGridGapClassName: string;
+  columnsVariant: CafeDesignABalancedVariant;
+  timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
+  onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
+  fitRef?: RefObject<HTMLElement | null>;
+  footerInfo?: ReactNode;
+}) {
+  const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
+  const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
+  const centerRailColumns = useMemo(
+    () => getCenterRailContentColumns({ pageGroups, data, capabilities, variant: columnsVariant }),
+    [capabilities, columnsVariant, data, pageGroups],
+  );
+
+  return (
+    <section
+      ref={fitRef}
+      className={`cafe-a-fit-menu-grid cafe-a-balanced-menu-grid cafe-a-center-rail-menu-grid min-w-0 content-start lg:min-h-0 lg:max-h-full lg:overflow-hidden lg:pr-0 ${outerGridGapClassName}`}
+      data-cafe-a-fit-menu=""
+      data-cafe-a-flow-mode="center-rail"
+      data-cafe-a-balanced-grid=""
+    >
+      {centerRailColumns.map((column, columnIndex) => (
+        <div key={`center-column-${columnIndex}`} className="cafe-a-balanced-column min-w-0" data-cafe-a-balanced-column="">
+          {column.map((block, blockIndex) => (
+            <MenuContentBlock
+              key={block.key}
+              block={block}
+              density={density}
+              data={data}
+              capabilities={capabilities}
+              customBadgeStyles={customBadgeStyles}
+              itemStackSpacing={itemStackSpacing}
+              timeSaleByItemId={timeSaleByItemId}
+              priceDisplayMode={priceDisplayMode}
+              onOpenImage={onOpenImage}
+              suppressDesktopColumnStartDivider={block.blockType === "category" && blockIndex === 0}
+              visualNextBlockType={column[blockIndex + 1]?.blockType ?? null}
+              balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
+            />
+          ))}
+          {columnIndex === centerRailColumns.length - 1 && footerInfo}
+        </div>
+      ))}
+    </section>
+  );
+}
+
 function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   // Basic engine wiring: capabilities, layout mode, visibility, density, and fit state.
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
@@ -5589,14 +5707,15 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const isDenseOrderedBalanced = isDenseOrderedBalancedMenu(visibleMenuGroupCount, visibleItemCount);
   const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
+  const onePageLayoutShell = getOnePageLayoutShellFromPageSettings(data.menuSite.page_settings);
   const hasCoverSection =
     publicCapabilities.menuCoverPage &&
     capabilities.menuCover.coverMode === "section" &&
     data.pageSettings.menu_cover_enabled !== false;
   const shouldRenderMenuCoverSection =
     hasCoverSection;
-  const menuAreaClassName = getMenuAreaClassName(hasCoverSection);
-  const desktopGridClassName = getDesktopGridClassName(hasCoverSection);
+  const menuAreaClassName = getMenuAreaClassName(hasCoverSection, onePageLayoutShell);
+  const desktopGridClassName = getDesktopGridClassName(hasCoverSection, onePageLayoutShell);
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
@@ -7646,6 +7765,99 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
     };
   }, [baseRenderFitState, fitState.orderedBalancedFingerprint, fitState.overflow, fitState.status, layoutInputSignature, layoutMode, orderedBalancedFinalFillBoost]);
 
+  const renderDesktopMenuGrid = ({ centerRail = false, includeFooter = false }: { centerRail?: boolean; includeFooter?: boolean } = {}) => {
+    if (visiblePageGroups.length === 0) {
+      return (
+        <section className={hasCoverSection ? "lg:col-span-3" : "lg:col-span-4"}>
+          <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
+        </section>
+      );
+    }
+
+    if (centerRail) {
+      return (
+        <CenterRailMenuGrid
+          fitRef={desktopFitMenuRef}
+          pageGroups={visiblePageGroups}
+          density={density}
+          data={data}
+          capabilities={capabilities}
+          customBadgeStyles={customBadgeStyles}
+          itemStackSpacing={itemStackSpacing}
+          outerGridGapClassName={outerGridGapClassName}
+          columnsVariant={fitState.balancedVariant}
+          timeSaleByItemId={timeSaleByItemId}
+          priceDisplayMode={priceDisplayMode}
+          onOpenImage={openMenuImagePreview}
+          footerInfo={includeFooter ? footerInfo : undefined}
+        />
+      );
+    }
+
+    if (layoutMode === "balanced") {
+      return (
+        <BalancedExperimentalMenuGrid
+          fitRef={desktopFitMenuRef}
+          pageGroups={visiblePageGroups}
+          density={density}
+          data={data}
+          capabilities={capabilities}
+          customBadgeStyles={customBadgeStyles}
+          itemStackSpacing={itemStackSpacing}
+          outerGridGapClassName={outerGridGapClassName}
+          menuAreaClassName={menuAreaClassName}
+          columns={renderFitState.columns}
+          variant={fitState.balancedVariant}
+          timeSaleByItemId={timeSaleByItemId}
+          priceDisplayMode={priceDisplayMode}
+          onOpenImage={openMenuImagePreview}
+          footerInfo={includeFooter ? footerInfo : undefined}
+        />
+      );
+    }
+
+    if (layoutMode === "orderedBalancedFit") {
+      return (
+        <OrderedBalancedFitMenuGrid
+          fitRef={desktopFitMenuRef}
+          pageGroups={visiblePageGroups}
+          density={density}
+          data={data}
+          capabilities={capabilities}
+          customBadgeStyles={customBadgeStyles}
+          itemStackSpacing={itemStackSpacing}
+          outerGridGapClassName={outerGridGapClassName}
+          menuAreaClassName={menuAreaClassName}
+          columns={renderFitState.columns}
+          orderedBalancedBreaks={fitState.orderedBalancedBreaks}
+          timeSaleByItemId={timeSaleByItemId}
+          priceDisplayMode={priceDisplayMode}
+          onOpenImage={openMenuImagePreview}
+          footerInfo={includeFooter ? footerInfo : undefined}
+        />
+      );
+    }
+
+    return (
+      <MenuGroupsGrid
+        fitRef={desktopFitMenuRef}
+        pageGroups={visiblePageGroups}
+        density={density}
+        data={data}
+        capabilities={capabilities}
+        customBadgeStyles={customBadgeStyles}
+        itemStackSpacing={itemStackSpacing}
+        outerGridGapClassName={outerGridGapClassName}
+        menuAreaClassName={menuAreaClassName}
+        showPageTitles
+        timeSaleByItemId={timeSaleByItemId}
+        priceDisplayMode={priceDisplayMode}
+        onOpenImage={openMenuImagePreview}
+        footerInfo={includeFooter ? footerInfo : undefined}
+      />
+    );
+  };
+
   // CafeA skin shell: mobile scroll layout and desktop board share the same CafeA visual components.
   return (
     <CafeATimeSaleInitialNowContext.Provider value={initialNowMs}>
@@ -7742,77 +7954,61 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
             data-fit-overflow={fitState.overflow ? "true" : "false"}
             data-cafe-a-layout-input-signature={layoutInputSignature}
             data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
+            data-one-page-layout-shell={onePageLayoutShell}
             style={{ ...fitGapStyle, ...fitStyle, ...orderedFitFillStyle }}
           >
-            <DesktopFixedRail data={data}>
-              {shouldRenderMenuCoverSection && (
-                <CoverHero
-                  data={data}
-                  featuredSlides={featuredHeroSlides}
-                  capabilities={capabilities}
-                  density={density}
-                  customBadgeStyles={customBadgeStyles}
-                  priceDisplayMode={priceDisplayMode}
-                />
-              )}
-            </DesktopFixedRail>
-
-            {visiblePageGroups.length === 0 ? (
-              <section className={hasCoverSection ? "lg:col-span-3" : "lg:col-span-4"}>
-                <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
-              </section>
-            ) : layoutMode === "balanced" ? (
-              <BalancedExperimentalMenuGrid
-                fitRef={desktopFitMenuRef}
-                pageGroups={visiblePageGroups}
-                density={density}
-                data={data}
-                capabilities={capabilities}
-                customBadgeStyles={customBadgeStyles}
-                itemStackSpacing={itemStackSpacing}
-                outerGridGapClassName={outerGridGapClassName}
-                menuAreaClassName={menuAreaClassName}
-                columns={renderFitState.columns}
-                variant={fitState.balancedVariant}
-                timeSaleByItemId={timeSaleByItemId}
-                priceDisplayMode={priceDisplayMode}
-                onOpenImage={openMenuImagePreview}
-              />
-            ) : layoutMode === "orderedBalancedFit" ? (
-              <OrderedBalancedFitMenuGrid
-                fitRef={desktopFitMenuRef}
-                pageGroups={visiblePageGroups}
-                density={density}
-                data={data}
-                capabilities={capabilities}
-                customBadgeStyles={customBadgeStyles}
-                itemStackSpacing={itemStackSpacing}
-                outerGridGapClassName={outerGridGapClassName}
-                menuAreaClassName={menuAreaClassName}
-                columns={renderFitState.columns}
-                orderedBalancedBreaks={fitState.orderedBalancedBreaks}
-                timeSaleByItemId={timeSaleByItemId}
-                priceDisplayMode={priceDisplayMode}
-                onOpenImage={openMenuImagePreview}
-              />
+            {onePageLayoutShell === "brand_top_band" ? (
+              <>
+                <DesktopFixedRail data={data} variant={onePageLayoutShell}>{null}</DesktopFixedRail>
+                {renderDesktopMenuGrid()}
+                {shouldRenderMenuCoverSection && (
+                  <div className="cafe-a-shell-featured-slot min-w-0">
+                    <CoverHero
+                      data={data}
+                      featuredSlides={featuredHeroSlides}
+                      capabilities={capabilities}
+                      density={density}
+                      customBadgeStyles={customBadgeStyles}
+                      priceDisplayMode={priceDisplayMode}
+                    />
+                  </div>
+                )}
+                {footerInfo}
+              </>
+            ) : onePageLayoutShell === "brand_center_rail" ? (
+              <>
+                {renderDesktopMenuGrid({ centerRail: true, includeFooter: true })}
+                <DesktopFixedRail data={data} variant={onePageLayoutShell}>
+                  {shouldRenderMenuCoverSection && (
+                    <CoverHero
+                      data={data}
+                      featuredSlides={featuredHeroSlides}
+                      capabilities={capabilities}
+                      density={density}
+                      customBadgeStyles={customBadgeStyles}
+                      priceDisplayMode={priceDisplayMode}
+                    />
+                  )}
+                </DesktopFixedRail>
+              </>
             ) : (
-              <MenuGroupsGrid
-                fitRef={desktopFitMenuRef}
-                pageGroups={visiblePageGroups}
-                density={density}
-                data={data}
-                capabilities={capabilities}
-                customBadgeStyles={customBadgeStyles}
-                itemStackSpacing={itemStackSpacing}
-                outerGridGapClassName={outerGridGapClassName}
-                menuAreaClassName={menuAreaClassName}
-                showPageTitles
-                timeSaleByItemId={timeSaleByItemId}
-                priceDisplayMode={priceDisplayMode}
-                onOpenImage={openMenuImagePreview}
-              />
+              <>
+                <DesktopFixedRail data={data}>
+                  {shouldRenderMenuCoverSection && (
+                    <CoverHero
+                      data={data}
+                      featuredSlides={featuredHeroSlides}
+                      capabilities={capabilities}
+                      density={density}
+                      customBadgeStyles={customBadgeStyles}
+                      priceDisplayMode={priceDisplayMode}
+                    />
+                  )}
+                </DesktopFixedRail>
+                {renderDesktopMenuGrid()}
+                {footerInfo}
+              </>
             )}
-            {footerInfo}
           </div>
         </div>
       </main>

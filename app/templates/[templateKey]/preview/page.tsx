@@ -6,6 +6,7 @@ import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } fr
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { normalizeOnePageLayoutShell, supportsOnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
@@ -28,6 +29,7 @@ type PageProps = {
     qaCase?: string | string[];
     qaSplitImagePosition?: string | string[];
     footerStress?: string | string[];
+    layoutShell?: string | string[];
   }>;
 };
 
@@ -373,6 +375,36 @@ function applyPreviewFontSizeScale(data: MenuPageData, fontSizeScale: string | s
   };
 }
 
+function applyPreviewOnePageLayoutShell(data: MenuPageData, layoutShell: string | string[] | undefined): MenuPageData {
+  const rawLayoutShell = Array.isArray(layoutShell) ? layoutShell[0] : layoutShell;
+  if (!rawLayoutShell) return data;
+  if (!supportsOnePageLayoutShell(data.menuSite.template_key)) return data;
+
+  const normalizedLayoutShell = normalizeOnePageLayoutShell(rawLayoutShell);
+  const pageSettings = data.menuSite.page_settings && typeof data.menuSite.page_settings === "object" && !Array.isArray(data.menuSite.page_settings)
+    ? (data.menuSite.page_settings as Record<string, unknown>)
+    : {};
+  const designSettings = pageSettings.design && typeof pageSettings.design === "object" && !Array.isArray(pageSettings.design)
+    ? (pageSettings.design as Record<string, unknown>)
+    : {};
+  const nextPageSettings = {
+    ...pageSettings,
+    design: {
+      ...designSettings,
+      onePageLayoutShell: normalizedLayoutShell,
+    },
+  };
+
+  return {
+    ...data,
+    pageSettings: nextPageSettings as unknown as MenuPageData["pageSettings"],
+    menuSite: {
+      ...data.menuSite,
+      page_settings: nextPageSettings as unknown as MenuPageData["menuSite"]["page_settings"],
+    },
+  };
+}
+
 function isPreviewFlagEnabled(value: string | string[] | undefined) {
   const rawValue = Array.isArray(value) ? value[0] : value;
   return rawValue === "1" || rawValue === "true" || rawValue === "yes";
@@ -505,15 +537,18 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     notFound();
   }
 
-  const data = applyPreviewFontSizeScale(
-    applyDisplayPreviewSplitImagePosition(
-      applyCafeAFooterStressData(
-        buildPreviewData(templateKey, displayPreviewQaCase),
-        resolvedSearchParams.footerStress
+  const data = applyPreviewOnePageLayoutShell(
+    applyPreviewFontSizeScale(
+      applyDisplayPreviewSplitImagePosition(
+        applyCafeAFooterStressData(
+          buildPreviewData(templateKey, displayPreviewQaCase),
+          resolvedSearchParams.footerStress
+        ),
+        displayPreviewSplitImagePosition
       ),
-      displayPreviewSplitImagePosition
+      resolvedSearchParams.fontSizeScale
     ),
-    resolvedSearchParams.fontSizeScale
+    resolvedSearchParams.layoutShell
   );
 
   return (
