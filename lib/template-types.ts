@@ -84,7 +84,6 @@ export const TEMPLATE_TYPE_OPTIONS_BY_SERVICE = {
 const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]> = {
   basic: [
     "cafe_design_a",
-    "cafe_noir_a",
     "cafe_design_b",
     "cafe_design_c",
     "fine_dining_design_a",

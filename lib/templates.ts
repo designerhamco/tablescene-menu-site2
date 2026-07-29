@@ -216,11 +216,11 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
   display_menu_a: "시원하고 선명한 화면 구성이 돋보이는 디스플레이 템플릿입니다.\n카페와 베이커리 매장의 메뉴를 TV·모니터에 보기 좋게 보여줍니다.",
 };
 
-const availableTemplateKeys = ["cafe_design_a", "cafe_noir_a", "display_menu_a"] as const satisfies readonly string[];
+const availableTemplateKeys = ["cafe_design_a", "display_menu_a"] as const satisfies readonly string[];
+const hiddenTemplateKeys = ["cafe_noir_a"] as const satisfies readonly string[];
 
 const featuredHomeTemplateKeys = [
   "cafe_design_a",
-  "cafe_noir_a",
   "cafe_design_b",
   "cafe_design_c",
   "casual_dining_design_a",
@@ -228,7 +228,6 @@ const featuredHomeTemplateKeys = [
 
 const featuredBasicTemplateKeys = [
   "cafe_design_a",
-  "cafe_noir_a",
   "cafe_design_b",
   "cafe_design_c",
   "fine_dining_design_a",
@@ -242,6 +241,7 @@ const featuredDisplayTemplateKeys = [
 ] as const satisfies readonly string[];
 
 function getTemplateCatalogStatus(templateKey: string): TemplateCatalogStatus {
+  if (hiddenTemplateKeys.includes(templateKey as (typeof hiddenTemplateKeys)[number])) return "hidden";
   return availableTemplateKeys.includes(templateKey as (typeof availableTemplateKeys)[number]) ? "available" : "coming_soon";
 }
 
