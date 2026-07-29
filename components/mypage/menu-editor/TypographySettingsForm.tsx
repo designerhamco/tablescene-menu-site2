@@ -21,11 +21,18 @@ import {
   type KoreanFontValue,
 } from "@/lib/font-options";
 import {
-  getFontSizeMultiplier,
+  TYPOGRAPHY_ROLE_KEYS,
+  TYPOGRAPHY_ROLE_SIZE_OPTIONS,
+  TYPOGRAPHY_ROLE_WEIGHT_OPTIONS,
+  createDefaultTypographyRoleSettings,
   getFontSizeScaleOptionsForTemplate,
+  getTypographyCssVariables,
+  getTypographyRoleFontLoadAssets,
   isDisplayTypographyTemplate,
   normalizeFontSizeScaleKeyForTemplate,
   type FontSizeScaleKey,
+  type TypographyRoleKey,
+  type TypographyRoleSettings,
 } from "@/lib/template-typography-presets";
 import type { TemplateType } from "@/lib/template-types";
 
@@ -38,9 +45,20 @@ type TypographySettingsFormProps = {
   hasCustomKoreanFont: boolean;
   hasCustomEnglishFont: boolean;
   initialFontSizeScale: FontSizeScaleKey;
+  initialRoleSettings: TypographyRoleSettings;
   templateType: TemplateType;
   templateKey?: string | null;
 };
+
+type RoleFontSelectValue = "" | KoreanFontValue | EnglishFontValue;
+
+const TYPOGRAPHY_ROLE_LABELS = {
+  brand: "매장명·브랜드명",
+  category: "카테고리명",
+  itemName: "메뉴명",
+  supporting: "보조 문구",
+  price: "가격",
+} as const satisfies Record<TypographyRoleKey, string>;
 
 type FontDropdownProps<Value extends string> = {
   label: string;
@@ -149,10 +167,12 @@ export default function TypographySettingsForm({
   hasCustomKoreanFont,
   hasCustomEnglishFont,
   initialFontSizeScale,
+  initialRoleSettings,
   templateType,
   templateKey,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
+  const showRoleTypographyControl = templateKey === "cafe_design_a";
   const showFontSizeControl = getTemplateCapabilities(templateKey).typographyFontSizeControl === "simple";
   const fontSizeScaleOptions = getFontSizeScaleOptionsForTemplate(templateKey);
   const initialDisplaySafeFontSizeScale = normalizeFontSizeScaleKeyForTemplate(initialFontSizeScale, templateKey);
@@ -166,6 +186,7 @@ export default function TypographySettingsForm({
     hasCustomEnglishFont ? getSafeEnglishFontValueForTemplate(templateKey, initialEnglishFont.value) : "",
   );
   const [selectedFontSizeScale, setSelectedFontSizeScale] = useState<FontSizeScaleKey>(initialDisplaySafeFontSizeScale);
+  const [selectedRoleSettings, setSelectedRoleSettings] = useState<TypographyRoleSettings>(initialRoleSettings);
   const safeSelectedEnglishFontValue = selectedEnglishFontValue
     ? getSafeEnglishFontValueForTemplate(templateKey, selectedEnglishFontValue)
     : "";
@@ -174,12 +195,37 @@ export default function TypographySettingsForm({
     () => getEnglishFontOption(safeSelectedEnglishFontValue) ?? safeDefaultEnglishFont,
     [safeDefaultEnglishFont, safeSelectedEnglishFontValue],
   );
-  const previewFontSizeScale = getFontSizeMultiplier(selectedFontSizeScale, templateKey);
+  const previewTypographySettings = useMemo(
+    () => ({
+      korean_font_key: previewKoreanFont.value,
+      english_font_key: previewEnglishFont.value,
+      font_size_scale_key: selectedFontSizeScale,
+      typography_roles: selectedRoleSettings,
+    }),
+    [previewEnglishFont.value, previewKoreanFont.value, selectedFontSizeScale, selectedRoleSettings],
+  );
+  const previewTypographyStyle = useMemo(() => getTypographyCssVariables(previewTypographySettings, templateKey), [previewTypographySettings, templateKey]);
   const editorFontAssets = useMemo(
-    () => [getFontLoadAssets(previewKoreanFont), getFontLoadAssets(previewEnglishFont)],
-    [previewEnglishFont, previewKoreanFont],
+    () => [getFontLoadAssets(previewKoreanFont), getFontLoadAssets(previewEnglishFont), ...getTypographyRoleFontLoadAssets(selectedRoleSettings)],
+    [previewEnglishFont, previewKoreanFont, selectedRoleSettings],
   );
   const isPriceList = templateType === "price_list";
+  const roleFontOptions = useMemo(() => {
+    const options: { label: string; value: RoleFontSelectValue; group: "korean" | "english" }[] = [];
+    KOREAN_FONT_OPTIONS.forEach((option) => options.push({ label: option.label, value: option.value, group: "korean" }));
+    englishFontOptions.forEach((option) => options.push({ label: option.label, value: option.value, group: "english" }));
+    return options;
+  }, [englishFontOptions]);
+
+  function updateRoleSetting(role: TypographyRoleKey, key: "font_key" | "size" | "weight", value: string) {
+    setSelectedRoleSettings((current) => ({
+      ...current,
+      [role]: {
+        ...current[role],
+        [key]: key === "font_key" ? (value ? value : null) : value,
+      },
+    }) as TypographyRoleSettings);
+  }
 
   return (
     <div className="mt-5 space-y-5">
@@ -212,6 +258,87 @@ export default function TypographySettingsForm({
         <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
           고객에게는 폰트 이름만 표시됩니다. 웹폰트 주소와 CSS font-family 값은 코드에서 관리합니다.
         </p>
+
+        {showRoleTypographyControl ? (
+        <section className="rounded-lg border border-zinc-200 bg-white p-4">
+          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+            <div>
+              <h4 className="text-sm font-black text-zinc-950">역할별 글자 설정</h4>
+              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                필요한 역할만 전체 폰트 설정과 다르게 조정합니다. 비워두면 템플릿과 전체 설정을 그대로 따릅니다.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedRoleSettings(createDefaultTypographyRoleSettings())}
+              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-400 hover:bg-white hover:text-zinc-950"
+            >
+              역할별 설정 초기화
+            </button>
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <div className="min-w-[720px] divide-y divide-zinc-100 rounded-lg border border-zinc-100">
+              {TYPOGRAPHY_ROLE_KEYS.map((role) => {
+                const setting = selectedRoleSettings[role];
+                const fontValue = setting.font_key ?? "";
+
+                return (
+                  <div key={role} className="grid grid-cols-[1.25fr_1.5fr_0.82fr_0.9fr] items-center gap-3 px-3 py-3">
+                    <p className="break-keep text-sm font-black text-zinc-800">{TYPOGRAPHY_ROLE_LABELS[role]}</p>
+                    <label className="sr-only" htmlFor={`typography-role-${role}-font`}>{TYPOGRAPHY_ROLE_LABELS[role]} 폰트</label>
+                    <select
+                      id={`typography-role-${role}-font`}
+                      form={formId}
+                      name={`typography_role_${role}_font_key`}
+                      value={fontValue}
+                      onChange={(event) => updateRoleSetting(role, "font_key", event.target.value)}
+                      className="h-10 rounded-md border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 outline-none transition focus:border-zinc-950"
+                    >
+                      <option value="">전체 설정 따름</option>
+                      <optgroup label="한글 폰트">
+                        {roleFontOptions.filter((option) => option.group === "korean").map((option) => (
+                          <option key={`ko-${role}-${option.value}`} value={option.value}>{option.label}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="영문/숫자 폰트">
+                        {roleFontOptions.filter((option) => option.group === "english").map((option) => (
+                          <option key={`en-${role}-${option.value}`} value={option.value}>{option.label}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                    <label className="sr-only" htmlFor={`typography-role-${role}-size`}>{TYPOGRAPHY_ROLE_LABELS[role]} 크기</label>
+                    <select
+                      id={`typography-role-${role}-size`}
+                      form={formId}
+                      name={`typography_role_${role}_size`}
+                      value={setting.size}
+                      onChange={(event) => updateRoleSetting(role, "size", event.target.value)}
+                      className="h-10 rounded-md border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 outline-none transition focus:border-zinc-950"
+                    >
+                      {TYPOGRAPHY_ROLE_SIZE_OPTIONS.map((option) => (
+                        <option key={`${role}-size-${option.key}`} value={option.key}>{option.label}</option>
+                      ))}
+                    </select>
+                    <label className="sr-only" htmlFor={`typography-role-${role}-weight`}>{TYPOGRAPHY_ROLE_LABELS[role]} 굵기</label>
+                    <select
+                      id={`typography-role-${role}-weight`}
+                      form={formId}
+                      name={`typography_role_${role}_weight`}
+                      value={setting.weight}
+                      onChange={(event) => updateRoleSetting(role, "weight", event.target.value)}
+                      className="h-10 rounded-md border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 outline-none transition focus:border-zinc-950"
+                    >
+                      {TYPOGRAPHY_ROLE_WEIGHT_OPTIONS.map((option) => (
+                        <option key={`${role}-weight-${option.key}`} value={option.key}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+        ) : null}
 
         <div>
           <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
@@ -271,9 +398,7 @@ export default function TypographySettingsForm({
         <section
           className="menu-typography rounded-lg border border-zinc-200 bg-white p-5 text-zinc-950"
           style={{
-            "--menu-font-ko": previewKoreanFont.fontFamily,
-            "--menu-font-en": previewEnglishFont.fontFamily,
-            "--menu-font-size-scale": String(previewFontSizeScale),
+            ...previewTypographyStyle,
             fontFamily: "var(--menu-font-ko)",
           } as CSSProperties}
         >
@@ -290,7 +415,14 @@ export default function TypographySettingsForm({
           </div>
           <div className="mt-4 overflow-hidden rounded-md border border-[#DDE8E7] bg-[#F8FEFD] p-4 shadow-sm">
             <div className="grid grid-cols-[minmax(0,1fr)_2.75rem_2.75rem] items-end gap-3">
-              <h5 className="break-keep text-base font-black uppercase leading-tight text-[#007C89]">
+              <h5
+                className="break-keep font-black uppercase leading-tight text-[#007C89]"
+                style={{
+                  fontFamily: "var(--menu-role-category-font-family, inherit)",
+                  fontSize: "calc(1rem * var(--menu-font-size-scale, 1) * var(--menu-role-category-size-scale, 1))",
+                  fontWeight: "var(--menu-role-category-font-weight, 900)",
+                }}
+              >
                 {isPriceList ? "SIGNATURE CARE" : "SIGNATURE COFFEE"}
               </h5>
               {["HOT", "ICE"].map((label) => (
@@ -309,12 +441,48 @@ export default function TypographySettingsForm({
                 <div key={item.en} className="grid grid-cols-[minmax(0,1fr)_2.75rem_2.75rem_auto] items-baseline gap-3">
                   <div className="min-w-0">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <p className="break-keep text-sm font-black leading-tight text-[#17211F]">{item.ko}</p>
-                      <p className="menu-font-en min-w-0 break-words text-[11px] font-bold uppercase leading-tight text-[#5F6F6B]">{item.en}</p>
+                      <p
+                        className="break-keep font-black leading-tight text-[#17211F]"
+                        style={{
+                          fontFamily: "var(--menu-role-item-name-font-family, inherit)",
+                          fontSize: "calc(0.875rem * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1))",
+                          fontWeight: "var(--menu-role-item-name-font-weight, 700)",
+                        }}
+                      >
+                        {item.ko}
+                      </p>
+                      <p
+                        className="menu-font-en min-w-0 break-words font-bold uppercase leading-tight text-[#5F6F6B]"
+                        style={{
+                          fontFamily: "var(--menu-role-supporting-font-family, inherit)",
+                          fontSize: "calc(0.6875rem * var(--menu-font-size-scale, 1) * var(--menu-role-supporting-size-scale, 1))",
+                          fontWeight: "var(--menu-role-supporting-font-weight, 700)",
+                        }}
+                      >
+                        {item.en}
+                      </p>
                     </div>
                   </div>
-                  <span className="menu-font-en text-center text-sm font-black leading-none text-[#17211F]">{item.hot}</span>
-                  <span className="menu-font-en text-center text-sm font-black leading-none text-[#17211F]">{item.ice}</span>
+                  <span
+                    className="menu-font-en text-center font-black leading-none text-[#17211F]"
+                    style={{
+                      fontFamily: "var(--menu-role-price-font-family, inherit)",
+                      fontSize: "calc(0.875rem * var(--menu-font-size-scale, 1) * var(--menu-role-price-size-scale, 1))",
+                      fontWeight: "var(--menu-role-price-font-weight, 900)",
+                    }}
+                  >
+                    {item.hot}
+                  </span>
+                  <span
+                    className="menu-font-en text-center font-black leading-none text-[#17211F]"
+                    style={{
+                      fontFamily: "var(--menu-role-price-font-family, inherit)",
+                      fontSize: "calc(0.875rem * var(--menu-font-size-scale, 1) * var(--menu-role-price-size-scale, 1))",
+                      fontWeight: "var(--menu-role-price-font-weight, 900)",
+                    }}
+                  >
+                    {item.ice}
+                  </span>
                   <span className="menu-font-en rounded-[3px] bg-[#D7F4F3] px-1.5 py-0.5 text-[10px] font-black uppercase text-[#007C89]">
                     {item.badge}
                   </span>

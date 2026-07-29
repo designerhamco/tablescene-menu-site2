@@ -81,8 +81,9 @@
 
 .title {
   color: var(--cafe-a-widget-ink);
-  font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-title-size, 1rem) * var(--menu-font-size-scale, 1)), 1.28rem);
-  font-weight: 700;
+  font-family: var(--menu-role-item-name-font-family, inherit);
+  font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-title-size, 1rem) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)), 1.28rem);
+  font-weight: var(--menu-role-item-name-font-weight, 700);
   letter-spacing: 0;
   line-height: 1.375;
   margin: 0;
@@ -90,8 +91,9 @@
 
 .body {
   color: #3f4945;
-  font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size, 0.8125rem) * var(--menu-font-size-scale, 1)), 1rem);
-  font-weight: 400;
+  font-family: var(--menu-role-supporting-font-family, inherit);
+  font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size, 0.8125rem) * var(--menu-font-size-scale, 1) * var(--menu-role-supporting-size-scale, 1)), 1rem);
+  font-weight: var(--menu-role-supporting-font-weight, 400);
   letter-spacing: 0;
   line-height: 1.45;
   margin: var(--cafe-a-menu-name-to-description-gap, clamp(0.24rem, calc(0.38rem * var(--cafe-a-widget-gap-scale)), 0.42rem)) 0 0;

@@ -51,7 +51,9 @@ import {
   getEnglishFontLoadAssets,
   getKoreanFontLoadAssets,
   getTypographyCssVariables,
+  getTypographyRoleFontLoadAssets,
   mergeTypographySettings,
+  type TypographySettings,
 } from "@/lib/template-typography-presets";
 import { formatMenuPrice, shouldShowMenuItemTraits } from "@/types/menu";
 
@@ -4786,7 +4788,7 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
   const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
-  const typographyStyle = getTypographyCssVariables(typographySettings);
+  const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
   const pageGroups = publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [];
   const menuGroups = getFlatMenuGroups(pageGroups);
   const menuColumns = getCafeNoirMenuColumns(menuGroups);
@@ -5057,6 +5059,14 @@ function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; 
       </div>
     </header>
   );
+}
+
+function CafeATypographyFontAssets({ typographySettings }: { typographySettings: TypographySettings }) {
+  const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
+  const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
+  const roleFontAssets = getTypographyRoleFontLoadAssets(typographySettings.typography_roles);
+
+  return <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets, ...roleFontAssets]} />;
 }
 
 function DesktopFixedRail({
@@ -5518,8 +5528,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const publicCapabilities = getMenuPublicCapabilities(data.publicServiceType);
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
-  const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
-  const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
+  const typographySizeScaleKey = typographySettings.font_size_scale_key;
   const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
   const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
   const featuredHeroSlides = getFeaturedHeroSlides(data, capabilities);
@@ -5590,7 +5599,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   const desktopGridClassName = getDesktopGridClassName(hasCoverSection);
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
-  const typographyStyle = getTypographyCssVariables(typographySettings);
+  const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
   const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
@@ -5682,7 +5691,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
         visibleWidgetCount,
         visibleContentBlockCount,
         visibleImageSignature,
-        typographySettings.font_size_scale_key,
+        typographySizeScaleKey,
         density,
         data.publicServiceType,
       ].join("|"),
@@ -5692,7 +5701,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
       data.publicServiceType,
       density,
       layoutMode,
-      typographySettings.font_size_scale_key,
+      typographySizeScaleKey,
       visibleCategoryCount,
       visibleContentBlockCount,
       visibleImageSignature,
@@ -7640,7 +7649,7 @@ function CafeDesignAClassic(data: PublicMenuTemplateProps) {
   // CafeA skin shell: mobile scroll layout and desktop board share the same CafeA visual components.
   return (
     <CafeATimeSaleInitialNowContext.Provider value={initialNowMs}>
-      <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
+      <CafeATypographyFontAssets typographySettings={typographySettings} />
       <main
         className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}

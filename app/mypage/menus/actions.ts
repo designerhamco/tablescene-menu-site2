@@ -110,7 +110,13 @@ import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapa
 import { getTemplateCategoryFromKey, isTemplateCategoryKey, isTemplateSupportedForService, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
-import { normalizeFontSizeScaleKeyForTemplate } from "@/lib/template-typography-presets";
+import {
+  TYPOGRAPHY_ROLE_KEYS,
+  hasCustomTypographyRoleSettings,
+  normalizeFontSizeScaleKeyForTemplate,
+  normalizeTypographyRoleSettings,
+  type TypographyRoleSettings,
+} from "@/lib/template-typography-presets";
 import {
   FEATURED_SLIDES_PAGE_SETTINGS_KEY,
   hasFeaturedSlidesSetting,
@@ -1643,6 +1649,28 @@ async function saveBadgeStyleFromMenuItemForm(
   if (error) redirectToMenuEditWithError(menuId, `배지 색상 저장에 실패했습니다: ${error.message}`);
 }
 
+function getTypographyRoleSettingsFromFormData(formData: FormData, templateKey?: string | null): TypographyRoleSettings {
+  const rawRoles = TYPOGRAPHY_ROLE_KEYS.reduce((roles, role) => {
+    roles[role] = {
+      font_key: getString(formData, `typography_role_${role}_font_key`),
+      size: getString(formData, `typography_role_${role}_size`),
+      weight: getString(formData, `typography_role_${role}_weight`),
+    };
+    return roles;
+  }, {} as Record<string, Record<string, string>>);
+
+  return normalizeTypographyRoleSettings(rawRoles, templateKey);
+}
+
+function setDesignTypographyRoleSettings(designSettings: Record<string, unknown>, roleSettings: TypographyRoleSettings) {
+  if (hasCustomTypographyRoleSettings(roleSettings)) {
+    designSettings.typographyRoles = roleSettings;
+  } else {
+    delete designSettings.typographyRoles;
+  }
+  delete designSettings.typography_roles;
+}
+
 export async function updateTypographySettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
@@ -1660,6 +1688,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
+  const typographyRoleSettings = getTypographyRoleSettingsFromFormData(formData, menuSite.template_key);
   const pageSettings = getJsonObject(menuSite.page_settings);
   const designSettings = getJsonObject(pageSettings.design);
 
@@ -1676,6 +1705,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
   }
 
   designSettings.fontSizeScale = fontSizeScaleKey;
+  setDesignTypographyRoleSettings(designSettings, typographyRoleSettings);
 
   if (Object.keys(designSettings).length > 0) {
     pageSettings.design = designSettings;
@@ -2675,9 +2705,13 @@ export async function resetTypographySettingsAction(formData: FormData) {
   delete pageSettings.typography;
   delete pageSettings.koreanFont;
   delete pageSettings.englishFont;
+  delete pageSettings.typographyRoles;
+  delete pageSettings.typography_roles;
   delete designSettings.koreanFont;
   delete designSettings.englishFont;
   delete designSettings.fontSizeScale;
+  delete designSettings.typographyRoles;
+  delete designSettings.typography_roles;
   if (Object.keys(designSettings).length > 0) {
     pageSettings.design = designSettings;
   } else {
@@ -2718,6 +2752,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
+  const typographyRoleSettings = getTypographyRoleSettingsFromFormData(formData, menuSite.template_key);
   const pageSettings = getJsonObject(menuSite.page_settings);
   const designSettings = getJsonObject(pageSettings.design);
 
@@ -2736,12 +2771,15 @@ export async function updateDesignSettingsAction(formData: FormData) {
   }
 
   designSettings.fontSizeScale = fontSizeScaleKey;
+  setDesignTypographyRoleSettings(designSettings, typographyRoleSettings);
 
   pageSettings.design = designSettings;
   delete pageSettings.backgroundColor;
   delete pageSettings.koreanFont;
   delete pageSettings.englishFont;
   delete pageSettings.fontSizeScale;
+  delete pageSettings.typographyRoles;
+  delete pageSettings.typography_roles;
 
   const { error } = await supabase
     .from("menu_sites")
@@ -2889,6 +2927,8 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete designSettings.koreanFont;
   delete designSettings.englishFont;
   delete designSettings.fontSizeScale;
+  delete designSettings.typographyRoles;
+  delete designSettings.typography_roles;
   if (Object.keys(designSettings).length > 0) {
     pageSettings.design = designSettings;
   } else {
@@ -2898,6 +2938,8 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete pageSettings.koreanFont;
   delete pageSettings.englishFont;
   delete pageSettings.fontSizeScale;
+  delete pageSettings.typographyRoles;
+  delete pageSettings.typography_roles;
 
   const { error } = await supabase
     .from("menu_sites")

@@ -22,11 +22,24 @@ import {
 export type KoreanFontKey = KoreanFontValue;
 export type EnglishFontKey = EnglishFontValue;
 export type FontSizeScaleKey = "s" | "m" | "l";
+export type TypographyRoleKey = "brand" | "category" | "itemName" | "supporting" | "price";
+export type TypographyRoleSizeKey = "inherit" | "s" | "m" | "l";
+export type TypographyRoleWeightKey = "inherit" | "regular" | "medium" | "bold";
+export type TypographyRoleFontKey = KoreanFontKey | EnglishFontKey;
+
+export type TypographyRoleSetting = {
+  font_key: TypographyRoleFontKey | null;
+  size: TypographyRoleSizeKey;
+  weight: TypographyRoleWeightKey;
+};
+
+export type TypographyRoleSettings = Record<TypographyRoleKey, TypographyRoleSetting>;
 
 export type TypographySettings = {
   korean_font_key: KoreanFontKey;
   english_font_key: EnglishFontKey;
   font_size_scale_key: FontSizeScaleKey;
+  typography_roles: TypographyRoleSettings;
 };
 
 export type FontOption<Key extends string> = {
@@ -65,10 +78,27 @@ export const DISPLAY_FONT_SIZE_SCALE_OPTIONS = [
   { key: "l", label: "L", description: "조금 더 크게", scale: 1.16 },
 ] as const satisfies readonly { key: FontSizeScaleKey; label: string; description: string; scale: number }[];
 
+export const TYPOGRAPHY_ROLE_KEYS = ["brand", "category", "itemName", "supporting", "price"] as const satisfies readonly TypographyRoleKey[];
+
+export const TYPOGRAPHY_ROLE_SIZE_OPTIONS = [
+  { key: "inherit", label: "전체 설정", scale: 1 },
+  { key: "s", label: "S", scale: 0.94 },
+  { key: "m", label: "M", scale: 1 },
+  { key: "l", label: "L", scale: 1.06 },
+] as const satisfies readonly { key: TypographyRoleSizeKey; label: string; scale: number }[];
+
+export const TYPOGRAPHY_ROLE_WEIGHT_OPTIONS = [
+  { key: "inherit", label: "기본 굵기", value: null },
+  { key: "regular", label: "보통", value: "400" },
+  { key: "medium", label: "중간", value: "500" },
+  { key: "bold", label: "굵게", value: "700" },
+] as const satisfies readonly { key: TypographyRoleWeightKey; label: string; value: string | null }[];
+
 export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
   korean_font_key: "pretendard",
   english_font_key: "outfit",
   font_size_scale_key: "m",
+  typography_roles: createDefaultTypographyRoleSettings(),
 };
 
 export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySettings>> = {
@@ -108,6 +138,8 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
 };
 
 const fontSizeScaleKeys = new Set<FontSizeScaleKey>(FONT_SIZE_SCALE_OPTIONS.map((option) => option.key));
+const typographyRoleSizeKeys = new Set<TypographyRoleSizeKey>(TYPOGRAPHY_ROLE_SIZE_OPTIONS.map((option) => option.key));
+const typographyRoleWeightKeys = new Set<TypographyRoleWeightKey>(TYPOGRAPHY_ROLE_WEIGHT_OPTIONS.map((option) => option.key));
 
 const LEGACY_KOREAN_FONT_KEY_MAP: Record<string, KoreanFontKey> = {
   default_ko: "pretendard",
@@ -167,6 +199,17 @@ function getRecord(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 }
 
+export function createDefaultTypographyRoleSettings(): TypographyRoleSettings {
+  return TYPOGRAPHY_ROLE_KEYS.reduce((settings, role) => {
+    settings[role] = {
+      font_key: null,
+      size: "inherit",
+      weight: "inherit",
+    };
+    return settings;
+  }, {} as TypographyRoleSettings);
+}
+
 export function getDefaultTypographyPreset(templateKey?: string | null): TypographySettings {
   const preset = templateKey ? TEMPLATE_TYPOGRAPHY_PRESETS[templateKey] : null;
 
@@ -177,6 +220,7 @@ export function getDefaultTypographyPreset(templateKey?: string | null): Typogra
       preset?.font_size_scale_key ?? DEFAULT_TYPOGRAPHY_PRESET.font_size_scale_key,
       templateKey
     ),
+    typography_roles: createDefaultTypographyRoleSettings(),
   };
 }
 
@@ -192,6 +236,52 @@ function normalizeEnglishFontKey(value: unknown): EnglishFontKey | null {
   return null;
 }
 
+function normalizeTypographyRoleSize(value: unknown): TypographyRoleSizeKey {
+  if (typeof value !== "string") return "inherit";
+  const normalized = value.trim().toLowerCase();
+  return typographyRoleSizeKeys.has(normalized as TypographyRoleSizeKey) ? (normalized as TypographyRoleSizeKey) : "inherit";
+}
+
+function normalizeTypographyRoleWeight(value: unknown): TypographyRoleWeightKey {
+  if (typeof value !== "string") return "inherit";
+  const normalized = value.trim().toLowerCase();
+  return typographyRoleWeightKeys.has(normalized as TypographyRoleWeightKey) ? (normalized as TypographyRoleWeightKey) : "inherit";
+}
+
+function normalizeTypographyRoleFontKey(value: unknown, templateKey?: string | null): TypographyRoleFontKey | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  if (!normalized || normalized === "inherit") return null;
+  if (isKoreanFontValue(normalized)) return normalized;
+  if (isEnglishFontValue(normalized)) return getSafeEnglishFontValueForTemplate(templateKey, normalized);
+  return null;
+}
+
+export function normalizeTypographyRoleSettings(value: unknown, templateKey?: string | null): TypographyRoleSettings {
+  const defaults = createDefaultTypographyRoleSettings();
+  const record = getRecord(value);
+  if (!record) return defaults;
+
+  TYPOGRAPHY_ROLE_KEYS.forEach((role) => {
+    const rawRole = getRecord(record[role]);
+    if (!rawRole) return;
+    defaults[role] = {
+      font_key: normalizeTypographyRoleFontKey(rawRole.font_key ?? rawRole.fontKey, templateKey),
+      size: normalizeTypographyRoleSize(rawRole.size),
+      weight: normalizeTypographyRoleWeight(rawRole.weight),
+    };
+  });
+
+  return defaults;
+}
+
+export function hasCustomTypographyRoleSettings(settings: TypographyRoleSettings): boolean {
+  return TYPOGRAPHY_ROLE_KEYS.some((role) => {
+    const setting = settings[role];
+    return Boolean(setting.font_key) || setting.size !== "inherit" || setting.weight !== "inherit";
+  });
+}
+
 export function normalizeTypographySettings(value: unknown): Partial<TypographySettings> | null {
   const record = getRecord(value);
   if (!record) return null;
@@ -203,6 +293,8 @@ export function normalizeTypographySettings(value: unknown): Partial<TypographyS
   if (koreanFontKey) settings.korean_font_key = koreanFontKey;
   if (englishFontKey) settings.english_font_key = englishFontKey;
   if ("font_size_scale_key" in record) settings.font_size_scale_key = normalizeFontSizeScaleKey(record.font_size_scale_key);
+  if ("typography_roles" in record) settings.typography_roles = normalizeTypographyRoleSettings(record.typography_roles);
+  if ("typographyRoles" in record) settings.typography_roles = normalizeTypographyRoleSettings(record.typographyRoles);
 
   return Object.keys(settings).length > 0 ? settings : null;
 }
@@ -220,11 +312,15 @@ export function getCustomTypographySettings(settings: unknown, pageSettings?: un
         ? normalizeFontSizeScaleKey(designRecord.font_size_scale_key)
         : null;
   const legacyTypography = normalizeTypographySettings(settingsRecord?.typography) ?? normalizeTypographySettings(pageSettingsRecord?.typography);
+  const designTypographyRoles = designRecord
+    ? normalizeTypographyRoleSettings(designRecord.typographyRoles ?? designRecord.typography_roles)
+    : null;
   const mergedSettings = {
     ...(legacyTypography ?? {}),
     ...(designKoreanFont ? { korean_font_key: designKoreanFont } : {}),
     ...(designEnglishFont ? { english_font_key: designEnglishFont } : {}),
     ...(designFontSizeScale ? { font_size_scale_key: designFontSizeScale } : {}),
+    ...(designTypographyRoles && hasCustomTypographyRoleSettings(designTypographyRoles) ? { typography_roles: designTypographyRoles } : {}),
   } satisfies Partial<TypographySettings>;
 
   return Object.keys(mergedSettings).length > 0 ? mergedSettings : null;
@@ -238,6 +334,7 @@ export function mergeTypographySettings(templateKey?: string | null, customTypog
     korean_font_key: custom?.korean_font_key ?? defaults.korean_font_key,
     english_font_key: getSafeEnglishFontValueForTemplate(templateKey, custom?.english_font_key ?? defaults.english_font_key),
     font_size_scale_key: normalizeFontSizeScaleKeyForTemplate(custom?.font_size_scale_key ?? defaults.font_size_scale_key, templateKey),
+    typography_roles: normalizeTypographyRoleSettings(custom?.typography_roles ?? defaults.typography_roles, templateKey),
   };
 }
 
@@ -266,10 +363,49 @@ export function getEnglishFontLoadAssets(fontKey: EnglishFontKey): FontLoadAsset
   return getFontLoadAssets(getEnglishFontOption(fontKey) ?? getDefaultEnglishFontForTemplate());
 }
 
+function getTypographyRoleSizeMultiplier(sizeKey: TypographyRoleSizeKey) {
+  return TYPOGRAPHY_ROLE_SIZE_OPTIONS.find((option) => option.key === sizeKey)?.scale ?? 1;
+}
+
+function getTypographyRoleWeightValue(weightKey: TypographyRoleWeightKey) {
+  return TYPOGRAPHY_ROLE_WEIGHT_OPTIONS.find((option) => option.key === weightKey)?.value ?? null;
+}
+
+function getTypographyRoleFontFamily(fontKey: TypographyRoleFontKey | null) {
+  if (!fontKey) return null;
+  if (isKoreanFontValue(fontKey)) return getKoreanFontFamily(fontKey);
+  return getEnglishFontFamily(fontKey);
+}
+
+export function getTypographyRoleFontLoadAssets(settings: TypographyRoleSettings): FontLoadAssets[] {
+  const assets = new Map<string, FontLoadAssets>();
+  TYPOGRAPHY_ROLE_KEYS.forEach((role) => {
+    const fontKey = settings[role].font_key;
+    if (!fontKey) return;
+    const asset = isKoreanFontValue(fontKey)
+      ? getFontLoadAssets(getKoreanFontOption(fontKey) ?? getDefaultKoreanFontForTemplate())
+      : getFontLoadAssets(getEnglishFontOption(fontKey) ?? getDefaultEnglishFontForTemplate());
+    assets.set(asset.key, asset);
+  });
+  return [...assets.values()];
+}
+
 export function getTypographyCssVariables(settings: TypographySettings, templateKey?: string | null): CSSProperties {
-  return {
+  const cssVariables: Record<string, string> = {
     "--menu-font-ko": getKoreanFontFamily(settings.korean_font_key),
     "--menu-font-en": getEnglishFontFamily(settings.english_font_key),
     "--menu-font-size-scale": String(getFontSizeMultiplier(settings.font_size_scale_key, templateKey)),
-  } as CSSProperties;
+  };
+
+  TYPOGRAPHY_ROLE_KEYS.forEach((role) => {
+    const setting = settings.typography_roles[role];
+    const cssRoleKey = role.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+    cssVariables[`--menu-role-${cssRoleKey}-size-scale`] = String(getTypographyRoleSizeMultiplier(setting.size));
+    const fontFamily = getTypographyRoleFontFamily(setting.font_key);
+    if (fontFamily) cssVariables[`--menu-role-${cssRoleKey}-font-family`] = fontFamily;
+    const weightValue = getTypographyRoleWeightValue(setting.weight);
+    if (weightValue) cssVariables[`--menu-role-${cssRoleKey}-font-weight`] = weightValue;
+  });
+
+  return cssVariables as CSSProperties;
 }
