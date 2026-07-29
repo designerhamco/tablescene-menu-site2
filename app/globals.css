@@ -208,6 +208,7 @@ video {
   --cafe-a-menu-description-size: 0.8125rem;
   --cafe-a-menu-price-size: 1.0625rem;
   --cafe-a-menu-name-to-description-gap: 0.125rem;
+  --cafe-a-time-sale-font-ratio: 0.9;
   --cafe-a-sold-out-chip-background: #eef0ee;
   --cafe-a-sold-out-chip-border: #c7ccc8;
   --cafe-a-sold-out-chip-text: #3f4945;
@@ -759,8 +760,9 @@ video {
   --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
-  font-size: clamp(0.52rem, calc(0.64rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.76rem);
+  font-size: clamp(0.625rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-time-sale-font-ratio)), 0.92rem);
   font-weight: var(--menu-role-supporting-font-weight, 900);
+  line-height: 1.28;
 }
 
 .cafe-a-typography {
@@ -835,6 +837,8 @@ video {
 @media (min-width: 1024px) {
   .cafe-a-typography {
     --board-padding: clamp(32px, 4.2vmin, 68px);
+    --cafe-a-desktop-max-visual-width: 1920px;
+    --cafe-a-desktop-max-visual-height: 1080px;
     --featured-rail-column-fr: 1.04fr;
     --menu-board-column-gap: clamp(32px, 3vw, 54px);
     --fit-columns: 4;
@@ -877,6 +881,13 @@ video {
     --cafe-a-category-divider-after-gap: var(--cafe-a-category-title-to-items-gap);
     gap: calc(var(--menu-board-column-gap) * var(--fit-gap-scale));
     grid-template-columns: minmax(0, var(--featured-rail-column-fr)) minmax(0, 3fr);
+    flex: 0 1 auto;
+    height: min(100%, var(--cafe-a-desktop-max-visual-height));
+    margin-block: auto;
+    margin-inline: auto;
+    max-height: var(--cafe-a-desktop-max-visual-height);
+    max-width: var(--cafe-a-desktop-max-visual-width);
+    width: min(100%, var(--cafe-a-desktop-max-visual-width));
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-fit-columns="2"] {
@@ -1261,6 +1272,10 @@ video {
     line-height: 1.45;
   }
 
+  .cafe-a-typography .cafe-a-desktop-fit-board .cafe-a-time-sale-time-text {
+    font-size: clamp(0.625rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-balanced-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost, 1) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-time-sale-font-ratio)), 1rem);
+  }
+
   .cafe-a-typography .cafe-a-menu-price {
     font-size: clamp(0.48rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-price-size-scale, 1)), 1.36rem);
   }
@@ -1375,6 +1390,10 @@ video {
     font-size: clamp(0.44rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1)), 1.08rem);
   }
 
+  .cafe-a-typography .cafe-a-ordered-menu-flow .cafe-a-time-sale-time-text {
+    font-size: clamp(0.625rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-time-sale-font-ratio)), 1rem);
+  }
+
   .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-category-title {
     font-size: clamp(0.58rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 1.86rem);
   }
@@ -1395,6 +1414,10 @@ video {
   .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-menu-description,
   .cafe-a-typography .cafe-a-balanced-menu-grid [data-cafe-a-widget-body] {
     font-size: clamp(0.44rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1)), 1.08rem);
+  }
+
+  .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-time-sale-time-text {
+    font-size: clamp(0.625rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-time-sale-font-ratio)), 1rem);
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] {

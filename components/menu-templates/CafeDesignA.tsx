@@ -2518,7 +2518,7 @@ function TimeSaleMenuBadge({ timeSale, locale }: { timeSale: PublicTimeSale; loc
 
   return (
     <span
-      className="cafe-a-time-sale-time-text menu-font-en mb-0.5 mt-[0.3125rem] flex w-fit items-center gap-[0.25rem] text-[0.64rem] font-black uppercase leading-snug tracking-[0.08em] tabular-nums"
+      className="cafe-a-time-sale-time-text menu-font-en mb-0.5 mt-[0.3125rem] flex w-fit items-center gap-[0.25rem] font-black uppercase leading-snug tracking-[0.08em] tabular-nums"
       style={{ color: getCafeATimeSaleAccentColor(timeSale.badgeBackgroundColor) }}
     >
       <Clock3 aria-hidden="true" focusable="false" className="cafe-a-time-sale-time-icon" strokeWidth={2} />
