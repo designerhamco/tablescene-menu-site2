@@ -1652,7 +1652,9 @@ async function saveBadgeStyleFromMenuItemForm(
 function getTypographyRoleSettingsFromFormData(formData: FormData, templateKey?: string | null): TypographyRoleSettings {
   const rawRoles = TYPOGRAPHY_ROLE_KEYS.reduce((roles, role) => {
     roles[role] = {
-      font_key: getString(formData, `typography_role_${role}_font_key`),
+      font_ko_key: getString(formData, `typography_role_${role}_font_ko_key`),
+      font_en_key: getString(formData, `typography_role_${role}_font_en_key`),
+      color: getString(formData, `typography_role_${role}_color`),
       size: getString(formData, `typography_role_${role}_size`),
       weight: getString(formData, `typography_role_${role}_weight`),
     };
@@ -1662,7 +1664,44 @@ function getTypographyRoleSettingsFromFormData(formData: FormData, templateKey?:
   return normalizeTypographyRoleSettings(rawRoles, templateKey);
 }
 
-function setDesignTypographyRoleSettings(designSettings: Record<string, unknown>, roleSettings: TypographyRoleSettings) {
+function getCafeATypographyRolePayload(roleSettings: TypographyRoleSettings) {
+  const payload = TYPOGRAPHY_ROLE_KEYS.reduce((roles, role) => {
+    const setting = roleSettings[role];
+    const rolePayload: Record<string, string> = {};
+
+    if (setting.font_ko_key) {
+      rolePayload.font_ko_key = setting.font_ko_key;
+    }
+
+    if (setting.font_en_key) {
+      rolePayload.font_en_key = setting.font_en_key;
+    }
+
+    if ((role === "brand" || role === "category") && setting.color) {
+      rolePayload.color = setting.color;
+    }
+
+    if (Object.keys(rolePayload).length > 0) {
+      roles[role] = rolePayload;
+    }
+
+    return roles;
+  }, {} as Record<string, Record<string, string>>);
+
+  return Object.keys(payload).length > 0 ? payload : null;
+}
+
+function setDesignTypographyRoleSettings(designSettings: Record<string, unknown>, roleSettings: TypographyRoleSettings, templateKey?: string | null) {
+  if (templateKey === "cafe_design_a") {
+    const cafeARolePayload = getCafeATypographyRolePayload(roleSettings);
+    if (cafeARolePayload) {
+      designSettings.typographyRoles = cafeARolePayload;
+    } else {
+      delete designSettings.typographyRoles;
+    }
+    return;
+  }
+
   if (hasCustomTypographyRoleSettings(roleSettings)) {
     designSettings.typographyRoles = roleSettings;
   } else {
@@ -1704,8 +1743,10 @@ export async function updateTypographySettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  designSettings.fontSizeScale = fontSizeScaleKey;
-  setDesignTypographyRoleSettings(designSettings, typographyRoleSettings);
+  if (menuSite.template_key !== "cafe_design_a") {
+    designSettings.fontSizeScale = fontSizeScaleKey;
+  }
+  setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
 
   if (Object.keys(designSettings).length > 0) {
     pageSettings.design = designSettings;
@@ -2770,8 +2811,10 @@ export async function updateDesignSettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  designSettings.fontSizeScale = fontSizeScaleKey;
-  setDesignTypographyRoleSettings(designSettings, typographyRoleSettings);
+  if (menuSite.template_key !== "cafe_design_a") {
+    designSettings.fontSizeScale = fontSizeScaleKey;
+  }
+  setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
   delete designSettings.onePageLayoutShell;
   delete designSettings.one_page_layout_shell;
 

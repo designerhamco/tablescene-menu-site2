@@ -286,18 +286,25 @@ video {
 }
 
 .cafe-a-typography .cafe-a-category-title {
+  --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en));
+  color: var(--menu-role-category-color, #191c1b);
   font-family: var(--menu-role-category-font-family, inherit);
   font-size: clamp(1.0625rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--menu-role-category-size-scale, 1)), 1.45rem);
   font-weight: var(--menu-role-category-font-weight, 900);
 }
 
 .cafe-a-typography .cafe-a-menu-title {
+  --cafe-a-script-ko-font: var(--menu-role-item-name-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-item-name-font-en, var(--menu-font-en));
   font-family: var(--menu-role-item-name-font-family, inherit);
   font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale) * var(--menu-role-item-name-size-scale, 1)), 1.28rem);
   font-weight: var(--menu-role-item-name-font-weight, 700);
 }
 
 .cafe-a-typography [data-cafe-a-widget-title] {
+  --cafe-a-script-ko-font: var(--menu-role-item-name-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-item-name-font-en, var(--menu-font-en));
   color: #191c1b;
   font-family: var(--menu-role-item-name-font-family, inherit);
   font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale) * var(--menu-role-item-name-size-scale, 1)), 1.28rem);
@@ -307,24 +314,38 @@ video {
 }
 
 .cafe-a-typography .cafe-a-menu-meta {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.625rem, calc(var(--cafe-a-menu-meta-size) * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.85rem);
   font-weight: var(--menu-role-supporting-font-weight, 500);
 }
 
 .cafe-a-typography .cafe-a-menu-description {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 1rem);
   font-weight: var(--menu-role-supporting-font-weight, 400);
 }
 
 .cafe-a-typography [data-cafe-a-widget-body] {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   color: #3f4945;
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 1rem);
   font-weight: var(--menu-role-supporting-font-weight, 400);
   letter-spacing: 0;
   line-height: 1.45;
+}
+
+.cafe-a-typography .cafe-a-script-ko {
+  font-family: var(--cafe-a-script-ko-font, var(--menu-font-ko)), var(--menu-font-ko), system-ui, sans-serif;
+}
+
+.cafe-a-typography .cafe-a-script-en {
+  font-family: var(--cafe-a-script-en-font, var(--menu-font-en)), var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
 }
 
 .cafe-a-typography .cafe-a-description-text {
@@ -346,18 +367,25 @@ video {
 }
 
 .cafe-a-typography .cafe-a-menu-price {
+  --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en));
   font-family: var(--menu-role-price-font-family, inherit);
   font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--menu-role-price-size-scale, 1)), 1.36rem);
   font-weight: var(--menu-role-price-font-weight, 700);
 }
 
 .cafe-a-typography .cafe-a-store-title {
+  --cafe-a-script-ko-font: var(--menu-role-brand-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-brand-font-en, var(--menu-font-en));
+  color: var(--menu-role-brand-color, #191c1b);
   font-family: var(--menu-role-brand-font-family, inherit);
   font-size: clamp(2.25rem, calc(3rem * var(--menu-font-size-scale) * var(--menu-role-brand-size-scale, 1)), 3.25rem);
   font-weight: var(--menu-role-brand-font-weight, 900);
 }
 
 .cafe-a-typography .cafe-a-store-description {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 1rem);
   font-weight: var(--menu-role-supporting-font-weight, 400);
@@ -375,6 +403,8 @@ video {
 }
 
 .cafe-a-typography .cafe-a-footer-info {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-weight: var(--menu-role-supporting-font-weight, 400);
   letter-spacing: 0;
@@ -419,6 +449,8 @@ video {
 }
 
 .cafe-a-typography .cafe-a-featured-title {
+  --cafe-a-script-ko-font: var(--menu-role-item-name-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-item-name-font-en, var(--menu-font-en));
   font-family: var(--menu-role-item-name-font-family, inherit);
   font-size: clamp(
     calc(var(--featured-title-base) * var(--menu-role-item-name-size-scale, 1) * 0.9),
@@ -429,12 +461,16 @@ video {
 }
 
 .cafe-a-typography .cafe-a-featured-description {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.8125rem, calc(var(--featured-description-base) * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 1rem);
   font-weight: var(--menu-role-supporting-font-weight, 400);
 }
 
 .cafe-a-typography .cafe-a-featured-price {
+  --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en));
   font-family: var(--menu-role-price-font-family, inherit);
   font-size: clamp(
     calc(var(--featured-price-base) * var(--menu-role-price-size-scale, 1) * 0.9),
@@ -451,6 +487,8 @@ video {
 }
 
 .cafe-a-typography .cafe-a-price-label {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.625rem, calc(0.625rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.78rem);
   font-weight: var(--menu-role-supporting-font-weight, 700);
@@ -517,6 +555,8 @@ video {
 }
 
 .cafe-a-typography .cafe-a-price-column-header {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   color: #191c1b;
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.72rem);
@@ -647,6 +687,8 @@ video {
 }
 
 .cafe-a-typography .cafe-a-price-note {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.72rem);
   font-weight: var(--menu-role-supporting-font-weight, 700);
@@ -697,17 +739,25 @@ video {
 }
 
 .cafe-a-typography .cafe-a-time-sale-regular-price {
+  --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en));
   color: rgb(158 160 159);
+  font-family: var(--menu-role-price-font-family, inherit);
   font-weight: var(--menu-role-price-font-weight, 700);
   text-decoration-color: currentColor;
 }
 
 .cafe-a-typography .cafe-a-time-sale-price {
+  --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en));
   color: inherit;
+  font-family: var(--menu-role-price-font-family, inherit);
   font-weight: var(--menu-role-price-font-weight, 900);
 }
 
 .cafe-a-typography .cafe-a-time-sale-time-text {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.52rem, calc(0.64rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.76rem);
   font-weight: var(--menu-role-supporting-font-weight, 900);

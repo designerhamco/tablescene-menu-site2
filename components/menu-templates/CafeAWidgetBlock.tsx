@@ -7,6 +7,7 @@ import type {
   MenuWidgetTextAlign,
   MenuWidgetType,
 } from "@/lib/menu-widgets";
+import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 
 import styles from "./CafeAWidgetBlock.module.css";
 
@@ -111,8 +112,12 @@ function renderCopy({
 
   return (
     <div className={joinClassNames(styles.copy, copyAlignmentClassName)} data-cafe-a-widget-copy>
-      {normalizedTitle ? <p className={styles.title} data-cafe-a-widget-title>{normalizedTitle}</p> : null}
-      <p className={joinClassNames(styles.body, !normalizedTitle && styles.bodyOnly)} data-cafe-a-widget-body>{body}</p>
+      {normalizedTitle ? (
+        <p className={styles.title} data-cafe-a-widget-title><ScriptAwareText text={normalizedTitle} /></p>
+      ) : null}
+      <p className={joinClassNames(styles.body, !normalizedTitle && styles.bodyOnly)} data-cafe-a-widget-body>
+        <ScriptAwareText text={body} />
+      </p>
     </div>
   );
 }

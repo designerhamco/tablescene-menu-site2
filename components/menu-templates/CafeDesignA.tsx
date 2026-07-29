@@ -6,6 +6,7 @@ import { Clock3, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
@@ -2418,7 +2419,11 @@ function TimeSalePriceBlock({
   }, [timeSale.timeDisplayMode]);
 
   if (nowMs != null && !isTimeSaleCurrentlyActive(timeSale, nowMs)) {
-    return <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>{originalPrice}</span>;
+    return (
+      <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceClassName}`}>
+        <ScriptAwareText text={originalPrice} />
+      </span>
+    );
   }
 
   return (
@@ -2429,17 +2434,21 @@ function TimeSalePriceBlock({
     >
       {stacked ? (
         <>
-          <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none ${priceClassName}`}>{salePrice}</span>
+          <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none ${priceClassName}`}>
+            <ScriptAwareText text={salePrice} />
+          </span>
           <span className="cafe-a-time-sale-regular-price whitespace-nowrap text-[0.72em] font-bold leading-none line-through decoration-1">
-            {originalPrice}
+            <ScriptAwareText text={originalPrice} />
           </span>
         </>
       ) : (
         <>
           <span className="cafe-a-time-sale-regular-price whitespace-nowrap text-[0.72em] font-bold leading-none line-through decoration-1">
-            {originalPrice}
+            <ScriptAwareText text={originalPrice} />
           </span>
-          <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none ${priceClassName}`}>{salePrice}</span>
+          <span className={`cafe-a-menu-price cafe-a-time-sale-price whitespace-nowrap font-black leading-none ${priceClassName}`}>
+            <ScriptAwareText text={salePrice} />
+          </span>
         </>
       )}
     </span>
@@ -2465,7 +2474,7 @@ function TimeSaleBadge({ timeSale }: { timeSale: PublicTimeSale }) {
       className="menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none"
       style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor)}
     >
-      {timeSale.badgeText}
+      <ScriptAwareText text={timeSale.badgeText} />
     </span>
   );
 }
@@ -2513,7 +2522,7 @@ function TimeSaleMenuBadge({ timeSale, locale }: { timeSale: PublicTimeSale; loc
       style={{ color: getCafeATimeSaleAccentColor(timeSale.badgeBackgroundColor) }}
     >
       <Clock3 aria-hidden="true" focusable="false" className="cafe-a-time-sale-time-icon" strokeWidth={2} />
-      <span className="tracking-normal">{label}</span>
+      <span className="tracking-normal"><ScriptAwareText text={label} /></span>
     </span>
   );
 }
@@ -3040,7 +3049,7 @@ function CategoryTitle({
           className={`cafe-a-category-title min-w-0 break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}
           data-cafe-a-category-title-text=""
         >
-          {category.name}
+          <ScriptAwareText text={category.name} />
         </h2>
         {items ? (
           <div className="cafe-a-category-price-column-slot">
@@ -3049,7 +3058,9 @@ function CategoryTitle({
         ) : null}
       </div>
       {category.description_visible && category.description && (
-        <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>{category.description}</p>
+        <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>
+          <ScriptAwareText text={category.description} />
+        </p>
       )}
     </div>
   );
@@ -3076,7 +3087,7 @@ function CategoryPriceColumnHeader({
     >
       {columns.map((column) => (
         <span key={column.id} className="cafe-a-price-column-heading">
-          {column.label}
+          <ScriptAwareText text={column.label} />
         </span>
       ))}
     </div>
@@ -3103,7 +3114,7 @@ function Badge({
 
   return (
     <span className="menu-badge cafe-a-menu-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
-      {label}
+      <ScriptAwareText text={label} />
     </span>
   );
 }
@@ -3111,7 +3122,7 @@ function Badge({
 function SoldOutBadge({ locale, className = "" }: { locale: CafeDesignALocale; className?: string }) {
   return (
     <span className={`menu-badge cafe-a-menu-badge cafe-a-sold-out-chip inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}>
-      {getCafeASoldOutLabel(locale)}
+      <ScriptAwareText text={getCafeASoldOutLabel(locale)} />
     </span>
   );
 }
@@ -3136,7 +3147,7 @@ function HeroOverlayBadge({
 
   return (
     <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
-      {label}
+      <ScriptAwareText text={label} />
     </span>
   );
 }
@@ -3290,19 +3301,23 @@ function MenuItemRow({
   const menuCopyElement = (
     <div className="cafe-a-menu-copy min-w-0">
       <div className={`cafe-a-menu-title-row ${titleRowSpacingClassName} flex flex-wrap items-center gap-1.5`}>
-        <h3 className={`cafe-a-menu-title break-words font-bold leading-snug ${titleTextColorClassName} ${titleClassName}`} data-cafe-a-menu-name="">{item.name}</h3>
+        <h3 className={`cafe-a-menu-title break-words font-bold leading-snug ${titleTextColorClassName} ${titleClassName}`} data-cafe-a-menu-name="">
+          <ScriptAwareText text={item.name} />
+        </h3>
         {showSoldOutBadge ? <SoldOutBadge locale={locale} /> : null}
         {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} /> : null}
         {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
       </div>
       {hasSecondaryText && (
         <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug ${metaTextColorClassName} ${metaClassName}`}>
-          {trimmedMetaText}
+          <ScriptAwareText text={trimmedMetaText} />
         </p>
       )}
       {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} locale={locale} /> : null}
       {hasDescriptionText && (
-        <p className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}>{descriptionText}</p>
+        <p className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}>
+          <ScriptAwareText text={descriptionText} />
+        </p>
       )}
       {visibleTraits.length > 0 && (
         <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
@@ -3313,7 +3328,11 @@ function MenuItemRow({
           ))}
         </div>
       )}
-      {hasOriginInfo && <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#707975]"}`}>원산지 {item.origin_info?.trim()}</p>}
+      {hasOriginInfo && (
+        <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-default mt-2 line-clamp-2 break-words ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#707975]"}`}>
+          <ScriptAwareText text={`원산지 ${item.origin_info?.trim() ?? ""}`} />
+        </p>
+      )}
     </div>
   );
   const priceAreaElement = (
@@ -3336,14 +3355,20 @@ function MenuItemRow({
                     stacked
                   />
                 ) : token.price ? (
-                  <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceTextColorClassName} ${priceClassName}`}>{token.price}</span>
+                  <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceTextColorClassName} ${priceClassName}`}>
+                    <ScriptAwareText text={token.price} />
+                  </span>
                 ) : (
                   <span aria-hidden="true">&nbsp;</span>
                 )}
               </span>
             ))}
           </div>
-          {priceNote && <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>{priceNote}</p>}
+          {priceNote && (
+            <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>
+              <ScriptAwareText text={priceNote} />
+            </p>
+          )}
         </div>
       )}
       {priceTokens.length > 0 && !usesPriceColumns && (
@@ -3353,7 +3378,11 @@ function MenuItemRow({
               <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-token inline-flex items-baseline whitespace-nowrap">
                 {index > 0 && <span className={`cafe-a-price-separator font-bold ${priceMutedColorClassName}`}>/</span>}
                 <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${token.label ? "cafe-a-price-pair-with-note" : ""} ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
-                  {token.label && <span className={`cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none ${priceTextColorClassName}`}>{token.label}</span>}
+                  {token.label && (
+                    <span className={`cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none ${priceTextColorClassName}`}>
+                      <ScriptAwareText text={token.label} />
+                    </span>
+                  )}
                   {showTimeSale && timeSalePrice && index === 0 ? (
                     <TimeSalePriceBlock
                       timeSale={timeSale.promotion}
@@ -3362,13 +3391,19 @@ function MenuItemRow({
                       priceClassName={priceClassName}
                     />
                   ) : (
-                    <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceTextColorClassName} ${priceClassName}`}>{token.price}</span>
+                    <span className={`cafe-a-menu-price whitespace-nowrap font-bold leading-none ${priceTextColorClassName} ${priceClassName}`}>
+                      <ScriptAwareText text={token.price} />
+                    </span>
                   )}
                 </span>
               </span>
             ))}
           </div>
-          {priceNote && <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>{priceNote}</p>}
+          {priceNote && (
+            <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>
+              <ScriptAwareText text={priceNote} />
+            </p>
+          )}
         </div>
       )}
     </>
@@ -3766,14 +3801,20 @@ function CoverHero({
                   <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} />
                 </div>
               ) : null}
-              <h2 className={`cafe-a-featured-title break-words font-bold leading-tight ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-title="">{featuredItem.name}</h2>
+              <h2 className={`cafe-a-featured-title break-words font-bold leading-tight ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-title="">
+                <ScriptAwareText text={featuredItem.name} />
+              </h2>
               {featuredItem.description && (
                 <p className={`cafe-a-description-text cafe-a-featured-description mt-2 break-keep lg:line-clamp-2 ${featuredItemSoldOut ? "cafe-a-featured-sold-out-muted" : "text-white/82"}`} data-cafe-a-featured-description="">
-                  {featuredItem.description}
+                  <ScriptAwareText text={featuredItem.description} />
                 </p>
               )}
             </div>
-            {price && <p className={`menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-price="">{price}</p>}
+            {price && (
+              <p className={`menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-price="">
+                <ScriptAwareText text={price} />
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -3810,7 +3851,7 @@ function StoreIdentity({
     );
   }
 
-  return <h1 className={titleClassName} data-cafe-a-store-title="">{title}</h1>;
+  return <h1 className={titleClassName} data-cafe-a-store-title=""><ScriptAwareText text={title} /></h1>;
 }
 
 function CafeAFooterInfo({
@@ -3834,7 +3875,7 @@ function CafeAFooterInfo({
       data-cafe-a-footer-placement={placement}
     >
       <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep">
-        {infoRows.join("\n")}
+        <ScriptAwareText text={infoRows.join("\n")} />
       </p>
     </aside>
   );
@@ -5061,7 +5102,11 @@ function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; 
             titleClassName="cafe-a-store-title break-words font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]"
             logoClassName="max-h-[72px] max-w-[220px] object-contain"
           />
-          {description && <p className="cafe-a-description-text cafe-a-store-description mt-2 break-keep text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
+          {description && (
+            <p className="cafe-a-description-text cafe-a-store-description mt-2 break-keep text-[#3f4945]" data-cafe-a-store-description="">
+              <ScriptAwareText text={description} />
+            </p>
+          )}
         </div>
         <CafeLanguageHoverControl data={data} className="cursor-default" />
       </div>
@@ -5101,7 +5146,11 @@ function DesktopFixedRail({
           />
           <CafeLanguageHoverControl data={data} />
         </div>
-        {description && <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description mt-3 break-keep text-[#3f4945]" data-cafe-a-store-description="">{description}</p>}
+        {description && (
+          <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description mt-3 break-keep text-[#3f4945]" data-cafe-a-store-description="">
+            <ScriptAwareText text={description} />
+          </p>
+        )}
       </div>
       {children}
     </aside>
