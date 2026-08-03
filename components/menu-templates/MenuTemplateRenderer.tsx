@@ -1,4 +1,5 @@
 import { normalizeTemplateKey } from "@/lib/templates";
+import PublicMenuExperienceShell from "@/components/public-menu/PublicMenuExperienceShell";
 
 import BasicMenuTemplate from "./BasicMenuTemplate";
 import CafeDesignA from "./CafeDesignA";
@@ -9,17 +10,34 @@ import type { PublicMenuTemplateProps } from "./types";
 
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
   const templateKey = normalizeTemplateKey(props.menuSite.template_key, props.menuSite.template_category);
+  const storeName = props.menuSite.restaurant_name || props.menuSite.business_name || props.menuSite.name;
 
   switch (templateKey) {
     case "cafe_design_a":
       if (props.pagePresentation === "multi") {
-        return <MultiPageMenuEngine {...props} />;
+        return (
+          <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
+            <MultiPageMenuEngine {...props} />
+          </PublicMenuExperienceShell>
+        );
       }
-      return <CafeDesignA {...props} />;
+      return (
+        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
+          <CafeDesignA {...props} />
+        </PublicMenuExperienceShell>
+      );
     case "cafe_mocha_forest_a":
-      return <CafeMochaForestA {...props} />;
+      return (
+        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
+          <CafeMochaForestA {...props} />
+        </PublicMenuExperienceShell>
+      );
     case "cafe_noir_a":
-      return <CafeDesignA {...props} />;
+      return (
+        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
+          <CafeDesignA {...props} />
+        </PublicMenuExperienceShell>
+      );
     case "display_menu_a":
       return <DisplayMenuA {...props} />;
     case "cafe_design_b":
@@ -33,7 +51,11 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
     case "brunch_design_a":
     case "brunch_design_b":
     default:
-      return <BasicMenuTemplate {...props} />;
+      return (
+        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
+          <BasicMenuTemplate {...props} />
+        </PublicMenuExperienceShell>
+      );
   }
 }
 
