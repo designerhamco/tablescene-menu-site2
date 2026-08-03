@@ -528,10 +528,10 @@ const cafeRoundFocusStarterPreset: StarterPreset = cloneStarterPresetForTemplate
 
 cafeSundayLineStarterPreset.site = {
   ...cafeSundayLineStarterPreset.site,
-  restaurant_name: "선데이 로스터스",
+  restaurant_name: "SUNDAY ROASTERS",
   intro_title: "SUNDAY ROASTERS",
   menu_cover_title: "SUNDAY ROASTERS",
-  brand_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
+  brand_description: "좋은 원두와 담백한 디저트를 천천히 즐길 수 있도록, 매일 균형 잡힌 커피와 편안한 한 잔을 준비하는 동네 로스터리입니다.",
   intro_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
   menu_cover_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
   settings: {
@@ -590,7 +590,7 @@ cafeSundayLineStarterPreset.pages = [
     categories: [
       {
         key: "signature",
-        name: "시그니처",
+        name: "SIGNATURE COFFEE",
         section_key: "main_menu",
         items: [
           item("선데이 크림 라떼", 6500, "고소한 크림과 에스프레소를 부드럽게 즐기는 시그니처 라떼", {
@@ -604,11 +604,15 @@ cafeSundayLineStarterPreset.pages = [
             badge_label: "BEST",
             image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
           }),
+          item("오렌지 바닐라 콜드브루", 6800, "오렌지 향과 바닐라 크림을 더한 부드러운 콜드브루", {
+            key: "orange-vanilla-cold-brew",
+            badge_label: "NEW",
+          }),
         ],
       },
       {
         key: "coffee",
-        name: "커피",
+        name: "COFFEE",
         section_key: "main_menu",
         price_columns: [
           { key: "hot", label: "HOT" },
@@ -629,11 +633,14 @@ cafeSundayLineStarterPreset.pages = [
               { key: "ice", price: 6000 },
             ],
           }),
+          item("플랫화이트", 5300, "진한 에스프레소와 촘촘한 밀크폼의 조화", {
+            key: "flat-white",
+          }),
         ],
       },
       {
         key: "non-coffee",
-        name: "논커피",
+        name: "NON-COFFEE",
         section_key: "main_menu",
         price_columns: [
           { key: "hot", label: "HOT" },
@@ -648,11 +655,14 @@ cafeSundayLineStarterPreset.pages = [
               { key: "ice", price: 7000 },
             ],
           }),
+          item("다크 초콜릿 밀크", 6000, "진한 다크 초콜릿과 부드러운 우유를 담은 음료", {
+            key: "dark-chocolate-milk",
+          }),
         ],
       },
       {
         key: "tea-ade",
-        name: "티 & 에이드",
+        name: "TEA & ADE",
         section_key: "dessert_drink",
         items: [
           item("자몽 로즈마리 에이드", 6300, "생자몽과 로즈마리 향이 산뜻한 에이드", {
@@ -661,15 +671,21 @@ cafeSundayLineStarterPreset.pages = [
           item("캐모마일 시트러스 티", 5800, "캐모마일과 감귤 향을 담은 블렌드 티", {
             key: "chamomile-citrus-tea",
           }),
+          item("얼그레이 피치 티", 5800, "얼그레이 향과 복숭아의 은은한 단맛", {
+            key: "earl-grey-peach-tea",
+          }),
         ],
       },
       {
         key: "bakery-dessert",
-        name: "베이커리 & 디저트",
+        name: "BAKERY & DESSERT",
         section_key: "dessert_drink",
         items: [
           item("브라운 버터 스콘", 4800, "고소한 브라운 버터 풍미의 바삭한 스콘", {
             key: "brown-butter-scone",
+          }),
+          item("레몬 마들렌", 3800, "레몬 향을 담아 촉촉하게 구운 마들렌", {
+            key: "lemon-madeleine",
           }),
         ],
       },

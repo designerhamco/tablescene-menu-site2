@@ -2247,6 +2247,10 @@ video {
     word-break: normal;
   }
 
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] header .cafe-a-store-title {
+    font-size: clamp(calc(2.25rem * var(--menu-role-brand-size-scale, 1)), calc(11vw * var(--menu-role-brand-size-scale, 1)), calc(3rem * var(--menu-role-brand-size-scale, 1)));
+  }
+
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-cover-hero {
     background: var(--sunday-line-bg);
   }
