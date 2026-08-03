@@ -74,6 +74,13 @@ export const TEMPLATE_BADGE_STYLE_PRESETS: Record<string, Partial<BadgeStyles>> 
     recommended: { background_color: "#14a64b", text_color: "#FFFFFF" },
     default: { background_color: "#29695B", text_color: "#FFFFFF" },
   },
+  cafe_round_focus_a: {
+    best: { background_color: "#9B4F33", text_color: "#FFFFFF" },
+    signature: { background_color: "#7B3E2E", text_color: "#FFFFFF" },
+    new: { background_color: "#D8B08C", text_color: "#3A2B24" },
+    recommended: { background_color: "#7B3E2E", text_color: "#FFFFFF" },
+    default: { background_color: "#9B4F33", text_color: "#FFFFFF" },
+  },
   cafe_design_b: {
     best: { background_color: "#7C2D12", text_color: "#FFFFFF" },
     signature: { background_color: "#EA580C", text_color: "#FFFFFF" },

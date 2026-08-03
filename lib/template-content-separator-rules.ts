@@ -22,6 +22,10 @@ const TEMPLATE_CONTENT_SEPARATOR_RULES = {
     categoryDivider: "before-category-except-first-block",
     widgetBoundary: "none",
   },
+  cafe_round_focus_a: {
+    categoryDivider: "before-category-except-first-block",
+    widgetBoundary: "none",
+  },
 } as const satisfies Partial<Record<TemplateKey, TemplateContentSeparatorRules>>;
 
 export function getTemplateContentSeparatorRules(

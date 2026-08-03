@@ -74,7 +74,7 @@ type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]
 type PublicMenuWidget = NonNullable<PublicMenuTemplateProps["widgets"]>[number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
 type CafeDesignALocale = PublicMenuTemplateProps["locale"];
-type CafeDesignASkin = "default" | "mocha_forest" | "sunday_line";
+type CafeDesignASkin = "default" | "mocha_forest" | "sunday_line" | "round_focus";
 type CafeDesignAProps = PublicMenuTemplateProps & {
   templateSkin?: CafeDesignASkin;
 };
@@ -405,7 +405,7 @@ const ORDERED_BALANCED_SIZE_BUCKET = 8;
 const ORDERED_BALANCED_DENSE_CATEGORY_THRESHOLD = 5;
 const ORDERED_BALANCED_DENSE_ITEM_THRESHOLD = 20;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP = 12;
-const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = 2;
+const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = BALANCED_VISIBLE_GAP;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_LEVELS = [
   { fontScale: 1.004, gapScale: 1.003 },
   { fontScale: 1.008, gapScale: 1.005 },
@@ -1616,6 +1616,22 @@ function getCafeAActualDomCropMeasurement(
     );
   });
   const rectOverflow = Number.isFinite(visibleBottom) && bottomGap < -cropTolerance;
+  const columnSafeBottomGaps = Array.from(
+    menuElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-column]")
+  ).flatMap((columnElement) => {
+    const columnVisibleElements = Array.from(
+      columnElement.querySelectorAll<HTMLElement>(CAFE_A_VISIBLE_CONTENT_SELECTOR)
+    );
+    const columnVisibleBottom = getVisibleElementBottom(columnVisibleElements);
+    if (!Number.isFinite(columnVisibleBottom)) return [];
+
+    const columnStyle = window.getComputedStyle(columnElement);
+    const paddingBottom = Number.parseFloat(columnStyle.paddingBottom);
+    const columnSafeBottom = Math.min(safeBottom, menuRect.bottom) - (Number.isFinite(paddingBottom) ? paddingBottom : 0);
+    return [columnSafeBottom - columnVisibleBottom];
+  });
+  const menuRegionSafeBottomGap = columnSafeBottomGaps.length > 0 ? Math.min(...columnSafeBottomGaps) : bottomGap;
+  const menuRegionSafeBottomOverflow = menuRegionSafeBottomGap < BALANCED_VISIBLE_GAP;
   const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
   const footerRect = footerElement?.getBoundingClientRect();
   const boardRect = boardElement.getBoundingClientRect();
@@ -1729,10 +1745,12 @@ function getCafeAActualDomCropMeasurement(
     rightSafetyGap: rightEdgeSafety.rightSafetyGap,
     footerNoGoTop,
     footerOverlapElementCount: footerNoGoOverlapElements.length,
+    menuRegionSafeBottomGap,
     orphanCategoryHeading,
     overflow:
       orphanCategoryHeading ||
       rectOverflow ||
+      menuRegionSafeBottomOverflow ||
       scrollOverflow ||
       widgetInternalClipOverflow ||
       horizontalScrollOverflow ||
@@ -2103,7 +2121,7 @@ function getItemPriceColumnDisplay(
 }
 
 function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
-  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a";
+  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a";
 }
 
 function getCafeASoldOutLabel(locale: CafeDesignALocale) {
@@ -2571,7 +2589,8 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
   const shouldRenderWidgets =
     data.menuSite.template_key === "cafe_design_a" ||
     data.menuSite.template_key === "cafe_mocha_forest_a" ||
-    data.menuSite.template_key === "cafe_sunday_line_a";
+    data.menuSite.template_key === "cafe_sunday_line_a" ||
+    data.menuSite.template_key === "cafe_round_focus_a";
   const separatorRules = getTemplateContentSeparatorRules(data.menuSite.template_key);
   const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 
@@ -2707,9 +2726,14 @@ function isSundayLineSkin(templateSkin: CafeDesignASkin | undefined): templateSk
   return templateSkin === "sunday_line";
 }
 
+function isRoundFocusSkin(templateSkin: CafeDesignASkin | undefined): templateSkin is "round_focus" {
+  return templateSkin === "round_focus";
+}
+
 function getCafeASkinAttribute(templateSkin: CafeDesignASkin | undefined) {
   if (isMochaForestSkin(templateSkin)) return "mocha_forest";
   if (isSundayLineSkin(templateSkin)) return "sunday_line";
+  if (isRoundFocusSkin(templateSkin)) return "round_focus";
   return undefined;
 }
 
@@ -3050,7 +3074,7 @@ function getItemStackSpacing(density: MenuLayoutDensity) {
 
 function getMenuAreaClassName(hasCoverSection: boolean, shell: OnePageLayoutShell = "brand_left_rail") {
   if (shell === "brand_top_band") return "lg:col-span-full";
-  if (shell === "brand_center_rail") return "lg:col-span-2";
+  if (shell === "brand_center_rail" || shell === "brand_center_column") return "lg:col-span-2";
   return hasCoverSection ? "lg:col-span-1" : "lg:col-span-1";
 }
 
@@ -3068,13 +3092,22 @@ function getDesktopGridClassName(hasCoverSection: boolean, shell: OnePageLayoutS
     return "lg:grid-cols-[minmax(0,1fr)]";
   }
 
-  if (shell === "brand_center_rail") {
+  if (shell === "brand_center_rail" || shell === "brand_center_column") {
     return "lg:grid-cols-[minmax(0,1fr)_minmax(190px,0.48fr)_minmax(0,1fr)]";
   }
 
   return hasCoverSection
     ? "lg:grid-cols-[minmax(170px,0.42fr)_minmax(0,2.8fr)] xl:grid-cols-[minmax(220px,0.55fr)_minmax(0,2.8fr)] 2xl:grid-cols-[minmax(260px,0.55fr)_minmax(0,4fr)]"
     : "lg:grid-cols-1";
+}
+
+function getMenuDescriptionSizeClassName(density: MenuLayoutDensity) {
+  return {
+    spacious: "cafe-a-menu-description-size-spacious",
+    default: "cafe-a-menu-description-size-default",
+    compact: "cafe-a-menu-description-size-compact",
+    ultraCompact: "cafe-a-menu-description-size-ultra-compact",
+  }[density];
 }
 
 function CategoryTitle({
@@ -3093,12 +3126,7 @@ function CategoryTitle({
     compact: "cafe-a-category-title-size-compact",
     ultraCompact: "cafe-a-category-title-size-ultra-compact",
   }[density];
-  const descriptionClassName = {
-    spacious: "cafe-a-menu-description-size-spacious",
-    default: "cafe-a-menu-description-size-default",
-    compact: "cafe-a-menu-description-size-compact",
-    ultraCompact: "cafe-a-menu-description-size-ultra-compact",
-  }[density];
+  const descriptionClassName = getMenuDescriptionSizeClassName(density);
 
   return (
     <div className={`cafe-a-category-heading ${spacingClassName}`} data-cafe-a-category-heading="">
@@ -5146,9 +5174,22 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
   );
 }
 
-function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; className?: string }) {
+function HeaderBlock({
+  data,
+  density,
+  className = "",
+}: {
+  data: PublicMenuTemplateProps;
+  density: MenuLayoutDensity;
+  className?: string;
+}) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
+  const isRoundFocusTemplate = data.menuSite.template_key === "cafe_round_focus_a";
+  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
+  const descriptionClassName = isRoundFocusTemplate
+    ? `cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-store-description mt-2 break-keep text-[#3f4945] ${descriptionSizeClassName}`
+    : "cafe-a-description-text cafe-a-store-description mt-2 break-keep text-[#3f4945]";
 
   return (
     <header className={`w-full shrink-0 px-[clamp(24px,4vw,96px)] pt-8 pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
@@ -5161,7 +5202,7 @@ function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; 
             logoClassName="max-h-[72px] max-w-[220px] object-contain"
           />
           {description && (
-            <p className="cafe-a-description-text cafe-a-store-description mt-2 break-keep text-[#3f4945]" data-cafe-a-store-description="">
+            <p className={descriptionClassName} data-cafe-a-store-description="">
               <ScriptAwareText text={description} />
             </p>
           )}
@@ -5228,9 +5269,35 @@ function SundayLineMobileNotices({
 
   return (
     <aside className="cafe-a-topline-mobile-notices px-[clamp(24px,4vw,96px)] pt-4 text-left text-[#58645f] md:hidden" data-cafe-a-topline-mobile-notices="">
-      <p className="cafe-a-description-text cafe-a-store-description whitespace-pre-line break-keep">
+      <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap whitespace-pre-line break-keep">
         <ScriptAwareText text={infoRows.join("\n")} />
       </p>
+    </aside>
+  );
+}
+
+function RoundFocusMobileNotices({
+  data,
+  capabilities,
+  density,
+}: {
+  data: CafeDesignAProps;
+  capabilities: TemplateCapabilities;
+  density: MenuLayoutDensity;
+}) {
+  const infoRows = getCafeAFooterInfo(data, capabilities);
+  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
+  if (infoRows.length === 0) return null;
+
+  return (
+    <aside className="cafe-a-round-focus-mobile-notices min-w-0 text-left text-[#3f4945]" data-cafe-a-round-focus-mobile-notices="">
+      <div className="cafe-a-round-focus-notice-list">
+        {infoRows.map((row, index) => (
+          <p key={`${index}-${row}`} className={`cafe-a-round-focus-notice cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap break-keep ${descriptionSizeClassName}`}>
+            <ScriptAwareText text={row} />
+          </p>
+        ))}
+      </div>
     </aside>
   );
 }
@@ -5276,16 +5343,22 @@ function CafeATypographyFontAssets({ typographySettings }: { typographySettings:
 function DesktopFixedRail({
   data,
   children,
+  density,
   variant = "brand_left_rail",
   mochaColumnCount,
 }: {
   data: CafeDesignAProps;
   children: ReactNode;
+  density: MenuLayoutDensity;
   variant?: OnePageLayoutShell;
   mochaColumnCount?: number;
 }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
-  const description = data.menuSite.brand_description || data.menuSite.description;
+  const site = data.menuSite;
+  const description = site.brand_description || site.description;
+  const isCenterColumn = variant === "brand_center_column";
+  const infoRows = isCenterColumn ? getCafeAFooterInfo(data, capabilities) : [];
+  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const mochaPanelAttributes = isMochaForestSkin(data.templateSkin)
     ? getMochaForestPanelAttributes("brown", 0, Math.max(1, mochaColumnCount ?? 1))
     : {};
@@ -5303,12 +5376,33 @@ function DesktopFixedRail({
           <CafeLanguageHoverControl data={data} />
         </div>
         {description && (
-          <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description mt-3 break-keep text-[#3f4945]" data-cafe-a-store-description="">
+          <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-rail-description mt-3 break-keep text-[#3f4945] ${descriptionSizeClassName}`} data-cafe-a-store-description="">
             <ScriptAwareText text={description} />
           </p>
         )}
       </div>
-      {children}
+      {isCenterColumn ? (
+        <div className="cafe-a-round-focus-lower-cluster min-w-0" data-cafe-a-round-focus-lower-cluster="">
+          {children ? (
+            <div className="cafe-a-round-focus-featured-stack min-w-0" data-cafe-a-round-focus-featured-stack="">
+              {children}
+            </div>
+          ) : null}
+          {infoRows.length > 0 ? (
+            <div className="cafe-a-round-focus-notices text-[#3f4945]" data-cafe-a-round-focus-notices="">
+              <div className="cafe-a-round-focus-notice-list">
+                {infoRows.map((row, index) => (
+                  <p key={`${index}-${row}`} className={`cafe-a-round-focus-notice cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap break-keep ${descriptionSizeClassName}`}>
+                    <ScriptAwareText text={row} />
+                  </p>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        children
+      )}
     </aside>
   );
 }
@@ -5942,6 +6036,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
   const isMochaForest = isMochaForestSkin(data.templateSkin);
   const isSundayLine = isSundayLineSkin(data.templateSkin);
+  const isRoundFocus = isRoundFocusSkin(data.templateSkin);
   const cafeASkinAttribute = getCafeASkinAttribute(data.templateSkin);
   const skinStyle = isMochaForest
     ? ({
@@ -7403,9 +7498,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
               const candidateMeasurement = measureCafeABalancedFit(boardElement, menuElement, fitState.columns, false, ORDERED_BALANCED_CROP_TOLERANCE, true);
               const candidateActualCropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, ORDERED_BALANCED_CROP_TOLERANCE);
-              const candidateCropDetected = candidateActualCropMeasurement.overflow || candidateActualCropMeasurement.bottomGap < ORDERED_BALANCED_TARGET_MIN_VISIBLE_GAP;
+              const candidateCropDetected =
+                candidateActualCropMeasurement.overflow ||
+                candidateActualCropMeasurement.bottomGap < ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP;
               if (candidateCropDetected) continue;
               if (candidateActualCropMeasurement.bottomGap >= actualCropMeasurement.bottomGap - ORDERED_BALANCED_GAP_IMPROVEMENT_EPSILON) continue;
+              const actualBottomGap = roundFitMetric(candidateActualCropMeasurement.bottomGap);
 
               nextFillState = {
                 ...fitState,
@@ -7422,15 +7520,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 averageFillRatio: candidateMeasurement.averageFillRatio,
                 minFillRatio: candidateMeasurement.minFillRatio,
                 lastColumnFillRatio: candidateMeasurement.lastColumnFillRatio,
-                bottomGap: Math.max(candidateMeasurement.bottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
-                contentGap: Math.max(candidateMeasurement.contentGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
-                itemBoxGap: Math.max(candidateMeasurement.itemBoxGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
-                textVisualGap: Math.max(candidateMeasurement.textVisualGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                bottomGap: Math.min(candidateMeasurement.bottomGap, actualBottomGap),
+                contentGap: Math.min(candidateMeasurement.contentGap, actualBottomGap),
+                itemBoxGap: Math.min(candidateMeasurement.itemBoxGap, actualBottomGap),
+                textVisualGap: Math.min(candidateMeasurement.textVisualGap, actualBottomGap),
                 categoryBlockGap: candidateMeasurement.categoryBlockGap,
-                visibleItemBottomGap: Math.max(candidateMeasurement.visibleItemBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
-                visibleTextBottomGap: Math.max(candidateMeasurement.visibleTextBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
-                visiblePriceBottomGap: Math.max(candidateMeasurement.visiblePriceBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
-                visibleContentBottomGap: Math.max(candidateMeasurement.visibleContentBottomGap, roundFitMetric(candidateActualCropMeasurement.bottomGap)),
+                visibleItemBottomGap: Math.min(candidateMeasurement.visibleItemBottomGap, actualBottomGap),
+                visibleTextBottomGap: Math.min(candidateMeasurement.visibleTextBottomGap, actualBottomGap),
+                visiblePriceBottomGap: Math.min(candidateMeasurement.visiblePriceBottomGap, actualBottomGap),
+                visibleContentBottomGap: Math.min(candidateMeasurement.visibleContentBottomGap, actualBottomGap),
                 visibleAverageFillRatio: candidateMeasurement.visibleAverageFillRatio,
                 visibleMinFillRatio: candidateMeasurement.visibleMinFillRatio,
                 visibleLastColumnFillRatio: candidateMeasurement.visibleLastColumnFillRatio,
@@ -8105,10 +8203,31 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
-          <HeaderBlock data={data} className="lg:hidden" />
-          {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} /> : null}
-          <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] pt-6 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
-            {shouldRenderMenuCoverSection && (
+          {isRoundFocus ? (
+            <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="">
+              <HeaderBlock data={data} density={density} />
+              {shouldRenderMenuCoverSection && (
+                <div className="cafe-a-round-focus-mobile-featured-shell min-w-0 px-[clamp(24px,4vw,96px)] pt-6">
+                  <CoverHero
+                    data={data}
+                    featuredSlides={featuredHeroSlides}
+                    capabilities={capabilities}
+                    density={density}
+                    customBadgeStyles={customBadgeStyles}
+                    priceDisplayMode={priceDisplayMode}
+                  />
+                </div>
+              )}
+              <RoundFocusMobileNotices data={data} capabilities={capabilities} density={density} />
+            </section>
+          ) : (
+            <>
+              <HeaderBlock data={data} density={density} className="lg:hidden" />
+              {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} /> : null}
+            </>
+          )}
+          <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] pt-6 pb-16 md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
+            {!isRoundFocus && shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
                 featuredSlides={featuredHeroSlides}
@@ -8137,7 +8256,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
-                footerInfo={isSundayLine ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
+                footerInfo={isSundayLine || isRoundFocus ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
                 templateSkin={data.templateSkin}
               />
             )}
@@ -8219,7 +8338,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 </>
               ) : (
                 <>
-                  <DesktopFixedRail data={data} variant={onePageLayoutShell} mochaColumnCount={renderFitState.columns + 1}>{null}</DesktopFixedRail>
+                  <DesktopFixedRail data={data} density={density} variant={onePageLayoutShell} mochaColumnCount={renderFitState.columns + 1}>{null}</DesktopFixedRail>
                   {renderDesktopMenuGrid()}
                   {shouldRenderMenuCoverSection && (
                     <div className="cafe-a-shell-featured-slot min-w-0">
@@ -8236,10 +8355,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                   {footerInfo}
                 </>
               )
-            ) : onePageLayoutShell === "brand_center_rail" ? (
+            ) : onePageLayoutShell === "brand_center_rail" || onePageLayoutShell === "brand_center_column" ? (
               <>
-                {renderDesktopMenuGrid({ centerRail: true, includeFooter: true })}
-                <DesktopFixedRail data={data} variant={onePageLayoutShell} mochaColumnCount={renderFitState.columns + 1}>
+                {renderDesktopMenuGrid({ centerRail: true, includeFooter: onePageLayoutShell === "brand_center_rail" })}
+                <DesktopFixedRail
+                  data={data}
+                  density={density}
+                  variant={onePageLayoutShell}
+                  mochaColumnCount={renderFitState.columns + 1}
+                >
                   {shouldRenderMenuCoverSection && (
                     <CoverHero
                       data={data}
@@ -8254,7 +8378,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               </>
             ) : (
               <>
-                <DesktopFixedRail data={data} mochaColumnCount={renderFitState.columns + 1}>
+                <DesktopFixedRail data={data} density={density} mochaColumnCount={renderFitState.columns + 1}>
                   {shouldRenderMenuCoverSection && (
                     <CoverHero
                       data={data}

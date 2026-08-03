@@ -259,10 +259,13 @@ export default function TypographySettingsForm({
   templateKey,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
-  const showRoleTypographyControl = templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a";
+  const showRoleTypographyControl = templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a";
   const isSundayLineTemplate = templateKey === "cafe_sunday_line_a";
-  const cafeAMiniPreviewBrandText = isSundayLineTemplate ? "선데이 로스터스 SUNDAY 2026" : "오브 커피 AUBE 2026";
-  const cafeAMiniPreviewDescriptionText = isSundayLineTemplate
+  const isRoundFocusTemplate = templateKey === "cafe_round_focus_a";
+  const cafeAMiniPreviewBrandText = isRoundFocusTemplate ? "라운드 로스터스 ROUND 2026" : isSundayLineTemplate ? "선데이 로스터스 SUNDAY 2026" : "오브 커피 AUBE 2026";
+  const cafeAMiniPreviewDescriptionText = isRoundFocusTemplate
+    ? "둥근 향과 Comfortable 커피를 준비하는 로스터리입니다."
+    : isSundayLineTemplate
     ? "좋은 원두와 Simple 디저트를 준비하는 로스터리입니다."
     : "신선한 원두와 Organic 재료를 사용하는 카페입니다.";
   const showFontSizeControl = getTemplateCapabilities(templateKey).typographyFontSizeControl === "simple";

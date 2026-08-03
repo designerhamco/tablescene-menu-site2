@@ -30,6 +30,8 @@ type PageProps = {
     qaCase?: string | string[];
     qaSplitImagePosition?: string | string[];
     footerStress?: string | string[];
+    contentQa?: string | string[];
+    featured?: string | string[];
     copyQa?: string | string[];
     lang?: string | string[];
     pagePresentation?: string | string[];
@@ -398,6 +400,11 @@ function normalizeSundayLineCopyQaLocale(value: string | string[] | undefined) {
   return rawValue === "en" || rawValue === "zh" || rawValue === "ja" ? rawValue : "ko";
 }
 
+function normalizeContentQaCase(value: string | string[] | undefined) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  return rawValue === "dense" ? rawValue : null;
+}
+
 function toExactPreviewLength(value: string, maxLength: number, filler = " 안내") {
   if (value.length >= maxLength) return value.slice(0, maxLength);
 
@@ -407,6 +414,169 @@ function toExactPreviewLength(value: string, maxLength: number, filler = " 안�
   }
 
   return nextValue.slice(0, maxLength);
+}
+
+function applyCafeDenseContentQaFixture(
+  data: MenuPageData,
+  contentQa: string | string[] | undefined
+): MenuPageData {
+  if (process.env.NODE_ENV === "production") return data;
+  if (data.menuSite.template_key !== "cafe_design_a" && data.menuSite.template_key !== "cafe_sunday_line_a") return data;
+  if (normalizeContentQaCase(contentQa) !== "dense") return data;
+
+  const page = sortMenuPages(data.pages.filter((candidate) => candidate.visible !== false))[0] ?? data.pages[0];
+  if (!page) return data;
+
+  const now = new Date(data.initialNowMs).toISOString();
+  type DensePreviewItemSeed = {
+    name: string;
+    setName: string;
+    description: string;
+    price: number;
+    priceLabel: string;
+    badge?: string;
+    imageUrl?: string;
+    portionLabel?: string;
+    recommended?: boolean;
+    salePrice?: number;
+    salePriceLabel?: string;
+    priceOptions?: { label: string; price: number; priceLabel: string }[];
+  };
+  const categorySeeds: { name: string; items: DensePreviewItemSeed[] }[] = [
+    {
+      name: "HOUSE SPECIALS",
+      items: [
+        { name: "라운드 크림 커피", setName: "ROUND CREAM COFFEE", description: "부드러운 크림과 고소한 에스프레소의 시그니처 커피", price: 6500, priceLabel: "6.5", badge: "SIGNATURE", imageUrl: "/menu-templates/cafe_design_a/nutty-cream.jpeg", recommended: true },
+        { name: "브라운 슈가 플랫화이트", setName: "BROWN SUGAR FLAT WHITE", description: "브라운 슈가의 은은한 단맛을 담은 플랫화이트", price: 6200, priceLabel: "6.2", badge: "BEST" },
+        { name: "오렌지 크림 콜드브루", setName: "ORANGE CREAM COLDBREW", description: "오렌지 향과 부드러운 크림을 더한 콜드브루", price: 6800, priceLabel: "6.8", badge: "NEW" },
+      ],
+    },
+    {
+      name: "ESPRESSO",
+      items: [
+        { name: "에스프레소", setName: "ESPRESSO", description: "진한 향과 깔끔한 단맛", price: 3500, priceLabel: "3.5" },
+        { name: "아메리카노", setName: "AMERICANO", description: "견과류의 고소함과 균형 잡힌 끝맛", price: 4500, priceLabel: "4.5", salePrice: 3900, salePriceLabel: "3.9", badge: "모닝딜" },
+        { name: "카푸치노", setName: "CAPPUCCINO", description: "풍성한 우유 거품과 진한 에스프레소", price: 5500, priceLabel: "5.5" },
+      ],
+    },
+    {
+      name: "MILK & CREAM",
+      items: [
+        { name: "카페 라떼", setName: "CAFE LATTE", description: "에스프레소와 부드러운 우유의 조화", price: 5500, priceLabel: "5.5", priceOptions: [{ label: "HOT", price: 5500, priceLabel: "5.5" }, { label: "ICE", price: 6000, priceLabel: "6.0" }] },
+        { name: "바닐라 빈 밀크", setName: "VANILLA BEAN MILK", description: "바닐라 빈과 우유를 담은 달콤한 음료", price: 6000, priceLabel: "6.0", badge: "NEW" },
+        { name: "말차 오트 밀크", setName: "MATCHA OAT MILK", description: "제주 말차와 고소한 오트 밀크의 조화", price: 6200, priceLabel: "6.2", imageUrl: "/menu-templates/cafe_design_a/malcha.jpg" },
+      ],
+    },
+    {
+      name: "TEA & ADE",
+      items: [
+        { name: "시트러스 민트 에이드", setName: "CITRUS MINT ADE", description: "감귤과 민트 향이 산뜻한 에이드", price: 6200, priceLabel: "6.2", portionLabel: "ICE ONLY" },
+        { name: "얼그레이 피치 티", setName: "EARL GREY PEACH TEA", description: "얼그레이 향과 복숭아의 은은한 단맛", price: 5800, priceLabel: "5.8" },
+      ],
+    },
+    {
+      name: "BAKE",
+      items: [
+        { name: "무화과 버터 스콘", setName: "FIG BUTTER SCONE", description: "무화과와 발효 버터를 넣어 구운 스콘", price: 4800, priceLabel: "4.8" },
+        { name: "레몬 마들렌", setName: "LEMON MADELEINE", description: "레몬 향을 담아 촉촉하게 구운 마들렌", price: 3800, priceLabel: "3.8" },
+      ],
+    },
+  ];
+  const siteId = data.menuSite.id;
+  const categories: MenuPageData["categories"] = [];
+  const items: MenuPageData["items"] = [];
+  const priceOptions: MenuPageData["priceOptions"] = [];
+  let morningDealItemId: string | null = null;
+
+  categorySeeds.forEach((categorySeed, categoryIndex) => {
+    const categoryId = `${siteId}-dense-category-${categoryIndex}`;
+    categories.push({
+      id: categoryId,
+      menu_page_id: page.id,
+      name: categorySeed.name,
+      description: null,
+      description_visible: false,
+      sort_order: categoryIndex + 1,
+      visible: true,
+      priceColumns: [],
+    });
+
+    categorySeed.items.forEach((itemSeed, itemIndex) => {
+      const itemId = `${categoryId}-item-${itemIndex}`;
+      if (itemSeed.salePrice) morningDealItemId = itemId;
+      items.push({
+        id: itemId,
+        category_id: categoryId,
+        name: itemSeed.name,
+        set_name: itemSeed.setName,
+        description: itemSeed.description,
+        price: itemSeed.price,
+        price_label: itemSeed.priceLabel,
+        priceNote: null,
+        price_visible: true,
+        portion_label: itemSeed.portionLabel ?? null,
+        portion_visible: Boolean(itemSeed.portionLabel),
+        image_url: itemSeed.imageUrl ?? null,
+        badge: itemSeed.badge ?? null,
+        badge_label: itemSeed.badge ?? null,
+        badge_type: null,
+        recommended: itemSeed.recommended ?? false,
+        origin_info: null,
+        is_best: itemSeed.recommended ?? false,
+        is_sold_out: false,
+        traits_visible: true,
+        visible: true,
+        sort_order: itemIndex + 1,
+        priceColumnValues: [],
+      });
+
+      itemSeed.priceOptions?.forEach((option, optionIndex) => {
+        priceOptions.push({
+          id: `${itemId}-price-option-${optionIndex}`,
+          menu_item_id: itemId,
+          label: option.label,
+          price: option.price,
+          price_label: option.priceLabel,
+          visible: true,
+          sort_order: optionIndex + 1,
+        });
+      });
+    });
+  });
+
+  const timeSales: MenuPageData["timeSales"] = morningDealItemId
+    ? [{
+        id: `${siteId}-dense-time-sale-0`,
+        name: "모닝딜",
+        scheduleType: "daily_window",
+        startsAt: now,
+        endsAt: new Date(data.initialNowMs + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        dailyStartTime: "08:00",
+        dailyEndTime: "10:00",
+        timezone: TIME_SALE_TIMEZONE,
+        timeDisplayMode: DEFAULT_TIME_SALE_DISPLAY_MODE,
+        displayText: "매일 오전 8시부터 10시까지",
+        badgeText: "모닝딜",
+        badgeBackgroundColor: DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
+        items: [{
+          id: `${siteId}-dense-time-sale-0-item-0`,
+          menuItemId: morningDealItemId,
+          priceColumnId: null,
+          salePrice: 3900,
+          salePriceLabel: "3.9",
+          visible: true,
+        }],
+      }]
+    : [];
+
+  return {
+    ...data,
+    categories,
+    items,
+    priceOptions,
+    timeSales,
+    nextTimeSaleStartAt: null,
+  };
 }
 
 function applySundayLineCopyQaFixture(
@@ -496,6 +666,36 @@ function applySundayLineCopyQaFixture(
       brand_description: brandDescription,
       settings: settings as MenuPageData["menuSite"]["settings"],
     },
+  };
+}
+
+function applyRoundFocusFeaturedFixture(
+  data: MenuPageData,
+  featured: string | string[] | undefined
+): MenuPageData {
+  if (process.env.NODE_ENV === "production") return data;
+  if (data.menuSite.template_key !== "cafe_round_focus_a") return data;
+
+  const featuredValue = Array.isArray(featured) ? featured[0] : featured;
+  if (featuredValue !== "off") return data;
+
+  const pageSettings = {
+    ...data.pageSettings,
+    menu_cover_enabled: false,
+    featured_item_enabled: false,
+    featured_item_id: null,
+    featured_slides: [],
+  };
+
+  return {
+    ...data,
+    menuSite: {
+      ...data.menuSite,
+      cover_image_url: null,
+      page_settings: pageSettings,
+    },
+    pageSettings,
+    featuredSlides: [],
   };
 }
 
@@ -682,13 +882,19 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const data = applyPreviewFontSizeScale(
     applyDisplayPreviewSplitImagePosition(
       applyCafeAMultiPagePreviewFixture(
-        applySundayLineCopyQaFixture(
-          applyCafeAFooterStressData(
-            buildPreviewData(templateKey, displayPreviewQaCase),
-            resolvedSearchParams.footerStress
+        applyRoundFocusFeaturedFixture(
+          applySundayLineCopyQaFixture(
+            applyCafeDenseContentQaFixture(
+              applyCafeAFooterStressData(
+                buildPreviewData(templateKey, displayPreviewQaCase),
+                resolvedSearchParams.footerStress
+              ),
+              resolvedSearchParams.contentQa
+            ),
+            resolvedSearchParams.copyQa,
+            resolvedSearchParams.lang
           ),
-          resolvedSearchParams.copyQa,
-          resolvedSearchParams.lang
+          resolvedSearchParams.featured
         ),
         resolvedSearchParams.pagePresentation
       ),

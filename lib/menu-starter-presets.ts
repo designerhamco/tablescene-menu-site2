@@ -317,7 +317,12 @@ function item(
 
 function isCafeAStarterTemplateKey(templateKey?: string | null) {
   const normalizedTemplateKey = templateKey?.trim().toLowerCase();
-  return normalizedTemplateKey === "cafe_design_a" || normalizedTemplateKey === "cafe_mocha_forest_a" || normalizedTemplateKey === "cafe_sunday_line_a";
+  return (
+    normalizedTemplateKey === "cafe_design_a" ||
+    normalizedTemplateKey === "cafe_mocha_forest_a" ||
+    normalizedTemplateKey === "cafe_sunday_line_a" ||
+    normalizedTemplateKey === "cafe_round_focus_a"
+  );
 }
 
 function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: StarterServiceType) {
@@ -326,6 +331,7 @@ function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: Sta
     preset === cafeDesignAStarterPreset ||
     preset === cafeMochaForestStarterPreset ||
     preset === cafeSundayLineStarterPreset ||
+    preset === cafeRoundFocusStarterPreset ||
     preset === cafeNoirAStarterPreset
   );
 }
@@ -443,6 +449,23 @@ export function resolveStarterFeaturedSlides<T extends { id: string; name: strin
   }));
 }
 
+function resolveStarterFeaturedSlidesByKey(
+  preset: StarterPreset,
+  itemIdByStarterKey: ReadonlyMap<string, string>,
+  itemIdByName: ReadonlyMap<string, string>
+): ResolvedStarterFeaturedSlide[] {
+  return getStarterFeaturedSlides(preset).map((slide, index) => ({
+    id: slide.id,
+    image_url: slide.image_url,
+    image_path: slide.image_path ?? null,
+    featured_item_id:
+      (slide.featured_item_key ? itemIdByStarterKey.get(slide.featured_item_key) ?? null : null) ??
+      itemIdByName.get(slide.featured_item_name) ??
+      null,
+    sort_order: index,
+  }));
+}
+
 export function getFirstCompleteStarterFeaturedSlide(slides: ResolvedStarterFeaturedSlide[]) {
   return slides.find((slide) => Boolean(slide.image_url && slide.featured_item_id)) ?? null;
 }
@@ -501,6 +524,7 @@ const cafeDesignAStarterPreset: StarterPreset = {
 
 const cafeMochaForestStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_mocha_forest_a");
 const cafeSundayLineStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_sunday_line_a");
+const cafeRoundFocusStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_round_focus_a");
 
 cafeSundayLineStarterPreset.site = {
   ...cafeSundayLineStarterPreset.site,
@@ -653,6 +677,143 @@ cafeSundayLineStarterPreset.pages = [
   },
 ];
 
+cafeRoundFocusStarterPreset.site = {
+  ...cafeRoundFocusStarterPreset.site,
+  restaurant_name: "ROUND ROASTERS",
+  intro_title: "ROUND ROASTERS",
+  menu_cover_title: "ROUND ROASTERS",
+  brand_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
+  intro_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
+  menu_cover_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
+  settings: {
+    ...(cafeRoundFocusStarterPreset.site.settings ?? {}),
+    footer_notice_1: "Wi-Fi · ROUND_GUEST",
+    footer_notice_2: "Instagram · @round.roasters",
+    footer_notice_3: "디카페인 원두로 변경 가능합니다.",
+  },
+};
+cafeRoundFocusStarterPreset.featured_item_name = "라운드 크림 커피";
+cafeRoundFocusStarterPreset.featured_item_key = "round-cream-coffee";
+cafeRoundFocusStarterPreset.featured_slides = [{
+  id: "round-focus-featured-round-cream-coffee",
+  image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
+  image_path: null,
+  featured_item_key: "round-cream-coffee",
+  featured_item_name: "라운드 크림 커피",
+  sort_order: 0,
+}];
+cafeRoundFocusStarterPreset.time_sales = [
+  {
+    key: "americano-morning-deal",
+    name: "아메리카노 모닝딜",
+    schedule_type: "once",
+    badge_text: "모닝딜",
+    badge_background_color: "#9B4F33",
+    time_display_mode: "message",
+    time_display_text: "매일 오전 8시부터 10시까지",
+    targets: [
+      { target_item_key: "americano", target_item_name: "아메리카노", sale_price: 3900 },
+    ],
+  },
+];
+cafeRoundFocusStarterPreset.mixed_content_order = [
+  { block_type: "category", page_key: "main-menu", category_key: "house-special", sort_order: 0, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "espresso", sort_order: 1, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "milk-cream", sort_order: 2, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 3, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bake", sort_order: 4, visible: true },
+];
+cafeRoundFocusStarterPreset.pages = [
+  {
+    key: "main-menu",
+    title: "메뉴 페이지 1",
+    legacy_section_key: "main_menu",
+    categories: [
+      {
+        key: "house-special",
+        name: "HOUSE SPECIALS",
+        section_key: "main_menu",
+        items: [
+          item("라운드 크림 커피", 6500, "부드러운 크림과 고소한 에스프레소의 시그니처 커피", {
+            key: "round-cream-coffee",
+            badge_label: "SIGNATURE",
+            recommended: true,
+            image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
+          }),
+          item("브라운 슈가 플랫화이트", 6200, "브라운 슈가의 은은한 단맛을 담은 플랫화이트", {
+            key: "brown-sugar-flat-white",
+            badge_label: "BEST",
+            image_url: "/menu-templates/cafe_design_a/malcha.jpg",
+          }),
+          item("오렌지 크림 콜드브루", 6800, "오렌지 향과 부드러운 크림을 더한 콜드브루", {
+            key: "orange-cream-coldbrew",
+            badge_label: "NEW",
+          }),
+        ],
+      },
+      {
+        key: "espresso",
+        name: "ESPRESSO",
+        section_key: "main_menu",
+        items: [
+          item("에스프레소", 3500, "진한 향과 깔끔한 단맛", {
+            key: "espresso",
+          }),
+          item("아메리카노", 4500, "견과류의 고소함과 균형 잡힌 끝맛", {
+            key: "americano",
+          }),
+          item("카푸치노", 5500, "풍성한 우유 거품과 진한 에스프레소", {
+            key: "cappuccino",
+          }),
+        ],
+      },
+      {
+        key: "milk-cream",
+        name: "MILK & CREAM",
+        section_key: "main_menu",
+        items: [
+          item("카페 라떼", 5500, "에스프레소와 부드러운 우유의 조화", {
+            key: "cafe-latte",
+          }),
+          item("바닐라 빈 밀크", 6000, "바닐라 빈과 우유를 담은 달콤한 음료", {
+            key: "vanilla-bean-milk",
+            badge_label: "NEW",
+          }),
+          item("말차 오트 밀크", 6200, "제주 말차와 고소한 오트 밀크의 조화", {
+            key: "matcha-oat-milk",
+          }),
+        ],
+      },
+      {
+        key: "tea-ade",
+        name: "TEA & ADE",
+        section_key: "dessert_drink",
+        items: [
+          item("시트러스 민트 에이드", 6200, "감귤과 민트 향이 산뜻한 에이드", {
+            key: "citrus-mint-ade",
+          }),
+          item("얼그레이 피치 티", 5800, "얼그레이 향과 복숭아의 은은한 단맛", {
+            key: "earl-grey-peach-tea",
+          }),
+        ],
+      },
+      {
+        key: "bake",
+        name: "BAKE",
+        section_key: "dessert_drink",
+        items: [
+          item("무화과 버터 스콘", 4800, "무화과와 발효 버터를 넣어 구운 스콘", {
+            key: "fig-butter-scone",
+          }),
+          item("레몬 마들렌", 3800, "레몬 향을 담아 촉촉하게 구운 마들렌", {
+            key: "lemon-madeleine",
+          }),
+        ],
+      },
+    ],
+  },
+];
+
 const cafeNoirAStarterPreset: StarterPreset = {
   key: "cafe",
   site: {
@@ -742,6 +903,7 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
   cafe_mocha_forest_a: cafeMochaForestStarterPreset,
   cafe_sunday_line_a: cafeSundayLineStarterPreset,
+  cafe_round_focus_a: cafeRoundFocusStarterPreset,
   cafe_noir_a: cafeNoirAStarterPreset,
 };
 
@@ -1882,15 +2044,31 @@ export async function createStarterMenuData(
   }
 
   const itemIdByKey = new Map((insertedItems ?? []).map((menuItem) => [`${menuItem.category_id ?? ""}:${menuItem.name}`, menuItem.id]));
+  const itemIdByStarterKey = new Map<string, string>();
+  const itemIdByName = new Map<string, string>();
+  preset.pages.forEach((page) => {
+    const pageId = pageIdByTitle.get(page.title) ?? "";
+    page.categories.forEach((category) => {
+      const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
+      category.items.forEach((menuItem) => {
+        const insertedItemId = itemIdByKey.get(`${categoryId}:${menuItem.name}`);
+        if (!insertedItemId) return;
+        if (menuItem.key) itemIdByStarterKey.set(menuItem.key, insertedItemId);
+        itemIdByName.set(menuItem.name, insertedItemId);
+      });
+    });
+  });
 
-  const starterFeaturedSlides = resolveStarterFeaturedSlides(preset, insertedItems ?? []);
+  const starterFeaturedSlides = resolveStarterFeaturedSlidesByKey(preset, itemIdByStarterKey, itemIdByName);
   const firstCompleteStarterFeaturedSlide = getFirstCompleteStarterFeaturedSlide(starterFeaturedSlides);
   const starterFeaturedItemNames = getStarterFeaturedItemNames(preset);
   if (starterFeaturedItemNames.length > 0) {
-    const featuredItem = starterFeaturedItemNames
-      .map((name) => (insertedItems ?? []).find((menuItem) => menuItem.name === name))
-      .find((menuItem) => Boolean(menuItem?.id));
-    const featuredItemId = firstCompleteStarterFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null;
+    const featuredItemId =
+      firstCompleteStarterFeaturedSlide?.featured_item_id ??
+      (preset.featured_item_key ? itemIdByStarterKey.get(preset.featured_item_key) ?? null : null) ??
+      (preset.featured_item_name ? itemIdByName.get(preset.featured_item_name) ?? null : null) ??
+      starterFeaturedItemNames.map((name) => itemIdByName.get(name) ?? null).find((id): id is string => Boolean(id)) ??
+      null;
 
     if (featuredItemId) {
       const { data: siteSettings, error: siteSettingsError } = await supabase

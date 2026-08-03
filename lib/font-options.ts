@@ -486,6 +486,7 @@ const TEMPLATE_ENGLISH_FONT_HIDDEN_OPTIONS: Record<string, readonly EnglishFontV
   cafe_design_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_mocha_forest_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_sunday_line_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
+  cafe_round_focus_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
 };
 
 const SYSTEM_ENGLISH_FONT_OPTIONS = [
@@ -505,6 +506,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
   cafe_design_a: "pretendard",
   cafe_mocha_forest_a: "pretendard",
   cafe_sunday_line_a: "pretendard",
+  cafe_round_focus_a: "pretendard",
   cafe_noir_a: "pretendard",
   cafe_design_b: "pretendard",
   cafe_design_c: "pretendard",
@@ -522,6 +524,7 @@ export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = 
   cafe_design_a: "alata",
   cafe_mocha_forest_a: "alata",
   cafe_sunday_line_a: "alata",
+  cafe_round_focus_a: "alata",
   cafe_noir_a: "cutive-mono",
   cafe_design_b: "outfit",
   cafe_design_c: "outfit",
