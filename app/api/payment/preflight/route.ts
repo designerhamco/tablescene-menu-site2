@@ -12,8 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getTemplateCategoryFromKey,
   isTemplateCategoryKey,
-  isTemplateSupportedForService,
 } from "@/lib/templates";
+import { isTemplateSupportedForCheckout } from "@/lib/server/mocha-forest-checkout-qa";
 
 export const runtime = "nodejs";
 
@@ -166,7 +166,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!isTemplateSupportedForService(templateKey, templateServiceType)) {
+  if (!isTemplateSupportedForCheckout(templateKey, templateServiceType)) {
     return jsonError("선택한 상품에서 사용할 수 없는 템플릿입니다.", 400, {
       productKey,
       templateKey,

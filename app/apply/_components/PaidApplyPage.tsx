@@ -3,6 +3,10 @@ import ApplyOrderForm from "@/components/apply/ApplyOrderForm";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { getDisplayCheckoutQaTemplates, isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
 import { getPublicPortOneConfig } from "@/lib/portone";
+import {
+  getCheckoutTemplatesWithMochaForestQa,
+  isMochaForestCheckoutSafeMockEnabled,
+} from "@/lib/server/mocha-forest-checkout-qa";
 import { createClient } from "@/lib/supabase/server";
 import { getAvailableTemplatesForService } from "@/lib/templates";
 import { redirect } from "next/navigation";
@@ -66,9 +70,12 @@ export default async function PaidApplyPage({
   const portOneConfig = getPublicPortOneConfig();
   const templateServiceType = serviceType === "screen" ? "display" : "basic";
   const displayCheckoutQaEnabled = serviceType === "screen" && isDisplayCheckoutQaEnabled();
+  const availableTemplates = getAvailableTemplatesForService(templateServiceType);
   const templates = displayCheckoutQaEnabled
     ? getDisplayCheckoutQaTemplates()
-    : getAvailableTemplatesForService(templateServiceType);
+    : serviceType === "menu"
+      ? getCheckoutTemplatesWithMochaForestQa(availableTemplates, templateServiceType)
+      : availableTemplates;
 
   return (
     <>
@@ -97,6 +104,7 @@ export default async function PaidApplyPage({
             channelKey={portOneConfig.channelKey}
             billingChannelKey={portOneConfig.billingChannelKey}
             mockEnabled={portOneConfig.mockEnabled}
+            mochaForestCheckoutSafeMockEnabled={serviceType === "menu" && isMochaForestCheckoutSafeMockEnabled()}
             serviceType={serviceType}
             displayCheckoutQaEnabled={displayCheckoutQaEnabled}
             initialRecoverPaymentId={initialRecoverPaymentId}

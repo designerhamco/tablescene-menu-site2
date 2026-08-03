@@ -18,7 +18,8 @@ import { getPaidSubscriptionDataRetentionUntil, getPersonalTrialDataRetentionUnt
 import { MENU_LIMITS, createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { isSocialLinkType, validateSocialLinks } from "@/lib/social-links";
-import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey, isTemplateSupportedForService } from "@/lib/templates";
+import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
+import { isTemplateSupportedForCheckout } from "@/lib/server/mocha-forest-checkout-qa";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
@@ -411,7 +412,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     return null;
   }
 
-  if (!isTemplateSupportedForService(templateKey, getTemplateServiceTypeForPlan(planKey))) {
+  if (!isTemplateSupportedForCheckout(templateKey, getTemplateServiceTypeForPlan(planKey))) {
     return null;
   }
 
@@ -596,7 +597,7 @@ function getOrderPayloadDebug(value: unknown) {
     expectedBillingCycle: requestedProduct?.billing_cycle,
     socialLinksOk: socialLinksValidation.ok,
     socialLinksMessage: socialLinksValidation.message,
-    templateSupported: isTemplateSupportedForService(templateKey, templateServiceType),
+    templateSupported: isTemplateSupportedForCheckout(templateKey, templateServiceType),
     requiredFields,
   };
 }
@@ -1321,7 +1322,7 @@ export async function POST(request: Request) {
     return jsonError("template_key가 올바르지 않습니다.");
   }
 
-  if (!isTemplateSupportedForService(templateKey, getTemplateServiceTypeForPlan(requestedPlanKey))) {
+  if (!isTemplateSupportedForCheckout(templateKey, getTemplateServiceTypeForPlan(requestedPlanKey))) {
     console.error("[payment-complete] template service validation failed", {
       paymentId,
       requestedPlanKey,

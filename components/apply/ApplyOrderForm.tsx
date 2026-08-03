@@ -1,8 +1,8 @@
 "use client";
 
-import * as PortOne from "@portone/browser-sdk/v2";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX } from "@/lib/display-checkout-qa-constants";
@@ -74,6 +74,7 @@ type ApplyOrderFormProps = {
   channelKey: string | null;
   billingChannelKey: string | null;
   mockEnabled: boolean;
+  mochaForestCheckoutSafeMockEnabled?: boolean;
   serviceType?: "menu" | "screen" | "order";
   displayCheckoutQaEnabled?: boolean;
   initialRecoverPaymentId?: string;
@@ -830,6 +831,7 @@ export default function ApplyOrderForm({
   channelKey,
   billingChannelKey,
   mockEnabled,
+  mochaForestCheckoutSafeMockEnabled = false,
   serviceType = "menu",
   displayCheckoutQaEnabled = false,
   initialRecoverPaymentId = "",
@@ -1050,6 +1052,12 @@ export default function ApplyOrderForm({
   const isPortOneReady = Boolean(storeId && channelKey);
   const isBillingPortOneReady = Boolean(storeId && billingChannelKey);
   const isDevelopment = process.env.NODE_ENV !== "production";
+  const isMochaForestCheckoutTemplate = payload.template_key === "cafe_mocha_forest_a";
+  const canUseMochaForestSafeMock =
+    mochaForestCheckoutSafeMockEnabled &&
+    isDevelopment &&
+    mockEnabled &&
+    isMochaForestCheckoutTemplate;
   const hasInitialRecoveryParams =
     Boolean(normalizeRecoverablePaymentId(initialRecoverPaymentId)) || Boolean(initialRecoverSubscriptionId.trim());
   const canShowPaymentCompletionRecovery = isScreenService && displayCheckoutQaEnabled && isDevelopment && hasInitialRecoveryParams;
@@ -1724,6 +1732,7 @@ export default function ApplyOrderForm({
       setUiState({ type: "loading", message: "PortOne 빌링키 발급창을 준비하고 있습니다." });
 
       try {
+        const PortOne = await import("@portone/browser-sdk/v2");
         const issueResponse = await PortOne.requestIssueBillingKey({
           storeId,
           channelKey: billingChannelKey,
@@ -1752,7 +1761,7 @@ export default function ApplyOrderForm({
             content_policy_accepted: agreements.contentPolicy,
             marketing_accepted: agreements.marketing,
           },
-        } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0]);
+        } as unknown as Parameters<typeof PortOneSdk.requestIssueBillingKey>[0]);
         const issueResult = issueResponse as BillingKeyIssueResponse | null | undefined;
 
         if (!issueResponse || issueResult?.code) {
@@ -1829,6 +1838,29 @@ export default function ApplyOrderForm({
       return;
     }
 
+    if (isMochaForestCheckoutTemplate && !canUseMochaForestSafeMock) {
+      setUiState({
+        type: "error",
+        message: "Mocha Forest QA 결제는 개발 mock이 켜진 안전 경로에서만 진행할 수 있습니다.",
+      });
+      return;
+    }
+
+    if (canUseMochaForestSafeMock) {
+      setUiState({ type: "loading", message: "Mocha Forest QA mock 결제로 메뉴판 생성을 준비하고 있습니다." });
+
+      try {
+        await completePayment(createMockPaymentId());
+      } catch (error) {
+        setUiState({
+          type: "error",
+          message: error instanceof Error ? error.message : "Mocha Forest QA mock 결제 처리 중 알 수 없는 오류가 발생했습니다.",
+        });
+      }
+
+      return;
+    }
+
     if (!isPortOneReady || !storeId || !channelKey) {
       if (!isDevelopment || !mockEnabled) {
         setUiState({
@@ -1858,6 +1890,7 @@ export default function ApplyOrderForm({
     setUiState({ type: "loading", message: "결제창을 준비하고 있습니다." });
 
     try {
+      const PortOne = await import("@portone/browser-sdk/v2");
       const paymentRequest = {
         storeId,
         channelKey,
@@ -1893,7 +1926,7 @@ export default function ApplyOrderForm({
           promotion_original_amount: activePromotion?.originalAmount,
           promotion_final_amount: activePromotion?.finalAmount,
         },
-      } as unknown as Parameters<typeof PortOne.requestPayment>[0];
+      } as unknown as Parameters<typeof PortOneSdk.requestPayment>[0];
 
       const payment = await PortOne.requestPayment(paymentRequest);
 

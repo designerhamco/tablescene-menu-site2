@@ -23,7 +23,8 @@ import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-servi
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
-import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey, isTemplateSupportedForService } from "@/lib/templates";
+import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
+import { isTemplateSupportedForCheckout } from "@/lib/server/mocha-forest-checkout-qa";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
@@ -436,7 +437,7 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     planKey !== (isDisplayQaOrder ? "large_screen" : "basic") ||
     (isDisplayQaOrder
       ? templateKey !== DISPLAY_CHECKOUT_QA_TEMPLATE_KEY || templateCategory !== DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY
-      : !isTemplateSupportedForService(templateKey, "basic"))
+      : !isTemplateSupportedForCheckout(templateKey, "basic"))
   ) {
     return null;
   }
