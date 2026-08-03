@@ -45,6 +45,7 @@ import {
   type CafeAStarterResetSnapshot,
 } from "@/lib/cafe-a-starter-reset";
 import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
+import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { isPriceDisplayMode } from "@/lib/menu-price-format";
 import {
@@ -588,7 +589,7 @@ function parseCafeAStarterResetFinalSavePayloadFromForm({
   const rawValue = getString(formData, CAFE_A_STARTER_RESET_FINAL_SAVE_PAYLOAD_FIELD);
   if (!rawValue) return null;
 
-  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a") {
     redirectToMenuEditWithError(menuId, "CafeA starter family 샘플 저장 정보가 현재 템플릿과 맞지 않습니다.");
   }
 
@@ -1692,7 +1693,7 @@ function getCafeATypographyRolePayload(roleSettings: TypographyRoleSettings) {
 }
 
 function setDesignTypographyRoleSettings(designSettings: Record<string, unknown>, roleSettings: TypographyRoleSettings, templateKey?: string | null) {
-  if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a") {
+  if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a") {
     const cafeARolePayload = getCafeATypographyRolePayload(roleSettings);
     if (cafeARolePayload) {
       designSettings.typographyRoles = cafeARolePayload;
@@ -1743,7 +1744,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a") {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
@@ -2811,7 +2812,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a") {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
@@ -3299,24 +3300,25 @@ export async function updateMenuSiteAction(formData: FormData) {
   const shouldDeleteLogoImage = getBoolean(formData, "delete_logo_image");
   const draftLogoImageUrl = getNullableString(formData, "draft_logo_image_url");
   const draftLogoImagePath = getNullableString(formData, "draft_logo_image_path");
+  const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
 
   if (!name) {
     redirectToTabEditWithError(menuId, "basic", "메뉴판 이름을 입력해주세요.");
   }
 
   validateRequiredText(menuId, name, "메뉴판 이름", MENU_FIELD_LIMITS.menuSites.name, "basic");
-  validateRequiredText(menuId, restaurantName ?? "", "실제 매장명", MENU_FIELD_LIMITS.menuSites.restaurantName, "basic");
+  validateRequiredText(menuId, restaurantName ?? "", "실제 매장명", templateContentLimits.restaurantName, "basic");
   if (hasBrandDescriptionField) {
-    validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "basic");
+    validateOptionalText(menuId, brandDescription, "매장 설명", templateContentLimits.brandDescription, "basic");
   }
   if (hasFooterNotice1Field) {
-    validateOptionalText(menuId, footerNotice1, "안내사항 1", MENU_FIELD_LIMITS.menuSites.footerNotice, "basic");
+    validateOptionalText(menuId, footerNotice1, "안내사항 1", templateContentLimits.footerNotice, "basic");
   }
   if (hasFooterNotice2Field) {
-    validateOptionalText(menuId, footerNotice2, "안내사항 2", MENU_FIELD_LIMITS.menuSites.footerNotice, "basic");
+    validateOptionalText(menuId, footerNotice2, "안내사항 2", templateContentLimits.footerNotice, "basic");
   }
   if (hasFooterNotice3Field) {
-    validateOptionalText(menuId, footerNotice3, "안내사항 3", MENU_FIELD_LIMITS.menuSites.footerNotice, "basic");
+    validateOptionalText(menuId, footerNotice3, "안내사항 3", templateContentLimits.footerNotice, "basic");
   }
 
   const updatePayload: MenuSiteUpdate = {
@@ -3420,11 +3422,12 @@ export async function updateIntroAction(formData: FormData) {
   const shouldDeleteIntroImage = getBoolean(formData, "delete_intro_image");
   const draftIntroImageUrl = getNullableString(formData, "draft_intro_image_url");
   const draftIntroImagePath = getNullableString(formData, "draft_intro_image_path");
+  const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
 
   validateRequiredText(menuId, introTitle ?? "", "인트로 제목", MENU_FIELD_LIMITS.menuSites.introTitle, "intro");
   validateRequiredText(menuId, introDescription ?? "", "인트로 설명", MENU_FIELD_LIMITS.menuSites.introDescription, "intro");
   if (hasBrandDescriptionField) {
-    validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "intro");
+    validateOptionalText(menuId, brandDescription, "매장 설명", templateContentLimits.brandDescription, "intro");
   }
 
   const updatePayload: MenuSiteUpdate = {
@@ -3924,6 +3927,7 @@ export async function updateAboutAction(formData: FormData) {
   const mapUrl = hasMapUrlField ? getNullableString(formData, "map_url") : null;
   const hasBrandDescriptionField = formData.has("brand_description");
   const brandDescription = hasBrandDescriptionField ? getNullableString(formData, "brand_description") : menuSite.brand_description;
+  const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
 
   if (hasRestaurantAddressField) {
     validateRequiredText(menuId, restaurantAddress ?? "", "주소", MENU_FIELD_LIMITS.menuSites.restaurantAddress, "about");
@@ -3941,7 +3945,7 @@ export async function updateAboutAction(formData: FormData) {
     validateOptionalText(menuId, mapUrl, "지도 URL", MENU_FIELD_LIMITS.menuSites.mapUrl, "about");
   }
   if (hasBrandDescriptionField) {
-    validateOptionalText(menuId, brandDescription, "매장 설명", MENU_FIELD_LIMITS.menuSites.brandDescription, "about");
+    validateOptionalText(menuId, brandDescription, "매장 설명", templateContentLimits.brandDescription, "about");
   }
 
   if (hasRestaurantAddressField || hasRestaurantPhoneField || hasOpeningHoursField || hasMapUrlField || hasAboutDescriptionField || hasBrandDescriptionField) {

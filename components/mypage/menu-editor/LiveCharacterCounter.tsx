@@ -47,7 +47,7 @@ export default function LiveCharacterCounter({ fieldName, initialLength, maxLeng
   }, [fieldName, initialLength]);
 
   return (
-    <span className="shrink-0">
+    <span className={currentLength > maxLength ? "shrink-0 text-red-600" : "shrink-0"}>
       {currentLength} / {maxLength}
     </span>
   );

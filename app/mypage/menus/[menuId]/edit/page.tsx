@@ -40,6 +40,7 @@ import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
+import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import type { AiCreditBalance } from "@/lib/ai-credits";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import CoverDraftToggleSection from "@/components/mypage/menu-editor/CoverDraftToggleSection";
@@ -1658,6 +1659,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       : error;
   const basicNameError = activeTab === "basic" && bannerError?.includes("메뉴판 이름") ? bannerError : null;
   const basicRestaurantNameError = activeTab === "basic" && bannerError?.includes("실제 매장명") ? bannerError : null;
+  const basicBrandDescriptionError = activeTab === "basic" && bannerError?.includes("매장 설명") ? bannerError : null;
+  const basicFooterNotice1Error = activeTab === "basic" && bannerError?.includes("안내사항 1") ? bannerError : null;
+  const basicFooterNotice2Error = activeTab === "basic" && bannerError?.includes("안내사항 2") ? bannerError : null;
+  const basicFooterNotice3Error = activeTab === "basic" && bannerError?.includes("안내사항 3") ? bannerError : null;
   const coverFeaturedItemError = activeTab === "cover" && bannerError?.includes("대표 추천 메뉴") ? bannerError : null;
   const finalSaveError = normalizeFinalSaveError(
     (activeTab === "basic" && (basicNameError || basicRestaurantNameError)) ||
@@ -1667,6 +1672,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   );
   const globalBannerError = activeTab === "localization" ? bannerError : null;
   const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
+  const templateContentLimits = getTemplateContentLimits(site.template_key);
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
   const previewUrl = `/mypage/menus/${site.id}/preview`;
@@ -1829,10 +1835,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       name="restaurant_name"
                       defaultValue={site.restaurant_name ?? ""}
                       required
-                      maxLength={MENU_FIELD_LIMITS.menuSites.restaurantName}
+                      maxLength={templateContentLimits.restaurantName}
                       helperText={
                         <>
-                          공개 메뉴판에 표시될 매장명입니다.
+                          공개 메뉴판에 표시될 매장명입니다. 최대 {templateContentLimits.restaurantName}자까지 입력할 수 있습니다.
                           {basicRestaurantNameError && <span className="mt-1 block text-red-600">{basicRestaurantNameError}</span>}
                         </>
                       }
@@ -1844,9 +1850,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <TextArea
                         name="brand_description"
                         defaultValue={site.brand_description ?? ""}
-                        maxLength={MENU_FIELD_LIMITS.menuSites.brandDescription}
+                        maxLength={templateContentLimits.brandDescription}
                         placeholder="예: 신선한 재료와 정성스러운 서비스로 매일의 시간을 더 특별하게 만드는 공간입니다."
-                        helperText="공개 메뉴판 상단에 매장 소개 문구로 표시됩니다."
+                        helperText={
+                          <>
+                            공개 메뉴판 상단에 매장 소개 문구로 표시됩니다. 최대 {templateContentLimits.brandDescription}자까지 입력할 수 있습니다.
+                            {basicBrandDescriptionError && <span className="mt-1 block text-red-600">{basicBrandDescriptionError}</span>}
+                          </>
+                        }
                       />
                     </div>
                   )}
@@ -1923,9 +1934,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             <TextArea
                               name="footer_notice_1"
                               defaultValue={footerNotice1}
-                              maxLength={MENU_FIELD_LIMITS.menuSites.footerNotice}
+                              maxLength={templateContentLimits.footerNotice}
                               placeholder="예: 매일 10:00~22:00"
-                              helperText="메뉴판 하단에 입력한 문구만 표시됩니다."
+                              helperText={
+                                <>
+                                  메뉴판 하단에 입력한 문구만 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+                                  {basicFooterNotice1Error && <span className="mt-1 block text-red-600">{basicFooterNotice1Error}</span>}
+                                </>
+                              }
                             />
                           </div>
                           <div>
@@ -1933,9 +1949,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             <TextArea
                               name="footer_notice_2"
                               defaultValue={footerNotice2}
-                              maxLength={MENU_FIELD_LIMITS.menuSites.footerNotice}
+                              maxLength={templateContentLimits.footerNotice}
                               placeholder="예: 포장 가능 · 주차 가능"
-                              helperText="업종에 맞는 짧은 안내를 입력하세요."
+                              helperText={
+                                <>
+                                  업종에 맞는 짧은 안내를 입력하세요. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+                                  {basicFooterNotice2Error && <span className="mt-1 block text-red-600">{basicFooterNotice2Error}</span>}
+                                </>
+                              }
                             />
                           </div>
                           <div>
@@ -1943,9 +1964,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             <TextArea
                               name="footer_notice_3"
                               defaultValue={footerNotice3}
-                              maxLength={MENU_FIELD_LIMITS.menuSites.footerNotice}
+                              maxLength={templateContentLimits.footerNotice}
                               placeholder="예: Instagram @menulink_official"
-                              helperText="링크가 아닌 단순 텍스트로 표시됩니다."
+                              helperText={
+                                <>
+                                  링크가 아닌 단순 텍스트로 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+                                  {basicFooterNotice3Error && <span className="mt-1 block text-red-600">{basicFooterNotice3Error}</span>}
+                                </>
+                              }
                             />
                           </div>
                         </div>

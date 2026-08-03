@@ -14,6 +14,7 @@ import {
   TIME_SALE_TIMEZONE,
 } from "@/lib/menu-time-sales";
 import { getNextTimeSaleStartMs } from "@/lib/menu-time-sale-schedule";
+import { DEFAULT_TEMPLATE_CONTENT_LIMITS, getTemplateContentLimits } from "@/lib/template-content-limits";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { MENU_WIDGET_SETTINGS_VERSION } from "@/lib/menu-widgets";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
@@ -29,6 +30,8 @@ type PageProps = {
     qaCase?: string | string[];
     qaSplitImagePosition?: string | string[];
     footerStress?: string | string[];
+    copyQa?: string | string[];
+    lang?: string | string[];
     pagePresentation?: string | string[];
   }>;
 };
@@ -385,6 +388,117 @@ function isMultiPagePresentationPreview(value: string | string[] | undefined) {
   return rawValue === "multi" || rawValue === "multi-page";
 }
 
+function normalizeSundayLineCopyQaCase(value: string | string[] | undefined) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  return rawValue === "long" || rawValue === "stress" || rawValue === "globalMax" ? rawValue : null;
+}
+
+function normalizeSundayLineCopyQaLocale(value: string | string[] | undefined) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  return rawValue === "en" || rawValue === "zh" || rawValue === "ja" ? rawValue : "ko";
+}
+
+function toExactPreviewLength(value: string, maxLength: number, filler = " 안내") {
+  if (value.length >= maxLength) return value.slice(0, maxLength);
+
+  let nextValue = value;
+  while (nextValue.length < maxLength) {
+    nextValue += filler;
+  }
+
+  return nextValue.slice(0, maxLength);
+}
+
+function applySundayLineCopyQaFixture(
+  data: MenuPageData,
+  copyQa: string | string[] | undefined,
+  lang: string | string[] | undefined
+): MenuPageData {
+  if (process.env.NODE_ENV === "production") return data;
+  if (data.menuSite.template_key !== "cafe_sunday_line_a") return data;
+
+  const copyQaCase = normalizeSundayLineCopyQaCase(copyQa);
+  if (!copyQaCase) return data;
+
+  const locale = normalizeSundayLineCopyQaLocale(lang);
+  const isStress = copyQaCase === "stress";
+  const isGlobalMax = copyQaCase === "globalMax";
+  const contentLimits = isGlobalMax ? DEFAULT_TEMPLATE_CONTENT_LIMITS : getTemplateContentLimits(data.menuSite.template_key);
+  const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)
+    ? { ...data.menuSite.settings }
+    : {};
+  const longCopyByLocale = {
+    ko: {
+      restaurantName: "SUNDAY ROASTERS.",
+      brandDescription: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리의 메뉴판 안내입니다. 여유로운 매장 분위기를 함께 안내합니다.",
+      footerNotice1: "Wi-Fi · SUNDAY_GUEST · Password 2026",
+      footerNotice2: "Instagram · @sunday.roasters · 매일 새 소식",
+      footerNotice3: "반려동물은 야외 좌석만 이용 가능하며 포장 주문도 가능합니다.",
+    },
+    en: {
+      restaurantName: "SUNDAY ROASTERS",
+      brandDescription: "Carefully roasted coffee and simple desserts are prepared for neighbors who enjoy an easy Sunday rhythm.",
+      footerNotice1: "Wi-Fi SUNDAY_GUEST · Password 2026",
+      footerNotice2: "Instagram @sunday.roasters",
+      footerNotice3: "Takeout available · Patio pet seating",
+    },
+    zh: {
+      restaurantName: "星期日烘焙咖啡店欢迎",
+      brandDescription: "每日准备烘焙咖啡和朴素甜点，为附近客人提供轻松舒适的菜单说明和温暖的店铺体验。",
+      footerNotice1: "Wi-Fi SUNDAY_GUEST · 密码 2026",
+      footerNotice2: "Instagram @sunday.roasters",
+      footerNotice3: "可外带 · 宠物可使用户外座位说明",
+    },
+    ja: {
+      restaurantName: "サンデーロースターズ本店",
+      brandDescription: "丁寧に焙煎したコーヒーと素朴なデザートを用意し、ゆっくり過ごせる店内のメニューを案内します。",
+      footerNotice1: "Wi-Fi SUNDAY_GUEST · Password 2026",
+      footerNotice2: "Instagram @sunday.roasters",
+      footerNotice3: "テイクアウト可 · ペットは屋外席のみ",
+    },
+  } as const;
+  const longCopy = longCopyByLocale[locale];
+  const fillerByLocale = {
+    ko: " 안내",
+    en: " Info",
+    zh: "说明",
+    ja: "案内",
+  } as const;
+  const filler = fillerByLocale[locale];
+
+  const restaurantName = isStress
+    ? toExactPreviewLength("SUNDAYROASTERSNEIGHBORHOODCAFE2026", contentLimits.restaurantName)
+    : toExactPreviewLength(longCopy.restaurantName, contentLimits.restaurantName, filler);
+  const brandDescription = isStress
+    ? toExactPreviewLength("SUNDAYROASTERSCOFFEEDESSERTNEIGHBORHOODPAPERMENUDAILYBREWINGGUIDE", contentLimits.brandDescription)
+    : toExactPreviewLength(longCopy.brandDescription, contentLimits.brandDescription, filler);
+  const footerNotice1 = isStress
+    ? toExactPreviewLength("WiFiSSID_SUNDAYROASTERS_GUEST_NETWORK_2026_PASSWORD", contentLimits.footerNotice)
+    : toExactPreviewLength(longCopy.footerNotice1, contentLimits.footerNotice, filler);
+  const footerNotice2 = isStress
+    ? toExactPreviewLength("Instagram @sunday.roasters.official.account.2026", contentLimits.footerNotice)
+    : toExactPreviewLength(longCopy.footerNotice2, contentLimits.footerNotice, filler);
+  const footerNotice3 = isStress
+    ? toExactPreviewLength("TAKEOUTPETFRIENDLYPATIOSEATINGSUNDAYROASTERSNOTICE", contentLimits.footerNotice)
+    : toExactPreviewLength(longCopy.footerNotice3, contentLimits.footerNotice, filler);
+
+  settings.footer_notice_1 = footerNotice1;
+  settings.footer_notice_2 = footerNotice2;
+  settings.footer_notice_3 = footerNotice3;
+
+  return {
+    ...data,
+    menuSite: {
+      ...data.menuSite,
+      name: restaurantName,
+      business_name: restaurantName,
+      restaurant_name: restaurantName,
+      brand_description: brandDescription,
+      settings: settings as MenuPageData["menuSite"]["settings"],
+    },
+  };
+}
+
 function applyCafeAMultiPagePreviewFixture(data: MenuPageData, pagePresentation: string | string[] | undefined): MenuPageData {
   if (data.menuSite.template_key !== "cafe_design_a" || !isMultiPagePresentationPreview(pagePresentation)) return data;
 
@@ -568,9 +682,13 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const data = applyPreviewFontSizeScale(
     applyDisplayPreviewSplitImagePosition(
       applyCafeAMultiPagePreviewFixture(
-        applyCafeAFooterStressData(
-          buildPreviewData(templateKey, displayPreviewQaCase),
-          resolvedSearchParams.footerStress
+        applySundayLineCopyQaFixture(
+          applyCafeAFooterStressData(
+            buildPreviewData(templateKey, displayPreviewQaCase),
+            resolvedSearchParams.footerStress
+          ),
+          resolvedSearchParams.copyQa,
+          resolvedSearchParams.lang
         ),
         resolvedSearchParams.pagePresentation
       ),

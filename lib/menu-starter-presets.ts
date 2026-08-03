@@ -301,12 +301,15 @@ function item(
   price: number,
   description: string,
   options: {
+    key?: string;
     set_name?: string;
     price_label?: string | null;
     portion_label?: string;
     badge_label?: string | null;
     recommended?: boolean;
+    image_url?: string | null;
     price_options?: StarterPriceOption[];
+    price_column_values?: StarterItemPriceColumnValue[];
   } = {}
 ): StarterItem {
   return { name, price, description, ...options };
@@ -314,11 +317,17 @@ function item(
 
 function isCafeAStarterTemplateKey(templateKey?: string | null) {
   const normalizedTemplateKey = templateKey?.trim().toLowerCase();
-  return normalizedTemplateKey === "cafe_design_a" || normalizedTemplateKey === "cafe_mocha_forest_a";
+  return normalizedTemplateKey === "cafe_design_a" || normalizedTemplateKey === "cafe_mocha_forest_a" || normalizedTemplateKey === "cafe_sunday_line_a";
 }
 
 function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: StarterServiceType) {
-  return !shouldUseLeanStarterPreset(serviceType) || preset === cafeDesignAStarterPreset || preset === cafeMochaForestStarterPreset || preset === cafeNoirAStarterPreset;
+  return (
+    !shouldUseLeanStarterPreset(serviceType) ||
+    preset === cafeDesignAStarterPreset ||
+    preset === cafeMochaForestStarterPreset ||
+    preset === cafeSundayLineStarterPreset ||
+    preset === cafeNoirAStarterPreset
+  );
 }
 
 function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefined {
@@ -491,6 +500,158 @@ const cafeDesignAStarterPreset: StarterPreset = {
 };
 
 const cafeMochaForestStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_mocha_forest_a");
+const cafeSundayLineStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_sunday_line_a");
+
+cafeSundayLineStarterPreset.site = {
+  ...cafeSundayLineStarterPreset.site,
+  restaurant_name: "선데이 로스터스",
+  intro_title: "SUNDAY ROASTERS",
+  menu_cover_title: "SUNDAY ROASTERS",
+  brand_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
+  intro_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
+  menu_cover_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
+  settings: {
+    ...(cafeSundayLineStarterPreset.site.settings ?? {}),
+    footer_notice_1: "Wi-Fi · SUNDAY_GUEST",
+    footer_notice_2: "Instagram · @sunday.roasters",
+    footer_notice_3: "반려동물은 야외 좌석만 이용 가능합니다.",
+  },
+};
+cafeSundayLineStarterPreset.featured_item_name = "선데이 크림 라떼";
+cafeSundayLineStarterPreset.featured_item_key = "sunday-cream-latte";
+cafeSundayLineStarterPreset.featured_slides = cafeSundayLineStarterPreset.featured_slides?.map((slide) => ({
+  ...slide,
+  featured_item_key: "sunday-cream-latte",
+  featured_item_name: "선데이 크림 라떼",
+}));
+cafeSundayLineStarterPreset.time_sales = [
+  {
+    key: "americano-morning-deal",
+    name: "아메리카노 모닝딜",
+    schedule_type: "once",
+    badge_text: "모닝딜",
+    badge_background_color: "#A30000",
+    time_display_mode: "message",
+    time_display_text: "매일 오전 8시부터 10시까지",
+    targets: [
+      { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "hot", sale_price: 3500 },
+      { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "ice", sale_price: 4000 },
+    ],
+  },
+  {
+    key: "brown-butter-scone-closeout",
+    name: "브라운 버터 스콘 재고 마감",
+    schedule_type: "once",
+    duration_minutes: 60,
+    badge_text: "재고 마감",
+    badge_background_color: "#A30000",
+    time_display_mode: "countdown",
+    targets: [
+      { target_item_key: "brown-butter-scone", target_item_name: "브라운 버터 스콘", sale_price: 3800 },
+    ],
+  },
+];
+cafeSundayLineStarterPreset.mixed_content_order = [
+  { block_type: "category", page_key: "main-menu", category_key: "signature", sort_order: 0, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "coffee", sort_order: 1, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "non-coffee", sort_order: 2, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 3, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bakery-dessert", sort_order: 4, visible: true },
+];
+cafeSundayLineStarterPreset.pages = [
+  {
+    key: "main-menu",
+    title: "메뉴 페이지 1",
+    legacy_section_key: "main_menu",
+    categories: [
+      {
+        key: "signature",
+        name: "시그니처",
+        section_key: "main_menu",
+        items: [
+          item("선데이 크림 라떼", 6500, "고소한 크림과 에스프레소를 부드럽게 즐기는 시그니처 라떼", {
+            key: "sunday-cream-latte",
+            badge_label: "SIGNATURE",
+            recommended: true,
+            image_url: "/menu-templates/cafe_design_a/malcha.jpg",
+          }),
+          item("솔티드 메이플 라떼", 6800, "메이플의 은은한 단맛과 소금 크림을 더한 라떼", {
+            key: "salted-maple-latte",
+            badge_label: "BEST",
+            image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
+          }),
+        ],
+      },
+      {
+        key: "coffee",
+        name: "커피",
+        section_key: "main_menu",
+        price_columns: [
+          { key: "hot", label: "HOT" },
+          { key: "ice", label: "ICE" },
+        ],
+        items: [
+          item("아메리카노", 4500, "균형 잡힌 고소함과 깔끔한 끝맛", {
+            key: "americano",
+            price_column_values: [
+              { key: "hot", price: 4500 },
+              { key: "ice", price: 5000 },
+            ],
+          }),
+          item("카페 라떼", 5500, "진한 에스프레소와 부드러운 우유", {
+            key: "cafe-latte",
+            price_column_values: [
+              { key: "hot", price: 5500 },
+              { key: "ice", price: 6000 },
+            ],
+          }),
+        ],
+      },
+      {
+        key: "non-coffee",
+        name: "논커피",
+        section_key: "main_menu",
+        price_columns: [
+          { key: "hot", label: "HOT" },
+          { key: "ice", label: "ICE" },
+        ],
+        items: [
+          item("말차 크림 라떼", 6500, "제주 말차와 담백한 크림의 조화", {
+            key: "matcha-cream-latte",
+            badge_label: "NEW",
+            price_column_values: [
+              { key: "hot", price: 6500 },
+              { key: "ice", price: 7000 },
+            ],
+          }),
+        ],
+      },
+      {
+        key: "tea-ade",
+        name: "티 & 에이드",
+        section_key: "dessert_drink",
+        items: [
+          item("자몽 로즈마리 에이드", 6300, "생자몽과 로즈마리 향이 산뜻한 에이드", {
+            key: "grapefruit-rosemary-ade",
+          }),
+          item("캐모마일 시트러스 티", 5800, "캐모마일과 감귤 향을 담은 블렌드 티", {
+            key: "chamomile-citrus-tea",
+          }),
+        ],
+      },
+      {
+        key: "bakery-dessert",
+        name: "베이커리 & 디저트",
+        section_key: "dessert_drink",
+        items: [
+          item("브라운 버터 스콘", 4800, "고소한 브라운 버터 풍미의 바삭한 스콘", {
+            key: "brown-butter-scone",
+          }),
+        ],
+      },
+    ],
+  },
+];
 
 const cafeNoirAStarterPreset: StarterPreset = {
   key: "cafe",
@@ -580,6 +741,7 @@ const cafeNoirAStarterPreset: StarterPreset = {
 const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
   cafe_mocha_forest_a: cafeMochaForestStarterPreset,
+  cafe_sunday_line_a: cafeSundayLineStarterPreset,
   cafe_noir_a: cafeNoirAStarterPreset,
 };
 

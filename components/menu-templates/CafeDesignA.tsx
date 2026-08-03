@@ -74,7 +74,7 @@ type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]
 type PublicMenuWidget = NonNullable<PublicMenuTemplateProps["widgets"]>[number];
 type PublicItemPriceColumnValue = MenuItem["priceColumnValues"][number];
 type CafeDesignALocale = PublicMenuTemplateProps["locale"];
-type CafeDesignASkin = "default" | "mocha_forest";
+type CafeDesignASkin = "default" | "mocha_forest" | "sunday_line";
 type CafeDesignAProps = PublicMenuTemplateProps & {
   templateSkin?: CafeDesignASkin;
 };
@@ -2103,7 +2103,7 @@ function getItemPriceColumnDisplay(
 }
 
 function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
-  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a";
+  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a";
 }
 
 function getCafeASoldOutLabel(locale: CafeDesignALocale) {
@@ -2568,7 +2568,10 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
   const visiblePages = data.pages
     .filter((page) => page.visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
-  const shouldRenderWidgets = data.menuSite.template_key === "cafe_design_a" || data.menuSite.template_key === "cafe_mocha_forest_a";
+  const shouldRenderWidgets =
+    data.menuSite.template_key === "cafe_design_a" ||
+    data.menuSite.template_key === "cafe_mocha_forest_a" ||
+    data.menuSite.template_key === "cafe_sunday_line_a";
   const separatorRules = getTemplateContentSeparatorRules(data.menuSite.template_key);
   const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 
@@ -2698,6 +2701,16 @@ function getCategoryBlockClassName() {
 
 function isMochaForestSkin(templateSkin: CafeDesignASkin | undefined): templateSkin is "mocha_forest" {
   return templateSkin === "mocha_forest";
+}
+
+function isSundayLineSkin(templateSkin: CafeDesignASkin | undefined): templateSkin is "sunday_line" {
+  return templateSkin === "sunday_line";
+}
+
+function getCafeASkinAttribute(templateSkin: CafeDesignASkin | undefined) {
+  if (isMochaForestSkin(templateSkin)) return "mocha_forest";
+  if (isSundayLineSkin(templateSkin)) return "sunday_line";
+  return undefined;
 }
 
 function getMochaForestMenuPanelRole(menuColumnIndex: number, menuColumnCount: number) {
@@ -3036,7 +3049,7 @@ function getItemStackSpacing(density: MenuLayoutDensity) {
 }
 
 function getMenuAreaClassName(hasCoverSection: boolean, shell: OnePageLayoutShell = "brand_left_rail") {
-  if (shell === "brand_top_band") return hasCoverSection ? "lg:col-span-1" : "lg:col-span-2";
+  if (shell === "brand_top_band") return "lg:col-span-full";
   if (shell === "brand_center_rail") return "lg:col-span-2";
   return hasCoverSection ? "lg:col-span-1" : "lg:col-span-1";
 }
@@ -3052,9 +3065,7 @@ function getOuterGridGapClassName(density: MenuLayoutDensity) {
 
 function getDesktopGridClassName(hasCoverSection: boolean, shell: OnePageLayoutShell = "brand_left_rail") {
   if (shell === "brand_top_band") {
-    return hasCoverSection
-      ? "lg:grid-cols-[minmax(0,2.35fr)_minmax(220px,0.8fr)]"
-      : "lg:grid-cols-[minmax(0,1fr)]";
+    return "lg:grid-cols-[minmax(0,1fr)]";
   }
 
   if (shell === "brand_center_rail") {
@@ -5161,6 +5172,99 @@ function HeaderBlock({ data, className = "" }: { data: PublicMenuTemplateProps; 
   );
 }
 
+function DesktopToplineInformationHeader({
+  data,
+  capabilities,
+}: {
+  data: CafeDesignAProps;
+  capabilities: TemplateCapabilities;
+}) {
+  const description = data.menuSite.brand_description || data.menuSite.description;
+  const infoRows = getCafeAFooterInfo(data, capabilities);
+
+  return (
+    <section
+      className="cafe-a-topline-info-header hidden min-w-0 lg:grid"
+      data-cafe-a-topline-info-header=""
+    >
+      <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
+        {description ? (
+          <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-spacious cafe-a-topline-description break-keep text-[#3f4945]">
+            <ScriptAwareText text={description} />
+          </p>
+        ) : null}
+      </div>
+
+      <div className="cafe-a-topline-brand-identity min-w-0" data-cafe-a-topline-brand-identity="">
+        <StoreIdentity
+          data={data}
+          capabilities={capabilities}
+          titleClassName="cafe-a-store-title cafe-a-topline-title break-words text-center font-black uppercase leading-[0.96] text-[#191c1b]"
+          logoClassName="max-h-[78px] max-w-[240px] object-contain"
+        />
+        <CafeLanguageHoverControl data={data} className="cafe-a-topline-language-control" />
+      </div>
+
+      <aside className="cafe-a-topline-notices min-w-0 text-right text-[#58645f]" data-cafe-a-topline-notices="">
+        {infoRows.length > 0 ? (
+          <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-spacious cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945]">
+            <ScriptAwareText text={infoRows.join("\n")} />
+          </p>
+        ) : null}
+      </aside>
+    </section>
+  );
+}
+
+function SundayLineMobileNotices({
+  data,
+  capabilities,
+}: {
+  data: CafeDesignAProps;
+  capabilities: TemplateCapabilities;
+}) {
+  const infoRows = getCafeAFooterInfo(data, capabilities);
+  if (infoRows.length === 0) return null;
+
+  return (
+    <aside className="cafe-a-topline-mobile-notices px-[clamp(24px,4vw,96px)] pt-4 text-left text-[#58645f] md:hidden" data-cafe-a-topline-mobile-notices="">
+      <p className="cafe-a-description-text cafe-a-store-description whitespace-pre-line break-keep">
+        <ScriptAwareText text={infoRows.join("\n")} />
+      </p>
+    </aside>
+  );
+}
+
+function DesktopToplineFeaturedSlot({
+  data,
+  featuredSlides,
+  capabilities,
+  density,
+  customBadgeStyles,
+  priceDisplayMode,
+}: {
+  data: CafeDesignAProps;
+  featuredSlides: CafeDesignAFeaturedHeroSlide[];
+  capabilities: TemplateCapabilities;
+  density: MenuLayoutDensity;
+  customBadgeStyles: unknown;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
+}) {
+  return (
+    <div className="cafe-a-topline-featured-slot hidden min-w-0 lg:block" data-cafe-a-topline-featured-slot="">
+      <CoverHero
+        data={data}
+        featuredSlides={featuredSlides}
+        capabilities={capabilities}
+        density={density}
+        customBadgeStyles={customBadgeStyles}
+        priceDisplayMode={priceDisplayMode}
+        desktopClassName="cafe-a-topline-cover-hero"
+      />
+    </div>
+  );
+}
+
 function CafeATypographyFontAssets({ typographySettings }: { typographySettings: TypographySettings }) {
   const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
@@ -5837,6 +5941,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
   const isMochaForest = isMochaForestSkin(data.templateSkin);
+  const isSundayLine = isSundayLineSkin(data.templateSkin);
+  const cafeASkinAttribute = getCafeASkinAttribute(data.templateSkin);
   const skinStyle = isMochaForest
     ? ({
         "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown,
@@ -5844,6 +5950,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green,
       } as CSSProperties)
     : {};
+  const shouldRenderToplineFeaturedHero = isSundayLine && shouldRenderMenuCoverSection && featuredHeroSlides.length > 0;
   const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
@@ -7994,11 +8101,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       <main
         className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
-        data-cafe-a-skin={isMochaForest ? "mocha_forest" : undefined}
+        data-cafe-a-skin={cafeASkinAttribute}
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           <HeaderBlock data={data} className="lg:hidden" />
+          {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} /> : null}
           <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] pt-6 pb-16 md:grid-cols-2 lg:hidden ${outerGridGapClassName}`}>
             {shouldRenderMenuCoverSection && (
               <CoverHero
@@ -8029,7 +8137,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
-                footerInfo={<CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
+                footerInfo={isSundayLine ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
                 templateSkin={data.templateSkin}
               />
             )}
@@ -8085,17 +8193,20 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             data-fit-overflow={fitState.overflow ? "true" : "false"}
             data-cafe-a-layout-input-signature={layoutInputSignature}
             data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
-            data-cafe-a-skin={isMochaForest ? "mocha_forest" : undefined}
+            data-cafe-a-skin={cafeASkinAttribute}
+            data-cafe-a-topline-featured={isSundayLine ? (shouldRenderToplineFeaturedHero ? "true" : "false") : undefined}
             data-one-page-layout-shell={onePageLayoutShell}
             style={{ ...fitGapStyle, ...fitStyle, ...orderedFitFillStyle }}
           >
             {onePageLayoutShell === "brand_top_band" ? (
-              <>
-                <DesktopFixedRail data={data} variant={onePageLayoutShell} mochaColumnCount={renderFitState.columns + 1}>{null}</DesktopFixedRail>
-                {renderDesktopMenuGrid()}
-                {shouldRenderMenuCoverSection && (
-                  <div className="cafe-a-shell-featured-slot min-w-0">
-                    <CoverHero
+              isSundayLine ? (
+                <>
+                  <DesktopToplineInformationHeader
+                    data={data}
+                    capabilities={capabilities}
+                  />
+                  {shouldRenderToplineFeaturedHero ? (
+                    <DesktopToplineFeaturedSlot
                       data={data}
                       featuredSlides={featuredHeroSlides}
                       capabilities={capabilities}
@@ -8103,10 +8214,28 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                       customBadgeStyles={customBadgeStyles}
                       priceDisplayMode={priceDisplayMode}
                     />
-                  </div>
-                )}
-                {footerInfo}
-              </>
+                  ) : null}
+                  {renderDesktopMenuGrid()}
+                </>
+              ) : (
+                <>
+                  <DesktopFixedRail data={data} variant={onePageLayoutShell} mochaColumnCount={renderFitState.columns + 1}>{null}</DesktopFixedRail>
+                  {renderDesktopMenuGrid()}
+                  {shouldRenderMenuCoverSection && (
+                    <div className="cafe-a-shell-featured-slot min-w-0">
+                      <CoverHero
+                        data={data}
+                        featuredSlides={featuredHeroSlides}
+                        capabilities={capabilities}
+                        density={density}
+                        customBadgeStyles={customBadgeStyles}
+                        priceDisplayMode={priceDisplayMode}
+                      />
+                    </div>
+                  )}
+                  {footerInfo}
+                </>
+              )
             ) : onePageLayoutShell === "brand_center_rail" ? (
               <>
                 {renderDesktopMenuGrid({ centerRail: true, includeFooter: true })}

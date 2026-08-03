@@ -259,7 +259,12 @@ export default function TypographySettingsForm({
   templateKey,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
-  const showRoleTypographyControl = templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a";
+  const showRoleTypographyControl = templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a";
+  const isSundayLineTemplate = templateKey === "cafe_sunday_line_a";
+  const cafeAMiniPreviewBrandText = isSundayLineTemplate ? "선데이 로스터스 SUNDAY 2026" : "오브 커피 AUBE 2026";
+  const cafeAMiniPreviewDescriptionText = isSundayLineTemplate
+    ? "좋은 원두와 Simple 디저트를 준비하는 로스터리입니다."
+    : "신선한 원두와 Organic 재료를 사용하는 카페입니다.";
   const showFontSizeControl = getTemplateCapabilities(templateKey).typographyFontSizeControl === "simple";
   const fontSizeScaleOptions = getFontSizeScaleOptionsForTemplate(templateKey);
   const initialDisplaySafeFontSizeScale = normalizeFontSizeScaleKeyForTemplate(initialFontSizeScale, templateKey);
@@ -542,13 +547,13 @@ export default function TypographySettingsForm({
                   color: "var(--menu-role-brand-color, #191c1b)",
                 })}
               >
-                <ScriptAwareText text="오브 커피 AUBE 2026" />
+                <ScriptAwareText text={cafeAMiniPreviewBrandText} />
               </p>
               <p
                 className="mt-2 break-keep text-xs font-semibold leading-relaxed text-[#66726f]"
                 style={getCafeAMiniPreviewScriptStyle("supporting")}
               >
-                <ScriptAwareText text="신선한 원두와 Organic 재료를 사용하는 카페입니다." />
+                <ScriptAwareText text={cafeAMiniPreviewDescriptionText} />
               </p>
             </div>
             <div className="mt-5 grid grid-cols-[minmax(0,1fr)_2.75rem_2.75rem] items-end gap-3">

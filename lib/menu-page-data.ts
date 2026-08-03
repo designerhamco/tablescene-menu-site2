@@ -87,7 +87,7 @@ const futurePromotionItemSelect = "promotion_id, menu_item_id, price_column_id, 
 const legacyFeaturedSlideId = "legacy-featured-slide";
 
 function shouldLoadMenuWidgets(menuSite: MenuSite) {
-  return menuSite.template_key === "cafe_design_a" || menuSite.template_key === "cafe_mocha_forest_a";
+  return menuSite.template_key === "cafe_design_a" || menuSite.template_key === "cafe_mocha_forest_a" || menuSite.template_key === "cafe_sunday_line_a";
 }
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {
