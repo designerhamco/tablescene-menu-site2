@@ -19,6 +19,18 @@ export type TemplateMenuWidgetCapabilities = {
   supportedTypes: readonly MenuWidgetType[];
 };
 
+export type TemplateMultiPageCapabilities = {
+  enabled: boolean;
+  fixedShell: "menu_book";
+  coverPage: "single_optional";
+  menuSectionPaginationUnit: "single";
+  eventPaginationUnit: "none" | "per_event";
+  desktopMenuLayout: "category_nav_and_single_column";
+  tabletMenuLayout: "category_nav_and_single_column";
+  mobileMenuLayout: "sticky_category_tabs";
+  globalPagination: "fixed_bottom";
+};
+
 export type TemplateCapabilities = {
   typographyFontSizeControl?: "hidden" | "simple";
   logoImage: boolean;
@@ -54,6 +66,7 @@ export type TemplateCapabilities = {
   supportsPriceNoteWithPriceColumns?: boolean;
   defaultPriceDisplayMode?: "compact_decimal" | "krw";
   menuWidgets: TemplateMenuWidgetCapabilities;
+  multiPage?: TemplateMultiPageCapabilities;
 };
 
 export type BasicPricingCapabilities = {
@@ -117,6 +130,7 @@ export const DEFAULT_TEMPLATE_CAPABILITIES: TemplateCapabilities = {
   supportsPriceNoteWithPriceColumns: false,
   defaultPriceDisplayMode: "krw",
   menuWidgets: DEFAULT_TEMPLATE_MENU_WIDGET_CAPABILITIES,
+  multiPage: undefined,
 };
 
 export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
@@ -320,6 +334,55 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
       usesFeaturedItem: true,
     },
   },
+  cafe_brew_chapter_a: {
+    ...DEFAULT_TEMPLATE_CAPABILITIES,
+    logoImage: false,
+    brandLogo: true,
+    brandLogoReplacesName: true,
+    footerStoreInfo: true,
+    footerSocialLinks: false,
+    menuItemImages: true,
+    pageDescription: false,
+    categoryDescription: true,
+    itemDescription: true,
+    originInfo: false,
+    itemTraits: false,
+    maxPriceOptionsPerItem: 3,
+    featuredItemHero: false,
+    featuredItemCarousel: true,
+    featuredItemMaxSlides: 1,
+    supportsBasicPriceColumns: true,
+    maxCategoryPriceColumns: 3,
+    supportsPriceDisplayMode: true,
+    supportsPriceNote: true,
+    supportsPriceNoteWithPriceColumns: false,
+    defaultPriceDisplayMode: "compact_decimal",
+    menuWidgets: DEFAULT_TEMPLATE_MENU_WIDGET_CAPABILITIES,
+    chefs: false,
+    events: false,
+    socialLinks: false,
+    menuCover: {
+      coverMode: "page",
+      usesStoreName: true,
+      usesStoreDescription: true,
+      usesCoverLabel: false,
+      usesCoverTitle: false,
+      usesCoverDescription: false,
+      usesCoverImage: true,
+      usesFeaturedItem: false,
+    },
+    multiPage: {
+      enabled: true,
+      fixedShell: "menu_book",
+      coverPage: "single_optional",
+      menuSectionPaginationUnit: "single",
+      eventPaginationUnit: "none",
+      desktopMenuLayout: "category_nav_and_single_column",
+      tabletMenuLayout: "category_nav_and_single_column",
+      mobileMenuLayout: "sticky_category_tabs",
+      globalPagination: "fixed_bottom",
+    },
+  },
   cafe_noir_a: {
     ...DEFAULT_TEMPLATE_CAPABILITIES,
     logoImage: false,
@@ -401,6 +464,7 @@ const TEMPLATE_CAPABILITY_ALIASES: Record<string, keyof typeof TEMPLATE_CAPABILI
   cafe_mocha_forest_a: "cafe_mocha_forest_a",
   cafe_sunday_line_a: "cafe_sunday_line_a",
   cafe_round_focus_a: "cafe_round_focus_a",
+  cafe_brew_chapter_a: "cafe_brew_chapter_a",
   cafe_noir_a: "cafe_noir_a",
 };
 
@@ -441,7 +505,7 @@ export function getCoverTabLabel(coverMode: TemplateMenuCoverMode): string | nul
 }
 
 export function getCoverToggleLabel(coverMode: TemplateMenuCoverMode): string {
-  void coverMode;
+  if (coverMode === "page") return "커버 페이지 사용";
   return "커버 이미지 사용";
 }
 

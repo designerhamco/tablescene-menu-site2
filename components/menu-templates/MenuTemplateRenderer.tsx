@@ -2,6 +2,7 @@ import { normalizeTemplateKey } from "@/lib/templates";
 import PublicMenuExperienceShell from "@/components/public-menu/PublicMenuExperienceShell";
 
 import BasicMenuTemplate from "./BasicMenuTemplate";
+import CafeBrewChapterA from "./CafeBrewChapterA";
 import CafeRoundFocusA from "./CafeRoundFocusA";
 import CafeSundayLineA from "./CafeSundayLineA";
 import CafeDesignA from "./CafeDesignA";
@@ -44,6 +45,12 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       return (
         <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
           <CafeRoundFocusA {...props} />
+        </PublicMenuExperienceShell>
+      );
+    case "cafe_brew_chapter_a":
+      return (
+        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
+          <CafeBrewChapterA {...props} />
         </PublicMenuExperienceShell>
       );
     case "cafe_noir_a":

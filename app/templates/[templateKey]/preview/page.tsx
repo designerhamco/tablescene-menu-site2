@@ -33,6 +33,8 @@ type PageProps = {
     contentQa?: string | string[];
     featured?: string | string[];
     copyQa?: string | string[];
+    brewCoverPageQa?: string | string[];
+    brewCoverImageQa?: string | string[];
     lang?: string | string[];
     pagePresentation?: string | string[];
   }>;
@@ -45,7 +47,9 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
 
   const template = getTemplateByKey(templateKey);
   const preset = getStarterPreset(templateKey, template.categoryLabel, template.template_category);
-  const initialNowMs = Date.now();
+  const initialNowMs = templateKey === "cafe_brew_chapter_a"
+    ? Date.UTC(2026, 7, 4, 9, 0, 0)
+    : Date.now();
   const now = new Date(initialNowMs).toISOString();
   const siteId = `template-preview-${template.key}`;
 
@@ -126,7 +130,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           recommended: menuItem.recommended ?? false,
           origin_info: null,
           is_best: menuItem.recommended ?? false,
-          is_sold_out: false,
+          is_sold_out: menuItem.is_sold_out ?? false,
           traits_visible: true,
           visible: true,
           sort_order: itemIndex + 1,
@@ -376,6 +380,36 @@ function applyPreviewFontSizeScale(data: MenuPageData, fontSizeScale: string | s
     menuSite: {
       ...data.menuSite,
       page_settings: nextPageSettings as unknown as MenuPageData["menuSite"]["page_settings"],
+    },
+  };
+}
+
+function applyBrewChapterCoverImageQaFixture(
+  data: MenuPageData,
+  templateKey: string,
+  brewCoverPageQa: string | string[] | undefined,
+  brewCoverImageQa: string | string[] | undefined
+): MenuPageData {
+  if (templateKey !== "cafe_brew_chapter_a") return data;
+  const rawCoverPageValue = Array.isArray(brewCoverPageQa) ? brewCoverPageQa[0] : brewCoverPageQa;
+  const rawCoverImageValue = Array.isArray(brewCoverImageQa) ? brewCoverImageQa[0] : brewCoverImageQa;
+  if (rawCoverPageValue !== "off" && rawCoverImageValue !== "none") return data;
+
+  const pageSettings = data.pageSettings && typeof data.pageSettings === "object" && !Array.isArray(data.pageSettings)
+    ? { ...data.pageSettings as Record<string, unknown> }
+    : {};
+  const nextPageSettings = {
+    ...pageSettings,
+    ...(rawCoverPageValue === "off" ? { menu_cover_enabled: false } : {}),
+    ...(rawCoverImageValue === "none" ? { cover_image_visible: false } : {}),
+  } as MenuPageData["pageSettings"];
+
+  return {
+    ...data,
+    pageSettings: nextPageSettings,
+    menuSite: {
+      ...data.menuSite,
+      page_settings: nextPageSettings as MenuPageData["menuSite"]["page_settings"],
     },
   };
 }
@@ -884,12 +918,17 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       applyCafeAMultiPagePreviewFixture(
         applyRoundFocusFeaturedFixture(
           applySundayLineCopyQaFixture(
-            applyCafeDenseContentQaFixture(
-              applyCafeAFooterStressData(
-                buildPreviewData(templateKey, displayPreviewQaCase),
-                resolvedSearchParams.footerStress
+            applyBrewChapterCoverImageQaFixture(
+              applyCafeDenseContentQaFixture(
+                applyCafeAFooterStressData(
+                  buildPreviewData(templateKey, displayPreviewQaCase),
+                  resolvedSearchParams.footerStress
+                ),
+                resolvedSearchParams.contentQa
               ),
-              resolvedSearchParams.contentQa
+              templateKey,
+              resolvedSearchParams.brewCoverPageQa,
+              resolvedSearchParams.brewCoverImageQa
             ),
             resolvedSearchParams.copyQa,
             resolvedSearchParams.lang

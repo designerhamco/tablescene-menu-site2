@@ -1474,6 +1474,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     ? getSettingsString(siteSettings, "footer_notice_3")
     : getSettingsString(siteSettings, "footer_sns_text") || getSettingsString(siteSettings, "footer_note");
   const menuCoverEnabled = pageSettings.menu_cover_enabled !== false;
+  const coverImageVisible = pageSettings.cover_image_visible !== false;
   const coverTabLabel = getCoverTabLabel(coverMode);
   const coverToggleLabel = getCoverToggleLabel(coverMode);
   const coverDescription = getCoverDescription(coverMode);
@@ -2108,6 +2109,18 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           placeholder={isPriceListTemplate ? "예: 기본 관리부터 프리미엄 케어까지, 필요한 서비스를 한눈에 확인해보세요." : "예: 매장의 대표 메뉴와 추천 구성을 소개해보세요."}
                           helperText={`${isPriceListTemplate ? "가격표 소개 문구" : "메뉴 소개 문구"}를 입력해주세요. 최대 ${MENU_FIELD_LIMITS.menuSites.menuCoverDescription}자까지 입력할 수 있습니다.`}
                         />
+                      </div>
+                    )}
+                    {menuCoverCapabilities.usesCoverImage && coverMode === "page" && (
+                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-white p-4">
+                        <Checkbox
+                          name="cover_image_visible"
+                          label="커버 이미지 표시"
+                          defaultChecked={coverImageVisible}
+                        />
+                        <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                          꺼도 등록된 커버 이미지는 삭제되지 않습니다. 다시 켜면 저장된 이미지를 그대로 사용할 수 있습니다.
+                        </p>
                       </div>
                     )}
                     {menuCoverCapabilities.usesCoverImage && !canUseFeaturedSlides && (

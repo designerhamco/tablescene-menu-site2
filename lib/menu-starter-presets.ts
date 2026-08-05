@@ -246,9 +246,15 @@ const STARTER_PLACEHOLDERS = {
   event: "/placeholders/starter/event.svg",
 } as const;
 
+const BREW_CHAPTER_COVER_IMAGE = "/menu-templates/cafe_design_a/nutty-cream-featured.jpg";
+const BREW_CHAPTER_SIGNATURE_ITEM_IMAGE = "/menu-templates/cafe_design_a/malcha_present.jpg";
+const BREW_CHAPTER_STARTER_ITEM_IMAGE = "/menu-templates/cafe_design_a/black-sesame.jpeg";
+const BREW_CHAPTER_MAIN_ITEM_IMAGE = "/menu-templates/cafe_design_a/nutty-cream.jpeg";
+
 const STARTER_PAGE_SETTINGS = {
   intro_enabled: true,
   menu_cover_enabled: true,
+  cover_image_visible: true,
   set_menu_enabled: true,
   main_menu_enabled: true,
   dessert_drink_enabled: true,
@@ -266,6 +272,7 @@ const STARTER_PAGE_SETTINGS = {
 const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
   intro_enabled: false,
   menu_cover_enabled: true,
+  cover_image_visible: true,
   set_menu_enabled: true,
   main_menu_enabled: true,
   dessert_drink_enabled: true,
@@ -307,6 +314,7 @@ function item(
     portion_label?: string;
     badge_label?: string | null;
     recommended?: boolean;
+    is_sold_out?: boolean;
     image_url?: string | null;
     price_options?: StarterPriceOption[];
     price_column_values?: StarterItemPriceColumnValue[];
@@ -321,7 +329,8 @@ function isCafeAStarterTemplateKey(templateKey?: string | null) {
     normalizedTemplateKey === "cafe_design_a" ||
     normalizedTemplateKey === "cafe_mocha_forest_a" ||
     normalizedTemplateKey === "cafe_sunday_line_a" ||
-    normalizedTemplateKey === "cafe_round_focus_a"
+    normalizedTemplateKey === "cafe_round_focus_a" ||
+    normalizedTemplateKey === "cafe_brew_chapter_a"
   );
 }
 
@@ -332,6 +341,7 @@ function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: Sta
     preset === cafeMochaForestStarterPreset ||
     preset === cafeSundayLineStarterPreset ||
     preset === cafeRoundFocusStarterPreset ||
+    preset === cafeBrewChapterStarterPreset ||
     preset === cafeNoirAStarterPreset
   );
 }
@@ -525,6 +535,195 @@ const cafeDesignAStarterPreset: StarterPreset = {
 const cafeMochaForestStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_mocha_forest_a");
 const cafeSundayLineStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_sunday_line_a");
 const cafeRoundFocusStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_round_focus_a");
+
+const cafeBrewChapterStarterPreset: StarterPreset = {
+  key: "cafe",
+  template_key: "cafe_brew_chapter_a",
+  site: {
+    ...CAFE_DESIGN_A_STITCH_SAMPLE.site,
+    restaurant_name: "MAISON ECLAT",
+    intro_title: "MAISON ECLAT",
+    menu_cover_title: "MAISON ECLAT",
+    brand_description: "계절의 흐름과 식재료의 결을 한 접시씩 섬세하게 풀어내는 컨템포러리 다이닝입니다.",
+    intro_description: "계절의 흐름과 식재료의 결을 한 접시씩 섬세하게 풀어내는 컨템포러리 다이닝입니다.",
+    menu_cover_description: "계절의 흐름과 식재료의 결을 한 접시씩 섬세하게 풀어내는 컨템포러리 다이닝입니다.",
+    cover_image_url: BREW_CHAPTER_COVER_IMAGE,
+    settings: {
+      ...(CAFE_DESIGN_A_STITCH_SAMPLE.site.settings ?? {}),
+      footer_notice_1: "DINNER · 17:30–22:00",
+      footer_notice_2: "Reservation · @maison.eclat",
+      footer_notice_3: "알레르기 및 식이 제한은 주문 전 직원에게 알려주세요.",
+    },
+  },
+  featured_item_name: "에클라 시그니처 코스",
+  featured_item_key: "eclat-signature-course",
+  featured_slides: [
+    {
+      id: "brew-chapter-featured-eclat-signature-course",
+      image_url: BREW_CHAPTER_COVER_IMAGE,
+      image_path: null,
+      featured_item_key: "eclat-signature-course",
+      featured_item_name: "에클라 시그니처 코스",
+      sort_order: 0,
+    },
+  ],
+  time_sales: [
+    {
+      key: "season-dinner-course-early-dining",
+      name: "시즌 디너 코스 EARLY DINING",
+      schedule_type: "daily_window",
+      daily_start_time: "17:30:00",
+      daily_end_time: "18:30:00",
+      badge_text: "EARLY DINING",
+      badge_background_color: "#263A31",
+      time_display_mode: "message_and_countdown",
+      time_display_text: "18:30 이전 주문 시 적용",
+      targets: [
+        { target_item_key: "season-dinner-course", target_item_name: "시즌 디너 코스", sale_price: 98000 },
+      ],
+    },
+  ],
+  mixed_content_order: [
+    { block_type: "category", page_key: "menu-book", category_key: "tasting-course", sort_order: 0, visible: true },
+    { block_type: "category", page_key: "menu-book", category_key: "starter", sort_order: 1, visible: true },
+    { block_type: "category", page_key: "menu-book", category_key: "main", sort_order: 2, visible: true },
+    { block_type: "category", page_key: "menu-book", category_key: "dessert", sort_order: 3, visible: true },
+    { block_type: "category", page_key: "menu-book", category_key: "pairing", sort_order: 4, visible: true },
+  ],
+  sample_items_visible: true,
+  chefs: [],
+  events: [],
+  socialLinks: [],
+  pages: [
+    {
+      key: "menu-book",
+      title: "MENU",
+      legacy_section_key: "main_menu",
+      categories: [
+        {
+          key: "tasting-course",
+          name: "TASTING COURSE",
+          section_key: "main_menu",
+          items: [
+            item("에클라 시그니처 코스", 145000, "계절의 흐름을 담은 여섯 가지 코스와 메인, 디저트 구성", {
+              key: "eclat-signature-course",
+              set_name: "ÉCLAT SIGNATURE COURSE",
+              badge_label: "SIGNATURE",
+              recommended: true,
+              image_url: BREW_CHAPTER_SIGNATURE_ITEM_IMAGE,
+            }),
+            item("시즌 디너 코스", 118000, "제철 식재료의 질감과 온도를 차분하게 풀어낸 디너 코스", {
+              key: "season-dinner-course",
+              set_name: "SEASONAL DINNER COURSE",
+              badge_label: "BEST",
+            }),
+            item("베지터블 테이스팅", 105000, "채소와 허브, 곡물의 풍미를 중심으로 구성한 테이스팅 코스", {
+              key: "vegetable-tasting",
+              set_name: "VEGETABLE TASTING",
+            }),
+          ],
+        },
+        {
+          key: "starter",
+          name: "STARTER",
+          section_key: "main_menu",
+          items: [
+            item("숙성 방어와 유자", 28000, "숙성한 방어와 유자 향, 무 피클을 곁들인 스타터", {
+              key: "aged-yellowtail-yuzu",
+              set_name: "AGED YELLOWTAIL & YUZU",
+              badge_label: "NEW",
+              image_url: BREW_CHAPTER_STARTER_ITEM_IMAGE,
+            }),
+            item("화이트 아스파라거스", 26000, "화이트 아스파라거스와 헤이즐넛, 가벼운 버터 소스", {
+              key: "white-asparagus",
+              set_name: "WHITE ASPARAGUS",
+              is_sold_out: true,
+            }),
+            item("랍스터 비스크", 32000, "랍스터 향을 진하게 우려낸 비스크와 허브 오일", {
+              key: "lobster-bisque",
+              set_name: "LOBSTER BISQUE",
+            }),
+          ],
+        },
+        {
+          key: "main",
+          name: "MAIN",
+          section_key: "main_menu",
+          items: [
+            item("오리 가슴살과 체리", 46000, "천천히 익힌 오리 가슴살과 체리 소스, 구운 비트", {
+              key: "duck-breast-cherry",
+              set_name: "DUCK BREAST & CHERRY",
+            }),
+            item("한우 채끝과 셀러리악", 58000, "숯불에 구운 한우 채끝과 셀러리악 퓌레", {
+              key: "hanwoo-striploin-celeriac",
+              set_name: "HANWOO STRIPLOIN & CELERIAC",
+              image_url: BREW_CHAPTER_MAIN_ITEM_IMAGE,
+            }),
+            item("제철 생선과 샤프란", 44000, "제철 생선과 샤프란 소스, 펜넬", {
+              key: "seasonal-fish-saffron",
+              set_name: "MARKET FISH & SAFFRON",
+              price_label: "MARKET PRICE",
+            }),
+          ],
+        },
+        {
+          key: "dessert",
+          name: "DESSERT",
+          section_key: "dessert_drink",
+          items: [
+            item("바닐라 밀푀유", 16000, "바닐라 크림과 캐러멜라이즈드 페이스트리", {
+              key: "vanilla-mille-feuille",
+              set_name: "VANILLA MILLE-FEUILLE",
+            }),
+            item("다크 초콜릿 테린", 18000, "카카오의 깊은 풍미와 올리브 오일, 소금", {
+              key: "dark-chocolate-terrine",
+              set_name: "DARK CHOCOLATE TERRINE",
+            }),
+            item("제철 과일 파블로바", 17000, "제철 과일과 머랭, 가벼운 허브 크림", {
+              key: "seasonal-fruit-pavlova",
+              set_name: "SEASONAL FRUIT PAVLOVA",
+            }),
+          ],
+        },
+        {
+          key: "pairing",
+          name: "PAIRING",
+          section_key: "dessert_drink",
+          price_columns: [
+            { key: "three-glasses", label: "3 GLASSES" },
+            { key: "five-glasses", label: "5 GLASSES" },
+          ],
+          items: [
+            item("와인 페어링", 68000, "코스 흐름에 맞춘 다섯 잔의 와인 페어링", {
+              key: "wine-pairing-five-glasses",
+              set_name: "WINE PAIRING",
+              price_column_values: [
+                { key: "three-glasses", price: 42000 },
+                { key: "five-glasses", price: 68000 },
+              ],
+            }),
+            item("논알코올 페어링", 38000, "발효 음료와 차, 허브로 구성한 논알코올 페어링", {
+              key: "non-alcohol-pairing",
+              set_name: "ZERO-PROOF PAIRING",
+              price_column_values: [
+                { key: "three-glasses", price: 24000 },
+                { key: "five-glasses", price: 38000 },
+              ],
+            }),
+            item("티 페어링", 28000, "메뉴의 향과 온도에 맞춘 세 가지 티 페어링", {
+              key: "tea-pairing",
+              set_name: "TEA PAIRING",
+              price_column_values: [
+                { key: "three-glasses", price: 18000 },
+                { key: "five-glasses", price: 28000 },
+              ],
+            }),
+          ],
+        },
+      ],
+    },
+  ],
+};
 
 cafeSundayLineStarterPreset.site = {
   ...cafeSundayLineStarterPreset.site,
@@ -920,6 +1119,7 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_mocha_forest_a: cafeMochaForestStarterPreset,
   cafe_sunday_line_a: cafeSundayLineStarterPreset,
   cafe_round_focus_a: cafeRoundFocusStarterPreset,
+  cafe_brew_chapter_a: cafeBrewChapterStarterPreset,
   cafe_noir_a: cafeNoirAStarterPreset,
 };
 
@@ -2200,7 +2400,12 @@ export async function createStarterMenuData(
           const pageId = pageIdByTitle.get(page.title) ?? "";
           return page.categories.flatMap((category) => {
             const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
-            const menuItemId = itemIdByKey.get(`${categoryId}:${saleTarget.target_item_name}`);
+            const starterItem = category.items.find((menuItem) =>
+              saleTarget.target_item_key
+                ? menuItem.key === saleTarget.target_item_key
+                : menuItem.name === saleTarget.target_item_name
+            );
+            const menuItemId = starterItem ? itemIdByKey.get(`${categoryId}:${starterItem.name}`) : null;
             return menuItemId ? [{ categoryId, menuItemId }] : [];
           });
         });

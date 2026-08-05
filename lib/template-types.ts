@@ -110,6 +110,7 @@ const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
   cafe_mocha_forest_a: "menu",
   cafe_sunday_line_a: "menu",
   cafe_round_focus_a: "menu",
+  cafe_brew_chapter_a: "menu",
   cafe_noir_a: "menu",
   cafe_design_b: "menu",
   cafe_design_c: "menu",

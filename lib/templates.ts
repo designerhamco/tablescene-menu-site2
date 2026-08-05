@@ -17,6 +17,7 @@ export const TEMPLATE_CATEGORIES = [
       { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
       { key: "cafe_sunday_line_a", label: "선데이 라인", design: "design_a" },
       { key: "cafe_round_focus_a", label: "라운드 포커스", design: "design_a" },
+      { key: "cafe_brew_chapter_a", label: "브루 챕터", design: "design_a" },
       { key: "cafe_noir_a", label: "누아 메뉴", design: "design_a" },
       { key: "cafe_design_b", label: "Cafe Design B", design: "design_b" },
       { key: "cafe_design_c", label: "Cafe Design C", design: "design_c" },
@@ -218,12 +219,13 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
   cafe_mocha_forest_a: "갈색·아이보리·초록 패널로 구성한 고급스러운 카페/베이커리 메뉴판입니다.",
   cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 카페 메뉴판입니다.",
   cafe_round_focus_a: "브랜드 영역을 중앙 축에 두고 메뉴를 좌우로 나누는 카페 메뉴판입니다.",
+  cafe_brew_chapter_a: "메뉴 페이지를 장처럼 넘기며 보는 멀티 페이지 카페 메뉴판입니다.",
   cafe_noir_a: "화이트 배경과 절제된 타이포그래피로 구성한 에디토리얼 카페 메뉴판입니다.\n커피와 디저트 메뉴를 여러 열로 정갈하게 보여줍니다.",
   display_menu_a: "시원하고 선명한 화면 구성이 돋보이는 디스플레이 템플릿입니다.\n카페와 베이커리 매장의 메뉴를 TV·모니터에 보기 좋게 보여줍니다.",
 };
 
 const availableTemplateKeys = ["cafe_design_a", "display_menu_a"] as const satisfies readonly string[];
-const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a", "cafe_noir_a"] as const satisfies readonly string[];
+const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a", "cafe_brew_chapter_a", "cafe_noir_a"] as const satisfies readonly string[];
 
 const featuredHomeTemplateKeys = [
   "cafe_design_a",

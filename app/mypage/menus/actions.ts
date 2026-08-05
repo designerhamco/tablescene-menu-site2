@@ -2868,6 +2868,7 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
 
   const nextPageSettings = {
     ...getJsonObject(menuSite.page_settings),
+    cover_image_visible: true,
     featured_item_enabled: Boolean(featuredItemId),
     featured_item_id: featuredItemId,
     ...(preset.featured_slides ? { [FEATURED_SLIDES_PAGE_SETTINGS_KEY]: starterFeaturedSlides } : {}),
@@ -3472,6 +3473,10 @@ export async function updateMenuCoverAction(formData: FormData) {
   const draftCoverImagePath = getNullableString(formData, "draft_cover_image_path");
   const pageSettingsRecord = getJsonObject(menuSite.page_settings);
   const currentSettings = mergePageSettings(menuSite.page_settings);
+  const supportsCoverImageVisibility = menuCoverCapabilities.usesCoverImage && menuCoverCapabilities.coverMode === "page";
+  const coverImageVisible = supportsCoverImageVisibility
+    ? getBoolean(formData, "cover_image_visible")
+    : currentSettings.cover_image_visible !== false;
   const templateType = getTemplateType(menuSite.template_key);
   const canUseFeaturedItem = templateType === "menu" && menuCoverCapabilities.usesFeaturedItem;
   const canUseFeaturedSlides = canUseFeaturedItem && getTemplateCapabilities(menuSite.template_key).featuredItemCarousel === true;
@@ -3507,6 +3512,7 @@ export async function updateMenuCoverAction(formData: FormData) {
       ...pageSettingsRecord,
       ...currentSettings,
       menu_cover_enabled: menuCoverEnabled,
+      cover_image_visible: coverImageVisible,
       featured_item_enabled: featuredSlidesEnabled,
       featured_item_id: firstCompleteSlide?.featured_item_id ?? null,
       [FEATURED_SLIDES_PAGE_SETTINGS_KEY]: featuredSlides,
@@ -3574,6 +3580,7 @@ export async function updateMenuCoverAction(formData: FormData) {
         ...pageSettingsRecord,
         ...currentSettings,
         menu_cover_enabled: true,
+        cover_image_visible: coverImageVisible,
         featured_item_enabled: featuredItemEnabled,
         featured_item_id: featuredItemEnabled ? featuredItemId : null,
       }
@@ -3582,11 +3589,13 @@ export async function updateMenuCoverAction(formData: FormData) {
         ...pageSettingsRecord,
         ...currentSettings,
         menu_cover_enabled: false,
+        cover_image_visible: coverImageVisible,
       }
     : {
         ...pageSettingsRecord,
         ...currentSettings,
         menu_cover_enabled: menuCoverEnabled,
+        cover_image_visible: coverImageVisible,
         featured_item_enabled: false,
         featured_item_id: null,
       };

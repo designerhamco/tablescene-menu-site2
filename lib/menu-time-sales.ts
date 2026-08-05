@@ -129,6 +129,7 @@ const BASIC_TIME_SALE_TEMPLATE_LIMITS = new Map<string, number>([
   ["cafe_mocha_forest_a", 1],
   ["cafe_sunday_line_a", 1],
   ["cafe_round_focus_a", 1],
+  ["cafe_brew_chapter_a", 1],
 ]);
 
 export function getMaxTimeSalesForTemplate(templateKey?: string | null, templateCategory?: string | null) {

@@ -124,6 +124,11 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     english_font_key: "alata",
     font_size_scale_key: "m",
   },
+  cafe_brew_chapter_a: {
+    korean_font_key: "pretendard",
+    english_font_key: "alata",
+    font_size_scale_key: "m",
+  },
   cafe_noir_a: {
     korean_font_key: "pretendard",
     english_font_key: "cutive-mono",
@@ -159,7 +164,13 @@ const typographyRoleSizeKeys = new Set<TypographyRoleSizeKey>(TYPOGRAPHY_ROLE_SI
 const typographyRoleWeightKeys = new Set<TypographyRoleWeightKey>(TYPOGRAPHY_ROLE_WEIGHT_OPTIONS.map((option) => option.key));
 
 function usesCafeARoleTypographyPolicy(templateKey?: string | null) {
-  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a";
+  return (
+    templateKey === "cafe_design_a" ||
+    templateKey === "cafe_mocha_forest_a" ||
+    templateKey === "cafe_sunday_line_a" ||
+    templateKey === "cafe_round_focus_a" ||
+    templateKey === "cafe_brew_chapter_a"
+  );
 }
 
 const LEGACY_KOREAN_FONT_KEY_MAP: Record<string, KoreanFontKey> = {
