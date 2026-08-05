@@ -289,7 +289,8 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 메뉴링크는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 메뉴링크 베이직은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
     "[개인 체험 1개월] 개인 체험은 사업자 인증 없이 메뉴링크 베이직 템플릿 메뉴판을 1개월 동안 사용할 수 있는 단건 결제 상품입니다. 자동결제는 제공되지 않습니다.",
-    "[사업자 정식 이용] 메뉴링크 베이직 월결제/연결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. Basic 유료 구독은 구독 1개당 Basic 메뉴판을 최대 3개까지 만들 수 있습니다.",
+    "[사업자 정식 이용] 메뉴링크 베이직 월결제/연결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. 신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공되며, 추가 메뉴판은 별도로 구매해야 합니다.",
+    "[정기 결제 갱신] 월간 또는 연간 정기 결제가 갱신되면 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.",
     "[서비스 안내] 메뉴링크 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 메뉴링크 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
     "[서비스 이용 시작] 결제가 완료되고 메뉴판이 생성되면 서비스 이용이 시작된 것으로 봅니다. 생성된 메뉴판은 마이페이지에서 확인하고 편집할 수 있습니다.",
     "[메뉴판 주소] 사용자가 입력한 희망 메뉴판 주소는 중복 여부, 정책 위반 여부, 기술적 제한 등에 따라 사용할 수 없을 수 있습니다. 회사는 부적절하거나 오해를 유발하거나 제3자의 권리를 침해할 우려가 있는 주소 사용을 제한할 수 있습니다.",
@@ -313,7 +314,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   ],
   contentPolicy: [
     "결제 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용 등 유료서비스 제공이 시작됩니다.",
-    "또한 요금제에 포함된 AI 기본 제공량이 구독 기준으로 지급됩니다.",
+    "또한 요금제에 포함된 AI 기본 제공량이 신규 구매 또는 신규 구독 개설 기준으로 지급됩니다.",
     "월결제 또는 연결제 상품은 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 선택한 결제 주기에 따라 자동 결제됩니다.",
     "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
     "서비스 제공이 개시된 이후에는 관련 법령상 허용되는 범위 내에서 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.",
@@ -385,13 +386,13 @@ const basicProductCards = [
   },
   {
     product: basicPaymentProducts[1],
-    bullets: ["사업자 인증 필요", "월 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "구독 기준 AI 크레딧 18개 제공"],
-    helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
+    bullets: ["사업자 인증 필요", "월 자동결제", "신규 구독당 Basic 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 18개 제공"],
+    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["사업자 인증 필요", "연 자동결제", "한 구독으로 Basic 메뉴판 최대 3개 생성", "구독 기준 AI 크레딧 18개 제공"],
-    helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 결제 진행",
+    bullets: ["사업자 인증 필요", "연 자동결제", "신규 구독당 Basic 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 18개 제공"],
+    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
 ] as const satisfies readonly {
   product: BasicPaymentProduct;
@@ -402,12 +403,12 @@ const basicProductCards = [
 const displayProductCards = [
   {
     product: businessDisplayMonthlyProduct,
-    bullets: ["매월 자동결제", "언제든 해지 가능", "Display 메뉴판 1개 제공", "구독 기준 AI 크레딧 26개 제공"],
+    bullets: ["매월 자동결제", "언제든 해지 가능", "신규 구독당 Display 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 26개 제공"],
     helperText: "PortOne 빌링키 발급 후 첫 결제와 이후 정기결제를 연결합니다.",
   },
   {
     product: businessDisplayYearlyProduct,
-    bullets: ["연 자동결제", "월결제 대비 할인", "Display 메뉴판 1개 제공", "구독 기준 AI 크레딧 26개 제공"],
+    bullets: ["연 자동결제", "월결제 대비 할인", "신규 구독당 Display 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 26개 제공"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 연 정기결제를 진행합니다.",
   },
 ] as const satisfies readonly {
@@ -2104,10 +2105,10 @@ export default function ApplyOrderForm({
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                 개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월결제/연결제는 사업자 인증과 자동결제 구조로 이어집니다.
-                Basic 구독 1개로 메뉴판을 최대 3개까지 만들 수 있습니다. 결제 시 첫 메뉴판을 만들고, 추가 메뉴판은 마이페이지에서 언제든 생성할 수 있습니다.
+                신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공되며, 추가 메뉴판은 별도로 구매할 수 있습니다.
               </p>
               <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                체험 기간에는 메뉴판 1개만 만들 수 있습니다.
+                정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
@@ -2211,10 +2212,10 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                월결제와 연결제 모두 빌링키 정기결제로 진행합니다. Display는 구독 1개당 메뉴판 1개를 기준으로 제공합니다.
+                월결제와 연결제 모두 빌링키 정기결제로 진행합니다. 신규 Display 구독 1건당 메뉴판 1개가 제공됩니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                ※ 모든 금액은 부가세 포함가입니다. Display는 구독 1개당 메뉴판 1개를 기준으로 제공합니다.
+                ※ 모든 금액은 부가세 포함가입니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -2728,6 +2729,7 @@ export default function ApplyOrderForm({
             {isScreenService && <SummaryRow label="디스플레이 용도" value={form.screenPurpose || "-"} />}
             {isScreenService && <SummaryRow label="디스플레이 카테고리" value={selectedScreenTemplateCategory.label} />}
             {isMenuService && <SummaryRow label="템플릿 그룹" value={getMenuTemplateGroupLabel(selectedMenuTemplateGroup)} />}
+            {(isMenuService || isScreenService) && <SummaryRow label="제공 메뉴판" value="1개" />}
             <SummaryRow label="선택 템플릿" value={selectedTemplate ? `${selectedTemplate.name} (${selectedTemplate.key})` : "-"} />
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
@@ -2793,7 +2795,14 @@ export default function ApplyOrderForm({
             {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정일" value={nextBillingLabel} /> : null}
             {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정 금액" value={formatKrw(activeProduct.amount)} /> : null}
           </dl>
-          <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+          {(isMenuService || isScreenService) && (
+            <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+              {isMenuService && !activeProduct.is_subscription
+                ? "개인 체험은 계정당 1회, 메뉴판 1개가 제공됩니다. 유료 플랜으로 전환하면 기존 체험 메뉴판을 그대로 이어서 사용할 수 있습니다."
+                : "추가 메뉴판은 별도로 구매할 수 있습니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며 새 메뉴판이 추가되지 않습니다."}
+            </p>
+          )}
+          <p className="mt-3 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
             {isMenuService
               ? activeProduct.is_subscription
                 ? `${openDiscountPolicy.note} VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다.`

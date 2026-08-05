@@ -6,7 +6,7 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 const pricingPlans = [
   {
     name: "메뉴링크 베이직",
-    description: "디지털 메뉴판을 만들고 QR 링크로 공유하는 기본 상품입니다.",
+    description: "신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공됩니다. 추가 메뉴판은 별도로 구매해 같은 계정에서 관리할 수 있습니다.",
     price: "첫 달 체험가 6,600원 / 월 9,900원 / 연 95,000원",
     href: "/apply/basic",
     cta: "Basic 신청하기",
@@ -14,7 +14,7 @@ const pricingPlans = [
   },
   {
     name: "메뉴링크 디스플레이",
-    description: "매장 TV와 모니터용 디스플레이 메뉴보드 상품입니다.",
+    description: "신규 Display 구독 1건당 매장 TV와 모니터용 Display 메뉴판 1개가 제공됩니다.",
     price: "월 19,800원 / 연 190,000원",
     href: "/apply/display",
     cta: "준비 중",
@@ -47,6 +47,9 @@ export default function PricingPage() {
               </p>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">
                 ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
+              </p>
+              <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-400">
+                정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.
               </p>
             </div>
             <Link

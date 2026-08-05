@@ -14,9 +14,9 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   return [
   {
     title: "메뉴링크 베이직",
-    description: "Basic 구독 1개로 메뉴판을 최대 3개까지 만들 수 있습니다.",
+    description: "신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공됩니다.",
     price: "첫 달 체험가 6,600원 / 사업자 월 9,900원 / 연 95,000원",
-    note: "결제 시 첫 메뉴판을 만들고, 추가 메뉴판은 마이페이지에서 언제든 생성할 수 있습니다. 체험 기간에는 메뉴판 1개만 만들 수 있습니다.",
+    note: "한 계정에서 여러 메뉴판을 관리할 수 있으며, 추가 메뉴판은 별도로 구매해야 합니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.",
     type: "웹 메뉴판",
     cta: "베이직 만들기",
     href: "/apply/basic",
@@ -24,7 +24,7 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   },
   {
     title: "메뉴링크 디스플레이",
-    description: "사업자 전용 디스플레이 메뉴보드입니다. 구독 1개당 Display 메뉴판 1개를 기준으로 제공합니다.",
+    description: "사업자 전용 디스플레이 메뉴보드입니다. 신규 Display 구독 1건당 Display 메뉴판 1개가 제공됩니다.",
     price: "오픈 할인 월 19,800원 / 연 190,000원",
     note: displayCheckoutQaEnabled
       ? "TV/모니터용 디지털 메뉴보드를 사업자 전용 정기결제로 신청할 수 있습니다."
@@ -63,7 +63,7 @@ export default function ApplyPage() {
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
               메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월결제/연결제를 한 화면에서 선택할 수 있습니다.
               {displayCheckoutQaEnabled
-                ? " 메뉴링크 디스플레이는 사업자 전용 디지털 메뉴보드로 구독 1개당 Display 메뉴판 1개를 제공합니다."
+                ? " 메뉴링크 디스플레이는 사업자 전용 디지털 메뉴보드로 신규 구독 1건당 Display 메뉴판 1개를 제공합니다."
                 : " 메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다."}
             </p>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">
