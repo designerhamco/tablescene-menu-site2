@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
@@ -65,6 +65,10 @@ import {
   type TemplateServiceType,
 } from "@/lib/template-types";
 import type { PaymentCompleteResponse } from "@/types/payment";
+import {
+  getInitialSubscriptionPaymentId,
+  normalizePurchaseAttemptId,
+} from "@/lib/payment-provisioning-idempotency";
 
 type ApplyOrderFormProps = {
   templates: readonly TemplateCatalogItem[];
@@ -111,6 +115,9 @@ type BusinessSubscriptionResponse = {
   message?: string;
   menuSiteId?: string;
   slug?: string;
+  subscriptionId?: string;
+  paymentId?: string;
+  alreadyProcessed?: boolean;
   safeDebug?: {
     portoneStatus?: number;
     portoneCode?: string;
@@ -204,11 +211,18 @@ type PendingPaymentCompletion = {
   savedAt: number;
 };
 
+type PendingBusinessPurchaseAttempt = {
+  purchaseAttemptId: string;
+  contextKey: string;
+  savedAt: number;
+};
+
 const MENU_ADDRESS_HELPER_TEXT =
   "결제 후 변경할 수 없습니다. QR 코드와 공유 링크에 사용되므로 신중하게 입력해주세요. 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
 const PERSONAL_TRIAL_LIMIT_MESSAGE =
   "개인 1개월 체험은 계정당 1개만 이용할 수 있습니다. 기존 체험 메뉴판을 사업자 플랜으로 전환하거나 새 사업자 메뉴판을 신청해주세요.";
 const DISPLAY_PAYMENT_COMPLETION_STORAGE_KEY = "menulink:display-payment-completion:v1";
+const BUSINESS_PURCHASE_ATTEMPT_STORAGE_KEY = "menulink:business-purchase-attempt:v1";
 
 type PaidApplyProduct = {
   key: string;
@@ -756,6 +770,52 @@ function clearPendingPaymentCompletion() {
   }
 }
 
+function getOrCreateBusinessPurchaseAttempt(
+  contextKey: string,
+  inMemoryAttempt: PendingBusinessPurchaseAttempt | null
+) {
+  if (inMemoryAttempt?.contextKey === contextKey) {
+    const existingId = normalizePurchaseAttemptId(inMemoryAttempt.purchaseAttemptId);
+    if (existingId) return existingId;
+  }
+
+  if (typeof window === "undefined") return crypto.randomUUID();
+
+  try {
+    const rawValue = window.sessionStorage.getItem(BUSINESS_PURCHASE_ATTEMPT_STORAGE_KEY);
+    if (rawValue) {
+      const parsed = JSON.parse(rawValue) as Partial<PendingBusinessPurchaseAttempt>;
+      const existingId = normalizePurchaseAttemptId(parsed.purchaseAttemptId);
+      if (existingId && parsed.contextKey === contextKey) {
+        return existingId;
+      }
+    }
+  } catch {
+    // A fresh attempt remains safe because the server still requires a valid attempt id.
+  }
+
+  const purchaseAttemptId = crypto.randomUUID();
+  try {
+    window.sessionStorage.setItem(
+      BUSINESS_PURCHASE_ATTEMPT_STORAGE_KEY,
+      JSON.stringify({ purchaseAttemptId, contextKey, savedAt: Date.now() } satisfies PendingBusinessPurchaseAttempt)
+    );
+  } catch {
+    // Browser storage is best-effort; the in-memory id still protects this request.
+  }
+  return purchaseAttemptId;
+}
+
+function clearBusinessPurchaseAttempt() {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.removeItem(BUSINESS_PURCHASE_ATTEMPT_STORAGE_KEY);
+  } catch {
+    // Ignore browser storage failures after a completed provisioning response.
+  }
+}
+
 function getAgreementModalTitle(key: AgreementKey) {
   if (key === "terms") return "서비스 이용약관 및 플랜별 이용 조건";
   if (key === "privacy") return "개인정보 수집 및 이용 동의";
@@ -838,6 +898,8 @@ export default function ApplyOrderForm({
   initialRecoverSubscriptionId = "",
 }: ApplyOrderFormProps) {
   const router = useRouter();
+  const paymentActionInFlightRef = useRef(false);
+  const businessPurchaseAttemptRef = useRef<PendingBusinessPurchaseAttempt | null>(null);
   const isMenuService = serviceType === "menu";
   const isScreenService = serviceType === "screen";
   const isOrderService = serviceType === "order";
@@ -1398,6 +1460,17 @@ export default function ApplyOrderForm({
   }
 
   async function retryApprovedPaymentCompletion() {
+    if (paymentActionInFlightRef.current) return;
+    paymentActionInFlightRef.current = true;
+
+    try {
+      await retryApprovedPaymentCompletionOnce();
+    } finally {
+      paymentActionInFlightRef.current = false;
+    }
+  }
+
+  async function retryApprovedPaymentCompletionOnce() {
     const paymentId = normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "");
     const subscriptionId = recoverySubscriptionIdInput.trim();
 
@@ -1509,6 +1582,61 @@ export default function ApplyOrderForm({
     ].filter(Boolean);
 
     return details.length > 0 ? `${baseMessage}\n${details.join("\n")}` : baseMessage;
+  }
+
+  async function startBusinessSubscription(billingKey: string, purchaseAttemptId: string) {
+    const requestBody = {
+      mode: "new",
+      billingKey,
+      businessProfileId:
+        businessVerificationState.type === "verified"
+          ? businessVerificationState.result.businessProfileId
+          : null,
+      purchaseAttemptId,
+      productKey: activeProduct.product_key,
+      billingCycle: activeProduct.billing_cycle,
+      order: payload,
+    };
+    let response = await fetch("/api/business-subscriptions/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+    let result = (await response.json()) as BusinessSubscriptionResponse;
+    const canRecoverExistingAttempt =
+      !response.ok &&
+      ["PURCHASE_ATTEMPT_INCOMPLETE", "PURCHASE_ATTEMPT_REQUIRES_RECOVERY"].includes(result.debugCode ?? "");
+
+    if (canRecoverExistingAttempt) {
+      setUiState({
+        type: "loading",
+        message: "새 결제 없이 기존 승인 결제의 메뉴판 생성 처리를 복구하고 있습니다.",
+      });
+      response = await fetch("/api/business-subscriptions/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mode: "new",
+          businessProfileId: requestBody.businessProfileId,
+          productKey: requestBody.productKey,
+          billingCycle: requestBody.billingCycle,
+          recoverPaymentId: getInitialSubscriptionPaymentId(purchaseAttemptId),
+          recoverSubscriptionId: purchaseAttemptId,
+          order: payload,
+        }),
+      });
+      result = (await response.json()) as BusinessSubscriptionResponse;
+    }
+
+    if (!response.ok || !result.ok) {
+      throw new Error(getBusinessSubscriptionErrorMessage(result));
+    }
+
+    return result;
   }
 
   function getPaymentCompleteErrorMessage(result: PaymentCompleteResponse) {
@@ -1654,6 +1782,17 @@ export default function ApplyOrderForm({
   }
 
   async function handlePayment() {
+    if (paymentActionInFlightRef.current) return;
+    paymentActionInFlightRef.current = true;
+
+    try {
+      await handlePaymentOnce();
+    } finally {
+      paymentActionInFlightRef.current = false;
+    }
+  }
+
+  async function handlePaymentOnce() {
     setUiState({ type: "idle", message: null });
 
     if (process.env.NODE_ENV !== "production") {
@@ -1684,6 +1823,22 @@ export default function ApplyOrderForm({
         return;
       }
 
+      const purchaseAttemptContext = [
+        userId,
+        activeProduct.product_key,
+        businessVerificationState.result.businessProfileId,
+        payload.desiredSlug,
+      ].join(":");
+      const purchaseAttemptId = getOrCreateBusinessPurchaseAttempt(
+        purchaseAttemptContext,
+        businessPurchaseAttemptRef.current
+      );
+      businessPurchaseAttemptRef.current = {
+        purchaseAttemptId,
+        contextKey: purchaseAttemptContext,
+        savedAt: Date.now(),
+      };
+
       const canUseDisplayCheckoutQaMock =
         isScreenService && displayCheckoutQaEnabled && isDevelopment && mockEnabled;
 
@@ -1692,26 +1847,10 @@ export default function ApplyOrderForm({
           setUiState({ type: "loading", message: "신청 정보를 확인하고 결제를 준비하고 있습니다." });
 
           try {
-            const response = await fetch("/api/business-subscriptions/start", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                mode: "new",
-                billingKey: createMockDisplayBillingKey(),
-                businessProfileId: businessVerificationState.result.businessProfileId,
-                productKey: activeProduct.product_key,
-                billingCycle: activeProduct.billing_cycle,
-                order: payload,
-              }),
-            });
-            const result = (await response.json()) as BusinessSubscriptionResponse;
+            const result = await startBusinessSubscription(createMockDisplayBillingKey(), purchaseAttemptId);
 
-            if (!response.ok || !result.ok) {
-              throw new Error(getBusinessSubscriptionErrorMessage(result));
-            }
-
+            clearBusinessPurchaseAttempt();
+            businessPurchaseAttemptRef.current = null;
             router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
           } catch (error) {
             setUiState({
@@ -1776,26 +1915,10 @@ export default function ApplyOrderForm({
 
         setUiState({ type: "loading", message: "빌링키로 첫 결제를 요청하고 있습니다." });
 
-        const response = await fetch("/api/business-subscriptions/start", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            mode: "new",
-            billingKey,
-            businessProfileId: businessVerificationState.result.businessProfileId,
-            productKey: activeProduct.product_key,
-            billingCycle: activeProduct.billing_cycle,
-            order: payload,
-          }),
-        });
-        const result = (await response.json()) as BusinessSubscriptionResponse;
+        const result = await startBusinessSubscription(billingKey, purchaseAttemptId);
 
-        if (!response.ok || !result.ok) {
-          throw new Error(getBusinessSubscriptionErrorMessage(result));
-        }
-
+        clearBusinessPurchaseAttempt();
+        businessPurchaseAttemptRef.current = null;
         router.push(`/success?${result.menuSiteId ? `menuSiteId=${encodeURIComponent(result.menuSiteId)}` : `slug=${encodeURIComponent(result.slug ?? payload.desiredSlug)}`}`);
       } catch (error) {
         setUiState({

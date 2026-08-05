@@ -1,5 +1,3 @@
-import { randomUUID } from "node:crypto";
-
 import { NextResponse } from "next/server";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
@@ -21,10 +19,16 @@ import { getPaidBillingPayment, payWithBillingKey, PortOneBillingError } from "@
 import { portOneMockEnabled } from "@/lib/portone";
 import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
+import { ensurePurchasedMenuStarter } from "@/lib/server/purchased-menu-provisioning";
 import { createStarterMenuData } from "@/lib/menu-starter-presets";
 import { getDefaultBusinessCoverLabel, isBusinessTypeKey } from "@/lib/business-types";
 import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategoryKey } from "@/lib/templates";
 import { isTemplateSupportedForCheckout } from "@/lib/server/mocha-forest-checkout-qa";
+import {
+  getBusinessProvisioningAction,
+  getInitialSubscriptionPaymentId,
+  normalizePurchaseAttemptId,
+} from "@/lib/payment-provisioning-idempotency";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
@@ -41,6 +45,7 @@ type StartBusinessSubscriptionRequest = {
   menuSiteId?: unknown;
   recoverPaymentId?: unknown;
   recoverSubscriptionId?: unknown;
+  purchaseAttemptId?: unknown;
   order?: unknown;
   consentSnapshot?: unknown;
 };
@@ -84,7 +89,7 @@ type SubscriptionBillingPeriod = {
   nextBillingAt: string;
 };
 
-type RecoverableFailedSubscription = {
+type RecoverableSubscription = {
   id: string;
   user_id: string;
   business_profile_id: string | null;
@@ -136,6 +141,14 @@ class BusinessSubscriptionRouteError extends Error {
   ) {
     super(message);
   }
+}
+
+function isUniqueViolation(error: { code?: string; message?: string } | null | undefined) {
+  return error?.code === "23505" || Boolean(error?.message?.includes("duplicate key value"));
+}
+
+function waitForProvisioningReplay(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function createBusinessPaymentPaidNotification({
@@ -620,6 +633,7 @@ async function getVerifiedBusinessProfile(
 
 async function createPendingSubscription({
   adminSupabase,
+  subscriptionId,
   userId,
   businessProfileId,
   billingKey,
@@ -627,6 +641,7 @@ async function createPendingSubscription({
   menuSiteId,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
+  subscriptionId: string;
   userId: string;
   businessProfileId: string;
   billingKey: string;
@@ -636,6 +651,7 @@ async function createPendingSubscription({
   const { data, error } = await adminSupabase
     .from("business_subscriptions" as never)
     .insert(({
+      id: subscriptionId,
       user_id: userId,
       menu_site_id: menuSiteId ?? null,
       business_profile_id: businessProfileId,
@@ -651,6 +667,16 @@ async function createPendingSubscription({
     .single();
 
   if (error || !data) {
+    if (error?.code === "23505") {
+      throw new BusinessSubscriptionRouteError(
+        "business_subscription_insert",
+        "PURCHASE_ATTEMPT_ALREADY_EXISTS",
+        "동일 구매 시도가 이미 처리 중입니다. 새 결제를 시작하지 말고 잠시 후 기존 결과를 확인해주세요.",
+        409,
+        { subscriptionId }
+      );
+    }
+
     throw new BusinessSubscriptionRouteError(
       "business_subscription_insert",
       "BUSINESS_SUBSCRIPTION_INSERT_FAILED",
@@ -663,18 +689,196 @@ async function createPendingSubscription({
   return (data as { id: string }).id;
 }
 
-async function getRecoverableFailedSubscription({
+async function getCompletedBusinessProvisioning({
+  adminSupabase,
+  subscriptionId,
+  userId,
+  product,
+  paymentId,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  subscriptionId: string;
+  userId: string;
+  product: SubscriptionProduct;
+  paymentId: string;
+}) {
+  const { data, error } = await adminSupabase
+    .from("business_subscriptions" as never)
+    .select("id, user_id, product_key, plan_type, billing_cycle, status, menu_site_id, portone_payment_id, next_billing_at" as never)
+    .eq("id" as never, subscriptionId as never)
+    .eq("user_id" as never, userId as never)
+    .maybeSingle();
+
+  if (error) {
+    throw new BusinessSubscriptionRouteError(
+      "business_subscription_insert",
+      "PURCHASE_ATTEMPT_QUERY_FAILED",
+      "기존 구매 처리 상태 확인에 실패했습니다.",
+      500,
+      getSupabaseSafeDebug(error)
+    );
+  }
+
+  const subscription = data as {
+    id: string;
+    user_id: string;
+    product_key: string;
+    plan_type: string;
+    billing_cycle: string;
+    status: string;
+    menu_site_id: string | null;
+    portone_payment_id: string | null;
+    next_billing_at: string | null;
+  } | null;
+
+  if (!subscription) return null;
+
+  if (
+    subscription.product_key !== product.productKey ||
+    subscription.plan_type !== product.planType ||
+    subscription.billing_cycle !== product.billingCycle
+  ) {
+    throw new BusinessSubscriptionRouteError(
+      "business_subscription_insert",
+      "PURCHASE_ATTEMPT_CONTEXT_MISMATCH",
+      "같은 구매 시도 ID가 다른 상품에 연결되어 있습니다. 관리자 확인이 필요합니다.",
+      409,
+      { subscriptionId, paymentId }
+    );
+  }
+
+  if (
+    subscription.status !== "active" ||
+    !subscription.menu_site_id ||
+    subscription.portone_payment_id !== paymentId
+  ) {
+    throw new BusinessSubscriptionRouteError(
+      "business_subscription_insert",
+      "PURCHASE_ATTEMPT_INCOMPLETE",
+      "동일 구매 시도가 이미 진행됐지만 완료되지 않았습니다. 새 결제를 시작하지 말고 기존 결제 후처리를 복구해주세요.",
+      409,
+      {
+        subscriptionId,
+        paymentId,
+        status: subscription.status,
+        hasMenuSiteId: Boolean(subscription.menu_site_id),
+        hasPaymentId: Boolean(subscription.portone_payment_id),
+      }
+    );
+  }
+
+  const [{ data: menuSite, error: menuSiteError }, orderResult, paymentResult, entitlementResult] = await Promise.all([
+    adminSupabase.from("menu_sites").select("id, slug").eq("id", subscription.menu_site_id).eq("user_id", userId).maybeSingle(),
+    adminSupabase.from("orders").select("id").eq("payment_id", paymentId).eq("menu_site_id", subscription.menu_site_id).limit(1),
+    adminSupabase.from("payments").select("id").eq("payment_id", paymentId).limit(1),
+    adminSupabase
+      .from("service_entitlements")
+      .select("id")
+      .eq("subscription_id", subscriptionId)
+      .eq("menu_site_id", subscription.menu_site_id)
+      .limit(1),
+  ]);
+  const relationError = menuSiteError ?? orderResult.error ?? paymentResult.error ?? entitlementResult.error;
+
+  if (relationError) {
+    throw new BusinessSubscriptionRouteError(
+      "final_response",
+      "PURCHASE_ATTEMPT_COMPLETION_QUERY_FAILED",
+      "기존 구매 결과 확인에 실패했습니다.",
+      500,
+      getSupabaseSafeDebug(relationError)
+    );
+  }
+
+  const provisioningAction = getBusinessProvisioningAction({
+    expectedPaymentId: paymentId,
+    snapshot: {
+      status: subscription.status,
+      menuSiteId: subscription.menu_site_id,
+      paymentId: subscription.portone_payment_id,
+      hasOrder: (orderResult.data?.length ?? 0) > 0,
+      hasPayment: (paymentResult.data?.length ?? 0) > 0,
+      hasEntitlement: (entitlementResult.data?.length ?? 0) > 0,
+    },
+  });
+
+  if (!menuSite || provisioningAction !== "return_existing") {
+    throw new BusinessSubscriptionRouteError(
+      "final_response",
+      "PURCHASE_ATTEMPT_REQUIRES_RECOVERY",
+      "결제는 확인되었지만 일부 연결 정보가 완료되지 않았습니다. 새 결제를 시작하지 말고 기존 결제 후처리를 복구해주세요.",
+      409,
+      {
+        subscriptionId,
+        paymentId,
+        hasMenuSite: Boolean(menuSite),
+        hasOrder: (orderResult.data?.length ?? 0) > 0,
+        hasPayment: (paymentResult.data?.length ?? 0) > 0,
+        hasEntitlement: (entitlementResult.data?.length ?? 0) > 0,
+      }
+    );
+  }
+
+  return {
+    menuSiteId: menuSite.id,
+    slug: menuSite.slug,
+    subscriptionId,
+    paymentId,
+    nextBillingAt: subscription.next_billing_at,
+  };
+}
+
+async function waitForCompletedBusinessProvisioning({
+  adminSupabase,
+  subscriptionId,
+  userId,
+  product,
+  paymentId,
+}: {
+  adminSupabase: ReturnType<typeof createAdminClient>;
+  subscriptionId: string;
+  userId: string;
+  product: SubscriptionProduct;
+  paymentId: string;
+}) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    try {
+      const completed = await getCompletedBusinessProvisioning({
+        adminSupabase,
+        subscriptionId,
+        userId,
+        product,
+        paymentId,
+      });
+      if (completed) return completed;
+    } catch (error) {
+      const isStillRunning =
+        error instanceof BusinessSubscriptionRouteError &&
+        (error.debugCode === "PURCHASE_ATTEMPT_INCOMPLETE" ||
+          error.debugCode === "PURCHASE_ATTEMPT_REQUIRES_RECOVERY");
+      if (!isStillRunning) throw error;
+    }
+
+    await waitForProvisioningReplay(250);
+  }
+
+  return null;
+}
+
+async function getRecoverableSubscription({
   adminSupabase,
   subscriptionId,
   userId,
   businessProfileId,
   product,
+  paymentId,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscriptionId: string;
   userId: string;
   businessProfileId: string;
   product: SubscriptionProduct;
+  paymentId: string;
 }) {
   const { data, error } = await adminSupabase
     .from("business_subscriptions" as never)
@@ -693,7 +897,7 @@ async function getRecoverableFailedSubscription({
     );
   }
 
-  const subscription = data as RecoverableFailedSubscription | null;
+  const subscription = data as RecoverableSubscription | null;
 
   if (
     !subscription ||
@@ -701,15 +905,14 @@ async function getRecoverableFailedSubscription({
     subscription.product_key !== product.productKey ||
     subscription.plan_type !== product.planType ||
     subscription.billing_cycle !== product.billingCycle ||
-    subscription.status !== "failed" ||
+    !["pending", "failed", "active"].includes(subscription.status) ||
     subscription.amount !== product.amount ||
-    subscription.menu_site_id ||
-    subscription.portone_payment_id
+    (subscription.portone_payment_id !== null && subscription.portone_payment_id !== paymentId)
   ) {
     throw new BusinessSubscriptionRouteError(
       "business_subscription_insert",
       "RECOVERY_SUBSCRIPTION_NOT_RECOVERABLE",
-      "복구 가능한 실패 구독 기록을 찾지 못했습니다.",
+      "복구 가능한 구독 기록을 찾지 못했습니다.",
       409,
       {
         hasSubscription: Boolean(subscription),
@@ -726,17 +929,21 @@ async function getRecoverableFailedSubscription({
   return subscription;
 }
 
-async function ensureNoExistingPaymentRecords({
+async function ensureNoConflictingPaymentRecords({
   adminSupabase,
   paymentId,
+  subscriptionId,
+  menuSiteId,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   paymentId: string;
+  subscriptionId: string;
+  menuSiteId: string | null;
 }) {
   const [orderResult, paymentResult, subscriptionResult] = await Promise.all([
-    adminSupabase.from("orders").select("id").eq("payment_id", paymentId).limit(1),
-    adminSupabase.from("payments").select("id").or(`payment_id.eq.${paymentId},portone_payment_id.eq.${paymentId}`).limit(1),
-    adminSupabase.from("business_subscriptions" as never).select("id").eq("portone_payment_id" as never, paymentId as never).limit(1),
+    adminSupabase.from("orders").select("id, menu_site_id").eq("payment_id", paymentId).limit(1),
+    adminSupabase.from("payments").select("id, order_id").or(`payment_id.eq.${paymentId},portone_payment_id.eq.${paymentId}`).limit(1),
+    adminSupabase.from("business_subscriptions" as never).select("id").eq("portone_payment_id" as never, paymentId as never).limit(2),
   ]);
 
   const error = orderResult.error ?? paymentResult.error ?? subscriptionResult.error;
@@ -744,23 +951,29 @@ async function ensureNoExistingPaymentRecords({
   if (error) {
     throw new BusinessSubscriptionRouteError(
       "business_subscription_insert",
-      "RECOVERY_DUPLICATE_CHECK_FAILED",
-      "기존 결제 기록 중복 확인에 실패했습니다.",
+      "RECOVERY_CONFLICT_CHECK_FAILED",
+      "기존 결제 연결 확인에 실패했습니다.",
       500,
       getSupabaseSafeDebug(error)
     );
   }
 
-  if ((orderResult.data?.length ?? 0) > 0 || (paymentResult.data?.length ?? 0) > 0 || (subscriptionResult.data?.length ?? 0) > 0) {
+  const order = orderResult.data?.[0] ?? null;
+  const subscriptionIds = (subscriptionResult.data ?? []).map((row) => (row as { id: string }).id);
+  const hasConflictingOrder = Boolean(order?.menu_site_id && menuSiteId && order.menu_site_id !== menuSiteId);
+  const hasConflictingSubscription = subscriptionIds.some((id) => id !== subscriptionId);
+
+  if (hasConflictingOrder || hasConflictingSubscription) {
     throw new BusinessSubscriptionRouteError(
       "business_subscription_insert",
-      "RECOVERY_PAYMENT_ALREADY_PERSISTED",
-      "이미 처리된 결제건입니다.",
+      "RECOVERY_PAYMENT_CONTEXT_CONFLICT",
+      "결제가 다른 구독 또는 메뉴판에 연결되어 있어 관리자 확인이 필요합니다.",
       409,
       {
-        hasOrder: (orderResult.data?.length ?? 0) > 0,
+        hasOrder: Boolean(order),
         hasPayment: (paymentResult.data?.length ?? 0) > 0,
-        hasSubscriptionPayment: (subscriptionResult.data?.length ?? 0) > 0,
+        hasConflictingOrder,
+        hasConflictingSubscription,
       }
     );
   }
@@ -883,6 +1096,44 @@ async function createBusinessMenuSite({
   let data = insertedMenuSite;
 
   if (error) {
+    if (isUniqueViolation(error)) {
+      const { data: existingProvisionedMenu, error: existingProvisionedMenuError } = await supabase
+        .from("menu_sites")
+        .select("id")
+        .eq("user_id", userId)
+        .contains("settings", { subscription_id: subscriptionId })
+        .maybeSingle();
+
+      if (existingProvisionedMenuError) {
+        throw new BusinessSubscriptionRouteError(
+          "menu_site_create",
+          "MENU_SITE_PROVISIONING_QUERY_FAILED",
+          "동일 구독의 메뉴판 생성 상태 확인에 실패했습니다.",
+          500,
+          getSupabaseSafeDebug(existingProvisionedMenuError)
+        );
+      }
+
+      if (existingProvisionedMenu) {
+        throw new BusinessSubscriptionRouteError(
+          "menu_site_create",
+          "MENU_SITE_PROVISIONING_IN_PROGRESS",
+          "동일 구독의 메뉴판 생성이 이미 진행 중입니다.",
+          409,
+          { subscriptionId, menuSiteId: existingProvisionedMenu.id }
+        );
+      }
+
+      if (error.message.includes("slug")) {
+        throw new BusinessSubscriptionRouteError(
+          "menu_site_create",
+          "MENU_SITE_SLUG_ALREADY_EXISTS",
+          "이미 사용 중인 공개 메뉴판 주소입니다.",
+          409
+        );
+      }
+    }
+
     const minimalInsertPayload: Record<string, unknown> = {
       user_id: userId,
       name: order.menuName,
@@ -895,6 +1146,7 @@ async function createBusinessMenuSite({
       restaurant_phone: order.restaurantPhone,
       instagram_url: order.instagramUrl,
       notes: order.notes,
+      settings,
     };
     const fallbackResult = await supabase.from("menu_sites").insert(minimalInsertPayload as never).select("id, slug").single();
 
@@ -902,6 +1154,25 @@ async function createBusinessMenuSite({
 
     if (fallbackResult.error || !data) {
       const finalError = fallbackResult.error ?? error;
+      if (isUniqueViolation(finalError)) {
+        const { data: existingProvisionedMenu } = await supabase
+          .from("menu_sites")
+          .select("id")
+          .eq("user_id", userId)
+          .contains("settings", { subscription_id: subscriptionId })
+          .maybeSingle();
+
+        if (existingProvisionedMenu) {
+          throw new BusinessSubscriptionRouteError(
+            "menu_site_create",
+            "MENU_SITE_PROVISIONING_IN_PROGRESS",
+            "동일 구독의 메뉴판 생성이 이미 진행 중입니다.",
+            409,
+            { subscriptionId, menuSiteId: existingProvisionedMenu.id }
+          );
+        }
+      }
+
       throw new BusinessSubscriptionRouteError(
         "menu_site_create",
         "MENU_SITE_CREATE_FAILED",
@@ -1121,6 +1392,28 @@ async function createBusinessEntitlement({
   subscriptionId: string;
   billingPeriod: SubscriptionBillingPeriod;
 }) {
+  const { data: existingEntitlements, error: existingEntitlementError } = await adminSupabase
+    .from("service_entitlements")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("menu_site_id", menuSiteId)
+    .eq("subscription_id", subscriptionId)
+    .limit(1);
+
+  if (existingEntitlementError) {
+    throw new BusinessSubscriptionRouteError(
+      "service_entitlement_insert",
+      "BUSINESS_ENTITLEMENT_QUERY_FAILED",
+      "기존 사업자 이용 상태 확인에 실패했습니다.",
+      500,
+      getSupabaseSafeDebug(existingEntitlementError)
+    );
+  }
+
+  if ((existingEntitlements?.length ?? 0) > 0) {
+    return;
+  }
+
   const { error } = await adminSupabase.from("service_entitlements").insert({
     user_id: userId,
     menu_site_id: menuSiteId,
@@ -1140,6 +1433,20 @@ async function createBusinessEntitlement({
   });
 
   if (error) {
+    if (isUniqueViolation(error)) {
+      const { data: concurrentEntitlements, error: concurrentEntitlementError } = await adminSupabase
+        .from("service_entitlements")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("menu_site_id", menuSiteId)
+        .eq("subscription_id", subscriptionId)
+        .limit(1);
+
+      if (!concurrentEntitlementError && (concurrentEntitlements?.length ?? 0) > 0) {
+        return;
+      }
+    }
+
     throw new BusinessSubscriptionRouteError(
       "service_entitlement_insert",
       "BUSINESS_ENTITLEMENT_INSERT_FAILED",
@@ -1183,57 +1490,213 @@ async function createOrderAndPaymentRecords({
       portone_payment: portonePayment ?? null,
     })
   ) as Json;
-  const { data: order, error: orderError } = await supabase
+  const { data: existingOrder, error: existingOrderError } = await supabase
     .from("orders")
-    .insert({
+    .select("id, user_id, menu_site_id, product_key")
+    .eq("payment_id", paymentId)
+    .maybeSingle();
+
+  if (existingOrderError) {
+    throw new BusinessSubscriptionRouteError(
+      "final_response",
+      "ORDER_RECORD_QUERY_FAILED",
+      "기존 사업자 주문 기록 확인에 실패했습니다.",
+      500,
+      getSupabaseSafeDebug(existingOrderError)
+    );
+  }
+
+  let orderId: string;
+
+  if (existingOrder) {
+    if (
+      existingOrder.user_id !== userId ||
+      existingOrder.product_key !== product.productKey ||
+      (existingOrder.menu_site_id && existingOrder.menu_site_id !== menuSiteId)
+    ) {
+      throw new BusinessSubscriptionRouteError(
+        "final_response",
+        "ORDER_RECORD_CONTEXT_MISMATCH",
+        "동일 결제의 주문 연결 정보가 일치하지 않아 관리자 확인이 필요합니다.",
+        409,
+        { paymentId, menuSiteId }
+      );
+    }
+
+    orderId = existingOrder.id;
+    if (!existingOrder.menu_site_id) {
+      const { error: orderLinkError } = await supabase
+        .from("orders")
+        .update({ menu_site_id: menuSiteId, status: "paid" })
+        .eq("id", orderId)
+        .eq("user_id", userId);
+
+      if (orderLinkError) {
+        throw new BusinessSubscriptionRouteError(
+          "final_response",
+          "ORDER_RECORD_LINK_FAILED",
+          "기존 사업자 주문과 메뉴판 연결에 실패했습니다.",
+          500,
+          getSupabaseSafeDebug(orderLinkError)
+        );
+      }
+    }
+  } else {
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        user_id: userId,
+        menu_site_id: menuSiteId,
+        product_key: product.productKey,
+        order_name: product.name,
+        payment_id: paymentId,
+        customer_name: businessProfile.business_name,
+        buyer_name: businessProfile.representative_name,
+        business_name: businessProfile.business_name,
+        business_number: businessProfile.business_registration_number,
+        raw_payload: safeRawPayload,
+        status: "paid",
+        total_amount: product.amount,
+      })
+      .select("id")
+      .single();
+
+    if (orderError || !order) {
+      if (isUniqueViolation(orderError)) {
+        const { data: concurrentOrder, error: concurrentOrderError } = await supabase
+          .from("orders")
+          .select("id, user_id, menu_site_id, product_key")
+          .eq("payment_id", paymentId)
+          .maybeSingle();
+
+        if (
+          !concurrentOrderError &&
+          concurrentOrder?.user_id === userId &&
+          concurrentOrder.product_key === product.productKey &&
+          concurrentOrder.menu_site_id === menuSiteId
+        ) {
+          orderId = concurrentOrder.id;
+        } else {
+          throw new BusinessSubscriptionRouteError(
+            "final_response",
+            "ORDER_RECORD_UNIQUE_CONFLICT",
+            "동일 결제의 주문 연결을 재확인할 수 없어 관리자 확인이 필요합니다.",
+            409,
+            { paymentId, menuSiteId }
+          );
+        }
+      } else {
+        throw new BusinessSubscriptionRouteError(
+          "final_response",
+          "ORDER_RECORD_INSERT_FAILED",
+          "사업자 주문 기록 저장에 실패했습니다.",
+          500,
+          getSupabaseSafeDebug(orderError)
+        );
+      }
+    } else {
+      orderId = (order as { id: string }).id;
+    }
+  }
+
+  const { data: existingPayment, error: existingPaymentError } = await supabase
+    .from("payments")
+    .select("id, user_id, order_id, product_key")
+    .eq("payment_id", paymentId)
+    .maybeSingle();
+
+  if (existingPaymentError) {
+    throw new BusinessSubscriptionRouteError(
+      "final_response",
+      "PAYMENT_RECORD_QUERY_FAILED",
+      "기존 사업자 결제 기록 확인에 실패했습니다.",
+      500,
+      getSupabaseSafeDebug(existingPaymentError)
+    );
+  }
+
+  if (existingPayment) {
+    if (
+      existingPayment.user_id !== userId ||
+      existingPayment.product_key !== product.productKey ||
+      (existingPayment.order_id && existingPayment.order_id !== orderId)
+    ) {
+      throw new BusinessSubscriptionRouteError(
+        "final_response",
+        "PAYMENT_RECORD_CONTEXT_MISMATCH",
+        "동일 결제의 주문 연결 정보가 일치하지 않아 관리자 확인이 필요합니다.",
+        409,
+        { paymentId, orderId }
+      );
+    }
+
+    if (!existingPayment.order_id) {
+      const { error: paymentLinkError } = await supabase
+        .from("payments")
+        .update({ order_id: orderId, status: "paid" })
+        .eq("id", existingPayment.id)
+        .eq("user_id", userId);
+
+      if (paymentLinkError) {
+        throw new BusinessSubscriptionRouteError(
+          "final_response",
+          "PAYMENT_RECORD_LINK_FAILED",
+          "기존 사업자 결제와 주문 연결에 실패했습니다.",
+          500,
+          getSupabaseSafeDebug(paymentLinkError)
+        );
+      }
+    }
+  } else {
+    const { error: paymentError } = await supabase.from("payments").insert({
       user_id: userId,
-      menu_site_id: menuSiteId,
+      order_id: orderId,
       product_key: product.productKey,
-      order_name: product.name,
       payment_id: paymentId,
-      customer_name: businessProfile.business_name,
-      buyer_name: businessProfile.representative_name,
-      business_name: businessProfile.business_name,
-      business_number: businessProfile.business_registration_number,
-      raw_payload: safeRawPayload,
+      portone_payment_id: paymentId,
       status: "paid",
-      total_amount: product.amount,
-    })
-    .select("id")
-    .single();
+      amount: product.amount,
+      raw_payload: safeRawPayload,
+    });
 
-  if (orderError || !order) {
-    throw new BusinessSubscriptionRouteError(
-      "final_response",
-      "ORDER_RECORD_INSERT_FAILED",
-      "사업자 주문 기록 저장에 실패했습니다.",
-      500,
-      getSupabaseSafeDebug(orderError)
-    );
+    if (paymentError) {
+      if (isUniqueViolation(paymentError)) {
+        const { data: concurrentPayment, error: concurrentPaymentError } = await supabase
+          .from("payments")
+          .select("id, user_id, order_id, product_key, payment_id, portone_payment_id")
+          .or(`payment_id.eq.${paymentId},portone_payment_id.eq.${paymentId},order_id.eq.${orderId}`)
+          .limit(2);
+        const matchingPayment = (concurrentPayment ?? []).find((row) =>
+          row.user_id === userId &&
+          row.product_key === product.productKey &&
+          row.order_id === orderId &&
+          (row.payment_id === paymentId || row.portone_payment_id === paymentId)
+        );
+
+        if (!concurrentPaymentError && matchingPayment) {
+          return { orderId };
+        }
+
+        throw new BusinessSubscriptionRouteError(
+          "final_response",
+          "PAYMENT_RECORD_UNIQUE_CONFLICT",
+          "동일 결제의 결제 기록 연결을 재확인할 수 없어 관리자 확인이 필요합니다.",
+          409,
+          { paymentId, orderId }
+        );
+      }
+
+      throw new BusinessSubscriptionRouteError(
+        "final_response",
+        "PAYMENT_RECORD_INSERT_FAILED",
+        "사업자 결제 기록 저장에 실패했습니다.",
+        500,
+        getSupabaseSafeDebug(paymentError)
+      );
+    }
   }
 
-  const { error: paymentError } = await supabase.from("payments").insert({
-    user_id: userId,
-    order_id: (order as { id: string }).id,
-    product_key: product.productKey,
-    payment_id: paymentId,
-    portone_payment_id: paymentId,
-    status: "paid",
-    amount: product.amount,
-    raw_payload: safeRawPayload,
-  });
-
-  if (paymentError) {
-    throw new BusinessSubscriptionRouteError(
-      "final_response",
-      "PAYMENT_RECORD_INSERT_FAILED",
-      "사업자 결제 기록 저장에 실패했습니다.",
-      500,
-      getSupabaseSafeDebug(paymentError)
-    );
-  }
-
-  return { orderId: (order as { id: string }).id };
+  return { orderId };
 }
 
 export async function POST(request: Request) {
@@ -1273,6 +1736,7 @@ export async function POST(request: Request) {
   const recoverPaymentId = getRecoverablePaymentId(body.recoverPaymentId);
   const recoverSubscriptionId = getString(body.recoverSubscriptionId);
   const isPaymentRecovery = Boolean(recoverPaymentId || recoverSubscriptionId);
+  const purchaseAttemptId = normalizePurchaseAttemptId(body.purchaseAttemptId);
   const product = getSubscriptionProduct(requestedProductKey);
   const baseDebug = {
     hasBillingKey: Boolean(billingKey),
@@ -1280,6 +1744,7 @@ export async function POST(request: Request) {
     hasMenuSiteId: Boolean(getString(body.menuSiteId)),
     hasRecoverPaymentId: Boolean(recoverPaymentId),
     hasRecoverSubscriptionId: Boolean(recoverSubscriptionId),
+    hasPurchaseAttemptId: Boolean(purchaseAttemptId),
     amount: product?.amount ?? null,
   };
 
@@ -1325,25 +1790,11 @@ export async function POST(request: Request) {
     });
   }
 
-  if (isPaymentRecovery && !isDisplayCheckoutQaProduct(product)) {
+  if (!isPaymentRecovery && !purchaseAttemptId) {
     return jsonStepError({
-      step: "product_key_validation",
-      debugCode: "RECOVERY_PRODUCT_NOT_SUPPORTED",
-      message: "현재 후처리 복구는 Display 월결제 QA 건만 지원합니다.",
-      status: 409,
-      userId: user.id,
-      mode,
-      productKey: product.productKey,
-      billingCycle: product.billingCycle,
-      safeDebug: baseDebug,
-    });
-  }
-
-  if (!billingKey && !isPaymentRecovery) {
-    return jsonStepError({
-      step: "billing_key_presence_check",
-      debugCode: "BILLING_KEY_MISSING",
-      message: "빌링키가 없습니다.",
+      step: "request_body_parse",
+      debugCode: "PURCHASE_ATTEMPT_ID_REQUIRED",
+      message: "구매 시도 식별자가 없습니다. 결제창을 다시 열지 말고 신청 화면을 새로고침한 뒤 다시 진행해주세요.",
       status: 400,
       userId: user.id,
       mode,
@@ -1352,6 +1803,11 @@ export async function POST(request: Request) {
       safeDebug: baseDebug,
     });
   }
+
+  const canonicalSubscriptionId = isPaymentRecovery ? recoverSubscriptionId : (purchaseAttemptId as string);
+  const canonicalPaymentId = isPaymentRecovery
+    ? (recoverPaymentId as string)
+    : getInitialSubscriptionPaymentId(purchaseAttemptId as string);
 
   if (requestedBillingCycle && requestedBillingCycle !== product.billingCycle) {
     return jsonStepError({
@@ -1474,8 +1930,72 @@ export async function POST(request: Request) {
     });
   }
 
+  try {
+    const completedProvisioning = await getCompletedBusinessProvisioning({
+      adminSupabase,
+      subscriptionId: canonicalSubscriptionId,
+      userId: user.id,
+      product,
+      paymentId: canonicalPaymentId,
+    });
+
+    if (completedProvisioning) {
+      logBusinessSubscriptionDebug("provisioning_replay_returned", {
+        subscriptionId: completedProvisioning.subscriptionId,
+        paymentId: completedProvisioning.paymentId,
+        menuSiteId: completedProvisioning.menuSiteId,
+      });
+      return NextResponse.json({
+        ok: true,
+        step: "final_response",
+        message: "이미 처리된 구독 결제입니다.",
+        mode,
+        ...completedProvisioning,
+        alreadyProcessed: true,
+      });
+    }
+  } catch (error) {
+    const canContinueExplicitRecovery =
+      isPaymentRecovery &&
+      error instanceof BusinessSubscriptionRouteError &&
+      (error.debugCode === "PURCHASE_ATTEMPT_INCOMPLETE" || error.debugCode === "PURCHASE_ATTEMPT_REQUIRES_RECOVERY");
+
+    if (!canContinueExplicitRecovery) {
+      return jsonCaughtError({
+        error,
+        fallbackStep: "business_subscription_insert",
+        fallbackDebugCode: "PURCHASE_ATTEMPT_QUERY_FAILED",
+        fallbackMessage: "기존 구매 처리 상태 확인에 실패했습니다.",
+        userId: user.id,
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        safeDebug: {
+          ...baseDebug,
+          subscriptionId: canonicalSubscriptionId,
+          paymentId: canonicalPaymentId,
+        },
+      });
+    }
+  }
+
+  if (!billingKey && !isPaymentRecovery) {
+    return jsonStepError({
+      step: "billing_key_presence_check",
+      debugCode: "BILLING_KEY_MISSING",
+      message: "빌링키가 없습니다.",
+      status: 400,
+      userId: user.id,
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
+      safeDebug: baseDebug,
+    });
+  }
+
   let order: NormalizedBusinessOrder | null = null;
   let existingMenuSite: ExistingMenuSite | null = null;
+  let recoveredSubscriptionMenuSite: MenuSiteResult | null = null;
 
   try {
     if (mode === "new") {
@@ -1515,7 +2035,9 @@ export async function POST(request: Request) {
         });
       }
 
-      await ensureSlugAvailable(adminSupabase, order.desiredSlug);
+      if (!isPaymentRecovery) {
+        await ensureSlugAvailable(adminSupabase, order.desiredSlug);
+      }
     } else {
       const menuSiteId = getString(body.menuSiteId);
 
@@ -1593,21 +2115,72 @@ export async function POST(request: Request) {
     });
   }
 
-  const paymentId = recoverPaymentId || `billing_${Date.now()}_${randomUUID()}`;
+  const paymentId = canonicalPaymentId;
   const billingPeriod = getSubscriptionBillingPeriod(product);
   const nextBillingAt = billingPeriod.nextBillingAt;
-  let subscriptionId: string;
+  let subscriptionId = canonicalSubscriptionId;
 
   if (isPaymentRecovery) {
     try {
-      const recoverableSubscription = await getRecoverableFailedSubscription({
+      const recoverableSubscription = await getRecoverableSubscription({
         adminSupabase,
         subscriptionId: recoverSubscriptionId,
         userId: user.id,
         businessProfileId: businessProfile.id,
         product,
+        paymentId,
       });
-      await ensureNoExistingPaymentRecords({ adminSupabase, paymentId });
+      await ensureNoConflictingPaymentRecords({
+        adminSupabase,
+        paymentId,
+        subscriptionId: recoverableSubscription.id,
+        menuSiteId: recoverableSubscription.menu_site_id,
+      });
+
+      const recoveredMenuSiteQuery = recoverableSubscription.menu_site_id
+        ? adminSupabase
+            .from("menu_sites")
+            .select("id, slug")
+            .eq("id", recoverableSubscription.menu_site_id)
+            .eq("user_id", user.id)
+            .maybeSingle()
+        : adminSupabase
+            .from("menu_sites")
+            .select("id, slug")
+            .eq("user_id", user.id)
+            .contains("settings", { subscription_id: recoverableSubscription.id })
+            .maybeSingle();
+      const { data: recoveredMenuSite, error: recoveredMenuSiteError } = await recoveredMenuSiteQuery;
+
+      if (recoveredMenuSiteError) {
+        throw new BusinessSubscriptionRouteError(
+          "menu_site_create",
+          "RECOVERY_MENU_SITE_QUERY_FAILED",
+          "구독과 연결된 복구 대상 메뉴판 확인에 실패했습니다.",
+          500,
+          getSupabaseSafeDebug(recoveredMenuSiteError)
+        );
+      }
+
+      if (recoverableSubscription.menu_site_id && !recoveredMenuSite) {
+        throw new BusinessSubscriptionRouteError(
+          "menu_site_create",
+          "RECOVERY_LINKED_MENU_SITE_NOT_FOUND",
+          "구독에 연결된 메뉴판 기록을 찾지 못해 자동 복구할 수 없습니다.",
+          409,
+          { subscriptionId: recoverableSubscription.id }
+        );
+      }
+
+      if (recoveredMenuSite) {
+        recoveredSubscriptionMenuSite = recoveredMenuSite as MenuSiteResult;
+        await ensureNoConflictingPaymentRecords({
+          adminSupabase,
+          paymentId,
+          subscriptionId: recoverableSubscription.id,
+          menuSiteId: recoveredSubscriptionMenuSite.id,
+        });
+      }
       subscriptionId = recoverableSubscription.id;
     } catch (error) {
       return jsonCaughtError({
@@ -1626,6 +2199,7 @@ export async function POST(request: Request) {
     try {
       subscriptionId = await createPendingSubscription({
         adminSupabase,
+        subscriptionId,
         userId: user.id,
         businessProfileId: businessProfile.id,
         billingKey,
@@ -1633,6 +2207,41 @@ export async function POST(request: Request) {
         menuSiteId: existingMenuSite?.id ?? null,
       });
     } catch (error) {
+      if (error instanceof BusinessSubscriptionRouteError && error.debugCode === "PURCHASE_ATTEMPT_ALREADY_EXISTS") {
+        try {
+          const concurrentCompletion = await waitForCompletedBusinessProvisioning({
+            adminSupabase,
+            subscriptionId,
+            userId: user.id,
+            product,
+            paymentId,
+          });
+
+          if (concurrentCompletion) {
+            return NextResponse.json({
+              ok: true,
+              step: "final_response",
+              message: "이미 처리된 구독 결제입니다.",
+              mode,
+              ...concurrentCompletion,
+              alreadyProcessed: true,
+            });
+          }
+        } catch (replayError) {
+          return jsonCaughtError({
+            error: replayError,
+            fallbackStep: "business_subscription_insert",
+            fallbackDebugCode: "PURCHASE_ATTEMPT_REPLAY_FAILED",
+            fallbackMessage: "동일 구매 시도의 완료 결과 확인에 실패했습니다.",
+            userId: user.id,
+            mode,
+            productKey: product.productKey,
+            billingCycle: product.billingCycle,
+            safeDebug: { ...baseDebug, paymentId, subscriptionId },
+          });
+        }
+      }
+
       return jsonCaughtError({
         error,
         fallbackStep: "business_subscription_insert",
@@ -1739,7 +2348,7 @@ export async function POST(request: Request) {
       isDisplayCheckoutQa: isDisplayCheckoutQaProduct(product),
     });
     const menuSite = mode === "new"
-      ? await createBusinessMenuSite({
+      ? recoveredSubscriptionMenuSite ?? await createBusinessMenuSite({
           supabase,
           userId: user.id,
           order: order as NormalizedBusinessOrder,
@@ -1754,6 +2363,16 @@ export async function POST(request: Request) {
           subscriptionId,
           billingPeriod,
       });
+
+    if (mode === "new" && recoveredSubscriptionMenuSite) {
+      await ensurePurchasedMenuStarter(supabase, {
+        menuSiteId: menuSite.id,
+        templateKey: (order as NormalizedBusinessOrder).template_key,
+        restaurantCategory: (order as NormalizedBusinessOrder).restaurantCategory,
+        templateCategory: (order as NormalizedBusinessOrder).template_category,
+        productKey: product.productKey,
+      });
+    }
 
     logBusinessSubscriptionDebug("display_menu_site_create_done", {
       mode,
@@ -1854,6 +2473,41 @@ export async function POST(request: Request) {
       nextBillingAt,
     });
   } catch (error) {
+    if (error instanceof BusinessSubscriptionRouteError && error.debugCode === "MENU_SITE_PROVISIONING_IN_PROGRESS") {
+      try {
+        const concurrentCompletion = await waitForCompletedBusinessProvisioning({
+          adminSupabase,
+          subscriptionId,
+          userId: user.id,
+          product,
+          paymentId,
+        });
+
+        if (concurrentCompletion) {
+          return NextResponse.json({
+            ok: true,
+            step: "final_response",
+            message: "이미 처리된 구독 결제입니다.",
+            mode,
+            ...concurrentCompletion,
+            alreadyProcessed: true,
+          });
+        }
+      } catch (replayError) {
+        return jsonCaughtError({
+          error: replayError,
+          fallbackStep: "final_response",
+          fallbackDebugCode: "MENU_SITE_PROVISIONING_REPLAY_FAILED",
+          fallbackMessage: "동일 구독의 메뉴판 완료 결과 확인에 실패했습니다.",
+          userId: user.id,
+          mode,
+          productKey: product.productKey,
+          billingCycle: product.billingCycle,
+          safeDebug: { ...baseDebug, paymentId, subscriptionId },
+        });
+      }
+    }
+
     return jsonCaughtError({
       error,
       fallbackStep: "final_response",
