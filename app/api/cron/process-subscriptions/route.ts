@@ -14,6 +14,10 @@ import {
   getPaymentIssueDataRetentionUntil,
   isRetentionEndedAfterKstDday,
 } from "@/lib/service-retention-policy";
+import {
+  getSubscriptionLifecycleTargets,
+  type SubscriptionLifecycleEntitlement,
+} from "@/lib/subscription-lifecycle-targets";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -462,7 +466,7 @@ async function expireSubscriptionAtPeriodEnd({
     throw new Error(`SUBSCRIPTION_EXPIRE_FAILED: ${subscriptionError.message}`);
   }
 
-  let entitlementQuery = adminSupabase
+  const { data: entitlementRows, error: entitlementError } = await adminSupabase
     .from("service_entitlements")
     .update({
       status: "expired",
@@ -471,27 +475,22 @@ async function expireSubscriptionAtPeriodEnd({
       data_retention_until: dataRetentionUntil,
       deleted_scheduled_at: null,
     })
-    .eq("subscription_id", subscription.id);
-
-  if (subscription.menu_site_id) {
-    entitlementQuery = entitlementQuery.eq("menu_site_id", subscription.menu_site_id);
-  }
-
-  const { error: entitlementError } = await entitlementQuery;
+    .eq("subscription_id", subscription.id)
+    .select("id, menu_site_id, subscription_id");
 
   if (entitlementError) {
     throw new Error(`SERVICE_ENTITLEMENT_EXPIRE_FAILED: ${entitlementError.message}`);
   }
 
-  if (subscription.menu_site_id) {
-    const { error: menuSiteError } = await adminSupabase
-      .from("menu_sites")
-      .update({ status: "archived" })
-      .eq("id", subscription.menu_site_id);
+  const targets = logSubscriptionLifecycleTargets({
+    stage: "expiration",
+    subscription,
+    entitlements: entitlementRows ?? [],
+  });
+  const archiveResult = await archiveBusinessMenuSites(adminSupabase, targets.menuSiteIds);
 
-    if (menuSiteError) {
-      throw new Error(`MENU_SITE_ARCHIVE_FAILED: ${menuSiteError.message}`);
-    }
+  if (archiveResult.error) {
+    throw new Error(`MENU_SITE_ARCHIVE_FAILED: ${archiveResult.error.message}`);
   }
 
   try {
@@ -533,6 +532,32 @@ function isPastIso(value: string | null | undefined, now: Date) {
 
 function getUniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
+}
+
+function logSubscriptionLifecycleTargets({
+  stage,
+  subscription,
+  entitlements,
+}: {
+  stage: "renewal" | "expiration" | "payment_issue_retention";
+  subscription: DueSubscription;
+  entitlements: SubscriptionLifecycleEntitlement[];
+}) {
+  const targets = getSubscriptionLifecycleTargets({
+    subscriptionId: subscription.id,
+    representativeMenuSiteId: subscription.menu_site_id,
+    entitlements,
+  });
+
+  console.info("[cron/process-subscriptions] lifecycle targets", {
+    stage,
+    subscriptionId: subscription.id,
+    linkedEntitlementCount: targets.entitlementIds.length,
+    linkedMenuSiteCount: targets.menuSiteIds.length,
+    legacyMultiSite: targets.isLegacyMultiSite,
+  });
+
+  return targets;
 }
 
 async function archiveBusinessMenuSites(adminSupabase: ReturnType<typeof createAdminClient>, menuSiteIds: string[]) {
@@ -578,13 +603,10 @@ async function startRetentionForPaymentIssueSubscriptions({
   );
 
   for (const subscription of subscriptions) {
-    if (!subscription.menu_site_id) continue;
-
     const { data: entitlementRows, error: entitlementError } = await adminSupabase
       .from("service_entitlements")
       .select("id, user_id, menu_site_id, subscription_id, plan_type, product_key, billing_type, status, access_expires_at, expired_at, data_retention_until, deleted_scheduled_at")
       .eq("subscription_id", subscription.id)
-      .eq("menu_site_id", subscription.menu_site_id)
       .eq("status", "active")
       .in("plan_type", [...BUSINESS_PLAN_TYPES])
       .lte("access_expires_at", nowIso);
@@ -596,6 +618,11 @@ async function startRetentionForPaymentIssueSubscriptions({
 
     const entitlements = (entitlementRows ?? []) as RetentionEntitlement[];
     if (entitlements.length === 0) continue;
+    const targets = logSubscriptionLifecycleTargets({
+      stage: "payment_issue_retention",
+      subscription,
+      entitlements,
+    });
 
     const dataRetentionUntil = getPaymentIssueDataRetentionUntil(nowIso);
     if (!dataRetentionUntil) {
@@ -624,9 +651,9 @@ async function startRetentionForPaymentIssueSubscriptions({
       continue;
     }
 
-    const archiveResult = await archiveBusinessMenuSites(adminSupabase, [subscription.menu_site_id]);
+    const archiveResult = await archiveBusinessMenuSites(adminSupabase, targets.menuSiteIds);
     if (archiveResult.error) {
-      result.errors.push(`결제 이슈 메뉴판 보관 전환 실패(${subscription.menu_site_id}): ${archiveResult.error.message}`);
+      result.errors.push(`결제 이슈 메뉴판 보관 전환 실패(${subscription.id}): ${archiveResult.error.message}`);
     } else {
       result.archivedMenuSites += archiveResult.count;
     }
@@ -797,7 +824,7 @@ async function markSubscriptionRenewed({
     throw new Error(`SUBSCRIPTION_RENEW_UPDATE_FAILED: ${subscriptionError.message}`);
   }
 
-  let entitlementQuery = adminSupabase
+  const { data: entitlementRows, error: entitlementError } = await adminSupabase
     .from("service_entitlements")
     .update({
       status: "active",
@@ -806,17 +833,18 @@ async function markSubscriptionRenewed({
       data_retention_until: null,
       deleted_scheduled_at: null,
     })
-    .eq("subscription_id", subscription.id);
-
-  if (subscription.menu_site_id) {
-    entitlementQuery = entitlementQuery.eq("menu_site_id", subscription.menu_site_id);
-  }
-
-  const { error: entitlementError } = await entitlementQuery;
+    .eq("subscription_id", subscription.id)
+    .select("id, menu_site_id, subscription_id");
 
   if (entitlementError) {
     throw new Error(`SERVICE_ENTITLEMENT_RENEW_UPDATE_FAILED: ${entitlementError.message}`);
   }
+
+  logSubscriptionLifecycleTargets({
+    stage: "renewal",
+    subscription,
+    entitlements: entitlementRows ?? [],
+  });
 }
 
 async function processDueSubscription({

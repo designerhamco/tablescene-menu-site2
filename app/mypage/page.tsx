@@ -25,7 +25,6 @@ import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuPath } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForUser } from "@/lib/server/ai-credits-service";
-import { getBasicMenuCreateLabel, getBasicMenuSiteLimitState, type BasicMenuSiteLimitState } from "@/lib/server/basic-menu-site-limit-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
@@ -1556,7 +1555,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   let orders: OrderRecord[] = [];
   let aiCreditPurchases: AiCreditPurchaseTransaction[] = [];
   let refundRequests: RefundRequestRecord[] = [];
-  let basicMenuSiteLimitState: BasicMenuSiteLimitState | null = null;
   const paymentsErrors: string[] = [];
 
   try {
@@ -1589,20 +1587,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       userId: user.id,
       message: subscriptionError instanceof Error ? subscriptionError.message : "unknown",
     });
-  }
-
-  if (activeTab === "menus") {
-    try {
-      basicMenuSiteLimitState = await getBasicMenuSiteLimitState({
-        adminSupabase: createAdminClient(),
-        userId: user.id,
-      });
-    } catch (limitError) {
-      console.error("[mypage] basic menu site limit query failed", {
-        userId: user.id,
-        message: limitError instanceof Error ? limitError.message : "unknown",
-      });
-    }
   }
 
   if (activeTab === "payments") {
@@ -2369,34 +2353,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     : activeMenuTab === "holding"
       ? holdingMenuCards
       : deletedMenuCards;
-  const createMenuButtonLabel = getBasicMenuCreateLabel(basicMenuSiteLimitState);
-  const hasActiveBasicSubscription = Boolean(basicMenuSiteLimitState?.activeBasicSubscription);
-  const canCreateBasicMenuSite = Boolean(basicMenuSiteLimitState?.activeBasicSubscription && basicMenuSiteLimitState.canCreate);
-  const isPersonalTrialMenuLimited = Boolean(basicMenuSiteLimitState?.isPersonalTrialLimited);
-
   function renderCreateMenuButton(extraClassName = "") {
     const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
 
-    if (isPersonalTrialMenuLimited || (hasActiveBasicSubscription && !canCreateBasicMenuSite)) {
-      const disabledReason = isPersonalTrialMenuLimited
-        ? "개인 체험은 메뉴판 1개만 만들 수 있습니다. 사업자 Basic 구독으로 전환하면 추가 메뉴판을 만들 수 있습니다."
-        : "Basic 메뉴판은 구독 1개당 최대 3개까지 만들 수 있습니다.";
-
-      return (
-        <button
-          type="button"
-          disabled
-          className={`${extraClassName} inline-flex cursor-not-allowed items-center justify-center rounded-full bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400`.trim()}
-          title={disabledReason}
-        >
-          {createMenuButtonLabel}
-        </button>
-      );
-    }
-
     return (
-      <Link href={hasActiveBasicSubscription ? "/mypage/menus/new" : "/apply"} className={className}>
-        {createMenuButtonLabel}
+      <Link href="/apply/basic" className={className}>
+        메뉴판 추가 구매
       </Link>
     );
   }
@@ -2679,7 +2641,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </h3>
                   <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     {activeMenuTab === "active"
-                      ? "새 메뉴판을 만들거나 기존 메뉴판을 복구해 이용할 수 있습니다."
+                      ? "새 메뉴판을 추가 구매하거나 기존 메뉴판을 복구해 이용할 수 있습니다."
                       : activeMenuTab === "holding"
                         ? "복구 가능한 보관 기간 안의 메뉴판이 생기면 이곳에 표시됩니다."
                         : "복구 가능 기간이 지난 메뉴판이 생기면 이곳에 표시됩니다."}

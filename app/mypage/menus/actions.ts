@@ -21,7 +21,6 @@ import {
   MENU_SITE_INACTIVE_EDIT_MESSAGE,
   MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
 } from "@/lib/server/menu-site-access-service";
-import { getBasicMenuSiteLimitState } from "@/lib/server/basic-menu-site-limit-service";
 import { DEFAULT_LOCALE, LOCALE_LABELS, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import type {
   AutoTranslationDraftPatch,
@@ -44,7 +43,7 @@ import {
   type CafeAStarterResetFinalSavePayload,
   type CafeAStarterResetSnapshot,
 } from "@/lib/cafe-a-starter-reset";
-import { isValidPublicSlug, isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
+import { isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { isPriceDisplayMode } from "@/lib/menu-price-format";
@@ -108,7 +107,6 @@ import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supab
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
-import { getTemplateCategoryFromKey, isTemplateCategoryKey, isTemplateSupportedForService, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import {
@@ -170,7 +168,6 @@ type MenuCategoryTranslationInsert = Database["public"]["Tables"]["menu_category
 type MenuItemTranslationInsert = Database["public"]["Tables"]["menu_item_translations"]["Insert"];
 type MenuPromotionTranslationInsert = Database["public"]["Tables"]["menu_promotion_translations"]["Insert"];
 type MenuWidgetTranslationInsert = Database["public"]["Tables"]["menu_widget_translations"]["Insert"];
-type LooseInsert = Record<string, unknown>;
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 type MenuSaveTraceValue = string | number | boolean | null | undefined;
 type MenuSaveTraceFields = Record<string, MenuSaveTraceValue>;
@@ -973,18 +970,6 @@ function validateRequiredPhone(menuId: string, value: string | null, label: stri
   }
 }
 
-function normalizeSlug(slug: string) {
-  return slug
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function isTemplateKey(value: string): value is TemplateKey {
-  return isValidTemplateKey(value);
-}
-
 function isMenuSiteStatus(value: string): value is MenuSiteStatus {
   return allowedStatuses.includes(value as MenuSiteStatus);
 }
@@ -997,16 +982,8 @@ function getMenuPageSectionKey(value: string | null): MenuSectionKey {
   return isMenuSectionKey(value) ? value : "main_menu";
 }
 
-function isValidSlug(slug: string) {
-  return isValidPublicSlug(slug);
-}
-
 function getDateString(formData: FormData, key: string) {
   return getNullableString(formData, key);
-}
-
-function redirectWithError(message: string): never {
-  redirect(`/mypage/menus/new?error=${encodeURIComponent(message)}`);
 }
 
 function getEditPath(menuId: string, params?: { error?: string; message?: string; tab?: string; editingItemId?: string }) {
@@ -3118,7 +3095,7 @@ async function assertPriceOptionBelongsToMenuSite(menuId: string, priceOptionId:
   if (!data) redirectToEditWithError(menuId, "해당 가격 옵션을 찾을 수 없습니다.");
 }
 
-export async function createMenuSiteAction(formData: FormData) {
+export async function createMenuSiteAction() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -3128,154 +3105,11 @@ export async function createMenuSiteAction(formData: FormData) {
     redirect("/sign-in?next=/mypage/menus/new");
   }
 
-  const name = getString(formData, "name");
-  const rawSlug = getString(formData, "slug");
-  const templateKey = getString(formData, "template_key");
-  const rawTemplateCategory = getString(formData, "template_category");
-  const templateCategory = isTemplateCategoryKey(rawTemplateCategory)
-    ? rawTemplateCategory
-    : getTemplateCategoryFromKey(templateKey);
-  const slug = normalizeSlug(rawSlug);
-
-  if (!name) {
-    redirectWithError("메뉴판 이름을 입력해주세요.");
-  }
-
-  if (name.length > MENU_FIELD_LIMITS.menuSites.name) {
-    redirectWithError(`메뉴판 이름은 최대 ${MENU_FIELD_LIMITS.menuSites.name}자까지 입력 가능합니다.`);
-  }
-
-  if (!slug) {
-    redirectWithError("공개 메뉴판 주소를 입력해주세요. 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.");
-  }
-
-  if (!isValidSlug(slug)) {
-    redirectWithError(
-      `공개 메뉴판 주소는 영문 소문자, 숫자, 하이픈으로 ${MENU_FIELD_LIMITS.menuSites.slugMin}자 이상 ${MENU_FIELD_LIMITS.menuSites.slugMax}자 이하로 입력해주세요.`
-    );
-  }
-
-  if (!isTemplateKey(templateKey)) {
-    redirectWithError("템플릿을 선택해주세요.");
-  }
-
-  if (!isTemplateSupportedForService(templateKey, "basic")) {
-    redirectWithError("Basic에서 사용할 수 있는 템플릿만 선택해주세요.");
-  }
-
-  if (!templateCategory) {
-    redirectWithError("템플릿 카테고리를 선택해주세요.");
-  }
-
-  const adminSupabase = createAdminClient();
-  const basicMenuLimitState = await getBasicMenuSiteLimitState({
-    adminSupabase,
-    userId: user.id,
+  const params = new URLSearchParams({
+    code: "ADDITIONAL_MENU_SITE_PURCHASE_REQUIRED",
+    error: "새 메뉴판은 추가 구매 후 생성할 수 있습니다.",
   });
-  const activeBasicSubscription = basicMenuLimitState.activeBasicSubscription;
-
-  if (!activeBasicSubscription) {
-    redirectWithError("이용 중인 Basic 구독이 있어야 새 메뉴판을 추가할 수 있습니다.");
-  }
-
-  if (!basicMenuLimitState.canCreate) {
-    redirectWithError("Basic 메뉴판은 한 구독당 최대 3개까지 만들 수 있습니다.");
-  }
-
-  const accessStartsAt = activeBasicSubscription.current_period_start ?? new Date().toISOString();
-  const accessExpiresAt = activeBasicSubscription.current_period_end ?? activeBasicSubscription.next_billing_at;
-
-  if (!accessExpiresAt) {
-    redirectWithError("구독 이용 기간을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.");
-  }
-
-  const { data: existingSite, error: duplicateCheckError } = await supabase
-    .from("menu_sites")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (duplicateCheckError) {
-    redirectWithError(`공개 메뉴판 주소 중복 확인 중 오류가 발생했습니다: ${duplicateCheckError.message}`);
-  }
-
-  if (existingSite) {
-    redirectWithError("이미 사용 중인 공개 메뉴판 주소입니다. 다른 주소를 입력해주세요.");
-  }
-
-  const status: MenuSiteStatus = "draft";
-
-  const menuSiteInsert: Database["public"]["Tables"]["menu_sites"]["Insert"] = {
-    user_id: user.id,
-    name,
-    slug,
-    template_key: templateKey,
-    template_category: templateCategory,
-    status,
-    settings: {
-      source: "basic_subscription_additional_menu_site",
-      product_key: activeBasicSubscription.product_key,
-      plan_type: "business_basic",
-      payment_type: "subscription",
-      billing_cycle: activeBasicSubscription.billing_cycle,
-      subscription_id: activeBasicSubscription.id,
-      access_starts_at: accessStartsAt,
-      access_expires_at: accessExpiresAt,
-      current_period_start: activeBasicSubscription.current_period_start,
-      current_period_end: activeBasicSubscription.current_period_end,
-      next_billing_at: activeBasicSubscription.next_billing_at,
-      auto_renewal: true,
-      basic_menu_site_limit: basicMenuLimitState.limit,
-    },
-  };
-
-  let { data: createdSite, error } = await supabase.from("menu_sites").insert(menuSiteInsert).select("id").single();
-
-  if (error && error.message.toLowerCase().includes("template_category")) {
-    const fallbackInsert: LooseInsert = {
-      user_id: user.id,
-      name,
-      slug,
-      template_key: templateKey,
-      status,
-    };
-    const fallbackResult = await supabase.from("menu_sites").insert(fallbackInsert as never).select("id").single();
-    createdSite = fallbackResult.data;
-    error = fallbackResult.error;
-  }
-
-  if (error) {
-    redirectWithError(`메뉴판 생성에 실패했습니다: ${error.message}`);
-  }
-
-  if (createdSite?.id) {
-    await createStarterMenuData(supabase, createdSite.id, templateKey, null, templateCategory, activeBasicSubscription.product_key);
-
-    const { error: entitlementError } = await adminSupabase.from("service_entitlements").insert({
-      user_id: user.id,
-      menu_site_id: createdSite.id,
-      business_profile_id: activeBasicSubscription.business_profile_id,
-      product_key: activeBasicSubscription.product_key,
-      plan_key: "basic",
-      plan_type: "business_basic",
-      billing_type: "subscription",
-      billing_cycle: activeBasicSubscription.billing_cycle,
-      subscription_id: activeBasicSubscription.id,
-      status: "active",
-      access_starts_at: accessStartsAt,
-      access_expires_at: accessExpiresAt,
-      expired_at: null,
-      data_retention_until: null,
-      deleted_scheduled_at: null,
-    });
-
-    if (entitlementError) {
-      redirectWithError(`메뉴판 권한 연결에 실패했습니다: ${entitlementError.message}`);
-    }
-  }
-
-  revalidatePath("/mypage");
-  redirect("/mypage?message=menu-created");
+  redirect(`/mypage/menus/new?${params.toString()}`);
 }
 
 export async function updateMenuSiteAction(formData: FormData) {
