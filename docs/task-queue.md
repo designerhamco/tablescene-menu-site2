@@ -24,7 +24,7 @@
 - `DONE` 공개·비공개 변경을 Owner/Manager로 제한
 - `DONE` 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증 — `docs/owner-only-runtime-audit.md`
 - `DONE` 직원 초대 UI와 이메일 전송 — 실제 발송은 수락 화면·SMTP QA 전까지 feature gate로 비활성, `docs/staff-invitation-delivery.md`
-- `TODO` 초대 수락 화면
+- `DONE` 초대 수락 화면 — HttpOnly intent cookie, verified Auth email, 원자적 수락 RPC 연결
 - `TODO` 초대 재전송·취소
 - `TODO` 직원 역할 변경과 접근 회수
 - `TODO` 직원용 마이페이지 상세 경험
@@ -143,4 +143,4 @@
 
 ## 다음 작업
 
-현재 PR을 완료한 다음 별도 브랜치에서 `초대 수락 화면`을 진행한다. 실제 이메일 발송·SMTP/Auth 설정·Production 작업은 사람 승인 전에 실행하지 않는다.
+현재 PR을 완료한 다음 별도 브랜치에서 `초대 재전송·취소`를 진행한다. 실제 이메일 발송·SMTP/Auth 설정·Production 작업은 사람 승인 전에 실행하지 않는다.
