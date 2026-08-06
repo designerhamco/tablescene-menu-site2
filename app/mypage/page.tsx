@@ -2674,6 +2674,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <span>구독/결제 내역</span>
                 </Link>
                 ) : null}
+                {sites.length > 0 ? (
+                <Link href="/mypage/staff" className={getTabLinkClassName(false)}>
+                  <span>직원 관리</span>
+                </Link>
+                ) : null}
                 <Link href="/mypage?tab=inquiries" className={getTabLinkClassName(activeTab === "inquiries")}>
                   <span>문의 내역</span>
                 </Link>

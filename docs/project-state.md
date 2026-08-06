@@ -38,6 +38,10 @@
   - 구독·환불·복구 자원은 현재 actor와 저장된 `user_id`가 일치할 때만 처리
   - 결제·추가 구매·계정 삭제는 현재 사용자 범위로만 생성·조회·변경
   - 상세 검토 결과는 `docs/owner-only-runtime-audit.md`에 기록
+- 직원 초대 UI와 이메일 전송:
+  - Owner-only 다중 메뉴판 초대, 7일 만료 hash token, 중복·자가 초대·rate limit·audit 연결
+  - 실제 발송은 초대 수락 화면과 SMTP QA 전까지 `STAFF_INVITATIONS_ENABLED` feature gate로 비활성
+  - 상세 운영 경계는 `docs/staff-invitation-delivery.md`에 기록
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -101,4 +105,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 6. Owner/Manager/Editor 메뉴 편집과 공개·위젯·번역·AI·미디어 권한 연결은 서버 권한 경계로 구현했다.
 7. 실제 직원 계정 E2E 확인은 직원 초대·수락 기능이 완성된 뒤 진행한다. 화면 확인만을 위한 Production 직원 데이터는 만들지 않는다.
 8. Owner-only runtime 검증은 `docs/owner-only-runtime-audit.md`에 완료 기록했다.
-9. 다음 구현 범위는 직원 초대 UI와 이메일 전송이며, 실제 발송과 Production SMTP/Auth 설정은 사람 승인 전에 실행하지 않는다.
+9. 직원 초대 UI와 이메일 전송 코드는 feature gate 뒤에 구현했다. 실제 발송과 Production SMTP/Auth 설정은 사람 승인 전에 실행하지 않는다.
+10. 다음 구현 범위는 초대 수락 화면이다.
