@@ -60,7 +60,12 @@ Display 출시 대상:
 - Display와 누아 메뉴가 `is_sold_out`을 시각적으로 표시하지 않던 문제를 수정했다. Display는 네 locale에서 `품절`·`SOLD OUT`·`售罄`·`売り切れ`를 표시한다.
 - capability, starter feature evidence와 typography default를 자동 테스트로 고정했다.
 
-## 남은 QA
+## 생성·저장·preview·public 격리 QA 결과
 
-- 생성·편집·최종 저장 round-trip은 Production 데이터를 사용하지 않는 격리 QA 환경 또는 기존 안전한 fixture가 필요하다.
-- 실제 메뉴판 preview/public 데이터 round-trip은 Production write 없이 수행한다.
+- 7개 starter를 생성해 final-save payload로 직렬화·검증·파싱하고 원본 snapshot과 다시 비교했다. 페이지·카테고리·메뉴·위젯·혼합 순서 참조가 보존되며 Production write는 없다.
+- 개발 전용 `renderMode=public` 옵션으로 같은 저장 후 fixture를 실제 `MenuPageRenderer`의 `preview`와 `public` 모드에 각각 전달했다. Production에서는 이 옵션을 무시하고 기존 preview 동작을 유지한다.
+- 일본어 desktop 14개 경로에서 7개 템플릿의 카테고리·메뉴·위젯·품절·언어 control 신호가 preview/public 사이에 일치했다. 중국어 Basic mobile 12개 경로도 동일했다.
+- 모든 비교 경로에서 가로 overflow와 깨진 이미지는 없었다. Display는 두 모드 모두 fit `settled`이며, public 모드에서는 preview 전용 페이지 선택기만 제외된다.
+- 실제 Owner/직원 메뉴판 route의 인증·권한·DB loader와 Production 저장은 실행하지 않았다. 해당 route들이 동일한 `MenuPageRenderer`를 사용하는 것은 코드 감사로 확인했다.
+
+출시 템플릿의 코드 기반 격리 QA 범위는 완료했다. 실제 계정·Production 데이터가 필요한 최종 운영 확인은 별도 승인 단계에서 수행한다.
