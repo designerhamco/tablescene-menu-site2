@@ -62,6 +62,8 @@ test("migration keeps both tables server-only and enforces approved limits", () 
   assert.match(sql, /alter table public\.table_visit_sessions force row level security/);
   assert.match(sql, /revoke all on table public\.menu_tables from public, anon, authenticated/);
   assert.match(sql, /revoke all on table public\.table_visit_sessions from public, anon, authenticated/);
+  assert.match(sql, /revoke all on table public\.menu_tables from service_role/);
+  assert.match(sql, /revoke all on table public\.table_visit_sessions from service_role/);
   assert.match(sql, /grant select, insert, update on table public\.menu_tables to service_role/);
   assert.match(sql, /grant select, insert, update on table public\.table_visit_sessions to service_role/);
   assert.doesNotMatch(sql, /grant .*delete.* to service_role/i);

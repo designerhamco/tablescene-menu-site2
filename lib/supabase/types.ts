@@ -1964,6 +1964,59 @@ export type Database = {
           },
         ]
       }
+      menu_tables: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          display_order: number
+          id: string
+          label: string
+          menu_site_id: string
+          status: string
+          token_hash: string
+          token_rotated_at: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          label: string
+          menu_site_id: string
+          status?: string
+          token_hash: string
+          token_rotated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          label?: string
+          menu_site_id?: string
+          status?: string
+          token_hash?: string
+          token_rotated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_tables_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_translation_jobs: {
         Row: {
           applied_at: string | null
@@ -2618,6 +2671,50 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "menu_sites"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      table_visit_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          last_seen_at: string
+          menu_site_id: string
+          menu_table_id: string
+          revoked_at: string | null
+          token_hash: string
+          user_agent_hash: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          last_seen_at?: string
+          menu_site_id: string
+          menu_table_id: string
+          revoked_at?: string | null
+          token_hash: string
+          user_agent_hash: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_seen_at?: string
+          menu_site_id?: string
+          menu_table_id?: string
+          revoked_at?: string | null
+          token_hash?: string
+          user_agent_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "table_visit_sessions_table_fk"
+            columns: ["menu_site_id", "menu_table_id"]
+            isOneToOne: false
+            referencedRelation: "menu_tables"
+            referencedColumns: ["menu_site_id", "id"]
           },
         ]
       }
