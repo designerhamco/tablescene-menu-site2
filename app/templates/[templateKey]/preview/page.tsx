@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
-import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES } from "@/lib/locales";
+import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
@@ -381,6 +381,16 @@ function applyPreviewFontSizeScale(data: MenuPageData, fontSizeScale: string | s
       ...data.menuSite,
       page_settings: nextPageSettings as unknown as MenuPageData["menuSite"]["page_settings"],
     },
+  };
+}
+
+function applyPreviewLocale(data: MenuPageData, lang: string | string[] | undefined): MenuPageData {
+  const rawLocale = Array.isArray(lang) ? lang[0] : lang;
+
+  return {
+    ...data,
+    locale: normalizeLocale(rawLocale),
+    enabledLocales: [...SUPPORTED_LOCALES],
   };
 }
 
@@ -913,33 +923,36 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     notFound();
   }
 
-  const data = applyPreviewFontSizeScale(
-    applyDisplayPreviewSplitImagePosition(
-      applyCafeAMultiPagePreviewFixture(
-        applyRoundFocusFeaturedFixture(
-          applySundayLineCopyQaFixture(
-            applyBrewChapterCoverImageQaFixture(
-              applyCafeDenseContentQaFixture(
-                applyCafeAFooterStressData(
-                  buildPreviewData(templateKey, displayPreviewQaCase),
-                  resolvedSearchParams.footerStress
+  const data = applyPreviewLocale(
+    applyPreviewFontSizeScale(
+      applyDisplayPreviewSplitImagePosition(
+        applyCafeAMultiPagePreviewFixture(
+          applyRoundFocusFeaturedFixture(
+            applySundayLineCopyQaFixture(
+              applyBrewChapterCoverImageQaFixture(
+                applyCafeDenseContentQaFixture(
+                  applyCafeAFooterStressData(
+                    buildPreviewData(templateKey, displayPreviewQaCase),
+                    resolvedSearchParams.footerStress
+                  ),
+                  resolvedSearchParams.contentQa
                 ),
-                resolvedSearchParams.contentQa
+                templateKey,
+                resolvedSearchParams.brewCoverPageQa,
+                resolvedSearchParams.brewCoverImageQa
               ),
-              templateKey,
-              resolvedSearchParams.brewCoverPageQa,
-              resolvedSearchParams.brewCoverImageQa
+              resolvedSearchParams.copyQa,
+              resolvedSearchParams.lang
             ),
-            resolvedSearchParams.copyQa,
-            resolvedSearchParams.lang
+            resolvedSearchParams.featured
           ),
-          resolvedSearchParams.featured
+          resolvedSearchParams.pagePresentation
         ),
-        resolvedSearchParams.pagePresentation
+        displayPreviewSplitImagePosition
       ),
-      displayPreviewSplitImagePosition
+      resolvedSearchParams.fontSizeScale
     ),
-    resolvedSearchParams.fontSizeScale
+    resolvedSearchParams.lang
   );
 
   return (

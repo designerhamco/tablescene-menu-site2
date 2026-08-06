@@ -4,6 +4,8 @@ import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterF
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { TIME_SALE_TIMEZONE } from "@/lib/menu-time-sales";
 import {
+  MAX_MENU_WIDGET_DESCRIPTION_LENGTH,
+  MAX_MENU_WIDGET_TITLE_LENGTH,
   MAX_MENU_WIDGETS_PER_PAGE,
   normalizeMenuWidgetDraft,
   validateMenuWidgetDraft,
@@ -20,8 +22,8 @@ const IMAGE_TEXT_FIXTURE_URL = "/menu-templates/cafe_design_a/malcha.jpg";
 
 const WIDGET_TYPE_OPTIONS = ["text", "image_text"] as const satisfies readonly MenuWidgetType[];
 const WIDGET_COUNT_OPTIONS = [1, 2, 3] as const;
-const TITLE_LENGTH_OPTIONS = [20, 30, 40, 50] as const;
-const BODY_LENGTH_OPTIONS = [80, 120, 160, 200] as const;
+const TITLE_LENGTH_OPTIONS = [10, 20, MAX_MENU_WIDGET_TITLE_LENGTH] as const;
+const BODY_LENGTH_OPTIONS = [40, 80, MAX_MENU_WIDGET_DESCRIPTION_LENGTH] as const;
 const ALIGN_OPTIONS = ["left", "center", "right"] as const satisfies readonly MenuWidgetTextAlign[];
 const LAYOUT_OPTIONS = ["orderedFit", "orderedBalancedFit"] as const satisfies readonly PcTabletLayoutMode[];
 const CONTENT_OPTIONS = ["both", "titleOnly", "bodyOnly", "longWord"] as const;
@@ -63,8 +65,8 @@ export type CafeAWidgetLengthFixture = {
 const DEFAULT_OPTIONS: CafeAWidgetLengthFixtureOptions = {
   type: "text",
   count: 1,
-  titleLength: 40,
-  bodyLength: 160,
+  titleLength: MAX_MENU_WIDGET_TITLE_LENGTH,
+  bodyLength: MAX_MENU_WIDGET_DESCRIPTION_LENGTH,
   locale: DEFAULT_LOCALE,
   align: "left",
   layout: "orderedBalancedFit",

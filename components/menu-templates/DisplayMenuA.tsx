@@ -1333,6 +1333,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const activeSettings = activePage ? normalizeMenuPageDisplaySettings(activePage.display_settings) : null;
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
+  const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "MenuLink Display";
 
   function selectDisplayPage(pageId: string) {
     setSelectedPageId(pageId);
@@ -1366,6 +1367,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
       <>
         <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
         <main className="flex min-h-screen items-center justify-center bg-white p-8 text-[var(--display-text-color)]" style={typographyStyle}>
+          <h1 className="sr-only">{displayTitle}</h1>
           <div className="aspect-video w-full max-w-6xl">
             <EmptyDisplayPage />
           </div>
@@ -1378,6 +1380,8 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     <>
       <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
       <main className="menu-typography group relative h-screen w-screen overflow-hidden bg-[var(--display-surface-color)] text-[var(--display-text-color)]" style={typographyStyle}>
+        <h1 className="sr-only">{displayTitle}</h1>
+        <h2 className="sr-only">{activePage.title}</h2>
         {showPreviewSelector && (
           <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={selectDisplayPage} />
         )}
