@@ -1355,6 +1355,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const activeBillingTab = getBillingTab(billingTab);
   const requestedSubscriptionId = getSearchParamString(subscriptionId);
   const requestedModal = getSearchParamString(modal);
+  const mypageNotice = getSearchParamString(message) === "staff-invitation-accepted"
+    ? "직원 초대를 수락했습니다. 배정된 메뉴판을 확인해 주세요."
+    : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
   const userResult = await runMypageQuery("auth.getUser", supabase.auth.getUser());
@@ -2725,6 +2728,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
                 </Link>
               </nav>
+
+          {mypageNotice ? (
+            <div className="mb-5 rounded-3xl border border-emerald-100 bg-emerald-50 p-5 text-sm font-bold text-emerald-800">
+              {mypageNotice}
+            </div>
+          ) : null}
 
           {menuSitesError && (
             <div className="mb-5 rounded-3xl border border-red-100 bg-red-50 p-6 text-sm font-medium text-red-700">

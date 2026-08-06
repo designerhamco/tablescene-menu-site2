@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 import { isEmailProviderConfigured, sendNotificationEmail } from "@/lib/email-notifications";
 import type { MenuSiteMemberRole } from "@/lib/menu-site-permissions";
@@ -13,6 +13,7 @@ import {
   STAFF_INVITATION_MAX_MENU_SITES,
   STAFF_INVITATION_MAX_ROWS_PER_HOUR,
 } from "@/lib/staff-invitations";
+import { hashStaffInvitationToken } from "@/lib/staff-invitation-token";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, Json } from "@/lib/supabase/types";
 
@@ -77,10 +78,6 @@ export function isStaffInvitationCreationEnabled() {
   return process.env.STAFF_INVITATIONS_ENABLED === "true"
     && isEmailProviderConfigured()
     && Boolean(getStaffInvitationSiteOrigin());
-}
-
-function hashInvitationToken(token: string) {
-  return createHash("sha256").update(token, "utf8").digest("hex");
 }
 
 function getUniqueMenuSiteIds(values: string[]) {
@@ -281,7 +278,7 @@ export async function createStaffInvitation(
 
   const inviteBatchId = randomUUID();
   const rawToken = randomBytes(32).toString("base64url");
-  const tokenHash = hashInvitationToken(rawToken);
+  const tokenHash = hashStaffInvitationToken(rawToken);
   const expiresAt = new Date(now.getTime() + STAFF_INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
   const invitationRows: InvitationInsert[] = menuSites.map((menuSite) => ({
     invite_batch_id: inviteBatchId,
