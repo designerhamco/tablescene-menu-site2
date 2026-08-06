@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/supabase/types";
+import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import type { SupportedLocale } from "@/lib/locales";
 import type { MenuEditorServiceType } from "@/lib/menu-editor-capabilities";
 import type { PcTabletLayoutMode } from "@/lib/menu-layout-modes";
@@ -170,6 +171,7 @@ export type PublicMenuTemplateProps = {
   previewLayoutMode?: PcTabletLayoutMode;
   initialPreviewPageId?: string | null;
   pagePresentation?: "one" | "multi";
+  orderCallConfig?: OrderCallEntryConfig;
   debugCafeA?: boolean;
   locale: SupportedLocale;
   enabledLocales: SupportedLocale[];

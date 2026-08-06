@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
@@ -41,6 +42,7 @@ type PageProps = {
     localeQa?: string | string[];
     pagePresentation?: string | string[];
     renderMode?: string | string[];
+    orderCallQa?: string | string[];
   }>;
 };
 
@@ -608,6 +610,29 @@ function applyActiveTemplateFeatureQaFixture(
     timeSales,
     nextTimeSaleStartAt: null,
     widgets,
+  };
+}
+
+function getOrderCallQaConfig(
+  value: string | string[] | undefined,
+  storeName: string,
+): OrderCallEntryConfig | undefined {
+  if (process.env.NODE_ENV === "production") return undefined;
+
+  const qaCase = Array.isArray(value) ? value[0] : value;
+  if (!qaCase || !["active", "call", "order", "no-session"].includes(qaCase)) return undefined;
+
+  const hasValidTableSession = qaCase !== "no-session";
+  return {
+    mode: "preview",
+    orderEnabled: qaCase === "active" || qaCase === "order" || qaCase === "no-session",
+    callEnabled: qaCase === "active" || qaCase === "call" || qaCase === "no-session",
+    hasValidTableSession,
+    orderingOpen: true,
+    languageSlotEnabled: true,
+    storeName,
+    tableLabel: hasValidTableSession ? "TABLE 3" : undefined,
+    cartCount: qaCase === "active" || qaCase === "order" ? 2 : 0,
   };
 }
 
@@ -1181,6 +1206,10 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const renderMode = process.env.NODE_ENV !== "production" && requestedRenderMode === "public"
     ? "public"
     : "preview";
+  const orderCallConfig = getOrderCallQaConfig(
+    resolvedSearchParams.orderCallQa,
+    data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
+  );
 
   return (
     <MenuPageRenderer
@@ -1188,6 +1217,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       previewLayoutMode={previewLayoutMode}
       initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
       pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}
+      orderCallConfig={orderCallConfig}
       {...data}
     />
   );

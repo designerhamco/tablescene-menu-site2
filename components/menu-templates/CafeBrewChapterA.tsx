@@ -673,7 +673,7 @@ export default function CafeBrewChapterA(data: PublicMenuTemplateProps) {
       <>
         <KoreanFontAssets assets={typographyFontAssets} />
         <main className="menu-typography cafe-a-typography brew-chapter-template" style={typographyStyle} data-brew-chapter-template="">
-          <div className="fixed right-4 top-4 z-50">
+          <div className="fixed right-4 top-4 z-50" data-template-language-control="">
             <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact />
           </div>
           <section className="brew-chapter-unit brew-chapter-menu-unit" data-brew-unit="empty">
@@ -688,7 +688,7 @@ export default function CafeBrewChapterA(data: PublicMenuTemplateProps) {
     <>
       <KoreanFontAssets assets={typographyFontAssets} />
       <main className="menu-typography cafe-a-typography brew-chapter-template" style={typographyStyle} data-brew-chapter-template="">
-        <div className="fixed right-4 top-4 z-50">
+        <div className="fixed right-4 top-4 z-50" data-template-language-control="">
           <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact />
         </div>
         {activeUnit?.type === "cover" ? <CoverUnit data={data} gestureHandlers={gestureHandlers} /> : null}

@@ -4793,7 +4793,7 @@ function CafeLanguageHoverControl({
   if (visibleLocaleCount <= 1) return null;
 
   return (
-    <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`}>
+    <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`} data-template-language-control="">
       <div>
         <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact triggerVariant="cafe" />
       </div>
