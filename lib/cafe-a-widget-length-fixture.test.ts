@@ -26,24 +26,24 @@ test("buildCafeAWidgetLengthFixture creates exact title/body lengths", () => {
   const fixture = build({
     type: "text",
     count: 3,
-    titleLength: 40,
-    bodyLength: 160,
+    titleLength: 30,
+    bodyLength: 120,
     locale: "ko",
     content: "both",
   });
 
   assert.equal(fixture.widgets.length, 3);
   fixture.widgets.forEach((widget) => {
-    assert.equal(widget.titleUtf16Length, 40);
-    assert.equal(widget.bodyUtf16Length, 160);
-    assert.equal(widget.titleCodepointLength, 40);
-    assert.equal(widget.bodyCodepointLength, 160);
+    assert.equal(widget.titleUtf16Length, 30);
+    assert.equal(widget.bodyUtf16Length, 120);
+    assert.equal(widget.titleCodepointLength, 30);
+    assert.equal(widget.bodyCodepointLength, 120);
   });
 });
 
 test("buildCafeAWidgetLengthFixture supports allowed length matrix values", () => {
-  ([20, 30, 40, 50] as const).forEach((titleLength) => {
-    ([80, 120, 160, 200] as const).forEach((bodyLength) => {
+  ([10, 20, 30] as const).forEach((titleLength) => {
+    ([40, 80, 120] as const).forEach((bodyLength) => {
       const fixture = build({ titleLength, bodyLength });
       assert.equal(fixture.widgets[0]?.titleUtf16Length, titleLength);
       assert.equal(fixture.widgets[0]?.bodyUtf16Length, bodyLength);
@@ -78,8 +78,8 @@ test("parseCafeAWidgetLengthFixtureOptions falls back for invalid query values",
 
   assert.equal(options.type, "text");
   assert.equal(options.count, 1);
-  assert.equal(options.titleLength, 40);
-  assert.equal(options.bodyLength, 160);
+  assert.equal(options.titleLength, 30);
+  assert.equal(options.bodyLength, 120);
   assert.equal(options.locale, "ko");
   assert.equal(options.align, "left");
   assert.equal(options.layout, "orderedBalancedFit");
@@ -90,15 +90,15 @@ test("buildCafeAWidgetLengthFixture creates exact longWord lengths", () => {
   const fixture = build({
     type: "text",
     count: 1,
-    titleLength: 50,
-    bodyLength: 200,
+    titleLength: 30,
+    bodyLength: 120,
     locale: "ja",
     content: "longWord",
   });
 
   const widget = fixture.data.widgets?.[0];
-  assert.equal(widget?.title?.length, 50);
-  assert.equal(widget?.description?.length, 200);
+  assert.equal(widget?.title?.length, 30);
+  assert.equal(widget?.description?.length, 120);
   assert.equal(widget?.title?.includes(" "), false);
   assert.equal(widget?.description?.includes(" "), false);
 });

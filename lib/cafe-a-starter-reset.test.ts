@@ -47,13 +47,13 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   const pageId = snapshot.pages[0]?.id;
   assert.ok(pageId);
   const blocks = snapshot.mixedContentOrder[pageId] ?? [];
-  assert.equal(blocks.length, 7);
+  assert.equal(blocks.length, 5);
   assert.equal(blocks.length, snapshot.categories.length);
   assert.equal(blocks.every((block) => block.blockType === "category"), true);
   assert.deepEqual(blocks.map((block) => block.sortOrder), blocks.map((_, index) => index));
   assert.deepEqual(
     blocks.map((block) => snapshot.categories.find((category) => category.id === block.id)?.presetKey),
-    ["signature-coffee", "classic-coffee", "non-coffee", "tea", "ade", "bakery", "dessert"],
+    ["signature-coffee", "classic-coffee", "non-coffee", "ade", "bakery"],
   );
 
   assert.equal(snapshot.featuredItemId, snapshot.referenceMap.item["jeju-matcha-cream-latte"]);

@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `c8aba00` (`PR #11` 병합)
+기준 커밋: `6aa1dcb` (`PR #12` 병합)
 
 ## 완료된 주요 기능
 
@@ -62,10 +62,16 @@
   - 기존 인증·권한 route와 `MenuPageRenderer`를 그대로 재사용
   - PC 1440×900, 태블릿 820×1180, 모바일 390×844 실제 viewport 제공
   - 별도 scale 엔진 없이 동일 출처 iframe의 반응형 viewport와 실제 크기 새 창 제공
+- 활성 템플릿 정책과 1차 renderer QA:
+  - Basic 6개와 Display 1개를 출시 대상으로 확정
+  - `hidden`은 임시 판매 노출 상태로 유지하면서 QA에는 포함
+  - 390×844·1440×900 renderer, 이미지, overflow, 콘솔 오류와 Display 페이지 이동을 점검
+  - 상세 기록은 `docs/active-template-qa.md`
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `6aa1dcb` — PR #12 병합: 메뉴판 미리보기 기기 프레임
 - `c8aba00` — PR #11 병합: 직원 write audit
 - `17f0509` — PR #10 병합: 직원용 마이페이지 상세 경험
 - `07f43ba` — PR #8 병합: 직원 초대 재전송·취소
