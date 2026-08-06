@@ -203,6 +203,8 @@ alter table public.table_visit_sessions force row level security;
 -- menu-site permission and lifecycle checks before using the service role.
 revoke all on table public.menu_tables from public, anon, authenticated;
 revoke all on table public.table_visit_sessions from public, anon, authenticated;
+revoke all on table public.menu_tables from service_role;
+revoke all on table public.table_visit_sessions from service_role;
 
 grant select, insert, update on table public.menu_tables to service_role;
 grant select, insert, update on table public.table_visit_sessions to service_role;

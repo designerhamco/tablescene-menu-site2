@@ -6,6 +6,8 @@ Migration:
 
 `supabase/migrations/20260806105623_add_table_qr_session_foundation.sql`
 
+Status: applied once to `tablescene-prod` on 2026-08-06. Do not run again.
+
 ## 1. Safety Boundary
 
 This migration creates the empty `menu_tables` and `table_visit_sessions` foundations. It does not create customer orders or calls, change entitlements, issue QR codes, create visit sessions, or modify existing customer rows.
@@ -123,6 +125,18 @@ Review the diff. It must only add the two new tables and related relationships. 
 
 Commit the generated type update in a separate `agent/*` PR. Runtime table management and session issuance remain locked until that PR is merged.
 
-## 6. Recovery Boundary
+## 6. Production Application Record
+
+Applied once to Supabase project `tablescene-prod` (`kfbekbapwsyeanobyjsv`) on 2026-08-06 after explicit human approval.
+
+- The read-only precheck found `menu_sites`, `set_updated_at()`, the `private` schema, and `pgcrypto`; both new tables were absent.
+- The migration completed in one transaction and returned `Success. No rows returned.`
+- The first grant postcheck exposed Supabase default `service_role` grants for `REFERENCES`, `TRIGGER`, and `TRUNCATE`. They were immediately revoked, then only `SELECT`, `INSERT`, and `UPDATE` were granted again. The migration source now encodes that explicit revoke-before-grant behavior for future environments.
+- The final postcheck confirmed forced RLS on both tables, no `anon` or `authenticated` grants, only `INSERT`, `SELECT`, and `UPDATE` for `service_role`, zero rows in both tables, and all three `menu_tables` triggers.
+- Generated Production types were refreshed only after the final postcheck succeeded.
+
+Do not reapply this migration to Production.
+
+## 7. Recovery Boundary
 
 Do not automatically drop either table after application. If the migration was applied to the wrong project or the postcheck fails, stop and request a separate recovery review. Any rollback must first confirm both tables are empty and that no runtime deployment has started using them.

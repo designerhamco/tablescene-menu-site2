@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `e3e021d` (`PR #19` 병합)
+기준 커밋: `1f20762` (`PR #20` 병합)
 
 ## 완료된 주요 기능
 
@@ -82,12 +82,13 @@
   - 실제 table session 전에는 locked, no-session에서는 Call·cart fail-closed
 - 테이블 QR·방문 세션 기반 준비:
   - hash-only table/session token, 12시간 세션, 메뉴판당 비보관 테이블 100개 정책 확정
-  - server-only RLS 테이블과 constraint·session revoke migration 초안
-  - Production 수동 적용 전에는 runtime 발급·관리 동선을 연결하지 않음
+  - server-only 강제 RLS 테이블과 constraint·session revoke migration 적용 완료
+  - Production postcheck와 generated Supabase types 갱신 완료
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `1f20762` — PR #20 병합: 테이블 QR·방문 세션 DB 기반
 - `e3e021d` — PR #19 병합: 모바일 Order/Call 공통 진입 셸
 - `e1af601` — PR #18 병합: 출시 템플릿 preview/public 격리 QA
 - `41d8964` — PR #17 병합: 출시 템플릿 기능 stress QA
@@ -115,6 +116,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260806105623_add_table_qr_session_foundation.sql` — 2026-08-06 `tablescene-prod` SQL Editor에서 1회 적용 및 최소권한 사후 보정 완료. 다시 실행 금지.
 - `20260805144618_add_menu_site_staff_access_foundation.sql` — 2026-08-06 SQL Editor에서 1회 적용 완료. 다시 실행 금지.
 - `20260805103153_add_payment_provisioning_idempotency.sql` — 2026-08-05 SQL Editor 적용 완료.
 - `20260729000508_add_menu_promotion_translations.sql` — 2026-07-29 SQL Editor 적용 완료.
@@ -168,4 +170,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 14. 모든 직원 write 진입점은 공통 audit gate로 연결했다.
 15. PC·태블릿·모바일 미리보기는 동일 renderer와 실제 iframe viewport를 재사용한다.
 16. 활성 템플릿 QA와 모바일 Order/Call 공통 헤더 셸은 완료했다.
-17. 테이블 QR·방문 세션 정책은 확정했고 migration 초안을 준비했다. 다음 단계는 사람의 PR 병합·Production SQL 1회 적용·typegen 승인이다.
+17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다. 다음 단계는 테이블 관리와 안전한 QR token runtime이다.
