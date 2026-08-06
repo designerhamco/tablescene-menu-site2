@@ -38,7 +38,7 @@ import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
 import type { Json } from "@/lib/supabase/types";
-import type { MenuSiteMemberRole } from "@/lib/menu-site-permissions";
+import { hasMenuSitePermission, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
 import { isRestoreSubscriptionQaEnabled } from "@/lib/restore-subscription-qa";
 
@@ -1405,6 +1405,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   if (isStaffOnlyAccount && activeTab === "payments") {
     redirect("/mypage?tab=menus");
   }
+  if (isStaffOnlyAccount && activeTab === "menus" && activeMenuTab !== "active") {
+    redirect("/mypage?tab=menus&menuTab=active");
+  }
 
   const menuSiteIds = sites
     .map((site) => getSafeString(site.id))
@@ -2380,6 +2383,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const menuCardViewModels = sites.map(buildMenuCardViewModel);
   const staffMenuCardViewModels = staffMenuSites.map((site) => {
     const publicPath = formatPublicMenuPath(site.slug);
+    const canEdit = hasMenuSitePermission(site.memberRole, "menu.edit");
+    const canPublish = hasMenuSitePermission(site.memberRole, "menu.publish");
+    const canUseAi = hasMenuSitePermission(site.memberRole, "ai.use");
+    const permissionSummary = [
+      "미리보기",
+      canEdit ? "메뉴 편집" : null,
+      canPublish ? "공개 관리" : null,
+      canUseAi ? "AI 도우미" : null,
+    ].filter((value): value is string => Boolean(value)).join(" · ");
     return {
       key: `staff-${site.menuSiteId}`,
       siteId: site.menuSiteId,
@@ -2389,8 +2401,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
       statusLabel: getStatusLabel(site.status),
       updatedAt: site.updatedAt,
-      canEdit: site.memberRole === "manager" || site.memberRole === "editor",
+      canEdit,
       canViewPublic: site.status === "published" && Boolean(site.slug),
+      permissionSummary,
     };
   });
   const activeMenuCards = menuCardViewModels.filter((card) => card.section === "active");
@@ -2471,6 +2484,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
+            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800">사장</span>
             {card.badges.map((badge) => (
               <span key={badge.key} className={`rounded-full px-3 py-1 text-xs font-black ${badge.className}`}>
                 {badge.label}
@@ -2552,7 +2566,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           직원 권한으로 참여한 메뉴판입니다. 사장 전용 결제·구독·보관·삭제 기능은 표시되지 않습니다.
         </p>
 
-        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
           <div>
             <dt className="text-xs font-black text-zinc-400">템플릿</dt>
             <dd className="mt-1 font-bold text-zinc-900">{card.templateLabel}</dd>
@@ -2560,6 +2574,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           <div>
             <dt className="text-xs font-black text-zinc-400">최근 업데이트</dt>
             <dd className="mt-1 font-bold text-zinc-900">{formatDate(card.updatedAt)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-black text-zinc-400">사용 가능한 기능</dt>
+            <dd className="mt-1 break-keep font-bold text-zinc-900">{card.permissionSummary}</dd>
           </div>
         </dl>
 
@@ -2707,7 +2725,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <div>
                   <h2 className="text-3xl font-bold tracking-tight">메뉴판 관리</h2>
                   <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                    생성한 메뉴판을 편집하고 공개 상태를 확인할 수 있습니다.
+                    {isStaffOnlyAccount
+                      ? "배정받은 메뉴판과 현재 역할에서 사용할 수 있는 기능을 확인합니다."
+                      : "생성한 메뉴판을 편집하고 공개 상태를 확인할 수 있습니다."}
                   </p>
                 </div>
 
@@ -2719,14 +2739,18 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   이용 중
                   <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCardCount.toLocaleString("ko-KR")}</span>
                 </Link>
-                <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
-                  보관 중
-                  <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{holdingMenuCards.length.toLocaleString("ko-KR")}</span>
-                </Link>
-                <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
-                  삭제됨
-                  <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
-                </Link>
+                {canShowOwnerCommerce ? (
+                  <>
+                    <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
+                      보관 중
+                      <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{holdingMenuCards.length.toLocaleString("ko-KR")}</span>
+                    </Link>
+                    <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
+                      삭제됨
+                      <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
+                    </Link>
+                  </>
+                ) : null}
               </nav>
 
           {mypageNotice ? (

@@ -51,6 +51,9 @@
 - 직원 역할 변경·접근 회수:
   - Owner-only active membership과 role allowlist 기반 조건부 변경
   - role change·revoke audit와 audit 실패 조건부 rollback
+- 직원용 마이페이지 상세 경험:
+  - Owner/직원 관계 배지와 role permission 기반 사용 가능 기능 안내
+  - 직원 전용 계정에서 사장 전용 결제·추가 구매·보관·삭제 동선 제외
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -118,4 +121,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 10. 초대 수락 화면은 HttpOnly intent cookie와 원자적 RPC로 연결했다.
 11. 초대 재전송·취소는 Owner 재검증과 batch 단위 token rotation/revoke로 연결했다.
 12. 직원 역할 변경과 접근 회수는 active membership 조건부 update와 audit로 연결했다.
-13. 다음 구현 범위는 직원용 마이페이지 상세 경험이다.
+13. 직원용 마이페이지 상세 경험은 역할별 기능 안내와 Owner-only 동선 분리로 완료했다.
+14. 다음 구현 범위는 모든 직원 작업의 audit 연결이다.
