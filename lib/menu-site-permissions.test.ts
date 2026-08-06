@@ -121,6 +121,34 @@ test("inactive staff contexts cannot use otherwise granted permissions", () => {
   assert.equal(hasMenuSitePermission(context("manager", false), "menu.read"), false);
 });
 
+test("menu editor actions follow the approved edit, publish, and AI role gates", () => {
+  const expectations: Record<MenuSiteAccessRole, readonly [boolean, boolean, boolean]> = {
+    owner: [true, true, true],
+    manager: [true, true, true],
+    editor: [true, false, true],
+    order_staff: [false, false, false],
+    viewer: [false, false, false],
+  };
+
+  for (const [role, [canEdit, canPublish, canUseAi]] of Object.entries(expectations) as Array<
+    [MenuSiteAccessRole, readonly [boolean, boolean, boolean]]
+  >) {
+    const activeContext = context(role);
+    assert.equal(hasMenuSitePermission(activeContext, "menu.edit"), canEdit, `${role}: menu.edit`);
+    assert.equal(hasMenuSitePermission(activeContext, "menu.publish"), canPublish, `${role}: menu.publish`);
+    assert.equal(hasMenuSitePermission(activeContext, "ai.use"), canUseAi, `${role}: ai.use`);
+  }
+});
+
+test("inactive manager and editor contexts fail closed for every editor write gate", () => {
+  for (const role of ["manager", "editor"] as const) {
+    const inactiveContext = context(role, false);
+    assert.equal(hasMenuSitePermission(inactiveContext, "menu.edit"), false, `${role}: menu.edit`);
+    assert.equal(hasMenuSitePermission(inactiveContext, "menu.publish"), false, `${role}: menu.publish`);
+    assert.equal(hasMenuSitePermission(inactiveContext, "ai.use"), false, `${role}: ai.use`);
+  }
+});
+
 test("active owners and every staff role with menu.read can preview an active menu", () => {
   const accessState = { canOwnerPreview: true, canPreview: true };
 

@@ -6,10 +6,10 @@ import {
   DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB,
 } from "@/lib/display-video-upload-policy";
 import { normalizeMenuPageDisplaySettings } from "@/lib/display-page-settings";
+import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { getDisplayVideoUploadAccess } from "@/lib/server/display-video-upload-access";
-import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_EDIT_MESSAGE } from "@/lib/server/menu-site-access-service";
+import { requireMenuSiteWriteAccess } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -94,7 +94,6 @@ function getStoredUploadPathForPage(page: MenuPageRow) {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
   const formData = await request.formData();
   const file = formData.get("file");
   const menuId = getString(formData.get("menuId"));
@@ -120,19 +119,22 @@ export async function POST(request: Request) {
     return jsonError(`동영상 파일은 최대 ${DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB}MB까지 업로드할 수 있습니다.`, 413);
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonError("로그인이 필요합니다.", 401);
+  let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
+  try {
+    writeAccess = await requireMenuSiteWriteAccess(menuId, "menu.edit");
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError) {
+      return jsonError(error.message, error.status);
+    }
+    return jsonError("메뉴판 권한을 확인하지 못했습니다.", 500);
   }
+
+  const { supabase, accessState } = writeAccess;
 
   const { data: menuSite, error: menuSiteError } = await supabase
     .from("menu_sites")
     .select("id, user_id, slug, template_key")
     .eq("id", menuId)
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (menuSiteError) {
@@ -141,12 +143,6 @@ export async function POST(request: Request) {
 
   if (!menuSite) {
     return jsonError("메뉴판을 찾을 수 없거나 권한이 없습니다.", 404);
-  }
-
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
-
-  if (!accessState?.canUseWriteActions) {
-    return jsonError(MENU_SITE_INACTIVE_EDIT_MESSAGE, 403);
   }
 
   const { data: orderData, error: orderError } = await supabase
@@ -205,17 +201,7 @@ export async function POST(request: Request) {
 
   const path = getVideoPath(menuId, pageId);
   const bytes = await file.arrayBuffer();
-  let adminSupabase: ReturnType<typeof createAdminClient>;
-
-  try {
-    adminSupabase = createAdminClient();
-  } catch (error) {
-    console.error("[menu-videos] Missing Supabase admin client configuration", {
-      message: getErrorMessage(error),
-      bucket: BUCKET,
-    });
-    return jsonError("동영상 저장소 업로드 권한을 확인해주세요.", 500);
-  }
+  const adminSupabase: ReturnType<typeof createAdminClient> = supabase;
 
   const { error: uploadError } = await adminSupabase.storage.from(BUCKET).upload(path, bytes, {
     cacheControl: "31536000",

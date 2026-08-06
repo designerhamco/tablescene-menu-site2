@@ -1,7 +1,8 @@
 import "server-only";
 
-import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_EDIT_MESSAGE } from "@/lib/server/menu-site-access-service";
-import { createClient } from "@/lib/supabase/server";
+import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
+import { requireMenuSiteWriteAccess } from "@/lib/server/menu-site-access-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   createMenuWidgetInsertPayload,
   createMenuWidgetUpdatePayload,
@@ -23,7 +24,7 @@ import {
   type MenuWidgetValidationError,
 } from "@/lib/menu-widgets";
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseServerClient = ReturnType<typeof createAdminClient>;
 
 type MenuPageRow = {
   id: string;
@@ -321,25 +322,28 @@ export async function deleteMenuWidgetForOwner(args: {
 }
 
 async function requireOwnedMenuSiteContext(menuSiteId: string): Promise<MenuWidgetServiceResult<MenuSiteContext>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
-  if (userError) {
-    logDbError("requireOwnedMenuSiteContext.auth", { menuSiteId }, userError);
+  try {
+    writeAccess = await requireMenuSiteWriteAccess(menuSiteId, "menu.edit");
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError) {
+      return serviceError(
+        error.code === "AUTH_REQUIRED" ? "UNAUTHENTICATED" : error.status === 404 ? "MENU_SITE_NOT_FOUND" : "FORBIDDEN",
+        error.message,
+        "menuSiteId",
+      );
+    }
+
+    return databaseError("메뉴판 권한을 확인하지 못했습니다.");
   }
 
-  if (!user) {
-    return serviceError("UNAUTHENTICATED", "로그인이 필요합니다.");
-  }
+  const { supabase, context } = writeAccess;
 
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
     .select("id, user_id, slug")
     .eq("id", menuSiteId)
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (error) {
@@ -351,15 +355,10 @@ async function requireOwnedMenuSiteContext(menuSiteId: string): Promise<MenuWidg
     return serviceError("MENU_SITE_NOT_FOUND", "메뉴판을 찾을 수 없거나 권한이 없습니다.", "menuSiteId");
   }
 
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId, userId: user.id });
-  if (!accessState?.canUseWriteActions) {
-    return serviceError("FORBIDDEN", MENU_SITE_INACTIVE_EDIT_MESSAGE, "menuSiteId");
-  }
-
   return {
     ok: true,
     supabase,
-    userId: user.id,
+    userId: context.actorUserId,
     menuSite,
   };
 }

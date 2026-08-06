@@ -15,14 +15,14 @@ import {
 } from "@/lib/server/menu-widget-service";
 import { saveMenuPageContentOrderForOwner } from "@/lib/server/menu-page-content-order-service";
 import {
-  getMenuSiteAccessStateForMenuSite,
-  MENU_SITE_INACTIVE_EDIT_MESSAGE,
+  requireMenuSiteWriteAccess,
 } from "@/lib/server/menu-site-access-service";
-import { createClient } from "@/lib/supabase/server";
+import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import type { MenuWidget, MenuWidgetDraft, MenuWidgetType } from "@/lib/menu-widgets";
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseServerClient = ReturnType<typeof createAdminClient>;
 
 type MenuWidgetFinalSaveErrorCode =
   | "UNAUTHENTICATED"
@@ -161,7 +161,7 @@ export async function saveParsedMenuWidgetsForFinalDraft(args: {
   const orderResults: Extract<MenuWidgetFinalSaveResult, { ok: true }>["orderResults"] = [];
   for (const pageOrder of planResult.plan.pageOrders) {
     const orderResult = await saveMenuPageContentOrderForOwner({
-      userId: contextResult.userId,
+      userId: contextResult.ownerUserId,
       menuSiteId: args.menuSiteId,
       menuPageId: pageOrder.menuPageId,
       blocks: pageOrder.blocks,
@@ -204,36 +204,35 @@ async function requireMenuWidgetFinalSaveContext(
   | {
       ok: true;
       supabase: SupabaseServerClient;
-      userId: string;
+      ownerUserId: string;
     }
   | {
       ok: false;
       error: MenuWidgetFinalSaveError;
     }
 > {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
-  if (userError) {
-    console.warn("[menu-widget-final-save-service] auth check failed", {
-      menuSiteId,
-      code: userError.code,
-      message: userError.message,
-    });
+  try {
+    writeAccess = await requireMenuSiteWriteAccess(menuSiteId, "menu.edit");
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError) {
+      return serviceError(
+        error.code === "AUTH_REQUIRED" ? "UNAUTHENTICATED" : error.status === 404 ? "MENU_SITE_NOT_FOUND" : "FORBIDDEN",
+        error.message,
+        "menuSiteId",
+      );
+    }
+
+    return serviceError("DATABASE_ERROR", "메뉴판 권한을 확인하지 못했습니다.");
   }
 
-  if (!user) {
-    return serviceError("UNAUTHENTICATED", "로그인이 필요합니다.");
-  }
+  const { supabase } = writeAccess;
 
   const { data: menuSite, error: siteError } = await supabase
     .from("menu_sites")
     .select("id, user_id, template_key")
     .eq("id", menuSiteId)
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (siteError) {
@@ -247,11 +246,6 @@ async function requireMenuWidgetFinalSaveContext(
 
   if (!menuSite) {
     return serviceError("MENU_SITE_NOT_FOUND", "메뉴판을 찾을 수 없거나 권한이 없습니다.", "menuSiteId");
-  }
-
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId, userId: user.id });
-  if (!accessState?.canUseWriteActions) {
-    return serviceError("FORBIDDEN", MENU_SITE_INACTIVE_EDIT_MESSAGE, "menuSiteId");
   }
 
   const capabilities = getTemplateCapabilities(menuSite.template_key);
@@ -272,7 +266,7 @@ async function requireMenuWidgetFinalSaveContext(
   return {
     ok: true,
     supabase,
-    userId: user.id,
+    ownerUserId: menuSite.user_id,
   };
 }
 

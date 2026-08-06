@@ -20,16 +20,16 @@
 - `DONE` `menu.read` 권한 기반 직원 목록 접근, Owner 우선, revoked 제외, 비활성 lifecycle 제외
 - `DONE` 직원의 Owner/Staff 미리보기 접근
 - `BLOCKED` 실제 직원 계정으로 역할 배지·버튼 숨김·읽기 전용 미리보기 E2E 확인 — 직원 초대·수락 기능 완료 후 진행하며, 확인용 Production 직원 데이터는 만들지 않음
-- `TODO` Owner/Manager/Editor 메뉴 편집 action 연결
-- `TODO` 공개·비공개 변경을 Owner/Manager로 제한
+- `DONE` Owner/Manager/Editor 메뉴 편집 action 연결
+- `DONE` 공개·비공개 변경을 Owner/Manager로 제한
 - `TODO` 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증
 - `TODO` 직원 초대 UI와 이메일 전송
 - `TODO` 초대 수락 화면
 - `TODO` 초대 재전송·취소
 - `TODO` 직원 역할 변경과 접근 회수
 - `TODO` 직원용 마이페이지 상세 경험
-- `TODO` 이미지·동영상 Storage 권한
-- `TODO` 위젯·번역·AI 권한 연결
+- `DONE` 이미지·동영상 Storage 권한 — Production Storage policy 변경 없이 권한 확인 후 서버 경계에서만 실행
+- `DONE` 위젯·번역·AI 권한 연결 — AI 사용은 Owner 크레딧, 충전·결제 UI는 Owner-only
 - `TODO` 감사 로그를 모든 직원 작업에 연결
 
 ## 2. 메뉴판 미리보기 기기 프레임
@@ -143,4 +143,4 @@
 
 ## 다음 작업
 
-현재 PR을 완료한 다음 별도 브랜치에서 `Owner/Manager/Editor 메뉴 편집 action 연결`을 진행한다. 공개 상태 변경, 초대 UI, Storage/RLS 변경은 각각 독립 PR로 유지한다.
+현재 PR을 완료한 다음 별도 브랜치에서 `결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증`을 진행한다. 초대 UI와 Production RLS/Storage policy 변경은 독립 PR로 유지한다.

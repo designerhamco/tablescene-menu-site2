@@ -51,6 +51,7 @@ import {
 } from "@/lib/menu-editor-capabilities";
 import { isMenuEditorTabKey, pageSettingKeys, pageSettingLabels } from "@/lib/menu-editor";
 import { getPublicMenuUrl } from "@/lib/menu-url";
+import { hasMenuSitePermission, MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   getTimeSaleBadgeBackgroundColorFromSettings,
   getTimeSaleBadgeTextFromSettings,
@@ -68,7 +69,11 @@ import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeMenuLinkPla
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
 import { getDisplayVideoUploadAccess } from "@/lib/server/display-video-upload-access";
-import { getMenuSiteAccessStateForMenuSite, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
+import {
+  getMenuSiteAccessContext,
+  getMenuSiteAccessStateForMenuSite,
+  type MenuSiteAccessState,
+} from "@/lib/server/menu-site-access-service";
 import { getMenuWidgetsForMenuSite } from "@/lib/server/menu-widget-service";
 import { getEnabledLocales } from "@/lib/locales";
 import {
@@ -81,6 +86,7 @@ import {
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, Json, MenuSiteStatus } from "@/lib/supabase/types";
 import {
   getCoverDescription,
@@ -1094,20 +1100,35 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const { menuId } = await params;
   const { error, message, tab } = await searchParams;
   const requestedActiveTab = isMenuEditorTabKey(tab) ? tab : "basic";
-  const supabase = await createClient();
+  const authSupabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await authSupabase.auth.getUser();
 
   if (!user) {
     redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
   }
 
+  let accessContext: Awaited<ReturnType<typeof getMenuSiteAccessContext>>;
+  try {
+    accessContext = await getMenuSiteAccessContext(menuId);
+  } catch (accessError) {
+    if (accessError instanceof MenuSiteAccessError && accessError.code === "AUTH_REQUIRED") {
+      redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
+    }
+    redirect("/mypage?error=menu-not-found");
+  }
+
+  if (!hasMenuSitePermission(accessContext, "menu.edit")) {
+    redirect("/mypage?error=menu-edit-forbidden");
+  }
+
+  const supabase = createAdminClient();
+
   const primaryMenuSiteResult = await supabase
     .from("menu_sites")
     .select(menuSiteSelect)
     .eq("id", menuId)
-    .eq("user_id", user.id)
     .maybeSingle();
   let menuSite = primaryMenuSiteResult.data as unknown;
   let menuSiteError = primaryMenuSiteResult.error;
@@ -1118,7 +1139,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       .from("menu_sites")
       .select(baseMenuSiteSelect)
       .eq("id", menuId)
-      .eq("user_id", user.id)
       .maybeSingle();
 
     menuSite = fallbackResult.data as unknown;
@@ -1130,13 +1150,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   }
 
   const site = menuSite as MenuSite;
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id, userId: user.id });
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id });
   if (!accessState?.canEdit) {
     return <LockedMenuEditorScreen site={site} accessState={accessState} />;
   }
 
   const isReadOnly = !accessState?.canEdit;
-  const canPreview = Boolean(accessState?.canOwnerPreview);
+  const canPreview = accessContext.isOwner
+    ? Boolean(accessState?.canOwnerPreview)
+    : Boolean(accessState?.canPreview);
   const canViewPublic = Boolean(accessState?.canViewPublic);
   const canDownloadQr = Boolean(accessState?.canDownloadQr);
   const readOnlyMessage =
@@ -1622,6 +1644,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     : [];
   const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
+  const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
   const visibleEditorTabs = configuredEditorTabs.flatMap((item) => {
     if (!isMenuEditorTabEnabled(item.key, editorCapabilities)) {
       return [];
@@ -1636,6 +1659,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     }
 
     if (item.key === "events" && !templateCapabilities.events) {
+      return [];
+    }
+
+    if (item.key === "publish" && !canManagePublish) {
       return [];
     }
 
@@ -1683,6 +1710,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     : isReadOnly
       ? "bg-amber-50 text-amber-700"
       : "bg-zinc-100 text-zinc-600";
+  const staffRoleLabel = accessContext.memberRole === "manager"
+    ? "매니저"
+    : accessContext.memberRole === "editor"
+      ? "편집자"
+      : null;
   const checklist = [
     { label: "매장명 입력", ok: Boolean(site.restaurant_name || site.name) },
     { label: "공개 메뉴판 주소 설정", ok: Boolean(site.slug) },
@@ -1719,6 +1751,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   {headerStatusLabel}
                 </span>
                 <span className="rounded-full bg-zinc-950 px-3 py-1 text-xs font-bold text-white">{templateTypeLabel}</span>
+                {staffRoleLabel ? (
+                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">직원 · {staffRoleLabel}</span>
+                ) : null}
                 <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
                   {templateDisplayName}
                   <HelpTooltip label="템플릿 도움말">결제 시 선택한 템플릿입니다.</HelpTooltip>
@@ -1783,6 +1818,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         </header>
 
         {globalBannerError && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{globalBannerError}</div>}
+        {!accessContext.isOwner && (
+          <div className="mb-5 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-relaxed text-blue-800">
+            직원 권한으로 편집 중입니다. AI는 메뉴판 소유자의 크레딧을 사용하며, 충전과 결제 관리는 소유자만 할 수 있습니다.
+          </div>
+        )}
         {isReadOnly && (
           <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-5">
             <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">{readOnlyMessage}</p>
@@ -2235,7 +2275,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <SchedulePlaceholder />
               ) : (
                 <div className="space-y-5">
-                  {accessState?.canUseAi ? (
+                  {accessState?.canUseAi && accessContext.isOwner ? (
                     <AiCreditRechargePanel
                       menuSiteId={site.id}
                       menuName={site.name}
@@ -2245,6 +2285,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       channelKey={portOneConfig.channelKey ?? undefined}
                       initialBalance={aiCreditBalance}
                     />
+                  ) : accessState?.canUseAi ? (
+                    <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-relaxed text-blue-800">
+                      AI 기능은 소유자의 크레딧을 사용합니다. 크레딧 충전은 소유자에게 요청해주세요.
+                    </div>
                   ) : (
                     <div className="rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
                       현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
@@ -2411,7 +2455,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "localization" && (
               <SectionCard title="다국어" eyebrow="Localization">
-                {accessState?.canUseAi ? (
+                {accessState?.canUseAi && accessContext.isOwner ? (
                   <AiCreditRechargePanel
                     menuSiteId={site.id}
                     menuName={site.name}
@@ -2421,6 +2465,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     channelKey={portOneConfig.channelKey ?? undefined}
                     initialBalance={aiCreditBalance}
                   />
+                ) : accessState?.canUseAi ? (
+                  <div className="mb-5 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-relaxed text-blue-800">
+                    AI 번역은 소유자의 크레딧을 사용합니다. 크레딧 충전은 소유자에게 요청해주세요.
+                  </div>
                 ) : (
                   <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
                     현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.

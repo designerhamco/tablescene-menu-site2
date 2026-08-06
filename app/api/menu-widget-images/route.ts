@@ -16,14 +16,14 @@ import {
   type MenuWidgetImageUploadResult,
 } from "@/lib/menu-widget-image-contract";
 import { isUuid } from "@/lib/menu-widget-save-contract";
-import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_EDIT_MESSAGE } from "@/lib/server/menu-site-access-service";
+import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
+import { requireMenuSiteWriteAccess } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 
 export const runtime = "nodejs";
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseServerClient = ReturnType<typeof createAdminClient>;
 
 type MenuWidgetImageContext = {
   menuSiteId: string;
@@ -32,7 +32,6 @@ type MenuWidgetImageContext = {
 };
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
   const formData = await request.formData();
   const menuSiteId = getString(formData.get("menuSiteId"));
   const menuPageId = getString(formData.get("menuPageId"));
@@ -42,13 +41,13 @@ export async function POST(request: Request) {
   const file = formData.get("file");
 
   const contextResult = await requireMenuWidgetImageContext({
-    supabase,
     menuSiteId,
     menuPageId,
     widgetId,
     widgetType,
   });
   if (!contextResult.ok) return jsonError(contextResult.error);
+  const { supabase } = contextResult;
 
   if (!(file instanceof File)) {
     return jsonError(createMenuWidgetImageError("INVALID_FILE", "업로드할 이미지 파일이 없습니다.", "file"));
@@ -124,7 +123,6 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const supabase = await createClient();
   const body = (await request.json().catch(() => null)) as {
     menuSiteId?: unknown;
     widgetId?: unknown;
@@ -139,13 +137,13 @@ export async function DELETE(request: Request) {
   }
 
   const contextResult = await requireMenuWidgetImageContext({
-    supabase,
     menuSiteId,
     menuPageId: null,
     widgetId,
     widgetType: null,
   });
   if (!contextResult.ok) return jsonError(contextResult.error);
+  const { supabase } = contextResult;
 
   const deleteSafety = await validateUnsavedWidgetImageRemoval({
     supabase,
@@ -174,13 +172,12 @@ export async function DELETE(request: Request) {
 }
 
 async function requireMenuWidgetImageContext(args: {
-  supabase: SupabaseServerClient;
   menuSiteId: string;
   menuPageId: string | null;
   widgetId: string;
   widgetType: string | null;
 }): Promise<
-  | { ok: true; context: MenuWidgetImageContext }
+  | { ok: true; context: MenuWidgetImageContext; supabase: SupabaseServerClient }
   | { ok: false; error: MenuWidgetImageError }
 > {
   if (!args.menuSiteId) {
@@ -195,28 +192,26 @@ async function requireMenuWidgetImageContext(args: {
     return imageFailure("INVALID_WIDGET_TYPE", "이미지형 위젯에서만 이미지를 업로드할 수 있습니다.", "widgetType");
   }
 
-  const {
-    data: { user },
-    error: userError,
-  } = await args.supabase.auth.getUser();
-
-  if (userError) {
-    console.warn("[menu-widget-images] auth check failed", {
-      menuSiteId: args.menuSiteId,
-      code: userError.code,
-      message: userError.message,
-    });
+  let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
+  try {
+    writeAccess = await requireMenuSiteWriteAccess(args.menuSiteId, "menu.edit");
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError) {
+      return imageFailure(
+        error.code === "AUTH_REQUIRED" ? "UNAUTHENTICATED" : "FORBIDDEN",
+        error.message,
+        "menuSiteId",
+      );
+    }
+    return imageFailure("DATABASE_ERROR", "메뉴판 권한을 확인하지 못했습니다.");
   }
 
-  if (!user) {
-    return imageFailure("UNAUTHENTICATED", "로그인이 필요합니다.");
-  }
+  const { supabase } = writeAccess;
 
-  const { data: menuSite, error: menuSiteError } = await args.supabase
+  const { data: menuSite, error: menuSiteError } = await supabase
     .from("menu_sites")
     .select("id, user_id, template_key")
     .eq("id", args.menuSiteId)
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (menuSiteError) {
@@ -232,11 +227,6 @@ async function requireMenuWidgetImageContext(args: {
     return imageFailure("INVALID_MENU_SITE", "메뉴판을 찾을 수 없거나 권한이 없습니다.", "menuSiteId");
   }
 
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: args.menuSiteId, userId: user.id });
-  if (!accessState?.canUseWriteActions) {
-    return imageFailure("FORBIDDEN", MENU_SITE_INACTIVE_EDIT_MESSAGE, "menuSiteId");
-  }
-
   const capabilities = getTemplateCapabilities(menuSite.template_key);
   const supportsWidgetImageUploads =
     capabilities.menuWidgets.enabled &&
@@ -246,7 +236,7 @@ async function requireMenuWidgetImageContext(args: {
   }
 
   if (args.menuPageId) {
-    const { data: page, error: pageError } = await args.supabase
+    const { data: page, error: pageError } = await supabase
       .from("menu_pages")
       .select("id, menu_site_id")
       .eq("id", args.menuPageId)
@@ -267,11 +257,12 @@ async function requireMenuWidgetImageContext(args: {
     }
   }
 
-  const widgetResult = await getExistingWidgetImagePath(args.widgetId, args.menuSiteId);
+  const widgetResult = await getExistingWidgetImagePath(supabase, args.widgetId, args.menuSiteId);
   if (!widgetResult.ok) return widgetResult;
 
   return {
     ok: true,
+    supabase,
     context: {
       menuSiteId: args.menuSiteId,
       widgetId: args.widgetId,
@@ -281,25 +272,13 @@ async function requireMenuWidgetImageContext(args: {
 }
 
 async function getExistingWidgetImagePath(
+  adminSupabase: SupabaseServerClient,
   widgetId: string,
   menuSiteId: string,
 ): Promise<
   | { ok: true; imagePath: string | null }
   | { ok: false; error: MenuWidgetImageError }
 > {
-  let adminSupabase: ReturnType<typeof createAdminClient>;
-
-  try {
-    adminSupabase = createAdminClient();
-  } catch (error) {
-    console.warn("[menu-widget-images] admin client unavailable", {
-      menuSiteId,
-      widgetId,
-      message: error instanceof Error ? error.message : "unknown",
-    });
-    return imageFailure("DATABASE_ERROR", "위젯 정보를 확인하지 못했습니다.");
-  }
-
   const { data: widget, error } = await adminSupabase
     .from("menu_widgets")
     .select("id, menu_site_id, image_path")

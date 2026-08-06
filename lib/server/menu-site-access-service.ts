@@ -543,6 +543,46 @@ export async function requireMenuSitePermission(
   return assertMenuSitePermission(context, permission);
 }
 
+export async function requireMenuSiteWriteAccess(
+  menuSiteId: string,
+  permission: Extract<MenuSitePermission, "menu.edit" | "menu.publish" | "ai.use">,
+) {
+  const context = await requireMenuSitePermission(menuSiteId, permission);
+  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId });
+
+  if (!accessState) {
+    throw new MenuSiteAccessError(
+      "MENU_SITE_NOT_FOUND",
+      "메뉴판을 찾을 수 없거나 접근 권한이 없습니다.",
+      404,
+    );
+  }
+
+  const lifecycleAllowsWrite = permission === "menu.publish"
+    ? accessState.canPublish
+    : permission === "ai.use"
+      ? accessState.canUseAi
+      : accessState.canUseWriteActions && accessState.canEdit;
+
+  if (!lifecycleAllowsWrite) {
+    throw new MenuSiteAccessError(
+      "MENU_SITE_STAFF_ACCESS_INACTIVE",
+      permission === "menu.publish"
+        ? MENU_SITE_INACTIVE_PUBLISH_MESSAGE
+        : permission === "ai.use"
+          ? MENU_SITE_INACTIVE_AI_MESSAGE
+          : MENU_SITE_INACTIVE_EDIT_MESSAGE,
+      403,
+    );
+  }
+
+  return {
+    context,
+    accessState,
+    supabase: createAdminClient(),
+  };
+}
+
 export async function getAccessibleMenuSiteIds() {
   const { supabase, user } = await requireAuthenticatedAccessClient();
 
