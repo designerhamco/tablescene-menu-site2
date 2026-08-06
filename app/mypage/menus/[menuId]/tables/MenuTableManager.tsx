@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { toDataURL } from "qrcode";
+import { useActionState, useState } from "react";
 
 import type { MenuTableListItem } from "@/lib/menu-table-management";
 
@@ -12,7 +13,31 @@ import {
 } from "./actions";
 
 function TokenDelivery({ state }: { state: MenuTableActionState }) {
+  const [downloadStatus, setDownloadStatus] = useState<"idle" | "working" | "error">("idle");
   if (!state.rawToken || !state.qrPath) return null;
+
+  async function downloadQr() {
+    setDownloadStatus("working");
+    try {
+      const tableUrl = new URL(state.qrPath!, window.location.origin).toString();
+      const dataUrl = await toDataURL(tableUrl, {
+        type: "image/png",
+        width: 1024,
+        margin: 2,
+        errorCorrectionLevel: "M",
+        color: { dark: "#18181b", light: "#ffffff" },
+      });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `menulink-table-${state.tableId?.slice(0, 8) ?? "new"}-qr.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setDownloadStatus("idle");
+    } catch {
+      setDownloadStatus("error");
+    }
+  }
 
   return (
     <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-amber-950">
@@ -29,6 +54,21 @@ function TokenDelivery({ state }: { state: MenuTableActionState }) {
         value={state.qrPath}
         className="mt-2 w-full rounded-2xl border border-amber-300 bg-white px-4 py-3 font-mono text-sm font-bold text-zinc-950"
       />
+      <button
+        type="button"
+        onClick={downloadQr}
+        disabled={downloadStatus === "working"}
+        className="mt-3 rounded-full bg-amber-950 px-5 py-3 text-sm font-black text-white transition hover:bg-amber-900 disabled:cursor-wait disabled:opacity-60"
+        data-table-qr-download=""
+      >
+        {downloadStatus === "working" ? "QR 만드는 중" : "테이블 QR PNG 다운로드"}
+      </button>
+      {downloadStatus === "error" ? (
+        <p className="mt-2 text-xs font-black text-rose-700">QR 이미지를 만들지 못했습니다. 이 화면을 닫기 전에 다시 시도해 주세요.</p>
+      ) : null}
+      <p className="mt-2 text-xs font-bold leading-relaxed text-amber-800">
+        QR 이미지는 이 브라우저 안에서만 생성되며 원본 token을 별도 API로 전송하지 않습니다.
+      </p>
       <details className="mt-3 text-xs font-bold text-amber-900">
         <summary className="cursor-pointer">원본 token 확인</summary>
         <p className="mt-2 break-all rounded-2xl bg-white/70 px-3 py-2 font-mono">{state.rawToken}</p>
