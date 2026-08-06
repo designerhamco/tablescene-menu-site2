@@ -25,6 +25,10 @@ import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuPath } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForUser } from "@/lib/server/ai-credits-service";
+import {
+  getAccessibleMenuSiteList,
+  type AccessibleMenuSiteListItem,
+} from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
@@ -34,6 +38,7 @@ import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
 import type { Json } from "@/lib/supabase/types";
+import type { MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
 import { isRestoreSubscriptionQaEnabled } from "@/lib/restore-subscription-qa";
 
@@ -58,6 +63,13 @@ const DAY_MS = 1000 * 60 * 60 * 24;
 type MyPageTab = "menus" | "payments" | "inquiries" | "notifications" | "account";
 type MenuTab = "active" | "holding" | "deleted";
 type BillingTab = "history" | "active" | "holding" | "deleted" | "ai-credits";
+
+const MENU_SITE_MEMBER_ROLE_LABELS: Record<MenuSiteMemberRole, string> = {
+  manager: "매니저",
+  editor: "에디터",
+  order_staff: "주문 직원",
+  viewer: "조회자",
+};
 
 type MenuSite = {
   id: string | null;
@@ -1373,6 +1385,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   );
 
   const sites = (menuSites ?? []) as MenuSite[];
+  const accessibleMenuSitesResult = await runMypageQuery(
+    "accessible_menu_sites",
+    getAccessibleMenuSiteList(),
+  );
+  const accessibleMenuSites = accessibleMenuSitesResult ?? [];
+  const staffMenuSites = accessibleMenuSites
+    .filter((menuSite) => !menuSite.isOwner && menuSite.memberRole) as Array<
+      AccessibleMenuSiteListItem & { isOwner: false; memberRole: MenuSiteMemberRole }
+    >;
+  const staffMenuSitesError = accessibleMenuSitesResult === null
+    ? { message: "직원으로 참여한 메뉴판 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다." }
+    : null;
+  const isStaffOnlyAccount = staffMenuSites.length > 0 && !accessibleMenuSites.some((menuSite) => menuSite.isOwner);
+
+  if (isStaffOnlyAccount && activeTab === "payments") {
+    redirect("/mypage?tab=menus");
+  }
+
   const menuSiteIds = sites
     .map((site) => getSafeString(site.id))
     .filter(Boolean);
@@ -2345,6 +2375,20 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   const menuCardViewModels = sites.map(buildMenuCardViewModel);
+  const staffMenuCardViewModels = staffMenuSites.map((site) => {
+    const publicPath = formatPublicMenuPath(site.slug);
+    return {
+      key: `staff-${site.menuSiteId}`,
+      siteId: site.menuSiteId,
+      title: site.name || "이름 없는 메뉴판",
+      publicPath,
+      templateLabel: site.templateKey ? getTemplateDisplayName(site.templateKey) : "-",
+      roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
+      statusLabel: getStatusLabel(site.status),
+      updatedAt: site.updatedAt,
+      canViewPublic: site.status === "published" && Boolean(site.slug),
+    };
+  });
   const activeMenuCards = menuCardViewModels.filter((card) => card.section === "active");
   const holdingMenuCards = menuCardViewModels.filter((card) => card.section === "holding");
   const deletedMenuCards = menuCardViewModels.filter((card) => card.section === "deleted");
@@ -2353,6 +2397,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     : activeMenuTab === "holding"
       ? holdingMenuCards
       : deletedMenuCards;
+  const activeMenuCardCount = activeMenuCards.length + staffMenuCardViewModels.length;
+  const visibleMenuCardCount = visibleMenuCards.length + (activeMenuTab === "active" ? staffMenuCardViewModels.length : 0);
+  const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
+  const hasAnyMenuCards = totalMenuCardCount > 0;
+  const canShowOwnerCommerce = !isStaffOnlyAccount;
   function renderCreateMenuButton(extraClassName = "") {
     const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
 
@@ -2480,6 +2529,56 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     );
   }
 
+  function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
+    return (
+      <article key={card.key} className="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+          <div className="min-w-0">
+            <h3 className="text-xl font-black tracking-tight">{card.title}</h3>
+            <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-700">직원 참여</span>
+            <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-700">{card.roleLabel}</span>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">{card.statusLabel}</span>
+          </div>
+        </div>
+
+        <p className="mt-4 break-keep text-sm font-bold leading-relaxed text-zinc-700">
+          직원 권한으로 참여한 메뉴판입니다. 사장 전용 결제·구독·보관·삭제 기능은 표시되지 않습니다.
+        </p>
+
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-xs font-black text-zinc-400">템플릿</dt>
+            <dd className="mt-1 font-bold text-zinc-900">{card.templateLabel}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-black text-zinc-400">최근 업데이트</dt>
+            <dd className="mt-1 font-bold text-zinc-900">{formatDate(card.updatedAt)}</dd>
+          </div>
+        </dl>
+
+        {card.canViewPublic ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              href={card.publicPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+            >
+              공개 메뉴판 보기
+            </Link>
+          </div>
+        ) : (
+          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
+            현재 공개되지 않은 메뉴판입니다.
+          </p>
+        )}
+      </article>
+    );
+  }
+
   const identityProviders = getIdentityProviders(user.identities);
   const primaryProvider = getPrimaryProvider(user.app_metadata, identityProviders);
   const displayName = getMetadataString(user.user_metadata, ["display_name", "full_name", "name", "nickname"]);
@@ -2503,7 +2602,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <div>
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">마이페이지</h1>
               <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
-                메뉴판 운영 현황과 고객지원, 결제 관련 정보를 한곳에서 확인합니다.
+                {isStaffOnlyAccount
+                  ? "직원으로 참여한 메뉴판과 고객지원 정보를 한곳에서 확인합니다."
+                  : "메뉴판 운영 현황과 고객지원, 결제 관련 정보를 한곳에서 확인합니다."}
               </p>
             </div>
           </header>
@@ -2513,6 +2614,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
               <h2 className="break-all text-lg font-black tracking-tight">{user.email}</h2>
               <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {user.id}</p>
+              {canShowOwnerCommerce ? (
               <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -2532,6 +2634,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   AI 충전내역 보기
                 </Link>
               </div>
+              ) : null}
               <form action={signOutAction} className="mt-5">
                 <button
                   type="submit"
@@ -2545,12 +2648,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <nav className="rounded-3xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="마이페이지 메뉴">
               <Link href="/mypage?tab=menus" className={getTabLinkClassName(activeTab === "menus")}>
                 <span>내 메뉴판</span>
-                <span className={`text-xs ${activeTab === "menus" ? "text-white/60" : "text-zinc-400"}`}>{sites.length.toLocaleString("ko-KR")}</span>
+                <span className={`text-xs ${activeTab === "menus" ? "text-white/60" : "text-zinc-400"}`}>{totalMenuCardCount.toLocaleString("ko-KR")}</span>
               </Link>
               <div className="mt-2 space-y-1">
+                {canShowOwnerCommerce ? (
                 <Link href="/mypage?tab=payments" className={getTabLinkClassName(activeTab === "payments")}>
                   <span>구독/결제 내역</span>
                 </Link>
+                ) : null}
                 <Link href="/mypage?tab=inquiries" className={getTabLinkClassName(activeTab === "inquiries")}>
                   <span>문의 내역</span>
                 </Link>
@@ -2580,13 +2685,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </p>
                 </div>
 
-                {renderCreateMenuButton()}
+                {canShowOwnerCommerce ? renderCreateMenuButton() : null}
               </div>
 
               <nav className="mb-5 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200" aria-label="내 메뉴판 탭">
                 <Link href="/mypage?tab=menus&menuTab=active" className={getBillingTabClassName(activeMenuTab === "active")}>
                   이용 중
-                  <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCards.length.toLocaleString("ko-KR")}</span>
+                  <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCardCount.toLocaleString("ko-KR")}</span>
                 </Link>
                 <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
                   보관 중
@@ -2610,7 +2715,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             </div>
           )}
 
-          {sites.length > 0 ? (
+          {staffMenuSitesError && (
+            <div className="mb-5 rounded-3xl border border-amber-100 bg-amber-50 p-6 text-sm font-medium text-amber-800">
+              {staffMenuSitesError.message}
+            </div>
+          )}
+
+          {hasAnyMenuCards ? (
             <section className="space-y-3">
               <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
@@ -2626,13 +2737,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </p>
                 </div>
                 <span className="text-xs font-black text-zinc-400">
-                  {visibleMenuCards.length.toLocaleString("ko-KR")}개 · 전체 {sites.length.toLocaleString("ko-KR")}개
+                  {visibleMenuCardCount.toLocaleString("ko-KR")}개 · 전체 {totalMenuCardCount.toLocaleString("ko-KR")}개
                 </span>
               </div>
 
-              {visibleMenuCards.length > 0 ? (
+              {visibleMenuCardCount > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   {visibleMenuCards.map(renderMenuCard)}
+                  {activeMenuTab === "active" ? staffMenuCardViewModels.map(renderStaffMenuCard) : null}
                 </div>
               ) : (
                 <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
@@ -2655,7 +2767,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
                 상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다.
               </p>
-              {renderCreateMenuButton("mt-7")}
+              {canShowOwnerCommerce ? renderCreateMenuButton("mt-7") : null}
             </div>
           )}
             </section>

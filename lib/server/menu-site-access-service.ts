@@ -4,10 +4,13 @@ import {
   assertMenuSitePermission,
   MenuSiteAccessError,
   type MenuSiteAccessContext,
+  type MenuSiteAccessRole,
+  type MenuSiteMemberRole,
   type MenuSitePermission,
 } from "@/lib/menu-site-permissions";
 import {
   resolveAccessibleMenuSiteIdsForActor,
+  resolveAccessibleMenuSiteListAccessForActor,
   resolveMenuSiteAccessContextForActor,
   type MenuSiteLifecycleSnapshot,
   type MenuSiteMembershipCandidate,
@@ -78,6 +81,18 @@ export type MenuSiteAccessState = {
   ctaLabel: string | null;
   lifecycleState: MenuSiteLifecycleState;
   reason: MenuSiteAccessReason;
+};
+
+export type AccessibleMenuSiteListItem = {
+  menuSiteId: string;
+  name: string;
+  slug: string;
+  templateKey: string;
+  status: string;
+  updatedAt: string;
+  accessRole: MenuSiteAccessRole;
+  isOwner: boolean;
+  memberRole: MenuSiteMemberRole | null;
 };
 
 export const MENU_SITE_INACTIVE_EDIT_MESSAGE =
@@ -564,4 +579,75 @@ export async function getAccessibleMenuSiteIds() {
       },
     },
   });
+}
+
+export async function getAccessibleMenuSiteList(): Promise<AccessibleMenuSiteListItem[]> {
+  const { supabase, user } = await requireAuthenticatedAccessClient();
+  const accessEntries = await resolveAccessibleMenuSiteListAccessForActor({
+    actorUserId: user.id,
+    loaders: {
+      async listOwnedMenuSiteIds(actorUserId) {
+        const { data, error } = await supabase
+          .from("menu_sites")
+          .select("id")
+          .eq("user_id", actorUserId);
+
+        if (error) accessCheckFailed("listAccessibleOwnedMenuSiteIds", error);
+        return (data ?? []).map((menuSite) => menuSite.id);
+      },
+      async listActiveMemberships(actorUserId) {
+        const { data, error } = await supabase
+          .from("menu_site_members")
+          .select("id, menu_site_id, user_id, role, status")
+          .eq("user_id", actorUserId)
+          .eq("status", "active");
+
+        if (error) accessCheckFailed("listAccessibleActiveMemberships", error);
+        return (data ?? []).map((membership) => ({
+          id: membership.id,
+          menuSiteId: membership.menu_site_id,
+          userId: membership.user_id,
+          role: membership.role,
+          status: membership.status,
+        } satisfies MenuSiteMembershipCandidate));
+      },
+      async loadLifecycleAccess(targetMenuSiteId) {
+        return toLifecycleSnapshot(await getMenuSiteAccessStateForMenuSite({ menuSiteId: targetMenuSiteId }));
+      },
+    },
+  });
+
+  if (accessEntries.length === 0) {
+    return [];
+  }
+
+  const adminSupabase = createAdminClient();
+  const { data, error } = await adminSupabase
+    .from("menu_sites")
+    .select("id, name, slug, template_key, status, updated_at")
+    .in("id", accessEntries.map((entry) => entry.menuSiteId));
+
+  if (error) accessCheckFailed("loadAccessibleMenuSiteList", error);
+
+  const menuSiteById = new Map((data ?? []).map((menuSite) => [menuSite.id, menuSite]));
+
+  return accessEntries
+    .map((entry): AccessibleMenuSiteListItem | null => {
+      const menuSite = menuSiteById.get(entry.menuSiteId);
+      if (!menuSite) return null;
+
+      return {
+        menuSiteId: menuSite.id,
+        name: menuSite.name,
+        slug: menuSite.slug,
+        templateKey: menuSite.template_key,
+        status: menuSite.status,
+        updatedAt: menuSite.updated_at,
+        accessRole: entry.accessRole,
+        isOwner: entry.isOwner,
+        memberRole: entry.memberRole,
+      };
+    })
+    .filter((entry): entry is AccessibleMenuSiteListItem => entry !== null)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
 }

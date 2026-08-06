@@ -14,6 +14,7 @@ import {
 import {
   isMenuSiteStaffAccessAllowed,
   resolveAccessibleMenuSiteIdsForActor,
+  resolveAccessibleMenuSiteListAccessForActor,
   resolveMenuSiteAccessContextForActor,
   type MenuSiteAccessLoaders,
   type MenuSiteLifecycleSnapshot,
@@ -265,6 +266,52 @@ test("accessible IDs retain inactive owned sites but hide inactive staff sites",
 
   assert.deepEqual(resolved.ownedMenuSiteIds, ["menu-owned-archived"]);
   assert.deepEqual(resolved.memberMenuSiteIds, ["menu-staff-active"]);
+});
+
+test("accessible list entries expose the exact staff role while preserving owner precedence", async () => {
+  const resolved = await resolveAccessibleMenuSiteListAccessForActor({
+    actorUserId: "user-a",
+    loaders: {
+      listOwnedMenuSiteIds: async () => ["menu-owned", "menu-shared"],
+      listActiveMemberships: async () => [
+        activeMembership({ id: "member-shared", menuSiteId: "menu-shared", role: "viewer" }),
+        activeMembership({ id: "member-manager", menuSiteId: "menu-manager", role: "manager" }),
+        activeMembership({ id: "member-editor", menuSiteId: "menu-editor", role: "editor" }),
+      ],
+      loadLifecycleAccess: async (menuSiteId) => ({ ...ACTIVE_LIFECYCLE, menuSiteId }),
+    },
+  });
+
+  assert.deepEqual(resolved, [
+    {
+      menuSiteId: "menu-owned",
+      accessRole: "owner",
+      isOwner: true,
+      memberRole: null,
+      membershipId: null,
+    },
+    {
+      menuSiteId: "menu-shared",
+      accessRole: "owner",
+      isOwner: true,
+      memberRole: null,
+      membershipId: null,
+    },
+    {
+      menuSiteId: "menu-editor",
+      accessRole: "editor",
+      isOwner: false,
+      memberRole: "editor",
+      membershipId: "member-editor",
+    },
+    {
+      menuSiteId: "menu-manager",
+      accessRole: "manager",
+      isOwner: false,
+      memberRole: "manager",
+      membershipId: "member-manager",
+    },
+  ]);
 });
 
 test("invalid membership candidates never reach privileged lifecycle loaders", async () => {
