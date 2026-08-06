@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `342b56a` (`PR #3` 병합)
+기준 커밋: `c8aba00` (`PR #11` 병합)
 
 ## 완료된 주요 기능
 
@@ -58,10 +58,19 @@
   - 공통 write gate에서 staff actor·role·membership·permission·surface 기록
   - audit 실패 시 mutation client를 반환하지 않고 fail closed
   - 상세 범위는 `docs/staff-write-audit.md`에 기록
+- 메뉴판 미리보기 기기 프레임:
+  - 기존 인증·권한 route와 `MenuPageRenderer`를 그대로 재사용
+  - PC 1440×900, 태블릿 820×1180, 모바일 390×844 실제 viewport 제공
+  - 별도 scale 엔진 없이 동일 출처 iframe의 반응형 viewport와 실제 크기 새 창 제공
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `c8aba00` — PR #11 병합: 직원 write audit
+- `17f0509` — PR #10 병합: 직원용 마이페이지 상세 경험
+- `07f43ba` — PR #8 병합: 직원 초대 재전송·취소
+- `868e8b0` — PR #6 병합: 직원 초대 UI와 이메일 전송
+- `fd90673` — PR #5 병합: Owner-only runtime 방어
 - `342b56a` — PR #3 병합: `agent/staff-menu-preview-access` → `tablescene-next`
 - `98fb144` — PR #2 병합: `agent/staff-menu-list-access` → `tablescene-next`
 - `8e9df47` — 직원 메뉴판 목록 접근과 역할 표시
@@ -127,4 +136,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 12. 직원 역할 변경과 접근 회수는 active membership 조건부 update와 audit로 연결했다.
 13. 직원용 마이페이지 상세 경험은 역할별 기능 안내와 Owner-only 동선 분리로 완료했다.
 14. 모든 직원 write 진입점은 공통 audit gate로 연결했다.
-15. 다음 구현 범위는 기존 renderer를 재사용하는 PC·태블릿·모바일 미리보기 프레임이다.
+15. PC·태블릿·모바일 미리보기는 동일 renderer와 실제 iframe viewport를 재사용한다.
+16. 다음 작업은 활성 템플릿 전체 기능 QA이며, 실제 활성 목록 확정과 최종 디자인 육안 판정은 사람 확인이 필요하다.
