@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getPermissionsForAccessRole, type MenuSiteAccessContext } from "./menu-site-permissions";
-import { buildStaffWriteAuditEntry } from "./staff-write-audit";
+import type { MenuSiteAccessContext } from "./menu-site-permissions";
+
+const { buildStaffWriteAuditEntry } = await import(
+  new URL("./staff-write-audit.ts", import.meta.url).href
+) as typeof import("./staff-write-audit");
 
 function context(role: "owner" | "manager" | "editor"): MenuSiteAccessContext {
   return {
@@ -12,7 +15,7 @@ function context(role: "owner" | "manager" | "editor"): MenuSiteAccessContext {
     isOwner: role === "owner",
     memberRole: role === "owner" ? null : role,
     membershipId: role === "owner" ? null : `${role}-membership`,
-    permissions: getPermissionsForAccessRole(role),
+    permissions: new Set(role === "manager" ? ["menu.edit", "table.manage"] : role === "editor" ? ["menu.edit", "ai.use"] : []),
     menuSiteStatus: "published",
     lifecycleState: "active",
     staffAccessAllowed: true,
@@ -35,6 +38,22 @@ test("staff write audit attributes actor, role, permission, surface, and members
       permission: "ai.use",
       surface: "menu_editor_action",
       membership_id: "editor-membership",
+    },
+  });
+});
+
+test("manager table writes use the shared fail-closed audit surface", () => {
+  assert.deepEqual(buildStaffWriteAuditEntry(context("manager"), "table.manage", "menu_table_management"), {
+    menu_site_id: "site-a",
+    actor_user_id: "manager-user",
+    actor_role: "manager",
+    action: "staff.write_authorized",
+    target_type: "menu_site",
+    target_id: "site-a",
+    metadata: {
+      permission: "table.manage",
+      surface: "menu_table_management",
+      membership_id: "manager-membership",
     },
   });
 });

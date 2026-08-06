@@ -71,12 +71,13 @@
 - `DONE` 제품 정책 확정 — hash-only token, 최초·회전 시 1회 QR 전달, 12시간 세션, 메뉴판당 비보관 테이블 100개
 - `DONE` DB 기반 migration 초안 — server-only RLS, 테이블 수·세션 만료 constraint, token 회전·비활성 시 세션 revoke
 - `DONE` migration 수동 적용과 generated Supabase types 갱신 — 2026-08-06 `tablescene-prod` 1회 적용, `docs/runbooks/table-qr-session-foundation-migration.md`
-- `TODO` 테이블 관리
+- `DONE` 테이블 관리 — Owner/Manager create·update·disable·token rotate·archive, default-off runtime gate
 - `TODO` 일반 메뉴 QR과 테이블 주문 QR 분리
-- `TODO` 안전한 QR token
+- `DONE` 안전한 QR token — 생성·회전 시 raw token 1회 전달, DB와 목록 DTO에는 SHA-256 hash만 유지
 - `TODO` 방문 세션과 만료
 - `TODO` 세션 재사용·탈취 방지
 - `TODO` 테이블 QR 다운로드
+- `NEEDS_HUMAN` 실제 Order/Call 제품 key·번들 정책과 Production `TABLE_MANAGEMENT_ENABLED` 활성화
 
 ## 6. 모바일 장바구니와 후불 주문
 
@@ -146,4 +147,4 @@
 
 ## 다음 작업
 
-generated Supabase types 갱신 PR을 감사·병합한 뒤, 테이블 관리와 안전한 QR token 발급을 하나의 저위험 runtime 마일스톤으로 진행한다. 일반 메뉴 QR과 테이블 주문 QR은 분리하고, 방문 세션은 서버 검증 전까지 fail closed를 유지한다.
+테이블 관리와 hash-only token 발급은 default-off runtime으로 완료했다. 다음 저위험 마일스톤은 일반 메뉴 QR과 분리된 공개 table QR 진입, HttpOnly 방문 세션 발급·만료·server validation이다. 실제 제품 key·번들 정책과 Production feature gate는 사람이 확정하기 전까지 활성화하지 않는다.

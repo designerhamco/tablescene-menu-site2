@@ -37,6 +37,8 @@ import { formatNotificationBadgeCount, NOTIFICATION_VISIBLE_CHANNELS } from "@/l
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
+import { isTemplateSupportedForService } from "@/lib/template-types";
+import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
 import type { Json } from "@/lib/supabase/types";
 import { hasMenuSitePermission, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
@@ -1350,14 +1352,18 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const { tab, menuTab, billingTab, error, message, inquiryPage, subscriptionId, modal } = await searchParams;
   const yearlyRefundConfirmEnabled = isYearlyRefundConfirmQaEnabled();
   const restoreSubscriptionQaEnabled = isRestoreSubscriptionQaEnabled();
+  const tableManagementEnabled = isTableManagementRuntimeEnabled();
   const activeTab = getActiveTab(tab);
   const activeMenuTab = getMenuTab(menuTab);
   const activeBillingTab = getBillingTab(billingTab);
   const requestedSubscriptionId = getSearchParamString(subscriptionId);
   const requestedModal = getSearchParamString(modal);
-  const mypageNotice = getSearchParamString(message) === "staff-invitation-accepted"
+  const messageCode = getSearchParamString(message);
+  const mypageNotice = messageCode === "staff-invitation-accepted"
     ? "직원 초대를 수락했습니다. 배정된 메뉴판을 확인해 주세요."
-    : null;
+    : messageCode === "table-management-locked"
+      ? "테이블 관리는 상품 활성화 정책이 확정될 때까지 안전하게 잠겨 있습니다."
+      : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
   const userResult = await runMypageQuery("auth.getUser", supabase.auth.getUser());
@@ -2353,6 +2359,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       isPersonalTrial,
       actions: {
         canEdit: canUseMenuActions,
+        canManageTables:
+          tableManagementEnabled
+          && planType === "business_basic"
+          && isTemplateSupportedForService(site.template_key, "basic")
+          && canUseMenuActions,
         canOwnerPreview,
         canViewPublic: canOpenPublicPage,
         canDownloadQr: canOpenPublicPage && Boolean(qrDownloadUrl),
@@ -2386,11 +2397,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const canEdit = hasMenuSitePermission(site.memberRole, "menu.edit");
     const canPublish = hasMenuSitePermission(site.memberRole, "menu.publish");
     const canUseAi = hasMenuSitePermission(site.memberRole, "ai.use");
+    const canManageTables = tableManagementEnabled
+      && isTemplateSupportedForService(site.templateKey, "basic")
+      && hasMenuSitePermission(site.memberRole, "table.manage");
     const permissionSummary = [
       "미리보기",
       canEdit ? "메뉴 편집" : null,
       canPublish ? "공개 관리" : null,
       canUseAi ? "AI 도우미" : null,
+      canManageTables ? "테이블 관리" : null,
     ].filter((value): value is string => Boolean(value)).join(" · ");
     return {
       key: `staff-${site.menuSiteId}`,
@@ -2402,6 +2417,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       statusLabel: getStatusLabel(site.status),
       updatedAt: site.updatedAt,
       canEdit,
+      canManageTables,
       canViewPublic: site.status === "published" && Boolean(site.slug),
       permissionSummary,
     };
@@ -2522,6 +2538,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               primary: true,
             })}
             {renderActionButton({
+              label: "테이블 관리",
+              href: card.siteId ? `/mypage/menus/${card.siteId}/tables` : null,
+              enabled: card.actions.canManageTables,
+              disabledReason: card.actions.editDisabledReason,
+            })}
+            {renderActionButton({
               label: "미리보기",
               href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
               enabled: card.actions.canOwnerPreview,
@@ -2588,6 +2610,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
             >
               메뉴 편집
+            </Link>
+          ) : null}
+          {card.canManageTables ? (
+            <Link
+              href={`/mypage/menus/${card.siteId}/tables`}
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-800 transition-colors hover:bg-emerald-100"
+            >
+              테이블 관리
             </Link>
           ) : null}
           <Link
