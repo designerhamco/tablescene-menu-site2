@@ -1,5 +1,7 @@
 import "server-only";
 
+import { isOwnerRuntimeActor } from "@/lib/owner-runtime-access";
+
 import { getSubscriptionProduct, SUBSCRIPTION_PRODUCTS, type SubscriptionProduct, type SubscriptionProductKey } from "@/lib/billing-products";
 import { formatKrw } from "@/lib/payments";
 import { grantAiCreditsForSubscriptionIncludedGrant } from "@/lib/server/ai-credits-service";
@@ -260,7 +262,7 @@ export async function getRestorePreflightSummary({
   }
 
   const menuSite = menuSiteData as MenuSiteRestoreRow | null;
-  if (!menuSite) {
+  if (!isOwnerRuntimeActor(userId, menuSite)) {
     return result({
       canRestore: false,
       reasonCode: "MENU_SITE_NOT_FOUND",
@@ -446,7 +448,7 @@ export async function validateRestorableMenuSiteForPayment({
   }
 
   const menuSite = menuSiteResult.data as MenuSiteRestoreRow | null;
-  if (!menuSite) {
+  if (!isOwnerRuntimeActor(userId, menuSite)) {
     throw new MenuSiteRestorePreflightError("MENU_SITE_NOT_FOUND", "복구할 메뉴판을 찾을 수 없습니다.", 404);
   }
 

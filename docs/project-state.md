@@ -34,6 +34,10 @@
   - 위젯·번역·AI·이미지·동영상을 정확한 menu-site 권한 경계 뒤에서 서버 실행
   - 직원 AI는 Owner 크레딧을 사용하고 충전·결제 UI는 Owner-only
   - 서비스 키는 서버 밖으로 노출하지 않고, 모든 자원 ID와 Storage 경로를 해당 menu-site로 제한
+- Owner-only runtime 방어:
+  - 구독·환불·복구 자원은 현재 actor와 저장된 `user_id`가 일치할 때만 처리
+  - 결제·추가 구매·계정 삭제는 현재 사용자 범위로만 생성·조회·변경
+  - 상세 검토 결과는 `docs/owner-only-runtime-audit.md`에 기록
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -96,4 +100,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 5. 직원 읽기 전용 미리보기 접근은 `agent/staff-menu-preview-access`에서 구현·검증했다.
 6. Owner/Manager/Editor 메뉴 편집과 공개·위젯·번역·AI·미디어 권한 연결은 서버 권한 경계로 구현했다.
 7. 실제 직원 계정 E2E 확인은 직원 초대·수락 기능이 완성된 뒤 진행한다. 화면 확인만을 위한 Production 직원 데이터는 만들지 않는다.
-8. 다음 구현 범위는 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증이다.
+8. Owner-only runtime 검증은 `docs/owner-only-runtime-audit.md`에 완료 기록했다.
+9. 다음 구현 범위는 직원 초대 UI와 이메일 전송이며, 실제 발송과 Production SMTP/Auth 설정은 사람 승인 전에 실행하지 않는다.
