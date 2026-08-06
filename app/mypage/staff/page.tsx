@@ -4,11 +4,20 @@ import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { isStaffInvitationCreationEnabled } from "@/lib/server/staff-invitation-service";
-import { isStaffInvitationRole, STAFF_INVITATION_ROLE_LABELS } from "@/lib/staff-invitations";
+import {
+  isStaffInvitationRole,
+  STAFF_INVITATION_ROLE_LABELS,
+  STAFF_INVITATION_ROLES,
+} from "@/lib/staff-invitations";
 import { createClient } from "@/lib/supabase/server";
 
 import StaffInvitationForm from "./StaffInvitationForm";
-import { cancelStaffInvitationAction, resendStaffInvitationAction } from "./actions";
+import {
+  cancelStaffInvitationAction,
+  resendStaffInvitationAction,
+  revokeStaffMembershipAction,
+  updateStaffMembershipRoleAction,
+} from "./actions";
 
 export const metadata: Metadata = {
   title: "직원 관리 | 메뉴링크",
@@ -36,9 +45,13 @@ function getResultNotice(value: string | string[] | undefined) {
   const result = Array.isArray(value) ? value[0] : value;
   if (result === "resent") return { tone: "success", message: "초대 링크를 새로 만들어 이메일을 다시 보냈습니다." } as const;
   if (result === "cancelled") return { tone: "success", message: "대기 중인 초대를 취소했습니다." } as const;
+  if (result === "role-updated") return { tone: "success", message: "직원 역할을 변경했습니다." } as const;
+  if (result === "access-revoked") return { tone: "success", message: "직원의 메뉴판 접근을 회수했습니다." } as const;
   if (result === "delivery-disabled") return { tone: "warning", message: "실제 이메일 환경 검증 전에는 재전송할 수 없습니다." } as const;
   if (result === "rate-limited") return { tone: "error", message: "초대 요청이 너무 많습니다. 1시간 뒤 다시 시도해 주세요." } as const;
   if (result === "invitation-changed") return { tone: "error", message: "초대 상태가 변경되었습니다. 목록을 새로 확인해 주세요." } as const;
+  if (result === "member-changed") return { tone: "error", message: "직원 상태가 변경되었습니다. 목록을 새로 확인해 주세요." } as const;
+  if (result === "invalid-role") return { tone: "error", message: "올바른 직원 역할을 선택해 주세요." } as const;
   if (result === "menu-unavailable") return { tone: "error", message: "보관된 메뉴판의 초대는 다시 보낼 수 없습니다." } as const;
   if (result === "access-denied") return { tone: "error", message: "이 초대를 관리할 사장 권한이 없습니다." } as const;
   if (result === "auth-required") return { tone: "error", message: "로그인 정보를 다시 확인해 주세요." } as const;
@@ -75,7 +88,31 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
       .order("created_at", { ascending: false })
     : { data: [], error: null };
   const pendingInvitations = invitationResult.data ?? [];
+  const membershipResult = menuSiteIds.length > 0
+    ? await supabase
+      .from("menu_site_members")
+      .select("id, menu_site_id, user_id, role, accepted_at, updated_at")
+      .in("menu_site_id", menuSiteIds)
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+    : { data: [], error: null };
+  const acceptedInvitationResult = menuSiteIds.length > 0
+    ? await supabase
+      .from("menu_site_invitations")
+      .select("menu_site_id, accepted_by, email_normalized, accepted_at")
+      .in("menu_site_id", menuSiteIds)
+      .eq("status", "accepted")
+      .not("accepted_by", "is", null)
+      .order("accepted_at", { ascending: false })
+    : { data: [], error: null };
+  const activeMemberships = membershipResult.data ?? [];
   const menuSiteNameById = new Map(menuSites.map((menuSite) => [menuSite.id, menuSite.name]));
+  const memberEmailBySiteAndUser = new Map<string, string>();
+  for (const invitation of acceptedInvitationResult.data ?? []) {
+    if (!invitation.accepted_by) continue;
+    const key = `${invitation.menu_site_id}:${invitation.accepted_by}`;
+    if (!memberEmailBySiteAndUser.has(key)) memberEmailBySiteAndUser.set(key, invitation.email_normalized);
+  }
   const pendingInvitationBatches = [...pendingInvitations.reduce((batches, invitation) => {
     const current = batches.get(invitation.invite_batch_id) ?? {
       inviteBatchId: invitation.invite_batch_id,
@@ -138,6 +175,54 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
             slug: menuSite.slug,
           }))}
         />
+
+        <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+          <div>
+            <h2 className="text-xl font-black tracking-tight">활동 중인 직원</h2>
+            <p className="mt-2 text-sm font-medium text-zinc-500">메뉴판별 역할을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
+          </div>
+
+          {membershipResult.error || acceptedInvitationResult.error ? (
+            <p className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+              직원 목록을 불러오지 못했습니다.
+            </p>
+          ) : activeMemberships.length === 0 ? (
+            <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-sm font-bold text-zinc-600">활동 중인 직원이 없습니다.</p>
+          ) : (
+            <div className="mt-5 divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200">
+              {activeMemberships.map((membership) => {
+                const email = memberEmailBySiteAndUser.get(`${membership.menu_site_id}:${membership.user_id}`);
+                return (
+                  <div key={membership.id} className="grid gap-4 px-4 py-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
+                      <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
+                        {menuSiteNameById.get(membership.menu_site_id) ?? "메뉴판"}
+                      </p>
+                    </div>
+                    <form action={updateStaffMembershipRoleAction} className="flex gap-2">
+                      <input type="hidden" name="membershipId" value={membership.id} />
+                      <select name="role" defaultValue={membership.role} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-700">
+                        {STAFF_INVITATION_ROLES.map((role) => (
+                          <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
+                        ))}
+                      </select>
+                      <button type="submit" className="rounded-full border border-zinc-200 px-3 py-2 text-xs font-black text-zinc-700 hover:bg-zinc-100">
+                        변경
+                      </button>
+                    </form>
+                    <form action={revokeStaffMembershipAction} className="lg:text-right">
+                      <input type="hidden" name="membershipId" value={membership.id} />
+                      <button type="submit" className="rounded-full border border-rose-200 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-50">
+                        접근 회수
+                      </button>
+                    </form>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
           <div>

@@ -48,6 +48,9 @@
 - 직원 초대 재전송·취소:
   - Owner-only batch token 회전, 7일 만료 갱신, 발송 실패 조건부 rollback
   - pending batch 취소와 재전송·취소 audit 연결
+- 직원 역할 변경·접근 회수:
+  - Owner-only active membership과 role allowlist 기반 조건부 변경
+  - role change·revoke audit와 audit 실패 조건부 rollback
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -114,4 +117,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 9. 직원 초대 UI와 이메일 전송 코드는 feature gate 뒤에 구현했다. 실제 발송과 Production SMTP/Auth 설정은 사람 승인 전에 실행하지 않는다.
 10. 초대 수락 화면은 HttpOnly intent cookie와 원자적 RPC로 연결했다.
 11. 초대 재전송·취소는 Owner 재검증과 batch 단위 token rotation/revoke로 연결했다.
-12. 다음 구현 범위는 직원 역할 변경과 접근 회수다.
+12. 직원 역할 변경과 접근 회수는 active membership 조건부 update와 audit로 연결했다.
+13. 다음 구현 범위는 직원용 마이페이지 상세 경험이다.

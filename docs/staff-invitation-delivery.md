@@ -43,6 +43,15 @@
 - 취소는 현재 Owner가 소유한 batch의 pending row만 `revoked`로 변경하며 기존 token을 즉시 사용할 수 없게 한다.
 - 재전송과 취소는 각각 `staff.invitation_resent`, `staff.invitation_cancelled` audit를 남긴다.
 
+## 직원 역할과 접근 회수
+
+- Owner가 소유한 메뉴판의 active membership만 역할 변경·접근 회수 대상으로 조회한다.
+- 역할은 `manager`, `editor`, `order_staff`, `viewer` allowlist만 허용한다.
+- 역할 변경은 조회한 기존 role을 조건으로 update해 동시 변경을 감지하고 `staff.role_changed` audit를 남긴다.
+- 접근 회수는 active row만 `revoked`로 바꾸고 `revoked_at`을 기록한 뒤 `staff.access_revoked` audit를 남긴다.
+- audit 생성이 실패하면 방금 변경한 role/status 조건이 그대로일 때만 이전 상태로 되돌린다.
+- 이메일을 확인할 수 없는 legacy membership은 user ID 일부만 표시하며 Auth 사용자 목록을 브라우저에 노출하지 않는다.
+
 ## 검증 범위
 
 - 이메일 정규화와 역할 allowlist
@@ -50,6 +59,7 @@
 - branded HTML에서 메뉴판 이름 escape
 - raw token 형식 제한과 SHA-256 hash
 - 재전송 token rotation·조건부 rollback과 Owner-only 취소 경계
+- active membership Owner 경계, 역할 allowlist, 조건부 update·rollback
 - 기존 Owner/Manager/Editor/Order Staff/Viewer 권한 회귀 테스트
 
 Production SQL·데이터·Auth·SMTP·환경변수·실제 이메일은 변경하거나 실행하지 않았다.
