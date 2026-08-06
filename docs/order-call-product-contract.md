@@ -326,7 +326,7 @@ Implementation status (2026-08-06):
 - The proposed `submit_postpay_order` RPC revalidates session, table, menu orderability, sold-out state, option rules, and current prices inside one short transaction before creating immutable snapshots.
 - A client request UUID is reused for retries so the database returns the existing order instead of creating a duplicate.
 - Production remains fail-closed unless both `POSTPAY_ORDER_ENABLED=true` and an explicit `POSTPAY_ORDER_ALLOWED_SITE_IDS` match are present. These are temporary activation safeguards, not a replacement for the final product entitlement mapping.
-- The RPC migration and generated type refresh remain a separate Production approval step.
+- The RPC migration was applied once to Production and generated types were refreshed on 2026-08-06. Do not reapply it.
 
 ## 11. Prepay Order
 

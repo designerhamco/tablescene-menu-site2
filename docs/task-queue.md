@@ -86,11 +86,11 @@
 - `DONE` migration Production 1회 적용과 generated Supabase types 갱신 — 2026-08-06 `tablescene-prod`, `docs/runbooks/postpay-order-foundation-migration.md`
 - `DONE` 메뉴·옵션 선택과 수량 — 공통 모바일 drawer, required/min/max option, line/total limit
 - `DONE` 장바구니와 요청사항 — visit-session scope local cart, 300자 요청, retry request UUID 유지
-- `IN_PROGRESS` 테이블 번호와 주문 전송 — HttpOnly session 재검증 API와 atomic RPC 구현, Production RPC 적용 대기
-- `IN_PROGRESS` 주문 당시 메뉴·가격 snapshot — atomic RPC migration 구현, Production 적용 대기
-- `IN_PROGRESS` 품절 주문 차단 — 제출 transaction에서 `visible/orderable/is_sold_out` 재검증, Production 적용 대기
-- `IN_PROGRESS` 중복 주문 방지 — session + client request UUID advisory lock/idempotency, Production 적용 대기
-- `NEEDS_HUMAN` atomic 주문 RPC migration Production 1회 적용과 generated types 갱신 — `docs/runbooks/postpay-order-submission-rpc-migration.md`
+- `DONE` 테이블 번호와 주문 전송 — HttpOnly session 재검증 API와 atomic RPC Production 적용 완료
+- `DONE` 주문 당시 메뉴·가격 snapshot — 제출 transaction에서 immutable snapshot 생성
+- `DONE` 품절 주문 차단 — 제출 transaction에서 `visible/orderable/is_sold_out` 재검증
+- `DONE` 중복 주문 방지 — session + client request UUID advisory lock/idempotency
+- `DONE` atomic 주문 RPC migration Production 1회 적용과 generated types 갱신 — 2026-08-06 `tablescene-prod`, `docs/runbooks/postpay-order-submission-rpc-migration.md`
 - `NEEDS_HUMAN` 실제 Order 상품 entitlement와 Production `POSTPAY_ORDER_ENABLED`, `POSTPAY_ORDER_ALLOWED_SITE_IDS` 활성화
 
 ## 7. 주문관리와 수동 결제
@@ -152,4 +152,4 @@
 
 ## 다음 작업
 
-default-off 모바일 cart와 atomic 주문 제출 runtime은 구현됐다. 다음 승인 지점은 `20260806131244_add_submit_postpay_order_rpc.sql`의 Production 1회 적용과 generated types 갱신이다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다.
+default-off 모바일 cart와 atomic 주문 제출 runtime, Production RPC 적용과 generated types 갱신은 완료됐다. 다음 안전한 개발 범위는 주문관리의 조회·상태 전이·수동 결제 경계다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다.

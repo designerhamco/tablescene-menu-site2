@@ -2,7 +2,16 @@
 
 대상 migration: `20260806131244_add_submit_postpay_order_rpc.sql`
 
-상태: **Production 미적용. 사람 승인 전 실행 금지.**
+상태: **2026-08-06 `tablescene-prod`에 1회 적용 완료. 재실행 금지.**
+
+적용 기록:
+
+- linked Supabase Management API read-only precheck에서 동일 function이 없음을 확인
+- `20260806131244_add_submit_postpay_order_rpc.sql` 전체를 1회 적용
+- `security_definer=true`, 빈 `search_path` 고정 확인
+- `anon`/`authenticated` EXECUTE 없음, `service_role` EXECUTE만 있음 확인
+- security/performance advisor error 없음 확인
+- Production schema 기준 generated Supabase types 갱신
 
 ## 포함 범위
 
@@ -58,7 +67,5 @@ where p.oid = 'public.submit_postpay_order(uuid,uuid,uuid,text,jsonb)'::regproce
 
 ## 적용 후 다음 작업
 
-1. Production schema에서 generated Supabase types를 다시 생성한다.
-2. generated schema 부분을 수동 편집하지 않는다.
-3. PR 전체 검증 후 병합한다.
-4. 실제 상품 entitlement와 `POSTPAY_ORDER_ENABLED`, `POSTPAY_ORDER_ALLOWED_SITE_IDS` Production 설정은 별도 제품·운영 승인 전까지 유지한다.
+1. PR 전체 검증 후 병합한다.
+2. 실제 상품 entitlement와 `POSTPAY_ORDER_ENABLED`, `POSTPAY_ORDER_ALLOWED_SITE_IDS` Production 설정은 별도 제품·운영 승인 전까지 유지한다.

@@ -3232,6 +3232,23 @@ export type Database = {
         }
         Returns: Json
       }
+      submit_postpay_order: {
+        Args: {
+          p_client_request_id: string
+          p_lines: Json
+          p_menu_site_id: string
+          p_request_text: string
+          p_table_visit_session_id: string
+        }
+        Returns: {
+          is_duplicate: boolean
+          order_id: string
+          order_number: number
+          order_status: string
+          payment_status: string
+          total_amount: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
