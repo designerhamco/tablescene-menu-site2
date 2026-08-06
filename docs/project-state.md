@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `3ff49ea` (`PR #16` 병합)
+기준 커밋: `41d8964` (`PR #17` 병합)
 
 ## 완료된 주요 기능
 
@@ -74,10 +74,14 @@
 - 활성 템플릿 기능 stress QA:
   - capability 기반 위젯·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 desktop/mobile 검증
   - Display와 누아 메뉴의 품절 표시 연결
+- 활성 템플릿 preview/public 격리 QA:
+  - 동일 final-save round-trip fixture를 `MenuPageRenderer` preview/public 모드로 비교
+  - 7개 desktop과 Basic 6개 mobile에서 렌더 신호·overflow·이미지 검증
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `41d8964` — PR #17 병합: 출시 템플릿 기능 stress QA
 - `3ff49ea` — PR #16 병합: 출시 템플릿 4개 locale QA
 - `bde6eb3` — PR #15 병합: 출시 템플릿 저장 round-trip
 - `f81f331` — PR #14 병합: 출시 템플릿 서비스·편집 계약
@@ -154,4 +158,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 13. 직원용 마이페이지 상세 경험은 역할별 기능 안내와 Owner-only 동선 분리로 완료했다.
 14. 모든 직원 write 진입점은 공통 audit gate로 연결했다.
 15. PC·태블릿·모바일 미리보기는 동일 renderer와 실제 iframe viewport를 재사용한다.
-16. 활성 템플릿 목록·renderer·서비스·편집·저장·locale·기능 stress QA는 완료했다. 다음 작업은 Production write 없는 생성·편집·preview·public 흐름 검증이다.
+16. 활성 템플릿 목록·renderer·서비스·편집·저장·locale·기능 stress·preview/public 격리 QA는 완료했다. 다음 작업은 모바일 Order 호환의 공통 상단 헤더다.

@@ -40,6 +40,7 @@ type PageProps = {
     lang?: string | string[];
     localeQa?: string | string[];
     pagePresentation?: string | string[];
+    renderMode?: string | string[];
   }>;
 };
 
@@ -1174,10 +1175,16 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
     resolvedSearchParams.localeQa,
   );
+  const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
+    ? resolvedSearchParams.renderMode[0]
+    : resolvedSearchParams.renderMode;
+  const renderMode = process.env.NODE_ENV !== "production" && requestedRenderMode === "public"
+    ? "public"
+    : "preview";
 
   return (
     <MenuPageRenderer
-      mode="preview"
+      mode={renderMode}
       previewLayoutMode={previewLayoutMode}
       initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
       pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}
