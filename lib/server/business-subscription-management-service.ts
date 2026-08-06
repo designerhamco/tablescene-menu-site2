@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isOwnerRuntimeActor } from "@/lib/owner-runtime-access";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -90,7 +91,8 @@ async function getSubscription(adminSupabase: AdminClient, subscriptionId: strin
     throw new BusinessSubscriptionManagementError("SUBSCRIPTION_QUERY_FAILED", "구독 정보를 불러오지 못했습니다.", 500);
   }
 
-  return data as unknown as BusinessSubscriptionRow | null;
+  const subscription = data as unknown as BusinessSubscriptionRow | null;
+  return isOwnerRuntimeActor(userId, subscription) ? subscription : null;
 }
 
 async function getMenuSite(adminSupabase: AdminClient, menuSiteId: string | null) {

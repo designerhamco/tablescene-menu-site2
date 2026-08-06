@@ -1,5 +1,7 @@
 import "server-only";
 
+import { isOwnerRuntimeActor } from "@/lib/owner-runtime-access";
+
 import {
   businessBasicMonthlyProduct,
   businessBasicYearlyProduct,
@@ -249,7 +251,7 @@ export async function calculateYearlyRefundQuote({
   }
 
   const subscription = subscriptionData as BusinessSubscriptionForRefund | null;
-  if (!subscription) {
+  if (!isOwnerRuntimeActor(userId, subscription)) {
     throw new YearlyRefundError("SUBSCRIPTION_NOT_FOUND", "구독을 찾을 수 없습니다.", 404);
   }
 

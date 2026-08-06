@@ -22,7 +22,7 @@
 - `BLOCKED` 실제 직원 계정으로 역할 배지·버튼 숨김·읽기 전용 미리보기 E2E 확인 — 직원 초대·수락 기능 완료 후 진행하며, 확인용 Production 직원 데이터는 만들지 않음
 - `DONE` Owner/Manager/Editor 메뉴 편집 action 연결
 - `DONE` 공개·비공개 변경을 Owner/Manager로 제한
-- `TODO` 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증
+- `DONE` 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증 — `docs/owner-only-runtime-audit.md`
 - `TODO` 직원 초대 UI와 이메일 전송
 - `TODO` 초대 수락 화면
 - `TODO` 초대 재전송·취소
@@ -143,4 +143,4 @@
 
 ## 다음 작업
 
-현재 PR을 완료한 다음 별도 브랜치에서 `결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증`을 진행한다. 초대 UI와 Production RLS/Storage policy 변경은 독립 PR로 유지한다.
+현재 PR을 완료한 다음 별도 브랜치에서 `직원 초대 UI와 이메일 전송`을 진행한다. 실제 이메일 발송·SMTP/Auth 설정·Production 작업은 사람 승인 전에 실행하지 않는다.
