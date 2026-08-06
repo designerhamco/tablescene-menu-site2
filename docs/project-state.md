@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `e1af601` (`PR #18` 병합)
+기준 커밋: `e3e021d` (`PR #19` 병합)
 
 ## 완료된 주요 기능
 
@@ -80,10 +80,15 @@
 - 모바일 Order/Call 공통 진입 셸:
   - template 밖 공통 safe-area sticky header와 언어·매장·table·Call·cart 배치
   - 실제 table session 전에는 locked, no-session에서는 Call·cart fail-closed
+- 테이블 QR·방문 세션 기반 준비:
+  - hash-only table/session token, 12시간 세션, 메뉴판당 비보관 테이블 100개 정책 확정
+  - server-only RLS 테이블과 constraint·session revoke migration 초안
+  - Production 수동 적용 전에는 runtime 발급·관리 동선을 연결하지 않음
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `e3e021d` — PR #19 병합: 모바일 Order/Call 공통 진입 셸
 - `e1af601` — PR #18 병합: 출시 템플릿 preview/public 격리 QA
 - `41d8964` — PR #17 병합: 출시 템플릿 기능 stress QA
 - `3ff49ea` — PR #16 병합: 출시 템플릿 4개 locale QA
@@ -162,4 +167,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 13. 직원용 마이페이지 상세 경험은 역할별 기능 안내와 Owner-only 동선 분리로 완료했다.
 14. 모든 직원 write 진입점은 공통 audit gate로 연결했다.
 15. PC·태블릿·모바일 미리보기는 동일 renderer와 실제 iframe viewport를 재사용한다.
-16. 활성 템플릿 QA와 모바일 Order/Call 공통 헤더 셸은 완료했다. 다음 작업은 테이블 관리·안전한 QR token·방문 세션이며 schema와 정책 검토가 필요하다.
+16. 활성 템플릿 QA와 모바일 Order/Call 공통 헤더 셸은 완료했다.
+17. 테이블 QR·방문 세션 정책은 확정했고 migration 초안을 준비했다. 다음 단계는 사람의 PR 병합·Production SQL 1회 적용·typegen 승인이다.
