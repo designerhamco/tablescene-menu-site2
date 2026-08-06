@@ -9,6 +9,7 @@ import type { SupportedLocale } from "@/lib/locales";
 import type { OrderCallEntryConfig } from "./types";
 import { getOrderCallEntryVisibility, LOCKED_ORDER_CALL_ENTRY_CONFIG } from "./types";
 import PostpayOrderCartDrawer from "./PostpayOrderCartDrawer";
+import StaffCallDialog from "./StaffCallDialog";
 
 type OrderCallEntryLayerProps = {
   config?: OrderCallEntryConfig;
@@ -25,6 +26,7 @@ export default function OrderCallEntryLayer({
 }: OrderCallEntryLayerProps) {
   const visibility = getOrderCallEntryVisibility(config);
   const [cartOpen, setCartOpen] = useState(false);
+  const [callOpen, setCallOpen] = useState(false);
   const [cartCount, setCartCount] = useState(() => Math.max(0, Math.floor(config.cartCount ?? 0)));
 
   if (!visibility.showHeader) {
@@ -34,6 +36,9 @@ export default function OrderCallEntryLayer({
   const showLanguage = visibility.showLanguage && new Set(enabledLocales).size > 1;
   const canOpenCart = config.mode === "active"
     && Boolean(config.menuSiteId && config.cartScope && config.orderCatalog);
+  const canOpenCall = visibility.showCall
+    && config.mode === "active"
+    && Boolean(config.menuSiteId);
 
   return (
     <div data-public-menu-entry-layer="" data-order-call-mode={config.mode}>
@@ -58,7 +63,8 @@ export default function OrderCallEntryLayer({
               type="button"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm"
               aria-label="직원 호출"
-              disabled
+              disabled={!canOpenCall}
+              onClick={() => setCallOpen(true)}
             >
               <Bell className="h-4.5 w-4.5" aria-hidden="true" />
             </button>
@@ -90,6 +96,14 @@ export default function OrderCallEntryLayer({
           cartScope={config.cartScope!}
           catalog={config.orderCatalog!}
           onCountChange={setCartCount}
+        />
+      ) : null}
+      {canOpenCall ? (
+        <StaffCallDialog
+          open={callOpen}
+          onClose={() => setCallOpen(false)}
+          menuSiteId={config.menuSiteId!}
+          tableLabel={config.tableLabel}
         />
       ) : null}
     </div>

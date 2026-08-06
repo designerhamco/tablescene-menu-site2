@@ -433,15 +433,15 @@ Policies:
 Initial call types:
 
 - 확정: Staff call.
-- 권장: Water request.
-- 권장: Extra plate request.
-- 권장: Order question.
-- 권장: Other request.
+- 비범위(MVP): Water request.
+- 비범위(MVP): Extra plate request.
+- 비범위(MVP): Order question.
+- 비범위(MVP): Other request.
 
 MVP policy:
 
-- 권장: Start with a small preset list instead of many call types.
-- 권장: Store can enable/disable preset call types.
+- 확정: MVP exposes only the Staff call preset.
+- 비범위(MVP): Per-store preset enable/disable settings.
 
 Flow:
 
@@ -465,8 +465,13 @@ Call status:
 Policies:
 
 - 확정: Rate limit repeated calls from the same table.
-- 권장: If there is an unresolved call from the same table, duplicate call creation may be blocked.
+- 확정: An unresolved `pending` or `acknowledged` staff call is returned instead of creating a duplicate.
+- 확정: After a call is completed or cancelled, the same visit session has a two-minute cooldown.
+- 확정: A table visit session can create at most ten calls per rolling hour.
 - 확정: Only store staff/owner can mark calls complete.
+- 확정: Owner, Manager, and Order staff with `call.manage` may acknowledge and complete calls.
+- 확정: Staff state transitions are only `pending → acknowledged → completed`.
+- 확정: A customer may cancel only their own session's `pending` call. An acknowledged call cannot be customer-cancelled.
 - 확정: A customer cannot view another table's calls.
 - 확정: Call-only configuration is allowed.
 - 미결정: Notification talk, push, and sound behavior.
@@ -496,7 +501,8 @@ Policies:
 - 확정: Pending calls.
 - 확정: Acknowledge.
 - 확정: Complete.
-- 권장: Table-level call history.
+- 확정(MVP): Recent table-level call history, limited to the latest 100 calls.
+- 확정(MVP): Near-realtime polling every 15 seconds; database Realtime publication is not required.
 
 ### Settings
 
@@ -513,6 +519,10 @@ Implementation status (2026-08-06):
 
 - The store dashboard is implemented as a separate `/mypage/menus/[menuId]/orders` surface and never inside a menu renderer or editor.
 - Reads and mutations reauthenticate and reauthorize `order.read`, `order.manage`, `order.cancel_unpaid`, and `payment.manual` at the server boundary.
+- Call MVP uses the same template-independent public entry layer and a separate `/mypage/menus/[menuId]/calls` dashboard.
+- The database contract is server-only with forced RLS, service-role-only grants, unresolved dedupe, a two-minute cooldown, and ten calls per session per hour.
+- Customer create/cancel routes revalidate the HttpOnly table session and public Business Basic lifecycle. Staff mutations reauthenticate `call.manage` and record the acting user.
+- `CALL_ENABLED` plus an explicit `CALL_ALLOWED_SITE_IDS` allowlist fail closed by default. The migration and Production activation remain separate human-approved operations.
 - Status changes are forward-only conditional updates: `received` → `accepted` → `cooking` → `ready` → `served`.
 - Cancellation is limited to unpaid, unserved orders with a required 1–500 character reason.
 - Manual card-terminal and cash completion record `manual_paid`, the external method, timestamp, and authenticated actor; MenuLink does not perform card authorization.
@@ -619,7 +629,6 @@ Do not infer these in implementation:
 - 미결정: PG fee policy.
 - 미결정: Settlement cycle.
 - 미결정: Maximum staff count.
-- 미결정: Exact call rate limit.
 - 미결정: Refund and partial refund details.
 - 미결정: KakaoTalk notification pricing.
 - 미결정: POS integration vendors.

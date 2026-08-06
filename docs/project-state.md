@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `80a3897` (`PR #25` 병합)
+기준 커밋: `f5038e7` (`PR #27` 병합)
 
 ## 완료된 주요 기능
 
@@ -113,10 +113,18 @@
   - 미결제·미제공 취소, 외부 카드 단말기·현금 결제 완료, actor/timestamp 기록
   - 15초 갱신 대시보드와 immutable snapshot 인쇄 영수증
   - `ORDER_DASHBOARD_ENABLED` + explicit site allowlist 없이 Production에서 노출·write 안 됨
+- Call MVP default-off 기반:
+  - 직원 호출 단일 preset과 손님의 pending 상태 취소만 제공
+  - 미처리 호출 dedupe, 완료·취소 후 2분 cooldown, table session당 시간당 10회 제한
+  - Owner/Manager/Order staff의 `call.manage` 재인증과 확인·완료 actor/timestamp 기록
+  - 최근 100건을 15초 갱신하는 별도 호출관리 화면; 공개 Realtime publication은 추가하지 않음
+  - server-only 강제 RLS migration은 아직 Production 미적용이며 `CALL_ENABLED` + site allowlist 없이 UI와 write 모두 fail closed
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `f5038e7` — PR #27 병합: fail-closed 후불 주문관리
+- `b8c9631` — PR #26 병합: atomic 후불 주문 runtime과 RPC
 - `80a3897` — PR #25 병합: 후불 주문 schema Production 적용과 generated types 갱신
 - `b2b0607` — PR #24 병합: one-time table QR PNG 다운로드
 - `16f9673` — PR #23 병합: fail-closed table QR 방문 세션 runtime
@@ -162,6 +170,8 @@
 - `20260721170705_add_menu_page_content_order_rpc.sql` — 2026-07-21 SQL Editor 적용 완료.
 
 Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Production 작업 전에는 해당 runbook의 read-only precheck를 다시 수행하고 사람의 승인을 받아야 한다.
+
+`20260806142627_add_call_mvp_foundation.sql`은 코드 검토 중인 신규 migration이며 Production에 아직 적용하지 않았다.
 
 ## 현재 보류 중인 운영 작업
 

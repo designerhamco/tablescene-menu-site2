@@ -77,3 +77,15 @@ test("order staff mutations use permission-specific audit surfaces", () => {
   assert.equal(entry?.metadata.surface, "order_manual_payment");
   assert.equal(entry?.actor_role, "order_staff");
 });
+
+test("call acknowledgement is attributed to the acting order staff member", () => {
+  const entry = buildStaffWriteAuditEntry(
+    context("order_staff"),
+    "call.manage",
+    "call_acknowledgement",
+  );
+
+  assert.equal(entry?.metadata.permission, "call.manage");
+  assert.equal(entry?.metadata.surface, "call_acknowledgement");
+  assert.equal(entry?.actor_role, "order_staff");
+});

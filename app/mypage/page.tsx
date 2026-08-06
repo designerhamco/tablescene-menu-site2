@@ -40,6 +40,7 @@ import { getTemplateDisplayName } from "@/lib/templates";
 import { isTemplateSupportedForService } from "@/lib/template-types";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
+import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import type { Json } from "@/lib/supabase/types";
 import { hasMenuSitePermission, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
@@ -1366,6 +1367,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       ? "테이블 관리는 상품 활성화 정책이 확정될 때까지 안전하게 잠겨 있습니다."
       : messageCode === "order-dashboard-locked"
         ? "주문관리는 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
+      : messageCode === "call-dashboard-locked"
+        ? "호출관리는 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
       : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
@@ -2368,6 +2371,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           && isTemplateSupportedForService(site.template_key, "basic")
           && canUseMenuActions,
         canManageOrders: Boolean(siteId) && isOrderDashboardRuntimeEnabledForSite(siteId),
+        canManageCalls: Boolean(siteId) && isCallRuntimeEnabledForSite(siteId),
         canOwnerPreview,
         canViewPublic: canOpenPublicPage,
         canDownloadQr: canOpenPublicPage && Boolean(qrDownloadUrl),
@@ -2406,6 +2410,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       && hasMenuSitePermission(site.memberRole, "table.manage");
     const canManageOrders = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)
       && hasMenuSitePermission(site.memberRole, "order.read");
+    const canManageCalls = isCallRuntimeEnabledForSite(site.menuSiteId)
+      && hasMenuSitePermission(site.memberRole, "call.manage");
     const permissionSummary = [
       "미리보기",
       canEdit ? "메뉴 편집" : null,
@@ -2413,6 +2419,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       canUseAi ? "AI 도우미" : null,
       canManageTables ? "테이블 관리" : null,
       canManageOrders ? "주문관리" : null,
+      canManageCalls ? "호출관리" : null,
     ].filter((value): value is string => Boolean(value)).join(" · ");
     return {
       key: `staff-${site.menuSiteId}`,
@@ -2426,6 +2433,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       canEdit,
       canManageTables,
       canManageOrders,
+      canManageCalls,
       canViewPublic: site.status === "published" && Boolean(site.slug),
       permissionSummary,
     };
@@ -2558,6 +2566,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               disabledReason: "주문관리 상품이 활성화되지 않았습니다.",
             })}
             {renderActionButton({
+              label: "호출관리",
+              href: card.siteId ? `/mypage/menus/${card.siteId}/calls` : null,
+              enabled: card.actions.canManageCalls,
+              disabledReason: "호출관리 상품이 활성화되지 않았습니다.",
+            })}
+            {renderActionButton({
               label: "미리보기",
               href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
               enabled: card.actions.canOwnerPreview,
@@ -2640,6 +2654,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-900 transition-colors hover:bg-amber-100"
             >
               주문관리
+            </Link>
+          ) : null}
+          {card.canManageCalls ? (
+            <Link
+              href={`/mypage/menus/${card.siteId}/calls`}
+              className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-black text-rose-900 transition-colors hover:bg-rose-100"
+            >
+              호출관리
             </Link>
           ) : null}
           <Link
