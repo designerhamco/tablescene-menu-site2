@@ -1,6 +1,19 @@
 import "server-only";
 
+import {
+  assertMenuSitePermission,
+  MenuSiteAccessError,
+  type MenuSiteAccessContext,
+  type MenuSitePermission,
+} from "@/lib/menu-site-permissions";
+import {
+  resolveAccessibleMenuSiteIdsForActor,
+  resolveMenuSiteAccessContextForActor,
+  type MenuSiteLifecycleSnapshot,
+  type MenuSiteMembershipCandidate,
+} from "@/lib/menu-site-access-resolver";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
 type MenuSiteRow = Pick<
@@ -417,4 +430,138 @@ export async function getMenuSiteAccessStateBySlug(slug: string) {
     listBusinessSubscriptions(menuSite.id),
   ]);
   return buildAccessState(menuSite as MenuSiteRow, entitlements, subscriptions);
+}
+
+function toLifecycleSnapshot(accessState: MenuSiteAccessState | null): MenuSiteLifecycleSnapshot | null {
+  if (!accessState) return null;
+  return {
+    menuSiteId: accessState.menuSiteId,
+    menuSiteStatus: accessState.menuSiteStatus,
+    lifecycleState: accessState.lifecycleState,
+    reason: accessState.reason,
+    canPreview: accessState.canPreview,
+  };
+}
+
+function accessCheckFailed(operation: string, error: { code?: string; message?: string } | null | undefined): never {
+  console.warn("[menu-access] permission lookup failed", {
+    operation,
+    code: error?.code ?? "unknown",
+    message: error?.message ?? "unknown",
+  });
+  throw new MenuSiteAccessError(
+    "MENU_SITE_ACCESS_CHECK_FAILED",
+    "메뉴판 권한을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+    500,
+  );
+}
+
+async function requireAuthenticatedAccessClient() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    if (error) {
+      console.warn("[menu-access] authentication check failed", {
+        code: error.code,
+        message: error.message,
+      });
+    }
+    throw new MenuSiteAccessError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+  }
+
+  return { supabase, user };
+}
+
+export async function getMenuSiteAccessContext(menuSiteId: string): Promise<MenuSiteAccessContext> {
+  const { supabase, user } = await requireAuthenticatedAccessClient();
+
+  return resolveMenuSiteAccessContextForActor({
+    menuSiteId,
+    actorUserId: user.id,
+    loaders: {
+      async findOwnedMenuSite(actorUserId, targetMenuSiteId) {
+        const { data, error } = await supabase
+          .from("menu_sites")
+          .select("id, user_id")
+          .eq("id", targetMenuSiteId)
+          .eq("user_id", actorUserId)
+          .maybeSingle();
+
+        if (error) accessCheckFailed("findOwnedMenuSite", error);
+        return data ? { id: data.id, userId: data.user_id } : null;
+      },
+      async findActiveMembership(actorUserId, targetMenuSiteId) {
+        const { data, error } = await supabase
+          .from("menu_site_members")
+          .select("id, menu_site_id, user_id, role, status")
+          .eq("menu_site_id", targetMenuSiteId)
+          .eq("user_id", actorUserId)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (error) accessCheckFailed("findActiveMembership", error);
+        if (!data) return null;
+        return {
+          id: data.id,
+          menuSiteId: data.menu_site_id,
+          userId: data.user_id,
+          role: data.role,
+          status: data.status,
+        } satisfies MenuSiteMembershipCandidate;
+      },
+      async loadLifecycleAccess(targetMenuSiteId) {
+        return toLifecycleSnapshot(await getMenuSiteAccessStateForMenuSite({ menuSiteId: targetMenuSiteId }));
+      },
+    },
+  });
+}
+
+export async function requireMenuSitePermission(
+  menuSiteId: string,
+  permission: MenuSitePermission,
+): Promise<MenuSiteAccessContext> {
+  const context = await getMenuSiteAccessContext(menuSiteId);
+  return assertMenuSitePermission(context, permission);
+}
+
+export async function getAccessibleMenuSiteIds() {
+  const { supabase, user } = await requireAuthenticatedAccessClient();
+
+  return resolveAccessibleMenuSiteIdsForActor({
+    actorUserId: user.id,
+    loaders: {
+      async listOwnedMenuSiteIds(actorUserId) {
+        const { data, error } = await supabase
+          .from("menu_sites")
+          .select("id")
+          .eq("user_id", actorUserId);
+
+        if (error) accessCheckFailed("listOwnedMenuSiteIds", error);
+        return (data ?? []).map((menuSite) => menuSite.id);
+      },
+      async listActiveMemberships(actorUserId) {
+        const { data, error } = await supabase
+          .from("menu_site_members")
+          .select("id, menu_site_id, user_id, role, status")
+          .eq("user_id", actorUserId)
+          .eq("status", "active");
+
+        if (error) accessCheckFailed("listActiveMemberships", error);
+        return (data ?? []).map((membership) => ({
+          id: membership.id,
+          menuSiteId: membership.menu_site_id,
+          userId: membership.user_id,
+          role: membership.role,
+          status: membership.status,
+        } satisfies MenuSiteMembershipCandidate));
+      },
+      async loadLifecycleAccess(targetMenuSiteId) {
+        return toLifecycleSnapshot(await getMenuSiteAccessStateForMenuSite({ menuSiteId: targetMenuSiteId }));
+      },
+    },
+  });
 }
