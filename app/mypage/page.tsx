@@ -2386,6 +2386,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
       statusLabel: getStatusLabel(site.status),
       updatedAt: site.updatedAt,
+      canEdit: site.memberRole === "manager" || site.memberRole === "editor",
       canViewPublic: site.status === "published" && Boolean(site.slug),
     };
   });
@@ -2560,6 +2561,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         </dl>
 
         <div className="mt-5 flex flex-wrap gap-2">
+          {card.canEdit ? (
+            <Link
+              href={`/mypage/menus/${card.siteId}/edit`}
+              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
+            >
+              메뉴 편집
+            </Link>
+          ) : null}
           <Link
             href={`/mypage/menus/${card.siteId}/preview`}
             target="_blank"

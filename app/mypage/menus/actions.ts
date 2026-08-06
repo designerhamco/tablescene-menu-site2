@@ -17,10 +17,10 @@ import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeMenu
 import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
 import {
-  getMenuSiteAccessStateForMenuSite,
-  MENU_SITE_INACTIVE_EDIT_MESSAGE,
   MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
+  requireMenuSiteWriteAccess,
 } from "@/lib/server/menu-site-access-service";
+import { MenuSiteAccessError, type MenuSitePermission } from "@/lib/menu-site-permissions";
 import { DEFAULT_LOCALE, LOCALE_LABELS, TRANSLATABLE_LOCALES, getEnabledLocales, isSupportedLocale, type SupportedLocale } from "@/lib/locales";
 import type {
   AutoTranslationDraftPatch,
@@ -101,7 +101,6 @@ import {
 } from "@/lib/server/menu-translation-service";
 import { saveMenuWidgetsForFinalDraft, type MenuWidgetFinalSaveError } from "@/lib/server/menu-widget-final-save-service";
 import { cleanupSavedMenuWidgetImages } from "@/lib/server/menu-widget-image-cleanup-service";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
@@ -124,7 +123,6 @@ import {
   type FeaturedSlideSettings,
 } from "@/types/menu";
 
-const allowedStatuses = ["draft", "published", "archived"] as const;
 const MENU_IMAGES_BUCKET = "menu-images";
 const MENU_VIDEOS_BUCKET = "menu-videos";
 const MENU_WIDGET_FINAL_SAVE_PAYLOAD_FIELD = "menuWidgetFinalSavePayload";
@@ -334,6 +332,25 @@ function isMenuPromotionTargetUnchanged(
 
 function isPublicPresetImageUrl(value: string | null | undefined) {
   return Boolean(value && PUBLIC_PRESET_IMAGE_PREFIXES.some((prefix) => value.startsWith(prefix)));
+}
+
+function assertMenuSiteDraftImage(
+  menuId: string,
+  imageUrl: string | null,
+  imagePath: string | null,
+  tab: "basic" | "intro" | "cover" | "menu" = "menu",
+) {
+  if (imagePath && !imagePath.startsWith(`menu-sites/${menuId}/`)) {
+    redirectToTabEditWithError(menuId, tab, "이미지 경로가 해당 메뉴판에 속하지 않습니다.");
+  }
+
+  if (imagePath && !imageUrl) {
+    redirectToTabEditWithError(menuId, tab, "이미지 URL과 저장 경로를 함께 확인해주세요.");
+  }
+
+  if (imageUrl && !imagePath && !isPublicPresetImageUrl(imageUrl)) {
+    redirectToTabEditWithError(menuId, tab, "이미지 정보가 올바르지 않습니다.");
+  }
 }
 
 function normalizeFeaturedSlideString(value: unknown) {
@@ -970,10 +987,6 @@ function validateRequiredPhone(menuId: string, value: string | null, label: stri
   }
 }
 
-function isMenuSiteStatus(value: string): value is MenuSiteStatus {
-  return allowedStatuses.includes(value as MenuSiteStatus);
-}
-
 function isMenuSectionKey(value: string | null): value is MenuSectionKey {
   return value === "set_menu" || value === "main_menu" || value === "dessert_drink";
 }
@@ -1041,42 +1054,61 @@ function revalidateMenuPaths(menuId: string, slug?: string) {
 
 async function removeMenuImagePath(
   supabase: Awaited<ReturnType<typeof createClient>>,
+  menuId: string,
   imagePath: string | null | undefined
 ) {
   if (!imagePath) {
     return null;
   }
 
+  if (!imagePath.startsWith(`menu-sites/${menuId}/`)) {
+    return new Error("이미지 경로가 해당 메뉴판에 속하지 않습니다.");
+  }
+
   const { error } = await supabase.storage.from(MENU_IMAGES_BUCKET).remove([imagePath]);
   return error;
 }
 
-async function removeMenuVideoPath(videoPath: string | null | undefined) {
+async function removeMenuVideoPath(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  menuId: string,
+  videoPath: string | null | undefined,
+) {
   if (!videoPath) {
     return null;
   }
 
-  let adminSupabase: ReturnType<typeof createAdminClient>;
-
-  try {
-    adminSupabase = createAdminClient();
-  } catch (error) {
-    return error instanceof Error ? error : new Error("Supabase admin client를 생성할 수 없습니다.");
+  if (!videoPath.startsWith(`menu-sites/${menuId}/draft/display-videos/`)) {
+    return new Error("동영상 경로가 해당 메뉴판에 속하지 않습니다.");
   }
 
-  const { error } = await adminSupabase.storage.from(MENU_VIDEOS_BUCKET).remove([videoPath]);
+  const { error } = await supabase.storage.from(MENU_VIDEOS_BUCKET).remove([videoPath]);
   return error;
 }
 
-async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?: string } = {}) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+async function requireOwnedMenuSite(
+  menuId: string,
+  options: {
+    inactiveMessage?: string;
+    permission?: Extract<MenuSitePermission, "menu.edit" | "menu.publish" | "ai.use">;
+  } = {},
+) {
+  let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
-  if (!user) {
-    redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
+  try {
+    writeAccess = await requireMenuSiteWriteAccess(menuId, options.permission ?? "menu.edit");
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError && error.code === "AUTH_REQUIRED") {
+      redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);
+    }
+
+    const message = error instanceof MenuSiteAccessError
+      ? options.inactiveMessage ?? error.message
+      : "메뉴판 권한을 확인하지 못했습니다.";
+    redirectToEditWithError(menuId, message);
   }
+
+  const { supabase, context } = writeAccess;
 
   const menuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, template_category, restaurant_name, restaurant_category, menu_cover_label, menu_cover_title, menu_cover_description, brand_description, cover_image_url, cover_image_path, settings, page_settings";
   const fallbackMenuSiteSelect = "id, user_id, name, slug, status, published_at, template_key, restaurant_name, restaurant_category, menu_cover_title, menu_cover_description, brand_description, cover_image_url, cover_image_path, settings, page_settings";
@@ -1085,7 +1117,6 @@ async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?:
     .from("menu_sites")
     .select(menuSiteSelect)
     .eq("id", menuId)
-    .eq("user_id", user.id)
     .maybeSingle();
   let menuSite = primaryResult.data as MenuSite | null;
   let error = primaryResult.error;
@@ -1096,7 +1127,6 @@ async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?:
       .from("menu_sites")
       .select(fallbackMenuSiteSelect)
       .eq("id", menuId)
-      .eq("user_id", user.id)
       .maybeSingle();
 
     menuSite = fallbackResult.data as MenuSite | null;
@@ -1112,12 +1142,12 @@ async function requireOwnedMenuSite(menuId: string, options: { inactiveMessage?:
     redirectToEditWithError(menuId, "이 메뉴판을 수정할 권한이 없습니다.");
   }
 
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
-  if (!accessState?.canUseWriteActions) {
-    redirectToEditWithError(menuId, options.inactiveMessage ?? MENU_SITE_INACTIVE_EDIT_MESSAGE);
-  }
-
-  return { supabase, user, menuSite };
+  return {
+    supabase,
+    user: { id: context.actorUserId },
+    accessContext: context,
+    menuSite,
+  };
 }
 
 export async function updateBadgeStylesAction(formData: FormData) {
@@ -1246,7 +1276,7 @@ export async function translateMenuSiteAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
-  const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId);
+  const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
   const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
@@ -1301,7 +1331,7 @@ export async function translateMenuSiteAction(formData: FormData) {
     }
 
     if (translatedEntities > 0) {
-      await spendAiCredits({ userId: user.id, menuSiteId: menuId, featureKey: "full_translation" });
+      await spendAiCredits({ userId: menuSite.user_id, menuSiteId: menuId, featureKey: "full_translation" });
     }
   } catch (error) {
     const failedAt = new Date().toISOString();
@@ -1363,7 +1393,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
   let draftSupabase: SupabaseServerClient | null = null;
 
   try {
-    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
     draftSupabase = supabase;
     const enabledTargetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is EditableTranslationLocale =>
       TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
@@ -2173,7 +2203,7 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
     .filter((value): value is string => typeof value === "string")
     .filter(isSupportedLocale);
 
-  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId);
   const translationDraftValues = getTranslationDraftValues(formData);
   const currentSettings = getJsonObject(menuSite.settings);
 
@@ -2212,7 +2242,7 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
     await markTranslationRecoveryJobApplied({
       supabase,
       menuId,
-      userId: menuSite.user_id,
+      userId: user.id,
       jobId: translationRecoveryJobId,
     });
   }
@@ -2256,7 +2286,7 @@ export async function generateMenuItemDescriptionAction(input: {
   }
 
   try {
-    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
 
     if (!getTemplateCapabilities(menuSite.template_key).itemDescription) {
@@ -2373,7 +2403,7 @@ export async function generateAiMenuCleanupAction(input: {
   }
 
   try {
-    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const cleanupUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_menu_cleanup");
@@ -2435,7 +2465,7 @@ export async function translateMenuItemPartialAction(input: {
   }
 
   try {
-    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
@@ -2533,7 +2563,7 @@ export async function translateMenuCategoryPartialAction(input: {
   }
 
   try {
-    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
@@ -2620,7 +2650,7 @@ export async function translateMenuHeroPartialAction(input: {
   }
 
   try {
-    const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+    const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
     const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
     const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
     const partialUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_partial");
@@ -2986,8 +3016,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   redirectToTabEdit(menuId, "design", "디자인 설정을 현재 템플릿의 기본값으로 되돌렸습니다.");
 }
 
-async function assertCategoryBelongsToMenuSite(menuId: string, categoryId: string) {
-  const supabase = await createClient();
+async function assertCategoryBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, categoryId: string) {
   const { data: category, error } = await supabase
     .from("menu_categories")
     .select("id, section_key, menu_page_id")
@@ -3006,8 +3035,7 @@ async function assertCategoryBelongsToMenuSite(menuId: string, categoryId: strin
   return category;
 }
 
-async function assertMenuPageBelongsToMenuSite(menuId: string, menuPageId: string) {
-  const supabase = await createClient();
+async function assertMenuPageBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, menuPageId: string) {
   const { data: menuPage, error } = await supabase
     .from("menu_pages")
     .select("id, legacy_section_key")
@@ -3026,8 +3054,7 @@ async function assertMenuPageBelongsToMenuSite(menuId: string, menuPageId: strin
   return menuPage;
 }
 
-async function assertItemBelongsToMenuSite(menuId: string, itemId: string) {
-  const supabase = await createClient();
+async function assertItemBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, itemId: string) {
   const { data: item, error } = await supabase
     .from("menu_items")
     .select("id, menu_site_id, image_path")
@@ -3046,8 +3073,7 @@ async function assertItemBelongsToMenuSite(menuId: string, itemId: string) {
   return item;
 }
 
-async function assertChefBelongsToMenuSite(menuId: string, chefId: string) {
-  const supabase = await createClient();
+async function assertChefBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, chefId: string) {
   const { data, error } = await supabase.from("menu_chefs").select("id, chef_image_path").eq("id", chefId).eq("menu_site_id", menuId).maybeSingle();
 
   if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 확인에 실패했습니다: ${error.message}`);
@@ -3056,8 +3082,7 @@ async function assertChefBelongsToMenuSite(menuId: string, chefId: string) {
   return data;
 }
 
-async function assertEventBelongsToMenuSite(menuId: string, eventId: string) {
-  const supabase = await createClient();
+async function assertEventBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, eventId: string) {
   const { data, error } = await supabase.from("menu_events").select("id, event_image_path").eq("id", eventId).eq("menu_site_id", menuId).maybeSingle();
 
   if (error) redirectToTabEditWithError(menuId, "events", `이벤트 확인에 실패했습니다: ${error.message}`);
@@ -3066,24 +3091,21 @@ async function assertEventBelongsToMenuSite(menuId: string, eventId: string) {
   return data;
 }
 
-async function assertSocialLinkBelongsToMenuSite(menuId: string, socialLinkId: string) {
-  const supabase = await createClient();
+async function assertSocialLinkBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, socialLinkId: string) {
   const { data, error } = await supabase.from("menu_social_links").select("id").eq("id", socialLinkId).eq("menu_site_id", menuId).maybeSingle();
 
   if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 확인에 실패했습니다: ${error.message}`);
   if (!data) redirectToTabEditWithError(menuId, "about", "해당 SNS 링크를 찾을 수 없습니다.");
 }
 
-async function assertTraitBelongsToMenuSite(menuId: string, traitId: string) {
-  const supabase = await createClient();
+async function assertTraitBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, traitId: string) {
   const { data, error } = await supabase.from("menu_item_traits").select("id").eq("id", traitId).eq("menu_site_id", menuId).maybeSingle();
 
   if (error) redirectToEditWithError(menuId, `맛/특징 지표 확인에 실패했습니다: ${error.message}`);
   if (!data) redirectToEditWithError(menuId, "해당 맛/특징 지표를 찾을 수 없습니다.");
 }
 
-async function assertPriceOptionBelongsToMenuSite(menuId: string, priceOptionId: string) {
-  const supabase = await createClient();
+async function assertPriceOptionBelongsToMenuSite(supabase: SupabaseServerClient, menuId: string, priceOptionId: string) {
   const { data, error } = await supabase
     .from("menu_item_price_options")
     .select("id")
@@ -3136,6 +3158,8 @@ export async function updateMenuSiteAction(formData: FormData) {
   const draftLogoImageUrl = getNullableString(formData, "draft_logo_image_url");
   const draftLogoImagePath = getNullableString(formData, "draft_logo_image_path");
   const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
+
+  assertMenuSiteDraftImage(menuId, draftLogoImageUrl, draftLogoImagePath, "basic");
 
   if (!name) {
     redirectToTabEditWithError(menuId, "basic", "메뉴판 이름을 입력해주세요.");
@@ -3259,6 +3283,8 @@ export async function updateIntroAction(formData: FormData) {
   const draftIntroImagePath = getNullableString(formData, "draft_intro_image_path");
   const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
 
+  assertMenuSiteDraftImage(menuId, draftIntroImageUrl, draftIntroImagePath, "intro");
+
   validateRequiredText(menuId, introTitle ?? "", "인트로 제목", MENU_FIELD_LIMITS.menuSites.introTitle, "intro");
   validateRequiredText(menuId, introDescription ?? "", "인트로 설명", MENU_FIELD_LIMITS.menuSites.introDescription, "intro");
   if (hasBrandDescriptionField) {
@@ -3305,6 +3331,7 @@ export async function updateMenuCoverAction(formData: FormData) {
   const shouldDeleteCoverImage = getBoolean(formData, "delete_cover_image");
   const draftCoverImageUrl = getNullableString(formData, "draft_cover_image_url");
   const draftCoverImagePath = getNullableString(formData, "draft_cover_image_path");
+  assertMenuSiteDraftImage(menuId, draftCoverImageUrl, draftCoverImagePath, "cover");
   const pageSettingsRecord = getJsonObject(menuSite.page_settings);
   const currentSettings = mergePageSettings(menuSite.page_settings);
   const supportsCoverImageVisibility = menuCoverCapabilities.usesCoverImage && menuCoverCapabilities.coverMode === "page";
@@ -3642,7 +3669,7 @@ async function syncAboutChefs(supabase: SupabaseServerClient, menuId: string, dr
       const { error } = await supabase.from("menu_chefs").delete().eq("id", id).eq("menu_site_id", menuId);
       if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 삭제에 실패했습니다: ${error.message}`);
 
-      const removeError = await removeMenuImagePath(supabase, existingChef.chef_image_path);
+      const removeError = await removeMenuImagePath(supabase, menuId, existingChef.chef_image_path);
       if (removeError) {
         redirectToTabEditWithError(menuId, "about", `셰프/인물 정보는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
       }
@@ -3713,7 +3740,7 @@ async function syncEvents(supabase: SupabaseServerClient, menuId: string, drafts
       const { error } = await supabase.from("menu_events").delete().eq("id", id).eq("menu_site_id", menuId);
       if (error) redirectToTabEditWithError(menuId, "events", `이벤트 삭제에 실패했습니다: ${error.message}`);
 
-      const removeError = await removeMenuImagePath(supabase, existingEvent.event_image_path);
+      const removeError = await removeMenuImagePath(supabase, menuId, existingEvent.event_image_path);
       if (removeError) {
         redirectToTabEditWithError(menuId, "events", `이벤트는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
       }
@@ -3838,10 +3865,15 @@ export async function updatePublishSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
-  const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { inactiveMessage: MENU_SITE_INACTIVE_PUBLISH_MESSAGE });
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId, {
+    inactiveMessage: MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
+    permission: "menu.publish",
+  });
   const status = getString(formData, "status");
 
-  if (!isMenuSiteStatus(status)) redirectToTabEditWithError(menuId, "publish", "공개 상태를 선택해주세요.");
+  if (status !== "draft" && status !== "published") {
+    redirectToTabEditWithError(menuId, "publish", "공개 상태를 선택해주세요.");
+  }
 
   const nextStatus: MenuSiteStatus = status;
 
@@ -3973,7 +4005,7 @@ export async function updateMenuPageAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
-  await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  await assertMenuPageBelongsToMenuSite(supabase, menuId, menuPageId);
 
   const title = getString(formData, "menu_page_title");
   const description = getNullableString(formData, "menu_page_description");
@@ -4052,7 +4084,7 @@ export async function copyMenuPageAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
-  await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  await assertMenuPageBelongsToMenuSite(supabase, menuId, menuPageId);
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(getTemplateCapabilities(menuSite.template_key));
 
   const { count: pageCount, error: pageCountError } = await supabase
@@ -4380,7 +4412,7 @@ export async function deleteMenuPageAction(formData: FormData) {
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   await assertCanManageMenuPages(supabase, menuId, menuSite.template_key);
-  await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  await assertMenuPageBelongsToMenuSite(supabase, menuId, menuPageId);
 
   const { count: pageCount, error: pageCountError } = await supabase
     .from("menu_pages")
@@ -4492,7 +4524,7 @@ export async function createCategoryAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, "메뉴 카테고리를 추가할 메뉴 페이지를 선택해주세요.");
   }
 
-  const menuPage = await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  const menuPage = await assertMenuPageBelongsToMenuSite(supabase, menuId, menuPageId);
 
   const { count: categoryCount, error: categoryCountError } = await supabase
     .from("menu_categories")
@@ -4564,11 +4596,9 @@ export async function updateCategoryAction(formData: FormData) {
     redirect("/mypage?error=missing-category-id");
   }
 
-  const { menuSite } = await requireOwnedMenuSite(menuId);
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
-  await assertCategoryBelongsToMenuSite(menuId, categoryId);
-
-  const supabase = await createClient();
+  await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
   const name = getString(formData, "category_name");
   const description = templateCapabilities.categoryDescription ? getNullableString(formData, "category_description") : null;
   const menuPageId = getString(formData, "category_menu_page_id");
@@ -4582,7 +4612,7 @@ export async function updateCategoryAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, "메뉴 카테고리가 속할 메뉴 페이지를 선택해주세요.");
   }
 
-  const menuPage = await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  const menuPage = await assertMenuPageBelongsToMenuSite(supabase, menuId, menuPageId);
 
   const payload: MenuCategoryUpdate = {
     menu_page_id: menuPageId,
@@ -4623,7 +4653,7 @@ export async function reorderCategoriesAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertMenuPageBelongsToMenuSite(menuId, menuPageId);
+  await assertMenuPageBelongsToMenuSite(supabase, menuId, menuPageId);
   const { data: currentCategories, error: categoriesError } = await supabase
     .from("menu_categories")
     .select("id")
@@ -4665,7 +4695,7 @@ export async function deleteCategoryAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertCategoryBelongsToMenuSite(menuId, categoryId);
+  await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
 
   const { count, error: countError } = await supabase
     .from("menu_items")
@@ -4754,7 +4784,7 @@ export async function createMenuItemAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, "아이템을 추가할 메뉴 카테고리를 선택해주세요.");
   }
 
-  const category = await assertCategoryBelongsToMenuSite(menuId, categoryId);
+  const category = await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
 
   const { count: categoryItemCount, error: categoryItemCountError } = await supabase
     .from("menu_items")
@@ -4864,7 +4894,7 @@ export async function updateMenuItemAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
-  await assertItemBelongsToMenuSite(menuId, itemId);
+  await assertItemBelongsToMenuSite(supabase, menuId, itemId);
 
   const name = getString(formData, "item_name");
   const priceLabel = getNullableString(formData, "item_price_label");
@@ -4919,7 +4949,7 @@ export async function updateMenuItemAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, "아이템이 속할 메뉴 카테고리를 선택해주세요.");
   }
 
-  const category = await assertCategoryBelongsToMenuSite(menuId, categoryId);
+  const category = await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
 
   const badgeLabel = getMenuItemBadgeLabelFromForm(menuId, formData);
   const badgeType = getLegacyBadgeTypeForLabel(badgeLabel);
@@ -7994,7 +8024,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     );
 
     for (const imagePath of displayImagePathsToRemove) {
-      const removeError = await removeMenuImagePath(supabase, imagePath);
+      const removeError = await removeMenuImagePath(supabase, menuId, imagePath);
       if (removeError) {
         console.warn(`Display page image cleanup failed for ${imagePath}: ${removeError.message}`);
       }
@@ -8003,7 +8033,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const displayVideoPathsToRemove = getDisplayVideoPathsToRemove(menuId, existingDisplaySettingsByPageId, nextDisplaySettingsByPageId);
 
     for (const videoPath of displayVideoPathsToRemove) {
-      const removeError = await removeMenuVideoPath(videoPath);
+      const removeError = await removeMenuVideoPath(supabase, menuId, videoPath);
       if (removeError) {
         console.warn(`Display page video cleanup failed for ${videoPath}: ${removeError.message}`);
       }
@@ -8031,7 +8061,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   for (const category of newCategoryDrafts) {
     const resolvedPageId = pageIdMap.get(category.pageId) ?? category.pageId;
     if (!resolvedPageId) redirectToMenuEditWithError(menuId, "새 카테고리를 추가할 페이지를 찾을 수 없습니다.");
-    const menuPage = await assertMenuPageBelongsToMenuSite(menuId, resolvedPageId);
+    const menuPage = await assertMenuPageBelongsToMenuSite(supabase, menuId, resolvedPageId);
 
     const payload: MenuCategoryInsert = {
       menu_site_id: menuId,
@@ -8140,6 +8170,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const imageAction = normalizeDraftString(item.imageAction);
     const draftImageUrl = normalizeDraftString(item.imageUrl);
     const draftImagePath = normalizeDraftString(item.imagePath);
+    assertMenuSiteDraftImage(menuId, draftImageUrl || null, draftImagePath || null);
     const traitSlots = templateCapabilities.itemTraits ? getMenuItemTraitSlotsFromDraft(menuId, item.traitDrafts) : [];
     const hasPriceOptionDraft = item.priceOptions !== undefined;
     const priceMode = normalizeDraftString(item.priceMode);
@@ -8219,7 +8250,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
 
     if (item.isNew) {
       if (!categoryId) redirectToMenuEditWithError(menuId, "새 아이템을 추가할 카테고리를 선택해주세요.");
-      await assertCategoryBelongsToMenuSite(menuId, categoryId);
+      await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
 
       const { count: categoryItemCount, error: categoryItemCountError } = await supabase
         .from("menu_items")
@@ -8518,7 +8549,7 @@ export async function copyMenuItemAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
-  await assertItemBelongsToMenuSite(menuId, itemId);
+  await assertItemBelongsToMenuSite(supabase, menuId, itemId);
 
   const menuItemCopySelect =
     "id, category_id, name, set_name, description, price, price_label, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, origin_info, is_sold_out, traits_visible, visible, sort_order";
@@ -8552,7 +8583,7 @@ export async function copyMenuItemAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, "카테고리가 없는 아이템은 복사할 수 없습니다.");
   }
 
-  await assertCategoryBelongsToMenuSite(menuId, categoryId);
+  await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
 
   const { count: categoryItemCount, error: categoryItemCountError } = await supabase
     .from("menu_items")
@@ -8704,7 +8735,7 @@ export async function reorderMenuItemsAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertCategoryBelongsToMenuSite(menuId, categoryId);
+  await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
   const { data: currentItems, error: itemsError } = await supabase
     .from("menu_items")
     .select("id")
@@ -8746,7 +8777,7 @@ export async function deleteMenuItemAction(formData: FormData) {
   }
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const item = await assertItemBelongsToMenuSite(menuId, itemId);
+  const item = await assertItemBelongsToMenuSite(supabase, menuId, itemId);
 
   const { count, error: countError } = await supabase
     .from("menu_item_traits")
@@ -8783,7 +8814,7 @@ export async function deleteMenuItemAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `아이템 삭제에 실패했습니다: ${error.message}`);
   }
 
-  const removeError = await removeMenuImagePath(supabase, item.image_path);
+  const removeError = await removeMenuImagePath(supabase, menuId, item.image_path);
 
   if (removeError) {
     redirectToMenuEditWithError(menuId, `아이템은 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
@@ -8801,7 +8832,7 @@ export async function createMenuItemPriceOptionAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
   const maxPriceOptionsPerItem = getMaxPriceOptionsPerItem(templateCapabilities);
-  await assertItemBelongsToMenuSite(menuId, itemId);
+  await assertItemBelongsToMenuSite(supabase, menuId, itemId);
 
   const { count: optionCount, error: optionCountError } = await supabase
     .from("menu_item_price_options")
@@ -8838,7 +8869,7 @@ export async function updateMenuItemPriceOptionAction(formData: FormData) {
   if (!menuId || !priceOptionId) redirect("/mypage?error=missing-price-option-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertPriceOptionBelongsToMenuSite(menuId, priceOptionId);
+  await assertPriceOptionBelongsToMenuSite(supabase, menuId, priceOptionId);
 
   const payloadInput = validatePriceOptionForm(menuId, formData);
   const payload: MenuItemPriceOptionUpdate = { ...payloadInput, updated_at: new Date().toISOString() };
@@ -8856,7 +8887,7 @@ export async function deleteMenuItemPriceOptionAction(formData: FormData) {
   if (!menuId || !priceOptionId) redirect("/mypage?error=missing-price-option-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertPriceOptionBelongsToMenuSite(menuId, priceOptionId);
+  await assertPriceOptionBelongsToMenuSite(supabase, menuId, priceOptionId);
   const { error } = await supabase.from("menu_item_price_options").delete().eq("id", priceOptionId).eq("menu_site_id", menuId);
 
   if (error) redirectToMenuEditWithError(menuId, `가격 옵션 삭제에 실패했습니다: ${error.message}`);
@@ -8871,7 +8902,7 @@ export async function createMenuItemTraitAction(formData: FormData) {
   if (!menuId || !itemId) redirect("/mypage?error=missing-menu-item-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertItemBelongsToMenuSite(menuId, itemId);
+  await assertItemBelongsToMenuSite(supabase, menuId, itemId);
 
   const { count: traitCount, error: traitCountError } = await supabase
     .from("menu_item_traits")
@@ -8916,7 +8947,7 @@ export async function updateMenuItemTraitAction(formData: FormData) {
   if (!menuId || !traitId) redirect("/mypage?error=missing-trait-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertTraitBelongsToMenuSite(menuId, traitId);
+  await assertTraitBelongsToMenuSite(supabase, menuId, traitId);
 
   const validation = validateMenuItemTrait({
     label: formData.get("trait_label"),
@@ -8943,7 +8974,7 @@ export async function deleteMenuItemTraitAction(formData: FormData) {
   if (!menuId || !traitId) redirect("/mypage?error=missing-trait-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertTraitBelongsToMenuSite(menuId, traitId);
+  await assertTraitBelongsToMenuSite(supabase, menuId, traitId);
   const { error } = await supabase.from("menu_item_traits").delete().eq("id", traitId).eq("menu_site_id", menuId);
 
   if (error) redirectToMenuEditWithError(menuId, `맛/특징 지표 삭제에 실패했습니다: ${error.message}`);
@@ -9000,7 +9031,7 @@ export async function updateChefAction(formData: FormData) {
   if (!menuId || !chefId) redirect("/mypage?error=missing-chef-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertChefBelongsToMenuSite(menuId, chefId);
+  await assertChefBelongsToMenuSite(supabase, menuId, chefId);
   const chefName = getString(formData, "chef_name");
   const chefRole = getString(formData, "chef_role");
   const chefDescription = getString(formData, "chef_description");
@@ -9034,12 +9065,12 @@ export async function deleteChefAction(formData: FormData) {
   if (!menuId || !chefId) redirect("/mypage?error=missing-chef-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const chef = await assertChefBelongsToMenuSite(menuId, chefId);
+  const chef = await assertChefBelongsToMenuSite(supabase, menuId, chefId);
   const { error } = await supabase.from("menu_chefs").delete().eq("id", chefId).eq("menu_site_id", menuId);
 
   if (error) redirectToTabEditWithError(menuId, "about", `셰프/인물 삭제에 실패했습니다: ${error.message}`);
 
-  const removeError = await removeMenuImagePath(supabase, chef.chef_image_path);
+  const removeError = await removeMenuImagePath(supabase, menuId, chef.chef_image_path);
 
   if (removeError) {
     redirectToTabEditWithError(menuId, "about", `셰프/인물 정보는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
@@ -9113,7 +9144,7 @@ export async function updateEventAction(formData: FormData) {
   if (!menuId || !eventId) redirect("/mypage?error=missing-event-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertEventBelongsToMenuSite(menuId, eventId);
+  await assertEventBelongsToMenuSite(supabase, menuId, eventId);
   const title = getString(formData, "event_title");
   const description = getString(formData, "event_description");
 
@@ -9163,12 +9194,12 @@ export async function deleteEventAction(formData: FormData) {
   if (!menuId || !eventId) redirect("/mypage?error=missing-event-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const event = await assertEventBelongsToMenuSite(menuId, eventId);
+  const event = await assertEventBelongsToMenuSite(supabase, menuId, eventId);
   const { error } = await supabase.from("menu_events").delete().eq("id", eventId).eq("menu_site_id", menuId);
 
   if (error) redirectToTabEditWithError(menuId, "events", `이벤트 삭제에 실패했습니다: ${error.message}`);
 
-  const removeError = await removeMenuImagePath(supabase, event.event_image_path);
+  const removeError = await removeMenuImagePath(supabase, menuId, event.event_image_path);
 
   if (removeError) {
     redirectToTabEditWithError(menuId, "events", `이벤트는 삭제되었지만 Storage 이미지 정리에 실패했습니다: ${removeError.message}`);
@@ -9237,7 +9268,7 @@ export async function updateSocialLinkAction(formData: FormData) {
   if (!menuId || !socialLinkId) redirect("/mypage?error=missing-social-link-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertSocialLinkBelongsToMenuSite(menuId, socialLinkId);
+  await assertSocialLinkBelongsToMenuSite(supabase, menuId, socialLinkId);
   const payloadInput = await validateSocialLinkForm(menuId, formData);
 
   const { data: duplicate, error: duplicateError } = await supabase
@@ -9266,7 +9297,7 @@ export async function deleteSocialLinkAction(formData: FormData) {
   if (!menuId || !socialLinkId) redirect("/mypage?error=missing-social-link-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  await assertSocialLinkBelongsToMenuSite(menuId, socialLinkId);
+  await assertSocialLinkBelongsToMenuSite(supabase, menuId, socialLinkId);
   const { error } = await supabase.from("menu_social_links").delete().eq("id", socialLinkId).eq("menu_site_id", menuId);
 
   if (error) redirectToTabEditWithError(menuId, "about", `SNS 링크 삭제에 실패했습니다: ${error.message}`);

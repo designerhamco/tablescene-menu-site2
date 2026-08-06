@@ -1,19 +1,21 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   validateImageUploadFile,
   type ImageUploadTarget as SharedImageUploadTarget,
 } from "@/lib/image-upload-policy";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
-import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_EDIT_MESSAGE } from "@/lib/server/menu-site-access-service";
+import { requireMenuSiteWriteAccess } from "@/lib/server/menu-site-access-service";
 
 export const runtime = "nodejs";
 
 const BUCKET = "menu-images";
 
 type ImageTarget = SharedImageUploadTarget;
+type SupabaseDataClient = ReturnType<typeof createAdminClient>;
 type PersistentImageTarget = Exclude<
   ImageTarget,
   "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "display-page-image-draft" | "menu-item-draft"
@@ -57,6 +59,10 @@ function jsonError(message: string, status = 400) {
 
 function getString(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function isSafeDraftRecordId(value: string) {
+  return value.length <= 128 && /^[A-Za-z0-9_-]*$/.test(value);
 }
 
 function getExtension(file: File) {
@@ -137,61 +143,61 @@ function revalidateMenuPaths(menuId: string, slug: string) {
   revalidatePath(getLegacyMenuPath(slug));
 }
 
-async function requireOwnedMenuSite(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  menuId: string
-) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+async function requireMenuImageAccess(menuId: string) {
+  let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
-  if (!user) {
-    return { error: jsonError("로그인이 필요합니다.", 401), menuSite: null };
+  try {
+    writeAccess = await requireMenuSiteWriteAccess(menuId, "menu.edit");
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError) {
+      return {
+        error: jsonError(error.message, error.status),
+        menuSite: null,
+        supabase: null,
+      };
+    }
+
+    return {
+      error: jsonError("메뉴판 권한을 확인하지 못했습니다.", 500),
+      menuSite: null,
+      supabase: null,
+    };
   }
+
+  const { supabase } = writeAccess;
 
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
     .select("id, user_id, slug, logo_url, logo_path, cover_image_url, cover_image_path, intro_image_url, intro_image_path")
     .eq("id", menuId)
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (error) {
-    return { error: jsonError(`메뉴판 권한 확인에 실패했습니다: ${error.message}`, 500), menuSite: null };
+    return { error: jsonError(`메뉴판 권한 확인에 실패했습니다: ${error.message}`, 500), menuSite: null, supabase: null };
   }
 
   if (!menuSite) {
-    return { error: jsonError("메뉴판을 찾을 수 없거나 권한이 없습니다.", 404), menuSite: null };
+    return { error: jsonError("메뉴판을 찾을 수 없거나 권한이 없습니다.", 404), menuSite: null, supabase: null };
   }
 
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
-  if (!accessState?.canUseWriteActions) {
-    return { error: jsonError(MENU_SITE_INACTIVE_EDIT_MESSAGE, 403), menuSite: null };
-  }
-
-  return { error: null, menuSite };
+  return { error: null, menuSite, supabase };
 }
 
 async function getTargetRecord(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseDataClient,
+  menuSite: NonNullable<Awaited<ReturnType<typeof requireMenuImageAccess>>["menuSite"]>,
   target: ImageTarget,
   menuId: string,
   recordId: string
 ): Promise<{ record: TargetRecord | null; error: NextResponse | null }> {
-  const ownership = await requireOwnedMenuSite(supabase, menuId);
-
-  if (ownership.error || !ownership.menuSite) {
-    return { record: null, error: ownership.error };
-  }
-
   if (target === "site-logo") {
     return {
       error: null,
       record: {
         menuId,
-        slug: ownership.menuSite.slug,
-        imageUrl: ownership.menuSite.logo_url,
-        imagePath: ownership.menuSite.logo_path,
+        slug: menuSite.slug,
+        imageUrl: menuSite.logo_url,
+        imagePath: menuSite.logo_path,
       },
     };
   }
@@ -201,7 +207,7 @@ async function getTargetRecord(
       error: null,
       record: {
         menuId,
-        slug: ownership.menuSite.slug,
+        slug: menuSite.slug,
         imageUrl: null,
         imagePath: null,
       },
@@ -215,9 +221,9 @@ async function getTargetRecord(
       error: null,
       record: {
         menuId,
-        slug: ownership.menuSite.slug,
-        imageUrl: ownership.menuSite.cover_image_url,
-        imagePath: ownership.menuSite.cover_image_path,
+        slug: menuSite.slug,
+        imageUrl: menuSite.cover_image_url,
+        imagePath: menuSite.cover_image_path,
       },
     };
   }
@@ -227,7 +233,7 @@ async function getTargetRecord(
       error: null,
       record: {
         menuId,
-        slug: ownership.menuSite.slug,
+        slug: menuSite.slug,
         imageUrl: null,
         imagePath: null,
       },
@@ -239,7 +245,7 @@ async function getTargetRecord(
       error: null,
       record: {
         menuId,
-        slug: ownership.menuSite.slug,
+        slug: menuSite.slug,
         imageUrl: null,
         imagePath: null,
       },
@@ -251,7 +257,7 @@ async function getTargetRecord(
       error: null,
       record: {
         menuId,
-        slug: ownership.menuSite.slug,
+        slug: menuSite.slug,
         imageUrl: null,
         imagePath: null,
       },
@@ -263,7 +269,7 @@ async function getTargetRecord(
       error: null,
       record: {
         menuId,
-        slug: ownership.menuSite.slug,
+        slug: menuSite.slug,
         imageUrl: null,
         imagePath: null,
       },
@@ -288,7 +294,7 @@ async function getTargetRecord(
 
     return {
       error: data ? null : jsonError("메뉴 아이템을 찾을 수 없습니다.", 404),
-      record: data ? { menuId, slug: ownership.menuSite.slug, imageUrl: data.image_url, imagePath: data.image_path } : null,
+      record: data ? { menuId, slug: menuSite.slug, imageUrl: data.image_url, imagePath: data.image_path } : null,
     };
   }
 
@@ -306,7 +312,7 @@ async function getTargetRecord(
 
     return {
       error: data ? null : jsonError("이벤트를 찾을 수 없습니다.", 404),
-      record: data ? { menuId, slug: ownership.menuSite.slug, imageUrl: data.event_image_url, imagePath: data.event_image_path } : null,
+      record: data ? { menuId, slug: menuSite.slug, imageUrl: data.event_image_url, imagePath: data.event_image_path } : null,
     };
   }
 
@@ -323,12 +329,12 @@ async function getTargetRecord(
 
   return {
     error: data ? null : jsonError("셰프/인물 정보를 찾을 수 없습니다.", 404),
-    record: data ? { menuId, slug: ownership.menuSite.slug, imageUrl: data.chef_image_url, imagePath: data.chef_image_path } : null,
+    record: data ? { menuId, slug: menuSite.slug, imageUrl: data.chef_image_url, imagePath: data.chef_image_path } : null,
   };
 }
 
 async function updateImageRecord(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseDataClient,
   target: PersistentImageTarget,
   menuId: string,
   recordId: string,
@@ -375,7 +381,6 @@ async function updateImageRecord(
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
   const formData = await request.formData();
   const target = getString(formData.get("target"));
   const menuId = getString(formData.get("menuId"));
@@ -390,6 +395,10 @@ export async function POST(request: Request) {
     return jsonError("menuId가 없습니다.");
   }
 
+  if (!isSafeDraftRecordId(recordId)) {
+    return jsonError("이미지 대상 ID가 올바르지 않습니다.");
+  }
+
   if (!(file instanceof File)) {
     return jsonError("업로드할 파일이 없습니다.");
   }
@@ -400,7 +409,10 @@ export async function POST(request: Request) {
   }
 
   const extension = getExtension(file);
-  const { record, error } = await getTargetRecord(supabase, target, menuId, recordId);
+  const access = await requireMenuImageAccess(menuId);
+  if (access.error || !access.menuSite || !access.supabase) return access.error;
+  const { supabase, menuSite } = access;
+  const { record, error } = await getTargetRecord(supabase, menuSite, target, menuId, recordId);
 
   if (error || !record) {
     return error ?? jsonError("이미지 정보를 찾을 수 없습니다.", 404);
@@ -408,8 +420,9 @@ export async function POST(request: Request) {
 
   const expectedPrefix = getPathPrefix(target, menuId, recordId);
   const previousPath = record.imagePath;
-  const nextPath = previousPath?.startsWith(expectedPrefix) && previousPath.endsWith(`.${extension}`)
-    ? previousPath
+  const safePreviousPath = previousPath?.startsWith(expectedPrefix) ? previousPath : null;
+  const nextPath = safePreviousPath?.endsWith(`.${extension}`)
+    ? safePreviousPath
     : getPath(target, menuId, recordId, extension);
 
   const bytes = await file.arrayBuffer();
@@ -437,15 +450,15 @@ export async function POST(request: Request) {
 
   if (updateError) {
     // TODO: 같은 path를 upsert한 경우에는 이전 파일을 복원할 수 없으므로, 필요하면 temp path 업로드 후 DB 저장 성공 시 이동하는 보상 흐름을 추가합니다.
-    if (!previousPath || previousPath !== nextPath) {
+    if (!safePreviousPath || safePreviousPath !== nextPath) {
       await supabase.storage.from(BUCKET).remove([nextPath]);
     }
 
     return jsonError(`이미지 정보 저장에 실패했습니다: ${updateError.message}`, 500);
   }
 
-  if (previousPath && previousPath !== nextPath) {
-    await supabase.storage.from(BUCKET).remove([previousPath]);
+  if (safePreviousPath && safePreviousPath !== nextPath) {
+    await supabase.storage.from(BUCKET).remove([safePreviousPath]);
   }
 
   revalidateMenuPaths(menuId, record.slug);
@@ -454,7 +467,6 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const supabase = await createClient();
   const body = (await request.json().catch(() => null)) as {
     target?: unknown;
     menuId?: unknown;
@@ -472,17 +484,27 @@ export async function DELETE(request: Request) {
     return jsonError("menuId가 없습니다.");
   }
 
+  if (!isSafeDraftRecordId(recordId)) {
+    return jsonError("이미지 대상 ID가 올바르지 않습니다.");
+  }
+
   if (isDraftImageTarget(target)) {
     return jsonError("임시 이미지는 저장 전 삭제 API를 사용하지 않습니다.");
   }
 
-  const { record, error } = await getTargetRecord(supabase, target, menuId, recordId);
+  const access = await requireMenuImageAccess(menuId);
+  if (access.error || !access.menuSite || !access.supabase) return access.error;
+  const { supabase, menuSite } = access;
+  const { record, error } = await getTargetRecord(supabase, menuSite, target, menuId, recordId);
 
   if (error || !record) {
     return error ?? jsonError("이미지 정보를 찾을 수 없습니다.", 404);
   }
 
   if (record.imagePath) {
+    if (!record.imagePath.startsWith(getPathPrefix(target, menuId, recordId))) {
+      return jsonError("저장된 이미지 경로가 해당 메뉴판에 속하지 않습니다.", 409);
+    }
     const { error: removeError } = await supabase.storage.from(BUCKET).remove([record.imagePath]);
 
     if (removeError) {

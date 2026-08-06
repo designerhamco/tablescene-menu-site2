@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `98fb144` (`PR #2` 병합)
+기준 커밋: `342b56a` (`PR #3` 병합)
 
 ## 완료된 주요 기능
 
@@ -28,10 +28,17 @@
   - Owner 우선 판정과 직원 역할 표시
   - `menu.read` 및 활성 lifecycle 기반 직원 읽기 전용 미리보기
   - 사장 전용 결제·구독·복구 동선의 직원 화면 제외
+- 직원 권한 Phase B-3 메뉴 편집:
+  - Owner/Manager/Editor의 활성 메뉴판 편집 action과 편집 화면 접근
+  - 공개·비공개는 Owner/Manager만 가능하고 Editor에서 공개 탭 제외
+  - 위젯·번역·AI·이미지·동영상을 정확한 menu-site 권한 경계 뒤에서 서버 실행
+  - 직원 AI는 Owner 크레딧을 사용하고 충전·결제 UI는 Owner-only
+  - 서비스 키는 서버 밖으로 노출하지 않고, 모든 자원 ID와 Storage 경로를 해당 menu-site로 제한
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `342b56a` — PR #3 병합: `agent/staff-menu-preview-access` → `tablescene-next`
 - `98fb144` — PR #2 병합: `agent/staff-menu-list-access` → `tablescene-next`
 - `8e9df47` — 직원 메뉴판 목록 접근과 역할 표시
 - `ee77660` — PR #1 병합: `agent/staff-permissions-b1` → `tablescene-next`
@@ -76,8 +83,9 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 - 실제 구독 상태 변경
 - generated Supabase types 수동 편집
 - 비밀키·Production 환경변수·SMTP/Auth 설정 변경
-- `tablescene-next` 직접 push 또는 직접 merge
-- force push, 기존 커밋 amend, PR 자동 병합
+- `tablescene-next` 직접 push
+- force push, 기존 커밋 amend
+- Production/RLS/Storage policy·결제·실데이터 작업이 포함된 PR의 자동 병합
 
 ## 다음 개발 시작 위치
 
@@ -86,5 +94,6 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 3. 공통 권한 코드는 `lib/menu-site-permissions.ts`, `lib/menu-site-access-resolver.ts`, `lib/server/menu-site-access-service.ts`를 재사용한다.
 4. Owner 소유 메뉴판과 활성 직원 membership 메뉴판의 통합 목록 및 역할 표시는 PR #2에서 구현·검증했다.
 5. 직원 읽기 전용 미리보기 접근은 `agent/staff-menu-preview-access`에서 구현·검증했다.
-6. 다음 구현 범위는 Owner/Manager/Editor 메뉴 편집 action이며, 초대 UI·Production RLS 변경과 분리한다.
+6. Owner/Manager/Editor 메뉴 편집과 공개·위젯·번역·AI·미디어 권한 연결은 서버 권한 경계로 구현했다.
 7. 실제 직원 계정 E2E 확인은 직원 초대·수락 기능이 완성된 뒤 진행한다. 화면 확인만을 위한 Production 직원 데이터는 만들지 않는다.
+8. 다음 구현 범위는 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증이다.
