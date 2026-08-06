@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
 import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
 import { parseMenuWidgetRows, type MenuWidgetRow } from "@/lib/menu-widget-db-mappers";
@@ -18,7 +20,11 @@ import {
   TIME_SALE_SCHEDULE_TIME_ZONE,
   type NormalizedTimeSaleSchedule,
 } from "@/lib/menu-time-sale-schedule";
-import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
+import { canAccessMenuSitePreview } from "@/lib/menu-site-preview-access";
+import {
+  getMenuSiteAccessStateForMenuSite,
+  requireMenuSitePermission,
+} from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
@@ -1167,25 +1173,34 @@ export async function getPublicMenuPageData(slug: string, options: MenuPageDataO
   return normalizeMenuPageData(site as MenuSite, options);
 }
 
-export async function getOwnerPreviewMenuPageData(menuId: string, userId: string, options: MenuPageDataOptions = {}) {
-  const supabase = await createClient();
-  const primarySiteResult = await supabase
+async function loadPreviewMenuSite(
+  supabase: SupabaseServerClient,
+  menuId: string,
+  ownerUserId?: string,
+) {
+  let primaryQuery = supabase
     .from("menu_sites")
     .select(siteSelect)
-    .eq("id", menuId)
-    .eq("user_id", userId)
-    .maybeSingle();
+    .eq("id", menuId);
+  if (ownerUserId) {
+    primaryQuery = primaryQuery.eq("user_id", ownerUserId);
+  }
+
+  const primarySiteResult = await primaryQuery.maybeSingle();
   let site = primarySiteResult.data as unknown;
   let error = primarySiteResult.error;
 
   const siteErrorMessage = error?.message.toLowerCase() ?? "";
   if (error && ["template_category", "restaurant_type", "menu_cover_label"].some((column) => siteErrorMessage.includes(column))) {
-    const fallbackResult = await supabase
+    let fallbackQuery = supabase
       .from("menu_sites")
       .select(baseSiteSelect)
-      .eq("id", menuId)
-      .eq("user_id", userId)
-      .maybeSingle();
+      .eq("id", menuId);
+    if (ownerUserId) {
+      fallbackQuery = fallbackQuery.eq("user_id", ownerUserId);
+    }
+
+    const fallbackResult = await fallbackQuery.maybeSingle();
 
     site = fallbackResult.data as unknown;
     error = fallbackResult.error;
@@ -1195,7 +1210,40 @@ export async function getOwnerPreviewMenuPageData(menuId: string, userId: string
     return null;
   }
 
-  return normalizeMenuPageData(site as MenuSite, options);
+  return site as MenuSite;
+}
+
+export async function getOwnerPreviewMenuPageData(menuId: string, userId: string, options: MenuPageDataOptions = {}) {
+  const supabase = await createClient();
+  const site = await loadPreviewMenuSite(supabase, menuId, userId);
+
+  if (!site) {
+    return null;
+  }
+
+  return normalizeMenuPageData(site, options, supabase);
+}
+
+export async function getAuthorizedPreviewMenuPageData(menuId: string, options: MenuPageDataOptions = {}) {
+  const accessContext = await requireMenuSitePermission(menuId, "menu.read");
+  const accessState = await getMenuSiteAccessStateForMenuSite({
+    menuSiteId: menuId,
+    userId: accessContext.isOwner ? accessContext.actorUserId : undefined,
+  });
+
+  if (!canAccessMenuSitePreview(accessContext, accessState)) {
+    return { accessContext, accessState, data: null };
+  }
+
+  const supabase = accessContext.isOwner ? await createClient() : createAdminClient();
+  const site = await loadPreviewMenuSite(
+    supabase,
+    menuId,
+    accessContext.isOwner ? accessContext.actorUserId : undefined,
+  );
+  const data = site ? await normalizeMenuPageData(site, options, supabase) : null;
+
+  return { accessContext, accessState, data };
 }
 
 export const getPublicMenuDataBySlug = getPublicMenuPageData;

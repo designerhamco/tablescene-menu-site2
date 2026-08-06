@@ -255,9 +255,9 @@ Passing a lower gate never overrides a failed upper gate. The client-provided ro
 
 | Function | UI/loader check | Server/API check | RLS evidence in repository | Current boundary | Staff expansion |
 | --- | --- | --- | --- | --- | --- |
-| My page menu list | `app/mypage/page.tsx` queries `menu_sites.user_id = user.id` | Server component session | Remote RLS enabled; owner/public/admin policies confirmed | Owner only | High: union owned sites and active memberships |
+| My page menu list | `app/mypage/page.tsx` uses the accessible menu-site list | Owner-first relationship, active membership, and lifecycle checks in the shared access service | Owner/public/admin policies plus server-only authorized list DTO | Owner and active staff | Complete: owned sites and active memberships are unified |
 | Edit loader | `edit/page.tsx` filters site by `id + user_id` | Lifecycle helper requires `canEdit` | Child-table reads rely on owner RLS | Owner only | High: access context before lifecycle |
-| Owner preview | Preview route authenticates | `getOwnerPreviewMenuPageData` filters `id + user_id` | Owner/public content policies | Owner only | Medium: `menu.read` plus preview lifecycle |
+| Owner/Staff preview | Preview route authenticates and renders a staff read-only banner | Shared access service requires `menu.read`; preview DAL checks lifecycle before using a server-only client | Owner client for Owner; service role only after staff authorization | Owner and active staff | Complete: inactive/revoked staff fail closed; write actions remain separate |
 | Public menu | Published slug only | Service lifecycle requires `canViewPublic` | Public visible SELECT policies | Public, separate from staff | None; keep separate |
 | Menu actions | Forms hide/enable by lifecycle | Central `requireOwnedMenuSite` filters `id + user_id`; child assertions check same-site relation | Owner-all policies on content | Owner only | High: replace entry gate with permission-specific helper |
 | Publish | Owner edit UI | Uses the same broad owner helper then updates `menu_sites.status` | `menu_sites` policy must be remotely verified | Owner only | High: owner/manager only; separate from edit |
@@ -274,9 +274,9 @@ Passing a lower gate never overrides a failed upper gate. The client-provided ro
 
 ### Current Helper Assessment
 
-`lib/server/menu-site-access-service.ts` is a lifecycle/service-state helper, not a role authorization helper. When a `userId` is supplied it also filters `menu_sites.user_id`, which couples lifecycle lookup to ownership. It should remain the lifecycle source but must be called after a new relationship/permission context has authorized the actor.
+`lib/server/menu-site-access-service.ts` now combines the lifecycle source with the shared Owner/member relationship and permission context. Owner-scoped lifecycle lookups may still use `userId`; authorized staff flows resolve the relationship first and then load lifecycle state without trusting client-provided ownership.
 
-The repeated owner gates in `app/mypage/menus/actions.ts`, widget services, image routes, video routes, preview loaders, and AI services cannot safely be broadened one at a time. A shared permission helper must land first.
+The shared permission helper is in place. Remaining owner gates in `app/mypage/menus/actions.ts`, widget services, image routes, video routes, and AI services still need operation-specific conversion and must not be broadened as one undifferentiated change.
 
 Recommended server API:
 

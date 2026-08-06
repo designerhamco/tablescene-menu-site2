@@ -20,6 +20,7 @@ import {
   type MenuSiteLifecycleSnapshot,
   type MenuSiteMembershipCandidate,
 } from "./menu-site-access-resolver";
+import { canAccessMenuSitePreview } from "./menu-site-preview-access";
 
 const ROLE_EXPECTATIONS: Record<MenuSiteAccessRole, readonly MenuSitePermission[]> = {
   owner: MENU_SITE_PERMISSIONS,
@@ -118,6 +119,45 @@ test("unknown roles fail closed", () => {
 
 test("inactive staff contexts cannot use otherwise granted permissions", () => {
   assert.equal(hasMenuSitePermission(context("manager", false), "menu.read"), false);
+});
+
+test("active owners and every staff role with menu.read can preview an active menu", () => {
+  const accessState = { canOwnerPreview: true, canPreview: true };
+
+  for (const role of Object.keys(ROLE_EXPECTATIONS) as MenuSiteAccessRole[]) {
+    assert.equal(canAccessMenuSitePreview(context(role), accessState), true, role);
+  }
+});
+
+test("staff preview access fails closed when lifecycle access is inactive", () => {
+  const accessState = { canOwnerPreview: true, canPreview: true };
+
+  assert.equal(canAccessMenuSitePreview(context("manager", false), accessState), false);
+  assert.equal(canAccessMenuSitePreview(context("viewer", false), accessState), false);
+});
+
+test("owner preview follows owner retention access while staff follows active preview access", () => {
+  assert.equal(
+    canAccessMenuSitePreview(context("owner"), { canOwnerPreview: true, canPreview: false }),
+    true,
+  );
+  assert.equal(
+    canAccessMenuSitePreview(context("owner"), { canOwnerPreview: false, canPreview: true }),
+    false,
+  );
+  assert.equal(
+    canAccessMenuSitePreview(context("editor"), { canOwnerPreview: false, canPreview: true }),
+    true,
+  );
+  assert.equal(
+    canAccessMenuSitePreview(context("editor"), { canOwnerPreview: true, canPreview: false }),
+    false,
+  );
+});
+
+test("preview access denies missing lifecycle state", () => {
+  assert.equal(canAccessMenuSitePreview(context("owner"), null), false);
+  assert.equal(canAccessMenuSitePreview(context("viewer"), null), false);
 });
 
 test("permission assertion returns an authorized context", () => {
