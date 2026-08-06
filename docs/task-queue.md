@@ -44,12 +44,12 @@
 ## 3. 활성 템플릿 전체 기능 QA
 
 - `DONE` 실제 활성 템플릿 목록 확정 — `hidden`은 임시 판매 노출 상태이며 QA 제외 사유가 아님, `docs/active-template-qa.md`
-- `TODO` 오브 커피
-- `TODO` 모카 포레스트
-- `TODO` 선데이 라인
-- `TODO` 라운드 포커스
-- `TODO` Brew Chapter
-- `TODO` 기타 활성 템플릿
+- `DONE` 오브 커피 — 반응형·dense/footer/widget/multi-page renderer와 격리 저장 round-trip
+- `DONE` 모카 포레스트 — 반응형 renderer와 격리 저장 round-trip
+- `DONE` 선데이 라인 — 반응형·dense·4개 locale 최대 길이 renderer와 격리 저장 round-trip
+- `DONE` 라운드 포커스 — 반응형·대표 메뉴 없음 fallback renderer와 격리 저장 round-trip
+- `DONE` Brew Chapter — cover/no-cover/no-image·페이지 이동 renderer와 격리 저장 round-trip
+- `DONE` 기타 활성 템플릿 — 누아 메뉴 반응형 renderer·fail-closed capability·격리 저장 round-trip
 - `TODO` 위젯·디자인·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 QA
 - `TODO` 한국어·영어·중국어·일본어 QA
 - `TODO` 생성·편집·최종 저장·preview·public QA

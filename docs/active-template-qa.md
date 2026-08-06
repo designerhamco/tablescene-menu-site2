@@ -45,6 +45,7 @@ Display 출시 대상:
 - 숨김 Basic 5개가 service allowlist에서 빠져 있어 향후 `available` 전환 후에도 구매 흐름에서 제외될 계약 오류를 수정했다. catalog status는 그대로 `hidden`이다.
 - 브루 챕터가 generic editor 탭으로 fallback해 다국어 탭이 빠지고 미지원 소개·이벤트 탭이 노출될 수 있던 구성을 전용 `cover` editor 계약으로 수정했다.
 - 출시 대상별 service, catalog status, editor tab, 브루 챕터·누아 메뉴의 fail-closed capability를 자동 테스트로 고정했다.
+- Basic 6개와 Display 1개의 starter를 격리된 snapshot으로 생성하고 최종 저장 payload 직렬화·파싱 round-trip을 검증한다. 페이지·카테고리·항목·혼합 순서 참조와 중복 ID, save contract gap을 함께 검사하며 DB write는 수행하지 않는다.
 
 ## 남은 QA
 
