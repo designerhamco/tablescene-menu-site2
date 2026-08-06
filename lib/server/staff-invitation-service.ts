@@ -46,6 +46,8 @@ export type StaffInvitationErrorCode =
   | "MENU_SITE_UNAVAILABLE"
   | "ACTIVE_MEMBER_EXISTS"
   | "PENDING_INVITATION_EXISTS"
+  | "INVITATION_NOT_FOUND"
+  | "INVITATION_BATCH_CHANGED"
   | "RATE_LIMITED"
   | "INVITATION_CREATE_FAILED"
   | "EMAIL_DELIVERY_FAILED";
@@ -383,4 +385,267 @@ export async function createStaffInvitation(
     invitationCount: createdInvitations.length,
     expiresAt: expiresAt.toISOString(),
   };
+}
+
+type PendingInvitationBatchRow = Pick<
+  Database["public"]["Tables"]["menu_site_invitations"]["Row"],
+  "id" | "invite_batch_id" | "menu_site_id" | "email_normalized" | "role" | "token_hash" | "expires_at" | "invited_by"
+>;
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+async function getOwnedPendingInvitationBatch({
+  adminClient,
+  actorUserId,
+  inviteBatchId,
+}: {
+  adminClient: AdminClient;
+  actorUserId: string;
+  inviteBatchId: string;
+}) {
+  if (!actorUserId || !isUuid(inviteBatchId)) {
+    throw new StaffInvitationError("INVITATION_NOT_FOUND", "대기 중인 초대를 찾을 수 없습니다.", 404);
+  }
+
+  const { data, error } = await adminClient
+    .from("menu_site_invitations")
+    .select("id, invite_batch_id, menu_site_id, email_normalized, role, token_hash, expires_at, invited_by")
+    .eq("invite_batch_id", inviteBatchId)
+    .eq("status", "pending")
+    .order("id");
+  const invitations = (data ?? []) as PendingInvitationBatchRow[];
+
+  if (error || invitations.length === 0) {
+    throw new StaffInvitationError("INVITATION_NOT_FOUND", "대기 중인 초대를 찾을 수 없습니다.", 404);
+  }
+  if (invitations.some((invitation) => invitation.invited_by !== actorUserId)) {
+    throw new StaffInvitationError("OWNER_ACCESS_REQUIRED", "이 초대를 관리할 사장 권한이 없습니다.", 403);
+  }
+
+  const menuSiteIds = [...new Set(invitations.map((invitation) => invitation.menu_site_id))];
+  const { data: menuSitesData, error: menuSitesError } = await adminClient
+    .from("menu_sites")
+    .select("id, name, status, user_id")
+    .in("id", menuSiteIds)
+    .eq("user_id", actorUserId);
+  const menuSites = menuSitesData ?? [];
+
+  if (menuSitesError || menuSites.length !== menuSiteIds.length) {
+    throw new StaffInvitationError("OWNER_ACCESS_REQUIRED", "이 초대를 관리할 사장 권한이 없습니다.", 403);
+  }
+
+  return { invitations, menuSites };
+}
+
+export async function resendStaffInvitationBatch(
+  {
+    actorUserId,
+    actorEmail,
+    inviteBatchId,
+  }: {
+    actorUserId: string;
+    actorEmail: string;
+    inviteBatchId: string;
+  },
+  {
+    adminSupabase,
+    sendEmail = sendNotificationEmail,
+    now = new Date(),
+  }: {
+    adminSupabase?: AdminClient;
+    sendEmail?: EmailSender;
+    now?: Date;
+  } = {},
+) {
+  if (!isStaffInvitationCreationEnabled()) {
+    throw new StaffInvitationError(
+      "INVITATIONS_DISABLED",
+      "직원 초대 재전송은 실제 이메일 환경 검증이 끝난 뒤 활성화됩니다.",
+      503,
+    );
+  }
+
+  const adminClient = adminSupabase ?? createAdminClient();
+  const normalizedActorEmail = normalizeStaffInvitationEmail(actorEmail);
+  const batchId = inviteBatchId.trim();
+  const { invitations, menuSites } = await getOwnedPendingInvitationBatch({
+    adminClient,
+    actorUserId: actorUserId.trim(),
+    inviteBatchId: batchId,
+  });
+  const emailValues = new Set(invitations.map((invitation) => invitation.email_normalized));
+  const roleValues = new Set(invitations.map((invitation) => invitation.role));
+  const tokenHashValues = new Set(invitations.map((invitation) => invitation.token_hash));
+  const oldExpiryValues = new Set(invitations.map((invitation) => invitation.expires_at));
+  const role = invitations[0]?.role;
+
+  if (
+    emailValues.size !== 1
+    || roleValues.size !== 1
+    || tokenHashValues.size !== 1
+    || oldExpiryValues.size !== 1
+    || !isStaffInvitationRole(role)
+  ) {
+    throw new StaffInvitationError("INVITATION_BATCH_CHANGED", "초대 묶음 상태가 변경되었습니다.", 409);
+  }
+  if (menuSites.some((menuSite) => menuSite.status === "archived")) {
+    throw new StaffInvitationError("MENU_SITE_UNAVAILABLE", "보관된 메뉴판의 초대는 다시 보낼 수 없습니다.", 409);
+  }
+
+  const oneHourAgoIso = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+  const { count: recentlyUpdatedCount, error: rateLimitError } = await adminClient
+    .from("menu_site_invitations")
+    .select("id", { count: "exact", head: true })
+    .eq("invited_by", actorUserId)
+    .gte("updated_at", oneHourAgoIso);
+
+  if (rateLimitError) {
+    throw new StaffInvitationError("INVITATION_CREATE_FAILED", "재전송 요청 한도를 확인하지 못했습니다.", 500);
+  }
+  if ((recentlyUpdatedCount ?? 0) + invitations.length > STAFF_INVITATION_MAX_ROWS_PER_HOUR) {
+    throw new StaffInvitationError("RATE_LIMITED", "초대 요청이 너무 많습니다. 1시간 뒤 다시 시도해 주세요.", 429);
+  }
+
+  const siteOrigin = getStaffInvitationSiteOrigin();
+  if (!siteOrigin) {
+    throw new StaffInvitationError("INVITATIONS_DISABLED", "직원 초대 링크 환경이 설정되지 않았습니다.", 503);
+  }
+
+  const nowIso = now.toISOString();
+  const rawToken = randomBytes(32).toString("base64url");
+  const newTokenHash = hashStaffInvitationToken(rawToken);
+  const oldTokenHash = invitations[0].token_hash;
+  const oldExpiresAt = invitations[0].expires_at;
+  const expiresAt = new Date(now.getTime() + STAFF_INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+  const { data: rotatedData, error: rotateError } = await adminClient
+    .from("menu_site_invitations")
+    .update({
+      token_hash: newTokenHash,
+      expires_at: expiresAt.toISOString(),
+      updated_at: nowIso,
+    })
+    .eq("invite_batch_id", batchId)
+    .eq("status", "pending")
+    .eq("token_hash", oldTokenHash)
+    .select("id, menu_site_id");
+  const rotatedInvitations = rotatedData ?? [];
+
+  if (rotateError || rotatedInvitations.length !== invitations.length) {
+    throw new StaffInvitationError("INVITATION_BATCH_CHANGED", "초대 묶음 상태가 변경되었습니다.", 409);
+  }
+
+  const rollbackRotation = async () => {
+    await adminClient
+      .from("menu_site_invitations")
+      .update({ token_hash: oldTokenHash, expires_at: oldExpiresAt, updated_at: nowIso })
+      .eq("invite_batch_id", batchId)
+      .eq("status", "pending")
+      .eq("token_hash", newTokenHash);
+  };
+  const inviteUrl = new URL("/staff/invitations/accept", siteOrigin);
+  inviteUrl.searchParams.set("token", rawToken);
+  const emailTemplate = buildStaffInvitationEmail({
+    inviterEmail: normalizedActorEmail,
+    inviteUrl: inviteUrl.toString(),
+    menuSiteNames: menuSites.map((menuSite) => menuSite.name),
+    role,
+    expiresAt,
+  });
+  let emailResult: Awaited<ReturnType<EmailSender>>;
+
+  try {
+    emailResult = await sendEmail({
+      to: invitations[0].email_normalized,
+      subject: `[재전송] ${emailTemplate.subject}`,
+      text: emailTemplate.text,
+      html: emailTemplate.html,
+    });
+  } catch {
+    emailResult = { ok: false, provider: "resend", error: "email request failed" };
+  }
+
+  if (!emailResult.ok) {
+    await rollbackRotation();
+    await adminClient.from("menu_site_audit_logs").insert(buildAuditRows({
+      invitations,
+      actorUserId,
+      action: "staff.invitation_delivery_failed",
+      inviteBatchId: batchId,
+      role,
+      extraMetadata: { provider: emailResult.provider, operation: "resend" },
+    }));
+    throw new StaffInvitationError("EMAIL_DELIVERY_FAILED", "초대 이메일을 다시 보내지 못했습니다.", 502);
+  }
+
+  const { error: auditError } = await adminClient.from("menu_site_audit_logs").insert(buildAuditRows({
+    invitations: rotatedInvitations,
+    actorUserId,
+    action: "staff.invitation_resent",
+    inviteBatchId: batchId,
+    role,
+    extraMetadata: { provider: emailResult.provider },
+  }));
+
+  if (auditError) {
+    await rollbackRotation();
+    throw new StaffInvitationError("INVITATION_CREATE_FAILED", "재전송 감사 기록을 만들지 못했습니다.", 500);
+  }
+
+  return { invitationCount: rotatedInvitations.length, expiresAt: expiresAt.toISOString() };
+}
+
+export async function cancelStaffInvitationBatch(
+  {
+    actorUserId,
+    inviteBatchId,
+  }: {
+    actorUserId: string;
+    inviteBatchId: string;
+  },
+  {
+    adminSupabase,
+    now = new Date(),
+  }: {
+    adminSupabase?: AdminClient;
+    now?: Date;
+  } = {},
+) {
+  const adminClient = adminSupabase ?? createAdminClient();
+  const batchId = inviteBatchId.trim();
+  const { invitations } = await getOwnedPendingInvitationBatch({
+    adminClient,
+    actorUserId: actorUserId.trim(),
+    inviteBatchId: batchId,
+  });
+  const nowIso = now.toISOString();
+  const { data: revokedData, error: revokeError } = await adminClient
+    .from("menu_site_invitations")
+    .update({ status: "revoked", revoked_at: nowIso, updated_at: nowIso })
+    .eq("invite_batch_id", batchId)
+    .eq("status", "pending")
+    .select("id, menu_site_id, role");
+  const revokedInvitations = revokedData ?? [];
+
+  if (revokeError || revokedInvitations.length === 0) {
+    throw new StaffInvitationError("INVITATION_BATCH_CHANGED", "초대 묶음 상태가 변경되었습니다.", 409);
+  }
+
+  const auditRows: AuditInsert[] = revokedInvitations.map((invitation) => ({
+    menu_site_id: invitation.menu_site_id,
+    actor_user_id: actorUserId,
+    actor_role: "owner",
+    action: "staff.invitation_cancelled",
+    target_type: "menu_site_invitation",
+    target_id: invitation.id,
+    metadata: { invite_batch_id: batchId, role: invitation.role },
+  }));
+  const { error: auditError } = await adminClient.from("menu_site_audit_logs").insert(auditRows);
+
+  if (auditError) {
+    throw new StaffInvitationError("INVITATION_CREATE_FAILED", "초대는 취소했지만 감사 기록을 만들지 못했습니다.", 500);
+  }
+
+  return { invitationCount: Math.min(revokedInvitations.length, invitations.length) };
 }

@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { isStaffInvitationRole } from "@/lib/staff-invitations";
 import {
+  cancelStaffInvitationBatch,
   createStaffInvitation,
+  resendStaffInvitationBatch,
   StaffInvitationError,
 } from "@/lib/server/staff-invitation-service";
 import { createClient } from "@/lib/supabase/server";
@@ -62,4 +65,59 @@ export async function createStaffInvitationAction(
 
     return { status: "error", message: "직원 초대를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요." };
   }
+}
+
+function getStaffManagementActionError(error: unknown) {
+  if (!(error instanceof StaffInvitationError)) return "unexpected";
+  if (error.code === "INVITATIONS_DISABLED") return "delivery-disabled";
+  if (error.code === "INVITATION_NOT_FOUND" || error.code === "INVITATION_BATCH_CHANGED") return "invitation-changed";
+  if (error.code === "RATE_LIMITED") return "rate-limited";
+  if (error.code === "MENU_SITE_UNAVAILABLE") return "menu-unavailable";
+  if (error.code === "OWNER_ACCESS_REQUIRED") return "access-denied";
+  return "operation-failed";
+}
+
+export async function resendStaffInvitationAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  let resultCode = "resent";
+
+  if (userError || !user || !user.email || !user.email_confirmed_at || isDeletedAccountStatus(user.app_metadata)) {
+    resultCode = "auth-required";
+  } else {
+    try {
+      await resendStaffInvitationBatch({
+        actorUserId: user.id,
+        actorEmail: user.email,
+        inviteBatchId: getFormString(formData, "inviteBatchId"),
+      });
+    } catch (error) {
+      resultCode = getStaffManagementActionError(error);
+    }
+  }
+
+  revalidatePath("/mypage/staff");
+  redirect(`/mypage/staff?result=${resultCode}`);
+}
+
+export async function cancelStaffInvitationAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  let resultCode = "cancelled";
+
+  if (userError || !user || isDeletedAccountStatus(user.app_metadata)) {
+    resultCode = "auth-required";
+  } else {
+    try {
+      await cancelStaffInvitationBatch({
+        actorUserId: user.id,
+        inviteBatchId: getFormString(formData, "inviteBatchId"),
+      });
+    } catch (error) {
+      resultCode = getStaffManagementActionError(error);
+    }
+  }
+
+  revalidatePath("/mypage/staff");
+  redirect(`/mypage/staff?result=${resultCode}`);
 }

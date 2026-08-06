@@ -34,12 +34,22 @@
 - 성공 또는 재시도 불가능한 실패에는 intent cookie를 같은 path에서 제거한다.
 - 수락 화면은 `noindex`, `nofollow`, `no-referrer`로 제공한다.
 
+## 재전송과 취소
+
+- 재전송은 현재 Auth Owner가 초대 batch의 모든 메뉴판을 여전히 소유하는지 다시 확인한다.
+- 같은 batch의 pending row가 동일한 이메일·역할·token hash 상태일 때만 256-bit token과 7일 만료를 함께 회전한다.
+- 새 이메일 발송이 실패하면 새 hash를 조건부로 이전 hash와 만료일로 되돌리고 실패 audit를 남긴다.
+- 재전송도 시간당 초대 row 한도를 공유하며 실제 이메일 운영 gate가 꺼져 있으면 실행하지 않는다.
+- 취소는 현재 Owner가 소유한 batch의 pending row만 `revoked`로 변경하며 기존 token을 즉시 사용할 수 없게 한다.
+- 재전송과 취소는 각각 `staff.invitation_resent`, `staff.invitation_cancelled` audit를 남긴다.
+
 ## 검증 범위
 
 - 이메일 정규화와 역할 allowlist
 - 잘못된 이메일과 Owner 역할 fail closed
 - branded HTML에서 메뉴판 이름 escape
 - raw token 형식 제한과 SHA-256 hash
+- 재전송 token rotation·조건부 rollback과 Owner-only 취소 경계
 - 기존 Owner/Manager/Editor/Order Staff/Viewer 권한 회귀 테스트
 
 Production SQL·데이터·Auth·SMTP·환경변수·실제 이메일은 변경하거나 실행하지 않았다.
