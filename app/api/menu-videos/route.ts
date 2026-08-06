@@ -121,7 +121,7 @@ export async function POST(request: Request) {
 
   let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
   try {
-    writeAccess = await requireMenuSiteWriteAccess(menuId, "menu.edit");
+    writeAccess = await requireMenuSiteWriteAccess(menuId, "menu.edit", "menu_video_upload");
   } catch (error) {
     if (error instanceof MenuSiteAccessError) {
       return jsonError(error.message, error.status);

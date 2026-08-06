@@ -194,7 +194,7 @@ async function requireMenuWidgetImageContext(args: {
 
   let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
   try {
-    writeAccess = await requireMenuSiteWriteAccess(args.menuSiteId, "menu.edit");
+    writeAccess = await requireMenuSiteWriteAccess(args.menuSiteId, "menu.edit", "menu_widget_image_upload");
   } catch (error) {
     if (error instanceof MenuSiteAccessError) {
       return imageFailure(

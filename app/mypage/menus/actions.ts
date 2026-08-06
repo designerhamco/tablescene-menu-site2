@@ -1096,7 +1096,7 @@ async function requireOwnedMenuSite(
   let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
   try {
-    writeAccess = await requireMenuSiteWriteAccess(menuId, options.permission ?? "menu.edit");
+    writeAccess = await requireMenuSiteWriteAccess(menuId, options.permission ?? "menu.edit", "menu_editor_action");
   } catch (error) {
     if (error instanceof MenuSiteAccessError && error.code === "AUTH_REQUIRED") {
       redirect(`/sign-in?next=/mypage/menus/${menuId}/edit`);

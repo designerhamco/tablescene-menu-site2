@@ -30,7 +30,7 @@
 - `DONE` 직원용 마이페이지 상세 경험 — 관계 배지, permission 기반 기능 안내, 사장 전용 보관·삭제 탭 제외
 - `DONE` 이미지·동영상 Storage 권한 — Production Storage policy 변경 없이 권한 확인 후 서버 경계에서만 실행
 - `DONE` 위젯·번역·AI 권한 연결 — AI 사용은 Owner 크레딧, 충전·결제 UI는 Owner-only
-- `TODO` 감사 로그를 모든 직원 작업에 연결
+- `DONE` 감사 로그를 모든 직원 작업에 연결 — 공통 write gate에서 actor·role·permission·surface 기록, audit 실패 fail closed, `docs/staff-write-audit.md`
 
 ## 2. 메뉴판 미리보기 기기 프레임
 
@@ -143,4 +143,4 @@
 
 ## 다음 작업
 
-현재 PR을 완료한 다음 별도 브랜치에서 `감사 로그를 모든 직원 작업에 연결`을 진행한다. 실제 이메일 발송·SMTP/Auth 설정·Production 작업은 사람 승인 전에 실행하지 않는다.
+현재 PR을 완료한 다음 별도 브랜치에서 `메뉴판 미리보기 기기 프레임`의 PC·태블릿·모바일 프레임을 기존 renderer 재사용 범위로 진행한다. Production 작업은 사람 승인 전에 실행하지 않는다.

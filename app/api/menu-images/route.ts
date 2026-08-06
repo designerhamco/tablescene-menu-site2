@@ -147,7 +147,7 @@ async function requireMenuImageAccess(menuId: string) {
   let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
   try {
-    writeAccess = await requireMenuSiteWriteAccess(menuId, "menu.edit");
+    writeAccess = await requireMenuSiteWriteAccess(menuId, "menu.edit", "menu_image_upload");
   } catch (error) {
     if (error instanceof MenuSiteAccessError) {
       return {

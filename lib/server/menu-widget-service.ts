@@ -325,7 +325,7 @@ async function requireOwnedMenuSiteContext(menuSiteId: string): Promise<MenuWidg
   let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
   try {
-    writeAccess = await requireMenuSiteWriteAccess(menuSiteId, "menu.edit");
+    writeAccess = await requireMenuSiteWriteAccess(menuSiteId, "menu.edit", "menu_widget_mutation");
   } catch (error) {
     if (error instanceof MenuSiteAccessError) {
       return serviceError(
