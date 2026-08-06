@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
+import { buildMenuPreviewUrl, normalizeMenuPreviewDevice, type MenuPreviewQuery } from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
@@ -12,7 +14,14 @@ import { sortMenuPages } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
-  searchParams?: Promise<{ debugCafeA?: string | string[]; lang?: string | string[]; page?: string | string[] }>;
+  searchParams?: Promise<{
+    debugCafeA?: string | string[];
+    device?: string | string[];
+    embedded?: string | string[];
+    lang?: string | string[];
+    page?: string | string[];
+    view?: string | string[];
+  }>;
 };
 
 export const metadata: Metadata = {
@@ -110,6 +119,14 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const debugCafeA = process.env.NODE_ENV !== "production" && getSearchParamValue(query.debugCafeA) === "1";
   const locale = normalizeLocale(getSearchParamValue(query.lang));
   const requestedPageIndex = getPreviewPageIndex(query.page);
+  const isActualView = getSearchParamValue(query.view) === "actual";
+  const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
+  const device = normalizeMenuPreviewDevice(getSearchParamValue(query.device));
+  const previewQuery: MenuPreviewQuery = {
+    debugCafeA: getSearchParamValue(query.debugCafeA),
+    lang: getSearchParamValue(query.lang),
+    page: getSearchParamValue(query.page),
+  };
   const supabase = await createClient();
   const {
     data: { user },
@@ -139,6 +156,10 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     redirect("/mypage?error=menu-preview-not-allowed");
   }
 
+  if (!isActualView) {
+    return <MenuPreviewDeviceFrame device={device} menuId={menuId} query={previewQuery} />;
+  }
+
   return (
     <>
       {accessContext.isOwner ? (
@@ -152,6 +173,14 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         {...data}
       />
+      {!isEmbedded ? (
+        <Link
+          href={buildMenuPreviewUrl(menuId, previewQuery, { device })}
+          className="fixed bottom-4 right-4 z-[1000] rounded-full border border-white/30 bg-zinc-950/90 px-4 py-2.5 text-sm font-black text-white shadow-lg backdrop-blur transition-colors hover:bg-zinc-800"
+        >
+          기기 프레임으로 돌아가기
+        </Link>
+      ) : null}
     </>
   );
 }

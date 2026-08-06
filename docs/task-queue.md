@@ -34,11 +34,11 @@
 
 ## 2. 메뉴판 미리보기 기기 프레임
 
-- `TODO` PC 프레임
-- `TODO` 태블릿 프레임
-- `TODO` 모바일 프레임
-- `TODO` 기존 preview 화면과 renderer 재사용
-- `TODO` 새 창에서 실제 크기 보기
+- `DONE` PC 프레임 — 1440×900 동일 출처 iframe viewport
+- `DONE` 태블릿 프레임 — 820×1180 동일 출처 iframe viewport
+- `DONE` 모바일 프레임 — 390×844 동일 출처 iframe viewport
+- `DONE` 기존 preview 화면과 renderer 재사용 — 실제 렌더링 route와 `MenuPageRenderer`를 그대로 사용
+- `DONE` 새 창에서 실제 크기 보기
 - `DONE` 별도 scale 엔진을 만들지 않는 제품 정책 확정
 
 ## 3. 활성 템플릿 전체 기능 QA
@@ -143,4 +143,4 @@
 
 ## 다음 작업
 
-현재 PR을 완료한 다음 별도 브랜치에서 `메뉴판 미리보기 기기 프레임`의 PC·태블릿·모바일 프레임을 기존 renderer 재사용 범위로 진행한다. Production 작업은 사람 승인 전에 실행하지 않는다.
+기기 프레임 PR을 완료한 다음 `활성 템플릿 전체 기능 QA`를 진행한다. 실제 활성 템플릿 목록과 최종 디자인 육안 확인이 필요한 범위는 사람 확인 전 임의로 확정하지 않는다. Production 작업은 사람 승인 전에 실행하지 않는다.
