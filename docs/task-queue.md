@@ -72,10 +72,10 @@
 - `DONE` DB 기반 migration 초안 — server-only RLS, 테이블 수·세션 만료 constraint, token 회전·비활성 시 세션 revoke
 - `DONE` migration 수동 적용과 generated Supabase types 갱신 — 2026-08-06 `tablescene-prod` 1회 적용, `docs/runbooks/table-qr-session-foundation-migration.md`
 - `DONE` 테이블 관리 — Owner/Manager create·update·disable·token rotate·archive, default-off runtime gate
-- `TODO` 일반 메뉴 QR과 테이블 주문 QR 분리
+- `DONE` 일반 메뉴 QR과 테이블 주문 QR 분리 — 일반 slug는 세션을 만들지 않고 `/table/[token]`만 방문 세션 발급
 - `DONE` 안전한 QR token — 생성·회전 시 raw token 1회 전달, DB와 목록 DTO에는 SHA-256 hash만 유지
-- `TODO` 방문 세션과 만료
-- `TODO` 세션 재사용·탈취 방지
+- `DONE` 방문 세션과 만료 — server 발급, 12시간 이내 expiry, Secure·HttpOnly·SameSite=Lax cookie
+- `DONE` 세션 재사용·탈취 방지 — menu-site/table/status/revoke/expiry/User-Agent hash 검증, last-seen write throttle
 - `TODO` 테이블 QR 다운로드
 - `NEEDS_HUMAN` 실제 Order/Call 제품 key·번들 정책과 Production `TABLE_MANAGEMENT_ENABLED` 활성화
 
@@ -147,4 +147,4 @@
 
 ## 다음 작업
 
-테이블 관리와 hash-only token 발급은 default-off runtime으로 완료했다. 다음 저위험 마일스톤은 일반 메뉴 QR과 분리된 공개 table QR 진입, HttpOnly 방문 세션 발급·만료·server validation이다. 실제 제품 key·번들 정책과 Production feature gate는 사람이 확정하기 전까지 활성화하지 않는다.
+공개 table QR 진입과 server-validated 방문 세션은 default-off runtime으로 완료했다. 다음 저위험 마일스톤은 raw token이 제공되는 생성·회전 응답에서만 가능한 table QR 다운로드다. 실제 제품 key·번들 정책과 Production feature gate는 사람이 확정하기 전까지 활성화하지 않는다.

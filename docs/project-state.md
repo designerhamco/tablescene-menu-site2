@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `63a05e6` (`PR #21` 병합)
+기준 커밋: `e5ae414` (`PR #22` 병합)
 
 ## 완료된 주요 기능
 
@@ -90,10 +90,17 @@
   - hard delete 없이 보관 처리하며 비활성·보관·token 회전 시 DB trigger가 기존 방문 세션을 폐기
   - `TABLE_MANAGEMENT_ENABLED=true`가 아니면 UI와 server mutation을 모두 fail closed
   - 현재는 Business Basic의 Basic template만 허용하며 실제 제품 key·번들·Production 활성화는 미결정 상태로 유지
+- table QR·방문 세션 runtime 기반:
+  - 일반 메뉴 QR과 분리된 `/table/[token]` 진입에서 active table token hash와 공개 가능한 Basic 메뉴판을 server-only로 검증
+  - 방문 세션 원문은 최대 12시간의 Secure·HttpOnly·SameSite=Lax cookie에만 전달하고 DB에는 SHA-256 hash만 저장
+  - 메뉴판 ID·active table·만료·폐기·User-Agent hash가 모두 일치할 때만 세션을 재사용
+  - 일반 slug 접근은 세션을 생성하지 않으며 유효한 기존 세션만 공통 모바일 header의 table context에 연결
+  - 기능은 기존 default-off `TABLE_MANAGEMENT_ENABLED` gate 뒤에 있어 Production 활성화나 데이터 write가 발생하지 않음
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `e5ae414` — PR #22 병합: fail-closed 테이블 관리 runtime
 - `63a05e6` — PR #21 병합: 테이블 QR·방문 세션 generated types 갱신
 - `1f20762` — PR #20 병합: 테이블 QR·방문 세션 DB 기반
 - `e3e021d` — PR #19 병합: 모바일 Order/Call 공통 진입 셸
@@ -178,4 +185,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 15. PC·태블릿·모바일 미리보기는 동일 renderer와 실제 iframe viewport를 재사용한다.
 16. 활성 템플릿 QA와 모바일 Order/Call 공통 헤더 셸은 완료했다.
 17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다.
-18. 테이블 관리와 안전한 QR token 발급은 default-off runtime으로 구현했다. 다음 단계는 공개 table QR 진입과 server-validated 방문 세션이며, 실제 제품 key·번들·Production feature gate 활성화는 사람 결정 전까지 보류한다.
+18. 테이블 관리와 안전한 QR token 발급은 default-off runtime으로 구현했다.
+19. 공개 table QR 진입과 server-validated 방문 세션은 같은 gate 뒤에 구현했다. 다음 단계는 생성·회전 직후 table QR 다운로드이며, 실제 제품 key·번들·Production feature gate 활성화는 사람 결정 전까지 보류한다.

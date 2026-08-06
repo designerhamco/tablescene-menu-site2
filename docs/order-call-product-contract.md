@@ -283,7 +283,11 @@ Implementation status (2026-08-06):
 - Owner/Manager table create, update, disable, token rotation, and archive are implemented behind the default-off `TABLE_MANAGEMENT_ENABLED` runtime gate.
 - Only the token hash is persisted; the raw token and table QR path are returned once after create or rotation and are excluded from table list DTOs.
 - The runtime currently fails closed outside active Business Basic sites using a Basic template. Product-key mapping, bundling, and Production gate activation remain unresolved product decisions.
-- Public table QR entry, HttpOnly visit-session cookie issuance, and server validation remain locked for the next runtime milestone.
+- Public `/table/[token]` entry is separated from the read-only menu slug route and verifies the active table hash, public menu lifecycle, Business Basic plan, and Basic template on the server.
+- A visit-session raw token is delivered only as a Secure, HttpOnly, SameSite=Lax cookie with a database-enforced maximum lifetime of 12 hours.
+- Session reuse validates menu-site identity, active table state, expiry, revocation, and the hashed User-Agent context; last-seen writes are throttled.
+- A valid existing session can provide table context to the common mobile header, while Order and Call remain disabled until their entitlements and store-operation contracts are implemented.
+- The full runtime remains behind the default-off `TABLE_MANAGEMENT_ENABLED` gate, so no Production session issuance is activated by this code change.
 
 ## 10. Postpay Order
 
