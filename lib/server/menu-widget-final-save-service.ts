@@ -214,7 +214,7 @@ async function requireMenuWidgetFinalSaveContext(
   let writeAccess: Awaited<ReturnType<typeof requireMenuSiteWriteAccess>>;
 
   try {
-    writeAccess = await requireMenuSiteWriteAccess(menuSiteId, "menu.edit");
+    writeAccess = await requireMenuSiteWriteAccess(menuSiteId, "menu.edit", "menu_widget_final_save");
   } catch (error) {
     if (error instanceof MenuSiteAccessError) {
       return serviceError(

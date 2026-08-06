@@ -18,6 +18,11 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import {
+  buildStaffWriteAuditEntry,
+  type AuditedMenuSiteWritePermission,
+  type MenuSiteWriteSurface,
+} from "@/lib/staff-write-audit";
 
 type MenuSiteRow = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -545,7 +550,8 @@ export async function requireMenuSitePermission(
 
 export async function requireMenuSiteWriteAccess(
   menuSiteId: string,
-  permission: Extract<MenuSitePermission, "menu.edit" | "menu.publish" | "ai.use">,
+  permission: AuditedMenuSiteWritePermission,
+  surface: MenuSiteWriteSurface,
 ) {
   const context = await requireMenuSitePermission(menuSiteId, permission);
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId });
@@ -576,10 +582,24 @@ export async function requireMenuSiteWriteAccess(
     );
   }
 
+  const adminSupabase = createAdminClient();
+  const auditEntry = buildStaffWriteAuditEntry(context, permission, surface);
+
+  if (auditEntry) {
+    const { error: auditError } = await adminSupabase.from("menu_site_audit_logs").insert(auditEntry);
+    if (auditError) {
+      throw new MenuSiteAccessError(
+        "MENU_SITE_ACCESS_CHECK_FAILED",
+        "직원 작업 감사 기록을 만들지 못해 작업을 시작할 수 없습니다.",
+        500,
+      );
+    }
+  }
+
   return {
     context,
     accessState,
-    supabase: createAdminClient(),
+    supabase: adminSupabase,
   };
 }
 
