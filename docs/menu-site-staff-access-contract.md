@@ -1,9 +1,10 @@
 # Menu Site Staff Access Contract
 
-Status: Phase A foundation approved; Phase B runtime authorization pending
+Status: Phase A applied; Phase B-1 permission layer implemented; runtime integration pending
 Audit date: 2026-08-05
-Code baseline: `594b277 fix: align menu site purchase policy copy`
-Scope: product policy and read-only audit only
+Phase B-1 implementation date: 2026-08-06
+Code baseline: `ab6da4c feat: add menu site staff access foundation`
+Scope: product contract, Phase A foundation, and Phase B-1 common authorization layer
 
 ## 1. Audit Boundary
 
@@ -11,13 +12,17 @@ This document defines the first owner/staff access contract for MenuLink and rec
 
 The audit used the current application code, generated Supabase types, schema SQL, migrations, existing product contracts, and a read-only Production catalog query. The query confirmed `menu_sites` RLS, its current policies, `private` schema, `pgcrypto`, `set_updated_at()`, and the existing private owner helper. It did not mutate Production. Because this project has historically applied some SQL manually, the migration runbook still begins with a repeatable read-only precheck of RLS, policies, grants, functions, Storage policies, constraints, and existing rows.
 
-This step did not:
+The Phase B-1 implementation did not:
 
 - create or apply a migration;
 - change RLS, grants, Storage policies, Auth settings, or generated types;
 - implement invitation UI, email delivery, staff pages, Order, or Call;
 - write to Database or Storage;
 - change billing, payment, subscription, refund, retention, or AI credit behavior.
+
+Phase B-1 adds the shared permission matrix and server access helpers only. Existing menu actions,
+RLS, Storage policies, owner-only billing routes, staff UI, and invitation flows are not connected
+to the new helpers yet.
 
 ## 2. Decisions
 
