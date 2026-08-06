@@ -25,6 +25,7 @@ type TableQrTarget = {
 };
 
 export type ResolvedTableVisitSession = {
+  id: string;
   menuSiteId: string;
   menuTableId: string;
   tableLabel: string;
@@ -159,6 +160,7 @@ export async function resolveTableVisitSession({
   }
 
   return {
+    id: session.id,
     menuSiteId: expectedMenuSiteId,
     menuTableId: table.id,
     tableLabel: table.label,
@@ -210,11 +212,12 @@ export async function issueTableVisitSession({
         user_agent_hash: material.userAgentHash,
         expires_at: material.expiresAt.toISOString(),
       })
-      .select("expires_at")
+      .select("id, expires_at")
       .maybeSingle();
 
     if (!error && data) {
       return {
+        id: data.id,
         menuSiteId: target.menuSiteId,
         menuTableId: target.menuTableId,
         tableLabel: target.tableLabel,

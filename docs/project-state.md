@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `b2b0607` (`PR #24` 병합)
+기준 커밋: `80a3897` (`PR #25` 병합)
 
 ## 완료된 주요 기능
 
@@ -102,10 +102,16 @@
   - table visit session에 연결된 주문 header와 immutable 메뉴·가격·option snapshot
   - session 단위 idempotency와 20 lines·50 units 한도를 DB에서 강제
   - server-only 강제 RLS와 최소 `service_role` 권한으로 Production 1회 적용 및 generated types 갱신 완료
+- 후불 주문 default-off runtime 진행 중:
+  - template 밖 공통 모바일 cart drawer에서 메뉴·주문 option·수량·요청사항 관리
+  - 같은 table visit session scope의 device-local cart와 retry request UUID 유지
+  - same-origin POST와 server-validated HttpOnly session, 사이트 allowlist, public lifecycle 재검증
+  - 원자적 snapshot·품절·option·idempotency RPC migration은 Production 적용 전 상태
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `80a3897` — PR #25 병합: 후불 주문 schema Production 적용과 generated types 갱신
 - `b2b0607` — PR #24 병합: one-time table QR PNG 다운로드
 - `16f9673` — PR #23 병합: fail-closed table QR 방문 세션 runtime
 - `e5ae414` — PR #22 병합: fail-closed 테이블 관리 runtime
@@ -196,4 +202,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다.
 18. 테이블 관리와 안전한 QR token 발급은 default-off runtime으로 구현했다.
 19. 공개 table QR 진입, server-validated 방문 세션, 생성·회전 직후 browser-local QR 다운로드를 같은 gate 뒤에 구현했다.
-20. 후불 주문 V1 schema migration은 Production에 1회 적용했고 generated types를 갱신했다. 다음 단계는 default-off server-side atomic 주문 제출과 모바일 cart runtime이며, 실제 상품 SKU·가격·Production feature gate 활성화는 별도 승인 전까지 보류한다.
+20. 후불 주문 V1 schema migration은 Production에 1회 적용했고 generated types를 갱신했다.
+21. default-off 모바일 cart와 atomic 주문 제출 runtime은 `agent/postpay-order-runtime`에서 구현했다. 다음 승인 지점은 RPC migration Production 1회 적용과 generated types 갱신이며, 실제 상품 SKU·가격·entitlement·Production gate 활성화는 별도 승인 전까지 보류한다.

@@ -5,6 +5,11 @@ import { notFound } from "next/navigation";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getPublicMenuDataBySlug, type MenuPageData } from "@/lib/menu-page-data";
+import { isPostpayOrderRuntimeEnabledForSite } from "@/lib/postpay-order-runtime";
+import {
+  createPostpayCartScope,
+  getPostpayOrderCatalog,
+} from "@/lib/server/postpay-order-catalog-service";
 import { getMenuSiteAccessStateBySlug, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { resolveTableVisitSession } from "@/lib/server/table-visit-session-service";
 import { TABLE_VISIT_SESSION_COOKIE } from "@/lib/table-qr-session-tokens";
@@ -133,6 +138,14 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     userAgent: headerStore.get("user-agent"),
   });
   const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
+  const postpayOrderEnabled = Boolean(
+    tableSession
+    && accessState.planType === "business_basic"
+    && isPostpayOrderRuntimeEnabledForSite(data.menuSite.id),
+  );
+  const orderCatalog = postpayOrderEnabled
+    ? await getPostpayOrderCatalog(data.menuSite.id)
+    : [];
 
   return (
     <MenuPageRenderer
@@ -140,13 +153,16 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
       initialPreviewPageId={getDisplayInitialPageId(data, requestedPageIndex)}
       orderCallConfig={tableSession ? {
         mode: "active",
-        orderEnabled: false,
+        orderEnabled: postpayOrderEnabled,
         callEnabled: false,
         hasValidTableSession: true,
-        orderingOpen: false,
+        orderingOpen: postpayOrderEnabled,
         languageSlotEnabled: true,
         storeName,
         tableLabel: tableSession.tableLabel,
+        menuSiteId: data.menuSite.id,
+        cartScope: createPostpayCartScope(tableSession.id),
+        orderCatalog,
       } : undefined}
       {...data}
     />
