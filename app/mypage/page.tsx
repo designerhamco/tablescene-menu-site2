@@ -39,6 +39,7 @@ import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-p
 import { getTemplateDisplayName } from "@/lib/templates";
 import { isTemplateSupportedForService } from "@/lib/template-types";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
+import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
 import type { Json } from "@/lib/supabase/types";
 import { hasMenuSitePermission, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
@@ -1363,6 +1364,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     ? "직원 초대를 수락했습니다. 배정된 메뉴판을 확인해 주세요."
     : messageCode === "table-management-locked"
       ? "테이블 관리는 상품 활성화 정책이 확정될 때까지 안전하게 잠겨 있습니다."
+      : messageCode === "order-dashboard-locked"
+        ? "주문관리는 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
       : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
@@ -2364,6 +2367,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           && planType === "business_basic"
           && isTemplateSupportedForService(site.template_key, "basic")
           && canUseMenuActions,
+        canManageOrders: Boolean(siteId) && isOrderDashboardRuntimeEnabledForSite(siteId),
         canOwnerPreview,
         canViewPublic: canOpenPublicPage,
         canDownloadQr: canOpenPublicPage && Boolean(qrDownloadUrl),
@@ -2400,12 +2404,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const canManageTables = tableManagementEnabled
       && isTemplateSupportedForService(site.templateKey, "basic")
       && hasMenuSitePermission(site.memberRole, "table.manage");
+    const canManageOrders = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)
+      && hasMenuSitePermission(site.memberRole, "order.read");
     const permissionSummary = [
       "미리보기",
       canEdit ? "메뉴 편집" : null,
       canPublish ? "공개 관리" : null,
       canUseAi ? "AI 도우미" : null,
       canManageTables ? "테이블 관리" : null,
+      canManageOrders ? "주문관리" : null,
     ].filter((value): value is string => Boolean(value)).join(" · ");
     return {
       key: `staff-${site.menuSiteId}`,
@@ -2418,6 +2425,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       updatedAt: site.updatedAt,
       canEdit,
       canManageTables,
+      canManageOrders,
       canViewPublic: site.status === "published" && Boolean(site.slug),
       permissionSummary,
     };
@@ -2544,6 +2552,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               disabledReason: card.actions.editDisabledReason,
             })}
             {renderActionButton({
+              label: "주문관리",
+              href: card.siteId ? `/mypage/menus/${card.siteId}/orders` : null,
+              enabled: card.actions.canManageOrders,
+              disabledReason: "주문관리 상품이 활성화되지 않았습니다.",
+            })}
+            {renderActionButton({
               label: "미리보기",
               href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
               enabled: card.actions.canOwnerPreview,
@@ -2618,6 +2632,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-800 transition-colors hover:bg-emerald-100"
             >
               테이블 관리
+            </Link>
+          ) : null}
+          {card.canManageOrders ? (
+            <Link
+              href={`/mypage/menus/${card.siteId}/orders`}
+              className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-900 transition-colors hover:bg-amber-100"
+            >
+              주문관리
             </Link>
           ) : null}
           <Link

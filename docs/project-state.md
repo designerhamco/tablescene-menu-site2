@@ -107,6 +107,12 @@
   - 같은 table visit session scope의 device-local cart와 retry request UUID 유지
   - same-origin POST와 server-validated HttpOnly session, 사이트 allowlist, public lifecycle 재검증
   - 원자적 snapshot·품절·option·idempotency RPC는 Production 1회 적용 및 generated types 갱신 완료
+- 후불 주문관리 default-off runtime:
+  - `order.read/manage/cancel_unpaid`, `payment.manual` 권한 재검증과 직원 audit gate
+  - 접수→조리 전→조리 중→조리 완료→제공 완료 전방향 conditional update
+  - 미결제·미제공 취소, 외부 카드 단말기·현금 결제 완료, actor/timestamp 기록
+  - 15초 갱신 대시보드와 immutable snapshot 인쇄 영수증
+  - `ORDER_DASHBOARD_ENABLED` + explicit site allowlist 없이 Production에서 노출·write 안 됨
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -205,3 +211,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 19. 공개 table QR 진입, server-validated 방문 세션, 생성·회전 직후 browser-local QR 다운로드를 같은 gate 뒤에 구현했다.
 20. 후불 주문 V1 schema migration은 Production에 1회 적용했고 generated types를 갱신했다.
 21. default-off 모바일 cart와 atomic 주문 제출 runtime을 구현했고 RPC migration Production 1회 적용과 generated types 갱신까지 완료했다. 실제 상품 SKU·가격·entitlement·Production gate 활성화는 별도 승인 전까지 보류한다.
+22. 주문관리·미결제 취소·외부 수동 결제·영수증은 `agent/postpay-order-dashboard`에서 default-off runtime으로 구현했다. 실제 Order Dashboard 상품과 Production gate 활성화는 별도 승인 전까지 보류한다.

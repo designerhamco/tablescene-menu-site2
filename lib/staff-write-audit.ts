@@ -8,12 +8,21 @@ export const MENU_SITE_WRITE_SURFACES = [
   "menu_widget_mutation",
   "menu_widget_final_save",
   "menu_table_management",
+  "order_status_management",
+  "order_unpaid_cancellation",
+  "order_manual_payment",
 ] as const;
 
 export type MenuSiteWriteSurface = (typeof MENU_SITE_WRITE_SURFACES)[number];
 export type AuditedMenuSiteWritePermission = Extract<
   MenuSitePermission,
-  "menu.edit" | "menu.publish" | "ai.use" | "table.manage"
+  | "menu.edit"
+  | "menu.publish"
+  | "ai.use"
+  | "table.manage"
+  | "order.manage"
+  | "order.cancel_unpaid"
+  | "payment.manual"
 >;
 
 export function buildStaffWriteAuditEntry(

@@ -509,6 +509,16 @@ Policies:
 - 권장: Table management.
 - 권장: QR issuing.
 
+Implementation status (2026-08-06):
+
+- The store dashboard is implemented as a separate `/mypage/menus/[menuId]/orders` surface and never inside a menu renderer or editor.
+- Reads and mutations reauthenticate and reauthorize `order.read`, `order.manage`, `order.cancel_unpaid`, and `payment.manual` at the server boundary.
+- Status changes are forward-only conditional updates: `received` → `accepted` → `cooking` → `ready` → `served`.
+- Cancellation is limited to unpaid, unserved orders with a required 1–500 character reason.
+- Manual card-terminal and cash completion record `manual_paid`, the external method, timestamp, and authenticated actor; MenuLink does not perform card authorization.
+- The dashboard refreshes every 15 seconds and prints snapshot-based browser receipts.
+- Production remains fail-closed unless `ORDER_DASHBOARD_ENABLED=true` and the menu site is explicitly included in `ORDER_DASHBOARD_ALLOWED_SITE_IDS`.
+
 ### Subscription And Billing
 
 - 확정: Order/Call add-on purchase, cancellation, and restore belong in subscription/billing surfaces.
