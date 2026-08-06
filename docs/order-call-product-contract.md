@@ -246,13 +246,18 @@ Fixed printed QR:
 - 확정: QR contains a public table token.
 - 확정: The printed QR does not need to be regenerated for each visit.
 - 확정: Each table has a unique token.
-- 권장: Token should identify a table without exposing raw internal IDs.
+- 확정: Token identifies a table without exposing raw internal IDs.
+- 확정: Only a SHA-256 token hash is stored in the database.
+- 확정: The raw token is delivered only when a table is created or its token is rotated.
+- 확정: If the original QR file is lost, rotating the token creates a new downloadable QR and invalidates the old printed QR.
+- 확정: A menu site can have at most 100 non-archived physical tables.
 
 ## 9. Visit Session Contract
 
 - 확정: A visit session is issued by the server after a valid table QR is opened.
-- 확정: A visit session has an expiration time.
-- 확정: A visit session is stored safely in the browser.
+- 확정: A visit session expires after at most 12 hours.
+- 확정: The raw visit-session token is stored in an HttpOnly, Secure, SameSite=Lax browser cookie.
+- 확정: Only the SHA-256 visit-session token hash is stored in the database.
 - 확정: Order and Call actions require a valid session.
 - 확정: If the session expires, the customer must re-authenticate by rescanning QR or refreshing through a valid session flow.
 
@@ -261,12 +266,20 @@ Security:
 - 확정: Raw `menu_site_id` plus table number is insufficient for permission.
 - 확정: Guessable sequential numbers must not grant order permission.
 - 확정: Public table token must be sufficiently random.
-- 미결정: Whether raw token or token hash is stored in DB.
+- 확정: Raw table and visit-session tokens are never stored in DB; SHA-256 hashes are stored instead.
 - 확정: Session validation happens on the server.
 - 확정: URL query manipulation must not switch a customer to another table.
 - 확정: Session must match table and menu_site.
 - 확정: Disabled or deleted tables must not create new sessions.
+- 확정: Disabling, archiving, or rotating a table token revokes its active visit sessions.
+- 확정: A visit session is bound to a hashed browser user-agent context as an additional theft-reduction signal.
 - 확정: During order submission, the server determines table identity. Client-provided table identity is not trusted.
+
+Implementation status (2026-08-06):
+
+- The schema foundation defines `menu_tables` and `table_visit_sessions` as server-only, RLS-enabled tables.
+- The migration enforces the 100-table limit and 12-hour maximum session lifetime at the database boundary.
+- Runtime table management, one-time QR delivery, cookie issuance, and server validation remain locked until the migration is manually approved and applied to Production, followed by generated type refresh.
 
 ## 10. Postpay Order
 
@@ -571,8 +584,6 @@ Do not infer these in implementation:
 - 미결정: Final PG provider.
 - 미결정: PG fee policy.
 - 미결정: Settlement cycle.
-- 미결정: Exact table session expiration duration.
-- 미결정: Maximum table count.
 - 미결정: Maximum staff count.
 - 미결정: Maximum items per order.
 - 미결정: Exact call rate limit.
