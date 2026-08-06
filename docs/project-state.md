@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `16f9673` (`PR #23` 병합)
+기준 커밋: `b2b0607` (`PR #24` 병합)
 
 ## 완료된 주요 기능
 
@@ -101,6 +101,7 @@
 
 ## 최근 주요 커밋과 PR
 
+- `b2b0607` — PR #24 병합: one-time table QR PNG 다운로드
 - `16f9673` — PR #23 병합: fail-closed table QR 방문 세션 runtime
 - `e5ae414` — PR #22 병합: fail-closed 테이블 관리 runtime
 - `63a05e6` — PR #21 병합: 테이블 QR·방문 세션 generated types 갱신
@@ -188,4 +189,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 16. 활성 템플릿 QA와 모바일 Order/Call 공통 헤더 셸은 완료했다.
 17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다.
 18. 테이블 관리와 안전한 QR token 발급은 default-off runtime으로 구현했다.
-19. 공개 table QR 진입, server-validated 방문 세션, 생성·회전 직후 browser-local QR 다운로드를 같은 gate 뒤에 구현했다. 다음 단계는 모바일 장바구니·후불 주문 계약 감사이며, 실제 제품 key·번들·Production feature gate 활성화는 사람 결정 전까지 보류한다.
+19. 공개 table QR 진입, server-validated 방문 세션, 생성·회전 직후 browser-local QR 다운로드를 같은 gate 뒤에 구현했다.
+20. 후불 주문 V1 권장 정책은 승인됐다. 다음 단계는 주문 schema migration의 Production 수동 적용과 generated types 갱신이며, 실제 상품 SKU·가격·Production feature gate 활성화는 별도 승인 전까지 보류한다.
