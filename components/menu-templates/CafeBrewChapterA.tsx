@@ -5,6 +5,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import { useTimeSaleNow } from "@/components/menu-templates/shared/useTimeSaleNow";
 import type { PublicMenuCategory, PublicMenuItem, PublicMenuItemPriceOption, PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
@@ -672,6 +673,9 @@ export default function CafeBrewChapterA(data: PublicMenuTemplateProps) {
       <>
         <KoreanFontAssets assets={typographyFontAssets} />
         <main className="menu-typography cafe-a-typography brew-chapter-template" style={typographyStyle} data-brew-chapter-template="">
+          <div className="fixed right-4 top-4 z-50">
+            <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact />
+          </div>
           <section className="brew-chapter-unit brew-chapter-menu-unit" data-brew-unit="empty">
             <div className="brew-chapter-empty-state cafe-a-description-text cafe-a-menu-description">표시할 메뉴가 없습니다.</div>
           </section>
@@ -684,6 +688,9 @@ export default function CafeBrewChapterA(data: PublicMenuTemplateProps) {
     <>
       <KoreanFontAssets assets={typographyFontAssets} />
       <main className="menu-typography cafe-a-typography brew-chapter-template" style={typographyStyle} data-brew-chapter-template="">
+        <div className="fixed right-4 top-4 z-50">
+          <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact />
+        </div>
         {activeUnit?.type === "cover" ? <CoverUnit data={data} gestureHandlers={gestureHandlers} /> : null}
         {activeUnit?.type === "category" ? (
           <MenuUnit

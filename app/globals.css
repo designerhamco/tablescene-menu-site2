@@ -353,6 +353,7 @@ video {
   font-weight: var(--menu-role-supporting-font-weight, 400);
   letter-spacing: 0;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .cafe-a-typography .cafe-a-menu-description.cafe-a-menu-description-wrap {
@@ -2283,6 +2284,11 @@ video {
     text-align: center;
   }
 
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] header > div > div:first-child {
+    max-width: 100%;
+    width: 100%;
+  }
+
   .cafe-a-typography[data-cafe-a-skin="round_focus"] header > div > button {
     align-self: flex-end;
   }
@@ -2302,7 +2308,7 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] header .cafe-a-store-title {
-    overflow-wrap: normal;
+    overflow-wrap: anywhere;
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-round-focus-mobile-menu-grid {
