@@ -84,12 +84,14 @@
 - `DONE` V1 정책 확정 — Postpay 우선, Order·Call 별도 add-on, tableSessions 포함, 기기별 cart, 20 lines·50 units·line 20·요청 300자
 - `DONE` DB 기반 migration 초안 — orderable 분리, 주문 option, session-bound order, immutable snapshot, idempotency, server-only RLS
 - `DONE` migration Production 1회 적용과 generated Supabase types 갱신 — 2026-08-06 `tablescene-prod`, `docs/runbooks/postpay-order-foundation-migration.md`
-- `TODO` 메뉴·옵션 선택과 수량
-- `TODO` 장바구니와 요청사항
-- `TODO` 테이블 번호와 주문 전송
-- `TODO` 주문 당시 메뉴·가격 snapshot
-- `TODO` 품절 주문 차단
-- `TODO` 중복 주문 방지
+- `DONE` 메뉴·옵션 선택과 수량 — 공통 모바일 drawer, required/min/max option, line/total limit
+- `DONE` 장바구니와 요청사항 — visit-session scope local cart, 300자 요청, retry request UUID 유지
+- `DONE` 테이블 번호와 주문 전송 — HttpOnly session 재검증 API와 atomic RPC Production 적용 완료
+- `DONE` 주문 당시 메뉴·가격 snapshot — 제출 transaction에서 immutable snapshot 생성
+- `DONE` 품절 주문 차단 — 제출 transaction에서 `visible/orderable/is_sold_out` 재검증
+- `DONE` 중복 주문 방지 — session + client request UUID advisory lock/idempotency
+- `DONE` atomic 주문 RPC migration Production 1회 적용과 generated types 갱신 — 2026-08-06 `tablescene-prod`, `docs/runbooks/postpay-order-submission-rpc-migration.md`
+- `NEEDS_HUMAN` 실제 Order 상품 entitlement와 Production `POSTPAY_ORDER_ENABLED`, `POSTPAY_ORDER_ALLOWED_SITE_IDS` 활성화
 
 ## 7. 주문관리와 수동 결제
 
@@ -150,4 +152,4 @@
 
 ## 다음 작업
 
-후불 주문 V1 schema migration과 generated types 갱신은 완료됐다. 다음 안전한 범위는 default-off server-side atomic 주문 제출과 모바일 cart runtime이다. 실제 상품 SKU·가격과 Production feature gate 활성화는 계속 사람 승인 전까지 보류한다.
+default-off 모바일 cart와 atomic 주문 제출 runtime, Production RPC 적용과 generated types 갱신은 완료됐다. 다음 안전한 개발 범위는 주문관리의 조회·상태 전이·수동 결제 경계다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다.

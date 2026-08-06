@@ -318,6 +318,16 @@ Policies:
 - 확정: Store payment record and MenuLink order state are separate.
 - 권장: Manual payment completion should be auditable.
 
+Implementation status (2026-08-06):
+
+- The shared mobile shell owns a device-local cart scoped to a hashed table-visit session identifier; template renderers do not implement cart logic.
+- The cart supports order-only option groups, quantity, 20-line/50-unit/20-per-line limits, and a 300-character request.
+- The POST route revalidates same-origin, payload limits, HttpOnly table session, public lifecycle, Business Basic access, and explicit site allowlisting.
+- The proposed `submit_postpay_order` RPC revalidates session, table, menu orderability, sold-out state, option rules, and current prices inside one short transaction before creating immutable snapshots.
+- A client request UUID is reused for retries so the database returns the existing order instead of creating a duplicate.
+- Production remains fail-closed unless both `POSTPAY_ORDER_ENABLED=true` and an explicit `POSTPAY_ORDER_ALLOWED_SITE_IDS` match are present. These are temporary activation safeguards, not a replacement for the final product entitlement mapping.
+- The RPC migration was applied once to Production and generated types were refreshed on 2026-08-06. Do not reapply it.
+
 ## 11. Prepay Order
 
 Flow:

@@ -1,5 +1,28 @@
 export type OrderCallEntryMode = "locked" | "preview" | "active";
 
+export type PostpayOrderCatalogOptionValue = {
+  id: string;
+  name: string;
+  priceDelta: number;
+};
+
+export type PostpayOrderCatalogOptionGroup = {
+  id: string;
+  name: string;
+  isRequired: boolean;
+  minSelections: number;
+  maxSelections: number;
+  values: PostpayOrderCatalogOptionValue[];
+};
+
+export type PostpayOrderCatalogItem = {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  optionGroups: PostpayOrderCatalogOptionGroup[];
+};
+
 export type OrderCallEntryConfig = {
   mode: OrderCallEntryMode;
   orderEnabled: boolean;
@@ -10,6 +33,9 @@ export type OrderCallEntryConfig = {
   storeName?: string;
   tableLabel?: string;
   cartCount?: number;
+  menuSiteId?: string;
+  cartScope?: string;
+  orderCatalog?: PostpayOrderCatalogItem[];
 };
 
 export type OrderCallEntryVisibility = {
