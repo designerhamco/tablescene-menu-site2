@@ -50,7 +50,7 @@
 - `DONE` 라운드 포커스 — 반응형·대표 메뉴 없음 fallback renderer와 격리 저장 round-trip
 - `DONE` Brew Chapter — cover/no-cover/no-image·페이지 이동 renderer와 격리 저장 round-trip
 - `DONE` 기타 활성 템플릿 — 누아 메뉴 반응형 renderer·fail-closed capability·격리 저장 round-trip
-- `TODO` 위젯·디자인·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 QA
+- `DONE` 위젯·디자인·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 QA — 지원 capability 기반 desktop/mobile stress fixture와 계약 테스트
 - `DONE` 한국어·영어·중국어·일본어 QA — 7개 출시 템플릿의 52개 desktop/mobile route, 장문 overflow·이미지·언어 control 확인
 - `TODO` 생성·편집·최종 저장·preview·public QA
 - `DONE` Display 별도 정책 유지 결정

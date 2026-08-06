@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `6aa1dcb` (`PR #12` 병합)
+기준 커밋: `3ff49ea` (`PR #16` 병합)
 
 ## 완료된 주요 기능
 
@@ -67,10 +67,21 @@
   - `hidden`은 임시 판매 노출 상태로 유지하면서 QA에는 포함
   - 390×844·1440×900 renderer, 이미지, overflow, 콘솔 오류와 Display 페이지 이동을 점검
   - 상세 기록은 `docs/active-template-qa.md`
+- 활성 템플릿 저장·locale QA:
+  - 7개 starter의 최종 저장 payload round-trip과 참조 무결성 검증
+  - 4개 locale, Basic desktop/mobile과 Display desktop 총 52개 route의 장문·이미지·언어 control 검증
+  - 브루 챕터 언어 전환 control과 중국어·일본어 장문 overflow 수정
+- 활성 템플릿 기능 stress QA:
+  - capability 기반 위젯·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 desktop/mobile 검증
+  - Display와 누아 메뉴의 품절 표시 연결
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `3ff49ea` — PR #16 병합: 출시 템플릿 4개 locale QA
+- `bde6eb3` — PR #15 병합: 출시 템플릿 저장 round-trip
+- `f81f331` — PR #14 병합: 출시 템플릿 서비스·편집 계약
+- `bb55ed8` — PR #13 병합: 출시 템플릿 QA 기반
 - `6aa1dcb` — PR #12 병합: 메뉴판 미리보기 기기 프레임
 - `c8aba00` — PR #11 병합: 직원 write audit
 - `17f0509` — PR #10 병합: 직원용 마이페이지 상세 경험
@@ -143,4 +154,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 13. 직원용 마이페이지 상세 경험은 역할별 기능 안내와 Owner-only 동선 분리로 완료했다.
 14. 모든 직원 write 진입점은 공통 audit gate로 연결했다.
 15. PC·태블릿·모바일 미리보기는 동일 renderer와 실제 iframe viewport를 재사용한다.
-16. 다음 작업은 활성 템플릿 전체 기능 QA이며, 실제 활성 목록 확정과 최종 디자인 육안 판정은 사람 확인이 필요하다.
+16. 활성 템플릿 목록·renderer·서비스·편집·저장·locale·기능 stress QA는 완료했다. 다음 작업은 Production write 없는 생성·편집·preview·public 흐름 검증이다.

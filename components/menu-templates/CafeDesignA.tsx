@@ -5121,15 +5121,20 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
                                           dedupeSamePrices: true,
                                         });
                                   const metaText = getMenuItemMetaText(item, data.locale);
-                                  const badgeLabel = getMenuItemBadgeLabel(item);
+                                  const isSoldOut = item.is_sold_out === true;
+                                  const badgeLabel = isSoldOut ? getCafeASoldOutLabel(data.locale) : getMenuItemBadgeLabel(item);
 
                                   return (
-                                    <li key={item.id} className="text-[#161616]">
+                                    <li
+                                      key={item.id}
+                                      className={isSoldOut ? "text-[#76766f]" : "text-[#161616]"}
+                                      data-cafe-a-sold-out={isSoldOut ? "true" : undefined}
+                                    >
                                       <div className="flex min-w-0 items-baseline gap-2">
                                         <div className="flex min-w-0 max-w-[72%] flex-wrap items-baseline gap-x-2 gap-y-1">
                                           <p className="menu-font-en min-w-0 max-w-full whitespace-normal break-words text-[clamp(15px,1.68vh,16px)] font-semibold leading-tight tracking-[-0.002em]">{item.name}</p>
                                           {badgeLabel && (
-                                            <span className="menu-font-en shrink-0 rounded-full border border-[#1f1f1f] px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]">
+                                            <span className={`menu-font-en shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] ${isSoldOut ? "border-[#8a8a82] text-[#676760]" : "border-[#1f1f1f]"}`}>
                                               {badgeLabel}
                                             </span>
                                           )}

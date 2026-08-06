@@ -49,8 +49,18 @@ Display 출시 대상:
 - 출시 대상별 service, catalog status, editor tab, 브루 챕터·누아 메뉴의 fail-closed capability를 자동 테스트로 고정했다.
 - Basic 6개와 Display 1개의 starter를 격리된 snapshot으로 생성하고 최종 저장 payload 직렬화·파싱 round-trip을 검증한다. 페이지·카테고리·항목·혼합 순서 참조와 중복 ID, save contract gap을 함께 검사하며 DB write는 수행하지 않는다.
 
+## 기능 stress QA 결과
+
+개발 환경에서만 동작하는 `featureQa=1` fixture로 지원 capability에 맞춰 위젯 3종, 배지, 가격 옵션 3개, 품절, 활성 타임세일, 메뉴 이미지와 기존 커버를 함께 렌더링했다. catalog status와 저장 데이터는 바꾸지 않는다.
+
+- Basic 6개를 390×844와 1440×900에서 검사했다. 지원 기능 표시, 가로 overflow, 깨진 이미지와 콘솔 오류가 없다.
+- 위젯을 지원하는 오브 커피·모카 포레스트·선데이 라인·라운드 포커스에서 이미지·텍스트·이미지+텍스트 3종을 모두 확인했다. 브루 챕터·누아 메뉴·Display는 기존 fail-closed 위젯 미지원 계약을 유지한다.
+- Basic의 기본 한글·영문 font preset과 Display의 S/L 글자 크기를 검사했다. Display S/L은 네 locale 모두 fit 상태가 `settled`, overflow 상태가 `false`였다.
+- 배지·가격 옵션·품절·타임세일·이미지는 각 템플릿이 지원하는 범위에서 확인했다. 누아 메뉴의 이미지·가격 옵션·커버 미지원과 Display의 커버·타임세일 미지원은 그대로 유지한다.
+- Display와 누아 메뉴가 `is_sold_out`을 시각적으로 표시하지 않던 문제를 수정했다. Display는 네 locale에서 `품절`·`SOLD OUT`·`售罄`·`売り切れ`를 표시한다.
+- capability, starter feature evidence와 typography default를 자동 테스트로 고정했다.
+
 ## 남은 QA
 
-- 각 Basic 템플릿의 위젯·디자인·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 stress fixture
 - 생성·편집·최종 저장 round-trip은 Production 데이터를 사용하지 않는 격리 QA 환경 또는 기존 안전한 fixture가 필요하다.
 - 실제 메뉴판 preview/public 데이터 round-trip은 Production write 없이 수행한다.

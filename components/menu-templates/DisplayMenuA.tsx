@@ -20,6 +20,15 @@ type DisplayPage = PublicMenuTemplateProps["pages"][number];
 type DisplayCategory = PublicMenuTemplateProps["categories"][number];
 type DisplayItem = PublicMenuTemplateProps["items"][number];
 type DisplayPriceOption = PublicMenuTemplateProps["priceOptions"][number];
+type DisplayLocale = PublicMenuTemplateProps["locale"];
+
+const DISPLAY_SOLD_OUT_LABELS: Record<DisplayLocale, string> = {
+  ko: "품절",
+  en: "SOLD OUT",
+  zh: "售罄",
+  ja: "売り切れ",
+};
+
 type DisplayPriceRow = {
   label: string | null;
   price: string;
@@ -759,13 +768,16 @@ function MenuItemRow({
   priceOptions,
   densityConfig,
   optionHeaders,
+  locale,
 }: {
   item: DisplayItem;
   priceOptions: DisplayPriceOption[];
   densityConfig: DisplayDensityConfig;
   optionHeaders: DisplayOptionHeader[];
+  locale: DisplayLocale;
 }) {
   const badge = getMenuItemBadgeLabel(item);
+  const isSoldOut = item.is_sold_out === true;
   const itemName = normalizeDisplayText(item.name) || "";
   const priceRows = getItemPriceRows(item, priceOptions);
   const badgeStyle = badge ? getBadgeStyleForItem(item, "display_menu_a") : null;
@@ -773,7 +785,12 @@ function MenuItemRow({
   const optionGridStyle = optionHeaders.length > 0 ? getOptionGridStyle(optionHeaders) : null;
 
   return (
-    <article className="cafe-a-menu-item min-w-0 px-0" style={densityConfig.itemStyle} data-display-menu-item="">
+    <article
+      className="cafe-a-menu-item min-w-0 px-0"
+      style={densityConfig.itemStyle}
+      data-display-menu-item=""
+      data-display-sold-out={isSoldOut ? "true" : undefined}
+    >
       <div
         className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start overflow-visible"
         style={densityConfig.itemGridStyle}
@@ -787,15 +804,15 @@ function MenuItemRow({
               >
                 {renderDisplayTypographyText(itemName)}
               </h4>
-              {densityConfig.showBadge && badge && (
+              {densityConfig.showBadge && (isSoldOut || badge) && (
                 <span
-                  className="menu-badge cafe-a-menu-badge inline-flex shrink-0 rounded-[2px] font-black uppercase leading-none tracking-normal"
+                  className={`menu-badge cafe-a-menu-badge inline-flex shrink-0 rounded-[2px] font-black uppercase leading-none tracking-normal ${isSoldOut ? "cafe-a-sold-out-chip" : ""}`}
                   style={{
                     ...densityConfig.badgeStyle,
-                    ...(badgeStyle ? getBadgeStyleCss(badgeStyle) : {}),
+                    ...(!isSoldOut && badgeStyle ? getBadgeStyleCss(badgeStyle) : {}),
                   }}
                 >
-                  {badge}
+                  {isSoldOut ? DISPLAY_SOLD_OUT_LABELS[locale] : badge}
                 </span>
               )}
             </span>
@@ -847,12 +864,14 @@ function CategoryBlock({
   optionHeaders: providedOptionHeaders,
   priceOptions,
   densityConfig,
+  locale,
 }: {
   category: DisplayCategory;
   items: DisplayItem[];
   optionHeaders?: DisplayOptionHeader[];
   priceOptions: DisplayPriceOption[];
   densityConfig: DisplayDensityConfig;
+  locale: DisplayLocale;
 }) {
   const optionHeaders = providedOptionHeaders ?? getCategoryOptionHeaders(items, priceOptions);
   const optionGridStyle = optionHeaders.length > 0 ? getOptionGridStyle(optionHeaders) : null;
@@ -886,7 +905,7 @@ function CategoryBlock({
         data-display-category-item-grid="1"
       >
         {items.map((item) => (
-          <MenuItemRow key={item.id} item={item} priceOptions={priceOptions} densityConfig={densityConfig} optionHeaders={optionHeaders} />
+          <MenuItemRow key={item.id} item={item} priceOptions={priceOptions} densityConfig={densityConfig} optionHeaders={optionHeaders} locale={locale} />
         ))}
       </div>
     </section>
@@ -898,11 +917,13 @@ function DisplayMenuColumn({
   priceOptions,
   densityConfig,
   rowCqh,
+  locale,
 }: {
   groups: DisplayCategoryBlock[];
   priceOptions: DisplayPriceOption[];
   densityConfig: DisplayDensityConfig;
   rowCqh: number;
+  locale: DisplayLocale;
 }) {
   return (
     <div
@@ -935,6 +956,7 @@ function DisplayMenuColumn({
               optionHeaders={group.optionHeaders}
               priceOptions={priceOptions}
               densityConfig={densityConfig}
+              locale={locale}
             />
           ))}
         </div>
@@ -951,6 +973,7 @@ function MenuList({
   categoryBlocks: providedCategoryBlocks,
   columns = "auto",
   fontSizeScale,
+  locale,
 }: {
   page: DisplayPage;
   categories: DisplayCategory[];
@@ -959,6 +982,7 @@ function MenuList({
   categoryBlocks?: DisplayCategoryBlock[];
   columns?: "auto" | "single";
   fontSizeScale: number;
+  locale: DisplayLocale;
 }) {
   const categoryBlocks = providedCategoryBlocks ?? getCategoryBlocksForPage(page, categories, items, priceOptions);
   const renderedItemCount = getRenderedItemCount(categoryBlocks);
@@ -1078,6 +1102,7 @@ function MenuList({
             priceOptions={priceOptions}
             densityConfig={densityConfig}
             rowCqh={effectiveRowCqh}
+            locale={locale}
           />
         ))}
       </div>
@@ -1107,6 +1132,7 @@ function FullMenuPageView(props: {
   priceOptions: DisplayPriceOption[];
   categoryBlocks?: DisplayCategoryBlock[];
   fontSizeScale: number;
+  locale: DisplayLocale;
 }) {
   return (
     <section className="h-full min-h-0">
@@ -1123,6 +1149,7 @@ function SplitMenuPageView(props: {
   priceOptions: DisplayPriceOption[];
   categoryBlocks?: DisplayCategoryBlock[];
   fontSizeScale: number;
+  locale: DisplayLocale;
 }) {
   const imageFirst = props.settings.splitImagePosition !== "right";
   const menuPanel = (
@@ -1230,6 +1257,7 @@ function DisplayPageView({
         priceOptions={data.priceOptions}
         categoryBlocks={categoryBlocks ?? undefined}
         fontSizeScale={fontSizeScale}
+        locale={data.locale}
       />
     );
   }
@@ -1242,6 +1270,7 @@ function DisplayPageView({
       priceOptions={data.priceOptions}
       categoryBlocks={categoryBlocks ?? undefined}
       fontSizeScale={fontSizeScale}
+      locale={data.locale}
     />
   );
 }
