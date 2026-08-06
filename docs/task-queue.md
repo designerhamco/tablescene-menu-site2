@@ -95,12 +95,13 @@
 
 ## 7. 주문관리와 수동 결제
 
-- `TODO` 주문 접수·조리 전·조리 중·조리 완료·제공 완료
-- `TODO` 미결제 주문 취소와 취소 사유
-- `TODO` 기존 카드단말기 결제완료
-- `TODO` 현금 결제완료
-- `TODO` 처리 직원 기록
-- `TODO` 브라우저 영수증
+- `DONE` 주문 접수·조리 전·조리 중·조리 완료·제공 완료 — 전방향 단계별 conditional update
+- `DONE` 미결제 주문 취소와 취소 사유 — 제공 전·미결제만 1–500자 사유로 취소
+- `DONE` 기존 카드단말기 결제완료 — MenuLink 카드 승인 없이 `manual_card` 기록
+- `DONE` 현금 결제완료 — `manual_cash` 기록
+- `DONE` 처리 직원 기록 — 재인증 permission gate와 `status_updated_by`/`payment_completed_by`
+- `DONE` 브라우저 영수증 — immutable snapshot 기반 인쇄 전용 영수증
+- `NEEDS_HUMAN` 실제 Order Dashboard 상품 entitlement와 Production `ORDER_DASHBOARD_ENABLED`, `ORDER_DASHBOARD_ALLOWED_SITE_IDS` 활성화
 
 ## 8. Call 기능
 
@@ -152,4 +153,4 @@
 
 ## 다음 작업
 
-default-off 모바일 cart와 atomic 주문 제출 runtime, Production RPC 적용과 generated types 갱신은 완료됐다. 다음 안전한 개발 범위는 주문관리의 조회·상태 전이·수동 결제 경계다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다.
+default-off 모바일 cart·atomic 주문 제출·주문관리·수동 결제 runtime은 완료됐다. 다음 미완료 범위는 Call 기능이며, MVP preset 범위·중복 차단·rate limit 수치를 제품 정책으로 확정한 뒤 진행한다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다.

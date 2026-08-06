@@ -7,7 +7,7 @@ const { buildStaffWriteAuditEntry } = await import(
   new URL("./staff-write-audit.ts", import.meta.url).href
 ) as typeof import("./staff-write-audit");
 
-function context(role: "owner" | "manager" | "editor"): MenuSiteAccessContext {
+function context(role: "owner" | "manager" | "editor" | "order_staff"): MenuSiteAccessContext {
   return {
     menuSiteId: "site-a",
     actorUserId: `${role}-user`,
@@ -15,7 +15,15 @@ function context(role: "owner" | "manager" | "editor"): MenuSiteAccessContext {
     isOwner: role === "owner",
     memberRole: role === "owner" ? null : role,
     membershipId: role === "owner" ? null : `${role}-membership`,
-    permissions: new Set(role === "manager" ? ["menu.edit", "table.manage"] : role === "editor" ? ["menu.edit", "ai.use"] : []),
+    permissions: new Set(
+      role === "manager"
+        ? ["menu.edit", "table.manage"]
+        : role === "editor"
+          ? ["menu.edit", "ai.use"]
+          : role === "order_staff"
+            ? ["order.read", "order.manage", "order.cancel_unpaid", "payment.manual"]
+            : [],
+    ),
     menuSiteStatus: "published",
     lifecycleState: "active",
     staffAccessAllowed: true,
@@ -56,4 +64,16 @@ test("manager table writes use the shared fail-closed audit surface", () => {
       membership_id: "manager-membership",
     },
   });
+});
+
+test("order staff mutations use permission-specific audit surfaces", () => {
+  const entry = buildStaffWriteAuditEntry(
+    context("order_staff"),
+    "payment.manual",
+    "order_manual_payment",
+  );
+
+  assert.equal(entry?.metadata.permission, "payment.manual");
+  assert.equal(entry?.metadata.surface, "order_manual_payment");
+  assert.equal(entry?.actor_role, "order_staff");
 });
