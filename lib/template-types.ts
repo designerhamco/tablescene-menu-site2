@@ -84,6 +84,11 @@ export const TEMPLATE_TYPE_OPTIONS_BY_SERVICE = {
 const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]> = {
   basic: [
     "cafe_design_a",
+    "cafe_mocha_forest_a",
+    "cafe_sunday_line_a",
+    "cafe_round_focus_a",
+    "cafe_brew_chapter_a",
+    "cafe_noir_a",
     "cafe_design_b",
     "cafe_design_c",
     "fine_dining_design_a",
@@ -278,6 +283,10 @@ export const TEMPLATE_EDIT_CONFIG = {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
   },
+  cafe_brew_chapter_a: {
+    tabs: CAFE_DESIGN_A_EDITOR_TABS,
+    heroMode: "cover",
+  },
   cafe_noir_a: {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
@@ -294,6 +303,7 @@ const TEMPLATE_EDIT_CONFIG_ALIASES: Record<string, keyof typeof TEMPLATE_EDIT_CO
   cafe_mocha_forest_a: "cafe_mocha_forest_a",
   cafe_sunday_line_a: "cafe_sunday_line_a",
   cafe_round_focus_a: "cafe_round_focus_a",
+  cafe_brew_chapter_a: "cafe_brew_chapter_a",
   cafe_noir_a: "cafe_noir_a",
 };
 

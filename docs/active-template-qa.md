@@ -42,6 +42,9 @@ Display 출시 대상:
 - 썸머 블루 Display의 4개 페이지 전환이 동작하고 선택 페이지가 URL `page` query에 반영된다.
 - 템플릿 미리보기 route는 `ko`, `en`, `zh`, `ja` locale 상태와 언어 전환 control을 모두 재현한다. 번역이 없는 fixture 값은 실제 공개 route와 동일하게 기본값으로 fallback한다.
 - Display에 시각적으로 숨긴 site/page heading을 추가해 기존 `h3`/`h4` 메뉴 heading의 문서 계층을 복구했다. 화면 디자인에는 영향을 주지 않는다.
+- 숨김 Basic 5개가 service allowlist에서 빠져 있어 향후 `available` 전환 후에도 구매 흐름에서 제외될 계약 오류를 수정했다. catalog status는 그대로 `hidden`이다.
+- 브루 챕터가 generic editor 탭으로 fallback해 다국어 탭이 빠지고 미지원 소개·이벤트 탭이 노출될 수 있던 구성을 전용 `cover` editor 계약으로 수정했다.
+- 출시 대상별 service, catalog status, editor tab, 브루 챕터·누아 메뉴의 fail-closed capability를 자동 테스트로 고정했다.
 
 ## 남은 QA
 
