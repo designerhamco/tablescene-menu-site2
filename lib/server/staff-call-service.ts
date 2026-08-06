@@ -73,10 +73,10 @@ export async function submitStaffCall({
   await assertPublicBusinessAccess(menuSiteId);
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("submit_staff_call" as never, {
+  const { data, error } = await supabase.rpc("submit_staff_call", {
     p_menu_site_id: menuSiteId,
     p_table_visit_session_id: tableSession.id,
-  } as never);
+  });
   if (error) mapRpcError(error);
 
   const row = (Array.isArray(data) ? data[0] : null) as Partial<SubmitRpcRow> | null;
@@ -112,11 +112,11 @@ export async function cancelPendingStaffCall({
   const callId = normalizeCallId(callIdValue);
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("cancel_pending_staff_call" as never, {
+  const { data, error } = await supabase.rpc("cancel_pending_staff_call", {
     p_menu_site_id: menuSiteId,
     p_table_visit_session_id: tableSession.id,
     p_call_id: callId,
-  } as never);
+  });
   if (error) mapRpcError(error);
 
   const row = (Array.isArray(data) ? data[0] : null) as Partial<CancelRpcRow> | null;

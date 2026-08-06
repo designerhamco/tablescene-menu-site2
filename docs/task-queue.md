@@ -110,7 +110,7 @@
 - `DONE` 접수 확인과 처리 완료 — `pending → acknowledged → completed` conditional update
 - `DONE` 중복·과다 호출 방지 — 미처리 호출 반환, 완료·취소 후 2분 cooldown, session당 시간당 10회
 - `DONE` 호출 이력 — 최근 100건과 테이블·상태·시간을 15초 갱신 대시보드에서 조회
-- `NEEDS_HUMAN` Call MVP migration Production 1회 적용과 generated types 갱신
+- `DONE` Call MVP migration Production 1회 적용과 generated types 갱신 — 2026-08-07 `tablescene-prod`, `docs/runbooks/call-mvp-foundation-migration.md`
 - `NEEDS_HUMAN` 실제 Call 상품 entitlement와 Production `CALL_ENABLED`, `CALL_ALLOWED_SITE_IDS` 활성화
 
 ## 9. 선결제 PG

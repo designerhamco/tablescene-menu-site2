@@ -4,7 +4,17 @@
 
 대상 migration: `supabase/migrations/20260806142627_add_call_mvp_foundation.sql`
 
-상태: **Production 미적용. 사람의 명시적 승인 전에는 실행하지 않는다.**
+상태: **2026-08-07 `tablescene-prod`에 1회 적용 완료. 재실행 금지.**
+
+적용 기록:
+
+- linked Supabase Management API read-only precheck에서 테이블과 두 RPC가 모두 없음을 확인
+- `20260806142627_add_call_mvp_foundation.sql` 전체를 1회 적용
+- 테이블 RLS와 FORCE RLS 활성 확인
+- `anon`/`authenticated` 테이블·RPC 권한 없음과 `service_role` 최소 권한 확인
+- 두 RPC가 `security_invoker`, 빈 `search_path`로 고정된 것을 확인
+- security/performance advisor error 없음 확인
+- Production schema 기준 generated Supabase types 갱신
 
 ## 목적
 
@@ -20,7 +30,7 @@
 - 이미 존재하는 객체에 migration 재실행
 - Production 환경변수나 실제 호출 데이터 생성
 
-## 적용 전 read-only 확인
+## 적용 전 사용한 read-only 확인
 
 Supabase SQL Editor에서 다음을 실행한다.
 
@@ -33,11 +43,11 @@ select
 
 성공 기준: 세 값이 모두 `null`. 하나라도 존재하면 적용을 중단하고 기존 객체를 감사한다.
 
-## 승인 후 1회 적용
+## 적용 기록
 
-사람이 명시적으로 승인한 뒤 migration 파일 전체를 Supabase SQL Editor 또는 승인된 Management API로 한 번만 실행한다. 실행 성공 전까지 `CALL_ENABLED`와 `CALL_ALLOWED_SITE_IDS`는 설정하지 않는다.
+2026-08-07 사람의 명시적 승인 후 linked Supabase Management API를 통해 migration 파일 전체를 한 번 적용했다. 같은 migration을 다시 실행하지 않는다. `CALL_ENABLED`와 `CALL_ALLOWED_SITE_IDS`는 설정하지 않았다.
 
-## 적용 후 확인
+## 적용 후 사용한 확인
 
 ```sql
 select relname, relrowsecurity, relforcerowsecurity
@@ -67,14 +77,19 @@ order by p.proname;
 성공 기준:
 
 - 테이블의 RLS와 FORCE RLS가 모두 `true`
-- 테이블 권한은 `service_role`의 `SELECT`, `INSERT`, `UPDATE`뿐이며 `DELETE` 없음
+- 애플리케이션 역할 권한은 `service_role`의 `SELECT`, `INSERT`, `UPDATE`뿐이며 `anon`/`authenticated` 및 `service_role DELETE` 없음
 - 두 함수 모두 `security_definer=false`, `search_path=""`
 - `anon_execute=false`, `authenticated_execute=false`, `service_role_execute=true`
 
-## 코드 후속 작업
+## 완료 및 남은 운영 작업
+
+완료:
 
 1. `npm run supabase:types`로 generated types 갱신
-2. generated diff에서 `menu_customer_calls`와 두 RPC만 의도대로 추가됐는지 확인
+2. generated diff에서 `menu_customer_calls`와 두 RPC만 추가된 것을 확인
 3. TypeScript, lint, build, Call 관련 테스트 재실행
-4. 별도 PR로 Production 적용 기록과 generated types 반영
-5. 실제 Call 상품·사이트가 확정된 뒤에만 `CALL_ENABLED=true`와 명시적 `CALL_ALLOWED_SITE_IDS` 설정
+4. Production 적용 기록과 generated types를 Call MVP PR에 반영
+
+남음:
+
+- 실제 Call 상품·사이트가 확정된 뒤에만 `CALL_ENABLED=true`와 명시적 `CALL_ALLOWED_SITE_IDS` 설정

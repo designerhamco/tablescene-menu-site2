@@ -109,10 +109,10 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
   const [siteResult, callsResult, tablesResult] = await Promise.all([
     supabase.from("menu_sites").select("id, name").eq("id", menuSiteId).maybeSingle(),
     supabase
-      .from("menu_customer_calls" as never)
+      .from("menu_customer_calls")
       .select("id, call_number, menu_table_id, call_type, status, acknowledged_by, acknowledged_at, completed_by, completed_at, cancelled_at, created_at, updated_at")
-      .eq("menu_site_id" as never, menuSiteId as never)
-      .order("created_at" as never, { ascending: false })
+      .eq("menu_site_id", menuSiteId)
+      .order("created_at", { ascending: false })
       .limit(100),
     supabase.from("menu_tables").select("id, label").eq("menu_site_id", menuSiteId),
   ]);
@@ -165,10 +165,10 @@ export async function transitionStaffCall({
   const surface = nextStatus === "acknowledged" ? "call_acknowledgement" : "call_completion";
   const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "call.manage", surface);
   const currentResult = await supabase
-    .from("menu_customer_calls" as never)
+    .from("menu_customer_calls")
     .select("id, status")
-    .eq("menu_site_id" as never, menuSiteId as never)
-    .eq("id" as never, callId as never)
+    .eq("menu_site_id", menuSiteId)
+    .eq("id", callId)
     .maybeSingle();
   if (currentResult.error) failUpdate(currentResult.error);
   const current = currentResult.data as unknown as { id: string; status: string } | null;
@@ -190,11 +190,11 @@ export async function transitionStaffCall({
     : { status: normalizedNext, completed_by: context.actorUserId, completed_at: now };
 
   const updateResult = await supabase
-    .from("menu_customer_calls" as never)
-    .update(update as never)
-    .eq("menu_site_id" as never, menuSiteId as never)
-    .eq("id" as never, callId as never)
-    .eq("status" as never, current.status as never)
+    .from("menu_customer_calls")
+    .update(update)
+    .eq("menu_site_id", menuSiteId)
+    .eq("id", callId)
+    .eq("status", current.status)
     .select("id, status")
     .maybeSingle();
   if (updateResult.error) failUpdate(updateResult.error);
