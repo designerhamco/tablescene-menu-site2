@@ -12,6 +12,14 @@ export type OrderCallEntryConfig = {
   cartCount?: number;
 };
 
+export type OrderCallEntryVisibility = {
+  showHeader: boolean;
+  showLanguage: boolean;
+  showTableLabel: boolean;
+  showCall: boolean;
+  showCart: boolean;
+};
+
 export const LOCKED_ORDER_CALL_ENTRY_CONFIG: OrderCallEntryConfig = {
   mode: "locked",
   orderEnabled: false,
@@ -30,3 +38,15 @@ export function getLockedOrderCallEntryConfig(
   };
 }
 
+export function getOrderCallEntryVisibility(config: OrderCallEntryConfig): OrderCallEntryVisibility {
+  const showHeader = config.mode !== "locked";
+  const hasValidTableSession = showHeader && config.hasValidTableSession;
+
+  return {
+    showHeader,
+    showLanguage: showHeader && config.languageSlotEnabled,
+    showTableLabel: hasValidTableSession && Boolean(config.tableLabel?.trim()),
+    showCall: hasValidTableSession && config.callEnabled,
+    showCart: hasValidTableSession && config.orderEnabled && config.orderingOpen,
+  };
+}

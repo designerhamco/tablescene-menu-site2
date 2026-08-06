@@ -28,7 +28,9 @@ export default function MenuGnb({ site, currentLocale, enabledLocales }: MenuGnb
           )}
         </a>
         <div className="flex shrink-0 items-center gap-1.5">
-          <MenuLanguageSwitcher currentLocale={currentLocale} enabledLocales={enabledLocales} compact />
+          <div data-template-language-control="">
+            <MenuLanguageSwitcher currentLocale={currentLocale} enabledLocales={enabledLocales} compact />
+          </div>
           <button
             type="button"
             aria-label="메뉴 열기"

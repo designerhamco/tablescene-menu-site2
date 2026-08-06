@@ -21,6 +21,12 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+@media (max-width: 767px) {
+  [data-public-menu-entry-layer] [data-template-language-control] {
+    display: none !important;
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;

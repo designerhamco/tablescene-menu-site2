@@ -57,14 +57,14 @@
 
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
-- `TODO` 공통 모바일 상단 헤더
-- `TODO` 왼쪽 언어 변경
-- `TODO` 가운데 매장명과 테이블 번호
-- `TODO` 오른쪽 호출과 장바구니 및 장바구니 수량
-- `TODO` 기존 카테고리 탭 충돌 방지
+- `DONE` 공통 모바일 상단 헤더 — template 외부 `PublicMenuExperienceShell`, safe-area sticky shell
+- `DONE` 왼쪽 언어 변경 — 공통 locale control, 기존 template mobile control 중복 숨김
+- `DONE` 가운데 매장명과 테이블 번호 — 유효 세션 context에서만 table label 표시
+- `DONE` 오른쪽 호출과 장바구니 및 장바구니 수량 — 독립 visibility와 99+ 수량 shell, 실제 action은 방문 세션 이후 연결
+- `DONE` 기존 카테고리 탭 충돌 방지 — normal-flow sticky header와 6개 Basic mobile route QA
 - `DONE` 주문은 모바일만 지원하는 정책
 - `DONE` Display는 Order 미지원 정책
-- `TODO` 유효한 테이블 방문 세션이 없을 때 주문·호출 숨김
+- `DONE` 유효한 테이블 방문 세션이 없을 때 주문·호출 숨김 — UI fail-closed selector, 실제 server session 검증은 섹션 5에서 연결
 
 ## 5. 테이블 QR와 방문 세션
 

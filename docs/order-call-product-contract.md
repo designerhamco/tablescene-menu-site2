@@ -1,6 +1,6 @@
 # MenuLink Order·Call Product Contract
 
-Last updated: 2026-08-03
+Last updated: 2026-08-06
 
 ## 1. Purpose
 
@@ -216,6 +216,14 @@ Template integration:
 - 확정: CafeA, Mocha Forest, future top-brand, future center-brand, and Multi-page must use the same common header.
 - 확정: Template components must not implement their own Call or cart logic.
 - 확정: Template renderers only render public menu content below the common layer.
+
+Implementation status (2026-08-06):
+
+- The shared mobile header shell is implemented in `PublicMenuExperienceShell` outside template renderers.
+- The shell remains `locked` by default, so current public routes do not expose Order or Call before server-validated entitlements and table sessions exist.
+- A development-only `orderCallQa` fixture verifies active, Call-only, Order-only, and no-session visibility without DB writes.
+- Call and cart controls are intentionally disabled presentation shells until table session and action APIs are implemented.
+- Display bypasses the shared shell and remains excluded.
 
 ## 8. Public Menu QR And Table QR
 

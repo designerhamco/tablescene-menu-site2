@@ -10,55 +10,39 @@ import CafeMochaForestA from "./CafeMochaForestA";
 import DisplayMenuA from "./DisplayMenuA";
 import MultiPageMenuEngine from "./multi-page/MultiPageMenuEngine";
 import type { PublicMenuTemplateProps } from "./types";
+import type { ReactNode } from "react";
 
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
   const templateKey = normalizeTemplateKey(props.menuSite.template_key, props.menuSite.template_category);
   const storeName = props.menuSite.restaurant_name || props.menuSite.business_name || props.menuSite.name;
+  const withPublicMenuShell = (children: ReactNode) => (
+    <PublicMenuExperienceShell
+      templateKey={templateKey}
+      storeName={storeName}
+      currentLocale={props.locale}
+      enabledLocales={props.enabledLocales}
+      orderCallConfig={props.orderCallConfig}
+    >
+      {children}
+    </PublicMenuExperienceShell>
+  );
 
   switch (templateKey) {
     case "cafe_design_a":
       if (props.pagePresentation === "multi") {
-        return (
-          <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-            <MultiPageMenuEngine {...props} />
-          </PublicMenuExperienceShell>
-        );
+        return withPublicMenuShell(<MultiPageMenuEngine {...props} />);
       }
-      return (
-        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-          <CafeDesignA {...props} />
-        </PublicMenuExperienceShell>
-      );
+      return withPublicMenuShell(<CafeDesignA {...props} />);
     case "cafe_mocha_forest_a":
-      return (
-        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-          <CafeMochaForestA {...props} />
-        </PublicMenuExperienceShell>
-      );
+      return withPublicMenuShell(<CafeMochaForestA {...props} />);
     case "cafe_sunday_line_a":
-      return (
-        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-          <CafeSundayLineA {...props} />
-        </PublicMenuExperienceShell>
-      );
+      return withPublicMenuShell(<CafeSundayLineA {...props} />);
     case "cafe_round_focus_a":
-      return (
-        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-          <CafeRoundFocusA {...props} />
-        </PublicMenuExperienceShell>
-      );
+      return withPublicMenuShell(<CafeRoundFocusA {...props} />);
     case "cafe_brew_chapter_a":
-      return (
-        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-          <CafeBrewChapterA {...props} />
-        </PublicMenuExperienceShell>
-      );
+      return withPublicMenuShell(<CafeBrewChapterA {...props} />);
     case "cafe_noir_a":
-      return (
-        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-          <CafeDesignA {...props} />
-        </PublicMenuExperienceShell>
-      );
+      return withPublicMenuShell(<CafeDesignA {...props} />);
     case "display_menu_a":
       return <DisplayMenuA {...props} />;
     case "cafe_design_b":
@@ -72,11 +56,7 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
     case "brunch_design_a":
     case "brunch_design_b":
     default:
-      return (
-        <PublicMenuExperienceShell templateKey={templateKey} storeName={storeName}>
-          <BasicMenuTemplate {...props} />
-        </PublicMenuExperienceShell>
-      );
+      return withPublicMenuShell(<BasicMenuTemplate {...props} />);
   }
 }
 
