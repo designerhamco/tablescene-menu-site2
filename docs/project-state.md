@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `ee77660` (`PR #1` 병합)
+기준 커밋: `98fb144` (`PR #2` 병합)
 
 ## 완료된 주요 기능
 
@@ -23,10 +23,17 @@
   - Owner 우선 판정
   - 활성 membership 및 lifecycle 검증
   - 공통 `menu-site` access helper
+- 직원 권한 Phase B-2 메뉴판 접근:
+  - Owner 소유 메뉴판과 활성 직원 membership 메뉴판의 통합 목록
+  - Owner 우선 판정과 직원 역할 표시
+  - `menu.read` 및 활성 lifecycle 기반 직원 읽기 전용 미리보기
+  - 사장 전용 결제·구독·복구 동선의 직원 화면 제외
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `98fb144` — PR #2 병합: `agent/staff-menu-list-access` → `tablescene-next`
+- `8e9df47` — 직원 메뉴판 목록 접근과 역할 표시
 - `ee77660` — PR #1 병합: `agent/staff-permissions-b1` → `tablescene-next`
 - `72b41b5` — 직원 권한 공통 permission layer
 - `ab6da4c` — 직원 권한 Phase A foundation
@@ -77,5 +84,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 1. `docs/task-queue.md`에서 첫 번째 `TODO` 또는 `IN_PROGRESS` 작업을 확인한다.
 2. 직원 권한 작업은 `docs/menu-site-staff-access-contract.md`를 제품 계약으로 사용한다.
 3. 공통 권한 코드는 `lib/menu-site-permissions.ts`, `lib/menu-site-access-resolver.ts`, `lib/server/menu-site-access-service.ts`를 재사용한다.
-4. Owner 소유 메뉴판과 활성 직원 membership 메뉴판의 통합 목록 및 역할 표시는 `agent/staff-menu-list-access`에서 구현·검증했다.
-5. 다음 구현 범위는 직원 미리보기 접근이며, 직원 편집 action·초대 UI·Production RLS 변경과 분리한다.
+4. Owner 소유 메뉴판과 활성 직원 membership 메뉴판의 통합 목록 및 역할 표시는 PR #2에서 구현·검증했다.
+5. 직원 읽기 전용 미리보기 접근은 `agent/staff-menu-preview-access`에서 구현·검증했다.
+6. 다음 구현 범위는 Owner/Manager/Editor 메뉴 편집 action이며, 초대 UI·Production RLS 변경과 분리한다.
+7. 실제 직원 계정 E2E 확인은 직원 초대·수락 기능이 완성된 뒤 진행한다. 화면 확인만을 위한 Production 직원 데이터는 만들지 않는다.

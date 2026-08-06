@@ -18,7 +18,8 @@
 - `DONE` 사장 소유 메뉴판과 활성 직원 membership 메뉴판 통합 서버 조회
 - `DONE` 직원 역할 표시 view model과 마이페이지 목록 연결
 - `DONE` `menu.read` 권한 기반 직원 목록 접근, Owner 우선, revoked 제외, 비활성 lifecycle 제외
-- `TODO` 직원의 Owner/Staff 미리보기 접근
+- `DONE` 직원의 Owner/Staff 미리보기 접근
+- `BLOCKED` 실제 직원 계정으로 역할 배지·버튼 숨김·읽기 전용 미리보기 E2E 확인 — 직원 초대·수락 기능 완료 후 진행하며, 확인용 Production 직원 데이터는 만들지 않음
 - `TODO` Owner/Manager/Editor 메뉴 편집 action 연결
 - `TODO` 공개·비공개 변경을 Owner/Manager로 제한
 - `TODO` 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증
@@ -142,4 +143,4 @@
 
 ## 다음 작업
 
-현재 PR을 완료한 다음 별도 브랜치에서 `직원의 Owner/Staff 미리보기 접근`을 진행한다. 직원 편집 action, 초대 UI, Storage/RLS 변경은 각각 독립 PR로 유지한다.
+현재 PR을 완료한 다음 별도 브랜치에서 `Owner/Manager/Editor 메뉴 편집 action 연결`을 진행한다. 공개 상태 변경, 초대 UI, Storage/RLS 변경은 각각 독립 PR로 유지한다.

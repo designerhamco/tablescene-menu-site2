@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
-import { getOwnerPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
-import { getMenuSiteAccessStateForMenuSite, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
+import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
+import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
+import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
 import { sortMenuPages } from "@/types/menu";
 
@@ -34,10 +35,27 @@ function getPreviewPageIndex(value: string | string[] | undefined) {
   return Number.isFinite(pageIndex) && pageIndex >= 1 ? pageIndex - 1 : null;
 }
 
-function getDisplayOwnerPreviewInitialPageId(data: MenuPageData, requestedPageIndex: number | null) {
+const STAFF_ROLE_LABELS: Record<MenuSiteMemberRole, string> = {
+  manager: "매니저",
+  editor: "에디터",
+  order_staff: "주문 직원",
+  viewer: "조회자",
+};
+
+function getDisplayPreviewInitialPageId(data: MenuPageData, requestedPageIndex: number | null) {
   if (data.menuSite.template_key !== "display_menu_a" || requestedPageIndex === null) return null;
 
   return sortMenuPages(data.pages.filter((page) => page.visible))[requestedPageIndex]?.id ?? null;
+}
+
+function StaffPreviewReadOnlyBanner({ role }: { role: MenuSiteMemberRole }) {
+  return (
+    <div className="fixed left-0 right-0 top-0 z-[1000] px-3 py-3">
+      <div className="mx-auto max-w-3xl rounded-2xl border border-sky-200 bg-white/95 px-4 py-3 text-center text-sm font-bold leading-relaxed text-sky-900 shadow-lg backdrop-blur">
+        {STAFF_ROLE_LABELS[role]} 권한으로 보는 읽기 전용 미리보기입니다. 배정된 메뉴판의 공개 화면만 확인할 수 있습니다.
+      </div>
+    </div>
+  );
 }
 
 function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessState: MenuSiteAccessState | null }) {
@@ -101,24 +119,37 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     redirect(`/sign-in?next=/mypage/menus/${menuId}/preview`);
   }
 
-  const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: menuId, userId: user.id });
-  if (!accessState?.canOwnerPreview) {
+  let preview: Awaited<ReturnType<typeof getAuthorizedPreviewMenuPageData>>;
+  try {
+    preview = await getAuthorizedPreviewMenuPageData(menuId, { locale });
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError) {
+      redirect("/mypage?error=menu-preview-not-allowed");
+    }
+
+    throw error;
+  }
+
+  const { accessContext, accessState, data } = preview;
+  if (accessContext.isOwner && !accessState?.canOwnerPreview) {
     return <LockedMenuPreview menuId={menuId} accessState={accessState} />;
   }
 
-  const data = await getOwnerPreviewMenuPageData(menuId, user.id, { locale });
-
-  if (!data) {
+  if (!data || !accessState) {
     redirect("/mypage?error=menu-preview-not-allowed");
   }
 
   return (
     <>
-      <OwnerPreviewReadOnlyBanner accessState={accessState} />
+      {accessContext.isOwner ? (
+        <OwnerPreviewReadOnlyBanner accessState={accessState} />
+      ) : accessContext.memberRole ? (
+        <StaffPreviewReadOnlyBanner role={accessContext.memberRole} />
+      ) : null}
       <MenuPageRenderer
         mode="preview"
         debugCafeA={debugCafeA}
-        initialPreviewPageId={getDisplayOwnerPreviewInitialPageId(data, requestedPageIndex)}
+        initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         {...data}
       />
     </>

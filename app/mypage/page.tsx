@@ -2559,8 +2559,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </div>
         </dl>
 
-        {card.canViewPublic ? (
-          <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Link
+            href={`/mypage/menus/${card.siteId}/preview`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-xs font-black text-sky-800 transition-colors hover:bg-sky-100"
+          >
+            미리보기
+          </Link>
+          {card.canViewPublic ? (
             <Link
               href={card.publicPath}
               target="_blank"
@@ -2569,12 +2577,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             >
               공개 메뉴판 보기
             </Link>
-          </div>
-        ) : (
+          ) : null}
+        </div>
+        {!card.canViewPublic ? (
           <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
-            현재 공개되지 않은 메뉴판입니다.
+            현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다.
           </p>
-        )}
+        ) : null}
       </article>
     );
   }
