@@ -83,7 +83,7 @@
 
 - `DONE` V1 정책 확정 — Postpay 우선, Order·Call 별도 add-on, tableSessions 포함, 기기별 cart, 20 lines·50 units·line 20·요청 300자
 - `DONE` DB 기반 migration 초안 — orderable 분리, 주문 option, session-bound order, immutable snapshot, idempotency, server-only RLS
-- `NEEDS_HUMAN` migration Production 수동 적용과 generated Supabase types 갱신 — `docs/runbooks/postpay-order-foundation-migration.md`
+- `DONE` migration Production 1회 적용과 generated Supabase types 갱신 — 2026-08-06 `tablescene-prod`, `docs/runbooks/postpay-order-foundation-migration.md`
 - `TODO` 메뉴·옵션 선택과 수량
 - `TODO` 장바구니와 요청사항
 - `TODO` 테이블 번호와 주문 전송
@@ -150,4 +150,4 @@
 
 ## 다음 작업
 
-후불 주문 V1 권장 정책은 2026-08-06 승인됐다. server-only 주문 schema migration을 검증한 뒤 Production 수동 적용과 generated types 갱신 승인을 받고, atomic 주문 제출과 모바일 cart runtime을 별도 PR로 진행한다. 실제 상품 SKU·가격과 Production feature gate 활성화는 계속 사람 승인 전까지 보류한다.
+후불 주문 V1 schema migration과 generated types 갱신은 완료됐다. 다음 안전한 범위는 default-off server-side atomic 주문 제출과 모바일 cart runtime이다. 실제 상품 SKU·가격과 Production feature gate 활성화는 계속 사람 승인 전까지 보류한다.

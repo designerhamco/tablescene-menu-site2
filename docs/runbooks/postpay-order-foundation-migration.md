@@ -2,7 +2,16 @@
 
 대상 migration: `20260806124512_add_postpay_order_foundation.sql`
 
-상태: **Production 미적용. 사람 승인 전 실행 금지.**
+상태: **2026-08-06 `tablescene-prod`에 1회 적용 완료. 재실행 금지.**
+
+적용 기록:
+
+- linked Supabase Management API를 통한 read-only precheck 성공
+- `20260806124512_add_postpay_order_foundation.sql` 전체를 1회 적용
+- 다섯 테이블 존재, 다섯 테이블의 RLS/강제 RLS 활성화 확인
+- `anon`, `authenticated` grant 없음 확인
+- `service_role`은 문서화된 SELECT/INSERT/UPDATE만 보유하고 DELETE 없음 확인
+- Production schema 기준 generated Supabase types 갱신
 
 ## 포함 범위
 
@@ -95,7 +104,5 @@ order by table_name, grantee, privilege_type;
 
 ## 적용 후 다음 작업
 
-1. Production schema에서 generated Supabase types를 새로 생성한다.
-2. generated file을 수동 편집하지 않는다.
-3. 별도 PR에서 server-side atomic order submission과 모바일 cart runtime을 구현한다.
-4. 실제 주문 활성화와 Production feature gate는 별도 승인 전까지 유지한다.
+1. 별도 PR에서 server-side atomic order submission과 모바일 cart runtime을 구현한다.
+2. 실제 주문 활성화와 Production feature gate는 별도 승인 전까지 유지한다.

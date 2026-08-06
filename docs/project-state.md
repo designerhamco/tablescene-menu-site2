@@ -97,6 +97,11 @@
   - 일반 slug 접근은 세션을 생성하지 않으며 유효한 기존 세션만 공통 모바일 header의 table context에 연결
   - 기능은 기존 default-off `TABLE_MANAGEMENT_ENABLED` gate 뒤에 있어 Production 활성화나 데이터 write가 발생하지 않음
   - 생성·회전 1회 응답에서는 브라우저 내부 QR renderer로 PNG를 내려받으며 raw token을 별도 API에 재전송하지 않음
+- 후불 주문 DB 기반:
+  - `menu_items.orderable` default-false 분리와 주문 전용 option group/value
+  - table visit session에 연결된 주문 header와 immutable 메뉴·가격·option snapshot
+  - session 단위 idempotency와 20 lines·50 units 한도를 DB에서 강제
+  - server-only 강제 RLS와 최소 `service_role` 권한으로 Production 1회 적용 및 generated types 갱신 완료
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -133,6 +138,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260806124512_add_postpay_order_foundation.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, RLS·grant postcheck 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806105623_add_table_qr_session_foundation.sql` — 2026-08-06 `tablescene-prod` SQL Editor에서 1회 적용 및 최소권한 사후 보정 완료. 다시 실행 금지.
 - `20260805144618_add_menu_site_staff_access_foundation.sql` — 2026-08-06 SQL Editor에서 1회 적용 완료. 다시 실행 금지.
 - `20260805103153_add_payment_provisioning_idempotency.sql` — 2026-08-05 SQL Editor 적용 완료.
@@ -190,4 +196,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다.
 18. 테이블 관리와 안전한 QR token 발급은 default-off runtime으로 구현했다.
 19. 공개 table QR 진입, server-validated 방문 세션, 생성·회전 직후 browser-local QR 다운로드를 같은 gate 뒤에 구현했다.
-20. 후불 주문 V1 권장 정책은 승인됐다. 다음 단계는 주문 schema migration의 Production 수동 적용과 generated types 갱신이며, 실제 상품 SKU·가격·Production feature gate 활성화는 별도 승인 전까지 보류한다.
+20. 후불 주문 V1 schema migration은 Production에 1회 적용했고 generated types를 갱신했다. 다음 단계는 default-off server-side atomic 주문 제출과 모바일 cart runtime이며, 실제 상품 SKU·가격·Production feature gate 활성화는 별도 승인 전까지 보류한다.
