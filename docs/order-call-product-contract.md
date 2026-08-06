@@ -279,7 +279,11 @@ Implementation status (2026-08-06):
 
 - The schema foundation defines `menu_tables` and `table_visit_sessions` as server-only, RLS-enabled tables.
 - The migration enforces the 100-table limit and 12-hour maximum session lifetime at the database boundary.
-- Runtime table management, one-time QR delivery, cookie issuance, and server validation remain locked until the migration is manually approved and applied to Production, followed by generated type refresh.
+- The Production migration and generated type refresh are complete and must not be reapplied.
+- Owner/Manager table create, update, disable, token rotation, and archive are implemented behind the default-off `TABLE_MANAGEMENT_ENABLED` runtime gate.
+- Only the token hash is persisted; the raw token and table QR path are returned once after create or rotation and are excluded from table list DTOs.
+- The runtime currently fails closed outside active Business Basic sites using a Basic template. Product-key mapping, bundling, and Production gate activation remain unresolved product decisions.
+- Public table QR entry, HttpOnly visit-session cookie issuance, and server validation remain locked for the next runtime milestone.
 
 ## 10. Postpay Order
 

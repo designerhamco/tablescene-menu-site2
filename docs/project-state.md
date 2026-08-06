@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `1f20762` (`PR #20` 병합)
+기준 커밋: `63a05e6` (`PR #21` 병합)
 
 ## 완료된 주요 기능
 
@@ -84,10 +84,17 @@
   - hash-only table/session token, 12시간 세션, 메뉴판당 비보관 테이블 100개 정책 확정
   - server-only 강제 RLS 테이블과 constraint·session revoke migration 적용 완료
   - Production postcheck와 generated Supabase types 갱신 완료
+- 테이블 관리 runtime 기반:
+  - Owner/Manager의 테이블 생성·이름/상태 변경·token 회전·보관을 공통 권한과 staff write audit 뒤에 연결
+  - raw QR token은 생성·회전 응답에서만 한 번 전달하고 목록 DTO와 DB에는 노출하지 않음
+  - hard delete 없이 보관 처리하며 비활성·보관·token 회전 시 DB trigger가 기존 방문 세션을 폐기
+  - `TABLE_MANAGEMENT_ENABLED=true`가 아니면 UI와 server mutation을 모두 fail closed
+  - 현재는 Business Basic의 Basic template만 허용하며 실제 제품 key·번들·Production 활성화는 미결정 상태로 유지
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `63a05e6` — PR #21 병합: 테이블 QR·방문 세션 generated types 갱신
 - `1f20762` — PR #20 병합: 테이블 QR·방문 세션 DB 기반
 - `e3e021d` — PR #19 병합: 모바일 Order/Call 공통 진입 셸
 - `e1af601` — PR #18 병합: 출시 템플릿 preview/public 격리 QA
@@ -170,4 +177,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 14. 모든 직원 write 진입점은 공통 audit gate로 연결했다.
 15. PC·태블릿·모바일 미리보기는 동일 renderer와 실제 iframe viewport를 재사용한다.
 16. 활성 템플릿 QA와 모바일 Order/Call 공통 헤더 셸은 완료했다.
-17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다. 다음 단계는 테이블 관리와 안전한 QR token runtime이다.
+17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다.
+18. 테이블 관리와 안전한 QR token 발급은 default-off runtime으로 구현했다. 다음 단계는 공개 table QR 진입과 server-validated 방문 세션이며, 실제 제품 key·번들·Production feature gate 활성화는 사람 결정 전까지 보류한다.
