@@ -41,6 +41,8 @@ Display 출시 대상:
 - 브루 챕터의 커버와 6개 페이지 이동 control이 렌더링된다. `MAISON ECLAT` starter는 `docs/multi-page-template-product-contract.md`에 확정된 계약이다.
 - 썸머 블루 Display의 4개 페이지 전환이 동작하고 선택 페이지가 URL `page` query에 반영된다.
 - 템플릿 미리보기 route는 `ko`, `en`, `zh`, `ja` locale 상태와 언어 전환 control을 모두 재현한다. 번역이 없는 fixture 값은 실제 공개 route와 동일하게 기본값으로 fallback한다.
+- 개발 전용 `localeQa=1` fixture로 사이트명·설명·안내·첫 카테고리·첫 메뉴를 네 locale의 실제 문자로 치환하고, Basic 6개는 390×844와 1440×900, Display는 1440×900에서 총 52개 route를 검사했다. 가로 overflow, 깨진 이미지, 누락된 활성 언어 control은 없다.
+- 브루 챕터 renderer에 공통 언어 전환 control이 누락된 문제를 수정했다. 모바일 중국어 장문 설명의 안전 줄바꿈과 라운드 포커스 모바일의 중국어·일본어 장문 브랜드 폭 제한도 함께 수정했다.
 - Display에 시각적으로 숨긴 site/page heading을 추가해 기존 `h3`/`h4` 메뉴 heading의 문서 계층을 복구했다. 화면 디자인에는 영향을 주지 않는다.
 - 숨김 Basic 5개가 service allowlist에서 빠져 있어 향후 `available` 전환 후에도 구매 흐름에서 제외될 계약 오류를 수정했다. catalog status는 그대로 `hidden`이다.
 - 브루 챕터가 generic editor 탭으로 fallback해 다국어 탭이 빠지고 미지원 소개·이벤트 탭이 노출될 수 있던 구성을 전용 `cover` editor 계약으로 수정했다.
@@ -50,6 +52,5 @@ Display 출시 대상:
 ## 남은 QA
 
 - 각 Basic 템플릿의 위젯·디자인·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 stress fixture
-- 네 locale에서 글자 넘침과 fallback 확인
 - 생성·편집·최종 저장 round-trip은 Production 데이터를 사용하지 않는 격리 QA 환경 또는 기존 안전한 fixture가 필요하다.
 - 실제 메뉴판 preview/public 데이터 round-trip은 Production write 없이 수행한다.

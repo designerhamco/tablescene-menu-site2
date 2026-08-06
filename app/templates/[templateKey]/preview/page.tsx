@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
-import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES } from "@/lib/locales";
+import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
@@ -36,6 +36,7 @@ type PageProps = {
     brewCoverPageQa?: string | string[];
     brewCoverImageQa?: string | string[];
     lang?: string | string[];
+    localeQa?: string | string[];
     pagePresentation?: string | string[];
   }>;
 };
@@ -391,6 +392,87 @@ function applyPreviewLocale(data: MenuPageData, lang: string | string[] | undefi
     ...data,
     locale: normalizeLocale(rawLocale),
     enabledLocales: [...SUPPORTED_LOCALES],
+  };
+}
+
+function applyActiveTemplateLocaleQaFixture(
+  data: MenuPageData,
+  localeQa: string | string[] | undefined,
+): MenuPageData {
+  if (process.env.NODE_ENV === "production" || !isPreviewFlagEnabled(localeQa)) return data;
+
+  const copyByLocale: Record<SupportedLocale, {
+    siteName: string;
+    description: string;
+    footer: string;
+    category: string;
+    itemName: string;
+    itemSecondary: string;
+    itemDescription: string;
+  }> = {
+    ko: {
+      siteName: "계절의 향을 담은 로스터리",
+      description: "정성스럽게 내린 커피와 제철 재료로 만든 디저트를 편안한 공간에서 소개합니다.",
+      footer: "포장 가능 · 알레르기 정보는 직원에게 문의해주세요.",
+      category: "계절 한정 시그니처 메뉴",
+      itemName: "제주 말차와 바닐라 크림 라떼",
+      itemSecondary: "JEJU MATCHA VANILLA CREAM LATTE",
+      itemDescription: "진한 제주 말차와 부드러운 바닐라 크림을 층층이 담은 시즌 음료",
+    },
+    en: {
+      siteName: "Seasonal Roastery House",
+      description: "Thoughtfully roasted coffee and seasonal desserts are served in a calm neighborhood space.",
+      footer: "Takeout available · Ask our team about allergy information.",
+      category: "SEASONAL SIGNATURE COLLECTION",
+      itemName: "Jeju Matcha Vanilla Cream Latte",
+      itemSecondary: "JEJU MATCHA VANILLA CREAM LATTE",
+      itemDescription: "Deep Jeju matcha layered with silky vanilla cream for a balanced seasonal drink.",
+    },
+    zh: {
+      siteName: "四季精品烘焙咖啡馆",
+      description: "我们在舒适的社区空间里提供精心烘焙的咖啡和使用时令食材制作的甜点。",
+      footer: "支持外带 · 过敏原信息请咨询工作人员。",
+      category: "季节限定招牌饮品系列",
+      itemName: "济州抹茶香草奶油拿铁",
+      itemSecondary: "JEJU MATCHA VANILLA CREAM LATTE",
+      itemDescription: "浓郁济州抹茶与柔滑香草奶油层层融合的季节限定饮品。",
+    },
+    ja: {
+      siteName: "季節を楽しむロースタリー",
+      description: "丁寧に焙煎したコーヒーと旬の素材を使ったデザートを、落ち着いた空間で提供します。",
+      footer: "テイクアウト可 · アレルギー情報はスタッフまで。",
+      category: "季節限定シグネチャーメニュー",
+      itemName: "済州抹茶バニラクリームラテ",
+      itemSecondary: "JEJU MATCHA VANILLA CREAM LATTE",
+      itemDescription: "濃厚な済州抹茶となめらかなバニラクリームを重ねた季節限定ドリンクです。",
+    },
+  };
+  const copy = copyByLocale[data.locale];
+  const limits = getTemplateContentLimits(data.menuSite.template_key);
+  const firstCategoryId = data.categories.find((category) => category.visible !== false)?.id ?? null;
+  const firstItemId = data.items.find((item) => item.visible !== false)?.id ?? null;
+  const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)
+    ? { ...data.menuSite.settings }
+    : {};
+  settings.footer_notice_1 = toExactPreviewLength(copy.footer, limits.footerNotice, " · QA");
+
+  return {
+    ...data,
+    menuSite: {
+      ...data.menuSite,
+      name: toExactPreviewLength(copy.siteName, limits.restaurantName, " QA"),
+      business_name: toExactPreviewLength(copy.siteName, limits.restaurantName, " QA"),
+      restaurant_name: toExactPreviewLength(copy.siteName, limits.restaurantName, " QA"),
+      brand_description: toExactPreviewLength(copy.description, limits.brandDescription, " QA"),
+      settings: settings as MenuPageData["menuSite"]["settings"],
+    },
+    categories: data.categories.map((category) => category.id === firstCategoryId ? { ...category, name: copy.category } : category),
+    items: data.items.map((item) => item.id === firstItemId ? {
+      ...item,
+      name: copy.itemName,
+      set_name: copy.itemSecondary,
+      description: copy.itemDescription,
+    } : item),
   };
 }
 
@@ -923,36 +1005,37 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     notFound();
   }
 
-  const data = applyPreviewLocale(
-    applyPreviewFontSizeScale(
-      applyDisplayPreviewSplitImagePosition(
-        applyCafeAMultiPagePreviewFixture(
-          applyRoundFocusFeaturedFixture(
-            applySundayLineCopyQaFixture(
-              applyBrewChapterCoverImageQaFixture(
-                applyCafeDenseContentQaFixture(
-                  applyCafeAFooterStressData(
-                    buildPreviewData(templateKey, displayPreviewQaCase),
-                    resolvedSearchParams.footerStress
-                  ),
-                  resolvedSearchParams.contentQa
+  const fixtureData = applyPreviewFontSizeScale(
+    applyDisplayPreviewSplitImagePosition(
+      applyCafeAMultiPagePreviewFixture(
+        applyRoundFocusFeaturedFixture(
+          applySundayLineCopyQaFixture(
+            applyBrewChapterCoverImageQaFixture(
+              applyCafeDenseContentQaFixture(
+                applyCafeAFooterStressData(
+                  buildPreviewData(templateKey, displayPreviewQaCase),
+                  resolvedSearchParams.footerStress
                 ),
-                templateKey,
-                resolvedSearchParams.brewCoverPageQa,
-                resolvedSearchParams.brewCoverImageQa
+                resolvedSearchParams.contentQa
               ),
-              resolvedSearchParams.copyQa,
-              resolvedSearchParams.lang
+              templateKey,
+              resolvedSearchParams.brewCoverPageQa,
+              resolvedSearchParams.brewCoverImageQa
             ),
-            resolvedSearchParams.featured
+            resolvedSearchParams.copyQa,
+            resolvedSearchParams.lang
           ),
-          resolvedSearchParams.pagePresentation
+          resolvedSearchParams.featured
         ),
-        displayPreviewSplitImagePosition
+        resolvedSearchParams.pagePresentation
       ),
-      resolvedSearchParams.fontSizeScale
+      displayPreviewSplitImagePosition
     ),
-    resolvedSearchParams.lang
+    resolvedSearchParams.fontSizeScale
+  );
+  const data = applyActiveTemplateLocaleQaFixture(
+    applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
+    resolvedSearchParams.localeQa,
   );
 
   return (
