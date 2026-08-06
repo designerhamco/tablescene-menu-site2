@@ -306,6 +306,10 @@ QR scan
 
 Policies:
 
+- 확정: V1 launches Postpay before Prepay and does not initiate PG payment.
+- 확정: Postpay Order and Call are separate add-ons; `tableSessions` is included when either add-on is active.
+- 확정: V1 carts are device-specific within a validated table visit session and are not shared automatically between phones.
+- 확정: V1 allows at most 20 cart lines, 50 total units, 20 units per line, and 300 characters of order requests.
 - 확정: Customer submits order without PG payment.
 - 확정: New postpay order starts with `payment_status=unpaid`.
 - 확정: Real payment happens through store POS, card terminal, or cash.
@@ -375,7 +379,8 @@ Important boundary:
 - 확정: Existing Basic display price options are not automatically the same as order option groups.
 - 확정: HOT/ICE price columns may be display-only structure.
 - 확정: Real order options need required selection, additional price, min/max selection, inventory, and POS mapping.
-- 미결정: Final order option schema.
+- 확정: V1 uses separate order option groups and values with required/min/max selection and non-negative KRW price deltas.
+- 비범위: V1 inventory and POS mapping remain disabled until separate contracts exist.
 
 ## 13. Order Status
 
@@ -594,12 +599,10 @@ Do not infer these in implementation:
 - 미결정: PG fee policy.
 - 미결정: Settlement cycle.
 - 미결정: Maximum staff count.
-- 미결정: Maximum items per order.
 - 미결정: Exact call rate limit.
 - 미결정: Refund and partial refund details.
 - 미결정: KakaoTalk notification pricing.
 - 미결정: POS integration vendors.
-- 미결정: Whether multiple phones connected to the same table share one cart or keep device-specific carts.
 - 미결정: How customers can view existing order status after a table session expires.
 - 미결정: Table move, merge, and split policy when an order is already in progress.
 

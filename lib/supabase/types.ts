@@ -706,6 +706,230 @@ export type Database = {
           },
         ]
       }
+      menu_customer_order_item_options: {
+        Row: {
+          created_at: string
+          display_order: number
+          group_name_snapshot: string
+          id: string
+          menu_site_id: string
+          option_group_id: string | null
+          option_value_id: string | null
+          order_item_id: string
+          price_delta_snapshot: number
+          value_name_snapshot: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          group_name_snapshot: string
+          id?: string
+          menu_site_id: string
+          option_group_id?: string | null
+          option_value_id?: string | null
+          order_item_id: string
+          price_delta_snapshot?: number
+          value_name_snapshot: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          group_name_snapshot?: string
+          id?: string
+          menu_site_id?: string
+          option_group_id?: string | null
+          option_value_id?: string | null
+          order_item_id?: string
+          price_delta_snapshot?: number
+          value_name_snapshot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_customer_order_item_options_item_fk"
+            columns: ["menu_site_id", "order_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_customer_order_items"
+            referencedColumns: ["menu_site_id", "id"]
+          },
+          {
+            foreignKeyName: "menu_customer_order_item_options_option_group_id_fkey"
+            columns: ["option_group_id"]
+            isOneToOne: false
+            referencedRelation: "menu_order_option_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_customer_order_item_options_option_value_id_fkey"
+            columns: ["option_value_id"]
+            isOneToOne: false
+            referencedRelation: "menu_order_option_values"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_customer_order_items: {
+        Row: {
+          base_price_snapshot: number
+          created_at: string
+          display_order: number
+          id: string
+          item_name_snapshot: string
+          line_total_snapshot: number
+          menu_item_id: string | null
+          menu_site_id: string
+          option_price_snapshot: number
+          order_id: string
+          quantity: number
+          unit_price_snapshot: number
+        }
+        Insert: {
+          base_price_snapshot: number
+          created_at?: string
+          display_order?: number
+          id?: string
+          item_name_snapshot: string
+          line_total_snapshot: number
+          menu_item_id?: string | null
+          menu_site_id: string
+          option_price_snapshot?: number
+          order_id: string
+          quantity: number
+          unit_price_snapshot: number
+        }
+        Update: {
+          base_price_snapshot?: number
+          created_at?: string
+          display_order?: number
+          id?: string
+          item_name_snapshot?: string
+          line_total_snapshot?: number
+          menu_item_id?: string | null
+          menu_site_id?: string
+          option_price_snapshot?: number
+          order_id?: string
+          quantity?: number
+          unit_price_snapshot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_customer_order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_customer_order_items_order_fk"
+            columns: ["menu_site_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "menu_customer_orders"
+            referencedColumns: ["menu_site_id", "id"]
+          },
+        ]
+      }
+      menu_customer_orders: {
+        Row: {
+          accepted_at: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          client_request_id: string
+          cooking_at: string | null
+          created_at: string
+          currency: string
+          id: string
+          menu_site_id: string
+          menu_table_id: string
+          order_number: number
+          payment_completed_at: string | null
+          payment_completed_by: string | null
+          payment_method: string | null
+          payment_status: string
+          ready_at: string | null
+          request_text: string | null
+          served_at: string | null
+          status: string
+          status_updated_by: string | null
+          subtotal_amount: number
+          table_visit_session_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          client_request_id: string
+          cooking_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          menu_site_id: string
+          menu_table_id: string
+          order_number?: never
+          payment_completed_at?: string | null
+          payment_completed_by?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          ready_at?: string | null
+          request_text?: string | null
+          served_at?: string | null
+          status?: string
+          status_updated_by?: string | null
+          subtotal_amount: number
+          table_visit_session_id: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          client_request_id?: string
+          cooking_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          menu_site_id?: string
+          menu_table_id?: string
+          order_number?: never
+          payment_completed_at?: string | null
+          payment_completed_by?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          ready_at?: string | null
+          request_text?: string | null
+          served_at?: string | null
+          status?: string
+          status_updated_by?: string | null
+          subtotal_amount?: number
+          table_visit_session_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_customer_orders_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_customer_orders_session_fk"
+            columns: ["menu_site_id", "menu_table_id", "table_visit_session_id"]
+            isOneToOne: false
+            referencedRelation: "table_visit_sessions"
+            referencedColumns: ["menu_site_id", "menu_table_id", "id"]
+          },
+          {
+            foreignKeyName: "menu_customer_orders_table_fk"
+            columns: ["menu_site_id", "menu_table_id"]
+            isOneToOne: false
+            referencedRelation: "menu_tables"
+            referencedColumns: ["menu_site_id", "id"]
+          },
+        ]
+      }
       menu_event_translations: {
         Row: {
           created_at: string
@@ -1168,6 +1392,7 @@ export type Database = {
           menu_site_id: string
           name: string
           options: Json
+          orderable: boolean
           origin_info: string | null
           portion_label: string | null
           portion_visible: boolean
@@ -1199,6 +1424,7 @@ export type Database = {
           menu_site_id: string
           name: string
           options?: Json
+          orderable?: boolean
           origin_info?: string | null
           portion_label?: string | null
           portion_visible?: boolean
@@ -1230,6 +1456,7 @@ export type Database = {
           menu_site_id?: string
           name?: string
           options?: Json
+          orderable?: boolean
           origin_info?: string | null
           portion_label?: string | null
           portion_visible?: boolean
@@ -1259,6 +1486,120 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "menu_sites"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_order_option_groups: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          display_order: number
+          id: string
+          is_required: boolean
+          max_selections: number
+          menu_item_id: string
+          menu_site_id: string
+          min_selections: number
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_required?: boolean
+          max_selections?: number
+          menu_item_id: string
+          menu_site_id: string
+          min_selections?: number
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_required?: boolean
+          max_selections?: number
+          menu_item_id?: string
+          menu_site_id?: string
+          min_selections?: number
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_order_option_groups_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_order_option_groups_site_item_fk"
+            columns: ["menu_site_id", "menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["menu_site_id", "id"]
+          },
+        ]
+      }
+      menu_order_option_values: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          display_order: number
+          id: string
+          menu_site_id: string
+          name: string
+          option_group_id: string
+          price_delta: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          menu_site_id: string
+          name: string
+          option_group_id: string
+          price_delta?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          menu_site_id?: string
+          name?: string
+          option_group_id?: string
+          price_delta?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_order_option_values_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_order_option_values_site_group_fk"
+            columns: ["menu_site_id", "option_group_id"]
+            isOneToOne: false
+            referencedRelation: "menu_order_option_groups"
+            referencedColumns: ["menu_site_id", "id"]
           },
         ]
       }
