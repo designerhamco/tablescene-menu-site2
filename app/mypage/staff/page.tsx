@@ -8,11 +8,14 @@ import { isStaffInvitationRole, STAFF_INVITATION_ROLE_LABELS } from "@/lib/staff
 import { createClient } from "@/lib/supabase/server";
 
 import StaffInvitationForm from "./StaffInvitationForm";
+import { cancelStaffInvitationAction, resendStaffInvitationAction } from "./actions";
 
 export const metadata: Metadata = {
   title: "직원 관리 | 메뉴링크",
   robots: { index: false, follow: false },
 };
+
+type SearchParams = Promise<{ result?: string | string[] }>;
 
 function formatExpiry(value: string) {
   const date = new Date(value);
@@ -29,7 +32,23 @@ function getRoleLabel(value: string) {
   return isStaffInvitationRole(value) ? STAFF_INVITATION_ROLE_LABELS[value] : "알 수 없음";
 }
 
-export default async function StaffManagementPage() {
+function getResultNotice(value: string | string[] | undefined) {
+  const result = Array.isArray(value) ? value[0] : value;
+  if (result === "resent") return { tone: "success", message: "초대 링크를 새로 만들어 이메일을 다시 보냈습니다." } as const;
+  if (result === "cancelled") return { tone: "success", message: "대기 중인 초대를 취소했습니다." } as const;
+  if (result === "delivery-disabled") return { tone: "warning", message: "실제 이메일 환경 검증 전에는 재전송할 수 없습니다." } as const;
+  if (result === "rate-limited") return { tone: "error", message: "초대 요청이 너무 많습니다. 1시간 뒤 다시 시도해 주세요." } as const;
+  if (result === "invitation-changed") return { tone: "error", message: "초대 상태가 변경되었습니다. 목록을 새로 확인해 주세요." } as const;
+  if (result === "menu-unavailable") return { tone: "error", message: "보관된 메뉴판의 초대는 다시 보낼 수 없습니다." } as const;
+  if (result === "access-denied") return { tone: "error", message: "이 초대를 관리할 사장 권한이 없습니다." } as const;
+  if (result === "auth-required") return { tone: "error", message: "로그인 정보를 다시 확인해 주세요." } as const;
+  if (result === "operation-failed" || result === "unexpected") return { tone: "error", message: "초대 작업을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요." } as const;
+  return null;
+}
+
+export default async function StaffManagementPage({ searchParams }: { searchParams: SearchParams }) {
+  const { result } = await searchParams;
+  const resultNotice = getResultNotice(result);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -50,13 +69,33 @@ export default async function StaffManagementPage() {
   const invitationResult = menuSiteIds.length > 0
     ? await supabase
       .from("menu_site_invitations")
-      .select("id, menu_site_id, email_normalized, role, expires_at, created_at")
+      .select("id, invite_batch_id, menu_site_id, email_normalized, role, expires_at, created_at")
       .in("menu_site_id", menuSiteIds)
       .eq("status", "pending")
       .order("created_at", { ascending: false })
     : { data: [], error: null };
   const pendingInvitations = invitationResult.data ?? [];
   const menuSiteNameById = new Map(menuSites.map((menuSite) => [menuSite.id, menuSite.name]));
+  const pendingInvitationBatches = [...pendingInvitations.reduce((batches, invitation) => {
+    const current = batches.get(invitation.invite_batch_id) ?? {
+      inviteBatchId: invitation.invite_batch_id,
+      email: invitation.email_normalized,
+      role: invitation.role,
+      expiresAt: invitation.expires_at,
+      menuSiteNames: [] as string[],
+    };
+    current.menuSiteNames.push(menuSiteNameById.get(invitation.menu_site_id) ?? "메뉴판");
+    if (Date.parse(invitation.expires_at) < Date.parse(current.expiresAt)) current.expiresAt = invitation.expires_at;
+    batches.set(invitation.invite_batch_id, current);
+    return batches;
+  }, new Map<string, {
+    inviteBatchId: string;
+    email: string;
+    role: string;
+    expiresAt: string;
+    menuSiteNames: string[];
+  }>()).values()];
+  const invitationDeliveryEnabled = isStaffInvitationCreationEnabled();
 
   return (
     <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 md:px-8 md:py-16">
@@ -79,8 +118,20 @@ export default async function StaffManagementPage() {
           </p>
         ) : null}
 
+        {resultNotice ? (
+          <p className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+            resultNotice.tone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : resultNotice.tone === "warning"
+                ? "border-amber-200 bg-amber-50 text-amber-900"
+                : "border-rose-200 bg-rose-50 text-rose-800"
+          }`}>
+            {resultNotice.message}
+          </p>
+        ) : null}
+
         <StaffInvitationForm
-          enabled={isStaffInvitationCreationEnabled()}
+          enabled={invitationDeliveryEnabled}
           menuSites={menuSites.map((menuSite) => ({
             id: menuSite.id,
             name: menuSite.name,
@@ -98,20 +149,40 @@ export default async function StaffManagementPage() {
             <p className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
               초대 목록을 불러오지 못했습니다.
             </p>
-          ) : pendingInvitations.length === 0 ? (
+          ) : pendingInvitationBatches.length === 0 ? (
             <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-sm font-bold text-zinc-600">대기 중인 초대가 없습니다.</p>
           ) : (
             <div className="mt-5 divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200">
-              {pendingInvitations.map((invitation) => (
-                <div key={invitation.id} className="grid gap-2 px-4 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
+              {pendingInvitationBatches.map((invitation) => (
+                <div key={invitation.inviteBatchId} className="grid gap-4 px-4 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-zinc-900">{invitation.email_normalized}</p>
-                    <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
-                      {menuSiteNameById.get(invitation.menu_site_id) ?? "메뉴판"}
+                    <p className="truncate text-sm font-black text-zinc-900">{invitation.email}</p>
+                    <p className="mt-1 text-xs font-semibold leading-relaxed text-zinc-500">
+                      {invitation.menuSiteNames.join(" · ")}
                     </p>
                   </div>
                   <p className="text-xs font-bold text-zinc-600">역할: {getRoleLabel(invitation.role)}</p>
-                  <p className="text-xs font-bold text-zinc-500">{formatExpiry(invitation.expires_at)} 만료</p>
+                  <div className="space-y-2 md:text-right">
+                    <p className="text-xs font-bold text-zinc-500">{formatExpiry(invitation.expiresAt)} 만료</p>
+                    <div className="flex gap-2 md:justify-end">
+                      <form action={resendStaffInvitationAction}>
+                        <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
+                        <button
+                          type="submit"
+                          disabled={!invitationDeliveryEnabled}
+                          className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:text-zinc-300"
+                        >
+                          재전송
+                        </button>
+                      </form>
+                      <form action={cancelStaffInvitationAction}>
+                        <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
+                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-black text-rose-700 hover:bg-rose-50">
+                          취소
+                        </button>
+                      </form>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
