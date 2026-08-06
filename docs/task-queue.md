@@ -76,7 +76,7 @@
 - `DONE` 안전한 QR token — 생성·회전 시 raw token 1회 전달, DB와 목록 DTO에는 SHA-256 hash만 유지
 - `DONE` 방문 세션과 만료 — server 발급, 12시간 이내 expiry, Secure·HttpOnly·SameSite=Lax cookie
 - `DONE` 세션 재사용·탈취 방지 — menu-site/table/status/revoke/expiry/User-Agent hash 검증, last-seen write throttle
-- `TODO` 테이블 QR 다운로드
+- `DONE` 테이블 QR 다운로드 — 생성·회전 1회 응답에서 browser-local PNG 생성, raw token API 재전송 없음
 - `NEEDS_HUMAN` 실제 Order/Call 제품 key·번들 정책과 Production `TABLE_MANAGEMENT_ENABLED` 활성화
 
 ## 6. 모바일 장바구니와 후불 주문
@@ -147,4 +147,4 @@
 
 ## 다음 작업
 
-공개 table QR 진입과 server-validated 방문 세션은 default-off runtime으로 완료했다. 다음 저위험 마일스톤은 raw token이 제공되는 생성·회전 응답에서만 가능한 table QR 다운로드다. 실제 제품 key·번들 정책과 Production feature gate는 사람이 확정하기 전까지 활성화하지 않는다.
+테이블 QR·방문 세션 runtime의 안전한 코드 범위는 완료했다. 다음 개발은 모바일 장바구니와 후불 주문 계약을 세부 감사하되, 실제 제품 key·번들 정책과 Production feature gate가 필요한 활성화·실데이터 작업은 사람이 확정하기 전까지 진행하지 않는다.

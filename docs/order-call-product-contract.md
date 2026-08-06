@@ -287,6 +287,7 @@ Implementation status (2026-08-06):
 - A visit-session raw token is delivered only as a Secure, HttpOnly, SameSite=Lax cookie with a database-enforced maximum lifetime of 12 hours.
 - Session reuse validates menu-site identity, active table state, expiry, revocation, and the hashed User-Agent context; last-seen writes are throttled.
 - A valid existing session can provide table context to the common mobile header, while Order and Call remain disabled until their entitlements and store-operation contracts are implemented.
+- The table-management one-time delivery panel renders the table URL into a PNG entirely in the browser; it does not send the raw table token to a separate QR API.
 - The full runtime remains behind the default-off `TABLE_MANAGEMENT_ENABLED` gate, so no Production session issuance is activated by this code change.
 
 ## 10. Postpay Order

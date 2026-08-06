@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `e5ae414` (`PR #22` 병합)
+기준 커밋: `16f9673` (`PR #23` 병합)
 
 ## 완료된 주요 기능
 
@@ -96,10 +96,12 @@
   - 메뉴판 ID·active table·만료·폐기·User-Agent hash가 모두 일치할 때만 세션을 재사용
   - 일반 slug 접근은 세션을 생성하지 않으며 유효한 기존 세션만 공통 모바일 header의 table context에 연결
   - 기능은 기존 default-off `TABLE_MANAGEMENT_ENABLED` gate 뒤에 있어 Production 활성화나 데이터 write가 발생하지 않음
+  - 생성·회전 1회 응답에서는 브라우저 내부 QR renderer로 PNG를 내려받으며 raw token을 별도 API에 재전송하지 않음
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `16f9673` — PR #23 병합: fail-closed table QR 방문 세션 runtime
 - `e5ae414` — PR #22 병합: fail-closed 테이블 관리 runtime
 - `63a05e6` — PR #21 병합: 테이블 QR·방문 세션 generated types 갱신
 - `1f20762` — PR #20 병합: 테이블 QR·방문 세션 DB 기반
@@ -186,4 +188,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 16. 활성 템플릿 QA와 모바일 Order/Call 공통 헤더 셸은 완료했다.
 17. 테이블 QR·방문 세션 migration은 Production에 1회 적용했고 generated types를 갱신했다.
 18. 테이블 관리와 안전한 QR token 발급은 default-off runtime으로 구현했다.
-19. 공개 table QR 진입과 server-validated 방문 세션은 같은 gate 뒤에 구현했다. 다음 단계는 생성·회전 직후 table QR 다운로드이며, 실제 제품 key·번들·Production feature gate 활성화는 사람 결정 전까지 보류한다.
+19. 공개 table QR 진입, server-validated 방문 세션, 생성·회전 직후 browser-local QR 다운로드를 같은 gate 뒤에 구현했다. 다음 단계는 모바일 장바구니·후불 주문 계약 감사이며, 실제 제품 key·번들·Production feature gate 활성화는 사람 결정 전까지 보류한다.
