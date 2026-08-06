@@ -14,6 +14,7 @@ import {
   TIME_SALE_TIMEZONE,
 } from "@/lib/menu-time-sales";
 import { getNextTimeSaleStartMs } from "@/lib/menu-time-sale-schedule";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { DEFAULT_TEMPLATE_CONTENT_LIMITS, getTemplateContentLimits } from "@/lib/template-content-limits";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { MENU_WIDGET_SETTINGS_VERSION } from "@/lib/menu-widgets";
@@ -32,6 +33,7 @@ type PageProps = {
     footerStress?: string | string[];
     contentQa?: string | string[];
     featured?: string | string[];
+    featureQa?: string | string[];
     copyQa?: string | string[];
     brewCoverPageQa?: string | string[];
     brewCoverImageQa?: string | string[];
@@ -473,6 +475,138 @@ function applyActiveTemplateLocaleQaFixture(
       set_name: copy.itemSecondary,
       description: copy.itemDescription,
     } : item),
+  };
+}
+
+function applyActiveTemplateFeatureQaFixture(
+  data: MenuPageData,
+  featureQa: string | string[] | undefined,
+): MenuPageData {
+  if (process.env.NODE_ENV === "production" || !isPreviewFlagEnabled(featureQa)) return data;
+
+  const templateKey = data.menuSite.template_key;
+  const capabilities = getTemplateCapabilities(templateKey);
+  const firstPage = sortMenuPages(data.pages.filter((page) => page.visible !== false))[0] ?? null;
+  const visibleItems = [...data.items]
+    .filter((item) => item.visible !== false)
+    .sort((left, right) => left.sort_order - right.sort_order || left.name.localeCompare(right.name, "ko"));
+  const featureItemsByCategory = data.categories
+    .filter((category) => category.visible !== false)
+    .map((category) => visibleItems.filter((item) => item.category_id === category.id));
+  const primaryItems = featureItemsByCategory.flatMap((items) => items[0] ? [items[0]] : []);
+  const soldOutItems = featureItemsByCategory.flatMap((items) => items[1] ? [items[1]] : []);
+  const timeSaleItems = featureItemsByCategory.flatMap((items) => items[2] ? [items[2]] : items[0] ? [items[0]] : []);
+  const primaryItemIds = new Set(primaryItems.map((item) => item.id));
+  const soldOutItemIds = new Set(soldOutItems.map((item) => item.id));
+  const featureImageUrl = "/menu-templates/cafe_design_a/malcha.jpg";
+  const supportsTimeSale = (
+    templateKey === "cafe_design_a" ||
+    templateKey === "cafe_mocha_forest_a" ||
+    templateKey === "cafe_sunday_line_a" ||
+    templateKey === "cafe_round_focus_a" ||
+    templateKey === "cafe_brew_chapter_a"
+  );
+  const items = data.items.map((item) => {
+    if (primaryItemIds.has(item.id)) {
+      return {
+        ...item,
+        badge: capabilities.itemBadges ? "FEATURE QA" : item.badge,
+        badge_label: capabilities.itemBadges ? "FEATURE QA" : item.badge_label,
+        image_url: capabilities.menuItemImages ? featureImageUrl : item.image_url,
+        is_best: capabilities.itemBadges ? true : item.is_best,
+        recommended: capabilities.itemBadges ? true : item.recommended,
+      };
+    }
+    if (soldOutItemIds.has(item.id)) {
+      return { ...item, is_sold_out: true };
+    }
+    return item;
+  });
+  const priceOptions = capabilities.priceOptions && primaryItems.length > 0
+    ? [
+        ...data.priceOptions.filter((option) => !primaryItemIds.has(option.menu_item_id)),
+        ...primaryItems.flatMap((item) => [
+          { id: `${item.id}-feature-qa-option-1`, menu_item_id: item.id, label: "HOT", price: 5500, price_label: "5.5", visible: true, sort_order: 1 },
+          { id: `${item.id}-feature-qa-option-2`, menu_item_id: item.id, label: "ICE", price: 6000, price_label: "6.0", visible: true, sort_order: 2 },
+          { id: `${item.id}-feature-qa-option-3`, menu_item_id: item.id, label: "LARGE", price: 6800, price_label: "6.8", visible: true, sort_order: 3 },
+        ]),
+      ]
+    : data.priceOptions;
+  const timeSales: MenuPageData["timeSales"] = supportsTimeSale && timeSaleItems.length > 0
+    ? [{
+        id: `${data.menuSite.id}-feature-qa-time-sale`,
+        name: "FEATURE QA SALE",
+        scheduleType: "once" as const,
+        startsAt: new Date(data.initialNowMs - 60 * 60 * 1000).toISOString(),
+        endsAt: new Date(data.initialNowMs + 6 * 60 * 60 * 1000).toISOString(),
+        dailyStartTime: null,
+        dailyEndTime: null,
+        timezone: TIME_SALE_TIMEZONE,
+        timeDisplayMode: DEFAULT_TIME_SALE_DISPLAY_MODE,
+        displayText: "출시 기능 확인 세일",
+        badgeText: "QA SALE",
+        badgeBackgroundColor: DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
+        items: timeSaleItems.map((item, index) => ({
+          id: `${data.menuSite.id}-feature-qa-time-sale-item-${index}`,
+          menuItemId: item.id,
+          priceColumnId: null,
+          salePrice: 3900,
+          salePriceLabel: "3.9",
+          visible: true,
+        })),
+      }]
+    : data.timeSales;
+  const widgets: MenuPageData["widgets"] = capabilities.menuWidgets.enabled && firstPage
+    ? [
+        {
+          id: `${data.menuSite.id}-feature-qa-widget-image`,
+          menuSiteId: data.menuSite.id,
+          menuPageId: firstPage.id,
+          type: "image",
+          title: null,
+          description: null,
+          imageUrl: featureImageUrl,
+          imagePath: null,
+          sortOrder: 0,
+          visible: true,
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", altText: "말차 음료" },
+        },
+        {
+          id: `${data.menuSite.id}-feature-qa-widget-text`,
+          menuSiteId: data.menuSite.id,
+          menuPageId: firstPage.id,
+          type: "text",
+          title: "오늘의 안내",
+          description: "원두와 디저트, 포장 가능 시간을 한눈에 확인하세요.",
+          imageUrl: null,
+          imagePath: null,
+          sortOrder: 1,
+          visible: true,
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, textAlign: "center" },
+        },
+        {
+          id: `${data.menuSite.id}-feature-qa-widget-image-text`,
+          menuSiteId: data.menuSite.id,
+          menuPageId: firstPage.id,
+          type: "image_text",
+          title: "SEASONAL PICK",
+          description: "제철 재료로 완성한 시즌 메뉴를 소개합니다.",
+          imageUrl: featureImageUrl,
+          imagePath: null,
+          sortOrder: 2,
+          visible: true,
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "3:2", objectFit: "cover", textAlign: "left", altText: "시즌 메뉴" },
+        },
+      ]
+    : data.widgets;
+
+  return {
+    ...data,
+    items,
+    priceOptions,
+    timeSales,
+    nextTimeSaleStartAt: null,
+    widgets,
   };
 }
 
@@ -1008,24 +1142,27 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const fixtureData = applyPreviewFontSizeScale(
     applyDisplayPreviewSplitImagePosition(
       applyCafeAMultiPagePreviewFixture(
-        applyRoundFocusFeaturedFixture(
-          applySundayLineCopyQaFixture(
-            applyBrewChapterCoverImageQaFixture(
-              applyCafeDenseContentQaFixture(
-                applyCafeAFooterStressData(
-                  buildPreviewData(templateKey, displayPreviewQaCase),
-                  resolvedSearchParams.footerStress
+        applyActiveTemplateFeatureQaFixture(
+          applyRoundFocusFeaturedFixture(
+            applySundayLineCopyQaFixture(
+              applyBrewChapterCoverImageQaFixture(
+                applyCafeDenseContentQaFixture(
+                  applyCafeAFooterStressData(
+                    buildPreviewData(templateKey, displayPreviewQaCase),
+                    resolvedSearchParams.footerStress
+                  ),
+                  resolvedSearchParams.contentQa
                 ),
-                resolvedSearchParams.contentQa
+                templateKey,
+                resolvedSearchParams.brewCoverPageQa,
+                resolvedSearchParams.brewCoverImageQa
               ),
-              templateKey,
-              resolvedSearchParams.brewCoverPageQa,
-              resolvedSearchParams.brewCoverImageQa
+              resolvedSearchParams.copyQa,
+              resolvedSearchParams.lang
             ),
-            resolvedSearchParams.copyQa,
-            resolvedSearchParams.lang
+            resolvedSearchParams.featured
           ),
-          resolvedSearchParams.featured
+          resolvedSearchParams.featureQa
         ),
         resolvedSearchParams.pagePresentation
       ),
