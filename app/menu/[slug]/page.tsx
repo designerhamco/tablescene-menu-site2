@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getPublicMenuDataBySlug, type MenuPageData } from "@/lib/menu-page-data";
 import { getMenuSiteAccessStateBySlug, type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
+import { resolveTableVisitSession } from "@/lib/server/table-visit-session-service";
+import { TABLE_VISIT_SESSION_COOKIE } from "@/lib/table-qr-session-tokens";
 import { sortMenuPages } from "@/types/menu";
 
 type PageProps = {
@@ -123,10 +126,28 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     notFound();
   }
 
+  const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+  const tableSession = await resolveTableVisitSession({
+    expectedMenuSiteId: data.menuSite.id,
+    sessionToken: cookieStore.get(TABLE_VISIT_SESSION_COOKIE)?.value,
+    userAgent: headerStore.get("user-agent"),
+  });
+  const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
+
   return (
     <MenuPageRenderer
       mode="public"
       initialPreviewPageId={getDisplayInitialPageId(data, requestedPageIndex)}
+      orderCallConfig={tableSession ? {
+        mode: "active",
+        orderEnabled: false,
+        callEnabled: false,
+        hasValidTableSession: true,
+        orderingOpen: false,
+        languageSlotEnabled: true,
+        storeName,
+        tableLabel: tableSession.tableLabel,
+      } : undefined}
       {...data}
     />
   );
