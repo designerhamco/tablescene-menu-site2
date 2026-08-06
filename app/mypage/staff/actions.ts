@@ -11,6 +11,11 @@ import {
   resendStaffInvitationBatch,
   StaffInvitationError,
 } from "@/lib/server/staff-invitation-service";
+import {
+  revokeStaffMembership,
+  StaffMembershipManagementError,
+  updateStaffMembershipRole,
+} from "@/lib/server/staff-membership-management-service";
 import { createClient } from "@/lib/supabase/server";
 
 export type StaffInvitationActionState = {
@@ -115,6 +120,62 @@ export async function cancelStaffInvitationAction(formData: FormData) {
       });
     } catch (error) {
       resultCode = getStaffManagementActionError(error);
+    }
+  }
+
+  revalidatePath("/mypage/staff");
+  redirect(`/mypage/staff?result=${resultCode}`);
+}
+
+function getStaffMembershipActionError(error: unknown) {
+  if (!(error instanceof StaffMembershipManagementError)) return "unexpected";
+  if (error.code === "MEMBERSHIP_NOT_FOUND" || error.code === "MEMBERSHIP_CHANGED") return "member-changed";
+  if (error.code === "OWNER_ACCESS_REQUIRED") return "access-denied";
+  if (error.code === "INVALID_ROLE") return "invalid-role";
+  return "operation-failed";
+}
+
+export async function updateStaffMembershipRoleAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const role = getFormString(formData, "role");
+  let resultCode = "role-updated";
+
+  if (userError || !user || isDeletedAccountStatus(user.app_metadata)) {
+    resultCode = "auth-required";
+  } else if (!isStaffInvitationRole(role)) {
+    resultCode = "invalid-role";
+  } else {
+    try {
+      await updateStaffMembershipRole({
+        actorUserId: user.id,
+        membershipId: getFormString(formData, "membershipId"),
+        role,
+      });
+    } catch (error) {
+      resultCode = getStaffMembershipActionError(error);
+    }
+  }
+
+  revalidatePath("/mypage/staff");
+  redirect(`/mypage/staff?result=${resultCode}`);
+}
+
+export async function revokeStaffMembershipAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  let resultCode = "access-revoked";
+
+  if (userError || !user || isDeletedAccountStatus(user.app_metadata)) {
+    resultCode = "auth-required";
+  } else {
+    try {
+      await revokeStaffMembership({
+        actorUserId: user.id,
+        membershipId: getFormString(formData, "membershipId"),
+      });
+    } catch (error) {
+      resultCode = getStaffMembershipActionError(error);
     }
   }
 

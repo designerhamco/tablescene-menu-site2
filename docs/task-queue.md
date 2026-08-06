@@ -26,7 +26,7 @@
 - `DONE` 직원 초대 UI와 이메일 전송 — 실제 발송은 수락 화면·SMTP QA 전까지 feature gate로 비활성, `docs/staff-invitation-delivery.md`
 - `DONE` 초대 수락 화면 — HttpOnly intent cookie, verified Auth email, 원자적 수락 RPC 연결
 - `DONE` 초대 재전송·취소 — Owner 재검증, batch token 회전, 발송 실패 rollback, revoke·audit 연결
-- `TODO` 직원 역할 변경과 접근 회수
+- `DONE` 직원 역할 변경과 접근 회수 — Owner-only active membership, role allowlist, revoke·audit·rollback 연결
 - `TODO` 직원용 마이페이지 상세 경험
 - `DONE` 이미지·동영상 Storage 권한 — Production Storage policy 변경 없이 권한 확인 후 서버 경계에서만 실행
 - `DONE` 위젯·번역·AI 권한 연결 — AI 사용은 Owner 크레딧, 충전·결제 UI는 Owner-only
@@ -143,4 +143,4 @@
 
 ## 다음 작업
 
-현재 PR을 완료한 다음 별도 브랜치에서 `직원 역할 변경과 접근 회수`를 진행한다. 실제 이메일 발송·SMTP/Auth 설정·Production 작업은 사람 승인 전에 실행하지 않는다.
+현재 PR을 완료한 다음 별도 브랜치에서 `직원용 마이페이지 상세 경험`을 진행한다. 실제 이메일 발송·SMTP/Auth 설정·Production 작업은 사람 승인 전에 실행하지 않는다.
