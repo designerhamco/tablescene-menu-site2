@@ -127,6 +127,10 @@
   - immutable item snapshot 기반 메뉴별 판매량 Top 10과 결제수단별 완료액 제공
   - 당월 생성 주문의 현재 취소·미결제 건수와 주문금액을 별도 표시
   - 새 migration이나 Production 설정 없이 기존 server-only 주문 데이터를 최소 DTO로 조회
+- 주문·호출 앱 내 도착 알림:
+  - 기존 15초 dashboard refresh 결과의 ID만 브라우저 session 범위에서 비교
+  - 최초 진입의 기존 이력은 알리지 않고 이후 새 주문·pending 호출만 배너와 문서 제목으로 표시
+  - Notification 권한·소리·외부 채널·서버 저장 없이 fail-safe로 동작
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -231,3 +235,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 21. default-off 모바일 cart와 atomic 주문 제출 runtime을 구현했고 RPC migration Production 1회 적용과 generated types 갱신까지 완료했다. 실제 상품 SKU·가격·entitlement·Production gate 활성화는 별도 승인 전까지 보류한다.
 22. 주문관리·미결제 취소·외부 수동 결제·영수증은 default-off runtime으로 구현했다. 실제 Order Dashboard 상품과 Production gate 활성화는 별도 승인 전까지 보류한다.
 23. Call MVP와 기본 매출 요약은 기존 server-only 주문·호출 데이터와 명시적 permission/gate 뒤에 구현했다. Production gate와 실제 상품 활성화는 별도 승인 전까지 보류한다.
+24. 주문·호출 앱 내 도착 알림은 dashboard에 이미 전달된 최소 ID만 sessionStorage에서 비교하며 별도 데이터 조회나 Production write를 만들지 않는다.

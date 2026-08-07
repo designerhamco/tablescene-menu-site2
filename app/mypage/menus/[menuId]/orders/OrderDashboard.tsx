@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 
+import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import type { OrderDashboardPageData } from "@/lib/server/order-management-service";
 
 import {
@@ -107,6 +108,11 @@ export default function OrderDashboard({
         </div>
       ) : null}
       <div className="space-y-5 print:hidden">
+        <OperationalArrivalAlert
+          menuSiteId={menuSiteId}
+          kind="orders"
+          arrivalIds={orders.filter((order) => order.status !== "cancelled").map((order) => order.id)}
+        />
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div>
             <p className="text-sm font-black text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
