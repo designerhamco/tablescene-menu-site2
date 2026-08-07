@@ -6,7 +6,7 @@
 
 출시 전 전체 고객 흐름을 코드·route·계약 테스트로 다시 연결해 확인하고, 실제 계정·결제·Production write가 없으면 검증할 수 없는 항목을 명확히 분리한다.
 
-이번 감사에서는 Production DB/Auth/Storage, 실제 결제·환불·구독, 이메일 발송, 고객 데이터에 어떤 write도 수행하지 않았다.
+초기 정적·route 감사에서는 Production DB/Auth/Storage, 실제 결제·환불·구독, 이메일 발송, 고객 데이터에 어떤 write도 수행하지 않았다. 이후 2026-08-07에는 사용자가 승인한 정확한 직원 초대 1건만 별도 Production E2E로 수행했다.
 
 ## 자동 검증 결과
 
@@ -45,13 +45,23 @@ Node의 기본 TypeScript strip runner로 `lib/*.test.ts` 전체를 한 번에 �
 - table session·Order·Call의 보안 계약: hash-only token, HttpOnly session, service-role-only DB 접근, idempotency, rate limit, permission과 staff write audit 테스트가 통과했다.
 - 주문관리·수동 결제·매출·앱 내 알림의 default-off route가 production build에 포함됐다.
 
+### Production 직원 초대 E2E 완료
+
+2026-08-07 사용자 승인 아래 기존 Owner 계정, 기존 별도 직원 계정, 운영 가능한 기존 메뉴판을 사용해 다음을 확인했다. 화면 확인만을 위한 새 가짜 메뉴판·계정은 만들지 않았다.
+
+- Production 직원 초대 feature gate와 이메일 발송 경로가 동작하고, 7일 만료 viewer 초대가 수신됐다.
+- 초대 링크가 raw token을 URL에서 제거한 review route로 이동하고 로그인 계정 이메일 불일치를 수락 전에 차단했다.
+- 초대받은 직원 계정으로 로그인한 뒤 수락 RPC가 성공하고 메뉴판 1개가 `직원 참여`·`조회자`로 표시됐다.
+- viewer에게 Owner 전용 결제·구독·보관·삭제 동선이 표시되지 않고 사용 가능 기능은 미리보기만 노출됐다.
+- 비공개 Display 메뉴판의 읽기 전용 미리보기가 PC 프레임에서 렌더됐고, 편집 route 직접 접근은 `menu-edit-forbidden`으로 마이페이지에 되돌아갔다.
+- 직원 관리 route 직접 접근은 소유 메뉴판·직원 데이터·활성 mutation을 노출하지 않는 비활성 상태로 유지됐다.
+
 ### 사람 검증이 필요한 흐름
 
 아래 항목은 코드 실패가 아니라 실제 외부 상태 변경 또는 실사용 계정이 필요한 최종 E2E다.
 
 - 회원가입 이메일·비밀번호 재설정 이메일 실제 수신
 - 실제 상품 구매와 PortOne 승인·실패·취소·환불
-- 실제 Owner가 보낸 직원 초대 이메일과 별도 직원 계정 수락·역할별 화면
 - 승인된 Order/Call 상품·site allowlist를 사용하는 실제 table QR 방문·주문·호출
 - 실제 주문의 상태 변경·외부 결제 완료와 앱 내 새 도착 배너
 - 실제 구독의 해지·보관·복구

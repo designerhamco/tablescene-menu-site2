@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `209ad6a` (`PR #28` 병합)
+기준 커밋: `449b8d6` (`PR #31` 병합)
 
 ## 완료된 주요 기능
 
@@ -136,6 +136,10 @@
   - 비로그인 마이페이지의 sign-in 보호 확인
   - Order·Call·table session·권한 audit·매출·앱 내 알림 계약 테스트 42개 통과
   - 실제 계정·이메일·결제·구독·주문 write가 필요한 최종 E2E는 `docs/customer-flow-qa.md`에 분리
+- 직원 초대 Production E2E:
+  - 사용자 승인 아래 기존 Owner·별도 직원 계정과 기존 활성 메뉴판으로 viewer 초대 이메일 발송·수락 완료
+  - 직원 마이페이지 역할 배지, Owner-only 동선 숨김, 비공개 메뉴판 읽기 전용 미리보기 확인
+  - 편집 route 직접 접근은 `menu-edit-forbidden`으로 차단되고 직원 관리 route는 데이터·mutation 없이 비활성 유지
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -193,7 +197,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 ## 현재 보류 중인 운영 작업
 
 - 기존 불완전 주문 3건은 변경하지 않고 별도 read-only 운영 감사가 필요하다.
-- 회원가입·비밀번호 재설정·직원 초대 이메일의 실제 SMTP 발송 확인
+- 회원가입·비밀번호 재설정 이메일의 실제 수신 확인
 - Production 환경변수와 비밀키 확인
 - Vercel Cron 설정 확인
 - PortOne 실제 결제·취소·부분취소·환불 검증
@@ -223,7 +227,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 4. Owner 소유 메뉴판과 활성 직원 membership 메뉴판의 통합 목록 및 역할 표시는 PR #2에서 구현·검증했다.
 5. 직원 읽기 전용 미리보기 접근은 `agent/staff-menu-preview-access`에서 구현·검증했다.
 6. Owner/Manager/Editor 메뉴 편집과 공개·위젯·번역·AI·미디어 권한 연결은 서버 권한 경계로 구현했다.
-7. 실제 직원 계정 E2E 확인은 직원 초대·수락 기능이 완성된 뒤 진행한다. 화면 확인만을 위한 Production 직원 데이터는 만들지 않는다.
+7. 실제 직원 계정 viewer E2E는 2026-08-07 사용자 승인 아래 기존 계정·메뉴판으로 완료했다. 화면 확인만을 위한 별도 Production 가짜 계정·메뉴판은 만들지 않았다.
 8. Owner-only runtime 검증은 `docs/owner-only-runtime-audit.md`에 완료 기록했다.
 9. 직원 초대 UI와 이메일 전송 코드는 feature gate 뒤에 구현했다. 실제 발송과 Production SMTP/Auth 설정은 사람 승인 전에 실행하지 않는다.
 10. 초대 수락 화면은 HttpOnly intent cookie와 원자적 RPC로 연결했다.

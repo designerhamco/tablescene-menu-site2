@@ -1,6 +1,6 @@
 # 직원 초대 UI와 이메일 전송
 
-최종 검토: 2026-08-06
+최종 검토: 2026-08-07
 
 ## 구현 범위
 
@@ -23,7 +23,7 @@
 - `EMAIL_PROVIDER=resend`
 - `RESEND_API_KEY` 설정
 
-현재 작업에서는 환경변수를 추가하거나 변경하지 않았다. 초대 수락 화면, 기존 사용자와 신규 사용자의 Auth 복귀 흐름, 실제 SMTP 발송 QA가 끝나기 전에 `STAFF_INVITATIONS_ENABLED`를 Production에서 활성화하지 않는다.
+2026-08-07 사용자 승인 아래 Production의 `STAFF_INVITATIONS_ENABLED=true` 설정과 재배포를 완료했다. 실제 발송은 계속 Owner 재인증, 선택한 메뉴판 소유권, 이메일·역할 allowlist, rate limit, audit 조건을 모두 통과해야 한다.
 
 ## 초대 수락
 
@@ -62,4 +62,12 @@
 - active membership Owner 경계, 역할 allowlist, 조건부 update·rollback
 - 기존 Owner/Manager/Editor/Order Staff/Viewer 권한 회귀 테스트
 
-Production SQL·데이터·Auth·SMTP·환경변수·실제 이메일은 변경하거나 실행하지 않았다.
+## Production E2E 기록
+
+2026-08-07 사용자 승인 아래 기존 Owner·직원 계정과 기존 활성 메뉴판으로 viewer 초대 1건을 발송하고 수락했다.
+
+- 이메일 수신, 7일 만료, 메뉴판 이름과 viewer 역할을 확인했다.
+- 잘못 로그인된 Owner 계정에서는 review 화면의 이메일 불일치를 확인하고 수락하지 않았다.
+- 정확한 직원 계정 로그인 후 원자적 수락이 성공했고 직원 마이페이지에 `직원 참여`·`조회자` 배지와 읽기 전용 미리보기만 노출됐다.
+- 편집 route 직접 접근은 `menu-edit-forbidden`으로 차단됐고 Owner-only 결제·구독·보관·삭제 동선은 표시되지 않았다.
+- 이번 E2E는 승인된 초대·membership write만 수행했으며 Production SQL, migration, RLS·Storage policy, 결제·구독·고객 데이터 삭제는 실행하지 않았다.
