@@ -1,10 +1,10 @@
 # MenuLink 프로젝트 상태
 
-최종 갱신: 2026-08-06
+최종 갱신: 2026-08-07
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `f5038e7` (`PR #27` 병합)
+기준 커밋: `209ad6a` (`PR #28` 병합)
 
 ## 완료된 주요 기능
 
@@ -120,10 +120,18 @@
   - 최근 100건을 15초 갱신하는 별도 호출관리 화면; 공개 Realtime publication은 추가하지 않음
   - server-only 강제 RLS migration은 2026-08-07 Production 1회 적용 및 generated types 갱신 완료
   - `CALL_ENABLED` + site allowlist 없이 UI와 write 모두 fail closed
+- 매출 요약 default-off 기반:
+  - 기존 주문관리 gate와 `sales.read`를 모두 통과한 Owner/Manager만 접근
+  - 한국 시간 기준 당일·당월 주문 접수 수와 결제 완료 건수·금액을 분리 집계
+  - 결제 완료액은 현재 `manual_paid`/`paid` 상태만 포함하고 취소·환불·정산·수수료는 제외
+  - immutable item snapshot 기반 메뉴별 판매량 Top 10과 결제수단별 완료액 제공
+  - 당월 생성 주문의 현재 취소·미결제 건수와 주문금액을 별도 표시
+  - 새 migration이나 Production 설정 없이 기존 server-only 주문 데이터를 최소 DTO로 조회
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `209ad6a` — PR #28 병합: default-off Call MVP와 Production migration 기록
 - `f5038e7` — PR #27 병합: fail-closed 후불 주문관리
 - `b8c9631` — PR #26 병합: atomic 후불 주문 runtime과 RPC
 - `80a3897` — PR #25 병합: 후불 주문 schema Production 적용과 generated types 갱신
@@ -221,4 +229,5 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 19. 공개 table QR 진입, server-validated 방문 세션, 생성·회전 직후 browser-local QR 다운로드를 같은 gate 뒤에 구현했다.
 20. 후불 주문 V1 schema migration은 Production에 1회 적용했고 generated types를 갱신했다.
 21. default-off 모바일 cart와 atomic 주문 제출 runtime을 구현했고 RPC migration Production 1회 적용과 generated types 갱신까지 완료했다. 실제 상품 SKU·가격·entitlement·Production gate 활성화는 별도 승인 전까지 보류한다.
-22. 주문관리·미결제 취소·외부 수동 결제·영수증은 `agent/postpay-order-dashboard`에서 default-off runtime으로 구현했다. 실제 Order Dashboard 상품과 Production gate 활성화는 별도 승인 전까지 보류한다.
+22. 주문관리·미결제 취소·외부 수동 결제·영수증은 default-off runtime으로 구현했다. 실제 Order Dashboard 상품과 Production gate 활성화는 별도 승인 전까지 보류한다.
+23. Call MVP와 기본 매출 요약은 기존 server-only 주문·호출 데이터와 명시적 permission/gate 뒤에 구현했다. Production gate와 실제 상품 활성화는 별도 승인 전까지 보류한다.

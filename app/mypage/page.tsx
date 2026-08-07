@@ -1369,6 +1369,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ? "주문관리는 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
       : messageCode === "call-dashboard-locked"
         ? "호출관리는 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
+      : messageCode === "sales-dashboard-locked"
+        ? "매출 요약은 주문관리 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
       : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
@@ -2371,6 +2373,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           && isTemplateSupportedForService(site.template_key, "basic")
           && canUseMenuActions,
         canManageOrders: Boolean(siteId) && isOrderDashboardRuntimeEnabledForSite(siteId),
+        canViewSales: Boolean(siteId) && isOrderDashboardRuntimeEnabledForSite(siteId),
         canManageCalls: Boolean(siteId) && isCallRuntimeEnabledForSite(siteId),
         canOwnerPreview,
         canViewPublic: canOpenPublicPage,
@@ -2410,6 +2413,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       && hasMenuSitePermission(site.memberRole, "table.manage");
     const canManageOrders = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)
       && hasMenuSitePermission(site.memberRole, "order.read");
+    const canViewSales = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)
+      && hasMenuSitePermission(site.memberRole, "sales.read");
     const canManageCalls = isCallRuntimeEnabledForSite(site.menuSiteId)
       && hasMenuSitePermission(site.memberRole, "call.manage");
     const permissionSummary = [
@@ -2419,6 +2424,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       canUseAi ? "AI 도우미" : null,
       canManageTables ? "테이블 관리" : null,
       canManageOrders ? "주문관리" : null,
+      canViewSales ? "매출 요약" : null,
       canManageCalls ? "호출관리" : null,
     ].filter((value): value is string => Boolean(value)).join(" · ");
     return {
@@ -2433,6 +2439,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       canEdit,
       canManageTables,
       canManageOrders,
+      canViewSales,
       canManageCalls,
       canViewPublic: site.status === "published" && Boolean(site.slug),
       permissionSummary,
@@ -2566,6 +2573,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               disabledReason: "주문관리 상품이 활성화되지 않았습니다.",
             })}
             {renderActionButton({
+              label: "매출 요약",
+              href: card.siteId ? `/mypage/menus/${card.siteId}/sales` : null,
+              enabled: card.actions.canViewSales,
+              disabledReason: "매출 요약 상품이 활성화되지 않았습니다.",
+            })}
+            {renderActionButton({
               label: "호출관리",
               href: card.siteId ? `/mypage/menus/${card.siteId}/calls` : null,
               enabled: card.actions.canManageCalls,
@@ -2654,6 +2667,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-900 transition-colors hover:bg-amber-100"
             >
               주문관리
+            </Link>
+          ) : null}
+          {card.canViewSales ? (
+            <Link
+              href={`/mypage/menus/${card.siteId}/sales`}
+              className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-xs font-black text-sky-900 transition-colors hover:bg-sky-100"
+            >
+              매출 요약
             </Link>
           ) : null}
           {card.canManageCalls ? (

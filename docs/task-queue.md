@@ -125,10 +125,10 @@
 
 ## 10. 매출관리와 알림
 
-- `TODO` 일별·월별 매출과 주문 수
-- `TODO` 메뉴별 판매량
-- `TODO` 결제수단별 집계
-- `TODO` 취소·미결제 집계
+- `DONE` 일별·월별 매출과 주문 수 — 한국 시간 기준 주문 접수·결제 완료 시각 분리 집계, `sales.read`와 기존 Order Dashboard default-off gate 재사용
+- `DONE` 메뉴별 판매량 — 결제 완료 주문의 immutable item snapshot을 메뉴명 기준으로 합산한 Top 10
+- `DONE` 결제수단별 집계 — 외부 카드 단말기·현금·PG 완료 건수와 금액
+- `DONE` 취소·미결제 집계 — 당월 생성 주문의 현재 취소·미결제 건수와 주문금액
 - `TODO` 주문 알림과 호출 알림
 - `TODO` 알림톡 또는 후속 알림 채널
 
@@ -155,4 +155,4 @@
 
 ## 다음 작업
 
-default-off 모바일 cart·atomic 주문 제출·주문관리·수동 결제 runtime은 완료됐다. 다음 미완료 범위는 Call 기능이며, MVP preset 범위·중복 차단·rate limit 수치를 제품 정책으로 확정한 뒤 진행한다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다.
+Call MVP와 기본 매출관리 집계까지 완료됐다. 다음 안전한 미완료 범위는 주문·호출 알림의 앱 내부 표시이며, 외부 알림톡 채널·과금 정책은 별도 결정 전까지 분리한다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다. 선결제 PG와 실제 취소·환불은 provider·정책·사람 승인이 필요하므로 자동 진행하지 않는다.

@@ -682,3 +682,17 @@ Do not infer these in implementation:
 - 확정: A customer cannot see another table's calls.
 - 확정: All supported templates use the same Call layer.
 - 확정: Display has no Call UI.
+
+## 24. Sales Summary Boundary
+
+- 확정: The first sales dashboard is an operational summary, not a PG settlement or tax report.
+- 확정: Order count is grouped by order creation time in `Asia/Seoul`.
+- 확정: Collected amount is grouped by payment completion time in `Asia/Seoul` and includes only the current `manual_paid` or `paid` state.
+- 확정: Cancelled and refunded payment states are excluded from collected amount.
+- 확정: Menu ranking uses immutable order item names and quantities from currently completed-payment orders.
+- 확정: Payment-method totals separate manual card, manual cash, and PG completion records.
+- 확정: Cancelled and currently unpaid order counts use orders created in the selected Korean calendar month and are not treated as collected sales.
+- 확정: Owner and Manager may access aggregate sales through `sales.read`; Order Staff and Viewer may not.
+- 확정: The server reauthorizes `sales.read` before using the server-only database client and returns only aggregate DTOs.
+- 확정: The sales entry stays behind the existing default-off Order Dashboard runtime and explicit site allowlist until the product entitlement is finalized.
+- 확정: No schema, RLS, Production environment, settlement, or customer-data mutation is part of this milestone.
