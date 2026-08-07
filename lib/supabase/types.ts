@@ -706,6 +706,79 @@ export type Database = {
           },
         ]
       }
+      menu_customer_calls: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          call_number: number
+          call_type: string
+          cancelled_at: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          menu_site_id: string
+          menu_table_id: string
+          status: string
+          table_visit_session_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          call_number?: never
+          call_type?: string
+          cancelled_at?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          menu_site_id: string
+          menu_table_id: string
+          status?: string
+          table_visit_session_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          call_number?: never
+          call_type?: string
+          cancelled_at?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          menu_site_id?: string
+          menu_table_id?: string
+          status?: string
+          table_visit_session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_customer_calls_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_customer_calls_session_fk"
+            columns: ["menu_site_id", "menu_table_id", "table_visit_session_id"]
+            isOneToOne: false
+            referencedRelation: "table_visit_sessions"
+            referencedColumns: ["menu_site_id", "menu_table_id", "id"]
+          },
+          {
+            foreignKeyName: "menu_customer_calls_table_fk"
+            columns: ["menu_site_id", "menu_table_id"]
+            isOneToOne: false
+            referencedRelation: "menu_tables"
+            referencedColumns: ["menu_site_id", "id"]
+          },
+        ]
+      }
       menu_customer_order_item_options: {
         Row: {
           created_at: string
@@ -3100,6 +3173,17 @@ export type Database = {
           membership_id: string
         }[]
       }
+      cancel_pending_staff_call: {
+        Args: {
+          p_call_id: string
+          p_menu_site_id: string
+          p_table_visit_session_id: string
+        }
+        Returns: {
+          call_id: string
+          call_status: string
+        }[]
+      }
       consume_ai_account_credits: {
         Args: {
           p_credit_cost: number
@@ -3247,6 +3331,15 @@ export type Database = {
           order_status: string
           payment_status: string
           total_amount: number
+        }[]
+      }
+      submit_staff_call: {
+        Args: { p_menu_site_id: string; p_table_visit_session_id: string }
+        Returns: {
+          call_id: string
+          call_number: number
+          call_status: string
+          is_duplicate: boolean
         }[]
       }
     }

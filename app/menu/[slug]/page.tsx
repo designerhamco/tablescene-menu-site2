@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import { normalizeLocale } from "@/lib/locales";
 import { getPublicMenuDataBySlug, type MenuPageData } from "@/lib/menu-page-data";
 import { isPostpayOrderRuntimeEnabledForSite } from "@/lib/postpay-order-runtime";
@@ -143,6 +144,11 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     && accessState.planType === "business_basic"
     && isPostpayOrderRuntimeEnabledForSite(data.menuSite.id),
   );
+  const staffCallEnabled = Boolean(
+    tableSession
+    && accessState.planType === "business_basic"
+    && isCallRuntimeEnabledForSite(data.menuSite.id),
+  );
   const orderCatalog = postpayOrderEnabled
     ? await getPostpayOrderCatalog(data.menuSite.id)
     : [];
@@ -154,7 +160,7 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
       orderCallConfig={tableSession ? {
         mode: "active",
         orderEnabled: postpayOrderEnabled,
-        callEnabled: false,
+        callEnabled: staffCallEnabled,
         hasValidTableSession: true,
         orderingOpen: postpayOrderEnabled,
         languageSlotEnabled: true,

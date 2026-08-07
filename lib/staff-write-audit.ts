@@ -11,6 +11,8 @@ export const MENU_SITE_WRITE_SURFACES = [
   "order_status_management",
   "order_unpaid_cancellation",
   "order_manual_payment",
+  "call_acknowledgement",
+  "call_completion",
 ] as const;
 
 export type MenuSiteWriteSurface = (typeof MENU_SITE_WRITE_SURFACES)[number];
@@ -23,6 +25,7 @@ export type AuditedMenuSiteWritePermission = Extract<
   | "order.manage"
   | "order.cancel_unpaid"
   | "payment.manual"
+  | "call.manage"
 >;
 
 export function buildStaffWriteAuditEntry(

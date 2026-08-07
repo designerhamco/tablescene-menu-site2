@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `80a3897` (`PR #25` 병합)
+기준 커밋: `f5038e7` (`PR #27` 병합)
 
 ## 완료된 주요 기능
 
@@ -113,10 +113,19 @@
   - 미결제·미제공 취소, 외부 카드 단말기·현금 결제 완료, actor/timestamp 기록
   - 15초 갱신 대시보드와 immutable snapshot 인쇄 영수증
   - `ORDER_DASHBOARD_ENABLED` + explicit site allowlist 없이 Production에서 노출·write 안 됨
+- Call MVP default-off 기반:
+  - 직원 호출 단일 preset과 손님의 pending 상태 취소만 제공
+  - 미처리 호출 dedupe, 완료·취소 후 2분 cooldown, table session당 시간당 10회 제한
+  - Owner/Manager/Order staff의 `call.manage` 재인증과 확인·완료 actor/timestamp 기록
+  - 최근 100건을 15초 갱신하는 별도 호출관리 화면; 공개 Realtime publication은 추가하지 않음
+  - server-only 강제 RLS migration은 2026-08-07 Production 1회 적용 및 generated types 갱신 완료
+  - `CALL_ENABLED` + site allowlist 없이 UI와 write 모두 fail closed
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
 
+- `f5038e7` — PR #27 병합: fail-closed 후불 주문관리
+- `b8c9631` — PR #26 병합: atomic 후불 주문 runtime과 RPC
 - `80a3897` — PR #25 병합: 후불 주문 schema Production 적용과 generated types 갱신
 - `b2b0607` — PR #24 병합: one-time table QR PNG 다운로드
 - `16f9673` — PR #23 병합: fail-closed table QR 방문 세션 runtime
@@ -150,6 +159,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260806142627_add_call_mvp_foundation.sql` — 2026-08-07 linked Supabase Management API로 1회 적용, RLS·grant·RPC postcheck, security/performance advisor 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806131244_add_submit_postpay_order_rpc.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, function 보안·grant postcheck·advisor 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806124512_add_postpay_order_foundation.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, RLS·grant postcheck 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806105623_add_table_qr_session_foundation.sql` — 2026-08-06 `tablescene-prod` SQL Editor에서 1회 적용 및 최소권한 사후 보정 완료. 다시 실행 금지.

@@ -105,11 +105,13 @@
 
 ## 8. Call 기능
 
-- `TODO` 손님 호출과 호출 종류
-- `TODO` 호출 목록과 담당 직원
-- `TODO` 처리 완료
-- `TODO` 중복 호출 방지
-- `TODO` 호출 이력
+- `DONE` 손님 직원 호출 MVP — 유효 table session과 공통 Call Layer, 직원 호출 단일 preset
+- `DONE` 호출 목록과 처리 직원 — `call.manage` Owner/Manager/Order staff 권한과 actor 기록
+- `DONE` 접수 확인과 처리 완료 — `pending → acknowledged → completed` conditional update
+- `DONE` 중복·과다 호출 방지 — 미처리 호출 반환, 완료·취소 후 2분 cooldown, session당 시간당 10회
+- `DONE` 호출 이력 — 최근 100건과 테이블·상태·시간을 15초 갱신 대시보드에서 조회
+- `DONE` Call MVP migration Production 1회 적용과 generated types 갱신 — 2026-08-07 `tablescene-prod`, `docs/runbooks/call-mvp-foundation-migration.md`
+- `NEEDS_HUMAN` 실제 Call 상품 entitlement와 Production `CALL_ENABLED`, `CALL_ALLOWED_SITE_IDS` 활성화
 
 ## 9. 선결제 PG
 
