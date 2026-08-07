@@ -115,7 +115,9 @@
 
 ## 9. 선결제 PG
 
-- `TODO` 사업자별 PG 온보딩
+- `DONE` 현재 PortOne 코드·공식 V2 문서 감사와 merchant 구조 권장안 — `docs/prepay-pg-decision.md`
+- `NEEDS_HUMAN` PortOne에 독립 음식점 사업자의 하위 상점·PG MID·정산·API Secret 구조 서면 확인
+- `BLOCKED` 사업자별 PG 온보딩 구현 — PortOne 답변과 첫 pilot 음식점 확정 후 진행
 - `TODO` 모바일 선결제
 - `TODO` 웹훅과 idempotency
 - `TODO` 결제 실패
@@ -156,4 +158,4 @@
 
 ## 다음 작업
 
-전체 고객 흐름의 정적·route QA와 안전 경계 기록까지 완료했다. 남은 항목은 선결제 PG, 외부 알림 채널, 실제 계정·이메일·결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다. 상세 결과는 `docs/customer-flow-qa.md`를 기준으로 사용한다.
+전체 고객 흐름의 정적·route QA와 안전 경계 기록까지 완료했다. 선결제 PG의 다음 입력은 `docs/prepay-pg-decision.md`에 적은 PortOne의 merchant 구조 서면 답변이다. 그 밖의 남은 항목은 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다.
