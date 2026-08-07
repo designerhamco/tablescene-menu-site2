@@ -1,6 +1,6 @@
 # MenuLink 전체 작업 큐
 
-최종 갱신: 2026-08-06
+최종 갱신: 2026-08-07
 
 상태 의미:
 
@@ -19,7 +19,7 @@
 - `DONE` 직원 역할 표시 view model과 마이페이지 목록 연결
 - `DONE` `menu.read` 권한 기반 직원 목록 접근, Owner 우선, revoked 제외, 비활성 lifecycle 제외
 - `DONE` 직원의 Owner/Staff 미리보기 접근
-- `BLOCKED` 실제 직원 계정으로 역할 배지·버튼 숨김·읽기 전용 미리보기 E2E 확인 — 직원 초대·수락 기능 완료 후 진행하며, 확인용 Production 직원 데이터는 만들지 않음
+- `DONE` 실제 직원 계정 viewer E2E — 승인된 기존 Owner·직원 계정과 운영 가능한 기존 메뉴판으로 초대 발송·수락, 역할 배지, Owner-only 버튼 숨김, 읽기 전용 미리보기, 편집 route 차단을 Production에서 확인
 - `DONE` Owner/Manager/Editor 메뉴 편집 action 연결
 - `DONE` 공개·비공개 변경을 Owner/Manager로 제한
 - `DONE` 결제·구독·환불·복구·추가 구매·보관·삭제의 Owner-only runtime 검증 — `docs/owner-only-runtime-audit.md`
@@ -135,7 +135,7 @@
 ## 11. 전체 고객 흐름 QA
 
 - `NEEDS_HUMAN` 회원가입·구매·메뉴판 생성 — 공개 route와 Auth 보호 QA 완료, 실제 이메일·PortOne 결제 E2E 필요
-- `NEEDS_HUMAN` 직원 초대·수락·접근 — 코드·권한 계약 완료, 실제 발송과 별도 직원 계정 E2E 필요
+- `DONE` 직원 초대·수락·접근 — 승인된 기존 Owner·직원 계정으로 실제 이메일 발송·수락과 viewer 화면·미리보기·편집 차단 E2E 확인
 - `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
 - `DONE` 미리보기·공개·일반 QR — 공통 renderer·기기 프레임·공개 route·QR 분리 QA 재확인
 - `NEEDS_HUMAN` 테이블 QR·방문 세션·주문 — 보안·idempotency·fail-closed 계약 통과, 승인된 실제 site와 session write E2E 필요
@@ -144,7 +144,8 @@
 
 ## 12. 오픈 준비
 
-- `NEEDS_HUMAN` 회원가입·비밀번호 재설정·직원 초대 이메일 실제 발송
+- `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
+- `NEEDS_HUMAN` 회원가입·비밀번호 재설정 이메일 실제 발송
 - `NEEDS_HUMAN` SMTP와 Auth 설정
 - `NEEDS_HUMAN` Production 환경변수·비밀키
 - `NEEDS_HUMAN` Vercel Cron
