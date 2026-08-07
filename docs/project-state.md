@@ -131,6 +131,11 @@
   - 기존 15초 dashboard refresh 결과의 ID만 브라우저 session 범위에서 비교
   - 최초 진입의 기존 이력은 알리지 않고 이후 새 주문·pending 호출만 배너와 문서 제목으로 표시
   - Notification 권한·소리·외부 채널·서버 저장 없이 fail-safe로 동작
+- 전체 고객 흐름 정적·route QA:
+  - 회원가입·비밀번호 재설정·요금제·Order 소개·오브 커피 preview 공개 route 로드 확인
+  - 비로그인 마이페이지의 sign-in 보호 확인
+  - Order·Call·table session·권한 audit·매출·앱 내 알림 계약 테스트 42개 통과
+  - 실제 계정·이메일·결제·구독·주문 write가 필요한 최종 E2E는 `docs/customer-flow-qa.md`에 분리
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
 ## 최근 주요 커밋과 PR
@@ -236,3 +241,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 22. 주문관리·미결제 취소·외부 수동 결제·영수증은 default-off runtime으로 구현했다. 실제 Order Dashboard 상품과 Production gate 활성화는 별도 승인 전까지 보류한다.
 23. Call MVP와 기본 매출 요약은 기존 server-only 주문·호출 데이터와 명시적 permission/gate 뒤에 구현했다. Production gate와 실제 상품 활성화는 별도 승인 전까지 보류한다.
 24. 주문·호출 앱 내 도착 알림은 dashboard에 이미 전달된 최소 ID만 sessionStorage에서 비교하며 별도 데이터 조회나 Production write를 만들지 않는다.
+25. 전체 고객 흐름의 공개 route와 default-off 계약은 로컬에서 재검증했다. 남은 실제 E2E는 `docs/customer-flow-qa.md`의 사람 검증 목록을 따른다.
