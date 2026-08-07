@@ -527,6 +527,8 @@ Implementation status (2026-08-06):
 - Cancellation is limited to unpaid, unserved orders with a required 1–500 character reason.
 - Manual card-terminal and cash completion record `manual_paid`, the external method, timestamp, and authenticated actor; MenuLink does not perform card authorization.
 - The dashboard refreshes every 15 seconds and prints snapshot-based browser receipts.
+- The dashboard treats the first loaded ID set as a quiet baseline, then surfaces newly arrived orders or pending calls through an in-app banner and document-title count during the same browser session.
+- Arrival alerts do not request browser notification permission, play sound, persist on the server, or imply an external messaging channel.
 - Production remains fail-closed unless `ORDER_DASHBOARD_ENABLED=true` and the menu site is explicitly included in `ORDER_DASHBOARD_ALLOWED_SITE_IDS`.
 
 ### Subscription And Billing

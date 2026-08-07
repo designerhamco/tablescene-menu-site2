@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 
+import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import type { CallDashboardPageData } from "@/lib/server/call-management-service";
 
 import { initialCallManagementActionState, mutateCallAction } from "./actions";
@@ -41,6 +42,11 @@ export default function CallDashboard({
 
   return (
     <div className="space-y-5">
+      <OperationalArrivalAlert
+        menuSiteId={menuSiteId}
+        kind="calls"
+        arrivalIds={calls.filter((call) => call.status === "pending").map((call) => call.id)}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div>
           <p className="text-sm font-black text-zinc-900">처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근 이력 {calls.length.toLocaleString("ko-KR")}건</p>
