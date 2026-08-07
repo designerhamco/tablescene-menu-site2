@@ -116,7 +116,9 @@
 ## 9. 선결제 PG
 
 - `DONE` 현재 PortOne 코드·공식 V2 문서 감사와 merchant 구조 권장안 — `docs/prepay-pg-decision.md`
-- `NEEDS_HUMAN` PortOne에 독립 음식점 사업자의 하위 상점·PG MID·정산·API Secret 구조 서면 확인
+- `DONE` PortOne 파트너 정산 자동화·오픈마켓 하위상점 전표 지원 추가 감사 — 배달 플랫폼·식당 정산 사용 사례는 확인했으나 직접 merchant 구조와는 구분, `docs/prepay-pg-decision.md`
+- `NEEDS_HUMAN` PortOne에 독립 음식점 직접 merchant 구조와 MenuLink 플랫폼 하위 정산 구조의 계약·전표·정산 책임 서면 확인
+- `NEEDS_HUMAN` 음식점 직접 merchant와 MenuLink 플랫폼 하위 정산 중 제품·법률·운영 모델 결정
 - `BLOCKED` 사업자별 PG 온보딩 구현 — PortOne 답변과 첫 pilot 음식점 확정 후 진행
 - `TODO` 모바일 선결제
 - `TODO` 웹훅과 idempotency

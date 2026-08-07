@@ -6,7 +6,9 @@
 
 MenuLink 선결제는 `PortOne V2`를 기술 연동 계층으로 사용하는 방향을 권장한다. 저장소에는 이미 MenuLink 자체 상품 결제의 PortOne V2 조회·금액 검증·취소 코드가 있고, 서비스 소개와 약관도 PortOne 기반 결제를 전제로 한다.
 
-다만 음식점 주문 결제에서는 각 음식점 사업자가 PG 계약과 정산의 주체, 즉 merchant of record여야 한다. 독립된 사업자등록번호를 가진 여러 음식점을 PortOne 한 고객사 계정의 하위 상점으로 운영할 수 있는지, 아니면 음식점마다 별도 PortOne 계정과 API Secret이 필요한지는 PortOne의 서면 확인 전까지 확정하지 않는다.
+현재 제품 방향은 음식점 주문 결제에서 각 음식점 사업자가 PG 계약과 정산의 주체, 즉 merchant of record가 되는 것이다. 독립된 사업자등록번호를 가진 여러 음식점을 PortOne 한 고객사 계정의 하위 상점으로 운영할 수 있는지, 아니면 음식점마다 별도 PortOne 계정과 API Secret이 필요한지는 PortOne의 서면 확인 전까지 확정하지 않는다.
+
+PortOne에는 플랫폼 고객사가 음식점을 파트너(하위셀러)로 등록하고 음식점별 계좌·수수료·정산주기를 관리하는 `파트너 정산 자동화`도 있다. 공식 가이드는 배달 플랫폼이 주문별로 식당과 정산하는 경우를 사용 사례로 명시한다. 그러나 이 구조는 MenuLink가 플랫폼 고객사로서 하위 정산을 운영하는 별도 모델이며, 각 음식점이 직접 merchant of record가 되는 현재 방향과 동일하다고 보지 않는다.
 
 이 확인 없이 MenuLink 법인 MID로 음식점 고객의 주문 결제를 받거나, 음식점별 API Secret 저장 구조를 임의로 만들지 않는다.
 
@@ -25,6 +27,9 @@ MenuLink 선결제는 `PortOne V2`를 기술 연동 계층으로 사용하는 �
 - 웹훅은 원문 body와 서버 SDK를 사용해 위조 여부를 검증해야 한다.
 - PG MID는 계약·결제수단·과세·수수료 설정의 기준이며, PortOne 하위 상점은 각각 별도의 Store ID를 가진다.
 - V2 API Secret은 Owner 또는 Admin이 발급하며 서버 밖으로 노출하면 안 된다.
+- PortOne 파트너 정산 자동화는 플랫폼 고객사가 파트너(하위셀러)의 계좌, 계약, 중개수수료와 정산주기를 등록하고 주문별 정산금액과 이체 예정액을 계산하는 별도 제품이다.
+- KG이니시스는 오픈마켓 고객사가 매출전표에 하위 상점 사업자등록번호·상점명·금액을 등록하는 API를 제공한다. 이 전표 기능만으로 하위 상점이 PG 계약 또는 직접 정산의 주체라는 사실이 증명되지는 않는다.
+- V2 `storeDetails.businessRegistrationNumber`는 일부 PG에서 매출전표의 판매사업자 정보로 전달되는 표시 파라미터이며, merchant 계약·정산 구조를 대체하지 않는다.
 
 공식 참고:
 
@@ -33,8 +38,12 @@ MenuLink 선결제는 `PortOne V2`를 기술 연동 계층으로 사용하는 �
 - [PortOne 연동 정보와 Store ID·API Secret](https://developers.portone.io/opi/ko/console/guide/channel-manage)
 - [PortOne 상점 계정 관리](https://developers.portone.io/opi/ko/console/guide/account?v=v2)
 - [PortOne PG·MID 용어](https://developers.portone.io/opi/ko/support/pg-terms?v=v2)
+- [PortOne 파트너 정산 자동화](https://developers.portone.io/platform/ko/readme)
+- [PortOne 파트너 정산 처리 과정](https://developers.portone.io/platform/ko/guides/process)
+- [KG이니시스 영수증 내 하위 상점 거래 등록](https://developers.portone.io/opi/ko/integration/pg/v2/inicis-v2?v=v2#api-%EC%98%81%EC%88%98%EC%A6%9D-%EB%82%B4-%ED%95%98%EC%9C%84-%EC%83%81%EC%A0%90-%EA%B1%B0%EB%9E%98-%EB%93%B1%EB%A1%9D)
+- [PortOne V2 결제 요청의 상점 정보](https://developers.portone.io/sdk/ko/v2-sdk/payment-request?v=v2#requestpayment-%EC%9A%94%EC%B2%AD-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%A0%95%EC%9D%98)
 
-## PortOne에 확인할 한 가지 핵심 질문
+## PortOne에 확인할 핵심 질문
 
 다음 내용을 PortOne 영업 또는 기술지원에 서면으로 문의한다.
 
@@ -52,6 +61,11 @@ API Secret 범위와 웹훅 구분 방법을 알려주세요.
 
 불가능하다면 음식점마다 별도 PortOne 계정과 API Secret이 필요한지,
 SaaS 기술사가 이를 안전하게 대리 연동하는 권장 방식을 알려주세요.
+
+또한 PortOne 파트너 정산 자동화를 사용하는 대안에서는
+PG 가맹점과 결제 판매 주체가 MenuLink와 음식점 중 누구인지,
+카드 매출전표에 어느 사업자가 판매자로 표시되는지,
+MenuLink가 부담하는 계약·정산·세금계산서·지급 책임을 알려주세요.
 ```
 
 API Secret, MID 비밀번호, 계약 서류 원본은 채팅이나 저장소에 붙이지 않는다. 답변에는 계약 구조와 필요한 식별자 종류만 남긴다.
@@ -71,7 +85,7 @@ API Secret, MID 비밀번호, 계약 서류 원본은 채팅이나 저장소에 
 
 ## 권장 구현 순서
 
-PortOne 답변과 첫 pilot 음식점이 확정되면 다음을 작은 PR로 나눈다.
+PortOne 답변으로 `음식점 직접 merchant`와 `MenuLink 플랫폼 하위 정산` 중 제품·계약 모델을 결정하고 첫 pilot 음식점이 확정되면 다음을 작은 PR로 나눈다.
 
 1. 음식점 merchant 설정 계약과 secret reference 구조
 2. 결제 시도·웹훅 event·취소 이력 DB migration 초안과 RLS 감사
