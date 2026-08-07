@@ -143,6 +143,7 @@
 - 선결제 PG 결정 감사:
   - 기존 PortOne V2 상품 결제와 음식점 주문 스키마의 재사용 가능·불가 경계를 분리
   - 음식점이 merchant of record라는 기존 계약을 유지하고, 독립 사업자별 하위 상점·MID·정산·Secret 구조는 PortOne 서면 확인 전까지 미확정
+  - 플랫폼 고객사가 음식점 계좌·수수료·정산주기를 관리하는 파트너 정산 자동화와 오픈마켓 하위상점 전표 API를 대안으로 확인했지만, 음식점 직접 merchant 구조와 동일하게 취급하지 않음
   - 서버 검증·웹훅 서명·idempotency·default-off pilot 안전 계약과 구현 순서를 `docs/prepay-pg-decision.md`에 기록
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 
@@ -201,7 +202,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 ## 현재 보류 중인 운영 작업
 
 - 기존 불완전 주문 3건은 변경하지 않고 별도 read-only 운영 감사가 필요하다.
-- PortOne에 독립 음식점별 하위 상점·PG MID·정산·API Secret 구조를 서면 확인하고 첫 pilot 음식점을 정해야 한다.
+- PortOne에 음식점 직접 merchant와 MenuLink 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
 - 회원가입·비밀번호 재설정 이메일의 실제 수신 확인
 - Production 환경변수와 비밀키 확인
 - Vercel Cron 설정 확인
