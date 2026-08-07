@@ -134,13 +134,13 @@
 
 ## 11. 전체 고객 흐름 QA
 
-- `TODO` 회원가입·구매·메뉴판 생성
-- `TODO` 직원 초대·수락·접근
-- `TODO` 메뉴 편집·디자인·위젯·다국어
-- `TODO` 미리보기·공개·일반 QR
-- `TODO` 테이블 QR·방문 세션·주문
-- `TODO` 주문관리·수동 결제완료
-- `TODO` 보관·복구·해지
+- `NEEDS_HUMAN` 회원가입·구매·메뉴판 생성 — 공개 route와 Auth 보호 QA 완료, 실제 이메일·PortOne 결제 E2E 필요
+- `NEEDS_HUMAN` 직원 초대·수락·접근 — 코드·권한 계약 완료, 실제 발송과 별도 직원 계정 E2E 필요
+- `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
+- `DONE` 미리보기·공개·일반 QR — 공통 renderer·기기 프레임·공개 route·QR 분리 QA 재확인
+- `NEEDS_HUMAN` 테이블 QR·방문 세션·주문 — 보안·idempotency·fail-closed 계약 통과, 승인된 실제 site와 session write E2E 필요
+- `NEEDS_HUMAN` 주문관리·수동 결제완료 — route·권한·상태 전이 계약 통과, 실제 주문 데이터 write E2E 필요
+- `NEEDS_HUMAN` 보관·복구·해지 — Owner runtime 감사 완료, 실제 구독 상태 변경 E2E 필요
 
 ## 12. 오픈 준비
 
@@ -155,4 +155,4 @@
 
 ## 다음 작업
 
-Call MVP, 기본 매출관리 집계, 주문·호출 앱 내 도착 알림까지 완료됐다. 다음 안전한 미완료 범위는 실제 계정이나 Production write가 필요하지 않은 전체 고객 흐름의 정적·route QA이며, 외부 알림톡 채널·과금 정책은 별도 결정 전까지 분리한다. 실제 상품 SKU·가격·entitlement 및 Production feature gate 활성화는 계속 별도 승인 전까지 보류한다. 선결제 PG와 실제 취소·환불은 provider·정책·사람 승인이 필요하므로 자동 진행하지 않는다.
+전체 고객 흐름의 정적·route QA와 안전 경계 기록까지 완료했다. 남은 항목은 선결제 PG, 외부 알림 채널, 실제 계정·이메일·결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다. 상세 결과는 `docs/customer-flow-qa.md`를 기준으로 사용한다.
