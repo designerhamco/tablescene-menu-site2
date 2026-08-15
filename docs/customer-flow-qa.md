@@ -16,7 +16,7 @@
 - `npx tsc --noEmit --pretty false`
 - `npm run lint`
 - `npm run build`
-- Order·Call·table session·권한 audit·매출·앱 내 도착 알림 계약 테스트 42개 통과
+- Order·Call·table session·권한 audit·매출·앱 내·브라우저 도착 알림 계약 테스트 통과
 - `npm test --if-present` — 프로젝트에 `test` script가 없어 실행 항목 없음
 
 Node의 기본 TypeScript strip runner로 `lib/*.test.ts` 전체를 한 번에 실행하면 일부 기존 파일의 확장자 없는 ESM import를 해석하지 못한다. 이는 TypeScript·Next production build 실패가 아니며, 실행 가능한 서버 계약 테스트 묶음은 별도 명시해 42개 모두 통과시켰다.
@@ -43,7 +43,7 @@ Node의 기본 TypeScript strip runner로 `lib/*.test.ts` 전체를 한 번에 �
 - 메뉴 편집·디자인·위젯·다국어: 활성 템플릿 저장 round-trip, locale, capability, preview/public 격리 QA 기록을 재확인했다.
 - 미리보기·공개·일반 QR: 공통 renderer, 기기 프레임, 공개 route, QR 분리 계약이 구현·빌드돼 있다.
 - table session·Order·Call의 보안 계약: hash-only token, HttpOnly session, service-role-only DB 접근, idempotency, rate limit, permission과 staff write audit 테스트가 통과했다.
-- 주문관리·수동 결제·매출·앱 내 알림의 default-off route가 production build에 포함됐다.
+- 주문관리·수동 결제·매출·앱 내 알림과 사용자 선택형 브라우저 알림의 default-off route가 production build에 포함됐다.
 
 ### Production 직원 초대 E2E 완료
 

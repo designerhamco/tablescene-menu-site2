@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
+import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import type { OrderDashboardPageData } from "@/lib/server/order-management-service";
 
 import {
@@ -80,14 +81,19 @@ export default function OrderDashboard({
   const router = useRouter();
   const [state, action, pending] = useActionState(mutateOrderAction, initialOrderManagementActionState);
   const [printOrderId, setPrintOrderId] = useState<string | null>(null);
+  const [backgroundPollingEnabled, setBackgroundPollingEnabled] = useState(false);
   const printOrder = orders.find((order) => order.id === printOrderId) ?? null;
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible" && !pending) router.refresh();
+      if (shouldRefreshArrivalDashboard({
+        pageVisible: document.visibilityState === "visible",
+        browserNotificationsEnabled: backgroundPollingEnabled,
+        mutationPending: pending,
+      })) router.refresh();
     }, 15_000);
     return () => window.clearInterval(timer);
-  }, [pending, router]);
+  }, [backgroundPollingEnabled, pending, router]);
 
   useEffect(() => {
     if (!printOrder) return;
@@ -112,6 +118,7 @@ export default function OrderDashboard({
           menuSiteId={menuSiteId}
           kind="orders"
           arrivalIds={orders.filter((order) => order.status !== "cancelled").map((order) => order.id)}
+          onBackgroundPollingChange={setBackgroundPollingEnabled}
         />
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div>
