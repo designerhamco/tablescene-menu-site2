@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildMenuPreviewUrl,
   getMenuPreviewFrame,
+  MENU_PREVIEW_ORIENTATIONS,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
   normalizeMenuPreviewPaymentMode,
@@ -17,6 +18,7 @@ test("preview device normalization defaults unknown values to PC", () => {
 });
 
 test("preview orientation defaults to landscape and accepts explicit portrait", () => {
+  assert.deepEqual(Object.keys(MENU_PREVIEW_ORIENTATIONS), ["landscape", "portrait"]);
   assert.equal(normalizeMenuPreviewOrientation(undefined), "landscape");
   assert.equal(normalizeMenuPreviewOrientation("upside-down"), "landscape");
   assert.equal(normalizeMenuPreviewOrientation("portrait"), "portrait");

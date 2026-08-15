@@ -19,8 +19,8 @@ export const MENU_PREVIEW_DEVICES = {
 export type MenuPreviewDevice = keyof typeof MENU_PREVIEW_DEVICES;
 
 export const MENU_PREVIEW_ORIENTATIONS = {
-  portrait: "세로",
   landscape: "가로",
+  portrait: "세로",
 } as const;
 
 export type MenuPreviewOrientation = keyof typeof MENU_PREVIEW_ORIENTATIONS;

@@ -87,6 +87,10 @@ export function getOrderCallEntryVisibility(config: OrderCallEntryConfig): Order
   };
 }
 
+export function hasPrepayCheckout(config: Pick<OrderCallEntryConfig, "checkoutMode" | "checkoutModes">) {
+  return config.checkoutMode === "prepay" || Boolean(config.checkoutModes?.includes("prepay"));
+}
+
 export function supportsOrderCallExperienceShell(templateKey: string | null | undefined) {
   return templateKey !== "display_menu_a";
 }

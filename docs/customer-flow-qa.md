@@ -32,11 +32,11 @@
 | `/pricing` | Basic·Display·Custom 요금제 화면 로드 |
 | `/apply/order` | 현재 제품 소개 route인 `/services/order`로 정상 연결 |
 | `/templates/cafe_design_a/preview` | 오브 커피 renderer와 메뉴 구역 로드 |
-| `/templates/cafe_design_a/preview?orderCallQa=active` | 390×844에서 테이블·직원 호출·장바구니 헤더와 두 dialog 정상 로드 |
+| `/templates/cafe_design_a/preview?orderCallQa=active` | 공통 언어 변경 control, 테이블·직원 호출·장바구니 헤더와 두 dialog 정상 로드; 호출 기본 항목 선택은 실제 write 없음 |
 | `orderCallQa=call` / `order` / `no-session` | Call-only·Order-only 독립 노출과 세션 없음 action 비노출 확인 |
 | `/templates/display_menu_a/preview?orderCallQa=active` | Display에서 공통 Order/Call header 전체 비노출 확인 |
 | `/mypage/menus/[menuId]/preview?device=tablet` | orientation query가 없어도 가로 1180×820을 기본으로 표시하고 세로 전환 링크 제공 |
-| `device=mobile` / `device=mobile&payment=on` | PG 미사용/사용 상태를 비교하고 메뉴별 담기 바텀시트·토스트·장바구니 수정/삭제·후불/지금 결제를 fixture로 표시하며 실제 호출·주문·결제 write 없음 |
+| `device=mobile` / `device=mobile&payment=on` | 선택 설명과 결제 배지로 PG 미사용/사용을 첫 화면부터 구분하고 메뉴별 담기 바텀시트·토스트·장바구니 수정/삭제·후불/지금 결제를 fixture로 표시하며 실제 호출·주문·결제 write 없음 |
 | `/mypage?tab=menus` 비로그인 접근 | `/sign-in?next=/mypage`로 보호 |
 
 브라우저에 남아 있던 `StaffCallDialog.tsx` missing 로그는 PR #28 병합 전 개발 서버의 과거 시각 로그였다. 서버를 최신 코드로 재시작한 뒤 해당 파일이 포함된 production build와 template route가 정상 로드됐다.

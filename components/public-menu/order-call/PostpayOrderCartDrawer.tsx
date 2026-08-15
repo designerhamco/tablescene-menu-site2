@@ -95,7 +95,6 @@ export default function PostpayOrderCartDrawer({
   const [editingLineKey, setEditingLineKey] = useState<string | null>(null);
   const [selectedOptionIds, setSelectedOptionIds] = useState<Set<string>>(new Set());
   const [quantity, setQuantity] = useState(1);
-  const [requestText, setRequestText] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
@@ -272,7 +271,7 @@ export default function PostpayOrderCartDrawer({
         body: JSON.stringify({
           menuSiteId,
           clientRequestId: requestId,
-          requestText,
+          requestText: "",
           lines: cart.map(({ menuItemId, quantity: lineQuantity, optionValueIds }) => ({
             menuItemId,
             quantity: lineQuantity,
@@ -283,7 +282,6 @@ export default function PostpayOrderCartDrawer({
       const body = await result.json() as { ok?: boolean; message?: string; order?: { orderNumber?: number } };
       if (!result.ok || !body.ok) throw new Error(body.message || "주문을 전송하지 못했습니다.");
       setCart([]);
-      setRequestText("");
       setPendingRequestId(null);
       setMessage(`주문 ${body.order?.orderNumber ?? ""}번이 접수되었습니다.`);
     } catch (error) {
@@ -503,13 +501,6 @@ export default function PostpayOrderCartDrawer({
                   <button type="button" className="flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-300 px-5 py-3.5 text-sm font-black" onClick={onClose}>
                     <Plus className="h-4 w-4" aria-hidden="true" /> 메뉴 더 담기
                   </button>
-                  <textarea
-                    value={requestText}
-                    maxLength={300}
-                    onChange={(event) => { setRequestText(event.target.value); resetPendingRequest(); }}
-                    className="min-h-24 w-full rounded-2xl border border-zinc-200 p-4 text-sm font-bold outline-none focus:border-zinc-950"
-                    placeholder="요청사항을 입력해 주세요. (최대 300자)"
-                  />
                   <div className="flex items-center justify-between text-lg font-black"><span>최종 주문 금액</span><span>{formatPrice(totalAmount)}</span></div>
                   <section>
                     <h3 className="text-sm font-black">결제 방식</h3>
