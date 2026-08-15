@@ -1,12 +1,17 @@
 # MenuLink 프로젝트 상태
 
-최종 갱신: 2026-08-07
+최종 갱신: 2026-08-15
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `449b8d6` (`PR #31` 병합)
+기준 커밋: `a6444e5` (`PR #36` 병합)
 
 ## 완료된 주요 기능
+
+- Production 의존성 보안 패치:
+  - Next.js와 eslint-config-next를 16.3.1, React Router를 7.18.2로 갱신
+  - `nanoid`, `postcss`, `sharp`, `ws`를 안전한 transitive 버전으로 갱신
+  - `npm audit --omit=dev` 0건과 전체 계약 테스트·TypeScript·lint·production build 재검증
 
 - 메뉴판 생성·편집·미리보기·공개 및 QR 흐름
 - 활성 카페/디스플레이 템플릿과 공통 템플릿 렌더러
