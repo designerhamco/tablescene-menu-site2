@@ -3,6 +3,10 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import {
+  buildPublicOrderCallEntryConfig,
+  getPublicOrderCallCapabilityState,
+} from "@/components/public-menu/order-call/types";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import { normalizeLocale } from "@/lib/locales";
 import { getPublicMenuDataBySlug, type MenuPageData } from "@/lib/menu-page-data";
@@ -139,37 +143,30 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     userAgent: headerStore.get("user-agent"),
   });
   const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
-  const postpayOrderEnabled = Boolean(
-    tableSession
-    && accessState.planType === "business_basic"
-    && isPostpayOrderRuntimeEnabledForSite(data.menuSite.id),
-  );
-  const staffCallEnabled = Boolean(
-    tableSession
-    && accessState.planType === "business_basic"
-    && isCallRuntimeEnabledForSite(data.menuSite.id),
-  );
-  const orderCatalog = postpayOrderEnabled
+  const capabilityState = getPublicOrderCallCapabilityState({
+    templateKey: data.menuSite.template_key,
+    planType: accessState.planType,
+    hasValidTableSession: Boolean(tableSession),
+    postpayOrderRuntimeEnabled: isPostpayOrderRuntimeEnabledForSite(data.menuSite.id),
+    callRuntimeEnabled: isCallRuntimeEnabledForSite(data.menuSite.id),
+  });
+  const orderCatalog = capabilityState.orderEnabled
     ? await getPostpayOrderCatalog(data.menuSite.id)
     : [];
+  const orderCallConfig = buildPublicOrderCallEntryConfig({
+    capabilityState,
+    menuSiteId: data.menuSite.id,
+    storeName,
+    tableSession,
+    cartScope: tableSession ? createPostpayCartScope(tableSession.id) : undefined,
+    orderCatalog,
+  });
 
   return (
     <MenuPageRenderer
       mode="public"
       initialPreviewPageId={getDisplayInitialPageId(data, requestedPageIndex)}
-      orderCallConfig={tableSession ? {
-        mode: "active",
-        orderEnabled: postpayOrderEnabled,
-        callEnabled: staffCallEnabled,
-        hasValidTableSession: true,
-        orderingOpen: postpayOrderEnabled,
-        languageSlotEnabled: true,
-        storeName,
-        tableLabel: tableSession.tableLabel,
-        menuSiteId: data.menuSite.id,
-        cartScope: createPostpayCartScope(tableSession.id),
-        orderCatalog,
-      } : undefined}
+      orderCallConfig={orderCallConfig}
       {...data}
     />
   );

@@ -12,6 +12,10 @@
   - Next.js와 eslint-config-next를 16.3.1, React Router를 7.18.2로 갱신
   - `nanoid`, `postcss`, `sharp`, `ws`를 안전한 transitive 버전으로 갱신
   - `npm audit --omit=dev` 0건과 전체 계약 테스트·TypeScript·lint·production build 재검증
+- Order/Call 로컬 통합 QA:
+  - 공개 config의 세션·Business Basic·template·Order/Call runtime gate를 한 공통 판정으로 결합
+  - Order-only·Call-only 독립 노출, no-session fail-closed, Display 제외를 390×844 QA fixture로 확인
+  - 주문 payload부터 주문 단계·수동 결제 가능 상태와 호출 접수·완료 상태까지 142개 계약 테스트로 연결
 
 - 메뉴판 생성·편집·미리보기·공개 및 QR 흐름
 - 활성 카페/디스플레이 템플릿과 공통 템플릿 렌더러
@@ -258,4 +262,4 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 22. 주문관리·미결제 취소·외부 수동 결제·영수증은 default-off runtime으로 구현했다. 실제 Order Dashboard 상품과 Production gate 활성화는 별도 승인 전까지 보류한다.
 23. Call MVP와 기본 매출 요약은 기존 server-only 주문·호출 데이터와 명시적 permission/gate 뒤에 구현했다. Production gate와 실제 상품 활성화는 별도 승인 전까지 보류한다.
 24. 주문·호출 앱 내 도착 알림은 dashboard에 이미 전달된 최소 ID만 sessionStorage에서 비교하며 별도 데이터 조회나 Production write를 만들지 않는다.
-25. 전체 고객 흐름의 공개 route와 default-off 계약은 로컬에서 재검증했다. 남은 실제 E2E는 `docs/customer-flow-qa.md`의 사람 검증 목록을 따른다.
+25. 전체 고객 흐름의 공개 route와 default-off 계약은 로컬에서 재검증했다. Order/Call 공통 gate와 독립 활성화도 로컬 fixture 및 계약 테스트로 연결했다. 남은 실제 E2E는 `docs/customer-flow-qa.md`의 사람 검증 목록을 따른다.
