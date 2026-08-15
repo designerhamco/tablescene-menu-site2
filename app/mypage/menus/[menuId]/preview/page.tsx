@@ -6,7 +6,12 @@ import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
-import { buildMenuPreviewUrl, normalizeMenuPreviewDevice, type MenuPreviewQuery } from "@/lib/menu-preview-devices";
+import {
+  buildMenuPreviewUrl,
+  normalizeMenuPreviewDevice,
+  normalizeMenuPreviewOrientation,
+  type MenuPreviewQuery,
+} from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
@@ -19,6 +24,7 @@ type PageProps = {
     device?: string | string[];
     embedded?: string | string[];
     lang?: string | string[];
+    orientation?: string | string[];
     page?: string | string[];
     view?: string | string[];
   }>;
@@ -122,6 +128,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const isActualView = getSearchParamValue(query.view) === "actual";
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
   const device = normalizeMenuPreviewDevice(getSearchParamValue(query.device));
+  const orientation = normalizeMenuPreviewOrientation(getSearchParamValue(query.orientation));
   const previewQuery: MenuPreviewQuery = {
     debugCafeA: getSearchParamValue(query.debugCafeA),
     lang: getSearchParamValue(query.lang),
@@ -157,7 +164,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   }
 
   if (!isActualView) {
-    return <MenuPreviewDeviceFrame device={device} menuId={menuId} query={previewQuery} />;
+    return <MenuPreviewDeviceFrame device={device} orientation={orientation} menuId={menuId} query={previewQuery} />;
   }
 
   return (
@@ -175,7 +182,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       />
       {!isEmbedded ? (
         <Link
-          href={buildMenuPreviewUrl(menuId, previewQuery, { device })}
+          href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation })}
           className="fixed bottom-4 right-4 z-[1000] rounded-full border border-white/30 bg-zinc-950/90 px-4 py-2.5 text-sm font-black text-white shadow-lg backdrop-blur transition-colors hover:bg-zinc-800"
         >
           기기 프레임으로 돌아가기

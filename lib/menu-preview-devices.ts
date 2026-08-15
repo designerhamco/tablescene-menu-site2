@@ -18,6 +18,13 @@ export const MENU_PREVIEW_DEVICES = {
 
 export type MenuPreviewDevice = keyof typeof MENU_PREVIEW_DEVICES;
 
+export const MENU_PREVIEW_ORIENTATIONS = {
+  portrait: "세로",
+  landscape: "가로",
+} as const;
+
+export type MenuPreviewOrientation = keyof typeof MENU_PREVIEW_ORIENTATIONS;
+
 export type MenuPreviewQuery = {
   debugCafeA?: string;
   lang?: string;
@@ -28,10 +35,31 @@ export function normalizeMenuPreviewDevice(value: string | undefined): MenuPrevi
   return value === "tablet" || value === "mobile" ? value : "pc";
 }
 
+export function normalizeMenuPreviewOrientation(value: string | undefined): MenuPreviewOrientation {
+  return value === "landscape" ? "landscape" : "portrait";
+}
+
+export function getMenuPreviewFrame(device: MenuPreviewDevice, orientation: MenuPreviewOrientation) {
+  const frame = MENU_PREVIEW_DEVICES[device];
+
+  if (device !== "tablet" || orientation === "portrait") return frame;
+
+  return {
+    ...frame,
+    width: frame.height,
+    height: frame.width,
+  };
+}
+
 export function buildMenuPreviewUrl(
   menuId: string,
   query: MenuPreviewQuery,
-  options: { device?: MenuPreviewDevice; embedded?: boolean; actual?: boolean } = {},
+  options: {
+    device?: MenuPreviewDevice;
+    orientation?: MenuPreviewOrientation;
+    embedded?: boolean;
+    actual?: boolean;
+  } = {},
 ) {
   const searchParams = new URLSearchParams();
 
@@ -41,6 +69,9 @@ export function buildMenuPreviewUrl(
   }
 
   if (options.device) searchParams.set("device", options.device);
+  if (options.device === "tablet" && options.orientation === "landscape") {
+    searchParams.set("orientation", options.orientation);
+  }
   if (options.actual) searchParams.set("view", "actual");
 
   if (options.embedded) searchParams.set("embedded", "1");
