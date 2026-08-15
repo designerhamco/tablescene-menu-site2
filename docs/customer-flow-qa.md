@@ -1,6 +1,6 @@
 # MenuLink 전체 고객 흐름 QA
 
-최종 갱신: 2026-08-07
+최종 갱신: 2026-08-15
 
 ## 목적
 
@@ -16,10 +16,10 @@
 - `npx tsc --noEmit --pretty false`
 - `npm run lint`
 - `npm run build`
-- Order·Call·table session·권한 audit·매출·앱 내·브라우저 도착 알림 계약 테스트 통과
-- `npm test --if-present` — 프로젝트에 `test` script가 없어 실행 항목 없음
+- `npm test` — 27개 파일의 계약 테스트 138개 통과
+- Order·Call·table session·권한 audit·구독 갱신·매출·앱 내·브라우저 도착 알림 계약 포함
 
-Node의 기본 TypeScript strip runner로 `lib/*.test.ts` 전체를 한 번에 실행하면 일부 기존 파일의 확장자 없는 ESM import를 해석하지 못한다. 이는 TypeScript·Next production build 실패가 아니며, 실행 가능한 서버 계약 테스트 묶음은 별도 명시해 42개 모두 통과시켰다.
+`npm test`는 Node test runner에 `tsx` import hook을 연결해 확장자 없는 TypeScript import와 top-level await를 동일한 명령으로 처리한다. 해지 예약 구독이 billing key 존재 여부와 무관하게 재결제 경로보다 만료 경로를 우선하는 계약도 포함한다.
 
 ## 로컬 브라우저 route QA
 

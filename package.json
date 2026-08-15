@@ -2,6 +2,7 @@
   "name": "tablescene-next",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "node --max-old-space-size=6144 node_modules/next/dist/bin/next dev --webpack",
     "dev:turbo": "node --max-old-space-size=6144 node_modules/next/dist/bin/next dev",
@@ -11,6 +12,7 @@
     "build:debug-memory": "node --max-old-space-size=6144 node_modules/next/dist/bin/next build --webpack --experimental-debug-memory-usage",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --import tsx --test lib/*.test.ts",
     "supabase:types": "node scripts/generate-supabase-types.mjs",
     "seed:display-qa": "node --env-file=.env.local scripts/seed-display-qa-menu-site.mjs"
   },
@@ -78,6 +80,7 @@
     "eslint-config-next": "16.2.4",
     "supabase": "^2.102.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }

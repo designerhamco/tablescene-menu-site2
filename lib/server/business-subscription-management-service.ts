@@ -171,8 +171,8 @@ export async function scheduleBusinessSubscriptionCancellation({
     return { alreadyScheduled: true };
   }
 
-  // TODO: Renewal cron should skip billing when cancel_at_period_end is true,
-  // then expire the subscription and matching service_entitlement at period end.
+  // The renewal cron prioritizes this flag over billing-key checks and expires
+  // the subscription and matching service entitlement at period end.
   const { error } = await adminSupabase
     .from("business_subscriptions" as never)
     .update(({

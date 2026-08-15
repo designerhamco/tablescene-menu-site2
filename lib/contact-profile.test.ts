@@ -19,7 +19,7 @@ test("normalizeContactProfileInput trims and normalizes contact fields", () => {
     {
       contactName: "디자이너샵",
       contactPhone: "010-1234-5678",
-      notificationEmail: "user+tablescene@example.com",
+      notificationEmail: "user+menulink@example.com",
     }
   );
 });
