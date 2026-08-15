@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, ShoppingBasket } from "lucide-react";
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 
 import type { PostpayOrderCatalogItem } from "./types";
@@ -44,7 +44,7 @@ export default function MenuOrderAddButton({
   return (
     <button
       type="button"
-      className={`inline-flex min-h-8 shrink-0 items-center gap-1 rounded-full bg-emerald-700 px-3 py-1.5 text-[11px] font-black leading-none text-white shadow-sm transition-colors hover:bg-emerald-800 md:hidden ${className}`}
+      className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-white/90 text-zinc-800 shadow-sm transition-colors hover:border-zinc-500 hover:bg-zinc-50 md:hidden ${className}`}
       aria-label={`${itemName} 담기`}
       onClick={(event) => {
         event.preventDefault();
@@ -52,8 +52,10 @@ export default function MenuOrderAddButton({
         actions.openItem(itemId);
       }}
     >
-      <Plus className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
-      담기
+      <ShoppingBasket className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
+      <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-white bg-zinc-900 text-white">
+        <Plus className="h-2.5 w-2.5" strokeWidth={3} aria-hidden="true" />
+      </span>
     </button>
   );
 }
