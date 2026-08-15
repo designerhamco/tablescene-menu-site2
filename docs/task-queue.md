@@ -139,11 +139,12 @@
 
 ## 11. 전체 고객 흐름 QA
 
-- `DONE` 반복 가능한 전체 계약 테스트 — `npm test` 한 명령으로 27개 파일·138개 테스트 실행, 해지 예약 구독 재결제 차단 회귀 포함
+- `DONE` 반복 가능한 전체 계약 테스트 — `npm test` 한 명령으로 28개 파일·142개 테스트 실행, 해지 예약 구독 재결제 차단과 Order/Call 공통 gate 회귀 포함
 - `NEEDS_HUMAN` 회원가입·구매·메뉴판 생성 — 공개 route와 Auth 보호 QA 완료, 실제 이메일·PortOne 결제 E2E 필요
 - `DONE` 직원 초대·수락·접근 — 승인된 기존 Owner·직원 계정으로 실제 이메일 발송·수락과 viewer 화면·미리보기·편집 차단 E2E 확인
 - `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
 - `DONE` 미리보기·공개·일반 QR — 공통 renderer·기기 프레임·공개 route·QR 분리 QA 재확인
+- `DONE` Order/Call 로컬 통합 QA — 유효 세션·Business Basic·template·runtime 공통 gate, Order-only·Call-only·no-session·Display 제외, 주문 payload와 직원 처리 상태 흐름 재검증
 - `NEEDS_HUMAN` 테이블 QR·방문 세션·주문 — 보안·idempotency·fail-closed 계약 통과, 승인된 실제 site와 session write E2E 필요
 - `NEEDS_HUMAN` 주문관리·수동 결제완료 — route·권한·상태 전이 계약 통과, 실제 주문 데이터 write E2E 필요
 - `NEEDS_HUMAN` 보관·복구·해지 — Owner runtime 감사 완료, 실제 구독 상태 변경 E2E 필요
@@ -163,4 +164,4 @@
 
 ## 다음 작업
 
-전체 계약 테스트 138개를 `npm test` 한 명령으로 실행하도록 정리했고 Production 의존성 audit도 0건으로 해소했다. 다음 독립 작업은 실제 데이터를 변경하지 않는 로컬 Order/Call 통합 QA다. 선결제 PG는 `docs/prepay-pg-decision.md`의 merchant 구조 서면 답변 전까지 보류한다. 그 밖의 남은 항목은 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다.
+전체 계약 테스트 142개, Production 의존성 audit 0건, 실제 데이터 변경 없는 Order/Call 로컬 통합 QA까지 완료했다. 현재 남은 선결제 구현은 `docs/prepay-pg-decision.md`의 merchant 구조 서면 답변 전까지 보류한다. 그 밖의 남은 항목도 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하므로 새 제품 동작을 임의로 구현하지 않는다.

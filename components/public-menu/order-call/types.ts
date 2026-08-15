@@ -46,6 +46,12 @@ export type OrderCallEntryVisibility = {
   showCart: boolean;
 };
 
+export type PublicOrderCallCapabilityState = {
+  supportsExperience: boolean;
+  orderEnabled: boolean;
+  callEnabled: boolean;
+};
+
 export const LOCKED_ORDER_CALL_ENTRY_CONFIG: OrderCallEntryConfig = {
   mode: "locked",
   orderEnabled: false,
@@ -74,5 +80,66 @@ export function getOrderCallEntryVisibility(config: OrderCallEntryConfig): Order
     showTableLabel: hasValidTableSession && Boolean(config.tableLabel?.trim()),
     showCall: hasValidTableSession && config.callEnabled,
     showCart: hasValidTableSession && config.orderEnabled && config.orderingOpen,
+  };
+}
+
+export function supportsOrderCallExperienceShell(templateKey: string | null | undefined) {
+  return templateKey !== "display_menu_a";
+}
+
+export function getPublicOrderCallCapabilityState({
+  templateKey,
+  planType,
+  hasValidTableSession,
+  postpayOrderRuntimeEnabled,
+  callRuntimeEnabled,
+}: {
+  templateKey: string | null | undefined;
+  planType: string | null | undefined;
+  hasValidTableSession: boolean;
+  postpayOrderRuntimeEnabled: boolean;
+  callRuntimeEnabled: boolean;
+}): PublicOrderCallCapabilityState {
+  const supportsExperience = supportsOrderCallExperienceShell(templateKey);
+  const canUseBusinessTableFeatures = supportsExperience
+    && hasValidTableSession
+    && planType === "business_basic";
+
+  return {
+    supportsExperience,
+    orderEnabled: canUseBusinessTableFeatures && postpayOrderRuntimeEnabled,
+    callEnabled: canUseBusinessTableFeatures && callRuntimeEnabled,
+  };
+}
+
+export function buildPublicOrderCallEntryConfig({
+  capabilityState,
+  menuSiteId,
+  storeName,
+  tableSession,
+  cartScope,
+  orderCatalog,
+}: {
+  capabilityState: PublicOrderCallCapabilityState;
+  menuSiteId: string;
+  storeName: string;
+  tableSession: { id: string; tableLabel: string } | null;
+  cartScope: string | undefined;
+  orderCatalog: PostpayOrderCatalogItem[];
+}): OrderCallEntryConfig | undefined {
+  if (!capabilityState.supportsExperience || !tableSession) return undefined;
+
+  return {
+    mode: "active",
+    orderEnabled: capabilityState.orderEnabled,
+    callEnabled: capabilityState.callEnabled,
+    hasValidTableSession: true,
+    orderingOpen: capabilityState.orderEnabled,
+    languageSlotEnabled: true,
+    storeName,
+    tableLabel: tableSession.tableLabel,
+    menuSiteId,
+    cartScope,
+    orderCatalog,
   };
 }
