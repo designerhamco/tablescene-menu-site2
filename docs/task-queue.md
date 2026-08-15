@@ -139,6 +139,7 @@
 
 ## 11. 전체 고객 흐름 QA
 
+- `DONE` 반복 가능한 전체 계약 테스트 — `npm test` 한 명령으로 27개 파일·138개 테스트 실행, 해지 예약 구독 재결제 차단 회귀 포함
 - `NEEDS_HUMAN` 회원가입·구매·메뉴판 생성 — 공개 route와 Auth 보호 QA 완료, 실제 이메일·PortOne 결제 E2E 필요
 - `DONE` 직원 초대·수락·접근 — 승인된 기존 Owner·직원 계정으로 실제 이메일 발송·수락과 viewer 화면·미리보기·편집 차단 E2E 확인
 - `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
@@ -150,6 +151,7 @@
 ## 12. 오픈 준비
 
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
+- `TODO` Production 의존성 보안 패치 — 2026-08-15 audit의 Next.js·React Router·transitive package 높은 등급 권고를 별도 버전 업그레이드 PR에서 해결하고 전체 138개 테스트·build 재검증
 - `NEEDS_HUMAN` 회원가입·비밀번호 재설정 이메일 실제 발송
 - `NEEDS_HUMAN` SMTP와 Auth 설정
 - `NEEDS_HUMAN` Production 환경변수·비밀키
@@ -161,4 +163,4 @@
 
 ## 다음 작업
 
-전체 고객 흐름의 정적·route QA와 안전 경계 기록, 관리 화면이 열린 동안의 사용자 선택형 브라우저 알림까지 완료했다. 선결제 PG의 다음 입력은 `docs/prepay-pg-decision.md`에 적은 PortOne의 merchant 구조 서면 답변이다. 그 밖의 남은 항목은 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다.
+전체 계약 테스트 138개를 `npm test` 한 명령으로 실행하도록 정리했다. 다음 독립 작업은 2026-08-15 audit에서 확인된 Production 의존성 보안 패치이며, 이후 로컬 Order/Call 통합 QA를 진행한다. 선결제 PG는 `docs/prepay-pg-decision.md`의 merchant 구조 서면 답변 전까지 보류한다. 그 밖의 남은 항목은 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다.

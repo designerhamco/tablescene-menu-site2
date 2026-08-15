@@ -135,7 +135,8 @@
 - 전체 고객 흐름 정적·route QA:
   - 회원가입·비밀번호 재설정·요금제·Order 소개·오브 커피 preview 공개 route 로드 확인
   - 비로그인 마이페이지의 sign-in 보호 확인
-  - Order·Call·table session·권한 audit·매출·앱 내 알림 계약 테스트 42개 통과
+  - `npm test`로 Order·Call·table session·권한 audit·구독 갱신·매출·앱 내 알림 계약 테스트 138개 통과
+  - 해지 예약 구독은 billing key 존재 여부와 무관하게 재결제보다 기간 종료 만료를 우선하도록 순수 정책과 회귀 테스트로 고정
   - 실제 계정·이메일·결제·구독·주문 write가 필요한 최종 E2E는 `docs/customer-flow-qa.md`에 분리
 - 직원 초대 Production E2E:
   - 사용자 승인 아래 기존 Owner·별도 직원 계정과 기존 활성 메뉴판으로 viewer 초대 이메일 발송·수락 완료

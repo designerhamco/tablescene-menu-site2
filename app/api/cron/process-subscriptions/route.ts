@@ -18,6 +18,7 @@ import {
   getSubscriptionLifecycleTargets,
   type SubscriptionLifecycleEntitlement,
 } from "@/lib/subscription-lifecycle-targets";
+import { getSubscriptionRenewalDisposition } from "@/lib/subscription-renewal-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -869,7 +870,12 @@ async function processDueSubscription({
     return { subscriptionId: subscription.id, productKey: subscription.product_key, action: "skipped_invalid_product", nextBillingAt: subscription.next_billing_at };
   }
 
-  if (subscription.cancel_at_period_end) {
+  const renewalDisposition = getSubscriptionRenewalDisposition({
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    billingKeyRef: subscription.billing_key_ref,
+  });
+
+  if (renewalDisposition === "expire_at_period_end") {
     if (dryRun || !execute) {
       return {
         subscriptionId: subscription.id,
@@ -888,7 +894,7 @@ async function processDueSubscription({
     };
   }
 
-  if (!subscription.billing_key_ref) {
+  if (renewalDisposition === "skip_missing_billing_key") {
     return {
       subscriptionId: subscription.id,
       productKey: subscription.product_key,
@@ -909,6 +915,11 @@ async function processDueSubscription({
     };
   }
 
+  const billingKeyRef = subscription.billing_key_ref;
+  if (!billingKeyRef) {
+    throw new Error("RENEWAL_BILLING_KEY_INVARIANT_FAILED");
+  }
+
   if (await hasExistingPayment(adminSupabase, paymentId)) {
     return {
       subscriptionId: subscription.id,
@@ -924,7 +935,7 @@ async function processDueSubscription({
     const businessProfile = await getBusinessProfile(adminSupabase, subscription.business_profile_id);
     const billingPayment = await payWithBillingKey({
       paymentId,
-      billingKey: subscription.billing_key_ref,
+      billingKey: billingKeyRef,
       orderName: getOrderName(product),
       amount: product.amount,
       customer: {
