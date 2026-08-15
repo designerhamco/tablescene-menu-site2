@@ -35,10 +35,11 @@
 ## 2. 메뉴판 미리보기 기기 프레임
 
 - `DONE` PC 프레임 — 1440×900 동일 출처 iframe viewport
-- `DONE` 태블릿 프레임 — 세로 820×1180·가로 1180×820 전환이 가능한 동일 출처 iframe viewport
+- `DONE` 태블릿 프레임 — 가로 1180×820 기본, 세로 820×1180 전환이 가능한 동일 출처 iframe viewport
 - `DONE` 모바일 프레임 — 390×844 동일 출처 iframe viewport
 - `DONE` 기존 preview 화면과 renderer 재사용 — 실제 렌더링 route와 `MenuPageRenderer`를 그대로 사용
 - `DONE` 새 창에서 실제 크기 보기
+- `DONE` 모바일 기능 미리보기 — 기본·직원 호출·후불 주문·PG 결제 화면을 실제 데이터 write 없이 전환
 - `DONE` 별도 scale 엔진을 만들지 않는 제품 정책 확정
 
 ## 3. 활성 템플릿 전체 기능 QA

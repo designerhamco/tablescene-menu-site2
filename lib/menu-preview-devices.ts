@@ -25,6 +25,15 @@ export const MENU_PREVIEW_ORIENTATIONS = {
 
 export type MenuPreviewOrientation = keyof typeof MENU_PREVIEW_ORIENTATIONS;
 
+export const MENU_PREVIEW_EXPERIENCES = {
+  standard: "기본",
+  call: "직원 호출",
+  postpay: "후불 주문",
+  prepay: "PG 결제",
+} as const;
+
+export type MenuPreviewExperience = keyof typeof MENU_PREVIEW_EXPERIENCES;
+
 export type MenuPreviewQuery = {
   debugCafeA?: string;
   lang?: string;
@@ -36,7 +45,11 @@ export function normalizeMenuPreviewDevice(value: string | undefined): MenuPrevi
 }
 
 export function normalizeMenuPreviewOrientation(value: string | undefined): MenuPreviewOrientation {
-  return value === "landscape" ? "landscape" : "portrait";
+  return value === "portrait" ? "portrait" : "landscape";
+}
+
+export function normalizeMenuPreviewExperience(value: string | undefined): MenuPreviewExperience {
+  return value === "call" || value === "postpay" || value === "prepay" ? value : "standard";
 }
 
 export function getMenuPreviewFrame(device: MenuPreviewDevice, orientation: MenuPreviewOrientation) {
@@ -57,6 +70,7 @@ export function buildMenuPreviewUrl(
   options: {
     device?: MenuPreviewDevice;
     orientation?: MenuPreviewOrientation;
+    experience?: MenuPreviewExperience;
     embedded?: boolean;
     actual?: boolean;
   } = {},
@@ -69,8 +83,11 @@ export function buildMenuPreviewUrl(
   }
 
   if (options.device) searchParams.set("device", options.device);
-  if (options.device === "tablet" && options.orientation === "landscape") {
+  if (options.device === "tablet" && options.orientation) {
     searchParams.set("orientation", options.orientation);
+  }
+  if (options.device === "mobile" && options.experience && options.experience !== "standard") {
+    searchParams.set("experience", options.experience);
   }
   if (options.actual) searchParams.set("view", "actual");
 

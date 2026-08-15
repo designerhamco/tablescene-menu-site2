@@ -26,11 +26,13 @@ export default function StaffCallDialog({
   onClose,
   menuSiteId,
   tableLabel,
+  previewOnly = false,
 }: {
   open: boolean;
   onClose: () => void;
   menuSiteId: string;
   tableLabel?: string;
+  previewOnly?: boolean;
 }) {
   const [call, setCall] = useState<StaffCall | null>(null);
   const [pending, setPending] = useState(false);
@@ -46,6 +48,11 @@ export default function StaffCallDialog({
   async function requestCall() {
     setPending(true);
     setMessage(null);
+    if (previewOnly) {
+      setCall({ callId: "preview-call", callNumber: 12, status: "pending", duplicate: false });
+      setPending(false);
+      return;
+    }
     try {
       const result = await fetch("/api/public-menu/calls", {
         method: "POST",
@@ -68,6 +75,12 @@ export default function StaffCallDialog({
     if (!call || call.status !== "pending") return;
     setPending(true);
     setMessage(null);
+    if (previewOnly) {
+      setCall(null);
+      setMessage("화면 미리보기에서 호출을 취소했습니다. 실제 요청은 전송되지 않았습니다.");
+      setPending(false);
+      return;
+    }
     try {
       const result = await fetch("/api/public-menu/calls", {
         method: "PATCH",
@@ -122,6 +135,12 @@ export default function StaffCallDialog({
             </button>
           </div>
         )}
+
+        {previewOnly ? (
+          <p className="mt-4 rounded-2xl bg-sky-50 px-4 py-3 text-xs font-bold leading-relaxed text-sky-800">
+            미리보기 화면입니다. 버튼을 눌러도 실제 직원 호출은 전송되지 않습니다.
+          </p>
+        ) : null}
 
         {message ? <p className="mt-4 rounded-2xl bg-zinc-100 px-4 py-3 text-sm font-bold text-zinc-700" role="status">{message}</p> : null}
       </section>
