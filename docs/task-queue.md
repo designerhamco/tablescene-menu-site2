@@ -151,7 +151,7 @@
 ## 12. 오픈 준비
 
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
-- `TODO` Production 의존성 보안 패치 — 2026-08-15 audit의 Next.js·React Router·transitive package 높은 등급 권고를 별도 버전 업그레이드 PR에서 해결하고 전체 138개 테스트·build 재검증
+- `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증
 - `NEEDS_HUMAN` 회원가입·비밀번호 재설정 이메일 실제 발송
 - `NEEDS_HUMAN` SMTP와 Auth 설정
 - `NEEDS_HUMAN` Production 환경변수·비밀키
@@ -163,4 +163,4 @@
 
 ## 다음 작업
 
-전체 계약 테스트 138개를 `npm test` 한 명령으로 실행하도록 정리했다. 다음 독립 작업은 2026-08-15 audit에서 확인된 Production 의존성 보안 패치이며, 이후 로컬 Order/Call 통합 QA를 진행한다. 선결제 PG는 `docs/prepay-pg-decision.md`의 merchant 구조 서면 답변 전까지 보류한다. 그 밖의 남은 항목은 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다.
+전체 계약 테스트 138개를 `npm test` 한 명령으로 실행하도록 정리했고 Production 의존성 audit도 0건으로 해소했다. 다음 독립 작업은 실제 데이터를 변경하지 않는 로컬 Order/Call 통합 QA다. 선결제 PG는 `docs/prepay-pg-decision.md`의 merchant 구조 서면 답변 전까지 보류한다. 그 밖의 남은 항목은 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하다.
