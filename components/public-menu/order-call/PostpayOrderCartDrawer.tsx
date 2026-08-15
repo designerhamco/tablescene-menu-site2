@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, ChevronLeft, Minus, Plus, X } from "lucide-react";
+import { Check, CheckCircle2, ChevronLeft, CreditCard, Minus, Plus, ShieldCheck, Smartphone, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import type {
+  OrderCheckoutMode,
   PostpayOrderCatalogItem,
   PostpayOrderCatalogOptionGroup,
 } from "./types";
@@ -27,6 +28,9 @@ type PostpayOrderCartDrawerProps = {
   menuSiteId: string;
   cartScope: string;
   catalog: PostpayOrderCatalogItem[];
+  checkoutMode?: OrderCheckoutMode;
+  previewOnly?: boolean;
+  initialCheckoutPreview?: boolean;
   onCountChange: (count: number) => void;
 };
 
@@ -53,6 +57,13 @@ function hydrateCartLine(line: StoredCartLine, catalog: PostpayOrderCatalogItem[
   };
 }
 
+function buildPreviewCart(catalog: PostpayOrderCatalogItem[]) {
+  return catalog.slice(0, 2).flatMap((item) => {
+    const optionValueIds = item.optionGroups.flatMap((group) => group.values.slice(0, group.minSelections).map((value) => value.id));
+    return hydrateCartLine({ menuItemId: item.id, quantity: 1, optionValueIds }, catalog) ?? [];
+  });
+}
+
 function selectionIsValid(group: PostpayOrderCatalogOptionGroup, selectedIds: ReadonlySet<string>) {
   const selectedCount = group.values.filter((value) => selectedIds.has(value.id)).length;
   if (group.isRequired && selectedCount < group.minSelections) return false;
@@ -66,6 +77,9 @@ export default function PostpayOrderCartDrawer({
   menuSiteId,
   cartScope,
   catalog,
+  checkoutMode = "postpay",
+  previewOnly = false,
+  initialCheckoutPreview = false,
   onCountChange,
 }: PostpayOrderCartDrawerProps) {
   const storageKey = `menulink-postpay-cart:${menuSiteId}:${cartScope}`;
@@ -78,21 +92,27 @@ export default function PostpayOrderCartDrawer({
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
+  const [checkoutPreviewOpen, setCheckoutPreviewOpen] = useState(initialCheckoutPreview);
+  const [paymentPreviewComplete, setPaymentPreviewComplete] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let nextCart: CartLine[] = [];
-    try {
-      const parsed = JSON.parse(window.localStorage.getItem(storageKey) ?? "[]") as StoredCartLine[];
-      nextCart = Array.isArray(parsed) ? parsed.flatMap((line) => hydrateCartLine(line, catalog) ?? []) : [];
-    } catch {}
+    if (previewOnly) {
+      nextCart = buildPreviewCart(catalog);
+    } else {
+      try {
+        const parsed = JSON.parse(window.localStorage.getItem(storageKey) ?? "[]") as StoredCartLine[];
+        nextCart = Array.isArray(parsed) ? parsed.flatMap((line) => hydrateCartLine(line, catalog) ?? []) : [];
+      } catch {}
+    }
     queueMicrotask(() => {
       if (cancelled) return;
       setCart(nextCart);
       setHydratedScope(storageKey);
     });
     return () => { cancelled = true; };
-  }, [catalog, storageKey]);
+  }, [catalog, previewOnly, storageKey]);
 
   useEffect(() => {
     if (hydratedScope !== storageKey) return;
@@ -101,11 +121,13 @@ export default function PostpayOrderCartDrawer({
       quantity: lineQuantity,
       optionValueIds,
     }));
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(stored));
-    } catch {}
+    if (!previewOnly) {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(stored));
+      } catch {}
+    }
     onCountChange(cart.reduce((sum, line) => sum + line.quantity, 0));
-  }, [cart, hydratedScope, onCountChange, storageKey]);
+  }, [cart, hydratedScope, onCountChange, previewOnly, storageKey]);
 
   const totalAmount = useMemo(
     () => cart.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
@@ -170,6 +192,10 @@ export default function PostpayOrderCartDrawer({
 
   async function submitOrder() {
     if (cart.length < 1 || submitting) return;
+    if (previewOnly) {
+      setMessage("화면 미리보기입니다. 실제 주문은 전송되지 않았습니다.");
+      return;
+    }
     const requestId = pendingRequestId ?? crypto.randomUUID();
     setPendingRequestId(requestId);
     setSubmitting(true);
@@ -202,6 +228,17 @@ export default function PostpayOrderCartDrawer({
     }
   }
 
+  function openCheckoutPreview() {
+    setMessage("");
+    setPaymentPreviewComplete(false);
+    setCheckoutPreviewOpen(true);
+  }
+
+  function closeCheckoutPreview() {
+    setPaymentPreviewComplete(false);
+    setCheckoutPreviewOpen(false);
+  }
+
   if (!open) return null;
 
   return (
@@ -212,17 +249,96 @@ export default function PostpayOrderCartDrawer({
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100"
-            onClick={() => activeItem ? setActiveItem(null) : onClose()}
-            aria-label={activeItem ? "메뉴 목록으로" : "장바구니 닫기"}
+            onClick={() => checkoutPreviewOpen ? closeCheckoutPreview() : activeItem ? setActiveItem(null) : onClose()}
+            aria-label={checkoutPreviewOpen ? "장바구니로" : activeItem ? "메뉴 목록으로" : "장바구니 닫기"}
           >
-            {activeItem ? <ChevronLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+            {activeItem || checkoutPreviewOpen ? <ChevronLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
           </button>
-          <h2 className="text-base font-black">{activeItem ? activeItem.name : "테이블 주문"}</h2>
+          <h2 className="text-base font-black">
+            {checkoutPreviewOpen ? paymentPreviewComplete ? "결제 완료 미리보기" : "PG 결제 미리보기" : activeItem ? activeItem.name : "테이블 주문"}
+          </h2>
           <span className="min-w-9 text-right text-xs font-black text-zinc-500">{totalUnits}/50</span>
         </header>
 
         <div className="overflow-y-auto px-5 py-5">
-          {activeItem ? (
+          {checkoutPreviewOpen && paymentPreviewComplete ? (
+            <div className="py-8 text-center">
+              <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <CheckCircle2 className="h-10 w-10" aria-hidden="true" />
+              </span>
+              <h3 className="mt-6 text-2xl font-black">결제 요청을 확인했어요</h3>
+              <p className="mt-2 text-sm font-bold leading-relaxed text-zinc-500">
+                실제 서비스에서는 결제 승인 후<br />매장으로 주문이 전송됩니다.
+              </p>
+              <div className="mt-6 rounded-2xl bg-zinc-100 p-4 text-left">
+                <div className="flex items-center justify-between text-sm font-black">
+                  <span>결제 금액</span>
+                  <span>{formatPrice(totalAmount)}</span>
+                </div>
+                <p className="mt-3 text-xs font-bold leading-relaxed text-sky-800">
+                  화면 미리보기 전용입니다. 실제 결제 승인이나 주문 전송은 발생하지 않았습니다.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="mt-6 w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white"
+                onClick={() => setPaymentPreviewComplete(false)}
+              >
+                결제 화면 다시 보기
+              </button>
+            </div>
+          ) : checkoutPreviewOpen ? (
+            <div className="space-y-5">
+              <div className="rounded-3xl bg-zinc-950 p-5 text-white">
+                <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                  안전한 PG 결제
+                </div>
+                <p className="mt-5 text-sm font-bold text-zinc-300">결제 예정 금액</p>
+                <p className="mt-1 text-3xl font-black">{formatPrice(totalAmount)}</p>
+              </div>
+
+              <section>
+                <h3 className="text-sm font-black">주문 내역</h3>
+                <div className="mt-3 divide-y divide-zinc-100 rounded-2xl border border-zinc-200 px-4">
+                  {cart.map((line) => (
+                    <div key={line.key} className="flex items-start justify-between gap-3 py-3 text-sm">
+                      <div>
+                        <p className="font-black">{line.name} · {line.quantity}개</p>
+                        {line.optionNames.length ? <p className="mt-1 text-xs font-bold text-zinc-400">{line.optionNames.join(", ")}</p> : null}
+                      </div>
+                      <p className="font-black">{formatPrice(line.unitPrice * line.quantity)}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-black">결제 수단</h3>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <button type="button" className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-zinc-950 bg-zinc-50 text-sm font-black">
+                    <CreditCard className="h-6 w-6" aria-hidden="true" />
+                    카드 결제
+                  </button>
+                  <button type="button" className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 text-sm font-black text-zinc-600">
+                    <Smartphone className="h-6 w-6" aria-hidden="true" />
+                    간편결제
+                  </button>
+                </div>
+              </section>
+
+              <p className="rounded-2xl bg-sky-50 p-4 text-xs font-bold leading-relaxed text-sky-800">
+                화면 미리보기 전용입니다. PortOne 결제창을 열거나 실제 승인·주문을 생성하지 않습니다.
+              </p>
+              <button
+                type="button"
+                className="w-full rounded-2xl bg-emerald-700 px-5 py-4 text-sm font-black text-white"
+                onClick={() => setPaymentPreviewComplete(true)}
+              >
+                {formatPrice(totalAmount)} 결제하기
+              </button>
+            </div>
+          ) : activeItem ? (
             <div className="space-y-5">
               <div>
                 <p className="text-xl font-black">{activeItem.name}</p>
@@ -314,9 +430,9 @@ export default function PostpayOrderCartDrawer({
                     type="button"
                     className="mt-4 w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white disabled:opacity-50"
                     disabled={submitting}
-                    onClick={submitOrder}
+                    onClick={checkoutMode === "prepay" ? openCheckoutPreview : submitOrder}
                   >
-                    {submitting ? "주문 전송 중…" : "후불로 주문하기"}
+                    {submitting ? "주문 전송 중…" : checkoutMode === "prepay" ? "결제하고 주문하기" : "후불로 주문하기"}
                   </button>
                 </section>
               ) : null}

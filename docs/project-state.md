@@ -69,7 +69,8 @@
   - 상세 범위는 `docs/staff-write-audit.md`에 기록
 - 메뉴판 미리보기 기기 프레임:
   - 기존 인증·권한 route와 `MenuPageRenderer`를 그대로 재사용
-  - PC 1440×900, 태블릿 세로 820×1180·가로 1180×820, 모바일 390×844 실제 viewport 제공
+  - PC 1440×900, 태블릿 기본 가로 1180×820·선택 세로 820×1180, 모바일 390×844 실제 viewport 제공
+  - 모바일 프레임에서 기본·직원 호출·후불 주문·PG 결제 화면을 write 없는 preview fixture로 전환
   - 별도 scale 엔진 없이 동일 출처 iframe의 반응형 viewport와 실제 크기 새 창 제공
 - 활성 템플릿 정책과 1차 renderer QA:
   - Basic 6개와 Display 1개를 출시 대상으로 확정

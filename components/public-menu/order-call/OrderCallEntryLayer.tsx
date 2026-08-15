@@ -25,8 +25,10 @@ export default function OrderCallEntryLayer({
   children,
 }: OrderCallEntryLayerProps) {
   const visibility = getOrderCallEntryVisibility(config);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [callOpen, setCallOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(
+    () => config.previewInitialPanel === "cart" || config.previewInitialPanel === "checkout",
+  );
+  const [callOpen, setCallOpen] = useState(() => config.previewInitialPanel === "call");
   const [cartCount, setCartCount] = useState(() => Math.max(0, Math.floor(config.cartCount ?? 0)));
 
   if (!visibility.showHeader) {
@@ -95,6 +97,9 @@ export default function OrderCallEntryLayer({
           menuSiteId={config.menuSiteId!}
           cartScope={config.cartScope!}
           catalog={config.orderCatalog!}
+          checkoutMode={config.checkoutMode ?? "postpay"}
+          previewOnly={config.previewOnly ?? false}
+          initialCheckoutPreview={config.previewInitialPanel === "checkout"}
           onCountChange={setCartCount}
         />
       ) : null}
@@ -104,6 +109,7 @@ export default function OrderCallEntryLayer({
           onClose={() => setCallOpen(false)}
           menuSiteId={config.menuSiteId!}
           tableLabel={config.tableLabel}
+          previewOnly={config.previewOnly ?? false}
         />
       ) : null}
     </div>
