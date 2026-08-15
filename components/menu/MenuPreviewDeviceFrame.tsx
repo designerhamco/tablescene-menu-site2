@@ -2,21 +2,31 @@ import Link from "next/link";
 
 import {
   buildMenuPreviewUrl,
+  getMenuPreviewFrame,
   MENU_PREVIEW_DEVICES,
+  MENU_PREVIEW_ORIENTATIONS,
   type MenuPreviewDevice,
+  type MenuPreviewOrientation,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
 
 type MenuPreviewDeviceFrameProps = {
   device: MenuPreviewDevice;
+  orientation: MenuPreviewOrientation;
   menuId: string;
   query: MenuPreviewQuery;
 };
 
-export default function MenuPreviewDeviceFrame({ device, menuId, query }: MenuPreviewDeviceFrameProps) {
-  const frame = MENU_PREVIEW_DEVICES[device];
-  const embeddedUrl = buildMenuPreviewUrl(menuId, query, { actual: true, embedded: true, device });
-  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device });
+export default function MenuPreviewDeviceFrame({ device, orientation, menuId, query }: MenuPreviewDeviceFrameProps) {
+  const frame = getMenuPreviewFrame(device, orientation);
+  const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
+  const embeddedUrl = buildMenuPreviewUrl(menuId, query, {
+    actual: true,
+    embedded: true,
+    device,
+    orientation,
+  });
+  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device, orientation });
 
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-950">
@@ -32,7 +42,7 @@ export default function MenuPreviewDeviceFrame({ device, menuId, query }: MenuPr
             <div>
               <p className="text-sm font-black">기기 미리보기</p>
               <p className="text-xs font-bold text-zinc-500">
-                {frame.label} · {frame.width} × {frame.height}
+                {frame.label}{orientationLabel ? ` · ${orientationLabel}` : ""} · {frame.width} × {frame.height}
               </p>
             </div>
           </div>
@@ -46,7 +56,10 @@ export default function MenuPreviewDeviceFrame({ device, menuId, query }: MenuPr
                 return (
                   <Link
                     key={candidate}
-                    href={buildMenuPreviewUrl(menuId, query, { device: candidate })}
+                    href={buildMenuPreviewUrl(menuId, query, {
+                      device: candidate,
+                      orientation: candidate === "tablet" ? orientation : undefined,
+                    })}
                     aria-current={isSelected ? "page" : undefined}
                     className={`rounded-full px-4 py-2 text-sm font-black transition-colors ${
                       isSelected ? "bg-zinc-950 text-white shadow-sm" : "text-zinc-600 hover:bg-white hover:text-zinc-950"
@@ -57,6 +70,26 @@ export default function MenuPreviewDeviceFrame({ device, menuId, query }: MenuPr
                 );
               })}
             </nav>
+            {device === "tablet" ? (
+              <nav aria-label="태블릿 방향 선택" className="flex rounded-full border border-zinc-200 bg-zinc-100 p-1">
+                {(Object.keys(MENU_PREVIEW_ORIENTATIONS) as MenuPreviewOrientation[]).map((candidate) => {
+                  const isSelected = candidate === orientation;
+
+                  return (
+                    <Link
+                      key={candidate}
+                      href={buildMenuPreviewUrl(menuId, query, { device, orientation: candidate })}
+                      aria-current={isSelected ? "page" : undefined}
+                      className={`rounded-full px-4 py-2 text-sm font-black transition-colors ${
+                        isSelected ? "bg-emerald-700 text-white shadow-sm" : "text-zinc-600 hover:bg-white hover:text-zinc-950"
+                      }`}
+                    >
+                      {MENU_PREVIEW_ORIENTATIONS[candidate]}
+                    </Link>
+                  );
+                })}
+              </nav>
+            ) : null}
             <Link
               href={actualUrl}
               target="_blank"
@@ -69,7 +102,10 @@ export default function MenuPreviewDeviceFrame({ device, menuId, query }: MenuPr
         </div>
       </header>
 
-      <section className="overflow-auto px-4 py-8" aria-label={`${frame.label} 메뉴판 미리보기`}>
+      <section
+        className="overflow-auto px-4 py-8"
+        aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
+      >
         <div
           className="mx-auto overflow-hidden rounded-[28px] border-[10px] border-zinc-900 bg-white shadow-2xl"
           style={{ width: frame.width + 20, height: frame.height + 20 }}
@@ -77,7 +113,7 @@ export default function MenuPreviewDeviceFrame({ device, menuId, query }: MenuPr
           <iframe
             key={embeddedUrl}
             src={embeddedUrl}
-            title={`${frame.label} 메뉴판 미리보기`}
+            title={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
             className="h-full w-full border-0 bg-white"
             referrerPolicy="no-referrer"
           />

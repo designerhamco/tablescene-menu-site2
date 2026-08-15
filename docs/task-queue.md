@@ -35,7 +35,7 @@
 ## 2. 메뉴판 미리보기 기기 프레임
 
 - `DONE` PC 프레임 — 1440×900 동일 출처 iframe viewport
-- `DONE` 태블릿 프레임 — 820×1180 동일 출처 iframe viewport
+- `DONE` 태블릿 프레임 — 세로 820×1180·가로 1180×820 전환이 가능한 동일 출처 iframe viewport
 - `DONE` 모바일 프레임 — 390×844 동일 출처 iframe viewport
 - `DONE` 기존 preview 화면과 renderer 재사용 — 실제 렌더링 route와 `MenuPageRenderer`를 그대로 사용
 - `DONE` 새 창에서 실제 크기 보기
