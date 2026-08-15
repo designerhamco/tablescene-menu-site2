@@ -6,11 +6,10 @@ import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
-import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
+import { buildMenuPreviewOrderCallConfig, buildMenuPreviewOrderCatalog } from "@/lib/menu-preview-experience";
 import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
-  normalizeMenuPreviewExperience,
   normalizeMenuPreviewOrientation,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
@@ -25,7 +24,6 @@ type PageProps = {
     debugCafeA?: string | string[];
     device?: string | string[];
     embedded?: string | string[];
-    experience?: string | string[];
     lang?: string | string[];
     orientation?: string | string[];
     page?: string | string[];
@@ -132,7 +130,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
   const device = normalizeMenuPreviewDevice(getSearchParamValue(query.device));
   const orientation = normalizeMenuPreviewOrientation(getSearchParamValue(query.orientation));
-  const experience = normalizeMenuPreviewExperience(getSearchParamValue(query.experience));
   const previewQuery: MenuPreviewQuery = {
     debugCafeA: getSearchParamValue(query.debugCafeA),
     lang: getSearchParamValue(query.lang),
@@ -171,7 +168,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     return (
       <MenuPreviewDeviceFrame
         device={device}
-        experience={experience}
         orientation={orientation}
         menuId={menuId}
         query={previewQuery}
@@ -181,9 +177,9 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
 
   const previewOrderCallConfig = device === "mobile"
     ? buildMenuPreviewOrderCallConfig({
-        experience,
         menuSiteId: data.menuSite.id,
         storeName: data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
+        catalog: buildMenuPreviewOrderCatalog(data.items),
       })
     : undefined;
 
@@ -203,7 +199,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       />
       {!isEmbedded ? (
         <Link
-          href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation, experience })}
+          href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation })}
           className="fixed bottom-4 right-4 z-[1000] rounded-full border border-white/30 bg-zinc-950/90 px-4 py-2.5 text-sm font-black text-white shadow-lg backdrop-blur transition-colors hover:bg-zinc-800"
         >
           기기 프레임으로 돌아가기

@@ -10,6 +10,7 @@ import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText"
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
+import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
 import {
   createCafeAOrderedBalancedColumnsFromBreakIndices,
   getCafeAOrderedBalancedBreaksFromColumns,
@@ -3393,6 +3394,7 @@ function MenuItemRow({
         {showSoldOutBadge ? <SoldOutBadge locale={locale} /> : null}
         {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} /> : null}
         {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
+        <MenuOrderAddButton itemId={item.id} itemName={item.name} />
       </div>
       {hasSecondaryText && (
         <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug ${metaTextColorClassName} ${metaClassName}`}>
@@ -5152,6 +5154,7 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
                                           />
                                         )}
                                         {price && <p className="menu-font-en shrink-0 pt-[1px] text-right text-[clamp(14px,1.58vh,15px)] font-medium tabular-nums tracking-[-0.002em]">{price}</p>}
+                                        <MenuOrderAddButton itemId={item.id} itemName={item.name} className="ml-1" />
                                       </div>
                                       {metaText && <p className="menu-font-en mt-0.5 text-[10px] uppercase tracking-[0.08em] text-[#76766f]">{metaText}</p>}
                                       {item.description && <p className={`mt-0.5 truncate text-[#676760] ${CAFE_NOIR_DESCRIPTION_TEXT_CLASS_NAME}`}>{item.description}</p>}

@@ -1,26 +1,60 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildMenuPreviewOrderCallConfig } from "./menu-preview-experience";
+import type { PublicMenuItem } from "@/components/menu-templates/types";
 
-const menuSiteId = "11111111-1111-4111-8111-111111111111";
+import { buildMenuPreviewOrderCallConfig, buildMenuPreviewOrderCatalog } from "./menu-preview-experience";
 
-test("standard preview does not inject order or call UI", () => {
-  assert.equal(buildMenuPreviewOrderCallConfig({ experience: "standard", menuSiteId, storeName: "AUBE" }), undefined);
+function item(overrides: Partial<PublicMenuItem> = {}): PublicMenuItem {
+  return {
+    id: "22222222-2222-4222-8222-222222222222",
+    category_id: "33333333-3333-4333-8333-333333333333",
+    name: "시그니처 라떼",
+    set_name: null,
+    description: null,
+    price: 6.5,
+    price_label: null,
+    price_visible: true,
+    portion_label: null,
+    portion_visible: false,
+    image_url: null,
+    badge: null,
+    badge_label: null,
+    badge_type: null,
+    recommended: false,
+    origin_info: null,
+    is_best: false,
+    is_sold_out: false,
+    traits_visible: false,
+    visible: true,
+    sort_order: 0,
+    priceNote: null,
+    priceColumnValues: [],
+    ...overrides,
+  };
+}
+
+test("mobile preview catalog uses visible orderable menu items", () => {
+  const catalog = buildMenuPreviewOrderCatalog([
+    item(),
+    item({ id: "44444444-4444-4444-8444-444444444444", name: "품절 메뉴", is_sold_out: true }),
+    item({ id: "55555555-5555-4555-8555-555555555555", name: "가격 비공개", price_visible: false }),
+  ]);
+
+  assert.deepEqual(catalog.map(({ id, name, price }) => ({ id, name, price })), [{
+    id: "22222222-2222-4222-8222-222222222222",
+    name: "시그니처 라떼",
+    price: 6500,
+  }]);
 });
 
-test("call preview opens a write-free call dialog", () => {
-  const config = buildMenuPreviewOrderCallConfig({ experience: "call", menuSiteId, storeName: "AUBE" });
-  assert.equal(config?.callEnabled, true);
-  assert.equal(config?.orderEnabled, false);
-  assert.equal(config?.previewOnly, true);
-  assert.equal(config?.previewInitialPanel, "call");
-});
+test("mobile preview exposes call, cart, and both payment choices together", () => {
+  const catalog = buildMenuPreviewOrderCatalog([item()]);
+  const config = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog });
 
-test("prepay preview opens the mobile checkout without enabling real payment", () => {
-  const config = buildMenuPreviewOrderCallConfig({ experience: "prepay", menuSiteId, storeName: "AUBE" });
-  assert.equal(config?.checkoutMode, "prepay");
-  assert.equal(config?.previewOnly, true);
-  assert.equal(config?.previewInitialPanel, "checkout");
-  assert.equal(config?.orderCatalog?.length, 2);
+  assert.equal(config.callEnabled, true);
+  assert.equal(config.orderEnabled, true);
+  assert.equal(config.previewOnly, true);
+  assert.deepEqual(config.checkoutModes, ["prepay", "postpay"]);
+  assert.equal(config.orderCatalog?.length, 1);
 });

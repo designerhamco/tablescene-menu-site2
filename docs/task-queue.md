@@ -39,7 +39,7 @@
 - `DONE` 모바일 프레임 — 390×844 동일 출처 iframe viewport
 - `DONE` 기존 preview 화면과 renderer 재사용 — 실제 렌더링 route와 `MenuPageRenderer`를 그대로 사용
 - `DONE` 새 창에서 실제 크기 보기
-- `DONE` 모바일 기능 미리보기 — 기본·직원 호출·후불 주문·PG 결제 화면을 실제 데이터 write 없이 전환
+- `DONE` 모바일 주문 미리보기 — 직원 호출, 메뉴별 `담기`, 장바구니, `지금 결제`/`후불 결제`를 한 화면 흐름으로 제공하고 실제 데이터 write 없음
 - `DONE` 별도 scale 엔진을 만들지 않는 제품 정책 확정
 
 ## 3. 활성 템플릿 전체 기능 QA

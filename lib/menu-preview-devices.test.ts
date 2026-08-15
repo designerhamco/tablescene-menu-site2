@@ -5,7 +5,6 @@ import {
   buildMenuPreviewUrl,
   getMenuPreviewFrame,
   normalizeMenuPreviewDevice,
-  normalizeMenuPreviewExperience,
   normalizeMenuPreviewOrientation,
 } from "./menu-preview-devices";
 
@@ -21,14 +20,6 @@ test("preview orientation defaults to landscape and accepts explicit portrait", 
   assert.equal(normalizeMenuPreviewOrientation("upside-down"), "landscape");
   assert.equal(normalizeMenuPreviewOrientation("portrait"), "portrait");
   assert.equal(normalizeMenuPreviewOrientation("landscape"), "landscape");
-});
-
-test("preview experience accepts supported mobile feature states", () => {
-  assert.equal(normalizeMenuPreviewExperience(undefined), "standard");
-  assert.equal(normalizeMenuPreviewExperience("unknown"), "standard");
-  assert.equal(normalizeMenuPreviewExperience("call"), "call");
-  assert.equal(normalizeMenuPreviewExperience("postpay"), "postpay");
-  assert.equal(normalizeMenuPreviewExperience("prepay"), "prepay");
 });
 
 test("tablet landscape swaps the real iframe viewport dimensions", () => {
@@ -83,16 +74,5 @@ test("preview URLs preserve landscape only for tablet frames", () => {
   assert.equal(
     buildMenuPreviewUrl("menu-a", {}, { device: "tablet", orientation: "portrait" }),
     "/mypage/menus/menu-a/preview?device=tablet&orientation=portrait",
-  );
-});
-
-test("feature preview URLs are limited to mobile frames", () => {
-  assert.equal(
-    buildMenuPreviewUrl("menu-a", {}, { device: "mobile", experience: "prepay" }),
-    "/mypage/menus/menu-a/preview?device=mobile&experience=prepay",
-  );
-  assert.equal(
-    buildMenuPreviewUrl("menu-a", {}, { device: "tablet", experience: "prepay" }),
-    "/mypage/menus/menu-a/preview?device=tablet",
   );
 });

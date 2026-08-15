@@ -9,6 +9,7 @@ import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguag
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import { useTimeSaleNow } from "@/components/menu-templates/shared/useTimeSaleNow";
 import type { PublicMenuCategory, PublicMenuItem, PublicMenuItemPriceOption, PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
+import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
 import { getMenuTimeSaleAuxiliaryLabels, isMenuTimeSaleActive } from "@/lib/menu-time-sale-display";
 import { getReadableTextColorForTimeSaleBadge, normalizeTimeSaleBadgeBackgroundColor } from "@/lib/menu-time-sales";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
@@ -303,6 +304,7 @@ function MenuItemRow({
           </span>
         ) : null}
         {item.is_sold_out ? <span className="brew-chapter-menu-badge brew-chapter-sold-out-chip menu-badge cafe-a-menu-badge cafe-a-sold-out-chip"><ScriptAwareText text="품절" /></span> : null}
+        <MenuOrderAddButton itemId={item.id} itemName={item.name} />
       </div>
       {item.set_name ? <p className="brew-chapter-menu-meta cafe-a-menu-meta cafe-a-menu-meta-size-default break-words text-[#333333]"><ScriptAwareText text={item.set_name} /></p> : null}
       {item.description ? <p className="brew-chapter-menu-description cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-menu-description-size-default break-keep text-[#3f4945]"><ScriptAwareText text={item.description} /></p> : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, ShoppingBag } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { SupportedLocale } from "@/lib/locales";
@@ -9,6 +9,7 @@ import type { SupportedLocale } from "@/lib/locales";
 import type { OrderCallEntryConfig } from "./types";
 import { getOrderCallEntryVisibility, LOCKED_ORDER_CALL_ENTRY_CONFIG } from "./types";
 import PostpayOrderCartDrawer from "./PostpayOrderCartDrawer";
+import { MenuOrderActionsProvider } from "./MenuOrderAddButton";
 import StaffCallDialog from "./StaffCallDialog";
 
 type OrderCallEntryLayerProps = {
@@ -25,11 +26,18 @@ export default function OrderCallEntryLayer({
   children,
 }: OrderCallEntryLayerProps) {
   const visibility = getOrderCallEntryVisibility(config);
-  const [cartOpen, setCartOpen] = useState(
-    () => config.previewInitialPanel === "cart" || config.previewInitialPanel === "checkout",
-  );
-  const [callOpen, setCallOpen] = useState(() => config.previewInitialPanel === "call");
+  const [cartOpen, setCartOpen] = useState(false);
+  const [callOpen, setCallOpen] = useState(false);
+  const [selectedMenuItemId, setSelectedMenuItemId] = useState<string | null>(null);
   const [cartCount, setCartCount] = useState(() => Math.max(0, Math.floor(config.cartCount ?? 0)));
+  const openMenuItem = useCallback((itemId: string) => {
+    setSelectedMenuItemId(itemId);
+    setCartOpen(true);
+  }, []);
+  const openCart = useCallback(() => {
+    setSelectedMenuItemId(null);
+    setCartOpen(true);
+  }, []);
 
   if (!visibility.showHeader) {
     return <>{children}</>;
@@ -43,8 +51,9 @@ export default function OrderCallEntryLayer({
     && Boolean(config.menuSiteId);
 
   return (
-    <div data-public-menu-entry-layer="" data-order-call-mode={config.mode}>
-      <header
+    <MenuOrderActionsProvider catalog={config.orderCatalog ?? []} onOpenItem={openMenuItem}>
+      <div data-public-menu-entry-layer="" data-order-call-mode={config.mode}>
+        <header
         className="sticky top-0 z-[900] grid min-h-14 grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 border-b border-zinc-200/80 bg-white/95 px-3 pb-2 pt-[max(8px,env(safe-area-inset-top))] text-zinc-950 shadow-sm backdrop-blur md:hidden"
         data-public-menu-mobile-header=""
       >
@@ -77,7 +86,7 @@ export default function OrderCallEntryLayer({
               className="relative flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-zinc-950 text-white shadow-sm"
               aria-label={`장바구니${cartCount > 0 ? ` ${cartCount}개` : ""}`}
               disabled={!canOpenCart}
-              onClick={() => setCartOpen(true)}
+              onClick={openCart}
             >
               <ShoppingBag className="h-4.5 w-4.5" aria-hidden="true" />
               {cartCount > 0 ? (
@@ -88,30 +97,32 @@ export default function OrderCallEntryLayer({
             </button>
           ) : null}
         </div>
-      </header>
-      {children}
-      {canOpenCart ? (
-        <PostpayOrderCartDrawer
+        </header>
+        {children}
+        {canOpenCart ? (
+          <PostpayOrderCartDrawer
           open={cartOpen}
           onClose={() => setCartOpen(false)}
           menuSiteId={config.menuSiteId!}
           cartScope={config.cartScope!}
           catalog={config.orderCatalog!}
           checkoutMode={config.checkoutMode ?? "postpay"}
+          checkoutModes={config.checkoutModes}
           previewOnly={config.previewOnly ?? false}
-          initialCheckoutPreview={config.previewInitialPanel === "checkout"}
+          selectedMenuItemId={selectedMenuItemId}
           onCountChange={setCartCount}
-        />
-      ) : null}
-      {canOpenCall ? (
-        <StaffCallDialog
+          />
+        ) : null}
+        {canOpenCall ? (
+          <StaffCallDialog
           open={callOpen}
           onClose={() => setCallOpen(false)}
           menuSiteId={config.menuSiteId!}
           tableLabel={config.tableLabel}
           previewOnly={config.previewOnly ?? false}
-        />
-      ) : null}
-    </div>
+          />
+        ) : null}
+      </div>
+    </MenuOrderActionsProvider>
   );
 }
