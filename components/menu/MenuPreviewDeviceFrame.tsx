@@ -4,33 +4,29 @@ import {
   buildMenuPreviewUrl,
   getMenuPreviewFrame,
   MENU_PREVIEW_DEVICES,
-  MENU_PREVIEW_EXPERIENCES,
   MENU_PREVIEW_ORIENTATIONS,
   type MenuPreviewDevice,
-  type MenuPreviewExperience,
   type MenuPreviewOrientation,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
 
 type MenuPreviewDeviceFrameProps = {
   device: MenuPreviewDevice;
-  experience: MenuPreviewExperience;
   orientation: MenuPreviewOrientation;
   menuId: string;
   query: MenuPreviewQuery;
 };
 
-export default function MenuPreviewDeviceFrame({ device, experience, orientation, menuId, query }: MenuPreviewDeviceFrameProps) {
+export default function MenuPreviewDeviceFrame({ device, orientation, menuId, query }: MenuPreviewDeviceFrameProps) {
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const embeddedUrl = buildMenuPreviewUrl(menuId, query, {
     actual: true,
     embedded: true,
     device,
-    experience,
     orientation,
   });
-  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device, orientation, experience });
+  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device, orientation });
 
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-950">
@@ -62,7 +58,6 @@ export default function MenuPreviewDeviceFrame({ device, experience, orientation
                     key={candidate}
                     href={buildMenuPreviewUrl(menuId, query, {
                       device: candidate,
-                      experience: candidate === "mobile" ? experience : undefined,
                       orientation: candidate === "tablet" ? orientation : undefined,
                     })}
                     aria-current={isSelected ? "page" : undefined}
@@ -90,26 +85,6 @@ export default function MenuPreviewDeviceFrame({ device, experience, orientation
                       }`}
                     >
                       {MENU_PREVIEW_ORIENTATIONS[candidate]}
-                    </Link>
-                  );
-                })}
-              </nav>
-            ) : null}
-            {device === "mobile" ? (
-              <nav aria-label="모바일 기능 미리보기" className="flex flex-wrap rounded-2xl border border-zinc-200 bg-zinc-100 p-1">
-                {(Object.keys(MENU_PREVIEW_EXPERIENCES) as MenuPreviewExperience[]).map((candidate) => {
-                  const isSelected = candidate === experience;
-
-                  return (
-                    <Link
-                      key={candidate}
-                      href={buildMenuPreviewUrl(menuId, query, { device, experience: candidate })}
-                      aria-current={isSelected ? "page" : undefined}
-                      className={`rounded-xl px-3 py-2 text-xs font-black transition-colors ${
-                        isSelected ? "bg-emerald-700 text-white shadow-sm" : "text-zinc-600 hover:bg-white hover:text-zinc-950"
-                      }`}
-                    >
-                      {MENU_PREVIEW_EXPERIENCES[candidate]}
                     </Link>
                   );
                 })}

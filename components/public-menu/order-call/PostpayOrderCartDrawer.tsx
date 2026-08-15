@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, CheckCircle2, ChevronLeft, CreditCard, Minus, Plus, ShieldCheck, Smartphone, X } from "lucide-react";
+import { Check, CheckCircle2, ChevronLeft, CreditCard, Minus, Plus, ShieldCheck, ShoppingBag, Smartphone, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import type {
@@ -29,8 +29,9 @@ type PostpayOrderCartDrawerProps = {
   cartScope: string;
   catalog: PostpayOrderCatalogItem[];
   checkoutMode?: OrderCheckoutMode;
+  checkoutModes?: OrderCheckoutMode[];
   previewOnly?: boolean;
-  initialCheckoutPreview?: boolean;
+  selectedMenuItemId?: string | null;
   onCountChange: (count: number) => void;
 };
 
@@ -57,18 +58,15 @@ function hydrateCartLine(line: StoredCartLine, catalog: PostpayOrderCatalogItem[
   };
 }
 
-function buildPreviewCart(catalog: PostpayOrderCatalogItem[]) {
-  return catalog.slice(0, 2).flatMap((item) => {
-    const optionValueIds = item.optionGroups.flatMap((group) => group.values.slice(0, group.minSelections).map((value) => value.id));
-    return hydrateCartLine({ menuItemId: item.id, quantity: 1, optionValueIds }, catalog) ?? [];
-  });
-}
-
 function selectionIsValid(group: PostpayOrderCatalogOptionGroup, selectedIds: ReadonlySet<string>) {
   const selectedCount = group.values.filter((value) => selectedIds.has(value.id)).length;
   if (group.isRequired && selectedCount < group.minSelections) return false;
   if (selectedCount > 0 && selectedCount < group.minSelections) return false;
   return selectedCount <= group.maxSelections;
+}
+
+function getCheckoutModeLabel(mode: OrderCheckoutMode) {
+  return mode === "prepay" ? "지금 결제" : "후불 결제";
 }
 
 export default function PostpayOrderCartDrawer({
@@ -78,11 +76,17 @@ export default function PostpayOrderCartDrawer({
   cartScope,
   catalog,
   checkoutMode = "postpay",
+  checkoutModes,
   previewOnly = false,
-  initialCheckoutPreview = false,
+  selectedMenuItemId = null,
   onCountChange,
 }: PostpayOrderCartDrawerProps) {
   const storageKey = `menulink-postpay-cart:${menuSiteId}:${cartScope}`;
+  const availableCheckoutModes = useMemo(() => {
+    const allowed = checkoutModes?.filter((mode, index, modes) => modes.indexOf(mode) === index) ?? [checkoutMode];
+    return allowed.length ? allowed : [checkoutMode];
+  }, [checkoutMode, checkoutModes]);
+  const [selectedCheckoutMode, setSelectedCheckoutMode] = useState<OrderCheckoutMode>(availableCheckoutModes[0] ?? checkoutMode);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [hydratedScope, setHydratedScope] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<PostpayOrderCatalogItem | null>(null);
@@ -92,15 +96,13 @@ export default function PostpayOrderCartDrawer({
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
-  const [checkoutPreviewOpen, setCheckoutPreviewOpen] = useState(initialCheckoutPreview);
+  const [checkoutPreviewOpen, setCheckoutPreviewOpen] = useState(false);
   const [paymentPreviewComplete, setPaymentPreviewComplete] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let nextCart: CartLine[] = [];
-    if (previewOnly) {
-      nextCart = buildPreviewCart(catalog);
-    } else {
+    if (!previewOnly) {
       try {
         const parsed = JSON.parse(window.localStorage.getItem(storageKey) ?? "[]") as StoredCartLine[];
         nextCart = Array.isArray(parsed) ? parsed.flatMap((line) => hydrateCartLine(line, catalog) ?? []) : [];
@@ -128,6 +130,23 @@ export default function PostpayOrderCartDrawer({
     }
     onCountChange(cart.reduce((sum, line) => sum + line.quantity, 0));
   }, [cart, hydratedScope, onCountChange, previewOnly, storageKey]);
+
+  useEffect(() => {
+    if (!open || !selectedMenuItemId) return;
+    const item = catalog.find((candidate) => candidate.id === selectedMenuItemId);
+    if (!item) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setActiveItem(item);
+      setSelectedOptionIds(new Set());
+      setQuantity(1);
+      setMessage("");
+      setCheckoutPreviewOpen(false);
+      setPaymentPreviewComplete(false);
+    });
+    return () => { cancelled = true; };
+  }, [catalog, open, selectedMenuItemId]);
 
   const totalAmount = useMemo(
     () => cart.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
@@ -193,7 +212,7 @@ export default function PostpayOrderCartDrawer({
   async function submitOrder() {
     if (cart.length < 1 || submitting) return;
     if (previewOnly) {
-      setMessage("화면 미리보기입니다. 실제 주문은 전송되지 않았습니다.");
+      setMessage("후불 주문 완료 화면 미리보기입니다. 실제 주문은 전송되지 않았습니다.");
       return;
     }
     const requestId = pendingRequestId ?? crypto.randomUUID();
@@ -234,42 +253,47 @@ export default function PostpayOrderCartDrawer({
     setCheckoutPreviewOpen(true);
   }
 
-  function closeCheckoutPreview() {
-    setPaymentPreviewComplete(false);
-    setCheckoutPreviewOpen(false);
+  function closeNestedPanel() {
+    if (checkoutPreviewOpen) {
+      setPaymentPreviewComplete(false);
+      setCheckoutPreviewOpen(false);
+      return;
+    }
+    if (activeItem) {
+      setActiveItem(null);
+      return;
+    }
+    onClose();
   }
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[1200] md:hidden" role="dialog" aria-modal="true" aria-label="장바구니">
-      <button type="button" className="absolute inset-0 bg-black/45" aria-label="장바구니 닫기" onClick={onClose} />
-      <section className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col rounded-t-[28px] bg-white text-zinc-950 shadow-2xl">
-        <header className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
+    <div className="fixed inset-0 z-[1200] bg-white text-zinc-950 md:hidden" role="dialog" aria-modal="true" aria-label="장바구니">
+      <section className="mx-auto flex h-[100dvh] w-full max-w-lg flex-col bg-white">
+        <header className="flex items-center justify-between border-b border-zinc-100 px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))]">
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100"
-            onClick={() => checkoutPreviewOpen ? closeCheckoutPreview() : activeItem ? setActiveItem(null) : onClose()}
-            aria-label={checkoutPreviewOpen ? "장바구니로" : activeItem ? "메뉴 목록으로" : "장바구니 닫기"}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100"
+            onClick={closeNestedPanel}
+            aria-label={checkoutPreviewOpen || activeItem ? "장바구니로" : "장바구니 닫기"}
           >
-            {activeItem || checkoutPreviewOpen ? <ChevronLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+            {checkoutPreviewOpen || activeItem ? <ChevronLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
           </button>
           <h2 className="text-base font-black">
-            {checkoutPreviewOpen ? paymentPreviewComplete ? "결제 완료 미리보기" : "PG 결제 미리보기" : activeItem ? activeItem.name : "테이블 주문"}
+            {checkoutPreviewOpen ? paymentPreviewComplete ? "결제 완료" : "PG 결제" : activeItem ? activeItem.name : "장바구니"}
           </h2>
-          <span className="min-w-9 text-right text-xs font-black text-zinc-500">{totalUnits}/50</span>
+          <span className="min-w-10 text-right text-xs font-black text-zinc-500">{totalUnits}/50</span>
         </header>
 
-        <div className="overflow-y-auto px-5 py-5">
+        <div className="flex-1 overflow-y-auto px-5 py-5">
           {checkoutPreviewOpen && paymentPreviewComplete ? (
-            <div className="py-8 text-center">
+            <div className="py-10 text-center">
               <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                 <CheckCircle2 className="h-10 w-10" aria-hidden="true" />
               </span>
               <h3 className="mt-6 text-2xl font-black">결제 요청을 확인했어요</h3>
-              <p className="mt-2 text-sm font-bold leading-relaxed text-zinc-500">
-                실제 서비스에서는 결제 승인 후<br />매장으로 주문이 전송됩니다.
-              </p>
+              <p className="mt-2 text-sm font-bold leading-relaxed text-zinc-500">결제 승인 후 매장으로 주문이 전송됩니다.</p>
               <div className="mt-6 rounded-2xl bg-zinc-100 p-4 text-left">
                 <div className="flex items-center justify-between text-sm font-black">
                   <span>결제 금액</span>
@@ -279,11 +303,7 @@ export default function PostpayOrderCartDrawer({
                   화면 미리보기 전용입니다. 실제 결제 승인이나 주문 전송은 발생하지 않았습니다.
                 </p>
               </div>
-              <button
-                type="button"
-                className="mt-6 w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white"
-                onClick={() => setPaymentPreviewComplete(false)}
-              >
+              <button type="button" className="mt-6 w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white" onClick={() => setPaymentPreviewComplete(false)}>
                 결제 화면 다시 보기
               </button>
             </div>
@@ -297,7 +317,6 @@ export default function PostpayOrderCartDrawer({
                 <p className="mt-5 text-sm font-bold text-zinc-300">결제 예정 금액</p>
                 <p className="mt-1 text-3xl font-black">{formatPrice(totalAmount)}</p>
               </div>
-
               <section>
                 <h3 className="text-sm font-black">주문 내역</h3>
                 <div className="mt-3 divide-y divide-zinc-100 rounded-2xl border border-zinc-200 px-4">
@@ -312,29 +331,21 @@ export default function PostpayOrderCartDrawer({
                   ))}
                 </div>
               </section>
-
               <section>
                 <h3 className="text-sm font-black">결제 수단</h3>
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <button type="button" className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-zinc-950 bg-zinc-50 text-sm font-black">
-                    <CreditCard className="h-6 w-6" aria-hidden="true" />
-                    카드 결제
+                    <CreditCard className="h-6 w-6" aria-hidden="true" /> 카드 결제
                   </button>
                   <button type="button" className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 text-sm font-black text-zinc-600">
-                    <Smartphone className="h-6 w-6" aria-hidden="true" />
-                    간편결제
+                    <Smartphone className="h-6 w-6" aria-hidden="true" /> 간편결제
                   </button>
                 </div>
               </section>
-
               <p className="rounded-2xl bg-sky-50 p-4 text-xs font-bold leading-relaxed text-sky-800">
                 화면 미리보기 전용입니다. PortOne 결제창을 열거나 실제 승인·주문을 생성하지 않습니다.
               </p>
-              <button
-                type="button"
-                className="w-full rounded-2xl bg-emerald-700 px-5 py-4 text-sm font-black text-white"
-                onClick={() => setPaymentPreviewComplete(true)}
-              >
+              <button type="button" className="w-full rounded-2xl bg-emerald-700 px-5 py-4 text-sm font-black text-white" onClick={() => setPaymentPreviewComplete(true)}>
                 {formatPrice(totalAmount)} 결제하기
               </button>
             </div>
@@ -346,9 +357,7 @@ export default function PostpayOrderCartDrawer({
               </div>
               {activeItem.optionGroups.map((group) => (
                 <fieldset key={group.id} className="rounded-2xl border border-zinc-200 p-4">
-                  <legend className="px-1 text-sm font-black">
-                    {group.name} {group.isRequired ? <span className="text-red-600">필수</span> : null}
-                  </legend>
+                  <legend className="px-1 text-sm font-black">{group.name} {group.isRequired ? <span className="text-red-600">필수</span> : null}</legend>
                   <p className="mb-3 text-xs font-bold text-zinc-400">{group.minSelections}–{group.maxSelections}개 선택</p>
                   <div className="space-y-2">
                     {group.values.map((value) => {
@@ -377,68 +386,85 @@ export default function PostpayOrderCartDrawer({
                 </div>
               </div>
               <button type="button" className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white" onClick={addActiveItem}>장바구니에 담기</button>
+              {message ? <p className="rounded-2xl bg-zinc-100 p-4 text-sm font-bold" role="status">{message}</p> : null}
             </div>
           ) : (
             <div className="space-y-6">
-              <section>
-                <h3 className="text-sm font-black">주문 가능 메뉴</h3>
-                <div className="mt-3 space-y-2">
-                  {catalog.length ? catalog.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className="flex w-full items-center justify-between rounded-2xl border border-zinc-200 px-4 py-4 text-left"
-                      onClick={() => { setActiveItem(item); setSelectedOptionIds(new Set()); setQuantity(1); setMessage(""); }}
-                    >
-                      <span className="font-black">{item.name}</span>
-                      <span className="text-sm font-bold text-zinc-500">{formatPrice(item.price)}</span>
-                    </button>
-                  )) : <p className="rounded-2xl bg-zinc-100 p-5 text-sm font-bold text-zinc-500">현재 주문 가능한 메뉴가 없습니다.</p>}
-                </div>
-              </section>
-
               {cart.length ? (
-                <section>
-                  <h3 className="text-sm font-black">장바구니</h3>
-                  <div className="mt-3 divide-y divide-zinc-100 rounded-2xl border border-zinc-200 px-4">
-                    {cart.map((line) => (
-                      <div key={line.key} className="py-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="font-black">{line.name}</p>
-                            {line.optionNames.length ? <p className="mt-1 text-xs font-bold text-zinc-400">{line.optionNames.join(", ")}</p> : null}
+                <>
+                  <section>
+                    <div className="divide-y divide-zinc-100 rounded-3xl border border-zinc-200 px-4">
+                      {cart.map((line) => (
+                        <div key={line.key} className="py-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-black">{line.name}</p>
+                              {line.optionNames.length ? <p className="mt-1 text-xs font-bold text-zinc-400">{line.optionNames.join(", ")}</p> : null}
+                            </div>
+                            <p className="text-sm font-black">{formatPrice(line.unitPrice * line.quantity)}</p>
                           </div>
-                          <p className="text-sm font-black">{formatPrice(line.unitPrice * line.quantity)}</p>
+                          <div className="mt-3 flex items-center justify-end gap-3">
+                            <button type="button" className="rounded-full bg-zinc-100 p-2" aria-label={`${line.name} 수량 줄이기`} onClick={() => changeLineQuantity(line.key, -1)}><Minus className="h-3.5 w-3.5" /></button>
+                            <span className="text-sm font-black">{line.quantity}</span>
+                            <button type="button" className="rounded-full bg-zinc-100 p-2" aria-label={`${line.name} 수량 늘리기`} onClick={() => changeLineQuantity(line.key, 1)}><Plus className="h-3.5 w-3.5" /></button>
+                          </div>
                         </div>
-                        <div className="mt-3 flex items-center gap-3">
-                          <button type="button" className="rounded-full bg-zinc-100 p-2" aria-label={`${line.name} 수량 줄이기`} onClick={() => changeLineQuantity(line.key, -1)}><Minus className="h-3.5 w-3.5" /></button>
-                          <span className="text-sm font-black">{line.quantity}</span>
-                          <button type="button" className="rounded-full bg-zinc-100 p-2" aria-label={`${line.name} 수량 늘리기`} onClick={() => changeLineQuantity(line.key, 1)}><Plus className="h-3.5 w-3.5" /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </section>
+                  <button type="button" className="flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-300 px-5 py-3.5 text-sm font-black" onClick={onClose}>
+                    <Plus className="h-4 w-4" aria-hidden="true" /> 메뉴 더 담기
+                  </button>
                   <textarea
                     value={requestText}
                     maxLength={300}
                     onChange={(event) => { setRequestText(event.target.value); resetPendingRequest(); }}
-                    className="mt-4 min-h-24 w-full rounded-2xl border border-zinc-200 p-4 text-sm font-bold outline-none focus:border-zinc-950"
+                    className="min-h-24 w-full rounded-2xl border border-zinc-200 p-4 text-sm font-bold outline-none focus:border-zinc-950"
                     placeholder="요청사항을 입력해 주세요. (최대 300자)"
                   />
-                  <div className="mt-4 flex items-center justify-between text-lg font-black"><span>합계</span><span>{formatPrice(totalAmount)}</span></div>
+                  <div className="flex items-center justify-between text-lg font-black"><span>최종 주문 금액</span><span>{formatPrice(totalAmount)}</span></div>
+                  <section>
+                    <h3 className="text-sm font-black">결제 방식</h3>
+                    <div className="mt-3 grid grid-cols-2 rounded-2xl bg-zinc-100 p-1" role="group" aria-label="결제 방식 선택">
+                      {availableCheckoutModes.map((mode) => {
+                        const selected = mode === selectedCheckoutMode;
+                        return (
+                          <button
+                            key={mode}
+                            type="button"
+                            aria-pressed={selected}
+                            className={`rounded-xl px-3 py-3 text-sm font-black transition-colors ${selected ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-500"}`}
+                            onClick={() => { setSelectedCheckoutMode(mode); setMessage(""); }}
+                          >
+                            {getCheckoutModeLabel(mode)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-2 text-xs font-bold leading-relaxed text-zinc-500">
+                      {selectedCheckoutMode === "prepay" ? "휴대폰에서 바로 결제한 뒤 주문을 전송합니다." : "지금 주문하고 매장에서 나중에 결제합니다."}
+                    </p>
+                  </section>
                   <button
                     type="button"
-                    className="mt-4 w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white disabled:opacity-50"
+                    className="w-full rounded-2xl bg-emerald-700 px-5 py-4 text-sm font-black text-white disabled:opacity-50"
                     disabled={submitting}
-                    onClick={checkoutMode === "prepay" ? openCheckoutPreview : submitOrder}
+                    onClick={selectedCheckoutMode === "prepay" ? openCheckoutPreview : submitOrder}
                   >
-                    {submitting ? "주문 전송 중…" : checkoutMode === "prepay" ? "결제하고 주문하기" : "후불로 주문하기"}
+                    {submitting ? "주문 전송 중…" : selectedCheckoutMode === "prepay" ? `${formatPrice(totalAmount)} 결제하기` : "후불로 주문하기"}
                   </button>
-                </section>
-              ) : null}
+                </>
+              ) : (
+                <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center">
+                  <span className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-zinc-400"><ShoppingBag className="h-9 w-9" /></span>
+                  <h3 className="mt-5 text-xl font-black">장바구니가 비어 있어요</h3>
+                  <p className="mt-2 text-sm font-bold text-zinc-500">메뉴판에서 원하는 메뉴를 담아보세요.</p>
+                  <button type="button" className="mt-6 rounded-full bg-zinc-950 px-6 py-3 text-sm font-black text-white" onClick={onClose}>메뉴 보러 가기</button>
+                </div>
+              )}
+              {message ? <p className="rounded-2xl bg-zinc-100 p-4 text-sm font-bold" role="status">{message}</p> : null}
             </div>
           )}
-          {message ? <p className="mt-4 rounded-2xl bg-zinc-100 p-4 text-sm font-bold" role="status">{message}</p> : null}
         </div>
       </section>
     </div>

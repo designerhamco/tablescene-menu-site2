@@ -1,6 +1,5 @@
 export type OrderCallEntryMode = "locked" | "preview" | "active";
 export type OrderCheckoutMode = "postpay" | "prepay";
-export type OrderCallPreviewPanel = "call" | "cart" | "checkout";
 
 export type PostpayOrderCatalogOptionValue = {
   id: string;
@@ -39,8 +38,8 @@ export type OrderCallEntryConfig = {
   cartScope?: string;
   orderCatalog?: PostpayOrderCatalogItem[];
   checkoutMode?: OrderCheckoutMode;
+  checkoutModes?: OrderCheckoutMode[];
   previewOnly?: boolean;
-  previewInitialPanel?: OrderCallPreviewPanel;
 };
 
 export type OrderCallEntryVisibility = {
