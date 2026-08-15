@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, CheckCircle2, ChevronLeft, CreditCard, Minus, Plus, ShieldCheck, ShoppingBag, Smartphone, X } from "lucide-react";
+import { Check, CheckCircle2, ChevronLeft, CreditCard, Minus, Pencil, Plus, ShieldCheck, ShoppingBag, Smartphone, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import type {
@@ -33,6 +33,7 @@ type PostpayOrderCartDrawerProps = {
   previewOnly?: boolean;
   selectedMenuItemId?: string | null;
   onCountChange: (count: number) => void;
+  onItemAdded: (itemName: string) => void;
 };
 
 function formatPrice(value: number) {
@@ -80,6 +81,7 @@ export default function PostpayOrderCartDrawer({
   previewOnly = false,
   selectedMenuItemId = null,
   onCountChange,
+  onItemAdded,
 }: PostpayOrderCartDrawerProps) {
   const storageKey = `menulink-postpay-cart:${menuSiteId}:${cartScope}`;
   const availableCheckoutModes = useMemo(() => {
@@ -90,6 +92,7 @@ export default function PostpayOrderCartDrawer({
   const [cart, setCart] = useState<CartLine[]>([]);
   const [hydratedScope, setHydratedScope] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<PostpayOrderCatalogItem | null>(null);
+  const [editingLineKey, setEditingLineKey] = useState<string | null>(null);
   const [selectedOptionIds, setSelectedOptionIds] = useState<Set<string>>(new Set());
   const [quantity, setQuantity] = useState(1);
   const [requestText, setRequestText] = useState("");
@@ -139,6 +142,7 @@ export default function PostpayOrderCartDrawer({
     queueMicrotask(() => {
       if (cancelled) return;
       setActiveItem(item);
+      setEditingLineKey(null);
       setSelectedOptionIds(new Set());
       setQuantity(1);
       setMessage("");
@@ -153,6 +157,13 @@ export default function PostpayOrderCartDrawer({
     [cart],
   );
   const totalUnits = useMemo(() => cart.reduce((sum, line) => sum + line.quantity, 0), [cart]);
+  const activeItemUnitPrice = useMemo(() => {
+    if (!activeItem) return 0;
+    const selectedValues = activeItem.optionGroups
+      .flatMap((group) => group.values)
+      .filter((value) => selectedOptionIds.has(value.id));
+    return activeItem.price + selectedValues.reduce((sum, value) => sum + value.priceDelta, 0);
+  }, [activeItem, selectedOptionIds]);
 
   function resetPendingRequest() {
     setPendingRequestId(null);
@@ -181,32 +192,67 @@ export default function PostpayOrderCartDrawer({
     }
     const optionValueIds = [...selectedOptionIds].sort();
     const hydrated = hydrateCartLine({ menuItemId: activeItem.id, quantity, optionValueIds }, catalog);
-    if (!hydrated) return;
-    setCart((current) => {
-      const existing = current.find((line) => line.key === hydrated.key);
-      if (existing) {
-        const nextQuantity = Math.min(20, existing.quantity + quantity);
-        if (current.reduce((sum, line) => sum + line.quantity, 0) - existing.quantity + nextQuantity > 50) return current;
-        return current.map((line) => line.key === hydrated.key ? { ...line, quantity: nextQuantity } : line);
+    if (!hydrated) {
+      setMessage("메뉴 정보를 다시 확인해 주세요.");
+      return;
+    }
+    const itemName = activeItem.name;
+    const workingCart = editingLineKey ? cart.filter((line) => line.key !== editingLineKey) : cart;
+    const existing = workingCart.find((line) => line.key === hydrated.key);
+    let nextCart: CartLine[];
+    if (existing) {
+      const nextQuantity = existing.quantity + quantity;
+      const nextUnitCount = workingCart.reduce((sum, line) => sum + line.quantity, 0) - existing.quantity + nextQuantity;
+      if (nextQuantity > 20 || nextUnitCount > 50) {
+        setMessage("한 메뉴는 20개, 장바구니 전체는 50개까지 담을 수 있어요.");
+        return;
       }
-      if (current.length >= 20 || current.reduce((sum, line) => sum + line.quantity, 0) + quantity > 50) return current;
-      return [...current, hydrated];
-    });
+      nextCart = workingCart.map((line) => line.key === hydrated.key ? { ...line, quantity: nextQuantity } : line);
+    } else {
+      const nextUnitCount = workingCart.reduce((sum, line) => sum + line.quantity, 0) + quantity;
+      if (workingCart.length >= 20 || nextUnitCount > 50) {
+        setMessage("장바구니에는 메뉴 20종, 전체 50개까지 담을 수 있어요.");
+        return;
+      }
+      nextCart = [...workingCart, hydrated];
+    }
+    setCart(nextCart);
     resetPendingRequest();
     setActiveItem(null);
     setSelectedOptionIds(new Set());
     setQuantity(1);
+    if (editingLineKey) {
+      setEditingLineKey(null);
+      setMessage(`${itemName}의 옵션과 수량을 변경했어요.`);
+    } else {
+      onItemAdded(itemName);
+    }
   }
 
   function changeLineQuantity(key: string, delta: number) {
     setCart((current) => current.flatMap((line) => {
       if (line.key !== key) return line;
       const nextQuantity = line.quantity + delta;
-      if (nextQuantity < 1) return [];
+      if (nextQuantity < 1) return line;
       if (nextQuantity > 20 || totalUnits + delta > 50) return line;
       return { ...line, quantity: nextQuantity };
     }));
     resetPendingRequest();
+  }
+
+  function removeLine(key: string) {
+    setCart((current) => current.filter((line) => line.key !== key));
+    resetPendingRequest();
+  }
+
+  function beginEditLine(line: CartLine) {
+    const item = catalog.find((candidate) => candidate.id === line.menuItemId);
+    if (!item) return;
+    setActiveItem(item);
+    setEditingLineKey(line.key);
+    setSelectedOptionIds(new Set(line.optionValueIds));
+    setQuantity(line.quantity);
+    setMessage("");
   }
 
   async function submitOrder() {
@@ -259,14 +305,75 @@ export default function PostpayOrderCartDrawer({
       setCheckoutPreviewOpen(false);
       return;
     }
-    if (activeItem) {
-      setActiveItem(null);
-      return;
-    }
     onClose();
   }
 
+  function closeItemSheet() {
+    setActiveItem(null);
+    setEditingLineKey(null);
+    setSelectedOptionIds(new Set());
+    setQuantity(1);
+    if (!editingLineKey) onClose();
+  }
+
   if (!open) return null;
+
+  if (activeItem) {
+    return (
+      <div className="fixed inset-0 z-[1200] flex items-end bg-zinc-950/35 text-zinc-950 md:hidden" role="dialog" aria-modal="true" aria-label={`${activeItem.name} 담기`}>
+        <button type="button" className="absolute inset-0 cursor-default" aria-label="메뉴 담기 닫기" onClick={closeItemSheet} />
+        <section className="relative z-10 mx-auto max-h-[72dvh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-white px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3 shadow-2xl">
+          <div className="mx-auto h-1 w-10 rounded-full bg-zinc-300" aria-hidden="true" />
+          <div className="mt-4 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="truncate text-lg font-black">{activeItem.name}</p>
+              <p className="mt-1 text-sm font-bold text-zinc-500">{formatPrice(activeItemUnitPrice)}</p>
+            </div>
+            <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100" aria-label="메뉴 담기 닫기" onClick={closeItemSheet}>
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {activeItem.optionGroups.map((group) => (
+              <fieldset key={group.id} className="rounded-2xl border border-zinc-200 p-4">
+                <legend className="px-1 text-sm font-black">{group.name} {group.isRequired ? <span className="text-zinc-500">필수</span> : null}</legend>
+                <p className="mb-3 text-xs font-bold text-zinc-400">{group.minSelections}–{group.maxSelections}개 선택</p>
+                <div className="space-y-2">
+                  {group.values.map((value) => {
+                    const selected = selectedOptionIds.has(value.id);
+                    return (
+                      <button
+                        key={value.id}
+                        type="button"
+                        className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left text-sm font-bold ${selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200"}`}
+                        onClick={() => toggleOption(group, value.id)}
+                      >
+                        <span>{value.name}</span>
+                        <span>{value.priceDelta > 0 ? `+${formatPrice(value.priceDelta)}` : selected ? <Check className="h-4 w-4" /> : ""}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ))}
+            <div className="flex items-center justify-between border-y border-zinc-100 py-4">
+              <span className="text-sm font-black">수량</span>
+              <div className="flex items-center gap-4">
+                <button type="button" className="rounded-full border border-zinc-200 p-2" aria-label="수량 줄이기" onClick={() => setQuantity(Math.max(1, quantity - 1))}><Minus className="h-4 w-4" /></button>
+                <span className="min-w-5 text-center font-black">{quantity}</span>
+                <button type="button" className="rounded-full border border-zinc-200 p-2" aria-label="수량 늘리기" onClick={() => setQuantity(Math.min(20, quantity + 1))}><Plus className="h-4 w-4" /></button>
+              </div>
+            </div>
+            <button type="button" className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white" onClick={addActiveItem}>
+              {editingLineKey ? "변경사항 저장" : `${formatPrice(activeItemUnitPrice * quantity)} · 장바구니 담기`}
+            </button>
+            {message ? <p className="rounded-2xl bg-zinc-100 p-4 text-sm font-bold" role="status">{message}</p> : null}
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[1200] bg-white text-zinc-950 md:hidden" role="dialog" aria-modal="true" aria-label="장바구니">
@@ -276,12 +383,12 @@ export default function PostpayOrderCartDrawer({
             type="button"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100"
             onClick={closeNestedPanel}
-            aria-label={checkoutPreviewOpen || activeItem ? "장바구니로" : "장바구니 닫기"}
+            aria-label={checkoutPreviewOpen ? "장바구니로" : "장바구니 닫기"}
           >
-            {checkoutPreviewOpen || activeItem ? <ChevronLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+            {checkoutPreviewOpen ? <ChevronLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
           </button>
           <h2 className="text-base font-black">
-            {checkoutPreviewOpen ? paymentPreviewComplete ? "결제 완료" : "PG 결제" : activeItem ? activeItem.name : "장바구니"}
+            {checkoutPreviewOpen ? paymentPreviewComplete ? "결제 완료" : "PG 결제" : "장바구니"}
           </h2>
           <span className="min-w-10 text-right text-xs font-black text-zinc-500">{totalUnits}/50</span>
         </header>
@@ -289,7 +396,7 @@ export default function PostpayOrderCartDrawer({
         <div className="flex-1 overflow-y-auto px-5 py-5">
           {checkoutPreviewOpen && paymentPreviewComplete ? (
             <div className="py-10 text-center">
-              <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-zinc-900">
                 <CheckCircle2 className="h-10 w-10" aria-hidden="true" />
               </span>
               <h3 className="mt-6 text-2xl font-black">결제 요청을 확인했어요</h3>
@@ -310,7 +417,7 @@ export default function PostpayOrderCartDrawer({
           ) : checkoutPreviewOpen ? (
             <div className="space-y-5">
               <div className="rounded-3xl bg-zinc-950 p-5 text-white">
-                <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
+                <div className="flex items-center gap-2 text-xs font-black text-zinc-300">
                   <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                   안전한 PG 결제
                 </div>
@@ -345,48 +452,9 @@ export default function PostpayOrderCartDrawer({
               <p className="rounded-2xl bg-sky-50 p-4 text-xs font-bold leading-relaxed text-sky-800">
                 화면 미리보기 전용입니다. PortOne 결제창을 열거나 실제 승인·주문을 생성하지 않습니다.
               </p>
-              <button type="button" className="w-full rounded-2xl bg-emerald-700 px-5 py-4 text-sm font-black text-white" onClick={() => setPaymentPreviewComplete(true)}>
+              <button type="button" className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white" onClick={() => setPaymentPreviewComplete(true)}>
                 {formatPrice(totalAmount)} 결제하기
               </button>
-            </div>
-          ) : activeItem ? (
-            <div className="space-y-5">
-              <div>
-                <p className="text-xl font-black">{activeItem.name}</p>
-                <p className="mt-1 text-sm font-bold text-zinc-500">{formatPrice(activeItem.price)}</p>
-              </div>
-              {activeItem.optionGroups.map((group) => (
-                <fieldset key={group.id} className="rounded-2xl border border-zinc-200 p-4">
-                  <legend className="px-1 text-sm font-black">{group.name} {group.isRequired ? <span className="text-red-600">필수</span> : null}</legend>
-                  <p className="mb-3 text-xs font-bold text-zinc-400">{group.minSelections}–{group.maxSelections}개 선택</p>
-                  <div className="space-y-2">
-                    {group.values.map((value) => {
-                      const selected = selectedOptionIds.has(value.id);
-                      return (
-                        <button
-                          key={value.id}
-                          type="button"
-                          className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left text-sm font-bold ${selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200"}`}
-                          onClick={() => toggleOption(group, value.id)}
-                        >
-                          <span>{value.name}</span>
-                          <span>{value.priceDelta > 0 ? `+${formatPrice(value.priceDelta)}` : selected ? <Check className="h-4 w-4" /> : ""}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              ))}
-              <div className="flex items-center justify-between rounded-2xl bg-zinc-100 p-4">
-                <span className="text-sm font-black">수량</span>
-                <div className="flex items-center gap-4">
-                  <button type="button" className="rounded-full bg-white p-2" aria-label="수량 줄이기" onClick={() => setQuantity(Math.max(1, quantity - 1))}><Minus className="h-4 w-4" /></button>
-                  <span className="min-w-5 text-center font-black">{quantity}</span>
-                  <button type="button" className="rounded-full bg-white p-2" aria-label="수량 늘리기" onClick={() => setQuantity(Math.min(20, quantity + 1))}><Plus className="h-4 w-4" /></button>
-                </div>
-              </div>
-              <button type="button" className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white" onClick={addActiveItem}>장바구니에 담기</button>
-              {message ? <p className="rounded-2xl bg-zinc-100 p-4 text-sm font-bold" role="status">{message}</p> : null}
             </div>
           ) : (
             <div className="space-y-6">
@@ -403,10 +471,30 @@ export default function PostpayOrderCartDrawer({
                             </div>
                             <p className="text-sm font-black">{formatPrice(line.unitPrice * line.quantity)}</p>
                           </div>
-                          <div className="mt-3 flex items-center justify-end gap-3">
-                            <button type="button" className="rounded-full bg-zinc-100 p-2" aria-label={`${line.name} 수량 줄이기`} onClick={() => changeLineQuantity(line.key, -1)}><Minus className="h-3.5 w-3.5" /></button>
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-1">
+                              {catalog.find((item) => item.id === line.menuItemId)?.optionGroups.length ? (
+                                <button type="button" className="flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-bold text-zinc-600 hover:bg-zinc-100" onClick={() => beginEditLine(line)}>
+                                  <Pencil className="h-3.5 w-3.5" aria-hidden="true" /> 옵션 변경
+                                </button>
+                              ) : null}
+                              <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950" aria-label={`${line.name} 삭제`} onClick={() => removeLine(line.key)}>
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              className="rounded-full border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-35"
+                              aria-label={`${line.name} 수량 줄이기`}
+                              disabled={line.quantity <= 1}
+                              onClick={() => changeLineQuantity(line.key, -1)}
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
                             <span className="text-sm font-black">{line.quantity}</span>
-                            <button type="button" className="rounded-full bg-zinc-100 p-2" aria-label={`${line.name} 수량 늘리기`} onClick={() => changeLineQuantity(line.key, 1)}><Plus className="h-3.5 w-3.5" /></button>
+                            <button type="button" className="rounded-full border border-zinc-200 p-2" aria-label={`${line.name} 수량 늘리기`} onClick={() => changeLineQuantity(line.key, 1)}><Plus className="h-3.5 w-3.5" /></button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -425,29 +513,36 @@ export default function PostpayOrderCartDrawer({
                   <div className="flex items-center justify-between text-lg font-black"><span>최종 주문 금액</span><span>{formatPrice(totalAmount)}</span></div>
                   <section>
                     <h3 className="text-sm font-black">결제 방식</h3>
-                    <div className="mt-3 grid grid-cols-2 rounded-2xl bg-zinc-100 p-1" role="group" aria-label="결제 방식 선택">
-                      {availableCheckoutModes.map((mode) => {
-                        const selected = mode === selectedCheckoutMode;
-                        return (
-                          <button
-                            key={mode}
-                            type="button"
-                            aria-pressed={selected}
-                            className={`rounded-xl px-3 py-3 text-sm font-black transition-colors ${selected ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-500"}`}
-                            onClick={() => { setSelectedCheckoutMode(mode); setMessage(""); }}
-                          >
-                            {getCheckoutModeLabel(mode)}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {availableCheckoutModes.length > 1 ? (
+                      <div className="mt-3 grid grid-cols-2 rounded-2xl bg-zinc-100 p-1" role="group" aria-label="결제 방식 선택">
+                        {availableCheckoutModes.map((mode) => {
+                          const selected = mode === selectedCheckoutMode;
+                          return (
+                            <button
+                              key={mode}
+                              type="button"
+                              aria-pressed={selected}
+                              className={`rounded-xl px-3 py-3 text-sm font-black transition-colors ${selected ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-500"}`}
+                              onClick={() => { setSelectedCheckoutMode(mode); setMessage(""); }}
+                            >
+                              {getCheckoutModeLabel(mode)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="mt-3 flex items-center justify-between rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-bold">
+                        <span>매장에서 결제</span>
+                        <span className="text-zinc-500">후불 결제</span>
+                      </div>
+                    )}
                     <p className="mt-2 text-xs font-bold leading-relaxed text-zinc-500">
                       {selectedCheckoutMode === "prepay" ? "휴대폰에서 바로 결제한 뒤 주문을 전송합니다." : "지금 주문하고 매장에서 나중에 결제합니다."}
                     </p>
                   </section>
                   <button
                     type="button"
-                    className="w-full rounded-2xl bg-emerald-700 px-5 py-4 text-sm font-black text-white disabled:opacity-50"
+                    className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-black text-white disabled:opacity-50"
                     disabled={submitting}
                     onClick={selectedCheckoutMode === "prepay" ? openCheckoutPreview : submitOrder}
                   >

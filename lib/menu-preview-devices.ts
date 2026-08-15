@@ -25,6 +25,13 @@ export const MENU_PREVIEW_ORIENTATIONS = {
 
 export type MenuPreviewOrientation = keyof typeof MENU_PREVIEW_ORIENTATIONS;
 
+export const MENU_PREVIEW_PAYMENT_MODES = {
+  off: "PG 미사용",
+  on: "PG 사용",
+} as const;
+
+export type MenuPreviewPaymentMode = keyof typeof MENU_PREVIEW_PAYMENT_MODES;
+
 export type MenuPreviewQuery = {
   debugCafeA?: string;
   lang?: string;
@@ -37,6 +44,10 @@ export function normalizeMenuPreviewDevice(value: string | undefined): MenuPrevi
 
 export function normalizeMenuPreviewOrientation(value: string | undefined): MenuPreviewOrientation {
   return value === "portrait" ? "portrait" : "landscape";
+}
+
+export function normalizeMenuPreviewPaymentMode(value: string | undefined): MenuPreviewPaymentMode {
+  return value === "on" ? "on" : "off";
 }
 
 export function getMenuPreviewFrame(device: MenuPreviewDevice, orientation: MenuPreviewOrientation) {
@@ -57,6 +68,7 @@ export function buildMenuPreviewUrl(
   options: {
     device?: MenuPreviewDevice;
     orientation?: MenuPreviewOrientation;
+    paymentMode?: MenuPreviewPaymentMode;
     embedded?: boolean;
     actual?: boolean;
   } = {},
@@ -71,6 +83,9 @@ export function buildMenuPreviewUrl(
   if (options.device) searchParams.set("device", options.device);
   if (options.device === "tablet" && options.orientation) {
     searchParams.set("orientation", options.orientation);
+  }
+  if (options.device === "mobile" && options.paymentMode === "on") {
+    searchParams.set("payment", "on");
   }
   if (options.actual) searchParams.set("view", "actual");
 

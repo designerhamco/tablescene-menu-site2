@@ -11,6 +11,7 @@ import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
+  normalizeMenuPreviewPaymentMode,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
@@ -26,6 +27,7 @@ type PageProps = {
     embedded?: string | string[];
     lang?: string | string[];
     orientation?: string | string[];
+    payment?: string | string[];
     page?: string | string[];
     view?: string | string[];
   }>;
@@ -130,6 +132,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
   const device = normalizeMenuPreviewDevice(getSearchParamValue(query.device));
   const orientation = normalizeMenuPreviewOrientation(getSearchParamValue(query.orientation));
+  const paymentMode = normalizeMenuPreviewPaymentMode(getSearchParamValue(query.payment));
   const previewQuery: MenuPreviewQuery = {
     debugCafeA: getSearchParamValue(query.debugCafeA),
     lang: getSearchParamValue(query.lang),
@@ -169,6 +172,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       <MenuPreviewDeviceFrame
         device={device}
         orientation={orientation}
+        paymentMode={paymentMode}
         menuId={menuId}
         query={previewQuery}
       />
@@ -179,7 +183,8 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     ? buildMenuPreviewOrderCallConfig({
         menuSiteId: data.menuSite.id,
         storeName: data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
-        catalog: buildMenuPreviewOrderCatalog(data.items),
+        catalog: buildMenuPreviewOrderCatalog(data.items, data.categories),
+        pgEnabled: paymentMode === "on",
       })
     : undefined;
 

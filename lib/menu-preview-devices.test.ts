@@ -6,6 +6,7 @@ import {
   getMenuPreviewFrame,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
+  normalizeMenuPreviewPaymentMode,
 } from "./menu-preview-devices";
 
 test("preview device normalization defaults unknown values to PC", () => {
@@ -20,6 +21,12 @@ test("preview orientation defaults to landscape and accepts explicit portrait", 
   assert.equal(normalizeMenuPreviewOrientation("upside-down"), "landscape");
   assert.equal(normalizeMenuPreviewOrientation("portrait"), "portrait");
   assert.equal(normalizeMenuPreviewOrientation("landscape"), "landscape");
+});
+
+test("mobile payment preview defaults off and accepts explicit opt-in", () => {
+  assert.equal(normalizeMenuPreviewPaymentMode(undefined), "off");
+  assert.equal(normalizeMenuPreviewPaymentMode("on"), "on");
+  assert.equal(normalizeMenuPreviewPaymentMode("enabled"), "off");
 });
 
 test("tablet landscape swaps the real iframe viewport dimensions", () => {
@@ -74,5 +81,20 @@ test("preview URLs preserve landscape only for tablet frames", () => {
   assert.equal(
     buildMenuPreviewUrl("menu-a", {}, { device: "tablet", orientation: "portrait" }),
     "/mypage/menus/menu-a/preview?device=tablet&orientation=portrait",
+  );
+});
+
+test("preview URLs preserve PG opt-in only for mobile frames", () => {
+  assert.equal(
+    buildMenuPreviewUrl("menu-a", {}, { device: "mobile", paymentMode: "on" }),
+    "/mypage/menus/menu-a/preview?device=mobile&payment=on",
+  );
+  assert.equal(
+    buildMenuPreviewUrl("menu-a", {}, { device: "mobile", paymentMode: "off" }),
+    "/mypage/menus/menu-a/preview?device=mobile",
+  );
+  assert.equal(
+    buildMenuPreviewUrl("menu-a", {}, { device: "pc", paymentMode: "on" }),
+    "/mypage/menus/menu-a/preview?device=pc",
   );
 });

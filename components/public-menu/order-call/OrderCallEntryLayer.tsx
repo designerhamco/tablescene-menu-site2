@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, ShoppingBag } from "lucide-react";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { SupportedLocale } from "@/lib/locales";
@@ -29,6 +29,7 @@ export default function OrderCallEntryLayer({
   const [cartOpen, setCartOpen] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
   const [selectedMenuItemId, setSelectedMenuItemId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
   const [cartCount, setCartCount] = useState(() => Math.max(0, Math.floor(config.cartCount ?? 0)));
   const openMenuItem = useCallback((itemId: string) => {
     setSelectedMenuItemId(itemId);
@@ -38,6 +39,17 @@ export default function OrderCallEntryLayer({
     setSelectedMenuItemId(null);
     setCartOpen(true);
   }, []);
+  const handleItemAdded = useCallback((itemName: string) => {
+    setCartOpen(false);
+    setSelectedMenuItemId(null);
+    setToastMessage(`${itemName} 장바구니에 담았어요.`);
+  }, []);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timeout = window.setTimeout(() => setToastMessage(""), 2400);
+    return () => window.clearTimeout(timeout);
+  }, [toastMessage]);
 
   if (!visibility.showHeader) {
     return <>{children}</>;
@@ -83,14 +95,14 @@ export default function OrderCallEntryLayer({
           {visibility.showCart ? (
             <button
               type="button"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-zinc-950 text-white shadow-sm"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-800 shadow-sm"
               aria-label={`장바구니${cartCount > 0 ? ` ${cartCount}개` : ""}`}
               disabled={!canOpenCart}
               onClick={openCart}
             >
               <ShoppingBag className="h-4.5 w-4.5" aria-hidden="true" />
               {cartCount > 0 ? (
-                <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white" data-public-menu-cart-count="">
+                <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-black leading-none text-white" data-public-menu-cart-count="">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               ) : null}
@@ -111,6 +123,7 @@ export default function OrderCallEntryLayer({
           previewOnly={config.previewOnly ?? false}
           selectedMenuItemId={selectedMenuItemId}
           onCountChange={setCartCount}
+          onItemAdded={handleItemAdded}
           />
         ) : null}
         {canOpenCall ? (
@@ -121,6 +134,14 @@ export default function OrderCallEntryLayer({
           tableLabel={config.tableLabel}
           previewOnly={config.previewOnly ?? false}
           />
+        ) : null}
+        {toastMessage ? (
+          <div
+            className="fixed bottom-[max(20px,env(safe-area-inset-bottom))] left-1/2 z-[1300] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-zinc-950 px-4 py-3 text-xs font-bold text-white shadow-xl md:hidden"
+            role="status"
+          >
+            {toastMessage}
+          </div>
         ) : null}
       </div>
     </MenuOrderActionsProvider>

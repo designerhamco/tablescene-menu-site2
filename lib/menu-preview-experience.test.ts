@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { PublicMenuItem } from "@/components/menu-templates/types";
+import type { PublicMenuCategory } from "@/components/menu-templates/types";
 
 import { buildMenuPreviewOrderCallConfig, buildMenuPreviewOrderCatalog } from "./menu-preview-experience";
 
@@ -34,6 +35,22 @@ function item(overrides: Partial<PublicMenuItem> = {}): PublicMenuItem {
   };
 }
 
+function category(): PublicMenuCategory {
+  return {
+    id: "33333333-3333-4333-8333-333333333333",
+    menu_page_id: null,
+    name: "커피",
+    description: null,
+    description_visible: false,
+    sort_order: 0,
+    visible: true,
+    priceColumns: [
+      { id: "66666666-6666-4666-8666-666666666666", categoryId: "33333333-3333-4333-8333-333333333333", key: "hot", label: "HOT", sortOrder: 0, visible: true },
+      { id: "77777777-7777-4777-8777-777777777777", categoryId: "33333333-3333-4333-8333-333333333333", key: "ice", label: "ICE", sortOrder: 1, visible: true },
+    ],
+  };
+}
+
 test("mobile preview catalog uses visible orderable menu items", () => {
   const catalog = buildMenuPreviewOrderCatalog([
     item(),
@@ -48,13 +65,32 @@ test("mobile preview catalog uses visible orderable menu items", () => {
   }]);
 });
 
-test("mobile preview exposes call, cart, and both payment choices together", () => {
-  const catalog = buildMenuPreviewOrderCatalog([item()]);
-  const config = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog });
+test("mobile preview converts visible price columns into editable order options", () => {
+  const catalog = buildMenuPreviewOrderCatalog([
+    item({
+      priceColumnValues: [
+        { id: "88888888-8888-4888-8888-888888888888", priceColumnId: "66666666-6666-4666-8666-666666666666", price: 4, priceLabel: null, visible: true },
+        { id: "99999999-9999-4999-8999-999999999999", priceColumnId: "77777777-7777-4777-8777-777777777777", price: 4.5, priceLabel: null, visible: true },
+      ],
+    }),
+  ], [category()]);
 
-  assert.equal(config.callEnabled, true);
-  assert.equal(config.orderEnabled, true);
-  assert.equal(config.previewOnly, true);
-  assert.deepEqual(config.checkoutModes, ["prepay", "postpay"]);
-  assert.equal(config.orderCatalog?.length, 1);
+  assert.equal(catalog[0]?.price, 4000);
+  assert.deepEqual(catalog[0]?.optionGroups[0]?.values.map(({ name, priceDelta }) => ({ name, priceDelta })), [
+    { name: "HOT", priceDelta: 0 },
+    { name: "ICE", priceDelta: 500 },
+  ]);
+});
+
+test("mobile preview keeps PG optional while preserving postpay ordering", () => {
+  const catalog = buildMenuPreviewOrderCatalog([item()]);
+  const withoutPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog, pgEnabled: false });
+  const withPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog, pgEnabled: true });
+
+  assert.equal(withoutPg.callEnabled, true);
+  assert.equal(withoutPg.orderEnabled, true);
+  assert.equal(withoutPg.previewOnly, true);
+  assert.deepEqual(withoutPg.checkoutModes, ["postpay"]);
+  assert.deepEqual(withPg.checkoutModes, ["prepay", "postpay"]);
+  assert.equal(withPg.orderCatalog?.length, 1);
 });

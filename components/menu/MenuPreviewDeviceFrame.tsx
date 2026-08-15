@@ -5,19 +5,22 @@ import {
   getMenuPreviewFrame,
   MENU_PREVIEW_DEVICES,
   MENU_PREVIEW_ORIENTATIONS,
+  MENU_PREVIEW_PAYMENT_MODES,
   type MenuPreviewDevice,
   type MenuPreviewOrientation,
+  type MenuPreviewPaymentMode,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
 
 type MenuPreviewDeviceFrameProps = {
   device: MenuPreviewDevice;
   orientation: MenuPreviewOrientation;
+  paymentMode: MenuPreviewPaymentMode;
   menuId: string;
   query: MenuPreviewQuery;
 };
 
-export default function MenuPreviewDeviceFrame({ device, orientation, menuId, query }: MenuPreviewDeviceFrameProps) {
+export default function MenuPreviewDeviceFrame({ device, orientation, paymentMode, menuId, query }: MenuPreviewDeviceFrameProps) {
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const embeddedUrl = buildMenuPreviewUrl(menuId, query, {
@@ -25,8 +28,9 @@ export default function MenuPreviewDeviceFrame({ device, orientation, menuId, qu
     embedded: true,
     device,
     orientation,
+    paymentMode,
   });
-  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device, orientation });
+  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device, orientation, paymentMode });
 
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-950">
@@ -59,6 +63,7 @@ export default function MenuPreviewDeviceFrame({ device, orientation, menuId, qu
                     href={buildMenuPreviewUrl(menuId, query, {
                       device: candidate,
                       orientation: candidate === "tablet" ? orientation : undefined,
+                      paymentMode: candidate === "mobile" ? paymentMode : undefined,
                     })}
                     aria-current={isSelected ? "page" : undefined}
                     className={`rounded-full px-4 py-2 text-sm font-black transition-colors ${
@@ -85,6 +90,26 @@ export default function MenuPreviewDeviceFrame({ device, orientation, menuId, qu
                       }`}
                     >
                       {MENU_PREVIEW_ORIENTATIONS[candidate]}
+                    </Link>
+                  );
+                })}
+              </nav>
+            ) : null}
+            {device === "mobile" ? (
+              <nav aria-label="PG 결제 미리보기 선택" className="flex rounded-full border border-zinc-200 bg-zinc-100 p-1">
+                {(Object.keys(MENU_PREVIEW_PAYMENT_MODES) as MenuPreviewPaymentMode[]).map((candidate) => {
+                  const isSelected = candidate === paymentMode;
+
+                  return (
+                    <Link
+                      key={candidate}
+                      href={buildMenuPreviewUrl(menuId, query, { device, paymentMode: candidate })}
+                      aria-current={isSelected ? "page" : undefined}
+                      className={`rounded-full px-4 py-2 text-sm font-black transition-colors ${
+                        isSelected ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-500 hover:text-zinc-950"
+                      }`}
+                    >
+                      {MENU_PREVIEW_PAYMENT_MODES[candidate]}
                     </Link>
                   );
                 })}
