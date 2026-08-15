@@ -1,13 +1,13 @@
 "use client";
 
-import { Bell, ShoppingBag } from "lucide-react";
+import { Bell, CreditCard, ShoppingBag } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { SupportedLocale } from "@/lib/locales";
 
 import type { OrderCallEntryConfig } from "./types";
-import { getOrderCallEntryVisibility, LOCKED_ORDER_CALL_ENTRY_CONFIG } from "./types";
+import { getOrderCallEntryVisibility, hasPrepayCheckout, LOCKED_ORDER_CALL_ENTRY_CONFIG } from "./types";
 import PostpayOrderCartDrawer from "./PostpayOrderCartDrawer";
 import { MenuOrderActionsProvider } from "./MenuOrderAddButton";
 import StaffCallDialog from "./StaffCallDialog";
@@ -61,6 +61,7 @@ export default function OrderCallEntryLayer({
   const canOpenCall = visibility.showCall
     && config.mode === "active"
     && Boolean(config.menuSiteId);
+  const prepayEnabled = hasPrepayCheckout(config);
 
   return (
     <MenuOrderActionsProvider catalog={config.orderCatalog ?? []} onOpenItem={openMenuItem}>
@@ -101,6 +102,15 @@ export default function OrderCallEntryLayer({
               onClick={openCart}
             >
               <ShoppingBag className="h-4.5 w-4.5" aria-hidden="true" />
+              {prepayEnabled ? (
+                <span
+                  className="absolute -bottom-1 -left-1 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-white bg-zinc-950 text-white"
+                  data-public-menu-prepay-enabled=""
+                  title="모바일 결제 가능"
+                >
+                  <CreditCard className="h-2.5 w-2.5" aria-hidden="true" />
+                </span>
+              ) : null}
               {cartCount > 0 ? (
                 <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-black leading-none text-white" data-public-menu-cart-count="">
                   {cartCount > 99 ? "99+" : cartCount}

@@ -43,6 +43,7 @@ type PageProps = {
     pagePresentation?: string | string[];
     renderMode?: string | string[];
     orderCallQa?: string | string[];
+    payment?: string | string[];
   }>;
 };
 
@@ -615,6 +616,7 @@ function applyActiveTemplateFeatureQaFixture(
 
 function getOrderCallQaConfig(
   value: string | string[] | undefined,
+  paymentValue: string | string[] | undefined,
   storeName: string,
 ): OrderCallEntryConfig | undefined {
   if (process.env.NODE_ENV === "production") return undefined;
@@ -624,6 +626,7 @@ function getOrderCallQaConfig(
 
   const hasValidTableSession = qaCase !== "no-session";
   const hasOrder = qaCase === "active" || qaCase === "order";
+  const paymentMode = (Array.isArray(paymentValue) ? paymentValue[0] : paymentValue) === "on" ? "on" : "off";
   return {
     mode: hasOrder ? "active" : "preview",
     orderEnabled: qaCase === "active" || qaCase === "order" || qaCase === "no-session",
@@ -662,6 +665,9 @@ function getOrderCallQaConfig(
         optionGroups: [],
       },
     ] : undefined,
+    checkoutMode: hasOrder && paymentMode === "on" ? "prepay" : "postpay",
+    checkoutModes: hasOrder && paymentMode === "on" ? ["prepay", "postpay"] : ["postpay"],
+    previewOnly: true,
   };
 }
 
@@ -1237,6 +1243,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     : "preview";
   const orderCallConfig = getOrderCallQaConfig(
     resolvedSearchParams.orderCallQa,
+    resolvedSearchParams.payment,
     data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
   );
 

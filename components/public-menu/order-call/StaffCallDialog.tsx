@@ -8,6 +8,7 @@ type StaffCall = {
   callNumber: number;
   status: "pending" | "acknowledged";
   duplicate: boolean;
+  requestLabel?: string;
 };
 
 type ApiResult = {
@@ -20,6 +21,15 @@ const STATUS_COPY = {
   pending: "직원에게 호출을 보냈습니다.",
   acknowledged: "직원이 호출을 확인했습니다.",
 } as const;
+
+const PREVIEW_CALL_ITEMS = [
+  "직원 호출",
+  "물 요청",
+  "앞치마 요청",
+  "식기 요청",
+  "테이블 정리",
+  "주문 도움",
+] as const;
 
 export default function StaffCallDialog({
   open,
@@ -37,6 +47,7 @@ export default function StaffCallDialog({
   const [call, setCall] = useState<StaffCall | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedPreviewItem, setSelectedPreviewItem] = useState<(typeof PREVIEW_CALL_ITEMS)[number]>(PREVIEW_CALL_ITEMS[0]);
 
   if (!open) return null;
 
@@ -49,7 +60,13 @@ export default function StaffCallDialog({
     setPending(true);
     setMessage(null);
     if (previewOnly) {
-      setCall({ callId: "preview-call", callNumber: 12, status: "pending", duplicate: false });
+      setCall({
+        callId: "preview-call",
+        callNumber: 12,
+        status: "pending",
+        duplicate: false,
+        requestLabel: selectedPreviewItem,
+      });
       setPending(false);
       return;
     }
@@ -117,7 +134,9 @@ export default function StaffCallDialog({
           <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-700" aria-hidden="true" />
             <p className="mt-3 text-lg font-black">{STATUS_COPY[call.status]}</p>
-            <p className="mt-1 text-sm font-bold text-emerald-800">호출 #{call.callNumber}</p>
+            <p className="mt-1 text-sm font-bold text-emerald-800">
+              {call.requestLabel ? `${call.requestLabel} · ` : ""}호출 #{call.callNumber}
+            </p>
             {call.status === "pending" ? (
               <button type="button" onClick={cancelCall} disabled={pending} className="mt-5 rounded-full border border-emerald-300 bg-white px-5 py-2.5 text-sm font-black text-emerald-900 disabled:opacity-60">
                 호출 취소
@@ -128,10 +147,30 @@ export default function StaffCallDialog({
           </div>
         ) : (
           <div className="mt-6">
-            <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">도움이 필요하면 아래 버튼을 눌러 직원을 호출해 주세요. 같은 호출은 처리 전까지 한 번만 접수됩니다.</p>
+            <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
+              {previewOnly ? "필요한 항목을 선택해 호출 화면을 확인해 보세요." : "도움이 필요하면 아래 버튼을 눌러 직원을 호출해 주세요. 같은 호출은 처리 전까지 한 번만 접수됩니다."}
+            </p>
+            {previewOnly ? (
+              <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="직원 호출 항목 미리보기">
+                {PREVIEW_CALL_ITEMS.map((item) => {
+                  const selected = item === selectedPreviewItem;
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-pressed={selected}
+                      className={`rounded-2xl border px-3 py-3 text-sm font-black transition-colors ${selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
+                      onClick={() => setSelectedPreviewItem(item)}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
             <button type="button" onClick={requestCall} disabled={pending} className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-4 text-base font-black text-white disabled:opacity-60">
               {pending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <Bell className="h-5 w-5" aria-hidden="true" />}
-              직원 호출
+              {previewOnly ? `${selectedPreviewItem} 보내기` : "직원 호출"}
             </button>
           </div>
         )}

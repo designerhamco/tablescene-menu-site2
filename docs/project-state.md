@@ -113,7 +113,7 @@
   - session 단위 idempotency와 20 lines·50 units 한도를 DB에서 강제
   - server-only 강제 RLS와 최소 `service_role` 권한으로 Production 1회 적용 및 generated types 갱신 완료
 - 후불 주문 default-off runtime:
-  - template 밖 공통 모바일 cart drawer에서 메뉴·주문 option·수량·요청사항 관리
+  - template 밖 공통 모바일 cart drawer에서 메뉴·주문 option·수량 관리; 선택적 요청사항 DB 필드는 호환용으로 유지하되 현재 고객 UI에는 노출하지 않음
   - 같은 table visit session scope의 device-local cart와 retry request UUID 유지
   - same-origin POST와 server-validated HttpOnly session, 사이트 allowlist, public lifecycle 재검증
   - 원자적 snapshot·품절·option·idempotency RPC는 Production 1회 적용 및 generated types 갱신 완료
@@ -125,6 +125,7 @@
   - `ORDER_DASHBOARD_ENABLED` + explicit site allowlist 없이 Production에서 노출·write 안 됨
 - Call MVP default-off 기반:
   - 직원 호출 단일 preset과 손님의 pending 상태 취소만 제공
+  - 쓰기 없는 미리보기에서는 직원 호출·물·앞치마·식기·테이블 정리·주문 도움 기본 항목의 선택 UI를 제공하며, 실제 항목 저장·전송은 DB 계약 확장 전까지 단일 preset 유지
   - 미처리 호출 dedupe, 완료·취소 후 2분 cooldown, table session당 시간당 10회 제한
   - Owner/Manager/Order staff의 `call.manage` 재인증과 확인·완료 actor/timestamp 기록
   - 최근 100건을 15초 갱신하는 별도 호출관리 화면; 공개 Realtime publication은 추가하지 않음

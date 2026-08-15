@@ -1,6 +1,6 @@
 # MenuLink 전체 작업 큐
 
-최종 갱신: 2026-08-07
+최종 갱신: 2026-08-15
 
 상태 의미:
 
@@ -40,6 +40,7 @@
 - `DONE` 기존 preview 화면과 renderer 재사용 — 실제 렌더링 route와 `MenuPageRenderer`를 그대로 사용
 - `DONE` 새 창에서 실제 크기 보기
 - `DONE` 모바일 주문 미리보기 — 기본 `PG 미사용`과 선택 `PG 사용` 비교, 무채색 메뉴별 장바구니 아이콘, 옵션·수량 바텀시트, 담김 토스트, 장바구니 수정·삭제, 후불/지금 결제 흐름을 제공하고 실제 데이터 write 없음
+- `DONE` PG 비교 가시성 — 선택 상태 설명과 PG 사용 시 장바구니 결제 배지를 추가해 첫 메뉴 화면에서도 차이를 구분
 - `DONE` 별도 scale 엔진을 만들지 않는 제품 정책 확정
 
 ## 3. 활성 템플릿 전체 기능 QA
@@ -82,11 +83,11 @@
 
 ## 6. 모바일 장바구니와 후불 주문
 
-- `DONE` V1 정책 확정 — Postpay 우선, Order·Call 별도 add-on, tableSessions 포함, 기기별 cart, 20 lines·50 units·line 20·요청 300자
+- `DONE` V1 정책 확정 — Postpay 우선, Order·Call 별도 add-on, tableSessions 포함, 기기별 cart, 20 lines·50 units·line 20
 - `DONE` DB 기반 migration 초안 — orderable 분리, 주문 option, session-bound order, immutable snapshot, idempotency, server-only RLS
 - `DONE` migration Production 1회 적용과 generated Supabase types 갱신 — 2026-08-06 `tablescene-prod`, `docs/runbooks/postpay-order-foundation-migration.md`
 - `DONE` 메뉴·옵션 선택과 수량 — 공통 모바일 drawer, required/min/max option, line/total limit
-- `DONE` 장바구니와 요청사항 — visit-session scope local cart, 300자 요청, retry request UUID 유지
+- `DONE` 장바구니 — visit-session scope local cart와 retry request UUID 유지; 요청사항 입력은 현재 고객 UI에서 제외하고 기존 선택적 DB 필드만 호환 유지
 - `DONE` 테이블 번호와 주문 전송 — HttpOnly session 재검증 API와 atomic RPC Production 적용 완료
 - `DONE` 주문 당시 메뉴·가격 snapshot — 제출 transaction에서 immutable snapshot 생성
 - `DONE` 품절 주문 차단 — 제출 transaction에서 `visible/orderable/is_sold_out` 재검증
@@ -107,6 +108,8 @@
 ## 8. Call 기능
 
 - `DONE` 손님 직원 호출 MVP — 유효 table session과 공통 Call Layer, 직원 호출 단일 preset
+- `DONE` 기본 호출 항목 미리보기 — 직원 호출·물·앞치마·식기·테이블 정리·주문 도움을 실제 write 없는 화면에서 선택 가능
+- `TODO` 실제 매장별 호출 항목 관리·저장·전송 — 기존 단일 preset DB/RPC를 안전하게 확장하는 별도 migration 필요
 - `DONE` 호출 목록과 처리 직원 — `call.manage` Owner/Manager/Order staff 권한과 actor 기록
 - `DONE` 접수 확인과 처리 완료 — `pending → acknowledged → completed` conditional update
 - `DONE` 중복·과다 호출 방지 — 미처리 호출 반환, 완료·취소 후 2분 cooldown, session당 시간당 10회

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   getLockedOrderCallEntryConfig,
   getOrderCallEntryVisibility,
+  hasPrepayCheckout,
   type OrderCallEntryConfig,
 } from "../components/public-menu/order-call/types";
 
@@ -67,4 +68,10 @@ test("closed ordering hides cart without affecting Call", () => {
     showCall: true,
     showCart: false,
   });
+});
+
+test("prepay indicator is present only when mobile PG checkout is enabled", () => {
+  assert.equal(hasPrepayCheckout(createConfig({ checkoutMode: "postpay", checkoutModes: ["postpay"] })), false);
+  assert.equal(hasPrepayCheckout(createConfig({ checkoutMode: "prepay", checkoutModes: ["prepay", "postpay"] })), true);
+  assert.equal(hasPrepayCheckout(createConfig({ checkoutMode: "postpay", checkoutModes: ["postpay", "prepay"] })), true);
 });
