@@ -36,6 +36,7 @@ import { getSubscriptionProduct } from "@/lib/billing-products";
 import { formatNotificationBadgeCount, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
+import { getRemainingDaysUntilKst, getServiceLifecycleBucket, resolveServiceLifecycle } from "@/lib/mypage-service-lifecycle";
 import { getTemplateDisplayName } from "@/lib/templates";
 import { isTemplateSupportedForService } from "@/lib/template-types";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
@@ -61,8 +62,6 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const MYPAGE_QUERY_TIMEOUT_MS = 5000;
-const KST_TIME_ZONE = "Asia/Seoul";
-const DAY_MS = 1000 * 60 * 60 * 24;
 
 type MyPageTab = "menus" | "payments" | "inquiries" | "notifications" | "account";
 type MenuTab = "active" | "holding" | "deleted";
@@ -745,10 +744,9 @@ function getBillingServiceStatus({
     };
   }
 
+  const lifecycle = resolveServiceLifecycle({ entitlement, subscription, menuSite });
+  const lifecycleBucket = getServiceLifecycleBucket({ entitlement, subscription, menuSite });
   const retentionEnd = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
-  const retentionDays = retentionEnd ? getRemainingDaysUntilKst(retentionEnd) : null;
-  const hasRetentionWindow = typeof retentionDays === "number" && retentionDays >= 0;
-  const isArchived = menuSite?.status === "archived" || entitlement?.status === "archived";
 
   if (refundStatus === "completed") {
     if (hasNewerActiveService) {
@@ -760,7 +758,7 @@ function getBillingServiceStatus({
       };
     }
 
-    if (isArchived && hasRetentionWindow) {
+    if (lifecycle.hasActiveRetention) {
       return {
         bucket: "archived",
         label: "보관중",
@@ -777,7 +775,7 @@ function getBillingServiceStatus({
     };
   }
 
-  if (subscription?.status === "active" && subscription.cancel_at_period_end) {
+  if (lifecycleBucket === "cancel_scheduled") {
     return {
       bucket: "cancel_scheduled",
       label: "해지예약중",
@@ -786,34 +784,7 @@ function getBillingServiceStatus({
     };
   }
 
-  if (isArchived) {
-    if (hasRetentionWindow) {
-      return {
-        bucket: "archived",
-        label: "보관중",
-        tone: "warning",
-        message: `${formatDate(retentionEnd)}까지 복구 가능`,
-      };
-    }
-
-    return {
-      bucket: "unrecoverable",
-      label: "복구불가",
-      tone: "neutral",
-      message: "보관 기간이 지나 메뉴판을 복구할 수 없습니다.",
-    };
-  }
-
-  if (entitlement?.status === "active" && menuSite?.status !== "archived") {
-    return {
-      bucket: "active",
-      label: "이용중",
-      tone: "success",
-      message: null,
-    };
-  }
-
-  if (subscription?.status === "failed" || subscription?.status === "payment_failed" || subscription?.status === "past_due") {
+  if (lifecycleBucket === "needs_review") {
     return {
       bucket: "needs_review",
       label: "처리확인 필요",
@@ -822,11 +793,38 @@ function getBillingServiceStatus({
     };
   }
 
+  if (lifecycleBucket === "active") {
+    return {
+      bucket: "active",
+      label: "이용중",
+      tone: "success",
+      message: null,
+    };
+  }
+
+  if (lifecycleBucket === "archived") {
+    return {
+      bucket: "archived",
+      label: "보관중",
+      tone: "warning",
+      message: `${formatDate(retentionEnd)}까지 복구 가능`,
+    };
+  }
+
+  if (lifecycleBucket === "unrecoverable") {
+    return {
+      bucket: "unrecoverable",
+      label: "복구불가",
+      tone: "neutral",
+      message: "현재 확인 가능한 이용기간 또는 보관기간이 끝나 메뉴판을 복구할 수 없습니다.",
+    };
+  }
+
   return {
-    bucket: "unknown",
-    label: "상태 확인 필요",
-    tone: "neutral",
-    message: null,
+    bucket: "needs_review",
+    label: "처리확인 필요",
+    tone: "warning",
+    message: "연결된 이용권 또는 구독 정보를 확인하지 못했습니다. 추가 결제 없이 고객지원에서 상태를 확인해주세요.",
   };
 }
 
@@ -923,32 +921,15 @@ function getRestoreSubscriptionCta({
   };
 }
 
-function getSubscriptionPeriodEnd(subscription: BusinessSubscription | null | undefined) {
-  return subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
-}
-
-function hasTodayOrFutureDate(value: string | null | undefined) {
-  if (!value) return false;
-  const days = getRemainingDaysUntilKst(value);
-  return typeof days === "number" && days >= 0;
-}
-
 function isActiveCancelScheduledSubscription(subscription: BusinessSubscription | null | undefined) {
-  return subscription?.status === "active" && Boolean(subscription.cancel_at_period_end) && hasTodayOrFutureDate(getSubscriptionPeriodEnd(subscription));
+  return resolveServiceLifecycle({ subscription }).isCancelScheduled;
 }
 
 function isPastCancelScheduledSubscription(subscription: BusinessSubscription | null | undefined, accessExpiresAt?: string | null) {
-  if (!subscription?.cancel_at_period_end) return false;
-  const periodEnd = getSubscriptionPeriodEnd(subscription) ?? accessExpiresAt ?? null;
-  return !hasTodayOrFutureDate(periodEnd);
-}
-
-function hasActiveAccessDate(value: string | null | undefined) {
-  return hasTodayOrFutureDate(value);
-}
-
-function isPaymentBlockedSubscriptionStatus(status: string | null | undefined) {
-  return status === "failed" || status === "payment_failed" || status === "past_due";
+  return resolveServiceLifecycle({
+    subscription,
+    entitlement: accessExpiresAt ? { access_expires_at: accessExpiresAt } : null,
+  }).isPastCancelScheduled;
 }
 
 function isInactiveSubscriptionStatus(status: string | null | undefined) {
@@ -960,40 +941,19 @@ function isInactiveEntitlementStatus(status: string | null | undefined) {
 }
 
 function getServiceItemHasActiveEntitlement(entitlement: ServiceEntitlement | null | undefined) {
-  if (!entitlement || entitlement.status !== "active") {
-    return false;
-  }
-
-  if (entitlement.access_expires_at) {
-    return hasActiveAccessDate(entitlement.access_expires_at);
-  }
-
-  return true;
+  return resolveServiceLifecycle({ entitlement }).hasActiveEntitlement;
 }
 
 function getServiceItemHasActiveSubscription(subscription: BusinessSubscription | null | undefined) {
-  if (!subscription || subscription.status !== "active" || isPaymentBlockedSubscriptionStatus(subscription.status)) {
-    return false;
-  }
-
-  return hasActiveAccessDate(getSubscriptionPeriodEnd(subscription));
+  return resolveServiceLifecycle({ subscription }).hasActiveSubscription;
 }
 
 function getServiceItemHasExpiredAccessWindow(entitlement: ServiceEntitlement | null | undefined, subscription: BusinessSubscription | null | undefined) {
-  const entitlementAccessDays = entitlement?.access_expires_at ? getRemainingDaysUntilKst(entitlement.access_expires_at) : null;
-  const subscriptionPeriodEnd = getSubscriptionPeriodEnd(subscription);
-  const subscriptionAccessDays = subscriptionPeriodEnd ? getRemainingDaysUntilKst(subscriptionPeriodEnd) : null;
-
-  return (
-    (typeof entitlementAccessDays === "number" && entitlementAccessDays < 0) ||
-    (typeof subscriptionAccessDays === "number" && subscriptionAccessDays < 0)
-  );
+  return resolveServiceLifecycle({ entitlement, subscription }).hasExpiredAccessWindow;
 }
 
 function getServiceItemHasActiveRetention({ entitlement }: ServiceItem) {
-  const retentionEndsAt = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
-  const daysUntilRetentionEnds = retentionEndsAt ? getRemainingDaysUntilKst(retentionEndsAt) : null;
-  return typeof daysUntilRetentionEnds === "number" && daysUntilRetentionEnds >= 0;
+  return resolveServiceLifecycle({ entitlement }).hasActiveRetention;
 }
 
 function maskPaymentId(paymentId: string | null | undefined) {
@@ -1093,53 +1053,6 @@ function getTrialDisplayInfo(settings: Record<string, unknown>, entitlement?: Se
     dataRetentionUntil: getSettingsString(settings, "data_retention_until"),
     deletedScheduledAt: "",
   };
-}
-
-function getKstDateParts(date: Date) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: KST_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const values = new Map(parts.map((part) => [part.type, part.value]));
-  const year = Number(values.get("year"));
-  const month = Number(values.get("month"));
-  const day = Number(values.get("day"));
-
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
-    return null;
-  }
-
-  return { year, month, day };
-}
-
-function getKstDayStartTime(date: Date) {
-  const parts = getKstDateParts(date);
-
-  if (!parts) {
-    return null;
-  }
-
-  return Date.UTC(parts.year, parts.month - 1, parts.day);
-}
-
-function getRemainingDaysUntilKst(expiresAt: string | Date, now: Date = new Date()) {
-  const expiresAtDate = typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt;
-  const expiresAtTime = expiresAtDate.getTime();
-
-  if (!Number.isFinite(expiresAtTime)) {
-    return null;
-  }
-
-  const todayStart = getKstDayStartTime(now);
-  const expiresStart = getKstDayStartTime(expiresAtDate);
-
-  if (todayStart === null || expiresStart === null) {
-    return null;
-  }
-
-  return Math.round((expiresStart - todayStart) / DAY_MS);
 }
 
 function getRetentionDdayInfo(retentionEndsAt: string | null | undefined): RetentionDdayInfo | null {
@@ -1838,32 +1751,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
   function isActiveServiceItem({ entitlement, menuSite, subscription }: ServiceItem) {
     const planType = entitlement?.plan_type ?? subscription?.plan_type ?? null;
-    const isMenuArchived = menuSite?.status === "archived";
-    const hasActiveEntitlement = getServiceItemHasActiveEntitlement(entitlement);
-    const hasActiveSubscription = getServiceItemHasActiveSubscription(subscription);
-
-    if (isMenuArchived) {
-      return false;
-    }
+    const lifecycle = resolveServiceLifecycle({ entitlement, subscription, menuSite });
 
     if (planType === "personal_trial" || planType === "personal_trial_basic_1month") {
-      return hasActiveEntitlement;
+      return lifecycle.hasCurrentAccess && lifecycle.hasActiveEntitlement;
     }
 
     if (planType === "business_basic" || planType === "business_display") {
-      if (isPastCancelScheduledSubscription(subscription, entitlement?.access_expires_at ?? null)) {
-        return false;
-      }
-
-      if (subscription && subscription.status !== "active") {
-        return false;
-      }
-
-      if (entitlement && !hasActiveEntitlement) {
-        return false;
-      }
-
-      return hasActiveSubscription || hasActiveEntitlement;
+      return lifecycle.hasCurrentAccess;
     }
 
     return false;
@@ -2008,7 +1903,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         menuSite ??
         (refundRequest?.menu_site_id ? siteById.get(refundRequest.menu_site_id) : undefined) ??
         (matchingSubscription?.menu_site_id ? siteById.get(matchingSubscription.menu_site_id) : undefined);
-      const entitlement = resolvedMenuSite?.id ? entitlementByMenuSiteId.get(resolvedMenuSite.id) : undefined;
+      const currentEntitlement = resolvedMenuSite?.id ? entitlementByMenuSiteId.get(resolvedMenuSite.id) : undefined;
+      const entitlement = resolvedMenuSite?.id
+        ? (serviceEntitlements ?? []).find((serviceEntitlement) => {
+            if (serviceEntitlement.menu_site_id !== resolvedMenuSite.id) return false;
+            if (matchingSubscription?.id && serviceEntitlement.subscription_id === matchingSubscription.id) return true;
+            return Boolean(productKey && serviceEntitlement.product_key === productKey);
+          }) ?? currentEntitlement
+        : undefined;
+      const currentSubscriptionForMenu = resolvedMenuSite?.id
+        ? businessSubscriptions.find((subscription) => subscription.menu_site_id === resolvedMenuSite.id)
+        : null;
+      const lifecycleEntitlement = currentEntitlement ?? entitlement;
+      const lifecycleSubscription = currentSubscriptionForMenu ?? matchingSubscription;
+      const currentLifecycle = resolveServiceLifecycle({
+        entitlement: lifecycleEntitlement,
+        subscription: lifecycleSubscription,
+        menuSite: resolvedMenuSite,
+      });
       const billingCycle = entitlement?.billing_cycle ?? matchingSubscription?.billing_cycle ?? null;
       const billingMethod = getBillingHistoryMethod(productKey, billingCycle);
       const serviceType = getBillingHistoryServiceType(productKey, resolvedMenuSite?.template_key ?? null);
@@ -2021,23 +1933,29 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       const paymentStatusLabel = paymentStatusFromRefund?.label ?? getPaymentStatusLabel(status);
       const paymentStatusTone = paymentStatusFromRefund?.tone ?? getPaymentStatusTone(status);
       const activeSubscriptionForMenu = resolvedMenuSite?.id
-        ? businessSubscriptions.find((subscription) => subscription.menu_site_id === resolvedMenuSite.id && subscription.status === "active")
+        ? businessSubscriptions.find((subscription) =>
+            subscription.menu_site_id === resolvedMenuSite.id
+            && getServiceItemHasActiveSubscription(subscription)
+          )
         : null;
       const activeEntitlementForMenu = resolvedMenuSite?.id
-        ? (serviceEntitlements ?? []).find((serviceEntitlement) => serviceEntitlement.menu_site_id === resolvedMenuSite.id && serviceEntitlement.status === "active")
+        ? (serviceEntitlements ?? []).find((serviceEntitlement) =>
+            serviceEntitlement.menu_site_id === resolvedMenuSite.id
+            && getServiceItemHasActiveEntitlement(serviceEntitlement)
+          )
         : null;
       const hasActiveSubscriptionForMenu = Boolean(activeSubscriptionForMenu);
       const hasNewerActiveServiceForRefundedMenu =
         refundRequest?.status === "completed" &&
-        Boolean(activeSubscriptionForMenu || activeEntitlementForMenu);
+        currentLifecycle.hasCurrentAccess;
       const serviceStatus = getBillingServiceStatus({
         refundRequest,
-        subscription: matchingSubscription,
-        entitlement,
+        subscription: lifecycleSubscription,
+        entitlement: lifecycleEntitlement,
         menuSite: resolvedMenuSite,
         hasNewerActiveService: hasNewerActiveServiceForRefundedMenu,
       });
-      const retentionEndDate = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
+      const retentionEndDate = lifecycleEntitlement?.data_retention_until ?? lifecycleEntitlement?.deleted_scheduled_at ?? null;
       const restoreSubscription = getRestoreSubscriptionCta({
         serviceType,
         serviceStatusBucket: serviceStatus.bucket,
@@ -2055,7 +1973,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       const renewalDate = serviceStatus.bucket === "restored"
         ? activeSubscriptionForMenu?.current_period_start ?? activeEntitlementForMenu?.access_starts_at ?? null
         : serviceStatus.bucket === "archived" || serviceStatus.bucket === "unrecoverable"
-        ? retentionEndDate ?? subscriptionPeriodEnd
+        ? retentionEndDate ?? lifecycleSubscription?.current_period_end ?? lifecycleSubscription?.next_billing_at ?? lifecycleEntitlement?.access_expires_at ?? subscriptionPeriodEnd
         : billingMethod === "one_time" || billingMethod === "trial"
           ? entitlement?.access_expires_at ?? matchingSubscription?.current_period_end ?? null
           : matchingSubscription?.next_billing_at ?? matchingSubscription?.current_period_end ?? entitlement?.access_expires_at ?? null;
@@ -2166,14 +2084,17 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           subscription.menu_site_id === siteId || Boolean(entitlement?.subscription_id && subscription.id === entitlement.subscription_id)
         )
       : undefined;
+    const lifecycle = resolveServiceLifecycle({
+      entitlement,
+      subscription: activeBusinessSubscription ?? anyBusinessSubscription,
+      menuSite: site,
+    });
     const cancelAtPeriodEnd = Boolean(activeBusinessSubscription?.cancel_at_period_end);
     const isPublished = site.status === "published";
     const isMenuArchived = site.status === "archived";
     const accessExpiresAt = trialDisplayInfo?.accessExpiresAt ?? "";
     const dataRetentionUntil = trialDisplayInfo?.dataRetentionUntil ?? "";
     const daysUntilExpiry = accessExpiresAt ? getRemainingDaysUntilKst(accessExpiresAt) : null;
-    const subscriptionAccessExpiresAt = activeBusinessSubscription?.current_period_end ?? activeBusinessSubscription?.next_billing_at ?? "";
-    const daysUntilSubscriptionExpiry = subscriptionAccessExpiresAt ? getRemainingDaysUntilKst(subscriptionAccessExpiresAt) : null;
     const retentionEndDate = dataRetentionUntil || trialDisplayInfo?.deletedScheduledAt || "";
     const retentionDdayInfo = getRetentionDdayInfo(retentionEndDate);
     const daysUntilRetentionEnds = retentionEndDate ? getRemainingDaysUntilKst(retentionEndDate) : null;
@@ -2182,24 +2103,18 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const isRecoveryWindowOpen = isRetentionActive;
     const isTrialPendingDelete = (entitlementStatus === "pending_delete" && !isRecoveryWindowOpen) || isRetentionDue;
     const isAccessExpired = typeof daysUntilExpiry === "number" && daysUntilExpiry < 0;
-    const isSubscriptionExpired = typeof daysUntilSubscriptionExpiry === "number" && daysUntilSubscriptionExpiry < 0;
     const isTrialExpired = isTrialPendingDelete || entitlementStatus === "expired" || isAccessExpired;
     const hasActiveEntitlement = entitlementStatus === "active";
     const hasInactiveEntitlement = ["expired", "archived", "pending_delete"].includes(entitlementStatus);
-    const subscriptionStatus = anyBusinessSubscription?.status ?? null;
-    const hasPaymentIssue = subscriptionStatus === "failed" || subscriptionStatus === "payment_failed" || subscriptionStatus === "past_due";
+    const hasPaymentIssue = lifecycle.hasPaymentIssue;
     const hasValidBusinessWindow =
       !isBusinessService ||
-      (!hasPaymentIssue &&
-        (isOneTimeBusinessService
-          ? hasActiveEntitlement && (accessExpiresAt ? !isAccessExpired : true)
-          : activeBusinessSubscription?.status === "active" &&
-            (accessExpiresAt ? !isAccessExpired : Boolean(subscriptionAccessExpiresAt) && !isSubscriptionExpired)));
+      lifecycle.hasCurrentAccess;
     const isAccessRestricted = isMenuArchived || !hasActiveEntitlement || hasInactiveEntitlement || isTrialExpired || !hasValidBusinessWindow;
     const canOpenPublicPage = isPublished && Boolean(slug) && !isAccessRestricted && !hasPaymentIssue;
     const canOwnerPreview = Boolean(siteId) && (!isAccessRestricted || isRecoveryWindowOpen);
     const canUseMenuActions = Boolean(siteId) && !isAccessRestricted && !hasPaymentIssue && !isTrialPendingDelete;
-    const isCancelScheduledActive = isActiveCancelScheduledSubscription(activeBusinessSubscription);
+    const isCancelScheduledActive = lifecycle.isCancelScheduled && lifecycle.hasCurrentAccess;
     const isCancelScheduledEnded = isPastCancelScheduledSubscription(activeBusinessSubscription ?? anyBusinessSubscription, accessExpiresAt);
     const isRecoveryUnavailable = isAccessRestricted && !isRecoveryWindowOpen;
     const isAdminArchived = (isMenuArchived || entitlementStatus === "archived") && !hasPaymentIssue && !isCancelScheduledEnded && !(isPersonalTrial && isTrialExpired);
