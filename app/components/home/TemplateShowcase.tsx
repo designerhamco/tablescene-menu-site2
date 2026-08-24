@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import TemplateCard from '@/components/templates/TemplateCard';
+import TemplateCard, { TemplateThumbnail } from '@/components/templates/TemplateCard';
 import {
   BASIC_TEMPLATE_CATEGORY_GROUPS,
   DISPLAY_TEMPLATE_CATEGORY_GROUPS,
@@ -49,10 +49,11 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const selectedService = isHomeShowcase ? 'basic' : service;
   const activeServiceCopy = serviceTabs.find((tab) => tab.key === selectedService) ?? serviceTabs[0];
   const showcaseTemplates = getShowcaseTemplates(selectedService);
+  const homeTemplates = getFeaturedTemplatesForBasicPage();
   const activeCategoryGroups =
     selectedService === 'basic' ? BASIC_TEMPLATE_CATEGORY_GROUPS : DISPLAY_TEMPLATE_CATEGORY_GROUPS;
   const visibleTemplates = isHomeShowcase
-    ? getFeaturedTemplatesForBasicPage()
+    ? homeTemplates
     : selectedService === 'basic'
       ? showcaseTemplates.filter((template) => getTemplateCategoryKeysForBasicGroup(activeCategory as BasicTemplateCategoryGroupKey).includes(template.template_category))
       : showcaseTemplates.filter((template) => getTemplateCategoryKeysForDisplayGroup(activeCategory as DisplayTemplateCategoryGroupKey).includes(template.template_category));
@@ -92,6 +93,61 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
 
     setActivePage(Math.round(carousel.scrollLeft / carousel.clientWidth));
   };
+
+  if (isHomeShowcase) {
+    const marqueeTemplates = [...homeTemplates, ...homeTemplates];
+
+    return (
+      <section className="bg-transparent py-28 text-white md:py-36">
+        <div className="mx-auto max-w-[1560px]">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.55 }}
+            className="mx-auto mb-16 max-w-4xl px-6 text-center md:mb-20"
+          >
+            <p className="mb-4 text-sm font-bold text-zinc-400">전문 디자이너가 설계한 메뉴판</p>
+            <h2 className="whitespace-pre-line break-keep text-3xl font-bold tracking-tight text-white md:text-5xl">
+              {'매장의 분위기를 완성하는\n아티메뉴 템플릿'}
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
+              매장에 어울리는 디자인을 골라 바로 시작하세요.
+            </p>
+          </motion.div>
+
+          <div className="relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent md:w-44" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l from-zinc-950 via-zinc-950/80 to-transparent md:w-44" />
+            <motion.div
+              className="flex w-max gap-4 px-4 md:gap-6"
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ duration: 80, ease: 'linear', repeat: Infinity }}
+              aria-label="아티메뉴 베이직 템플릿 자동 슬라이드"
+            >
+              {marqueeTemplates.map((template, index) => (
+                <div key={`${template.key}-${index}`} className="w-[76vw] shrink-0 sm:w-[48vw] lg:w-[30vw] lg:max-w-[420px]">
+                  {template.status === 'available' ? (
+                    <a href={`/templates/${template.key}/preview`} target="_blank" rel="noreferrer" aria-label={`${template.name} 템플릿 미리보기 새창으로 열기`} className="block">
+                      <TemplateThumbnail template={template} />
+                    </a>
+                  ) : (
+                    <TemplateThumbnail template={template} />
+                  )}
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          <div className="mt-12 flex justify-center">
+            <a href="/apply" className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white hover:text-zinc-950">
+              더 많은 디자인 보기
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={`${isHomeShowcase ? 'bg-transparent py-28 text-white md:py-36' : 'bg-zinc-50 py-24 md:py-36'}`}>

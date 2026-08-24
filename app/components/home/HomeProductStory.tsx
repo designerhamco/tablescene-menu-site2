@@ -390,7 +390,7 @@ export function AiFeaturesSection() {
   ];
 
   return (
-    <section className="bg-zinc-100 px-6 pb-28 pt-32 md:px-10 md:pb-40 md:pt-40">
+    <section className="bg-white px-6 pb-28 pt-32 md:px-10 md:pb-40 md:pt-40">
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl"><SectionLabel>AI 기능</SectionLabel><h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">반복되는 메뉴 작업은<br />AI에게 맡기세요</h2></motion.div>
         <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="text-sm font-bold text-zinc-500">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">{feature.body}</p></div></motion.article>)}</div>
@@ -428,14 +428,14 @@ function DeviceMockup({ type }: { type: "desktop" | "tablet" | "mobile" }) {
 
 export function DeviceEverywhereSection() {
   return (
-    <section className="overflow-hidden bg-[#f3f3f1] px-6 py-24 md:px-10 md:py-36">
+    <section className="overflow-hidden bg-white px-6 py-24 md:px-10 md:py-36">
       <div className="mx-auto max-w-[1380px]">
-        <motion.div {...fadeUp} className="mx-auto max-w-4xl text-center">
+        <motion.div {...fadeUp} className="max-w-4xl text-left">
           <SectionLabel>PC/태블릿/모바일(QR)</SectionLabel>
           <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
             링크만 있으면 메뉴판을<br />PC/태블릿/모바일(QR) 어디서든 띄워요!
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+          <p className="mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
             PC와 태블릿은 물론, 모바일에서는 QR로 간편하게. 같은 메뉴판이 화면 크기에 맞춰 자연스럽게 보여요.
           </p>
         </motion.div>
