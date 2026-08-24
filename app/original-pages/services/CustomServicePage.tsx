@@ -323,13 +323,13 @@ const CustomServicePage = () => {
           {/* Navigation Buttons - Hidden on Mobile */}
           <button 
             onClick={prevSlide}
-            className="hidden md:flex absolute left-4 md:left-24 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 backdrop-blur border border-zinc-200 shadow-lg items-center justify-center text-zinc-900 hover:scale-110 transition-all z-30"
+            className="hidden md:flex absolute left-4 md:left-24 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-zinc-200 shadow-lg items-center justify-center text-zinc-900 hover:scale-110 transition-all z-30"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button 
             onClick={nextSlide}
-            className="hidden md:flex absolute right-4 md:right-24 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 backdrop-blur border border-zinc-200 shadow-lg items-center justify-center text-zinc-900 hover:scale-110 transition-all z-30"
+            className="hidden md:flex absolute right-4 md:right-24 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-zinc-200 shadow-lg items-center justify-center text-zinc-900 hover:scale-110 transition-all z-30"
           >
             <ChevronRight className="w-6 h-6" />
           </button>

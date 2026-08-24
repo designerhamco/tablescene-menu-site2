@@ -140,7 +140,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
           </div>
 
           <div className="mt-12 flex justify-center">
-            <a href="/apply" className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white hover:text-zinc-950">
+            <a href="/apply" className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100">
               더 많은 디자인 보기
             </a>
           </div>
@@ -256,7 +256,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
           <div className="mt-10 flex justify-center">
             <a
               href="/store"
-              className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white hover:text-zinc-950"
+              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100"
             >
               더 많은 템플릿 보기 <span aria-hidden="true" className="ml-2">→</span>
             </a>

@@ -318,6 +318,7 @@ interface FAQProps {
   data?: FAQCategory[];
   description?: string;
   homeDark?: boolean;
+  title?: string;
 }
 
 const FAQ = ({
@@ -326,6 +327,7 @@ const FAQ = ({
   data = MAIN_FAQ_DATA,
   description,
   homeDark = false,
+  title = "자주 묻는 질문",
 }: FAQProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -342,7 +344,7 @@ const FAQ = ({
       <div className={`max-w-7xl mx-auto ${homeDark ? 'rounded-[2rem] bg-zinc-950 px-6 py-16 text-white md:rounded-[2.5rem] md:px-14 md:py-20' : ''}`}>
         <div className="text-center mb-10">
           <h2 className={`text-3xl md:text-5xl font-bold mb-6 tracking-tight leading-tight ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
-            자주 묻는 질문
+            {title}
           </h2>
           {description ? (
             <p className={`text-lg font-medium ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>

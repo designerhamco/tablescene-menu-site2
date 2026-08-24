@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  ArrowUpRight,
   Clock3,
   Languages,
   Link2,
@@ -13,7 +12,6 @@ import {
   Tablet,
   WandSparkles,
 } from "lucide-react";
-import { Link } from "react-router";
 
 const menuItems = [
   { name: "Black sesame latte", price: "6.5", image: "/menu-templates/cafe_design_a/black-sesame-featured.jpg" },
@@ -399,6 +397,79 @@ export function AiFeaturesSection() {
   );
 }
 
+export function StoreScenesSection() {
+  const scenes = [
+    {
+      image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1400&auto=format&fit=crop",
+      title: "매장의 분위기를 그대로 담아요",
+      body: "공간의 톤과 메뉴의 매력이 자연스럽게 이어지는 메뉴판으로 보여주세요.",
+    },
+    {
+      image: "/menu-templates/cafe_design_a/malcha_present.jpg",
+      title: "메뉴의 매력을 가까이 전해요",
+      body: "사진과 설명을 함께 보여주며 손님이 메뉴의 특징을 더 쉽게 이해하도록 도와줘요.",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1400&auto=format&fit=crop",
+      title: "메뉴가 바뀌어도 바로 반영해요",
+      body: "가격과 메뉴 정보를 수정하면 매장에서 보고 있는 화면에도 빠르게 반영돼요.",
+    },
+  ];
+
+  return (
+    <section className="bg-white px-6 pb-28 pt-8 md:px-10 md:pb-40 md:pt-12">
+      <div className="mx-auto max-w-[1380px]">
+        <motion.div {...fadeUp} className="mb-16 max-w-4xl md:mb-24">
+          <SectionLabel>In Store</SectionLabel>
+          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+            매장에서 만나는<br />아티메뉴
+          </h2>
+        </motion.div>
+
+        <div className="grid gap-10 md:grid-cols-3 md:gap-6">
+          {scenes.map((scene, index) => (
+            <motion.article key={scene.title} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }}>
+              <div className="aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-zinc-100 md:rounded-[2rem]">
+                <img src={scene.image} alt="" className="h-full w-full object-cover" />
+              </div>
+              <h3 className="mt-6 break-keep text-xl font-bold leading-tight text-zinc-950 md:text-2xl">{scene.title}</h3>
+              <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">{scene.body}</p>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DecorativeQr() {
+  const modules = [
+    [9, 2], [11, 2], [13, 2], [16, 2], [18, 2], [20, 2],
+    [8, 4], [10, 4], [12, 4], [16, 4], [19, 4], [21, 4],
+    [9, 6], [12, 6], [14, 6], [17, 6], [20, 6],
+    [2, 9], [4, 9], [6, 9], [9, 9], [11, 9], [13, 9], [15, 9], [18, 9], [20, 9], [22, 9],
+    [3, 11], [6, 11], [8, 11], [10, 11], [14, 11], [17, 11], [19, 11], [22, 11],
+    [2, 13], [5, 13], [8, 13], [11, 13], [13, 13], [16, 13], [18, 13], [21, 13],
+    [3, 15], [6, 15], [9, 15], [12, 15], [15, 15], [19, 15], [22, 15],
+    [2, 17], [5, 17], [8, 17], [10, 17], [13, 17], [16, 17], [18, 17], [21, 17],
+    [9, 19], [12, 19], [15, 19], [18, 19], [20, 19], [22, 19],
+    [8, 21], [10, 21], [13, 21], [16, 21], [19, 21], [22, 21],
+  ];
+
+  return (
+    <svg viewBox="0 0 25 25" role="img" aria-label="QR 코드 예시 이미지" className="h-full w-full bg-white p-3">
+      {[ [1, 1], [17, 1], [1, 17] ].map(([x, y]) => (
+        <g key={`${x}-${y}`}>
+          <rect x={x} y={y} width="7" height="7" fill="#18181b" />
+          <rect x={x + 1} y={y + 1} width="5" height="5" fill="white" />
+          <rect x={x + 2} y={y + 2} width="3" height="3" fill="#18181b" />
+        </g>
+      ))}
+      {modules.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#18181b" />)}
+    </svg>
+  );
+}
+
 function DeviceMockup({ type }: { type: "desktop" | "tablet" | "mobile" }) {
   if (type === "mobile") {
     return (
@@ -428,23 +499,30 @@ function DeviceMockup({ type }: { type: "desktop" | "tablet" | "mobile" }) {
 
 export function DeviceEverywhereSection() {
   return (
-    <section className="overflow-hidden bg-white px-6 py-24 md:px-10 md:py-36">
+    <section className="overflow-hidden bg-zinc-950 px-6 pb-40 pt-28 text-white md:px-10 md:pb-52 md:pt-40">
       <div className="mx-auto max-w-[1380px]">
         <motion.div {...fadeUp} className="max-w-4xl text-left">
-          <SectionLabel>PC/태블릿/모바일(QR)</SectionLabel>
-          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+          <SectionLabel inverted>PC/태블릿/모바일(QR)</SectionLabel>
+          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-white md:text-5xl">
             링크만 있으면 메뉴판을<br />PC/태블릿/모바일(QR) 어디서든 띄워요!
           </h2>
-          <p className="mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+          <p className="mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
             PC와 태블릿은 물론, 모바일에서는 QR로 간편하게. 같은 메뉴판이 화면 크기에 맞춰 자연스럽게 보여요.
           </p>
         </motion.div>
 
-        <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }} className="relative mt-20 min-h-[590px] rounded-[2.5rem] bg-white px-5 pb-10 pt-16 shadow-[0_30px_100px_rgba(0,0,0,0.08)] md:px-12">
+        <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }} className="relative mt-20 min-h-[590px] rounded-[2.5rem] bg-white px-5 pb-10 pt-16 text-zinc-950 shadow-[0_30px_100px_rgba(0,0,0,0.22)] md:px-12">
           <div className="grid min-h-[450px] items-end gap-10 lg:grid-cols-[1.25fr_0.85fr_0.42fr] lg:gap-5">
             <div><DeviceMockup type="desktop" /><p className="mt-8 text-center text-sm font-black text-zinc-500"><Monitor className="mr-2 inline h-4 w-4" />PC · 노트북</p></div>
             <div><DeviceMockup type="tablet" /><p className="mt-8 text-center text-sm font-black text-zinc-500"><Tablet className="mr-2 inline h-4 w-4" />태블릿</p></div>
-            <div><DeviceMockup type="mobile" /><p className="mt-8 text-center text-sm font-black text-zinc-500"><Smartphone className="mr-2 inline h-4 w-4" />모바일 QR</p></div>
+            <div>
+              <div className="relative mx-auto w-fit">
+                <DeviceMockup type="mobile" />
+                <div className="absolute -bottom-7 -right-12 h-24 w-24 overflow-hidden rounded-xl border-4 border-white bg-white shadow-xl md:-right-16 md:h-28 md:w-28"><DecorativeQr /></div>
+              </div>
+              <p className="mt-12 text-center text-sm font-black text-zinc-500"><Smartphone className="mr-2 inline h-4 w-4" />모바일 QR</p>
+              <p className="mx-auto mt-3 max-w-[220px] break-keep text-center text-xs font-semibold leading-relaxed text-zinc-400">QR 이미지를 내려받아 테이블과 안내물에 바로 활용할 수 있어요.</p>
+            </div>
           </div>
           <span className="absolute left-1/2 top-6 inline-flex -translate-x-1/2 items-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-xs font-black text-white">
             <Link2 className="h-3.5 w-3.5" /> artimenu.kr/your-store
@@ -455,57 +533,33 @@ export function DeviceEverywhereSection() {
   );
 }
 
-export function ServiceGuideSection() {
-  const services = [
-    {
-      eyebrow: "PC · 태블릿 · 모바일 QR",
-      title: "갖고 있는 디바이스에 띄우시려면",
-      name: "아티메뉴 베이직",
-      href: "/services/basic",
-      icon: Tablet,
-    },
-    {
-      eyebrow: "TV · 모니터 · 대형 화면",
-      title: "매장 TV에 띄우시려면",
-      name: "아티메뉴 디스플레이",
-      href: "/services/display",
-      icon: Monitor,
-    },
-  ];
-
+export function ResourceCtaSection() {
   return (
-    <section className="bg-white px-6 py-24 md:px-10 md:py-36">
+    <section className="bg-white px-6 pb-24 pt-4 md:px-10 md:pb-36 md:pt-8">
       <div className="mx-auto max-w-[1380px]">
-        <motion.div {...fadeUp} className="mb-12 md:mb-16">
-          <SectionLabel>서비스 안내</SectionLabel>
-          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
-            자세히 알아보세요
-          </h2>
-        </motion.div>
+        <motion.div {...fadeUp} className="relative overflow-hidden rounded-[2rem] bg-zinc-950 px-7 py-14 text-white md:min-h-[500px] md:rounded-[2.5rem] md:px-16 md:py-20 lg:grid lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+          <div className="relative z-10 max-w-2xl">
+            <SectionLabel inverted>아티메뉴 시작 가이드</SectionLabel>
+            <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight md:text-5xl">매장에 꼭 맞는 메뉴판을<br />차근차근 시작해보세요</h2>
+            <p className="mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">서비스 특징부터 실제 메뉴판을 만드는 방법까지 필요한 내용을 한곳에 정리할 예정이에요.</p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <a href="#" onClick={(event) => event.preventDefault()} className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100">서비스 소개서</a>
+              <a href="#" onClick={(event) => event.preventDefault()} className="inline-flex items-center justify-center rounded-full bg-zinc-800 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-zinc-700">이용 가이드</a>
+            </div>
+          </div>
 
-        <div className="grid gap-5 lg:grid-cols-2">
-          {services.map((service, index) => {
-            const Icon = service.icon;
-            return (
-              <motion.article key={service.name} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="group relative min-h-[390px] overflow-hidden rounded-[2rem] border border-zinc-200 bg-zinc-50 p-7 md:min-h-[440px] md:p-10">
-                <div className="relative z-10 flex h-full flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-[0.12em] text-zinc-400">{service.eyebrow}</span>
-                    <span className="grid h-12 w-12 place-items-center rounded-full bg-white text-zinc-950 shadow-sm"><Icon className="h-5 w-5" /></span>
-                  </div>
-                  <h3 className="mt-16 whitespace-pre-line break-keep text-2xl font-bold leading-tight tracking-tight text-zinc-950 md:text-3xl">{service.title}</h3>
-                  <div className="mt-auto flex items-end justify-between gap-5 pt-14">
-                    <p className="text-lg font-bold text-zinc-950 md:text-xl">{service.name}</p>
-                    <Link to={service.href} aria-label={`${service.name} 자세히 보기`} className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-zinc-950 text-white transition-transform group-hover:-translate-y-1 group-hover:translate-x-1">
-                      <ArrowUpRight className="h-5 w-5" />
-                    </Link>
-                  </div>
-                </div>
-                <div className="absolute -bottom-24 -right-20 h-64 w-64 rounded-full border-[42px] border-white transition-transform duration-500 group-hover:scale-110" />
-              </motion.article>
-            );
-          })}
-        </div>
+          <div className="relative mt-14 h-[270px] lg:mt-0 lg:h-[360px]">
+            <div className="absolute left-[3%] top-[18%] h-[62%] w-[58%] overflow-hidden rounded-2xl border-4 border-white bg-[#eee5d7] shadow-2xl">
+              <MenuBoard compact />
+            </div>
+            <div className="absolute right-[4%] top-[4%] h-[48%] w-[52%] overflow-hidden rounded-2xl border-4 border-zinc-800 bg-white shadow-2xl">
+              <img src="/menu-templates/cafe_design_a/nutty-cream-featured.jpg" alt="" className="h-full w-full object-cover" />
+            </div>
+            <div className="absolute bottom-[2%] right-[13%] h-[56%] w-[31%] overflow-hidden rounded-[1.6rem] border-[6px] border-zinc-800 bg-white shadow-2xl">
+              <MenuBoard compact />
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

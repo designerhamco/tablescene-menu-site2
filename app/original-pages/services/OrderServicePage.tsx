@@ -15,7 +15,6 @@ import {
 } from "../../components/ui/accordion";
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { Link } from 'react-router';
-import FAQ from '@/app/components/common/FAQ';
 
 // --- Feature Accordion Component ---
 interface FeatureItem {
@@ -494,7 +493,6 @@ const OrderServicePage = () => {
             </div>
           </div>
         </section>
-        <FAQ />
       </div>
     );
   }
@@ -1748,8 +1746,6 @@ const OrderServicePage = () => {
       </div>
     </section>
 
-    {/* 8. FAQ */}
-    <FAQ />
   </div>
 );
 };

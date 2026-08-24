@@ -7,29 +7,14 @@ import {
   CustomizationSection,
   DeviceEverywhereSection,
   ProductHero,
+  ResourceCtaSection,
   SalesAndLanguageSection,
-  ServiceGuideSection,
+  StoreScenesSection,
 } from '../components/home/HomeProductStory';
-import FAQ from '../components/common/FAQ';
-import NavigationDots from '../components/ui/NavigationDots';
-
-const SECTIONS = [
-  { id: 'hero', label: 'Intro' },
-  { id: 'automatic', label: 'Automatic' },
-  { id: 'layout', label: 'Layout' },
-  { id: 'customize', label: 'Customize' },
-  { id: 'features', label: 'Feature' },
-  { id: 'ai', label: 'AI' },
-  { id: 'templates', label: 'Template' },
-  { id: 'devices', label: 'Device' },
-  { id: 'plans', label: 'Service' },
-  { id: 'faq', label: 'Q&A' },
-];
 
 const Home = () => {
   return (
     <>
-      <NavigationDots sections={SECTIONS} />
       <section id="hero" className="relative"><BrandHero /></section>
       <div className="relative -mt-10 overflow-hidden rounded-t-[2rem] bg-zinc-950 md:-mt-16 md:rounded-t-[3rem]">
         <section id="templates" className="relative"><TemplateShowcase /></section>
@@ -37,12 +22,12 @@ const Home = () => {
         <section id="layout" className="relative"><AutoLayoutSection /></section>
         <section id="customize" className="relative"><CustomizationSection /></section>
         <section id="features" className="relative"><SalesAndLanguageSection /></section>
+        <section id="devices" className="relative"><DeviceEverywhereSection /></section>
       </div>
       <div className="relative -mt-10 overflow-hidden rounded-t-[2rem] bg-white md:-mt-16 md:rounded-t-[3rem]">
         <section id="ai" className="relative"><AiFeaturesSection /></section>
-        <section id="devices" className="relative"><DeviceEverywhereSection /></section>
-        <section id="plans" className="relative"><ServiceGuideSection /></section>
-        <section id="faq" className="relative"><FAQ homeDark showSupport={false} /></section>
+        <section id="store-scenes" className="relative"><StoreScenesSection /></section>
+        <section id="resources" className="relative"><ResourceCtaSection /></section>
       </div>
     </>
   );

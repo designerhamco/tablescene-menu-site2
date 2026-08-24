@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 
-import FAQ from '@/app/components/common/FAQ';
 import DeviceSelection from '@/app/components/home/DeviceSelection';
 import TemplateShowcase from '@/app/components/home/TemplateShowcase';
 import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
@@ -205,7 +204,6 @@ const BasicServicePage = () => {
         title={<>링크 하나면,<br className="hidden md:block" />어떤 기기에서도 열어볼 수 있어요</>}
       />
       <ServicePricingSection service="basic" />
-      <FAQ />
     </div>
   );
 };

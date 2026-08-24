@@ -4,31 +4,13 @@ const Footer = () => {
   return (
     <footer className="border-t border-zinc-200 bg-white py-12 text-zinc-600">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Top Section: Brand & Contact */}
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
-          {/* Brand */}
+        <div className="mb-12">
           <div className="space-y-4">
             <h2 className="text-xl font-bold tracking-tight text-zinc-950">ArtiMenu</h2>
             <p className="max-w-xs text-sm font-normal leading-relaxed text-zinc-500">
               디지털 혁신과 시각적 스토리텔링을 통해<br/>
               다이닝 경험의 새로운 장면을 만듭니다.
             </p>
-          </div>
-
-          {/* Support information */}
-          <div className="grid gap-7 text-left sm:grid-cols-3 md:max-w-3xl md:gap-10">
-            <div>
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-900">운영 시간</h3>
-              <p className="text-sm leading-relaxed text-zinc-500">평일 09:00 ~ 17:00<br />점심 12:00 ~ 13:00 제외<br />긴급(주말) 10:00 ~ 22:00</p>
-            </div>
-            <div>
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-900">카카오톡 상담</h3>
-              <p className="text-sm leading-relaxed text-zinc-500">@디앤디커머스<br />admin@dndcommerce.co.kr</p>
-            </div>
-            <div>
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-900">원격 점검 지원</h3>
-              <p className="text-sm leading-relaxed text-zinc-500">화면 공유로 해결<br />안정적인 매장 운영을 지원합니다.</p>
-            </div>
           </div>
         </div>
 
@@ -65,7 +47,7 @@ const Footer = () => {
            <div className="flex flex-col md:items-end gap-3 shrink-0 w-full md:w-auto text-left md:text-right mt-4 md:mt-0">
               <div className="flex gap-4 text-[11px] font-medium text-zinc-500 md:gap-6">
                 <a href="/faq" className="transition-colors hover:text-zinc-950">
-                  FAQ
+                  고객센터
                 </a>
                 {showAdminLink ? (
                   <a href="/admin" className="transition-colors hover:text-zinc-950">

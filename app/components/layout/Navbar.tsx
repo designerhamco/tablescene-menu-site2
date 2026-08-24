@@ -12,15 +12,17 @@ const logoImage = '/assets/tablescene-symbol.png';
 type NavItem = {
   label: string;
   path: string;
+  activePaths?: readonly string[];
   discount?: boolean;
   premium?: boolean;
   disabled?: boolean;
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: '아티메뉴 베이직', path: '/services/basic', discount: true },
-  { label: '아티메뉴 디스플레이', path: '/services/display' },
-  { label: '커스텀', path: '/custom', premium: true },
+  { label: '아티메뉴 베이직', path: '/services/basic', activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'], discount: true },
+  { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
+  { label: '커스텀', path: '/custom', activePaths: ['/custom', '/services/custom', '/services/design-customizing'], premium: true },
+  { label: '고객센터', path: '/faq', activePaths: ['/faq'] },
 ];
 
 function DiscountChip() {
@@ -249,16 +251,16 @@ const Navbar = () => {
     : 'text-current opacity-90 hover:opacity-100';
   const menuButtonClass = shouldShowSolidNav ? 'text-current hover:opacity-70' : 'text-current hover:opacity-80';
   const primaryButtonClass = shouldShowDarkNav
-    ? 'bg-white hover:bg-white/90'
+    ? 'bg-white hover:bg-zinc-100'
     : shouldShowSolidNav
     ? 'bg-zinc-950 hover:bg-zinc-800'
-    : 'bg-white hover:bg-white/90';
+    : 'bg-white hover:bg-zinc-100';
   const primaryButtonStyle = { color: shouldShowDarkNav ? '#09090b' : shouldShowSolidNav ? '#ffffff' : '#09090b' };
   const secondaryButtonClass = shouldShowDarkNav
-    ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
+    ? 'border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800'
     : shouldShowSolidNav
     ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
-    : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
+    : 'border-zinc-700 bg-zinc-950 text-white hover:bg-zinc-800';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? '마이페이지' : '로그인';
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
@@ -314,25 +316,35 @@ const Navbar = () => {
 
           <div className="absolute left-1/2 top-1/2 hidden h-full -translate-x-1/2 -translate-y-1/2 items-center gap-5 lg:flex xl:gap-8">
             {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                aria-disabled={item.disabled ? true : undefined}
-                tabIndex={item.disabled ? -1 : undefined}
-                onClick={(event) => {
-                  if (item.disabled) {
-                    event.preventDefault();
-                  }
-                }}
-                className={`inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 ${
-                  item.disabled ? 'pointer-events-none cursor-not-allowed text-current opacity-35' : navTextClass
-                }`}
-              >
-                <span>{item.label}</span>
-                {item.discount ? <DiscountChip /> : null}
-                {item.premium ? <PremiumChip /> : null}
-                {item.disabled ? <DisabledChip /> : null}
-              </Link>
+              (() => {
+                const isActive = (item.activePaths ?? [item.path]).includes(pathname);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-disabled={item.disabled ? true : undefined}
+                    tabIndex={item.disabled ? -1 : undefined}
+                    onClick={(event) => {
+                      if (item.disabled) {
+                        event.preventDefault();
+                      }
+                    }}
+                    className={`relative inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
+                      item.disabled
+                        ? 'pointer-events-none cursor-not-allowed text-current opacity-35 after:w-0'
+                        : isActive
+                          ? 'opacity-100 after:w-6'
+                          : `${navTextClass} after:w-0`
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {item.discount ? <DiscountChip /> : null}
+                    {item.premium ? <PremiumChip /> : null}
+                    {item.disabled ? <DisabledChip /> : null}
+                  </Link>
+                );
+              })()
             ))}
           </div>
 
@@ -355,7 +367,7 @@ const Navbar = () => {
                 >
                   <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
                   {unreadCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white">
                       {unreadBadgeLabel}
                     </span>
                   ) : null}
@@ -464,39 +476,43 @@ const Navbar = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={closeMobileMenu}
-                    className="col-span-2 flex items-center justify-center rounded-2xl border border-[#F8E731]/70 bg-[#F8E731]/15 px-4 py-3 text-sm font-bold text-zinc-900"
+                    className="col-span-2 flex items-center justify-center rounded-2xl border border-[#E5D520] bg-[#F8E731] px-4 py-3 text-sm font-bold text-zinc-900"
                   >
                     카카오톡 상담
                   </a>
                 </div>
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">
-                  {NAV_ITEMS.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      aria-disabled={item.disabled ? true : undefined}
-                      tabIndex={item.disabled ? -1 : undefined}
-                      onClick={(event) => {
-                        if (item.disabled) {
-                          event.preventDefault();
-                          return;
-                        }
+                  {NAV_ITEMS.map((item) => {
+                    const isActive = (item.activePaths ?? [item.path]).includes(pathname);
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        aria-current={isActive ? 'page' : undefined}
+                        aria-disabled={item.disabled ? true : undefined}
+                        tabIndex={item.disabled ? -1 : undefined}
+                        onClick={(event) => {
+                          if (item.disabled) {
+                            event.preventDefault();
+                            return;
+                          }
 
-                        closeMobileMenu();
-                      }}
-                      className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-5 text-2xl font-bold tracking-tight transition-colors ${
-                        item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : 'text-zinc-900 active:text-zinc-500'
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      <span className="flex shrink-0 items-center gap-1.5">
-                        {item.discount ? <DiscountChip /> : null}
-                        {item.premium ? <PremiumChip /> : null}
-                        {item.disabled ? <DisabledChip /> : null}
-                      </span>
-                    </Link>
-                  ))}
+                          closeMobileMenu();
+                        }}
+                        className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-5 text-2xl font-bold tracking-tight transition-colors ${
+                          item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : 'text-zinc-900 active:text-zinc-500'
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">{isActive ? <span className="h-2 w-2 rounded-full bg-zinc-950" aria-hidden="true" /> : null}{item.label}</span>
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          {item.discount ? <DiscountChip /> : null}
+                          {item.premium ? <PremiumChip /> : null}
+                          {item.disabled ? <DisabledChip /> : null}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </nav>
               </div>
 

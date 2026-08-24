@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 
-import FAQ, { type FAQCategory } from '@/app/components/common/FAQ';
+import { type FAQCategory } from '@/app/components/common/FAQ';
 import DeviceSelection from '@/app/components/home/DeviceSelection';
 import TemplateShowcase from '@/app/components/home/TemplateShowcase';
 import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
@@ -46,7 +46,7 @@ const flowSteps = [
   },
 ];
 
-const displayFaqData: FAQCategory[] = [
+export const displayFaqData: FAQCategory[] = [
   {
     category: '디스플레이 이용',
     items: [
@@ -325,7 +325,6 @@ const DisplayServicePage = () => {
         title={<>링크 하나면,<br className="hidden md:block" />매장 화면에 바로 띄울 수 있어요</>}
       />
       <ServicePricingSection service="display" />
-      <FAQ data={displayFaqData} />
     </div>
   );
 };
