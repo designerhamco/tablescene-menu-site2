@@ -4,13 +4,12 @@ import type { ReactNode } from "react";
  * Public marketing-page typography contract.
  *
  * Keep the visual hierarchy in this order across landing sections:
- * title > body > eyebrow. The vertical rhythm mirrors that hierarchy too:
- * a compact eyebrow-to-title gap and a slightly wider title-to-body gap.
+ * title > eyebrow > body. The body stays the smallest supporting copy.
  */
 export const MARKETING_COPY_STYLES = {
-  eyebrow: "text-xs font-bold leading-none tracking-[-0.01em]",
-  title: "mt-6 break-keep text-[2.125rem] font-bold leading-[1.14] tracking-[-0.04em] md:text-[3.5rem]",
-  body: "mt-7 break-keep text-base font-medium leading-[1.75] md:text-lg",
+  eyebrow: "text-base font-bold leading-[1.35] tracking-[-0.02em] md:text-lg",
+  title: "mt-[1.125rem] break-keep text-[2.125rem] font-bold leading-[1.14] tracking-[-0.04em] md:text-[3.5rem]",
+  body: "mt-[1.375rem] break-keep text-sm font-medium leading-[1.75] md:text-base",
 } as const;
 
 type MarketingSectionCopyProps = {

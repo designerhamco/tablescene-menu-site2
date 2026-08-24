@@ -111,9 +111,9 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
             <MarketingSectionCopy
               centered
               inverted
-              eyebrow="전문 디자이너가 설계한 메뉴판"
+              eyebrow="디자이너 템플릿"
               title={<>매장의 분위기를 완성하는<br />아티메뉴 템플릿</>}
-              body="매장에 어울리는 디자인을 골라 바로 시작하세요."
+              body="매장 분위기에 맞는 디자인을 선택해 바로 시작할 수 있습니다."
               className="max-w-xl"
             />
           </motion.div>
@@ -163,11 +163,11 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
         >
           {isHomeShowcase ? <p className="mb-4 text-sm font-bold text-zinc-400">전문 디자이너가 설계한 메뉴판</p> : null}
           <h2 className={`whitespace-pre-line break-keep text-3xl font-bold tracking-tight md:text-5xl ${isHomeShowcase ? 'text-white' : 'text-zinc-950'}`}>
-            {isHomeShowcase ? '매장의 분위기를 완성하는\n아티메뉴 템플릿' : '디자이너가 만든 템플릿으로 시작하세요'}
+            {isHomeShowcase ? '매장의 분위기를 완성하는\n아티메뉴 템플릿' : '디자이너 템플릿으로 시작'}
           </h2>
           {isHomeShowcase ? (
             <p className="mx-auto mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
-              카페와 음식점의 분위기를 세심하게 담은 베이직 템플릿을 둘러보고 매장에 어울리는 디자인을 선택하세요.
+              매장 분위기에 맞는 템플릿을 선택해 바로 시작할 수 있습니다.
             </p>
           ) : (
             <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">

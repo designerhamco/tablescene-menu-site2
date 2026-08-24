@@ -286,7 +286,7 @@ function CustomizationVisual() {
         <motion.img key={mode === 1 ? "matcha" : "sesame"} initial={{ opacity: 0 }} animate={{ opacity: mode === 0 ? 0.15 : 1 }} src={mode === 1 ? "/menu-templates/cafe_design_a/malcha.jpg" : "/menu-templates/cafe_design_a/black-sesame-featured.jpg"} alt="" className="h-full min-h-0 w-full rounded-xl object-cover" />
         <div className="flex flex-col justify-center">
           <p className={`transition-all ${mode === 2 ? "font-serif text-2xl italic" : "text-xl font-black"}`}>Signature Latte</p>
-          <p className="mt-3 text-xs font-semibold leading-relaxed text-black/50">원하는 이미지와 글자 스타일, 배경을 메뉴판에 맞게 바꿔보세요.</p>
+          <p className="mt-3 text-xs font-semibold leading-relaxed text-black/50">이미지·글자·배경을 원하는 스타일로 설정합니다.</p>
         </div>
       </div>
     </div>
@@ -294,15 +294,15 @@ function CustomizationVisual() {
 }
 
 export function ProductHero() {
-  return <DarkStorySection eyebrow="쉽고 간편하게 만들어요" title={<>텍스트만 입력하면<br />메뉴판이 완성!</>} body="메뉴명, 설명, 가격을 입력하는 순간 선택한 템플릿에 바로 반영돼요. 복잡한 편집 없이 빠르고 쉽게 메뉴판을 완성할 수 있어요." visual={<InputSyncVisual />} />;
+  return <DarkStorySection eyebrow="간편한 메뉴 제작" title={<>텍스트 입력만으로<br />완성되는 메뉴판</>} body="메뉴명·설명·가격 입력 즉시 선택한 템플릿에 반영됩니다." visual={<InputSyncVisual />} />;
 }
 
 export function AutoLayoutSection() {
-  return <DarkStorySection reverse eyebrow="보기 좋게 자동 배치돼요" title={<>카테고리를 묶음형, 채움형 배치 방식으로<br />원하는 배치를 선택할 수 있어요</>} body="메뉴 구성과 화면에 맞춰 묶음형 자동 배치와 채움형 배치를 오가며 가장 보기 좋은 구성을 선택하세요." visual={<LayoutModeVisual />} />;
+  return <DarkStorySection reverse eyebrow="묶음형 or 채움형 배치" title={<>보기 좋은 배치를 위한<br />두 가지 방식</>} body="카테고리 구성에 맞춰 묶음형과 채움형을 전환할 수 있습니다." visual={<LayoutModeVisual />} />;
 }
 
 export function CustomizationSection() {
-  return <DarkStorySection eyebrow="내맘대로 커스터마이징" title={<>이미지도 내맘대로 변경.<br />글자 크기/스타일도 내맘대로 변경</>} body="이미지를 보이거나 숨기고, 원하는 이미지로 교체하세요. 글자 모양과 배경색까지 매장의 분위기에 맞게 바꿀 수 있어요." visual={<CustomizationVisual />} />;
+  return <DarkStorySection eyebrow="자유로운 커스터마이징" title={<>이미지도 내맘대로 변경.<br />글자, 색상도 내맘대로 변경.</>} body="이미지 노출과 교체부터 글자 모양, 배경색까지 자유롭게 설정할 수 있습니다." visual={<CustomizationVisual />} />;
 }
 
 function TimeSaleVisual() {
@@ -367,8 +367,8 @@ function WidgetVisual() {
 export function SalesAndLanguageSection() {
   return (
     <>
-      <DarkStorySection reverse eyebrow="시간이 매출 기회가 되도록" title={<>타임 세일로<br />고객의 시선을 붙잡아요</>} body="할인 메뉴와 시간을 입력하면 메뉴판에 바로 반영되고, 남은 시간이 실시간으로 줄어들어 지금만의 혜택을 분명하게 보여줘요." visual={<TimeSaleVisual />} />
-      <DarkStorySection eyebrow="필요한 정보를 더 눈에 띄게" title={<>위젯 기능으로<br />매장의 소식을 전해요</>} body="추천 메뉴, 신메뉴, 매장 소식 위젯을 원하는 위치에 넣어 고객에게 꼭 보여주고 싶은 내용을 강조할 수 있어요." visual={<WidgetVisual />} />
+      <DarkStorySection reverse eyebrow="실시간 타임 세일" title={<>타임 세일로 만드는<br />구매의 순간</>} body="할인 메뉴와 남은 시간을 실시간으로 노출해 혜택을 강조합니다." visual={<TimeSaleVisual />} />
+      <DarkStorySection eyebrow="콘텐츠 위젯" title={<>매장 소식을 강조하는<br />위젯</>} body="추천 메뉴와 신메뉴, 매장 소식을 원하는 위치에 배치할 수 있습니다." visual={<WidgetVisual />} />
     </>
   );
 }
@@ -440,7 +440,7 @@ function MultiPageVisual() {
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-[9px] font-bold text-zinc-400 md:text-[10px]">페이지를 넘겨 메뉴의 흐름을 살펴보세요.</p>
+        <p className="text-[9px] font-bold text-zinc-400 md:text-[10px]">페이지 전환으로 이어지는 메뉴 구성</p>
         <div className="flex gap-2">
           <button type="button" onClick={() => goToPage(-1)} aria-label="이전 메뉴 페이지" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-950 shadow-sm transition-colors hover:bg-zinc-100"><ChevronLeft className="h-4 w-4" /></button>
           <button type="button" onClick={() => goToPage(1)} aria-label="다음 메뉴 페이지" className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-950 text-white shadow-sm transition-colors hover:bg-zinc-800"><ChevronRight className="h-4 w-4" /></button>
@@ -454,9 +454,9 @@ export function MultiPageSection() {
   return (
     <DarkStorySection
       reverse
-      eyebrow="코스의 흐름까지 한눈에"
-      title={<>여러 장의 메뉴를<br />한 권처럼 넘겨보세요</>}
-      body="코스, 와인, 디저트를 페이지별로 나눠 고급 다이닝의 흐름을 차분하게 보여줘요."
+      eyebrow="파인다이닝 멀티 페이지"
+      title={<>여러 장의 메뉴를<br />한 권처럼</>}
+      body="코스·와인·디저트를 페이지별로 나눠 다이닝의 흐름을 구성합니다."
       visual={<MultiPageVisual />}
     />
   );
@@ -484,17 +484,17 @@ function TranslationVisual() {
 
 export function AiFeaturesSection() {
   const features = [
-    { eyebrow: "AI 메뉴 정리", title: "메뉴 정보를 한 번에 정리해 등록해요", body: "메뉴명, 가격, 설명을 한꺼번에 입력하면 AI가 항목별로 정리해 메뉴 등록을 도와줘요.", visual: <AiMenuVisual /> },
-    { eyebrow: "AI 다국어 번역", title: "클릭 한 번으로 4개국어 메뉴판이 완성!", body: "AI가 메뉴명과 설명을 영어·중국어·일본어로 번역해 외국인 고객도 편하게 볼 수 있어요.", visual: <TranslationVisual /> },
+    { eyebrow: "AI 메뉴 정리", title: "메뉴 정보 자동 정리와 등록", body: "메뉴명·가격·설명을 입력하면 AI가 항목별로 정리합니다.", visual: <AiMenuVisual /> },
+    { eyebrow: "AI 다국어 번역", title: "클릭 한 번으로 완성되는 4개국어 메뉴판", body: "메뉴명과 설명을 영어·중국어·일본어로 번역합니다.", visual: <TranslationVisual /> },
   ];
 
   return (
     <section className="bg-white px-6 pb-12 pt-16 md:px-10 md:pb-12 md:pt-16">
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl">
-          <MarketingSectionCopy eyebrow="AI 기능" title={<>반복되는 메뉴 작업은<br />AI에게 맡기세요</>} />
+          <MarketingSectionCopy eyebrow="AI 메뉴 관리" title={<>AI로 정리되는<br />반복 메뉴 작업</>} />
         </motion.div>
-        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="text-sm font-bold text-zinc-500">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">{feature.body}</p></div></motion.article>)}</div>
+        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="text-base font-bold text-zinc-500 md:text-lg">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">{feature.body}</p></div></motion.article>)}</div>
       </div>
     </section>
   );
@@ -504,18 +504,18 @@ export function StoreScenesSection() {
   const scenes = [
     {
       image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1400&auto=format&fit=crop",
-      title: "매장의 분위기를 그대로 담아요",
-      body: "공간의 톤과 메뉴의 매력이 자연스럽게 이어지는 메뉴판으로 보여주세요.",
+      title: "매장 분위기를 담은 화면",
+      body: "공간의 톤과 메뉴의 매력을 하나의 화면으로 연결합니다.",
     },
     {
       image: "/menu-templates/cafe_design_a/malcha_present.jpg",
-      title: "메뉴의 매력을 가까이 전해요",
-      body: "사진과 설명을 함께 보여주며 손님이 메뉴의 특징을 더 쉽게 이해하도록 도와줘요.",
+      title: "메뉴 매력을 살리는 정보",
+      body: "사진과 설명으로 메뉴의 특징을 명확하게 전달합니다.",
     },
     {
       image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1400&auto=format&fit=crop",
-      title: "메뉴가 바뀌어도 바로 반영해요",
-      body: "가격과 메뉴 정보를 수정하면 매장에서 보고 있는 화면에도 빠르게 반영돼요.",
+      title: "수정 즉시 반영되는 메뉴판",
+      body: "가격과 메뉴 정보 변경 사항을 화면에 빠르게 반영합니다.",
     },
   ];
 
@@ -598,7 +598,7 @@ function DeviceSetVisual() {
         <div className="aspect-square w-[42%] shrink-0 overflow-hidden rounded-md"><DecorativeQr /></div>
         <div className="min-w-0">
           <p className="flex items-center gap-1 text-[8px] font-black md:text-[10px]"><Smartphone className="h-3 w-3 shrink-0" />모바일 QR</p>
-          <p className="mt-1 break-keep text-[7px] font-semibold leading-relaxed text-zinc-500 md:text-[9px]">QR 이미지를 내려받아 테이블과 안내물에 활용해요.</p>
+          <p className="mt-1 break-keep text-[7px] font-semibold leading-relaxed text-zinc-500 md:text-[9px]">QR 이미지 다운로드 및 매장 안내물 활용</p>
         </div>
       </div>
     </div>
@@ -609,9 +609,9 @@ export function DeviceEverywhereSection() {
   return (
     <DarkStorySection
       endOfRegion
-      eyebrow="PC/태블릿/모바일(QR)"
-      title={<>링크만 있으면 메뉴판을<br />PC/태블릿/모바일(QR) 어디서든 띄워요!</>}
-      body="PC와 태블릿은 물론, 모바일에서는 QR로 간편하게. 같은 메뉴판이 화면 크기에 맞춰 자연스럽게 보여요."
+      eyebrow="반응형 메뉴판"
+      title={<>하나의 링크,<br />모든 디바이스에 최적화</>}
+      body="PC·태블릿·모바일 화면에 맞춰 같은 메뉴판이 자동 최적화됩니다."
       visual={<DeviceSetVisual />}
     />
   );
@@ -619,15 +619,15 @@ export function DeviceEverywhereSection() {
 
 export function ResourceCtaSection() {
   return (
-    <section className="bg-white px-6 pb-24 pt-0 md:px-10 md:pb-36 md:pt-0">
+    <section className="bg-white px-6 pb-12 pt-0 md:px-10 md:pb-16 md:pt-0">
       <div className="mx-auto max-w-[1380px]">
         <motion.div {...fadeUp} className="relative overflow-hidden rounded-[2rem] bg-zinc-950 px-7 py-14 text-white md:min-h-[500px] md:rounded-[2.5rem] md:px-16 md:py-20 lg:grid lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
           <div className="relative z-10 max-w-2xl">
             <MarketingSectionCopy
               inverted
-              eyebrow="아티메뉴 시작 가이드"
-              title={<>매장에 꼭 맞는 메뉴판을<br />차근차근 시작해보세요</>}
-              body="서비스 특징부터 실제 메뉴판을 만드는 방법까지 필요한 내용을 한곳에 정리할 예정이에요."
+              eyebrow="아티메뉴 가이드"
+              title={<>아티메뉴 시작을 위한<br />안내</>}
+              body="서비스 특징과 메뉴판 제작 방법을 한곳에서 확인할 수 있습니다."
               className="max-w-xl"
             />
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
