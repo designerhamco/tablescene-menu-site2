@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, Menu, X } from 'lucide-react';
+import { Bell, ChevronDown, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
 import { KAKAO_CHANNEL_URL } from '../ui/ScrollToTop';
@@ -12,21 +12,36 @@ const logoImage = '/assets/tablescene-symbol.png';
 type NavItem = {
   label: string;
   path: string;
+  activePaths?: readonly string[];
   discount?: boolean;
-  premium?: boolean;
   disabled?: boolean;
+  submenu?: readonly {
+    label: string;
+    path: string;
+    comingSoon?: boolean;
+  }[];
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: '아티메뉴 베이직', path: '/services/basic', discount: true },
-  { label: '아티메뉴 디스플레이', path: '/services/display' },
-  { label: '커스텀', path: '/custom', premium: true },
+  {
+    label: '아티메뉴 다이닝',
+    path: '/',
+    activePaths: ['/', '/services/basic', '/services/menu', '/services/signature', '/services/qr-order', '/services/smart-call'],
+    discount: true,
+    submenu: [
+      { label: '아티메뉴 다이닝', path: '/' },
+      { label: 'QR오더(모바일)', path: '/services/qr-order', comingSoon: true },
+      { label: '스마트호출', path: '/services/smart-call', comingSoon: true },
+    ],
+  },
+  { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
+  { label: '고객센터', path: '/faq', activePaths: ['/faq'] },
 ];
 
 function DiscountChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
-      할인
+      오픈할인
     </span>
   );
 }
@@ -35,14 +50,6 @@ function DisabledChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold leading-none text-zinc-500">
       준비중
-    </span>
-  );
-}
-
-function PremiumChip() {
-  return (
-    <span className="inline-flex shrink-0 rounded-full border border-[#A88745]/35 bg-[#2F2418] px-1.5 py-0.5 text-[9px] font-black leading-none tracking-[0.08em] text-[#F4E7C5]">
-      PREMIUM
     </span>
   );
 }
@@ -64,6 +71,8 @@ type NotificationEvent = {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDiningMenuOpen, setIsDiningMenuOpen] = useState(false);
+  const [isMobileDiningOpen, setIsMobileDiningOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -75,6 +84,7 @@ const Navbar = () => {
     loading: true,
   });
   const isScrolledRef = useRef(false);
+  const diningMenuRef = useRef<HTMLDivElement | null>(null);
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const pathname = location.pathname;
@@ -86,7 +96,34 @@ const Navbar = () => {
 
   useEffect(() => {
     setIsOpen(false);
+    setIsDiningMenuOpen(false);
+    setIsMobileDiningOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isDiningMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!diningMenuRef.current?.contains(event.target as Node)) {
+        setIsDiningMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDiningMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDiningMenuOpen]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -235,25 +272,32 @@ const Navbar = () => {
       ? 'transparent'
       : 'solid';
   const shouldShowSolidNav = navVariant === 'solid' || isScrolled || isOpen;
+  const shouldShowDarkNav = navVariant === 'transparent' && isScrolled && !isOpen;
 
-  const navBgClass = shouldShowSolidNav
+  const navBgClass = shouldShowDarkNav
+    ? 'bg-zinc-950/95 backdrop-blur-md border-b border-white/10'
+    : shouldShowSolidNav
     ? 'bg-white/90 backdrop-blur-md border-b border-zinc-100'
     : 'bg-transparent border-transparent';
-  const navToneClass = shouldShowSolidNav ? 'text-black' : 'text-white';
+  const navToneClass = shouldShowDarkNav ? 'text-white' : shouldShowSolidNav ? 'text-black' : 'text-white';
   const logoTextClass = 'text-current';
   const navTextClass = shouldShowSolidNav
     ? 'text-current opacity-70 hover:opacity-100'
     : 'text-current opacity-90 hover:opacity-100';
   const menuButtonClass = shouldShowSolidNav ? 'text-current hover:opacity-70' : 'text-current hover:opacity-80';
-  const primaryButtonClass = shouldShowSolidNav
+  const primaryButtonClass = shouldShowDarkNav
+    ? 'bg-white hover:bg-zinc-100'
+    : shouldShowSolidNav
     ? 'bg-zinc-950 hover:bg-zinc-800'
-    : 'bg-white hover:bg-white/90';
-  const primaryButtonStyle = { color: shouldShowSolidNav ? '#ffffff' : '#09090b' };
-  const secondaryButtonClass = shouldShowSolidNav
+    : 'bg-white hover:bg-zinc-100';
+  const primaryButtonStyle = { color: shouldShowDarkNav ? '#09090b' : shouldShowSolidNav ? '#ffffff' : '#09090b' };
+  const secondaryButtonClass = shouldShowDarkNav
+    ? 'border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800'
+    : shouldShowSolidNav
     ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
-    : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
+    : 'border-zinc-700 bg-zinc-950 text-white hover:bg-zinc-800';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
-  const accountCtaLabel = authState.isAuthenticated ? '마이페이지' : '로그인';
+  const accountCtaLabel = authState.isAuthenticated ? '나의 메뉴판' : '로그인';
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
 
   const markNotificationAsRead = async (notificationId: string) => {
@@ -306,27 +350,71 @@ const Navbar = () => {
           </Link>
 
           <div className="absolute left-1/2 top-1/2 hidden h-full -translate-x-1/2 -translate-y-1/2 items-center gap-5 lg:flex xl:gap-8">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                aria-disabled={item.disabled ? true : undefined}
-                tabIndex={item.disabled ? -1 : undefined}
-                onClick={(event) => {
-                  if (item.disabled) {
-                    event.preventDefault();
-                  }
-                }}
-                className={`inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 ${
-                  item.disabled ? 'pointer-events-none cursor-not-allowed text-current opacity-35' : navTextClass
-                }`}
-              >
-                <span>{item.label}</span>
-                {item.discount ? <DiscountChip /> : null}
-                {item.premium ? <PremiumChip /> : null}
-                {item.disabled ? <DisabledChip /> : null}
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const isActive = (item.activePaths ?? [item.path]).includes(pathname);
+
+              return (
+                <div
+                  key={item.path}
+                  ref={item.submenu ? diningMenuRef : undefined}
+                  onMouseEnter={item.submenu ? () => setIsDiningMenuOpen(true) : undefined}
+                  onMouseLeave={item.submenu ? () => setIsDiningMenuOpen(false) : undefined}
+                  onFocus={item.submenu ? () => setIsDiningMenuOpen(true) : undefined}
+                  onBlur={item.submenu ? (event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                      setIsDiningMenuOpen(false);
+                    }
+                  } : undefined}
+                  className="relative flex h-full items-center"
+                >
+                  <Link
+                    to={item.path}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-disabled={item.disabled ? true : undefined}
+                    aria-haspopup={item.submenu ? 'menu' : undefined}
+                    aria-expanded={item.submenu ? isDiningMenuOpen : undefined}
+                    tabIndex={item.disabled ? -1 : undefined}
+                    onClick={(event) => {
+                      if (item.disabled) {
+                        event.preventDefault();
+                      }
+                      setIsDiningMenuOpen(false);
+                    }}
+                    className={`relative inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
+                      item.disabled
+                        ? 'pointer-events-none cursor-not-allowed text-current opacity-35 after:w-0'
+                        : isActive
+                          ? 'opacity-100 after:w-6'
+                          : `${navTextClass} after:w-0`
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {item.discount ? <DiscountChip /> : null}
+                    {item.disabled ? <DisabledChip /> : null}
+                    {item.submenu ? <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isDiningMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" /> : null}
+                  </Link>
+
+                  {item.submenu ? (
+                    <div className={`absolute left-1/2 top-[calc(100%-8px)] w-64 -translate-x-1/2 pt-3 transition-all duration-150 ${isDiningMenuOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}>
+                      <div role="menu" className="rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-950 shadow-[0_18px_55px_rgba(0,0,0,0.16)]">
+                        {item.submenu.map((subItem) => (
+                          <Link
+                            key={subItem.path}
+                            to={subItem.path}
+                            role="menuitem"
+                            onClick={() => setIsDiningMenuOpen(false)}
+                            className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-colors hover:bg-zinc-100 focus-visible:bg-zinc-100 focus-visible:outline-none"
+                          >
+                            <span>{subItem.label}</span>
+                            {subItem.comingSoon ? <DisabledChip /> : null}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
 
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
@@ -348,7 +436,7 @@ const Navbar = () => {
                 >
                   <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
                   {unreadCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white">
                       {unreadBadgeLabel}
                     </span>
                   ) : null}
@@ -452,51 +540,96 @@ const Navbar = () => {
                       ) : null}
                     </a>
                   ) : null}
-                  <a
-                    href={KAKAO_CHANNEL_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={closeMobileMenu}
-                    className="col-span-2 flex items-center justify-center rounded-2xl border border-[#F8E731]/70 bg-[#F8E731]/15 px-4 py-3 text-sm font-bold text-zinc-900"
-                  >
-                    카카오톡 상담
-                  </a>
                 </div>
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">
-                  {NAV_ITEMS.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      aria-disabled={item.disabled ? true : undefined}
-                      tabIndex={item.disabled ? -1 : undefined}
-                      onClick={(event) => {
-                        if (item.disabled) {
-                          event.preventDefault();
-                          return;
-                        }
+                  {NAV_ITEMS.map((item) => {
+                    const isActive = (item.activePaths ?? [item.path]).includes(pathname);
 
-                        closeMobileMenu();
-                      }}
-                      className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-5 text-2xl font-bold tracking-tight transition-colors ${
-                        item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : 'text-zinc-900 active:text-zinc-500'
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      <span className="flex shrink-0 items-center gap-1.5">
-                        {item.discount ? <DiscountChip /> : null}
-                        {item.premium ? <PremiumChip /> : null}
+                    if (item.submenu) {
+                      return (
+                        <div key={item.path} className="border-b border-zinc-100 py-1">
+                          <button
+                            type="button"
+                            aria-expanded={isMobileDiningOpen}
+                            aria-controls="mobile-dining-menu"
+                            onClick={() => setIsMobileDiningOpen((current) => !current)}
+                            className={`flex w-full items-center justify-between gap-3 py-5 text-left text-2xl font-bold tracking-tight ${isActive ? 'text-zinc-950' : 'text-zinc-700'}`}
+                          >
+                            <span>{item.label}</span>
+                            <span className="flex shrink-0 items-center gap-2">
+                              {item.discount ? <DiscountChip /> : null}
+                              <ChevronDown className={`h-5 w-5 transition-transform ${isMobileDiningOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                            </span>
+                          </button>
+
+                          <AnimatePresence initial={false}>
+                            {isMobileDiningOpen ? (
+                              <motion.div
+                                id="mobile-dining-menu"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="mb-3 overflow-hidden rounded-2xl bg-zinc-50 p-2"
+                              >
+                                {item.submenu.map((subItem) => (
+                                  <Link
+                                    key={subItem.path}
+                                    to={subItem.path}
+                                    onClick={closeMobileMenu}
+                                    className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3.5 text-base font-bold ${pathname === subItem.path ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600 active:bg-white'}`}
+                                  >
+                                    <span>{subItem.label}</span>
+                                    {subItem.comingSoon ? <DisabledChip /> : null}
+                                  </Link>
+                                ))}
+                              </motion.div>
+                            ) : null}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        aria-current={isActive ? 'page' : undefined}
+                        aria-disabled={item.disabled ? true : undefined}
+                        tabIndex={item.disabled ? -1 : undefined}
+                        onClick={(event) => {
+                          if (item.disabled) {
+                            event.preventDefault();
+                            return;
+                          }
+
+                          closeMobileMenu();
+                        }}
+                        className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-6 text-2xl font-bold tracking-tight transition-colors ${
+                          item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : isActive ? 'text-zinc-950' : 'text-zinc-600 active:text-zinc-950'
+                        }`}
+                      >
+                        <span>{item.label}</span>
                         {item.disabled ? <DisabledChip /> : null}
-                      </span>
-                    </Link>
-                  ))}
+                      </Link>
+                    );
+                  })}
                 </nav>
               </div>
 
               <div className="mt-auto px-6 py-8">
                 <div className="border-t border-zinc-100 pt-6">
-                  <div className="flex flex-col gap-0.5 text-[10px] font-medium tracking-tight text-zinc-400">
-                    <p className="mb-1 text-xs font-bold text-zinc-900">ArtiMenu Studio</p>
+                  <a
+                    href={KAKAO_CHANNEL_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMobileMenu}
+                    className="mb-5 inline-flex text-xs font-bold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
+                  >
+                    카카오톡 상담
+                  </a>
+                  <div className="flex flex-col gap-1 text-xs font-medium tracking-tight text-zinc-400">
+                    <p className="mb-1 text-sm font-bold text-zinc-900">ArtiMenu Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
                     <p className="mt-1 opacity-60">© 2026 ArtiMenu. All rights reserved.</p>
                   </div>

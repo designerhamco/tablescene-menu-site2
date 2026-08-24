@@ -72,7 +72,7 @@ export const TEMPLATE_TYPE_DESCRIPTIONS = {
 } as const satisfies Record<TemplateType, { short: string; description: string }>;
 
 export const TEMPLATE_SERVICE_LABELS = {
-  basic: "아티메뉴 베이직",
+  basic: "아티메뉴 다이닝",
   display: "아티메뉴 디스플레이",
 } as const satisfies Record<TemplateServiceType, string>;
 

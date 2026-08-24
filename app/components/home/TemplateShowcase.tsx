@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import TemplateCard from '@/components/templates/TemplateCard';
+import TemplateCard, { TemplateThumbnail } from '@/components/templates/TemplateCard';
+import { MarketingSectionCopy } from './MarketingSectionCopy';
 import {
   BASIC_TEMPLATE_CATEGORY_GROUPS,
   DISPLAY_TEMPLATE_CATEGORY_GROUPS,
   getAvailableTemplatesForService,
+  getFeaturedTemplatesForBasicPage,
   getTemplateCategoryKeysForBasicGroup,
   getTemplateCategoryKeysForDisplayGroup,
   type BasicTemplateCategoryGroupKey,
@@ -23,7 +25,7 @@ type TemplateShowcaseProps = {
 const serviceTabs = [
   {
     key: 'basic',
-    label: '아티메뉴 베이직',
+    label: '아티메뉴 다이닝',
     description: '모바일·태블릿·PC에서 열어보는 디지털 메뉴판',
   },
   {
@@ -38,7 +40,6 @@ function getShowcaseTemplates(service: TemplateServiceKey): TemplateCatalogItem[
 }
 
 const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
-  const [activeService, setActiveService] = useState<TemplateServiceKey>('basic');
   const [activeCategory, setActiveCategory] = useState<BasicTemplateCategoryGroupKey | DisplayTemplateCategoryGroupKey>(
     service === 'display' ? firstDisplayCategoryGroupKey : firstBasicCategoryGroupKey
   );
@@ -46,13 +47,15 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const [cardsPerPage, setCardsPerPage] = useState(4);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isHomeShowcase = service === 'all';
-  const selectedService = isHomeShowcase ? activeService : service;
+  const selectedService = isHomeShowcase ? 'basic' : service;
   const activeServiceCopy = serviceTabs.find((tab) => tab.key === selectedService) ?? serviceTabs[0];
   const showcaseTemplates = getShowcaseTemplates(selectedService);
+  const homeTemplates = getFeaturedTemplatesForBasicPage();
   const activeCategoryGroups =
     selectedService === 'basic' ? BASIC_TEMPLATE_CATEGORY_GROUPS : DISPLAY_TEMPLATE_CATEGORY_GROUPS;
-  const visibleTemplates =
-    selectedService === 'basic'
+  const visibleTemplates = isHomeShowcase
+    ? homeTemplates
+    : selectedService === 'basic'
       ? showcaseTemplates.filter((template) => getTemplateCategoryKeysForBasicGroup(activeCategory as BasicTemplateCategoryGroupKey).includes(template.template_category))
       : showcaseTemplates.filter((template) => getTemplateCategoryKeysForDisplayGroup(activeCategory as DisplayTemplateCategoryGroupKey).includes(template.template_category));
   const pageCount = Math.ceil(visibleTemplates.length / cardsPerPage);
@@ -92,76 +95,113 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
     setActivePage(Math.round(carousel.scrollLeft / carousel.clientWidth));
   };
 
+  if (isHomeShowcase) {
+    const marqueeTemplates = [...homeTemplates, ...homeTemplates];
+
+    return (
+      <section className="bg-transparent py-28 text-white md:py-36">
+        <div className="mx-auto max-w-[1560px]">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.55 }}
+            className="mx-auto mb-16 max-w-4xl px-6 text-center md:mb-20"
+          >
+            <MarketingSectionCopy
+              centered
+              inverted
+              eyebrow="디자이너 템플릿"
+              title={<>매장의 분위기를 완성하는<br />아티메뉴 템플릿</>}
+              body="매장 분위기에 맞는 디자인을 선택해 바로 시작할 수 있습니다."
+              className="max-w-xl"
+            />
+          </motion.div>
+
+          <div className="relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent md:w-44" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l from-zinc-950 via-zinc-950/80 to-transparent md:w-44" />
+            <motion.div
+              className="flex w-max gap-4 px-4 md:gap-6"
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ duration: 80, ease: 'linear', repeat: Infinity }}
+              aria-label="아티메뉴 다이닝 템플릿 자동 슬라이드"
+            >
+              {marqueeTemplates.map((template, index) => (
+                <div key={`${template.key}-${index}`} className="w-[76vw] shrink-0 sm:w-[48vw] lg:w-[30vw] lg:max-w-[420px]">
+                  {template.status === 'available' ? (
+                    <a href={`/templates/${template.key}/preview`} target="_blank" rel="noreferrer" aria-label={`${template.name} 템플릿 미리보기 새창으로 열기`} className="block">
+                      <TemplateThumbnail template={template} />
+                    </a>
+                  ) : (
+                    <TemplateThumbnail template={template} />
+                  )}
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          <div className="mt-12 flex justify-center">
+            <a href="/apply" className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100">
+              더 많은 디자인 보기
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="bg-zinc-50 py-24">
-      <div className="mx-auto max-w-7xl px-6">
+    <section className={`${isHomeShowcase ? 'bg-transparent py-28 text-white md:py-36' : 'bg-zinc-50 py-24 md:py-36'}`}>
+      <div className={`${isHomeShowcase ? 'mx-auto max-w-[1560px]' : 'mx-auto max-w-7xl px-6'}`}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55 }}
-          className="mx-auto mb-12 max-w-3xl text-center"
+          className={`mx-auto max-w-4xl px-6 text-center ${isHomeShowcase ? 'mb-16 md:mb-20' : 'mb-12'}`}
         >
-          <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
-            디자이너가 만든 템플릿으로 시작하세요
+          {isHomeShowcase ? <p className="mb-4 text-sm font-bold text-zinc-400">전문 디자이너가 설계한 메뉴판</p> : null}
+          <h2 className={`whitespace-pre-line break-keep text-3xl font-bold tracking-tight md:text-5xl ${isHomeShowcase ? 'text-white' : 'text-zinc-950'}`}>
+            {isHomeShowcase ? '매장의 분위기를 완성하는\n아티메뉴 템플릿' : '디자이너 템플릿으로 시작'}
           </h2>
-          <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
-            {activeServiceCopy.description}
-          </p>
+          {isHomeShowcase ? (
+            <p className="mx-auto mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
+              매장 분위기에 맞는 템플릿을 선택해 바로 시작할 수 있습니다.
+            </p>
+          ) : (
+            <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+              {activeServiceCopy.description}
+            </p>
+          )}
         </motion.div>
 
-        {isHomeShowcase ? (
-          <div className="mx-auto mb-8 grid max-w-3xl gap-3 rounded-[1.5rem] border border-zinc-200 bg-white p-2 md:grid-cols-2">
-            {serviceTabs.map((tab) => {
-              const isSelected = activeService === tab.key;
-
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => {
-                    setActiveService(tab.key);
-                    setActiveCategory(tab.key === 'basic' ? firstBasicCategoryGroupKey : firstDisplayCategoryGroupKey);
-                  }}
-                  className={`rounded-[1.1rem] px-5 py-4 text-left transition-colors ${
-                    isSelected ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-50'
-                  }`}
-                  aria-pressed={isSelected}
-                >
-                  <span className="block text-base font-black">{tab.label}</span>
-                  <span className={`mt-1 block break-keep text-sm font-medium leading-relaxed ${
-                    isSelected ? 'text-white/70' : 'text-zinc-500'
-                  }`}>
-                    {tab.description}
-                  </span>
-                </button>
-              );
-            })}
+        {!isHomeShowcase ? (
+          <div className="mb-12 flex flex-wrap justify-center gap-3">
+            {activeCategoryGroups.map((category) => (
+              <button
+                key={category.key}
+                type="button"
+                onClick={() => setActiveCategory(category.key)}
+                className={`rounded-full px-5 py-3 text-base font-medium transition-colors ${
+                  activeCategory === category.key
+                    ? 'bg-zinc-950 text-white'
+                    : 'bg-white text-zinc-700 hover:bg-zinc-100'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
           </div>
         ) : null}
 
-        <div className="mb-12 flex flex-wrap justify-center gap-3">
-          {activeCategoryGroups.map((category) => (
-            <button
-              key={category.key}
-              type="button"
-              onClick={() => setActiveCategory(category.key)}
-              className={`rounded-full px-5 py-3 text-base font-medium transition-colors ${
-                activeCategory === category.key
-                  ? 'bg-zinc-950 text-white'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
-              }`}
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
-
-        <div
-          ref={carouselRef}
-          onScroll={handleCarouselScroll}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 [-ms-overflow-style:none] [scrollbar-width:none] md:gap-6 [&::-webkit-scrollbar]:hidden"
-        >
+        <div className={isHomeShowcase ? 'relative' : ''}>
+          {isHomeShowcase ? <><div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent md:w-44" /><div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l from-zinc-950 via-zinc-950/80 to-transparent md:w-44" /></> : null}
+          <div
+            ref={carouselRef}
+            onScroll={handleCarouselScroll}
+            className={`flex snap-x snap-mandatory overflow-x-auto scroll-smooth pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isHomeShowcase ? 'gap-4 px-[10vw] md:gap-6 md:px-[5vw]' : 'gap-4 md:gap-6'}`}
+          >
           {visibleTemplates.length > 0 ? (
             visibleTemplates.map((template, index) => (
               <motion.article
@@ -170,7 +210,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: index * 0.08 }}
-                className="min-w-0 shrink-0 basis-[calc((100%_-_1rem)/2)] snap-start md:basis-[calc((100%_-_4.5rem)/4)]"
+                className={`min-w-0 shrink-0 snap-start ${isHomeShowcase ? 'basis-[82%] sm:basis-[56%] lg:basis-[35%]' : 'basis-[calc((100%_-_1rem)/2)] md:basis-[calc((100%_-_4.5rem)/4)]'}`}
               >
                 {template.status === 'available' ? (
                   <a
@@ -195,6 +235,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
               </p>
             </div>
           )}
+          </div>
         </div>
 
         {showDots ? (
@@ -206,10 +247,21 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                 onClick={() => scrollToPage(index)}
                 aria-label={`템플릿 ${index + 1}번째 묶음 보기`}
                 className={`h-2.5 rounded-full transition-all ${
-                  activePage === index ? 'w-8 bg-zinc-950' : 'w-2.5 bg-zinc-300 hover:bg-zinc-400'
+                  activePage === index ? `w-8 ${isHomeShowcase ? 'bg-white' : 'bg-zinc-950'}` : `w-2.5 ${isHomeShowcase ? 'bg-white/25 hover:bg-white/40' : 'bg-zinc-300 hover:bg-zinc-400'}`
                 }`}
               />
             ))}
+          </div>
+        ) : null}
+
+        {isHomeShowcase ? (
+          <div className="mt-10 flex justify-center">
+            <a
+              href="/store"
+              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100"
+            >
+              더 많은 템플릿 보기 <span aria-hidden="true" className="ml-2">→</span>
+            </a>
           </div>
         ) : null}
       </div>

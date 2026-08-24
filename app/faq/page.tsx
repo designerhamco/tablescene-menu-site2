@@ -5,8 +5,8 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 export const metadata: Metadata = {
-  title: "자주 묻는 질문 | ArtiMenu",
-  description: "아티메뉴 이용 전 궁금할 수 있는 내용을 정리했습니다.",
+  title: "고객센터 | ArtiMenu",
+  description: "아티메뉴 이용과 관련해 자주 묻는 질문을 확인할 수 있습니다.",
 };
 
 export default function FAQPage() {
@@ -17,6 +17,7 @@ export default function FAQPage() {
         <FAQ
           className="pt-16"
           data={DETAILED_FAQ_DATA}
+          title="고객센터"
           description="아티메뉴 이용 전 궁금할 수 있는 내용을 정리했습니다. 서비스 이용 방식, 결제, AI 작성 도우미, 화면 연결 방법을 확인해보세요."
         />
       </main>

@@ -23,7 +23,7 @@ export const services = [
     description: "웹 메뉴판과 완벽히 어우러지는 QR 웰컴 카드. 매장의 품격을 완성하는 프리미엄 솔루션.",
     image: "https://images.unsplash.com/photo-1728044849280-10a1a75cff83?q=75&w=720",
     video: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-    link: "/services/basic",
+    link: "/",
   },
   {
     id: "web-menu-pro-ai",
@@ -60,7 +60,7 @@ export const plans = [
     tagline: "DINING",
     keywords: ["파인다이닝", "QR 웰컴 카드", "프리미엄 커스텀"],
     narrative: "웹 메뉴판과 완벽한 조화를 이루는 프리미엄 QR 웰컴 카드를 제작해 드립니다. 매장의 품격을 높이는 차별화된 경험을 제공하세요.",
-    link: "/services/basic",
+    link: "/",
     poster: "https://images.unsplash.com/photo-1574096079513-d8259312b785?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=75&w=720",
     disabled: false,
   },

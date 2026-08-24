@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 
-import FAQ from '@/app/components/common/FAQ';
 import DeviceSelection from '@/app/components/home/DeviceSelection';
 import TemplateShowcase from '@/app/components/home/TemplateShowcase';
 import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
@@ -156,10 +155,10 @@ const BasicServicePage = () => {
           className="max-w-3xl text-left"
         >
           <h1 className="break-keep text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
-            아티메뉴 베이직
+            아티메뉴 다이닝
           </h1>
           <p className="mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-white/80 md:text-lg">
-            아티메뉴 베이직은 앱 설치 없이 브라우저 링크로 열리는 디지털 메뉴판입니다. 모바일, 태블릿, 노트북, PC처럼 브라우저를 사용할 수 있는 기기라면 링크 하나로 메뉴와 가격표를 바로 보여줄 수 있습니다.
+            아티메뉴 다이닝은 앱 설치 없이 브라우저 링크로 열리는 디지털 메뉴판입니다. 모바일, 태블릿, 노트북, PC처럼 브라우저를 사용할 수 있는 기기라면 링크 하나로 메뉴와 가격표를 바로 보여줄 수 있습니다.
           </p>
         </motion.div>
       </section>
@@ -205,7 +204,6 @@ const BasicServicePage = () => {
         title={<>링크 하나면,<br className="hidden md:block" />어떤 기기에서도 열어볼 수 있어요</>}
       />
       <ServicePricingSection service="basic" />
-      <FAQ />
     </div>
   );
 };

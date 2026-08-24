@@ -101,7 +101,7 @@ export default function AiCreditRechargePanel({
           </h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
             {accountSummaryOnly
-              ? "AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 아티메뉴 베이직과 첫 달 체험은 18크레딧, 아티메뉴 디스플레이는 26크레딧을 기본 제공합니다."
+              ? "AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 아티메뉴 다이닝과 첫 달 체험은 18크레딧, 아티메뉴 디스플레이는 26크레딧을 기본 제공합니다."
               : compact
                 ? "이 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다."
                 : `기본 지급 ${formatAiCredits(totalGrantedCredits)} · 추가 충전 ${formatAiCredits(totalPurchasedCredits)} · 사용 ${formatAiCredits(totalUsedCredits)}`}
@@ -127,7 +127,7 @@ export default function AiCreditRechargePanel({
       {!compact && !accountSummaryOnly ? (
         <div className="mt-3 space-y-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
           <p>AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 보유 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.</p>
-          <p>아티메뉴 베이직과 첫 달 체험은 18크레딧, 아티메뉴 디스플레이는 26크레딧을 기본 제공합니다.</p>
+          <p>아티메뉴 다이닝과 첫 달 체험은 18크레딧, 아티메뉴 디스플레이는 26크레딧을 기본 제공합니다.</p>
           <p>AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧</p>
           <p>요금제에 포함된 AI 크레딧은 현금성 가치가 없으며 환불, 현금 교환 또는 양도 대상이 아닙니다.</p>
           <p>AI가 생성한 문구와 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>

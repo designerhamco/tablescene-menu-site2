@@ -16,7 +16,7 @@ type AuthState = {
 type SiteHeaderVariant = "solid" | "transparent";
 
 const navItems = [
-  { label: "아티메뉴 베이직", href: "/services/basic" },
+  { label: "아티메뉴 다이닝", href: "/" },
   { label: "비주얼 스튜디오", href: "/branding/visual-studio" },
   { label: "스토어", href: "/store" },
 ];

@@ -28,13 +28,13 @@ type PricingData = {
 
 const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
   basic: {
-    title: "아티메뉴 베이직 가격 안내",
+    title: "아티메뉴 다이닝 가격 안내",
     description: "",
     plans: [
       {
         label: "월결제",
         badge: "25% 할인",
-        title: "아티메뉴 베이직",
+        title: "아티메뉴 다이닝",
         price: "9,900원 / 월",
         subcopy: "정가 13,200원 · 오픈할인 25%",
         helper: "매월 자동 갱신",
@@ -46,7 +46,7 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
       {
         label: "연결제",
         badge: "약 40% 할인",
-        title: "아티메뉴 베이직",
+        title: "아티메뉴 다이닝",
         price: "95,000원 / 년",
         subcopy: "연 정가 158,400원 대비 약 40% 할인",
         helper: "오픈 월결제 12개월 대비 약 20% 할인",

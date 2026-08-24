@@ -52,7 +52,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <header className="mt-7 grid gap-8 rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:grid-cols-[1fr_320px] md:p-10">
             <div>
               <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
-                아티메뉴 베이직
+                아티메뉴 다이닝
               </span>
               <h1 className="mt-5 break-keep text-4xl font-black tracking-tight md:text-5xl">{product.shortName}</h1>
               <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-600">

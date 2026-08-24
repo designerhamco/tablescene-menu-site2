@@ -7,10 +7,10 @@ const PLANS = [
   {
     id: 'menu',
     name: '디지털 메뉴판/가격표',
-    tagline: '아티메뉴 베이직',
+    tagline: '아티메뉴 다이닝',
     keywords: ['모바일/QR', '가격표', '바로 수정'],
     narrative: '카페/베이커리, 음식점/다이닝, 뷰티/웰니스, 클래스/공방, 병원/클리닉까지 메뉴와 가격표를 하나의 링크로 관리합니다.',
-    link: '/services/basic',
+    link: '/',
     poster: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
     highlight: false,
     disabled: false
@@ -124,7 +124,7 @@ const PricingCard = ({ plan, index }: { plan: typeof PLANS[0], index: number }) 
         {/* Floating Action Button */}
         {!plan.disabled && (
           <div 
-            className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20 w-12 h-12 md:w-16 md:h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-zinc-900 shadow-lg group-hover:bg-black group-hover:text-white transition-all duration-300 group-hover:scale-110"
+            className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20 w-12 h-12 md:w-16 md:h-16 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-lg group-hover:bg-black group-hover:text-white transition-all duration-300 group-hover:scale-110"
           >
             <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:-rotate-45 transition-transform duration-300" />
           </div>

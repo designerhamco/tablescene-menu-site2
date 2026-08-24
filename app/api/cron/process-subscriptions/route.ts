@@ -198,7 +198,7 @@ function getOrderName(product: SubscriptionProduct) {
     return product.billingCycle === "yearly" ? "아티메뉴 디스플레이 연결제" : "아티메뉴 디스플레이 월결제";
   }
 
-  return product.billingCycle === "yearly" ? "아티메뉴 베이직 연결제" : "아티메뉴 베이직 월결제";
+  return product.billingCycle === "yearly" ? "아티메뉴 다이닝 연결제" : "아티메뉴 다이닝 월결제";
 }
 
 function getSafePortOneMessage(error: unknown) {

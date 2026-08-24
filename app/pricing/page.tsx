@@ -7,7 +7,7 @@ import { formatProductPrice, publicBasicProducts } from "@/lib/public-product-de
 
 export const metadata: Metadata = {
   title: "요금제 및 상품 | ArtiMenu",
-  description: "아티메뉴 베이직의 개인 체험, 사업자 월결제, 사업자 연간 상품 가격과 제공·환불 기준을 확인하세요.",
+  description: "아티메뉴 다이닝의 개인 체험, 사업자 월결제, 사업자 연간 상품 가격과 제공·환불 기준을 확인하세요.",
 };
 
 const upcomingServices = [
@@ -60,7 +60,7 @@ export default function PricingPage() {
             <div className="mb-5 flex flex-col justify-between gap-2 md:flex-row md:items-end">
               <div>
                 <p className="text-sm font-black text-zinc-500">현재 신청 가능</p>
-                <h2 id="basic-products-heading" className="mt-1 text-2xl font-black tracking-tight">아티메뉴 베이직 상품</h2>
+                <h2 id="basic-products-heading" className="mt-1 text-2xl font-black tracking-tight">아티메뉴 다이닝 상품</h2>
               </div>
               <p className="break-keep text-sm font-bold text-zinc-400">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
             </div>
