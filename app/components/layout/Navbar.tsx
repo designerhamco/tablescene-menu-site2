@@ -235,21 +235,28 @@ const Navbar = () => {
       ? 'transparent'
       : 'solid';
   const shouldShowSolidNav = navVariant === 'solid' || isScrolled || isOpen;
+  const shouldShowDarkNav = pathname === '/' && isScrolled && !isOpen;
 
-  const navBgClass = shouldShowSolidNav
+  const navBgClass = shouldShowDarkNav
+    ? 'bg-zinc-950/95 backdrop-blur-md border-b border-white/10'
+    : shouldShowSolidNav
     ? 'bg-white/90 backdrop-blur-md border-b border-zinc-100'
     : 'bg-transparent border-transparent';
-  const navToneClass = shouldShowSolidNav ? 'text-black' : 'text-white';
+  const navToneClass = shouldShowDarkNav ? 'text-white' : shouldShowSolidNav ? 'text-black' : 'text-white';
   const logoTextClass = 'text-current';
   const navTextClass = shouldShowSolidNav
     ? 'text-current opacity-70 hover:opacity-100'
     : 'text-current opacity-90 hover:opacity-100';
   const menuButtonClass = shouldShowSolidNav ? 'text-current hover:opacity-70' : 'text-current hover:opacity-80';
-  const primaryButtonClass = shouldShowSolidNav
+  const primaryButtonClass = shouldShowDarkNav
+    ? 'bg-white hover:bg-white/90'
+    : shouldShowSolidNav
     ? 'bg-zinc-950 hover:bg-zinc-800'
     : 'bg-white hover:bg-white/90';
-  const primaryButtonStyle = { color: shouldShowSolidNav ? '#ffffff' : '#09090b' };
-  const secondaryButtonClass = shouldShowSolidNav
+  const primaryButtonStyle = { color: shouldShowDarkNav ? '#09090b' : shouldShowSolidNav ? '#ffffff' : '#09090b' };
+  const secondaryButtonClass = shouldShowDarkNav
+    ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
+    : shouldShowSolidNav
     ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
     : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
