@@ -273,13 +273,6 @@ export function SalesAndLanguageSection() {
   return (
     <section className="bg-white px-6 py-24 md:px-10 md:py-36">
       <div className="mx-auto max-w-[1380px]">
-        <motion.div {...fadeUp} className="mb-12 max-w-3xl md:mb-16">
-          <SectionLabel>아티메뉴 주요 기능</SectionLabel>
-          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
-            타임 세일∙위젯∙다국어
-          </h2>
-        </motion.div>
-
         <div className="grid gap-6 lg:grid-cols-2">
           {features.map((feature, index) => (
             <motion.article key={feature.number} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="min-w-0 overflow-hidden rounded-[2rem] border border-zinc-200 bg-zinc-50 p-5 md:p-7">
