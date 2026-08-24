@@ -33,10 +33,10 @@ const fadeUp = {
   transition: { duration: 0.55, ease: "easeOut" as const },
 };
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, inverted = false }: { children: React.ReactNode; inverted?: boolean }) {
   return (
-    <span className="mb-5 inline-flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.18em] text-zinc-500">
-      <span className="h-1.5 w-1.5 rounded-full bg-zinc-950" />
+    <span className={`mb-4 inline-flex items-center gap-2 text-sm font-bold ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${inverted ? "bg-white" : "bg-zinc-950"}`} />
       {children}
     </span>
   );
@@ -108,12 +108,12 @@ export function ProductHero() {
     <section className="relative overflow-hidden bg-white px-6 pb-24 pt-28 md:min-h-[calc(100vh-4.5rem)] md:px-10 md:pb-16 md:pt-32">
       <div className="mx-auto grid min-h-[720px] max-w-[1440px] items-center gap-14 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16">
         <motion.div {...fadeUp} className="relative z-10 max-w-2xl">
-          <SectionLabel>자동 레이아웃</SectionLabel>
-          <h1 className="break-keep text-[clamp(3rem,5.4vw,5.75rem)] font-black leading-[0.98] tracking-[-0.065em] text-zinc-950">
-            텍스트만 입력하면,<br />메뉴판이 완성돼요.
+          <SectionLabel>보기 좋게 자동 배치돼요</SectionLabel>
+          <h1 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+            텍스트만 입력하면<br />메뉴판이 완성!
           </h1>
-          <p className="mt-8 max-w-xl break-keep text-lg font-semibold leading-relaxed text-zinc-500 md:text-xl">
-            직접 배치하지 않아도 괜찮아요. 메뉴명과 가격을 입력하면 보기 좋은 간격과 순서로 자동 정리됩니다.
+          <p className="mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+            메뉴명과 가격을 입력하세요. 직접 배치하지 않아도 보기 좋게 자동 배치돼요.
           </p>
           <div className="mt-10 flex flex-wrap gap-3 text-sm font-bold text-zinc-600">
             {["메뉴 입력", "자동 정렬", "바로 공개"].map((item, index) => (
@@ -146,12 +146,12 @@ export function CustomizationSection() {
     <section className="bg-zinc-950 px-6 py-24 text-white md:px-10 md:py-36">
       <div className="mx-auto grid max-w-[1380px] items-center gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
         <motion.div {...fadeUp}>
-          <SectionLabel>내 맘대로 커스터마이징</SectionLabel>
-          <h2 className="break-keep text-4xl font-black leading-[1.08] tracking-[-0.05em] md:text-6xl">
-            템플릿은 시작일 뿐,<br />완성은 우리 매장답게.
+          <SectionLabel inverted>내맘대로 커스터마이징</SectionLabel>
+          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight md:text-5xl">
+            이미지도 내맘대로 변경.
           </h2>
-          <p className="mt-7 max-w-lg break-keep text-lg font-medium leading-relaxed text-zinc-400">
-            이미지를 바꾸고, 글자 크기와 스타일을 조절하세요. 템플릿의 완성도는 유지하면서 매장 분위기는 자유롭게 담을 수 있어요.
+          <p className="mt-5 max-w-lg break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
+            글자 크기/스타일도 내맘대로 변경
           </p>
           <ul className="mt-10 grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {[
@@ -258,14 +258,14 @@ export function SalesAndLanguageSection() {
   const features = [
     {
       number: "01",
-      title: "타임 세일과 위젯으로\n매출 기회를 놓치지 마세요.",
+      title: "타임 세일∙위젯 기능으로\n매출을 극대화 시키는 메뉴판",
       description: "한정 할인, 추천 메뉴, 이벤트 위젯을 원하는 시간에 보여주고 고객의 시선을 자연스럽게 모을 수 있어요.",
       visual: <TimeSaleVisual />,
     },
     {
       number: "02",
-      title: "직접 번역하지 마세요.\n클릭 한 번이면 충분해요.",
-      description: "한국어 메뉴판을 기준으로 영어·중국어·일본어 번역을 제공해 4개 국어 메뉴판을 빠르게 준비할 수 있어요.",
+      title: "직접 번역하지 마세요\n클릭 한 번으로 4개국어 메뉴판이 완성!",
+      description: "영어/중국어/일본어 번역 제공",
       visual: <TranslationVisual />,
     },
   ];
@@ -273,10 +273,10 @@ export function SalesAndLanguageSection() {
   return (
     <section className="bg-white px-6 py-24 md:px-10 md:py-36">
       <div className="mx-auto max-w-[1380px]">
-        <motion.div {...fadeUp} className="mb-14 max-w-3xl md:mb-20">
-          <SectionLabel>더 똑똑한 메뉴판</SectionLabel>
-          <h2 className="break-keep text-4xl font-black leading-[1.08] tracking-[-0.05em] text-zinc-950 md:text-6xl">
-            보여주는 것을 넘어,<br />매출과 운영까지 생각했어요.
+        <motion.div {...fadeUp} className="mb-12 max-w-3xl md:mb-16">
+          <SectionLabel>아티메뉴 주요 기능</SectionLabel>
+          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+            타임 세일∙위젯∙다국어
           </h2>
         </motion.div>
 
@@ -287,7 +287,7 @@ export function SalesAndLanguageSection() {
               <div className="grid gap-5 px-1 pb-3 pt-7 md:grid-cols-[3rem_1fr] md:pt-9">
                 <span className="text-sm font-black text-zinc-400">{feature.number}</span>
                 <div>
-                  <h3 className="whitespace-pre-line break-keep text-2xl font-black leading-tight tracking-[-0.035em] text-zinc-950 md:text-3xl">{feature.title}</h3>
+                  <h3 className="whitespace-pre-line break-keep text-2xl font-bold leading-tight tracking-tight text-zinc-950 md:text-3xl">{feature.title}</h3>
                   <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">{feature.description}</p>
                 </div>
               </div>
@@ -331,11 +331,11 @@ export function DeviceEverywhereSection() {
     <section className="overflow-hidden bg-[#f3f3f1] px-6 py-24 md:px-10 md:py-36">
       <div className="mx-auto max-w-[1380px]">
         <motion.div {...fadeUp} className="mx-auto max-w-4xl text-center">
-          <SectionLabel>하나의 링크, 모든 화면</SectionLabel>
-          <h2 className="break-keep text-4xl font-black leading-[1.08] tracking-[-0.055em] text-zinc-950 md:text-6xl">
-            링크만 있으면 어디서든<br />메뉴판을 바로 띄워요.
+          <SectionLabel>PC/태블릿/모바일(QR)</SectionLabel>
+          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+            링크만 있으면 메뉴판을<br />PC/태블릿/모바일(QR) 어디서든 띄워요!
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl break-keep text-lg font-medium leading-relaxed text-zinc-500">
+          <p className="mx-auto mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
             PC와 태블릿은 물론, 모바일에서는 QR로 간편하게. 같은 메뉴판이 화면 크기에 맞춰 자연스럽게 보여요.
           </p>
         </motion.div>
@@ -359,14 +359,14 @@ export function ServiceGuideSection() {
   const services = [
     {
       eyebrow: "PC · 태블릿 · 모바일 QR",
-      title: "갖고 있는 디바이스에\n메뉴판을 띄우시려면",
+      title: "갖고 있는 디바이스에 띄우시려면",
       name: "아티메뉴 베이직",
       href: "/services/basic",
       icon: Tablet,
     },
     {
       eyebrow: "TV · 모니터 · 대형 화면",
-      title: "매장 디스플레이에\n메뉴판을 띄우시려면",
+      title: "매장 TV에 띄우시려면",
       name: "아티메뉴 디스플레이",
       href: "/services/display",
       icon: Monitor,
@@ -376,10 +376,10 @@ export function ServiceGuideSection() {
   return (
     <section className="bg-white px-6 py-24 md:px-10 md:py-36">
       <div className="mx-auto max-w-[1380px]">
-        <motion.div {...fadeUp} className="mb-14 md:mb-20">
-          <SectionLabel>자세히 알아보세요</SectionLabel>
-          <h2 className="break-keep text-4xl font-black leading-[1.08] tracking-[-0.05em] text-zinc-950 md:text-6xl">
-            우리 매장에 맞는 방식으로<br />시작할 수 있어요.
+        <motion.div {...fadeUp} className="mb-12 md:mb-16">
+          <SectionLabel>서비스 안내</SectionLabel>
+          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+            자세히 알아보세요
           </h2>
         </motion.div>
 
@@ -393,9 +393,9 @@ export function ServiceGuideSection() {
                     <span className="text-xs font-black uppercase tracking-[0.12em] text-zinc-400">{service.eyebrow}</span>
                     <span className="grid h-12 w-12 place-items-center rounded-full bg-white text-zinc-950 shadow-sm"><Icon className="h-5 w-5" /></span>
                   </div>
-                  <h3 className="mt-16 whitespace-pre-line break-keep text-3xl font-black leading-tight tracking-[-0.04em] text-zinc-950 md:text-4xl">{service.title}</h3>
+                  <h3 className="mt-16 whitespace-pre-line break-keep text-2xl font-bold leading-tight tracking-tight text-zinc-950 md:text-3xl">{service.title}</h3>
                   <div className="mt-auto flex items-end justify-between gap-5 pt-14">
-                    <p className="text-xl font-black text-zinc-950 md:text-2xl">{service.name}</p>
+                    <p className="text-lg font-bold text-zinc-950 md:text-xl">{service.name}</p>
                     <Link to={service.href} aria-label={`${service.name} 자세히 보기`} className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-zinc-950 text-white transition-transform group-hover:-translate-y-1 group-hover:translate-x-1">
                       <ArrowUpRight className="h-5 w-5" />
                     </Link>

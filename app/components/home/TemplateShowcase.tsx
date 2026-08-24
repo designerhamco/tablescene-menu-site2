@@ -55,8 +55,9 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const showcaseTemplates = getShowcaseTemplates(selectedService);
   const activeCategoryGroups =
     selectedService === 'basic' ? BASIC_TEMPLATE_CATEGORY_GROUPS : DISPLAY_TEMPLATE_CATEGORY_GROUPS;
-  const visibleTemplates =
-    selectedService === 'basic'
+  const visibleTemplates = isHomeShowcase
+    ? showcaseTemplates
+    : selectedService === 'basic'
       ? showcaseTemplates.filter((template) => getTemplateCategoryKeysForBasicGroup(activeCategory as BasicTemplateCategoryGroupKey).includes(template.template_category))
       : showcaseTemplates.filter((template) => getTemplateCategoryKeysForDisplayGroup(activeCategory as DisplayTemplateCategoryGroupKey).includes(template.template_category));
   const pageCount = Math.ceil(visibleTemplates.length / cardsPerPage);
@@ -97,7 +98,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   };
 
   return (
-    <section className="bg-zinc-50 py-24">
+    <section className="bg-zinc-50 py-24 md:py-36">
       <div className="mx-auto max-w-7xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -111,15 +112,15 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
               ? `전문 디자이너가 만든 다양한 템플릿 ${publicTemplateCount}종`
               : '디자이너가 만든 템플릿으로 시작하세요'}
           </h2>
-          <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
-            {isHomeShowcase
-              ? '카페와 음식점에 어울리는 완성도 높은 디자인에서 시작해 우리 매장에 맞게 바꿔보세요.'
-              : activeServiceCopy.description}
-          </p>
+          {!isHomeShowcase ? (
+            <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+              {activeServiceCopy.description}
+            </p>
+          ) : null}
         </motion.div>
 
         {isHomeShowcase ? (
-          <div className="mx-auto mb-8 grid max-w-3xl gap-3 rounded-[1.5rem] border border-zinc-200 bg-white p-2 md:grid-cols-2">
+          <div className="mb-12 flex flex-wrap justify-center gap-3">
             {serviceTabs.map((tab) => {
               const isSelected = activeService === tab.key;
 
@@ -131,39 +132,36 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                     setActiveService(tab.key);
                     setActiveCategory(tab.key === 'basic' ? firstBasicCategoryGroupKey : firstDisplayCategoryGroupKey);
                   }}
-                  className={`rounded-[1.1rem] px-5 py-4 text-left transition-colors ${
+                  className={`rounded-full px-6 py-3 text-base font-bold transition-colors ${
                     isSelected ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-50'
                   }`}
                   aria-pressed={isSelected}
                 >
-                  <span className="block text-base font-black">{tab.label}</span>
-                  <span className={`mt-1 block break-keep text-sm font-medium leading-relaxed ${
-                    isSelected ? 'text-white/70' : 'text-zinc-500'
-                  }`}>
-                    {tab.description}
-                  </span>
+                  {tab.label.replace('아티메뉴 ', '')}
                 </button>
               );
             })}
           </div>
         ) : null}
 
-        <div className="mb-12 flex flex-wrap justify-center gap-3">
-          {activeCategoryGroups.map((category) => (
-            <button
-              key={category.key}
-              type="button"
-              onClick={() => setActiveCategory(category.key)}
-              className={`rounded-full px-5 py-3 text-base font-medium transition-colors ${
-                activeCategory === category.key
-                  ? 'bg-zinc-950 text-white'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
-              }`}
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
+        {!isHomeShowcase ? (
+          <div className="mb-12 flex flex-wrap justify-center gap-3">
+            {activeCategoryGroups.map((category) => (
+              <button
+                key={category.key}
+                type="button"
+                onClick={() => setActiveCategory(category.key)}
+                className={`rounded-full px-5 py-3 text-base font-medium transition-colors ${
+                  activeCategory === category.key
+                    ? 'bg-zinc-950 text-white'
+                    : 'bg-white text-zinc-700 hover:bg-zinc-100'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <div
           ref={carouselRef}
@@ -218,6 +216,17 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                 }`}
               />
             ))}
+          </div>
+        ) : null}
+
+        {isHomeShowcase ? (
+          <div className="mt-10 flex justify-center">
+            <a
+              href="/store"
+              className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-6 py-3 text-sm font-bold text-zinc-900 transition-colors hover:border-zinc-950 hover:bg-zinc-950 hover:text-white"
+            >
+              더 많은 템플릿 보기 <span aria-hidden="true" className="ml-2">→</span>
+            </a>
           </div>
         ) : null}
       </div>
