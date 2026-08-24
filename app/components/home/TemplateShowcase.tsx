@@ -98,7 +98,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   };
 
   return (
-    <section className="bg-zinc-50 py-24 md:py-36">
+    <section className={`${isHomeShowcase ? 'bg-white pt-28' : 'bg-zinc-50 py-24'} pb-24 md:pb-36 md:pt-36`}>
       <div className="mx-auto max-w-7xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}

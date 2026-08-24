@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion } from "motion/react";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowUpRight,
   Check,
@@ -24,6 +24,27 @@ const menuItems = [
   { name: "Black sesame latte", price: "6.5", image: "/menu-templates/cafe_design_a/black-sesame-featured.jpg" },
   { name: "Nutty cream latte", price: "6.8", image: "/menu-templates/cafe_design_a/nutty-cream-featured.jpg" },
   { name: "Matcha cloud", price: "6.5", image: "/menu-templates/cafe_design_a/malcha.jpg" },
+];
+
+const heroScreens = [
+  {
+    name: "AUBE COFFEE",
+    note: "Coffee · Dessert",
+    image: "/menu-templates/cafe_design_a/black-sesame-featured.jpg",
+    accent: "bg-[#eee5d7]",
+  },
+  {
+    name: "NUTTY ROOM",
+    note: "Signature menu",
+    image: "/menu-templates/cafe_design_a/nutty-cream-featured.jpg",
+    accent: "bg-[#e8dfd0]",
+  },
+  {
+    name: "MATCHA DAY",
+    note: "Seasonal special",
+    image: "/menu-templates/cafe_design_a/malcha.jpg",
+    accent: "bg-[#e3e4d5]",
+  },
 ];
 
 const fadeUp = {
@@ -70,6 +91,88 @@ function MenuBoard({ compact = false }: { compact?: boolean }) {
   );
 }
 
+function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: number; compact?: boolean }) {
+  const screen = heroScreens[screenIndex];
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={screen.name}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.45 }}
+        className={`flex h-full flex-col overflow-hidden ${screen.accent} text-zinc-950`}
+      >
+        <div className={`flex items-center justify-between border-b border-black/10 ${compact ? "px-3 py-2" : "px-5 py-4"}`}>
+          <div>
+            <p className={`${compact ? "text-[8px]" : "text-sm"} font-black tracking-[-0.03em]`}>{screen.name}</p>
+            <p className={`${compact ? "text-[5px]" : "text-[8px]"} mt-0.5 font-bold uppercase tracking-[0.14em] text-black/40`}>{screen.note}</p>
+          </div>
+          <span className={`${compact ? "h-1.5 w-1.5" : "h-2.5 w-2.5"} rounded-full bg-zinc-950`} />
+        </div>
+        <div className={`grid min-h-0 flex-1 grid-cols-[1.15fr_0.85fr] ${compact ? "gap-1.5 p-2" : "gap-3 p-4"}`}>
+          <img src={screen.image} alt="" className="h-full min-h-0 w-full rounded-[0.55rem] object-cover" />
+          <div className="flex min-h-0 flex-col justify-between rounded-[0.55rem] bg-white/75 p-2.5">
+            <div>
+              <span className={`${compact ? "text-[4px]" : "text-[7px]"} font-black uppercase tracking-[0.1em] text-black/35`}>Featured</span>
+              <p className={`${compact ? "mt-1 text-[6px]" : "mt-2 text-[11px]"} font-black leading-tight`}>{screen.name}</p>
+            </div>
+            <div className="space-y-1">
+              {[1, 2, 3].map((line) => <span key={line} className="block h-px bg-black/15" />)}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+export function BrandHero() {
+  const [screenIndex, setScreenIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setScreenIndex((current) => (current + 1) % heroScreens.length);
+    }, 3200);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <section className="relative min-h-[760px] overflow-hidden bg-[linear-gradient(155deg,#a97e00_0%,#e5c546_24%,#fff0a3_100%)] px-5 pt-28 text-zinc-950 md:min-h-[930px] md:px-10 md:pt-36">
+      <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-[1180px] text-center">
+        <p className="text-base font-bold tracking-[-0.02em] md:text-xl">새로운 메뉴 경험, 아티메뉴</p>
+        <h1 className="mt-5 break-keep text-[clamp(3rem,7.8vw,6.25rem)] font-bold leading-[0.98] tracking-[-0.055em]">
+          ArtiMenu<br />Perfect For Your Store
+        </h1>
+      </motion.div>
+
+      <motion.div
+        {...fadeUp}
+        transition={{ ...fadeUp.transition, delay: 0.12 }}
+        className="absolute bottom-0 left-1/2 h-[390px] w-[740px] max-w-[116vw] -translate-x-1/2 md:h-[520px] md:w-[1120px]"
+        aria-label="PC, 태블릿, 모바일에서 바뀌는 아티메뉴 화면 예시"
+      >
+        <div className="absolute bottom-4 left-0 w-[66%] md:bottom-8">
+          <div className="overflow-hidden rounded-t-[1rem] border-[7px] border-zinc-950 bg-white shadow-[0_28px_80px_rgba(0,0,0,0.22)] md:rounded-t-[1.4rem] md:border-[10px]">
+            <div className="aspect-[16/10]"><RotatingMenuScreen screenIndex={screenIndex} /></div>
+          </div>
+          <div className="mx-auto h-3 w-[108%] -translate-x-[4%] rounded-b-xl bg-zinc-950 md:h-5" />
+        </div>
+
+        <div className="absolute bottom-0 right-[5%] w-[35%] overflow-hidden rounded-[1.45rem] border-[7px] border-zinc-950 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.24)] md:rounded-[2rem] md:border-[10px]">
+          <div className="aspect-[4/3]"><RotatingMenuScreen screenIndex={screenIndex} compact /></div>
+        </div>
+
+        <div className="absolute bottom-[-1rem] left-1/2 w-[18%] -translate-x-1/2 overflow-hidden rounded-[1.6rem] border-[6px] border-zinc-950 bg-white shadow-[0_32px_80px_rgba(0,0,0,0.28)] md:bottom-[-2rem] md:rounded-[2.4rem] md:border-[9px]">
+          <div className="aspect-[9/18]"><RotatingMenuScreen screenIndex={screenIndex} compact /></div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
 function EditorPanel() {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(0,0,0,0.13)]">
@@ -105,20 +208,20 @@ function EditorPanel() {
 
 export function ProductHero() {
   return (
-    <section className="relative overflow-hidden bg-white px-6 pb-24 pt-28 md:min-h-[calc(100vh-4.5rem)] md:px-10 md:pb-16 md:pt-32">
+    <section className="relative overflow-hidden bg-transparent px-6 pb-24 pt-28 text-white md:px-10 md:pb-24 md:pt-36">
       <div className="mx-auto grid min-h-[720px] max-w-[1440px] items-center gap-14 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16">
         <motion.div {...fadeUp} className="relative z-10 max-w-2xl">
-          <SectionLabel>보기 좋게 자동 배치돼요</SectionLabel>
-          <h1 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+          <SectionLabel inverted>보기 좋게 자동 배치돼요</SectionLabel>
+          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-white md:text-5xl">
             텍스트만 입력하면<br />메뉴판이 완성!
-          </h1>
-          <p className="mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+          </h2>
+          <p className="mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
             메뉴명과 가격을 입력하세요. 직접 배치하지 않아도 보기 좋게 자동 배치돼요.
           </p>
-          <div className="mt-10 flex flex-wrap gap-3 text-sm font-bold text-zinc-600">
+          <div className="mt-10 flex flex-wrap gap-3 text-sm font-bold text-zinc-300">
             {["메뉴 입력", "자동 정렬", "바로 공개"].map((item, index) => (
-              <span key={item} className="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2.5">
-                <span className="text-[10px] font-black text-zinc-400">0{index + 1}</span>{item}
+              <span key={item} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2.5">
+                <span className="text-[10px] font-black text-zinc-500">0{index + 1}</span>{item}
               </span>
             ))}
           </div>
@@ -143,7 +246,7 @@ export function ProductHero() {
 
 export function CustomizationSection() {
   return (
-    <section className="bg-zinc-950 px-6 py-24 text-white md:px-10 md:py-36">
+    <section className="bg-transparent px-6 py-24 text-white md:px-10 md:py-36">
       <div className="mx-auto grid max-w-[1380px] items-center gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
         <motion.div {...fadeUp}>
           <SectionLabel inverted>내맘대로 커스터마이징</SectionLabel>
@@ -271,17 +374,17 @@ export function SalesAndLanguageSection() {
   ];
 
   return (
-    <section className="bg-white px-6 py-24 md:px-10 md:py-36">
+    <section className="bg-transparent px-6 pb-32 pt-24 text-white md:px-10 md:pb-44 md:pt-36">
       <div className="mx-auto max-w-[1380px]">
         <div className="grid gap-6 lg:grid-cols-2">
           {features.map((feature, index) => (
-            <motion.article key={feature.number} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="min-w-0 overflow-hidden rounded-[2rem] border border-zinc-200 bg-zinc-50 p-5 md:p-7">
+            <motion.article key={feature.number} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="min-w-0 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.055] p-5 md:p-7">
               <div className="aspect-[16/10] min-h-[300px] min-w-0">{feature.visual}</div>
               <div className="grid gap-5 px-1 pb-3 pt-7 md:grid-cols-[3rem_1fr] md:pt-9">
                 <span className="text-sm font-black text-zinc-400">{feature.number}</span>
                 <div>
-                  <h3 className="whitespace-pre-line break-keep text-2xl font-bold leading-tight tracking-tight text-zinc-950 md:text-3xl">{feature.title}</h3>
-                  <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">{feature.description}</p>
+                  <h3 className="whitespace-pre-line break-keep text-2xl font-bold leading-tight tracking-tight text-white md:text-3xl">{feature.title}</h3>
+                  <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-400">{feature.description}</p>
                 </div>
               </div>
             </motion.article>

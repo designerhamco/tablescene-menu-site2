@@ -15,15 +15,20 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Contact Info (Aligned Right on Desktop) */}
-          <div className="text-left md:text-right">
-             <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-3 opacity-80">Contact</h3>
-             <ul className="space-y-1.5 text-sm text-zinc-500 font-normal">
-                <li className="hover:text-white transition-colors">평일 09:00 ~ 17:00 (점심시간 12:00 ~ 13:00 제외)</li>
-                <li className="hover:text-white transition-colors">주말/공휴일 긴급 10:00 ~ 22:00</li>
-                <li className="hover:text-white transition-colors">admin@dndcommerce.co.kr</li>
-                <li className="hover:text-white transition-colors">카카오톡 채널: 디앤디커머스</li>
-             </ul>
+          {/* Support information */}
+          <div className="grid gap-7 text-left sm:grid-cols-3 md:max-w-3xl md:gap-10">
+            <div>
+              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/80">운영 시간</h3>
+              <p className="text-sm leading-relaxed text-zinc-500">평일 09:00 ~ 17:00<br />점심 12:00 ~ 13:00 제외<br />긴급(주말) 10:00 ~ 22:00</p>
+            </div>
+            <div>
+              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/80">카카오톡 상담</h3>
+              <p className="text-sm leading-relaxed text-zinc-500">@디앤디커머스<br />admin@dndcommerce.co.kr</p>
+            </div>
+            <div>
+              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-white/80">원격 점검 지원</h3>
+              <p className="text-sm leading-relaxed text-zinc-500">화면 공유로 해결<br />안정적인 매장 운영을 지원합니다.</p>
+            </div>
           </div>
         </div>
 
