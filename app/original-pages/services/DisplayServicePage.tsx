@@ -51,7 +51,7 @@ export const displayFaqData: FAQCategory[] = [
     category: '디스플레이 이용',
     items: [
       {
-        question: '아티메뉴 베이직과 디스플레이는 무엇이 다른가요?',
+        question: '아티메뉴 다이닝과 디스플레이는 무엇이 다른가요?',
         answer: (
           <>
             베이직은 손님이 QR이나 링크로 직접 열어보는 모바일 중심 메뉴판에 가깝습니다. 디스플레이는 카운터 뒤 TV, 매장 모니터, 대기 공간 화면에 계속 띄워두는 큰 화면용 메뉴보드입니다.
@@ -286,7 +286,7 @@ const DisplayServicePage = () => {
 
       <SimpleVisualSection
         title={<>손님이 여는 메뉴판이 아니라<br />매장이 보여주는 화면입니다</>}
-        description="아티메뉴 베이직이 손님이 QR이나 링크로 직접 열어보는 메뉴판이라면, 디스플레이는 카운터 뒤 TV나 매장 모니터에 계속 띄워두는 메뉴보드입니다. 카페 메뉴, 베이커리 오늘의 메뉴, 시술 가격표, 클리닉 대기 안내처럼 매장 안에서 보여주는 화면에 집중합니다."
+        description="아티메뉴 다이닝이 손님이 QR이나 링크로 직접 열어보는 메뉴판이라면, 디스플레이는 카운터 뒤 TV나 매장 모니터에 계속 띄워두는 메뉴보드입니다. 카페 메뉴, 베이커리 오늘의 메뉴, 시술 가격표, 클리닉 대기 안내처럼 매장 안에서 보여주는 화면에 집중합니다."
         image="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1400&auto=format&fit=crop"
       />
 

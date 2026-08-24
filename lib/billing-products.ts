@@ -10,8 +10,8 @@ export type SubscriptionProductKey =
 export const SUBSCRIPTION_PRODUCTS = {
   business_basic_monthly: {
     productKey: "business_basic_monthly",
-    name: "아티메뉴 베이직 월결제",
-    label: "아티메뉴 베이직 월결제",
+    name: "아티메뉴 다이닝 월결제",
+    label: "아티메뉴 다이닝 월결제",
     serviceType: "basic",
     planType: "business_basic",
     paymentType: "subscription",
@@ -24,8 +24,8 @@ export const SUBSCRIPTION_PRODUCTS = {
   },
   business_basic_yearly: {
     productKey: "business_basic_yearly",
-    name: "아티메뉴 베이직 연결제",
-    label: "아티메뉴 베이직 연결제",
+    name: "아티메뉴 다이닝 연결제",
+    label: "아티메뉴 다이닝 연결제",
     serviceType: "basic",
     planType: "business_basic",
     paymentType: "subscription",

@@ -553,7 +553,7 @@ function getSubscriptionOrderName(product: SubscriptionProduct) {
     return product.billingCycle === "yearly" ? "아티메뉴 디스플레이 연결제" : "아티메뉴 디스플레이 월결제";
   }
 
-  return product.billingCycle === "yearly" ? "아티메뉴 베이직 연결제" : "아티메뉴 베이직 월결제";
+  return product.billingCycle === "yearly" ? "아티메뉴 다이닝 연결제" : "아티메뉴 다이닝 월결제";
 }
 
 function isMissingRelationError(error: { code?: string; message?: string } | null | undefined, relationName: string) {
@@ -1827,7 +1827,7 @@ export async function POST(request: Request) {
     return jsonStepError({
       step: "new_or_convert_precheck",
       debugCode: "DISPLAY_CONVERT_NOT_ALLOWED",
-      message: "아티메뉴 디스플레이 플랜은 기존 아티메뉴 베이직 체험 메뉴판에서 바로 전환할 수 없습니다. 아티메뉴 디스플레이는 신규 신청으로 이용해주세요.",
+      message: "아티메뉴 디스플레이 플랜은 기존 아티메뉴 다이닝 체험 메뉴판에서 바로 전환할 수 없습니다. 아티메뉴 디스플레이는 신규 신청으로 이용해주세요.",
       status: 409,
       userId: user.id,
       mode,
@@ -2464,7 +2464,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       step: "final_response",
-      message: mode === "convert" ? "기존 메뉴판이 사업자 플랜으로 전환되었습니다." : "아티메뉴 베이직 메뉴판이 생성되었습니다.",
+      message: mode === "convert" ? "기존 메뉴판이 사업자 플랜으로 전환되었습니다." : "아티메뉴 다이닝 메뉴판이 생성되었습니다.",
       mode,
       menuSiteId: menuSite.id,
       slug: menuSite.slug,

@@ -5,7 +5,7 @@ import { CheckCircle2 } from 'lucide-react';
 
 const services = [
   {
-    title: '아티메뉴 베이직',
+    title: '아티메뉴 다이닝',
     badge: '오픈할인',
     description: '직접 편집하는 기본 디지털 메뉴판',
     price: '첫 달 체험가 6,600원 · 월 9,900원 · 연 95,000원',

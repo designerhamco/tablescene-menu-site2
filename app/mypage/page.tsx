@@ -450,15 +450,15 @@ function getProductLabel(productKey: string | null | undefined) {
 
   if (basicProduct) return basicProduct.name;
 
-  if (key === personalTrialBasicProduct.product_key) return "아티메뉴 베이직 개인 1개월 체험";
+  if (key === personalTrialBasicProduct.product_key) return "아티메뉴 다이닝 개인 1개월 체험";
 
   return key || "상품명 확인 필요";
 }
 
 function getServiceName(planType: string | null | undefined, billingCycle: string | null | undefined) {
-  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return "아티메뉴 베이직 개인 체험";
+  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return "아티메뉴 다이닝 개인 체험";
   if (planType === "business_display") return billingCycle === "yearly" ? "아티메뉴 디스플레이 연결제" : "아티메뉴 디스플레이 월결제";
-  if (planType === "business_basic") return billingCycle === "yearly" ? "아티메뉴 베이직 연결제" : "아티메뉴 베이직 월결제";
+  if (planType === "business_basic") return billingCycle === "yearly" ? "아티메뉴 다이닝 연결제" : "아티메뉴 다이닝 월결제";
 
   return "아티메뉴 이용권";
 }
@@ -489,7 +489,7 @@ function getMenuServiceBadge({
   }
 
   return {
-    label: "아티메뉴 베이직",
+    label: "아티메뉴 다이닝",
     className: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-100",
   };
 }

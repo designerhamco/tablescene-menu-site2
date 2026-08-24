@@ -7,13 +7,13 @@ import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
 
 export const metadata: Metadata = {
   title: "서비스 신청 | ArtiMenu",
-  description: "아티메뉴 베이직, 아티메뉴 디스플레이, 아티메뉴 커스텀 신청 페이지를 선택하세요.",
+  description: "아티메뉴 다이닝, 아티메뉴 디스플레이, 아티메뉴 커스텀 신청 페이지를 선택하세요.",
 };
 
 function getApplyServices(displayCheckoutQaEnabled: boolean) {
   return [
   {
-    title: "아티메뉴 베이직",
+    title: "아티메뉴 다이닝",
     description: "신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공됩니다.",
     price: "첫 달 체험가 6,600원 / 사업자 월 9,900원 / 연 95,000원",
     note: "한 계정에서 여러 메뉴판을 관리할 수 있으며, 추가 메뉴판은 별도로 구매해야 합니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.",
@@ -61,7 +61,7 @@ export default function ApplyPage() {
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              아티메뉴 베이직은 개인 1개월 체험과 사업자 정식 월결제/연결제를 한 화면에서 선택할 수 있습니다.
+              아티메뉴 다이닝은 개인 1개월 체험과 사업자 정식 월결제/연결제를 한 화면에서 선택할 수 있습니다.
               {displayCheckoutQaEnabled
                 ? " 아티메뉴 디스플레이는 사업자 전용 디지털 메뉴보드로 신규 구독 1건당 Display 메뉴판 1개를 제공합니다."
                 : " 아티메뉴 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다."}

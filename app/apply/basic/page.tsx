@@ -4,8 +4,8 @@ import PaidApplyPage from "../_components/PaidApplyPage";
 import { getBasicPaymentProduct } from "@/lib/payments";
 
 export const metadata: Metadata = {
-  title: "아티메뉴 베이직 신청/결제 | ArtiMenu",
-  description: "개인 1개월 체험 또는 사업자 정식 월결제/연결제를 선택해 아티메뉴 베이직 메뉴판을 신청합니다.",
+  title: "아티메뉴 다이닝 신청/결제 | ArtiMenu",
+  description: "개인 1개월 체험 또는 사업자 정식 월결제/연결제를 선택해 아티메뉴 다이닝 메뉴판을 신청합니다.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
