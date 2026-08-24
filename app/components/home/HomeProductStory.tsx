@@ -169,8 +169,8 @@ export function BrandHero() {
 
 function StoryVisualFrame({ children }: { children: React.ReactNode }) {
   return (
-    <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }} className="h-[380px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#171717] p-4 shadow-2xl md:h-[500px] md:p-6">
-      <div className="h-full overflow-hidden rounded-[1.35rem]">{children}</div>
+    <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }} className="h-[380px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#171717] shadow-2xl md:h-[500px]">
+      <div className="h-full overflow-hidden">{children}</div>
     </motion.div>
   );
 }
@@ -365,20 +365,20 @@ export function SalesAndLanguageSection() {
 
 function AiMenuVisual() {
   return (
-    <div className="rounded-2xl bg-zinc-950 p-5 text-white md:p-7">
+    <div className="h-full bg-zinc-950 p-5 text-white md:p-7">
       <div className="flex items-center justify-between"><p className="text-sm font-black">AI 메뉴 정리</p><WandSparkles className="h-5 w-5 text-[#F8E731]" /></div>
       <p className="mt-5 rounded-xl bg-white/10 p-4 text-xs font-semibold leading-relaxed text-white/65">아메리카노 4,500원 / 카페라떼 5,000원 / 말차라떼 6,500원...</p>
-      <div className="mt-3 space-y-2">{["아메리카노 · 4,500원", "카페라떼 · 5,000원", "말차라떼 · 6,500원"].map((item) => <div key={item} className="flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-[11px] font-black text-zinc-950"><Sparkles className="h-3.5 w-3.5" />{item}</div>)}</div>
+      <div className="mt-3 space-y-2">{["아메리카노 · 4,500원", "카페라떼 · 5,000원", "말차라떼 · 6,500원", "바닐라라떼 · 5,500원", "레몬에이드 · 6,000원"].map((item) => <div key={item} className="flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-[11px] font-black text-zinc-950"><Sparkles className="h-3.5 w-3.5" />{item}</div>)}</div>
     </div>
   );
 }
 
 function TranslationVisual() {
   return (
-    <div className="rounded-2xl bg-[#eee8dc] p-5 text-zinc-950 md:p-7">
+    <div className="h-full bg-[#eee8dc] p-5 text-zinc-950 md:p-7">
       <div className="flex items-center justify-between"><p className="text-sm font-black">AI 다국어 번역</p><Languages className="h-5 w-5" /></div>
       <div className="mt-5 grid grid-cols-4 gap-2">{["한국어", "English", "中文", "日本語"].map((language, index) => <span key={language} className={`rounded-full px-2 py-2 text-center text-[9px] font-black ${index === 1 ? "bg-zinc-950 text-white" : "bg-white text-zinc-500"}`}>{language}</span>)}</div>
-      <div className="mt-5 space-y-2">{[["흑임자 크림 라떼", "Black sesame cream latte"], ["고소한 흑임자와 부드러운 크림", "Nutty sesame with soft cream"]].map(([ko, en]) => <div key={ko} className="rounded-xl bg-white p-4"><p className="text-[10px] font-bold text-zinc-400">{ko}</p><p className="mt-1 text-xs font-black">{en}</p></div>)}</div>
+      <div className="mt-5 space-y-2">{[["흑임자 크림 라떼", "Black sesame cream latte"], ["말차 크림 라떼", "Matcha cream latte"], ["바닐라빈 라떼", "Vanilla bean latte"], ["레몬 에이드", "Fresh lemon ade"]].map(([ko, en]) => <div key={ko} className="rounded-xl bg-white px-4 py-3"><p className="text-[9px] font-bold text-zinc-400">{ko}</p><p className="mt-1 text-[11px] font-black">{en}</p></div>)}</div>
     </div>
   );
 }
@@ -390,10 +390,10 @@ export function AiFeaturesSection() {
   ];
 
   return (
-    <section className="bg-white px-6 pb-28 pt-32 md:px-10 md:pb-40 md:pt-40">
+    <section className="bg-zinc-100 px-6 pb-28 pt-32 md:px-10 md:pb-40 md:pt-40">
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl"><SectionLabel>AI 기능</SectionLabel><h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">반복되는 메뉴 작업은<br />AI에게 맡기세요</h2></motion.div>
-        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="rounded-[2rem] border border-zinc-200 bg-zinc-50 p-5 md:p-7"><div className="h-[360px] overflow-hidden rounded-[1.35rem] md:h-[420px]">{feature.visual}</div><div className="px-1 pb-3 pt-8"><p className="text-sm font-bold text-zinc-500">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">{feature.body}</p></div></motion.article>)}</div>
+        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="text-sm font-bold text-zinc-500">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">{feature.body}</p></div></motion.article>)}</div>
       </div>
     </section>
   );

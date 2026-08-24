@@ -5,6 +5,7 @@ import {
   BASIC_TEMPLATE_CATEGORY_GROUPS,
   DISPLAY_TEMPLATE_CATEGORY_GROUPS,
   getAvailableTemplatesForService,
+  getFeaturedTemplatesForBasicPage,
   getTemplateCategoryKeysForBasicGroup,
   getTemplateCategoryKeysForDisplayGroup,
   type BasicTemplateCategoryGroupKey,
@@ -38,7 +39,6 @@ function getShowcaseTemplates(service: TemplateServiceKey): TemplateCatalogItem[
 }
 
 const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
-  const [activeService, setActiveService] = useState<TemplateServiceKey>('basic');
   const [activeCategory, setActiveCategory] = useState<BasicTemplateCategoryGroupKey | DisplayTemplateCategoryGroupKey>(
     service === 'display' ? firstDisplayCategoryGroupKey : firstBasicCategoryGroupKey
   );
@@ -46,17 +46,13 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const [cardsPerPage, setCardsPerPage] = useState(4);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isHomeShowcase = service === 'all';
-  const publicTemplateCount = new Set([
-    ...getShowcaseTemplates('basic').map((template) => template.key),
-    ...getShowcaseTemplates('display').map((template) => template.key),
-  ]).size;
-  const selectedService = isHomeShowcase ? activeService : service;
+  const selectedService = isHomeShowcase ? 'basic' : service;
   const activeServiceCopy = serviceTabs.find((tab) => tab.key === selectedService) ?? serviceTabs[0];
   const showcaseTemplates = getShowcaseTemplates(selectedService);
   const activeCategoryGroups =
     selectedService === 'basic' ? BASIC_TEMPLATE_CATEGORY_GROUPS : DISPLAY_TEMPLATE_CATEGORY_GROUPS;
   const visibleTemplates = isHomeShowcase
-    ? showcaseTemplates
+    ? getFeaturedTemplatesForBasicPage()
     : selectedService === 'basic'
       ? showcaseTemplates.filter((template) => getTemplateCategoryKeysForBasicGroup(activeCategory as BasicTemplateCategoryGroupKey).includes(template.template_category))
       : showcaseTemplates.filter((template) => getTemplateCategoryKeysForDisplayGroup(activeCategory as DisplayTemplateCategoryGroupKey).includes(template.template_category));
@@ -98,51 +94,29 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   };
 
   return (
-    <section className={`${isHomeShowcase ? 'bg-white pt-28' : 'bg-zinc-50 py-24'} pb-24 md:pb-36 md:pt-36`}>
-      <div className="mx-auto max-w-7xl px-6">
+    <section className={`${isHomeShowcase ? 'bg-transparent py-28 text-white md:py-36' : 'bg-zinc-50 py-24 md:py-36'}`}>
+      <div className={`${isHomeShowcase ? 'mx-auto max-w-[1560px]' : 'mx-auto max-w-7xl px-6'}`}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55 }}
-          className="mx-auto mb-12 max-w-3xl text-center"
+          className={`mx-auto max-w-4xl px-6 text-center ${isHomeShowcase ? 'mb-16 md:mb-20' : 'mb-12'}`}
         >
-          <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
-            {isHomeShowcase
-              ? `전문 디자이너가 만든 다양한 템플릿 ${publicTemplateCount}종`
-              : '디자이너가 만든 템플릿으로 시작하세요'}
+          {isHomeShowcase ? <p className="mb-4 text-sm font-bold text-zinc-400">전문 디자이너가 설계한 메뉴판</p> : null}
+          <h2 className={`whitespace-pre-line break-keep text-3xl font-bold tracking-tight md:text-5xl ${isHomeShowcase ? 'text-white' : 'text-zinc-950'}`}>
+            {isHomeShowcase ? '매장의 분위기를 완성하는\n아티메뉴 템플릿' : '디자이너가 만든 템플릿으로 시작하세요'}
           </h2>
-          {!isHomeShowcase ? (
+          {isHomeShowcase ? (
+            <p className="mx-auto mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
+              카페와 음식점의 분위기를 세심하게 담은 베이직 템플릿을 둘러보고 매장에 어울리는 디자인을 선택하세요.
+            </p>
+          ) : (
             <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
               {activeServiceCopy.description}
             </p>
-          ) : null}
+          )}
         </motion.div>
-
-        {isHomeShowcase ? (
-          <div className="mb-12 flex flex-wrap justify-center gap-3">
-            {serviceTabs.map((tab) => {
-              const isSelected = activeService === tab.key;
-
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => {
-                    setActiveService(tab.key);
-                    setActiveCategory(tab.key === 'basic' ? firstBasicCategoryGroupKey : firstDisplayCategoryGroupKey);
-                  }}
-                  className={`rounded-full px-6 py-3 text-base font-bold transition-colors ${
-                    isSelected ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-50'
-                  }`}
-                  aria-pressed={isSelected}
-                >
-                  {tab.label.replace('아티메뉴 ', '')}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
 
         {!isHomeShowcase ? (
           <div className="mb-12 flex flex-wrap justify-center gap-3">
@@ -163,11 +137,13 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
           </div>
         ) : null}
 
-        <div
-          ref={carouselRef}
-          onScroll={handleCarouselScroll}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 [-ms-overflow-style:none] [scrollbar-width:none] md:gap-6 [&::-webkit-scrollbar]:hidden"
-        >
+        <div className={isHomeShowcase ? 'relative' : ''}>
+          {isHomeShowcase ? <><div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent md:w-44" /><div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l from-zinc-950 via-zinc-950/80 to-transparent md:w-44" /></> : null}
+          <div
+            ref={carouselRef}
+            onScroll={handleCarouselScroll}
+            className={`flex snap-x snap-mandatory overflow-x-auto scroll-smooth pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isHomeShowcase ? 'gap-4 px-[10vw] md:gap-6 md:px-[5vw]' : 'gap-4 md:gap-6'}`}
+          >
           {visibleTemplates.length > 0 ? (
             visibleTemplates.map((template, index) => (
               <motion.article
@@ -176,7 +152,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: index * 0.08 }}
-                className="min-w-0 shrink-0 basis-[calc((100%_-_1rem)/2)] snap-start md:basis-[calc((100%_-_4.5rem)/4)]"
+                className={`min-w-0 shrink-0 snap-start ${isHomeShowcase ? 'basis-[82%] sm:basis-[56%] lg:basis-[35%]' : 'basis-[calc((100%_-_1rem)/2)] md:basis-[calc((100%_-_4.5rem)/4)]'}`}
               >
                 {template.status === 'available' ? (
                   <a
@@ -201,6 +177,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
               </p>
             </div>
           )}
+          </div>
         </div>
 
         {showDots ? (
@@ -212,7 +189,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
                 onClick={() => scrollToPage(index)}
                 aria-label={`템플릿 ${index + 1}번째 묶음 보기`}
                 className={`h-2.5 rounded-full transition-all ${
-                  activePage === index ? 'w-8 bg-zinc-950' : 'w-2.5 bg-zinc-300 hover:bg-zinc-400'
+                  activePage === index ? `w-8 ${isHomeShowcase ? 'bg-white' : 'bg-zinc-950'}` : `w-2.5 ${isHomeShowcase ? 'bg-white/25 hover:bg-white/40' : 'bg-zinc-300 hover:bg-zinc-400'}`
                 }`}
               />
             ))}
@@ -223,7 +200,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
           <div className="mt-10 flex justify-center">
             <a
               href="/store"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-6 py-3 text-sm font-bold text-zinc-900 transition-colors hover:border-zinc-950 hover:bg-zinc-950 hover:text-white"
+              className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white hover:text-zinc-950"
             >
               더 많은 템플릿 보기 <span aria-hidden="true" className="ml-2">→</span>
             </a>
