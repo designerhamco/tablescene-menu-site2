@@ -6,14 +6,14 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
 
 export const metadata: Metadata = {
-  title: "서비스 신청 | MenuLink",
-  description: "메뉴링크 베이직, 메뉴링크 디스플레이, 메뉴링크 커스텀 신청 페이지를 선택하세요.",
+  title: "서비스 신청 | ArtiMenu",
+  description: "아티메뉴 베이직, 아티메뉴 디스플레이, 아티메뉴 커스텀 신청 페이지를 선택하세요.",
 };
 
 function getApplyServices(displayCheckoutQaEnabled: boolean) {
   return [
   {
-    title: "메뉴링크 베이직",
+    title: "아티메뉴 베이직",
     description: "신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공됩니다.",
     price: "첫 달 체험가 6,600원 / 사업자 월 9,900원 / 연 95,000원",
     note: "한 계정에서 여러 메뉴판을 관리할 수 있으며, 추가 메뉴판은 별도로 구매해야 합니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.",
@@ -23,19 +23,19 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
     active: true,
   },
   {
-    title: "메뉴링크 디스플레이",
+    title: "아티메뉴 디스플레이",
     description: "사업자 전용 디스플레이 메뉴보드입니다. 신규 Display 구독 1건당 Display 메뉴판 1개가 제공됩니다.",
     price: "오픈 할인 월 19,800원 / 연 190,000원",
     note: displayCheckoutQaEnabled
       ? "TV/모니터용 디지털 메뉴보드를 사업자 전용 정기결제로 신청할 수 있습니다."
-      : "메뉴링크 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",
+      : "아티메뉴 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",
     type: displayCheckoutQaEnabled ? "오픈 할인" : "준비 중",
     cta: displayCheckoutQaEnabled ? "디스플레이 만들기" : "준비 중",
     href: "/apply/display",
     active: displayCheckoutQaEnabled,
   },
   {
-    title: "메뉴링크 커스텀",
+    title: "아티메뉴 커스텀",
     description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험",
     price: "별도 견적",
     note: "결제 없이 상담 신청을 접수한 뒤 별도 견적을 안내합니다.",
@@ -61,10 +61,10 @@ export default function ApplyPage() {
               어떤 서비스를 신청하시겠어요?
             </h1>
             <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
-              메뉴링크 베이직은 개인 1개월 체험과 사업자 정식 월결제/연결제를 한 화면에서 선택할 수 있습니다.
+              아티메뉴 베이직은 개인 1개월 체험과 사업자 정식 월결제/연결제를 한 화면에서 선택할 수 있습니다.
               {displayCheckoutQaEnabled
-                ? " 메뉴링크 디스플레이는 사업자 전용 디지털 메뉴보드로 신규 구독 1건당 Display 메뉴판 1개를 제공합니다."
-                : " 메뉴링크 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다."}
+                ? " 아티메뉴 디스플레이는 사업자 전용 디지털 메뉴보드로 신규 구독 1건당 Display 메뉴판 1개를 제공합니다."
+                : " 아티메뉴 디스플레이는 전용 템플릿 준비 후 신청을 열 예정입니다."}
             </p>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-400">
               ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.

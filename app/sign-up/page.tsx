@@ -39,7 +39,7 @@ export default async function SignUpPage({
       <main className="min-h-screen bg-zinc-50 px-5 py-16 text-zinc-950 sm:px-6 lg:py-20">
         <section className="mx-auto w-full max-w-xl rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-xl shadow-zinc-200/60 sm:p-8">
           <div>
-            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">메뉴링크 회원가입</h1>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">아티메뉴 회원가입</h1>
             <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               카카오 계정 또는 이메일로 간편하게 가입할 수 있습니다. 가입 후 마이페이지에서 메뉴판을 만들고 관리할 수 있습니다.
             </p>
@@ -69,7 +69,7 @@ export default async function SignUpPage({
               href={`/sign-in?next=${encodeURIComponent(safeNext)}`}
               className="font-bold text-zinc-950 hover:underline"
             >
-              메뉴링크 로그인
+              아티메뉴 로그인
             </Link>
           </p>
         </section>

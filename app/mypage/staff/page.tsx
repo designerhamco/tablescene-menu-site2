@@ -20,7 +20,7 @@ import {
 } from "./actions";
 
 export const metadata: Metadata = {
-  title: "직원 관리 | 메뉴링크",
+  title: "직원 관리 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 

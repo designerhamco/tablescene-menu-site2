@@ -39,7 +39,7 @@ export function PrivacyCollectionConsentDocument() {
     <div className="space-y-6 break-keep">
       <section className="space-y-2">
         <h4 className="text-base font-black text-zinc-950">개인정보 수집·이용 동의</h4>
-        <p>디앤디커머스는 메뉴링크 회원가입 및 서비스 제공을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>
+        <p>디앤디커머스는 아티메뉴 회원가입 및 서비스 제공을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>
       </section>
 
       <section className="space-y-2">
@@ -61,7 +61,7 @@ export function PrivacyCollectionConsentDocument() {
         <p>회사는 수집한 개인정보를 다음의 목적을 위해 이용합니다.</p>
         <p>· 회원가입, 로그인 및 계정 관리</p>
         <p>· 본인 확인, 중복 가입 및 부정 이용 방지</p>
-        <p>· 메뉴링크 서비스 제공 및 메뉴판 생성·관리</p>
+        <p>· 아티메뉴 서비스 제공 및 메뉴판 생성·관리</p>
         <p>· 공개 메뉴판 URL 제공 및 QR 코드 생성</p>
         <p>· 첫 달 체험, 유료서비스 결제 및 정기구독 관리</p>
         <p>· 사업자 정보 확인 및 사업자 인증</p>
@@ -88,7 +88,7 @@ export function PrivacyCollectionConsentDocument() {
       <section className="space-y-2">
         <h4 className="text-base font-black text-zinc-950">■ 동의 거부권 및 불이익</h4>
         <p>이용자는 개인정보 수집·이용에 대한 동의를 거부할 권리가 있습니다.</p>
-        <p>다만 필수 항목에 대한 동의를 거부할 경우 회원가입, 로그인, 메뉴판 생성, 첫 달 체험, 유료서비스 결제, 정기구독 관리, 고객지원 및 메뉴링크 서비스 이용이 제한될 수 있습니다.</p>
+        <p>다만 필수 항목에 대한 동의를 거부할 경우 회원가입, 로그인, 메뉴판 생성, 첫 달 체험, 유료서비스 결제, 정기구독 관리, 고객지원 및 아티메뉴 서비스 이용이 제한될 수 있습니다.</p>
       </section>
     </div>
   );
@@ -99,13 +99,13 @@ export function MarketingConsentDocument() {
     <div className="space-y-6 break-keep">
       <section className="space-y-2">
         <h4 className="text-base font-black text-zinc-950">1. 수신 목적</h4>
-        <p>메뉴링크는 이용자가 선택적으로 동의한 경우 이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내, 프로모션 및 혜택 안내 등 광고성 정보를 발송할 수 있습니다.</p>
+        <p>아티메뉴는 이용자가 선택적으로 동의한 경우 이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내, 프로모션 및 혜택 안내 등 광고성 정보를 발송할 수 있습니다.</p>
       </section>
 
       <section className="space-y-2">
         <h4 className="text-base font-black text-zinc-950">2. 수신 내용 및 채널</h4>
         <p>수신 내용은 이벤트 및 할인 혜택, 신규 템플릿 출시 안내, AI 기능 업데이트 안내, 서비스 개선 소식, 유료 기능 및 프로모션 안내를 포함합니다.</p>
-        <p>수신 채널은 이메일, 문자메시지, 카카오 메시지 등 메뉴링크가 운영하는 안내 채널을 포함할 수 있습니다.</p>
+        <p>수신 채널은 이메일, 문자메시지, 카카오 메시지 등 아티메뉴가 운영하는 안내 채널을 포함할 수 있습니다.</p>
       </section>
 
       <section className="space-y-2">
@@ -120,7 +120,7 @@ export function MarketingConsentDocument() {
 
       <section className="space-y-2">
         <h4 className="text-base font-black text-zinc-950">5. 선택 동의 안내</h4>
-        <p>마케팅 정보 수신 동의는 선택 사항이며, 동의하지 않아도 회원가입, 첫 달 체험, 유료서비스 결제 및 메뉴링크 서비스 이용에는 제한이 없습니다.</p>
+        <p>마케팅 정보 수신 동의는 선택 사항이며, 동의하지 않아도 회원가입, 첫 달 체험, 유료서비스 결제 및 아티메뉴 서비스 이용에는 제한이 없습니다.</p>
         <p>결제 완료, 정기결제 예정 또는 실패, 구독 만료, 데이터 삭제 예정, 약관·정책 변경, 서비스 장애, 보안 안내, 고객지원 답변 등 서비스 이용에 필요한 필수 고지는 마케팅 수신 동의 여부와 관계없이 발송될 수 있습니다.</p>
       </section>
     </div>

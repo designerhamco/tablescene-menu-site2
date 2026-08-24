@@ -1,6 +1,6 @@
-# MenuLink 프로젝트 상태
+# ArtiMenu 프로젝트 상태
 
-최종 갱신: 2026-08-15
+최종 갱신: 2026-08-24
 
 기준 브랜치: `tablescene-next`
 
@@ -8,6 +8,11 @@
 
 ## 완료된 주요 기능
 
+- ArtiMenu 브랜드와 PG 사이트 심사 준비:
+  - 사용자 표시 브랜드를 `아티메뉴` / `ArtiMenu`로 통일하고 기존 cookie·localStorage·DB·호환 route 식별자는 유지
+  - 현재 판매 가능한 Basic 3상품을 `/pricing`에서 분리하고 공개 상품 상세·제공 시점·교환·청약철회·환불 안내를 연결
+  - QR오더 소개의 미구현 결제·포인트·알림·POS 완성형 표현을 제거하고 계약 전 준비 상태와 검증 범위를 명시
+  - 상세 심사 체크리스트는 `docs/pg-site-review-readiness.md`
 - Production 의존성 보안 패치:
   - Next.js와 eslint-config-next를 16.3.1, React Router를 7.18.2로 갱신
   - `nanoid`, `postcss`, `sharp`, `ws`를 안전한 transitive 버전으로 갱신
@@ -215,7 +220,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 ## 현재 보류 중인 운영 작업
 
 - 기존 불완전 주문 3건은 변경하지 않고 별도 read-only 운영 감사가 필요하다.
-- PortOne에 음식점 직접 merchant와 MenuLink 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
+- PortOne에 음식점 직접 merchant와 ArtiMenu 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
 - 회원가입·비밀번호 재설정 이메일의 실제 수신 확인
 - Production 환경변수와 비밀키 확인
 - Vercel Cron 설정 확인

@@ -44,7 +44,7 @@ export default async function NewMenuSitePage({
         </Link>
 
         <div className="mt-6 border-y border-zinc-200 bg-white px-6 py-10 sm:px-10">
-          <p className="text-xs font-black uppercase text-zinc-400">MenuLink Basic</p>
+          <p className="text-xs font-black uppercase text-zinc-400">ArtiMenu Basic</p>
           <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">새 메뉴판이 필요하신가요?</h1>
           <p className="mt-4 max-w-xl break-keep text-sm font-bold leading-relaxed text-zinc-600">
             새 메뉴판은 추가 구매 후 생성할 수 있습니다. 기존 메뉴판과 구독은 그대로 유지되며, 새 구매가 완료되면 별도의 메뉴판 한 개가 생성됩니다.

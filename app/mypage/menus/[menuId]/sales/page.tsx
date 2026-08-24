@@ -9,7 +9,7 @@ import {
 } from "@/lib/server/sales-summary-service";
 
 export const metadata: Metadata = {
-  title: "매출 요약 | 메뉴링크",
+  title: "매출 요약 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 

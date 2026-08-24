@@ -84,8 +84,8 @@ test("mobile preview converts visible price columns into editable order options"
 
 test("mobile preview keeps PG optional while preserving postpay ordering", () => {
   const catalog = buildMenuPreviewOrderCatalog([item()]);
-  const withoutPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog, pgEnabled: false });
-  const withPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog, pgEnabled: true });
+  const withoutPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "ArtiMenu", catalog, pgEnabled: false });
+  const withPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "ArtiMenu", catalog, pgEnabled: true });
 
   assert.equal(withoutPg.callEnabled, true);
   assert.equal(withoutPg.orderEnabled, true);

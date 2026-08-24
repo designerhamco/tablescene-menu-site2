@@ -1,10 +1,10 @@
-# MenuLink Order·Call Product Contract
+# ArtiMenu Order·Call Product Contract
 
 Last updated: 2026-08-06
 
 ## 1. Purpose
 
-This document defines the product contract for future MenuLink Order and Call features before implementation.
+This document defines the product contract for future ArtiMenu Order and Call features before implementation.
 
 The goal is to keep Order and Call independent from individual menu templates while making their relationship to Basic, Multi-page, table QR, checkout, store operations, and permissions explicit.
 
@@ -17,21 +17,21 @@ Status labels:
 
 ## 2. Product Definitions
 
-### MenuLink Basic / Multi-page
+### ArtiMenu Basic / Multi-page
 
 - 확정: Basic and Multi-page are the public digital menu products.
 - 확정: They provide menu names, prices, descriptions, images, multilingual content, sold-out state, time sales, widgets, and public menu rendering.
 - 확정: They must work without Order or Call.
 - 확정: Multi-page uses a dedicated menu presentation engine, but Order and Call must integrate through the same common layer used by Basic One-page.
 
-### MenuLink Order
+### ArtiMenu Order
 
 - 확정: Order is an add-on layer attached to a public menu.
 - 확정: Order is not a separate template.
 - 확정: All supported templates must use the same common Order Layer.
 - 확정: Cart and order submission must not be implemented separately inside each template renderer.
 
-### MenuLink Call
+### ArtiMenu Call
 
 - 확정: Call lets a seated table request staff assistance.
 - 확정: Call can be enabled independently of Order.
@@ -301,7 +301,7 @@ QR scan
 → submit order
 → order appears in store dashboard
 → staff takes payment through existing POS/card terminal/cash
-→ staff marks manual payment complete in MenuLink
+→ staff marks manual payment complete in ArtiMenu
 ```
 
 Policies:
@@ -314,8 +314,8 @@ Policies:
 - 확정: New postpay order starts with `payment_status=unpaid`.
 - 확정: Real payment happens through store POS, card terminal, or cash.
 - 확정: Staff can mark `manual_paid`.
-- 확정: MenuLink is not the card authorization party for postpay.
-- 확정: Store payment record and MenuLink order state are separate.
+- 확정: ArtiMenu is not the card authorization party for postpay.
+- 확정: Store payment record and ArtiMenu order state are separate.
 - 권장: Manual payment completion should be auditable.
 
 Implementation status (2026-08-06):
@@ -345,7 +345,7 @@ QR scan
 Policies:
 
 - 확정: Store business is the merchant of record for PG contract.
-- 확정: MenuLink provides technical payment integration.
+- 확정: ArtiMenu provides technical payment integration.
 - 확정: Merchant/channel configuration is required per store.
 - 확정: Payment secrets are server-only.
 - 확정: Success screen alone is insufficient; server lookup and/or webhook verification is required.
@@ -415,7 +415,7 @@ Policies:
 
 Payment status examples:
 
-- 확정: `unpaid` - no MenuLink-confirmed payment.
+- 확정: `unpaid` - no ArtiMenu-confirmed payment.
 - 확정: `manual_paid` - staff marked external POS/card/cash payment as complete.
 - 확정: `paid` - PG or otherwise verified automated payment.
 - 확정: `cancelled` - payment cancelled.
@@ -525,7 +525,7 @@ Implementation status (2026-08-06):
 - `CALL_ENABLED` plus an explicit `CALL_ALLOWED_SITE_IDS` allowlist fail closed by default. The migration and Production activation remain separate human-approved operations.
 - Status changes are forward-only conditional updates: `received` → `accepted` → `cooking` → `ready` → `served`.
 - Cancellation is limited to unpaid, unserved orders with a required 1–500 character reason.
-- Manual card-terminal and cash completion record `manual_paid`, the external method, timestamp, and authenticated actor; MenuLink does not perform card authorization.
+- Manual card-terminal and cash completion record `manual_paid`, the external method, timestamp, and authenticated actor; ArtiMenu does not perform card authorization.
 - The dashboard refreshes every 15 seconds and prints snapshot-based browser receipts.
 - The dashboard treats the first loaded ID set as a quiet baseline, then surfaces newly arrived orders or pending calls through an in-app banner and document-title count during the same browser session.
 - Arrival alerts do not request browser notification permission, play sound, persist on the server, or imply an external messaging channel.
@@ -558,7 +558,7 @@ Implementation status (2026-08-06):
 - 권장: Can view orders/calls and change operational statuses.
 - 미결정: Exact settings/payment permissions.
 
-### MenuLink Admin
+### ArtiMenu Admin
 
 - 확정: Support-oriented read access.
 - 권장: Forced cancellation or data changes require audit logs.

@@ -11,7 +11,7 @@ import {
 import OrderDashboard from "./OrderDashboard";
 
 export const metadata: Metadata = {
-  title: "주문관리 | 메뉴링크",
+  title: "주문관리 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 
@@ -54,7 +54,7 @@ export default async function OrderDashboardPage({
           <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
           <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">주문관리</h1>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-            접수부터 제공까지의 상태와 외부 카드 단말기·현금 결제 완료를 관리합니다. MenuLink는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.
+            접수부터 제공까지의 상태와 외부 카드 단말기·현금 결제 완료를 관리합니다. ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.
           </p>
         </header>
 

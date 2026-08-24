@@ -81,6 +81,6 @@ export function getDashboardBrowserNotificationCopy({
   const noun = kind === "orders" ? "주문" : "호출";
   return {
     title: `새 ${noun} ${newCount.toLocaleString("ko-KR")}건`,
-    body: `메뉴링크 ${noun}관리 화면에서 확인해 주세요.`,
+    body: `아티메뉴 ${noun}관리 화면에서 확인해 주세요.`,
   };
 }

@@ -11,7 +11,7 @@ import {
 import CallDashboard from "./CallDashboard";
 
 export const metadata: Metadata = {
-  title: "호출관리 | 메뉴링크",
+  title: "호출관리 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 

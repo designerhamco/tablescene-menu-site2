@@ -195,10 +195,10 @@ function createRenewalPaymentId(subscription: DueSubscription, periodStart: Date
 
 function getOrderName(product: SubscriptionProduct) {
   if (product.serviceType === "display") {
-    return product.billingCycle === "yearly" ? "메뉴링크 디스플레이 연결제" : "메뉴링크 디스플레이 월결제";
+    return product.billingCycle === "yearly" ? "아티메뉴 디스플레이 연결제" : "아티메뉴 디스플레이 월결제";
   }
 
-  return product.billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
+  return product.billingCycle === "yearly" ? "아티메뉴 베이직 연결제" : "아티메뉴 베이직 월결제";
 }
 
 function getSafePortOneMessage(error: unknown) {

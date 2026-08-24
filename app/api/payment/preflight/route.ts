@@ -96,7 +96,7 @@ export async function POST(request: Request) {
   }
 
   if (product.template_service === "display" && !isDisplayCheckoutQaEnabled()) {
-    return jsonError("메뉴링크 디스플레이 신청은 아직 준비 중입니다.", 403, {
+    return jsonError("아티메뉴 디스플레이 신청은 아직 준비 중입니다.", 403, {
       productKey,
       templateKey,
       planKey,

@@ -28,30 +28,30 @@ type PricingData = {
 
 const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
   basic: {
-    title: "메뉴링크 베이직 가격 안내",
+    title: "아티메뉴 베이직 가격 안내",
     description: "",
     plans: [
       {
         label: "월결제",
         badge: "25% 할인",
-        title: "메뉴링크 베이직",
+        title: "아티메뉴 베이직",
         price: "9,900원 / 월",
         subcopy: "정가 13,200원 · 오픈할인 25%",
         helper: "매월 자동 갱신",
         savings: "※ 모든 금액은 부가세 포함가입니다.",
-        href: "/apply/basic?billing=monthly",
+        href: "/apply/basic?product=business_basic_monthly",
         aiTitle: "Basic 기본 제공 AI 크레딧",
         aiUsage: "신규 구독 개설 시 기본 AI 크레딧 18개 제공",
       },
       {
         label: "연결제",
         badge: "약 40% 할인",
-        title: "메뉴링크 베이직",
+        title: "아티메뉴 베이직",
         price: "95,000원 / 년",
         subcopy: "연 정가 158,400원 대비 약 40% 할인",
         helper: "오픈 월결제 12개월 대비 약 20% 할인",
         savings: "※ 모든 금액은 부가세 포함가입니다.",
-        href: "/apply/basic?billing=yearly",
+        href: "/apply/basic?product=business_basic_yearly",
         aiTitle: "Basic 기본 제공 AI 크레딧",
         aiUsage: "신규 구독 개설 시 기본 AI 크레딧 18개 제공",
       },
@@ -74,13 +74,13 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
     ],
   },
   display: {
-    title: "메뉴링크 디스플레이 가격 안내",
+    title: "아티메뉴 디스플레이 가격 안내",
     description: "매장 TV와 모니터에 띄우는 대형 화면용 디지털 메뉴보드입니다.",
     plans: [
       {
         label: "월결제",
         badge: "50% 할인",
-        title: "메뉴링크 디스플레이",
+        title: "아티메뉴 디스플레이",
         price: "19,800원 / 월",
         subcopy: "정가 39,600원 · 오픈할인 50%",
         helper: "매월 자동 갱신",
@@ -92,7 +92,7 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
       {
         label: "연결제",
         badge: "약 60% 할인",
-        title: "메뉴링크 디스플레이",
+        title: "아티메뉴 디스플레이",
         price: "190,000원 / 년",
         subcopy: "연 정가 475,200원 대비 약 60% 할인",
         helper: "오픈 월결제 12개월 대비 약 20% 할인",

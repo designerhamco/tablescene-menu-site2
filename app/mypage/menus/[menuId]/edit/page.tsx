@@ -1057,7 +1057,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
             ← 메뉴판 목록으로
           </Link>
           <section className="rounded-lg bg-white p-8 shadow-sm">
-            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">메뉴링크 커스텀은 맞춤 제작형 서비스입니다.</h1>
+            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">아티메뉴 커스텀은 맞춤 제작형 서비스입니다.</h1>
             <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
               <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
@@ -2006,7 +2006,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                               name="footer_notice_3"
                               defaultValue={footerNotice3}
                               maxLength={templateContentLimits.footerNotice}
-                              placeholder="예: Instagram @menulink_official"
+                              placeholder="예: Instagram @artimenu_official"
                               helperText={
                                 <>
                                   링크가 아닌 단순 텍스트로 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.

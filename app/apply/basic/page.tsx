@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 
 import PaidApplyPage from "../_components/PaidApplyPage";
+import { getBasicPaymentProduct } from "@/lib/payments";
 
 export const metadata: Metadata = {
-  title: "메뉴링크 베이직 신청/결제 | MenuLink",
-  description: "개인 1개월 체험 또는 사업자 정식 월결제/연결제를 선택해 메뉴링크 베이직 메뉴판을 신청합니다.",
+  title: "아티메뉴 베이직 신청/결제 | ArtiMenu",
+  description: "개인 1개월 체험 또는 사업자 정식 월결제/연결제를 선택해 아티메뉴 베이직 메뉴판을 신청합니다.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -33,6 +34,15 @@ export default async function ApplyBasicPage({
   searchParams: SearchParams;
 }) {
   const resolvedSearchParams = await searchParams;
+  const productParam = resolvedSearchParams.product;
+  const requestedProductKey = Array.isArray(productParam) ? productParam[0] : productParam;
+  const initialBasicProductKey = getBasicPaymentProduct(requestedProductKey)?.product_key;
 
-  return <PaidApplyPage serviceType="menu" nextPath={createPathWithQuery("/apply/basic", resolvedSearchParams)} />;
+  return (
+    <PaidApplyPage
+      serviceType="menu"
+      nextPath={createPathWithQuery("/apply/basic", resolvedSearchParams)}
+      initialBasicProductKey={initialBasicProductKey}
+    />
+  );
 }

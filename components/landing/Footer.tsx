@@ -4,7 +4,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-12 flex flex-col items-start justify-between gap-8 md:flex-row">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-white">MENULINK</h2>
+            <h2 className="text-xl font-bold tracking-tight text-white">ArtiMenu</h2>
             <p className="max-w-xs text-sm font-normal leading-relaxed text-zinc-500">
               디지털 혁신과 시각적 스토리텔링을 통해<br />
               다이닝 경험의 새로운 장면을 만듭니다.
@@ -53,7 +53,7 @@ export function Footer() {
               <a href="/privacy" className="transition-colors hover:text-zinc-300">개인정보 처리방침</a>
               <a href="mailto:admin@dndcommerce.co.kr" className="transition-colors hover:text-zinc-300">고객지원</a>
             </div>
-            <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-700">© 2026 MenuLink Studio.</p>
+            <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-700">© 2026 ArtiMenu Studio.</p>
           </div>
         </div>
       </div>

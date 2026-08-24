@@ -77,7 +77,7 @@ export default function MarketingConsentSettings({
             이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내 등을 이메일, 문자메시지, 카카오 메시지 등으로 받을 수 있습니다.
           </p>
           <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-            동의하지 않아도 메뉴링크 서비스 이용에는 제한이 없습니다. 결제 완료, 정기결제 예정 또는 실패, 구독 만료, 데이터 삭제 예정, 약관·정책 변경, 서비스 장애, 보안 안내 등 필수 고지는 수신 동의 여부와 관계없이 발송될 수 있습니다.
+            동의하지 않아도 아티메뉴 서비스 이용에는 제한이 없습니다. 결제 완료, 정기결제 예정 또는 실패, 구독 만료, 데이터 삭제 예정, 약관·정책 변경, 서비스 장애, 보안 안내 등 필수 고지는 수신 동의 여부와 관계없이 발송될 수 있습니다.
           </p>
           <p className="mt-3 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
             {accepted

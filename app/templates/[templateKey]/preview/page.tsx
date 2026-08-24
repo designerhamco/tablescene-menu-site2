@@ -1143,7 +1143,7 @@ function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | s
     : {};
   settings.footer_notice_1 = "10:00~22:00";
   settings.footer_notice_2 = "서울시 강남구 테이블로 12";
-  settings.footer_notice_3 = "Instagram @menulink_official · 포장 가능";
+  settings.footer_notice_3 = "Instagram @artimenu_official · 포장 가능";
 
   return {
     ...data,
@@ -1161,7 +1161,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!isValidTemplateKey(templateKey)) {
     return {
-      title: "템플릿 미리보기 | MenuLink",
+      title: "템플릿 미리보기 | ArtiMenu",
       robots: { index: false, follow: false },
     };
   }
@@ -1169,7 +1169,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const template = getTemplateByKey(templateKey);
 
   return {
-    title: `${template.name} 미리보기 | MenuLink`,
+    title: `${template.name} 미리보기 | ArtiMenu`,
     description: `${template.name} 템플릿 화면을 미리 확인해보세요.`,
     robots: { index: false, follow: false },
   };

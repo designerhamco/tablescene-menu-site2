@@ -12,7 +12,7 @@ export function Services() {
           <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-zinc-900 md:text-6xl">우리의 서비스</h2>
           <p className="text-lg font-medium text-zinc-500 md:text-xl">
             완벽하게 연결된 올인원 시스템으로 완성된<br className="hidden md:block" />
-            메뉴링크의 혁신적인 서비스를 만나보세요.
+            아티메뉴의 혁신적인 서비스를 만나보세요.
           </p>
         </div>
 

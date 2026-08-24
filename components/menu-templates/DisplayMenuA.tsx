@@ -1362,7 +1362,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const activeSettings = activePage ? normalizeMenuPageDisplaySettings(activePage.display_settings) : null;
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
-  const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "MenuLink Display";
+  const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "ArtiMenu Display";
 
   function selectDisplayPage(pageId: string) {
     setSelectedPageId(pageId);

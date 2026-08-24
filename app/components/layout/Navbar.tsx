@@ -18,15 +18,15 @@ type NavItem = {
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: '메뉴링크 베이직', path: '/services/basic', discount: true },
-  { label: '메뉴링크 디스플레이', path: '/services/display', discount: true },
+  { label: '아티메뉴 베이직', path: '/services/basic', discount: true },
+  { label: '아티메뉴 디스플레이', path: '/services/display' },
   { label: '커스텀', path: '/custom', premium: true },
 ];
 
 function DiscountChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
-      50%
+      할인
     </span>
   );
 }
@@ -293,14 +293,14 @@ const Navbar = () => {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F8E731] transition-transform duration-300 group-hover:scale-105 md:h-10 md:w-10 md:rounded-xl">
               <img
                 src={logoImage}
-                alt="MenuLink Symbol"
+                alt="ArtiMenu Symbol"
                 className="h-5 w-5 rotate-45 object-contain md:h-6 md:w-6"
               />
             </div>
 
             <div className="flex flex-col items-start leading-none">
               <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${logoTextClass}`}>
-                MENULINK
+                ArtiMenu
               </span>
             </div>
           </Link>
@@ -496,9 +496,9 @@ const Navbar = () => {
               <div className="mt-auto px-6 py-8">
                 <div className="border-t border-zinc-100 pt-6">
                   <div className="flex flex-col gap-0.5 text-[10px] font-medium tracking-tight text-zinc-400">
-                    <p className="mb-1 text-xs font-bold text-zinc-900">MENULINK Studio</p>
+                    <p className="mb-1 text-xs font-bold text-zinc-900">ArtiMenu Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
-                    <p className="mt-1 opacity-60">© 2026 MenuLink. All rights reserved.</p>
+                    <p className="mt-1 opacity-60">© 2026 ArtiMenu. All rights reserved.</p>
                   </div>
                 </div>
               </div>

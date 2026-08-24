@@ -1043,7 +1043,7 @@ const cafeNoirAStarterPreset: StarterPreset = {
     menu_cover_description: "",
     about_description: "차분한 온도의 커피와 디저트를 전하는 미니멀 카페입니다.",
     opening_hours: "Everyday 10:00 - 21:00",
-    restaurant_address: "14, Menulink-ro, Seoul",
+    restaurant_address: "14, Artimenu-ro, Seoul",
     restaurant_phone: "02-0000-0000",
     cover_image_url: "",
     logo_url: "/menu-templates/cafe_noir_a/noir-logo2.png",
@@ -1051,7 +1051,7 @@ const cafeNoirAStarterPreset: StarterPreset = {
     settings: {
       logo_replaces_name: true,
       footer_notice_1: "차분한 온도의 커피와 디저트를 전하는 미니멀 카페입니다.",
-      footer_notice_2: "Address · 14, Menulink-ro, Seoul",
+      footer_notice_2: "Address · 14, Artimenu-ro, Seoul",
       footer_notice_3: "QUIET SIPS. SOFT FINISH.",
     },
   },
@@ -1127,24 +1127,24 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
   cafe: {
     key: "cafe",
     site: {
-      restaurant_name: "메뉴링크 카페",
+      restaurant_name: "아티메뉴 카페",
       restaurant_category: "카페",
       restaurant_type: "cafe",
       menu_cover_label: "SPECIALTY COFFEE",
       intro_title: "따뜻한 커피와 디저트가 있는 공간",
       intro_description: "하루의 여유를 채워주는 커피와 디저트를 준비했습니다.",
-      brand_description: "메뉴링크 카페는 편안한 분위기 속에서 커피와 디저트를 즐길 수 있는 공간입니다.",
+      brand_description: "아티메뉴 카페는 편안한 분위기 속에서 커피와 디저트를 즐길 수 있는 공간입니다.",
       menu_cover_title: "Cafe Menu",
       menu_cover_description: "시그니처 음료부터 디저트까지, 오늘의 취향에 맞는 메뉴를 골라보세요.",
       about_description: "커피 한 잔의 여유와 함께 머물기 좋은 공간을 지향합니다.",
       opening_hours: "매일 10:00 - 21:00",
-      restaurant_address: "서울시 예시구 메뉴링크로 1",
+      restaurant_address: "서울시 예시구 아티메뉴로 1",
       restaurant_phone: "02-0000-0000",
       cover_image_url: "/placeholders/starter/cafe-cover.svg",
     },
     chefs: [
       {
-        chef_name: "메뉴링크 바리스타",
+        chef_name: "아티메뉴 바리스타",
         chef_role: "Head Barista",
         chef_description: "매일 균형 잡힌 커피와 음료를 준비합니다.",
       },
@@ -1162,8 +1162,8 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
       },
     ],
     socialLinks: [
-      { type: "instagram", label: "인스타그램", display_name: "@menulink_cafe", url: "https://instagram.com/example" },
-      { type: "blog", label: "블로그", display_name: "메뉴링크 카페 블로그", url: "https://example.com/blog" },
+      { type: "instagram", label: "인스타그램", display_name: "@artimenu_cafe", url: "https://instagram.com/example" },
+      { type: "blog", label: "블로그", display_name: "아티메뉴 카페 블로그", url: "https://example.com/blog" },
     ],
     pages: [
       {
@@ -1261,13 +1261,13 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
   brunch: {
     key: "brunch",
     site: {
-      restaurant_name: "메뉴링크 브런치",
+      restaurant_name: "아티메뉴 브런치",
       restaurant_category: "브런치",
       restaurant_type: "brunch",
       menu_cover_label: "BRUNCH CAFE",
       intro_title: "여유로운 하루를 여는 브런치",
       intro_description: "브런치 플레이트와 음료, 디저트를 함께 즐겨보세요.",
-      brand_description: "메뉴링크 브런치는 편안한 공간에서 여유로운 식사를 제안합니다.",
+      brand_description: "아티메뉴 브런치는 편안한 공간에서 여유로운 식사를 제안합니다.",
       menu_cover_title: "Brunch Menu",
       menu_cover_description: "브런치 메뉴와 샐러드, 음료를 확인해보세요.",
       about_description: "여유로운 식사와 대화를 위한 브런치 공간입니다.",
@@ -1278,7 +1278,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
     },
     chefs: [
       {
-        chef_name: "메뉴링크 브런치팀",
+        chef_name: "아티메뉴 브런치팀",
         chef_role: "Brunch Team",
         chef_description: "신선한 재료로 브런치 메뉴를 준비합니다.",
       },
@@ -1296,8 +1296,8 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
       },
     ],
     socialLinks: [
-      { type: "instagram", label: "인스타그램", display_name: "@menulink_brunch", url: "https://instagram.com/example" },
-      { type: "threads", label: "스레드", display_name: "@menulink_brunch", url: "https://threads.net/@example" },
+      { type: "instagram", label: "인스타그램", display_name: "@artimenu_brunch", url: "https://instagram.com/example" },
+      { type: "threads", label: "스레드", display_name: "@artimenu_brunch", url: "https://threads.net/@example" },
     ],
     pages: [
       {
@@ -1375,13 +1375,13 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
   fine_dining: {
     key: "fine_dining",
     site: {
-      restaurant_name: "메뉴링크 다이닝",
+      restaurant_name: "아티메뉴 다이닝",
       restaurant_category: "파인다이닝",
       restaurant_type: "fine_dining",
       menu_cover_label: "FINE DINING",
       intro_title: "계절의 흐름을 담은 다이닝",
       intro_description: "정성스럽게 준비한 코스와 페어링을 경험해보세요.",
-      brand_description: "메뉴링크 다이닝은 재료의 계절감과 섬세한 서비스를 중요하게 생각합니다.",
+      brand_description: "아티메뉴 다이닝은 재료의 계절감과 섬세한 서비스를 중요하게 생각합니다.",
       menu_cover_title: "Dining Course",
       menu_cover_description: "런치와 디너 코스, 페어링 메뉴를 확인해보세요.",
       about_description: "셰프의 해석이 담긴 메뉴와 편안한 서비스를 제공하는 다이닝 공간입니다.",
@@ -1415,7 +1415,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
       },
     ],
     socialLinks: [
-      { type: "instagram", label: "인스타그램", display_name: "@menulink_dining", url: "https://instagram.com/example" },
+      { type: "instagram", label: "인스타그램", display_name: "@artimenu_dining", url: "https://instagram.com/example" },
     ],
     pages: [
       {
@@ -1493,13 +1493,13 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
   casual_dining: {
     key: "casual_dining",
     site: {
-      restaurant_name: "메뉴링크 키친",
+      restaurant_name: "아티메뉴 키친",
       restaurant_category: "캐주얼다이닝",
       restaurant_type: "casual_dining",
       menu_cover_label: "CASUAL DINING",
       intro_title: "편안하게 즐기는 다이닝 메뉴",
       intro_description: "스테이크, 파스타, 피자와 함께하는 캐주얼한 식사 공간입니다.",
-      brand_description: "메뉴링크 키친은 누구나 편하게 즐길 수 있는 다이닝 메뉴를 제공합니다.",
+      brand_description: "아티메뉴 키친은 누구나 편하게 즐길 수 있는 다이닝 메뉴를 제공합니다.",
       menu_cover_title: "Casual Dining Menu",
       menu_cover_description: "대표 메뉴와 메인 메뉴, 사이드와 음료를 확인해보세요.",
       about_description: "편안한 분위기에서 다양한 메뉴를 즐길 수 있는 캐주얼 다이닝 공간입니다.",
@@ -1528,8 +1528,8 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
       },
     ],
     socialLinks: [
-      { type: "instagram", label: "인스타그램", display_name: "@menulink_kitchen", url: "https://instagram.com/example" },
-      { type: "blog", label: "블로그", display_name: "메뉴링크 키친 소식", url: "https://example.com/blog" },
+      { type: "instagram", label: "인스타그램", display_name: "@artimenu_kitchen", url: "https://instagram.com/example" },
+      { type: "blog", label: "블로그", display_name: "아티메뉴 키친 소식", url: "https://example.com/blog" },
     ],
     pages: [
       {
@@ -1540,7 +1540,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
             name: "추천 메뉴",
             items: [
               item("트러플 크림 파스타", 19000, "진한 크림 소스와 트러플 향이 어우러진 대표 메뉴", { recommended: true }),
-              item("하우스 스테이크", 32000, "메뉴링크 하우스 스타일 스테이크", { portion_label: "200g", recommended: true }),
+              item("하우스 스테이크", 32000, "아티메뉴 하우스 스타일 스테이크", { portion_label: "200g", recommended: true }),
             ],
           },
         ],
@@ -1621,13 +1621,13 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
   fast_food: {
     key: "fast_food",
     site: {
-      restaurant_name: "메뉴링크 버거",
+      restaurant_name: "아티메뉴 버거",
       restaurant_category: "패스트푸드",
       restaurant_type: "fast_food",
       menu_cover_label: "FAST & CASUAL",
       intro_title: "빠르고 맛있게 즐기는 메뉴",
       intro_description: "버거, 치킨, 사이드와 음료를 간편하게 확인해보세요.",
-      brand_description: "메뉴링크 버거는 빠르고 간편하게 즐길 수 있는 메뉴를 제공합니다.",
+      brand_description: "아티메뉴 버거는 빠르고 간편하게 즐길 수 있는 메뉴를 제공합니다.",
       menu_cover_title: "Fast Food Menu",
       menu_cover_description: "세트 메뉴부터 단품, 사이드와 음료까지 한눈에 확인하세요.",
       about_description: "간편하고 빠르게 즐길 수 있는 패스트푸드 메뉴를 제공합니다.",
@@ -1638,7 +1638,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
     },
     chefs: [
       {
-        chef_name: "메뉴링크 크루",
+        chef_name: "아티메뉴 크루",
         chef_role: "Store Crew",
         chef_description: "빠르고 맛있는 메뉴 제공을 위해 준비합니다.",
       },
@@ -1656,7 +1656,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
       },
     ],
     socialLinks: [
-      { type: "instagram", label: "인스타그램", display_name: "@menulink_burger", url: "https://instagram.com/example" },
+      { type: "instagram", label: "인스타그램", display_name: "@artimenu_burger", url: "https://instagram.com/example" },
     ],
     pages: [
       {
@@ -1922,7 +1922,7 @@ async function createDisplayMenuAStarterData(
     }
 
     const sitePayload: MenuSiteUpdate = {
-      restaurant_name: valueOrDefault(site?.restaurant_name, previewData.menuSite.restaurant_name ?? "MenuLink Display Cafe"),
+      restaurant_name: valueOrDefault(site?.restaurant_name, previewData.menuSite.restaurant_name ?? "ArtiMenu Display Cafe"),
       restaurant_category: valueOrDefault(site?.restaurant_category, "디스플레이"),
       restaurant_type: valueOrDefault(site?.restaurant_type, "cafe"),
       restaurant_address: site?.restaurant_address ?? "",

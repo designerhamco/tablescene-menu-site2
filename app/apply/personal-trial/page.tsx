@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "메뉴링크 베이직 신청/결제 | MenuLink",
-  description: "개인 체험과 사업자 정식 결제를 선택할 수 있는 메뉴링크 베이직 신청 페이지로 이동합니다.",
+  title: "아티메뉴 베이직 신청/결제 | ArtiMenu",
+  description: "개인 체험과 사업자 정식 결제를 선택할 수 있는 아티메뉴 베이직 신청 페이지로 이동합니다.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
