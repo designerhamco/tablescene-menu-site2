@@ -462,7 +462,7 @@ const OrderServicePage = () => {
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  to="/services/basic"
+                  to="/"
                   className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
                 >
                   아티메뉴 베이직 보기

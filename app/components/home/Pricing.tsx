@@ -10,7 +10,7 @@ const PLANS = [
     tagline: '아티메뉴 베이직',
     keywords: ['모바일/QR', '가격표', '바로 수정'],
     narrative: '카페/베이커리, 음식점/다이닝, 뷰티/웰니스, 클래스/공방, 병원/클리닉까지 메뉴와 가격표를 하나의 링크로 관리합니다.',
-    link: '/services/basic',
+    link: '/',
     poster: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
     highlight: false,
     disabled: false
