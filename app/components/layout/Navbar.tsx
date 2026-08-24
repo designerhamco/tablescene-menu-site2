@@ -19,7 +19,7 @@ type NavItem = {
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: '아티메뉴 베이직', path: '/services/basic', activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'], discount: true },
+  { label: '아티메뉴 베이직', path: '/', activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'], discount: true },
   { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
   { label: '커스텀', path: '/custom', activePaths: ['/custom', '/services/custom', '/services/design-customizing'], premium: true },
   { label: '고객센터', path: '/faq', activePaths: ['/faq'] },

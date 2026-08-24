@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import TemplateCard, { TemplateThumbnail } from '@/components/templates/TemplateCard';
+import { MarketingSectionCopy } from './MarketingSectionCopy';
 import {
   BASIC_TEMPLATE_CATEGORY_GROUPS,
   DISPLAY_TEMPLATE_CATEGORY_GROUPS,
@@ -107,13 +108,14 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
             transition={{ duration: 0.55 }}
             className="mx-auto mb-16 max-w-4xl px-6 text-center md:mb-20"
           >
-            <p className="mb-4 text-sm font-bold text-zinc-400">전문 디자이너가 설계한 메뉴판</p>
-            <h2 className="whitespace-pre-line break-keep text-3xl font-bold tracking-tight text-white md:text-5xl">
-              {'매장의 분위기를 완성하는\n아티메뉴 템플릿'}
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
-              매장에 어울리는 디자인을 골라 바로 시작하세요.
-            </p>
+            <MarketingSectionCopy
+              centered
+              inverted
+              eyebrow="전문 디자이너가 설계한 메뉴판"
+              title={<>매장의 분위기를 완성하는<br />아티메뉴 템플릿</>}
+              body="매장에 어울리는 디자인을 골라 바로 시작하세요."
+              className="max-w-xl"
+            />
           </motion.div>
 
           <div className="relative overflow-hidden">

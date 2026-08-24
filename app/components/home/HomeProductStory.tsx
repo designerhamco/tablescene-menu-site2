@@ -13,6 +13,8 @@ import {
   WandSparkles,
 } from "lucide-react";
 
+import { MarketingSectionCopy } from "./MarketingSectionCopy";
+
 const menuItems = [
   { name: "Black sesame latte", price: "6.5", image: "/menu-templates/cafe_design_a/black-sesame-featured.jpg" },
   { name: "Nutty cream latte", price: "6.8", image: "/menu-templates/cafe_design_a/nutty-cream-featured.jpg" },
@@ -46,14 +48,6 @@ const fadeUp = {
   viewport: { once: true, amount: 0.2 },
   transition: { duration: 0.55, ease: "easeOut" as const },
 };
-
-function SectionLabel({ children, inverted = false }: { children: React.ReactNode; inverted?: boolean }) {
-  return (
-    <span className={`mb-4 inline-flex text-sm font-bold ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>
-      {children}
-    </span>
-  );
-}
 
 function MenuBoard({ compact = false }: { compact?: boolean }) {
   return (
@@ -175,12 +169,10 @@ function StoryVisualFrame({ children }: { children: React.ReactNode }) {
 
 function DarkStorySection({ eyebrow, title, body, visual, reverse = false }: { eyebrow: string; title: React.ReactNode; body: string; visual: React.ReactNode; reverse?: boolean }) {
   return (
-    <section className="bg-transparent px-6 py-20 text-white md:px-10 md:py-28">
+    <section className="bg-transparent px-6 py-20 text-white md:px-10 md:py-24">
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
-          <SectionLabel inverted>{eyebrow}</SectionLabel>
-          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight md:text-5xl">{title}</h2>
-          <p className="mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">{body}</p>
+          <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
         </motion.div>
         <div className={reverse ? "lg:order-1" : ""}><StoryVisualFrame>{visual}</StoryVisualFrame></div>
       </div>
@@ -388,9 +380,11 @@ export function AiFeaturesSection() {
   ];
 
   return (
-    <section className="bg-white px-6 pb-28 pt-32 md:px-10 md:pb-40 md:pt-40">
+    <section className="bg-white px-6 pb-16 pt-28 md:px-10 md:pb-20 md:pt-36">
       <div className="mx-auto max-w-[1280px]">
-        <motion.div {...fadeUp} className="mb-14 max-w-3xl"><SectionLabel>AI 기능</SectionLabel><h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">반복되는 메뉴 작업은<br />AI에게 맡기세요</h2></motion.div>
+        <motion.div {...fadeUp} className="mb-14 max-w-3xl">
+          <MarketingSectionCopy eyebrow="AI 기능" title={<>반복되는 메뉴 작업은<br />AI에게 맡기세요</>} />
+        </motion.div>
         <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="text-sm font-bold text-zinc-500">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">{feature.body}</p></div></motion.article>)}</div>
       </div>
     </section>
@@ -417,13 +411,10 @@ export function StoreScenesSection() {
   ];
 
   return (
-    <section className="bg-white px-6 pb-28 pt-8 md:px-10 md:pb-40 md:pt-12">
+    <section className="bg-white px-6 pb-20 pt-12 md:px-10 md:pb-24 md:pt-12">
       <div className="mx-auto max-w-[1380px]">
-        <motion.div {...fadeUp} className="mb-16 max-w-4xl md:mb-24">
-          <SectionLabel>In Store</SectionLabel>
-          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
-            매장에서 만나는<br />아티메뉴
-          </h2>
+        <motion.div {...fadeUp} className="mb-14 max-w-4xl md:mb-20">
+          <MarketingSectionCopy eyebrow="In Store" title={<>매장에서 만나는<br />아티메뉴</>} />
         </motion.div>
 
         <div className="grid gap-10 md:grid-cols-3 md:gap-6">
@@ -470,78 +461,66 @@ function DecorativeQr() {
   );
 }
 
-function DeviceMockup({ type }: { type: "desktop" | "tablet" | "mobile" }) {
-  if (type === "mobile") {
-    return (
-      <div className="mx-auto h-[270px] w-[132px] overflow-hidden rounded-[1.7rem] border-[6px] border-zinc-950 bg-white shadow-2xl">
-        <MenuBoard compact />
-      </div>
-    );
-  }
+function DeviceSetVisual() {
+  return (
+    <div className="relative h-full overflow-hidden bg-[#eee8dc] text-zinc-950">
+      <span className="absolute left-1/2 top-5 z-30 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-zinc-950 px-3 py-2 text-[9px] font-black text-white md:top-7 md:px-4 md:text-[10px]">
+        <Link2 className="h-3 w-3" /> artimenu.kr/your-store
+      </span>
 
-  if (type === "tablet") {
-    return (
-      <div className="mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.7rem] border-[8px] border-zinc-950 bg-white shadow-2xl">
+      <div className="absolute left-[4%] top-[25%] z-10 w-[63%]">
+        <div className="overflow-hidden rounded-t-xl border-[5px] border-b-0 border-zinc-950 bg-white shadow-2xl md:border-[7px]">
+          <div className="aspect-[16/9]"><MenuBoard compact /></div>
+        </div>
+        <div className="mx-auto h-2.5 w-[108%] -translate-x-[4%] rounded-b-md bg-zinc-950 md:h-3.5" />
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-[9px] font-black text-zinc-500 md:text-[10px]"><Monitor className="h-3 w-3" />PC · 노트북</p>
+      </div>
+
+      <div className="absolute right-[4%] top-[31%] z-20 w-[43%] overflow-hidden rounded-xl border-[5px] border-zinc-950 bg-white shadow-2xl md:rounded-2xl md:border-[7px]">
         <div className="aspect-[4/3]"><MenuBoard compact /></div>
       </div>
-    );
-  }
+      <p className="absolute right-[4%] top-[72%] z-30 flex w-[43%] items-center justify-center gap-1.5 text-[9px] font-black text-zinc-500 md:text-[10px]"><Tablet className="h-3 w-3" />태블릿</p>
 
-  return (
-    <div className="mx-auto w-full max-w-[640px]">
-      <div className="overflow-hidden rounded-t-[1.3rem] border-[9px] border-b-0 border-zinc-950 bg-white shadow-2xl">
-        <div className="aspect-[16/9]"><MenuBoard compact /></div>
+      <div className="absolute bottom-[5%] left-[45%] z-30 h-[43%] w-[18%] overflow-hidden rounded-[1.15rem] border-[4px] border-zinc-950 bg-white shadow-2xl md:rounded-[1.4rem] md:border-[6px]">
+        <RotatingMenuScreen screenIndex={0} compact />
       </div>
-      <div className="mx-auto h-4 w-[108%] -translate-x-[4%] rounded-b-lg bg-zinc-950" />
+
+      <div className="absolute bottom-[4%] right-[3%] z-40 flex w-[34%] items-center gap-2 rounded-xl bg-white p-2 shadow-xl md:gap-3 md:p-3">
+        <div className="aspect-square w-[42%] shrink-0 overflow-hidden rounded-md"><DecorativeQr /></div>
+        <div className="min-w-0">
+          <p className="flex items-center gap-1 text-[8px] font-black md:text-[10px]"><Smartphone className="h-3 w-3 shrink-0" />모바일 QR</p>
+          <p className="mt-1 break-keep text-[7px] font-semibold leading-relaxed text-zinc-500 md:text-[9px]">QR 이미지를 내려받아 테이블과 안내물에 활용해요.</p>
+        </div>
+      </div>
     </div>
   );
 }
 
 export function DeviceEverywhereSection() {
   return (
-    <section className="overflow-hidden bg-zinc-950 px-6 pb-40 pt-28 text-white md:px-10 md:pb-52 md:pt-40">
-      <div className="mx-auto max-w-[1380px]">
-        <motion.div {...fadeUp} className="max-w-4xl text-left">
-          <SectionLabel inverted>PC/태블릿/모바일(QR)</SectionLabel>
-          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-white md:text-5xl">
-            링크만 있으면 메뉴판을<br />PC/태블릿/모바일(QR) 어디서든 띄워요!
-          </h2>
-          <p className="mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
-            PC와 태블릿은 물론, 모바일에서는 QR로 간편하게. 같은 메뉴판이 화면 크기에 맞춰 자연스럽게 보여요.
-          </p>
-        </motion.div>
-
-        <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }} className="relative mt-20 min-h-[590px] rounded-[2.5rem] bg-white px-5 pb-10 pt-16 text-zinc-950 shadow-[0_30px_100px_rgba(0,0,0,0.22)] md:px-12">
-          <div className="grid min-h-[450px] items-end gap-10 lg:grid-cols-[1.25fr_0.85fr_0.42fr] lg:gap-5">
-            <div><DeviceMockup type="desktop" /><p className="mt-8 text-center text-sm font-black text-zinc-500"><Monitor className="mr-2 inline h-4 w-4" />PC · 노트북</p></div>
-            <div><DeviceMockup type="tablet" /><p className="mt-8 text-center text-sm font-black text-zinc-500"><Tablet className="mr-2 inline h-4 w-4" />태블릿</p></div>
-            <div>
-              <div className="relative mx-auto w-fit">
-                <DeviceMockup type="mobile" />
-                <div className="absolute -bottom-7 -right-12 h-24 w-24 overflow-hidden rounded-xl border-4 border-white bg-white shadow-xl md:-right-16 md:h-28 md:w-28"><DecorativeQr /></div>
-              </div>
-              <p className="mt-12 text-center text-sm font-black text-zinc-500"><Smartphone className="mr-2 inline h-4 w-4" />모바일 QR</p>
-              <p className="mx-auto mt-3 max-w-[220px] break-keep text-center text-xs font-semibold leading-relaxed text-zinc-400">QR 이미지를 내려받아 테이블과 안내물에 바로 활용할 수 있어요.</p>
-            </div>
-          </div>
-          <span className="absolute left-1/2 top-6 inline-flex -translate-x-1/2 items-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-xs font-black text-white">
-            <Link2 className="h-3.5 w-3.5" /> artimenu.kr/your-store
-          </span>
-        </motion.div>
-      </div>
-    </section>
+    <DarkStorySection
+      reverse
+      eyebrow="PC/태블릿/모바일(QR)"
+      title={<>링크만 있으면 메뉴판을<br />PC/태블릿/모바일(QR) 어디서든 띄워요!</>}
+      body="PC와 태블릿은 물론, 모바일에서는 QR로 간편하게. 같은 메뉴판이 화면 크기에 맞춰 자연스럽게 보여요."
+      visual={<DeviceSetVisual />}
+    />
   );
 }
 
 export function ResourceCtaSection() {
   return (
-    <section className="bg-white px-6 pb-24 pt-4 md:px-10 md:pb-36 md:pt-8">
+    <section className="bg-white px-6 pb-24 pt-0 md:px-10 md:pb-36 md:pt-0">
       <div className="mx-auto max-w-[1380px]">
         <motion.div {...fadeUp} className="relative overflow-hidden rounded-[2rem] bg-zinc-950 px-7 py-14 text-white md:min-h-[500px] md:rounded-[2.5rem] md:px-16 md:py-20 lg:grid lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
           <div className="relative z-10 max-w-2xl">
-            <SectionLabel inverted>아티메뉴 시작 가이드</SectionLabel>
-            <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight md:text-5xl">매장에 꼭 맞는 메뉴판을<br />차근차근 시작해보세요</h2>
-            <p className="mt-6 max-w-xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">서비스 특징부터 실제 메뉴판을 만드는 방법까지 필요한 내용을 한곳에 정리할 예정이에요.</p>
+            <MarketingSectionCopy
+              inverted
+              eyebrow="아티메뉴 시작 가이드"
+              title={<>매장에 꼭 맞는 메뉴판을<br />차근차근 시작해보세요</>}
+              body="서비스 특징부터 실제 메뉴판을 만드는 방법까지 필요한 내용을 한곳에 정리할 예정이에요."
+              className="max-w-xl"
+            />
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <a href="#" onClick={(event) => event.preventDefault()} className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100">서비스 소개서</a>
               <a href="#" onClick={(event) => event.preventDefault()} className="inline-flex items-center justify-center rounded-full bg-zinc-800 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-zinc-700">이용 가이드</a>
