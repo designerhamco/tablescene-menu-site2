@@ -46,6 +46,10 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const [cardsPerPage, setCardsPerPage] = useState(4);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isHomeShowcase = service === 'all';
+  const publicTemplateCount = new Set([
+    ...getShowcaseTemplates('basic').map((template) => template.key),
+    ...getShowcaseTemplates('display').map((template) => template.key),
+  ]).size;
   const selectedService = isHomeShowcase ? activeService : service;
   const activeServiceCopy = serviceTabs.find((tab) => tab.key === selectedService) ?? serviceTabs[0];
   const showcaseTemplates = getShowcaseTemplates(selectedService);
@@ -103,10 +107,14 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
           className="mx-auto mb-12 max-w-3xl text-center"
         >
           <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
-            디자이너가 만든 템플릿으로 시작하세요
+            {isHomeShowcase
+              ? `전문 디자이너가 만든 다양한 템플릿 ${publicTemplateCount}종`
+              : '디자이너가 만든 템플릿으로 시작하세요'}
           </h2>
           <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
-            {activeServiceCopy.description}
+            {isHomeShowcase
+              ? '카페와 음식점에 어울리는 완성도 높은 디자인에서 시작해 우리 매장에 맞게 바꿔보세요.'
+              : activeServiceCopy.description}
           </p>
         </motion.div>
 
