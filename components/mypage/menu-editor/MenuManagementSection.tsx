@@ -2228,7 +2228,7 @@ function MenuPageForm({
                           />
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <p className="break-keep text-xs font-black text-zinc-950">MP4 파일을 업로드하면 메뉴링크에서 직접 재생됩니다.</p>
+                              <p className="break-keep text-xs font-black text-zinc-950">MP4 파일을 업로드하면 아티메뉴에서 직접 재생됩니다.</p>
                               <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
                                 업로드 성공 시 현재 영상 URL 대신 업로드된 파일이 임시 반영됩니다.
                               </p>
@@ -2548,7 +2548,7 @@ function MenuCategoryForm({
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <h4 className="text-sm font-black text-zinc-950">가격 옵션 열</h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-            메뉴링크 디스플레이는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
+            아티메뉴 디스플레이는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
           </p>
           <div className="mt-4 grid gap-3">
             {categoryPriceOptionLabels.map((label, index) => (
@@ -2581,7 +2581,7 @@ function MenuCategoryForm({
             </button>
           </div>
           <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-            메뉴링크 디스플레이에서는 가격 옵션 열을 최대 {maxPriceOptionColumns}개까지 사용할 수 있습니다.
+            아티메뉴 디스플레이에서는 가격 옵션 열을 최대 {maxPriceOptionColumns}개까지 사용할 수 있습니다.
           </p>
         </section>
       )}

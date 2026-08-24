@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "사용할 수 없는 테이블 QR | 메뉴링크",
+  title: "사용할 수 없는 테이블 QR | 아티메뉴",
   robots: { index: false, follow: false },
 };
 
@@ -16,7 +16,7 @@ export default function TableQrUnavailablePage() {
           QR이 교체되었거나 테이블 또는 메뉴판 사용이 중지되었을 수 있습니다. 매장 직원에게 새 QR을 요청해 주세요.
         </p>
         <Link href="/" className="mt-8 w-fit rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white hover:bg-zinc-800">
-          메뉴링크 홈
+          아티메뉴 홈
         </Link>
       </section>
     </main>

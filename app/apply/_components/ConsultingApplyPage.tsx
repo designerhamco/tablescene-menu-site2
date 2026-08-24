@@ -22,12 +22,12 @@ const CONSULTING_COPY: Record<
   }
 > = {
   order: {
-    title: "메뉴링크 오더 1.0 상담 신청",
+    title: "아티메뉴 오더 1.0 상담 신청",
     description: "QR로 주문하고 주방까지 바로 연결되는 오더 시스템 도입을 상담합니다.",
     submitLabel: "도입 문의하기",
   },
   custom: {
-    title: "메뉴링크 커스텀 견적 문의",
+    title: "아티메뉴 커스텀 견적 문의",
     description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 프로젝트 단위로 상담합니다.",
     submitLabel: "견적 문의하기",
   },
@@ -142,7 +142,7 @@ export default async function ConsultingApplyPage({
             ) : null}
 
             <div className="grid gap-5 md:grid-cols-2">
-              <Field label="매장명" name="storeName" placeholder="예: 메뉴링크 카페" required />
+              <Field label="매장명" name="storeName" placeholder="예: 아티메뉴 카페" required />
               <SelectField
                 label="업종"
                 name="businessCategory"

@@ -34,7 +34,7 @@ type PageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "메뉴판 미리보기 | MenuLink",
+  title: "메뉴판 미리보기 | ArtiMenu",
   robots: {
     index: false,
     follow: false,

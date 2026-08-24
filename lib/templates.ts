@@ -271,7 +271,7 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
       key: template.key,
       templateKey: template.key,
       service: primaryService,
-      serviceLabel: primaryService === "display" ? "메뉴링크 디스플레이" : "메뉴링크 베이직",
+      serviceLabel: primaryService === "display" ? "아티메뉴 디스플레이" : "아티메뉴 베이직",
       name: template.label,
       displayName: template.label,
       label: template.label,

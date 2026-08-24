@@ -444,7 +444,7 @@ export default function SubscriptionManagementModal({
                   <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
                     <h4 className="text-base font-black text-amber-950">고객지원 확인이 필요합니다</h4>
                     <p className="mt-2">{refundConfirmState.message}</p>
-                    <p className="mt-2">추가 결제나 재요청 없이 메뉴링크 고객지원 안내를 기다려주세요.</p>
+                    <p className="mt-2">추가 결제나 재요청 없이 아티메뉴 고객지원 안내를 기다려주세요.</p>
                   </div>
                 ) : null}
 

@@ -1,4 +1,4 @@
-# MenuLink 전체 고객 흐름 QA
+# ArtiMenu 전체 고객 흐름 QA
 
 최종 갱신: 2026-08-15
 

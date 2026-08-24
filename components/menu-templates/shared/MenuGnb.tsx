@@ -11,7 +11,7 @@ type MenuGnbProps = {
 };
 
 function getBrandName(site: PublicMenuTemplateProps["menuSite"]) {
-  return site.restaurant_name || site.name || "MenuLink";
+  return site.restaurant_name || site.name || "ArtiMenu";
 }
 
 export default function MenuGnb({ site, currentLocale, enabledLocales }: MenuGnbProps) {

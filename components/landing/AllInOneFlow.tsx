@@ -8,7 +8,7 @@ export function AllInOneFlow() {
         <div className="mx-auto mb-20 max-w-3xl text-center">
           <h2 className="mb-6 text-4xl font-bold leading-tight text-zinc-900 md:text-5xl">
             복잡한 매장 운영,<br />
-            메뉴링크 하나로 연결됩니다
+            아티메뉴 하나로 연결됩니다
           </h2>
           <p className="text-lg font-medium text-zinc-500 md:text-xl">
             따로 놀던 기기들과 데이터를 하나의 흐름으로 완성하세요.<br className="hidden md:block" />
@@ -61,7 +61,7 @@ export function AllInOneFlow() {
               <div className="relative w-full lg:w-auto">
                 <div className="absolute inset-0 rounded-full bg-zinc-900 opacity-10 blur-[40px]" />
                 <div className="relative flex min-w-[280px] flex-col items-center rounded-[2rem] border border-zinc-700/50 bg-zinc-900 px-10 py-6 text-center text-white shadow-2xl md:items-start md:text-left lg:py-8">
-                  <div className="mb-2 text-xs font-bold text-zinc-400">메뉴링크 웹메뉴판</div>
+                  <div className="mb-2 text-xs font-bold text-zinc-400">아티메뉴 웹메뉴판</div>
                   <div className="mb-4 text-xl font-bold tracking-tight lg:text-2xl">PRO 1.0</div>
                   <div className="flex w-full items-center justify-center gap-4 text-zinc-400 md:w-auto">
                     <Icon name="monitor" className="h-5 w-5" />

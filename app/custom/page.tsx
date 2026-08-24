@@ -4,8 +4,8 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 
 export const metadata: Metadata = {
-  title: "커스텀 | MenuLink",
-  description: "주문 제작형 메뉴판과 브랜드 맞춤형 메뉴 경험을 제공하는 메뉴링크 프리미엄 서비스입니다.",
+  title: "커스텀 | ArtiMenu",
+  description: "주문 제작형 메뉴판과 브랜드 맞춤형 메뉴 경험을 제공하는 아티메뉴 프리미엄 서비스입니다.",
 };
 
 export default function CustomPage() {

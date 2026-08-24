@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const isActiveDraft = accessState?.entitlementStatus === "active" && accessState.menuSiteStatus === "draft";
 
     return {
-      title: isActiveDraft ? "아직 공개되지 않은 메뉴판 | MenuLink" : "비공개 메뉴판 | MenuLink",
+      title: isActiveDraft ? "아직 공개되지 않은 메뉴판 | ArtiMenu" : "비공개 메뉴판 | ArtiMenu",
       robots: {
         index: false,
         follow: false,
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) {
     return {
-      title: "공개되지 않은 메뉴판 | MenuLink",
+      title: "공개되지 않은 메뉴판 | ArtiMenu",
       robots: {
         index: false,
         follow: false,
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = `${data.menuSite.business_name || data.menuSite.name} 메뉴판`;
-  const description = data.menuSite.description || `${data.menuSite.name}의 MenuLink 디지털 메뉴판입니다.`;
+  const description = data.menuSite.description || `${data.menuSite.name}의 ArtiMenu 디지털 메뉴판입니다.`;
 
   return {
     title,

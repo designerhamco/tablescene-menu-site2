@@ -71,7 +71,7 @@ export function buildStaffInvitationEmail({
   }).format(expiresAt);
   const siteLines = menuSiteNames.map((name) => `- ${name}`).join("\n");
   const text = [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     `${inviterEmail} 님이 메뉴판 운영 직원으로 초대했습니다.`,
     `역할: ${roleLabel}`,
@@ -85,18 +85,18 @@ export function buildStaffInvitationEmail({
     "",
     "본인이 요청하지 않은 초대라면 이 이메일을 무시해 주세요.",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
   const siteItems = menuSiteNames
     .map((name) => `<li style="margin:4px 0;">${escapeHtml(name)}</li>`)
     .join("");
 
   return {
-    subject: `[메뉴링크] ${menuSiteNames[0] ?? "메뉴판"} 직원 초대`,
+    subject: `[아티메뉴] ${menuSiteNames[0] ?? "메뉴판"} 직원 초대`,
     text,
     html: [
       '<div style="font-family:Arial,\'Apple SD Gothic Neo\',\'Noto Sans KR\',sans-serif;line-height:1.7;color:#18181b;max-width:600px;margin:0 auto;padding:32px;">',
-      '<p style="font-size:13px;font-weight:800;letter-spacing:.12em;color:#059669;">MENULINK</p>',
+      '<p style="font-size:13px;font-weight:800;letter-spacing:.04em;color:#059669;">ArtiMenu</p>',
       '<h1 style="font-size:24px;line-height:1.35;margin:12px 0;">메뉴판 운영 직원으로 초대되었습니다</h1>',
       `<p><strong>${escapeHtml(inviterEmail)}</strong> 님이 <strong>${escapeHtml(roleLabel)}</strong> 역할로 초대했습니다.</p>`,
       `<ul style="padding-left:22px;">${siteItems}</ul>`,

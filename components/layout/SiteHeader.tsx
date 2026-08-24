@@ -16,7 +16,7 @@ type AuthState = {
 type SiteHeaderVariant = "solid" | "transparent";
 
 const navItems = [
-  { label: "메뉴링크 베이직", href: "/services/basic" },
+  { label: "아티메뉴 베이직", href: "/services/basic" },
   { label: "비주얼 스튜디오", href: "/branding/visual-studio" },
   { label: "스토어", href: "/store" },
 ];
@@ -94,7 +94,7 @@ function BrandLogo({ isSolid }: { isSolid: boolean }) {
   const logoSubTextClass = isSolid ? "text-zinc-500" : "text-white/70";
 
   return (
-    <Link href="/" aria-label="MenuLink 홈" className="flex shrink-0 items-center gap-3">
+    <Link href="/" aria-label="ArtiMenu 홈" className="flex shrink-0 items-center gap-3">
       <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F8E731]">
         <Image
           src="/assets/tablescene-symbol.png"
@@ -106,7 +106,7 @@ function BrandLogo({ isSolid }: { isSolid: boolean }) {
         />
       </span>
       <span className="flex flex-col leading-none">
-        <span className={`text-xl font-black tracking-tight transition-colors ${logoTextClass}`}>MENULINK</span>
+        <span className={`text-xl font-black tracking-tight transition-colors ${logoTextClass}`}>ArtiMenu</span>
         <span className={`mt-0.5 text-[10px] font-semibold uppercase tracking-[0.28em] transition-colors ${logoSubTextClass}`}>Studio</span>
       </span>
     </Link>

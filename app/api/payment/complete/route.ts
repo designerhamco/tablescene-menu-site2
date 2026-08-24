@@ -531,14 +531,14 @@ function getPaymentProduct(orderPayload: MenuOrderPayload) {
   if (orderPayload.plan_key === "large_screen") {
     return {
       key: "large_screen",
-      name: "메뉴링크 디스플레이 생성권",
+      name: "아티메뉴 디스플레이 생성권",
     };
   }
 
   if (orderPayload.plan_key === "qr_order") {
     return {
       key: "qr_order",
-      name: "메뉴링크 오더 1.0 신청권",
+      name: "아티메뉴 오더 1.0 신청권",
     };
   }
 

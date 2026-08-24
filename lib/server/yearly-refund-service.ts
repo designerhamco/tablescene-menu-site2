@@ -686,7 +686,7 @@ export async function confirmYearlyRefund({
     cancelResult = await cancelPortOnePayment({
       paymentId: quote.portonePaymentId,
       amount: quote.estimatedRefundAmount,
-      reason: "메뉴링크 연결제 중도해지 환불",
+      reason: "아티메뉴 연결제 중도해지 환불",
       currentCancellableAmount,
     });
   } catch (error) {

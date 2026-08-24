@@ -171,7 +171,7 @@ function Footer({ socialLinks }: Pick<PublicMenuTemplateProps, "socialLinks">) {
           ))}
         </div>
       )}
-      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/25">Powered by MenuLink</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/25">Powered by ArtiMenu</p>
     </footer>
   );
 }

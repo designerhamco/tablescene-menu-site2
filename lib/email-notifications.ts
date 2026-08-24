@@ -11,7 +11,7 @@ type EmailSendResult =
   | { ok: false; provider: "none"; skippedReason: string };
 
 function getEmailFrom() {
-  return process.env.EMAIL_FROM?.trim() || "메뉴링크 고객지원 <admin@dndcommerce.co.kr>";
+  return process.env.EMAIL_FROM?.trim() || "아티메뉴 고객지원 <admin@dndcommerce.co.kr>";
 }
 
 export function isEmailProviderConfigured() {

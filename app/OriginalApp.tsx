@@ -6,7 +6,7 @@ import Navbar from './components/layout/Navbar';
 import Home from './original-pages/Home';
 import BasicServicePage from './original-pages/services/BasicServicePage';
 import DisplayServicePage from './original-pages/services/DisplayServicePage';
-import OrderServicePage from './original-pages/services/OrderServicePage';
+import OrderServiceReviewContent from './components/services/OrderServiceReviewContent';
 import CustomServicePage from './original-pages/services/CustomServicePage';
 import VisualStudioPage from './original-pages/branding/VisualStudioPage';
 import GoodsPackagePage from './original-pages/branding/GoodsPackagePage';
@@ -46,12 +46,12 @@ export default function App() {
             <Route path="/services/display" element={<DisplayServicePage />} />
             <Route path="/services/menu" element={<BasicServicePage />} />
             <Route path="/services/screen" element={<DisplayServicePage />} />
-            <Route path="/services/order" element={<OrderServicePage />} />
+            <Route path="/services/order" element={<OrderServiceReviewContent />} />
             <Route path="/services/custom" element={<CustomServicePage />} />
             <Route path="/custom" element={<ReloadNextRoute />} />
             <Route path="/services/signature" element={<BasicServicePage />} />
             <Route path="/services/full-option" element={<DisplayServicePage />} />
-            <Route path="/services/pro-v1" element={<OrderServicePage />} />
+            <Route path="/services/pro-v1" element={<OrderServiceReviewContent />} />
             <Route path="/tablescene-pro" element={<DisplayServicePage />} />
             <Route path="/services/design-customizing" element={<CustomServicePage />} />
             <Route path="/branding/visual-studio" element={<VisualStudioPage />} />

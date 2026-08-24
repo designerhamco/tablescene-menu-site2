@@ -1,8 +1,8 @@
-# MenuLink Basic Template Engine Rules
+# ArtiMenu Basic Template Engine Rules
 
 ## 1. Purpose
 
-This document records the current CafeA behavior and uses it as the baseline for future MenuLink Basic templates.
+This document records the current CafeA behavior and uses it as the baseline for future ArtiMenu Basic templates.
 
 The goal is to make future Basic templates, such as CafeB or CafeC, reuse the verified Basic layout engine rules and change only the visual skin tokens and sample data when the structure is compatible.
 

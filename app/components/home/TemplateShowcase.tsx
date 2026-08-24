@@ -23,12 +23,12 @@ type TemplateShowcaseProps = {
 const serviceTabs = [
   {
     key: 'basic',
-    label: '메뉴링크 베이직',
+    label: '아티메뉴 베이직',
     description: '모바일·태블릿·PC에서 열어보는 디지털 메뉴판',
   },
   {
     key: 'display',
-    label: '메뉴링크 디스플레이',
+    label: '아티메뉴 디스플레이',
     description: '매장 TV와 모니터에 띄우는 디지털 메뉴보드',
   },
 ] as const satisfies readonly { key: TemplateServiceKey; label: string; description: string }[];

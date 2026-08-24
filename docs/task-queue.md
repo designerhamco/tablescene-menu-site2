@@ -1,6 +1,6 @@
-# MenuLink 전체 작업 큐
+# ArtiMenu 전체 작업 큐
 
-최종 갱신: 2026-08-15
+최종 갱신: 2026-08-24
 
 상태 의미:
 
@@ -99,7 +99,7 @@
 
 - `DONE` 주문 접수·조리 전·조리 중·조리 완료·제공 완료 — 전방향 단계별 conditional update
 - `DONE` 미결제 주문 취소와 취소 사유 — 제공 전·미결제만 1–500자 사유로 취소
-- `DONE` 기존 카드단말기 결제완료 — MenuLink 카드 승인 없이 `manual_card` 기록
+- `DONE` 기존 카드단말기 결제완료 — ArtiMenu 카드 승인 없이 `manual_card` 기록
 - `DONE` 현금 결제완료 — `manual_cash` 기록
 - `DONE` 처리 직원 기록 — 재인증 permission gate와 `status_updated_by`/`payment_completed_by`
 - `DONE` 브라우저 영수증 — immutable snapshot 기반 인쇄 전용 영수증
@@ -121,8 +121,8 @@
 
 - `DONE` 현재 PortOne 코드·공식 V2 문서 감사와 merchant 구조 권장안 — `docs/prepay-pg-decision.md`
 - `DONE` PortOne 파트너 정산 자동화·오픈마켓 하위상점 전표 지원 추가 감사 — 배달 플랫폼·식당 정산 사용 사례는 확인했으나 직접 merchant 구조와는 구분, `docs/prepay-pg-decision.md`
-- `NEEDS_HUMAN` PortOne에 독립 음식점 직접 merchant 구조와 MenuLink 플랫폼 하위 정산 구조의 계약·전표·정산 책임 서면 확인
-- `NEEDS_HUMAN` 음식점 직접 merchant와 MenuLink 플랫폼 하위 정산 중 제품·법률·운영 모델 결정
+- `NEEDS_HUMAN` PortOne에 독립 음식점 직접 merchant 구조와 ArtiMenu 플랫폼 하위 정산 구조의 계약·전표·정산 책임 서면 확인
+- `NEEDS_HUMAN` 음식점 직접 merchant와 ArtiMenu 플랫폼 하위 정산 중 제품·법률·운영 모델 결정
 - `BLOCKED` 사업자별 PG 온보딩 구현 — PortOne 답변과 첫 pilot 음식점 확정 후 진행
 - `TODO` 모바일 선결제
 - `TODO` 웹훅과 idempotency
@@ -155,6 +155,9 @@
 
 ## 12. 오픈 준비
 
+- `DONE` 사용자 표시 브랜드를 `아티메뉴` / `ArtiMenu`로 통일하고 내부 호환 식별자는 유지
+- `DONE` PG 심사용 Basic 3상품 분리 노출과 공개 상품 상세·제공·교환·환불 안내 — `docs/pg-site-review-readiness.md`
+- `DONE` QR오더 소개의 미구현 PG·정산 표현 제거와 계약 전 준비 상태 명시
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
 - `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증
 - `NEEDS_HUMAN` 회원가입·비밀번호 재설정 이메일 실제 발송
@@ -168,4 +171,4 @@
 
 ## 다음 작업
 
-전체 계약 테스트 142개, Production 의존성 audit 0건, 실제 데이터 변경 없는 Order/Call 로컬 통합 QA까지 완료했다. 현재 남은 선결제 구현은 `docs/prepay-pg-decision.md`의 merchant 구조 서면 답변 전까지 보류한다. 그 밖의 남은 항목도 외부 알림 채널, 실제 결제·구독·Order/Call Production E2E처럼 사람의 제품 결정 또는 외부 상태 변경 승인이 필요하므로 새 제품 동작을 임의로 구현하지 않는다.
+PG 사이트 심사용 Basic 3상품 공개 상세와 ArtiMenu 브랜드 정리는 완료했다. 다음 안전 작업은 공개 route 전체 QA와 브랜드 잔여 검색이며, 이후 검토용 계정·정책 시행일·실제 이메일·Production 환경처럼 사람 확인이 필요한 항목은 `docs/pg-site-review-readiness.md`에 따라 진행한다. QR오더 실제 선결제·지급대행 구현은 계약과 기술 답변 전까지 보류한다.

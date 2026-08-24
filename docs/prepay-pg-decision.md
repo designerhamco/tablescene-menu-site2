@@ -4,21 +4,21 @@
 
 ## 결론
 
-MenuLink 선결제는 `PortOne V2`를 기술 연동 계층으로 사용하는 방향을 권장한다. 저장소에는 이미 MenuLink 자체 상품 결제의 PortOne V2 조회·금액 검증·취소 코드가 있고, 서비스 소개와 약관도 PortOne 기반 결제를 전제로 한다.
+ArtiMenu 선결제는 `PortOne V2`를 기술 연동 계층으로 사용하는 방향을 권장한다. 저장소에는 이미 ArtiMenu 자체 상품 결제의 PortOne V2 조회·금액 검증·취소 코드가 있고, 서비스 소개와 약관도 PortOne 기반 결제를 전제로 한다.
 
 현재 제품 방향은 음식점 주문 결제에서 각 음식점 사업자가 PG 계약과 정산의 주체, 즉 merchant of record가 되는 것이다. 독립된 사업자등록번호를 가진 여러 음식점을 PortOne 한 고객사 계정의 하위 상점으로 운영할 수 있는지, 아니면 음식점마다 별도 PortOne 계정과 API Secret이 필요한지는 PortOne의 서면 확인 전까지 확정하지 않는다.
 
-PortOne에는 플랫폼 고객사가 음식점을 파트너(하위셀러)로 등록하고 음식점별 계좌·수수료·정산주기를 관리하는 `파트너 정산 자동화`도 있다. 공식 가이드는 배달 플랫폼이 주문별로 식당과 정산하는 경우를 사용 사례로 명시한다. 그러나 이 구조는 MenuLink가 플랫폼 고객사로서 하위 정산을 운영하는 별도 모델이며, 각 음식점이 직접 merchant of record가 되는 현재 방향과 동일하다고 보지 않는다.
+PortOne에는 플랫폼 고객사가 음식점을 파트너(하위셀러)로 등록하고 음식점별 계좌·수수료·정산주기를 관리하는 `파트너 정산 자동화`도 있다. 공식 가이드는 배달 플랫폼이 주문별로 식당과 정산하는 경우를 사용 사례로 명시한다. 그러나 이 구조는 ArtiMenu가 플랫폼 고객사로서 하위 정산을 운영하는 별도 모델이며, 각 음식점이 직접 merchant of record가 되는 현재 방향과 동일하다고 보지 않는다.
 
-이 확인 없이 MenuLink 법인 MID로 음식점 고객의 주문 결제를 받거나, 음식점별 API Secret 저장 구조를 임의로 만들지 않는다.
+이 확인 없이 ArtiMenu 법인 MID로 음식점 고객의 주문 결제를 받거나, 음식점별 API Secret 저장 구조를 임의로 만들지 않는다.
 
 ## 현재 저장소 감사
 
-- 기존 MenuLink 상품 결제는 `lib/portone.ts`, `lib/portone-billing.ts`, `/api/payment/complete`에서 PortOne V2 API Secret을 서버 전용으로 사용한다.
+- 기존 ArtiMenu 상품 결제는 `lib/portone.ts`, `lib/portone-billing.ts`, `/api/payment/complete`에서 PortOne V2 API Secret을 서버 전용으로 사용한다.
 - 기존 완료 경로는 브라우저 성공 응답을 그대로 신뢰하지 않고 PortOne 결제 조회, 상태, 금액, 결제 ID를 다시 검증한다.
 - 음식점 주문 스키마는 `payment_status=paid`, `payment_method=pg`를 이미 표현할 수 있지만 주문별 PG 거래 ID, 취소 금액, 웹훅 처리 이력, 음식점별 merchant 설정은 아직 없다.
 - 현재 후불 주문은 별도 default-off gate와 site allowlist 뒤에서만 동작하며 선결제를 시작하지 않는다.
-- 기존 PortOne Secret은 MenuLink 자체 상품 결제용이므로 음식점 주문 결제에 재사용하지 않는다.
+- 기존 PortOne Secret은 ArtiMenu 자체 상품 결제용이므로 음식점 주문 결제에 재사용하지 않는다.
 
 ## 공식 문서에서 확인된 공통 조건
 
@@ -48,9 +48,9 @@ PortOne에는 플랫폼 고객사가 음식점을 파트너(하위셀러)로 등
 다음 내용을 PortOne 영업 또는 기술지원에 서면으로 문의한다.
 
 ```text
-MenuLink는 여러 독립 음식점 사업자에게 테이블 주문 SaaS를 제공합니다.
+ArtiMenu는 여러 독립 음식점 사업자에게 테이블 주문 SaaS를 제공합니다.
 결제 대금의 merchant of record와 정산 주체는 각 음식점 사업자이며,
-MenuLink는 결제 화면·주문·웹훅의 기술 연동만 제공합니다.
+ArtiMenu는 결제 화면·주문·웹훅의 기술 연동만 제공합니다.
 
 사업자등록번호와 정산 계좌가 서로 다른 음식점들을
 하나의 PortOne 고객사 계정 아래 하위 상점으로 구성하고,
@@ -63,9 +63,9 @@ API Secret 범위와 웹훅 구분 방법을 알려주세요.
 SaaS 기술사가 이를 안전하게 대리 연동하는 권장 방식을 알려주세요.
 
 또한 PortOne 파트너 정산 자동화를 사용하는 대안에서는
-PG 가맹점과 결제 판매 주체가 MenuLink와 음식점 중 누구인지,
+PG 가맹점과 결제 판매 주체가 ArtiMenu와 음식점 중 누구인지,
 카드 매출전표에 어느 사업자가 판매자로 표시되는지,
-MenuLink가 부담하는 계약·정산·세금계산서·지급 책임을 알려주세요.
+ArtiMenu가 부담하는 계약·정산·세금계산서·지급 책임을 알려주세요.
 ```
 
 API Secret, MID 비밀번호, 계약 서류 원본은 채팅이나 저장소에 붙이지 않는다. 답변에는 계약 구조와 필요한 식별자 종류만 남긴다.
@@ -85,7 +85,7 @@ API Secret, MID 비밀번호, 계약 서류 원본은 채팅이나 저장소에 
 
 ## 권장 구현 순서
 
-PortOne 답변으로 `음식점 직접 merchant`와 `MenuLink 플랫폼 하위 정산` 중 제품·계약 모델을 결정하고 첫 pilot 음식점이 확정되면 다음을 작은 PR로 나눈다.
+PortOne 답변으로 `음식점 직접 merchant`와 `ArtiMenu 플랫폼 하위 정산` 중 제품·계약 모델을 결정하고 첫 pilot 음식점이 확정되면 다음을 작은 PR로 나눈다.
 
 1. 음식점 merchant 설정 계약과 secret reference 구조
 2. 결제 시도·웹훅 event·취소 이력 DB migration 초안과 RLS 감사

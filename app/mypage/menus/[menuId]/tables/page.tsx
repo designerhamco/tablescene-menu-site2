@@ -11,7 +11,7 @@ import {
 import MenuTableManager from "./MenuTableManager";
 
 export const metadata: Metadata = {
-  title: "테이블 관리 | 메뉴링크",
+  title: "테이블 관리 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 

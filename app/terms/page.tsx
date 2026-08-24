@@ -5,8 +5,8 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { termsContent } from "@/lib/legal-documents";
 
 export const metadata: Metadata = {
-  title: "메뉴링크 이용약관 | MenuLink",
-  description: "메뉴링크 서비스 이용약관입니다.",
+  title: "아티메뉴 이용약관 | ArtiMenu",
+  description: "아티메뉴 서비스 이용약관입니다.",
 };
 
 function renderPolicyContent(content: string) {
@@ -44,7 +44,7 @@ export default function TermsPage() {
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
         <article className="mx-auto w-full max-w-4xl rounded-3xl bg-white p-7 shadow-sm md:p-10">
-          <h1 className="break-keep text-4xl font-black tracking-tight md:text-5xl">메뉴링크 이용약관</h1>
+          <h1 className="break-keep text-4xl font-black tracking-tight md:text-5xl">아티메뉴 이용약관</h1>
           <div className="mt-10">{renderPolicyContent(termsContent)}</div>
         </article>
       </main>

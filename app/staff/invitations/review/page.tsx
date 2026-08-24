@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import AcceptInvitationForm from "./AcceptInvitationForm";
 
 export const metadata: Metadata = {
-  title: "직원 초대 수락 | 메뉴링크",
+  title: "직원 초대 수락 | 아티메뉴",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
 };
@@ -37,7 +37,7 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
   return (
     <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 text-zinc-950">
       <section className="w-full max-w-lg rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:p-10">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">MenuLink staff</p>
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">ArtiMenu staff</p>
         <h1 className="mt-4 text-3xl font-black tracking-tight">직원 초대 확인</h1>
 
         {!hasInvitationIntent ? (

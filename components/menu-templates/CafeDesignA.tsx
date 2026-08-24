@@ -1843,7 +1843,7 @@ function measureCafeABalancedFit(
 // -----------------------------------------------------------------------------
 
 function getDisplayName(site: PublicMenuTemplateProps["menuSite"]) {
-  return site.restaurant_name || site.name || "MenuLink";
+  return site.restaurant_name || site.name || "ArtiMenu";
 }
 
 function getMenuSiteSettings(site: PublicMenuTemplateProps["menuSite"]) {
@@ -3921,7 +3921,7 @@ function StoreIdentity({
   titleClassName: string;
   logoClassName: string;
 }) {
-  const title = getDisplayName(data.menuSite) || "MenuLink";
+  const title = getDisplayName(data.menuSite) || "ArtiMenu";
   const [logoFailed, setLogoFailed] = useState(false);
   const useLogo = shouldUseBrandLogo(data.menuSite, capabilities) && !logoFailed;
 
@@ -4864,7 +4864,7 @@ function getCafeNoirNoticeTexts(site: PublicMenuTemplateProps["menuSite"]) {
       "차분한 온도의 커피와 디저트를 전하는 미니멀 카페입니다.",
     address:
       (hasMenuSiteSetting(site, "footer_notice_2") ? getMenuSiteSettingString(site, "footer_notice_2") : site.restaurant_address?.trim()) ||
-      "Address · 14, Menulink-ro, Seoul",
+      "Address · 14, Artimenu-ro, Seoul",
     footer:
       (hasMenuSiteSetting(site, "footer_notice_3") ? getMenuSiteSettingString(site, "footer_notice_3") : site.restaurant_phone?.trim()) ||
       "QUIET SIPS. SOFT FINISH.",

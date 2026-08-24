@@ -14,18 +14,18 @@ test("normalizeContactProfileInput trims and normalizes contact fields", () => {
     normalizeContactProfileInput({
       contactName: "  디자이너샵  ",
       contactPhone: " 01012345678 ",
-      notificationEmail: " USER+MenuLink@Example.COM ",
+      notificationEmail: " USER+ArtiMenu@Example.COM ",
     }),
     {
       contactName: "디자이너샵",
       contactPhone: "010-1234-5678",
-      notificationEmail: "user+menulink@example.com",
+      notificationEmail: "user+artimenu@example.com",
     }
   );
 });
 
 test("validateContactProfileInput accepts realistic contact names", () => {
-  for (const contactName of ["나형미", "김민수", "디자이너샵", "MenuLink 담당자", "홍길동 매니저", "DND Commerce"]) {
+  for (const contactName of ["나형미", "김민수", "디자이너샵", "ArtiMenu 담당자", "홍길동 매니저", "DND Commerce"]) {
     assert.equal(
       validateContactProfileInput({
         contactName,

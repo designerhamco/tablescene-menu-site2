@@ -9,6 +9,7 @@ import {
 } from "@/lib/server/mocha-forest-checkout-qa";
 import { createClient } from "@/lib/supabase/server";
 import { getAvailableTemplatesForService } from "@/lib/templates";
+import type { BasicProductKey } from "@/lib/payments";
 import { redirect } from "next/navigation";
 
 type PaidApplyService = "menu" | "screen" | "order";
@@ -22,21 +23,21 @@ const PAID_APPLY_COPY: Record<
   }
 > = {
   menu: {
-    title: "메뉴링크 베이직 신청/결제",
+    title: "아티메뉴 베이직 신청/결제",
     description:
-      "개인 1개월 체험, 사업자 월결제, 사업자 연결제 중 이용 방식을 선택해 메뉴링크 베이직 메뉴판을 신청합니다.",
+      "개인 1개월 체험, 사업자 월결제, 사업자 연결제 중 이용 방식을 선택해 아티메뉴 베이직 메뉴판을 신청합니다.",
     note:
       "신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공됩니다. 추가 메뉴판은 별도로 구매하며, 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.",
   },
   screen: {
-    title: "메뉴링크 디스플레이 신청/결제",
+    title: "아티메뉴 디스플레이 신청/결제",
     description:
       "매장 화면을 감각적인 디지털 메뉴보드로 운영할 수 있는 결제형 신청 페이지입니다.",
     note:
       "신규 Display 구독 1건당 Display 메뉴판 1개가 제공됩니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 현재는 전용 템플릿 준비 중입니다.",
   },
   order: {
-    title: "메뉴링크 오더 1.0 신청/결제",
+    title: "아티메뉴 오더 1.0 신청/결제",
     description:
       "QR로 주문하고 주방까지 바로 연결되는 오더 시스템 도입을 위한 결제신청형 페이지입니다.",
     note:
@@ -49,6 +50,7 @@ type PaidApplyPageProps = {
   nextPath?: string;
   initialRecoverPaymentId?: string;
   initialRecoverSubscriptionId?: string;
+  initialBasicProductKey?: BasicProductKey;
 };
 
 export default async function PaidApplyPage({
@@ -56,6 +58,7 @@ export default async function PaidApplyPage({
   nextPath,
   initialRecoverPaymentId,
   initialRecoverSubscriptionId,
+  initialBasicProductKey,
 }: PaidApplyPageProps) {
   const supabase = await createClient();
   const {
@@ -107,6 +110,7 @@ export default async function PaidApplyPage({
             mochaForestCheckoutSafeMockEnabled={serviceType === "menu" && isMochaForestCheckoutSafeMockEnabled()}
             serviceType={serviceType}
             displayCheckoutQaEnabled={displayCheckoutQaEnabled}
+            initialBasicProductKey={initialBasicProductKey}
             initialRecoverPaymentId={initialRecoverPaymentId}
             initialRecoverSubscriptionId={initialRecoverSubscriptionId}
           />

@@ -53,7 +53,7 @@ export default function DesignA({ menuSite, pages, categories, items, traits, so
                   </div>
                 )}
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/60">MENULINK MENU</p>
+                  <p className="text-[10px] font-bold tracking-[0.16em] text-white/60">ArtiMenu</p>
                   <p className="mt-1 break-all text-sm font-bold text-white/85">{getPublicMenuUrl(menuSite.slug)}</p>
                 </div>
               </div>
@@ -229,7 +229,7 @@ function MenuFooter({ socialLinks }: Pick<PublicMenuTemplateProps, "socialLinks"
           ))}
         </div>
       )}
-      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-300">Powered by MenuLink</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-300">Powered by ArtiMenu</p>
     </footer>
   );
 }

@@ -36,7 +36,7 @@ function buildOrderMessage(formData: FormData) {
   const businessTypeLabel = getBusinessTypeLabel(businessType) ?? businessType;
 
   return [
-    "[메뉴링크 오더 1.0 상담 신청]",
+    "[아티메뉴 오더 1.0 상담 신청]",
     `매장명: ${getString(formData, "storeName")}`,
     `업종: ${businessTypeLabel || "-"}`,
     `담당자명: ${getString(formData, "contactName")}`,
@@ -58,7 +58,7 @@ function buildCustomMessage(formData: FormData) {
   const businessTypeLabel = getBusinessTypeLabel(businessType) ?? businessType;
 
   return [
-    "[메뉴링크 커스텀 견적 문의]",
+    "[아티메뉴 커스텀 견적 문의]",
     `매장명: ${getString(formData, "storeName")}`,
     `업종: ${businessTypeLabel || "-"}`,
     `담당자명: ${getString(formData, "contactName")}`,
@@ -125,8 +125,8 @@ export async function createConsultingApplyAction(formData: FormData) {
 
   const title =
     serviceType === "order"
-      ? `[상담 신청] 메뉴링크 오더 1.0 - ${storeName}`
-      : `[견적 문의] 메뉴링크 커스텀 - ${storeName}`;
+      ? `[상담 신청] 아티메뉴 오더 1.0 - ${storeName}`
+      : `[견적 문의] 아티메뉴 커스텀 - ${storeName}`;
 
   const payload: InquiryInsert = {
     user_id: user.id,

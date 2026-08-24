@@ -13,7 +13,7 @@ const features = [
   {
     id: 1,
     title: "웨이팅부터 결제까지 올인원",
-    description: "입장 대기부터 테이블 주문, 그리고 결제까지 하나의 시스템으로 연결됩니다. 여러 기기를 쓸 필요 없이 메뉴링크 하나면 충분합니다.",
+    description: "입장 대기부터 테이블 주문, 그리고 결제까지 하나의 시스템으로 연결됩니다. 여러 기기를 쓸 필요 없이 아티메뉴 하나면 충분합니다.",
     image: "https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     tags: ["웨이팅 통합", "테이블 오더"]
   },

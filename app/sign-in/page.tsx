@@ -55,7 +55,7 @@ export default async function SignInPage({
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight">로그인</h1>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              메뉴링크 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
+              아티메뉴 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
             </p>
           </div>
 
@@ -130,7 +130,7 @@ export default async function SignInPage({
               href={`/sign-up?next=${encodeURIComponent(safeNext)}`}
               className="font-bold text-zinc-950 hover:underline"
             >
-              메뉴링크 회원가입
+              아티메뉴 회원가입
             </Link>
           </p>
         </div>

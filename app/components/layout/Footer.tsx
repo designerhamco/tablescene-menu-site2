@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
           {/* Brand */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">MENULINK</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">ArtiMenu</h2>
             <p className="text-zinc-500 text-sm leading-relaxed max-w-xs font-normal">
               디지털 혁신과 시각적 스토리텔링을 통해<br/>
               다이닝 경험의 새로운 장면을 만듭니다.
@@ -79,7 +79,7 @@ const Footer = () => {
                 </a>
               </div>
               <p className="text-[10px] text-zinc-700 font-medium uppercase tracking-wide">
-                © 2026 MenuLink Studio.
+                © 2026 ArtiMenu Studio.
               </p>
            </div>
         </div>
