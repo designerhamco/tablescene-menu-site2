@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Languages,
   Link2,
@@ -167,9 +169,27 @@ function StoryVisualFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DarkStorySection({ eyebrow, title, body, visual, reverse = false }: { eyebrow: string; title: React.ReactNode; body: string; visual: React.ReactNode; reverse?: boolean }) {
+function DarkStorySection({
+  eyebrow,
+  title,
+  body,
+  visual,
+  reverse = false,
+  endOfRegion = false,
+}: {
+  eyebrow: string;
+  title: React.ReactNode;
+  body: string;
+  visual: React.ReactNode;
+  reverse?: boolean;
+  endOfRegion?: boolean;
+}) {
+  const spacingClass = endOfRegion
+    ? "pb-36 pt-20 md:pb-52 md:pt-24"
+    : "py-20 md:py-24";
+
   return (
-    <section className="bg-transparent px-6 py-20 text-white md:px-10 md:py-24">
+    <section className={`bg-transparent px-6 text-white md:px-10 ${spacingClass}`}>
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
           <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
@@ -353,6 +373,95 @@ export function SalesAndLanguageSection() {
   );
 }
 
+const fineDiningPages = [
+  {
+    eyebrow: "01 · CHEF'S TASTING",
+    title: "Seasonal Course",
+    body: "계절의 흐름을 담은 시그니처 코스",
+    image: "/menu-templates/cafe_design_a/black-sesame-featured.jpg",
+  },
+  {
+    eyebrow: "02 · WINE PAIRING",
+    title: "Sommelier Selection",
+    body: "각 코스와 어울리는 와인 셀렉션",
+    image: "/menu-templates/cafe_design_a/nutty-cream-featured.jpg",
+  },
+  {
+    eyebrow: "03 · DESSERT",
+    title: "Finale",
+    body: "디저트와 티로 완성하는 마지막 페이지",
+    image: "/menu-templates/cafe_design_a/malcha.jpg",
+  },
+] as const;
+
+function MultiPageVisual() {
+  const [pageIndex, setPageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setPageIndex((current) => (current + 1) % fineDiningPages.length);
+    }, 2600);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const goToPage = (direction: number) => {
+    setPageIndex((current) => (current + direction + fineDiningPages.length) % fineDiningPages.length);
+  };
+
+  return (
+    <div className="flex h-full flex-col bg-[#eee8dc] p-5 text-zinc-950 md:p-8">
+      <div className="flex items-center justify-between border-b border-zinc-300 pb-4">
+        <div>
+          <p className="text-sm font-black tracking-[-0.03em]">MAISON LUNE</p>
+          <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-400">Fine dining collection</p>
+        </div>
+        <p className="text-[9px] font-bold text-zinc-400">{String(pageIndex + 1).padStart(2, "0")} / {String(fineDiningPages.length).padStart(2, "0")}</p>
+      </div>
+
+      <div className="relative min-h-0 flex-1 overflow-hidden py-5 md:py-7">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.article
+            key={pageIndex}
+            initial={{ opacity: 0, x: 34 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -34 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="grid h-full grid-cols-[1.08fr_0.92fr] overflow-hidden rounded-2xl bg-white shadow-xl"
+          >
+            <img src={fineDiningPages[pageIndex].image} alt="" className="h-full min-h-0 w-full object-cover" />
+            <div className="flex flex-col justify-end p-5 md:p-7">
+              <p className="text-[8px] font-black tracking-[0.12em] text-zinc-400 md:text-[10px]">{fineDiningPages[pageIndex].eyebrow}</p>
+              <h3 className="mt-3 text-xl font-black leading-tight md:text-3xl">{fineDiningPages[pageIndex].title}</h3>
+              <p className="mt-3 break-keep text-[10px] font-semibold leading-relaxed text-zinc-500 md:text-sm">{fineDiningPages[pageIndex].body}</p>
+            </div>
+          </motion.article>
+        </AnimatePresence>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-[9px] font-bold text-zinc-400 md:text-[10px]">페이지를 넘겨 메뉴의 흐름을 살펴보세요.</p>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => goToPage(-1)} aria-label="이전 메뉴 페이지" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-950 shadow-sm transition-colors hover:bg-zinc-100"><ChevronLeft className="h-4 w-4" /></button>
+          <button type="button" onClick={() => goToPage(1)} aria-label="다음 메뉴 페이지" className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-950 text-white shadow-sm transition-colors hover:bg-zinc-800"><ChevronRight className="h-4 w-4" /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function MultiPageSection() {
+  return (
+    <DarkStorySection
+      reverse
+      eyebrow="코스의 흐름까지 한눈에"
+      title={<>여러 장의 메뉴를<br />한 권처럼 넘겨보세요</>}
+      body="코스, 와인, 디저트를 페이지별로 나눠 고급 다이닝의 흐름을 차분하게 보여줘요."
+      visual={<MultiPageVisual />}
+    />
+  );
+}
+
 function AiMenuVisual() {
   return (
     <div className="h-full bg-zinc-950 p-5 text-white md:p-7">
@@ -380,7 +489,7 @@ export function AiFeaturesSection() {
   ];
 
   return (
-    <section className="bg-white px-6 pb-16 pt-28 md:px-10 md:pb-20 md:pt-36">
+    <section className="bg-white px-6 pb-12 pt-16 md:px-10 md:pb-12 md:pt-16">
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl">
           <MarketingSectionCopy eyebrow="AI 기능" title={<>반복되는 메뉴 작업은<br />AI에게 맡기세요</>} />
@@ -499,7 +608,7 @@ function DeviceSetVisual() {
 export function DeviceEverywhereSection() {
   return (
     <DarkStorySection
-      reverse
+      endOfRegion
       eyebrow="PC/태블릿/모바일(QR)"
       title={<>링크만 있으면 메뉴판을<br />PC/태블릿/모바일(QR) 어디서든 띄워요!</>}
       body="PC와 태블릿은 물론, 모바일에서는 QR로 간편하게. 같은 메뉴판이 화면 크기에 맞춰 자연스럽게 보여요."

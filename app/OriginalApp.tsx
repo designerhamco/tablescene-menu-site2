@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import Navbar from './components/layout/Navbar';
 import Home from './original-pages/Home';
 import DisplayServicePage from './original-pages/services/DisplayServicePage';
+import ComingSoonServicePage from './original-pages/services/ComingSoonServicePage';
 import OrderServiceReviewContent from './components/services/OrderServiceReviewContent';
 import CustomServicePage from './original-pages/services/CustomServicePage';
 import VisualStudioPage from './original-pages/branding/VisualStudioPage';
@@ -43,6 +44,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/services/basic" element={<Home />} />
             <Route path="/services/display" element={<DisplayServicePage />} />
+            <Route path="/services/qr-order" element={<ComingSoonServicePage kind="qr-order" />} />
+            <Route path="/services/smart-call" element={<ComingSoonServicePage kind="smart-call" />} />
             <Route path="/services/menu" element={<Home />} />
             <Route path="/services/screen" element={<DisplayServicePage />} />
             <Route path="/services/order" element={<OrderServiceReviewContent />} />

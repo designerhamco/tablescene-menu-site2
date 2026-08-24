@@ -14,21 +14,34 @@ type NavItem = {
   path: string;
   activePaths?: readonly string[];
   discount?: boolean;
-  premium?: boolean;
   disabled?: boolean;
+  submenu?: readonly {
+    label: string;
+    path: string;
+    comingSoon?: boolean;
+  }[];
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: '아티메뉴 베이직', path: '/', activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'], discount: true },
+  {
+    label: '아티메뉴 다이닝',
+    path: '/',
+    activePaths: ['/', '/services/basic', '/services/menu', '/services/signature', '/services/qr-order', '/services/smart-call'],
+    discount: true,
+    submenu: [
+      { label: '아티메뉴 다이닝', path: '/' },
+      { label: 'QR오더(모바일)', path: '/services/qr-order', comingSoon: true },
+      { label: '스마트호출', path: '/services/smart-call', comingSoon: true },
+    ],
+  },
   { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
-  { label: '커스텀', path: '/custom', activePaths: ['/custom', '/services/custom', '/services/design-customizing'], premium: true },
   { label: '고객센터', path: '/faq', activePaths: ['/faq'] },
 ];
 
 function DiscountChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
-      할인
+      오픈할인
     </span>
   );
 }
@@ -37,14 +50,6 @@ function DisabledChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold leading-none text-zinc-500">
       준비중
-    </span>
-  );
-}
-
-function PremiumChip() {
-  return (
-    <span className="inline-flex shrink-0 rounded-full border border-[#A88745]/35 bg-[#2F2418] px-1.5 py-0.5 text-[9px] font-black leading-none tracking-[0.08em] text-[#F4E7C5]">
-      PREMIUM
     </span>
   );
 }
@@ -315,12 +320,12 @@ const Navbar = () => {
           </Link>
 
           <div className="absolute left-1/2 top-1/2 hidden h-full -translate-x-1/2 -translate-y-1/2 items-center gap-5 lg:flex xl:gap-8">
-            {NAV_ITEMS.map((item) => (
-              (() => {
-                const isActive = (item.activePaths ?? [item.path]).includes(pathname);
-                return (
+            {NAV_ITEMS.map((item) => {
+              const isActive = (item.activePaths ?? [item.path]).includes(pathname);
+
+              return (
+                <div key={item.path} className={`relative flex h-full items-center ${item.submenu ? 'group/dining' : ''}`}>
                   <Link
-                    key={item.path}
                     to={item.path}
                     aria-current={isActive ? 'page' : undefined}
                     aria-disabled={item.disabled ? true : undefined}
@@ -340,12 +345,28 @@ const Navbar = () => {
                   >
                     <span>{item.label}</span>
                     {item.discount ? <DiscountChip /> : null}
-                    {item.premium ? <PremiumChip /> : null}
                     {item.disabled ? <DisabledChip /> : null}
                   </Link>
-                );
-              })()
-            ))}
+
+                  {item.submenu ? (
+                    <div className="pointer-events-none absolute left-1/2 top-[calc(100%-8px)] w-64 -translate-x-1/2 translate-y-2 pt-3 opacity-0 transition-all duration-200 group-hover/dining:pointer-events-auto group-hover/dining:translate-y-0 group-hover/dining:opacity-100 group-focus-within/dining:pointer-events-auto group-focus-within/dining:translate-y-0 group-focus-within/dining:opacity-100">
+                      <div className="rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-950 shadow-[0_18px_55px_rgba(0,0,0,0.16)]">
+                        {item.submenu.map((subItem) => (
+                          <Link
+                            key={subItem.path}
+                            to={subItem.path}
+                            className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-colors hover:bg-zinc-100 focus-visible:bg-zinc-100 focus-visible:outline-none"
+                          >
+                            <span>{subItem.label}</span>
+                            {subItem.comingSoon ? <DisabledChip /> : null}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
 
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
@@ -486,31 +507,47 @@ const Navbar = () => {
                   {NAV_ITEMS.map((item) => {
                     const isActive = (item.activePaths ?? [item.path]).includes(pathname);
                     return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        aria-current={isActive ? 'page' : undefined}
-                        aria-disabled={item.disabled ? true : undefined}
-                        tabIndex={item.disabled ? -1 : undefined}
-                        onClick={(event) => {
-                          if (item.disabled) {
-                            event.preventDefault();
-                            return;
-                          }
+                      <div key={item.path} className="border-b border-zinc-100">
+                        <Link
+                          to={item.path}
+                          aria-current={isActive ? 'page' : undefined}
+                          aria-disabled={item.disabled ? true : undefined}
+                          tabIndex={item.disabled ? -1 : undefined}
+                          onClick={(event) => {
+                            if (item.disabled) {
+                              event.preventDefault();
+                              return;
+                            }
 
-                          closeMobileMenu();
-                        }}
-                        className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-5 text-2xl font-bold tracking-tight transition-colors ${
-                          item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : 'text-zinc-900 active:text-zinc-500'
-                        }`}
-                      >
-                        <span className="flex items-center gap-3">{isActive ? <span className="h-2 w-2 rounded-full bg-zinc-950" aria-hidden="true" /> : null}{item.label}</span>
-                        <span className="flex shrink-0 items-center gap-1.5">
-                          {item.discount ? <DiscountChip /> : null}
-                          {item.premium ? <PremiumChip /> : null}
-                          {item.disabled ? <DisabledChip /> : null}
-                        </span>
-                      </Link>
+                            closeMobileMenu();
+                          }}
+                          className={`flex items-center justify-between gap-3 py-5 text-2xl font-bold tracking-tight transition-colors ${
+                            item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : 'text-zinc-900 active:text-zinc-500'
+                          }`}
+                        >
+                          <span className="flex items-center gap-3">{isActive ? <span className="h-2 w-2 rounded-full bg-zinc-950" aria-hidden="true" /> : null}{item.label}</span>
+                          <span className="flex shrink-0 items-center gap-1.5">
+                            {item.discount ? <DiscountChip /> : null}
+                            {item.disabled ? <DisabledChip /> : null}
+                          </span>
+                        </Link>
+
+                        {item.submenu ? (
+                          <div className="mb-4 ml-5 grid gap-1 border-l border-zinc-200 pl-5">
+                            {item.submenu.map((subItem) => (
+                              <Link
+                                key={subItem.path}
+                                to={subItem.path}
+                                onClick={closeMobileMenu}
+                                className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-base font-bold text-zinc-700 active:bg-zinc-100"
+                              >
+                                <span>{subItem.label}</span>
+                                {subItem.comingSoon ? <DisabledChip /> : null}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
                     );
                   })}
                 </nav>
@@ -518,8 +555,8 @@ const Navbar = () => {
 
               <div className="mt-auto px-6 py-8">
                 <div className="border-t border-zinc-100 pt-6">
-                  <div className="flex flex-col gap-0.5 text-[10px] font-medium tracking-tight text-zinc-400">
-                    <p className="mb-1 text-xs font-bold text-zinc-900">ArtiMenu Studio</p>
+                  <div className="flex flex-col gap-1 text-xs font-medium tracking-tight text-zinc-400">
+                    <p className="mb-1 text-sm font-bold text-zinc-900">ArtiMenu Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
                     <p className="mt-1 opacity-60">© 2026 ArtiMenu. All rights reserved.</p>
                   </div>

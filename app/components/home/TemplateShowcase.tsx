@@ -25,7 +25,7 @@ type TemplateShowcaseProps = {
 const serviceTabs = [
   {
     key: 'basic',
-    label: '아티메뉴 베이직',
+    label: '아티메뉴 다이닝',
     description: '모바일·태블릿·PC에서 열어보는 디지털 메뉴판',
   },
   {
@@ -125,7 +125,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
               className="flex w-max gap-4 px-4 md:gap-6"
               animate={{ x: ['0%', '-50%'] }}
               transition={{ duration: 80, ease: 'linear', repeat: Infinity }}
-              aria-label="아티메뉴 베이직 템플릿 자동 슬라이드"
+              aria-label="아티메뉴 다이닝 템플릿 자동 슬라이드"
             >
               {marqueeTemplates.map((template, index) => (
                 <div key={`${template.key}-${index}`} className="w-[76vw] shrink-0 sm:w-[48vw] lg:w-[30vw] lg:max-w-[420px]">

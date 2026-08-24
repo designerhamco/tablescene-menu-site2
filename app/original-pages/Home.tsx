@@ -6,6 +6,7 @@ import {
   AutoLayoutSection,
   CustomizationSection,
   DeviceEverywhereSection,
+  MultiPageSection,
   ProductHero,
   ResourceCtaSection,
   SalesAndLanguageSection,
@@ -22,6 +23,7 @@ const Home = () => {
         <section id="layout" className="relative"><AutoLayoutSection /></section>
         <section id="customize" className="relative"><CustomizationSection /></section>
         <section id="features" className="relative"><SalesAndLanguageSection /></section>
+        <section id="multi-page" className="relative"><MultiPageSection /></section>
         <section id="devices" className="relative"><DeviceEverywhereSection /></section>
       </div>
       <div className="relative -mt-10 overflow-hidden rounded-t-[2rem] bg-white md:-mt-16 md:rounded-t-[3rem]">

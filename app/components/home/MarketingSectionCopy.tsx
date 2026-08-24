@@ -8,9 +8,9 @@ import type { ReactNode } from "react";
  * a compact eyebrow-to-title gap and a slightly wider title-to-body gap.
  */
 export const MARKETING_COPY_STYLES = {
-  eyebrow: "text-xs font-bold leading-none tracking-[-0.01em] md:text-[13px]",
-  title: "mt-5 break-keep text-[2rem] font-bold leading-[1.18] tracking-[-0.035em] md:text-5xl",
-  body: "mt-6 break-keep text-base font-medium leading-[1.75] md:text-lg",
+  eyebrow: "text-xs font-bold leading-none tracking-[-0.01em]",
+  title: "mt-6 break-keep text-[2.125rem] font-bold leading-[1.14] tracking-[-0.04em] md:text-[3.5rem]",
+  body: "mt-7 break-keep text-base font-medium leading-[1.75] md:text-lg",
 } as const;
 
 type MarketingSectionCopyProps = {
