@@ -92,6 +92,17 @@
 - `DONE` 신규 migration Production 1회 적용·postcheck와 generated types 갱신 — 2026-08-28 사용자 승인, `docs/runbooks/ai-first-menu-welcome-credit-migration.md`
 - `NEEDS_HUMAN` 전용 신규 QA 계정의 첫 메뉴 6개 지급·추가 메뉴 미지급 E2E
 
+## 3-D. 단일페이지 월결제 30일 무료체험
+
+- `DONE` 연간 가격을 월 할인가 × 12 × 90% 후 100원 단위 내림으로 통일 — 단일 63,700원, 멀티 106,900원, Display 160,900원
+- `DONE` 별도 6,600원 개인 체험의 신규 공개 판매 경로 제거 — 과거 결제 복구·만료·전환 호환 코드는 보존
+- `DONE` 결제수단 필수 등록, 첫 30일 0원, 30일째 단일페이지 월 5,900원 첫 결제 코드 구현
+- `DONE` 무료체험 중 해지 예약 시 30일까지 접근을 유지하고 첫 결제보다 만료를 우선하는 기존 갱신 정책 회귀 검증
+- `DONE` 계정당 최초 1회와 과거 개인 체험 중복 제외를 서버에서 fail-closed 검증
+- `IN_PROGRESS` 사용자별 1회 trial 기간 컬럼·constraint·partial unique index migration — `docs/runbooks/business-subscription-free-trial-migration.md`
+- `NEEDS_HUMAN` Production migration 1회 적용, 약관 최종 확인, `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true` 설정·재배포
+- `NEEDS_HUMAN` 신규 전용 QA 계정에서 빌링키 발급·0원 시작·해지 예약·30일 첫 결제 경계 확인 — 실제 첫 결제 실행은 별도 승인
+
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
 - `DONE` 공통 모바일 상단 헤더 — template 외부 `PublicMenuExperienceShell`, safe-area sticky shell
