@@ -482,17 +482,33 @@ function TranslationVisual() {
   );
 }
 
-export function AiFeaturesSection() {
+type MarketingService = "dining" | "display";
+
+export function AiFeaturesSection({ service = "dining" }: { service?: MarketingService } = {}) {
+  const isDisplay = service === "display";
   const features = [
-    { eyebrow: "AI 메뉴 정리", title: "메뉴 정보 자동 정리와 등록", body: "메뉴명·가격·설명을 입력하면 AI가 항목별로 정리합니다.", visual: <AiMenuVisual /> },
-    { eyebrow: "AI 다국어 번역", title: "클릭 한 번으로 완성되는 4개국어 메뉴판", body: "메뉴명과 설명을 영어·중국어·일본어로 번역합니다.", visual: <TranslationVisual /> },
+    {
+      eyebrow: isDisplay ? "AI 메뉴보드 정리" : "AI 메뉴 정리",
+      title: isDisplay ? "메뉴와 가격 정보 자동 정리" : "메뉴 정보 자동 정리와 등록",
+      body: isDisplay ? "메뉴명·가격·안내 문구를 입력하면 AI가 화면에 맞게 정리합니다." : "메뉴명·가격·설명을 입력하면 AI가 항목별로 정리합니다.",
+      visual: <AiMenuVisual />,
+    },
+    {
+      eyebrow: "AI 다국어 번역",
+      title: isDisplay ? "매장 화면을 위한 4개국어 메뉴" : "클릭 한 번으로 완성되는 4개국어 메뉴판",
+      body: "메뉴명과 설명을 영어·중국어·일본어로 번역합니다.",
+      visual: <TranslationVisual />,
+    },
   ];
 
   return (
     <section className="bg-white px-6 pb-12 pt-16 md:px-10 md:pb-12 md:pt-16">
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl">
-          <MarketingSectionCopy eyebrow="AI 메뉴 관리" title={<>AI로 정리되는<br />반복 메뉴 작업</>} />
+          <MarketingSectionCopy
+            eyebrow={isDisplay ? "AI 디스플레이 관리" : "AI 메뉴 관리"}
+            title={isDisplay ? <>AI로 정리되는<br />매장 화면 콘텐츠</> : <>AI로 정리되는<br />반복 메뉴 작업</>}
+          />
         </motion.div>
         <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="text-base font-bold text-zinc-500 md:text-lg">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">{feature.body}</p></div></motion.article>)}</div>
       </div>
@@ -500,8 +516,25 @@ export function AiFeaturesSection() {
   );
 }
 
-export function StoreScenesSection() {
-  const scenes = [
+export function StoreScenesSection({ service = "dining" }: { service?: MarketingService } = {}) {
+  const isDisplay = service === "display";
+  const scenes = isDisplay ? [
+    {
+      image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1400&auto=format&fit=crop",
+      title: "카운터 뒤 메뉴보드",
+      body: "메뉴명과 가격을 몇 걸음 떨어진 곳에서도 또렷하게 전달합니다.",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1400&auto=format&fit=crop",
+      title: "매장 안내 화면",
+      body: "시즌 메뉴와 이벤트, 대기 안내를 큰 화면에 자연스럽게 보여줍니다.",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1400&auto=format&fit=crop",
+      title: "수정 즉시 반영되는 화면",
+      body: "가격과 품절 상태를 변경하면 새 출력물 없이 화면에 반영됩니다.",
+    },
+  ] : [
     {
       image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1400&auto=format&fit=crop",
       title: "매장 분위기를 담은 화면",
@@ -523,7 +556,10 @@ export function StoreScenesSection() {
     <section className="bg-white px-6 pb-20 pt-12 md:px-10 md:pb-24 md:pt-12">
       <div className="mx-auto max-w-[1380px]">
         <motion.div {...fadeUp} className="mb-14 max-w-4xl md:mb-20">
-          <MarketingSectionCopy eyebrow="In Store" title={<>매장에서 만나는<br />아티메뉴</>} />
+          <MarketingSectionCopy
+            eyebrow="In Store"
+            title={isDisplay ? <>매장 화면에서 만나는<br />아티메뉴 디스플레이</> : <>매장에서 만나는<br />아티메뉴</>}
+          />
         </motion.div>
 
         <div className="grid gap-10 md:grid-cols-3 md:gap-6">
@@ -617,7 +653,9 @@ export function DeviceEverywhereSection() {
   );
 }
 
-export function ResourceCtaSection() {
+export function ResourceCtaSection({ service = "dining" }: { service?: MarketingService } = {}) {
+  const isDisplay = service === "display";
+
   return (
     <section className="bg-white px-6 pb-12 pt-0 md:px-10 md:pb-16 md:pt-0">
       <div className="mx-auto max-w-[1380px]">
@@ -625,9 +663,9 @@ export function ResourceCtaSection() {
           <div className="relative z-10 max-w-2xl">
             <MarketingSectionCopy
               inverted
-              eyebrow="아티메뉴 가이드"
-              title={<>아티메뉴 시작을 위한<br />안내</>}
-              body="서비스 특징과 메뉴판 제작 방법을 한곳에서 확인할 수 있습니다."
+              eyebrow={isDisplay ? "디스플레이 가이드" : "아티메뉴 가이드"}
+              title={isDisplay ? <>매장 메뉴보드 시작을 위한<br />안내</> : <>아티메뉴 시작을 위한<br />안내</>}
+              body={isDisplay ? "디스플레이 특징과 매장 화면 연결 방법을 한곳에서 확인할 수 있습니다." : "서비스 특징과 메뉴판 제작 방법을 한곳에서 확인할 수 있습니다."}
               className="max-w-xl"
             />
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
