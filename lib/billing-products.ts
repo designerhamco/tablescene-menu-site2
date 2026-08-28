@@ -1,3 +1,5 @@
+import { displayPricing } from "@/lib/display-pricing";
+
 export type BillingServiceType = "basic" | "display";
 export type SubscriptionPlanType = "business_basic" | "business_display";
 export type SubscriptionBillingCycle = "monthly" | "yearly";
@@ -111,7 +113,7 @@ export const SUBSCRIPTION_PRODUCTS = {
     planType: "business_display",
     paymentType: "subscription",
     billingCycle: "monthly",
-    amount: 19800,
+    amount: displayPricing.monthly,
     currency: "KRW",
     requiresBusinessVerification: true,
     allowNewMenuSiteCreation: true,
@@ -126,7 +128,7 @@ export const SUBSCRIPTION_PRODUCTS = {
     planType: "business_display",
     paymentType: "subscription",
     billingCycle: "yearly",
-    amount: 190000,
+    amount: displayPricing.yearly,
     currency: "KRW",
     requiresBusinessVerification: true,
     allowNewMenuSiteCreation: true,
