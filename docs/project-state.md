@@ -12,7 +12,7 @@
 
 - 별도 6,600원 개인 체험 신규 판매를 제거하고 단일페이지 월결제에 결제수단 필수 30일 무료체험을 계정당 최초 1회 연결
 - 무료체험 중 해지해도 30일까지 이용하고 첫 결제 없이 종료되도록 기존 해지 우선 갱신 정책을 재사용
-- 무료체험 migration은 Production 적용·postcheck·generated types 갱신 완료; 애플리케이션 병합 후 Vercel 기능 플래그 활성화 진행
+- 무료체험 migration 적용·postcheck·generated types 갱신과 Vercel Production 기능 플래그 설정 완료; PR #68 병합·Production 배포 진행
 
 ## 완료된 주요 기능
 
