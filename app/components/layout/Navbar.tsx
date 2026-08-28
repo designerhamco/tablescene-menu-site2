@@ -554,9 +554,9 @@ const Navbar = () => {
                             aria-expanded={isMobileDiningOpen}
                             aria-controls="mobile-dining-menu"
                             onClick={() => setIsMobileDiningOpen((current) => !current)}
-                            className={`flex w-full items-center justify-between gap-3 py-5 text-left text-2xl font-bold tracking-tight ${isActive ? 'text-zinc-950' : 'text-zinc-700'}`}
+                            className={`flex w-full items-center justify-between gap-3 py-6 text-left !text-2xl !font-bold !leading-[1.2] tracking-tight ${isActive ? 'text-zinc-950' : 'text-zinc-700'}`}
                           >
-                            <span>{item.label}</span>
+                            <span className="min-w-0">{item.label}</span>
                             <span className="flex shrink-0 items-center gap-2">
                               {item.discount ? <DiscountChip /> : null}
                               <ChevronDown className={`h-5 w-5 transition-transform ${isMobileDiningOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -605,7 +605,7 @@ const Navbar = () => {
 
                           closeMobileMenu();
                         }}
-                        className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-6 text-2xl font-bold tracking-tight transition-colors ${
+                        className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-6 text-2xl font-bold leading-[1.2] tracking-tight transition-colors ${
                           item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : isActive ? 'text-zinc-950' : 'text-zinc-600 active:text-zinc-950'
                         }`}
                       >
