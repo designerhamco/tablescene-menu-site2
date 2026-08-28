@@ -24,11 +24,13 @@ function NavigationCount({ active, children }: { active: boolean; children: Reac
 export function MypageAccountCard({
   email,
   userId,
+  roleLabel,
   canShowOwnerCommerce,
   accountAiCreditRemaining,
 }: {
   email: string;
   userId: string;
+  roleLabel?: "사장" | "직원" | null;
   canShowOwnerCommerce: boolean;
   accountAiCreditRemaining?: number;
 }) {
@@ -36,6 +38,17 @@ export function MypageAccountCard({
     <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
       <h2 className="break-all text-lg font-black tracking-tight">{email}</h2>
       <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {userId}</p>
+      {roleLabel ? (
+        <div className="mt-4 flex flex-wrap gap-2" aria-label="계정 역할">
+          <span
+            className={roleLabel === "사장"
+              ? "rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800"
+              : "rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-700"}
+          >
+            {roleLabel}
+          </span>
+        </div>
+      ) : null}
       {canShowOwnerCommerce && accountAiCreditRemaining !== undefined ? (
         <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">AI 도우미 크레딧</p>

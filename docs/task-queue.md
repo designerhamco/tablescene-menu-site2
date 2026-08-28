@@ -28,6 +28,7 @@
 - `DONE` 초대 재전송·취소 — Owner 재검증, batch token 회전, 발송 실패 rollback, revoke·audit 연결
 - `DONE` 직원 역할 변경과 접근 회수 — Owner-only active membership, role allowlist, revoke·audit·rollback 연결
 - `DONE` 직원용 마이페이지 상세 경험 — 관계 배지, permission 기반 기능 안내, 사장 전용 보관·삭제 탭 제외
+- `DONE` 계정 역할 정보 구조 — 반복되는 메뉴판별 `사장` 배지를 로그인 정보로 이동하고 직원의 메뉴판별 세부 역할은 유지
 - `DONE` 이미지·동영상 Storage 권한 — Production Storage policy 변경 없이 권한 확인 후 서버 경계에서만 실행
 - `DONE` 위젯·번역·AI 권한 연결 — AI 사용은 Owner 크레딧, 충전·결제 UI는 Owner-only
 - `DONE` 감사 로그를 모든 직원 작업에 연결 — 공통 write gate에서 actor·role·permission·surface 기록, audit 실패 fail closed, `docs/staff-write-audit.md`

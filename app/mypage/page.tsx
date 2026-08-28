@@ -1408,7 +1408,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const staffMenuSitesError = accessibleMenuSitesResult === null
     ? { message: "직원으로 참여한 메뉴판 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다." }
     : null;
-  const isStaffOnlyAccount = staffMenuSites.length > 0 && !accessibleMenuSites.some((menuSite) => menuSite.isOwner);
+  const hasOwnedMenuSites = sites.length > 0 || accessibleMenuSites.some((menuSite) => menuSite.isOwner);
+  const isStaffOnlyAccount = staffMenuSites.length > 0 && !hasOwnedMenuSites;
+  const accountRoleLabel = hasOwnedMenuSites ? "사장" : staffMenuSites.length > 0 ? "직원" : null;
 
   if (isStaffOnlyAccount && activeTab === "payments") {
     redirect("/mypage?tab=menus");
@@ -2518,7 +2520,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
-            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800">사장</span>
             {card.badges.map((badge) => (
               <span key={badge.key} className={`rounded-full px-3 py-1 text-xs font-black ${badge.className}`}>
                 {badge.label}
@@ -2687,6 +2688,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <MypageAccountCard
               email={user.email ?? "이메일 정보 없음"}
               userId={user.id}
+              roleLabel={accountRoleLabel}
               canShowOwnerCommerce={canShowOwnerCommerce}
               accountAiCreditRemaining={canShowOwnerCommerce ? accountAiCreditRemaining : undefined}
             />
