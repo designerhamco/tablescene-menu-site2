@@ -65,7 +65,7 @@ function CeilingDisplayMockup() {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/55" />
 
-      <div className="absolute left-1/2 top-[48%] flex w-[88%] max-w-[1180px] -translate-x-1/2 items-start justify-center gap-2 sm:gap-4 md:gap-6">
+      <div className="absolute left-1/2 top-[17%] flex w-[88%] max-w-[1180px] -translate-x-1/2 items-start justify-center gap-2 sm:gap-4 md:top-[18%] md:gap-6">
         {["light", "dark", "warm"].map((tone, index) => (
           <div key={tone} className={`relative w-1/3 ${index === 1 ? "translate-y-5" : ""}`}>
             <span className="absolute bottom-full left-[18%] h-20 w-1 bg-zinc-950 md:h-28" />
@@ -82,7 +82,7 @@ function CeilingDisplayMockup() {
 
 export function DisplayHero() {
   return (
-    <section className="relative min-h-[760px] overflow-hidden bg-zinc-950 px-5 pt-28 text-white md:min-h-[930px] md:px-10 md:pt-36">
+    <section className="relative min-h-[760px] overflow-hidden bg-zinc-950 text-white md:min-h-[930px]">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -97,11 +97,11 @@ export function DisplayHero() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.08 }}
-        className="relative z-10 mx-auto max-w-[1180px] text-center"
+        className="absolute inset-x-5 top-[47%] z-10 mx-auto max-w-[1180px] text-center md:top-[48%]"
       >
         <p className="text-base font-bold tracking-[-0.02em] md:text-xl">매장을 완성하는 디지털 메뉴보드</p>
         <h1 className="mt-5 break-keep text-[clamp(3rem,7.8vw,6.25rem)] font-bold leading-[0.98] tracking-[-0.055em]">
-          메뉴가 가장 잘 보이는<br />아티메뉴 디스플레이
+          ArtiMenu Display<br />Made to Be Seen
         </h1>
       </motion.div>
     </section>
