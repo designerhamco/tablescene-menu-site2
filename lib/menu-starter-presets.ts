@@ -289,6 +289,7 @@ const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
 
 function getStarterServiceType(productKey?: string | null): StarterServiceType {
   if (productKey === "basic") return "menu";
+  if (productKey === "personal_trial_basic_1month" || productKey?.startsWith("business_basic")) return "menu";
   if (productKey === "large_screen") return "screen";
   if (productKey === "business_display_monthly" || productKey === "business_display_yearly") return "screen";
 

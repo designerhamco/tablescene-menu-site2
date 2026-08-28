@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
+import { isDiningProductCompatibleWithTemplate } from "@/lib/dining-product-tiers";
 import {
   DISPLAY_CHECKOUT_QA_PLAN_TYPE,
   DISPLAY_CHECKOUT_QA_PRODUCT_KEYS,
@@ -103,7 +104,15 @@ type RecoverableSubscription = {
 };
 
 type NormalizedBusinessOrder = MenuOrderPayload & {
-  product_key: "business_basic_monthly" | "business_basic_yearly" | "business_display_monthly" | "business_display_yearly";
+  product_key:
+    | "business_basic_monthly"
+    | "business_basic_yearly"
+    | "business_basic_single_monthly"
+    | "business_basic_single_yearly"
+    | "business_basic_multi_monthly"
+    | "business_basic_multi_yearly"
+    | "business_display_monthly"
+    | "business_display_yearly";
   plan_type: "business_basic" | typeof DISPLAY_CHECKOUT_QA_PLAN_TYPE;
   payment_type: "subscription";
   billing_cycle: "monthly" | "yearly";
@@ -450,7 +459,7 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     planKey !== (isDisplayQaOrder ? "large_screen" : "basic") ||
     (isDisplayQaOrder
       ? templateKey !== DISPLAY_CHECKOUT_QA_TEMPLATE_KEY || templateCategory !== DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY
-      : !isTemplateSupportedForCheckout(templateKey, "basic"))
+      : !isTemplateSupportedForCheckout(templateKey, "basic") || !isDiningProductCompatibleWithTemplate(product.productKey, templateKey))
   ) {
     return null;
   }
@@ -549,11 +558,7 @@ function getSubscriptionBillingPeriod(product: SubscriptionProduct, now = new Da
 }
 
 function getSubscriptionOrderName(product: SubscriptionProduct) {
-  if (product.serviceType === "display") {
-    return product.billingCycle === "yearly" ? "아티메뉴 디스플레이 연결제" : "아티메뉴 디스플레이 월결제";
-  }
-
-  return product.billingCycle === "yearly" ? "아티메뉴 다이닝 연결제" : "아티메뉴 다이닝 월결제";
+  return product.name;
 }
 
 function isMissingRelationError(error: { code?: string; message?: string } | null | undefined, relationName: string) {
@@ -1772,6 +1777,20 @@ export async function POST(request: Request) {
       mode,
       productKey: product.productKey,
       billingCycle: requestedBillingCycle,
+      safeDebug: baseDebug,
+    });
+  }
+
+  if (mode === "new" && !isPaymentRecovery && !product.allowNewMenuSiteCreation) {
+    return jsonStepError({
+      step: "new_or_convert_precheck",
+      debugCode: "LEGACY_PRODUCT_NEW_PURCHASE_NOT_ALLOWED",
+      message: "기존 고객 전용 상품은 새로 신청할 수 없습니다. 현재 판매 중인 단일·멀티페이지 상품을 선택해주세요.",
+      status: 409,
+      userId: user.id,
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
       safeDebug: baseDebug,
     });
   }

@@ -1405,7 +1405,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const latestOrder = orderData as MenuSiteOrder | null;
   const templateType = getTemplateType(site.template_key);
   const switchableTemplates = getSwitchableTemplatesForTemplate(site.template_key);
-  const currentSwitchTemplate = switchableTemplates.find((template) => template.key === site.template_key) ?? null;
   const templateSwitchTargets = switchableTemplates.filter((template) => template.key !== site.template_key);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
@@ -2444,20 +2443,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       </div>
                       {accessContext.isOwner ? (
                         <div className="mt-5 space-y-4">
-                          {currentSwitchTemplate ? (
-                            <div className="max-w-sm rounded-[1.35rem] border border-zinc-300 bg-white p-3">
-                              <TemplateSwitchThumbnail templateKey={currentSwitchTemplate.key} templateName={currentSwitchTemplate.label} />
-                              <div className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
-                                <div className="min-w-0">
-                                  <p className="truncate text-sm font-black text-zinc-950">{currentSwitchTemplate.label}</p>
-                                  <p className="mt-0.5 text-xs font-bold text-zinc-500">
-                                    {getTemplateCommercialTierLabel(getTemplateCommercialTier(currentSwitchTemplate.key))}
-                                  </p>
-                                </div>
-                                <span className="shrink-0 rounded-full bg-zinc-950 px-3 py-1.5 text-xs font-black text-white">현재 사용 중</span>
-                              </div>
-                            </div>
-                          ) : null}
+                          <p className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-600">
+                            현재 템플릿 <strong className="ml-1 font-black text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
+                            <span className="mx-2 text-zinc-300">·</span>
+                            {getTemplateCommercialTierLabel(getTemplateCommercialTier(site.template_key))}
+                          </p>
                           {templateSwitchTargets.length > 0 ? (
                             <>
                               <fieldset>

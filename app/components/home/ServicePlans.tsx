@@ -8,7 +8,7 @@ const services = [
     title: '아티메뉴 다이닝',
     badge: '오픈할인',
     description: '직접 편집하는 기본 디지털 메뉴판',
-    price: '첫 달 체험가 6,600원 · 월 9,900원 · 연 95,000원',
+    price: '단일 월 5,900원 · 멀티 월 9,900원',
     details: ['다양한 템플릿 제공', '실시간 메뉴 및 가격 수정', '모든 기기 호환 및 QR 지원'],
     cta: '구매하기',
     href: '/apply/basic',

@@ -9,7 +9,7 @@ import {
   getTemplateSwitchDecision,
 } from "./template-switching";
 
-test("다이닝 출시 템플릿 6개를 교체 후보로 노출한다", () => {
+test("누아를 제외한 다이닝 출시 템플릿 5개를 교체 후보로 노출한다", () => {
   assert.deepEqual(
     getSwitchableTemplatesForService("basic").map((template) => template.key),
     [
@@ -18,7 +18,6 @@ test("다이닝 출시 템플릿 6개를 교체 후보로 노출한다", () => {
       "cafe_sunday_line_a",
       "cafe_round_focus_a",
       "cafe_brew_chapter_a",
-      "cafe_noir_a",
     ],
   );
 });
@@ -37,7 +36,6 @@ test("현재 템플릿과 같은 페이지 등급의 교체 후보만 노출한�
       "cafe_mocha_forest_a",
       "cafe_sunday_line_a",
       "cafe_round_focus_a",
-      "cafe_noir_a",
     ],
   );
   assert.deepEqual(
@@ -47,8 +45,12 @@ test("현재 템플릿과 같은 페이지 등급의 교체 후보만 노출한�
 });
 
 test("같은 서비스의 출시 템플릿으로만 교체한다", () => {
-  const allowed = getTemplateSwitchDecision("cafe_design_a", "cafe_noir_a");
+  const allowed = getTemplateSwitchDecision("cafe_design_a", "cafe_sunday_line_a");
   assert.equal(allowed.allowed, true);
+
+  const retired = getTemplateSwitchDecision("cafe_design_a", "cafe_noir_a");
+  assert.equal(retired.allowed, false);
+  if (!retired.allowed) assert.equal(retired.reason, "coming_soon");
 
   const crossService = getTemplateSwitchDecision("cafe_design_a", "display_menu_a");
   assert.deepEqual(crossService, {
@@ -80,7 +82,7 @@ test("템플릿별 디자인은 스냅샷으로 보존하고 공통 페이지 �
       design: { backgroundColor: "#112233", koreanFont: "pretendard" },
     },
     currentTemplateKey: "cafe_design_a",
-    targetTemplateKey: "cafe_noir_a",
+    targetTemplateKey: "cafe_sunday_line_a",
     switchedAt: "2026-08-28T10:00:00.000Z",
     promotionsDisabled: 1,
     widgetsHidden: 2,
@@ -103,7 +105,7 @@ test("템플릿별 디자인은 스냅샷으로 보존하고 공통 페이지 �
       ...firstSwitch.pageSettings,
       design: { backgroundColor: "#FFFFFF", englishFont: "cutive-mono" },
     },
-    currentTemplateKey: "cafe_noir_a",
+    currentTemplateKey: "cafe_sunday_line_a",
     targetTemplateKey: "cafe_design_a",
     switchedAt: "2026-08-28T11:00:00.000Z",
     promotionsDisabled: 0,

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isOwnerRuntimeActor } from "@/lib/owner-runtime-access";
+import { getDiningTemplateTier, isDiningProductCompatibleWithTemplate } from "@/lib/dining-product-tiers";
 
 import { getSubscriptionProduct, SUBSCRIPTION_PRODUCTS, type SubscriptionProduct, type SubscriptionProductKey } from "@/lib/billing-products";
 import { formatKrw } from "@/lib/payments";
@@ -18,6 +19,7 @@ type RestoreReasonCode =
   | "REFUND_REVIEW_REQUIRED"
   | "INVALID_PRODUCT"
   | "SERVICE_TYPE_MISMATCH"
+  | "TEMPLATE_TIER_MISMATCH"
   | "UNKNOWN_SERVICE_TYPE";
 
 type MenuSiteRestoreRow = {
@@ -132,10 +134,20 @@ function getRestoreServiceType({
   return null;
 }
 
-function getAvailableProductKeys(serviceType: RestoreServiceType): SubscriptionProductKey[] {
-  return serviceType === "display"
-    ? ["business_display_monthly", "business_display_yearly"]
-    : ["business_basic_monthly", "business_basic_yearly"];
+function getAvailableProductKeys(serviceType: RestoreServiceType, templateKey?: string | null): SubscriptionProductKey[] {
+  if (serviceType === "display") return ["business_display_monthly", "business_display_yearly"];
+  if (!templateKey) {
+    return [
+      "business_basic_single_monthly",
+      "business_basic_single_yearly",
+      "business_basic_multi_monthly",
+      "business_basic_multi_yearly",
+    ];
+  }
+
+  return getDiningTemplateTier(templateKey) === "multi"
+    ? ["business_basic_multi_monthly", "business_basic_multi_yearly"]
+    : ["business_basic_single_monthly", "business_basic_single_yearly"];
 }
 
 function getNextBillingDescription(billingCycle: "monthly" | "yearly") {
@@ -160,6 +172,8 @@ function getReasonMessage(reasonCode: RestoreReasonCode) {
       return "복구할 구독 상품을 확인할 수 없습니다.";
     case "SERVICE_TYPE_MISMATCH":
       return "보관 중인 메뉴판과 선택한 구독 상품의 서비스 유형이 일치하지 않습니다.";
+    case "TEMPLATE_TIER_MISMATCH":
+      return "보관 중인 메뉴판과 같은 단일·멀티페이지 상품을 선택해주세요.";
     case "UNKNOWN_SERVICE_TYPE":
       return "메뉴판의 서비스 유형을 확인할 수 없습니다.";
     case "OK":
@@ -195,6 +209,7 @@ function result({
   currentStatus,
   retentionUntil,
   selectedProductKey,
+  templateKey = null,
 }: {
   canRestore: boolean;
   reasonCode: RestoreReasonCode;
@@ -203,8 +218,9 @@ function result({
   currentStatus: string | null;
   retentionUntil: string | null;
   selectedProductKey: SubscriptionProductKey | null;
+  templateKey?: string | null;
 }) {
-  const availableProducts = serviceType ? getAvailableProductKeys(serviceType).map(productSummary) : [];
+  const availableProducts = serviceType ? getAvailableProductKeys(serviceType, templateKey).map(productSummary) : [];
   const selectedProduct = selectedProductKey ? productSummary(selectedProductKey) : null;
 
   return {
@@ -323,6 +339,7 @@ export async function getRestorePreflightSummary({
       currentStatus: menuSite.status,
       retentionUntil,
       selectedProductKey: normalizedProductKey,
+      templateKey: menuSite.template_key,
     });
   }
 
@@ -335,6 +352,7 @@ export async function getRestorePreflightSummary({
       currentStatus: menuSite.status,
       retentionUntil,
       selectedProductKey: normalizedProductKey,
+      templateKey: menuSite.template_key,
     });
   }
 
@@ -347,6 +365,7 @@ export async function getRestorePreflightSummary({
       currentStatus: menuSite.status,
       retentionUntil,
       selectedProductKey: normalizedProductKey,
+      templateKey: menuSite.template_key,
     });
   }
 
@@ -359,6 +378,7 @@ export async function getRestorePreflightSummary({
       currentStatus: menuSite.status,
       retentionUntil,
       selectedProductKey: normalizedProductKey,
+      templateKey: menuSite.template_key,
     });
   }
 
@@ -371,6 +391,7 @@ export async function getRestorePreflightSummary({
       currentStatus: menuSite.status,
       retentionUntil,
       selectedProductKey: normalizedProductKey,
+      templateKey: menuSite.template_key,
     });
   }
 
@@ -383,6 +404,20 @@ export async function getRestorePreflightSummary({
       currentStatus: menuSite.status,
       retentionUntil,
       selectedProductKey: normalizedProductKey,
+      templateKey: menuSite.template_key,
+    });
+  }
+
+  if (serviceType === "basic" && !isDiningProductCompatibleWithTemplate(product.productKey, menuSite.template_key)) {
+    return result({
+      canRestore: false,
+      reasonCode: "TEMPLATE_TIER_MISMATCH",
+      restoreMenuSiteId,
+      serviceType,
+      currentStatus: menuSite.status,
+      retentionUntil,
+      selectedProductKey: normalizedProductKey,
+      templateKey: menuSite.template_key,
     });
   }
 
@@ -394,6 +429,7 @@ export async function getRestorePreflightSummary({
     currentStatus: menuSite.status,
     retentionUntil,
     selectedProductKey: normalizedProductKey,
+    templateKey: menuSite.template_key,
   });
 }
 
@@ -459,6 +495,10 @@ export async function validateRestorableMenuSiteForPayment({
 
   if (!serviceType || product.serviceType !== serviceType) {
     throw new MenuSiteRestorePreflightError("SERVICE_TYPE_MISMATCH", "보관 중인 메뉴판과 선택한 구독 상품의 서비스 유형이 일치하지 않습니다.", 409);
+  }
+
+  if (serviceType === "basic" && !isDiningProductCompatibleWithTemplate(product.productKey, menuSite.template_key)) {
+    throw new MenuSiteRestorePreflightError("TEMPLATE_TIER_MISMATCH", "보관 중인 메뉴판과 같은 단일·멀티페이지 상품을 선택해주세요.", 409);
   }
 
   return {

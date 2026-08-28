@@ -4,7 +4,7 @@
 
 ## 출시 대상과 판매 노출 정책
 
-`hidden`은 구매 화면의 임시 판매 노출 상태일 뿐 출시 대상 제외를 뜻하지 않는다. QA에서 제외하지 않으며, 이 QA 작업에서 catalog status를 변경하지 않는다.
+`hidden`은 구매 화면의 임시 판매 노출 상태일 뿐 출시 대상 제외를 뜻하지 않는다. `retired`는 신규 생성·구매·교체 후보에서 제외하되 기존 저장 메뉴판의 안전한 렌더링 호환성은 유지한다.
 
 Basic 출시 대상:
 
@@ -13,7 +13,10 @@ Basic 출시 대상:
 - 선데이 라인 (`cafe_sunday_line_a`)
 - 라운드 포커스 (`cafe_round_focus_a`)
 - 브루 챕터 (`cafe_brew_chapter_a`)
-- 누아 메뉴 (`cafe_noir_a`)
+
+기존 호환 전용(신규 노출 제외):
+
+- 누아 메뉴 (`cafe_noir_a`, `retired`)
 
 Display 출시 대상:
 

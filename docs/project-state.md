@@ -6,13 +6,13 @@
 
 기준 커밋: `8d2bd5d` (`PR #61` 병합)
 
-현재 작업 브랜치: `tablescene-next`
+현재 작업 브랜치: `codex/dining-tier-pricing-noir-retire`
 
 ## 현재 작업
 
-- 매장별 호출 항목 6개 기본값과 이름·순서·사용 여부 관리
-- 호출 접수 당시 항목 key·label snapshot과 기존 dedupe·rate limit 유지
-- 신규 DB migration을 2026-08-28 승인 아래 Production 1회 적용하고 보안 postcheck·generated types 갱신 완료
+- 누아 메뉴를 신규 노출·구매·교체 후보에서 은퇴시키고 기존 데이터 renderer 호환성만 유지
+- 다이닝 단일·멀티 상품을 월/연 SKU로 분리하고 결제·갱신·환불·복구 서버 경계를 같은 등급으로 연결
+- 단일 정상가 8,900원·오픈할인 5,900원, 멀티 정상가 12,900원·오픈할인 9,900원, 연간은 오픈할인 월 금액 12개월 합계에서 10% 추가 할인
 
 ## 완료된 주요 기능
 
@@ -38,7 +38,7 @@
   - 기존 `menu_promotions`·`menu_promotion_items` 구조를 재사용하며 신규 migration은 없음
 - ArtiMenu 브랜드와 PG 사이트 심사 준비:
   - 사용자 표시 브랜드를 `아티메뉴` / `ArtiMenu`로 통일하고 기존 cookie·localStorage·DB·호환 route 식별자는 유지
-  - 현재 판매 가능한 Basic 3상품을 `/pricing`에서 분리하고 공개 상품 상세·제공 시점·교환·청약철회·환불 안내를 연결
+  - 현재 판매 가능한 다이닝 5상품을 `/pricing`에서 분리하고 공개 상품 상세·제공 시점·교환·청약철회·환불 안내를 연결
   - QR오더 소개의 미구현 결제·포인트·알림·POS 완성형 표현을 제거하고 계약 전 준비 상태와 검증 범위를 명시
   - 상세 심사 체크리스트는 `docs/pg-site-review-readiness.md`
 - Production 의존성 보안 패치:
@@ -106,7 +106,7 @@
   - 모바일 프레임에서 `PG 미사용`/`PG 사용`을 선택해 비교하고, 메뉴별 아이콘 → 옵션·수량 바텀시트 → 담김 토스트 → 장바구니 수정·삭제 → 후불/지금 결제 흐름을 실제 write 없는 fixture로 제공
   - 별도 scale 엔진 없이 동일 출처 iframe의 반응형 viewport와 실제 크기 새 창 제공
 - 활성 템플릿 정책과 1차 renderer QA:
-  - Basic 6개와 Display 1개를 출시 대상으로 확정
+  - Basic 5개와 Display 1개를 신규 출시 대상으로 유지하고 누아는 신규 노출에서 은퇴
   - `hidden`은 임시 판매 노출 상태로 유지하면서 QA에는 포함
   - 390×844·1440×900 renderer, 이미지, overflow, 콘솔 오류와 Display 페이지 이동을 점검
   - 상세 기록은 `docs/active-template-qa.md`
@@ -118,7 +118,7 @@
   - 단일 페이지는 단일 페이지, 멀티페이지는 멀티페이지 후보만 썸네일 카드로 노출
   - 서버 action도 교차 등급 전환을 거부하며 메뉴·URL·번역 보존 계약은 유지
   - 브루 챕터 멀티페이지는 공통 Call Layer를 통해 Order 없이 호출만 활성화 가능
-  - 현재 실제 다이닝 월결제 SKU는 9,900원 하나이므로 신규 가격 연결은 신규 SKU·연결제·기존 고객 승계 작업과 분리
+  - 신규 단일 월 5,900원·연 63,720원과 멀티 월 9,900원·연 106,920원을 별도 SKU로 연결하고 기존 9,900원·95,000원 SKU는 기존 고객 호환용으로 유지
 - 활성 템플릿 기능 stress QA:
   - capability 기반 위젯·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 desktop/mobile 검증
   - Display와 누아 메뉴의 품절 표시 연결
@@ -239,6 +239,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260828105459_add_dining_single_multi_subscription_products.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 구독 건수 불변과 기존·신규 상품 key 8개 제약 postcheck 완료. `docs/runbooks/dining-tier-pricing-migration.md`. 다시 실행 금지.
 - `20260828143000_add_store_call_items.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재 precheck, RLS·grant·RPC·호출 집계 postcheck와 generated types 갱신 완료. `docs/runbooks/store-call-items-migration.md`. 다시 실행 금지.
 - `20260828083457_grant_first_menu_welcome_credits.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 AI 잔액·거래 집계 불변, 함수 보안·grant·부분 unique index postcheck와 generated types 갱신 완료. `docs/runbooks/ai-first-menu-welcome-credit-migration.md`. 다시 실행 금지.
 - `20260828040033_add_shared_menu_catalog.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 1회 적용, 기존 링크·catalog 행 0건, RLS·grant·RPC·trigger postcheck와 generated types 갱신 완료. `docs/runbooks/shared-menu-catalog-migration.md`. 다시 실행 금지.

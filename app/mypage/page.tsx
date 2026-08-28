@@ -33,6 +33,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
+import { getDiningTemplateTier } from "@/lib/dining-product-tiers";
 import { NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
@@ -861,9 +862,14 @@ function getBillingHistoryMethodLabel(method: BillingHistoryEntry["billingMethod
   return "결제 방식 확인 필요";
 }
 
-function getRestoreSubscriptionOptions(serviceType: BillingHistoryEntry["serviceType"]) {
+function getRestoreSubscriptionOptions(
+  serviceType: BillingHistoryEntry["serviceType"],
+  templateKey?: string | null,
+) {
   const productKeys = serviceType === "basic"
-    ? ["business_basic_monthly", "business_basic_yearly"]
+    ? getDiningTemplateTier(templateKey) === "multi"
+      ? ["business_basic_multi_monthly", "business_basic_multi_yearly"]
+      : ["business_basic_single_monthly", "business_basic_single_yearly"]
     : serviceType === "display"
       ? ["business_display_monthly", "business_display_yearly"]
       : [];
@@ -906,7 +912,7 @@ function getRestoreSubscriptionCta({
   const daysUntilRetentionEnds = retentionEndDate ? getRemainingDaysUntilKst(retentionEndDate) : null;
   if (typeof daysUntilRetentionEnds !== "number" || daysUntilRetentionEnds < 0) return null;
 
-  const options = getRestoreSubscriptionOptions(serviceType);
+  const options = getRestoreSubscriptionOptions(serviceType, menuSite.template_key);
   if (options.length === 0) return null;
 
   return {

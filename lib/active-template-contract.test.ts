@@ -23,7 +23,7 @@ test("every Basic launch template is service-compatible without changing catalog
     cafe_sunday_line_a: "hidden",
     cafe_round_focus_a: "hidden",
     cafe_brew_chapter_a: "hidden",
-    cafe_noir_a: "hidden",
+    cafe_noir_a: "retired",
   } as const;
 
   for (const templateKey of BASIC_LAUNCH_TEMPLATE_KEYS) {

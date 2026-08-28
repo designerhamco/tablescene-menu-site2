@@ -10,6 +10,7 @@ import {
   type MenuOrderPayload,
 } from "@/lib/payments";
 import { validatePromotionForOrder } from "@/lib/promotions";
+import { isDiningProductCompatibleWithTemplate, isLegacyDiningProductKey } from "@/lib/dining-product-tiers";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { grantAiWelcomeCreditsForFirstMenuCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
@@ -416,6 +417,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     !templateCategory ||
     !isValidMenuSlug(desiredSlug) ||
     !requestedProduct ||
+    isLegacyDiningProductKey(requestedProduct.product_key) ||
     amount !== requestedProduct.amount ||
     planType !== requestedProduct.plan_type ||
     paymentType !== requestedProduct.payment_type ||
@@ -429,6 +431,10 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
   }
 
   if (!isTemplateSupportedForCheckout(templateKey, getTemplateServiceTypeForPlan(planKey))) {
+    return null;
+  }
+
+  if (planKey === "basic" && !isDiningProductCompatibleWithTemplate(requestedProduct.product_key, templateKey)) {
     return null;
   }
 

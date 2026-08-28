@@ -7,8 +7,14 @@ export type BuyerType = "individual" | "business";
 export type PlanType = "personal_trial" | "business_basic" | "business_display";
 export type PaymentType = "one_time" | "subscription";
 export type BillingCycle = "trial_1_month" | "monthly" | "yearly";
-export type BasicProductKey = "personal_trial_basic_1month" | "business_basic_monthly" | "business_basic_yearly";
-export type PaymentProductKey = BasicProductKey | "business_display_monthly" | "business_display_yearly";
+export type BasicProductKey =
+  | "personal_trial_basic_1month"
+  | "business_basic_single_monthly"
+  | "business_basic_single_yearly"
+  | "business_basic_multi_monthly"
+  | "business_basic_multi_yearly";
+export type LegacyBasicProductKey = "business_basic_monthly" | "business_basic_yearly";
+export type PaymentProductKey = BasicProductKey | LegacyBasicProductKey | "business_display_monthly" | "business_display_yearly";
 export type OrderSetupPayload = {
   tableCount?: string | null;
   posUsage?: string | null;
@@ -39,52 +45,121 @@ export const personalTrialBasicProduct = {
   duration_months: 1,
   currency: "KRW",
   template_service: "basic",
+  template_tier: "single",
   requires_business_verification: false,
   is_subscription: false,
 } as const;
 
 export const businessBasicMonthlyProduct = {
-  key: "business_basic_monthly",
-  product_key: "business_basic_monthly",
-  name: "아티메뉴 다이닝 월결제",
-  label: "아티메뉴 다이닝 월결제",
-  description: "사업자 인증 후 아티메뉴 다이닝 메뉴판을 월 자동결제로 이용합니다.",
+  key: "business_basic_single_monthly",
+  product_key: "business_basic_single_monthly",
+  name: "아티메뉴 다이닝 단일페이지 월결제",
+  label: "단일페이지 월결제",
+  description: "사업자 인증 후 단일페이지 다이닝 메뉴판을 월 자동결제로 이용합니다.",
   plan_type: "business_basic",
   payment_type: "subscription",
   billing_cycle: "monthly",
-  regular_amount: 13200,
-  amount: 9900,
-  discount_rate: 25,
+  regular_amount: 8900,
+  amount: 5900,
+  discount_rate: 34,
   duration_months: null,
   currency: "KRW",
   template_service: "basic",
+  template_tier: "single",
   requires_business_verification: true,
   is_subscription: true,
 } as const;
 
 export const businessBasicYearlyProduct = {
-  key: "business_basic_yearly",
-  product_key: "business_basic_yearly",
-  name: "아티메뉴 다이닝 연결제",
-  label: "아티메뉴 다이닝 연결제",
-  description: "사업자 인증 후 아티메뉴 다이닝 메뉴판을 연 자동결제로 이용합니다.",
+  key: "business_basic_single_yearly",
+  product_key: "business_basic_single_yearly",
+  name: "아티메뉴 다이닝 단일페이지 연결제",
+  label: "단일페이지 연결제",
+  description: "사업자 인증 후 단일페이지 다이닝 메뉴판을 연 자동결제로 이용합니다.",
   plan_type: "business_basic",
   payment_type: "subscription",
   billing_cycle: "yearly",
-  regular_amount: 158400,
-  amount: 95000,
+  regular_amount: 106800,
+  amount: 63720,
   discount_rate: 40,
   duration_months: null,
   currency: "KRW",
   template_service: "basic",
+  template_tier: "single",
   requires_business_verification: true,
   is_subscription: true,
+} as const;
+
+export const businessBasicMultiMonthlyProduct = {
+  key: "business_basic_multi_monthly",
+  product_key: "business_basic_multi_monthly",
+  name: "아티메뉴 다이닝 멀티페이지 월결제",
+  label: "멀티페이지 월결제",
+  description: "사업자 인증 후 멀티페이지 다이닝 메뉴판을 월 자동결제로 이용합니다.",
+  plan_type: "business_basic",
+  payment_type: "subscription",
+  billing_cycle: "monthly",
+  regular_amount: 12900,
+  amount: 9900,
+  discount_rate: 23,
+  duration_months: null,
+  currency: "KRW",
+  template_service: "basic",
+  template_tier: "multi",
+  requires_business_verification: true,
+  is_subscription: true,
+} as const;
+
+export const businessBasicMultiYearlyProduct = {
+  key: "business_basic_multi_yearly",
+  product_key: "business_basic_multi_yearly",
+  name: "아티메뉴 다이닝 멀티페이지 연결제",
+  label: "멀티페이지 연결제",
+  description: "사업자 인증 후 멀티페이지 다이닝 메뉴판을 연 자동결제로 이용합니다.",
+  plan_type: "business_basic",
+  payment_type: "subscription",
+  billing_cycle: "yearly",
+  regular_amount: 154800,
+  amount: 106920,
+  discount_rate: 31,
+  duration_months: null,
+  currency: "KRW",
+  template_service: "basic",
+  template_tier: "multi",
+  requires_business_verification: true,
+  is_subscription: true,
+} as const;
+
+export const legacyBusinessBasicMonthlyProduct = {
+  ...businessBasicMonthlyProduct,
+  key: "business_basic_monthly",
+  product_key: "business_basic_monthly",
+  name: "아티메뉴 다이닝 월결제 (기존 상품)",
+  label: "아티메뉴 다이닝 월결제 (기존 상품)",
+  regular_amount: 13200,
+  amount: 9900,
+  discount_rate: 25,
+  template_tier: "legacy",
+} as const;
+
+export const legacyBusinessBasicYearlyProduct = {
+  ...businessBasicYearlyProduct,
+  key: "business_basic_yearly",
+  product_key: "business_basic_yearly",
+  name: "아티메뉴 다이닝 연결제 (기존 상품)",
+  label: "아티메뉴 다이닝 연결제 (기존 상품)",
+  regular_amount: 158400,
+  amount: 95000,
+  discount_rate: 40,
+  template_tier: "legacy",
 } as const;
 
 export const basicPaymentProducts = [
   personalTrialBasicProduct,
   businessBasicMonthlyProduct,
   businessBasicYearlyProduct,
+  businessBasicMultiMonthlyProduct,
+  businessBasicMultiYearlyProduct,
 ] as const;
 
 export type BasicPaymentProduct = (typeof basicPaymentProducts)[number];
@@ -136,6 +211,8 @@ export type DisplayPaymentProduct = (typeof displayPaymentProducts)[number];
 
 export const paidApplyPaymentProducts = [
   ...basicPaymentProducts,
+  legacyBusinessBasicMonthlyProduct,
+  legacyBusinessBasicYearlyProduct,
   ...displayPaymentProducts,
 ] as const;
 
@@ -195,6 +272,8 @@ export type MenuOrderPayload = {
 };
 
 export function getBasicPaymentProduct(productKey: string | null | undefined) {
+  if (productKey === legacyBusinessBasicMonthlyProduct.product_key) return businessBasicMonthlyProduct;
+  if (productKey === legacyBusinessBasicYearlyProduct.product_key) return businessBasicYearlyProduct;
   return basicPaymentProducts.find((product) => product.product_key === productKey) ?? null;
 }
 

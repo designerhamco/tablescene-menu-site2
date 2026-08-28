@@ -134,7 +134,7 @@ function getRequiredError(label: string, value: string) {
 }
 
 export default function BusinessPlanConvertPanel({ menuSiteId, storeId, billingChannelKey }: BusinessPlanConvertPanelProps) {
-  const [selectedProductKey, setSelectedProductKey] = useState<BasicProductKey>("business_basic_monthly");
+  const [selectedProductKey, setSelectedProductKey] = useState<BasicProductKey>("business_basic_single_monthly");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [consents, setConsents] = useState<Record<ConvertConsentKey, boolean>>({
     termsAccepted: false,
