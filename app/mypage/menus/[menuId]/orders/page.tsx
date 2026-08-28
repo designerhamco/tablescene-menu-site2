@@ -35,6 +35,9 @@ export default async function OrderDashboardPage({
         redirect(`/sign-in?next=${encodeURIComponent(`/mypage/menus/${menuId}/orders`)}`);
       }
       if (error.status === 404) notFound();
+      if (error.code === "MENU_SITE_PERMISSION_DENIED") {
+        redirect(`/mypage/operations?site=${encodeURIComponent(menuId)}&message=permission-denied&feature=orders`);
+      }
     }
     if (error instanceof OrderManagementError) {
       if (error.code === "INVALID_INPUT" || error.code === "ORDER_NOT_FOUND") notFound();

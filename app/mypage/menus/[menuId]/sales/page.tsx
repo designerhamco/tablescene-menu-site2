@@ -45,6 +45,9 @@ export default async function SalesSummaryPage({
         redirect(`/sign-in?next=${encodeURIComponent(`/mypage/menus/${menuId}/sales`)}`);
       }
       if (error.status === 404) notFound();
+      if (error.code === "MENU_SITE_PERMISSION_DENIED") {
+        redirect(`/mypage/operations?site=${encodeURIComponent(menuId)}&message=permission-denied&feature=sales`);
+      }
     }
     if (error instanceof SalesSummaryError) {
       if (error.code === "INVALID_INPUT" || error.code === "MENU_SITE_NOT_FOUND") notFound();

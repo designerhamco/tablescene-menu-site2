@@ -21,6 +21,20 @@ function NavigationCount({ active, children }: { active: boolean; children: Reac
   return <span className={`text-xs ${active ? "text-white/60" : "text-zinc-400"}`}>{children}</span>;
 }
 
+function DisabledNavigationItem({ label, reason }: { label: string; reason: string }) {
+  return (
+    <span
+      aria-disabled="true"
+      aria-label={`${label} 권한 없음: ${reason}`}
+      title={reason}
+      className="flex cursor-not-allowed items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-300"
+    >
+      <span>{label}</span>
+      <span className="text-[10px] font-black">권한 없음</span>
+    </span>
+  );
+}
+
 export function MypageAccountCard({
   email,
   userId,
@@ -102,12 +116,16 @@ export function MypageNavigation({
           <Link href="/mypage?tab=payments" className={getNavigationClassName(active === "payments")}>
             <span>구독/결제 내역</span>
           </Link>
-        ) : null}
+        ) : (
+          <DisabledNavigationItem label="구독/결제 내역" reason="사장 계정만 구독과 결제 내역을 관리할 수 있습니다." />
+        )}
         {hasOwnedMenuSites ? (
           <Link href="/mypage/staff" className={getNavigationClassName(active === "staff")}>
             <span>직원 관리</span>
           </Link>
-        ) : null}
+        ) : (
+          <DisabledNavigationItem label="직원 관리" reason="소유한 메뉴판의 사장만 직원을 관리할 수 있습니다." />
+        )}
         <Link href="/mypage?tab=inquiries" className={getNavigationClassName(active === "inquiries")}>
           <span>문의 내역</span>
         </Link>

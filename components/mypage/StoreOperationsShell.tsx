@@ -3,6 +3,7 @@ import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { MypageAccountCard } from "@/components/mypage/MypageSidebar";
+import { hasMenuSitePermission, type MenuSitePermission } from "@/lib/menu-site-permissions";
 import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
@@ -12,11 +13,12 @@ export type StoreOperationsSection = "dashboard" | StoreOperationKey;
 const operationNavigation: Array<{
   key: StoreOperationKey;
   label: string;
+  permission: MenuSitePermission;
 }> = [
-  { key: "orders", label: "주문관리" },
-  { key: "calls", label: "호출관리" },
-  { key: "tables", label: "테이블관리" },
-  { key: "sales", label: "매출요약" },
+  { key: "orders", label: "주문관리", permission: "order.read" },
+  { key: "calls", label: "호출관리", permission: "call.manage" },
+  { key: "tables", label: "테이블관리", permission: "table.manage" },
+  { key: "sales", label: "매출요약", permission: "sales.read" },
 ];
 
 function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSection) {
@@ -115,14 +117,23 @@ export default async function StoreOperationsShell({
                   {operationNavigation.map((item) => {
                     const enabled = Boolean(selectedSite?.operationAccess[item.key]);
                     if (!selectedSite || !enabled) {
+                      const hasRolePermission = Boolean(selectedSite && hasMenuSitePermission(selectedSite.accessRole, item.permission));
+                      const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
+                      const unavailableReason = !selectedSite
+                        ? "먼저 운영할 메뉴판을 선택해 주세요."
+                        : !hasRolePermission
+                          ? `현재 직원 역할에는 ${item.label} 접근 권한이 없습니다.`
+                          : `${item.label} 기능이 현재 메뉴판에서 활성화되지 않았습니다.`;
                       return (
                         <span
                           key={item.key}
                           aria-disabled="true"
+                          aria-label={`${item.label} ${unavailableLabel}: ${unavailableReason}`}
+                          title={unavailableReason}
                           className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-300"
                         >
                           <span>{item.label}</span>
-                          <span className="text-[10px] font-black">이용 불가</span>
+                          <span className="text-[10px] font-black">{unavailableLabel}</span>
                         </span>
                       );
                     }

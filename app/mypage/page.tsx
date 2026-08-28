@@ -389,6 +389,8 @@ function getBillingTabClassName(isActive: boolean) {
     : "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-black text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 sm:flex-none";
 }
 
+const disabledMenuTabClassName = "inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-black text-zinc-300 sm:flex-none";
+
 function getPrimaryProvider(appMetadata: unknown, identityProviders: string[]) {
   const metadata = getRecord(appMetadata);
   const provider = typeof metadata.provider === "string" ? metadata.provider : "";
@@ -1365,6 +1367,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ? "호출관리는 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
       : messageCode === "sales-dashboard-locked"
         ? "매출 요약은 주문관리 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
+      : messageCode === "owner-commerce-permission-required"
+        ? "구독과 결제 내역은 메뉴판 사장만 관리할 수 있습니다."
+      : messageCode === "owner-menu-lifecycle-permission-required"
+        ? "보관·삭제된 메뉴판은 메뉴판 사장만 관리할 수 있습니다."
+      : messageCode === "staff-management-permission-required"
+        ? "직원 관리는 소유한 메뉴판의 사장만 사용할 수 있습니다."
+      : messageCode === "menu-edit-permission-required"
+        ? "현재 직원 역할에는 메뉴 편집 권한이 없습니다. 사장에게 역할 변경을 요청해 주세요."
       : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
@@ -1409,14 +1419,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     ? { message: "직원으로 참여한 메뉴판 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다." }
     : null;
   const hasOwnedMenuSites = sites.length > 0 || accessibleMenuSites.some((menuSite) => menuSite.isOwner);
+  const hasStaffManageableMenuSites = sites.some((site) => site.status !== "archived");
   const isStaffOnlyAccount = staffMenuSites.length > 0 && !hasOwnedMenuSites;
   const accountRoleLabel = hasOwnedMenuSites ? "사장" : staffMenuSites.length > 0 ? "직원" : null;
 
   if (isStaffOnlyAccount && activeTab === "payments") {
-    redirect("/mypage?tab=menus");
+    redirect("/mypage?tab=menus&message=owner-commerce-permission-required");
   }
   if (isStaffOnlyAccount && activeTab === "menus" && activeMenuTab !== "active") {
-    redirect("/mypage?tab=menus&menuTab=active");
+    redirect("/mypage?tab=menus&menuTab=active&message=owner-menu-lifecycle-permission-required");
   }
 
   const menuSiteIds = sites
@@ -2468,7 +2479,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
     const primaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800";
     const secondaryActionClassName = "inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100";
-    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400 opacity-70";
+    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400";
 
     function renderActionButton({
       label,
@@ -2583,6 +2594,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
+    const enabledPrimaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800";
+    const enabledSecondaryActionClassName = "inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100";
+    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400";
+
     return (
       <article key={card.key} className="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -2598,7 +2613,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         </div>
 
         <p className="mt-4 break-keep text-sm font-bold leading-relaxed text-zinc-700">
-          직원 권한으로 참여한 메뉴판입니다. 사장 전용 결제·구독·보관·삭제 기능은 표시되지 않습니다.
+          직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
         </p>
 
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
@@ -2620,11 +2635,21 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           {card.canEdit ? (
             <Link
               href={`/mypage/menus/${card.siteId}/edit`}
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
+              className={enabledPrimaryActionClassName}
             >
               메뉴 편집
             </Link>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="현재 직원 역할에는 메뉴 편집 권한이 없습니다."
+              aria-label="메뉴 편집 비활성화: 현재 직원 역할에는 메뉴 편집 권한이 없습니다."
+              className={disabledActionClassName}
+            >
+              메뉴 편집
+            </button>
+          )}
           <Link
             href={`/mypage/menus/${card.siteId}/preview`}
             target="_blank"
@@ -2638,11 +2663,21 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               href={card.publicPath}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+              className={enabledSecondaryActionClassName}
             >
               공개 메뉴판 보기
             </Link>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다."
+              aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다."
+              className={disabledActionClassName}
+            >
+              공개 메뉴판 보기
+            </button>
+          )}
         </div>
         {!card.canViewPublic ? (
           <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
@@ -2696,7 +2731,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               active={activeNavigationKey}
               totalMenuCount={totalMenuCardCount}
               canShowOwnerCommerce={canShowOwnerCommerce}
-              hasOwnedMenuSites={sites.length > 0}
+              hasOwnedMenuSites={hasStaffManageableMenuSites}
               unreadNotificationCount={unreadNotificationCount}
             />
           </aside>
@@ -2723,17 +2758,25 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCardCount.toLocaleString("ko-KR")}</span>
                 </Link>
                 {canShowOwnerCommerce ? (
-                  <>
-                    <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
-                      보관 중
-                      <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{holdingMenuCards.length.toLocaleString("ko-KR")}</span>
-                    </Link>
-                    <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
-                      삭제됨
-                      <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
-                    </Link>
-                  </>
-                ) : null}
+                  <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
+                    보관 중
+                    <span className="ml-2 rounded-full px-2 py-0.5 text-xs">{holdingMenuCards.length.toLocaleString("ko-KR")}</span>
+                  </Link>
+                ) : (
+                  <span aria-disabled="true" aria-label="보관 중 권한 없음: 보관 중인 메뉴판은 사장만 관리할 수 있습니다." title="보관 중인 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
+                    보관 중 <span className="ml-2 text-[10px]">권한 없음</span>
+                  </span>
+                )}
+                {canShowOwnerCommerce ? (
+                  <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
+                    삭제됨
+                    <span className="ml-2 rounded-full px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
+                  </Link>
+                ) : (
+                  <span aria-disabled="true" aria-label="삭제됨 권한 없음: 삭제된 메뉴판은 사장만 관리할 수 있습니다." title="삭제된 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
+                    삭제됨 <span className="ml-2 text-[10px]">권한 없음</span>
+                  </span>
+                )}
               </nav>
 
           {mypageNotice ? (

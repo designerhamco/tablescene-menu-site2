@@ -18,7 +18,18 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type SearchParams = Promise<{ site?: string | string[] }>;
+type SearchParams = Promise<{
+  site?: string | string[];
+  message?: string | string[];
+  feature?: string | string[];
+}>;
+
+const OPERATION_FEATURE_LABELS = {
+  orders: "주문관리",
+  calls: "호출관리",
+  tables: "테이블관리",
+  sales: "매출요약",
+} as const;
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
   received: "접수",
@@ -38,6 +49,14 @@ const CALL_STATUS_LABELS: Record<string, string> = {
 
 function getSingleSearchParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function getOperationFeatureLabel(value: string | undefined) {
+  if (!value || !Object.prototype.hasOwnProperty.call(OPERATION_FEATURE_LABELS, value)) {
+    return "해당 메뉴";
+  }
+
+  return OPERATION_FEATURE_LABELS[value as keyof typeof OPERATION_FEATURE_LABELS];
 }
 
 function formatAmount(value: number) {
@@ -72,26 +91,35 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
     redirect(`/sign-in?next=${encodeURIComponent("/mypage/operations")}`);
   }
 
-  const requestedSiteId = getSingleSearchParam((await searchParams).site);
+  const resolvedSearchParams = await searchParams;
+  const requestedSiteId = getSingleSearchParam(resolvedSearchParams.site);
+  const messageCode = getSingleSearchParam(resolvedSearchParams.message);
+  const requestedFeature = getSingleSearchParam(resolvedSearchParams.feature);
+  const permissionNotice = messageCode === "permission-denied"
+    ? `${getOperationFeatureLabel(requestedFeature)}에 접근할 권한이 없습니다. 사장에게 직원 역할 변경을 요청해 주세요.`
+    : null;
   const operationsContext = await getStoreOperationsContext(requestedSiteId);
   const selectedSite = operationsContext.selectedSite;
 
   if (!selectedSite) {
     return (
       <StoreOperationsShell sites={operationsContext.sites} selectedSite={null} activeSection="dashboard">
-        <article className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm md:p-12">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">NO ACTIVE ORDER MENU</p>
-          <h2 className="mt-3 text-2xl font-black tracking-tight">운영 가능한 오더 메뉴판이 없습니다</h2>
-          <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-            현재 공개 중이고 이용 기간과 오더 기능이 모두 활성화된 다이닝 메뉴판만 매장 운영에 표시됩니다.
-          </p>
-          <Link
-            href="/mypage?tab=menus"
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800"
-          >
-            나의 메뉴판 확인
-          </Link>
-        </article>
+        <div className="space-y-5">
+          {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
+          <article className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm md:p-12">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">NO ACTIVE ORDER MENU</p>
+            <h2 className="mt-3 text-2xl font-black tracking-tight">운영 가능한 오더 메뉴판이 없습니다</h2>
+            <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
+              현재 공개 중이고 이용 기간과 오더 기능이 모두 활성화된 다이닝 메뉴판만 매장 운영에 표시됩니다.
+            </p>
+            <Link
+              href="/mypage?tab=menus"
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800"
+            >
+              나의 메뉴판 확인
+            </Link>
+          </article>
+        </div>
       </StoreOperationsShell>
     );
   }
@@ -113,6 +141,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="dashboard">
       <div className="space-y-6">
+        {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
         <header>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">DASHBOARD</p>
           <h2 className="mt-2 text-3xl font-black tracking-tight">{selectedSite.name} 운영 현황</h2>
@@ -185,6 +214,14 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         </section>
       </div>
     </StoreOperationsShell>
+  );
+}
+
+function PermissionNotice({ message }: { message: string }) {
+  return (
+    <p className="rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4 text-sm font-bold leading-relaxed text-amber-800" role="status">
+      {message}
+    </p>
   );
 }
 

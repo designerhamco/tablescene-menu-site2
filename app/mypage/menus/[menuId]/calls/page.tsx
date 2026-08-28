@@ -34,6 +34,9 @@ export default async function CallDashboardPage({
         redirect(`/sign-in?next=${encodeURIComponent(`/mypage/menus/${menuId}/calls`)}`);
       }
       if (error.status === 404) notFound();
+      if (error.code === "MENU_SITE_PERMISSION_DENIED") {
+        redirect(`/mypage/operations?site=${encodeURIComponent(menuId)}&message=permission-denied&feature=calls`);
+      }
     }
     if (error instanceof CallManagementError) {
       if (error.code === "INVALID_INPUT" || error.code === "CALL_NOT_FOUND") notFound();
