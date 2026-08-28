@@ -11,6 +11,8 @@ export type SubmittedStaffCall = {
   callNumber: number;
   status: "pending" | "acknowledged";
   duplicate: boolean;
+  requestKey: string;
+  requestLabel: string;
 };
 
 type SubmitRpcRow = {
@@ -18,6 +20,8 @@ type SubmitRpcRow = {
   call_number: number;
   call_status: "pending" | "acknowledged";
   is_duplicate: boolean;
+  request_key: string;
+  request_label: string;
 };
 
 type CancelRpcRow = {
@@ -46,6 +50,9 @@ function mapRpcError(error: { message?: string } | null): never {
   if (message.includes("CALL_NOT_CANCELLABLE")) {
     throw new StaffCallSubmissionError("이미 확인된 호출은 손님이 취소할 수 없습니다.", "NOT_CANCELLABLE");
   }
+  if (message.includes("CALL_ITEM_UNAVAILABLE")) {
+    throw new StaffCallSubmissionError("현재 사용할 수 없는 호출 항목입니다. 화면을 새로고침해 주세요.");
+  }
   throw new StaffCallSubmissionError();
 }
 
@@ -64,18 +71,24 @@ async function assertPublicBusinessAccess(menuSiteId: string) {
 
 export async function submitStaffCall({
   menuSiteId,
+  callItemKey,
   tableSession,
 }: {
   menuSiteId: string;
+  callItemKey: unknown;
   tableSession: ResolvedTableVisitSession;
 }): Promise<SubmittedStaffCall> {
   assertRuntimeAndSession(menuSiteId, tableSession);
   await assertPublicBusinessAccess(menuSiteId);
+  if (typeof callItemKey !== "string" || !/^[a-z0-9_]{1,64}$/.test(callItemKey)) {
+    throw new StaffCallSubmissionError("호출 항목을 다시 선택해 주세요.");
+  }
 
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("submit_staff_call", {
     p_menu_site_id: menuSiteId,
     p_table_visit_session_id: tableSession.id,
+    p_call_item_key: callItemKey,
   });
   if (error) mapRpcError(error);
 
@@ -86,6 +99,8 @@ export async function submitStaffCall({
     || typeof row.call_number !== "number"
     || (row.call_status !== "pending" && row.call_status !== "acknowledged")
     || typeof row.is_duplicate !== "boolean"
+    || typeof row.request_key !== "string"
+    || typeof row.request_label !== "string"
   ) {
     throw new StaffCallSubmissionError();
   }
@@ -95,6 +110,8 @@ export async function submitStaffCall({
     callNumber: row.call_number,
     status: row.call_status,
     duplicate: row.is_duplicate,
+    requestKey: row.request_key,
+    requestLabel: row.request_label,
   };
 }
 

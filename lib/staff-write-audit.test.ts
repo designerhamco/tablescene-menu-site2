@@ -89,3 +89,15 @@ test("call acknowledgement is attributed to the acting order staff member", () =
   assert.equal(entry?.metadata.surface, "call_acknowledgement");
   assert.equal(entry?.actor_role, "order_staff");
 });
+
+test("call item configuration uses the shared call permission audit surface", () => {
+  const entry = buildStaffWriteAuditEntry(
+    context("manager"),
+    "call.manage",
+    "call_item_configuration",
+  );
+
+  assert.equal(entry?.metadata.permission, "call.manage");
+  assert.equal(entry?.metadata.surface, "call_item_configuration");
+  assert.equal(entry?.actor_role, "manager");
+});

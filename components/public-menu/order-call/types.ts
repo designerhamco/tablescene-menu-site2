@@ -1,3 +1,5 @@
+import type { StaffCallItem } from "@/lib/call-items";
+
 export type OrderCallEntryMode = "locked" | "preview" | "active";
 export type OrderCheckoutMode = "postpay" | "prepay";
 
@@ -40,6 +42,7 @@ export type OrderCallEntryConfig = {
   checkoutMode?: OrderCheckoutMode;
   checkoutModes?: OrderCheckoutMode[];
   previewOnly?: boolean;
+  callItems?: StaffCallItem[];
 };
 
 export type OrderCallEntryVisibility = {
@@ -127,6 +130,7 @@ export function buildPublicOrderCallEntryConfig({
   tableSession,
   cartScope,
   orderCatalog,
+  callItems,
 }: {
   capabilityState: PublicOrderCallCapabilityState;
   menuSiteId: string;
@@ -134,6 +138,7 @@ export function buildPublicOrderCallEntryConfig({
   tableSession: { id: string; tableLabel: string } | null;
   cartScope: string | undefined;
   orderCatalog: PostpayOrderCatalogItem[];
+  callItems?: StaffCallItem[];
 }): OrderCallEntryConfig | undefined {
   if (!capabilityState.supportsExperience || !tableSession) return undefined;
 
@@ -149,5 +154,6 @@ export function buildPublicOrderCallEntryConfig({
     menuSiteId,
     cartScope,
     orderCatalog,
+    callItems,
   };
 }

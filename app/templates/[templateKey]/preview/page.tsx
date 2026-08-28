@@ -633,7 +633,7 @@ function getOrderCallQaConfig(
   const hasOrder = qaCase === "active" || qaCase === "order";
   const paymentMode = (Array.isArray(paymentValue) ? paymentValue[0] : paymentValue) === "on" ? "on" : "off";
   return {
-    mode: hasOrder ? "active" : "preview",
+    mode: hasValidTableSession ? "active" : "preview",
     orderEnabled: qaCase === "active" || qaCase === "order" || qaCase === "no-session",
     callEnabled: qaCase === "active" || qaCase === "call" || qaCase === "no-session",
     hasValidTableSession,
@@ -642,7 +642,7 @@ function getOrderCallQaConfig(
     storeName,
     tableLabel: hasValidTableSession ? "TABLE 3" : undefined,
     cartCount: 0,
-    menuSiteId: hasOrder ? "11111111-1111-4111-8111-111111111111" : undefined,
+    menuSiteId: hasValidTableSession ? "11111111-1111-4111-8111-111111111111" : undefined,
     cartScope: hasOrder ? "development-order-cart-qa" : undefined,
     orderCatalog: hasOrder ? [
       {

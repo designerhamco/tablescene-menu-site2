@@ -8,6 +8,7 @@ import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import type { CallDashboardPageData } from "@/lib/server/call-management-service";
 
 import { initialCallManagementActionState, mutateCallAction } from "./actions";
+import CallItemManager from "./CallItemManager";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "대기 중",
@@ -26,9 +27,11 @@ const STATUS_STYLES: Record<string, string> = {
 export default function CallDashboard({
   menuSiteId,
   calls,
+  callItems,
 }: {
   menuSiteId: string;
   calls: CallDashboardPageData["calls"];
+  callItems: CallDashboardPageData["callItems"];
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(mutateCallAction, initialCallManagementActionState);
@@ -53,6 +56,11 @@ export default function CallDashboard({
         kind="calls"
         arrivalIds={calls.filter((call) => call.status === "pending").map((call) => call.id)}
         onBackgroundPollingChange={setBackgroundPollingEnabled}
+      />
+      <CallItemManager
+        key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")}
+        menuSiteId={menuSiteId}
+        items={callItems}
       />
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div>
@@ -81,7 +89,7 @@ export default function CallDashboard({
                 <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-700">{call.tableLabel}</span>
                 <span className={`rounded-full px-3 py-1 text-xs font-black ${STATUS_STYLES[call.status] ?? "bg-zinc-100 text-zinc-700"}`}>{STATUS_LABELS[call.status] ?? call.status}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-zinc-400">{new Date(call.createdAt).toLocaleString("ko-KR")} · 직원 호출</p>
+              <p className="mt-2 text-xs font-bold text-zinc-400">{new Date(call.createdAt).toLocaleString("ko-KR")} · {call.requestLabel}</p>
             </div>
             {call.nextStatus ? (
               <form action={action}>

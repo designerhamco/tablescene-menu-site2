@@ -11,6 +11,7 @@ import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import { normalizeLocale } from "@/lib/locales";
 import { getPublicMenuDataBySlug, type MenuPageData } from "@/lib/menu-page-data";
 import { isPostpayOrderRuntimeEnabledForSite } from "@/lib/postpay-order-runtime";
+import { listStaffCallItems } from "@/lib/server/call-item-service";
 import {
   createPostpayCartScope,
   getPostpayOrderCatalog,
@@ -150,9 +151,12 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     postpayOrderRuntimeEnabled: isPostpayOrderRuntimeEnabledForSite(data.menuSite.id),
     callRuntimeEnabled: isCallRuntimeEnabledForSite(data.menuSite.id),
   });
-  const orderCatalog = capabilityState.orderEnabled
-    ? await getPostpayOrderCatalog(data.menuSite.id)
-    : [];
+  const [orderCatalog, callItems] = await Promise.all([
+    capabilityState.orderEnabled ? getPostpayOrderCatalog(data.menuSite.id) : [],
+    capabilityState.callEnabled
+      ? listStaffCallItems({ menuSiteId: data.menuSite.id })
+      : [],
+  ]);
   const orderCallConfig = buildPublicOrderCallEntryConfig({
     capabilityState,
     menuSiteId: data.menuSite.id,
@@ -160,6 +164,7 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     tableSession,
     cartScope: tableSession ? createPostpayCartScope(tableSession.id) : undefined,
     orderCatalog,
+    callItems,
   });
 
   return (

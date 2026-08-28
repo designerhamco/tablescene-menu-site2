@@ -40,9 +40,11 @@ test("public Order and Call become interactive only after every shared gate pass
     tableSession: { id: SESSION_ID, tableLabel: "TABLE 3" },
     cartScope: "visit-session-scope",
     orderCatalog: [],
+    callItems: [{ key: "water", label: "물 요청", sortOrder: 0, active: true }],
   });
 
   assert.ok(config);
+  assert.deepEqual(config.callItems, [{ key: "water", label: "물 요청", sortOrder: 0, active: true }]);
   assert.deepEqual(getOrderCallEntryVisibility(config), {
     showHeader: true,
     showLanguage: true,

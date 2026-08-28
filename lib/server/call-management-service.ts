@@ -8,6 +8,8 @@ import {
   type StaffCallStaffStatus,
 } from "@/lib/call-management";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
+import type { StaffCallItem } from "@/lib/call-items";
+import { listStaffCallItems } from "@/lib/server/call-item-service";
 import {
   requireMenuSitePermission,
   requireMenuSiteWriteAccess,
@@ -19,6 +21,8 @@ type CallRow = {
   call_number: number;
   menu_table_id: string;
   call_type: string;
+  request_key: string;
+  request_label: string;
   status: string;
   acknowledged_by: string | null;
   acknowledged_at: string | null;
@@ -34,6 +38,8 @@ export type CallDashboardCall = {
   callNumber: number;
   tableLabel: string;
   callType: "staff";
+  requestKey: string;
+  requestLabel: string;
   status: string;
   nextStatus: StaffCallStaffStatus | null;
   acknowledgedBy: string | null;
@@ -48,6 +54,7 @@ export type CallDashboardCall = {
 export type CallDashboardPageData = {
   menuSite: { id: string; name: string };
   calls: CallDashboardCall[];
+  callItems: StaffCallItem[];
 };
 
 type DatabaseError = { code?: string; message?: string };
@@ -106,15 +113,16 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
   await requireMenuSitePermission(menuSiteId, "call.manage");
   const supabase = createAdminClient();
 
-  const [siteResult, callsResult, tablesResult] = await Promise.all([
+  const [siteResult, callsResult, tablesResult, callItems] = await Promise.all([
     supabase.from("menu_sites").select("id, name").eq("id", menuSiteId).maybeSingle(),
     supabase
       .from("menu_customer_calls")
-      .select("id, call_number, menu_table_id, call_type, status, acknowledged_by, acknowledged_at, completed_by, completed_at, cancelled_at, created_at, updated_at")
+      .select("*")
       .eq("menu_site_id", menuSiteId)
       .order("created_at", { ascending: false })
       .limit(100),
     supabase.from("menu_tables").select("id, label").eq("menu_site_id", menuSiteId),
+    listStaffCallItems({ menuSiteId, includeInactive: true }),
   ]);
   if (siteResult.error || !siteResult.data) {
     if (!siteResult.data && !siteResult.error) {
@@ -134,6 +142,8 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
       callNumber: call.call_number,
       tableLabel: tableLabelById.get(call.menu_table_id) ?? "알 수 없는 테이블",
       callType: "staff",
+      requestKey: call.request_key ?? "staff",
+      requestLabel: call.request_label ?? "직원 호출",
       status: call.status,
       nextStatus: getNextStaffCallStatus(call.status),
       acknowledgedBy: call.acknowledged_by,
@@ -144,6 +154,7 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
       createdAt: call.created_at,
       updatedAt: call.updated_at,
     })),
+    callItems,
   };
 }
 

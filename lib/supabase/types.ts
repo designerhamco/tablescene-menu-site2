@@ -454,6 +454,47 @@ export type Database = {
         }
         Relationships: []
       }
+      menu_call_items: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          is_active: boolean
+          item_key: string
+          label: string
+          menu_site_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          is_active?: boolean
+          item_key: string
+          label: string
+          menu_site_id: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          is_active?: boolean
+          item_key?: string
+          label?: string
+          menu_site_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_call_items_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           catalog_category_id: string | null
@@ -722,6 +763,8 @@ export type Database = {
           id: string
           menu_site_id: string
           menu_table_id: string
+          request_key: string
+          request_label: string
           status: string
           table_visit_session_id: string
           updated_at: string
@@ -738,6 +781,8 @@ export type Database = {
           id?: string
           menu_site_id: string
           menu_table_id: string
+          request_key?: string
+          request_label?: string
           status?: string
           table_visit_session_id: string
           updated_at?: string
@@ -754,6 +799,8 @@ export type Database = {
           id?: string
           menu_site_id?: string
           menu_table_id?: string
+          request_key?: string
+          request_label?: string
           status?: string
           table_visit_session_id?: string
           updated_at?: string
@@ -3389,6 +3436,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_menu_call_items: {
+        Args: { p_include_inactive?: boolean; p_menu_site_id: string }
+        Returns: {
+          is_active: boolean
+          item_key: string
+          label: string
+          sort_order: number
+        }[]
+      }
+      replace_menu_call_items: {
+        Args: { p_items: Json; p_menu_site_id: string }
+        Returns: {
+          is_active: boolean
+          item_key: string
+          label: string
+          sort_order: number
+        }[]
+      }
       save_menu_page_content_order: {
         Args: {
           p_blocks: Json
@@ -3415,15 +3480,31 @@ export type Database = {
           total_amount: number
         }[]
       }
-      submit_staff_call: {
-        Args: { p_menu_site_id: string; p_table_visit_session_id: string }
-        Returns: {
-          call_id: string
-          call_number: number
-          call_status: string
-          is_duplicate: boolean
-        }[]
-      }
+      submit_staff_call:
+        | {
+            Args: { p_menu_site_id: string; p_table_visit_session_id: string }
+            Returns: {
+              call_id: string
+              call_number: number
+              call_status: string
+              is_duplicate: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_call_item_key: string
+              p_menu_site_id: string
+              p_table_visit_session_id: string
+            }
+            Returns: {
+              call_id: string
+              call_number: number
+              call_status: string
+              is_duplicate: boolean
+              request_key: string
+              request_label: string
+            }[]
+          }
     }
     Enums: {
       [_ in never]: never

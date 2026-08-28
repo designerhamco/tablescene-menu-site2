@@ -90,6 +90,14 @@ test("mobile preview keeps PG optional while preserving postpay ordering", () =>
   assert.equal(withoutPg.callEnabled, true);
   assert.equal(withoutPg.orderEnabled, true);
   assert.equal(withoutPg.previewOnly, true);
+  assert.deepEqual(withoutPg.callItems?.map((callItem) => callItem.label), [
+    "직원 호출",
+    "물 요청",
+    "앞치마 요청",
+    "식기 요청",
+    "테이블 정리",
+    "주문 도움",
+  ]);
   assert.deepEqual(withoutPg.checkoutModes, ["postpay"]);
   assert.deepEqual(withPg.checkoutModes, ["prepay", "postpay"]);
   assert.equal(withPg.orderCatalog?.length, 1);

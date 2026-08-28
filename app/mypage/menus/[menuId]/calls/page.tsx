@@ -63,7 +63,7 @@ export default async function CallDashboardPage({
             테이블의 직원 호출을 접수 확인하고 완료합니다. 손님이 취소한 호출과 완료 이력도 함께 확인할 수 있습니다.
           </p>
         </header>
-        <CallDashboard menuSiteId={data.menuSite.id} calls={data.calls} />
+        <CallDashboard menuSiteId={data.menuSite.id} calls={data.calls} callItems={data.callItems} />
       </div>
     </StoreOperationsShell>
   );

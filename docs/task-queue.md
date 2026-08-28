@@ -144,7 +144,8 @@
 
 - `DONE` 손님 직원 호출 MVP — 유효 table session과 공통 Call Layer, 직원 호출 단일 preset
 - `DONE` 기본 호출 항목 미리보기 — 직원 호출·물·앞치마·식기·테이블 정리·주문 도움을 실제 write 없는 화면에서 선택 가능
-- `TODO` 실제 매장별 호출 항목 관리·저장·전송 — 기존 단일 preset DB/RPC를 안전하게 확장하는 별도 migration 필요
+- `DONE` 실제 매장별 호출 항목 관리·저장·전송 코드 — 기본 6개, 매장별 이름·순서·사용 설정, 보관 처리, 접수 당시 항목명 snapshot, 기존 제한 유지
+- `DONE` 매장별 호출 항목 Production migration 1회 적용과 generated types 갱신 — 2026-08-28 사용자 승인, `docs/runbooks/store-call-items-migration.md`
 - `DONE` 호출 목록과 처리 직원 — `call.manage` Owner/Manager/Order staff 권한과 actor 기록
 - `DONE` 접수 확인과 처리 완료 — `pending → acknowledged → completed` conditional update
 - `DONE` 중복·과다 호출 방지 — 미처리 호출 반환, 완료·취소 후 2분 cooldown, session당 시간당 10회

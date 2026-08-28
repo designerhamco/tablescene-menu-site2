@@ -156,13 +156,16 @@
   - 미결제·미제공 취소, 외부 카드 단말기·현금 결제 완료, actor/timestamp 기록
   - 15초 갱신 대시보드와 immutable snapshot 인쇄 영수증
   - `ORDER_DASHBOARD_ENABLED` + explicit site allowlist 없이 Production에서 노출·write 안 됨
-- Call MVP default-off 기반:
-  - 직원 호출 단일 preset과 손님의 pending 상태 취소만 제공
-  - 쓰기 없는 미리보기에서는 직원 호출·물·앞치마·식기·테이블 정리·주문 도움 기본 항목의 선택 UI를 제공하며, 실제 항목 저장·전송은 DB 계약 확장 전까지 단일 preset 유지
+- Call default-off 기반:
+  - 직원 호출·물·앞치마·식기·테이블 정리·주문 도움 6개를 설정 전 기본 항목으로 제공
+  - 매장별 호출 항목의 이름·순서·사용 여부를 원자적으로 저장하고, 제거 항목은 hard delete 대신 보관
+  - 손님은 활성 항목만 전송하며 호출 이력에는 접수 당시 항목 key·label snapshot을 보존
+  - 설정 전 기존 매장에는 DB backfill 없이 virtual default를 반환하고 첫 명시적 저장부터 매장별 설정으로 전환
   - 미처리 호출 dedupe, 완료·취소 후 2분 cooldown, table session당 시간당 10회 제한
   - Owner/Manager/Order staff의 `call.manage` 재인증과 확인·완료 actor/timestamp 기록
   - 최근 100건을 15초 갱신하는 별도 호출관리 화면; 공개 Realtime publication은 추가하지 않음
   - server-only 강제 RLS migration은 2026-08-07 Production 1회 적용 및 generated types 갱신 완료
+  - 매장별 호출 항목 additive migration은 2026-08-28 사용자 승인 아래 Production 1회 적용, 보안 postcheck와 generated types 갱신 완료
   - `CALL_ENABLED` + site allowlist 없이 UI와 write 모두 fail closed
 - 매출 요약 default-off 기반:
   - 기존 주문관리 gate와 `sales.read`를 모두 통과한 Owner/Manager만 접근
