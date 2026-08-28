@@ -9,7 +9,9 @@
 - trial 컬럼 2개, 기간 CHECK, 사용자별 partial unique index, 기존 RLS 유지 확인
 - 공식 `npm run supabase:types`로 generated types 갱신 완료
 - Vercel Production에 `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true` Config 설정 완료
-- 애플리케이션 병합·Production 배포와 실제 빌링키 QA는 후속 진행
+- PR #68 merge commit `ce844e0` Production 배포 `READY` 확인
+- 운영 `/pricing`, 단일 월결제 상품 상세, 신청 로그인 redirect, 폐기된 `/products/basic-trial` 404 route QA 완료
+- 전용 QA 계정의 실제 빌링키 발급·0원 시작 검증은 후속 운영 QA로 유지
 
 주의:
 
@@ -33,7 +35,7 @@
 3. constraint와 partial unique index, 기존 구독 건수 불변을 확인한다. — 완료
 4. 공식 generated types를 재생성한다. — 완료
 5. Vercel Production에 `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true`를 설정한다. — 완료
-6. 승인된 애플리케이션을 병합하고 Production에 재배포한다.
+6. 승인된 애플리케이션을 병합하고 Production에 재배포한다. — 완료, PR #68
 7. 신규 전용 QA 계정에서 사업자 인증과 결제수단 등록까지만 진행해 첫 결제가 발생하지 않는지 확인한다.
 8. 구독의 `next_billing_at`, `current_period_end`, `trial_ends_at`이 시작 시각으로부터 정확히 30일 뒤인지 확인한다.
 9. 별도 QA 구독에서 해지 예약 후에도 종료일까지 접근 가능하며 갱신 cron이 결제보다 만료를 우선하는지 확인한다.

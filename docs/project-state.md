@@ -4,15 +4,16 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `104586e` (`PR #67` 병합)
+기준 커밋: `ce844e0` (`PR #68` 병합)
 
-현재 작업 브랜치: `codex/single-monthly-free-trial`
+현재 작업 브랜치: `codex/free-trial-production-closeout`
 
 ## 현재 작업
 
 - 별도 6,600원 개인 체험 신규 판매를 제거하고 단일페이지 월결제에 결제수단 필수 30일 무료체험을 계정당 최초 1회 연결
 - 무료체험 중 해지해도 30일까지 이용하고 첫 결제 없이 종료되도록 기존 해지 우선 갱신 정책을 재사용
-- 무료체험 migration 적용·postcheck·generated types 갱신과 Vercel Production 기능 플래그 설정 완료; PR #68 병합·Production 배포 진행
+- 무료체험 migration 적용·postcheck·generated types 갱신, Vercel Production 기능 플래그 설정, PR #68 병합·Production 공개 route QA 완료
+- 전용 QA 계정에서 실제 빌링키 발급·0원 시작·해지 예약·30일 경계 검증만 후속 운영 QA로 유지
 
 ## 완료된 주요 기능
 
