@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   getStoreOperationAccess,
   hasAvailableStoreOperation,
+  isCurrentOrderOperationsSite,
   isStoreOperationsTemplate,
 } from "./operations-dashboard";
 
@@ -53,4 +54,25 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
     callManagementEnabled: false,
   });
   assert.equal(hasAvailableStoreOperation(disabledAccess), false);
+});
+
+test("operations only list published, active Dining menus with Order access", () => {
+  const eligible = {
+    accessRole: "owner" as const,
+    templateKey: "cafe_design_a",
+    menuSiteStatus: "published",
+    lifecycleState: "active",
+    lifecycleReason: "active",
+    canPreview: true,
+    postpayOrderEnabled: true,
+    orderDashboardEnabled: true,
+  };
+
+  assert.equal(isCurrentOrderOperationsSite(eligible), true);
+  assert.equal(isCurrentOrderOperationsSite({ ...eligible, menuSiteStatus: "draft" }), false);
+  assert.equal(isCurrentOrderOperationsSite({ ...eligible, lifecycleState: "expired_holding" }), false);
+  assert.equal(isCurrentOrderOperationsSite({ ...eligible, templateKey: "display_menu_a" }), false);
+  assert.equal(isCurrentOrderOperationsSite({ ...eligible, postpayOrderEnabled: false }), false);
+  assert.equal(isCurrentOrderOperationsSite({ ...eligible, orderDashboardEnabled: false }), false);
+  assert.equal(isCurrentOrderOperationsSite({ ...eligible, accessRole: "viewer" }), false);
 });

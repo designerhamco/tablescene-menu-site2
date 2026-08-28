@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   listMenuTables,
   MenuTableManagementError,
 } from "@/lib/server/menu-table-management-service";
+import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 
 import MenuTableManager from "./MenuTableManager";
 
@@ -40,15 +41,18 @@ export default async function MenuTableManagementPage({
     throw error;
   }
 
+  const operationsContext = await getStoreOperationsContext(menuId);
+  const selectedSite = operationsContext.sites.find((site) => site.menuSiteId === menuId) ?? null;
+  if (!selectedSite?.operationAccess.tables) {
+    redirect("/mypage/operations");
+  }
+
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 md:px-8 md:py-16">
-      <div className="mx-auto max-w-5xl space-y-8">
+    <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="tables">
+      <div className="space-y-8">
         <header>
-          <Link href={`/mypage/operations?site=${encodeURIComponent(menuId)}`} className="text-sm font-black text-emerald-700 hover:text-emerald-900">
-            ← 매장 운영으로 돌아가기
-          </Link>
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">테이블 관리</h1>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight">테이블관리</h2>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             일반 메뉴 QR과 별도로 실제 좌석의 테이블 token을 관리합니다. 비활성·보관·token 교체 시 기존 방문 세션은 서버에서 자동 종료됩니다.
           </p>
@@ -56,6 +60,6 @@ export default async function MenuTableManagementPage({
 
         <MenuTableManager menuSiteId={data.menuSite.id} tables={data.tables} />
       </div>
-    </main>
+    </StoreOperationsShell>
   );
 }
