@@ -3317,6 +3317,19 @@ export type Database = {
           used_purchased_credits: number
         }[]
       }
+      grant_ai_first_menu_welcome_credits: {
+        Args: { p_menu_site_id: string; p_user_id: string }
+        Returns: {
+          already_processed: boolean
+          credited_amount: number
+          granted_credits: number
+          purchased_credits: number
+          remaining_credits: number
+          skipped_reason: string
+          transaction_id: string
+          used_credits: number
+        }[]
+      }
       grant_ai_menu_creation_credits: {
         Args: {
           p_credits: number

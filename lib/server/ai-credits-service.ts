@@ -1,6 +1,6 @@
 import "server-only";
 
-import { AI_FEATURE_CREDIT_COSTS, getIncludedAiCredits, type AiCreditBalance, type AiFeatureKey } from "@/lib/ai-credits";
+import { AI_FEATURE_CREDIT_COSTS, AI_FIRST_MENU_WELCOME_CREDITS, type AiCreditBalance, type AiFeatureKey } from "@/lib/ai-credits";
 import { getMenuSiteAccessStateForMenuSite, MENU_SITE_INACTIVE_AI_MESSAGE } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -24,6 +24,7 @@ function isMissingAiCreditTable(error: { code?: string; message?: string } | nul
   return error?.code === "42P01"
     || error?.code === "42703"
     || error?.code === "42883"
+    || error?.code === "PGRST202"
     || message.includes("ai_account_credit_balances")
     || message.includes("ai_credit_transactions")
     || message.includes("does not exist");
@@ -228,80 +229,29 @@ async function spendAiCreditsWithAccountBalanceFallback({
   };
 }
 
-export async function ensureAiCreditBalanceForMenuSite({
+export async function grantAiWelcomeCreditsForFirstMenuCreation({
   adminSupabase = createAdminClient(),
   userId,
   menuSiteId,
-  planType,
 }: {
   adminSupabase?: AdminClient;
   userId: string;
   menuSiteId: string;
-  planType: string | null | undefined;
 }) {
-  const grantedCredits = getIncludedAiCredits(planType);
-  const { error } = await adminSupabase.rpc("grant_ai_menu_creation_credits" as never, {
+  const { data, error } = await adminSupabase.rpc("grant_ai_first_menu_welcome_credits", {
     p_user_id: userId,
     p_menu_site_id: menuSiteId,
-    p_plan_type: planType ?? "personal_trial",
-    p_credits: grantedCredits,
-  } as never);
-
-  if (error) {
-    if (isMissingAiCreditTable(error)) return { ok: false, missingTable: true };
-    throw new Error(error.message || "AI 크레딧 기본 지급에 실패했습니다.");
-  }
-
-  return { ok: true, missingTable: false };
-}
-
-function getMenuCreationGrantPlanType({
-  serviceType,
-  productKey,
-  planType,
-}: {
-  serviceType: "basic" | "display";
-  productKey: string;
-  planType?: string | null;
-}) {
-  if (serviceType === "display" || planType === "business_display") return "business_display";
-  if (productKey === "personal_trial_basic_1month" || planType === "personal_trial") return "personal_trial";
-  return "business_basic";
-}
-
-export async function grantAiCreditsForMenuSiteCreation({
-  adminSupabase = createAdminClient(),
-  userId,
-  menuSiteId,
-  serviceType,
-  productKey,
-  planType,
-  reason,
-}: {
-  adminSupabase?: AdminClient;
-  userId: string;
-  menuSiteId: string;
-  serviceType: "basic" | "display";
-  productKey: string;
-  planType?: string | null;
-  reason: "personal_trial_created" | "business_subscription_created" | "display_subscription_created";
-}) {
-  const grantPlanType = getMenuCreationGrantPlanType({ serviceType, productKey, planType });
-  const grantedCredits = getIncludedAiCredits(grantPlanType);
-  const { data, error } = await adminSupabase.rpc("grant_ai_menu_creation_credits" as never, {
-    p_user_id: userId,
-    p_menu_site_id: menuSiteId,
-    p_plan_type: grantPlanType,
-    p_credits: grantedCredits,
-  } as never);
+  });
 
   if (error) {
     if (isMissingAiCreditTable(error)) {
       return {
         ok: false,
         missingTable: true,
-        grantedCredits: 0,
+        welcomeCredits: AI_FIRST_MENU_WELCOME_CREDITS,
+        creditedAmount: 0,
         alreadyProcessed: false,
+        skippedReason: null,
         error: {
           code: error.code,
           message: error.message,
@@ -319,120 +269,21 @@ export async function grantAiCreditsForMenuSiteCreation({
 
   const result = Array.isArray(data) ? data[0] : data;
   const alreadyProcessed = Boolean((result as { already_processed?: unknown } | null)?.already_processed);
-
-  if (!alreadyProcessed) {
-    await adminSupabase
-      .from("ai_credit_transactions" as never)
-      .update(({ product_key: productKey, metadata: { reason, product_key: productKey, plan_type: grantPlanType, service_type: serviceType, policy: "account_shared_menu_creation_grant" } }) as never)
-      .eq("menu_site_id" as never, menuSiteId as never)
-      .in("transaction_type" as never, ["grant", "included_grant"] as never);
-  }
-
-  return { ok: true, missingTable: false, grantedCredits, alreadyProcessed, planType: grantPlanType };
-}
-
-export async function grantAiCreditsForSubscriptionIncludedGrant({
-  adminSupabase = createAdminClient(),
-  userId,
-  menuSiteId,
-  businessSubscriptionId,
-  paymentId,
-  serviceType,
-  productKey,
-  planType,
-  reason,
-}: {
-  adminSupabase?: AdminClient;
-  userId: string;
-  menuSiteId: string;
-  businessSubscriptionId: string;
-  paymentId: string;
-  serviceType: "basic" | "display";
-  productKey: string;
-  planType?: string | null;
-  reason: "subscription_restore_created" | "business_subscription_created" | "display_subscription_created";
-}) {
-  const grantPlanType = getMenuCreationGrantPlanType({ serviceType, productKey, planType });
-  const grantedCredits = getIncludedAiCredits(grantPlanType);
-  const { data, error } = await adminSupabase.rpc("grant_ai_subscription_included_credits" as never, {
-    p_user_id: userId,
-    p_menu_site_id: menuSiteId,
-    p_business_subscription_id: businessSubscriptionId,
-    p_payment_id: paymentId,
-    p_plan_type: grantPlanType,
-    p_product_key: productKey,
-    p_credits: grantedCredits,
-    p_reason: reason,
-    p_metadata: {
-      restore_menu_site_id: menuSiteId,
-      business_subscription_id: businessSubscriptionId,
-      payment_id: paymentId,
-      product_key: productKey,
-      plan_type: grantPlanType,
-      service_type: serviceType,
-      policy: "account_shared_subscription_included_grant",
-    },
-  } as never);
-
-  if (error) {
-    if (isMissingAiCreditTable(error)) {
-      return {
-        ok: false,
-        missingTable: true,
-        grantedCredits: 0,
-        alreadyProcessed: false,
-        error: {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-        },
-      };
-    }
-    throw Object.assign(new Error(error.message || "AI 크레딧 기본 지급에 실패했습니다."), {
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-    });
-  }
-
-  const result = Array.isArray(data) ? data[0] : data;
-  const alreadyProcessed = Boolean((result as { already_processed?: unknown } | null)?.already_processed);
-
-  return { ok: true, missingTable: false, grantedCredits, alreadyProcessed, planType: grantPlanType };
-}
-
-export async function reclaimUnusedPersonalTrialGrantCredits({
-  adminSupabase = createAdminClient(),
-  menuSiteId,
-  reason = "personal_trial_retention_expired",
-}: {
-  adminSupabase?: AdminClient;
-  menuSiteId: string;
-  reason?: "personal_trial_retention_expired";
-}) {
-  const { data, error } = await adminSupabase.rpc("expire_personal_trial_unused_grant_credits" as never, {
-    p_menu_site_id: menuSiteId,
-    p_reason: reason,
-  } as never);
-
-  if (error) {
-    if (isMissingAiCreditTable(error)) {
-      return { ok: false, missingTable: true, reclaimedCredits: 0, alreadyProcessed: false, skippedReason: "missing_ai_credit_tables" as const };
-    }
-    throw new Error(error.message || "AI 크레딧 잔여 지급분 회수에 실패했습니다.");
-  }
-
-  const result = Array.isArray(data) ? data[0] : data;
-  const reclaimedCredits = typeof (result as { reclaimed_credits?: unknown } | null)?.reclaimed_credits === "number"
-    ? (result as { reclaimed_credits: number }).reclaimed_credits
+  const creditedAmount = typeof (result as { credited_amount?: unknown } | null)?.credited_amount === "number"
+    ? (result as { credited_amount: number }).credited_amount
     : 0;
-  const alreadyProcessed = Boolean((result as { already_processed?: unknown } | null)?.already_processed);
   const skippedReason = typeof (result as { skipped_reason?: unknown } | null)?.skipped_reason === "string"
     ? (result as { skipped_reason: string }).skipped_reason
     : null;
 
-  return { ok: true, missingTable: false, reclaimedCredits, alreadyProcessed, skippedReason };
+  return {
+    ok: true,
+    missingTable: false,
+    welcomeCredits: AI_FIRST_MENU_WELCOME_CREDITS,
+    creditedAmount,
+    alreadyProcessed,
+    skippedReason,
+  };
 }
 
 export async function purchaseAiCredits({

@@ -315,7 +315,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   ],
   contentPolicy: [
     "결제 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용 등 유료서비스 제공이 시작됩니다.",
-    "또한 요금제에 포함된 AI 기본 제공량이 신규 구매 또는 신규 구독 개설 기준으로 지급됩니다.",
+    "계정의 첫 메뉴판 생성이 완료되면 AI 웰컴 크레딧 6개가 계정당 1회 지급됩니다. 추가 메뉴판, 재구독, 결제 갱신으로는 추가 지급되지 않습니다.",
     "월결제 또는 연결제 상품은 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 선택한 결제 주기에 따라 자동 결제됩니다.",
     "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
     "서비스 제공이 개시된 이후에는 관련 법령상 허용되는 범위 내에서 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.",
@@ -346,7 +346,7 @@ const personalTrialAgreementDetails: Record<AgreementKey, string[]> = {
   contentPolicy: [
     "첫 달 체험은 아티메뉴 다이닝 기준으로 신청일로부터 1개월간 제공됩니다.",
     "체험 기간에는 메뉴판 1개만 만들 수 있습니다.",
-    "체험 기간 동안 아티메뉴 다이닝 기준 AI 크레딧 18개가 제공됩니다.",
+    "첫 메뉴판 생성이 완료되면 계정당 최초 1회 AI 웰컴 크레딧 6개가 제공됩니다.",
     "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 30일 이내 사업자 월결제 또는 연결제로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
     "30일이 경과하면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.",
     "첫 달 체험 후 사업자 플랜으로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
@@ -382,17 +382,17 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    bullets: ["체험 결제", "정기결제 전환 없음", "체험 메뉴판 1개 제공", "체험 기준 AI 크레딧 18개 제공"],
+    bullets: ["체험 결제", "정기결제 전환 없음", "체험 메뉴판 1개 제공", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "체험 종료 후 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
   },
   {
     product: basicPaymentProducts[1],
-    bullets: ["사업자 인증 필요", "월 자동결제", "신규 구독당 Basic 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 18개 제공"],
+    bullets: ["사업자 인증 필요", "월 자동결제", "신규 구독당 Basic 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["사업자 인증 필요", "연 자동결제", "신규 구독당 Basic 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 18개 제공"],
+    bullets: ["사업자 인증 필요", "연 자동결제", "신규 구독당 Basic 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
 ] as const satisfies readonly {
@@ -404,12 +404,12 @@ const basicProductCards = [
 const displayProductCards = [
   {
     product: businessDisplayMonthlyProduct,
-    bullets: ["매월 자동결제", "언제든 해지 가능", "신규 구독당 Display 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 26개 제공"],
+    bullets: ["매월 자동결제", "언제든 해지 가능", "신규 구독당 Display 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "PortOne 빌링키 발급 후 첫 결제와 이후 정기결제를 연결합니다.",
   },
   {
     product: businessDisplayYearlyProduct,
-    bullets: ["연 자동결제", "월결제 대비 할인", "신규 구독당 Display 메뉴판 1개", "신규 구독 개설 시 AI 크레딧 26개 제공"],
+    bullets: ["연 자동결제", "월결제 대비 할인", "신규 구독당 Display 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 연 정기결제를 진행합니다.",
   },
 ] as const satisfies readonly {
