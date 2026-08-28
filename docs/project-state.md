@@ -1,6 +1,6 @@
 # ArtiMenu 프로젝트 상태
 
-최종 갱신: 2026-08-28
+최종 갱신: 2026-08-29
 
 기준 브랜치: `tablescene-next`
 
@@ -12,7 +12,7 @@
 
 - 별도 6,600원 개인 체험 신규 판매를 제거하고 단일페이지 월결제에 결제수단 필수 30일 무료체험을 계정당 최초 1회 연결
 - 무료체험 중 해지해도 30일까지 이용하고 첫 결제 없이 종료되도록 기존 해지 우선 갱신 정책을 재사용
-- 신규 migration과 Production 기능 활성화는 `docs/runbooks/business-subscription-free-trial-migration.md`에 따라 별도 승인 후 진행
+- 무료체험 migration은 Production 적용·postcheck·generated types 갱신 완료; 애플리케이션 병합 후 Vercel 기능 플래그 활성화 진행
 
 ## 완료된 주요 기능
 

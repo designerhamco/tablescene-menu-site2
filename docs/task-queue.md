@@ -99,8 +99,8 @@
 - `DONE` 결제수단 필수 등록, 첫 30일 0원, 30일째 단일페이지 월 5,900원 첫 결제 코드 구현
 - `DONE` 무료체험 중 해지 예약 시 30일까지 접근을 유지하고 첫 결제보다 만료를 우선하는 기존 갱신 정책 회귀 검증
 - `DONE` 계정당 최초 1회와 과거 개인 체험 중복 제외를 서버에서 fail-closed 검증
-- `IN_PROGRESS` 사용자별 1회 trial 기간 컬럼·constraint·partial unique index migration — `docs/runbooks/business-subscription-free-trial-migration.md`
-- `NEEDS_HUMAN` Production migration 1회 적용, 약관 최종 확인, `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true` 설정·재배포
+- `DONE` 사용자별 1회 trial 기간 컬럼·constraint·partial unique index Production 적용과 generated types 갱신 — 2026-08-29 사용자 승인, `docs/runbooks/business-subscription-free-trial-migration.md`
+- `IN_PROGRESS` 승인된 약관 기준으로 `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true` 설정·재배포
 - `NEEDS_HUMAN` 신규 전용 QA 계정에서 빌링키 발급·0원 시작·해지 예약·30일 첫 결제 경계 확인 — 실제 첫 결제 실행은 별도 승인
 
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
