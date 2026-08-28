@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   CallManagementError,
   listCallDashboard,
 } from "@/lib/server/call-management-service";
+import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 
 import CallDashboard from "./CallDashboard";
 
@@ -43,21 +44,24 @@ export default async function CallDashboardPage({
     throw error;
   }
 
+  const operationsContext = await getStoreOperationsContext(menuId);
+  const selectedSite = operationsContext.sites.find((site) => site.menuSiteId === menuId) ?? null;
+  if (!selectedSite?.operationAccess.calls) {
+    redirect("/mypage/operations");
+  }
+
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 md:px-8 md:py-16">
-      <div className="mx-auto max-w-5xl space-y-8">
+    <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="calls">
+      <div className="space-y-8">
         <header>
-          <Link href={`/mypage/operations?site=${encodeURIComponent(menuId)}`} className="text-sm font-black text-emerald-700 hover:text-emerald-900">
-            ← 매장 운영으로 돌아가기
-          </Link>
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">호출관리</h1>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight">호출관리</h2>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             테이블의 직원 호출을 접수 확인하고 완료합니다. 손님이 취소한 호출과 완료 이력도 함께 확인할 수 있습니다.
           </p>
         </header>
         <CallDashboard menuSiteId={data.menuSite.id} calls={data.calls} />
       </div>
-    </main>
+    </StoreOperationsShell>
   );
 }

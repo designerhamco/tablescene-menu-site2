@@ -5,7 +5,6 @@ import { formatNotificationBadgeCount } from "@/lib/notification-display-policy"
 
 export type MypageNavigationKey =
   | "menus"
-  | "operations"
   | "payments"
   | "staff"
   | "inquiries"
@@ -69,14 +68,12 @@ export function MypageAccountCard({
 export function MypageNavigation({
   active,
   totalMenuCount,
-  operationalMenuCount,
   canShowOwnerCommerce,
   hasOwnedMenuSites,
   unreadNotificationCount = 0,
 }: {
   active: MypageNavigationKey;
   totalMenuCount: number;
-  operationalMenuCount: number;
   canShowOwnerCommerce: boolean;
   hasOwnedMenuSites: boolean;
   unreadNotificationCount?: number;
@@ -88,10 +85,6 @@ export function MypageNavigation({
         <NavigationCount active={active === "menus"}>{totalMenuCount.toLocaleString("ko-KR")}</NavigationCount>
       </Link>
       <div className="mt-2 space-y-1">
-        <Link href="/mypage/operations" className={getNavigationClassName(active === "operations")}>
-          <span>매장 운영</span>
-          <NavigationCount active={active === "operations"}>{operationalMenuCount.toLocaleString("ko-KR")}</NavigationCount>
-        </Link>
         {canShowOwnerCommerce ? (
           <Link href="/mypage?tab=payments" className={getNavigationClassName(active === "payments")}>
             <span>구독/결제 내역</span>

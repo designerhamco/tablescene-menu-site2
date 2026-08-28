@@ -34,7 +34,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
 import { NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
-import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -1410,7 +1409,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     ? { message: "직원으로 참여한 메뉴판 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다." }
     : null;
   const isStaffOnlyAccount = staffMenuSites.length > 0 && !accessibleMenuSites.some((menuSite) => menuSite.isOwner);
-  const operationalMenuCount = accessibleMenuSites.filter((menuSite) => isStoreOperationsTemplate(menuSite.templateKey)).length;
 
   if (isStaffOnlyAccount && activeTab === "payments") {
     redirect("/mypage?tab=menus");
@@ -2354,7 +2352,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       publicPath,
       qrDownloadUrl,
       templateLabel: site.template_key ? getTemplateDisplayName(site.template_key) : "-",
-      supportsStoreOperations: isStoreOperationsTemplate(site.template_key),
       serviceBadge,
       badges,
       primaryMessage,
@@ -2430,7 +2427,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       title: site.name || "이름 없는 메뉴판",
       publicPath,
       templateLabel: site.templateKey ? getTemplateDisplayName(site.templateKey) : "-",
-      supportsStoreOperations: isStoreOperationsTemplate(site.templateKey),
       roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
       statusLabel: getStatusLabel(site.status),
       updatedAt: site.updatedAt,
@@ -2559,12 +2555,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               disabledReason: card.actions.editDisabledReason,
               primary: true,
             })}
-            {card.supportsStoreOperations ? renderActionButton({
-              label: "매장 운영",
-              href: card.siteId ? `/mypage/operations?site=${encodeURIComponent(card.siteId)}` : null,
-              enabled: Boolean(card.siteId),
-              disabledReason: card.siteId ? null : "메뉴판 식별자가 없어 운영 화면을 열 수 없습니다.",
-            }) : null}
             {renderActionButton({
               label: "미리보기",
               href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
@@ -2632,14 +2622,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
             >
               메뉴 편집
-            </Link>
-          ) : null}
-          {card.supportsStoreOperations ? (
-            <Link
-              href={`/mypage/operations?site=${encodeURIComponent(card.siteId)}`}
-              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
-            >
-              매장 운영
             </Link>
           ) : null}
           <Link
@@ -2711,7 +2693,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <MypageNavigation
               active={activeNavigationKey}
               totalMenuCount={totalMenuCardCount}
-              operationalMenuCount={operationalMenuCount}
               canShowOwnerCommerce={canShowOwnerCommerce}
               hasOwnedMenuSites={sites.length > 0}
               unreadNotificationCount={unreadNotificationCount}
