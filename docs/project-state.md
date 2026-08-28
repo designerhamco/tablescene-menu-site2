@@ -239,6 +239,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260828105459_add_dining_single_multi_subscription_products.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 구독 건수 불변과 기존·신규 상품 key 8개 제약 postcheck 완료. `docs/runbooks/dining-tier-pricing-migration.md`. 다시 실행 금지.
 - `20260828143000_add_store_call_items.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재 precheck, RLS·grant·RPC·호출 집계 postcheck와 generated types 갱신 완료. `docs/runbooks/store-call-items-migration.md`. 다시 실행 금지.
 - `20260828083457_grant_first_menu_welcome_credits.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 AI 잔액·거래 집계 불변, 함수 보안·grant·부분 unique index postcheck와 generated types 갱신 완료. `docs/runbooks/ai-first-menu-welcome-credit-migration.md`. 다시 실행 금지.
 - `20260828040033_add_shared_menu_catalog.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 1회 적용, 기존 링크·catalog 행 0건, RLS·grant·RPC·trigger postcheck와 generated types 갱신 완료. `docs/runbooks/shared-menu-catalog-migration.md`. 다시 실행 금지.

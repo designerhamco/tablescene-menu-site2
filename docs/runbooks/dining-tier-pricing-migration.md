@@ -4,6 +4,16 @@
 
 대상 migration: `supabase/migrations/20260828105459_add_dining_single_multi_subscription_products.sql`
 
+상태: **2026-08-28 `tablescene-prod`에 1회 적용 완료 — 재실행 금지**
+
+적용 결과:
+
+- 적용 전 기존 제약 1개와 임시 `_v2` 제약 부재 확인
+- 기존 상품별 구독 건수 `17 / 1 / 5 / 1` 확인
+- 기존 상품 4개와 신규 단일·멀티 상품 4개를 허용하는 최종 제약 1개 확인
+- 적용 후 상품별 구독 건수 `17 / 1 / 5 / 1`로 불변
+- 고객 row, 결제, 구독 상태, entitlement, RLS, Storage, generated types 변경 없음
+
 ## 목적
 
 - 기존 다이닝 구독 상품 key를 그대로 유지한다.
@@ -66,6 +76,8 @@ linked 프로젝트가 `tablescene-prod` / `kfbekbapwsyeanobyjsv`인지 재확�
 ```
 
 이 migration은 기존 제약을 유지한 채 새 제약을 `NOT VALID`로 추가하고 검증한다. 검증이 성공한 뒤에만 기존 제약을 새 제약으로 교체하며 전체 작업은 한 transaction에서 실행한다.
+
+2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 위 파일 한 건만 적용했다. 다시 실행하지 않는다.
 
 ## 적용 후 확인
 
