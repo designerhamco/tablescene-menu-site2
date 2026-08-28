@@ -14,7 +14,7 @@ const upcomingServices = [
   {
     name: "아티메뉴 디스플레이",
     description: "신규 Display 구독 1건당 매장 TV와 모니터용 Display 메뉴판 1개가 제공됩니다.",
-    price: "월 14,900원 / 연 160,920원",
+    price: "월 14,900원 / 연 160,900원",
     cta: "준비 중",
   },
   {

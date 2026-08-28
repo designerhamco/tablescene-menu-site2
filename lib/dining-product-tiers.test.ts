@@ -65,12 +65,12 @@ test("오픈 할인 월 가격과 연간 10% 추가 할인 금액을 고정한�
     {
       singleRegularMonthly: 8_900,
       singleMonthly: 5_900,
-      singleYearly: 63_720,
+      singleYearly: 63_700,
       multiRegularMonthly: 12_900,
       multiMonthly: 9_900,
-      multiYearly: 106_920,
+      multiYearly: 106_900,
     },
   );
-  assert.equal(businessBasicYearlyProduct.amount, businessBasicMonthlyProduct.amount * 12 * 0.9);
-  assert.equal(businessBasicMultiYearlyProduct.amount, businessBasicMultiMonthlyProduct.amount * 12 * 0.9);
+  assert.equal(businessBasicYearlyProduct.amount, 63_700);
+  assert.equal(businessBasicMultiYearlyProduct.amount, 106_900);
 });

@@ -1,4 +1,5 @@
 import { displayPricing } from "@/lib/display-pricing";
+import { getTenPercentDiscountedAnnualPrice } from "@/lib/annual-pricing";
 
 export type BillingServiceType = "basic" | "display";
 export type SubscriptionPlanType = "business_basic" | "business_display";
@@ -38,7 +39,7 @@ export const SUBSCRIPTION_PRODUCTS = {
     planType: "business_basic",
     paymentType: "subscription",
     billingCycle: "yearly",
-    amount: 63720,
+    amount: getTenPercentDiscountedAnnualPrice(5900),
     currency: "KRW",
     requiresBusinessVerification: true,
     allowNewMenuSiteCreation: true,
@@ -68,7 +69,7 @@ export const SUBSCRIPTION_PRODUCTS = {
     planType: "business_basic",
     paymentType: "subscription",
     billingCycle: "yearly",
-    amount: 106920,
+    amount: getTenPercentDiscountedAnnualPrice(9900),
     currency: "KRW",
     requiresBusinessVerification: true,
     allowNewMenuSiteCreation: true,
