@@ -107,6 +107,10 @@ import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } fr
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateType } from "@/lib/template-types";
+import {
+  buildTemplateSwitchMutation,
+  getTemplateSwitchDecision,
+} from "@/lib/template-switching";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import {
   TYPOGRAPHY_ROLE_KEYS,
@@ -1183,6 +1187,151 @@ export async function updateBadgeStylesAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(menuId, "design", "배지/칩 색상이 저장되었습니다.");
+}
+
+export async function switchMenuTemplateAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const targetTemplateKey = getString(formData, "target_template_key");
+  const confirmed = getString(formData, "confirm_template_switch") === "confirmed";
+  if (!confirmed) {
+    redirectToTabEditWithError(menuId, "design", "템플릿 교체 주의사항을 확인해주세요.");
+  }
+
+  const { supabase, accessContext, menuSite } = await requireOwnedMenuSite(menuId);
+  if (!accessContext.isOwner) {
+    redirectToTabEditWithError(menuId, "design", "템플릿 교체는 메뉴판 소유자만 할 수 있습니다.");
+  }
+
+  const decision = getTemplateSwitchDecision(menuSite.template_key, targetTemplateKey);
+  if (!decision.allowed) {
+    redirectToTabEditWithError(menuId, "design", decision.message);
+  }
+
+  const [promotionsResult, widgetsResult] = await Promise.all([
+    supabase
+      .from("menu_promotions")
+      .select("id, active")
+      .eq("menu_site_id", menuId),
+    supabase
+      .from("menu_widgets")
+      .select("id, visible")
+      .eq("menu_site_id", menuId),
+  ]);
+
+  if (promotionsResult.error) {
+    redirectToTabEditWithError(menuId, "design", `할인 정보 확인에 실패했습니다: ${promotionsResult.error.message}`);
+  }
+  if (widgetsResult.error) {
+    redirectToTabEditWithError(menuId, "design", `위젯 정보 확인에 실패했습니다: ${widgetsResult.error.message}`);
+  }
+
+  const activePromotionIds = (promotionsResult.data ?? [])
+    .filter((promotion) => promotion.active)
+    .map((promotion) => promotion.id);
+  const visibleWidgetIds = (widgetsResult.data ?? [])
+    .filter((widget) => widget.visible)
+    .map((widget) => widget.id);
+  const switchedAt = new Date().toISOString();
+  const mutation = buildTemplateSwitchMutation({
+    settings: menuSite.settings,
+    pageSettings: menuSite.page_settings,
+    currentTemplateKey: menuSite.template_key,
+    targetTemplateKey: decision.targetTemplate.key,
+    switchedAt,
+    promotionsDisabled: activePromotionIds.length,
+    widgetsHidden: visibleWidgetIds.length,
+  });
+
+  if (activePromotionIds.length > 0) {
+    const { error } = await supabase
+      .from("menu_promotions")
+      .update({ active: false, updated_at: switchedAt })
+      .eq("menu_site_id", menuId)
+      .in("id", activePromotionIds);
+    if (error) {
+      redirectToTabEditWithError(menuId, "design", `할인 리뷰 상태 전환에 실패했습니다: ${error.message}`);
+    }
+  }
+
+  if (visibleWidgetIds.length > 0) {
+    const { error } = await supabase
+      .from("menu_widgets")
+      .update({ visible: false, updated_at: switchedAt })
+      .eq("menu_site_id", menuId)
+      .in("id", visibleWidgetIds);
+    if (error) {
+      if (activePromotionIds.length > 0) {
+        await supabase
+          .from("menu_promotions")
+          .update({ active: true, updated_at: switchedAt })
+          .eq("menu_site_id", menuId)
+          .in("id", activePromotionIds);
+      }
+      redirectToTabEditWithError(menuId, "design", `위젯 리뷰 상태 전환에 실패했습니다: ${error.message}`);
+    }
+  }
+
+  const { data: updatedSite, error: updateError } = await supabase
+    .from("menu_sites")
+    .update({
+      template_key: decision.targetTemplate.key,
+      template_category: decision.targetTemplate.template_category,
+      settings: mutation.settings as Json,
+      page_settings: mutation.pageSettings as Json,
+      updated_at: switchedAt,
+    })
+    .eq("id", menuId)
+    .eq("template_key", menuSite.template_key)
+    .select("id")
+    .maybeSingle();
+
+  if (updateError || !updatedSite) {
+    const rollbackResults = await Promise.all([
+      activePromotionIds.length > 0
+        ? supabase
+            .from("menu_promotions")
+            .update({ active: true, updated_at: switchedAt })
+            .eq("menu_site_id", menuId)
+            .in("id", activePromotionIds)
+        : Promise.resolve({ error: null }),
+      visibleWidgetIds.length > 0
+        ? supabase
+            .from("menu_widgets")
+            .update({ visible: true, updated_at: switchedAt })
+            .eq("menu_site_id", menuId)
+            .in("id", visibleWidgetIds)
+        : Promise.resolve({ error: null }),
+    ]);
+    if (rollbackResults.some((result) => result.error)) {
+      console.error("[template-switch] review-state rollback failed", {
+        menuId,
+        activePromotionCount: activePromotionIds.length,
+        visibleWidgetCount: visibleWidgetIds.length,
+      });
+    }
+    redirectToTabEditWithError(
+      menuId,
+      "design",
+      updateError
+        ? `템플릿 교체에 실패했습니다: ${updateError.message}`
+        : "다른 편집에서 템플릿이 먼저 변경되었습니다. 새로고침 후 다시 시도해주세요.",
+    );
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  const reviewSummary = [
+    activePromotionIds.length > 0 ? `할인 ${activePromotionIds.length}건` : null,
+    visibleWidgetIds.length > 0 ? `위젯 ${visibleWidgetIds.length}건` : null,
+  ].filter(Boolean).join("·");
+  redirectToTabEdit(
+    menuId,
+    "design",
+    reviewSummary
+      ? `템플릿을 변경했습니다. ${reviewSummary}은 내용을 보존한 채 비활성화했으므로 확인 후 다시 켜주세요.`
+      : "템플릿을 변경했습니다. 메뉴 내용과 공개 주소는 그대로 유지됩니다.",
+  );
 }
 
 export async function resetBadgeStylesAction(formData: FormData) {
