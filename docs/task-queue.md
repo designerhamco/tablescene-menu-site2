@@ -71,14 +71,14 @@
 
 ## 3-B. 템플릿 교체·상품 등급
 
-- `DONE` 다이닝 6개 출시 템플릿 교체 계약 — `hidden`은 판매 노출 상태일 뿐 교체·QA 대상에 포함
+- `DONE` 누아를 제외한 다이닝 5개 출시 템플릿 교체 계약 — 누아는 신규 노출·생성·교체에서 제외하고 기존 데이터 renderer 호환성만 유지
 - `DONE` 단일·멀티페이지, 디스플레이 이미지·영상 기능 등급 코드 계약
 - `DONE` 교체 시 메뉴·가격·이미지·번역·URL 보존, 할인 비활성·위젯 미노출 후 재검수
 - `DONE` 템플릿별 배경·폰트·배지 디자인 스냅샷 보존·복원
 - `DONE` Owner-only 편집 화면 교체 UI, 같은 서비스·출시 템플릿 제한, 동시 변경 fail closed
 - `DONE` 단일↔단일·멀티↔멀티만 허용하는 서버 등급 제한과 썸네일 카드 교체 UI
 - `DONE` 멀티페이지 다이닝의 공통 Call Layer·Order 비활성 Call-only 계약 회귀 검증
-- `TODO` 다이닝 5,900원 단일·9,900원 멀티페이지 신규 SKU·연결제 가격·기존 고객 승계 정책 확정 후 결제 entitlement 연결
+- `DONE` 다이닝 신규 SKU·결제 entitlement 연결 — 단일 월 5,900원·연 63,720원, 멀티 월 9,900원·연 106,920원, 서버 등급 검증·갱신·환불·복구 연결과 기존 고객 레거시 SKU 보존
 - `TODO` 디스플레이 템플릿별 가격 표와 영상형 상품 경계 확정 후 신규 템플릿 연결
 
 ## 3-C. AI 크레딧 웰컴 정책
@@ -196,7 +196,7 @@
 ## 12. 오픈 준비
 
 - `DONE` 사용자 표시 브랜드를 `아티메뉴` / `ArtiMenu`로 통일하고 내부 호환 식별자는 유지
-- `DONE` PG 심사용 Basic 3상품 분리 노출과 공개 상품 상세·제공·교환·환불 안내 — `docs/pg-site-review-readiness.md`
+- `DONE` PG 심사용 다이닝 5상품 분리 노출과 공개 상품 상세·제공·교환·환불 안내 — `docs/pg-site-review-readiness.md`
 - `DONE` QR오더 소개의 미구현 PG·정산 표현 제거와 계약 전 준비 상태 명시
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
 - `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증

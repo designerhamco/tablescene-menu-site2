@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import {
+  getDiningProductTier,
+  getDiningTierLabel,
+  isDiningProductCompatibleWithTemplate,
+} from "@/lib/dining-product-tiers";
 import { DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX } from "@/lib/display-checkout-qa-constants";
 import { openDiscountPolicy } from "@/lib/promotion-policy";
 import {
@@ -240,6 +245,7 @@ type PaidApplyProduct = {
   billing_cycle?: MenuOrderPayload["billing_cycle"];
   requires_business_verification?: boolean;
   is_subscription?: boolean;
+  template_tier?: "single" | "multi" | "legacy";
 };
 
 type MenuTemplateGroupKey = BasicTemplateCategoryGroupKey;
@@ -382,17 +388,27 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    bullets: ["체험 결제", "정기결제 전환 없음", "체험 메뉴판 1개 제공", "계정당 웰컴 크레딧 6개 1회"],
+    bullets: ["단일페이지 템플릿", "체험 결제", "정기결제 전환 없음", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "체험 종료 후 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
   },
   {
     product: basicPaymentProducts[1],
-    bullets: ["사업자 인증 필요", "월 자동결제", "신규 구독당 Basic 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
+    bullets: ["단일페이지 템플릿", "사업자 인증 필요", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["사업자 인증 필요", "연 자동결제", "신규 구독당 Basic 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
+    bullets: ["단일페이지 템플릿", "사업자 인증 필요", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
+    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
+  },
+  {
+    product: basicPaymentProducts[3],
+    bullets: ["멀티페이지 템플릿", "사업자 인증 필요", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
+    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
+  },
+  {
+    product: basicPaymentProducts[4],
+    bullets: ["멀티페이지 템플릿", "사업자 인증 필요", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
 ] as const satisfies readonly {
@@ -918,13 +934,26 @@ export default function ApplyOrderForm({
   const initialBasicProduct = getBasicPaymentProduct(initialBasicProductKey) ?? personalTrialBasicProduct;
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(initialBasicProduct.product_key);
   const [selectedDisplayProductKey, setSelectedDisplayProductKey] = useState<PaymentProductKey>(businessDisplayMonthlyProduct.product_key);
-  const selectedBasicProduct = getBasicPaymentProduct(selectedBasicProductKey) ?? personalTrialBasicProduct;
-  const selectedDisplayProduct = displayPaymentProducts.find((product) => product.product_key === selectedDisplayProductKey) ?? businessDisplayMonthlyProduct;
-  const activeProduct: PaidApplyProduct = isMenuService
-    ? selectedBasicProduct
-    : isScreenService && displayCheckoutQaEnabled
-      ? selectedDisplayProduct
-      : serviceProducts[serviceType];
+  const activeProduct = useMemo<PaidApplyProduct>(() => {
+    if (isMenuService) {
+      return getBasicPaymentProduct(selectedBasicProductKey) ?? personalTrialBasicProduct;
+    }
+    if (isScreenService && displayCheckoutQaEnabled) {
+      return displayPaymentProducts.find((product) => product.product_key === selectedDisplayProductKey)
+        ?? businessDisplayMonthlyProduct;
+    }
+    return serviceProducts[serviceType];
+  }, [displayCheckoutQaEnabled, isMenuService, isScreenService, selectedBasicProductKey, selectedDisplayProductKey, serviceType]);
+  const activeDiningTier = isMenuService ? getDiningProductTier(activeProduct.product_key) : null;
+  const eligibleServiceTemplates = useMemo(
+    () => isMenuService
+      ? serviceTemplates.filter((template) => isDiningProductCompatibleWithTemplate(selectedBasicProductKey, template.key))
+      : serviceTemplates,
+    [isMenuService, selectedBasicProductKey, serviceTemplates],
+  );
+  const firstEligibleTemplate = eligibleServiceTemplates.find((template) => template.template_category === firstCategory)
+    ?? eligibleServiceTemplates[0]
+    ?? firstTemplate;
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategoryKey>(firstTemplate?.template_category ?? firstCategory);
   const [selectedMenuTemplateGroup, setSelectedMenuTemplateGroup] = useState<MenuTemplateGroupKey>(firstMenuTemplateGroup);
   const [selectedDisplayTemplateGroup, setSelectedDisplayTemplateGroup] = useState<DisplayTemplateGroupKey>(firstDisplayTemplateGroup);
@@ -939,7 +968,10 @@ export default function ApplyOrderForm({
   const [promotionState, setPromotionState] = useState<PromotionUiState>({ type: "success", message: "오픈 할인이 적용되었습니다." });
   const [appliedPromotion, setAppliedPromotion] = useState<AppliedPromotionSnapshot | null | undefined>(undefined);
   const canUsePromotionCode = Boolean(activeProduct.product_key && isOpenPromotionProduct(activeProduct.product_key));
-  const defaultOpenPromotion = canUsePromotionCode ? getOpenPromotionSnapshot(activeProduct.product_key) : null;
+  const defaultOpenPromotion = useMemo(
+    () => canUsePromotionCode ? getOpenPromotionSnapshot(activeProduct.product_key) : null,
+    [activeProduct.product_key, canUsePromotionCode],
+  );
   const activePromotion = canUsePromotionCode
     ? appliedPromotion === undefined
       ? defaultOpenPromotion
@@ -953,8 +985,8 @@ export default function ApplyOrderForm({
   const [slugState, setSlugState] = useState<SlugState>({ slug: "", type: "idle", message: MENU_ADDRESS_HELPER_TEXT });
   const [form, setForm] = useState<FormState>({
     buyerType: isDisplayBusinessOnly || initialBasicProduct.requires_business_verification ? "business" : "individual",
-    template_category: firstTemplate?.template_category ?? firstCategory,
-    template_key: firstTemplate?.key ?? "",
+    template_category: firstEligibleTemplate?.template_category ?? firstCategory,
+    template_key: firstEligibleTemplate?.key ?? "",
     menuName: "",
     desiredSlug: "",
     restaurantName: "",
@@ -1001,20 +1033,20 @@ export default function ApplyOrderForm({
 
   const filteredTemplates = useMemo(() => {
     if (isMenuService) {
-      return getTemplatesByMenuGroup(serviceTemplates, selectedMenuTemplateGroup);
+      return getTemplatesByMenuGroup(eligibleServiceTemplates, selectedMenuTemplateGroup);
     }
 
     if (isScreenService) {
-      return getTemplatesByDisplayGroup(serviceTemplates, selectedDisplayTemplateGroup);
+      return getTemplatesByDisplayGroup(eligibleServiceTemplates, selectedDisplayTemplateGroup);
     }
 
-    return serviceTemplates.filter((template) => template.template_category === selectedCategory);
-  }, [isMenuService, isScreenService, selectedCategory, selectedDisplayTemplateGroup, selectedMenuTemplateGroup, serviceTemplates]);
-  const fallbackTemplateCategories = useMemo(() => getFallbackTemplateCategoriesWithTemplates(serviceTemplates), [serviceTemplates]);
+    return eligibleServiceTemplates.filter((template) => template.template_category === selectedCategory);
+  }, [eligibleServiceTemplates, isMenuService, isScreenService, selectedCategory, selectedDisplayTemplateGroup, selectedMenuTemplateGroup]);
+  const fallbackTemplateCategories = useMemo(() => getFallbackTemplateCategoriesWithTemplates(eligibleServiceTemplates), [eligibleServiceTemplates]);
 
   const selectedTemplate = useMemo(
-    () => form.template_key ? serviceTemplates.find((template) => template.key === form.template_key) : undefined,
-    [form.template_key, serviceTemplates]
+    () => form.template_key ? eligibleServiceTemplates.find((template) => template.key === form.template_key) : undefined,
+    [eligibleServiceTemplates, form.template_key]
   );
   const hasSelectableTemplate = Boolean(selectedTemplate && form.template_key);
   const currentPlanRequiresBusinessInfo = requiresBusinessInfo(currentPlanKey);
@@ -1092,16 +1124,9 @@ export default function ApplyOrderForm({
       amount: activeProduct.amount,
     }),
     [
-      activeProduct.amount,
-      activeProduct.billing_cycle,
-      activeProduct.payment_type,
-      activeProduct.plan_type,
-      activeProduct.product_key,
+      activeProduct,
       activeProductRequiresBusinessVerification,
-      agreements.contentPolicy,
-      agreements.marketing,
-      agreements.privacy,
-      agreements.terms,
+      agreements,
       activePromotion,
       businessVerificationState,
       currentPlanKey,
@@ -1330,6 +1355,10 @@ export default function ApplyOrderForm({
   }
 
   function selectBasicProduct(product: BasicPaymentProduct) {
+    const compatibleTemplates = serviceTemplates.filter((template) =>
+      isDiningProductCompatibleWithTemplate(product.product_key, template.key),
+    );
+    const fallbackTemplate = compatibleTemplates[0];
     setSelectedBasicProductKey(product.product_key);
     setUiState({ type: "idle", message: null });
     setPromotionCodeInput("OPEN");
@@ -1338,6 +1367,12 @@ export default function ApplyOrderForm({
     setForm((current) => ({
       ...current,
       buyerType: product.requires_business_verification ? "business" : "individual",
+      ...(!isDiningProductCompatibleWithTemplate(product.product_key, current.template_key) && fallbackTemplate
+        ? {
+            template_category: fallbackTemplate.template_category,
+            template_key: fallbackTemplate.key,
+          }
+        : {}),
     }));
     setBusinessVerificationState({
       type: "idle",
@@ -2107,8 +2142,8 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                개인 1개월 체험은 단건 결제로 바로 이용하고, 사업자 월결제/연결제는 사업자 인증과 자동결제 구조로 이어집니다.
-                신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공되며, 추가 메뉴판은 별도로 구매할 수 있습니다.
+                개인 체험과 단일페이지·멀티페이지 상품 중 이용 방식을 선택하세요. 선택한 상품과 같은 페이지 유형의 템플릿만 표시됩니다.
+                신규 구매 또는 신규 구독 1건당 다이닝 메뉴판 1개가 제공됩니다.
               </p>
               <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.
@@ -2120,7 +2155,7 @@ export default function ApplyOrderForm({
                 체험 종료 후 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.
               </p>
             </div>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {basicProductCards.map(({ product, bullets, helperText }) => {
                 const isSelected = selectedBasicProductKey === product.product_key;
 
@@ -2157,8 +2192,8 @@ export default function ApplyOrderForm({
                         {product.product_key === personalTrialBasicProduct.product_key
                           ? "정가 13,200원 · 오픈할인 50%"
                           : product.billing_cycle === "monthly"
-                            ? "정가 13,200원 · 오픈할인 25%"
-                            : "연 정가 158,400원 대비 약 40% 할인 · 오픈 월결제 12개월 대비 약 20% 할인"}
+                            ? `정가 ${formatKrw(product.regular_amount)} · 오픈할인 ${product.discount_rate}%`
+                            : `연 정가 ${formatKrw(product.regular_amount)} · 월 할인가 12개월 합계에서 10% 추가 할인`}
                       </p>
                     </div>
                     <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
@@ -2278,7 +2313,8 @@ export default function ApplyOrderForm({
             </h2>
             {isMenuService && (
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                Basic 카테고리에서 템플릿을 선택하세요. 선택한 템플릿은 결제 후 생성되는 메뉴판에 적용됩니다.
+                {activeDiningTier ? `${getDiningTierLabel(activeDiningTier)} 상품에서 사용할 수 있는 템플릿만 표시됩니다.` : "상품에 맞는 템플릿을 선택하세요."}
+                선택한 템플릿은 결제 후 생성되는 메뉴판에 적용됩니다.
               </p>
             )}
             {isScreenService && (
@@ -2310,7 +2346,7 @@ export default function ApplyOrderForm({
                     key={filter.key}
                     type="button"
                     onClick={() => {
-                      const nextTemplate = getTemplatesByDisplayGroup(serviceTemplates, filter.key)[0];
+                      const nextTemplate = getTemplatesByDisplayGroup(eligibleServiceTemplates, filter.key)[0];
                       setSelectedDisplayTemplateGroup(filter.key);
                       setForm((current) => ({
                         ...current,
@@ -2335,7 +2371,7 @@ export default function ApplyOrderForm({
                     key={filter.key}
                     type="button"
                     onClick={() => {
-                      const nextTemplates = getTemplatesByMenuGroup(serviceTemplates, filter.key);
+                      const nextTemplates = getTemplatesByMenuGroup(eligibleServiceTemplates, filter.key);
                       const nextTemplate = nextTemplates[0];
                       setSelectedMenuTemplateGroup(filter.key);
                       setForm((current) => ({
@@ -2356,7 +2392,7 @@ export default function ApplyOrderForm({
                       key={filter.key}
                       type="button"
                       onClick={() => {
-                        const nextTemplate = serviceTemplates.find((template) => template.template_category === filter.key);
+                        const nextTemplate = eligibleServiceTemplates.find((template) => template.template_category === filter.key);
                         setSelectedCategory(filter.key);
                         if (nextTemplate) {
                           setForm((current) => ({

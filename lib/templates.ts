@@ -138,7 +138,7 @@ export type TemplateKey = (typeof TEMPLATE_CATEGORIES)[number]["templates"][numb
 export type AnyTemplateKey = TemplateKey | LegacyTemplateKey;
 export type TemplateDesignKey = (typeof TEMPLATE_CATEGORIES)[number]["templates"][number]["design"];
 export type TemplateServiceKey = TemplateServiceType;
-export type TemplateCatalogStatus = "available" | "coming_soon" | "hidden";
+export type TemplateCatalogStatus = "available" | "coming_soon" | "hidden" | "retired";
 export type { TemplateType };
 
 export const BASIC_TEMPLATE_CATEGORY_GROUPS = [
@@ -225,7 +225,8 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
 };
 
 const availableTemplateKeys = ["cafe_design_a", "display_menu_a"] as const satisfies readonly string[];
-const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a", "cafe_brew_chapter_a", "cafe_noir_a"] as const satisfies readonly string[];
+const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a", "cafe_brew_chapter_a"] as const satisfies readonly string[];
+const retiredTemplateKeys = ["cafe_noir_a"] as const satisfies readonly string[];
 
 const featuredHomeTemplateKeys = [
   "cafe_design_a",
@@ -249,6 +250,7 @@ const featuredDisplayTemplateKeys = [
 ] as const satisfies readonly string[];
 
 function getTemplateCatalogStatus(templateKey: string): TemplateCatalogStatus {
+  if (retiredTemplateKeys.includes(templateKey as (typeof retiredTemplateKeys)[number])) return "retired";
   if (hiddenTemplateKeys.includes(templateKey as (typeof hiddenTemplateKeys)[number])) return "hidden";
   return availableTemplateKeys.includes(templateKey as (typeof availableTemplateKeys)[number]) ? "available" : "coming_soon";
 }
@@ -402,13 +404,14 @@ export function getAvailableTemplatesForService(serviceType: TemplateServiceType
 }
 
 export function getFeaturedTemplatesForHome(): TemplateCatalogItem[] {
-  return getAllTemplates().filter((template) => template.featuredHome && template.status !== "hidden");
+  return getAllTemplates().filter((template) => template.featuredHome && template.status !== "hidden" && template.status !== "retired");
 }
 
 export function getFeaturedTemplatesForBasicPage(): TemplateCatalogItem[] {
   return getAllTemplates().filter((template) => (
     template.featuredBasic &&
     template.status !== "hidden" &&
+    template.status !== "retired" &&
     template.supportedServices.includes("basic")
   ));
 }
@@ -417,6 +420,7 @@ export function getFeaturedTemplatesForDisplayPage(): TemplateCatalogItem[] {
   return getAllTemplates().filter((template) => (
     template.featuredDisplay &&
     template.status !== "hidden" &&
+    template.status !== "retired" &&
     template.templateType !== "schedule" &&
     template.supportedServices.includes("display")
   ));

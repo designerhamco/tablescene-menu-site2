@@ -9,6 +9,7 @@ import {
   getPublicBasicProduct,
   publicBasicProducts,
 } from "@/lib/public-product-details";
+import { getDiningProductTier, getDiningTierLabel } from "@/lib/dining-product-tiers";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -39,6 +40,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const purchaseHref = `/apply/basic?product=${encodeURIComponent(product.productKey)}`;
+  const templateTier = getDiningProductTier(product.productKey) ?? "single";
 
   return (
     <>
@@ -96,8 +98,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <section className="rounded-3xl border border-zinc-200 bg-white p-7">
               <h2 className="text-xl font-black">포함 기능</h2>
               <ul className="mt-6 space-y-3 text-sm font-semibold leading-relaxed text-zinc-600">
-                <li>• Basic 메뉴판 1개 생성 및 관리</li>
-                <li>• 출시 대상 Basic 템플릿 선택</li>
+                <li>• 다이닝 메뉴판 1개 생성 및 관리</li>
+                <li>• 출시 대상 {getDiningTierLabel(templateTier)} 템플릿 선택</li>
                 <li>• 메뉴·가격·이미지·매장 정보 편집</li>
                 <li>• 공개 URL과 QR 코드 제공</li>
                 <li>• 모바일·태블릿·PC 반응형 메뉴판</li>

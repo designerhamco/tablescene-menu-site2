@@ -4,9 +4,13 @@ import { isOwnerRuntimeActor } from "@/lib/owner-runtime-access";
 
 import {
   businessBasicMonthlyProduct,
+  businessBasicMultiMonthlyProduct,
+  businessBasicMultiYearlyProduct,
   businessBasicYearlyProduct,
   businessDisplayMonthlyProduct,
   businessDisplayYearlyProduct,
+  legacyBusinessBasicMonthlyProduct,
+  legacyBusinessBasicYearlyProduct,
 } from "@/lib/payments";
 import { cancelPortOnePayment, getPortOnePayment, getPortOnePaymentAmountSummary, PortOneBillingError } from "@/lib/portone-billing";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,8 +24,18 @@ const REFUND_CALCULATION_VERSION = "yearly_discount_clawback_midterm_fee_v2";
 const yearlyRefundProductPairs = {
   business_basic_yearly: {
     serviceType: "basic",
+    monthlyProduct: legacyBusinessBasicMonthlyProduct,
+    annualProduct: legacyBusinessBasicYearlyProduct,
+  },
+  business_basic_single_yearly: {
+    serviceType: "basic",
     monthlyProduct: businessBasicMonthlyProduct,
     annualProduct: businessBasicYearlyProduct,
+  },
+  business_basic_multi_yearly: {
+    serviceType: "basic",
+    monthlyProduct: businessBasicMultiMonthlyProduct,
+    annualProduct: businessBasicMultiYearlyProduct,
   },
   business_display_yearly: {
     serviceType: "display",
