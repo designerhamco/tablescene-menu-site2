@@ -238,10 +238,10 @@ export async function grantAiWelcomeCreditsForFirstMenuCreation({
   userId: string;
   menuSiteId: string;
 }) {
-  const { data, error } = await adminSupabase.rpc("grant_ai_first_menu_welcome_credits" as never, {
+  const { data, error } = await adminSupabase.rpc("grant_ai_first_menu_welcome_credits", {
     p_user_id: userId,
     p_menu_site_id: menuSiteId,
-  } as never);
+  });
 
   if (error) {
     if (isMissingAiCreditTable(error)) {

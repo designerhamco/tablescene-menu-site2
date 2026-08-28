@@ -86,7 +86,7 @@
 - `DONE` 체험·사업자 신규 메뉴 성공 경로만 웰컴 RPC 연결
 - `DONE` 추가 메뉴판·재구독·갱신 재지급과 체험 만료 회수 경로 제거
 - `DONE` 요금 안내·FAQ·약관·개인정보처리방침 문구 동기화
-- `NEEDS_HUMAN` 신규 migration Production 1회 적용·postcheck 후 애플리케이션 PR 병합 — `docs/runbooks/ai-first-menu-welcome-credit-migration.md`
+- `DONE` 신규 migration Production 1회 적용·postcheck와 generated types 갱신 — 2026-08-28 사용자 승인, `docs/runbooks/ai-first-menu-welcome-credit-migration.md`
 - `NEEDS_HUMAN` 전용 신규 QA 계정의 첫 메뉴 6개 지급·추가 메뉴 미지급 E2E
 
 ## 4. 모든 활성 템플릿의 모바일 Order 호환

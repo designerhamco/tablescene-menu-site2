@@ -12,7 +12,7 @@
 
 - 계정 첫 메뉴판 생성 완료 시 AI 웰컴 크레딧 6개 평생 1회 정책
 - 추가 메뉴판·신규 구독·재구독·갱신 재지급 제거, 기존 잔액 불변
-- 신규 DB migration 초안과 적용·postcheck runbook 포함, Production 적용은 사람 승인 전까지 금지
+- 신규 DB migration을 2026-08-28 승인 아래 Production 1회 적용하고 postcheck·generated types 갱신 완료
 
 ## 완료된 주요 기능
 
@@ -231,6 +231,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260828083457_grant_first_menu_welcome_credits.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 AI 잔액·거래 집계 불변, 함수 보안·grant·부분 unique index postcheck와 generated types 갱신 완료. `docs/runbooks/ai-first-menu-welcome-credit-migration.md`. 다시 실행 금지.
 - `20260828040033_add_shared_menu_catalog.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 1회 적용, 기존 링크·catalog 행 0건, RLS·grant·RPC·trigger postcheck와 generated types 갱신 완료. `docs/runbooks/shared-menu-catalog-migration.md`. 다시 실행 금지.
 - `20260806142627_add_call_mvp_foundation.sql` — 2026-08-07 linked Supabase Management API로 1회 적용, RLS·grant·RPC postcheck, security/performance advisor 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806131244_add_submit_postpay_order_rpc.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, function 보안·grant postcheck·advisor 및 generated types 갱신 완료. 다시 실행 금지.

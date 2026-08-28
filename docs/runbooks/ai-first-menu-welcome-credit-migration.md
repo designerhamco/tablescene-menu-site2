@@ -8,9 +8,18 @@
 
 현재 상태:
 
-- 로컬 코드와 migration 초안 작성 완료
-- Production 미적용
+- 2026-08-28 `tablescene-prod`에 승인된 SQL 파일 한 건을 직접 적용 완료
+- 함수·권한·부분 unique index·기존 집계 불변 postcheck 완료
+- 공식 `npm run supabase:types`로 generated types 갱신 완료
+- security/performance advisor에서 신규 함수 관련 경고 없음
 - 기존 크레딧 잔액과 거래 내역은 변경하지 않음
+
+주의:
+
+- 이 프로젝트의 과거 Production SQL은 migration history에 기록되지 않은 항목이 많다.
+- 2026-08-28 dry-run에서 `supabase db push`가 과거 파일을 포함한 42개 migration을 재적용 대상으로 표시했으므로 실행하지 않았다.
+- 승인된 파일만 `supabase db query --linked --file supabase/migrations/20260828083457_grant_first_menu_welcome_credits.sql`로 직접 적용했다.
+- 이 파일을 다시 실행하거나 전체 `db push`를 실행하지 않는다.
 
 ## 적용 목적
 
@@ -28,12 +37,13 @@
 
 ## 안전한 배포 순서
 
-1. 사람 승인을 받은 뒤 Production에 migration을 1회 적용한다.
-2. 아래 postcheck로 함수·index·권한을 확인한다.
-3. 애플리케이션 검증을 다시 실행한다.
-4. PR을 Ready 처리하고 `tablescene-next`에 병합한다.
-5. Vercel 배포 성공과 공개 route를 확인한다.
-6. 별도 승인을 받은 신규 QA 계정에서 실제 첫 메뉴·추가 메뉴 동작을 확인한다.
+1. 사람 승인을 받은 뒤 Production에 migration을 1회 적용한다. — 완료
+2. 아래 postcheck로 함수·index·권한을 확인한다. — 완료
+3. 공식 생성 스크립트로 generated types를 갱신한다. — 완료
+4. 애플리케이션 검증을 다시 실행한다.
+5. PR을 Ready 처리하고 `tablescene-next`에 병합한다.
+6. Vercel 배포 성공과 공개 route를 확인한다.
+7. 별도 승인을 받은 신규 QA 계정에서 실제 첫 메뉴·추가 메뉴 동작을 확인한다.
 
 ## Production postcheck
 
@@ -71,6 +81,14 @@ where transaction_type = 'grant'
 - `anon_execute = false`, `authenticated_execute = false`, `service_role_execute = true`
 - 부분 unique index가 1개 존재
 - migration 직후 `welcome_transactions = 0`이며 기존 거래·잔액 수치가 변하지 않음
+
+2026-08-28 확인 결과:
+
+- `security_definer = false`, `search_path=""`
+- `anon_execute = false`, `authenticated_execute = false`, `service_role_execute = true`
+- 부분 unique index 생성 확인
+- 적용 전후 balance 3행, 지급 356, 구매 20, 사용 66, 거래 53행으로 동일
+- 신규 정책 거래 0행
 
 ## 실제 QA 기준
 
