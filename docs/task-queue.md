@@ -79,6 +79,16 @@
 - `TODO` 다이닝 5,900원 단일·9,900원 멀티페이지 신규 SKU·연결제 가격·기존 고객 승계 정책 확정 후 결제 entitlement 연결
 - `TODO` 디스플레이 템플릿별 가격 표와 영상형 상품 경계 확정 후 신규 템플릿 연결
 
+## 3-C. AI 크레딧 웰컴 정책
+
+- `DONE` 계정 첫 메뉴판 생성 완료 시 6크레딧 평생 1회 제품 계약 — `docs/ai-credit-policy.md`
+- `DONE` 계정 단위 advisory lock·고유 index·소유권·최초 메뉴 재검증 migration 초안
+- `DONE` 체험·사업자 신규 메뉴 성공 경로만 웰컴 RPC 연결
+- `DONE` 추가 메뉴판·재구독·갱신 재지급과 체험 만료 회수 경로 제거
+- `DONE` 요금 안내·FAQ·약관·개인정보처리방침 문구 동기화
+- `NEEDS_HUMAN` 신규 migration Production 1회 적용·postcheck 후 애플리케이션 PR 병합 — `docs/runbooks/ai-first-menu-welcome-credit-migration.md`
+- `NEEDS_HUMAN` 전용 신규 QA 계정의 첫 메뉴 6개 지급·추가 메뉴 미지급 E2E
+
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
 - `DONE` 공통 모바일 상단 헤더 — template 외부 `PublicMenuExperienceShell`, safe-area sticky shell

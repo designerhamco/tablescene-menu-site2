@@ -289,10 +289,6 @@ export async function POST(request: Request) {
       slug: result.slug,
       subscriptionId,
       paymentId,
-      aiCreditGrant: {
-        grantedCredits: result.aiCreditGrant.grantedCredits,
-        alreadyProcessed: result.aiCreditGrant.alreadyProcessed,
-      },
     });
   } catch (error) {
     return jsonError("RESTORE_AFTER_PAYMENT_FAILED", "결제는 승인되었지만 메뉴판 복구 처리에 실패했습니다. 재결제하지 말고 고객지원으로 문의해주세요.", 500, {

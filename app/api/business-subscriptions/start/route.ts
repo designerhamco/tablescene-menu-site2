@@ -17,7 +17,7 @@ import {
 import { validatePromotionForOrder } from "@/lib/promotions";
 import { getPaidBillingPayment, payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
 import { portOneMockEnabled } from "@/lib/portone";
-import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
+import { grantAiWelcomeCreditsForFirstMenuCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { ensurePurchasedMenuStarter } from "@/lib/server/purchased-menu-provisioning";
 import { createStarterMenuData } from "@/lib/menu-starter-presets";
@@ -2407,14 +2407,10 @@ export async function POST(request: Request) {
     });
 
     if (mode === "new") {
-      const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
+      const aiCreditGrant = await grantAiWelcomeCreditsForFirstMenuCreation({
         adminSupabase,
         userId: user.id,
         menuSiteId: menuSite.id,
-        serviceType: product.serviceType,
-        productKey: product.productKey,
-        planType: product.planType,
-        reason: product.serviceType === "display" ? "display_subscription_created" : "business_subscription_created",
       });
       if (!aiCreditGrant.ok) {
         throw new BusinessSubscriptionRouteError(

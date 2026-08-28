@@ -4,15 +4,15 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `925267a` (`PR #58` 병합)
+기준 커밋: `6ce2396` (`PR #59` 병합)
 
-현재 작업 브랜치: `codex/template-switching-foundation`
+현재 작업 브랜치: `codex/ai-welcome-credit-policy`
 
 ## 현재 작업
 
-- 다이닝·디스플레이 템플릿 교체 기반과 기능 등급 계약
-- 메뉴·가격·이미지·번역·URL 보존, 할인·위젯 재검수, 템플릿별 디자인 복원
-- 신규 DB migration, Production 데이터·환경변수·결제 변경 없음
+- 계정 첫 메뉴판 생성 완료 시 AI 웰컴 크레딧 6개 평생 1회 정책
+- 추가 메뉴판·신규 구독·재구독·갱신 재지급 제거, 기존 잔액 불변
+- 신규 DB migration 초안과 적용·postcheck runbook 포함, Production 적용은 사람 승인 전까지 금지
 
 ## 완료된 주요 기능
 

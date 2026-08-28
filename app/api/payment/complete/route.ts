@@ -11,7 +11,7 @@ import {
 } from "@/lib/payments";
 import { validatePromotionForOrder } from "@/lib/promotions";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
-import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
+import { grantAiWelcomeCreditsForFirstMenuCreation } from "@/lib/server/ai-credits-service";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { ensurePurchasedMenuStarter } from "@/lib/server/purchased-menu-provisioning";
 import { hasUsedPersonalTrial } from "@/lib/server/personal-trial-eligibility";
@@ -616,18 +616,6 @@ function getOrderPayloadDebug(value: unknown) {
     templateSupported: isTemplateSupportedForCheckout(templateKey, templateServiceType),
     requiredFields,
   };
-}
-
-function getMenuCreationGrantContext(orderPayload: MenuOrderPayload) {
-  const serviceType = orderPayload.plan_type === "business_display" ? "display" : "basic";
-  const reason =
-    orderPayload.plan_type === "personal_trial"
-      ? "personal_trial_created"
-      : serviceType === "display"
-        ? "display_subscription_created"
-        : "business_subscription_created";
-
-  return { serviceType, reason } as const;
 }
 
 async function getCompletedMenuFromOrder(
@@ -1515,15 +1503,10 @@ async function respondWithExistingPaymentCompletion({
 }) {
   const adminSupabase = createAdminClient();
   await createServiceEntitlement(adminSupabase, userId, completion.menuSiteId, orderPayload);
-  const grantContext = getMenuCreationGrantContext(orderPayload);
-  const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
+  const aiCreditGrant = await grantAiWelcomeCreditsForFirstMenuCreation({
     adminSupabase,
     userId,
     menuSiteId: completion.menuSiteId,
-    serviceType: grantContext.serviceType,
-    productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
-    planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
-    reason: grantContext.reason,
   });
 
   if (!aiCreditGrant.ok) {
@@ -1981,15 +1964,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const grantContext = getMenuCreationGrantContext(orderPayload);
-    const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
+    const aiCreditGrant = await grantAiWelcomeCreditsForFirstMenuCreation({
       adminSupabase,
       userId: user.id,
       menuSiteId: menuSite.id,
-      serviceType: grantContext.serviceType,
-      productKey: orderPayload.product_key ?? personalTrialBasicProduct.product_key,
-      planType: orderPayload.plan_type ?? personalTrialBasicProduct.plan_type,
-      reason: grantContext.reason,
     });
     if (!aiCreditGrant.ok) {
       throw Object.assign(new Error("AI 크레딧 테이블 migration 적용이 필요합니다."), aiCreditGrant.error ?? {});

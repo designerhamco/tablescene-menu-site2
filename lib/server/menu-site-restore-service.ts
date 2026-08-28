@@ -4,7 +4,6 @@ import { isOwnerRuntimeActor } from "@/lib/owner-runtime-access";
 
 import { getSubscriptionProduct, SUBSCRIPTION_PRODUCTS, type SubscriptionProduct, type SubscriptionProductKey } from "@/lib/billing-products";
 import { formatKrw } from "@/lib/payments";
-import { grantAiCreditsForSubscriptionIncludedGrant } from "@/lib/server/ai-credits-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -647,26 +646,9 @@ export async function activateRestoreSubscriptionAfterPayment({
     throw new Error(`RESTORE_PAYMENT_INSERT_FAILED: ${getSupabaseSafeMessage(paymentError)}`);
   }
 
-  const aiCreditGrant = await grantAiCreditsForSubscriptionIncludedGrant({
-    adminSupabase,
-    userId,
-    menuSiteId: menuSite.id,
-    businessSubscriptionId: subscriptionId,
-    paymentId,
-    serviceType,
-    productKey: product.productKey,
-    planType: product.planType,
-    reason: "subscription_restore_created",
-  });
-
-  if (!aiCreditGrant.ok) {
-    throw new Error("RESTORE_AI_CREDIT_GRANT_FAILED");
-  }
-
   return {
     orderId: (order as { id: string }).id,
     menuSiteId: menuSite.id,
     slug: menuSite.slug,
-    aiCreditGrant,
   };
 }
