@@ -143,6 +143,7 @@ export default function OrderCallEntryLayer({
           menuSiteId={config.menuSiteId!}
           tableLabel={config.tableLabel}
           previewOnly={config.previewOnly ?? false}
+          callItems={config.callItems}
           />
         ) : null}
         {toastMessage ? (

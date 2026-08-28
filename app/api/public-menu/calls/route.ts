@@ -51,9 +51,8 @@ async function resolveSession(request: NextRequest, menuSiteId: unknown) {
 }
 
 function handleKnownError(error: unknown) {
-  if (error instanceof SyntaxError || error instanceof CallManagementInputError) {
-    return response({ ok: false, message: error instanceof SyntaxError ? "호출 정보를 다시 확인해 주세요." : error.message }, 400);
-  }
+  if (error instanceof SyntaxError) return response({ ok: false, message: "호출 정보를 다시 확인해 주세요." }, 400);
+  if (error instanceof CallManagementInputError) return response({ ok: false, message: error.message }, 400);
   if (error instanceof StaffCallSubmissionError) {
     return response({ ok: false, message: error.message, code: error.code }, 409);
   }
@@ -66,7 +65,11 @@ export async function POST(request: NextRequest) {
     const body = await readBody(request);
     const tableSession = await resolveSession(request, body.menuSiteId);
     if (!tableSession) return response({ ok: false, message: "테이블 방문 세션이 만료되었습니다." }, 401);
-    const call = await submitStaffCall({ menuSiteId: tableSession.menuSiteId, tableSession });
+    const call = await submitStaffCall({
+      menuSiteId: tableSession.menuSiteId,
+      callItemKey: body.callItemKey,
+      tableSession,
+    });
     return response({ ok: true, call }, call.duplicate ? 200 : 201);
   } catch (error) {
     const known = handleKnownError(error);

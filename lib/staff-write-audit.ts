@@ -13,6 +13,7 @@ export const MENU_SITE_WRITE_SURFACES = [
   "order_manual_payment",
   "call_acknowledgement",
   "call_completion",
+  "call_item_configuration",
 ] as const;
 
 export type MenuSiteWriteSurface = (typeof MENU_SITE_WRITE_SURFACES)[number];

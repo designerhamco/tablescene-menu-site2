@@ -1,14 +1,17 @@
 "use client";
 
 import { Bell, CheckCircle2, Loader2, X } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+import { getDefaultStaffCallItems, type StaffCallItem } from "@/lib/call-items";
 
 type StaffCall = {
   callId: string;
   callNumber: number;
   status: "pending" | "acknowledged";
   duplicate: boolean;
-  requestLabel?: string;
+  requestKey: string;
+  requestLabel: string;
 };
 
 type ApiResult = {
@@ -22,32 +25,30 @@ const STATUS_COPY = {
   acknowledged: "직원이 호출을 확인했습니다.",
 } as const;
 
-const PREVIEW_CALL_ITEMS = [
-  "직원 호출",
-  "물 요청",
-  "앞치마 요청",
-  "식기 요청",
-  "테이블 정리",
-  "주문 도움",
-] as const;
-
 export default function StaffCallDialog({
   open,
   onClose,
   menuSiteId,
   tableLabel,
   previewOnly = false,
+  callItems,
 }: {
   open: boolean;
   onClose: () => void;
   menuSiteId: string;
   tableLabel?: string;
   previewOnly?: boolean;
+  callItems?: StaffCallItem[];
 }) {
   const [call, setCall] = useState<StaffCall | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [selectedPreviewItem, setSelectedPreviewItem] = useState<(typeof PREVIEW_CALL_ITEMS)[number]>(PREVIEW_CALL_ITEMS[0]);
+  const availableItems = useMemo(
+    () => (callItems?.length ? callItems : getDefaultStaffCallItems()).filter((item) => item.active),
+    [callItems],
+  );
+  const [selectedItemKey, setSelectedItemKey] = useState(availableItems[0]?.key ?? "staff");
+  const selectedItem = availableItems.find((item) => item.key === selectedItemKey) ?? availableItems[0];
 
   if (!open) return null;
 
@@ -65,7 +66,8 @@ export default function StaffCallDialog({
         callNumber: 12,
         status: "pending",
         duplicate: false,
-        requestLabel: selectedPreviewItem,
+        requestKey: selectedItem?.key ?? "staff",
+        requestLabel: selectedItem?.label ?? "직원 호출",
       });
       setPending(false);
       return;
@@ -74,7 +76,7 @@ export default function StaffCallDialog({
       const result = await fetch("/api/public-menu/calls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ menuSiteId }),
+        body: JSON.stringify({ menuSiteId, callItemKey: selectedItem?.key }),
       });
       const body = await result.json() as ApiResult;
       if (!result.ok || !body.ok || !body.call || !("callNumber" in body.call)) {
@@ -135,7 +137,7 @@ export default function StaffCallDialog({
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-700" aria-hidden="true" />
             <p className="mt-3 text-lg font-black">{STATUS_COPY[call.status]}</p>
             <p className="mt-1 text-sm font-bold text-emerald-800">
-              {call.requestLabel ? `${call.requestLabel} · ` : ""}호출 #{call.callNumber}
+              {call.requestLabel} · 호출 #{call.callNumber}
             </p>
             {call.status === "pending" ? (
               <button type="button" onClick={cancelCall} disabled={pending} className="mt-5 rounded-full border border-emerald-300 bg-white px-5 py-2.5 text-sm font-black text-emerald-900 disabled:opacity-60">
@@ -148,29 +150,27 @@ export default function StaffCallDialog({
         ) : (
           <div className="mt-6">
             <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
-              {previewOnly ? "필요한 항목을 선택해 호출 화면을 확인해 보세요." : "도움이 필요하면 아래 버튼을 눌러 직원을 호출해 주세요. 같은 호출은 처리 전까지 한 번만 접수됩니다."}
+              필요한 항목을 선택해 직원에게 요청해 주세요. 처리 중인 호출은 중복 접수되지 않습니다.
             </p>
-            {previewOnly ? (
-              <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="직원 호출 항목 미리보기">
-                {PREVIEW_CALL_ITEMS.map((item) => {
-                  const selected = item === selectedPreviewItem;
+            <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="직원 호출 항목">
+                {availableItems.map((item) => {
+                  const selected = item.key === selectedItem?.key;
                   return (
                     <button
-                      key={item}
+                      key={item.key}
                       type="button"
                       aria-pressed={selected}
                       className={`rounded-2xl border px-3 py-3 text-sm font-black transition-colors ${selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
-                      onClick={() => setSelectedPreviewItem(item)}
+                      onClick={() => setSelectedItemKey(item.key)}
                     >
-                      {item}
+                      {item.label}
                     </button>
                   );
                 })}
               </div>
-            ) : null}
-            <button type="button" onClick={requestCall} disabled={pending} className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-4 text-base font-black text-white disabled:opacity-60">
+            <button type="button" onClick={requestCall} disabled={pending || !selectedItem} className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-4 text-base font-black text-white disabled:opacity-60">
               {pending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <Bell className="h-5 w-5" aria-hidden="true" />}
-              {previewOnly ? `${selectedPreviewItem} 보내기` : "직원 호출"}
+              {selectedItem ? `${selectedItem.label} 보내기` : "호출 항목 없음"}
             </button>
           </div>
         )}
