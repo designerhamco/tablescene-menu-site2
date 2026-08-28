@@ -19,7 +19,7 @@ const services = [
     title: '아티메뉴 디스플레이',
     badge: '준비 중',
     description: '매장 TV와 모니터에 띄우는 디스플레이 메뉴보드',
-    price: '월 19,800원 · 연 190,000원',
+    price: '월 14,900원 · 연 160,920원',
     details: ['매장 화면용 메뉴 구성', '이벤트와 안내 화면 확장', '디스플레이 환경 상담'],
     cta: '준비 중',
     href: '/apply/display',

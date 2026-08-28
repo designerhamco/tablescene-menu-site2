@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isOwnerRuntimeActor } from "@/lib/owner-runtime-access";
+import { getDisplayMonthlyRefundBasis } from "@/lib/display-pricing";
 
 import {
   businessBasicMonthlyProduct,
@@ -321,9 +322,13 @@ export async function calculateYearlyRefundQuote({
   const totalDays = Math.max(1, diffDaysCeil(billingStartedAt, nextBillingAt));
   const usedDays = Math.min(totalDays, diffDaysCeil(billingStartedAt, refundBasisDate));
   const remainingDays = Math.max(0, totalDays - usedDays);
-  const monthlyListPrice = productPair.monthlyProduct.amount;
-  const annualPrice = productPair.annualProduct.amount;
-  const paidAmount = payment.amount || subscription.amount || annualPrice;
+  const paidAmount = payment.amount || subscription.amount || productPair.annualProduct.amount;
+  const annualPrice = subscription.product_key === "business_display_yearly"
+    ? paidAmount
+    : productPair.annualProduct.amount;
+  const monthlyListPrice = subscription.product_key === "business_display_yearly"
+    ? getDisplayMonthlyRefundBasis(paidAmount)
+    : productPair.monthlyProduct.amount;
   const monthlyBasisUsedAmount = prorateCeil(monthlyListPrice * 12, usedDays, totalDays);
   const annualBasisUsedAmount = prorateCeil(paidAmount, usedDays, totalDays);
   const discountClawbackAmount = Math.max(0, monthlyBasisUsedAmount - annualBasisUsedAmount);

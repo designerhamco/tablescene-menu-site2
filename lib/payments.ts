@@ -1,3 +1,4 @@
+import { displayPricing } from "@/lib/display-pricing";
 import { isValidTemplateKey, type TemplateCategoryKey, type TemplateKey } from "@/lib/templates";
 import type { AppliedPromotionSnapshot } from "@/lib/promotions";
 import type { SocialLinkInput } from "@/lib/social-links";
@@ -173,9 +174,9 @@ export const businessDisplayMonthlyProduct = {
   plan_type: "business_display",
   payment_type: "subscription",
   billing_cycle: "monthly",
-  regular_amount: 39600,
-  amount: 19800,
-  discount_rate: 50,
+  regular_amount: displayPricing.regularMonthly,
+  amount: displayPricing.monthly,
+  discount_rate: 25,
   duration_months: null,
   currency: "KRW",
   template_service: "display",
@@ -192,9 +193,9 @@ export const businessDisplayYearlyProduct = {
   plan_type: "business_display",
   payment_type: "subscription",
   billing_cycle: "yearly",
-  regular_amount: 475200,
-  amount: 190000,
-  discount_rate: 60,
+  regular_amount: displayPricing.regularYearly,
+  amount: displayPricing.yearly,
+  discount_rate: 33,
   duration_months: null,
   currency: "KRW",
   template_service: "display",
