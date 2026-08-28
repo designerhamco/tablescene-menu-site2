@@ -82,6 +82,7 @@ const Navbar = () => {
     userId: null,
     loading: true,
   });
+  const [hasStoreOperationsAccess, setHasStoreOperationsAccess] = useState(false);
   const isScrolledRef = useRef(false);
   const diningMenuRef = useRef<HTMLDivElement | null>(null);
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
@@ -146,7 +147,9 @@ const Navbar = () => {
       }
 
       setAuthState((currentState) =>
-        currentState.isAuthenticated === nextState.isAuthenticated && currentState.loading === nextState.loading
+        currentState.isAuthenticated === nextState.isAuthenticated
+          && currentState.userId === nextState.userId
+          && currentState.loading === nextState.loading
           ? currentState
           : nextState,
       );
@@ -175,6 +178,42 @@ const Navbar = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    setHasStoreOperationsAccess(false);
+
+    if (!authState.userId) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    let isMounted = true;
+
+    async function loadStoreOperationsAccess() {
+      try {
+        const response = await fetch('/api/account/store-operations-access', {
+          cache: 'no-store',
+          signal: abortController.signal,
+        });
+        const payload = await response.json() as { available?: unknown };
+
+        if (isMounted) {
+          setHasStoreOperationsAccess(response.ok && payload.available === true);
+        }
+      } catch (error) {
+        if (isMounted && !(error instanceof DOMException && error.name === 'AbortError')) {
+          setHasStoreOperationsAccess(false);
+        }
+      }
+    }
+
+    loadStoreOperationsAccess();
+
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
+  }, [authState.userId]);
 
   useEffect(() => {
     if (!authState.userId) {
@@ -489,7 +528,7 @@ const Navbar = () => {
                 {accountCtaLabel}
               </a>
             ) : null}
-            {authState.isAuthenticated ? (
+            {hasStoreOperationsAccess ? (
               <a
                 href="/mypage/operations"
                 className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${operationsButtonClass}`}
@@ -552,7 +591,7 @@ const Navbar = () => {
                       {accountCtaLabel}
                     </a>
                   ) : null}
-                  {authState.isAuthenticated ? (
+                  {hasStoreOperationsAccess ? (
                     <a
                       href="/mypage/operations"
                       onClick={closeMobileMenu}
