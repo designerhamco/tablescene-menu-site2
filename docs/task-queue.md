@@ -69,6 +69,16 @@
 - `DONE` 신규 shared-menu migration Production 1회 적용과 generated types 재생성 — 2026-08-28 사용자 승인, `docs/runbooks/shared-menu-catalog-migration.md`
 - `NEEDS_HUMAN` 실제 Owner 계정의 안전한 draft 대상에서 독립 복사·연결·연결 해제 E2E — 대상 기존 메뉴가 교체되므로 별도 테스트 draft 지정 필요
 
+## 3-B. 템플릿 교체·상품 등급
+
+- `DONE` 다이닝 6개 출시 템플릿 교체 계약 — `hidden`은 판매 노출 상태일 뿐 교체·QA 대상에 포함
+- `DONE` 단일·멀티페이지, 디스플레이 이미지·영상 기능 등급 코드 계약
+- `DONE` 교체 시 메뉴·가격·이미지·번역·URL 보존, 할인 비활성·위젯 미노출 후 재검수
+- `DONE` 템플릿별 배경·폰트·배지 디자인 스냅샷 보존·복원
+- `DONE` Owner-only 편집 화면 교체 UI, 같은 서비스·출시 템플릿 제한, 동시 변경 fail closed
+- `TODO` 다이닝 5,900원 단일·9,900원 멀티페이지 신규 SKU·연결제 가격·기존 고객 승계 정책 확정 후 결제 entitlement 연결
+- `TODO` 디스플레이 템플릿별 가격 표와 영상형 상품 경계 확정 후 신규 템플릿 연결
+
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
 - `DONE` 공통 모바일 상단 헤더 — template 외부 `PublicMenuExperienceShell`, safe-area sticky shell

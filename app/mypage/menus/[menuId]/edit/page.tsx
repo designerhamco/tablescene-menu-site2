@@ -13,6 +13,7 @@ import {
   updateMenuSiteAction,
   updatePageSettingsAction,
   updatePublishSettingsAction,
+  switchMenuTemplateAction,
 } from "@/app/mypage/menus/actions";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -100,6 +101,11 @@ import {
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
+import {
+  getSwitchableTemplatesForService,
+  getTemplateCommercialTier,
+  getTemplateCommercialTierLabel,
+} from "@/lib/template-switching";
 import { MAX_MENU_WIDGET_DESCRIPTION_LENGTH, MAX_MENU_WIDGET_TITLE_LENGTH, type MenuWidget } from "@/lib/menu-widgets";
 import {
   getCustomBackgroundColor,
@@ -117,6 +123,7 @@ import {
 import {
   getTemplateEditorLabels,
   getTemplateEditorTabs,
+  getSupportedServices,
   getTemplateType,
   getTemplateTypeLabel,
 } from "@/lib/template-types";
@@ -1379,6 +1386,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const templateType = getTemplateType(site.template_key);
+  const templateService = getSupportedServices(site.template_key)[0] ?? "basic";
+  const switchableTemplates = getSwitchableTemplatesForService(templateService);
+  const templateSwitchTargets = switchableTemplates.filter((template) => template.key !== site.template_key);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
   const displayVideoUploadAccess = getDisplayVideoUploadAccess({
@@ -1759,7 +1769,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 ) : null}
                 <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
                   {templateDisplayName}
-                  <HelpTooltip label="템플릿 도움말">결제 시 선택한 템플릿입니다.</HelpTooltip>
+                  <HelpTooltip label="템플릿 도움말">디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다.</HelpTooltip>
                 </span>
               </div>
               <h1 className="text-4xl font-bold tracking-tight">{site.name}</h1>
@@ -1938,7 +1948,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       value={templateDisplayName}
                       readOnly
                       className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
-                      helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
+                      helperText="디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다."
                     />
                   </div>
                   {(supportsBrandLogo || supportsFooterStoreInfo) && (
@@ -2407,14 +2417,55 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <div className="space-y-5">
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
-                    <div>
-                      <FieldLabel>현재 템플릿</FieldLabel>
-                      <TextInput
-                        value={templateDisplayName}
-                        readOnly
-                        className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
-                        helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
-                      />
+                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                      <div>
+                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">템플릿 교체</h3>
+                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          메뉴·가격·이미지·번역과 공개 주소는 유지됩니다. 할인은 내용을 보존한 채 꺼지고, 위젯은 다시 배치할 수 있게 숨겨집니다.
+                        </p>
+                      </div>
+                      {accessContext.isOwner && templateSwitchTargets.length > 0 ? (
+                        <div className="mt-5 space-y-4">
+                          <div>
+                            <FieldLabel>변경할 템플릿</FieldLabel>
+                            <Select name="target_template_key" defaultValue={templateSwitchTargets[0]?.key}>
+                              {templateSwitchTargets.map((template) => (
+                                <option key={template.key} value={template.key}>
+                                  {template.label} · {getTemplateCommercialTierLabel(getTemplateCommercialTier(template.key))}
+                                </option>
+                              ))}
+                            </Select>
+                          </div>
+                          <label className="flex items-start gap-3 rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-600">
+                            <input
+                              type="checkbox"
+                              name="confirm_template_switch"
+                              value="confirmed"
+                              className="mt-1 h-4 w-4 rounded border-zinc-300"
+                            />
+                            <span>
+                              템플릿 변경 후 할인과 위젯을 다시 확인하고, 공개 화면을 미리보기로 검수하겠습니다.
+                            </span>
+                          </label>
+                          <PendingSubmitButton
+                            formAction={switchMenuTemplateAction}
+                            pendingLabel="템플릿 변경 중..."
+                            className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
+                          >
+                            템플릿 변경
+                          </PendingSubmitButton>
+                        </div>
+                      ) : (
+                        <div className="mt-5">
+                          <FieldLabel>현재 템플릿</FieldLabel>
+                          <TextInput
+                            value={templateDisplayName}
+                            readOnly
+                            className="cursor-not-allowed bg-white text-zinc-600 focus:border-zinc-200"
+                            helperText={accessContext.isOwner ? "현재 서비스에서 변경할 수 있는 다른 템플릿이 아직 없습니다." : "템플릿 교체는 메뉴판 소유자만 할 수 있습니다."}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>

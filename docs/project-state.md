@@ -4,14 +4,14 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `5aa0e1e` (`PR #57` 병합)
+기준 커밋: `925267a` (`PR #58` 병합)
 
-현재 작업 브랜치: `codex/header-order-access`
+현재 작업 브랜치: `codex/template-switching-foundation`
 
 ## 현재 작업
 
-- 공통 헤더의 `매장 운영`을 실제 운영 가능한 오더 메뉴판과 `order.read` 권한이 있는 계정에만 노출
-- 비로그인·Display 전용·오더 runtime 미사용·권한 미보유 계정에서는 헤더 진입을 fail closed로 숨김
+- 다이닝·디스플레이 템플릿 교체 기반과 기능 등급 계약
+- 메뉴·가격·이미지·번역·URL 보존, 할인·위젯 재검수, 템플릿별 디자인 복원
 - 신규 DB migration, Production 데이터·환경변수·결제 변경 없음
 
 ## 완료된 주요 기능
