@@ -92,6 +92,20 @@ test("Order-only and Call-only entitlements remain independent after shared sess
   assert.equal(callOnly.callEnabled, true);
 });
 
+test("멀티페이지 다이닝 템플릿은 Order 없이 호출만 사용할 수 있다", () => {
+  const callOnly = createCapabilityState({
+    templateKey: "cafe_brew_chapter_a",
+    postpayOrderRuntimeEnabled: false,
+    callRuntimeEnabled: true,
+  });
+
+  assert.deepEqual(callOnly, {
+    supportsExperience: true,
+    orderEnabled: false,
+    callEnabled: true,
+  });
+});
+
 test("one local table visit can submit a bounded order and complete both staff workflows", () => {
   const order = parsePostpayOrderPayload({
     menuSiteId: MENU_SITE_ID,

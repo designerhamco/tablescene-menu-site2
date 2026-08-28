@@ -24,7 +24,7 @@ export type TemplateSwitchDecision =
     }
   | {
       allowed: false;
-      reason: "same_template" | "unknown_template" | "coming_soon" | "cross_service";
+      reason: "same_template" | "unknown_template" | "coming_soon" | "cross_service" | "cross_tier";
       message: string;
     };
 
@@ -173,6 +173,16 @@ export function getSwitchableTemplatesForService(service: TemplateServiceType) {
   );
 }
 
+export function getSwitchableTemplatesForTemplate(currentTemplateKey: string) {
+  const currentService = getSingleSupportedService(currentTemplateKey);
+  if (!currentService) return [];
+
+  const currentTier = getTemplateCommercialTier(currentTemplateKey);
+  return getSwitchableTemplatesForService(currentService).filter(
+    (template) => getTemplateCommercialTier(template.key) === currentTier,
+  );
+}
+
 export function getTemplateSwitchDecision(
   currentTemplateKey: string,
   targetTemplateKey: string,
@@ -214,6 +224,14 @@ export function getTemplateSwitchDecision(
       allowed: false,
       reason: "cross_service",
       message: "다이닝과 디스플레이 서비스 사이에서는 템플릿만 바꿀 수 없습니다.",
+    };
+  }
+
+  if (getTemplateCommercialTier(currentTemplateKey) !== getTemplateCommercialTier(targetTemplate.key)) {
+    return {
+      allowed: false,
+      reason: "cross_tier",
+      message: "단일 페이지와 멀티페이지 상품 사이에서는 템플릿만 바꿀 수 없습니다.",
     };
   }
 

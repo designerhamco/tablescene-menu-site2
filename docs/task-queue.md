@@ -76,6 +76,8 @@
 - `DONE` 교체 시 메뉴·가격·이미지·번역·URL 보존, 할인 비활성·위젯 미노출 후 재검수
 - `DONE` 템플릿별 배경·폰트·배지 디자인 스냅샷 보존·복원
 - `DONE` Owner-only 편집 화면 교체 UI, 같은 서비스·출시 템플릿 제한, 동시 변경 fail closed
+- `DONE` 단일↔단일·멀티↔멀티만 허용하는 서버 등급 제한과 썸네일 카드 교체 UI
+- `DONE` 멀티페이지 다이닝의 공통 Call Layer·Order 비활성 Call-only 계약 회귀 검증
 - `TODO` 다이닝 5,900원 단일·9,900원 멀티페이지 신규 SKU·연결제 가격·기존 고객 승계 정책 확정 후 결제 entitlement 연결
 - `TODO` 디스플레이 템플릿별 가격 표와 영상형 상품 경계 확정 후 신규 템플릿 연결
 
@@ -114,6 +116,8 @@
 - `NEEDS_HUMAN` 실제 Order/Call 제품 key·번들 정책과 Production `TABLE_MANAGEMENT_ENABLED` 활성화
 
 ## 6. 모바일 장바구니와 후불 주문
+
+- `BLOCKED` 실제 Order 상품화·활성화 — 사용자가 당분간 Order를 사용하지 않기로 했으므로 기존 구현과 데이터는 보존하고 Production runtime은 default-off 유지
 
 - `DONE` V1 정책 확정 — Postpay 우선, Order·Call 별도 add-on, tableSessions 포함, 기기별 cart, 20 lines·50 units·line 20
 - `DONE` DB 기반 migration 초안 — orderable 분리, 주문 option, session-bound order, immutable snapshot, idempotency, server-only RLS
