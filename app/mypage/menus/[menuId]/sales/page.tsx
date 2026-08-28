@@ -47,7 +47,7 @@ export default async function SalesSummaryPage({
     if (error instanceof SalesSummaryError) {
       if (error.code === "INVALID_INPUT" || error.code === "MENU_SITE_NOT_FOUND") notFound();
       if (error.code === "DASHBOARD_UNAVAILABLE") {
-        redirect("/mypage?tab=menus&message=sales-dashboard-locked");
+        redirect(`/mypage/operations?site=${encodeURIComponent(menuId)}`);
       }
     }
     throw error;
@@ -60,8 +60,8 @@ export default async function SalesSummaryPage({
     <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 md:px-8 md:py-16">
       <div className="mx-auto max-w-6xl space-y-8">
         <header>
-          <Link href="/mypage?tab=menus" className="text-sm font-black text-emerald-700 hover:text-emerald-900">
-            ← 내 메뉴판으로 돌아가기
+          <Link href={`/mypage/operations?site=${encodeURIComponent(menuId)}`} className="text-sm font-black text-emerald-700 hover:text-emerald-900">
+            ← 매장 운영으로 돌아가기
           </Link>
           <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
           <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">매출 요약</h1>
