@@ -4,13 +4,12 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `954da49` (`PR #66` 병합)
+기준 커밋: `104586e` (`PR #67` 병합)
 
 현재 작업 브랜치: `codex/single-monthly-free-trial`
 
 ## 현재 작업
 
-- 연간 가격을 월 할인가 × 12 × 90% 후 100원 단위 내림으로 통일 — 단일 63,700원, 멀티 106,900원, Display 160,900원
 - 별도 6,600원 개인 체험 신규 판매를 제거하고 단일페이지 월결제에 결제수단 필수 30일 무료체험을 계정당 최초 1회 연결
 - 무료체험 중 해지해도 30일까지 이용하고 첫 결제 없이 종료되도록 기존 해지 우선 갱신 정책을 재사용
 - 신규 migration과 Production 기능 활성화는 `docs/runbooks/business-subscription-free-trial-migration.md`에 따라 별도 승인 후 진행
