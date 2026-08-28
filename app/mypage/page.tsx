@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import Footer from "@/app/components/layout/Footer";
-import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import AccountDeletionPanel from "@/components/mypage/AccountDeletionPanel";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
@@ -11,6 +10,7 @@ import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettin
 import BillingHistoryPanel, { type BillingHistoryEntry } from "@/components/mypage/BillingHistoryPanel";
 import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
+import { MypageAccountCard, MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import {
   getInquiryErrorMessage,
@@ -33,7 +33,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
-import { formatNotificationBadgeCount, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
+import { NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
+import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getTemplateDisplayName } from "@/lib/templates";
@@ -387,12 +388,6 @@ function getBillingTabClassName(isActive: boolean) {
   return isActive
     ? "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-sm font-black text-white sm:flex-none"
     : "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-black text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 sm:flex-none";
-}
-
-function getTabLinkClassName(isActive: boolean) {
-  return isActive
-    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-black text-white"
-    : "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950";
 }
 
 function getPrimaryProvider(appMetadata: unknown, identityProviders: string[]) {
@@ -1415,6 +1410,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     ? { message: "직원으로 참여한 메뉴판 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다." }
     : null;
   const isStaffOnlyAccount = staffMenuSites.length > 0 && !accessibleMenuSites.some((menuSite) => menuSite.isOwner);
+  const operationalMenuCount = accessibleMenuSites.filter((menuSite) => isStoreOperationsTemplate(menuSite.templateKey)).length;
 
   if (isStaffOnlyAccount && activeTab === "payments") {
     redirect("/mypage?tab=menus");
@@ -2358,6 +2354,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       publicPath,
       qrDownloadUrl,
       templateLabel: site.template_key ? getTemplateDisplayName(site.template_key) : "-",
+      supportsStoreOperations: isStoreOperationsTemplate(site.template_key),
       serviceBadge,
       badges,
       primaryMessage,
@@ -2433,6 +2430,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       title: site.name || "이름 없는 메뉴판",
       publicPath,
       templateLabel: site.templateKey ? getTemplateDisplayName(site.templateKey) : "-",
+      supportsStoreOperations: isStoreOperationsTemplate(site.templateKey),
       roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
       statusLabel: getStatusLabel(site.status),
       updatedAt: site.updatedAt,
@@ -2458,6 +2456,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
   const hasAnyMenuCards = totalMenuCardCount > 0;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
+  const activeNavigationKey: MypageNavigationKey = activeTab;
   function renderCreateMenuButton(extraClassName = "") {
     const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
 
@@ -2560,30 +2559,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               disabledReason: card.actions.editDisabledReason,
               primary: true,
             })}
-            {renderActionButton({
-              label: "테이블 관리",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/tables` : null,
-              enabled: card.actions.canManageTables,
-              disabledReason: card.actions.editDisabledReason,
-            })}
-            {renderActionButton({
-              label: "주문관리",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/orders` : null,
-              enabled: card.actions.canManageOrders,
-              disabledReason: "주문관리 상품이 활성화되지 않았습니다.",
-            })}
-            {renderActionButton({
-              label: "매출 요약",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/sales` : null,
-              enabled: card.actions.canViewSales,
-              disabledReason: "매출 요약 상품이 활성화되지 않았습니다.",
-            })}
-            {renderActionButton({
-              label: "호출관리",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/calls` : null,
-              enabled: card.actions.canManageCalls,
-              disabledReason: "호출관리 상품이 활성화되지 않았습니다.",
-            })}
+            {card.supportsStoreOperations ? renderActionButton({
+              label: "매장 운영",
+              href: card.siteId ? `/mypage/operations?site=${encodeURIComponent(card.siteId)}` : null,
+              enabled: Boolean(card.siteId),
+              disabledReason: card.siteId ? null : "메뉴판 식별자가 없어 운영 화면을 열 수 없습니다.",
+            }) : null}
             {renderActionButton({
               label: "미리보기",
               href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
@@ -2653,36 +2634,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               메뉴 편집
             </Link>
           ) : null}
-          {card.canManageTables ? (
+          {card.supportsStoreOperations ? (
             <Link
-              href={`/mypage/menus/${card.siteId}/tables`}
-              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-800 transition-colors hover:bg-emerald-100"
+              href={`/mypage/operations?site=${encodeURIComponent(card.siteId)}`}
+              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
             >
-              테이블 관리
-            </Link>
-          ) : null}
-          {card.canManageOrders ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/orders`}
-              className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-900 transition-colors hover:bg-amber-100"
-            >
-              주문관리
-            </Link>
-          ) : null}
-          {card.canViewSales ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/sales`}
-              className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-xs font-black text-sky-900 transition-colors hover:bg-sky-100"
-            >
-              매출 요약
-            </Link>
-          ) : null}
-          {card.canManageCalls ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/calls`}
-              className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-black text-rose-900 transition-colors hover:bg-rose-100"
-            >
-              호출관리
+              매장 운영
             </Link>
           ) : null}
           <Link
@@ -2745,72 +2702,20 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           <aside className="space-y-4 lg:sticky lg:top-28">
-            <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <h2 className="break-all text-lg font-black tracking-tight">{user.email}</h2>
-              <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {user.id}</p>
-              {canShowOwnerCommerce ? (
-              <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">AI 도우미 크레딧</p>
-                    <p className="mt-2 text-lg font-black tracking-tight text-zinc-950">
-                      잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")} 크레딧
-                    </p>
-                  </div>
-                </div>
-                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-800/80">
-                  설명 작성, 메뉴 정리, 번역에 사용할 수 있어요.
-                </p>
-                <Link
-                  href="/mypage?tab=payments&billingTab=ai-credits"
-                  className="mt-3 inline-flex text-xs font-black text-emerald-800 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-950"
-                >
-                  AI 충전내역 보기
-                </Link>
-              </div>
-              ) : null}
-              <form action={signOutAction} className="mt-5">
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
-                >
-                  로그아웃
-                </button>
-              </form>
-            </section>
-
-            <nav className="rounded-3xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="마이페이지 메뉴">
-              <Link href="/mypage?tab=menus" className={getTabLinkClassName(activeTab === "menus")}>
-                <span>내 메뉴판</span>
-                <span className={`text-xs ${activeTab === "menus" ? "text-white/60" : "text-zinc-400"}`}>{totalMenuCardCount.toLocaleString("ko-KR")}</span>
-              </Link>
-              <div className="mt-2 space-y-1">
-                {canShowOwnerCommerce ? (
-                <Link href="/mypage?tab=payments" className={getTabLinkClassName(activeTab === "payments")}>
-                  <span>구독/결제 내역</span>
-                </Link>
-                ) : null}
-                {sites.length > 0 ? (
-                <Link href="/mypage/staff" className={getTabLinkClassName(false)}>
-                  <span>직원 관리</span>
-                </Link>
-                ) : null}
-                <Link href="/mypage?tab=inquiries" className={getTabLinkClassName(activeTab === "inquiries")}>
-                  <span>문의 내역</span>
-                </Link>
-                <Link href="/mypage?tab=notifications" className={getTabLinkClassName(activeTab === "notifications")}>
-                  <span>알림 내역</span>
-                  {unreadNotificationCount > 0 ? (
-                    <span className={`text-xs ${activeTab === "notifications" ? "text-white/60" : "text-zinc-400"}`}>
-                      {formatNotificationBadgeCount(unreadNotificationCount)}
-                    </span>
-                  ) : null}
-                </Link>
-                <Link href="/mypage?tab=account" className={getTabLinkClassName(activeTab === "account")}>
-                  <span>계정 정보</span>
-                </Link>
-              </div>
-            </nav>
+            <MypageAccountCard
+              email={user.email ?? "이메일 정보 없음"}
+              userId={user.id}
+              canShowOwnerCommerce={canShowOwnerCommerce}
+              accountAiCreditRemaining={canShowOwnerCommerce ? accountAiCreditRemaining : undefined}
+            />
+            <MypageNavigation
+              active={activeNavigationKey}
+              totalMenuCount={totalMenuCardCount}
+              operationalMenuCount={operationalMenuCount}
+              canShowOwnerCommerce={canShowOwnerCommerce}
+              hasOwnedMenuSites={sites.length > 0}
+              unreadNotificationCount={unreadNotificationCount}
+            />
           </aside>
 
           <div className="min-w-0 space-y-10">
