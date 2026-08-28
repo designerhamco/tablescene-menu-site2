@@ -78,6 +78,9 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
   const menuSites = menuSitesData ?? [];
+  if (!menuSitesError && menuSites.length === 0) {
+    redirect("/mypage?tab=menus&message=staff-management-permission-required");
+  }
   const menuSiteIds = menuSites.map((menuSite) => menuSite.id);
   const invitationResult = menuSiteIds.length > 0
     ? await supabase

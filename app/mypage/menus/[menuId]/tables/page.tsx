@@ -33,6 +33,9 @@ export default async function MenuTableManagementPage({
     if (error instanceof MenuSiteAccessError) {
       if (error.code === "AUTH_REQUIRED") redirect(`/sign-in?next=${encodeURIComponent(`/mypage/menus/${menuId}/tables`)}`);
       if (error.status === 404) notFound();
+      if (error.code === "MENU_SITE_PERMISSION_DENIED") {
+        redirect(`/mypage/operations?site=${encodeURIComponent(menuId)}&message=permission-denied&feature=tables`);
+      }
     }
     if (error instanceof MenuTableManagementError) {
       if (error.code === "INVALID_INPUT") notFound();

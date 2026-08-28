@@ -1120,7 +1120,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   }
 
   if (!hasMenuSitePermission(accessContext, "menu.edit")) {
-    redirect("/mypage?error=menu-edit-forbidden");
+    redirect("/mypage?tab=menus&message=menu-edit-permission-required");
   }
 
   const supabase = createAdminClient();
@@ -1645,7 +1645,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
-  const visibleEditorTabs = configuredEditorTabs.flatMap((item) => {
+  const visibleEditorTabs: Array<(typeof configuredEditorTabs)[number] & { disabledReason?: string }> = configuredEditorTabs.flatMap((item) => {
     if (!isMenuEditorTabEnabled(item.key, editorCapabilities)) {
       return [];
     }
@@ -1663,7 +1663,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     }
 
     if (item.key === "publish" && !canManagePublish) {
-      return [];
+      return [{ ...item, disabledReason: "현재 직원 역할에는 공개 설정 권한이 없습니다." }];
     }
 
     if (item.key === "cover" && coverTabLabel) {
@@ -1672,7 +1672,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
     return [item];
   });
-  const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : visibleEditorTabs[0]?.key ?? "basic";
+  const enabledEditorTabs = visibleEditorTabs.filter((item) => !item.disabledReason);
+  const requestedEditorTab = visibleEditorTabs.find((item) => item.key === requestedActiveTab);
+  const permissionTabNotice = requestedEditorTab?.disabledReason ?? null;
+  const activeTab = enabledEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : enabledEditorTabs[0]?.key ?? "basic";
   const editorShellMaxWidth = "max-w-7xl";
   const bannerMessage = message;
   const bannerError =
@@ -1831,6 +1834,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             직원 권한으로 편집 중입니다. AI는 메뉴판 소유자의 크레딧을 사용하며, 충전과 결제 관리는 소유자만 할 수 있습니다.
           </div>
         )}
+        {permissionTabNotice ? (
+          <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800" role="status">
+            {permissionTabNotice} 권한이 있는 계정으로 전환하거나 사장에게 역할 변경을 요청해 주세요.
+          </div>
+        ) : null}
         {isReadOnly && (
           <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-5">
             <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">{readOnlyMessage}</p>
