@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Bell, ChevronDown, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
-import { KAKAO_CHANNEL_URL } from '../ui/ScrollToTop';
 import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 
@@ -499,6 +498,21 @@ const Navbar = () => {
               </a>
             ) : null}
 
+            {authState.isAuthenticated ? (
+              <a
+                href={NOTIFICATION_FALLBACK_HREF}
+                aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
+                className={`relative inline-flex p-1 transition-opacity lg:hidden ${menuButtonClass}`}
+              >
+                <Bell size={23} strokeWidth={2.1} aria-hidden="true" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black leading-none text-white">
+                    {unreadBadgeLabel}
+                  </span>
+                ) : null}
+              </a>
+            ) : null}
+
             <button
               className={`p-1 transition-opacity lg:hidden ${menuButtonClass}`}
               onClick={() => setIsOpen((currentIsOpen) => !currentIsOpen)}
@@ -545,21 +559,6 @@ const Navbar = () => {
                       className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
                     >
                       매장 운영
-                    </a>
-                  ) : null}
-                  {authState.isAuthenticated ? (
-                    <a
-                      href={NOTIFICATION_FALLBACK_HREF}
-                      onClick={closeMobileMenu}
-                      className="col-span-2 flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
-                    >
-                      <Bell size={17} strokeWidth={2.2} aria-hidden="true" />
-                      알림
-                      {unreadCount > 0 ? (
-                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white">
-                          {unreadBadgeLabel}
-                        </span>
-                      ) : null}
                     </a>
                   ) : null}
                 </div>
@@ -641,15 +640,22 @@ const Navbar = () => {
 
               <div className="mt-auto px-6 py-8">
                 <div className="border-t border-zinc-100 pt-6">
-                  <a
-                    href={KAKAO_CHANNEL_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={closeMobileMenu}
-                    className="mb-5 inline-flex text-xs font-bold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
-                  >
-                    카카오톡 상담
-                  </a>
+                  <div className="mb-5 flex items-center gap-4 text-xs font-bold text-zinc-500">
+                    <a
+                      href="/mypage/inquiries"
+                      onClick={closeMobileMenu}
+                      className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
+                    >
+                      1:1 문의
+                    </a>
+                    <a
+                      href="#"
+                      onClick={closeMobileMenu}
+                      className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
+                    >
+                      채팅상담
+                    </a>
+                  </div>
                   <div className="flex flex-col gap-1 text-xs font-medium tracking-tight text-zinc-400">
                     <p className="mb-1 text-sm font-bold text-zinc-900">ArtiMenu Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
