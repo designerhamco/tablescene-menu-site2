@@ -91,6 +91,7 @@ export default async function StoreOperationsShell({
                 <MypageAccountCard
                   email={user.email ?? "이메일 정보 없음"}
                   userId={user.id}
+                  roleLabel={sites.some((site) => site.isOwner) ? "사장" : sites.length > 0 ? "직원" : null}
                   canShowOwnerCommerce={false}
                 />
               ) : null}
