@@ -297,13 +297,9 @@ const Navbar = () => {
     ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
     : 'border-zinc-700 bg-zinc-950 text-white hover:bg-zinc-800';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
-  const accountCtaLabel = authState.isAuthenticated ? '나의 메뉴판' : '로그인';
+  const accountCtaLabel = authState.isAuthenticated ? 'MY/메뉴판' : '로그인';
   const isOperationsPath = pathname === '/mypage/operations'
     || /^\/mypage\/menus\/[^/]+\/(orders|calls|tables|sales)$/.test(pathname);
-  const isMyMenusPath = pathname === '/mypage' && !isOperationsPath;
-  const accountButtonClass = isMyMenusPath
-    ? 'border-zinc-950 bg-zinc-950 text-white hover:bg-zinc-800'
-    : secondaryButtonClass;
   const operationsButtonClass = isOperationsPath
     ? 'border-zinc-950 bg-zinc-950 text-white hover:bg-zinc-800'
     : secondaryButtonClass;
@@ -489,7 +485,7 @@ const Navbar = () => {
             {!authState.loading ? (
               <a
                 href={accountCtaHref}
-                className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${accountButtonClass}`}
+                className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
               >
                 {accountCtaLabel}
               </a>
