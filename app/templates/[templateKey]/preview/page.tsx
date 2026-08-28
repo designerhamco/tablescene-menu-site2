@@ -502,8 +502,10 @@ function applyActiveTemplateFeatureQaFixture(
   const timeSaleItems = featureItemsByCategory.flatMap((items) => items[2] ? [items[2]] : items[0] ? [items[0]] : []);
   const primaryItemIds = new Set(primaryItems.map((item) => item.id));
   const soldOutItemIds = new Set(soldOutItems.map((item) => item.id));
+  const timeSaleItemIds = new Set(timeSaleItems.map((item) => item.id));
   const featureImageUrl = "/menu-templates/cafe_design_a/malcha.jpg";
   const supportsTimeSale = (
+    templateKey === "display_menu_a" ||
     templateKey === "cafe_design_a" ||
     templateKey === "cafe_mocha_forest_a" ||
     templateKey === "cafe_sunday_line_a" ||
@@ -528,7 +530,10 @@ function applyActiveTemplateFeatureQaFixture(
   });
   const priceOptions = capabilities.priceOptions && primaryItems.length > 0
     ? [
-        ...data.priceOptions.filter((option) => !primaryItemIds.has(option.menu_item_id)),
+        ...data.priceOptions.filter((option) => (
+          !primaryItemIds.has(option.menu_item_id) &&
+          !(templateKey === "display_menu_a" && timeSaleItemIds.has(option.menu_item_id))
+        )),
         ...primaryItems.flatMap((item) => [
           { id: `${item.id}-feature-qa-option-1`, menu_item_id: item.id, label: "HOT", price: 5500, price_label: "5.5", visible: true, sort_order: 1 },
           { id: `${item.id}-feature-qa-option-2`, menu_item_id: item.id, label: "ICE", price: 6000, price_label: "6.0", visible: true, sort_order: 2 },
@@ -546,7 +551,7 @@ function applyActiveTemplateFeatureQaFixture(
         dailyStartTime: null,
         dailyEndTime: null,
         timezone: TIME_SALE_TIMEZONE,
-        timeDisplayMode: DEFAULT_TIME_SALE_DISPLAY_MODE,
+        timeDisplayMode: templateKey === "display_menu_a" ? "message_and_countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE,
         displayText: "출시 기능 확인 세일",
         badgeText: "QA SALE",
         badgeBackgroundColor: DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,

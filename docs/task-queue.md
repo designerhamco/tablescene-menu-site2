@@ -56,6 +56,7 @@
 - `DONE` 한국어·영어·중국어·일본어 QA — 7개 출시 템플릿의 52개 desktop/mobile route, 장문 overflow·이미지·언어 control 확인
 - `DONE` 생성·편집·최종 저장·preview·public QA — 7개 starter final-save round-trip과 동일 fixture preview/public desktop/mobile 비교
 - `DONE` Display 별도 정책 유지 결정
+- `DONE` Display 타임세일 지원 — 다이닝 공통 관리자 편집·저장·번역 계약 재사용, 공개 배지·정상가·할인가·마감 표시, 전체/분할 레이아웃 QA
 
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
