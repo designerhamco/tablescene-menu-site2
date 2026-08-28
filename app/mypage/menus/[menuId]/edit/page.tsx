@@ -40,6 +40,7 @@ import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabAction
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
+import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import type { AiCreditBalance } from "@/lib/ai-credits";
@@ -102,7 +103,7 @@ import {
 } from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
 import {
-  getSwitchableTemplatesForService,
+  getSwitchableTemplatesForTemplate,
   getTemplateCommercialTier,
   getTemplateCommercialTierLabel,
 } from "@/lib/template-switching";
@@ -123,7 +124,6 @@ import {
 import {
   getTemplateEditorLabels,
   getTemplateEditorTabs,
-  getSupportedServices,
   getTemplateType,
   getTemplateTypeLabel,
 } from "@/lib/template-types";
@@ -1386,8 +1386,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const templateType = getTemplateType(site.template_key);
-  const templateService = getSupportedServices(site.template_key)[0] ?? "basic";
-  const switchableTemplates = getSwitchableTemplatesForService(templateService);
+  const switchableTemplates = getSwitchableTemplatesForTemplate(site.template_key);
+  const currentSwitchTemplate = switchableTemplates.find((template) => template.key === site.template_key) ?? null;
   const templateSwitchTargets = switchableTemplates.filter((template) => template.key !== site.template_key);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
@@ -2424,36 +2424,81 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           메뉴·가격·이미지·번역과 공개 주소는 유지됩니다. 할인은 내용을 보존한 채 꺼지고, 위젯은 다시 배치할 수 있게 숨겨집니다.
                         </p>
                       </div>
-                      {accessContext.isOwner && templateSwitchTargets.length > 0 ? (
+                      {accessContext.isOwner ? (
                         <div className="mt-5 space-y-4">
-                          <div>
-                            <FieldLabel>변경할 템플릿</FieldLabel>
-                            <Select name="target_template_key" defaultValue={templateSwitchTargets[0]?.key}>
-                              {templateSwitchTargets.map((template) => (
-                                <option key={template.key} value={template.key}>
-                                  {template.label} · {getTemplateCommercialTierLabel(getTemplateCommercialTier(template.key))}
-                                </option>
-                              ))}
-                            </Select>
-                          </div>
-                          <label className="flex items-start gap-3 rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-600">
-                            <input
-                              type="checkbox"
-                              name="confirm_template_switch"
-                              value="confirmed"
-                              className="mt-1 h-4 w-4 rounded border-zinc-300"
-                            />
-                            <span>
-                              템플릿 변경 후 할인과 위젯을 다시 확인하고, 공개 화면을 미리보기로 검수하겠습니다.
-                            </span>
-                          </label>
-                          <PendingSubmitButton
-                            formAction={switchMenuTemplateAction}
-                            pendingLabel="템플릿 변경 중..."
-                            className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
-                          >
-                            템플릿 변경
-                          </PendingSubmitButton>
+                          {currentSwitchTemplate ? (
+                            <div className="max-w-sm rounded-[1.35rem] border border-zinc-300 bg-white p-3">
+                              <TemplateThumbnail template={currentSwitchTemplate} />
+                              <div className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-black text-zinc-950">{currentSwitchTemplate.label}</p>
+                                  <p className="mt-0.5 text-xs font-bold text-zinc-500">
+                                    {getTemplateCommercialTierLabel(getTemplateCommercialTier(currentSwitchTemplate.key))}
+                                  </p>
+                                </div>
+                                <span className="shrink-0 rounded-full bg-zinc-950 px-3 py-1.5 text-xs font-black text-white">현재 사용 중</span>
+                              </div>
+                            </div>
+                          ) : null}
+                          {templateSwitchTargets.length > 0 ? (
+                            <>
+                              <fieldset>
+                                <legend className="text-sm font-bold text-zinc-800">변경할 템플릿</legend>
+                                <p className="mt-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                                  현재 이용 중인 {getTemplateCommercialTierLabel(getTemplateCommercialTier(site.template_key))} 상품에서 선택할 수 있습니다.
+                                </p>
+                                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                  {templateSwitchTargets.map((template) => (
+                                    <label key={template.key} className="cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="target_template_key"
+                                        value={template.key}
+                                        required
+                                        className="peer sr-only"
+                                      />
+                                      <span className="block rounded-[1.35rem] border border-zinc-200 bg-white p-3 transition peer-checked:border-zinc-950 peer-checked:ring-2 peer-checked:ring-zinc-950 peer-checked:ring-offset-2 peer-checked:[&_.template-switch-check]:border-zinc-950 peer-checked:[&_.template-switch-check]:bg-zinc-950 peer-checked:[&_.template-switch-check]:text-white hover:border-zinc-400">
+                                        <TemplateThumbnail template={template} />
+                                        <span className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
+                                          <span className="min-w-0">
+                                            <span className="block truncate text-sm font-black text-zinc-950">{template.label}</span>
+                                            <span className="mt-0.5 block text-xs font-bold text-zinc-500">
+                                              {getTemplateCommercialTierLabel(getTemplateCommercialTier(template.key))}
+                                            </span>
+                                          </span>
+                                          <span className="template-switch-check grid h-6 w-6 shrink-0 place-items-center rounded-full border border-zinc-300 text-xs font-black text-transparent">
+                                            ✓
+                                          </span>
+                                        </span>
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </fieldset>
+                              <label className="flex items-start gap-3 rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-600">
+                                <input
+                                  type="checkbox"
+                                  name="confirm_template_switch"
+                                  value="confirmed"
+                                  className="mt-1 h-4 w-4 rounded border-zinc-300"
+                                />
+                                <span>
+                                  템플릿 변경 후 할인과 위젯을 다시 확인하고, 공개 화면을 미리보기로 검수하겠습니다.
+                                </span>
+                              </label>
+                              <PendingSubmitButton
+                                formAction={switchMenuTemplateAction}
+                                pendingLabel="템플릿 변경 중..."
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
+                              >
+                                템플릿 변경
+                              </PendingSubmitButton>
+                            </>
+                          ) : (
+                            <p className="break-keep rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-500">
+                              같은 페이지 등급에서 변경할 수 있는 다른 템플릿이 아직 없습니다.
+                            </p>
+                          )}
                         </div>
                       ) : (
                         <div className="mt-5">
@@ -2462,7 +2507,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             value={templateDisplayName}
                             readOnly
                             className="cursor-not-allowed bg-white text-zinc-600 focus:border-zinc-200"
-                            helperText={accessContext.isOwner ? "현재 서비스에서 변경할 수 있는 다른 템플릿이 아직 없습니다." : "템플릿 교체는 메뉴판 소유자만 할 수 있습니다."}
+                            helperText="템플릿 교체는 메뉴판 소유자만 할 수 있습니다."
                           />
                         </div>
                       )}

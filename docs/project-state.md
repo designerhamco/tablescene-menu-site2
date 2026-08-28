@@ -114,6 +114,11 @@
   - 7개 starter의 최종 저장 payload round-trip과 참조 무결성 검증
   - 4개 locale, Basic desktop/mobile과 Display desktop 총 52개 route의 장문·이미지·언어 control 검증
   - 브루 챕터 언어 전환 control과 중국어·일본어 장문 overflow 수정
+- 템플릿 교체 등급 경계:
+  - 단일 페이지는 단일 페이지, 멀티페이지는 멀티페이지 후보만 썸네일 카드로 노출
+  - 서버 action도 교차 등급 전환을 거부하며 메뉴·URL·번역 보존 계약은 유지
+  - 브루 챕터 멀티페이지는 공통 Call Layer를 통해 Order 없이 호출만 활성화 가능
+  - 현재 실제 다이닝 월결제 SKU는 9,900원 하나이므로 신규 가격 연결은 신규 SKU·연결제·기존 고객 승계 작업과 분리
 - 활성 템플릿 기능 stress QA:
   - capability 기반 위젯·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 desktop/mobile 검증
   - Display와 누아 메뉴의 품절 표시 연결
