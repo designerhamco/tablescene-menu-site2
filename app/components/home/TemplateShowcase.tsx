@@ -7,6 +7,7 @@ import {
   DISPLAY_TEMPLATE_CATEGORY_GROUPS,
   getAvailableTemplatesForService,
   getFeaturedTemplatesForBasicPage,
+  getFeaturedTemplatesForDisplayPage,
   getTemplateCategoryKeysForBasicGroup,
   getTemplateCategoryKeysForDisplayGroup,
   type BasicTemplateCategoryGroupKey,
@@ -20,6 +21,7 @@ const firstDisplayCategoryGroupKey = DISPLAY_TEMPLATE_CATEGORY_GROUPS[0].key;
 
 type TemplateShowcaseProps = {
   service?: TemplateServiceKey | 'all';
+  presentation?: 'catalog' | 'marquee';
 };
 
 const serviceTabs = [
@@ -39,7 +41,7 @@ function getShowcaseTemplates(service: TemplateServiceKey): TemplateCatalogItem[
   return getAvailableTemplatesForService(service);
 }
 
-const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
+const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: TemplateShowcaseProps) => {
   const [activeCategory, setActiveCategory] = useState<BasicTemplateCategoryGroupKey | DisplayTemplateCategoryGroupKey>(
     service === 'display' ? firstDisplayCategoryGroupKey : firstBasicCategoryGroupKey
   );
@@ -47,6 +49,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
   const [cardsPerPage, setCardsPerPage] = useState(4);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isHomeShowcase = service === 'all';
+  const isMarqueeShowcase = isHomeShowcase || presentation === 'marquee';
   const selectedService = isHomeShowcase ? 'basic' : service;
   const activeServiceCopy = serviceTabs.find((tab) => tab.key === selectedService) ?? serviceTabs[0];
   const showcaseTemplates = getShowcaseTemplates(selectedService);
@@ -95,8 +98,15 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
     setActivePage(Math.round(carousel.scrollLeft / carousel.clientWidth));
   };
 
-  if (isHomeShowcase) {
-    const marqueeTemplates = [...homeTemplates, ...homeTemplates];
+  if (isMarqueeShowcase) {
+    const featuredTemplates = selectedService === 'display'
+      ? getFeaturedTemplatesForDisplayPage()
+      : homeTemplates;
+    const marqueeTemplates = Array.from(
+      { length: Math.max(2, Math.ceil(8 / Math.max(featuredTemplates.length, 1))) },
+      () => featuredTemplates,
+    ).flat();
+    const isDisplayShowcase = selectedService === 'display';
 
     return (
       <section className="bg-transparent py-28 text-white md:py-36">
@@ -111,9 +121,13 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
             <MarketingSectionCopy
               centered
               inverted
-              eyebrow="디자이너 템플릿"
-              title={<>매장의 분위기를 완성하는<br />아티메뉴 템플릿</>}
-              body="매장 분위기에 맞는 디자인을 선택해 바로 시작할 수 있습니다."
+              eyebrow={isDisplayShowcase ? '대형 화면 전용 템플릿' : '디자이너 템플릿'}
+              title={isDisplayShowcase
+                ? <>매장 화면에 맞춘<br />디스플레이 디자인</>
+                : <>매장의 분위기를 완성하는<br />아티메뉴 템플릿</>}
+              body={isDisplayShowcase
+                ? '멀리서도 메뉴와 가격이 선명한 화면 구성으로 시작할 수 있습니다.'
+                : '매장 분위기에 맞는 디자인을 선택해 바로 시작할 수 있습니다.'}
               className="max-w-xl"
             />
           </motion.div>
@@ -125,7 +139,7 @@ const TemplateShowcase = ({ service = 'all' }: TemplateShowcaseProps) => {
               className="flex w-max gap-4 px-4 md:gap-6"
               animate={{ x: ['0%', '-50%'] }}
               transition={{ duration: 80, ease: 'linear', repeat: Infinity }}
-              aria-label="아티메뉴 다이닝 템플릿 자동 슬라이드"
+              aria-label={`${activeServiceCopy.label} 템플릿 자동 슬라이드`}
             >
               {marqueeTemplates.map((template, index) => (
                 <div key={`${template.key}-${index}`} className="w-[76vw] shrink-0 sm:w-[48vw] lg:w-[30vw] lg:max-w-[420px]">
