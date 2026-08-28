@@ -18,7 +18,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -456,6 +456,7 @@ export type Database = {
       }
       menu_categories: {
         Row: {
+          catalog_category_id: string | null
           created_at: string
           description: string | null
           description_visible: boolean
@@ -469,6 +470,7 @@ export type Database = {
           visible: boolean
         }
         Insert: {
+          catalog_category_id?: string | null
           created_at?: string
           description?: string | null
           description_visible?: boolean
@@ -482,6 +484,7 @@ export type Database = {
           visible?: boolean
         }
         Update: {
+          catalog_category_id?: string | null
           created_at?: string
           description?: string | null
           description_visible?: boolean
@@ -1454,6 +1457,7 @@ export type Database = {
           badge: string | null
           badge_label: string | null
           badge_type: string | null
+          catalog_item_id: string | null
           category_id: string | null
           created_at: string
           description: string | null
@@ -1486,6 +1490,7 @@ export type Database = {
           badge?: string | null
           badge_label?: string | null
           badge_type?: string | null
+          catalog_item_id?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
@@ -1518,6 +1523,7 @@ export type Database = {
           badge?: string | null
           badge_label?: string | null
           badge_type?: string | null
+          catalog_item_id?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
@@ -1973,6 +1979,57 @@ export type Database = {
             foreignKeyName: "menu_site_audit_logs_menu_site_id_fkey"
             columns: ["menu_site_id"]
             isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_site_content_links: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string
+          owner_user_id: string
+          shared_fields_version: number
+          source_menu_site_id: string
+          status: string
+          target_menu_site_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode: string
+          owner_user_id: string
+          shared_fields_version?: number
+          source_menu_site_id: string
+          status: string
+          target_menu_site_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string
+          owner_user_id?: string
+          shared_fields_version?: number
+          source_menu_site_id?: string
+          status?: string
+          target_menu_site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_site_content_links_source_menu_site_id_fkey"
+            columns: ["source_menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_site_content_links_target_menu_site_id_fkey"
+            columns: ["target_menu_site_id"]
+            isOneToOne: true
             referencedRelation: "menu_sites"
             referencedColumns: ["id"]
           },
@@ -3232,6 +3289,10 @@ export type Database = {
           total_used_credits: number
         }[]
       }
+      disconnect_menu_site_content: {
+        Args: { p_target_menu_site_id: string }
+        Returns: boolean
+      }
       expire_personal_trial_unused_grant_credits: {
         Args: { p_menu_site_id: string; p_reason?: string }
         Returns: {
@@ -3292,6 +3353,14 @@ export type Database = {
           transaction_id: string
           used_credits: number
         }[]
+      }
+      import_menu_site_content: {
+        Args: {
+          p_mode: string
+          p_source_menu_site_id: string
+          p_target_menu_site_id: string
+        }
+        Returns: Json
       }
       is_admin: { Args: never; Returns: boolean }
       is_menu_promotion_active_now: {

@@ -1767,6 +1767,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             </div>
             <div className="flex flex-col items-start gap-2 lg:items-end">
               <div className="flex flex-wrap items-center justify-end gap-3">
+                {accessContext.isOwner && site.status === "draft" && !isReadOnly ? (
+                  <Link
+                    href={`/mypage/menus/${site.id}/import`}
+                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                  >
+                    메뉴 가져오기
+                  </Link>
+                ) : null}
                 {canPreview ? (
                   <Link
                     href={previewUrl}
