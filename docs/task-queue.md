@@ -64,7 +64,8 @@
 - `DONE` Owner 전용 가져오기·연결 해제 화면과 원자적 RPC·동일 Owner 동기화 trigger 구현 — Draft PR #51
 - `DONE` 공개·보관 메뉴판 덮어쓰기 차단, explicit confirmation, target advisory lock, 타 계정 전파 차단
 - `DONE` 활성 연결 양쪽 hard delete 차단과 대상 Storage 경로 오소유 방지
-- `NEEDS_HUMAN` 신규 shared-menu migration Production 1회 적용, generated types 재생성, 실제 Owner 계정 E2E
+- `DONE` 신규 shared-menu migration Production 1회 적용과 generated types 재생성 — 2026-08-28 사용자 승인, `docs/runbooks/shared-menu-catalog-migration.md`
+- `NEEDS_HUMAN` 실제 Owner 계정의 안전한 draft 대상에서 독립 복사·연결·연결 해제 E2E — 대상 기존 메뉴가 교체되므로 별도 테스트 draft 지정 필요
 
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
@@ -180,4 +181,4 @@
 
 ## 다음 작업
 
-메뉴판 간 메뉴 가져오기·연결 구현을 검증하고 Draft PR로 준비한다. 신규 migration과 RLS·trigger를 포함하므로 자동 병합·배포하지 않으며, Production 1회 적용과 generated types 재생성은 사람 승인 뒤에 진행한다. QR오더 실제 선결제·지급대행 구현은 계약과 기술 답변 전까지 보류한다.
+메뉴판 간 메뉴 가져오기·연결 구현과 Production migration·generated types 갱신을 완료하고 PR #51의 최종 검증·병합·배포를 진행한다. 실제 Owner E2E는 기존 내용을 교체해도 되는 전용 draft가 지정된 뒤 수행한다. QR오더 실제 선결제·지급대행 구현은 계약과 기술 답변 전까지 보류한다.

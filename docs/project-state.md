@@ -14,9 +14,9 @@
 - 한 번 복사 후 독립 운영과 기존 대응 메뉴의 공통 문구를 양방향 연결하는 두 모드
 - 공개 메뉴판 덮어쓰기 차단, 명시적 확인, 동일 Owner·RLS·advisory lock 경계
 - 메뉴 추가·삭제·페이지·배치·노출·타임세일·위젯·주문 옵션은 메뉴판별 유지
-- 신규 migration은 아직 Production에 적용하지 않았고 generated Supabase types도 변경하지 않음
+- 신규 migration은 2026-08-28 사용자 승인 아래 Production에 1회 적용했고 generated Supabase types를 공식 스크립트로 갱신함
 - 상세 계약: `docs/shared-menu-catalog.md`
-- Draft PR #51, Vercel과 전체 로컬 검증 통과, migration 승인 전 Ready·merge·Production 배포 보류
+- Draft PR #51, Vercel과 전체 로컬 검증 통과, 최종 문서·타입 검증 뒤 Ready·merge 예정
 
 ## 완료된 주요 기능
 
@@ -226,6 +226,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260828040033_add_shared_menu_catalog.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 1회 적용, 기존 링크·catalog 행 0건, RLS·grant·RPC·trigger postcheck와 generated types 갱신 완료. `docs/runbooks/shared-menu-catalog-migration.md`. 다시 실행 금지.
 - `20260806142627_add_call_mvp_foundation.sql` — 2026-08-07 linked Supabase Management API로 1회 적용, RLS·grant·RPC postcheck, security/performance advisor 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806131244_add_submit_postpay_order_rpc.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, function 보안·grant postcheck·advisor 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806124512_add_postpay_order_foundation.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, RLS·grant postcheck 및 generated types 갱신 완료. 다시 실행 금지.

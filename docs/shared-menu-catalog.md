@@ -57,11 +57,11 @@
 
 ## 적용 순서
 
-1. migration을 별도 환경에서 검증한다.
-2. Production 적용 전 read-only precheck와 사람 승인을 받는다.
-3. `20260828040033_add_shared_menu_catalog.sql`을 1회 적용한다.
-4. 테이블·RLS·trigger·RPC grant postcheck를 수행한다.
-5. generated Supabase types를 다시 생성하고 수동 변경이 없는지 확인한다.
-6. Owner 테스트 계정의 기존 원본과 새 draft 대상에서 독립 복사·연결·연결 해제를 각각 1회 QA한다.
+1. migration을 별도 환경에서 검증한다. — 완료
+2. Production 적용 전 read-only precheck와 사람 승인을 받는다. — 2026-08-28 완료
+3. `20260828040033_add_shared_menu_catalog.sql`을 1회 적용한다. — 2026-08-28 완료, 재실행 금지
+4. 테이블·RLS·trigger·RPC grant postcheck를 수행한다. — 완료
+5. generated Supabase types를 다시 생성하고 수동 변경이 없는지 확인한다. — 완료
+6. Owner 테스트 계정의 기존 원본과 새 draft 대상에서 독립 복사·연결·연결 해제를 각각 1회 QA한다. — 교체 가능한 전용 draft 지정 전까지 보류
 
-Production migration 전에는 UI와 서버 action을 배포하지 않는다. RPC가 없는 상태에서 버튼을 노출하면 사용자에게 실패 화면을 제공하게 되므로 migration과 애플리케이션 배포를 같은 승인된 rollout으로 묶는다.
+Production migration과 애플리케이션 배포는 같은 승인된 rollout으로 묶었다. 적용 기록과 사후 검증 결과는 `docs/runbooks/shared-menu-catalog-migration.md`에 남긴다.
