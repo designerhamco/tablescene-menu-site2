@@ -2,8 +2,10 @@ import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { MypageAccountCard } from "@/components/mypage/MypageSidebar";
 import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
+import { createClient } from "@/lib/supabase/server";
 
 export type StoreOperationsSection = "dashboard" | StoreOperationKey;
 
@@ -31,7 +33,7 @@ function getNavigationClassName(active: boolean) {
     : "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950";
 }
 
-export default function StoreOperationsShell({
+export default async function StoreOperationsShell({
   sites,
   selectedSite,
   activeSection,
@@ -42,6 +44,11 @@ export default function StoreOperationsShell({
   activeSection: StoreOperationsSection;
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <>
       <OfficialSiteNavbar />
@@ -78,8 +85,15 @@ export default function StoreOperationsShell({
             </nav>
           ) : null}
 
-          <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
-            <aside className="lg:sticky lg:top-28">
+          <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
+            <aside className="space-y-4 lg:sticky lg:top-28">
+              {user ? (
+                <MypageAccountCard
+                  email={user.email ?? "이메일 정보 없음"}
+                  userId={user.id}
+                  canShowOwnerCommerce={false}
+                />
+              ) : null}
               <div className="rounded-3xl border border-zinc-200 bg-white p-3 shadow-sm">
                 {selectedSite ? (
                   <Link
