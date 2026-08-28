@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { getStarterPreset } from "./menu-starter-presets";
+import { getMaxTimeSalesForTemplate, isBasicTimeSaleTemplate } from "./menu-time-sales";
 import { getTemplateCapabilities, type TemplateMenuCoverMode } from "./template-capabilities";
 import { mergeTypographySettings } from "./template-typography-presets";
 import { getTemplateByKey } from "./templates";
@@ -63,6 +64,8 @@ test("launch template typography defaults and Display-only size control stay exp
   assert.equal(displayCapabilities.itemBadges, true);
   assert.equal(displayCapabilities.priceOptions, true);
   assert.equal(displayCapabilities.menuCover.coverMode, "none");
+  assert.equal(isBasicTimeSaleTemplate("display_menu_a"), true);
+  assert.equal(getMaxTimeSalesForTemplate("display_menu_a"), 1);
   assert.equal(displayTypography.korean_font_key, "pretendard");
   assert.equal(displayTypography.english_font_key, "alata");
 });
