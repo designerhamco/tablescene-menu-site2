@@ -40,7 +40,6 @@ import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabAction
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
-import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import type { AiCreditBalance } from "@/lib/ai-credits";
@@ -822,6 +821,25 @@ function FieldLabel({ children, required = false }: { children: ReactNode; requi
       {children}
       {required && <span className="ml-1 text-red-500">*</span>}
     </label>
+  );
+}
+
+function TemplateSwitchThumbnail({ templateKey, templateName }: { templateKey: string; templateName: string }) {
+  const previewQuery = templateKey === "cafe_brew_chapter_a" ? "?pagePresentation=multi" : "";
+
+  return (
+    <span className="relative block aspect-[4/3] overflow-hidden rounded-[1.1rem] border border-zinc-100 bg-zinc-100">
+      <iframe
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 h-[400%] w-[400%] origin-top-left border-0"
+        loading="lazy"
+        sandbox=""
+        src={`/templates/${templateKey}/preview${previewQuery}`}
+        style={{ transform: "scale(0.25)" }}
+        tabIndex={-1}
+        title={`${templateName} 템플릿 미리보기`}
+      />
+    </span>
   );
 }
 
@@ -2428,7 +2446,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         <div className="mt-5 space-y-4">
                           {currentSwitchTemplate ? (
                             <div className="max-w-sm rounded-[1.35rem] border border-zinc-300 bg-white p-3">
-                              <TemplateThumbnail template={currentSwitchTemplate} />
+                              <TemplateSwitchThumbnail templateKey={currentSwitchTemplate.key} templateName={currentSwitchTemplate.label} />
                               <div className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
                                 <div className="min-w-0">
                                   <p className="truncate text-sm font-black text-zinc-950">{currentSwitchTemplate.label}</p>
@@ -2458,7 +2476,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                                         className="peer sr-only"
                                       />
                                       <span className="block rounded-[1.35rem] border border-zinc-200 bg-white p-3 transition peer-checked:border-zinc-950 peer-checked:ring-2 peer-checked:ring-zinc-950 peer-checked:ring-offset-2 peer-checked:[&_.template-switch-check]:border-zinc-950 peer-checked:[&_.template-switch-check]:bg-zinc-950 peer-checked:[&_.template-switch-check]:text-white hover:border-zinc-400">
-                                        <TemplateThumbnail template={template} />
+                                        <TemplateSwitchThumbnail templateKey={template.key} templateName={template.label} />
                                         <span className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
                                           <span className="min-w-0">
                                             <span className="block truncate text-sm font-black text-zinc-950">{template.label}</span>
