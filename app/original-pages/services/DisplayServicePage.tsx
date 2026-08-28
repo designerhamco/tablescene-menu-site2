@@ -5,14 +5,17 @@ import {
   DisplayHero,
   DisplayLinkSection,
   DisplayPurposeSection,
-  DisplaySetupSection,
   ExistingScreenSection,
   LiveUpdateSection,
   ReadabilitySection,
   ScreenFitSection,
 } from '@/app/components/display/DisplayProductStory';
+import {
+  AiFeaturesSection,
+  ResourceCtaSection,
+  StoreScenesSection,
+} from '@/app/components/home/HomeProductStory';
 import TemplateShowcase from '@/app/components/home/TemplateShowcase';
-import ServicePricingSection from '@/app/components/pricing/ServicePricingSection';
 
 export const displayFaqData: FAQCategory[] = [
   {
@@ -149,8 +152,9 @@ const DisplayServicePage = () => {
       </div>
 
       <div className="relative -mt-10 overflow-hidden rounded-t-[2rem] bg-white md:-mt-16 md:rounded-t-[3rem]">
-        <DisplaySetupSection />
-        <ServicePricingSection service="display" />
+        <AiFeaturesSection service="display" />
+        <StoreScenesSection service="display" />
+        <ResourceCtaSection service="display" />
       </div>
     </div>
   );
