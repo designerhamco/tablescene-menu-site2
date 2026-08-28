@@ -1,8 +1,10 @@
+import { getTenPercentDiscountedAnnualPrice } from "@/lib/annual-pricing";
+
 export const displayPricing = {
   regularMonthly: 19_900,
   monthly: 14_900,
   regularYearly: 238_800,
-  yearly: 160_920,
+  yearly: getTenPercentDiscountedAnnualPrice(14_900),
 } as const;
 
 export const legacyDisplayPricing = {

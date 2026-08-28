@@ -1,4 +1,5 @@
 import { displayPricing } from "@/lib/display-pricing";
+import { getTenPercentDiscountedAnnualPrice } from "@/lib/annual-pricing";
 import { isValidTemplateKey, type TemplateCategoryKey, type TemplateKey } from "@/lib/templates";
 import type { AppliedPromotionSnapshot } from "@/lib/promotions";
 import type { SocialLinkInput } from "@/lib/social-links";
@@ -81,7 +82,7 @@ export const businessBasicYearlyProduct = {
   payment_type: "subscription",
   billing_cycle: "yearly",
   regular_amount: 106800,
-  amount: 63720,
+  amount: getTenPercentDiscountedAnnualPrice(5900),
   discount_rate: 40,
   duration_months: null,
   currency: "KRW",
@@ -121,7 +122,7 @@ export const businessBasicMultiYearlyProduct = {
   payment_type: "subscription",
   billing_cycle: "yearly",
   regular_amount: 154800,
-  amount: 106920,
+  amount: getTenPercentDiscountedAnnualPrice(9900),
   discount_rate: 31,
   duration_months: null,
   currency: "KRW",

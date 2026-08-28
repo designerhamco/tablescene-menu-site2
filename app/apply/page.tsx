@@ -15,7 +15,7 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   {
     title: "아티메뉴 다이닝",
     description: "단일페이지와 멀티페이지 상품을 나눠 선택하고 같은 유형의 템플릿을 자유롭게 교체할 수 있습니다.",
-    price: "단일 월 5,900원·연 63,720원 / 멀티 월 9,900원·연 106,920원",
+    price: "단일 월 5,900원·연 63,700원 / 멀티 월 9,900원·연 106,900원",
     note: "한 계정에서 여러 메뉴판을 관리할 수 있으며, 추가 메뉴판은 별도로 구매해야 합니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.",
     type: "웹 메뉴판",
     cta: "베이직 만들기",
@@ -25,7 +25,7 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   {
     title: "아티메뉴 디스플레이",
     description: "사업자 전용 디스플레이 메뉴보드입니다. 신규 Display 구독 1건당 Display 메뉴판 1개가 제공됩니다.",
-    price: "오픈 할인 월 14,900원 / 연 160,920원",
+    price: "오픈 할인 월 14,900원 / 연 160,900원",
     note: displayCheckoutQaEnabled
       ? "TV/모니터용 디지털 메뉴보드를 사업자 전용 정기결제로 신청할 수 있습니다."
       : "아티메뉴 디스플레이 전용 템플릿 준비 전까지 결제할 수 없습니다.",

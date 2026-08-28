@@ -17,10 +17,10 @@ test("디스플레이 이미지·동영상 템플릿은 하나의 통합 가격�
     regularMonthly: 19_900,
     monthly: 14_900,
     regularYearly: 238_800,
-    yearly: 160_920,
+    yearly: 160_900,
   });
   assert.equal(displayPricing.regularYearly, displayPricing.regularMonthly * 12);
-  assert.equal(displayPricing.yearly, displayPricing.monthly * 12 * 0.9);
+  assert.equal(displayPricing.yearly, 160_900);
   assert.equal(businessDisplayMonthlyProduct.amount, displayPricing.monthly);
   assert.equal(businessDisplayYearlyProduct.amount, displayPricing.yearly);
   assert.equal(
