@@ -4,15 +4,15 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `6ce2396` (`PR #59` 병합)
+기준 커밋: `8d2bd5d` (`PR #61` 병합)
 
-현재 작업 브랜치: `codex/ai-welcome-credit-policy`
+현재 작업 브랜치: `tablescene-next`
 
 ## 현재 작업
 
-- 계정 첫 메뉴판 생성 완료 시 AI 웰컴 크레딧 6개 평생 1회 정책
-- 추가 메뉴판·신규 구독·재구독·갱신 재지급 제거, 기존 잔액 불변
-- 신규 DB migration을 2026-08-28 승인 아래 Production 1회 적용하고 postcheck·generated types 갱신 완료
+- 매장별 호출 항목 6개 기본값과 이름·순서·사용 여부 관리
+- 호출 접수 당시 항목 key·label snapshot과 기존 dedupe·rate limit 유지
+- 신규 DB migration을 2026-08-28 승인 아래 Production 1회 적용하고 보안 postcheck·generated types 갱신 완료
 
 ## 완료된 주요 기능
 
@@ -234,6 +234,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260828143000_add_store_call_items.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재 precheck, RLS·grant·RPC·호출 집계 postcheck와 generated types 갱신 완료. `docs/runbooks/store-call-items-migration.md`. 다시 실행 금지.
 - `20260828083457_grant_first_menu_welcome_credits.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 AI 잔액·거래 집계 불변, 함수 보안·grant·부분 unique index postcheck와 generated types 갱신 완료. `docs/runbooks/ai-first-menu-welcome-credit-migration.md`. 다시 실행 금지.
 - `20260828040033_add_shared_menu_catalog.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 1회 적용, 기존 링크·catalog 행 0건, RLS·grant·RPC·trigger postcheck와 generated types 갱신 완료. `docs/runbooks/shared-menu-catalog-migration.md`. 다시 실행 금지.
 - `20260806142627_add_call_mvp_foundation.sql` — 2026-08-07 linked Supabase Management API로 1회 적용, RLS·grant·RPC postcheck, security/performance advisor 및 generated types 갱신 완료. 다시 실행 금지.
