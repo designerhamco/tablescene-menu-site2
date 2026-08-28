@@ -9,7 +9,12 @@ import {
 } from "@/lib/server/mocha-forest-checkout-qa";
 import { createClient } from "@/lib/supabase/server";
 import { getAvailableTemplatesForService } from "@/lib/templates";
-import type { BasicProductKey } from "@/lib/payments";
+import { businessBasicMonthlyProduct, type BasicProductKey } from "@/lib/payments";
+import {
+  formatBusinessFreeTrialFirstBillingDate,
+  getBusinessFreeTrialPeriod,
+} from "@/lib/business-free-trial";
+import { getBusinessFreeTrialEligibility } from "@/lib/server/business-free-trial-eligibility";
 import { redirect } from "next/navigation";
 
 type PaidApplyService = "menu" | "screen" | "order";
@@ -25,7 +30,7 @@ const PAID_APPLY_COPY: Record<
   menu: {
     title: "아티메뉴 다이닝 신청/결제",
     description:
-      "개인 1개월 체험 또는 단일·멀티페이지 월결제/연결제 중 이용 방식을 선택해 아티메뉴 다이닝 메뉴판을 신청합니다.",
+      "단일·멀티페이지 월결제/연결제 중 이용 방식을 선택해 아티메뉴 다이닝 메뉴판을 신청합니다.",
     note:
       "신규 구매 또는 신규 구독 1건당 다이닝 메뉴판 1개가 제공됩니다. 추가 메뉴판은 별도로 구매하며, 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.",
   },
@@ -79,6 +84,21 @@ export default async function PaidApplyPage({
     : serviceType === "menu"
       ? getCheckoutTemplatesWithMochaForestQa(availableTemplates, templateServiceType)
       : availableTemplates;
+  let singleMonthlyFreeTrialAvailable = false;
+
+  if (serviceType === "menu") {
+    try {
+      const eligibility = await getBusinessFreeTrialEligibility(user.id);
+      singleMonthlyFreeTrialAvailable = eligibility.eligible;
+    } catch (error) {
+      console.error("[paid-apply] free trial eligibility check failed", {
+        userId: user.id,
+        message: error instanceof Error ? error.message : "unknown",
+      });
+    }
+  }
+
+  const freeTrialPeriod = getBusinessFreeTrialPeriod();
 
   return (
     <>
@@ -111,6 +131,9 @@ export default async function PaidApplyPage({
             serviceType={serviceType}
             displayCheckoutQaEnabled={displayCheckoutQaEnabled}
             initialBasicProductKey={initialBasicProductKey}
+            singleMonthlyFreeTrialAvailable={singleMonthlyFreeTrialAvailable}
+            singleMonthlyFreeTrialFirstBillingDate={formatBusinessFreeTrialFirstBillingDate(freeTrialPeriod.endsAt)}
+            singleMonthlyFreeTrialProductKey={businessBasicMonthlyProduct.product_key}
             initialRecoverPaymentId={initialRecoverPaymentId}
             initialRecoverSubscriptionId={initialRecoverSubscriptionId}
           />

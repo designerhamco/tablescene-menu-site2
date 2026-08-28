@@ -607,9 +607,20 @@ function getSubscriptionStatusLabel(status: string | null | undefined) {
   return status ? labels[status] ?? status : "상태 확인 필요";
 }
 
+function isActiveBusinessFreeTrial(subscription: BusinessSubscription | null | undefined) {
+  return Boolean(
+    subscription?.status === "active"
+      && subscription.product_key === "business_basic_single_monthly"
+      && !subscription.last_paid_at
+      && !subscription.portone_payment_id
+      && subscription.next_billing_at,
+  );
+}
+
 function getBusinessSubscriptionCardStatusLabel(subscription: BusinessSubscription | null | undefined, fallbackStatus: string | null | undefined) {
   if (isActiveCancelScheduledSubscription(subscription)) return "해지 예약";
   if (subscription?.cancel_at_period_end) return "해지 종료";
+  if (isActiveBusinessFreeTrial(subscription)) return "무료체험 중";
   return getSubscriptionStatusLabel(subscription?.status ?? fallbackStatus);
 }
 
@@ -2302,8 +2313,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       metaItems.push({ label: "결제방식", value: "체험 결제" });
       metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
+      const isFreeTrial = isActiveBusinessFreeTrial(activeBusinessSubscription);
       primaryMessage = isCancelScheduledActive
         ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."
+        : isFreeTrial
+          ? "30일 무료체험으로 이용 중입니다. 종료일에 첫 월결제가 진행됩니다."
         : site.status === "published"
           ? "현재 손님에게 공개 중입니다."
           : site.status === "draft"
@@ -2312,7 +2326,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       if (cancelAtPeriodEnd && periodEnd) {
         metaItems.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
       } else if (activeBusinessSubscription.next_billing_at) {
-        metaItems.push({ label: "다음 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
+        metaItems.push({ label: isFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
       } else if (periodEnd) {
         metaItems.push({ label: "이용 기간 종료일", value: formatDate(periodEnd) });
       } else {
@@ -2928,6 +2942,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const latestPayment = getLatestPaymentForService({ menuSiteId: menuSite?.id, productKey });
                         const latestPaymentStatus = latestPayment?.payment.status ?? null;
                         const isBusinessSubscription = Boolean(subscription?.id && !isPersonalTrial);
+                        const isBusinessFreeTrial = isActiveBusinessFreeTrial(subscription);
                         const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle);
                         const paymentDetailAmount = latestPayment?.payment.amount ?? amount;
                         const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
@@ -2971,12 +2986,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "체험 결제" : getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-black text-zinc-400">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일"}</dt>
+                                    <dt className="text-xs font-black text-zinc-400">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : isBusinessFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"}</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{formatDate(isPersonalTrial ? entitlement?.access_expires_at ?? null : cancelAtPeriodEnd ? periodEnd : subscription?.next_billing_at ?? null)}</dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">최근 결제일</dt>
-                                    <dd className="mt-1 font-bold text-zinc-900">{formatDate(latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? null)}</dd>
+                                    <dd className="mt-1 font-bold text-zinc-900">{isBusinessFreeTrial ? "첫 결제 전" : formatDate(latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? null)}</dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">결제수단 / PG</dt>
@@ -2986,6 +3001,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                 {isPersonalTrial ? (
                                   <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">
                                     체험 종료 전 사업자 플랜으로 전환하면 현재 메뉴판을 이어서 사용할 수 있습니다.
+                                  </p>
+                                ) : null}
+                                {isBusinessFreeTrial ? (
+                                  <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                                    결제수단이 등록되어 있습니다. 체험 종료 전 해지하면 첫 결제 없이 종료일까지 이용할 수 있습니다.
                                   </p>
                                 ) : null}
                                 {isBusinessSubscription ? (
@@ -3017,17 +3037,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     refundConfirmEnabled={yearlyRefundConfirmEnabled}
                                   />
                                 ) : null}
-                                <PaymentDetailModal
-                                  productName={paymentDetailProductName}
-                                  statusLabel={getPaymentStatusLabel(latestPaymentStatus)}
-                                  statusTone={getPaymentStatusTone(latestPaymentStatus)}
-                                  paidAtLabel={formatDateTime(paymentDetailDate)}
-                                  amountLabel={typeof paymentDetailAmount === "number" ? formatKrw(paymentDetailAmount) : "-"}
-                                  pgLabel={paymentDetailPgLabel}
-                                  paymentIdLabel={paymentDetailId || "결제번호 확인 필요"}
-                                  receiptUrl={paymentDetailReceiptUrl}
-                                  menuName={menuSite?.name ?? null}
-                                />
+                                {latestPayment ? (
+                                  <PaymentDetailModal
+                                    productName={paymentDetailProductName}
+                                    statusLabel={getPaymentStatusLabel(latestPaymentStatus)}
+                                    statusTone={getPaymentStatusTone(latestPaymentStatus)}
+                                    paidAtLabel={formatDateTime(paymentDetailDate)}
+                                    amountLabel={typeof paymentDetailAmount === "number" ? formatKrw(paymentDetailAmount) : "-"}
+                                    pgLabel={paymentDetailPgLabel}
+                                    paymentIdLabel={paymentDetailId || "결제번호 확인 필요"}
+                                    receiptUrl={paymentDetailReceiptUrl}
+                                    menuName={menuSite?.name ?? null}
+                                  />
+                                ) : null}
                                 {menuSite?.id ? (
                                   <Link href={`/mypage/menus/${menuSite.id}/edit`} className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
                                     연결 메뉴판 보기

@@ -157,7 +157,6 @@ export const legacyBusinessBasicYearlyProduct = {
 } as const;
 
 export const basicPaymentProducts = [
-  personalTrialBasicProduct,
   businessBasicMonthlyProduct,
   businessBasicYearlyProduct,
   businessBasicMultiMonthlyProduct,
@@ -212,6 +211,7 @@ export const displayPaymentProducts = [
 export type DisplayPaymentProduct = (typeof displayPaymentProducts)[number];
 
 export const paidApplyPaymentProducts = [
+  personalTrialBasicProduct,
   ...basicPaymentProducts,
   legacyBusinessBasicMonthlyProduct,
   legacyBusinessBasicYearlyProduct,

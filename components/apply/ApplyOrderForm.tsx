@@ -14,6 +14,7 @@ import { DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX } from "@/lib/display-checkout-
 import { openDiscountPolicy } from "@/lib/promotion-policy";
 import {
   basicPaymentProducts,
+  businessBasicMonthlyProduct,
   businessDisplayMonthlyProduct,
   businessDisplayYearlyProduct,
   canIndividualPurchasePlan,
@@ -87,6 +88,9 @@ type ApplyOrderFormProps = {
   serviceType?: "menu" | "screen" | "order";
   displayCheckoutQaEnabled?: boolean;
   initialBasicProductKey?: BasicProductKey;
+  singleMonthlyFreeTrialAvailable?: boolean;
+  singleMonthlyFreeTrialFirstBillingDate?: string;
+  singleMonthlyFreeTrialProductKey?: BasicProductKey;
   initialRecoverPaymentId?: string;
   initialRecoverSubscriptionId?: string;
 };
@@ -295,16 +299,16 @@ const agreementLabels: Record<AgreementKey, string> = {
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 아티메뉴는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 아티메뉴 다이닝은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[개인 체험 1개월] 개인 체험은 사업자 인증 없이 아티메뉴 다이닝 템플릿 메뉴판을 1개월 동안 사용할 수 있는 단건 결제 상품입니다. 자동결제는 제공되지 않습니다.",
     "[사업자 정식 이용] 아티메뉴 다이닝 월결제/연결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. 신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공되며, 추가 메뉴판은 별도로 구매해야 합니다.",
     "[정기 결제 갱신] 월간 또는 연간 정기 결제가 갱신되면 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.",
+    "[30일 무료체험] 계정당 최초 1회 단일페이지 월결제에 한해 결제수단을 등록하면 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시점에 월 5,900원이 처음 자동결제됩니다.",
+    "[무료체험 해지] 무료체험 종료 전 언제든 해지를 예약할 수 있습니다. 중도 해지해도 30일 종료일까지 이용할 수 있으며, 종료 시점의 첫 결제는 실행되지 않습니다.",
     "[서비스 안내] 아티메뉴 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 아티메뉴 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
     "[서비스 이용 시작] 결제가 완료되고 메뉴판이 생성되면 서비스 이용이 시작된 것으로 봅니다. 생성된 메뉴판은 마이페이지에서 확인하고 편집할 수 있습니다.",
     "[메뉴판 주소] 사용자가 입력한 희망 메뉴판 주소는 중복 여부, 정책 위반 여부, 기술적 제한 등에 따라 사용할 수 없을 수 있습니다. 회사는 부적절하거나 오해를 유발하거나 제3자의 권리를 침해할 우려가 있는 주소 사용을 제한할 수 있습니다.",
     "[서비스 제공 범위] 회사는 서비스 안정성, 보안, 운영 정책, 기술적 사유에 따라 일부 기능을 변경, 중단, 제한할 수 있습니다.",
-    "[정식 이용 전환] 개인 체험을 계속 이용하려면 체험 기간 안에 사업자 인증 후 정식 플랜으로 전환해야 합니다.",
     "[결제 및 환불] 결제 후 메뉴판 생성이 완료되면 서비스 이용이 시작된 것으로 봅니다. 단순 변심, 잘못된 정보 입력, 사용자의 편집 실수, 이미지 또는 콘텐츠 등록 오류로 인한 환불은 제한될 수 있습니다. 결제 오류, 중복 결제, 서비스 제공 불가 등 회사 귀책 사유가 확인되는 경우 별도 기준에 따라 환불 또는 조치할 수 있습니다.",
-    "[이용 종료 후 데이터] 개인 체험 이용 기간이 종료되면 메뉴판은 비공개 처리됩니다. 종료 후 30일 동안 복구 가능 상태로 보관되며, 30일이 지나면 메뉴판 데이터와 업로드 이미지는 삭제 또는 삭제 예정 처리될 수 있습니다.",
+    "[이용 종료 후 데이터] 무료체험 또는 유료 구독 이용기간이 종료되면 메뉴판은 비공개 처리됩니다. 종료 후 보관 정책에 따라 복구 가능 상태로 보관되며, 보관 기간이 지나면 메뉴판 데이터와 업로드 이미지는 삭제 또는 삭제 예정 처리될 수 있습니다.",
     "[자료 백업 안내] 삭제된 메뉴판 데이터, 메뉴 이미지, 설정 정보는 복구할 수 없으므로 해지 전 필요한 자료를 반드시 백업해주세요.",
     "[회사 제공 콘텐츠의 권리] 아티메뉴 서비스, 소프트웨어, 코드, 관리자 화면, 공개 메뉴판 템플릿, 디자인, 레이아웃, 로고, 상표, starter preset, 공용 placeholder 이미지 등 회사가 제공하는 콘텐츠와 구성 요소에 대한 권리는 회사 또는 정당한 권리자에게 있습니다. 회원은 이를 아티메뉴 서비스 이용 범위 내에서만 사용할 수 있습니다.",
     "[회원 콘텐츠의 권리] 회원이 입력하거나 업로드한 매장 정보, 메뉴명, 설명, 가격, 소개 문구, 이벤트 문구, SNS 정보, 이미지 등 콘텐츠의 권리는 회원 또는 해당 콘텐츠의 정당한 권리자에게 귀속되며 회사는 소유권을 취득하지 않습니다.",
@@ -320,7 +324,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
     "동의를 거부할 경우 유료서비스 신청, 메뉴판 생성, 결제 및 정기구독 이용이 제한될 수 있습니다.",
   ],
   contentPolicy: [
-    "결제 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용 등 유료서비스 제공이 시작됩니다.",
+    "결제 완료 또는 30일 무료체험의 결제수단 등록 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용이 시작됩니다.",
     "계정의 첫 메뉴판 생성이 완료되면 AI 웰컴 크레딧 6개가 계정당 1회 지급됩니다. 추가 메뉴판, 재구독, 결제 갱신으로는 추가 지급되지 않습니다.",
     "월결제 또는 연결제 상품은 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 선택한 결제 주기에 따라 자동 결제됩니다.",
     "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
@@ -388,26 +392,21 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    bullets: ["단일페이지 템플릿", "체험 결제", "정기결제 전환 없음", "계정당 웰컴 크레딧 6개 1회"],
-    helperText: "체험 종료 후 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
-  },
-  {
-    product: basicPaymentProducts[1],
     bullets: ["단일페이지 템플릿", "사업자 인증 필요", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
-    product: basicPaymentProducts[2],
+    product: basicPaymentProducts[1],
     bullets: ["단일페이지 템플릿", "사업자 인증 필요", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
-    product: basicPaymentProducts[3],
+    product: basicPaymentProducts[2],
     bullets: ["멀티페이지 템플릿", "사업자 인증 필요", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
-    product: basicPaymentProducts[4],
+    product: basicPaymentProducts[3],
     bullets: ["멀티페이지 템플릿", "사업자 인증 필요", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
@@ -912,7 +911,10 @@ export default function ApplyOrderForm({
   mochaForestCheckoutSafeMockEnabled = false,
   serviceType = "menu",
   displayCheckoutQaEnabled = false,
-  initialBasicProductKey = personalTrialBasicProduct.product_key,
+  initialBasicProductKey = businessBasicMonthlyProduct.product_key,
+  singleMonthlyFreeTrialAvailable = false,
+  singleMonthlyFreeTrialFirstBillingDate = "",
+  singleMonthlyFreeTrialProductKey = businessBasicMonthlyProduct.product_key,
   initialRecoverPaymentId = "",
   initialRecoverSubscriptionId = "",
 }: ApplyOrderFormProps) {
@@ -931,12 +933,12 @@ export default function ApplyOrderForm({
   const firstMenuTemplateGroup = BASIC_TEMPLATE_CATEGORY_GROUPS[0].key;
   const firstTemplate = serviceTemplates.find((template) => template.template_category === firstCategory) ?? serviceTemplates[0] ?? templates[0];
   const firstDisplayTemplateGroup = getDisplayTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
-  const initialBasicProduct = getBasicPaymentProduct(initialBasicProductKey) ?? personalTrialBasicProduct;
+  const initialBasicProduct = getBasicPaymentProduct(initialBasicProductKey) ?? businessBasicMonthlyProduct;
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(initialBasicProduct.product_key);
   const [selectedDisplayProductKey, setSelectedDisplayProductKey] = useState<PaymentProductKey>(businessDisplayMonthlyProduct.product_key);
   const activeProduct = useMemo<PaidApplyProduct>(() => {
     if (isMenuService) {
-      return getBasicPaymentProduct(selectedBasicProductKey) ?? personalTrialBasicProduct;
+      return getBasicPaymentProduct(selectedBasicProductKey) ?? businessBasicMonthlyProduct;
     }
     if (isScreenService && displayCheckoutQaEnabled) {
       return displayPaymentProducts.find((product) => product.product_key === selectedDisplayProductKey)
@@ -944,6 +946,10 @@ export default function ApplyOrderForm({
     }
     return serviceProducts[serviceType];
   }, [displayCheckoutQaEnabled, isMenuService, isScreenService, selectedBasicProductKey, selectedDisplayProductKey, serviceType]);
+  const shouldStartFreeTrial =
+    isMenuService &&
+    singleMonthlyFreeTrialAvailable &&
+    activeProduct.product_key === singleMonthlyFreeTrialProductKey;
   const activeDiningTier = isMenuService ? getDiningProductTier(activeProduct.product_key) : null;
   const eligibleServiceTemplates = useMemo(
     () => isMenuService
@@ -1244,7 +1250,9 @@ export default function ApplyOrderForm({
       ? "사업자 정보를 확인하고 있습니다. 확인이 끝날 때까지 기다려주세요."
       : hasVerifiedBusinessProfile
         ? isSubscriptionProduct
-          ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 첫 결제를 진행합니다."
+          ? shouldStartFreeTrial
+            ? `사업자 인증이 완료되었습니다. 결제수단 등록 후 30일 무료체험이 시작되며 ${singleMonthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다.`
+            : "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 첫 결제를 진행합니다."
           : "사업자 인증이 완료되었습니다. 결제를 진행합니다."
         : businessVerificationState.type === "failed"
           ? "사업자 정보가 확인되지 않았습니다. 입력 정보를 다시 확인해주세요."
@@ -1376,9 +1384,7 @@ export default function ApplyOrderForm({
     }));
     setBusinessVerificationState({
       type: "idle",
-      message: product.requires_business_verification
-        ? "사업자 월결제/연결제는 국세청 사업자 인증 성공 후 자동결제를 진행합니다."
-        : "개인 체험은 사업자 인증 없이 1개월 동안 사용할 수 있습니다.",
+      message: "사업자 월결제/연결제는 국세청 사업자 인증 성공 후 자동결제를 진행합니다.",
     });
   }
 
@@ -1634,6 +1640,7 @@ export default function ApplyOrderForm({
       purchaseAttemptId,
       productKey: activeProduct.product_key,
       billingCycle: activeProduct.billing_cycle,
+      startWithFreeTrial: shouldStartFreeTrial,
       order: payload,
     };
     let response = await fetch("/api/business-subscriptions/start", {
@@ -1646,6 +1653,7 @@ export default function ApplyOrderForm({
     let result = (await response.json()) as BusinessSubscriptionResponse;
     const canRecoverExistingAttempt =
       !response.ok &&
+      !shouldStartFreeTrial &&
       ["PURCHASE_ATTEMPT_INCOMPLETE", "PURCHASE_ATTEMPT_REQUIRES_RECOVERY"].includes(result.debugCode ?? "");
 
     if (canRecoverExistingAttempt) {
@@ -1934,6 +1942,8 @@ export default function ApplyOrderForm({
             promotion_discount_amount: activePromotion?.discountAmount,
             promotion_original_amount: activePromotion?.originalAmount,
             promotion_final_amount: activePromotion?.finalAmount,
+            free_trial_days: shouldStartFreeTrial ? 30 : undefined,
+            first_billing_date: shouldStartFreeTrial ? singleMonthlyFreeTrialFirstBillingDate : undefined,
             terms_accepted: agreements.terms,
             privacy_accepted: agreements.privacy,
             content_policy_accepted: agreements.contentPolicy,
@@ -1952,7 +1962,12 @@ export default function ApplyOrderForm({
           throw new Error("빌링키 발급 결과를 확인하지 못했습니다.");
         }
 
-        setUiState({ type: "loading", message: "빌링키로 첫 결제를 요청하고 있습니다." });
+        setUiState({
+          type: "loading",
+          message: shouldStartFreeTrial
+            ? "결제수단을 연결하고 30일 무료체험을 시작하고 있습니다."
+            : "빌링키로 첫 결제를 요청하고 있습니다.",
+        });
 
         const result = await startBusinessSubscription(billingKey, purchaseAttemptId);
 
@@ -2124,7 +2139,9 @@ export default function ApplyOrderForm({
   const activeAgreementLabels = activeProduct.product_key === personalTrialBasicProduct.product_key ? personalTrialAgreementLabels : agreementLabels;
   const activeAgreementDetails = activeProduct.product_key === personalTrialBasicProduct.product_key ? personalTrialAgreementDetails : agreementDetails;
   const allAgreementsChecked = Object.values(agreements).every(Boolean);
-  const nextBillingLabel = activeProduct.billing_cycle === "monthly"
+  const nextBillingLabel = shouldStartFreeTrial
+    ? singleMonthlyFreeTrialFirstBillingDate
+    : activeProduct.billing_cycle === "monthly"
     ? "결제 완료일로부터 1개월 후"
     : activeProduct.billing_cycle === "yearly"
       ? "결제 완료일로부터 1년 후"
@@ -2142,7 +2159,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                개인 체험과 단일페이지·멀티페이지 상품 중 이용 방식을 선택하세요. 선택한 상품과 같은 페이지 유형의 템플릿만 표시됩니다.
+                단일페이지·멀티페이지 상품 중 이용 방식을 선택하세요. 선택한 상품과 같은 페이지 유형의 템플릿만 표시됩니다.
                 신규 구매 또는 신규 구독 1건당 다이닝 메뉴판 1개가 제공됩니다.
               </p>
               <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
@@ -2151,9 +2168,11 @@ export default function ApplyOrderForm({
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                 ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
               </p>
-              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                체험 종료 후 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.
-              </p>
+              {singleMonthlyFreeTrialAvailable ? (
+                <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                  단일페이지 월결제는 결제수단 등록 후 30일간 무료입니다. {singleMonthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않으며, 중도 해지해도 체험 종료일까지 이용할 수 있습니다.
+                </p>
+              ) : null}
             </div>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {basicProductCards.map(({ product, bullets, helperText }) => {
@@ -2175,7 +2194,7 @@ export default function ApplyOrderForm({
                         <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                        {isSelected ? "선택됨" : product.payment_type === "one_time" ? "단건" : product.billing_cycle === "yearly" ? "연 자동결제" : "자동결제"}
+                        {isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
@@ -2184,17 +2203,18 @@ export default function ApplyOrderForm({
                         {formatKrw(product.regular_amount)}
                       </p>
                       <p className="mt-1 text-2xl font-black">
-                        {product.product_key === personalTrialBasicProduct.product_key
-                          ? `첫 달 체험가 ${formatKrw(product.amount)}`
-                          : `${formatKrw(product.amount)} / ${product.billing_cycle === "monthly" ? "월" : "년"}`}
+                        {`${formatKrw(product.amount)} / ${product.billing_cycle === "monthly" ? "월" : "년"}`}
                       </p>
                       <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
-                        {product.product_key === personalTrialBasicProduct.product_key
-                          ? "정가 13,200원 · 오픈할인 50%"
-                          : product.billing_cycle === "monthly"
+                        {product.billing_cycle === "monthly"
                             ? `정가 ${formatKrw(product.regular_amount)} · 오픈할인 ${product.discount_rate}%`
                             : `연 정가 ${formatKrw(product.regular_amount)} · 월 할인가 12개월 합계에서 10% 추가 할인`}
                       </p>
+                      {singleMonthlyFreeTrialAvailable && product.product_key === singleMonthlyFreeTrialProductKey ? (
+                        <p className={`mt-2 break-keep text-xs font-black leading-relaxed ${isSelected ? "text-emerald-300" : "text-emerald-700"}`}>
+                          첫 30일 0원 · 결제수단 등록 필수 · {singleMonthlyFreeTrialFirstBillingDate} 첫 결제
+                        </p>
+                      ) : null}
                     </div>
                     <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
                       {bullets.map((bullet) => (
@@ -2818,7 +2838,12 @@ export default function ApplyOrderForm({
                 </dd>
               </div>
             ) : null}
-            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activePromotion ? (
+            {shouldStartFreeTrial ? (
+              <>
+                <SummaryRow label="월 이용료" value={formatKrw(activeProduct.amount)} />
+                <SummaryRow label="오늘 결제 금액" value="0원" strong />
+              </>
+            ) : (isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activePromotion ? (
               <>
                 <SummaryRow
                   label="정상가"
@@ -2831,21 +2856,21 @@ export default function ApplyOrderForm({
               <SummaryRow label={isMenuService ? "오늘 결제 금액" : "금액"} value={formatKrw(activeProduct.amount)} strong />
             )}
             {activePromotion ? <SummaryRow label="오픈 할인 적용 기간" value={openDiscountPolicy.durationLabel} /> : null}
-            {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정일" value={nextBillingLabel} /> : null}
-            {activeProduct.is_subscription ? <SummaryRow label="다음 결제 예정 금액" value={formatKrw(activeProduct.amount)} /> : null}
+            {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"} value={nextBillingLabel} /> : null}
+            {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정 금액" : "다음 결제 예정 금액"} value={formatKrw(activeProduct.amount)} /> : null}
           </dl>
           {(isMenuService || isScreenService) && (
             <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
-              {isMenuService && !activeProduct.is_subscription
-                ? "개인 체험은 계정당 1회, 메뉴판 1개가 제공됩니다. 유료 플랜으로 전환하면 기존 체험 메뉴판을 그대로 이어서 사용할 수 있습니다."
+              {shouldStartFreeTrial
+                ? `결제수단 등록은 필수입니다. ${singleMonthlyFreeTrialFirstBillingDate} 전 해지하면 결제 없이 30일 종료일까지 이용할 수 있습니다.`
                 : "추가 메뉴판은 별도로 구매할 수 있습니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며 새 메뉴판이 추가되지 않습니다."}
             </p>
           )}
           <p className="mt-3 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
             {isMenuService
               ? activeProduct.is_subscription
-                ? `${openDiscountPolicy.note} VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다.`
-                : "VAT 포함 금액입니다. 체험 종료 후 메뉴판은 비공개로 전환될 수 있으며, 30일 이내 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다."
+                ? `${openDiscountPolicy.note} VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 ${shouldStartFreeTrial ? "30일 무료체험을 시작합니다." : "결제를 진행합니다."}`
+                : "VAT 포함 금액입니다."
               : activeProduct.is_subscription
                 ? "VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다."
                 : "VAT 포함 금액입니다. 일반 결제 검증 후 메뉴판이 생성됩니다."}

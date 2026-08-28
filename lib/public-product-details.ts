@@ -3,7 +3,6 @@ import {
   businessBasicMultiMonthlyProduct,
   businessBasicMultiYearlyProduct,
   businessBasicYearlyProduct,
-  personalTrialBasicProduct,
   type BasicProductKey,
 } from "@/lib/payments";
 
@@ -24,36 +23,19 @@ export type PublicBasicProduct = {
 
 export const publicBasicProducts: readonly PublicBasicProduct[] = [
   {
-    slug: "basic-trial",
-    productKey: personalTrialBasicProduct.product_key,
-    name: personalTrialBasicProduct.name,
-    shortName: "개인 1개월 체험",
-    summary: "사업자 인증 없이 단일페이지 다이닝 메뉴판 1개를 1개월 동안 이용하는 1회 결제 상품입니다.",
-    price: personalTrialBasicProduct.amount,
-    regularPrice: personalTrialBasicProduct.regular_amount,
-    billingLabel: "1회 결제",
-    servicePeriod: "결제 완료일로부터 1개월",
-    buyerRequirement: "개인 회원 또는 사업자 회원",
-    provision: "결제 완료 즉시 메뉴판이 생성되고 편집 화면, 공개 URL과 QR 이용이 시작됩니다.",
-    cancellation: [
-      "디지털 서비스가 결제 즉시 제공되므로 제공 개시 후 단순 변심·착오 구매·미사용에 따른 청약철회 및 환불이 제한될 수 있습니다.",
-      "중복 결제, 결제 오류, 회사 귀책 또는 관련 법령상 환불이 필요한 경우 고객지원 확인 후 취소·환불합니다.",
-    ],
-  },
-  {
     slug: "dining-single-monthly",
     productKey: businessBasicMonthlyProduct.product_key,
     name: businessBasicMonthlyProduct.name,
     shortName: "단일페이지 월결제",
-    summary: "사업자 인증 후 단일페이지 다이닝 메뉴판 1개를 매월 자동결제로 이용하는 정기구독 상품입니다.",
+    summary: "사업자 인증과 결제수단 등록 후 단일페이지 다이닝 메뉴판 1개를 매월 자동결제로 이용하는 정기구독 상품입니다. 계정당 최초 1회는 30일간 무료로 이용할 수 있습니다.",
     price: businessBasicMonthlyProduct.amount,
     regularPrice: businessBasicMonthlyProduct.regular_amount,
     billingLabel: "매월 자동결제",
-    servicePeriod: "결제일부터 1개월 단위로 자동 갱신",
+    servicePeriod: "무료체험 대상은 등록일부터 30일, 이후 첫 결제일부터 1개월 단위로 자동 갱신",
     buyerRequirement: "국세청 사업자 상태 확인을 완료한 사업자 회원",
-    provision: "최초 결제 완료 즉시 메뉴판이 생성되며, 갱신 결제 시 기존 메뉴판의 이용기간이 연장됩니다.",
+    provision: "무료체험 대상은 결제수단 등록 즉시 메뉴판이 생성되며 30일 뒤 첫 결제가 진행됩니다. 무료체험 비대상은 최초 결제 완료 즉시 제공됩니다.",
     cancellation: [
-      "언제든 구독 해지를 예약할 수 있으며 다음 결제일부터 자동결제가 중단됩니다. 이미 결제된 기간까지는 계속 이용할 수 있습니다.",
+      "무료체험 중 해지하면 첫 결제 없이 30일 체험 종료일까지 이용할 수 있습니다. 유료 전환 후에는 언제든 해지를 예약할 수 있으며 다음 결제일부터 자동결제가 중단됩니다.",
       "이미 시작된 월 이용기간은 원칙적으로 중도 환불되지 않습니다. 중복 결제, 결제 오류, 회사 귀책 또는 법령상 필요한 경우는 예외입니다.",
     ],
   },

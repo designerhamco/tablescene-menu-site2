@@ -7,7 +7,7 @@ import { formatProductPrice, publicBasicProducts } from "@/lib/public-product-de
 
 export const metadata: Metadata = {
   title: "요금제 및 상품 | ArtiMenu",
-  description: "아티메뉴 다이닝의 개인 체험, 사업자 월결제, 사업자 연간 상품 가격과 제공·환불 기준을 확인하세요.",
+  description: "아티메뉴 다이닝의 월결제, 연간 상품, 30일 무료체험 가격과 제공·해지 기준을 확인하세요.",
 };
 
 const upcomingServices = [
