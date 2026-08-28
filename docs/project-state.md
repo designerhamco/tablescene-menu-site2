@@ -4,7 +4,18 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `79e529b` (`PR #49` 병합)
+기준 커밋: `90cd004` (`PR #50` 병합)
+
+현재 작업 브랜치: `codex/shared-menu-catalog`
+
+## 현재 구현 중
+
+- 같은 Owner 계정의 다이닝·디스플레이 메뉴판 사이 메뉴 가져오기
+- 한 번 복사 후 독립 운영과 기존 대응 메뉴의 공통 문구를 양방향 연결하는 두 모드
+- 공개 메뉴판 덮어쓰기 차단, 명시적 확인, 동일 Owner·RLS·advisory lock 경계
+- 메뉴 추가·삭제·페이지·배치·노출·타임세일·위젯·주문 옵션은 메뉴판별 유지
+- 신규 migration은 아직 Production에 적용하지 않았고 generated Supabase types도 변경하지 않음
+- 상세 계약: `docs/shared-menu-catalog.md`
 
 ## 완료된 주요 기능
 

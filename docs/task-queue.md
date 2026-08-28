@@ -1,6 +1,6 @@
 # ArtiMenu 전체 작업 큐
 
-최종 갱신: 2026-08-24
+최종 갱신: 2026-08-28
 
 상태 의미:
 
@@ -57,6 +57,14 @@
 - `DONE` 생성·편집·최종 저장·preview·public QA — 7개 starter final-save round-trip과 동일 fixture preview/public desktop/mobile 비교
 - `DONE` Display 별도 정책 유지 결정
 - `DONE` Display 타임세일 지원 — 다이닝 공통 관리자 편집·저장·번역 계약 재사용, 공개 배지·정상가·할인가·마감 표시, 전체/분할 레이아웃 QA
+
+## 3-A. 메뉴판 간 메뉴 재사용
+
+- `DONE` 다이닝↔디스플레이 메뉴 가져오기 제품 계약 — 연결 유지와 독립 복사, 공통 필드와 메뉴판별 필드 분리, `docs/shared-menu-catalog.md`
+- `IN_PROGRESS` Owner 전용 가져오기·연결 해제 화면과 원자적 RPC·동일 Owner 동기화 trigger 구현
+- `DONE` 공개·보관 메뉴판 덮어쓰기 차단, explicit confirmation, target advisory lock, 타 계정 전파 차단
+- `DONE` 활성 연결 양쪽 hard delete 차단과 대상 Storage 경로 오소유 방지
+- `NEEDS_HUMAN` 신규 shared-menu migration Production 1회 적용, generated types 재생성, 실제 Owner 계정 E2E
 
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
@@ -172,4 +180,4 @@
 
 ## 다음 작업
 
-PG 사이트 심사용 Basic 3상품 공개 상세와 ArtiMenu 브랜드 정리는 완료했다. 다음 안전 작업은 공개 route 전체 QA와 브랜드 잔여 검색이며, 이후 검토용 계정·정책 시행일·실제 이메일·Production 환경처럼 사람 확인이 필요한 항목은 `docs/pg-site-review-readiness.md`에 따라 진행한다. QR오더 실제 선결제·지급대행 구현은 계약과 기술 답변 전까지 보류한다.
+메뉴판 간 메뉴 가져오기·연결 구현을 검증하고 Draft PR로 준비한다. 신규 migration과 RLS·trigger를 포함하므로 자동 병합·배포하지 않으며, Production 1회 적용과 generated types 재생성은 사람 승인 뒤에 진행한다. QR오더 실제 선결제·지급대행 구현은 계약과 기술 답변 전까지 보류한다.
