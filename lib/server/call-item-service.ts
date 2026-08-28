@@ -17,14 +17,6 @@ type CallItemRpcRow = {
   is_active: boolean;
 };
 
-type RpcError = { code?: string; message?: string };
-type UntypedRpcClient = {
-  rpc: (
-    functionName: string,
-    args: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: RpcError | null }>;
-};
-
 export class CallItemServiceError extends Error {
   constructor(
     public readonly code: "INVALID_INPUT" | "READ_FAILED" | "UPDATE_FAILED",
@@ -34,10 +26,6 @@ export class CallItemServiceError extends Error {
     super(message);
     this.name = "CallItemServiceError";
   }
-}
-
-function getRpcClient(): UntypedRpcClient {
-  return createAdminClient() as unknown as UntypedRpcClient;
 }
 
 function mapRows(value: unknown): StaffCallItem[] {
@@ -78,7 +66,8 @@ export async function listStaffCallItems({
   } catch {
     throw new CallItemServiceError("INVALID_INPUT", "메뉴판 정보를 다시 확인해 주세요.", 400);
   }
-  const { data, error } = await getRpcClient().rpc("list_menu_call_items", {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("list_menu_call_items", {
     p_menu_site_id: menuSiteId,
     p_include_inactive: includeInactive,
   });
@@ -110,9 +99,15 @@ export async function saveStaffCallItems({
   }
 
   await requireMenuSiteWriteAccess(menuSiteId, "call.manage", "call_item_configuration");
-  const { data, error } = await getRpcClient().rpc("replace_menu_call_items", {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("replace_menu_call_items", {
     p_menu_site_id: menuSiteId,
-    p_items: items,
+    p_items: items.map((item) => ({
+      key: item.key,
+      label: item.label,
+      sortOrder: item.sortOrder,
+      active: item.active,
+    })),
   });
   if (error) {
     console.warn("[call-items] update failed", { code: error.code ?? "unknown", message: error.message ?? "unknown" });

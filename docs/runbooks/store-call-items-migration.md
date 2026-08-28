@@ -4,7 +4,16 @@
 
 대상 migration: `supabase/migrations/20260828143000_add_store_call_items.sql`
 
-상태: **Production 미적용 — 명시적 승인 후 1회만 적용**
+상태: **2026-08-28 `tablescene-prod`에 1회 적용 완료 — 재실행 금지**
+
+적용 결과:
+
+- 적용 전 새 테이블·RPC 3개가 모두 없음을 확인
+- 기존 호출 집계 `0`, 미처리 호출 집계 `0`을 적용 전후 동일하게 확인
+- `menu_call_items` RLS·FORCE RLS 활성화 확인
+- `anon`·`authenticated` 테이블/RPC 권한 없음, `service_role` 최소 권한 확인
+- 새 RPC 3개 모두 security invoker, `search_path=""` 확인
+- generated Supabase types 갱신 완료
 
 ## 목적
 

@@ -165,7 +165,7 @@
   - Owner/Manager/Order staff의 `call.manage` 재인증과 확인·완료 actor/timestamp 기록
   - 최근 100건을 15초 갱신하는 별도 호출관리 화면; 공개 Realtime publication은 추가하지 않음
   - server-only 강제 RLS migration은 2026-08-07 Production 1회 적용 및 generated types 갱신 완료
-  - 매장별 호출 항목 additive migration은 코드·검증 준비 완료, Production 1회 적용과 generated types 갱신은 승인 전 미적용
+  - 매장별 호출 항목 additive migration은 2026-08-28 사용자 승인 아래 Production 1회 적용, 보안 postcheck와 generated types 갱신 완료
   - `CALL_ENABLED` + site allowlist 없이 UI와 write 모두 fail closed
 - 매출 요약 default-off 기반:
   - 기존 주문관리 gate와 `sales.read`를 모두 통과한 Owner/Manager만 접근

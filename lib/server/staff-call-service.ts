@@ -85,11 +85,7 @@ export async function submitStaffCall({
   }
 
   const supabase = createAdminClient();
-  const rpc = supabase.rpc as unknown as (
-    functionName: string,
-    args: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: { message?: string } | null }>;
-  const { data, error } = await rpc("submit_staff_call", {
+  const { data, error } = await supabase.rpc("submit_staff_call", {
     p_menu_site_id: menuSiteId,
     p_table_visit_session_id: tableSession.id,
     p_call_item_key: callItemKey,
