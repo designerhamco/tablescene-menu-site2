@@ -61,7 +61,7 @@
 ## 3-A. 메뉴판 간 메뉴 재사용
 
 - `DONE` 다이닝↔디스플레이 메뉴 가져오기 제품 계약 — 연결 유지와 독립 복사, 공통 필드와 메뉴판별 필드 분리, `docs/shared-menu-catalog.md`
-- `IN_PROGRESS` Owner 전용 가져오기·연결 해제 화면과 원자적 RPC·동일 Owner 동기화 trigger 구현
+- `DONE` Owner 전용 가져오기·연결 해제 화면과 원자적 RPC·동일 Owner 동기화 trigger 구현 — Draft PR #51
 - `DONE` 공개·보관 메뉴판 덮어쓰기 차단, explicit confirmation, target advisory lock, 타 계정 전파 차단
 - `DONE` 활성 연결 양쪽 hard delete 차단과 대상 Storage 경로 오소유 방지
 - `NEEDS_HUMAN` 신규 shared-menu migration Production 1회 적용, generated types 재생성, 실제 Owner 계정 E2E
