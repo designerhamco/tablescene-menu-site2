@@ -4,17 +4,18 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `9b4f24b` (`PR #69` 병합)
+기준 커밋: `1c3fb77` (`PR #70` 병합)
 
-현재 작업 브랜치: `codex/dining-capability-policy`
+현재 작업 브랜치: 없음 (`tablescene-next` clean)
 
-## 현재 작업
+## 현재 상태와 다음 선행 조건
 
 - 공통 헤더의 다이닝 하위 메뉴를 제거하고 다이닝을 직접 링크로 제공
 - 단일페이지 5,900원은 할인·위젯, 멀티페이지 9,900원은 할인·스마트호출을 포함하도록 제품 기능 경계를 고정
 - Order/PG는 장기 비활성 제품으로 고정해 환경변수나 기존 allowlist만으로 공개 UI와 server write가 다시 열리지 않도록 차단
 - 스마트호출은 멀티페이지의 유효한 테이블 세션과 runtime/site allowlist를 모두 통과해야만 공개 메뉴와 매장 운영에 노출
 - 실제 판매 가능한 멀티페이지 디자인이 아직 없어 hidden Brew Chapter는 내부 호환 fixture로만 유지하고 멀티 결제 카드는 준비중 처리
+- 다음 구현은 판매 가능한 멀티페이지 디자인 방향과 pilot 메뉴판이 확정된 뒤 시작
 
 
 ## 완료된 주요 기능
@@ -205,6 +206,7 @@
 
 ## 최근 주요 커밋과 PR
 
+- `1c3fb77` — PR #70 병합: 다이닝 기능 등급·스마트호출 경계와 Order/PG 장기 비활성 정책
 - `209ad6a` — PR #28 병합: default-off Call MVP와 Production migration 기록
 - `f5038e7` — PR #27 병합: fail-closed 후불 주문관리
 - `b8c9631` — PR #26 병합: atomic 후불 주문 runtime과 RPC
