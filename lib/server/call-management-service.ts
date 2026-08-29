@@ -9,6 +9,7 @@ import {
 } from "@/lib/call-management";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import type { StaffCallItem } from "@/lib/call-items";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { listStaffCallItems } from "@/lib/server/call-item-service";
 import {
   requireMenuSitePermission,
@@ -114,7 +115,7 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
   const supabase = createAdminClient();
 
   const [siteResult, callsResult, tablesResult, callItems] = await Promise.all([
-    supabase.from("menu_sites").select("id, name").eq("id", menuSiteId).maybeSingle(),
+    supabase.from("menu_sites").select("id, name, template_key").eq("id", menuSiteId).maybeSingle(),
     supabase
       .from("menu_customer_calls")
       .select("*")
@@ -129,6 +130,9 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
       throw new CallManagementError("CALL_NOT_FOUND", "메뉴판을 찾을 수 없습니다.", 404);
     }
     failRead(siteResult.error);
+  }
+  if (!getDiningTemplateFeatures(siteResult.data.template_key).smartCall) {
+    throw new CallManagementError("DASHBOARD_UNAVAILABLE", "멀티페이지 다이닝 메뉴판에서만 스마트호출을 사용할 수 있습니다.", 403);
   }
   if (callsResult.error) failRead(callsResult.error);
   if (tablesResult.error) failRead(tablesResult.error);
@@ -175,6 +179,14 @@ export async function transitionStaffCall({
   }
   const surface = nextStatus === "acknowledged" ? "call_acknowledgement" : "call_completion";
   const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "call.manage", surface);
+  const menuSiteResult = await supabase
+    .from("menu_sites")
+    .select("template_key")
+    .eq("id", menuSiteId)
+    .maybeSingle();
+  if (menuSiteResult.error || !menuSiteResult.data || !getDiningTemplateFeatures(menuSiteResult.data.template_key).smartCall) {
+    throw new CallManagementError("DASHBOARD_UNAVAILABLE", "멀티페이지 다이닝 메뉴판에서만 스마트호출을 사용할 수 있습니다.", 403);
+  }
   const currentResult = await supabase
     .from("menu_customer_calls")
     .select("id, status")

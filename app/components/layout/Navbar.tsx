@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, ChevronDown, Menu, X } from 'lucide-react';
+import { Bell, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
 import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
@@ -14,24 +14,14 @@ type NavItem = {
   activePaths?: readonly string[];
   discount?: boolean;
   disabled?: boolean;
-  submenu?: readonly {
-    label: string;
-    path: string;
-    comingSoon?: boolean;
-  }[];
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
   {
     label: '아티메뉴 다이닝',
     path: '/',
-    activePaths: ['/', '/services/basic', '/services/menu', '/services/signature', '/services/qr-order', '/services/smart-call'],
+    activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'],
     discount: true,
-    submenu: [
-      { label: '아티메뉴 다이닝', path: '/' },
-      { label: 'QR오더(모바일)', path: '/services/qr-order', comingSoon: true },
-      { label: '스마트호출', path: '/services/smart-call', comingSoon: true },
-    ],
   },
   { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
   { label: '고객센터', path: '/faq', activePaths: ['/faq'] },
@@ -70,8 +60,6 @@ type NotificationEvent = {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDiningMenuOpen, setIsDiningMenuOpen] = useState(false);
-  const [isMobileDiningOpen, setIsMobileDiningOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -84,7 +72,6 @@ const Navbar = () => {
   });
   const [hasStoreOperationsAccess, setHasStoreOperationsAccess] = useState(false);
   const isScrolledRef = useRef(false);
-  const diningMenuRef = useRef<HTMLDivElement | null>(null);
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const pathname = location.pathname;
@@ -96,34 +83,7 @@ const Navbar = () => {
 
   useEffect(() => {
     setIsOpen(false);
-    setIsDiningMenuOpen(false);
-    setIsMobileDiningOpen(false);
   }, [pathname]);
-
-  useEffect(() => {
-    if (!isDiningMenuOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!diningMenuRef.current?.contains(event.target as Node)) {
-        setIsDiningMenuOpen(false);
-      }
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsDiningMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isDiningMenuOpen]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -399,29 +359,17 @@ const Navbar = () => {
               return (
                 <div
                   key={item.path}
-                  ref={item.submenu ? diningMenuRef : undefined}
-                  onMouseEnter={item.submenu ? () => setIsDiningMenuOpen(true) : undefined}
-                  onMouseLeave={item.submenu ? () => setIsDiningMenuOpen(false) : undefined}
-                  onFocus={item.submenu ? () => setIsDiningMenuOpen(true) : undefined}
-                  onBlur={item.submenu ? (event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget as Node)) {
-                      setIsDiningMenuOpen(false);
-                    }
-                  } : undefined}
                   className="relative flex h-full items-center"
                 >
                   <Link
                     to={item.path}
                     aria-current={isActive ? 'page' : undefined}
                     aria-disabled={item.disabled ? true : undefined}
-                    aria-haspopup={item.submenu ? 'menu' : undefined}
-                    aria-expanded={item.submenu ? isDiningMenuOpen : undefined}
                     tabIndex={item.disabled ? -1 : undefined}
                     onClick={(event) => {
                       if (item.disabled) {
                         event.preventDefault();
                       }
-                      setIsDiningMenuOpen(false);
                     }}
                     className={`relative inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
                       item.disabled
@@ -434,27 +382,8 @@ const Navbar = () => {
                     <span>{item.label}</span>
                     {item.discount ? <DiscountChip /> : null}
                     {item.disabled ? <DisabledChip /> : null}
-                    {item.submenu ? <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isDiningMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" /> : null}
                   </Link>
 
-                  {item.submenu ? (
-                    <div className={`absolute left-1/2 top-[calc(100%-8px)] w-64 -translate-x-1/2 pt-3 transition-all duration-150 ${isDiningMenuOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}>
-                      <div role="menu" className="rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-950 shadow-[0_18px_55px_rgba(0,0,0,0.16)]">
-                        {item.submenu.map((subItem) => (
-                          <Link
-                            key={subItem.path}
-                            to={subItem.path}
-                            role="menuitem"
-                            onClick={() => setIsDiningMenuOpen(false)}
-                            className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-colors hover:bg-zinc-100 focus-visible:bg-zinc-100 focus-visible:outline-none"
-                          >
-                            <span>{subItem.label}</span>
-                            {subItem.comingSoon ? <DisabledChip /> : null}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
                 </div>
               );
             })}
@@ -606,50 +535,6 @@ const Navbar = () => {
                   {NAV_ITEMS.map((item) => {
                     const isActive = (item.activePaths ?? [item.path]).includes(pathname);
 
-                    if (item.submenu) {
-                      return (
-                        <div key={item.path} className="border-b border-zinc-100 py-1">
-                          <button
-                            type="button"
-                            aria-expanded={isMobileDiningOpen}
-                            aria-controls="mobile-dining-menu"
-                            onClick={() => setIsMobileDiningOpen((current) => !current)}
-                            className={`flex w-full items-center justify-between gap-3 py-6 text-left !text-2xl !font-bold !leading-[1.2] tracking-tight ${isActive ? 'text-zinc-950' : 'text-zinc-700'}`}
-                          >
-                            <span className="min-w-0">{item.label}</span>
-                            <span className="flex shrink-0 items-center gap-2">
-                              {item.discount ? <DiscountChip /> : null}
-                              <ChevronDown className={`h-5 w-5 transition-transform ${isMobileDiningOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-                            </span>
-                          </button>
-
-                          <AnimatePresence initial={false}>
-                            {isMobileDiningOpen ? (
-                              <motion.div
-                                id="mobile-dining-menu"
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="mb-3 overflow-hidden rounded-2xl bg-zinc-50 p-2"
-                              >
-                                {item.submenu.map((subItem) => (
-                                  <Link
-                                    key={subItem.path}
-                                    to={subItem.path}
-                                    onClick={closeMobileMenu}
-                                    className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3.5 text-base font-bold ${pathname === subItem.path ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600 active:bg-white'}`}
-                                  >
-                                    <span>{subItem.label}</span>
-                                    {subItem.comingSoon ? <DisabledChip /> : null}
-                                  </Link>
-                                ))}
-                              </motion.div>
-                            ) : null}
-                          </AnimatePresence>
-                        </div>
-                      );
-                    }
-
                     return (
                       <Link
                         key={item.path}
@@ -670,7 +555,10 @@ const Navbar = () => {
                         }`}
                       >
                         <span>{item.label}</span>
-                        {item.disabled ? <DisabledChip /> : null}
+                        <span className="flex shrink-0 items-center gap-2">
+                          {item.discount ? <DiscountChip /> : null}
+                          {item.disabled ? <DisabledChip /> : null}
+                        </span>
                       </Link>
                     );
                   })}

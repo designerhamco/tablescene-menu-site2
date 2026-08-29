@@ -2,6 +2,31 @@ import { getTemplateCapabilities } from "@/lib/template-capabilities";
 
 export type DiningTemplateTier = "single" | "multi";
 
+export type DiningTierFeatures = {
+  discounts: boolean;
+  widgets: boolean;
+  multiPage: boolean;
+  smartCall: boolean;
+  order: boolean;
+};
+
+const DINING_TIER_FEATURES = {
+  single: {
+    discounts: true,
+    widgets: true,
+    multiPage: false,
+    smartCall: false,
+    order: false,
+  },
+  multi: {
+    discounts: true,
+    widgets: false,
+    multiPage: true,
+    smartCall: true,
+    order: false,
+  },
+} as const satisfies Record<DiningTemplateTier, DiningTierFeatures>;
+
 const SINGLE_DINING_PRODUCT_KEYS = new Set([
   "personal_trial_basic_1month",
   "business_basic_single_monthly",
@@ -20,6 +45,14 @@ const LEGACY_DINING_PRODUCT_KEYS = new Set([
 
 export function getDiningTemplateTier(templateKey: string | null | undefined): DiningTemplateTier {
   return getTemplateCapabilities(templateKey).multiPage?.enabled ? "multi" : "single";
+}
+
+export function getDiningTierFeatures(tier: DiningTemplateTier): DiningTierFeatures {
+  return DINING_TIER_FEATURES[tier];
+}
+
+export function getDiningTemplateFeatures(templateKey: string | null | undefined): DiningTierFeatures {
+  return getDiningTierFeatures(getDiningTemplateTier(templateKey));
 }
 
 export function getDiningProductTier(productKey: string | null | undefined): DiningTemplateTier | null {

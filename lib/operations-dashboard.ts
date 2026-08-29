@@ -1,5 +1,5 @@
 import { hasMenuSitePermission, type MenuSiteAccessRole } from "@/lib/menu-site-permissions";
-import { isTemplateSupportedForService } from "@/lib/template-types";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 
 export type StoreOperationKey = "orders" | "calls" | "tables" | "sales";
 
@@ -12,25 +12,23 @@ export type StoreOperationsSiteEligibility = {
   lifecycleState: string | null | undefined;
   lifecycleReason: string | null | undefined;
   canPreview: boolean;
-  postpayOrderEnabled: boolean;
-  orderDashboardEnabled: boolean;
+  tableManagementEnabled: boolean;
+  callManagementEnabled: boolean;
 };
 
 export function isStoreOperationsTemplate(templateKey: string | null | undefined) {
-  return Boolean(templateKey && isTemplateSupportedForService(templateKey, "basic"));
+  return Boolean(templateKey && getDiningTemplateFeatures(templateKey).smartCall);
 }
 
 export function getStoreOperationAccess({
   accessRole,
   templateKey,
   tableManagementEnabled,
-  orderDashboardEnabled,
   callManagementEnabled,
 }: {
   accessRole: MenuSiteAccessRole;
   templateKey: string | null | undefined;
   tableManagementEnabled: boolean;
-  orderDashboardEnabled: boolean;
   callManagementEnabled: boolean;
 }): StoreOperationAccess {
   if (!isStoreOperationsTemplate(templateKey)) {
@@ -43,10 +41,10 @@ export function getStoreOperationAccess({
   }
 
   return {
-    orders: orderDashboardEnabled && hasMenuSitePermission(accessRole, "order.read"),
+    orders: false,
     calls: callManagementEnabled && hasMenuSitePermission(accessRole, "call.manage"),
     tables: tableManagementEnabled && hasMenuSitePermission(accessRole, "table.manage"),
-    sales: orderDashboardEnabled && hasMenuSitePermission(accessRole, "sales.read"),
+    sales: false,
   };
 }
 
@@ -54,22 +52,22 @@ export function hasAvailableStoreOperation(access: StoreOperationAccess) {
   return Object.values(access).some(Boolean);
 }
 
-export function isCurrentOrderOperationsSite({
+export function isCurrentSmartCallOperationsSite({
   accessRole,
   templateKey,
   menuSiteStatus,
   lifecycleState,
   lifecycleReason,
   canPreview,
-  postpayOrderEnabled,
-  orderDashboardEnabled,
+  tableManagementEnabled,
+  callManagementEnabled,
 }: StoreOperationsSiteEligibility) {
   return isStoreOperationsTemplate(templateKey)
     && menuSiteStatus === "published"
     && lifecycleState === "active"
     && lifecycleReason === "active"
     && canPreview
-    && postpayOrderEnabled
-    && orderDashboardEnabled
-    && hasMenuSitePermission(accessRole, "order.read");
+    && tableManagementEnabled
+    && callManagementEnabled
+    && hasMenuSitePermission(accessRole, "call.manage");
 }

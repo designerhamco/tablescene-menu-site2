@@ -4,24 +4,25 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `ce844e0` (`PR #68` 병합)
+기준 커밋: `9b4f24b` (`PR #69` 병합)
 
-현재 작업 브랜치: `codex/free-trial-production-closeout`
+현재 작업 브랜치: `codex/dining-capability-policy`
 
 ## 현재 작업
 
-- 별도 6,600원 개인 체험 신규 판매를 제거하고 단일페이지 월결제에 결제수단 필수 30일 무료체험을 계정당 최초 1회 연결
-- 무료체험 중 해지해도 30일까지 이용하고 첫 결제 없이 종료되도록 기존 해지 우선 갱신 정책을 재사용
-- 무료체험 migration 적용·postcheck·generated types 갱신, Vercel Production 기능 플래그 설정, PR #68 병합·Production 공개 route QA 완료
-- 전용 QA 계정에서 실제 빌링키 발급·0원 시작·해지 예약·30일 경계 검증만 후속 운영 QA로 유지
+- 공통 헤더의 다이닝 하위 메뉴를 제거하고 다이닝을 직접 링크로 제공
+- 단일페이지 5,900원은 할인·위젯, 멀티페이지 9,900원은 할인·스마트호출을 포함하도록 제품 기능 경계를 고정
+- Order/PG는 장기 비활성 제품으로 고정해 환경변수나 기존 allowlist만으로 공개 UI와 server write가 다시 열리지 않도록 차단
+- 스마트호출은 멀티페이지의 유효한 테이블 세션과 runtime/site allowlist를 모두 통과해야만 공개 메뉴와 매장 운영에 노출
+- 실제 판매 가능한 멀티페이지 디자인이 아직 없어 hidden Brew Chapter는 내부 호환 fixture로만 유지하고 멀티 결제 카드는 준비중 처리
+
 
 ## 완료된 주요 기능
 
 - 매장 운영 정보 구조:
   - 공통 헤더에서 `나의 메뉴판`과 `매장 운영`을 독립된 최상위 업무로 분리
-  - 운영 허브 첫 화면에서 선택한 메뉴판의 주문·호출·테이블·매출 요약과 최근 이력을 제공
-  - 공개·활성·주문 제출·Order Dashboard runtime·주문 조회 권한을 모두 통과한 다이닝 메뉴판만 상단 탭에 노출
-  - 주문·호출·테이블·매출 상세 화면도 같은 메뉴판 탭과 전용 왼쪽 내비게이션을 공유
+  - 현재 운영 허브는 공개·활성·멀티페이지·스마트호출 runtime·호출 권한을 모두 통과한 메뉴판만 상단 탭에 노출
+  - 호출·테이블 화면은 같은 메뉴판 탭과 전용 왼쪽 내비게이션을 공유하고, 주문·매출 화면은 향후 호환 코드로만 보존
   - 운영 전용 왼쪽 영역에서도 계정 이메일·사용자 ID·로그아웃을 확인하되 AI 크레딧은 노출하지 않음
   - 모바일 알림은 햄버거 옆 아이콘과 읽지 않은 알림 수로 제공하고 메뉴 하단 지원 동선은 `1:1 문의`·`채팅상담`으로 정리
   - 주문·호출·테이블·매출 메뉴는 역할 권한이 없어도 숨기지 않고 비활성 상태와 제한 사유를 제공
@@ -46,10 +47,10 @@
   - Next.js와 eslint-config-next를 16.3.1, React Router를 7.18.2로 갱신
   - `nanoid`, `postcss`, `sharp`, `ws`를 안전한 transitive 버전으로 갱신
   - `npm audit --omit=dev` 0건과 전체 계약 테스트·TypeScript·lint·production build 재검증
-- Order/Call 로컬 통합 QA:
-  - 공개 config의 세션·Business Basic·template·Order/Call runtime gate를 한 공통 판정으로 결합
-  - Order-only·Call-only 독립 노출, no-session fail-closed, Display 제외를 390×844 QA fixture로 확인
-  - 주문 payload부터 주문 단계·수동 결제 가능 상태와 호출 접수·완료 상태까지 142개 계약 테스트로 연결
+- 스마트호출 로컬 통합 QA:
+  - 공개 config의 세션·Business Basic·멀티페이지·Call runtime gate를 한 공통 판정으로 결합
+  - 단일페이지·일반 QR·Display·runtime-off에서는 fail closed, 멀티페이지 테이블 세션에서는 Call-only로 동작하도록 계약 테스트로 고정
+  - 기존 Order 회귀 fixture와 데이터 구조는 보존하지만 제품 정책 상 공개 UI와 server write는 항상 비활성
 
 - 메뉴판 생성·편집·미리보기·공개 및 QR 흐름
 - 활성 카페/디스플레이 템플릿과 공통 템플릿 렌더러
@@ -104,7 +105,7 @@
 - 메뉴판 미리보기 기기 프레임:
   - 기존 인증·권한 route와 `MenuPageRenderer`를 그대로 재사용
   - PC 1440×900, 태블릿 기본 가로 1180×820·선택 세로 820×1180, 모바일 390×844 실제 viewport 제공
-  - 모바일 프레임에서 `PG 미사용`/`PG 사용`을 선택해 비교하고, 메뉴별 아이콘 → 옵션·수량 바텀시트 → 담김 토스트 → 장바구니 수정·삭제 → 후불/지금 결제 흐름을 실제 write 없는 fixture로 제공
+  - 모바일 프레임은 Order/PG 선택 UI 없이 실제 메뉴판을 표시하고, 멀티페이지에서는 스마트호출 미리보기만 실제 write 없는 fixture로 제공
   - 별도 scale 엔진 없이 동일 출처 iframe의 반응형 viewport와 실제 크기 새 창 제공
 - 활성 템플릿 정책과 1차 renderer QA:
   - Basic 5개와 Display 1개를 신규 출시 대상으로 유지하고 누아는 신규 노출에서 은퇴
@@ -138,7 +139,7 @@
   - raw QR token은 생성·회전 응답에서만 한 번 전달하고 목록 DTO와 DB에는 노출하지 않음
   - hard delete 없이 보관 처리하며 비활성·보관·token 회전 시 DB trigger가 기존 방문 세션을 폐기
   - `TABLE_MANAGEMENT_ENABLED=true`가 아니면 UI와 server mutation을 모두 fail closed
-  - 현재는 Business Basic의 Basic template만 허용하며 실제 제품 key·번들·Production 활성화는 미결정 상태로 유지
+  - 현재는 멀티페이지 다이닝 스마트호출 번들만 허용하며 실제 판매 템플릿과 pilot 확정 전에는 Production runtime을 활성화하지 않음
 - table QR·방문 세션 runtime 기반:
   - 일반 메뉴 QR과 분리된 `/table/[token]` 진입에서 active table token hash와 공개 가능한 Basic 메뉴판을 server-only로 검증
   - 방문 세션 원문은 최대 12시간의 Secure·HttpOnly·SameSite=Lax cookie에만 전달하고 DB에는 SHA-256 hash만 저장
