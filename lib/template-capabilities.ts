@@ -357,7 +357,11 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     supportsPriceNote: true,
     supportsPriceNoteWithPriceColumns: false,
     defaultPriceDisplayMode: "compact_decimal",
-    menuWidgets: DEFAULT_TEMPLATE_MENU_WIDGET_CAPABILITIES,
+    menuWidgets: {
+      enabled: false,
+      maxPerPage: 0,
+      supportedTypes: [],
+    },
     chefs: false,
     events: false,
     socialLinks: false,

@@ -3,11 +3,9 @@ import "server-only";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import {
   getStoreOperationAccess,
-  isCurrentOrderOperationsSite,
+  isCurrentSmartCallOperationsSite,
   type StoreOperationAccess,
 } from "@/lib/operations-dashboard";
-import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
-import { isPostpayOrderRuntimeEnabledForSite } from "@/lib/postpay-order-runtime";
 import {
   getAccessibleMenuSiteList,
   getMenuSiteAccessStateForMenuSite,
@@ -28,30 +26,27 @@ export async function getStoreOperationsContext(
   requestedMenuSiteId?: string | null,
 ): Promise<StoreOperationsContext> {
   const accessibleMenuSites = await getAccessibleMenuSiteList();
-  const candidates = accessibleMenuSites.filter((site) =>
-    isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)
-    && isPostpayOrderRuntimeEnabledForSite(site.menuSiteId),
-  );
+  const tableManagementEnabled = isTableManagementRuntimeEnabled();
+  const candidates = accessibleMenuSites.filter((site) => isCallRuntimeEnabledForSite(site.menuSiteId));
   const lifecycleStates = await Promise.all(
     candidates.map((site) => getMenuSiteAccessStateForMenuSite({ menuSiteId: site.menuSiteId })),
   );
-  const tableManagementEnabled = isTableManagementRuntimeEnabled();
 
   const sites = candidates.flatMap((site, index): StoreOperationsSite[] => {
     const lifecycle = lifecycleStates[index];
-    const orderDashboardEnabled = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId);
+    const callManagementEnabled = isCallRuntimeEnabledForSite(site.menuSiteId);
 
     if (
       !lifecycle
-      || !isCurrentOrderOperationsSite({
+      || !isCurrentSmartCallOperationsSite({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
         menuSiteStatus: site.status,
         lifecycleState: lifecycle.lifecycleState,
         lifecycleReason: lifecycle.reason,
         canPreview: lifecycle.canPreview,
-        postpayOrderEnabled: isPostpayOrderRuntimeEnabledForSite(site.menuSiteId),
-        orderDashboardEnabled,
+        tableManagementEnabled,
+        callManagementEnabled,
       })
     ) {
       return [];
@@ -63,8 +58,7 @@ export async function getStoreOperationsContext(
         accessRole: site.accessRole,
         templateKey: site.templateKey,
         tableManagementEnabled,
-        orderDashboardEnabled,
-        callManagementEnabled: isCallRuntimeEnabledForSite(site.menuSiteId),
+        callManagementEnabled,
       }),
     }];
   });

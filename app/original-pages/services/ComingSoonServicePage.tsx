@@ -9,14 +9,14 @@ type ComingSoonServicePageProps = {
 const serviceCopy = {
   'qr-order': {
     eyebrow: 'QR오더 · 모바일',
-    title: <>메뉴 탐색부터 주문까지<br />하나의 모바일 화면</>,
-    body: '메뉴 탐색과 장바구니, 주문을 자연스럽게 연결하는 서비스를 준비 중입니다.',
+    title: <>오더 기능은<br />현재 제공하지 않습니다</>,
+    body: '아티메뉴는 당분간 디지털 메뉴판과 스마트호출 기능에 집중합니다. 오더 서비스 재개 여부는 추후 별도로 안내합니다.',
     icon: Smartphone,
   },
   'smart-call': {
-    eyebrow: '스마트호출',
+    eyebrow: '멀티페이지 다이닝',
     title: <>테이블에서 연결되는<br />스마트 직원 호출</>,
-    body: '물·앞접시·직원 호출 등 필요한 요청을 빠르게 전달하는 서비스를 준비 중입니다.',
+    body: '물·앞접시·직원 호출 등 필요한 요청을 멀티페이지 메뉴판에서 빠르게 전달합니다. 실제 디자인 템플릿 공개와 함께 제공합니다.',
     icon: BellRing,
   },
 } as const;

@@ -10,6 +10,7 @@ import {
   normalizeMenuTableStatus,
   toMenuTableListItem,
 } from "@/lib/menu-table-management";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import {
   getMenuSiteAccessStateForMenuSite,
   MENU_SITE_INACTIVE_EDIT_MESSAGE,
@@ -18,7 +19,6 @@ import {
 } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
-import { isTemplateSupportedForService } from "@/lib/template-types";
 
 const MENU_TABLE_SELECT = "id, label, display_order, status, token_rotated_at, created_at, updated_at";
 
@@ -106,7 +106,7 @@ async function requireMenuTableReadAccess(menuSiteId: string) {
     .select("id, name, status, template_key")
     .eq("id", menuSiteId)
     .maybeSingle();
-  if (error || !menuSite || !isTemplateSupportedForService(menuSite.template_key, "basic")) {
+  if (error || !menuSite || !getDiningTemplateFeatures(menuSite.template_key).smartCall) {
     throw new MenuTableManagementError("MENU_SITE_UNAVAILABLE", "이 메뉴판 유형에서는 테이블 기능을 사용할 수 없습니다.", 403);
   }
   return { context, supabase, menuSite };

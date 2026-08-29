@@ -2,6 +2,7 @@ import "server-only";
 
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import { normalizeCallId } from "@/lib/call-management";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import type { ResolvedTableVisitSession } from "@/lib/server/table-visit-session-service";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -65,6 +66,16 @@ function assertRuntimeAndSession(menuSiteId: string, tableSession: ResolvedTable
 async function assertPublicBusinessAccess(menuSiteId: string) {
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId });
   if (!accessState?.canViewPublic || accessState.planType !== "business_basic") {
+    throw new StaffCallSubmissionError();
+  }
+
+  const supabase = createAdminClient();
+  const { data: menuSite, error } = await supabase
+    .from("menu_sites")
+    .select("template_key")
+    .eq("id", menuSiteId)
+    .maybeSingle();
+  if (error || !menuSite || !getDiningTemplateFeatures(menuSite.template_key).smartCall) {
     throw new StaffCallSubmissionError();
   }
 }

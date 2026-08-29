@@ -107,10 +107,10 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         <div className="space-y-5">
           {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
           <article className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm md:p-12">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">NO ACTIVE ORDER MENU</p>
-            <h2 className="mt-3 text-2xl font-black tracking-tight">운영 가능한 오더 메뉴판이 없습니다</h2>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">NO ACTIVE SMART CALL MENU</p>
+            <h2 className="mt-3 text-2xl font-black tracking-tight">운영 가능한 스마트호출 메뉴판이 없습니다</h2>
             <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              현재 공개 중이고 이용 기간과 오더 기능이 모두 활성화된 다이닝 메뉴판만 매장 운영에 표시됩니다.
+              현재 공개 중이고 이용 기간과 스마트호출 기능이 활성화된 멀티페이지 다이닝 메뉴판만 표시됩니다.
             </p>
             <Link
               href="/mypage?tab=menus"
@@ -146,7 +146,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">DASHBOARD</p>
           <h2 className="mt-2 text-3xl font-black tracking-tight">{selectedSite.name} 운영 현황</h2>
           <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-            현재 주문과 호출 상태, 테이블 운영, 오늘 매출을 빠르게 확인합니다.
+            현재 호출 상태와 테이블 운영 현황을 빠르게 확인합니다.
           </p>
         </header>
 

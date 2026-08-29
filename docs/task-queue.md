@@ -1,6 +1,6 @@
 # ArtiMenu 전체 작업 큐
 
-최종 갱신: 2026-08-28
+최종 갱신: 2026-08-29
 
 상태 의미:
 
@@ -41,8 +41,7 @@
 - `DONE` 모바일 프레임 — 390×844 동일 출처 iframe viewport
 - `DONE` 기존 preview 화면과 renderer 재사용 — 실제 렌더링 route와 `MenuPageRenderer`를 그대로 사용
 - `DONE` 새 창에서 실제 크기 보기
-- `DONE` 모바일 주문 미리보기 — 기본 `PG 미사용`과 선택 `PG 사용` 비교, 무채색 메뉴별 장바구니 아이콘, 옵션·수량 바텀시트, 담김 토스트, 장바구니 수정·삭제, 후불/지금 결제 흐름을 제공하고 실제 데이터 write 없음
-- `DONE` PG 비교 가시성 — 선택 상태 설명과 PG 사용 시 장바구니 결제 배지를 추가해 첫 메뉴 화면에서도 차이를 구분
+- `DONE` 모바일 Order/PG 미리보기 제거 — 장기 비활성 제품 정책에 따라 PG 선택 UI와 장바구니 흐름을 제거하고 스마트호출만 멀티페이지에서 노출
 - `DONE` 별도 scale 엔진을 만들지 않는 제품 정책 확정
 
 ## 3. 활성 템플릿 전체 기능 QA
@@ -79,6 +78,8 @@
 - `DONE` 단일↔단일·멀티↔멀티만 허용하는 서버 등급 제한과 썸네일 카드 교체 UI
 - `DONE` 멀티페이지 다이닝의 공통 Call Layer·Order 비활성 Call-only 계약 회귀 검증
 - `DONE` 다이닝 신규 SKU·결제 entitlement 연결과 Production 제약 적용 — 단일 월 5,900원·연 63,700원, 멀티 월 9,900원·연 106,900원, 서버 등급 검증·갱신·환불·복구 연결과 기존 고객 레거시 SKU 보존
+- `DONE` 다이닝 기능 매트릭스 — 단일 5,900원은 할인·위젯 포함, 멀티 9,900원은 할인·스마트호출 포함, Order는 모든 등급 미제공
+- `TODO` 판매 가능한 멀티페이지 다이닝 디자인 템플릿 추가 — 현재 Brew Chapter는 내부 hidden fixture로만 유지하고 신규 결제에서는 멀티 상품을 준비중 처리
 - `DONE` 디스플레이 이미지·동영상 템플릿 통합 가격 — 월 정가 19,900원·오픈할인 14,900원, 연 160,900원, 기존 연 결제의 현재 환불 기준은 소급 변경하지 않음
 - `TODO` 디스플레이 신규 이미지·동영상 템플릿 연결
 
@@ -106,6 +107,8 @@
 
 ## 4. 모든 활성 템플릿의 모바일 Order 호환
 
+> 2026-08-29 정책 변경: 아래 항목은 기존 호환 코드 기록이다. 신규 판매·공개 UI·API write에서는 Order를 제품 정책으로 비활성화하며, 모바일 미리보기의 PG 선택 UI도 제거한다.
+
 - `DONE` 공통 모바일 상단 헤더 — template 외부 `PublicMenuExperienceShell`, safe-area sticky shell
 - `DONE` 왼쪽 언어 변경 — 공통 locale control, 기존 template mobile control 중복 숨김
 - `DONE` 가운데 매장명과 테이블 번호 — 유효 세션 context에서만 table label 표시
@@ -126,11 +129,12 @@
 - `DONE` 방문 세션과 만료 — server 발급, 12시간 이내 expiry, Secure·HttpOnly·SameSite=Lax cookie
 - `DONE` 세션 재사용·탈취 방지 — menu-site/table/status/revoke/expiry/User-Agent hash 검증, last-seen write throttle
 - `DONE` 테이블 QR 다운로드 — 생성·회전 1회 응답에서 browser-local PNG 생성, raw token API 재전송 없음
-- `NEEDS_HUMAN` 실제 Order/Call 제품 key·번들 정책과 Production `TABLE_MANAGEMENT_ENABLED` 활성화
+- `DONE` 제품 번들 정책 — 테이블 QR/session은 멀티페이지 9,900원 스마트호출에만 연결하고 단일페이지와 Order에서는 비활성
+- `BLOCKED` 실제 멀티페이지 디자인과 pilot 메뉴판 확정 후 Production `TABLE_MANAGEMENT_ENABLED`·site allowlist 활성화
 
 ## 6. 모바일 장바구니와 후불 주문
 
-- `BLOCKED` 실제 Order 상품화·활성화 — 사용자가 당분간 Order를 사용하지 않기로 했으므로 기존 구현과 데이터는 보존하고 Production runtime은 default-off 유지
+- `BLOCKED` 실제 Order 상품화·활성화 — 장기간 사용하지 않는 제품으로 확정. 기존 구현과 데이터는 보존하되 환경변수가 남아 있어도 제품 정책 상 UI와 server write를 fail closed
 
 - `DONE` V1 정책 확정 — Postpay 우선, Order·Call 별도 add-on, tableSessions 포함, 기기별 cart, 20 lines·50 units·line 20
 - `DONE` DB 기반 migration 초안 — orderable 분리, 주문 option, session-bound order, immutable snapshot, idempotency, server-only RLS
@@ -142,20 +146,20 @@
 - `DONE` 품절 주문 차단 — 제출 transaction에서 `visible/orderable/is_sold_out` 재검증
 - `DONE` 중복 주문 방지 — session + client request UUID advisory lock/idempotency
 - `DONE` atomic 주문 RPC migration Production 1회 적용과 generated types 갱신 — 2026-08-06 `tablescene-prod`, `docs/runbooks/postpay-order-submission-rpc-migration.md`
-- `NEEDS_HUMAN` 실제 Order 상품 entitlement와 Production `POSTPAY_ORDER_ENABLED`, `POSTPAY_ORDER_ALLOWED_SITE_IDS` 활성화
+- `BLOCKED` Order 재개 — 향후 별도 제품 결정 전에는 `POSTPAY_ORDER_ENABLED`, allowlist, PG를 활성화하지 않음
 
 ## 7. 주문관리와 수동 결제
 
-- `DONE` 전용 `매장 운영` 허브 — 공통 헤더에서 독립 진입, 공개·활성·주문 제출·Order Dashboard 사용 다이닝 메뉴판만 상단 탭에 노출, 첫 화면 운영 대시보드와 주문·호출·테이블·매출 공통 왼쪽 내비게이션 제공, Display 제외와 역할·runtime gate 유지
+- `DONE` 전용 `매장 운영` 허브 — 공통 헤더에서 독립 진입, 공개·활성·멀티페이지·스마트호출 runtime을 통과한 메뉴판만 상단 탭에 노출. Order·매출 기존 화면은 호환 코드로 보존하되 신규 멀티페이지 운영 접근에서는 비활성
 - `DONE` 매장 운영·모바일 계정 UX — 운영 왼쪽에 AI 크레딧 없는 로그인 정보 제공, 모바일 알림을 햄버거 옆 숫자 배지 아이콘으로 이동, `1:1 문의` 로그인 복귀와 임시 `채팅상담` 동선 제공
-- `DONE` 매장 운영 헤더 노출 — 공개·활성·다이닝·오더 runtime·`order.read` 권한을 모두 통과한 계정에만 PC·모바일 진입 표시
+- `DONE` 매장 운영 헤더 노출 — 공개·활성·멀티페이지·스마트호출 runtime·`call.manage` 권한을 모두 통과한 계정에만 PC·모바일 진입 표시
 - `DONE` 주문 접수·조리 전·조리 중·조리 완료·제공 완료 — 전방향 단계별 conditional update
 - `DONE` 미결제 주문 취소와 취소 사유 — 제공 전·미결제만 1–500자 사유로 취소
 - `DONE` 기존 카드단말기 결제완료 — ArtiMenu 카드 승인 없이 `manual_card` 기록
 - `DONE` 현금 결제완료 — `manual_cash` 기록
 - `DONE` 처리 직원 기록 — 재인증 permission gate와 `status_updated_by`/`payment_completed_by`
 - `DONE` 브라우저 영수증 — immutable snapshot 기반 인쇄 전용 영수증
-- `NEEDS_HUMAN` 실제 Order Dashboard 상품 entitlement와 Production `ORDER_DASHBOARD_ENABLED`, `ORDER_DASHBOARD_ALLOWED_SITE_IDS` 활성화
+- `BLOCKED` Order Dashboard 신규 활성화 — Order 재개 정책 전까지 기존 화면만 보존
 
 ## 8. Call 기능
 
@@ -168,7 +172,8 @@
 - `DONE` 중복·과다 호출 방지 — 미처리 호출 반환, 완료·취소 후 2분 cooldown, session당 시간당 10회
 - `DONE` 호출 이력 — 최근 100건과 테이블·상태·시간을 15초 갱신 대시보드에서 조회
 - `DONE` Call MVP migration Production 1회 적용과 generated types 갱신 — 2026-08-07 `tablescene-prod`, `docs/runbooks/call-mvp-foundation-migration.md`
-- `NEEDS_HUMAN` 실제 Call 상품 entitlement와 Production `CALL_ENABLED`, `CALL_ALLOWED_SITE_IDS` 활성화
+- `DONE` 실제 Call 상품 entitlement — 멀티페이지 다이닝 9,900원 번들에 포함하고 단일페이지·Display·Order에서는 fail closed
+- `BLOCKED` 실제 Call Production 활성화 — 판매 가능한 멀티페이지 디자인과 pilot 메뉴판을 만든 뒤 `TABLE_MANAGEMENT_ENABLED`, `CALL_ENABLED`, 명시적 site allowlist를 함께 설정
 
 ## 9. 선결제 PG
 
@@ -201,9 +206,9 @@
 - `DONE` 직원 초대·수락·접근 — 승인된 기존 Owner·직원 계정으로 실제 이메일 발송·수락과 viewer 화면·미리보기·편집 차단 E2E 확인
 - `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
 - `DONE` 미리보기·공개·일반 QR — 공통 renderer·기기 프레임·공개 route·QR 분리 QA 재확인
-- `DONE` Order/Call 로컬 통합 QA — 유효 세션·Business Basic·template·runtime 공통 gate, Order-only·Call-only·no-session·Display 제외, 주문 payload와 직원 처리 상태 흐름 재검증
-- `NEEDS_HUMAN` 테이블 QR·방문 세션·주문 — 보안·idempotency·fail-closed 계약 통과, 승인된 실제 site와 session write E2E 필요
-- `NEEDS_HUMAN` 주문관리·수동 결제완료 — route·권한·상태 전이 계약 통과, 실제 주문 데이터 write E2E 필요
+- `DONE` 멀티페이지 스마트호출 로컬 통합 QA — 유효 세션·Business Basic·멀티페이지·runtime 공통 gate, 단일페이지·no-session·Display 제외, 호출 접수·처리 상태 흐름 재검증
+- `BLOCKED` 테이블 QR·방문 세션·스마트호출 Production E2E — 판매 가능한 멀티페이지 템플릿과 pilot 메뉴판 확정 후 수행
+- `BLOCKED` 주문관리·수동 결제완료 E2E — Order 제품 재개 전까지 기존 호환 코드만 보존
 - `NEEDS_HUMAN` 보관·복구·해지 — Owner runtime 감사 완료, 실제 구독 상태 변경 E2E 필요
 
 ## 12. 오픈 준비
@@ -222,6 +227,10 @@
 - `NEEDS_HUMAN` 최종 디자인 육안 확인
 - `NEEDS_HUMAN` 최종 배포와 Draft PR 병합 승인
 
+## 13. 향후 AI 상담
+
+- `TODO` AI 챗봇 제품 범위·상담 전환·개인정보·대화 보관 정책 확정 — 현재는 아이디어 기록만 유지하고 구현하지 않음
+
 ## 다음 작업
 
-실제 Order·Call 상품 entitlement와 Production runtime 활성화 전까지 `매장 운영` 허브는 기존 fail-closed 상태를 유지한다. 실제 Owner의 메뉴 가져오기 E2E는 기존 내용을 교체해도 되는 전용 draft가 지정된 뒤 수행한다. QR오더 실제 선결제·지급대행 구현은 계약과 기술 답변 전까지 보류한다.
+판매 가능한 멀티페이지 디자인과 pilot 메뉴판이 확정될 때까지 스마트호출 Production runtime과 `매장 운영` 허브는 fail-closed 상태를 유지한다. 실제 Owner의 메뉴 가져오기 E2E는 기존 내용을 교체해도 되는 전용 draft가 지정된 뒤 수행한다. QR오더·PG·주문 기능은 장기 비활성 제품으로 보존하며 별도의 재개 결정 전에는 구현·활성화하지 않는다.

@@ -392,22 +392,22 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    bullets: ["단일페이지 템플릿", "사업자 인증 필요", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
+    bullets: ["단일페이지 · 할인 기능 · 위젯", "스마트호출 미포함 · 오더 미포함", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
     product: basicPaymentProducts[1],
-    bullets: ["단일페이지 템플릿", "사업자 인증 필요", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
+    bullets: ["단일페이지 · 할인 기능 · 위젯", "스마트호출 미포함 · 오더 미포함", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["멀티페이지 템플릿", "사업자 인증 필요", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
+    bullets: ["멀티페이지 · 할인 기능 · 스마트호출", "위젯 미포함 · 오더 미포함", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
   {
     product: basicPaymentProducts[3],
-    bullets: ["멀티페이지 템플릿", "사업자 인증 필요", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
+    bullets: ["멀티페이지 · 할인 기능 · 스마트호출", "위젯 미포함 · 오더 미포함", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
     helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
   },
 ] as const satisfies readonly {
@@ -933,7 +933,12 @@ export default function ApplyOrderForm({
   const firstMenuTemplateGroup = BASIC_TEMPLATE_CATEGORY_GROUPS[0].key;
   const firstTemplate = serviceTemplates.find((template) => template.template_category === firstCategory) ?? serviceTemplates[0] ?? templates[0];
   const firstDisplayTemplateGroup = getDisplayTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
-  const initialBasicProduct = getBasicPaymentProduct(initialBasicProductKey) ?? businessBasicMonthlyProduct;
+  const requestedInitialBasicProduct = getBasicPaymentProduct(initialBasicProductKey) ?? businessBasicMonthlyProduct;
+  const initialBasicProduct = serviceTemplates.some((template) =>
+    isDiningProductCompatibleWithTemplate(requestedInitialBasicProduct.product_key, template.key)
+  )
+    ? requestedInitialBasicProduct
+    : businessBasicMonthlyProduct;
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(initialBasicProduct.product_key);
   const [selectedDisplayProductKey, setSelectedDisplayProductKey] = useState<PaymentProductKey>(businessDisplayMonthlyProduct.product_key);
   const activeProduct = useMemo<PaidApplyProduct>(() => {
@@ -2176,15 +2181,23 @@ export default function ApplyOrderForm({
             </div>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {basicProductCards.map(({ product, bullets, helperText }) => {
+                const hasAvailableTemplate = serviceTemplates.some((template) =>
+                  isDiningProductCompatibleWithTemplate(product.product_key, template.key)
+                );
                 const isSelected = selectedBasicProductKey === product.product_key;
 
                 return (
                   <button
                     key={product.product_key}
                     type="button"
-                    onClick={() => selectBasicProduct(product)}
+                    disabled={!hasAvailableTemplate}
+                    onClick={() => {
+                      if (hasAvailableTemplate) selectBasicProduct(product);
+                    }}
                     className={`flex min-h-[260px] flex-col rounded-2xl border p-5 text-left transition ${
-                      isSelected
+                      !hasAvailableTemplate
+                        ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 opacity-70"
+                        : isSelected
                         ? "border-zinc-950 bg-zinc-950 text-white shadow-md"
                         : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
                     }`}
@@ -2194,7 +2207,7 @@ export default function ApplyOrderForm({
                         <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                        {isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "자동결제"}
+                        {!hasAvailableTemplate ? "템플릿 준비중" : isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">

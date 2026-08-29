@@ -31,8 +31,8 @@ function createCapabilityState(overrides: Partial<Parameters<typeof getPublicOrd
   });
 }
 
-test("public Order and Call become interactive only after every shared gate passes", () => {
-  const capabilityState = createCapabilityState();
+test("멀티페이지 스마트호출은 사업자 테이블 세션과 runtime gate를 모두 통과해야 열린다", () => {
+  const capabilityState = createCapabilityState({ templateKey: "cafe_brew_chapter_a" });
   const config = buildPublicOrderCallEntryConfig({
     capabilityState,
     menuSiteId: MENU_SITE_ID,
@@ -50,7 +50,7 @@ test("public Order and Call become interactive only after every shared gate pass
     showLanguage: true,
     showTableLabel: true,
     showCall: true,
-    showCart: true,
+    showCart: false,
   });
 });
 
@@ -82,20 +82,17 @@ test("missing session, non-business access, and Display templates fail closed be
   }), undefined);
 });
 
-test("Order-only and Call-only entitlements remain independent after shared session validation", () => {
-  const orderOnly = createCapabilityState({ callRuntimeEnabled: false });
-  const callOnly = createCapabilityState({ postpayOrderRuntimeEnabled: false });
+test("단일페이지는 runtime 환경값과 무관하게 Order와 스마트호출을 닫는다", () => {
+  const singlePage = createCapabilityState();
 
-  assert.equal(orderOnly.orderEnabled, true);
-  assert.equal(orderOnly.callEnabled, false);
-  assert.equal(callOnly.orderEnabled, false);
-  assert.equal(callOnly.callEnabled, true);
+  assert.equal(singlePage.orderEnabled, false);
+  assert.equal(singlePage.callEnabled, false);
 });
 
-test("멀티페이지 다이닝 템플릿은 Order 없이 호출만 사용할 수 있다", () => {
+test("멀티페이지 다이닝은 Order runtime이 켜져 있어도 스마트호출만 사용할 수 있다", () => {
   const callOnly = createCapabilityState({
     templateKey: "cafe_brew_chapter_a",
-    postpayOrderRuntimeEnabled: false,
+    postpayOrderRuntimeEnabled: true,
     callRuntimeEnabled: true,
   });
 

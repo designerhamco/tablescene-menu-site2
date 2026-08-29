@@ -1,4 +1,5 @@
 import type { StaffCallItem } from "@/lib/call-items";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 
 export type OrderCallEntryMode = "locked" | "preview" | "active";
 export type OrderCheckoutMode = "postpay" | "prepay";
@@ -102,7 +103,6 @@ export function getPublicOrderCallCapabilityState({
   templateKey,
   planType,
   hasValidTableSession,
-  postpayOrderRuntimeEnabled,
   callRuntimeEnabled,
 }: {
   templateKey: string | null | undefined;
@@ -112,14 +112,18 @@ export function getPublicOrderCallCapabilityState({
   callRuntimeEnabled: boolean;
 }): PublicOrderCallCapabilityState {
   const supportsExperience = supportsOrderCallExperienceShell(templateKey);
+  const diningFeatures = getDiningTemplateFeatures(templateKey);
   const canUseBusinessTableFeatures = supportsExperience
     && hasValidTableSession
     && planType === "business_basic";
 
   return {
     supportsExperience,
-    orderEnabled: canUseBusinessTableFeatures && postpayOrderRuntimeEnabled,
-    callEnabled: canUseBusinessTableFeatures && callRuntimeEnabled,
+    // QR Order/PG is intentionally dormant across every Dining tier. Keep the
+    // runtime input in the public contract so a future relaunch requires an
+    // explicit product-policy change instead of an environment-only toggle.
+    orderEnabled: false,
+    callEnabled: canUseBusinessTableFeatures && diningFeatures.smartCall && callRuntimeEnabled,
   };
 }
 
