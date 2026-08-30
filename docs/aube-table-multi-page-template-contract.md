@@ -51,6 +51,8 @@
 
 Migration: `supabase/migrations/20260830072554_add_aube_table_multi_page_fields.sql`
 
+Production 절차: `docs/runbooks/aube-table-multi-page-migration.md`
+
 - `menu_pages`: `layout_columns`, `text_alignment`
 - `menu_categories`: 코스 가격·라벨·가격 안내와 노출 필드
 - `menu_items`: 코스 없이 페이지에 직접 연결하는 `menu_page_id`
