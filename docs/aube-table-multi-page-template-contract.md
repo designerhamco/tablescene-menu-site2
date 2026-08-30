@@ -59,13 +59,12 @@ Production 절차: `docs/runbooks/aube-table-multi-page-migration.md`
 - `menu_category_translations`: 코스 가격 라벨·가격 안내 번역
 - 메뉴·페이지·코스가 같은 menu site에 속하는지 검증하는 trigger와 직접 메뉴 조회 index
 - 기존 행을 수정하거나 삭제하지 않으며 RLS·grant·Storage policy를 변경하지 않는다.
-- generated Supabase types는 수동 편집하지 않는다. Production migration 적용 후 공식 생성 절차로 갱신한다.
+- generated Supabase types는 수동 편집하지 않았고, 2026-08-30 Production 적용 후 공식 생성 절차로 갱신했다.
 
 ## 적용 및 승인 경계
 
-- 로컬 구현·테스트·미리보기와 Draft PR 생성까지만 자동 진행한다.
-- Production SQL/migration 적용, 실제 데이터 생성·수정, 판매 노출, Smart Call runtime 활성화, PR Ready·병합은 이 작업에서 수행하지 않는다.
-- Production 적용 전 migration SQL 재감사, backup/rollback 판단, postcheck, generated types 재생성이 필요하다.
+- Production SQL/migration은 2026-08-30 사용자의 명시적 승인 후 적용·사후검사·type 재생성을 완료했다.
+- 실제 고객 데이터 생성·수정, 판매 노출, Smart Call runtime 활성화, PR Ready·병합은 최종 시각 확인과 별도 승인 전 수행하지 않는다.
 
 ## 로컬 QA
 

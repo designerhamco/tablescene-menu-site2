@@ -2,7 +2,20 @@
 
 대상 파일: `supabase/migrations/20260830072554_add_aube_table_multi_page_fields.sql`
 
-상태: **Production 미적용 — 사람의 명시적 승인 전 실행 금지**
+상태: **2026-08-30 `tablescene-prod`에 1회 적용 완료 — 재실행 금지**
+
+적용 파일 SHA-256: `189e926d0d4f695859d0e728a1fff056843c482b25df6250c43ec80ddadbf414`
+
+적용 결과:
+
+- linked project `tablescene-prod` / `kfbekbapwsyeanobyjsv` 확인
+- 적용 전 대상 column·function·trigger 0개, 오브 테이블/Brew 고객 row 0건 확인
+- 기존 row 기준값과 적용 후 값 동일: 메뉴판 42, 페이지 77, 코스/카테고리 239, 메뉴 868
+- 신규 column 10개, check 5개, FK 1개, partial index와 INSERT/UPDATE trigger 확인
+- 검증 함수 security invoker, `search_path=""`, public/anon/authenticated execute 차단 확인
+- RLS·table grant·Storage policy·고객 데이터 변경 없음
+- `npm run supabase:types`로 generated types 공식 재생성 완료
+- linked `public` schema lint에서 오브 테이블 함수·trigger 관련 신규 issue 없음. 기존 함수 5개의 선행 lint error는 이번 migration과 무관해 별도 작업으로 유지
 
 ## 금지 사항
 
@@ -12,7 +25,7 @@
 - migration 적용 전 generated types를 수동 수정하거나 생성하지 않는다.
 - 대상 프로젝트 ref가 `tablescene-prod` / `kfbekbapwsyeanobyjsv`가 아니면 중단한다.
 
-이 저장소는 과거 SQL 일부가 remote migration history와 일치하지 않는다. 승인 후에도 대상 migration 파일 한 건만 Supabase SQL Editor 또는 승인된 linked query 방식으로 적용한다.
+이 저장소는 과거 SQL 일부가 remote migration history와 일치하지 않는다. 대상 migration 파일 한 건만 linked query 방식으로 적용했으며 `db push`와 linked `migration up`은 사용하지 않았다.
 
 ## 1. 읽기 전용 사전 검사
 
