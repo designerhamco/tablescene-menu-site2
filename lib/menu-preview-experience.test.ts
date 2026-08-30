@@ -91,7 +91,7 @@ test("mobile preview keeps Order dormant and shows Smart Call only for multi-pag
   const multi = buildMenuPreviewOrderCallConfig({
     menuSiteId: "site-b",
     storeName: "ArtiMenu",
-    templateKey: "cafe_brew_chapter_a",
+    templateKey: "dining_aube_table_a",
   });
 
   assert.equal(single.callEnabled, false);

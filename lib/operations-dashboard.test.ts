@@ -10,20 +10,20 @@ import {
 
 test("멀티페이지 Dining만 스마트호출 매장 운영에 포함한다", () => {
   assert.equal(isStoreOperationsTemplate("cafe_design_a"), false);
-  assert.equal(isStoreOperationsTemplate("cafe_brew_chapter_a"), true);
+  assert.equal(isStoreOperationsTemplate("dining_aube_table_a"), true);
   assert.equal(isStoreOperationsTemplate("display_menu_a"), false);
 });
 
 test("owner and manager operation access follows runtime gates", () => {
   const ownerAccess = getStoreOperationAccess({
     accessRole: "owner",
-    templateKey: "cafe_brew_chapter_a",
+    templateKey: "dining_aube_table_a",
     tableManagementEnabled: true,
     callManagementEnabled: true,
   });
   const managerAccess = getStoreOperationAccess({
     accessRole: "manager",
-    templateKey: "cafe_brew_chapter_a",
+    templateKey: "dining_aube_table_a",
     tableManagementEnabled: true,
     callManagementEnabled: true,
   });
@@ -37,7 +37,7 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
   assert.deepEqual(
     getStoreOperationAccess({
       accessRole: "order_staff",
-      templateKey: "cafe_brew_chapter_a",
+      templateKey: "dining_aube_table_a",
       tableManagementEnabled: true,
       callManagementEnabled: true,
     }),
@@ -46,7 +46,7 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
 
   const disabledAccess = getStoreOperationAccess({
     accessRole: "owner",
-    templateKey: "cafe_brew_chapter_a",
+    templateKey: "dining_aube_table_a",
     tableManagementEnabled: false,
     callManagementEnabled: false,
   });
@@ -56,7 +56,7 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
 test("operations only list published, active multi-page menus with Smart Call access", () => {
   const eligible = {
     accessRole: "owner" as const,
-    templateKey: "cafe_brew_chapter_a",
+    templateKey: "dining_aube_table_a",
     menuSiteStatus: "published",
     lifecycleState: "active",
     lifecycleReason: "active",

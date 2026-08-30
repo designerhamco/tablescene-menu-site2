@@ -124,6 +124,8 @@ export type PartialMenuItemTranslationInput = {
 export type PartialMenuCategoryTranslationInput = {
   name: string | null;
   description?: string | null;
+  course_price_label?: string | null;
+  course_price_description?: string | null;
   restaurantName?: string | null;
 };
 
@@ -1115,6 +1117,8 @@ export async function translatePartialMenuCategoryFields(
   const sourceFields = {
     name: source.name,
     description: source.description,
+    course_price_label: source.course_price_label,
+    course_price_description: source.course_price_description,
   };
   const textUnits = Object.entries(sourceFields).flatMap(([fieldName, rawValue]) => {
     const text = cleanText(rawValue);
@@ -1218,7 +1222,10 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
       .eq("id", menuSiteId)
       .maybeSingle(),
     supabase.from("menu_pages").select("id, title, description").eq("menu_site_id", menuSiteId),
-    supabase.from("menu_categories").select("id, name, description").eq("menu_site_id", menuSiteId),
+    supabase
+      .from("menu_categories")
+      .select("id, name, description, course_price_label, course_price_description" as never)
+      .eq("menu_site_id", menuSiteId),
     supabase.from("menu_items").select("id, name, set_name, description, price_label, portion_label, badge_label, origin_info").eq("menu_site_id", menuSiteId),
     supabase.from("menu_item_price_options").select("id, label, price_label").eq("menu_site_id", menuSiteId),
     supabase.from("menu_item_traits").select("id, label").eq("menu_site_id", menuSiteId),
@@ -1314,10 +1321,18 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
             description: templateCapabilities.pageDescription ? row.description : null,
           })
         )),
-    ...(categoriesResult.data ?? []).map((row) =>
+    ...((categoriesResult.data ?? []) as unknown as Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      course_price_label: string | null;
+      course_price_description: string | null;
+    }>).map((row) =>
       buildEntity("menu_category_translations", "category_id", row.id, {
         name: row.name,
         description: templateCapabilities.categoryDescription ? row.description : null,
+        course_price_label: row.course_price_label,
+        course_price_description: row.course_price_description,
       })
     ),
     ...(itemsResult.data ?? []).map((row) =>
@@ -1907,7 +1922,7 @@ async function upsertRows(supabase: Supabase, table: TranslationTable, rows: Rec
     case "menu_category_translations": {
       const { error } = await supabase
         .from("menu_category_translations")
-        .upsert(rows as Database["public"]["Tables"]["menu_category_translations"]["Insert"][], { onConflict: "category_id,locale" });
+        .upsert(rows as never, { onConflict: "category_id,locale" });
       if (error) throw new Error(`메뉴 카테고리 번역 저장에 실패했습니다: ${error.message}`);
       return;
     }

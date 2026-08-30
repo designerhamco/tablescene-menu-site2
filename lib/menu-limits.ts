@@ -1,5 +1,6 @@
 export const MENU_LIMITS = {
   maxPagesPerSite: 8,
+  maxMultiPagesPerSite: 10,
   maxCategoriesPerPage: 8,
   maxItemsPerCategory: 20,
   maxItemsPerSite: 100,

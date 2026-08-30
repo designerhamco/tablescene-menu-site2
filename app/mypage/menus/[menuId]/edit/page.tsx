@@ -33,6 +33,7 @@ import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
 import LiveCharacterCounter from "@/components/mypage/menu-editor/LiveCharacterCounter";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
+import { isAubeTableTemplate } from "@/lib/aube-table";
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import MenuEditorToastBridge from "@/components/mypage/menu-editor/MenuEditorToastBridge";
 import PendingSubmitButton from "@/components/mypage/menu-editor/PendingSubmitButton";
@@ -170,6 +171,11 @@ type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "section_key" | "sort_order" | "visible"
 > & {
+  course_price?: number | null;
+  course_price_label?: string | null;
+  course_price_visible?: boolean;
+  course_price_description?: string | null;
+  course_price_description_visible?: boolean;
   priceColumns?: MenuCategoryPriceColumnDraft[];
 };
 type MenuCategoryPriceColumn = Pick<
@@ -198,7 +204,10 @@ type MenuItemPriceColumnValueDraft = {
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
   "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
->;
+> & {
+  layout_columns?: 1 | 2;
+  text_alignment?: "left" | "center";
+};
 type MenuItem = Pick<
   Database["public"]["Tables"]["menu_items"]["Row"],
   | "id"
@@ -224,6 +233,7 @@ type MenuItem = Pick<
   | "visible"
   | "sort_order"
 > & {
+  menu_page_id?: string | null;
   priceColumnValues?: MenuItemPriceColumnValueDraft[];
 };
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
@@ -1175,6 +1185,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   }
 
   const site = menuSite as MenuSite;
+  const isAubeTable = isAubeTableTemplate(site.template_key);
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id });
   if (!accessState?.canEdit) {
     return <LockedMenuEditorScreen site={site} accessState={accessState} />;
@@ -1205,13 +1216,17 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     await Promise.all([
       supabase
         .from("menu_pages")
-        .select("id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at")
+        .select((isAubeTable
+          ? "id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at, layout_columns, text_alignment"
+          : "id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
       supabase
         .from("menu_categories")
-        .select("id, menu_page_id, name, description, description_visible, section_key, sort_order, visible")
+        .select((isAubeTable
+          ? "id, menu_page_id, name, description, description_visible, section_key, sort_order, visible, course_price, course_price_label, course_price_visible, course_price_description, course_price_description_visible"
+          : "id, menu_page_id, name, description, description_visible, section_key, sort_order, visible") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -1223,9 +1238,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .order("created_at", { ascending: true }),
       supabase
         .from("menu_items")
-        .select(
-          "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
-        )
+        .select((isAubeTable
+          ? "id, category_id, menu_page_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+          : "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -1287,7 +1302,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .maybeSingle(),
     ]);
 
-  const menuPages = (menuPagesData ?? []) as MenuPage[];
+  const menuPages = (menuPagesData ?? []) as unknown as MenuPage[];
   const isMissingCategoryPriceColumnsTable =
     categoryPriceColumnsError &&
     (categoryPriceColumnsError.message.toLowerCase().includes("menu_category_price_columns") ||
@@ -1305,7 +1320,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     });
     priceColumnsByCategoryId.set(column.category_id, entries);
   });
-  const categories = ((categoriesData ?? []) as MenuCategory[]).map((category) => ({
+  const categories = ((categoriesData ?? []) as unknown as MenuCategory[]).map((category) => ({
     ...category,
     priceColumns: priceColumnsByCategoryId.get(category.id) ?? [],
   }));
@@ -2194,6 +2209,23 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         />
                       </div>
                     )}
+                    {isAubeTable && (
+                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-white p-4">
+                        <FieldLabel>커버 배경색</FieldLabel>
+                        <div className="mt-2 flex flex-wrap items-center gap-3">
+                          <input
+                            type="color"
+                            name="multi_page_cover_background_color"
+                            defaultValue={pageSettings.multi_page_cover_background_color}
+                            className="h-12 w-16 cursor-pointer rounded-lg border border-zinc-200 bg-white p-1"
+                            aria-label="커버 배경색 선택"
+                          />
+                          <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                            커버 이미지가 없거나 이미지 여백이 보일 때 적용되는 배경색입니다.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     {menuCoverCapabilities.usesCoverImage && coverMode === "page" && (
                       <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-white p-4">
                         <Checkbox
@@ -2343,6 +2375,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <MenuManagementSection
                     key={site.id}
                     menuId={site.id}
+                    templateKey={site.template_key}
                     menuPages={menuPages}
                     categories={categories}
                     items={items}

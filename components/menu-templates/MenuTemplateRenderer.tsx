@@ -8,6 +8,7 @@ import CafeSundayLineA from "./CafeSundayLineA";
 import CafeDesignA from "./CafeDesignA";
 import CafeMochaForestA from "./CafeMochaForestA";
 import DisplayMenuA from "./DisplayMenuA";
+import DiningAubeTableA from "./DiningAubeTableA";
 import MultiPageMenuEngine from "./multi-page/MultiPageMenuEngine";
 import type { PublicMenuTemplateProps } from "./types";
 import type { ReactNode } from "react";
@@ -41,6 +42,8 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       return withPublicMenuShell(<CafeRoundFocusA {...props} />);
     case "cafe_brew_chapter_a":
       return withPublicMenuShell(<CafeBrewChapterA {...props} />);
+    case "dining_aube_table_a":
+      return withPublicMenuShell(<DiningAubeTableA {...props} />);
     case "cafe_noir_a":
       return withPublicMenuShell(<CafeDesignA {...props} />);
     case "display_menu_a":

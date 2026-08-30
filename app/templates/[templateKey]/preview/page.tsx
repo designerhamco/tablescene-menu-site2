@@ -63,13 +63,15 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const pages: MenuPageData["pages"] = preset.pages.map((page, pageIndex) => ({
     id: `${siteId}-page-${pageIndex}`,
     title: page.title,
-    description: null,
-    description_visible: true,
+    description: page.description ?? null,
+    description_visible: page.description_visible ?? Boolean(page.description),
     display_settings: {},
     legacy_section_key: page.legacy_section_key,
     visible: true,
     sort_order: pageIndex,
     created_at: now,
+    layout_columns: page.layout_columns ?? 1,
+    text_alignment: page.text_alignment ?? "left",
   }));
 
   const categories: MenuPageData["categories"] = [];
@@ -100,6 +102,11 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         name: category.name,
         description: category.description ?? null,
         description_visible: category.description_visible ?? Boolean(category.description),
+        course_price: category.course_price ?? null,
+        course_price_label: category.course_price_label ?? null,
+        course_price_visible: category.course_price_visible ?? true,
+        course_price_description: category.course_price_description ?? null,
+        course_price_description_visible: category.course_price_description_visible ?? true,
         sort_order: categoryIndex + 1,
         visible: true,
         priceColumns,
@@ -121,13 +128,16 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         items.push({
           id: itemId,
           category_id: categoryId,
+          menu_page_id: pageId,
           name: menuItem.name,
           set_name: menuItem.set_name ?? null,
           description: menuItem.description,
           price: menuItem.price,
           price_label: menuItem.price_label ?? null,
           priceNote: menuItem.price_note ?? null,
-          price_visible: true,
+          price_visible:
+            menuItem.price_visible ??
+            !(templateKey === "dining_aube_table_a" && menuItem.price === 0 && !menuItem.price_label),
           portion_label: menuItem.portion_label ?? null,
           portion_visible: Boolean(menuItem.portion_label),
           image_url: menuItem.image_url ?? null,
@@ -157,6 +167,48 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         });
       });
     });
+
+    (page.direct_items ?? []).forEach((menuItem, itemIndex) => {
+      const itemId = `${siteId}-direct-item-${pageIndex}-${itemIndex}`;
+      items.push({
+        id: itemId,
+        category_id: null,
+        menu_page_id: pageId,
+        name: menuItem.name,
+        set_name: menuItem.set_name ?? null,
+        description: menuItem.description,
+        price: menuItem.price,
+        price_label: menuItem.price_label ?? null,
+        priceNote: menuItem.price_note ?? null,
+        price_visible: menuItem.price_visible ?? true,
+        portion_label: menuItem.portion_label ?? null,
+        portion_visible: Boolean(menuItem.portion_label),
+        image_url: menuItem.image_url ?? null,
+        badge: menuItem.badge_label ?? null,
+        badge_label: menuItem.badge_label ?? null,
+        badge_type: null,
+        recommended: menuItem.recommended ?? false,
+        origin_info: null,
+        is_best: menuItem.recommended ?? false,
+        is_sold_out: menuItem.is_sold_out ?? false,
+        traits_visible: true,
+        visible: true,
+        sort_order: itemIndex + 1,
+        priceColumnValues: [],
+      });
+
+      menuItem.price_options?.forEach((option, optionIndex) => {
+        priceOptions.push({
+          id: `${itemId}-price-option-${optionIndex}`,
+          menu_item_id: itemId,
+          label: option.label,
+          price: option.price ?? null,
+          price_label: option.price_label ?? null,
+          visible: true,
+          sort_order: optionIndex + 1,
+        });
+      });
+    });
   });
 
   const featuredItem = preset.featured_item_name
@@ -166,6 +218,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
+    multi_page_cover_background_color: "#171612",
     featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
     featured_item_id: firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null,
     ...(featuredSlides.length > 0 ? { featured_slides: featuredSlides } : {}),

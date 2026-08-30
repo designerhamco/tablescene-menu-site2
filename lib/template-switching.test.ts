@@ -9,7 +9,7 @@ import {
   getTemplateSwitchDecision,
 } from "./template-switching";
 
-test("누아를 제외한 다이닝 출시 템플릿 5개를 교체 후보로 노출한다", () => {
+test("사용 가능한 다이닝 템플릿을 페이지 등급에 맞는 교체 후보로 노출한다", () => {
   assert.deepEqual(
     getSwitchableTemplatesForService("basic").map((template) => template.key),
     [
@@ -17,14 +17,14 @@ test("누아를 제외한 다이닝 출시 템플릿 5개를 교체 후보로 �
       "cafe_mocha_forest_a",
       "cafe_sunday_line_a",
       "cafe_round_focus_a",
-      "cafe_brew_chapter_a",
+      "dining_aube_table_a",
     ],
   );
 });
 
 test("멀티페이지와 디스플레이 기능 등급을 구분한다", () => {
   assert.equal(getTemplateCommercialTier("cafe_design_a"), "dining_single_page");
-  assert.equal(getTemplateCommercialTier("cafe_brew_chapter_a"), "dining_multi_page");
+  assert.equal(getTemplateCommercialTier("dining_aube_table_a"), "dining_multi_page");
   assert.equal(getTemplateCommercialTier("display_menu_a"), "display_image");
 });
 
@@ -39,8 +39,8 @@ test("현재 템플릿과 같은 페이지 등급의 교체 후보만 노출한�
     ],
   );
   assert.deepEqual(
-    getSwitchableTemplatesForTemplate("cafe_brew_chapter_a").map((template) => template.key),
-    ["cafe_brew_chapter_a"],
+    getSwitchableTemplatesForTemplate("dining_aube_table_a").map((template) => template.key),
+    ["dining_aube_table_a"],
   );
 });
 
@@ -59,7 +59,7 @@ test("같은 서비스의 출시 템플릿으로만 교체한다", () => {
     message: "다이닝과 디스플레이 서비스 사이에서는 템플릿만 바꿀 수 없습니다.",
   });
 
-  const crossTier = getTemplateSwitchDecision("cafe_design_a", "cafe_brew_chapter_a");
+  const crossTier = getTemplateSwitchDecision("cafe_design_a", "dining_aube_table_a");
   assert.deepEqual(crossTier, {
     allowed: false,
     reason: "cross_tier",

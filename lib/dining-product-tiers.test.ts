@@ -35,7 +35,7 @@ test("다이닝 요금제 기능 경계를 고정한다", () => {
 
 test("단일·멀티페이지 상품은 같은 페이지 등급 템플릿에만 연결한다", () => {
   assert.equal(getDiningTemplateTier("cafe_design_a"), "single");
-  assert.equal(getDiningTemplateTier("cafe_brew_chapter_a"), "multi");
+  assert.equal(getDiningTemplateTier("dining_aube_table_a"), "multi");
   assert.equal(getDiningProductTier(businessBasicMonthlyProduct.product_key), "single");
   assert.equal(getDiningProductTier(businessBasicMultiMonthlyProduct.product_key), "multi");
 
@@ -44,11 +44,11 @@ test("단일·멀티페이지 상품은 같은 페이지 등급 템플릿에만 
     true,
   );
   assert.equal(
-    isDiningProductCompatibleWithTemplate(businessBasicMonthlyProduct.product_key, "cafe_brew_chapter_a"),
+    isDiningProductCompatibleWithTemplate(businessBasicMonthlyProduct.product_key, "dining_aube_table_a"),
     false,
   );
   assert.equal(
-    isDiningProductCompatibleWithTemplate(businessBasicMultiMonthlyProduct.product_key, "cafe_brew_chapter_a"),
+    isDiningProductCompatibleWithTemplate(businessBasicMultiMonthlyProduct.product_key, "dining_aube_table_a"),
     true,
   );
   assert.equal(
@@ -63,7 +63,7 @@ test("기존 고객의 레거시 상품은 페이지 등급을 강제로 바꾸�
     true,
   );
   assert.equal(
-    isDiningProductCompatibleWithTemplate(legacyBusinessBasicMonthlyProduct.product_key, "cafe_brew_chapter_a"),
+    isDiningProductCompatibleWithTemplate(legacyBusinessBasicMonthlyProduct.product_key, "dining_aube_table_a"),
     true,
   );
   assert.equal(getSubscriptionProduct(legacyBusinessBasicMonthlyProduct.product_key)?.allowNewMenuSiteCreation, false);
