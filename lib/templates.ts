@@ -49,6 +49,7 @@ export const TEMPLATE_CATEGORIES = [
     key: "fine_dining",
     label: "파인다이닝",
     templates: [
+      { key: "dining_aube_table_a", label: "오브 테이블", design: "design_a" },
       { key: "fine_dining_design_a", label: "Fine Dining Design A", design: "design_a" },
       { key: "fine_dining_design_b", label: "Fine Dining Design B", design: "design_b" },
     ],
@@ -220,13 +221,16 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
   cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 카페 메뉴판입니다.",
   cafe_round_focus_a: "브랜드 영역을 중앙 축에 두고 메뉴를 좌우로 나누는 카페 메뉴판입니다.",
   cafe_brew_chapter_a: "메뉴 페이지를 장처럼 넘기며 보는 멀티 페이지 카페 메뉴판입니다.",
+  dining_aube_table_a: "커버와 여러 메뉴 페이지로 코스의 흐름을 섬세하게 보여주는 파인다이닝 메뉴판입니다.",
   cafe_noir_a: "화이트 배경과 절제된 타이포그래피로 구성한 에디토리얼 카페 메뉴판입니다.\n커피와 디저트 메뉴를 여러 열로 정갈하게 보여줍니다.",
   display_menu_a: "시원하고 선명한 화면 구성이 돋보이는 디스플레이 템플릿입니다.\n카페와 베이커리 매장의 메뉴를 TV·모니터에 보기 좋게 보여줍니다.",
 };
 
 const availableTemplateKeys = ["cafe_design_a", "display_menu_a"] as const satisfies readonly string[];
-const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a", "cafe_brew_chapter_a"] as const satisfies readonly string[];
-const retiredTemplateKeys = ["cafe_noir_a"] as const satisfies readonly string[];
+const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a", "dining_aube_table_a"] as const satisfies readonly string[];
+// Brew Chapter remains renderable for backward compatibility, but is retired
+// from every new-selection and template-switching surface.
+const retiredTemplateKeys = ["cafe_noir_a", "cafe_brew_chapter_a"] as const satisfies readonly string[];
 
 const featuredHomeTemplateKeys = [
   "cafe_design_a",

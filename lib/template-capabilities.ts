@@ -21,13 +21,13 @@ export type TemplateMenuWidgetCapabilities = {
 
 export type TemplateMultiPageCapabilities = {
   enabled: boolean;
-  fixedShell: "menu_book";
+  fixedShell: "menu_book" | "fine_dining_book";
   coverPage: "single_optional";
-  menuSectionPaginationUnit: "single";
+  menuSectionPaginationUnit: "single" | "page";
   eventPaginationUnit: "none" | "per_event";
-  desktopMenuLayout: "category_nav_and_single_column";
-  tabletMenuLayout: "category_nav_and_single_column";
-  mobileMenuLayout: "sticky_category_tabs";
+  desktopMenuLayout: "category_nav_and_single_column" | "page_configurable_one_or_two_columns";
+  tabletMenuLayout: "category_nav_and_single_column" | "page_configurable_one_or_two_columns";
+  mobileMenuLayout: "sticky_category_tabs" | "single_column";
   globalPagination: "fixed_bottom";
 };
 
@@ -387,6 +387,54 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
       globalPagination: "fixed_bottom",
     },
   },
+  dining_aube_table_a: {
+    ...DEFAULT_TEMPLATE_CAPABILITIES,
+    logoImage: false,
+    brandLogo: true,
+    brandLogoReplacesName: true,
+    footerStoreInfo: true,
+    footerSocialLinks: false,
+    menuItemImages: true,
+    pageDescription: true,
+    categoryDescription: true,
+    itemDescription: true,
+    originInfo: false,
+    itemTraits: false,
+    priceOptions: true,
+    categoryPriceOptionColumns: true,
+    itemPortionLabel: true,
+    maxPriceOptionsPerItem: 3,
+    featuredItemHero: false,
+    chefs: false,
+    events: false,
+    socialLinks: false,
+    menuWidgets: {
+      enabled: false,
+      maxPerPage: 0,
+      supportedTypes: [],
+    },
+    menuCover: {
+      coverMode: "page",
+      usesStoreName: false,
+      usesStoreDescription: false,
+      usesCoverLabel: false,
+      usesCoverTitle: true,
+      usesCoverDescription: true,
+      usesCoverImage: true,
+      usesFeaturedItem: false,
+    },
+    multiPage: {
+      enabled: true,
+      fixedShell: "fine_dining_book",
+      coverPage: "single_optional",
+      menuSectionPaginationUnit: "page",
+      eventPaginationUnit: "none",
+      desktopMenuLayout: "page_configurable_one_or_two_columns",
+      tabletMenuLayout: "page_configurable_one_or_two_columns",
+      mobileMenuLayout: "single_column",
+      globalPagination: "fixed_bottom",
+    },
+  },
   cafe_noir_a: {
     ...DEFAULT_TEMPLATE_CAPABILITIES,
     logoImage: false,
@@ -469,6 +517,7 @@ const TEMPLATE_CAPABILITY_ALIASES: Record<string, keyof typeof TEMPLATE_CAPABILI
   cafe_sunday_line_a: "cafe_sunday_line_a",
   cafe_round_focus_a: "cafe_round_focus_a",
   cafe_brew_chapter_a: "cafe_brew_chapter_a",
+  dining_aube_table_a: "dining_aube_table_a",
   cafe_noir_a: "cafe_noir_a",
 };
 

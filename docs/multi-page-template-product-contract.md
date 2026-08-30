@@ -1,5 +1,7 @@
 # Multi-page Menu Book Product Contract
 
+> Legacy compatibility note (2026-08-30): this document preserves the retired Brew Chapter behavior for existing data. New multi-page Dining development and sales use `docs/aube-table-multi-page-template-contract.md`; Brew Chapter is excluded from new creation, purchase, and template switching.
+
 ## Scope
 
 The customer-facing Multi-page Basic template is a menu-book product, not a One-page template with page buttons. Brew Chapter separates the public experience into an optional cover unit and category-based menu page units.

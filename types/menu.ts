@@ -42,6 +42,7 @@ export type PageSettings = {
   featured_item_enabled: boolean;
   featured_item_id: string | null;
   featured_slides?: FeaturedSlideSettings[];
+  multi_page_cover_background_color?: string;
 };
 
 export type FeaturedSlideSettings = {
@@ -95,6 +96,7 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   social_links_enabled: true,
   featured_item_enabled: false,
   featured_item_id: null,
+  multi_page_cover_background_color: "#171612",
 };
 
 const PAGE_SETTING_BOOLEAN_KEYS = [
@@ -196,6 +198,10 @@ export function mergePageSettings(settings: Json | Partial<PageSettings> | null 
 
   if (hasFeaturedSlidesSetting(settings)) {
     merged.featured_slides = normalizeFeaturedSlideSettings(input[FEATURED_SLIDES_PAGE_SETTINGS_KEY]);
+  }
+
+  if (typeof input.multi_page_cover_background_color === "string" && /^#[0-9a-f]{6}$/i.test(input.multi_page_cover_background_color)) {
+    merged.multi_page_cover_background_color = input.multi_page_cover_background_color.toUpperCase();
   }
 
   return merged;

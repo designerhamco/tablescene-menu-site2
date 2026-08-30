@@ -44,12 +44,20 @@ export type PublicMenuSite = Pick<
 export type PublicMenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
   "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
->;
+> & {
+  layout_columns?: 1 | 2;
+  text_alignment?: "left" | "center";
+};
 
 export type PublicMenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "sort_order" | "visible"
 > & {
+  course_price?: number | null;
+  course_price_label?: string | null;
+  course_price_visible?: boolean;
+  course_price_description?: string | null;
+  course_price_description_visible?: boolean;
   priceColumns: PublicMenuCategoryPriceColumn[];
 };
 
@@ -86,6 +94,7 @@ export type PublicMenuItem = Pick<
   | "visible"
   | "sort_order"
 > & {
+  menu_page_id?: string | null;
   default_name?: string | null;
   priceNote: string | null;
   priceColumnValues: PublicMenuItemPriceColumnValue[];

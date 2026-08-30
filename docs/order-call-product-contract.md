@@ -1,6 +1,6 @@
 # ArtiMenu Order·Call Product Contract
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 ## 1. Purpose
 
@@ -11,7 +11,7 @@ Current launch policy takes precedence over historical Order sections below:
 - Single-page Dining: KRW 5,900/month, discount and widgets included, multi-page/Smart Call/Order excluded.
 - Multi-page Dining: KRW 9,900/month, discount and Smart Call included, widgets/Order excluded.
 - QR Order and restaurant PG are dormant for the foreseeable future. Existing code and schema remain for compatibility, but public UI and writes stay fail-closed.
-- Multi-page design templates are not commercially available until a real production-ready design is added. The existing Brew Chapter template is an internal hidden implementation fixture.
+- `dining_aube_table_a` is the production-candidate Multi-page design. It remains hidden until its additive migration and final visual review are approved. Brew Chapter is a retired compatibility renderer.
 
 Status labels:
 

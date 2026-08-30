@@ -504,6 +504,11 @@ export type Database = {
       menu_categories: {
         Row: {
           catalog_category_id: string | null
+          course_price: number | null
+          course_price_description: string | null
+          course_price_description_visible: boolean
+          course_price_label: string | null
+          course_price_visible: boolean
           created_at: string
           description: string | null
           description_visible: boolean
@@ -518,6 +523,11 @@ export type Database = {
         }
         Insert: {
           catalog_category_id?: string | null
+          course_price?: number | null
+          course_price_description?: string | null
+          course_price_description_visible?: boolean
+          course_price_label?: string | null
+          course_price_visible?: boolean
           created_at?: string
           description?: string | null
           description_visible?: boolean
@@ -532,6 +542,11 @@ export type Database = {
         }
         Update: {
           catalog_category_id?: string | null
+          course_price?: number | null
+          course_price_description?: string | null
+          course_price_description_visible?: boolean
+          course_price_label?: string | null
+          course_price_visible?: boolean
           created_at?: string
           description?: string | null
           description_visible?: boolean
@@ -618,6 +633,8 @@ export type Database = {
       menu_category_translations: {
         Row: {
           category_id: string
+          course_price_description: string | null
+          course_price_label: string | null
           created_at: string
           description: string | null
           id: string
@@ -629,6 +646,8 @@ export type Database = {
         }
         Insert: {
           category_id: string
+          course_price_description?: string | null
+          course_price_label?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -640,6 +659,8 @@ export type Database = {
         }
         Update: {
           category_id?: string
+          course_price_description?: string | null
+          course_price_label?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1519,6 +1540,7 @@ export type Database = {
           image_url: string | null
           is_best: boolean
           is_sold_out: boolean
+          menu_page_id: string | null
           menu_site_id: string
           name: string
           options: Json
@@ -1552,6 +1574,7 @@ export type Database = {
           image_url?: string | null
           is_best?: boolean
           is_sold_out?: boolean
+          menu_page_id?: string | null
           menu_site_id: string
           name: string
           options?: Json
@@ -1585,6 +1608,7 @@ export type Database = {
           image_url?: string | null
           is_best?: boolean
           is_sold_out?: boolean
+          menu_page_id?: string | null
           menu_site_id?: string
           name?: string
           options?: Json
@@ -1610,6 +1634,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_menu_page_id_fkey"
+            columns: ["menu_page_id"]
+            isOneToOne: false
+            referencedRelation: "menu_pages"
             referencedColumns: ["id"]
           },
           {
@@ -1786,9 +1817,11 @@ export type Database = {
           description_visible: boolean
           display_settings: Json
           id: string
+          layout_columns: number
           legacy_section_key: string | null
           menu_site_id: string
           sort_order: number
+          text_alignment: string
           title: string
           updated_at: string
           visible: boolean
@@ -1799,9 +1832,11 @@ export type Database = {
           description_visible?: boolean
           display_settings?: Json
           id?: string
+          layout_columns?: number
           legacy_section_key?: string | null
           menu_site_id: string
           sort_order?: number
+          text_alignment?: string
           title: string
           updated_at?: string
           visible?: boolean
@@ -1812,9 +1847,11 @@ export type Database = {
           description_visible?: boolean
           display_settings?: Json
           id?: string
+          layout_columns?: number
           legacy_section_key?: string | null
           menu_site_id?: string
           sort_order?: number
+          text_alignment?: string
           title?: string
           updated_at?: string
           visible?: boolean

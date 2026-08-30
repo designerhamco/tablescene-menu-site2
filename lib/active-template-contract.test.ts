@@ -10,7 +10,7 @@ const BASIC_LAUNCH_TEMPLATE_KEYS = [
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_round_focus_a",
-  "cafe_brew_chapter_a",
+  "dining_aube_table_a",
   "cafe_noir_a",
 ] as const;
 
@@ -22,7 +22,7 @@ test("every Basic launch template is service-compatible without changing catalog
     cafe_mocha_forest_a: "hidden",
     cafe_sunday_line_a: "hidden",
     cafe_round_focus_a: "hidden",
-    cafe_brew_chapter_a: "hidden",
+    dining_aube_table_a: "hidden",
     cafe_noir_a: "retired",
   } as const;
 
@@ -41,17 +41,19 @@ test("every Basic launch template exposes the approved editing and localization 
     assert.deepEqual(getTemplateEditorTabs(templateKey).map((tab) => tab.key), BASIC_EDITOR_TAB_KEYS, templateKey);
   }
 
-  const brewChapterEditConfig = getTemplateEditConfig("cafe_brew_chapter_a");
-  assert.ok(brewChapterEditConfig && "heroMode" in brewChapterEditConfig);
-  assert.equal(brewChapterEditConfig.heroMode, "cover");
+  const aubeTableEditConfig = getTemplateEditConfig("dining_aube_table_a");
+  assert.ok(aubeTableEditConfig && "heroMode" in aubeTableEditConfig);
+  assert.equal(aubeTableEditConfig.heroMode, "cover");
 });
 
 test("specialized launch template capabilities remain fail-closed", () => {
-  const brewChapter = getTemplateCapabilities("cafe_brew_chapter_a");
-  assert.equal(brewChapter.multiPage?.enabled, true);
-  assert.equal(brewChapter.menuCover.coverMode, "page");
-  assert.equal(brewChapter.events, false);
-  assert.equal(brewChapter.menuWidgets.enabled, false);
+  const aubeTable = getTemplateCapabilities("dining_aube_table_a");
+  assert.equal(aubeTable.multiPage?.enabled, true);
+  assert.equal(aubeTable.menuCover.coverMode, "page");
+  assert.equal(aubeTable.events, false);
+  assert.equal(aubeTable.menuWidgets.enabled, false);
+
+  assert.equal(templateCatalog.find((template) => template.key === "cafe_brew_chapter_a")?.status, "retired");
 
   const noir = getTemplateCapabilities("cafe_noir_a");
   assert.equal(noir.menuItemImages, false);

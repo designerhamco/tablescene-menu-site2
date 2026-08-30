@@ -98,6 +98,12 @@ import type { AiUsage } from "@/lib/menu-ai-usage";
 import { DISPLAY_MENU_QUALITY_RULES, getDisplayMenuPageQuality, type DisplayMenuPageQuality } from "@/lib/display-menu-quality";
 import { MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
 import {
+  AUBE_TABLE_MAX_MENU_PAGES,
+  isAubeTableTemplate,
+  normalizeAubeTableLayoutColumns,
+  normalizeAubeTableTextAlignment,
+} from "@/lib/aube-table";
+import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
   DEFAULT_TIME_SALE_DISPLAY_MODE,
   DEFAULT_TIME_SALE_BADGE_TEXT,
@@ -148,12 +154,20 @@ import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } 
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
   "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
->;
+> & {
+  layout_columns?: 1 | 2;
+  text_alignment?: "left" | "center";
+};
 type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "sort_order" | "visible"
 > & {
   section_key: string | null;
+  course_price?: number | null;
+  course_price_label?: string | null;
+  course_price_visible?: boolean;
+  course_price_description?: string | null;
+  course_price_description_visible?: boolean;
   priceColumns?: CategoryPriceColumnDraft[];
 };
 type MenuItem = Omit<Pick<
@@ -182,6 +196,7 @@ type MenuItem = Omit<Pick<
   | "sort_order"
 >, "price"> & {
   price: number | null;
+  menu_page_id?: string | null;
   priceColumnValues?: ItemPriceColumnValueDraft[];
 };
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
@@ -189,6 +204,7 @@ type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options
 
 type MenuManagementSectionProps = {
   menuId: string;
+  templateKey: string;
   menuPages: MenuPage[];
   categories: MenuCategory[];
   items: MenuItem[];
@@ -221,7 +237,16 @@ type MenuManagementSectionProps = {
   finalSaveError?: string | null;
 };
 type DraftTarget =
-  | { type: "page"; title: string; description?: string; descriptionVisible?: boolean; visible?: boolean; displaySettings?: MenuPageDisplaySettings }
+  | {
+      type: "page";
+      title: string;
+      description?: string;
+      descriptionVisible?: boolean;
+      visible?: boolean;
+      displaySettings?: MenuPageDisplaySettings;
+      layoutColumns?: 1 | 2;
+      textAlignment?: "left" | "center";
+    }
   | {
       type: "category";
       pageId: string;
@@ -231,6 +256,11 @@ type DraftTarget =
       visible?: boolean;
       priceOptionLabels?: string[];
       priceColumns?: CategoryPriceColumnDraft[];
+      coursePrice?: string;
+      coursePriceLabel?: string;
+      coursePriceVisible?: boolean;
+      coursePriceDescription?: string;
+      coursePriceDescriptionVisible?: boolean;
     };
 type DragState =
   | { type: "page"; id: string }
@@ -253,6 +283,8 @@ type PageBasicDraft = {
   visible?: boolean;
   sortOrder: number;
   displaySettings?: MenuPageDisplaySettings;
+  layoutColumns?: 1 | 2;
+  textAlignment?: "left" | "center";
 };
 
 type CategoryBasicDraft = {
@@ -265,6 +297,11 @@ type CategoryBasicDraft = {
   sortOrder: number;
   priceOptionLabels?: string[];
   priceColumns?: CategoryPriceColumnDraft[];
+  coursePrice?: string;
+  coursePriceLabel?: string;
+  coursePriceVisible?: boolean;
+  coursePriceDescription?: string;
+  coursePriceDescriptionVisible?: boolean;
 };
 
 type CategoryPriceColumnDraft = {
@@ -277,6 +314,7 @@ type CategoryPriceColumnDraft = {
 
 type ItemBasicDraft = {
   categoryId?: string;
+  pageId?: string;
   isNew?: boolean;
   imageUrl?: string | null;
   imagePath?: string | null;
@@ -1682,6 +1720,7 @@ function MenuPageForm({
   displaySettingsDraft,
   displayQualityNotice,
   canUseDisplayVideoUpload = false,
+  supportsAubeTablePageSettings = false,
 }: {
   menuId: string;
   page?: MenuPage;
@@ -1707,11 +1746,14 @@ function MenuPageForm({
   displaySettingsDraft?: MenuPageDisplaySettings;
   displayQualityNotice?: ReactNode;
   canUseDisplayVideoUpload?: boolean;
+  supportsAubeTablePageSettings?: boolean;
 }) {
   const [title, setTitle] = useState(draftTitle ?? page?.title ?? `${labels.pageLabel} ${count + 1}`);
   const [description, setDescription] = useState(page?.description ?? "");
   const [descriptionVisible, setDescriptionVisible] = useState(page?.description_visible ?? false);
   const [sortOrder, setSortOrder] = useState(page?.sort_order ?? 0);
+  const [layoutColumns, setLayoutColumns] = useState<1 | 2>(() => normalizeAubeTableLayoutColumns(page?.layout_columns));
+  const [textAlignment, setTextAlignment] = useState<"left" | "center">(() => normalizeAubeTableTextAlignment(page?.text_alignment));
   const [displaySettings, setDisplaySettings] = useState<MenuPageDisplaySettings>(() =>
     normalizeMenuPageDisplaySettings(displaySettingsDraft ?? page?.display_settings)
   );
@@ -1733,6 +1775,8 @@ function MenuPageForm({
     (supportsDescription && normalizeDraftText(description) !== normalizeDraftText(page.description ?? "")) ||
     (supportsDescription && descriptionVisible !== (page.description_visible ?? false)) ||
     normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(page.sort_order) ||
+    (supportsAubeTablePageSettings && layoutColumns !== normalizeAubeTableLayoutColumns(page.layout_columns)) ||
+    (supportsAubeTablePageSettings && textAlignment !== normalizeAubeTableTextAlignment(page.text_alignment)) ||
     (supportsDisplaySettings &&
       JSON.stringify(displaySettings) !== JSON.stringify(normalizeMenuPageDisplaySettings(page.display_settings)));
 
@@ -1742,6 +1786,7 @@ function MenuPageForm({
     onDraftChange?.({
       ...(supportsDescription ? { title: titleValue, description, descriptionVisible, sortOrder } : { title: titleValue, sortOrder }),
       ...(supportsDisplaySettings ? { displaySettings } : {}),
+      ...(supportsAubeTablePageSettings ? { layoutColumns, textAlignment } : {}),
     });
     onDraftCommit?.();
   }
@@ -1906,6 +1951,54 @@ function MenuPageForm({
             if (!page) onDraftChange?.({ description: value });
           }}
         />
+      )}
+      {supportsAubeTablePageSettings && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">메뉴 페이지 배치</h4>
+          <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+            PC와 태블릿의 열 수와 텍스트 정렬을 선택합니다. 모바일에서는 항상 1열로 표시됩니다.
+          </p>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <FieldLabel required>배치 열</FieldLabel>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {([1, 2] as const).map((value) => (
+                  <button
+                    type="button"
+                    key={value}
+                    aria-pressed={layoutColumns === value}
+                    onClick={() => {
+                      setLayoutColumns(value);
+                      if (!page) onDraftChange?.({ layoutColumns: value });
+                    }}
+                    className={`rounded-lg border px-4 py-3 text-sm font-black ${layoutColumns === value ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
+                  >
+                    {value}열
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <FieldLabel required>텍스트 정렬</FieldLabel>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {(["left", "center"] as const).map((value) => (
+                  <button
+                    type="button"
+                    key={value}
+                    aria-pressed={textAlignment === value}
+                    onClick={() => {
+                      setTextAlignment(value);
+                      if (!page) onDraftChange?.({ textAlignment: value });
+                    }}
+                    className={`rounded-lg border px-4 py-3 text-sm font-black ${textAlignment === value ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
+                  >
+                    {value === "left" ? "왼쪽" : "가운데"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
       )}
       <ValidatedTextInput
         name="menu_page_sort_order"
@@ -2332,6 +2425,7 @@ function MenuCategoryForm({
   priceOptionLabels,
   priceColumns,
   supportsDescription = true,
+  supportsCourseFields = false,
   supportCategoryPriceOptionColumns = false,
   supportBasicPriceColumns = false,
   maxPriceOptionColumns = MENU_LIMITS.maxPriceOptionsPerItem,
@@ -2356,6 +2450,7 @@ function MenuCategoryForm({
   priceOptionLabels?: string[];
   priceColumns?: CategoryPriceColumnDraft[];
   supportsDescription?: boolean;
+  supportsCourseFields?: boolean;
   supportCategoryPriceOptionColumns?: boolean;
   supportBasicPriceColumns?: boolean;
   maxPriceOptionColumns?: number;
@@ -2376,6 +2471,13 @@ function MenuCategoryForm({
   const [descriptionVisible, setDescriptionVisible] = useState(category?.description_visible ?? false);
   const [visible, setVisible] = useState(category?.visible ?? true);
   const [sortOrder, setSortOrder] = useState(category?.sort_order ?? 0);
+  const [coursePrice, setCoursePrice] = useState(category?.course_price == null ? "" : String(category.course_price));
+  const [coursePriceLabel, setCoursePriceLabel] = useState(category?.course_price_label ?? "");
+  const [coursePriceVisible, setCoursePriceVisible] = useState(category?.course_price_visible ?? true);
+  const [coursePriceDescription, setCoursePriceDescription] = useState(category?.course_price_description ?? "");
+  const [coursePriceDescriptionVisible, setCoursePriceDescriptionVisible] = useState(
+    category?.course_price_description_visible ?? true
+  );
   const [categoryPriceOptionLabels, setCategoryPriceOptionLabels] = useState(() =>
     normalizeDraftPriceOptionLabels(priceOptionLabels, maxPriceOptionColumns)
   );
@@ -2403,6 +2505,11 @@ function MenuCategoryForm({
     (supportsDescription && descriptionVisible !== (category.description_visible ?? false)) ||
     visible !== (category.visible ?? true) ||
     normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(category.sort_order) ||
+    (supportsCourseFields && normalizeDraftText(coursePrice) !== normalizeDraftText(category.course_price == null ? "" : String(category.course_price))) ||
+    (supportsCourseFields && normalizeDraftText(coursePriceLabel) !== normalizeDraftText(category.course_price_label ?? "")) ||
+    (supportsCourseFields && coursePriceVisible !== (category.course_price_visible ?? true)) ||
+    (supportsCourseFields && normalizeDraftText(coursePriceDescription) !== normalizeDraftText(category.course_price_description ?? "")) ||
+    (supportsCourseFields && coursePriceDescriptionVisible !== (category.course_price_description_visible ?? true)) ||
     priceOptionLabelsChanged ||
     priceColumnsChanged;
 
@@ -2476,6 +2583,15 @@ function MenuCategoryForm({
       ...(supportsDescription ? { description, descriptionVisible } : {}),
       visible,
       sortOrder,
+      ...(supportsCourseFields
+        ? {
+            coursePrice,
+            coursePriceLabel,
+            coursePriceVisible,
+            coursePriceDescription,
+            coursePriceDescriptionVisible,
+          }
+        : {}),
       ...(supportCategoryPriceOptionColumns ? { priceOptionLabels: normalizedCategoryPriceOptionLabels } : {}),
       ...(supportBasicPriceColumns ? { priceColumns: normalizedCategoryPriceColumns } : {}),
     });
@@ -2544,6 +2660,76 @@ function MenuCategoryForm({
         helperText="숫자가 낮을수록 먼저 표시됩니다."
         onValueChange={(value) => setSortOrder(Number(value))}
       />
+      {supportsCourseFields && (
+        <section className="rounded-lg border border-zinc-100 bg-white p-4">
+          <h4 className="text-sm font-black text-zinc-950">코스 가격</h4>
+          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+            코스 가격과 가격에 대한 짧은 안내를 각각 설정할 수 있습니다.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <ValidatedTextInput
+              name="course_price"
+              label="코스 가격"
+              type="number"
+              min={0}
+              step={1}
+              defaultValue={coursePrice}
+              placeholder="350000"
+              helperText="숫자만 입력하면 메뉴판에서 통화 형식으로 표시됩니다."
+              onValueChange={(value) => {
+                setCoursePrice(value);
+                onDraftChange?.({ coursePrice: value });
+              }}
+            />
+            <ValidatedTextInput
+              name="course_price_label"
+              label="가격 안내"
+              defaultValue={coursePriceLabel}
+              maxLength={30}
+              placeholder="1인 기준"
+              helperText="가격 옆에 표시할 짧은 안내입니다."
+              onValueChange={(value) => {
+                setCoursePriceLabel(value);
+                onDraftChange?.({ coursePriceLabel: value });
+              }}
+            />
+          </div>
+          <div className="mt-4">
+            <ValidatedTextInput
+              name="course_price_description"
+              label="가격 상세 설명"
+              defaultValue={coursePriceDescription}
+              maxLength={120}
+              placeholder="와인 페어링 + ₩150,000"
+              helperText="추가 구성이나 가격 조건을 안내할 수 있습니다."
+              onValueChange={(value) => {
+                setCoursePriceDescription(value);
+                onDraftChange?.({ coursePriceDescription: value });
+              }}
+            />
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Checkbox
+              name="course_price_visible"
+              label="코스 가격 표시"
+              defaultChecked={coursePriceVisible}
+              onCheckedChange={(checked) => {
+                setCoursePriceVisible(checked);
+                onDraftChange?.({ coursePriceVisible: checked });
+              }}
+            />
+            <Checkbox
+              name="course_price_description_visible"
+              label="가격 상세 설명 표시"
+              defaultChecked={coursePriceDescriptionVisible}
+              onCheckedChange={(checked) => {
+                setCoursePriceDescriptionVisible(checked);
+                onDraftChange?.({ coursePriceDescriptionVisible: checked });
+              }}
+            />
+          </div>
+        </section>
+      )}
       {supportCategoryPriceOptionColumns && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <h4 className="text-sm font-black text-zinc-950">가격 옵션 열</h4>
@@ -2752,6 +2938,8 @@ function MenuItemForm({
   onDraftNameChange,
   itemCount,
   selectedCategoryId,
+  selectedPageId = "",
+  allowDirectItem = false,
   priceOptions = [],
   traits = [],
   priceMode = "single",
@@ -2791,6 +2979,8 @@ function MenuItemForm({
   onDraftNameChange?: (name: string) => void;
   itemCount: number;
   selectedCategoryId: string;
+  selectedPageId?: string;
+  allowDirectItem?: boolean;
   priceOptions?: MenuItemPriceOption[];
   traits?: MenuItemTrait[];
   priceMode?: PriceMode;
@@ -2811,7 +3001,7 @@ function MenuItemForm({
   const [setNameValue, setSetNameValue] = useState(draftItem?.setName ?? item?.set_name ?? "");
   const [selectedBadgeLabel, setSelectedBadgeLabel] = useState(initialBadgeLabel ? initialDefaultBadgeLabel ?? MENU_BADGE_CUSTOM_VALUE : "none");
   const [customBadgeLabel, setCustomBadgeLabel] = useState(initialDefaultBadgeLabel ? "" : initialBadgeLabel);
-  const [categoryId, setCategoryId] = useState(item?.category_id ?? selectedCategoryId);
+  const [categoryId, setCategoryId] = useState(draftItem?.categoryId ?? item?.category_id ?? selectedCategoryId);
   const currentCategoryPriceColumns = useMemo(
     () =>
       canManageCategoryPriceColumns
@@ -2821,7 +3011,7 @@ function MenuItemForm({
   );
   const nameValue = !item && draftName !== undefined ? draftName : name;
   const nameInvalid = !nameValue.trim() || nameValue.length > MENU_FIELD_LIMITS.menuItems.name;
-  const categoryInvalid = !categoryId;
+  const categoryInvalid = !allowDirectItem && !categoryId;
   const [draftPriceMode, setDraftPriceMode] = useState<PriceMode>(priceMode);
   const requestedPriceMode = item ? priceMode : draftPriceMode;
   const maxPriceOptionsPerItem = capabilities.maxPriceOptionsPerItem ?? MENU_LIMITS.maxPriceOptionsPerItem;
@@ -3110,7 +3300,7 @@ function MenuItemForm({
   const visibleBadgeLabel = isCustomBadge ? customBadgeLabel.trim() : selectedBadgeLabel !== "none" ? selectedBadgeLabel : "";
   const badgeVariant = labels.itemLabel === "서비스" ? "price_list" : "menu";
   const displayImageUrl = draftImageState.imageAction === "delete" ? "" : draftImageState.imageUrl ?? "";
-  const selectedCategoryName = categories.find((category) => category.id === categoryId)?.name ?? "";
+  const selectedCategoryName = categories.find((category) => category.id === categoryId)?.name ?? (allowDirectItem ? "단독 메뉴" : "");
   const aiDescriptionUsageExceeded = aiDescriptionUsage.used >= aiDescriptionUsage.limit;
   const committedPriceOptions = useMemo(
     () => committedDraftItem?.priceOptions ?? [...priceOptions].sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
@@ -3254,6 +3444,7 @@ function MenuItemForm({
 
     return {
       categoryId: String(formData?.get("item_category_id") ?? categoryId),
+      pageId: draftItem?.pageId ?? item?.menu_page_id ?? selectedPageId,
       name: String(formData?.get("item_name") ?? nameValue),
       setName: String(formData?.get("item_set_name") ?? setNameValue),
       description: String(formData?.get("item_description") ?? descriptionValue),
@@ -3540,18 +3731,19 @@ function MenuItemForm({
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <FieldLabel required>{labels.categoryLabel}</FieldLabel>
+            <FieldLabel required={!allowDirectItem}>{labels.categoryLabel}</FieldLabel>
             <Select
               name="item_category_id"
               form={formId}
               value={categoryId}
-              required
+              required={!allowDirectItem}
               onChange={(event) => {
                 setCategoryId(event.target.value);
                 updateDraftItem({ categoryId: event.target.value });
               }}
             >
-              {categories.length === 0 && <option value="">{labels.categoryLabel}을 선택하세요</option>}
+              {allowDirectItem && <option value="">코스 없이 단독 메뉴</option>}
+              {!allowDirectItem && categories.length === 0 && <option value="">{labels.categoryLabel}을 선택하세요</option>}
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -3559,7 +3751,11 @@ function MenuItemForm({
               ))}
             </Select>
             <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${categoryInvalid ? "text-red-600" : "text-zinc-400"}`}>
-              {categoryInvalid ? `${labels.categoryLabel}을 선택해주세요.` : `이 ${labels.itemLabel}가 표시될 ${labels.categoryLabel}을 선택하세요.`}
+              {categoryInvalid
+                ? `${labels.categoryLabel}을 선택해주세요.`
+                : allowDirectItem && !categoryId
+                  ? `이 ${labels.itemLabel}는 현재 메뉴 페이지에 단독으로 표시됩니다.`
+                  : `이 ${labels.itemLabel}가 표시될 ${labels.categoryLabel}을 선택하세요.`}
             </p>
           </div>
           <div>
@@ -5002,6 +5198,7 @@ function DraftPriceOptionsEditor({
 
 export default function MenuManagementSection({
   menuId,
+  templateKey,
   menuPages,
   categories,
   items,
@@ -5033,6 +5230,7 @@ export default function MenuManagementSection({
   finalSaveMessage,
   finalSaveError,
 }: MenuManagementSectionProps) {
+  const isAubeTable = isAubeTableTemplate(templateKey);
   const cafeAStarterReset = useCafeAStarterResetCoordinator();
   const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
   const initialTimeSaleDraftByItemId = new Map(
@@ -5092,12 +5290,22 @@ export default function MenuManagementSection({
           title: page.title,
           sortOrder: page.sort_order,
           displaySettings: normalizeMenuPageDisplaySettings(page.display_settings),
+          layoutColumns: normalizeAubeTableLayoutColumns(page.layout_columns),
+          textAlignment: normalizeAubeTableTextAlignment(page.text_alignment),
         },
       ])
     )
   );
   const [categoryBasicDrafts, setCategoryBasicDrafts] = useState<Record<string, CategoryBasicDraft>>(() =>
-    Object.fromEntries(categories.map((category) => [category.id, { name: category.name, sortOrder: category.sort_order }]))
+    Object.fromEntries(categories.map((category) => [category.id, {
+      name: category.name,
+      sortOrder: category.sort_order,
+      coursePrice: category.course_price == null ? "" : String(category.course_price),
+      coursePriceLabel: category.course_price_label ?? "",
+      coursePriceVisible: category.course_price_visible ?? true,
+      coursePriceDescription: category.course_price_description ?? "",
+      coursePriceDescriptionVisible: category.course_price_description_visible ?? true,
+    }]))
   );
   const [itemBasicDrafts, setItemBasicDrafts] = useState<Record<string, ItemBasicDraft>>(() =>
     Object.fromEntries(
@@ -5107,6 +5315,7 @@ export default function MenuManagementSection({
           name: item.name,
           setName: item.set_name ?? "",
           categoryId: item.category_id ?? undefined,
+          pageId: item.menu_page_id ?? undefined,
           isNew: false,
           description: item.description ?? "",
           originInfo: item.origin_info ?? "",
@@ -5158,6 +5367,8 @@ export default function MenuManagementSection({
             display_settings: draft?.displaySettings ?? normalizeMenuPageDisplaySettings(page.display_settings),
             visible: draft?.visible ?? page.visible,
             sort_order: draft?.sortOrder ?? page.sort_order,
+            layout_columns: draft?.layoutColumns ?? normalizeAubeTableLayoutColumns(page.layout_columns),
+            text_alignment: draft?.textAlignment ?? normalizeAubeTableTextAlignment(page.text_alignment),
           };
         });
       const createdPages: MenuPage[] = Object.entries(pageBasicDrafts)
@@ -5172,6 +5383,8 @@ export default function MenuManagementSection({
           visible: draft.visible ?? true,
           sort_order: draft.sortOrder,
           created_at: "",
+          layout_columns: draft.layoutColumns ?? 1,
+          text_alignment: draft.textAlignment ?? "left",
         }));
 
       return [...existingPages, ...createdPages];
@@ -5190,6 +5403,13 @@ export default function MenuManagementSection({
           visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
           sort_order: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
           priceColumns: categoryBasicDrafts[category.id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category.priceColumns),
+          course_price: categoryBasicDrafts[category.id]?.coursePrice?.trim()
+            ? Number(categoryBasicDrafts[category.id]?.coursePrice)
+            : category.course_price ?? null,
+          course_price_label: categoryBasicDrafts[category.id]?.coursePriceLabel?.trim() || category.course_price_label || null,
+          course_price_visible: categoryBasicDrafts[category.id]?.coursePriceVisible ?? category.course_price_visible ?? true,
+          course_price_description: categoryBasicDrafts[category.id]?.coursePriceDescription?.trim() || category.course_price_description || null,
+          course_price_description_visible: categoryBasicDrafts[category.id]?.coursePriceDescriptionVisible ?? category.course_price_description_visible ?? true,
         }));
       const createdCategories: MenuCategory[] = Object.entries(categoryBasicDrafts)
         .filter(([id, draft]) => draft.isNew && draft.pageId && !deletedCategoryIds.has(id) && !deletedPageIds.has(draft.pageId))
@@ -5203,6 +5423,11 @@ export default function MenuManagementSection({
           sort_order: draft.sortOrder,
           visible: draft.visible ?? true,
           priceColumns: normalizeCategoryPriceColumnDrafts(draft.priceColumns),
+          course_price: draft.coursePrice?.trim() ? Number(draft.coursePrice) : null,
+          course_price_label: draft.coursePriceLabel?.trim() || null,
+          course_price_visible: draft.coursePriceVisible ?? true,
+          course_price_description: draft.coursePriceDescription?.trim() || null,
+          course_price_description_visible: draft.coursePriceDescriptionVisible ?? true,
         }));
 
       return [...existingCategories, ...createdCategories];
@@ -5218,6 +5443,7 @@ export default function MenuManagementSection({
       const existingDraftedItems = items.filter((item) => {
         if (deletedItemIds.has(item.id)) return false;
         if (item.category_id && deletedCategoryIdSet.has(item.category_id)) return false;
+        if (!item.category_id && item.menu_page_id && deletedPageIds.has(item.menu_page_id)) return false;
         return true;
       }).map((item) => {
         const draft = itemBasicDrafts[item.id];
@@ -5227,7 +5453,8 @@ export default function MenuManagementSection({
         const nextImagePath = draft.imageAction === "delete" ? null : draft.imagePath ?? item.image_path;
         return {
           ...item,
-          category_id: draft.categoryId ?? item.category_id,
+          category_id: isAubeTable ? draft.categoryId || null : draft.categoryId ?? item.category_id,
+          menu_page_id: draft.pageId ?? item.menu_page_id ?? null,
           name: draft.name,
           set_name: draft.setName.trim() ? draft.setName : null,
           description: draft.description.trim() ? draft.description : null,
@@ -5251,13 +5478,19 @@ export default function MenuManagementSection({
         };
       });
       const createdDraftItems: MenuItem[] = Object.entries(itemBasicDrafts)
-        .filter(([, draft]) => draft.isNew && draft.categoryId && !deletedCategoryIdSet.has(draft.categoryId))
+        .filter(
+          ([, draft]) =>
+            draft.isNew &&
+            ((Boolean(draft.categoryId) && !deletedCategoryIdSet.has(draft.categoryId ?? "")) ||
+              (isAubeTable && Boolean(draft.pageId) && !deletedPageIds.has(draft.pageId ?? "")))
+        )
         .map(([id, draft]) => {
           const numericPrice = draft.price.trim() ? Number(draft.price) : null;
           const badgeLabel = draft.badgeLabel.trim() ? draft.badgeLabel : null;
           return {
             id,
             category_id: draft.categoryId ?? null,
+            menu_page_id: draft.pageId ?? null,
             name: draft.name,
             set_name: draft.setName.trim() ? draft.setName : null,
             description: draft.description.trim() ? draft.description : null,
@@ -5283,7 +5516,7 @@ export default function MenuManagementSection({
 
       return [...existingDraftedItems, ...createdDraftItems];
     },
-    [capabilities.itemPortionLabel, categories, deletedCategoryIds, deletedItemIds, deletedPageIds, items, itemBasicDrafts]
+    [capabilities.itemPortionLabel, categories, deletedCategoryIds, deletedItemIds, deletedPageIds, isAubeTable, items, itemBasicDrafts]
   );
   const enabledTimeSaleDraftCount = useMemo(() => {
     if (!canManageTimeSales) return 0;
@@ -5381,6 +5614,9 @@ export default function MenuManagementSection({
         null;
   const visibleCategoryId = selectedCategory?.id ?? "";
   const itemsForCategory = sortItems(draftedItems.filter((item) => item.category_id === visibleCategoryId));
+  const directItemsForSelectedPage = sortItems(
+    draftedItems.filter((item) => !item.category_id && item.menu_page_id === visiblePageId)
+  );
   const selectedCategoryDisplayQualityNotice = selectedCategory
     ? getDisplayMenuCategoryQualityNotice(selectedCategory, itemsForCategory, supportsDisplayMenuQualityWarnings)
     : null;
@@ -5453,8 +5689,13 @@ export default function MenuManagementSection({
       )
     );
   }, [priceOptions, usesLegacyCategoryPriceOptionColumns]);
-  const visibleStructurePages = canManagePages ? sortedPages : selectedPage ? [selectedPage] : [];
-  const reachedPageLimit = sortedPages.length >= MENU_LIMITS.maxPagesPerSite;
+  const visibleStructurePages = canManagePages
+    ? isAubeTable && selectedPage
+      ? [selectedPage]
+      : sortedPages
+    : selectedPage ? [selectedPage] : [];
+  const pageLimit = isAubeTable ? AUBE_TABLE_MAX_MENU_PAGES : MENU_LIMITS.maxPagesPerSite;
+  const reachedPageLimit = sortedPages.length >= pageLimit;
   const reachedCategoryLimit = categoriesForPage.length >= MENU_LIMITS.maxCategoriesPerPage;
   const reachedItemsPerCategoryLimit = itemsForCategory.length >= MENU_LIMITS.maxItemsPerCategory;
   const reachedItemsPerSiteLimit = draftedItems.length >= MENU_LIMITS.maxItemsPerSite;
@@ -5539,6 +5780,8 @@ export default function MenuManagementSection({
             description: draft?.description ?? page.description ?? "",
             descriptionVisible: draft?.descriptionVisible ?? page.description_visible,
             displaySettings: normalizeMenuPageDisplaySettings(draft?.displaySettings ?? page.display_settings),
+            layoutColumns: draft?.layoutColumns ?? normalizeAubeTableLayoutColumns(page.layout_columns),
+            textAlignment: draft?.textAlignment ?? normalizeAubeTableTextAlignment(page.text_alignment),
             visible: draft?.visible ?? page.visible,
             sortOrder: draft?.sortOrder ?? page.sort_order,
           };
@@ -5560,9 +5803,14 @@ export default function MenuManagementSection({
           sortOrder: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
           priceOptionLabels: usesLegacyCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(category.id) : undefined,
           priceColumns: canManageCategoryPriceColumns ? getCategoryPriceColumns(category.id) : undefined,
+          coursePrice: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePrice ?? (category.course_price == null ? "" : String(category.course_price))) : undefined,
+          coursePriceLabel: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePriceLabel ?? category.course_price_label ?? "") : undefined,
+          coursePriceVisible: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePriceVisible ?? category.course_price_visible ?? true) : undefined,
+          coursePriceDescription: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePriceDescription ?? category.course_price_description ?? "") : undefined,
+          coursePriceDescriptionVisible: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePriceDescriptionVisible ?? category.course_price_description_visible ?? true) : undefined,
         }))
       ),
-    [canManageCategoryPriceColumns, categoryBasicDrafts, draftedCategories, getCategoryPriceColumns, getCategoryPriceOptionLabels, usesLegacyCategoryPriceOptionColumns]
+    [canManageCategoryPriceColumns, categoryBasicDrafts, draftedCategories, getCategoryPriceColumns, getCategoryPriceOptionLabels, isAubeTable, usesLegacyCategoryPriceOptionColumns]
   );
   const itemBasicDraftPayload = useMemo(
     () =>
@@ -5588,6 +5836,7 @@ export default function MenuManagementSection({
               id: item.id,
               isNew: Boolean(draft?.isNew),
               categoryId,
+              pageId: draft?.pageId ?? item.menu_page_id ?? "",
               name: draft?.name ?? item.name,
               setName: draft?.setName ?? item.set_name ?? "",
               description: draft?.description ?? item.description ?? "",
@@ -6297,6 +6546,7 @@ export default function MenuManagementSection({
     const sourceItem = items.find((item) => item.id === itemId) ?? draftedItems.find((item) => item.id === itemId);
     return {
       categoryId: sourceItem?.category_id ?? visibleCategoryId ?? undefined,
+      pageId: sourceItem?.menu_page_id ?? visiblePageId ?? undefined,
       isNew: false,
       imageUrl: sourceItem?.image_url ?? null,
       imagePath: sourceItem?.image_path ?? null,
@@ -6328,6 +6578,7 @@ export default function MenuManagementSection({
 
     return {
       categoryId: existingDraft?.categoryId ?? sourceItem?.category_id ?? fallbackCategoryId,
+      pageId: existingDraft?.pageId ?? sourceItem?.menu_page_id ?? visiblePageId ?? undefined,
       isNew: existingDraft?.isNew ?? false,
       imageUrl: existingDraft?.imageUrl ?? sourceItem?.image_url ?? null,
       imagePath: existingDraft?.imagePath ?? sourceItem?.image_path ?? null,
@@ -6962,6 +7213,8 @@ export default function MenuManagementSection({
             sortOrder: index + 1,
             isNew: currentDrafts[page.id]?.isNew,
             displaySettings: currentDrafts[page.id]?.displaySettings ?? normalizeMenuPageDisplaySettings(page.display_settings),
+            layoutColumns: currentDrafts[page.id]?.layoutColumns ?? normalizeAubeTableLayoutColumns(page.layout_columns),
+            textAlignment: currentDrafts[page.id]?.textAlignment ?? normalizeAubeTableTextAlignment(page.text_alignment),
           };
           return drafts;
         }, {}),
@@ -6973,6 +7226,8 @@ export default function MenuManagementSection({
           visible: draftTarget?.type === "page" ? draftTarget.visible ?? true : true,
           sortOrder: 0,
           displaySettings,
+          layoutColumns: draftTarget?.type === "page" ? draftTarget.layoutColumns ?? 1 : 1,
+          textAlignment: draftTarget?.type === "page" ? draftTarget.textAlignment ?? "left" : "left",
         },
       }));
       setSelectedPageId(draftId);
@@ -7043,6 +7298,12 @@ export default function MenuManagementSection({
             visible: currentDrafts[category.id]?.visible ?? category.visible,
             sortOrder: index + 1,
             priceColumns: currentDrafts[category.id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category.priceColumns),
+            coursePrice: currentDrafts[category.id]?.coursePrice ?? (category.course_price == null ? "" : String(category.course_price)),
+            coursePriceLabel: currentDrafts[category.id]?.coursePriceLabel ?? category.course_price_label ?? "",
+            coursePriceVisible: currentDrafts[category.id]?.coursePriceVisible ?? category.course_price_visible ?? true,
+            coursePriceDescription: currentDrafts[category.id]?.coursePriceDescription ?? category.course_price_description ?? "",
+            coursePriceDescriptionVisible:
+              currentDrafts[category.id]?.coursePriceDescriptionVisible ?? category.course_price_description_visible ?? true,
           };
           return drafts;
         }, {}),
@@ -7056,6 +7317,12 @@ export default function MenuManagementSection({
           sortOrder: 0,
           priceOptionLabels: draftTarget?.type === "category" ? draftTarget.priceOptionLabels : undefined,
           priceColumns: draftTarget?.type === "category" ? normalizeCategoryPriceColumnDrafts(draftTarget.priceColumns) : undefined,
+          coursePrice: draftTarget?.type === "category" ? draftTarget.coursePrice ?? "" : "",
+          coursePriceLabel: draftTarget?.type === "category" ? draftTarget.coursePriceLabel ?? "" : "",
+          coursePriceVisible: draftTarget?.type === "category" ? draftTarget.coursePriceVisible ?? true : true,
+          coursePriceDescription: draftTarget?.type === "category" ? draftTarget.coursePriceDescription ?? "" : "",
+          coursePriceDescriptionVisible:
+            draftTarget?.type === "category" ? draftTarget.coursePriceDescriptionVisible ?? true : true,
         },
       }));
       setContentBlockDraftsByPageId((currentDrafts) =>
@@ -7084,19 +7351,22 @@ export default function MenuManagementSection({
     }
   }
 
-  function startCreateItem() {
-    if (!visibleCategoryId || !visiblePageId || selectedPageIsPromotion || reachedItemLimit) return;
+  function startCreateItem(options: { direct?: boolean } = {}) {
+    const createDirectItem = isAubeTable && options.direct === true;
+    if ((!visibleCategoryId && !createDirectItem) || !visiblePageId || selectedPageIsPromotion || reachedItemLimit) return;
     if (!confirmDiscardDraft()) return;
     resetModes();
     setExpandedPageIds(new Set([visiblePageId]));
-    setExpandedCategoryIds(new Set([visibleCategoryId]));
-    const draftCount = Object.keys(itemBasicDrafts).filter((id) => id.startsWith(`temp-item-new-${visibleCategoryId}-`)).length;
-    const draftId = `temp-item-new-${visibleCategoryId}-${draftCount + 1}`;
+    setExpandedCategoryIds(new Set(createDirectItem ? [] : [visibleCategoryId]));
+    const targetKey = createDirectItem ? `page-${visiblePageId}` : visibleCategoryId;
+    const draftCount = Object.keys(itemBasicDrafts).filter((id) => id.startsWith(`temp-item-new-${targetKey}-`)).length;
+    const draftId = `temp-item-new-${targetKey}-${draftCount + 1}`;
     const draftName = labels.itemLabel === "서비스" ? "새 서비스" : "새 메뉴 아이템";
     setPendingItemDrafts((currentDrafts) => ({
       ...currentDrafts,
       [draftId]: {
-        categoryId: visibleCategoryId,
+        categoryId: createDirectItem ? undefined : visibleCategoryId,
+        pageId: visiblePageId,
         isNew: true,
         name: draftName,
         setName: "",
@@ -7216,6 +7486,9 @@ export default function MenuManagementSection({
     categoryIds.forEach((categoryId) => {
       draftedItems.filter((item) => item.category_id === categoryId).forEach((item) => markItemDeleted(item.id));
     });
+    draftedItems
+      .filter((item) => !item.category_id && item.menu_page_id === pageId)
+      .forEach((item) => markItemDeleted(item.id));
     setCategoryBasicDrafts((currentDrafts) => {
       const nextDrafts = { ...currentDrafts };
       categoryIds.forEach((categoryId) => {
@@ -7259,7 +7532,7 @@ export default function MenuManagementSection({
 
   function getPageCopyDisabledReason(pageId: string) {
     if (reachedPageLimit) {
-      return `${labels.pageLabel}는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`;
+      return `${labels.pageLabel}는 최대 ${isAubeTable ? AUBE_TABLE_MAX_MENU_PAGES : MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`;
     }
 
     const sourcePage = sortedPages.find((page) => page.id === pageId);
@@ -7284,7 +7557,11 @@ export default function MenuManagementSection({
     }
 
     const sourceCategoryIds = new Set(sourceCategories.map((category) => category.id));
-    const sourceItems = draftedItems.filter((item) => item.category_id && sourceCategoryIds.has(item.category_id));
+    const sourceItems = draftedItems.filter(
+      (item) =>
+        (item.category_id && sourceCategoryIds.has(item.category_id)) ||
+        (isAubeTable && !item.category_id && item.menu_page_id === pageId)
+    );
     if (draftedItems.length + sourceItems.length > MENU_LIMITS.maxItemsPerSite) {
       return `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`;
     }
@@ -7334,6 +7611,8 @@ export default function MenuManagementSection({
           visible: nextDrafts[page.id]?.visible ?? page.visible,
           sortOrder: index + 1,
           displaySettings: nextDrafts[page.id]?.displaySettings ?? normalizeMenuPageDisplaySettings(page.display_settings),
+          layoutColumns: nextDrafts[page.id]?.layoutColumns ?? normalizeAubeTableLayoutColumns(page.layout_columns),
+          textAlignment: nextDrafts[page.id]?.textAlignment ?? normalizeAubeTableTextAlignment(page.text_alignment),
         };
       });
       nextDrafts[draftPageId] = {
@@ -7344,6 +7623,8 @@ export default function MenuManagementSection({
         visible: sourcePage.visible,
         sortOrder: 0,
         displaySettings: sourceDisplaySettings,
+        layoutColumns: normalizeAubeTableLayoutColumns(sourcePage.layout_columns),
+        textAlignment: normalizeAubeTableTextAlignment(sourcePage.text_alignment),
       };
       return nextDrafts;
     });
@@ -7366,6 +7647,12 @@ export default function MenuManagementSection({
           sortOrder: index,
           priceOptionLabels: currentDrafts[category.id]?.priceOptionLabels ?? getCategoryPriceOptionLabels(category.id),
           priceColumns: copyCategoryPriceColumnDrafts(currentDrafts[category.id]?.priceColumns ?? getCategoryPriceColumns(category.id)),
+          coursePrice: currentDrafts[category.id]?.coursePrice ?? (category.course_price == null ? "" : String(category.course_price)),
+          coursePriceLabel: currentDrafts[category.id]?.coursePriceLabel ?? category.course_price_label ?? "",
+          coursePriceVisible: currentDrafts[category.id]?.coursePriceVisible ?? category.course_price_visible ?? true,
+          coursePriceDescription: currentDrafts[category.id]?.coursePriceDescription ?? category.course_price_description ?? "",
+          coursePriceDescriptionVisible:
+            currentDrafts[category.id]?.coursePriceDescriptionVisible ?? category.course_price_description_visible ?? true,
         };
       });
       return nextDrafts;
@@ -7414,6 +7701,39 @@ export default function MenuManagementSection({
           };
         });
       });
+      const sourceDirectItems = sortItems(
+        draftedItems.filter((item) => !item.category_id && item.menu_page_id === pageId)
+      );
+      sourceDirectItems.forEach((item, index) => {
+        const sourceDraft = currentDrafts[item.id];
+        const draftItemId = `temp-item-page-copy-${pageId}-direct-${item.id}-${copyCount + 1}`;
+        nextDrafts[draftItemId] = {
+          categoryId: undefined,
+          pageId: draftPageId,
+          isNew: true,
+          imageUrl: sourceDraft?.imageUrl ?? item.image_url ?? null,
+          imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
+          imageAction: sourceDraft?.imageAction ?? "keep",
+          name: sourceDraft?.name ?? item.name,
+          setName: sourceDraft?.setName ?? item.set_name ?? "",
+          description: sourceDraft?.description ?? item.description ?? "",
+          originInfo: sourceDraft?.originInfo ?? item.origin_info ?? "",
+          price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
+          priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
+          priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
+          badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
+          visible: sourceDraft?.visible ?? item.visible,
+          isSoldOut: false,
+          sortOrder: index,
+          priceVisible: sourceDraft?.priceVisible ?? item.price_visible,
+          portionLabel: sourceDraft?.portionLabel ?? item.portion_label ?? "",
+          portionVisible: sourceDraft?.portionVisible ?? item.portion_visible,
+          traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
+          traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
+          priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === item.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
+          priceColumnValues: [],
+        };
+      });
       return nextDrafts;
     });
 
@@ -7444,10 +7764,14 @@ export default function MenuManagementSection({
 
   function copyItemDraft(itemId: string, draftPatch?: Partial<ItemBasicDraft>) {
     const sourceItem = draftedItems.find((item) => item.id === itemId);
-    if (!sourceItem?.category_id) return;
+    if (!sourceItem || (!sourceItem.category_id && !(isAubeTable && sourceItem.menu_page_id))) return;
     if (reachedItemsPerSiteLimit) return;
 
-    const categoryItems = sortItems(draftedItems.filter((item) => item.category_id === sourceItem.category_id));
+    const categoryItems = sortItems(
+      sourceItem.category_id
+        ? draftedItems.filter((item) => item.category_id === sourceItem.category_id)
+        : draftedItems.filter((item) => !item.category_id && item.menu_page_id === sourceItem.menu_page_id)
+    );
     if (categoryItems.length >= MENU_LIMITS.maxItemsPerCategory) return;
 
     const copyCount = Object.keys(itemBasicDrafts).filter((id) => id.startsWith(`temp-item-copy-${itemId}-`)).length;
@@ -7458,6 +7782,7 @@ export default function MenuManagementSection({
     setItemBasicDrafts((currentDrafts) => {
       const copiedDraft: ItemBasicDraft = {
         categoryId: sourceDraft?.categoryId ?? sourceItem.category_id ?? undefined,
+        pageId: sourceDraft?.pageId ?? sourceItem.menu_page_id ?? undefined,
         isNew: true,
         imageUrl: sourceDraft?.imageUrl ?? sourceItem.image_url,
         imagePath: sourceDraft?.imagePath ?? sourceItem.image_path,
@@ -7503,6 +7828,11 @@ export default function MenuManagementSection({
       setSelectedCategoryId(sourceCategory.id);
       setExpandedPageIds(new Set(sourceCategory.menu_page_id ? [sourceCategory.menu_page_id] : []));
       setExpandedCategoryIds(new Set([sourceCategory.id]));
+    } else if (sourceItem.menu_page_id) {
+      setSelectedPageId(sourceItem.menu_page_id);
+      setSelectedCategoryId("");
+      setExpandedPageIds(new Set([sourceItem.menu_page_id]));
+      setExpandedCategoryIds(new Set());
     }
     setEditingItemId(draftId);
     setItemEditorEntryMode("list");
@@ -7637,6 +7967,11 @@ export default function MenuManagementSection({
       setSelectedCategoryId(category.id);
       setExpandedPageIds(new Set(category.menu_page_id ? [category.menu_page_id] : []));
       setExpandedCategoryIds(new Set([category.id]));
+    } else if (item?.menu_page_id) {
+      setSelectedPageId(item.menu_page_id);
+      setSelectedCategoryId("");
+      setExpandedPageIds(new Set([item.menu_page_id]));
+      setExpandedCategoryIds(new Set());
     }
     setEditingItemId(itemId);
     setItemEditorEntryMode("edit");
@@ -8384,8 +8719,8 @@ export default function MenuManagementSection({
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div className="min-w-0">
               <h2 className="flex min-w-0 items-center gap-2 text-2xl font-bold tracking-tight">
-                <span className="min-w-0 truncate">{labels.itemPluralLabel.includes("서비스") ? "가격표 관리" : "메뉴 관리"}</span>
-                <HelpTooltip label="메뉴 관리 도움말">
+                <span className="min-w-0 truncate">{labels.itemPluralLabel.includes("서비스") ? "가격표 관리" : "메뉴판 구성"}</span>
+                <HelpTooltip label="메뉴판 구성 도움말">
                   변경사항은 편집 화면에 먼저 반영되며, 하단의 저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다. 샘플로 되돌리기도 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
                 </HelpTooltip>
               </h2>
@@ -8419,6 +8754,53 @@ export default function MenuManagementSection({
             </div>
           </div>
         </div>
+
+        {isAubeTable && canManagePages ? (
+          <nav className="sticky top-16 z-20 -mx-2 mb-6 overflow-x-auto border-y border-zinc-100 bg-white px-2 py-3" aria-label="멀티페이지 메뉴 설정">
+            <div className="flex min-w-max items-center gap-2">
+              <a
+                href={`/mypage/menus/${menuId}/edit?tab=cover`}
+                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-black text-zinc-600 hover:border-zinc-400"
+              >
+                커버
+              </a>
+              {sortedPages.map((page, index) => (
+                <div
+                  key={page.id}
+                  className={`flex items-center rounded-full border ${page.id === selectedPage?.id ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handlePageDrop(page.id)}
+                >
+                  <button
+                    type="button"
+                    draggable
+                    onDragStart={(event) => {
+                      event.stopPropagation();
+                      setDragState({ type: "page", id: page.id });
+                    }}
+                    className="cursor-grab px-2 py-2 text-zinc-400 active:cursor-grabbing"
+                    aria-label={`${page.title || `메뉴 페이지 ${index + 1}`} 순서 이동`}
+                  >
+                    <DragHandleIcon />
+                  </button>
+                  <button type="button" onClick={() => selectPage(page.id)} className="max-w-44 truncate py-2 pl-1 pr-4 text-xs font-black">
+                    {page.title || `메뉴 페이지 ${index + 1}`}
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={startCreatePage}
+                disabled={reachedPageLimit}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-base font-black text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                aria-label="메뉴 페이지 추가"
+                title={`메뉴 페이지는 최대 ${AUBE_TABLE_MAX_MENU_PAGES}개까지 추가할 수 있습니다.`}
+              >
+                +
+              </button>
+            </div>
+          </nav>
+        ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
           <aside className="min-w-0 rounded-lg border border-zinc-100 bg-zinc-50 p-4 lg:sticky lg:top-24">
@@ -8508,7 +8890,7 @@ export default function MenuManagementSection({
               {shouldShowItemCreateButton && (
                 <button
                   type="button"
-                  onClick={startCreateItem}
+                  onClick={() => startCreateItem()}
                   disabled={reachedItemLimit}
                   className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                 >
@@ -8536,8 +8918,11 @@ export default function MenuManagementSection({
                   const pageCategories = pageIsPromotion ? [] : sortCategories(draftedCategories.filter((category) => category.menu_page_id === page.id));
                   const pageCategoryById = new Map(pageCategories.map((category) => [category.id, category]));
                   const pageContentBlocks = pageIsPromotion ? [] : getStructureContentBlocksForPage(page.id, pageCategories);
+                  const pageDirectItems = isAubeTable
+                    ? sortItems(draftedItems.filter((item) => !item.category_id && item.menu_page_id === page.id))
+                    : [];
                   const pageActive = page.id === visiblePageId && !visibleCategoryId && !editingItemId && !isWidgetSelected;
-                  const pageCanCollapse = canManagePages && !pageIsPromotion && pageContentBlocks.length > 0;
+                  const pageCanCollapse = canManagePages && !pageIsPromotion && (pageContentBlocks.length > 0 || pageDirectItems.length > 0);
                   const pageExpanded = expandedPageIds.has(page.id);
                   return (
                     <div
@@ -8600,6 +8985,23 @@ export default function MenuManagementSection({
                             placeholder={labels.categoryLabel === "서비스 그룹" ? "새 서비스 그룹명 입력" : "새 카테고리명 입력"}
                             level="category"
                           />
+                        )}
+                        {pageDirectItems.length > 0 && (
+                          <div className="mb-1 grid min-w-0 gap-1 rounded-md bg-white p-2">
+                            <p className="px-2 text-[10px] font-black uppercase tracking-[0.08em] text-zinc-400">단독 메뉴</p>
+                            {pageDirectItems.map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => selectItem(page.id, "", item.id)}
+                                className={`min-w-0 truncate rounded-md px-3 py-1.5 text-left text-xs font-semibold transition ${
+                                  item.id === editingItemId ? "bg-zinc-100 text-zinc-950" : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                                }`}
+                              >
+                                {item.name}
+                              </button>
+                            ))}
+                          </div>
                         )}
                         {pageContentBlocks.map((block) => {
                           const contentSortableId = createMenuContentSortableId(block);
@@ -8788,6 +9190,7 @@ export default function MenuManagementSection({
                   supportsPromotionText={capabilities.promotionText}
                   displaySettingsDraft={draftTarget?.type === "page" ? draftTarget.displaySettings : undefined}
                   canUseDisplayVideoUpload={canUseDisplayVideoUpload}
+                  supportsAubeTablePageSettings={isAubeTable}
                 />
               </div>
             ) : canManagePages && editingPageId && selectedPage ? (
@@ -8832,6 +9235,7 @@ export default function MenuManagementSection({
                     selectedPageDisplayQualityNotice ? <DisplayMenuQualityNoticeBox notice={selectedPageDisplayQualityNotice} /> : null
                   }
                   canUseDisplayVideoUpload={canUseDisplayVideoUpload}
+                  supportsAubeTablePageSettings={isAubeTable}
                   deleteAction={
                     <DraftDeleteConfirmButton
                       title={isCopiedPage ? "이 복사본을 삭제할까요?" : `${labels.pageLabel}를 삭제할까요?`}
@@ -8941,6 +9345,7 @@ export default function MenuManagementSection({
                   priceOptionLabels={draftTarget?.type === "category" ? draftTarget.priceOptionLabels : []}
                   priceColumns={draftTarget?.type === "category" ? draftTarget.priceColumns : []}
                   supportsDescription={capabilities.categoryDescription}
+                  supportsCourseFields={isAubeTable}
                   supportCategoryPriceOptionColumns={usesLegacyCategoryPriceOptionColumns}
                   supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
@@ -8980,6 +9385,7 @@ export default function MenuManagementSection({
                   priceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
                   priceColumns={getCategoryPriceColumns(selectedCategory.id)}
                   supportsDescription={capabilities.categoryDescription}
+                  supportsCourseFields={isAubeTable}
                   supportCategoryPriceOptionColumns={usesLegacyCategoryPriceOptionColumns}
                   supportBasicPriceColumns={canManageCategoryPriceColumns}
                   maxPriceOptionColumns={maxCategoryPriceOptionColumns}
@@ -9020,9 +9426,17 @@ export default function MenuManagementSection({
                   );
                 })()}
               </div>
-            ) : selectedCategory && isCreatingItem ? (
+            ) : (selectedCategory || (isAubeTable && editingItemId && pendingItemDrafts[editingItemId]?.pageId === visiblePageId)) && isCreatingItem ? (
               <div ref={newItemFormRef} className="fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:p-0">
-                <PanelHeader eyebrow="New Item" title={`새 ${labels.itemLabel} 추가`} description={`현재 선택한 ${labels.categoryLabel}에 새 ${labels.itemLabel}을 추가합니다.`} />
+                <PanelHeader
+                  eyebrow="New Item"
+                  title={`새 ${labels.itemLabel} 추가`}
+                  description={
+                    selectedCategory
+                      ? `현재 선택한 ${labels.categoryLabel}에 새 ${labels.itemLabel}을 추가합니다.`
+                      : `현재 메뉴 페이지에 코스 없이 표시되는 새 ${labels.itemLabel}을 추가합니다.`
+                  }
+                />
                 <MenuItemForm
                   menuId={menuId}
                   categories={categoriesForPage}
@@ -9031,9 +9445,11 @@ export default function MenuManagementSection({
                   onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                   badgeStyles={badgeStyles}
                   labels={labels}
-                  itemCount={itemsForCategory.length}
-                  selectedCategoryId={selectedCategory.id}
-                  categoryPriceOptionLabels={getCategoryPriceOptionLabels(selectedCategory.id)}
+                  itemCount={selectedCategory ? itemsForCategory.length : directItemsForSelectedPage.length}
+                  selectedCategoryId={selectedCategory?.id ?? ""}
+                  selectedPageId={visiblePageId}
+                  allowDirectItem={isAubeTable}
+                  categoryPriceOptionLabels={selectedCategory ? getCategoryPriceOptionLabels(selectedCategory.id) : []}
                   canManageTimeSales={canManageTimeSales}
                   canManageCategoryPriceColumns={canManageCategoryPriceColumns}
                   supportsPriceDisplayMode={supportsPriceDisplayMode}
@@ -9098,6 +9514,8 @@ export default function MenuManagementSection({
                   onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                   badgeStyles={badgeStyles}
                   labels={labels}
+                  allowDirectItem={isAubeTable}
+                  selectedPageId={selectedEditingItem.menu_page_id ?? visiblePageId}
                   isEditing
                   cancelLabel={itemEditorEntryMode === "edit" ? "취소" : "목록으로"}
                   isConfirmingDelete={confirmingDeleteKey === `item:${selectedEditingItem.id}`}
@@ -9144,7 +9562,7 @@ export default function MenuManagementSection({
                 <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
                   <button
                     type="button"
-                    onClick={startCreateItem}
+                      onClick={() => startCreateItem()}
                     disabled={reachedItemLimit}
                     title={
                       reachedItemsPerCategoryLimit
@@ -9229,6 +9647,8 @@ export default function MenuManagementSection({
                           onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                           badgeStyles={badgeStyles}
                           labels={labels}
+                          allowDirectItem={isAubeTable}
+                          selectedPageId={visiblePageId}
                           cancelLabel="목록으로"
                           isEditing={false}
                           isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
@@ -9273,7 +9693,13 @@ export default function MenuManagementSection({
                     </>
                   )}
                   <DetailValue label={`${labels.categoryLabel} 수`}>{categoriesForPage.length}개</DetailValue>
-                  <DetailValue label={`${labels.itemLabel} 수`}>{draftedItems.filter((item) => categoriesForPage.some((category) => category.id === item.category_id)).length}개</DetailValue>
+                  <DetailValue label={`${labels.itemLabel} 수`}>
+                    {draftedItems.filter(
+                      (item) =>
+                        categoriesForPage.some((category) => category.id === item.category_id) ||
+                        (isAubeTable && !item.category_id && item.menu_page_id === visiblePageId)
+                    ).length}개
+                  </DetailValue>
                   <DetailValue label="정렬 순서">{selectedPage.sort_order}</DetailValue>
                   {capabilities.pageDescription && (
                     <>
@@ -9303,6 +9729,16 @@ export default function MenuManagementSection({
                       className="mr-auto rounded-full border border-zinc-200 bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                     >
                       + {labels.categoryLabel} 추가
+                    </button>
+                  )}
+                  {isAubeTable && !selectedPageIsPromotion && (
+                    <button
+                      type="button"
+                      onClick={() => startCreateItem({ direct: true })}
+                      disabled={reachedItemsPerSiteLimit}
+                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    >
+                      + 단독 메뉴
                     </button>
                   )}
                   <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
@@ -9712,6 +10148,8 @@ function MenuItemCard({
   onRequestDelete,
   onConfirmDelete,
   onCopy,
+  allowDirectItem = false,
+  selectedPageId = "",
 }: {
   menuId: string;
   categories: MenuCategory[];
@@ -9749,6 +10187,8 @@ function MenuItemCard({
   onRequestDelete: () => void;
   onConfirmDelete: () => void;
   onCopy: (draftPatch?: Partial<ItemBasicDraft>) => void;
+  allowDirectItem?: boolean;
+  selectedPageId?: string;
 }) {
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
   const badgeStyle = badgeLabel ? badgeStyles[getBadgeStyleKey(item)] : null;
@@ -9795,6 +10235,8 @@ function MenuItemCard({
             draftOnly={draftOnly}
             itemCount={0}
             selectedCategoryId={item.category_id ?? ""}
+            selectedPageId={selectedPageId || item.menu_page_id || ""}
+            allowDirectItem={allowDirectItem}
             priceOptions={priceOptions}
             traits={traits}
             priceMode={priceMode}

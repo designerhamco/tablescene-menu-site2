@@ -1,6 +1,6 @@
 # 활성 템플릿 전체 기능 QA
 
-최종 갱신: 2026-08-06
+최종 갱신: 2026-08-30
 
 ## 출시 대상과 판매 노출 정책
 
@@ -12,11 +12,12 @@ Basic 출시 대상:
 - 모카 포레스트 (`cafe_mocha_forest_a`)
 - 선데이 라인 (`cafe_sunday_line_a`)
 - 라운드 포커스 (`cafe_round_focus_a`)
-- 브루 챕터 (`cafe_brew_chapter_a`)
+- 오브 테이블 (`dining_aube_table_a`, Production migration·시각 승인 전 `hidden`)
 
 기존 호환 전용(신규 노출 제외):
 
 - 누아 메뉴 (`cafe_noir_a`, `retired`)
+- 브루 챕터 (`cafe_brew_chapter_a`, `retired`)
 
 Display 출시 대상:
 
@@ -32,11 +33,15 @@ Display 출시 대상:
 | 모카 포레스트 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 선데이 라인 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 라운드 포커스 | 통과 | 통과 | 없음 | 없음 | 없음 |
+| 오브 테이블 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 브루 챕터 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 누아 메뉴 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 썸머 블루 Display | 해당 없음 | 통과 | 없음 | 없음 | 없음 |
 
 추가 확인:
+
+- 2026-08-30 오브 테이블에서 선택 커버, 1열 가운데 정렬 페이지, 2열 왼쪽 정렬 페이지, 직접 메뉴·코스 혼합, dot click·keyboard 이동과 페이지 전환 scroll reset을 확인했다. 모바일 390×844에서는 1열로 축소되고 가로 overflow·깨진 이미지·콘솔 오류가 없다.
+- 오브 테이블의 신규 저장 필드는 additive migration 적용 전 Production에서 사용하지 않으며, 템플릿은 hidden 상태를 유지한다.
 
 - 오브 커피 대표 슬라이드, 가격 옵션, 배지, 품절, 타임세일, 이미지가 fixture에서 렌더링된다.
 - 오브 커피 starter reset 기대값을 현재 5개 category 계약에 맞추고, widget 길이 fixture를 실제 입력 제한인 제목 30자·본문 120자 안에서 경계 테스트하도록 복구했다.

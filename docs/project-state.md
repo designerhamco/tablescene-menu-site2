@@ -1,12 +1,12 @@
 # ArtiMenu 프로젝트 상태
 
-최종 갱신: 2026-08-29
+최종 갱신: 2026-08-30
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `1c3fb77` (`PR #70` 병합)
+기준 커밋: `9111a2d`
 
-현재 작업 브랜치: 없음 (`tablescene-next` clean)
+현재 작업 브랜치: `codex/aube-table-multipage-template`
 
 ## 현재 상태와 다음 선행 조건
 
@@ -14,11 +14,21 @@
 - 단일페이지 5,900원은 할인·위젯, 멀티페이지 9,900원은 할인·스마트호출을 포함하도록 제품 기능 경계를 고정
 - Order/PG는 장기 비활성 제품으로 고정해 환경변수나 기존 allowlist만으로 공개 UI와 server write가 다시 열리지 않도록 차단
 - 스마트호출은 멀티페이지의 유효한 테이블 세션과 runtime/site allowlist를 모두 통과해야만 공개 메뉴와 매장 운영에 노출
-- 실제 판매 가능한 멀티페이지 디자인이 아직 없어 hidden Brew Chapter는 내부 호환 fixture로만 유지하고 멀티 결제 카드는 준비중 처리
-- 다음 구현은 판매 가능한 멀티페이지 디자인 방향과 pilot 메뉴판이 확정된 뒤 시작
+- 판매 가능한 멀티페이지 디자인 `오브 테이블`의 편집·starter·미리보기·공개 renderer와 additive schema 초안을 구현하고 로컬 QA 완료
+- 기존 Brew Chapter는 `retired` 호환 renderer로만 유지해 신규 생성·구매·교체 후보에서 제외
+- 신규 schema는 2026-08-30 사용자 승인 아래 Production에 1회 적용하고 generated types를 갱신했다. 최종 시각 확인·pilot 메뉴판 지정 전까지 `오브 테이블`은 hidden, 스마트호출 runtime과 신규 멀티 판매 노출은 fail closed
 
 
 ## 완료된 주요 기능
+
+- 오브 테이블 멀티페이지 기반:
+  - 선택 노출 커버에 제목·설명·배경 이미지·배경색을 제공하고, 커버를 제외한 최대 10개 메뉴 페이지는 세로 스크롤을 허용
+  - 메뉴 페이지별 노출·순서·설명·데스크톱/태블릿 1·2열·왼쪽/가운데 정렬을 저장하고 모바일은 항상 1열로 렌더링
+  - `메뉴판 구성`에서 커버·메뉴 페이지·추가 탭을 고정 제공하고 drag handle과 키보드/모바일 위·아래 대체 조작으로 저장 전 순서를 편집
+  - 카테고리를 `코스`로 표시하며 코스명·설명·가격·가격 안내를 지원하고, 코스 소속 메뉴와 페이지 직접 메뉴를 한 페이지에서 혼합
+  - 노출 코스의 노출 메뉴 1개 이상, 노출 메뉴의 유효한 페이지/코스 소속, 최대 페이지 수를 공개 전 fail closed 검증
+  - 커버와 노출 메뉴 페이지를 연결하는 고정 dot, click·swipe·keyboard 이동, 페이지 전환 시 scroll reset을 구현
+  - 상세 제품·데이터·QA 계약은 `docs/aube-table-multi-page-template-contract.md`
 
 - 매장 운영 정보 구조:
   - 공통 헤더에서 `나의 메뉴판`과 `매장 운영`을 독립된 최상위 업무로 분리
@@ -243,6 +253,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260830072554_add_aube_table_multi_page_fields.sql` — 2026-08-30 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재와 오브 테이블/Brew 고객 row 0건 precheck, 기존 메뉴판·페이지·코스·메뉴 row 수 불변, column·constraint·trigger·function 권한 postcheck와 generated types 갱신 완료. `docs/runbooks/aube-table-multi-page-migration.md`. 다시 실행 금지.
 - `20260828105459_add_dining_single_multi_subscription_products.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 구독 건수 불변과 기존·신규 상품 key 8개 제약 postcheck 완료. `docs/runbooks/dining-tier-pricing-migration.md`. 다시 실행 금지.
 - `20260828143000_add_store_call_items.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재 precheck, RLS·grant·RPC·호출 집계 postcheck와 generated types 갱신 완료. `docs/runbooks/store-call-items-migration.md`. 다시 실행 금지.
 - `20260828083457_grant_first_menu_welcome_credits.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 AI 잔액·거래 집계 불변, 함수 보안·grant·부분 unique index postcheck와 generated types 갱신 완료. `docs/runbooks/ai-first-menu-welcome-credit-migration.md`. 다시 실행 금지.

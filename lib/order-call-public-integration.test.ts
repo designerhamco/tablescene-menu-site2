@@ -32,7 +32,7 @@ function createCapabilityState(overrides: Partial<Parameters<typeof getPublicOrd
 }
 
 test("멀티페이지 스마트호출은 사업자 테이블 세션과 runtime gate를 모두 통과해야 열린다", () => {
-  const capabilityState = createCapabilityState({ templateKey: "cafe_brew_chapter_a" });
+  const capabilityState = createCapabilityState({ templateKey: "dining_aube_table_a" });
   const config = buildPublicOrderCallEntryConfig({
     capabilityState,
     menuSiteId: MENU_SITE_ID,
@@ -91,7 +91,7 @@ test("단일페이지는 runtime 환경값과 무관하게 Order와 스마트호
 
 test("멀티페이지 다이닝은 Order runtime이 켜져 있어도 스마트호출만 사용할 수 있다", () => {
   const callOnly = createCapabilityState({
-    templateKey: "cafe_brew_chapter_a",
+    templateKey: "dining_aube_table_a",
     postpayOrderRuntimeEnabled: true,
     callRuntimeEnabled: true,
   });

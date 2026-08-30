@@ -37,6 +37,7 @@ export type StarterItem = {
   set_name?: string;
   price: number;
   price_label?: string | null;
+  price_visible?: boolean;
   price_note?: string | null;
   portion_label?: string;
   description: string;
@@ -73,6 +74,11 @@ export type StarterCategory = {
   section_key?: MenuSectionKey;
   description?: string | null;
   description_visible?: boolean;
+  course_price?: number | null;
+  course_price_label?: string | null;
+  course_price_visible?: boolean;
+  course_price_description?: string | null;
+  course_price_description_visible?: boolean;
   price_columns?: StarterCategoryPriceColumn[];
   items: StarterItem[];
 };
@@ -80,8 +86,13 @@ export type StarterCategory = {
 export type StarterPage = {
   key?: string;
   title: string;
+  description?: string | null;
+  description_visible?: boolean;
+  layout_columns?: 1 | 2;
+  text_alignment?: "left" | "center";
   legacy_section_key: MenuSectionKey;
   categories: StarterCategory[];
+  direct_items?: StarterItem[];
 };
 
 type StarterSiteDefaults = {
@@ -238,6 +249,20 @@ type MenuPromotionItemInsert = Database["public"]["Tables"]["menu_promotion_item
 type MenuChefInsert = Database["public"]["Tables"]["menu_chefs"]["Insert"];
 type MenuEventInsert = Database["public"]["Tables"]["menu_events"]["Insert"];
 type MenuSocialLinkInsert = Database["public"]["Tables"]["menu_social_links"]["Insert"];
+type AubeTableMenuPageInsert = MenuPageInsert & {
+  layout_columns?: 1 | 2;
+  text_alignment?: "left" | "center";
+};
+type AubeTableMenuCategoryInsert = MenuCategoryInsert & {
+  course_price?: number | null;
+  course_price_label?: string | null;
+  course_price_visible?: boolean;
+  course_price_description?: string | null;
+  course_price_description_visible?: boolean;
+};
+type AubeTableMenuItemInsert = MenuItemInsert & {
+  menu_page_id?: string | null;
+};
 
 const STARTER_PLACEHOLDERS = {
   logo: "/placeholders/starter/logo.svg",
@@ -312,6 +337,7 @@ function item(
     key?: string;
     set_name?: string;
     price_label?: string | null;
+    price_visible?: boolean;
     portion_label?: string;
     badge_label?: string | null;
     recommended?: boolean;
@@ -397,6 +423,11 @@ function cloneStarterPresetForTemplate(preset: StarterPreset, templateKey: strin
     socialLinks: preset.socialLinks.map((link) => ({ ...link })),
     pages: preset.pages.map((page) => ({
       ...page,
+      direct_items: page.direct_items?.map((menuItem) => ({
+        ...menuItem,
+        price_options: cloneStarterPriceOptions(menuItem.price_options),
+        price_column_values: cloneStarterPriceColumnValues(menuItem.price_column_values),
+      })),
       categories: page.categories.map((category) => ({
         ...category,
         price_columns: cloneStarterPriceColumns(category.price_columns),
@@ -430,11 +461,12 @@ function getStarterFeaturedItemNames(preset: StarterPreset) {
     preset.featured_item_name,
     ...(preset.featured_slides ?? []).map((slide) => slide.featured_item_name),
     ...preset.pages.flatMap((page) =>
-      page.categories.flatMap((category) =>
-        category.items
-          .filter((menuItem) => menuItem.recommended === true)
-          .map((menuItem) => menuItem.name)
-      )
+      [
+        ...(page.direct_items ?? []),
+        ...page.categories.flatMap((category) => category.items),
+      ]
+        .filter((menuItem) => menuItem.recommended === true)
+        .map((menuItem) => menuItem.name)
     ),
   ].filter((name): name is string => Boolean(name));
 
@@ -1115,12 +1147,127 @@ const cafeNoirAStarterPreset: StarterPreset = {
   ],
 };
 
+const diningAubeTableStarterPreset: StarterPreset = {
+  key: "fine_dining",
+  template_key: "dining_aube_table_a",
+  site: {
+    ...CAFE_DESIGN_A_STITCH_SAMPLE.site,
+    restaurant_name: "MAISON ÉCLAT",
+    restaurant_category: "파인다이닝",
+    restaurant_type: "fine_dining",
+    menu_cover_label: "",
+    intro_title: "MAISON ÉCLAT",
+    intro_description: "계절의 온도와 식재료의 결을 한 접시씩 섬세하게 풀어냅니다.",
+    brand_description: "서울의 계절을 프렌치 테크닉으로 해석하는 컨템포러리 다이닝입니다.",
+    menu_cover_title: "MAISON ÉCLAT",
+    menu_cover_description: "A SEASONAL DINING EXPERIENCE",
+    about_description: "제철 산지의 식재료와 절제된 조리로 완성하는 저녁의 흐름을 소개합니다.",
+    opening_hours: "DINNER 17:30–22:00",
+    restaurant_address: "서울시 예시구 아티메뉴로 10",
+    restaurant_phone: "02-0000-0000",
+    cover_image_url: BREW_CHAPTER_COVER_IMAGE,
+    settings: {
+      footer_notice_1: "DINNER · 17:30–22:00",
+      footer_notice_2: "RESERVATION ONLY",
+      footer_notice_3: "알레르기 및 식이 제한은 예약 시 알려주세요.",
+    },
+  },
+  featured_item_name: undefined,
+  sample_items_visible: true,
+  chefs: [],
+  events: [],
+  socialLinks: [],
+  pages: [
+    {
+      key: "signature-menu",
+      title: "SIGNATURE",
+      description: "MAISON ÉCLAT의 계절을 가장 온전히 경험하는 시그니처 코스",
+      description_visible: true,
+      layout_columns: 1,
+      text_alignment: "center",
+      legacy_section_key: "main_menu",
+      categories: [
+        {
+          key: "eclat-signature-course",
+          name: "ÉCLAT SIGNATURE COURSE",
+          description: "제철 산지의 식재료를 여덟 장면으로 풀어낸 디너 코스",
+          description_visible: true,
+          course_price: 185000,
+          course_price_label: "₩185,000",
+          course_price_visible: true,
+          course_price_description: "1인 기준 · 와인 페어링 + ₩120,000",
+          course_price_description_visible: true,
+          items: [
+            item("AMUSE-BOUCHE", 0, "제주 성게 · 감태 · 유자"),
+            item("COLD STARTER", 0, "숙성 방어 · 무 · 캐비아"),
+            item("WARM STARTER", 0, "화이트 아스파라거스 · 헤이즐넛"),
+            item("FISH", 0, "제주 옥돔 · 조개 · 샤프란"),
+            item("MAIN", 0, "한우 안심 · 셀러리악 · 트러플"),
+            item("DESSERT", 0, "금귤 · 바닐라 · 올리브 오일"),
+          ],
+        },
+      ],
+    },
+    {
+      key: "seasonal-menu",
+      title: "SEASONAL",
+      description: "조금 더 가볍게 즐기는 계절의 다섯 가지 장면",
+      description_visible: true,
+      layout_columns: 2,
+      text_alignment: "left",
+      legacy_section_key: "main_menu",
+      categories: [
+        {
+          key: "seasonal-course",
+          name: "SEASONAL TASTING",
+          description: "오늘 가장 좋은 식재료로 구성하는 테이스팅 코스",
+          description_visible: true,
+          course_price: 135000,
+          course_price_label: "₩135,000",
+          course_price_visible: true,
+          course_price_description: "1인 기준 · 논알코올 페어링 + ₩45,000",
+          course_price_description_visible: true,
+          items: [
+            item("TOMATO", 0, "대저 토마토 · 바질 · 부라타"),
+            item("LOBSTER", 0, "캐나다산 랍스터 · 비스크 · 펜넬"),
+            item("DUCK", 0, "오리 가슴살 · 비트 · 체리"),
+            item("STRAWBERRY", 0, "딸기 · 피스타치오 · 샴페인"),
+          ],
+        },
+      ],
+      direct_items: [
+        item("CHEESE SELECTION", 28000, "오늘의 숙성 치즈 세 가지"),
+        item("PETIT FOUR", 16000, "차와 함께 즐기는 작은 디저트"),
+      ],
+    },
+    {
+      key: "beverage-menu",
+      title: "BEVERAGE",
+      description: "코스와 함께 즐기는 와인과 논알코올 셀렉션",
+      description_visible: true,
+      layout_columns: 2,
+      text_alignment: "left",
+      legacy_section_key: "dessert_drink",
+      categories: [],
+      direct_items: [
+        item("WINE PAIRING", 120000, "시그니처 코스를 위한 6잔 구성"),
+        item("NON-ALCOHOL PAIRING", 65000, "차와 발효 음료를 중심으로 한 6잔 구성"),
+        item("CHAMPAGNE", 35000, "글라스 셀렉션"),
+        item("HOUSE WINE", 28000, "화이트 또는 레드 글라스"),
+        item("SPARKLING TEA", 16000, "제철 허브와 차를 발효한 스파클링 티"),
+        item("MINERAL WATER", 9000, "Still / Sparkling"),
+      ],
+    },
+  ],
+};
+
 const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
   cafe_mocha_forest_a: cafeMochaForestStarterPreset,
   cafe_sunday_line_a: cafeSundayLineStarterPreset,
   cafe_round_focus_a: cafeRoundFocusStarterPreset,
   cafe_brew_chapter_a: cafeBrewChapterStarterPreset,
+  dining_aube_table_a: diningAubeTableStarterPreset,
   cafe_noir_a: cafeNoirAStarterPreset,
 };
 
@@ -2133,24 +2280,30 @@ export async function createStarterMenuData(
     await applyStarterSiteDefaults(supabase, menuSiteId, preset, serviceType);
   }
 
-  const pageInserts: MenuPageInsert[] = preset.pages.map((page, index) => ({
+  const pageInserts: AubeTableMenuPageInsert[] = preset.pages.map((page, index) => ({
     menu_site_id: menuSiteId,
     title: page.title,
-    description: null,
-    description_visible: true,
+    description: page.description ?? null,
+    description_visible: page.description_visible ?? Boolean(page.description),
     legacy_section_key: page.legacy_section_key,
     visible: true,
     sort_order: index,
+    ...(templateKey === "dining_aube_table_a"
+      ? {
+          layout_columns: page.layout_columns ?? 1,
+          text_alignment: page.text_alignment ?? "left",
+        }
+      : {}),
   }));
 
-  const { data: pages, error: pagesError } = await supabase.from("menu_pages").insert(pageInserts).select("id, title");
+  const { data: pages, error: pagesError } = await supabase.from("menu_pages").insert(pageInserts as never).select("id, title");
 
   if (pagesError) {
     throw new Error(`기본 메뉴 페이지 생성에 실패했습니다: ${pagesError.message}`);
   }
 
   const pageIdByTitle = new Map((pages ?? []).map((page) => [page.title, page.id]));
-  const categoryInserts: MenuCategoryInsert[] = preset.pages.flatMap((page) => {
+  const categoryInserts: AubeTableMenuCategoryInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title);
     return page.categories.map((category, index) => ({
       menu_site_id: menuSiteId,
@@ -2161,12 +2314,21 @@ export async function createStarterMenuData(
       section_key: category.section_key ?? page.legacy_section_key,
       visible: true,
       sort_order: index + 1,
+      ...(templateKey === "dining_aube_table_a"
+        ? {
+            course_price: category.course_price ?? null,
+            course_price_label: category.course_price_label ?? null,
+            course_price_visible: category.course_price_visible ?? true,
+            course_price_description: category.course_price_description ?? null,
+            course_price_description_visible: category.course_price_description_visible ?? true,
+          }
+        : {}),
     }));
   });
 
   const { data: categories, error: categoriesError } = await supabase
     .from("menu_categories")
-    .insert(categoryInserts)
+    .insert(categoryInserts as never)
     .select("id, name, menu_page_id");
 
   if (categoriesError) {
@@ -2210,13 +2372,14 @@ export async function createStarterMenuData(
   const priceColumnIdByKey = new Map(
     (insertedPriceColumns ?? []).map((column) => [`${column.category_id}:${column.key}`, column.id])
   );
-  const itemInserts: MenuItemInsert[] = preset.pages.flatMap((page) => {
+  const itemInserts: AubeTableMenuItemInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title) ?? "";
-    return page.categories.flatMap((category) => {
+    const courseItems = page.categories.flatMap((category) => {
       const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? null;
       return category.items.map((menuItem, index) => ({
         menu_site_id: menuSiteId,
         category_id: categoryId,
+        ...(templateKey === "dining_aube_table_a" ? { menu_page_id: pageId || null } : {}),
         name: menuItem.name,
         set_name: menuItem.set_name ?? null,
         description: menuItem.description,
@@ -2229,16 +2392,41 @@ export async function createStarterMenuData(
         badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
         recommended: menuItem.recommended ?? false,
         is_sold_out: menuItem.is_sold_out ?? false,
-        price_visible: true,
+        price_visible:
+          menuItem.price_visible ??
+          !(templateKey === "dining_aube_table_a" && menuItem.price === 0 && !menuItem.price_label),
         portion_visible: Boolean(menuItem.portion_label),
         traits_visible: true,
         visible: starterMenuItemsVisible,
         sort_order: index + 1,
       }));
     });
+    const directItems = (page.direct_items ?? []).map((menuItem, index) => ({
+      menu_site_id: menuSiteId,
+      menu_page_id: pageId || null,
+      category_id: null,
+      name: menuItem.name,
+      set_name: menuItem.set_name ?? null,
+      description: menuItem.description,
+      price: menuItem.price,
+      price_label: menuItem.price_label ?? null,
+      price_note: menuItem.price_note ?? null,
+      portion_label: menuItem.portion_label ?? null,
+      image_url: menuItem.image_url ?? null,
+      image_path: null,
+      badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
+      recommended: menuItem.recommended ?? false,
+      is_sold_out: menuItem.is_sold_out ?? false,
+      price_visible: menuItem.price_visible ?? true,
+      portion_visible: Boolean(menuItem.portion_label),
+      traits_visible: true,
+      visible: starterMenuItemsVisible,
+      sort_order: index + 1,
+    } satisfies AubeTableMenuItemInsert));
+    return [...courseItems, ...directItems];
   });
 
-  let { data: insertedItems, error: itemsError } = await supabase.from("menu_items").insert(itemInserts).select("id, name, category_id");
+  let { data: insertedItems, error: itemsError } = await supabase.from("menu_items").insert(itemInserts as never).select("id, name, category_id");
 
   if (
     itemsError &&
@@ -2251,7 +2439,7 @@ export async function createStarterMenuData(
       delete fallbackMenuItem.badge_label;
       return fallbackMenuItem;
     });
-    const fallbackResult = await supabase.from("menu_items").insert(fallbackItemInserts).select("id, name, category_id");
+    const fallbackResult = await supabase.from("menu_items").insert(fallbackItemInserts as never).select("id, name, category_id");
     insertedItems = fallbackResult.data;
     itemsError = fallbackResult.error;
   }
