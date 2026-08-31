@@ -222,6 +222,7 @@
 - `DONE` QR오더 소개의 미구현 PG·정산 표현 제거와 계약 전 준비 상태 명시
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
 - `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증
+- `DONE` 아티메뉴 Supabase Auth 메일 문구·적용 런북 — 회원가입 인증과 비밀번호 재설정 제목·HTML을 준비하고 현재 callback/reset 경로, QA·롤백·보안 기준을 문서화. Production Auth/SMTP 설정과 실제 발송은 분리
 - `NEEDS_HUMAN` 회원가입·비밀번호 재설정 이메일 실제 발송
 - `NEEDS_HUMAN` SMTP와 Auth 설정
 - `NEEDS_HUMAN` Production 환경변수·비밀키
