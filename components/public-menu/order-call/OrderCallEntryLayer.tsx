@@ -71,30 +71,44 @@ export default function OrderCallEntryLayer({
     <MenuOrderActionsProvider catalog={config.orderCatalog ?? []} onOpenItem={openMenuItem}>
       <div data-public-menu-entry-layer="" data-order-call-mode={config.mode}>
         <header
-        className="sticky top-0 z-[900] grid min-h-14 grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 border-b border-zinc-200/80 bg-white/95 px-3 pb-2 pt-[max(8px,env(safe-area-inset-top))] text-zinc-950 shadow-sm backdrop-blur md:hidden"
-        data-public-menu-mobile-header=""
-      >
+          className={`sticky top-0 z-[900] grid min-h-14 items-center gap-2 border-b border-zinc-200 bg-white px-3 pb-2 pt-[max(8px,env(safe-area-inset-top))] text-zinc-950 shadow-none md:hidden ${
+            usesAubeCallPresentation ? "grid-cols-[44px_minmax(0,1fr)_44px]" : "grid-cols-[44px_minmax(0,1fr)_auto]"
+          }`}
+          data-public-menu-mobile-header=""
+        >
         <div className="flex min-w-0 items-center justify-start" data-public-menu-header-language="">
           {showLanguage ? (
-            <MenuLanguageSwitcher currentLocale={currentLocale} enabledLocales={enabledLocales} compact />
+            <MenuLanguageSwitcher
+              currentLocale={currentLocale}
+              enabledLocales={enabledLocales}
+              compact
+              triggerVariant={usesAubeCallPresentation ? "aube" : "default"}
+              menuAlign={usesAubeCallPresentation ? "left" : "right"}
+            />
           ) : null}
         </div>
 
         <div className="min-w-0 text-center" data-public-menu-header-context="">
-          {config.storeName ? <p className="truncate text-[13px] font-black leading-tight">{config.storeName}</p> : null}
-          {visibility.showTableLabel ? <p className="mt-0.5 truncate text-[11px] font-bold leading-tight text-zinc-500">{config.tableLabel}</p> : null}
+          {!usesAubeCallPresentation && config.storeName ? <p className="truncate text-[13px] font-black leading-tight">{config.storeName}</p> : null}
+          {visibility.showTableLabel ? (
+            <p className={`truncate leading-tight ${usesAubeCallPresentation ? "text-[12px] font-medium tracking-[0.08em] text-zinc-700" : "mt-0.5 text-[11px] font-bold text-zinc-500"}`}>
+              {config.tableLabel}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex min-w-0 items-center justify-end gap-1.5" data-public-menu-header-actions="">
-          {visibility.showCall && !usesAubeCallPresentation ? (
+          {visibility.showCall ? (
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm"
+              className={usesAubeCallPresentation
+                ? "flex h-10 w-10 items-center justify-end border-0 bg-transparent p-0 text-zinc-800 shadow-none transition-colors hover:text-[#c5a165] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c5a165]"
+                : "flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm"}
               aria-label="직원 호출"
               disabled={!canOpenCall}
               onClick={() => setCallOpen(true)}
             >
-              <Bell className="h-4.5 w-4.5" aria-hidden="true" />
+              <Bell className={usesAubeCallPresentation ? "h-5 w-5" : "h-4.5 w-4.5"} strokeWidth={usesAubeCallPresentation ? 1.6 : 2} aria-hidden="true" />
             </button>
           ) : null}
           {visibility.showCart ? (
@@ -128,7 +142,7 @@ export default function OrderCallEntryLayer({
         {canOpenCall && usesAubeCallPresentation ? (
           <button
             type="button"
-            className="fixed bottom-[max(26px,env(safe-area-inset-bottom))] right-[max(24px,env(safe-area-inset-right))] z-[1100] flex h-15 w-15 items-center justify-center rounded-full bg-[#c5a165] text-white shadow-[0_14px_34px_rgba(17,25,40,0.24)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(17,25,40,0.3)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c5a165] active:translate-y-0 sm:h-16 sm:w-16"
+            className="fixed bottom-[max(26px,env(safe-area-inset-bottom))] right-[max(24px,env(safe-area-inset-right))] z-[1100] hidden h-15 w-15 items-center justify-center rounded-full bg-[#c5a165] text-white shadow-none transition-transform duration-300 ease-out hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c5a165] active:translate-y-0 md:flex md:h-16 md:w-16"
             aria-label="스마트호출 열기"
             data-smart-call-quick-button=""
             onClick={() => setCallOpen(true)}

@@ -146,7 +146,8 @@
   - 동일 final-save round-trip fixture를 `MenuPageRenderer` preview/public 모드로 비교
   - 7개 desktop과 Basic 6개 mobile에서 렌더 신호·overflow·이미지 검증
 - 모바일 Order/Call 공통 진입 셸:
-  - template 밖 공통 safe-area sticky header와 언어·매장·table·Call·cart 배치
+  - template 밖 공통 safe-area sticky header와 언어·table·Call·cart 배치
+  - 오브 테이블 모바일은 그림자 없는 하단 실선 header, 가운데 table label, 왼쪽 `KR/EN/CN/JP` 텍스트 언어 menu, 오른쪽 그림자·원형 배경 없는 호출 아이콘을 사용하고 매장명은 반복하지 않음
   - 실제 table session 전에는 locked, no-session에서는 Call·cart fail-closed
 - 테이블 QR·방문 세션 기반 준비:
   - hash-only table/session token, 12시간 세션, 메뉴판당 비보관 테이블 100개 정책 확정
@@ -160,6 +161,7 @@
   - 현재는 멀티페이지 다이닝 스마트호출 번들만 허용하며 실제 판매 템플릿과 pilot 확정 전에는 Production runtime을 활성화하지 않음
 - table QR·방문 세션 runtime 기반:
   - 일반 메뉴 QR과 분리된 `/table/[token]` 진입에서 active table token hash와 공개 가능한 Basic 메뉴판을 server-only로 검증
+  - 테이블마다 별도 무작위 token과 QR PNG를 생성하므로 같은 메뉴판에서도 각 테이블이 서로 다른 table session·label로 연결되며 예측 가능한 순번 URL을 공개하지 않음
   - 방문 세션 원문은 최대 12시간의 Secure·HttpOnly·SameSite=Lax cookie에만 전달하고 DB에는 SHA-256 hash만 저장
   - 메뉴판 ID·active table·만료·폐기·User-Agent hash가 모두 일치할 때만 세션을 재사용
   - 일반 slug 접근은 세션을 생성하지 않으며 유효한 기존 세션만 공통 모바일 header의 table context에 연결

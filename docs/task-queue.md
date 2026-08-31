@@ -110,9 +110,9 @@
 > 2026-08-29 정책 변경: 아래 항목은 기존 호환 코드 기록이다. 신규 판매·공개 UI·API write에서는 Order를 제품 정책으로 비활성화하며, 모바일 미리보기의 PG 선택 UI도 제거한다.
 
 - `DONE` 공통 모바일 상단 헤더 — template 외부 `PublicMenuExperienceShell`, safe-area sticky shell
-- `DONE` 왼쪽 언어 변경 — 공통 locale control, 기존 template mobile control 중복 숨김
-- `DONE` 가운데 매장명과 테이블 번호 — 유효 세션 context에서만 table label 표시
-- `DONE` 오른쪽 호출과 장바구니 및 장바구니 수량 — 독립 visibility와 99+ 수량 shell, 실제 action은 방문 세션 이후 연결
+- `DONE` 왼쪽 언어 변경 — 공통 locale control, 기존 template mobile control 중복 숨김. 오브 테이블은 원형 globe·그림자 없이 `KR/EN/CN/JP` 텍스트 control과 화면 안쪽 왼쪽 정렬 menu 사용
+- `DONE` 가운데 테이블 번호 — 오브 테이블 모바일 헤더에서는 중복 매장명을 제거하고 유효 세션의 table label만 표시
+- `DONE` 오른쪽 호출과 장바구니 및 장바구니 수량 — 오브 테이블 모바일은 그림자·외곽 도형 없는 header 호출 아이콘, PC는 기존 하단 호출 진입 유지. 독립 visibility와 99+ 수량 shell, 실제 action은 방문 세션 이후 연결
 - `DONE` 기존 카테고리 탭 충돌 방지 — normal-flow sticky header와 6개 Basic mobile route QA
 - `DONE` 주문은 모바일만 지원하는 정책
 - `DONE` Display는 Order 미지원 정책
@@ -129,6 +129,7 @@
 - `DONE` 방문 세션과 만료 — server 발급, 12시간 이내 expiry, Secure·HttpOnly·SameSite=Lax cookie
 - `DONE` 세션 재사용·탈취 방지 — menu-site/table/status/revoke/expiry/User-Agent hash 검증, last-seen write throttle
 - `DONE` 테이블 QR 다운로드 — 생성·회전 1회 응답에서 browser-local PNG 생성, raw token API 재전송 없음
+- `DONE` 테이블별 고유 QR 확인 — 각 테이블 생성 시 서로 다른 hash-only token과 `/table/[token]` 경로를 발급하므로 테이블마다 다른 QR·방문 세션·table label이 연결됨. 예측 가능한 `/table1` 주소는 사용하지 않음
 - `DONE` 제품 번들 정책 — 테이블 QR/session은 멀티페이지 9,900원 스마트호출에만 연결하고 단일페이지와 Order에서는 비활성
 - `BLOCKED` 실제 멀티페이지 디자인과 pilot 메뉴판 확정 후 Production `TABLE_MANAGEMENT_ENABLED`·site allowlist 활성화
 
