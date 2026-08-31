@@ -82,7 +82,7 @@ test("오브 테이블 스타터는 커버와 3개 메뉴 페이지, 코스·단
   assert.equal(preset.pages.length, 3);
   assert.equal(preset.pages[0]?.layout_columns, 1);
   assert.equal(preset.pages[1]?.layout_columns, 2);
-  assert.ok(preset.pages.every((page) => page.text_alignment === "center"));
+  assert.deepEqual(preset.pages.map((page) => page.text_alignment), ["center", "left", "left"]);
   assert.ok(preset.pages.some((page) => (page.categories ?? []).length > 0));
   assert.ok(preset.pages.some((page) => (page.direct_items ?? []).length > 0));
   assert.equal(preset.site.restaurant_name, "오브 테이블");

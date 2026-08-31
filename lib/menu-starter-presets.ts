@@ -1218,7 +1218,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
       description: "오늘의 식재료를 취향에 따라 선택하는 단품 메뉴",
       description_visible: true,
       layout_columns: 2,
-      text_alignment: "center",
+      text_alignment: "left",
       legacy_section_key: "main_menu",
       categories: [
         {
@@ -1274,7 +1274,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
       description: "요리의 흐름을 이어주는 와인과 논알코올 셀렉션",
       description_visible: true,
       layout_columns: 2,
-      text_alignment: "center",
+      text_alignment: "left",
       legacy_section_key: "dessert_drink",
       categories: [
         {

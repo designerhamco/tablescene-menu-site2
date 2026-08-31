@@ -293,6 +293,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-page-description { max-width: 680px; margin: clamp(11px, 1.1vw, 16px) 0 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.55; }
         .aube-table-page[data-align="center"] .aube-table-page-description { margin-left: auto; margin-right: auto; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
+        .aube-table-page[data-align="center"] .aube-table-page-content { text-align: center; }
         .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); row-gap: var(--aube-space-course); }
         .aube-table-course { min-width: 0; }
         .aube-table-course-header { display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: baseline; gap: clamp(14px, 1.5vw, 22px); }
@@ -303,6 +304,10 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-course-description { max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: #666a72; font-size: var(--aube-type-course-body); line-height: 1.58; }
         .aube-table-course-price-description { margin: clamp(6px, .65vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-course-meta); line-height: 1.55; }
         .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; margin-top: var(--aube-space-course-items); }
+        .aube-table-page[data-align="center"] .aube-table-course-header { display: flex; flex-direction: column; align-items: center; gap: clamp(8px, .8vw, 12px); }
+        .aube-table-page[data-align="center"] .aube-table-course-rule { width: clamp(42px, 4vw, 58px); }
+        .aube-table-page[data-align="center"] .aube-table-course-description { margin-left: auto; margin-right: auto; }
+        .aube-table-page[data-align="center"] .aube-table-course-price-description { margin-left: auto; margin-right: auto; }
         .aube-table-direct-items { grid-column: 1 / -1; }
         .aube-table-page[data-columns="2"] .aube-table-direct-items { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); }
         .aube-table-item { display: grid; grid-template-columns: clamp(96px, 9vw, 124px) minmax(0, 1fr); gap: clamp(20px, 2vw, 28px); padding: var(--aube-space-item-top) 0 var(--aube-space-item-bottom); text-align: left; }
@@ -314,6 +319,9 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-item-price { order: 3; margin: 0; white-space: normal; text-align: right; color: #b58c4b; font-size: var(--aube-type-item-price); font-weight: 600; line-height: 1.32; }
         .aube-table-item-secondary { margin: clamp(7px, .7vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-item-secondary); font-weight: 700; line-height: 1.4; letter-spacing: .06em; }
         .aube-table-item-description { max-width: 720px; margin: clamp(7px, .75vw, 10px) 0 0; color: #70737a; font-size: var(--aube-type-item-body); line-height: 1.55; }
+        .aube-table-page[data-align="center"] .aube-table-item { text-align: center; }
+        .aube-table-page[data-align="center"] .aube-table-item-heading { justify-content: center; }
+        .aube-table-page[data-align="center"] .aube-table-item-description { margin-left: auto; margin-right: auto; }
         .aube-table-sold-out { display: inline-flex; margin-top: 14px; padding: 6px 10px; background: #17191f; color: #fff; font-size: clamp(11px, .9vw, 13px); font-weight: 700; letter-spacing: .08em; }
         .aube-table-bottom-fade { position: fixed; z-index: 15; inset: auto 0 0; height: clamp(116px, 17vh, 174px); pointer-events: none; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, .82) 52%, #fff 86%); }
         .aube-table-pagination { position: fixed; z-index: 20; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; justify-content: center; padding: 0; }
