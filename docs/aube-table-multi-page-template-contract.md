@@ -62,6 +62,8 @@
 - dot click, 좌우 swipe, 키보드 좌우 화살표로 이동한다.
 - 자동 재생과 무한 반복은 사용하지 않는다.
 - 페이지를 바꾸면 새 페이지의 scroll 위치를 맨 위로 초기화한다.
+- 이전·다음 page는 겹치는 짧은 cross-slide로 먼저 전환하고, 일반 페이지 제목은 별도 reveal 없이 즉시 읽을 수 있게 유지한다. 이후 각 코스 제목과 그 코스의 메뉴 묶음이 한 단위씩 순차 reveal된다.
+- 메뉴 항목을 하나씩 따로 움직이지 않으며 커버에서만 제목·설명 reveal을 사용한다. `prefers-reduced-motion`에서는 page·content motion을 사실상 제거한다.
 - 고정 탐색이 메뉴 내용을 덮지 않도록 하단 safe area를 확보한다.
 
 ## 데이터와 migration
