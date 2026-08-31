@@ -1184,7 +1184,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
   pages: [
     {
       key: "signature-menu",
-      title: "Signature course",
+      title: "Signature Course",
       description: "오브 테이블의 계절을 가장 온전히 경험하는 시그니처 코스",
       description_visible: true,
       layout_columns: 1,
@@ -1214,7 +1214,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
     },
     {
       key: "a-la-carte-menu",
-      title: "À la carte",
+      title: "A La Carte Menu",
       description: "오늘의 식재료를 취향에 따라 선택하는 단품 메뉴",
       description_visible: true,
       layout_columns: 2,
@@ -1270,7 +1270,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
     },
     {
       key: "beverage-menu",
-      title: "Drink menu",
+      title: "Drink Menu",
       description: "요리의 흐름을 이어주는 와인과 논알코올 셀렉션",
       description_visible: true,
       layout_columns: 2,

@@ -287,16 +287,15 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-page-scroll { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
         .aube-table-page { width: min(100%, 1440px); min-height: 100%; margin: 0 auto; padding: clamp(96px, 12vh, 132px) clamp(30px, 5vw, 80px) clamp(156px, 18vh, 188px); }
         .aube-table-page[data-align="center"] { text-align: center; }
-        .aube-table-page-header { max-width: 820px; margin-bottom: clamp(38px, 5vh, 58px); }
-        .aube-table-page[data-align="center"] .aube-table-page-header { margin-left: auto; margin-right: auto; }
+        .aube-table-page-header { max-width: 820px; margin: 0 auto clamp(38px, 5vh, 58px); text-align: center; }
         .aube-table-page-header h1 { margin: 0; color: #b58c4b; font-family: var(--menu-font-en), "Tenor Sans", var(--menu-font-ko), sans-serif; font-size: clamp(48px, 4.7vw, 68px); font-weight: 400; line-height: 1.05; letter-spacing: -.025em; }
-        .aube-table-page-description { max-width: 680px; margin: clamp(11px, 1.1vw, 16px) 0 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.55; }
-        .aube-table-page[data-align="center"] .aube-table-page-description { margin-left: auto; margin-right: auto; }
+        .aube-table-page-description { max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.55; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
         .aube-table-page[data-align="center"] .aube-table-page-content { text-align: center; }
         .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); row-gap: var(--aube-space-course); }
         .aube-table-course { min-width: 0; }
         .aube-table-course-header { display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: baseline; gap: clamp(14px, 1.5vw, 22px); }
+        .aube-table-course-header:not(:has(.aube-table-course-price)) { grid-template-columns: auto minmax(32px, 1fr); }
         .aube-table-course-title { min-width: 0; }
         .aube-table-course-rule { width: 100%; border-top: 1px solid #d9ccb7; }
         .aube-table-course-header h2 { margin: 0; font-size: var(--aube-type-course-title); font-weight: 500; line-height: 1.18; letter-spacing: -.025em; }
