@@ -2,6 +2,8 @@ export const AUBE_TABLE_TEMPLATE_KEY = "dining_aube_table_a" as const;
 export const AUBE_TABLE_MAX_MENU_PAGES = 10;
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR = "#0D172A";
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY = 75;
+export const AUBE_TABLE_SWIPE_OFFSET_THRESHOLD = 64;
+export const AUBE_TABLE_SWIPE_VELOCITY_THRESHOLD = 520;
 
 export type AubeTablePageLayoutColumns = 1 | 2;
 export type AubeTableTextAlignment = "left" | "center";
@@ -94,6 +96,30 @@ export function buildAubeTableNavigationUnits(
     ...(coverEnabled ? [{ type: "cover" as const, id: "cover" as const, label: "커버" as const }] : []),
     ...menuPageUnits,
   ];
+}
+
+export function getAubeTableSwipeTargetIndex({
+  currentIndex,
+  unitCount,
+  offsetX,
+  velocityX,
+}: {
+  currentIndex: number;
+  unitCount: number;
+  offsetX: number;
+  velocityX: number;
+}) {
+  const lastIndex = Math.max(0, unitCount - 1);
+  const safeCurrentIndex = Math.min(lastIndex, Math.max(0, currentIndex));
+  const horizontalIntent = Math.abs(offsetX) >= AUBE_TABLE_SWIPE_OFFSET_THRESHOLD
+    ? offsetX
+    : Math.abs(velocityX) >= AUBE_TABLE_SWIPE_VELOCITY_THRESHOLD
+      ? velocityX
+      : 0;
+
+  if (horizontalIntent === 0) return safeCurrentIndex;
+  const requestedIndex = safeCurrentIndex + (horizontalIntent < 0 ? 1 : -1);
+  return Math.min(lastIndex, Math.max(0, requestedIndex));
 }
 
 export function getAubeTableItemPageId(
