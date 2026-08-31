@@ -78,7 +78,8 @@ test("오브 테이블 스타터는 커버와 3개 메뉴 페이지, 코스·단
   assert.ok(preset.pages.some((page) => (page.categories ?? []).length > 0));
   assert.ok(preset.pages.some((page) => (page.direct_items ?? []).length > 0));
   assert.equal(preset.site.restaurant_name, "오브 테이블");
-  assert.equal(preset.site.menu_cover_title, "오브 테이블");
+  assert.equal(preset.site.menu_cover_title, "THE MENU");
+  assert.equal(preset.site.menu_cover_description, "오브 테이블 스페셜 코스 & 셰프 셀렉션");
   assert.equal(preset.site.logo_url, null);
   assert.deepEqual(preset.pages.map((page) => page.title), ["Signature course", "À la carte", "Drink menu"]);
   assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_a").value, "pretendard");
