@@ -26,6 +26,7 @@ import {
   CafeAStarterCoverTextInput,
 } from "@/components/mypage/menu-editor/CafeAStarterCoverDraftFields";
 import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
+import CoverBackgroundOpacityField from "@/components/mypage/menu-editor/CoverBackgroundOpacityField";
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
 import FeaturedSlidesEditor, { type FeaturedSlideDraft } from "@/components/mypage/menu-editor/FeaturedSlidesEditor";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
@@ -2221,8 +2222,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             aria-label="커버 배경색 선택"
                           />
                           <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                            커버 이미지가 없거나 이미지 여백이 보일 때 적용되는 배경색입니다.
+                            이미지가 없으면 커버 전체에 표시되고, 이미지가 있으면 이미지 위에 겹쳐집니다.
                           </p>
+                        </div>
+                        <div className="mt-5 border-t border-zinc-100 pt-4">
+                          <FieldLabel>배경색 불투명도</FieldLabel>
+                          <CoverBackgroundOpacityField
+                            defaultValue={pageSettings.multi_page_cover_background_opacity}
+                          />
                         </div>
                       </div>
                     )}

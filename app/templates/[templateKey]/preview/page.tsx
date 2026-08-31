@@ -219,6 +219,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const pageSettings = {
     ...getDefaultPageSettings(),
     multi_page_cover_background_color: "#171612",
+    multi_page_cover_background_opacity: 75,
     featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
     featured_item_id: firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null,
     ...(featuredSlides.length > 0 ? { featured_slides: featuredSlides } : {}),

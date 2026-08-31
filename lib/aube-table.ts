@@ -1,6 +1,7 @@
 export const AUBE_TABLE_TEMPLATE_KEY = "dining_aube_table_a" as const;
 export const AUBE_TABLE_MAX_MENU_PAGES = 10;
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR = "#171612";
+export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY = 75;
 
 export type AubeTablePageLayoutColumns = 1 | 2;
 export type AubeTableTextAlignment = "left" | "center";
@@ -47,6 +48,18 @@ export function normalizeAubeTableCoverBackgroundColor(value: unknown) {
   return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value)
     ? value.toUpperCase()
     : AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR;
+}
+
+export function normalizeAubeTableCoverBackgroundOpacity(value: unknown) {
+  const numericValue = typeof value === "number"
+    ? value
+    : typeof value === "string" && value.trim()
+      ? Number(value)
+      : Number.NaN;
+
+  return Number.isFinite(numericValue)
+    ? Math.min(100, Math.max(0, Math.round(numericValue)))
+    : AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY;
 }
 
 export function sortAubeTablePages<T extends AubeTablePageLike>(pages: readonly T[]) {

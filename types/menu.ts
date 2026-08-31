@@ -43,6 +43,7 @@ export type PageSettings = {
   featured_item_id: string | null;
   featured_slides?: FeaturedSlideSettings[];
   multi_page_cover_background_color?: string;
+  multi_page_cover_background_opacity?: number;
 };
 
 export type FeaturedSlideSettings = {
@@ -202,6 +203,10 @@ export function mergePageSettings(settings: Json | Partial<PageSettings> | null 
 
   if (typeof input.multi_page_cover_background_color === "string" && /^#[0-9a-f]{6}$/i.test(input.multi_page_cover_background_color)) {
     merged.multi_page_cover_background_color = input.multi_page_cover_background_color.toUpperCase();
+  }
+
+  if (typeof input.multi_page_cover_background_opacity === "number" && Number.isFinite(input.multi_page_cover_background_opacity)) {
+    merged.multi_page_cover_background_opacity = Math.min(100, Math.max(0, Math.round(input.multi_page_cover_background_opacity)));
   }
 
   return merged;
