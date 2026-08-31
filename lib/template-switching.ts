@@ -12,8 +12,7 @@ import {
 export type TemplateCommercialTier =
   | "dining_single_page"
   | "dining_multi_page"
-  | "display_image"
-  | "display_video";
+  | "display";
 
 export type TemplateSwitchDecision =
   | {
@@ -145,8 +144,7 @@ export function getTemplateCommercialTier(templateKey: string): TemplateCommerci
   const service = getSingleSupportedService(templateKey);
 
   if (service === "display") {
-    // Display가 이미지형을 기본으로 사용하고 영상 파일은 별도 addon으로 열리는 현재 계약을 유지한다.
-    return "display_image";
+    return "display";
   }
 
   return getTemplateCapabilities(templateKey).multiPage?.enabled
@@ -158,10 +156,8 @@ export function getTemplateCommercialTierLabel(tier: TemplateCommercialTier) {
   switch (tier) {
     case "dining_multi_page":
       return "멀티페이지";
-    case "display_image":
-      return "이미지형";
-    case "display_video":
-      return "영상형";
+    case "display":
+      return "디스플레이";
     default:
       return "단일 페이지";
   }

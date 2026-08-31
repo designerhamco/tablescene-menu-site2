@@ -77,14 +77,12 @@ import {
   type MenuPageDisplaySettings,
 } from "@/lib/display-page-settings";
 import {
-  DISPLAY_VIDEO_UPLOAD_ADDON_NAME,
   DISPLAY_VIDEO_UPLOAD_ACCEPTED_MIME_TYPES,
   DISPLAY_VIDEO_UPLOAD_MAX_ACTIVE_FILES,
   DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB,
-  DISPLAY_VIDEO_UPLOAD_MONTHLY_PRICE,
+  DISPLAY_VIDEO_UPLOAD_NAME,
   DISPLAY_VIDEO_UPLOAD_RECOMMENDED_DURATION,
   DISPLAY_VIDEO_UPLOAD_RECOMMENDED_FILE_SIZE_MB,
-  DISPLAY_VIDEO_UPLOAD_YEARLY_PRICE,
 } from "@/lib/display-video-upload-policy";
 import {
   getMenuItemBadgeLabel,
@@ -2278,33 +2276,28 @@ function MenuPageForm({
                       className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
                     />
                     <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                      영상은 링크로 등록하며, 디스플레이에서는 반복 재생됩니다.
+                      영상 URL 또는 MP4 파일을 등록하면 디스플레이에서 반복 재생됩니다.
                     </p>
-                    <div className="mt-4 rounded-lg border border-dashed border-amber-200 bg-white/80 p-4">
+                    <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-4">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                          <p className="text-sm font-black text-zinc-950">{DISPLAY_VIDEO_UPLOAD_ADDON_NAME}</p>
+                          <p className="text-sm font-black text-zinc-950">{DISPLAY_VIDEO_UPLOAD_NAME}</p>
                           <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
-                            동영상 파일 직접 업로드는 추가 옵션에서 사용할 수 있어요. 영상 URL 입력은 기본으로 사용할 수 있습니다.
+                            아티메뉴 디스플레이 요금에 포함된 기능입니다. 짧고 가벼운 영상을 사용하면 매장 화면에서 더 안정적으로 재생됩니다.
                           </p>
                         </div>
-                        <span
-                          className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-black ${
-                            canUseDisplayVideoUpload ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
-                          }`}
-                        >
-                          {canUseDisplayVideoUpload ? "사용 가능" : "잠금"}
+                        <span className="inline-flex w-fit items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
+                          요금제 포함
                         </span>
                       </div>
                       <div className="mt-3 grid gap-2 text-xs font-bold leading-relaxed text-zinc-500 sm:grid-cols-2">
-                        <p>월 +{DISPLAY_VIDEO_UPLOAD_MONTHLY_PRICE.toLocaleString("ko-KR")}원 / 연 +{DISPLAY_VIDEO_UPLOAD_YEARLY_PRICE.toLocaleString("ko-KR")}원 예정</p>
                         <p>MP4, 최대 {DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB}MB, 메뉴판당 최대 {DISPLAY_VIDEO_UPLOAD_MAX_ACTIVE_FILES}개</p>
                         <p>권장 용량 {DISPLAY_VIDEO_UPLOAD_RECOMMENDED_FILE_SIZE_MB}MB 이하</p>
                         <p>권장 길이 {DISPLAY_VIDEO_UPLOAD_RECOMMENDED_DURATION}</p>
                       </div>
                       {!canUseDisplayVideoUpload && (
-                        <p className="mt-3 break-keep rounded-md bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-800">
-                          MP4 파일을 직접 업로드하려면 동영상 업로드 옵션이 필요합니다.
+                        <p className="mt-3 break-keep rounded-md bg-zinc-100 px-3 py-2 text-xs font-bold leading-relaxed text-zinc-600">
+                          활성 아티메뉴 디스플레이 메뉴판에서 사용할 수 있습니다.
                         </p>
                       )}
                       {canUseDisplayVideoUpload && (

@@ -22,10 +22,10 @@ test("사용 가능한 다이닝 템플릿을 페이지 등급에 맞는 교체 
   );
 });
 
-test("멀티페이지와 디스플레이 기능 등급을 구분한다", () => {
+test("다이닝 페이지 유형과 통합 디스플레이 상품을 구분한다", () => {
   assert.equal(getTemplateCommercialTier("cafe_design_a"), "dining_single_page");
   assert.equal(getTemplateCommercialTier("dining_aube_table_a"), "dining_multi_page");
-  assert.equal(getTemplateCommercialTier("display_menu_a"), "display_image");
+  assert.equal(getTemplateCommercialTier("display_menu_a"), "display");
 });
 
 test("현재 템플릿과 같은 페이지 등급의 교체 후보만 노출한다", () => {

@@ -161,11 +161,10 @@ export async function POST(request: Request) {
     templateKey: menuSite.template_key,
     productKey: orderData?.product_key,
     accessState,
-    addonKeys: null,
   });
 
   if (!videoUploadAccess.canUse) {
-    return jsonError("동영상 파일 직접 업로드 권한이 없습니다.", 403);
+    return jsonError("활성 아티메뉴 디스플레이 메뉴판에서만 동영상 파일을 업로드할 수 있습니다.", 403);
   }
 
   const { data: page, error: pageError } = await supabase

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const upcomingServices = [
   {
     name: "아티메뉴 디스플레이",
-    description: "신규 Display 구독 1건당 매장 TV와 모니터용 Display 메뉴판 1개가 제공됩니다.",
+    description: "신규 Display 구독 1건당 매장 TV와 모니터용 메뉴판 1개가 제공되며, 이미지와 MP4 동영상 업로드를 함께 지원합니다.",
     price: "월 14,900원 / 연 160,900원",
     cta: "준비 중",
   },

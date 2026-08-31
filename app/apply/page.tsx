@@ -24,7 +24,7 @@ function getApplyServices(displayCheckoutQaEnabled: boolean) {
   },
   {
     title: "아티메뉴 디스플레이",
-    description: "사업자 전용 디스플레이 메뉴보드입니다. 신규 Display 구독 1건당 Display 메뉴판 1개가 제공됩니다.",
+    description: "사업자 전용 디스플레이 메뉴보드입니다. 구독 1건당 메뉴판 1개와 이미지·MP4 동영상 업로드 기능을 제공합니다.",
     price: "오픈 할인 월 14,900원 / 연 160,900원",
     note: displayCheckoutQaEnabled
       ? "TV/모니터용 디지털 메뉴보드를 사업자 전용 정기결제로 신청할 수 있습니다."

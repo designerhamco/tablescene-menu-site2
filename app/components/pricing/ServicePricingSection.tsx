@@ -132,6 +132,8 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
     features: [
       "신규 Display 구독 1건당 메뉴판 1개",
       "TV / 모니터 화면 최적화",
+      "이미지 · MP4 동영상 업로드 포함",
+      "동영상 최대 30MB · 메뉴판당 최대 2개",
       "전체화면 링크",
       "매장 화면용 디자인 구성",
       "베이직 주요 기능 포함",
