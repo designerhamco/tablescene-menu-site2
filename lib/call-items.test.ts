@@ -17,13 +17,26 @@ test("default call items are independent copies in the expected order", () => {
   assert.deepEqual(first.map((item) => item.key), [
     "staff",
     "water",
-    "apron",
     "tableware",
     "table_cleanup",
-    "order_help",
   ]);
   first[0].label = "변경";
   assert.equal(second[0].label, "직원 호출");
+});
+
+test("legacy six-item virtual defaults collapse to the refined four-item starter set", () => {
+  const legacy = callItems.replaceLegacyDefaultStaffCallItems([
+    { key: "staff", label: "직원 호출", sortOrder: 0, active: true },
+    { key: "water", label: "물 요청", sortOrder: 1, active: true },
+    { key: "apron", label: "앞치마 요청", sortOrder: 2, active: true },
+    { key: "tableware", label: "식기 요청", sortOrder: 3, active: true },
+    { key: "table_cleanup", label: "테이블 정리", sortOrder: 4, active: true },
+    { key: "order_help", label: "주문 도움", sortOrder: 5, active: true },
+  ]);
+  assert.deepEqual(legacy.map((item) => item.key), ["staff", "water", "tableware", "table_cleanup"]);
+
+  const custom = [{ key: "staff", label: "직원 불러주세요", sortOrder: 0, active: true }];
+  assert.equal(callItems.replaceLegacyDefaultStaffCallItems(custom), custom);
 });
 
 test("call item input normalization constrains count, labels, duplicates, order, and active state", () => {

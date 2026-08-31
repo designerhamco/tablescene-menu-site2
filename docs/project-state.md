@@ -182,8 +182,9 @@
   - 15초 갱신 대시보드와 immutable snapshot 인쇄 영수증
   - `ORDER_DASHBOARD_ENABLED` + explicit site allowlist 없이 Production에서 노출·write 안 됨
 - Call default-off 기반:
-  - 직원 호출·물·앞치마·식기·테이블 정리·주문 도움 6개를 설정 전 기본 항목으로 제공
+  - 직원 호출·물·식기·테이블 정리 4개를 설정 전 기본 항목으로 제공하고, 기존 6개 virtual default 응답은 앱 계층에서 새 기본값으로 정규화
   - 매장별 호출 항목의 이름·순서·사용 여부를 원자적으로 저장하고, 제거 항목은 hard delete 대신 보관
+  - 별도 요청 상세설명 필드는 두지 않으며 공개 모달은 관리자에서 저장한 항목명만 그대로 표시
   - 손님은 활성 항목만 전송하며 호출 이력에는 접수 당시 항목 key·label snapshot을 보존
   - 설정 전 기존 매장에는 DB backfill 없이 virtual default를 반환하고 첫 명시적 저장부터 매장별 설정으로 전환
   - 미처리 호출 dedupe, 완료·취소 후 2분 cooldown, table session당 시간당 10회 제한

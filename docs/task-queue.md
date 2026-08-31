@@ -164,9 +164,9 @@
 ## 8. Call 기능
 
 - `DONE` 손님 직원 호출 MVP — 유효 table session과 공통 Call Layer, 직원 호출 단일 preset
-- `DONE` 오브 테이블 스마트호출 경험 — 우측 하단 전용 호출 버튼, 테이블 번호와 사전 정의 항목만 노출하는 bottom sheet, 실제 write 없는 공개 템플릿 미리보기, 호출 완료·취소 후 2분 cooldown 안내
-- `DONE` 기본 호출 항목 미리보기 — 직원 호출·물·앞치마·식기·테이블 정리·주문 도움을 실제 write 없는 화면에서 선택 가능
-- `DONE` 실제 매장별 호출 항목 관리·저장·전송 코드 — 기본 6개, 매장별 이름·순서·사용 설정, 보관 처리, 접수 당시 항목명 snapshot, 기존 제한 유지
+- `DONE` 오브 테이블 스마트호출 경험 — 우측 하단 전용 호출 버튼, 테이블 번호와 관리자 항목명만 노출하는 white bottom sheet, 바깥 영역·handle 닫기, 실제 write 없는 공개 템플릿 미리보기, 호출 완료·취소 후 2분 cooldown 안내
+- `DONE` 기본 호출 항목 미리보기 — 직원 호출·물·식기·테이블 정리 4개를 실제 write 없는 화면에서 선택 가능
+- `DONE` 실제 매장별 호출 항목 관리·저장·전송 코드 — 기본 4개, 매장별 이름·순서·사용 설정, 보관 처리, 접수 당시 항목명 snapshot, 기존 제한 유지
 - `DONE` 매장별 호출 항목 Production migration 1회 적용과 generated types 갱신 — 2026-08-28 사용자 승인, `docs/runbooks/store-call-items-migration.md`
 - `DONE` 호출 목록과 처리 직원 — `call.manage` Owner/Manager/Order staff 권한과 actor 기록
 - `DONE` 접수 확인과 처리 완료 — `pending → acknowledged → completed` conditional update

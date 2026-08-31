@@ -33,42 +33,52 @@ const AUBE_TABLE_FONT_ASSETS = [
 ];
 
 const AUBE_TABLE_STAGE_VARIANTS = {
-  enter: (direction: number) => ({ opacity: 0, x: direction * 64, scale: 0.99 }),
+  enter: (direction: number) => ({ opacity: 0, x: direction * 32, scale: 0.996 }),
   center: { opacity: 1, x: 0, scale: 1 },
-  exit: (direction: number) => ({ opacity: 0, x: direction * -52, scale: 0.992 }),
+  exit: (direction: number) => ({ opacity: 0, x: direction * -26, scale: 0.998 }),
 };
 
 const AUBE_TABLE_STAGE_TRANSITION = {
-  duration: 1.04,
-  ease: [0.32, 0, 0.2, 1] as const,
+  duration: 0.32,
+  ease: [0.33, 1, 0.68, 1] as const,
 };
 
-const AUBE_TABLE_REVEAL_CONTAINER = {
+const AUBE_TABLE_COVER_REVEAL_CONTAINER = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.2,
-      staggerChildren: 0.15,
+      delayChildren: 0.1,
+      staggerChildren: 0.12,
     },
   },
 };
 
-const AUBE_TABLE_REVEAL_ITEM = {
-  hidden: { opacity: 0, y: 26 },
+const AUBE_TABLE_COVER_REVEAL_ITEM = {
+  hidden: { opacity: 0, y: -20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.82, ease: [0.22, 0.68, 0.25, 1] as const },
+    transition: { duration: 0.78, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
 
-const AUBE_TABLE_INNER_REVEAL_CONTAINER = {
+const AUBE_TABLE_COURSE_REVEAL_CONTAINER = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.06,
-      staggerChildren: 0.09,
+      delayChildren: 0.36,
+      staggerChildren: 0.16,
     },
+  },
+};
+
+const AUBE_TABLE_COURSE_REVEAL_ITEM = {
+  hidden: { opacity: 0, y: 28, filter: "blur(3px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.76, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
 
@@ -92,7 +102,7 @@ function CoursePrice({ course }: { course: CourseWithItems }) {
 function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOptions: PublicMenuItemPriceOption[] }) {
   const price = item.price_visible === false ? "" : getPrice(item, priceOptions);
   return (
-    <motion.article className="aube-table-item" data-aube-table-item="" variants={AUBE_TABLE_REVEAL_ITEM}>
+    <article className="aube-table-item" data-aube-table-item="">
       {item.image_url ? <img className="aube-table-item-image" src={item.image_url} alt="" /> : null}
       <div className="aube-table-item-copy">
         <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"}>
@@ -103,13 +113,13 @@ function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOption
         {item.description ? <p className="aube-table-item-description"><ScriptAwareText text={item.description} /></p> : null}
         {item.is_sold_out ? <span className="aube-table-sold-out">품절</span> : null}
       </div>
-    </motion.article>
+    </article>
   );
 }
 
 function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceOptions: PublicMenuItemPriceOption[] }) {
   return (
-    <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_REVEAL_ITEM}>
+    <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_COURSE_REVEAL_ITEM}>
       <header className="aube-table-course-header">
         <div className="aube-table-course-title">
           <h2><ScriptAwareText text={course.name} /></h2>
@@ -123,9 +133,9 @@ function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceO
       {course.course_price_description_visible !== false && course.course_price_description ? (
         <p className="aube-table-course-price-description"><ScriptAwareText text={course.course_price_description} /></p>
       ) : null}
-      <motion.div className="aube-table-course-items" variants={AUBE_TABLE_INNER_REVEAL_CONTAINER}>
+      <div className="aube-table-course-items">
         {course.items.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={priceOptions} />)}
-      </motion.div>
+      </div>
     </motion.section>
   );
 }
@@ -213,7 +223,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
     <>
       <KoreanFontAssets assets={AUBE_TABLE_FONT_ASSETS} />
       <div className="aube-table-root cafe-a-typography" data-aube-table="">
-      <AnimatePresence initial={false} custom={transitionDirection}>
+      <AnimatePresence initial={false} custom={transitionDirection} mode="wait">
         <motion.div
           key={activeUnit.id}
           className="aube-table-stage"
@@ -241,12 +251,12 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           />
           <motion.div
             className="aube-table-cover-copy"
-            variants={AUBE_TABLE_REVEAL_CONTAINER}
+            variants={AUBE_TABLE_COVER_REVEAL_CONTAINER}
             initial={prefersReducedMotion ? false : "hidden"}
             animate="visible"
           >
             {useCoverLogo ? (
-              <motion.div variants={AUBE_TABLE_REVEAL_ITEM}>
+              <motion.div variants={AUBE_TABLE_COVER_REVEAL_ITEM}>
                 <img
                   className="aube-table-cover-logo"
                   src={data.menuSite.logo_url ?? ""}
@@ -255,35 +265,37 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
                 />
               </motion.div>
             ) : null}
-            {coverTitle ? <motion.h1 variants={AUBE_TABLE_REVEAL_ITEM}><ScriptAwareText text={coverTitle} /></motion.h1> : null}
-            {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
+            {coverTitle ? <motion.h1 variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverTitle} /></motion.h1> : null}
+            {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
           </motion.div>
         </section>
       ) : activePage ? (
         <div ref={scrollRef} className="aube-table-page-scroll" data-aube-table-page-scroll="">
-          <motion.main
+          <main
             className="aube-table-page"
             data-align={pageAlignment}
             data-columns={pageColumns}
-            variants={AUBE_TABLE_REVEAL_CONTAINER}
-            initial={prefersReducedMotion ? false : "hidden"}
-            animate="visible"
           >
-            <motion.header className="aube-table-page-header" variants={AUBE_TABLE_REVEAL_ITEM}>
+            <header className="aube-table-page-header">
               <h1><ScriptAwareText text={activePage.title} /></h1>
               {activePage.description_visible !== false && activePage.description ? (
                 <p className="aube-table-page-description"><ScriptAwareText text={activePage.description} /></p>
               ) : null}
-            </motion.header>
-            <motion.div className="aube-table-page-content" variants={AUBE_TABLE_INNER_REVEAL_CONTAINER}>
+            </header>
+            <motion.div
+              className="aube-table-page-content"
+              variants={AUBE_TABLE_COURSE_REVEAL_CONTAINER}
+              initial={prefersReducedMotion ? false : "hidden"}
+              animate="visible"
+            >
               {courses.map((course) => <CourseBlock key={course.id} course={course} priceOptions={data.priceOptions} />)}
               {directItems.length > 0 ? (
-                <motion.section className="aube-table-direct-items" variants={AUBE_TABLE_INNER_REVEAL_CONTAINER}>
+                <motion.section className="aube-table-direct-items" variants={AUBE_TABLE_COURSE_REVEAL_ITEM}>
                   {directItems.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={data.priceOptions} />)}
                 </motion.section>
               ) : null}
             </motion.div>
-          </motion.main>
+          </main>
         </div>
       ) : null}
         </motion.div>
@@ -333,6 +345,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-root {
           --menu-font-ko: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
           --menu-font-en: "Tenor Sans", "Pretendard", sans-serif;
+          --aube-accent: #c5a165;
           --aube-type-page-description: clamp(14px, 1.15vw, 17px);
           --aube-type-course-title: clamp(26px, 2.2vw, 32px);
           --aube-type-course-price: clamp(15px, 1.3vw, 18px);
@@ -362,13 +375,13 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: 104px 28px 142px; text-align: center; color: #fff; }
         .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(22px, 2.2vw, 32px); object-fit: contain; }
-        .aube-table-cover h1 { margin: 0; color: #b58c4b; font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(60px, 7.5vw, 112px); font-weight: 400; line-height: .96; letter-spacing: .13em; text-indent: .13em; }
+        .aube-table-cover h1 { margin: 0; color: var(--aube-accent); font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(60px, 7.5vw, 112px); font-weight: 400; line-height: .96; letter-spacing: .13em; text-indent: .13em; }
         .aube-table-cover-description { max-width: 820px; margin: clamp(22px, 2.2vw, 32px) auto 0; font-size: clamp(18px, 1.8vw, 27px); font-weight: 400; line-height: 1.5; letter-spacing: .02em; opacity: .88; }
         .aube-table-page-scroll { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
         .aube-table-page { width: min(100%, 1440px); min-height: 100%; margin: 0 auto; padding: clamp(96px, 12vh, 132px) clamp(30px, 5vw, 80px) clamp(156px, 18vh, 188px); }
         .aube-table-page[data-align="center"] { text-align: center; }
         .aube-table-page-header { max-width: 820px; margin: 0 auto clamp(38px, 5vh, 58px); text-align: center; }
-        .aube-table-page-header h1 { margin: 0; color: #b58c4b; font-family: var(--menu-font-en), "Tenor Sans", var(--menu-font-ko), sans-serif; font-size: clamp(48px, 4.7vw, 68px); font-weight: 400; line-height: 1.05; letter-spacing: -.025em; }
+        .aube-table-page-header h1 { margin: 0; color: var(--aube-accent); font-family: var(--menu-font-en), "Tenor Sans", var(--menu-font-ko), sans-serif; font-size: clamp(48px, 4.7vw, 68px); font-weight: 400; line-height: 1.05; letter-spacing: -.025em; }
         .aube-table-page-description { max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.55; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
         .aube-table-page[data-align="center"] .aube-table-page-content { text-align: center; }
@@ -377,9 +390,9 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-course-header { display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: baseline; gap: clamp(14px, 1.5vw, 22px); }
         .aube-table-course-header:not(:has(.aube-table-course-price)) { grid-template-columns: auto minmax(32px, 1fr); }
         .aube-table-course-title { min-width: 0; }
-        .aube-table-course-rule { width: 100%; border-top: 1px solid #d9ccb7; }
+        .aube-table-course-rule { width: 100%; border-top: 1px solid rgba(197, 161, 101, .38); }
         .aube-table-course-header h2 { margin: 0; font-size: var(--aube-type-course-title); font-weight: 500; line-height: 1.18; letter-spacing: -.025em; }
-        .aube-table-course-price { margin: 0; white-space: nowrap; color: #b58c4b; font-size: var(--aube-type-course-price); font-weight: 700; line-height: 1.35; }
+        .aube-table-course-price { margin: 0; white-space: nowrap; color: var(--aube-accent); font-size: var(--aube-type-course-price); font-weight: 700; line-height: 1.35; }
         .aube-table-course-description { max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: #666a72; font-size: var(--aube-type-course-body); line-height: 1.58; }
         .aube-table-course-price-description { margin: clamp(6px, .65vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-course-meta); line-height: 1.55; }
         .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; margin-top: var(--aube-space-course-items); }
@@ -393,9 +406,9 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-item:not(:has(.aube-table-item-image)) { grid-template-columns: minmax(0, 1fr); }
         .aube-table-item-image { width: clamp(96px, 9vw, 124px); height: clamp(96px, 9vw, 124px); border-radius: 2px; object-fit: cover; }
         .aube-table-item-heading { display: flex; align-items: baseline; gap: clamp(10px, 1vw, 16px); }
-        .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 1.5px; flex: 1; background-image: radial-gradient(circle, rgba(181, 140, 75, .42) .65px, transparent .78px); background-position: left center; background-repeat: repeat-x; background-size: 5px 1.5px; }
+        .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 1.5px; flex: 1; background-image: radial-gradient(circle, rgba(197, 161, 101, .42) .65px, transparent .78px); background-position: left center; background-repeat: repeat-x; background-size: 5px 1.5px; }
         .aube-table-item h3 { order: 1; margin: 0; font-size: var(--aube-type-item-title); font-weight: 500; line-height: 1.3; letter-spacing: -.018em; }
-        .aube-table-item-price { order: 3; margin: 0; white-space: normal; text-align: right; color: #b58c4b; font-size: var(--aube-type-item-price); font-weight: 600; line-height: 1.32; }
+        .aube-table-item-price { order: 3; margin: 0; white-space: normal; text-align: right; color: var(--aube-accent); font-size: var(--aube-type-item-price); font-weight: 600; line-height: 1.32; }
         .aube-table-item-secondary { margin: clamp(7px, .7vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-item-secondary); font-weight: 700; line-height: 1.4; letter-spacing: .06em; }
         .aube-table-item-description { max-width: 720px; margin: clamp(7px, .75vw, 10px) 0 0; color: #70737a; font-size: var(--aube-type-item-body); line-height: 1.55; }
         .aube-table-page[data-align="center"] .aube-table-item { text-align: center; }
@@ -406,9 +419,9 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-pagination { position: fixed; z-index: 20; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; justify-content: center; padding: 0; }
         .aube-table-pagination-dots { display: flex; align-items: center; justify-content: center; gap: 8px; }
         .aube-table-pagination-dot { width: 5.5px; height: 5.5px; border: 0; border-radius: 999px; padding: 0; background: #c9c9c9; transition: background-color .2s ease, transform .2s ease; }
-        .aube-table-pagination-dot[data-active="true"] { background: #b58c4b; transform: scale(1.06); }
+        .aube-table-pagination-dot[data-active="true"] { background: var(--aube-accent); transform: scale(1.06); }
         .aube-table-pagination-dot[data-active="true"]:focus { outline: none; }
-        .aube-table-pagination-dot:focus-visible:not([data-active="true"]), .aube-table-pagination-direction:focus-visible { outline: 2px solid #b58c4b; outline-offset: 5px; }
+        .aube-table-pagination-dot:focus-visible:not([data-active="true"]), .aube-table-pagination-direction:focus-visible { outline: 2px solid var(--aube-accent); outline-offset: 5px; }
         .aube-table-pagination-direction { display: none; align-items: center; gap: 12px; border: 0; padding: 8px 0; background: transparent; color: #5d6470; font-family: var(--menu-font-en), "Tenor Sans", sans-serif; font-size: 14px; font-weight: 400; letter-spacing: .16em; text-transform: uppercase; transition: color .22s ease; }
         .aube-table-pagination-arrow { display: block; width: 9px; height: 11px; flex: 0 0 auto; background: currentColor; -webkit-mask: url("/menu-templates/dining_aube_table_a/aube-pagination-arrow.svg") center / contain no-repeat; mask: url("/menu-templates/dining_aube_table_a/aube-pagination-arrow.svg") center / contain no-repeat; }
         .aube-table-pagination-prev .aube-table-pagination-arrow { transform: rotate(180deg); }
@@ -418,7 +431,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           .aube-table-pagination-direction { display: inline-flex; }
           .aube-table-pagination-prev { justify-self: start; }
           .aube-table-pagination-next { justify-self: end; }
-          .aube-table-pagination-direction:not(:disabled):hover, .aube-table-pagination-direction:not(:disabled):focus-visible { color: #b58c4b; }
+          .aube-table-pagination-direction:not(:disabled):hover, .aube-table-pagination-direction:not(:disabled):focus-visible { color: var(--aube-accent); }
           .aube-table-pagination-prev:not(:disabled):hover .aube-table-pagination-arrow, .aube-table-pagination-prev:not(:disabled):focus-visible .aube-table-pagination-arrow { animation: aube-table-arrow-prev .56s cubic-bezier(.22, .8, .36, 1); }
           .aube-table-pagination-next:not(:disabled):hover .aube-table-pagination-arrow, .aube-table-pagination-next:not(:disabled):focus-visible .aube-table-pagination-arrow { animation: aube-table-arrow-next .56s cubic-bezier(.22, .8, .36, 1); }
         }

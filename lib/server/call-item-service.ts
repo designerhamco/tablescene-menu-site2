@@ -3,6 +3,7 @@ import "server-only";
 import {
   getDefaultStaffCallItems,
   normalizeStaffCallItems,
+  replaceLegacyDefaultStaffCallItems,
   StaffCallItemInputError,
   type StaffCallItem,
 } from "@/lib/call-items";
@@ -50,7 +51,7 @@ function mapRows(value: unknown): StaffCallItem[] {
   if (items.length !== rows.length || items.length < 1) {
     throw new CallItemServiceError("READ_FAILED", "호출 항목을 불러오지 못했습니다.", 500);
   }
-  return items;
+  return replaceLegacyDefaultStaffCallItems(items);
 }
 
 export async function listStaffCallItems({
