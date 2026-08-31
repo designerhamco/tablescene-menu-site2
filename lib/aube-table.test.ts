@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
+import { splitScriptRuns } from "../components/menu-templates/shared/ScriptAwareText";
 import { getStarterPreset } from "./menu-starter-presets";
 import {
   getCustomTypographySettings,
@@ -130,4 +131,28 @@ test("오브 테이블 페이지명과 코스명은 같은 카테고리 글자 �
   assert.match(variables["--menu-role-category-font-ko"], /Noto Serif KR/);
   assert.match(variables["--menu-role-category-font-en"], /Playfair Display/);
   assert.equal(variables["--menu-role-category-color"], "#123456");
+});
+
+test("오브 테이블 공통 UI는 한글과 영문을 역할별 폰트로 분리할 수 있다", () => {
+  const customTypography = getCustomTypographySettings({}, {
+    design: {
+      typographyRoles: {
+        supporting: {
+          font_ko_key: "gothic-a1",
+          font_en_key: "playfair-display",
+        },
+      },
+    },
+  });
+  const variables = getTypographyCssVariables(
+    mergeTypographySettings("dining_aube_table_a", customTypography),
+    "dining_aube_table_a",
+  ) as Record<string, string>;
+
+  assert.match(variables["--menu-role-supporting-font-ko"], /Gothic A1/);
+  assert.match(variables["--menu-role-supporting-font-en"], /Playfair Display/);
+  assert.deepEqual(splitScriptRuns("테이블 12 · STAFF"), [
+    { kind: "ko", text: "테이블 " },
+    { kind: "en", text: "12 · STAFF" },
+  ]);
 });

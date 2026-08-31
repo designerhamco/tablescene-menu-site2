@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { LOCALE_LABELS, type SupportedLocale } from "@/lib/locales";
+import ScriptAwareText from "./ScriptAwareText";
 
 type MenuLanguageSwitcherProps = {
   currentLocale: SupportedLocale;
@@ -142,7 +143,7 @@ export default function MenuLanguageSwitcher({
           </>
         ) : triggerVariant === "aube" ? (
           <>
-            <span className="leading-none">{SHORT_LOCALE_LABELS[currentLocale]}</span>
+            <span className="leading-none"><ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /></span>
             {visibleLocales.length > 1 ? <ChevronDown className={chevronClassName} strokeWidth={1.6} aria-hidden="true" /> : null}
           </>
         ) : (
@@ -168,7 +169,7 @@ export default function MenuLanguageSwitcher({
                 locale === currentLocale ? "text-zinc-950" : "text-zinc-500"
               }`}
             >
-              {triggerVariant === "aube" ? SHORT_LOCALE_LABELS[locale] : LOCALE_LABELS[locale]}
+              {triggerVariant === "aube" ? <ScriptAwareText text={SHORT_LOCALE_LABELS[locale]} /> : LOCALE_LABELS[locale]}
             </a>
           ))}
         </div>

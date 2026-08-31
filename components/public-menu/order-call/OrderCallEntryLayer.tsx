@@ -4,6 +4,7 @@ import { Bell, CreditCard, ShoppingBag } from "lucide-react";
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from "react";
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
+import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import type { SupportedLocale } from "@/lib/locales";
 import type { TemplateKey } from "@/lib/templates";
 
@@ -71,14 +72,15 @@ export default function OrderCallEntryLayer({
   const shellTypographyStyle = usesAubeCallPresentation
     ? {
         ...typographyStyle,
-        fontFamily: "var(--menu-role-supporting-font-family, var(--menu-font-ko))",
+        fontFamily: "var(--menu-role-supporting-font-ko, var(--menu-font-ko)), system-ui, sans-serif",
       }
     : undefined;
+  const renderShellText = (text: string) => usesAubeCallPresentation ? <ScriptAwareText text={text} /> : text;
 
   return (
     <MenuOrderActionsProvider catalog={config.orderCatalog ?? []} onOpenItem={openMenuItem}>
       <div
-        className={usesAubeCallPresentation ? "menu-typography" : undefined}
+        className={usesAubeCallPresentation ? "menu-typography cafe-a-typography" : undefined}
         style={shellTypographyStyle}
         data-public-menu-entry-layer=""
         data-order-call-mode={config.mode}
@@ -105,7 +107,7 @@ export default function OrderCallEntryLayer({
           {!usesAubeCallPresentation && config.storeName ? <p className="truncate text-[13px] font-black leading-tight">{config.storeName}</p> : null}
           {visibility.showTableLabel ? (
             <p className={`truncate leading-tight ${usesAubeCallPresentation ? "text-[12px] font-medium tracking-[0.08em] text-zinc-700" : "mt-0.5 text-[11px] font-bold text-zinc-500"}`}>
-              {config.tableLabel}
+              {renderShellText(config.tableLabel ?? "")}
             </p>
           ) : null}
         </div>
@@ -194,7 +196,7 @@ export default function OrderCallEntryLayer({
             className="fixed bottom-[max(20px,env(safe-area-inset-bottom))] left-1/2 z-[1300] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-zinc-950 px-4 py-3 text-xs font-bold text-white shadow-xl md:hidden"
             role="status"
           >
-            {toastMessage}
+            {renderShellText(toastMessage)}
           </div>
         ) : null}
       </div>

@@ -139,7 +139,7 @@ function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOption
         </div>
         {item.set_name ? <p className="aube-table-item-secondary"><ScriptAwareText text={item.set_name} /></p> : null}
         {item.description ? <p className="aube-table-item-description"><ScriptAwareText text={item.description} /></p> : null}
-        {item.is_sold_out ? <span className="aube-table-sold-out">품절</span> : null}
+        {item.is_sold_out ? <span className="aube-table-sold-out"><ScriptAwareText text="품절" /></span> : null}
       </div>
     </article>
   );
@@ -354,7 +354,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             onClick={() => selectUnit(safeActiveIndex - 1)}
           >
             <span className="aube-table-pagination-arrow" aria-hidden="true" />
-            Prev
+            <ScriptAwareText text="Prev" />
           </button>
           <div className="aube-table-pagination-dots">
             {units.map((unit, index) => (
@@ -376,7 +376,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             disabled={safeActiveIndex === units.length - 1}
             onClick={() => selectUnit(safeActiveIndex + 1)}
           >
-            Next
+            <ScriptAwareText text="Next" />
             <span className="aube-table-pagination-arrow" aria-hidden="true" />
           </button>
         </nav>
@@ -457,7 +457,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-page[data-align="center"] .aube-table-item { text-align: center; }
         .aube-table-page[data-align="center"] .aube-table-item-heading { justify-content: center; }
         .aube-table-page[data-align="center"] .aube-table-item-description { margin-left: auto; margin-right: auto; }
-        .aube-table-sold-out { display: inline-flex; margin-top: 14px; padding: 6px 10px; background: #17191f; color: #fff; font-size: clamp(11px, .9vw, 13px); font-weight: 700; letter-spacing: .08em; }
+        .aube-table-sold-out { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); display: inline-flex; margin-top: 14px; padding: 6px 10px; background: #17191f; color: #fff; font-family: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); font-size: clamp(11px, .9vw, 13px); font-weight: var(--menu-role-supporting-font-weight, 700); letter-spacing: .08em; }
         .aube-table-bottom-fade { position: fixed; z-index: 15; inset: auto 0 0; height: clamp(116px, 17vh, 174px); pointer-events: none; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, .82) 52%, #fff 86%); }
         .aube-table-pagination { position: fixed; z-index: 20; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; justify-content: center; padding: 0; }
         .aube-table-pagination-dots { display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -465,7 +465,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-pagination-dot[data-active="true"] { background: var(--aube-accent); transform: scale(1.06); }
         .aube-table-pagination-dot[data-active="true"]:focus { outline: none; }
         .aube-table-pagination-dot:focus-visible:not([data-active="true"]), .aube-table-pagination-direction:focus-visible { outline: 2px solid var(--aube-accent); outline-offset: 5px; }
-        .aube-table-pagination-direction { display: none; align-items: center; gap: 12px; border: 0; padding: 8px 0; background: transparent; color: #5d6470; font-family: var(--menu-font-en), "Tenor Sans", sans-serif; font-size: 14px; font-weight: 400; letter-spacing: .16em; text-transform: uppercase; transition: color .22s ease; }
+        .aube-table-pagination-direction { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); display: none; align-items: center; gap: 12px; border: 0; padding: 8px 0; background: transparent; color: #5d6470; font-family: var(--menu-role-supporting-font-en, var(--menu-font-en)), var(--menu-role-supporting-font-ko, var(--menu-font-ko)), sans-serif; font-size: 14px; font-weight: var(--menu-role-supporting-font-weight, 400); letter-spacing: .16em; text-transform: uppercase; transition: color .22s ease; }
         .aube-table-pagination-arrow { display: block; width: 9px; height: 11px; flex: 0 0 auto; background: currentColor; -webkit-mask: url("/menu-templates/dining_aube_table_a/aube-pagination-arrow.svg") center / contain no-repeat; mask: url("/menu-templates/dining_aube_table_a/aube-pagination-arrow.svg") center / contain no-repeat; }
         .aube-table-pagination-prev .aube-table-pagination-arrow { transform: rotate(180deg); }
         .aube-table-pagination-direction:disabled { opacity: .2; cursor: default; }
