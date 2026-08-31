@@ -162,8 +162,6 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
   const coverTitle = data.menuSite.menu_cover_title || data.menuSite.restaurant_name || data.menuSite.name;
   const coverDescription = data.menuSite.menu_cover_description || data.menuSite.brand_description || data.menuSite.description;
   const useCoverLogo = shouldUseAubeTableCoverLogo(data.menuSite.logo_url, failedCoverLogoUrl);
-  const showCoverStoreName = Boolean(storeName && storeName.trim() !== coverTitle?.trim());
-
   if (!activeUnit) return null;
 
   return (
@@ -187,8 +185,6 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
                 alt={`${storeName} 로고`}
                 onError={() => setFailedCoverLogoUrl(data.menuSite.logo_url)}
               />
-            ) : showCoverStoreName ? (
-              <p className="aube-table-cover-brand"><ScriptAwareText text={storeName} /></p>
             ) : null}
             {coverTitle ? <h1><ScriptAwareText text={coverTitle} /></h1> : null}
             {coverDescription ? <p className="aube-table-cover-description"><ScriptAwareText text={coverDescription} /></p> : null}
@@ -268,14 +264,14 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           --aube-type-item-price: clamp(15px, 1.25vw, 18px);
           --aube-type-item-secondary: clamp(11px, .9vw, 13px);
           --aube-type-item-body: clamp(13px, 1.1vw, 15px);
-          --aube-space-course: clamp(56px, 5.4vw, 78px);
-          --aube-space-course-items: clamp(24px, 2.25vw, 34px);
-          --aube-space-item-top: clamp(10px, 1vw, 14px);
-          --aube-space-item-bottom: clamp(16px, 1.5vw, 22px);
+          --aube-space-course: clamp(44px, 4.4vw, 62px);
+          --aube-space-course-items: clamp(16px, 1.55vw, 23px);
+          --aube-space-item-top: clamp(7px, .7vw, 10px);
+          --aube-space-item-bottom: clamp(10px, 1vw, 14px);
           position: relative;
           min-height: 100dvh;
           overflow: hidden;
-          background: #fbfaf7;
+          background: #fff;
           color: #17191f;
           font-family: var(--menu-font-ko), "Pretendard", sans-serif;
         }
@@ -286,16 +282,15 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: 104px 28px 142px; text-align: center; color: #fff; }
         .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(22px, 2.2vw, 32px); object-fit: contain; }
-        .aube-table-cover-brand { margin: 0 0 clamp(22px, 2.2vw, 32px); font-size: clamp(18px, 1.5vw, 24px); font-weight: 600; line-height: 1.35; letter-spacing: .16em; }
         .aube-table-cover h1 { margin: 0; color: #b58c4b; font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(60px, 7.5vw, 112px); font-weight: 400; line-height: .96; letter-spacing: .13em; text-indent: .13em; }
         .aube-table-cover-description { max-width: 820px; margin: clamp(22px, 2.2vw, 32px) auto 0; font-size: clamp(18px, 1.8vw, 27px); font-weight: 400; line-height: 1.5; letter-spacing: .02em; opacity: .88; }
         .aube-table-page-scroll { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
         .aube-table-page { width: min(100%, 1440px); min-height: 100%; margin: 0 auto; padding: clamp(96px, 12vh, 132px) clamp(30px, 5vw, 80px) clamp(156px, 18vh, 188px); }
         .aube-table-page[data-align="center"] { text-align: center; }
-        .aube-table-page-header { max-width: 820px; margin-bottom: clamp(56px, 6.6vh, 82px); }
+        .aube-table-page-header { max-width: 820px; margin-bottom: clamp(38px, 5vh, 58px); }
         .aube-table-page[data-align="center"] .aube-table-page-header { margin-left: auto; margin-right: auto; }
         .aube-table-page-header h1 { margin: 0; color: #b58c4b; font-family: var(--menu-font-en), "Tenor Sans", var(--menu-font-ko), sans-serif; font-size: clamp(48px, 4.7vw, 68px); font-weight: 400; line-height: 1.05; letter-spacing: -.025em; }
-        .aube-table-page-description { max-width: 680px; margin: clamp(18px, 1.75vw, 24px) 0 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.55; }
+        .aube-table-page-description { max-width: 680px; margin: clamp(11px, 1.1vw, 16px) 0 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.55; }
         .aube-table-page[data-align="center"] .aube-table-page-description { margin-left: auto; margin-right: auto; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
         .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); row-gap: var(--aube-space-course); }
@@ -314,17 +309,17 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-item:not(:has(.aube-table-item-image)) { grid-template-columns: minmax(0, 1fr); }
         .aube-table-item-image { width: clamp(96px, 9vw, 124px); height: clamp(96px, 9vw, 124px); border-radius: 2px; object-fit: cover; }
         .aube-table-item-heading { display: flex; align-items: baseline; gap: clamp(10px, 1vw, 16px); }
-        .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 2px; flex: 1; background-image: radial-gradient(circle, #d6c9b4 1px, transparent 1.2px); background-position: left center; background-repeat: repeat-x; background-size: 6px 2px; }
+        .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 1.5px; flex: 1; background-image: radial-gradient(circle, rgba(181, 140, 75, .42) .65px, transparent .78px); background-position: left center; background-repeat: repeat-x; background-size: 5px 1.5px; }
         .aube-table-item h3 { order: 1; margin: 0; font-size: var(--aube-type-item-title); font-weight: 500; line-height: 1.3; letter-spacing: -.018em; }
         .aube-table-item-price { order: 3; margin: 0; white-space: normal; text-align: right; color: #b58c4b; font-size: var(--aube-type-item-price); font-weight: 600; line-height: 1.32; }
         .aube-table-item-secondary { margin: clamp(7px, .7vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-item-secondary); font-weight: 700; line-height: 1.4; letter-spacing: .06em; }
         .aube-table-item-description { max-width: 720px; margin: clamp(7px, .75vw, 10px) 0 0; color: #70737a; font-size: var(--aube-type-item-body); line-height: 1.55; }
         .aube-table-sold-out { display: inline-flex; margin-top: 14px; padding: 6px 10px; background: #17191f; color: #fff; font-size: clamp(11px, .9vw, 13px); font-weight: 700; letter-spacing: .08em; }
-        .aube-table-bottom-fade { position: fixed; z-index: 15; inset: auto 0 0; height: clamp(116px, 17vh, 174px); pointer-events: none; background: linear-gradient(to bottom, rgba(251, 250, 247, 0), rgba(251, 250, 247, .82) 52%, #fbfaf7 86%); }
+        .aube-table-bottom-fade { position: fixed; z-index: 15; inset: auto 0 0; height: clamp(116px, 17vh, 174px); pointer-events: none; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, .82) 52%, #fff 86%); }
         .aube-table-pagination { position: fixed; z-index: 20; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; justify-content: center; padding: 0; }
-        .aube-table-pagination-dots { display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .aube-table-pagination-dot { width: 7px; height: 7px; border: 0; border-radius: 999px; padding: 0; background: #c9c9c9; transition: background-color .2s ease, transform .2s ease; }
-        .aube-table-pagination-dot[data-active="true"] { background: #b58c4b; transform: scale(1.08); }
+        .aube-table-pagination-dots { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .aube-table-pagination-dot { width: 5.5px; height: 5.5px; border: 0; border-radius: 999px; padding: 0; background: #c9c9c9; transition: background-color .2s ease, transform .2s ease; }
+        .aube-table-pagination-dot[data-active="true"] { background: #b58c4b; transform: scale(1.06); }
         .aube-table-pagination-dot[data-active="true"]:focus { outline: none; }
         .aube-table-pagination-dot:focus-visible:not([data-active="true"]), .aube-table-pagination-direction:focus-visible { outline: 2px solid #b58c4b; outline-offset: 5px; }
         .aube-table-pagination-direction { display: none; align-items: center; gap: 12px; border: 0; padding: 8px 0; background: transparent; color: #5d6470; font-family: var(--menu-font-en), "Tenor Sans", sans-serif; font-size: 14px; font-weight: 400; letter-spacing: .16em; text-transform: uppercase; transition: color .22s ease; }
@@ -356,20 +351,19 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             --aube-type-item-price: clamp(14px, 4vw, 17px);
             --aube-type-item-secondary: clamp(10px, 2.8vw, 12px);
             --aube-type-item-body: clamp(13px, 3.6vw, 15px);
-            --aube-space-course: clamp(54px, 14.5vw, 68px);
-            --aube-space-course-items: clamp(24px, 6.5vw, 32px);
-            --aube-space-item-top: clamp(12px, 3.3vw, 16px);
-            --aube-space-item-bottom: clamp(16px, 4.5vw, 21px);
+            --aube-space-course: clamp(42px, 11.5vw, 54px);
+            --aube-space-course-items: clamp(16px, 4.5vw, 22px);
+            --aube-space-item-top: clamp(8px, 2.2vw, 11px);
+            --aube-space-item-bottom: clamp(11px, 3vw, 15px);
           }
           .aube-table-cover-copy { width: min(92vw, 680px); padding: 88px 22px 124px; }
           .aube-table-cover-logo { max-width: min(230px, 58vw); max-height: 84px; margin-bottom: 22px; }
-          .aube-table-cover-brand { margin-bottom: 22px; font-size: clamp(17px, 4.7vw, 20px); line-height: 1.35; letter-spacing: .14em; }
           .aube-table-cover h1 { font-size: clamp(42px, 11.5vw, 58px); line-height: 1; letter-spacing: .1em; text-indent: .1em; }
           .aube-table-cover-description { margin-top: clamp(18px, 5vw, 24px); font-size: clamp(16px, 4.7vw, 20px); line-height: 1.5; }
           .aube-table-page { padding: 82px 24px 132px; }
-          .aube-table-page-header { margin-bottom: 52px; }
+          .aube-table-page-header { margin-bottom: 36px; }
           .aube-table-page-header h1 { font-size: clamp(38px, 11vw, 48px); }
-          .aube-table-page-description { margin-top: 18px; }
+          .aube-table-page-description { margin-top: 11px; }
           .aube-table-page[data-columns="2"] .aube-table-page-content, .aube-table-page[data-columns="2"] .aube-table-direct-items { grid-template-columns: 1fr; }
           .aube-table-page-content { gap: var(--aube-space-course); }
           .aube-table-course-header { grid-template-columns: auto minmax(20px, 1fr) auto; gap: 12px; }

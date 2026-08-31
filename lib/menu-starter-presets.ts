@@ -11,6 +11,7 @@ import {
   type TemplateCategoryKey,
 } from "@/lib/templates";
 import { MENU_LIMITS } from "@/lib/menu-limits";
+import { AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR } from "@/lib/aube-table";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
   DEFAULT_TIME_SALE_BADGE_TEXT,
@@ -2030,6 +2031,9 @@ async function applyStarterSiteDefaults(
 ) {
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
+  const resolvedStarterPageSettings = preset.template_key === "dining_aube_table_a"
+    ? { ...starterPageSettings, multi_page_cover_background_color: AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR }
+    : starterPageSettings;
   const presetSettings = getJsonRecord((preset.site.settings ?? null) as Json | null);
   const siteSelect =
     "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings, settings";
@@ -2083,7 +2087,7 @@ async function applyStarterSiteDefaults(
     logo_path: valueOrNullableDefault(site?.logo_path, presetLogoPath),
     cover_image_url: valueOrDefault(site?.cover_image_url, preset.site.cover_image_url),
     cover_image_path: site?.cover_image_path ?? null,
-    page_settings: pageSettingsAreEmpty(site?.page_settings) ? (starterPageSettings as unknown as Json) : site?.page_settings,
+    page_settings: pageSettingsAreEmpty(site?.page_settings) ? (resolvedStarterPageSettings as unknown as Json) : site?.page_settings,
     ...(Object.keys(nextSettings).length > 0 ? { settings: nextSettings } : {}),
     updated_at: new Date().toISOString(),
   };
