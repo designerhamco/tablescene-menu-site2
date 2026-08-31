@@ -30,6 +30,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { isAubeTableTemplate } from "@/lib/aube-table";
+import { getReadyAubeTableLocales } from "@/lib/aube-table-language-readiness";
 import { mergePageSettings, sortMenuPages } from "@/types/menu";
 
 type MenuSite = PublicMenuTemplateProps["menuSite"] &
@@ -902,12 +903,77 @@ async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, me
   return data?.product_key ?? null;
 }
 
+async function loadReadyAubeTableLocales({
+  supabase,
+  configuredLocales,
+  menuSite,
+  pageSettings,
+  pages,
+  categories,
+  items,
+  priceOptions,
+}: {
+  supabase: SupabaseServerClient;
+  configuredLocales: SupportedLocale[];
+  menuSite: MenuSite;
+  pageSettings: MenuPageData["pageSettings"];
+  pages: MenuPage[];
+  categories: MenuCategory[];
+  items: MenuItem[];
+  priceOptions: MenuItemPriceOption[];
+}) {
+  const targetLocales = configuredLocales.filter((locale) => locale !== DEFAULT_LOCALE);
+  if (targetLocales.length === 0) return [DEFAULT_LOCALE];
+
+  const pageIds = pages.map((page) => page.id);
+  const categoryIds = categories.map((category) => category.id);
+  const itemIds = items.map((item) => item.id);
+  const priceOptionIds = priceOptions.map((option) => option.id);
+  const [siteResult, pageResult, categoryResult, itemResult, priceOptionResult] = await Promise.all([
+    supabase
+      .from("menu_site_translations")
+      .select("*")
+      .eq("menu_site_id", menuSite.id)
+      .in("locale", targetLocales),
+    pageIds.length
+      ? supabase.from("menu_page_translations").select("*").in("locale", targetLocales).in("menu_page_id", pageIds)
+      : Promise.resolve({ data: [], error: null }),
+    categoryIds.length
+      ? supabase.from("menu_category_translations").select("*").in("locale", targetLocales).in("category_id", categoryIds)
+      : Promise.resolve({ data: [], error: null }),
+    itemIds.length
+      ? supabase.from("menu_item_translations").select("*").in("locale", targetLocales).in("item_id", itemIds)
+      : Promise.resolve({ data: [], error: null }),
+    priceOptionIds.length
+      ? supabase.from("menu_item_price_option_translations").select("*").in("locale", targetLocales).in("price_option_id", priceOptionIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (siteResult.error || pageResult.error || categoryResult.error || itemResult.error || priceOptionResult.error) {
+    return [DEFAULT_LOCALE];
+  }
+
+  return getReadyAubeTableLocales({
+    configuredLocales,
+    coverEnabled: pageSettings.menu_cover_enabled !== false,
+    site: menuSite,
+    pages,
+    categories,
+    items,
+    priceOptions,
+    siteTranslations: (siteResult.data ?? []) as MenuSiteTranslation[],
+    pageTranslations: (pageResult.data ?? []) as MenuPageTranslation[],
+    categoryTranslations: (categoryResult.data ?? []) as unknown as AubeTableMenuCategoryTranslation[],
+    itemTranslations: (itemResult.data ?? []) as MenuItemTranslation[],
+    priceOptionTranslations: (priceOptionResult.data ?? []) as MenuItemPriceOptionTranslation[],
+  });
+}
+
 async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOptions = {}, client?: SupabaseServerClient): Promise<MenuPageData | null> {
   const supabase = client ?? await createClient();
   const initialNowMs = Date.now();
   const pageSettings = mergePageSettings(menuSite.page_settings);
-  const enabledLocales = getEnabledLocales(menuSite.settings);
-  const locale = getEffectiveLocale(options.locale ?? DEFAULT_LOCALE, enabledLocales);
+  const configuredEnabledLocales = getEnabledLocales(menuSite.settings);
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuSite.id);
   const publicServiceType = getMenuPublicServiceType(productKey);
   const isAubeTable = isAubeTableTemplate(menuSite.template_key);
@@ -1129,6 +1195,19 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     items: itemsWithPriceColumnValues,
   });
   const priceOptions = isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]);
+  const enabledLocales = isAubeTable
+    ? await loadReadyAubeTableLocales({
+        supabase,
+        configuredLocales: configuredEnabledLocales,
+        menuSite,
+        pageSettings,
+        pages,
+        categories: categoriesWithPriceColumns,
+        items: itemsWithPriceColumnValues,
+        priceOptions,
+      })
+    : configuredEnabledLocales;
+  const locale = getEffectiveLocale(options.locale ?? DEFAULT_LOCALE, enabledLocales);
   const timeSales = await loadPublicTimeSales({
     supabase,
     menuSite,

@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, CreditCard, ShoppingBag } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from "react";
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { SupportedLocale } from "@/lib/locales";
@@ -18,6 +18,7 @@ type OrderCallEntryLayerProps = {
   config?: OrderCallEntryConfig;
   currentLocale: SupportedLocale;
   enabledLocales: SupportedLocale[];
+  typographyStyle?: CSSProperties;
   children: ReactNode;
 };
 
@@ -26,6 +27,7 @@ export default function OrderCallEntryLayer({
   config = LOCKED_ORDER_CALL_ENTRY_CONFIG,
   currentLocale,
   enabledLocales,
+  typographyStyle,
   children,
 }: OrderCallEntryLayerProps) {
   const visibility = getOrderCallEntryVisibility(config);
@@ -58,18 +60,29 @@ export default function OrderCallEntryLayer({
     return <>{children}</>;
   }
 
-  const showLanguage = visibility.showLanguage && new Set(enabledLocales).size > 1;
+  const usesAubeCallPresentation = templateKey === "dining_aube_table_a";
+  const showLanguage = visibility.showLanguage && (usesAubeCallPresentation || new Set(enabledLocales).size > 1);
   const canOpenCart = config.mode === "active"
     && Boolean(config.menuSiteId && config.cartScope && config.orderCatalog);
   const canOpenCall = visibility.showCall
     && config.mode === "active"
     && Boolean(config.menuSiteId);
   const prepayEnabled = hasPrepayCheckout(config);
-  const usesAubeCallPresentation = templateKey === "dining_aube_table_a";
+  const shellTypographyStyle = usesAubeCallPresentation
+    ? {
+        ...typographyStyle,
+        fontFamily: "var(--menu-role-supporting-font-family, var(--menu-font-ko))",
+      }
+    : undefined;
 
   return (
     <MenuOrderActionsProvider catalog={config.orderCatalog ?? []} onOpenItem={openMenuItem}>
-      <div data-public-menu-entry-layer="" data-order-call-mode={config.mode}>
+      <div
+        className={usesAubeCallPresentation ? "menu-typography" : undefined}
+        style={shellTypographyStyle}
+        data-public-menu-entry-layer=""
+        data-order-call-mode={config.mode}
+      >
         <header
           className={`sticky top-0 z-[900] grid min-h-14 items-center gap-2 border-b border-zinc-200 bg-white px-3 pb-2 pt-[max(8px,env(safe-area-inset-top))] text-zinc-950 shadow-none md:hidden ${
             usesAubeCallPresentation ? "grid-cols-[44px_minmax(0,1fr)_44px]" : "grid-cols-[44px_minmax(0,1fr)_auto]"

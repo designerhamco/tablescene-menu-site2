@@ -259,7 +259,8 @@ export default function TypographySettingsForm({
   templateKey,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
-  const showRoleTypographyControl = templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a";
+  const isAubeTableTemplate = templateKey === "dining_aube_table_a";
+  const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a";
   const isSundayLineTemplate = templateKey === "cafe_sunday_line_a";
   const isRoundFocusTemplate = templateKey === "cafe_round_focus_a";
   const cafeAMiniPreviewBrandText = isRoundFocusTemplate ? "라운드 로스터스 ROUND 2026" : isSundayLineTemplate ? "선데이 로스터스 SUNDAY 2026" : "오브 커피 AUBE 2026";
@@ -345,7 +346,9 @@ export default function TypographySettingsForm({
                 <div>
                   <h4 className="text-sm font-black text-zinc-950">글자 설정</h4>
                   <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                    가게명과 카테고리명은 폰트와 색상을, 나머지 글자는 폰트만 조정합니다.
+                    {isAubeTableTemplate
+                      ? "가게명과 페이지·코스명은 폰트와 색상을, 나머지 글자는 폰트만 조정합니다."
+                      : "가게명과 카테고리명은 폰트와 색상을, 나머지 글자는 폰트만 조정합니다."}
                   </p>
                 </div>
                 <button
@@ -358,6 +361,9 @@ export default function TypographySettingsForm({
               </div>
               <div className="mt-4 divide-y divide-zinc-100 rounded-lg border border-zinc-100">
                 {TYPOGRAPHY_CONTROL_GROUPS.map((group) => {
+                  const description = isAubeTableTemplate && group.key === "categoryName"
+                    ? "페이지명과 코스(카테고리)명에 함께 적용됩니다."
+                    : group.description;
                   const koreanFontValue = getGroupSettingValue(selectedRoleSettings, group.roles, "font_ko_key");
                   const englishFontValue = getGroupSettingValue(selectedRoleSettings, group.roles, "font_en_key");
                   const colorValue = group.allowColor ? getGroupSettingValue(selectedRoleSettings, group.roles, "color") : "";
@@ -375,7 +381,7 @@ export default function TypographySettingsForm({
                     >
                       <div>
                         <p className="break-keep text-sm font-black text-zinc-800">{group.label}</p>
-                        <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{group.description}</p>
+                        <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{description}</p>
                         {hasMixedValue ? (
                           <p className="mt-1 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">저장된 개별 설정이 있어 변경한 항목만 함께 맞춰집니다.</p>
                         ) : null}

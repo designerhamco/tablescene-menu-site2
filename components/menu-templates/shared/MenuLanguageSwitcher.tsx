@@ -87,7 +87,7 @@ export default function MenuLanguageSwitcher({
     };
   }, [isOpen]);
 
-  if (visibleLocales.length <= 1) return null;
+  if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube")) return null;
 
   const triggerClassName =
     triggerVariant === "cafe"
@@ -121,11 +121,14 @@ export default function MenuLanguageSwitcher({
       <button
         type="button"
         className={triggerClassName}
-        aria-label="언어 변경"
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        title="언어 변경"
-        onClick={() => setIsOpen((current) => !current)}
+        aria-label={visibleLocales.length > 1 ? "언어 변경" : `현재 언어: ${SHORT_LOCALE_LABELS[currentLocale]}`}
+        aria-haspopup={visibleLocales.length > 1 ? "menu" : undefined}
+        aria-expanded={visibleLocales.length > 1 ? isOpen : undefined}
+        title={visibleLocales.length > 1 ? "언어 변경" : undefined}
+        disabled={visibleLocales.length === 1}
+        onClick={() => {
+          if (visibleLocales.length > 1) setIsOpen((current) => !current);
+        }}
       >
         {triggerVariant === "cafe" ? (
           <CafeWireframeGlobeIcon className={iconClassName} />
@@ -140,13 +143,13 @@ export default function MenuLanguageSwitcher({
         ) : triggerVariant === "aube" ? (
           <>
             <span className="leading-none">{SHORT_LOCALE_LABELS[currentLocale]}</span>
-            <ChevronDown className={chevronClassName} strokeWidth={1.6} aria-hidden="true" />
+            {visibleLocales.length > 1 ? <ChevronDown className={chevronClassName} strokeWidth={1.6} aria-hidden="true" /> : null}
           </>
         ) : (
           !compact && <span>{LOCALE_LABELS[currentLocale]}</span>
         )}
       </button>
-      {isOpen && (
+      {isOpen && visibleLocales.length > 1 && (
         <div
           role="menu"
           className={`absolute z-30 overflow-hidden border border-zinc-200 bg-white py-1 text-left ${menuPlacementClassName} ${menuAlignClassName} ${

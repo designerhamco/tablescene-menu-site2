@@ -22,15 +22,17 @@ import {
   shouldUseAubeTableCoverLogo,
   sortAubeTablePages,
 } from "@/lib/aube-table";
-import { getEnglishFontLoadAssets, getKoreanFontLoadAssets } from "@/lib/template-typography-presets";
+import {
+  getCustomTypographySettings,
+  getEnglishFontLoadAssets,
+  getKoreanFontLoadAssets,
+  getTypographyCssVariables,
+  getTypographyRoleFontLoadAssets,
+  mergeTypographySettings,
+} from "@/lib/template-typography-presets";
 import { formatMenuPrice } from "@/types/menu";
 
 type CourseWithItems = PublicMenuCategory & { items: PublicMenuItem[] };
-
-const AUBE_TABLE_FONT_ASSETS = [
-  getKoreanFontLoadAssets("pretendard"),
-  getEnglishFontLoadAssets("tenor-sans"),
-];
 
 const AUBE_TABLE_STAGE_VARIANTS = {
   enter: (direction: number) => ({ opacity: 0.42, x: direction * 20 }),
@@ -66,9 +68,18 @@ const AUBE_TABLE_COURSE_REVEAL_CONTAINER = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.46,
+      delayChildren: 0.72,
       staggerChildren: 0.22,
     },
+  },
+};
+
+const AUBE_TABLE_PAGE_HEADER_REVEAL = {
+  hidden: { opacity: 0, y: -22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { delay: 0.42, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as const },
   },
 };
 
@@ -86,7 +97,7 @@ const AUBE_TABLE_COURSE_REVEAL_HEADING = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.62, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.72, ease: [0.25, 0.1, 0.25, 1] as const },
   },
 };
 
@@ -95,7 +106,7 @@ const AUBE_TABLE_COURSE_REVEAL_ITEMS = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.84, ease: [0.25, 0.1, 0.25, 1] as const },
   },
 };
 
@@ -160,6 +171,14 @@ function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceO
 }
 
 export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
+  const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
+  const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
+  const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
+  const fontAssets = [
+    getKoreanFontLoadAssets(typographySettings.korean_font_key),
+    getEnglishFontLoadAssets(typographySettings.english_font_key),
+    ...getTypographyRoleFontLoadAssets(typographySettings.typography_roles),
+  ];
   const visiblePages = useMemo(
     () => sortAubeTablePages(data.pages.filter((page) => page.visible !== false)),
     [data.pages],
@@ -240,8 +259,8 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
 
   return (
     <>
-      <KoreanFontAssets assets={AUBE_TABLE_FONT_ASSETS} />
-      <div className="aube-table-root cafe-a-typography" data-aube-table="">
+      <KoreanFontAssets assets={fontAssets} />
+      <div className="aube-table-root cafe-a-typography" style={typographyStyle} data-aube-table="">
       <AnimatePresence initial={false} custom={transitionDirection} mode="sync">
         <motion.div
           key={activeUnit.id}
@@ -295,12 +314,17 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             data-align={pageAlignment}
             data-columns={pageColumns}
           >
-            <header className="aube-table-page-header">
+            <motion.header
+              className="aube-table-page-header"
+              variants={AUBE_TABLE_PAGE_HEADER_REVEAL}
+              initial={prefersReducedMotion ? false : "hidden"}
+              animate="visible"
+            >
               <h1><ScriptAwareText text={activePage.title} /></h1>
               {activePage.description_visible !== false && activePage.description ? (
                 <p className="aube-table-page-description"><ScriptAwareText text={activePage.description} /></p>
               ) : null}
-            </header>
+            </motion.header>
             <motion.div
               className="aube-table-page-content"
               variants={AUBE_TABLE_COURSE_REVEAL_CONTAINER}
@@ -362,8 +386,6 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
 
       <style jsx global>{`
         .aube-table-root {
-          --menu-font-ko: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-          --menu-font-en: "Tenor Sans", "Pretendard", sans-serif;
           --aube-accent: #c5a165;
           --aube-type-page-description: clamp(14px, 1.15vw, 17px);
           --aube-type-course-title: clamp(26px, 2.2vw, 32px);
@@ -375,7 +397,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           --aube-type-item-secondary: clamp(11px, .9vw, 13px);
           --aube-type-item-body: clamp(13px, 1.1vw, 15px);
           --aube-space-course: clamp(44px, 4.4vw, 62px);
-          --aube-space-course-items: clamp(16px, 1.55vw, 23px);
+          --aube-space-section-start: clamp(38px, 5vh, 58px);
           --aube-space-item-top: clamp(7px, .7vw, 10px);
           --aube-space-item-bottom: clamp(10px, 1vw, 14px);
           position: relative;
@@ -385,8 +407,8 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           color: #17191f;
           font-family: var(--menu-font-ko), "Pretendard", sans-serif;
         }
-        .aube-table-root.cafe-a-typography .cafe-a-script-ko { font-family: var(--menu-font-ko), "Pretendard", sans-serif; }
-        .aube-table-root.cafe-a-typography .cafe-a-script-en { font-family: var(--menu-font-en), "Tenor Sans", var(--menu-font-ko), sans-serif; }
+        .aube-table-root.cafe-a-typography .cafe-a-script-ko { font-family: var(--cafe-a-script-ko-font, var(--menu-font-ko)), "Pretendard", sans-serif; }
+        .aube-table-root.cafe-a-typography .cafe-a-script-en { font-family: var(--cafe-a-script-en-font, var(--menu-font-en)), "Tenor Sans", var(--menu-font-ko), sans-serif; }
         .aube-table-stage { position: absolute; inset: 0; min-height: 100dvh; touch-action: pan-y; cursor: grab; will-change: transform, opacity; }
         .aube-table-stage:active { cursor: grabbing; }
         .aube-table-cover { position: relative; min-height: 100dvh; display: grid; place-items: center; overflow: hidden; isolation: isolate; }
@@ -394,14 +416,14 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: 104px 28px 142px; text-align: center; color: #fff; }
         .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(22px, 2.2vw, 32px); object-fit: contain; }
-        .aube-table-cover h1 { margin: 0; color: var(--aube-accent); font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(60px, 7.5vw, 112px); font-weight: 400; line-height: .96; letter-spacing: .13em; text-indent: .13em; }
-        .aube-table-cover-description { max-width: 820px; margin: clamp(22px, 2.2vw, 32px) auto 0; font-size: clamp(18px, 1.8vw, 27px); font-weight: 400; line-height: 1.5; letter-spacing: .02em; opacity: .88; }
+        .aube-table-cover h1 { --cafe-a-script-ko-font: var(--menu-role-brand-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-brand-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-brand-color, var(--aube-accent)); font-family: var(--menu-role-brand-font-family, var(--menu-font-en)); font-size: clamp(60px, 7.5vw, 112px); font-weight: var(--menu-role-brand-font-weight, 400); line-height: .96; letter-spacing: .13em; text-indent: .13em; }
+        .aube-table-cover-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 820px; margin: clamp(22px, 2.2vw, 32px) auto 0; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: clamp(18px, 1.8vw, 27px); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.5; letter-spacing: .02em; opacity: .88; }
         .aube-table-page-scroll { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
         .aube-table-page { width: min(100%, 1440px); min-height: 100%; margin: 0 auto; padding: clamp(96px, 12vh, 132px) clamp(30px, 5vw, 80px) clamp(156px, 18vh, 188px); }
         .aube-table-page[data-align="center"] { text-align: center; }
-        .aube-table-page-header { max-width: 820px; margin: 0 auto clamp(38px, 5vh, 58px); text-align: center; }
-        .aube-table-page-header h1 { margin: 0; color: var(--aube-accent); font-family: var(--menu-font-en), "Tenor Sans", var(--menu-font-ko), sans-serif; font-size: clamp(48px, 4.7vw, 68px); font-weight: 400; line-height: 1.05; letter-spacing: -.025em; }
-        .aube-table-page-description { max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.55; }
+        .aube-table-page-header { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); max-width: 820px; margin: 0 auto var(--aube-space-section-start); text-align: center; }
+        .aube-table-page-header h1 { margin: 0; color: var(--menu-role-category-color, var(--aube-accent)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(48px, 4.7vw, 68px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.05; letter-spacing: -.025em; }
+        .aube-table-page-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: #72757d; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-page-description); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
         .aube-table-page[data-align="center"] .aube-table-page-content { text-align: center; }
         .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); row-gap: var(--aube-space-course); }
@@ -410,11 +432,13 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-course-header:not(:has(.aube-table-course-price)) { grid-template-columns: auto minmax(32px, 1fr); }
         .aube-table-course-title { min-width: 0; }
         .aube-table-course-rule { width: 100%; border-top: 1px solid rgba(197, 161, 101, .38); }
-        .aube-table-course-header h2 { margin: 0; font-size: var(--aube-type-course-title); font-weight: 500; line-height: 1.18; letter-spacing: -.025em; }
-        .aube-table-course-price { margin: 0; white-space: nowrap; color: var(--aube-accent); font-size: var(--aube-type-course-price); font-weight: 700; line-height: 1.35; }
-        .aube-table-course-description { max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: #666a72; font-size: var(--aube-type-course-body); line-height: 1.58; }
-        .aube-table-course-price-description { margin: clamp(6px, .65vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-course-meta); line-height: 1.55; }
-        .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; margin-top: var(--aube-space-course-items); }
+        .aube-table-course-header h2 { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-category-color, #17191f); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: var(--aube-type-course-title); font-weight: var(--menu-role-category-font-weight, 500); line-height: 1.18; letter-spacing: -.025em; }
+        .aube-table-course-price { --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en)); margin: 0; white-space: nowrap; color: var(--aube-accent); font-family: var(--menu-role-price-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-price); font-weight: var(--menu-role-price-font-weight, 700); line-height: 1.35; }
+        .aube-table-course-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: #666a72; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.58; }
+        .aube-table-course-price-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(6px, .65vw, 10px) 0 0; color: #898c93; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-meta); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
+        .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; }
+        .aube-table-course-items { margin-top: var(--aube-space-section-start); }
+        .aube-table-direct-items { margin-top: 0; }
         .aube-table-page[data-align="center"] .aube-table-course-header { display: flex; flex-direction: column; align-items: center; gap: clamp(8px, .8vw, 12px); }
         .aube-table-page[data-align="center"] .aube-table-course-rule { width: clamp(42px, 4vw, 58px); }
         .aube-table-page[data-align="center"] .aube-table-course-description { margin-left: auto; margin-right: auto; }
@@ -426,10 +450,10 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-item-image { width: clamp(96px, 9vw, 124px); height: clamp(96px, 9vw, 124px); border-radius: 2px; object-fit: cover; }
         .aube-table-item-heading { display: flex; align-items: baseline; gap: clamp(10px, 1vw, 16px); }
         .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 1.5px; flex: 1; background-image: radial-gradient(circle, rgba(197, 161, 101, .42) .65px, transparent .78px); background-position: left center; background-repeat: repeat-x; background-size: 5px 1.5px; }
-        .aube-table-item h3 { order: 1; margin: 0; font-size: var(--aube-type-item-title); font-weight: 500; line-height: 1.3; letter-spacing: -.018em; }
-        .aube-table-item-price { order: 3; margin: 0; white-space: normal; text-align: right; color: var(--aube-accent); font-size: var(--aube-type-item-price); font-weight: 600; line-height: 1.32; }
-        .aube-table-item-secondary { margin: clamp(7px, .7vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-item-secondary); font-weight: 700; line-height: 1.4; letter-spacing: .06em; }
-        .aube-table-item-description { max-width: 720px; margin: clamp(7px, .75vw, 10px) 0 0; color: #70737a; font-size: var(--aube-type-item-body); line-height: 1.55; }
+        .aube-table-item h3 { --cafe-a-script-ko-font: var(--menu-role-item-name-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-item-name-font-en, var(--menu-font-en)); order: 1; margin: 0; font-family: var(--menu-role-item-name-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-title); font-weight: var(--menu-role-item-name-font-weight, 500); line-height: 1.3; letter-spacing: -.018em; }
+        .aube-table-item-price { --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en)); order: 3; margin: 0; white-space: normal; text-align: right; color: var(--aube-accent); font-family: var(--menu-role-price-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-price); font-weight: var(--menu-role-price-font-weight, 600); line-height: 1.32; }
+        .aube-table-item-secondary { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(7px, .7vw, 10px) 0 0; color: #898c93; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-secondary); font-weight: var(--menu-role-supporting-font-weight, 700); line-height: 1.4; letter-spacing: .06em; }
+        .aube-table-item-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 720px; margin: clamp(7px, .75vw, 10px) 0 0; color: #70737a; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-page[data-align="center"] .aube-table-item { text-align: center; }
         .aube-table-page[data-align="center"] .aube-table-item-heading { justify-content: center; }
         .aube-table-page[data-align="center"] .aube-table-item-description { margin-left: auto; margin-right: auto; }
@@ -472,7 +496,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             --aube-type-item-secondary: clamp(10px, 2.8vw, 12px);
             --aube-type-item-body: clamp(13px, 3.6vw, 15px);
             --aube-space-course: clamp(42px, 11.5vw, 54px);
-            --aube-space-course-items: clamp(16px, 4.5vw, 22px);
+            --aube-space-section-start: 36px;
             --aube-space-item-top: clamp(8px, 2.2vw, 11px);
             --aube-space-item-bottom: clamp(11px, 3vw, 15px);
           }

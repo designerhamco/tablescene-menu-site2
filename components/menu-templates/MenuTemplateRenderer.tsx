@@ -1,5 +1,10 @@
 import { normalizeTemplateKey } from "@/lib/templates";
 import PublicMenuExperienceShell from "@/components/public-menu/PublicMenuExperienceShell";
+import {
+  getCustomTypographySettings,
+  getTypographyCssVariables,
+  mergeTypographySettings,
+} from "@/lib/template-typography-presets";
 
 import BasicMenuTemplate from "./BasicMenuTemplate";
 import CafeBrewChapterA from "./CafeBrewChapterA";
@@ -16,6 +21,15 @@ import type { ReactNode } from "react";
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
   const templateKey = normalizeTemplateKey(props.menuSite.template_key, props.menuSite.template_category);
   const storeName = props.menuSite.restaurant_name || props.menuSite.business_name || props.menuSite.name;
+  const typographyStyle = templateKey === "dining_aube_table_a"
+    ? getTypographyCssVariables(
+        mergeTypographySettings(
+          templateKey,
+          getCustomTypographySettings(props.menuSite.settings, props.menuSite.page_settings),
+        ),
+        templateKey,
+      )
+    : undefined;
   const withPublicMenuShell = (children: ReactNode) => (
     <PublicMenuExperienceShell
       templateKey={templateKey}
@@ -23,6 +37,7 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       currentLocale={props.locale}
       enabledLocales={props.enabledLocales}
       orderCallConfig={props.orderCallConfig}
+      typographyStyle={typographyStyle}
     >
       {children}
     </PublicMenuExperienceShell>
