@@ -128,7 +128,7 @@ export default function OrderCallEntryLayer({
         {canOpenCall && usesAubeCallPresentation ? (
           <button
             type="button"
-            className="fixed bottom-[max(26px,env(safe-area-inset-bottom))] right-[max(24px,env(safe-area-inset-right))] z-[1100] flex h-15 w-15 items-center justify-center rounded-full bg-[#b58c4b] text-white shadow-[0_14px_34px_rgba(17,25,40,0.24)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(17,25,40,0.3)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b58c4b] active:translate-y-0 sm:h-16 sm:w-16"
+            className="fixed bottom-[max(26px,env(safe-area-inset-bottom))] right-[max(24px,env(safe-area-inset-right))] z-[1100] flex h-15 w-15 items-center justify-center rounded-full bg-[#c5a165] text-white shadow-[0_14px_34px_rgba(17,25,40,0.24)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(17,25,40,0.3)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c5a165] active:translate-y-0 sm:h-16 sm:w-16"
             aria-label="스마트호출 열기"
             data-smart-call-quick-button=""
             onClick={() => setCallOpen(true)}

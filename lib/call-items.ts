@@ -12,14 +12,33 @@ const STAFF_CALL_ITEM_KEY_PATTERN = /^[a-z0-9_]{1,64}$/;
 export const DEFAULT_STAFF_CALL_ITEMS = [
   { key: "staff", label: "직원 호출", sortOrder: 0, active: true },
   { key: "water", label: "물 요청", sortOrder: 1, active: true },
-  { key: "apron", label: "앞치마 요청", sortOrder: 2, active: true },
-  { key: "tableware", label: "식기 요청", sortOrder: 3, active: true },
-  { key: "table_cleanup", label: "테이블 정리", sortOrder: 4, active: true },
-  { key: "order_help", label: "주문 도움", sortOrder: 5, active: true },
+  { key: "tableware", label: "식기 요청", sortOrder: 2, active: true },
+  { key: "table_cleanup", label: "테이블 정리", sortOrder: 3, active: true },
 ] as const satisfies readonly StaffCallItem[];
+
+const LEGACY_DEFAULT_STAFF_CALL_ITEMS = [
+  { key: "staff", label: "직원 호출" },
+  { key: "water", label: "물 요청" },
+  { key: "apron", label: "앞치마 요청" },
+  { key: "tableware", label: "식기 요청" },
+  { key: "table_cleanup", label: "테이블 정리" },
+  { key: "order_help", label: "주문 도움" },
+] as const;
 
 export function getDefaultStaffCallItems(): StaffCallItem[] {
   return DEFAULT_STAFF_CALL_ITEMS.map((item) => ({ ...item }));
+}
+
+export function replaceLegacyDefaultStaffCallItems(items: StaffCallItem[]): StaffCallItem[] {
+  const isLegacyDefault = items.length === LEGACY_DEFAULT_STAFF_CALL_ITEMS.length
+    && LEGACY_DEFAULT_STAFF_CALL_ITEMS.every((legacyItem, index) => {
+      const item = items[index];
+      return item?.key === legacyItem.key
+        && item.label === legacyItem.label
+        && item.sortOrder === index
+        && item.active;
+    });
+  return isLegacyDefault ? getDefaultStaffCallItems() : items;
 }
 
 export function createCustomStaffCallItemKey() {

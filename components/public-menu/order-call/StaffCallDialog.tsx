@@ -1,18 +1,10 @@
 "use client";
 
 import {
-  Bell,
-  CheckCircle2,
-  ConciergeBell,
-  Droplets,
   Loader2,
-  ReceiptText,
-  Shirt,
-  Sparkles,
-  UtensilsCrossed,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getDefaultStaffCallItems, type StaffCallItem } from "@/lib/call-items";
@@ -36,25 +28,6 @@ const STATUS_COPY = {
   pending: "직원에게 호출을 보냈습니다.",
   acknowledged: "직원이 호출을 확인했습니다.",
 } as const;
-
-function getCallItemPresentation(key: string) {
-  switch (key) {
-    case "staff":
-      return { icon: ConciergeBell, description: "직원을 조용히 불러드려요." };
-    case "water":
-      return { icon: Droplets, description: "물을 준비해 드려요." };
-    case "apron":
-      return { icon: Shirt, description: "앞치마를 준비해 드려요." };
-    case "tableware":
-      return { icon: UtensilsCrossed, description: "필요한 식기를 준비해 드려요." };
-    case "table_cleanup":
-      return { icon: Sparkles, description: "테이블 정리를 요청해요." };
-    case "order_help":
-      return { icon: ReceiptText, description: "메뉴 설명과 추가 주문을 도와드려요." };
-    default:
-      return { icon: Bell, description: "직원에게 요청을 전달해요." };
-  }
-}
 
 export default function StaffCallDialog({
   open,
@@ -142,7 +115,7 @@ export default function StaffCallDialog({
     setMessage(null);
     if (previewOnly) {
       setCall(null);
-      setMessage("화면 미리보기에서 호출을 취소했습니다. 실제 요청은 전송되지 않았습니다.");
+      setMessage("화면 미리보기에서 호출을 취소했습니다. 실제 메뉴판에서는 2분 뒤 다시 호출할 수 있습니다.");
       setPending(false);
       return;
     }
@@ -180,82 +153,85 @@ export default function StaffCallDialog({
           }}
         >
           <motion.section
-            className={`max-h-[min(820px,calc(100dvh-40px))] w-full overflow-y-auto rounded-t-[2rem] p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-zinc-950 shadow-[0_-24px_70px_rgba(3,9,20,0.26)] sm:max-w-[520px] sm:px-7 ${isAube ? "bg-[#fbfaf7]" : "bg-white"}`}
+            className={`max-h-[min(760px,calc(100dvh-40px))] w-full overflow-y-auto rounded-t-[2rem] bg-white p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-zinc-950 shadow-[0_-24px_70px_rgba(3,9,20,0.22)] sm:max-w-[500px] sm:px-8 ${isAube ? "font-[Pretendard]" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="staff-call-title"
             data-smart-call-dialog=""
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 72, scale: 0.985 }}
+            initial={prefersReducedMotion ? false : isAube ? { opacity: 0, y: -34, scale: 0.992 } : { opacity: 0, y: 72, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 44, scale: 0.99 }}
-            transition={{ duration: prefersReducedMotion ? 0.01 : 0.56, ease: [0.16, 1, 0.3, 1] }}
+            exit={isAube ? { opacity: 0, y: -18, scale: 0.996 } : { opacity: 0, y: 44, scale: 0.99 }}
+            transition={{ duration: prefersReducedMotion ? 0.01 : isAube ? 0.72 : 0.56, ease: [0.16, 1, 0.3, 1] }}
+            drag={isAube && !prefersReducedMotion ? "y" : false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.02, bottom: 0.32 }}
+            dragMomentum={false}
+            onDragEnd={(_event, info: PanInfo) => {
+              if (isAube && (info.offset.y > 90 || info.velocity.y > 620)) closeDialog();
+            }}
             onMouseDown={(event) => event.stopPropagation()}
           >
-        <div className="mx-auto mb-5 h-1 w-12 rounded-full bg-zinc-300" aria-hidden="true" />
+        {isAube ? (
+          <button type="button" onClick={closeDialog} className="mx-auto mb-6 flex h-4 w-16 items-center justify-center" aria-label="직원 호출 닫기">
+            <span className="block h-[3px] w-12 rounded-full bg-zinc-300" aria-hidden="true" />
+          </button>
+        ) : <div className="mx-auto mb-5 h-1 w-12 rounded-full bg-zinc-300" aria-hidden="true" />}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className={`text-xs font-bold uppercase tracking-[0.18em] ${isAube ? "text-[#9a7338]" : "text-emerald-700"}`}>{tableLabel || "현재 테이블"}</p>
-            <h2 id="staff-call-title" className="mt-2 text-[1.7rem] font-semibold tracking-[-0.035em]">무엇을 도와드릴까요?</h2>
+            <p className={`text-xs font-medium uppercase tracking-[0.2em] ${isAube ? "text-[#c5a165]" : "text-emerald-700"}`}>{tableLabel || "현재 테이블"}</p>
+            <h2 id="staff-call-title" className={`mt-2 tracking-[-0.035em] ${isAube ? "text-[1.55rem] font-medium" : "text-[1.7rem] font-semibold"}`}>무엇을 도와드릴까요?</h2>
           </div>
-          <button type="button" onClick={closeDialog} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eeeae2] text-zinc-700 transition-colors hover:bg-[#e3ded4]" aria-label="직원 호출 닫기">
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
+          {!isAube ? (
+            <button type="button" onClick={closeDialog} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 transition-colors hover:bg-zinc-200" aria-label="직원 호출 닫기">
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
+          ) : null}
         </div>
 
         {call ? (
-          <div className="mt-6 rounded-[1.6rem] border border-[#ddcfb6] bg-[#f5efe4] p-6 text-center">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-[#9a7338]" strokeWidth={1.6} aria-hidden="true" />
-            <p className="mt-3 text-lg font-semibold">{STATUS_COPY[call.status]}</p>
-            <p className="mt-1 text-sm font-medium text-[#72552d]">
+          <div className={`mt-6 p-6 text-center ${isAube ? "border-y border-[#c5a165] bg-white" : "rounded-[1.6rem] border border-zinc-200 bg-zinc-50"}`}>
+            <p className="text-lg font-medium">{STATUS_COPY[call.status]}</p>
+            <p className={`mt-1 text-sm font-medium ${isAube ? "text-[#c5a165]" : "text-zinc-600"}`}>
               {call.requestLabel} · 호출 #{call.callNumber}
             </p>
             {call.status === "pending" ? (
-              <button type="button" onClick={cancelCall} disabled={pending} className="mt-5 rounded-full border border-[#cdbb9c] bg-white px-5 py-2.5 text-sm font-semibold text-[#5d4525] disabled:opacity-60">
+              <button type="button" onClick={cancelCall} disabled={pending} className={`mt-5 rounded-full border bg-white px-5 py-2.5 text-sm font-medium disabled:opacity-60 ${isAube ? "border-[#c5a165] text-[#c5a165]" : "border-zinc-300 text-zinc-700"}`}>
                 호출 취소
               </button>
             ) : (
-              <p className="mt-4 text-xs font-medium text-[#72552d]">직원이 확인한 뒤에는 손님이 취소할 수 없습니다.</p>
+              <p className="mt-4 text-xs font-medium text-zinc-500">직원이 확인한 뒤에는 손님이 취소할 수 없습니다.</p>
             )}
-            <p className="mt-4 text-xs font-medium text-[#8b7657]">처리 완료 또는 취소 후 2분 뒤 다시 호출할 수 있습니다.</p>
+            <p className="mt-4 text-xs font-medium text-zinc-500">처리 완료 또는 취소 후 2분 뒤 다시 호출할 수 있습니다.</p>
           </div>
         ) : (
           <div className="mt-6">
-            <p className="break-keep text-sm font-medium leading-relaxed text-zinc-600">
-              필요한 항목을 선택해 주세요. 직접 입력 없이 준비된 요청만 직원에게 전달됩니다.
-            </p>
-            <div className="mt-4 grid gap-2.5" role="group" aria-label="직원 호출 항목">
+            <div className={isAube ? "border-y border-zinc-200" : "grid gap-2.5"} role="group" aria-label="직원 호출 항목">
                 {availableItems.map((item) => {
                   const selected = item.key === selectedItem?.key;
-                  const itemPresentation = getCallItemPresentation(item.key);
-                  const ItemIcon = itemPresentation.icon;
                   return (
                     <button
                       key={item.key}
                       type="button"
                       aria-pressed={selected}
-                      className={`flex items-center gap-4 rounded-[1.35rem] border px-4 py-3.5 text-left transition-[border-color,background-color,transform] duration-300 ${selected ? "border-[#b58c4b] bg-[#f3ebdd] text-zinc-950" : "border-[#e5dfd5] bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-[#cdbb9c]"}`}
+                      className={isAube
+                        ? `flex min-h-14 w-full items-center justify-between border-b border-zinc-200 px-1 py-4 text-left text-[15px] font-medium transition-colors last:border-b-0 ${selected ? "text-[#c5a165]" : "text-zinc-800 hover:text-[#c5a165]"}`
+                        : `flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-[15px] font-semibold transition-colors ${selected ? "border-zinc-900 text-zinc-950" : "border-zinc-200 text-zinc-700 hover:border-zinc-400"}`}
                       onClick={() => setSelectedItemKey(item.key)}
                     >
-                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[#b58c4b] text-white" : "bg-[#f1eee8] text-[#9a7338]"}`}>
-                        <ItemIcon className="h-5 w-5" strokeWidth={1.65} aria-hidden="true" />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-[15px] font-semibold tracking-[-0.015em]">{item.label}</span>
-                        <span className={`mt-0.5 block text-xs font-medium leading-relaxed ${selected ? "text-[#71542d]" : "text-zinc-500"}`}>{itemPresentation.description}</span>
-                      </span>
+                      <span>{item.label}</span>
                     </button>
                   );
                 })}
               </div>
-            <button type="button" onClick={requestCall} disabled={pending || !selectedItem} className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[#101b2d] px-5 py-4 text-base font-semibold text-white transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0">
-              {pending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <Bell className="h-5 w-5" aria-hidden="true" />}
+            <button type="button" onClick={requestCall} disabled={pending || !selectedItem} className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full px-5 py-4 text-[15px] font-medium text-white transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 ${isAube ? "bg-[#c5a165]" : "bg-zinc-950"}`}>
+              {pending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : null}
               {selectedItem ? `${selectedItem.label} 보내기` : "호출 항목 없음"}
             </button>
           </div>
         )}
 
         {previewOnly ? (
-          <p className="mt-4 rounded-2xl bg-[#edf3f6] px-4 py-3 text-xs font-medium leading-relaxed text-[#385164]">
+          <p className="mt-4 text-center text-[11px] font-medium leading-relaxed text-zinc-400">
             미리보기 화면입니다. 버튼을 눌러도 실제 직원 호출은 전송되지 않습니다.
           </p>
         ) : null}

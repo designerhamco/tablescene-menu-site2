@@ -42,6 +42,8 @@ Status labels:
 - 확정: Smart Call is bundled only with the Multi-page Dining tier.
 - 확정: Single-page, Display, and dormant Order surfaces do not expose Smart Call.
 - 확정: All Multi-page templates use the same common Call Layer, table QR/session boundary, and store Call dashboard.
+- 확정: The starter set contains four label-only choices (`직원 호출`, `물 요청`, `식기 요청`, `테이블 정리`); owners can rename, reorder, activate, deactivate, add, or archive choices in Call management.
+- 확정: Call choices have no separate public detail-description field. The guest modal displays the owner-managed label exactly as stored.
 
 ### Display
 
