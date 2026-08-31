@@ -14,6 +14,7 @@ import type {
 import {
   buildAubeTableNavigationUnits,
   normalizeAubeTableCoverBackgroundColor,
+  normalizeAubeTableCoverBackgroundOpacity,
   normalizeAubeTableLayoutColumns,
   normalizeAubeTableTextAlignment,
   sortAubeTablePages,
@@ -155,6 +156,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
   const pageAlignment = normalizeAubeTableTextAlignment(activePage?.text_alignment);
   const pageColumns = normalizeAubeTableLayoutColumns(activePage?.layout_columns);
   const coverColor = normalizeAubeTableCoverBackgroundColor(data.pageSettings.multi_page_cover_background_color);
+  const coverOpacity = normalizeAubeTableCoverBackgroundOpacity(data.pageSettings.multi_page_cover_background_opacity);
   const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
   const coverTitle = data.menuSite.menu_cover_title || data.menuSite.restaurant_name || data.menuSite.name;
   const coverDescription = data.menuSite.menu_cover_description || data.menuSite.brand_description || data.menuSite.description;
@@ -175,7 +177,10 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           {data.pageSettings.cover_image_visible !== false && data.menuSite.cover_image_url ? (
             <img className="aube-table-cover-image" src={data.menuSite.cover_image_url} alt="" />
           ) : null}
-          <div className="aube-table-cover-overlay" />
+          <div
+            className="aube-table-cover-overlay"
+            style={{ backgroundColor: coverColor, opacity: coverOpacity / 100 }}
+          />
           <div className="aube-table-cover-copy">
             {useCoverLogo ? (
               <img
@@ -231,7 +236,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-root { position: relative; min-height: 100dvh; overflow: hidden; background: #fbfaf7; color: #17191f; }
         .aube-table-cover { position: relative; min-height: 100dvh; display: grid; place-items: center; overflow: hidden; isolation: isolate; }
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-        .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(12,11,9,.22), rgba(12,11,9,.74)); }
+        .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(88vw, 860px); padding: 104px 28px 142px; text-align: center; color: #fff; }
         .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(240px, 54vw); max-height: 88px; margin: 0 auto 34px; object-fit: contain; }
         .aube-table-cover-brand { margin: 0 0 28px; font-size: 13px; font-weight: 700; letter-spacing: .18em; }

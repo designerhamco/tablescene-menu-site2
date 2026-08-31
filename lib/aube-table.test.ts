@@ -6,6 +6,7 @@ import {
   AUBE_TABLE_MAX_MENU_PAGES,
   buildAubeTableNavigationUnits,
   normalizeAubeTableCoverBackgroundColor,
+  normalizeAubeTableCoverBackgroundOpacity,
   validateAubeTablePublishStructure,
 } from "./aube-table";
 
@@ -22,6 +23,14 @@ test("오브 테이블 페이지네이션은 노출 커버와 노출 페이지�
 test("오브 테이블 커버 색상은 6자리 hex만 허용한다", () => {
   assert.equal(normalizeAubeTableCoverBackgroundColor("#abc123"), "#ABC123");
   assert.equal(normalizeAubeTableCoverBackgroundColor("rgba(0,0,0,.5)"), "#171612");
+});
+
+test("오브 테이블 커버 배경색 불투명도는 0~100 범위와 75 기본값을 사용한다", () => {
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity(0), 0);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity("82"), 82);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity(140), 100);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity(-10), 0);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity("invalid"), 75);
 });
 
 test("노출 코스는 노출 메뉴를 한 개 이상 가져야 한다", () => {

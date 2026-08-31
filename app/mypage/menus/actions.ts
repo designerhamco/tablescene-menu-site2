@@ -48,6 +48,7 @@ import {
   AUBE_TABLE_MAX_MENU_PAGES,
   isAubeTableTemplate,
   normalizeAubeTableCoverBackgroundColor,
+  normalizeAubeTableCoverBackgroundOpacity,
   normalizeAubeTableLayoutColumns,
   normalizeAubeTableTextAlignment,
   validateAubeTablePublishStructure,
@@ -3526,6 +3527,9 @@ export async function updateMenuCoverAction(formData: FormData) {
   const coverBackgroundColor = isAubeTable
     ? normalizeAubeTableCoverBackgroundColor(getString(formData, "multi_page_cover_background_color"))
     : currentSettings.multi_page_cover_background_color;
+  const coverBackgroundOpacity = isAubeTable
+    ? normalizeAubeTableCoverBackgroundOpacity(getString(formData, "multi_page_cover_background_opacity"))
+    : currentSettings.multi_page_cover_background_opacity;
   const supportsCoverImageVisibility = menuCoverCapabilities.usesCoverImage && menuCoverCapabilities.coverMode === "page";
   const coverImageVisible = supportsCoverImageVisibility
     ? getBoolean(formData, "cover_image_visible")
@@ -3654,6 +3658,7 @@ export async function updateMenuCoverAction(formData: FormData) {
       };
   if (isAubeTable) {
     nextSettings.multi_page_cover_background_color = coverBackgroundColor;
+    nextSettings.multi_page_cover_background_opacity = coverBackgroundOpacity;
   }
 
   const updatePayload: MenuSiteUpdate = {
