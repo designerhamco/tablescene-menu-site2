@@ -8,6 +8,7 @@ import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } fr
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
@@ -1271,11 +1272,18 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const renderMode = process.env.NODE_ENV !== "production" && requestedRenderMode === "public"
     ? "public"
     : "preview";
+  const previewStoreName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
   const orderCallConfig = getOrderCallQaConfig(
     resolvedSearchParams.orderCallQa,
-    data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
+    previewStoreName,
     templateKey,
-  );
+  ) ?? (getDiningTemplateFeatures(templateKey).smartCall
+    ? buildMenuPreviewOrderCallConfig({
+        menuSiteId: data.menuSite.id,
+        storeName: previewStoreName,
+        templateKey,
+      })
+    : undefined);
 
   return (
     <MenuPageRenderer

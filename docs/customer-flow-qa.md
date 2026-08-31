@@ -49,6 +49,7 @@
 - 미리보기·공개·일반 QR: 공통 renderer, 기기 프레임, 공개 route, QR 분리 계약이 구현·빌드돼 있다.
 - table session·Order·Call의 보안 계약: hash-only token, HttpOnly session, service-role-only DB 접근, idempotency, rate limit, permission과 staff write audit 테스트가 통과했다.
 - Order·Call 공개 config를 공통 gate로 결합해 유효 세션·Business Basic·template 지원·각 runtime allowlist가 모두 통과할 때만 기능별 action과 주문 catalog가 활성화된다. 로컬 QA fixture 4종과 Display 제외 화면에서 console warning/error 없이 확인했다.
+- 오브 테이블 공개 템플릿 미리보기는 실제 전송 없이 우측 하단 스마트호출 버튼, 테이블 번호, 기본 6개 선택 항목, 선택·전송·취소 상태를 확인할 수 있다. 실제 공개 메뉴의 전송은 기존 table visit session·Business 멀티페이지·Call runtime·site allowlist를 모두 통과해야 한다.
 - 주문관리·수동 결제·매출·앱 내 알림과 사용자 선택형 브라우저 알림의 default-off route가 production build에 포함됐다.
 
 ### Production 직원 초대 E2E 완료

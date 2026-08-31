@@ -33,6 +33,7 @@ export default function PublicMenuExperienceShell({
 
   return (
     <OrderCallEntryLayer
+      templateKey={templateKey}
       config={orderCallConfig ?? getLockedOrderCallEntryConfig({ storeName: storeName ?? undefined })}
       currentLocale={currentLocale}
       enabledLocales={enabledLocales}

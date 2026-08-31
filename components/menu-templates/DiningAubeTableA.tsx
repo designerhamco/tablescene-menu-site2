@@ -33,14 +33,43 @@ const AUBE_TABLE_FONT_ASSETS = [
 ];
 
 const AUBE_TABLE_STAGE_VARIANTS = {
-  enter: (direction: number) => ({ opacity: 0, x: direction * 46, scale: 0.994 }),
+  enter: (direction: number) => ({ opacity: 0, x: direction * 64, scale: 0.99 }),
   center: { opacity: 1, x: 0, scale: 1 },
-  exit: (direction: number) => ({ opacity: 0, x: direction * -46, scale: 0.994 }),
+  exit: (direction: number) => ({ opacity: 0, x: direction * -52, scale: 0.992 }),
 };
 
 const AUBE_TABLE_STAGE_TRANSITION = {
-  duration: 0.58,
-  ease: [0.22, 1, 0.36, 1] as const,
+  duration: 1.04,
+  ease: [0.32, 0, 0.2, 1] as const,
+};
+
+const AUBE_TABLE_REVEAL_CONTAINER = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: 0.2,
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const AUBE_TABLE_REVEAL_ITEM = {
+  hidden: { opacity: 0, y: 26 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.82, ease: [0.22, 0.68, 0.25, 1] as const },
+  },
+};
+
+const AUBE_TABLE_INNER_REVEAL_CONTAINER = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: 0.06,
+      staggerChildren: 0.09,
+    },
+  },
 };
 
 function getPrice(item: PublicMenuItem, options: PublicMenuItemPriceOption[]) {
@@ -63,7 +92,7 @@ function CoursePrice({ course }: { course: CourseWithItems }) {
 function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOptions: PublicMenuItemPriceOption[] }) {
   const price = item.price_visible === false ? "" : getPrice(item, priceOptions);
   return (
-    <article className="aube-table-item" data-aube-table-item="">
+    <motion.article className="aube-table-item" data-aube-table-item="" variants={AUBE_TABLE_REVEAL_ITEM}>
       {item.image_url ? <img className="aube-table-item-image" src={item.image_url} alt="" /> : null}
       <div className="aube-table-item-copy">
         <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"}>
@@ -74,13 +103,13 @@ function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOption
         {item.description ? <p className="aube-table-item-description"><ScriptAwareText text={item.description} /></p> : null}
         {item.is_sold_out ? <span className="aube-table-sold-out">품절</span> : null}
       </div>
-    </article>
+    </motion.article>
   );
 }
 
 function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceOptions: PublicMenuItemPriceOption[] }) {
   return (
-    <section className="aube-table-course" data-aube-table-course="">
+    <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_REVEAL_ITEM}>
       <header className="aube-table-course-header">
         <div className="aube-table-course-title">
           <h2><ScriptAwareText text={course.name} /></h2>
@@ -94,10 +123,10 @@ function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceO
       {course.course_price_description_visible !== false && course.course_price_description ? (
         <p className="aube-table-course-price-description"><ScriptAwareText text={course.course_price_description} /></p>
       ) : null}
-      <div className="aube-table-course-items">
+      <motion.div className="aube-table-course-items" variants={AUBE_TABLE_INNER_REVEAL_CONTAINER}>
         {course.items.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={priceOptions} />)}
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }
 
@@ -196,7 +225,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           transition={prefersReducedMotion ? { duration: 0.01 } : AUBE_TABLE_STAGE_TRANSITION}
           drag={units.length > 1 && !prefersReducedMotion ? "x" : false}
           dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.14}
+          dragElastic={0.1}
           dragMomentum={false}
           whileDrag={prefersReducedMotion ? undefined : { opacity: 0.97, scale: 0.997 }}
           onDragEnd={onSwipeEnd}
@@ -210,37 +239,51 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             className="aube-table-cover-overlay"
             style={{ backgroundColor: coverColor, opacity: coverOpacity / 100 }}
           />
-          <div className="aube-table-cover-copy">
+          <motion.div
+            className="aube-table-cover-copy"
+            variants={AUBE_TABLE_REVEAL_CONTAINER}
+            initial={prefersReducedMotion ? false : "hidden"}
+            animate="visible"
+          >
             {useCoverLogo ? (
-              <img
-                className="aube-table-cover-logo"
-                src={data.menuSite.logo_url ?? ""}
-                alt={`${storeName} 로고`}
-                onError={() => setFailedCoverLogoUrl(data.menuSite.logo_url)}
-              />
+              <motion.div variants={AUBE_TABLE_REVEAL_ITEM}>
+                <img
+                  className="aube-table-cover-logo"
+                  src={data.menuSite.logo_url ?? ""}
+                  alt={`${storeName} 로고`}
+                  onError={() => setFailedCoverLogoUrl(data.menuSite.logo_url)}
+                />
+              </motion.div>
             ) : null}
-            {coverTitle ? <h1><ScriptAwareText text={coverTitle} /></h1> : null}
-            {coverDescription ? <p className="aube-table-cover-description"><ScriptAwareText text={coverDescription} /></p> : null}
-          </div>
+            {coverTitle ? <motion.h1 variants={AUBE_TABLE_REVEAL_ITEM}><ScriptAwareText text={coverTitle} /></motion.h1> : null}
+            {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
+          </motion.div>
         </section>
       ) : activePage ? (
         <div ref={scrollRef} className="aube-table-page-scroll" data-aube-table-page-scroll="">
-          <main className="aube-table-page" data-align={pageAlignment} data-columns={pageColumns}>
-            <header className="aube-table-page-header">
+          <motion.main
+            className="aube-table-page"
+            data-align={pageAlignment}
+            data-columns={pageColumns}
+            variants={AUBE_TABLE_REVEAL_CONTAINER}
+            initial={prefersReducedMotion ? false : "hidden"}
+            animate="visible"
+          >
+            <motion.header className="aube-table-page-header" variants={AUBE_TABLE_REVEAL_ITEM}>
               <h1><ScriptAwareText text={activePage.title} /></h1>
               {activePage.description_visible !== false && activePage.description ? (
                 <p className="aube-table-page-description"><ScriptAwareText text={activePage.description} /></p>
               ) : null}
-            </header>
-            <div className="aube-table-page-content">
+            </motion.header>
+            <motion.div className="aube-table-page-content" variants={AUBE_TABLE_INNER_REVEAL_CONTAINER}>
               {courses.map((course) => <CourseBlock key={course.id} course={course} priceOptions={data.priceOptions} />)}
               {directItems.length > 0 ? (
-                <section className="aube-table-direct-items">
+                <motion.section className="aube-table-direct-items" variants={AUBE_TABLE_INNER_REVEAL_CONTAINER}>
                   {directItems.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={data.priceOptions} />)}
-                </section>
+                </motion.section>
               ) : null}
-            </div>
-          </main>
+            </motion.div>
+          </motion.main>
         </div>
       ) : null}
         </motion.div>

@@ -205,7 +205,9 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
               <li key={call.id} className="flex items-center justify-between gap-4 border-t border-zinc-100 px-5 py-4 first:border-t-0">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black">호출 #{call.callNumber} · {call.tableLabel}</p>
-                  <p className="mt-1 text-xs font-bold text-zinc-400">직원 호출</p>
+                  <p className="mt-1 text-xs font-bold text-zinc-400">
+                    {call.requestLabel} · {new Date(call.createdAt).toLocaleString("ko-KR")}
+                  </p>
                 </div>
                 <p className="shrink-0 text-xs font-black text-zinc-500">{CALL_STATUS_LABELS[call.status] ?? call.status}</p>
               </li>
