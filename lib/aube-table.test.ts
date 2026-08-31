@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
 import { getStarterPreset } from "./menu-starter-presets";
 import {
   AUBE_TABLE_MAX_MENU_PAGES,
@@ -79,4 +80,7 @@ test("오브 테이블 스타터는 커버와 3개 메뉴 페이지, 코스·단
   assert.equal(preset.site.restaurant_name, "오브 테이블");
   assert.equal(preset.site.menu_cover_title, "오브 테이블");
   assert.equal(preset.site.logo_url, null);
+  assert.deepEqual(preset.pages.map((page) => page.title), ["Signature course", "À la carte", "Drink menu"]);
+  assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_a").value, "pretendard");
+  assert.equal(getDefaultEnglishFontForTemplate("dining_aube_table_a").value, "tenor-sans");
 });
