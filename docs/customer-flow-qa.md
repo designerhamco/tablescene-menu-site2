@@ -37,6 +37,7 @@
 | `/templates/display_menu_a/preview?orderCallQa=active` | Display에서 공통 Order/Call header 전체 비노출 확인 |
 | `/mypage/menus/[menuId]/preview?device=tablet` | orientation query가 없어도 가로 1180×820을 기본으로 표시하고 세로 전환 링크 제공 |
 | `device=mobile` | 장기 비활성 Order/PG UI를 노출하지 않고, 멀티페이지 템플릿에서만 스마트호출 preview를 표시하며 실제 호출 write 없음 |
+| `/templates/dining_aube_table_a/preview` 모바일 | 그림자 없는 실선 header, 매장명 없는 table label, 화면 안에 열리는 `KR/EN/CN/JP` 언어 menu, 오른쪽 스마트호출 아이콘과 white bottom sheet 확인 |
 | `/mypage?tab=menus` 비로그인 접근 | `/sign-in?next=/mypage`로 보호 |
 
 브라우저에 남아 있던 `StaffCallDialog.tsx` missing 로그는 PR #28 병합 전 개발 서버의 과거 시각 로그였다. 서버를 최신 코드로 재시작한 뒤 해당 파일이 포함된 production build와 template route가 정상 로드됐다.
