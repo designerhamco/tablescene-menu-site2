@@ -274,7 +274,6 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
       {usesSidebarNavigation && units.length > 1 ? (
         <>
           <nav className="aube-table-sidebar-navigation" aria-label="메뉴 페이지 이동">
-            <p className="aube-table-sidebar-eyebrow"><ScriptAwareText text="Menu collection" /></p>
             <div className="aube-table-sidebar-list">
               {units.map((unit, index) => (
                 <button
@@ -284,7 +283,6 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
                   data-active={index === safeActiveIndex ? "true" : "false"}
                   onClick={() => selectUnit(index)}
                 >
-                  <span className="aube-table-sidebar-index">{String(index + 1).padStart(2, "0")}</span>
                   <ScriptAwareText text={unit.type === "cover" ? coverTitle || "Cover" : unit.label} />
                 </button>
               ))}
@@ -535,13 +533,12 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
         }
         @media (min-width: 768px) {
           .aube-table-root[data-layout="sidebar"] { display: grid; grid-template-columns: clamp(230px, 23vw, 340px) minmax(0, 1fr); height: 100dvh; }
-          .aube-table-root[data-layout="sidebar"] .aube-table-sidebar-navigation { position: relative; z-index: 30; display: flex; min-height: 100dvh; flex-direction: column; justify-content: center; padding: clamp(48px, 7vw, 92px) clamp(28px, 3.8vw, 56px); overflow: hidden; background: #0d172a; color: #fff; }
-          .aube-table-sidebar-eyebrow { margin: 0 0 clamp(30px, 4vh, 48px); color: var(--aube-accent); font-family: var(--menu-role-supporting-font-en, var(--menu-font-en)); font-size: 12px; font-weight: 400; letter-spacing: .18em; text-transform: uppercase; }
-          .aube-table-sidebar-list { display: flex; flex-direction: column; gap: clamp(19px, 2.6vh, 30px); }
-          .aube-table-sidebar-list button { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: baseline; gap: 14px; border: 0; padding: 0; background: transparent; color: rgba(255,255,255,.52); text-align: left; font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(17px, 1.6vw, 22px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.25; transition: color .35s ease, transform .35s cubic-bezier(.22,1,.36,1); }
-          .aube-table-sidebar-list button:hover, .aube-table-sidebar-list button:focus-visible, .aube-table-sidebar-list button[data-active="true"] { color: #fff; transform: translateX(5px); }
-          .aube-table-sidebar-list button:focus-visible { outline: 1px solid var(--aube-accent); outline-offset: 8px; }
-          .aube-table-sidebar-index { color: var(--aube-accent); font-family: var(--menu-role-supporting-font-en, var(--menu-font-en)); font-size: 10px; letter-spacing: .08em; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-sidebar-navigation { position: relative; z-index: 30; display: flex; min-height: 100dvh; flex-direction: column; justify-content: flex-start; padding: clamp(34px, 5vh, 54px) 0 0; overflow: hidden; background: #0d172a; color: #fff; }
+          .aube-table-sidebar-list { display: flex; width: 100%; flex-direction: column; }
+          .aube-table-sidebar-list button { display: flex; width: 100%; align-items: center; border: 0; border-bottom: 1px solid #26354c; padding: clamp(14px, 1.9vh, 19px) clamp(24px, 3vw, 42px); background: #0d172a; color: #fff; text-align: left; font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(20px, 1.8vw, 26px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.22; transition: background-color .3s ease, color .3s ease; }
+          .aube-table-sidebar-list button:hover, .aube-table-sidebar-list button:focus-visible { background: #17243a; color: #fff; }
+          .aube-table-sidebar-list button[data-active="true"] { background: var(--aube-accent); color: #0d172a; }
+          .aube-table-sidebar-list button:focus-visible { outline: 1px solid #fff; outline-offset: -4px; }
           .aube-table-root[data-layout="sidebar"] .aube-table-stage { position: relative; grid-column: 2; grid-row: 1; inset: auto; min-width: 0; min-height: 100dvh; }
           .aube-table-root[data-layout="sidebar"] .aube-table-page { width: min(100%, 1240px); padding-left: clamp(42px, 5vw, 78px); padding-right: clamp(42px, 5vw, 78px); padding-bottom: clamp(80px, 11vh, 132px); }
           .aube-table-root[data-layout="sidebar"] .aube-table-cover-copy { width: min(90%, 980px); }
