@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import type { SupportedLocale } from "@/lib/locales";
 import type { TemplateKey } from "@/lib/templates";
@@ -16,6 +16,7 @@ type PublicMenuExperienceShellProps = {
   currentLocale: SupportedLocale;
   enabledLocales: SupportedLocale[];
   orderCallConfig?: OrderCallEntryConfig;
+  typographyStyle?: CSSProperties;
   children: ReactNode;
 };
 
@@ -25,6 +26,7 @@ export default function PublicMenuExperienceShell({
   currentLocale,
   enabledLocales,
   orderCallConfig,
+  typographyStyle,
   children,
 }: PublicMenuExperienceShellProps) {
   if (!supportsOrderCallExperienceShell(templateKey)) {
@@ -37,6 +39,7 @@ export default function PublicMenuExperienceShell({
       config={orderCallConfig ?? getLockedOrderCallEntryConfig({ storeName: storeName ?? undefined })}
       currentLocale={currentLocale}
       enabledLocales={enabledLocales}
+      typographyStyle={typographyStyle}
     >
       {children}
     </OrderCallEntryLayer>

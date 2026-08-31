@@ -159,15 +159,15 @@ export default function StaffCallDialog({
           }}
         >
           <motion.section
-            className={`max-h-[min(760px,calc(100dvh-40px))] w-full overflow-y-auto rounded-t-[2rem] bg-white p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-zinc-950 shadow-[0_-24px_70px_rgba(3,9,20,0.22)] sm:max-w-[500px] sm:px-8 ${isAube ? "font-[Pretendard]" : ""}`}
+            className="max-h-[min(760px,calc(100dvh-40px))] w-full overflow-y-auto rounded-t-[2rem] bg-white p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-zinc-950 shadow-[0_-24px_70px_rgba(3,9,20,0.22)] sm:max-w-[500px] sm:px-8"
             role="dialog"
             aria-modal="true"
             aria-labelledby="staff-call-title"
             data-smart-call-dialog=""
-            initial={prefersReducedMotion ? false : isAube ? { opacity: 0, y: -34, scale: 0.992 } : { opacity: 0, y: 72, scale: 0.985 }}
+            initial={prefersReducedMotion ? false : { opacity: isAube ? 0.58 : 0, y: isAube ? "100%" : 72, scale: isAube ? 0.996 : 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={isAube ? { opacity: 0, y: -18, scale: 0.996 } : { opacity: 0, y: 44, scale: 0.99 }}
-            transition={{ duration: prefersReducedMotion ? 0.01 : isAube ? 0.72 : 0.56, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: isAube ? "60%" : 44, scale: isAube ? 0.998 : 0.99 }}
+            transition={{ duration: prefersReducedMotion ? 0.01 : isAube ? 0.78 : 0.56, ease: isAube ? [0.25, 0.1, 0.25, 1] : [0.16, 1, 0.3, 1] }}
             drag={isAube && !prefersReducedMotion ? "y" : false}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0.02, bottom: 0.32 }}

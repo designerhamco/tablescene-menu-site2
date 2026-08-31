@@ -4,6 +4,11 @@ import assert from "node:assert/strict";
 import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
 import { getStarterPreset } from "./menu-starter-presets";
 import {
+  getCustomTypographySettings,
+  getTypographyCssVariables,
+  mergeTypographySettings,
+} from "./template-typography-presets";
+import {
   AUBE_TABLE_MAX_MENU_PAGES,
   buildAubeTableNavigationUnits,
   getAubeTableSwipeTargetIndex,
@@ -101,4 +106,28 @@ test("오브 테이블 스타터는 커버와 3개 메뉴 페이지, 코스·단
   assert.deepEqual(preset.pages.map((page) => page.title), ["Signature Course", "A La Carte Menu", "Drink Menu"]);
   assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_a").value, "pretendard");
   assert.equal(getDefaultEnglishFontForTemplate("dining_aube_table_a").value, "tenor-sans");
+});
+
+test("오브 테이블 페이지명과 코스명은 같은 카테고리 글자 설정을 공유한다", () => {
+  const customTypography = getCustomTypographySettings({}, {
+    design: {
+      typographyRoles: {
+        category: {
+          font_ko_key: "noto-serif-kr",
+          font_en_key: "playfair-display",
+          color: "#123456",
+        },
+      },
+    },
+  });
+  const variables = getTypographyCssVariables(
+    mergeTypographySettings("dining_aube_table_a", customTypography),
+    "dining_aube_table_a",
+  ) as Record<string, string>;
+
+  assert.match(variables["--menu-font-ko"], /Pretendard/);
+  assert.match(variables["--menu-font-en"], /Tenor Sans/);
+  assert.match(variables["--menu-role-category-font-ko"], /Noto Serif KR/);
+  assert.match(variables["--menu-role-category-font-en"], /Playfair Display/);
+  assert.equal(variables["--menu-role-category-color"], "#123456");
 });
