@@ -33,14 +33,14 @@ const AUBE_TABLE_FONT_ASSETS = [
 ];
 
 const AUBE_TABLE_STAGE_VARIANTS = {
-  enter: (direction: number) => ({ opacity: 0, x: direction * 32, scale: 0.996 }),
-  center: { opacity: 1, x: 0, scale: 1 },
-  exit: (direction: number) => ({ opacity: 0, x: direction * -26, scale: 0.998 }),
+  enter: (direction: number) => ({ opacity: 0.42, x: direction * 20 }),
+  center: { opacity: 1, x: 0 },
+  exit: (direction: number) => ({ opacity: 0, x: direction * -14 }),
 };
 
 const AUBE_TABLE_STAGE_TRANSITION = {
-  duration: 0.32,
-  ease: [0.33, 1, 0.68, 1] as const,
+  duration: 0.4,
+  ease: [0.22, 1, 0.36, 1] as const,
 };
 
 const AUBE_TABLE_COVER_REVEAL_CONTAINER = {
@@ -66,19 +66,36 @@ const AUBE_TABLE_COURSE_REVEAL_CONTAINER = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.36,
-      staggerChildren: 0.16,
+      delayChildren: 0.46,
+      staggerChildren: 0.22,
     },
   },
 };
 
-const AUBE_TABLE_COURSE_REVEAL_ITEM = {
-  hidden: { opacity: 0, y: 28, filter: "blur(3px)" },
+const AUBE_TABLE_COURSE_REVEAL_GROUP = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.13,
+    },
+  },
+};
+
+const AUBE_TABLE_COURSE_REVEAL_HEADING = {
+  hidden: { opacity: 0, y: 18 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.76, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.62, ease: [0.16, 1, 0.3, 1] as const },
+  },
+};
+
+const AUBE_TABLE_COURSE_REVEAL_ITEMS = {
+  hidden: { opacity: 0, y: 22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
 
@@ -119,23 +136,25 @@ function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOption
 
 function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceOptions: PublicMenuItemPriceOption[] }) {
   return (
-    <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_COURSE_REVEAL_ITEM}>
-      <header className="aube-table-course-header">
-        <div className="aube-table-course-title">
-          <h2><ScriptAwareText text={course.name} /></h2>
-        </div>
-        <span className="aube-table-course-rule" aria-hidden="true" />
-        <CoursePrice course={course} />
-      </header>
-      {course.description_visible !== false && course.description ? (
-        <p className="aube-table-course-description"><ScriptAwareText text={course.description} /></p>
-      ) : null}
-      {course.course_price_description_visible !== false && course.course_price_description ? (
-        <p className="aube-table-course-price-description"><ScriptAwareText text={course.course_price_description} /></p>
-      ) : null}
-      <div className="aube-table-course-items">
+    <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_COURSE_REVEAL_GROUP}>
+      <motion.div variants={AUBE_TABLE_COURSE_REVEAL_HEADING}>
+        <header className="aube-table-course-header">
+          <div className="aube-table-course-title">
+            <h2><ScriptAwareText text={course.name} /></h2>
+          </div>
+          <span className="aube-table-course-rule" aria-hidden="true" />
+          <CoursePrice course={course} />
+        </header>
+        {course.description_visible !== false && course.description ? (
+          <p className="aube-table-course-description"><ScriptAwareText text={course.description} /></p>
+        ) : null}
+        {course.course_price_description_visible !== false && course.course_price_description ? (
+          <p className="aube-table-course-price-description"><ScriptAwareText text={course.course_price_description} /></p>
+        ) : null}
+      </motion.div>
+      <motion.div className="aube-table-course-items" variants={AUBE_TABLE_COURSE_REVEAL_ITEMS}>
         {course.items.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={priceOptions} />)}
-      </div>
+      </motion.div>
     </motion.section>
   );
 }
@@ -223,7 +242,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
     <>
       <KoreanFontAssets assets={AUBE_TABLE_FONT_ASSETS} />
       <div className="aube-table-root cafe-a-typography" data-aube-table="">
-      <AnimatePresence initial={false} custom={transitionDirection} mode="wait">
+      <AnimatePresence initial={false} custom={transitionDirection} mode="sync">
         <motion.div
           key={activeUnit.id}
           className="aube-table-stage"
@@ -237,7 +256,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.1}
           dragMomentum={false}
-          whileDrag={prefersReducedMotion ? undefined : { opacity: 0.97, scale: 0.997 }}
+          whileDrag={prefersReducedMotion ? undefined : { opacity: 0.98 }}
           onDragEnd={onSwipeEnd}
         >
       {activeUnit.type === "cover" ? (
@@ -290,7 +309,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             >
               {courses.map((course) => <CourseBlock key={course.id} course={course} priceOptions={data.priceOptions} />)}
               {directItems.length > 0 ? (
-                <motion.section className="aube-table-direct-items" variants={AUBE_TABLE_COURSE_REVEAL_ITEM}>
+                <motion.section className="aube-table-direct-items" variants={AUBE_TABLE_COURSE_REVEAL_ITEMS}>
                   {directItems.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={data.priceOptions} />)}
                 </motion.section>
               ) : null}

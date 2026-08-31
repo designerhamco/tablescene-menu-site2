@@ -7,7 +7,11 @@ import {
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
-import { getDefaultStaffCallItems, type StaffCallItem } from "@/lib/call-items";
+import {
+  getDefaultStaffCallItems,
+  orderStaffCallItemsForGuest,
+  type StaffCallItem,
+} from "@/lib/call-items";
 
 type StaffCall = {
   callId: string;
@@ -51,7 +55,9 @@ export default function StaffCallDialog({
   const [message, setMessage] = useState<string | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const availableItems = useMemo(
-    () => (callItems?.length ? callItems : getDefaultStaffCallItems()).filter((item) => item.active),
+    () => orderStaffCallItemsForGuest(
+      (callItems?.length ? callItems : getDefaultStaffCallItems()).filter((item) => item.active),
+    ),
     [callItems],
   );
   const [selectedItemKey, setSelectedItemKey] = useState(availableItems[0]?.key ?? "staff");
@@ -223,7 +229,14 @@ export default function StaffCallDialog({
                   );
                 })}
               </div>
-            <button type="button" onClick={requestCall} disabled={pending || !selectedItem} className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full px-5 py-4 text-[15px] font-medium text-white transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 ${isAube ? "bg-[#c5a165]" : "bg-zinc-950"}`}>
+            <button
+              type="button"
+              onClick={requestCall}
+              disabled={pending || !selectedItem}
+              className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full px-5 py-4 text-[15px] font-bold text-white transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 ${isAube ? "bg-[#c5a165]" : "bg-zinc-950"}`}
+              style={isAube ? { fontWeight: 700 } : undefined}
+              data-smart-call-submit=""
+            >
               {pending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : null}
               {selectedItem ? `${selectedItem.label} 보내기` : "호출 항목 없음"}
             </button>

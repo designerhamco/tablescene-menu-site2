@@ -10,10 +10,10 @@ export const MAX_STAFF_CALL_ITEM_LABEL_LENGTH = 30;
 const STAFF_CALL_ITEM_KEY_PATTERN = /^[a-z0-9_]{1,64}$/;
 
 export const DEFAULT_STAFF_CALL_ITEMS = [
-  { key: "staff", label: "직원 호출", sortOrder: 0, active: true },
-  { key: "water", label: "물 요청", sortOrder: 1, active: true },
-  { key: "tableware", label: "식기 요청", sortOrder: 2, active: true },
-  { key: "table_cleanup", label: "테이블 정리", sortOrder: 3, active: true },
+  { key: "water", label: "물 요청", sortOrder: 0, active: true },
+  { key: "tableware", label: "식기 요청", sortOrder: 1, active: true },
+  { key: "table_cleanup", label: "테이블 정리", sortOrder: 2, active: true },
+  { key: "staff", label: "직원 호출", sortOrder: 3, active: true },
 ] as const satisfies readonly StaffCallItem[];
 
 const LEGACY_DEFAULT_STAFF_CALL_ITEMS = [
@@ -27,6 +27,18 @@ const LEGACY_DEFAULT_STAFF_CALL_ITEMS = [
 
 export function getDefaultStaffCallItems(): StaffCallItem[] {
   return DEFAULT_STAFF_CALL_ITEMS.map((item) => ({ ...item }));
+}
+
+export function orderStaffCallItemsForGuest(items: StaffCallItem[]): StaffCallItem[] {
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => {
+      const leftIsFallback = left.item.key === "staff";
+      const rightIsFallback = right.item.key === "staff";
+      if (leftIsFallback !== rightIsFallback) return leftIsFallback ? 1 : -1;
+      return left.index - right.index;
+    })
+    .map(({ item }) => item);
 }
 
 export function replaceLegacyDefaultStaffCallItems(items: StaffCallItem[]): StaffCallItem[] {

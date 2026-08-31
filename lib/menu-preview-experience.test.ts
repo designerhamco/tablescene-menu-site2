@@ -101,10 +101,10 @@ test("mobile preview keeps Order dormant and shows Smart Call only for multi-pag
   assert.equal(multi.callEnabled, true);
   assert.equal(multi.orderEnabled, false);
   assert.deepEqual(multi.callItems?.map((callItem) => callItem.label), [
-    "직원 호출",
     "물 요청",
     "식기 요청",
     "테이블 정리",
+    "직원 호출",
   ]);
   assert.deepEqual(multi.orderCatalog, []);
   assert.equal(multi.checkoutModes, undefined);

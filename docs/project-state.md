@@ -224,8 +224,9 @@
   - 서버 검증·웹훅 서명·idempotency·default-off pilot 안전 계약과 구현 순서를 `docs/prepay-pg-decision.md`에 기록
 - Order/Call 제품 계약과 잠금 상태 진입 셸
 - 오브 테이블 고객 경험 보강:
-  - 페이지 전환을 1초대 완만한 easing으로 조정하고 페이지 제목·코스·메뉴가 위에서 아래로 순차 등장하도록 구성, `prefers-reduced-motion` 유지
+  - 겹치는 짧은 page cross-slide 뒤 코스 제목과 해당 메뉴 묶음이 차례로 올라오도록 구성하고, 일반 페이지 제목에는 별도 reveal을 적용하지 않음. 커버 reveal과 `prefers-reduced-motion` 유지
   - 멀티페이지 미리보기에 실제 write가 없는 스마트호출 버튼과 bottom sheet를 연결하고 테이블 번호·매장별 선택 항목만 노출
+  - 손님 선택 화면은 물·식기·테이블 정리 같은 구체 요청을 먼저 표시하고 범용 `직원 호출`을 마지막 대안으로 배치. 전송 버튼은 조금 더 굵은 본문 weight 사용
   - 운영 대시보드 최근 호출에 선택한 호출 내용과 접수 시각을 표시; 기존 server-only 항목 관리·2분 cooldown·시간당 제한·runtime allowlist는 변경하지 않음
 
 ## 최근 주요 커밋과 PR

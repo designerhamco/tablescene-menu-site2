@@ -45,6 +45,9 @@ test("멀티페이지 스마트호출은 사업자 테이블 세션과 runtime g
 
   assert.ok(config);
   assert.deepEqual(config.callItems, [{ key: "water", label: "물 요청", sortOrder: 0, active: true }]);
+  assert.equal(config.previewOnly, undefined);
+  assert.equal(config.tableLabel, "TABLE 3");
+  assert.doesNotMatch(config.tableLabel ?? "", /미리보기/);
   assert.deepEqual(getOrderCallEntryVisibility(config), {
     showHeader: true,
     showLanguage: true,

@@ -15,13 +15,13 @@ test("default call items are independent copies in the expected order", () => {
   const first = callItems.getDefaultStaffCallItems();
   const second = callItems.getDefaultStaffCallItems();
   assert.deepEqual(first.map((item) => item.key), [
-    "staff",
     "water",
     "tableware",
     "table_cleanup",
+    "staff",
   ]);
   first[0].label = "변경";
-  assert.equal(second[0].label, "직원 호출");
+  assert.equal(second[0].label, "물 요청");
 });
 
 test("legacy six-item virtual defaults collapse to the refined four-item starter set", () => {
@@ -33,10 +33,22 @@ test("legacy six-item virtual defaults collapse to the refined four-item starter
     { key: "table_cleanup", label: "테이블 정리", sortOrder: 4, active: true },
     { key: "order_help", label: "주문 도움", sortOrder: 5, active: true },
   ]);
-  assert.deepEqual(legacy.map((item) => item.key), ["staff", "water", "tableware", "table_cleanup"]);
+  assert.deepEqual(legacy.map((item) => item.key), ["water", "tableware", "table_cleanup", "staff"]);
 
   const custom = [{ key: "staff", label: "직원 불러주세요", sortOrder: 0, active: true }];
   assert.equal(callItems.replaceLegacyDefaultStaffCallItems(custom), custom);
+});
+
+test("guest call choices keep the generic staff fallback last without changing other configured order", () => {
+  const configured = [
+    { key: "staff", label: "직원 호출", sortOrder: 0, active: true },
+    { key: "water", label: "물 요청", sortOrder: 1, active: true },
+    { key: "custom_napkin", label: "냅킨 요청", sortOrder: 2, active: true },
+  ];
+  const ordered = callItems.orderStaffCallItemsForGuest(configured);
+
+  assert.deepEqual(ordered.map((item) => item.key), ["water", "custom_napkin", "staff"]);
+  assert.deepEqual(configured.map((item) => item.key), ["staff", "water", "custom_napkin"]);
 });
 
 test("call item input normalization constrains count, labels, duplicates, order, and active state", () => {
