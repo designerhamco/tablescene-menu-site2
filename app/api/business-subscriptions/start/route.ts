@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
 import {
+  getBusinessFreeTrialPeriod,
+  isBusinessFreeTrialProduct,
+} from "@/lib/business-free-trial";
+import { isDiningProductCompatibleWithTemplate } from "@/lib/dining-product-tiers";
+import {
   DISPLAY_CHECKOUT_QA_PLAN_TYPE,
   DISPLAY_CHECKOUT_QA_PRODUCT_KEYS,
   DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY,
@@ -17,7 +22,8 @@ import {
 import { validatePromotionForOrder } from "@/lib/promotions";
 import { getPaidBillingPayment, payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
 import { portOneMockEnabled } from "@/lib/portone";
-import { grantAiCreditsForMenuSiteCreation } from "@/lib/server/ai-credits-service";
+import { grantAiWelcomeCreditsForFirstMenuCreation } from "@/lib/server/ai-credits-service";
+import { getBusinessFreeTrialEligibility } from "@/lib/server/business-free-trial-eligibility";
 import { createInAppNotificationOnce } from "@/lib/server/in-app-notification-service";
 import { ensurePurchasedMenuStarter } from "@/lib/server/purchased-menu-provisioning";
 import { createStarterMenuData } from "@/lib/menu-starter-presets";
@@ -48,6 +54,7 @@ type StartBusinessSubscriptionRequest = {
   purchaseAttemptId?: unknown;
   order?: unknown;
   consentSnapshot?: unknown;
+  startWithFreeTrial?: unknown;
 };
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -103,7 +110,15 @@ type RecoverableSubscription = {
 };
 
 type NormalizedBusinessOrder = MenuOrderPayload & {
-  product_key: "business_basic_monthly" | "business_basic_yearly" | "business_display_monthly" | "business_display_yearly";
+  product_key:
+    | "business_basic_monthly"
+    | "business_basic_yearly"
+    | "business_basic_single_monthly"
+    | "business_basic_single_yearly"
+    | "business_basic_multi_monthly"
+    | "business_basic_multi_yearly"
+    | "business_display_monthly"
+    | "business_display_yearly";
   plan_type: "business_basic" | typeof DISPLAY_CHECKOUT_QA_PLAN_TYPE;
   payment_type: "subscription";
   billing_cycle: "monthly" | "yearly";
@@ -116,6 +131,7 @@ type DebugStep =
   | "product_key_validation"
   | "business_profile_check"
   | "business_profile_verified_check"
+  | "free_trial_eligibility_check"
   | "mode_validation"
   | "new_or_convert_precheck"
   | "menu_site_slug_validation"
@@ -450,7 +466,7 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     planKey !== (isDisplayQaOrder ? "large_screen" : "basic") ||
     (isDisplayQaOrder
       ? templateKey !== DISPLAY_CHECKOUT_QA_TEMPLATE_KEY || templateCategory !== DISPLAY_CHECKOUT_QA_TEMPLATE_CATEGORY
-      : !isTemplateSupportedForCheckout(templateKey, "basic"))
+      : !isTemplateSupportedForCheckout(templateKey, "basic") || !isDiningProductCompatibleWithTemplate(product.productKey, templateKey))
   ) {
     return null;
   }
@@ -531,11 +547,22 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
   return order;
 }
 
-function getSubscriptionBillingPeriod(product: SubscriptionProduct, now = new Date()): SubscriptionBillingPeriod {
+function getSubscriptionBillingPeriod(
+  product: SubscriptionProduct,
+  now = new Date(),
+  startsWithFreeTrial = false,
+): SubscriptionBillingPeriod {
   const periodStart = new Date(now);
   const periodEnd = new Date(periodStart);
 
-  if (product.billingCycle === "yearly") {
+  if (startsWithFreeTrial) {
+    const trialPeriod = getBusinessFreeTrialPeriod(periodStart);
+    return {
+      currentPeriodStart: trialPeriod.startsAt,
+      currentPeriodEnd: trialPeriod.endsAt,
+      nextBillingAt: trialPeriod.endsAt,
+    };
+  } else if (product.billingCycle === "yearly") {
     periodEnd.setFullYear(periodEnd.getFullYear() + 1);
   } else {
     periodEnd.setMonth(periodEnd.getMonth() + 1);
@@ -549,11 +576,7 @@ function getSubscriptionBillingPeriod(product: SubscriptionProduct, now = new Da
 }
 
 function getSubscriptionOrderName(product: SubscriptionProduct) {
-  if (product.serviceType === "display") {
-    return product.billingCycle === "yearly" ? "메뉴링크 디스플레이 연결제" : "메뉴링크 디스플레이 월결제";
-  }
-
-  return product.billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
+  return product.name;
 }
 
 function isMissingRelationError(error: { code?: string; message?: string } | null | undefined, relationName: string) {
@@ -639,6 +662,7 @@ async function createPendingSubscription({
   billingKey,
   product,
   menuSiteId,
+  trialPeriod,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscriptionId: string;
@@ -647,7 +671,14 @@ async function createPendingSubscription({
   billingKey: string;
   product: SubscriptionProduct;
   menuSiteId?: string | null;
+  trialPeriod?: SubscriptionBillingPeriod | null;
 }) {
+  const trialFields = trialPeriod
+    ? {
+        trial_started_at: trialPeriod.currentPeriodStart,
+        trial_ends_at: trialPeriod.currentPeriodEnd,
+      }
+    : {};
   const { data, error } = await adminSupabase
     .from("business_subscriptions" as never)
     .insert(({
@@ -662,6 +693,7 @@ async function createPendingSubscription({
       status: "pending",
       amount: product.amount,
       currency: product.currency,
+      ...trialFields,
     }) as never)
     .select("id")
     .single();
@@ -695,16 +727,21 @@ async function getCompletedBusinessProvisioning({
   userId,
   product,
   paymentId,
+  isFreeTrial,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscriptionId: string;
   userId: string;
   product: SubscriptionProduct;
   paymentId: string;
+  isFreeTrial: boolean;
 }) {
+  const subscriptionSelection = isFreeTrial
+    ? "id, user_id, product_key, plan_type, billing_cycle, status, menu_site_id, portone_payment_id, next_billing_at, trial_started_at, trial_ends_at"
+    : "id, user_id, product_key, plan_type, billing_cycle, status, menu_site_id, portone_payment_id, next_billing_at";
   const { data, error } = await adminSupabase
     .from("business_subscriptions" as never)
-    .select("id, user_id, product_key, plan_type, billing_cycle, status, menu_site_id, portone_payment_id, next_billing_at" as never)
+    .select(subscriptionSelection as never)
     .eq("id" as never, subscriptionId as never)
     .eq("user_id" as never, userId as never)
     .maybeSingle();
@@ -729,6 +766,8 @@ async function getCompletedBusinessProvisioning({
     menu_site_id: string | null;
     portone_payment_id: string | null;
     next_billing_at: string | null;
+    trial_started_at?: string | null;
+    trial_ends_at?: string | null;
   } | null;
 
   if (!subscription) return null;
@@ -747,11 +786,11 @@ async function getCompletedBusinessProvisioning({
     );
   }
 
-  if (
-    subscription.status !== "active" ||
-    !subscription.menu_site_id ||
-    subscription.portone_payment_id !== paymentId
-  ) {
+  const hasExpectedPaymentState = isFreeTrial
+    ? subscription.portone_payment_id === null && Boolean(subscription.trial_started_at) && Boolean(subscription.trial_ends_at)
+    : subscription.portone_payment_id === paymentId;
+
+  if (subscription.status !== "active" || !subscription.menu_site_id || !hasExpectedPaymentState) {
     throw new BusinessSubscriptionRouteError(
       "business_subscription_insert",
       "PURCHASE_ATTEMPT_INCOMPLETE",
@@ -790,17 +829,19 @@ async function getCompletedBusinessProvisioning({
     );
   }
 
-  const provisioningAction = getBusinessProvisioningAction({
-    expectedPaymentId: paymentId,
-    snapshot: {
-      status: subscription.status,
-      menuSiteId: subscription.menu_site_id,
-      paymentId: subscription.portone_payment_id,
-      hasOrder: (orderResult.data?.length ?? 0) > 0,
-      hasPayment: (paymentResult.data?.length ?? 0) > 0,
-      hasEntitlement: (entitlementResult.data?.length ?? 0) > 0,
-    },
-  });
+  const provisioningAction = isFreeTrial
+    ? (entitlementResult.data?.length ?? 0) > 0 ? "return_existing" : "recover"
+    : getBusinessProvisioningAction({
+        expectedPaymentId: paymentId,
+        snapshot: {
+          status: subscription.status,
+          menuSiteId: subscription.menu_site_id,
+          paymentId: subscription.portone_payment_id,
+          hasOrder: (orderResult.data?.length ?? 0) > 0,
+          hasPayment: (paymentResult.data?.length ?? 0) > 0,
+          hasEntitlement: (entitlementResult.data?.length ?? 0) > 0,
+        },
+      });
 
   if (!menuSite || provisioningAction !== "return_existing") {
     throw new BusinessSubscriptionRouteError(
@@ -823,8 +864,9 @@ async function getCompletedBusinessProvisioning({
     menuSiteId: menuSite.id,
     slug: menuSite.slug,
     subscriptionId,
-    paymentId,
+    paymentId: isFreeTrial ? null : paymentId,
     nextBillingAt: subscription.next_billing_at,
+    trialEndsAt: isFreeTrial ? subscription.trial_ends_at : null,
   };
 }
 
@@ -834,12 +876,14 @@ async function waitForCompletedBusinessProvisioning({
   userId,
   product,
   paymentId,
+  isFreeTrial,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscriptionId: string;
   userId: string;
   product: SubscriptionProduct;
   paymentId: string;
+  isFreeTrial: boolean;
 }) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     try {
@@ -849,6 +893,7 @@ async function waitForCompletedBusinessProvisioning({
         userId,
         product,
         paymentId,
+        isFreeTrial,
       });
       if (completed) return completed;
     } catch (error) {
@@ -989,23 +1034,32 @@ async function markSubscriptionActive({
   menuSiteId,
   paymentId,
   billingPeriod,
+  isFreeTrial,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscriptionId: string;
   menuSiteId: string;
-  paymentId: string;
+  paymentId: string | null;
   billingPeriod: SubscriptionBillingPeriod;
+  isFreeTrial: boolean;
 }) {
+  const trialFields = isFreeTrial
+    ? {
+        trial_started_at: billingPeriod.currentPeriodStart,
+        trial_ends_at: billingPeriod.currentPeriodEnd,
+      }
+    : {};
   const { error } = await adminSupabase
     .from("business_subscriptions" as never)
     .update(({
       menu_site_id: menuSiteId,
       status: "active",
       portone_payment_id: paymentId,
-      last_paid_at: billingPeriod.currentPeriodStart,
+      last_paid_at: isFreeTrial ? null : billingPeriod.currentPeriodStart,
       current_period_start: billingPeriod.currentPeriodStart,
       current_period_end: billingPeriod.currentPeriodEnd,
       next_billing_at: billingPeriod.nextBillingAt,
+      ...trialFields,
     }) as never)
     .eq("id" as never, subscriptionId as never);
 
@@ -1736,6 +1790,7 @@ export async function POST(request: Request) {
   const recoverPaymentId = getRecoverablePaymentId(body.recoverPaymentId);
   const recoverSubscriptionId = getString(body.recoverSubscriptionId);
   const isPaymentRecovery = Boolean(recoverPaymentId || recoverSubscriptionId);
+  const requestedFreeTrial = body.startWithFreeTrial === true;
   const purchaseAttemptId = normalizePurchaseAttemptId(body.purchaseAttemptId);
   const product = getSubscriptionProduct(requestedProductKey);
   const baseDebug = {
@@ -1745,6 +1800,7 @@ export async function POST(request: Request) {
     hasRecoverPaymentId: Boolean(recoverPaymentId),
     hasRecoverSubscriptionId: Boolean(recoverSubscriptionId),
     hasPurchaseAttemptId: Boolean(purchaseAttemptId),
+    requestedFreeTrial,
     amount: product?.amount ?? null,
   };
 
@@ -1772,6 +1828,37 @@ export async function POST(request: Request) {
       mode,
       productKey: product.productKey,
       billingCycle: requestedBillingCycle,
+      safeDebug: baseDebug,
+    });
+  }
+
+  if (
+    requestedFreeTrial &&
+    (mode !== "new" || isPaymentRecovery || !isBusinessFreeTrialProduct(product.productKey))
+  ) {
+    return jsonStepError({
+      step: "free_trial_eligibility_check",
+      debugCode: "FREE_TRIAL_PRODUCT_NOT_ELIGIBLE",
+      message: "30일 무료체험은 신규 단일페이지 월결제에만 적용할 수 있습니다.",
+      status: 400,
+      userId: user.id,
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
+      safeDebug: baseDebug,
+    });
+  }
+
+  if (mode === "new" && !isPaymentRecovery && !product.allowNewMenuSiteCreation) {
+    return jsonStepError({
+      step: "new_or_convert_precheck",
+      debugCode: "LEGACY_PRODUCT_NEW_PURCHASE_NOT_ALLOWED",
+      message: "기존 고객 전용 상품은 새로 신청할 수 없습니다. 현재 판매 중인 단일·멀티페이지 상품을 선택해주세요.",
+      status: 409,
+      userId: user.id,
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
       safeDebug: baseDebug,
     });
   }
@@ -1827,7 +1914,7 @@ export async function POST(request: Request) {
     return jsonStepError({
       step: "new_or_convert_precheck",
       debugCode: "DISPLAY_CONVERT_NOT_ALLOWED",
-      message: "메뉴링크 디스플레이 플랜은 기존 메뉴링크 베이직 체험 메뉴판에서 바로 전환할 수 없습니다. 메뉴링크 디스플레이는 신규 신청으로 이용해주세요.",
+      message: "아티메뉴 디스플레이 플랜은 기존 아티메뉴 다이닝 체험 메뉴판에서 바로 전환할 수 없습니다. 아티메뉴 디스플레이는 신규 신청으로 이용해주세요.",
       status: 409,
       userId: user.id,
       mode,
@@ -1841,7 +1928,7 @@ export async function POST(request: Request) {
     return jsonStepError({
       step: "new_or_convert_precheck",
       debugCode: "DISPLAY_NEW_NOT_READY",
-      message: "메뉴링크 디스플레이 신규 사업자 신청은 전용 템플릿 준비 후 제공됩니다.",
+      message: "아티메뉴 디스플레이 신규 사업자 신청은 전용 템플릿 준비 후 제공됩니다.",
       status: 409,
       userId: user.id,
       mode,
@@ -1930,6 +2017,46 @@ export async function POST(request: Request) {
     });
   }
 
+  const startsWithFreeTrial = requestedFreeTrial;
+
+  if (startsWithFreeTrial) {
+    try {
+      const eligibility = await getBusinessFreeTrialEligibility(
+        user.id,
+        adminSupabase,
+        canonicalSubscriptionId,
+      );
+
+      if (!eligibility.eligible) {
+        return jsonStepError({
+          step: "free_trial_eligibility_check",
+          debugCode: eligibility.reason,
+          message: eligibility.reason === "FEATURE_DISABLED"
+            ? "30일 무료체험은 현재 신청할 수 없습니다. 일반 월결제를 이용해주세요."
+            : "30일 무료체험은 계정당 최초 1회만 이용할 수 있습니다.",
+          status: 409,
+          userId: user.id,
+          mode,
+          productKey: product.productKey,
+          billingCycle: product.billingCycle,
+          safeDebug: baseDebug,
+        });
+      }
+    } catch (error) {
+      return jsonCaughtError({
+        error,
+        fallbackStep: "free_trial_eligibility_check",
+        fallbackDebugCode: "FREE_TRIAL_ELIGIBILITY_CHECK_FAILED",
+        fallbackMessage: "30일 무료체험 이용 가능 여부를 확인하지 못했습니다.",
+        userId: user.id,
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        safeDebug: baseDebug,
+      });
+    }
+  }
+
   try {
     const completedProvisioning = await getCompletedBusinessProvisioning({
       adminSupabase,
@@ -1937,6 +2064,7 @@ export async function POST(request: Request) {
       userId: user.id,
       product,
       paymentId: canonicalPaymentId,
+      isFreeTrial: startsWithFreeTrial,
     });
 
     if (completedProvisioning) {
@@ -2003,7 +2131,7 @@ export async function POST(request: Request) {
         return jsonStepError({
           step: "new_or_convert_precheck",
           debugCode: "DISPLAY_BUSINESS_BUYER_REQUIRED",
-          message: "메뉴링크 디스플레이는 사업자 전용 상품입니다.",
+          message: "아티메뉴 디스플레이는 사업자 전용 상품입니다.",
           status: 400,
           userId: user.id,
           mode,
@@ -2116,7 +2244,7 @@ export async function POST(request: Request) {
   }
 
   const paymentId = canonicalPaymentId;
-  const billingPeriod = getSubscriptionBillingPeriod(product);
+  const billingPeriod = getSubscriptionBillingPeriod(product, new Date(), startsWithFreeTrial);
   const nextBillingAt = billingPeriod.nextBillingAt;
   let subscriptionId = canonicalSubscriptionId;
 
@@ -2205,6 +2333,7 @@ export async function POST(request: Request) {
         billingKey,
         product,
         menuSiteId: existingMenuSite?.id ?? null,
+        trialPeriod: startsWithFreeTrial ? billingPeriod : null,
       });
     } catch (error) {
       if (error instanceof BusinessSubscriptionRouteError && error.debugCode === "PURCHASE_ATTEMPT_ALREADY_EXISTS") {
@@ -2215,6 +2344,7 @@ export async function POST(request: Request) {
             userId: user.id,
             product,
             paymentId,
+            isFreeTrial: startsWithFreeTrial,
           });
 
           if (concurrentCompletion) {
@@ -2259,7 +2389,15 @@ export async function POST(request: Request) {
   let billingPayment: Awaited<ReturnType<typeof payWithBillingKey>> | null = null;
 
   try {
-    if (isPaymentRecovery) {
+    if (startsWithFreeTrial) {
+      logBusinessSubscriptionDebug("free_trial_billing_key_registered", {
+        mode,
+        productKey: product.productKey,
+        billingCycle: product.billingCycle,
+        subscriptionId,
+        trialEndsAt: billingPeriod.currentPeriodEnd,
+      });
+    } else if (isPaymentRecovery) {
       logBusinessSubscriptionDebug("portone_existing_payment_verify_start", {
         mode,
         productKey: product.productKey,
@@ -2388,8 +2526,9 @@ export async function POST(request: Request) {
       adminSupabase,
       subscriptionId,
       menuSiteId: menuSite.id,
-      paymentId,
+      paymentId: startsWithFreeTrial ? null : paymentId,
       billingPeriod,
+      isFreeTrial: startsWithFreeTrial,
     });
 
     if (mode === "convert") {
@@ -2407,14 +2546,10 @@ export async function POST(request: Request) {
     });
 
     if (mode === "new") {
-      const aiCreditGrant = await grantAiCreditsForMenuSiteCreation({
+      const aiCreditGrant = await grantAiWelcomeCreditsForFirstMenuCreation({
         adminSupabase,
         userId: user.id,
         menuSiteId: menuSite.id,
-        serviceType: product.serviceType,
-        productKey: product.productKey,
-        planType: product.planType,
-        reason: product.serviceType === "display" ? "display_subscription_created" : "business_subscription_created",
       });
       if (!aiCreditGrant.ok) {
         throw new BusinessSubscriptionRouteError(
@@ -2429,48 +2564,55 @@ export async function POST(request: Request) {
 
     const requestConsentSnapshot = body.consentSnapshot && typeof body.consentSnapshot === "object" ? body.consentSnapshot : null;
 
-    const paymentRecords = await createOrderAndPaymentRecords({
-      supabase,
-      userId: user.id,
-      paymentId,
-      menuSiteId: menuSite.id,
-      product,
-      businessProfile,
-      portonePayment: billingPayment?.rawPayment,
-      promotionSnapshot: (order?.promotion ?? null) as Json | null,
-      consentSnapshot: (order ? {
-        termsAccepted: order.termsAccepted,
-        privacyAccepted: order.privacyAccepted,
-        contentPolicyAccepted: order.contentPolicyAccepted,
-        marketingAccepted: order.marketingAccepted,
-        consentAgreedAt: order.consentAgreedAt,
-        consentContext: order.consentContext,
-      } : requestConsentSnapshot ?? {
-        consentContext: "personal_trial_convert",
-        capturedFromRequest: true,
-      }) as Json,
-    });
+    if (!startsWithFreeTrial) {
+      const paymentRecords = await createOrderAndPaymentRecords({
+        supabase,
+        userId: user.id,
+        paymentId,
+        menuSiteId: menuSite.id,
+        product,
+        businessProfile,
+        portonePayment: billingPayment?.rawPayment,
+        promotionSnapshot: (order?.promotion ?? null) as Json | null,
+        consentSnapshot: (order ? {
+          termsAccepted: order.termsAccepted,
+          privacyAccepted: order.privacyAccepted,
+          contentPolicyAccepted: order.contentPolicyAccepted,
+          marketingAccepted: order.marketingAccepted,
+          consentAgreedAt: order.consentAgreedAt,
+          consentContext: order.consentContext,
+        } : requestConsentSnapshot ?? {
+          consentContext: "personal_trial_convert",
+          capturedFromRequest: true,
+        }) as Json,
+      });
 
-    await createBusinessPaymentPaidNotification({
-      userId: user.id,
-      paymentId,
-      orderId: paymentRecords.orderId,
-      menuSiteId: menuSite.id,
-      subscriptionId,
-      product,
-      mode,
-    });
+      await createBusinessPaymentPaidNotification({
+        userId: user.id,
+        paymentId,
+        orderId: paymentRecords.orderId,
+        menuSiteId: menuSite.id,
+        subscriptionId,
+        product,
+        mode,
+      });
+    }
 
     return NextResponse.json({
       ok: true,
       step: "final_response",
-      message: mode === "convert" ? "기존 메뉴판이 사업자 플랜으로 전환되었습니다." : "메뉴링크 베이직 메뉴판이 생성되었습니다.",
+      message: startsWithFreeTrial
+        ? "결제수단 등록이 완료되어 30일 무료체험이 시작되었습니다."
+        : mode === "convert"
+          ? "기존 메뉴판이 사업자 플랜으로 전환되었습니다."
+          : "아티메뉴 다이닝 메뉴판이 생성되었습니다.",
       mode,
       menuSiteId: menuSite.id,
       slug: menuSite.slug,
       subscriptionId,
-      paymentId,
+      paymentId: startsWithFreeTrial ? null : paymentId,
       nextBillingAt,
+      trialEndsAt: startsWithFreeTrial ? billingPeriod.currentPeriodEnd : null,
     });
   } catch (error) {
     if (error instanceof BusinessSubscriptionRouteError && error.debugCode === "MENU_SITE_PROVISIONING_IN_PROGRESS") {
@@ -2481,6 +2623,7 @@ export async function POST(request: Request) {
           userId: user.id,
           product,
           paymentId,
+          isFreeTrial: startsWithFreeTrial,
         });
 
         if (concurrentCompletion) {

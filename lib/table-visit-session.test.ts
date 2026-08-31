@@ -15,7 +15,7 @@ const {
 } = sessionModule;
 
 const NOW = new Date("2026-08-06T00:00:00.000Z");
-const USER_AGENT = "MenuLink QA Browser/1.0";
+const USER_AGENT = "ArtiMenu QA Browser/1.0";
 
 test("visit-session material is hash-only and expires after at most 12 hours", () => {
   const material = createTableVisitSessionMaterial({ userAgent: USER_AGENT, now: NOW });

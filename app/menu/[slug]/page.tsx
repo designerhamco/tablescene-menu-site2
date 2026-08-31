@@ -11,6 +11,7 @@ import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import { normalizeLocale } from "@/lib/locales";
 import { getPublicMenuDataBySlug, type MenuPageData } from "@/lib/menu-page-data";
 import { isPostpayOrderRuntimeEnabledForSite } from "@/lib/postpay-order-runtime";
+import { listStaffCallItems } from "@/lib/server/call-item-service";
 import {
   createPostpayCartScope,
   getPostpayOrderCatalog,
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const isActiveDraft = accessState?.entitlementStatus === "active" && accessState.menuSiteStatus === "draft";
 
     return {
-      title: isActiveDraft ? "아직 공개되지 않은 메뉴판 | MenuLink" : "비공개 메뉴판 | MenuLink",
+      title: isActiveDraft ? "아직 공개되지 않은 메뉴판 | ArtiMenu" : "비공개 메뉴판 | ArtiMenu",
       robots: {
         index: false,
         follow: false,
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) {
     return {
-      title: "공개되지 않은 메뉴판 | MenuLink",
+      title: "공개되지 않은 메뉴판 | ArtiMenu",
       robots: {
         index: false,
         follow: false,
@@ -54,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = `${data.menuSite.business_name || data.menuSite.name} 메뉴판`;
-  const description = data.menuSite.description || `${data.menuSite.name}의 MenuLink 디지털 메뉴판입니다.`;
+  const description = data.menuSite.description || `${data.menuSite.name}의 ArtiMenu 디지털 메뉴판입니다.`;
 
   return {
     title,
@@ -150,9 +151,12 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     postpayOrderRuntimeEnabled: isPostpayOrderRuntimeEnabledForSite(data.menuSite.id),
     callRuntimeEnabled: isCallRuntimeEnabledForSite(data.menuSite.id),
   });
-  const orderCatalog = capabilityState.orderEnabled
-    ? await getPostpayOrderCatalog(data.menuSite.id)
-    : [];
+  const [orderCatalog, callItems] = await Promise.all([
+    capabilityState.orderEnabled ? getPostpayOrderCatalog(data.menuSite.id) : [],
+    capabilityState.callEnabled
+      ? listStaffCallItems({ menuSiteId: data.menuSite.id })
+      : [],
+  ]);
   const orderCallConfig = buildPublicOrderCallEntryConfig({
     capabilityState,
     menuSiteId: data.menuSite.id,
@@ -160,6 +164,7 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     tableSession,
     cartScope: tableSession ? createPostpayCartScope(tableSession.id) : undefined,
     orderCatalog,
+    callItems,
   });
 
   return (

@@ -8,7 +8,7 @@ Scope: product contract, Phase A foundation, and Phase B-1 common authorization 
 
 ## 1. Audit Boundary
 
-This document defines the first owner/staff access contract for MenuLink and records the current repository authorization structure.
+This document defines the first owner/staff access contract for ArtiMenu and records the current repository authorization structure.
 
 The audit used the current application code, generated Supabase types, schema SQL, migrations, existing product contracts, and a read-only Production catalog query. The query confirmed `menu_sites` RLS, its current policies, `private` schema, `pgcrypto`, `set_updated_at()`, and the existing private owner helper. It did not mutate Production. Because this project has historically applied some SQL manually, the migration runbook still begins with a repeatable read-only precheck of RLS, policies, grants, functions, Storage policies, constraints, and existing rows.
 
@@ -183,7 +183,7 @@ The current `/api/qr?slug=...` route is intentionally based on public slug and a
 | Manual payment reversal/refund record | A/F | A/F | - | - | - |
 | Receipt read/print | A/F | A/F | - | A/F | - |
 
-The existing `orders` and `payments` tables are MenuLink service-purchase records. They are not restaurant Order tables and must not be reused for customer dining orders.
+The existing `orders` and `payments` tables are ArtiMenu service-purchase records. They are not restaurant Order tables and must not be reused for customer dining orders.
 
 ### Call
 
@@ -211,7 +211,7 @@ Order Staff may see the amount needed to operate an individual order but not agg
 | --- | --- | --- | --- | --- | --- |
 | Derived service availability | A | R | R | R | R |
 | Subscription details | A | - | - | - | - |
-| MenuLink payment history | A | - | - | - | - |
+| ArtiMenu payment history | A | - | - | - | - |
 | Cancellation reservation | A | - | - | - | - |
 | Refund request/status | A | - | - | - | - |
 | Restore/resubscribe | A | - | - | - | - |
@@ -479,7 +479,7 @@ Implementation requirements:
 - Require verified Auth email match at acceptance.
 - Existing membership remains tied to `user_id` if the user later changes email.
 - Deleted/suspended accounts cannot accept or use memberships.
-- Supabase Auth confirmation email and MenuLink staff invitation email remain distinct messages.
+- Supabase Auth confirmation email and ArtiMenu staff invitation email remain distinct messages.
 
 ## 13. RLS and Privileged Helper Design
 

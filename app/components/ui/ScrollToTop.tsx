@@ -70,7 +70,7 @@ const ScrollToTop = () => {
               <span className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 z-10 bg-[#FAE100] hover:scale-110">
                 <MessageCircle className="w-7 h-7 fill-current" />
               </span>
-              <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-zinc-800 shadow-sm ring-1 ring-zinc-100">
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-zinc-800 shadow-sm ring-1 ring-zinc-100">
                 상담 문의
               </span>
             </a>
@@ -85,7 +85,7 @@ const ScrollToTop = () => {
                   animate={{ opacity: 1, height: 40, scale: 1 }}
                   exit={{ opacity: 0, height: 0, scale: 0 }}
                   onClick={scrollToTop}
-                  className="w-10 h-10 bg-white/80 backdrop-blur-sm text-zinc-600 rounded-full shadow-md flex items-center justify-center border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-300 group"
+                  className="w-10 h-10 bg-white text-zinc-600 rounded-full shadow-md flex items-center justify-center border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-300 group"
                   aria-label="Scroll to top"
                 >
                   <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
@@ -95,7 +95,7 @@ const ScrollToTop = () => {
 
             <button
               onClick={scrollToBottom}
-              className="w-10 h-10 bg-white/80 backdrop-blur-sm text-zinc-600 rounded-full shadow-md flex items-center justify-center border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-300 group"
+              className="w-10 h-10 bg-white text-zinc-600 rounded-full shadow-md flex items-center justify-center border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-300 group"
               aria-label="Scroll to bottom"
             >
               <ArrowDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />

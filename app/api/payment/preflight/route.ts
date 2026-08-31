@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
+import { isDiningProductCompatibleWithTemplate, isLegacyDiningProductKey } from "@/lib/dining-product-tiers";
 import {
   getPaymentProductDefinition,
   isTemplateKey,
@@ -88,6 +89,10 @@ export async function POST(request: Request) {
     return jsonError("선택한 상품 정보가 올바르지 않습니다.", 400, { productKey });
   }
 
+  if (isLegacyDiningProductKey(product.product_key)) {
+    return jsonError("기존 고객 전용 상품은 새로 신청할 수 없습니다.", 409, { productKey });
+  }
+
   if (!promotionValidation.ok) {
     return jsonError(promotionValidation.message || "사용할 수 없는 프로모션 코드입니다.", 400, {
       productKey,
@@ -96,7 +101,7 @@ export async function POST(request: Request) {
   }
 
   if (product.template_service === "display" && !isDisplayCheckoutQaEnabled()) {
-    return jsonError("메뉴링크 디스플레이 신청은 아직 준비 중입니다.", 403, {
+    return jsonError("아티메뉴 디스플레이 신청은 아직 준비 중입니다.", 403, {
       productKey,
       templateKey,
       planKey,
@@ -163,6 +168,13 @@ export async function POST(request: Request) {
       productTemplateService: product.template_service,
       templateServiceType,
       planKey,
+    });
+  }
+
+  if (templateServiceType === "basic" && !isDiningProductCompatibleWithTemplate(product.product_key, templateKey)) {
+    return jsonError("선택한 단일·멀티페이지 상품과 템플릿 유형이 일치하지 않습니다.", 400, {
+      productKey,
+      templateKey,
     });
   }
 

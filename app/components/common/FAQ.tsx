@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus, Clock, ScreenShare, MessageCircle } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 
 export type FAQCategory = {
   category: string;
@@ -20,7 +20,7 @@ const MAIN_FAQ_DATA: FAQCategory[] = [
         question: "제가 가진 기기에서도 메뉴판을 볼 수 있나요?",
         answer: (
           <>
-            네. 메뉴링크 베이직 메뉴판은 웹 링크로 열리는 방식이라, 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다. 모바일, 태블릿, 노트북, PC는 물론이고, 브라우저를 지원하는 스마트 TV나 매장용 디스플레이에서도 사용할 수 있습니다.
+            네. 아티메뉴 다이닝 메뉴판은 웹 링크로 열리는 방식이라, 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다. 모바일, 태블릿, 노트북, PC는 물론이고, 브라우저를 지원하는 스마트 TV나 매장용 디스플레이에서도 사용할 수 있습니다.
           </>
         )
       },
@@ -60,7 +60,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "제가 가진 기기에서도 메뉴판을 볼 수 있나요?",
         answer: (
           <>
-            메뉴링크 베이직 메뉴판은 웹 링크로 열리는 방식이라 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다.
+            아티메뉴 다이닝 메뉴판은 웹 링크로 열리는 방식이라 인터넷 브라우저를 사용할 수 있는 대부분의 기기에서 확인할 수 있습니다.
           </>
         )
       },
@@ -111,10 +111,11 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         )
       },
       {
-        question: "개인 체험 메뉴판을 유료 전환 후에도 사용할 수 있나요?",
+        question: "30일 무료체험은 어떻게 이용하나요?",
         answer: (
           <>
-            네. 개인 체험은 계정당 1회, 메뉴판 1개가 제공됩니다. 유료 플랜으로 전환하면 기존 체험 메뉴판을 그대로 이어서 사용할 수 있습니다.
+            단일페이지 월결제에서 결제수단을 등록하면 계정당 최초 1회 30일간 무료로 이용할 수 있습니다.
+            첫 결제 예정 시각 전에 해지하면 결제되지 않으며, 중도 해지해도 30일 종료일까지 메뉴판을 이용할 수 있습니다.
           </>
         )
       },
@@ -151,7 +152,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "템플릿은 나중에 변경할 수 있나요?",
         answer: (
           <>
-            현재는 결제 시 선택한 템플릿을 기준으로 메뉴판이 생성됩니다. 템플릿 변경 기능은 추후 정책에 따라 제공될 수 있습니다.
+            같은 페이지 유형 안의 다른 템플릿으로 언제든 변경할 수 있습니다. 메뉴·가격·이미지·번역과 공개 주소는 유지되며, 할인은 새 디자인에 맞게 확인한 뒤 다시 활성화해야 합니다. 위젯은 단일페이지 상품에서만 제공됩니다.
           </>
         )
       }
@@ -172,8 +173,8 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "AI 작성 도우미는 어떻게 제공되나요?",
         answer: (
           <>
-            요금제에 포함된 AI 기본 제공량은 신규 구매 또는 신규 구독 개설 시 제공됩니다. 메뉴링크 베이직은 18크레딧, 메뉴링크 디스플레이는 26크레딧을 기본 제공합니다.
-            정기 결제 갱신 시에는 새 메뉴판이나 AI 기본 제공량이 추가되지 않습니다.
+            계정의 첫 메뉴판 생성이 완료되면 AI 웰컴 크레딧 6개를 계정당 1회 제공합니다. 다이닝·디스플레이 요금제와 관계없이 동일합니다.
+            추가 메뉴판 구매, 재구독, 정기 결제 갱신으로는 웰컴 크레딧이 추가되지 않습니다.
             보유 AI 크레딧은 계정의 모든 메뉴판에서 함께 사용할 수 있고, 부족하면 AI 크레딧을 추가 충전할 수 있습니다.
             AI 설명 작성과 부분 자동 번역은 1 크레딧, AI 메뉴 정리는 3 크레딧, 전체 자동 번역은 3 크레딧을 사용합니다.
           </>
@@ -183,8 +184,8 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "메뉴판을 추가로 구매하면 AI 크레딧도 제공되나요?",
         answer: (
           <>
-            네. 별도의 신규 구매 또는 신규 구독으로 메뉴판이 생성되면 해당 상품의 AI 기본 제공량이 제공됩니다.
-            정기 결제 갱신만으로는 기본 제공량이 추가되지 않으며, 보유 크레딧은 계정의 모든 메뉴판에서 함께 사용할 수 있습니다.
+            아니요. 웰컴 크레딧은 계정의 첫 메뉴판 생성 완료 시점에만 1회 제공됩니다.
+            추가로 필요한 크레딧은 충전해 계정의 모든 메뉴판에서 함께 사용할 수 있습니다.
           </>
         )
       },
@@ -253,15 +254,23 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "테이블 오더 기능도 사용할 수 있나요?",
         answer: (
           <>
-            테이블 오더 기능은 준비 중입니다. 현재는 메뉴링크 디지털 메뉴판 제작과 관리 기능을 먼저 제공합니다.
+            현재 테이블 오더와 PG 결제 기능은 제공하지 않습니다. 아티메뉴는 당분간 디지털 메뉴판과 멀티페이지 상품의 스마트호출 기능에 집중합니다.
           </>
         )
       },
       {
-        question: "메뉴링크 디스플레이는 무엇인가요?",
+        question: "스마트호출은 어떤 상품에서 사용할 수 있나요?",
         answer: (
           <>
-            매장 TV나 모니터에 메뉴판을 띄워 사용하는 디스플레이 메뉴보드 서비스입니다. 메뉴링크 베이직과 함께 확장해 사용할 수 있도록 준비 중입니다.
+            스마트호출은 멀티페이지 다이닝 상품에 포함됩니다. 단일페이지 상품에는 할인과 위젯이 제공되며 스마트호출은 제공되지 않습니다.
+          </>
+        )
+      },
+      {
+        question: "아티메뉴 디스플레이는 무엇인가요?",
+        answer: (
+          <>
+            매장 TV나 모니터에 메뉴판을 띄워 사용하는 디스플레이 메뉴보드 서비스입니다. 아티메뉴 다이닝과 함께 확장해 사용할 수 있도록 준비 중입니다.
           </>
         )
       }
@@ -269,23 +278,23 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
   }
 ];
 
-const FAQItem = ({ item, isOpen, onToggle, index }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, index: number }) => {
+const FAQItem = ({ item, isOpen, onToggle, index, inverted = false }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, index: number, inverted?: boolean }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.05 }}
-      className="border-b border-zinc-200 last:border-none"
+      className={`border-b last:border-none ${inverted ? 'border-white/15' : 'border-zinc-200'}`}
     >
       <button
         onClick={onToggle}
-        className="w-full py-6 flex items-start md:items-center justify-between gap-6 text-left group hover:bg-zinc-50/50 transition-colors px-4 rounded-lg"
+        className={`w-full py-6 flex items-start md:items-center justify-between gap-6 text-left group transition-colors px-4 rounded-lg ${inverted ? 'hover:bg-white/5' : 'hover:bg-zinc-50/50'}`}
       >
-        <span className={`text-lg md:text-xl font-bold transition-colors ${isOpen ? 'text-primary' : 'text-zinc-900 group-hover:text-black'}`}>
+        <span className={`text-lg md:text-xl font-bold transition-colors ${isOpen ? 'text-primary' : inverted ? 'text-white group-hover:text-white' : 'text-zinc-900 group-hover:text-black'}`}>
           <span className="text-primary mr-2">Q.</span>{item.question}
         </span>
-        <div className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-300 mt-1 md:mt-0 ${isOpen ? 'border-primary bg-primary text-white rotate-180' : 'border-zinc-300 text-zinc-400 group-hover:border-zinc-900 group-hover:text-zinc-900'}`}>
+        <div className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-300 mt-1 md:mt-0 ${isOpen ? 'border-primary bg-primary text-white rotate-180' : inverted ? 'border-white/25 text-zinc-400 group-hover:border-white group-hover:text-white' : 'border-zinc-300 text-zinc-400 group-hover:border-zinc-900 group-hover:text-zinc-900'}`}>
           {isOpen ? <Minus size={16} /> : <Plus size={16} />}
         </div>
       </button>
@@ -299,9 +308,9 @@ const FAQItem = ({ item, isOpen, onToggle, index }: { item: FAQCategory["items"]
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="pb-8 pt-2 pl-4 md:pl-8 pr-4 md:pr-12 text-zinc-600 leading-relaxed font-medium text-base">
+            <div className={`pb-8 pt-2 pl-4 md:pl-8 pr-4 md:pr-12 leading-relaxed font-medium text-base ${inverted ? 'text-zinc-300' : 'text-zinc-600'}`}>
               <div className="flex gap-3">
-                 <span className="font-bold text-zinc-900 shrink-0">A.</span>
+                 <span className={`font-bold shrink-0 ${inverted ? 'text-white' : 'text-zinc-900'}`}>A.</span>
                  <div>{item.answer}</div>
               </div>
             </div>
@@ -317,6 +326,8 @@ interface FAQProps {
   showSupport?: boolean;
   data?: FAQCategory[];
   description?: string;
+  homeDark?: boolean;
+  title?: string;
 }
 
 const FAQ = ({
@@ -324,6 +335,8 @@ const FAQ = ({
   showSupport = true,
   data = MAIN_FAQ_DATA,
   description,
+  homeDark = false,
+  title = "자주 묻는 질문",
 }: FAQProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -335,15 +348,15 @@ const FAQ = ({
   };
 
   return (
-    <section className={`py-24 bg-white relative ${className}`}>
+    <section className={`relative px-6 py-24 md:py-36 ${homeDark ? 'bg-white' : 'bg-white'} ${className}`}>
       {/* Container width adjusted to match Footer (max-w-7xl) */}
-      <div className="max-w-7xl mx-auto px-6">
+      <div className={`max-w-7xl mx-auto ${homeDark ? 'rounded-[2rem] bg-zinc-950 px-6 py-16 text-white md:rounded-[2.5rem] md:px-14 md:py-20' : ''}`}>
         <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-zinc-900 tracking-tight leading-tight">
-            자주 묻는 질문
+          <h2 className={`text-3xl md:text-5xl font-bold mb-6 tracking-tight leading-tight ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
+            {title}
           </h2>
           {description ? (
-            <p className="text-lg text-zinc-500 font-medium">
+            <p className={`text-lg font-medium ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
               {description}
             </p>
           ) : null}
@@ -358,8 +371,8 @@ const FAQ = ({
                 onClick={() => handleTabChange(idx)}
                 className={`px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
                   activeTab === idx 
-                    ? 'bg-zinc-900 text-white shadow-lg scale-105' 
-                    : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
+                    ? homeDark ? 'bg-white text-zinc-950 shadow-lg scale-105' : 'bg-zinc-900 text-white shadow-lg scale-105'
+                    : homeDark ? 'bg-white/10 text-zinc-400 hover:bg-white/15 hover:text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
                 }`}
               >
                 {category.category}
@@ -369,7 +382,7 @@ const FAQ = ({
         )}
 
         {/* FAQ List */}
-        <div className="w-full md:max-w-6xl mx-auto bg-white rounded-2xl border border-zinc-200 p-4 md:p-8 shadow-sm min-h-[400px] mb-12">
+        <div className={`w-full md:max-w-6xl mx-auto rounded-2xl border p-4 md:p-8 min-h-[400px] ${homeDark ? 'border-white/15 bg-white/[0.045]' : 'border-zinc-200 bg-white shadow-sm'} ${showSupport ? 'mb-12' : ''}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -385,60 +398,13 @@ const FAQ = ({
                   item={faq}
                   isOpen={openIndex === index}
                   onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+                  inverted={homeDark}
                 />
               ))}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Support Center (Responsive Layout) - Conditionally Rendered */}
-        {showSupport && (
-          <div className="mt-20 border-t border-zinc-100 pt-12 w-full md:max-w-6xl mx-auto">
-             <div className="flex flex-col md:flex-row items-center md:items-center justify-between gap-8">
-                
-                {/* Left: Title - Centered on mobile */}
-                <div className="text-center md:text-left">
-                   <h3 className="text-2xl md:text-3xl font-bold text-zinc-900">사장님의 든든한 운영 파트너</h3>
-                   <p className="text-zinc-400 text-base md:text-lg mt-2 font-medium">체계적인 기술 지원으로 안정적인 매장 운영을 약속합니다.</p>
-                </div>
-
-                {/* Right: Info Grid - Centered & Single Line per item on mobile */}
-                <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 md:gap-8 items-center">
-                   
-                   {/* Item 1: Time */}
-                   <div className="flex items-center gap-3 md:gap-4 md:items-start">
-                      <Clock className="w-6 h-6 text-zinc-300 md:mt-0.5 shrink-0" strokeWidth={2} />
-                      <div className="flex flex-col items-start gap-1 md:block text-left">
-                         <strong className="block text-base md:text-lg font-bold text-zinc-900 md:mb-1">운영 시간</strong>
-                         <div className="flex flex-col text-sm md:text-base gap-0.5">
-                            <span className="text-zinc-500">평일 09:00 ~ 17:00 (점심시간 12:00 ~ 13:00 제외)</span>
-                            <span className="text-zinc-400 font-medium">긴급(주말) 10:00 ~ 22:00</span>
-                         </div>
-                      </div>
-                   </div>
-
-                   {/* Item 2: Kakao */}
-                   <div className="flex items-center gap-3 md:gap-4 md:items-start">
-                      <MessageCircle className="w-6 h-6 text-[#FAE100] md:mt-0.5 shrink-0 fill-current" strokeWidth={0} />
-                      <div className="flex items-center gap-2 md:block text-left">
-                         <strong className="block text-base md:text-lg font-bold text-zinc-900 md:mb-1">카카오톡 상담</strong>
-                         <span className="text-base text-zinc-500">@디앤디커머스</span>
-                      </div>
-                   </div>
-
-                   {/* Item 3: Remote */}
-                   <div className="flex items-center gap-3 md:gap-4 md:items-start">
-                      <ScreenShare className="w-6 h-6 text-primary md:mt-0.5 shrink-0" strokeWidth={2} />
-                      <div className="flex items-center gap-2 md:block text-left">
-                         <strong className="block text-base md:text-lg font-bold text-zinc-900 md:mb-1">원격 점검 지원</strong>
-                         <span className="text-base text-zinc-500">화면 공유로 해결</span>
-                      </div>
-                   </div>
-
-                </div>
-             </div>
-          </div>
-        )}
       </div>
     </section>
   );

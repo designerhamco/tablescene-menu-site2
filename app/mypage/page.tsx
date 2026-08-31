@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import Footer from "@/app/components/layout/Footer";
-import { signOutAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import AccountDeletionPanel from "@/components/mypage/AccountDeletionPanel";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
@@ -11,6 +10,7 @@ import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettin
 import BillingHistoryPanel, { type BillingHistoryEntry } from "@/components/mypage/BillingHistoryPanel";
 import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
+import { MypageAccountCard, MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import {
   getInquiryErrorMessage,
@@ -33,7 +33,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
-import { formatNotificationBadgeCount, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
+import { getDiningTemplateTier } from "@/lib/dining-product-tiers";
+import { NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getRemainingDaysUntilKst, getServiceLifecycleBucket, resolveServiceLifecycle } from "@/lib/mypage-service-lifecycle";
@@ -388,11 +389,7 @@ function getBillingTabClassName(isActive: boolean) {
     : "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-black text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 sm:flex-none";
 }
 
-function getTabLinkClassName(isActive: boolean) {
-  return isActive
-    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-black text-white"
-    : "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950";
-}
+const disabledMenuTabClassName = "inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-black text-zinc-300 sm:flex-none";
 
 function getPrimaryProvider(appMetadata: unknown, identityProviders: string[]) {
   const metadata = getRecord(appMetadata);
@@ -449,17 +446,17 @@ function getProductLabel(productKey: string | null | undefined) {
 
   if (basicProduct) return basicProduct.name;
 
-  if (key === personalTrialBasicProduct.product_key) return "메뉴링크 베이직 개인 1개월 체험";
+  if (key === personalTrialBasicProduct.product_key) return "아티메뉴 다이닝 개인 1개월 체험";
 
   return key || "상품명 확인 필요";
 }
 
 function getServiceName(planType: string | null | undefined, billingCycle: string | null | undefined) {
-  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return "메뉴링크 베이직 개인 체험";
-  if (planType === "business_display") return billingCycle === "yearly" ? "메뉴링크 디스플레이 연결제" : "메뉴링크 디스플레이 월결제";
-  if (planType === "business_basic") return billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
+  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return "아티메뉴 다이닝 개인 체험";
+  if (planType === "business_display") return billingCycle === "yearly" ? "아티메뉴 디스플레이 연결제" : "아티메뉴 디스플레이 월결제";
+  if (planType === "business_basic") return billingCycle === "yearly" ? "아티메뉴 다이닝 연결제" : "아티메뉴 다이닝 월결제";
 
-  return "메뉴링크 이용권";
+  return "아티메뉴 이용권";
 }
 
 function getMenuServiceBadge({
@@ -482,13 +479,13 @@ function getMenuServiceBadge({
 
   if (isDisplayService) {
     return {
-      label: "메뉴링크 디스플레이",
+      label: "아티메뉴 디스플레이",
       className: "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100",
     };
   }
 
   return {
-    label: "메뉴링크 베이직",
+    label: "아티메뉴 다이닝",
     className: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-100",
   };
 }
@@ -609,9 +606,20 @@ function getSubscriptionStatusLabel(status: string | null | undefined) {
   return status ? labels[status] ?? status : "상태 확인 필요";
 }
 
+function isActiveBusinessFreeTrial(subscription: BusinessSubscription | null | undefined) {
+  return Boolean(
+    subscription?.status === "active"
+      && subscription.product_key === "business_basic_single_monthly"
+      && !subscription.last_paid_at
+      && !subscription.portone_payment_id
+      && subscription.next_billing_at,
+  );
+}
+
 function getBusinessSubscriptionCardStatusLabel(subscription: BusinessSubscription | null | undefined, fallbackStatus: string | null | undefined) {
   if (isActiveCancelScheduledSubscription(subscription)) return "해지 예약";
   if (subscription?.cancel_at_period_end) return "해지 종료";
+  if (isActiveBusinessFreeTrial(subscription)) return "무료체험 중";
   return getSubscriptionStatusLabel(subscription?.status ?? fallbackStatus);
 }
 
@@ -863,9 +871,14 @@ function getBillingHistoryMethodLabel(method: BillingHistoryEntry["billingMethod
   return "결제 방식 확인 필요";
 }
 
-function getRestoreSubscriptionOptions(serviceType: BillingHistoryEntry["serviceType"]) {
+function getRestoreSubscriptionOptions(
+  serviceType: BillingHistoryEntry["serviceType"],
+  templateKey?: string | null,
+) {
   const productKeys = serviceType === "basic"
-    ? ["business_basic_monthly", "business_basic_yearly"]
+    ? getDiningTemplateTier(templateKey) === "multi"
+      ? ["business_basic_multi_monthly", "business_basic_multi_yearly"]
+      : ["business_basic_single_monthly", "business_basic_single_yearly"]
     : serviceType === "display"
       ? ["business_display_monthly", "business_display_yearly"]
       : [];
@@ -908,7 +921,7 @@ function getRestoreSubscriptionCta({
   const daysUntilRetentionEnds = retentionEndDate ? getRemainingDaysUntilKst(retentionEndDate) : null;
   if (typeof daysUntilRetentionEnds !== "number" || daysUntilRetentionEnds < 0) return null;
 
-  const options = getRestoreSubscriptionOptions(serviceType);
+  const options = getRestoreSubscriptionOptions(serviceType, menuSite.template_key);
   if (options.length === 0) return null;
 
   return {
@@ -1284,6 +1297,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ? "호출관리는 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
       : messageCode === "sales-dashboard-locked"
         ? "매출 요약은 주문관리 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다."
+      : messageCode === "owner-commerce-permission-required"
+        ? "구독과 결제 내역은 메뉴판 사장만 관리할 수 있습니다."
+      : messageCode === "owner-menu-lifecycle-permission-required"
+        ? "보관·삭제된 메뉴판은 메뉴판 사장만 관리할 수 있습니다."
+      : messageCode === "staff-management-permission-required"
+        ? "직원 관리는 소유한 메뉴판의 사장만 사용할 수 있습니다."
+      : messageCode === "menu-edit-permission-required"
+        ? "현재 직원 역할에는 메뉴 편집 권한이 없습니다. 사장에게 역할 변경을 요청해 주세요."
       : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
@@ -1327,13 +1348,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const staffMenuSitesError = accessibleMenuSitesResult === null
     ? { message: "직원으로 참여한 메뉴판 목록을 불러오는 데 시간이 오래 걸려 건너뛰었습니다." }
     : null;
-  const isStaffOnlyAccount = staffMenuSites.length > 0 && !accessibleMenuSites.some((menuSite) => menuSite.isOwner);
+  const hasOwnedMenuSites = sites.length > 0 || accessibleMenuSites.some((menuSite) => menuSite.isOwner);
+  const hasStaffManageableMenuSites = sites.some((site) => site.status !== "archived");
+  const isStaffOnlyAccount = staffMenuSites.length > 0 && !hasOwnedMenuSites;
+  const accountRoleLabel = hasOwnedMenuSites ? "사장" : staffMenuSites.length > 0 ? "직원" : null;
 
   if (isStaffOnlyAccount && activeTab === "payments") {
-    redirect("/mypage?tab=menus");
+    redirect("/mypage?tab=menus&message=owner-commerce-permission-required");
   }
   if (isStaffOnlyAccount && activeTab === "menus" && activeMenuTab !== "active") {
-    redirect("/mypage?tab=menus&menuTab=active");
+    redirect("/mypage?tab=menus&menuTab=active&message=owner-menu-lifecycle-permission-required");
   }
 
   const menuSiteIds = sites
@@ -2136,7 +2160,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     });
     const visibilityBadge = isAccessRestricted ? null : getMenuVisibilityBadge(site.status);
     const serviceTypeBadge: MenuCardBadge = {
-      key: serviceBadge.label === "메뉴링크 디스플레이" ? "service:display" : "service:basic",
+      key: serviceBadge.label === "아티메뉴 디스플레이" ? "service:display" : "service:basic",
       label: serviceBadge.label,
       className: serviceBadge.className,
     };
@@ -2204,8 +2228,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       metaItems.push({ label: "결제방식", value: "체험 결제" });
       metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
+      const isFreeTrial = isActiveBusinessFreeTrial(activeBusinessSubscription);
       primaryMessage = isCancelScheduledActive
         ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."
+        : isFreeTrial
+          ? "30일 무료체험으로 이용 중입니다. 종료일에 첫 월결제가 진행됩니다."
         : site.status === "published"
           ? "현재 손님에게 공개 중입니다."
           : site.status === "draft"
@@ -2214,7 +2241,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       if (cancelAtPeriodEnd && periodEnd) {
         metaItems.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
       } else if (activeBusinessSubscription.next_billing_at) {
-        metaItems.push({ label: "다음 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
+        metaItems.push({ label: isFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
       } else if (periodEnd) {
         metaItems.push({ label: "이용 기간 종료일", value: formatDate(periodEnd) });
       } else {
@@ -2373,6 +2400,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
   const hasAnyMenuCards = totalMenuCardCount > 0;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
+  const activeNavigationKey: MypageNavigationKey = activeTab;
   function renderCreateMenuButton(extraClassName = "") {
     const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
 
@@ -2386,7 +2414,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
     const primaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800";
     const secondaryActionClassName = "inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100";
-    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400 opacity-70";
+    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400";
 
     function renderActionButton({
       label,
@@ -2438,7 +2466,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
-            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800">사장</span>
             {card.badges.map((badge) => (
               <span key={badge.key} className={`rounded-full px-3 py-1 text-xs font-black ${badge.className}`}>
                 {badge.label}
@@ -2476,30 +2503,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               primary: true,
             })}
             {renderActionButton({
-              label: "테이블 관리",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/tables` : null,
-              enabled: card.actions.canManageTables,
-              disabledReason: card.actions.editDisabledReason,
-            })}
-            {renderActionButton({
-              label: "주문관리",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/orders` : null,
-              enabled: card.actions.canManageOrders,
-              disabledReason: "주문관리 상품이 활성화되지 않았습니다.",
-            })}
-            {renderActionButton({
-              label: "매출 요약",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/sales` : null,
-              enabled: card.actions.canViewSales,
-              disabledReason: "매출 요약 상품이 활성화되지 않았습니다.",
-            })}
-            {renderActionButton({
-              label: "호출관리",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/calls` : null,
-              enabled: card.actions.canManageCalls,
-              disabledReason: "호출관리 상품이 활성화되지 않았습니다.",
-            })}
-            {renderActionButton({
               label: "미리보기",
               href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
               enabled: card.actions.canOwnerPreview,
@@ -2526,6 +2529,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
+    const enabledPrimaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800";
+    const enabledSecondaryActionClassName = "inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100";
+    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-black text-zinc-400";
+
     return (
       <article key={card.key} className="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -2541,7 +2548,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         </div>
 
         <p className="mt-4 break-keep text-sm font-bold leading-relaxed text-zinc-700">
-          직원 권한으로 참여한 메뉴판입니다. 사장 전용 결제·구독·보관·삭제 기능은 표시되지 않습니다.
+          직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
         </p>
 
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
@@ -2563,43 +2570,21 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           {card.canEdit ? (
             <Link
               href={`/mypage/menus/${card.siteId}/edit`}
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
+              className={enabledPrimaryActionClassName}
             >
               메뉴 편집
             </Link>
-          ) : null}
-          {card.canManageTables ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/tables`}
-              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-800 transition-colors hover:bg-emerald-100"
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="현재 직원 역할에는 메뉴 편집 권한이 없습니다."
+              aria-label="메뉴 편집 비활성화: 현재 직원 역할에는 메뉴 편집 권한이 없습니다."
+              className={disabledActionClassName}
             >
-              테이블 관리
-            </Link>
-          ) : null}
-          {card.canManageOrders ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/orders`}
-              className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-900 transition-colors hover:bg-amber-100"
-            >
-              주문관리
-            </Link>
-          ) : null}
-          {card.canViewSales ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/sales`}
-              className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-xs font-black text-sky-900 transition-colors hover:bg-sky-100"
-            >
-              매출 요약
-            </Link>
-          ) : null}
-          {card.canManageCalls ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/calls`}
-              className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-black text-rose-900 transition-colors hover:bg-rose-100"
-            >
-              호출관리
-            </Link>
-          ) : null}
+              메뉴 편집
+            </button>
+          )}
           <Link
             href={`/mypage/menus/${card.siteId}/preview`}
             target="_blank"
@@ -2613,11 +2598,21 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               href={card.publicPath}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+              className={enabledSecondaryActionClassName}
             >
               공개 메뉴판 보기
             </Link>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다."
+              aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다."
+              className={disabledActionClassName}
+            >
+              공개 메뉴판 보기
+            </button>
+          )}
         </div>
         {!card.canViewPublic ? (
           <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
@@ -2660,72 +2655,20 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           <aside className="space-y-4 lg:sticky lg:top-28">
-            <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <h2 className="break-all text-lg font-black tracking-tight">{user.email}</h2>
-              <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {user.id}</p>
-              {canShowOwnerCommerce ? (
-              <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">AI 도우미 크레딧</p>
-                    <p className="mt-2 text-lg font-black tracking-tight text-zinc-950">
-                      잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")} 크레딧
-                    </p>
-                  </div>
-                </div>
-                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-800/80">
-                  설명 작성, 메뉴 정리, 번역에 사용할 수 있어요.
-                </p>
-                <Link
-                  href="/mypage?tab=payments&billingTab=ai-credits"
-                  className="mt-3 inline-flex text-xs font-black text-emerald-800 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-950"
-                >
-                  AI 충전내역 보기
-                </Link>
-              </div>
-              ) : null}
-              <form action={signOutAction} className="mt-5">
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
-                >
-                  로그아웃
-                </button>
-              </form>
-            </section>
-
-            <nav className="rounded-3xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="마이페이지 메뉴">
-              <Link href="/mypage?tab=menus" className={getTabLinkClassName(activeTab === "menus")}>
-                <span>내 메뉴판</span>
-                <span className={`text-xs ${activeTab === "menus" ? "text-white/60" : "text-zinc-400"}`}>{totalMenuCardCount.toLocaleString("ko-KR")}</span>
-              </Link>
-              <div className="mt-2 space-y-1">
-                {canShowOwnerCommerce ? (
-                <Link href="/mypage?tab=payments" className={getTabLinkClassName(activeTab === "payments")}>
-                  <span>구독/결제 내역</span>
-                </Link>
-                ) : null}
-                {sites.length > 0 ? (
-                <Link href="/mypage/staff" className={getTabLinkClassName(false)}>
-                  <span>직원 관리</span>
-                </Link>
-                ) : null}
-                <Link href="/mypage?tab=inquiries" className={getTabLinkClassName(activeTab === "inquiries")}>
-                  <span>문의 내역</span>
-                </Link>
-                <Link href="/mypage?tab=notifications" className={getTabLinkClassName(activeTab === "notifications")}>
-                  <span>알림 내역</span>
-                  {unreadNotificationCount > 0 ? (
-                    <span className={`text-xs ${activeTab === "notifications" ? "text-white/60" : "text-zinc-400"}`}>
-                      {formatNotificationBadgeCount(unreadNotificationCount)}
-                    </span>
-                  ) : null}
-                </Link>
-                <Link href="/mypage?tab=account" className={getTabLinkClassName(activeTab === "account")}>
-                  <span>계정 정보</span>
-                </Link>
-              </div>
-            </nav>
+            <MypageAccountCard
+              email={user.email ?? "이메일 정보 없음"}
+              userId={user.id}
+              roleLabel={accountRoleLabel}
+              canShowOwnerCommerce={canShowOwnerCommerce}
+              accountAiCreditRemaining={canShowOwnerCommerce ? accountAiCreditRemaining : undefined}
+            />
+            <MypageNavigation
+              active={activeNavigationKey}
+              totalMenuCount={totalMenuCardCount}
+              canShowOwnerCommerce={canShowOwnerCommerce}
+              hasOwnedMenuSites={hasStaffManageableMenuSites}
+              unreadNotificationCount={unreadNotificationCount}
+            />
           </aside>
 
           <div className="min-w-0 space-y-10">
@@ -2750,17 +2693,25 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCardCount.toLocaleString("ko-KR")}</span>
                 </Link>
                 {canShowOwnerCommerce ? (
-                  <>
-                    <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
-                      보관 중
-                      <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{holdingMenuCards.length.toLocaleString("ko-KR")}</span>
-                    </Link>
-                    <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
-                      삭제됨
-                      <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
-                    </Link>
-                  </>
-                ) : null}
+                  <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
+                    보관 중
+                    <span className="ml-2 rounded-full px-2 py-0.5 text-xs">{holdingMenuCards.length.toLocaleString("ko-KR")}</span>
+                  </Link>
+                ) : (
+                  <span aria-disabled="true" aria-label="보관 중 권한 없음: 보관 중인 메뉴판은 사장만 관리할 수 있습니다." title="보관 중인 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
+                    보관 중 <span className="ml-2 text-[10px]">권한 없음</span>
+                  </span>
+                )}
+                {canShowOwnerCommerce ? (
+                  <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
+                    삭제됨
+                    <span className="ml-2 rounded-full px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
+                  </Link>
+                ) : (
+                  <span aria-disabled="true" aria-label="삭제됨 권한 없음: 삭제된 메뉴판은 사장만 관리할 수 있습니다." title="삭제된 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
+                    삭제됨 <span className="ml-2 text-[10px]">권한 없음</span>
+                  </span>
+                )}
               </nav>
 
           {mypageNotice ? (
@@ -2906,6 +2857,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const latestPayment = getLatestPaymentForService({ menuSiteId: menuSite?.id, productKey });
                         const latestPaymentStatus = latestPayment?.payment.status ?? null;
                         const isBusinessSubscription = Boolean(subscription?.id && !isPersonalTrial);
+                        const isBusinessFreeTrial = isActiveBusinessFreeTrial(subscription);
                         const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle);
                         const paymentDetailAmount = latestPayment?.payment.amount ?? amount;
                         const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
@@ -2949,12 +2901,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "체험 결제" : getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-black text-zinc-400">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일"}</dt>
+                                    <dt className="text-xs font-black text-zinc-400">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : isBusinessFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"}</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{formatDate(isPersonalTrial ? entitlement?.access_expires_at ?? null : cancelAtPeriodEnd ? periodEnd : subscription?.next_billing_at ?? null)}</dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">최근 결제일</dt>
-                                    <dd className="mt-1 font-bold text-zinc-900">{formatDate(latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? null)}</dd>
+                                    <dd className="mt-1 font-bold text-zinc-900">{isBusinessFreeTrial ? "첫 결제 전" : formatDate(latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? null)}</dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-black text-zinc-400">결제수단 / PG</dt>
@@ -2964,6 +2916,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                 {isPersonalTrial ? (
                                   <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">
                                     체험 종료 전 사업자 플랜으로 전환하면 현재 메뉴판을 이어서 사용할 수 있습니다.
+                                  </p>
+                                ) : null}
+                                {isBusinessFreeTrial ? (
+                                  <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                                    결제수단이 등록되어 있습니다. 체험 종료 전 해지하면 첫 결제 없이 종료일까지 이용할 수 있습니다.
                                   </p>
                                 ) : null}
                                 {isBusinessSubscription ? (
@@ -2995,17 +2952,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     refundConfirmEnabled={yearlyRefundConfirmEnabled}
                                   />
                                 ) : null}
-                                <PaymentDetailModal
-                                  productName={paymentDetailProductName}
-                                  statusLabel={getPaymentStatusLabel(latestPaymentStatus)}
-                                  statusTone={getPaymentStatusTone(latestPaymentStatus)}
-                                  paidAtLabel={formatDateTime(paymentDetailDate)}
-                                  amountLabel={typeof paymentDetailAmount === "number" ? formatKrw(paymentDetailAmount) : "-"}
-                                  pgLabel={paymentDetailPgLabel}
-                                  paymentIdLabel={paymentDetailId || "결제번호 확인 필요"}
-                                  receiptUrl={paymentDetailReceiptUrl}
-                                  menuName={menuSite?.name ?? null}
-                                />
+                                {latestPayment ? (
+                                  <PaymentDetailModal
+                                    productName={paymentDetailProductName}
+                                    statusLabel={getPaymentStatusLabel(latestPaymentStatus)}
+                                    statusTone={getPaymentStatusTone(latestPaymentStatus)}
+                                    paidAtLabel={formatDateTime(paymentDetailDate)}
+                                    amountLabel={typeof paymentDetailAmount === "number" ? formatKrw(paymentDetailAmount) : "-"}
+                                    pgLabel={paymentDetailPgLabel}
+                                    paymentIdLabel={paymentDetailId || "결제번호 확인 필요"}
+                                    receiptUrl={paymentDetailReceiptUrl}
+                                    menuName={menuSite?.name ?? null}
+                                  />
+                                ) : null}
                                 {menuSite?.id ? (
                                   <Link href={`/mypage/menus/${menuSite.id}/edit`} className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
                                     연결 메뉴판 보기

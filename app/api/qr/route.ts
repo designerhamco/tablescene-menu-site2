@@ -63,7 +63,7 @@ export async function GET(request: Request) {
   return new Response(new Uint8Array(pngBuffer), {
     headers: {
       "Content-Type": "image/png",
-      "Content-Disposition": `attachment; filename="menulink-${slug}-qr.png"`,
+      "Content-Disposition": `attachment; filename="arti-menu-${slug}-qr.png"`,
       "Cache-Control": "private, no-store",
     },
   });

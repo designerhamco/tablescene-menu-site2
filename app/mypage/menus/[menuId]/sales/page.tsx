@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   getSalesSummaryDashboard,
   SalesSummaryError,
 } from "@/lib/server/sales-summary-service";
+import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 
 export const metadata: Metadata = {
-  title: "매출 요약 | 메뉴링크",
+  title: "매출 요약 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 
@@ -43,28 +45,34 @@ export default async function SalesSummaryPage({
         redirect(`/sign-in?next=${encodeURIComponent(`/mypage/menus/${menuId}/sales`)}`);
       }
       if (error.status === 404) notFound();
+      if (error.code === "MENU_SITE_PERMISSION_DENIED") {
+        redirect(`/mypage/operations?site=${encodeURIComponent(menuId)}&message=permission-denied&feature=sales`);
+      }
     }
     if (error instanceof SalesSummaryError) {
       if (error.code === "INVALID_INPUT" || error.code === "MENU_SITE_NOT_FOUND") notFound();
       if (error.code === "DASHBOARD_UNAVAILABLE") {
-        redirect("/mypage?tab=menus&message=sales-dashboard-locked");
+        redirect(`/mypage/operations?site=${encodeURIComponent(menuId)}`);
       }
     }
     throw error;
+  }
+
+  const operationsContext = await getStoreOperationsContext(menuId);
+  const selectedSite = operationsContext.sites.find((site) => site.menuSiteId === menuId) ?? null;
+  if (!selectedSite?.operationAccess.sales) {
+    redirect("/mypage/operations");
   }
 
   const { summary } = data;
   const visibleDays = summary.days.slice(0, summary.today.date.endsWith("-01") ? 1 : Number(summary.today.date.slice(-2))).reverse();
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 md:px-8 md:py-16">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="sales">
+      <div className="space-y-8">
         <header>
-          <Link href="/mypage?tab=menus" className="text-sm font-black text-emerald-700 hover:text-emerald-900">
-            ← 내 메뉴판으로 돌아가기
-          </Link>
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">매출 요약</h1>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight">매출요약</h2>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             한국 시간 기준으로 주문 접수 수와 외부 결제 완료 금액을 확인합니다. 정산·PG 매출 보고서가 아닌 매장 운영용 요약입니다.
           </p>
@@ -186,6 +194,6 @@ export default async function SalesSummaryPage({
           결제 완료액과 메뉴별 판매량은 현재 상태가 외부 결제 완료 또는 PG 결제 완료인 주문만 포함합니다. 취소·환불 상태는 제외하며 세금계산서, PG 정산, 수수료를 반영하지 않습니다.
         </p>
       </div>
-    </main>
+    </StoreOperationsShell>
   );
 }

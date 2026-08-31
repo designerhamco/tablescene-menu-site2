@@ -1,4 +1,4 @@
-# MenuLink 전체 고객 흐름 QA
+# ArtiMenu 전체 고객 흐름 QA
 
 최종 갱신: 2026-08-15
 
@@ -36,7 +36,8 @@
 | `orderCallQa=call` / `order` / `no-session` | Call-only·Order-only 독립 노출과 세션 없음 action 비노출 확인 |
 | `/templates/display_menu_a/preview?orderCallQa=active` | Display에서 공통 Order/Call header 전체 비노출 확인 |
 | `/mypage/menus/[menuId]/preview?device=tablet` | orientation query가 없어도 가로 1180×820을 기본으로 표시하고 세로 전환 링크 제공 |
-| `device=mobile` / `device=mobile&payment=on` | 선택 설명과 결제 배지로 PG 미사용/사용을 첫 화면부터 구분하고 메뉴별 담기 바텀시트·토스트·장바구니 수정/삭제·후불/지금 결제를 fixture로 표시하며 실제 호출·주문·결제 write 없음 |
+| `device=mobile` | 장기 비활성 Order/PG UI를 노출하지 않고, 멀티페이지 템플릿에서만 스마트호출 preview를 표시하며 실제 호출 write 없음 |
+| `/templates/dining_aube_table_a/preview` 모바일 | 그림자 없는 실선 header, 매장명 없는 table label, 화면 안에 열리는 `KR/EN/CN/JP` 언어 menu, 오른쪽 스마트호출 아이콘과 white bottom sheet 확인 |
 | `/mypage?tab=menus` 비로그인 접근 | `/sign-in?next=/mypage`로 보호 |
 
 브라우저에 남아 있던 `StaffCallDialog.tsx` missing 로그는 PR #28 병합 전 개발 서버의 과거 시각 로그였다. 서버를 최신 코드로 재시작한 뒤 해당 파일이 포함된 production build와 template route가 정상 로드됐다.
@@ -49,6 +50,7 @@
 - 미리보기·공개·일반 QR: 공통 renderer, 기기 프레임, 공개 route, QR 분리 계약이 구현·빌드돼 있다.
 - table session·Order·Call의 보안 계약: hash-only token, HttpOnly session, service-role-only DB 접근, idempotency, rate limit, permission과 staff write audit 테스트가 통과했다.
 - Order·Call 공개 config를 공통 gate로 결합해 유효 세션·Business Basic·template 지원·각 runtime allowlist가 모두 통과할 때만 기능별 action과 주문 catalog가 활성화된다. 로컬 QA fixture 4종과 Display 제외 화면에서 console warning/error 없이 확인했다.
+- 오브 테이블 공개 템플릿 미리보기는 실제 전송 없이 우측 하단 스마트호출 버튼, 테이블 번호, 관리자 데이터와 동일한 기본 4개 항목명, 선택·전송·취소 상태를 확인할 수 있다. 별도 요청 상세설명은 표시하거나 저장하지 않는다. 실제 공개 메뉴의 전송은 기존 table visit session·Business 멀티페이지·Call runtime·site allowlist를 모두 통과해야 한다.
 - 주문관리·수동 결제·매출·앱 내 알림과 사용자 선택형 브라우저 알림의 default-off route가 production build에 포함됐다.
 
 ### Production 직원 초대 E2E 완료

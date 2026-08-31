@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "메뉴링크 베이직 신청/결제 | MenuLink",
-  description: "개인 체험과 사업자 정식 결제를 선택할 수 있는 메뉴링크 베이직 신청 페이지로 이동합니다.",
+  title: "아티메뉴 다이닝 신청/결제 | ArtiMenu",
+  description: "결제수단 등록 후 30일 무료체험이 적용되는 아티메뉴 다이닝 단일페이지 월결제 신청 페이지로 이동합니다.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -21,6 +21,8 @@ function createRedirectPath(searchParams: Record<string, string | string[] | und
       params.set(key, value);
     }
   }
+
+  params.set("product", "business_basic_single_monthly");
 
   const query = params.toString();
   return query ? `/apply/basic?${query}` : "/apply/basic";

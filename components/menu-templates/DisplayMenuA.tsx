@@ -1,15 +1,26 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Clock3 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
+import {
+  canShowDisplayMenuTimeSale,
+  getActiveDisplayMenuTimeSalesByItemId,
+  type DisplayMenuTimeSaleMatch,
+} from "@/lib/display-menu-time-sales";
 import {
   normalizeMenuPageDisplaySettings,
   type MenuPageDisplaySettings,
 } from "@/lib/display-page-settings";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
+import { getMenuTimeSaleAuxiliaryLabels } from "@/lib/menu-time-sale-display";
+import {
+  getReadableTextColorForTimeSaleBadge,
+  normalizeTimeSaleBadgeBackgroundColor,
+} from "@/lib/menu-time-sales";
 import { getBadgeStyleCss, getBadgeStyleForItem } from "@/lib/template-badge-styles";
 import { getCustomTypographySettings, getEnglishFontLoadAssets, getFontSizeMultiplier, getKoreanFontLoadAssets, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
 import { sortMenuPages } from "@/types/menu";
@@ -21,6 +32,7 @@ type DisplayCategory = PublicMenuTemplateProps["categories"][number];
 type DisplayItem = PublicMenuTemplateProps["items"][number];
 type DisplayPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type DisplayLocale = PublicMenuTemplateProps["locale"];
+type DisplayMenuTimeSaleMap = Map<string, DisplayMenuTimeSaleMatch>;
 
 const DISPLAY_SOLD_OUT_LABELS: Record<DisplayLocale, string> = {
   ko: "품절",
@@ -250,6 +262,42 @@ function formatDisplayMenuAPrice(price: number | null | undefined, priceLabel?: 
   if (typeof price === "number" && Number.isFinite(price)) return formatDisplayMenuAKrwPrice(price);
   if (priceLabel) return parseDisplayMenuAPriceLabel(priceLabel);
   return "";
+}
+
+function getDisplayTimeSaleBadgeStyle(timeSale: DisplayMenuTimeSaleMatch["promotion"]): CSSProperties {
+  const backgroundColor = normalizeTimeSaleBadgeBackgroundColor(timeSale.badgeBackgroundColor);
+  return {
+    backgroundColor,
+    borderColor: backgroundColor,
+    color: getReadableTextColorForTimeSaleBadge(backgroundColor),
+  };
+}
+
+function DisplayTimeSalePrice({
+  originalPrice,
+  salePrice,
+  densityConfig,
+  accentColor,
+}: {
+  originalPrice: string;
+  salePrice: string;
+  densityConfig: DisplayDensityConfig;
+  accentColor: string;
+}) {
+  return (
+    <span
+      className="cafe-a-menu-price inline-flex items-baseline justify-end whitespace-nowrap font-bold leading-none"
+      style={{ ...densityConfig.priceStyle, columnGap: "calc(var(--display-row) * 0.12)" }}
+      data-display-time-sale-price=""
+    >
+      <span className="text-[0.62em] font-bold line-through decoration-1 text-[var(--display-muted-text-color)]">
+        {originalPrice}
+      </span>
+      <span className="font-black" style={{ color: accentColor }}>
+        {salePrice}
+      </span>
+    </span>
+  );
 }
 
 function getPriceOptionRow(option: DisplayPriceOption): DisplayPriceRow | null {
@@ -769,20 +817,43 @@ function MenuItemRow({
   densityConfig,
   optionHeaders,
   locale,
+  timeSale,
+  nowMs,
 }: {
   item: DisplayItem;
   priceOptions: DisplayPriceOption[];
   densityConfig: DisplayDensityConfig;
   optionHeaders: DisplayOptionHeader[];
   locale: DisplayLocale;
+  timeSale?: DisplayMenuTimeSaleMatch;
+  nowMs: number;
 }) {
   const badge = getMenuItemBadgeLabel(item);
   const isSoldOut = item.is_sold_out === true;
   const itemName = normalizeDisplayText(item.name) || "";
+  const itemPriceOptions = priceOptions.filter((option) => option.menu_item_id === item.id && option.visible);
   const priceRows = getItemPriceRows(item, priceOptions);
   const badgeStyle = badge ? getBadgeStyleForItem(item, "display_menu_a") : null;
   const optionPriceByLabel = optionHeaders.length > 0 ? getItemPriceByOptionLabel(item, priceOptions) : null;
   const optionGridStyle = optionHeaders.length > 0 ? getOptionGridStyle(optionHeaders) : null;
+  const showTimeSale = Boolean(
+    timeSale &&
+      canShowDisplayMenuTimeSale({
+        item,
+        target: timeSale.item,
+        hasPriceOptions: itemPriceOptions.length > 0,
+      }),
+  );
+  const timeSaleTarget = showTimeSale ? timeSale?.item : null;
+  const timeSaleAccentColor = showTimeSale && timeSale
+    ? normalizeTimeSaleBadgeBackgroundColor(timeSale.promotion.badgeBackgroundColor)
+    : null;
+  const timeSalePrice = timeSaleTarget
+    ? formatDisplayMenuAPrice(timeSaleTarget.salePrice, timeSaleTarget.salePriceLabel)
+    : "";
+  const timeSaleAuxiliaryLabel = showTimeSale && timeSale
+    ? getMenuTimeSaleAuxiliaryLabels(timeSale.promotion, nowMs, locale).join(" · ")
+    : "";
 
   return (
     <article
@@ -804,15 +875,24 @@ function MenuItemRow({
               >
                 {renderDisplayTypographyText(itemName)}
               </h4>
-              {densityConfig.showBadge && (isSoldOut || badge) && (
+              {densityConfig.showBadge && (isSoldOut || showTimeSale || badge) && (
                 <span
                   className={`menu-badge cafe-a-menu-badge inline-flex shrink-0 rounded-[2px] font-black uppercase leading-none tracking-normal ${isSoldOut ? "cafe-a-sold-out-chip" : ""}`}
                   style={{
                     ...densityConfig.badgeStyle,
-                    ...(!isSoldOut && badgeStyle ? getBadgeStyleCss(badgeStyle) : {}),
+                    ...(!isSoldOut && showTimeSale && timeSale
+                      ? getDisplayTimeSaleBadgeStyle(timeSale.promotion)
+                      : !isSoldOut && badgeStyle
+                        ? getBadgeStyleCss(badgeStyle)
+                        : {}),
                   }}
+                  data-display-time-sale-badge={showTimeSale ? "" : undefined}
                 >
-                  {isSoldOut ? DISPLAY_SOLD_OUT_LABELS[locale] : badge}
+                  {isSoldOut
+                    ? DISPLAY_SOLD_OUT_LABELS[locale]
+                    : showTimeSale && timeSale
+                      ? timeSale.promotion.badgeText
+                      : badge}
                 </span>
               )}
             </span>
@@ -822,6 +902,16 @@ function MenuItemRow({
               </span>
             )}
           </div>
+          {timeSaleAuxiliaryLabel && timeSaleAccentColor ? (
+            <span
+              className="menu-font-en flex min-w-0 items-center gap-[0.28em] truncate font-black uppercase tabular-nums"
+              style={{ ...densityConfig.metaStyle, color: timeSaleAccentColor }}
+              data-display-time-sale-label=""
+            >
+              <Clock3 aria-hidden="true" className="h-[0.9em] w-[0.9em] shrink-0" strokeWidth={2.2} />
+              <span className="truncate tracking-normal">{timeSaleAuxiliaryLabel}</span>
+            </span>
+          ) : null}
         </div>
         {optionHeaders.length > 0 && optionGridStyle ? (
           <div className="menu-price cafe-a-price-options-grid grid shrink-0 justify-items-center text-center text-[var(--display-text-color)]" style={optionGridStyle}>
@@ -832,9 +922,20 @@ function MenuItemRow({
                 </span>
               ))
             ) : priceRows[0]?.price ? (
-              <span className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[var(--display-text-color)]" style={{ ...densityConfig.priceStyle, gridColumn: "1 / -1" }}>
-                {priceRows[0].price}
-              </span>
+              showTimeSale && timeSalePrice && timeSaleAccentColor ? (
+                <span className="block w-full text-center" style={{ gridColumn: "1 / -1" }}>
+                  <DisplayTimeSalePrice
+                    originalPrice={priceRows[0].price}
+                    salePrice={timeSalePrice}
+                    densityConfig={densityConfig}
+                    accentColor={timeSaleAccentColor}
+                  />
+                </span>
+              ) : (
+                <span className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[var(--display-text-color)]" style={{ ...densityConfig.priceStyle, gridColumn: "1 / -1" }}>
+                  {priceRows[0].price}
+                </span>
+              )
             ) : null}
           </div>
         ) : priceRows.length > 0 ? (
@@ -846,9 +947,18 @@ function MenuItemRow({
                     {row.label}
                   </span>
                 ) : null}
-                <span className="cafe-a-menu-price whitespace-nowrap font-bold leading-none text-[var(--display-text-color)]" style={densityConfig.priceStyle}>
-                  {row.price}
-                </span>
+                {showTimeSale && index === 0 && timeSalePrice && timeSaleAccentColor ? (
+                  <DisplayTimeSalePrice
+                    originalPrice={row.price}
+                    salePrice={timeSalePrice}
+                    densityConfig={densityConfig}
+                    accentColor={timeSaleAccentColor}
+                  />
+                ) : (
+                  <span className="cafe-a-menu-price whitespace-nowrap font-bold leading-none text-[var(--display-text-color)]" style={densityConfig.priceStyle}>
+                    {row.price}
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -865,6 +975,8 @@ function CategoryBlock({
   priceOptions,
   densityConfig,
   locale,
+  timeSaleByItemId,
+  nowMs,
 }: {
   category: DisplayCategory;
   items: DisplayItem[];
@@ -872,6 +984,8 @@ function CategoryBlock({
   priceOptions: DisplayPriceOption[];
   densityConfig: DisplayDensityConfig;
   locale: DisplayLocale;
+  timeSaleByItemId: DisplayMenuTimeSaleMap;
+  nowMs: number;
 }) {
   const optionHeaders = providedOptionHeaders ?? getCategoryOptionHeaders(items, priceOptions);
   const optionGridStyle = optionHeaders.length > 0 ? getOptionGridStyle(optionHeaders) : null;
@@ -905,7 +1019,16 @@ function CategoryBlock({
         data-display-category-item-grid="1"
       >
         {items.map((item) => (
-          <MenuItemRow key={item.id} item={item} priceOptions={priceOptions} densityConfig={densityConfig} optionHeaders={optionHeaders} locale={locale} />
+          <MenuItemRow
+            key={item.id}
+            item={item}
+            priceOptions={priceOptions}
+            densityConfig={densityConfig}
+            optionHeaders={optionHeaders}
+            locale={locale}
+            timeSale={timeSaleByItemId.get(item.id)}
+            nowMs={nowMs}
+          />
         ))}
       </div>
     </section>
@@ -918,12 +1041,16 @@ function DisplayMenuColumn({
   densityConfig,
   rowCqh,
   locale,
+  timeSaleByItemId,
+  nowMs,
 }: {
   groups: DisplayCategoryBlock[];
   priceOptions: DisplayPriceOption[];
   densityConfig: DisplayDensityConfig;
   rowCqh: number;
   locale: DisplayLocale;
+  timeSaleByItemId: DisplayMenuTimeSaleMap;
+  nowMs: number;
 }) {
   return (
     <div
@@ -957,6 +1084,8 @@ function DisplayMenuColumn({
               priceOptions={priceOptions}
               densityConfig={densityConfig}
               locale={locale}
+              timeSaleByItemId={timeSaleByItemId}
+              nowMs={nowMs}
             />
           ))}
         </div>
@@ -974,6 +1103,8 @@ function MenuList({
   columns = "auto",
   fontSizeScale,
   locale,
+  timeSaleByItemId,
+  nowMs,
 }: {
   page: DisplayPage;
   categories: DisplayCategory[];
@@ -983,6 +1114,8 @@ function MenuList({
   columns?: "auto" | "single";
   fontSizeScale: number;
   locale: DisplayLocale;
+  timeSaleByItemId: DisplayMenuTimeSaleMap;
+  nowMs: number;
 }) {
   const categoryBlocks = providedCategoryBlocks ?? getCategoryBlocksForPage(page, categories, items, priceOptions);
   const renderedItemCount = getRenderedItemCount(categoryBlocks);
@@ -993,8 +1126,12 @@ function MenuList({
     columns,
     fontSizeScale,
     categoryBlocks.map((group) => `${group.category.id}:${group.items.map((item) => item.id).join(",")}:${group.optionHeaders?.map((header) => header.label).join(",") ?? ""}`).join("|"),
+    categoryBlocks.flatMap((group) => group.items).map((item) => {
+      const match = timeSaleByItemId.get(item.id);
+      return match ? `${item.id}:${match.promotion.id}` : "";
+    }).filter(Boolean).join("|"),
     priceOptionCount,
-  ].join("::"), [categoryBlocks, columns, fontSizeScale, page.id, priceOptionCount]);
+  ].join("::"), [categoryBlocks, columns, fontSizeScale, page.id, priceOptionCount, timeSaleByItemId]);
   const [storedFitState, setStoredFitState] = useState<DisplayFitState>(DISPLAY_FIT_INITIAL_STATE);
   const fitState = storedFitState.key === fitInputKey
     ? storedFitState
@@ -1103,6 +1240,8 @@ function MenuList({
             densityConfig={densityConfig}
             rowCqh={effectiveRowCqh}
             locale={locale}
+            timeSaleByItemId={timeSaleByItemId}
+            nowMs={nowMs}
           />
         ))}
       </div>
@@ -1133,6 +1272,8 @@ function FullMenuPageView(props: {
   categoryBlocks?: DisplayCategoryBlock[];
   fontSizeScale: number;
   locale: DisplayLocale;
+  timeSaleByItemId: DisplayMenuTimeSaleMap;
+  nowMs: number;
 }) {
   return (
     <section className="h-full min-h-0">
@@ -1150,6 +1291,8 @@ function SplitMenuPageView(props: {
   categoryBlocks?: DisplayCategoryBlock[];
   fontSizeScale: number;
   locale: DisplayLocale;
+  timeSaleByItemId: DisplayMenuTimeSaleMap;
+  nowMs: number;
 }) {
   const imageFirst = props.settings.splitImagePosition !== "right";
   const menuPanel = (
@@ -1235,10 +1378,14 @@ function DisplayPageView({
   renderPage,
   data,
   fontSizeScale,
+  timeSaleByItemId,
+  nowMs,
 }: {
   renderPage: DisplayRenderPage;
   data: PublicMenuTemplateProps;
   fontSizeScale: number;
+  timeSaleByItemId: DisplayMenuTimeSaleMap;
+  nowMs: number;
 }) {
   const { page, categoryBlocks } = renderPage;
   const settings = normalizeMenuPageDisplaySettings(page.display_settings);
@@ -1258,6 +1405,8 @@ function DisplayPageView({
         categoryBlocks={categoryBlocks ?? undefined}
         fontSizeScale={fontSizeScale}
         locale={data.locale}
+        timeSaleByItemId={timeSaleByItemId}
+        nowMs={nowMs}
       />
     );
   }
@@ -1271,6 +1420,8 @@ function DisplayPageView({
       categoryBlocks={categoryBlocks ?? undefined}
       fontSizeScale={fontSizeScale}
       locale={data.locale}
+      timeSaleByItemId={timeSaleByItemId}
+      nowMs={nowMs}
     />
   );
 }
@@ -1315,6 +1466,83 @@ function DisplayPageIndicator({
   );
 }
 
+function useDisplayTimeSaleNowMs(
+  timeSales: PublicMenuTemplateProps["timeSales"],
+  initialNowMs: number,
+) {
+  const [nowMs, setNowMs] = useState(() => Number.isFinite(initialNowMs) ? initialNowMs : Date.now());
+
+  useEffect(() => {
+    if (timeSales.length === 0) return undefined;
+
+    const refreshNow = () => setNowMs(Date.now());
+    const needsLiveCountdown = timeSales.some(
+      (timeSale) => timeSale.timeDisplayMode === "countdown" || timeSale.timeDisplayMode === "message_and_countdown",
+    );
+    const intervalId = window.setInterval(refreshNow, needsLiveCountdown ? 1_000 : 30_000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") refreshNow();
+    };
+
+    refreshNow();
+    window.addEventListener("focus", refreshNow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshNow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [timeSales]);
+
+  return nowMs;
+}
+
+function useDisplayNextTimeSaleStartRefresh(
+  nextTimeSaleStartAt: string | null | undefined,
+  enabled: boolean,
+) {
+  const router = useRouter();
+  const handledBoundaryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!enabled || !nextTimeSaleStartAt) return undefined;
+
+    const boundaryMs = Date.parse(nextTimeSaleStartAt);
+    if (!Number.isFinite(boundaryMs)) return undefined;
+
+    let timeoutId: number | null = null;
+    const refreshAtBoundary = () => {
+      if (handledBoundaryRef.current === nextTimeSaleStartAt) return;
+      handledBoundaryRef.current = nextTimeSaleStartAt;
+      router.refresh();
+    };
+    const scheduleRefresh = () => {
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+      const delayMs = boundaryMs - Date.now();
+      if (delayMs <= 0) {
+        refreshAtBoundary();
+        timeoutId = null;
+        return;
+      }
+      timeoutId = window.setTimeout(refreshAtBoundary, Math.min(delayMs + 25, 2_147_483_647));
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") scheduleRefresh();
+    };
+
+    scheduleRefresh();
+    window.addEventListener("focus", scheduleRefresh);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+      window.removeEventListener("focus", scheduleRefresh);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [enabled, nextTimeSaleStartAt, router]);
+}
+
 export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -1336,6 +1564,12 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     "--display-accent-border-color": DISPLAY_COOL_ACCENT_BORDER_COLOR,
   } as CSSProperties;
   const fontSizeScale = getFontSizeMultiplier(typographySettings.font_size_scale_key, props.menuSite.template_key);
+  const timeSaleNowMs = useDisplayTimeSaleNowMs(props.timeSales, props.initialNowMs);
+  const timeSaleByItemId = useMemo(
+    () => getActiveDisplayMenuTimeSalesByItemId(props.timeSales, timeSaleNowMs),
+    [props.timeSales, timeSaleNowMs],
+  );
+  useDisplayNextTimeSaleStartRefresh(props.nextTimeSaleStartAt, props.mode === "public");
   const displayPages = useMemo(
     () => buildDisplayRenderPages({
       pages,
@@ -1362,7 +1596,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const activeSettings = activePage ? normalizeMenuPageDisplaySettings(activePage.display_settings) : null;
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
-  const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "MenuLink Display";
+  const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "ArtiMenu Display";
 
   function selectDisplayPage(pageId: string) {
     setSelectedPageId(pageId);
@@ -1428,7 +1662,13 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
         }`}>
           <div className="relative flex h-full min-h-0 flex-col">
             <div className="min-h-0 flex-1">
-              <DisplayPageView renderPage={activeRenderPage} data={props} fontSizeScale={fontSizeScale} />
+              <DisplayPageView
+                renderPage={activeRenderPage}
+                data={props}
+                fontSizeScale={fontSizeScale}
+                timeSaleByItemId={timeSaleByItemId}
+                nowMs={timeSaleNowMs}
+              />
             </div>
           </div>
         </section>

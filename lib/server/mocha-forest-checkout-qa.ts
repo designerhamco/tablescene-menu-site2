@@ -47,7 +47,7 @@ function exposeMochaForestTemplateForQa(template: TemplateCatalogItem): Template
   return {
     ...template,
     service: "basic",
-    serviceLabel: "메뉴링크 베이직",
+    serviceLabel: "아티메뉴 다이닝",
     supported_services: BASIC_SERVICE_LIST,
     supportedServices: BASIC_SERVICE_LIST,
     status: "available",

@@ -74,11 +74,11 @@ const conversionProducts = [businessBasicMonthlyProduct, businessBasicYearlyProd
 const convertConsentItems: readonly ConsentAgreementItem[] = [
   {
     key: "termsAccepted",
-    label: "[필수] 메뉴링크 이용약관에 동의합니다.",
+    label: "[필수] 아티메뉴 이용약관에 동의합니다.",
     required: true,
     href: "/terms",
-    detailTitle: "메뉴링크 이용약관 동의",
-    detail: <ConsentDetailText><p>메뉴링크 서비스 이용, 첫 달 체험, 유료서비스, 정기결제, 해지, 환불 제한, AI 크레딧, 데이터 보관 및 삭제 기준을 확인하고 동의합니다.</p></ConsentDetailText>,
+    detailTitle: "아티메뉴 이용약관 동의",
+    detail: <ConsentDetailText><p>아티메뉴 서비스 이용, 첫 달 체험, 유료서비스, 정기결제, 해지, 환불 제한, AI 크레딧, 데이터 보관 및 삭제 기준을 확인하고 동의합니다.</p></ConsentDetailText>,
   },
   {
     key: "businessInfoAccepted",
@@ -134,7 +134,7 @@ function getRequiredError(label: string, value: string) {
 }
 
 export default function BusinessPlanConvertPanel({ menuSiteId, storeId, billingChannelKey }: BusinessPlanConvertPanelProps) {
-  const [selectedProductKey, setSelectedProductKey] = useState<BasicProductKey>("business_basic_monthly");
+  const [selectedProductKey, setSelectedProductKey] = useState<BasicProductKey>("business_basic_single_monthly");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [consents, setConsents] = useState<Record<ConvertConsentKey, boolean>>({
     termsAccepted: false,
@@ -366,8 +366,8 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
       <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
         <h2 className="text-2xl font-black tracking-tight">사업자 플랜 선택</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-          현재 메뉴판은 메뉴링크 베이직 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 메뉴링크 베이직 사업자 플랜으로 전환할 수 있습니다.
-          메뉴링크 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
+          현재 메뉴판은 아티메뉴 다이닝 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 아티메뉴 다이닝 사업자 플랜으로 전환할 수 있습니다.
+          아티메뉴 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -470,7 +470,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} placeholder="메뉴링크카페" required />
+          <Field label="상호명" value={form.businessName} onChange={(value) => updateField("businessName", value)} placeholder="아티메뉴카페" required />
           <Field label="대표자명" value={form.representativeName} onChange={(value) => updateField("representativeName", value)} placeholder="홍길동" required />
           <Field label="사업자등록번호" value={form.businessNumber} onChange={(value) => updateField("businessNumber", value)} placeholder="123-45-67890" required />
           <Field label="개업일자" value={form.openingDate} onChange={(value) => updateField("openingDate", value)} placeholder="2024-01-15 또는 20240115" required />

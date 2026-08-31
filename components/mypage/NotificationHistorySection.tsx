@@ -91,7 +91,7 @@ export default function NotificationHistorySection({ events }: NotificationHisto
         <div>
           <h2 className="text-3xl font-bold tracking-tight">알림 내역</h2>
           <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-            메뉴링크 이용 중 발생한 알림과 중요한 안내를 확인할 수 있습니다.
+            아티메뉴 이용 중 발생한 알림과 중요한 안내를 확인할 수 있습니다.
           </p>
         </div>
       </div>
@@ -156,7 +156,7 @@ export default function NotificationHistorySection({ events }: NotificationHisto
         <article className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
           <h3 className="text-2xl font-bold">새 알림이 없습니다.</h3>
           <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
-            메뉴링크 이용 중 새 알림이 생기면 이곳에 표시됩니다.
+            아티메뉴 이용 중 새 알림이 생기면 이곳에 표시됩니다.
           </p>
         </article>
       )}

@@ -1,10 +1,10 @@
 # Service Lifecycle Hard Delete Runbook
 
-This runbook documents the pre-execute checklist for MenuLink service data deletion.
+This runbook documents the pre-execute checklist for ArtiMenu service data deletion.
 
 ## 1. Lifecycle Policy
 
-MenuLink service lifecycle:
+ArtiMenu service lifecycle:
 
 ```text
 Active service

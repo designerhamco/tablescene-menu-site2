@@ -112,6 +112,10 @@ type RetentionMaintenanceResult = {
 };
 
 const SUBSCRIPTION_PRODUCT_KEYS = [
+  "business_basic_single_monthly",
+  "business_basic_single_yearly",
+  "business_basic_multi_monthly",
+  "business_basic_multi_yearly",
   "business_basic_monthly",
   "business_basic_yearly",
   "business_display_monthly",
@@ -194,11 +198,7 @@ function createRenewalPaymentId(subscription: DueSubscription, periodStart: Date
 }
 
 function getOrderName(product: SubscriptionProduct) {
-  if (product.serviceType === "display") {
-    return product.billingCycle === "yearly" ? "메뉴링크 디스플레이 연결제" : "메뉴링크 디스플레이 월결제";
-  }
-
-  return product.billingCycle === "yearly" ? "메뉴링크 베이직 연결제" : "메뉴링크 베이직 월결제";
+  return product.name;
 }
 
 function getSafePortOneMessage(error: unknown) {

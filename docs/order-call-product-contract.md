@@ -1,12 +1,17 @@
-# MenuLink Order·Call Product Contract
+# ArtiMenu Order·Call Product Contract
 
-Last updated: 2026-08-06
+Last updated: 2026-08-30
 
 ## 1. Purpose
 
-This document defines the product contract for future MenuLink Order and Call features before implementation.
+This document records the current ArtiMenu Dining feature boundary and preserves the dormant Order implementation contract for a possible distant relaunch.
 
-The goal is to keep Order and Call independent from individual menu templates while making their relationship to Basic, Multi-page, table QR, checkout, store operations, and permissions explicit.
+Current launch policy takes precedence over historical Order sections below:
+
+- Single-page Dining: KRW 5,900/month, discount and widgets included, multi-page/Smart Call/Order excluded.
+- Multi-page Dining: KRW 9,900/month, discount and Smart Call included, widgets/Order excluded.
+- QR Order and restaurant PG are dormant for the foreseeable future. Existing code and schema remain for compatibility, but public UI and writes stay fail-closed.
+- `dining_aube_table_a` is the production-candidate Multi-page design. It remains hidden until its additive migration and final visual review are approved. Brew Chapter is a retired compatibility renderer.
 
 Status labels:
 
@@ -17,26 +22,28 @@ Status labels:
 
 ## 2. Product Definitions
 
-### MenuLink Basic / Multi-page
+### ArtiMenu Basic / Multi-page
 
-- 확정: Basic and Multi-page are the public digital menu products.
-- 확정: They provide menu names, prices, descriptions, images, multilingual content, sold-out state, time sales, widgets, and public menu rendering.
-- 확정: They must work without Order or Call.
-- 확정: Multi-page uses a dedicated menu presentation engine, but Order and Call must integrate through the same common layer used by Basic One-page.
+- 확정: Single-page and Multi-page are distinct Dining price tiers and templates can switch only within the purchased tier.
+- 확정: Both tiers provide menu names, prices, descriptions, images, multilingual content, sold-out state, time sales, and public menu rendering.
+- 확정: Single-page includes widgets and excludes Smart Call.
+- 확정: Multi-page excludes widgets and includes Smart Call through the common public Call Layer.
+- 확정: Both tiers exclude Order.
 
-### MenuLink Order
+### ArtiMenu Order
 
-- 확정: Order is an add-on layer attached to a public menu.
-- 확정: Order is not a separate template.
-- 확정: All supported templates must use the same common Order Layer.
-- 확정: Cart and order submission must not be implemented separately inside each template renderer.
+- 확정: Order is dormant and is not sold, advertised as available, or activated by an environment variable.
+- 확정: Existing cart, postpay, dashboard, and PG-related code remains compatibility-only for a possible future product review.
+- 확정: A future relaunch requires a new explicit product decision and must keep Order outside individual template renderers.
 
-### MenuLink Call
+### ArtiMenu Call
 
 - 확정: Call lets a seated table request staff assistance.
-- 확정: Call can be enabled independently of Order.
-- 확정: Call-only usage is allowed.
-- 확정: All supported templates must use the same common Call Layer.
+- 확정: Smart Call is bundled only with the Multi-page Dining tier.
+- 확정: Single-page, Display, and dormant Order surfaces do not expose Smart Call.
+- 확정: All Multi-page templates use the same common Call Layer, table QR/session boundary, and store Call dashboard.
+- 확정: The starter set contains four label-only choices (`물 요청`, `식기 요청`, `테이블 정리`, `직원 호출`); the generic staff fallback is presented last to guests, while owners can rename, reorder, activate, deactivate, add, or archive choices in Call management.
+- 확정: Call choices have no separate public detail-description field. The guest modal displays the owner-managed label exactly as stored.
 
 ### Display
 
@@ -68,7 +75,7 @@ Status labels:
 
 ## 4. Service And Entitlement Relationship
 
-Order and Call are separate capability/entitlement concepts, not template features.
+Order remains a dormant capability. Smart Call is a Multi-page Dining tier capability and is still enforced independently at the server boundary.
 
 Conceptual capabilities:
 
@@ -80,23 +87,21 @@ Conceptual capabilities:
 
 Policies:
 
-- 확정: Postpay Order and Prepay Order can be enabled separately.
-- 확정: Call can be enabled independently from Order.
+- 확정: Postpay and Prepay Order are both product-policy disabled.
+- 확정: Smart Call is enabled only by a Multi-page Dining entitlement plus the explicit site runtime allowlist.
 - 확정: Capabilities attach to a `menu_site`.
-- 확정: Capabilities remain when the template changes.
+- 확정: Smart Call remains available when switching between Multi-page templates and is removed when the commercial tier changes.
 - 확정: If a service type does not support Order/Call, UI must remain hidden even if a capability exists.
-- 확정: Personal trial does not include Order or Call.
-- 확정: Order and Call are business-oriented features.
-- 미결정: Actual `product_key` values.
-- 미결정: Pricing.
-- 미결정: Whether Order and Call are sold individually, bundled, or plan-gated.
+- 확정: Personal trial and Single-page Dining do not include Order or Smart Call.
+- 확정: Multi-page Dining uses the existing multi product keys and KRW 9,900 monthly price.
+- 확정: Smart Call is bundled, not sold as a separate add-on.
 
 Support matrix:
 
 | Service | Order | Call |
 | --- | --- | --- |
-| Basic One-page | 지원 예정 | 지원 예정 |
-| Basic Multi-page | 지원 예정 | 지원 예정 |
+| Dining Single-page | 미지원 | 미지원 |
+| Dining Multi-page | 미지원 | 지원 |
 | Display | 미지원 | 기본 미지원 |
 | Custom | 별도 계약 | 별도 계약 |
 
@@ -282,11 +287,11 @@ Implementation status (2026-08-06):
 - The Production migration and generated type refresh are complete and must not be reapplied.
 - Owner/Manager table create, update, disable, token rotation, and archive are implemented behind the default-off `TABLE_MANAGEMENT_ENABLED` runtime gate.
 - Only the token hash is persisted; the raw token and table QR path are returned once after create or rotation and are excluded from table list DTOs.
-- The runtime currently fails closed outside active Business Basic sites using a Basic template. Product-key mapping, bundling, and Production gate activation remain unresolved product decisions.
-- Public `/table/[token]` entry is separated from the read-only menu slug route and verifies the active table hash, public menu lifecycle, Business Basic plan, and Basic template on the server.
+- The runtime fails closed outside active Business Basic sites using a Multi-page Dining template. The Multi-page bundle decision is complete; Production site activation remains a separate environment operation.
+- Public `/table/[token]` entry is separated from the read-only menu slug route and verifies the active table hash, public menu lifecycle, Business Basic plan, and Multi-page Dining capability on the server.
 - A visit-session raw token is delivered only as a Secure, HttpOnly, SameSite=Lax cookie with a database-enforced maximum lifetime of 12 hours.
 - Session reuse validates menu-site identity, active table state, expiry, revocation, and the hashed User-Agent context; last-seen writes are throttled.
-- A valid existing session can provide table context to the common mobile header, while Order and Call remain disabled until their entitlements and store-operation contracts are implemented.
+- A valid existing session can provide table context to the common mobile header. Smart Call additionally requires the Multi-page tier and explicit runtime allowlist; Order remains product-policy disabled.
 - The table-management one-time delivery panel renders the table URL into a PNG entirely in the browser; it does not send the raw table token to a separate QR API.
 - The full runtime remains behind the default-off `TABLE_MANAGEMENT_ENABLED` gate, so no Production session issuance is activated by this code change.
 
@@ -301,21 +306,21 @@ QR scan
 → submit order
 → order appears in store dashboard
 → staff takes payment through existing POS/card terminal/cash
-→ staff marks manual payment complete in MenuLink
+→ staff marks manual payment complete in ArtiMenu
 ```
 
 Policies:
 
 - 확정: V1 launches Postpay before Prepay and does not initiate PG payment.
-- 확정: Postpay Order and Call are separate add-ons; `tableSessions` is included when either add-on is active.
+- 현재 보류: Postpay Order is not sold or activated. `tableSessions` belongs to the Multi-page Smart Call bundle.
 - 확정: V1 carts are device-specific within a validated table visit session and are not shared automatically between phones.
 - 확정: V1 allows at most 20 cart lines, 50 total units, 20 units per line, and 300 characters of order requests.
 - 확정: Customer submits order without PG payment.
 - 확정: New postpay order starts with `payment_status=unpaid`.
 - 확정: Real payment happens through store POS, card terminal, or cash.
 - 확정: Staff can mark `manual_paid`.
-- 확정: MenuLink is not the card authorization party for postpay.
-- 확정: Store payment record and MenuLink order state are separate.
+- 확정: ArtiMenu is not the card authorization party for postpay.
+- 확정: Store payment record and ArtiMenu order state are separate.
 - 권장: Manual payment completion should be auditable.
 
 Implementation status (2026-08-06):
@@ -345,7 +350,7 @@ QR scan
 Policies:
 
 - 확정: Store business is the merchant of record for PG contract.
-- 확정: MenuLink provides technical payment integration.
+- 확정: ArtiMenu provides technical payment integration.
 - 확정: Merchant/channel configuration is required per store.
 - 확정: Payment secrets are server-only.
 - 확정: Success screen alone is insufficient; server lookup and/or webhook verification is required.
@@ -415,7 +420,7 @@ Policies:
 
 Payment status examples:
 
-- 확정: `unpaid` - no MenuLink-confirmed payment.
+- 확정: `unpaid` - no ArtiMenu-confirmed payment.
 - 확정: `manual_paid` - staff marked external POS/card/cash payment as complete.
 - 확정: `paid` - PG or otherwise verified automated payment.
 - 확정: `cancelled` - payment cancelled.
@@ -525,7 +530,7 @@ Implementation status (2026-08-06):
 - `CALL_ENABLED` plus an explicit `CALL_ALLOWED_SITE_IDS` allowlist fail closed by default. The migration and Production activation remain separate human-approved operations.
 - Status changes are forward-only conditional updates: `received` → `accepted` → `cooking` → `ready` → `served`.
 - Cancellation is limited to unpaid, unserved orders with a required 1–500 character reason.
-- Manual card-terminal and cash completion record `manual_paid`, the external method, timestamp, and authenticated actor; MenuLink does not perform card authorization.
+- Manual card-terminal and cash completion record `manual_paid`, the external method, timestamp, and authenticated actor; ArtiMenu does not perform card authorization.
 - The dashboard refreshes every 15 seconds and prints snapshot-based browser receipts.
 - The dashboard treats the first loaded ID set as a quiet baseline, then surfaces newly arrived orders or pending calls through an in-app banner and document-title count during the same browser session.
 - Arrival alerts do not request browser notification permission, play sound, persist on the server, or imply an external messaging channel.
@@ -533,7 +538,7 @@ Implementation status (2026-08-06):
 
 ### Subscription And Billing
 
-- 확정: Order/Call add-on purchase, cancellation, and restore belong in subscription/billing surfaces.
+- 확정: Smart Call follows the Multi-page Dining subscription lifecycle and is not purchased as a separate add-on. Dormant Order has no purchase, cancellation, or restore surface.
 - 확정: Subscription management buttons must not be mixed into live order operations.
 
 ## 17. Roles And Permissions
@@ -558,7 +563,7 @@ Implementation status (2026-08-06):
 - 권장: Can view orders/calls and change operational statuses.
 - 미결정: Exact settings/payment permissions.
 
-### MenuLink Admin
+### ArtiMenu Admin
 
 - 확정: Support-oriented read access.
 - 권장: Forced cancellation or data changes require audit logs.
@@ -626,7 +631,7 @@ Do not infer these in implementation:
 
 - 미결정: Order/Call pricing.
 - 미결정: `product_key`.
-- 미결정: Whether Order/Call has a free trial.
+- 확정: Smart Call has no separate trial; it follows the Multi-page Dining subscription. Dormant Order has no trial.
 - 미결정: Final PG provider.
 - 미결정: PG fee policy.
 - 미결정: Settlement cycle.

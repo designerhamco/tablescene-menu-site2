@@ -1,5 +1,7 @@
 import type { PublicMenuCategory, PublicMenuItem } from "@/components/menu-templates/types";
 import type { OrderCallEntryConfig, PostpayOrderCatalogItem } from "@/components/public-menu/order-call/types";
+import { getDefaultStaffCallItems } from "@/lib/call-items";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 
 function normalizePreviewPrice(value: number | null | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
@@ -47,29 +49,27 @@ export function buildMenuPreviewOrderCatalog(items: PublicMenuItem[], categories
 export function buildMenuPreviewOrderCallConfig({
   menuSiteId,
   storeName,
-  catalog,
-  pgEnabled,
+  templateKey,
 }: {
   menuSiteId: string;
   storeName: string;
-  catalog: PostpayOrderCatalogItem[];
-  pgEnabled: boolean;
+  templateKey: string;
 }): OrderCallEntryConfig {
+  const features = getDiningTemplateFeatures(templateKey);
+
   return {
     mode: "active",
-    orderEnabled: true,
-    callEnabled: true,
+    orderEnabled: false,
+    callEnabled: features.smartCall,
     hasValidTableSession: true,
-    orderingOpen: true,
+    orderingOpen: false,
     languageSlotEnabled: true,
     storeName,
     tableLabel: "TABLE 3 · 화면 미리보기",
     cartCount: 0,
     menuSiteId,
-    cartScope: "menu-preview-order-flow",
-    orderCatalog: catalog,
-    checkoutMode: pgEnabled ? "prepay" : "postpay",
-    checkoutModes: pgEnabled ? ["prepay", "postpay"] : ["postpay"],
+    orderCatalog: [],
     previewOnly: true,
+    callItems: features.smartCall ? getDefaultStaffCallItems() : [],
   };
 }

@@ -24,6 +24,10 @@ export const OPEN_PROMOTION_CODE = "OPEN";
 export const OPEN_PROMOTION_NAME = "오픈 할인";
 
 const OPEN_PROMOTION_PRODUCT_KEYS = new Set<PaymentProductKey>([
+  "business_basic_single_monthly",
+  "business_basic_single_yearly",
+  "business_basic_multi_monthly",
+  "business_basic_multi_yearly",
   "business_basic_monthly",
   "business_basic_yearly",
   "business_display_monthly",

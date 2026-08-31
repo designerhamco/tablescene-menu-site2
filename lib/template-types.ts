@@ -72,8 +72,8 @@ export const TEMPLATE_TYPE_DESCRIPTIONS = {
 } as const satisfies Record<TemplateType, { short: string; description: string }>;
 
 export const TEMPLATE_SERVICE_LABELS = {
-  basic: "메뉴링크 베이직",
-  display: "메뉴링크 디스플레이",
+  basic: "아티메뉴 다이닝",
+  display: "아티메뉴 디스플레이",
 } as const satisfies Record<TemplateServiceType, string>;
 
 export const TEMPLATE_TYPE_OPTIONS_BY_SERVICE = {
@@ -88,6 +88,8 @@ const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]>
     "cafe_sunday_line_a",
     "cafe_round_focus_a",
     "cafe_brew_chapter_a",
+    "dining_aube_table_a",
+    "dining_aube_table_b",
     "cafe_noir_a",
     "cafe_design_b",
     "cafe_design_c",
@@ -116,6 +118,8 @@ const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
   cafe_sunday_line_a: "menu",
   cafe_round_focus_a: "menu",
   cafe_brew_chapter_a: "menu",
+  dining_aube_table_a: "menu",
+  dining_aube_table_b: "menu",
   cafe_noir_a: "menu",
   cafe_design_b: "menu",
   cafe_design_c: "menu",
@@ -224,7 +228,7 @@ const TEMPLATE_EDITOR_TABS = {
     { key: "basic", label: "기본 정보" },
     { key: "pages", label: "페이지 설정" },
     { key: "cover", label: "커버 이미지" },
-    { key: "menu", label: "메뉴 관리" },
+    { key: "menu", label: "메뉴판 구성" },
     { key: "design", label: "디자인" },
     { key: "about", label: "소개" },
     { key: "events", label: "이벤트" },
@@ -252,7 +256,7 @@ const TEMPLATE_EDITOR_TABS = {
 const CAFE_DESIGN_A_EDITOR_TABS = [
   { key: "basic", label: "기본 정보" },
   { key: "cover", label: "커버 이미지" },
-  { key: "menu", label: "메뉴 관리" },
+  { key: "menu", label: "메뉴판 구성" },
   { key: "design", label: "디자인" },
   { key: "localization", label: "다국어" },
   { key: "publish", label: "공개 설정" },
@@ -260,7 +264,16 @@ const CAFE_DESIGN_A_EDITOR_TABS = [
 
 const DISPLAY_MENU_A_EDITOR_TABS = [
   { key: "basic", label: "기본 정보" },
-  { key: "menu", label: "메뉴 관리" },
+  { key: "menu", label: "메뉴판 구성" },
+  { key: "design", label: "디자인" },
+  { key: "localization", label: "다국어" },
+  { key: "publish", label: "공개 설정" },
+] as const satisfies readonly TemplateEditorTab[];
+
+const AUBE_TABLE_EDITOR_TABS = [
+  { key: "basic", label: "기본 정보" },
+  { key: "cover", label: "커버 페이지" },
+  { key: "menu", label: "메뉴판 구성" },
   { key: "design", label: "디자인" },
   { key: "localization", label: "다국어" },
   { key: "publish", label: "공개 설정" },
@@ -287,6 +300,14 @@ export const TEMPLATE_EDIT_CONFIG = {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "cover",
   },
+  dining_aube_table_a: {
+    tabs: AUBE_TABLE_EDITOR_TABS,
+    heroMode: "cover",
+  },
+  dining_aube_table_b: {
+    tabs: AUBE_TABLE_EDITOR_TABS,
+    heroMode: "cover",
+  },
   cafe_noir_a: {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
@@ -304,6 +325,8 @@ const TEMPLATE_EDIT_CONFIG_ALIASES: Record<string, keyof typeof TEMPLATE_EDIT_CO
   cafe_sunday_line_a: "cafe_sunday_line_a",
   cafe_round_focus_a: "cafe_round_focus_a",
   cafe_brew_chapter_a: "cafe_brew_chapter_a",
+  dining_aube_table_a: "dining_aube_table_a",
+  dining_aube_table_b: "dining_aube_table_b",
   cafe_noir_a: "cafe_noir_a",
 };
 
@@ -376,6 +399,16 @@ export function getEditorLabelsByTemplateType(templateType: TemplateType): Templ
 }
 
 export function getTemplateEditorLabels(templateKey: string | null | undefined): TemplateEditorLabels {
+  if (["dining_aube_table_a", "dining_aube_table_b"].includes(normalizeTemplateConfigKey(templateKey))) {
+    return {
+      ...TEMPLATE_EDITOR_LABELS.menu,
+      pageLabel: "메뉴 페이지",
+      categoryLabel: "코스",
+      categoryPluralLabel: "코스",
+      categoryNamePlaceholder: "예: 시그니처 코스, 시즌 코스",
+      categoryGuideText: "코스는 한 흐름으로 제공되는 메뉴를 묶는 선택 항목입니다. 코스 없이 메뉴 아이템만 등록할 수도 있습니다.",
+    };
+  }
   return getEditorLabelsByTemplateType(getTemplateType(templateKey));
 }
 

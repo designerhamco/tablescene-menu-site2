@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { LOCALE_LABELS, type SupportedLocale } from "@/lib/locales";
+import ScriptAwareText from "./ScriptAwareText";
 
 type MenuLanguageSwitcherProps = {
   currentLocale: SupportedLocale;
@@ -12,10 +13,11 @@ type MenuLanguageSwitcherProps = {
   compact?: boolean;
   menuPlacement?: "top" | "bottom";
   extraSearchParams?: Record<string, string | null | undefined>;
-  triggerVariant?: "default" | "cafe";
+  triggerVariant?: "default" | "cafe" | "aube";
+  menuAlign?: "left" | "right";
 };
 
-const CAFE_TRIGGER_LOCALE_LABELS: Record<SupportedLocale, string> = {
+const SHORT_LOCALE_LABELS: Record<SupportedLocale, string> = {
   ko: "KR",
   en: "EN",
   zh: "CN",
@@ -52,6 +54,7 @@ export default function MenuLanguageSwitcher({
   menuPlacement = "bottom",
   extraSearchParams,
   triggerVariant = "default",
+  menuAlign = "right",
 }: MenuLanguageSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -59,6 +62,7 @@ export default function MenuLanguageSwitcher({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const visibleLocales = enabledLocales.filter((locale, index) => enabledLocales.indexOf(locale) === index);
   const menuPlacementClassName = menuPlacement === "top" ? "bottom-12" : "top-12";
+  const menuAlignClassName = menuAlign === "left" ? "left-0" : "right-0";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -84,16 +88,18 @@ export default function MenuLanguageSwitcher({
     };
   }, [isOpen]);
 
-  if (visibleLocales.length <= 1) return null;
+  if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube")) return null;
 
   const triggerClassName =
     triggerVariant === "cafe"
       ? `inline-flex cursor-pointer list-none items-center justify-center border border-transparent bg-transparent text-[#191c1b] shadow-none transition-colors hover:bg-black/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 [&::-webkit-details-marker]:hidden ${
           compact ? "h-9 gap-1.5 rounded-md px-1.5 text-[13px] font-medium" : "h-10 gap-2 rounded-md px-2.5 text-xs font-bold"
         }`
-      : `flex cursor-pointer list-none items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 [&::-webkit-details-marker]:hidden ${
-          compact ? "h-10 w-10" : "h-10 gap-2 px-3 text-xs font-black"
-        }`;
+      : triggerVariant === "aube"
+        ? "inline-flex h-10 min-w-10 cursor-pointer items-center justify-start gap-1 border-0 bg-transparent px-0 text-[13px] font-medium tracking-[0.1em] text-zinc-900 shadow-none transition-colors hover:text-[#c5a165] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c5a165]"
+        : `flex cursor-pointer list-none items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 [&::-webkit-details-marker]:hidden ${
+            compact ? "h-10 w-10" : "h-10 gap-2 px-3 text-xs font-black"
+          }`;
   const iconClassName = triggerVariant === "cafe" ? "h-[18px] w-[18px]" : "h-5 w-5";
   const chevronClassName = `h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`;
 
@@ -116,30 +122,40 @@ export default function MenuLanguageSwitcher({
       <button
         type="button"
         className={triggerClassName}
-        aria-label="언어 변경"
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        title="언어 변경"
-        onClick={() => setIsOpen((current) => !current)}
+        aria-label={visibleLocales.length > 1 ? "언어 변경" : `현재 언어: ${SHORT_LOCALE_LABELS[currentLocale]}`}
+        aria-haspopup={visibleLocales.length > 1 ? "menu" : undefined}
+        aria-expanded={visibleLocales.length > 1 ? isOpen : undefined}
+        title={visibleLocales.length > 1 ? "언어 변경" : undefined}
+        disabled={visibleLocales.length === 1}
+        onClick={() => {
+          if (visibleLocales.length > 1) setIsOpen((current) => !current);
+        }}
       >
         {triggerVariant === "cafe" ? (
           <CafeWireframeGlobeIcon className={iconClassName} />
-        ) : (
+        ) : triggerVariant === "default" ? (
           <Globe2 className={iconClassName} strokeWidth={2} aria-hidden="true" />
-        )}
+        ) : null}
         {triggerVariant === "cafe" ? (
           <>
-            <span className="leading-none">{CAFE_TRIGGER_LOCALE_LABELS[currentLocale]}</span>
+            <span className="leading-none">{SHORT_LOCALE_LABELS[currentLocale]}</span>
             <ChevronDown className={chevronClassName} strokeWidth={1.8} aria-hidden="true" />
+          </>
+        ) : triggerVariant === "aube" ? (
+          <>
+            <span className="leading-none"><ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /></span>
+            {visibleLocales.length > 1 ? <ChevronDown className={chevronClassName} strokeWidth={1.6} aria-hidden="true" /> : null}
           </>
         ) : (
           !compact && <span>{LOCALE_LABELS[currentLocale]}</span>
         )}
       </button>
-      {isOpen && (
+      {isOpen && visibleLocales.length > 1 && (
         <div
           role="menu"
-          className={`absolute right-0 z-30 min-w-36 overflow-hidden rounded-lg border border-zinc-200 bg-white py-1 text-left shadow-xl ${menuPlacementClassName}`}
+          className={`absolute z-30 overflow-hidden border border-zinc-200 bg-white py-1 text-left ${menuPlacementClassName} ${menuAlignClassName} ${
+            triggerVariant === "aube" ? "min-w-20 rounded-md shadow-none" : "min-w-36 rounded-lg shadow-xl"
+          }`}
         >
           {visibleLocales.map((locale) => (
             <a
@@ -147,11 +163,13 @@ export default function MenuLanguageSwitcher({
               href={getLocaleHref(locale)}
               role="menuitem"
               aria-current={locale === currentLocale ? "true" : undefined}
-              className={`block px-3 py-2 text-sm font-bold transition hover:bg-zinc-50 ${
+              className={`block px-3 py-2 transition hover:bg-zinc-50 ${
+                triggerVariant === "aube" ? "text-[13px] font-medium tracking-[0.1em]" : "text-sm font-bold"
+              } ${
                 locale === currentLocale ? "text-zinc-950" : "text-zinc-500"
               }`}
             >
-              {LOCALE_LABELS[locale]}
+              {triggerVariant === "aube" ? <ScriptAwareText text={SHORT_LOCALE_LABELS[locale]} /> : LOCALE_LABELS[locale]}
             </a>
           ))}
         </div>

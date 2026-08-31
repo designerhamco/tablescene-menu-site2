@@ -2,48 +2,35 @@ const Footer = () => {
   const showAdminLink = process.env.NODE_ENV !== "production";
 
   return (
-    <footer className="bg-[#111111] text-zinc-400 py-12 border-t border-zinc-800">
+    <footer className="border-t border-zinc-200 bg-white py-14 text-zinc-600 md:py-16">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Top Section: Brand & Contact */}
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
-          {/* Brand */}
+        <div className="mb-12">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">MENULINK</h2>
-            <p className="text-zinc-500 text-sm leading-relaxed max-w-xs font-normal">
+            <h2 className="text-2xl font-bold tracking-tight text-zinc-950">ArtiMenu</h2>
+            <p className="max-w-sm text-base font-normal leading-relaxed text-zinc-500">
               디지털 혁신과 시각적 스토리텔링을 통해<br/>
               다이닝 경험의 새로운 장면을 만듭니다.
             </p>
           </div>
-
-          {/* Contact Info (Aligned Right on Desktop) */}
-          <div className="text-left md:text-right">
-             <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-3 opacity-80">Contact</h3>
-             <ul className="space-y-1.5 text-sm text-zinc-500 font-normal">
-                <li className="hover:text-white transition-colors">평일 09:00 ~ 17:00 (점심시간 12:00 ~ 13:00 제외)</li>
-                <li className="hover:text-white transition-colors">주말/공휴일 긴급 10:00 ~ 22:00</li>
-                <li className="hover:text-white transition-colors">admin@dndcommerce.co.kr</li>
-                <li className="hover:text-white transition-colors">카카오톡 채널: 디앤디커머스</li>
-             </ul>
-          </div>
         </div>
 
         {/* Divider */}
-        <div className="border-t border-zinc-800/60 mb-8" />
+        <div className="mb-8 border-t border-zinc-200" />
 
         {/* Legal Info & Copyright */}
         <div className="flex flex-col md:flex-row justify-between items-end md:items-start gap-8">
             {/* Legal Text */}
-            <div className="text-[10px] md:text-[11px] text-zinc-600 space-y-1.5 leading-relaxed w-full md:max-w-3xl font-normal">
+            <div className="w-full space-y-2 text-xs font-normal leading-relaxed text-zinc-500 md:max-w-4xl md:text-sm">
               <div className="flex flex-wrap gap-x-3 gap-y-1">
                 <span><span className="font-semibold text-zinc-500">상호명</span> 디앤디커머스</span>
-                <span className="text-zinc-800">|</span>
+                <span className="text-zinc-300">|</span>
                 <span><span className="font-semibold text-zinc-500">대표자</span> 나형미</span>
-                <span className="text-zinc-800">|</span>
+                <span className="text-zinc-300">|</span>
                 <span><span className="font-semibold text-zinc-500">개인정보보호책임자</span> 나형미</span>
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                <span><span className="font-semibold text-zinc-500">사업자등록번호</span> 876-47-00697 <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=8764700697" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 ml-1 underline">[사업자정보확인]</a></span>
-                <span className="text-zinc-800">|</span>
+                <span><span className="font-semibold text-zinc-600">사업자등록번호</span> 876-47-00697 <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=8764700697" target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-zinc-950">[사업자정보확인]</a></span>
+                <span className="text-zinc-300">|</span>
                 <span><span className="font-semibold text-zinc-500">통신판매업신고번호</span> 2026-경기양평-0670</span>
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -51,35 +38,35 @@ const Footer = () => {
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
                 <span><span className="font-semibold text-zinc-500">고객센터</span> 010-3646-0642</span>
-                <span className="text-zinc-800">|</span>
+                <span className="text-zinc-300">|</span>
                 <span><span className="font-semibold text-zinc-500">이메일</span> admin@dndcommerce.co.kr</span>
               </div>
            </div>
 
            {/* Copyright & Links */}
            <div className="flex flex-col md:items-end gap-3 shrink-0 w-full md:w-auto text-left md:text-right mt-4 md:mt-0">
-              <div className="flex gap-4 md:gap-6 text-[11px] text-zinc-500 font-medium">
-                <a href="/faq" className="hover:text-zinc-300 transition-colors">
-                  FAQ
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-zinc-500 md:justify-end md:gap-x-6">
+                <a href="/faq" className="transition-colors hover:text-zinc-950">
+                  고객센터
                 </a>
                 {showAdminLink ? (
-                  <a href="/admin" className="hover:text-zinc-300 transition-colors">
+                  <a href="/admin" className="transition-colors hover:text-zinc-950">
                     Admin
                   </a>
                 ) : null}
 
-                <a href="/terms" className="hover:text-zinc-300 transition-colors">
+                <a href="/terms" className="transition-colors hover:text-zinc-950">
                   이용약관
                 </a>
-                <a href="/privacy" className="hover:text-zinc-300 transition-colors">
+                <a href="/privacy" className="transition-colors hover:text-zinc-950">
                   개인정보 처리방침
                 </a>
-                <a href="mailto:admin@dndcommerce.co.kr" className="hover:text-zinc-300 transition-colors">
+                <a href="mailto:admin@dndcommerce.co.kr" className="transition-colors hover:text-zinc-950">
                   고객지원
                 </a>
               </div>
-              <p className="text-[10px] text-zinc-700 font-medium uppercase tracking-wide">
-                © 2026 MenuLink Studio.
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+                © 2026 ArtiMenu Studio.
               </p>
            </div>
         </div>

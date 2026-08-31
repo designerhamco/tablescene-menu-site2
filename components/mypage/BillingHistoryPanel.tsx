@@ -313,7 +313,7 @@ function RestoreSubscriptionModal({
     }
 
     const confirmed = window.confirm(
-      "선택한 요금제로 재구독 결제를 진행합니다. 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환되고, 새 구독 기준 AI 기본 제공량이 지급됩니다. 진행할까요?"
+      "선택한 요금제로 재구독 결제를 진행합니다. 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다. 재구독으로 AI 웰컴 크레딧은 추가되지 않습니다. 진행할까요?"
     );
 
     if (!confirmed) return;
@@ -414,7 +414,7 @@ function RestoreSubscriptionModal({
               <p className="mt-2">
                 새 구독은 결제 완료일 기준으로 시작되며, 기존 환불 내역과 결제 내역은 그대로 보관됩니다.
               </p>
-              <p className="mt-2">요금제에 포함된 AI 기본 제공량은 새 구독 기준으로 지급됩니다.</p>
+              <p className="mt-2">재구독으로 AI 웰컴 크레딧은 추가되지 않으며 기존 보유 잔액은 유지됩니다.</p>
             </div>
 
             <dl className="mt-5 grid gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm md:grid-cols-2">

@@ -66,9 +66,9 @@ export function buildDataRetentionEndingEmail({
   const publicPath = formatPublicMenuPath(slug);
   const retentionLabel = formatKoreanDate(retentionUntil);
   const daysLeftLabel = daysLeft === 0 ? "오늘" : `${daysLeft}일`;
-  const subject = daysLeft === 0 ? "[메뉴링크] 데이터 보관 기간이 오늘 종료 예정입니다" : "[메뉴링크] 데이터 보관 기간 종료 예정 안내";
+  const subject = daysLeft === 0 ? "[아티메뉴] 데이터 보관 기간이 오늘 종료 예정입니다" : "[아티메뉴] 데이터 보관 기간 종료 예정 안내";
   const text = [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     "회원님의 메뉴판 데이터 보관 기간이 곧 종료될 예정입니다.",
     "",
@@ -82,7 +82,7 @@ export function buildDataRetentionEndingEmail({
     "계속 이용을 원하시면 보관 기간 종료 전 사업자 플랜으로 전환하거나 재구독해 주세요.",
     "",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
 
   return {
@@ -104,9 +104,9 @@ export function buildDataRetentionStartedEmail({
 }): NotificationEmailTemplate {
   const publicPath = formatPublicMenuPath(slug);
   const retentionLabel = formatKoreanDate(retentionUntil);
-  const subject = "[메뉴링크] 메뉴판 데이터 보관 안내";
+  const subject = "[아티메뉴] 메뉴판 데이터 보관 안내";
   const text = [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     "서비스 이용기간이 종료되어 메뉴판이 보관 상태로 전환되었습니다.",
     "",
@@ -120,7 +120,7 @@ export function buildDataRetentionStartedEmail({
     "보관 기간이 종료되면 메뉴판 데이터와 업로드 이미지는 정책에 따라 삭제될 수 있습니다.",
     "",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
 
   return {
@@ -132,18 +132,18 @@ export function buildDataRetentionStartedEmail({
 }
 
 export function buildAccountDeletionRequestedEmail(): NotificationEmailTemplate {
-  const subject = "[메뉴링크] 회원탈퇴 신청 안내";
+  const subject = "[아티메뉴] 회원탈퇴 신청 안내";
   const text = [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     "회원탈퇴 신청이 접수되었습니다.",
     "",
-    "탈퇴 처리 후에는 메뉴링크 서비스 이용이 중단되며, 메뉴판 데이터는 보관·삭제 정책에 따라 처리됩니다.",
+    "탈퇴 처리 후에는 아티메뉴 서비스 이용이 중단되며, 메뉴판 데이터는 보관·삭제 정책에 따라 처리됩니다.",
     "",
     "결제·정산·분쟁 대응에 필요한 기록은 관계 법령에 따라 일정 기간 보관될 수 있습니다.",
     "",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
 
   return {
@@ -168,9 +168,9 @@ export function buildPersonalTrialExpiringEmail({
   const publicPath = formatPublicMenuPath(slug);
   const expiresLabel = formatKoreanDate(expiresAt);
   const daysLeftLabel = daysLeft === 0 ? "오늘" : `${daysLeft}일`;
-  const subject = "[메뉴링크] 개인 체험 기간 종료 예정 안내";
+  const subject = "[아티메뉴] 개인 체험 기간 종료 예정 안내";
   const text = [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     "개인 1개월 체험 기간이 곧 종료될 예정입니다.",
     "",
@@ -184,7 +184,7 @@ export function buildPersonalTrialExpiringEmail({
     "체험 종료 후에는 30일 동안 복구 가능한 상태로 보관되며, 보관 기간이 지나면 메뉴판 데이터와 업로드 이미지는 정책에 따라 삭제될 수 있습니다.",
     "",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
 
   return {
@@ -209,9 +209,9 @@ export function buildSubscriptionAccessEndingEmail({
   const publicPath = formatPublicMenuPath(slug);
   const accessEndsLabel = formatKoreanDate(accessEndsAt);
   const daysLeftLabel = daysLeft === 0 ? "오늘" : `${daysLeft}일`;
-  const subject = "[메뉴링크] 구독 이용 종료 예정 안내";
+  const subject = "[아티메뉴] 구독 이용 종료 예정 안내";
   const text = [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     "해지 예약된 구독의 이용 종료일이 곧 다가옵니다.",
     "",
@@ -225,7 +225,7 @@ export function buildSubscriptionAccessEndingEmail({
     "보관 기간 내 재구독하면 기존 메뉴판을 이어서 사용할 수 있습니다.",
     "",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
 
   return {
@@ -238,17 +238,17 @@ export function buildSubscriptionAccessEndingEmail({
 
 export function buildSubscriptionExpiringEmail(event: TemplateEvent): NotificationEmailTemplate {
   const text = event.message || [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     "이용 중인 구독의 만료 예정일이 다가오고 있습니다.",
     "서비스 이용을 계속하려면 마이페이지에서 구독 상태와 결제 정보를 확인해 주세요.",
     "",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
 
   return {
-    subject: event.title || "[메뉴링크] 구독 만료 예정 안내",
+    subject: event.title || "[아티메뉴] 구독 만료 예정 안내",
     text,
     html: textToHtml(text),
     previewText: "구독 만료 예정 안내입니다.",
@@ -257,7 +257,7 @@ export function buildSubscriptionExpiringEmail(event: TemplateEvent): Notificati
 
 export function buildPaymentFailedEmail(): NotificationEmailTemplate {
   const text = [
-    "안녕하세요, 메뉴링크입니다.",
+    "안녕하세요, 아티메뉴입니다.",
     "",
     "결제 처리가 정상적으로 완료되지 않았습니다.",
     "",
@@ -266,11 +266,11 @@ export function buildPaymentFailedEmail(): NotificationEmailTemplate {
     "결제가 계속 실패하면 이용 중인 서비스가 제한될 수 있습니다.",
     "",
     "감사합니다.",
-    "메뉴링크 드림",
+    "아티메뉴 드림",
   ].join("\n");
 
   return {
-    subject: "[메뉴링크] 결제 실패 안내",
+    subject: "[아티메뉴] 결제 실패 안내",
     text,
     html: textToHtml(text),
     previewText: "결제 실패 안내입니다.",
@@ -278,14 +278,14 @@ export function buildPaymentFailedEmail(): NotificationEmailTemplate {
 }
 
 export function buildTestEmail(): NotificationEmailTemplate {
-  const subject = "[메뉴링크] 이메일 고지 발송 테스트";
-  const text = "메뉴링크 이메일 고지 발송 설정이 정상적으로 연결되었는지 확인하기 위한 테스트 메일입니다.";
+  const subject = "[아티메뉴] 이메일 고지 발송 테스트";
+  const text = "아티메뉴 이메일 고지 발송 설정이 정상적으로 연결되었는지 확인하기 위한 테스트 메일입니다.";
 
   return {
     subject,
     text,
     html: textToHtml(text),
-    previewText: "메뉴링크 이메일 고지 발송 테스트입니다.",
+    previewText: "아티메뉴 이메일 고지 발송 테스트입니다.",
   };
 }
 

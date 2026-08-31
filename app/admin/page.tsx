@@ -300,7 +300,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <header className="mb-12 flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
           <div>
             <Link href="/" className="mb-6 inline-block text-sm font-bold text-white/50 hover:text-white">
-              MENULINK
+              ArtiMenu
             </Link>
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#F8E731]">Admin Dashboard</p>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">운영자 관리자 페이지</h1>

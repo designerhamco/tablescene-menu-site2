@@ -1,0 +1,177 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
+import { splitScriptRuns } from "../components/menu-templates/shared/ScriptAwareText";
+import { getStarterPreset } from "./menu-starter-presets";
+import {
+  getCustomTypographySettings,
+  getTypographyCssVariables,
+  mergeTypographySettings,
+} from "./template-typography-presets";
+import {
+  AUBE_TABLE_MAX_MENU_PAGES,
+  buildAubeTableNavigationUnits,
+  getAubeTableDefaultCoverBackgroundColor,
+  getAubeTableSwipeTargetIndex,
+  isAubeTableTemplate,
+  normalizeAubeTableCoverBackgroundColor,
+  normalizeAubeTableCoverBackgroundOpacity,
+  shouldUseAubeTableCoverLogo,
+  validateAubeTablePublishStructure,
+} from "./aube-table";
+
+test("오브 테이블 페이지네이션은 노출 커버와 노출 페이지만 순서대로 포함한다", () => {
+  const units = buildAubeTableNavigationUnits(true, [
+    { id: "second", title: "Dessert", visible: true, sort_order: 2 },
+    { id: "hidden", title: "Hidden", visible: false, sort_order: 1 },
+    { id: "first", title: "Dinner", visible: true, sort_order: 0 },
+  ]);
+
+  assert.deepEqual(units.map((unit) => unit.id), ["cover", "page:first", "page:second"]);
+});
+
+test("오브 테이블 A·B 타입은 같은 멀티페이지 데이터 계약을 사용한다", () => {
+  assert.equal(isAubeTableTemplate("dining_aube_table_a"), true);
+  assert.equal(isAubeTableTemplate("dining_aube_table_b"), true);
+  assert.equal(isAubeTableTemplate("cafe_design_a"), false);
+
+  const preset = getStarterPreset("dining_aube_table_b");
+  assert.equal(preset.template_key, "dining_aube_table_b");
+  assert.equal(preset.site.restaurant_name, "메종 마레");
+  assert.equal(preset.site.menu_cover_title, "MAISON MARAIS");
+  assert.deepEqual(preset.pages.map((page) => page.title), ["Chef's Tasting", "Seasonal Plates", "Wine & Pairing"]);
+  assert.equal(preset.pages[1]?.categories[0]?.items[0]?.name, "화이트 아스파라거스");
+  assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_b").value, "noto-serif-kr");
+  assert.equal(getDefaultEnglishFontForTemplate("dining_aube_table_b").value, "cormorant-garamond");
+  assert.equal(getAubeTableDefaultCoverBackgroundColor("dining_aube_table_b"), "#401E24");
+  assert.equal(getAubeTableDefaultCoverBackgroundColor("dining_aube_table_a"), "#0D172A");
+});
+
+test("오브 테이블 스와이프는 거리 또는 속도가 충분할 때 한 페이지만 이동한다", () => {
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 1, unitCount: 4, offsetX: -80, velocityX: -120 }), 2);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 2, unitCount: 4, offsetX: 18, velocityX: 640 }), 1);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 2, unitCount: 4, offsetX: 32, velocityX: 180 }), 2);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 0, unitCount: 4, offsetX: 90, velocityX: 800 }), 0);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 3, unitCount: 4, offsetX: -90, velocityX: -800 }), 3);
+});
+
+test("오브 테이블 커버 색상은 6자리 hex만 허용한다", () => {
+  assert.equal(normalizeAubeTableCoverBackgroundColor("#abc123"), "#ABC123");
+  assert.equal(normalizeAubeTableCoverBackgroundColor("rgba(0,0,0,.5)"), "#0D172A");
+});
+
+test("오브 테이블 커버 배경색 불투명도는 0~100 범위와 75 기본값을 사용한다", () => {
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity(0), 0);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity("82"), 82);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity(140), 100);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity(-10), 0);
+  assert.equal(normalizeAubeTableCoverBackgroundOpacity("invalid"), 75);
+});
+
+test("오브 테이블 커버는 정상 로드 가능한 로고만 사용한다", () => {
+  assert.equal(shouldUseAubeTableCoverLogo("https://example.com/logo.svg", null), true);
+  assert.equal(shouldUseAubeTableCoverLogo("https://example.com/logo.svg", "https://example.com/logo.svg"), false);
+  assert.equal(shouldUseAubeTableCoverLogo("", null), false);
+  assert.equal(shouldUseAubeTableCoverLogo(null, null), false);
+});
+
+test("노출 코스는 노출 메뉴를 한 개 이상 가져야 한다", () => {
+  const error = validateAubeTablePublishStructure({
+    pages: [{ id: "page", title: "Dinner", visible: true, sort_order: 0 }],
+    categories: [{ id: "course", menu_page_id: "page", name: "Signature", visible: true }],
+    items: [{ id: "item", menu_page_id: "page", category_id: "course", visible: false }],
+  });
+
+  assert.match(error ?? "", /Signature/);
+});
+
+test("한 페이지에서 직접 메뉴와 코스 메뉴를 함께 사용할 수 있다", () => {
+  const error = validateAubeTablePublishStructure({
+    pages: [{ id: "page", title: "Dinner", visible: true, sort_order: 0 }],
+    categories: [{ id: "course", menu_page_id: "page", name: "Signature", visible: true }],
+    items: [
+      { id: "direct", menu_page_id: "page", category_id: null, visible: true },
+      { id: "course-item", menu_page_id: "page", category_id: "course", visible: true },
+    ],
+  });
+
+  assert.equal(error, null);
+});
+
+test("오브 테이블은 노출 메뉴 페이지를 최대 열 개까지 허용한다", () => {
+  const pages = Array.from({ length: AUBE_TABLE_MAX_MENU_PAGES + 1 }, (_, index) => ({
+    id: String(index),
+    title: String(index),
+    visible: true,
+    sort_order: index,
+  }));
+
+  assert.match(validateAubeTablePublishStructure({ pages, categories: [], items: [] }) ?? "", /최대 10개/);
+});
+
+test("오브 테이블 스타터는 커버와 3개 메뉴 페이지, 코스·단독 메뉴 예시를 제공한다", () => {
+  const preset = getStarterPreset("dining_aube_table_a");
+  assert.equal(preset.template_key, "dining_aube_table_a");
+  assert.equal(preset.pages.length, 3);
+  assert.equal(preset.pages[0]?.layout_columns, 1);
+  assert.equal(preset.pages[1]?.layout_columns, 2);
+  assert.deepEqual(preset.pages.map((page) => page.text_alignment), ["center", "left", "left"]);
+  assert.ok(preset.pages.some((page) => (page.categories ?? []).length > 0));
+  assert.ok(preset.pages.some((page) => (page.direct_items ?? []).length > 0));
+  assert.equal(preset.site.restaurant_name, "오브 테이블");
+  assert.equal(preset.site.menu_cover_title, "THE MENU");
+  assert.equal(preset.site.menu_cover_description, "오브 테이블 스페셜 코스 & 셰프 셀렉션");
+  assert.equal(preset.site.logo_url, null);
+  assert.deepEqual(preset.pages.map((page) => page.title), ["Signature Course", "A La Carte Menu", "Drink Menu"]);
+  assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_a").value, "pretendard");
+  assert.equal(getDefaultEnglishFontForTemplate("dining_aube_table_a").value, "tenor-sans");
+});
+
+test("오브 테이블 페이지명과 코스명은 같은 카테고리 글자 설정을 공유한다", () => {
+  const customTypography = getCustomTypographySettings({}, {
+    design: {
+      typographyRoles: {
+        category: {
+          font_ko_key: "noto-serif-kr",
+          font_en_key: "playfair-display",
+          color: "#123456",
+        },
+      },
+    },
+  });
+  const variables = getTypographyCssVariables(
+    mergeTypographySettings("dining_aube_table_a", customTypography),
+    "dining_aube_table_a",
+  ) as Record<string, string>;
+
+  assert.match(variables["--menu-font-ko"], /Pretendard/);
+  assert.match(variables["--menu-font-en"], /Tenor Sans/);
+  assert.match(variables["--menu-role-category-font-ko"], /Noto Serif KR/);
+  assert.match(variables["--menu-role-category-font-en"], /Playfair Display/);
+  assert.equal(variables["--menu-role-category-color"], "#123456");
+});
+
+test("오브 테이블 공통 UI는 한글과 영문을 역할별 폰트로 분리할 수 있다", () => {
+  const customTypography = getCustomTypographySettings({}, {
+    design: {
+      typographyRoles: {
+        supporting: {
+          font_ko_key: "gothic-a1",
+          font_en_key: "playfair-display",
+        },
+      },
+    },
+  });
+  const variables = getTypographyCssVariables(
+    mergeTypographySettings("dining_aube_table_a", customTypography),
+    "dining_aube_table_a",
+  ) as Record<string, string>;
+
+  assert.match(variables["--menu-role-supporting-font-ko"], /Gothic A1/);
+  assert.match(variables["--menu-role-supporting-font-en"], /Playfair Display/);
+  assert.deepEqual(splitScriptRuns("테이블 12 · STAFF"), [
+    { kind: "ko", text: "테이블 " },
+    { kind: "en", text: "12 · STAFF" },
+  ]);
+});

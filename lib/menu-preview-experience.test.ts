@@ -82,15 +82,30 @@ test("mobile preview converts visible price columns into editable order options"
   ]);
 });
 
-test("mobile preview keeps PG optional while preserving postpay ordering", () => {
-  const catalog = buildMenuPreviewOrderCatalog([item()]);
-  const withoutPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog, pgEnabled: false });
-  const withPg = buildMenuPreviewOrderCallConfig({ menuSiteId: "site-a", storeName: "MenuLink", catalog, pgEnabled: true });
+test("mobile preview keeps Order dormant and shows Smart Call only for multi-page Dining", () => {
+  const single = buildMenuPreviewOrderCallConfig({
+    menuSiteId: "site-a",
+    storeName: "ArtiMenu",
+    templateKey: "cafe_design_a",
+  });
+  const multi = buildMenuPreviewOrderCallConfig({
+    menuSiteId: "site-b",
+    storeName: "ArtiMenu",
+    templateKey: "dining_aube_table_a",
+  });
 
-  assert.equal(withoutPg.callEnabled, true);
-  assert.equal(withoutPg.orderEnabled, true);
-  assert.equal(withoutPg.previewOnly, true);
-  assert.deepEqual(withoutPg.checkoutModes, ["postpay"]);
-  assert.deepEqual(withPg.checkoutModes, ["prepay", "postpay"]);
-  assert.equal(withPg.orderCatalog?.length, 1);
+  assert.equal(single.callEnabled, false);
+  assert.equal(single.orderEnabled, false);
+  assert.equal(single.previewOnly, true);
+  assert.deepEqual(single.callItems, []);
+  assert.equal(multi.callEnabled, true);
+  assert.equal(multi.orderEnabled, false);
+  assert.deepEqual(multi.callItems?.map((callItem) => callItem.label), [
+    "물 요청",
+    "식기 요청",
+    "테이블 정리",
+    "직원 호출",
+  ]);
+  assert.deepEqual(multi.orderCatalog, []);
+  assert.equal(multi.checkoutModes, undefined);
 });

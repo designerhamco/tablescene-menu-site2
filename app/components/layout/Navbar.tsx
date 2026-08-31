@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Bell, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 
-import { KAKAO_CHANNEL_URL } from '../ui/ScrollToTop';
 import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 
@@ -12,21 +11,26 @@ const logoImage = '/assets/tablescene-symbol.png';
 type NavItem = {
   label: string;
   path: string;
+  activePaths?: readonly string[];
   discount?: boolean;
-  premium?: boolean;
   disabled?: boolean;
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: '메뉴링크 베이직', path: '/services/basic', discount: true },
-  { label: '메뉴링크 디스플레이', path: '/services/display', discount: true },
-  { label: '커스텀', path: '/custom', premium: true },
+  {
+    label: '아티메뉴 다이닝',
+    path: '/',
+    activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'],
+    discount: true,
+  },
+  { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
+  { label: '고객센터', path: '/faq', activePaths: ['/faq'] },
 ];
 
 function DiscountChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
-      50%
+      오픈할인
     </span>
   );
 }
@@ -35,14 +39,6 @@ function DisabledChip() {
   return (
     <span className="inline-flex shrink-0 rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold leading-none text-zinc-500">
       준비중
-    </span>
-  );
-}
-
-function PremiumChip() {
-  return (
-    <span className="inline-flex shrink-0 rounded-full border border-[#A88745]/35 bg-[#2F2418] px-1.5 py-0.5 text-[9px] font-black leading-none tracking-[0.08em] text-[#F4E7C5]">
-      PREMIUM
     </span>
   );
 }
@@ -74,6 +70,7 @@ const Navbar = () => {
     userId: null,
     loading: true,
   });
+  const [hasStoreOperationsAccess, setHasStoreOperationsAccess] = useState(false);
   const isScrolledRef = useRef(false);
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
@@ -110,7 +107,9 @@ const Navbar = () => {
       }
 
       setAuthState((currentState) =>
-        currentState.isAuthenticated === nextState.isAuthenticated && currentState.loading === nextState.loading
+        currentState.isAuthenticated === nextState.isAuthenticated
+          && currentState.userId === nextState.userId
+          && currentState.loading === nextState.loading
           ? currentState
           : nextState,
       );
@@ -139,6 +138,42 @@ const Navbar = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    setHasStoreOperationsAccess(false);
+
+    if (!authState.userId) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    let isMounted = true;
+
+    async function loadStoreOperationsAccess() {
+      try {
+        const response = await fetch('/api/account/store-operations-access', {
+          cache: 'no-store',
+          signal: abortController.signal,
+        });
+        const payload = await response.json() as { available?: unknown };
+
+        if (isMounted) {
+          setHasStoreOperationsAccess(response.ok && payload.available === true);
+        }
+      } catch (error) {
+        if (isMounted && !(error instanceof DOMException && error.name === 'AbortError')) {
+          setHasStoreOperationsAccess(false);
+        }
+      }
+    }
+
+    loadStoreOperationsAccess();
+
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
+  }, [authState.userId]);
 
   useEffect(() => {
     if (!authState.userId) {
@@ -235,25 +270,37 @@ const Navbar = () => {
       ? 'transparent'
       : 'solid';
   const shouldShowSolidNav = navVariant === 'solid' || isScrolled || isOpen;
+  const shouldShowDarkNav = navVariant === 'transparent' && isScrolled && !isOpen;
 
-  const navBgClass = shouldShowSolidNav
+  const navBgClass = shouldShowDarkNav
+    ? 'bg-zinc-950/95 backdrop-blur-md border-b border-white/10'
+    : shouldShowSolidNav
     ? 'bg-white/90 backdrop-blur-md border-b border-zinc-100'
     : 'bg-transparent border-transparent';
-  const navToneClass = shouldShowSolidNav ? 'text-black' : 'text-white';
+  const navToneClass = shouldShowDarkNav ? 'text-white' : shouldShowSolidNav ? 'text-black' : 'text-white';
   const logoTextClass = 'text-current';
   const navTextClass = shouldShowSolidNav
     ? 'text-current opacity-70 hover:opacity-100'
     : 'text-current opacity-90 hover:opacity-100';
   const menuButtonClass = shouldShowSolidNav ? 'text-current hover:opacity-70' : 'text-current hover:opacity-80';
-  const primaryButtonClass = shouldShowSolidNav
+  const primaryButtonClass = shouldShowDarkNav
+    ? 'bg-white hover:bg-zinc-100'
+    : shouldShowSolidNav
     ? 'bg-zinc-950 hover:bg-zinc-800'
-    : 'bg-white hover:bg-white/90';
-  const primaryButtonStyle = { color: shouldShowSolidNav ? '#ffffff' : '#09090b' };
-  const secondaryButtonClass = shouldShowSolidNav
+    : 'bg-white hover:bg-zinc-100';
+  const primaryButtonStyle = { color: shouldShowDarkNav ? '#09090b' : shouldShowSolidNav ? '#ffffff' : '#09090b' };
+  const secondaryButtonClass = shouldShowDarkNav
+    ? 'border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800'
+    : shouldShowSolidNav
     ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
-    : 'border-white/30 bg-white/10 text-white hover:bg-white/15';
+    : 'border-zinc-700 bg-zinc-950 text-white hover:bg-zinc-800';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
-  const accountCtaLabel = authState.isAuthenticated ? '마이페이지' : '로그인';
+  const accountCtaLabel = authState.isAuthenticated ? 'MY/메뉴판' : '로그인';
+  const isOperationsPath = pathname === '/mypage/operations'
+    || /^\/mypage\/menus\/[^/]+\/(orders|calls|tables|sales)$/.test(pathname);
+  const operationsButtonClass = isOperationsPath
+    ? 'border-zinc-950 bg-zinc-950 text-white hover:bg-zinc-800'
+    : secondaryButtonClass;
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
 
   const markNotificationAsRead = async (notificationId: string) => {
@@ -293,40 +340,53 @@ const Navbar = () => {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F8E731] transition-transform duration-300 group-hover:scale-105 md:h-10 md:w-10 md:rounded-xl">
               <img
                 src={logoImage}
-                alt="MenuLink Symbol"
+                alt="ArtiMenu Symbol"
                 className="h-5 w-5 rotate-45 object-contain md:h-6 md:w-6"
               />
             </div>
 
             <div className="flex flex-col items-start leading-none">
               <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${logoTextClass}`}>
-                MENULINK
+                ArtiMenu
               </span>
             </div>
           </Link>
 
           <div className="absolute left-1/2 top-1/2 hidden h-full -translate-x-1/2 -translate-y-1/2 items-center gap-5 lg:flex xl:gap-8">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                aria-disabled={item.disabled ? true : undefined}
-                tabIndex={item.disabled ? -1 : undefined}
-                onClick={(event) => {
-                  if (item.disabled) {
-                    event.preventDefault();
-                  }
-                }}
-                className={`inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 ${
-                  item.disabled ? 'pointer-events-none cursor-not-allowed text-current opacity-35' : navTextClass
-                }`}
-              >
-                <span>{item.label}</span>
-                {item.discount ? <DiscountChip /> : null}
-                {item.premium ? <PremiumChip /> : null}
-                {item.disabled ? <DisabledChip /> : null}
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const isActive = (item.activePaths ?? [item.path]).includes(pathname);
+
+              return (
+                <div
+                  key={item.path}
+                  className="relative flex h-full items-center"
+                >
+                  <Link
+                    to={item.path}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-disabled={item.disabled ? true : undefined}
+                    tabIndex={item.disabled ? -1 : undefined}
+                    onClick={(event) => {
+                      if (item.disabled) {
+                        event.preventDefault();
+                      }
+                    }}
+                    className={`relative inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
+                      item.disabled
+                        ? 'pointer-events-none cursor-not-allowed text-current opacity-35 after:w-0'
+                        : isActive
+                          ? 'opacity-100 after:w-6'
+                          : `${navTextClass} after:w-0`
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {item.discount ? <DiscountChip /> : null}
+                    {item.disabled ? <DisabledChip /> : null}
+                  </Link>
+
+                </div>
+              );
+            })}
           </div>
 
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
@@ -348,7 +408,7 @@ const Navbar = () => {
                 >
                   <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
                   {unreadCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white">
                       {unreadBadgeLabel}
                     </span>
                   ) : null}
@@ -397,6 +457,29 @@ const Navbar = () => {
                 {accountCtaLabel}
               </a>
             ) : null}
+            {hasStoreOperationsAccess ? (
+              <a
+                href="/mypage/operations"
+                className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${operationsButtonClass}`}
+              >
+                매장 운영
+              </a>
+            ) : null}
+
+            {authState.isAuthenticated ? (
+              <a
+                href={NOTIFICATION_FALLBACK_HREF}
+                aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
+                className={`relative inline-flex p-1 transition-opacity lg:hidden ${menuButtonClass}`}
+              >
+                <Bell size={23} strokeWidth={2.1} aria-hidden="true" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black leading-none text-white">
+                    {unreadBadgeLabel}
+                  </span>
+                ) : null}
+              </a>
+            ) : null}
 
             <button
               className={`p-1 transition-opacity lg:hidden ${menuButtonClass}`}
@@ -424,7 +507,7 @@ const Navbar = () => {
                   <a
                     href="/apply"
                     onClick={closeMobileMenu}
-                    className="flex items-center justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
+                    className={`flex items-center justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white ${authState.isAuthenticated ? 'col-span-2' : ''}`}
                   >
                     만들기
                   </a>
@@ -437,68 +520,73 @@ const Navbar = () => {
                       {accountCtaLabel}
                     </a>
                   ) : null}
-                  {authState.isAuthenticated ? (
+                  {hasStoreOperationsAccess ? (
                     <a
-                      href={NOTIFICATION_FALLBACK_HREF}
+                      href="/mypage/operations"
                       onClick={closeMobileMenu}
-                      className="col-span-2 flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
+                      className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
                     >
-                      <Bell size={17} strokeWidth={2.2} aria-hidden="true" />
-                      알림
-                      {unreadCount > 0 ? (
-                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white">
-                          {unreadBadgeLabel}
-                        </span>
-                      ) : null}
+                      매장 운영
                     </a>
                   ) : null}
-                  <a
-                    href={KAKAO_CHANNEL_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={closeMobileMenu}
-                    className="col-span-2 flex items-center justify-center rounded-2xl border border-[#F8E731]/70 bg-[#F8E731]/15 px-4 py-3 text-sm font-bold text-zinc-900"
-                  >
-                    카카오톡 상담
-                  </a>
                 </div>
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">
-                  {NAV_ITEMS.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      aria-disabled={item.disabled ? true : undefined}
-                      tabIndex={item.disabled ? -1 : undefined}
-                      onClick={(event) => {
-                        if (item.disabled) {
-                          event.preventDefault();
-                          return;
-                        }
+                  {NAV_ITEMS.map((item) => {
+                    const isActive = (item.activePaths ?? [item.path]).includes(pathname);
 
-                        closeMobileMenu();
-                      }}
-                      className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-5 text-2xl font-bold tracking-tight transition-colors ${
-                        item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : 'text-zinc-900 active:text-zinc-500'
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      <span className="flex shrink-0 items-center gap-1.5">
-                        {item.discount ? <DiscountChip /> : null}
-                        {item.premium ? <PremiumChip /> : null}
-                        {item.disabled ? <DisabledChip /> : null}
-                      </span>
-                    </Link>
-                  ))}
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        aria-current={isActive ? 'page' : undefined}
+                        aria-disabled={item.disabled ? true : undefined}
+                        tabIndex={item.disabled ? -1 : undefined}
+                        onClick={(event) => {
+                          if (item.disabled) {
+                            event.preventDefault();
+                            return;
+                          }
+
+                          closeMobileMenu();
+                        }}
+                        className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-6 text-2xl font-bold leading-[1.2] tracking-tight transition-colors ${
+                          item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : isActive ? 'text-zinc-950' : 'text-zinc-600 active:text-zinc-950'
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          {item.discount ? <DiscountChip /> : null}
+                          {item.disabled ? <DisabledChip /> : null}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </nav>
               </div>
 
               <div className="mt-auto px-6 py-8">
                 <div className="border-t border-zinc-100 pt-6">
-                  <div className="flex flex-col gap-0.5 text-[10px] font-medium tracking-tight text-zinc-400">
-                    <p className="mb-1 text-xs font-bold text-zinc-900">MENULINK Studio</p>
+                  <div className="mb-5 flex items-center gap-4 text-xs font-bold text-zinc-500">
+                    <a
+                      href="/mypage/inquiries"
+                      onClick={closeMobileMenu}
+                      className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
+                    >
+                      1:1 문의
+                    </a>
+                    <a
+                      href="#"
+                      onClick={closeMobileMenu}
+                      className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
+                    >
+                      채팅상담
+                    </a>
+                  </div>
+                  <div className="flex flex-col gap-1 text-xs font-medium tracking-tight text-zinc-400">
+                    <p className="mb-1 text-sm font-bold text-zinc-900">ArtiMenu Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
-                    <p className="mt-1 opacity-60">© 2026 MenuLink. All rights reserved.</p>
+                    <p className="mt-1 opacity-60">© 2026 ArtiMenu. All rights reserved.</p>
                   </div>
                 </div>
               </div>

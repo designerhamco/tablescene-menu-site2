@@ -31,8 +31,8 @@ function createCapabilityState(overrides: Partial<Parameters<typeof getPublicOrd
   });
 }
 
-test("public Order and Call become interactive only after every shared gate passes", () => {
-  const capabilityState = createCapabilityState();
+test("멀티페이지 스마트호출은 사업자 테이블 세션과 runtime gate를 모두 통과해야 열린다", () => {
+  const capabilityState = createCapabilityState({ templateKey: "dining_aube_table_a" });
   const config = buildPublicOrderCallEntryConfig({
     capabilityState,
     menuSiteId: MENU_SITE_ID,
@@ -40,15 +40,20 @@ test("public Order and Call become interactive only after every shared gate pass
     tableSession: { id: SESSION_ID, tableLabel: "TABLE 3" },
     cartScope: "visit-session-scope",
     orderCatalog: [],
+    callItems: [{ key: "water", label: "물 요청", sortOrder: 0, active: true }],
   });
 
   assert.ok(config);
+  assert.deepEqual(config.callItems, [{ key: "water", label: "물 요청", sortOrder: 0, active: true }]);
+  assert.equal(config.previewOnly, undefined);
+  assert.equal(config.tableLabel, "TABLE 3");
+  assert.doesNotMatch(config.tableLabel ?? "", /미리보기/);
   assert.deepEqual(getOrderCallEntryVisibility(config), {
     showHeader: true,
     showLanguage: true,
     showTableLabel: true,
     showCall: true,
-    showCart: true,
+    showCart: false,
   });
 });
 
@@ -80,14 +85,25 @@ test("missing session, non-business access, and Display templates fail closed be
   }), undefined);
 });
 
-test("Order-only and Call-only entitlements remain independent after shared session validation", () => {
-  const orderOnly = createCapabilityState({ callRuntimeEnabled: false });
-  const callOnly = createCapabilityState({ postpayOrderRuntimeEnabled: false });
+test("단일페이지는 runtime 환경값과 무관하게 Order와 스마트호출을 닫는다", () => {
+  const singlePage = createCapabilityState();
 
-  assert.equal(orderOnly.orderEnabled, true);
-  assert.equal(orderOnly.callEnabled, false);
-  assert.equal(callOnly.orderEnabled, false);
-  assert.equal(callOnly.callEnabled, true);
+  assert.equal(singlePage.orderEnabled, false);
+  assert.equal(singlePage.callEnabled, false);
+});
+
+test("멀티페이지 다이닝은 Order runtime이 켜져 있어도 스마트호출만 사용할 수 있다", () => {
+  const callOnly = createCapabilityState({
+    templateKey: "dining_aube_table_a",
+    postpayOrderRuntimeEnabled: true,
+    callRuntimeEnabled: true,
+  });
+
+  assert.deepEqual(callOnly, {
+    supportsExperience: true,
+    orderEnabled: false,
+    callEnabled: true,
+  });
 });
 
 test("one local table visit can submit a bounded order and complete both staff workflows", () => {

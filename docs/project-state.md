@@ -1,21 +1,84 @@
-# MenuLink 프로젝트 상태
+# ArtiMenu 프로젝트 상태
 
-최종 갱신: 2026-08-15
+최종 갱신: 2026-08-31
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `a6444e5` (`PR #36` 병합)
+기준 커밋: `8511775`
+
+현재 작업 브랜치: `codex/maison-marais-template`
+
+## 현재 상태와 다음 선행 조건
+
+- 공통 헤더의 다이닝 하위 메뉴를 제거하고 다이닝을 직접 링크로 제공
+- 단일페이지 5,900원은 할인·위젯, 멀티페이지 9,900원은 할인·스마트호출을 포함하도록 제품 기능 경계를 고정
+- Order/PG는 장기 비활성 제품으로 고정해 환경변수나 기존 allowlist만으로 공개 UI와 server write가 다시 열리지 않도록 차단
+- 스마트호출은 멀티페이지의 유효한 테이블 세션과 runtime/site allowlist를 모두 통과해야만 공개 메뉴와 매장 운영에 노출
+- 판매 가능한 멀티페이지 디자인 `오브 테이블`의 편집·starter·미리보기·공개 renderer와 additive schema 초안을 구현하고 로컬 QA 완료
+- 두 번째 멀티페이지 템플릿 `메종 마레`는 같은 데이터·편집·번역·스마트호출 계약을 재사용하되 PC·태블릿 왼쪽 페이지 메뉴와 모바일 상단 스와이프 탭을 사용한다. 버건디·아이보리 컬러, Noto Serif KR·Cormorant Garamond 기본 글꼴, 독립 모던 프렌치 스타터를 적용했으며 판매·교체 후보에는 아직 노출하지 않는 `coming_soon` 상태
+- 기존 Brew Chapter는 `retired` 호환 renderer로만 유지해 신규 생성·구매·교체 후보에서 제외
+- 신규 schema는 2026-08-30 사용자 승인 아래 Production에 1회 적용하고 generated types를 갱신했다. 최종 시각 확인·pilot 메뉴판 지정 전까지 `오브 테이블`은 hidden, 스마트호출 runtime과 신규 멀티 판매 노출은 fail closed
+
 
 ## 완료된 주요 기능
 
+- 오브 테이블 멀티페이지 기반:
+  - 선택 노출 커버에 제목·설명·배경 이미지·배경색을 제공하고, 커버를 제외한 최대 10개 메뉴 페이지는 세로 스크롤을 허용
+  - 커버 이미지가 있으면 선택 배경색을 기본 75%로 겹치고 0~100%로 조절하며, 이미지가 없으면 같은 색을 단색 배경으로 표시
+  - 메뉴 페이지별 노출·순서·설명·데스크톱/태블릿 1·2열·왼쪽/가운데 정렬을 저장하고 모바일은 항상 1열로 렌더링
+  - `메뉴판 구성`에서 커버·메뉴 페이지·추가 탭을 고정 제공하고 drag handle과 키보드/모바일 위·아래 대체 조작으로 저장 전 순서를 편집
+  - 카테고리를 `코스`로 표시하며 코스명·설명·가격·가격 안내를 지원하고, 코스 소속 메뉴와 페이지 직접 메뉴를 한 페이지에서 혼합
+  - 노출 코스의 노출 메뉴 1개 이상, 노출 메뉴의 유효한 페이지/코스 소속, 최대 페이지 수를 공개 전 fail closed 검증
+  - 커버와 노출 메뉴 페이지를 연결하는 고정 dot, click·swipe·keyboard 이동, 페이지 전환 시 scroll reset을 구현
+  - 상세 제품·데이터·QA 계약은 `docs/aube-table-multi-page-template-contract.md`
+  - 템플릿명·스타터 매장명을 `오브 테이블`로 통일하고 기본 커버 카피는 `THE MENU`·한글 설명으로 구성. 커버는 기본정보 로고가 있을 때만 원본 비율을 유지해 표시하고 텍스트 매장명은 반복하지 않는다. 기본 커버 오버레이는 고급스러운 네이비 `#0D172A`, 메뉴 페이지와 하단 fade는 순백색으로 통일. 시그니처·단품·드링크 3페이지의 완성형 스타터와 전용 파인다이닝 커버 이미지를 연결
+  - 모든 메뉴 페이지의 제목·설명 헤더는 중앙 정렬한다. `Signature Course` 스타터는 코스·메뉴 정보까지 중앙 정렬하고, `A La Carte Menu`·`Drink Menu` 스타터의 본문은 왼쪽 정렬을 사용한다. 2열 코스 묶음, 유동 타이포·여백·가격 리더선으로 실제 파인다이닝 메뉴판 밀도를 반영
+  - 한글 Pretendard, 영문 Tenor Sans를 기본값으로 두고 역할별 글자 설정으로 변경 가능하게 유지하며 스타터 영문은 자연스러운 문장형 대소문자를 사용
+  - PC 기준 페이지 제목 최대 68px·코스명 26~32px·메뉴명 17~20px·가격 15~18px·설명 13~15px로 조정. 최대 1440px 본문 폭과 유동 상하좌우 여백을 사용하며 코스·항목 간격도 화면 폭에 따라 축소·확대한다. 커버 제목은 최대 112px로 낮추고 페이지 제목과 같은 베이지 골드를 사용하며, 가격 미노출 메뉴는 가격 연결 점선을 함께 숨긴다
+  - 터치·마우스 스와이프와 Prev·Next·dot 이동은 동일한 방향성 전환 모션을 사용한다. 세로 스크롤은 유지하고 짧은 제스처는 원위치로 복귀하며, 운영체제의 모션 감소 설정에서는 전환과 드래그를 최소화한다
+  - 하단 탐색은 배경 없는 회색/금색 dot과 메뉴 내용을 자연스럽게 가리는 흰색 fade로 정리. 마우스를 사용하는 1280px 이상 PC에만 제공하는 `Prev`·`Next`에는 전용 화살표와 방향성 hover 모션을 적용
+  - 0.4초 페이지 전환 완료 후 페이지 제목·설명이 위에서 아래로 reveal되고 코스 제목·메뉴 묶음이 뒤따르도록 모션 순서를 고정. 스마트호출은 화면 아래에서 위로 올라오는 bottom sheet로 통일하고 모션 감소 설정을 보존
+  - 저장된 글자 역할 설정을 공개 renderer와 공통 호출 layer까지 전달. 오브 테이블의 `카테고리명 글자`는 페이지명과 코스명을 함께 변경한다. `나머지 글자`는 메뉴 본문·가격·품절·Prev/Next뿐 아니라 모바일 헤더·언어 UI·스마트호출 모달까지 연결하며, 각 문구를 script run으로 분리해 한글 Pretendard·영문 Tenor Sans 기본값과 역할별 webfont를 정확히 사용
+  - 공개 언어 UI는 커버·페이지·코스·메뉴·가격 옵션의 완료된 실제 번역 데이터를 모두 확인한 언어만 노출하고 누락·조회 실패 시 한국어로 fail closed. 번역이 없으면 모바일 헤더에는 `KR`만 표시
+  - 메종 마레는 오브 테이블의 커버·페이지·코스·직접 메뉴·편집·번역·스마트호출 schema를 재사용하되 버건디 사이드바, 웜 아이보리 지면, Noto Serif KR·Cormorant Garamond와 독립 모던 프렌치 스타터를 사용한다. PC·태블릿에서는 왼쪽 페이지 메뉴와 오른쪽 스크롤 콘텐츠를, 모바일에서는 공통 헤더 바로 아래 가로 스와이프 페이지명 탭을 제공하며 하단 dot·Prev·Next·페이지 swipe는 사용하지 않는다. 사이드바에는 편집 데이터인 커버 제목과 페이지명만 노출하고 각 항목은 전체 폭을 채우는 상단 정렬 행 버튼으로 표시한다
+  - 메종 마레 production build를 1440×900·1180×820·390×844에서 확인했다. 각 breakpoint의 탐색 UI 전환, 페이지 클릭, 스마트호출 진입, 가로 overflow 없음과 오브 테이블 하단 탐색 회귀가 통과했다
+
+- 매장 운영 정보 구조:
+  - 공통 헤더에서 `나의 메뉴판`과 `매장 운영`을 독립된 최상위 업무로 분리
+  - 현재 운영 허브는 공개·활성·멀티페이지·스마트호출 runtime·호출 권한을 모두 통과한 메뉴판만 상단 탭에 노출
+  - 호출·테이블 화면은 같은 메뉴판 탭과 전용 왼쪽 내비게이션을 공유하고, 주문·매출 화면은 향후 호환 코드로만 보존
+  - 운영 전용 왼쪽 영역에서도 계정 이메일·사용자 ID·로그아웃을 확인하되 AI 크레딧은 노출하지 않음
+  - 모바일 알림은 햄버거 옆 아이콘과 읽지 않은 알림 수로 제공하고 메뉴 하단 지원 동선은 `1:1 문의`·`채팅상담`으로 정리
+  - 주문·호출·테이블·매출 메뉴는 역할 권한이 없어도 숨기지 않고 비활성 상태와 제한 사유를 제공
+  - 공통 헤더의 `매장 운영` 진입은 같은 서버 운영 대상 판정을 통과한 계정에만 PC·모바일에 노출
+- 공개 서비스 소개 화면:
+  - 아티메뉴 디스플레이를 다이닝 소개 화면과 동일한 마케팅 타이포·검정 스토리 영역·교차 이미지 배치 구조로 통일
+  - 디스플레이 히어로는 천장형 메뉴보드 목업 3개를 상단에 두고 그 아래 영문 제목을 배치하며, 다이닝 히어로와 동일한 밝은 타이포 규격을 공유
+  - 검정 스토리 영역 이후도 다이닝과 같은 AI 2열 카드·매장 사례 3열·하단 가이드 CTA 레이아웃을 공유하고 문구만 디스플레이 용도에 맞게 분리
+  - 기존 디스플레이 기능·FAQ 정책 문구는 유지하고 공개 소개 본문만 짧게 정리
+  - 모바일 햄버거 메뉴의 다이닝 항목을 다른 1차 메뉴와 동일한 24px·bold 타이포로 고정
+- Display 타임세일:
+  - 다이닝과 같은 관리자 편집·저장·번역 계약을 `display_menu_a`에 연결
+  - 공개·미리보기에서 배지, 정상가 취소선, 할인가, 마감 문구·카운트다운을 Display 밀도 자동 보정과 함께 표시
+  - 예약 시작 시 공개 화면을 자동 갱신하고 종료·품절·유효하지 않은 할인가는 fail closed
+  - 기존 `menu_promotions`·`menu_promotion_items` 구조를 재사용하며 신규 migration은 없음
+- Display 동영상 통합 상품:
+  - 월 정가 19,900원·오픈할인 14,900원·연 160,900원에 이미지와 MP4 직접 업로드를 함께 포함
+  - 별도 유료 addon과 QA 환경변수 잠금을 제거하고 활성 Display 구독·편집 권한을 서버에서 재검증
+  - 파일당 최대 30MB·메뉴판당 최대 2개, 권장 20MB·5~15초와 1년 캐시 정책으로 초기 전송 비용을 제한
+- ArtiMenu 브랜드와 PG 사이트 심사 준비:
+  - 사용자 표시 브랜드를 `아티메뉴` / `ArtiMenu`로 통일하고 기존 cookie·localStorage·DB·호환 route 식별자는 유지
+  - 현재 판매 가능한 다이닝 4상품을 `/pricing`에서 분리하고 공개 상품 상세·제공 시점·교환·청약철회·환불 안내를 연결
+  - QR오더 소개의 미구현 결제·포인트·알림·POS 완성형 표현을 제거하고 계약 전 준비 상태와 검증 범위를 명시
+  - 상세 심사 체크리스트는 `docs/pg-site-review-readiness.md`
 - Production 의존성 보안 패치:
   - Next.js와 eslint-config-next를 16.3.1, React Router를 7.18.2로 갱신
   - `nanoid`, `postcss`, `sharp`, `ws`를 안전한 transitive 버전으로 갱신
   - `npm audit --omit=dev` 0건과 전체 계약 테스트·TypeScript·lint·production build 재검증
-- Order/Call 로컬 통합 QA:
-  - 공개 config의 세션·Business Basic·template·Order/Call runtime gate를 한 공통 판정으로 결합
-  - Order-only·Call-only 독립 노출, no-session fail-closed, Display 제외를 390×844 QA fixture로 확인
-  - 주문 payload부터 주문 단계·수동 결제 가능 상태와 호출 접수·완료 상태까지 142개 계약 테스트로 연결
+- 스마트호출 로컬 통합 QA:
+  - 공개 config의 세션·Business Basic·멀티페이지·Call runtime gate를 한 공통 판정으로 결합
+  - 단일페이지·일반 QR·Display·runtime-off에서는 fail closed, 멀티페이지 테이블 세션에서는 Call-only로 동작하도록 계약 테스트로 고정
+  - 기존 Order 회귀 fixture와 데이터 구조는 보존하지만 제품 정책 상 공개 UI와 server write는 항상 비활성
 
 - 메뉴판 생성·편집·미리보기·공개 및 QR 흐름
 - 활성 카페/디스플레이 템플릿과 공통 템플릿 렌더러
@@ -70,10 +133,10 @@
 - 메뉴판 미리보기 기기 프레임:
   - 기존 인증·권한 route와 `MenuPageRenderer`를 그대로 재사용
   - PC 1440×900, 태블릿 기본 가로 1180×820·선택 세로 820×1180, 모바일 390×844 실제 viewport 제공
-  - 모바일 프레임에서 `PG 미사용`/`PG 사용`을 선택해 비교하고, 메뉴별 아이콘 → 옵션·수량 바텀시트 → 담김 토스트 → 장바구니 수정·삭제 → 후불/지금 결제 흐름을 실제 write 없는 fixture로 제공
+  - 모바일 프레임은 Order/PG 선택 UI 없이 실제 메뉴판을 표시하고, 멀티페이지에서는 스마트호출 미리보기만 실제 write 없는 fixture로 제공
   - 별도 scale 엔진 없이 동일 출처 iframe의 반응형 viewport와 실제 크기 새 창 제공
 - 활성 템플릿 정책과 1차 renderer QA:
-  - Basic 6개와 Display 1개를 출시 대상으로 확정
+  - Basic 5개와 Display 1개를 신규 출시 대상으로 유지하고 누아는 신규 노출에서 은퇴
   - `hidden`은 임시 판매 노출 상태로 유지하면서 QA에는 포함
   - 390×844·1440×900 renderer, 이미지, overflow, 콘솔 오류와 Display 페이지 이동을 점검
   - 상세 기록은 `docs/active-template-qa.md`
@@ -81,6 +144,11 @@
   - 7개 starter의 최종 저장 payload round-trip과 참조 무결성 검증
   - 4개 locale, Basic desktop/mobile과 Display desktop 총 52개 route의 장문·이미지·언어 control 검증
   - 브루 챕터 언어 전환 control과 중국어·일본어 장문 overflow 수정
+- 템플릿 교체 등급 경계:
+  - 단일 페이지는 단일 페이지, 멀티페이지는 멀티페이지 후보만 썸네일 카드로 노출
+  - 서버 action도 교차 등급 전환을 거부하며 메뉴·URL·번역 보존 계약은 유지
+  - 브루 챕터 멀티페이지는 공통 Call Layer를 통해 Order 없이 호출만 활성화 가능
+  - 신규 단일 월 5,900원·연 63,700원과 멀티 월 9,900원·연 106,900원을 별도 SKU로 연결하고 기존 9,900원·95,000원 SKU는 기존 고객 호환용으로 유지
 - 활성 템플릿 기능 stress QA:
   - capability 기반 위젯·폰트·배지·가격 옵션·품절·타임세일·이미지·커버 desktop/mobile 검증
   - Display와 누아 메뉴의 품절 표시 연결
@@ -88,7 +156,8 @@
   - 동일 final-save round-trip fixture를 `MenuPageRenderer` preview/public 모드로 비교
   - 7개 desktop과 Basic 6개 mobile에서 렌더 신호·overflow·이미지 검증
 - 모바일 Order/Call 공통 진입 셸:
-  - template 밖 공통 safe-area sticky header와 언어·매장·table·Call·cart 배치
+  - template 밖 공통 safe-area sticky header와 언어·table·Call·cart 배치
+  - 오브 테이블 모바일은 그림자 없는 하단 실선 header, 가운데 table label, 왼쪽 `KR/EN/CN/JP` 텍스트 언어 menu, 오른쪽 그림자·원형 배경 없는 호출 아이콘을 사용하고 매장명은 반복하지 않음
   - 실제 table session 전에는 locked, no-session에서는 Call·cart fail-closed
 - 테이블 QR·방문 세션 기반 준비:
   - hash-only table/session token, 12시간 세션, 메뉴판당 비보관 테이블 100개 정책 확정
@@ -99,9 +168,10 @@
   - raw QR token은 생성·회전 응답에서만 한 번 전달하고 목록 DTO와 DB에는 노출하지 않음
   - hard delete 없이 보관 처리하며 비활성·보관·token 회전 시 DB trigger가 기존 방문 세션을 폐기
   - `TABLE_MANAGEMENT_ENABLED=true`가 아니면 UI와 server mutation을 모두 fail closed
-  - 현재는 Business Basic의 Basic template만 허용하며 실제 제품 key·번들·Production 활성화는 미결정 상태로 유지
+  - 현재는 멀티페이지 다이닝 스마트호출 번들만 허용하며 실제 판매 템플릿과 pilot 확정 전에는 Production runtime을 활성화하지 않음
 - table QR·방문 세션 runtime 기반:
   - 일반 메뉴 QR과 분리된 `/table/[token]` 진입에서 active table token hash와 공개 가능한 Basic 메뉴판을 server-only로 검증
+  - 테이블마다 별도 무작위 token과 QR PNG를 생성하므로 같은 메뉴판에서도 각 테이블이 서로 다른 table session·label로 연결되며 예측 가능한 순번 URL을 공개하지 않음
   - 방문 세션 원문은 최대 12시간의 Secure·HttpOnly·SameSite=Lax cookie에만 전달하고 DB에는 SHA-256 hash만 저장
   - 메뉴판 ID·active table·만료·폐기·User-Agent hash가 모두 일치할 때만 세션을 재사용
   - 일반 slug 접근은 세션을 생성하지 않으며 유효한 기존 세션만 공통 모바일 header의 table context에 연결
@@ -123,13 +193,17 @@
   - 미결제·미제공 취소, 외부 카드 단말기·현금 결제 완료, actor/timestamp 기록
   - 15초 갱신 대시보드와 immutable snapshot 인쇄 영수증
   - `ORDER_DASHBOARD_ENABLED` + explicit site allowlist 없이 Production에서 노출·write 안 됨
-- Call MVP default-off 기반:
-  - 직원 호출 단일 preset과 손님의 pending 상태 취소만 제공
-  - 쓰기 없는 미리보기에서는 직원 호출·물·앞치마·식기·테이블 정리·주문 도움 기본 항목의 선택 UI를 제공하며, 실제 항목 저장·전송은 DB 계약 확장 전까지 단일 preset 유지
+- Call default-off 기반:
+  - 직원 호출·물·식기·테이블 정리 4개를 설정 전 기본 항목으로 제공하고, 기존 6개 virtual default 응답은 앱 계층에서 새 기본값으로 정규화
+  - 매장별 호출 항목의 이름·순서·사용 여부를 원자적으로 저장하고, 제거 항목은 hard delete 대신 보관
+  - 별도 요청 상세설명 필드는 두지 않으며 공개 모달은 관리자에서 저장한 항목명만 그대로 표시
+  - 손님은 활성 항목만 전송하며 호출 이력에는 접수 당시 항목 key·label snapshot을 보존
+  - 설정 전 기존 매장에는 DB backfill 없이 virtual default를 반환하고 첫 명시적 저장부터 매장별 설정으로 전환
   - 미처리 호출 dedupe, 완료·취소 후 2분 cooldown, table session당 시간당 10회 제한
   - Owner/Manager/Order staff의 `call.manage` 재인증과 확인·완료 actor/timestamp 기록
   - 최근 100건을 15초 갱신하는 별도 호출관리 화면; 공개 Realtime publication은 추가하지 않음
   - server-only 강제 RLS migration은 2026-08-07 Production 1회 적용 및 generated types 갱신 완료
+  - 매장별 호출 항목 additive migration은 2026-08-28 사용자 승인 아래 Production 1회 적용, 보안 postcheck와 generated types 갱신 완료
   - `CALL_ENABLED` + site allowlist 없이 UI와 write 모두 fail closed
 - 매출 요약 default-off 기반:
   - 기존 주문관리 gate와 `sales.read`를 모두 통과한 Owner/Manager만 접근
@@ -159,9 +233,15 @@
   - 플랫폼 고객사가 음식점 계좌·수수료·정산주기를 관리하는 파트너 정산 자동화와 오픈마켓 하위상점 전표 API를 대안으로 확인했지만, 음식점 직접 merchant 구조와 동일하게 취급하지 않음
   - 서버 검증·웹훅 서명·idempotency·default-off pilot 안전 계약과 구현 순서를 `docs/prepay-pg-decision.md`에 기록
 - Order/Call 제품 계약과 잠금 상태 진입 셸
+- 오브 테이블 고객 경험 보강:
+  - 0.4초 page cross-slide가 끝난 뒤 페이지 제목·설명이 위에서 아래로 나타나고 코스 제목과 해당 메뉴 묶음이 차례로 올라오도록 구성. 커버 reveal과 `prefers-reduced-motion` 유지
+  - 멀티페이지 미리보기에 실제 write가 없는 스마트호출 버튼과 화면 아래에서 올라오는 bottom sheet를 연결하고 테이블 번호·매장별 선택 항목만 노출
+  - 손님 선택 화면은 물·식기·테이블 정리 같은 구체 요청을 먼저 표시하고 범용 `직원 호출`을 마지막 대안으로 배치. 전송 버튼은 조금 더 굵은 본문 weight 사용
+  - 운영 대시보드 최근 호출에 선택한 호출 내용과 접수 시각을 표시; 기존 server-only 항목 관리·2분 cooldown·시간당 제한·runtime allowlist는 변경하지 않음
 
 ## 최근 주요 커밋과 PR
 
+- `1c3fb77` — PR #70 병합: 다이닝 기능 등급·스마트호출 경계와 Order/PG 장기 비활성 정책
 - `209ad6a` — PR #28 병합: default-off Call MVP와 Production migration 기록
 - `f5038e7` — PR #27 병합: fail-closed 후불 주문관리
 - `b8c9631` — PR #26 병합: atomic 후불 주문 runtime과 RPC
@@ -198,6 +278,11 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260830072554_add_aube_table_multi_page_fields.sql` — 2026-08-30 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재와 오브 테이블/Brew 고객 row 0건 precheck, 기존 메뉴판·페이지·코스·메뉴 row 수 불변, column·constraint·trigger·function 권한 postcheck와 generated types 갱신 완료. `docs/runbooks/aube-table-multi-page-migration.md`. 다시 실행 금지.
+- `20260828105459_add_dining_single_multi_subscription_products.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 구독 건수 불변과 기존·신규 상품 key 8개 제약 postcheck 완료. `docs/runbooks/dining-tier-pricing-migration.md`. 다시 실행 금지.
+- `20260828143000_add_store_call_items.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재 precheck, RLS·grant·RPC·호출 집계 postcheck와 generated types 갱신 완료. `docs/runbooks/store-call-items-migration.md`. 다시 실행 금지.
+- `20260828083457_grant_first_menu_welcome_credits.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 AI 잔액·거래 집계 불변, 함수 보안·grant·부분 unique index postcheck와 generated types 갱신 완료. `docs/runbooks/ai-first-menu-welcome-credit-migration.md`. 다시 실행 금지.
+- `20260828040033_add_shared_menu_catalog.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 1회 적용, 기존 링크·catalog 행 0건, RLS·grant·RPC·trigger postcheck와 generated types 갱신 완료. `docs/runbooks/shared-menu-catalog-migration.md`. 다시 실행 금지.
 - `20260806142627_add_call_mvp_foundation.sql` — 2026-08-07 linked Supabase Management API로 1회 적용, RLS·grant·RPC postcheck, security/performance advisor 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806131244_add_submit_postpay_order_rpc.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, function 보안·grant postcheck·advisor 및 generated types 갱신 완료. 다시 실행 금지.
 - `20260806124512_add_postpay_order_foundation.sql` — 2026-08-06 linked Supabase Management API로 1회 적용, RLS·grant postcheck 및 generated types 갱신 완료. 다시 실행 금지.
@@ -215,7 +300,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 ## 현재 보류 중인 운영 작업
 
 - 기존 불완전 주문 3건은 변경하지 않고 별도 read-only 운영 감사가 필요하다.
-- PortOne에 음식점 직접 merchant와 MenuLink 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
+- PortOne에 음식점 직접 merchant와 ArtiMenu 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
 - 회원가입·비밀번호 재설정 이메일의 실제 수신 확인
 - Production 환경변수와 비밀키 확인
 - Vercel Cron 설정 확인

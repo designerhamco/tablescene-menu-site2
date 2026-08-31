@@ -23,7 +23,7 @@ export const services = [
     description: "웹 메뉴판과 완벽히 어우러지는 QR 웰컴 카드. 매장의 품격을 완성하는 프리미엄 솔루션.",
     image: "https://images.unsplash.com/photo-1728044849280-10a1a75cff83?q=75&w=720",
     video: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-    link: "/services/basic",
+    link: "/",
   },
   {
     id: "web-menu-pro-ai",
@@ -60,7 +60,7 @@ export const plans = [
     tagline: "DINING",
     keywords: ["파인다이닝", "QR 웰컴 카드", "프리미엄 커스텀"],
     narrative: "웹 메뉴판과 완벽한 조화를 이루는 프리미엄 QR 웰컴 카드를 제작해 드립니다. 매장의 품격을 높이는 차별화된 경험을 제공하세요.",
-    link: "/services/basic",
+    link: "/",
     poster: "https://images.unsplash.com/photo-1574096079513-d8259312b785?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=75&w=720",
     disabled: false,
   },
@@ -98,7 +98,7 @@ export const faqData = [
     category: "도입 및 기기",
     items: [
       ["서비스 도입 시 별도의 기기를 구매해야 하나요?", "아니요. 사장님이 이미 사용 중인 태블릿, PC, 스마트폰만 있다면 어디서든 바로 사용 가능합니다. 손님들은 개인 휴대폰으로 메뉴를 보기 때문에 비싼 하드웨어 추가 비용이 들지 않아 경제적입니다."],
-      ["현재 사용 중인 포스(POS)기와 연동되나요?", "본 서비스는 포스사와 연동하는 방식이 아닌, 독자적인 메뉴링크 대시보드(웹 POS)를 사용합니다. 주방, 카운터, 사장님 스마트폰까지 장소에 구애받지 않고 주문을 확인하고 관리할 수 있습니다."],
+      ["현재 사용 중인 포스(POS)기와 연동되나요?", "본 서비스는 포스사와 연동하는 방식이 아닌, 독자적인 아티메뉴 대시보드(웹 POS)를 사용합니다. 주방, 카운터, 사장님 스마트폰까지 장소에 구애받지 않고 주문을 확인하고 관리할 수 있습니다."],
       ["테이블별로 QR 코드를 다르게 만들어야 하나요?", "네, 각 테이블 고유의 QR 코드를 생성해 드립니다. 창가석, 야외테라스, 단체석 등 매장 구조에 맞춰 원하는 이름으로 관리할 수 있습니다."],
     ],
   },

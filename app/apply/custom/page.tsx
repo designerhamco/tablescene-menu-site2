@@ -12,7 +12,7 @@ type PageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "메뉴링크 커스텀 견적 문의 | MenuLink",
+  title: "아티메뉴 커스텀 견적 문의 | ArtiMenu",
   description: "브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험 상담 신청 페이지입니다.",
 };
 
@@ -116,7 +116,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
           <header className="grid gap-8 border-b border-zinc-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
             <div>
               <h1 className="max-w-3xl break-keep text-4xl font-black tracking-tight md:text-5xl">
-                메뉴링크 커스텀 견적 문의
+                아티메뉴 커스텀 견적 문의
               </h1>
               <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
                 브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 주문제작 프로젝트로 상담합니다.
@@ -145,7 +145,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
-                <Field label="매장명" name="storeName" placeholder="예: 메뉴링크 다이닝" required />
+                <Field label="매장명" name="storeName" placeholder="예: 아티메뉴 다이닝" required />
                 <SelectField
                   label="업종"
                   name="businessCategory"

@@ -29,7 +29,7 @@ function TokenDelivery({ state }: { state: MenuTableActionState }) {
       });
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `menulink-table-${state.tableId?.slice(0, 8) ?? "new"}-qr.png`;
+      link.download = `arti-menu-table-${state.tableId?.slice(0, 8) ?? "new"}-qr.png`;
       document.body.appendChild(link);
       link.click();
       link.remove();

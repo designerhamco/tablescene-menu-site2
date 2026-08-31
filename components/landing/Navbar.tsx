@@ -18,13 +18,13 @@ const navItems = [
   },
   {
     title: "브랜딩 솔루션",
-    href: "/services/basic",
+    href: "/",
     eyebrow: "Branding",
     summary: "QR 웰컴 카드와 다이닝 경험을 매장 톤에 맞게 설계합니다.",
     links: [
-      { title: "DINING", desc: "프리미엄 QR 웰컴 카드", href: "/services/basic", icon: "palette" },
-      { title: "포트폴리오", desc: "메뉴링크 적용 화면 보기", href: "/#portfolio", icon: "layout" },
-      { title: "상담 문의", desc: "브랜드 맞춤 제작 상담", href: "mailto:admin@dndcommerce.co.kr?subject=메뉴링크 브랜딩 솔루션 문의", icon: "message" },
+      { title: "DINING", desc: "프리미엄 QR 웰컴 카드", href: "/", icon: "palette" },
+      { title: "포트폴리오", desc: "아티메뉴 적용 화면 보기", href: "/#portfolio", icon: "layout" },
+      { title: "상담 문의", desc: "브랜드 맞춤 제작 상담", href: "mailto:admin@dndcommerce.co.kr?subject=아티메뉴 브랜딩 솔루션 문의", icon: "message" },
     ],
   },
   {
@@ -35,7 +35,7 @@ const navItems = [
     links: [
       { title: "스토어 홈", desc: "관련 제품과 구성품 보기", href: "/store", icon: "cart" },
       { title: "디바이스 구성", desc: "매장별 추천 설치 방식", href: "/#devices", icon: "monitor" },
-      { title: "제품 문의", desc: "필요 수량과 설치 상담", href: "mailto:admin@dndcommerce.co.kr?subject=메뉴링크 스토어 문의", icon: "package" },
+      { title: "제품 문의", desc: "필요 수량과 설치 상담", href: "mailto:admin@dndcommerce.co.kr?subject=아티메뉴 스토어 문의", icon: "package" },
     ],
   },
 ] satisfies {
@@ -71,7 +71,7 @@ export function Navbar() {
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F8E731] transition-transform duration-300 group-hover:scale-105 md:h-10 md:w-10 md:rounded-xl">
             <Image
               src="/assets/tablescene-symbol.png"
-              alt="MenuLink Symbol"
+              alt="ArtiMenu Symbol"
               width={24}
               height={24}
               className="h-5 w-5 rotate-45 object-contain md:h-6 md:w-6"
@@ -79,7 +79,7 @@ export function Navbar() {
           </span>
           <span className="flex flex-col leading-none">
             <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${darkNav ? "text-black" : "text-white"}`}>
-              MENULINK
+              ArtiMenu
             </span>
             <span className={`ml-0.5 mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] opacity-60 transition-colors duration-300 md:text-[10px] ${darkNav ? "text-black" : "text-white"}`}>
               Studio

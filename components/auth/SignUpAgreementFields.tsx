@@ -19,10 +19,10 @@ type SignUpConsentKey = "termsAccepted" | "privacyAccepted" | "marketingAccepted
 const signUpConsentItems: readonly ConsentAgreementItem[] = [
   {
     key: "termsAccepted",
-    label: "[필수] 메뉴링크 이용약관에 동의합니다.",
+    label: "[필수] 아티메뉴 이용약관에 동의합니다.",
     required: true,
     href: "/terms",
-    detailTitle: "메뉴링크 이용약관",
+    detailTitle: "아티메뉴 이용약관",
     detail: <TermsDocumentEmbed />,
   },
   {

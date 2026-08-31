@@ -119,6 +119,10 @@ export function getMenuEditorServiceType(productKey?: string | null): MenuEditor
   if (productKey === "personal_trial_basic_1month") return "menu";
   if (productKey === "business_basic_monthly") return "menu";
   if (productKey === "business_basic_yearly") return "menu";
+  if (productKey === "business_basic_single_monthly") return "menu";
+  if (productKey === "business_basic_single_yearly") return "menu";
+  if (productKey === "business_basic_multi_monthly") return "menu";
+  if (productKey === "business_basic_multi_yearly") return "menu";
   if (productKey === "large_screen") return "screen";
   if (productKey === "business_display_monthly") return "screen";
   if (productKey === "business_display_yearly") return "screen";

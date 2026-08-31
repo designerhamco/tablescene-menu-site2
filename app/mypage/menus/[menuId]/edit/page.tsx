@@ -13,6 +13,7 @@ import {
   updateMenuSiteAction,
   updatePageSettingsAction,
   updatePublishSettingsAction,
+  switchMenuTemplateAction,
 } from "@/app/mypage/menus/actions";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -25,6 +26,7 @@ import {
   CafeAStarterCoverTextInput,
 } from "@/components/mypage/menu-editor/CafeAStarterCoverDraftFields";
 import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
+import CoverBackgroundOpacityField from "@/components/mypage/menu-editor/CoverBackgroundOpacityField";
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
 import FeaturedSlidesEditor, { type FeaturedSlideDraft } from "@/components/mypage/menu-editor/FeaturedSlidesEditor";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
@@ -32,6 +34,7 @@ import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
 import LiveCharacterCounter from "@/components/mypage/menu-editor/LiveCharacterCounter";
 import MenuManagementSection from "@/components/mypage/menu-editor/MenuManagementSection";
+import { isAubeTableTemplate } from "@/lib/aube-table";
 import MenuEditorScrollRestoration from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import MenuEditorToastBridge from "@/components/mypage/menu-editor/MenuEditorToastBridge";
 import PendingSubmitButton from "@/components/mypage/menu-editor/PendingSubmitButton";
@@ -100,6 +103,11 @@ import {
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
 import { getTemplateDisplayName } from "@/lib/templates";
+import {
+  getSwitchableTemplatesForTemplate,
+  getTemplateCommercialTier,
+  getTemplateCommercialTierLabel,
+} from "@/lib/template-switching";
 import { MAX_MENU_WIDGET_DESCRIPTION_LENGTH, MAX_MENU_WIDGET_TITLE_LENGTH, type MenuWidget } from "@/lib/menu-widgets";
 import {
   getCustomBackgroundColor,
@@ -164,6 +172,11 @@ type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "section_key" | "sort_order" | "visible"
 > & {
+  course_price?: number | null;
+  course_price_label?: string | null;
+  course_price_visible?: boolean;
+  course_price_description?: string | null;
+  course_price_description_visible?: boolean;
   priceColumns?: MenuCategoryPriceColumnDraft[];
 };
 type MenuCategoryPriceColumn = Pick<
@@ -192,7 +205,10 @@ type MenuItemPriceColumnValueDraft = {
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
   "id" | "title" | "description" | "description_visible" | "display_settings" | "legacy_section_key" | "visible" | "sort_order" | "created_at"
->;
+> & {
+  layout_columns?: 1 | 2;
+  text_alignment?: "left" | "center";
+};
 type MenuItem = Pick<
   Database["public"]["Tables"]["menu_items"]["Row"],
   | "id"
@@ -218,6 +234,7 @@ type MenuItem = Pick<
   | "visible"
   | "sort_order"
 > & {
+  menu_page_id?: string | null;
   priceColumnValues?: MenuItemPriceColumnValueDraft[];
 };
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
@@ -818,6 +835,25 @@ function FieldLabel({ children, required = false }: { children: ReactNode; requi
   );
 }
 
+function TemplateSwitchThumbnail({ templateKey, templateName }: { templateKey: string; templateName: string }) {
+  const previewQuery = templateKey === "cafe_brew_chapter_a" ? "?pagePresentation=multi" : "";
+
+  return (
+    <span className="relative block aspect-[4/3] overflow-hidden rounded-[1.1rem] border border-zinc-100 bg-zinc-100">
+      <iframe
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 h-[400%] w-[400%] origin-top-left border-0"
+        loading="lazy"
+        sandbox=""
+        src={`/templates/${templateKey}/preview${previewQuery}`}
+        style={{ transform: "scale(0.25)" }}
+        tabIndex={-1}
+        title={`${templateName} 템플릿 미리보기`}
+      />
+    </span>
+  );
+}
+
 function FieldHint({ children }: { children?: ReactNode }) {
   if (!children) {
     return null;
@@ -1057,7 +1093,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
             ← 메뉴판 목록으로
           </Link>
           <section className="rounded-lg bg-white p-8 shadow-sm">
-            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">메뉴링크 커스텀은 맞춤 제작형 서비스입니다.</h1>
+            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">아티메뉴 커스텀은 맞춤 제작형 서비스입니다.</h1>
             <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
               <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
@@ -1120,7 +1156,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   }
 
   if (!hasMenuSitePermission(accessContext, "menu.edit")) {
-    redirect("/mypage?error=menu-edit-forbidden");
+    redirect("/mypage?tab=menus&message=menu-edit-permission-required");
   }
 
   const supabase = createAdminClient();
@@ -1150,6 +1186,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   }
 
   const site = menuSite as MenuSite;
+  const isAubeTable = isAubeTableTemplate(site.template_key);
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id });
   if (!accessState?.canEdit) {
     return <LockedMenuEditorScreen site={site} accessState={accessState} />;
@@ -1180,13 +1217,17 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     await Promise.all([
       supabase
         .from("menu_pages")
-        .select("id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at")
+        .select((isAubeTable
+          ? "id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at, layout_columns, text_alignment"
+          : "id, title, description, description_visible, display_settings, legacy_section_key, visible, sort_order, created_at") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
       supabase
         .from("menu_categories")
-        .select("id, menu_page_id, name, description, description_visible, section_key, sort_order, visible")
+        .select((isAubeTable
+          ? "id, menu_page_id, name, description, description_visible, section_key, sort_order, visible, course_price, course_price_label, course_price_visible, course_price_description, course_price_description_visible"
+          : "id, menu_page_id, name, description, description_visible, section_key, sort_order, visible") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -1198,9 +1239,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .order("created_at", { ascending: true }),
       supabase
         .from("menu_items")
-        .select(
-          "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
-        )
+        .select((isAubeTable
+          ? "id, category_id, menu_page_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+          : "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -1262,7 +1303,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         .maybeSingle(),
     ]);
 
-  const menuPages = (menuPagesData ?? []) as MenuPage[];
+  const menuPages = (menuPagesData ?? []) as unknown as MenuPage[];
   const isMissingCategoryPriceColumnsTable =
     categoryPriceColumnsError &&
     (categoryPriceColumnsError.message.toLowerCase().includes("menu_category_price_columns") ||
@@ -1280,7 +1321,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     });
     priceColumnsByCategoryId.set(column.category_id, entries);
   });
-  const categories = ((categoriesData ?? []) as MenuCategory[]).map((category) => ({
+  const categories = ((categoriesData ?? []) as unknown as MenuCategory[]).map((category) => ({
     ...category,
     priceColumns: priceColumnsByCategoryId.get(category.id) ?? [],
   }));
@@ -1379,13 +1420,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const templateType = getTemplateType(site.template_key);
+  const switchableTemplates = getSwitchableTemplatesForTemplate(site.template_key);
+  const templateSwitchTargets = switchableTemplates.filter((template) => template.key !== site.template_key);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
   const displayVideoUploadAccess = getDisplayVideoUploadAccess({
     templateKey: site.template_key,
     productKey: latestOrder?.product_key,
     accessState,
-    addonKeys: null,
   });
 
   if (editorServiceType === "custom") {
@@ -1645,7 +1687,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
-  const visibleEditorTabs = configuredEditorTabs.flatMap((item) => {
+  const visibleEditorTabs: Array<(typeof configuredEditorTabs)[number] & { disabledReason?: string }> = configuredEditorTabs.flatMap((item) => {
     if (!isMenuEditorTabEnabled(item.key, editorCapabilities)) {
       return [];
     }
@@ -1663,7 +1705,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     }
 
     if (item.key === "publish" && !canManagePublish) {
-      return [];
+      return [{ ...item, disabledReason: "현재 직원 역할에는 공개 설정 권한이 없습니다." }];
     }
 
     if (item.key === "cover" && coverTabLabel) {
@@ -1672,7 +1714,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
     return [item];
   });
-  const activeTab = visibleEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : visibleEditorTabs[0]?.key ?? "basic";
+  const enabledEditorTabs = visibleEditorTabs.filter((item) => !item.disabledReason);
+  const requestedEditorTab = visibleEditorTabs.find((item) => item.key === requestedActiveTab);
+  const permissionTabNotice = requestedEditorTab?.disabledReason ?? null;
+  const activeTab = enabledEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : enabledEditorTabs[0]?.key ?? "basic";
   const editorShellMaxWidth = "max-w-7xl";
   const bannerMessage = message;
   const bannerError =
@@ -1756,7 +1801,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 ) : null}
                 <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
                   {templateDisplayName}
-                  <HelpTooltip label="템플릿 도움말">결제 시 선택한 템플릿입니다.</HelpTooltip>
+                  <HelpTooltip label="템플릿 도움말">디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다.</HelpTooltip>
                 </span>
               </div>
               <h1 className="text-4xl font-bold tracking-tight">{site.name}</h1>
@@ -1767,6 +1812,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             </div>
             <div className="flex flex-col items-start gap-2 lg:items-end">
               <div className="flex flex-wrap items-center justify-end gap-3">
+                {accessContext.isOwner && site.status === "draft" && !isReadOnly ? (
+                  <Link
+                    href={`/mypage/menus/${site.id}/import`}
+                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                  >
+                    메뉴 가져오기
+                  </Link>
+                ) : null}
                 {canPreview ? (
                   <Link
                     href={previewUrl}
@@ -1823,6 +1876,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             직원 권한으로 편집 중입니다. AI는 메뉴판 소유자의 크레딧을 사용하며, 충전과 결제 관리는 소유자만 할 수 있습니다.
           </div>
         )}
+        {permissionTabNotice ? (
+          <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800" role="status">
+            {permissionTabNotice} 권한이 있는 계정으로 전환하거나 사장에게 역할 변경을 요청해 주세요.
+          </div>
+        ) : null}
         {isReadOnly && (
           <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-5">
             <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">{readOnlyMessage}</p>
@@ -1922,7 +1980,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       value={templateDisplayName}
                       readOnly
                       className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
-                      helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
+                      helperText="디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다."
                     />
                   </div>
                   {(supportsBrandLogo || supportsFooterStoreInfo) && (
@@ -2006,7 +2064,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                               name="footer_notice_3"
                               defaultValue={footerNotice3}
                               maxLength={templateContentLimits.footerNotice}
-                              placeholder="예: Instagram @menulink_official"
+                              placeholder="예: Instagram @artimenu_official"
                               helperText={
                                 <>
                                   링크가 아닌 단순 텍스트로 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
@@ -2149,6 +2207,29 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           placeholder={isPriceListTemplate ? "예: 기본 관리부터 프리미엄 케어까지, 필요한 서비스를 한눈에 확인해보세요." : "예: 매장의 대표 메뉴와 추천 구성을 소개해보세요."}
                           helperText={`${isPriceListTemplate ? "가격표 소개 문구" : "메뉴 소개 문구"}를 입력해주세요. 최대 ${MENU_FIELD_LIMITS.menuSites.menuCoverDescription}자까지 입력할 수 있습니다.`}
                         />
+                      </div>
+                    )}
+                    {isAubeTable && (
+                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-white p-4">
+                        <FieldLabel>커버 배경색</FieldLabel>
+                        <div className="mt-2 flex flex-wrap items-center gap-3">
+                          <input
+                            type="color"
+                            name="multi_page_cover_background_color"
+                            defaultValue={pageSettings.multi_page_cover_background_color}
+                            className="h-12 w-16 cursor-pointer rounded-lg border border-zinc-200 bg-white p-1"
+                            aria-label="커버 배경색 선택"
+                          />
+                          <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                            이미지가 없으면 커버 전체에 표시되고, 이미지가 있으면 이미지 위에 겹쳐집니다.
+                          </p>
+                        </div>
+                        <div className="mt-5 border-t border-zinc-100 pt-4">
+                          <FieldLabel>배경색 불투명도</FieldLabel>
+                          <CoverBackgroundOpacityField
+                            defaultValue={pageSettings.multi_page_cover_background_opacity}
+                          />
+                        </div>
                       </div>
                     )}
                     {menuCoverCapabilities.usesCoverImage && coverMode === "page" && (
@@ -2300,6 +2381,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <MenuManagementSection
                     key={site.id}
                     menuId={site.id}
+                    templateKey={site.template_key}
                     menuPages={menuPages}
                     categories={categories}
                     items={items}
@@ -2391,14 +2473,91 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <div className="space-y-5">
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
-                    <div>
-                      <FieldLabel>현재 템플릿</FieldLabel>
-                      <TextInput
-                        value={templateDisplayName}
-                        readOnly
-                        className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
-                        helperText="결제 시 선택한 디자인입니다. 메뉴판 생성 후에는 변경할 수 없습니다."
-                      />
+                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                      <div>
+                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">템플릿 교체</h3>
+                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          메뉴·가격·이미지·번역과 공개 주소는 유지됩니다. 할인은 내용을 보존한 채 꺼지고, 위젯은 다시 배치할 수 있게 숨겨집니다.
+                        </p>
+                      </div>
+                      {accessContext.isOwner ? (
+                        <div className="mt-5 space-y-4">
+                          <p className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-600">
+                            현재 템플릿 <strong className="ml-1 font-black text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
+                            <span className="mx-2 text-zinc-300">·</span>
+                            {getTemplateCommercialTierLabel(getTemplateCommercialTier(site.template_key))}
+                          </p>
+                          {templateSwitchTargets.length > 0 ? (
+                            <>
+                              <fieldset>
+                                <legend className="text-sm font-bold text-zinc-800">변경할 템플릿</legend>
+                                <p className="mt-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                                  현재 이용 중인 {getTemplateCommercialTierLabel(getTemplateCommercialTier(site.template_key))} 상품에서 선택할 수 있습니다.
+                                </p>
+                                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                  {templateSwitchTargets.map((template) => (
+                                    <label key={template.key} className="cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="target_template_key"
+                                        value={template.key}
+                                        required
+                                        className="peer sr-only"
+                                      />
+                                      <span className="block rounded-[1.35rem] border border-zinc-200 bg-white p-3 transition peer-checked:border-zinc-950 peer-checked:ring-2 peer-checked:ring-zinc-950 peer-checked:ring-offset-2 peer-checked:[&_.template-switch-check]:border-zinc-950 peer-checked:[&_.template-switch-check]:bg-zinc-950 peer-checked:[&_.template-switch-check]:text-white hover:border-zinc-400">
+                                        <TemplateSwitchThumbnail templateKey={template.key} templateName={template.label} />
+                                        <span className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
+                                          <span className="min-w-0">
+                                            <span className="block truncate text-sm font-black text-zinc-950">{template.label}</span>
+                                            <span className="mt-0.5 block text-xs font-bold text-zinc-500">
+                                              {getTemplateCommercialTierLabel(getTemplateCommercialTier(template.key))}
+                                            </span>
+                                          </span>
+                                          <span className="template-switch-check grid h-6 w-6 shrink-0 place-items-center rounded-full border border-zinc-300 text-xs font-black text-transparent">
+                                            ✓
+                                          </span>
+                                        </span>
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </fieldset>
+                              <label className="flex items-start gap-3 rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-600">
+                                <input
+                                  type="checkbox"
+                                  name="confirm_template_switch"
+                                  value="confirmed"
+                                  className="mt-1 h-4 w-4 rounded border-zinc-300"
+                                />
+                                <span>
+                                  템플릿 변경 후 할인과 위젯을 다시 확인하고, 공개 화면을 미리보기로 검수하겠습니다.
+                                </span>
+                              </label>
+                              <PendingSubmitButton
+                                formAction={switchMenuTemplateAction}
+                                pendingLabel="템플릿 변경 중..."
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
+                              >
+                                템플릿 변경
+                              </PendingSubmitButton>
+                            </>
+                          ) : (
+                            <p className="break-keep rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-500">
+                              같은 페이지 등급에서 변경할 수 있는 다른 템플릿이 아직 없습니다.
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-5">
+                          <FieldLabel>현재 템플릿</FieldLabel>
+                          <TextInput
+                            value={templateDisplayName}
+                            readOnly
+                            className="cursor-not-allowed bg-white text-zinc-600 focus:border-zinc-200"
+                            helperText="템플릿 교체는 메뉴판 소유자만 할 수 있습니다."
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>

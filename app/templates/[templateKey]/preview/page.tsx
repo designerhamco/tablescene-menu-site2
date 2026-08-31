@@ -3,10 +3,13 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
+import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "@/lib/aube-table";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
@@ -43,7 +46,6 @@ type PageProps = {
     pagePresentation?: string | string[];
     renderMode?: string | string[];
     orderCallQa?: string | string[];
-    payment?: string | string[];
   }>;
 };
 
@@ -63,13 +65,15 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const pages: MenuPageData["pages"] = preset.pages.map((page, pageIndex) => ({
     id: `${siteId}-page-${pageIndex}`,
     title: page.title,
-    description: null,
-    description_visible: true,
+    description: page.description ?? null,
+    description_visible: page.description_visible ?? Boolean(page.description),
     display_settings: {},
     legacy_section_key: page.legacy_section_key,
     visible: true,
     sort_order: pageIndex,
     created_at: now,
+    layout_columns: page.layout_columns ?? 1,
+    text_alignment: page.text_alignment ?? "left",
   }));
 
   const categories: MenuPageData["categories"] = [];
@@ -100,6 +104,11 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         name: category.name,
         description: category.description ?? null,
         description_visible: category.description_visible ?? Boolean(category.description),
+        course_price: category.course_price ?? null,
+        course_price_label: category.course_price_label ?? null,
+        course_price_visible: category.course_price_visible ?? true,
+        course_price_description: category.course_price_description ?? null,
+        course_price_description_visible: category.course_price_description_visible ?? true,
         sort_order: categoryIndex + 1,
         visible: true,
         priceColumns,
@@ -121,13 +130,16 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         items.push({
           id: itemId,
           category_id: categoryId,
+          menu_page_id: pageId,
           name: menuItem.name,
           set_name: menuItem.set_name ?? null,
           description: menuItem.description,
           price: menuItem.price,
           price_label: menuItem.price_label ?? null,
           priceNote: menuItem.price_note ?? null,
-          price_visible: true,
+          price_visible:
+            menuItem.price_visible ??
+            !(isAubeTableTemplate(templateKey) && menuItem.price === 0 && !menuItem.price_label),
           portion_label: menuItem.portion_label ?? null,
           portion_visible: Boolean(menuItem.portion_label),
           image_url: menuItem.image_url ?? null,
@@ -157,6 +169,48 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         });
       });
     });
+
+    (page.direct_items ?? []).forEach((menuItem, itemIndex) => {
+      const itemId = `${siteId}-direct-item-${pageIndex}-${itemIndex}`;
+      items.push({
+        id: itemId,
+        category_id: null,
+        menu_page_id: pageId,
+        name: menuItem.name,
+        set_name: menuItem.set_name ?? null,
+        description: menuItem.description,
+        price: menuItem.price,
+        price_label: menuItem.price_label ?? null,
+        priceNote: menuItem.price_note ?? null,
+        price_visible: menuItem.price_visible ?? true,
+        portion_label: menuItem.portion_label ?? null,
+        portion_visible: Boolean(menuItem.portion_label),
+        image_url: menuItem.image_url ?? null,
+        badge: menuItem.badge_label ?? null,
+        badge_label: menuItem.badge_label ?? null,
+        badge_type: null,
+        recommended: menuItem.recommended ?? false,
+        origin_info: null,
+        is_best: menuItem.recommended ?? false,
+        is_sold_out: menuItem.is_sold_out ?? false,
+        traits_visible: true,
+        visible: true,
+        sort_order: itemIndex + 1,
+        priceColumnValues: [],
+      });
+
+      menuItem.price_options?.forEach((option, optionIndex) => {
+        priceOptions.push({
+          id: `${itemId}-price-option-${optionIndex}`,
+          menu_item_id: itemId,
+          label: option.label,
+          price: option.price ?? null,
+          price_label: option.price_label ?? null,
+          visible: true,
+          sort_order: optionIndex + 1,
+        });
+      });
+    });
   });
 
   const featuredItem = preset.featured_item_name
@@ -166,6 +220,8 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
+    multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(templateKey),
+    multi_page_cover_background_opacity: 75,
     featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
     featured_item_id: firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null,
     ...(featuredSlides.length > 0 ? { featured_slides: featuredSlides } : {}),
@@ -502,8 +558,10 @@ function applyActiveTemplateFeatureQaFixture(
   const timeSaleItems = featureItemsByCategory.flatMap((items) => items[2] ? [items[2]] : items[0] ? [items[0]] : []);
   const primaryItemIds = new Set(primaryItems.map((item) => item.id));
   const soldOutItemIds = new Set(soldOutItems.map((item) => item.id));
+  const timeSaleItemIds = new Set(timeSaleItems.map((item) => item.id));
   const featureImageUrl = "/menu-templates/cafe_design_a/malcha.jpg";
   const supportsTimeSale = (
+    templateKey === "display_menu_a" ||
     templateKey === "cafe_design_a" ||
     templateKey === "cafe_mocha_forest_a" ||
     templateKey === "cafe_sunday_line_a" ||
@@ -528,7 +586,10 @@ function applyActiveTemplateFeatureQaFixture(
   });
   const priceOptions = capabilities.priceOptions && primaryItems.length > 0
     ? [
-        ...data.priceOptions.filter((option) => !primaryItemIds.has(option.menu_item_id)),
+        ...data.priceOptions.filter((option) => (
+          !primaryItemIds.has(option.menu_item_id) &&
+          !(templateKey === "display_menu_a" && timeSaleItemIds.has(option.menu_item_id))
+        )),
         ...primaryItems.flatMap((item) => [
           { id: `${item.id}-feature-qa-option-1`, menu_item_id: item.id, label: "HOT", price: 5500, price_label: "5.5", visible: true, sort_order: 1 },
           { id: `${item.id}-feature-qa-option-2`, menu_item_id: item.id, label: "ICE", price: 6000, price_label: "6.0", visible: true, sort_order: 2 },
@@ -546,7 +607,7 @@ function applyActiveTemplateFeatureQaFixture(
         dailyStartTime: null,
         dailyEndTime: null,
         timezone: TIME_SALE_TIMEZONE,
-        timeDisplayMode: DEFAULT_TIME_SALE_DISPLAY_MODE,
+        timeDisplayMode: templateKey === "display_menu_a" ? "message_and_countdown" : DEFAULT_TIME_SALE_DISPLAY_MODE,
         displayText: "출시 기능 확인 세일",
         badgeText: "QA SALE",
         badgeBackgroundColor: DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
@@ -616,57 +677,28 @@ function applyActiveTemplateFeatureQaFixture(
 
 function getOrderCallQaConfig(
   value: string | string[] | undefined,
-  paymentValue: string | string[] | undefined,
   storeName: string,
+  templateKey: string,
 ): OrderCallEntryConfig | undefined {
   if (process.env.NODE_ENV === "production") return undefined;
 
   const qaCase = Array.isArray(value) ? value[0] : value;
-  if (!qaCase || !["active", "call", "order", "no-session"].includes(qaCase)) return undefined;
+  if (!getDiningTemplateFeatures(templateKey).smartCall) return undefined;
+  if (!qaCase || !["active", "call", "no-session"].includes(qaCase)) return undefined;
 
   const hasValidTableSession = qaCase !== "no-session";
-  const hasOrder = qaCase === "active" || qaCase === "order";
-  const paymentMode = (Array.isArray(paymentValue) ? paymentValue[0] : paymentValue) === "on" ? "on" : "off";
   return {
-    mode: hasOrder ? "active" : "preview",
-    orderEnabled: qaCase === "active" || qaCase === "order" || qaCase === "no-session",
-    callEnabled: qaCase === "active" || qaCase === "call" || qaCase === "no-session",
+    mode: hasValidTableSession ? "active" : "preview",
+    orderEnabled: false,
+    callEnabled: true,
     hasValidTableSession,
-    orderingOpen: true,
+    orderingOpen: false,
     languageSlotEnabled: true,
     storeName,
     tableLabel: hasValidTableSession ? "TABLE 3" : undefined,
     cartCount: 0,
-    menuSiteId: hasOrder ? "11111111-1111-4111-8111-111111111111" : undefined,
-    cartScope: hasOrder ? "development-order-cart-qa" : undefined,
-    orderCatalog: hasOrder ? [
-      {
-        id: "22222222-2222-4222-8222-222222222222",
-        name: "오브 시그니처 라떼",
-        price: 6500,
-        optionGroups: [
-          {
-            id: "33333333-3333-4333-8333-333333333333",
-            name: "온도",
-            isRequired: true,
-            minSelections: 1,
-            maxSelections: 1,
-            values: [
-              { id: "44444444-4444-4444-8444-444444444444", name: "HOT", priceDelta: 0 },
-              { id: "55555555-5555-4555-8555-555555555555", name: "ICE", priceDelta: 500 },
-            ],
-          },
-        ],
-      },
-      {
-        id: "66666666-6666-4666-8666-666666666666",
-        name: "버터 크루아상",
-        price: 4800,
-        optionGroups: [],
-      },
-    ] : undefined,
-    checkoutMode: hasOrder && paymentMode === "on" ? "prepay" : "postpay",
-    checkoutModes: hasOrder && paymentMode === "on" ? ["prepay", "postpay"] : ["postpay"],
+    menuSiteId: hasValidTableSession ? "11111111-1111-4111-8111-111111111111" : undefined,
+    orderCatalog: [],
     previewOnly: true,
   };
 }
@@ -1143,7 +1175,7 @@ function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | s
     : {};
   settings.footer_notice_1 = "10:00~22:00";
   settings.footer_notice_2 = "서울시 강남구 테이블로 12";
-  settings.footer_notice_3 = "Instagram @menulink_official · 포장 가능";
+  settings.footer_notice_3 = "Instagram @artimenu_official · 포장 가능";
 
   return {
     ...data,
@@ -1161,7 +1193,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!isValidTemplateKey(templateKey)) {
     return {
-      title: "템플릿 미리보기 | MenuLink",
+      title: "템플릿 미리보기 | ArtiMenu",
       robots: { index: false, follow: false },
     };
   }
@@ -1169,7 +1201,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const template = getTemplateByKey(templateKey);
 
   return {
-    title: `${template.name} 미리보기 | MenuLink`,
+    title: `${template.name} 미리보기 | ArtiMenu`,
     description: `${template.name} 템플릿 화면을 미리 확인해보세요.`,
     robots: { index: false, follow: false },
   };
@@ -1241,11 +1273,18 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const renderMode = process.env.NODE_ENV !== "production" && requestedRenderMode === "public"
     ? "public"
     : "preview";
+  const previewStoreName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
   const orderCallConfig = getOrderCallQaConfig(
     resolvedSearchParams.orderCallQa,
-    resolvedSearchParams.payment,
-    data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
-  );
+    previewStoreName,
+    templateKey,
+  ) ?? (getDiningTemplateFeatures(templateKey).smartCall
+    ? buildMenuPreviewOrderCallConfig({
+        menuSiteId: data.menuSite.id,
+        storeName: previewStoreName,
+        templateKey,
+      })
+    : undefined);
 
   return (
     <MenuPageRenderer

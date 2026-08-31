@@ -303,6 +303,8 @@ export type Database = {
           portone_payment_id: string | null
           product_key: string
           status: string
+          trial_ends_at: string | null
+          trial_started_at: string | null
           updated_at: string
           user_id: string
         }
@@ -327,6 +329,8 @@ export type Database = {
           portone_payment_id?: string | null
           product_key: string
           status?: string
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -351,6 +355,8 @@ export type Database = {
           portone_payment_id?: string | null
           product_key?: string
           status?: string
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -454,8 +460,55 @@ export type Database = {
         }
         Relationships: []
       }
+      menu_call_items: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          is_active: boolean
+          item_key: string
+          label: string
+          menu_site_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          is_active?: boolean
+          item_key: string
+          label: string
+          menu_site_id: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          is_active?: boolean
+          item_key?: string
+          label?: string
+          menu_site_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_call_items_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
+          catalog_category_id: string | null
+          course_price: number | null
+          course_price_description: string | null
+          course_price_description_visible: boolean
+          course_price_label: string | null
+          course_price_visible: boolean
           created_at: string
           description: string | null
           description_visible: boolean
@@ -469,6 +522,12 @@ export type Database = {
           visible: boolean
         }
         Insert: {
+          catalog_category_id?: string | null
+          course_price?: number | null
+          course_price_description?: string | null
+          course_price_description_visible?: boolean
+          course_price_label?: string | null
+          course_price_visible?: boolean
           created_at?: string
           description?: string | null
           description_visible?: boolean
@@ -482,6 +541,12 @@ export type Database = {
           visible?: boolean
         }
         Update: {
+          catalog_category_id?: string | null
+          course_price?: number | null
+          course_price_description?: string | null
+          course_price_description_visible?: boolean
+          course_price_label?: string | null
+          course_price_visible?: boolean
           created_at?: string
           description?: string | null
           description_visible?: boolean
@@ -568,6 +633,8 @@ export type Database = {
       menu_category_translations: {
         Row: {
           category_id: string
+          course_price_description: string | null
+          course_price_label: string | null
           created_at: string
           description: string | null
           id: string
@@ -579,6 +646,8 @@ export type Database = {
         }
         Insert: {
           category_id: string
+          course_price_description?: string | null
+          course_price_label?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -590,6 +659,8 @@ export type Database = {
         }
         Update: {
           category_id?: string
+          course_price_description?: string | null
+          course_price_label?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -719,6 +790,8 @@ export type Database = {
           id: string
           menu_site_id: string
           menu_table_id: string
+          request_key: string
+          request_label: string
           status: string
           table_visit_session_id: string
           updated_at: string
@@ -735,6 +808,8 @@ export type Database = {
           id?: string
           menu_site_id: string
           menu_table_id: string
+          request_key?: string
+          request_label?: string
           status?: string
           table_visit_session_id: string
           updated_at?: string
@@ -751,6 +826,8 @@ export type Database = {
           id?: string
           menu_site_id?: string
           menu_table_id?: string
+          request_key?: string
+          request_label?: string
           status?: string
           table_visit_session_id?: string
           updated_at?: string
@@ -1454,6 +1531,7 @@ export type Database = {
           badge: string | null
           badge_label: string | null
           badge_type: string | null
+          catalog_item_id: string | null
           category_id: string | null
           created_at: string
           description: string | null
@@ -1462,6 +1540,7 @@ export type Database = {
           image_url: string | null
           is_best: boolean
           is_sold_out: boolean
+          menu_page_id: string | null
           menu_site_id: string
           name: string
           options: Json
@@ -1486,6 +1565,7 @@ export type Database = {
           badge?: string | null
           badge_label?: string | null
           badge_type?: string | null
+          catalog_item_id?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
@@ -1494,6 +1574,7 @@ export type Database = {
           image_url?: string | null
           is_best?: boolean
           is_sold_out?: boolean
+          menu_page_id?: string | null
           menu_site_id: string
           name: string
           options?: Json
@@ -1518,6 +1599,7 @@ export type Database = {
           badge?: string | null
           badge_label?: string | null
           badge_type?: string | null
+          catalog_item_id?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
@@ -1526,6 +1608,7 @@ export type Database = {
           image_url?: string | null
           is_best?: boolean
           is_sold_out?: boolean
+          menu_page_id?: string | null
           menu_site_id?: string
           name?: string
           options?: Json
@@ -1551,6 +1634,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_menu_page_id_fkey"
+            columns: ["menu_page_id"]
+            isOneToOne: false
+            referencedRelation: "menu_pages"
             referencedColumns: ["id"]
           },
           {
@@ -1727,9 +1817,11 @@ export type Database = {
           description_visible: boolean
           display_settings: Json
           id: string
+          layout_columns: number
           legacy_section_key: string | null
           menu_site_id: string
           sort_order: number
+          text_alignment: string
           title: string
           updated_at: string
           visible: boolean
@@ -1740,9 +1832,11 @@ export type Database = {
           description_visible?: boolean
           display_settings?: Json
           id?: string
+          layout_columns?: number
           legacy_section_key?: string | null
           menu_site_id: string
           sort_order?: number
+          text_alignment?: string
           title: string
           updated_at?: string
           visible?: boolean
@@ -1753,9 +1847,11 @@ export type Database = {
           description_visible?: boolean
           display_settings?: Json
           id?: string
+          layout_columns?: number
           legacy_section_key?: string | null
           menu_site_id?: string
           sort_order?: number
+          text_alignment?: string
           title?: string
           updated_at?: string
           visible?: boolean
@@ -1973,6 +2069,57 @@ export type Database = {
             foreignKeyName: "menu_site_audit_logs_menu_site_id_fkey"
             columns: ["menu_site_id"]
             isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_site_content_links: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string
+          owner_user_id: string
+          shared_fields_version: number
+          source_menu_site_id: string
+          status: string
+          target_menu_site_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode: string
+          owner_user_id: string
+          shared_fields_version?: number
+          source_menu_site_id: string
+          status: string
+          target_menu_site_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string
+          owner_user_id?: string
+          shared_fields_version?: number
+          source_menu_site_id?: string
+          status?: string
+          target_menu_site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_site_content_links_source_menu_site_id_fkey"
+            columns: ["source_menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_site_content_links_target_menu_site_id_fkey"
+            columns: ["target_menu_site_id"]
+            isOneToOne: true
             referencedRelation: "menu_sites"
             referencedColumns: ["id"]
           },
@@ -3232,6 +3379,10 @@ export type Database = {
           total_used_credits: number
         }[]
       }
+      disconnect_menu_site_content: {
+        Args: { p_target_menu_site_id: string }
+        Returns: boolean
+      }
       expire_personal_trial_unused_grant_credits: {
         Args: { p_menu_site_id: string; p_reason?: string }
         Returns: {
@@ -3254,6 +3405,19 @@ export type Database = {
           already_processed: boolean
           purchased_credits: number
           used_purchased_credits: number
+        }[]
+      }
+      grant_ai_first_menu_welcome_credits: {
+        Args: { p_menu_site_id: string; p_user_id: string }
+        Returns: {
+          already_processed: boolean
+          credited_amount: number
+          granted_credits: number
+          purchased_credits: number
+          remaining_credits: number
+          skipped_reason: string
+          transaction_id: string
+          used_credits: number
         }[]
       }
       grant_ai_menu_creation_credits: {
@@ -3293,6 +3457,14 @@ export type Database = {
           used_credits: number
         }[]
       }
+      import_menu_site_content: {
+        Args: {
+          p_mode: string
+          p_source_menu_site_id: string
+          p_target_menu_site_id: string
+        }
+        Returns: Json
+      }
       is_admin: { Args: never; Returns: boolean }
       is_menu_promotion_active_now: {
         Args: {
@@ -3306,6 +3478,24 @@ export type Database = {
           p_timezone: string
         }
         Returns: boolean
+      }
+      list_menu_call_items: {
+        Args: { p_include_inactive?: boolean; p_menu_site_id: string }
+        Returns: {
+          is_active: boolean
+          item_key: string
+          label: string
+          sort_order: number
+        }[]
+      }
+      replace_menu_call_items: {
+        Args: { p_items: Json; p_menu_site_id: string }
+        Returns: {
+          is_active: boolean
+          item_key: string
+          label: string
+          sort_order: number
+        }[]
       }
       save_menu_page_content_order: {
         Args: {
@@ -3333,15 +3523,31 @@ export type Database = {
           total_amount: number
         }[]
       }
-      submit_staff_call: {
-        Args: { p_menu_site_id: string; p_table_visit_session_id: string }
-        Returns: {
-          call_id: string
-          call_number: number
-          call_status: string
-          is_duplicate: boolean
-        }[]
-      }
+      submit_staff_call:
+        | {
+            Args: { p_menu_site_id: string; p_table_visit_session_id: string }
+            Returns: {
+              call_id: string
+              call_number: number
+              call_status: string
+              is_duplicate: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_call_item_key: string
+              p_menu_site_id: string
+              p_table_visit_session_id: string
+            }
+            Returns: {
+              call_id: string
+              call_number: number
+              call_status: string
+              is_duplicate: boolean
+              request_key: string
+              request_label: string
+            }[]
+          }
     }
     Enums: {
       [_ in never]: never

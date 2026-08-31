@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
 import {
@@ -12,7 +13,6 @@ import {
   isValidTableAccessToken,
   shouldTouchTableVisitSession,
 } from "@/lib/table-qr-session-tokens";
-import { isTemplateSupportedForService } from "@/lib/template-types";
 
 const TABLE_QR_TARGET_SELECT = "id, menu_site_id, label, status";
 const TABLE_VISIT_SESSION_SELECT = "id, menu_site_id, menu_table_id, user_agent_hash, expires_at, last_seen_at, revoked_at";
@@ -81,7 +81,7 @@ async function getActiveTableQrTarget(tableToken: string): Promise<TableQrTarget
     || menuSite.status !== "published"
     || !accessState?.canViewPublic
     || accessState.planType !== "business_basic"
-    || !isTemplateSupportedForService(menuSite.template_key, "basic")
+    || !getDiningTemplateFeatures(menuSite.template_key).smartCall
   ) {
     throw new TableVisitSessionError();
   }

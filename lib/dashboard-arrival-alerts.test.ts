@@ -56,11 +56,11 @@ test("browser notification requires explicit opt-in, permission, and a backgroun
 test("browser notification copy contains only a generic arrival count", () => {
   assert.deepEqual(arrivalAlerts.getDashboardBrowserNotificationCopy({ kind: "orders", newCount: 2 }), {
     title: "새 주문 2건",
-    body: "메뉴링크 주문관리 화면에서 확인해 주세요.",
+    body: "아티메뉴 주문관리 화면에서 확인해 주세요.",
   });
   assert.deepEqual(arrivalAlerts.getDashboardBrowserNotificationCopy({ kind: "calls", newCount: 1 }), {
     title: "새 호출 1건",
-    body: "메뉴링크 호출관리 화면에서 확인해 주세요.",
+    body: "아티메뉴 호출관리 화면에서 확인해 주세요.",
   });
 });
 

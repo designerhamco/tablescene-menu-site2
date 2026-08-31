@@ -5,22 +5,19 @@ import {
   getMenuPreviewFrame,
   MENU_PREVIEW_DEVICES,
   MENU_PREVIEW_ORIENTATIONS,
-  MENU_PREVIEW_PAYMENT_MODES,
   type MenuPreviewDevice,
   type MenuPreviewOrientation,
-  type MenuPreviewPaymentMode,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
 
 type MenuPreviewDeviceFrameProps = {
   device: MenuPreviewDevice;
   orientation: MenuPreviewOrientation;
-  paymentMode: MenuPreviewPaymentMode;
   menuId: string;
   query: MenuPreviewQuery;
 };
 
-export default function MenuPreviewDeviceFrame({ device, orientation, paymentMode, menuId, query }: MenuPreviewDeviceFrameProps) {
+export default function MenuPreviewDeviceFrame({ device, orientation, menuId, query }: MenuPreviewDeviceFrameProps) {
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const embeddedUrl = buildMenuPreviewUrl(menuId, query, {
@@ -28,9 +25,8 @@ export default function MenuPreviewDeviceFrame({ device, orientation, paymentMod
     embedded: true,
     device,
     orientation,
-    paymentMode,
   });
-  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device, orientation, paymentMode });
+  const actualUrl = buildMenuPreviewUrl(menuId, query, { actual: true, device, orientation });
 
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-950">
@@ -63,7 +59,6 @@ export default function MenuPreviewDeviceFrame({ device, orientation, paymentMod
                     href={buildMenuPreviewUrl(menuId, query, {
                       device: candidate,
                       orientation: candidate === "tablet" ? orientation : undefined,
-                      paymentMode: candidate === "mobile" ? paymentMode : undefined,
                     })}
                     aria-current={isSelected ? "page" : undefined}
                     className={`rounded-full px-4 py-2 text-sm font-black transition-colors ${
@@ -94,31 +89,6 @@ export default function MenuPreviewDeviceFrame({ device, orientation, paymentMod
                   );
                 })}
               </nav>
-            ) : null}
-            {device === "mobile" ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <nav aria-label="PG 결제 미리보기 선택" className="flex rounded-full border border-zinc-200 bg-zinc-100 p-1">
-                  {(Object.keys(MENU_PREVIEW_PAYMENT_MODES) as MenuPreviewPaymentMode[]).map((candidate) => {
-                    const isSelected = candidate === paymentMode;
-
-                    return (
-                      <Link
-                        key={candidate}
-                        href={buildMenuPreviewUrl(menuId, query, { device, paymentMode: candidate })}
-                        aria-current={isSelected ? "page" : undefined}
-                        className={`rounded-full px-4 py-2 text-sm font-black transition-colors ${
-                          isSelected ? "bg-zinc-950 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-950"
-                        }`}
-                      >
-                        {MENU_PREVIEW_PAYMENT_MODES[candidate]}
-                      </Link>
-                    );
-                  })}
-                </nav>
-                <span className="text-xs font-bold text-zinc-500">
-                  {paymentMode === "on" ? "모바일 선결제 + 후불 결제" : "매장 후불 결제만"}
-                </span>
-              </div>
             ) : null}
             <Link
               href={actualUrl}

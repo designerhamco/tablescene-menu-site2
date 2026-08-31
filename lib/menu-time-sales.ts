@@ -125,6 +125,7 @@ export function shouldIncludeMenuTimeSaleSaveEntry(draft: MenuTimeSaleManagement
 }
 
 const BASIC_TIME_SALE_TEMPLATE_LIMITS = new Map<string, number>([
+  ["display_menu_a", 1],
   ["cafe_design_a", 1],
   ["cafe_mocha_forest_a", 1],
   ["cafe_sunday_line_a", 1],

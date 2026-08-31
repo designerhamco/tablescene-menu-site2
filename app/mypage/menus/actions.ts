@@ -44,6 +44,15 @@ import {
   type CafeAStarterResetSnapshot,
 } from "@/lib/cafe-a-starter-reset";
 import { isValidRestaurantPhone, MENU_FIELD_LIMITS, MENU_LIMITS } from "@/lib/menu-limits";
+import {
+  AUBE_TABLE_MAX_MENU_PAGES,
+  isAubeTableTemplate,
+  normalizeAubeTableCoverBackgroundColor,
+  normalizeAubeTableCoverBackgroundOpacity,
+  normalizeAubeTableLayoutColumns,
+  normalizeAubeTableTextAlignment,
+  validateAubeTablePublishStructure,
+} from "@/lib/aube-table";
 import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { isPriceDisplayMode } from "@/lib/menu-price-format";
@@ -107,6 +116,10 @@ import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } fr
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateType } from "@/lib/template-types";
+import {
+  buildTemplateSwitchMutation,
+  getTemplateSwitchDecision,
+} from "@/lib/template-switching";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import {
   TYPOGRAPHY_ROLE_KEYS,
@@ -138,6 +151,17 @@ type MenuPageInsert = Database["public"]["Tables"]["menu_pages"]["Insert"];
 type MenuPageUpdate = Database["public"]["Tables"]["menu_pages"]["Update"];
 type MenuItemInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
 type MenuItemUpdate = Database["public"]["Tables"]["menu_items"]["Update"];
+type AubeTableMenuPageInsert = MenuPageInsert & { layout_columns?: 1 | 2; text_alignment?: "left" | "center" };
+type AubeTableMenuCategoryInsert = MenuCategoryInsert & {
+  course_price?: number | null;
+  course_price_label?: string | null;
+  course_price_visible?: boolean;
+  course_price_description?: string | null;
+  course_price_description_visible?: boolean;
+};
+type AubeTableMenuCategoryUpdate = MenuCategoryUpdate & Omit<AubeTableMenuCategoryInsert, keyof MenuCategoryInsert>;
+type AubeTableMenuItemInsert = MenuItemInsert & { menu_page_id?: string | null };
+type AubeTableMenuItemUpdate = MenuItemUpdate & { menu_page_id?: string | null; category_id?: string | null };
 type MenuChefInsert = Database["public"]["Tables"]["menu_chefs"]["Insert"];
 type MenuChefUpdate = Database["public"]["Tables"]["menu_chefs"]["Update"];
 type MenuEventInsert = Database["public"]["Tables"]["menu_events"]["Insert"];
@@ -527,7 +551,7 @@ async function canManageMenuPagesForMenuSite(supabase: SupabaseServerClient, men
 async function assertCanManageMenuPages(supabase: SupabaseServerClient, menuId: string, templateKey?: string | null) {
   if (await canManageMenuPagesForMenuSite(supabase, menuId, templateKey)) return;
 
-  redirectToMenuEditWithError(menuId, "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.");
+  redirectToMenuEditWithError(menuId, "아티메뉴 다이닝은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.");
 }
 
 function getString(formData: FormData, key: string) {
@@ -1183,6 +1207,151 @@ export async function updateBadgeStylesAction(formData: FormData) {
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(menuId, "design", "배지/칩 색상이 저장되었습니다.");
+}
+
+export async function switchMenuTemplateAction(formData: FormData) {
+  const menuId = getString(formData, "menuId");
+  if (!menuId) redirect("/mypage?error=missing-menu-id");
+
+  const targetTemplateKey = getString(formData, "target_template_key");
+  const confirmed = getString(formData, "confirm_template_switch") === "confirmed";
+  if (!confirmed) {
+    redirectToTabEditWithError(menuId, "design", "템플릿 교체 주의사항을 확인해주세요.");
+  }
+
+  const { supabase, accessContext, menuSite } = await requireOwnedMenuSite(menuId);
+  if (!accessContext.isOwner) {
+    redirectToTabEditWithError(menuId, "design", "템플릿 교체는 메뉴판 소유자만 할 수 있습니다.");
+  }
+
+  const decision = getTemplateSwitchDecision(menuSite.template_key, targetTemplateKey);
+  if (!decision.allowed) {
+    redirectToTabEditWithError(menuId, "design", decision.message);
+  }
+
+  const [promotionsResult, widgetsResult] = await Promise.all([
+    supabase
+      .from("menu_promotions")
+      .select("id, active")
+      .eq("menu_site_id", menuId),
+    supabase
+      .from("menu_widgets")
+      .select("id, visible")
+      .eq("menu_site_id", menuId),
+  ]);
+
+  if (promotionsResult.error) {
+    redirectToTabEditWithError(menuId, "design", `할인 정보 확인에 실패했습니다: ${promotionsResult.error.message}`);
+  }
+  if (widgetsResult.error) {
+    redirectToTabEditWithError(menuId, "design", `위젯 정보 확인에 실패했습니다: ${widgetsResult.error.message}`);
+  }
+
+  const activePromotionIds = (promotionsResult.data ?? [])
+    .filter((promotion) => promotion.active)
+    .map((promotion) => promotion.id);
+  const visibleWidgetIds = (widgetsResult.data ?? [])
+    .filter((widget) => widget.visible)
+    .map((widget) => widget.id);
+  const switchedAt = new Date().toISOString();
+  const mutation = buildTemplateSwitchMutation({
+    settings: menuSite.settings,
+    pageSettings: menuSite.page_settings,
+    currentTemplateKey: menuSite.template_key,
+    targetTemplateKey: decision.targetTemplate.key,
+    switchedAt,
+    promotionsDisabled: activePromotionIds.length,
+    widgetsHidden: visibleWidgetIds.length,
+  });
+
+  if (activePromotionIds.length > 0) {
+    const { error } = await supabase
+      .from("menu_promotions")
+      .update({ active: false, updated_at: switchedAt })
+      .eq("menu_site_id", menuId)
+      .in("id", activePromotionIds);
+    if (error) {
+      redirectToTabEditWithError(menuId, "design", `할인 리뷰 상태 전환에 실패했습니다: ${error.message}`);
+    }
+  }
+
+  if (visibleWidgetIds.length > 0) {
+    const { error } = await supabase
+      .from("menu_widgets")
+      .update({ visible: false, updated_at: switchedAt })
+      .eq("menu_site_id", menuId)
+      .in("id", visibleWidgetIds);
+    if (error) {
+      if (activePromotionIds.length > 0) {
+        await supabase
+          .from("menu_promotions")
+          .update({ active: true, updated_at: switchedAt })
+          .eq("menu_site_id", menuId)
+          .in("id", activePromotionIds);
+      }
+      redirectToTabEditWithError(menuId, "design", `위젯 리뷰 상태 전환에 실패했습니다: ${error.message}`);
+    }
+  }
+
+  const { data: updatedSite, error: updateError } = await supabase
+    .from("menu_sites")
+    .update({
+      template_key: decision.targetTemplate.key,
+      template_category: decision.targetTemplate.template_category,
+      settings: mutation.settings as Json,
+      page_settings: mutation.pageSettings as Json,
+      updated_at: switchedAt,
+    })
+    .eq("id", menuId)
+    .eq("template_key", menuSite.template_key)
+    .select("id")
+    .maybeSingle();
+
+  if (updateError || !updatedSite) {
+    const rollbackResults = await Promise.all([
+      activePromotionIds.length > 0
+        ? supabase
+            .from("menu_promotions")
+            .update({ active: true, updated_at: switchedAt })
+            .eq("menu_site_id", menuId)
+            .in("id", activePromotionIds)
+        : Promise.resolve({ error: null }),
+      visibleWidgetIds.length > 0
+        ? supabase
+            .from("menu_widgets")
+            .update({ visible: true, updated_at: switchedAt })
+            .eq("menu_site_id", menuId)
+            .in("id", visibleWidgetIds)
+        : Promise.resolve({ error: null }),
+    ]);
+    if (rollbackResults.some((result) => result.error)) {
+      console.error("[template-switch] review-state rollback failed", {
+        menuId,
+        activePromotionCount: activePromotionIds.length,
+        visibleWidgetCount: visibleWidgetIds.length,
+      });
+    }
+    redirectToTabEditWithError(
+      menuId,
+      "design",
+      updateError
+        ? `템플릿 교체에 실패했습니다: ${updateError.message}`
+        : "다른 편집에서 템플릿이 먼저 변경되었습니다. 새로고침 후 다시 시도해주세요.",
+    );
+  }
+
+  revalidateMenuPaths(menuId, menuSite.slug);
+  const reviewSummary = [
+    activePromotionIds.length > 0 ? `할인 ${activePromotionIds.length}건` : null,
+    visibleWidgetIds.length > 0 ? `위젯 ${visibleWidgetIds.length}건` : null,
+  ].filter(Boolean).join("·");
+  redirectToTabEdit(
+    menuId,
+    "design",
+    reviewSummary
+      ? `템플릿을 변경했습니다. ${reviewSummary}은 내용을 보존한 채 비활성화했으므로 확인 후 다시 켜주세요.`
+      : "템플릿을 변경했습니다. 메뉴 내용과 공개 주소는 그대로 유지됩니다.",
+  );
 }
 
 export async function resetBadgeStylesAction(formData: FormData) {
@@ -2579,7 +2748,9 @@ export async function translateMenuCategoryPartialAction(input: {
 
     const { data: category, error: categoryError } = await supabase
       .from("menu_categories")
-      .select("id, menu_site_id, name, description, description_visible")
+      .select(
+        "id, menu_site_id, name, description, description_visible, course_price_label, course_price_description, course_price_description_visible" as never,
+      )
       .eq("id", categoryId)
       .eq("menu_site_id", menuId)
       .maybeSingle();
@@ -2589,9 +2760,27 @@ export async function translateMenuCategoryPartialAction(input: {
     }
 
     const supportsCategoryDescription = getTemplateCapabilities(menuSite.template_key).categoryDescription;
+    const localizedCategory = category as unknown as {
+      name: string;
+      description: string | null;
+      description_visible: boolean;
+      course_price_label: string | null;
+      course_price_description: string | null;
+      course_price_description_visible: boolean;
+    };
     const sourceFields = {
-      name: category.name,
-      description: supportsCategoryDescription && category.description_visible ? category.description : null,
+      name: localizedCategory.name,
+      description:
+        supportsCategoryDescription && localizedCategory.description_visible
+          ? localizedCategory.description
+          : null,
+      course_price_label: isAubeTableTemplate(menuSite.template_key)
+        ? localizedCategory.course_price_label
+        : null,
+      course_price_description:
+        isAubeTableTemplate(menuSite.template_key) && localizedCategory.course_price_description_visible
+          ? localizedCategory.course_price_description
+          : null,
     };
     const hasTranslatableText = Object.values(sourceFields).some(hasMeaningfulTranslationText);
 
@@ -3322,6 +3511,7 @@ export async function updateMenuCoverAction(formData: FormData) {
   const hasMenuCoverLabelField = formData.has("menu_cover_label");
   const menuCoverLabel = hasMenuCoverLabelField ? getNullableString(formData, "menu_cover_label") : menuSite.menu_cover_label;
   const menuCoverCapabilities = getTemplateCapabilities(menuSite.template_key).menuCover;
+  const isAubeTable = isAubeTableTemplate(menuSite.template_key);
   if (menuCoverCapabilities.coverMode === "none") {
     redirectToTabEditWithError(menuId, "basic", "현재 템플릿은 커버 이미지 기능을 지원하지 않습니다.");
   }
@@ -3334,6 +3524,12 @@ export async function updateMenuCoverAction(formData: FormData) {
   assertMenuSiteDraftImage(menuId, draftCoverImageUrl, draftCoverImagePath, "cover");
   const pageSettingsRecord = getJsonObject(menuSite.page_settings);
   const currentSettings = mergePageSettings(menuSite.page_settings);
+  const coverBackgroundColor = isAubeTable
+    ? normalizeAubeTableCoverBackgroundColor(getString(formData, "multi_page_cover_background_color"))
+    : currentSettings.multi_page_cover_background_color;
+  const coverBackgroundOpacity = isAubeTable
+    ? normalizeAubeTableCoverBackgroundOpacity(getString(formData, "multi_page_cover_background_opacity"))
+    : currentSettings.multi_page_cover_background_opacity;
   const supportsCoverImageVisibility = menuCoverCapabilities.usesCoverImage && menuCoverCapabilities.coverMode === "page";
   const coverImageVisible = supportsCoverImageVisibility
     ? getBoolean(formData, "cover_image_visible")
@@ -3460,6 +3656,10 @@ export async function updateMenuCoverAction(formData: FormData) {
         featured_item_enabled: false,
         featured_item_id: null,
       };
+  if (isAubeTable) {
+    nextSettings.multi_page_cover_background_color = coverBackgroundColor;
+    nextSettings.multi_page_cover_background_opacity = coverBackgroundOpacity;
+  }
 
   const updatePayload: MenuSiteUpdate = {
     menu_cover_title: menuCoverTitle,
@@ -3885,6 +4085,7 @@ export async function updatePublishSettingsAction(formData: FormData) {
       redirectToTabEditWithError(menuId, "publish", "공개하려면 공개 메뉴판 주소를 먼저 설정해주세요.");
     }
 
+    const isAubeTable = isAubeTableTemplate(menuSite.template_key);
     const [
       { count: pageCount, error: pageCountError },
       { count: categoryCount, error: categoryCountError },
@@ -3901,11 +4102,39 @@ export async function updatePublishSettingsAction(formData: FormData) {
     if ((pageCount ?? 0) < 1) {
       redirectToTabEditWithError(menuId, "publish", "공개하려면 페이지를 1개 이상 등록해주세요.");
     }
-    if ((categoryCount ?? 0) < 1) {
+    if (!isAubeTable && (categoryCount ?? 0) < 1) {
       redirectToTabEditWithError(menuId, "publish", "공개하려면 카테고리를 1개 이상 등록해주세요.");
     }
     if ((itemCount ?? 0) < 1) {
       redirectToTabEditWithError(menuId, "publish", "공개하려면 메뉴 아이템을 1개 이상 등록해주세요.");
+    }
+
+    if (isAubeTable) {
+      const [{ data: pages, error: pagesError }, { data: categories, error: categoriesError }, { data: items, error: itemsError }] =
+        await Promise.all([
+          supabase.from("menu_pages").select("id, title, visible, sort_order").eq("menu_site_id", menuId),
+          supabase.from("menu_categories").select("id, menu_page_id, name, visible").eq("menu_site_id", menuId),
+          supabase
+            .from("menu_items")
+            .select("id, category_id, menu_page_id, visible" as never)
+            .eq("menu_site_id", menuId),
+        ]);
+      if (pagesError || categoriesError || itemsError) {
+        redirectToTabEditWithError(menuId, "publish", "오브 테이블 메뉴 구조를 확인하지 못했습니다.");
+      }
+      const structureError = validateAubeTablePublishStructure({
+        pages: (pages ?? []).map((page) => ({ ...page, title: page.title, visible: page.visible })),
+        categories: categories ?? [],
+        items: (items ?? []) as unknown as Array<{
+          id: string;
+          category_id: string | null;
+          menu_page_id: string | null;
+          visible: boolean;
+        }>,
+      });
+      if (structureError) {
+        redirectToTabEditWithError(menuId, "publish", structureError);
+      }
     }
   }
 
@@ -5043,6 +5272,8 @@ type MenuManagementBasicPageDraft = {
   displaySettings?: MenuPageDisplaySettings;
   visible?: boolean;
   sortOrder: number;
+  layoutColumns?: 1 | 2;
+  textAlignment?: "left" | "center";
 };
 
 type MenuManagementBasicCategoryDraft = {
@@ -5062,11 +5293,17 @@ type MenuManagementBasicCategoryDraft = {
     visible?: boolean;
     sortOrder?: number;
   }[];
+  coursePrice?: string;
+  coursePriceLabel?: string;
+  coursePriceVisible?: boolean;
+  coursePriceDescription?: string;
+  coursePriceDescriptionVisible?: boolean;
 };
 
 type MenuManagementBasicItemDraft = {
   id: string;
   categoryId?: string;
+  pageId?: string;
   isNew?: boolean;
   imageUrl?: string | null;
   imagePath?: string | null;
@@ -7351,6 +7588,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   authorizationEnd("success", { templateKey: menuSite.template_key, status: menuSite.status });
   const formParseEnd = startMenuSaveTraceStage(trace, "form-parse");
   const templateCapabilities = getTemplateCapabilities(menuSite.template_key);
+  const isAubeTable = isAubeTableTemplate(menuSite.template_key);
   const menuWidgetFinalSaveDraftPayload = parseMenuWidgetFinalSavePayloadFromForm(
     menuId,
     formData,
@@ -7404,7 +7642,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const supportsPriceDisplayMode = basicPricingCapabilities.supportsPriceDisplayMode;
   const supportsPriceNote = basicPricingCapabilities.supportsPriceNote;
   const supportsPriceNoteWithPriceColumns = basicPricingCapabilities.supportsPriceNoteWithPriceColumns;
-  const pageManagementBlockedMessage = "메뉴링크 베이직은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
+  const pageManagementBlockedMessage = "아티메뉴 다이닝은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
   const pcTabletLayoutModeInput = formData.get("pc_tablet_layout_mode");
   const shouldSavePcTabletLayoutMode =
     typeof pcTabletLayoutModeInput === "string" && supportsPcTabletLayoutMode(menuSite.template_key);
@@ -7607,6 +7845,10 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const title = normalizeDraftString(page.title);
     if (!pageId || deletedPageIdSet.has(pageId)) continue;
     validateRequiredText(menuId, title, "페이지 이름", MENU_FIELD_LIMITS.menuPages.title);
+    if (isAubeTable) {
+      normalizeAubeTableLayoutColumns(page.layoutColumns);
+      normalizeAubeTableTextAlignment(page.textAlignment);
+    }
     if (canConfigureDisplayPages) {
       validateMenuPageDisplaySettingsDraft(menuId, normalizeMenuPageDisplaySettings(page.displaySettings), templateCapabilities);
     }
@@ -7629,6 +7871,15 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const name = normalizeDraftString(category.name);
     if (!categoryId || categoryIdDeleteSet.has(categoryId)) continue;
     validateRequiredText(menuId, name, "메뉴 카테고리 이름", MENU_FIELD_LIMITS.menuCategories.name);
+    if (isAubeTable) {
+      const rawCoursePrice = normalizeDraftString(category.coursePrice);
+      const coursePrice = rawCoursePrice ? Number(rawCoursePrice) : null;
+      if (coursePrice != null && (!Number.isInteger(coursePrice) || coursePrice < 0)) {
+        redirectToMenuEditWithError(menuId, "코스 가격은 0 이상의 정수로 입력해주세요.");
+      }
+      validateOptionalText(menuId, normalizeDraftString(category.coursePriceLabel) || null, "코스 가격 안내", 30);
+      validateOptionalText(menuId, normalizeDraftString(category.coursePriceDescription) || null, "코스 가격 상세 설명", 120);
+    }
     if (usesCategoryPriceOptionColumns) {
       const labels = normalizeDraftPriceOptionLabels(category.priceOptionLabels, maxPriceOptionsPerItem);
       if (Array.isArray(category.priceOptionLabels) && category.priceOptionLabels.length > maxPriceOptionsPerItem) {
@@ -7677,7 +7928,12 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     const badgeBackgroundColor = normalizeDraftString(item.badgeBackgroundColor);
     const badgeTextColor = normalizeDraftString(item.badgeTextColor);
     const categoryId = normalizeDraftString(item.categoryId);
+    const pageId = normalizeDraftString(item.pageId);
     if (!itemId || deletedItemIdSet.has(itemId) || categoryIdDeleteSet.has(categoryId)) continue;
+
+    if (isAubeTable && !categoryId && !pageId) {
+      redirectToMenuEditWithError(menuId, "단독 메뉴를 추가할 메뉴 페이지를 선택해주세요.");
+    }
 
     if (item.isSoldOut !== undefined && typeof item.isSoldOut !== "boolean") {
       redirectToMenuEditWithError(menuId, "품절 상태 값이 올바르지 않습니다.");
@@ -7833,7 +8089,24 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     itemIdsFromDeletedCategories = (categoryItems ?? []).map((item) => item.id);
   }
 
-  const itemIdsToDelete = Array.from(new Set([...deletedItemIds, ...itemIdsFromDeletedCategories]));
+  let directItemIdsFromDeletedPages: string[] = [];
+  if (isAubeTable && effectiveDeletedPageIds.length > 0) {
+    const { data: directPageItems, error: directPageItemsError } = await supabase
+      .from("menu_items")
+      .select("id")
+      .eq("menu_site_id", menuId)
+      .is("category_id", null)
+      .in("menu_page_id" as never, effectiveDeletedPageIds);
+
+    if (directPageItemsError) {
+      redirectToMenuEditWithError(menuId, `삭제할 페이지의 단독 메뉴 확인에 실패했습니다: ${directPageItemsError.message}`);
+    }
+    directItemIdsFromDeletedPages = (directPageItems ?? []).map((item) => item.id);
+  }
+
+  const itemIdsToDelete = Array.from(
+    new Set([...deletedItemIds, ...itemIdsFromDeletedCategories, ...directItemIdsFromDeletedPages])
+  );
   if (itemIdsToDelete.length > 0) {
     const { error: priceOptionDeleteError } = await supabase
       .from("menu_item_price_options")
@@ -7923,6 +8196,8 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       visible: page.visible === undefined ? true : normalizeDraftBoolean(page.visible),
       sortOrder: normalizeDraftNumber(page.sortOrder),
       isNew: page.isNew === true,
+      layoutColumns: normalizeAubeTableLayoutColumns(page.layoutColumns),
+      textAlignment: normalizeAubeTableTextAlignment(page.textAlignment),
     }))
     .filter((page) => page.id && page.isNew && !deletedPageIdSet.has(page.id));
 
@@ -7935,8 +8210,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     redirectToMenuEditWithError(menuId, `페이지 개수 확인에 실패했습니다: ${existingPageCountError.message}`);
   }
 
-  if ((existingPageCount ?? 0) + newPageDrafts.length - effectiveDeletedPageIds.length > MENU_LIMITS.maxPagesPerSite) {
-    redirectToMenuEditWithError(menuId, `페이지는 최대 ${MENU_LIMITS.maxPagesPerSite}개까지 추가할 수 있습니다.`);
+  const maxPagesPerSite = isAubeTable ? AUBE_TABLE_MAX_MENU_PAGES : MENU_LIMITS.maxPagesPerSite;
+  if ((existingPageCount ?? 0) + newPageDrafts.length - effectiveDeletedPageIds.length > maxPagesPerSite) {
+    redirectToMenuEditWithError(menuId, `페이지는 최대 ${maxPagesPerSite}개까지 추가할 수 있습니다.`);
   }
 
   const pageSaveEnd = startMenuSaveTraceStage(trace, "page-save", {
@@ -7945,7 +8221,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   });
   const pageIdMap = new Map<string, string>();
   for (const page of newPageDrafts) {
-    const payload: MenuPageInsert = {
+    const payload: AubeTableMenuPageInsert = {
       menu_site_id: menuId,
       title: page.title,
       description: page.description || null,
@@ -7953,9 +8229,12 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       ...(canConfigureDisplayPages ? { display_settings: serializeMenuPageDisplaySettings(page.displaySettings) } : {}),
       visible: page.visible,
       sort_order: page.sortOrder,
+      ...(isAubeTable
+        ? { layout_columns: page.layoutColumns, text_alignment: page.textAlignment }
+        : {}),
     };
 
-    const { data, error } = await supabase.from("menu_pages").insert(payload).select("id").single();
+    const { data, error } = await supabase.from("menu_pages").insert(payload as never).select("id").single();
     if (error) redirectToMenuEditWithError(menuId, `새 페이지 draft 저장에 실패했습니다: ${error.message}`);
     if (data?.id) pageIdMap.set(page.id, data.id);
   }
@@ -7971,6 +8250,8 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         visible: page.visible === undefined ? true : normalizeDraftBoolean(page.visible),
         sortOrder: normalizeDraftNumber(page.sortOrder),
         isNew: page.isNew === true,
+        layoutColumns: normalizeAubeTableLayoutColumns(page.layoutColumns),
+        textAlignment: normalizeAubeTableTextAlignment(page.textAlignment),
       }))
       .filter((page) => page.id && !page.isNew && !deletedPageIdSet.has(page.id))
       .map((page) =>
@@ -7984,7 +8265,10 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
             visible: page.visible,
             sort_order: page.sortOrder,
             updated_at: now,
-          })
+            ...(isAubeTable
+              ? { layout_columns: page.layoutColumns, text_alignment: page.textAlignment }
+              : {}),
+          } as never)
           .eq("id", page.id)
           .eq("menu_site_id", menuId)
       )
@@ -8055,6 +8339,12 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       visible: category.visible === undefined ? true : normalizeDraftBoolean(category.visible),
       sortOrder: normalizeDraftNumber(category.sortOrder),
       isNew: category.isNew === true,
+      coursePrice: normalizeDraftString(category.coursePrice) ? Number(normalizeDraftString(category.coursePrice)) : null,
+      coursePriceLabel: normalizeDraftString(category.coursePriceLabel) || null,
+      coursePriceVisible: category.coursePriceVisible === undefined ? true : normalizeDraftBoolean(category.coursePriceVisible),
+      coursePriceDescription: normalizeDraftString(category.coursePriceDescription) || null,
+      coursePriceDescriptionVisible:
+        category.coursePriceDescriptionVisible === undefined ? true : normalizeDraftBoolean(category.coursePriceDescriptionVisible),
     }))
     .filter((category) => category.id && category.isNew && !categoryIdDeleteSet.has(category.id));
 
@@ -8063,7 +8353,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     if (!resolvedPageId) redirectToMenuEditWithError(menuId, "새 카테고리를 추가할 페이지를 찾을 수 없습니다.");
     const menuPage = await assertMenuPageBelongsToMenuSite(supabase, menuId, resolvedPageId);
 
-    const payload: MenuCategoryInsert = {
+    const payload: AubeTableMenuCategoryInsert = {
       menu_site_id: menuId,
       menu_page_id: resolvedPageId,
       name: category.name,
@@ -8079,9 +8369,18 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
             description: null,
             description_visible: false,
           }),
+      ...(isAubeTable
+        ? {
+            course_price: category.coursePrice,
+            course_price_label: category.coursePriceLabel,
+            course_price_visible: category.coursePriceVisible,
+            course_price_description: category.coursePriceDescription,
+            course_price_description_visible: category.coursePriceDescriptionVisible,
+          }
+        : {}),
     };
 
-    const { data, error } = await supabase.from("menu_categories").insert(payload).select("id").single();
+    const { data, error } = await supabase.from("menu_categories").insert(payload as never).select("id").single();
     if (error) redirectToMenuEditWithError(menuId, `새 카테고리 draft 저장에 실패했습니다: ${error.message}`);
     if (data?.id) categoryIdMap.set(category.id, data.id);
   }
@@ -8097,10 +8396,16 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         visible: category.visible === undefined ? true : normalizeDraftBoolean(category.visible),
         sortOrder: normalizeDraftNumber(category.sortOrder),
         isNew: category.isNew === true,
+        coursePrice: normalizeDraftString(category.coursePrice) ? Number(normalizeDraftString(category.coursePrice)) : null,
+        coursePriceLabel: normalizeDraftString(category.coursePriceLabel) || null,
+        coursePriceVisible: category.coursePriceVisible === undefined ? true : normalizeDraftBoolean(category.coursePriceVisible),
+        coursePriceDescription: normalizeDraftString(category.coursePriceDescription) || null,
+        coursePriceDescriptionVisible:
+          category.coursePriceDescriptionVisible === undefined ? true : normalizeDraftBoolean(category.coursePriceDescriptionVisible),
       }))
       .filter((category) => category.id && !category.isNew && !categoryIdDeleteSet.has(category.id))
       .map((category) => {
-        const payload: MenuCategoryUpdate = {
+        const payload: AubeTableMenuCategoryUpdate = {
           name: category.name,
           visible: category.visible,
           sort_order: category.sortOrder,
@@ -8111,9 +8416,18 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
                 description_visible: Boolean(category.description && category.descriptionVisible),
               }
             : {}),
+          ...(isAubeTable
+            ? {
+                course_price: category.coursePrice,
+                course_price_label: category.coursePriceLabel,
+                course_price_visible: category.coursePriceVisible,
+                course_price_description: category.coursePriceDescription,
+                course_price_description_visible: category.coursePriceDescriptionVisible,
+              }
+            : {}),
         };
 
-        return supabase.from("menu_categories").update(payload).eq("id", category.id).eq("menu_site_id", menuId);
+        return supabase.from("menu_categories").update(payload as never).eq("id", category.id).eq("menu_site_id", menuId);
       })
   );
   const categoryError = categoryResults.find((result) => result.error)?.error;
@@ -8123,6 +8437,12 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     newCategoryCount: newCategoryDrafts.length,
     updateCategoryCount: categoryResults.length,
   });
+  const categoryPageIdByDraftId = new Map(
+    categoryDrafts.map((category) => {
+      const rawPageId = normalizeDraftString(category.pageId);
+      return [normalizeDraftString(category.id), pageIdMap.get(rawPageId) ?? rawPageId] as const;
+    })
+  );
 
   const priceColumnSaveEnd = startMenuSaveTraceStage(trace, "price-column-save", {
     categoryDraftCount: categoryDrafts.length,
@@ -8148,6 +8468,11 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     if (!itemId) continue;
     const rawCategoryId = normalizeDraftString(item.categoryId);
     const categoryId = categoryIdMap.get(rawCategoryId) ?? rawCategoryId;
+    const rawPageId = normalizeDraftString(item.pageId);
+    let resolvedPageId = pageIdMap.get(rawPageId) ?? rawPageId;
+    if (isAubeTable && categoryId) {
+      resolvedPageId = categoryPageIdByDraftId.get(rawCategoryId) ?? resolvedPageId;
+    }
     if (deletedItemIdSet.has(itemId) || categoryIdDeleteSet.has(categoryId)) continue;
 
     const rawPrice = normalizeDraftString(item.price);
@@ -8249,21 +8574,34 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         : {};
 
     if (item.isNew) {
-      if (!categoryId) redirectToMenuEditWithError(menuId, "새 아이템을 추가할 카테고리를 선택해주세요.");
-      await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
+      if (!categoryId && !isAubeTable) redirectToMenuEditWithError(menuId, "새 아이템을 추가할 카테고리를 선택해주세요.");
+      if (!categoryId && isAubeTable && !resolvedPageId) {
+        redirectToMenuEditWithError(menuId, "새 단독 메뉴를 추가할 메뉴 페이지를 선택해주세요.");
+      }
+      if (categoryId) {
+        const category = await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
+        if (isAubeTable) resolvedPageId = category.menu_page_id ?? resolvedPageId;
+      } else if (resolvedPageId) {
+        await assertMenuPageBelongsToMenuSite(supabase, menuId, resolvedPageId);
+      }
 
-      const { count: categoryItemCount, error: categoryItemCountError } = await supabase
+      const categoryItemCountQuery = supabase
         .from("menu_items")
         .select("id", { count: "exact", head: true })
-        .eq("menu_site_id", menuId)
-        .eq("category_id", categoryId);
+        .eq("menu_site_id", menuId);
+      const { count: categoryItemCount, error: categoryItemCountError } = categoryId
+        ? await categoryItemCountQuery.eq("category_id", categoryId)
+        : await categoryItemCountQuery.is("category_id", null).eq("menu_page_id" as never, resolvedPageId);
 
       if (categoryItemCountError) {
         redirectToMenuEditWithError(menuId, `아이템 개수 확인에 실패했습니다: ${categoryItemCountError.message}`);
       }
 
       if ((categoryItemCount ?? 0) >= MENU_LIMITS.maxItemsPerCategory) {
-        redirectToMenuEditWithError(menuId, `이 카테고리에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerCategory}개까지 추가할 수 있습니다.`);
+        redirectToMenuEditWithError(
+          menuId,
+          `${categoryId ? "이 코스" : "이 메뉴 페이지"}에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerCategory}개까지 추가할 수 있습니다.`
+        );
       }
 
       const { count: totalItemCount, error: totalItemCountError } = await supabase
@@ -8279,23 +8617,24 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         redirectToMenuEditWithError(menuId, `한 메뉴판에는 아이템을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`);
       }
 
-      const insertPayload: MenuItemInsert = {
+      const insertPayload: AubeTableMenuItemInsert = {
         menu_site_id: menuId,
-        category_id: categoryId,
+        category_id: categoryId || null,
+        ...(isAubeTable ? { menu_page_id: resolvedPageId || null } : {}),
         ...descriptionPayload,
         ...payloadInput,
         ...portionPayload,
       };
       delete insertPayload.updated_at;
 
-      const insertResult = await supabase.from("menu_items").insert(insertPayload).select("id").single();
+      const insertResult = await supabase.from("menu_items").insert(insertPayload as never).select("id").single();
       let error = insertResult.error;
       let insertedItemId = insertResult.data?.id ?? "";
 
       if (isMissingBadgeLabelColumnError(error)) {
         const fallbackPayload = { ...insertPayload };
         delete fallbackPayload.badge_label;
-        const fallbackResult = await supabase.from("menu_items").insert(fallbackPayload).select("id").single();
+        const fallbackResult = await supabase.from("menu_items").insert(fallbackPayload as never).select("id").single();
         error = fallbackResult.error;
         insertedItemId = fallbackResult.data?.id ?? "";
       }
@@ -8331,15 +8670,27 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       continue;
     }
 
-    const payload: MenuItemUpdate = {
+    if (isAubeTable) {
+      if (categoryId) {
+        const category = await assertCategoryBelongsToMenuSite(supabase, menuId, categoryId);
+        resolvedPageId = category.menu_page_id ?? resolvedPageId;
+      } else if (resolvedPageId) {
+        await assertMenuPageBelongsToMenuSite(supabase, menuId, resolvedPageId);
+      } else {
+        redirectToMenuEditWithError(menuId, "단독 메뉴를 표시할 메뉴 페이지를 선택해주세요.");
+      }
+    }
+
+    const payload: AubeTableMenuItemUpdate = {
       ...descriptionPayload,
       ...payloadInput,
       ...portionPayload,
+      ...(isAubeTable ? { category_id: categoryId || null, menu_page_id: resolvedPageId || null } : {}),
     };
 
     const updateResult = await supabase
       .from("menu_items")
-      .update(payload)
+      .update(payload as never)
       .eq("id", itemId)
       .eq("menu_site_id", menuId)
       .select("id")
@@ -8352,7 +8703,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       delete fallbackPayload.badge_label;
       const fallbackResult = await supabase
         .from("menu_items")
-        .update(fallbackPayload)
+        .update(fallbackPayload as never)
         .eq("id", itemId)
         .eq("menu_site_id", menuId)
         .select("id")

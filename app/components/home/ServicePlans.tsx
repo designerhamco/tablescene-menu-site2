@@ -5,24 +5,26 @@ import { CheckCircle2 } from 'lucide-react';
 
 const services = [
   {
-    title: '메뉴링크 베이직',
+    title: '아티메뉴 다이닝',
     badge: '오픈할인',
     description: '직접 편집하는 기본 디지털 메뉴판',
-    price: '첫 달 체험가 6,600원 · 월 9,900원 · 연 95,000원',
+    price: '단일 월 5,900원 · 멀티 월 9,900원',
     details: ['다양한 템플릿 제공', '실시간 메뉴 및 가격 수정', '모든 기기 호환 및 QR 지원'],
     cta: '구매하기',
     href: '/apply/basic',
     highlighted: true,
+    available: true,
   },
   {
-    title: '메뉴링크 디스플레이',
+    title: '아티메뉴 디스플레이',
     badge: '준비 중',
     description: '매장 TV와 모니터에 띄우는 디스플레이 메뉴보드',
-    price: '월 19,800원 · 연 190,000원',
+    price: '월 14,900원 · 연 160,900원',
     details: ['매장 화면용 메뉴 구성', '이벤트와 안내 화면 확장', '디스플레이 환경 상담'],
-    cta: '구매하기',
+    cta: '준비 중',
     href: '/apply/display',
-    highlighted: true,
+    highlighted: false,
+    available: false,
   },
 ];
 
@@ -38,7 +40,7 @@ const ServicePlans = () => {
           className="mb-14 text-center"
         >
           <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
-            매장에 맞게 선택하는 MenuLink 서비스
+            매장에 맞게 선택하는 ArtiMenu 서비스
           </h2>
         </motion.div>
 
@@ -81,14 +83,18 @@ const ServicePlans = () => {
                 ))}
               </ul>
 
-              <Link
-                to={service.href}
-                className={`mt-auto flex w-full items-center justify-center rounded-full px-5 py-4 text-base font-bold transition-colors ${
-                  service.highlighted ? 'bg-zinc-950 text-white hover:bg-zinc-800' : 'bg-white text-zinc-500 ring-1 ring-zinc-200 hover:text-zinc-950'
-                }`}
-              >
-                {service.cta}
-              </Link>
+              {service.available ? (
+                <Link
+                  to={service.href}
+                  className="mt-auto flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-base font-bold text-white transition-colors hover:bg-zinc-800"
+                >
+                  {service.cta}
+                </Link>
+              ) : (
+                <span className="mt-auto flex w-full items-center justify-center rounded-full bg-zinc-100 px-5 py-4 text-base font-bold text-zinc-400 ring-1 ring-zinc-200">
+                  {service.cta}
+                </span>
+              )}
             </motion.article>
           ))}
         </div>

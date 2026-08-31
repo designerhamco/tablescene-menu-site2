@@ -5,7 +5,6 @@ import {
   getDataRetentionStartedNoticeTitle,
   getDataRetentionStartedPeriodKey,
 } from "@/lib/notification-events";
-import { reclaimUnusedPersonalTrialGrantCredits } from "@/lib/server/ai-credits-service";
 import { getPersonalTrialDataRetentionUntil, isRetentionEndedAfterKstDday } from "@/lib/service-retention-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -287,17 +286,6 @@ async function markRetentionEndedTrials(nowIso: string): Promise<CronResult> {
     }
 
     result.pendingDeleteEntitlements = trialIds.length;
-  }
-
-  for (const menuSiteId of menuSiteIds) {
-    const reclaimResult = await reclaimUnusedPersonalTrialGrantCredits({ adminSupabase, menuSiteId });
-
-    if (!reclaimResult.ok && reclaimResult.missingTable) {
-      result.errors.push("AI 크레딧 테이블을 찾을 수 없습니다. migration 적용이 필요합니다.");
-      continue;
-    }
-
-    result.reclaimedAiCredits += reclaimResult.reclaimedCredits;
   }
 
   if (trialIdsMissingDeletedScheduledAt.length > 0) {

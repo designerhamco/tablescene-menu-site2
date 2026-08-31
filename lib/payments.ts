@@ -1,3 +1,5 @@
+import { displayPricing } from "@/lib/display-pricing";
+import { getTenPercentDiscountedAnnualPrice } from "@/lib/annual-pricing";
 import { isValidTemplateKey, type TemplateCategoryKey, type TemplateKey } from "@/lib/templates";
 import type { AppliedPromotionSnapshot } from "@/lib/promotions";
 import type { SocialLinkInput } from "@/lib/social-links";
@@ -7,8 +9,14 @@ export type BuyerType = "individual" | "business";
 export type PlanType = "personal_trial" | "business_basic" | "business_display";
 export type PaymentType = "one_time" | "subscription";
 export type BillingCycle = "trial_1_month" | "monthly" | "yearly";
-export type BasicProductKey = "personal_trial_basic_1month" | "business_basic_monthly" | "business_basic_yearly";
-export type PaymentProductKey = BasicProductKey | "business_display_monthly" | "business_display_yearly";
+export type BasicProductKey =
+  | "personal_trial_basic_1month"
+  | "business_basic_single_monthly"
+  | "business_basic_single_yearly"
+  | "business_basic_multi_monthly"
+  | "business_basic_multi_yearly";
+export type LegacyBasicProductKey = "business_basic_monthly" | "business_basic_yearly";
+export type PaymentProductKey = BasicProductKey | LegacyBasicProductKey | "business_display_monthly" | "business_display_yearly";
 export type OrderSetupPayload = {
   tableCount?: string | null;
   posUsage?: string | null;
@@ -27,9 +35,9 @@ export type ScreenSetupPayload = {
 export const personalTrialBasicProduct = {
   key: "personal_trial_basic_1month",
   product_key: "personal_trial_basic_1month",
-  name: "메뉴링크 베이직 개인 1개월 체험",
-  label: "메뉴링크 베이직 개인 1개월 체험",
-  description: "사업자 인증 없이 메뉴링크 베이직 템플릿 메뉴판을 1개월 동안 체험합니다.",
+  name: "아티메뉴 다이닝 개인 1개월 체험",
+  label: "아티메뉴 다이닝 개인 1개월 체험",
+  description: "사업자 인증 없이 아티메뉴 다이닝 템플릿 메뉴판을 1개월 동안 체험합니다.",
   plan_type: "personal_trial",
   payment_type: "one_time",
   billing_cycle: "trial_1_month",
@@ -39,52 +47,120 @@ export const personalTrialBasicProduct = {
   duration_months: 1,
   currency: "KRW",
   template_service: "basic",
+  template_tier: "single",
   requires_business_verification: false,
   is_subscription: false,
 } as const;
 
 export const businessBasicMonthlyProduct = {
-  key: "business_basic_monthly",
-  product_key: "business_basic_monthly",
-  name: "메뉴링크 베이직 월결제",
-  label: "메뉴링크 베이직 월결제",
-  description: "사업자 인증 후 메뉴링크 베이직 메뉴판을 월 자동결제로 이용합니다.",
+  key: "business_basic_single_monthly",
+  product_key: "business_basic_single_monthly",
+  name: "아티메뉴 다이닝 단일페이지 월결제",
+  label: "단일페이지 월결제",
+  description: "사업자 인증 후 단일페이지 다이닝 메뉴판을 월 자동결제로 이용합니다.",
   plan_type: "business_basic",
   payment_type: "subscription",
   billing_cycle: "monthly",
-  regular_amount: 13200,
-  amount: 9900,
-  discount_rate: 25,
+  regular_amount: 8900,
+  amount: 5900,
+  discount_rate: 34,
   duration_months: null,
   currency: "KRW",
   template_service: "basic",
+  template_tier: "single",
   requires_business_verification: true,
   is_subscription: true,
 } as const;
 
 export const businessBasicYearlyProduct = {
-  key: "business_basic_yearly",
-  product_key: "business_basic_yearly",
-  name: "메뉴링크 베이직 연결제",
-  label: "메뉴링크 베이직 연결제",
-  description: "사업자 인증 후 메뉴링크 베이직 메뉴판을 연 자동결제로 이용합니다.",
+  key: "business_basic_single_yearly",
+  product_key: "business_basic_single_yearly",
+  name: "아티메뉴 다이닝 단일페이지 연결제",
+  label: "단일페이지 연결제",
+  description: "사업자 인증 후 단일페이지 다이닝 메뉴판을 연 자동결제로 이용합니다.",
   plan_type: "business_basic",
   payment_type: "subscription",
   billing_cycle: "yearly",
-  regular_amount: 158400,
-  amount: 95000,
+  regular_amount: 106800,
+  amount: getTenPercentDiscountedAnnualPrice(5900),
   discount_rate: 40,
   duration_months: null,
   currency: "KRW",
   template_service: "basic",
+  template_tier: "single",
   requires_business_verification: true,
   is_subscription: true,
 } as const;
 
+export const businessBasicMultiMonthlyProduct = {
+  key: "business_basic_multi_monthly",
+  product_key: "business_basic_multi_monthly",
+  name: "아티메뉴 다이닝 멀티페이지 월결제",
+  label: "멀티페이지 월결제",
+  description: "사업자 인증 후 멀티페이지 다이닝 메뉴판을 월 자동결제로 이용합니다.",
+  plan_type: "business_basic",
+  payment_type: "subscription",
+  billing_cycle: "monthly",
+  regular_amount: 12900,
+  amount: 9900,
+  discount_rate: 23,
+  duration_months: null,
+  currency: "KRW",
+  template_service: "basic",
+  template_tier: "multi",
+  requires_business_verification: true,
+  is_subscription: true,
+} as const;
+
+export const businessBasicMultiYearlyProduct = {
+  key: "business_basic_multi_yearly",
+  product_key: "business_basic_multi_yearly",
+  name: "아티메뉴 다이닝 멀티페이지 연결제",
+  label: "멀티페이지 연결제",
+  description: "사업자 인증 후 멀티페이지 다이닝 메뉴판을 연 자동결제로 이용합니다.",
+  plan_type: "business_basic",
+  payment_type: "subscription",
+  billing_cycle: "yearly",
+  regular_amount: 154800,
+  amount: getTenPercentDiscountedAnnualPrice(9900),
+  discount_rate: 31,
+  duration_months: null,
+  currency: "KRW",
+  template_service: "basic",
+  template_tier: "multi",
+  requires_business_verification: true,
+  is_subscription: true,
+} as const;
+
+export const legacyBusinessBasicMonthlyProduct = {
+  ...businessBasicMonthlyProduct,
+  key: "business_basic_monthly",
+  product_key: "business_basic_monthly",
+  name: "아티메뉴 다이닝 월결제 (기존 상품)",
+  label: "아티메뉴 다이닝 월결제 (기존 상품)",
+  regular_amount: 13200,
+  amount: 9900,
+  discount_rate: 25,
+  template_tier: "legacy",
+} as const;
+
+export const legacyBusinessBasicYearlyProduct = {
+  ...businessBasicYearlyProduct,
+  key: "business_basic_yearly",
+  product_key: "business_basic_yearly",
+  name: "아티메뉴 다이닝 연결제 (기존 상품)",
+  label: "아티메뉴 다이닝 연결제 (기존 상품)",
+  regular_amount: 158400,
+  amount: 95000,
+  discount_rate: 40,
+  template_tier: "legacy",
+} as const;
+
 export const basicPaymentProducts = [
-  personalTrialBasicProduct,
   businessBasicMonthlyProduct,
   businessBasicYearlyProduct,
+  businessBasicMultiMonthlyProduct,
+  businessBasicMultiYearlyProduct,
 ] as const;
 
 export type BasicPaymentProduct = (typeof basicPaymentProducts)[number];
@@ -92,15 +168,15 @@ export type BasicPaymentProduct = (typeof basicPaymentProducts)[number];
 export const businessDisplayMonthlyProduct = {
   key: "business_display_monthly",
   product_key: "business_display_monthly",
-  name: "메뉴링크 디스플레이 월결제",
-  label: "메뉴링크 디스플레이 월결제",
-  description: "사업자 인증 후 메뉴링크 디스플레이 메뉴보드를 월 자동결제로 이용합니다.",
+  name: "아티메뉴 디스플레이 월결제",
+  label: "아티메뉴 디스플레이 월결제",
+  description: "사업자 인증 후 아티메뉴 디스플레이 메뉴보드를 월 자동결제로 이용합니다.",
   plan_type: "business_display",
   payment_type: "subscription",
   billing_cycle: "monthly",
-  regular_amount: 39600,
-  amount: 19800,
-  discount_rate: 50,
+  regular_amount: displayPricing.regularMonthly,
+  amount: displayPricing.monthly,
+  discount_rate: 25,
   duration_months: null,
   currency: "KRW",
   template_service: "display",
@@ -111,15 +187,15 @@ export const businessDisplayMonthlyProduct = {
 export const businessDisplayYearlyProduct = {
   key: "business_display_yearly",
   product_key: "business_display_yearly",
-  name: "메뉴링크 디스플레이 연결제",
-  label: "메뉴링크 디스플레이 연결제",
-  description: "사업자 인증 후 메뉴링크 디스플레이 메뉴보드를 연 자동결제로 이용합니다.",
+  name: "아티메뉴 디스플레이 연결제",
+  label: "아티메뉴 디스플레이 연결제",
+  description: "사업자 인증 후 아티메뉴 디스플레이 메뉴보드를 연 자동결제로 이용합니다.",
   plan_type: "business_display",
   payment_type: "subscription",
   billing_cycle: "yearly",
-  regular_amount: 475200,
-  amount: 190000,
-  discount_rate: 60,
+  regular_amount: displayPricing.regularYearly,
+  amount: displayPricing.yearly,
+  discount_rate: 33,
   duration_months: null,
   currency: "KRW",
   template_service: "display",
@@ -135,7 +211,10 @@ export const displayPaymentProducts = [
 export type DisplayPaymentProduct = (typeof displayPaymentProducts)[number];
 
 export const paidApplyPaymentProducts = [
+  personalTrialBasicProduct,
   ...basicPaymentProducts,
+  legacyBusinessBasicMonthlyProduct,
+  legacyBusinessBasicYearlyProduct,
   ...displayPaymentProducts,
 ] as const;
 
@@ -195,6 +274,8 @@ export type MenuOrderPayload = {
 };
 
 export function getBasicPaymentProduct(productKey: string | null | undefined) {
+  if (productKey === legacyBusinessBasicMonthlyProduct.product_key) return businessBasicMonthlyProduct;
+  if (productKey === legacyBusinessBasicYearlyProduct.product_key) return businessBasicYearlyProduct;
   return basicPaymentProducts.find((product) => product.product_key === productKey) ?? null;
 }
 

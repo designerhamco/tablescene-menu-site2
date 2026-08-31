@@ -4,9 +4,9 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import Navbar from './components/layout/Navbar';
 import Home from './original-pages/Home';
-import BasicServicePage from './original-pages/services/BasicServicePage';
 import DisplayServicePage from './original-pages/services/DisplayServicePage';
-import OrderServicePage from './original-pages/services/OrderServicePage';
+import ComingSoonServicePage from './original-pages/services/ComingSoonServicePage';
+import OrderServiceReviewContent from './components/services/OrderServiceReviewContent';
 import CustomServicePage from './original-pages/services/CustomServicePage';
 import VisualStudioPage from './original-pages/branding/VisualStudioPage';
 import GoodsPackagePage from './original-pages/branding/GoodsPackagePage';
@@ -42,16 +42,18 @@ export default function App() {
         <main className="relative">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/services/basic" element={<BasicServicePage />} />
+            <Route path="/services/basic" element={<Home />} />
             <Route path="/services/display" element={<DisplayServicePage />} />
-            <Route path="/services/menu" element={<BasicServicePage />} />
+            <Route path="/services/qr-order" element={<ComingSoonServicePage kind="qr-order" />} />
+            <Route path="/services/smart-call" element={<ComingSoonServicePage kind="smart-call" />} />
+            <Route path="/services/menu" element={<Home />} />
             <Route path="/services/screen" element={<DisplayServicePage />} />
-            <Route path="/services/order" element={<OrderServicePage />} />
+            <Route path="/services/order" element={<OrderServiceReviewContent />} />
             <Route path="/services/custom" element={<CustomServicePage />} />
             <Route path="/custom" element={<ReloadNextRoute />} />
-            <Route path="/services/signature" element={<BasicServicePage />} />
+            <Route path="/services/signature" element={<Home />} />
             <Route path="/services/full-option" element={<DisplayServicePage />} />
-            <Route path="/services/pro-v1" element={<OrderServicePage />} />
+            <Route path="/services/pro-v1" element={<OrderServiceReviewContent />} />
             <Route path="/tablescene-pro" element={<DisplayServicePage />} />
             <Route path="/services/design-customizing" element={<CustomServicePage />} />
             <Route path="/branding/visual-studio" element={<VisualStudioPage />} />

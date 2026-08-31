@@ -20,7 +20,7 @@ import {
 } from "./actions";
 
 export const metadata: Metadata = {
-  title: "직원 관리 | 메뉴링크",
+  title: "직원 관리 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 
@@ -78,6 +78,9 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
   const menuSites = menuSitesData ?? [];
+  if (!menuSitesError && menuSites.length === 0) {
+    redirect("/mypage?tab=menus&message=staff-management-permission-required");
+  }
   const menuSiteIds = menuSites.map((menuSite) => menuSite.id);
   const invitationResult = menuSiteIds.length > 0
     ? await supabase

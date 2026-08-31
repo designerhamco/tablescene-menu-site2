@@ -6,12 +6,11 @@ import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
-import { buildMenuPreviewOrderCallConfig, buildMenuPreviewOrderCatalog } from "@/lib/menu-preview-experience";
+import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
 import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
-  normalizeMenuPreviewPaymentMode,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
@@ -34,7 +33,7 @@ type PageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "메뉴판 미리보기 | MenuLink",
+  title: "메뉴판 미리보기 | ArtiMenu",
   robots: {
     index: false,
     follow: false,
@@ -132,7 +131,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
   const device = normalizeMenuPreviewDevice(getSearchParamValue(query.device));
   const orientation = normalizeMenuPreviewOrientation(getSearchParamValue(query.orientation));
-  const paymentMode = normalizeMenuPreviewPaymentMode(getSearchParamValue(query.payment));
   const previewQuery: MenuPreviewQuery = {
     debugCafeA: getSearchParamValue(query.debugCafeA),
     lang: getSearchParamValue(query.lang),
@@ -172,7 +170,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       <MenuPreviewDeviceFrame
         device={device}
         orientation={orientation}
-        paymentMode={paymentMode}
         menuId={menuId}
         query={previewQuery}
       />
@@ -183,8 +180,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     ? buildMenuPreviewOrderCallConfig({
         menuSiteId: data.menuSite.id,
         storeName: data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
-        catalog: buildMenuPreviewOrderCatalog(data.items, data.categories),
-        pgEnabled: paymentMode === "on",
+        templateKey: data.menuSite.template_key,
       })
     : undefined;
 

@@ -62,7 +62,7 @@ export default function AccountDeletionPanel({
           <div>
             <h3 className="text-lg font-black tracking-tight text-red-950">회원탈퇴</h3>
             <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-700">
-              회원탈퇴 시 메뉴링크 서비스 이용이 중단되며, 메뉴판 데이터는 보관·삭제 정책에 따라 처리됩니다. 결제 및 정산, 분쟁 대응에 필요한 기록은 관계 법령에 따라 일정 기간 보관될 수 있습니다.
+              회원탈퇴 시 아티메뉴 서비스 이용이 중단되며, 메뉴판 데이터는 보관·삭제 정책에 따라 처리됩니다. 결제 및 정산, 분쟁 대응에 필요한 기록은 관계 법령에 따라 일정 기간 보관될 수 있습니다.
             </p>
           </div>
           <button
