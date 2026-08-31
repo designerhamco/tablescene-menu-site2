@@ -5,6 +5,7 @@ import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } 
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
+import { isAubeTableTemplate } from "@/lib/aube-table";
 import type { SupportedLocale } from "@/lib/locales";
 import type { TemplateKey } from "@/lib/templates";
 
@@ -61,7 +62,7 @@ export default function OrderCallEntryLayer({
     return <>{children}</>;
   }
 
-  const usesAubeCallPresentation = templateKey === "dining_aube_table_a";
+  const usesAubeCallPresentation = isAubeTableTemplate(templateKey);
   const showLanguage = visibility.showLanguage && (usesAubeCallPresentation || new Set(enabledLocales).size > 1);
   const canOpenCart = config.mode === "active"
     && Boolean(config.menuSiteId && config.cartScope && config.orderCatalog);

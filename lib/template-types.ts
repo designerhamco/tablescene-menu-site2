@@ -89,6 +89,7 @@ const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]>
     "cafe_round_focus_a",
     "cafe_brew_chapter_a",
     "dining_aube_table_a",
+    "dining_aube_table_b",
     "cafe_noir_a",
     "cafe_design_b",
     "cafe_design_c",
@@ -118,6 +119,7 @@ const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
   cafe_round_focus_a: "menu",
   cafe_brew_chapter_a: "menu",
   dining_aube_table_a: "menu",
+  dining_aube_table_b: "menu",
   cafe_noir_a: "menu",
   cafe_design_b: "menu",
   cafe_design_c: "menu",
@@ -302,6 +304,10 @@ export const TEMPLATE_EDIT_CONFIG = {
     tabs: AUBE_TABLE_EDITOR_TABS,
     heroMode: "cover",
   },
+  dining_aube_table_b: {
+    tabs: AUBE_TABLE_EDITOR_TABS,
+    heroMode: "cover",
+  },
   cafe_noir_a: {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
@@ -320,6 +326,7 @@ const TEMPLATE_EDIT_CONFIG_ALIASES: Record<string, keyof typeof TEMPLATE_EDIT_CO
   cafe_round_focus_a: "cafe_round_focus_a",
   cafe_brew_chapter_a: "cafe_brew_chapter_a",
   dining_aube_table_a: "dining_aube_table_a",
+  dining_aube_table_b: "dining_aube_table_b",
   cafe_noir_a: "cafe_noir_a",
 };
 
@@ -392,7 +399,7 @@ export function getEditorLabelsByTemplateType(templateType: TemplateType): Templ
 }
 
 export function getTemplateEditorLabels(templateKey: string | null | undefined): TemplateEditorLabels {
-  if (normalizeTemplateConfigKey(templateKey) === "dining_aube_table_a") {
+  if (["dining_aube_table_a", "dining_aube_table_b"].includes(normalizeTemplateConfigKey(templateKey))) {
     return {
       ...TEMPLATE_EDITOR_LABELS.menu,
       pageLabel: "메뉴 페이지",

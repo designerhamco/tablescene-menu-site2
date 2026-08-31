@@ -4,6 +4,7 @@ import { useId, useMemo, useState, type CSSProperties } from "react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
+import { isAubeTableTemplate as isAubeTableTemplateKey } from "@/lib/aube-table";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import {
   ENGLISH_FONT_CATEGORY_OPTIONS,
@@ -259,7 +260,7 @@ export default function TypographySettingsForm({
   templateKey,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
-  const isAubeTableTemplate = templateKey === "dining_aube_table_a";
+  const isAubeTableTemplate = isAubeTableTemplateKey(templateKey);
   const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a";
   const isSundayLineTemplate = templateKey === "cafe_sunday_line_a";
   const isRoundFocusTemplate = templateKey === "cafe_round_focus_a";

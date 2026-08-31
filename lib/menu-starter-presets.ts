@@ -11,7 +11,10 @@ import {
   type TemplateCategoryKey,
 } from "@/lib/templates";
 import { MENU_LIMITS } from "@/lib/menu-limits";
-import { AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR } from "@/lib/aube-table";
+import {
+  AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR,
+  isAubeTableTemplate,
+} from "@/lib/aube-table";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
   DEFAULT_TIME_SALE_BADGE_TEXT,
@@ -1327,6 +1330,16 @@ const diningAubeTableStarterPreset: StarterPreset = {
   ],
 };
 
+const diningAubeTableBStarterPreset: StarterPreset = {
+  ...diningAubeTableStarterPreset,
+  template_key: "dining_aube_table_b",
+  site: {
+    ...diningAubeTableStarterPreset.site,
+    restaurant_name: "오브 테이블 B",
+    intro_title: "오브 테이블 B",
+  },
+};
+
 const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
   cafe_mocha_forest_a: cafeMochaForestStarterPreset,
@@ -1334,6 +1347,7 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_round_focus_a: cafeRoundFocusStarterPreset,
   cafe_brew_chapter_a: cafeBrewChapterStarterPreset,
   dining_aube_table_a: diningAubeTableStarterPreset,
+  dining_aube_table_b: diningAubeTableBStarterPreset,
   cafe_noir_a: cafeNoirAStarterPreset,
 };
 
@@ -2031,7 +2045,7 @@ async function applyStarterSiteDefaults(
 ) {
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
-  const resolvedStarterPageSettings = preset.template_key === "dining_aube_table_a"
+  const resolvedStarterPageSettings = isAubeTableTemplate(preset.template_key)
     ? { ...starterPageSettings, multi_page_cover_background_color: AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR }
     : starterPageSettings;
   const presetSettings = getJsonRecord((preset.site.settings ?? null) as Json | null);
@@ -2357,7 +2371,7 @@ export async function createStarterMenuData(
     legacy_section_key: page.legacy_section_key,
     visible: true,
     sort_order: index,
-    ...(templateKey === "dining_aube_table_a"
+    ...(isAubeTableTemplate(templateKey)
       ? {
           layout_columns: page.layout_columns ?? 1,
           text_alignment: page.text_alignment ?? "left",
@@ -2383,7 +2397,7 @@ export async function createStarterMenuData(
       section_key: category.section_key ?? page.legacy_section_key,
       visible: true,
       sort_order: index + 1,
-      ...(templateKey === "dining_aube_table_a"
+      ...(isAubeTableTemplate(templateKey)
         ? {
             course_price: category.course_price ?? null,
             course_price_label: category.course_price_label ?? null,
@@ -2448,7 +2462,7 @@ export async function createStarterMenuData(
       return category.items.map((menuItem, index) => ({
         menu_site_id: menuSiteId,
         category_id: categoryId,
-        ...(templateKey === "dining_aube_table_a" ? { menu_page_id: pageId || null } : {}),
+        ...(isAubeTableTemplate(templateKey) ? { menu_page_id: pageId || null } : {}),
         name: menuItem.name,
         set_name: menuItem.set_name ?? null,
         description: menuItem.description,
@@ -2463,7 +2477,7 @@ export async function createStarterMenuData(
         is_sold_out: menuItem.is_sold_out ?? false,
         price_visible:
           menuItem.price_visible ??
-          !(templateKey === "dining_aube_table_a" && menuItem.price === 0 && !menuItem.price_label),
+          !(isAubeTableTemplate(templateKey) && menuItem.price === 0 && !menuItem.price_label),
         portion_visible: Boolean(menuItem.portion_label),
         traits_visible: true,
         visible: starterMenuItemsVisible,

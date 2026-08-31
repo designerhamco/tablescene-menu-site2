@@ -11,6 +11,7 @@ import {
 test("멀티페이지 Dining만 스마트호출 매장 운영에 포함한다", () => {
   assert.equal(isStoreOperationsTemplate("cafe_design_a"), false);
   assert.equal(isStoreOperationsTemplate("dining_aube_table_a"), true);
+  assert.equal(isStoreOperationsTemplate("dining_aube_table_b"), true);
   assert.equal(isStoreOperationsTemplate("display_menu_a"), false);
 });
 

@@ -62,6 +62,21 @@ test("specialized launch template capabilities remain fail-closed", () => {
   assert.equal(noir.events, false);
 });
 
+test("오브 테이블 B는 준비 중 상태에서 사이드 탐색 계약만 추가한다", () => {
+  assert.deepEqual(getSupportedServices("dining_aube_table_b"), ["basic"]);
+  assert.equal(templateCatalog.find((template) => template.key === "dining_aube_table_b")?.status, "coming_soon");
+  assert.deepEqual(
+    getTemplateEditorTabs("dining_aube_table_b").map((tab) => tab.key),
+    BASIC_EDITOR_TAB_KEYS,
+  );
+
+  const capabilities = getTemplateCapabilities("dining_aube_table_b");
+  assert.equal(capabilities.multiPage?.fixedShell, "fine_dining_sidebar");
+  assert.equal(capabilities.multiPage?.mobileMenuLayout, "page_scroll_tabs");
+  assert.equal(capabilities.multiPage?.globalPagination, "sidebar_and_mobile_tabs");
+  assert.equal(capabilities.menuWidgets.enabled, false);
+});
+
 test("Display launch template stays isolated to the Display service", () => {
   assert.deepEqual(getSupportedServices("display_menu_a"), ["display"]);
   assert.deepEqual(

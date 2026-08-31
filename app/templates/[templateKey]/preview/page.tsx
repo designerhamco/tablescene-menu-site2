@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
+import { isAubeTableTemplate } from "@/lib/aube-table";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/locales";
@@ -138,7 +139,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           priceNote: menuItem.price_note ?? null,
           price_visible:
             menuItem.price_visible ??
-            !(templateKey === "dining_aube_table_a" && menuItem.price === 0 && !menuItem.price_label),
+            !(isAubeTableTemplate(templateKey) && menuItem.price === 0 && !menuItem.price_label),
           portion_label: menuItem.portion_label ?? null,
           portion_visible: Boolean(menuItem.portion_label),
           image_url: menuItem.image_url ?? null,
