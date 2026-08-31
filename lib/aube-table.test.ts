@@ -8,6 +8,7 @@ import {
   buildAubeTableNavigationUnits,
   normalizeAubeTableCoverBackgroundColor,
   normalizeAubeTableCoverBackgroundOpacity,
+  shouldUseAubeTableCoverLogo,
   validateAubeTablePublishStructure,
 } from "./aube-table";
 
@@ -32,6 +33,13 @@ test("오브 테이블 커버 배경색 불투명도는 0~100 범위와 75 기�
   assert.equal(normalizeAubeTableCoverBackgroundOpacity(140), 100);
   assert.equal(normalizeAubeTableCoverBackgroundOpacity(-10), 0);
   assert.equal(normalizeAubeTableCoverBackgroundOpacity("invalid"), 75);
+});
+
+test("오브 테이블 커버는 로고가 있으면 매장명보다 우선하고 로드 실패 시 매장명으로 돌아간다", () => {
+  assert.equal(shouldUseAubeTableCoverLogo("https://example.com/logo.svg", null), true);
+  assert.equal(shouldUseAubeTableCoverLogo("https://example.com/logo.svg", "https://example.com/logo.svg"), false);
+  assert.equal(shouldUseAubeTableCoverLogo("", null), false);
+  assert.equal(shouldUseAubeTableCoverLogo(null, null), false);
 });
 
 test("노출 코스는 노출 메뉴를 한 개 이상 가져야 한다", () => {

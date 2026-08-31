@@ -62,6 +62,13 @@ export function normalizeAubeTableCoverBackgroundOpacity(value: unknown) {
     : AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY;
 }
 
+export function shouldUseAubeTableCoverLogo(
+  logoUrl: string | null | undefined,
+  failedLogoUrl: string | null,
+) {
+  return Boolean(logoUrl?.trim() && logoUrl !== failedLogoUrl);
+}
+
 export function sortAubeTablePages<T extends AubeTablePageLike>(pages: readonly T[]) {
   return [...pages].sort((left, right) => {
     if (left.sort_order !== right.sort_order) return left.sort_order - right.sort_order;

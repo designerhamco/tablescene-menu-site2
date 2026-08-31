@@ -18,6 +18,7 @@ import {
   normalizeAubeTableCoverBackgroundOpacity,
   normalizeAubeTableLayoutColumns,
   normalizeAubeTableTextAlignment,
+  shouldUseAubeTableCoverLogo,
   sortAubeTablePages,
 } from "@/lib/aube-table";
 import { getEnglishFontLoadAssets, getKoreanFontLoadAssets } from "@/lib/template-typography-presets";
@@ -29,13 +30,6 @@ const AUBE_TABLE_FONT_ASSETS = [
   getKoreanFontLoadAssets("pretendard"),
   getEnglishFontLoadAssets("tenor-sans"),
 ];
-
-function getMenuSiteSettings(data: PublicMenuTemplateProps) {
-  const settings = data.menuSite.settings;
-  return settings && typeof settings === "object" && !Array.isArray(settings)
-    ? settings as Record<string, unknown>
-    : {};
-}
 
 function getPrice(item: PublicMenuItem, options: PublicMenuItemPriceOption[]) {
   const itemOptions = options
@@ -167,12 +161,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
   const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
   const coverTitle = data.menuSite.menu_cover_title || data.menuSite.restaurant_name || data.menuSite.name;
   const coverDescription = data.menuSite.menu_cover_description || data.menuSite.brand_description || data.menuSite.description;
-  const siteSettings = getMenuSiteSettings(data);
-  const useCoverLogo = Boolean(
-    data.menuSite.logo_url &&
-    siteSettings.logo_replaces_name === true &&
-    failedCoverLogoUrl !== data.menuSite.logo_url,
-  );
+  const useCoverLogo = shouldUseAubeTableCoverLogo(data.menuSite.logo_url, failedCoverLogoUrl);
   const showCoverStoreName = Boolean(storeName && storeName.trim() !== coverTitle?.trim());
 
   if (!activeUnit) return null;
@@ -271,7 +260,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           --menu-font-ko: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
           --menu-font-en: "Tenor Sans", "Pretendard", sans-serif;
           --aube-type-page-description: clamp(14px, 1.15vw, 17px);
-          --aube-type-course-title: clamp(24px, 2.05vw, 30px);
+          --aube-type-course-title: clamp(26px, 2.2vw, 32px);
           --aube-type-course-price: clamp(15px, 1.3vw, 18px);
           --aube-type-course-body: clamp(14px, 1.1vw, 16px);
           --aube-type-course-meta: clamp(12px, 1vw, 14px);
@@ -296,12 +285,12 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: 104px 28px 142px; text-align: center; color: #fff; }
-        .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(240px, 54vw); max-height: 88px; margin: 0 auto 34px; object-fit: contain; }
-        .aube-table-cover-brand { margin: 0 0 clamp(28px, 3vw, 42px); font-size: clamp(12px, 1.05vw, 15px); font-weight: 600; letter-spacing: .2em; }
+        .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(30px, 3vw, 44px); object-fit: contain; }
+        .aube-table-cover-brand { margin: 0 0 clamp(30px, 3vw, 44px); font-size: clamp(18px, 1.5vw, 24px); font-weight: 600; line-height: 1.35; letter-spacing: .16em; }
         .aube-table-cover h1 { margin: 0; font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(74px, 10vw, 150px); font-weight: 400; line-height: .94; letter-spacing: .15em; text-indent: .15em; }
         .aube-table-cover-description { max-width: 820px; margin: clamp(34px, 3.2vw, 48px) auto 0; font-size: clamp(18px, 1.8vw, 27px); font-weight: 400; line-height: 1.5; letter-spacing: .02em; opacity: .88; }
         .aube-table-page-scroll { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
-        .aube-table-page { width: min(100%, 1280px); min-height: 100%; margin: 0 auto; padding: clamp(94px, 12vh, 148px) clamp(30px, 6vw, 86px) 168px; }
+        .aube-table-page { width: min(100%, 1440px); min-height: 100%; margin: 0 auto; padding: clamp(96px, 12vh, 132px) clamp(30px, 5vw, 80px) clamp(156px, 18vh, 188px); }
         .aube-table-page[data-align="center"] { text-align: center; }
         .aube-table-page-header { max-width: 820px; margin-bottom: clamp(56px, 6.6vh, 82px); }
         .aube-table-page[data-align="center"] .aube-table-page-header { margin-left: auto; margin-right: auto; }
@@ -359,7 +348,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         @media (max-width: 720px) {
           .aube-table-root {
             --aube-type-page-description: clamp(14px, 3.8vw, 16px);
-            --aube-type-course-title: clamp(23px, 6.5vw, 28px);
+            --aube-type-course-title: clamp(24px, 6.7vw, 29px);
             --aube-type-course-price: clamp(14px, 4vw, 17px);
             --aube-type-course-body: clamp(14px, 3.8vw, 16px);
             --aube-type-course-meta: clamp(12px, 3.2vw, 14px);
@@ -373,7 +362,8 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             --aube-space-item-bottom: clamp(16px, 4.5vw, 21px);
           }
           .aube-table-cover-copy { width: min(92vw, 680px); padding: 88px 22px 124px; }
-          .aube-table-cover-logo { max-width: min(200px, 58vw); max-height: 72px; margin-bottom: 26px; }
+          .aube-table-cover-logo { max-width: min(230px, 58vw); max-height: 84px; margin-bottom: 30px; }
+          .aube-table-cover-brand { margin-bottom: 30px; font-size: clamp(17px, 4.7vw, 20px); line-height: 1.35; letter-spacing: .14em; }
           .aube-table-cover h1 { font-size: clamp(48px, 15vw, 72px); line-height: 1; letter-spacing: .1em; text-indent: .1em; }
           .aube-table-cover-description { margin-top: clamp(24px, 7vw, 34px); font-size: clamp(16px, 4.7vw, 20px); line-height: 1.5; }
           .aube-table-page { padding: 82px 24px 132px; }
