@@ -62,7 +62,7 @@ test("specialized launch template capabilities remain fail-closed", () => {
   assert.equal(noir.events, false);
 });
 
-test("오브 테이블 B는 준비 중 상태에서 사이드 탐색 계약만 추가한다", () => {
+test("메종 마레는 준비 중 상태에서 사이드 탐색 계약을 유지한다", () => {
   assert.deepEqual(getSupportedServices("dining_aube_table_b"), ["basic"]);
   assert.equal(templateCatalog.find((template) => template.key === "dining_aube_table_b")?.status, "coming_soon");
   assert.deepEqual(

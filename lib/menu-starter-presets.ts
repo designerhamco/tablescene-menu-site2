@@ -12,7 +12,7 @@ import {
 } from "@/lib/templates";
 import { MENU_LIMITS } from "@/lib/menu-limits";
 import {
-  AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR,
+  getAubeTableDefaultCoverBackgroundColor,
   isAubeTableTemplate,
 } from "@/lib/aube-table";
 import {
@@ -1331,13 +1331,197 @@ const diningAubeTableStarterPreset: StarterPreset = {
 };
 
 const diningAubeTableBStarterPreset: StarterPreset = {
-  ...diningAubeTableStarterPreset,
+  key: "fine_dining",
   template_key: "dining_aube_table_b",
   site: {
-    ...diningAubeTableStarterPreset.site,
-    restaurant_name: "오브 테이블 B",
-    intro_title: "오브 테이블 B",
+    ...CAFE_DESIGN_A_STITCH_SAMPLE.site,
+    restaurant_name: "메종 마레",
+    restaurant_category: "파인다이닝",
+    restaurant_type: "fine_dining",
+    menu_cover_label: "",
+    intro_title: "메종 마레",
+    intro_description: "불과 숲, 제철의 풍경을 한 접시마다 현대적인 감각으로 풀어냅니다.",
+    brand_description: "프렌치 조리의 섬세함에 한국의 계절감을 더한 컨템포러리 다이닝입니다.",
+    menu_cover_title: "MAISON MARAIS",
+    menu_cover_description: "계절의 풍경을 담은 모던 프렌치 다이닝",
+    about_description: "정교한 소스와 제철 식재료가 만드는 저녁의 흐름을 소개합니다.",
+    opening_hours: "Dinner 18:00–22:30",
+    restaurant_address: "서울시 예시구 마레길 12",
+    restaurant_phone: "02-0000-0000",
+    cover_image_url: AUBE_TABLE_COVER_IMAGE,
+    logo_url: null,
+    logo_path: null,
+    settings: {
+      footer_notice_1: "Dinner · 18:00–22:30",
+      footer_notice_2: "Reservation only",
+      footer_notice_3: "알레르기 및 식이 제한은 예약 시 알려주세요.",
+    },
   },
+  featured_item_name: undefined,
+  sample_items_visible: true,
+  chefs: [],
+  events: [],
+  socialLinks: [],
+  pages: [
+    {
+      key: "chefs-tasting",
+      title: "Chef's Tasting",
+      description: "메종 마레의 계절을 여섯 장면으로 경험하는 디너 코스",
+      description_visible: true,
+      layout_columns: 1,
+      text_alignment: "center",
+      legacy_section_key: "main_menu",
+      categories: [
+        {
+          key: "marais-evening-course",
+          name: "Marais evening",
+          description: "숲과 바다, 불의 온도를 따라 이어지는 셰프 테이스팅",
+          description_visible: true,
+          course_price: 178000,
+          course_price_label: "₩178,000",
+          course_price_visible: true,
+          course_price_description: "1인 기준 · 와인 페어링 + ₩95,000",
+          course_price_description_visible: true,
+          items: [
+            item("첫 인사", 0, "참돔 · 청사과 · 딜"),
+            item("차가운 전채", 0, "대게 · 콜라비 · 캐비아"),
+            item("따뜻한 전채", 0, "아티초크 · 모렐 · 콩테"),
+            item("바다", 0, "제주 옥돔 · 홍합 · 샤프란"),
+            item("불", 0, "한우 채끝 · 셀러리악 · 마데이라"),
+            item("마무리", 0, "딸기 · 루바브 · 바질"),
+          ],
+        },
+      ],
+    },
+    {
+      key: "seasonal-plates",
+      title: "Seasonal Plates",
+      description: "오늘의 재료와 취향에 맞춰 고르는 메종 마레의 단품 요리",
+      description_visible: true,
+      layout_columns: 2,
+      text_alignment: "left",
+      legacy_section_key: "main_menu",
+      categories: [
+        {
+          key: "from-the-garden",
+          name: "From the garden",
+          description: "계절 채소의 질감과 향을 살린 가벼운 접시",
+          description_visible: false,
+          course_price: null,
+          course_price_label: null,
+          course_price_visible: false,
+          course_price_description: null,
+          course_price_description_visible: false,
+          items: [
+            item("화이트 아스파라거스", 31000, "헤이즐넛 · 레몬 버베나 · 브라운 버터"),
+            item("비트와 염소 치즈", 26000, "라즈베리 · 월넛 · 레드 와인 비네거"),
+          ],
+        },
+        {
+          key: "from-the-sea",
+          name: "From the sea",
+          description: "제철 해산물과 섬세한 소스의 조화",
+          description_visible: false,
+          course_price: null,
+          course_price_label: null,
+          course_price_visible: false,
+          course_price_description: null,
+          course_price_description_visible: false,
+          items: [
+            item("제주 옥돔과 뵈르 블랑", 54000, "홍합 · 펜넬 · 사프란 오일"),
+            item("가리비와 샴페인 소스", 48000, "콜리플라워 · 캐비아 · 차이브"),
+          ],
+        },
+        {
+          key: "from-the-land",
+          name: "From the land",
+          description: "불의 온도로 풍미를 완성한 메인 요리",
+          description_visible: false,
+          course_price: null,
+          course_price_label: null,
+          course_price_visible: false,
+          course_price_description: null,
+          course_price_description_visible: false,
+          items: [
+            item("오리 가슴살", 58000, "무화과 · 엔다이브 · 주니퍼 주"),
+            item("한우 채끝", 76000, "셀러리악 · 트러플 · 마데이라 소스"),
+          ],
+        },
+      ],
+    },
+    {
+      key: "wine-and-pairing",
+      title: "Wine & Pairing",
+      description: "요리의 여운을 이어주는 와인과 논알코올 페어링",
+      description_visible: true,
+      layout_columns: 2,
+      text_alignment: "left",
+      legacy_section_key: "dessert_drink",
+      categories: [
+        {
+          key: "champagne-and-white",
+          name: "Champagne & White",
+          description: "섬세한 산도와 향을 중심으로 고른 셀렉션",
+          description_visible: false,
+          course_price: null,
+          course_price_label: null,
+          course_price_visible: false,
+          course_price_description: null,
+          course_price_description_visible: false,
+          items: [
+            item("Pierre Gimonnet Brut", 32000, "Cuis · Champagne", { price_options: [
+              { label: "Glass", price: 32000 },
+              { label: "Bottle", price: 190000 },
+            ] }),
+            item("Chablis Premier Cru", 27000, "Burgundy · France", { price_options: [
+              { label: "Glass", price: 27000 },
+              { label: "Bottle", price: 158000 },
+            ] }),
+          ],
+        },
+        {
+          key: "red-wine",
+          name: "Red Wine",
+          description: "우아한 질감과 긴 여운을 지닌 레드 와인",
+          description_visible: false,
+          course_price: null,
+          course_price_label: null,
+          course_price_visible: false,
+          course_price_description: null,
+          course_price_description_visible: false,
+          items: [
+            item("Pinot Noir Vieilles Vignes", 29000, "Burgundy · France", { price_options: [
+              { label: "Glass", price: 29000 },
+              { label: "Bottle", price: 172000 },
+            ] }),
+            item("Saint-Émilion Grand Cru", 31000, "Bordeaux · France", { price_options: [
+              { label: "Glass", price: 31000 },
+              { label: "Bottle", price: 185000 },
+            ] }),
+          ],
+        },
+        {
+          key: "zero-proof",
+          name: "Zero Proof",
+          description: "차와 허브, 제철 과실을 활용한 논알코올 셀렉션",
+          description_visible: false,
+          course_price: null,
+          course_price_label: null,
+          course_price_visible: false,
+          course_price_description: null,
+          course_price_description_visible: false,
+          items: [
+            item("Pear & verbena", 17000, "배 · 레몬 버베나 · 토닉"),
+            item("Fermented tea", 15000, "우롱차 · 살구 · 자스민"),
+          ],
+        },
+      ],
+      direct_items: [
+        item("Wine pairing", 95000, "테이스팅 코스를 위한 5잔 구성"),
+        item("Zero-proof pairing", 58000, "차와 발효 음료를 중심으로 한 5잔 구성"),
+      ],
+    },
+  ],
 };
 
 const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
@@ -2046,7 +2230,7 @@ async function applyStarterSiteDefaults(
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
   const resolvedStarterPageSettings = isAubeTableTemplate(preset.template_key)
-    ? { ...starterPageSettings, multi_page_cover_background_color: AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR }
+    ? { ...starterPageSettings, multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(preset.template_key) }
     : starterPageSettings;
   const presetSettings = getJsonRecord((preset.site.settings ?? null) as Json | null);
   const siteSelect =
