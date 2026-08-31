@@ -1,4 +1,5 @@
 import { displayPaymentProducts } from "@/lib/payments";
+import { isTemplateSupportedForService } from "@/lib/template-types";
 
 export const DISPLAY_VIDEO_UPLOAD_NAME = "동영상 파일 업로드";
 export const DISPLAY_VIDEO_UPLOAD_MAX_ACTIVE_FILES = 2;
@@ -21,7 +22,7 @@ export function isDisplayVideoUploadIncluded({
   canEdit: boolean | null | undefined;
 }) {
   return Boolean(
-    templateKey === "display_menu_a" &&
+    isTemplateSupportedForService(templateKey, "display") &&
       productKey &&
       displayProductKeys.has(productKey as (typeof displayPaymentProducts)[number]["product_key"]) &&
       accessReason === "active" &&
