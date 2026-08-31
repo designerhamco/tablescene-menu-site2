@@ -195,7 +195,6 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         <div ref={scrollRef} className="aube-table-page-scroll" data-aube-table-page-scroll="">
           <main className="aube-table-page" data-align={pageAlignment} data-columns={pageColumns}>
             <header className="aube-table-page-header">
-              <p className="aube-table-page-eyebrow">{data.menuSite.restaurant_name || data.menuSite.name}</p>
               <h1><ScriptAwareText text={activePage.title} /></h1>
               {activePage.description_visible !== false && activePage.description ? (
                 <p className="aube-table-page-description"><ScriptAwareText text={activePage.description} /></p>
@@ -236,7 +235,6 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-cover-copy { width: min(88vw, 860px); padding: 104px 28px 142px; text-align: center; color: #fff; }
         .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(240px, 54vw); max-height: 88px; margin: 0 auto 34px; object-fit: contain; }
         .aube-table-cover-brand { margin: 0 0 28px; font-size: 13px; font-weight: 700; letter-spacing: .18em; }
-        .aube-table-page-eyebrow { margin: 0 0 20px; color: #b58c4b; font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
         .aube-table-cover h1 { margin: 0; font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(52px, 8vw, 110px); font-weight: 600; line-height: .96; letter-spacing: -.045em; }
         .aube-table-cover-description { max-width: 620px; margin: 30px auto 0; font-size: clamp(15px, 1.45vw, 19px); line-height: 1.75; opacity: .84; }
         .aube-table-page-scroll { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
