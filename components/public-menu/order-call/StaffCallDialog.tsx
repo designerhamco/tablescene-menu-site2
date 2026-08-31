@@ -7,6 +7,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 
+import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import {
   getDefaultStaffCallItems,
   orderStaffCallItemsForGuest,
@@ -184,8 +185,8 @@ export default function StaffCallDialog({
         ) : <div className="mx-auto mb-5 h-1 w-12 rounded-full bg-zinc-300" aria-hidden="true" />}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className={`text-xs font-medium uppercase tracking-[0.2em] ${isAube ? "text-[#c5a165]" : "text-emerald-700"}`}>{tableLabel || "현재 테이블"}</p>
-            <h2 id="staff-call-title" className={`mt-2 tracking-[-0.035em] ${isAube ? "text-[1.55rem] font-medium" : "text-[1.7rem] font-semibold"}`}>무엇을 도와드릴까요?</h2>
+            <p className={`text-xs font-medium uppercase tracking-[0.2em] ${isAube ? "text-[#c5a165]" : "text-emerald-700"}`}><ScriptAwareText text={tableLabel || "현재 테이블"} /></p>
+            <h2 id="staff-call-title" className={`mt-2 tracking-[-0.035em] ${isAube ? "text-[1.55rem] font-medium" : "text-[1.7rem] font-semibold"}`}><ScriptAwareText text="무엇을 도와드릴까요?" /></h2>
           </div>
           {!isAube ? (
             <button type="button" onClick={closeDialog} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 transition-colors hover:bg-zinc-200" aria-label="직원 호출 닫기">
@@ -196,18 +197,18 @@ export default function StaffCallDialog({
 
         {call ? (
           <div className={`mt-6 p-6 text-center ${isAube ? "border-y border-[#c5a165] bg-white" : "rounded-[1.6rem] border border-zinc-200 bg-zinc-50"}`}>
-            <p className="text-lg font-medium">{STATUS_COPY[call.status]}</p>
+            <p className="text-lg font-medium"><ScriptAwareText text={STATUS_COPY[call.status]} /></p>
             <p className={`mt-1 text-sm font-medium ${isAube ? "text-[#c5a165]" : "text-zinc-600"}`}>
-              {call.requestLabel} · 호출 #{call.callNumber}
+              <ScriptAwareText text={`${call.requestLabel} · 호출 #${call.callNumber}`} />
             </p>
             {call.status === "pending" ? (
               <button type="button" onClick={cancelCall} disabled={pending} className={`mt-5 rounded-full border bg-white px-5 py-2.5 text-sm font-medium disabled:opacity-60 ${isAube ? "border-[#c5a165] text-[#c5a165]" : "border-zinc-300 text-zinc-700"}`}>
-                호출 취소
+                <ScriptAwareText text="호출 취소" />
               </button>
             ) : (
-              <p className="mt-4 text-xs font-medium text-zinc-500">직원이 확인한 뒤에는 손님이 취소할 수 없습니다.</p>
+              <p className="mt-4 text-xs font-medium text-zinc-500"><ScriptAwareText text="직원이 확인한 뒤에는 손님이 취소할 수 없습니다." /></p>
             )}
-            <p className="mt-4 text-xs font-medium text-zinc-500">처리 완료 또는 취소 후 2분 뒤 다시 호출할 수 있습니다.</p>
+            <p className="mt-4 text-xs font-medium text-zinc-500"><ScriptAwareText text="처리 완료 또는 취소 후 2분 뒤 다시 호출할 수 있습니다." /></p>
           </div>
         ) : (
           <div className="mt-6">
@@ -224,7 +225,7 @@ export default function StaffCallDialog({
                         : `flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-[15px] font-semibold transition-colors ${selected ? "border-zinc-900 text-zinc-950" : "border-zinc-200 text-zinc-700 hover:border-zinc-400"}`}
                       onClick={() => setSelectedItemKey(item.key)}
                     >
-                      <span>{item.label}</span>
+                      <span><ScriptAwareText text={item.label} /></span>
                     </button>
                   );
                 })}
@@ -238,18 +239,18 @@ export default function StaffCallDialog({
               data-smart-call-submit=""
             >
               {pending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : null}
-              {selectedItem ? `${selectedItem.label} 보내기` : "호출 항목 없음"}
+              <ScriptAwareText text={selectedItem ? `${selectedItem.label} 보내기` : "호출 항목 없음"} />
             </button>
           </div>
         )}
 
         {previewOnly ? (
           <p className="mt-4 text-center text-[11px] font-medium leading-relaxed text-zinc-400">
-            미리보기 화면입니다. 버튼을 눌러도 실제 직원 호출은 전송되지 않습니다.
+            <ScriptAwareText text="미리보기 화면입니다. 버튼을 눌러도 실제 직원 호출은 전송되지 않습니다." />
           </p>
         ) : null}
 
-        {message ? <p className="mt-4 rounded-2xl bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-700" role="status">{message}</p> : null}
+        {message ? <p className="mt-4 rounded-2xl bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-700" role="status"><ScriptAwareText text={message} /></p> : null}
           </motion.section>
         </motion.div>
       ) : null}
