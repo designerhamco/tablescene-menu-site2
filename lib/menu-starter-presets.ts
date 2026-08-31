@@ -1161,17 +1161,17 @@ const diningAubeTableStarterPreset: StarterPreset = {
     intro_description: "계절의 온도와 식재료의 결을 한 접시씩 섬세하게 풀어냅니다.",
     brand_description: "제철 산지의 식재료를 절제된 조리와 섬세한 서비스로 완성하는 컨템포러리 다이닝입니다.",
     menu_cover_title: "오브 테이블",
-    menu_cover_description: "A SEASONAL DINING EXPERIENCE",
+    menu_cover_description: "A seasonal dining experience",
     about_description: "한 접시에서 다음 접시로 이어지는 계절의 흐름을 소개합니다.",
-    opening_hours: "DINNER 17:30–22:00",
+    opening_hours: "Dinner 17:30–22:00",
     restaurant_address: "서울시 예시구 아티메뉴로 10",
     restaurant_phone: "02-0000-0000",
     cover_image_url: AUBE_TABLE_COVER_IMAGE,
     logo_url: null,
     logo_path: null,
     settings: {
-      footer_notice_1: "DINNER · 17:30–22:00",
-      footer_notice_2: "RESERVATION ONLY",
+      footer_notice_1: "Dinner · 17:30–22:00",
+      footer_notice_2: "Reservation only",
       footer_notice_3: "알레르기 및 식이 제한은 예약 시 알려주세요.",
     },
   },
@@ -1183,7 +1183,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
   pages: [
     {
       key: "signature-menu",
-      title: "SIGNATURE COURSE",
+      title: "Signature course",
       description: "오브 테이블의 계절을 가장 온전히 경험하는 시그니처 코스",
       description_visible: true,
       layout_columns: 1,
@@ -1192,7 +1192,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
       categories: [
         {
           key: "aube-signature-course",
-          name: "AUBE SIGNATURE",
+          name: "Aube signature",
           description: "제철 산지의 식재료를 여덟 장면으로 풀어낸 디너 코스",
           description_visible: true,
           course_price: 185000,
@@ -1201,19 +1201,19 @@ const diningAubeTableStarterPreset: StarterPreset = {
           course_price_description: "1인 기준 · 와인 페어링 + ₩120,000",
           course_price_description_visible: true,
           items: [
-            item("AMUSE-BOUCHE", 0, "제주 성게 · 감태 · 유자"),
-            item("COLD STARTER", 0, "숙성 방어 · 무 · 캐비아"),
-            item("WARM STARTER", 0, "화이트 아스파라거스 · 헤이즐넛"),
-            item("FISH", 0, "제주 옥돔 · 조개 · 샤프란"),
-            item("MAIN", 0, "한우 안심 · 셀러리악 · 트러플"),
-            item("DESSERT", 0, "금귤 · 바닐라 · 올리브 오일"),
+            item("Amuse-bouche", 0, "제주 성게 · 감태 · 유자"),
+            item("Cold starter", 0, "숙성 방어 · 무 · 캐비아"),
+            item("Warm starter", 0, "화이트 아스파라거스 · 헤이즐넛"),
+            item("Fish", 0, "제주 옥돔 · 조개 · 샤프란"),
+            item("Main", 0, "한우 안심 · 셀러리악 · 트러플"),
+            item("Dessert", 0, "금귤 · 바닐라 · 올리브 오일"),
           ],
         },
       ],
     },
     {
       key: "a-la-carte-menu",
-      title: "À LA CARTE",
+      title: "À la carte",
       description: "오늘의 식재료를 취향에 따라 선택하는 단품 메뉴",
       description_visible: true,
       layout_columns: 2,
@@ -1222,7 +1222,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
       categories: [
         {
           key: "starter-course",
-          name: "STARTER",
+          name: "Starter",
           description: "식사의 시작을 여는 가벼운 접시",
           description_visible: false,
           course_price: null,
@@ -1237,7 +1237,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
         },
         {
           key: "main-course",
-          name: "MAIN",
+          name: "Main",
           description: "제철 식재료의 풍미를 깊게 담은 메인",
           description_visible: false,
           course_price: null,
@@ -1252,7 +1252,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
         },
         {
           key: "dessert-course",
-          name: "DESSERT",
+          name: "Dessert",
           description: "계절의 여운을 남기는 디저트",
           description_visible: false,
           course_price: null,
@@ -1269,7 +1269,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
     },
     {
       key: "beverage-menu",
-      title: "DRINK MENU",
+      title: "Drink menu",
       description: "요리의 흐름을 이어주는 와인과 논알코올 셀렉션",
       description_visible: true,
       layout_columns: 2,
@@ -1278,7 +1278,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
       categories: [
         {
           key: "wine-selection",
-          name: "WINE",
+          name: "Wine",
           description: "소믈리에가 고른 글라스와 보틀 셀렉션",
           description_visible: false,
           course_price: null,
@@ -1287,23 +1287,23 @@ const diningAubeTableStarterPreset: StarterPreset = {
           course_price_description: null,
           course_price_description_visible: false,
           items: [
-            item("CHAMPAGNE", 35000, "Brut NV · France", { price_options: [
-              { label: "GLASS", price: 35000 },
-              { label: "BOTTLE", price: 210000 },
+            item("Champagne", 35000, "Brut NV · France", { price_options: [
+              { label: "Glass", price: 35000 },
+              { label: "Bottle", price: 210000 },
             ] }),
-            item("CHARDONNAY", 28000, "Bourgogne · France", { price_options: [
-              { label: "GLASS", price: 28000 },
-              { label: "BOTTLE", price: 165000 },
+            item("Chardonnay", 28000, "Bourgogne · France", { price_options: [
+              { label: "Glass", price: 28000 },
+              { label: "Bottle", price: 165000 },
             ] }),
-            item("PINOT NOIR", 30000, "Bourgogne · France", { price_options: [
-              { label: "GLASS", price: 30000 },
-              { label: "BOTTLE", price: 180000 },
+            item("Pinot noir", 30000, "Bourgogne · France", { price_options: [
+              { label: "Glass", price: 30000 },
+              { label: "Bottle", price: 180000 },
             ] }),
           ],
         },
         {
           key: "non-alcohol-selection",
-          name: "NON-ALCOHOL",
+          name: "Non-alcohol",
           description: "차와 발효 음료로 구성한 페어링",
           description_visible: false,
           course_price: null,
@@ -1312,15 +1312,15 @@ const diningAubeTableStarterPreset: StarterPreset = {
           course_price_description: null,
           course_price_description_visible: false,
           items: [
-            item("SEASONAL MOCKTAIL", 18000, "제철 과실과 허브로 완성한 논알코올 칵테일"),
-            item("SPARKLING TEA", 16000, "제철 허브와 차를 발효한 스파클링 티"),
-            item("MINERAL WATER", 9000, "Still / Sparkling"),
+            item("Seasonal mocktail", 18000, "제철 과실과 허브로 완성한 논알코올 칵테일"),
+            item("Sparkling tea", 16000, "제철 허브와 차를 발효한 스파클링 티"),
+            item("Mineral water", 9000, "Still / Sparkling"),
           ],
         },
       ],
       direct_items: [
-        item("WINE PAIRING", 120000, "시그니처 코스를 위한 6잔 구성"),
-        item("NON-ALCOHOL PAIRING", 65000, "차와 발효 음료를 중심으로 한 6잔 구성"),
+        item("Wine pairing", 120000, "시그니처 코스를 위한 6잔 구성"),
+        item("Non-alcohol pairing", 65000, "차와 발효 음료를 중심으로 한 6잔 구성"),
       ],
     },
   ],
