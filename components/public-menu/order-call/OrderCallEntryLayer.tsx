@@ -5,6 +5,7 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { SupportedLocale } from "@/lib/locales";
+import type { TemplateKey } from "@/lib/templates";
 
 import type { OrderCallEntryConfig } from "./types";
 import { getOrderCallEntryVisibility, hasPrepayCheckout, LOCKED_ORDER_CALL_ENTRY_CONFIG } from "./types";
@@ -13,6 +14,7 @@ import { MenuOrderActionsProvider } from "./MenuOrderAddButton";
 import StaffCallDialog from "./StaffCallDialog";
 
 type OrderCallEntryLayerProps = {
+  templateKey: TemplateKey;
   config?: OrderCallEntryConfig;
   currentLocale: SupportedLocale;
   enabledLocales: SupportedLocale[];
@@ -20,6 +22,7 @@ type OrderCallEntryLayerProps = {
 };
 
 export default function OrderCallEntryLayer({
+  templateKey,
   config = LOCKED_ORDER_CALL_ENTRY_CONFIG,
   currentLocale,
   enabledLocales,
@@ -62,6 +65,7 @@ export default function OrderCallEntryLayer({
     && config.mode === "active"
     && Boolean(config.menuSiteId);
   const prepayEnabled = hasPrepayCheckout(config);
+  const usesAubeCallPresentation = templateKey === "dining_aube_table_a";
 
   return (
     <MenuOrderActionsProvider catalog={config.orderCatalog ?? []} onOpenItem={openMenuItem}>
@@ -82,7 +86,7 @@ export default function OrderCallEntryLayer({
         </div>
 
         <div className="flex min-w-0 items-center justify-end gap-1.5" data-public-menu-header-actions="">
-          {visibility.showCall ? (
+          {visibility.showCall && !usesAubeCallPresentation ? (
             <button
               type="button"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm"
@@ -121,6 +125,17 @@ export default function OrderCallEntryLayer({
         </div>
         </header>
         {children}
+        {canOpenCall && usesAubeCallPresentation ? (
+          <button
+            type="button"
+            className="fixed bottom-[max(26px,env(safe-area-inset-bottom))] right-[max(24px,env(safe-area-inset-right))] z-[1100] flex h-15 w-15 items-center justify-center rounded-full bg-[#b58c4b] text-white shadow-[0_14px_34px_rgba(17,25,40,0.24)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(17,25,40,0.3)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b58c4b] active:translate-y-0 sm:h-16 sm:w-16"
+            aria-label="스마트호출 열기"
+            data-smart-call-quick-button=""
+            onClick={() => setCallOpen(true)}
+          >
+            <Bell className="h-5 w-5 sm:h-5.5 sm:w-5.5" strokeWidth={1.65} aria-hidden="true" />
+          </button>
+        ) : null}
         {canOpenCart ? (
           <PostpayOrderCartDrawer
           open={cartOpen}
@@ -144,6 +159,7 @@ export default function OrderCallEntryLayer({
           tableLabel={config.tableLabel}
           previewOnly={config.previewOnly ?? false}
           callItems={config.callItems}
+          presentation={usesAubeCallPresentation ? "aube" : "default"}
           />
         ) : null}
         {toastMessage ? (

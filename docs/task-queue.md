@@ -164,13 +164,14 @@
 ## 8. Call 기능
 
 - `DONE` 손님 직원 호출 MVP — 유효 table session과 공통 Call Layer, 직원 호출 단일 preset
+- `DONE` 오브 테이블 스마트호출 경험 — 우측 하단 전용 호출 버튼, 테이블 번호와 사전 정의 항목만 노출하는 bottom sheet, 실제 write 없는 공개 템플릿 미리보기, 호출 완료·취소 후 2분 cooldown 안내
 - `DONE` 기본 호출 항목 미리보기 — 직원 호출·물·앞치마·식기·테이블 정리·주문 도움을 실제 write 없는 화면에서 선택 가능
 - `DONE` 실제 매장별 호출 항목 관리·저장·전송 코드 — 기본 6개, 매장별 이름·순서·사용 설정, 보관 처리, 접수 당시 항목명 snapshot, 기존 제한 유지
 - `DONE` 매장별 호출 항목 Production migration 1회 적용과 generated types 갱신 — 2026-08-28 사용자 승인, `docs/runbooks/store-call-items-migration.md`
 - `DONE` 호출 목록과 처리 직원 — `call.manage` Owner/Manager/Order staff 권한과 actor 기록
 - `DONE` 접수 확인과 처리 완료 — `pending → acknowledged → completed` conditional update
 - `DONE` 중복·과다 호출 방지 — 미처리 호출 반환, 완료·취소 후 2분 cooldown, session당 시간당 10회
-- `DONE` 호출 이력 — 최근 100건과 테이블·상태·시간을 15초 갱신 대시보드에서 조회
+- `DONE` 호출 이력 — 최근 100건과 테이블·선택 호출 내용·상태·시간을 15초 갱신 대시보드에서 조회
 - `DONE` Call MVP migration Production 1회 적용과 generated types 갱신 — 2026-08-07 `tablescene-prod`, `docs/runbooks/call-mvp-foundation-migration.md`
 - `DONE` 실제 Call 상품 entitlement — 멀티페이지 다이닝 9,900원 번들에 포함하고 단일페이지·Display·Order에서는 fail closed
 - `BLOCKED` 실제 Call Production 활성화 — 판매 가능한 멀티페이지 디자인과 pilot 메뉴판을 만든 뒤 `TABLE_MANAGEMENT_ENABLED`, `CALL_ENABLED`, 명시적 site allowlist를 함께 설정
