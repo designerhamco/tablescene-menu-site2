@@ -13,6 +13,7 @@ import {
   AUBE_TABLE_MAX_MENU_PAGES,
   buildAubeTableNavigationUnits,
   getAubeTableSwipeTargetIndex,
+  isAubeTableTemplate,
   normalizeAubeTableCoverBackgroundColor,
   normalizeAubeTableCoverBackgroundOpacity,
   shouldUseAubeTableCoverLogo,
@@ -27,6 +28,19 @@ test("오브 테이블 페이지네이션은 노출 커버와 노출 페이지�
   ]);
 
   assert.deepEqual(units.map((unit) => unit.id), ["cover", "page:first", "page:second"]);
+});
+
+test("오브 테이블 A·B 타입은 같은 멀티페이지 데이터 계약을 사용한다", () => {
+  assert.equal(isAubeTableTemplate("dining_aube_table_a"), true);
+  assert.equal(isAubeTableTemplate("dining_aube_table_b"), true);
+  assert.equal(isAubeTableTemplate("cafe_design_a"), false);
+
+  const preset = getStarterPreset("dining_aube_table_b");
+  assert.equal(preset.template_key, "dining_aube_table_b");
+  assert.equal(preset.site.restaurant_name, "오브 테이블 B");
+  assert.deepEqual(preset.pages.map((page) => page.title), ["Signature Course", "A La Carte Menu", "Drink Menu"]);
+  assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_b").value, "pretendard");
+  assert.equal(getDefaultEnglishFontForTemplate("dining_aube_table_b").value, "tenor-sans");
 });
 
 test("오브 테이블 스와이프는 거리 또는 속도가 충분할 때 한 페이지만 이동한다", () => {

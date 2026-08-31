@@ -36,6 +36,7 @@ test("다이닝 요금제 기능 경계를 고정한다", () => {
 test("단일·멀티페이지 상품은 같은 페이지 등급 템플릿에만 연결한다", () => {
   assert.equal(getDiningTemplateTier("cafe_design_a"), "single");
   assert.equal(getDiningTemplateTier("dining_aube_table_a"), "multi");
+  assert.equal(getDiningTemplateTier("dining_aube_table_b"), "multi");
   assert.equal(getDiningProductTier(businessBasicMonthlyProduct.product_key), "single");
   assert.equal(getDiningProductTier(businessBasicMultiMonthlyProduct.product_key), "multi");
 

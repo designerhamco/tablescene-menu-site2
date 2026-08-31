@@ -1,4 +1,5 @@
 import { normalizeTemplateKey } from "@/lib/templates";
+import { isAubeTableTemplate } from "@/lib/aube-table";
 import PublicMenuExperienceShell from "@/components/public-menu/PublicMenuExperienceShell";
 import {
   getCustomTypographySettings,
@@ -14,6 +15,7 @@ import CafeDesignA from "./CafeDesignA";
 import CafeMochaForestA from "./CafeMochaForestA";
 import DisplayMenuA from "./DisplayMenuA";
 import DiningAubeTableA from "./DiningAubeTableA";
+import DiningAubeTableB from "./DiningAubeTableB";
 import MultiPageMenuEngine from "./multi-page/MultiPageMenuEngine";
 import type { PublicMenuTemplateProps } from "./types";
 import type { ReactNode } from "react";
@@ -21,7 +23,7 @@ import type { ReactNode } from "react";
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
   const templateKey = normalizeTemplateKey(props.menuSite.template_key, props.menuSite.template_category);
   const storeName = props.menuSite.restaurant_name || props.menuSite.business_name || props.menuSite.name;
-  const typographyStyle = templateKey === "dining_aube_table_a"
+  const typographyStyle = isAubeTableTemplate(templateKey)
     ? getTypographyCssVariables(
         mergeTypographySettings(
           templateKey,
@@ -59,6 +61,8 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       return withPublicMenuShell(<CafeBrewChapterA {...props} />);
     case "dining_aube_table_a":
       return withPublicMenuShell(<DiningAubeTableA {...props} />);
+    case "dining_aube_table_b":
+      return withPublicMenuShell(<DiningAubeTableB {...props} />);
     case "cafe_noir_a":
       return withPublicMenuShell(<CafeDesignA {...props} />);
     case "display_menu_a":

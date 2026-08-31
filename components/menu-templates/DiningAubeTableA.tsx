@@ -33,6 +33,10 @@ import {
 import { formatMenuPrice } from "@/types/menu";
 
 type CourseWithItems = PublicMenuCategory & { items: PublicMenuItem[] };
+export type DiningAubeTableLayoutVariant = "paged" | "sidebar";
+type DiningAubeTableProps = PublicMenuTemplateProps & {
+  layoutVariant?: DiningAubeTableLayoutVariant;
+};
 
 const AUBE_TABLE_STAGE_VARIANTS = {
   enter: (direction: number) => ({ opacity: 0.42, x: direction * 20 }),
@@ -170,7 +174,8 @@ function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceO
   );
 }
 
-export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
+export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: DiningAubeTableProps) {
+  const usesSidebarNavigation = layoutVariant === "sidebar";
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
@@ -260,7 +265,46 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
   return (
     <>
       <KoreanFontAssets assets={fontAssets} />
-      <div className="aube-table-root cafe-a-typography" style={typographyStyle} data-aube-table="">
+      <div
+        className="aube-table-root cafe-a-typography"
+        style={typographyStyle}
+        data-aube-table=""
+        data-layout={layoutVariant}
+      >
+      {usesSidebarNavigation && units.length > 1 ? (
+        <>
+          <nav className="aube-table-sidebar-navigation" aria-label="메뉴 페이지 이동">
+            <p className="aube-table-sidebar-eyebrow"><ScriptAwareText text="Menu collection" /></p>
+            <div className="aube-table-sidebar-list">
+              {units.map((unit, index) => (
+                <button
+                  type="button"
+                  key={unit.id}
+                  aria-current={index === safeActiveIndex ? "page" : undefined}
+                  data-active={index === safeActiveIndex ? "true" : "false"}
+                  onClick={() => selectUnit(index)}
+                >
+                  <span className="aube-table-sidebar-index">{String(index + 1).padStart(2, "0")}</span>
+                  <ScriptAwareText text={unit.type === "cover" ? coverTitle || "Cover" : unit.label} />
+                </button>
+              ))}
+            </div>
+          </nav>
+          <nav className="aube-table-mobile-page-tabs" aria-label="메뉴 페이지 이동">
+            {units.map((unit, index) => (
+              <button
+                type="button"
+                key={unit.id}
+                aria-current={index === safeActiveIndex ? "page" : undefined}
+                data-active={index === safeActiveIndex ? "true" : "false"}
+                onClick={() => selectUnit(index)}
+              >
+                <ScriptAwareText text={unit.type === "cover" ? coverTitle || "Cover" : unit.label} />
+              </button>
+            ))}
+          </nav>
+        </>
+      ) : null}
       <AnimatePresence initial={false} custom={transitionDirection} mode="sync">
         <motion.div
           key={activeUnit.id}
@@ -271,7 +315,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           animate="center"
           exit="exit"
           transition={prefersReducedMotion ? { duration: 0.01 } : AUBE_TABLE_STAGE_TRANSITION}
-          drag={units.length > 1 && !prefersReducedMotion ? "x" : false}
+          drag={!usesSidebarNavigation && units.length > 1 && !prefersReducedMotion ? "x" : false}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.1}
           dragMomentum={false}
@@ -344,7 +388,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         </motion.div>
       </AnimatePresence>
 
-      {units.length > 1 ? (
+      {!usesSidebarNavigation && units.length > 1 ? (
         <nav className="aube-table-pagination" aria-label="메뉴 페이지 이동">
           <button
             type="button"
@@ -382,7 +426,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         </nav>
       ) : null}
 
-      {activeUnit.type === "page" ? <div className="aube-table-bottom-fade" aria-hidden="true" /> : null}
+      {!usesSidebarNavigation && activeUnit.type === "page" ? <div className="aube-table-bottom-fade" aria-hidden="true" /> : null}
 
       <style jsx global>{`
         .aube-table-root {
@@ -407,10 +451,15 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           color: #17191f;
           font-family: var(--menu-font-ko), "Pretendard", sans-serif;
         }
+        :global([data-public-menu-entry-layer]) .aube-table-root[data-layout="sidebar"] { --aube-sidebar-mobile-top: calc(56px + env(safe-area-inset-top)); }
         .aube-table-root.cafe-a-typography .cafe-a-script-ko { font-family: var(--cafe-a-script-ko-font, var(--menu-font-ko)), "Pretendard", sans-serif; }
         .aube-table-root.cafe-a-typography .cafe-a-script-en { font-family: var(--cafe-a-script-en-font, var(--menu-font-en)), "Tenor Sans", var(--menu-font-ko), sans-serif; }
         .aube-table-stage { position: absolute; inset: 0; min-height: 100dvh; touch-action: pan-y; cursor: grab; will-change: transform, opacity; }
         .aube-table-stage:active { cursor: grabbing; }
+        .aube-table-sidebar-navigation, .aube-table-mobile-page-tabs { display: none; }
+        .aube-table-root[data-layout="sidebar"] { --aube-sidebar-mobile-top: 0px; }
+        .aube-table-root[data-layout="sidebar"] .aube-table-stage { cursor: default; }
+        .aube-table-root[data-layout="sidebar"] .aube-table-stage:active { cursor: default; }
         .aube-table-cover { position: relative; min-height: 100dvh; display: grid; place-items: center; overflow: hidden; isolation: isolate; }
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
@@ -484,6 +533,19 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           .aube-table-stage { will-change: auto; }
           .aube-table-pagination-direction:not(:disabled) .aube-table-pagination-arrow { animation: none !important; }
         }
+        @media (min-width: 768px) {
+          .aube-table-root[data-layout="sidebar"] { display: grid; grid-template-columns: clamp(230px, 23vw, 340px) minmax(0, 1fr); height: 100dvh; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-sidebar-navigation { position: relative; z-index: 30; display: flex; min-height: 100dvh; flex-direction: column; justify-content: center; padding: clamp(48px, 7vw, 92px) clamp(28px, 3.8vw, 56px); overflow: hidden; background: #0d172a; color: #fff; }
+          .aube-table-sidebar-eyebrow { margin: 0 0 clamp(30px, 4vh, 48px); color: var(--aube-accent); font-family: var(--menu-role-supporting-font-en, var(--menu-font-en)); font-size: 12px; font-weight: 400; letter-spacing: .18em; text-transform: uppercase; }
+          .aube-table-sidebar-list { display: flex; flex-direction: column; gap: clamp(19px, 2.6vh, 30px); }
+          .aube-table-sidebar-list button { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: baseline; gap: 14px; border: 0; padding: 0; background: transparent; color: rgba(255,255,255,.52); text-align: left; font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(17px, 1.6vw, 22px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.25; transition: color .35s ease, transform .35s cubic-bezier(.22,1,.36,1); }
+          .aube-table-sidebar-list button:hover, .aube-table-sidebar-list button:focus-visible, .aube-table-sidebar-list button[data-active="true"] { color: #fff; transform: translateX(5px); }
+          .aube-table-sidebar-list button:focus-visible { outline: 1px solid var(--aube-accent); outline-offset: 8px; }
+          .aube-table-sidebar-index { color: var(--aube-accent); font-family: var(--menu-role-supporting-font-en, var(--menu-font-en)); font-size: 10px; letter-spacing: .08em; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-stage { position: relative; grid-column: 2; grid-row: 1; inset: auto; min-width: 0; min-height: 100dvh; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-page { width: min(100%, 1240px); padding-left: clamp(42px, 5vw, 78px); padding-right: clamp(42px, 5vw, 78px); padding-bottom: clamp(80px, 11vh, 132px); }
+          .aube-table-root[data-layout="sidebar"] .aube-table-cover-copy { width: min(90%, 980px); }
+        }
         @media (max-width: 720px) {
           .aube-table-root {
             --aube-type-page-description: clamp(14px, 3.8vw, 16px);
@@ -515,6 +577,16 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           .aube-table-item-image { width: clamp(76px, 21vw, 92px); height: clamp(76px, 21vw, 92px); }
           .aube-table-item-heading { gap: clamp(8px, 2.5vw, 11px); }
           .aube-table-bottom-fade { height: clamp(104px, 15vh, 136px); }
+          .aube-table-root[data-layout="sidebar"] { min-height: 100dvh; overflow: visible; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs { position: sticky; z-index: 40; top: var(--aube-sidebar-mobile-top); display: flex; gap: 24px; width: 100%; overflow-x: auto; border-bottom: 1px solid #e8e4dc; padding: 0 22px; background: #fff; scrollbar-width: none; scroll-snap-type: x proximity; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs::-webkit-scrollbar { display: none; }
+          .aube-table-mobile-page-tabs button { flex: 0 0 auto; scroll-snap-align: center; border: 0; border-bottom: 1px solid transparent; padding: 17px 0 14px; background: transparent; color: #8b8d92; font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: 14px; font-weight: var(--menu-role-category-font-weight, 400); white-space: nowrap; transition: color .25s ease, border-color .25s ease; }
+          .aube-table-mobile-page-tabs button[data-active="true"] { border-bottom-color: var(--aube-accent); color: #17191f; }
+          .aube-table-mobile-page-tabs button:focus-visible { outline: 1px solid var(--aube-accent); outline-offset: -4px; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-stage { position: relative; inset: auto; min-height: calc(100dvh - 50px); }
+          .aube-table-root[data-layout="sidebar"] .aube-table-page-scroll { height: calc(100dvh - 50px); }
+          .aube-table-root[data-layout="sidebar"] .aube-table-cover { min-height: calc(100dvh - 50px); }
+          .aube-table-root[data-layout="sidebar"] .aube-table-page { padding-top: 66px; padding-bottom: 84px; }
         }
       `}</style>
       </div>

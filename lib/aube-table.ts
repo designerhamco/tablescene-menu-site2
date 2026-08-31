@@ -1,4 +1,8 @@
 export const AUBE_TABLE_TEMPLATE_KEY = "dining_aube_table_a" as const;
+export const AUBE_TABLE_TEMPLATE_KEYS = [
+  AUBE_TABLE_TEMPLATE_KEY,
+  "dining_aube_table_b",
+] as const;
 export const AUBE_TABLE_MAX_MENU_PAGES = 10;
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR = "#0D172A";
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY = 75;
@@ -35,7 +39,8 @@ export type AubeTableNavigationUnit =
   | { type: "page"; id: string; pageId: string; label: string };
 
 export function isAubeTableTemplate(templateKey: string | null | undefined) {
-  return templateKey?.trim().toLowerCase() === AUBE_TABLE_TEMPLATE_KEY;
+  const normalizedTemplateKey = templateKey?.trim().toLowerCase();
+  return AUBE_TABLE_TEMPLATE_KEYS.some((key) => key === normalizedTemplateKey);
 }
 
 export function normalizeAubeTableLayoutColumns(value: unknown): AubeTablePageLayoutColumns {
