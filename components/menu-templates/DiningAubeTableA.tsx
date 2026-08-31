@@ -233,7 +233,26 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
       ) : null}
 
       <style jsx global>{`
-        .aube-table-root { position: relative; min-height: 100dvh; overflow: hidden; background: #fbfaf7; color: #17191f; }
+        .aube-table-root {
+          --aube-type-page-description: clamp(17px, 1.45vw, 21px);
+          --aube-type-course-title: clamp(30px, 2.7vw, 40px);
+          --aube-type-course-price: clamp(18px, 1.65vw, 23px);
+          --aube-type-course-body: clamp(16px, 1.4vw, 20px);
+          --aube-type-course-meta: clamp(14px, 1.15vw, 17px);
+          --aube-type-item-title: clamp(22px, 2.25vw, 30px);
+          --aube-type-item-price: clamp(18px, 1.9vw, 24px);
+          --aube-type-item-secondary: clamp(12px, 1vw, 14px);
+          --aube-type-item-body: clamp(16px, 1.6vw, 20px);
+          --aube-space-course: clamp(84px, 8vw, 120px);
+          --aube-space-course-items: clamp(42px, 4vw, 58px);
+          --aube-space-item-top: clamp(22px, 2.2vw, 30px);
+          --aube-space-item-bottom: clamp(26px, 2.6vw, 36px);
+          position: relative;
+          min-height: 100dvh;
+          overflow: hidden;
+          background: #fbfaf7;
+          color: #17191f;
+        }
         .aube-table-cover { position: relative; min-height: 100dvh; display: grid; place-items: center; overflow: hidden; isolation: isolate; }
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
@@ -248,52 +267,62 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-page-header { max-width: 820px; margin-bottom: clamp(76px, 9vh, 112px); }
         .aube-table-page[data-align="center"] .aube-table-page-header { margin-left: auto; margin-right: auto; }
         .aube-table-page-header h1 { margin: 0; color: #b58c4b; font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(50px, 6.5vw, 84px); font-weight: 500; line-height: 1; letter-spacing: -.04em; }
-        .aube-table-page-description { max-width: 640px; margin: 24px 0 0; color: #72757d; font-size: 16px; line-height: 1.75; }
+        .aube-table-page-description { max-width: 680px; margin: clamp(22px, 2.2vw, 30px) 0 0; color: #72757d; font-size: var(--aube-type-page-description); line-height: 1.7; }
         .aube-table-page[data-align="center"] .aube-table-page-description { margin-left: auto; margin-right: auto; }
-        .aube-table-page-content { display: grid; gap: clamp(76px, 8vw, 112px); text-align: left; }
-        .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(58px, 7vw, 104px); row-gap: clamp(72px, 8vw, 108px); }
+        .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
+        .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); row-gap: var(--aube-space-course); }
         .aube-table-course { min-width: 0; }
-        .aube-table-course-header { display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: center; gap: 18px; }
+        .aube-table-course-header { display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: baseline; gap: clamp(14px, 1.5vw, 22px); }
         .aube-table-course-title { min-width: 0; }
         .aube-table-course-rule { width: 100%; border-top: 1px solid #d9ccb7; }
-        .aube-table-course-header h2 { margin: 0; font-size: clamp(27px, 2.6vw, 38px); font-weight: 500; line-height: 1.12; letter-spacing: -.035em; }
-        .aube-table-course-price { margin: 0; white-space: nowrap; color: #b58c4b; font-size: 17px; font-weight: 700; }
-        .aube-table-course-description { max-width: 660px; margin: 18px 0 0; color: #666a72; font-size: 15px; line-height: 1.72; }
-        .aube-table-course-price-description { margin: 8px 0 0; color: #95979d; font-size: 13px; line-height: 1.65; }
-        .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; margin-top: 38px; }
+        .aube-table-course-header h2 { margin: 0; font-size: var(--aube-type-course-title); font-weight: 500; line-height: 1.14; letter-spacing: -.035em; }
+        .aube-table-course-price { margin: 0; white-space: nowrap; color: #b58c4b; font-size: var(--aube-type-course-price); font-weight: 700; line-height: 1.35; }
+        .aube-table-course-description { max-width: 700px; margin: clamp(18px, 1.8vw, 26px) 0 0; color: #666a72; font-size: var(--aube-type-course-body); line-height: 1.7; }
+        .aube-table-course-price-description { margin: clamp(8px, .8vw, 12px) 0 0; color: #898c93; font-size: var(--aube-type-course-meta); line-height: 1.65; }
+        .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; margin-top: var(--aube-space-course-items); }
         .aube-table-direct-items { grid-column: 1 / -1; }
-        .aube-table-page[data-columns="2"] .aube-table-direct-items { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(58px, 7vw, 104px); }
-        .aube-table-item { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 22px; padding: 18px 0 22px; text-align: left; }
+        .aube-table-page[data-columns="2"] .aube-table-direct-items { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); }
+        .aube-table-item { display: grid; grid-template-columns: clamp(96px, 9vw, 124px) minmax(0, 1fr); gap: clamp(20px, 2vw, 28px); padding: var(--aube-space-item-top) 0 var(--aube-space-item-bottom); text-align: left; }
         .aube-table-item:not(:has(.aube-table-item-image)) { grid-template-columns: minmax(0, 1fr); }
-        .aube-table-item-image { width: 96px; height: 96px; border-radius: 2px; object-fit: cover; }
-        .aube-table-item-heading { display: flex; align-items: baseline; gap: 14px; }
+        .aube-table-item-image { width: clamp(96px, 9vw, 124px); height: clamp(96px, 9vw, 124px); border-radius: 2px; object-fit: cover; }
+        .aube-table-item-heading { display: flex; align-items: baseline; gap: clamp(10px, 1vw, 16px); }
         .aube-table-item-heading::after { content: ""; order: 2; min-width: 24px; flex: 1; border-top: 1px dotted #d6c9b4; }
-        .aube-table-item h3 { order: 1; margin: 0; font-size: 18px; font-weight: 700; line-height: 1.42; letter-spacing: -.018em; }
-        .aube-table-item-price { order: 3; margin: 0; white-space: nowrap; color: #b58c4b; font-size: 15px; font-weight: 700; }
-        .aube-table-item-secondary { margin: 7px 0 0; color: #98999f; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-        .aube-table-item-description { margin: 9px 0 0; color: #7a7d84; font-size: 14px; line-height: 1.65; }
-        .aube-table-sold-out { display: inline-flex; margin-top: 12px; padding: 5px 9px; background: #17191f; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+        .aube-table-item h3 { order: 1; margin: 0; font-size: var(--aube-type-item-title); font-weight: 700; line-height: 1.35; letter-spacing: -.022em; }
+        .aube-table-item-price { order: 3; margin: 0; white-space: normal; text-align: right; color: #b58c4b; font-size: var(--aube-type-item-price); font-weight: 700; line-height: 1.4; }
+        .aube-table-item-secondary { margin: clamp(8px, .8vw, 12px) 0 0; color: #898c93; font-size: var(--aube-type-item-secondary); font-weight: 700; line-height: 1.45; letter-spacing: .08em; text-transform: uppercase; }
+        .aube-table-item-description { max-width: 720px; margin: clamp(10px, 1vw, 14px) 0 0; color: #70737a; font-size: var(--aube-type-item-body); line-height: 1.68; }
+        .aube-table-sold-out { display: inline-flex; margin-top: 14px; padding: 6px 10px; background: #17191f; color: #fff; font-size: clamp(11px, .9vw, 13px); font-weight: 700; letter-spacing: .08em; }
         .aube-table-pagination { position: fixed; z-index: 20; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 12px 16px; border: 1px solid #e7e2da; border-radius: 999px; background: #fff; box-shadow: 0 10px 30px rgba(23,25,31,.12); }
         .aube-table-pagination button { width: 7px; height: 7px; border: 0; border-radius: 999px; padding: 0; background: #c7c4be; transition: width .2s ease, background .2s ease; }
         .aube-table-pagination button[data-active="true"] { width: 25px; background: #b58c4b; }
         @media (max-width: 720px) {
+          .aube-table-root {
+            --aube-type-page-description: clamp(15px, 4vw, 17px);
+            --aube-type-course-title: clamp(28px, 7.5vw, 34px);
+            --aube-type-course-price: clamp(16px, 4.4vw, 19px);
+            --aube-type-course-body: clamp(15px, 4vw, 17px);
+            --aube-type-course-meta: clamp(13px, 3.5vw, 15px);
+            --aube-type-item-title: clamp(19px, 5.2vw, 23px);
+            --aube-type-item-price: clamp(16px, 4.4vw, 19px);
+            --aube-type-item-secondary: clamp(11px, 3vw, 13px);
+            --aube-type-item-body: clamp(15px, 4vw, 17px);
+            --aube-space-course: clamp(70px, 18vw, 84px);
+            --aube-space-course-items: clamp(34px, 9vw, 44px);
+            --aube-space-item-top: clamp(19px, 5vw, 24px);
+            --aube-space-item-bottom: clamp(23px, 6vw, 30px);
+          }
           .aube-table-cover-copy { padding: 88px 22px 124px; }
           .aube-table-cover-logo { max-width: min(200px, 58vw); max-height: 72px; margin-bottom: 26px; }
           .aube-table-page { padding: 82px 24px 132px; }
           .aube-table-page-header { margin-bottom: 64px; }
           .aube-table-page-header h1 { font-size: clamp(42px, 13vw, 58px); }
-          .aube-table-page-description { margin-top: 18px; font-size: 14px; }
+          .aube-table-page-description { margin-top: 18px; }
           .aube-table-page[data-columns="2"] .aube-table-page-content, .aube-table-page[data-columns="2"] .aube-table-direct-items { grid-template-columns: 1fr; }
-          .aube-table-page-content { gap: 68px; }
+          .aube-table-page-content { gap: var(--aube-space-course); }
           .aube-table-course-header { grid-template-columns: auto minmax(20px, 1fr) auto; gap: 12px; }
-          .aube-table-course-header h2 { font-size: 27px; }
-          .aube-table-course-price { font-size: 14px; }
-          .aube-table-item { grid-template-columns: 76px minmax(0, 1fr); gap: 16px; padding: 17px 0 20px; }
-          .aube-table-item-image { width: 76px; height: 76px; }
-          .aube-table-item-heading { gap: 10px; }
-          .aube-table-item h3 { font-size: 16px; }
-          .aube-table-item-price { font-size: 13px; }
-          .aube-table-item-description { font-size: 13px; }
+          .aube-table-item { grid-template-columns: clamp(76px, 21vw, 92px) minmax(0, 1fr); gap: clamp(14px, 4vw, 18px); padding: var(--aube-space-item-top) 0 var(--aube-space-item-bottom); }
+          .aube-table-item-image { width: clamp(76px, 21vw, 92px); height: clamp(76px, 21vw, 92px); }
+          .aube-table-item-heading { gap: clamp(8px, 2.5vw, 11px); }
         }
       `}</style>
     </div>
