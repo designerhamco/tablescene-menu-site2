@@ -6,6 +6,7 @@ import { getStarterPreset } from "./menu-starter-presets";
 import {
   AUBE_TABLE_MAX_MENU_PAGES,
   buildAubeTableNavigationUnits,
+  getAubeTableSwipeTargetIndex,
   normalizeAubeTableCoverBackgroundColor,
   normalizeAubeTableCoverBackgroundOpacity,
   shouldUseAubeTableCoverLogo,
@@ -20,6 +21,14 @@ test("오브 테이블 페이지네이션은 노출 커버와 노출 페이지�
   ]);
 
   assert.deepEqual(units.map((unit) => unit.id), ["cover", "page:first", "page:second"]);
+});
+
+test("오브 테이블 스와이프는 거리 또는 속도가 충분할 때 한 페이지만 이동한다", () => {
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 1, unitCount: 4, offsetX: -80, velocityX: -120 }), 2);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 2, unitCount: 4, offsetX: 18, velocityX: 640 }), 1);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 2, unitCount: 4, offsetX: 32, velocityX: 180 }), 2);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 0, unitCount: 4, offsetX: 90, velocityX: 800 }), 0);
+  assert.equal(getAubeTableSwipeTargetIndex({ currentIndex: 3, unitCount: 4, offsetX: -90, velocityX: -800 }), 3);
 });
 
 test("오브 테이블 커버 색상은 6자리 hex만 허용한다", () => {

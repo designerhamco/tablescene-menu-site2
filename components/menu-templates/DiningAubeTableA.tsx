@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
@@ -14,6 +14,7 @@ import type {
 } from "@/components/menu-templates/types";
 import {
   buildAubeTableNavigationUnits,
+  getAubeTableSwipeTargetIndex,
   normalizeAubeTableCoverBackgroundColor,
   normalizeAubeTableCoverBackgroundOpacity,
   normalizeAubeTableLayoutColumns,
@@ -30,6 +31,17 @@ const AUBE_TABLE_FONT_ASSETS = [
   getKoreanFontLoadAssets("pretendard"),
   getEnglishFontLoadAssets("tenor-sans"),
 ];
+
+const AUBE_TABLE_STAGE_VARIANTS = {
+  enter: (direction: number) => ({ opacity: 0, x: direction * 46, scale: 0.994 }),
+  center: { opacity: 1, x: 0, scale: 1 },
+  exit: (direction: number) => ({ opacity: 0, x: direction * -46, scale: 0.994 }),
+};
+
+const AUBE_TABLE_STAGE_TRANSITION = {
+  duration: 0.58,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
 
 function getPrice(item: PublicMenuItem, options: PublicMenuItemPriceOption[]) {
   const itemOptions = options
@@ -97,16 +109,24 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
   const coverEnabled = data.pageSettings.menu_cover_enabled !== false;
   const units = useMemo(() => buildAubeTableNavigationUnits(coverEnabled, visiblePages), [coverEnabled, visiblePages]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [transitionDirection, setTransitionDirection] = useState(1);
   const [failedCoverLogoUrl, setFailedCoverLogoUrl] = useState<string | null>(null);
+  const prefersReducedMotion = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const safeActiveIndex = Math.max(0, Math.min(activeIndex, units.length - 1));
 
   const selectUnit = useCallback((index: number) => {
+    const currentIndex = Math.max(0, Math.min(activeIndex, units.length - 1));
     const nextIndex = Math.max(0, Math.min(units.length - 1, index));
+    if (nextIndex === currentIndex) return;
+    setTransitionDirection(nextIndex > currentIndex ? 1 : -1);
     setActiveIndex(nextIndex);
-    requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: "auto" }));
-  }, [units.length]);
+  }, [activeIndex, units.length]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: "auto" }));
+    return () => cancelAnimationFrame(frame);
+  }, [safeActiveIndex]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -122,18 +142,14 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [safeActiveIndex, selectUnit]);
 
-  function onPointerDown(event: ReactPointerEvent) {
-    pointerStartRef.current = { x: event.clientX, y: event.clientY };
-  }
-
-  function onPointerUp(event: ReactPointerEvent) {
-    const start = pointerStartRef.current;
-    pointerStartRef.current = null;
-    if (!start) return;
-    const deltaX = event.clientX - start.x;
-    const deltaY = event.clientY - start.y;
-    if (Math.abs(deltaX) < 56 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
-    selectUnit(safeActiveIndex + (deltaX < 0 ? 1 : -1));
+  function onSwipeEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    const nextIndex = getAubeTableSwipeTargetIndex({
+      currentIndex: safeActiveIndex,
+      unitCount: units.length,
+      offsetX: info.offset.x,
+      velocityX: info.velocity.x,
+    });
+    selectUnit(nextIndex);
   }
 
   const activeUnit = units[safeActiveIndex] ?? units[0] ?? null;
@@ -167,7 +183,24 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
   return (
     <>
       <KoreanFontAssets assets={AUBE_TABLE_FONT_ASSETS} />
-      <div className="aube-table-root cafe-a-typography" data-aube-table="" onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      <div className="aube-table-root cafe-a-typography" data-aube-table="">
+      <AnimatePresence initial={false} custom={transitionDirection}>
+        <motion.div
+          key={activeUnit.id}
+          className="aube-table-stage"
+          custom={transitionDirection}
+          variants={AUBE_TABLE_STAGE_VARIANTS}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={prefersReducedMotion ? { duration: 0.01 } : AUBE_TABLE_STAGE_TRANSITION}
+          drag={units.length > 1 && !prefersReducedMotion ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.14}
+          dragMomentum={false}
+          whileDrag={prefersReducedMotion ? undefined : { opacity: 0.97, scale: 0.997 }}
+          onDragEnd={onSwipeEnd}
+        >
       {activeUnit.type === "cover" ? (
         <section className="aube-table-cover" style={{ backgroundColor: coverColor }} data-aube-table-cover="">
           {data.pageSettings.cover_image_visible !== false && data.menuSite.cover_image_url ? (
@@ -210,6 +243,8 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
           </main>
         </div>
       ) : null}
+        </motion.div>
+      </AnimatePresence>
 
       {units.length > 1 ? (
         <nav className="aube-table-pagination" aria-label="메뉴 페이지 이동">
@@ -277,6 +312,8 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         }
         .aube-table-root.cafe-a-typography .cafe-a-script-ko { font-family: var(--menu-font-ko), "Pretendard", sans-serif; }
         .aube-table-root.cafe-a-typography .cafe-a-script-en { font-family: var(--menu-font-en), "Tenor Sans", var(--menu-font-ko), sans-serif; }
+        .aube-table-stage { position: absolute; inset: 0; min-height: 100dvh; touch-action: pan-y; cursor: grab; will-change: transform, opacity; }
+        .aube-table-stage:active { cursor: grabbing; }
         .aube-table-cover { position: relative; min-height: 100dvh; display: grid; place-items: center; overflow: hidden; isolation: isolate; }
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
@@ -345,6 +382,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         @keyframes aube-table-arrow-prev { 0%, 100% { transform: translateX(0) rotate(180deg); } 48% { transform: translateX(-5px) rotate(180deg); } }
         @keyframes aube-table-arrow-next { 0%, 100% { transform: translateX(0); } 48% { transform: translateX(5px); } }
         @media (prefers-reduced-motion: reduce) {
+          .aube-table-stage { will-change: auto; }
           .aube-table-pagination-direction:not(:disabled) .aube-table-pagination-arrow { animation: none !important; }
         }
         @media (max-width: 720px) {
