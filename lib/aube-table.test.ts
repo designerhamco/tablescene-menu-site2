@@ -24,7 +24,7 @@ test("오브 테이블 페이지네이션은 노출 커버와 노출 페이지�
 
 test("오브 테이블 커버 색상은 6자리 hex만 허용한다", () => {
   assert.equal(normalizeAubeTableCoverBackgroundColor("#abc123"), "#ABC123");
-  assert.equal(normalizeAubeTableCoverBackgroundColor("rgba(0,0,0,.5)"), "#171612");
+  assert.equal(normalizeAubeTableCoverBackgroundColor("rgba(0,0,0,.5)"), "#0D172A");
 });
 
 test("오브 테이블 커버 배경색 불투명도는 0~100 범위와 75 기본값을 사용한다", () => {
@@ -35,7 +35,7 @@ test("오브 테이블 커버 배경색 불투명도는 0~100 범위와 75 기�
   assert.equal(normalizeAubeTableCoverBackgroundOpacity("invalid"), 75);
 });
 
-test("오브 테이블 커버는 로고가 있으면 매장명보다 우선하고 로드 실패 시 매장명으로 돌아간다", () => {
+test("오브 테이블 커버는 정상 로드 가능한 로고만 사용한다", () => {
   assert.equal(shouldUseAubeTableCoverLogo("https://example.com/logo.svg", null), true);
   assert.equal(shouldUseAubeTableCoverLogo("https://example.com/logo.svg", "https://example.com/logo.svg"), false);
   assert.equal(shouldUseAubeTableCoverLogo("", null), false);

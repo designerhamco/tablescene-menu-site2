@@ -1,6 +1,6 @@
 export const AUBE_TABLE_TEMPLATE_KEY = "dining_aube_table_a" as const;
 export const AUBE_TABLE_MAX_MENU_PAGES = 10;
-export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR = "#171612";
+export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR = "#0D172A";
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY = 75;
 
 export type AubeTablePageLayoutColumns = 1 | 2;
