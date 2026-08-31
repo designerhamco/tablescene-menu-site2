@@ -1,6 +1,6 @@
 # Supabase Auth 이메일 템플릿 적용 런북
 
-최종 갱신: 2026-08-31
+최종 갱신: 2026-09-01
 
 ## 목적
 
@@ -21,6 +21,14 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 | Reset password | `[아티메뉴] 비밀번호 재설정 안내` | [`docs/auth-email-templates/reset-password.html`](../auth-email-templates/reset-password.html) |
 
 두 HTML은 Supabase가 공식 지원하는 `{{ .ConfirmationURL }}`만 사용한다. 현재 앱의 회원가입은 `emailRedirectTo=/auth/callback`, 비밀번호 재설정은 `redirectTo=/reset-password`를 전달하므로 기존 인증·복구 경로를 그대로 유지한다.
+
+## Production 적용 상태
+
+2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿만 적용했다. 저장 후 각 편집 화면을 새로고침해 제목, 한국어 본문, `{{ .ConfirmationURL }}` 링크가 유지되고 기존 영문 기본 문구가 남지 않은 것을 다시 확인했다.
+
+- 변경함: `Confirm sign up`, `Reset password`의 Subject와 Body
+- 변경하지 않음: 다른 Auth 템플릿, 보안 알림, URL Configuration, SMTP Settings, 사용자 계정
+- 현재 제약: Dashboard 경고 기준 Supabase built-in 이메일 서비스를 사용 중이므로 Production용 custom SMTP 구성과 실제 수신·링크 QA는 별도 완료해야 한다.
 
 ## 적용 전 확인
 
