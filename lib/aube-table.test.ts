@@ -12,6 +12,7 @@ import {
 import {
   AUBE_TABLE_MAX_MENU_PAGES,
   buildAubeTableNavigationUnits,
+  getAubeTableDefaultCoverBackgroundColor,
   getAubeTableSwipeTargetIndex,
   isAubeTableTemplate,
   normalizeAubeTableCoverBackgroundColor,
@@ -37,10 +38,14 @@ test("오브 테이블 A·B 타입은 같은 멀티페이지 데이터 계약을
 
   const preset = getStarterPreset("dining_aube_table_b");
   assert.equal(preset.template_key, "dining_aube_table_b");
-  assert.equal(preset.site.restaurant_name, "오브 테이블 B");
-  assert.deepEqual(preset.pages.map((page) => page.title), ["Signature Course", "A La Carte Menu", "Drink Menu"]);
-  assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_b").value, "pretendard");
-  assert.equal(getDefaultEnglishFontForTemplate("dining_aube_table_b").value, "tenor-sans");
+  assert.equal(preset.site.restaurant_name, "메종 마레");
+  assert.equal(preset.site.menu_cover_title, "MAISON MARAIS");
+  assert.deepEqual(preset.pages.map((page) => page.title), ["Chef's Tasting", "Seasonal Plates", "Wine & Pairing"]);
+  assert.equal(preset.pages[1]?.categories[0]?.items[0]?.name, "화이트 아스파라거스");
+  assert.equal(getDefaultKoreanFontForTemplate("dining_aube_table_b").value, "noto-serif-kr");
+  assert.equal(getDefaultEnglishFontForTemplate("dining_aube_table_b").value, "cormorant-garamond");
+  assert.equal(getAubeTableDefaultCoverBackgroundColor("dining_aube_table_b"), "#401E24");
+  assert.equal(getAubeTableDefaultCoverBackgroundColor("dining_aube_table_a"), "#0D172A");
 });
 
 test("오브 테이블 스와이프는 거리 또는 속도가 충분할 때 한 페이지만 이동한다", () => {

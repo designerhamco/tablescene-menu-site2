@@ -5,6 +5,7 @@ export const AUBE_TABLE_TEMPLATE_KEYS = [
 ] as const;
 export const AUBE_TABLE_MAX_MENU_PAGES = 10;
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR = "#0D172A";
+export const AUBE_TABLE_B_DEFAULT_COVER_BACKGROUND_COLOR = "#401E24";
 export const AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY = 75;
 export const AUBE_TABLE_SWIPE_OFFSET_THRESHOLD = 64;
 export const AUBE_TABLE_SWIPE_VELOCITY_THRESHOLD = 520;
@@ -41,6 +42,12 @@ export type AubeTableNavigationUnit =
 export function isAubeTableTemplate(templateKey: string | null | undefined) {
   const normalizedTemplateKey = templateKey?.trim().toLowerCase();
   return AUBE_TABLE_TEMPLATE_KEYS.some((key) => key === normalizedTemplateKey);
+}
+
+export function getAubeTableDefaultCoverBackgroundColor(templateKey: string | null | undefined) {
+  return templateKey?.trim().toLowerCase() === "dining_aube_table_b"
+    ? AUBE_TABLE_B_DEFAULT_COVER_BACKGROUND_COLOR
+    : AUBE_TABLE_DEFAULT_COVER_BACKGROUND_COLOR;
 }
 
 export function normalizeAubeTableLayoutColumns(value: unknown): AubeTablePageLayoutColumns {

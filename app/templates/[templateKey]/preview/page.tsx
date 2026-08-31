@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
-import { isAubeTableTemplate } from "@/lib/aube-table";
+import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "@/lib/aube-table";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/locales";
@@ -220,7 +220,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
-    multi_page_cover_background_color: "#0D172A",
+    multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(templateKey),
     multi_page_cover_background_opacity: 75,
     featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
     featured_item_id: firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id ?? null,

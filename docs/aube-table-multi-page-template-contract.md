@@ -5,11 +5,11 @@
 ## 제품 범위
 
 - A타입 템플릿 key: `dining_aube_table_a`, 고객 표시명: `오브 테이블`
-- B타입 템플릿 key: `dining_aube_table_b`, 작업 표시명: `오브 테이블 B`
+- B타입 템플릿 key: `dining_aube_table_b`, 표시명: `메종 마레`
 - 상품 등급: 다이닝 멀티페이지 월 9,900원 / 연 106,900원
 - 디자인 방향: 기존 오브 커피의 컬러·타이포 토큰을 바탕으로 한 파인다이닝 메뉴북
 - 신규 판매 상태: A타입은 `hidden`, B타입은 최종 디자인·실제 E2E 전까지 `coming_soon`
-- 공통 데이터 계약: A·B타입은 같은 커버·메뉴 페이지·코스·직접 메뉴·편집·번역·스마트호출 schema를 사용하며 레이아웃 탐색 방식만 다르다.
+- 공통 데이터 계약: 오브 테이블과 메종 마레는 같은 커버·메뉴 페이지·코스·직접 메뉴·편집·번역·스마트호출 schema를 사용한다. 메종 마레는 별도의 색상·글꼴·스타터 데이터와 사이드 탐색 레이아웃을 가진다.
 - Brew Chapter: 신규 생성·구매·교체에서 제외한 `retired` 호환 renderer
 - Order/PG: 미지원·장기 비활성
 - Smart Call: 템플릿 내부가 아닌 기존 공통 Call Layer와 멀티페이지 entitlement를 재사용하며 Production runtime은 별도 승인 전 fail closed

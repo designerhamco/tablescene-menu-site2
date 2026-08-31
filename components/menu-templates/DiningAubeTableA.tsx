@@ -34,8 +34,10 @@ import { formatMenuPrice } from "@/types/menu";
 
 type CourseWithItems = PublicMenuCategory & { items: PublicMenuItem[] };
 export type DiningAubeTableLayoutVariant = "paged" | "sidebar";
+export type DiningAubeTableThemeVariant = "aube" | "maison-marais";
 type DiningAubeTableProps = PublicMenuTemplateProps & {
   layoutVariant?: DiningAubeTableLayoutVariant;
+  themeVariant?: DiningAubeTableThemeVariant;
 };
 
 const AUBE_TABLE_STAGE_VARIANTS = {
@@ -174,7 +176,11 @@ function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceO
   );
 }
 
-export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: DiningAubeTableProps) {
+export default function DiningAubeTableA({
+  layoutVariant = "paged",
+  themeVariant = "aube",
+  ...data
+}: DiningAubeTableProps) {
   const usesSidebarNavigation = layoutVariant === "sidebar";
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
@@ -270,6 +276,7 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
         style={typographyStyle}
         data-aube-table=""
         data-layout={layoutVariant}
+        data-theme={themeVariant}
       >
       {usesSidebarNavigation && units.length > 1 ? (
         <>
@@ -429,6 +436,19 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
       <style jsx global>{`
         .aube-table-root {
           --aube-accent: #c5a165;
+          --aube-surface: #fff;
+          --aube-ink: #17191f;
+          --aube-muted: #72757d;
+          --aube-subtle: #898c93;
+          --aube-course-copy: #666a72;
+          --aube-item-copy: #70737a;
+          --aube-rule: rgba(197, 161, 101, .38);
+          --aube-leader-dot: rgba(197, 161, 101, .42);
+          --aube-sidebar: #0d172a;
+          --aube-sidebar-hover: #17243a;
+          --aube-sidebar-border: #26354c;
+          --aube-sidebar-text: #fff;
+          --aube-sidebar-active-text: #0d172a;
           --aube-type-page-description: clamp(14px, 1.15vw, 17px);
           --aube-type-course-title: clamp(26px, 2.2vw, 32px);
           --aube-type-course-price: clamp(15px, 1.3vw, 18px);
@@ -445,9 +465,25 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
           position: relative;
           min-height: 100dvh;
           overflow: hidden;
-          background: #fff;
-          color: #17191f;
+          background: var(--aube-surface);
+          color: var(--aube-ink);
           font-family: var(--menu-font-ko), "Pretendard", sans-serif;
+        }
+        .aube-table-root[data-theme="maison-marais"] {
+          --aube-accent: #a66d52;
+          --aube-surface: #f7f2ea;
+          --aube-ink: #2d2020;
+          --aube-muted: #756b68;
+          --aube-subtle: #968a84;
+          --aube-course-copy: #655956;
+          --aube-item-copy: #756a66;
+          --aube-rule: rgba(166, 109, 82, .36);
+          --aube-leader-dot: rgba(166, 109, 82, .4);
+          --aube-sidebar: #401e24;
+          --aube-sidebar-hover: #542a31;
+          --aube-sidebar-border: #6d3d45;
+          --aube-sidebar-text: #f8f1e8;
+          --aube-sidebar-active-text: #35171d;
         }
         :global([data-public-menu-entry-layer]) .aube-table-root[data-layout="sidebar"] { --aube-sidebar-mobile-top: calc(56px + env(safe-area-inset-top)); }
         .aube-table-root.cafe-a-typography .cafe-a-script-ko { font-family: var(--cafe-a-script-ko-font, var(--menu-font-ko)), "Pretendard", sans-serif; }
@@ -470,7 +506,7 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
         .aube-table-page[data-align="center"] { text-align: center; }
         .aube-table-page-header { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); max-width: 820px; margin: 0 auto var(--aube-space-section-start); text-align: center; }
         .aube-table-page-header h1 { margin: 0; color: var(--menu-role-category-color, var(--aube-accent)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(48px, 4.7vw, 68px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.05; letter-spacing: -.025em; }
-        .aube-table-page-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: #72757d; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-page-description); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
+        .aube-table-page-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: var(--aube-muted); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-page-description); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
         .aube-table-page[data-align="center"] .aube-table-page-content { text-align: center; }
         .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(52px, 6vw, 92px); row-gap: var(--aube-space-course); }
@@ -478,11 +514,11 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
         .aube-table-course-header { display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: baseline; gap: clamp(14px, 1.5vw, 22px); }
         .aube-table-course-header:not(:has(.aube-table-course-price)) { grid-template-columns: auto minmax(32px, 1fr); }
         .aube-table-course-title { min-width: 0; }
-        .aube-table-course-rule { width: 100%; border-top: 1px solid rgba(197, 161, 101, .38); }
-        .aube-table-course-header h2 { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-category-color, #17191f); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: var(--aube-type-course-title); font-weight: var(--menu-role-category-font-weight, 500); line-height: 1.18; letter-spacing: -.025em; }
+        .aube-table-course-rule { width: 100%; border-top: 1px solid var(--aube-rule); }
+        .aube-table-course-header h2 { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-category-color, var(--aube-ink)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: var(--aube-type-course-title); font-weight: var(--menu-role-category-font-weight, 500); line-height: 1.18; letter-spacing: -.025em; }
         .aube-table-course-price { --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en)); margin: 0; white-space: nowrap; color: var(--aube-accent); font-family: var(--menu-role-price-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-price); font-weight: var(--menu-role-price-font-weight, 700); line-height: 1.35; }
-        .aube-table-course-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: #666a72; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.58; }
-        .aube-table-course-price-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(6px, .65vw, 10px) 0 0; color: #898c93; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-meta); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
+        .aube-table-course-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: var(--aube-course-copy); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.58; }
+        .aube-table-course-price-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(6px, .65vw, 10px) 0 0; color: var(--aube-subtle); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-course-meta); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; }
         .aube-table-course-items { margin-top: var(--aube-space-section-start); }
         .aube-table-direct-items { margin-top: 0; }
@@ -496,15 +532,15 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
         .aube-table-item:not(:has(.aube-table-item-image)) { grid-template-columns: minmax(0, 1fr); }
         .aube-table-item-image { width: clamp(96px, 9vw, 124px); height: clamp(96px, 9vw, 124px); border-radius: 2px; object-fit: cover; }
         .aube-table-item-heading { display: flex; align-items: baseline; gap: clamp(10px, 1vw, 16px); }
-        .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 1.5px; flex: 1; background-image: radial-gradient(circle, rgba(197, 161, 101, .42) .65px, transparent .78px); background-position: left center; background-repeat: repeat-x; background-size: 5px 1.5px; }
+        .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 1.5px; flex: 1; background-image: radial-gradient(circle, var(--aube-leader-dot) .65px, transparent .78px); background-position: left center; background-repeat: repeat-x; background-size: 5px 1.5px; }
         .aube-table-item h3 { --cafe-a-script-ko-font: var(--menu-role-item-name-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-item-name-font-en, var(--menu-font-en)); order: 1; margin: 0; font-family: var(--menu-role-item-name-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-title); font-weight: var(--menu-role-item-name-font-weight, 500); line-height: 1.3; letter-spacing: -.018em; }
         .aube-table-item-price { --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en)); order: 3; margin: 0; white-space: normal; text-align: right; color: var(--aube-accent); font-family: var(--menu-role-price-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-price); font-weight: var(--menu-role-price-font-weight, 600); line-height: 1.32; }
-        .aube-table-item-secondary { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(7px, .7vw, 10px) 0 0; color: #898c93; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-secondary); font-weight: var(--menu-role-supporting-font-weight, 700); line-height: 1.4; letter-spacing: .06em; }
-        .aube-table-item-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 720px; margin: clamp(7px, .75vw, 10px) 0 0; color: #70737a; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
+        .aube-table-item-secondary { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(7px, .7vw, 10px) 0 0; color: var(--aube-subtle); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-secondary); font-weight: var(--menu-role-supporting-font-weight, 700); line-height: 1.4; letter-spacing: .06em; }
+        .aube-table-item-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 720px; margin: clamp(7px, .75vw, 10px) 0 0; color: var(--aube-item-copy); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-page[data-align="center"] .aube-table-item { text-align: center; }
         .aube-table-page[data-align="center"] .aube-table-item-heading { justify-content: center; }
         .aube-table-page[data-align="center"] .aube-table-item-description { margin-left: auto; margin-right: auto; }
-        .aube-table-sold-out { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); display: inline-flex; margin-top: 14px; padding: 6px 10px; background: #17191f; color: #fff; font-family: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); font-size: clamp(11px, .9vw, 13px); font-weight: var(--menu-role-supporting-font-weight, 700); letter-spacing: .08em; }
+        .aube-table-sold-out { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); display: inline-flex; margin-top: 14px; padding: 6px 10px; background: var(--aube-ink); color: var(--aube-surface); font-family: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); font-size: clamp(11px, .9vw, 13px); font-weight: var(--menu-role-supporting-font-weight, 700); letter-spacing: .08em; }
         .aube-table-bottom-fade { position: fixed; z-index: 15; inset: auto 0 0; height: clamp(116px, 17vh, 174px); pointer-events: none; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, .82) 52%, #fff 86%); }
         .aube-table-pagination { position: fixed; z-index: 20; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; justify-content: center; padding: 0; }
         .aube-table-pagination-dots { display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -533,12 +569,12 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
         }
         @media (min-width: 768px) {
           .aube-table-root[data-layout="sidebar"] { display: grid; grid-template-columns: clamp(230px, 23vw, 340px) minmax(0, 1fr); height: 100dvh; }
-          .aube-table-root[data-layout="sidebar"] .aube-table-sidebar-navigation { position: relative; z-index: 30; display: flex; min-height: 100dvh; flex-direction: column; justify-content: flex-start; padding: clamp(34px, 5vh, 54px) 0 0; overflow: hidden; background: #0d172a; color: #fff; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-sidebar-navigation { position: relative; z-index: 30; display: flex; min-height: 100dvh; flex-direction: column; justify-content: flex-start; padding: clamp(34px, 5vh, 54px) 0 0; overflow: hidden; background: var(--aube-sidebar); color: var(--aube-sidebar-text); }
           .aube-table-sidebar-list { display: flex; width: 100%; flex-direction: column; }
-          .aube-table-sidebar-list button { display: flex; width: 100%; align-items: center; border: 0; border-bottom: 1px solid #26354c; padding: clamp(14px, 1.9vh, 19px) clamp(24px, 3vw, 42px); background: #0d172a; color: #fff; text-align: left; font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(20px, 1.8vw, 26px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.22; transition: background-color .3s ease, color .3s ease; }
-          .aube-table-sidebar-list button:hover, .aube-table-sidebar-list button:focus-visible { background: #17243a; color: #fff; }
-          .aube-table-sidebar-list button[data-active="true"] { background: var(--aube-accent); color: #0d172a; }
-          .aube-table-sidebar-list button:focus-visible { outline: 1px solid #fff; outline-offset: -4px; }
+          .aube-table-sidebar-list button { display: flex; width: 100%; align-items: center; border: 0; border-bottom: 1px solid var(--aube-sidebar-border); padding: clamp(14px, 1.9vh, 19px) clamp(24px, 3vw, 42px); background: var(--aube-sidebar); color: var(--aube-sidebar-text); text-align: left; font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(20px, 1.8vw, 26px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.22; transition: background-color .3s ease, color .3s ease; }
+          .aube-table-sidebar-list button:hover, .aube-table-sidebar-list button:focus-visible { background: var(--aube-sidebar-hover); color: var(--aube-sidebar-text); }
+          .aube-table-sidebar-list button[data-active="true"] { background: var(--aube-accent); color: var(--aube-sidebar-active-text); }
+          .aube-table-sidebar-list button:focus-visible { outline: 1px solid var(--aube-sidebar-text); outline-offset: -4px; }
           .aube-table-root[data-layout="sidebar"] .aube-table-stage { position: relative; grid-column: 2; grid-row: 1; inset: auto; min-width: 0; min-height: 100dvh; }
           .aube-table-root[data-layout="sidebar"] .aube-table-page { width: min(100%, 1240px); padding-left: clamp(42px, 5vw, 78px); padding-right: clamp(42px, 5vw, 78px); padding-bottom: clamp(80px, 11vh, 132px); }
           .aube-table-root[data-layout="sidebar"] .aube-table-cover-copy { width: min(90%, 980px); }
@@ -575,10 +611,10 @@ export default function DiningAubeTableA({ layoutVariant = "paged", ...data }: D
           .aube-table-item-heading { gap: clamp(8px, 2.5vw, 11px); }
           .aube-table-bottom-fade { height: clamp(104px, 15vh, 136px); }
           .aube-table-root[data-layout="sidebar"] { min-height: 100dvh; overflow: visible; }
-          .aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs { position: sticky; z-index: 40; top: var(--aube-sidebar-mobile-top); display: flex; gap: 24px; width: 100%; overflow-x: auto; border-bottom: 1px solid #e8e4dc; padding: 0 22px; background: #fff; scrollbar-width: none; scroll-snap-type: x proximity; }
+          .aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs { position: sticky; z-index: 40; top: var(--aube-sidebar-mobile-top); display: flex; gap: 24px; width: 100%; overflow-x: auto; border-bottom: 1px solid var(--aube-rule); padding: 0 22px; background: var(--aube-surface); scrollbar-width: none; scroll-snap-type: x proximity; }
           .aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs::-webkit-scrollbar { display: none; }
-          .aube-table-mobile-page-tabs button { flex: 0 0 auto; scroll-snap-align: center; border: 0; border-bottom: 1px solid transparent; padding: 17px 0 14px; background: transparent; color: #8b8d92; font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: 14px; font-weight: var(--menu-role-category-font-weight, 400); white-space: nowrap; transition: color .25s ease, border-color .25s ease; }
-          .aube-table-mobile-page-tabs button[data-active="true"] { border-bottom-color: var(--aube-accent); color: #17191f; }
+          .aube-table-mobile-page-tabs button { flex: 0 0 auto; scroll-snap-align: center; border: 0; border-bottom: 1px solid transparent; padding: 17px 0 14px; background: transparent; color: var(--aube-subtle); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: 14px; font-weight: var(--menu-role-category-font-weight, 400); white-space: nowrap; transition: color .25s ease, border-color .25s ease; }
+          .aube-table-mobile-page-tabs button[data-active="true"] { border-bottom-color: var(--aube-accent); color: var(--aube-ink); }
           .aube-table-mobile-page-tabs button:focus-visible { outline: 1px solid var(--aube-accent); outline-offset: -4px; }
           .aube-table-root[data-layout="sidebar"] .aube-table-stage { position: relative; inset: auto; min-height: calc(100dvh - 50px); }
           .aube-table-root[data-layout="sidebar"] .aube-table-page-scroll { height: calc(100dvh - 50px); }

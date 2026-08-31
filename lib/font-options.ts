@@ -505,7 +505,7 @@ export const FALLBACK_ENGLISH_FONT_VALUE: EnglishFontValue = "outfit";
 
 export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
   dining_aube_table_a: "pretendard",
-  dining_aube_table_b: "pretendard",
+  dining_aube_table_b: "noto-serif-kr",
   cafe_design_a: "pretendard",
   cafe_mocha_forest_a: "pretendard",
   cafe_sunday_line_a: "pretendard",
@@ -526,7 +526,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
 
 export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = {
   dining_aube_table_a: "tenor-sans",
-  dining_aube_table_b: "tenor-sans",
+  dining_aube_table_b: "cormorant-garamond",
   cafe_design_a: "alata",
   cafe_mocha_forest_a: "alata",
   cafe_sunday_line_a: "alata",
