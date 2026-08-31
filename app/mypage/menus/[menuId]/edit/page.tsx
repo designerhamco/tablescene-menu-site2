@@ -1428,7 +1428,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     templateKey: site.template_key,
     productKey: latestOrder?.product_key,
     accessState,
-    addonKeys: null,
   });
 
   if (editorServiceType === "custom") {

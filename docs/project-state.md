@@ -4,9 +4,9 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `72994b8`
+기준 커밋: `c15dd09`
 
-현재 작업 브랜치: `codex/aube-shell-typography-fix`
+현재 작업 브랜치: `codex/display-video-included-plan`
 
 ## 현재 상태와 다음 선행 조건
 
@@ -59,6 +59,10 @@
   - 공개·미리보기에서 배지, 정상가 취소선, 할인가, 마감 문구·카운트다운을 Display 밀도 자동 보정과 함께 표시
   - 예약 시작 시 공개 화면을 자동 갱신하고 종료·품절·유효하지 않은 할인가는 fail closed
   - 기존 `menu_promotions`·`menu_promotion_items` 구조를 재사용하며 신규 migration은 없음
+- Display 동영상 통합 상품:
+  - 월 정가 19,900원·오픈할인 14,900원·연 160,900원에 이미지와 MP4 직접 업로드를 함께 포함
+  - 별도 유료 addon과 QA 환경변수 잠금을 제거하고 활성 Display 구독·편집 권한을 서버에서 재검증
+  - 파일당 최대 30MB·메뉴판당 최대 2개, 권장 20MB·5~15초와 1년 캐시 정책으로 초기 전송 비용을 제한
 - ArtiMenu 브랜드와 PG 사이트 심사 준비:
   - 사용자 표시 브랜드를 `아티메뉴` / `ArtiMenu`로 통일하고 기존 cookie·localStorage·DB·호환 route 식별자는 유지
   - 현재 판매 가능한 다이닝 4상품을 `/pricing`에서 분리하고 공개 상품 상세·제공 시점·교환·청약철회·환불 안내를 연결
