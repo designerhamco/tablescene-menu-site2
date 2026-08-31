@@ -54,7 +54,7 @@ function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOption
     <article className="aube-table-item" data-aube-table-item="">
       {item.image_url ? <img className="aube-table-item-image" src={item.image_url} alt="" /> : null}
       <div className="aube-table-item-copy">
-        <div className="aube-table-item-heading">
+        <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"}>
           <h3><ScriptAwareText text={item.name} /></h3>
           {price ? <p className="aube-table-item-price"><ScriptAwareText text={price} /></p> : null}
         </div>
@@ -285,10 +285,10 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: 104px 28px 142px; text-align: center; color: #fff; }
-        .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(30px, 3vw, 44px); object-fit: contain; }
-        .aube-table-cover-brand { margin: 0 0 clamp(30px, 3vw, 44px); font-size: clamp(18px, 1.5vw, 24px); font-weight: 600; line-height: 1.35; letter-spacing: .16em; }
-        .aube-table-cover h1 { margin: 0; font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(74px, 10vw, 150px); font-weight: 400; line-height: .94; letter-spacing: .15em; text-indent: .15em; }
-        .aube-table-cover-description { max-width: 820px; margin: clamp(34px, 3.2vw, 48px) auto 0; font-size: clamp(18px, 1.8vw, 27px); font-weight: 400; line-height: 1.5; letter-spacing: .02em; opacity: .88; }
+        .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(22px, 2.2vw, 32px); object-fit: contain; }
+        .aube-table-cover-brand { margin: 0 0 clamp(22px, 2.2vw, 32px); font-size: clamp(18px, 1.5vw, 24px); font-weight: 600; line-height: 1.35; letter-spacing: .16em; }
+        .aube-table-cover h1 { margin: 0; color: #b58c4b; font-family: var(--menu-role-brand-font-en, var(--menu-font-en)), var(--menu-font-ko), serif; font-size: clamp(60px, 7.5vw, 112px); font-weight: 400; line-height: .96; letter-spacing: .13em; text-indent: .13em; }
+        .aube-table-cover-description { max-width: 820px; margin: clamp(22px, 2.2vw, 32px) auto 0; font-size: clamp(18px, 1.8vw, 27px); font-weight: 400; line-height: 1.5; letter-spacing: .02em; opacity: .88; }
         .aube-table-page-scroll { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
         .aube-table-page { width: min(100%, 1440px); min-height: 100%; margin: 0 auto; padding: clamp(96px, 12vh, 132px) clamp(30px, 5vw, 80px) clamp(156px, 18vh, 188px); }
         .aube-table-page[data-align="center"] { text-align: center; }
@@ -314,7 +314,7 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
         .aube-table-item:not(:has(.aube-table-item-image)) { grid-template-columns: minmax(0, 1fr); }
         .aube-table-item-image { width: clamp(96px, 9vw, 124px); height: clamp(96px, 9vw, 124px); border-radius: 2px; object-fit: cover; }
         .aube-table-item-heading { display: flex; align-items: baseline; gap: clamp(10px, 1vw, 16px); }
-        .aube-table-item-heading::after { content: ""; order: 2; min-width: 24px; flex: 1; border-top: 1px dotted #d6c9b4; }
+        .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 2px; flex: 1; background-image: radial-gradient(circle, #d6c9b4 1px, transparent 1.2px); background-position: left center; background-repeat: repeat-x; background-size: 6px 2px; }
         .aube-table-item h3 { order: 1; margin: 0; font-size: var(--aube-type-item-title); font-weight: 500; line-height: 1.3; letter-spacing: -.018em; }
         .aube-table-item-price { order: 3; margin: 0; white-space: normal; text-align: right; color: #b58c4b; font-size: var(--aube-type-item-price); font-weight: 600; line-height: 1.32; }
         .aube-table-item-secondary { margin: clamp(7px, .7vw, 10px) 0 0; color: #898c93; font-size: var(--aube-type-item-secondary); font-weight: 700; line-height: 1.4; letter-spacing: .06em; }
@@ -362,10 +362,10 @@ export default function DiningAubeTableA(data: PublicMenuTemplateProps) {
             --aube-space-item-bottom: clamp(16px, 4.5vw, 21px);
           }
           .aube-table-cover-copy { width: min(92vw, 680px); padding: 88px 22px 124px; }
-          .aube-table-cover-logo { max-width: min(230px, 58vw); max-height: 84px; margin-bottom: 30px; }
-          .aube-table-cover-brand { margin-bottom: 30px; font-size: clamp(17px, 4.7vw, 20px); line-height: 1.35; letter-spacing: .14em; }
-          .aube-table-cover h1 { font-size: clamp(48px, 15vw, 72px); line-height: 1; letter-spacing: .1em; text-indent: .1em; }
-          .aube-table-cover-description { margin-top: clamp(24px, 7vw, 34px); font-size: clamp(16px, 4.7vw, 20px); line-height: 1.5; }
+          .aube-table-cover-logo { max-width: min(230px, 58vw); max-height: 84px; margin-bottom: 22px; }
+          .aube-table-cover-brand { margin-bottom: 22px; font-size: clamp(17px, 4.7vw, 20px); line-height: 1.35; letter-spacing: .14em; }
+          .aube-table-cover h1 { font-size: clamp(42px, 11.5vw, 58px); line-height: 1; letter-spacing: .1em; text-indent: .1em; }
+          .aube-table-cover-description { margin-top: clamp(18px, 5vw, 24px); font-size: clamp(16px, 4.7vw, 20px); line-height: 1.5; }
           .aube-table-page { padding: 82px 24px 132px; }
           .aube-table-page-header { margin-bottom: 52px; }
           .aube-table-page-header h1 { font-size: clamp(38px, 11vw, 48px); }
