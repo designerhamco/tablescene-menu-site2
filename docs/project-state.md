@@ -313,7 +313,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 
 ## 현재 보류 중인 운영 작업
 
-- 기존 불완전 주문 3건은 변경하지 않고 별도 read-only 운영 감사가 필요하다.
+- `menu_site_id is null` 결제 주문 3건의 read-only 운영 감사는 완료했다. AI 크레딧 10개 충전 2건은 정상 이행이며, 실제 미이행은 주소 중복으로 메뉴판·entitlement가 생성되지 않은 과거 6,600원 개인 체험 1건이다. 환불 또는 대체 제공은 실제 결제·고객 데이터 변경이므로 별도 사람 승인이 필요하다. `docs/runbooks/incomplete-payment-order-audit.md`
 - PortOne에 음식점 직접 merchant와 ArtiMenu 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
 - 비밀번호 재설정 이메일의 링크·새 비밀번호 저장·링크 재사용 차단과 실제 모바일 메일 클라이언트 렌더링 QA
 - Production 환경변수 값과 비밀키 유효성 확인 — 이름·scope와 default-off gate는 2026-09-01 읽기 전용 감사 완료
