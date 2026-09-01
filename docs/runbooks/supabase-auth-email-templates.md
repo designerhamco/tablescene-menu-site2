@@ -24,11 +24,21 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 
 ## Production 적용 상태
 
-2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿만 적용했다. 저장 후 각 편집 화면을 새로고침해 제목, 한국어 본문, `{{ .ConfirmationURL }}` 링크가 유지되고 기존 영문 기본 문구가 남지 않은 것을 다시 확인했다.
+2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿을 적용했다. 저장 후 각 편집 화면을 새로고침해 제목, 한국어 본문, `{{ .ConfirmationURL }}` 링크가 유지되고 편집기에 기존 영문 기본 본문이 남지 않은 것을 다시 확인했다.
 
 - 변경함: `Confirm sign up`, `Reset password`의 Subject와 Body
-- 변경하지 않음: 다른 Auth 템플릿, 보안 알림, URL Configuration, SMTP Settings, 사용자 계정
-- 현재 제약: Dashboard 경고 기준 Supabase built-in 이메일 서비스를 사용 중이므로 Production용 custom SMTP 구성과 실제 수신·링크 QA는 별도 완료해야 한다.
+- 변경하지 않음: 다른 Auth 템플릿, 보안 알림, 사용자 계정
+- custom SMTP: Resend의 `dndcommerce.co.kr` 인증 도메인과 전용 sending key를 사용해 활성화
+  - 발신자: `아티메뉴 <no-reply@dndcommerce.co.kr>`
+  - SMTP host/port: `smtp.resend.com:465`
+  - username: `resend`
+  - 사용자별 최소 발송 간격: 60초
+  - API key 원문은 저장소·문서·로그에 기록하지 않는다.
+- Auth URL 재확인:
+  - Site URL: `https://tablescene-menu-site2.vercel.app`
+  - 허용 redirect: Production과 Vercel Preview의 `/auth/callback`, `/reset-password`
+- 전송 QA: 기존 QA 계정에 비밀번호 재설정 메일을 요청해 Resend `delivered` 상태, 한국어 제목·HTML 본문, 위 발신자와 Supabase recovery redirect를 확인했다. SMTP 활성화 직후 전파 전 요청은 기존 영문 기본 템플릿으로 발송됐지만, 템플릿을 재저장하고 전파를 기다린 뒤 한국어 템플릿 발송을 재확인했다.
+- 남은 확인: 실제 받은편지함의 데스크톱·모바일 렌더링, 링크 클릭·비밀번호 변경과 신규 회원가입 인증 메일은 아직 수행하지 않았다.
 
 ## 적용 전 확인
 
@@ -40,7 +50,7 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 4. Authentication → SMTP Settings의 발신자 주소·발신자 이름·도메인 인증 상태를 확인한다.
 5. 메일 제공자의 링크 추적 기능은 인증 URL을 다시 쓰지 않도록 비활성화한다.
 
-URL·SMTP·도메인 설정은 Production Auth 변경이므로 이 확인 과정에서 임의로 수정하지 않는다.
+URL·SMTP·도메인 설정은 Production Auth 변경이므로 승인된 운영 작업에서만 수정한다.
 
 ## Dashboard 적용 순서
 
