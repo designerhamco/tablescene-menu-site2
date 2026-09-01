@@ -1866,6 +1866,74 @@ export type Database = {
           },
         ]
       }
+      menu_pickup_queue_entries: {
+        Row: {
+          business_date: string
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          external_order_ref: string | null
+          id: string
+          menu_site_id: string
+          queue_number: number
+          ready_at: string | null
+          ready_by: string | null
+          source: string
+          status: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          business_date?: string
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          external_order_ref?: string | null
+          id?: string
+          menu_site_id: string
+          queue_number: number
+          ready_at?: string | null
+          ready_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          business_date?: string
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          external_order_ref?: string | null
+          id?: string
+          menu_site_id?: string
+          queue_number?: number
+          ready_at?: string | null
+          ready_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_pickup_queue_entries_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_promotion_items: {
         Row: {
           created_at: string
