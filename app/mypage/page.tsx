@@ -2401,12 +2401,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const hasAnyMenuCards = totalMenuCardCount > 0;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
   const activeNavigationKey: MypageNavigationKey = activeTab;
-  function renderCreateMenuButton(extraClassName = "") {
+  function renderStoreOperationsButton(extraClassName = "") {
     const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
 
     return (
-      <Link href="/apply/basic" className={className}>
-        메뉴판 추가 구매
+      <Link href="/mypage/operations" className={className}>
+        매장 운영
       </Link>
     );
   }
@@ -2684,7 +2684,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </p>
                 </div>
 
-                {canShowOwnerCommerce ? renderCreateMenuButton() : null}
+                {renderStoreOperationsButton()}
               </div>
 
               <nav className="mb-5 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200" aria-label="내 메뉴판 탭">
@@ -2784,7 +2784,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
                 상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다.
               </p>
-              {canShowOwnerCommerce ? renderCreateMenuButton("mt-7") : null}
+              {renderStoreOperationsButton("mt-7")}
             </div>
           )}
             </section>

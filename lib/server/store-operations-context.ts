@@ -5,6 +5,7 @@ import {
   getStoreOperationAccess,
   isCurrentPickupQueueOperationsSite,
   isCurrentSmartCallOperationsSite,
+  isStoreOperationsTemplate,
   type StoreOperationAccess,
 } from "@/lib/operations-dashboard";
 import {
@@ -13,7 +14,7 @@ import {
   type AccessibleMenuSiteListItem,
 } from "@/lib/server/menu-site-access-service";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
-import { isPickupQueueRuntimeEnabledForSite } from "@/lib/pickup-queue-runtime";
+import { isPickupQueueRuntimeEnabledForSite, isPickupQueueTemplate } from "@/lib/pickup-queue-runtime";
 
 export type StoreOperationsSite = AccessibleMenuSiteListItem & {
   operationAccess: StoreOperationAccess;
@@ -30,7 +31,7 @@ export async function getStoreOperationsContext(
   const accessibleMenuSites = await getAccessibleMenuSiteList();
   const tableManagementEnabled = isTableManagementRuntimeEnabled();
   const candidates = accessibleMenuSites.filter(
-    (site) => isCallRuntimeEnabledForSite(site.menuSiteId) || isPickupQueueRuntimeEnabledForSite(site.menuSiteId),
+    (site) => isStoreOperationsTemplate(site.templateKey) || isPickupQueueTemplate(site.templateKey),
   );
   const lifecycleStates = await Promise.all(
     candidates.map((site) => getMenuSiteAccessStateForMenuSite({ menuSiteId: site.menuSiteId })),

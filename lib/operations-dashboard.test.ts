@@ -59,7 +59,7 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
   assert.equal(hasAvailableStoreOperation(disabledAccess), false);
 });
 
-test("operations only list published, active multi-page menus with Smart Call access", () => {
+test("operations list published, active multi-page menus even before Smart Call runtime activation", () => {
   const eligible = {
     accessRole: "owner" as const,
     templateKey: "dining_aube_table_a",
@@ -77,12 +77,12 @@ test("operations only list published, active multi-page menus with Smart Call ac
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, lifecycleState: "expired_holding" }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, templateKey: "cafe_design_a" }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, templateKey: "display_menu_a" }), false);
-  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, tableManagementEnabled: false }), false);
-  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, callManagementEnabled: false }), false);
+  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, tableManagementEnabled: false }), true);
+  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, callManagementEnabled: false }), true);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, accessRole: "viewer" }), false);
 });
 
-test("Display 수동 대기번호는 별도 runtime과 권한으로만 매장 운영에 포함한다", () => {
+test("Display 메뉴판은 runtime 활성화 전에도 매장 운영에 표시하되 기능은 잠근다", () => {
   const eligible = {
     accessRole: "owner" as const,
     templateKey: "display_menu_a",
@@ -96,7 +96,7 @@ test("Display 수동 대기번호는 별도 runtime과 권한으로만 매장 �
   };
   assert.equal(isCurrentPickupQueueOperationsSite(eligible), true);
   assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, templateKey: "dining_aube_table_a" }), false);
-  assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, pickupQueueEnabled: false }), false);
+  assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, pickupQueueEnabled: false }), true);
   assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, accessRole: "viewer" }), false);
   assert.deepEqual(getStoreOperationAccess(eligible), {
     orders: false,

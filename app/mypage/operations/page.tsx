@@ -112,7 +112,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">NO ACTIVE OPERATIONS MENU</p>
             <h2 className="mt-3 text-2xl font-black tracking-tight">운영 가능한 메뉴판이 없습니다</h2>
             <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              현재 공개 중이고 이용 기간과 매장 운영 기능이 활성화된 메뉴판만 표시됩니다.
+              현재 공개 중이고 이용 기간이 유효한 멀티페이지 또는 Display 메뉴판만 표시됩니다.
             </p>
             <Link
               href="/mypage?tab=menus"

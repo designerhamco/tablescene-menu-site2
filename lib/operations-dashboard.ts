@@ -67,16 +67,12 @@ export function isCurrentSmartCallOperationsSite({
   lifecycleState,
   lifecycleReason,
   canPreview,
-  tableManagementEnabled,
-  callManagementEnabled,
 }: StoreOperationsSiteEligibility) {
   return isStoreOperationsTemplate(templateKey)
     && menuSiteStatus === "published"
     && lifecycleState === "active"
     && lifecycleReason === "active"
     && canPreview
-    && tableManagementEnabled
-    && callManagementEnabled
     && hasMenuSitePermission(accessRole, "call.manage");
 }
 
@@ -87,13 +83,11 @@ export function isCurrentPickupQueueOperationsSite({
   lifecycleState,
   lifecycleReason,
   canPreview,
-  pickupQueueEnabled,
 }: StoreOperationsSiteEligibility) {
   return isPickupQueueTemplate(templateKey)
     && menuSiteStatus === "published"
     && lifecycleState === "active"
     && lifecycleReason === "active"
     && canPreview
-    && pickupQueueEnabled
     && hasMenuSitePermission(accessRole, "pickup.manage");
 }
