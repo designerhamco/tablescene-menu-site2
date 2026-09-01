@@ -8,6 +8,13 @@ Display 매장이 POS 연동 없이 대기번호를 직접 등록하고 `준비 
 
 향후 POS 연동은 같은 행의 `source=external`, `external_order_ref`를 사용한다. POS 업체별 webhook·polling adapter는 계약과 API 문서가 확정된 뒤 별도 구현하며 관리자·고객 대기판 UI는 재사용한다.
 
+## 공개 대기판 디자인 계약
+
+- 공개 `/pickup/[slug]`는 별도의 고정 브랜드 화면이 아니라 해당 메뉴판의 `template_key`를 기준으로 전용 대기판 테마를 선택한다.
+- 테마는 메뉴판의 저장된 한글·영문 글꼴 설정을 그대로 상속하고, 색상·표면·강조색·레이아웃 변형은 템플릿별 registry에서 관리한다.
+- 현재 허용된 `display_menu_a`는 썸머 블루의 청록·화이트 팔레트와 Pretendard·Alata 기본 타이포를 사용한다.
+- 신규 Display 템플릿을 대기번호 기능에 허용할 때에는 같은 변경에서 전용 대기판 테마와 회귀 테스트를 함께 추가한다. 등록이 누락된 템플릿은 깨지지 않는 중립 테마로 표시하되 runtime/site allowlist 경계는 그대로 유지한다.
+
 ## 변경 파일
 
 - migration: `supabase/migrations/20260901030618_add_manual_pickup_queue.sql`

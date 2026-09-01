@@ -15,6 +15,7 @@ import {
   isPickupQueueRuntimeEnabledForSite,
   isPickupQueueTemplate,
 } from "@/lib/pickup-queue-runtime";
+import { resolvePickupBoardTheme, type PickupBoardTheme } from "@/lib/pickup-board-theme";
 import {
   requireMenuSitePermission,
   requireMenuSiteWriteAccess,
@@ -91,8 +92,10 @@ export type PickupQueueDashboardData = {
 };
 
 export type PublicPickupQueueData = {
-  menuSite: { id: string; name: string; slug: string };
+  menuSite: { id: string; name: string; slug: string; templateKey: string };
+  theme: PickupBoardTheme;
   businessDate: string;
+  refreshedAtLabel: string;
   waitingNumbers: number[];
   readyNumbers: number[];
 };
@@ -134,6 +137,15 @@ function getKstBusinessDate(now = new Date()) {
     throw new PickupQueueServiceError("QUEUE_READ_FAILED", "영업일을 확인하지 못했습니다.", 500);
   }
   return `${year}-${month}-${day}`;
+}
+
+function getKstTimeLabel(now = new Date()) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Seoul",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(now);
 }
 
 function normalizeId(value: unknown) {
@@ -331,8 +343,19 @@ export async function getPublicPickupQueue(slug: string): Promise<PublicPickupQu
   if (result.error) failRead(result.error);
   const rows = result.data ?? [];
   return {
-    menuSite: { id: menuSiteId, name: menuData.menuSite.name, slug: menuData.menuSite.slug },
+    menuSite: {
+      id: menuSiteId,
+      name: menuData.menuSite.name,
+      slug: menuData.menuSite.slug,
+      templateKey: menuData.menuSite.template_key,
+    },
+    theme: resolvePickupBoardTheme({
+      templateKey: menuData.menuSite.template_key,
+      settings: menuData.menuSite.settings,
+      pageSettings: menuData.menuSite.page_settings,
+    }),
     businessDate,
+    refreshedAtLabel: getKstTimeLabel(),
     waitingNumbers: rows.filter((row) => row.status === "waiting").map((row) => row.queue_number),
     readyNumbers: rows.filter((row) => row.status === "ready").map((row) => row.queue_number),
   };
