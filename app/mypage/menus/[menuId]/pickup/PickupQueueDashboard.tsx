@@ -6,9 +6,14 @@ import type { PickupQueueEntry } from "@/lib/server/pickup-queue-service";
 
 import {
   createPickupQueueAction,
-  initialPickupQueueActionState,
   transitionPickupQueueAction,
+  type PickupQueueActionState,
 } from "./actions";
+
+const initialPickupQueueActionState: PickupQueueActionState = {
+  status: "idle",
+  message: "",
+};
 
 const STATUS_LABELS = {
   waiting: "준비 중",
