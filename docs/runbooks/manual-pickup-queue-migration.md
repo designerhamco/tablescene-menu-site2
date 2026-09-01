@@ -64,4 +64,10 @@ order by indexname;
 
 ## 현재 상태
 
-2026-09-01 기준 코드와 migration 초안만 작성했으며 Production DB와 Vercel 환경변수는 변경하지 않았다.
+2026-09-01 명시적 사용자 승인 아래 `tablescene-prod`에 migration을 1회 적용했다.
+
+- `relrowsecurity=true`, `relforcerowsecurity=true`
+- `service_role`: `SELECT`, `INSERT`, `UPDATE`만 부여
+- primary key, board index, site/date/number unique index, external-order partial unique index 확인
+- Production schema로 generated types 재생성
+- Production에 공개 중인 Display pilot 메뉴판이 없어 Vercel `PICKUP_QUEUE_ENABLED`·allowlist는 아직 설정하지 않음

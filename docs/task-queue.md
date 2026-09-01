@@ -185,7 +185,7 @@
 - `DONE` 관리자 `매장 운영 > 대기번호` 화면과 공개 `/pickup/[slug]` 대기판 — 오늘 번호만 표시하고 10초 자동 갱신
 - `DONE` Owner/Manager/Order staff의 `pickup.manage` 권한, 직원 write audit, Display·활성 lifecycle·runtime/site allowlist fail-closed 경계
 - `DONE` 향후 POS adapter 경계 — `source=external`, `external_order_ref`를 예약하고 현재 UI·상태 모델 재사용
-- `NEEDS_HUMAN` Production migration 적용과 generated types 재생성 — `docs/runbooks/manual-pickup-queue-migration.md`
+- `DONE` Production migration 적용과 generated types 재생성 — 2026-09-01 `tablescene-prod` 1회 적용, RLS·FORCE RLS·service-role 최소 권한·인덱스 postcheck 완료, `docs/runbooks/manual-pickup-queue-migration.md`
 - `NEEDS_HUMAN` pilot Display 메뉴판 지정과 Vercel `PICKUP_QUEUE_ENABLED`, 명시적 site allowlist 설정·재배포
 - `BLOCKED` POS 자동 연동 — POS 업체·API·계약·인증·주문번호 규칙 확정 후 진행
 
