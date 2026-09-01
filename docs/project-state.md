@@ -14,7 +14,7 @@
 - 단일페이지 5,900원은 할인·위젯, 멀티페이지 9,900원은 할인·스마트호출을 포함하도록 제품 기능 경계를 고정
 - Order/PG는 장기 비활성 제품으로 고정해 환경변수나 기존 allowlist만으로 공개 UI와 server write가 다시 열리지 않도록 차단
 - 스마트호출은 멀티페이지의 유효한 테이블 세션과 runtime/site allowlist를 모두 통과해야만 공개 메뉴와 매장 운영에 노출
-- 2026-09-01 사용자 승인 아래 Production `tablescene-prod`의 회원가입 인증·비밀번호 재설정 메일 제목과 HTML을 아티메뉴 템플릿으로 적용하고 저장 후 새로고침 재검증했다. Resend custom SMTP도 인증된 `dndcommerce.co.kr` 전용 key와 `아티메뉴 <no-reply@dndcommerce.co.kr>` 발신자로 활성화했으며, 기존 QA 계정의 재설정 메일이 한국어 제목·본문으로 `delivered` 된 것을 확인했다. 실제 받은편지함 렌더링·링크 클릭과 신규 회원가입 인증 메일 QA는 남아 있다.
+- 2026-09-01 사용자 승인 아래 Production `tablescene-prod`의 회원가입 인증·비밀번호 재설정 메일 제목과 HTML을 아티메뉴 템플릿으로 적용하고 저장 후 새로고침 재검증했다. Resend custom SMTP도 인증된 `dndcommerce.co.kr` 전용 key와 `아티메뉴 <no-reply@dndcommerce.co.kr>` 발신자로 활성화했으며, 기존 QA 계정의 재설정 메일이 한국어 제목·본문으로 `delivered` 된 것을 확인했다. 네이버 받은편지함 데스크톱 화면에서도 제목·발신자·본문 카드·재설정 버튼이 깨짐 없이 렌더링되는 것을 확인했다. 링크 클릭·모바일 렌더링과 신규 회원가입 인증 메일 QA는 남아 있다.
 - 판매 가능한 멀티페이지 디자인 `오브 테이블`의 편집·starter·미리보기·공개 renderer와 additive schema 초안을 구현하고 로컬 QA 완료
 - 두 번째 멀티페이지 템플릿 `메종 마레`는 같은 데이터·편집·번역·스마트호출 계약을 재사용하되 PC·태블릿 왼쪽 페이지 메뉴와 모바일 상단 스와이프 탭을 사용한다. 버건디·아이보리 컬러, Noto Serif KR·Cormorant Garamond 기본 글꼴, 독립 모던 프렌치 스타터를 적용했으며 판매·교체 후보에는 아직 노출하지 않는 `coming_soon` 상태
 - 기존 Brew Chapter는 `retired` 호환 renderer로만 유지해 신규 생성·구매·교체 후보에서 제외
@@ -303,7 +303,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 
 - 기존 불완전 주문 3건은 변경하지 않고 별도 read-only 운영 감사가 필요하다.
 - PortOne에 음식점 직접 merchant와 ArtiMenu 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
-- 회원가입·비밀번호 재설정 이메일의 실제 받은편지함 렌더링·링크 확인과 신규 회원가입 인증 메일 QA
+- 회원가입·비밀번호 재설정 이메일의 링크·모바일 렌더링 확인과 신규 회원가입 인증 메일 QA
 - Production 환경변수와 비밀키 확인
 - Vercel Cron 설정 확인
 - PortOne 실제 결제·취소·부분취소·환불 검증
