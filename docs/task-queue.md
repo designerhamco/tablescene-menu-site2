@@ -216,7 +216,7 @@
 ## 11. 전체 고객 흐름 QA
 
 - `DONE` 반복 가능한 전체 계약 테스트 — `npm test` 한 명령으로 28개 파일·142개 테스트 실행, 해지 예약 구독 재결제 차단과 Order/Call 공통 gate 회귀 포함
-- `NEEDS_HUMAN` 회원가입·구매·메뉴판 생성 — 공개 route와 Auth 보호 QA 완료, 실제 이메일·PortOne 결제 E2E 필요
+- `NEEDS_HUMAN` 회원가입·구매·메뉴판 생성 — 전용 신규 QA 계정의 실제 가입 메일·인증 링크·로그인 세션 E2E 완료. 구매·첫 메뉴 생성은 실제 빌링키와 PortOne 단계가 필요
 - `DONE` 직원 초대·수락·접근 — 승인된 기존 Owner·직원 계정으로 실제 이메일 발송·수락과 viewer 화면·미리보기·편집 차단 E2E 확인
 - `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
 - `DONE` 미리보기·공개·일반 QR — 공통 renderer·기기 프레임·공개 route·QR 분리 QA 재확인
@@ -233,7 +233,7 @@
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
 - `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증
 - `DONE` 아티메뉴 Supabase Auth 메일 문구·Production 템플릿 적용 — 회원가입 인증과 비밀번호 재설정 제목·HTML을 준비하고 2026-09-01 `tablescene-prod`에 두 템플릿만 적용·새로고침 재검증. callback/reset 경로, QA·롤백·보안 기준은 적용 런북에 기록
-- `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — Resend에서 한국어 제목·HTML 본문·발신자·recovery redirect와 `delivered` 확인 완료. 네이버 받은편지함 데스크톱 렌더링도 확인 완료. 링크 클릭·모바일 렌더링과 신규 회원가입 메일은 남음
+- `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — 재설정 메일의 Resend `delivered`·한국어 제목·HTML·발신자·recovery redirect와 네이버 데스크톱 렌더링을 확인했다. 신규 QA 계정의 가입 메일은 Gmail 실제 수신, DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/mypage` 이동과 로그인 세션 생성까지 완료. 실제 모바일 메일 클라이언트 렌더링과 재설정 링크·새 비밀번호 저장·재사용 차단은 남음
 - `DONE` Production custom SMTP와 Auth URL 설정 확인 — Resend 인증 도메인 `dndcommerce.co.kr`, 전용 sending key, `아티메뉴 <no-reply@dndcommerce.co.kr>`, `smtp.resend.com:465` 활성화. Site URL과 Production/Preview callback·reset redirect 재확인
 - `NEEDS_HUMAN` Production 환경변수 값·비밀키 유효성 — 이름과 scope, 의도한 default-off runtime gate는 읽기 전용 확인 완료. execute/mock flag 실제 값과 비밀키 유효성·회전 시점은 값을 노출하지 않는 별도 운영 확인 필요, `docs/runbooks/vercel-production-runtime-audit.md`
 - `IN_PROGRESS` Vercel Cron 실제 실행 QA — Cron 기능과 3개 일정 등록, 저장소 일치, 무인증 `401` 차단 확인 완료. Hobby 로그 제한 때문에 다음 확인 창은 2026-09-02 03:00~03:59 KST와 04:00~04:59 KST, `docs/runbooks/vercel-production-runtime-audit.md`

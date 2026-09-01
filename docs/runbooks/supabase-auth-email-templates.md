@@ -37,8 +37,9 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 - Auth URL 재확인:
   - Site URL: `https://tablescene-menu-site2.vercel.app`
   - 허용 redirect: Production과 Vercel Preview의 `/auth/callback`, `/reset-password`
-- 전송 QA: 기존 QA 계정에 비밀번호 재설정 메일을 요청해 Resend `delivered` 상태, 한국어 제목·HTML 본문, 위 발신자와 Supabase recovery redirect를 확인했다. SMTP 활성화 직후 전파 전 요청은 기존 영문 기본 템플릿으로 발송됐지만, 템플릿을 재저장하고 전파를 기다린 뒤 한국어 템플릿 발송을 재확인했다. 네이버 받은편지함 데스크톱 화면에서도 제목·발신자·본문 카드·재설정 버튼이 깨짐 없이 표시됐다.
-- 남은 확인: 실제 받은편지함의 모바일 렌더링, 링크 클릭·비밀번호 변경과 신규 회원가입 인증 메일은 아직 수행하지 않았다.
+- 재설정 메일 전송 QA: 기존 QA 계정에 비밀번호 재설정 메일을 요청해 Resend `delivered` 상태, 한국어 제목·HTML 본문, 위 발신자와 Supabase recovery redirect를 확인했다. SMTP 활성화 직후 전파 전 요청은 기존 영문 기본 템플릿으로 발송됐지만, 템플릿을 재저장하고 전파를 기다린 뒤 한국어 템플릿 발송을 재확인했다. 네이버 받은편지함 데스크톱 화면에서도 제목·발신자·본문 카드·재설정 버튼이 깨짐 없이 표시됐다.
+- 회원가입 메일 전송 QA: Production과 분리된 신규 QA 계정으로 가입해 Gmail 실제 수신, 한국어 제목·HTML 본문·발신자, DKIM·SPF·DMARC 통과를 확인했다. 메일의 인증 링크는 Supabase verify와 `/auth/callback`을 거쳐 `/mypage`로 이동했고 해당 QA 계정의 로그인 세션이 생성됐다.
+- 남은 확인: 실제 모바일 메일 클라이언트 렌더링과 비밀번호 재설정 링크·새 비밀번호 저장·동일 링크 재사용 차단은 아직 수행하지 않았다.
 
 ## 적용 전 확인
 
