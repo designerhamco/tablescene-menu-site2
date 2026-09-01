@@ -37,6 +37,7 @@ Vercel의 Cron Jobs 기능은 `Enabled` 상태이며 다음 세 작업이 `verce
 - `POSTPAY_ORDER_ENABLED`, `POSTPAY_ORDER_ALLOWED_SITE_IDS`
 - `ORDER_DASHBOARD_ENABLED`, `ORDER_DASHBOARD_ALLOWED_SITE_IDS`
 - `ENABLE_NOTIFICATION_CRON_EXECUTE`
+- `AI_SUPPORT_CHAT_ENABLED`
 
 이는 스마트호출 pilot과 Order/PG를 현재 Production에서 활성화하지 않는 제품 계약과 일치한다. `process-notification-events` Cron은 등록되어 있어도 execute gate가 없으므로 GET에서 dry-run으로 동작한다.
 
