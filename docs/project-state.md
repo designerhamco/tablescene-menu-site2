@@ -17,7 +17,7 @@
 - 스마트호출 관리 내역은 `매장 운영 > 호출관리`에, Display 수동 대기번호는 같은 허브의 `대기번호`와 운영 대시보드에 구현되어 있다. Production runtime/site allowlist가 없으면 해당 기능만 fail closed 한다.
 - Display용 무료 수동 대기번호 MVP는 Order·PG·POS와 분리해 구현했다. 사장이 번호를 등록하고 픽업 요청·수령 완료를 처리하며 공개 대기판은 오늘의 준비 중·픽업 번호만 10초 간격으로 갱신한다. 대기판은 공개 메뉴판의 `template_key`와 저장된 한글·영문 글꼴 설정을 서버에서 해석해 템플릿별 전용 디자인을 적용한다. 현재 `썸머 블루(display_menu_a)`는 메뉴판과 같은 청록·화이트 팔레트 및 Pretendard·Alata 기본 타이포를 사용하고, 향후 Display 템플릿은 테마 registry에 전용 변형을 추가한다. server-only migration은 2026-09-01 명시적 사용자 승인 아래 `tablescene-prod`에 1회 적용했고 RLS·FORCE RLS·service-role 최소 권한·인덱스를 postcheck했다. 공개 Display pilot `260630test` 한 곳만 Production runtime/site allowlist로 활성화했으며 QA 번호 `9999`의 등록·공개 대기판·픽업 요청·수령 완료·DB 타임스탬프를 확인했다.
 - AI 상담 MVP는 서비스 사용법 안내만 제공하고 계정·결제·환불 실행과 민감정보 입력을 금지한다. OpenAI Responses API에 `store=false`로 요청하며 질문·응답 길이와 요청 횟수를 제한하고, 확정할 수 없는 질문은 1:1 문의로 전환한다. Production runtime은 별도 승인 전 default-off다.
-- 2026-09-01 사용자 승인 아래 Production `tablescene-prod`의 회원가입 인증·비밀번호 재설정 메일 제목과 HTML을 아티메뉴 템플릿으로 적용하고 저장 후 새로고침 재검증했다. Resend custom SMTP도 인증된 `dndcommerce.co.kr` 전용 key와 `아티메뉴 <no-reply@dndcommerce.co.kr>` 발신자로 활성화했으며, 기존 QA 계정의 재설정 메일이 한국어 제목·본문으로 `delivered` 된 것을 확인했다. 네이버 받은편지함 데스크톱 화면에서도 제목·발신자·본문 카드·재설정 버튼이 깨짐 없이 렌더링되는 것을 확인했다. 링크 클릭·모바일 렌더링과 신규 회원가입 인증 메일 QA는 남아 있다.
+- 2026-09-01 사용자 승인 아래 Production `tablescene-prod`의 회원가입 인증·비밀번호 재설정 메일 제목과 HTML을 아티메뉴 템플릿으로 적용하고 저장 후 새로고침 재검증했다. Resend custom SMTP도 인증된 `dndcommerce.co.kr` 전용 key와 `아티메뉴 <no-reply@dndcommerce.co.kr>` 발신자로 활성화했다. 기존 QA 계정의 재설정 메일은 한국어 제목·본문·발신자와 `delivered` 상태를 확인했고 네이버 받은편지함 데스크톱에서도 정상 렌더링됐다. 별도 신규 QA 계정의 회원가입 메일도 Gmail에 실제 도착했으며 DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/auth/callback` → `/mypage` 이동과 로그인 세션 생성을 확인했다. 남은 범위는 실제 모바일 메일 클라이언트 렌더링과 비밀번호 재설정 링크·저장·재사용 차단 QA다.
 - 판매 가능한 멀티페이지 디자인 `오브 테이블`의 편집·starter·미리보기·공개 renderer와 additive schema 초안을 구현하고 로컬 QA 완료
 - 두 번째 멀티페이지 템플릿 `메종 마레`는 같은 데이터·편집·번역·스마트호출 계약을 재사용하되 PC·태블릿 왼쪽 페이지 메뉴와 모바일 상단 스와이프 탭을 사용한다. 버건디·아이보리 컬러, Noto Serif KR·Cormorant Garamond 기본 글꼴, 독립 모던 프렌치 스타터를 적용했으며 판매·교체 후보에는 아직 노출하지 않는 `coming_soon` 상태
 - 기존 Brew Chapter는 `retired` 호환 renderer로만 유지해 신규 생성·구매·교체 후보에서 제외
@@ -311,7 +311,7 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 
 - 기존 불완전 주문 3건은 변경하지 않고 별도 read-only 운영 감사가 필요하다.
 - PortOne에 음식점 직접 merchant와 ArtiMenu 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
-- 회원가입·비밀번호 재설정 이메일의 링크·모바일 렌더링 확인과 신규 회원가입 인증 메일 QA
+- 비밀번호 재설정 이메일의 링크·새 비밀번호 저장·링크 재사용 차단과 실제 모바일 메일 클라이언트 렌더링 QA
 - Production 환경변수 값과 비밀키 유효성 확인 — 이름·scope와 default-off gate는 2026-09-01 읽기 전용 감사 완료
 - Vercel Cron 실제 실행 확인 — 기능 활성화·3개 일정 등록·저장소 일치·무인증 `401`은 확인했으며 Hobby 로그 제한 때문에 다음 예정 실행 후 1시간 안에 성공 여부 확인 필요
 - PortOne 실제 결제·취소·부분취소·환불 검증
