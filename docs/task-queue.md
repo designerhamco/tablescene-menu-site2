@@ -182,7 +182,7 @@
 ## 8-A. Display 수동 대기번호
 
 - `DONE` POS·Order·PG와 분리된 무료 수동 MVP 계약 — 사장이 숫자만 등록하고 `준비 중 → 픽업 요청 → 수령 완료`로 처리
-- `DONE` 관리자 `매장 운영 > 대기번호` 화면과 공개 `/pickup/[slug]` 대기판 — 오늘 번호만 표시하고 10초 자동 갱신
+- `DONE` 관리자 `매장 운영 > 대기번호` 화면과 공개 `/pickup/[slug]` 대기판 — 오늘 번호만 표시하고 10초 자동 갱신. 공개 대기판은 실제 메뉴판의 `template_key`와 저장된 글꼴 설정을 읽어 템플릿별 전용 디자인으로 연결하며, 현재 판매 가능한 Display `썸머 블루(display_menu_a)`는 청록·화이트 팔레트와 동일 타이포를 사용
 - `DONE` Owner/Manager/Order staff의 `pickup.manage` 권한, 직원 write audit, Display·활성 lifecycle·runtime/site allowlist fail-closed 경계
 - `DONE` 향후 POS adapter 경계 — `source=external`, `external_order_ref`를 예약하고 현재 UI·상태 모델 재사용
 - `DONE` Production migration 적용과 generated types 재생성 — 2026-09-01 `tablescene-prod` 1회 적용, RLS·FORCE RLS·service-role 최소 권한·인덱스 postcheck 완료, `docs/runbooks/manual-pickup-queue-migration.md`
