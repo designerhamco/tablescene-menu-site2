@@ -291,6 +291,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260901072048_add_persistent_table_qr_public_id.sql` — 2026-09-01 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용. `menu_tables` 기존 행 0건, `qr_public_id uuid NOT NULL default gen_random_uuid()`·고유 인덱스·세션 폐기 함수·`anon`/`authenticated` 무권한 postcheck와 generated types 갱신 완료. `docs/runbooks/persistent-table-qr-public-id-migration.md`. 다시 실행 금지.
 - `20260830072554_add_aube_table_multi_page_fields.sql` — 2026-08-30 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재와 오브 테이블/Brew 고객 row 0건 precheck, 기존 메뉴판·페이지·코스·메뉴 row 수 불변, column·constraint·trigger·function 권한 postcheck와 generated types 갱신 완료. `docs/runbooks/aube-table-multi-page-migration.md`. 다시 실행 금지.
 - `20260828105459_add_dining_single_multi_subscription_products.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 구독 건수 불변과 기존·신규 상품 key 8개 제약 postcheck 완료. `docs/runbooks/dining-tier-pricing-migration.md`. 다시 실행 금지.
 - `20260828143000_add_store_call_items.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재 precheck, RLS·grant·RPC·호출 집계 postcheck와 generated types 갱신 완료. `docs/runbooks/store-call-items-migration.md`. 다시 실행 금지.

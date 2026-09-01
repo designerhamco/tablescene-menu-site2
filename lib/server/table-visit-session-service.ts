@@ -62,7 +62,7 @@ async function getActiveTableQrTarget(tableToken: string): Promise<TableQrTarget
     .eq("status", "active");
 
   tableQuery = isValidTableQrPublicId(tableToken)
-    ? tableQuery.filter("qr_public_id", "eq", tableToken)
+    ? tableQuery.eq("qr_public_id", tableToken)
     : tableQuery.eq("token_hash", hashTableAccessToken(tableToken));
 
   const { data: table, error: tableError } = await tableQuery.maybeSingle();

@@ -22,17 +22,6 @@ import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime"
 
 const MENU_TABLE_SELECT = "id, label, qr_public_id, display_order, status, token_rotated_at, created_at, updated_at";
 
-type MenuTableDatabaseRow = {
-  id: string;
-  label: string;
-  qr_public_id: string;
-  display_order: number;
-  status: string;
-  token_rotated_at: string;
-  created_at: string;
-  updated_at: string;
-};
-
 type DatabaseError = {
   code?: string;
   message?: string;
@@ -54,10 +43,6 @@ export type MenuTableTokenDelivery = {
   table: MenuTableListItem;
   qrPath: string;
 };
-
-function mapMenuTableRow(row: unknown) {
-  return toMenuTableListItem(row as MenuTableDatabaseRow);
-}
 
 export class MenuTableManagementError extends Error {
   constructor(
@@ -160,7 +145,7 @@ export async function listMenuTables(menuSiteId: string): Promise<MenuTableManag
       slug: menuSite.slug,
       status: menuSite.status,
     },
-    tables: (tablesResult.data ?? []).map(mapMenuTableRow),
+    tables: (tablesResult.data ?? []).map(toMenuTableListItem),
   };
 }
 
@@ -195,7 +180,7 @@ export async function createMenuTable({
     .maybeSingle();
 
   if (error || !data) mapDatabaseError(error ?? {}, "TABLE_CREATE_FAILED");
-  const table = mapMenuTableRow(data);
+  const table = toMenuTableListItem(data);
   return { table, qrPath: table.qrPath };
 }
 
@@ -235,7 +220,7 @@ export async function updateMenuTable({
 
   if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
   if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "테이블을 찾을 수 없거나 이미 보관되었습니다.", 404);
-  return mapMenuTableRow(data);
+  return toMenuTableListItem(data);
 }
 
 export async function rotateMenuTableToken({
@@ -272,7 +257,7 @@ export async function rotateMenuTableToken({
 
   if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
   if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "테이블을 찾을 수 없거나 이미 보관되었습니다.", 404);
-  const table = mapMenuTableRow(data);
+  const table = toMenuTableListItem(data);
   return { table, qrPath: table.qrPath };
 }
 

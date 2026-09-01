@@ -2602,6 +2602,7 @@ export type Database = {
           id: string
           label: string
           menu_site_id: string
+          qr_public_id: string
           status: string
           token_hash: string
           token_rotated_at: string
@@ -2616,6 +2617,7 @@ export type Database = {
           id?: string
           label: string
           menu_site_id: string
+          qr_public_id?: string
           status?: string
           token_hash: string
           token_rotated_at?: string
@@ -2630,6 +2632,7 @@ export type Database = {
           id?: string
           label?: string
           menu_site_id?: string
+          qr_public_id?: string
           status?: string
           token_hash?: string
           token_rotated_at?: string

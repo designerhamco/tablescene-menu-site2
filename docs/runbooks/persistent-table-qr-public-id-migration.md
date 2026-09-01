@@ -2,6 +2,8 @@
 
 대상 migration: `20260901072048_add_persistent_table_qr_public_id.sql`
 
+적용 상태: 2026-09-01 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용 완료. Production migration history가 로컬 migration들을 추적하지 않아 `db push` dry-run이 과거 파일 전체를 제안했으므로 `db push`는 실행하지 않고 승인된 파일만 `supabase db query --linked --file`로 적용했다. 재실행 금지.
+
 ## 목적
 
 기존 QR 원문 비밀값은 DB에 저장하지 않는 원칙을 유지하면서, 사장·Manager가 기존 테이블 QR을 나중에도 다시 다운로드할 수 있게 한다. 각 테이블에는 인증 권한을 부여하지 않는 불투명 UUID `qr_public_id`를 추가한다. 공개 `/table/[identifier]` route는 UUID만으로 권한을 부여하지 않고 active table, 메뉴판 lifecycle, 상품 기능, runtime allowlist를 서버에서 다시 검증한다.
@@ -59,6 +61,16 @@ order by table_name, grantee, privilege_type;
 - `qr_public_id`가 `uuid`, `NOT NULL`, `gen_random_uuid()` 기본값이다.
 - unique index가 존재한다.
 - `anon`, `authenticated`에 새 table 권한이 생기지 않았다.
+
+2026-09-01 postcheck 결과:
+
+- 기존 `menu_tables` 행 0건, public ID 누락·중복 0건
+- `uuid`, `NOT NULL`, `gen_random_uuid()` 기본값 확인
+- `menu_tables_qr_public_id_idx` unique index 확인
+- `private.revoke_table_visit_sessions()` 존재 확인
+- `anon`, `authenticated`의 `menu_tables` table grant 없음 확인
+- Production schema 기반 generated types 재생성 완료
+- Supabase security advisor `error` 0건. 기존 다른 함수·Auth 설정의 `warn`은 이번 migration 범위와 무관하며 별도 보안 작업으로 유지
 
 ## 코드 후속 작업
 

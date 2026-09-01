@@ -131,8 +131,8 @@
 - `DONE` 안전한 QR 식별자 분리 — 기존 무작위 token hash와 방문 세션 비밀값은 서버에만 유지하고, 인쇄 주소에는 인증 권한이 없는 공개 UUID만 사용
 - `DONE` 방문 세션과 만료 — server 발급, 12시간 이내 expiry, Secure·HttpOnly·SameSite=Lax cookie
 - `DONE` 세션 재사용·탈취 방지 — menu-site/table/status/revoke/expiry/User-Agent hash 검증, last-seen write throttle
-- `IN_PROGRESS` 통합 QR 관리 화면 — 대표 메뉴 주소·QR과 테이블별 고유 주소·QR을 한 화면에서 복사·재다운로드하고, 테이블명 변경은 주소를 유지하며 명시적 QR 교체만 기존 주소·방문 세션을 폐기하는 코드와 migration 초안 완료
-- `NEEDS_HUMAN` 재다운로드 QR용 `qr_public_id` Production migration 적용·generated types 갱신·postcheck — `docs/runbooks/persistent-table-qr-public-id-migration.md`
+- `DONE` 통합 QR 관리 화면 — 대표 메뉴 주소·QR과 테이블별 고유 주소·QR을 한 화면에서 복사·재다운로드하고, 테이블명 변경은 주소를 유지하며 명시적 QR 교체만 기존 주소·방문 세션을 폐기
+- `DONE` 재다운로드 QR용 `qr_public_id` Production migration 적용·generated types 갱신·postcheck — 2026-09-01 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, `docs/runbooks/persistent-table-qr-public-id-migration.md`
 - `DONE` 테이블별 고유 QR 계약 — 각 테이블은 예측 가능한 `/table1` 대신 서로 다른 UUID `/table/[uuid]`를 사용하고 서버에서 active table·메뉴판 lifecycle·runtime gate를 재검증
 - `DONE` 제품 번들 정책 — 테이블 QR/session은 멀티페이지 9,900원 스마트호출에만 연결하고 단일페이지와 Order에서는 비활성
 - `BLOCKED` 실제 멀티페이지 디자인과 pilot 메뉴판 확정 후 Production `TABLE_MANAGEMENT_ENABLED`·site allowlist 활성화
