@@ -28,7 +28,7 @@ type SearchParams = Promise<{
 const OPERATION_FEATURE_LABELS = {
   orders: "주문관리",
   calls: "호출관리",
-  tables: "테이블관리",
+  tables: "테이블·QR관리",
   sales: "매출요약",
   pickup: "대기번호",
 } as const;

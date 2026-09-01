@@ -17,7 +17,7 @@ const operationNavigation: Array<{
 }> = [
   { key: "orders", label: "주문관리", permission: "order.read" },
   { key: "calls", label: "호출관리", permission: "call.manage" },
-  { key: "tables", label: "테이블관리", permission: "table.manage" },
+  { key: "tables", label: "테이블·QR관리", permission: "table.manage" },
   { key: "sales", label: "매출요약", permission: "sales.read" },
   { key: "pickup", label: "대기번호", permission: "pickup.manage" },
 ];

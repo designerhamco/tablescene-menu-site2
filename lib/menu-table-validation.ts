@@ -5,6 +5,7 @@ export type MenuTableMutableStatus = (typeof MENU_TABLE_MUTABLE_STATUSES)[number
 export type MenuTableListItem = {
   id: string;
   label: string;
+  qrPath: string;
   displayOrder: number;
   status: MenuTableMutableStatus;
   tokenRotatedAt: string;
@@ -51,15 +52,19 @@ export function normalizeMenuTableStatus(value: string): MenuTableMutableStatus 
 export function toMenuTableListItem(row: {
   id: string;
   label: string;
+  qr_public_id: string;
   display_order: number;
   status: string;
   token_rotated_at: string;
   created_at: string;
   updated_at: string;
 }): MenuTableListItem {
+  const qrPublicId = normalizeMenuTableId(row.qr_public_id);
+
   return {
     id: normalizeMenuTableId(row.id),
     label: normalizeMenuTableLabel(row.label),
+    qrPath: `/table/${qrPublicId}`,
     displayOrder: row.display_order,
     status: normalizeMenuTableStatus(row.status),
     tokenRotatedAt: row.token_rotated_at,

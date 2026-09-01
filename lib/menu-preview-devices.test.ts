@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
 
 import {
   buildMenuPreviewUrl,
@@ -47,6 +51,23 @@ test("tablet landscape swaps the real iframe viewport dimensions", () => {
     width: 390,
     height: 844,
   });
+});
+
+test("preview selector renders labeled PC, tablet, and mobile device icons", () => {
+  const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
+    device: "pc",
+    orientation: "landscape",
+    menuId: "4f7be4a1-90db-4e1f-987d-e91385f0bf91",
+    query: {},
+  }));
+
+  assert.match(html, /aria-label="미리보기 기기 선택"/);
+  assert.match(html, /lucide-monitor/);
+  assert.match(html, /lucide-tablet/);
+  assert.match(html, /lucide-smartphone/);
+  assert.match(html, />PC</);
+  assert.match(html, />태블릿</);
+  assert.match(html, />모바일</);
 });
 
 test("framed preview URLs preserve only supported preview parameters", () => {

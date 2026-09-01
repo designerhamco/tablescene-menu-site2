@@ -10,6 +10,8 @@ const {
   createTableVisitSessionExpiry,
   hashTableAccessToken,
   isValidTableAccessToken,
+  isValidTableQrIdentifier,
+  isValidTableQrPublicId,
   MENU_TABLE_LIMIT,
   TABLE_VISIT_SESSION_MAX_AGE_SECONDS,
 } = await import(
@@ -20,6 +22,10 @@ const repositoryRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const migrationPath = join(
   repositoryRoot,
   "supabase/migrations/20260806105623_add_table_qr_session_foundation.sql",
+);
+const persistentQrMigrationPath = join(
+  repositoryRoot,
+  "supabase/migrations/20260901072048_add_persistent_table_qr_public_id.sql",
 );
 
 test("table and visit-session tokens are random, URL-safe, and hash-only", () => {
@@ -45,7 +51,11 @@ test("approved table, QR path, and 12-hour session constants stay aligned", () =
     "2026-08-06T12:00:00.000Z",
   );
   assert.equal(buildTableQrPath(token), `/table/${token}`);
-  assert.throws(() => buildTableQrPath("not a token"), /Invalid table access token/);
+  const publicId = "bdb5d7b6-5447-4bdd-8e37-0b57ff221727";
+  assert.equal(isValidTableQrPublicId(publicId), true);
+  assert.equal(isValidTableQrIdentifier(publicId), true);
+  assert.equal(buildTableQrPath(publicId), `/table/${publicId}`);
+  assert.throws(() => buildTableQrPath("not a token"), /Invalid table QR identifier/);
 });
 
 test("migration keeps both tables server-only and enforces approved limits", () => {
@@ -67,6 +77,18 @@ test("migration keeps both tables server-only and enforces approved limits", () 
   assert.match(sql, /grant select, insert, update on table public\.menu_tables to service_role/);
   assert.match(sql, /grant select, insert, update on table public\.table_visit_sessions to service_role/);
   assert.doesNotMatch(sql, /grant .*delete.* to service_role/i);
+  assert.doesNotMatch(sql, /grant .* to anon/i);
+  assert.doesNotMatch(sql, /grant .* to authenticated/i);
+});
+
+test("persistent table QR migration adds a public UUID and rotates it with the legacy token", () => {
+  const sql = readFileSync(persistentQrMigrationPath, "utf8");
+
+  assert.match(sql, /add column qr_public_id uuid not null default gen_random_uuid\(\)/);
+  assert.match(sql, /create unique index menu_tables_qr_public_id_idx/);
+  assert.match(sql, /new\.qr_public_id := gen_random_uuid\(\)/);
+  assert.match(sql, /old\.token_hash is distinct from new\.token_hash/);
+  assert.match(sql, /revoke all on function private\.revoke_table_visit_sessions\(\)/);
   assert.doesNotMatch(sql, /grant .* to anon/i);
   assert.doesNotMatch(sql, /grant .* to authenticated/i);
 });

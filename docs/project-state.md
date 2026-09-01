@@ -138,6 +138,7 @@
 - 메뉴판 미리보기 기기 프레임:
   - 기존 인증·권한 route와 `MenuPageRenderer`를 그대로 재사용
   - PC 1440×900, 태블릿 기본 가로 1180×820·선택 세로 820×1180, 모바일 390×844 실제 viewport 제공
+  - 기기 선택에는 PC·태블릿·모바일 아이콘과 텍스트를 함께 표시하며 단일·멀티페이지 모두 동일한 frame 계약을 사용
   - 모바일 프레임은 Order/PG 선택 UI 없이 실제 메뉴판을 표시하고, 멀티페이지에서는 스마트호출 미리보기만 실제 write 없는 fixture로 제공
   - 별도 scale 엔진 없이 동일 출처 iframe의 반응형 viewport와 실제 크기 새 창 제공
 - 활성 템플릿 정책과 1차 renderer QA:
@@ -170,18 +171,20 @@
   - Production postcheck와 generated Supabase types 갱신 완료
 - 테이블 관리 runtime 기반:
   - Owner/Manager의 테이블 생성·이름/상태 변경·token 회전·보관을 공통 권한과 staff write audit 뒤에 연결
-  - raw QR token은 생성·회전 응답에서만 한 번 전달하고 목록 DTO와 DB에는 노출하지 않음
+  - 기존 hash-only token은 방문 세션 호환과 폐기 경계에만 유지하고, QR 재다운로드용 불투명 공개 UUID는 인증 비밀값과 분리
+  - 대표 메뉴 QR과 테이블별 QR을 기존 `매장 운영 > 테이블·QR 관리`에서 함께 제공하며 테이블 이름 변경만으로는 인쇄 주소가 바뀌지 않음
+  - 명시적 QR 교체는 공개 UUID와 legacy token을 함께 회전하고 기존 방문 세션을 폐기
   - hard delete 없이 보관 처리하며 비활성·보관·token 회전 시 DB trigger가 기존 방문 세션을 폐기
   - `TABLE_MANAGEMENT_ENABLED=true`가 아니면 UI와 server mutation을 모두 fail closed
   - 현재는 멀티페이지 다이닝 스마트호출 번들만 허용하며 실제 판매 템플릿과 pilot 확정 전에는 Production runtime을 활성화하지 않음
 - table QR·방문 세션 runtime 기반:
-  - 일반 메뉴 QR과 분리된 `/table/[token]` 진입에서 active table token hash와 공개 가능한 Basic 메뉴판을 server-only로 검증
-  - 테이블마다 별도 무작위 token과 QR PNG를 생성하므로 같은 메뉴판에서도 각 테이블이 서로 다른 table session·label로 연결되며 예측 가능한 순번 URL을 공개하지 않음
+  - 일반 메뉴 QR과 분리된 `/table/[identifier]` 진입에서 공개 UUID 또는 기존 token hash를 server-only로 찾은 뒤 active table·공개 가능한 메뉴판·runtime gate를 검증
+  - 테이블마다 별도 UUID와 QR PNG를 생성하므로 같은 메뉴판에서도 각 테이블이 서로 다른 table session·label로 연결되며 예측 가능한 순번 URL을 공개하지 않음
   - 방문 세션 원문은 최대 12시간의 Secure·HttpOnly·SameSite=Lax cookie에만 전달하고 DB에는 SHA-256 hash만 저장
   - 메뉴판 ID·active table·만료·폐기·User-Agent hash가 모두 일치할 때만 세션을 재사용
   - 일반 slug 접근은 세션을 생성하지 않으며 유효한 기존 세션만 공통 모바일 header의 table context에 연결
   - 기능은 기존 default-off `TABLE_MANAGEMENT_ENABLED` gate 뒤에 있어 Production 활성화나 데이터 write가 발생하지 않음
-  - 생성·회전 1회 응답에서는 브라우저 내부 QR renderer로 PNG를 내려받으며 raw token을 별도 API에 재전송하지 않음
+  - QR PNG는 브라우저에서 생성하고, 소유자 목록에는 재다운로드 가능한 공개 주소만 반환하며 session token hash는 노출하지 않음
 - 후불 주문 DB 기반:
   - `menu_items.orderable` default-false 분리와 주문 전용 option group/value
   - table visit session에 연결된 주문 header와 immutable 메뉴·가격·option snapshot
@@ -288,6 +291,7 @@
 
 다음 항목은 저장소 runbook에 Production 수동 적용 완료 기록이 있다.
 
+- `20260901072048_add_persistent_table_qr_public_id.sql` — 2026-09-01 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용. `menu_tables` 기존 행 0건, `qr_public_id uuid NOT NULL default gen_random_uuid()`·고유 인덱스·세션 폐기 함수·`anon`/`authenticated` 무권한 postcheck와 generated types 갱신 완료. `docs/runbooks/persistent-table-qr-public-id-migration.md`. 다시 실행 금지.
 - `20260830072554_add_aube_table_multi_page_fields.sql` — 2026-08-30 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재와 오브 테이블/Brew 고객 row 0건 precheck, 기존 메뉴판·페이지·코스·메뉴 row 수 불변, column·constraint·trigger·function 권한 postcheck와 generated types 갱신 완료. `docs/runbooks/aube-table-multi-page-migration.md`. 다시 실행 금지.
 - `20260828105459_add_dining_single_multi_subscription_products.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 기존 구독 건수 불변과 기존·신규 상품 key 8개 제약 postcheck 완료. `docs/runbooks/dining-tier-pricing-migration.md`. 다시 실행 금지.
 - `20260828143000_add_store_call_items.sql` — 2026-08-28 사용자 승인 아래 linked `tablescene-prod`에 SQL 파일 한 건만 직접 적용, 신규 객체 부재 precheck, RLS·grant·RPC·호출 집계 postcheck와 generated types 갱신 완료. `docs/runbooks/store-call-items-migration.md`. 다시 실행 금지.
