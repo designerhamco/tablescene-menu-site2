@@ -186,7 +186,7 @@
 - `DONE` Owner/Manager/Order staff의 `pickup.manage` 권한, 직원 write audit, Display·활성 lifecycle·runtime/site allowlist fail-closed 경계
 - `DONE` 향후 POS adapter 경계 — `source=external`, `external_order_ref`를 예약하고 현재 UI·상태 모델 재사용
 - `DONE` Production migration 적용과 generated types 재생성 — 2026-09-01 `tablescene-prod` 1회 적용, RLS·FORCE RLS·service-role 최소 권한·인덱스 postcheck 완료, `docs/runbooks/manual-pickup-queue-migration.md`
-- `NEEDS_HUMAN` pilot Display 메뉴판 지정과 Vercel `PICKUP_QUEUE_ENABLED`, 명시적 site allowlist 설정·재배포
+- `DONE` Production pilot 활성화와 E2E — 공개 `260630test` 한 곳에만 Vercel `PICKUP_QUEUE_ENABLED=true`·명시적 site allowlist를 설정하고 재배포. QA 번호 `9999`를 `준비 중 → 픽업 요청 → 수령 완료`로 전환해 관리자 화면·공개 대기판·DB 타임스탬프를 확인했으며 활성 목록에는 남기지 않음
 - `BLOCKED` POS 자동 연동 — POS 업체·API·계약·인증·주문번호 규칙 확정 후 진행
 
 ## 9. 선결제 PG

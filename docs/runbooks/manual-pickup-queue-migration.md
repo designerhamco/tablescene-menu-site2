@@ -70,4 +70,7 @@ order by indexname;
 - `service_role`: `SELECT`, `INSERT`, `UPDATE`만 부여
 - primary key, board index, site/date/number unique index, external-order partial unique index 확인
 - Production schema로 generated types 재생성
-- Production에 공개 중인 Display pilot 메뉴판이 없어 Vercel `PICKUP_QUEUE_ENABLED`·allowlist는 아직 설정하지 않음
+- Production Display pilot `260630test` (`3f4a03e5-b85d-4536-91c5-6e1f5308abe9`)를 공개하고 Vercel Production에 `PICKUP_QUEUE_ENABLED=true`와 해당 UUID 한 개만 allowlist로 설정한 뒤 재배포
+- 첫 등록 QA에서 Next.js `use server` 모듈의 객체 export 오류를 발견했으나 DB row는 생성되지 않았다. PR #104에서 action 모듈을 async function export로만 제한하고 회귀 테스트를 추가한 뒤 재배포
+- QA 번호 `9999`를 관리자에서 등록하고 공개 `/pickup/260630test`의 `준비 중` 표시, `픽업 요청` 이동, `수령 완료` 후 공개 목록 제거를 확인
+- Production DB에서 `source=manual`, `status=completed`, `ready_at`, `completed_at` 저장을 확인. 테스트 row는 감사 가능한 완료 이력으로 보존하고 활성 번호는 0건으로 정리
