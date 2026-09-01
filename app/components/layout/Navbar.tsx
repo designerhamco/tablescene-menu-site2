@@ -70,7 +70,6 @@ const Navbar = () => {
     userId: null,
     loading: true,
   });
-  const [hasStoreOperationsAccess, setHasStoreOperationsAccess] = useState(false);
   const isScrolledRef = useRef(false);
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
@@ -138,42 +137,6 @@ const Navbar = () => {
       subscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    setHasStoreOperationsAccess(false);
-
-    if (!authState.userId) {
-      return;
-    }
-
-    const abortController = new AbortController();
-    let isMounted = true;
-
-    async function loadStoreOperationsAccess() {
-      try {
-        const response = await fetch('/api/account/store-operations-access', {
-          cache: 'no-store',
-          signal: abortController.signal,
-        });
-        const payload = await response.json() as { available?: unknown };
-
-        if (isMounted) {
-          setHasStoreOperationsAccess(response.ok && payload.available === true);
-        }
-      } catch (error) {
-        if (isMounted && !(error instanceof DOMException && error.name === 'AbortError')) {
-          setHasStoreOperationsAccess(false);
-        }
-      }
-    }
-
-    loadStoreOperationsAccess();
-
-    return () => {
-      isMounted = false;
-      abortController.abort();
-    };
-  }, [authState.userId]);
 
   useEffect(() => {
     if (!authState.userId) {
@@ -296,11 +259,6 @@ const Navbar = () => {
     : 'border-zinc-700 bg-zinc-950 text-white hover:bg-zinc-800';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? 'MY/메뉴판' : '로그인';
-  const isOperationsPath = pathname === '/mypage/operations'
-    || /^\/mypage\/menus\/[^/]+\/(orders|calls|tables|sales)$/.test(pathname);
-  const operationsButtonClass = isOperationsPath
-    ? 'border-zinc-950 bg-zinc-950 text-white hover:bg-zinc-800'
-    : secondaryButtonClass;
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
 
   const markNotificationAsRead = async (notificationId: string) => {
@@ -457,15 +415,6 @@ const Navbar = () => {
                 {accountCtaLabel}
               </a>
             ) : null}
-            {hasStoreOperationsAccess ? (
-              <a
-                href="/mypage/operations"
-                className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${operationsButtonClass}`}
-              >
-                매장 운영
-              </a>
-            ) : null}
-
             {authState.isAuthenticated ? (
               <a
                 href={NOTIFICATION_FALLBACK_HREF}
@@ -518,15 +467,6 @@ const Navbar = () => {
                       className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
                     >
                       {accountCtaLabel}
-                    </a>
-                  ) : null}
-                  {hasStoreOperationsAccess ? (
-                    <a
-                      href="/mypage/operations"
-                      onClick={closeMobileMenu}
-                      className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
-                    >
-                      매장 운영
                     </a>
                   ) : null}
                 </div>

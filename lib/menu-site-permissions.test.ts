@@ -36,6 +36,7 @@ const ROLE_EXPECTATIONS: Record<MenuSiteAccessRole, readonly MenuSitePermission[
     "order.cancel_unpaid",
     "payment.manual",
     "call.manage",
+    "pickup.manage",
     "sales.read",
   ],
   editor: ["menu.read", "menu.edit", "ai.use"],
@@ -46,6 +47,7 @@ const ROLE_EXPECTATIONS: Record<MenuSiteAccessRole, readonly MenuSitePermission[
     "order.cancel_unpaid",
     "payment.manual",
     "call.manage",
+    "pickup.manage",
   ],
   viewer: ["menu.read"],
 };

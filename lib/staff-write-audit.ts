@@ -14,6 +14,8 @@ export const MENU_SITE_WRITE_SURFACES = [
   "call_acknowledgement",
   "call_completion",
   "call_item_configuration",
+  "pickup_queue_create",
+  "pickup_queue_transition",
 ] as const;
 
 export type MenuSiteWriteSurface = (typeof MENU_SITE_WRITE_SURFACES)[number];
@@ -27,6 +29,7 @@ export type AuditedMenuSiteWritePermission = Extract<
   | "order.cancel_unpaid"
   | "payment.manual"
   | "call.manage"
+  | "pickup.manage"
 >;
 
 export function buildStaffWriteAuditEntry(

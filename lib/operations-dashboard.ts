@@ -1,7 +1,8 @@
 import { hasMenuSitePermission, type MenuSiteAccessRole } from "@/lib/menu-site-permissions";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
+import { isPickupQueueTemplate } from "@/lib/pickup-queue-runtime";
 
-export type StoreOperationKey = "orders" | "calls" | "tables" | "sales";
+export type StoreOperationKey = "orders" | "calls" | "tables" | "sales" | "pickup";
 
 export type StoreOperationAccess = Record<StoreOperationKey, boolean>;
 
@@ -14,6 +15,7 @@ export type StoreOperationsSiteEligibility = {
   canPreview: boolean;
   tableManagementEnabled: boolean;
   callManagementEnabled: boolean;
+  pickupQueueEnabled: boolean;
 };
 
 export function isStoreOperationsTemplate(templateKey: string | null | undefined) {
@@ -25,26 +27,32 @@ export function getStoreOperationAccess({
   templateKey,
   tableManagementEnabled,
   callManagementEnabled,
+  pickupQueueEnabled,
 }: {
   accessRole: MenuSiteAccessRole;
   templateKey: string | null | undefined;
   tableManagementEnabled: boolean;
   callManagementEnabled: boolean;
+  pickupQueueEnabled: boolean;
 }): StoreOperationAccess {
-  if (!isStoreOperationsTemplate(templateKey)) {
+  const smartCallTemplate = isStoreOperationsTemplate(templateKey);
+  const pickupQueueTemplate = isPickupQueueTemplate(templateKey);
+  if (!smartCallTemplate && !pickupQueueTemplate) {
     return {
       orders: false,
       calls: false,
       tables: false,
       sales: false,
+      pickup: false,
     };
   }
 
   return {
     orders: false,
-    calls: callManagementEnabled && hasMenuSitePermission(accessRole, "call.manage"),
-    tables: tableManagementEnabled && hasMenuSitePermission(accessRole, "table.manage"),
+    calls: smartCallTemplate && callManagementEnabled && hasMenuSitePermission(accessRole, "call.manage"),
+    tables: smartCallTemplate && tableManagementEnabled && hasMenuSitePermission(accessRole, "table.manage"),
     sales: false,
+    pickup: pickupQueueTemplate && pickupQueueEnabled && hasMenuSitePermission(accessRole, "pickup.manage"),
   };
 }
 
@@ -59,15 +67,27 @@ export function isCurrentSmartCallOperationsSite({
   lifecycleState,
   lifecycleReason,
   canPreview,
-  tableManagementEnabled,
-  callManagementEnabled,
 }: StoreOperationsSiteEligibility) {
   return isStoreOperationsTemplate(templateKey)
     && menuSiteStatus === "published"
     && lifecycleState === "active"
     && lifecycleReason === "active"
     && canPreview
-    && tableManagementEnabled
-    && callManagementEnabled
     && hasMenuSitePermission(accessRole, "call.manage");
+}
+
+export function isCurrentPickupQueueOperationsSite({
+  accessRole,
+  templateKey,
+  menuSiteStatus,
+  lifecycleState,
+  lifecycleReason,
+  canPreview,
+}: StoreOperationsSiteEligibility) {
+  return isPickupQueueTemplate(templateKey)
+    && menuSiteStatus === "published"
+    && lifecycleState === "active"
+    && lifecycleReason === "active"
+    && canPreview
+    && hasMenuSitePermission(accessRole, "pickup.manage");
 }

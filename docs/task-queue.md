@@ -153,9 +153,9 @@
 
 ## 7. 주문관리와 수동 결제
 
-- `DONE` 전용 `매장 운영` 허브 — 공통 헤더에서 독립 진입, 공개·활성·멀티페이지·스마트호출 runtime을 통과한 메뉴판만 상단 탭에 노출. Order·매출 기존 화면은 호환 코드로 보존하되 신규 멀티페이지 운영 접근에서는 비활성
+- `DONE` 전용 `매장 운영` 허브 — MY/메뉴판의 기존 구매 CTA 위치에서 진입하고, 공개·활성 멀티페이지와 Display 메뉴판을 runtime 활성 전에도 상단 탭에 노출. Order·매출 기존 화면은 호환 코드로 보존하고 스마트호출·테이블·대기번호는 개별 runtime·site allowlist·권한에 따라 비활성 사유를 표시
 - `DONE` 매장 운영·모바일 계정 UX — 운영 왼쪽에 AI 크레딧 없는 로그인 정보 제공, 모바일 알림을 햄버거 옆 숫자 배지 아이콘으로 이동, `1:1 문의` 로그인 복귀와 임시 `채팅상담` 동선 제공
-- `DONE` 매장 운영 헤더 노출 — 공개·활성·멀티페이지·스마트호출 runtime·`call.manage` 권한을 모두 통과한 계정에만 PC·모바일 진입 표시
+- `DONE` 매장 운영 진입 위치 — 공통 PC·모바일 헤더에서는 제거하고 MY/메뉴판의 `메뉴판 추가 구매` 버튼을 `매장 운영`으로 교체
 - `DONE` 주문 접수·조리 전·조리 중·조리 완료·제공 완료 — 전방향 단계별 conditional update
 - `DONE` 미결제 주문 취소와 취소 사유 — 제공 전·미결제만 1–500자 사유로 취소
 - `DONE` 기존 카드단말기 결제완료 — ArtiMenu 카드 승인 없이 `manual_card` 기록
@@ -178,6 +178,16 @@
 - `DONE` Call MVP migration Production 1회 적용과 generated types 갱신 — 2026-08-07 `tablescene-prod`, `docs/runbooks/call-mvp-foundation-migration.md`
 - `DONE` 실제 Call 상품 entitlement — 멀티페이지 다이닝 9,900원 번들에 포함하고 단일페이지·Display·Order에서는 fail closed
 - `BLOCKED` 실제 Call Production 활성화 — 판매 가능한 멀티페이지 디자인과 pilot 메뉴판을 만든 뒤 `TABLE_MANAGEMENT_ENABLED`, `CALL_ENABLED`, 명시적 site allowlist를 함께 설정
+
+## 8-A. Display 수동 대기번호
+
+- `DONE` POS·Order·PG와 분리된 무료 수동 MVP 계약 — 사장이 숫자만 등록하고 `준비 중 → 픽업 요청 → 수령 완료`로 처리
+- `DONE` 관리자 `매장 운영 > 대기번호` 화면과 공개 `/pickup/[slug]` 대기판 — 오늘 번호만 표시하고 10초 자동 갱신
+- `DONE` Owner/Manager/Order staff의 `pickup.manage` 권한, 직원 write audit, Display·활성 lifecycle·runtime/site allowlist fail-closed 경계
+- `DONE` 향후 POS adapter 경계 — `source=external`, `external_order_ref`를 예약하고 현재 UI·상태 모델 재사용
+- `NEEDS_HUMAN` Production migration 적용과 generated types 재생성 — `docs/runbooks/manual-pickup-queue-migration.md`
+- `NEEDS_HUMAN` pilot Display 메뉴판 지정과 Vercel `PICKUP_QUEUE_ENABLED`, 명시적 site allowlist 설정·재배포
+- `BLOCKED` POS 자동 연동 — POS 업체·API·계약·인증·주문번호 규칙 확정 후 진행
 
 ## 9. 선결제 PG
 
