@@ -10,7 +10,8 @@ import {
   hashTableAccessToken,
   isReusableTableVisitSessionToken,
   isTableVisitSessionUsable,
-  isValidTableAccessToken,
+  isValidTableQrIdentifier,
+  isValidTableQrPublicId,
   shouldTouchTableVisitSession,
 } from "@/lib/table-qr-session-tokens";
 
@@ -52,15 +53,19 @@ function requireRuntimeEnabled() {
 
 async function getActiveTableQrTarget(tableToken: string): Promise<TableQrTarget> {
   requireRuntimeEnabled();
-  if (!isValidTableAccessToken(tableToken)) throw new TableVisitSessionError();
+  if (!isValidTableQrIdentifier(tableToken)) throw new TableVisitSessionError();
 
   const supabase = createAdminClient();
-  const { data: table, error: tableError } = await supabase
+  let tableQuery = supabase
     .from("menu_tables")
     .select(TABLE_QR_TARGET_SELECT)
-    .eq("token_hash", hashTableAccessToken(tableToken))
-    .eq("status", "active")
-    .maybeSingle();
+    .eq("status", "active");
+
+  tableQuery = isValidTableQrPublicId(tableToken)
+    ? tableQuery.filter("qr_public_id", "eq", tableToken)
+    : tableQuery.eq("token_hash", hashTableAccessToken(tableToken));
+
+  const { data: table, error: tableError } = await tableQuery.maybeSingle();
 
   if (tableError || !table) throw new TableVisitSessionError();
 

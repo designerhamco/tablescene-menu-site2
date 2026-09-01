@@ -15,7 +15,6 @@ export type MenuTableActionState = {
   status: "idle" | "success" | "error";
   message: string;
   tableId: string | null;
-  rawToken: string | null;
   qrPath: string | null;
 };
 
@@ -23,7 +22,6 @@ export const initialMenuTableActionState: MenuTableActionState = {
   status: "idle",
   message: "",
   tableId: null,
-  rawToken: null,
   qrPath: null,
 };
 
@@ -56,9 +54,8 @@ export async function createMenuTableAction(
     revalidatePath(`/mypage/menus/${menuSiteId}/tables`);
     return {
       status: "success",
-      message: `${result.table.label} 테이블을 만들었습니다. 아래 QR 주소는 지금만 확인할 수 있습니다.`,
+      message: `${result.table.label} 테이블을 만들었습니다. QR은 아래 목록에서 언제든 다시 받을 수 있습니다.`,
       tableId: result.table.id,
-      rawToken: result.rawToken,
       qrPath: result.qrPath,
     };
   } catch (error) {
@@ -80,9 +77,8 @@ export async function mutateMenuTableAction(
       revalidatePath(`/mypage/menus/${menuSiteId}/tables`);
       return {
         status: "success",
-        message: `${result.table.label}의 QR token을 교체했습니다. 이전 QR과 방문 세션은 더 이상 유효하지 않습니다.`,
+        message: `${result.table.label}의 QR을 교체했습니다. 이전 QR과 방문 세션은 더 이상 유효하지 않습니다.`,
         tableId: result.table.id,
-        rawToken: result.rawToken,
         qrPath: result.qrPath,
       };
     }

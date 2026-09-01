@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Monitor, Smartphone, Tablet } from "lucide-react";
 
 import {
   buildMenuPreviewUrl,
@@ -16,6 +17,12 @@ type MenuPreviewDeviceFrameProps = {
   menuId: string;
   query: MenuPreviewQuery;
 };
+
+function PreviewDeviceIcon({ device }: { device: MenuPreviewDevice }) {
+  if (device === "tablet") return <Tablet aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />;
+  if (device === "mobile") return <Smartphone aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />;
+  return <Monitor aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />;
+}
 
 export default function MenuPreviewDeviceFrame({ device, orientation, menuId, query }: MenuPreviewDeviceFrameProps) {
   const frame = getMenuPreviewFrame(device, orientation);
@@ -61,10 +68,11 @@ export default function MenuPreviewDeviceFrame({ device, orientation, menuId, qu
                       orientation: candidate === "tablet" ? orientation : undefined,
                     })}
                     aria-current={isSelected ? "page" : undefined}
-                    className={`rounded-full px-4 py-2 text-sm font-black transition-colors ${
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition-colors ${
                       isSelected ? "bg-zinc-950 text-white shadow-sm" : "text-zinc-600 hover:bg-white hover:text-zinc-950"
                     }`}
                   >
+                    <PreviewDeviceIcon device={candidate} />
                     {candidateFrame.label}
                   </Link>
                 );

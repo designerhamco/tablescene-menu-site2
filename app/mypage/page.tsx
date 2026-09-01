@@ -2517,10 +2517,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               newWindow: true,
             })}
             {renderActionButton({
-              label: "QR 다운로드",
-              href: card.qrDownloadUrl,
-              enabled: card.actions.canDownloadQr,
-              disabledReason: card.actions.qrDisabledReason,
+              label: card.actions.canManageTables ? "QR 관리" : "QR 다운로드",
+              href: card.actions.canManageTables && card.siteId
+                ? `/mypage/menus/${card.siteId}/tables`
+                : card.qrDownloadUrl,
+              enabled: card.actions.canManageTables || card.actions.canDownloadQr,
+              disabledReason: card.actions.canManageTables ? null : card.actions.qrDisabledReason,
             })}
           </div>
         )}

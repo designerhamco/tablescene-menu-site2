@@ -20,7 +20,18 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
 
-const MENU_TABLE_SELECT = "id, label, display_order, status, token_rotated_at, created_at, updated_at";
+const MENU_TABLE_SELECT = "id, label, qr_public_id, display_order, status, token_rotated_at, created_at, updated_at";
+
+type MenuTableDatabaseRow = {
+  id: string;
+  label: string;
+  qr_public_id: string;
+  display_order: number;
+  status: string;
+  token_rotated_at: string;
+  created_at: string;
+  updated_at: string;
+};
 
 type DatabaseError = {
   code?: string;
@@ -33,6 +44,7 @@ export type MenuTableManagementPageData = {
   menuSite: {
     id: string;
     name: string;
+    slug: string;
     status: string;
   };
   tables: MenuTableListItem[];
@@ -40,9 +52,12 @@ export type MenuTableManagementPageData = {
 
 export type MenuTableTokenDelivery = {
   table: MenuTableListItem;
-  rawToken: string;
   qrPath: string;
 };
+
+function mapMenuTableRow(row: unknown) {
+  return toMenuTableListItem(row as MenuTableDatabaseRow);
+}
 
 export class MenuTableManagementError extends Error {
   constructor(
@@ -103,10 +118,10 @@ async function requireMenuTableReadAccess(menuSiteId: string) {
   const supabase = createAdminClient();
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
-    .select("id, name, status, template_key")
+    .select("id, name, slug, status, template_key")
     .eq("id", menuSiteId)
     .maybeSingle();
-  if (error || !menuSite || !getDiningTemplateFeatures(menuSite.template_key).smartCall) {
+  if (error || !menuSite?.slug || !getDiningTemplateFeatures(menuSite.template_key).smartCall) {
     throw new MenuTableManagementError("MENU_SITE_UNAVAILABLE", "이 메뉴판 유형에서는 테이블 기능을 사용할 수 없습니다.", 403);
   }
   return { context, supabase, menuSite };
@@ -142,9 +157,10 @@ export async function listMenuTables(menuSiteId: string): Promise<MenuTableManag
     menuSite: {
       id: menuSite.id,
       name: menuSite.name,
+      slug: menuSite.slug,
       status: menuSite.status,
     },
-    tables: (tablesResult.data ?? []).map(toMenuTableListItem),
+    tables: (tablesResult.data ?? []).map(mapMenuTableRow),
   };
 }
 
@@ -179,7 +195,8 @@ export async function createMenuTable({
     .maybeSingle();
 
   if (error || !data) mapDatabaseError(error ?? {}, "TABLE_CREATE_FAILED");
-  return { table: toMenuTableListItem(data), rawToken: token.rawToken, qrPath: token.qrPath };
+  const table = mapMenuTableRow(data);
+  return { table, qrPath: table.qrPath };
 }
 
 export async function updateMenuTable({
@@ -218,7 +235,7 @@ export async function updateMenuTable({
 
   if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
   if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "테이블을 찾을 수 없거나 이미 보관되었습니다.", 404);
-  return toMenuTableListItem(data);
+  return mapMenuTableRow(data);
 }
 
 export async function rotateMenuTableToken({
@@ -255,7 +272,8 @@ export async function rotateMenuTableToken({
 
   if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
   if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "테이블을 찾을 수 없거나 이미 보관되었습니다.", 404);
-  return { table: toMenuTableListItem(data), rawToken: token.rawToken, qrPath: token.qrPath };
+  const table = mapMenuTableRow(data);
+  return { table, qrPath: table.qrPath };
 }
 
 export async function archiveMenuTable({
