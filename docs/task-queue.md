@@ -219,7 +219,7 @@
 
 - `DONE` 반복 가능한 전체 계약 테스트 — `npm test` 한 명령으로 28개 파일·142개 테스트 실행, 해지 예약 구독 재결제 차단과 Order/Call 공통 gate 회귀 포함
 - `DONE` Production `menu_site_id is null` 결제 주문 읽기 전용 감사 — 3건 중 AI 크레딧 10개 충전 2건은 계정 단위 정상 완료로 확인하고, 실제 미이행은 주소 중복으로 메뉴판·entitlement가 생성되지 않은 과거 6,600원 개인 체험 1건으로 분리. 고객 식별정보와 결제 ID는 출력하지 않음, `docs/runbooks/incomplete-payment-order-audit.md`
-- `NEEDS_HUMAN` 과거 미이행 개인 체험 결제 1건 처리 — 실제 PG 취소 가능 상태를 확인한 뒤 6,600원 전액 환불할지, 현재 상품 이용권으로 대체 제공할지 결정 필요. 자동 환불·데이터 변경 금지
+- `DONE` 과거 미이행 개인 체험 결제 1건 처리 — 2026-09-01 사용자 승인 후 재확인에서 PortOne은 이미 6,600원 전액 취소(`CANCELLED`) 상태임을 확인. 중복 취소 요청 없이 Production 주문을 `refunded`, 결제를 `cancelled`로 정합화하고 재조회 통과. 메뉴판·entitlement 변경 없음, `docs/runbooks/incomplete-payment-order-audit.md`
 - `NEEDS_HUMAN` 회원가입·구매·메뉴판 생성 — 전용 신규 QA 계정의 실제 가입 메일·인증 링크·로그인 세션 E2E 완료. 구매·첫 메뉴 생성은 실제 빌링키와 PortOne 단계가 필요
 - `DONE` 직원 초대·수락·접근 — 승인된 기존 Owner·직원 계정으로 실제 이메일 발송·수락과 viewer 화면·미리보기·편집 차단 E2E 확인
 - `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
