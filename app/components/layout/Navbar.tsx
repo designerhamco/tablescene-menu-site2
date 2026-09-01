@@ -24,7 +24,7 @@ const NAV_ITEMS: readonly NavItem[] = [
     discount: true,
   },
   { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
-  { label: '고객센터', path: '/faq', activePaths: ['/faq'] },
+  { label: '고객센터', path: '/faq', activePaths: ['/faq', '/support/chat'] },
 ];
 
 function DiscountChip() {
@@ -576,7 +576,7 @@ const Navbar = () => {
                       1:1 문의
                     </a>
                     <a
-                      href="#"
+                      href="/support/chat"
                       onClick={closeMobileMenu}
                       className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
                     >
