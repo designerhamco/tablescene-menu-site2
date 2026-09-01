@@ -7,6 +7,7 @@ import { listCallDashboard } from "@/lib/server/call-management-service";
 import { listMenuTables } from "@/lib/server/menu-table-management-service";
 import { listOrderDashboard } from "@/lib/server/order-management-service";
 import { getSalesSummaryDashboard } from "@/lib/server/sales-summary-service";
+import { listPickupQueueDashboard } from "@/lib/server/pickup-queue-service";
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,6 +30,7 @@ const OPERATION_FEATURE_LABELS = {
   calls: "호출관리",
   tables: "테이블관리",
   sales: "매출요약",
+  pickup: "대기번호",
 } as const;
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -107,10 +109,10 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         <div className="space-y-5">
           {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
           <article className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm md:p-12">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">NO ACTIVE SMART CALL MENU</p>
-            <h2 className="mt-3 text-2xl font-black tracking-tight">운영 가능한 스마트호출 메뉴판이 없습니다</h2>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">NO ACTIVE OPERATIONS MENU</p>
+            <h2 className="mt-3 text-2xl font-black tracking-tight">운영 가능한 메뉴판이 없습니다</h2>
             <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              현재 공개 중이고 이용 기간과 스마트호출 기능이 활성화된 멀티페이지 다이닝 메뉴판만 표시됩니다.
+              현재 공개 중이고 이용 기간과 매장 운영 기능이 활성화된 메뉴판만 표시됩니다.
             </p>
             <Link
               href="/mypage?tab=menus"
@@ -125,11 +127,12 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
   }
 
   const access = selectedSite.operationAccess;
-  const [orderData, callData, tableData, salesData] = await Promise.all([
+  const [orderData, callData, tableData, salesData, pickupData] = await Promise.all([
     loadOptionalDashboard(access.orders, "orders", () => listOrderDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.calls, "calls", () => listCallDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.tables, "tables", () => listMenuTables(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.sales, "sales", () => getSalesSummaryDashboard(selectedSite.menuSiteId)),
+    loadOptionalDashboard(access.pickup, "pickup", () => listPickupQueueDashboard(selectedSite.menuSiteId)),
   ]);
 
   const activeOrders = orderData?.orders.filter((order) => order.status !== "served" && order.status !== "cancelled") ?? [];
@@ -137,6 +140,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
   const activeTables = tableData?.tables.filter((table) => table.status === "active") ?? [];
   const recentOrders = orderData?.orders.slice(0, 5) ?? [];
   const recentCalls = callData?.calls.slice(0, 5) ?? [];
+  const activePickup = pickupData?.entries.filter((entry) => entry.status === "waiting" || entry.status === "ready") ?? [];
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="dashboard">
@@ -150,7 +154,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           </p>
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="매장 운영 요약">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="매장 운영 요약">
           <SummaryCard
             label="진행 중 주문"
             value={orderData ? `${activeOrders.length.toLocaleString("ko-KR")}건` : "확인 불가"}
@@ -174,6 +178,12 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             value={salesData ? formatAmount(salesData.summary.today.collectedAmount) : access.sales ? "확인 불가" : "이용 불가"}
             detail={salesData ? `결제 완료 ${salesData.summary.today.paidOrderCount.toLocaleString("ko-KR")}건` : "매출 조회 권한이 있으면 표시됩니다."}
             href={access.sales ? `/mypage/menus/${selectedSite.menuSiteId}/sales` : null}
+          />
+          <SummaryCard
+            label="활성 대기번호"
+            value={pickupData ? `${activePickup.length.toLocaleString("ko-KR")}건` : access.pickup ? "확인 불가" : "이용 불가"}
+            detail={pickupData ? `오늘 등록 ${pickupData.entries.length.toLocaleString("ko-KR")}건` : "Display 대기번호 활성화 시 표시됩니다."}
+            href={access.pickup ? `/mypage/menus/${selectedSite.menuSiteId}/pickup` : null}
           />
         </section>
 

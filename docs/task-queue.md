@@ -179,6 +179,16 @@
 - `DONE` 실제 Call 상품 entitlement — 멀티페이지 다이닝 9,900원 번들에 포함하고 단일페이지·Display·Order에서는 fail closed
 - `BLOCKED` 실제 Call Production 활성화 — 판매 가능한 멀티페이지 디자인과 pilot 메뉴판을 만든 뒤 `TABLE_MANAGEMENT_ENABLED`, `CALL_ENABLED`, 명시적 site allowlist를 함께 설정
 
+## 8-A. Display 수동 대기번호
+
+- `DONE` POS·Order·PG와 분리된 무료 수동 MVP 계약 — 사장이 숫자만 등록하고 `준비 중 → 픽업 요청 → 수령 완료`로 처리
+- `DONE` 관리자 `매장 운영 > 대기번호` 화면과 공개 `/pickup/[slug]` 대기판 — 오늘 번호만 표시하고 10초 자동 갱신
+- `DONE` Owner/Manager/Order staff의 `pickup.manage` 권한, 직원 write audit, Display·활성 lifecycle·runtime/site allowlist fail-closed 경계
+- `DONE` 향후 POS adapter 경계 — `source=external`, `external_order_ref`를 예약하고 현재 UI·상태 모델 재사용
+- `NEEDS_HUMAN` Production migration 적용과 generated types 재생성 — `docs/runbooks/manual-pickup-queue-migration.md`
+- `NEEDS_HUMAN` pilot Display 메뉴판 지정과 Vercel `PICKUP_QUEUE_ENABLED`, 명시적 site allowlist 설정·재배포
+- `BLOCKED` POS 자동 연동 — POS 업체·API·계약·인증·주문번호 규칙 확정 후 진행
+
 ## 9. 선결제 PG
 
 - `DONE` 현재 PortOne 코드·공식 V2 문서 감사와 merchant 구조 권장안 — `docs/prepay-pg-decision.md`

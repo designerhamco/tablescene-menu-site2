@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   getStoreOperationAccess,
   hasAvailableStoreOperation,
+  isCurrentPickupQueueOperationsSite,
   isCurrentSmartCallOperationsSite,
   isStoreOperationsTemplate,
 } from "./operations-dashboard";
@@ -21,15 +22,17 @@ test("owner and manager operation access follows runtime gates", () => {
     templateKey: "dining_aube_table_a",
     tableManagementEnabled: true,
     callManagementEnabled: true,
+    pickupQueueEnabled: false,
   });
   const managerAccess = getStoreOperationAccess({
     accessRole: "manager",
     templateKey: "dining_aube_table_a",
     tableManagementEnabled: true,
     callManagementEnabled: true,
+    pickupQueueEnabled: false,
   });
 
-  assert.deepEqual(ownerAccess, { orders: false, calls: true, tables: true, sales: false });
+  assert.deepEqual(ownerAccess, { orders: false, calls: true, tables: true, sales: false, pickup: false });
   assert.deepEqual(managerAccess, ownerAccess);
   assert.equal(hasAvailableStoreOperation(ownerAccess), true);
 });
@@ -41,8 +44,9 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
       templateKey: "dining_aube_table_a",
       tableManagementEnabled: true,
       callManagementEnabled: true,
+      pickupQueueEnabled: false,
     }),
-    { orders: false, calls: true, tables: false, sales: false },
+    { orders: false, calls: true, tables: false, sales: false, pickup: false },
   );
 
   const disabledAccess = getStoreOperationAccess({
@@ -50,6 +54,7 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
     templateKey: "dining_aube_table_a",
     tableManagementEnabled: false,
     callManagementEnabled: false,
+    pickupQueueEnabled: false,
   });
   assert.equal(hasAvailableStoreOperation(disabledAccess), false);
 });
@@ -64,6 +69,7 @@ test("operations only list published, active multi-page menus with Smart Call ac
     canPreview: true,
     tableManagementEnabled: true,
     callManagementEnabled: true,
+    pickupQueueEnabled: false,
   };
 
   assert.equal(isCurrentSmartCallOperationsSite(eligible), true);
@@ -74,4 +80,29 @@ test("operations only list published, active multi-page menus with Smart Call ac
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, tableManagementEnabled: false }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, callManagementEnabled: false }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, accessRole: "viewer" }), false);
+});
+
+test("Display 수동 대기번호는 별도 runtime과 권한으로만 매장 운영에 포함한다", () => {
+  const eligible = {
+    accessRole: "owner" as const,
+    templateKey: "display_menu_a",
+    menuSiteStatus: "published",
+    lifecycleState: "active",
+    lifecycleReason: "active",
+    canPreview: true,
+    tableManagementEnabled: false,
+    callManagementEnabled: false,
+    pickupQueueEnabled: true,
+  };
+  assert.equal(isCurrentPickupQueueOperationsSite(eligible), true);
+  assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, templateKey: "dining_aube_table_a" }), false);
+  assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, pickupQueueEnabled: false }), false);
+  assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, accessRole: "viewer" }), false);
+  assert.deepEqual(getStoreOperationAccess(eligible), {
+    orders: false,
+    calls: false,
+    tables: false,
+    sales: false,
+    pickup: true,
+  });
 });

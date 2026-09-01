@@ -19,6 +19,7 @@ const operationNavigation: Array<{
   { key: "calls", label: "호출관리", permission: "call.manage" },
   { key: "tables", label: "테이블관리", permission: "table.manage" },
   { key: "sales", label: "매출요약", permission: "sales.read" },
+  { key: "pickup", label: "대기번호", permission: "pickup.manage" },
 ];
 
 function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSection) {
@@ -60,7 +61,7 @@ export default async function StoreOperationsShell({
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">STORE OPERATIONS</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">매장 운영</h1>
             <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
-              운영 중인 다이닝 메뉴판의 주문과 호출, 테이블, 매출을 관리합니다.
+              운영 중인 메뉴판의 호출과 테이블, 수동 대기번호를 한곳에서 관리합니다.
             </p>
           </header>
 

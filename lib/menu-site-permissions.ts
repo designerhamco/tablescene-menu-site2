@@ -10,6 +10,7 @@ export const MENU_SITE_PERMISSIONS = [
   "order.cancel_unpaid",
   "payment.manual",
   "call.manage",
+  "pickup.manage",
   "sales.read",
   "staff.manage",
   "billing.read",
@@ -43,6 +44,7 @@ export const MENU_SITE_PERMISSION_MATRIX = {
     "order.cancel_unpaid",
     "payment.manual",
     "call.manage",
+    "pickup.manage",
     "sales.read",
   ],
   editor: [
@@ -57,6 +59,7 @@ export const MENU_SITE_PERMISSION_MATRIX = {
     "order.cancel_unpaid",
     "payment.manual",
     "call.manage",
+    "pickup.manage",
   ],
   viewer: ["menu.read"],
 } as const satisfies Readonly<Record<MenuSiteAccessRole, readonly MenuSitePermission[]>>;

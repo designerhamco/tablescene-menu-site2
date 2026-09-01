@@ -101,3 +101,15 @@ test("call item configuration uses the shared call permission audit surface", ()
   assert.equal(entry?.metadata.surface, "call_item_configuration");
   assert.equal(entry?.actor_role, "manager");
 });
+
+test("수동 대기번호 변경은 담당 직원과 전용 permission을 감사한다", () => {
+  const entry = buildStaffWriteAuditEntry(
+    context("order_staff"),
+    "pickup.manage",
+    "pickup_queue_transition",
+  );
+
+  assert.equal(entry?.metadata.permission, "pickup.manage");
+  assert.equal(entry?.metadata.surface, "pickup_queue_transition");
+  assert.equal(entry?.actor_role, "order_staff");
+});

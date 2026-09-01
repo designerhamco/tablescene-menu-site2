@@ -3,6 +3,7 @@ import "server-only";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import {
   getStoreOperationAccess,
+  isCurrentPickupQueueOperationsSite,
   isCurrentSmartCallOperationsSite,
   type StoreOperationAccess,
 } from "@/lib/operations-dashboard";
@@ -12,6 +13,7 @@ import {
   type AccessibleMenuSiteListItem,
 } from "@/lib/server/menu-site-access-service";
 import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
+import { isPickupQueueRuntimeEnabledForSite } from "@/lib/pickup-queue-runtime";
 
 export type StoreOperationsSite = AccessibleMenuSiteListItem & {
   operationAccess: StoreOperationAccess;
@@ -27,7 +29,9 @@ export async function getStoreOperationsContext(
 ): Promise<StoreOperationsContext> {
   const accessibleMenuSites = await getAccessibleMenuSiteList();
   const tableManagementEnabled = isTableManagementRuntimeEnabled();
-  const candidates = accessibleMenuSites.filter((site) => isCallRuntimeEnabledForSite(site.menuSiteId));
+  const candidates = accessibleMenuSites.filter(
+    (site) => isCallRuntimeEnabledForSite(site.menuSiteId) || isPickupQueueRuntimeEnabledForSite(site.menuSiteId),
+  );
   const lifecycleStates = await Promise.all(
     candidates.map((site) => getMenuSiteAccessStateForMenuSite({ menuSiteId: site.menuSiteId })),
   );
@@ -35,10 +39,11 @@ export async function getStoreOperationsContext(
   const sites = candidates.flatMap((site, index): StoreOperationsSite[] => {
     const lifecycle = lifecycleStates[index];
     const callManagementEnabled = isCallRuntimeEnabledForSite(site.menuSiteId);
+    const pickupQueueEnabled = isPickupQueueRuntimeEnabledForSite(site.menuSiteId);
 
     if (
       !lifecycle
-      || !isCurrentSmartCallOperationsSite({
+      || (!isCurrentSmartCallOperationsSite({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
         menuSiteStatus: site.status,
@@ -47,7 +52,18 @@ export async function getStoreOperationsContext(
         canPreview: lifecycle.canPreview,
         tableManagementEnabled,
         callManagementEnabled,
-      })
+        pickupQueueEnabled,
+      }) && !isCurrentPickupQueueOperationsSite({
+        accessRole: site.accessRole,
+        templateKey: site.templateKey,
+        menuSiteStatus: site.status,
+        lifecycleState: lifecycle.lifecycleState,
+        lifecycleReason: lifecycle.reason,
+        canPreview: lifecycle.canPreview,
+        tableManagementEnabled,
+        callManagementEnabled,
+        pickupQueueEnabled,
+      }))
     ) {
       return [];
     }
@@ -59,6 +75,7 @@ export async function getStoreOperationsContext(
         templateKey: site.templateKey,
         tableManagementEnabled,
         callManagementEnabled,
+        pickupQueueEnabled,
       }),
     }];
   });

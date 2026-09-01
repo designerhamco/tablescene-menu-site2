@@ -297,7 +297,7 @@ const Navbar = () => {
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? 'MY/메뉴판' : '로그인';
   const isOperationsPath = pathname === '/mypage/operations'
-    || /^\/mypage\/menus\/[^/]+\/(orders|calls|tables|sales)$/.test(pathname);
+    || /^\/mypage\/menus\/[^/]+\/(orders|calls|tables|sales|pickup)$/.test(pathname);
   const operationsButtonClass = isOperationsPath
     ? 'border-zinc-950 bg-zinc-950 text-white hover:bg-zinc-800'
     : secondaryButtonClass;
