@@ -1,6 +1,6 @@
 # ArtiMenu 전체 작업 큐
 
-최종 갱신: 2026-08-31
+최종 갱신: 2026-09-01
 
 상태 의미:
 
@@ -236,7 +236,7 @@
 - `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — Resend에서 한국어 제목·HTML 본문·발신자·recovery redirect와 `delivered` 확인 완료. 네이버 받은편지함 데스크톱 렌더링도 확인 완료. 링크 클릭·모바일 렌더링과 신규 회원가입 메일은 남음
 - `DONE` Production custom SMTP와 Auth URL 설정 확인 — Resend 인증 도메인 `dndcommerce.co.kr`, 전용 sending key, `아티메뉴 <no-reply@dndcommerce.co.kr>`, `smtp.resend.com:465` 활성화. Site URL과 Production/Preview callback·reset redirect 재확인
 - `NEEDS_HUMAN` Production 환경변수 값·비밀키 유효성 — 이름과 scope, 의도한 default-off runtime gate는 읽기 전용 확인 완료. execute/mock flag 실제 값과 비밀키 유효성·회전 시점은 값을 노출하지 않는 별도 운영 확인 필요, `docs/runbooks/vercel-production-runtime-audit.md`
-- `IN_PROGRESS` Vercel Cron 실제 실행 QA — Cron 기능과 3개 일정 등록, 저장소 일치, 무인증 `401` 차단 확인 완료. Hobby 로그 제한으로 당일 실행 결과는 다음 예정 실행 후 1시간 안에 확인 필요, `docs/runbooks/vercel-production-runtime-audit.md`
+- `IN_PROGRESS` Vercel Cron 실제 실행 QA — Cron 기능과 3개 일정 등록, 저장소 일치, 무인증 `401` 차단 확인 완료. Hobby 로그 제한 때문에 다음 확인 창은 2026-09-02 03:00~03:59 KST와 04:00~04:59 KST, `docs/runbooks/vercel-production-runtime-audit.md`
 - `NEEDS_HUMAN` PortOne 실제 결제 확인
 - `NEEDS_HUMAN` 약관 시행일과 프로모션 기간 확정
 - `NEEDS_HUMAN` 최종 디자인 육안 확인
