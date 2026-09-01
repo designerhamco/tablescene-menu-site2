@@ -4,9 +4,9 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `6d6badc`
+기준 커밋: `4d8eaba`
 
-현재 작업 브랜치: `codex/pickup-template-themes`
+현재 작업 브랜치: 없음 (`tablescene-next` 동기화 상태)
 
 ## 현재 상태와 다음 선행 조건
 
@@ -246,6 +246,8 @@
 
 ## 최근 주요 커밋과 PR
 
+- `4d8eaba` — PR #106 병합: 공개 대기번호판에 Display 템플릿별 테마 registry와 썸머 블루 전용 디자인 적용
+- `6d6badc` — PR #105 병합: Production 대기번호 pilot 활성화·실데이터 QA와 운영 문서 정리
 - `060778a` — PR #104 병합: Production 대기번호 Server Action export 오류 수정과 회귀 테스트
 - `770f785` — PR #103 병합: 수동 대기번호 Production generated types 갱신
 - `76e8cbd` — PR #101 병합: 무료 수동 대기번호 MVP와 매장 운영 진입 정리
