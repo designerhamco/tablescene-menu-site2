@@ -223,7 +223,7 @@
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
 - `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증
 - `DONE` 아티메뉴 Supabase Auth 메일 문구·Production 템플릿 적용 — 회원가입 인증과 비밀번호 재설정 제목·HTML을 준비하고 2026-09-01 `tablescene-prod`에 두 템플릿만 적용·새로고침 재검증. callback/reset 경로, QA·롤백·보안 기준은 적용 런북에 기록
-- `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — Resend에서 한국어 제목·HTML 본문·발신자·recovery redirect와 `delivered` 확인 완료. 받은편지함 렌더링·링크 클릭과 신규 회원가입 메일은 남음
+- `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — Resend에서 한국어 제목·HTML 본문·발신자·recovery redirect와 `delivered` 확인 완료. 네이버 받은편지함 데스크톱 렌더링도 확인 완료. 링크 클릭·모바일 렌더링과 신규 회원가입 메일은 남음
 - `DONE` Production custom SMTP와 Auth URL 설정 확인 — Resend 인증 도메인 `dndcommerce.co.kr`, 전용 sending key, `아티메뉴 <no-reply@dndcommerce.co.kr>`, `smtp.resend.com:465` 활성화. Site URL과 Production/Preview callback·reset redirect 재확인
 - `NEEDS_HUMAN` Production 환경변수·비밀키
 - `NEEDS_HUMAN` Vercel Cron
