@@ -244,7 +244,10 @@
 
 ## 13. 향후 AI 상담
 
-- `TODO` AI 챗봇 제품 범위·상담 전환·개인정보·대화 보관 정책 확정 — 현재는 아이디어 기록만 유지하고 구현하지 않음
+- `DONE` AI 챗봇 초기 제품 범위 — 사이트 이용 안내만 제공하고 계정·결제·환불 실행 및 개인정보 입력을 금지하며 불확실한 답은 1:1 문의로 전환, `docs/ai-support-chat-policy.md`
+- `DONE` 대화 DB 미보관, OpenAI Responses API `store=false`, 질문·응답 길이와 요청 횟수 제한, default-off runtime gate
+- `DONE` `/support/chat` 상담 화면과 고객센터 진입 — runtime-off에서는 준비 중 안내와 1:1 문의만 표시
+- `NEEDS_HUMAN` Production `AI_SUPPORT_CHAT_ENABLED` 설정·재배포와 실제 비용·응답 품질 QA
 
 ## 다음 작업
 

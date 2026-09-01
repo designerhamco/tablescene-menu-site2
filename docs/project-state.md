@@ -4,7 +4,7 @@
 
 기준 브랜치: `tablescene-next`
 
-기준 커밋: `d5d67d5`
+기준 커밋: `04a213c`
 
 현재 작업 브랜치: `codex/manual-pickup-queue-mvp`
 
@@ -16,6 +16,7 @@
 - 스마트호출은 멀티페이지의 유효한 테이블 세션과 runtime/site allowlist를 모두 통과해야만 공개 메뉴와 매장 운영에 노출
 - 스마트호출 관리 내역은 이미 `매장 운영 > 호출관리`에 구현되어 있다. Production에서 보이지 않는 이유는 `TABLE_MANAGEMENT_ENABLED`, `CALL_ENABLED`, pilot site allowlist가 설정되지 않은 fail-closed 상태이기 때문이며 전역 활성화하지 않는다.
 - Display용 무료 수동 대기번호 MVP는 Order·PG·POS와 분리해 구현했다. 사장이 번호를 등록하고 픽업 요청·수령 완료를 처리하며 공개 대기판은 오늘의 준비 중·픽업 번호만 10초 간격으로 갱신한다. 신규 server-only migration과 runtime gate는 Production 승인 전 적용하지 않는다.
+- AI 상담 MVP는 서비스 사용법 안내만 제공하고 계정·결제·환불 실행과 민감정보 입력을 금지한다. OpenAI Responses API에 `store=false`로 요청하며 질문·응답 길이와 요청 횟수를 제한하고, 확정할 수 없는 질문은 1:1 문의로 전환한다. Production runtime은 별도 승인 전 default-off다.
 - 2026-09-01 사용자 승인 아래 Production `tablescene-prod`의 회원가입 인증·비밀번호 재설정 메일 제목과 HTML을 아티메뉴 템플릿으로 적용하고 저장 후 새로고침 재검증했다. Resend custom SMTP도 인증된 `dndcommerce.co.kr` 전용 key와 `아티메뉴 <no-reply@dndcommerce.co.kr>` 발신자로 활성화했으며, 기존 QA 계정의 재설정 메일이 한국어 제목·본문으로 `delivered` 된 것을 확인했다. 네이버 받은편지함 데스크톱 화면에서도 제목·발신자·본문 카드·재설정 버튼이 깨짐 없이 렌더링되는 것을 확인했다. 링크 클릭·모바일 렌더링과 신규 회원가입 인증 메일 QA는 남아 있다.
 - 판매 가능한 멀티페이지 디자인 `오브 테이블`의 편집·starter·미리보기·공개 renderer와 additive schema 초안을 구현하고 로컬 QA 완료
 - 두 번째 멀티페이지 템플릿 `메종 마레`는 같은 데이터·편집·번역·스마트호출 계약을 재사용하되 PC·태블릿 왼쪽 페이지 메뉴와 모바일 상단 스와이프 탭을 사용한다. 버건디·아이보리 컬러, Noto Serif KR·Cormorant Garamond 기본 글꼴, 독립 모던 프렌치 스타터를 적용했으며 판매·교체 후보에는 아직 노출하지 않는 `coming_soon` 상태
