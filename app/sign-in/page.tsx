@@ -4,6 +4,7 @@ import Footer from "@/app/components/layout/Footer";
 import { signInAction } from "@/app/auth/actions";
 import OAuthButtons from "@/components/auth/OAuthButtons";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { getSignInErrorMessage } from "@/lib/auth-login-errors";
 import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
 
 type SearchParams = Promise<{
@@ -11,18 +12,6 @@ type SearchParams = Promise<{
   message?: string;
   next?: string;
 }>;
-
-function getErrorMessage(error?: string) {
-  if (!error) {
-    return null;
-  }
-
-  if (error === "missing-fields") {
-    return "이메일과 비밀번호를 입력해주세요.";
-  }
-
-  return decodeURIComponent(error);
-}
 
 function getNotice(message?: string) {
   if (message === "check-email") {
@@ -42,7 +31,7 @@ export default async function SignInPage({
   searchParams: SearchParams;
 }) {
   const { error, message, next } = await searchParams;
-  const errorMessage = getErrorMessage(error);
+  const errorMessage = getSignInErrorMessage(error);
   const notice = getNotice(message);
   const safeNext = getSafeAuthRedirectPath(next);
 

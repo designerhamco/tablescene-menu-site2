@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import { getSignInErrorCode } from "@/lib/auth-login-errors";
 import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -98,7 +99,8 @@ export async function signInAction(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/sign-in?error=${encodeURIComponent(error.message)}&next=${encodedNext}`);
+    const errorCode = getSignInErrorCode(error);
+    redirect(`/sign-in?error=${errorCode}&next=${encodedNext}`);
   }
 
   const {
@@ -107,7 +109,7 @@ export async function signInAction(formData: FormData) {
 
   if (isDeletedAccountStatus(user?.app_metadata)) {
     await supabase.auth.signOut();
-    redirect(`/sign-in?error=${encodeURIComponent("탈퇴 처리된 계정입니다.")}`);
+    redirect("/sign-in?error=account-deleted");
   }
 
   redirect(next);
