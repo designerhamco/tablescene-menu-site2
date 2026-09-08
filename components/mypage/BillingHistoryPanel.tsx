@@ -2,6 +2,7 @@
 
 import * as PortOne from "@portone/browser-sdk/v2";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
@@ -220,6 +221,7 @@ function RestoreSubscriptionModal({
   restoreCheckoutEnabled?: boolean;
   restoreCheckoutConfig?: BillingHistoryPanelProps["restoreCheckoutConfig"];
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedProductKey, setSelectedProductKey] = useState(restore.options[0]?.productKey ?? "");
   const [preflightState, setPreflightState] = useState<RestorePreflightState>({
@@ -368,7 +370,7 @@ function RestoreSubscriptionModal({
       }
 
       setStartState({ status: "success", message: result.message ?? "재구독 복구가 완료되었습니다." });
-      window.location.href = `/mypage?tab=payments&message=${encodeURIComponent("재구독 복구가 완료되었습니다.")}`;
+      router.replace(`/mypage?tab=payments&message=${encodeURIComponent("재구독 복구가 완료되었습니다.")}`);
     } catch (error) {
       setStartState({
         status: "error",

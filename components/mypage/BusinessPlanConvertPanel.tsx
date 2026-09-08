@@ -2,6 +2,7 @@
 
 import * as PortOne from "@portone/browser-sdk/v2";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { ConsentAgreementBox, ConsentDetailText, type ConsentAgreementItem } from "@/components/consent/ConsentAgreementBox";
@@ -134,6 +135,7 @@ function getRequiredError(label: string, value: string) {
 }
 
 export default function BusinessPlanConvertPanel({ menuSiteId, storeId, billingChannelKey }: BusinessPlanConvertPanelProps) {
+  const router = useRouter();
   const [selectedProductKey, setSelectedProductKey] = useState<BasicProductKey>("business_basic_single_monthly");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [consents, setConsents] = useState<Record<ConvertConsentKey, boolean>>({
@@ -350,7 +352,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
         throw new Error(getBusinessSubscriptionErrorMessage(result));
       }
 
-      window.location.assign("/mypage");
+      router.replace("/mypage");
     } catch (error) {
       setVerificationState({
         type: "failed",

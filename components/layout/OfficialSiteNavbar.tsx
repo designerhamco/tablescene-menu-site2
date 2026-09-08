@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { BrowserRouter, useLocation } from "react-router";
 
 import Navbar from "@/app/components/layout/Navbar";
@@ -22,6 +22,7 @@ function getServerSnapshot() {
 
 function ReloadNextRouteOnNavigate() {
   const location = useLocation();
+  const router = useRouter();
   const initialPathRef = useRef(location.pathname);
 
   useEffect(() => {
@@ -29,8 +30,8 @@ function ReloadNextRouteOnNavigate() {
       return;
     }
 
-    window.location.assign(`${location.pathname}${location.search}${location.hash}`);
-  }, [location.hash, location.pathname, location.search]);
+    router.replace(`${location.pathname}${location.search}${location.hash}`);
+  }, [location.hash, location.pathname, location.search, router]);
 
   return null;
 }
