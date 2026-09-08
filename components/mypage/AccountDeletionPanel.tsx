@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +14,7 @@ export default function AccountDeletionPanel({
   hasActiveBusinessSubscription,
   hasAnyMenuSite,
 }: AccountDeletionPanelProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [confirmationText, setConfirmationText] = useState("");
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
@@ -48,7 +50,8 @@ export default function AccountDeletionPanel({
 
       const supabase = createClient();
       await supabase.auth.signOut();
-      window.location.assign("/sign-in?error=" + encodeURIComponent("회원탈퇴 신청이 접수되어 계정 이용이 중단되었습니다."));
+      router.replace("/sign-in?error=" + encodeURIComponent("회원탈퇴 신청이 접수되어 계정 이용이 중단되었습니다."));
+      router.refresh();
     } catch {
       setErrorMessage("회원탈퇴 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       setIsSubmitting(false);
