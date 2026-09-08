@@ -128,8 +128,6 @@ export async function requestPasswordResetAction(formData: FormData) {
   });
 
   if (error) {
-    // TODO(auth): Configure Supabase Authentication -> SMTP Settings before production.
-    // Supabase's default SMTP is intended for testing and can fail for general customer email delivery.
     console.error("[auth] resetPasswordForEmail failed", {
       name: error.name,
       message: error.message,

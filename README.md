@@ -49,4 +49,6 @@ Before testing in production, configure Supabase Dashboard -> Authentication -> 
 
 Set `NEXT_PUBLIC_SITE_URL` in Vercel to the production site origin so password reset emails use the correct `redirectTo` URL.
 
-TODO(auth): Configure Supabase Dashboard -> Authentication -> SMTP Settings before production. Supabase's default SMTP is for testing and can be limited for general customer email delivery. Connect a production SMTP provider such as Resend, Postmark, SendGrid, or Brevo.
+Production uses Supabase Auth with Resend custom SMTP. Keep the provider, sender,
+redirect URLs, and delivery checks aligned with
+[`docs/runbooks/supabase-auth-email-templates.md`](docs/runbooks/supabase-auth-email-templates.md).

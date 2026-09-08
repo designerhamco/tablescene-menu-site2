@@ -237,7 +237,7 @@
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
 - `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증
 - `DONE` 아티메뉴 Supabase Auth 메일 문구·Production 템플릿 적용 — 회원가입 인증과 비밀번호 재설정 제목·HTML을 준비하고 2026-09-01 `tablescene-prod`에 두 템플릿만 적용·새로고침 재검증. callback/reset 경로, QA·롤백·보안 기준은 적용 런북에 기록
-- `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — 재설정 메일의 Resend `delivered`·한국어 제목·HTML·발신자·recovery redirect와 네이버 데스크톱 렌더링을 확인했다. 신규 QA 계정의 가입 메일은 Gmail 실제 수신, DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/mypage` 이동과 로그인 세션 생성까지 완료. 실제 모바일 메일 클라이언트 렌더링과 재설정 링크·새 비밀번호 저장·재사용 차단은 남음
+- `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — 재설정 메일의 Resend `delivered`·한국어 제목·HTML·발신자·recovery redirect와 네이버 데스크톱 렌더링을 확인했다. 신규 QA 계정의 가입 메일은 Gmail 실제 수신, DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/mypage` 이동과 로그인 세션 생성까지 완료. 390px 로컬 렌더링에서 두 메일 HTML의 가로 overflow가 없음을 확인했으며 실제 모바일 메일 클라이언트 렌더링과 재설정 링크·새 비밀번호 저장·재사용 차단은 남음
 - `DONE` Production custom SMTP와 Auth URL 설정 확인 — Resend 인증 도메인 `dndcommerce.co.kr`, 전용 sending key, `아티메뉴 <no-reply@dndcommerce.co.kr>`, `smtp.resend.com:465` 활성화. Site URL과 Production/Preview callback·reset redirect 재확인
 - `NEEDS_HUMAN` Production 환경변수 값·비밀키 유효성 — 이름과 scope, 의도한 default-off runtime gate는 읽기 전용 확인 완료. execute/mock flag 실제 값과 비밀키 유효성·회전 시점은 값을 노출하지 않는 별도 운영 확인 필요, `docs/runbooks/vercel-production-runtime-audit.md`
 - `IN_PROGRESS` Vercel Cron 실제 실행 QA — 2026-09-08 재감사에서도 Cron 기능 활성화와 3개 일정 등록, 저장소 일치, 무인증 `401` 차단을 확인했다. Hobby 로그가 최근 1시간으로 제한되어 실제 성공 여부는 매일 03:00~03:59 KST와 04:00~04:59 KST 안에서만 확인 가능, `docs/runbooks/vercel-production-runtime-audit.md`
