@@ -1,6 +1,6 @@
 # ArtiMenu 전체 작업 큐
 
-최종 갱신: 2026-09-01
+최종 갱신: 2026-09-08
 
 상태 의미:
 
@@ -240,7 +240,7 @@
 - `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — 재설정 메일의 Resend `delivered`·한국어 제목·HTML·발신자·recovery redirect와 네이버 데스크톱 렌더링을 확인했다. 신규 QA 계정의 가입 메일은 Gmail 실제 수신, DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/mypage` 이동과 로그인 세션 생성까지 완료. 실제 모바일 메일 클라이언트 렌더링과 재설정 링크·새 비밀번호 저장·재사용 차단은 남음
 - `DONE` Production custom SMTP와 Auth URL 설정 확인 — Resend 인증 도메인 `dndcommerce.co.kr`, 전용 sending key, `아티메뉴 <no-reply@dndcommerce.co.kr>`, `smtp.resend.com:465` 활성화. Site URL과 Production/Preview callback·reset redirect 재확인
 - `NEEDS_HUMAN` Production 환경변수 값·비밀키 유효성 — 이름과 scope, 의도한 default-off runtime gate는 읽기 전용 확인 완료. execute/mock flag 실제 값과 비밀키 유효성·회전 시점은 값을 노출하지 않는 별도 운영 확인 필요, `docs/runbooks/vercel-production-runtime-audit.md`
-- `IN_PROGRESS` Vercel Cron 실제 실행 QA — Cron 기능과 3개 일정 등록, 저장소 일치, 무인증 `401` 차단 확인 완료. Hobby 로그 제한 때문에 다음 확인 창은 2026-09-02 03:00~03:59 KST와 04:00~04:59 KST, `docs/runbooks/vercel-production-runtime-audit.md`
+- `IN_PROGRESS` Vercel Cron 실제 실행 QA — 2026-09-08 재감사에서도 Cron 기능 활성화와 3개 일정 등록, 저장소 일치, 무인증 `401` 차단을 확인했다. Hobby 로그가 최근 1시간으로 제한되어 실제 성공 여부는 매일 03:00~03:59 KST와 04:00~04:59 KST 안에서만 확인 가능, `docs/runbooks/vercel-production-runtime-audit.md`
 - `NEEDS_HUMAN` PortOne 실제 결제 확인
 - `NEEDS_HUMAN` 약관 시행일과 프로모션 기간 확정
 - `NEEDS_HUMAN` 최종 디자인 육안 확인
