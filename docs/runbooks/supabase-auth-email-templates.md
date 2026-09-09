@@ -24,7 +24,7 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 
 ## Production 적용 상태
 
-2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿을 적용했다. 저장 후 각 편집 화면을 새로고침해 제목과 한국어 본문을 확인했다. 2026-09-09 운영 QA에서 기존 비밀번호 재설정 링크가 `pkce_code_verifier_not_found`로 실패한 사실을 확인해, 저장소의 Reset password 템플릿과 앱을 TokenHash 기반 복구 흐름으로 변경했다. Production 템플릿 반영과 실제 수신 QA는 배포 후 별도 확인한다.
+2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿을 적용했다. 저장 후 각 편집 화면을 새로고침해 제목과 한국어 본문을 확인했다. 2026-09-09 운영 QA에서 기존 비밀번호 재설정 링크가 `pkce_code_verifier_not_found`로 실패한 사실을 확인해, 앱과 Reset password 템플릿을 TokenHash 기반 복구 흐름으로 변경했다. PR #117의 Vercel Production 배포 성공 후 Production Reset password 템플릿을 저장하고, 화면 새로고침 뒤 `/auth/recovery?token_hash={{ .TokenHash }}` 링크가 유지되는 것을 다시 확인했다. 실제 수신부터 새 비밀번호 저장까지의 최종 QA는 별도로 남아 있다.
 
 - 변경함: `Confirm sign up`, `Reset password`의 Subject와 Body
 - 변경하지 않음: 다른 Auth 템플릿, 보안 알림, 사용자 계정
