@@ -35,7 +35,7 @@ export default function AiSupportChatPage() {
           {enabled ? (
             <AiSupportChat />
           ) : (
-            <section className="rounded-[2rem] border border-zinc-200 bg-white px-6 py-16 text-center shadow-sm">
+            <section className="rounded-[2rem] border border-zinc-200 bg-white px-6 py-16 text-center">
               <p className="text-2xl font-black tracking-tight">AI 상담 준비 중</p>
               <p className="mx-auto mt-3 max-w-lg break-keep text-sm font-medium leading-relaxed text-zinc-500">
                 안전성과 답변 품질을 확인한 뒤 열 예정입니다. 지금은 1:1 문의를 남겨 주세요.

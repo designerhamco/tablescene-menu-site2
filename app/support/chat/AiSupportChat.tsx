@@ -33,6 +33,9 @@ export default function AiSupportChat() {
       const payload = await response.json().catch(() => null) as { answer?: string; error?: string } | null;
       const answer = payload?.answer;
       if (!response.ok || !answer) {
+        if (response.status === 429) {
+          throw new Error("질문이 잠시 많습니다. 10분 뒤 다시 이용하거나 1:1 문의를 남겨 주세요.");
+        }
         throw new Error(payload?.error || "답변을 불러오지 못했습니다.");
       }
       setMessages((current) => [...current, { role: "assistant", text: answer }]);
@@ -49,7 +52,7 @@ export default function AiSupportChat() {
   };
 
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white">
       <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
         <h2 className="text-lg font-black">AI 이용 안내</h2>
         <p className="mt-1 text-sm font-medium leading-relaxed text-zinc-500">
@@ -115,7 +118,7 @@ export default function AiSupportChat() {
           </button>
         </div>
         <p className="mt-3 px-1 text-xs font-medium leading-relaxed text-zinc-400">
-          비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 대화는 이 화면을 벗어나면 저장되지 않습니다.
+          비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 아티메뉴 계정과 DB에는 대화를 저장하지 않습니다.
         </p>
       </form>
     </section>
