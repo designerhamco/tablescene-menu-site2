@@ -10,20 +10,7 @@ import {
   rotateMenuTableToken,
   updateMenuTable,
 } from "@/lib/server/menu-table-management-service";
-
-export type MenuTableActionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-  tableId: string | null;
-  qrPath: string | null;
-};
-
-export const initialMenuTableActionState: MenuTableActionState = {
-  status: "idle",
-  message: "",
-  tableId: null,
-  qrPath: null,
-};
+import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 
 function getFormString(formData: FormData, key: string) {
   const value = formData.get(key);

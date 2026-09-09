@@ -9,18 +9,7 @@ import {
   OrderManagementError,
   transitionOrderStatus,
 } from "@/lib/server/order-management-service";
-
-export type OrderManagementActionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-  orderId: string | null;
-};
-
-export const initialOrderManagementActionState: OrderManagementActionState = {
-  status: "idle",
-  message: "",
-  orderId: null,
-};
+import type { OrderManagementActionState } from "./action-state";
 
 function formString(formData: FormData, key: string) {
   const value = formData.get(key);
