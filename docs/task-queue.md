@@ -1,6 +1,6 @@
 # ArtiMenu 전체 작업 큐
 
-최종 갱신: 2026-09-09
+최종 갱신: 2026-09-10
 
 상태 의미:
 
@@ -67,7 +67,7 @@
 - `DONE` 공개·보관 메뉴판 덮어쓰기 차단, explicit confirmation, target advisory lock, 타 계정 전파 차단
 - `DONE` 활성 연결 양쪽 hard delete 차단과 대상 Storage 경로 오소유 방지
 - `DONE` 신규 shared-menu migration Production 1회 적용과 generated types 재생성 — 2026-08-28 사용자 승인, `docs/runbooks/shared-menu-catalog-migration.md`
-- `NEEDS_HUMAN` 실제 Owner 계정의 안전한 draft 대상에서 독립 복사·연결·연결 해제 E2E — 대상 기존 메뉴가 교체되므로 별도 테스트 draft 지정 필요
+- `DONE` 실제 Owner 계정의 안전한 draft 대상에서 독립 복사·연결·연결 해제 Production E2E — 결제·주문·구독 없는 전용 비공개 QA 초안 두 개로 Display 36개 메뉴의 독립 복사, 연결 유지 동기화, 연결 해제 후 데이터 보존·동기화 중단을 확인하고 QA 원본·대상 데이터를 원복한 뒤 전용 초안과 연결 기록만 정리, `docs/shared-menu-catalog.md`
 
 ## 3-B. 템플릿 교체·상품 등급
 
@@ -264,4 +264,4 @@
 
 ## 다음 작업
 
-`오브 테이블 A`의 pilot 지정·신규 판매 노출과 스마트호출 Production runtime은 별도 승인 전까지 fail closed 상태를 유지한다. `메종 마레`는 독립 디자인과 스타터, 코드 기반 구매 프로비저닝 계약까지 검증한 `coming_soon` 템플릿이며, 실제 계정 결제·생성 및 편집·미리보기·공개 E2E가 끝나기 전 판매·교체 후보로 전환하지 않는다. 실제 Owner의 메뉴 가져오기 E2E는 기존 내용을 교체해도 되는 전용 draft가 지정된 뒤 수행한다. QR오더·PG·주문 기능은 장기 비활성 제품으로 보존하며 별도의 재개 결정 전에는 구현·활성화하지 않는다.
+`오브 테이블 A` 스마트호출은 단일 QA 메뉴판 allowlist에서 Production 파일럿을 통과했으며 실제 판매 확대 전까지 범위를 넓히지 않는다. `메종 마레`는 독립 디자인과 스타터, 코드 기반 구매 프로비저닝 계약까지 검증한 `coming_soon` 템플릿이며, 실제 계정 결제·생성 및 편집·미리보기·공개 E2E가 끝나기 전 판매·교체 후보로 전환하지 않는다. QR오더·PG·주문 기능은 장기 비활성 제품으로 보존하며 별도의 재개 결정 전에는 구현·활성화하지 않는다.

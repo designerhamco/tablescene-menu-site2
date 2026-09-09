@@ -1,6 +1,6 @@
 # 메뉴판 간 메뉴 가져오기·연결 계약
 
-최종 갱신: 2026-08-28
+최종 갱신: 2026-09-10
 
 ## 목적
 
@@ -62,6 +62,18 @@
 3. `20260828040033_add_shared_menu_catalog.sql`을 1회 적용한다. — 2026-08-28 완료, 재실행 금지
 4. 테이블·RLS·trigger·RPC grant postcheck를 수행한다. — 완료
 5. generated Supabase types를 다시 생성하고 수동 변경이 없는지 확인한다. — 완료
-6. Owner 테스트 계정의 기존 원본과 새 draft 대상에서 독립 복사·연결·연결 해제를 각각 1회 QA한다. — 교체 가능한 전용 draft 지정 전까지 보류
+6. Owner 테스트 계정의 기존 원본과 새 draft 대상에서 독립 복사·연결·연결 해제를 각각 1회 QA한다. — 2026-09-10 Production 완료
 
 Production migration과 애플리케이션 배포는 같은 승인된 rollout으로 묶었다. 적용 기록과 사후 검증 결과는 `docs/runbooks/shared-menu-catalog-migration.md`에 남긴다.
+
+## 2026-09-10 Production E2E
+
+- 사용자 제공 QA 계정에 결제·주문·구독 없이 `썸머 블루` 원본과 `오브 커피` 대상 비공개 초안을 생성했다.
+- 독립 복사 결과 원본·대상 메뉴가 각각 36개로 일치했고, link 레코드는 `copied`이며 활성 연결은 0개였다.
+- 같은 대상으로 연결 유지 가져오기를 다시 실행해 link가 `linked / active`로 바뀌는 것을 확인했다.
+- 연결된 원본 메뉴 하나의 이름을 QA 문구로 변경했을 때 대상의 같은 `catalog_item_id` 메뉴가 함께 변경되는 것을 확인했다.
+- 화면에서 `연결 해제`를 실행한 뒤 link가 `disconnected`가 되고 대상 메뉴 36개와 카테고리 6개가 그대로 유지되는 것을 확인했다.
+- 원본 이름을 되돌렸을 때 대상 이름은 더 이상 따라 바뀌지 않고 대상 `catalog_item_id`가 `NULL`인 것을 확인해 독립 상태를 검증했다.
+- 원본과 대상의 QA 문구를 원복한 뒤, `qa_scope=menu_catalog_production_e2e`가 정확히 일치하는 테스트 초안 두 개와 그 연결 기록만 삭제했다. 동일 QA slug가 0개인지 재조회했다.
+
+반복 가능한 준비·정리는 `scripts/seed-menu-catalog-qa.ts`를 사용한다. dry-run은 대상 계정과 동일 slug의 기존 데이터를 먼저 보여주며, apply는 기존 데이터가 있으면 중단한다. cleanup은 동일 사용자·동일 `qa_scope`가 아닌 행이 하나라도 있으면 삭제하지 않는다.
