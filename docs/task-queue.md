@@ -250,9 +250,11 @@
 ## 13. 향후 AI 상담
 
 - `DONE` AI 챗봇 초기 제품 범위 — 사이트 이용 안내만 제공하고 계정·결제·환불 실행 및 개인정보 입력을 금지하며 불확실한 답은 1:1 문의로 전환, `docs/ai-support-chat-policy.md`
-- `DONE` 대화 DB 미보관, OpenAI Responses API `store=false`, 질문·응답 길이와 요청 횟수 제한, default-off runtime gate
+- `DONE` 대화 DB 미보관, OpenAI Responses API `store=false`, 질문 500자·응답 300 token 제한, 민감정보 사전 거부, default-off runtime gate
 - `DONE` `/support/chat` 상담 화면과 고객센터 진입 — runtime-off에서는 준비 중 안내와 1:1 문의만 표시
-- `NEEDS_HUMAN` Production `AI_SUPPORT_CHAT_ENABLED` 설정·재배포와 실제 비용·응답 품질 QA
+- `DONE` 비용 효율형 `gpt-5.6-luna` 로컬 실제 API QA — 요금제·30일 무료체험 안내, 계정 변경 요청과 system prompt 탈취 요청 거절, 자연스러운 한국어·plain text 응답 확인
+- `DONE` Vercel Production Firewall `/api/support/chat` IP별 10분 6회·초과 `429` 규칙 적용과 활성 상태 재확인
+- `NEEDS_HUMAN` OpenAI 프로젝트 예산·사용량 경보와 개인정보 처리방침의 실제 AI 수탁자·국외 이전 항목 확정 후 Production `AI_SUPPORT_CHAT_ENABLED=true` 설정·재배포·공개 smoke QA
 
 ## 다음 작업
 

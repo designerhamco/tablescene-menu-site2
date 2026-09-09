@@ -7,12 +7,28 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) {
+    return Response.json({ error: "JSON 형식의 질문만 보낼 수 있습니다." }, { status: 415 });
+  }
   const contentLength = Number(request.headers.get("content-length") ?? "0");
   if (Number.isFinite(contentLength) && contentLength > 2_000) {
     return Response.json({ error: "질문이 너무 깁니다." }, { status: 413 });
   }
-  const payload = await request.json().catch(() => null) as { question?: unknown } | null;
-  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const rawBody = await request.text();
+  if (new TextEncoder().encode(rawBody).byteLength > 2_000) {
+    return Response.json({ error: "질문이 너무 깁니다." }, { status: 413 });
+  }
+  const payload = (() => {
+    try {
+      return JSON.parse(rawBody) as { question?: unknown };
+    } catch {
+      return null;
+    }
+  })();
+  const forwardedFor = (
+    request.headers.get("x-vercel-forwarded-for")
+    || request.headers.get("x-forwarded-for")
+  )?.split(",")[0]?.trim();
   const rateLimitKey = forwardedFor || request.headers.get("x-real-ip") || "anonymous";
   try {
     const answer = await answerAiSupportQuestion({ question: payload?.question, rateLimitKey });
