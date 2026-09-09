@@ -12,7 +12,7 @@ import {
   type MenuPageDisplaySettings,
 } from "@/lib/display-page-settings";
 import { pageSettingKeys } from "@/lib/menu-editor";
-import { MENU_EDITOR_CAPABILITIES, getMenuEditorServiceTypeForMenuSite } from "@/lib/menu-editor-capabilities";
+import { getMenuEditorCapabilitiesForMenuSite } from "@/lib/menu-editor-capabilities";
 import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
@@ -544,8 +544,9 @@ async function getLatestProductKeyForMenuSite(supabase: SupabaseServerClient, me
 
 async function canManageMenuPagesForMenuSite(supabase: SupabaseServerClient, menuId: string, templateKey?: string | null) {
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-  const serviceType = getMenuEditorServiceTypeForMenuSite(productKey, getTemplateType(templateKey));
-  return MENU_EDITOR_CAPABILITIES[serviceType].canManageMenuPages;
+  return getMenuEditorCapabilitiesForMenuSite(productKey, getTemplateType(templateKey), {
+    supportsMultiPage: getTemplateCapabilities(templateKey).multiPage?.enabled === true,
+  }).canManageMenuPages;
 }
 
 async function assertCanManageMenuPages(supabase: SupabaseServerClient, menuId: string, templateKey?: string | null) {
@@ -7632,8 +7633,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     hasTimeSalePayload: Boolean(menuTimeSaleSavePayload),
   });
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
-  const editorServiceType = getMenuEditorServiceTypeForMenuSite(productKey, getTemplateType(menuSite.template_key));
-  const menuEditorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
+  const menuEditorCapabilities = getMenuEditorCapabilitiesForMenuSite(productKey, getTemplateType(menuSite.template_key), {
+    supportsMultiPage: templateCapabilities.multiPage?.enabled === true,
+  });
   const canManageMenuPages = menuEditorCapabilities.canManageMenuPages;
   const canConfigureDisplayPages = canManageMenuPages && menuEditorCapabilities.supportsDisplayPageTypes;
   const usesCategoryPriceOptionColumns = Boolean(templateCapabilities.categoryPriceOptionColumns && templateCapabilities.priceOptions);
