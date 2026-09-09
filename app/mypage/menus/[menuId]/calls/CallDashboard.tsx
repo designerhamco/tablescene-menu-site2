@@ -7,7 +7,8 @@ import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import type { CallDashboardPageData } from "@/lib/server/call-management-service";
 
-import { initialCallManagementActionState, mutateCallAction } from "./actions";
+import { initialCallManagementActionState } from "./action-state";
+import { mutateCallAction } from "./actions";
 import CallItemManager from "./CallItemManager";
 
 const STATUS_LABELS: Record<string, string> = {

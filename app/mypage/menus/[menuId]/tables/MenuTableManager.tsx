@@ -5,12 +5,8 @@ import { useActionState, useState } from "react";
 
 import type { MenuTableListItem } from "@/lib/menu-table-management";
 
-import {
-  createMenuTableAction,
-  initialMenuTableActionState,
-  mutateMenuTableAction,
-  type MenuTableActionState,
-} from "./actions";
+import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
+import { createMenuTableAction, mutateMenuTableAction } from "./actions";
 
 function resolvePublicUrl(path: string, publicBaseUrl: string | null) {
   return new URL(path, publicBaseUrl ?? window.location.origin).toString();

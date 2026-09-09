@@ -7,10 +7,8 @@ import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import type { OrderDashboardPageData } from "@/lib/server/order-management-service";
 
-import {
-  initialOrderManagementActionState,
-  mutateOrderAction,
-} from "./actions";
+import { initialOrderManagementActionState } from "./action-state";
+import { mutateOrderAction } from "./actions";
 
 const STATUS_LABELS: Record<string, string> = {
   received: "접수",
