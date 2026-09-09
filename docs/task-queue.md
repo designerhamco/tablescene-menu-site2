@@ -1,6 +1,6 @@
 # ArtiMenu 전체 작업 큐
 
-최종 갱신: 2026-09-08
+최종 갱신: 2026-09-09
 
 상태 의미:
 
@@ -84,7 +84,8 @@
 - `DONE` 두 번째 멀티페이지 템플릿 `메종 마레` — A타입의 커버·메뉴 페이지·코스·직접 메뉴·편집·번역·스마트호출 계약과 schema를 재사용하고, PC·태블릿은 왼쪽 페이지 메뉴/오른쪽 콘텐츠, 모바일은 헤더 아래 가로 스와이프 페이지명 탭으로 분리. 버건디·아이보리 컬러, Noto Serif KR·Cormorant Garamond 기본 글꼴, 모던 프렌치 스타터 데이터를 독립 적용. 하단 dot·Prev/Next·페이지 swipe를 제거하고 실제 커버 제목·페이지명만 전체 폭의 상단 정렬 행 버튼으로 표시. 실제 생성·구매·교체 후보에는 노출하지 않는 `coming_soon` 상태
 - `DONE` 멀티페이지 A·B 코드 기반 생성 계약 QA — 실제 Production write 없이 구매 프로비저닝 경로를 재현해 페이지·코스·직접 메뉴·가격 옵션의 참조 무결성, 페이지별 1·2열/정렬 설정과 공개 가능 구조를 두 스타터 모두 검증. 실제 계정 결제·생성 E2E와 판매 노출은 계속 분리
 - `DONE` 디스플레이 이미지·동영상 템플릿 통합 가격 — 월 정가 19,900원·오픈할인 14,900원, 연 160,900원. 별도 동영상 addon 없이 MP4 직접 업로드를 포함하고 파일당 30MB·메뉴판당 2개 제한과 장기 캐시를 유지하며, 기존 연 결제의 현재 환불 기준은 소급 변경하지 않음
-- `NEEDS_HUMAN` 디스플레이 신규 이미지·동영상 템플릿 연결 — 최종 템플릿 디자인과 콘텐츠가 확정된 뒤 진행
+- `DONE` 디스플레이 `썸머 블루` 이미지·동영상 템플릿 기능 연결 — 이미지 프로모션·분할 메뉴·전체 메뉴·동영상 프로모션 4개 페이지, MP4 직접 업로드, 타임세일, 다국어, 생성·저장·preview/public 계약과 1920×1080·1366×768 fit을 검증. 미리보기 제어 UI는 입력 활동 후 2.2초 뒤 자동으로 사라져 콘텐츠를 가리지 않음
+- `NEEDS_HUMAN` 디스플레이 `썸머 블루` 최종 디자인·콘텐츠 육안 승인 — 기능 구현과 반응형 QA는 완료했으며 실제 판매용 이미지·문구의 최종 선택만 남음
 
 ## 3-C. AI 크레딧 웰컴 정책
 
@@ -237,7 +238,7 @@
 - `DONE` 직원 초대 이메일 실제 발송과 기존 직원 계정 수락
 - `DONE` Production 의존성 보안 패치 — Next.js 16.3.1, eslint-config-next 16.3.1, React Router 7.18.2와 안전한 transitive 버전으로 갱신하고 Production audit 0건 및 전체 138개 테스트·TypeScript·lint·build 재검증
 - `DONE` 아티메뉴 Supabase Auth 메일 문구·Production 템플릿 적용 — 회원가입 인증과 비밀번호 재설정 제목·HTML을 준비하고 2026-09-01 `tablescene-prod`에 두 템플릿만 적용·새로고침 재검증. callback/reset 경로, QA·롤백·보안 기준은 적용 런북에 기록
-- `IN_PROGRESS` 회원가입·비밀번호 재설정 이메일 실제 QA — 재설정 메일의 Resend `delivered`·한국어 제목·HTML·발신자·recovery redirect와 네이버 데스크톱 렌더링을 확인했다. 신규 QA 계정의 가입 메일은 Gmail 실제 수신, DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/mypage` 이동과 로그인 세션 생성까지 완료. 390px 로컬 렌더링에서 두 메일 HTML의 가로 overflow가 없음을 확인했으며 실제 모바일 메일 클라이언트 렌더링과 재설정 링크·새 비밀번호 저장·재사용 차단은 남음
+- `DONE` 회원가입·비밀번호 재설정 이메일 기능 QA — 재설정 메일의 Resend `delivered`·한국어 제목·HTML·발신자·recovery redirect와 네이버 데스크톱 렌더링을 확인했다. 신규 QA 계정의 가입 메일은 Gmail 실제 수신, DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/mypage` 이동과 로그인 세션 생성까지 완료. TokenHash 기반 재설정 메일 수신·확인 화면·새 비밀번호 저장·새 비밀번호 로그인과 만료 링크 fail-closed를 Production에서 확인했다. 390px 로컬 렌더링에서 두 메일 HTML의 가로 overflow가 없으며, 실제 모바일 메일 클라이언트의 시각적 렌더링 확인만 비기능 최종 점검으로 남음
 - `DONE` Production custom SMTP와 Auth URL 설정 확인 — Resend 인증 도메인 `dndcommerce.co.kr`, 전용 sending key, `아티메뉴 <no-reply@dndcommerce.co.kr>`, `smtp.resend.com:465` 활성화. Site URL과 Production/Preview callback·reset redirect 재확인
 - `NEEDS_HUMAN` Production 환경변수 값·비밀키 유효성 — 이름과 scope, 의도한 default-off runtime gate는 읽기 전용 확인 완료. execute/mock flag 실제 값과 비밀키 유효성·회전 시점은 값을 노출하지 않는 별도 운영 확인 필요, `docs/runbooks/vercel-production-runtime-audit.md`
 - `IN_PROGRESS` Vercel Cron 실제 실행 QA — 2026-09-08 재감사에서도 Cron 기능 활성화와 3개 일정 등록, 저장소 일치, 무인증 `401` 차단을 확인했다. Hobby 로그가 최근 1시간으로 제한되어 실제 성공 여부는 매일 03:00~03:59 KST와 04:00~04:59 KST 안에서만 확인 가능, `docs/runbooks/vercel-production-runtime-audit.md`
