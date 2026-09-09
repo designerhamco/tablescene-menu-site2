@@ -80,7 +80,7 @@ export async function answerAiSupportQuestion({ question, rateLimitKey }: { ques
   if (!isAiSupportChatEnabled()) {
     throw new AiSupportChatServiceError("DISABLED", "AI 상담은 현재 준비 중입니다.", 503);
   }
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_SUPPORT_API_KEY || process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new AiSupportChatServiceError("CONFIGURATION", "AI 상담 설정을 확인하고 있습니다.", 503);
   }
