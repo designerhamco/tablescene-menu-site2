@@ -80,6 +80,8 @@ order by table_name, grantee, privilege_type;
 4. 테이블 이름 변경 뒤 URL 유지, `QR 교체` 뒤 URL 변경과 기존 URL 차단을 확인한다.
 5. 일반 메뉴 QR에서는 table context와 스마트호출이 생기지 않는지 확인한다.
 
+Production runtime은 `TABLE_MANAGEMENT_ENABLED=true`만으로 열리지 않는다. 반드시 `TABLE_MANAGEMENT_ALLOWED_SITE_IDS`에 승인된 메뉴판 UUID를 함께 넣어야 하며, 두 조건 중 하나라도 없으면 관리자 테이블 화면·QR 진입·방문 세션 재사용을 모두 차단한다.
+
 ## 복구 원칙
 
 Production 적용 후 즉시 column을 삭제하지 않는다. 문제가 생기면 새 UUID route 사용을 코드에서 중지하고 legacy hash route를 유지한다. 실제 인쇄 QR이 발급된 뒤 column이나 값을 제거하면 복구할 수 없으므로 별도의 사람 승인과 영향 조사가 필요하다.

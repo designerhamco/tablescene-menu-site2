@@ -40,7 +40,7 @@ import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-p
 import { getRemainingDaysUntilKst, getServiceLifecycleBucket, resolveServiceLifecycle } from "@/lib/mypage-service-lifecycle";
 import { getTemplateDisplayName } from "@/lib/templates";
 import { isTemplateSupportedForService } from "@/lib/template-types";
-import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
+import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import type { Json } from "@/lib/supabase/types";
@@ -1280,7 +1280,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const { tab, menuTab, billingTab, error, message, inquiryPage, subscriptionId, modal } = await searchParams;
   const yearlyRefundConfirmEnabled = isYearlyRefundConfirmQaEnabled();
   const restoreSubscriptionQaEnabled = isRestoreSubscriptionQaEnabled();
-  const tableManagementEnabled = isTableManagementRuntimeEnabled();
   const activeTab = getActiveTab(tab);
   const activeMenuTab = getMenuTab(menuTab);
   const activeBillingTab = getBillingTab(billingTab);
@@ -2310,7 +2309,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       actions: {
         canEdit: canUseMenuActions,
         canManageTables:
-          tableManagementEnabled
+          Boolean(siteId)
+          && isTableManagementRuntimeEnabledForSite(siteId)
           && planType === "business_basic"
           && isTemplateSupportedForService(site.template_key, "basic")
           && canUseMenuActions,
@@ -2350,7 +2350,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const canEdit = hasMenuSitePermission(site.memberRole, "menu.edit");
     const canPublish = hasMenuSitePermission(site.memberRole, "menu.publish");
     const canUseAi = hasMenuSitePermission(site.memberRole, "ai.use");
-    const canManageTables = tableManagementEnabled
+    const canManageTables = isTableManagementRuntimeEnabledForSite(site.menuSiteId)
       && isTemplateSupportedForService(site.templateKey, "basic")
       && hasMenuSitePermission(site.memberRole, "table.manage");
     const canManageOrders = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)

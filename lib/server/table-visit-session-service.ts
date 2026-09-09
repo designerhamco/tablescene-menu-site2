@@ -3,7 +3,10 @@ import "server-only";
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
+import {
+  isTableManagementRuntimeEnabled,
+  isTableManagementRuntimeEnabledForSite,
+} from "@/lib/table-management-runtime";
 import {
   createTableVisitSessionMaterial,
   hashTableVisitUserAgent,
@@ -68,6 +71,7 @@ async function getActiveTableQrTarget(tableToken: string): Promise<TableQrTarget
   const { data: table, error: tableError } = await tableQuery.maybeSingle();
 
   if (tableError || !table) throw new TableVisitSessionError();
+  if (!isTableManagementRuntimeEnabledForSite(table.menu_site_id)) throw new TableVisitSessionError();
 
   const [accessState, menuSiteResult] = await Promise.all([
     getMenuSiteAccessStateForMenuSite({ menuSiteId: table.menu_site_id }),
@@ -110,7 +114,7 @@ export async function resolveTableVisitSession({
   userAgent: string | null | undefined;
   now?: Date;
 }): Promise<ResolvedTableVisitSession | null> {
-  if (!isTableManagementRuntimeEnabled() || !isReusableTableVisitSessionToken(sessionToken)) return null;
+  if (!isTableManagementRuntimeEnabledForSite(expectedMenuSiteId) || !isReusableTableVisitSessionToken(sessionToken)) return null;
 
   let userAgentHash: string;
   try {
