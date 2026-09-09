@@ -55,8 +55,10 @@
 - 호출 항목의 `테이블 정리`를 `냅킨 요청`으로 바꿔 저장한 뒤 손님 모달에 반영되는 것을 확인했고, 검증 후 `테이블 정리`로 원복했다.
 - 이 과정에서 `replace_menu_call_items`의 `on conflict (menu_site_id, item_key)`가 PL/pgSQL 반환 컬럼과 충돌하는 Production 오류 `42702`를 발견했다. `20260909115000_fix_replace_menu_call_items_conflict.sql`로 제약조건명을 명시해 수정했고, 저장·공개 반영·원복을 재검증했다.
 - Production DB의 마이그레이션 이력이 Supabase CLI의 remote 목록에 등록되어 있지 않아 `db push`는 사용하지 않았다. 검토한 SQL 파일 한 건만 Dashboard SQL Editor에서 직접 적용했다. 향후 CLI 일괄 적용 전에 원격 migration ledger 정리가 필요하다.
+- `창가 1번 테이블`의 QR을 명시적으로 교체해 공개 UUID가 `305e3a75-9adb-4aba-a0d3-1b8ccf140578`에서 `aa32bd13-7d72-4a92-9aa3-319855f8f6d0`으로 바뀌는 것을 확인했다.
+- 교체 전 주소는 `/table/unavailable`로 이동했고, 교체 전에 발급된 기존 방문 세션에서도 테이블명과 스마트호출이 제거됐다. 새 QR 주소에서는 `창가 1번 테이블`과 저장된 호출 항목이 다시 정상 노출됐다.
 
-아직 남은 파일럿 확인은 QR 명시적 교체 후 이전 주소·기존 방문 세션이 폐기되는지 확인하는 한 건이다. 이 확인 전에는 allowlist를 다른 메뉴판으로 확장하지 않는다.
+계획한 Production 파일럿 확인 항목은 모두 통과했다. 현재 allowlist는 QA 메뉴판 한 곳으로 유지하며, 실제 판매 메뉴판으로 확대할 때는 이 런북과 동일한 순서로 별도 승인·점검한다.
 
 ## 종료 및 복구
 
