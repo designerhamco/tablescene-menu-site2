@@ -8,6 +8,7 @@ import {
   isAiSupportChatEnabled,
   normalizeAiSupportAnswer,
   normalizeAiSupportQuestion,
+  requireAiSupportOverseasTransferConsent,
 } from "./ai-support-chat";
 
 test("AI 상담 응답 비용 상한은 짧은 안내 답변 범위로 고정한다", () => {
@@ -35,6 +36,13 @@ test("AI 상담 질문은 공백을 정리하고 길이를 제한한다", () => 
     () => normalizeAiSupportQuestion("가".repeat(AI_SUPPORT_CHAT_MAX_INPUT_LENGTH + 1)),
     AiSupportChatInputError,
   );
+});
+
+test("AI 상담은 명시적인 국외 이전 동의가 있을 때만 요청한다", () => {
+  assert.doesNotThrow(() => requireAiSupportOverseasTransferConsent(true));
+  assert.throws(() => requireAiSupportOverseasTransferConsent(false), AiSupportChatInputError);
+  assert.throws(() => requireAiSupportOverseasTransferConsent("true"), AiSupportChatInputError);
+  assert.throws(() => requireAiSupportOverseasTransferConsent(undefined), AiSupportChatInputError);
 });
 
 test("민감정보로 보이는 입력은 API 전송 전에 거부한다", () => {

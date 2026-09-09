@@ -257,7 +257,9 @@
 - `DONE` `ArtiMenu AI Support` 전용 OpenAI 프로젝트 — `gpt-5.6-luna`만 허용, 월 5달러 hard limit, 50%·80%·100% 알림, 15,000 TPM·10 RPM 제한
 - `DONE` 상담 전용 `OPENAI_SUPPORT_API_KEY` 분리와 Vercel Production secret 반영 — 기존 `OPENAI_API_KEY`는 로컬·호환 fallback으로만 유지
 - `DONE` 개인정보 처리방침 수탁자 목록의 실제 OpenAI 법인명 반영과 국외 이전 필수 항목·공개 문구 검토안 작성 — `docs/ai-support-privacy-disclosure-review.md`
-- `NEEDS_HUMAN` OpenAI 이전 국가·법적 근거·시행일 최종 검토 후 Production `AI_SUPPORT_CHAT_ENABLED=true` 설정·재배포·공개 smoke QA
+- `DONE` AI 상담 별도 국외 이전 동의 UI, 서버 동의값 검증, 개인정보 처리방침 상세 고지 반영
+- `BLOCKED` OpenAI 미국 리전 단일 처리 고정 — 현재 로컬 운영 키는 미국 리전 엔드포인트에서 401, 글로벌 엔드포인트는 정상 응답. 미국 리전 프로젝트·키 준비 전에는 최신 API 하위처리 국가 목록을 함께 고지
+- `NEEDS_HUMAN` 개인정보 처리방침 시행일 확정 후 Production `AI_SUPPORT_CHAT_ENABLED=true` 설정·재배포·공개 smoke QA
 
 ## 다음 작업
 

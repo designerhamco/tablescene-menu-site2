@@ -20,6 +20,12 @@ export class AiSupportChatInputError extends Error {
   }
 }
 
+export function requireAiSupportOverseasTransferConsent(value: unknown) {
+  if (value !== true) {
+    throw new AiSupportChatInputError("AI 상담을 이용하려면 국외 이전 안내를 확인하고 동의해 주세요.");
+  }
+}
+
 export function normalizeAiSupportAnswer(value: unknown) {
   if (typeof value !== "string") return "";
   return value
