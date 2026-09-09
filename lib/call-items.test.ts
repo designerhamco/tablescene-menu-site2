@@ -10,6 +10,10 @@ const migrationUrl = new URL(
   "../supabase/migrations/20260828143000_add_store_call_items.sql",
   import.meta.url,
 );
+const conflictFixMigrationUrl = new URL(
+  "../supabase/migrations/20260909115000_fix_replace_menu_call_items_conflict.sql",
+  import.meta.url,
+);
 
 test("default call items are independent copies in the expected order", () => {
   const first = callItems.getDefaultStaffCallItems();
@@ -95,6 +99,14 @@ test("call item RPC provides virtual defaults and validates an atomic per-store 
   assert.match(sql, /revoke all on function public\.replace_menu_call_items\(uuid, jsonb\)[\s\S]*from public, anon, authenticated/);
   assert.match(sql, /grant execute on function public\.replace_menu_call_items\(uuid, jsonb\) to service_role/);
   assert.doesNotMatch(sql, /insert into public\.menu_call_items[\s\S]*select[\s\S]*from public\.menu_sites/i);
+});
+
+test("call item replacement conflict target remains unambiguous", async () => {
+  const sql = await readFile(conflictFixMigrationUrl, "utf8");
+  assert.match(sql, /on conflict on constraint menu_call_items_pkey do update/);
+  assert.doesNotMatch(sql, /on conflict\s*\(menu_site_id, item_key\)/);
+  assert.match(sql, /security invoker[\s\S]*set search_path = ''/);
+  assert.match(sql, /grant execute on function public\.replace_menu_call_items\(uuid, jsonb\) to service_role/);
 });
 
 test("selected call item is validated and snapshotted without weakening existing call limits", async () => {

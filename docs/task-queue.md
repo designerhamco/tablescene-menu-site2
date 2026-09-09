@@ -137,7 +137,7 @@
 - `DONE` 테이블별 고유 QR 계약 — 각 테이블은 예측 가능한 `/table1` 대신 서로 다른 UUID `/table/[uuid]`를 사용하고 서버에서 active table·메뉴판 lifecycle·runtime gate를 재검증
 - `DONE` 제품 번들 정책 — 테이블 QR/session은 멀티페이지 9,900원 스마트호출에만 연결하고 단일페이지와 Order에서는 비활성
 - `DONE` Production pilot allowlist — `TABLE_MANAGEMENT_ENABLED`와 `TABLE_MANAGEMENT_ALLOWED_SITE_IDS`를 함께 요구하고 관리자 화면·QR 진입·기존 세션 재사용을 동일 메뉴판 UUID로 fail closed
-- `IN_PROGRESS` 오브 테이블 Production 파일럿 — 사용자 제공 QA 계정에 결제·주문 없이 14일짜리 전용 메뉴판 생성 완료. 사이트별 테이블 관리 allowlist 코드 배포 후 네 runtime 값을 해당 UUID 하나로 설정하고 브라우저 E2E 예정, `docs/runbooks/aube-smart-call-production-pilot.md`
+- `IN_PROGRESS` 오브 테이블 Production 파일럿 — 사용자 제공 QA 계정에 결제·주문 없이 14일짜리 전용 메뉴판을 만들고 테이블 2개 생성, 테이블명 변경 시 QR 유지, 실제 호출 접수·확인·완료·2분 제한, 매장별 호출 항목 저장과 공개 반영까지 Production E2E 완료. 호출 항목 저장 중 발견한 RPC conflict target 모호성 `42702`는 단일 SQL migration으로 Production 수정하고 원복 재검증했다. QR 명시적 교체 후 이전 주소·기존 방문 세션 폐기 확인만 남음, `docs/runbooks/aube-smart-call-production-pilot.md`
 
 ## 6. 모바일 장바구니와 후불 주문
 
@@ -181,7 +181,7 @@
 - `DONE` 호출 이력 — 최근 100건과 테이블·선택 호출 내용·상태·시간을 15초 갱신 대시보드에서 조회
 - `DONE` Call MVP migration Production 1회 적용과 generated types 갱신 — 2026-08-07 `tablescene-prod`, `docs/runbooks/call-mvp-foundation-migration.md`
 - `DONE` 실제 Call 상품 entitlement — 멀티페이지 다이닝 9,900원 번들에 포함하고 단일페이지·Display·Order에서는 fail closed
-- `IN_PROGRESS` 실제 Call Production 활성화 — 오브 테이블 QA 메뉴판 하나를 pilot으로 확정. 사이트별 테이블 관리 allowlist 배포 후 `TABLE_MANAGEMENT_ENABLED`, `TABLE_MANAGEMENT_ALLOWED_SITE_IDS`, `CALL_ENABLED`, `CALL_ALLOWED_SITE_IDS`를 함께 설정하고 E2E 예정
+- `IN_PROGRESS` 실제 Call Production 활성화 — 오브 테이블 QA 메뉴판 하나만 allowlist에 두고 네 runtime 값을 함께 설정했다. 테이블 QR 진입과 호출 접수·관리 상태 전환·cooldown·호출 항목 변경을 Production에서 확인했으며 QR 교체 폐기 회귀 확인 후 파일럿 QA 완료 처리 예정
 
 ## 8-A. Display 수동 대기번호
 
@@ -227,7 +227,7 @@
 - `DONE` 메뉴 편집·디자인·위젯·다국어 — 활성 템플릿 저장·locale·capability·preview/public QA 재확인
 - `DONE` 미리보기·공개·일반 QR — 공통 renderer·기기 프레임·공개 route·QR 분리 QA 재확인
 - `DONE` 멀티페이지 스마트호출 로컬 통합 QA — 유효 세션·Business Basic·멀티페이지·runtime 공통 gate, 단일페이지·no-session·Display 제외, 호출 접수·처리 상태 흐름 재검증
-- `IN_PROGRESS` 테이블 QR·방문 세션·스마트호출 Production E2E — 전용 오브 테이블 QA pilot 생성 완료, runtime 안전장치 배포·설정 후 수행
+- `IN_PROGRESS` 테이블 QR·방문 세션·스마트호출 Production E2E — 전용 오브 테이블 QA pilot의 생성·테이블명 변경 시 QR 유지·실제 호출 전체 상태 전환·2분 제한·호출 항목 저장/공개 연동 완료. QR 명시적 교체 후 이전 공개 주소와 기존 방문 세션이 모두 차단되는지 확인만 남음
 - `BLOCKED` 주문관리·수동 결제완료 E2E — Order 제품 재개 전까지 기존 호환 코드만 보존
 - `NEEDS_HUMAN` 보관·복구·해지 — Owner runtime 감사 완료, 실제 구독 상태 변경 E2E 필요
 
