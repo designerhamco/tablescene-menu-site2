@@ -31,14 +31,16 @@ AI 상담은 아티메뉴의 요금제 차이, 메뉴판 제작, 디자인·다�
 - 서버 메모리 제한은 기본 방어선이며 다중 serverless instance의 절대 비용 상한이 아니다. Vercel Production Firewall에도 `/api/support/chat`을 IP별 10분 6회로 제한하는 `429` 규칙을 2026-09-09 적용했다.
 - `store=false`는 OpenAI Responses 응답 상태를 저장하지 않는 설정이다. OpenAI의 기본 API 악용 모니터링 로그는 별도 정책에 따라 최대 30일 보관될 수 있으므로 사용자 화면에는 아티메뉴 계정·DB에 저장하지 않는다는 범위만 명확히 안내한다.
 - API key와 system instruction은 서버에만 둔다.
+- Production은 다른 AI 기능과 키를 공유하지 않고 `ArtiMenu AI Support` 전용 OpenAI 프로젝트의 `OPENAI_SUPPORT_API_KEY`를 우선 사용한다. 로컬·기존 환경 호환을 위해 `OPENAI_API_KEY` fallback만 유지한다.
+- 전용 프로젝트는 `gpt-5.6-luna`만 허용하고 월 5달러 hard limit, 월 사용량 50%·80%·100% 알림, 15,000 TPM·10 RPM 제한을 2026-09-09 적용했다.
 - UI 대화는 현재 브라우저 메모리에만 있고 새로고침·이탈 시 사라진다.
 
 ## Runtime과 공개
 
 - `AI_SUPPORT_CHAT_ENABLED=true`일 때만 API가 열린다.
 - gate가 닫혀 있으면 `/support/chat`은 준비 중 안내와 1:1 문의 링크만 표시한다.
-- Production `OPENAI_API_KEY` 존재와 scope는 값을 공개하지 않고 확인했지만 `AI_SUPPORT_CHAT_ENABLED`는 아직 만들지 않아 default-off다.
-- 공개 활성화 전 OpenAI 프로젝트 예산·사용량 경보와 개인정보 처리방침의 실제 AI 수탁자·국외 이전 항목을 확정한다. 둘 중 하나라도 확인되지 않으면 gate를 열지 않는다.
+- 상담 전용 OpenAI 프로젝트의 예산·사용량·모델·rate limit과 Vercel Firewall 설정은 완료했다. Vercel Production에는 상담 전용 키를 `OPENAI_SUPPORT_API_KEY` secret로 저장했으며 값을 문서·로그에 남기지 않는다.
+- `AI_SUPPORT_CHAT_ENABLED`는 아직 만들지 않아 Production runtime은 default-off다. 개인정보 처리방침의 실제 AI 수탁자·국외 이전 고지에 대한 최종 사업자 검토 전에는 gate를 열지 않는다.
 - 2026-09-09 로컬 실제 API QA에서 요금제 비교·30일 무료체험·계정 변경 거절·프롬프트 탈취 거절 시나리오가 통과했다.
 
 ## 외부 알림과의 관계
