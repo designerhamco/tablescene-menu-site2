@@ -1,4 +1,7 @@
-import { AiSupportChatInputError } from "@/lib/ai-support-chat";
+import {
+  AiSupportChatInputError,
+  requireAiSupportOverseasTransferConsent,
+} from "@/lib/ai-support-chat";
 import {
   AiSupportChatServiceError,
   answerAiSupportQuestion,
@@ -20,7 +23,7 @@ export async function POST(request: Request) {
   }
   const payload = (() => {
     try {
-      return JSON.parse(rawBody) as { question?: unknown };
+      return JSON.parse(rawBody) as { question?: unknown; overseasTransferConsent?: unknown };
     } catch {
       return null;
     }
@@ -31,6 +34,7 @@ export async function POST(request: Request) {
   )?.split(",")[0]?.trim();
   const rateLimitKey = forwardedFor || request.headers.get("x-real-ip") || "anonymous";
   try {
+    requireAiSupportOverseasTransferConsent(payload?.overseasTransferConsent);
     const answer = await answerAiSupportQuestion({ question: payload?.question, rateLimitKey });
     return Response.json({ answer }, { headers: { "Cache-Control": "private, no-store, max-age=0" } });
   } catch (error) {

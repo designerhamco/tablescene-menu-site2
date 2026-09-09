@@ -16,10 +16,15 @@ export default function AiSupportChat() {
   const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [overseasTransferConsent, setOverseasTransferConsent] = useState(false);
 
   const submitQuestion = async (value: string) => {
     const normalized = value.trim();
     if (!normalized || pending) return;
+    if (!overseasTransferConsent) {
+      setError("AI 상담을 이용하려면 국외 이전 안내를 확인하고 동의해 주세요.");
+      return;
+    }
     setPending(true);
     setError("");
     setQuestion("");
@@ -28,7 +33,7 @@ export default function AiSupportChat() {
       const response = await fetch("/api/support/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: normalized }),
+        body: JSON.stringify({ question: normalized, overseasTransferConsent }),
       });
       const payload = await response.json().catch(() => null) as { answer?: string; error?: string } | null;
       const answer = payload?.answer;
@@ -73,7 +78,8 @@ export default function AiSupportChat() {
                   key={suggestion}
                   type="button"
                   onClick={() => void submitQuestion(suggestion)}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-950"
+                  disabled={pending || !overseasTransferConsent}
+                  className="rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:text-zinc-300 disabled:hover:border-zinc-200"
                 >
                   {suggestion}
                 </button>
@@ -99,6 +105,25 @@ export default function AiSupportChat() {
       </div>
 
       <form onSubmit={handleSubmit} className="border-t border-zinc-100 p-4 md:p-5">
+        <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-zinc-50 px-4 py-3.5">
+          <input
+            type="checkbox"
+            checked={overseasTransferConsent}
+            onChange={(event) => {
+              setOverseasTransferConsent(event.target.checked);
+              if (event.target.checked) setError("");
+            }}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-zinc-950"
+          />
+          <span className="text-xs font-medium leading-relaxed text-zinc-600">
+            <strong className="font-black text-zinc-900">[필수] AI 상담을 위한 개인정보 국외 이전에 동의합니다.</strong>
+            <span className="mt-1 block">
+              질문과 생성 답변 및 처리에 필요한 기술 정보가 미국 등 국외의 OpenAI OpCo, LLC 및 하위처리자에게 암호화 전송되며,
+              답변 생성과 악용 방지를 위해 최대 30일 보관될 수 있습니다. 동의를 거부하면 AI 상담은 이용할 수 없지만
+              일반 서비스와 1:1 문의는 계속 이용할 수 있습니다. <Link href="/privacy" className="font-bold underline underline-offset-2">자세히 보기</Link>
+            </span>
+          </span>
+        </label>
         <div className="flex gap-2">
           <label htmlFor="ai-support-question" className="sr-only">AI 상담 질문</label>
           <input
@@ -111,7 +136,7 @@ export default function AiSupportChat() {
           />
           <button
             type="submit"
-            disabled={pending || !question.trim()}
+            disabled={pending || !question.trim() || !overseasTransferConsent}
             className="rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
             보내기
