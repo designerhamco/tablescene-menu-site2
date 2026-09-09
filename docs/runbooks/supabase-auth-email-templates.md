@@ -24,7 +24,7 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 
 ## Production 적용 상태
 
-2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿을 적용했다. 저장 후 각 편집 화면을 새로고침해 제목과 한국어 본문을 확인했다. 2026-09-09 운영 QA에서 기존 비밀번호 재설정 링크가 `pkce_code_verifier_not_found`로 실패한 사실을 확인해, 앱과 Reset password 템플릿을 TokenHash 기반 복구 흐름으로 변경했다. PR #117의 Vercel Production 배포 성공 후 Production Reset password 템플릿을 저장하고, 화면 새로고침 뒤 `/auth/recovery?token_hash={{ .TokenHash }}` 링크가 유지되는 것을 다시 확인했다. 실제 수신부터 새 비밀번호 저장까지의 최종 QA는 별도로 남아 있다.
+2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿을 적용했다. 저장 후 각 편집 화면을 새로고침해 제목과 한국어 본문을 확인했다. 2026-09-09 운영 QA에서 기존 비밀번호 재설정 링크가 `pkce_code_verifier_not_found`로 실패한 사실을 확인해, 앱과 Reset password 템플릿을 TokenHash 기반 복구 흐름으로 변경했다. PR #117의 Vercel Production 배포 성공 후 Production Reset password 템플릿을 저장하고, 화면 새로고침 뒤 `/auth/recovery?token_hash={{ .TokenHash }}` 링크가 유지되는 것을 다시 확인했다. 이후 실제 재설정 메일 수신, 확인 화면, 새 비밀번호 저장, 새 비밀번호 로그인을 사용자 QA로 확인했다.
 
 - 변경함: `Confirm sign up`, `Reset password`의 Subject와 Body
 - 변경하지 않음: 다른 Auth 템플릿, 보안 알림, 사용자 계정
@@ -40,7 +40,8 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 - 재설정 메일 전송 QA: 기존 QA 계정에 비밀번호 재설정 메일을 요청해 Resend `delivered` 상태, 한국어 제목·HTML 본문, 위 발신자와 Supabase recovery redirect를 확인했다. SMTP 활성화 직후 전파 전 요청은 기존 영문 기본 템플릿으로 발송됐지만, 템플릿을 재저장하고 전파를 기다린 뒤 한국어 템플릿 발송을 재확인했다. 네이버 받은편지함 데스크톱 화면에서도 제목·발신자·본문 카드·재설정 버튼이 깨짐 없이 표시됐다.
 - 회원가입 메일 전송 QA: Production과 분리된 신규 QA 계정으로 가입해 Gmail 실제 수신, 한국어 제목·HTML 본문·발신자, DKIM·SPF·DMARC 통과를 확인했다. 메일의 인증 링크는 Supabase verify와 `/auth/callback`을 거쳐 `/mypage`로 이동했고 해당 QA 계정의 로그인 세션이 생성됐다.
 - 로컬 모바일 렌더링 QA: 390px viewport에서 회원가입·비밀번호 재설정 HTML의 가로 overflow와 console/page 오류가 없음을 확인했다.
-- 남은 확인: 실제 모바일 메일 클라이언트 렌더링과 비밀번호 재설정 링크·새 비밀번호 저장·동일 링크 재사용 차단은 아직 수행하지 않았다.
+- 비밀번호 재설정 기능 QA: 새 TokenHash 링크에서 확인 화면을 거쳐 비밀번호를 저장하고, 변경된 비밀번호로 로그인되는 것을 Production에서 확인했다. 기존·만료 링크는 재설정 화면으로 진입하지 않고 재요청 안내로 fail closed 한다.
+- 남은 확인: 실제 모바일 메일 클라이언트에서 두 메일의 시각적 렌더링을 확인하는 비기능 QA만 남아 있다.
 
 ## 적용 전 확인
 

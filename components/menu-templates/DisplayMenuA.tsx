@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Clock3 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -106,6 +106,7 @@ type DisplayFitMeasurement = {
 const DISPLAY_MAX_PRICE_OPTIONS = 3;
 const DISPLAY_OPTION_GRID_GAP = "calc(var(--display-row) * 0.26)";
 const DISPLAY_PUBLIC_PAGE_INTERVAL_MS = 8000;
+const DISPLAY_CONTROLS_AUTO_HIDE_MS = 2200;
 const DISPLAY_FIT_MAX_ITERATIONS = 10;
 const DISPLAY_FIT_MAX_PHASE = 4;
 const DISPLAY_FIT_MIN_SCALE = 0.08;
@@ -1436,34 +1437,56 @@ function DisplayPageIndicator({
   onSelect: (pageId: string) => void;
 }) {
   return (
-    <div className="pointer-events-none absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-      <p className="hidden rounded-full bg-slate-950/18 px-3 py-1 text-center text-[11px] font-bold leading-relaxed text-white shadow-[0_8px_24px_rgba(15,23,42,0.14)] [text-shadow:0_1px_8px_rgba(0,0,0,0.6)] md:block">
-        마우스를 메뉴판 밖으로 옮기면 페이지 버튼과 언어 선택이 자동으로 숨겨집니다.
-      </p>
-      <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-slate-200/75 bg-white/78 px-2.5 py-2 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md transition-opacity duration-200">
-        {pages.map((displayPage, index) => {
-          const isActive = activePageId === displayPage.id;
+    <div className="flex items-center gap-1.5 rounded-full border border-[#D7E4E3] bg-white px-2.5 py-2">
+      {pages.map((displayPage, index) => {
+        const isActive = activePageId === displayPage.id;
 
-          return (
-            <button
-              key={displayPage.id}
-              type="button"
-              onClick={() => onSelect(displayPage.id)}
-              title={displayPage.page.title}
-              aria-current={isActive ? "page" : undefined}
-              className={`grid h-7 min-w-7 place-items-center rounded-full px-2 text-[11px] font-black transition ${
-                isActive
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:bg-slate-100 focus-visible:text-slate-900"
-              }`}
-            >
-              {index + 1}
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <button
+            key={displayPage.id}
+            type="button"
+            onClick={() => onSelect(displayPage.id)}
+            title={displayPage.page.title}
+            aria-current={isActive ? "page" : undefined}
+            className={`grid h-7 min-w-7 place-items-center rounded-full px-2 text-[11px] font-black transition ${
+              isActive
+                ? "bg-[#007C89] text-white"
+                : "text-slate-500 hover:bg-[#EFF7F6] hover:text-slate-900 focus-visible:bg-[#EFF7F6] focus-visible:text-slate-900"
+            }`}
+          >
+            {index + 1}
+          </button>
+        );
+      })}
     </div>
   );
+}
+
+function useAutoHidingDisplayControls() {
+  const [visible, setVisible] = useState(true);
+  const hideTimerRef = useRef<number | null>(null);
+
+  const reveal = useCallback(() => {
+    setVisible(true);
+    if (hideTimerRef.current != null) window.clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = window.setTimeout(() => {
+      setVisible(false);
+      hideTimerRef.current = null;
+    }, DISPLAY_CONTROLS_AUTO_HIDE_MS);
+  }, []);
+
+  useEffect(() => {
+    hideTimerRef.current = window.setTimeout(() => {
+      setVisible(false);
+      hideTimerRef.current = null;
+    }, DISPLAY_CONTROLS_AUTO_HIDE_MS);
+
+    return () => {
+      if (hideTimerRef.current != null) window.clearTimeout(hideTimerRef.current);
+    };
+  }, []);
+
+  return { visible, reveal };
 }
 
 function useDisplayTimeSaleNowMs(
@@ -1597,6 +1620,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
   const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "ArtiMenu Display";
+  const displayControls = useAutoHidingDisplayControls();
 
   function selectDisplayPage(pageId: string) {
     setSelectedPageId(pageId);
@@ -1642,19 +1666,37 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   return (
     <>
       <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets]} />
-      <main className="menu-typography group relative h-screen w-screen overflow-hidden bg-[var(--display-surface-color)] text-[var(--display-text-color)]" style={typographyStyle}>
+      <main
+        className="menu-typography relative h-screen w-screen overflow-hidden bg-[var(--display-surface-color)] text-[var(--display-text-color)]"
+        style={typographyStyle}
+        onPointerMove={displayControls.reveal}
+        onPointerDown={displayControls.reveal}
+        onFocusCapture={displayControls.reveal}
+        onKeyDown={displayControls.reveal}
+      >
         <h1 className="sr-only">{displayTitle}</h1>
         <h2 className="sr-only">{activePage.title}</h2>
         {showPreviewSelector && (
-          <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={selectDisplayPage} />
+          <div
+            className={`absolute bottom-5 left-1/2 z-30 -translate-x-1/2 transition-opacity duration-300 ${
+              displayControls.visible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+            }`}
+          >
+            <DisplayPageIndicator pages={displayPages} activePageId={activeRenderPage?.id} onSelect={selectDisplayPage} />
+          </div>
         )}
-        <div className="pointer-events-none absolute bottom-5 right-5 z-30 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+        <div
+          className={`absolute bottom-5 right-5 z-30 transition-opacity duration-300 ${
+            displayControls.visible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        >
           <MenuLanguageSwitcher
             currentLocale={props.locale}
             enabledLocales={props.enabledLocales}
             compact
             menuPlacement="top"
             extraSearchParams={{ page: activePageParam }}
+            triggerVariant="cafe"
           />
         </div>
         <section className={`relative h-screen w-screen overflow-hidden ${
