@@ -139,6 +139,24 @@ export function getMenuEditorServiceTypeForMenuSite(productKey?: string | null, 
   return "legacy";
 }
 
+export function getMenuEditorCapabilitiesForMenuSite(
+  productKey?: string | null,
+  templateType?: string | null,
+  options: { supportsMultiPage?: boolean } = {},
+): MenuEditorCapabilities {
+  const serviceType = getMenuEditorServiceTypeForMenuSite(productKey, templateType);
+  const capabilities = MENU_EDITOR_CAPABILITIES[serviceType];
+
+  if (serviceType === "menu" && options.supportsMultiPage) {
+    return {
+      ...capabilities,
+      canManageMenuPages: true,
+    };
+  }
+
+  return capabilities;
+}
+
 export function isMenuEditorTabEnabled(tabKey: MenuEditorTabKey, capabilities: MenuEditorCapabilities) {
   switch (tabKey) {
     case "basic":
