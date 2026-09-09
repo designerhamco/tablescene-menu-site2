@@ -13,7 +13,7 @@ import {
   getMenuSiteAccessStateForMenuSite,
   type AccessibleMenuSiteListItem,
 } from "@/lib/server/menu-site-access-service";
-import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
+import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 import { isPickupQueueRuntimeEnabledForSite, isPickupQueueTemplate } from "@/lib/pickup-queue-runtime";
 
 export type StoreOperationsSite = AccessibleMenuSiteListItem & {
@@ -29,7 +29,6 @@ export async function getStoreOperationsContext(
   requestedMenuSiteId?: string | null,
 ): Promise<StoreOperationsContext> {
   const accessibleMenuSites = await getAccessibleMenuSiteList();
-  const tableManagementEnabled = isTableManagementRuntimeEnabled();
   const candidates = accessibleMenuSites.filter(
     (site) => isStoreOperationsTemplate(site.templateKey) || isPickupQueueTemplate(site.templateKey),
   );
@@ -39,6 +38,7 @@ export async function getStoreOperationsContext(
 
   const sites = candidates.flatMap((site, index): StoreOperationsSite[] => {
     const lifecycle = lifecycleStates[index];
+    const tableManagementEnabled = isTableManagementRuntimeEnabledForSite(site.menuSiteId);
     const callManagementEnabled = isCallRuntimeEnabledForSite(site.menuSiteId);
     const pickupQueueEnabled = isPickupQueueRuntimeEnabledForSite(site.menuSiteId);
 

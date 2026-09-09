@@ -18,7 +18,7 @@ import {
   requireMenuSiteWriteAccess,
 } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isTableManagementRuntimeEnabled } from "@/lib/table-management-runtime";
+import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 
 const MENU_TABLE_SELECT = "id, label, qr_public_id, display_order, status, token_rotated_at, created_at, updated_at";
 
@@ -87,7 +87,7 @@ function mapDatabaseError(error: DatabaseError, fallbackCode: "TABLE_CREATE_FAIL
 }
 
 async function requireMenuTableReadAccess(menuSiteId: string) {
-  if (!isTableManagementRuntimeEnabled()) {
+  if (!isTableManagementRuntimeEnabledForSite(menuSiteId)) {
     throw new MenuTableManagementError("MENU_SITE_UNAVAILABLE", "테이블 관리는 제품 활성화 전까지 안전하게 잠겨 있습니다.", 403);
   }
   const context = await requireMenuSitePermission(menuSiteId, "table.manage");
