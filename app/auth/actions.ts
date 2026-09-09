@@ -124,7 +124,10 @@ export async function requestPasswordResetAction(formData: FormData) {
 
   const supabase = await createClient();
   const publicOrigin = await getPublicOrigin();
-  const redirectTo = `${publicOrigin}/reset-password`;
+  const callbackUrl = new URL("/auth/callback", publicOrigin);
+  callbackUrl.searchParams.set("flow", "recovery");
+  callbackUrl.searchParams.set("next", "/reset-password");
+  const redirectTo = callbackUrl.toString();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo,
   });

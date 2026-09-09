@@ -2,108 +2,34 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
-import { createClient } from "@/lib/supabase/client";
+import { updateAndVerifyPassword } from "@/lib/password-reset-recovery";
+import {
+  createClient,
+  createPasswordVerificationClient,
+} from "@/lib/supabase/client";
 
-type ResetState = "checking" | "ready" | "invalid" | "submitting" | "error";
+type ResetState = "ready" | "invalid" | "submitting" | "error";
 
-function getFriendlyErrorMessage() {
+function getFriendlyErrorMessage(reason: "update-failed" | "verification-failed") {
+  if (reason === "verification-failed") {
+    return "새 비밀번호 적용을 확인하지 못했습니다. 다시 입력하거나 재설정 링크를 새로 요청해주세요.";
+  }
+
   return "비밀번호 변경 중 문제가 발생했습니다. 재설정 링크를 다시 요청해주세요.";
 }
 
-export default function ResetPasswordForm() {
+export default function ResetPasswordForm({
+  recoveryAuthorized,
+}: {
+  recoveryAuthorized: boolean;
+}) {
   const router = useRouter();
-  const [state, setState] = useState<ResetState>("checking");
+  const [state, setState] = useState<ResetState>(recoveryAuthorized ? "ready" : "invalid");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const supabase = createClient();
-
-    function markReady() {
-      if (isMounted) {
-        setState("ready");
-      }
-    }
-
-    function markInvalid() {
-      if (isMounted) {
-        setState("invalid");
-      }
-    }
-
-    function clearRecoveryParams() {
-      window.history.replaceState({}, "", "/reset-password");
-    }
-
-    async function prepareRecoverySession() {
-      const queryParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-
-      if (queryParams.get("error") || hashParams.get("error")) {
-        markInvalid();
-        return;
-      }
-
-      const code = queryParams.get("code");
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          markInvalid();
-          return;
-        }
-
-        clearRecoveryParams();
-        markReady();
-        return;
-      }
-
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-      if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (error) {
-          markInvalid();
-          return;
-        }
-
-        clearRecoveryParams();
-        markReady();
-        return;
-      }
-
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        markReady();
-      } else {
-        markInvalid();
-      }
-    }
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session) {
-        markReady();
-      }
-    });
-
-    prepareRecoverySession().catch(() => {
-      markInvalid();
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -120,22 +46,49 @@ export default function ResetPasswordForm() {
     }
 
     setState("submitting");
+    const recoveryClient = createClient();
+    const verificationClient = createPasswordVerificationClient();
+    const result = await updateAndVerifyPassword(
+      {
+        async updatePassword(password) {
+          const { data, error } = await recoveryClient.auth.updateUser({ password });
+          return {
+            email: data.user?.email ?? null,
+            error: Boolean(error),
+            userId: data.user?.id ?? null,
+          };
+        },
+        async verifyPassword(email, password) {
+          const { data, error } = await verificationClient.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+          if (data.session) {
+            await verificationClient.auth.signOut({ scope: "local" });
+          }
 
-    if (error) {
+          return {
+            email: data.user?.email ?? null,
+            error: Boolean(error),
+            userId: data.user?.id ?? null,
+          };
+        },
+      },
+      newPassword,
+    );
+
+    if (!result.ok) {
       setState("error");
-      setErrorMessage(getFriendlyErrorMessage());
+      setErrorMessage(getFriendlyErrorMessage(result.reason));
       return;
     }
 
-    await supabase.auth.signOut();
+    await recoveryClient.auth.signOut({ scope: "local" });
+    setNewPassword("");
+    setConfirmPassword("");
     router.replace("/sign-in?message=password-updated");
-  }
-
-  if (state === "checking") {
-    return <p className="break-keep text-sm font-bold leading-relaxed text-zinc-500">비밀번호 재설정 링크를 확인하고 있습니다.</p>;
+    router.refresh();
   }
 
   if (state === "invalid") {
@@ -194,7 +147,7 @@ export default function ResetPasswordForm() {
         disabled={state === "submitting"}
         className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-base font-bold text-white transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:hover:scale-100"
       >
-        {state === "submitting" ? "변경 중..." : "비밀번호 변경하기"}
+        {state === "submitting" ? "변경 확인 중..." : "비밀번호 변경하기"}
       </button>
     </form>
   );

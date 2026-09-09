@@ -1,12 +1,43 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-reset-recovery";
+import { createClient } from "@/lib/supabase/server";
 
 import ResetPasswordForm from "./ResetPasswordForm";
 
-export default function ResetPasswordPage() {
+type SearchParams = Promise<{
+  code?: string;
+  error?: string;
+}>;
+
+export default async function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const { code, error } = await searchParams;
+
+  if (code) {
+    const callbackParams = new URLSearchParams({
+      code,
+      flow: "recovery",
+      next: "/reset-password",
+    });
+    redirect(`/auth/callback?${callbackParams.toString()}`);
+  }
+
+  const cookieStore = await cookies();
+  const hasRecoveryMarker = cookieStore.get(PASSWORD_RECOVERY_COOKIE)?.value === "verified";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const recoveryAuthorized = !error && hasRecoveryMarker && Boolean(user);
+
   return (
     <>
       <OfficialSiteNavbar />
@@ -18,9 +49,7 @@ export default function ResetPasswordPage() {
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">새로운 비밀번호를 입력해주세요.</p>
           </div>
 
-          <Suspense fallback={<p className="break-keep text-sm font-bold leading-relaxed text-zinc-500">비밀번호 재설정 링크를 확인하고 있습니다.</p>}>
-            <ResetPasswordForm />
-          </Suspense>
+          <ResetPasswordForm recoveryAuthorized={recoveryAuthorized} />
 
           <div className="mt-6 text-center text-sm font-medium text-zinc-500">
             <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
