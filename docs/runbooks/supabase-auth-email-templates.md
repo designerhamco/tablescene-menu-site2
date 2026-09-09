@@ -1,6 +1,6 @@
 # Supabase Auth 이메일 템플릿 적용 런북
 
-최종 갱신: 2026-09-01
+최종 갱신: 2026-09-09
 
 ## 목적
 
@@ -20,11 +20,11 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 | Confirm sign up | `[아티메뉴] 이메일 인증을 완료해 주세요` | [`docs/auth-email-templates/confirm-signup.html`](../auth-email-templates/confirm-signup.html) |
 | Reset password | `[아티메뉴] 비밀번호 재설정 안내` | [`docs/auth-email-templates/reset-password.html`](../auth-email-templates/reset-password.html) |
 
-두 HTML은 Supabase가 공식 지원하는 `{{ .ConfirmationURL }}`만 사용한다. 현재 앱의 회원가입은 `emailRedirectTo=/auth/callback`, 비밀번호 재설정은 `redirectTo=/reset-password`를 전달하므로 기존 인증·복구 경로를 그대로 유지한다.
+회원가입 HTML은 Supabase의 `{{ .ConfirmationURL }}`을 사용한다. 비밀번호 재설정 HTML은 브라우저에 종속되는 PKCE 코드 교환을 피하기 위해 `{{ .SiteURL }}`과 `{{ .TokenHash }}`로 `/auth/recovery` 확인 화면을 연다. 사용자가 확인 버튼을 직접 누르면 서버가 `verifyOtp({ type: "recovery" })`로 토큰을 검증하고 `/reset-password`로 이동한다. 메일 보안 스캐너의 GET 선열람만으로 토큰이 소비되지 않도록 확인 화면의 GET 요청에서는 검증하지 않는다.
 
 ## Production 적용 상태
 
-2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿을 적용했다. 저장 후 각 편집 화면을 새로고침해 제목, 한국어 본문, `{{ .ConfirmationURL }}` 링크가 유지되고 편집기에 기존 영문 기본 본문이 남지 않은 것을 다시 확인했다.
+2026-09-01 사용자 승인 아래 Supabase Production 프로젝트 `tablescene-prod`에 위 두 템플릿을 적용했다. 저장 후 각 편집 화면을 새로고침해 제목과 한국어 본문을 확인했다. 2026-09-09 운영 QA에서 기존 비밀번호 재설정 링크가 `pkce_code_verifier_not_found`로 실패한 사실을 확인해, 저장소의 Reset password 템플릿과 앱을 TokenHash 기반 복구 흐름으로 변경했다. Production 템플릿 반영과 실제 수신 QA는 배포 후 별도 확인한다.
 
 - 변경함: `Confirm sign up`, `Reset password`의 Subject와 Body
 - 변경하지 않음: 다른 Auth 템플릿, 보안 알림, 사용자 계정
@@ -36,7 +36,7 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
   - API key 원문은 저장소·문서·로그에 기록하지 않는다.
 - Auth URL 재확인:
   - Site URL: `https://tablescene-menu-site2.vercel.app`
-  - 허용 redirect: Production과 Vercel Preview의 `/auth/callback`, `/reset-password`
+  - 허용 redirect: Production과 Vercel Preview의 `/auth/callback`, `/auth/recovery`, `/reset-password`
 - 재설정 메일 전송 QA: 기존 QA 계정에 비밀번호 재설정 메일을 요청해 Resend `delivered` 상태, 한국어 제목·HTML 본문, 위 발신자와 Supabase recovery redirect를 확인했다. SMTP 활성화 직후 전파 전 요청은 기존 영문 기본 템플릿으로 발송됐지만, 템플릿을 재저장하고 전파를 기다린 뒤 한국어 템플릿 발송을 재확인했다. 네이버 받은편지함 데스크톱 화면에서도 제목·발신자·본문 카드·재설정 버튼이 깨짐 없이 표시됐다.
 - 회원가입 메일 전송 QA: Production과 분리된 신규 QA 계정으로 가입해 Gmail 실제 수신, 한국어 제목·HTML 본문·발신자, DKIM·SPF·DMARC 통과를 확인했다. 메일의 인증 링크는 Supabase verify와 `/auth/callback`을 거쳐 `/mypage`로 이동했고 해당 QA 계정의 로그인 세션이 생성됐다.
 - 로컬 모바일 렌더링 QA: 390px viewport에서 회원가입·비밀번호 재설정 HTML의 가로 overflow와 console/page 오류가 없음을 확인했다.
@@ -48,6 +48,7 @@ Supabase 기본 영문 메일 제목인 `Confirm your sign up` 등을 아티메�
 2. Authentication → URL Configuration에서 Site URL이 실제 아티메뉴 공개 도메인인지 확인한다.
 3. Redirect URLs에 다음 실제 공개 주소가 허용되어 있는지 확인한다.
    - `https://<공개-domain>/auth/callback`
+   - `https://<공개-domain>/auth/recovery`
    - `https://<공개-domain>/reset-password`
 4. Authentication → SMTP Settings의 발신자 주소·발신자 이름·도메인 인증 상태를 확인한다.
 5. 메일 제공자의 링크 추적 기능은 인증 URL을 다시 쓰지 않도록 비활성화한다.
@@ -81,9 +82,11 @@ Production 고객 데이터와 분리된 전용 QA 이메일 계정을 사용한
 
 1. 아티메뉴 `/forgot-password`에서 전용 QA 계정으로 재설정 메일을 요청한다.
 2. 제목이 `[아티메뉴] 비밀번호 재설정 안내`인지 확인한다.
-3. `비밀번호 재설정하기`를 눌러 `/reset-password`가 정상적으로 열리는지 확인한다.
-4. 새 비밀번호 저장 후 로그아웃되고 새 비밀번호로 로그인되는지 확인한다.
-5. 같은 재설정 링크를 다시 사용했을 때 안전하게 만료 안내가 표시되는지 확인한다.
+3. `비밀번호 재설정하기`를 눌러 `/auth/recovery` 확인 화면이 정상적으로 열리는지 확인한다.
+4. `비밀번호 재설정 계속하기`를 눌러 `/reset-password`로 이동하는지 확인한다.
+5. 새 비밀번호 저장 후 로그아웃되고 새 비밀번호로 로그인되는지 확인한다.
+6. 같은 재설정 링크를 다시 사용했을 때 안전하게 만료 안내가 표시되는지 확인한다.
+7. 재설정 메일 요청 브라우저와 링크를 여는 브라우저가 달라도 정상 작동하는지 확인한다.
 
 ## 성공 기준
 
@@ -102,11 +105,14 @@ Production 고객 데이터와 분리된 전용 QA 이메일 계정을 사용한
 ## 보안 메모
 
 - 템플릿에는 secret, API key, access token을 넣지 않는다.
-- `{{ .ConfirmationURL }}`은 인증용 일회성 링크이므로 로그·분석 도구에 기록하지 않는다.
+- `{{ .ConfirmationURL }}`과 `{{ .TokenHash }}`가 포함된 URL은 인증용 일회성 링크이므로 로그·분석 도구에 기록하지 않는다.
+- `/auth/recovery`는 GET 요청에서 토큰을 검증하지 않는다. 사용자의 명시적인 POST 확인 뒤에만 `verifyOtp`를 호출한다.
 - 메일 본문에 사용자 metadata를 표시하지 않는다.
 - 링크 추적과 보안 스캐너의 URL 선열람은 일회성 인증 링크를 먼저 소비할 수 있으므로 실제 발송 업체 설정에서 확인한다.
 - Supabase Management API로 Production 템플릿을 자동 PATCH하지 않는다. 사람의 최종 확인 후 Dashboard에서 두 템플릿만 적용한다.
 
 ## 공식 기준
 
-- [Supabase Auth Email Templates](https://supabase.com/docs/guides/auth/auth-email-templates) — 지원 템플릿, `{{ .ConfirmationURL }}` 변수, Dashboard 편집 위치, 링크 추적·선열람 주의사항
+- [Supabase Auth Email Templates](https://supabase.com/docs/guides/auth/auth-email-templates) — 지원 템플릿, `{{ .TokenHash }}` 기반 SSR 링크, Dashboard 편집 위치, 링크 추적·선열람 주의사항
+- [Supabase PKCE flow](https://supabase.com/docs/guides/auth/sessions/pkce-flow) — PKCE verifier의 브라우저 로컬 저장과 동일 브라우저 교환 제약
+- [Supabase verifyOtp](https://supabase.com/docs/reference/javascript/auth-verifyotp) — 서버에서 recovery TokenHash를 검증하는 공식 API

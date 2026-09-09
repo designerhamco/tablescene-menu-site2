@@ -1,11 +1,15 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { getSignInErrorCode } from "@/lib/auth-login-errors";
 import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  PASSWORD_RECOVERY_COOKIE_MAX_AGE_SECONDS,
+} from "@/lib/password-reset-recovery";
 import { createClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string) {
@@ -128,9 +132,7 @@ export async function requestPasswordResetAction(formData: FormData) {
   callbackUrl.searchParams.set("flow", "recovery");
   callbackUrl.searchParams.set("next", "/reset-password");
   const redirectTo = callbackUrl.toString();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo,
-  });
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 
   if (error) {
     console.error("[auth] resetPasswordForEmail failed", {
@@ -144,6 +146,43 @@ export async function requestPasswordResetAction(formData: FormData) {
   }
 
   redirect("/forgot-password?message=sent");
+}
+
+export async function verifyPasswordRecoveryAction(formData: FormData) {
+  const tokenHash = getString(formData, "tokenHash");
+  const type = getString(formData, "type");
+
+  if (!tokenHash || type !== "recovery") {
+    redirect("/reset-password?error=invalid-link");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: "recovery",
+  });
+
+  if (error) {
+    console.error("[auth] recovery token verification failed", {
+      code: error.code,
+      message: error.message,
+      status: error.status,
+    });
+    redirect("/reset-password?error=invalid-link");
+  }
+
+  const cookieStore = await cookies();
+  const headerStore = await headers();
+  const forwardedProtocol = headerStore.get("x-forwarded-proto");
+  cookieStore.set(PASSWORD_RECOVERY_COOKIE, "verified", {
+    httpOnly: true,
+    maxAge: PASSWORD_RECOVERY_COOKIE_MAX_AGE_SECONDS,
+    path: "/reset-password",
+    sameSite: "lax",
+    secure: forwardedProtocol === "https" || process.env.NODE_ENV === "production",
+  });
+
+  redirect("/reset-password");
 }
 
 export async function signOutAction() {

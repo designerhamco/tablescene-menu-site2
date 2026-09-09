@@ -66,24 +66,34 @@ test("recovery authorization marker stays short-lived", () => {
   assert.equal(PASSWORD_RECOVERY_COOKIE_MAX_AGE_SECONDS, 15 * 60);
 });
 
-test("password recovery exchanges codes only through the server callback", () => {
+test("password recovery uses a server-verified token hash instead of a browser-bound PKCE code", () => {
   const actionsSource = readFileSync(new URL("../app/auth/actions.ts", import.meta.url), "utf8");
-  const callbackSource = readFileSync(new URL("../app/auth/callback/route.ts", import.meta.url), "utf8");
+  const recoveryPageSource = readFileSync(
+    new URL("../app/auth/recovery/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const templateSource = readFileSync(
+    new URL("../docs/auth-email-templates/reset-password.html", import.meta.url),
+    "utf8",
+  );
   const formSource = readFileSync(
     new URL("../app/reset-password/ResetPasswordForm.tsx", import.meta.url),
     "utf8",
   );
 
-  assert.match(actionsSource, /callbackUrl\.searchParams\.set\("flow", "recovery"\)/);
-  assert.match(callbackSource, /exchangeCodeForSession\(code\)/);
+  assert.match(actionsSource, /verifyOtp\(\{/);
+  assert.match(actionsSource, /token_hash: tokenHash/);
+  assert.match(recoveryPageSource, /verifyPasswordRecoveryAction/);
+  assert.match(templateSource, /\{\{ \.TokenHash \}\}/);
+  assert.doesNotMatch(templateSource, /\.ConfirmationURL/);
   assert.doesNotMatch(formSource, /exchangeCodeForSession/);
 });
 
 test("reset form requires a short-lived server recovery marker", () => {
-  const callbackSource = readFileSync(new URL("../app/auth/callback/route.ts", import.meta.url), "utf8");
+  const actionsSource = readFileSync(new URL("../app/auth/actions.ts", import.meta.url), "utf8");
   const pageSource = readFileSync(new URL("../app/reset-password/page.tsx", import.meta.url), "utf8");
 
-  assert.match(callbackSource, /httpOnly: true/);
-  assert.match(callbackSource, /sameSite: "lax"/);
+  assert.match(actionsSource, /httpOnly: true/);
+  assert.match(actionsSource, /sameSite: "lax"/);
   assert.match(pageSource, /hasRecoveryMarker && Boolean\(user\)/);
 });

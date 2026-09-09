@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
-import { requestPasswordResetAction } from "@/app/auth/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+
+import RequestPasswordResetForm from "./RequestPasswordResetForm";
 
 type SearchParams = Promise<{
   error?: string;
@@ -54,26 +55,7 @@ export default async function ForgotPasswordPage({
           {notice && <div className="mb-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{notice}</div>}
           {errorMessage && <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{errorMessage}</div>}
 
-          <form action={requestPasswordResetAction} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-bold">
-                이메일 주소
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
-                placeholder="owner@example.com"
-              />
-            </div>
-
-            <button type="submit" className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-base font-bold text-white transition-transform hover:scale-[1.01]">
-              재설정 메일 보내기
-            </button>
-          </form>
+          <RequestPasswordResetForm />
 
           <div className="mt-6 text-center text-sm font-medium text-zinc-500">
             <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
