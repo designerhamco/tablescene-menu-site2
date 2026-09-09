@@ -2,6 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  PASSWORD_RECOVERY_COOKIE_MAX_AGE_SECONDS,
+} from "@/lib/password-reset-recovery";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -11,14 +15,26 @@ export async function GET(request: NextRequest) {
   const next = getSafeAuthRedirectPath(requestUrl.searchParams.get("next"));
   const authError = requestUrl.searchParams.get("error");
   const authErrorDescription = requestUrl.searchParams.get("error_description");
+  const isRecoveryFlow = requestUrl.searchParams.get("flow") === "recovery";
+
+  function getFailureRedirect() {
+    if (isRecoveryFlow) {
+      return new URL("/reset-password?error=invalid-link", origin);
+    }
+
+    const signInUrl = new URL("/sign-in", origin);
+    signInUrl.searchParams.set("error", "sign-in-failed");
+    signInUrl.searchParams.set("next", next);
+    return signInUrl;
+  }
 
   if (authError) {
-    const errorMessage = authErrorDescription || "간편로그인에 실패했습니다.";
-    const signInUrl = new URL("/sign-in", origin);
-    signInUrl.searchParams.set("error", errorMessage);
-    signInUrl.searchParams.set("next", next);
-
-    return NextResponse.redirect(signInUrl);
+    console.error("[auth] callback returned an authentication error", {
+      authError,
+      authErrorDescription,
+      isRecoveryFlow,
+    });
+    return NextResponse.redirect(getFailureRedirect());
   }
 
   if (code) {
@@ -26,11 +42,12 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      const signInUrl = new URL("/sign-in", origin);
-      signInUrl.searchParams.set("error", error.message);
-      signInUrl.searchParams.set("next", next);
-
-      return NextResponse.redirect(signInUrl);
+      console.error("[auth] code exchange failed", {
+        code: error.code,
+        isRecoveryFlow,
+        message: error.message,
+      });
+      return NextResponse.redirect(getFailureRedirect());
     }
 
     const {
@@ -46,5 +63,17 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL(next, origin));
+  const response = NextResponse.redirect(new URL(next, origin));
+
+  if (isRecoveryFlow && code) {
+    response.cookies.set(PASSWORD_RECOVERY_COOKIE, "verified", {
+      httpOnly: true,
+      maxAge: PASSWORD_RECOVERY_COOKIE_MAX_AGE_SECONDS,
+      path: "/reset-password",
+      sameSite: "lax",
+      secure: requestUrl.protocol === "https:",
+    });
+  }
+
+  return response;
 }
