@@ -48,7 +48,7 @@ import type { AiCreditBalance } from "@/lib/ai-credits";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import CoverDraftToggleSection from "@/components/mypage/menu-editor/CoverDraftToggleSection";
 import {
-  MENU_EDITOR_CAPABILITIES,
+  getMenuEditorCapabilitiesForMenuSite,
   getMenuEditorServiceTypeForMenuSite,
   isMenuEditorTabEnabled,
 } from "@/lib/menu-editor-capabilities";
@@ -1420,9 +1420,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const pageSettings = mergePageSettings(site.page_settings);
   const latestOrder = orderData as MenuSiteOrder | null;
   const templateType = getTemplateType(site.template_key);
+  const templateCapabilities = getTemplateCapabilities(site.template_key);
   const switchableTemplates = getSwitchableTemplatesForTemplate(site.template_key);
   const templateSwitchTargets = switchableTemplates.filter((template) => template.key !== site.template_key);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
+  const editorCapabilities = getMenuEditorCapabilitiesForMenuSite(latestOrder?.product_key, templateType, {
+    supportsMultiPage: templateCapabilities.multiPage?.enabled === true,
+  });
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(latestOrder?.product_key);
   const displayVideoUploadAccess = getDisplayVideoUploadAccess({
     templateKey: site.template_key,
@@ -1433,9 +1437,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   if (editorServiceType === "custom") {
     return <CustomEditorUnavailable siteName={site.name} />;
   }
-
-  const editorCapabilities = MENU_EDITOR_CAPABILITIES[editorServiceType];
-  const templateCapabilities = getTemplateCapabilities(site.template_key);
   const basicPricingCapabilities = getBasicPricingCapabilities(site.template_key);
   const canManageTimeSales = isBasicTimeSaleTemplate(site.template_key, site.template_category);
   const editorTimeSales = canManageTimeSales ? await loadEditorTimeSales(site.id, supabase) : [];

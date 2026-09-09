@@ -4,7 +4,20 @@ import { createClient } from "@supabase/supabase-js";
 
 import { createStarterMenuData } from "../lib/menu-starter-presets";
 
-const TEMPLATE_KEY = "dining_aube_table_a";
+const DEFAULT_TEMPLATE_KEY = "dining_aube_table_a";
+const TEMPLATE_CONFIG = {
+  dining_aube_table_a: {
+    menuName: "QA 오브 테이블 스마트호출",
+    restaurantName: "오브 테이블 QA",
+    qaScope: "aube_smart_call_table_qr",
+  },
+  dining_aube_table_b: {
+    menuName: "QA 메종 마레 멀티페이지",
+    restaurantName: "메종 마레 QA",
+    qaScope: "maison_marais_template_e2e",
+  },
+} as const;
+type QaTemplateKey = keyof typeof TEMPLATE_CONFIG;
 const PRODUCT_KEY = "business_basic_multi_monthly";
 const DEFAULT_DURATION_DAYS = 14;
 
@@ -13,6 +26,7 @@ type Args = {
   userId: string;
   slug: string;
   durationDays: number;
+  templateKey: QaTemplateKey;
 };
 
 function parseArgs(argv: string[]): Args {
@@ -21,6 +35,7 @@ function parseArgs(argv: string[]): Args {
     userId: "",
     slug: "aube-smart-call-qa",
     durationDays: DEFAULT_DURATION_DAYS,
+    templateKey: DEFAULT_TEMPLATE_KEY,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -29,6 +44,7 @@ function parseArgs(argv: string[]): Args {
     else if (value === "--user-id") args.userId = argv[index + 1] ?? "";
     else if (value === "--slug") args.slug = argv[index + 1] ?? args.slug;
     else if (value === "--duration-days") args.durationDays = Number(argv[index + 1]);
+    else if (value === "--template-key") args.templateKey = (argv[index + 1] ?? "") as QaTemplateKey;
   }
 
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(args.userId)) {
@@ -37,6 +53,9 @@ function parseArgs(argv: string[]): Args {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(args.slug)) throw new Error("--slug 형식이 올바르지 않습니다.");
   if (!Number.isInteger(args.durationDays) || args.durationDays < 1 || args.durationDays > 30) {
     throw new Error("--duration-days는 1~30 사이의 정수여야 합니다.");
+  }
+  if (!(args.templateKey in TEMPLATE_CONFIG)) {
+    throw new Error("--template-key는 dining_aube_table_a 또는 dining_aube_table_b여야 합니다.");
   }
   return args;
 }
@@ -60,6 +79,7 @@ async function main() {
   const now = new Date();
   const accessExpiresAt = addDays(now, args.durationDays);
   const retentionUntil = addDays(now, args.durationDays + 90);
+  const templateConfig = TEMPLATE_CONFIG[args.templateKey];
 
   const { data: existing, error: existingError } = await supabase
     .from("menu_sites")
@@ -73,7 +93,7 @@ async function main() {
     mode: args.apply ? "apply" : "dry-run",
     targetUserId: userId,
     slug: args.slug,
-    templateKey: TEMPLATE_KEY,
+    templateKey: args.templateKey,
     productKey: PRODUCT_KEY,
     accessExpiresAt,
     existing: existing ?? null,
@@ -86,17 +106,17 @@ async function main() {
     .from("menu_sites")
     .insert({
       user_id: userId,
-      name: "QA 오브 테이블 스마트호출",
+      name: templateConfig.menuName,
       slug: args.slug,
-      template_key: TEMPLATE_KEY,
+      template_key: args.templateKey,
       template_category: "fine_dining",
       status: "published",
-      restaurant_name: "오브 테이블 QA",
+      restaurant_name: templateConfig.restaurantName,
       restaurant_category: "fine_dining",
       restaurant_type: "fine_dining",
       settings: {
         source: "codex_production_qa",
-        qa_scope: "aube_smart_call_table_qr",
+        qa_scope: templateConfig.qaScope,
         product_key: PRODUCT_KEY,
         plan_type: "business_basic",
         billing_cycle: "monthly",
@@ -113,7 +133,7 @@ async function main() {
     const starter = await createStarterMenuData(
       supabase,
       menuSite.id,
-      TEMPLATE_KEY,
+      args.templateKey,
       "fine_dining",
       "fine_dining",
       PRODUCT_KEY,
