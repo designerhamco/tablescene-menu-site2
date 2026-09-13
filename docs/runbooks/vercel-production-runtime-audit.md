@@ -1,6 +1,6 @@
 # Vercel Production runtime 읽기 전용 감사
 
-최종 확인: 2026-09-08
+최종 확인: 2026-09-13
 
 ## 범위
 
@@ -24,6 +24,8 @@ Vercel의 Cron Jobs 기능은 `Enabled` 상태이며 다음 세 작업이 `verce
 2026-09-08 재감사에서도 Cron Jobs 기능은 `Enabled`였고 세 경로와 일정이 저장소와 일치했다. Production 배포는 `72c9002` 기준 `Ready`였으며, 메인·Display 서비스·요금·AI 상담·오브 테이블 A·메종 마레 preview를 브라우저에서 열어 공개 경로가 유지되는 것을 확인했다. Display 파일럿 `/pickup/260630test`와 공개 API도 같은 시각 HTTP `200`으로 응답했다.
 
 현재 Hobby 플랜의 Dashboard 로그 조회 범위는 최근 1시간으로 제한된다. 2026-09-08 15시대 KST 재감사에서는 당일 03:00~04:00 실행 기록을 다시 볼 수 없어 실제 성공·실패를 확정하지 못했다. 03:00 작업은 매일 03:00~03:59 KST, 04:00 작업 두 개는 매일 04:00~04:59 KST에 각각 Vercel Logs를 확인해야 한다. Dashboard의 `Run` 버튼은 실제 Production 작업을 실행하므로 단순 확인을 위해 누르지 않는다.
+
+실제 예약 실행 세 경로를 Vercel Production Logs에서 읽기 전용으로 모두 확인했다. `/api/cron/expire-personal-trials`는 2026-09-10 03:53:22 KST에 `GET 200`, `/api/cron/process-notification-events`는 같은 날 04:07:12 KST에 `GET 200`으로 기록됐다. `/api/cron/process-subscriptions`는 2026-09-13 04:58:37 KST에 `GET 200`과 `completed` 로그가 기록됐고 `dryRun=true`, `execute=false`, `failed=0`, `lifecycleErrors=0`이었다. 이 dry-run은 결제 0건·취소 0건으로 Production 상태를 변경하지 않았으며, 자동 변경 대상이 아닌 legacy/stale 상태 16건을 `lifecycleAnomalies`로 보고했다. 세 요청 모두 `tablescene-next` Production 배포에서 실행됐으며 캐시는 `BYPASS`였다. 확인 과정에서 Run 버튼·환경변수·비밀키·Production 데이터·결제·구독 상태를 변경하지 않았다.
 
 ## 환경변수 메타데이터
 
