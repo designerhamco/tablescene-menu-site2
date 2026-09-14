@@ -1305,6 +1305,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         ? "직원 관리는 소유한 메뉴판의 사장만 사용할 수 있습니다."
       : messageCode === "menu-edit-permission-required"
         ? "현재 직원 역할에는 메뉴 편집 권한이 없습니다. 사장에게 역할 변경을 요청해 주세요."
+      : messageCode === "qr-manage-permission-required"
+        ? "현재 직원 역할에는 QR 관리 권한이 없습니다. 사장에게 역할 변경을 요청해 주세요."
       : null;
   const shouldAutoOpenSubscriptionModal = activeTab === "payments" && requestedModal === "subscription-management" && Boolean(requestedSubscriptionId);
   const supabase = await createClient();
@@ -2086,7 +2088,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const siteId = getSafeString(site.id);
     const slug = getSafeString(site.slug);
     const publicPath = formatPublicMenuPath(slug);
-    const qrDownloadUrl = slug ? `/api/qr?slug=${encodeURIComponent(slug)}` : null;
     const settings = getMenuSiteSettings(site.settings);
     const entitlement = siteId ? entitlementByMenuSiteId.get(siteId) : undefined;
     const trialDisplayInfo = getTrialDisplayInfo(settings, entitlement);
@@ -2298,7 +2299,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       title: getSafeString(site.name) || "이름 없는 메뉴판",
       slug,
       publicPath,
-      qrDownloadUrl,
       templateLabel: site.template_key ? getTemplateDisplayName(site.template_key) : "-",
       serviceBadge,
       badges,
@@ -2320,7 +2320,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         canManageCalls: Boolean(siteId) && isCallRuntimeEnabledForSite(siteId),
         canOwnerPreview,
         canViewPublic: canOpenPublicPage,
-        canDownloadQr: canOpenPublicPage && Boolean(qrDownloadUrl),
+        canManageQr: Boolean(siteId) && canUseMenuActions,
         editDisabledReason: canUseMenuActions ? null : siteId ? unavailableActionReason : noMenuSiteReason,
         previewDisabledReason: canOwnerPreview ? null : siteId ? unavailableActionReason : noMenuSiteReason,
         publicDisabledReason: canOpenPublicPage
@@ -2330,13 +2330,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             : !isPublished && !isAccessRestricted && !hasPaymentIssue
               ? unpublishedActionReason
               : unavailableActionReason,
-        qrDisabledReason: canOpenPublicPage && qrDownloadUrl
+        qrDisabledReason: canUseMenuActions
           ? null
-          : !slug
-            ? "공개 주소가 없어 QR을 다운로드할 수 없습니다."
-            : !isPublished && !isAccessRestricted && !hasPaymentIssue
-              ? unpublishedActionReason
-              : unavailableActionReason,
+          : unavailableActionReason,
       },
       subscription: activeBusinessSubscription,
       entitlement,
@@ -2351,6 +2347,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const canEdit = hasMenuSitePermission(site.memberRole, "menu.edit");
     const canPublish = hasMenuSitePermission(site.memberRole, "menu.publish");
     const canUseAi = hasMenuSitePermission(site.memberRole, "ai.use");
+    const canManageQr = hasMenuSitePermission(site.memberRole, "qr.manage");
     const canManageTables = isTableManagementRuntimeEnabledForSite(site.menuSiteId)
       && isTemplateSupportedForService(site.templateKey, "basic")
       && hasMenuSitePermission(site.memberRole, "table.manage");
@@ -2365,6 +2362,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       canEdit ? "메뉴 편집" : null,
       canPublish ? "공개 관리" : null,
       canUseAi ? "AI 도우미" : null,
+      canManageQr ? "QR 관리" : null,
       canManageTables ? "테이블 관리" : null,
       canManageOrders ? "주문관리" : null,
       canViewSales ? "매출 요약" : null,
@@ -2380,6 +2378,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       statusLabel: getStatusLabel(site.status),
       updatedAt: site.updatedAt,
       canEdit,
+      canManageQr,
       canManageTables,
       canManageOrders,
       canViewSales,
@@ -2524,12 +2523,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               newWindow: true,
             })}
             {renderActionButton({
-              label: card.actions.canManageTables ? "QR 관리" : "QR 다운로드",
-              href: card.actions.canManageTables && card.siteId
-                ? `/mypage/menus/${card.siteId}/tables`
-                : card.qrDownloadUrl,
-              enabled: card.actions.canManageTables || card.actions.canDownloadQr,
-              disabledReason: card.actions.canManageTables ? null : card.actions.qrDisabledReason,
+              label: "QR 관리",
+              href: card.siteId ? `/mypage/menus/${card.siteId}/qr` : null,
+              enabled: card.actions.canManageQr,
+              disabledReason: card.actions.qrDisabledReason,
             })}
           </div>
         )}
@@ -2620,6 +2617,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               className={disabledActionClassName}
             >
               공개 메뉴판 보기
+            </button>
+          )}
+          {card.canManageQr ? (
+            <Link
+              href={`/mypage/menus/${card.siteId}/qr`}
+              className={enabledSecondaryActionClassName}
+            >
+              QR 관리
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="현재 직원 역할에는 QR 관리 권한이 없습니다."
+              aria-label="QR 관리 비활성화: 현재 직원 역할에는 QR 관리 권한이 없습니다."
+              className={disabledActionClassName}
+            >
+              QR 관리
             </button>
           )}
         </div>
