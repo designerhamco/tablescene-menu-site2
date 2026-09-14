@@ -313,12 +313,12 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 - PortOne에 음식점 직접 merchant와 ArtiMenu 플랫폼 하위 정산 모델의 PG 계약·전표 판매자·정산 책임을 서면 확인하고, 제품·법률·운영 모델과 첫 pilot 음식점을 정해야 한다.
 - 실제 모바일 메일 클라이언트에서 회원가입·비밀번호 재설정 메일의 시각적 렌더링 QA
 - Production 환경변수와 비밀키는 2026-09-14 Vercel 읽기 전용 감사에서 필수 12개 이름·scope·Secret/Config 분류·경고 부재를 확인했고 Cron·AI·Supabase·Resend·PortOne의 runtime 근거로 유효성을 교차 확인했다. 외부 공급자 키의 실제 교체는 별도 운영 창에서 진행한다.
-- Vercel Cron 실제 실행 확인 — 2026-09-08에도 기능 활성화·3개 일정 등록·저장소 일치·무인증 `401`을 재확인했으며 Hobby 로그 제한 때문에 매일 03:00·04:00 KST 실행 후 1시간 안에 성공 여부 확인 필요
+- Vercel Cron 실제 실행 확인은 2026-09-14 완료했다. Production Logs에서 `/api/cron/expire-personal-trials`·`/api/cron/process-subscriptions`·`/api/cron/process-notification-events` 예약 실행의 `GET 200`과 실행 결과를 확인했고, 구독 작업은 dry-run으로 결제·취소·데이터 변경 없이 완료됐다.
 - PortOne 실제 결제·취소·부분취소·환불 검증
 - 약관·개인정보 처리방침 시행일과 오픈 할인 기간은 2026-09-14 확정·배포했다. 시행일과 할인 시작일은 2026년 10월 1일, 할인 종료일은 2027년 9월 30일이다.
 - AI 상담은 2026-09-14 Vercel Production Config `AI_SUPPORT_CHAT_ENABLED=true`로 공개했다. 재배포 `CSCjQtpMbTtBzSexv1j51gppL5yK`의 `Ready`, 공개 동의 UI, 실제 MP4 안내 응답, 민감정보 차단과 1:1 문의 전환을 확인했다.
 - Storage 권한 및 파일 삭제 정책의 Production 검토
-- 나머지 판매 템플릿과 실제 모바일 메일 클라이언트의 최종 시각 확인
+- 판매·교체 대상 템플릿의 최종 시각 확인은 2026-09-14 완료했다. 실제 모바일 메일 클라이언트의 최종 시각 확인만 남아 있다.
 
 ## 절대 자동 실행하지 않는 작업
 
