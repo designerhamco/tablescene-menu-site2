@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import {
+  MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS,
+  type MenuSitePermission,
+} from "@/lib/menu-site-permissions";
 import { isStaffInvitationRole } from "@/lib/staff-invitations";
 import {
   cancelStaffInvitationBatch,
@@ -14,6 +18,7 @@ import {
 import {
   revokeStaffMembership,
   StaffMembershipManagementError,
+  updateStaffMembershipPermissions,
   updateStaffMembershipRole,
 } from "@/lib/server/staff-membership-management-service";
 import { createClient } from "@/lib/supabase/server";
@@ -132,7 +137,39 @@ function getStaffMembershipActionError(error: unknown) {
   if (error.code === "MEMBERSHIP_NOT_FOUND" || error.code === "MEMBERSHIP_CHANGED") return "member-changed";
   if (error.code === "OWNER_ACCESS_REQUIRED") return "access-denied";
   if (error.code === "INVALID_ROLE") return "invalid-role";
+  if (error.code === "INVALID_PERMISSIONS") return "invalid-permissions";
   return "operation-failed";
+}
+
+function isCustomizablePermission(value: FormDataEntryValue): value is MenuSitePermission {
+  return typeof value === "string"
+    && (MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS as readonly string[]).includes(value);
+}
+
+export async function updateStaffMembershipPermissionsAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const permissionEntries = formData.getAll("permissions");
+  let resultCode = "permissions-updated";
+
+  if (userError || !user || isDeletedAccountStatus(user.app_metadata)) {
+    resultCode = "auth-required";
+  } else if (!permissionEntries.every(isCustomizablePermission)) {
+    resultCode = "invalid-permissions";
+  } else {
+    try {
+      await updateStaffMembershipPermissions({
+        actorUserId: user.id,
+        membershipId: getFormString(formData, "membershipId"),
+        permissions: permissionEntries,
+      });
+    } catch (error) {
+      resultCode = getStaffMembershipActionError(error);
+    }
+  }
+
+  revalidatePath("/mypage/staff");
+  redirect(`/mypage/staff?result=${resultCode}`);
 }
 
 export async function updateStaffMembershipRoleAction(formData: FormData) {

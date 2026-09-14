@@ -98,6 +98,7 @@ export type AccessibleMenuSiteListItem = {
   accessRole: MenuSiteAccessRole;
   isOwner: boolean;
   memberRole: MenuSiteMemberRole | null;
+  permissions: readonly MenuSitePermission[];
 };
 
 export const MENU_SITE_INACTIVE_EDIT_MESSAGE =
@@ -517,7 +518,7 @@ export async function getMenuSiteAccessContext(menuSiteId: string): Promise<Menu
       async findActiveMembership(actorUserId, targetMenuSiteId) {
         const { data, error } = await supabase
           .from("menu_site_members")
-          .select("id, menu_site_id, user_id, role, status")
+          .select("id, menu_site_id, user_id, role, status, permission_overrides")
           .eq("menu_site_id", targetMenuSiteId)
           .eq("user_id", actorUserId)
           .eq("status", "active")
@@ -531,6 +532,7 @@ export async function getMenuSiteAccessContext(menuSiteId: string): Promise<Menu
           userId: data.user_id,
           role: data.role,
           status: data.status,
+          permissionOverrides: data.permission_overrides,
         } satisfies MenuSiteMembershipCandidate;
       },
       async loadLifecycleAccess(targetMenuSiteId) {
@@ -621,7 +623,7 @@ export async function getAccessibleMenuSiteIds() {
       async listActiveMemberships(actorUserId) {
         const { data, error } = await supabase
           .from("menu_site_members")
-          .select("id, menu_site_id, user_id, role, status")
+          .select("id, menu_site_id, user_id, role, status, permission_overrides")
           .eq("user_id", actorUserId)
           .eq("status", "active");
 
@@ -632,6 +634,7 @@ export async function getAccessibleMenuSiteIds() {
           userId: membership.user_id,
           role: membership.role,
           status: membership.status,
+          permissionOverrides: membership.permission_overrides,
         } satisfies MenuSiteMembershipCandidate));
       },
       async loadLifecycleAccess(targetMenuSiteId) {
@@ -658,7 +661,7 @@ export async function getAccessibleMenuSiteList(): Promise<AccessibleMenuSiteLis
       async listActiveMemberships(actorUserId) {
         const { data, error } = await supabase
           .from("menu_site_members")
-          .select("id, menu_site_id, user_id, role, status")
+          .select("id, menu_site_id, user_id, role, status, permission_overrides")
           .eq("user_id", actorUserId)
           .eq("status", "active");
 
@@ -669,6 +672,7 @@ export async function getAccessibleMenuSiteList(): Promise<AccessibleMenuSiteLis
           userId: membership.user_id,
           role: membership.role,
           status: membership.status,
+          permissionOverrides: membership.permission_overrides,
         } satisfies MenuSiteMembershipCandidate));
       },
       async loadLifecycleAccess(targetMenuSiteId) {
@@ -706,6 +710,7 @@ export async function getAccessibleMenuSiteList(): Promise<AccessibleMenuSiteLis
         accessRole: entry.accessRole,
         isOwner: entry.isOwner,
         memberRole: entry.memberRole,
+        permissions: entry.permissions,
       };
     })
     .filter((entry): entry is AccessibleMenuSiteListItem => entry !== null)

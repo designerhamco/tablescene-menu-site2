@@ -54,6 +54,7 @@ export async function getStoreOperationsContext(
         tableManagementEnabled,
         callManagementEnabled,
         pickupQueueEnabled,
+        permissions: site.permissions,
       }) && !isCurrentPickupQueueOperationsSite({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
@@ -64,6 +65,7 @@ export async function getStoreOperationsContext(
         tableManagementEnabled,
         callManagementEnabled,
         pickupQueueEnabled,
+        permissions: site.permissions,
       }))
     ) {
       return [];
@@ -77,6 +79,7 @@ export async function getStoreOperationsContext(
         tableManagementEnabled,
         callManagementEnabled,
         pickupQueueEnabled,
+        permissions: site.permissions,
       }),
     }];
   });

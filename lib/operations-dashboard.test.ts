@@ -59,6 +59,37 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
   assert.equal(hasAvailableStoreOperation(disabledAccess), false);
 });
 
+test("per-member operation overrides control each visible management surface", () => {
+  const access = getStoreOperationAccess({
+    accessRole: "manager",
+    permissions: ["menu.read", "table.manage"],
+    templateKey: "dining_aube_table_a",
+    tableManagementEnabled: true,
+    callManagementEnabled: true,
+    pickupQueueEnabled: false,
+  });
+
+  assert.deepEqual(access, {
+    orders: false,
+    calls: false,
+    tables: true,
+    sales: false,
+    pickup: false,
+  });
+  assert.equal(isCurrentSmartCallOperationsSite({
+    accessRole: "manager",
+    permissions: ["menu.read", "table.manage"],
+    templateKey: "dining_aube_table_a",
+    menuSiteStatus: "published",
+    lifecycleState: "active",
+    lifecycleReason: "active",
+    canPreview: true,
+    tableManagementEnabled: true,
+    callManagementEnabled: true,
+    pickupQueueEnabled: false,
+  }), true);
+});
+
 test("operations list published, active multi-page menus even before Smart Call runtime activation", () => {
   const eligible = {
     accessRole: "owner" as const,
