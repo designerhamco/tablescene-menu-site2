@@ -835,7 +835,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
           visible: true,
         },
         {
-          id: `${siteId}-time-sale-open-hot-target`,
+          id: `${siteId}-time-sale-open-cappuccino-hot-target`,
           menuItemId: itemId(0, 1, 4),
           priceColumnId: priceColumnId(0, 1, "HOT"),
           salePrice: 4300,
@@ -843,7 +843,23 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
           visible: true,
         },
         {
-          id: `${siteId}-time-sale-open-ice-target`,
+          id: `${siteId}-time-sale-open-cappuccino-ice-target`,
+          menuItemId: itemId(0, 1, 4),
+          priceColumnId: priceColumnId(0, 1, "ICE"),
+          salePrice: 4300,
+          salePriceLabel: "4.3",
+          visible: true,
+        },
+        {
+          id: `${siteId}-time-sale-open-basil-hot-target`,
+          menuItemId: itemId(0, 0, 0),
+          priceColumnId: priceColumnId(0, 0, "HOT"),
+          salePrice: 5700,
+          salePriceLabel: "5.7",
+          visible: true,
+        },
+        {
+          id: `${siteId}-time-sale-open-basil-ice-target`,
           menuItemId: itemId(0, 0, 0),
           priceColumnId: priceColumnId(0, 0, "ICE"),
           salePrice: 5700,
