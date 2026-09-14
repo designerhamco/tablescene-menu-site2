@@ -215,7 +215,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "월결제와 연결제는 어떻게 다른가요?",
         answer: (
           <>
-            월결제는 매월 자동 갱신되며 부담 없이 시작할 수 있습니다. 연결제는 매년 자동 갱신되는 연 정기결제 방식으로, 월결제보다 더 저렴하게 이용할 수 있습니다.
+            월결제는 매월 자동 갱신되며 부담 없이 시작할 수 있습니다. 연 결제는 매년 자동 갱신되는 정기결제 방식으로, 월결제보다 더 저렴하게 이용할 수 있습니다.
           </>
         )
       },
@@ -228,10 +228,10 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         )
       },
       {
-        question: "월결제 중 연결제로 변경할 수 있나요?",
+        question: "월결제 중 연 결제로 변경할 수 있나요?",
         answer: (
           <>
-            초기 오픈 단계에서는 고객지원 문의를 통해 변경을 도와드립니다. 현재 이용 기간 종료 후 연결제로 변경하는 방식으로 안내됩니다.
+            초기 오픈 단계에서는 고객지원 문의를 통해 변경을 도와드립니다. 현재 이용 기간 종료 후 연 결제로 변경하는 방식으로 안내됩니다.
           </>
         )
       },
@@ -248,7 +248,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
     ]
   },
   {
-    category: "준비 중 기능",
+    category: "기능 안내",
     items: [
       {
         question: "테이블 오더 기능도 사용할 수 있나요?",
@@ -270,7 +270,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
         question: "아티메뉴 디스플레이는 무엇인가요?",
         answer: (
           <>
-            매장 TV나 모니터에 메뉴판을 띄워 사용하는 디스플레이 메뉴보드 서비스입니다. 아티메뉴 다이닝과 함께 확장해 사용할 수 있도록 준비 중입니다.
+            매장 TV나 모니터에 메뉴판을 띄워 사용하는 디스플레이 메뉴보드 서비스입니다. 이미지와 MP4 동영상을 등록하고 할인 메뉴를 함께 노출할 수 있습니다.
           </>
         )
       }
@@ -285,16 +285,16 @@ const FAQItem = ({ item, isOpen, onToggle, index, inverted = false }: { item: FA
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.05 }}
-      className={`border-b last:border-none ${inverted ? 'border-white/15' : 'border-zinc-200'}`}
+      className={`border-b last:border-none ${inverted ? 'border-zinc-700' : 'border-zinc-200'}`}
     >
       <button
         onClick={onToggle}
-        className={`w-full py-6 flex items-start md:items-center justify-between gap-6 text-left group transition-colors px-4 rounded-lg ${inverted ? 'hover:bg-white/5' : 'hover:bg-zinc-50/50'}`}
+        className={`group flex w-full items-start justify-between gap-6 rounded-lg px-4 py-6 text-left transition-colors md:items-center ${inverted ? 'hover:bg-zinc-800' : 'hover:bg-zinc-50'}`}
       >
         <span className={`text-lg md:text-xl font-bold transition-colors ${isOpen ? 'text-primary' : inverted ? 'text-white group-hover:text-white' : 'text-zinc-900 group-hover:text-black'}`}>
           <span className="text-primary mr-2">Q.</span>{item.question}
         </span>
-        <div className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-300 mt-1 md:mt-0 ${isOpen ? 'border-primary bg-primary text-white rotate-180' : inverted ? 'border-white/25 text-zinc-400 group-hover:border-white group-hover:text-white' : 'border-zinc-300 text-zinc-400 group-hover:border-zinc-900 group-hover:text-zinc-900'}`}>
+        <div className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center transition-all duration-300 md:mt-0 ${isOpen ? 'rotate-180 text-primary' : inverted ? 'text-zinc-400 group-hover:text-white' : 'text-zinc-400 group-hover:text-zinc-900'}`}>
           {isOpen ? <Minus size={16} /> : <Plus size={16} />}
         </div>
       </button>
@@ -322,7 +322,9 @@ const FAQItem = ({ item, isOpen, onToggle, index, inverted = false }: { item: FA
 };
 
 interface FAQProps {
+  align?: "center" | "left";
   className?: string;
+  id?: string;
   showSupport?: boolean;
   data?: FAQCategory[];
   description?: string;
@@ -331,7 +333,9 @@ interface FAQProps {
 }
 
 const FAQ = ({
+  align = "center",
   className = "",
+  id,
   showSupport = true,
   data = MAIN_FAQ_DATA,
   description,
@@ -348,10 +352,10 @@ const FAQ = ({
   };
 
   return (
-    <section className={`relative px-6 py-24 md:py-36 ${homeDark ? 'bg-white' : 'bg-white'} ${className}`}>
+    <section id={id} className={`relative bg-white px-6 py-24 md:py-36 ${className}`}>
       {/* Container width adjusted to match Footer (max-w-7xl) */}
       <div className={`max-w-7xl mx-auto ${homeDark ? 'rounded-[2rem] bg-zinc-950 px-6 py-16 text-white md:rounded-[2.5rem] md:px-14 md:py-20' : ''}`}>
-        <div className="text-center mb-10">
+        <div className={`${align === "left" ? "text-left" : "text-center"} mb-10`}>
           <h2 className={`text-3xl md:text-5xl font-bold mb-6 tracking-tight leading-tight ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
             {title}
           </h2>
@@ -364,15 +368,15 @@ const FAQ = ({
 
         {/* Category Tabs */}
         {data.length > 1 && (
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
+          <div className={`mb-10 flex flex-wrap gap-2 ${align === "left" ? "justify-start" : "justify-center"}`}>
             {data.map((category, idx) => (
               <button
                 key={idx}
                 onClick={() => handleTabChange(idx)}
                 className={`px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
                   activeTab === idx 
-                    ? homeDark ? 'bg-white text-zinc-950 shadow-lg scale-105' : 'bg-zinc-900 text-white shadow-lg scale-105'
-                    : homeDark ? 'bg-white/10 text-zinc-400 hover:bg-white/15 hover:text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
+                    ? homeDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
+                    : homeDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
                 }`}
               >
                 {category.category}
@@ -382,7 +386,7 @@ const FAQ = ({
         )}
 
         {/* FAQ List */}
-        <div className={`w-full md:max-w-6xl mx-auto rounded-2xl border p-4 md:p-8 min-h-[400px] ${homeDark ? 'border-white/15 bg-white/[0.045]' : 'border-zinc-200 bg-white shadow-sm'} ${showSupport ? 'mb-12' : ''}`}>
+        <div className={`min-h-[400px] w-full rounded-2xl border p-4 md:max-w-6xl md:p-8 ${align === "left" ? "mr-auto" : "mx-auto"} ${homeDark ? 'border-zinc-700 bg-zinc-950' : 'border-zinc-200 bg-white'} ${showSupport ? 'mb-12' : ''}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
