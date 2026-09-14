@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   assertSupportedAiDescriptionClaims,
+  hasUnsupportedFreeClaim,
   hasExplicitFreePriceSignal,
   normalizeAiDescriptionPriceContext,
 } from "./menu-ai-description-safety";
@@ -17,6 +18,7 @@ test("AI 설명 가격 문맥에서 0원과 빈 값은 가격 미제공으로 �
 });
 
 test("명시적인 무료 표기가 없으면 AI 결과의 무료 제공 주장을 차단한다", () => {
+  assert.equal(hasUnsupportedFreeClaim("가격은 무료로 제공됩니다.", {}), true);
   assert.throws(
     () => assertSupportedAiDescriptionClaims("가격은 무료로 제공됩니다.", {}),
     /무료 제공 내용을 포함/,
@@ -27,6 +29,7 @@ test("명시적인 무료 표기가 없으면 AI 결과의 무료 제공 주장�
 test("관리자가 무료라고 명시한 경우에만 무료 표현을 허용한다", () => {
   assert.equal(hasExplicitFreePriceSignal({ priceLabel: "무료" }), true);
   assert.equal(hasExplicitFreePriceSignal({ badgeLabel: "Complimentary" }), true);
+  assert.equal(hasUnsupportedFreeClaim("무료로 제공되는 웰컴 드링크입니다.", { priceLabel: "무료" }), false);
   assert.doesNotThrow(() =>
     assertSupportedAiDescriptionClaims("무료로 제공되는 웰컴 드링크입니다.", { priceLabel: "무료" }),
   );

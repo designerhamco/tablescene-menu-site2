@@ -32,7 +32,18 @@ export function assertSupportedAiDescriptionClaims(
     currentDescription?: unknown;
   },
 ) {
-  if (GENERATED_FREE_CLAIM_PATTERN.test(description) && !hasExplicitFreePriceSignal(input)) {
+  if (hasUnsupportedFreeClaim(description, input)) {
     throw new Error("AI 설명이 입력 정보에 없는 무료 제공 내용을 포함했습니다.");
   }
+}
+
+export function hasUnsupportedFreeClaim(
+  description: string,
+  input: {
+    priceLabel?: unknown;
+    badgeLabel?: unknown;
+    currentDescription?: unknown;
+  },
+) {
+  return GENERATED_FREE_CLAIM_PATTERN.test(description) && !hasExplicitFreePriceSignal(input);
 }
