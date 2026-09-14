@@ -3,6 +3,7 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useActionState, useState } from "react";
 
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import {
   createCustomStaffCallItemKey,
   MAX_STAFF_CALL_ITEMS,
@@ -56,6 +57,11 @@ export default function CallItemManager({
 
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
+      <ActionFeedbackToast
+        message={state.message}
+        tone={state.status === "success" ? "success" : "error"}
+        eventKey={state}
+      />
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <h2 className="text-2xl font-black tracking-tight">호출 항목 설정</h2>

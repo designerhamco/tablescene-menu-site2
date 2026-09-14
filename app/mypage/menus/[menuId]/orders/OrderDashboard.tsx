@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import type { OrderDashboardPageData } from "@/lib/server/order-management-service";
 
@@ -112,6 +113,11 @@ export default function OrderDashboard({
         </div>
       ) : null}
       <div className="space-y-5 print:hidden">
+        <ActionFeedbackToast
+          message={state.message}
+          tone={state.status === "success" ? "success" : "error"}
+          eventKey={state}
+        />
         <OperationalArrivalAlert
           menuSiteId={menuSiteId}
           kind="orders"

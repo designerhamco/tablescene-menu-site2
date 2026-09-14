@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import {
   acceptStaffInvitationAction,
   type StaffInvitationAcceptanceState,
@@ -17,6 +18,11 @@ export default function AcceptInvitationForm() {
 
   return (
     <form action={formAction} className="mt-7">
+      <ActionFeedbackToast
+        message={state.message}
+        tone="error"
+        eventKey={state}
+      />
       {state.message ? (
         <p aria-live="polite" className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold leading-relaxed text-rose-800">
           {state.message}

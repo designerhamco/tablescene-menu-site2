@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { PickupQueueEntry } from "@/lib/server/pickup-queue-service";
 
 import {
@@ -42,6 +43,11 @@ export default function PickupQueueDashboard({
 
   return (
     <div className="space-y-6">
+      <ActionFeedbackToast
+        message={createState.message}
+        tone={createState.status === "success" ? "success" : "error"}
+        eventKey={createState}
+      />
       <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -132,6 +138,11 @@ function QueueEntryRow({ menuSiteId, entry }: { menuSiteId: string; entry: Picku
   const nextLabel = entry.status === "waiting" ? "픽업 요청" : "수령 완료";
   return (
     <li className="px-5 py-4 md:px-6">
+      <ActionFeedbackToast
+        message={state.message}
+        tone={state.status === "success" ? "success" : "error"}
+        eventKey={state}
+      />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <span className="min-w-14 text-3xl font-black tabular-nums">{entry.queueNumber}</span>

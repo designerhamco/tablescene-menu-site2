@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import {
   createStaffInvitationAction,
   type StaffInvitationActionState,
@@ -37,6 +38,11 @@ export default function StaffInvitationForm({
 
   return (
     <form action={formAction} className="space-y-7 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+      <ActionFeedbackToast
+        message={state.message}
+        tone={state.status === "success" ? "success" : "error"}
+        eventKey={state}
+      />
       <div>
         <h2 className="text-xl font-black tracking-tight text-zinc-950">직원 초대</h2>
         <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">

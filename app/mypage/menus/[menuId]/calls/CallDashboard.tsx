@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import type { CallDashboardPageData } from "@/lib/server/call-management-service";
 
@@ -57,6 +58,11 @@ export default function CallDashboard({
         kind="calls"
         arrivalIds={calls.filter((call) => call.status === "pending").map((call) => call.id)}
         onBackgroundPollingChange={setBackgroundPollingEnabled}
+      />
+      <ActionFeedbackToast
+        message={state.message}
+        tone={state.status === "success" ? "success" : "error"}
+        eventKey={state}
       />
       <CallItemManager
         key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")}
