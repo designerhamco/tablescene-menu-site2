@@ -40,8 +40,9 @@ AI 상담은 아티메뉴의 요금제 차이, 메뉴판 제작, 디자인·다�
 - `AI_SUPPORT_CHAT_ENABLED=true`일 때만 API가 열린다.
 - gate가 닫혀 있으면 `/support/chat`은 준비 중 안내와 1:1 문의 링크만 표시한다.
 - 상담 전용 OpenAI 프로젝트의 예산·사용량·모델·rate limit과 Vercel Firewall 설정은 완료했다. Vercel Production에는 상담 전용 키를 `OPENAI_SUPPORT_API_KEY` secret로 저장했으며 값을 문서·로그에 남기지 않는다.
-- `AI_SUPPORT_CHAT_ENABLED`는 아직 만들지 않아 Production runtime은 default-off다. 개인정보 처리방침의 실제 AI 수탁자·국외 이전 고지에 대한 최종 사업자 검토 전에는 gate를 열지 않는다.
+- 2026-09-14 개인정보 처리방침 시행일을 확정한 뒤 Vercel Production Config `AI_SUPPORT_CHAT_ENABLED=true`를 추가하고 재배포해 공개했다.
 - 2026-09-09 로컬 실제 API QA에서 요금제 비교·30일 무료체험·계정 변경 거절·프롬프트 탈취 거절 시나리오가 통과했다.
+- 2026-09-14 Production 공개 smoke QA에서 국외 이전 동의 전 입력 비활성, 디스플레이 MP4 안내 실제 응답, 카드번호 형식의 민감정보 차단과 1:1 문의 전환을 확인했다.
 
 ## 외부 알림과의 관계
 
