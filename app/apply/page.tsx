@@ -22,14 +22,14 @@ export default function ApplyPage() {
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-white py-14 text-zinc-950 md:py-20">
         <div className="site-container">
-          <header className="max-w-3xl pb-12 md:pb-16">
-            <h1 className="break-keep text-[2.5rem] font-black leading-[1.08] tracking-[-0.045em] md:text-[3.75rem]">
+          <header className="mx-auto max-w-3xl pb-12 text-center md:pb-16">
+            <h1 className="site-page-title">
               매장에 맞는 디자인 선택
             </h1>
-            <p className="mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
               템플릿을 미리 보고 원하는 디자인으로 메뉴판을 시작하세요.
             </p>
-            <p className="mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-emerald-700 md:text-base">
+            <p className="mx-auto mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-emerald-700 md:text-base">
               구독 중에는 선택한 페이지 유형의 모든 템플릿을 추가 결제 없이 교체할 수 있습니다.
             </p>
           </header>

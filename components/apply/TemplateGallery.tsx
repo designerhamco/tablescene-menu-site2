@@ -1,8 +1,8 @@
 "use client";
 
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import { getDiningTemplateTier, getDiningTierLabel, type DiningTemplateTier } from "@/lib/dining-product-tiers";
@@ -25,6 +25,8 @@ const INDUSTRY_GROUPS: readonly IndustryGroup[] = [
   { key: "pub_bar", label: "바·주점", categoryKeys: ["pub_bar"] },
   { key: "quick_meal", label: "패스트푸드·분식", categoryKeys: ["fast_food"] },
 ];
+
+const TEMPLATES_PER_PAGE = 8;
 
 const TIER_DETAILS: Record<DiningTemplateTier, { price: string; description: string; product: string }> = {
   single: {
@@ -63,18 +65,13 @@ export default function TemplateGallery({
   const [service, setService] = useState<ServiceKey>("dining");
   const [tier, setTier] = useState<DiningTemplateTier>("single");
   const [industry, setIndustry] = useState<IndustryKey>("all");
+  const [page, setPage] = useState(1);
+  const galleryStartRef = useRef<HTMLDivElement>(null);
 
   const templatesForProduct = useMemo(() => {
     if (service === "display") return [...displayTemplates];
     return diningTemplates.filter((template) => getDiningTemplateTier(template.key) === tier);
   }, [diningTemplates, displayTemplates, service, tier]);
-
-  const visibleIndustryGroups = useMemo(() => {
-    const groupsWithTemplates = INDUSTRY_GROUPS.filter((group) => (
-      group.key === "all" || templatesForProduct.some((template) => group.categoryKeys.includes(template.template_category))
-    ));
-    return groupsWithTemplates.length > 1 ? groupsWithTemplates : INDUSTRY_GROUPS.slice(0, 1);
-  }, [templatesForProduct]);
 
   const visibleTemplates = useMemo(() => {
     if (industry === "all") return templatesForProduct;
@@ -83,6 +80,14 @@ export default function TemplateGallery({
       ? templatesForProduct.filter((template) => selectedGroup.categoryKeys.includes(template.template_category))
       : templatesForProduct;
   }, [industry, templatesForProduct]);
+
+  const totalPages = Math.ceil(visibleTemplates.length / TEMPLATES_PER_PAGE);
+  const currentPage = Math.min(page, Math.max(totalPages, 1));
+  const paginatedTemplates = visibleTemplates.slice(
+    (currentPage - 1) * TEMPLATES_PER_PAGE,
+    currentPage * TEMPLATES_PER_PAGE,
+  );
+  const selectedIndustryLabel = INDUSTRY_GROUPS.find((group) => group.key === industry)?.label ?? "선택한 업종";
 
   const productTitle = service === "display" ? "아티메뉴 디스플레이" : `다이닝 ${getDiningTierLabel(tier)}`;
   const productPrice = service === "display" ? "월 14,900원" : TIER_DETAILS[tier].price;
@@ -93,17 +98,31 @@ export default function TemplateGallery({
   function selectService(nextService: ServiceKey) {
     setService(nextService);
     setIndustry("all");
+    setPage(1);
   }
 
   function selectTier(nextTier: DiningTemplateTier) {
     setTier(nextTier);
     setIndustry("all");
+    setPage(1);
+  }
+
+  function selectIndustry(nextIndustry: IndustryKey) {
+    setIndustry(nextIndustry);
+    setPage(1);
+  }
+
+  function selectPage(nextPage: number) {
+    setPage(nextPage);
+    window.requestAnimationFrame(() => {
+      galleryStartRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   return (
     <>
       <div className="border-b border-zinc-200">
-        <div className="flex gap-8 overflow-x-auto" aria-label="서비스 선택">
+        <div className="flex justify-center gap-8 overflow-x-auto" aria-label="서비스 선택">
           {([
             ["dining", "다이닝"],
             ["display", "디스플레이"],
@@ -150,62 +169,108 @@ export default function TemplateGallery({
         </div>
       </section>
 
-      <div className="mt-8 flex gap-2 overflow-x-auto pb-1" aria-label="업종 선택">
-        {visibleIndustryGroups.map((group) => (
-          <button
-            key={group.key}
-            type="button"
-            onClick={() => setIndustry(group.key)}
-            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${industry === group.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"}`}
-          >
-            {group.label}
-          </button>
-        ))}
+      <div ref={galleryStartRef} className="scroll-mt-24">
+        <div className="mt-8 flex gap-2 overflow-x-auto pb-1" aria-label="업종 선택">
+          {INDUSTRY_GROUPS.map((group) => (
+            <button
+              key={group.key}
+              type="button"
+              onClick={() => selectIndustry(group.key)}
+              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${industry === group.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"}`}
+            >
+              {group.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-8 grid gap-x-6 gap-y-12 md:grid-cols-2">
-        {visibleTemplates.map((template) => {
-          const templateTier = service === "dining" ? getDiningTemplateTier(template.key) : tier;
-          const startDisabled = service === "display" && !displayCheckoutEnabled;
-          const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
+      {paginatedTemplates.length > 0 ? (
+        <div className="mt-8 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {paginatedTemplates.map((template) => {
+            const templateTier = service === "dining" ? getDiningTemplateTier(template.key) : tier;
+            const startDisabled = service === "display" && !displayCheckoutEnabled;
+            const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
 
-          return (
-            <article key={template.key} className="group">
-              <Link href={`/templates/${template.key}/preview`} className="block" aria-label={`${template.name} 미리보기`}>
-                <div className="overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-zinc-100 transition-colors group-hover:border-zinc-400">
-                  <TemplateThumbnail template={template} />
-                </div>
-              </Link>
-              <div className="pt-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-bold text-zinc-400">{industryLabel}</p>
-                    <h2 className="mt-1 text-2xl font-black tracking-tight text-zinc-950">{template.name}</h2>
+            return (
+              <article key={template.key} className="group">
+                <Link href={`/templates/${template.key}/preview`} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${template.name} 새 창에서 미리보기`}>
+                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 transition-colors group-hover:border-zinc-400">
+                    <TemplateThumbnail template={template} />
                   </div>
-                  <span className="shrink-0 rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-black text-zinc-600">
-                    {service === "display" ? "디스플레이" : getDiningTierLabel(templateTier)}
-                  </span>
-                </div>
-                <p className="mt-3 whitespace-pre-line break-keep text-base font-medium leading-relaxed text-zinc-500">
-                  {template.description}
-                </p>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <Link href={`/templates/${template.key}/preview`} className="inline-flex items-center gap-1.5 border-b border-zinc-400 pb-1 text-sm font-black text-zinc-700 hover:border-zinc-950 hover:text-zinc-950">
-                    미리보기 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                  {startDisabled ? (
-                    <span className="text-sm font-bold text-zinc-400">신청 준비 중</span>
-                  ) : (
-                    <Link href={getStartHref(service, templateTier, template.key)} className="inline-flex items-center gap-1.5 border-b border-zinc-950 pb-1 text-sm font-black text-zinc-950">
-                      이 디자인으로 시작 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <div className="pt-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-zinc-400">{industryLabel}</p>
+                      <h2 className="mt-1 text-lg font-black tracking-tight text-zinc-950 md:text-xl">{template.name}</h2>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[0.6875rem] font-black text-zinc-600">
+                      {service === "display" ? "디스플레이" : getDiningTierLabel(templateTier)}
+                    </span>
+                  </div>
+                  <p className="mt-2 line-clamp-2 whitespace-pre-line break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                    {template.description}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Link href={`/templates/${template.key}/preview`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b border-zinc-400 pb-1 text-sm font-black text-zinc-700 hover:border-zinc-950 hover:text-zinc-950">
+                      미리보기 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
-                  )}
+                    {startDisabled ? (
+                      <span className="text-sm font-bold text-zinc-400">신청 준비 중</span>
+                    ) : (
+                      <Link href={getStartHref(service, templateTier, template.key)} className="inline-flex items-center gap-1.5 border-b border-zinc-950 pb-1 text-sm font-black text-zinc-950">
+                        이 디자인으로 시작 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <section className="mt-8 flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 px-6 text-center">
+          <h2 className="text-xl font-black tracking-tight text-zinc-950">{selectedIndustryLabel} 템플릿 준비 중</h2>
+          <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
+            매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.
+          </p>
+        </section>
+      )}
+
+      {totalPages > 1 ? (
+        <nav className="mt-14 flex items-center justify-center gap-1" aria-label="템플릿 페이지">
+          <button
+            type="button"
+            onClick={() => selectPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="grid h-10 w-10 place-items-center rounded-full text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+            aria-label="이전 템플릿 페이지"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+            <button
+              key={pageNumber}
+              type="button"
+              onClick={() => selectPage(pageNumber)}
+              className={`h-10 min-w-10 rounded-full px-3 text-sm font-bold transition-colors ${currentPage === pageNumber ? "bg-zinc-950 text-white" : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950"}`}
+              aria-current={currentPage === pageNumber ? "page" : undefined}
+              aria-label={`${pageNumber}페이지`}
+            >
+              {pageNumber}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => selectPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="grid h-10 w-10 place-items-center rounded-full text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+            aria-label="다음 템플릿 페이지"
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </nav>
+      ) : null}
     </>
   );
 }
