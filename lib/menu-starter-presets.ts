@@ -2411,6 +2411,41 @@ async function createDisplayMenuAStarterData(
     })
   );
 
+  const priceColumnInserts: MenuCategoryPriceColumnInsert[] = previewData.categories.flatMap((category) => {
+    const categoryId = categoryIdByPreviewId.get(category.id);
+    if (!categoryId) return [];
+
+    return category.priceColumns.map((column) => ({
+      menu_site_id: menuSiteId,
+      category_id: categoryId,
+      key: column.key,
+      label: column.label,
+      visible: column.visible,
+      sort_order: column.sortOrder,
+    }));
+  });
+  const priceColumnIdByPreviewId = new Map<string, string>();
+
+  if (priceColumnInserts.length > 0) {
+    const { data: insertedPriceColumns, error: priceColumnsError } = await supabase
+      .from("menu_category_price_columns")
+      .insert(priceColumnInserts)
+      .select("id, category_id, key");
+
+    if (priceColumnsError) {
+      throw new Error(`Display 기본 가격 열 생성에 실패했습니다: ${priceColumnsError.message}`);
+    }
+
+    for (const category of previewData.categories) {
+      const categoryId = categoryIdByPreviewId.get(category.id);
+      if (!categoryId) continue;
+      for (const column of category.priceColumns) {
+        const insertedColumn = (insertedPriceColumns ?? []).find((row) => row.category_id === categoryId && row.key === column.key);
+        if (insertedColumn) priceColumnIdByPreviewId.set(column.id, insertedColumn.id);
+      }
+    }
+  }
+
   const itemInserts: MenuItemInsert[] = previewData.items.map((item) => ({
     menu_site_id: menuSiteId,
     category_id: item.category_id ? categoryIdByPreviewId.get(item.category_id) ?? null : null,
@@ -2468,6 +2503,33 @@ async function createDisplayMenuAStarterData(
     })
   );
 
+  const priceColumnValueInserts: MenuItemPriceColumnValueInsert[] = previewData.items.flatMap((item) => {
+    const menuItemId = itemIdByPreviewId.get(item.id);
+    if (!menuItemId) return [];
+
+    return item.priceColumnValues.flatMap((value) => {
+      const priceColumnId = priceColumnIdByPreviewId.get(value.priceColumnId);
+      if (!priceColumnId) return [];
+      return [{
+        menu_item_id: menuItemId,
+        price_column_id: priceColumnId,
+        price: value.price,
+        price_label: value.priceLabel,
+        visible: value.visible,
+      }];
+    });
+  });
+
+  if (priceColumnValueInserts.length > 0) {
+    const { error: priceColumnValuesError } = await supabase
+      .from("menu_item_price_column_values")
+      .insert(priceColumnValueInserts);
+
+    if (priceColumnValuesError) {
+      throw new Error(`Display 기본 가격 열 값 생성에 실패했습니다: ${priceColumnValuesError.message}`);
+    }
+  }
+
   const priceOptionInserts: MenuItemPriceOptionInsert[] = previewData.priceOptions.flatMap((option) => {
     const menuItemId = itemIdByPreviewId.get(option.menu_item_id);
     if (!menuItemId) return [];
@@ -2493,6 +2555,72 @@ async function createDisplayMenuAStarterData(
       priceOptionsError.code !== "42P01"
     ) {
       throw new Error(`Display 기본 가격 옵션 생성에 실패했습니다: ${priceOptionsError.message}`);
+    }
+  }
+
+  for (const timeSale of previewData.timeSales) {
+    const resolvedTargets = timeSale.items.flatMap((target) => {
+      const menuItemId = itemIdByPreviewId.get(target.menuItemId);
+      if (!menuItemId || target.salePrice == null) return [];
+      const resolvedPriceColumnId = target.priceColumnId ? priceColumnIdByPreviewId.get(target.priceColumnId) : null;
+      if (target.priceColumnId && !resolvedPriceColumnId) return [];
+      return [{
+        menuItemId,
+        priceColumnId: resolvedPriceColumnId ?? null,
+        salePrice: target.salePrice,
+        salePriceLabel: target.salePriceLabel,
+        visible: target.visible,
+      }];
+    });
+    if (resolvedTargets.length === 0) continue;
+
+    const campaignWindow = getStarterTimeSaleCampaignWindow();
+    const promotionSettings: Record<string, Json> = {
+      time_display_mode: timeSale.timeDisplayMode,
+      badge_text: timeSale.badgeText,
+      badge_background_color: timeSale.badgeBackgroundColor,
+    };
+    if (timeSale.displayText) promotionSettings.time_display_text = timeSale.displayText;
+
+    const { data: promotion, error: promotionError } = await supabase
+      .from("menu_promotions")
+      .insert({
+        menu_site_id: menuSiteId,
+        type: TIME_SALE_TYPE,
+        name: timeSale.name,
+        active: true,
+        schedule_type: "once",
+        starts_at: campaignWindow.startsAt,
+        ends_at: campaignWindow.endsAt,
+        daily_start_time: null,
+        daily_end_time: null,
+        timezone: TIME_SALE_TIMEZONE,
+        settings: promotionSettings as Json,
+      } satisfies MenuPromotionInsert)
+      .select("id")
+      .single();
+
+    if (promotionError) {
+      if (promotionError.code === "42P01" || promotionError.message.toLowerCase().includes("menu_promotions")) continue;
+      throw new Error(`Display default sale creation failed: ${promotionError.message}`);
+    }
+
+    const promotionItems: MenuPromotionItemInsert[] = resolvedTargets.map((target) => ({
+        promotion_id: promotion.id,
+        menu_item_id: target.menuItemId,
+        price_column_id: target.priceColumnId,
+        sale_price: target.salePrice,
+        sale_price_label: target.salePriceLabel,
+        visible: target.visible,
+      }));
+
+    const { error: promotionItemError } = await supabase.from("menu_promotion_items").insert(promotionItems);
+    if (
+      promotionItemError &&
+      promotionItemError.code !== "42P01" &&
+      !promotionItemError.message.toLowerCase().includes("menu_promotion_items")
+    ) {
+      throw new Error(`Display default sale target creation failed: ${promotionItemError.message}`);
     }
   }
 

@@ -11,6 +11,7 @@ import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
+  shouldUseMenuPreviewDeviceFrame,
   type MenuPreviewQuery,
 } from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
@@ -165,7 +166,9 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     redirect("/mypage?error=menu-preview-not-allowed");
   }
 
-  if (!isActualView) {
+  const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(data.menuSite.template_key);
+
+  if (!isActualView && usesDevicePreviewFrame) {
     return (
       <MenuPreviewDeviceFrame
         device={device}
@@ -198,7 +201,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         orderCallConfig={previewOrderCallConfig}
         {...data}
       />
-      {!isEmbedded ? (
+      {usesDevicePreviewFrame && !isEmbedded ? (
         <Link
           href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation })}
           className="fixed bottom-4 right-4 z-[1000] rounded-full border border-white/30 bg-zinc-950/90 px-4 py-2.5 text-sm font-black text-white shadow-lg backdrop-blur transition-colors hover:bg-zinc-800"

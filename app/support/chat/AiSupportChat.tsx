@@ -11,7 +11,7 @@ const SUGGESTIONS = [
   "디스플레이에서 동영상을 사용할 수 있나요?",
 ] as const;
 
-export default function AiSupportChat() {
+export default function AiSupportChat({ compact = false }: { compact?: boolean }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
@@ -57,7 +57,7 @@ export default function AiSupportChat() {
   };
 
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white">
+    <section className={`overflow-hidden border border-zinc-200 bg-white ${compact ? "rounded-[1.25rem]" : "rounded-[2rem]"}`}>
       <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
         <h2 className="text-lg font-black">AI 이용 안내</h2>
         <p className="mt-1 text-sm font-medium leading-relaxed text-zinc-500">
@@ -65,7 +65,7 @@ export default function AiSupportChat() {
         </p>
       </div>
 
-      <div className="min-h-[420px] space-y-4 bg-zinc-50 px-5 py-6 md:px-7" aria-live="polite">
+      <div className={`${compact ? "min-h-[280px]" : "min-h-[420px]"} space-y-4 bg-zinc-50 px-5 py-6 md:px-7`} aria-live="polite">
         {messages.length === 0 ? (
           <div className="mx-auto flex max-w-xl flex-col items-center py-12 text-center">
             <p className="text-2xl font-black tracking-tight">무엇이 궁금한가요?</p>

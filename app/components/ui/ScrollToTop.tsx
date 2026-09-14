@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowUp, ArrowDown, MessageCircle } from 'lucide-react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
-export const KAKAO_CHANNEL_URL = 'http://pf.kakao.com/_xmxnxfQn/chat';
+import AiSupportChatLauncher from '@/app/support/chat/AiSupportChatLauncher';
 
 const ScrollToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -50,60 +50,44 @@ const ScrollToTop = () => {
   };
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="pointer-events-none fixed bottom-8 right-8 z-40 hidden flex-col items-end gap-3 md:flex"
-        >
-          {/* Container needs pointer-events-auto for children to be clickable */}
-          <div className="flex flex-col items-end gap-3 pointer-events-auto">
-            <a
-              href={KAKAO_CHANNEL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center gap-1 text-[#3C1E1E]"
-              aria-label="카카오톡 상담 문의"
-            >
-              <span className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 z-10 bg-[#FAE100] hover:scale-110">
-                <MessageCircle className="w-7 h-7 fill-current" />
-              </span>
-              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-zinc-800 shadow-sm ring-1 ring-zinc-100">
-                상담 문의
-              </span>
-            </a>
-          </div>
+    <>
+      <AiSupportChatLauncher />
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="pointer-events-none fixed bottom-24 right-8 z-30 hidden flex-col items-end gap-3 md:flex"
+          >
+            <div className="flex w-14 flex-col items-center gap-3 pointer-events-auto">
+              <AnimatePresence>
+                {isScrollingUp && (
+                  <motion.button
+                    initial={{ opacity: 0, height: 0, scale: 0 }}
+                    animate={{ opacity: 1, height: 40, scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0 }}
+                    onClick={scrollToTop}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white group"
+                    aria-label="맨 위로 이동"
+                  >
+                    <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
 
-          {/* Scroll Buttons Group */}
-          <div className="flex flex-col gap-3 items-center w-14 pointer-events-auto mt-2">
-            <AnimatePresence>
-              {isScrollingUp && (
-                <motion.button
-                  initial={{ opacity: 0, height: 0, scale: 0 }}
-                  animate={{ opacity: 1, height: 40, scale: 1 }}
-                  exit={{ opacity: 0, height: 0, scale: 0 }}
-                  onClick={scrollToTop}
-                  className="w-10 h-10 bg-white text-zinc-600 rounded-full shadow-md flex items-center justify-center border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-300 group"
-                  aria-label="Scroll to top"
-                >
-                  <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
-                </motion.button>
-              )}
-            </AnimatePresence>
-
-            <button
-              onClick={scrollToBottom}
-              className="w-10 h-10 bg-white text-zinc-600 rounded-full shadow-md flex items-center justify-center border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-300 group"
-              aria-label="Scroll to bottom"
-            >
-              <ArrowDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
-            </button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              <button
+                onClick={scrollToBottom}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white group"
+                aria-label="맨 아래로 이동"
+              >
+                <ArrowDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

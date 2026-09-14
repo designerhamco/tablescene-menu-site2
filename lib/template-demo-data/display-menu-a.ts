@@ -31,8 +31,8 @@ function itemId(pageIndex: number, categoryIndex: number, itemIndex: number) {
   return `${siteId}-item-${pageIndex}-${categoryIndex}-${itemIndex}`;
 }
 
-function priceOptionId(pageIndex: number, categoryIndex: number, itemIndex: number, optionIndex: number) {
-  return `${itemId(pageIndex, categoryIndex, itemIndex)}-price-option-${optionIndex}`;
+function priceColumnId(pageIndex: number, categoryIndex: number, optionLabel: string) {
+  return `${categoryId(pageIndex, categoryIndex)}-price-column-${optionLabel.toLowerCase()}`;
 }
 
 type DemoCategory = {
@@ -147,7 +147,7 @@ const fullItems: DemoItem[] = [
     sortOrder: 1,
     badge: "SIGNATURE",
     recommended: true,
-    options: iceOnly("6.5"),
+    options: hotIce("6.5", "6.5"),
   },
   {
     pageIndex: 0,
@@ -252,7 +252,7 @@ const fullItems: DemoItem[] = [
     setName: "CAPPUCCINO",
     priceLabel: "5.0",
     sortOrder: 5,
-    options: [{ label: "HOT", priceLabel: "5.0", sortOrder: 1 }],
+    options: hotIce("5.0", "5.0"),
   },
   {
     pageIndex: 0,
@@ -511,7 +511,76 @@ const splitItems: DemoItem[] = [
   },
 ];
 
-function buildCategory(category: DemoCategory) {
+const STARTER_FULL_ITEM_KEYS = new Set([
+  "0:0",
+  "0:1",
+  "0:2",
+  "0:3",
+  "0:5",
+  "1:0",
+  "1:1",
+  "1:3",
+  "1:4",
+  "1:5",
+  "2:0",
+  "2:1",
+  "2:2",
+  "2:3",
+  "2:4",
+  "2:6",
+  "3:0",
+  "3:1",
+  "3:2",
+  "3:3",
+]);
+
+const STARTER_SPLIT_ITEM_KEYS = new Set([
+  "0:0",
+  "0:1",
+  "0:2",
+  "0:3",
+  "0:4",
+  "1:0",
+  "1:1",
+  "1:2",
+  "1:3",
+]);
+
+const STARTER_BADGE_ITEM_KEYS = new Set([
+  "0:0:1",
+  "0:2:0",
+  "0:2:3",
+  "0:3:3",
+  "1:0:0",
+  "1:0:2",
+]);
+
+function buildStarterItems(items: DemoItem[], selectedKeys: Set<string>) {
+  return items
+    .filter((item) => selectedKeys.has(`${item.categoryIndex}:${item.itemIndex}`))
+    .map((item) => {
+      const keepBadge = STARTER_BADGE_ITEM_KEYS.has(`${item.pageIndex}:${item.categoryIndex}:${item.itemIndex}`);
+      return {
+        ...item,
+        badge: keepBadge ? item.badge : undefined,
+        recommended: keepBadge ? item.recommended : false,
+      };
+    });
+}
+
+const starterFullItems = buildStarterItems(fullItems, STARTER_FULL_ITEM_KEYS);
+const starterSplitItems = buildStarterItems(splitItems, STARTER_SPLIT_ITEM_KEYS);
+const starterItems = [...starterFullItems, ...starterSplitItems];
+
+function buildCategory(category: DemoCategory, items: DemoItem[]) {
+  const optionColumns = new Map<string, DemoOption>();
+  for (const item of items) {
+    if (item.pageIndex !== category.pageIndex || item.categoryIndex !== category.categoryIndex) continue;
+    for (const option of item.options ?? []) {
+      if (!optionColumns.has(option.label)) optionColumns.set(option.label, option);
+    }
+  }
+
   return {
     id: categoryId(category.pageIndex, category.categoryIndex),
     menu_page_id: menuPageIdForDemoIndex(category.pageIndex),
@@ -520,7 +589,16 @@ function buildCategory(category: DemoCategory) {
     description_visible: false,
     sort_order: category.sortOrder,
     visible: true,
-    priceColumns: [],
+    priceColumns: [...optionColumns.values()]
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .map((option) => ({
+        id: priceColumnId(category.pageIndex, category.categoryIndex, option.label),
+        categoryId: categoryId(category.pageIndex, category.categoryIndex),
+        key: option.label.toLowerCase(),
+        label: option.label,
+        sortOrder: option.sortOrder,
+        visible: true,
+      })),
   };
 }
 
@@ -548,22 +626,14 @@ function buildItem(item: DemoItem) {
     traits_visible: true,
     visible: true,
     sort_order: item.sortOrder,
-    priceColumnValues: [],
-  };
-}
-
-function buildPriceOptions(items: DemoItem[]) {
-  return items.flatMap((item) =>
-    (item.options ?? []).map((option, optionIndex) => ({
-      id: priceOptionId(item.pageIndex, item.categoryIndex, item.itemIndex, optionIndex),
-      menu_item_id: itemId(item.pageIndex, item.categoryIndex, item.itemIndex),
-      label: option.label,
+    priceColumnValues: (item.options ?? []).map((option, optionIndex) => ({
+      id: `${itemId(item.pageIndex, item.categoryIndex, item.itemIndex)}-price-column-value-${optionIndex}`,
+      priceColumnId: priceColumnId(item.pageIndex, item.categoryIndex, option.label),
       price: priceFromLabel(option.priceLabel),
-      price_label: option.priceLabel,
+      priceLabel: option.priceLabel,
       visible: true,
-      sort_order: option.sortOrder,
-    }))
-  );
+    })),
+  };
 }
 
 const qaMenuNames = [
@@ -740,7 +810,49 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
   const pageSettings = getDefaultPageSettings();
   const fixture = qaCase ? buildDisplayMenuAQaFixture(qaCase) : null;
   const categories = fixture?.categories ?? [...fullCategories, ...splitCategories];
-  const items = fixture?.items ?? [...fullItems, ...splitItems];
+  const items = fixture?.items ?? starterItems;
+  const starterTimeSales: MenuPageData["timeSales"] = fixture ? [] : [
+    {
+      id: `${siteId}-time-sale-open`,
+      name: "썸머 블루 오픈 할인",
+      scheduleType: "once",
+      startsAt: "2026-01-01T00:00:00.000Z",
+      endsAt: "2099-12-31T23:59:59.999Z",
+      dailyStartTime: null,
+      dailyEndTime: null,
+      timezone: "Asia/Seoul",
+      timeDisplayMode: "message",
+      displayText: "오픈 기념 한정 할인",
+      badgeText: "오픈할인",
+      badgeBackgroundColor: "#126CA8",
+      items: [
+        {
+          id: `${siteId}-time-sale-open-target`,
+          menuItemId: itemId(0, 3, 0),
+          priceColumnId: null,
+          salePrice: 3900,
+          salePriceLabel: "3.9",
+          visible: true,
+        },
+        {
+          id: `${siteId}-time-sale-open-hot-target`,
+          menuItemId: itemId(0, 1, 4),
+          priceColumnId: priceColumnId(0, 1, "HOT"),
+          salePrice: 4300,
+          salePriceLabel: "4.3",
+          visible: true,
+        },
+        {
+          id: `${siteId}-time-sale-open-ice-target`,
+          menuItemId: itemId(0, 0, 0),
+          priceColumnId: priceColumnId(0, 0, "ICE"),
+          salePrice: 5700,
+          salePriceLabel: "5.7",
+          visible: true,
+        },
+      ],
+    },
+  ];
 
   return {
     locale: DEFAULT_LOCALE,
@@ -863,14 +975,14 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
         created_at: now,
       },
     ],
-    categories: categories.map(buildCategory),
+    categories: categories.map((category) => buildCategory(category, items)),
     items: items.map(buildItem),
-    priceOptions: buildPriceOptions(items),
+    priceOptions: [],
     traits: [],
     events: [],
     chefs: [],
     socialLinks: [],
-    timeSales: [],
+    timeSales: starterTimeSales,
     nextTimeSaleStartAt: null,
     initialNowMs: Date.now(),
   };
