@@ -53,11 +53,10 @@ export default async function StoreOperationsShell({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
-        <div className="mx-auto w-full max-w-7xl">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+        <div className="mx-auto w-full max-w-[1280px]">
           <header className="mb-6 border-b border-zinc-200 pb-8">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">STORE OPERATIONS</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">매장 운영</h1>
+            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">매장 운영</h1>
             <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
               운영 중인 메뉴판의 호출과 테이블, 수동 대기번호를 한곳에서 관리합니다.
             </p>
@@ -102,13 +101,11 @@ export default async function StoreOperationsShell({
                     href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
                     className="mb-2 block rounded-2xl px-4 py-3"
                   >
-                    <span className="block text-xs font-black uppercase tracking-[0.14em] text-emerald-700">OPERATIONS</span>
-                    <span className="mt-1 block truncate text-base font-black text-zinc-950">운영 대시보드</span>
+                    <span className="block truncate text-base font-black text-zinc-950">운영 대시보드</span>
                   </Link>
                 ) : (
                   <div className="mb-2 rounded-2xl px-4 py-3">
-                    <span className="block text-xs font-black uppercase tracking-[0.14em] text-zinc-400">OPERATIONS</span>
-                    <span className="mt-1 block text-base font-black text-zinc-400">운영 대시보드</span>
+                    <span className="block text-base font-black text-zinc-400">운영 대시보드</span>
                   </div>
                 )}
 

@@ -169,7 +169,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     return (
       <>
         <OfficialSiteNavbar />
-        <main className="min-h-screen bg-zinc-950 px-6 py-16 text-white">
+        <main className="site-gutter min-h-screen bg-zinc-950 py-16 text-white">
           <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-2xl flex-col justify-center">
             <section className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-zinc-400">Admin Access</p>
@@ -298,7 +298,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       <ActionFeedbackToast message={noticeMessage} tone="success" />
       <ActionFeedbackToast message={errorMessage} tone="error" />
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-950 px-6 py-16 text-white">
+      <main className="site-gutter min-h-screen bg-zinc-950 py-16 text-white">
       <div className="mx-auto w-full max-w-7xl">
         <header className="mb-12 flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
           <div>

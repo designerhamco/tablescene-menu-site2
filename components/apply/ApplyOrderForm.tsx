@@ -65,10 +65,7 @@ import {
   type TemplateKey,
 } from "@/lib/templates";
 import {
-  getTemplateServiceLabel,
-  getTemplateTypeOptionsForService,
   getTemplateTypeLabelByTemplateKey,
-  type TemplateServiceType,
 } from "@/lib/template-types";
 import type { PaymentCompleteResponse } from "@/types/payment";
 import {
@@ -88,6 +85,7 @@ type ApplyOrderFormProps = {
   serviceType?: "menu" | "screen" | "order";
   displayCheckoutQaEnabled?: boolean;
   initialBasicProductKey?: BasicProductKey;
+  initialTemplateKey?: string;
   singleMonthlyFreeTrialAvailable?: boolean;
   singleMonthlyFreeTrialFirstBillingDate?: string;
   singleMonthlyFreeTrialProductKey?: BasicProductKey;
@@ -392,45 +390,37 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: basicPaymentProducts[0],
-    bullets: ["단일페이지 · 할인 기능 · 위젯", "스마트호출 미포함 · 오더 미포함", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
-    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
+    bullets: ["할인 · 위젯", "월 자동결제 · 웰컴 크레딧 6개"],
   },
   {
     product: basicPaymentProducts[1],
-    bullets: ["단일페이지 · 할인 기능 · 위젯", "스마트호출 미포함 · 오더 미포함", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
-    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
+    bullets: ["할인 · 위젯", "연 자동결제 · 월결제 대비 10% 추가 할인"],
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["멀티페이지 · 할인 기능 · 스마트호출", "위젯 미포함 · 오더 미포함", "월 자동결제", "계정당 웰컴 크레딧 6개 1회"],
-    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
+    bullets: ["할인 · 스마트호출", "월 자동결제 · 웰컴 크레딧 6개"],
   },
   {
     product: basicPaymentProducts[3],
-    bullets: ["멀티페이지 · 할인 기능 · 스마트호출", "위젯 미포함 · 오더 미포함", "연 자동결제", "월결제 12개월 합계에서 10% 추가 할인"],
-    helperText: "사업자 인증과 PortOne 빌링키 연결 후 결제 · 추가 메뉴판은 별도 구매",
+    bullets: ["할인 · 스마트호출", "연 자동결제 · 월결제 대비 10% 추가 할인"],
   },
 ] as const satisfies readonly {
   product: BasicPaymentProduct;
   bullets: readonly string[];
-  helperText: string;
 }[];
 
 const displayProductCards = [
   {
     product: businessDisplayMonthlyProduct,
-    bullets: ["매월 자동결제", "언제든 해지 가능", "신규 구독당 Display 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
-    helperText: "PortOne 빌링키 발급 후 첫 결제와 이후 정기결제를 연결합니다.",
+    bullets: ["이미지 · 동영상 업로드", "월 자동결제 · 웰컴 크레딧 6개"],
   },
   {
     product: businessDisplayYearlyProduct,
-    bullets: ["연 자동결제", "월결제 대비 할인", "신규 구독당 Display 메뉴판 1개", "계정당 웰컴 크레딧 6개 1회"],
-    helperText: "국세청 사업자 인증과 PortOne 빌링키 연결 후 연 정기결제를 진행합니다.",
+    bullets: ["이미지 · 동영상 업로드", "연 자동결제 · 월결제 대비 10% 추가 할인"],
   },
 ] as const satisfies readonly {
   product: DisplayPaymentProduct;
   bullets: readonly string[];
-  helperText: string;
 }[];
 
 async function readSlugAvailabilityResponse(response: Response): Promise<SlugAvailabilityResponse> {
@@ -463,6 +453,7 @@ const templateTagMap = {
   bakery: ["카페/베이커리", "디저트", "모바일/QR"],
   dessert: ["카페/베이커리", "디저트", "모바일/QR"],
   restaurant: ["음식점/다이닝", "메뉴판", "모바일/QR"],
+  japanese: ["일식", "메뉴판", "모바일/QR"],
   brunch: ["음식점/다이닝", "브런치", "모바일/QR"],
   casual_dining: ["음식점/다이닝", "모바일/QR"],
   fine_dining: ["음식점/다이닝", "코스", "프리미엄"],
@@ -636,6 +627,12 @@ function getMenuTemplateCategoriesByGroup(groupKey: MenuTemplateGroupKey) {
 
 function getMenuTemplateGroupLabel(groupKey: MenuTemplateGroupKey) {
   return getBasicTemplateCategoryGroupLabel(groupKey);
+}
+
+function getMenuTemplateGroupByTemplateCategory(categoryKey?: TemplateCategoryKey | null) {
+  return BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) =>
+    group.categoryKeys.some((category) => category === categoryKey)
+  ) ?? BASIC_TEMPLATE_CATEGORY_GROUPS[0];
 }
 
 function getTemplatesByMenuGroup(
@@ -912,6 +909,7 @@ export default function ApplyOrderForm({
   serviceType = "menu",
   displayCheckoutQaEnabled = false,
   initialBasicProductKey = businessBasicMonthlyProduct.product_key,
+  initialTemplateKey = "",
   singleMonthlyFreeTrialAvailable = false,
   singleMonthlyFreeTrialFirstBillingDate = "",
   singleMonthlyFreeTrialProductKey = businessBasicMonthlyProduct.product_key,
@@ -925,20 +923,26 @@ export default function ApplyOrderForm({
   const isScreenService = serviceType === "screen";
   const isOrderService = serviceType === "order";
   const isDisplayBusinessOnly = isScreenService && displayCheckoutQaEnabled;
-  const templateServiceType: TemplateServiceType = isScreenService ? "display" : "basic";
   const serviceTemplates = useMemo(() => [...templates], [templates]);
-  const templateTypeOptions = useMemo(() => getTemplateTypeOptionsForService(templateServiceType), [templateServiceType]);
   const currentPlanKey = servicePlanKeys[serviceType];
   const firstCategory = TEMPLATE_CATEGORIES[0].key;
-  const firstMenuTemplateGroup = BASIC_TEMPLATE_CATEGORY_GROUPS[0].key;
-  const firstTemplate = serviceTemplates.find((template) => template.template_category === firstCategory) ?? serviceTemplates[0] ?? templates[0];
-  const firstDisplayTemplateGroup = getDisplayTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
+  const requestedTemplate = serviceTemplates.find((template) => template.key === initialTemplateKey);
   const requestedInitialBasicProduct = getBasicPaymentProduct(initialBasicProductKey) ?? businessBasicMonthlyProduct;
   const initialBasicProduct = serviceTemplates.some((template) =>
     isDiningProductCompatibleWithTemplate(requestedInitialBasicProduct.product_key, template.key)
   )
     ? requestedInitialBasicProduct
     : businessBasicMonthlyProduct;
+  const compatibleRequestedTemplate = requestedTemplate && isDiningProductCompatibleWithTemplate(initialBasicProduct.product_key, requestedTemplate.key)
+    ? requestedTemplate
+    : undefined;
+  const firstTemplate = compatibleRequestedTemplate
+    ?? serviceTemplates.find((template) => template.template_category === firstCategory && isDiningProductCompatibleWithTemplate(initialBasicProduct.product_key, template.key))
+    ?? serviceTemplates.find((template) => isDiningProductCompatibleWithTemplate(initialBasicProduct.product_key, template.key))
+    ?? serviceTemplates[0]
+    ?? templates[0];
+  const firstMenuTemplateGroup = getMenuTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
+  const firstDisplayTemplateGroup = getDisplayTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(initialBasicProduct.product_key);
   const [selectedDisplayProductKey, setSelectedDisplayProductKey] = useState<PaymentProductKey>(businessDisplayMonthlyProduct.product_key);
   const activeProduct = useMemo<PaidApplyProduct>(() => {
@@ -2162,25 +2166,18 @@ export default function ApplyOrderForm({
         {isMenuService && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
-              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                단일페이지·멀티페이지 상품 중 이용 방식을 선택하세요. 선택한 상품과 같은 페이지 유형의 템플릿만 표시됩니다.
-                신규 구매 또는 신규 구독 1건당 다이닝 메뉴판 1개가 제공됩니다.
-              </p>
-              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.
-              </p>
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
+              <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">이용 방식</h2>
+              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+                페이지 유형과 결제 주기를 선택해 주세요.
               </p>
               {singleMonthlyFreeTrialAvailable ? (
-                <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-emerald-700">
-                  단일페이지 월결제는 결제수단 등록 후 30일간 무료입니다. {singleMonthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않으며, 중도 해지해도 체험 종료일까지 이용할 수 있습니다.
+                <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-emerald-700">
+                  단일페이지 월결제는 결제수단 등록 후 30일 무료입니다. 첫 결제일은 {singleMonthlyFreeTrialFirstBillingDate}입니다.
                 </p>
               ) : null}
             </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {basicProductCards.map(({ product, bullets, helperText }) => {
+            <div className="grid gap-4 md:grid-cols-2">
+              {basicProductCards.map(({ product, bullets }) => {
                 const hasAvailableTemplate = serviceTemplates.some((template) =>
                   isDiningProductCompatibleWithTemplate(product.product_key, template.key)
                 );
@@ -2194,7 +2191,7 @@ export default function ApplyOrderForm({
                     onClick={() => {
                       if (hasAvailableTemplate) selectBasicProduct(product);
                     }}
-                    className={`flex min-h-[260px] flex-col rounded-2xl border p-5 text-left transition ${
+                    className={`flex min-h-[220px] flex-col rounded-2xl border p-5 text-left transition ${
                       !hasAvailableTemplate
                         ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 opacity-70"
                         : isSelected
@@ -2234,9 +2231,6 @@ export default function ApplyOrderForm({
                         <li key={bullet}>• {bullet}</li>
                       ))}
                     </ul>
-                    <p className={`mt-auto pt-5 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/50" : "text-zinc-400"}`}>
-                      {helperText}
-                    </p>
                   </button>
                 );
               })}
@@ -2247,9 +2241,9 @@ export default function ApplyOrderForm({
         {isScreenService && (
           <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-3xl font-bold tracking-tight">디스플레이 용도 / 설치 정보</h2>
-              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                매장 TV나 모니터에 띄울 화면의 목적을 알려주세요. 입력값은 초기 세팅 안내와 추후 디스플레이 전용 템플릿 분리에 활용됩니다.
+              <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">디스플레이 용도</h2>
+              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+                화면을 설치할 매장 유형을 선택해 주세요.
               </p>
             </div>
             <div>
@@ -2281,16 +2275,13 @@ export default function ApplyOrderForm({
         {isScreenService && displayCheckoutQaEnabled && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-3xl font-bold tracking-tight">이용 방식 선택</h2>
-              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                월결제와 연결제 모두 빌링키 정기결제로 진행합니다. 신규 Display 구독 1건당 메뉴판 1개가 제공됩니다.
-              </p>
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                ※ 모든 금액은 부가세 포함가입니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장됩니다.
+              <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">이용 방식</h2>
+              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+                월결제 또는 연결제를 선택해 주세요.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
-              {displayProductCards.map(({ product, bullets, helperText }) => {
+              {displayProductCards.map(({ product, bullets }) => {
                 const isSelected = selectedDisplayProductKey === product.product_key;
 
                 return (
@@ -2298,7 +2289,7 @@ export default function ApplyOrderForm({
                     key={product.product_key}
                     type="button"
                     onClick={() => selectDisplayProduct(product)}
-                    className={`flex min-h-[230px] flex-col rounded-2xl border p-5 text-left transition ${
+                    className={`flex min-h-[210px] flex-col rounded-2xl border p-5 text-left transition ${
                       isSelected
                         ? "border-zinc-950 bg-zinc-950 text-white shadow-md"
                         : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
@@ -2329,9 +2320,6 @@ export default function ApplyOrderForm({
                         <li key={bullet}>• {bullet}</li>
                       ))}
                     </ul>
-                    <p className={`mt-auto pt-5 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/50" : "text-zinc-400"}`}>
-                      {helperText}
-                    </p>
                   </button>
                 );
               })}
@@ -2341,35 +2329,19 @@ export default function ApplyOrderForm({
 
         <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
           <div className="mb-6">
-            <h2 className="text-3xl font-bold tracking-tight">
-              {isScreenService ? "디스플레이 템플릿 카테고리 / 디스플레이 템플릿 선택" : "템플릿 선택"}
+            <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">
+              {isScreenService ? "디스플레이 템플릿" : "템플릿"}
             </h2>
             {isMenuService && (
-              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                {activeDiningTier ? `${getDiningTierLabel(activeDiningTier)} 상품에서 사용할 수 있는 템플릿만 표시됩니다.` : "상품에 맞는 템플릿을 선택하세요."}
-                선택한 템플릿은 결제 후 생성되는 메뉴판에 적용됩니다.
+              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+                {activeDiningTier ? `${getDiningTierLabel(activeDiningTier)}에서 사용할 디자인을 선택해 주세요.` : "상품에 맞는 템플릿을 선택해 주세요."}
               </p>
             )}
             {isScreenService && (
-              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-                디스플레이 전용 카테고리를 고른 뒤 TV/모니터 화면에 맞는 메뉴보드 템플릿을 선택해주세요. 현재는 구현된 템플릿을 기반으로 연결됩니다.
+              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+                매장 화면에 사용할 디자인을 선택해 주세요.
               </p>
             )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {templateTypeOptions.map((option) => (
-                <span key={option.type} className="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-black text-zinc-600">
-                  {option.label}
-                </span>
-              ))}
-            </div>
-            {isScreenService && (
-              <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                일정표형 템플릿은 현재 아티메뉴 다이닝에서만 지원됩니다. 디스플레이용 일정표 템플릿은 추후 검토 예정입니다.
-              </p>
-            )}
-            <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-              현재 선택 화면은 {getTemplateServiceLabel(templateServiceType)}에서 지원하는 템플릿만 보여줍니다.
-            </p>
           </div>
 
           <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
@@ -2520,7 +2492,7 @@ export default function ApplyOrderForm({
         </section>
 
         <section className="order-1 rounded-3xl bg-white p-7 shadow-sm">
-          <h2 className="mb-6 text-3xl font-bold tracking-tight">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
+          <h2 className="mb-6 text-2xl font-bold tracking-tight md:text-[1.75rem]">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <Field
               label={isScreenService ? "디스플레이 이름 또는 메뉴보드 이름" : "메뉴판 관리용 이름"}
@@ -2586,7 +2558,7 @@ export default function ApplyOrderForm({
 
         {isOrderService && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
-            <h2 className="text-3xl font-bold tracking-tight">오더 도입 정보</h2>
+            <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">오더 도입 정보</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               입력해주신 정보는 아티메뉴 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
             </p>
@@ -2644,16 +2616,16 @@ export default function ApplyOrderForm({
         )}
 
         <section className="order-4 rounded-3xl bg-white p-7 shadow-sm">
-          <h2 className="mb-6 text-3xl font-bold tracking-tight">구매자 및 담당자 정보</h2>
-          <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
-            <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
+          <h2 className="mb-6 text-2xl font-bold tracking-tight md:text-[1.75rem]">구매자 및 담당자</h2>
+          <div className="mb-6 border-l-2 border-zinc-300 pl-4">
+            <p className="break-keep text-sm font-medium leading-relaxed text-zinc-500">
               {isDisplayBusinessOnly
-                ? "아티메뉴 디스플레이는 사업자 전용 상품입니다. 사업자 정보를 확인한 뒤 정기 결제를 진행할 수 있습니다."
+                ? "사업자 정보를 확인한 뒤 정기 결제를 진행합니다."
                 : isScreenService
-                  ? "아티메뉴 디스플레이는 전용 템플릿 준비 전까지 결제를 진행하지 않습니다."
+                  ? "디스플레이 신청 정보를 확인합니다."
                 : activeProductRequiresBusinessVerification
-                  ? "사업자 월결제/연결제는 사업자 인증 후 자동결제로 이용합니다. 현재 화면은 인증 입력 구조와 자동결제 연결 전 상태를 명확히 구분합니다."
-                  : "개인 체험은 사업자 인증 없이 1개월 동안 사용하는 단건 결제 상품입니다. 자동결제 없이 1회 결제로 이용합니다."}
+                  ? "사업자 정보 확인 후 결제수단을 등록합니다."
+                  : "담당자 정보를 확인합니다."}
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
@@ -2736,13 +2708,8 @@ export default function ApplyOrderForm({
                 <div className="md:col-span-2 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="font-black text-amber-900">사업자 인증</p>
-                      <p className="mt-1 break-keep">
-                        {shouldStartFreeTrial
-                          ? `사업자 정보 확인 후 결제수단을 등록하면 30일 무료체험이 시작되고, ${singleMonthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다.`
-                          : "사업자 정보 확인 후 결제수단을 등록하면 선택한 월결제 또는 연결제 자동결제가 진행됩니다."}
-                      </p>
-                      <p className={`mt-2 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-amber-800"}`}>
+                      <p className="font-black text-amber-900">사업자 정보 확인</p>
+                      <p className={`mt-1 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-amber-800"}`}>
                         {businessVerificationState.message}
                       </p>
                     </div>
@@ -2766,9 +2733,15 @@ export default function ApplyOrderForm({
                       <BusinessVerificationSummaryRow label="인증일" value={businessVerificationState.result.verifiedAt ? new Date(businessVerificationState.result.verifiedAt).toLocaleDateString("ko-KR") : "-"} />
                     </div>
                   )}
-                  <p className="mt-3 break-keep text-xs">
-                    사업자 명의로 매입세액 공제를 받으시려면 결제창에서 지출증빙용을 선택하고 사업자번호를 입력해 주세요.
-                  </p>
+                  <details className="mt-3 text-xs font-bold text-amber-900">
+                    <summary className="cursor-pointer select-none">결제·증빙 안내</summary>
+                    <p className="mt-2 break-keep font-medium leading-relaxed text-amber-800">
+                      {shouldStartFreeTrial
+                        ? `결제수단 등록 후 30일 무료체험이 시작되며 ${singleMonthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다. `
+                        : "확인 완료 후 선택한 결제 주기로 자동결제가 진행됩니다. "}
+                      매입세액 공제가 필요하면 결제창에서 지출증빙용을 선택하고 사업자번호를 입력해 주세요.
+                    </p>
+                  </details>
                 </div>
               </>
             )}
@@ -2875,21 +2848,19 @@ export default function ApplyOrderForm({
             {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정 금액" : "다음 결제 예정 금액"} value={formatKrw(activeProduct.amount)} /> : null}
           </dl>
           {(isMenuService || isScreenService) && (
-            <p className="mt-5 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
-              {shouldStartFreeTrial
-                ? `결제수단 등록은 필수입니다. ${singleMonthlyFreeTrialFirstBillingDate} 전 해지하면 결제 없이 30일 종료일까지 이용할 수 있습니다.`
-                : "추가 메뉴판은 별도로 구매할 수 있습니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며 새 메뉴판이 추가되지 않습니다."}
-            </p>
+            <details className="mt-5 border-t border-zinc-200 pt-4 text-xs font-semibold leading-relaxed text-zinc-500">
+              <summary className="cursor-pointer font-bold text-zinc-700">결제 안내</summary>
+              <div className="mt-3 space-y-2 break-keep">
+                <p>
+                  {shouldStartFreeTrial
+                    ? `결제수단 등록 후 30일 동안 무료로 이용하며, ${singleMonthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않습니다.`
+                    : "사업자 인증과 결제수단 등록 후 자동결제를 진행합니다."}
+                </p>
+                <p>추가 메뉴판은 별도 구매이며, 표시 금액은 VAT 포함입니다.</p>
+                {activePromotion ? <p>{openDiscountPolicy.note}</p> : null}
+              </div>
+            </details>
           )}
-          <p className="mt-3 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
-            {isMenuService
-              ? activeProduct.is_subscription
-                ? `${openDiscountPolicy.note} VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 ${shouldStartFreeTrial ? "30일 무료체험을 시작합니다." : "결제를 진행합니다."}`
-                : "VAT 포함 금액입니다."
-              : activeProduct.is_subscription
-                ? "VAT 포함 금액입니다. 사업자 인증과 PortOne 빌링키 자동결제 연결 후 결제를 진행합니다."
-                : "VAT 포함 금액입니다. 일반 결제 검증 후 메뉴판이 생성됩니다."}
-          </p>
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">

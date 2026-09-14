@@ -18,12 +18,11 @@ export default function AiSupportChatPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-5 py-12 text-zinc-950 md:py-16">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-12 text-zinc-950 md:py-16">
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-8 flex flex-col gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">AI SUPPORT</p>
-              <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">AI 상담</h1>
+              <h1 className="text-4xl font-black tracking-tight md:text-5xl">AI 상담</h1>
               <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
                 아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다.
               </p>

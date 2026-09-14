@@ -80,18 +80,15 @@ function getFeaturedItem(data: MenuPreviewRendererProps, capabilities: TemplateC
 }
 
 function PreviewSection({
-  eyebrow,
   title,
   children,
 }: {
-  eyebrow: string;
   title: string;
   children: ReactNode;
 }) {
   return (
     <section className="border-b border-zinc-200 bg-white px-5 py-10">
       <div className="mx-auto w-full max-w-3xl">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.22em] text-zinc-400">{eyebrow}</p>
         <h2 className="text-3xl font-black tracking-tight text-zinc-950">{title}</h2>
         <div className="mt-6">{children}</div>
       </div>
@@ -149,12 +146,8 @@ function IntroSection({ data }: { data: MenuPreviewRendererProps }) {
         </>
       )}
       <div className="relative mx-auto w-full max-w-3xl">
-        <p className={`mb-3 text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/60" : "text-zinc-400"}`}>Intro</p>
         <div className={`rounded-lg p-6 ${hasBackgroundImage ? "border border-white/15 bg-black/10" : "border border-zinc-100 bg-zinc-50"}`}>
-          <p className={`text-xs font-black uppercase tracking-[0.22em] ${hasBackgroundImage ? "text-white/50" : "text-zinc-400"}`}>
-            Intro
-          </p>
-          <h3 className="mt-3 break-keep text-4xl font-black tracking-tight">{title}</h3>
+          <h3 className="break-keep text-4xl font-black tracking-tight">{title}</h3>
           {(menuSite.intro_description || menuSite.brand_description) && (
             <div className={`mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed ${hasBackgroundImage ? "text-white/70" : "text-zinc-500"}`}>
               {menuSite.intro_description && <p>{menuSite.intro_description}</p>}
@@ -178,7 +171,7 @@ function MenuCoverSection({ data, capabilities }: { data: MenuPreviewRendererPro
   const featuredBadgeStyle = featuredItem ? getBadgeStyleForItem(featuredItem, data.menuSite.template_key, customBadgeStyles) : null;
 
   return (
-    <PreviewSection eyebrow="Menu Cover" title="메뉴 커버">
+    <PreviewSection title="메뉴 커버">
       <div className={`grid gap-5 rounded-lg bg-zinc-950 p-6 text-white ${featuredItem ? "lg:grid-cols-[0.95fr_1.05fr] lg:items-center" : ""}`}>
         <div>
           {menuCoverLabel && <p className="text-xs font-black uppercase tracking-[0.22em] text-white/45">{menuCoverLabel}</p>}
@@ -292,7 +285,7 @@ function MenuPagesSection({ data, capabilities }: { data: MenuPreviewRendererPro
   );
 
   return (
-    <PreviewSection eyebrow="Menu" title="메뉴">
+    <PreviewSection title="메뉴">
       {!hasVisibleMenu ? (
         <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
       ) : (
@@ -353,7 +346,7 @@ function AboutSection({ data }: { data: MenuPreviewRendererProps }) {
   const { menuSite } = data;
 
   return (
-    <PreviewSection eyebrow="About" title="소개">
+    <PreviewSection title="소개">
       {(menuSite.about_description || menuSite.brand_description) && (
         <div className="mb-6 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
           {menuSite.about_description && <p>{menuSite.about_description}</p>}
@@ -379,7 +372,7 @@ function ChefsSection({ data }: { data: MenuPreviewRendererProps }) {
   }
 
   return (
-    <PreviewSection eyebrow="People" title="셰프 / 인물">
+    <PreviewSection title="셰프 / 인물">
       <div className="grid gap-4">
         {data.chefs.map((chef) => (
           <article key={chef.id} className="flex gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
@@ -402,7 +395,7 @@ function EventsSection({ data }: { data: MenuPreviewRendererProps }) {
   }
 
   return (
-    <PreviewSection eyebrow="Events" title="이벤트">
+    <PreviewSection title="이벤트">
       <div className="grid gap-4">
         {data.events.map((event) => (
           <article key={event.id} className="overflow-hidden rounded-lg border border-zinc-100 bg-zinc-50">
@@ -434,7 +427,7 @@ function SocialLinksSection({ data }: { data: MenuPreviewRendererProps }) {
   }
 
   return (
-    <PreviewSection eyebrow="Social" title="SNS">
+    <PreviewSection title="SNS">
       <div className="flex flex-wrap gap-2">
         {data.socialLinks.map((link) => (
           <a

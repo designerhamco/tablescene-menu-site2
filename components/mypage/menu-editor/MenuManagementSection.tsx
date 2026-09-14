@@ -1499,7 +1499,6 @@ function PanelHeader({
   description,
   action,
 }: {
-  eyebrow: string;
   title: ReactNode;
   description?: string;
   action?: ReactNode;
@@ -9161,7 +9160,7 @@ export default function MenuManagementSection({
           <section className="min-w-0 rounded-lg border border-zinc-100 bg-white p-4 lg:p-6">
             {canManagePages && isCreatingPage ? (
               <div>
-                <PanelHeader eyebrow="New Page" title={`새 ${labels.pageLabel} 추가`} description={`${labels.pageLabel}를 추가하면 왼쪽 구조 트리에 새 구역이 생깁니다.`} />
+                <PanelHeader title={`새 ${labels.pageLabel} 추가`} description={`${labels.pageLabel}를 추가하면 왼쪽 구조 트리에 새 구역이 생깁니다.`} />
                 <MenuPageForm
                   menuId={menuId}
                   count={sortedPages.length}
@@ -9193,7 +9192,6 @@ export default function MenuManagementSection({
                   return (
                     <>
                 <PanelHeader
-                  eyebrow="Page Detail"
                   title={`${labels.pageLabel} 수정`}
                   description={
                     capabilities.pageDescription
@@ -9270,7 +9268,6 @@ export default function MenuManagementSection({
             ) : selectedWidgetDraft ? (
               <div>
                 <PanelHeader
-                  eyebrow="Widget Detail"
                   title="위젯"
                   description="위젯은 카테고리와 같은 최상위 콘텐츠입니다. 수정 내용은 하단의 최종 저장 후 공개 메뉴판에 반영됩니다."
                 />
@@ -9320,7 +9317,6 @@ export default function MenuManagementSection({
             ) : isCreatingCategory && selectedPage ? (
               <div>
                 <PanelHeader
-                  eyebrow="New Group"
                   title={`새 ${labels.categoryLabel} 추가`}
                   description={
                     canManagePages
@@ -9358,7 +9354,6 @@ export default function MenuManagementSection({
                   return (
                     <>
                 <PanelHeader
-                  eyebrow="Group Detail"
                   title={`${labels.categoryLabel} 수정`}
                   description={
                     capabilities.categoryDescription
@@ -9422,7 +9417,6 @@ export default function MenuManagementSection({
             ) : (selectedCategory || (isAubeTable && editingItemId && pendingItemDrafts[editingItemId]?.pageId === visiblePageId)) && isCreatingItem ? (
               <div ref={newItemFormRef} className="fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:p-0">
                 <PanelHeader
-                  eyebrow="New Item"
                   title={`새 ${labels.itemLabel} 추가`}
                   description={
                     selectedCategory
@@ -9528,7 +9522,6 @@ export default function MenuManagementSection({
             ) : selectedCategory ? (
               <div>
                 <PanelHeader
-                  eyebrow="Group Detail"
                   title={selectedCategory.name}
                   description={`${labels.categoryLabel} 정보를 확인하고, 이 그룹의 ${labels.itemPluralLabel}을 관리합니다.`}
                 />
@@ -9660,7 +9653,6 @@ export default function MenuManagementSection({
             ) : canManagePages && selectedPage ? (
               <div>
                 <PanelHeader
-                  eyebrow="Page Detail"
                   title={
                     selectedPageIsPromotion ? (
                       <span className="inline-flex min-w-0 items-center gap-2">

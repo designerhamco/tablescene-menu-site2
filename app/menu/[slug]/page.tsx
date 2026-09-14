@@ -106,7 +106,7 @@ function PublicMenuUnavailable({ accessState }: { accessState: MenuSiteAccessSta
   const copy = getUnavailableCopy(accessState);
 
   return (
-    <main className="min-h-screen bg-stone-50 px-6 py-16 text-zinc-900">
+    <main className="site-gutter min-h-screen bg-stone-50 py-16 text-zinc-900">
       <section className="mx-auto flex min-h-[70vh] max-w-xl flex-col justify-center">
         <p className="text-sm font-semibold text-amber-700">{copy.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-normal">{copy.title}</h1>

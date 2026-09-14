@@ -352,9 +352,8 @@ const FAQ = ({
   };
 
   return (
-    <section id={id} className={`relative bg-white px-6 py-24 md:py-36 ${className}`}>
-      {/* Container width adjusted to match Footer (max-w-7xl) */}
-      <div className={`max-w-7xl mx-auto ${homeDark ? 'rounded-[2rem] bg-zinc-950 px-6 py-16 text-white md:rounded-[2.5rem] md:px-14 md:py-20' : ''}`}>
+    <section id={id} className={`site-gutter relative bg-white py-24 md:py-36 ${className}`}>
+      <div className={`mx-auto max-w-[1280px] ${homeDark ? 'rounded-[2rem] bg-zinc-950 px-6 py-16 text-white md:rounded-[2.5rem] md:px-14 md:py-20' : ''}`}>
         <div className={`${align === "left" ? "text-left" : "text-center"} mb-10`}>
           <h2 className={`text-3xl md:text-5xl font-bold mb-6 tracking-tight leading-tight ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
             {title}

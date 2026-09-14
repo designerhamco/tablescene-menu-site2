@@ -51,8 +51,7 @@ export default function PickupQueueDashboard({
       <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">MANUAL QUEUE</p>
-            <h3 className="mt-2 text-xl font-black">수동 대기번호 등록</h3>
+            <h3 className="text-xl font-black">수동 대기번호 등록</h3>
             <p className="mt-2 text-sm font-medium leading-relaxed text-zinc-500">
               POS 연동 없이 번호만 등록합니다. 결제·주문 데이터와는 연결되지 않습니다.
             </p>

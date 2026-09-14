@@ -26,6 +26,34 @@ export function TemplateThumbnail({ template }: { template: TemplateCatalogItem 
   const isDark = template.thumbnailTone === "dark";
   const previewImage = template.previewImage ?? template.thumbnailUrl;
 
+  if (template.key === "dining_aube_table_b") {
+    return (
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-[#f3ebdc] text-[#401e24]">
+        <div className="grid h-full grid-cols-[34%_66%]">
+          <div className="flex flex-col justify-between bg-[#401e24] px-5 py-6 text-[#f3ebdc]">
+            <p className="text-[10px] font-semibold tracking-[0.18em]">MAISON MARAIS</p>
+            <div className="space-y-3 text-sm font-semibold">
+              <p className="border-y border-[#f3ebdc]/35 py-2">The Menu</p>
+              <p className="border-b border-[#f3ebdc]/35 pb-2">Seasonal Course</p>
+              <p className="border-b border-[#f3ebdc]/35 pb-2">Wine Selection</p>
+            </div>
+          </div>
+          <div className="flex flex-col justify-center px-7">
+            <p className="font-serif text-3xl leading-none">Seasonal Course</p>
+            <p className="mt-3 text-[9px] text-[#401e24]/60">A modern French dining menu</p>
+            <div className="mt-7 space-y-3">
+              {["Amuse-bouche", "Cold starter", "Main course"].map((item) => (
+                <div key={item} className="flex items-center gap-3 text-[10px] font-semibold">
+                  <span>{item}</span><span className="h-px flex-1 bg-[#401e24]/25" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (template.key === "cafe_noir_a") {
     return (
       <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-zinc-200 bg-[#f8f8f5] p-5 text-zinc-950">
@@ -124,11 +152,11 @@ export default function TemplateCard({
       <div className="relative overflow-hidden rounded-[1.5rem] bg-zinc-100">
         <TemplateThumbnail template={template} />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-[#F8E731]/95 px-3 py-1.5 text-xs font-black text-zinc-950 backdrop-blur">
+          <span className="rounded-full bg-[#F8E731] px-3 py-1.5 text-xs font-black text-zinc-950">
             {templateTypeLabel}
           </span>
           {template.status === "coming_soon" ? (
-            <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-zinc-950 backdrop-blur">
+            <span className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-zinc-950">
               준비 중
             </span>
           ) : null}

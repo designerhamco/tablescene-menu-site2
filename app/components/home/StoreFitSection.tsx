@@ -110,7 +110,7 @@ export function StoreFitVisual({ className = "", showNeeds = true }: { className
 
 export default function StoreFitSection() {
   return (
-    <section className="bg-zinc-50 px-6 py-20 md:py-28">
+    <section className="site-gutter bg-zinc-50 py-20 md:py-28">
       <div className="mx-auto max-w-7xl">
         <SectionTitle />
         <StoreFitVisual />

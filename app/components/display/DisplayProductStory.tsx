@@ -97,10 +97,10 @@ export function DisplayHero() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.08 }}
-        className="absolute inset-x-5 top-[47%] z-10 mx-auto max-w-[1180px] text-center md:top-[48%]"
+        className="site-gutter absolute inset-x-0 top-[47%] z-10 mx-auto max-w-[1280px] text-center md:top-[48%]"
       >
         <p className="text-base font-bold tracking-[-0.02em] md:text-xl">매장을 완성하는 디지털 메뉴보드</p>
-        <h1 className="mt-5 break-keep text-[clamp(3rem,7.8vw,6.25rem)] font-bold leading-[0.98] tracking-[-0.055em]">
+        <h1 className="mt-5 break-keep text-[clamp(2.75rem,6.5vw,5.25rem)] font-bold leading-[1] tracking-[-0.05em]">
           ArtiMenu Display<br />Made to Be Seen
         </h1>
       </motion.div>
@@ -140,7 +140,7 @@ function DisplayDarkStorySection({
     : "py-20 md:py-24";
 
   return (
-    <section className={`bg-transparent px-6 text-white md:px-10 ${spacingClass}`}>
+    <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
           <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />

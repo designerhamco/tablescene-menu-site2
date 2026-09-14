@@ -28,18 +28,12 @@ const PAID_APPLY_COPY: Record<
   }
 > = {
   menu: {
-    title: "아티메뉴 다이닝 신청/결제",
-    description:
-      "단일·멀티페이지 월결제/연결제 중 이용 방식을 선택해 아티메뉴 다이닝 메뉴판을 신청합니다.",
-    note:
-      "단일페이지는 할인·위젯, 멀티페이지는 할인·스마트호출을 제공합니다. 오더는 제공하지 않으며, 선택한 페이지 유형 안에서 템플릿을 교체할 수 있습니다.",
+    title: "아티메뉴 다이닝 신청",
+    description: "요금제와 템플릿을 선택하고 매장 정보를 확인해 주세요.",
   },
   screen: {
-    title: "아티메뉴 디스플레이 신청/결제",
-    description:
-      "매장 화면을 감각적인 디지털 메뉴보드로 운영할 수 있는 결제형 신청 페이지입니다.",
-    note:
-      "신규 Display 구독 1건당 Display 메뉴판 1개가 제공됩니다. 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 현재는 전용 템플릿 준비 중입니다.",
+    title: "아티메뉴 디스플레이 신청",
+    description: "요금제와 템플릿을 선택하고 설치할 매장 정보를 확인해 주세요.",
   },
   order: {
     title: "아티메뉴 오더 1.0 신청/결제",
@@ -56,6 +50,7 @@ type PaidApplyPageProps = {
   initialRecoverPaymentId?: string;
   initialRecoverSubscriptionId?: string;
   initialBasicProductKey?: BasicProductKey;
+  initialTemplateKey?: string;
 };
 
 export default async function PaidApplyPage({
@@ -64,6 +59,7 @@ export default async function PaidApplyPage({
   initialRecoverPaymentId,
   initialRecoverSubscriptionId,
   initialBasicProductKey,
+  initialTemplateKey,
 }: PaidApplyPageProps) {
   const supabase = await createClient();
   const {
@@ -103,19 +99,14 @@ export default async function PaidApplyPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
-        <div className="mx-auto w-full max-w-6xl">
+      <main className="min-h-screen bg-zinc-50 py-14 text-zinc-950 md:py-16">
+        <div className="site-container max-w-[1200px]">
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight md:text-5xl">{copy.title}</h1>
+              <h1 className="text-[2.25rem] font-bold tracking-tight md:text-[3.25rem]">{copy.title}</h1>
               <p className="mt-4 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500">
                 {copy.description}
               </p>
-              {copy.note ? (
-                <p className="mt-3 max-w-2xl break-keep text-sm font-medium leading-relaxed text-zinc-400">
-                  {copy.note}
-                </p>
-              ) : null}
             </div>
           </header>
 
@@ -131,6 +122,7 @@ export default async function PaidApplyPage({
             serviceType={serviceType}
             displayCheckoutQaEnabled={displayCheckoutQaEnabled}
             initialBasicProductKey={initialBasicProductKey}
+            initialTemplateKey={initialTemplateKey}
             singleMonthlyFreeTrialAvailable={singleMonthlyFreeTrialAvailable}
             singleMonthlyFreeTrialFirstBillingDate={formatBusinessFreeTrialFirstBillingDate(freeTrialPeriod.endsAt)}
             singleMonthlyFreeTrialProductKey={businessBasicMonthlyProduct.product_key}

@@ -198,7 +198,7 @@ function FontPicker<Value extends string>({
             }`}
           >
             <span>템플릿 기본값 ({defaultOption.label})</span>
-            {value === "" ? <span className="text-[10px] font-black opacity-70">SELECTED</span> : null}
+            {value === "" ? <span className="text-[10px] font-black opacity-70">선택됨</span> : null}
           </button>
           <div className="grid gap-2 sm:grid-cols-2">
             {filteredOptions.map((option) => {
@@ -214,7 +214,7 @@ function FontPicker<Value extends string>({
                 }`}
               >
                 <span className="min-w-0 truncate">{option.label}</span>
-                {selected ? <span className="shrink-0 text-[10px] font-black opacity-70">SELECTED</span> : null}
+                {selected ? <span className="shrink-0 text-[10px] font-black opacity-70">선택됨</span> : null}
               </button>
               );
             })}

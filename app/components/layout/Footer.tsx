@@ -3,7 +3,7 @@ const Footer = () => {
 
   return (
     <footer className="border-t border-zinc-200 bg-white py-14 text-zinc-600 md:py-16">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="site-container">
         <div className="mb-12">
           <div className="space-y-4">
             <h2 className="text-2xl font-bold tracking-tight text-zinc-950">ArtiMenu</h2>

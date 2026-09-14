@@ -62,7 +62,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <section className="rounded-3xl bg-white p-8 shadow-sm">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">메뉴판이 생성되었습니다.</h1>

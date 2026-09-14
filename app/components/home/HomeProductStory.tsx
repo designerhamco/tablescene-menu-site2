@@ -128,10 +128,10 @@ export function BrandHero() {
   }, []);
 
   return (
-    <section className="relative min-h-[760px] overflow-hidden bg-[linear-gradient(155deg,#a97e00_0%,#e5c546_24%,#fff0a3_100%)] px-5 pt-28 text-zinc-950 md:min-h-[930px] md:px-10 md:pt-36">
+    <section className="site-gutter relative min-h-[760px] overflow-hidden bg-[linear-gradient(155deg,#a97e00_0%,#e5c546_24%,#fff0a3_100%)] pt-28 text-zinc-950 md:min-h-[930px] md:pt-36">
       <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-[1180px] text-center">
         <p className="text-base font-bold tracking-[-0.02em] md:text-xl">다이닝의 새로운 메뉴 경험</p>
-        <h1 className="mt-5 break-keep text-[clamp(3rem,7.8vw,6.25rem)] font-bold leading-[0.98] tracking-[-0.055em]">
+        <h1 className="mt-5 break-keep text-[clamp(2.75rem,6.5vw,5.25rem)] font-bold leading-[1] tracking-[-0.05em]">
           ArtiMenu<br />Perfect For Your Store
         </h1>
       </motion.div>
@@ -189,7 +189,7 @@ function DarkStorySection({
     : "py-20 md:py-24";
 
   return (
-    <section className={`bg-transparent px-6 text-white md:px-10 ${spacingClass}`}>
+    <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
           <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
@@ -502,7 +502,7 @@ export function AiFeaturesSection({ service = "dining" }: { service?: MarketingS
   ];
 
   return (
-    <section className="bg-white px-6 pb-12 pt-16 md:px-10 md:pb-12 md:pt-16">
+    <section className="site-gutter bg-white pb-12 pt-16 md:pb-12 md:pt-16">
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl">
           <MarketingSectionCopy
@@ -553,11 +553,11 @@ export function StoreScenesSection({ service = "dining" }: { service?: Marketing
   ];
 
   return (
-    <section className="bg-white px-6 pb-20 pt-12 md:px-10 md:pb-24 md:pt-12">
-      <div className="mx-auto max-w-[1380px]">
+    <section className="site-gutter bg-white pb-20 pt-12 md:pb-24 md:pt-12">
+      <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-4xl md:mb-20">
           <MarketingSectionCopy
-            eyebrow="In Store"
+            eyebrow="매장 활용"
             title={isDisplay ? <>매장 화면에서 만나는<br />아티메뉴 디스플레이</> : <>매장에서 만나는<br />아티메뉴</>}
           />
         </motion.div>
@@ -657,8 +657,8 @@ export function ResourceCtaSection({ service = "dining" }: { service?: Marketing
   const isDisplay = service === "display";
 
   return (
-    <section className="bg-white px-6 pb-12 pt-0 md:px-10 md:pb-16 md:pt-0">
-      <div className="mx-auto max-w-[1380px]">
+    <section className="site-gutter bg-white pb-12 pt-0 md:pb-16 md:pt-0">
+      <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="relative overflow-hidden rounded-[2rem] bg-zinc-950 px-7 py-14 text-white md:min-h-[500px] md:rounded-[2.5rem] md:px-16 md:py-20 lg:grid lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
           <div className="relative z-10 max-w-2xl">
             <MarketingSectionCopy

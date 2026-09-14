@@ -4,7 +4,7 @@ export default function MyPageLoading() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-6xl">
           <header className="mb-12 border-b border-zinc-200 pb-8">
             <div className="h-12 w-56 rounded-2xl bg-zinc-200" />
