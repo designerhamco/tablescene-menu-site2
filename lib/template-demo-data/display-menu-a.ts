@@ -31,8 +31,8 @@ function itemId(pageIndex: number, categoryIndex: number, itemIndex: number) {
   return `${siteId}-item-${pageIndex}-${categoryIndex}-${itemIndex}`;
 }
 
-function priceOptionId(pageIndex: number, categoryIndex: number, itemIndex: number, optionIndex: number) {
-  return `${itemId(pageIndex, categoryIndex, itemIndex)}-price-option-${optionIndex}`;
+function priceColumnId(pageIndex: number, categoryIndex: number, optionLabel: string) {
+  return `${categoryId(pageIndex, categoryIndex)}-price-column-${optionLabel.toLowerCase()}`;
 }
 
 type DemoCategory = {
@@ -147,7 +147,7 @@ const fullItems: DemoItem[] = [
     sortOrder: 1,
     badge: "SIGNATURE",
     recommended: true,
-    options: iceOnly("6.5"),
+    options: hotIce("6.5", "6.5"),
   },
   {
     pageIndex: 0,
@@ -252,7 +252,7 @@ const fullItems: DemoItem[] = [
     setName: "CAPPUCCINO",
     priceLabel: "5.0",
     sortOrder: 5,
-    options: [{ label: "HOT", priceLabel: "5.0", sortOrder: 1 }],
+    options: hotIce("5.0", "5.0"),
   },
   {
     pageIndex: 0,
@@ -572,7 +572,15 @@ const starterFullItems = buildStarterItems(fullItems, STARTER_FULL_ITEM_KEYS);
 const starterSplitItems = buildStarterItems(splitItems, STARTER_SPLIT_ITEM_KEYS);
 const starterItems = [...starterFullItems, ...starterSplitItems];
 
-function buildCategory(category: DemoCategory) {
+function buildCategory(category: DemoCategory, items: DemoItem[]) {
+  const optionColumns = new Map<string, DemoOption>();
+  for (const item of items) {
+    if (item.pageIndex !== category.pageIndex || item.categoryIndex !== category.categoryIndex) continue;
+    for (const option of item.options ?? []) {
+      if (!optionColumns.has(option.label)) optionColumns.set(option.label, option);
+    }
+  }
+
   return {
     id: categoryId(category.pageIndex, category.categoryIndex),
     menu_page_id: menuPageIdForDemoIndex(category.pageIndex),
@@ -581,7 +589,16 @@ function buildCategory(category: DemoCategory) {
     description_visible: false,
     sort_order: category.sortOrder,
     visible: true,
-    priceColumns: [],
+    priceColumns: [...optionColumns.values()]
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .map((option) => ({
+        id: priceColumnId(category.pageIndex, category.categoryIndex, option.label),
+        categoryId: categoryId(category.pageIndex, category.categoryIndex),
+        key: option.label.toLowerCase(),
+        label: option.label,
+        sortOrder: option.sortOrder,
+        visible: true,
+      })),
   };
 }
 
@@ -609,22 +626,14 @@ function buildItem(item: DemoItem) {
     traits_visible: true,
     visible: true,
     sort_order: item.sortOrder,
-    priceColumnValues: [],
-  };
-}
-
-function buildPriceOptions(items: DemoItem[]) {
-  return items.flatMap((item) =>
-    (item.options ?? []).map((option, optionIndex) => ({
-      id: priceOptionId(item.pageIndex, item.categoryIndex, item.itemIndex, optionIndex),
-      menu_item_id: itemId(item.pageIndex, item.categoryIndex, item.itemIndex),
-      label: option.label,
+    priceColumnValues: (item.options ?? []).map((option, optionIndex) => ({
+      id: `${itemId(item.pageIndex, item.categoryIndex, item.itemIndex)}-price-column-value-${optionIndex}`,
+      priceColumnId: priceColumnId(item.pageIndex, item.categoryIndex, option.label),
       price: priceFromLabel(option.priceLabel),
-      price_label: option.priceLabel,
+      priceLabel: option.priceLabel,
       visible: true,
-      sort_order: option.sortOrder,
-    }))
-  );
+    })),
+  };
 }
 
 const qaMenuNames = [
@@ -828,7 +837,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
         {
           id: `${siteId}-time-sale-open-hot-target`,
           menuItemId: itemId(0, 1, 4),
-          priceColumnId: null,
+          priceColumnId: priceColumnId(0, 1, "HOT"),
           salePrice: 4300,
           salePriceLabel: "4.3",
           visible: true,
@@ -836,7 +845,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
         {
           id: `${siteId}-time-sale-open-ice-target`,
           menuItemId: itemId(0, 0, 0),
-          priceColumnId: null,
+          priceColumnId: priceColumnId(0, 0, "ICE"),
           salePrice: 5700,
           salePriceLabel: "5.7",
           visible: true,
@@ -966,9 +975,9 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
         created_at: now,
       },
     ],
-    categories: categories.map(buildCategory),
+    categories: categories.map((category) => buildCategory(category, items)),
     items: items.map(buildItem),
-    priceOptions: buildPriceOptions(items),
+    priceOptions: [],
     traits: [],
     events: [],
     chefs: [],

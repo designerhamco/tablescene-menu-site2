@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import {
+  canShowDisplayMenuOptionTimeSale,
   canShowDisplayMenuTimeSale,
   getActiveDisplayMenuTimeSalesByItemId,
   type DisplayMenuTimeSaleMatch,
@@ -209,7 +210,11 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
       ? { fontSize: `calc(var(--display-row) * ${badgeFontScale * fontScale * phaseBadgeScale})`, padding: `calc(var(--display-row) * ${0.07 * gapScale * phaseBadgeScale}) calc(var(--display-row) * ${0.155 * gapScale * phaseBadgeScale})`, borderRadius: "3px" }
       : { display: "none" },
     metaStyle: showMeta ? { fontSize: `calc(var(--display-row) * ${metaFontScale * fontScale * phaseMetaScale})`, lineHeight: 1.2 } : { display: "none" },
-    timeSaleLabelStyle: { fontSize: `calc(var(--display-row) * ${0.215 * fontScale * phaseBadgeScale})`, lineHeight: 1.2 },
+    timeSaleLabelStyle: {
+      marginTop: `calc(var(--display-row) * ${0.13 * gapScale})`,
+      fontSize: `calc(var(--display-row) * ${0.3 * fontScale * phaseBadgeScale})`,
+      lineHeight: 1.24,
+    },
     optionHeaderStyle: { fontSize: `calc(var(--display-row) * ${optionHeaderScale * fontScale})`, lineHeight: 1.05 },
     priceStackStyle: { rowGap: `calc(var(--display-row) * ${0.035 * gapScale})` },
     priceRowStyle: { columnGap: `calc(var(--display-row) * ${0.14 * gapScale})` },
@@ -805,6 +810,45 @@ function buildDisplayRenderPages({
   });
 }
 
+function resolveDisplayPriceOptions({
+  categories,
+  items,
+  legacyPriceOptions,
+}: {
+  categories: DisplayCategory[];
+  items: DisplayItem[];
+  legacyPriceOptions: DisplayPriceOption[];
+}) {
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
+  const modernItemIds = new Set(
+    items.filter((item) => item.priceColumnValues.some((value) => value.visible !== false)).map((item) => item.id),
+  );
+  const resolved = legacyPriceOptions.filter((option) => !modernItemIds.has(option.menu_item_id));
+
+  for (const item of items) {
+    if (!modernItemIds.has(item.id) || !item.category_id) continue;
+    const category = categoryById.get(item.category_id);
+    if (!category) continue;
+    const columnById = new Map(category.priceColumns.filter((column) => column.visible !== false).map((column) => [column.id, column]));
+
+    for (const value of item.priceColumnValues) {
+      const column = columnById.get(value.priceColumnId);
+      if (!column || value.visible === false || value.price == null) continue;
+      resolved.push({
+        id: column.id,
+        menu_item_id: item.id,
+        label: column.label,
+        price: value.price,
+        price_label: value.priceLabel,
+        visible: true,
+        sort_order: column.sortOrder,
+      });
+    }
+  }
+
+  return resolved;
+}
+
 function EmptyDisplayPage() {
   return (
     <div
@@ -839,21 +883,25 @@ function MenuItemRow({
   const badgeStyle = badge ? getBadgeStyleForItem(item, "display_menu_a") : null;
   const optionPriceByLabel = optionHeaders.length > 0 ? getItemPriceByOptionLabel(item, priceOptions) : null;
   const optionGridStyle = optionHeaders.length > 0 ? getOptionGridStyle(optionHeaders) : null;
-  const showTimeSale = Boolean(
-    timeSale &&
-      canShowDisplayMenuTimeSale({
-        item,
-        target: timeSale.item,
-        priceOptionCount: itemPriceOptions.length,
-      }),
+  const baseTimeSaleTarget = timeSale && canShowDisplayMenuTimeSale({
+    item,
+    target: timeSale.item,
+    priceOptionCount: itemPriceOptions.length,
+  })
+    ? timeSale.item
+    : null;
+  const optionTimeSaleTargetById = new Map(
+    itemPriceOptions.flatMap((option) => {
+      const target = timeSale?.optionItemsByPriceColumnId.get(option.id);
+      return canShowDisplayMenuOptionTimeSale({ item, target, originalPrice: option.price }) && target
+        ? [[option.id, target] as const]
+        : [];
+    }),
   );
-  const timeSaleTarget = showTimeSale ? timeSale?.item : null;
+  const showTimeSale = Boolean(baseTimeSaleTarget || optionTimeSaleTargetById.size > 0);
   const timeSaleAccentColor = showTimeSale && timeSale
     ? normalizeTimeSaleBadgeBackgroundColor(timeSale.promotion.badgeBackgroundColor)
     : null;
-  const timeSalePrice = timeSaleTarget
-    ? formatDisplayMenuAPrice(timeSaleTarget.salePrice, timeSaleTarget.salePriceLabel)
-    : "";
   const timeSaleAuxiliaryLabel = showTimeSale && timeSale
     ? getMenuTimeSaleAuxiliaryLabels(timeSale.promotion, nowMs, locale).join(" · ")
     : "";
@@ -911,7 +959,7 @@ function MenuItemRow({
               style={{ ...densityConfig.timeSaleLabelStyle, color: timeSaleAccentColor }}
               data-display-time-sale-label=""
             >
-              <Clock3 aria-hidden="true" className="h-[1em] w-[1em] shrink-0" strokeWidth={2.15} />
+              <Clock3 aria-hidden="true" className="h-[1.08em] w-[1.08em] shrink-0" strokeWidth={2.05} />
               <span className="truncate tracking-normal">{timeSaleAuxiliaryLabel}</span>
             </span>
           ) : null}
@@ -921,19 +969,17 @@ function MenuItemRow({
             {optionPriceByLabel && optionPriceByLabel.size > 0 ? (
               optionHeaders.map((header) => {
                 const originalPrice = optionPriceByLabel.get(header.label) ?? "";
-                const isDiscountedOption = Boolean(
-                  showTimeSale &&
-                    timeSalePrice &&
-                    timeSaleAccentColor &&
-                    itemPriceOptions.length === 1 &&
-                    normalizeDisplayText(itemPriceOptions[0]?.label) === header.label,
-                );
+                const option = itemPriceOptions.find((candidate) => normalizeDisplayText(candidate.label) === header.label);
+                const optionTimeSaleTarget = option ? optionTimeSaleTargetById.get(option.id) : null;
+                const optionTimeSalePrice = optionTimeSaleTarget
+                  ? formatDisplayMenuAPrice(optionTimeSaleTarget.salePrice, optionTimeSaleTarget.salePriceLabel)
+                  : "";
 
-                return isDiscountedOption && timeSaleAccentColor ? (
+                return optionTimeSalePrice && timeSaleAccentColor ? (
                   <DisplayTimeSalePrice
                     key={header.label}
                     originalPrice={originalPrice}
-                    salePrice={timeSalePrice}
+                    salePrice={optionTimeSalePrice}
                     densityConfig={densityConfig}
                     accentColor={timeSaleAccentColor}
                   />
@@ -944,11 +990,11 @@ function MenuItemRow({
                 );
               })
             ) : priceRows[0]?.price ? (
-              showTimeSale && timeSalePrice && timeSaleAccentColor ? (
+              baseTimeSaleTarget && timeSaleAccentColor ? (
                 <span className="block w-full text-center" style={{ gridColumn: "1 / -1" }}>
                   <DisplayTimeSalePrice
                     originalPrice={priceRows[0].price}
-                    salePrice={timeSalePrice}
+                    salePrice={formatDisplayMenuAPrice(baseTimeSaleTarget.salePrice, baseTimeSaleTarget.salePriceLabel)}
                     densityConfig={densityConfig}
                     accentColor={timeSaleAccentColor}
                   />
@@ -969,10 +1015,10 @@ function MenuItemRow({
                     {row.label}
                   </span>
                 ) : null}
-                {showTimeSale && index === 0 && timeSalePrice && timeSaleAccentColor ? (
+                {baseTimeSaleTarget && index === 0 && timeSaleAccentColor ? (
                   <DisplayTimeSalePrice
                     originalPrice={row.price}
-                    salePrice={timeSalePrice}
+                    salePrice={formatDisplayMenuAPrice(baseTimeSaleTarget.salePrice, baseTimeSaleTarget.salePriceLabel)}
                     densityConfig={densityConfig}
                     accentColor={timeSaleAccentColor}
                   />
@@ -1613,15 +1659,27 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     () => getActiveDisplayMenuTimeSalesByItemId(props.timeSales, timeSaleNowMs),
     [props.timeSales, timeSaleNowMs],
   );
+  const resolvedPriceOptions = useMemo(
+    () => resolveDisplayPriceOptions({
+      categories: props.categories,
+      items: props.items,
+      legacyPriceOptions: props.priceOptions,
+    }),
+    [props.categories, props.items, props.priceOptions],
+  );
+  const resolvedData = useMemo(
+    () => ({ ...props, priceOptions: resolvedPriceOptions }),
+    [props, resolvedPriceOptions],
+  );
   useDisplayNextTimeSaleStartRefresh(props.nextTimeSaleStartAt, props.mode === "public");
   const displayPages = useMemo(
     () => buildDisplayRenderPages({
       pages,
       categories: props.categories,
       items: props.items,
-      priceOptions: props.priceOptions,
+      priceOptions: resolvedPriceOptions,
     }),
-    [pages, props.categories, props.items, props.priceOptions]
+    [pages, props.categories, props.items, resolvedPriceOptions]
   );
   const initialSelectedPageId =
     props.initialPreviewPageId &&
@@ -1727,7 +1785,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
             <div className="min-h-0 flex-1">
               <DisplayPageView
                 renderPage={activeRenderPage}
-                data={props}
+                data={resolvedData}
                 fontSizeScale={fontSizeScale}
                 timeSaleByItemId={timeSaleByItemId}
                 nowMs={timeSaleNowMs}

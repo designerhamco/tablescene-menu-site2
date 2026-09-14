@@ -65,7 +65,7 @@ export function canShowDisplayMenuTimeSale({
   priceOptionCount: number;
 }) {
   return Boolean(
-    priceOptionCount <= 1 &&
+    priceOptionCount === 0 &&
       item.is_sold_out !== true &&
       item.price_visible !== false &&
       typeof item.price === "number" &&
@@ -76,5 +76,31 @@ export function canShowDisplayMenuTimeSale({
       Number.isFinite(target.salePrice) &&
       target.salePrice > 0 &&
       target.salePrice < item.price,
+  );
+}
+
+export function canShowDisplayMenuOptionTimeSale({
+  item,
+  target,
+  originalPrice,
+}: {
+  item: {
+    is_sold_out: boolean;
+    price_visible: boolean;
+  };
+  target: DisplayMenuTimeSaleTarget | null | undefined;
+  originalPrice: number | null | undefined;
+}) {
+  return Boolean(
+    item.is_sold_out !== true &&
+      item.price_visible !== false &&
+      typeof originalPrice === "number" &&
+      Number.isFinite(originalPrice) &&
+      originalPrice > 0 &&
+      target?.visible !== false &&
+      typeof target?.salePrice === "number" &&
+      Number.isFinite(target.salePrice) &&
+      target.salePrice > 0 &&
+      target.salePrice < originalPrice,
   );
 }
