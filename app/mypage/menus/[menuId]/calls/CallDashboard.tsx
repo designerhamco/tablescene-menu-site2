@@ -6,6 +6,7 @@ import { useActionState, useEffect, useState } from "react";
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
+import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { CallDashboardPageData } from "@/lib/server/call-management-service";
 
 import { initialCallManagementActionState } from "./action-state";
@@ -96,7 +97,7 @@ export default function CallDashboard({
                 <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-700">{call.tableLabel}</span>
                 <span className={`rounded-full px-3 py-1 text-xs font-black ${STATUS_STYLES[call.status] ?? "bg-zinc-100 text-zinc-700"}`}>{STATUS_LABELS[call.status] ?? call.status}</span>
               </div>
-              <p className="mt-2 text-xs font-bold text-zinc-400">{new Date(call.createdAt).toLocaleString("ko-KR")} · {call.requestLabel}</p>
+              <p className="mt-2 text-xs font-bold text-zinc-400">{formatKoreanDateTime(call.createdAt)} · {call.requestLabel}</p>
             </div>
             {call.nextStatus ? (
               <form action={action}>

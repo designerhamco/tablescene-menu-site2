@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import QrAddressActions from "@/components/mypage/QrAddressActions";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
+import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { MenuTableListItem } from "@/lib/menu-table-management";
 
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
@@ -113,7 +114,7 @@ export default function MenuTableManager({
               <div>
                 <h3 className="text-xl font-black tracking-tight">{table.label}</h3>
                 <p className="mt-1 text-xs font-bold text-zinc-400">
-                  마지막 QR 교체 {new Date(table.tokenRotatedAt).toLocaleString("ko-KR")}
+                  마지막 QR 교체 {formatKoreanDateTime(table.tokenRotatedAt)}
                 </p>
               </div>
               <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${
