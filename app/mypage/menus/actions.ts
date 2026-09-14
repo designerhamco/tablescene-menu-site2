@@ -235,6 +235,15 @@ function getSafeSupabaseErrorFields(error: unknown): MenuSaveTraceFields {
   };
 }
 
+function isTranslationJobWritePermissionError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const record = error as Record<string, unknown>;
+  const code = typeof record.code === "string" ? record.code : "";
+  const message = typeof record.message === "string" ? record.message : "";
+
+  return code === "42501" && message.includes("menu_translation_jobs");
+}
+
 function logMenuSaveTrace(trace: MenuSaveTraceContext | null | undefined, fields: MenuSaveTraceFields) {
   if (!trace?.enabled) return;
 
@@ -1485,10 +1494,17 @@ export async function translateMenuSiteAction(formData: FormData) {
     .select("id")
     .single();
 
-  if (jobError || !job) {
+  if (jobError && !isTranslationJobWritePermissionError(jobError)) {
     const safeMessage = getSafeTranslationErrorMessage(jobError?.message ?? null);
     console.error("[menu-translation] job creation failed", { menuId, message: jobError?.message ?? "unknown" });
     redirectToTabEditWithError(menuId, "localization", safeMessage);
+  }
+
+  if (jobError) {
+    console.warn("[menu-translation] job history unavailable; continuing translation", {
+      menuId,
+      message: jobError.message,
+    });
   }
 
   let translatedEntities = 0;
@@ -1502,10 +1518,12 @@ export async function translateMenuSiteAction(formData: FormData) {
       completed_at: completedAt,
       updated_at: completedAt,
     };
-    const { error: updateJobError } = await jobSupabase.from("menu_translation_jobs").update(updatePayload).eq("id", job.id);
+    if (job) {
+      const { error: updateJobError } = await jobSupabase.from("menu_translation_jobs").update(updatePayload).eq("id", job.id);
 
-    if (updateJobError) {
-      throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
+      if (updateJobError && !isTranslationJobWritePermissionError(updateJobError)) {
+        throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
+      }
     }
 
     if (translatedEntities > 0) {
@@ -1515,16 +1533,18 @@ export async function translateMenuSiteAction(formData: FormData) {
     const failedAt = new Date().toISOString();
     const errorMessage = error instanceof Error ? error.message : "번역 중 알 수 없는 오류가 발생했습니다.";
     const safeMessage = translatedEntities > 0 ? PARTIAL_TRANSLATION_FAILURE_MESSAGE : getSafeTranslationErrorMessage(errorMessage);
-    console.error("[menu-translation] update failed", { menuId, jobId: job.id, message: errorMessage });
-    await jobSupabase
-      .from("menu_translation_jobs")
-      .update({
-        status: "failed",
-        error_message: safeMessage,
-        completed_at: failedAt,
-        updated_at: failedAt,
-      })
-      .eq("id", job.id);
+    console.error("[menu-translation] update failed", { menuId, jobId: job?.id ?? null, message: errorMessage });
+    if (job) {
+      await jobSupabase
+        .from("menu_translation_jobs")
+        .update({
+          status: "failed",
+          error_message: safeMessage,
+          completed_at: failedAt,
+          updated_at: failedAt,
+        })
+        .eq("id", job.id);
+    }
 
     revalidateMenuPaths(menuId, menuSite.slug);
     redirectToTabEditWithError(menuId, "localization", safeMessage);
@@ -1615,7 +1635,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       .select("id")
       .single();
 
-    if (jobError || !job) {
+    if (jobError && !isTranslationJobWritePermissionError(jobError)) {
       const safeMessage = getSafeTranslationErrorMessage(jobError?.message ?? null);
       console.error("[localization:auto-translate] draft job creation failed", {
         menuId,
@@ -1626,7 +1646,16 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       return { ok: false, message: safeMessage, usage: currentUsage };
     }
 
-    draftJobId = job.id;
+    if (jobError) {
+      console.warn("[localization:auto-translate] draft job history unavailable; continuing translation", {
+        menuId,
+        mode,
+        targetLocales: uniqueTargetLocales,
+        message: jobError.message,
+      });
+    }
+
+    draftJobId = job?.id ?? null;
 
     const result = await runMenuTranslationDraft(supabase, menuId, uniqueTargetLocales);
     const failedLocaleLabels = result.localeResults
@@ -1691,21 +1720,27 @@ export async function generateMenuSiteTranslationDraftAction(input: {
         : failedLocaleLabels
         ? `${failedLocaleLabels} 번역 실패`
         : "자동 번역 초안 생성 실패";
-    const { error: updateJobError } = await jobSupabase
-      .from("menu_translation_jobs")
-      .update({
-        status: overallStatus === "failed" ? "failed" : "completed",
-        error_message: jobErrorMessage,
-        completed_at: completedAt,
-        updated_at: completedAt,
-        draft_payload: data.length > 0 ? (data as Json) : null,
-        locale_results: localeResults as Json,
-        result_version: 1,
-      })
-      .eq("id", job.id);
+    if (job) {
+      const { error: updateJobError } = await jobSupabase
+        .from("menu_translation_jobs")
+        .update({
+          status: overallStatus === "failed" ? "failed" : "completed",
+          error_message: jobErrorMessage,
+          completed_at: completedAt,
+          updated_at: completedAt,
+          draft_payload: data.length > 0 ? (data as Json) : null,
+          locale_results: localeResults as Json,
+          result_version: 1,
+        })
+        .eq("id", job.id);
 
-    if (updateJobError) {
-      throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
+      if (updateJobError && !isTranslationJobWritePermissionError(updateJobError)) {
+        throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
+      }
+
+      if (updateJobError) {
+        draftJobId = null;
+      }
     }
 
     let usage = currentUsage;
@@ -1726,7 +1761,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
             ? `${failedLocaleLabels} 번역에 실패했습니다. 성공한 번역 초안은 없습니다.`
             : "자동 번역 초안 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
         usage,
-        jobId: job.id,
+        jobId: draftJobId,
         overallStatus,
         localeResults: localeResults.filter((localeResult) => localeResult.status !== "success"),
         credit: {
@@ -1751,7 +1786,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
             ? "전체 자동 번역 초안이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
             : `${LOCALE_LABELS[uniqueTargetLocales[0]]} 자동 번역 초안이 생성되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
           : "최신 번역이 이미 준비되어 있습니다.",
-      jobId: job.id,
+      jobId: draftJobId,
       overallStatus,
       localeResults,
       credit: {
