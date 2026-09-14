@@ -182,7 +182,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
   );
 }
 
-function SectionCard({ title, children }: { title: string; eyebrow: string; children: ReactNode }) {
+function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
       <h3 className="text-xl font-bold tracking-tight text-zinc-950">{title}</h3>
@@ -331,7 +331,7 @@ export default function AboutDraftSections({
         <>
           <input type="hidden" name="include_social_links" value="on" />
           <input type="hidden" name="about_social_links_draft" value={JSON.stringify(socialDrafts)} />
-          <SectionCard title="SNS 링크" eyebrow="Social">
+          <SectionCard title="SNS 링크">
             <p className="mb-5 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               SNS 링크는 소개 탭의 저장을 눌렀을 때 반영됩니다. 최대 {MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.
             </p>
@@ -444,7 +444,7 @@ export default function AboutDraftSections({
         <>
           <input type="hidden" name="include_chefs" value="on" />
           <input type="hidden" name="about_chefs_draft" value={JSON.stringify(chefDrafts)} />
-          <SectionCard title="셰프 / 인물" eyebrow="People">
+          <SectionCard title="셰프 / 인물">
             {visibleChefDrafts.length === 0 ? (
               <EmptyState
                 message="등록된 셰프/인물 정보가 없습니다"
@@ -584,7 +584,7 @@ export function EventDraftSections({ events, showEvents }: EventDraftSectionsPro
     <div className="space-y-5 md:col-span-2">
       <input type="hidden" name="include_events" value="on" />
       <input type="hidden" name="events_draft" value={JSON.stringify(eventDrafts)} />
-      <SectionCard title="이벤트 목록 관리" eyebrow="Events">
+      <SectionCard title="이벤트 목록 관리">
         <p className="mb-5 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
           이벤트 추가, 수정, 삭제는 이벤트 탭의 저장을 눌렀을 때 반영됩니다. 최대 {MENU_LIMITS.maxEventsPerSite}개까지 등록할 수 있습니다.
         </p>

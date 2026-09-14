@@ -43,6 +43,7 @@ export default async function ApplyBasicPage({
       serviceType="menu"
       nextPath={createPathWithQuery("/apply/basic", resolvedSearchParams)}
       initialBasicProductKey={initialBasicProductKey}
+      initialTemplateKey={Array.isArray(resolvedSearchParams.template) ? resolvedSearchParams.template[0] : resolvedSearchParams.template}
     />
   );
 }

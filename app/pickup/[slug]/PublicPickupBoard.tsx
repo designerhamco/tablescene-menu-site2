@@ -62,7 +62,7 @@ export default function PublicPickupBoard({ initialData }: { initialData: Public
         <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-[1600px] flex-col rounded-[1.5rem] border border-[var(--pickup-accent-border)] bg-[var(--pickup-surface)] px-5 py-6 md:min-h-[calc(100vh-4.5rem)] md:rounded-[2rem] md:px-10 md:py-8">
           <header className="grid gap-5 border-b border-[var(--pickup-accent-border)] pb-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:pb-8">
             <div>
-              <p className="menu-font-en text-sm font-bold tracking-[0.14em] text-[var(--pickup-accent)] md:text-base">PICKUP BOARD</p>
+              <p className="text-sm font-bold text-[var(--pickup-accent)] md:text-base">픽업 안내</p>
               <h1
                 className="cafe-a-store-title mt-2 tracking-tight md:mt-3"
                 style={{ color: "var(--pickup-text)" }}

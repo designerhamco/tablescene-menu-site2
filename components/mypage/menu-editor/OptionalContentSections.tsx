@@ -163,7 +163,7 @@ function SubmitButton({
   );
 }
 
-function SectionCard({ title, action, children }: { title: string; eyebrow: string; action?: ReactNode; children: ReactNode }) {
+function SectionCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -230,7 +230,6 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
   return (
     <SectionCard
       title="셰프 / 인물"
-      eyebrow="People"
     >
       {chefs.length === 0 && !isCreating ? (
         <EmptyState message="등록된 셰프/인물 정보가 없습니다" buttonLabel="+ 셰프/인물 추가" onCreate={() => setIsCreating(true)} disabled={reachedChefLimit} disabledMessage={reachedChefLimit ? chefLimitMessage : undefined} />
@@ -353,7 +352,6 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
   return (
     <SectionCard
       title="이벤트"
-      eyebrow="Events"
     >
       {events.length === 0 && !isCreating ? (
         <EmptyState message="등록된 이벤트가 없습니다" buttonLabel="+ 이벤트 추가" onCreate={() => setIsCreating(true)} disabled={reachedEventLimit} disabledMessage={reachedEventLimit ? eventLimitMessage : undefined} />
@@ -534,7 +532,6 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
   return (
     <SectionCard
       title="SNS"
-      eyebrow="Social"
     >
       <p className="mb-5 break-keep text-sm font-semibold text-zinc-500">공개 메뉴판에서는 display_name을 클릭하면 URL로 이동합니다. SNS 링크는 최대 {MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.</p>
       {socialLinks.length === 0 && !isCreating ? (

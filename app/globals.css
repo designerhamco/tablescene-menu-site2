@@ -21,6 +21,27 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+:root {
+  --site-content-max: 80rem;
+  --site-gutter: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+/*
+ * Official-site layout contract.
+ * Full-bleed backgrounds live outside this wrapper; readable content always
+ * follows the same edge gutter and desktop content width.
+ */
+.site-gutter {
+  padding-inline: var(--site-gutter);
+}
+
+.site-container {
+  width: 100%;
+  max-width: var(--site-content-max);
+  margin-inline: auto;
+  padding-inline: var(--site-gutter);
+}
+
 @media (max-width: 767px) {
   [data-public-menu-entry-layer] [data-template-language-control] {
     display: none !important;

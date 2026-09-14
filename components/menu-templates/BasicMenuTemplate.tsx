@@ -99,11 +99,10 @@ function getFeaturedItem(data: PublicMenuTemplateProps, capabilities: TemplateCa
   return featuredItem;
 }
 
-function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="border-b border-zinc-200 bg-white px-5 py-10">
       <div className="mx-auto w-full max-w-3xl">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.22em] text-zinc-400">{eyebrow}</p>
         <h2 className="break-words text-3xl font-black tracking-tight text-zinc-950">{title}</h2>
         <div className="mt-6">{children}</div>
       </div>
@@ -344,7 +343,7 @@ function MenuPagesSection({
   );
 
   return (
-    <Section eyebrow="Menu Pages" title="메뉴">
+    <Section title="메뉴">
       {!hasVisibleMenu ? (
         <EmptyState>표시할 메뉴 페이지, 카테고리 또는 아이템이 없습니다.</EmptyState>
       ) : (
@@ -414,7 +413,7 @@ function AboutSection({
   const { menuSite } = data;
 
   return (
-    <Section eyebrow="About" title="소개">
+    <Section title="소개">
       {(menuSite.about_description || menuSite.brand_description) && (
         <div className="mb-6 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
           {menuSite.about_description && <p>{menuSite.about_description}</p>}
@@ -477,7 +476,7 @@ function EventsSection({ data }: { data: PublicMenuTemplateProps }) {
   if (data.events.length === 0) return null;
 
   return (
-    <Section eyebrow="Events" title="이벤트">
+    <Section title="이벤트">
       <div className="grid gap-4">
         {data.events.map((event) => {
           const pricePair = formatEventPricePair(event);

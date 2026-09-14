@@ -38,7 +38,7 @@ export default async function NewMenuSitePage({
     <main className="min-h-screen bg-zinc-50 text-zinc-950">
       <OfficialSiteNavbar />
 
-      <section className="mx-auto flex w-full max-w-3xl flex-col px-5 py-12 md:py-16">
+      <section className="site-gutter mx-auto flex w-full max-w-3xl flex-col py-12 md:py-16">
         <Link href="/mypage?tab=menus" className="w-fit text-sm font-black text-zinc-500 transition-colors hover:text-zinc-950">
           ← 마이페이지로 돌아가기
         </Link>

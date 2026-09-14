@@ -46,6 +46,11 @@ export const TEMPLATE_CATEGORIES = [
     templates: [],
   },
   {
+    key: "japanese",
+    label: "일식",
+    templates: [],
+  },
+  {
     key: "fine_dining",
     label: "파인다이닝",
     templates: [
@@ -144,11 +149,11 @@ export type TemplateCatalogStatus = "available" | "coming_soon" | "hidden" | "re
 export type { TemplateType };
 
 export const BASIC_TEMPLATE_CATEGORY_GROUPS = [
-  { key: "cafe_bakery", label: "카페/베이커리", categoryKeys: ["cafe", "bakery", "dessert"] },
-  { key: "food_dining", label: "음식점/다이닝", categoryKeys: ["restaurant", "brunch", "casual_dining", "fine_dining", "fast_food", "pub_bar"] },
-  { key: "beauty_wellness", label: "뷰티/웰니스", categoryKeys: ["hair_salon", "nail_shop", "beauty_esthetic", "fitness_pt", "pet_shop"] },
-  { key: "class_workshop", label: "클래스/공방", categoryKeys: ["workshop_class", "popup_event", "etc"] },
-  { key: "clinic", label: "병원/클리닉", categoryKeys: ["clinic"] },
+  { key: "cafe_bakery", label: "카페·베이커리", categoryKeys: ["cafe", "bakery", "dessert"] },
+  { key: "food_dining", label: "레스토랑·다이닝", categoryKeys: ["restaurant", "brunch", "casual_dining", "fine_dining"] },
+  { key: "japanese", label: "일식", categoryKeys: ["japanese"] },
+  { key: "pub_bar", label: "바·주점", categoryKeys: ["pub_bar"] },
+  { key: "fast_food", label: "패스트푸드·분식", categoryKeys: ["fast_food"] },
 ] as const satisfies readonly {
   key: string;
   label: string;
@@ -226,6 +231,12 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
   dining_aube_table_b: "버건디 사이드 메뉴와 아이보리 지면으로 구성한 모던 프렌치 멀티페이지 메뉴판입니다.",
   cafe_noir_a: "화이트 배경과 절제된 타이포그래피로 구성한 에디토리얼 카페 메뉴판입니다.\n커피와 디저트 메뉴를 여러 열로 정갈하게 보여줍니다.",
   display_menu_a: "시원하고 선명한 화면 구성이 돋보이는 디스플레이 템플릿입니다.\n카페와 베이커리 매장의 메뉴를 TV·모니터에 보기 좋게 보여줍니다.",
+};
+
+const templatePreviewImageByKey: Partial<Record<string, string>> = {
+  cafe_design_a: "/menu-templates/cafe_design_a/black-sesame-featured.jpg",
+  dining_aube_table_a: "/menu-templates/dining_aube_table_a/aube-table-cover.png",
+  display_menu_a: "/menu-templates/display_menu_a/summer-blue-signature.png",
 };
 
 const availableTemplateKeys = [
@@ -310,7 +321,7 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
       sortOrder: TEMPLATE_CATEGORIES.findIndex((entry) => entry.key === category.key) * 100 + templateIndex,
       thumbnailTone: templateToneByDesign[template.design],
       thumbnailUrl: null,
-      previewImage: null,
+      previewImage: templatePreviewImageByKey[template.key] ?? null,
     };
   })
 );
@@ -353,6 +364,7 @@ export function getTemplateCategoryFromKey(templateKey?: string | null): Templat
   if (templateKey.startsWith("bakery_")) return "bakery";
   if (templateKey.startsWith("dessert_")) return "dessert";
   if (templateKey.startsWith("restaurant_")) return "restaurant";
+  if (templateKey.startsWith("japanese_")) return "japanese";
   if (templateKey.startsWith("fine_dining_")) return "fine_dining";
   if (templateKey.startsWith("casual_dining_")) return "casual_dining";
   if (templateKey.startsWith("fast_food_")) return "fast_food";

@@ -13,7 +13,7 @@ export default function CustomPage() {
     <>
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-[#f7f4ef] text-zinc-950">
-        <section className="border-b border-[#ddd4c5] px-6 py-20 md:py-28">
+        <section className="site-gutter border-b border-[#ddd4c5] py-20 md:py-28">
           <div className="mx-auto max-w-6xl">
             <span className="inline-flex rounded-full border border-[#A88745]/35 bg-[#2F2418] px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[#F4E7C5]">
               PREMIUM CUSTOM
@@ -38,7 +38,7 @@ export default function CustomPage() {
           </div>
         </section>
 
-        <section className="px-6 py-16 md:py-20">
+        <section className="site-gutter py-16 md:py-20">
           <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
             <div>
               <p className="text-sm font-black tracking-[0.18em] text-[#7A5A28]">01</p>

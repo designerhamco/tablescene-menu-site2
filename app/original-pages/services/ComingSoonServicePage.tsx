@@ -35,7 +35,7 @@ export default function ComingSoonServicePage({ kind }: ComingSoonServicePagePro
             <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-zinc-950 text-white md:h-24 md:w-24">
               <Icon className="h-9 w-9 md:h-11 md:w-11" aria-hidden="true" />
             </span>
-            <p className="mt-8 text-sm font-bold tracking-[0.16em] text-zinc-400">COMING SOON</p>
+            <p className="mt-8 text-sm font-bold text-zinc-400">준비 중</p>
             <p className="mt-3 text-xl font-bold text-zinc-950 md:text-2xl">서비스 소개를 준비하고 있습니다.</p>
           </div>
         </div>

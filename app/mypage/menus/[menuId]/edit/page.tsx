@@ -830,7 +830,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
         <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center">
           <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
@@ -1104,7 +1104,7 @@ function normalizeFinalSaveError(error?: string | null) {
   return error;
 }
 
-function SectionCard({ title, action, children }: { title: string; eyebrow?: string; action?: ReactNode; children: ReactNode }) {
+function SectionCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -1140,7 +1140,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
@@ -1173,7 +1173,7 @@ function HiddenMenuId({ menuId }: { menuId: string }) {
 
 function SchedulePlaceholder() {
   return (
-    <SectionCard title="일정표 관리" eyebrow="Schedule">
+    <SectionCard title="일정표 관리">
       <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6">
         <h3 className="text-lg font-bold tracking-tight text-zinc-950">일정표형 템플릿은 준비 중입니다.</h3>
         <div className="mt-3 space-y-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
@@ -1841,7 +1841,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
@@ -1970,7 +1970,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         <div className={`space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
             {activeTab === "basic" && (
               <>
-                <SectionCard title="기본 정보" eyebrow="Basic">
+                <SectionCard title="기본 정보">
                   <form id="basic-info-form" action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div>
@@ -2152,7 +2152,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "pages" && (
-              <SectionCard title="페이지 설정" eyebrow="Pages">
+              <SectionCard title="페이지 설정">
                 <form id="page-settings-form" action={updatePageSettingsAction} className="grid gap-4 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   {visiblePageSettingKeys.map((key) => {
@@ -2178,7 +2178,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "intro" && (
-              <SectionCard title="인트로" eyebrow="Intro">
+              <SectionCard title="인트로">
                 <form id="intro-form" action={updateIntroAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div>
@@ -2221,7 +2221,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             {activeTab === "cover" && (
               <SectionCard
                 title={coverTabLabel ?? "커버 이미지"}
-                eyebrow="Cover"
               >
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
@@ -2481,7 +2480,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "about" && (
               <>
-                <SectionCard title="소개" eyebrow="About">
+                <SectionCard title="소개">
                   <form id="about-form" action={updateAboutAction} className="grid gap-5 md:grid-cols-2">
                     <HiddenMenuId menuId={site.id} />
                     <AboutDraftSections
@@ -2505,7 +2504,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "events" && (
-              <SectionCard title="이벤트" eyebrow="Events">
+              <SectionCard title="이벤트">
                 <form id="events-form" action={updateEventsAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <EventDraftSections
@@ -2528,7 +2527,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             {activeTab === "design" && (
               <SectionCard
                 title="디자인"
-                eyebrow="Design"
               >
                 <div className="space-y-5">
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
@@ -2673,7 +2671,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "localization" && (
-              <SectionCard title="다국어" eyebrow="Localization">
+              <SectionCard title="다국어">
                 {accessState?.canUseAi && accessContext.isOwner ? (
                   <AiCreditRechargePanel
                     menuSiteId={site.id}
@@ -2706,7 +2704,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "publish" && (
-              <SectionCard title="공개 설정" eyebrow="Publish">
+              <SectionCard title="공개 설정">
                 <form id="publish-settings-form" action={updatePublishSettingsAction} className="space-y-5">
                   <HiddenMenuId menuId={site.id} />
                   <div>

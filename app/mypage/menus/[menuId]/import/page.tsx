@@ -105,7 +105,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
         <ActionFeedbackToast message={message} tone="success" />
         <ActionFeedbackToast message={error} tone="error" />
         <div className="mx-auto w-full max-w-5xl">

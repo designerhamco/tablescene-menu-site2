@@ -148,7 +148,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
   const invitationDeliveryEnabled = isStaffInvitationCreationEnabled();
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 md:px-8 md:py-16">
+    <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950 md:py-16">
       <div className="mx-auto max-w-5xl space-y-8">
         <ActionFeedbackToast
           message={resultNotice?.message}

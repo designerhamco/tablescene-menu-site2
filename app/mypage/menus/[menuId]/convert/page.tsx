@@ -187,7 +187,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
         <div className="mx-auto w-full max-w-7xl">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>

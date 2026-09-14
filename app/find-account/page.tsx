@@ -9,7 +9,7 @@ export default function FindAccountPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-950 px-6 py-24 text-white">
+      <main className="site-gutter min-h-screen bg-zinc-950 py-24 text-white">
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
         <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
           <div className="mb-8">

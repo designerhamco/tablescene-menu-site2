@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function TableQrUnavailablePage() {
   return (
-    <main className="min-h-screen bg-stone-50 px-6 py-16 text-zinc-950">
+    <main className="site-gutter min-h-screen bg-stone-50 py-16 text-zinc-950">
       <section className="mx-auto flex min-h-[70vh] max-w-xl flex-col justify-center rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm md:p-12">
         <p className="text-sm font-black text-amber-700">테이블 QR 확인 필요</p>
         <h1 className="mt-3 text-3xl font-black tracking-tight">이 QR은 현재 사용할 수 없습니다.</h1>

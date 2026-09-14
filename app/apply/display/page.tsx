@@ -49,6 +49,7 @@ export default async function ApplyDisplayPage({
         nextPath={createPathWithQuery("/apply/display", resolvedSearchParams)}
         initialRecoverPaymentId={getSingleSearchParam(resolvedSearchParams.recoverPaymentId)}
         initialRecoverSubscriptionId={getSingleSearchParam(resolvedSearchParams.recoverSubscriptionId)}
+        initialTemplateKey={getSingleSearchParam(resolvedSearchParams.template)}
       />
     );
   }
@@ -56,7 +57,7 @@ export default async function ApplyDisplayPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-6 py-16 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
           <section className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm md:p-12">
             <h1 className="break-keep text-4xl font-black tracking-tight md:text-5xl">

@@ -111,7 +111,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="bg-zinc-50 px-6 py-16 text-zinc-950">
+      <main className="site-gutter bg-zinc-50 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-6xl">
           <header className="grid gap-8 border-b border-zinc-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
             <div>

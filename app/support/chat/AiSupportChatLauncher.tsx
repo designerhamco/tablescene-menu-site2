@@ -78,8 +78,7 @@ export default function AiSupportChatLauncher() {
             >
               <header className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-5 py-4 md:px-6">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-700">AI SUPPORT</p>
-                  <h2 id="ai-support-dialog-title" className="mt-1 text-xl font-black tracking-tight">AI 상담</h2>
+                  <h2 id="ai-support-dialog-title" className="text-xl font-black tracking-tight">AI 상담</h2>
                 </div>
                 <button
                   type="button"

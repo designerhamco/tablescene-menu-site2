@@ -45,7 +45,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 px-6 py-14 text-zinc-950 md:py-20">
+      <main className="site-gutter min-h-screen bg-zinc-50 py-14 text-zinc-950 md:py-20">
         <article className="mx-auto max-w-5xl">
           <Link href="/pricing" className="text-sm font-bold text-zinc-500 transition hover:text-zinc-950">
             ← 요금제 안내

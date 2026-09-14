@@ -110,13 +110,13 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
 
     return (
       <section className="bg-transparent py-28 text-white md:py-36">
-        <div className="mx-auto max-w-[1560px]">
+        <div className="mx-auto max-w-[1280px]">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55 }}
-            className="mx-auto mb-16 max-w-4xl px-6 text-center md:mb-20"
+            className="site-gutter mx-auto mb-16 max-w-4xl text-center md:mb-20"
           >
             <MarketingSectionCopy
               centered
@@ -167,7 +167,7 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
 
   return (
     <section className={`${isHomeShowcase ? 'bg-transparent py-28 text-white md:py-36' : 'bg-zinc-50 py-24 md:py-36'}`}>
-      <div className={`${isHomeShowcase ? 'mx-auto max-w-[1560px]' : 'mx-auto max-w-7xl px-6'}`}>
+      <div className={`${isHomeShowcase ? 'mx-auto max-w-[1280px]' : 'site-container'}`}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
