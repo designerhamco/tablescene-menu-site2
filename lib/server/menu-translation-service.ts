@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   assertSupportedAiDescriptionClaims,
+  hasMissingDescriptionSourceFacts,
   hasUnsupportedFreeClaim,
   normalizeAiDescriptionPriceContext,
 } from "@/lib/menu-ai-description-safety";
@@ -682,7 +683,7 @@ export async function generateMenuItemDescriptionDraft(input: MenuItemDescriptio
             {
               type: "input_text",
               text:
-                `You write concise Korean menu or service item descriptions for a digital menu board. Write 1-2 natural Korean sentences. Do not invent ingredients, discounts, medical effects, origin claims, premium claims, or free/complimentary availability. A missing or zero numeric price means the price is unavailable or hidden, never that the item is free. Mention that an item is free only when the provided price label, badge, or existing description explicitly says so. Use the given name, category, price label, badge, and existing description only as context.${attempt > 0 ? " The previous draft made an unsupported free-price claim. Do not mention price, cost, free service, or complimentary availability anywhere in this retry." : ""} Return only valid JSON that matches the schema.`,
+                `You write concise Korean menu or service item descriptions for a digital menu board. Write 1-2 natural Korean sentences. Treat the existing description as factual source data: preserve every listed ingredient or characteristic and rewrite it naturally rather than changing the subject. Do not invent ingredients, discounts, medical effects, origin claims, premium claims, store usage instructions, or free/complimentary availability. A missing or zero numeric price means the price is unavailable or hidden, never that the item is free. Mention that an item is free only when the provided price label, badge, or existing description explicitly says so. Use the given name, category, price label, badge, and existing description only as context.${attempt > 0 ? " The previous draft was not grounded in the provided facts. On this retry, explicitly include every ingredient or characteristic listed in currentDescription, and do not mention price, cost, free service, complimentary availability, or store usage guidance." : ""} Return only valid JSON that matches the schema.`,
             },
           ],
         },
@@ -737,7 +738,10 @@ export async function generateMenuItemDescriptionDraft(input: MenuItemDescriptio
     }
 
     const description = parseDescriptionResponse(getTextFromOpenAIResponse(payload));
-    if (attempt === 0 && hasUnsupportedFreeClaim(description, input)) continue;
+    if (
+      attempt === 0
+      && (hasUnsupportedFreeClaim(description, input) || hasMissingDescriptionSourceFacts(description, input))
+    ) continue;
 
     assertSupportedAiDescriptionClaims(description, input);
     return description;
