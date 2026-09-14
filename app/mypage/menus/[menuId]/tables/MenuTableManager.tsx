@@ -1,17 +1,13 @@
 "use client";
 
-import { toDataURL } from "qrcode";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 
+import QrAddressActions from "@/components/mypage/QrAddressActions";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { MenuTableListItem } from "@/lib/menu-table-management";
 
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 import { createMenuTableAction, mutateMenuTableAction } from "./actions";
-
-function resolvePublicUrl(path: string, publicBaseUrl: string | null) {
-  return new URL(path, publicBaseUrl ?? window.location.origin).toString();
-}
 
 function ActionNotice({ state }: { state: MenuTableActionState }) {
   if (state.status === "idle" || !state.message) return null;
@@ -23,91 +19,6 @@ function ActionNotice({ state }: { state: MenuTableActionState }) {
     }`}>
       {state.message}
     </p>
-  );
-}
-
-function QrAddressActions({
-  copyKey,
-  fileName,
-  path,
-  publicBaseUrl,
-}: {
-  copyKey: string;
-  fileName: string;
-  path: string;
-  publicBaseUrl: string | null;
-}) {
-  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
-  const [downloadStatus, setDownloadStatus] = useState<"idle" | "working" | "error">("idle");
-  const publicUrl = publicBaseUrl ? new URL(path, publicBaseUrl).toString() : path;
-
-  async function copyUrl() {
-    try {
-      await navigator.clipboard.writeText(resolvePublicUrl(path, publicBaseUrl));
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
-    } catch {
-      setCopyStatus("error");
-    }
-  }
-
-  async function downloadQr() {
-    setDownloadStatus("working");
-    try {
-      const dataUrl = await toDataURL(resolvePublicUrl(path, publicBaseUrl), {
-        type: "image/png",
-        width: 1024,
-        margin: 2,
-        errorCorrectionLevel: "M",
-        color: { dark: "#18181b", light: "#ffffff" },
-      });
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setDownloadStatus("idle");
-    } catch {
-      setDownloadStatus("error");
-    }
-  }
-
-  return (
-    <div className="mt-4">
-      <label className="block text-xs font-black text-zinc-500" htmlFor={`qr-address-${copyKey}`}>
-        연결 주소
-      </label>
-      <div className="mt-2 flex flex-col gap-2 lg:flex-row">
-        <input
-          id={`qr-address-${copyKey}`}
-          readOnly
-          value={publicUrl}
-          className="min-w-0 flex-1 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 font-mono text-xs font-bold text-zinc-700 outline-none sm:text-sm"
-        />
-        <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            onClick={copyUrl}
-            className="rounded-full border border-zinc-300 bg-white px-4 py-3 text-xs font-black text-zinc-800 transition-colors hover:bg-zinc-100"
-          >
-            {copyStatus === "copied" ? "복사 완료" : copyStatus === "error" ? "다시 복사" : "주소 복사"}
-          </button>
-          <button
-            type="button"
-            onClick={downloadQr}
-            disabled={downloadStatus === "working"}
-            className="rounded-full bg-zinc-950 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60"
-            data-table-qr-download=""
-          >
-            {downloadStatus === "working" ? "QR 만드는 중" : "QR 다운로드"}
-          </button>
-        </div>
-      </div>
-      {downloadStatus === "error" ? (
-        <p className="mt-2 text-xs font-black text-rose-700">QR 이미지를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
-      ) : null}
-    </div>
   );
 }
 
@@ -149,6 +60,7 @@ export default function MenuTableManager({
         </p>
         <QrAddressActions
           copyKey="representative"
+          feedbackLabel="대표 메뉴"
           fileName={`arti-menu-${menuSlug}-qr.png`}
           path={representativePath}
           publicBaseUrl={publicBaseUrl}
@@ -213,6 +125,7 @@ export default function MenuTableManager({
 
             <QrAddressActions
               copyKey={table.id}
+              feedbackLabel={table.label}
               fileName={`arti-menu-${menuSlug}-${table.label.replace(/[^0-9A-Za-z가-힣_-]+/g, "-")}-qr.png`}
               path={table.qrPath}
               publicBaseUrl={publicBaseUrl}
