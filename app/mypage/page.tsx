@@ -2405,7 +2405,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
 
     return (
-      <Link href="/mypage/operations" className={className}>
+      <Link
+        href="/mypage/operations"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="매장 운영 새 창 열기"
+        className={className}
+      >
         매장 운영
       </Link>
     );
