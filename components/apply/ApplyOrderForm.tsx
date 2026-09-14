@@ -2738,7 +2738,9 @@ export default function ApplyOrderForm({
                     <div>
                       <p className="font-black text-amber-900">사업자 인증</p>
                       <p className="mt-1 break-keep">
-                        사업자 월결제/연결제는 사업자 정보 확인 후 이용할 수 있습니다. 자동결제는 아직 준비 중이며, 이번 단계에서는 인증만 진행됩니다.
+                        {shouldStartFreeTrial
+                          ? `사업자 정보 확인 후 결제수단을 등록하면 30일 무료체험이 시작되고, ${singleMonthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다.`
+                          : "사업자 정보 확인 후 결제수단을 등록하면 선택한 월결제 또는 연결제 자동결제가 진행됩니다."}
                       </p>
                       <p className={`mt-2 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-amber-800"}`}>
                         {businessVerificationState.message}
