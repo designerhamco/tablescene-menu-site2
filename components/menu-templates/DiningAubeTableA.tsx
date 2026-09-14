@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import type {
   PublicMenuCategory,
@@ -278,6 +279,15 @@ export default function DiningAubeTableA({
         data-layout={layoutVariant}
         data-theme={themeVariant}
       >
+      <div className="aube-table-language-control" data-aube-table-language-control="">
+        <MenuLanguageSwitcher
+          currentLocale={data.locale}
+          enabledLocales={data.enabledLocales}
+          compact
+          triggerVariant="aube"
+          menuAlign="right"
+        />
+      </div>
       {usesSidebarNavigation && units.length > 1 ? (
         <>
           <nav className="aube-table-sidebar-navigation" aria-label="메뉴 페이지 이동">
@@ -492,6 +502,7 @@ export default function DiningAubeTableA({
         .aube-table-stage:active { cursor: grabbing; }
         .aube-table-sidebar-navigation, .aube-table-mobile-page-tabs { display: none; }
         .aube-table-root[data-layout="sidebar"] { --aube-sidebar-mobile-top: 0px; }
+        .aube-table-language-control { position: fixed; z-index: 60; top: max(24px, env(safe-area-inset-top)); right: max(28px, env(safe-area-inset-right)); }
         .aube-table-root[data-layout="sidebar"] .aube-table-stage { cursor: default; }
         .aube-table-root[data-layout="sidebar"] .aube-table-stage:active { cursor: default; }
         .aube-table-cover { position: relative; min-height: 100dvh; display: grid; place-items: center; overflow: hidden; isolation: isolate; }
@@ -600,6 +611,8 @@ export default function DiningAubeTableA({
             --aube-space-item-bottom: clamp(11px, 3vw, 15px);
           }
           .aube-table-cover-copy { width: min(92vw, 680px); padding: 88px 22px 124px; }
+          .aube-table-language-control { top: max(8px, env(safe-area-inset-top)); left: 16px; right: auto; }
+          :global([data-public-menu-entry-layer]) .aube-table-language-control { display: none; }
           .aube-table-cover-logo { max-width: min(230px, 58vw); max-height: 84px; margin-bottom: 22px; }
           .aube-table-cover h1 { font-size: clamp(42px, 11.5vw, 58px); line-height: 1; letter-spacing: .1em; text-indent: .1em; }
           .aube-table-cover-description { margin-top: clamp(18px, 5vw, 24px); font-size: clamp(16px, 4.7vw, 20px); line-height: 1.5; }
