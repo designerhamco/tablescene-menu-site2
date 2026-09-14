@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createInquiryAction, deleteInquiryAction, updateInquiryAction } from "@/app/mypage/inquiries/actions";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { getInquiryCategoryLabel, inquiryCategoryOptions, normalizeInquiryCategory, type InquiryCategory } from "@/lib/inquiries";
 import type { Database } from "@/lib/supabase/types";
 
@@ -147,6 +148,8 @@ export function InquirySection({
 }: InquirySectionProps) {
   return (
     <section className="space-y-8">
+      <ActionFeedbackToast message={noticeMessage} tone="success" />
+      <ActionFeedbackToast message={errorMessage} tone="error" />
       {showIntro ? (
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>

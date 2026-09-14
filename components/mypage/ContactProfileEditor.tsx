@@ -174,7 +174,9 @@ export default function ContactProfileEditor({
       toast.success(result.message || "담당자 정보가 저장되었습니다.");
       router.refresh();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "담당자 정보 저장에 실패했습니다.");
+      const message = submitError instanceof Error ? submitError.message : "담당자 정보 저장에 실패했습니다.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type MarketingConsentSettingsProps = {
   initialAccepted: boolean;
@@ -58,11 +59,15 @@ export default function MarketingConsentSettings({
         throw new Error(result.message || "마케팅 수신 설정 저장에 실패했습니다.");
       }
 
-      setMessage(result.message || "마케팅 수신 설정이 저장되었습니다.");
+      const message = result.message || "마케팅 수신 설정이 저장되었습니다.";
+      setMessage(message);
+      toast.success(message);
       router.refresh();
     } catch (updateError) {
       setAccepted(!nextAccepted);
-      setError(updateError instanceof Error ? updateError.message : "마케팅 수신 설정 저장에 실패했습니다.");
+      const message = updateError instanceof Error ? updateError.message : "마케팅 수신 설정 저장에 실패했습니다.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import PendingSubmitButton from "@/components/mypage/menu-editor/PendingSubmitButton";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import {
   canImportIntoMenuCatalogTarget,
   getMenuCatalogImportModeDescription,
@@ -105,6 +106,8 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
     <>
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-50 px-5 py-10 text-zinc-950">
+        <ActionFeedbackToast message={message} tone="success" />
+        <ActionFeedbackToast message={error} tone="error" />
         <div className="mx-auto w-full max-w-5xl">
           <div className="mb-8 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>

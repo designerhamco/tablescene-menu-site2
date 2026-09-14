@@ -3,6 +3,7 @@
 import { toDataURL } from "qrcode";
 import { useActionState, useState } from "react";
 
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { MenuTableListItem } from "@/lib/menu-table-management";
 
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
@@ -127,6 +128,16 @@ export default function MenuTableManager({
 
   return (
     <div className="space-y-6">
+      <ActionFeedbackToast
+        message={createState.message}
+        tone={createState.status === "success" ? "success" : "error"}
+        eventKey={createState}
+      />
+      <ActionFeedbackToast
+        message={mutationState.message}
+        tone={mutationState.status === "success" ? "success" : "error"}
+        eventKey={mutationState}
+      />
       <ActionNotice state={createState} />
       <ActionNotice state={mutationState} />
 

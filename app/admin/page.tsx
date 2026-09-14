@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { deleteInquiryReplyAction, replyInquiryAction, updateInquiryStatusAction } from "@/app/admin/actions";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { getInquiryCategoryLabel, type InquiryCategory } from "@/lib/inquiries";
@@ -294,6 +295,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
   return (
     <>
+      <ActionFeedbackToast message={noticeMessage} tone="success" />
+      <ActionFeedbackToast message={errorMessage} tone="error" />
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-zinc-950 px-6 py-16 text-white">
       <div className="mx-auto w-full max-w-7xl">

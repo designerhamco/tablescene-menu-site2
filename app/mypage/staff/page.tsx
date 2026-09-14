@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { isStaffInvitationCreationEnabled } from "@/lib/server/staff-invitation-service";
 import {
@@ -140,6 +141,10 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
   return (
     <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 md:px-8 md:py-16">
       <div className="mx-auto max-w-5xl space-y-8">
+        <ActionFeedbackToast
+          message={resultNotice?.message}
+          tone={resultNotice?.tone ?? "success"}
+        />
         <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
             <Link href="/mypage?tab=menus" className="text-sm font-black text-emerald-700 hover:text-emerald-900">
