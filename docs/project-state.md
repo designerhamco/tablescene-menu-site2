@@ -319,7 +319,8 @@ Production의 실제 최신 상태는 변경될 수 있으므로, 새로운 Prod
 - Production 환경변수 값과 비밀키 유효성 확인 — 이름·scope와 default-off gate는 2026-09-01 읽기 전용 감사 완료
 - Vercel Cron 실제 실행 확인 — 2026-09-08에도 기능 활성화·3개 일정 등록·저장소 일치·무인증 `401`을 재확인했으며 Hobby 로그 제한 때문에 매일 03:00·04:00 KST 실행 후 1시간 안에 성공 여부 확인 필요
 - PortOne 실제 결제·취소·부분취소·환불 검증
-- 약관 시행일과 프로모션 기간 확정
+- 약관·개인정보 처리방침 시행일과 오픈 할인 기간은 2026-09-14 확정·배포했다. 시행일과 할인 시작일은 2026년 10월 1일, 할인 종료일은 2027년 9월 30일이다.
+- AI 상담은 2026-09-14 Vercel Production Config `AI_SUPPORT_CHAT_ENABLED=true`로 공개했다. 재배포 `CSCjQtpMbTtBzSexv1j51gppL5yK`의 `Ready`, 공개 동의 UI, 실제 MP4 안내 응답, 민감정보 차단과 1:1 문의 전환을 확인했다.
 - Storage 권한 및 파일 삭제 정책의 Production 검토
 - 최종 디자인 육안 확인과 최종 배포 승인
 
