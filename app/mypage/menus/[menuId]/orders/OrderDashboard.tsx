@@ -6,6 +6,7 @@ import { useActionState, useEffect, useState } from "react";
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
+import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { OrderDashboardPageData } from "@/lib/server/order-management-service";
 
 import { initialOrderManagementActionState } from "./action-state";
@@ -43,7 +44,7 @@ function OrderReceipt({
     <section className="mx-auto max-w-[80mm] bg-white p-6 font-mono text-black">
       <h1 className="text-center text-xl font-black">{menuSiteName}</h1>
       <p className="mt-1 text-center text-sm">주문 #{order.orderNumber} · {order.tableLabel}</p>
-      <p className="mt-1 text-center text-xs">{new Date(order.createdAt).toLocaleString("ko-KR")}</p>
+      <p className="mt-1 text-center text-xs">{formatKoreanDateTime(order.createdAt)}</p>
       <div className="my-4 border-t border-dashed border-black" />
       {order.items.map((item) => (
         <div key={item.id} className="mb-3 text-sm">
@@ -156,7 +157,7 @@ export default function OrderDashboard({
                     {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
                   </span>
                 </div>
-                <p className="mt-2 text-xs font-bold text-zinc-400">{new Date(order.createdAt).toLocaleString("ko-KR")}</p>
+                <p className="mt-2 text-xs font-bold text-zinc-400">{formatKoreanDateTime(order.createdAt)}</p>
               </div>
               <div className="text-left md:text-right">
                 <p className="text-2xl font-black">{formatAmount(order.totalAmount)}</p>

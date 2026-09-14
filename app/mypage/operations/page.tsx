@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
+import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import { listCallDashboard } from "@/lib/server/call-management-service";
 import { listMenuTables } from "@/lib/server/menu-table-management-service";
 import { listPickupQueueDashboard } from "@/lib/server/pickup-queue-service";
@@ -168,7 +169,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black">호출 #{call.callNumber} · {call.tableLabel}</p>
                   <p className="mt-1 text-xs font-bold text-zinc-400">
-                    {call.requestLabel} · {new Date(call.createdAt).toLocaleString("ko-KR")}
+                    {call.requestLabel} · {formatKoreanDateTime(call.createdAt)}
                   </p>
                 </div>
                 <p className="shrink-0 text-xs font-black text-zinc-500">{CALL_STATUS_LABELS[call.status] ?? call.status}</p>
