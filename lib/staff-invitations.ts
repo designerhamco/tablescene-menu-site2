@@ -14,8 +14,15 @@ export const STAFF_INVITATION_ROLES = [
 export const STAFF_INVITATION_ROLE_LABELS = {
   manager: "매니저",
   editor: "편집자",
-  order_staff: "주문 직원",
+  order_staff: "운영 직원",
   viewer: "조회 전용",
+} as const satisfies Readonly<Record<MenuSiteMemberRole, string>>;
+
+export const STAFF_INVITATION_ROLE_DESCRIPTIONS = {
+  manager: "메뉴 편집·공개와 QR·테이블·호출·대기번호 운영을 관리합니다.",
+  editor: "메뉴 내용과 디자인을 편집하고 AI 기능을 사용합니다. 공개 전환은 할 수 없습니다.",
+  order_staff: "호출·대기번호 등 매장 운영 업무를 처리합니다. 메뉴 편집은 할 수 없습니다.",
+  viewer: "메뉴판과 운영 현황을 조회만 할 수 있습니다.",
 } as const satisfies Readonly<Record<MenuSiteMemberRole, string>>;
 
 export type StaffInvitationEmailTemplate = {

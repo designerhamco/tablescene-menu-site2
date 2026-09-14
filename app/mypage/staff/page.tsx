@@ -7,6 +7,7 @@ import { isDeletedAccountStatus } from "@/lib/account-status";
 import { isStaffInvitationCreationEnabled } from "@/lib/server/staff-invitation-service";
 import {
   isStaffInvitationRole,
+  STAFF_INVITATION_ROLE_DESCRIPTIONS,
   STAFF_INVITATION_ROLE_LABELS,
   STAFF_INVITATION_ROLES,
 } from "@/lib/staff-invitations";
@@ -187,7 +188,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
           <div>
             <h2 className="text-xl font-black tracking-tight">활동 중인 직원</h2>
-            <p className="mt-2 text-sm font-medium text-zinc-500">메뉴판별 역할을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
+            <p className="mt-2 text-sm font-medium text-zinc-500">메뉴판별 역할 프리셋을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
           </div>
 
           {membershipResult.error || acceptedInvitationResult.error ? (
@@ -207,6 +208,11 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
                         {menuSiteNameById.get(membership.menu_site_id) ?? "메뉴판"}
                       </p>
+                      {isStaffInvitationRole(membership.role) ? (
+                        <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">
+                          {STAFF_INVITATION_ROLE_DESCRIPTIONS[membership.role]}
+                        </p>
+                      ) : null}
                     </div>
                     <form action={updateStaffMembershipRoleAction} className="flex gap-2">
                       <input type="hidden" name="membershipId" value={membership.id} />

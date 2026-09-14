@@ -3,9 +3,11 @@ import {
   hasMenuSitePermission,
   isMenuSiteMemberRole,
   MenuSiteAccessError,
+  resolvePermissionsForAccessRole,
   type MenuSiteAccessContext,
   type MenuSiteAccessRole,
   type MenuSiteMemberRole,
+  type MenuSitePermissionOverrides,
 } from "./menu-site-permissions";
 
 export type MenuSiteOwnerCandidate = {
@@ -19,6 +21,7 @@ export type MenuSiteMembershipCandidate = {
   userId: string;
   role: unknown;
   status: string;
+  permissionOverrides?: MenuSitePermissionOverrides | unknown;
 };
 
 export type MenuSiteLifecycleSnapshot = {
@@ -91,12 +94,14 @@ function createContext({
   actorUserId,
   accessRole,
   membershipId,
+  permissionOverrides,
   lifecycle,
 }: {
   menuSiteId: string;
   actorUserId: string;
   accessRole: "owner" | MenuSiteMemberRole;
   membershipId: string | null;
+  permissionOverrides?: MenuSitePermissionOverrides | unknown;
   lifecycle: MenuSiteLifecycleSnapshot;
 }): MenuSiteAccessContext {
   const isOwner = accessRole === "owner";
@@ -107,7 +112,9 @@ function createContext({
     isOwner,
     memberRole: isOwner ? null : accessRole,
     membershipId: isOwner ? null : membershipId,
-    permissions: getPermissionsForAccessRole(accessRole),
+    permissions: isOwner
+      ? getPermissionsForAccessRole(accessRole)
+      : resolvePermissionsForAccessRole(accessRole, permissionOverrides),
     menuSiteStatus: lifecycle.menuSiteStatus,
     lifecycleState: lifecycle.lifecycleState,
     staffAccessAllowed: isMenuSiteStaffAccessAllowed(lifecycle),
@@ -137,6 +144,7 @@ export async function resolveMenuSiteAccessContextForActor({
       actorUserId,
       accessRole: "owner",
       membershipId: null,
+      permissionOverrides: undefined,
       lifecycle,
     });
   }
@@ -161,6 +169,7 @@ export async function resolveMenuSiteAccessContextForActor({
     actorUserId,
     accessRole: membership.role,
     membershipId: membership.id,
+    permissionOverrides: membership.permissionOverrides,
     lifecycle,
   });
 }

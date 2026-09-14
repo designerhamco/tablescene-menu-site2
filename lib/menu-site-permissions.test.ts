@@ -5,8 +5,11 @@ import {
   assertMenuSitePermission,
   getPermissionsForAccessRole,
   hasMenuSitePermission,
+  MENU_SITE_OWNER_ONLY_PERMISSIONS,
   MENU_SITE_PERMISSIONS,
   MenuSiteAccessError,
+  normalizeMenuSitePermissionOverrides,
+  resolvePermissionsForAccessRole,
   type MenuSiteAccessContext,
   type MenuSiteAccessRole,
   type MenuSitePermission,
@@ -117,6 +120,66 @@ for (const role of Object.keys(ROLE_EXPECTATIONS) as MenuSiteAccessRole[]) {
 test("unknown roles fail closed", () => {
   assert.deepEqual(sortedPermissions("administrator"), []);
   assert.equal(hasMenuSitePermission("administrator", "menu.read"), false);
+});
+
+test("staff overrides can add a delegable permission", () => {
+  const permissions = resolvePermissionsForAccessRole("editor", {
+    allow: ["call.manage"],
+    deny: [],
+  });
+
+  assert.equal(permissions.has("menu.edit"), true);
+  assert.equal(permissions.has("call.manage"), true);
+});
+
+test("deny overrides win over role defaults and explicit allows", () => {
+  const permissions = resolvePermissionsForAccessRole("manager", {
+    allow: ["menu.publish"],
+    deny: ["menu.publish"],
+  });
+
+  assert.equal(permissions.has("menu.publish"), false);
+});
+
+test("owner-only permissions cannot be delegated through overrides", () => {
+  const permissions = resolvePermissionsForAccessRole("viewer", {
+    allow: MENU_SITE_OWNER_ONLY_PERMISSIONS,
+    deny: [],
+  });
+
+  for (const permission of MENU_SITE_OWNER_ONLY_PERMISSIONS) {
+    assert.equal(permissions.has(permission), false, permission);
+  }
+});
+
+test("staff always retain menu.read so restricted controls can remain visible", () => {
+  const permissions = resolvePermissionsForAccessRole("viewer", {
+    allow: [],
+    deny: ["menu.read"],
+  });
+
+  assert.equal(permissions.has("menu.read"), true);
+});
+
+test("invalid override values normalize fail closed", () => {
+  assert.deepEqual(
+    normalizeMenuSitePermissionOverrides({
+      allow: ["call.manage", "call.manage", "root.manage", "billing.manage"],
+      deny: "menu.edit",
+    }),
+    { allow: ["call.manage"], deny: [] },
+  );
+});
+
+test("context permission checks honor the resolved permission set", () => {
+  const overriddenContext = context("editor");
+  overriddenContext.permissions = resolvePermissionsForAccessRole("editor", {
+    allow: ["call.manage"],
+    deny: ["menu.edit"],
+  });
+
+  assert.equal(hasMenuSitePermission(overriddenContext, "call.manage"), true);
+  assert.equal(hasMenuSitePermission(overriddenContext, "menu.edit"), false);
 });
 
 test("inactive staff contexts cannot use otherwise granted permissions", () => {
@@ -235,6 +298,26 @@ test("an active valid membership resolves its exact role", async () => {
   assert.equal(resolved.accessRole, "order_staff");
   assert.equal(resolved.memberRole, "order_staff");
   assert.equal(resolved.membershipId, "member-a");
+});
+
+test("an active membership resolves its per-member permission overrides", async () => {
+  const resolved = await resolveMenuSiteAccessContextForActor({
+    menuSiteId: "menu-a",
+    actorUserId: "user-a",
+    loaders: loaders({
+      findActiveMembership: async () => activeMembership({
+        role: "editor",
+        permissionOverrides: {
+          allow: ["call.manage"],
+          deny: ["menu.edit"],
+        },
+      }),
+    }),
+  });
+
+  assert.equal(resolved.permissions.has("call.manage"), true);
+  assert.equal(resolved.permissions.has("menu.edit"), false);
+  assert.equal(resolved.permissions.has("menu.read"), true);
 });
 
 test("revoked memberships are denied before lifecycle lookup", async () => {
