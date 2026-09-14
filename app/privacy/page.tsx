@@ -316,7 +316,7 @@ Google Analytics, Meta Pixel, 네이버 애널리틱스, 카카오 픽셀 등 �
 
 ## 부칙
 
-본 개인정보 처리방침은 오픈일 기준으로 시행합니다. 실제 시행일은 오픈일 확정 후 본 처리방침에 반영합니다.
+본 개인정보 처리방침은 2026년 10월 1일부터 시행합니다.
 `;
 
 function renderPolicyContent(content: string) {

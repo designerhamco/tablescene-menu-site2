@@ -85,7 +85,7 @@
 - `DONE` 멀티페이지 A·B 생성·편집 계약 QA — 코드 기반 구매 프로비저닝에서 페이지·코스·직접 메뉴·가격 옵션 참조 무결성과 페이지별 1·2열/정렬 설정을 검증했다. 2026-09-10에는 기존 Owner QA 계정에 결제·주문·구독 없는 14일 메종 마레 메뉴판을 생성해 PC·태블릿·모바일 미리보기, PC·태블릿 좌측 페이지 메뉴, 모바일 가로 페이지 탭, KR fail-closed, 실제 페이지 설명 저장·공개 반영·원복까지 확인했다. 이 과정에서 멀티페이지 편집 탭과 최종 저장이 단일 페이지 권한으로 막히는 오류를 PR #129·#130으로 수정했으며 판매 노출은 계속 분리, `docs/runbooks/maison-marais-production-qa.md`
 - `DONE` 디스플레이 이미지·동영상 템플릿 통합 가격 — 월 정가 19,900원·오픈할인 14,900원, 연 160,900원. 별도 동영상 addon 없이 MP4 직접 업로드를 포함하고 파일당 30MB·메뉴판당 2개 제한과 장기 캐시를 유지하며, 기존 연 결제의 현재 환불 기준은 소급 변경하지 않음
 - `DONE` 디스플레이 `썸머 블루` 이미지·동영상 템플릿 기능 연결 — 이미지 프로모션·분할 메뉴·전체 메뉴·동영상 프로모션 4개 페이지, MP4 직접 업로드, 타임세일, 다국어, 생성·저장·preview/public 계약과 1920×1080·1366×768 fit을 검증. 미리보기 제어 UI는 입력 활동 후 2.2초 뒤 자동으로 사라져 콘텐츠를 가리지 않음
-- `NEEDS_HUMAN` 디스플레이 `썸머 블루` 최종 디자인·콘텐츠 육안 승인 — 기능 구현과 반응형 QA는 완료했으며 실제 판매용 이미지·문구의 최종 선택만 남음
+- `DONE` 디스플레이 `썸머 블루` 최종 디자인·콘텐츠 육안 승인 — 2026-09-14 사용자 승인. Production의 이미지 프로모션·분할 메뉴·전체 메뉴·동영상 프로모션 4개 페이지를 다시 확인했으며, 동영상은 초기 로드 후 정상 재생됐다.
 
 ## 3-C. AI 크레딧 웰컴 정책
 
@@ -246,7 +246,7 @@
 - `NEEDS_HUMAN` Production 환경변수 값·비밀키 유효성 — 이름과 scope, 의도한 default-off runtime gate는 읽기 전용 확인 완료. execute/mock flag 실제 값과 비밀키 유효성·회전 시점은 값을 노출하지 않는 별도 운영 확인 필요, `docs/runbooks/vercel-production-runtime-audit.md`
 - `DONE` Vercel Cron 실제 실행 QA — Production Logs에서 `/api/cron/expire-personal-trials`와 `/api/cron/process-notification-events`의 `GET 200`, `/api/cron/process-subscriptions`의 `GET 200`·`completed`를 확인했다. 구독 작업은 `dryRun=true`, `execute=false`, `failed=0`, `lifecycleErrors=0`으로 실제 결제·취소·데이터 변경 없이 완료됐고 legacy/stale lifecycle anomaly 16건만 보고했다. Run 버튼과 Production 상태는 변경하지 않음, `docs/runbooks/vercel-production-runtime-audit.md`
 - `NEEDS_HUMAN` PortOne 실제 결제 확인
-- `NEEDS_HUMAN` 약관 시행일과 프로모션 기간 확정
+- `DONE` 약관·개인정보 처리방침 시행일과 프로모션 기간 확정 — 시행일·오픈 할인 시작일은 2026년 10월 1일, 오픈 할인 종료일은 2027년 9월 30일로 통일
 - `NEEDS_HUMAN` 최종 디자인 육안 확인
 - `NEEDS_HUMAN` 최종 배포와 Draft PR 병합 승인
 
@@ -262,8 +262,8 @@
 - `DONE` 개인정보 처리방침 수탁자 목록의 실제 OpenAI 법인명 반영과 국외 이전 필수 항목·공개 문구 검토안 작성 — `docs/ai-support-privacy-disclosure-review.md`
 - `DONE` AI 상담 별도 국외 이전 동의 UI, 서버 동의값 검증, 개인정보 처리방침 상세 고지 반영
 - `BLOCKED` OpenAI 미국 리전 단일 처리 고정 — 현재 로컬 운영 키는 미국 리전 엔드포인트에서 401, 글로벌 엔드포인트는 정상 응답. 미국 리전 프로젝트·키 준비 전에는 최신 API 하위처리 국가 목록을 함께 고지
-- `NEEDS_HUMAN` 개인정보 처리방침 시행일 확정 후 Production `AI_SUPPORT_CHAT_ENABLED=true` 설정·재배포·공개 smoke QA
+- `IN_PROGRESS` AI 상담 Production 공개 — 개인정보 처리방침 시행일을 2026년 10월 1일로 확정하고 2026-09-14 로컬 runtime-on에서 국외 이전 동의, 일반 요금제 질문 응답, 카드번호 형식의 민감정보 사전 차단을 재검증. Production `AI_SUPPORT_CHAT_ENABLED=true` 설정·재배포·공개 smoke QA가 남음
 
 ## 다음 작업
 
-`오브 테이블 A` 스마트호출은 단일 QA 메뉴판 allowlist에서 Production 파일럿을 통과했으며 실제 판매 확대 전까지 범위를 넓히지 않는다. `메종 마레`는 실제 계정의 무결제 생성·편집·미리보기·공개 E2E까지 통과했지만, 판매·교체 후보 전환은 별도 제품 승인 전까지 `coming_soon`으로 유지한다. QR오더·PG·주문 기능은 장기 비활성 제품으로 보존하며 별도의 재개 결정 전에는 구현·활성화하지 않는다. 다음 비기능 검토는 사용자가 직접 확인할 `썸머 블루` 최종 디자인·콘텐츠 육안 승인이고, 이후 신규 QA 계정 통합 테스트와 전체 템플릿 세부 시각 보정을 진행한다.
+`오브 테이블 A` 스마트호출은 단일 QA 메뉴판 allowlist에서 Production 파일럿을 통과했으며 실제 판매 확대 전까지 범위를 넓히지 않는다. `메종 마레`는 실제 계정의 무결제 생성·편집·미리보기·공개 E2E까지 통과했지만, 판매·교체 후보 전환은 별도 제품 승인 전까지 `coming_soon`으로 유지한다. QR오더·PG·주문 기능은 장기 비활성 제품으로 보존하며 별도의 재개 결정 전에는 구현·활성화하지 않는다. `썸머 블루`는 2026-09-14 사용자 육안 승인을 완료했다. 다음 운영 확인은 이력이 없는 전용 QA 계정의 실제 빌링키 등록·30일 무료체험·첫 메뉴 6크레딧 E2E이며, 카드 입력이 필요한 단계와 병행해 AI 상담 Production 공개, 메종 마레 보정, 전체 템플릿·모바일 메일 최종 시각 점검을 진행한다.
