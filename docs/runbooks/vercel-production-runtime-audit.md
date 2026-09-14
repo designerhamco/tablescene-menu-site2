@@ -1,6 +1,6 @@
 # Vercel Production runtime 읽기 전용 감사
 
-최종 확인: 2026-09-13
+최종 확인: 2026-09-14
 
 ## 범위
 
@@ -31,7 +31,7 @@ Vercel의 Cron Jobs 기능은 `Enabled` 상태이며 다음 세 작업이 `verce
 
 값을 열지 않고 다음 핵심 변수의 존재와 scope를 확인했다.
 
-- Production 전용: `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`, `STAFF_INVITATIONS_ENABLED`
+- Production 전용: `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`, `STAFF_INVITATIONS_ENABLED`, `AI_SUPPORT_CHAT_ENABLED`, `OPENAI_SUPPORT_API_KEY`
 - Production + Preview: Supabase 공개/서버 키, PortOne 키, OpenAI 키·모델, Resend 이메일 설정, `CRON_SECRET`, `ENABLE_SUBSCRIPTION_CRON_EXECUTE`, 공개 사이트 URL
 
 다음 runtime gate는 Vercel 목록에 없으며 코드의 기본값에 따라 닫힌 상태로 유지된다.
@@ -41,18 +41,19 @@ Vercel의 Cron Jobs 기능은 `Enabled` 상태이며 다음 세 작업이 `verce
 - `POSTPAY_ORDER_ENABLED`, `POSTPAY_ORDER_ALLOWED_SITE_IDS`
 - `ORDER_DASHBOARD_ENABLED`, `ORDER_DASHBOARD_ALLOWED_SITE_IDS`
 - `ENABLE_NOTIFICATION_CRON_EXECUTE`
-- `AI_SUPPORT_CHAT_ENABLED`
 
 이는 스마트호출 pilot과 Order/PG를 현재 Production에서 활성화하지 않는 제품 계약과 일치한다. `process-notification-events` Cron은 등록되어 있어도 execute gate가 없으므로 GET에서 dry-run으로 동작한다.
 
-## 남은 사람 확인
+## 비밀키·실행 게이트 읽기 전용 확인
 
-환경변수 값이나 비밀키의 유효성·회전 시점은 이번 감사에서 확인하지 않았다. 특히 실제 실행에 영향을 주는 아래 값은 공개하거나 임의 변경하지 않고 운영자가 별도로 확인해야 한다.
+2026-09-14 Vercel Dashboard에서 값을 열지 않고 변수명, 유형, scope, 갱신 메타데이터와 `Needs Attention` 상태만 재확인했다.
 
-- `ENABLE_SUBSCRIPTION_CRON_EXECUTE`
-- `PORTONE_MOCK_ENABLED`
-- `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`
-- `STAFF_INVITATIONS_ENABLED`
-- `CRON_SECRET`, PortOne·Supabase·OpenAI·Resend 비밀키의 현재 유효성
+- Secret 유형: `CRON_SECRET`, `PORTONE_API_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_SUPPORT_API_KEY`, `OPENAI_API_KEY`, `RESEND_API_KEY`, `DATA_GO_KR_SERVICE_KEY`, `ENABLE_SUBSCRIPTION_CRON_EXECUTE`, `PORTONE_MOCK_ENABLED`, `STAFF_INVITATIONS_ENABLED`
+- Config 유형: `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`, `AI_SUPPORT_CHAT_ENABLED`
+- `OPENAI_SUPPORT_API_KEY`, 무료체험·직원초대·AI 상담 gate는 Production 전용이고, 그 외 핵심 서버 키와 결제·Cron gate는 Production + Preview scope다.
+- 대체 사업자 검증 키 `NTS_BUSINESS_API_KEY`는 없지만 실제 구현이 우선 사용하는 `DATA_GO_KR_SERVICE_KEY`가 Secret으로 등록되어 있다.
+- 확인한 12개 핵심 변수에는 Vercel의 `Needs Attention` 표시가 없었다.
 
-값을 변경하면 Production 재배포와 실제 결제·구독·이메일 동작에 영향을 줄 수 있으므로 별도 승인 작업으로 처리한다.
+현재 유효성은 값을 직접 조회하는 대신 실제 runtime 근거로 확인했다. `CRON_SECRET`은 세 예약 경로의 인증된 `GET 200`, OpenAI 상담 키는 Production 실제 답변, Supabase 서버 키는 Auth·메뉴 편집·호출·QR Production E2E, Resend 키는 실제 `delivered` 메일, PortOne 키는 2026-09-01 결제 상태 읽기 재조회로 동작 근거가 있다. `PORTONE_MOCK_ENABLED`는 Production 코드에서 항상 무시되며 구독 Cron 로그는 `execute=false`를 확인했다.
+
+키를 무작정 동시에 교체하면 결제·구독·메일·로그인에 장애가 생길 수 있다. Vercel 경고나 runtime 오류가 없으므로 즉시 일괄 교체하지 않고, 제공자별 새 키 발급 → Vercel Secret 교체 → 재배포 → 읽기/발송 smoke → 이전 키 폐기 순서로 한 공급자씩 회전한다. 실제 카드 등록 무료체험 E2E 전에 PortOne 키를 먼저 바꾸지 않는다. 사업자 검증 키의 외부 API 실제 응답과 제공자별 키 교체는 운영자 인증이 필요한 후속 작업으로 유지한다.

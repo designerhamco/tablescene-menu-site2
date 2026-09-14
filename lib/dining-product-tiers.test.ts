@@ -15,6 +15,7 @@ import {
   getDiningTemplateTier,
   isDiningProductCompatibleWithTemplate,
 } from "./dining-product-tiers";
+import { getAvailableTemplatesForService } from "./templates";
 
 test("다이닝 요금제 기능 경계를 고정한다", () => {
   assert.deepEqual(getDiningTierFeatures("single"), {
@@ -55,6 +56,15 @@ test("단일·멀티페이지 상품은 같은 페이지 등급 템플릿에만 
   assert.equal(
     isDiningProductCompatibleWithTemplate(businessBasicMultiMonthlyProduct.product_key, "cafe_design_a"),
     false,
+  );
+});
+
+test("신규 판매 화면에는 같은 멀티페이지 요금제로 구매 가능한 두 템플릿을 노출한다", () => {
+  assert.deepEqual(
+    getAvailableTemplatesForService("basic")
+      .filter((template) => getDiningTemplateTier(template.key) === "multi")
+      .map((template) => template.key),
+    ["dining_aube_table_a", "dining_aube_table_b"],
   );
 });
 

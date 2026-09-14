@@ -18,6 +18,7 @@ test("사용 가능한 다이닝 템플릿을 페이지 등급에 맞는 교체 
       "cafe_sunday_line_a",
       "cafe_round_focus_a",
       "dining_aube_table_a",
+      "dining_aube_table_b",
     ],
   );
 });
@@ -40,7 +41,11 @@ test("현재 템플릿과 같은 페이지 등급의 교체 후보만 노출한�
   );
   assert.deepEqual(
     getSwitchableTemplatesForTemplate("dining_aube_table_a").map((template) => template.key),
-    ["dining_aube_table_a"],
+    ["dining_aube_table_a", "dining_aube_table_b"],
+  );
+  assert.deepEqual(
+    getSwitchableTemplatesForTemplate("dining_aube_table_b").map((template) => template.key),
+    ["dining_aube_table_a", "dining_aube_table_b"],
   );
 });
 
