@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import {
@@ -8,9 +8,11 @@ import {
   type StaffInvitationActionState,
 } from "./actions";
 import {
+  STAFF_INVITATION_ROLE_DESCRIPTIONS,
   STAFF_INVITATION_ROLE_LABELS,
   STAFF_INVITATION_ROLES,
 } from "@/lib/staff-invitations";
+import type { MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 
 type OwnedMenuSiteOption = {
   id: string;
@@ -34,6 +36,7 @@ export default function StaffInvitationForm({
     createStaffInvitationAction,
     initialStaffInvitationActionState,
   );
+  const [selectedRole, setSelectedRole] = useState<MenuSiteMemberRole>("editor");
   const unavailable = !enabled || menuSites.length === 0;
 
   return (
@@ -73,7 +76,8 @@ export default function StaffInvitationForm({
         <span className="text-sm font-black text-zinc-800">역할</span>
         <select
           name="role"
-          defaultValue="editor"
+          value={selectedRole}
+          onChange={(event) => setSelectedRole(event.target.value as MenuSiteMemberRole)}
           disabled={unavailable || pending}
           className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-950 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:bg-zinc-100"
         >
@@ -81,6 +85,9 @@ export default function StaffInvitationForm({
             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
           ))}
         </select>
+        <span className="block rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-600">
+          {STAFF_INVITATION_ROLE_DESCRIPTIONS[selectedRole]}
+        </span>
       </label>
 
       <fieldset disabled={unavailable || pending} className="space-y-3">

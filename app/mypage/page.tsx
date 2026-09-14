@@ -71,9 +71,9 @@ type BillingTab = "history" | "active" | "holding" | "deleted" | "ai-credits";
 
 const MENU_SITE_MEMBER_ROLE_LABELS: Record<MenuSiteMemberRole, string> = {
   manager: "매니저",
-  editor: "에디터",
-  order_staff: "주문 직원",
-  viewer: "조회자",
+  editor: "편집자",
+  order_staff: "운영 직원",
+  viewer: "조회 전용",
 };
 
 type MenuSite = {

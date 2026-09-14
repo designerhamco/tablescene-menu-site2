@@ -20,6 +20,22 @@ export const MENU_SITE_PERMISSIONS = [
 
 export type MenuSitePermission = (typeof MENU_SITE_PERMISSIONS)[number];
 
+export const MENU_SITE_OWNER_ONLY_PERMISSIONS = [
+  "staff.manage",
+  "billing.read",
+  "billing.manage",
+  "menu.archive",
+] as const satisfies readonly MenuSitePermission[];
+
+export const MENU_SITE_DELEGABLE_PERMISSIONS = MENU_SITE_PERMISSIONS.filter(
+  (permission) => !(MENU_SITE_OWNER_ONLY_PERMISSIONS as readonly MenuSitePermission[]).includes(permission),
+);
+
+export type MenuSitePermissionOverrides = {
+  allow: readonly MenuSitePermission[];
+  deny: readonly MenuSitePermission[];
+};
+
 export const MENU_SITE_MEMBER_ROLES = [
   "manager",
   "editor",
@@ -104,12 +120,52 @@ export function isMenuSiteAccessRole(value: unknown): value is MenuSiteAccessRol
   return value === "owner" || isMenuSiteMemberRole(value);
 }
 
-export function getPermissionsForAccessRole(role: unknown): ReadonlySet<MenuSitePermission> {
+export function isMenuSitePermission(value: unknown): value is MenuSitePermission {
+  return typeof value === "string" && (MENU_SITE_PERMISSIONS as readonly string[]).includes(value);
+}
+
+export function normalizeMenuSitePermissionOverrides(value: unknown): MenuSitePermissionOverrides {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { allow: [], deny: [] };
+  }
+
+  const candidate = value as { allow?: unknown; deny?: unknown };
+  const delegable = new Set<MenuSitePermission>(MENU_SITE_DELEGABLE_PERMISSIONS);
+  const normalize = (entries: unknown) => [...new Set(
+    (Array.isArray(entries) ? entries : [])
+      .filter(isMenuSitePermission)
+      .filter((permission) => permission !== "menu.read" && delegable.has(permission)),
+  )];
+
+  return {
+    allow: normalize(candidate.allow),
+    deny: normalize(candidate.deny),
+  };
+}
+
+export function resolvePermissionsForAccessRole(
+  role: unknown,
+  overrides?: unknown,
+): ReadonlySet<MenuSitePermission> {
   if (!isMenuSiteAccessRole(role)) {
     return new Set<MenuSitePermission>();
   }
 
-  return new Set<MenuSitePermission>(MENU_SITE_PERMISSION_MATRIX[role]);
+  const permissions = new Set<MenuSitePermission>(MENU_SITE_PERMISSION_MATRIX[role]);
+  if (role === "owner") return permissions;
+
+  const normalizedOverrides = normalizeMenuSitePermissionOverrides(overrides);
+  for (const permission of normalizedOverrides.allow) permissions.add(permission);
+  for (const permission of normalizedOverrides.deny) permissions.delete(permission);
+
+  // Active staff must retain read access so restricted menu items can remain
+  // visible with an explanatory disabled state instead of disappearing.
+  permissions.add("menu.read");
+  return permissions;
+}
+
+export function getPermissionsForAccessRole(role: unknown): ReadonlySet<MenuSitePermission> {
+  return resolvePermissionsForAccessRole(role);
 }
 
 function isMenuSiteAccessContext(value: unknown): value is MenuSiteAccessContext {
@@ -118,7 +174,8 @@ function isMenuSiteAccessContext(value: unknown): value is MenuSiteAccessContext
   return typeof candidate.menuSiteId === "string"
     && typeof candidate.actorUserId === "string"
     && isMenuSiteAccessRole(candidate.accessRole)
-    && typeof candidate.staffAccessAllowed === "boolean";
+    && typeof candidate.staffAccessAllowed === "boolean"
+    && typeof candidate.permissions?.has === "function";
 }
 
 export function hasMenuSitePermission(
@@ -130,7 +187,7 @@ export function hasMenuSitePermission(
       return false;
     }
 
-    return getPermissionsForAccessRole(contextOrRole.accessRole).has(permission);
+    return contextOrRole.permissions.has(permission);
   }
 
   return getPermissionsForAccessRole(contextOrRole).has(permission);

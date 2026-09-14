@@ -6,6 +6,8 @@ import {
   isStaffInvitationRole,
   isValidStaffInvitationEmail,
   normalizeStaffInvitationEmail,
+  STAFF_INVITATION_ROLE_DESCRIPTIONS,
+  STAFF_INVITATION_ROLE_LABELS,
 } from "./staff-invitations";
 
 test("staff invitation input normalization fails closed", () => {
@@ -14,6 +16,12 @@ test("staff invitation input normalization fails closed", () => {
   assert.equal(isValidStaffInvitationEmail("member@localhost"), false);
   assert.equal(isStaffInvitationRole("manager"), true);
   assert.equal(isStaffInvitationRole("owner"), false);
+});
+
+test("staff role labels and descriptions match the current operations policy", () => {
+  assert.equal(STAFF_INVITATION_ROLE_LABELS.order_staff, "운영 직원");
+  assert.match(STAFF_INVITATION_ROLE_DESCRIPTIONS.order_staff, /호출·대기번호/);
+  assert.match(STAFF_INVITATION_ROLE_DESCRIPTIONS.order_staff, /메뉴 편집은 할 수 없습니다/);
 });
 
 test("staff invitation email contains the bounded acceptance link without exposing HTML", () => {
