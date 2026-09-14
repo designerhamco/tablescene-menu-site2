@@ -112,6 +112,15 @@ export function MypageNavigation({
         <NavigationCount active={active === "menus"}>{totalMenuCount.toLocaleString("ko-KR")}</NavigationCount>
       </Link>
       <div className="mt-2 space-y-1">
+        <Link
+          href="/mypage/operations"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="매장 운영 새 창 열기"
+          className={getNavigationClassName(false)}
+        >
+          <span>매장 운영</span>
+        </Link>
         {canShowOwnerCommerce ? (
           <Link href="/mypage?tab=payments" className={getNavigationClassName(active === "payments")}>
             <span>구독/결제 내역</span>
