@@ -26,6 +26,8 @@ test("Summer Blue starter keeps a concise menu and one visible launch discount",
     [
       ["클래식 버터 스콘", 4500, 3900, null],
       ["카푸치노", 5000, 4300, "template-preview-display-menu-a-category-0-1-price-column-hot"],
+      ["카푸치노", 5000, 4300, "template-preview-display-menu-a-category-0-1-price-column-ice"],
+      ["바질 크림 라떼", 6500, 5700, "template-preview-display-menu-a-category-0-0-price-column-hot"],
       ["바질 크림 라떼", 6500, 5700, "template-preview-display-menu-a-category-0-0-price-column-ice"],
     ],
   );
@@ -46,7 +48,9 @@ test("Summer Blue starter keeps a concise menu and one visible launch discount",
   assert.equal(activeSales.size, 3);
   assert.equal(activeSales.get(sale.items[0].menuItemId)?.item?.salePrice, 3900);
   assert.equal(activeSales.get(sale.items[1].menuItemId)?.optionItemsByPriceColumnId.get(sale.items[1].priceColumnId ?? "")?.salePrice, 4300);
-  assert.equal(activeSales.get(sale.items[2].menuItemId)?.optionItemsByPriceColumnId.get(sale.items[2].priceColumnId ?? "")?.salePrice, 5700);
+  assert.equal(activeSales.get(sale.items[2].menuItemId)?.optionItemsByPriceColumnId.get(sale.items[2].priceColumnId ?? "")?.salePrice, 4300);
+  assert.equal(activeSales.get(sale.items[3].menuItemId)?.optionItemsByPriceColumnId.get(sale.items[3].priceColumnId ?? "")?.salePrice, 5700);
+  assert.equal(activeSales.get(sale.items[4].menuItemId)?.optionItemsByPriceColumnId.get(sale.items[4].priceColumnId ?? "")?.salePrice, 5700);
 });
 
 test("Display translation flow includes visible menu and discount copy", () => {
