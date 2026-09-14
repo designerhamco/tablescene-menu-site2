@@ -25,6 +25,7 @@ import type {
 } from "@/lib/menu-localization-draft";
 import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
+import { getLocalizationSaveMode } from "@/lib/menu-localization-save-mode";
 
 type TranslationJob = {
   status: string;
@@ -634,6 +635,7 @@ function LocalizationSectionContent({
   const isTranslationDisabled = isGeneratingFullDraft || isUsageExceeded || !hasTargetLocales;
   const hasLocaleChanges = getNormalizedLocales(selectedLocales) !== getNormalizedLocales(enabledLocales);
   const hasTranslationChanges = JSON.stringify(draftValues) !== JSON.stringify(initialDraftValues);
+  const localizationSaveMode = getLocalizationSaveMode({ hasLocaleChanges, hasTranslationChanges });
   const savedTranslationsExist = hasSavedTranslationValues(editableTranslationFields);
   const translationStatus =
     latestTranslationJob && (latestTranslationJob.status === "pending" || latestTranslationJob.status === "running" || latestTranslationJob.status === "failed")
@@ -907,6 +909,7 @@ function LocalizationSectionContent({
     <div className="space-y-6">
       <form id="localization-settings-form" action={updateLocalizationSettingsAction} className="space-y-6">
         <HiddenMenuId menuId={menuId} />
+        <input type="hidden" name="localization_save_mode" value={localizationSaveMode} />
         <input type="hidden" name="translation_draft" value={JSON.stringify(translationDraftPayload)} />
         {appliedRecoveryJobId ? <input type="hidden" name="translation_recovery_job_id" value={appliedRecoveryJobId} /> : null}
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
