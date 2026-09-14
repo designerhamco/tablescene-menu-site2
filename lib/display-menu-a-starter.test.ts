@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { getActiveDisplayMenuTimeSalesByItemId } from "./display-menu-time-sales";
+import { getMenuLocalizationStructure } from "./menu-localization-structure";
 import { buildDisplayMenuAPreviewData } from "./template-demo-data/display-menu-a";
 
 test("Summer Blue starter keeps a concise menu and one visible launch discount", () => {
@@ -56,7 +57,8 @@ test("Summer Blue starter keeps a concise menu and one visible launch discount",
 test("Display translation flow includes visible menu and discount copy", () => {
   const source = readFileSync(new URL("./server/menu-translation-service.ts", import.meta.url), "utf8");
 
-  assert.match(source, /usesDisplayLocalization\s*=\s*siteResult\.data\?\.template_key\s*===\s*"display_menu_a"/);
+  assert.equal(getMenuLocalizationStructure("display_menu_a"), "display");
+  assert.match(source, /usesDisplayLocalization\s*=\s*localizationStructure\s*===\s*"display"/);
   assert.match(source, /menu_category_translations/);
   assert.match(source, /menu_item_translations/);
   assert.match(source, /usesBasicTimeSaleLocalization/);

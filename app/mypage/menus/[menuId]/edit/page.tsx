@@ -86,6 +86,7 @@ import {
   type EditableTranslationLocale,
   type RecoverableAutoTranslationJob,
 } from "@/lib/menu-localization-draft";
+import { getMenuLocalizationStructure, type MenuLocalizationStructure } from "@/lib/menu-localization-structure";
 import { getPcTabletLayoutModeFromPageSettings, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { createClient } from "@/lib/supabase/server";
@@ -272,6 +273,7 @@ type MenuSiteTranslation = Database["public"]["Tables"]["menu_site_translations"
 type MenuPageTranslation = Database["public"]["Tables"]["menu_page_translations"]["Row"];
 type MenuCategoryTranslation = Database["public"]["Tables"]["menu_category_translations"]["Row"];
 type MenuItemTranslation = Database["public"]["Tables"]["menu_item_translations"]["Row"];
+type MenuItemPriceOptionTranslation = Database["public"]["Tables"]["menu_item_price_option_translations"]["Row"];
 type MenuPromotionTranslation = Database["public"]["Tables"]["menu_promotion_translations"]["Row"];
 type MenuWidgetTranslation = Database["public"]["Tables"]["menu_widget_translations"]["Row"];
 
@@ -349,11 +351,13 @@ function buildEditableTranslationFields({
   pages,
   categories,
   items,
+  priceOptions,
   promotions,
   siteTranslations,
   pageTranslations,
   categoryTranslations,
   itemTranslations,
+  priceOptionTranslations,
   promotionTranslations,
   widgetTranslations,
   widgets,
@@ -369,12 +373,14 @@ function buildEditableTranslationFields({
   pages: MenuPage[];
   categories: MenuCategory[];
   items: MenuItem[];
+  priceOptions: MenuItemPriceOption[];
   promotions: MenuEditorTimeSale[];
   widgets: MenuWidget[];
   siteTranslations: MenuSiteTranslation[];
   pageTranslations: MenuPageTranslation[];
   categoryTranslations: MenuCategoryTranslation[];
   itemTranslations: MenuItemTranslation[];
+  priceOptionTranslations: MenuItemPriceOptionTranslation[];
   promotionTranslations: MenuPromotionTranslation[];
   widgetTranslations: MenuWidgetTranslation[];
   includeItemBadges: boolean;
@@ -383,7 +389,7 @@ function buildEditableTranslationFields({
   includeItemPortionLabel: boolean;
   includePageDescriptions: boolean;
   menuCoverCapabilities: ReturnType<typeof getTemplateCapabilities>["menuCover"];
-  localizationStructure: "basic" | "display" | "default";
+  localizationStructure: MenuLocalizationStructure;
 }) {
   const fields: EditableTranslationField[] = [];
   const siteTranslationsByLocale = new Map(
@@ -392,6 +398,7 @@ function buildEditableTranslationFields({
   const pageTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const categoryTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const itemTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
+  const priceOptionTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const promotionTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
   const widgetTranslationsById = new Map<string, Map<EditableTranslationLocale, Record<string, unknown>>>();
 
@@ -412,6 +419,12 @@ function buildEditableTranslationFields({
     const translations = itemTranslationsById.get(translation.item_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
     translations.set(locale, translation as Record<string, unknown>);
     itemTranslationsById.set(translation.item_id, translations);
+  });
+  priceOptionTranslations.forEach((translation) => {
+    const locale = translation.locale as EditableTranslationLocale;
+    const translations = priceOptionTranslationsById.get(translation.price_option_id) ?? new Map<EditableTranslationLocale, Record<string, unknown>>();
+    translations.set(locale, translation as Record<string, unknown>);
+    priceOptionTranslationsById.set(translation.price_option_id, translations);
   });
   promotionTranslations.forEach((translation) => {
     const locale = translation.locale as EditableTranslationLocale;
@@ -577,12 +590,25 @@ function buildEditableTranslationFields({
         sourceFields: {
           name: category.name,
           description: includeCategoryDescriptions && category.description_visible ? category.description : null,
+          course_price_label:
+            localizationStructure === "default" && category.course_price_visible !== false
+              ? category.course_price_label
+              : null,
+          course_price_description:
+            localizationStructure === "default" && category.course_price_description_visible !== false
+              ? category.course_price_description
+              : null,
         },
         translationsByLocale: categoryTranslationsById.get(category.id) ?? new Map(),
         fieldLabels: localizationStructure === "basic" || localizationStructure === "display"
           ? { name: "메뉴 그룹명", description: "메뉴 그룹 설명" }
-          : { name: "카테고리명", description: "카테고리 설명" },
-        multilineFields: ["description"],
+          : {
+              name: "코스명",
+              description: "코스 설명",
+              course_price_label: "코스 가격",
+              course_price_description: "가격 안내",
+            },
+        multilineFields: ["description", "course_price_description"],
       });
     });
 
@@ -598,9 +624,9 @@ function buildEditableTranslationFields({
         parentGroupLabel: categoryName,
         sourceFields: {
           name: item.name,
-          set_name: localizationStructure === "display" ? item.set_name : null,
+          set_name: localizationStructure !== "basic" ? item.set_name : null,
           description: includeItemDescriptions ? item.description : null,
-          price_label: item.price_label,
+          price_label: item.price_visible !== false ? item.price_label : null,
           portion_label: includeItemPortionLabel && item.portion_visible !== false ? item.portion_label : null,
           badge_label: includeItemBadges ? item.badge_label : null,
         },
@@ -609,6 +635,33 @@ function buildEditableTranslationFields({
         multilineFields: ["description"],
       });
     });
+
+  if (localizationStructure === "default") {
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    const categoryById = new Map(categories.map((category) => [category.id, category]));
+
+    priceOptions
+      .filter((option) => option.visible)
+      .forEach((option) => {
+        const item = itemById.get(option.menu_item_id);
+        if (!item?.visible) return;
+        const categoryName = item.category_id ? categoryById.get(item.category_id)?.name : null;
+
+        pushFields({
+          entityType: "priceOption",
+          entityId: option.id,
+          group: "items",
+          groupLabel: `${item.name} · 가격 옵션`,
+          parentGroupLabel: categoryName ?? "기타",
+          sourceFields: {
+            label: option.label,
+            price_label: option.price_label,
+          },
+          translationsByLocale: priceOptionTranslationsById.get(option.id) ?? new Map(),
+          fieldLabels: { label: "가격 옵션명", price_label: "가격 표시 문구" },
+        });
+      });
+  }
 
   promotions
     .filter((promotion) => promotion.active)
@@ -1396,11 +1449,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const pageIds = menuPages.map((page) => page.id);
   const categoryIds = categories.map((category) => category.id);
   const itemIds = items.map((item) => item.id);
+  const priceOptionIds = priceOptions.map((option) => option.id);
   const [
     { data: siteTranslationsData },
     { data: pageTranslationsData },
     { data: categoryTranslationsData },
     { data: itemTranslationsData },
+    { data: priceOptionTranslationsData },
   ] = await Promise.all([
     supabase
       .from("menu_site_translations")
@@ -1415,6 +1470,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       : Promise.resolve({ data: [], error: null }),
     itemIds.length > 0
       ? supabase.from("menu_item_translations").select("*").in("item_id", itemIds).in("locale", editableTranslationLocales)
+      : Promise.resolve({ data: [], error: null }),
+    priceOptionIds.length > 0
+      ? supabase
+          .from("menu_item_price_option_translations")
+          .select("*")
+          .in("price_option_id", priceOptionIds)
+          .in("locale", editableTranslationLocales)
       : Promise.resolve({ data: [], error: null }),
   ]);
   const pageSettings = mergePageSettings(site.page_settings);
@@ -1508,12 +1570,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     });
   }
 
-  const localizationStructure =
-    editorServiceType === "screen" || site.template_key === "display_menu_a"
-      ? "display"
-      : editorServiceType === "menu"
-      ? "basic"
-      : "default";
+  const localizationStructure = getMenuLocalizationStructure(site.template_key);
   const siteSettings = getJsonRecord(site.settings);
   const templateTypeLabel = getTemplateTypeLabel(templateType);
   const isPriceListTemplate = templateType === "price_list";
@@ -1588,11 +1645,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     pages: menuPages,
     categories,
     items,
+    priceOptions,
     promotions: editorTimeSales,
     siteTranslations: (siteTranslationsData ?? []) as MenuSiteTranslation[],
     pageTranslations: (pageTranslationsData ?? []) as MenuPageTranslation[],
     categoryTranslations: (categoryTranslationsData ?? []) as MenuCategoryTranslation[],
     itemTranslations: (itemTranslationsData ?? []) as MenuItemTranslation[],
+    priceOptionTranslations: (priceOptionTranslationsData ?? []) as MenuItemPriceOptionTranslation[],
     promotionTranslations: (promotionTranslationsData ?? []) as MenuPromotionTranslation[],
     widgetTranslations: (widgetTranslationsData ?? []) as MenuWidgetTranslation[],
     widgets: initialMenuWidgets,

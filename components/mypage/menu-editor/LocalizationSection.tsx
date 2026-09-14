@@ -346,11 +346,14 @@ function TranslationEditorGroup({
       <h4 className="text-sm font-black text-zinc-950">{title}</h4>
       <div className="mt-4 space-y-4">
         {groupedFields.map((group) => {
+          const partialEntityType = group.fields[0]?.entityType;
+          const canUsePartialTranslation =
+            partialEntityType === "site" || partialEntityType === "category" || partialEntityType === "item";
           return (
             <div key={group.entityId} className="rounded-lg border border-zinc-100 bg-white p-4">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm font-black text-zinc-950">{group.groupLabel}</p>
-                {onPartialTranslate ? (
+                {onPartialTranslate && canUsePartialTranslation ? (
                   <button
                     type="button"
                     disabled={Boolean(pendingPartialEntityKey) || isPartialUsageExceeded}

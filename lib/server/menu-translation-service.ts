@@ -9,6 +9,8 @@ import {
   normalizeAiDescriptionPriceContext,
 } from "@/lib/menu-ai-description-safety";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE } from "@/lib/menu-translation-errors";
+import { isAubeTableTemplate } from "@/lib/aube-table";
+import { getMenuLocalizationStructure } from "@/lib/menu-localization-structure";
 import {
   TIME_SALE_BADGE_TEXT_MAX_LENGTH,
   TIME_SALE_DISPLAY_TEXT_MAX_LENGTH,
@@ -1239,13 +1241,28 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
       )
       .eq("id", menuSiteId)
       .maybeSingle(),
-    supabase.from("menu_pages").select("id, title, description").eq("menu_site_id", menuSiteId),
+    supabase
+      .from("menu_pages")
+      .select("id, title, description, description_visible, visible")
+      .eq("menu_site_id", menuSiteId)
+      .eq("visible", true),
     supabase
       .from("menu_categories")
-      .select("id, name, description, course_price_label, course_price_description" as never)
-      .eq("menu_site_id", menuSiteId),
-    supabase.from("menu_items").select("id, name, set_name, description, price_label, portion_label, badge_label, origin_info").eq("menu_site_id", menuSiteId),
-    supabase.from("menu_item_price_options").select("id, label, price_label").eq("menu_site_id", menuSiteId),
+      .select(
+        "id, name, description, description_visible, course_price_label, course_price_visible, course_price_description, course_price_description_visible, visible" as never,
+      )
+      .eq("menu_site_id", menuSiteId)
+      .eq("visible", true),
+    supabase
+      .from("menu_items")
+      .select("id, name, set_name, description, price_label, price_visible, portion_label, portion_visible, badge_label, origin_info, visible")
+      .eq("menu_site_id", menuSiteId)
+      .eq("visible", true),
+    supabase
+      .from("menu_item_price_options")
+      .select("id, label, price_label, visible")
+      .eq("menu_site_id", menuSiteId)
+      .eq("visible", true),
     supabase.from("menu_item_traits").select("id, label").eq("menu_site_id", menuSiteId),
     supabase
       .from("menu_events")
@@ -1257,7 +1274,8 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
       .from("menu_promotions")
       .select("id, settings")
       .eq("menu_site_id", menuSiteId)
-      .eq("type", TIME_SALE_TYPE),
+      .eq("type", TIME_SALE_TYPE)
+      .eq("active", true),
     supabase
       .from("menu_widgets")
       .select("id, widget_type, title, description, visible")
@@ -1285,8 +1303,10 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
   }
 
   const templateCapabilities = getTemplateCapabilities(siteResult.data?.template_key);
-  const usesBasicVisibleLocalization = templateCapabilities.footerStoreInfo;
-  const usesDisplayLocalization = siteResult.data?.template_key === "display_menu_a";
+  const localizationStructure = getMenuLocalizationStructure(siteResult.data?.template_key);
+  const usesAubeTableLocalization = isAubeTableTemplate(siteResult.data?.template_key);
+  const usesBasicVisibleLocalization = localizationStructure === "basic";
+  const usesDisplayLocalization = localizationStructure === "display";
   const usesBasicTimeSaleLocalization = isBasicTimeSaleTemplate(siteResult.data?.template_key, siteResult.data?.template_category);
   const menuCoverCapabilities = templateCapabilities.menuCover;
   const siteSettings = getJsonRecord(siteResult.data?.settings);
@@ -1301,7 +1321,15 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
     ? getJsonString(siteSettings, "footer_notice_3")
     : getJsonString(siteSettings, "footer_sns_text") || getJsonString(siteSettings, "footer_note");
   const siteTranslationFields = siteResult.data
-    ? usesBasicVisibleLocalization
+    ? usesAubeTableLocalization
+      ? {
+          restaurant_name: menuCoverCapabilities.usesStoreName ? siteResult.data.restaurant_name : null,
+          brand_description: menuCoverCapabilities.usesStoreDescription ? siteResult.data.brand_description : null,
+          menu_cover_label: menuCoverCapabilities.usesCoverLabel ? siteResult.data.menu_cover_label : null,
+          menu_cover_title: menuCoverCapabilities.usesCoverTitle ? siteResult.data.menu_cover_title : null,
+          menu_cover_description: menuCoverCapabilities.usesCoverDescription ? siteResult.data.menu_cover_description : null,
+        }
+      : usesBasicVisibleLocalization
       ? {
           restaurant_name: menuCoverCapabilities.usesStoreName ? siteResult.data.restaurant_name : null,
           brand_description: menuCoverCapabilities.usesStoreDescription ? siteResult.data.brand_description : null,
@@ -1336,21 +1364,27 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
       : (pagesResult.data ?? []).map((row) =>
           buildEntity("menu_page_translations", "menu_page_id", row.id, {
             title: row.title,
-            description: templateCapabilities.pageDescription ? row.description : null,
+            description: templateCapabilities.pageDescription && row.description_visible ? row.description : null,
           })
         )),
     ...((categoriesResult.data ?? []) as unknown as Array<{
       id: string;
       name: string;
       description: string | null;
+      description_visible: boolean;
       course_price_label: string | null;
+      course_price_visible: boolean;
       course_price_description: string | null;
+      course_price_description_visible: boolean;
     }>).map((row) =>
       buildEntity("menu_category_translations", "category_id", row.id, {
         name: row.name,
-        description: templateCapabilities.categoryDescription ? row.description : null,
-        course_price_label: row.course_price_label,
-        course_price_description: row.course_price_description,
+        description: templateCapabilities.categoryDescription && row.description_visible ? row.description : null,
+        course_price_label: usesAubeTableLocalization && row.course_price_visible ? row.course_price_label : null,
+        course_price_description:
+          usesAubeTableLocalization && row.course_price_description_visible
+            ? row.course_price_description
+            : null,
       })
     ),
     ...(itemsResult.data ?? []).map((row) =>
@@ -1374,8 +1408,8 @@ async function loadTranslationEntities(supabase: Supabase, menuSiteId: string) {
               name: row.name,
               set_name: row.set_name,
               description: templateCapabilities.itemDescription ? row.description : null,
-              price_label: row.price_label,
-              portion_label: templateCapabilities.itemPortionLabel ? row.portion_label : null,
+              price_label: row.price_visible ? row.price_label : null,
+              portion_label: templateCapabilities.itemPortionLabel && row.portion_visible ? row.portion_label : null,
               badge_label: row.badge_label,
               origin_info: templateCapabilities.originInfo ? row.origin_info : null,
             }
