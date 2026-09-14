@@ -1,5 +1,6 @@
 import {
   AiSupportChatInputError,
+  isAiSupportChatEnabled,
   requireAiSupportOverseasTransferConsent,
 } from "@/lib/ai-support-chat";
 import {
@@ -8,6 +9,13 @@ import {
 } from "@/lib/server/ai-support-chat-service";
 
 export const dynamic = "force-dynamic";
+
+export async function GET() {
+  return Response.json(
+    { enabled: isAiSupportChatEnabled() },
+    { headers: { "Cache-Control": "private, no-store, max-age=0" } },
+  );
+}
 
 export async function POST(request: Request) {
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) {

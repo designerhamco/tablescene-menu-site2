@@ -2496,6 +2496,69 @@ async function createDisplayMenuAStarterData(
     }
   }
 
+  for (const timeSale of previewData.timeSales) {
+    const resolvedTargets = timeSale.items.flatMap((target) => {
+      const menuItemId = itemIdByPreviewId.get(target.menuItemId);
+      if (!menuItemId || target.salePrice == null) return [];
+      return [{
+        menuItemId,
+        salePrice: target.salePrice,
+        salePriceLabel: target.salePriceLabel,
+        visible: target.visible,
+      }];
+    });
+    if (resolvedTargets.length === 0) continue;
+
+    const campaignWindow = getStarterTimeSaleCampaignWindow();
+    const promotionSettings: Record<string, Json> = {
+      time_display_mode: timeSale.timeDisplayMode,
+      badge_text: timeSale.badgeText,
+      badge_background_color: timeSale.badgeBackgroundColor,
+    };
+    if (timeSale.displayText) promotionSettings.time_display_text = timeSale.displayText;
+
+    const { data: promotion, error: promotionError } = await supabase
+      .from("menu_promotions")
+      .insert({
+        menu_site_id: menuSiteId,
+        type: TIME_SALE_TYPE,
+        name: timeSale.name,
+        active: true,
+        schedule_type: "once",
+        starts_at: campaignWindow.startsAt,
+        ends_at: campaignWindow.endsAt,
+        daily_start_time: null,
+        daily_end_time: null,
+        timezone: TIME_SALE_TIMEZONE,
+        settings: promotionSettings as Json,
+      } satisfies MenuPromotionInsert)
+      .select("id")
+      .single();
+
+    if (promotionError) {
+      if (promotionError.code === "42P01" || promotionError.message.toLowerCase().includes("menu_promotions")) continue;
+      throw new Error(`Display default sale creation failed: ${promotionError.message}`);
+    }
+
+    const promotionItems: MenuPromotionItemInsert[] = resolvedTargets.map((target) => ({
+        promotion_id: promotion.id,
+        menu_item_id: target.menuItemId,
+        price_column_id: null,
+        sale_price: target.salePrice,
+        sale_price_label: target.salePriceLabel,
+        visible: target.visible,
+      }));
+
+    const { error: promotionItemError } = await supabase.from("menu_promotion_items").insert(promotionItems);
+    if (
+      promotionItemError &&
+      promotionItemError.code !== "42P01" &&
+      !promotionItemError.message.toLowerCase().includes("menu_promotion_items")
+    ) {
+      throw new Error(`Display default sale target creation failed: ${promotionItemError.message}`);
+    }
+  }
+
   return {
     created: true,
     presetKey: "display",

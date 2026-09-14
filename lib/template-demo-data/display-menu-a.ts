@@ -511,6 +511,52 @@ const splitItems: DemoItem[] = [
   },
 ];
 
+const STARTER_FULL_ITEM_KEYS = new Set([
+  "0:0",
+  "0:1",
+  "0:3",
+  "1:0",
+  "1:1",
+  "1:5",
+  "2:0",
+  "2:2",
+  "2:6",
+  "3:0",
+  "3:1",
+  "3:3",
+]);
+
+const STARTER_SPLIT_ITEM_KEYS = new Set([
+  "0:0",
+  "0:2",
+  "0:3",
+  "1:0",
+  "1:3",
+]);
+
+const STARTER_BADGE_ITEM_KEYS = new Set([
+  "0:0:0",
+  "0:3:3",
+  "1:0:2",
+]);
+
+function buildStarterItems(items: DemoItem[], selectedKeys: Set<string>) {
+  return items
+    .filter((item) => selectedKeys.has(`${item.categoryIndex}:${item.itemIndex}`))
+    .map((item) => {
+      const keepBadge = STARTER_BADGE_ITEM_KEYS.has(`${item.pageIndex}:${item.categoryIndex}:${item.itemIndex}`);
+      return {
+        ...item,
+        badge: keepBadge ? item.badge : undefined,
+        recommended: keepBadge ? item.recommended : false,
+      };
+    });
+}
+
+const starterFullItems = buildStarterItems(fullItems, STARTER_FULL_ITEM_KEYS);
+const starterSplitItems = buildStarterItems(splitItems, STARTER_SPLIT_ITEM_KEYS);
+const starterItems = [...starterFullItems, ...starterSplitItems];
+
 function buildCategory(category: DemoCategory) {
   return {
     id: categoryId(category.pageIndex, category.categoryIndex),
@@ -740,7 +786,33 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
   const pageSettings = getDefaultPageSettings();
   const fixture = qaCase ? buildDisplayMenuAQaFixture(qaCase) : null;
   const categories = fixture?.categories ?? [...fullCategories, ...splitCategories];
-  const items = fixture?.items ?? [...fullItems, ...splitItems];
+  const items = fixture?.items ?? starterItems;
+  const starterTimeSales: MenuPageData["timeSales"] = fixture ? [] : [
+    {
+      id: `${siteId}-time-sale-open`,
+      name: "썸머 블루 오픈 할인",
+      scheduleType: "once",
+      startsAt: "2026-01-01T00:00:00.000Z",
+      endsAt: "2099-12-31T23:59:59.999Z",
+      dailyStartTime: null,
+      dailyEndTime: null,
+      timezone: "Asia/Seoul",
+      timeDisplayMode: "message",
+      displayText: "오픈 기념 한정 할인",
+      badgeText: "오픈할인",
+      badgeBackgroundColor: "#126CA8",
+      items: [
+        {
+          id: `${siteId}-time-sale-open-target`,
+          menuItemId: itemId(0, 3, 0),
+          priceColumnId: null,
+          salePrice: 3900,
+          salePriceLabel: "3.9",
+          visible: true,
+        },
+      ],
+    },
+  ];
 
   return {
     locale: DEFAULT_LOCALE,
@@ -870,7 +942,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
     events: [],
     chefs: [],
     socialLinks: [],
-    timeSales: [],
+    timeSales: starterTimeSales,
     nextTimeSaleStartAt: null,
     initialNowMs: Date.now(),
   };
