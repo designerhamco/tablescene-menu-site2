@@ -11,6 +11,7 @@ const BASIC_LAUNCH_TEMPLATE_KEYS = [
   "cafe_sunday_line_a",
   "cafe_round_focus_a",
   "dining_aube_table_a",
+  "dining_aube_table_b",
   "cafe_noir_a",
 ] as const;
 
@@ -22,7 +23,8 @@ test("every Basic launch template is service-compatible without changing catalog
     cafe_mocha_forest_a: "hidden",
     cafe_sunday_line_a: "hidden",
     cafe_round_focus_a: "hidden",
-    dining_aube_table_a: "hidden",
+    dining_aube_table_a: "available",
+    dining_aube_table_b: "available",
     cafe_noir_a: "retired",
   } as const;
 
@@ -62,9 +64,9 @@ test("specialized launch template capabilities remain fail-closed", () => {
   assert.equal(noir.events, false);
 });
 
-test("메종 마레는 준비 중 상태에서 사이드 탐색 계약을 유지한다", () => {
+test("메종 마레는 판매 가능한 멀티페이지 템플릿으로 사이드 탐색 계약을 유지한다", () => {
   assert.deepEqual(getSupportedServices("dining_aube_table_b"), ["basic"]);
-  assert.equal(templateCatalog.find((template) => template.key === "dining_aube_table_b")?.status, "coming_soon");
+  assert.equal(templateCatalog.find((template) => template.key === "dining_aube_table_b")?.status, "available");
   assert.deepEqual(
     getTemplateEditorTabs("dining_aube_table_b").map((tab) => tab.key),
     BASIC_EDITOR_TAB_KEYS,

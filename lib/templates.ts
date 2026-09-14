@@ -228,8 +228,13 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
   display_menu_a: "시원하고 선명한 화면 구성이 돋보이는 디스플레이 템플릿입니다.\n카페와 베이커리 매장의 메뉴를 TV·모니터에 보기 좋게 보여줍니다.",
 };
 
-const availableTemplateKeys = ["cafe_design_a", "display_menu_a"] as const satisfies readonly string[];
-const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a", "dining_aube_table_a"] as const satisfies readonly string[];
+const availableTemplateKeys = [
+  "cafe_design_a",
+  "dining_aube_table_a",
+  "dining_aube_table_b",
+  "display_menu_a",
+] as const satisfies readonly string[];
+const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a"] as const satisfies readonly string[];
 // Brew Chapter remains renderable for backward compatibility, but is retired
 // from every new-selection and template-switching surface.
 const retiredTemplateKeys = ["cafe_noir_a", "cafe_brew_chapter_a"] as const satisfies readonly string[];

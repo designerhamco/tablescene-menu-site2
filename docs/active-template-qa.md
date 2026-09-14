@@ -1,6 +1,6 @@
 # 활성 템플릿 전체 기능 QA
 
-최종 갱신: 2026-09-09
+최종 갱신: 2026-09-14
 
 ## 출시 대상과 판매 노출 정책
 
@@ -12,11 +12,8 @@ Basic 출시 대상:
 - 모카 포레스트 (`cafe_mocha_forest_a`)
 - 선데이 라인 (`cafe_sunday_line_a`)
 - 라운드 포커스 (`cafe_round_focus_a`)
-- 오브 테이블 (`dining_aube_table_a`, Production migration·시각 승인 전 `hidden`)
-
-준비 중 멀티페이지 템플릿(판매·생성·교체 제외):
-
-- 메종 마레 (`dining_aube_table_b`, `coming_soon`)
+- 오브 테이블 (`dining_aube_table_a`)
+- 메종 마레 (`dining_aube_table_b`)
 
 기존 호환 전용(신규 노출 제외):
 
@@ -47,7 +44,7 @@ Display 출시 대상:
 
 - 2026-08-30 오브 테이블에서 선택 커버, 1열 가운데 정렬 페이지, 2열 왼쪽 정렬 페이지, 직접 메뉴·코스 혼합, dot click·keyboard 이동과 페이지 전환 scroll reset을 확인했다. 모바일 390×844에서는 1열로 축소되고 가로 overflow·깨진 이미지·콘솔 오류가 없다.
 - 2026-08-31 메종 마레 production build에서 버건디·아이보리 전용 색상, Noto Serif KR·Cormorant Garamond 기본 글꼴, 독립 모던 프렌치 스타터를 확인했다. 1440×900·1180×820에서는 왼쪽 페이지 메뉴/오른쪽 콘텐츠, 390×844에서는 가로 스와이프 상단 페이지 탭으로 전환되며 하단 dot 부재, 페이지 클릭, 가로 overflow 없음과 오브 테이블 회귀가 통과했다.
-- 오브 테이블의 신규 저장 필드는 additive migration 적용 전 Production에서 사용하지 않으며, 템플릿은 hidden 상태를 유지한다.
+- 오브 테이블의 신규 저장 필드는 additive migration과 Production QA를 완료했다. 2026-09-14 오브 테이블·메종 마레를 같은 멀티페이지 9,900원 등급의 판매·교체 후보로 전환했다.
 
 - 오브 커피 대표 슬라이드, 가격 옵션, 배지, 품절, 타임세일, 이미지가 fixture에서 렌더링된다.
 - 오브 커피 starter reset 기대값을 현재 5개 category 계약에 맞추고, widget 길이 fixture를 실제 입력 제한인 제목 30자·본문 120자 안에서 경계 테스트하도록 복구했다.
@@ -55,6 +52,7 @@ Display 출시 대상:
 - 브루 챕터의 커버와 6개 페이지 이동 control이 렌더링된다. `MAISON ECLAT` starter는 `docs/multi-page-template-product-contract.md`에 확정된 계약이다.
 - 썸머 블루 Display의 4개 페이지 전환이 동작하고 선택 페이지가 URL `page` query에 반영된다.
 - 2026-09-09 썸머 블루 Display의 이미지 프로모션·분할 메뉴·전체 메뉴·동영상 프로모션 4개 페이지를 Production과 로컬에서 재검증했다. 동영상은 MP4 직접 업로드 계약에 따라 `muted`·`loop`·`playsInline` 자동 재생되며, 1920×1080과 1366×768에서 fit `settled`, 콘텐츠 overflow 없음, 콘솔 오류 없음으로 확인했다. 미리보기 페이지 선택기와 언어 선택은 입력 활동 때만 나타나고 2.2초 뒤 사라져 메뉴 하단을 가리지 않으며, 기존 안내 문구도 제거했다.
+- 2026-09-14 메종 마레 공개 QA 메뉴판을 1440×900·1180×820·390×844로 다시 캡처하고 커버·`Seasonal Plates` 실제 메뉴 페이지를 확인했다. 좌측 행 탐색, 우측 2열 본문, 모바일 가로 탭, 버건디·아이보리 색상과 Noto Serif KR·Cormorant Garamond 계층이 안정적이며 콘솔 오류가 없었다.
 - 템플릿 미리보기 route는 `ko`, `en`, `zh`, `ja` locale 상태와 언어 전환 control을 모두 재현한다. 번역이 없는 fixture 값은 실제 공개 route와 동일하게 기본값으로 fallback한다.
 - 개발 전용 `localeQa=1` fixture로 사이트명·설명·안내·첫 카테고리·첫 메뉴를 네 locale의 실제 문자로 치환하고, Basic 6개는 390×844와 1440×900, Display는 1440×900에서 총 52개 route를 검사했다. 가로 overflow, 깨진 이미지, 누락된 활성 언어 control은 없다.
 - 브루 챕터 renderer에 공통 언어 전환 control이 누락된 문제를 수정했다. 모바일 중국어 장문 설명의 안전 줄바꿈과 라운드 포커스 모바일의 중국어·일본어 장문 브랜드 폭 제한도 함께 수정했다.
