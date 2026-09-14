@@ -10,21 +10,29 @@ test("Summer Blue starter keeps a concise menu and one visible launch discount",
 
   assert.equal(data.pages.length, 4);
   assert.equal(data.categories.length, 6);
-  assert.equal(data.items.length, 17);
-  assert.equal(data.items.filter((item) => item.badge_label).length, 3);
+  assert.equal(data.items.length, 29);
+  assert.equal(data.items.filter((item) => item.badge_label).length, 6);
   assert.equal(data.timeSales.length, 1);
 
   const sale = data.timeSales[0];
-  const target = sale.items[0];
-  const targetItem = data.items.find((item) => item.id === target.menuItemId);
+  const targets = sale.items.map((target) => ({
+    target,
+    item: data.items.find((item) => item.id === target.menuItemId),
+  }));
   assert.equal(sale.badgeText, "오픈할인");
   assert.equal(sale.displayText, "오픈 기념 한정 할인");
-  assert.equal(targetItem?.name, "클래식 버터 스콘");
-  assert.equal(targetItem?.price, 4500);
-  assert.equal(target.salePrice, 3900);
+  assert.deepEqual(
+    targets.map(({ item, target }) => [item?.name, item?.price, target.salePrice]),
+    [
+      ["클래식 버터 스콘", 4500, 3900],
+      ["카푸치노", 5000, 4300],
+      ["바질 크림 라떼", 6500, 5700],
+    ],
+  );
 
   const activeSales = getActiveDisplayMenuTimeSalesByItemId(data.timeSales, Date.parse("2026-09-14T03:00:00.000Z"));
-  assert.equal(activeSales.get(target.menuItemId)?.item?.salePrice, 3900);
+  assert.equal(activeSales.size, 3);
+  assert.equal(activeSales.get(sale.items[0].menuItemId)?.item?.salePrice, 3900);
 });
 
 test("Display translation flow includes visible menu and discount copy", () => {

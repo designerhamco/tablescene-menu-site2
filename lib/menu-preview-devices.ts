@@ -18,6 +18,10 @@ export const MENU_PREVIEW_DEVICES = {
 
 export type MenuPreviewDevice = keyof typeof MENU_PREVIEW_DEVICES;
 
+export function shouldUseMenuPreviewDeviceFrame(templateKey: string | null | undefined) {
+  return templateKey !== "display_menu_a";
+}
+
 export const MENU_PREVIEW_ORIENTATIONS = {
   landscape: "가로",
   portrait: "세로",

@@ -12,7 +12,14 @@ import {
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
   normalizeMenuPreviewPaymentMode,
+  shouldUseMenuPreviewDeviceFrame,
 } from "./menu-preview-devices";
+
+test("Display preview opens at its real screen size without device frames", () => {
+  assert.equal(shouldUseMenuPreviewDeviceFrame("display_menu_a"), false);
+  assert.equal(shouldUseMenuPreviewDeviceFrame("cafe_design_a"), true);
+  assert.equal(shouldUseMenuPreviewDeviceFrame("dining_aube_table_a"), true);
+});
 
 test("preview device normalization defaults unknown values to PC", () => {
   assert.equal(normalizeMenuPreviewDevice(undefined), "pc");

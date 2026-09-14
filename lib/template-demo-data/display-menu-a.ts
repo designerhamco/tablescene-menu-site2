@@ -514,29 +514,44 @@ const splitItems: DemoItem[] = [
 const STARTER_FULL_ITEM_KEYS = new Set([
   "0:0",
   "0:1",
+  "0:2",
   "0:3",
+  "0:5",
   "1:0",
   "1:1",
+  "1:3",
+  "1:4",
   "1:5",
   "2:0",
+  "2:1",
   "2:2",
+  "2:3",
+  "2:4",
   "2:6",
   "3:0",
   "3:1",
+  "3:2",
   "3:3",
 ]);
 
 const STARTER_SPLIT_ITEM_KEYS = new Set([
   "0:0",
+  "0:1",
   "0:2",
   "0:3",
+  "0:4",
   "1:0",
+  "1:1",
+  "1:2",
   "1:3",
 ]);
 
 const STARTER_BADGE_ITEM_KEYS = new Set([
-  "0:0:0",
+  "0:0:1",
+  "0:2:0",
+  "0:2:3",
   "0:3:3",
+  "1:0:0",
   "1:0:2",
 ]);
 
@@ -808,6 +823,22 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
           priceColumnId: null,
           salePrice: 3900,
           salePriceLabel: "3.9",
+          visible: true,
+        },
+        {
+          id: `${siteId}-time-sale-open-hot-target`,
+          menuItemId: itemId(0, 1, 4),
+          priceColumnId: null,
+          salePrice: 4300,
+          salePriceLabel: "4.3",
+          visible: true,
+        },
+        {
+          id: `${siteId}-time-sale-open-ice-target`,
+          menuItemId: itemId(0, 0, 0),
+          priceColumnId: null,
+          salePrice: 5700,
+          salePriceLabel: "5.7",
           visible: true,
         },
       ],

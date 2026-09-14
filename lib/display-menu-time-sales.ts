@@ -54,7 +54,7 @@ export function getActiveDisplayMenuTimeSalesByItemId(
 export function canShowDisplayMenuTimeSale({
   item,
   target,
-  hasPriceOptions,
+  priceOptionCount,
 }: {
   item: {
     is_sold_out: boolean;
@@ -62,10 +62,10 @@ export function canShowDisplayMenuTimeSale({
     price: number | null;
   };
   target: DisplayMenuTimeSaleTarget | null | undefined;
-  hasPriceOptions: boolean;
+  priceOptionCount: number;
 }) {
   return Boolean(
-    !hasPriceOptions &&
+    priceOptionCount <= 1 &&
       item.is_sold_out !== true &&
       item.price_visible !== false &&
       typeof item.price === "number" &&

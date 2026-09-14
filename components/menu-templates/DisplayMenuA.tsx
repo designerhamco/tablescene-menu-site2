@@ -78,6 +78,7 @@ type DisplayDensityConfig = {
   menuTitleStyle: CSSProperties;
   badgeStyle: CSSProperties;
   metaStyle: CSSProperties;
+  timeSaleLabelStyle: CSSProperties;
   optionHeaderStyle: CSSProperties;
   priceStackStyle: CSSProperties;
   priceRowStyle: CSSProperties;
@@ -208,6 +209,7 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
       ? { fontSize: `calc(var(--display-row) * ${badgeFontScale * fontScale * phaseBadgeScale})`, padding: `calc(var(--display-row) * ${0.07 * gapScale * phaseBadgeScale}) calc(var(--display-row) * ${0.155 * gapScale * phaseBadgeScale})`, borderRadius: "3px" }
       : { display: "none" },
     metaStyle: showMeta ? { fontSize: `calc(var(--display-row) * ${metaFontScale * fontScale * phaseMetaScale})`, lineHeight: 1.2 } : { display: "none" },
+    timeSaleLabelStyle: { fontSize: `calc(var(--display-row) * ${0.215 * fontScale * phaseBadgeScale})`, lineHeight: 1.2 },
     optionHeaderStyle: { fontSize: `calc(var(--display-row) * ${optionHeaderScale * fontScale})`, lineHeight: 1.05 },
     priceStackStyle: { rowGap: `calc(var(--display-row) * ${0.035 * gapScale})` },
     priceRowStyle: { columnGap: `calc(var(--display-row) * ${0.14 * gapScale})` },
@@ -842,7 +844,7 @@ function MenuItemRow({
       canShowDisplayMenuTimeSale({
         item,
         target: timeSale.item,
-        hasPriceOptions: itemPriceOptions.length > 0,
+        priceOptionCount: itemPriceOptions.length,
       }),
   );
   const timeSaleTarget = showTimeSale ? timeSale?.item : null;
@@ -906,10 +908,10 @@ function MenuItemRow({
           {timeSaleAuxiliaryLabel && timeSaleAccentColor ? (
             <span
               className="menu-font-en flex min-w-0 items-center gap-[0.28em] truncate font-black uppercase tabular-nums"
-              style={{ ...densityConfig.metaStyle, color: timeSaleAccentColor }}
+              style={{ ...densityConfig.timeSaleLabelStyle, color: timeSaleAccentColor }}
               data-display-time-sale-label=""
             >
-              <Clock3 aria-hidden="true" className="h-[0.9em] w-[0.9em] shrink-0" strokeWidth={2.2} />
+              <Clock3 aria-hidden="true" className="h-[1em] w-[1em] shrink-0" strokeWidth={2.15} />
               <span className="truncate tracking-normal">{timeSaleAuxiliaryLabel}</span>
             </span>
           ) : null}
@@ -917,11 +919,30 @@ function MenuItemRow({
         {optionHeaders.length > 0 && optionGridStyle ? (
           <div className="menu-price cafe-a-price-options-grid grid shrink-0 justify-items-center text-center text-[var(--display-text-color)]" style={optionGridStyle}>
             {optionPriceByLabel && optionPriceByLabel.size > 0 ? (
-              optionHeaders.map((header) => (
-                <span key={header.label} className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[var(--display-text-color)]" style={densityConfig.priceStyle}>
-                  {optionPriceByLabel.get(header.label) ?? "-"}
-                </span>
-              ))
+              optionHeaders.map((header) => {
+                const originalPrice = optionPriceByLabel.get(header.label) ?? "";
+                const isDiscountedOption = Boolean(
+                  showTimeSale &&
+                    timeSalePrice &&
+                    timeSaleAccentColor &&
+                    itemPriceOptions.length === 1 &&
+                    normalizeDisplayText(itemPriceOptions[0]?.label) === header.label,
+                );
+
+                return isDiscountedOption && timeSaleAccentColor ? (
+                  <DisplayTimeSalePrice
+                    key={header.label}
+                    originalPrice={originalPrice}
+                    salePrice={timeSalePrice}
+                    densityConfig={densityConfig}
+                    accentColor={timeSaleAccentColor}
+                  />
+                ) : (
+                  <span key={header.label} className="cafe-a-menu-price block w-full whitespace-nowrap text-center font-bold leading-none text-[var(--display-text-color)]" style={densityConfig.priceStyle}>
+                    {originalPrice || "-"}
+                  </span>
+                );
+              })
             ) : priceRows[0]?.price ? (
               showTimeSale && timeSalePrice && timeSaleAccentColor ? (
                 <span className="block w-full text-center" style={{ gridColumn: "1 / -1" }}>

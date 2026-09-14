@@ -55,7 +55,7 @@ test("Display time-sale matching only returns active, valid targets", () => {
   assert.equal(matches.get("item-1")?.item?.salePrice, 3900);
 });
 
-test("Display time-sale price requires a discounted single-price menu", () => {
+test("Display time-sale price supports a base price or one HOT/ICE option", () => {
   const target = buildTimeSale().items[0];
   const baseItem = {
     is_sold_out: false,
@@ -63,8 +63,9 @@ test("Display time-sale price requires a discounted single-price menu", () => {
     price: 5500,
   };
 
-  assert.equal(canShowDisplayMenuTimeSale({ item: baseItem, target, hasPriceOptions: false }), true);
-  assert.equal(canShowDisplayMenuTimeSale({ item: { ...baseItem, is_sold_out: true }, target, hasPriceOptions: false }), false);
-  assert.equal(canShowDisplayMenuTimeSale({ item: baseItem, target, hasPriceOptions: true }), false);
-  assert.equal(canShowDisplayMenuTimeSale({ item: baseItem, target: { ...target, salePrice: 6500 }, hasPriceOptions: false }), false);
+  assert.equal(canShowDisplayMenuTimeSale({ item: baseItem, target, priceOptionCount: 0 }), true);
+  assert.equal(canShowDisplayMenuTimeSale({ item: baseItem, target, priceOptionCount: 1 }), true);
+  assert.equal(canShowDisplayMenuTimeSale({ item: { ...baseItem, is_sold_out: true }, target, priceOptionCount: 0 }), false);
+  assert.equal(canShowDisplayMenuTimeSale({ item: baseItem, target, priceOptionCount: 2 }), false);
+  assert.equal(canShowDisplayMenuTimeSale({ item: baseItem, target: { ...target, salePrice: 6500 }, priceOptionCount: 0 }), false);
 });
