@@ -236,9 +236,9 @@ const Navbar = () => {
   const shouldShowDarkNav = navVariant === 'transparent' && isScrolled && !isOpen;
 
   const navBgClass = shouldShowDarkNav
-    ? 'bg-zinc-950/95 backdrop-blur-md border-b border-white/10'
+    ? 'bg-zinc-950 border-b border-zinc-800'
     : shouldShowSolidNav
-    ? 'bg-white/90 backdrop-blur-md border-b border-zinc-100'
+    ? 'bg-white border-b border-zinc-200'
     : 'bg-transparent border-transparent';
   const navToneClass = shouldShowDarkNav ? 'text-white' : shouldShowSolidNav ? 'text-black' : 'text-white';
   const logoTextClass = 'text-current';
@@ -373,7 +373,7 @@ const Navbar = () => {
                 </button>
 
                 {isNotificationOpen ? (
-                  <div className="absolute right-0 top-12 w-[360px] overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-950 shadow-2xl">
+                  <div className="absolute right-0 top-12 w-[360px] overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-950">
                     <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
                       <p className="text-sm font-black">알림</p>
                       {unreadCount > 0 ? <p className="text-xs font-bold text-zinc-400">읽지 않음 {unreadBadgeLabel}</p> : null}
