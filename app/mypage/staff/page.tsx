@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import {
+  MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS,
+  MENU_SITE_STAFF_PERMISSION_LABELS,
+  resolvePermissionsForAccessRole,
+} from "@/lib/menu-site-permissions";
 import { isStaffInvitationCreationEnabled } from "@/lib/server/staff-invitation-service";
 import {
   isStaffInvitationRole,
@@ -18,6 +23,7 @@ import {
   cancelStaffInvitationAction,
   resendStaffInvitationAction,
   revokeStaffMembershipAction,
+  updateStaffMembershipPermissionsAction,
   updateStaffMembershipRoleAction,
 } from "./actions";
 
@@ -47,13 +53,15 @@ function getResultNotice(value: string | string[] | undefined) {
   const result = Array.isArray(value) ? value[0] : value;
   if (result === "resent") return { tone: "success", message: "초대 링크를 새로 만들어 이메일을 다시 보냈습니다." } as const;
   if (result === "cancelled") return { tone: "success", message: "대기 중인 초대를 취소했습니다." } as const;
-  if (result === "role-updated") return { tone: "success", message: "직원 역할을 변경했습니다." } as const;
+  if (result === "role-updated") return { tone: "success", message: "직원 역할 프리셋을 변경하고 개별 권한을 초기화했습니다." } as const;
+  if (result === "permissions-updated") return { tone: "success", message: "직원의 개별 권한을 저장했습니다." } as const;
   if (result === "access-revoked") return { tone: "success", message: "직원의 메뉴판 접근을 회수했습니다." } as const;
   if (result === "delivery-disabled") return { tone: "warning", message: "실제 이메일 환경 검증 전에는 재전송할 수 없습니다." } as const;
   if (result === "rate-limited") return { tone: "error", message: "초대 요청이 너무 많습니다. 1시간 뒤 다시 시도해 주세요." } as const;
   if (result === "invitation-changed") return { tone: "error", message: "초대 상태가 변경되었습니다. 목록을 새로 확인해 주세요." } as const;
   if (result === "member-changed") return { tone: "error", message: "직원 상태가 변경되었습니다. 목록을 새로 확인해 주세요." } as const;
   if (result === "invalid-role") return { tone: "error", message: "올바른 직원 역할을 선택해 주세요." } as const;
+  if (result === "invalid-permissions") return { tone: "error", message: "변경할 수 없는 직원 권한이 포함되어 있습니다." } as const;
   if (result === "menu-unavailable") return { tone: "error", message: "보관된 메뉴판의 초대는 다시 보낼 수 없습니다." } as const;
   if (result === "access-denied") return { tone: "error", message: "이 초대를 관리할 사장 권한이 없습니다." } as const;
   if (result === "auth-required") return { tone: "error", message: "로그인 정보를 다시 확인해 주세요." } as const;
@@ -96,7 +104,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
   const membershipResult = menuSiteIds.length > 0
     ? await supabase
       .from("menu_site_members")
-      .select("id, menu_site_id, user_id, role, accepted_at, updated_at")
+      .select("id, menu_site_id, user_id, role, permission_overrides, accepted_at, updated_at")
       .in("menu_site_id", menuSiteIds)
       .eq("status", "active")
       .order("updated_at", { ascending: false })
@@ -201,35 +209,79 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
             <div className="mt-5 divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200">
               {activeMemberships.map((membership) => {
                 const email = memberEmailBySiteAndUser.get(`${membership.menu_site_id}:${membership.user_id}`);
+                const effectivePermissions = resolvePermissionsForAccessRole(
+                  membership.role,
+                  membership.permission_overrides,
+                );
                 return (
-                  <div key={membership.id} className="grid gap-4 px-4 py-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
-                      <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
-                        {menuSiteNameById.get(membership.menu_site_id) ?? "메뉴판"}
-                      </p>
-                      {isStaffInvitationRole(membership.role) ? (
-                        <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">
-                          {STAFF_INVITATION_ROLE_DESCRIPTIONS[membership.role]}
+                  <div key={membership.id} className="px-4 py-5">
+                    <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
+                        <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
+                          {menuSiteNameById.get(membership.menu_site_id) ?? "메뉴판"}
                         </p>
-                      ) : null}
+                        {isStaffInvitationRole(membership.role) ? (
+                          <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">
+                            {STAFF_INVITATION_ROLE_DESCRIPTIONS[membership.role]}
+                          </p>
+                        ) : null}
+                      </div>
+                      <form action={updateStaffMembershipRoleAction} className="flex gap-2">
+                        <input type="hidden" name="membershipId" value={membership.id} />
+                        <select name="role" defaultValue={membership.role} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-700">
+                          {STAFF_INVITATION_ROLES.map((role) => (
+                            <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
+                          ))}
+                        </select>
+                        <button type="submit" className="rounded-full border border-zinc-200 px-3 py-2 text-xs font-black text-zinc-700 hover:bg-zinc-100">
+                          프리셋 변경
+                        </button>
+                      </form>
+                      <form action={revokeStaffMembershipAction} className="lg:text-right">
+                        <input type="hidden" name="membershipId" value={membership.id} />
+                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-50">
+                          접근 회수
+                        </button>
+                      </form>
                     </div>
-                    <form action={updateStaffMembershipRoleAction} className="flex gap-2">
+
+                    <form action={updateStaffMembershipPermissionsAction} className="mt-5 border-t border-zinc-100 pt-5">
                       <input type="hidden" name="membershipId" value={membership.id} />
-                      <select name="role" defaultValue={membership.role} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-700">
-                        {STAFF_INVITATION_ROLES.map((role) => (
-                          <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
+                      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                        <div>
+                          <p className="text-sm font-black text-zinc-900">직원별 권한</p>
+                          <p className="mt-1 text-xs font-semibold text-zinc-500">
+                            역할 프리셋을 기준으로 이 직원에게 필요한 기능만 켜거나 끕니다.
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-amber-700">
+                            역할 프리셋을 변경하면 개별 체크 설정은 새 프리셋 기본값으로 초기화됩니다.
+                          </p>
+                        </div>
+                        <button type="submit" className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-black text-white transition-colors hover:bg-zinc-800">
+                          개별 권한 저장
+                        </button>
+                      </div>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS.map((permission) => (
+                          <label
+                            key={permission}
+                            className="flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-xs font-bold text-zinc-700"
+                          >
+                            <input
+                              type="checkbox"
+                              name="permissions"
+                              value={permission}
+                              defaultChecked={effectivePermissions.has(permission)}
+                              className="size-4 accent-zinc-950"
+                            />
+                            <span>{MENU_SITE_STAFF_PERMISSION_LABELS[permission]}</span>
+                          </label>
                         ))}
-                      </select>
-                      <button type="submit" className="rounded-full border border-zinc-200 px-3 py-2 text-xs font-black text-zinc-700 hover:bg-zinc-100">
-                        변경
-                      </button>
-                    </form>
-                    <form action={revokeStaffMembershipAction} className="lg:text-right">
-                      <input type="hidden" name="membershipId" value={membership.id} />
-                      <button type="submit" className="rounded-full border border-rose-200 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-50">
-                        접근 회수
-                      </button>
+                      </div>
+                      <p className="mt-3 text-xs font-semibold leading-relaxed text-zinc-500">
+                        결제·구독, 직원 관리, 메뉴판 보관·삭제는 사장만 사용할 수 있습니다.
+                      </p>
                     </form>
                   </div>
                 );

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   assertMenuSitePermission,
+  buildMenuSitePermissionOverridesForSelection,
   getPermissionsForAccessRole,
   hasMenuSitePermission,
   MENU_SITE_OWNER_ONLY_PERMISSIONS,
@@ -180,6 +181,32 @@ test("context permission checks honor the resolved permission set", () => {
 
   assert.equal(hasMenuSitePermission(overriddenContext, "call.manage"), true);
   assert.equal(hasMenuSitePermission(overriddenContext, "menu.edit"), false);
+});
+
+test("effective checkbox selections become minimal allow and deny differences", () => {
+  assert.deepEqual(
+    buildMenuSitePermissionOverridesForSelection(
+      "manager",
+      { allow: [], deny: [] },
+      ["menu.edit", "ai.use", "qr.manage", "call.manage"],
+    ),
+    {
+      allow: [],
+      deny: ["menu.publish", "table.manage", "pickup.manage"],
+    },
+  );
+
+  assert.deepEqual(
+    buildMenuSitePermissionOverridesForSelection(
+      "viewer",
+      { allow: ["sales.read"], deny: ["order.manage"] },
+      ["call.manage"],
+    ),
+    {
+      allow: ["sales.read", "call.manage"],
+      deny: ["order.manage"],
+    },
+  );
 });
 
 test("inactive staff contexts cannot use otherwise granted permissions", () => {
@@ -442,6 +469,7 @@ test("accessible list entries expose the exact staff role while preserving owner
       isOwner: true,
       memberRole: null,
       membershipId: null,
+      permissions: [...ROLE_EXPECTATIONS.owner],
     },
     {
       menuSiteId: "menu-shared",
@@ -449,6 +477,7 @@ test("accessible list entries expose the exact staff role while preserving owner
       isOwner: true,
       memberRole: null,
       membershipId: null,
+      permissions: [...ROLE_EXPECTATIONS.owner],
     },
     {
       menuSiteId: "menu-editor",
@@ -456,6 +485,7 @@ test("accessible list entries expose the exact staff role while preserving owner
       isOwner: false,
       memberRole: "editor",
       membershipId: "member-editor",
+      permissions: [...ROLE_EXPECTATIONS.editor],
     },
     {
       menuSiteId: "menu-manager",
@@ -463,6 +493,7 @@ test("accessible list entries expose the exact staff role while preserving owner
       isOwner: false,
       memberRole: "manager",
       membershipId: "member-manager",
+      permissions: [...ROLE_EXPECTATIONS.manager],
     },
   ]);
 });

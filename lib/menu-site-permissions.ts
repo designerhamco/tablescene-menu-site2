@@ -31,6 +31,26 @@ export const MENU_SITE_DELEGABLE_PERMISSIONS = MENU_SITE_PERMISSIONS.filter(
   (permission) => !(MENU_SITE_OWNER_ONLY_PERMISSIONS as readonly MenuSitePermission[]).includes(permission),
 );
 
+export const MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS = [
+  "menu.edit",
+  "menu.publish",
+  "ai.use",
+  "qr.manage",
+  "table.manage",
+  "call.manage",
+  "pickup.manage",
+] as const satisfies readonly MenuSitePermission[];
+
+export const MENU_SITE_STAFF_PERMISSION_LABELS = {
+  "menu.edit": "메뉴·디자인 편집",
+  "menu.publish": "공개 상태 변경",
+  "ai.use": "AI 기능 사용",
+  "qr.manage": "QR 관리",
+  "table.manage": "테이블 관리",
+  "call.manage": "호출 관리",
+  "pickup.manage": "대기번호 관리",
+} as const satisfies Readonly<Record<(typeof MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS)[number], string>>;
+
 export type MenuSitePermissionOverrides = {
   allow: readonly MenuSitePermission[];
   deny: readonly MenuSitePermission[];
@@ -124,6 +144,13 @@ export function isMenuSitePermission(value: unknown): value is MenuSitePermissio
   return typeof value === "string" && (MENU_SITE_PERMISSIONS as readonly string[]).includes(value);
 }
 
+export function isMenuSiteStaffCustomizablePermission(
+  value: unknown,
+): value is (typeof MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS)[number] {
+  return isMenuSitePermission(value)
+    && (MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS as readonly MenuSitePermission[]).includes(value);
+}
+
 export function normalizeMenuSitePermissionOverrides(value: unknown): MenuSitePermissionOverrides {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return { allow: [], deny: [] };
@@ -162,6 +189,33 @@ export function resolvePermissionsForAccessRole(
   // visible with an explanatory disabled state instead of disappearing.
   permissions.add("menu.read");
   return permissions;
+}
+
+export function buildMenuSitePermissionOverridesForSelection(
+  role: MenuSiteMemberRole,
+  currentOverrides: unknown,
+  selectedPermissions: readonly MenuSitePermission[],
+): MenuSitePermissionOverrides {
+  const customizablePermissions = new Set<MenuSitePermission>(MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS);
+  const selected = new Set<MenuSitePermission>(selectedPermissions.filter(isMenuSiteStaffCustomizablePermission));
+  const basePermissions = getPermissionsForAccessRole(role);
+  const current = normalizeMenuSitePermissionOverrides(currentOverrides);
+  const preserve = (permission: MenuSitePermission) => !customizablePermissions.has(permission);
+
+  return normalizeMenuSitePermissionOverrides({
+    allow: [
+      ...current.allow.filter(preserve),
+      ...MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS.filter(
+        (permission) => selected.has(permission) && !basePermissions.has(permission),
+      ),
+    ],
+    deny: [
+      ...current.deny.filter(preserve),
+      ...MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS.filter(
+        (permission) => !selected.has(permission) && basePermissions.has(permission),
+      ),
+    ],
+  });
 }
 
 export function getPermissionsForAccessRole(role: unknown): ReadonlySet<MenuSitePermission> {

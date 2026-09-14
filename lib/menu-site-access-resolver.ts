@@ -7,6 +7,7 @@ import {
   type MenuSiteAccessContext,
   type MenuSiteAccessRole,
   type MenuSiteMemberRole,
+  type MenuSitePermission,
   type MenuSitePermissionOverrides,
 } from "./menu-site-permissions";
 
@@ -56,6 +57,7 @@ export type AccessibleMenuSiteListAccess = {
   isOwner: boolean;
   memberRole: MenuSiteMemberRole | null;
   membershipId: string | null;
+  permissions: readonly MenuSitePermission[];
 };
 
 export function isMenuSiteStaffAccessAllowed(snapshot: MenuSiteLifecycleSnapshot | null) {
@@ -229,6 +231,10 @@ export async function resolveAccessibleMenuSiteListAccessForActor({
           isOwner: false,
           memberRole: membership.role,
           membershipId: membership.id,
+          permissions: [...resolvePermissionsForAccessRole(
+            membership.role,
+            membership.permissionOverrides,
+          )],
         };
       }),
   );
@@ -240,6 +246,7 @@ export async function resolveAccessibleMenuSiteListAccessForActor({
       isOwner: true,
       memberRole: null,
       membershipId: null,
+      permissions: [...getPermissionsForAccessRole("owner")],
     })),
     ...memberEntries.filter((entry): entry is AccessibleMenuSiteListAccess => entry !== null),
   ];

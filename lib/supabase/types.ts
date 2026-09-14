@@ -2259,6 +2259,7 @@ export type Database = {
           id: string
           invited_by: string | null
           menu_site_id: string
+          permission_overrides: Json
           revoked_at: string | null
           role: string
           status: string
@@ -2271,6 +2272,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           menu_site_id: string
+          permission_overrides?: Json
           revoked_at?: string | null
           role: string
           status?: string
@@ -2283,6 +2285,7 @@ export type Database = {
           id?: string
           invited_by?: string | null
           menu_site_id?: string
+          permission_overrides?: Json
           revoked_at?: string | null
           role?: string
           status?: string
@@ -3593,6 +3596,18 @@ export type Database = {
           payment_status: string
           total_amount: number
         }[]
+      }
+      update_menu_site_member_access: {
+        Args: {
+          p_action: string
+          p_actor_user_id: string
+          p_expected_role: string
+          p_expected_updated_at: string
+          p_membership_id: string
+          p_next_permission_overrides: Json
+          p_next_role: string
+        }
+        Returns: boolean
       }
       submit_staff_call:
         | {

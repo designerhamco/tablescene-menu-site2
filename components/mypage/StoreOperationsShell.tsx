@@ -3,7 +3,7 @@ import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { MypageAccountCard } from "@/components/mypage/MypageSidebar";
-import { hasMenuSitePermission, type MenuSitePermission } from "@/lib/menu-site-permissions";
+import type { MenuSitePermission } from "@/lib/menu-site-permissions";
 import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
@@ -116,7 +116,7 @@ export default async function StoreOperationsShell({
                   {operationNavigation.map((item) => {
                     const enabled = Boolean(selectedSite?.operationAccess[item.key]);
                     if (!selectedSite || !enabled) {
-                      const hasRolePermission = Boolean(selectedSite && hasMenuSitePermission(selectedSite.accessRole, item.permission));
+                      const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
                       const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
                       const unavailableReason = !selectedSite
                         ? "먼저 운영할 메뉴판을 선택해 주세요."

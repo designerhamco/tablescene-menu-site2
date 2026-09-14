@@ -2344,19 +2344,20 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const menuCardViewModels = sites.map(buildMenuCardViewModel);
   const staffMenuCardViewModels = staffMenuSites.map((site) => {
     const publicPath = formatPublicMenuPath(site.slug);
-    const canEdit = hasMenuSitePermission(site.memberRole, "menu.edit");
-    const canPublish = hasMenuSitePermission(site.memberRole, "menu.publish");
-    const canUseAi = hasMenuSitePermission(site.memberRole, "ai.use");
-    const canManageQr = hasMenuSitePermission(site.memberRole, "qr.manage");
+    const hasPermission = (permission: Parameters<typeof hasMenuSitePermission>[1]) => site.permissions.includes(permission);
+    const canEdit = hasPermission("menu.edit");
+    const canPublish = hasPermission("menu.publish");
+    const canUseAi = hasPermission("ai.use");
+    const canManageQr = hasPermission("qr.manage");
     const canManageTables = isTableManagementRuntimeEnabledForSite(site.menuSiteId)
       && isTemplateSupportedForService(site.templateKey, "basic")
-      && hasMenuSitePermission(site.memberRole, "table.manage");
+      && hasPermission("table.manage");
     const canManageOrders = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)
-      && hasMenuSitePermission(site.memberRole, "order.read");
+      && hasPermission("order.read");
     const canViewSales = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId)
-      && hasMenuSitePermission(site.memberRole, "sales.read");
+      && hasPermission("sales.read");
     const canManageCalls = isCallRuntimeEnabledForSite(site.menuSiteId)
-      && hasMenuSitePermission(site.memberRole, "call.manage");
+      && hasPermission("call.manage");
     const permissionSummary = [
       "미리보기",
       canEdit ? "메뉴 편집" : null,

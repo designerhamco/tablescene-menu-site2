@@ -1,18 +1,25 @@
 import "server-only";
 
 import { isStaffInvitationRole } from "@/lib/staff-invitations";
-import type { MenuSiteMemberRole } from "@/lib/menu-site-permissions";
+import {
+  buildMenuSitePermissionOverridesForSelection,
+  MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS,
+  normalizeMenuSitePermissionOverrides,
+  type MenuSiteMemberRole,
+  type MenuSitePermission,
+} from "@/lib/menu-site-permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database } from "@/lib/supabase/types";
+import type { Database, Json } from "@/lib/supabase/types";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type MembershipRow = Pick<
   Database["public"]["Tables"]["menu_site_members"]["Row"],
-  "id" | "menu_site_id" | "user_id" | "role" | "status"
+  "id" | "menu_site_id" | "user_id" | "role" | "status" | "permission_overrides" | "updated_at"
 >;
 
 export type StaffMembershipManagementErrorCode =
   | "INVALID_ROLE"
+  | "INVALID_PERMISSIONS"
   | "MEMBERSHIP_NOT_FOUND"
   | "OWNER_ACCESS_REQUIRED"
   | "MEMBERSHIP_CHANGED"
@@ -44,7 +51,7 @@ async function getOwnedActiveMembership(
 
   const { data, error } = await adminClient
     .from("menu_site_members")
-    .select("id, menu_site_id, user_id, role, status")
+    .select("id, menu_site_id, user_id, role, status, permission_overrides, updated_at")
     .eq("id", membershipId)
     .eq("status", "active")
     .maybeSingle();
@@ -80,10 +87,8 @@ export async function updateStaffMembershipRole(
   },
   {
     adminSupabase,
-    now = new Date(),
   }: {
     adminSupabase?: AdminClient;
-    now?: Date;
   } = {},
 ) {
   if (!isStaffInvitationRole(role)) {
@@ -101,41 +106,117 @@ export async function updateStaffMembershipRole(
 
   if (membership.role === role) return { changed: false, role };
 
-  const nowIso = now.toISOString();
-  const { data: updatedData, error: updateError } = await adminClient
-    .from("menu_site_members")
-    .update({ role, updated_at: nowIso })
-    .eq("id", membership.id)
-    .eq("status", "active")
-    .eq("role", membership.role)
-    .select("id")
-    .maybeSingle();
+  const { data: updated, error: updateError } = await adminClient.rpc(
+    "update_menu_site_member_access",
+    {
+      p_action: "staff.role_changed",
+      p_actor_user_id: normalizedActorUserId,
+      p_expected_role: membership.role,
+      p_expected_updated_at: membership.updated_at,
+      p_membership_id: membership.id,
+      p_next_permission_overrides: { allow: [], deny: [] },
+      p_next_role: role,
+    },
+  );
 
-  if (updateError || !updatedData) {
+  if (updateError) {
+    throw new StaffMembershipManagementError("MEMBERSHIP_UPDATE_FAILED", "직원 역할을 변경하지 못했습니다.", 500);
+  }
+  if (!updated) {
     throw new StaffMembershipManagementError("MEMBERSHIP_CHANGED", "직원 상태가 변경되었습니다.", 409);
   }
 
-  const { error: auditError } = await adminClient.from("menu_site_audit_logs").insert({
-    menu_site_id: membership.menu_site_id,
-    actor_user_id: normalizedActorUserId,
-    actor_role: "owner",
-    action: "staff.role_changed",
-    target_type: "menu_site_member",
-    target_id: membership.id,
-    metadata: { from_role: membership.role, to_role: role },
-  });
+  return { changed: true, role };
+}
 
-  if (auditError) {
-    await adminClient
-      .from("menu_site_members")
-      .update({ role: membership.role, updated_at: nowIso })
-      .eq("id", membership.id)
-      .eq("status", "active")
-      .eq("role", role);
-    throw new StaffMembershipManagementError("MEMBERSHIP_UPDATE_FAILED", "역할 변경 감사 기록을 만들지 못했습니다.", 500);
+function sameOverrides(
+  left: ReturnType<typeof normalizeMenuSitePermissionOverrides>,
+  right: ReturnType<typeof normalizeMenuSitePermissionOverrides>,
+) {
+  return left.allow.length === right.allow.length
+    && left.deny.length === right.deny.length
+    && left.allow.every((permission, index) => permission === right.allow[index])
+    && left.deny.every((permission, index) => permission === right.deny[index]);
+}
+
+function permissionOverridesToJson(
+  overrides: ReturnType<typeof normalizeMenuSitePermissionOverrides>,
+): Json {
+  return {
+    allow: [...overrides.allow],
+    deny: [...overrides.deny],
+  };
+}
+
+export async function updateStaffMembershipPermissions(
+  {
+    actorUserId,
+    membershipId,
+    permissions,
+  }: {
+    actorUserId: string;
+    membershipId: string;
+    permissions: readonly MenuSitePermission[];
+  },
+  {
+    adminSupabase,
+  }: {
+    adminSupabase?: AdminClient;
+  } = {},
+) {
+  const customizablePermissions = new Set<MenuSitePermission>(MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS);
+  if (permissions.some((permission) => !customizablePermissions.has(permission))) {
+    throw new StaffMembershipManagementError(
+      "INVALID_PERMISSIONS",
+      "변경할 수 없는 직원 권한이 포함되어 있습니다.",
+      400,
+    );
   }
 
-  return { changed: true, role };
+  const adminClient = adminSupabase ?? createAdminClient();
+  const normalizedActorUserId = actorUserId.trim();
+  const membership = await getOwnedActiveMembership(
+    adminClient,
+    normalizedActorUserId,
+    membershipId.trim(),
+  );
+  if (!isStaffInvitationRole(membership.role)) {
+    throw new StaffMembershipManagementError("INVALID_ROLE", "올바른 직원 역할을 확인할 수 없습니다.", 400);
+  }
+
+  const currentOverrides = normalizeMenuSitePermissionOverrides(membership.permission_overrides);
+  const nextOverrides = buildMenuSitePermissionOverridesForSelection(
+    membership.role,
+    membership.permission_overrides,
+    permissions,
+  );
+
+  if (sameOverrides(currentOverrides, nextOverrides)) {
+    return { changed: false, permissionOverrides: nextOverrides };
+  }
+
+  const nextOverridesJson = permissionOverridesToJson(nextOverrides);
+  const { data: updated, error: updateError } = await adminClient.rpc(
+    "update_menu_site_member_access",
+    {
+      p_action: "staff.permissions_changed",
+      p_actor_user_id: normalizedActorUserId,
+      p_expected_role: membership.role,
+      p_expected_updated_at: membership.updated_at,
+      p_membership_id: membership.id,
+      p_next_permission_overrides: nextOverridesJson,
+      p_next_role: membership.role,
+    },
+  );
+
+  if (updateError) {
+    throw new StaffMembershipManagementError("MEMBERSHIP_UPDATE_FAILED", "직원 권한을 저장하지 못했습니다.", 500);
+  }
+  if (!updated) {
+    throw new StaffMembershipManagementError("MEMBERSHIP_CHANGED", "직원 상태가 변경되었습니다.", 409);
+  }
+
+  return { changed: true, permissionOverrides: nextOverrides };
 }
 
 export async function revokeStaffMembership(
