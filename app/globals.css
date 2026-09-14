@@ -42,6 +42,27 @@ body {
   padding-inline: var(--site-gutter);
 }
 
+/*
+ * Public-page typography contract.
+ * Display type is reserved for the home hero. Standard page titles and
+ * marketing section titles share this quieter hierarchy.
+ */
+.site-page-title,
+.site-section-title {
+  word-break: keep-all;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.04em;
+}
+
+@media (min-width: 768px) {
+  .site-page-title,
+  .site-section-title {
+    font-size: 3rem;
+  }
+}
+
 @media (max-width: 767px) {
   [data-public-menu-entry-layer] [data-template-language-control] {
     display: none !important;

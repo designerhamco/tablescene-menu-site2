@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
  */
 export const MARKETING_COPY_STYLES = {
   eyebrow: "text-sm font-bold leading-[1.4] tracking-[-0.02em] md:text-base",
-  title: "mt-3 break-keep text-[2rem] font-bold leading-[1.16] tracking-[-0.04em] md:text-[3rem]",
+  title: "site-section-title mt-3",
   body: "mt-5 break-keep text-base font-medium leading-[1.72] md:text-[1.0625rem]",
 } as const;
 

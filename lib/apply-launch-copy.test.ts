@@ -15,14 +15,31 @@ const templateGallerySource = readFileSync(
   new URL("../components/apply/TemplateGallery.tsx", import.meta.url),
   "utf8",
 );
+const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const marketingSectionCopySource = readFileSync(
+  new URL("../app/components/home/MarketingSectionCopy.tsx", import.meta.url),
+  "utf8",
+);
 
 test("만들기 화면은 판매 가능한 템플릿을 서비스와 페이지 유형별로 탐색한다", () => {
   assert.match(applyPageSource, /TemplateGallery/);
   assert.match(templateGallerySource, /\["single", "multi"\]/);
   assert.match(templateGallerySource, /getDiningTierLabel/);
   assert.match(templateGallerySource, /같은 페이지 유형의 템플릿을 언제든 교체/);
+  assert.match(templateGallerySource, /const TEMPLATES_PER_PAGE = 8/);
+  assert.match(templateGallerySource, /target="_blank"/);
+  assert.match(templateGallerySource, /INDUSTRY_GROUPS\.map/);
+  assert.match(templateGallerySource, /템플릿 준비 중/);
+  assert.doesNotMatch(templateGallerySource, /visibleIndustryGroups/);
   assert.doesNotMatch(applyPageSource, /멀티페이지는 실제 디자인 템플릿 공개/);
   assert.doesNotMatch(paidApplyPageSource, /멀티페이지는 실제 디자인 템플릿 공개/);
+});
+
+test("일반 페이지 타이틀은 홈 섹션 타이틀과 같은 디자인 시스템 규칙을 쓴다", () => {
+  assert.match(applyPageSource, /site-page-title/);
+  assert.match(marketingSectionCopySource, /site-section-title/);
+  assert.match(globalStylesSource, /\.site-page-title,\s*\.site-section-title/);
+  assert.match(globalStylesSource, /font-size: 3rem/);
 });
 
 test("사업자 인증 안내는 핵심 문장과 펼쳐보는 결제 안내로 정리한다", () => {
