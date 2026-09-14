@@ -30,7 +30,7 @@ function renderPolicyContent(content: string) {
     return (
       <p
         key={`${trimmedLine}-${index}`}
-        className={`${isListItem ? "pl-3" : ""} break-keep text-sm font-medium leading-7 text-zinc-600`}
+        className={`${isListItem ? "pl-3" : ""} site-body-support text-zinc-600`}
       >
         {trimmedLine}
       </p>
@@ -44,7 +44,7 @@ export default function TermsPage() {
       <OfficialSiteNavbar />
       <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
         <article className="mx-auto w-full max-w-4xl rounded-3xl bg-white p-7 shadow-sm md:p-10">
-          <h1 className="break-keep text-4xl font-black tracking-tight md:text-5xl">아티메뉴 이용약관</h1>
+          <h1 className="site-page-title">아티메뉴 이용약관</h1>
           <div className="mt-10">{renderPolicyContent(termsContent)}</div>
         </article>
       </main>

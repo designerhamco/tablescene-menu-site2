@@ -22,8 +22,8 @@ export default function AiSupportChatPage() {
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-8 flex flex-col gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-4xl font-black tracking-tight md:text-5xl">AI 상담</h1>
-              <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <h1 className="site-page-title">AI 상담</h1>
+              <p className="site-body mt-4 text-zinc-500">
                 아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다.
               </p>
             </div>
@@ -35,8 +35,8 @@ export default function AiSupportChatPage() {
             <AiSupportChat />
           ) : (
             <section className="rounded-[2rem] border border-zinc-200 bg-white px-6 py-16 text-center">
-              <p className="text-2xl font-black tracking-tight">AI 상담 준비 중</p>
-              <p className="mx-auto mt-3 max-w-lg break-keep text-sm font-medium leading-relaxed text-zinc-500">
+              <p className="site-body-title">AI 상담 준비 중</p>
+              <p className="site-body-support mx-auto mt-3 max-w-lg text-zinc-500">
                 안전성과 답변 품질을 확인한 뒤 열 예정입니다. 지금은 1:1 문의를 남겨 주세요.
               </p>
               <Link href="/mypage/inquiries" className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white">

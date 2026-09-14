@@ -355,11 +355,11 @@ const FAQ = ({
     <section id={id} className={`site-gutter relative bg-white py-24 md:py-36 ${className}`}>
       <div className={`mx-auto max-w-[1280px] ${homeDark ? 'rounded-[2rem] bg-zinc-950 px-6 py-16 text-white md:rounded-[2.5rem] md:px-14 md:py-20' : ''}`}>
         <div className={`${align === "left" ? "text-left" : "text-center"} mb-10`}>
-          <h2 className={`text-3xl md:text-5xl font-bold mb-6 tracking-tight leading-tight ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
+          <h2 className={`site-section-title mb-6 ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
             {title}
           </h2>
           {description ? (
-            <p className={`text-lg font-medium ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <p className={`site-body ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
               {description}
             </p>
           ) : null}

@@ -60,10 +60,10 @@ export default async function ApplyDisplayPage({
       <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
           <section className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm md:p-12">
-            <h1 className="break-keep text-4xl font-black tracking-tight md:text-5xl">
+            <h1 className="site-page-title">
               아티메뉴 디스플레이는 준비 중입니다.
             </h1>
-            <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
+            <p className="site-body mt-5 max-w-2xl text-zinc-500">
               아티메뉴 디스플레이 전용 템플릿 준비 후 신청할 수 있습니다. 현재는 결제, 템플릿 선택, 공개 주소 입력을 진행하지 않습니다.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
