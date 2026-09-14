@@ -13,7 +13,13 @@ import {
 } from "@/lib/display-page-settings";
 import { pageSettingKeys } from "@/lib/menu-editor";
 import { getMenuEditorCapabilitiesForMenuSite } from "@/lib/menu-editor-capabilities";
-import { getAiUsage, getAiUsageFromCreditSpend, isAiUsageExceeded, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
+import {
+  getAiUsage,
+  getAiUsageFromCreditSpend,
+  getAiUsageSnapshotFromCredits,
+  isAiUsageExceeded,
+  normalizeMenuLinkPlanKey,
+} from "@/lib/menu-ai-usage";
 import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
 import {
@@ -110,6 +116,7 @@ import {
 } from "@/lib/server/menu-translation-service";
 import { saveMenuWidgetsForFinalDraft, type MenuWidgetFinalSaveError } from "@/lib/server/menu-widget-final-save-service";
 import { cleanupSavedMenuWidgetImages } from "@/lib/server/menu-widget-image-cleanup-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
@@ -1447,6 +1454,7 @@ export async function translateMenuSiteAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
+  const jobSupabase = createAdminClient();
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
   const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
@@ -1464,7 +1472,7 @@ export async function translateMenuSiteAction(formData: FormData) {
   }
 
   const startedAt = new Date().toISOString();
-  const { data: job, error: jobError } = await supabase
+  const { data: job, error: jobError } = await jobSupabase
     .from("menu_translation_jobs")
     .insert({
       menu_site_id: menuId,
@@ -1494,7 +1502,7 @@ export async function translateMenuSiteAction(formData: FormData) {
       completed_at: completedAt,
       updated_at: completedAt,
     };
-    const { error: updateJobError } = await supabase.from("menu_translation_jobs").update(updatePayload).eq("id", job.id);
+    const { error: updateJobError } = await jobSupabase.from("menu_translation_jobs").update(updatePayload).eq("id", job.id);
 
     if (updateJobError) {
       throw new Error(`번역 작업 상태 저장에 실패했습니다: ${updateJobError.message}`);
@@ -1508,7 +1516,7 @@ export async function translateMenuSiteAction(formData: FormData) {
     const errorMessage = error instanceof Error ? error.message : "번역 중 알 수 없는 오류가 발생했습니다.";
     const safeMessage = translatedEntities > 0 ? PARTIAL_TRANSLATION_FAILURE_MESSAGE : getSafeTranslationErrorMessage(errorMessage);
     console.error("[menu-translation] update failed", { menuId, jobId: job.id, message: errorMessage });
-    await supabase
+    await jobSupabase
       .from("menu_translation_jobs")
       .update({
         status: "failed",
@@ -1560,11 +1568,12 @@ export async function generateMenuSiteTranslationDraftAction(input: {
   }
 
   let draftJobId: string | null = null;
-  let draftSupabase: SupabaseServerClient | null = null;
+  let draftSupabase: ReturnType<typeof createAdminClient> | null = null;
 
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
-    draftSupabase = supabase;
+    const jobSupabase = createAdminClient();
+    draftSupabase = jobSupabase;
     const enabledTargetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is EditableTranslationLocale =>
       TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
     );
@@ -1581,15 +1590,19 @@ export async function generateMenuSiteTranslationDraftAction(input: {
     const featureKey = isFullRun ? "full_translation" : "partial_translation";
     const creditCost = AI_FEATURE_CREDIT_COSTS[featureKey];
     const usageType = isFullRun ? "ai_translate_full" : "ai_translate_partial";
-    const currentUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, usageType);
-    const hasTranslationCredits = await hasEnoughAiCredits(menuId, creditCost);
+    const legacyUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, usageType);
+    const accountCreditBalance = await getAiCreditBalanceForMenuSite(menuId);
+    const currentUsage = getAiUsageSnapshotFromCredits(accountCreditBalance)?.[usageType] ?? legacyUsage;
+    const hasTranslationCredits = accountCreditBalance
+      ? accountCreditBalance.remainingCredits >= creditCost
+      : null;
 
     if (hasTranslationCredits === false || (hasTranslationCredits === null && isAiUsageExceeded(currentUsage))) {
       return { ok: false, message: "AI 크레딧이 부족합니다. 크레딧을 충전하면 계속 사용할 수 있습니다.", usage: currentUsage };
     }
 
     const startedAt = new Date().toISOString();
-    const { data: job, error: jobError } = await supabase
+    const { data: job, error: jobError } = await jobSupabase
       .from("menu_translation_jobs")
       .insert({
         menu_site_id: menuId,
@@ -1678,7 +1691,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
         : failedLocaleLabels
         ? `${failedLocaleLabels} 번역 실패`
         : "자동 번역 초안 생성 실패";
-    const { error: updateJobError } = await supabase
+    const { error: updateJobError } = await jobSupabase
       .from("menu_translation_jobs")
       .update({
         status: overallStatus === "failed" ? "failed" : "completed",
@@ -2332,12 +2345,10 @@ async function saveEditableTranslationDrafts(
 }
 
 async function markTranslationRecoveryJobApplied({
-  supabase,
   menuId,
   userId,
   jobId,
 }: {
-  supabase: SupabaseServerClient;
   menuId: string;
   userId: string;
   jobId: string | null;
@@ -2345,7 +2356,8 @@ async function markTranslationRecoveryJobApplied({
   if (!jobId || !isUuid(jobId)) return;
 
   const appliedAt = new Date().toISOString();
-  const { error } = await supabase
+  const jobSupabase = createAdminClient();
+  const { error } = await jobSupabase
     .from("menu_translation_jobs")
     .update({
       applied_at: appliedAt,
@@ -2410,7 +2422,6 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
 
   if (saveMode !== "languages") {
     await markTranslationRecoveryJobApplied({
-      supabase,
       menuId,
       userId: user.id,
       jobId: translationRecoveryJobId,
