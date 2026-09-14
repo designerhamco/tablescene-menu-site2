@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  assertSupportedAiDescriptionClaims,
+  normalizeAiDescriptionPriceContext,
+} from "@/lib/menu-ai-description-safety";
 import { PARTIAL_TRANSLATION_FAILURE_MESSAGE } from "@/lib/menu-translation-errors";
 import {
   TIME_SALE_BADGE_TEXT_MAX_LENGTH,
@@ -675,7 +679,7 @@ export async function generateMenuItemDescriptionDraft(input: MenuItemDescriptio
             {
               type: "input_text",
               text:
-                "You write concise Korean menu or service item descriptions for a digital menu board. Write 1-2 natural Korean sentences. Do not invent ingredients, discounts, medical effects, origin claims, or premium claims. Use the given name, category, price label, badge, and existing description only as context. Return only valid JSON that matches the schema.",
+                "You write concise Korean menu or service item descriptions for a digital menu board. Write 1-2 natural Korean sentences. Do not invent ingredients, discounts, medical effects, origin claims, premium claims, or free/complimentary availability. A missing or zero numeric price means the price is unavailable or hidden, never that the item is free. Mention that an item is free only when the provided price label, badge, or existing description explicitly says so. Use the given name, category, price label, badge, and existing description only as context. Return only valid JSON that matches the schema.",
             },
           ],
         },
@@ -688,7 +692,7 @@ export async function generateMenuItemDescriptionDraft(input: MenuItemDescriptio
                 language: "ko",
                 name,
                 categoryName: cleanText(input.categoryName),
-                price: cleanText(input.price),
+                price: normalizeAiDescriptionPriceContext(input.price),
                 priceLabel: cleanText(input.priceLabel),
                 badgeLabel: cleanText(input.badgeLabel),
                 currentDescription: cleanText(input.currentDescription),
@@ -729,7 +733,9 @@ export async function generateMenuItemDescriptionDraft(input: MenuItemDescriptio
     throw new Error(errorMessage);
   }
 
-  return parseDescriptionResponse(getTextFromOpenAIResponse(payload));
+  const description = parseDescriptionResponse(getTextFromOpenAIResponse(payload));
+  assertSupportedAiDescriptionClaims(description, input);
+  return description;
 }
 
 export async function generateMenuCleanupStructure(input: MenuCleanupStructureInput): Promise<MenuCleanupStructuredResult> {
