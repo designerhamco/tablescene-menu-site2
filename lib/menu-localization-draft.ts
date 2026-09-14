@@ -1,7 +1,7 @@
 import type { SupportedLocale } from "@/lib/locales";
 
 export type EditableTranslationLocale = Exclude<SupportedLocale, "ko">;
-export type EditableTranslationEntityType = "site" | "page" | "category" | "item" | "promotion" | "widget";
+export type EditableTranslationEntityType = "site" | "page" | "category" | "item" | "priceOption" | "promotion" | "widget";
 
 export type EditableTranslationField = {
   entityType: EditableTranslationEntityType;
@@ -53,7 +53,7 @@ export type RecoverableAutoTranslationJob = {
   staleRowCount: number;
 };
 
-const EDITABLE_TRANSLATION_ENTITY_TYPES = ["site", "page", "category", "item", "promotion", "widget"] as const;
+const EDITABLE_TRANSLATION_ENTITY_TYPES = ["site", "page", "category", "item", "priceOption", "promotion", "widget"] as const;
 const EDITABLE_TRANSLATION_LOCALES = ["en", "zh", "ja"] as const;
 const TRANSLATION_RECOVERY_TEXT_MAX_LENGTH = 10000;
 const TRANSLATION_RECOVERY_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -70,8 +70,9 @@ const TRANSLATION_RECOVERY_ALLOWED_FIELDS = {
     "restaurant_phone",
   ],
   page: ["title", "description"],
-  category: ["name", "description"],
+  category: ["name", "description", "course_price_label", "course_price_description"],
   item: ["name", "description", "price_label", "portion_label", "badge_label", "set_name"],
+  priceOption: ["label", "price_label"],
   promotion: ["badge_text", "time_display_text"],
   widget: ["title", "description"],
 } as const satisfies Record<EditableTranslationEntityType, readonly string[]>;
@@ -146,6 +147,8 @@ export type PartialMenuItemTranslationResult = {
 export type PartialMenuCategoryTranslationResult = {
   name?: string;
   description?: string;
+  course_price_label?: string;
+  course_price_description?: string;
 };
 
 export type PartialMenuHeroTranslationResult = {

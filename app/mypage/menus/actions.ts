@@ -116,7 +116,6 @@ import {
 } from "@/lib/server/menu-translation-service";
 import { saveMenuWidgetsForFinalDraft, type MenuWidgetFinalSaveError } from "@/lib/server/menu-widget-final-save-service";
 import { cleanupSavedMenuWidgetImages } from "@/lib/server/menu-widget-image-cleanup-service";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
@@ -195,6 +194,7 @@ type MenuSiteTranslationInsert = Database["public"]["Tables"]["menu_site_transla
 type MenuPageTranslationInsert = Database["public"]["Tables"]["menu_page_translations"]["Insert"];
 type MenuCategoryTranslationInsert = Database["public"]["Tables"]["menu_category_translations"]["Insert"];
 type MenuItemTranslationInsert = Database["public"]["Tables"]["menu_item_translations"]["Insert"];
+type MenuItemPriceOptionTranslationInsert = Database["public"]["Tables"]["menu_item_price_option_translations"]["Insert"];
 type MenuPromotionTranslationInsert = Database["public"]["Tables"]["menu_promotion_translations"]["Insert"];
 type MenuWidgetTranslationInsert = Database["public"]["Tables"]["menu_widget_translations"]["Insert"];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
@@ -1463,7 +1463,7 @@ export async function translateMenuSiteAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, user, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
-  const jobSupabase = createAdminClient();
+  const jobSupabase = await createClient();
   const productKey = await getLatestProductKeyForMenuSite(supabase, menuId);
   const aiUsagePlanKey = normalizeMenuLinkPlanKey(productKey);
   const fullTranslationUsage = getAiUsage(menuSite.settings, aiUsagePlanKey, "ai_translate_full");
@@ -1588,11 +1588,11 @@ export async function generateMenuSiteTranslationDraftAction(input: {
   }
 
   let draftJobId: string | null = null;
-  let draftSupabase: ReturnType<typeof createAdminClient> | null = null;
+  let draftSupabase: SupabaseServerClient | null = null;
 
   try {
     const { supabase, menuSite } = await requireOwnedMenuSite(menuId, { permission: "ai.use" });
-    const jobSupabase = createAdminClient();
+    const jobSupabase = await createClient();
     draftSupabase = jobSupabase;
     const enabledTargetLocales = getEnabledLocales(menuSite.settings).filter((locale): locale is EditableTranslationLocale =>
       TARGET_TRANSLATION_LOCALES.includes(locale as (typeof TARGET_TRANSLATION_LOCALES)[number])
@@ -1692,6 +1692,7 @@ export async function generateMenuSiteTranslationDraftAction(input: {
       menu_page_translations: "page",
       menu_category_translations: "category",
       menu_item_translations: "item",
+      menu_item_price_option_translations: "priceOption",
       menu_promotion_translations: "promotion",
       menu_widget_translations: "widget",
     } as const satisfies Record<string, EditableTranslationEntityType>;
@@ -2069,6 +2070,7 @@ function getTranslationDraftValues(formData: FormData) {
           candidate.entityType === "page" ||
           candidate.entityType === "category" ||
           candidate.entityType === "item" ||
+          candidate.entityType === "priceOption" ||
           candidate.entityType === "promotion" ||
           candidate.entityType === "widget") &&
         typeof candidate.entityId === "string" &&
@@ -2191,6 +2193,7 @@ async function saveEditableTranslationDrafts(
     page: [],
     category: ["name"],
     item: ["name", "set_name", "price_label", "badge_label"],
+    priceOption: [],
     promotion: [],
     widget: [],
   } : {
@@ -2206,8 +2209,11 @@ async function saveEditableTranslationDrafts(
       "restaurant_phone",
     ],
     page: ["title", "description"],
-    category: ["name", "description"],
-    item: ["name", "description", "price_label", "portion_label", "badge_label"],
+    category: isAubeTableTemplate(templateKey)
+      ? ["name", "description", "course_price_label", "course_price_description"]
+      : ["name", "description"],
+    item: ["name", "set_name", "description", "price_label", "portion_label", "badge_label"],
+    priceOption: ["label", "price_label"],
     promotion: isBasicTimeSaleTemplate(templateKey) ? ["badge_text", "time_display_text"] : [],
     widget: supportsWidgetLocalization ? ["title", "description"] : [],
   };
@@ -2232,6 +2238,7 @@ async function saveEditableTranslationDrafts(
     page: new Map<string, Record<string, unknown>>(),
     category: new Map<string, Record<string, unknown>>(),
     item: new Map<string, Record<string, unknown>>(),
+    priceOption: new Map<string, Record<string, unknown>>(),
     promotion: new Map<string, Record<string, unknown>>(),
     widget: new Map<string, Record<string, unknown>>(),
   };
@@ -2241,7 +2248,15 @@ async function saveEditableTranslationDrafts(
       result[draft.entityType].add(draft.entityId);
       return result;
     },
-    { site: new Set(), page: new Set(), category: new Set(), item: new Set(), promotion: new Set(), widget: new Set() }
+    {
+      site: new Set(),
+      page: new Set(),
+      category: new Set(),
+      item: new Set(),
+      priceOption: new Set(),
+      promotion: new Set(),
+      widget: new Set(),
+    }
   );
 
   if (idsByType.site.size > 1 || (idsByType.site.size === 1 && !idsByType.site.has(menuId))) {
@@ -2258,7 +2273,12 @@ async function saveEditableTranslationDrafts(
     redirectToTabEditWithError(menuId, "localization", "특가세일 번역 저장 대상이 올바르지 않습니다.");
   }
 
-  const [pagesResult, categoriesResult, itemsResult, promotionsResult, widgetsResult] = await Promise.all([
+  const invalidPriceOptionEntityId = [...idsByType.priceOption].find((id) => !isUuid(id));
+  if (invalidPriceOptionEntityId) {
+    redirectToTabEditWithError(menuId, "localization", "가격 옵션 번역 저장 대상이 올바르지 않습니다.");
+  }
+
+  const [pagesResult, categoriesResult, itemsResult, priceOptionsResult, promotionsResult, widgetsResult] = await Promise.all([
     idsByType.page.size > 0
       ? supabase.from("menu_pages").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.page])
       : Promise.resolve({ data: [], error: null }),
@@ -2268,6 +2288,13 @@ async function saveEditableTranslationDrafts(
     idsByType.item.size > 0
       ? supabase.from("menu_items").select("id").eq("menu_site_id", menuId).in("id", [...idsByType.item])
       : Promise.resolve({ data: [], error: null }),
+    idsByType.priceOption.size > 0
+      ? supabase
+          .from("menu_item_price_options")
+          .select("id")
+          .eq("menu_site_id", menuId)
+          .in("id", [...idsByType.priceOption])
+      : Promise.resolve({ data: [], error: null }),
     idsByType.promotion.size > 0
       ? supabase.from("menu_promotions").select("id").eq("menu_site_id", menuId).eq("type", TIME_SALE_TYPE).in("id", [...idsByType.promotion])
       : Promise.resolve({ data: [], error: null }),
@@ -2276,7 +2303,13 @@ async function saveEditableTranslationDrafts(
       : Promise.resolve({ data: [], error: null }),
   ]);
 
-  const readError = pagesResult.error ?? categoriesResult.error ?? itemsResult.error ?? promotionsResult.error ?? widgetsResult.error;
+  const readError =
+    pagesResult.error ??
+    categoriesResult.error ??
+    itemsResult.error ??
+    priceOptionsResult.error ??
+    promotionsResult.error ??
+    widgetsResult.error;
   if (readError) {
     redirectToTabEditWithError(menuId, "localization", `번역 저장 대상 확인에 실패했습니다: ${readError.message}`);
   }
@@ -2286,6 +2319,7 @@ async function saveEditableTranslationDrafts(
     page: new Set((pagesResult.data ?? []).map((row) => row.id)),
     category: new Set((categoriesResult.data ?? []).map((row) => row.id)),
     item: new Set((itemsResult.data ?? []).map((row) => row.id)),
+    priceOption: new Set((priceOptionsResult.data ?? []).map((row) => row.id)),
     promotion: new Set((promotionsResult.data ?? []).map((row) => row.id)),
     widget: new Set(
       ((widgetsResult.data ?? []) as { id: string; widget_type: string }[])
@@ -2349,30 +2383,48 @@ async function saveEditableTranslationDrafts(
   const pageRows = [...groupedRows.page.entries()].map(([key, row]) => ({ ...row, menu_page_id: key.split(":")[0] })) as MenuPageTranslationInsert[];
   const categoryRows = [...groupedRows.category.entries()].map(([key, row]) => ({ ...row, category_id: key.split(":")[0] })) as MenuCategoryTranslationInsert[];
   const itemRows = [...groupedRows.item.entries()].map(([key, row]) => ({ ...row, item_id: key.split(":")[0] })) as MenuItemTranslationInsert[];
+  const priceOptionRows = [...groupedRows.priceOption.entries()].map(([key, row]) => ({
+    ...row,
+    price_option_id: key.split(":")[0],
+  })) as MenuItemPriceOptionTranslationInsert[];
   const promotionRows = [...groupedRows.promotion.entries()].map(([key, row]) => ({ ...row, menu_promotion_id: key.split(":")[0] })) as MenuPromotionTranslationInsert[];
   const widgetRows = [...groupedRows.widget.entries()].map(([key, row]) => ({ ...row, menu_widget_id: key.split(":")[0] })) as MenuWidgetTranslationInsert[];
 
-  const [{ error: siteError }, { error: pageError }, { error: categoryError }, { error: itemError }, { error: promotionError }, { error: widgetError }] = await Promise.all([
+  const translationWriter = await createClient();
+  const [
+    { error: siteError },
+    { error: pageError },
+    { error: categoryError },
+    { error: itemError },
+    { error: priceOptionError },
+    { error: promotionError },
+    { error: widgetError },
+  ] = await Promise.all([
     siteRows.length > 0
-      ? supabase.from("menu_site_translations").upsert(siteRows, { onConflict: "menu_site_id,locale" })
+      ? translationWriter.from("menu_site_translations").upsert(siteRows, { onConflict: "menu_site_id,locale" })
       : Promise.resolve({ error: null }),
     pageRows.length > 0
-      ? supabase.from("menu_page_translations").upsert(pageRows, { onConflict: "menu_page_id,locale" })
+      ? translationWriter.from("menu_page_translations").upsert(pageRows, { onConflict: "menu_page_id,locale" })
       : Promise.resolve({ error: null }),
     categoryRows.length > 0
-      ? supabase.from("menu_category_translations").upsert(categoryRows, { onConflict: "category_id,locale" })
+      ? translationWriter.from("menu_category_translations").upsert(categoryRows, { onConflict: "category_id,locale" })
       : Promise.resolve({ error: null }),
     itemRows.length > 0
-      ? supabase.from("menu_item_translations").upsert(itemRows, { onConflict: "item_id,locale" })
+      ? translationWriter.from("menu_item_translations").upsert(itemRows, { onConflict: "item_id,locale" })
+      : Promise.resolve({ error: null }),
+    priceOptionRows.length > 0
+      ? translationWriter
+          .from("menu_item_price_option_translations")
+          .upsert(priceOptionRows, { onConflict: "price_option_id,locale" })
       : Promise.resolve({ error: null }),
     promotionRows.length > 0
-      ? supabase.from("menu_promotion_translations").upsert(promotionRows, { onConflict: "menu_promotion_id,locale" })
+      ? translationWriter.from("menu_promotion_translations").upsert(promotionRows, { onConflict: "menu_promotion_id,locale" })
       : Promise.resolve({ error: null }),
     widgetRows.length > 0
-      ? supabase.from("menu_widget_translations").upsert(widgetRows, { onConflict: "menu_widget_id,locale" })
+      ? translationWriter.from("menu_widget_translations").upsert(widgetRows, { onConflict: "menu_widget_id,locale" })
       : Promise.resolve({ error: null }),
   ]);
-  const saveError = siteError ?? pageError ?? categoryError ?? itemError ?? promotionError ?? widgetError;
+  const saveError = siteError ?? pageError ?? categoryError ?? itemError ?? priceOptionError ?? promotionError ?? widgetError;
 
   if (saveError) {
     redirectToTabEditWithError(menuId, "localization", `${errorLabel} 중 오류가 발생했습니다: ${saveError.message}`);
@@ -2391,7 +2443,7 @@ async function markTranslationRecoveryJobApplied({
   if (!jobId || !isUuid(jobId)) return;
 
   const appliedAt = new Date().toISOString();
-  const jobSupabase = createAdminClient();
+  const jobSupabase = await createClient();
   const { error } = await jobSupabase
     .from("menu_translation_jobs")
     .update({

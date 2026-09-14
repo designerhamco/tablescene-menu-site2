@@ -71,3 +71,39 @@ test("Aube fails closed when a translation row is not completed", () => {
     priceOptionTranslations: english.priceOptions,
   }), ["ko"]);
 });
+
+test("Aube requires visible course price copy and price option price labels", () => {
+  const english = completeLocale("en");
+  const input = {
+    ...baseInput,
+    configuredLocales: ["ko", "en"] as ("ko" | "en")[],
+    categories: [{
+      ...baseInput.categories[0],
+      course_price_label: "₩185,000",
+      course_price_visible: true,
+      course_price_description: "1인 기준 · 와인 페어링 + ₩120,000",
+      course_price_description_visible: true,
+    }],
+    priceOptions: [{ ...baseInput.priceOptions[0], price_label: "₩120,000" }],
+    siteTranslations: english.site,
+    pageTranslations: english.pages,
+    categoryTranslations: english.categories.map((translation) => ({
+      ...translation,
+      course_price_label: null as string | null,
+      course_price_description: null as string | null,
+    })),
+    itemTranslations: english.items,
+    priceOptionTranslations: english.priceOptions.map((translation) => ({
+      ...translation,
+      price_label: null as string | null,
+    })),
+  };
+
+  assert.deepEqual(getReadyAubeTableLocales(input), ["ko"]);
+
+  input.categoryTranslations[0].course_price_label = "KRW 185,000";
+  input.categoryTranslations[0].course_price_description = "Per person · Wine pairing + KRW 120,000";
+  input.priceOptionTranslations[0].price_label = "KRW 120,000";
+
+  assert.deepEqual(getReadyAubeTableLocales(input), ["ko", "en"]);
+});
