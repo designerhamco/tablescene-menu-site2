@@ -293,7 +293,7 @@ const Navbar = () => {
   return (
     <>
       <nav className={`fixed left-0 right-0 top-0 z-50 h-20 transition-all duration-300 ${navBgClass} ${navToneClass}`}>
-        <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-6">
+        <div className="site-container relative flex h-full items-center justify-between">
           <Link to="/" className="group z-50 flex shrink-0 items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F8E731] transition-transform duration-300 group-hover:scale-105 md:h-10 md:w-10 md:rounded-xl">
               <img
@@ -329,7 +329,7 @@ const Navbar = () => {
                         event.preventDefault();
                       }
                     }}
-                    className={`relative inline-flex items-center gap-1.5 py-2 text-[15px] font-bold tracking-tight transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
+                    className={`relative inline-flex items-center gap-1.5 py-2 text-base font-bold tracking-tight transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
                       item.disabled
                         ? 'pointer-events-none cursor-not-allowed text-current opacity-35 after:w-0'
                         : isActive
@@ -350,7 +350,7 @@ const Navbar = () => {
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
             <a
               href="/apply"
-              className={`hidden rounded-full px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${primaryButtonClass}`}
+              className={`hidden rounded-full px-5 py-2.5 text-[15px] font-bold transition-colors lg:inline-flex ${primaryButtonClass}`}
               style={primaryButtonStyle}
             >
               만들기
@@ -410,7 +410,7 @@ const Navbar = () => {
             {!authState.loading ? (
               <a
                 href={accountCtaHref}
-                className={`hidden rounded-full border px-5 py-2.5 text-sm font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
+                className={`hidden rounded-full border px-5 py-2.5 text-[15px] font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
               >
                 {accountCtaLabel}
               </a>

@@ -56,8 +56,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
                 아티메뉴 다이닝
               </span>
-              <h1 className="mt-5 break-keep text-4xl font-black tracking-tight md:text-5xl">{product.shortName}</h1>
-              <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-600">
+              <h1 className="site-page-title mt-5">{product.shortName}</h1>
+              <p className="site-body mt-5 max-w-2xl text-zinc-600">
                 {product.summary}
               </p>
             </div>

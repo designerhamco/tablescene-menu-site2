@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="mb-12">
           <div className="space-y-4">
             <h2 className="text-2xl font-bold tracking-tight text-zinc-950">ArtiMenu</h2>
-            <p className="max-w-sm text-base font-normal leading-relaxed text-zinc-500">
+            <p className="site-body max-w-sm text-zinc-500">
               디지털 혁신과 시각적 스토리텔링을 통해<br/>
               다이닝 경험의 새로운 장면을 만듭니다.
             </p>
@@ -20,7 +20,7 @@ const Footer = () => {
         {/* Legal Info & Copyright */}
         <div className="flex flex-col md:flex-row justify-between items-end md:items-start gap-8">
             {/* Legal Text */}
-            <div className="w-full space-y-2 text-xs font-normal leading-relaxed text-zinc-500 md:max-w-4xl md:text-sm">
+            <div className="site-body-support w-full space-y-2 text-zinc-500 md:max-w-4xl">
               <div className="flex flex-wrap gap-x-3 gap-y-1">
                 <span><span className="font-semibold text-zinc-500">상호명</span> 디앤디커머스</span>
                 <span className="text-zinc-300">|</span>
@@ -45,7 +45,7 @@ const Footer = () => {
 
            {/* Copyright & Links */}
            <div className="flex flex-col md:items-end gap-3 shrink-0 w-full md:w-auto text-left md:text-right mt-4 md:mt-0">
-              <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-zinc-500 md:justify-end md:gap-x-6">
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-[15px] font-medium text-zinc-500 md:justify-end md:gap-x-6">
                 <a href="/faq" className="transition-colors hover:text-zinc-950">
                   고객센터
                 </a>

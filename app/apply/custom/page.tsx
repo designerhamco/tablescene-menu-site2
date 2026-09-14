@@ -115,16 +115,16 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
         <div className="mx-auto w-full max-w-6xl">
           <header className="grid gap-8 border-b border-zinc-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
             <div>
-              <h1 className="max-w-3xl break-keep text-4xl font-black tracking-tight md:text-5xl">
+              <h1 className="site-page-title max-w-3xl">
                 아티메뉴 커스텀 견적 문의
               </h1>
-              <p className="mt-5 max-w-2xl break-keep text-base font-semibold leading-relaxed text-zinc-500">
+              <p className="site-body mt-5 max-w-2xl text-zinc-500">
                 브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 주문제작 프로젝트로 상담합니다.
               </p>
             </div>
             <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <p className="break-keep text-2xl font-black tracking-tight">상담형 · 견적 문의형</p>
-              <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+              <p className="site-body-title">상담형 · 견적 문의형</p>
+              <p className="site-body-support mt-3 text-zinc-500">
                 결제 없이 프로젝트 범위와 예산을 먼저 확인합니다. 접수 후 담당자가 맞춤 제작 범위와 일정, 견적을 안내합니다.
               </p>
             </div>

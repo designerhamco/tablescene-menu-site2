@@ -18,12 +18,12 @@ export default function FAQPage() {
     <>
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-white text-zinc-950">
-        <section className="site-gutter border-b border-zinc-200 py-16 md:py-24">
-          <div className="mx-auto max-w-[1280px]">
-            <h1 className="max-w-3xl break-keep text-4xl font-black tracking-[-0.04em] md:text-[3.5rem]">
+        <section className="border-b border-zinc-200 py-16 md:py-24">
+          <div className="site-container">
+            <h1 className="site-page-title max-w-3xl">
               필요한 도움을<br className="hidden md:block" /> 빠르게 확인
             </h1>
-            <p className="mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+            <p className="site-body mt-6 max-w-2xl text-zinc-500">
               자주 묻는 질문을 먼저 확인하고, 더 자세한 도움이 필요하면 AI 상담이나 1:1 문의를 이용해 주세요.
             </p>
 
@@ -31,25 +31,25 @@ export default function FAQPage() {
               <Link href="#frequently-asked" className="group flex min-h-44 flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-950">
                 <CircleHelp className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
-                  <p className="text-lg font-black">자주 묻는 질문</p>
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-zinc-500">서비스, 요금, 메뉴판 관리 기준을 확인합니다.</p>
+                  <p className="site-body-title">자주 묻는 질문</p>
+                  <p className="site-body-support mt-2 text-zinc-500">서비스, 요금, 메뉴판 관리 기준을 확인합니다.</p>
                 </div>
               </Link>
               <Link href="/support/chat" className="group flex min-h-44 flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-950">
                 <Bot className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-lg font-black">AI 상담</p>
+                    <p className="site-body-title">AI 상담</p>
                     {!aiSupportEnabled ? <span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-black text-zinc-500">준비 중</span> : null}
                   </div>
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-zinc-500">기능과 이용 방법을 바로 질문합니다.</p>
+                  <p className="site-body-support mt-2 text-zinc-500">기능과 이용 방법을 바로 질문합니다.</p>
                 </div>
               </Link>
               <Link href="/mypage/inquiries" className="group flex min-h-44 flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-950">
                 <MessageSquareText className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
-                  <p className="text-lg font-black">1:1 문의</p>
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-zinc-500">계정, 결제처럼 확인이 필요한 내용을 남깁니다.</p>
+                  <p className="site-body-title">1:1 문의</p>
+                  <p className="site-body-support mt-2 text-zinc-500">계정, 결제처럼 확인이 필요한 내용을 남깁니다.</p>
                 </div>
               </Link>
             </div>
