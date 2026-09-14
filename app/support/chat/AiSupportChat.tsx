@@ -6,9 +6,10 @@ import { FormEvent, useState } from "react";
 type Message = { role: "user" | "assistant"; text: string };
 
 const SUGGESTIONS = [
-  "다이닝 단일페이지와 멀티페이지의 차이가 뭐예요?",
-  "스마트호출은 어떻게 사용하나요?",
-  "디스플레이에서 동영상을 사용할 수 있나요?",
+  "단일페이지와 멀티페이지의 차이가 궁금해요",
+  "테이블별 QR과 스마트호출은 어떻게 사용하나요?",
+  "AI 크레딧은 언제, 얼마나 사용되나요?",
+  "디스플레이에서 할인과 동영상을 사용할 수 있나요?",
 ] as const;
 
 export default function AiSupportChat({ compact = false }: { compact?: boolean }) {
@@ -59,18 +60,18 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
   return (
     <section className={`overflow-hidden border border-zinc-200 bg-white ${compact ? "rounded-[1.25rem]" : "rounded-[2rem]"}`}>
       <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
-        <h2 className="text-lg font-black">AI 이용 안내</h2>
+        <h2 className="text-lg font-black">상담 범위</h2>
         <p className="mt-1 text-sm font-medium leading-relaxed text-zinc-500">
-          서비스 사용법을 안내합니다. 계정·결제 변경이나 개인정보 확인은 하지 않습니다.
+          요금제, 메뉴판 제작, 다국어, 스마트호출과 디스플레이 이용 방법을 안내합니다.
         </p>
       </div>
 
       <div className={`${compact ? "min-h-[280px]" : "min-h-[420px]"} space-y-4 bg-zinc-50 px-5 py-6 md:px-7`} aria-live="polite">
         {messages.length === 0 ? (
           <div className="mx-auto flex max-w-xl flex-col items-center py-12 text-center">
-            <p className="text-2xl font-black tracking-tight">무엇이 궁금한가요?</p>
+            <p className="text-2xl font-black tracking-tight">무엇을 도와드릴까요?</p>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              요금제 차이, 메뉴판 제작, 다국어, 스마트호출과 디스플레이 이용법을 물어보세요.
+              아래 질문을 선택하거나 궁금한 내용을 직접 입력해 주세요.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((suggestion) => (
