@@ -598,11 +598,12 @@ video {
 }
 
 .cafe-a-typography .cafe-a-price-column-header {
+  --cafe-a-price-column-label-font-size: clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.72rem);
   --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   color: #191c1b;
   font-family: var(--menu-role-supporting-font-family, inherit);
-  font-size: clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.72rem);
+  font-size: var(--cafe-a-price-column-label-font-size);
   font-weight: var(--menu-role-supporting-font-weight, 600);
   letter-spacing: 0.04em;
   line-height: 1;
@@ -613,9 +614,33 @@ video {
 .cafe-a-typography .cafe-a-price-column-heading {
   justify-self: end;
   min-width: 0;
-  overflow-wrap: anywhere;
+  position: relative;
   text-align: center;
-  width: min(100%, 1.6rem);
+  width: max-content;
+}
+
+.cafe-a-typography .cafe-a-price-column-heading-anchor {
+  display: block;
+  letter-spacing: normal;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.cafe-a-typography .cafe-a-price-column-heading-label {
+  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
+  --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
+  align-items: center;
+  display: flex;
+  font-family: var(--menu-role-supporting-font-family, inherit);
+  font-size: var(--cafe-a-price-column-label-font-size);
+  font-weight: var(--menu-role-supporting-font-weight, 600);
+  inset: 0;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  position: absolute;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .cafe-a-typography .cafe-a-price-column-cell {
@@ -1753,7 +1778,7 @@ video {
 
   .cafe-a-typography .cafe-a-price-column-header {
     --cafe-a-price-column-gap: clamp(0.16rem, calc(0.26rem * var(--fit-menu-gap-scale)), 0.34rem);
-    font-size: clamp(0.36rem, calc(0.58rem * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-supporting-size-scale, 1)), 0.72rem);
+    --cafe-a-price-column-label-font-size: clamp(0.36rem, calc(0.58rem * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-supporting-size-scale, 1)), 0.72rem);
   }
 
   .cafe-a-typography .cafe-a-price-columns-grid {

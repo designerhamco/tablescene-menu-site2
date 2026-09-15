@@ -3140,7 +3140,7 @@ function CategoryTitle({
         </h2>
         {items ? (
           <div className="cafe-a-category-price-column-slot">
-            <CategoryPriceColumnHeader category={category} items={items} />
+            <CategoryPriceColumnHeader category={category} items={items} density={density} />
           </div>
         ) : null}
       </div>
@@ -3156,15 +3156,23 @@ function CategoryTitle({
 function CategoryPriceColumnHeader({
   category,
   items,
+  density,
 }: {
   category: MenuCategory;
   items: MenuItem[];
+  density: MenuLayoutDensity;
 }) {
   const columns = getVisibleCategoryPriceColumns(category);
   if (columns.length === 0) return null;
 
   const hasColumnPriceValues = items.some((item) => getVisibleItemPriceColumnValueMap(item, category).size > 0);
   if (!hasColumnPriceValues) return null;
+  const priceClassName = {
+    spacious: "cafe-a-menu-price-size-spacious",
+    default: "cafe-a-menu-price-size-default",
+    compact: "cafe-a-menu-price-size-compact",
+    ultraCompact: "cafe-a-menu-price-size-ultra-compact",
+  }[density];
 
   return (
     <div
@@ -3173,8 +3181,13 @@ function CategoryPriceColumnHeader({
       aria-label="가격 옵션 컬럼"
     >
       {columns.map((column) => (
-        <span key={column.id} className="cafe-a-price-column-heading">
-          <ScriptAwareText text={column.label} />
+        <span key={column.id} className={`cafe-a-price-column-heading cafe-a-menu-price ${priceClassName}`}>
+          <span aria-hidden="true" className="cafe-a-price-column-heading-anchor">
+            <ScriptAwareText text="0.0" />
+          </span>
+          <span className="cafe-a-price-column-heading-label">
+            <ScriptAwareText text={column.label} />
+          </span>
         </span>
       ))}
     </div>

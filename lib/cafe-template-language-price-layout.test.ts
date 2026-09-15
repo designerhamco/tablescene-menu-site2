@@ -31,7 +31,15 @@ test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른
   );
   assert.match(
     globalStylesSource,
-    /\.cafe-a-price-column-heading \{[\s\S]*justify-self: end;[\s\S]*text-align: center;[\s\S]*width: min\(100%, 1\.6rem\);/,
+    /\.cafe-a-price-column-heading \{[\s\S]*justify-self: end;[\s\S]*position: relative;[\s\S]*text-align: center;[\s\S]*width: max-content;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-price-column-heading-anchor \{[\s\S]*letter-spacing: normal;[\s\S]*visibility: hidden;[\s\S]*white-space: nowrap;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-price-column-heading-label \{[\s\S]*font-size: var\(--cafe-a-price-column-label-font-size\);[\s\S]*inset: 0;[\s\S]*justify-content: center;/,
   );
   assert.match(
     globalStylesSource,
