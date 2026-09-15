@@ -42,6 +42,8 @@ export type MenuPreviewQuery = {
   page?: string;
 };
 
+export type TemplatePreviewQuery = Record<string, string | string[] | undefined>;
+
 export function normalizeMenuPreviewDevice(value: string | undefined): MenuPreviewDevice {
   return value === "tablet" || value === "mobile" ? value : "pc";
 }
@@ -97,5 +99,55 @@ export function buildMenuPreviewUrl(
 
   const queryString = searchParams.toString();
   const pathname = `/mypage/menus/${encodeURIComponent(menuId)}/preview`;
+  return queryString ? `${pathname}?${queryString}` : pathname;
+}
+
+const TEMPLATE_PREVIEW_QUERY_KEYS = [
+  "fontSizeScale",
+  "layoutMode",
+  "page",
+  "qaCase",
+  "qaSplitImagePosition",
+  "footerStress",
+  "contentQa",
+  "featured",
+  "featureQa",
+  "copyQa",
+  "brewCoverPageQa",
+  "brewCoverImageQa",
+  "lang",
+  "localeQa",
+  "pagePresentation",
+  "renderMode",
+  "orderCallQa",
+] as const;
+
+export function buildTemplatePreviewUrl(
+  templateKey: string,
+  query: TemplatePreviewQuery,
+  options: {
+    device?: MenuPreviewDevice;
+    orientation?: MenuPreviewOrientation;
+    embedded?: boolean;
+    actual?: boolean;
+  } = {},
+) {
+  const searchParams = new URLSearchParams();
+
+  for (const key of TEMPLATE_PREVIEW_QUERY_KEYS) {
+    const rawValue = query[key];
+    const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+    if (value) searchParams.set(key, value);
+  }
+
+  if (options.device) searchParams.set("device", options.device);
+  if (options.device === "tablet" && options.orientation) {
+    searchParams.set("orientation", options.orientation);
+  }
+  if (options.actual) searchParams.set("view", "actual");
+  if (options.embedded) searchParams.set("embedded", "1");
+
+  const queryString = searchParams.toString();
+  const pathname = `/templates/${encodeURIComponent(templateKey)}/preview`;
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
