@@ -175,16 +175,16 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
           transition={{ duration: 0.55 }}
           className={`mx-auto max-w-4xl px-6 text-center ${isHomeShowcase ? 'mb-16 md:mb-20' : 'mb-12'}`}
         >
-          {isHomeShowcase ? <p className="mb-4 text-sm font-bold text-zinc-400">전문 디자이너가 설계한 메뉴판</p> : null}
-          <h2 className={`whitespace-pre-line break-keep text-3xl font-bold tracking-tight md:text-5xl ${isHomeShowcase ? 'text-white' : 'text-zinc-950'}`}>
+          {isHomeShowcase ? <p className="type-content-title mb-4 text-zinc-400">전문 디자이너가 설계한 메뉴판</p> : null}
+          <h2 className={`type-section-title whitespace-pre-line ${isHomeShowcase ? 'text-white' : 'text-zinc-950'}`}>
             {isHomeShowcase ? '매장의 분위기를 완성하는\n아티메뉴 템플릿' : '디자이너 템플릿으로 시작'}
           </h2>
           {isHomeShowcase ? (
-            <p className="mx-auto mt-6 max-w-2xl break-keep text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
+            <p className="type-body-lg mx-auto mt-6 max-w-2xl text-zinc-400">
               매장 분위기에 맞는 템플릿을 선택해 바로 시작할 수 있습니다.
             </p>
           ) : (
-            <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+            <p className="type-body-lg mt-5 text-zinc-500">
               {activeServiceCopy.description}
             </p>
           )}

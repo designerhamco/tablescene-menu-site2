@@ -60,8 +60,8 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
   return (
     <section className={`overflow-hidden border border-zinc-200 bg-white ${compact ? "rounded-[1.25rem]" : "rounded-[2rem]"}`}>
       <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
-        <h2 className="text-lg font-black">상담 범위</h2>
-        <p className="mt-1 text-sm font-medium leading-relaxed text-zinc-500">
+        <h2 className="type-content-title">상담 범위</h2>
+        <p className="type-body-sm mt-1 text-zinc-500">
           요금제, 메뉴판 제작, 다국어, 스마트호출과 디스플레이 이용 방법을 안내합니다.
         </p>
       </div>
@@ -69,8 +69,8 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
       <div className={`${compact ? "min-h-[280px]" : "min-h-[420px]"} space-y-4 bg-zinc-50 px-5 py-6 md:px-7`} aria-live="polite">
         {messages.length === 0 ? (
           <div className="mx-auto flex max-w-xl flex-col items-center py-12 text-center">
-            <p className="text-2xl font-black tracking-tight">무엇을 도와드릴까요?</p>
-            <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <p className="type-subsection-title">무엇을 도와드릴까요?</p>
+            <p className="type-body-sm mt-3 text-zinc-500">
               아래 질문을 선택하거나 궁금한 내용을 직접 입력해 주세요.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-2">
@@ -80,7 +80,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
                   type="button"
                   onClick={() => void submitQuestion(suggestion)}
                   disabled={pending || !overseasTransferConsent}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:text-zinc-300 disabled:hover:border-zinc-200"
+                  className="type-caption rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:text-zinc-300 disabled:hover:border-zinc-200"
                 >
                   {suggestion}
                 </button>
@@ -90,16 +90,16 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         ) : messages.map((message, index) => (
           <div key={`${message.role}-${index}`} className={message.role === "user" ? "flex justify-end" : "flex justify-start"}>
             <p className={message.role === "user"
-              ? "max-w-[85%] whitespace-pre-wrap rounded-3xl bg-zinc-950 px-5 py-3.5 text-sm font-medium leading-relaxed text-white"
-              : "max-w-[85%] whitespace-pre-wrap rounded-3xl border border-zinc-200 bg-white px-5 py-3.5 text-sm font-medium leading-relaxed text-zinc-700"}
+              ? "type-body-sm max-w-[85%] whitespace-pre-wrap rounded-3xl bg-zinc-950 px-5 py-3.5 text-white"
+              : "type-body-sm max-w-[85%] whitespace-pre-wrap rounded-3xl border border-zinc-200 bg-white px-5 py-3.5 text-zinc-700"}
             >
               {message.text}
             </p>
           </div>
         ))}
-        {pending ? <p className="text-sm font-bold text-zinc-400">답변을 확인하고 있습니다…</p> : null}
+        {pending ? <p className="type-label text-zinc-400">답변을 확인하고 있습니다…</p> : null}
         {error ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold leading-relaxed text-amber-800" role="alert">
+          <div className="type-label rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800" role="alert">
             {error} <Link href="/mypage/inquiries" className="underline underline-offset-4">1:1 문의</Link>
           </div>
         ) : null}
@@ -116,8 +116,8 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             }}
             className="mt-0.5 h-4 w-4 shrink-0 accent-zinc-950"
           />
-          <span className="text-xs font-medium leading-relaxed text-zinc-600">
-            <strong className="font-black text-zinc-900">[필수] AI 상담을 위한 개인정보 국외 이전에 동의합니다.</strong>
+          <span className="type-caption text-zinc-600">
+            <strong className="font-bold text-zinc-900">[필수] AI 상담을 위한 개인정보 국외 이전에 동의합니다.</strong>
             <span className="mt-1 block">
               질문과 생성 답변 및 처리에 필요한 기술 정보가 미국 등 국외의 OpenAI OpCo, LLC 및 하위처리자에게 암호화 전송되며,
               답변 생성과 악용 방지를 위해 최대 30일 보관될 수 있습니다. 동의를 거부하면 AI 상담은 이용할 수 없지만
@@ -133,17 +133,17 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             onChange={(event) => setQuestion(event.target.value)}
             maxLength={500}
             placeholder="질문을 입력해 주세요"
-            className="min-w-0 flex-1 rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-medium outline-none transition-colors focus:border-zinc-950"
+            className="type-body-sm min-w-0 flex-1 rounded-2xl border border-zinc-200 px-4 py-3 outline-none transition-colors focus:border-zinc-950"
           />
           <button
             type="submit"
             disabled={pending || !question.trim() || !overseasTransferConsent}
-            className="rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
+            className="type-label rounded-2xl bg-zinc-950 px-5 py-3 text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
             보내기
           </button>
         </div>
-        <p className="mt-3 px-1 text-xs font-medium leading-relaxed text-zinc-400">
+        <p className="type-caption mt-3 px-1 text-zinc-400">
           비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 아티메뉴 계정과 DB에는 대화를 저장하지 않습니다.
         </p>
       </form>

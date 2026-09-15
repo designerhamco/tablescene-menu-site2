@@ -329,7 +329,7 @@ const Navbar = () => {
                         event.preventDefault();
                       }
                     }}
-                    className={`relative inline-flex items-center gap-1.5 py-2 text-base font-bold tracking-tight transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
+                    className={`type-nav relative inline-flex items-center gap-1.5 py-2 transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
                       item.disabled
                         ? 'pointer-events-none cursor-not-allowed text-current opacity-35 after:w-0'
                         : isActive
@@ -350,7 +350,7 @@ const Navbar = () => {
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
             <a
               href="/apply"
-              className={`hidden rounded-full px-5 py-2.5 text-[15px] font-bold transition-colors lg:inline-flex ${primaryButtonClass}`}
+              className={`type-nav hidden rounded-full px-5 py-2.5 transition-colors lg:inline-flex ${primaryButtonClass}`}
               style={primaryButtonStyle}
             >
               만들기
@@ -410,7 +410,7 @@ const Navbar = () => {
             {!authState.loading ? (
               <a
                 href={accountCtaHref}
-                className={`hidden rounded-full border px-5 py-2.5 text-[15px] font-bold transition-colors lg:inline-flex ${secondaryButtonClass}`}
+                className={`type-nav hidden rounded-full border px-5 py-2.5 transition-colors lg:inline-flex ${secondaryButtonClass}`}
               >
                 {accountCtaLabel}
               </a>

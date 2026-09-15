@@ -72,7 +72,7 @@ export default async function SalesSummaryPage({
       <div className="space-y-8">
         <header>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight">매출요약</h2>
+          <h2 className="type-subsection-title mt-2">매출요약</h2>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             한국 시간 기준으로 주문 접수 수와 외부 결제 완료 금액을 확인합니다. 정산·PG 매출 보고서가 아닌 매장 운영용 요약입니다.
           </p>
@@ -102,7 +102,7 @@ export default async function SalesSummaryPage({
         <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
           <div className="flex flex-col justify-between gap-3 border-b border-zinc-100 px-6 py-5 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-lg font-black">{summary.year}년 {summary.month}월 일별 현황</h2>
+              <h2 className="type-content-title">{summary.year}년 {summary.month}월 일별 현황</h2>
               <p className="mt-1 text-xs font-bold text-zinc-500">결제 완료 시각과 주문 접수 시각을 각각 한국 시간 날짜로 집계합니다.</p>
             </div>
             <Link href={`/mypage/menus/${data.menuSite.id}/orders`} className="text-xs font-black text-emerald-700 underline underline-offset-4">
@@ -135,7 +135,7 @@ export default async function SalesSummaryPage({
 
         <section className="grid gap-5 lg:grid-cols-2">
           <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-black">메뉴별 판매량 Top 10</h2>
+            <h2 className="type-content-title">메뉴별 판매량 Top 10</h2>
             <p className="mt-1 text-xs font-bold text-zinc-500">이번 달 결제 완료 주문의 주문 당시 메뉴명 snapshot 기준입니다.</p>
             {summary.topItems.length === 0 ? (
               <p className="mt-6 rounded-2xl bg-zinc-50 px-4 py-8 text-center text-sm font-bold text-zinc-500">결제 완료된 메뉴가 없습니다.</p>
@@ -156,7 +156,7 @@ export default async function SalesSummaryPage({
 
           <div className="space-y-5">
             <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-black">결제수단별 완료액</h2>
+              <h2 className="type-content-title">결제수단별 완료액</h2>
               <div className="mt-5 space-y-3">
                 {summary.paymentMethods.length === 0 ? (
                   <p className="rounded-2xl bg-zinc-50 px-4 py-8 text-center text-sm font-bold text-zinc-500">결제 완료 내역이 없습니다.</p>
@@ -173,7 +173,7 @@ export default async function SalesSummaryPage({
             </article>
 
             <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-black">취소·미결제 현황</h2>
+              <h2 className="type-content-title">취소·미결제 현황</h2>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl bg-rose-50 p-4 text-rose-950">
                   <p className="text-xs font-black text-rose-700">취소 주문</p>

@@ -45,8 +45,8 @@ export default async function SignInPage({
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
         <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">로그인</h1>
-            <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <h1 className="type-subsection-title">로그인</h1>
+            <p className="type-body-sm mt-3 text-zinc-500">
               아티메뉴 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
             </p>
           </div>
@@ -67,7 +67,7 @@ export default async function SignInPage({
             <input type="hidden" name="next" value={safeNext} />
 
             <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-bold">
+              <label htmlFor="email" className="type-label mb-2 block">
                 이메일
               </label>
               <input
@@ -82,7 +82,7 @@ export default async function SignInPage({
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-bold">
+              <label htmlFor="password" className="type-label mb-2 block">
                 비밀번호
               </label>
               <input
@@ -98,7 +98,7 @@ export default async function SignInPage({
 
             <button
               type="submit"
-              className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-base font-bold text-white transition-transform hover:scale-[1.01]"
+              className="type-label w-full rounded-2xl bg-zinc-950 px-5 py-4 text-white transition-transform hover:scale-[1.01]"
             >
               로그인
             </button>

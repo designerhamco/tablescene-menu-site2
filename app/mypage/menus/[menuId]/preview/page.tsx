@@ -87,7 +87,7 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
         </Link>
         <div className="rounded-3xl border border-amber-100 bg-white p-8 shadow-sm">
           <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">미리보기 제한</span>
-          <h1 className="mt-6 break-keep text-3xl font-black tracking-tight text-zinc-950">이 메뉴판은 현재 미리보기할 수 없습니다.</h1>
+          <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 미리보기할 수 없습니다.</h1>
           <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             {accessState?.canConvertToBusiness ? (

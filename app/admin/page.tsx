@@ -173,7 +173,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-2xl flex-col justify-center">
             <section className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-zinc-400">Admin Access</p>
-            <h1 className="text-3xl font-bold tracking-tight">관리자 권한이 필요합니다</h1>
+            <h1 className="type-subsection-title">관리자 권한이 필요합니다</h1>
             <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
               로그인은 되어 있지만 현재 계정이 `admin_users` 테이블에 등록되어 있지 않아 관리자 페이지를 열 수 없습니다.
             </p>
@@ -306,7 +306,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
               ArtiMenu
             </Link>
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#F8E731]">Admin Dashboard</p>
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">운영자 관리자 페이지</h1>
+            <h1 className="type-page-title">운영자 관리자 페이지</h1>
             <p className="mt-4 break-keep text-base font-medium leading-relaxed text-white/60">
               전체 메뉴판, 문의, 주문, 결제 현황을 Supabase 데이터로 확인합니다.
             </p>
@@ -336,7 +336,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
         <section className="mb-8 rounded-3xl border border-white/10 bg-white/5 p-8">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-white/40">Signed In Admin</p>
-          <h2 className="text-2xl font-bold">{user.email}</h2>
+          <h2 className="type-subsection-title">{user.email}</h2>
           <div className="mt-4 grid gap-2 text-sm font-medium text-white/50 md:grid-cols-2">
             <p className="break-all">User ID: {user.id}</p>
             <p>Admin memo: {adminUser.memo ?? "none"}</p>
@@ -358,7 +358,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             <div className="mb-6 flex items-end justify-between gap-4">
               <div>
                 <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Recent Menu Sites</p>
-                <h2 className="text-2xl font-bold">최근 메뉴판</h2>
+                <h2 className="type-subsection-title">최근 메뉴판</h2>
               </div>
             </div>
 
@@ -405,7 +405,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           <article className="rounded-3xl border border-white/10 bg-white p-7 text-zinc-950 shadow-2xl shadow-black/10">
             <div className="mb-6">
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Inquiry Board</p>
-              <h2 className="text-2xl font-bold">문의 게시판</h2>
+              <h2 className="type-subsection-title">문의 게시판</h2>
               <p className="mt-2 text-sm font-medium text-zinc-500">
                 {activeInquiryPage}/{inquiryTotalPages} 페이지 · 총 {inquiryTotalCount.toLocaleString("ko-KR")}개
               </p>
@@ -587,7 +587,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <section className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-3xl border border-white/10 bg-white p-7 text-zinc-950 shadow-2xl shadow-black/10">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Orders</p>
-            <h2 className="mb-5 text-2xl font-bold">최근 주문</h2>
+            <h2 className="type-subsection-title mb-5">최근 주문</h2>
             {recentOrdersResult.error ? (
               <AdminError message={recentOrdersResult.error.message} />
             ) : recentOrders.length > 0 ? (
@@ -599,7 +599,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
           <article className="rounded-3xl border border-white/10 bg-white p-7 text-zinc-950 shadow-2xl shadow-black/10">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Payments</p>
-            <h2 className="mb-5 text-2xl font-bold">최근 결제</h2>
+            <h2 className="type-subsection-title mb-5">최근 결제</h2>
             {recentPaymentsResult.error ? (
               <AdminError message={recentPaymentsResult.error.message} />
             ) : recentPayments.length > 0 ? (

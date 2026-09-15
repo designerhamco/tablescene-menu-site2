@@ -840,7 +840,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
               <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">{statusLabel}</span>
               <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-500">{templateDisplayName}</span>
             </div>
-            <h1 className="mt-6 break-keep text-3xl font-black tracking-tight text-zinc-950 md:text-4xl">이 메뉴판은 현재 편집할 수 없습니다.</h1>
+            <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 편집할 수 없습니다.</h1>
             <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
             <p className="mt-4 break-keep rounded-2xl bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
               보관/만료 상태에서는 편집, 저장, 이미지 업로드, 샘플 되돌리기, 공개 설정 변경이 제한됩니다. 미리보기로 기존 메뉴판 상태는 확인할 수 있습니다.
@@ -1108,7 +1108,7 @@ function SectionCard({ title, action, children }: { title: string; action?: Reac
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+        <h2 className="type-subsection-title">{title}</h2>
         {action && <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>}
       </div>
       <div className="mt-6">{children}</div>
@@ -1146,7 +1146,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
             ← 메뉴판 목록으로
           </Link>
           <section className="rounded-lg bg-white p-8 shadow-sm">
-            <h1 className="break-keep text-3xl font-bold tracking-tight text-zinc-950">아티메뉴 커스텀은 맞춤 제작형 서비스입니다.</h1>
+            <h1 className="type-subsection-title text-zinc-950">아티메뉴 커스텀은 맞춤 제작형 서비스입니다.</h1>
             <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
               <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
@@ -1864,7 +1864,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <HelpTooltip label="템플릿 도움말">디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다.</HelpTooltip>
                 </span>
               </div>
-              <h1 className="text-4xl font-bold tracking-tight">{site.name}</h1>
+              <h1 className="type-page-title">{site.name}</h1>
               <p className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-zinc-400">
                 {publicUrl}
                 <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>

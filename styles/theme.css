@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Pretendard', 'Outfit', 'Noto Sans KR', sans-serif;
+  --font-sans: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
   
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -92,30 +92,14 @@
   }
   body {
     @apply bg-background text-foreground text-base;
-    font-family: 'Pretendard', 'Outfit', 'Noto Sans KR', sans-serif;
+    font-family: var(--font-family-site);
     line-height: 1.5;
   }
-  
-  /* Global Typography Scale */
-  h1 {
-    @apply text-4xl font-bold leading-tight;
-  }
-  h2 {
-    @apply text-3xl font-bold leading-tight;
-  }
-  h3 {
-    @apply text-2xl font-bold leading-snug;
-  }
-  h4 {
-    @apply text-xl font-bold leading-snug;
-  }
-  h5 {
-    @apply text-lg font-bold leading-snug;
-  }
-  p {
-    @apply text-base leading-relaxed;
-  }
-  small {
-    @apply text-sm;
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 }

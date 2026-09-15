@@ -100,7 +100,7 @@ export function DisplayHero() {
         className="site-container absolute inset-x-0 top-[47%] z-10 text-center md:top-[48%]"
       >
         <p className="text-base font-bold tracking-[-0.02em] md:text-xl">매장을 완성하는 디지털 메뉴보드</p>
-        <h1 className="mt-5 break-keep text-[clamp(2.75rem,6.5vw,5.25rem)] font-bold leading-[1] tracking-[-0.05em]">
+        <h1 className="type-display mt-5">
           ArtiMenu Display<br />Made to Be Seen
         </h1>
       </motion.div>

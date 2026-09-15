@@ -356,11 +356,11 @@ const FAQ = ({
       <div className="site-container">
         <div className={homeDark ? "site-dark-cta" : ""}>
           <div className={`${align === "left" ? "text-left" : "text-center"} mb-10`}>
-            <h2 className={`site-section-title mb-6 ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
+            <h2 className={`type-section-title mb-6 ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
               {title}
             </h2>
             {description ? (
-              <p className={`site-body ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <p className={`type-body-lg ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                 {description}
               </p>
             ) : null}
@@ -373,7 +373,7 @@ const FAQ = ({
                 <button
                   key={idx}
                   onClick={() => handleTabChange(idx)}
-                  className={`px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
+                  className={`type-label rounded-full px-5 py-2.5 transition-all duration-300 ${
                     activeTab === idx
                       ? homeDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
                       : homeDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'

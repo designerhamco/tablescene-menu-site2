@@ -103,7 +103,7 @@ export default async function PaidApplyPage({
         <div className="site-container max-w-[1200px]">
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <h1 className="site-page-title">{copy.title}</h1>
+              <h1 className="type-page-title">{copy.title}</h1>
               <p className="site-body mt-4 max-w-2xl text-zinc-500">
                 {copy.description}
               </p>

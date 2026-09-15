@@ -37,7 +37,7 @@ export default function PricingPage() {
               <Link href="/mypage" className="mb-6 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
                 ← 마이페이지
               </Link>
-              <h1 className="site-page-title">요금제 안내</h1>
+              <h1 className="type-page-title">요금제 안내</h1>
               <p className="site-body mt-4 max-w-2xl text-zinc-500">
                 요금제를 확인한 뒤 신청 페이지에서 상품을 선택해주세요. 실제 결제와 메뉴판 생성은 `/apply` 및 `/apply/basic` 흐름에서만 진행됩니다.
               </p>
@@ -60,7 +60,7 @@ export default function PricingPage() {
             <div className="mb-5 flex flex-col justify-between gap-2 md:flex-row md:items-end">
               <div>
                 <p className="text-sm font-black text-zinc-500">현재 신청 가능</p>
-                <h2 id="basic-products-heading" className="mt-1 text-2xl font-black tracking-tight">아티메뉴 다이닝 상품</h2>
+                <h2 id="basic-products-heading" className="type-subsection-title mt-1">아티메뉴 다이닝 상품</h2>
               </div>
               <p className="break-keep text-sm font-bold text-zinc-400">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
             </div>
@@ -84,7 +84,7 @@ export default function PricingPage() {
           </section>
 
           <section className="mt-12 border-t border-zinc-200 pt-10" aria-labelledby="upcoming-services-heading">
-            <h2 id="upcoming-services-heading" className="text-2xl font-black tracking-tight">다른 서비스</h2>
+            <h2 id="upcoming-services-heading" className="type-subsection-title">다른 서비스</h2>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               {upcomingServices.map((plan) => (
                 <article key={plan.name} className="flex min-h-[250px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">

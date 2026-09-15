@@ -16,6 +16,7 @@ const templateGallerySource = readFileSync(
   "utf8",
 );
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const typographyStylesSource = readFileSync(new URL("../styles/typography.css", import.meta.url), "utf8");
 const marketingSectionCopySource = readFileSync(
   new URL("../app/components/home/MarketingSectionCopy.tsx", import.meta.url),
   "utf8",
@@ -39,14 +40,15 @@ test("만들기 화면은 판매 가능한 템플릿을 서비스와 페이지 �
 });
 
 test("일반 페이지 타이틀과 본문은 홈과 같은 디자인 시스템 규칙을 쓴다", () => {
-  assert.match(applyPageSource, /site-page-title/);
+  assert.match(applyPageSource, /type-page-title/);
   assert.match(applyPageSource, /site-body/);
-  assert.match(marketingSectionCopySource, /site-section-title/);
-  assert.match(globalStylesSource, /\.site-page-title,\s*\.site-section-title/);
-  assert.match(globalStylesSource, /\.site-body-title/);
-  assert.match(globalStylesSource, /\.site-body\s*\{/);
-  assert.match(globalStylesSource, /\.site-body-support/);
-  assert.match(globalStylesSource, /font-size: 3rem/);
+  assert.match(marketingSectionCopySource, /type-section-title/);
+  assert.match(globalStylesSource, /styles\/typography\.css/);
+  assert.match(typographyStylesSource, /\.type-page-title/);
+  assert.match(typographyStylesSource, /\.type-section-title/);
+  assert.match(typographyStylesSource, /\.type-body-lg/);
+  assert.match(typographyStylesSource, /\.type-body-sm/);
+  assert.match(typographyStylesSource, /--type-page-title-size:/);
   assert.match(applyPageSource, /템플릿을 미리 보고 원하는 디자인으로 메뉴판을 시작하고, 구독 중에는/);
   assert.doesNotMatch(applyPageSource, /text-emerald/);
 });

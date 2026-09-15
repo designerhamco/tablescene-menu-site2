@@ -1,6 +1,7 @@
 @import "../styles/fonts.css";
 @import "../styles/tailwind.css";
 @import "../styles/theme.css";
+@import "../styles/typography.css";
 
 * {
   box-sizing: border-box;
@@ -15,7 +16,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: "Pretendard", "Outfit", "Noto Sans KR", system-ui, sans-serif;
+  font-family: var(--font-family-site);
   font-size: 16px;
   line-height: 1.5;
   text-rendering: optimizeLegibility;
@@ -45,45 +46,6 @@ body {
   padding-inline: var(--site-gutter);
 }
 
-/*
- * Public-page typography contract.
- * Display type is reserved for the home hero. Standard page titles and
- * marketing section titles share this quieter hierarchy.
- */
-.site-page-title,
-.site-section-title {
-  word-break: keep-all;
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.16;
-  letter-spacing: -0.04em;
-}
-
-/* Standard reading hierarchy for public pages. */
-.site-body-title {
-  word-break: keep-all;
-  font-size: clamp(1.125rem, 1.45vw, 1.375rem);
-  font-weight: 700;
-  line-height: 1.45;
-  letter-spacing: -0.025em;
-}
-
-.site-body {
-  word-break: keep-all;
-  font-size: clamp(1rem, 1.15vw, 1.125rem);
-  font-weight: 500;
-  line-height: 1.72;
-  letter-spacing: -0.015em;
-}
-
-.site-body-support {
-  word-break: keep-all;
-  font-size: clamp(0.875rem, 0.9vw, 0.9375rem);
-  font-weight: 500;
-  line-height: 1.68;
-  letter-spacing: -0.01em;
-}
-
 /* Shared dark CTA surface used at the end of public pages. */
 .site-dark-cta {
   border-radius: 2rem;
@@ -93,11 +55,6 @@ body {
 }
 
 @media (min-width: 768px) {
-  .site-page-title,
-  .site-section-title {
-    font-size: 3rem;
-  }
-
   .site-dark-cta {
     border-radius: 2.5rem;
     padding: 5rem 4rem;
@@ -113,13 +70,6 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
 }
 
 .site-surface-muted {

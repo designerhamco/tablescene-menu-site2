@@ -329,7 +329,7 @@ function renderPolicyContent(content: string) {
 
     if (trimmedLine.startsWith("## ")) {
       return (
-        <h2 key={trimmedLine} className="mt-8 break-keep border-t border-zinc-100 pt-8 text-xl font-black tracking-tight text-zinc-950">
+        <h2 key={trimmedLine} className="type-content-title mt-8 border-t border-zinc-100 pt-8 text-zinc-950">
           {trimmedLine.slice(3)}
         </h2>
       );
@@ -354,7 +354,7 @@ export default function PrivacyPage() {
       <OfficialSiteNavbar />
       <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
         <article className="mx-auto w-full max-w-4xl rounded-3xl bg-white p-7 shadow-sm md:p-10">
-          <h1 className="site-page-title">아티메뉴 개인정보 처리방침</h1>
+          <h1 className="type-page-title">아티메뉴 개인정보 처리방침</h1>
           <div className="mt-10">{renderPolicyContent(privacyContent)}</div>
         </article>
       </main>

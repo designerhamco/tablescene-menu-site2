@@ -115,7 +115,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
         <div className="mx-auto w-full max-w-6xl">
           <header className="grid gap-8 border-b border-zinc-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
             <div>
-              <h1 className="site-page-title max-w-3xl">
+              <h1 className="type-page-title max-w-3xl">
                 아티메뉴 커스텀 견적 문의
               </h1>
               <p className="site-body mt-5 max-w-2xl text-zinc-500">
@@ -141,7 +141,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
               ) : null}
 
               <div className="mb-6">
-                <h2 className="text-3xl font-black tracking-tight">기본 신청 정보</h2>
+                <h2 className="type-subsection-title">기본 신청 정보</h2>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
@@ -190,7 +190,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
 
             <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
               <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h2 className="text-2xl font-black tracking-tight">상담 신청하기</h2>
+                <h2 className="type-subsection-title">상담 신청하기</h2>
                 <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                   결제 버튼은 제공하지 않습니다. 접수된 내용은 문의 내역으로 저장되고, 프로젝트 상담 후 별도 견적을 안내합니다.
                 </p>

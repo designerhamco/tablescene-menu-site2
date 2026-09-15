@@ -38,7 +38,7 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
     <main className="site-gutter flex min-h-screen items-center justify-center bg-zinc-50 py-12 text-zinc-950">
       <section className="w-full max-w-lg rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:p-10">
         <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">ArtiMenu staff</p>
-        <h1 className="mt-4 text-3xl font-black tracking-tight">직원 초대 확인</h1>
+        <h1 className="type-subsection-title mt-4">직원 초대 확인</h1>
 
         {!hasInvitationIntent ? (
           <>
