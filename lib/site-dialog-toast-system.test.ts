@@ -1,0 +1,35 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const uiSource = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
+const dialogSource = readFileSync(new URL("../app/components/ui/dialog.tsx", import.meta.url), "utf8");
+const alertDialogSource = readFileSync(new URL("../app/components/ui/alert-dialog.tsx", import.meta.url), "utf8");
+const sheetSource = readFileSync(new URL("../app/components/ui/sheet.tsx", import.meta.url), "utf8");
+const drawerSource = readFileSync(new URL("../app/components/ui/drawer.tsx", import.meta.url), "utf8");
+const toasterSource = readFileSync(new URL("../app/components/ui/sonner.tsx", import.meta.url), "utf8");
+const aiLauncherSource = readFileSync(new URL("../app/support/chat/AiSupportChatLauncher.tsx", import.meta.url), "utf8");
+
+test("공통 모달과 패널은 중립선·무그림자 표면을 사용한다", () => {
+  assert.match(uiSource, /\.site-dialog,/);
+  assert.match(uiSource, /box-shadow: none !important/);
+  assert.match(dialogSource, /site-dialog-overlay/);
+  assert.match(dialogSource, /site-dialog /);
+  assert.match(alertDialogSource, /site-dialog-overlay/);
+  assert.match(alertDialogSource, /site-dialog /);
+  assert.match(sheetSource, /site-dialog-panel/);
+  assert.match(drawerSource, /site-dialog-panel/);
+});
+
+test("공통 모달의 제목과 설명은 의미 기반 타이포를 사용한다", () => {
+  assert.match(dialogSource, /site-dialog-title/);
+  assert.match(dialogSource, /site-dialog-description/);
+  assert.match(alertDialogSource, /site-dialog-title/);
+  assert.match(alertDialogSource, /site-dialog-description/);
+});
+
+test("토스트와 AI 상담 모달은 같은 사이트 표면 체계를 공유한다", () => {
+  assert.match(toasterSource, /toast: "site-toast"/);
+  assert.match(aiLauncherSource, /site-dialog-overlay/);
+  assert.match(aiLauncherSource, /site-dialog site-dialog-sheet/);
+});

@@ -10,6 +10,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast: "site-toast",
+          title: "type-body-sm font-bold",
+          description: "type-caption text-zinc-500",
+          actionButton: "site-button site-button-primary site-button-sm",
+          cancelButton: "site-button site-button-secondary site-button-sm",
+        },
+      }}
       style={
         {
           "--normal-bg": "var(--popover)",
