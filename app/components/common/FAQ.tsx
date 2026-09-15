@@ -278,13 +278,9 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
   }
 ];
 
-const FAQItem = ({ item, isOpen, onToggle, index, inverted = false }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, index: number, inverted?: boolean }) => {
+const FAQItem = ({ item, isOpen, onToggle, inverted = false }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, inverted?: boolean }) => {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
+    <div
       className={`border-b last:border-none ${inverted ? 'border-zinc-700' : 'border-zinc-200'}`}
     >
       <button
@@ -317,7 +313,7 @@ const FAQItem = ({ item, isOpen, onToggle, index, inverted = false }: { item: FA
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 
@@ -431,7 +427,6 @@ const FAQ = ({
                     <div key={`${faq.category}-${faq.question}`}>
                       <p className={`type-caption px-4 pt-5 ${homeDark ? "text-zinc-400" : "text-zinc-400"}`}>{faq.category}</p>
                       <FAQItem
-                        index={index}
                         item={faq}
                         isOpen={openIndex === index}
                         onToggle={() => setOpenIndex(openIndex === index ? null : index)}
@@ -458,7 +453,6 @@ const FAQ = ({
                   {data[activeTab].items.map((faq, index) => (
                     <FAQItem
                       key={`${activeTab}-${index}`}
-                      index={index}
                       item={faq}
                       isOpen={openIndex === index}
                       onToggle={() => setOpenIndex(openIndex === index ? null : index)}

@@ -14,6 +14,13 @@ test("FAQ는 카테고리와 질문을 검색하고 빈 결과를 안내한다",
   assert.match(faqSource, /category\.category} \$\{item\.question/);
   assert.match(faqSource, /검색 결과가 없습니다/);
   assert.match(faqSource, /AI 상담을 이용해 주세요/);
+  assert.doesNotMatch(faqSource, /whileInView/);
+});
+
+test("FAQ 문항은 스크롤 위치와 관계없이 즉시 표시한다", () => {
+  assert.match(faqSource, /const FAQItem/);
+  assert.doesNotMatch(faqSource, /viewport=\{\{ once: true \}\}/);
+  assert.match(faqSource, /const FAQItem[\s\S]*?return \(\s*<div/);
 });
 
 test("문의 내역은 제목과 답변 상태를 두 진입 경로에서 동일하게 조회한다", () => {
