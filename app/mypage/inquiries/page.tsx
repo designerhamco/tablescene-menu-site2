@@ -9,6 +9,8 @@ import {
   InquirySection,
   inquiryPageSize,
   normalizeInquiryPage,
+  normalizeInquiryQuery,
+  normalizeInquiryStatus,
   type InquirySectionInquiry,
 } from "@/components/mypage/InquirySection";
 import { createClient } from "@/lib/supabase/server";
@@ -17,6 +19,8 @@ type SearchParams = Promise<{
   error?: string;
   message?: string;
   inquiryPage?: string;
+  inquiryQuery?: string;
+  inquiryStatus?: string;
 }>;
 
 export default async function InquiriesPage({ searchParams }: { searchParams: SearchParams }) {
@@ -29,23 +33,45 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
     redirect("/sign-in?next=/mypage/inquiries");
   }
 
-  const { error, message, inquiryPage } = await searchParams;
+  const { error, message, inquiryPage, inquiryQuery, inquiryStatus } = await searchParams;
   const activeInquiryPage = normalizeInquiryPage(inquiryPage);
+  const activeInquiryQuery = normalizeInquiryQuery(inquiryQuery);
+  const activeInquiryStatus = normalizeInquiryStatus(inquiryStatus);
   const inquiryFrom = (activeInquiryPage - 1) * inquiryPageSize;
   const inquiryTo = inquiryFrom + inquiryPageSize - 1;
 
-  const inquiriesResult = await supabase
+  let inquiriesQueryBuilder = supabase
     .from("inquiries")
     .select("id, title, message, status, category, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
-    .eq("user_id", user.id)
+    .eq("user_id", user.id);
+
+  if (activeInquiryQuery) {
+    inquiriesQueryBuilder = inquiriesQueryBuilder.ilike("title", `%${activeInquiryQuery}%`);
+  }
+
+  if (activeInquiryStatus !== "all") {
+    inquiriesQueryBuilder = inquiriesQueryBuilder.eq("status", activeInquiryStatus);
+  }
+
+  const inquiriesResult = await inquiriesQueryBuilder
     .order("created_at", { ascending: false })
     .range(inquiryFrom, inquiryTo);
 
-  const effectiveInquiriesResult = inquiriesResult.error?.code === "42703"
-    ? await supabase
+  let fallbackQueryBuilder = supabase
       .from("inquiries")
       .select("id, title, message, status, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
-      .eq("user_id", user.id)
+      .eq("user_id", user.id);
+
+  if (activeInquiryQuery) {
+    fallbackQueryBuilder = fallbackQueryBuilder.ilike("title", `%${activeInquiryQuery}%`);
+  }
+
+  if (activeInquiryStatus !== "all") {
+    fallbackQueryBuilder = fallbackQueryBuilder.eq("status", activeInquiryStatus);
+  }
+
+  const effectiveInquiriesResult = inquiriesResult.error?.code === "42703"
+    ? await fallbackQueryBuilder
       .order("created_at", { ascending: false })
       .range(inquiryFrom, inquiryTo)
     : inquiriesResult;
@@ -79,10 +105,16 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
             inquiryFrom={inquiryFrom}
             noticeMessage={getInquiryNoticeMessage(message)}
             errorMessage={getInquiryErrorMessage(error)}
-            inquiriesErrorMessage={inquiriesResult.error?.message ?? null}
+            inquiriesErrorMessage={effectiveInquiriesResult.error?.message ?? null}
             paginationBasePath="/mypage/inquiries"
-            returnToPath={`/mypage/inquiries${activeInquiryPage > 1 ? `?inquiryPage=${activeInquiryPage}` : ""}`}
+            returnToPath={`/mypage/inquiries?${new URLSearchParams({
+              ...(activeInquiryPage > 1 ? { inquiryPage: String(activeInquiryPage) } : {}),
+              ...(activeInquiryQuery ? { inquiryQuery: activeInquiryQuery } : {}),
+              ...(activeInquiryStatus !== "all" ? { inquiryStatus: activeInquiryStatus } : {}),
+            }).toString()}`.replace(/\?$/, "")}
             showIntro={false}
+            inquiryQuery={activeInquiryQuery}
+            inquiryStatus={activeInquiryStatus}
           />
         </div>
       </main>

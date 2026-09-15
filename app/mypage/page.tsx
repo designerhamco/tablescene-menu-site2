@@ -21,6 +21,8 @@ import {
   InquirySection,
   inquiryPageSize,
   normalizeInquiryPage,
+  normalizeInquiryQuery,
+  normalizeInquiryStatus,
   type InquirySectionInquiry,
 } from "@/components/mypage/InquirySection";
 import { isDeletedAccountStatus } from "@/lib/account-status";
@@ -58,6 +60,8 @@ type SearchParams = Promise<{
   error?: string | string[];
   message?: string | string[];
   inquiryPage?: string | string[];
+  inquiryQuery?: string | string[];
+  inquiryStatus?: string | string[];
   subscriptionId?: string | string[];
   modal?: string | string[];
 }>;
@@ -1302,7 +1306,7 @@ async function getServiceEntitlementsForMenuSites(
 }
 
 export default async function MyPage({ searchParams }: { searchParams: SearchParams }) {
-  const { tab, menuTab, billingTab, error, message, inquiryPage, subscriptionId, modal } = await searchParams;
+  const { tab, menuTab, billingTab, error, message, inquiryPage, inquiryQuery, inquiryStatus, subscriptionId, modal } = await searchParams;
   const yearlyRefundConfirmEnabled = isYearlyRefundConfirmQaEnabled();
   const restoreSubscriptionQaEnabled = isRestoreSubscriptionQaEnabled();
   const activeTab = getActiveTab(tab);
@@ -1485,6 +1489,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   const activeInquiryPage = normalizeInquiryPage(inquiryPage);
+  const activeInquiryQuery = normalizeInquiryQuery(inquiryQuery);
+  const activeInquiryStatus = normalizeInquiryStatus(inquiryStatus);
   const inquiryFrom = (activeInquiryPage - 1) * inquiryPageSize;
   const inquiryTo = inquiryFrom + inquiryPageSize - 1;
   let inquiries: InquirySectionInquiry[] = [];
@@ -1492,12 +1498,22 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   let inquiriesErrorMessage: string | null = null;
 
   if (activeTab === "inquiries") {
+    let inquiriesQueryBuilder = supabase
+      .from("inquiries")
+      .select("id, title, message, status, category, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
+      .eq("user_id", user.id);
+
+    if (activeInquiryQuery) {
+      inquiriesQueryBuilder = inquiriesQueryBuilder.ilike("title", `%${activeInquiryQuery}%`);
+    }
+
+    if (activeInquiryStatus !== "all") {
+      inquiriesQueryBuilder = inquiriesQueryBuilder.eq("status", activeInquiryStatus);
+    }
+
     const inquiriesResult = await runMypageQuery(
       "inquiries",
-      supabase
-        .from("inquiries")
-        .select("id, title, message, status, category, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
-        .eq("user_id", user.id)
+      inquiriesQueryBuilder
         .order("created_at", { ascending: false })
         .range(inquiryFrom, inquiryTo)
     );
@@ -1506,12 +1522,22 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     let inquiryCount = inquiriesResult?.count ?? 0;
 
     if (inquiriesResult?.error?.code === "42703") {
+      let fallbackInquiriesQueryBuilder = supabase
+        .from("inquiries")
+        .select("id, title, message, status, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
+        .eq("user_id", user.id);
+
+      if (activeInquiryQuery) {
+        fallbackInquiriesQueryBuilder = fallbackInquiriesQueryBuilder.ilike("title", `%${activeInquiryQuery}%`);
+      }
+
+      if (activeInquiryStatus !== "all") {
+        fallbackInquiriesQueryBuilder = fallbackInquiriesQueryBuilder.eq("status", activeInquiryStatus);
+      }
+
       const fallbackInquiriesResult = await runMypageQuery(
         "inquiries_without_category",
-        supabase
-          .from("inquiries")
-          .select("id, title, message, status, admin_reply, replied_at, created_at, updated_at", { count: "exact" })
-          .eq("user_id", user.id)
+        fallbackInquiriesQueryBuilder
           .order("created_at", { ascending: false })
           .range(inquiryFrom, inquiryTo)
       );
@@ -3350,7 +3376,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   errorMessage={getInquiryErrorMessage(error)}
                   inquiriesErrorMessage={inquiriesErrorMessage}
                   paginationBasePath="/mypage?tab=inquiries"
-                  returnToPath={`/mypage?tab=inquiries${activeInquiryPage > 1 ? `&inquiryPage=${activeInquiryPage}` : ""}`}
+                  returnToPath={`/mypage?${new URLSearchParams({
+                    tab: "inquiries",
+                    ...(activeInquiryPage > 1 ? { inquiryPage: String(activeInquiryPage) } : {}),
+                    ...(activeInquiryQuery ? { inquiryQuery: activeInquiryQuery } : {}),
+                    ...(activeInquiryStatus !== "all" ? { inquiryStatus: activeInquiryStatus } : {}),
+                  }).toString()}`}
+                  inquiryQuery={activeInquiryQuery}
+                  inquiryStatus={activeInquiryStatus}
                 />
               </section>
             ) : null}
