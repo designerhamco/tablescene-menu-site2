@@ -5,11 +5,19 @@ import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
+
 import AiSupportChat from "./AiSupportChat";
 
 export default function AiSupportChatLauncher() {
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const openChat = () => setOpen(true);
+    window.addEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
+    return () => window.removeEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
+  }, []);
 
   useEffect(() => {
     if (!open || enabled !== null) return;

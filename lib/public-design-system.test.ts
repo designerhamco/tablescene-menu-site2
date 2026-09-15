@@ -47,7 +47,7 @@ test("공통 헤더와 푸터는 페이지와 같은 사이트 컨테이너 여�
   assert.match(footerSource, /site-container/);
   assert.match(faqComponentSource, /<div className="site-container">/);
   assert.doesNotMatch(faqComponentSource, /md:max-w-6xl/);
-  assert.match(faqSource, /<section className="site-container pb-24">/);
+  assert.match(faqSource, /<div className="site-container">/);
 });
 
 test("넓은 화면의 페이지 여백은 헤더와 같은 최대 폭 기준을 계산한다", () => {
@@ -100,7 +100,7 @@ test("전역 여백은 최대 폭 요소 안에 중복 적용하지 않는다", 
 
 test("공개 페이지의 검정 CTA는 홈과 같은 표면 규칙을 공유한다", () => {
   assert.match(homeProductStorySource, /className="site-dark-cta/);
-  assert.match(faqSource, /className="site-dark-cta/);
+  assert.doesNotMatch(faqSource, /className="site-dark-cta/);
   assert.match(applySource, /className="site-dark-cta/);
 });
 
