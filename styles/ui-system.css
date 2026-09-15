@@ -174,6 +174,103 @@
   text-align: center;
 }
 
+/*
+ * Form control contract. New screens use .site-field explicitly, while the
+ * compatibility selector keeps existing account, editor, and operations
+ * forms visually aligned. Customer-editable menu templates remain isolated.
+ */
+.site-field,
+:where(input, textarea, select):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="color"],
+    [type="range"],
+    [type="hidden"]
+  ):not(.menu-typography *) {
+  min-height: var(--ui-control-height-md);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card-compact);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: none;
+  font: inherit;
+  font-size: var(--font-size-200);
+  line-height: 1.5;
+  transition:
+    border-color var(--ui-transition),
+    background-color var(--ui-transition),
+    color var(--ui-transition),
+    opacity var(--ui-transition);
+}
+
+textarea.site-field,
+:where(textarea):not(.menu-typography *) {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.site-field::placeholder,
+:where(input, textarea):not(.menu-typography *)::placeholder {
+  color: #a1a1aa;
+  opacity: 1;
+}
+
+.site-field:-webkit-autofill,
+:where(input):not(.menu-typography *):-webkit-autofill {
+  -webkit-text-fill-color: var(--ui-text);
+  box-shadow: 0 0 0 1000px var(--ui-surface) inset;
+  caret-color: var(--ui-text);
+}
+
+.site-field:hover:not(:disabled),
+:where(input, textarea, select):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="color"],
+    [type="range"],
+    [type="hidden"]
+  ):not(.menu-typography *):hover:not(:disabled) {
+  border-color: var(--ui-border-strong);
+}
+
+.site-field:focus,
+:where(input, textarea, select):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="color"],
+    [type="range"],
+    [type="hidden"]
+  ):not(.menu-typography *):focus {
+  border-color: var(--ui-focus);
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 2px;
+}
+
+.site-field:disabled,
+:where(input, textarea, select):not(.menu-typography *):disabled {
+  cursor: not-allowed;
+  background: var(--ui-surface-muted);
+  color: #71717a;
+  opacity: 0.72;
+}
+
+:where(input[type="checkbox"], input[type="radio"]):not(.menu-typography *) {
+  accent-color: var(--ui-text);
+}
+
+:where(input[type="checkbox"], input[type="radio"]):not(.menu-typography *):focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+
+.site-field[aria-invalid="true"],
+:where(input, textarea, select):not(.menu-typography *)[aria-invalid="true"] {
+  border-color: var(--ui-danger);
+}
+
 .site-nav-item {
   display: flex;
   min-height: var(--ui-control-height-md);
