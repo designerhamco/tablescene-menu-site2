@@ -17,6 +17,14 @@ const accountModalSources = [
   "../components/mypage/PaymentDetailModal.tsx",
   "../components/mypage/SubscriptionManagementModal.tsx",
 ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8"));
+const editorModalSources = [
+  "../components/mypage/menu-editor/AboutDraftSections.tsx",
+  "../components/mypage/menu-editor/CoverSampleResetButton.tsx",
+  "../components/mypage/menu-editor/ImageUploadField.tsx",
+  "../components/mypage/menu-editor/LocalizationSection.tsx",
+  "../components/mypage/menu-editor/MenuManagementSection.tsx",
+  "../components/mypage/menu-editor/ResetTabActionButton.tsx",
+].map((path) => readFileSync(new URL(path, import.meta.url), "utf8"));
 
 test("공통 모달과 패널은 중립선·무그림자 표면을 사용한다", () => {
   assert.match(uiSource, /\.site-dialog,/);
@@ -50,4 +58,12 @@ test("계정·결제 모달도 공통 표면 체계를 사용한다", () => {
   }
 
   assert.doesNotMatch(accountModalSources.join("\n"), /Subscription management/);
+});
+
+test("메뉴 편집기의 확인·초기화·AI 모달도 공통 표면 체계를 사용한다", () => {
+  for (const source of editorModalSources) {
+    assert.match(source, /site-dialog-overlay/);
+    assert.match(source, /site-dialog site-dialog-panel/);
+    assert.doesNotMatch(source, /fixed inset-0[^\n]*(?:bg-zinc-950|bg-black)/);
+  }
 });

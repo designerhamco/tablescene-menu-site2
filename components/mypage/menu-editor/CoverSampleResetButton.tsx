@@ -77,17 +77,17 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 px-5 py-8" role="presentation">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5 py-8" role="presentation">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="cover-sample-reset-title"
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+            className="site-dialog site-dialog-panel w-full max-w-md p-6"
           >
             <h2 id="cover-sample-reset-title" className="type-content-title break-keep text-zinc-950">
               커버 이미지 설정을 샘플 상태로 되돌릴까요?
             </h2>
-            <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">
               커버 이미지 설정이 현재 템플릿의 샘플 데이터로 임시 변경됩니다. 저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.
             </p>
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

@@ -1672,8 +1672,8 @@ function DraftDeleteConfirmButton({
         삭제
       </button>
       {isConfirming && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
-          <div className="w-full max-w-sm rounded-xl border border-red-100 bg-white p-5 shadow-xl">
+        <div className="site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div role="dialog" aria-modal="true" aria-label={title} className="site-dialog site-dialog-panel w-full max-w-sm p-5">
             <p className="text-base font-bold text-red-700">{title}</p>
             {description && <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">{description}</p>}
             {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
@@ -4895,10 +4895,10 @@ function MenuItemForm({
       </div>
       {draftOnly && cancelHelperText && <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">{cancelHelperText}</p>}
       {descriptionOverwritePending ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4">
-          <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div role="dialog" aria-modal="true" aria-label="기존 설명 교체 확인" className="site-dialog site-dialog-panel w-full max-w-sm p-5">
             <h3 className="type-content-title text-zinc-950">기존 설명을 AI 설명으로 바꿀까요?</h3>
-            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+            <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
               현재 입력된 설명이 AI가 작성한 설명으로 바뀝니다. 수정 내용 반영 전까지는 저장 대상에 포함되지 않습니다.
             </p>
             <div className="mt-5 flex justify-end gap-2">
@@ -9836,17 +9836,17 @@ export default function MenuManagementSection({
           </form>
         </div>
         {isMenuCleanupOpen && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
+          <div className="site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
             <div
               role="dialog"
               aria-modal="true"
               aria-labelledby="menu-cleanup-title"
-              className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-zinc-100 bg-white p-6 shadow-xl"
+              className="site-dialog site-dialog-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6"
             >
               <h2 id="menu-cleanup-title" className="type-content-title break-keep text-zinc-950">
                 AI 메뉴 정리 · 3크레딧
               </h2>
-              <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+              <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
                 메뉴 이름, 가격, 설명을 자유롭게 붙여넣으면 AI가 카테고리와 메뉴 아이템으로 정리합니다.
               </p>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
@@ -10020,8 +10020,8 @@ export default function MenuManagementSection({
                 )}
               </div>
               {isMenuCleanupReplaceConfirming ? (
-                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-zinc-950/40 px-4">
-                  <div className="w-full max-w-md rounded-xl border border-zinc-100 bg-white p-6 shadow-xl">
+                <div className="site-dialog-overlay fixed inset-0 z-[90] flex items-center justify-center px-4">
+                  <div role="dialog" aria-modal="true" aria-label="AI 메뉴 교체 확인" className="site-dialog site-dialog-panel w-full max-w-md p-6">
                     <h3 className="type-content-title break-keep text-zinc-950">현재 메뉴를 AI 결과로 교체할까요?</h3>
                     <div className="mt-3 space-y-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">
                       <p>현재 메뉴 관리 탭의 페이지, 카테고리, 메뉴 아이템이 AI가 정리한 결과로 바뀝니다.</p>
@@ -10054,12 +10054,12 @@ export default function MenuManagementSection({
           </div>
         )}
         {isSampleResetConfirming && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
+          <div className="site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
             <div
               role="dialog"
               aria-modal="true"
               aria-labelledby="menu-sample-reset-title"
-              className="w-full max-w-md rounded-xl border border-red-100 bg-white p-6 shadow-xl"
+              className="site-dialog site-dialog-panel w-full max-w-md p-6"
             >
               <h2 id="menu-sample-reset-title" className="type-content-title break-keep text-zinc-950">
                 메뉴 관리 내용을 샘플 메뉴로 되돌릴까요?

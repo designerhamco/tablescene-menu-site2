@@ -271,10 +271,10 @@ export default function ImageUploadField({
         </div>
       </div>
       {previewUrl && isConfirmingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-5">
-          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5">
+          <div role="dialog" aria-modal="true" aria-label={deleteConfirmTitle} className="site-dialog site-dialog-panel w-full max-w-sm p-6">
             <h4 className="type-content-title text-zinc-950">{deleteConfirmTitle}</h4>
-            <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{deleteConfirmDescription}</p>
+            <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{deleteConfirmDescription}</p>
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
               <button
                 type="button"
