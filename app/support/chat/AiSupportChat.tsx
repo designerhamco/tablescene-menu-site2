@@ -58,7 +58,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
   };
 
   return (
-    <section className={`overflow-hidden border border-zinc-200 bg-white ${compact ? "rounded-[1.25rem]" : "rounded-[2rem]"}`}>
+    <section className={`site-card overflow-hidden ${compact ? "site-card-compact" : ""}`}>
       <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
         <h2 className="type-content-title">상담 범위</h2>
         <p className="type-body-sm mt-1 text-zinc-500">
@@ -80,7 +80,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
                   type="button"
                   onClick={() => void submitQuestion(suggestion)}
                   disabled={pending || !overseasTransferConsent}
-                  className="type-caption rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:text-zinc-300 disabled:hover:border-zinc-200"
+                  className="site-button site-button-secondary site-button-sm text-zinc-600 disabled:text-zinc-300"
                 >
                   {suggestion}
                 </button>
@@ -138,7 +138,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
           <button
             type="submit"
             disabled={pending || !question.trim() || !overseasTransferConsent}
-            className="type-label rounded-2xl bg-zinc-950 px-5 py-3 text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
+            className="site-button site-button-primary disabled:bg-zinc-300"
           >
             보내기
           </button>

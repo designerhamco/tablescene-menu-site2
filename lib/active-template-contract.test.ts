@@ -20,9 +20,9 @@ const BASIC_EDITOR_TAB_KEYS = ["basic", "cover", "menu", "design", "localization
 test("every Basic launch template is service-compatible without changing catalog visibility", () => {
   const expectedCatalogStatuses = {
     cafe_design_a: "available",
-    cafe_mocha_forest_a: "hidden",
-    cafe_sunday_line_a: "hidden",
-    cafe_round_focus_a: "hidden",
+    cafe_mocha_forest_a: "available",
+    cafe_sunday_line_a: "available",
+    cafe_round_focus_a: "available",
     dining_aube_table_a: "available",
     dining_aube_table_b: "available",
     cafe_noir_a: "retired",

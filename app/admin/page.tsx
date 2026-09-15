@@ -116,18 +116,15 @@ function getErrorMessage(error?: string) {
 }
 
 function getAdminActionButtonClassName(tone: "primary" | "secondary" | "danger") {
-  const base =
-    "inline-flex min-h-11 items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white";
-
   if (tone === "primary") {
-    return `${base} bg-zinc-950 text-white hover:bg-zinc-800 focus:ring-zinc-950`;
+    return "site-button site-button-primary";
   }
 
   if (tone === "danger") {
-    return `${base} border border-red-100 bg-red-50 text-red-700 hover:bg-red-100 focus:ring-red-200`;
+    return "site-button site-button-outline-danger";
   }
 
-  return `${base} border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 focus:ring-zinc-200`;
+  return "site-button site-button-secondary";
 }
 
 async function getTableCount(

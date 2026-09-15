@@ -241,11 +241,14 @@ const templatePreviewImageByKey: Partial<Record<string, string>> = {
 
 const availableTemplateKeys = [
   "cafe_design_a",
+  "cafe_mocha_forest_a",
+  "cafe_sunday_line_a",
+  "cafe_round_focus_a",
   "dining_aube_table_a",
   "dining_aube_table_b",
   "display_menu_a",
 ] as const satisfies readonly string[];
-const hiddenTemplateKeys = ["cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a"] as const satisfies readonly string[];
+const hiddenTemplateKeys = [] as const satisfies readonly string[];
 // Brew Chapter remains renderable for backward compatibility, but is retired
 // from every new-selection and template-switching surface.
 const retiredTemplateKeys = ["cafe_noir_a", "cafe_brew_chapter_a"] as const satisfies readonly string[];

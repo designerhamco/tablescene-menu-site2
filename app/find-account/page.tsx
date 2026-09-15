@@ -32,7 +32,7 @@ export default function FindAccountPage() {
           </div>
 
           <div className="mt-6 grid gap-3">
-            <Link href="/sign-in" className="rounded-2xl bg-zinc-950 px-5 py-4 text-center text-base font-bold text-white transition-transform hover:scale-[1.01]">
+            <Link href="/sign-in" className="site-button site-button-primary site-button-lg w-full">
               로그인으로 돌아가기
             </Link>
             <a

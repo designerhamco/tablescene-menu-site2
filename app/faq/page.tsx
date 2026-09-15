@@ -28,14 +28,14 @@ export default function FAQPage() {
             </p>
 
             <div className="mt-12 grid gap-3 md:grid-cols-3">
-              <Link href="#frequently-asked" className="group flex min-h-44 flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-950">
+              <Link href="#frequently-asked" className="site-card site-card-interactive group flex min-h-44 flex-col justify-between p-6">
                 <CircleHelp className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
                   <p className="site-body-title">자주 묻는 질문</p>
                   <p className="site-body-support mt-2 text-zinc-500">서비스, 요금, 메뉴판 관리 기준을 확인합니다.</p>
                 </div>
               </Link>
-              <Link href="/support/chat" className="group flex min-h-44 flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-950">
+              <Link href="/support/chat" className="site-card site-card-interactive group flex min-h-44 flex-col justify-between p-6">
                 <Bot className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
                   <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ export default function FAQPage() {
                   <p className="site-body-support mt-2 text-zinc-500">기능과 이용 방법을 바로 질문합니다.</p>
                 </div>
               </Link>
-              <Link href="/mypage/inquiries" className="group flex min-h-44 flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-6 transition-colors hover:border-zinc-950">
+              <Link href="/mypage/inquiries" className="site-card site-card-interactive group flex min-h-44 flex-col justify-between p-6">
                 <MessageSquareText className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
                   <p className="site-body-title">1:1 문의</p>
@@ -69,7 +69,7 @@ export default function FAQPage() {
               <h2 className="type-section-title">답을 찾지 못했다면 AI 상담</h2>
               <p className="site-body mt-5 text-zinc-400">서비스 사용법을 빠르게 확인하고 필요한 경우 1:1 문의로 이어집니다.</p>
             </div>
-            <Link href="/support/chat" className="inline-flex shrink-0 items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-200">AI 상담 시작</Link>
+            <Link href="/support/chat" className="site-button site-button-secondary site-button-lg shrink-0">AI 상담 시작</Link>
           </div>
         </section> : null}
       </main>
