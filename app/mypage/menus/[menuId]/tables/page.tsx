@@ -67,9 +67,9 @@ export default async function MenuTableManagementPage({
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="tables">
       <div className="space-y-8">
         <header>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
+          <p className="type-label text-zinc-500">{data.menuSite.name}</p>
           <h2 className="type-subsection-title mt-2">테이블·QR 관리</h2>
-          <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
+          <p className="type-body-sm mt-3 max-w-3xl break-keep text-zinc-500">
             대표 메뉴 QR과 실제 좌석별 QR을 한곳에서 관리합니다. 비활성·보관·QR 교체 시 기존 방문 세션은 서버에서 자동 종료됩니다.
           </p>
         </header>

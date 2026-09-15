@@ -53,18 +53,18 @@ export default async function StoreOperationsShell({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <div className="mx-auto w-full max-w-[1280px]">
-          <header className="mb-6 border-b border-zinc-200 pb-8">
+          <header className="mb-5 border-b border-zinc-200 pb-6 md:mb-6 md:pb-8">
             <h1 className="type-page-title">매장 운영</h1>
-            <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
+            <p className="type-body mt-4 break-keep text-zinc-500">
               운영 중인 메뉴판의 호출과 테이블, 수동 대기번호를 한곳에서 관리합니다.
             </p>
           </header>
 
           {sites.length > 0 ? (
             <nav
-              className="mb-6 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200"
+              className="site-card mb-6 flex gap-2 overflow-x-auto p-1.5"
               aria-label="운영할 메뉴판 선택"
             >
               {sites.map((site) => {
@@ -85,8 +85,8 @@ export default async function StoreOperationsShell({
             </nav>
           ) : null}
 
-          <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-            <aside className="space-y-4 lg:sticky lg:top-28">
+          <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
+            <aside className="space-y-3 lg:sticky lg:top-28">
               {user ? (
                 <MypageAccountCard
                   email={user.email ?? "이메일 정보 없음"}
@@ -98,13 +98,13 @@ export default async function StoreOperationsShell({
                 {selectedSite ? (
                   <Link
                     href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
-                    className="mb-2 block rounded-2xl px-4 py-3"
+                    className={getNavigationClassName(activeSection === "dashboard")}
                   >
-                    <span className="block truncate text-base font-bold text-zinc-950">운영 대시보드</span>
+                    <span className="block truncate">운영 대시보드</span>
                   </Link>
                 ) : (
-                  <div className="mb-2 rounded-2xl px-4 py-3">
-                    <span className="block text-base font-bold text-zinc-400">운영 대시보드</span>
+                  <div className="site-nav-item site-nav-item-disabled mb-2">
+                    <span className="block">운영 대시보드</span>
                   </div>
                 )}
 
