@@ -8,7 +8,7 @@ export function Pricing() {
     <section id="pricing" className="relative bg-zinc-50 py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto mb-20 max-w-3xl text-center">
-          <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-zinc-900 md:text-5xl">
+          <h2 className="type-section-title mb-6 text-zinc-900">
             매장의 운영 방식에 최적화된<br className="hidden md:block" /> 맞춤형 솔루션을 제안합니다
           </h2>
           <p className="text-lg font-medium leading-relaxed text-zinc-500">
@@ -26,7 +26,7 @@ export function Pricing() {
               >
                 {plan.disabled && (
                   <div className="absolute inset-0 z-30 flex cursor-not-allowed flex-col items-center justify-center bg-zinc-900/40 backdrop-blur-[1px]">
-                    <span className="text-xl font-black tracking-widest text-white drop-shadow-lg md:text-2xl">COMING SOON</span>
+                    <span className="text-xl font-bold tracking-widest text-white drop-shadow-lg md:text-2xl">COMING SOON</span>
                     <span className="mt-1 text-sm font-medium text-zinc-200 drop-shadow-md">서비스 준비중입니다</span>
                   </div>
                 )}
@@ -34,7 +34,7 @@ export function Pricing() {
 
                 <div className={`relative z-20 flex w-full flex-col items-start justify-center p-8 md:w-1/2 md:p-12 ${plan.disabled ? "opacity-40 grayscale" : ""}`}>
                   <span className="mb-3 block text-sm font-bold text-zinc-500">{plan.name}</span>
-                  <h3 className="mb-6 flex items-center gap-3 text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">{plan.tagline}</h3>
+                  <h3 className="type-subsection-title mb-6 flex items-center gap-3 text-zinc-900">{plan.tagline}</h3>
                   <div className="mb-8 flex flex-wrap gap-2">
                     {plan.keywords.map((keyword) => (
                       <span key={keyword} className="rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-bold tracking-tight text-zinc-900">

@@ -185,7 +185,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-      <h3 className="text-xl font-bold tracking-tight text-zinc-950">{title}</h3>
+      <h3 className="type-content-title text-zinc-950">{title}</h3>
       <div className="mt-5">{children}</div>
     </section>
   );
@@ -246,7 +246,7 @@ function DraftDeleteConfirmButton({
       {isConfirming && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-5">
           <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-            <h4 className="text-lg font-bold tracking-tight text-zinc-950">{title}</h4>
+            <h4 className="type-content-title text-zinc-950">{title}</h4>
             <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{description}</p>
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
               <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">

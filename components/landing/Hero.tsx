@@ -102,7 +102,7 @@ export function Hero() {
             className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
             style={{ transform: `translateY(${-progress * 18}px)` }}
           >
-            <h1 className="mb-6 text-5xl font-bold tracking-tight text-white drop-shadow-lg md:text-7xl">
+            <h1 className="type-display mb-6 text-white drop-shadow-lg">
               매장의 모든 순간을<br />하나로 연결하다
             </h1>
             <p className="max-w-xl text-xl font-medium text-white/90 drop-shadow-md">
@@ -113,7 +113,7 @@ export function Hero() {
         </div>
 
         <div className="absolute bottom-12 z-20 px-6 text-center" style={{ opacity: Math.min(progress * 1.5, 1) }}>
-          <h2 className="text-3xl font-bold leading-tight tracking-tight text-white md:text-5xl">
+          <h2 className="type-section-title text-white">
             따로 쓰던 기능을 웹 하나로,<br />내 기기에서 바로
           </h2>
         </div>

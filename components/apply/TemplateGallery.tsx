@@ -144,7 +144,7 @@ export default function TemplateGallery({
             <p className="site-body-support mt-1 text-zinc-500">{productDescription}</p>
           </div>
           <div className="md:text-right">
-            <p className="text-xl font-black text-zinc-950">{productPrice}</p>
+            <p className="text-xl font-bold text-zinc-950">{productPrice}</p>
             <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700">
               <Check className="h-4 w-4" aria-hidden="true" /> 같은 페이지 유형의 템플릿을 언제든 교체
             </p>
@@ -185,9 +185,9 @@ export default function TemplateGallery({
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-bold text-zinc-400">{industryLabel}</p>
-                      <h2 className="mt-1 text-lg font-black tracking-tight text-zinc-950 md:text-xl">{template.name}</h2>
+                      <h2 className="type-content-title mt-1 text-zinc-950">{template.name}</h2>
                     </div>
-                    <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[0.6875rem] font-black text-zinc-600">
+                    <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">
                       {service === "display" ? "디스플레이" : getDiningTierLabel(templateTier)}
                     </span>
                   </div>
@@ -195,13 +195,13 @@ export default function TemplateGallery({
                     {template.description}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <Link href={`/templates/${template.key}/preview`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b border-zinc-400 pb-1 text-sm font-black text-zinc-700 hover:border-zinc-950 hover:text-zinc-950">
+                    <Link href={`/templates/${template.key}/preview`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b border-zinc-400 pb-1 text-sm font-bold text-zinc-700 hover:border-zinc-950 hover:text-zinc-950">
                       미리보기 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                     {startDisabled ? (
                       <span className="text-sm font-bold text-zinc-400">신청 준비 중</span>
                     ) : (
-                      <Link href={getStartHref(product, templateTier, template.key)} className="inline-flex items-center gap-1.5 border-b border-zinc-950 pb-1 text-sm font-black text-zinc-950">
+                      <Link href={getStartHref(product, templateTier, template.key)} className="inline-flex items-center gap-1.5 border-b border-zinc-950 pb-1 text-sm font-bold text-zinc-950">
                         이 디자인으로 시작 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                       </Link>
                     )}
@@ -213,7 +213,7 @@ export default function TemplateGallery({
         </div>
       ) : (
         <section className="mt-8 flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 px-6 text-center">
-          <h2 className="text-xl font-black tracking-tight text-zinc-950">{selectedIndustryLabel} 템플릿 준비 중</h2>
+          <h2 className="type-content-title text-zinc-950">{selectedIndustryLabel} 템플릿 준비 중</h2>
           <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
             매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.
           </p>

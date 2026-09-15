@@ -51,9 +51,9 @@ export function ConsentAgreementBox<T extends string>({
   return (
     <>
       <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2.5">
-        {title ? <p className="mb-1 px-1 text-sm font-black text-zinc-700">{title}</p> : null}
+        {title ? <p className="mb-1 px-1 text-sm font-bold text-zinc-700">{title}</p> : null}
 
-        <label className="flex min-h-9 cursor-pointer items-center gap-3 px-1 py-2 text-sm font-black text-zinc-900">
+        <label className="flex min-h-9 cursor-pointer items-center gap-3 px-1 py-2 text-sm font-bold text-zinc-900">
           <input
             type="checkbox"
             checked={allChecked}
@@ -82,7 +82,7 @@ export function ConsentAgreementBox<T extends string>({
               <button
                 type="button"
                 onClick={() => onOpen(key)}
-                className="shrink-0 rounded-full px-2 py-0.5 text-xs font-black text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
+                className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
               >
                 보기
               </button>
@@ -102,8 +102,8 @@ export function ConsentAgreementBox<T extends string>({
           >
             <div className="border-b border-zinc-100 p-6">
               <div className="flex items-start justify-between gap-4">
-                <h3 className="break-keep text-2xl font-black tracking-tight">{activeItem.detailTitle}</h3>
-                <button type="button" onClick={onClose} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-500">
+                <h3 className="type-subsection-title break-keep">{activeItem.detailTitle}</h3>
+                <button type="button" onClick={onClose} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-500">
                   닫기
                 </button>
               </div>

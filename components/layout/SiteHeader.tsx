@@ -106,8 +106,8 @@ function BrandLogo({ isSolid }: { isSolid: boolean }) {
         />
       </span>
       <span className="flex flex-col leading-none">
-        <span className={`text-xl font-black tracking-tight transition-colors ${logoTextClass}`}>ArtiMenu</span>
-        <span className={`mt-0.5 text-[10px] font-semibold uppercase tracking-[0.28em] transition-colors ${logoSubTextClass}`}>Studio</span>
+        <span className={`text-xl font-bold tracking-tight transition-colors ${logoTextClass}`}>ArtiMenu</span>
+        <span className={`mt-0.5 text-xs font-semibold uppercase tracking-[0.28em] transition-colors ${logoSubTextClass}`}>Studio</span>
       </span>
     </Link>
   );

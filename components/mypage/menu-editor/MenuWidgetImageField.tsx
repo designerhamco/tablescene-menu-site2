@@ -122,7 +122,7 @@ export default function MenuWidgetImageField({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <label className="block text-xs font-black text-zinc-500">위젯 이미지</label>
+          <label className="block text-xs font-bold text-zinc-500">위젯 이미지</label>
           <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 실제 공개 반영은 하단의 최종 저장 후 진행됩니다.
           </p>
@@ -150,7 +150,7 @@ export default function MenuWidgetImageField({
             )}
           </div>
           {currentImageIsUnsaved && (
-            <p className="mt-2 text-[11px] font-bold text-amber-600">새 이미지가 임시 업로드되었습니다. 최종 저장 전까지는 공개 메뉴판에 반영되지 않습니다.</p>
+            <p className="mt-2 text-xs font-bold text-amber-600">새 이미지가 임시 업로드되었습니다. 최종 저장 전까지는 공개 메뉴판에 반영되지 않습니다.</p>
           )}
           {localError && (
             <p className="mt-2 break-keep rounded-md bg-red-50 px-3 py-2 text-xs font-bold leading-relaxed text-red-700">{localError}</p>

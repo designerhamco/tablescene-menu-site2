@@ -153,7 +153,7 @@ export function InquirySection({
       {showIntro ? (
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">문의 및 답변</h2>
+            <h2 className="type-section-title">문의 및 답변</h2>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
               고객지원 문의와 답변 내역을 확인하고 새 문의를 남길 수 있습니다.
             </p>
@@ -180,7 +180,7 @@ export function InquirySection({
       )}
 
       <section className="rounded-3xl bg-white p-7 shadow-sm">
-        <h3 className="text-2xl font-bold tracking-tight md:text-3xl">새 문의 등록</h3>
+        <h3 className="type-subsection-title">새 문의 등록</h3>
 
         <form action={createInquiryAction} className="mt-7 space-y-5">
           <input type="hidden" name="returnTo" value={returnToPath} />
@@ -240,7 +240,7 @@ export function InquirySection({
       <section>
         <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-end">
           <div>
-            <h3 className="text-2xl font-bold tracking-tight md:text-3xl">내 문의 목록</h3>
+            <h3 className="type-subsection-title">내 문의 목록</h3>
           </div>
           <p className="text-sm font-bold text-zinc-400">
             {activeInquiryPage}/{inquiryTotalPages} 페이지 · 총 {inquiryTotalCount.toLocaleString("ko-KR")}개
@@ -249,7 +249,7 @@ export function InquirySection({
 
         {inquiries.length > 0 ? (
           <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-            <div className="hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 text-[11px] font-black uppercase tracking-[0.12em] text-zinc-400 md:grid">
+            <div className="hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400 md:grid">
               <p>번호</p>
               <p>유형</p>
               <p>제목</p>
@@ -261,12 +261,12 @@ export function InquirySection({
               {inquiries.map((inquiry, index) => (
                 <details key={inquiry.id} className="group">
                   <summary className="grid cursor-pointer list-none gap-3 px-4 py-4 text-sm transition-colors hover:bg-zinc-50 focus:outline-none focus-visible:bg-zinc-50 md:grid-cols-[56px_112px_1fr_96px_144px_52px] md:items-center">
-                    <p className="text-xs font-black text-zinc-400">#{inquiryFrom + index + 1}</p>
-                    <span className="w-fit rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-bold text-zinc-600">
+                    <p className="text-xs font-bold text-zinc-400">#{inquiryFrom + index + 1}</p>
+                    <span className="w-fit rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">
                       {getInquiryCategoryLabel(inquiry.category)}
                     </span>
-                    <h4 className="line-clamp-1 break-keep text-sm font-bold tracking-tight text-zinc-900">{inquiry.title}</h4>
-                    <span className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-bold ${getStatusClassName(inquiry.status)}`}>
+                    <h4 className="type-label line-clamp-1 break-keep text-zinc-900">{inquiry.title}</h4>
+                    <span className={`w-fit rounded-full px-2.5 py-1 text-xs font-bold ${getStatusClassName(inquiry.status)}`}>
                       {getStatusLabel(inquiry.status)}
                     </span>
                     <p className="text-xs font-bold text-zinc-400">{formatDate(inquiry.created_at)}</p>
@@ -277,7 +277,7 @@ export function InquirySection({
                   </summary>
 
                   <div className="border-t border-zinc-100 bg-zinc-50 p-4 md:p-5">
-                    <div className="mb-3 grid gap-2 text-[11px] font-bold text-zinc-400 md:grid-cols-3">
+                    <div className="mb-3 grid gap-2 text-xs font-bold text-zinc-400 md:grid-cols-3">
                       <p>유형 {getInquiryCategoryLabel(inquiry.category)}</p>
                       <p>작성일 {formatDate(inquiry.created_at)}</p>
                       <p>수정일 {formatDate(inquiry.updated_at)}</p>
@@ -419,7 +419,7 @@ export function InquirySection({
           </div>
         ) : (
           <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
-            <h3 className="text-2xl font-bold">아직 문의 내역이 없습니다</h3>
+            <h3 className="type-subsection-title">아직 문의 내역이 없습니다</h3>
             <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
               궁금한 점이 있다면 새 문의를 남겨주세요. 답변 상태와 내용을 이곳에서 확인할 수 있습니다.
             </p>

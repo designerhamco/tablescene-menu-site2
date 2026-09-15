@@ -41,12 +41,12 @@ export default function AiUsageMeter({ label, used, limit, compact = false }: Ai
   return (
     <div className={`rounded-lg border border-zinc-100 bg-zinc-50 ${compact ? "p-3" : "p-4"}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">{label}</p>
-        <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${tone.badge}`}>
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">{label}</p>
+        <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${tone.badge}`}>
           남은 AI 크레딧 {remaining}개
         </span>
       </div>
-      <p className={`mt-2 text-sm font-black ${tone.text}`}>
+      <p className={`mt-2 text-sm font-bold ${tone.text}`}>
         사용 AI 크레딧 {safeUsed}개 / 총 {safeLimit}개
       </p>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-200">

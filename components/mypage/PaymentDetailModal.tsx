@@ -28,7 +28,7 @@ function getStatusClassName(tone: PaymentDetailModalProps["statusTone"]) {
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-zinc-50 p-4">
-      <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{label}</dt>
+      <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</dt>
       <dd className="mt-2 break-keep text-sm font-bold text-zinc-900">{value || "-"}</dd>
     </div>
   );
@@ -53,7 +53,7 @@ export default function PaymentDetailModal({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+        className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
       >
         결제 상세
       </button>
@@ -68,25 +68,25 @@ export default function PaymentDetailModal({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 id="payment-detail-title" className="text-2xl font-black tracking-tight text-zinc-950">
+                <h2 id="payment-detail-title" className="type-subsection-title text-zinc-950">
                   결제 상세
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-600 transition-colors hover:bg-zinc-100"
+                className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
               >
                 닫기
               </button>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${getStatusClassName(statusTone)}`}>
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${getStatusClassName(statusTone)}`}>
                 {statusLabel}
               </span>
               {isAiCreditPurchase ? (
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600 ring-1 ring-zinc-200">
+                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600 ring-1 ring-zinc-200">
                   계정 공용 AI 크레딧
                 </span>
               ) : null}
@@ -114,12 +114,12 @@ export default function PaymentDetailModal({
                   href={receiptUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
+                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-zinc-800"
                 >
                   영수증 보기
                 </a>
               ) : (
-                <span className="inline-flex items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-xs font-black text-zinc-400">
+                <span className="inline-flex items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-xs font-bold text-zinc-400">
                   영수증 준비 중
                 </span>
               )}

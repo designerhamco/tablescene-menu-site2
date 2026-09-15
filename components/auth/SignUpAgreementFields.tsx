@@ -77,7 +77,7 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
         <input type="hidden" name="consentContext" value="sign_up" />
 
         <div>
-          <h2 className="text-xl font-black tracking-tight">이메일로 계정 만들기</h2>
+          <h2 className="type-content-title">이메일로 계정 만들기</h2>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
             카카오 계정이 없거나 이메일 가입을 원하는 경우 사용할 수 있습니다.
           </p>

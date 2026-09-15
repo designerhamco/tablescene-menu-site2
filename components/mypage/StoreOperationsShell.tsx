@@ -30,7 +30,7 @@ function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSecti
 
 function getNavigationClassName(active: boolean) {
   return active
-    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-black text-white"
+    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
     : "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950";
 }
 
@@ -56,7 +56,7 @@ export default async function StoreOperationsShell({
       <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
         <div className="mx-auto w-full max-w-[1280px]">
           <header className="mb-6 border-b border-zinc-200 pb-8">
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">매장 운영</h1>
+            <h1 className="type-page-title">매장 운영</h1>
             <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
               운영 중인 메뉴판의 호출과 테이블, 수동 대기번호를 한곳에서 관리합니다.
             </p>
@@ -75,8 +75,8 @@ export default async function StoreOperationsShell({
                     href={getSectionHref(site, activeSection)}
                     aria-current={isSelected ? "page" : undefined}
                     className={isSelected
-                      ? "inline-flex shrink-0 items-center justify-center rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-black text-white"
-                      : "inline-flex shrink-0 items-center justify-center rounded-full bg-zinc-100 px-5 py-2.5 text-sm font-black text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-950"}
+                      ? "inline-flex shrink-0 items-center justify-center rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-bold text-white"
+                      : "inline-flex shrink-0 items-center justify-center rounded-full bg-zinc-100 px-5 py-2.5 text-sm font-bold text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-950"}
                   >
                     {site.name || "이름 없는 메뉴판"}
                   </Link>
@@ -101,11 +101,11 @@ export default async function StoreOperationsShell({
                     href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
                     className="mb-2 block rounded-2xl px-4 py-3"
                   >
-                    <span className="block truncate text-base font-black text-zinc-950">운영 대시보드</span>
+                    <span className="block truncate text-base font-bold text-zinc-950">운영 대시보드</span>
                   </Link>
                 ) : (
                   <div className="mb-2 rounded-2xl px-4 py-3">
-                    <span className="block text-base font-black text-zinc-400">운영 대시보드</span>
+                    <span className="block text-base font-bold text-zinc-400">운영 대시보드</span>
                   </div>
                 )}
 
@@ -129,7 +129,7 @@ export default async function StoreOperationsShell({
                           className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-300"
                         >
                           <span>{item.label}</span>
-                          <span className="text-[10px] font-black">{unavailableLabel}</span>
+                          <span className="text-xs font-bold">{unavailableLabel}</span>
                         </span>
                       );
                     }

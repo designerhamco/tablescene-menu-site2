@@ -924,7 +924,7 @@ function HelpTooltip({ label, children }: { label: string; children: ReactNode }
       <button
         type="button"
         aria-label={label}
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-[11px] font-black text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-xs font-bold text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
       >
         ?
       </button>
@@ -1403,7 +1403,7 @@ function BadgeColorFields({
     <div className="mt-3 max-w-full min-w-0 overflow-hidden rounded-lg border border-zinc-100 bg-zinc-50 p-3">
       <input type="hidden" name="badge_style_key" value={styleKey} form={formId} />
       <div className="grid min-w-0 gap-2">
-        <span className="inline-flex w-fit max-w-full rounded-full px-2.5 py-1 text-[11px] font-black" style={getBadgeStyleCss(previewStyle)}>
+        <span className="inline-flex w-fit max-w-full rounded-full px-2.5 py-1 text-xs font-bold" style={getBadgeStyleCss(previewStyle)}>
           {displayLabel}
         </span>
         <p className="min-w-0 break-keep text-xs font-bold leading-relaxed text-zinc-400">{guideText}</p>
@@ -1506,7 +1506,7 @@ function PanelHeader({
   return (
     <div className="mb-5 flex min-w-0 flex-col justify-between gap-4 border-b border-zinc-100 pb-5 md:flex-row md:items-end">
       <div className="min-w-0">
-        <h3 className="mt-1 line-clamp-2 break-words text-2xl font-black tracking-tight text-zinc-950">{title}</h3>
+        <h3 className="type-subsection-title mt-1 line-clamp-2 break-words text-zinc-950">{title}</h3>
         {description ? <p className="mt-2 break-words text-sm font-semibold leading-relaxed text-zinc-500">{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
@@ -1568,10 +1568,10 @@ function DisplayMenuQualityNoticeBox({ notice }: { notice: DisplayMenuQualityNot
 
   return (
     <div className={`rounded-lg border p-4 ${isStrong ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-100 bg-sky-50 text-sky-900"}`}>
-      <p className="break-keep text-sm font-black leading-relaxed">
+      <p className="break-keep text-sm font-bold leading-relaxed">
         {isStrong ? DISPLAY_A_MENU_QUALITY_STRONG_TEXT : DISPLAY_A_MENU_QUALITY_NOTICE_TEXT}
       </p>
-      <p className="mt-2 break-keep text-xs font-black leading-relaxed opacity-90">
+      <p className="mt-2 break-keep text-xs font-bold leading-relaxed opacity-90">
         현재 구성: 카테고리 {notice.quality.categoryCount}개, 메뉴 {notice.quality.itemCount}개
       </p>
       <p className="mt-2 break-keep text-xs font-bold leading-relaxed opacity-80">{DISPLAY_A_MENU_QUALITY_CTA_TEXT}</p>
@@ -1593,10 +1593,10 @@ function DisplayMenuCategoryQualityNoticeBox({
 
   return (
     <div className={`rounded-md border ${isStrong ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-100 bg-sky-50 text-sky-900"} ${compact ? "px-2 py-1.5" : "p-4"}`}>
-      <p className={`${compact ? "text-[11px]" : "text-sm"} break-keep font-black leading-relaxed`}>
+      <p className={`${compact ? "text-xs" : "text-sm"} break-keep font-bold leading-relaxed`}>
         카테고리 표시 품질 안내
       </p>
-      <p className={`${compact ? "mt-0.5 text-[10px]" : "mt-2 text-xs"} break-keep font-bold leading-relaxed opacity-80`}>
+      <p className={`${compact ? "mt-0.5 text-xs" : "mt-2 text-xs"} break-keep font-bold leading-relaxed opacity-80`}>
         현재 {notice.itemCount}개 메뉴입니다. {notice.message}
       </p>
     </div>
@@ -1674,7 +1674,7 @@ function DraftDeleteConfirmButton({
       {isConfirming && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-950/35 p-4">
           <div className="w-full max-w-sm rounded-xl border border-red-100 bg-white p-5 shadow-xl">
-            <p className="text-base font-black text-red-700">{title}</p>
+            <p className="text-base font-bold text-red-700">{title}</p>
             {description && <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">{description}</p>}
             {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
             <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
@@ -1951,7 +1951,7 @@ function MenuPageForm({
       )}
       {supportsAubeTablePageSettings && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">메뉴 페이지 배치</h4>
+          <h4 className="type-label text-zinc-950">메뉴 페이지 배치</h4>
           <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
             PC와 태블릿의 열 수와 텍스트 정렬을 선택합니다. 모바일에서는 항상 1열로 표시됩니다.
           </p>
@@ -1968,7 +1968,7 @@ function MenuPageForm({
                       setLayoutColumns(value);
                       if (!page) onDraftChange?.({ layoutColumns: value });
                     }}
-                    className={`rounded-lg border px-4 py-3 text-sm font-black ${layoutColumns === value ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
+                    className={`rounded-lg border px-4 py-3 text-sm font-bold ${layoutColumns === value ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
                   >
                     {value}열
                   </button>
@@ -1987,7 +1987,7 @@ function MenuPageForm({
                       setTextAlignment(value);
                       if (!page) onDraftChange?.({ textAlignment: value });
                     }}
-                    className={`rounded-lg border px-4 py-3 text-sm font-black ${textAlignment === value ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
+                    className={`rounded-lg border px-4 py-3 text-sm font-bold ${textAlignment === value ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600"}`}
                   >
                     {value === "left" ? "왼쪽" : "가운데"}
                   </button>
@@ -2011,7 +2011,7 @@ function MenuPageForm({
       />
       {supportsDisplaySettings && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="inline-flex items-center gap-2 text-sm font-black text-zinc-950">
+          <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
             <span>디스플레이 화면 설정</span>
             {displaySettings.pageType === "promotion" && (
               <HelpTooltip label="프로모션 페이지 도움말">
@@ -2048,7 +2048,7 @@ function MenuPageForm({
                         selected ? "border-zinc-950 bg-zinc-50 text-zinc-950" : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-400"
                       }`}
                     >
-                      <span className="block text-sm font-black">{getDisplayPageTypeLabel(type)}</span>
+                      <span className="block text-sm font-bold">{getDisplayPageTypeLabel(type)}</span>
                       <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed">
                         {type === "promotion"
                           ? "신메뉴, 시즌 이벤트, 안내 포스터를 디스플레이에 보여주는 화면입니다."
@@ -2074,7 +2074,7 @@ function MenuPageForm({
                           selected ? "border-zinc-950 bg-zinc-50 text-zinc-950" : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-400"
                         }`}
                       >
-                        <span className="block text-sm font-black">{getDisplayMenuLayoutTypeLabel(type)}</span>
+                        <span className="block text-sm font-bold">{getDisplayMenuLayoutTypeLabel(type)}</span>
                         <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed">
                           {type === "split_image_menu"
                             ? supportsSplitImageText
@@ -2110,7 +2110,7 @@ function MenuPageForm({
                             selected ? "border-zinc-950 bg-white text-zinc-950" : "border-zinc-200 bg-white/70 text-zinc-500 hover:border-zinc-400"
                           }`}
                         >
-                          <span className="block text-sm font-black">{option.label}</span>
+                          <span className="block text-sm font-bold">{option.label}</span>
                         </button>
                       );
                     })}
@@ -2190,7 +2190,7 @@ function MenuPageForm({
                             selected ? "border-zinc-950 bg-white text-zinc-950" : "border-amber-100 bg-white/70 text-zinc-500 hover:border-zinc-300"
                           }`}
                         >
-                          <span className="block text-sm font-black">{getDisplayPromotionMediaTypeLabel(type)}</span>
+                          <span className="block text-sm font-bold">{getDisplayPromotionMediaTypeLabel(type)}</span>
                           <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed">
                             {type === "video" ? "영상 URL을 등록합니다. 디스플레이에서는 반복 재생됩니다." : "이미지 파일을 직접 등록합니다."}
                           </span>
@@ -2280,12 +2280,12 @@ function MenuPageForm({
                     <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-4">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                          <p className="text-sm font-black text-zinc-950">{DISPLAY_VIDEO_UPLOAD_NAME}</p>
+                          <p className="text-sm font-bold text-zinc-950">{DISPLAY_VIDEO_UPLOAD_NAME}</p>
                           <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
                             아티메뉴 디스플레이 요금에 포함된 기능입니다. 짧고 가벼운 영상을 사용하면 매장 화면에서 더 안정적으로 재생됩니다.
                           </p>
                         </div>
-                        <span className="inline-flex w-fit items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
+                        <span className="inline-flex w-fit items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
                           요금제 포함
                         </span>
                       </div>
@@ -2313,7 +2313,7 @@ function MenuPageForm({
                           />
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <p className="break-keep text-xs font-black text-zinc-950">MP4 파일을 업로드하면 아티메뉴에서 직접 재생됩니다.</p>
+                              <p className="break-keep text-xs font-bold text-zinc-950">MP4 파일을 업로드하면 아티메뉴에서 직접 재생됩니다.</p>
                               <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
                                 업로드 성공 시 현재 영상 URL 대신 업로드된 파일이 임시 반영됩니다.
                               </p>
@@ -2323,7 +2323,7 @@ function MenuPageForm({
                                 </p>
                               )}
                               {displaySettings.promotion.videoSource === "upload" && displaySettings.promotion.videoPath && (
-                                <p className="mt-2 break-all text-[11px] font-bold leading-relaxed text-emerald-700">
+                                <p className="mt-2 break-all text-xs font-bold leading-relaxed text-emerald-700">
                                   현재 업로드 영상: {displaySettings.promotion.videoPath}
                                 </p>
                               )}
@@ -2654,7 +2654,7 @@ function MenuCategoryForm({
       />
       {supportsCourseFields && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">코스 가격</h4>
+          <h4 className="type-label text-zinc-950">코스 가격</h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             코스 가격과 가격에 대한 짧은 안내를 각각 설정할 수 있습니다.
           </p>
@@ -2724,7 +2724,7 @@ function MenuCategoryForm({
       )}
       {supportCategoryPriceOptionColumns && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">가격 옵션 열</h4>
+          <h4 className="type-label text-zinc-950">가격 옵션 열</h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             아티메뉴 디스플레이는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
           </p>
@@ -2767,7 +2767,7 @@ function MenuCategoryForm({
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h4 className="text-sm font-black text-zinc-950">가격 옵션 컬럼</h4>
+              <h4 className="type-label text-zinc-950">가격 옵션 컬럼</h4>
               <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                 이 카테고리 안의 메뉴에 공통으로 사용할 가격 옵션입니다. 예: HOT, ICE, LARGE
               </p>
@@ -2800,7 +2800,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, -1)}
                       disabled={index === 0}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 위로 이동`}
                     >
                       ↑
@@ -2809,7 +2809,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, 1)}
                       disabled={index === categoryPriceColumns.length - 1}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 아래로 이동`}
                     >
                       ↓
@@ -2817,14 +2817,14 @@ function MenuCategoryForm({
                     <button
                       type="button"
                       onClick={() => updateCategoryPriceColumn(index, { visible: !column.visible })}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
                     >
                       {column.visible ? "표시" : "숨김"}
                     </button>
                     <button
                       type="button"
                       onClick={() => removeCategoryPriceColumn(index)}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
                     >
                       삭제
                     </button>
@@ -3717,7 +3717,7 @@ function MenuItemForm({
       ))}
 
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
-        <h4 className="text-sm font-black text-zinc-950">기본 정보</h4>
+        <h4 className="type-label text-zinc-950">기본 정보</h4>
         <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
           {labels.itemLabel}의 소속, 이름, 설명, 원산지 정보를 입력합니다.
         </p>
@@ -3809,7 +3809,7 @@ function MenuItemForm({
                   type="button"
                   disabled={isGeneratingDescription || aiDescriptionUsageExceeded}
                   onClick={requestAiDescriptionGeneration}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-black text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                 >
                   {isGeneratingDescription ? (
                     <>
@@ -3868,7 +3868,7 @@ function MenuItemForm({
       </section>
 
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
-        <h4 className="text-sm font-black text-zinc-950">노출 설정</h4>
+        <h4 className="type-label text-zinc-950">노출 설정</h4>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ValidatedTextInput
             form={formId}
@@ -3904,8 +3904,8 @@ function MenuItemForm({
                   <span
                     className={
                       capabilities.itemBadgeColorControl === false
-                        ? "inline-flex w-fit rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.04em] text-zinc-950"
-                        : "inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-black"
+                        ? "inline-flex w-fit rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-xs font-bold uppercase tracking-[0.04em] text-zinc-950"
+                        : "inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-bold"
                     }
                     style={capabilities.itemBadgeColorControl === false ? undefined : getBadgeStyleCss(badgeStyles[getBadgeStyleKey(visibleBadgeLabel)])}
                   >
@@ -3979,7 +3979,7 @@ function MenuItemForm({
       </section>
 
       <section className="rounded-lg border border-zinc-100 bg-white p-4">
-        <h4 className="inline-flex items-center gap-2 text-sm font-black text-zinc-950">
+        <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
           가격 설정
           <HelpTooltip label="가격 설정 도움말">
             단일 가격은 하나의 가격을 보여줄 때 사용하고, 옵션별 가격은 HOT/ICE나 사이즈별 가격처럼 여러 가격을 보여줄 때 사용합니다.
@@ -3987,7 +3987,7 @@ function MenuItemForm({
         </h4>
         {isSingleMode && canManageCategoryPriceColumns && (
           <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-            <h5 className="text-sm font-black text-zinc-950">가격 입력 방식</h5>
+            <h5 className="type-label text-zinc-950">가격 입력 방식</h5>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {[
                 { value: "number" as const, label: "숫자 가격", description: "4500처럼 숫자로 입력하고 표시 형식으로 자동 변환합니다." },
@@ -4015,7 +4015,7 @@ function MenuItemForm({
                     }`}
                     aria-pressed={selected}
                   >
-                    <span className="block text-sm font-black">{option.label}</span>
+                    <span className="block text-sm font-bold">{option.label}</span>
                     <span className="mt-1 block break-keep text-xs font-bold leading-relaxed text-zinc-400">{option.description}</span>
                   </button>
                 );
@@ -4027,7 +4027,7 @@ function MenuItemForm({
           <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h5 className="text-sm font-black text-zinc-950">가격 표시 형식</h5>
+                <h5 className="type-label text-zinc-950">가격 표시 형식</h5>
                 <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                   이 메뉴판의 숫자 가격을 공개 메뉴판에 표시하는 기본 형식입니다.
                 </p>
@@ -4043,7 +4043,7 @@ function MenuItemForm({
                       key={option.value}
                       type="button"
                       onClick={() => onPriceDisplayModeChange(option.value)}
-                      className={`min-h-10 rounded-lg px-4 text-xs font-black transition-colors ${
+                      className={`min-h-10 rounded-lg px-4 text-xs font-bold transition-colors ${
                         selected
                           ? "bg-zinc-950 text-white shadow-sm"
                           : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
@@ -4150,7 +4150,7 @@ function MenuItemForm({
           <div className="mt-4 rounded-lg bg-zinc-50 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h5 className="text-sm font-black text-zinc-950">옵션 컬럼 가격</h5>
+                <h5 className="type-label text-zinc-950">옵션 컬럼 가격</h5>
                 <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                   이 메뉴가 속한 카테고리의 공통 가격 옵션입니다. 숫자 가격을 입력하면 선택한 표시 형식으로 자동 표시됩니다.
                 </p>
@@ -4158,12 +4158,12 @@ function MenuItemForm({
                   가격을 입력한 옵션만 공개 메뉴판에 표시됩니다.
                 </p>
               </div>
-              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-zinc-500">
+              <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-zinc-500">
                 {currentCategoryPriceColumns.length}개 컬럼
               </span>
             </div>
             <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-white">
-              <div className="hidden grid-cols-[minmax(4rem,0.65fr)_minmax(0,1fr)] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-[11px] font-black text-zinc-500 sm:grid">
+              <div className="hidden grid-cols-[minmax(4rem,0.65fr)_minmax(0,1fr)] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-500 sm:grid">
                 <span>옵션</span>
                 <span>가격</span>
               </div>
@@ -4175,8 +4175,8 @@ function MenuItemForm({
                   <div key={value.priceColumnId} className="border-b border-zinc-100 px-3 py-3 last:border-b-0">
                     <div className="grid grid-cols-[minmax(3.5rem,0.6fr)_minmax(0,1fr)] items-center gap-3">
                       <div>
-                        <span className="block text-xs font-black uppercase text-zinc-950">{columnLabel}</span>
-                        <span className="mt-0.5 block text-[10px] font-bold text-zinc-400 sm:hidden">옵션</span>
+                        <span className="block text-xs font-bold uppercase text-zinc-950">{columnLabel}</span>
+                        <span className="mt-0.5 block text-xs font-bold text-zinc-400 sm:hidden">옵션</span>
                       </div>
                       <input
                         form={formId}
@@ -4222,7 +4222,7 @@ function MenuItemForm({
               <div className="mt-4 grid gap-4">
                 {effectiveDraftPriceOptions.map((option, index) => (
                   <div key={`${option.label}-${index}`} className="rounded-lg border border-zinc-100 bg-white p-4">
-                    <h5 className="text-sm font-black text-zinc-950">{option.label}</h5>
+                    <h5 className="type-label text-zinc-950">{option.label}</h5>
                     <div className="mt-3 grid gap-3 md:grid-cols-2">
                       <ValidatedTextInput
                         form={formId}
@@ -4314,9 +4314,9 @@ function MenuItemForm({
 
       {canManageTimeSales && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">
+          <h4 className="type-label text-zinc-950">
             타임세일
-            {effectiveTimeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-black text-white">사용 중</span> : null}
+            {effectiveTimeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-xs font-bold text-white">사용 중</span> : null}
           </h4>
           {isDirectPriceTextMode ? (
             <div className="mt-4 space-y-3 rounded-lg bg-amber-50 px-4 py-3">
@@ -4327,7 +4327,7 @@ function MenuItemForm({
                 숫자 가격을 선택하면 타임세일을 사용할 수 있습니다.
               </p>
               {timeSaleEnabled ? (
-                <p className="break-keep text-xs font-black leading-relaxed text-amber-800">
+                <p className="break-keep text-xs font-bold leading-relaxed text-amber-800">
                   현재 이 메뉴에 타임세일이 설정되어 있습니다. 직접 표시 문구로 저장하면 이 메뉴의 타임세일은 해제됩니다.
                 </p>
               ) : null}
@@ -4426,7 +4426,7 @@ function MenuItemForm({
                 </div>
                 {hasVisiblePriceColumnValue ? (
                   <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-3">
-                    <div className="grid grid-cols-[minmax(52px,0.7fr)_minmax(64px,0.8fr)_minmax(92px,1fr)] items-center gap-2 border-b border-zinc-200 pb-2 text-[11px] font-black text-zinc-500">
+                    <div className="grid grid-cols-[minmax(52px,0.7fr)_minmax(64px,0.8fr)_minmax(92px,1fr)] items-center gap-2 border-b border-zinc-200 pb-2 text-xs font-bold text-zinc-500">
                       <span>옵션</span>
                       <span>기존 가격</span>
                       <span>할인가</span>
@@ -4434,7 +4434,7 @@ function MenuItemForm({
                     <div className="divide-y divide-zinc-100">
                       {visiblePriceColumnTimeSaleRows.map((row) => (
                         <div key={row.priceColumnId} className="grid grid-cols-[minmax(52px,0.7fr)_minmax(64px,0.8fr)_minmax(92px,1fr)] items-center gap-2 py-2">
-                          <span className="min-w-0 truncate text-xs font-black text-zinc-800">{row.label}</span>
+                          <span className="min-w-0 truncate text-xs font-bold text-zinc-800">{row.label}</span>
                           <span className="text-xs font-bold text-zinc-500">{row.originalPrice}</span>
                           <input
                             type="text"
@@ -4497,7 +4497,7 @@ function MenuItemForm({
                           }`}
                           aria-pressed={selected}
                         >
-                          <span className="block text-sm font-black">{option.label}</span>
+                          <span className="block text-sm font-bold">{option.label}</span>
                           <span className="mt-1 block break-keep text-xs font-bold leading-relaxed text-zinc-400">{option.description}</span>
                         </button>
                       );
@@ -4731,7 +4731,7 @@ function MenuItemForm({
                         aria-label="타임세일 배지 배경색"
                       />
                       <span
-                        className="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-black leading-none"
+                        className="inline-flex rounded-full border px-2.5 py-1 text-xs font-bold leading-none"
                         style={{
                           backgroundColor: timeSaleBadgeBackgroundColor,
                           borderColor: timeSaleBadgeBackgroundColor,
@@ -4759,7 +4759,7 @@ function MenuItemForm({
 
       {canEditPortionLabel && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">제공량</h4>
+          <h4 className="type-label text-zinc-950">제공량</h4>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <ValidatedTextInput
               form={formId}
@@ -4794,7 +4794,7 @@ function MenuItemForm({
 
       {capabilities.itemTraits && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="text-sm font-black text-zinc-950">맛/특징 지표</h4>
+          <h4 className="type-label text-zinc-950">맛/특징 지표</h4>
           <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
             <Checkbox
               form={formId}
@@ -4815,7 +4815,7 @@ function MenuItemForm({
 
       {capabilities.menuItemImages && (
         <section className="rounded-lg border border-zinc-100 bg-white p-4">
-          <h4 className="inline-flex items-center gap-2 text-sm font-black text-zinc-950">
+          <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
             이미지
             <HelpTooltip label="이미지 도움말">
               이미지는 선택 사항입니다. 등록한 메뉴 이미지는 이미지형 메뉴판 배치에 사용할 수 있습니다.
@@ -4897,7 +4897,7 @@ function MenuItemForm({
       {descriptionOverwritePending ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4">
           <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl">
-            <h3 className="text-lg font-bold tracking-tight text-zinc-950">기존 설명을 AI 설명으로 바꿀까요?</h3>
+            <h3 className="type-content-title text-zinc-950">기존 설명을 AI 설명으로 바꿀까요?</h3>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               현재 입력된 설명이 AI가 작성한 설명으로 바뀝니다. 수정 내용 반영 전까지는 저장 대상에 포함되지 않습니다.
             </p>
@@ -5065,7 +5065,7 @@ function DraftPriceOptionsEditor({
       </p>
 
       <div className="mt-4 rounded-lg border border-zinc-100 bg-white p-4">
-        <h5 className="text-sm font-black text-zinc-950">새 가격 옵션 추가</h5>
+        <h5 className="type-label text-zinc-950">새 가격 옵션 추가</h5>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
           <div>
             <FieldLabel required>옵션명</FieldLabel>
@@ -5088,7 +5088,7 @@ function DraftPriceOptionsEditor({
       </div>
 
       <div className="mt-5">
-        <h5 className="text-sm font-black text-zinc-950">옵션 목록</h5>
+        <h5 className="type-label text-zinc-950">옵션 목록</h5>
         <p className="mt-1 break-keep text-xs font-bold text-zinc-400">추가된 옵션은 기본 보기 상태로 표시됩니다. 값을 바꾸려면 해당 옵션의 수정 버튼을 눌러주세요.</p>
         <div className="mt-3 space-y-3">
           {options.map((option) => {
@@ -5154,7 +5154,7 @@ function DraftPriceOptionsEditor({
               <div key={option.id} className="rounded-lg border border-zinc-100 bg-white p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-zinc-950">
+                    <p className="truncate text-sm font-bold text-zinc-950">
                       {option.label.trim() || "옵션명 없음"}
                       <span className="mx-2 text-zinc-300">·</span>
                       <span className={displayPrice ? "text-zinc-700" : "text-red-600"}>{displayPrice || "가격 미입력"}</span>
@@ -8710,7 +8710,7 @@ export default function MenuManagementSection({
         <div className="mb-8 border-b border-zinc-100 pb-6">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div className="min-w-0">
-              <h2 className="flex min-w-0 items-center gap-2 text-2xl font-bold tracking-tight">
+              <h2 className="type-subsection-title flex min-w-0 items-center gap-2">
                 <span className="min-w-0 truncate">{labels.itemPluralLabel.includes("서비스") ? "가격표 관리" : "메뉴판 구성"}</span>
                 <HelpTooltip label="메뉴판 구성 도움말">
                   변경사항은 편집 화면에 먼저 반영되며, 하단의 저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다. 샘플로 되돌리기도 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
@@ -8752,7 +8752,7 @@ export default function MenuManagementSection({
             <div className="flex min-w-max items-center gap-2">
               <a
                 href={`/mypage/menus/${menuId}/edit?tab=cover`}
-                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-black text-zinc-600 hover:border-zinc-400"
+                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 hover:border-zinc-400"
               >
                 커버
               </a>
@@ -8775,7 +8775,7 @@ export default function MenuManagementSection({
                   >
                     <DragHandleIcon />
                   </button>
-                  <button type="button" onClick={() => selectPage(page.id)} className="max-w-44 truncate py-2 pl-1 pr-4 text-xs font-black">
+                  <button type="button" onClick={() => selectPage(page.id)} className="max-w-44 truncate py-2 pl-1 pr-4 text-xs font-bold">
                     {page.title || `메뉴 페이지 ${index + 1}`}
                   </button>
                 </div>
@@ -8784,7 +8784,7 @@ export default function MenuManagementSection({
                 type="button"
                 onClick={startCreatePage}
                 disabled={reachedPageLimit}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-base font-black text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-base font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
                 aria-label="메뉴 페이지 추가"
                 title={`메뉴 페이지는 최대 ${AUBE_TABLE_MAX_MENU_PAGES}개까지 추가할 수 있습니다.`}
               >
@@ -8797,7 +8797,7 @@ export default function MenuManagementSection({
         <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
           <aside className="min-w-0 rounded-lg border border-zinc-100 bg-zinc-50 p-4 lg:sticky lg:top-24">
             <div className="mb-4 min-w-0">
-              <h3 className="mt-1 flex min-w-0 items-center gap-2 text-lg font-black text-zinc-950">
+              <h3 className="type-content-title mt-1 flex min-w-0 items-center gap-2 text-zinc-950">
                 <span className="min-w-0 truncate">메뉴판 구조</span>
                 <HelpTooltip label="메뉴판 구조 도움말">
                   {canManagePages
@@ -8810,11 +8810,11 @@ export default function MenuManagementSection({
               <section className="mb-4 rounded-lg border border-zinc-100 bg-white p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h4 className="break-keep text-sm font-black text-zinc-950">PC/태블릿 배치 방식</h4>
+                    <h4 className="type-label break-keep text-zinc-950">PC/태블릿 배치 방식</h4>
                     <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                       PC와 태블릿에서 메뉴판이 보이는 방식을 선택합니다.
                     </p>
-                    <p className="mt-1 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
+                    <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                       모바일은 등록 순서대로 표시됩니다.
                     </p>
                   </div>
@@ -8834,15 +8834,15 @@ export default function MenuManagementSection({
                         }`}
                         aria-pressed={selected}
                       >
-                        <span className="block break-keep text-xs font-black">{option.title}</span>
-                        <span className={`mt-1 block break-keep text-[11px] font-bold leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-400"}`}>
+                        <span className="block break-keep text-xs font-bold">{option.title}</span>
+                        <span className={`mt-1 block break-keep text-xs font-bold leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-400"}`}>
                           {option.description}
                         </span>
                       </button>
                     );
                   })}
                 </div>
-                <p className="mt-3 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
+                <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                   기본 추천은 묶음형 자동 배치이며, 필요하면 채움형 배치로 변경할 수 있습니다.
                 </p>
               </section>
@@ -8891,7 +8891,7 @@ export default function MenuManagementSection({
               )}
             </div>
             {hasActiveWidgetEditorChanges && (
-              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-bold leading-relaxed text-amber-700">
+              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-700">
                 현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요.
               </p>
             )}
@@ -8942,11 +8942,11 @@ export default function MenuManagementSection({
                         <button
                           type="button"
                           onClick={() => selectPage(page.id)}
-                          className="min-w-0 flex-1 text-left text-sm font-black"
+                          className="min-w-0 flex-1 text-left text-sm font-bold"
                         >
                           <span className="block truncate">{getMenuPageTitle(page)}</span>
                           {canConfigureDisplayPages && (
-                            <span className={`mt-0.5 block truncate text-[10px] font-bold ${pageActive ? "text-zinc-300" : "text-zinc-400"}`}>
+                            <span className={`mt-0.5 block truncate text-xs font-bold ${pageActive ? "text-zinc-300" : "text-zinc-400"}`}>
                               {getDisplayPageTypeLabel(pageDisplaySettings.pageType)}
                               {pageDisplaySettings.pageType === "menu" && pageDisplaySettings.menuLayoutType
                                 ? ` · ${getDisplayMenuLayoutTypeLabel(pageDisplaySettings.menuLayoutType)}`
@@ -8961,7 +8961,7 @@ export default function MenuManagementSection({
                               event.stopPropagation();
                               toggleExpandedPage(page.id);
                             }}
-                            className="shrink-0 rounded-md px-1 text-xs font-black"
+                            className="shrink-0 rounded-md px-1 text-xs font-bold"
                             aria-expanded={pageExpanded}
                             aria-label={pageExpanded ? "페이지 접기" : "페이지 펼치기"}
                           >
@@ -8980,7 +8980,7 @@ export default function MenuManagementSection({
                         )}
                         {pageDirectItems.length > 0 && (
                           <div className="mb-1 grid min-w-0 gap-1 rounded-md bg-white p-2">
-                            <p className="px-2 text-[10px] font-black uppercase tracking-[0.08em] text-zinc-400">단독 메뉴</p>
+                            <p className="px-2 text-xs font-bold uppercase tracking-[0.08em] text-zinc-400">단독 메뉴</p>
                             {pageDirectItems.map((item) => (
                               <button
                                 key={item.id}
@@ -9067,7 +9067,7 @@ export default function MenuManagementSection({
                                       event.stopPropagation();
                                       toggleExpandedCategory(category.id);
                                     }}
-                                    className="shrink-0 rounded-md px-1 text-xs font-black"
+                                    className="shrink-0 rounded-md px-1 text-xs font-bold"
                                     aria-expanded={categoryExpanded}
                                     aria-label={categoryExpanded ? `${labels.categoryLabel} 접기` : `${labels.categoryLabel} 펼치기`}
                                   >
@@ -9140,7 +9140,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderUp}
                 aria-label="위로 이동"
                 title="위로 이동"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-black leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-bold leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
               >
                 ↑
               </button>
@@ -9150,7 +9150,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderDown}
                 aria-label="아래로 이동"
                 title="아래로 이동"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-black leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-bold leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
               >
                 ↓
               </button>
@@ -9602,7 +9602,7 @@ export default function MenuManagementSection({
                 )}
                 {itemsForCategory.length > 0 && (
                   <div className="mt-8 border-t border-zinc-100 pt-6">
-                    <h3 className="text-base font-black text-zinc-950">등록된 {labels.itemPluralLabel}</h3>
+                    <h3 className="type-item-title text-zinc-950">등록된 {labels.itemPluralLabel}</h3>
                     <div className="mt-4 grid gap-3">
                       {itemsForCategory.map((item) => (
                         <MenuItemCard
@@ -9843,7 +9843,7 @@ export default function MenuManagementSection({
               aria-labelledby="menu-cleanup-title"
               className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-zinc-100 bg-white p-6 shadow-xl"
             >
-              <h2 id="menu-cleanup-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
+              <h2 id="menu-cleanup-title" className="type-content-title break-keep text-zinc-950">
                 AI 메뉴 정리 · 3크레딧
               </h2>
               <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
@@ -9873,18 +9873,18 @@ export default function MenuManagementSection({
 
               {menuCleanupResult ? (
                 <div className="mt-6 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-                  <h3 className="text-sm font-black text-zinc-950">정리 결과 미리보기</h3>
+                  <h3 className="type-item-title text-zinc-950">정리 결과 미리보기</h3>
                   <div className="mt-4 space-y-4">
                     {menuCleanupResult.categories.map((category, categoryIndex) => (
                       <div key={`${category.name}-${categoryIndex}`} className="rounded-lg border border-zinc-100 bg-white p-4">
-                        <p className="text-sm font-black text-zinc-950">{category.name}</p>
+                        <p className="text-sm font-bold text-zinc-950">{category.name}</p>
                         {category.description ? <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{category.description}</p> : null}
                         <div className="mt-3 space-y-2">
                           {category.items.map((item, itemIndex) => (
                             <div key={`${item.name}-${itemIndex}`} className="rounded-lg bg-zinc-50 px-3 py-2">
                               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                                 <p className="min-w-0 break-keep text-sm font-bold text-zinc-900">{item.name}</p>
-                                <p className="shrink-0 text-xs font-black text-zinc-500">
+                                <p className="shrink-0 text-xs font-bold text-zinc-500">
                                   / {item.price_label || (item.price == null ? "문의" : `${new Intl.NumberFormat("ko-KR").format(item.price)}원`)}
                                 </p>
                               </div>
@@ -9912,7 +9912,7 @@ export default function MenuManagementSection({
 
               {menuCleanupResult ? (
                 <div className="mt-6 rounded-lg border border-zinc-100 bg-white p-4">
-                  <h3 className="text-sm font-black text-zinc-950">AI가 정리한 메뉴를 어떻게 적용할까요?</h3>
+                  <h3 className="type-item-title text-zinc-950">AI가 정리한 메뉴를 어떻게 적용할까요?</h3>
                   <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                     처음 메뉴판을 세팅하는 경우에는 ‘현재 메뉴를 AI 결과로 교체’를 추천합니다. 운영 중 신메뉴를 추가하는 경우에는 ‘현재 메뉴판에 추가’{canManagePages ? " 또는 ‘새 페이지에 추가’" : ""}를 사용할 수 있습니다.
                   </p>
@@ -9927,19 +9927,19 @@ export default function MenuManagementSection({
                   ) : null}
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-                      <p className="text-sm font-black text-zinc-950">현재 메뉴를 AI 결과로 교체</p>
+                      <p className="text-sm font-bold text-zinc-950">현재 메뉴를 AI 결과로 교체</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         샘플 메뉴나 현재 메뉴 구조를 AI가 정리한 결과로 바꿉니다. 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
                       </p>
                     </div>
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-                      <p className="text-sm font-black text-zinc-950">현재 메뉴판에 추가</p>
+                      <p className="text-sm font-bold text-zinc-950">현재 메뉴판에 추가</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         현재 메뉴판은 유지하고, AI가 정리한 카테고리와 아이템을 새 항목으로 추가합니다. 기존 카테고리와 자동으로 합치지 않습니다.
                       </p>
                     </div>
                     {canManagePages && <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-                      <p className="text-sm font-black text-zinc-950">새 페이지에 추가</p>
+                      <p className="text-sm font-bold text-zinc-950">새 페이지에 추가</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         새 페이지를 만들고 AI가 정리한 카테고리와 아이템을 그 아래에 추가합니다. 현재 페이지의 카테고리 수와 합산하지 않습니다.
                       </p>
@@ -10022,7 +10022,7 @@ export default function MenuManagementSection({
               {isMenuCleanupReplaceConfirming ? (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center bg-zinc-950/40 px-4">
                   <div className="w-full max-w-md rounded-xl border border-zinc-100 bg-white p-6 shadow-xl">
-                    <h3 className="break-keep text-xl font-black tracking-tight text-zinc-950">현재 메뉴를 AI 결과로 교체할까요?</h3>
+                    <h3 className="type-content-title break-keep text-zinc-950">현재 메뉴를 AI 결과로 교체할까요?</h3>
                     <div className="mt-3 space-y-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">
                       <p>현재 메뉴 관리 탭의 페이지, 카테고리, 메뉴 아이템이 AI가 정리한 결과로 바뀝니다.</p>
                       <p>저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.</p>
@@ -10061,7 +10061,7 @@ export default function MenuManagementSection({
               aria-labelledby="menu-sample-reset-title"
               className="w-full max-w-md rounded-xl border border-red-100 bg-white p-6 shadow-xl"
             >
-              <h2 id="menu-sample-reset-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
+              <h2 id="menu-sample-reset-title" className="type-content-title break-keep text-zinc-950">
                 메뉴 관리 내용을 샘플 메뉴로 되돌릴까요?
               </h2>
               <div className="mt-3 space-y-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">
@@ -10195,7 +10195,7 @@ function MenuItemCard({
       {isEditing ? (
         <>
           <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4">
-            <h4 className="mt-1 line-clamp-2 break-words text-2xl font-bold">{labels.itemLabel} 수정</h4>
+            <h4 className="type-content-title mt-1 line-clamp-2 break-words">{labels.itemLabel} 수정</h4>
             <button type="button" onClick={onCancel} className="mt-3 inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-zinc-700 lg:hidden">
               {isCopiedDraftItem ? "목록으로" : cancelLabel}
             </button>
@@ -10264,12 +10264,12 @@ function MenuItemCard({
       <div className="flex min-w-0 flex-col justify-between gap-3 md:flex-row md:items-start">
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="min-w-0 max-w-full truncate text-base font-black text-zinc-950">{item.name}</h3>
+            <h3 className="type-item-title min-w-0 max-w-full truncate text-zinc-950">{item.name}</h3>
             {badgeLabel && badgeStyle && (
               <span
                 className={
                   usesFixedBadgePreviewStyle
-                    ? "max-w-full truncate rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.04em] text-zinc-950"
+                    ? "max-w-full truncate rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-xs font-bold uppercase tracking-[0.04em] text-zinc-950"
                     : "max-w-full truncate rounded-full px-3 py-1 text-xs font-bold"
                 }
                 style={usesFixedBadgePreviewStyle ? undefined : getBadgeStyleCss(badgeStyle)}
@@ -10346,7 +10346,7 @@ function MenuItemTraitSlots({
               <input type="hidden" name={`trait_slot_${index}_id`} value={trait?.id ?? ""} form={formId} />
               <input type="hidden" name={`trait_slot_${index}_sort_order`} value={index} form={formId} />
               <div className="flex items-center justify-between gap-3">
-                <h5 className="text-sm font-black text-zinc-950">지표 {slotNumber}</h5>
+                <h5 className="type-label text-zinc-950">지표 {slotNumber}</h5>
                 <SwitchField
                   name={`trait_slot_${index}_visible`}
                   form={formId}

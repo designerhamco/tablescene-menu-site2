@@ -96,7 +96,7 @@ export default function AiCreditRechargePanel({
     <div className={wrapperClassName}>
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div>
-          <h4 className={`${compact ? "text-sm" : "text-base"} font-black text-zinc-950`}>
+          <h4 className={`type-item-title ${compact ? " " : " "} text-zinc-950`}>
             {`보유 AI 크레딧 ${formatAiCredits(totalRemainingCredits)}`}
           </h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
@@ -118,7 +118,7 @@ export default function AiCreditRechargePanel({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+          className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
         >
           {compact ? "충전하기" : "AI 크레딧 충전하기"}
         </button>

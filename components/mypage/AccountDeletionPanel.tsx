@@ -63,7 +63,7 @@ export default function AccountDeletionPanel({
       <section className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-5">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
-            <h3 className="text-lg font-black tracking-tight text-red-950">회원탈퇴</h3>
+            <h3 className="type-content-title text-red-950">회원탈퇴</h3>
             <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-700">
               회원탈퇴 시 아티메뉴 서비스 이용이 중단되며, 메뉴판 데이터는 보관·삭제 정책에 따라 처리됩니다. 결제 및 정산, 분쟁 대응에 필요한 기록은 관계 법령에 따라 일정 기간 보관될 수 있습니다.
             </p>
@@ -71,7 +71,7 @@ export default function AccountDeletionPanel({
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="inline-flex shrink-0 items-center justify-center rounded-full bg-red-600 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-red-700"
+            className="inline-flex shrink-0 items-center justify-center rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-700"
           >
             회원탈퇴 신청
           </button>
@@ -89,12 +89,12 @@ export default function AccountDeletionPanel({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-2xl font-black tracking-tight">회원탈퇴를 신청하시겠어요?</h3>
+                <h3 className="type-subsection-title">회원탈퇴를 신청하시겠어요?</h3>
                 <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                   탈퇴 신청 즉시 계정 이용과 메뉴판 편집, 공개, QR, AI 기능 이용이 제한됩니다.
                 </p>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-500">
+              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-500">
                 닫기
               </button>
             </div>
@@ -129,7 +129,7 @@ export default function AccountDeletionPanel({
             </label>
 
             <label className="mt-5 block">
-              <span className="text-sm font-black text-zinc-900">확인 문구 입력</span>
+              <span className="text-sm font-bold text-zinc-900">확인 문구 입력</span>
               <input
                 type="text"
                 value={confirmationText}
@@ -145,14 +145,14 @@ export default function AccountDeletionPanel({
             ) : null}
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700">
+              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700">
                 취소
               </button>
               <button
                 type="button"
                 onClick={submitDeletionRequest}
                 disabled={!canSubmit}
-                className="rounded-full bg-red-600 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                className="rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
               >
                 {isSubmitting ? "처리 중..." : "회원탈퇴 신청"}
               </button>

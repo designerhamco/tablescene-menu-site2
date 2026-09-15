@@ -366,7 +366,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
-        <h2 className="text-2xl font-black tracking-tight">사업자 플랜 선택</h2>
+        <h2 className="type-subsection-title">사업자 플랜 선택</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
           현재 메뉴판은 아티메뉴 다이닝 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 아티메뉴 다이닝 사업자 플랜으로 전환할 수 있습니다.
           아티메뉴 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
@@ -385,14 +385,14 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
                   selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
                 }`}
               >
-                <span className={`rounded-full px-3 py-1 text-xs font-black ${selected ? "bg-white text-zinc-950" : "bg-zinc-100 text-zinc-600"}`}>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${selected ? "bg-white text-zinc-950" : "bg-zinc-100 text-zinc-600"}`}>
                   {product.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}
                 </span>
-                <h3 className="mt-4 text-xl font-black">{product.label}</h3>
+                <h3 className="type-content-title mt-4">{product.label}</h3>
                 <p className={`mt-2 text-sm font-bold leading-relaxed ${selected ? "text-white/70" : "text-zinc-500"}`}>
                   사업자 인증 후 기존 메뉴판을 정식 플랜으로 전환합니다.
                 </p>
-                <p className="mt-4 text-sm font-black">
+                <p className="mt-4 text-sm font-bold">
                   정가 {formatKrw(product.regular_amount)} / 오픈 할인 {formatKrw(product.amount)}
                 </p>
               </button>
@@ -402,7 +402,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
       </section>
 
       <aside className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm lg:sticky lg:top-28 lg:self-start">
-        <h2 className="text-2xl font-black tracking-tight">전환 준비</h2>
+        <h2 className="type-subsection-title">전환 준비</h2>
         <dl className="mt-6 space-y-4 text-sm font-bold">
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
             <dt className="text-zinc-400">전환 대상</dt>
@@ -454,7 +454,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           type="button"
           onClick={startConversionBilling}
           disabled={!isVerified || !requiredConsentsAccepted || isSubmitting}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-black text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
           {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
@@ -466,7 +466,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
       </aside>
 
       <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm lg:col-span-2">
-        <h2 className="text-2xl font-black tracking-tight">사업자 인증</h2>
+        <h2 className="type-subsection-title">사업자 인증</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
           사업자 플랜 전환은 사업자 정보 확인 후 진행됩니다. 이번 단계에서는 인증만 진행하고, 자동결제 연결은 아직 호출하지 않습니다.
         </p>
@@ -484,7 +484,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             type="button"
             onClick={verifyBusiness}
             disabled={verificationState.type === "checking"}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {verificationState.type === "checking" ? <LoadingSpinner className="h-4 w-4" /> : null}
             {verificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
@@ -524,7 +524,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">
+      <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
         {label}
         {required ? <span className="ml-1 text-red-500">*</span> : null}
       </span>
@@ -541,8 +541,8 @@ function Field({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white p-4">
-      <dt className="text-xs font-black uppercase tracking-[0.16em] text-emerald-500">{label}</dt>
-      <dd className="mt-2 break-keep text-sm font-black text-emerald-900">{value}</dd>
+      <dt className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-500">{label}</dt>
+      <dd className="mt-2 break-keep text-sm font-bold text-emerald-900">{value}</dd>
     </div>
   );
 }

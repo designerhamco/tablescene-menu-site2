@@ -72,7 +72,7 @@ export default function MenuWidgetStructureRow({
         </button>
         <span
           aria-hidden="true"
-          className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px] font-black ${
+          className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-bold ${
             selected ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "border-zinc-200 bg-white text-zinc-500"
           }`}
         >
@@ -82,12 +82,12 @@ export default function MenuWidgetStructureRow({
           <div className="flex min-w-0 items-center gap-1.5">
             <span className={`min-w-0 truncate text-xs font-bold ${selected ? "text-white" : "text-zinc-700"}`}>{displayName}</span>
             {hidden && (
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black ${selected ? "bg-zinc-800 text-zinc-300" : "bg-zinc-100 text-zinc-400"}`}>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${selected ? "bg-zinc-800 text-zinc-300" : "bg-zinc-100 text-zinc-400"}`}>
                 숨김
               </span>
             )}
           </div>
-          <p className={`mt-0.5 truncate text-[10px] font-bold ${selected ? "text-zinc-300" : "text-zinc-400"}`}>{typeLabel}</p>
+          <p className={`mt-0.5 truncate text-xs font-bold ${selected ? "text-zinc-300" : "text-zinc-400"}`}>{typeLabel}</p>
         </button>
       </div>
     </div>

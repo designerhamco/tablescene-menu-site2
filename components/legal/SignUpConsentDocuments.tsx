@@ -10,7 +10,7 @@ function renderLegalText(content: string) {
 
     if (trimmedLine.startsWith("## ")) {
       return (
-        <h4 key={`${trimmedLine}-${index}`} className="mt-7 break-keep border-t border-zinc-100 pt-7 text-base font-black text-zinc-950">
+        <h4 key={`${trimmedLine}-${index}`} className="type-item-title mt-7 break-keep border-t border-zinc-100 pt-7 text-zinc-950">
           {trimmedLine.slice(3)}
         </h4>
       );
@@ -38,12 +38,12 @@ export function PrivacyCollectionConsentDocument() {
   return (
     <div className="space-y-6 break-keep">
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">개인정보 수집·이용 동의</h4>
+        <h4 className="type-item-title text-zinc-950">개인정보 수집·이용 동의</h4>
         <p>디앤디커머스는 아티메뉴 회원가입 및 서비스 제공을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">■ 수집하는 개인정보 항목</h4>
+        <h4 className="type-item-title text-zinc-950">■ 수집하는 개인정보 항목</h4>
         <p>회사는 회원가입, 서비스 신청, 메뉴판 생성 및 관리, 결제, 고객지원 등을 위해 아래 개인정보를 수집할 수 있습니다.</p>
         <p>· 회원가입 필수 항목: 이름 또는 매장명, 이메일 주소, 비밀번호</p>
         <p>· 카카오 간편가입 이용 시: 카카오 계정 식별정보, 이름, 카카오계정 전화번호, CI(연계정보), 이메일 또는 닉네임 등 이용자가 동의한 항목</p>
@@ -57,7 +57,7 @@ export function PrivacyCollectionConsentDocument() {
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">■ 개인정보의 수집 및 이용 목적</h4>
+        <h4 className="type-item-title text-zinc-950">■ 개인정보의 수집 및 이용 목적</h4>
         <p>회사는 수집한 개인정보를 다음의 목적을 위해 이용합니다.</p>
         <p>· 회원가입, 로그인 및 계정 관리</p>
         <p>· 본인 확인, 중복 가입 및 부정 이용 방지</p>
@@ -72,7 +72,7 @@ export function PrivacyCollectionConsentDocument() {
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">■ 개인정보의 보유 및 이용 기간</h4>
+        <h4 className="type-item-title text-zinc-950">■ 개인정보의 보유 및 이용 기간</h4>
         <p>회사는 개인정보 수집 및 이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 단, 관계 법령에 따라 보관이 필요한 정보는 법령에서 정한 기간 동안 보관할 수 있습니다.</p>
         <p>· 회원 계정 정보: 회원 탈퇴 시까지</p>
         <p>· 첫 달 체험 데이터: 체험 기간 및 종료 후 30일까지 복구 가능 상태로 보관 가능</p>
@@ -86,7 +86,7 @@ export function PrivacyCollectionConsentDocument() {
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">■ 동의 거부권 및 불이익</h4>
+        <h4 className="type-item-title text-zinc-950">■ 동의 거부권 및 불이익</h4>
         <p>이용자는 개인정보 수집·이용에 대한 동의를 거부할 권리가 있습니다.</p>
         <p>다만 필수 항목에 대한 동의를 거부할 경우 회원가입, 로그인, 메뉴판 생성, 첫 달 체험, 유료서비스 결제, 정기구독 관리, 고객지원 및 아티메뉴 서비스 이용이 제한될 수 있습니다.</p>
       </section>
@@ -98,28 +98,28 @@ export function MarketingConsentDocument() {
   return (
     <div className="space-y-6 break-keep">
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">1. 수신 목적</h4>
+        <h4 className="type-item-title text-zinc-950">1. 수신 목적</h4>
         <p>아티메뉴는 이용자가 선택적으로 동의한 경우 이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내, 프로모션 및 혜택 안내 등 광고성 정보를 발송할 수 있습니다.</p>
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">2. 수신 내용 및 채널</h4>
+        <h4 className="type-item-title text-zinc-950">2. 수신 내용 및 채널</h4>
         <p>수신 내용은 이벤트 및 할인 혜택, 신규 템플릿 출시 안내, AI 기능 업데이트 안내, 서비스 개선 소식, 유료 기능 및 프로모션 안내를 포함합니다.</p>
         <p>수신 채널은 이메일, 문자메시지, 카카오 메시지 등 아티메뉴가 운영하는 안내 채널을 포함할 수 있습니다.</p>
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">3. 보유 및 이용 기간</h4>
+        <h4 className="type-item-title text-zinc-950">3. 보유 및 이용 기간</h4>
         <p>마케팅 수신 동의 정보는 동의 철회 시까지 또는 회원 탈퇴 시까지 보관·이용됩니다. 동의 및 철회 기록은 분쟁 대응과 수신 동의 이력 관리를 위해 필요한 기간 동안 보관될 수 있습니다.</p>
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">4. 동의 철회 방법</h4>
+        <h4 className="type-item-title text-zinc-950">4. 동의 철회 방법</h4>
         <p>이용자는 언제든지 마이페이지의 광고성 정보 수신 설정, 이메일 하단 수신거부 링크 또는 고객지원 문의를 통해 마케팅 정보 수신 동의를 철회할 수 있습니다.</p>
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-base font-black text-zinc-950">5. 선택 동의 안내</h4>
+        <h4 className="type-item-title text-zinc-950">5. 선택 동의 안내</h4>
         <p>마케팅 정보 수신 동의는 선택 사항이며, 동의하지 않아도 회원가입, 첫 달 체험, 유료서비스 결제 및 아티메뉴 서비스 이용에는 제한이 없습니다.</p>
         <p>결제 완료, 정기결제 예정 또는 실패, 구독 만료, 데이터 삭제 예정, 약관·정책 변경, 서비스 장애, 보안 안내, 고객지원 답변 등 서비스 이용에 필요한 필수 고지는 마케팅 수신 동의 여부와 관계없이 발송될 수 있습니다.</p>
       </section>

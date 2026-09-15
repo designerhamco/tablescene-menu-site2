@@ -67,7 +67,7 @@ export default function QrAddressActions({
 
   return (
     <div className="mt-4">
-      <label className="block text-xs font-black text-zinc-500" htmlFor={`qr-address-${copyKey}`}>
+      <label className="block text-xs font-bold text-zinc-500" htmlFor={`qr-address-${copyKey}`}>
         연결 주소
       </label>
       <div className="mt-2 flex flex-col gap-2 lg:flex-row">
@@ -83,7 +83,7 @@ export default function QrAddressActions({
             onClick={copyUrl}
             disabled={disabled}
             title={disabled ? disabledReason ?? undefined : undefined}
-            className="rounded-full border border-zinc-300 bg-white px-4 py-3 text-xs font-black text-zinc-800 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400"
+            className="rounded-full border border-zinc-300 bg-white px-4 py-3 text-xs font-bold text-zinc-800 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400"
           >
             {copyStatus === "copied" ? "복사 완료" : copyStatus === "error" ? "다시 복사" : "주소 복사"}
           </button>
@@ -92,7 +92,7 @@ export default function QrAddressActions({
             onClick={downloadQr}
             disabled={disabled || downloadStatus === "working"}
             title={disabled ? disabledReason ?? undefined : undefined}
-            className="rounded-full bg-zinc-950 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
+            className="rounded-full bg-zinc-950 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
             data-table-qr-download=""
           >
             {downloadStatus === "working" ? "QR 만드는 중" : "QR 다운로드"}
@@ -103,7 +103,7 @@ export default function QrAddressActions({
         <p className="mt-2 text-xs font-bold text-amber-700">{disabledReason}</p>
       ) : null}
       {downloadStatus === "error" ? (
-        <p className="mt-2 text-xs font-black text-rose-700">QR 이미지를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+        <p className="mt-2 text-xs font-bold text-rose-700">QR 이미지를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
       ) : null}
     </div>
   );

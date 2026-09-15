@@ -343,7 +343,7 @@ function TranslationEditorGroup({
 
   return (
     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-      <h4 className="text-sm font-black text-zinc-950">{title}</h4>
+      <h4 className="type-label text-zinc-950">{title}</h4>
       <div className="mt-4 space-y-4">
         {groupedFields.map((group) => {
           const partialEntityType = group.fields[0]?.entityType;
@@ -352,13 +352,13 @@ function TranslationEditorGroup({
           return (
             <div key={group.entityId} className="rounded-lg border border-zinc-100 bg-white p-4">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm font-black text-zinc-950">{group.groupLabel}</p>
+                <p className="text-sm font-bold text-zinc-950">{group.groupLabel}</p>
                 {onPartialTranslate && canUsePartialTranslation ? (
                   <button
                     type="button"
                     disabled={Boolean(pendingPartialEntityKey) || isPartialUsageExceeded}
                     onClick={() => onPartialTranslate(group.fields)}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-black text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                   >
                     {pendingPartialEntityKey === `${group.fields[0]?.entityType}:${group.entityId}` ? (
                       <>
@@ -381,11 +381,11 @@ function TranslationEditorGroup({
                   return (
                     <div key={key} className="grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
                       <div>
-                        <p className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{field.label}</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{field.label}</p>
                         <p className="mt-2 whitespace-pre-wrap break-keep text-sm font-bold leading-relaxed text-zinc-800">{field.sourceText}</p>
                       </div>
                       <label>
-                        <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{LOCALE_LABELS[activeLocale]}</span>
+                        <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{LOCALE_LABELS[activeLocale]}</span>
                         <Input
                           value={value}
                           onChange={(event) => onDraftChange(field, event.target.value)}
@@ -394,7 +394,7 @@ function TranslationEditorGroup({
                           className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
                         />
                         {maxLength ? (
-                          <span className="mt-1 block text-right text-[11px] font-bold text-zinc-400">
+                          <span className="mt-1 block text-right text-xs font-bold text-zinc-400">
                             {value.length} / {maxLength}
                           </span>
                         ) : null}
@@ -448,7 +448,7 @@ function TranslationEditorItemGroups({
 
   return (
     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-      <h4 className="text-sm font-black text-zinc-950">{title}</h4>
+      <h4 className="type-label text-zinc-950">{title}</h4>
       <div className="mt-4 space-y-3">
         {categoryGroups.map((category) => {
           const isOpen = openCategoryLabels.has(category.categoryLabel);
@@ -471,8 +471,8 @@ function TranslationEditorItemGroups({
                 }
                 className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
               >
-                <span className="break-words text-sm font-black text-zinc-950">{category.categoryLabel} ({itemCount})</span>
-                <span className="text-sm font-black text-zinc-400">{isOpen ? "▾" : "▸"}</span>
+                <span className="break-words text-sm font-bold text-zinc-950">{category.categoryLabel} ({itemCount})</span>
+                <span className="text-sm font-bold text-zinc-400">{isOpen ? "▾" : "▸"}</span>
               </button>
               {isOpen ? (
                 <div className="space-y-4 border-t border-zinc-100 p-4">
@@ -515,7 +515,7 @@ function ReadOnlyTranslationFields({ fields }: { fields: EditableTranslationFiel
 
         return (
           <label key={getFieldKey(field)} className="block rounded-lg border border-zinc-100 bg-white p-4">
-            <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{field.groupLabel} · {field.label}</span>
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{field.groupLabel} · {field.label}</span>
             <Input
               value={field.sourceText}
               readOnly
@@ -562,8 +562,8 @@ function ReadOnlyItemGroups({ fields }: { fields: EditableTranslationField[] }) 
               }
               className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
             >
-              <span className="break-words text-sm font-black text-zinc-950">{categoryLabel} ({itemCount})</span>
-              <span className="text-sm font-black text-zinc-400">{isOpen ? "▾" : "▸"}</span>
+              <span className="break-words text-sm font-bold text-zinc-950">{categoryLabel} ({itemCount})</span>
+              <span className="text-sm font-bold text-zinc-400">{isOpen ? "▾" : "▸"}</span>
             </button>
             {isOpen ? <div className="border-t border-zinc-100 p-4"><ReadOnlyTranslationFields fields={categoryFields} /></div> : null}
           </div>
@@ -916,12 +916,12 @@ function LocalizationSectionContent({
         <input type="hidden" name="translation_draft" value={JSON.stringify(translationDraftPayload)} />
         {appliedRecoveryJobId ? <input type="hidden" name="translation_recovery_job_id" value={appliedRecoveryJobId} /> : null}
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
-          <h3 className="text-lg font-bold tracking-tight text-zinc-950">다국어 설정</h3>
+          <h3 className="type-content-title text-zinc-950">다국어 설정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
             공개 메뉴판에서 사용할 언어를 선택하고, AI로 번역 초안을 만들 수 있습니다.
           </p>
           <div className="mt-5">
-            <h4 className="text-sm font-black text-zinc-950">사용할 언어</h4>
+            <h4 className="type-label text-zinc-950">사용할 언어</h4>
             <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               한국어는 기본 언어로 항상 사용됩니다. 선택한 언어는 하단 저장 후 공개 메뉴판의 언어 선택에 반영됩니다.
             </p>
@@ -953,7 +953,7 @@ function LocalizationSectionContent({
           <div className="mt-6 border-t border-zinc-100 pt-5">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
             <div>
-              <h3 className="text-lg font-bold tracking-tight text-zinc-950">AI 번역 크레딧</h3>
+              <h3 className="type-content-title text-zinc-950">AI 번역 크레딧</h3>
               <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                 선택한 외국어의 번역 초안을 생성합니다. 메뉴 수에 따라 보통 1~3분 정도 걸릴 수 있습니다.
                 생성된 번역은 아래 “번역 확인 및 수정” 영역에서 확인하고 저장 후 공개 메뉴판에 반영됩니다.
@@ -1003,8 +1003,8 @@ function LocalizationSectionContent({
                   return (
                     <div key={locale} className="rounded-lg border border-zinc-100 bg-white p-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-black text-zinc-700">{LOCALE_LABELS[locale]}</span>
-                        <span className={`rounded-full border px-2 py-0.5 text-[11px] font-black ${getLocaleTranslationStateTone(state)}`}>
+                        <span className="text-xs font-bold text-zinc-700">{LOCALE_LABELS[locale]}</span>
+                        <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${getLocaleTranslationStateTone(state)}`}>
                           {getLocaleTranslationStateLabel(state)}
                         </span>
                       </div>
@@ -1018,7 +1018,7 @@ function LocalizationSectionContent({
                             retryOfJobId: state.status === "failed" ? state.jobId ?? null : null,
                           })
                         }
-                        className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-black text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                        className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                       >
                         {isPending ? (
                           <>
@@ -1032,7 +1032,7 @@ function LocalizationSectionContent({
                         )}
                       </button>
                       {state.status === "failed" && state.message ? (
-                        <p className="mt-2 break-keep text-[11px] font-bold leading-relaxed text-red-600">{state.message}</p>
+                        <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{state.message}</p>
                       ) : null}
                     </div>
                   );
@@ -1048,7 +1048,7 @@ function LocalizationSectionContent({
           <section className="rounded-lg border border-emerald-100 bg-emerald-50 p-5">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div>
-                <h3 className="text-base font-black tracking-tight text-emerald-900">최근 자동 번역 결과가 있습니다.</h3>
+                <h3 className="type-item-title text-emerald-900">최근 자동 번역 결과가 있습니다.</h3>
                 <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-emerald-800">
                   {recoveryLocaleLabels ? `${recoveryLocaleLabels} 자동 번역 결과` : "최근 자동 번역 결과"}를 다시 불러올 수 있습니다.
                   기존에 입력한 번역은 덮어쓰지 않고 비어 있는 칸만 채웁니다.
@@ -1063,7 +1063,7 @@ function LocalizationSectionContent({
               <button
                 type="button"
                 onClick={() => applyRecoverableTranslationDraft(recoverableAutoTranslationJob)}
-                className="inline-flex shrink-0 items-center justify-center rounded-full bg-emerald-900 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-emerald-800"
+                className="inline-flex shrink-0 items-center justify-center rounded-full bg-emerald-900 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
               >
                 최근 자동 번역 결과 불러오기
               </button>
@@ -1072,7 +1072,7 @@ function LocalizationSectionContent({
         ) : null}
 
         <section className="rounded-lg border border-zinc-100 bg-white p-5">
-          <h3 className="text-lg font-bold tracking-tight text-zinc-950">번역 확인 및 수정</h3>
+          <h3 className="type-content-title text-zinc-950">번역 확인 및 수정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
             {localizationStructure === "basic"
               ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판의 언어 선택에 반영됩니다."
@@ -1112,7 +1112,7 @@ function LocalizationSectionContent({
                   key={group}
                   type="button"
                   onClick={() => setActiveTargetGroup(group)}
-                  className={`rounded-md px-4 py-2 text-sm font-black transition-colors ${
+                  className={`rounded-md px-4 py-2 text-sm font-bold transition-colors ${
                     activeTargetGroup === group
                       ? "bg-white text-zinc-950 shadow-sm"
                       : "text-zinc-500 hover:bg-white/70 hover:text-zinc-800"
@@ -1181,7 +1181,7 @@ function LocalizationSectionContent({
       {overwriteRequest ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4">
           <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl">
-            <h3 className="text-lg font-bold tracking-tight text-zinc-950">기존 번역 내용을 AI 번역 결과로 바꿀까요?</h3>
+            <h3 className="type-content-title text-zinc-950">기존 번역 내용을 AI 번역 결과로 바꿀까요?</h3>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               저장 전까지 공개 메뉴판에는 반영되지 않습니다.
             </p>

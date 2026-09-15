@@ -31,7 +31,7 @@ export function TemplateThumbnail({ template }: { template: TemplateCatalogItem 
       <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-[#f3ebdc] text-[#401e24]">
         <div className="grid h-full grid-cols-[34%_66%]">
           <div className="flex flex-col justify-between bg-[#401e24] px-5 py-6 text-[#f3ebdc]">
-            <p className="text-[10px] font-semibold tracking-[0.18em]">MAISON MARAIS</p>
+            <p className="text-xs font-semibold tracking-[0.18em]">MAISON MARAIS</p>
             <div className="space-y-3 text-sm font-semibold">
               <p className="border-y border-[#f3ebdc]/35 py-2">The Menu</p>
               <p className="border-b border-[#f3ebdc]/35 pb-2">Seasonal Course</p>
@@ -40,10 +40,10 @@ export function TemplateThumbnail({ template }: { template: TemplateCatalogItem 
           </div>
           <div className="flex flex-col justify-center px-7">
             <p className="font-serif text-3xl leading-none">Seasonal Course</p>
-            <p className="mt-3 text-[9px] text-[#401e24]/60">A modern French dining menu</p>
+            <p className="mt-3 text-xs text-[#401e24]/60">A modern French dining menu</p>
             <div className="mt-7 space-y-3">
               {["Amuse-bouche", "Cold starter", "Main course"].map((item) => (
-                <div key={item} className="flex items-center gap-3 text-[10px] font-semibold">
+                <div key={item} className="flex items-center gap-3 text-xs font-semibold">
                   <span>{item}</span><span className="h-px flex-1 bg-[#401e24]/25" />
                 </div>
               ))}
@@ -60,8 +60,8 @@ export function TemplateThumbnail({ template }: { template: TemplateCatalogItem 
         <div className="grid h-full grid-cols-[0.8fr_1fr_1fr] gap-4">
           <div className="flex flex-col justify-between border-r border-zinc-900 pr-3">
             <div className="flex">
-              <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-900 text-[11px] font-semibold">N</span>
-              <span className="-ml-2 grid h-8 w-8 place-items-center rounded-full border border-zinc-900 bg-[#f8f8f5] text-[11px] font-semibold">R</span>
+              <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-900 text-xs font-semibold">N</span>
+              <span className="-ml-2 grid h-8 w-8 place-items-center rounded-full border border-zinc-900 bg-[#f8f8f5] text-xs font-semibold">R</span>
             </div>
             <p className="text-5xl font-light uppercase leading-none tracking-[-0.12em] [writing-mode:vertical-rl]">MENU</p>
             <div className="space-y-1 text-[6px] uppercase tracking-[0.12em] text-zinc-500">
@@ -152,11 +152,11 @@ export default function TemplateCard({
       <div className="relative overflow-hidden rounded-[1.5rem] bg-zinc-100">
         <TemplateThumbnail template={template} />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-[#F8E731] px-3 py-1.5 text-xs font-black text-zinc-950">
+          <span className="rounded-full bg-[#F8E731] px-3 py-1.5 text-xs font-bold text-zinc-950">
             {templateTypeLabel}
           </span>
           {template.status === "coming_soon" ? (
-            <span className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-zinc-950">
+            <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-zinc-950">
               준비 중
             </span>
           ) : null}
@@ -166,7 +166,7 @@ export default function TemplateCard({
       <div className="flex flex-1 flex-col px-1 pt-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h3 className="inline-flex max-w-full items-center gap-1.5 break-keep text-base font-black leading-snug tracking-tight text-zinc-950 md:text-lg">
+            <h3 className="type-content-title inline-flex max-w-full items-center gap-1.5 break-keep text-zinc-950">
               <span className="min-w-0">{template.name}</span>
               <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.4] md:h-[18px] md:w-[18px]" aria-hidden="true" />
             </h3>
