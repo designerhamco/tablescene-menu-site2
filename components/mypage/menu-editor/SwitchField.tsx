@@ -80,7 +80,7 @@ export default function SwitchField({
           className="peer sr-only"
         />
         <span className="absolute inset-0 rounded-full bg-zinc-200 transition-colors peer-checked:bg-zinc-950 peer-focus-visible:ring-2 peer-focus-visible:ring-zinc-950 peer-focus-visible:ring-offset-2" />
-        <span className="absolute left-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
+        <span className="absolute left-1 h-5 w-5 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
       </span>
     </label>
   );

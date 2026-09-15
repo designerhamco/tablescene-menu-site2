@@ -17,8 +17,8 @@ type MenuEditorNavigationProps = {
 
 export default function MenuEditorNavigation({ menuId, activeTab, tabs = MENU_EDITOR_TABS }: MenuEditorNavigationProps) {
   return (
-    <nav className="mb-6 rounded-lg bg-white p-3 shadow-sm">
-      <div className="flex gap-2 overflow-x-auto">
+    <nav className="site-card site-card-compact mb-6 p-2 sm:p-3">
+      <div className="flex gap-2 overflow-x-auto" aria-label="메뉴 편집 설정">
         {tabs.map((item) => {
           if (item.disabledReason) {
             return (

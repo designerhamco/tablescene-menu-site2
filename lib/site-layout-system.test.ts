@@ -80,3 +80,14 @@ test("메뉴 편집기 외곽과 주요 섹션은 공통 반응형 표면을 사
   assert.match(source, /<header className="site-card mb-6 p-5 sm:p-6">/);
   assert.doesNotMatch(source, /shadow-(?:sm|md|lg|xl|2xl)/);
 });
+
+test("메뉴 편집기의 탭과 구조 편집 패널도 공통 무그림자 표면을 사용한다", () => {
+  const navigation = readSource("../components/mypage/menu-editor/MenuEditorNavigation.tsx");
+  const management = readSource("../components/mypage/menu-editor/MenuManagementSection.tsx");
+
+  assert.match(navigation, /site-card site-card-compact mb-6/);
+  assert.match(management, /<section className="site-card p-5 sm:p-6">/);
+  assert.match(management, /<section className="site-card site-card-compact min-w-0 p-4 lg:p-6">/);
+  assert.doesNotMatch(navigation, /shadow-(?:sm|md|lg|xl|2xl)/);
+  assert.doesNotMatch(management, /shadow-(?:sm|md|lg|xl|2xl)/);
+});
