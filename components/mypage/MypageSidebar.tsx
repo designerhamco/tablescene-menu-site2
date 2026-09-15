@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
@@ -111,7 +112,10 @@ export function MypageNavigation({
           aria-label="매장 운영 새 창 열기"
           className={getNavigationClassName(false)}
         >
-          <span>매장 운영</span>
+          <span className="inline-flex items-center gap-1.5">
+            매장 운영
+            <ExternalLink className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.9} aria-hidden="true" />
+          </span>
         </Link>
         {canShowOwnerCommerce ? (
           <Link href="/mypage?tab=payments" className={getNavigationClassName(active === "payments")}>

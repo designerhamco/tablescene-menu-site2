@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ExternalLink } from "lucide-react";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -2438,6 +2439,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         className={className}
       >
         매장 운영
+        <ExternalLink className="h-4 w-4" strokeWidth={1.9} aria-hidden="true" />
       </Link>
     );
   }

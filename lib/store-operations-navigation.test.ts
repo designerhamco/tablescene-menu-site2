@@ -14,6 +14,7 @@ test("마이페이지의 매장 운영 진입점은 두 곳 모두 새 창으로
     assert.match(source, /href="\/mypage\/operations"/);
     assert.match(source, /target="_blank"/);
     assert.match(source, /rel="noopener noreferrer"/);
+    assert.match(source, /<ExternalLink/);
   }
 });
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, Menu, X } from 'lucide-react';
+import { ArrowUpRight, Bell, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -348,13 +348,13 @@ const Navbar = () => {
           </div>
 
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
-            <a
+            <Link
               href="/apply"
               className={`type-nav hidden rounded-full px-5 py-2.5 transition-colors lg:inline-flex ${primaryButtonClass}`}
               style={primaryButtonStyle}
             >
               만들기
-            </a>
+            </Link>
             {authState.isAuthenticated ? (
               <div ref={notificationLayerRef} className="relative hidden lg:block">
                 <button
@@ -362,7 +362,7 @@ const Navbar = () => {
                   aria-label="알림"
                   aria-expanded={isNotificationOpen}
                   onClick={() => setIsNotificationOpen((current) => !current)}
-                  className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${secondaryButtonClass}`}
+                  className={`relative inline-flex aspect-square h-10 w-10 shrink-0 items-center justify-center rounded-full border p-0 transition-colors ${secondaryButtonClass}`}
                 >
                   <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
                   {unreadCount > 0 ? (
@@ -396,30 +396,30 @@ const Navbar = () => {
                         <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">새 알림이 없습니다.</p>
                       )}
                     </div>
-                    <a
+                    <Link
                       href={NOTIFICATION_FALLBACK_HREF}
                       onClick={() => setIsNotificationOpen(false)}
                       className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
                     >
                       전체 알림 보기
-                    </a>
+                    </Link>
                   </div>
                 ) : null}
               </div>
             ) : null}
             {!authState.loading ? (
-              <a
+              <Link
                 href={accountCtaHref}
                 className={`type-nav hidden rounded-full border px-5 py-2.5 transition-colors lg:inline-flex ${secondaryButtonClass}`}
               >
                 {accountCtaLabel}
-              </a>
+              </Link>
             ) : null}
             {authState.isAuthenticated ? (
-              <a
+              <Link
                 href={NOTIFICATION_FALLBACK_HREF}
                 aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
-                className={`relative inline-flex p-1 transition-opacity lg:hidden ${menuButtonClass}`}
+                className={`relative inline-flex aspect-square h-9 w-9 shrink-0 items-center justify-center p-0 transition-opacity lg:hidden ${menuButtonClass}`}
               >
                 <Bell size={23} strokeWidth={2.1} aria-hidden="true" />
                 {unreadCount > 0 ? (
@@ -427,11 +427,11 @@ const Navbar = () => {
                     {unreadBadgeLabel}
                   </span>
                 ) : null}
-              </a>
+              </Link>
             ) : null}
 
             <button
-              className={`p-1 transition-opacity lg:hidden ${menuButtonClass}`}
+              className={`inline-flex aspect-square h-9 w-9 shrink-0 items-center justify-center p-0 transition-opacity lg:hidden ${menuButtonClass}`}
               onClick={() => setIsOpen((currentIsOpen) => !currentIsOpen)}
               aria-label={isOpen ? '메뉴 닫기' : '메뉴 열기'}
               aria-expanded={isOpen}
@@ -445,29 +445,30 @@ const Navbar = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-0 top-20 z-40 bg-white"
           >
-            <div className="flex h-full flex-col overflow-y-auto pb-10">
-              <div className="flex-1 px-6 py-6">
+            <div className="site-container flex h-full flex-col overflow-y-auto pb-8">
+              <div className="flex-1 py-5">
                 <div className="mb-6 grid grid-cols-2 gap-2 border-b border-zinc-100 pb-6">
-                  <a
+                  <Link
                     href="/apply"
                     onClick={closeMobileMenu}
-                    className={`flex items-center justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white ${authState.isAuthenticated ? 'col-span-2' : ''}`}
+                    className="site-button site-button-primary w-full"
                   >
                     만들기
-                  </a>
+                  </Link>
                   {!authState.loading ? (
-                    <a
+                    <Link
                       href={accountCtaHref}
                       onClick={closeMobileMenu}
-                      className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
+                      className="site-button site-button-secondary w-full"
                     >
                       {accountCtaLabel}
-                    </a>
+                    </Link>
                   ) : null}
                 </div>
 
@@ -490,7 +491,7 @@ const Navbar = () => {
 
                           closeMobileMenu();
                         }}
-                        className={`flex items-center justify-between gap-3 border-b border-zinc-100 py-6 text-2xl font-bold leading-[1.2] tracking-tight transition-colors ${
+                        className={`group flex min-h-16 items-center justify-between gap-3 border-b border-zinc-100 py-4 text-xl font-bold leading-tight tracking-tight transition-colors ${
                           item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : isActive ? 'text-zinc-950' : 'text-zinc-600 active:text-zinc-950'
                         }`}
                       >
@@ -498,6 +499,7 @@ const Navbar = () => {
                         <span className="flex shrink-0 items-center gap-2">
                           {item.discount ? <DiscountChip /> : null}
                           {item.disabled ? <DisabledChip /> : null}
+                          {!item.disabled ? <ArrowUpRight className="h-4 w-4 text-zinc-300 transition-colors group-active:text-zinc-950" aria-hidden="true" /> : null}
                         </span>
                       </Link>
                     );
@@ -505,23 +507,23 @@ const Navbar = () => {
                 </nav>
               </div>
 
-              <div className="mt-auto px-6 py-8">
+              <div className="mt-auto py-8">
                 <div className="border-t border-zinc-100 pt-6">
                   <div className="mb-5 flex items-center gap-4 text-xs font-bold text-zinc-500">
-                    <a
+                    <Link
                       href="/mypage/inquiries"
                       onClick={closeMobileMenu}
                       className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
                     >
                       1:1 문의
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/support/chat"
                       onClick={closeMobileMenu}
                       className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
                     >
                       채팅상담
-                    </a>
+                    </Link>
                   </div>
                   <div className="flex flex-col gap-1 text-xs font-medium tracking-tight text-zinc-400">
                     <p className="mb-1 text-sm font-bold text-zinc-900">ArtiMenu Studio</p>
