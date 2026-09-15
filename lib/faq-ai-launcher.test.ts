@@ -22,8 +22,13 @@ test("고객센터 AI 상담 카드는 별도 페이지 대신 공통 상담창�
 });
 
 test("AI 상담 모달은 모바일 밀도를 줄이고 언제든 1:1 문의로 전환한다", () => {
-  assert.match(chatSource, /compact \? "site-card-compact flex flex-col"/);
+  assert.match(chatSource, /compact \? "site-card-compact flex h-full flex-col"/);
   assert.match(chatSource, /flex-1 overflow-y-auto/);
+  assert.match(chatSource, /messageViewportRef/);
+  assert.match(chatSource, /viewport\.scrollTo\(\{[\s\S]*?top: viewport\.scrollHeight/);
+  assert.match(chatSource, /국외 이전 동의 완료/);
+  assert.match(launcherSource, /h-\[92dvh\][\s\S]*?flex-col overflow-hidden/);
+  assert.match(launcherSource, /flex min-h-0 flex-1 flex-col overflow-hidden/);
   assert.match(chatSource, /w-full text-zinc-600[\s\S]*sm:w-auto/);
   assert.match(chatSource, /1:1 문의로 이어서 도움받기/);
   assert.match(chatSource, /href="\/mypage\/inquiries"/);
