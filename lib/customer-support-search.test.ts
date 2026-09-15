@@ -35,3 +35,10 @@ test("문의 내역은 제목과 답변 상태를 두 진입 경로에서 동일
     assert.match(source, /\.eq\("status", activeInquiryStatus\)/);
   }
 });
+
+test("문의 작성과 수정 폼은 공통 필드와 한글 레이블을 사용한다", () => {
+  assert.match(inquirySectionSource, /className="site-field w-full px-4"/);
+  assert.match(inquirySectionSource, />\s*문의 유형\s*</);
+  assert.match(inquirySectionSource, />\s*문의 내용\s*</);
+  assert.doesNotMatch(inquirySectionSource, />\s*(?:category|title|message)\s*</);
+});

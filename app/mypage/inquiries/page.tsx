@@ -87,11 +87,11 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
         <div className="mx-auto w-full max-w-5xl">
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <Link href="/mypage?tab=inquiries" className="mb-6 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+              <Link href="/mypage?tab=inquiries" className="type-label mb-6 inline-block text-zinc-400 hover:text-zinc-950">
                 ← 마이페이지 문의 내역
               </Link>
               <h1 className="type-page-title">문의하기</h1>
-              <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <p className="type-body mt-4 break-keep text-zinc-500">
                 메뉴판 운영, 결제, 기능 요청 등 아티메뉴 운영팀에 남길 내용을 작성해주세요.
               </p>
             </div>

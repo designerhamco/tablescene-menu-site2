@@ -168,14 +168,14 @@ export function InquirySection({
   };
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6 sm:space-y-8">
       <ActionFeedbackToast message={noticeMessage} tone="success" />
       <ActionFeedbackToast message={errorMessage} tone="error" />
       {showIntro ? (
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h2 className="type-section-title">문의 및 답변</h2>
-            <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <p className="type-body-sm mt-3 break-keep text-zinc-500">
               고객지원 문의와 답변 내역을 확인하고 새 문의를 남길 수 있습니다.
             </p>
           </div>
@@ -183,63 +183,65 @@ export function InquirySection({
       ) : null}
 
       {noticeMessage && (
-        <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-5 text-sm font-bold text-emerald-700">
+        <div className="site-notice site-notice-success p-4 sm:p-5">
           {noticeMessage}
         </div>
       )}
 
       {errorMessage && (
-        <div className="rounded-3xl border border-red-100 bg-red-50 p-5 text-sm font-bold text-red-700">
+        <div className="site-notice site-notice-error p-4 sm:p-5">
           {errorMessage}
         </div>
       )}
 
       {inquiriesErrorMessage && (
-        <div className="rounded-3xl border border-red-100 bg-red-50 p-5 text-sm font-bold text-red-700">
+        <div className="site-notice site-notice-error p-4 sm:p-5">
           문의 목록을 불러오지 못했습니다: {inquiriesErrorMessage}
         </div>
       )}
 
-      <section className="site-card p-7">
+      <section className="site-card p-5 sm:p-7">
         <h3 className="type-subsection-title">새 문의 등록</h3>
 
         <form action={createInquiryAction} className="mt-7 space-y-5">
           <input type="hidden" name="returnTo" value={returnToPath} />
-          <div>
-            <label htmlFor="category" className="mb-2 block text-sm font-bold">
-              문의 유형
-            </label>
-            <select
-              id="category"
-              name="category"
-              required
-              defaultValue="general"
-              className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-base font-semibold outline-none transition-colors focus:border-zinc-950"
-            >
-              {inquiryCategoryOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="title" className="mb-2 block text-sm font-bold">
-              제목
-            </label>
-            <input
-              id="title"
-              name="title"
-              type="text"
-              required
-              maxLength={120}
-              className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
-              placeholder="예: 공개 메뉴판 주소 변경 문의"
-            />
+          <div className="grid gap-5 md:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
+            <div>
+              <label htmlFor="category" className="type-label mb-2 block text-zinc-700">
+                문의 유형
+              </label>
+              <select
+                id="category"
+                name="category"
+                required
+                defaultValue="general"
+                className="site-field w-full px-4"
+              >
+                {inquiryCategoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="title" className="type-label mb-2 block text-zinc-700">
+                제목
+              </label>
+              <input
+                id="title"
+                name="title"
+                type="text"
+                required
+                maxLength={120}
+                className="site-field w-full px-4"
+                placeholder="예: 공개 메뉴판 주소 변경 문의"
+              />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="message" className="mb-2 block text-sm font-bold">
+            <label htmlFor="message" className="type-label mb-2 block text-zinc-700">
               문의 내용
             </label>
             <textarea
@@ -247,7 +249,7 @@ export function InquirySection({
               name="message"
               required
               rows={7}
-              className="w-full resize-y rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+              className="site-field w-full px-4 py-3"
               placeholder="문의하실 내용을 자세히 적어주세요."
             />
           </div>
@@ -263,7 +265,7 @@ export function InquirySection({
           <div>
             <h3 className="type-subsection-title">내 문의 목록</h3>
           </div>
-          <p className="text-sm font-bold text-zinc-400">
+          <p className="type-label text-zinc-400">
             {activeInquiryPage}/{inquiryTotalPages} 페이지 · 총 {inquiryTotalCount.toLocaleString("ko-KR")}개
           </p>
         </div>
@@ -302,7 +304,7 @@ export function InquirySection({
 
         {inquiries.length > 0 ? (
           <div className="site-card overflow-hidden">
-            <div className="hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400 md:grid">
+            <div className="type-caption hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 font-bold text-zinc-400 md:grid">
               <p>번호</p>
               <p>유형</p>
               <p>제목</p>
@@ -337,7 +339,7 @@ export function InquirySection({
                     </div>
 
                     <div className="rounded-2xl bg-white p-4">
-                      <p className="whitespace-pre-wrap break-keep text-sm font-medium leading-6 text-zinc-600">{inquiry.message}</p>
+                      <p className="type-body-sm whitespace-pre-wrap break-keep text-zinc-600">{inquiry.message}</p>
                     </div>
 
                     {inquiry.admin_reply ? (
@@ -346,14 +348,14 @@ export function InquirySection({
                           <p className="text-xs font-bold text-emerald-800">관리자 답변</p>
                           <p className="text-xs font-medium text-emerald-700/70">답변일 {formatDate(inquiry.replied_at)}</p>
                         </div>
-                        <p className="whitespace-pre-wrap break-keep text-sm font-medium leading-6 text-emerald-900">
+                        <p className="type-body-sm whitespace-pre-wrap break-keep text-emerald-900">
                           {inquiry.admin_reply}
                         </p>
                       </div>
                     ) : (
                       <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4">
                         <p className="text-xs font-bold text-zinc-500">관리자 답변</p>
-                        <p className="mt-2 break-keep text-sm font-medium leading-6 text-zinc-500">
+                        <p className="type-body-sm mt-2 break-keep text-zinc-500">
                           아직 답변이 등록되지 않았습니다.
                         </p>
                       </div>
@@ -362,8 +364,8 @@ export function InquirySection({
                     <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4">
                       <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
                         <div>
-                          <p className="text-sm font-bold text-zinc-900">문의 관리</p>
-                          <p className="mt-1 text-xs font-medium text-zinc-400">수정하거나 더 이상 필요 없는 문의를 삭제할 수 있습니다.</p>
+                          <p className="type-label text-zinc-900">문의 관리</p>
+                          <p className="type-caption mt-1 text-zinc-400">수정하거나 더 이상 필요 없는 문의를 삭제할 수 있습니다.</p>
                         </div>
                         <form action={deleteInquiryAction}>
                           <input type="hidden" name="returnTo" value={returnToPath} />
@@ -384,16 +386,16 @@ export function InquirySection({
                           <div>
                             <label
                               htmlFor={`category-${inquiry.id}`}
-                              className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-zinc-400"
+                              className="type-label mb-2 block text-zinc-700"
                             >
-                              category
+                              문의 유형
                             </label>
                             <select
                               id={`category-${inquiry.id}`}
                               name="category"
                               required
                               defaultValue={normalizeInquiryCategory(inquiry.category)}
-                              className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-colors focus:border-zinc-950"
+                              className="site-field w-full px-4"
                             >
                               {inquiryCategoryOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -405,9 +407,9 @@ export function InquirySection({
                           <div>
                             <label
                               htmlFor={`title-${inquiry.id}`}
-                              className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-zinc-400"
+                              className="type-label mb-2 block text-zinc-700"
                             >
-                              title
+                              제목
                             </label>
                             <input
                               id={`title-${inquiry.id}`}
@@ -416,15 +418,15 @@ export function InquirySection({
                               required
                               maxLength={120}
                               defaultValue={inquiry.title}
-                              className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-semibold outline-none transition-colors focus:border-zinc-950"
+                              className="site-field w-full px-4"
                             />
                           </div>
                           <div>
                             <label
                               htmlFor={`message-${inquiry.id}`}
-                              className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-zinc-400"
+                              className="type-label mb-2 block text-zinc-700"
                             >
-                              message
+                              문의 내용
                             </label>
                             <textarea
                               id={`message-${inquiry.id}`}
@@ -432,7 +434,7 @@ export function InquirySection({
                               required
                               rows={5}
                               defaultValue={inquiry.message}
-                              className="w-full resize-y rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-semibold outline-none transition-colors focus:border-zinc-950"
+                              className="site-field w-full px-4 py-3"
                             />
                           </div>
                           <button type="submit" className={getActionButtonClassName("primary")}>
@@ -473,7 +475,7 @@ export function InquirySection({
         ) : (
           <div className="site-card border-dashed p-10 text-center">
             <h3 className="type-subsection-title">{inquiryQuery || inquiryStatus !== "all" ? "조건에 맞는 문의가 없습니다" : "아직 문의 내역이 없습니다"}</h3>
-            <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <p className="type-body-sm mx-auto mt-3 max-w-md break-keep text-zinc-500">
               궁금한 점이 있다면 새 문의를 남겨주세요. 답변 상태와 내용을 이곳에서 확인할 수 있습니다.
             </p>
           </div>
