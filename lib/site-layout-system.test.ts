@@ -56,3 +56,18 @@ test("약관 문서 표면은 공통 카드 규칙을 사용하고 개별 그림
     assert.doesNotMatch(source, /<article[^>]*shadow-/);
   }
 });
+
+test("활성 메뉴판 관리 화면은 공통 여백과 무그림자 표면을 사용한다", () => {
+  for (const path of [
+    "../app/mypage/menus/new/page.tsx",
+    "../app/mypage/menus/new/TemplateCatalogPicker.tsx",
+    "../app/mypage/menus/[menuId]/convert/page.tsx",
+    "../app/mypage/menus/[menuId]/import/page.tsx",
+    "../app/mypage/menus/[menuId]/preview/page.tsx",
+    "../app/mypage/menus/[menuId]/qr/page.tsx",
+  ]) {
+    const source = readSource(path);
+    assert.match(source, /site-card|site-page-spacing-compact/);
+    assert.doesNotMatch(source, /shadow-(?:sm|md|lg|xl|2xl)/);
+  }
+});

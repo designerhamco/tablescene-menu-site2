@@ -187,7 +187,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <div className="mx-auto w-full max-w-7xl">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
@@ -196,12 +196,12 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
                 새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 사업자 플랜으로 전환합니다.
               </p>
             </div>
-            <Link href="/mypage" className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100">
+            <Link href="/mypage" className="site-button site-button-secondary">
               마이페이지로 돌아가기
             </Link>
           </div>
 
-          <section className="mb-6 rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+          <section className="site-card mb-6 p-5 sm:p-7">
             <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
               <div>
                 <h2 className="type-subsection-title">{typedMenuSite.name || "이름 없는 메뉴판"}</h2>
@@ -218,7 +218,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
               <InfoItem label="보관 만료일" value={formatDate(trialInfo.dataRetentionUntil)} />
             </dl>
             {entitlementsError && (
-              <p className="mt-4 break-keep rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold text-amber-800">
+              <p className="site-notice site-notice-warning mt-4 p-4">
                 이용 상태 정보를 완전히 불러오지 못해 일부 정보는 메뉴판 저장값 기준으로 표시됩니다: {entitlementsError.message}
               </p>
             )}

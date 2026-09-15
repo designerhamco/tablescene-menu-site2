@@ -105,7 +105,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <ActionFeedbackToast message={message} tone="success" />
         <ActionFeedbackToast message={error} tone="error" />
         <div className="mx-auto w-full max-w-5xl">
@@ -119,24 +119,24 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             </div>
             <Link
               href={`/mypage/menus/${menuId}/edit`}
-              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100"
+              className="site-button site-button-secondary"
             >
               편집 화면으로 돌아가기
             </Link>
           </div>
 
           {error ? (
-            <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 p-5 text-sm font-bold leading-6 text-red-700">
+            <div className="site-notice site-notice-error mb-6 p-5">
               {error}
             </div>
           ) : null}
           {message ? (
-            <div className="mb-6 rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-sm font-bold leading-6 text-emerald-700">
+            <div className="site-notice site-notice-success mb-6 p-5">
               {message}
             </div>
           ) : null}
 
-          <section className="mb-6 rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+          <section className="site-card mb-6 p-5 sm:p-7">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
               <div>
                 <p className="text-xs font-bold text-zinc-400">가져올 대상</p>
@@ -172,7 +172,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           </div>
 
           {activeLink ? (
-            <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-7 shadow-sm">
+            <section className="site-notice site-notice-success p-5 sm:p-7">
               <p className="text-sm font-bold text-emerald-700">연결된 공통 메뉴</p>
               <h2 className="type-subsection-title mt-2 text-emerald-950">{linkedSource?.name ?? "원본 메뉴판"}</h2>
               <p className="mt-3 break-keep text-sm font-semibold leading-6 text-emerald-900">
@@ -210,7 +210,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             </section>
           ) : (
             <form action={action} className={`space-y-6 ${canImport ? "" : "pointer-events-none opacity-50"}`}>
-              <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+              <section className="site-card p-5 sm:p-7">
                 <fieldset>
                   <legend className="text-2xl font-bold">1. 원본 메뉴판 선택</legend>
                   <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -229,7 +229,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                 </fieldset>
               </section>
 
-              <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+              <section className="site-card p-5 sm:p-7">
                 <fieldset>
                   <legend className="text-2xl font-bold">2. 연결 방식 선택</legend>
                   <div className="mt-5 grid gap-3 md:grid-cols-2">

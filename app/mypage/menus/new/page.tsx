@@ -38,22 +38,21 @@ export default async function NewMenuSitePage({
     <main className="min-h-screen bg-zinc-50 text-zinc-950">
       <OfficialSiteNavbar />
 
-      <section className="site-gutter w-full py-12 md:py-16">
+      <section className="site-gutter w-full site-page-spacing-compact">
         <div className="mx-auto w-full max-w-7xl">
           <div className="flex w-full max-w-3xl flex-col">
             <Link href="/mypage?tab=menus" className="w-fit text-sm font-bold text-zinc-500 transition-colors hover:text-zinc-950">
               ← 마이페이지로 돌아가기
             </Link>
 
-            <div className="mt-6 border-y border-zinc-200 bg-white px-6 py-10 sm:px-10">
-              <p className="text-xs font-bold uppercase text-zinc-400">ArtiMenu Basic</p>
-              <h1 className="type-page-title mt-3">새 메뉴판이 필요하신가요?</h1>
+            <div className="site-card mt-6 p-6 sm:p-8 lg:p-10">
+              <h1 className="type-page-title">새 메뉴판이 필요하신가요?</h1>
               <p className="mt-4 max-w-xl break-keep text-sm font-bold leading-relaxed text-zinc-600">
                 새 메뉴판은 추가 구매 후 생성할 수 있습니다. 기존 메뉴판과 구독은 그대로 유지되며, 새 구매가 완료되면 별도의 메뉴판 한 개가 생성됩니다.
               </p>
 
               {errorMessage ? (
-                <div className="mt-6 border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800" role="status">
+                <div className="site-notice site-notice-warning mt-6 p-4" role="status">
                   {errorMessage}
                   {errorCode === "ADDITIONAL_MENU_SITE_PURCHASE_REQUIRED" ? (
                     <span className="sr-only"> 추가 구매 필요</span>
@@ -64,13 +63,13 @@ export default async function NewMenuSitePage({
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/apply/basic"
-                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+                  className="site-button site-button-primary"
                 >
                   메뉴판 추가 구매
                 </Link>
                 <Link
                   href="/mypage?tab=menus"
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                  className="site-button site-button-secondary"
                 >
                   기존 메뉴판 관리
                 </Link>
