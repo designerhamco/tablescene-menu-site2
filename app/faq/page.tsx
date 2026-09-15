@@ -40,7 +40,7 @@ export default function FAQPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="site-body-title">AI 상담</p>
-                    {!aiSupportEnabled ? <span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-black text-zinc-500">준비 중</span> : null}
+                    {!aiSupportEnabled ? <span className="type-caption rounded-full bg-zinc-100 px-2 py-1 text-zinc-500">준비 중</span> : null}
                   </div>
                   <p className="site-body-support mt-2 text-zinc-500">기능과 이용 방법을 바로 질문합니다.</p>
                 </div>

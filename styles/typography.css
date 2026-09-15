@@ -1,17 +1,36 @@
 :root {
   --font-family-site: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
 
+  /* Approved foundation scale used by Tailwind text utilities in site UI. */
+  --font-size-100: 0.75rem;
+  --font-size-200: 0.875rem;
+  --font-size-300: 1rem;
+  --font-size-400: 1.125rem;
+  --font-size-500: 1.25rem;
+  --font-size-600: 1.5rem;
+  --font-size-700: 1.875rem;
+  --font-size-800: 2.25rem;
+  --font-size-900: 3rem;
+  --font-size-1000: 3.75rem;
+  --font-size-1100: 4.5rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-strong: 700;
+
   --type-display-size: clamp(2.75rem, 6.5vw, 5.25rem);
   --type-page-title-size: clamp(2rem, 4vw, 3rem);
   --type-section-title-size: clamp(1.875rem, 3.5vw, 3rem);
   --type-subsection-title-size: clamp(1.5rem, 2.3vw, 1.875rem);
   --type-content-title-size: clamp(1.125rem, 1.45vw, 1.375rem);
+  --type-item-title-size: var(--font-size-300);
   --type-body-lg-size: clamp(1rem, 1.15vw, 1.125rem);
-  --type-body-size: 1rem;
+  --type-body-size: var(--font-size-300);
   --type-body-sm-size: clamp(0.875rem, 0.9vw, 0.9375rem);
-  --type-label-size: 0.875rem;
-  --type-nav-size: 1rem;
-  --type-caption-size: 0.75rem;
+  --type-label-size: var(--font-size-200);
+  --type-nav-size: var(--font-size-300);
+  --type-caption-size: var(--font-size-100);
 }
 
 /*
@@ -22,7 +41,7 @@
 .type-display {
   word-break: keep-all;
   font-size: var(--type-display-size);
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   line-height: 1;
   letter-spacing: -0.05em;
 }
@@ -31,7 +50,7 @@
 .site-page-title {
   word-break: keep-all;
   font-size: var(--type-page-title-size);
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   line-height: 1.16;
   letter-spacing: -0.04em;
 }
@@ -40,7 +59,7 @@
 .site-section-title {
   word-break: keep-all;
   font-size: var(--type-section-title-size);
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   line-height: 1.16;
   letter-spacing: -0.04em;
 }
@@ -48,7 +67,7 @@
 .type-subsection-title {
   word-break: keep-all;
   font-size: var(--type-subsection-title-size);
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   line-height: 1.3;
   letter-spacing: -0.035em;
 }
@@ -57,16 +76,24 @@
 .site-body-title {
   word-break: keep-all;
   font-size: var(--type-content-title-size);
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   line-height: 1.42;
   letter-spacing: -0.025em;
+}
+
+.type-item-title {
+  word-break: keep-all;
+  font-size: var(--type-item-title-size);
+  font-weight: var(--font-weight-strong);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
 }
 
 .type-body-lg,
 .site-body {
   word-break: keep-all;
   font-size: var(--type-body-lg-size);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   line-height: 1.72;
   letter-spacing: -0.015em;
 }
@@ -74,7 +101,7 @@
 .type-body {
   word-break: keep-all;
   font-size: var(--type-body-size);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   line-height: 1.68;
   letter-spacing: -0.015em;
 }
@@ -83,28 +110,28 @@
 .site-body-support {
   word-break: keep-all;
   font-size: var(--type-body-sm-size);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   line-height: 1.68;
   letter-spacing: -0.01em;
 }
 
 .type-label {
   font-size: var(--type-label-size);
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   line-height: 1.4;
   letter-spacing: -0.01em;
 }
 
 .type-nav {
   font-size: var(--type-nav-size);
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   line-height: 1.4;
   letter-spacing: -0.02em;
 }
 
 .type-caption {
   font-size: var(--type-caption-size);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.45;
   letter-spacing: -0.005em;
 }

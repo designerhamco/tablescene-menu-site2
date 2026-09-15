@@ -68,7 +68,7 @@ const ServiceOverview = () => {
           transition={{ duration: 0.5, ease: 'easeOut' }}
           className="mx-auto mb-14 max-w-3xl text-center"
         >
-          <h2 className="break-keep text-3xl font-bold tracking-tight text-white md:text-5xl">
+          <h2 className="type-section-title text-white">
             디지털 메뉴판,<br className="hidden md:block" />
             아직도 직접 만들고 있나요?
           </h2>
@@ -90,7 +90,7 @@ const ServiceOverview = () => {
                 transition={{ duration: 0.35, ease: 'easeOut' }}
                 className="relative flex min-h-[190px] flex-col items-center justify-center rounded-[1.35rem] bg-white p-5 text-center before:absolute before:-bottom-2 before:left-1/2 before:h-4 before:w-4 before:-translate-x-1/2 before:rotate-45 before:bg-white md:min-h-[230px] md:p-7"
               >
-                <h3 className="mb-3 break-keep text-base font-bold tracking-tight text-zinc-950 md:mb-4 md:text-2xl">
+                <h3 className="type-content-title mb-3 text-zinc-950 md:mb-4">
                   {item.title}
                 </h3>
                 <p className="break-keep whitespace-pre-line text-sm font-medium leading-relaxed text-zinc-500 md:text-base">

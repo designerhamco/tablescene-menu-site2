@@ -207,7 +207,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
                 <h2 className="type-subsection-title">{typedMenuSite.name || "이름 없는 메뉴판"}</h2>
                 <p className="mt-2 break-all text-sm font-bold text-zinc-500">{publicUrl}</p>
               </div>
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-100">
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100">
                 {isPendingDelete ? "복구 가능 기간 종료" : trialInfo.status === "expired" ? "체험 기간 종료" : "개인 체험"}
               </span>
             </div>
@@ -230,7 +230,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
               <p className="mx-auto mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-800">
                 복구 가능 기간이 종료되었습니다. 데이터 복구 가능 여부는 고객지원으로 문의해주세요.
               </p>
-              <Link href="/mypage/inquiries" className="mt-6 inline-flex items-center justify-center rounded-full bg-amber-900 px-5 py-3 text-sm font-black text-white transition hover:bg-amber-800">
+              <Link href="/mypage/inquiries" className="mt-6 inline-flex items-center justify-center rounded-full bg-amber-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-amber-800">
                 고객지원 문의
               </Link>
             </section>
@@ -251,8 +251,8 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-zinc-50 p-4">
-      <dt className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">{label}</dt>
-      <dd className="mt-2 break-keep text-sm font-black text-zinc-900">{value}</dd>
+      <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{label}</dt>
+      <dd className="mt-2 break-keep text-sm font-bold text-zinc-900">{value}</dd>
     </div>
   );
 }

@@ -30,7 +30,7 @@ const NAV_ITEMS: readonly NavItem[] = [
 
 function DiscountChip() {
   return (
-    <span className="inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
+    <span className="type-caption inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-black">
       오픈할인
     </span>
   );
@@ -38,7 +38,7 @@ function DiscountChip() {
 
 function DisabledChip() {
   return (
-    <span className="inline-flex shrink-0 rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold leading-none text-zinc-500">
+    <span className="type-caption inline-flex shrink-0 rounded-full bg-zinc-200 px-1.5 py-0.5 text-zinc-500">
       준비중
     </span>
   );
@@ -366,7 +366,7 @@ const Navbar = () => {
                 >
                   <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
                   {unreadCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white">
+                    <span className="type-caption absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-white">
                       {unreadBadgeLabel}
                     </span>
                   ) : null}
@@ -375,7 +375,7 @@ const Navbar = () => {
                 {isNotificationOpen ? (
                   <div className="absolute right-0 top-12 w-[360px] overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-950">
                     <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
-                      <p className="text-sm font-black">알림</p>
+                      <p className="text-sm font-bold">알림</p>
                       {unreadCount > 0 ? <p className="text-xs font-bold text-zinc-400">읽지 않음 {unreadBadgeLabel}</p> : null}
                     </div>
                     <div className="max-h-[420px] overflow-y-auto">
@@ -399,7 +399,7 @@ const Navbar = () => {
                     <a
                       href={NOTIFICATION_FALLBACK_HREF}
                       onClick={() => setIsNotificationOpen(false)}
-                      className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-black text-zinc-900 transition-colors hover:bg-zinc-50"
+                      className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
                     >
                       전체 알림 보기
                     </a>
@@ -423,7 +423,7 @@ const Navbar = () => {
               >
                 <Bell size={23} strokeWidth={2.1} aria-hidden="true" />
                 {unreadCount > 0 ? (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black leading-none text-white">
+                  <span className="type-caption absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-white">
                     {unreadBadgeLabel}
                   </span>
                 ) : null}
@@ -608,11 +608,11 @@ function NotificationItem({
     >
       <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${event.read_at ? 'bg-zinc-200' : 'bg-red-500'}`} aria-hidden="true" />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-black text-zinc-900">{event.title ?? '알림'}</span>
+        <span className="block truncate text-sm font-bold text-zinc-900">{event.title ?? '알림'}</span>
         <span className="mt-1 line-clamp-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
           {event.message ?? '알림 내용을 확인할 수 없습니다.'}
         </span>
-        <span className="mt-2 block text-[11px] font-bold text-zinc-400">{formatNotificationTime(event.created_at)}</span>
+        <span className="type-caption mt-2 block text-zinc-400">{formatNotificationTime(event.created_at)}</span>
       </span>
     </a>
   );

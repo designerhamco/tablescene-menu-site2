@@ -160,7 +160,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         />
         <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
-            <Link href="/mypage?tab=menus" className="text-sm font-black text-emerald-700 hover:text-emerald-900">
+            <Link href="/mypage?tab=menus" className="text-sm font-bold text-emerald-700 hover:text-emerald-900">
               ← 마이페이지로 돌아가기
             </Link>
             <h1 className="type-page-title mt-5">직원 관리</h1>
@@ -221,7 +221,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                   <div key={membership.id} className="px-4 py-5">
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
+                        <p className="truncate text-sm font-bold text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
                         <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
                           {menuSiteNameById.get(membership.menu_site_id) ?? "메뉴판"}
                         </p>
@@ -233,18 +233,18 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       </div>
                       <form action={updateStaffMembershipRoleAction} className="flex gap-2">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <select name="role" defaultValue={membership.role} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-black text-zinc-700">
+                        <select name="role" defaultValue={membership.role} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-700">
                           {STAFF_INVITATION_ROLES.map((role) => (
                             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
                           ))}
                         </select>
-                        <button type="submit" className="rounded-full border border-zinc-200 px-3 py-2 text-xs font-black text-zinc-700 hover:bg-zinc-100">
+                        <button type="submit" className="rounded-full border border-zinc-200 px-3 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-100">
                           프리셋 변경
                         </button>
                       </form>
                       <form action={revokeStaffMembershipAction} className="lg:text-right">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-50">
+                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50">
                           접근 회수
                         </button>
                       </form>
@@ -254,7 +254,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       <input type="hidden" name="membershipId" value={membership.id} />
                       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                         <div>
-                          <p className="text-sm font-black text-zinc-900">직원별 권한</p>
+                          <p className="text-sm font-bold text-zinc-900">직원별 권한</p>
                           <p className="mt-1 text-xs font-semibold text-zinc-500">
                             역할 프리셋을 기준으로 이 직원에게 필요한 기능만 켜거나 끕니다.
                           </p>
@@ -262,7 +262,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                             역할 프리셋을 변경하면 개별 체크 설정은 새 프리셋 기본값으로 초기화됩니다.
                           </p>
                         </div>
-                        <button type="submit" className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-black text-white transition-colors hover:bg-zinc-800">
+                        <button type="submit" className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800">
                           개별 권한 저장
                         </button>
                       </div>
@@ -311,7 +311,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
               {pendingInvitationBatches.map((invitation) => (
                 <div key={invitation.inviteBatchId} className="grid gap-4 px-4 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-zinc-900">{invitation.email}</p>
+                    <p className="truncate text-sm font-bold text-zinc-900">{invitation.email}</p>
                     <p className="mt-1 text-xs font-semibold leading-relaxed text-zinc-500">
                       {invitation.menuSiteNames.join(" · ")}
                     </p>
@@ -325,14 +325,14 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                         <button
                           type="submit"
                           disabled={!invitationDeliveryEnabled}
-                          className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:text-zinc-300"
+                          className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:text-zinc-300"
                         >
                           재전송
                         </button>
                       </form>
                       <form action={cancelStaffInvitationAction}>
                         <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
-                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-black text-rose-700 hover:bg-rose-50">
+                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">
                           취소
                         </button>
                       </form>

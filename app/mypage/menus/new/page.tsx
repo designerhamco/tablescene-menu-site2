@@ -41,12 +41,12 @@ export default async function NewMenuSitePage({
       <section className="site-gutter w-full py-12 md:py-16">
         <div className="mx-auto w-full max-w-7xl">
           <div className="flex w-full max-w-3xl flex-col">
-            <Link href="/mypage?tab=menus" className="w-fit text-sm font-black text-zinc-500 transition-colors hover:text-zinc-950">
+            <Link href="/mypage?tab=menus" className="w-fit text-sm font-bold text-zinc-500 transition-colors hover:text-zinc-950">
               ← 마이페이지로 돌아가기
             </Link>
 
             <div className="mt-6 border-y border-zinc-200 bg-white px-6 py-10 sm:px-10">
-              <p className="text-xs font-black uppercase text-zinc-400">ArtiMenu Basic</p>
+              <p className="text-xs font-bold uppercase text-zinc-400">ArtiMenu Basic</p>
               <h1 className="type-page-title mt-3">새 메뉴판이 필요하신가요?</h1>
               <p className="mt-4 max-w-xl break-keep text-sm font-bold leading-relaxed text-zinc-600">
                 새 메뉴판은 추가 구매 후 생성할 수 있습니다. 기존 메뉴판과 구독은 그대로 유지되며, 새 구매가 완료되면 별도의 메뉴판 한 개가 생성됩니다.

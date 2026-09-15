@@ -58,7 +58,7 @@ export default async function OrderDashboardPage({
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="orders">
       <div className="space-y-8">
         <header>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
           <h2 className="type-subsection-title mt-2">주문관리</h2>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             접수부터 제공까지의 상태와 외부 카드 단말기·현금 결제 완료를 관리합니다. ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.

@@ -56,10 +56,10 @@ function MenuBoard({ compact = false }: { compact?: boolean }) {
     <div className="h-full overflow-hidden bg-[#f5f0e7] text-[#1f1b17]">
       <div className={`flex items-center justify-between border-b border-black/10 ${compact ? "px-5 py-4" : "px-8 py-6"}`}>
         <div>
-          <p className={`${compact ? "text-lg" : "text-2xl"} font-black tracking-[-0.04em]`}>AUBE COFFEE</p>
+          <p className={`${compact ? "text-lg" : "text-2xl"} font-bold tracking-[-0.04em]`}>AUBE COFFEE</p>
           <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.24em] text-black/45">Everyday coffee & dessert</p>
         </div>
-        <span className="rounded-full border border-black/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em]">Menu</span>
+        <span className="rounded-full border border-black/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.16em]">Menu</span>
       </div>
 
       <div className={`grid ${compact ? "grid-cols-3 gap-2 p-4" : "grid-cols-3 gap-4 p-7"}`}>
@@ -69,8 +69,8 @@ function MenuBoard({ compact = false }: { compact?: boolean }) {
               <img src={item.image} alt="" className="h-full w-full object-cover" />
             </div>
             <div className={`flex items-start justify-between gap-2 ${compact ? "mt-2" : "mt-4"}`}>
-              <p className={`${compact ? "text-[9px]" : "text-sm"} min-w-0 font-black leading-tight`}>{item.name}</p>
-              <p className={`${compact ? "text-[9px]" : "text-sm"} shrink-0 font-black`}>{item.price}</p>
+              <p className={`${compact ? "text-[9px]" : "text-sm"} min-w-0 font-bold leading-tight`}>{item.name}</p>
+              <p className={`${compact ? "text-[9px]" : "text-sm"} shrink-0 font-bold`}>{item.price}</p>
             </div>
           </article>
         ))}
@@ -94,7 +94,7 @@ function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: num
       >
         <div className={`flex items-center justify-between border-b border-black/10 ${compact ? "px-3 py-2" : "px-5 py-4"}`}>
           <div>
-            <p className={`${compact ? "text-[8px]" : "text-sm"} font-black tracking-[-0.03em]`}>{screen.name}</p>
+            <p className={`${compact ? "text-[8px]" : "text-sm"} font-bold tracking-[-0.03em]`}>{screen.name}</p>
             <p className={`${compact ? "text-[5px]" : "text-[8px]"} mt-0.5 font-bold uppercase tracking-[0.14em] text-black/40`}>{screen.note}</p>
           </div>
           <span className={`${compact ? "h-1.5 w-1.5" : "h-2.5 w-2.5"} rounded-full bg-zinc-950`} />
@@ -103,8 +103,8 @@ function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: num
           <img src={screen.image} alt="" className="h-full min-h-0 w-full rounded-[0.55rem] object-cover" />
           <div className="flex min-h-0 flex-col justify-between rounded-[0.55rem] bg-white/75 p-2.5">
             <div>
-              <span className={`${compact ? "text-[4px]" : "text-[7px]"} font-black uppercase tracking-[0.1em] text-black/35`}>Featured</span>
-              <p className={`${compact ? "mt-1 text-[6px]" : "mt-2 text-[11px]"} font-black leading-tight`}>{screen.name}</p>
+              <span className={`${compact ? "text-[4px]" : "text-[7px]"} font-bold uppercase tracking-[0.1em] text-black/35`}>Featured</span>
+              <p className={`${compact ? "mt-1 text-[6px]" : "mt-2 text-[11px]"} font-bold leading-tight`}>{screen.name}</p>
             </div>
             <div className="space-y-1">
               {[1, 2, 3].map((line) => <span key={line} className="block h-px bg-black/15" />)}
@@ -216,25 +216,25 @@ function InputSyncVisual() {
   return (
     <div className="grid h-full grid-cols-[0.82fr_1.18fr] bg-zinc-100 p-4 text-zinc-950 md:p-7">
       <div className="z-10 self-center rounded-2xl bg-white p-4 shadow-xl md:p-6">
-        <p className="mb-4 text-xs font-black">메뉴 정보 입력</p>
+        <p className="mb-4 text-xs font-bold">메뉴 정보 입력</p>
         <div className="space-y-2.5">
           {fields.map(([label, value], index) => (
             <div key={label} className={`rounded-xl border px-3 py-3 transition-colors ${activeField === index ? "border-zinc-950 bg-zinc-50" : "border-zinc-200"}`}>
               <p className="text-[9px] font-bold text-zinc-400">{label}</p>
-              <p className="mt-1 truncate text-[11px] font-black md:text-sm">{value}</p>
+              <p className="mt-1 truncate text-[11px] font-bold md:text-sm">{value}</p>
             </div>
           ))}
         </div>
       </div>
       <div className="-ml-4 self-center overflow-hidden rounded-2xl border border-black/10 bg-[#eee5d7] p-5 pl-9 shadow-xl">
-        <p className="text-xs font-black tracking-tight">AUBE COFFEE</p>
+        <p className="text-xs font-bold tracking-tight">AUBE COFFEE</p>
         <img src="/menu-templates/cafe_design_a/black-sesame-featured.jpg" alt="" className="mt-4 aspect-[4/3] w-full rounded-xl object-cover" />
         <div className="mt-4 flex justify-between gap-3">
           <div>
-            <p className={`font-black transition-all ${activeField === 0 ? "text-base" : "text-sm"}`}>{fields[0][1]}</p>
+            <p className={`font-bold transition-all ${activeField === 0 ? "text-base" : "text-sm"}`}>{fields[0][1]}</p>
             <p className={`mt-1 line-clamp-2 text-[9px] font-semibold text-black/50 transition-opacity ${activeField >= 1 ? "opacity-100" : "opacity-40"}`}>{fields[1][1]}</p>
           </div>
-          <p className={`shrink-0 font-black transition-all ${activeField === 2 ? "text-base" : "text-sm"}`}>{fields[2][1]}</p>
+          <p className={`shrink-0 font-bold transition-all ${activeField === 2 ? "text-base" : "text-sm"}`}>{fields[2][1]}</p>
         </div>
       </div>
     </div>
@@ -253,14 +253,14 @@ function LayoutModeVisual() {
     <div className="flex h-full flex-col bg-[#eee8dc] p-5 text-zinc-950 md:p-8">
       <div className="mx-auto flex rounded-full bg-white p-1.5 shadow-sm">
         {[{ key: "group", label: "묶음형 자동 배치" }, { key: "fill", label: "채움형 배치" }].map((item) => (
-          <button key={item.key} type="button" onClick={() => setMode(item.key as "group" | "fill")} className={`rounded-full px-4 py-2 text-[10px] font-black transition-colors md:text-xs ${mode === item.key ? "bg-zinc-950 text-white" : "text-zinc-400"}`}>{item.label}</button>
+          <button key={item.key} type="button" onClick={() => setMode(item.key as "group" | "fill")} className={`rounded-full px-4 py-2 text-[10px] font-bold transition-colors md:text-xs ${mode === item.key ? "bg-zinc-950 text-white" : "text-zinc-400"}`}>{item.label}</button>
         ))}
       </div>
       <motion.div layout className={`mt-6 grid min-h-0 flex-1 gap-3 ${mode === "group" ? "grid-cols-2" : "grid-cols-3"}`}>
         {menuItems.concat(menuItems.slice(0, 1)).map((item, index) => (
           <motion.article layout key={`${item.name}-${index}`} className={`${mode === "group" && index === 0 ? "col-span-2 grid grid-cols-2" : ""} overflow-hidden rounded-xl bg-white`}>
             <img src={item.image} alt="" className="h-full min-h-0 w-full object-cover" />
-            {mode === "group" && index === 0 ? <div className="flex flex-col justify-end p-4"><p className="text-xs font-black">{item.name}</p><p className="mt-2 text-xs font-black">{item.price}</p></div> : null}
+            {mode === "group" && index === 0 ? <div className="flex flex-col justify-end p-4"><p className="text-xs font-bold">{item.name}</p><p className="mt-2 text-xs font-bold">{item.price}</p></div> : null}
           </motion.article>
         ))}
       </motion.div>
@@ -280,12 +280,12 @@ function CustomizationVisual() {
   return (
     <div className={`flex h-full flex-col p-5 text-zinc-950 transition-colors duration-500 md:p-8 ${mode === 3 ? "bg-[#dce4d5]" : "bg-[#eee5d7]"}`}>
       <div className="flex flex-wrap gap-2">
-        {labels.map((label, index) => <span key={label} className={`rounded-full px-3 py-2 text-[9px] font-black transition-colors ${mode === index ? "bg-zinc-950 text-white" : "bg-white/60 text-zinc-500"}`}>{label}</span>)}
+        {labels.map((label, index) => <span key={label} className={`rounded-full px-3 py-2 text-[9px] font-bold transition-colors ${mode === index ? "bg-zinc-950 text-white" : "bg-white/60 text-zinc-500"}`}>{label}</span>)}
       </div>
       <div className="mt-5 grid min-h-0 flex-1 grid-cols-[1.2fr_0.8fr] gap-4 rounded-2xl bg-white/65 p-4">
         <motion.img key={mode === 1 ? "matcha" : "sesame"} initial={{ opacity: 0 }} animate={{ opacity: mode === 0 ? 0.15 : 1 }} src={mode === 1 ? "/menu-templates/cafe_design_a/malcha.jpg" : "/menu-templates/cafe_design_a/black-sesame-featured.jpg"} alt="" className="h-full min-h-0 w-full rounded-xl object-cover" />
         <div className="flex flex-col justify-center">
-          <p className={`transition-all ${mode === 2 ? "font-serif text-2xl italic" : "text-xl font-black"}`}>Signature Latte</p>
+          <p className={`transition-all ${mode === 2 ? "font-serif text-2xl italic" : "text-xl font-bold"}`}>Signature Latte</p>
           <p className="mt-3 text-xs font-semibold leading-relaxed text-black/50">이미지·글자·배경을 원하는 스타일로 설정합니다.</p>
         </div>
       </div>
@@ -317,24 +317,24 @@ function TimeSaleVisual() {
   return (
     <div className="relative h-full overflow-hidden rounded-[1.35rem] bg-[#ece7dd] p-5 md:p-8">
       <div className="absolute inset-x-6 top-7 flex items-center justify-between">
-        <p className="text-lg font-black tracking-[-0.04em] text-zinc-950">TODAY&apos;S MENU</p>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500 px-3 py-1.5 text-[10px] font-black text-white">
+        <p className="text-lg font-bold tracking-[-0.04em] text-zinc-950">TODAY&apos;S MENU</p>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500 px-3 py-1.5 text-[10px] font-bold text-white">
           <Clock3 className="h-3 w-3" /> {time} 남았어요
         </span>
       </div>
       <div className="absolute inset-x-6 bottom-6 top-20 grid grid-cols-[1.15fr_0.85fr] gap-3">
         <div className="relative overflow-hidden rounded-2xl bg-zinc-300">
           <img src="/menu-templates/cafe_design_a/nutty-cream-featured.jpg" alt="" className="h-full w-full object-cover" />
-          <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[10px] font-black text-red-500">TIME SALE</span>
+          <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[10px] font-bold text-red-500">TIME SALE</span>
         </div>
         <div className="flex flex-col justify-between rounded-2xl bg-white p-4 text-zinc-950">
           <div>
-            <p className="text-[10px] font-black text-zinc-400">ONLY TODAY</p>
-            <p className="mt-2 text-lg font-black leading-tight">Nutty cream latte</p>
+            <p className="text-[10px] font-bold text-zinc-400">ONLY TODAY</p>
+            <p className="mt-2 text-lg font-bold leading-tight">Nutty cream latte</p>
           </div>
           <div>
             <p className="text-xs font-bold text-zinc-400 line-through">6,800원</p>
-            <p className="mt-1 text-xl font-black text-red-500">5,500원</p>
+            <p className="mt-1 text-xl font-bold text-red-500">5,500원</p>
           </div>
         </div>
       </div>
@@ -346,17 +346,17 @@ function WidgetVisual() {
   return (
     <div className="grid h-full grid-cols-[0.78fr_1.22fr] bg-zinc-100 p-5 text-zinc-950 md:p-8">
       <div className="z-10 self-center rounded-2xl bg-white p-4 shadow-xl">
-        <p className="text-xs font-black">위젯 추가</p>
+        <p className="text-xs font-bold">위젯 추가</p>
         <div className="mt-4 space-y-2">
-          {["오늘의 추천 메뉴", "신메뉴 안내", "매장 소식"].map((label, index) => <div key={label} className={`rounded-xl border px-3 py-3 text-[10px] font-black ${index === 0 ? "border-zinc-950 bg-zinc-50" : "border-zinc-200 text-zinc-400"}`}>{label}</div>)}
+          {["오늘의 추천 메뉴", "신메뉴 안내", "매장 소식"].map((label, index) => <div key={label} className={`rounded-xl border px-3 py-3 text-[10px] font-bold ${index === 0 ? "border-zinc-950 bg-zinc-50" : "border-zinc-200 text-zinc-400"}`}>{label}</div>)}
         </div>
-        <button type="button" className="mt-4 w-full rounded-xl bg-zinc-950 py-3 text-[10px] font-black text-white">메뉴판에 위젯 넣기</button>
+        <button type="button" className="mt-4 w-full rounded-xl bg-zinc-950 py-3 text-[10px] font-bold text-white">메뉴판에 위젯 넣기</button>
       </div>
       <div className="-ml-4 self-center overflow-hidden rounded-2xl bg-[#ece4d5] p-5 pl-9 shadow-xl">
-        <p className="text-xs font-black">AUBE COFFEE</p>
+        <p className="text-xs font-bold">AUBE COFFEE</p>
         <div className="mt-4 rounded-2xl bg-zinc-950 p-5 text-white">
           <p className="text-[9px] font-bold text-white/50">TODAY&apos;S PICK</p>
-          <p className="mt-2 text-lg font-black">오늘의 추천 메뉴</p>
+          <p className="mt-2 text-lg font-bold">오늘의 추천 메뉴</p>
           <p className="mt-3 text-[10px] leading-relaxed text-white/60">고소한 흑임자 크림 라떼를 만나보세요.</p>
         </div>
       </div>
@@ -413,7 +413,7 @@ function MultiPageVisual() {
     <div className="flex h-full flex-col bg-[#eee8dc] p-5 text-zinc-950 md:p-8">
       <div className="flex items-center justify-between border-b border-zinc-300 pb-4">
         <div>
-          <p className="text-sm font-black tracking-[-0.03em]">MAISON LUNE</p>
+          <p className="text-sm font-bold tracking-[-0.03em]">MAISON LUNE</p>
           <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-400">Fine dining collection</p>
         </div>
         <p className="text-[9px] font-bold text-zinc-400">{String(pageIndex + 1).padStart(2, "0")} / {String(fineDiningPages.length).padStart(2, "0")}</p>
@@ -431,8 +431,8 @@ function MultiPageVisual() {
           >
             <img src={fineDiningPages[pageIndex].image} alt="" className="h-full min-h-0 w-full object-cover" />
             <div className="flex flex-col justify-end p-5 md:p-7">
-              <p className="text-[8px] font-black tracking-[0.12em] text-zinc-400 md:text-[10px]">{fineDiningPages[pageIndex].eyebrow}</p>
-              <h3 className="mt-3 text-xl font-black leading-tight md:text-3xl">{fineDiningPages[pageIndex].title}</h3>
+              <p className="text-[8px] font-bold tracking-[0.12em] text-zinc-400 md:text-[10px]">{fineDiningPages[pageIndex].eyebrow}</p>
+              <h3 className="type-subsection-title mt-3">{fineDiningPages[pageIndex].title}</h3>
               <p className="mt-3 break-keep text-[10px] font-semibold leading-relaxed text-zinc-500 md:text-sm">{fineDiningPages[pageIndex].body}</p>
             </div>
           </motion.article>
@@ -465,9 +465,9 @@ export function MultiPageSection() {
 function AiMenuVisual() {
   return (
     <div className="h-full bg-zinc-950 p-5 text-white md:p-7">
-      <div className="flex items-center justify-between"><p className="text-sm font-black">AI 메뉴 정리</p><WandSparkles className="h-5 w-5 text-[#F8E731]" /></div>
+      <div className="flex items-center justify-between"><p className="text-sm font-bold">AI 메뉴 정리</p><WandSparkles className="h-5 w-5 text-[#F8E731]" /></div>
       <p className="mt-5 rounded-xl bg-white/10 p-4 text-xs font-semibold leading-relaxed text-white/65">아메리카노 4,500원 / 카페라떼 5,000원 / 말차라떼 6,500원...</p>
-      <div className="mt-3 space-y-2">{["아메리카노 · 4,500원", "카페라떼 · 5,000원", "말차라떼 · 6,500원", "바닐라라떼 · 5,500원", "레몬에이드 · 6,000원"].map((item) => <div key={item} className="flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-[11px] font-black text-zinc-950"><Sparkles className="h-3.5 w-3.5" />{item}</div>)}</div>
+      <div className="mt-3 space-y-2">{["아메리카노 · 4,500원", "카페라떼 · 5,000원", "말차라떼 · 6,500원", "바닐라라떼 · 5,500원", "레몬에이드 · 6,000원"].map((item) => <div key={item} className="flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-[11px] font-bold text-zinc-950"><Sparkles className="h-3.5 w-3.5" />{item}</div>)}</div>
     </div>
   );
 }
@@ -475,9 +475,9 @@ function AiMenuVisual() {
 function TranslationVisual() {
   return (
     <div className="h-full bg-[#eee8dc] p-5 text-zinc-950 md:p-7">
-      <div className="flex items-center justify-between"><p className="text-sm font-black">AI 다국어 번역</p><Languages className="h-5 w-5" /></div>
-      <div className="mt-5 grid grid-cols-4 gap-2">{["한국어", "English", "中文", "日本語"].map((language, index) => <span key={language} className={`rounded-full px-2 py-2 text-center text-[9px] font-black ${index === 1 ? "bg-zinc-950 text-white" : "bg-white text-zinc-500"}`}>{language}</span>)}</div>
-      <div className="mt-5 space-y-2">{[["흑임자 크림 라떼", "Black sesame cream latte"], ["말차 크림 라떼", "Matcha cream latte"], ["바닐라빈 라떼", "Vanilla bean latte"], ["레몬 에이드", "Fresh lemon ade"]].map(([ko, en]) => <div key={ko} className="rounded-xl bg-white px-4 py-3"><p className="text-[9px] font-bold text-zinc-400">{ko}</p><p className="mt-1 text-[11px] font-black">{en}</p></div>)}</div>
+      <div className="flex items-center justify-between"><p className="text-sm font-bold">AI 다국어 번역</p><Languages className="h-5 w-5" /></div>
+      <div className="mt-5 grid grid-cols-4 gap-2">{["한국어", "English", "中文", "日本語"].map((language, index) => <span key={language} className={`rounded-full px-2 py-2 text-center text-[9px] font-bold ${index === 1 ? "bg-zinc-950 text-white" : "bg-white text-zinc-500"}`}>{language}</span>)}</div>
+      <div className="mt-5 space-y-2">{[["흑임자 크림 라떼", "Black sesame cream latte"], ["말차 크림 라떼", "Matcha cream latte"], ["바닐라빈 라떼", "Vanilla bean latte"], ["레몬 에이드", "Fresh lemon ade"]].map(([ko, en]) => <div key={ko} className="rounded-xl bg-white px-4 py-3"><p className="text-[9px] font-bold text-zinc-400">{ko}</p><p className="mt-1 text-[11px] font-bold">{en}</p></div>)}</div>
     </div>
   );
 }
@@ -510,7 +510,7 @@ export function AiFeaturesSection({ service = "dining" }: { service?: MarketingS
             title={isDisplay ? <>AI로 정리되는<br />매장 화면 콘텐츠</> : <>AI로 정리되는<br />반복 메뉴 작업</>}
           />
         </motion.div>
-        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="text-base font-bold text-zinc-500 md:text-lg">{feature.eyebrow}</p><h3 className="mt-3 break-keep text-2xl font-bold leading-tight text-zinc-950 md:text-3xl">{feature.title}</h3><p className="mt-4 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">{feature.body}</p></div></motion.article>)}</div>
+        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="type-body-lg text-zinc-500">{feature.eyebrow}</p><h3 className="type-subsection-title mt-3 text-zinc-950">{feature.title}</h3><p className="type-body-sm mt-4 text-zinc-500">{feature.body}</p></div></motion.article>)}</div>
       </div>
     </section>
   );
@@ -568,7 +568,7 @@ export function StoreScenesSection({ service = "dining" }: { service?: Marketing
               <div className="aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-zinc-100 md:rounded-[2rem]">
                 <img src={scene.image} alt="" className="h-full w-full object-cover" />
               </div>
-              <h3 className="mt-6 break-keep text-xl font-bold leading-tight text-zinc-950 md:text-2xl">{scene.title}</h3>
+              <h3 className="type-content-title mt-6 text-zinc-950">{scene.title}</h3>
               <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">{scene.body}</p>
             </motion.article>
           ))}
@@ -609,7 +609,7 @@ function DecorativeQr() {
 function DeviceSetVisual() {
   return (
     <div className="relative h-full overflow-hidden bg-[#eee8dc] text-zinc-950">
-      <span className="absolute left-1/2 top-5 z-30 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-zinc-950 px-3 py-2 text-[9px] font-black text-white md:top-7 md:px-4 md:text-[10px]">
+      <span className="absolute left-1/2 top-5 z-30 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-zinc-950 px-3 py-2 text-[9px] font-bold text-white md:top-7 md:px-4 md:text-[10px]">
         <Link2 className="h-3 w-3" /> artimenu.kr/your-store
       </span>
 
@@ -618,13 +618,13 @@ function DeviceSetVisual() {
           <div className="aspect-[16/9]"><MenuBoard compact /></div>
         </div>
         <div className="mx-auto h-2.5 w-[108%] -translate-x-[4%] rounded-b-md bg-zinc-950 md:h-3.5" />
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-[9px] font-black text-zinc-500 md:text-[10px]"><Monitor className="h-3 w-3" />PC · 노트북</p>
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-[9px] font-bold text-zinc-500 md:text-[10px]"><Monitor className="h-3 w-3" />PC · 노트북</p>
       </div>
 
       <div className="absolute right-[4%] top-[31%] z-20 w-[43%] overflow-hidden rounded-xl border-[5px] border-zinc-950 bg-white shadow-2xl md:rounded-2xl md:border-[7px]">
         <div className="aspect-[4/3]"><MenuBoard compact /></div>
       </div>
-      <p className="absolute right-[4%] top-[72%] z-30 flex w-[43%] items-center justify-center gap-1.5 text-[9px] font-black text-zinc-500 md:text-[10px]"><Tablet className="h-3 w-3" />태블릿</p>
+      <p className="absolute right-[4%] top-[72%] z-30 flex w-[43%] items-center justify-center gap-1.5 text-[9px] font-bold text-zinc-500 md:text-[10px]"><Tablet className="h-3 w-3" />태블릿</p>
 
       <div className="absolute bottom-[5%] left-[45%] z-30 h-[43%] w-[18%] overflow-hidden rounded-[1.15rem] border-[4px] border-zinc-950 bg-white shadow-2xl md:rounded-[1.4rem] md:border-[6px]">
         <RotatingMenuScreen screenIndex={0} compact />
@@ -633,7 +633,7 @@ function DeviceSetVisual() {
       <div className="absolute bottom-[4%] right-[3%] z-40 flex w-[34%] items-center gap-2 rounded-xl bg-white p-2 shadow-xl md:gap-3 md:p-3">
         <div className="aspect-square w-[42%] shrink-0 overflow-hidden rounded-md"><DecorativeQr /></div>
         <div className="min-w-0">
-          <p className="flex items-center gap-1 text-[8px] font-black md:text-[10px]"><Smartphone className="h-3 w-3 shrink-0" />모바일 QR</p>
+          <p className="flex items-center gap-1 text-[8px] font-bold md:text-[10px]"><Smartphone className="h-3 w-3 shrink-0" />모바일 QR</p>
           <p className="mt-1 break-keep text-[7px] font-semibold leading-relaxed text-zinc-500 md:text-[9px]">QR 이미지 다운로드 및 매장 안내물 활용</p>
         </div>
       </div>

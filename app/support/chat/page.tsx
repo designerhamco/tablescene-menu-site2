@@ -27,7 +27,7 @@ export default function AiSupportChatPage() {
                 아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다.
               </p>
             </div>
-            <Link href="/mypage/inquiries" className="text-sm font-black text-zinc-600 underline decoration-zinc-300 underline-offset-4 hover:text-zinc-950">
+            <Link href="/mypage/inquiries" className="text-sm font-bold text-zinc-600 underline decoration-zinc-300 underline-offset-4 hover:text-zinc-950">
               1:1 문의
             </Link>
           </header>
@@ -39,7 +39,7 @@ export default function AiSupportChatPage() {
               <p className="site-body-support mx-auto mt-3 max-w-lg text-zinc-500">
                 안전성과 답변 품질을 확인한 뒤 열 예정입니다. 지금은 1:1 문의를 남겨 주세요.
               </p>
-              <Link href="/mypage/inquiries" className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white">
+              <Link href="/mypage/inquiries" className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white">
                 1:1 문의
               </Link>
             </section>

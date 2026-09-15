@@ -39,7 +39,7 @@ const ServicePlans = () => {
           transition={{ duration: 0.55 }}
           className="mb-14 text-center"
         >
-          <h2 className="break-keep text-3xl font-bold tracking-tight text-zinc-950 md:text-5xl">
+          <h2 className="type-section-title text-zinc-950">
             매장에 맞게 선택하는 ArtiMenu 서비스
           </h2>
         </motion.div>
@@ -63,13 +63,13 @@ const ServicePlans = () => {
               ) : null}
 
               <div className="pr-10">
-                <h3 className="mb-5 text-2xl font-bold tracking-tight text-zinc-950 md:text-3xl">
+                <h3 className="type-subsection-title mb-5 text-zinc-950">
                   {service.title}
                 </h3>
                 <p className="break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
                   {service.description}
                 </p>
-                <p className="mt-5 text-lg font-black text-zinc-950">
+                <p className="mt-5 text-lg font-bold text-zinc-950">
                   {service.price}
                 </p>
               </div>

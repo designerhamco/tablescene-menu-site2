@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
  */
 export const MARKETING_COPY_STYLES = {
   eyebrow: "type-content-title",
-  title: "type-section-title mt-3",
+  title: "mt-3",
   body: "type-body-lg mt-5",
 } as const;
 
@@ -37,7 +37,7 @@ export function MarketingSectionCopy({
   return (
     <div className={`${alignmentClass} ${className}`}>
       <p className={`${MARKETING_COPY_STYLES.eyebrow} ${eyebrowColor}`}>{eyebrow}</p>
-      <h2 className={`${MARKETING_COPY_STYLES.title} ${titleColor}`}>{title}</h2>
+      <h2 className={`type-section-title ${MARKETING_COPY_STYLES.title} ${titleColor}`}>{title}</h2>
       {body ? <p className={`${MARKETING_COPY_STYLES.body} ${bodyColor}`}>{body}</p> : null}
     </div>
   );

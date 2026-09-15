@@ -53,7 +53,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
           <header className="mt-7 grid gap-8 rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:grid-cols-[1fr_320px] md:p-10">
             <div>
-              <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
+              <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
                 아티메뉴 다이닝
               </span>
               <h1 className="type-page-title mt-5">{product.shortName}</h1>
@@ -63,13 +63,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
             <div className="rounded-3xl bg-zinc-950 p-6 text-white">
               <p className="text-sm font-bold text-zinc-400">부가세 포함</p>
-              <p className="mt-2 text-3xl font-black">{formatProductPrice(product.price)}</p>
+              <p className="mt-2 text-3xl font-bold">{formatProductPrice(product.price)}</p>
               <p className="mt-2 text-sm font-semibold text-zinc-400">
                 정상가 {formatProductPrice(product.regularPrice)} · {product.billingLabel}
               </p>
               <Link
                 href={purchaseHref}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-4 text-sm font-black text-zinc-950 transition hover:bg-zinc-100"
+                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-4 text-sm font-bold text-zinc-950 transition hover:bg-zinc-100"
               >
                 이 상품 신청하기
               </Link>
@@ -88,7 +88,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   ["교환 안내", "실물 상품이 아니므로 배송·교환은 제공되지 않습니다. 상품 적용 오류는 고객지원 확인 후 바로잡습니다."],
                 ].map(([label, value]) => (
                   <div key={label} className="border-b border-zinc-100 pb-5 last:border-0 last:pb-0">
-                    <dt className="font-black text-zinc-950">{label}</dt>
+                    <dt className="font-bold text-zinc-950">{label}</dt>
                     <dd className="mt-2 break-keep font-semibold leading-relaxed text-zinc-600">{value}</dd>
                   </div>
                 ))}

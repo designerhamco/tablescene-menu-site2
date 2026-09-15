@@ -86,16 +86,16 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
           ← 메뉴판 목록으로
         </Link>
         <div className="rounded-3xl border border-amber-100 bg-white p-8 shadow-sm">
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">미리보기 제한</span>
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">미리보기 제한</span>
           <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 미리보기할 수 없습니다.</h1>
           <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             {accessState?.canConvertToBusiness ? (
-              <Link href={`/mypage/menus/${menuId}/convert`} className="rounded-full bg-amber-700 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-amber-800">
+              <Link href={`/mypage/menus/${menuId}/convert`} className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800">
                 사업자 플랜으로 전환하고 복구
               </Link>
             ) : null}
-            <Link href="/mypage?tab=payments&billingTab=deleted" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100">
+            <Link href="/mypage?tab=payments&billingTab=deleted" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100">
               구독/결제 상태 확인
             </Link>
           </div>
@@ -204,7 +204,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       {usesDevicePreviewFrame && !isEmbedded ? (
         <Link
           href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation })}
-          className="fixed bottom-4 right-4 z-[1000] rounded-full border border-white/30 bg-zinc-950/90 px-4 py-2.5 text-sm font-black text-white shadow-lg backdrop-blur transition-colors hover:bg-zinc-800"
+          className="fixed bottom-4 right-4 z-[1000] rounded-full border border-white/30 bg-zinc-950/90 px-4 py-2.5 text-sm font-bold text-white shadow-lg backdrop-blur transition-colors hover:bg-zinc-800"
         >
           기기 프레임으로 돌아가기
         </Link>

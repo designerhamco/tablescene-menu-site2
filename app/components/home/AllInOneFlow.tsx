@@ -85,7 +85,7 @@ const AllInOneFlow = () => {
             transition={{ duration: 0.6 }}
             className="mx-auto max-w-3xl text-center"
           >
-            <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-zinc-900 md:text-5xl">
+            <h2 className="type-section-title mb-6 text-zinc-900">
               사장님이 직접 바꾸고,<br />
               링크 하나로 매장 화면에 바로 띄우는 메뉴판
             </h2>
@@ -112,7 +112,7 @@ const AllInOneFlow = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
               >
-                <h3 className="mb-5 break-keep text-2xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+                <h3 className="type-subsection-title mb-5 text-zinc-950">
                   {activeFeature.title}
                 </h3>
                 <p className="break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">

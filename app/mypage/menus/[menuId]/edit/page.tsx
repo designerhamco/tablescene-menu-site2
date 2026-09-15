@@ -837,8 +837,8 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
           </Link>
           <div className="rounded-3xl border border-amber-100 bg-white p-8 shadow-sm">
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">{statusLabel}</span>
-              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-500">{templateDisplayName}</span>
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{statusLabel}</span>
+              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">{templateDisplayName}</span>
             </div>
             <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 편집할 수 없습니다.</h1>
             <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
@@ -847,20 +847,20 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {accessState?.canOwnerPreview ? (
-                <Link href={`/mypage/menus/${site.id}/preview`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100">
+                <Link href={`/mypage/menus/${site.id}/preview`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100">
                   미리보기
                 </Link>
               ) : null}
               {accessState?.canConvertToBusiness ? (
-                <Link href={`/mypage/menus/${site.id}/convert`} className="rounded-full bg-amber-700 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-amber-800">
+                <Link href={`/mypage/menus/${site.id}/convert`} className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800">
                   사업자 플랜으로 전환하고 복구
                 </Link>
               ) : (
-                <Link href="/mypage?tab=payments&billingTab=expired" className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800">
+                <Link href="/mypage?tab=payments&billingTab=expired" className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800">
                   구독/결제 상태 확인
                 </Link>
               )}
-              <Link href="/mypage?tab=inquiries" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100">
+              <Link href="/mypage?tab=inquiries" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100">
                 고객지원 문의
               </Link>
             </div>
@@ -1122,7 +1122,7 @@ function HelpTooltip({ label, children }: { label: string; children: ReactNode }
       <button
         type="button"
         aria-label={label}
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-[11px] font-black text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+        className="type-caption inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
       >
         ?
       </button>
@@ -1175,7 +1175,7 @@ function SchedulePlaceholder() {
   return (
     <SectionCard title="일정표 관리">
       <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6">
-        <h3 className="text-lg font-bold tracking-tight text-zinc-950">일정표형 템플릿은 준비 중입니다.</h3>
+        <h3 className="type-content-title text-zinc-950">일정표형 템플릿은 준비 중입니다.</h3>
         <div className="mt-3 space-y-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
           <p>이번 1차 작업에서는 템플릿 유형, 관리자 라벨, 탭 구성만 준비합니다.</p>
           <p>schedule_items 테이블, 일정 CRUD, 공개 일정표 렌더링은 2차 개발에서 추가할 예정입니다.</p>
@@ -2046,8 +2046,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   {(supportsBrandLogo || supportsFooterStoreInfo) && (
                     <div className="space-y-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-5 md:col-span-2">
                       <div>
-                        <p className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">Store Display</p>
-                        <h3 className="mt-1 text-lg font-black tracking-tight text-zinc-950">매장 표시 정보</h3>
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">Store Display</p>
+                        <h3 className="type-content-title mt-1 text-zinc-950">매장 표시 정보</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                           템플릿이 지원하는 경우 공개 메뉴판의 매장명, 하단 매장 안내 정보에 반영됩니다.
                         </p>
@@ -2343,7 +2343,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     ) : canUseFeaturedItemCover && (
                       <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                         <div className="mb-4">
-                          <h3 className="text-lg font-bold tracking-tight text-zinc-950">대표 추천 메뉴</h3>
+                          <h3 className="type-content-title text-zinc-950">대표 추천 메뉴</h3>
                           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                             대표 추천 메뉴는 일부 템플릿에서 커버 이미지 영역의 메뉴 정보로 표시됩니다. 커버 이미지는 별도로 등록한 이미지만 사용합니다.
                           </p>
@@ -2533,7 +2533,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <HiddenMenuId menuId={site.id} />
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>
-                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">템플릿 교체</h3>
+                        <h3 className="type-content-title text-zinc-950">템플릿 교체</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                           메뉴·가격·이미지·번역과 공개 주소는 유지됩니다. 할인은 내용을 보존한 채 꺼지고, 위젯은 다시 배치할 수 있게 숨겨집니다.
                         </p>
@@ -2541,7 +2541,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       {accessContext.isOwner ? (
                         <div className="mt-5 space-y-4">
                           <p className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-600">
-                            현재 템플릿 <strong className="ml-1 font-black text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
+                            현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
                             <span className="mx-2 text-zinc-300">·</span>
                             {getTemplateCommercialTierLabel(getTemplateCommercialTier(site.template_key))}
                           </p>
@@ -2566,12 +2566,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                                         <TemplateSwitchThumbnail templateKey={template.key} templateName={template.label} />
                                         <span className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
                                           <span className="min-w-0">
-                                            <span className="block truncate text-sm font-black text-zinc-950">{template.label}</span>
+                                            <span className="block truncate text-sm font-bold text-zinc-950">{template.label}</span>
                                             <span className="mt-0.5 block text-xs font-bold text-zinc-500">
                                               {getTemplateCommercialTierLabel(getTemplateCommercialTier(template.key))}
                                             </span>
                                           </span>
-                                          <span className="template-switch-check grid h-6 w-6 shrink-0 place-items-center rounded-full border border-zinc-300 text-xs font-black text-transparent">
+                                          <span className="template-switch-check grid h-6 w-6 shrink-0 place-items-center rounded-full border border-zinc-300 text-xs font-bold text-transparent">
                                             ✓
                                           </span>
                                         </span>
@@ -2619,7 +2619,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </div>
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>
-                        <h3 className="text-lg font-bold tracking-tight text-zinc-950">배경색</h3>
+                        <h3 className="type-content-title text-zinc-950">배경색</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                           메뉴판 전체 배경색을 매장 분위기에 맞게 변경할 수 있습니다. 마음에 들지 않으면 언제든 템플릿 기본 색상으로 되돌릴 수 있습니다.
                         </p>
@@ -2635,7 +2635,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>
                         <div>
-                          <h3 className="text-lg font-bold tracking-tight text-zinc-950">폰트 설정</h3>
+                          <h3 className="type-content-title text-zinc-950">폰트 설정</h3>
                           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                             템플릿에 어울리는 기본 폰트가 적용되어 있습니다. 원하는 경우 준비된 한글 폰트 목록에서 선택해 메뉴판 분위기를 바꿀 수 있습니다.
                             마음에 들지 않으면 언제든 템플릿 기본 폰트로 되돌릴 수 있습니다.
@@ -2720,7 +2720,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
                         />
                         <span>
-                          <span className="block text-base font-black text-zinc-950">비공개</span>
+                          <span className="block text-base font-bold text-zinc-950">비공개</span>
                           <span className="mt-2 block break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                             공개 URL로 접속해도 손님에게 메뉴판이 보이지 않습니다.
                           </span>
@@ -2736,7 +2736,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
                         />
                         <span>
-                          <span className="block text-base font-black text-zinc-950">공개</span>
+                          <span className="block text-base font-bold text-zinc-950">공개</span>
                           <span className="mt-2 block break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                             공개 URL과 QR 코드로 손님이 메뉴판을 볼 수 있습니다.
                           </span>
@@ -2761,7 +2761,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     저장 전에는 미리보기와 공개 메뉴판에 반영되지 않습니다. 공개 페이지 보기와 미리보기는 저장된 데이터 기준으로 열립니다.
                   </div>
                   <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-                    <h3 className="font-bold">공개 전 필수 체크리스트</h3>
+                    <h3 className="type-item-title">공개 전 필수 체크리스트</h3>
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
                       {checklist.map((item) => (
                         <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
@@ -2772,7 +2772,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </div>
                   {optionalChecklist.length > 1 && (
                     <div className="rounded-lg border border-zinc-100 bg-white p-5">
-                      <h3 className="font-bold">선택 콘텐츠</h3>
+                      <h3 className="type-item-title">선택 콘텐츠</h3>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         {optionalChecklist.map((item) => (
                           <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>

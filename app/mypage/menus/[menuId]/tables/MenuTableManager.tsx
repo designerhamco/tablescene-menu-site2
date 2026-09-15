@@ -54,8 +54,8 @@ export default function MenuTableManager({
       <ActionNotice state={mutationState} />
 
       <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
-        <h2 className="mt-2 text-2xl font-black tracking-tight">테이블 정보 없이 메뉴판 공유</h2>
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
+        <h2 className="type-subsection-title mt-2">테이블 정보 없이 메뉴판 공유</h2>
         <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
           매장 입구·포스터·SNS에 사용하는 대표 QR입니다. 메뉴는 볼 수 있지만 테이블 번호가 없어 스마트호출은 사용할 수 없습니다.
         </p>
@@ -69,14 +69,14 @@ export default function MenuTableManager({
       </section>
 
       <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">테이블별 QR</p>
-        <h2 className="mt-2 text-2xl font-black tracking-tight">새 테이블 추가</h2>
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">테이블별 QR</p>
+        <h2 className="type-subsection-title mt-2">새 테이블 추가</h2>
         <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
           각 좌석에는 서로 다른 QR이 필요합니다. 테이블 이름을 바꿔도 QR은 유지되며, QR 교체를 선택한 경우에만 기존 인쇄물이 무효화됩니다.
         </p>
         <form action={createAction} className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
           <input type="hidden" name="menuSiteId" value={menuSiteId} />
-          <label className="flex-1 text-sm font-black text-zinc-800">
+          <label className="flex-1 text-sm font-bold text-zinc-800">
             테이블 이름
             <input
               name="label"
@@ -89,7 +89,7 @@ export default function MenuTableManager({
           <button
             type="submit"
             disabled={createPending}
-            className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60"
+            className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60"
           >
             {createPending ? "생성 중" : "테이블 만들기"}
           </button>
@@ -98,7 +98,7 @@ export default function MenuTableManager({
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-2xl font-black tracking-tight">운영 테이블</h2>
+          <h2 className="type-subsection-title">운영 테이블</h2>
           <p className="mt-2 text-sm font-medium text-zinc-500">
             사용 중·비활성 테이블 {tables.length.toLocaleString("ko-KR")}개 · 각 QR은 언제든 다시 다운로드할 수 있습니다.
           </p>
@@ -112,12 +112,12 @@ export default function MenuTableManager({
           <article key={table.id} className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
               <div>
-                <h3 className="text-xl font-black tracking-tight">{table.label}</h3>
+                <h3 className="type-content-title">{table.label}</h3>
                 <p className="mt-1 text-xs font-bold text-zinc-400">
                   마지막 QR 교체 {formatKoreanDateTime(table.tokenRotatedAt)}
                 </p>
               </div>
-              <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${
+              <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${
                 table.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-600"
               }`}>
                 {table.status === "active" ? "사용 중" : "비활성"}
@@ -135,18 +135,18 @@ export default function MenuTableManager({
             <form action={mutationAction} className="mt-5 grid gap-3 border-t border-zinc-100 pt-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
               <input type="hidden" name="menuSiteId" value={menuSiteId} />
               <input type="hidden" name="tableId" value={table.id} />
-              <label className="text-sm font-black text-zinc-800">
+              <label className="text-sm font-bold text-zinc-800">
                 이름
                 <input name="label" required maxLength={80} defaultValue={table.label} className="mt-2 w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-bold" />
               </label>
-              <label className="text-sm font-black text-zinc-800">
+              <label className="text-sm font-bold text-zinc-800">
                 상태
                 <select name="status" defaultValue={table.status} className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold">
                   <option value="active">사용 중</option>
                   <option value="disabled">비활성</option>
                 </select>
               </label>
-              <button name="intent" value="update" disabled={mutationPending} className="rounded-full border border-zinc-300 bg-white px-5 py-3 text-sm font-black text-zinc-800 hover:bg-zinc-100 disabled:opacity-60">
+              <button name="intent" value="update" disabled={mutationPending} className="rounded-full border border-zinc-300 bg-white px-5 py-3 text-sm font-bold text-zinc-800 hover:bg-zinc-100 disabled:opacity-60">
                 저장
               </button>
             </form>
@@ -155,14 +155,14 @@ export default function MenuTableManager({
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-900 hover:bg-amber-100 disabled:opacity-60">
+                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-900 hover:bg-amber-100 disabled:opacity-60">
                   QR 교체
                 </button>
               </form>
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="archive" disabled={mutationPending} className="rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-500 hover:bg-zinc-100 disabled:opacity-60">
+                <button name="intent" value="archive" disabled={mutationPending} className="rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-500 hover:bg-zinc-100 disabled:opacity-60">
                   테이블 보관
                 </button>
               </form>

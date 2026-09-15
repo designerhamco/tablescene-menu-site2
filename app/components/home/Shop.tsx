@@ -34,7 +34,7 @@ const Shop = () => {
         
         {/* Changed to Center Alignment for Consistency */}
         <div className="text-center mb-16 md:mb-20 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-zinc-900 tracking-tight">
+          <h2 className="type-section-title mb-6 text-zinc-900">
             매장 효율을 극대화하는<br />
             전용 하드웨어
           </h2>
@@ -62,7 +62,7 @@ const Shop = () => {
                 />
               </div>
               <div className="space-y-2 text-left px-2">
-                <h3 className="font-bold text-xl text-zinc-900 tracking-tight group-hover:text-primary transition-colors">{product.name}</h3>
+                <h3 className="type-content-title text-zinc-900 transition-colors group-hover:text-primary">{product.name}</h3>
                 <p className="text-sm text-zinc-500 line-clamp-1 font-medium">{product.desc}</p>
                 <p className="text-lg font-bold text-zinc-900 pt-2">{product.price}</p>
               </div>

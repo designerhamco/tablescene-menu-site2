@@ -29,10 +29,10 @@ export default function OrderServiceReviewContent() {
     <div className="bg-zinc-50 text-zinc-950">
       <section className="site-gutter py-20 md:py-28">
         <div className="mx-auto max-w-6xl">
-          <span className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-black text-zinc-600 shadow-sm">
+          <span className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 shadow-sm">
             출시 준비 중 · 실제 주문/결제 미제공
           </span>
-          <h1 className="mt-7 max-w-4xl break-keep text-5xl font-black tracking-tight md:text-7xl">
+          <h1 className="type-page-title mt-7 max-w-4xl">
             아티메뉴 오더
           </h1>
           <p className="mt-6 max-w-3xl break-keep text-lg font-semibold leading-relaxed text-zinc-600 md:text-xl">
@@ -43,13 +43,13 @@ export default function OrderServiceReviewContent() {
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/templates/cafe_design_a/preview?orderCallQa=active"
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-black text-white transition hover:bg-zinc-800"
+              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
             >
               주문·호출 화면 미리보기
             </Link>
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-6 py-4 text-sm font-black text-zinc-950 transition hover:bg-zinc-100"
+              className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-6 py-4 text-sm font-bold text-zinc-950 transition hover:bg-zinc-100"
             >
               현재 판매 상품 보기
             </Link>
@@ -60,8 +60,8 @@ export default function OrderServiceReviewContent() {
       <section className="site-gutter border-y border-zinc-200 bg-white py-16">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
-            <p className="text-sm font-black text-zinc-500">준비된 범위</p>
-            <h2 className="mt-2 break-keep text-3xl font-black tracking-tight md:text-4xl">검증 중인 주문 운영 기능</h2>
+            <p className="text-sm font-bold text-zinc-500">준비된 범위</p>
+            <h2 className="type-section-title mt-2">검증 중인 주문 운영 기능</h2>
             <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               아래 항목은 개발·QA 중인 기능입니다. 매장별 설정, 실제 계정 권한과 운영 데이터에 대한 최종 검증이 끝난 뒤 정식 제공 범위를 확정합니다.
             </p>
@@ -70,7 +70,7 @@ export default function OrderServiceReviewContent() {
             {verifiedFeatures.map(({ icon: Icon, title, description }) => (
               <article key={title} className="rounded-3xl border border-zinc-200 bg-zinc-50 p-7">
                 <Icon className="h-6 w-6" aria-hidden="true" />
-                <h3 className="mt-5 text-xl font-black">{title}</h3>
+                <h3 className="type-content-title mt-5">{title}</h3>
                 <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{description}</p>
               </article>
             ))}
@@ -81,8 +81,8 @@ export default function OrderServiceReviewContent() {
       <section className="site-gutter py-16 md:py-20">
         <div className="mx-auto grid max-w-6xl gap-8 rounded-[2rem] bg-zinc-950 p-8 text-white md:grid-cols-[1fr_1.2fr] md:p-12">
           <div>
-            <p className="text-sm font-black text-zinc-400">정식 제공 전 필수 단계</p>
-            <h2 className="mt-3 break-keep text-3xl font-black tracking-tight">결제·정산은 계약 후 별도 출시합니다</h2>
+            <p className="text-sm font-bold text-zinc-400">정식 제공 전 필수 단계</p>
+            <h2 className="type-section-title mt-3">결제·정산은 계약 후 별도 출시합니다</h2>
           </div>
           <ul className="space-y-4 text-sm font-semibold leading-relaxed text-zinc-300">
             {[

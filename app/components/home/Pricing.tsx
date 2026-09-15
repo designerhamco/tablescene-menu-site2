@@ -53,7 +53,7 @@ const PricingCard = ({ plan, index }: { plan: typeof PLANS[0], index: number }) 
       {/* Disabled Overlay - Covers ENTIRE card */}
       {plan.disabled && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-zinc-900/40 backdrop-blur-[1px] cursor-not-allowed">
-             <span className="text-xl md:text-2xl font-black tracking-widest text-white drop-shadow-lg">COMING SOON</span>
+             <span className="text-xl md:text-2xl font-bold tracking-widest text-white drop-shadow-lg">COMING SOON</span>
              <span className="text-sm text-zinc-200 font-medium mt-1 drop-shadow-md">서비스 준비중입니다</span>
         </div>
       )}
@@ -73,7 +73,7 @@ const PricingCard = ({ plan, index }: { plan: typeof PLANS[0], index: number }) 
           {plan.name}
         </span>
         
-        <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 mb-6 tracking-tight flex items-center gap-3">
+        <h3 className="type-subsection-title mb-6 flex items-center gap-3 text-zinc-900">
           {plan.tagline}
         </h3>
         
@@ -139,7 +139,7 @@ const Pricing = () => {
     <section className="py-24 bg-zinc-50 relative">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-zinc-900 tracking-tight leading-tight">
+          <h2 className="type-section-title mb-6 text-zinc-900">
             매장의 운영 방식에 최적화된<br className="hidden md:block" /> 맞춤형 솔루션을 제안합니다
           </h2>
           <p className="text-lg text-zinc-500 leading-relaxed font-medium">

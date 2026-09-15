@@ -54,7 +54,7 @@ const DeviceSelection = ({
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-zinc-900 md:text-5xl">
+            <h2 className="type-section-title mb-4 text-zinc-900">
               {title}
             </h2>
 
@@ -86,7 +86,7 @@ const DeviceSelection = ({
                 <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/10 to-black/70" />
                 <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
                   <div className="max-w-sm">
-                    <h3 className="mb-2 text-xl font-bold tracking-tight text-white md:mb-3 md:text-3xl">
+                    <h3 className="type-subsection-title mb-2 text-white md:mb-3">
                       {device.title}
                     </h3>
                   </div>
