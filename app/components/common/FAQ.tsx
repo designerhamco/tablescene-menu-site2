@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Search } from 'lucide-react';
 
 export type FAQCategory = {
   category: string;
@@ -344,6 +344,18 @@ const FAQ = ({
 }: FAQProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase("ko-KR");
+  const searchResults = useMemo(() => {
+    if (!normalizedSearchQuery) {
+      return [];
+    }
+
+    return data.flatMap((category) => category.items
+      .filter((item) => `${category.category} ${item.question}`.toLocaleLowerCase("ko-KR").includes(normalizedSearchQuery))
+      .map((item) => ({ ...item, category: category.category })));
+  }, [data, normalizedSearchQuery]);
 
   // When tab changes, reset open index
   const handleTabChange = (index: number) => {
@@ -366,8 +378,30 @@ const FAQ = ({
             ) : null}
           </div>
 
+          {data.length > 1 ? (
+            <div className="mb-6 max-w-xl">
+              <label htmlFor="faq-search" className="type-label mb-2 block text-zinc-700">
+                질문 검색
+              </label>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden="true" />
+                <input
+                  id="faq-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    setOpenIndex(null);
+                  }}
+                  className="site-field w-full pl-11"
+                  placeholder="예: 무료체험, QR, 스마트호출"
+                />
+              </div>
+            </div>
+          ) : null}
+
           {/* Category Tabs */}
-          {data.length > 1 && (
+          {data.length > 1 && !normalizedSearchQuery && (
             <div className={`mb-10 flex flex-wrap gap-2 ${align === "left" ? "justify-start" : "justify-center"}`}>
               {data.map((category, idx) => (
                 <button
@@ -387,26 +421,53 @@ const FAQ = ({
 
           {/* FAQ List */}
           <div className={`min-h-[400px] w-full rounded-2xl border p-4 md:p-8 ${homeDark ? 'border-zinc-700 bg-zinc-950' : 'border-zinc-200 bg-white'} ${showSupport ? 'mb-12' : ''}`}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                {data[activeTab].items.map((faq, index) => (
-                  <FAQItem
-                    key={`${activeTab}-${index}`}
-                    index={index}
-                    item={faq}
-                    isOpen={openIndex === index}
-                    onToggle={() => setOpenIndex(openIndex === index ? null : index)}
-                    inverted={homeDark}
-                  />
-                ))}
-              </motion.div>
-            </AnimatePresence>
+            {normalizedSearchQuery ? (
+              searchResults.length > 0 ? (
+                <div>
+                  <p className={`type-body-sm mb-3 px-4 ${homeDark ? "text-zinc-400" : "text-zinc-500"}`}>
+                    검색 결과 {searchResults.length}개
+                  </p>
+                  {searchResults.map((faq, index) => (
+                    <div key={`${faq.category}-${faq.question}`}>
+                      <p className={`type-caption px-4 pt-5 ${homeDark ? "text-zinc-400" : "text-zinc-400"}`}>{faq.category}</p>
+                      <FAQItem
+                        index={index}
+                        item={faq}
+                        isOpen={openIndex === index}
+                        onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+                        inverted={homeDark}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex min-h-[320px] flex-col items-center justify-center px-5 text-center">
+                  <p className={`type-subsection-title ${homeDark ? "text-white" : "text-zinc-900"}`}>검색 결과가 없습니다</p>
+                  <p className={`type-body-sm mt-3 ${homeDark ? "text-zinc-400" : "text-zinc-500"}`}>다른 단어로 검색하거나 AI 상담을 이용해 주세요.</p>
+                </div>
+              )
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {data[activeTab].items.map((faq, index) => (
+                    <FAQItem
+                      key={`${activeTab}-${index}`}
+                      index={index}
+                      item={faq}
+                      isOpen={openIndex === index}
+                      onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+                      inverted={homeDark}
+                    />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            )}
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ export type InquirySectionInquiry = Pick<
 };
 
 export const inquiryPageSize = 10;
+export type InquiryStatusFilter = "all" | InquirySectionInquiry["status"];
 
 type InquirySectionProps = {
   inquiries: InquirySectionInquiry[];
@@ -26,6 +27,8 @@ type InquirySectionProps = {
   paginationBasePath: string;
   returnToPath: string;
   showIntro?: boolean;
+  inquiryQuery?: string;
+  inquiryStatus?: InquiryStatusFilter;
 };
 
 export function normalizeInquiryPage(value?: string | string[]) {
@@ -33,6 +36,18 @@ export function normalizeInquiryPage(value?: string | string[]) {
   const page = Number(rawValue);
 
   return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
+export function normalizeInquiryQuery(value?: string | string[]) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  return (rawValue ?? "").trim().slice(0, 60);
+}
+
+export function normalizeInquiryStatus(value?: string | string[]): InquiryStatusFilter {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  return rawValue === "open" || rawValue === "answered" || rawValue === "closed" ? rawValue : "all";
 }
 
 export function getInquiryNoticeMessage(message?: string | string[]) {
@@ -142,7 +157,16 @@ export function InquirySection({
   paginationBasePath,
   returnToPath,
   showIntro = true,
+  inquiryQuery = "",
+  inquiryStatus = "all",
 }: InquirySectionProps) {
+  const [filterPathname, filterQueryString] = paginationBasePath.split("?");
+  const filterBaseParams = Array.from(new URLSearchParams(filterQueryString ?? "").entries());
+  const listHrefParams = {
+    inquiryQuery: inquiryQuery || null,
+    inquiryStatus: inquiryStatus === "all" ? null : inquiryStatus,
+  };
+
   return (
     <section className="space-y-8">
       <ActionFeedbackToast message={noticeMessage} tone="success" />
@@ -244,8 +268,40 @@ export function InquirySection({
           </p>
         </div>
 
+        <form method="get" action={filterPathname} className="site-card mb-5 grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-end">
+          {filterBaseParams.map(([key, value]) => (
+            <input key={key} type="hidden" name={key} value={value} />
+          ))}
+          <div>
+            <label htmlFor="inquiry-query" className="type-label mb-2 block text-zinc-700">제목 검색</label>
+            <input
+              id="inquiry-query"
+              name="inquiryQuery"
+              type="search"
+              defaultValue={inquiryQuery}
+              className="site-field w-full"
+              placeholder="문의 제목을 입력하세요"
+            />
+          </div>
+          <div>
+            <label htmlFor="inquiry-status" className="type-label mb-2 block text-zinc-700">답변 상태</label>
+            <select id="inquiry-status" name="inquiryStatus" defaultValue={inquiryStatus} className="site-field w-full">
+              <option value="all">전체</option>
+              <option value="open">접수됨</option>
+              <option value="answered">답변 완료</option>
+              <option value="closed">종료됨</option>
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="site-button site-button-primary flex-1 sm:flex-none">조회</button>
+            {(inquiryQuery || inquiryStatus !== "all") ? (
+              <Link href={paginationBasePath} className="site-button site-button-secondary flex-1 sm:flex-none">초기화</Link>
+            ) : null}
+          </div>
+        </form>
+
         {inquiries.length > 0 ? (
-          <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
+          <div className="site-card overflow-hidden">
             <div className="hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400 md:grid">
               <p>번호</p>
               <p>유형</p>
@@ -392,7 +448,7 @@ export function InquirySection({
 
             <div className="flex items-center justify-between gap-3 border-t border-zinc-100 bg-zinc-50 p-4">
               {activeInquiryPage > 1 ? (
-                <Link href={createHref(paginationBasePath, { inquiryPage: activeInquiryPage - 1 })} className={getActionButtonClassName("secondary")}>
+                <Link href={createHref(paginationBasePath, { ...listHrefParams, inquiryPage: activeInquiryPage - 1 })} className={getActionButtonClassName("secondary")}>
                   이전
                 </Link>
               ) : (
@@ -404,7 +460,7 @@ export function InquirySection({
                 {activeInquiryPage}/{inquiryTotalPages}
               </span>
               {activeInquiryPage < inquiryTotalPages ? (
-                <Link href={createHref(paginationBasePath, { inquiryPage: activeInquiryPage + 1 })} className={getActionButtonClassName("secondary")}>
+                <Link href={createHref(paginationBasePath, { ...listHrefParams, inquiryPage: activeInquiryPage + 1 })} className={getActionButtonClassName("secondary")}>
                   다음
                 </Link>
               ) : (
@@ -415,8 +471,8 @@ export function InquirySection({
             </div>
           </div>
         ) : (
-          <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
-            <h3 className="type-subsection-title">아직 문의 내역이 없습니다</h3>
+          <div className="site-card border-dashed p-10 text-center">
+            <h3 className="type-subsection-title">{inquiryQuery || inquiryStatus !== "all" ? "조건에 맞는 문의가 없습니다" : "아직 문의 내역이 없습니다"}</h3>
             <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
               궁금한 점이 있다면 새 문의를 남겨주세요. 답변 상태와 내용을 이곳에서 확인할 수 있습니다.
             </p>
