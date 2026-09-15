@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 type Message = { role: "user" | "assistant"; text: string };
 
@@ -13,11 +13,26 @@ const SUGGESTIONS = [
 ] as const;
 
 export default function AiSupportChat({ compact = false }: { compact?: boolean }) {
+  const messageViewportRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [overseasTransferConsent, setOverseasTransferConsent] = useState(false);
+
+  useEffect(() => {
+    const viewport = messageViewportRef.current;
+    if (!viewport || messages.length === 0) return;
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: messages.length > 1 ? "smooth" : "auto",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [error, messages, pending]);
 
   const submitQuestion = async (value: string) => {
     const normalized = value.trim();
@@ -58,7 +73,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
   };
 
   return (
-    <section className={`site-card min-h-0 overflow-hidden ${compact ? "site-card-compact flex flex-col" : ""}`}>
+    <section className={`site-card min-h-0 overflow-hidden ${compact ? "site-card-compact flex h-full flex-col" : ""}`}>
       {!compact ? (
         <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
           <h2 className="type-content-title">상담 범위</h2>
@@ -68,7 +83,11 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         </div>
       ) : null}
 
-      <div className={`${compact ? "min-h-[240px] flex-1 overflow-y-auto px-4 py-4 sm:min-h-[280px] sm:px-5 sm:py-5 md:max-h-[46dvh]" : "min-h-[420px] px-5 py-6 md:px-7"} space-y-4 bg-zinc-50`} aria-live="polite">
+      <div
+        ref={messageViewportRef}
+        className={`${compact ? "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5 sm:py-5 md:max-h-[46dvh]" : "min-h-[420px] px-5 py-6 md:px-7"} space-y-4 bg-zinc-50`}
+        aria-live="polite"
+      >
         {messages.length === 0 ? (
           <div className={`mx-auto flex max-w-xl flex-col items-center text-center ${compact ? "py-6 sm:py-9" : "py-12"}`}>
             <p className="type-subsection-title">무엇을 도와드릴까요?</p>
@@ -107,8 +126,8 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         ) : null}
       </div>
 
-      <form onSubmit={handleSubmit} className={`border-t border-zinc-100 ${compact ? "p-3 sm:p-4" : "p-4 md:p-5"}`}>
-        <label className={`flex cursor-pointer items-start gap-3 rounded-2xl bg-zinc-50 ${compact ? "mb-3 px-3 py-3" : "mb-4 px-4 py-3.5"}`}>
+      <form onSubmit={handleSubmit} className={`shrink-0 border-t border-zinc-100 bg-white ${compact ? "p-3 sm:p-4" : "p-4 md:p-5"}`}>
+        <label className={`flex cursor-pointer gap-3 rounded-2xl bg-zinc-50 ${overseasTransferConsent ? "items-center" : "items-start"} ${compact ? "mb-3 px-3 py-3" : "mb-4 px-4 py-3.5"}`}>
           <input
             type="checkbox"
             checked={overseasTransferConsent}
@@ -118,14 +137,21 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             }}
             className="mt-0.5 h-4 w-4 shrink-0 accent-zinc-950"
           />
-          <span className="type-caption text-zinc-600">
-            <strong className="font-bold text-zinc-900">[필수] AI 상담을 위한 개인정보 국외 이전에 동의합니다.</strong>
-            <span className="mt-1 block">
-              질문과 생성 답변 및 처리에 필요한 기술 정보가 미국 등 국외의 OpenAI OpCo, LLC 및 하위처리자에게 암호화 전송되며,
-              답변 생성과 악용 방지를 위해 최대 30일 보관될 수 있습니다. 동의를 거부하면 AI 상담은 이용할 수 없지만
-              일반 서비스와 1:1 문의는 계속 이용할 수 있습니다. <Link href="/privacy" className="font-bold underline underline-offset-2">자세히 보기</Link>
+          {overseasTransferConsent ? (
+            <span className="type-caption flex min-w-0 flex-1 items-center justify-between gap-3 text-zinc-700">
+              <strong className="font-bold text-zinc-900">국외 이전 동의 완료</strong>
+              <Link href="/privacy" className="shrink-0 font-bold underline underline-offset-2">자세히 보기</Link>
             </span>
-          </span>
+          ) : (
+            <span className="type-caption text-zinc-600">
+              <strong className="font-bold text-zinc-900">[필수] AI 상담을 위한 개인정보 국외 이전에 동의합니다.</strong>
+              <span className="mt-1 block">
+                질문과 생성 답변 및 처리에 필요한 기술 정보가 미국 등 국외의 OpenAI OpCo, LLC 및 하위처리자에게 암호화 전송되며,
+                답변 생성과 악용 방지를 위해 최대 30일 보관될 수 있습니다. 동의를 거부하면 AI 상담은 이용할 수 없지만
+                일반 서비스와 1:1 문의는 계속 이용할 수 있습니다. <Link href="/privacy" className="font-bold underline underline-offset-2">자세히 보기</Link>
+              </span>
+            </span>
+          )}
         </label>
         <div className="flex gap-2">
           <label htmlFor="ai-support-question" className="sr-only">AI 상담 질문</label>

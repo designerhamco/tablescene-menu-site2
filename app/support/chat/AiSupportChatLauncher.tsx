@@ -78,7 +78,7 @@ export default function AiSupportChatLauncher() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="ai-support-dialog-title"
-              className="site-dialog site-dialog-sheet absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col overflow-hidden border-x-0 border-b-0 text-zinc-950 md:inset-x-auto md:bottom-6 md:right-6 md:w-[min(680px,calc(100vw-48px))] md:border"
+              className="site-dialog site-dialog-sheet absolute inset-x-0 bottom-0 flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden border-x-0 border-b-0 text-zinc-950 md:inset-x-auto md:bottom-6 md:right-6 md:h-auto md:w-[min(680px,calc(100vw-48px))] md:border"
               initial={{ opacity: 0, y: 36 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
@@ -97,7 +97,7 @@ export default function AiSupportChatLauncher() {
                 </button>
               </header>
 
-              <div className="min-h-0 overflow-y-auto overscroll-contain p-3 md:p-4">
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-3 md:p-4">
                 {enabled === null ? (
                   <div className="type-label grid min-h-64 place-items-center text-zinc-400" aria-live="polite">
                     상담 가능 여부를 확인 중입니다…
