@@ -31,10 +31,22 @@ test("주요 공개·인증·고객지원 화면은 공통 페이지 간격을 �
     "../app/terms/page.tsx",
     "../app/privacy/page.tsx",
     "../app/sign-up/page.tsx",
+    "../app/mypage/page.tsx",
     "../app/mypage/inquiries/page.tsx",
   ]) {
     assert.match(readSource(path), /site-page-spacing/);
   }
+});
+
+test("마이페이지 본체는 공통 카드·탭·피드백 표면을 사용한다", () => {
+  const source = readSource("../app/mypage/page.tsx");
+
+  assert.match(source, /site-gutter site-page-spacing-compact/);
+  assert.match(source, /site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1\.5/);
+  assert.match(source, /site-notice site-notice-success/);
+  assert.match(source, /site-notice site-notice-warning/);
+  assert.match(source, /site-notice site-notice-error/);
+  assert.doesNotMatch(source, /shadow-sm/);
 });
 
 test("약관 문서 표면은 공통 카드 규칙을 사용하고 개별 그림자를 만들지 않는다", () => {

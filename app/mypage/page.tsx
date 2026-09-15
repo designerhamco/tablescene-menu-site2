@@ -2727,9 +2727,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         message={mypageNotice}
         tone={messageCode === "staff-invitation-accepted" ? "success" : "warning"}
       />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <div className="mx-auto w-full max-w-7xl">
-          <header className="mb-6 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
+          <header className="mb-5 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:mb-6 md:flex-row md:items-end md:pb-8">
             <div>
               <h1 className="type-page-title">마이페이지</h1>
               <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2740,8 +2740,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             </div>
           </header>
 
-        <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-          <aside className="space-y-4 lg:sticky lg:top-28">
+        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
+          <aside className="space-y-3 lg:sticky lg:top-28">
             <MypageAccountCard
               email={user.email ?? "이메일 정보 없음"}
               roleLabel={accountRoleLabel}
@@ -2757,7 +2757,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             />
           </aside>
 
-          <div className="min-w-0 space-y-10">
+          <div className="min-w-0 space-y-8 lg:space-y-10">
             {activeTab === "menus" ? (
             <section id="my-menus" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -2773,7 +2773,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 {renderStoreOperationsButton()}
               </div>
 
-              <nav className="mb-5 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200" aria-label="내 메뉴판 탭">
+              <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5" aria-label="내 메뉴판 탭">
                 <Link href="/mypage?tab=menus&menuTab=active" className={getBillingTabClassName(activeMenuTab === "active")}>
                   이용 중
                   <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCardCount.toLocaleString("ko-KR")}</span>
@@ -2801,25 +2801,25 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               </nav>
 
           {mypageNotice ? (
-            <div className="mb-5 rounded-3xl border border-emerald-100 bg-emerald-50 p-5 text-sm font-bold text-emerald-800">
+            <div className="site-notice site-notice-success mb-5 p-5">
               {mypageNotice}
             </div>
           ) : null}
 
           {menuSitesError && (
-            <div className="mb-5 rounded-3xl border border-red-100 bg-red-50 p-6 text-sm font-medium text-red-700">
+            <div className="site-notice site-notice-error mb-5 p-5">
               메뉴판 목록을 불러오지 못했습니다: {menuSitesError.message}
             </div>
           )}
 
           {serviceEntitlementsError && (
-            <div className="mb-5 rounded-3xl border border-amber-100 bg-amber-50 p-6 text-sm font-medium text-amber-800">
+            <div className="site-notice site-notice-warning mb-5 p-5">
               이용 상태 정보를 불러오지 못해 일부 메뉴판은 기존 저장값 기준으로 표시됩니다: {serviceEntitlementsError.message}
             </div>
           )}
 
           {staffMenuSitesError && (
-            <div className="mb-5 rounded-3xl border border-amber-100 bg-amber-50 p-6 text-sm font-medium text-amber-800">
+            <div className="site-notice site-notice-warning mb-5 p-5">
               {staffMenuSitesError.message}
             </div>
           )}
@@ -2850,7 +2850,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   {activeMenuTab === "active" ? staffMenuCardViewModels.map(renderStaffMenuCard) : null}
                 </div>
               ) : (
-                <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
+                <div className="site-card site-card-empty p-7 sm:p-10">
                   <h3 className="type-subsection-title">
                     {activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
                   </h3>
@@ -2865,7 +2865,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               )}
             </section>
           ) : (
-            <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
+            <div className="site-card site-card-empty p-7 sm:p-10">
               <h3 className="type-subsection-title">아직 만든 메뉴판이 없습니다</h3>
               <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
                 상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다.
@@ -2887,7 +2887,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </div>
                 </div>
 
-                <nav className="mb-5 flex gap-2 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-zinc-200" aria-label="구독/결제 내역 탭">
+                <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5" aria-label="구독/결제 내역 탭">
                   <Link href="/mypage?tab=payments&billingTab=history" className={getBillingTabClassName(activeBillingTab === "history")}>
                     결제내역
                   </Link>
@@ -2897,7 +2897,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 </nav>
 
                 {paymentsErrors.length > 0 ? (
-                  <div className="mb-5 rounded-3xl border border-amber-100 bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-800">
+                  <div className="site-notice site-notice-warning mb-5 p-5">
                     {Array.from(new Set(paymentsErrors)).map((paymentsError) => (
                       <p key={paymentsError}>{paymentsError}</p>
                     ))}
@@ -2964,7 +2964,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                             : getEntitlementStatusLabel(entitlement?.status);
 
                         return (
-                          <article key={key} className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                          <article key={key} className="site-card site-card-compact p-4">
                             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -3063,7 +3063,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       })}
                     </div>
                   ) : (
-                    <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
+                    <article className="site-card site-card-empty p-7 sm:p-8">
                       <h4 className="type-content-title">현재 이용 중인 서비스가 없습니다</h4>
                       <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">메뉴판을 만들거나 사업자 플랜을 시작하면 이곳에 표시됩니다.</p>
                     </article>
@@ -3154,7 +3154,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               : "보관 기간 정보 없음";
 
                         return (
-                          <article key={key} className={`rounded-2xl border bg-white p-4 shadow-sm ${isDeletedTab ? "border-zinc-200" : "border-amber-100"}`}>
+                          <article key={key} className={`site-card site-card-compact p-4 ${isDeletedTab ? "border-zinc-200" : "border-amber-100"}`}>
                             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -3241,7 +3241,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       })}
                     </div>
                   ) : (
-                    <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
+                    <article className="site-card site-card-empty p-7 sm:p-8">
                       <h4 className="type-content-title">
                         {activeBillingTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
                       </h4>
@@ -3270,7 +3270,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     accountSummaryOnly
                   />
                 ) : (
-                  <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                  <article className="site-card site-card-compact p-4">
                     <h3 className="type-item-title text-zinc-950">보유 AI 크레딧 0개</h3>
                     <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                       충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
@@ -3291,7 +3291,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </div>
 
                   {displayedAiCreditTransactions.length > 0 ? (
-                    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                    <div className="site-card site-card-compact overflow-hidden">
                       {displayedAiCreditTransactions.map((transaction, index) => {
                         const isPurchase = transaction.transaction_type === "purchase";
                         const product = isPurchase ? getAiCreditPack(transaction.product_key) : null;
@@ -3353,7 +3353,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       })}
                     </div>
                   ) : (
-                    <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
+                    <article className="site-card site-card-empty p-7 sm:p-8">
                       <h4 className="type-content-title">아직 AI 크레딧 내역이 없습니다</h4>
                       <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">AI 크레딧을 지급받거나 충전·사용하면 이곳에 기록됩니다.</p>
                     </article>
@@ -3409,7 +3409,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 </Link>
               </div>
 
-              <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <article className="site-card p-5 sm:p-6">
                 <dl className="grid gap-5 md:grid-cols-2">
                   <div className="rounded-2xl bg-zinc-50 p-4">
                     <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">로그인 이메일</dt>
