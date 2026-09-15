@@ -113,8 +113,8 @@ export default function MenuWidgetDraftEditor({
   return (
     <div>
       <div className="mb-5">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-400">Widget Detail</p>
-        <h3 className="mt-2 text-2xl font-black tracking-tight text-zinc-950">{heading}</h3>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">Widget Detail</p>
+        <h3 className="type-subsection-title mt-2 text-zinc-950">{heading}</h3>
         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
           위젯은 카테고리와 같은 최상위 콘텐츠입니다. 여기서 반영한 뒤 하단의 최종 저장을 눌러야 공개 메뉴판에 반영됩니다.
         </p>
@@ -128,7 +128,7 @@ export default function MenuWidgetDraftEditor({
         <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
           <label className="flex items-center justify-between gap-3">
             <span>
-              <span className="block text-sm font-black text-zinc-950">메뉴판에 표시</span>
+              <span className="block text-sm font-bold text-zinc-950">메뉴판에 표시</span>
               <span className="mt-1 block text-xs font-bold text-zinc-400">{draft.visible ? "표시함" : "표시 안 함"}</span>
             </span>
             <input
@@ -227,7 +227,7 @@ export default function MenuWidgetDraftEditor({
                   key={align}
                   type="button"
                   onClick={() => patchSettings({ textAlign: align })}
-                  className={`rounded-full border px-4 py-2 text-xs font-black transition ${
+                  className={`rounded-full border px-4 py-2 text-xs font-bold transition ${
                     draft.settings.textAlign === align
                       ? "border-zinc-950 bg-zinc-950 text-white"
                       : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
@@ -293,7 +293,7 @@ export default function MenuWidgetDraftEditor({
 function FieldBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="block">
-      <span className="mb-2 block text-xs font-black text-zinc-500">{label}</span>
+      <span className="mb-2 block text-xs font-bold text-zinc-500">{label}</span>
       {children}
     </div>
   );

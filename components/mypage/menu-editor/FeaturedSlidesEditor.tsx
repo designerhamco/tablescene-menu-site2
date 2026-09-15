@@ -120,7 +120,7 @@ export default function FeaturedSlidesEditor({
     <div className="grid gap-4">
       <input ref={hiddenInputRef} type="hidden" name="featured_slides" value={JSON.stringify(slides)} readOnly />
       <div>
-        <h3 className="text-lg font-bold tracking-tight text-zinc-950">대표 이미지와 상품</h3>
+        <h3 className="type-content-title text-zinc-950">대표 이미지와 상품</h3>
         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
           커버 이미지와 대표 상품을 최대 {effectiveMaxSlides}개까지 연결할 수 있습니다. 등록한 순서대로 대표 영역에 표시됩니다.
         </p>
@@ -143,7 +143,7 @@ export default function FeaturedSlidesEditor({
             <section key={slide.id} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h4 className="text-sm font-black text-zinc-950">대표 슬라이드 {index + 1}</h4>
+                  <h4 className="type-label text-zinc-950">대표 슬라이드 {index + 1}</h4>
                   {completionLabel && <p className="mt-1 break-keep text-xs font-bold text-amber-700">{completionLabel}</p>}
                   {selectedItemIsInvalid && (
                     <p className="mt-1 break-keep text-xs font-bold text-red-600">

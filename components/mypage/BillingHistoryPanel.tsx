@@ -170,7 +170,7 @@ function FilterSelect({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-black text-zinc-400">{label}</span>
+      <span className="text-xs font-bold text-zinc-400">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -384,7 +384,7 @@ function RestoreSubscriptionModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-zinc-800"
+        className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-zinc-800"
       >
         구독 관리
       </button>
@@ -394,8 +394,8 @@ function RestoreSubscriptionModal({
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Subscription management</p>
-                <h3 className="mt-2 break-keep text-2xl font-black tracking-tight text-zinc-950">재구독하고 복구</h3>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-500">Subscription management</p>
+                <h3 className="type-subsection-title mt-2 break-keep text-zinc-950">재구독하고 복구</h3>
                 <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                   기존 메뉴판을 복구할 구독 상품을 선택해주세요.
                 </p>
@@ -403,7 +403,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-black text-zinc-500 transition-colors hover:bg-zinc-100"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-bold text-zinc-500 transition-colors hover:bg-zinc-100"
                 aria-label="복구 안내 닫기"
               >
                 ×
@@ -421,16 +421,16 @@ function RestoreSubscriptionModal({
 
             <dl className="mt-5 grid gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm md:grid-cols-2">
               <div>
-                <dt className="text-xs font-black text-zinc-400">복구 대상</dt>
-                <dd className="mt-1 break-keep font-black text-zinc-900">{restore.menuName}</dd>
+                <dt className="text-xs font-bold text-zinc-400">복구 대상</dt>
+                <dd className="mt-1 break-keep font-bold text-zinc-900">{restore.menuName}</dd>
               </div>
               <div>
-                <dt className="text-xs font-black text-zinc-400">서비스</dt>
-                <dd className="mt-1 font-black text-zinc-900">{restore.serviceTypeLabel}</dd>
+                <dt className="text-xs font-bold text-zinc-400">서비스</dt>
+                <dd className="mt-1 font-bold text-zinc-900">{restore.serviceTypeLabel}</dd>
               </div>
               <div className="md:col-span-2">
-                <dt className="text-xs font-black text-zinc-400">공개 주소</dt>
-                <dd className="mt-1 break-all font-black text-zinc-900">{restore.menuPath}</dd>
+                <dt className="text-xs font-bold text-zinc-400">공개 주소</dt>
+                <dd className="mt-1 break-all font-bold text-zinc-900">{restore.menuPath}</dd>
               </div>
             </dl>
 
@@ -448,10 +448,10 @@ function RestoreSubscriptionModal({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="break-keep text-base font-black text-zinc-950">{option.label}</h4>
-                      <p className="mt-2 text-2xl font-black tracking-tight text-zinc-950">{option.amountLabel}</p>
+                      <h4 className="type-item-title break-keep text-zinc-950">{option.label}</h4>
+                      <p className="mt-2 text-2xl font-bold tracking-tight text-zinc-950">{option.amountLabel}</p>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-black ${
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                       selectedProductKey === option.productKey ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-500"
                     }`}>
                       {selectedProductKey === option.productKey ? "선택됨" : "현재가"}
@@ -479,7 +479,7 @@ function RestoreSubscriptionModal({
               type="button"
               disabled={!canStartRestore}
               onClick={startRestoreCheckout}
-              className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-black transition-colors ${
+              className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-bold transition-colors ${
                 canStartRestore
                   ? "bg-zinc-950 text-white hover:bg-zinc-800"
                   : "border border-zinc-200 bg-zinc-100 text-zinc-400"
@@ -514,7 +514,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
               >
                 닫기
               </button>
@@ -564,7 +564,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
       <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
           <div>
-            <h3 className="text-xl font-black tracking-tight text-zinc-950">결제내역 필터</h3>
+            <h3 className="type-content-title text-zinc-950">결제내역 필터</h3>
             <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               결제일, 서비스 유형, 결제 방식, 서비스 상태, 결제/환불 상태, 메뉴판명 또는 주소로 결제 기록을 찾을 수 있습니다.
             </p>
@@ -573,7 +573,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             type="button"
             onClick={() => setFilters(initialFilters)}
             disabled={!hasActiveFilters}
-            className="inline-flex shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             필터 초기화
           </button>
@@ -581,7 +581,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <label className="block">
-            <span className="text-xs font-black text-zinc-400">결제 시작일</span>
+            <span className="text-xs font-bold text-zinc-400">결제 시작일</span>
             <input
               type="date"
               value={filters.from}
@@ -590,7 +590,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             />
           </label>
           <label className="block">
-            <span className="text-xs font-black text-zinc-400">결제 종료일</span>
+            <span className="text-xs font-bold text-zinc-400">결제 종료일</span>
             <input
               type="date"
               value={filters.to}
@@ -632,7 +632,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             options={paymentStatusFilterOptions}
           />
           <label className="block md:col-span-2">
-            <span className="text-xs font-black text-zinc-400">매장명 / 메뉴판 주소 / 결제번호 검색</span>
+            <span className="text-xs font-bold text-zinc-400">매장명 / 메뉴판 주소 / 결제번호 검색</span>
             <input
               value={filters.query}
               onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
@@ -654,7 +654,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-2xl font-black tracking-tight">결제내역</h3>
+        <h3 className="type-subsection-title">결제내역</h3>
         <p className="text-xs font-bold text-zinc-400">
           {filteredEntries.length.toLocaleString("ko-KR")} / {entries.length.toLocaleString("ko-KR")}건
         </p>
@@ -667,60 +667,60 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
               <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-lg font-black tracking-tight text-zinc-950">{entry.productName}</h4>
-                    <span className={`rounded-full px-4 py-1.5 text-sm font-black ring-1 ${getBadgeClassName(entry.serviceStatusTone)}`}>
+                    <h4 className="type-content-title text-zinc-950">{entry.productName}</h4>
+                    <span className={`rounded-full px-4 py-1.5 text-sm font-bold ring-1 ${getBadgeClassName(entry.serviceStatusTone)}`}>
                       {entry.serviceStatusLabel}
                     </span>
-                    <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
+                    <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
                       {entry.serviceTypeLabel}
                     </span>
                   </div>
 
                   <dl className="mt-4 grid gap-x-5 gap-y-2 text-sm md:grid-cols-2 xl:grid-cols-4">
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">결제일</dt>
+                      <dt className="text-xs font-bold text-zinc-400">결제일</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.paidAtLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">메뉴판</dt>
+                      <dt className="text-xs font-bold text-zinc-400">메뉴판</dt>
                       <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.menuName ?? "연결 메뉴판 없음"}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">공개 주소</dt>
+                      <dt className="text-xs font-bold text-zinc-400">공개 주소</dt>
                       <dd className="mt-1 break-all font-bold text-zinc-900">{entry.menuPath}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">결제 방식</dt>
+                      <dt className="text-xs font-bold text-zinc-400">결제 방식</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethodLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">결제금액</dt>
+                      <dt className="text-xs font-bold text-zinc-400">결제금액</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.originalAmountLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">결제/환불 상태</dt>
+                      <dt className="text-xs font-bold text-zinc-400">결제/환불 상태</dt>
                       <dd className="mt-1">
-                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-black ring-1 ${getBadgeClassName(entry.paymentStatusTone)}`}>
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${getBadgeClassName(entry.paymentStatusTone)}`}>
                           {entry.paymentStatusLabel}
                         </span>
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">{entry.renewalLabel}</dt>
+                      <dt className="text-xs font-bold text-zinc-400">{entry.renewalLabel}</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.renewalDateLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">정기결제</dt>
+                      <dt className="text-xs font-bold text-zinc-400">정기결제</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "trial" ? "체험 결제" : entry.billingMethod === "one_time" ? "1회 결제" : "정기결제"}</dd>
                     </div>
                     {entry.refundAmountLabel ? (
                       <div>
-                        <dt className="text-xs font-black text-zinc-400">환불금액</dt>
+                        <dt className="text-xs font-bold text-zinc-400">환불금액</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{entry.refundAmountLabel}</dd>
                       </div>
                     ) : null}
                     <div>
-                      <dt className="text-xs font-black text-zinc-400">결제수단</dt>
+                      <dt className="text-xs font-bold text-zinc-400">결제수단</dt>
                       <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.paymentMethodLabel}</dd>
                     </div>
                   </dl>
@@ -766,7 +766,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         </div>
       ) : (
         <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
-          <h4 className="text-xl font-black">조건에 맞는 결제내역이 없습니다</h4>
+          <h4 className="type-content-title">조건에 맞는 결제내역이 없습니다</h4>
           <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">필터를 초기화하거나 다른 조건으로 다시 확인해주세요.</p>
         </article>
       )}

@@ -43,7 +43,7 @@ export function NavigationDots() {
             className="group relative flex h-4 w-4 items-center justify-center"
             aria-label={`Scroll to ${label}`}
           >
-            <span className="pointer-events-none absolute right-full mr-4 whitespace-nowrap rounded bg-black/80 px-2 py-1 text-[10px] font-medium text-white opacity-0 transition-all duration-300 group-hover:opacity-100">
+            <span className="pointer-events-none absolute right-full mr-4 whitespace-nowrap rounded bg-black/80 px-2 py-1 text-xs font-medium text-white opacity-0 transition-all duration-300 group-hover:opacity-100">
               {label}
             </span>
             <span

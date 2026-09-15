@@ -98,7 +98,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
             aria-labelledby={`reset-${kind}-title`}
             className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
           >
-            <h2 id={`reset-${kind}-title`} className="break-keep text-xl font-black tracking-tight text-zinc-950">
+            <h2 id={`reset-${kind}-title`} className="type-content-title break-keep text-zinc-950">
               {copy.title}
             </h2>
             <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{copy.description}</p>

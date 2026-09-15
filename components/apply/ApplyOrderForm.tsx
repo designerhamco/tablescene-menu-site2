@@ -843,8 +843,8 @@ function TemplatePreview({ template }: { template: TemplateCatalogItem }) {
         <div className="grid h-full grid-cols-[0.75fr_1fr_1fr] gap-3">
           <div className="flex flex-col justify-between border-r border-zinc-900 pr-2">
             <div className="flex">
-              <span className="grid h-7 w-7 place-items-center rounded-full border border-zinc-900 text-[10px] font-semibold">N</span>
-              <span className="-ml-2 grid h-7 w-7 place-items-center rounded-full border border-zinc-900 bg-[#f8f8f5] text-[10px] font-semibold">R</span>
+              <span className="grid h-7 w-7 place-items-center rounded-full border border-zinc-900 text-xs font-semibold">N</span>
+              <span className="-ml-2 grid h-7 w-7 place-items-center rounded-full border border-zinc-900 bg-[#f8f8f5] text-xs font-semibold">R</span>
             </div>
             <p className="text-4xl font-light uppercase leading-none tracking-[-0.12em] [writing-mode:vertical-rl]">MENU</p>
             <div className="space-y-1 text-[6px] uppercase tracking-[0.12em] text-zinc-500">
@@ -2166,7 +2166,7 @@ export default function ApplyOrderForm({
         {isMenuService && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">이용 방식</h2>
+              <h2 className="type-subsection-title">이용 방식</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
                 페이지 유형과 결제 주기를 선택해 주세요.
               </p>
@@ -2201,9 +2201,9 @@ export default function ApplyOrderForm({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
+                        <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
                         {!hasAvailableTemplate ? "템플릿 준비중" : isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "자동결제"}
                       </span>
                     </div>
@@ -2212,7 +2212,7 @@ export default function ApplyOrderForm({
                         정가 {product.billing_cycle === "monthly" ? "월 " : product.billing_cycle === "yearly" ? "연 " : ""}
                         {formatKrw(product.regular_amount)}
                       </p>
-                      <p className="mt-1 text-2xl font-black">
+                      <p className="mt-1 text-2xl font-bold">
                         {`${formatKrw(product.amount)} / ${product.billing_cycle === "monthly" ? "월" : "년"}`}
                       </p>
                       <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
@@ -2221,7 +2221,7 @@ export default function ApplyOrderForm({
                             : `연 정가 ${formatKrw(product.regular_amount)} · 월 할인가 12개월 합계에서 10% 추가 할인`}
                       </p>
                       {singleMonthlyFreeTrialAvailable && product.product_key === singleMonthlyFreeTrialProductKey ? (
-                        <p className={`mt-2 break-keep text-xs font-black leading-relaxed ${isSelected ? "text-emerald-300" : "text-emerald-700"}`}>
+                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-emerald-300" : "text-emerald-700"}`}>
                           첫 30일 0원 · 결제수단 등록 필수 · {singleMonthlyFreeTrialFirstBillingDate} 첫 결제
                         </p>
                       ) : null}
@@ -2241,7 +2241,7 @@ export default function ApplyOrderForm({
         {isScreenService && (
           <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">디스플레이 용도</h2>
+              <h2 className="type-subsection-title">디스플레이 용도</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
                 화면을 설치할 매장 유형을 선택해 주세요.
               </p>
@@ -2257,7 +2257,7 @@ export default function ApplyOrderForm({
                       key={option}
                       type="button"
                       onClick={() => updateField("screenPurpose", option)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition-colors ${
+                      className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition-colors ${
                         isSelected
                           ? "border-zinc-950 bg-zinc-950 text-white"
                           : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-950"
@@ -2275,7 +2275,7 @@ export default function ApplyOrderForm({
         {isScreenService && displayCheckoutQaEnabled && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">이용 방식</h2>
+              <h2 className="type-subsection-title">이용 방식</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
                 월결제 또는 연결제를 선택해 주세요.
               </p>
@@ -2297,9 +2297,9 @@ export default function ApplyOrderForm({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="break-keep text-xl font-black tracking-tight">{product.label}</h3>
+                        <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
                         {isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}
                       </span>
                     </div>
@@ -2308,7 +2308,7 @@ export default function ApplyOrderForm({
                         정가 {product.billing_cycle === "monthly" ? "월 " : "연 "}
                         {formatKrw(product.regular_amount)}
                       </p>
-                      <p className="mt-1 text-2xl font-black">
+                      <p className="mt-1 text-2xl font-bold">
                         {formatKrw(product.amount)} / {product.billing_cycle === "monthly" ? "월" : "년"}
                       </p>
                       <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
@@ -2329,7 +2329,7 @@ export default function ApplyOrderForm({
 
         <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">
+            <h2 className="type-subsection-title">
               {isScreenService ? "디스플레이 템플릿" : "템플릿"}
             </h2>
             {isMenuService && (
@@ -2441,17 +2441,17 @@ export default function ApplyOrderForm({
                   <TemplatePreview template={template} />
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-bold">{template.name}</h3>
+                      <h3 className="type-content-title">{template.name}</h3>
                       <p className={`mt-1 font-mono text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>{template.key}</p>
                       <p className={`mt-1 text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>
                         {isScreenService ? getDisplayTemplateCategoryLabel(template.template_category) : getBasicTemplateCategoryLabel(template.template_category)}
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
                         {isSelected ? "선택됨" : template.badge}
                       </span>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isSelected ? "bg-white/10 text-white/80" : "bg-[#F8E731] text-zinc-950"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-white/10 text-white/80" : "bg-[#F8E731] text-zinc-950"}`}>
                         {templateTypeLabel}
                       </span>
                     </div>
@@ -2464,7 +2464,7 @@ export default function ApplyOrderForm({
                       {tags.map((tag) => (
                         <span
                           key={tag}
-                          className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                          className={`rounded-full border px-2 py-0.5 text-xs font-bold ${
                             isSelected ? "border-white/15 bg-white/10 text-white/70" : "border-zinc-200 bg-zinc-50 text-zinc-500"
                           }`}
                         >
@@ -2479,7 +2479,7 @@ export default function ApplyOrderForm({
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-5 py-8 text-center">
-              <p className="text-base font-black text-zinc-800">
+              <p className="text-base font-bold text-zinc-800">
                 템플릿 준비 중입니다.
               </p>
               <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
@@ -2492,7 +2492,7 @@ export default function ApplyOrderForm({
         </section>
 
         <section className="order-1 rounded-3xl bg-white p-7 shadow-sm">
-          <h2 className="mb-6 text-2xl font-bold tracking-tight md:text-[1.75rem]">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
+          <h2 className="type-subsection-title mb-6">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <Field
               label={isScreenService ? "디스플레이 이름 또는 메뉴보드 이름" : "메뉴판 관리용 이름"}
@@ -2558,7 +2558,7 @@ export default function ApplyOrderForm({
 
         {isOrderService && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
-            <h2 className="text-2xl font-bold tracking-tight md:text-[1.75rem]">오더 도입 정보</h2>
+            <h2 className="type-subsection-title">오더 도입 정보</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               입력해주신 정보는 아티메뉴 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
             </p>
@@ -2616,7 +2616,7 @@ export default function ApplyOrderForm({
         )}
 
         <section className="order-4 rounded-3xl bg-white p-7 shadow-sm">
-          <h2 className="mb-6 text-2xl font-bold tracking-tight md:text-[1.75rem]">구매자 및 담당자</h2>
+          <h2 className="type-subsection-title mb-6">구매자 및 담당자</h2>
           <div className="mb-6 border-l-2 border-zinc-300 pl-4">
             <p className="break-keep text-sm font-medium leading-relaxed text-zinc-500">
               {isDisplayBusinessOnly
@@ -2633,13 +2633,13 @@ export default function ApplyOrderForm({
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">구매자 유형 *</span>
               {isDisplayBusinessOnly ? (
                 <div className="mt-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-                  <p className="text-sm font-black text-emerald-900">사업자 전용</p>
+                  <p className="text-sm font-bold text-emerald-900">사업자 전용</p>
                   <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-emerald-700">
                     디스플레이 메뉴보드는 사업자 정보 확인 후 결제할 수 있습니다. 개인 구매자로는 신청할 수 없습니다.
                   </p>
                 </div>
               ) : isMenuService ? (
-                <div className="mt-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-black text-zinc-700">
+                <div className="mt-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-700">
                   {activeProductRequiresBusinessVerification ? "사업자 정식 이용" : "개인 체험 이용"}
                 </div>
               ) : (
@@ -2649,7 +2649,7 @@ export default function ApplyOrderForm({
                       key={buyerType}
                       type="button"
                       onClick={() => updateField("buyerType", buyerType)}
-                      className={`rounded-xl px-4 py-3 text-sm font-black transition-colors ${
+                      className={`rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
                         form.buyerType === buyerType ? "bg-zinc-950 text-white" : "text-zinc-500 hover:bg-white"
                       }`}
                     >
@@ -2708,7 +2708,7 @@ export default function ApplyOrderForm({
                 <div className="md:col-span-2 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="font-black text-amber-900">사업자 정보 확인</p>
+                      <p className="font-bold text-amber-900">사업자 정보 확인</p>
                       <p className={`mt-1 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-amber-800"}`}>
                         {businessVerificationState.message}
                       </p>
@@ -2717,7 +2717,7 @@ export default function ApplyOrderForm({
                       type="button"
                       onClick={handleBusinessVerificationCheck}
                       disabled={businessVerificationState.type === "checking"}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-amber-900 px-4 py-2.5 text-xs font-black text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-amber-900 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {businessVerificationState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : null}
                       {businessVerificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
@@ -2751,7 +2751,7 @@ export default function ApplyOrderForm({
 
       <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <h2 className="text-2xl font-bold tracking-tight">주문 요약</h2>
+          <h2 className="type-subsection-title">주문 요약</h2>
           <dl className="mt-6 space-y-4 text-sm font-medium">
             <SummaryRow label="상품명" value={activeProduct.name} />
             {isMenuService && (
@@ -2808,7 +2808,7 @@ export default function ApplyOrderForm({
                     <button
                       type="button"
                       onClick={handleApplyPromotionCode}
-                      className="shrink-0 rounded-full bg-zinc-950 px-4 py-2 text-sm font-black text-white transition hover:bg-zinc-800"
+                      className="shrink-0 rounded-full bg-zinc-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-zinc-800"
                     >
                       {isOpenPromotionApplied ? "적용됨" : "적용"}
                     </button>
@@ -2864,9 +2864,9 @@ export default function ApplyOrderForm({
         </section>
 
         <section className="rounded-3xl bg-white p-7 shadow-sm">
-          <h2 className="mb-5 text-2xl font-bold tracking-tight">약관 동의</h2>
+          <h2 className="type-subsection-title mb-5">약관 동의</h2>
           <div className="space-y-3">
-            <label className="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-sm font-black leading-relaxed text-zinc-900">
+            <label className="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-900">
               <input type="checkbox" checked={allAgreementsChecked} onChange={(event) => toggleAllAgreements(event.target.checked)} className="mt-1 h-4 w-4 accent-zinc-950" />
               <span>전체 동의</span>
             </label>
@@ -2877,12 +2877,12 @@ export default function ApplyOrderForm({
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span>{activeAgreementLabels[key]}</span>
-                      {key === "terms" ? <a href="/terms" target="_blank" className="text-xs font-black text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
-                      {key === "privacy" ? <a href="/privacy" target="_blank" className="text-xs font-black text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
+                      {key === "terms" ? <a href="/terms" target="_blank" className="text-xs font-bold text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
+                      {key === "privacy" ? <a href="/privacy" target="_blank" className="text-xs font-bold text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
                       <button
                         type="button"
                         onClick={() => setActiveAgreement(key)}
-                        className="text-xs font-black text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800"
+                        className="text-xs font-bold text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800"
                       >
                         자세히보기
                       </button>
@@ -2923,7 +2923,7 @@ export default function ApplyOrderForm({
                 </p>
               )}
               <label className="mt-3 block">
-                <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-500">paymentId</span>
+                <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-500">paymentId</span>
                 <input
                   type="text"
                   value={recoveryPaymentIdInput}
@@ -2934,7 +2934,7 @@ export default function ApplyOrderForm({
               </label>
               {isSubscriptionProduct && (
                 <label className="mt-3 block">
-                  <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-500">failed subscriptionId</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-500">failed subscriptionId</span>
                   <input
                     type="text"
                     value={recoverySubscriptionIdInput}
@@ -2952,7 +2952,7 @@ export default function ApplyOrderForm({
                   !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "") ||
                   (isSubscriptionProduct && !recoverySubscriptionIdInput.trim())
                 }
-                className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-sky-950 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-sky-200"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-sky-950 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-sky-200"
               >
                 결제창 없이 후처리만 재시도
               </button>
@@ -3218,8 +3218,8 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
       >
         <div className="border-b border-zinc-100 p-6">
           <div className="flex items-start justify-between gap-4">
-            <h3 className="text-2xl font-black tracking-tight text-zinc-950">{title}</h3>
-            <button type="button" onClick={onClose} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-500">
+            <h3 className="type-subsection-title text-zinc-950">{title}</h3>
+            <button type="button" onClick={onClose} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-500">
               닫기
             </button>
           </div>
@@ -3227,7 +3227,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
         <div className="max-h-[56vh] space-y-4 overflow-y-auto p-6 text-sm font-semibold leading-relaxed text-zinc-600">
           {details.map((detail, index) => (
             <section key={detail} className="rounded-2xl bg-zinc-50 p-4">
-              <h4 className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-400">항목 {index + 1}</h4>
+              <h4 className="type-label mb-2 uppercase text-zinc-400">항목 {index + 1}</h4>
               <p>{detail}</p>
             </section>
           ))}
@@ -3246,7 +3246,7 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
   return (
     <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
       <dt className="text-zinc-400">{label}</dt>
-      <dd className={`text-right ${strong ? "text-xl font-black text-zinc-950" : "font-bold text-zinc-800"}`}>{value}</dd>
+      <dd className={`text-right ${strong ? "text-xl font-bold text-zinc-950" : "font-bold text-zinc-800"}`}>{value}</dd>
     </div>
   );
 }
@@ -3254,8 +3254,8 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
 function BusinessVerificationSummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-emerald-50 px-3 py-2">
-      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">{label}</p>
-      <p className="mt-1 break-keep text-xs font-black text-emerald-900">{value}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">{label}</p>
+      <p className="mt-1 break-keep text-xs font-bold text-emerald-900">{value}</p>
     </div>
   );
 }

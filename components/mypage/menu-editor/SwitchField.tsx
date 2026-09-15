@@ -45,7 +45,7 @@ export default function SwitchField({
       <span className="min-w-0">
         <span className="block break-keep font-bold leading-relaxed text-zinc-700">{label}</span>
         {description && <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed text-zinc-400">{description}</span>}
-        <span className={`mt-2 block text-xs font-black ${effectiveChecked ? "text-emerald-700" : "text-zinc-400"}`}>
+        <span className={`mt-2 block text-xs font-bold ${effectiveChecked ? "text-emerald-700" : "text-zinc-400"}`}>
           {effectiveChecked ? onText : offText}
         </span>
         {showBlockedMessage && (

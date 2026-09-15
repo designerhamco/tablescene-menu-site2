@@ -17,7 +17,7 @@ export function FAQ() {
     <section id="faq" className="relative bg-white py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-10 text-center">
-          <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-zinc-900 md:text-5xl">자주 묻는 질문</h2>
+          <h2 className="type-section-title mb-6 text-zinc-900">자주 묻는 질문</h2>
           <p className="text-lg font-medium text-zinc-500">서비스 이용과 관련하여 가장 많이 궁금해하시는 내용입니다.</p>
         </div>
 

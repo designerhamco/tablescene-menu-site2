@@ -81,7 +81,7 @@ export function Navbar() {
             <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${darkNav ? "text-black" : "text-white"}`}>
               ArtiMenu
             </span>
-            <span className={`ml-0.5 mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] opacity-60 transition-colors duration-300 md:text-[10px] ${darkNav ? "text-black" : "text-white"}`}>
+            <span className={`ml-0.5 mt-0.5 text-xs font-medium uppercase tracking-[0.3em] opacity-60 transition-colors duration-300 md:text-xs ${darkNav ? "text-black" : "text-white"}`}>
               Studio
             </span>
           </span>
@@ -97,7 +97,7 @@ export function Navbar() {
               href={item.href}
               onMouseEnter={() => setActiveMenu(item)}
               onFocus={() => setActiveMenu(item)}
-              className={`py-2 text-[15px] font-bold tracking-tight transition-colors duration-200 ${
+              className={`py-2 text-base font-bold tracking-tight transition-colors duration-200 ${
                 activeMenu?.title === item.title
                   ? "text-black"
                   : darkNav
@@ -138,7 +138,7 @@ export function Navbar() {
           <div className="mx-auto grid max-w-7xl grid-cols-[0.85fr_2fr] gap-10 px-6 py-8">
             <div className="flex flex-col justify-between rounded-2xl bg-zinc-950 p-7 text-white">
               <div>
-                <h2 className="mb-4 text-3xl font-bold tracking-tight">{activeMenu.title}</h2>
+                <h2 className="type-section-title mb-4">{activeMenu.title}</h2>
                 <p className="break-keep text-sm font-medium leading-relaxed text-white/70">{activeMenu.summary}</p>
               </div>
               <a href={activeMenu.href} className="mt-10 inline-flex items-center gap-2 text-sm font-bold text-white">

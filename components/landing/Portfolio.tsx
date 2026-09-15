@@ -27,7 +27,7 @@ export function Portfolio() {
     <section id="portfolio" className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-white py-12 text-zinc-900 md:py-16">
       <div className="relative mx-auto w-full max-w-7xl px-6">
         <div className="relative z-10 mb-10 text-center">
-          <h2 className="mb-8 text-3xl font-bold leading-tight tracking-tight text-black md:text-5xl">아티메뉴 서비스 화면 미리보기</h2>
+          <h2 className="type-section-title mb-8 text-black">아티메뉴 서비스 화면 미리보기</h2>
           <div className="mb-6 flex flex-wrap justify-center gap-2">
             {(Object.keys(portfolioContent) as Tab[]).map((tab) => (
               <button
@@ -79,7 +79,7 @@ export function Portfolio() {
             />
             <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-black/50 to-transparent" />
             <div className="absolute inset-x-0 bottom-6 z-20 text-center">
-              <span className="inline-block rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/90 backdrop-blur-md">
+              <span className="inline-block rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white/90 backdrop-blur-md">
                 {currentFeature.text}
               </span>
             </div>
@@ -103,7 +103,7 @@ export function Portfolio() {
                   activeFeatureIndex === idx ? "border-black bg-white text-black shadow-md" : "border-zinc-200 bg-white text-zinc-400"
                 }`}
               >
-                <h3 className={`text-xs font-bold ${activeFeatureIndex === idx ? "text-black" : "text-zinc-400"}`}>{feature.text}</h3>
+                <h3 className={`type-item-title ${activeFeatureIndex === idx ? "text-black" : "text-zinc-400"}`}>{feature.text}</h3>
               </button>
             ))}
           </div>
@@ -138,7 +138,7 @@ function FeatureColumn({
             onClick={() => onSelect(realIndex)}
             className={`group transition-all duration-300 ${isActive ? "translate-x-0 opacity-100" : `opacity-40 hover:opacity-70 ${side === "left" ? "hover:-translate-x-2" : "hover:translate-x-2"}`}`}
           >
-            <h3 className={`mb-1 text-lg font-bold ${isActive ? "text-black" : "text-zinc-400"}`}>{feature.text}</h3>
+            <h3 className={`type-content-title mb-1 ${isActive ? "text-black" : "text-zinc-400"}`}>{feature.text}</h3>
             {isActive && <div className="mt-1 h-0.5 w-full bg-black" />}
           </button>
         );

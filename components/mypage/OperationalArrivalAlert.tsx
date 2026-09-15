@@ -179,15 +179,15 @@ export default function OperationalArrivalAlert({
     <div className="space-y-3">
       <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm">
         <div>
-          <p className="text-sm font-black text-zinc-900">브라우저 새 {copy.noun} 알림</p>
+          <p className="text-sm font-bold text-zinc-900">브라우저 새 {copy.noun} 알림</p>
           <p className="mt-1 max-w-2xl break-keep text-xs font-bold leading-relaxed text-zinc-500">
             이 관리 화면을 열어둔 동안 다른 탭이나 창을 보고 있을 때만 표시합니다. 백그라운드 push·소리·외부 전송은 사용하지 않습니다.
           </p>
           {browserPermission === "denied" ? (
-            <p className="mt-1 text-xs font-black text-rose-700">브라우저 설정에서 이 사이트의 알림 권한을 허용해야 켤 수 있습니다.</p>
+            <p className="mt-1 text-xs font-bold text-rose-700">브라우저 설정에서 이 사이트의 알림 권한을 허용해야 켤 수 있습니다.</p>
           ) : null}
           {browserPermission === "unsupported" ? (
-            <p className="mt-1 text-xs font-black text-zinc-500">이 브라우저에서는 알림을 지원하지 않습니다.</p>
+            <p className="mt-1 text-xs font-bold text-zinc-500">이 브라우저에서는 알림을 지원하지 않습니다.</p>
           ) : null}
         </div>
         {browserPermission !== "unsupported" ? (
@@ -196,7 +196,7 @@ export default function OperationalArrivalAlert({
             onClick={toggleBrowserNotifications}
             disabled={permissionPending || browserPermission === "denied"}
             aria-pressed={browserNotificationsEnabled}
-            className="rounded-full border border-zinc-200 bg-zinc-950 px-4 py-2 text-xs font-black text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full border border-zinc-200 bg-zinc-950 px-4 py-2 text-xs font-bold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {permissionPending ? "권한 확인 중" : browserNotificationsEnabled ? "알림 끄기" : "알림 켜기"}
           </button>
@@ -205,11 +205,11 @@ export default function OperationalArrivalAlert({
 
       {newCount > 0 ? (
         <div role="status" aria-live="polite" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-violet-950 shadow-sm">
-          <p className="text-sm font-black">새 {copy.noun} {newCount.toLocaleString("ko-KR")}건이 접수되었습니다.</p>
+          <p className="text-sm font-bold">새 {copy.noun} {newCount.toLocaleString("ko-KR")}건이 접수되었습니다.</p>
           <button
             type="button"
             onClick={() => setNewCount(0)}
-            className="rounded-full border border-violet-200 bg-white px-4 py-2 text-xs font-black text-violet-800 hover:bg-violet-100"
+            className="rounded-full border border-violet-200 bg-white px-4 py-2 text-xs font-bold text-violet-800 hover:bg-violet-100"
           >
             확인
           </button>

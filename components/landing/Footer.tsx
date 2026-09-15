@@ -4,14 +4,14 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-12 flex flex-col items-start justify-between gap-8 md:flex-row">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-white">ArtiMenu</h2>
+            <h2 className="type-content-title text-white">ArtiMenu</h2>
             <p className="max-w-xs text-sm font-normal leading-relaxed text-zinc-500">
               디지털 혁신과 시각적 스토리텔링을 통해<br />
               다이닝 경험의 새로운 장면을 만듭니다.
             </p>
           </div>
           <div className="text-left md:text-right">
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-white opacity-80">Contact</h3>
+            <h3 className="type-item-title mb-3 uppercase st text-white opacity-80">Contact</h3>
             <ul className="space-y-1.5 text-sm font-normal text-zinc-500">
               <li>평일 09:00 ~ 17:00 (점심시간 12:00 ~ 13:00 제외)</li>
               <li>주말/공휴일 긴급 10:00 ~ 22:00</li>
@@ -24,7 +24,7 @@ export function Footer() {
         <div className="mb-8 border-t border-zinc-800/60" />
 
         <div className="flex flex-col items-end justify-between gap-8 md:flex-row md:items-start">
-          <div className="w-full space-y-1.5 text-[10px] font-normal leading-relaxed text-zinc-600 md:max-w-3xl md:text-[11px]">
+          <div className="w-full space-y-1.5 text-xs font-normal leading-relaxed text-zinc-600 md:max-w-3xl md:text-xs">
             <div className="flex flex-wrap gap-x-3 gap-y-1">
               <span><span className="font-semibold text-zinc-500">상호명</span> 디앤디커머스</span>
               <span className="text-zinc-800">|</span>
@@ -48,12 +48,12 @@ export function Footer() {
           </div>
 
           <div className="mt-4 flex w-full shrink-0 flex-col gap-3 text-left md:mt-0 md:w-auto md:items-end md:text-right">
-            <div className="flex flex-wrap gap-4 text-[11px] font-medium text-zinc-500 md:justify-end md:gap-6">
+            <div className="flex flex-wrap gap-4 text-xs font-medium text-zinc-500 md:justify-end md:gap-6">
               <a href="/terms" className="transition-colors hover:text-zinc-300">이용약관</a>
               <a href="/privacy" className="transition-colors hover:text-zinc-300">개인정보 처리방침</a>
               <a href="mailto:admin@dndcommerce.co.kr" className="transition-colors hover:text-zinc-300">고객지원</a>
             </div>
-            <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-700">© 2026 ArtiMenu Studio.</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-700">© 2026 ArtiMenu Studio.</p>
           </div>
         </div>
       </div>

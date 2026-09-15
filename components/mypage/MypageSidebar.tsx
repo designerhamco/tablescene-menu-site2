@@ -13,7 +13,7 @@ export type MypageNavigationKey =
 
 function getNavigationClassName(isActive: boolean) {
   return isActive
-    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-black text-white"
+    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
     : "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950";
 }
 
@@ -30,7 +30,7 @@ function DisabledNavigationItem({ label, reason }: { label: string; reason: stri
       className="flex cursor-not-allowed items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-300"
     >
       <span>{label}</span>
-      <span className="text-[10px] font-black">권한 없음</span>
+      <span className="text-xs font-bold">권한 없음</span>
     </span>
   );
 }
@@ -50,14 +50,14 @@ export function MypageAccountCard({
 }) {
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="break-all text-lg font-black tracking-tight">{email}</h2>
+      <h2 className="type-content-title break-all">{email}</h2>
       <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {userId}</p>
       {roleLabel ? (
         <div className="mt-4 flex flex-wrap gap-2" aria-label="계정 역할">
           <span
             className={roleLabel === "사장"
-              ? "rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800"
-              : "rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-700"}
+              ? "rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800"
+              : "rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700"}
           >
             {roleLabel}
           </span>
@@ -65,8 +65,8 @@ export function MypageAccountCard({
       ) : null}
       {canShowOwnerCommerce && accountAiCreditRemaining !== undefined ? (
         <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">AI 도우미 크레딧</p>
-          <p className="mt-2 text-lg font-black tracking-tight text-zinc-950">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">AI 도우미 크레딧</p>
+          <p className="mt-2 text-lg font-bold tracking-tight text-zinc-950">
             잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")} 크레딧
           </p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-800/80">
@@ -74,7 +74,7 @@ export function MypageAccountCard({
           </p>
           <Link
             href="/mypage?tab=payments&billingTab=ai-credits"
-            className="mt-3 inline-flex text-xs font-black text-emerald-800 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-950"
+            className="mt-3 inline-flex text-xs font-bold text-emerald-800 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-950"
           >
             AI 충전내역 보기
           </Link>

@@ -84,7 +84,7 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
             aria-labelledby="cover-sample-reset-title"
             className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
           >
-            <h2 id="cover-sample-reset-title" className="break-keep text-xl font-black tracking-tight text-zinc-950">
+            <h2 id="cover-sample-reset-title" className="type-content-title break-keep text-zinc-950">
               커버 이미지 설정을 샘플 상태로 되돌릴까요?
             </h2>
             <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">

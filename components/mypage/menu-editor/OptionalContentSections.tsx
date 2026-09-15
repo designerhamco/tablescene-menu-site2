@@ -167,7 +167,7 @@ function SectionCard({ title, action, children }: { title: string; action?: Reac
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+        <h2 className="type-subsection-title">{title}</h2>
         {action && <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>}
       </div>
       <div className="mt-6">{children}</div>

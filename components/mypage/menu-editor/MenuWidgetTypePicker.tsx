@@ -36,8 +36,8 @@ export default function MenuWidgetTypePicker({ value, onChange, disabled = false
                 : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
             } disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400`}
           >
-            <span className="block text-sm font-black">{option.label}</span>
-            <span className={`mt-1 block break-keep text-[11px] font-bold leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-400"}`}>
+            <span className="block text-sm font-bold">{option.label}</span>
+            <span className={`mt-1 block break-keep text-xs font-bold leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-400"}`}>
               {option.description}
             </span>
           </button>

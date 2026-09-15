@@ -6,6 +6,7 @@ import test from "node:test";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const appRoot = join(projectRoot, "app");
+const componentsRoot = join(projectRoot, "components");
 const typographySource = readFileSync(join(projectRoot, "styles/typography.css"), "utf8");
 const themeSource = readFileSync(join(projectRoot, "styles/theme.css"), "utf8");
 
@@ -18,11 +19,21 @@ const excludedSurfacePrefixes = [
 ];
 
 const excludedMenuRenderPrefixes = ["m/", "menu/"];
+const excludedComponentPrefixes = [
+  "menu-templates/",
+  "public-menu/",
+];
+const excludedComponentFiles = new Set([
+  "menu/MenuPreviewDeviceFrame.tsx",
+  "menu/MenuPreviewRenderer.tsx",
+]);
 const visualPreviewFiles = new Set([
-  "components/display/DisplayProductStory.tsx",
-  "components/home/HomeProductStory.tsx",
-  "components/home/Portfolio.tsx",
-  "components/ui/NavigationDots.tsx",
+  "app/components/display/DisplayProductStory.tsx",
+  "app/components/home/HomeProductStory.tsx",
+  "app/components/home/Portfolio.tsx",
+  "app/components/ui/NavigationDots.tsx",
+  "components/apply/ApplyOrderForm.tsx",
+  "components/templates/TemplateCard.tsx",
 ]);
 
 function collectTsxFiles(directory: string): string[] {
@@ -51,7 +62,17 @@ function isSiteUiFile(path: string) {
   return true;
 }
 
-const siteUiFiles = collectTsxFiles(appRoot).filter(isSiteUiFile);
+function isSiteUiComponent(path: string) {
+  const componentPath = relative(componentsRoot, path);
+
+  return !excludedComponentPrefixes.some((prefix) => componentPath.startsWith(prefix))
+    && !excludedComponentFiles.has(componentPath);
+}
+
+const siteUiFiles = [
+  ...collectTsxFiles(appRoot).filter(isSiteUiFile),
+  ...collectTsxFiles(componentsRoot).filter(isSiteUiComponent),
+];
 const approvedHeadingRole = /type-(?:display|page-title|section-title|subsection-title|content-title|item-title|label)/;
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {
@@ -76,7 +97,7 @@ test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포
 
 test("사이트 UI는 900 굵기와 임의 숫자 글자 크기를 사용하지 않는다", () => {
   for (const path of siteUiFiles) {
-    const routePath = relative(appRoot, path);
+    const routePath = relative(projectRoot, path);
     const source = readFileSync(path, "utf8");
 
     assert.doesNotMatch(source, /\bfont-(?:black|extrabold)\b/, `${routePath}에 승인되지 않은 과도한 굵기가 있습니다.`);

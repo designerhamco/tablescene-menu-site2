@@ -30,7 +30,7 @@ export default function MenuEditorNavigation({ menuId, activeTab, tabs = MENU_ED
                 className="shrink-0 cursor-not-allowed rounded-full bg-zinc-100 px-4 py-3 text-sm font-bold text-zinc-300"
               >
                 {item.label}
-                <span className="ml-1.5 text-[10px] font-black">권한 없음</span>
+                <span className="ml-1.5 text-xs font-bold">권한 없음</span>
               </span>
             );
           }
@@ -44,7 +44,7 @@ export default function MenuEditorNavigation({ menuId, activeTab, tabs = MENU_ED
               }`}
             >
               {item.label}
-              {item.status === "todo" ? <span className="ml-1 text-[10px] opacity-70">준비 중</span> : null}
+              {item.status === "todo" ? <span className="ml-1 text-xs opacity-70">준비 중</span> : null}
             </Link>
           );
         })}

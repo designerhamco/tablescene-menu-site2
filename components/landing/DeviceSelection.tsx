@@ -38,7 +38,7 @@ export function DeviceSelection() {
     <section id="devices" className="relative bg-zinc-50 py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto mb-16 max-w-3xl text-center">
-          <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-zinc-900 md:text-5xl">
+          <h2 className="type-section-title mb-6 text-zinc-900">
             설치 없는 웹 기반 서비스,<br className="hidden md:block" />
             모든 기기가 매장의 얼굴이 됩니다
           </h2>
@@ -66,7 +66,7 @@ export function DeviceSelection() {
                 <div className="mb-2 flex items-center justify-between">
                   <Icon name={device.icon} className="h-6 w-6 text-white/80" />
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-white md:text-3xl">{device.title}</h3>
+                <h3 className="type-subsection-title mb-2 text-white">{device.title}</h3>
                 <p className="text-sm font-medium text-white/70 md:text-base">{device.desc}</p>
               </div>
               {"badge" in device && device.badge && (

@@ -6,7 +6,7 @@ export function AllInOneFlow() {
     <section id="allinone" className="relative overflow-hidden bg-white py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto mb-20 max-w-3xl text-center">
-          <h2 className="mb-6 text-4xl font-bold leading-tight text-zinc-900 md:text-5xl">
+          <h2 className="type-section-title mb-6 text-zinc-900">
             복잡한 매장 운영,<br />
             아티메뉴 하나로 연결됩니다
           </h2>
@@ -26,10 +26,10 @@ export function AllInOneFlow() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-900 transition-transform duration-300 group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
                   <Icon name={card.icon} className="h-6 w-6" />
                 </div>
-                <h3 className="mb-2 flex flex-col items-center justify-center gap-1 text-lg font-bold text-zinc-900 md:mb-3 md:flex-row md:gap-2 md:text-2xl">
+                <h3 className="type-subsection-title mb-2 flex flex-col items-center justify-center gap-1 text-zinc-900 md:mb-3 md:flex-row md:gap-2">
                   {card.title}
                   {"badge" in card && card.badge && (
-                    <span className="rounded-full border border-black/5 bg-[#F8E731] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
+                    <span className="rounded-full border border-black/5 bg-[#F8E731] px-1.5 py-0.5 text-xs font-bold leading-none text-black">
                       {card.badge}
                     </span>
                   )}
@@ -77,7 +77,7 @@ export function AllInOneFlow() {
                 <div className="flex min-w-[280px] flex-col items-center rounded-[2rem] border border-zinc-200 bg-white px-10 py-6 text-center text-zinc-900 shadow-xl md:items-start md:text-left lg:py-8">
                   <div className="mb-4 flex items-center gap-2 text-xl font-bold tracking-tight lg:text-2xl">
                     AI 마케팅 자동화
-                    <span className="rounded-full border border-black/5 bg-[#F8E731] px-2 py-0.5 text-[10px] font-bold leading-none text-black shadow-sm lg:text-xs">PRO AI</span>
+                    <span className="rounded-full border border-black/5 bg-[#F8E731] px-2 py-0.5 text-xs font-bold leading-none text-black shadow-sm lg:text-xs">PRO AI</span>
                   </div>
                   <div className="mt-auto flex items-center gap-2 text-sm font-bold text-zinc-400">COMING SOON</div>
                 </div>

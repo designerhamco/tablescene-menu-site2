@@ -286,7 +286,7 @@ export default function SubscriptionManagementModal({
           setRefundReason("");
           setIsOpen(true);
         }}
-        className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+        className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
       >
         구독 관리
       </button>
@@ -296,9 +296,9 @@ export default function SubscriptionManagementModal({
           <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-black tracking-tight text-zinc-950">구독 관리</h2>
+                <h2 className="type-subsection-title text-zinc-950">구독 관리</h2>
               </div>
-              <button type="button" onClick={closeModal} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-black text-zinc-600">
+              <button type="button" onClick={closeModal} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-600">
                 닫기
               </button>
             </div>
@@ -306,7 +306,7 @@ export default function SubscriptionManagementModal({
             {isViewingRefundGuide ? (
               <div className="mt-5">
                 <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
-                  <h3 className="text-lg font-black text-amber-950">중도해지/환불 요청 안내</h3>
+                  <h3 className="type-content-title text-amber-950">중도해지/환불 요청 안내</h3>
                   <p className="mt-3">
                     연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불을 요청하면 환불금액은 요청일을 기준으로 산정됩니다.
                   </p>
@@ -330,7 +330,7 @@ export default function SubscriptionManagementModal({
 
                 {refundQuoteState.status === "error" ? (
                   <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
-                    <h4 className="text-base font-black text-red-800">자동 계산이 어렵습니다</h4>
+                    <h4 className="type-item-title text-red-800">자동 계산이 어렵습니다</h4>
                     <p className="mt-2">{refundQuoteState.message}</p>
                     <p className="mt-2 text-red-600">
                       실제 환불은 실행되지 않았습니다. 결제번호와 메뉴판명을 고객지원 채널로 알려주시면 확인을 도와드릴 수 있습니다.
@@ -342,59 +342,59 @@ export default function SubscriptionManagementModal({
                   <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                       <div>
-                        <h4 className="text-base font-black text-zinc-950">최종 예상 환불금액</h4>
+                        <h4 className="type-item-title text-zinc-950">최종 예상 환불금액</h4>
                         <p className="mt-1 text-sm font-bold leading-relaxed text-zinc-500">{refundQuoteState.quote.customerNotice}</p>
                       </div>
-                      <p className="text-2xl font-black text-zinc-950">
+                      <p className="text-2xl font-bold text-zinc-950">
                         {formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}
                       </p>
                     </div>
 
                     <dl className="mt-4 grid gap-3 text-sm md:grid-cols-2">
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">결제금액</dt>
+                        <dt className="text-xs font-bold text-zinc-400">결제금액</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.paidAmount)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">월결제 기준 금액</dt>
+                        <dt className="text-xs font-bold text-zinc-400">월결제 기준 금액</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.monthlyListPrice)} / 월</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">결제일</dt>
+                        <dt className="text-xs font-bold text-zinc-400">결제일</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatDateLabel(refundQuoteState.quote.billingStartedAt)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">다음 결제 예정일</dt>
+                        <dt className="text-xs font-bold text-zinc-400">다음 결제 예정일</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatDateLabel(refundQuoteState.quote.nextBillingAt)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">사용일수 / 전체 이용일수</dt>
+                        <dt className="text-xs font-bold text-zinc-400">사용일수 / 전체 이용일수</dt>
                         <dd className="mt-1 font-bold text-zinc-900">
                           {refundQuoteState.quote.usedDays}일 / {refundQuoteState.quote.totalDays}일
                         </dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">남은 일수</dt>
+                        <dt className="text-xs font-bold text-zinc-400">남은 일수</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{refundQuoteState.quote.remainingDays}일</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">월결제 기준 사용료</dt>
+                        <dt className="text-xs font-bold text-zinc-400">월결제 기준 사용료</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.monthlyBasisUsedAmount)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">연간 할인 혜택 재정산분</dt>
+                        <dt className="text-xs font-bold text-zinc-400">연간 할인 혜택 재정산분</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.discountClawbackAmount)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">1차 환불 가능액</dt>
+                        <dt className="text-xs font-bold text-zinc-400">1차 환불 가능액</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatKrwLabel(refundQuoteState.quote.preFeeRefundAmount)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4">
-                        <dt className="text-xs font-black text-zinc-400">중도해지 수수료 10%</dt>
+                        <dt className="text-xs font-bold text-zinc-400">중도해지 수수료 10%</dt>
                         <dd className="mt-1 font-bold text-zinc-900">-{formatKrwLabel(refundQuoteState.quote.midtermCancellationFeeAmount)}</dd>
                       </div>
                       <div className="rounded-2xl bg-zinc-50 p-4 md:col-span-2">
-                        <dt className="text-xs font-black text-zinc-400">환불 기준일</dt>
+                        <dt className="text-xs font-bold text-zinc-400">환불 기준일</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{formatDateLabel(refundQuoteState.quote.refundBasisDate)}</dd>
                       </div>
                     </dl>
@@ -412,7 +412,7 @@ export default function SubscriptionManagementModal({
                     ) : null}
 
                     <label className="mt-4 block">
-                      <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">요청 사유</span>
+                      <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">요청 사유</span>
                       <textarea
                         value={refundReason}
                         onChange={(event) => setRefundReason(event.target.value)}
@@ -432,7 +432,7 @@ export default function SubscriptionManagementModal({
 
                 {refundConfirmState.status === "completed" ? (
                   <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
-                    <h4 className="text-base font-black text-emerald-950">환불 처리가 접수되었습니다</h4>
+                    <h4 className="type-item-title text-emerald-950">환불 처리가 접수되었습니다</h4>
                     <p className="mt-2">{refundConfirmState.message}</p>
                     {typeof refundConfirmState.finalRefundAmount === "number" ? (
                       <p className="mt-2">환불금액: {formatKrwLabel(refundConfirmState.finalRefundAmount)}</p>
@@ -442,7 +442,7 @@ export default function SubscriptionManagementModal({
 
                 {refundConfirmState.status === "needs_review" ? (
                   <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
-                    <h4 className="text-base font-black text-amber-950">고객지원 확인이 필요합니다</h4>
+                    <h4 className="type-item-title text-amber-950">고객지원 확인이 필요합니다</h4>
                     <p className="mt-2">{refundConfirmState.message}</p>
                     <p className="mt-2">추가 결제나 재요청 없이 아티메뉴 고객지원 안내를 기다려주세요.</p>
                   </div>
@@ -450,7 +450,7 @@ export default function SubscriptionManagementModal({
 
                 {refundConfirmState.status === "error" ? (
                   <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
-                    <h4 className="text-base font-black text-red-800">환불 처리에 실패했습니다</h4>
+                    <h4 className="type-item-title text-red-800">환불 처리에 실패했습니다</h4>
                     <p className="mt-2">{refundConfirmState.message}</p>
                     <p className="mt-2">추가 결제나 재요청 없이 고객지원으로 문의해주세요.</p>
                   </div>
@@ -460,14 +460,14 @@ export default function SubscriptionManagementModal({
                   <button
                     type="button"
                     onClick={() => setIsViewingRefundGuide(false)}
-                    className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+                    className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
                   >
                     뒤로
                   </button>
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+                    className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
                   >
                     닫기
                   </button>
@@ -481,7 +481,7 @@ export default function SubscriptionManagementModal({
                       refundConfirmState.status === "completed"
                     }
                     onClick={submitRefundConfirm}
-                    className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
                   >
                     {refundConfirmState.status === "processing"
                       ? "환불 처리 중..."
@@ -495,7 +495,7 @@ export default function SubscriptionManagementModal({
               <>
             {restoredNotice ? (
               <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
-                <h3 className="text-lg font-black text-emerald-950">{restoredNotice.title}</h3>
+                <h3 className="type-content-title text-emerald-950">{restoredNotice.title}</h3>
                 <p className="mt-2">{restoredNotice.message}</p>
                 <p className="mt-2">이 결제 기록은 환불 처리 완료 내역으로 보관되며, 현재 이용 중인 새 구독은 별도 카드에서 확인할 수 있습니다.</p>
               </div>
@@ -522,41 +522,41 @@ export default function SubscriptionManagementModal({
 
             <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">현재 요금제</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">현재 요금제</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{productName} {billingCycleLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">구독 상태</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">구독 상태</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{cancelAtPeriodEnd ? "해지 예약됨" : statusLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">연결된 메뉴판</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">연결된 메뉴판</dt>
                 <dd className="mt-2 break-keep font-bold text-zinc-900">{menuName}</dd>
                 <p className="mt-1 text-xs font-bold text-zinc-400">{menuStatus}</p>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">다음 결제 예정 금액</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">다음 결제 예정 금액</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{amountLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">결제 주기</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">결제 주기</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{billingCycleLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">{cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일"}</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{cancelAtPeriodEnd ? "이용 종료 예정일" : "다음 결제 예정일"}</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{cancelAtPeriodEnd ? periodEndLabel : nextBillingLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">결제수단 / PG</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">결제수단 / PG</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{pgLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">서비스 권한</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">서비스 권한</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{serviceEntitlementLabel}</dd>
               </div>
               {cancelAtPeriodEnd && (
                 <div className="rounded-2xl bg-amber-50 p-4 md:col-span-2">
-                  <dt className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">해지 예약일</dt>
+                  <dt className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">해지 예약일</dt>
                   <dd className="mt-2 font-bold text-amber-900">{cancelRequestedLabel}</dd>
                 </div>
               )}
@@ -572,7 +572,7 @@ export default function SubscriptionManagementModal({
                     setError(null);
                     setIsConfirmingCancel(true);
                   }}
-                  className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800"
+                  className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
                 >
                   {isYearlyBilling ? "다음 연간 결제일부터 해지 예약" : "구독 해지 예약"}
                 </button>
@@ -582,13 +582,13 @@ export default function SubscriptionManagementModal({
                   type="button"
                   disabled={isSubmitting}
                   onClick={resumeCancellation}
-                  className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                  className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
                 >
                   {isSubmitting ? "처리 중..." : "구독 유지하기 / 해지 예약 취소"}
                 </button>
               ) : null}
               {(status === "expired" || status === "failed") && !restoredNotice ? (
-                <a href="/mypage/inquiries" className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700">
+                <a href="/mypage/inquiries" className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700">
                   고객지원 문의
                 </a>
               ) : null}
@@ -600,7 +600,7 @@ export default function SubscriptionManagementModal({
                     setIsViewingRefundGuide(true);
                     void loadRefundQuote();
                   }}
-                  className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700 transition-colors hover:bg-zinc-100"
+                  className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
                 >
                   중도해지/환불 요청
                 </button>
@@ -615,7 +615,7 @@ export default function SubscriptionManagementModal({
       {isConfirmingCancel && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-950/50 px-4 py-8">
           <form onSubmit={submitCancellation} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-            <h2 className="text-2xl font-black tracking-tight text-zinc-950">정말 구독을 해지하시겠어요?</h2>
+            <h2 className="type-subsection-title text-zinc-950">정말 구독을 해지하시겠어요?</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               해지해도 이미 결제된 이용기간은 종료일까지 사용할 수 있습니다. {isYearlyBilling ? "다음 연간 결제일부터 결제는 중단됩니다." : "다음 결제일부터 결제는 중단됩니다."}
             </p>
@@ -623,7 +623,7 @@ export default function SubscriptionManagementModal({
               이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일 이내 다시 구독하면 기존 데이터를 계속 사용할 수 있습니다. 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
             </p>
             <label className="mt-5 block">
-              <span className="text-xs font-black uppercase tracking-[0.16em] text-zinc-400">해지 사유</span>
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">해지 사유</span>
               <textarea
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
@@ -634,13 +634,13 @@ export default function SubscriptionManagementModal({
             </label>
             {error && <p className="mt-4 break-keep rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
             <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700">
+              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700">
                 계속 이용하기
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
               >
                 {isSubmitting ? "처리 중..." : isYearlyBilling ? "다음 연간 결제일부터 해지하기" : "다음 결제일부터 해지하기"}
               </button>

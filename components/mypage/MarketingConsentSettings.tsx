@@ -77,20 +77,20 @@ export default function MarketingConsentSettings({
     <section className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <h3 className="text-lg font-black tracking-tight text-zinc-950">광고성 정보 수신 동의</h3>
+          <h3 className="type-content-title text-zinc-950">광고성 정보 수신 동의</h3>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
             이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내 등을 이메일, 문자메시지, 카카오 메시지 등으로 받을 수 있습니다.
           </p>
           <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             동의하지 않아도 아티메뉴 서비스 이용에는 제한이 없습니다. 결제 완료, 정기결제 예정 또는 실패, 구독 만료, 데이터 삭제 예정, 약관·정책 변경, 서비스 장애, 보안 안내 등 필수 고지는 수신 동의 여부와 관계없이 발송될 수 있습니다.
           </p>
-          <p className="mt-3 break-keep text-[11px] font-bold leading-relaxed text-zinc-400">
+          <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             {accepted
               ? `동의일: ${formatDateTime(consentedAt) ?? "저장 후 기록됩니다."}`
               : `철회일: ${formatDateTime(withdrawnAt) ?? "저장 후 기록됩니다."}`} · 추후 이메일/문자/카카오 채널별 설정으로 확장할 수 있도록 계정 단위 설정으로 저장합니다.
           </p>
-          {message ? <p className="mt-3 text-xs font-black text-emerald-700">{message}</p> : null}
-          {error ? <p className="mt-3 text-xs font-black text-red-700">{error}</p> : null}
+          {message ? <p className="mt-3 text-xs font-bold text-emerald-700">{message}</p> : null}
+          {error ? <p className="mt-3 text-xs font-bold text-red-700">{error}</p> : null}
         </div>
         <button
           type="button"
@@ -101,7 +101,7 @@ export default function MarketingConsentSettings({
           className="flex w-full items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto md:min-w-52"
         >
           <span className="min-w-0">
-            <span className="block text-sm font-black text-zinc-900">{accepted ? "수신 동의 중" : "수신 동의 안 함"}</span>
+            <span className="block text-sm font-bold text-zinc-900">{accepted ? "수신 동의 중" : "수신 동의 안 함"}</span>
             <span className="mt-1 block text-xs font-bold text-zinc-400">{isSaving ? "저장 중..." : "클릭해서 변경"}</span>
           </span>
           <span className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${accepted ? "bg-zinc-950" : "bg-zinc-200"}`}>

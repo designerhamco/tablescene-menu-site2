@@ -176,7 +176,7 @@ export default function AiCreditPurchaseModal({
       >
         <div className="flex items-start justify-between gap-5">
           <div>
-            <h2 id="ai-credit-modal-title" className="text-2xl font-black tracking-tight text-zinc-950">
+            <h2 id="ai-credit-modal-title" className="type-subsection-title text-zinc-950">
               계정에 충전할 크레딧을 선택하세요
             </h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
@@ -187,7 +187,7 @@ export default function AiCreditPurchaseModal({
             type="button"
             onClick={closeModal}
             disabled={Boolean(pendingProductKey)}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-black text-zinc-500 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-bold text-zinc-500 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="AI 크레딧 충전 닫기"
           >
             ×
@@ -206,9 +206,9 @@ export default function AiCreditPurchaseModal({
                 onClick={() => startPurchase(product.productKey)}
                 className="rounded-2xl border border-zinc-200 bg-white p-5 text-left transition-colors hover:border-zinc-500 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <span className="block text-base font-black text-zinc-950">{product.name}</span>
-                <span className="mt-3 block text-2xl font-black text-zinc-950">{product.amount.toLocaleString("ko-KR")}원</span>
-                <span className="mt-4 inline-flex rounded-full bg-zinc-950 px-3 py-1 text-xs font-black text-white">
+                <span className="block text-base font-bold text-zinc-950">{product.name}</span>
+                <span className="mt-3 block text-2xl font-bold text-zinc-950">{product.amount.toLocaleString("ko-KR")}원</span>
+                <span className="mt-4 inline-flex rounded-full bg-zinc-950 px-3 py-1 text-xs font-bold text-white">
                   {isPending ? "결제 진행 중" : refundPolicyAgreed ? "선택하기" : "동의 후 선택"}
                 </span>
               </button>
@@ -220,7 +220,7 @@ export default function AiCreditPurchaseModal({
           <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">
             AI 크레딧은 결제 완료 즉시 계정에 지급되는 디지털 소모성 상품입니다. 크레딧 지급 후에는 단순 변심에 따른 취소/환불이 불가합니다. 중복 결제 또는 크레딧 미지급이 발생한 경우 고객지원으로 문의해주세요.
           </p>
-          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-white/70 p-3 text-sm font-black text-amber-950">
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-white/70 p-3 text-sm font-bold text-amber-950">
             <input
               type="checkbox"
               checked={refundPolicyAgreed}
