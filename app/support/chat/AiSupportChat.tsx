@@ -58,29 +58,31 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
   };
 
   return (
-    <section className={`site-card overflow-hidden ${compact ? "site-card-compact" : ""}`}>
-      <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
-        <h2 className="type-content-title">상담 범위</h2>
-        <p className="type-body-sm mt-1 text-zinc-500">
-          요금제, 메뉴판 제작, 다국어, 스마트호출과 디스플레이 이용 방법을 안내합니다.
-        </p>
-      </div>
+    <section className={`site-card min-h-0 overflow-hidden ${compact ? "site-card-compact flex flex-col" : ""}`}>
+      {!compact ? (
+        <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
+          <h2 className="type-content-title">상담 범위</h2>
+          <p className="type-body-sm mt-1 text-zinc-500">
+            요금제, 메뉴판 제작, 다국어, 스마트호출과 디스플레이 이용 방법을 안내합니다.
+          </p>
+        </div>
+      ) : null}
 
-      <div className={`${compact ? "min-h-[280px]" : "min-h-[420px]"} space-y-4 bg-zinc-50 px-5 py-6 md:px-7`} aria-live="polite">
+      <div className={`${compact ? "min-h-[240px] flex-1 overflow-y-auto px-4 py-4 sm:min-h-[280px] sm:px-5 sm:py-5 md:max-h-[46dvh]" : "min-h-[420px] px-5 py-6 md:px-7"} space-y-4 bg-zinc-50`} aria-live="polite">
         {messages.length === 0 ? (
-          <div className="mx-auto flex max-w-xl flex-col items-center py-12 text-center">
+          <div className={`mx-auto flex max-w-xl flex-col items-center text-center ${compact ? "py-6 sm:py-9" : "py-12"}`}>
             <p className="type-subsection-title">무엇을 도와드릴까요?</p>
             <p className="type-body-sm mt-3 text-zinc-500">
               아래 질문을 선택하거나 궁금한 내용을 직접 입력해 주세요.
             </p>
-            <div className="mt-7 flex flex-wrap justify-center gap-2">
+            <div className={`flex w-full flex-wrap justify-center gap-2 ${compact ? "mt-5" : "mt-7"}`}>
               {SUGGESTIONS.map((suggestion) => (
                 <button
                   key={suggestion}
                   type="button"
                   onClick={() => void submitQuestion(suggestion)}
                   disabled={pending || !overseasTransferConsent}
-                  className="site-button site-button-secondary site-button-sm text-zinc-600 disabled:text-zinc-300"
+                  className="site-button site-button-secondary site-button-sm w-full text-zinc-600 disabled:text-zinc-300 sm:w-auto"
                 >
                   {suggestion}
                 </button>
@@ -90,8 +92,8 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         ) : messages.map((message, index) => (
           <div key={`${message.role}-${index}`} className={message.role === "user" ? "flex justify-end" : "flex justify-start"}>
             <p className={message.role === "user"
-              ? "type-body-sm max-w-[85%] whitespace-pre-wrap rounded-3xl bg-zinc-950 px-5 py-3.5 text-white"
-              : "type-body-sm max-w-[85%] whitespace-pre-wrap rounded-3xl border border-zinc-200 bg-white px-5 py-3.5 text-zinc-700"}
+              ? "type-body-sm max-w-[92%] whitespace-pre-wrap rounded-3xl bg-zinc-950 px-4 py-3 text-white sm:max-w-[85%] sm:px-5 sm:py-3.5"
+              : "type-body-sm max-w-[92%] whitespace-pre-wrap rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-zinc-700 sm:max-w-[85%] sm:px-5 sm:py-3.5"}
             >
               {message.text}
             </p>
@@ -105,8 +107,8 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         ) : null}
       </div>
 
-      <form onSubmit={handleSubmit} className="border-t border-zinc-100 p-4 md:p-5">
-        <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-zinc-50 px-4 py-3.5">
+      <form onSubmit={handleSubmit} className={`border-t border-zinc-100 ${compact ? "p-3 sm:p-4" : "p-4 md:p-5"}`}>
+        <label className={`flex cursor-pointer items-start gap-3 rounded-2xl bg-zinc-50 ${compact ? "mb-3 px-3 py-3" : "mb-4 px-4 py-3.5"}`}>
           <input
             type="checkbox"
             checked={overseasTransferConsent}
@@ -145,6 +147,9 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         </div>
         <p className="type-caption mt-3 px-1 text-zinc-400">
           비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 아티메뉴 계정과 DB에는 대화를 저장하지 않습니다.
+        </p>
+        <p className="type-caption mt-2 px-1 text-zinc-500">
+          답변만으로 해결되지 않나요? <Link href="/mypage/inquiries" className="font-bold text-zinc-950 underline underline-offset-2">1:1 문의로 이어서 도움받기</Link>
         </p>
       </form>
     </section>
