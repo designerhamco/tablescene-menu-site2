@@ -60,7 +60,7 @@ export default async function ApplyDisplayPage({
       <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
           <section className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm md:p-12">
-            <h1 className="site-page-title">
+            <h1 className="type-page-title">
               아티메뉴 디스플레이는 준비 중입니다.
             </h1>
             <p className="site-body mt-5 max-w-2xl text-zinc-500">

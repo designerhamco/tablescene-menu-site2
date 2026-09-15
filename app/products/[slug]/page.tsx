@@ -56,7 +56,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">
                 아티메뉴 다이닝
               </span>
-              <h1 className="site-page-title mt-5">{product.shortName}</h1>
+              <h1 className="type-page-title mt-5">{product.shortName}</h1>
               <p className="site-body mt-5 max-w-2xl text-zinc-600">
                 {product.summary}
               </p>
@@ -78,7 +78,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             <section className="rounded-3xl border border-zinc-200 bg-white p-7">
-              <h2 className="text-xl font-black">상품·제공 정보</h2>
+              <h2 className="type-content-title">상품·제공 정보</h2>
               <dl className="mt-6 space-y-5 text-sm">
                 {[
                   ["서비스 형태", "온라인 디지털 메뉴판 서비스(실물 배송 없음)"],
@@ -96,7 +96,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </section>
 
             <section className="rounded-3xl border border-zinc-200 bg-white p-7">
-              <h2 className="text-xl font-black">포함 기능</h2>
+              <h2 className="type-content-title">포함 기능</h2>
               <ul className="mt-6 space-y-3 text-sm font-semibold leading-relaxed text-zinc-600">
                 <li>• 다이닝 메뉴판 1개 생성 및 관리</li>
                 <li>• 출시 대상 {getDiningTierLabel(templateTier)} 템플릿 선택</li>
@@ -111,7 +111,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           </div>
 
           <section className="mt-6 rounded-3xl border border-zinc-200 bg-white p-7 md:p-9">
-            <h2 className="text-xl font-black">구독 해지·청약철회·환불 안내</h2>
+            <h2 className="type-content-title">구독 해지·청약철회·환불 안내</h2>
             <ul className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
               {product.cancellation.map((item) => (
                 <li key={item}>• {item}</li>

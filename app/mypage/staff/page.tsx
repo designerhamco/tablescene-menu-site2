@@ -163,7 +163,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
             <Link href="/mypage?tab=menus" className="text-sm font-black text-emerald-700 hover:text-emerald-900">
               ← 마이페이지로 돌아가기
             </Link>
-            <h1 className="mt-5 text-4xl font-black tracking-tight md:text-5xl">직원 관리</h1>
+            <h1 className="type-page-title mt-5">직원 관리</h1>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
               사장으로 소유한 메뉴판에 직원을 초대하고 대기 중인 초대를 확인합니다.
             </p>
@@ -199,7 +199,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
 
         <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
           <div>
-            <h2 className="text-xl font-black tracking-tight">활동 중인 직원</h2>
+            <h2 className="type-content-title">활동 중인 직원</h2>
             <p className="mt-2 text-sm font-medium text-zinc-500">메뉴판별 역할 프리셋을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
           </div>
 
@@ -296,7 +296,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
 
         <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
           <div>
-            <h2 className="text-xl font-black tracking-tight">대기 중인 초대</h2>
+            <h2 className="type-content-title">대기 중인 초대</h2>
             <p className="mt-2 text-sm font-medium text-zinc-500">재전송과 취소는 다음 안전한 작업 범위에서 연결됩니다.</p>
           </div>
 

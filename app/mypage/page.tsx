@@ -2673,7 +2673,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         <div className="mx-auto w-full max-w-7xl">
           <header className="mb-6 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight md:text-5xl">마이페이지</h1>
+              <h1 className="type-page-title">마이페이지</h1>
               <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
                 {isStaffOnlyAccount
                   ? "직원으로 참여한 메뉴판과 고객지원 정보를 한곳에서 확인합니다."
@@ -2705,7 +2705,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section id="my-menus" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                  <h2 className="text-3xl font-bold tracking-tight">메뉴판 관리</h2>
+                  <h2 className="type-subsection-title">메뉴판 관리</h2>
                   <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     {isStaffOnlyAccount
                       ? "배정받은 메뉴판과 현재 역할에서 사용할 수 있는 기능을 확인합니다."
@@ -2823,7 +2823,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <section id="payment-history" className="scroll-mt-28">
                 <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                   <div>
-                    <h2 className="text-3xl font-bold tracking-tight">구독/결제 내역</h2>
+                    <h2 className="type-subsection-title">구독/결제 내역</h2>
                     <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                       결제 기록과 AI 크레딧 충전 내역을 확인할 수 있습니다. 구독 해지, 환불 요청, 재구독 복구는 구독/결제 내역에서 관리하고, 메뉴판 운영은 내 메뉴판 탭에서 확인해주세요.
                     </p>
@@ -3320,7 +3320,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section id="account-info" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight">로그인 및 가입 정보</h2>
+                  <h2 className="type-subsection-title">로그인 및 가입 정보</h2>
                   <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     현재 계정의 로그인 방식과 연결된 인증 정보를 확인합니다.
                   </p>

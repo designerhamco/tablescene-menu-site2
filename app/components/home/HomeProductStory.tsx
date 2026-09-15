@@ -131,7 +131,7 @@ export function BrandHero() {
     <section className="site-gutter relative min-h-[760px] overflow-hidden bg-[linear-gradient(155deg,#a97e00_0%,#e5c546_24%,#fff0a3_100%)] pt-28 text-zinc-950 md:min-h-[930px] md:pt-36">
       <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-[1180px] text-center">
         <p className="text-base font-bold tracking-[-0.02em] md:text-xl">다이닝의 새로운 메뉴 경험</p>
-        <h1 className="mt-5 break-keep text-[clamp(2.75rem,6.5vw,5.25rem)] font-bold leading-[1] tracking-[-0.05em]">
+        <h1 className="type-display mt-5">
           ArtiMenu<br />Perfect For Your Store
         </h1>
       </motion.div>

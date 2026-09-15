@@ -79,7 +79,7 @@ export default async function MenuQrManagementPage({
           </Link>
           <header className="mt-6 border-b border-zinc-200 pb-8">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight md:text-4xl">QR 관리</h1>
+            <h1 className="type-page-title mt-2">QR 관리</h1>
             <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
               대표 메뉴 QR을 확인하고 언제든 다시 다운로드할 수 있습니다. 스마트호출을 지원하는 메뉴판은 같은 화면에서 테이블별 QR도 관리합니다.
             </p>
@@ -96,7 +96,7 @@ export default async function MenuQrManagementPage({
             ) : (
               <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight">메뉴판 공유 주소</h2>
+                <h2 className="type-subsection-title mt-2">메뉴판 공유 주소</h2>
                 <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
                   매장 입구·포스터·SNS에서 사용하는 대표 QR입니다. 메뉴판 주소가 유지되는 동안 같은 QR을 계속 사용할 수 있습니다.
                 </p>

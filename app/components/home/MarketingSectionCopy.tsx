@@ -7,9 +7,9 @@ import type { ReactNode } from "react";
  * title > eyebrow > body. The body stays the smallest supporting copy.
  */
 export const MARKETING_COPY_STYLES = {
-  eyebrow: "text-sm font-bold leading-[1.4] tracking-[-0.02em] md:text-base",
-  title: "site-section-title mt-3",
-  body: "site-body mt-5",
+  eyebrow: "type-content-title",
+  title: "type-section-title mt-3",
+  body: "type-body-lg mt-5",
 } as const;
 
 type MarketingSectionCopyProps = {

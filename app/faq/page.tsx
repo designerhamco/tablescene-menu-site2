@@ -20,7 +20,7 @@ export default function FAQPage() {
       <main className="min-h-screen bg-white text-zinc-950">
         <section className="border-b border-zinc-200 py-16 md:py-24">
           <div className="site-container">
-            <h1 className="site-page-title max-w-3xl">
+            <h1 className="type-page-title max-w-3xl">
               필요한 도움을<br className="hidden md:block" /> 빠르게 확인
             </h1>
             <p className="site-body mt-6 max-w-2xl text-zinc-500">
@@ -66,7 +66,7 @@ export default function FAQPage() {
         {aiSupportEnabled ? <section className="site-container pb-24">
           <div className="site-dark-cta flex flex-col items-start justify-between gap-8 md:flex-row md:items-end md:gap-12">
             <div className="max-w-2xl">
-              <h2 className="site-section-title">답을 찾지 못했다면 AI 상담</h2>
+              <h2 className="type-section-title">답을 찾지 못했다면 AI 상담</h2>
               <p className="site-body mt-5 text-zinc-400">서비스 사용법을 빠르게 확인하고 필요한 경우 1:1 문의로 이어집니다.</p>
             </div>
             <Link href="/support/chat" className="inline-flex shrink-0 items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-200">AI 상담 시작</Link>

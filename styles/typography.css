@@ -1,0 +1,110 @@
+:root {
+  --font-family-site: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+
+  --type-display-size: clamp(2.75rem, 6.5vw, 5.25rem);
+  --type-page-title-size: clamp(2rem, 4vw, 3rem);
+  --type-section-title-size: clamp(1.875rem, 3.5vw, 3rem);
+  --type-subsection-title-size: clamp(1.5rem, 2.3vw, 1.875rem);
+  --type-content-title-size: clamp(1.125rem, 1.45vw, 1.375rem);
+  --type-body-lg-size: clamp(1rem, 1.15vw, 1.125rem);
+  --type-body-size: 1rem;
+  --type-body-sm-size: clamp(0.875rem, 0.9vw, 0.9375rem);
+  --type-label-size: 0.875rem;
+  --type-nav-size: 1rem;
+  --type-caption-size: 0.75rem;
+}
+
+/*
+ * ArtiMenu site typography contract.
+ * Customer-facing menu templates use their own editable typography tokens and
+ * must not depend on these classes.
+ */
+.type-display {
+  word-break: keep-all;
+  font-size: var(--type-display-size);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.type-page-title,
+.site-page-title {
+  word-break: keep-all;
+  font-size: var(--type-page-title-size);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.04em;
+}
+
+.type-section-title,
+.site-section-title {
+  word-break: keep-all;
+  font-size: var(--type-section-title-size);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.04em;
+}
+
+.type-subsection-title {
+  word-break: keep-all;
+  font-size: var(--type-subsection-title-size);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+}
+
+.type-content-title,
+.site-body-title {
+  word-break: keep-all;
+  font-size: var(--type-content-title-size);
+  font-weight: 700;
+  line-height: 1.42;
+  letter-spacing: -0.025em;
+}
+
+.type-body-lg,
+.site-body {
+  word-break: keep-all;
+  font-size: var(--type-body-lg-size);
+  font-weight: 500;
+  line-height: 1.72;
+  letter-spacing: -0.015em;
+}
+
+.type-body {
+  word-break: keep-all;
+  font-size: var(--type-body-size);
+  font-weight: 500;
+  line-height: 1.68;
+  letter-spacing: -0.015em;
+}
+
+.type-body-sm,
+.site-body-support {
+  word-break: keep-all;
+  font-size: var(--type-body-sm-size);
+  font-weight: 500;
+  line-height: 1.68;
+  letter-spacing: -0.01em;
+}
+
+.type-label {
+  font-size: var(--type-label-size);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.type-nav {
+  font-size: var(--type-nav-size);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.type-caption {
+  font-size: var(--type-caption-size);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}

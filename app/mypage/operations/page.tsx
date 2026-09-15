@@ -95,7 +95,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         <div className="space-y-5">
           {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
           <article className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm md:p-12">
-            <h2 className="text-2xl font-black tracking-tight">운영 가능한 메뉴판이 없습니다</h2>
+            <h2 className="type-subsection-title">운영 가능한 메뉴판이 없습니다</h2>
             <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
               현재 공개 중이고 이용 기간이 유효한 멀티페이지 또는 Display 메뉴판만 표시됩니다.
             </p>
@@ -128,7 +128,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
       <div className="space-y-6">
         {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
         <header>
-          <h2 className="text-3xl font-black tracking-tight">{selectedSite.name} 운영 현황</h2>
+          <h2 className="type-subsection-title">{selectedSite.name} 운영 현황</h2>
           <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
             현재 호출과 테이블, 대기번호 현황을 빠르게 확인합니다.
           </p>

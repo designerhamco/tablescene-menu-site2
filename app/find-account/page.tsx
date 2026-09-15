@@ -13,7 +13,7 @@ export default function FindAccountPage() {
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
         <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
           <div className="mb-8">
-            <h1 className="break-keep text-3xl font-bold tracking-tight">로그인 이메일을 잊으셨나요?</h1>
+            <h1 className="type-subsection-title">로그인 이메일을 잊으셨나요?</h1>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
               ArtiMenu는 이메일 주소로 로그인합니다. 가입 시 사용한 이메일을 확인해주세요.
             </p>

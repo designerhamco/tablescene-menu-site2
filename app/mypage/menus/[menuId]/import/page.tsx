@@ -112,7 +112,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           <div className="mb-8 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
               <p className="text-sm font-bold text-zinc-500">공통 메뉴</p>
-              <h1 className="mt-2 text-4xl font-bold tracking-tight">기존 메뉴판에서 가져오기</h1>
+              <h1 className="type-page-title mt-2">기존 메뉴판에서 가져오기</h1>
               <p className="mt-4 max-w-2xl break-keep text-base leading-7 text-zinc-600">
                 다른 메뉴판의 페이지·카테고리·메뉴를 가져옵니다. 연결 모드를 선택하면 메뉴 내용은 함께 관리하고 화면 배치는 각각 구성할 수 있습니다.
               </p>
@@ -140,7 +140,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
               <div>
                 <p className="text-xs font-bold text-zinc-400">가져올 대상</p>
-                <h2 className="mt-2 text-2xl font-bold">{targetMenuSite.name}</h2>
+                <h2 className="type-subsection-title mt-2">{targetMenuSite.name}</h2>
                 <p className="mt-2 text-sm font-semibold text-zinc-500">
                   {getTemplateDisplayName(targetMenuSite.template_key)} · {getStatusLabel(targetMenuSite.status)}
                 </p>
@@ -158,13 +158,13 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
 
           <div className="mb-6 grid gap-5 md:grid-cols-2">
             <section className="rounded-3xl border border-zinc-200 bg-white p-7">
-              <h2 className="text-xl font-bold">연결 시 함께 변경</h2>
+              <h2 className="type-content-title">연결 시 함께 변경</h2>
               <ul className="mt-5 space-y-3 text-sm font-semibold text-zinc-600">
                 {MENU_CATALOG_LINKED_SHARED_FIELDS.map((field) => <li key={field}>✓ {field}</li>)}
               </ul>
             </section>
             <section className="rounded-3xl border border-zinc-200 bg-white p-7">
-              <h2 className="text-xl font-bold">메뉴판별로 개별 관리</h2>
+              <h2 className="type-content-title">메뉴판별로 개별 관리</h2>
               <ul className="mt-5 space-y-3 text-sm font-semibold text-zinc-600">
                 {MENU_CATALOG_MENU_SPECIFIC_FIELDS.map((field) => <li key={field}>• {field}</li>)}
               </ul>
@@ -174,7 +174,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           {activeLink ? (
             <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-7 shadow-sm">
               <p className="text-sm font-bold text-emerald-700">연결된 공통 메뉴</p>
-              <h2 className="mt-2 text-2xl font-bold text-emerald-950">{linkedSource?.name ?? "원본 메뉴판"}</h2>
+              <h2 className="type-subsection-title mt-2 text-emerald-950">{linkedSource?.name ?? "원본 메뉴판"}</h2>
               <p className="mt-3 break-keep text-sm font-semibold leading-6 text-emerald-900">
                 카테고리명과 메뉴명·설명·가격·이미지·배지·품절·번역이 연결되어 있습니다. 페이지 배치와 디자인은 현재 메뉴판에서 별도로 관리합니다.
               </p>
@@ -202,7 +202,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             </section>
           ) : sourceMenuSites.length === 0 ? (
             <section className="rounded-3xl border border-zinc-200 bg-white p-8 text-center">
-              <h2 className="text-2xl font-bold">가져올 다른 메뉴판이 없습니다</h2>
+              <h2 className="type-subsection-title">가져올 다른 메뉴판이 없습니다</h2>
               <p className="mt-3 text-sm font-semibold text-zinc-500">같은 계정에 메뉴판이 두 개 이상 있을 때 사용할 수 있습니다.</p>
               <Link href="/templates" className="mt-6 inline-flex rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white">
                 새 메뉴판 만들기
@@ -247,7 +247,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
               </section>
 
               <section className="rounded-3xl border border-amber-200 bg-amber-50 p-7">
-                <h2 className="text-xl font-bold text-amber-950">3. 대상 내용 교체 확인</h2>
+                <h2 className="type-content-title text-amber-950">3. 대상 내용 교체 확인</h2>
                 <p className="mt-3 break-keep text-sm font-semibold leading-6 text-amber-900">
                   대상 메뉴판의 현재 페이지·카테고리·메뉴·타임세일·위젯은 제거되고 원본 메뉴 내용으로 교체됩니다. 원본 메뉴판은 삭제하거나 변경하지 않습니다.
                 </p>

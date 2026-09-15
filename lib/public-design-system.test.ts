@@ -5,6 +5,8 @@ import test from "node:test";
 const readSource = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 
 const globalsSource = readSource("../app/globals.css");
+const typographySource = readSource("../styles/typography.css");
+const themeSource = readSource("../styles/theme.css");
 const rootLayoutSource = readSource("../app/layout.tsx");
 const navbarSource = readSource("../app/components/layout/Navbar.tsx");
 const officialNavbarSource = readSource("../components/layout/OfficialSiteNavbar.tsx");
@@ -109,9 +111,34 @@ test("만들기 템플릿 썸네일은 하나의 24px 라운드 외곽선만 사
 
 test("주요 공개 페이지는 표준 페이지 타이틀을 사용한다", () => {
   for (const source of [termsSource, privacySource, faqSource, pricingSource, customSource]) {
-    assert.match(source, /site-page-title/);
+    assert.match(source, /(?:site|type)-page-title/);
   }
 
   assert.doesNotMatch(termsSource, /text-5xl/);
   assert.doesNotMatch(privacySource, /text-5xl/);
+});
+
+test("사이트 UI는 의미 기반 타이포 역할과 Pretendard 기본 서체를 사용한다", () => {
+  for (const role of [
+    "type-display",
+    "type-page-title",
+    "type-section-title",
+    "type-subsection-title",
+    "type-content-title",
+    "type-body-lg",
+    "type-body",
+    "type-body-sm",
+    "type-label",
+    "type-nav",
+    "type-caption",
+  ]) {
+    assert.match(typographySource, new RegExp(`\\.${role}`));
+  }
+
+  assert.match(typographySource, /--font-family-site:\s*"Pretendard",\s*"Noto Sans KR"/);
+  assert.doesNotMatch(typographySource, /Outfit/);
+  assert.doesNotMatch(themeSource, /Global Typography Scale/);
+  assert.doesNotMatch(themeSource, /h1\s*\{[\s\S]*@apply text-4xl/);
+  assert.match(themeSource, /button,\s*\n\s*input,\s*\n\s*textarea,\s*\n\s*select\s*\{\s*font:\s*inherit/);
+  assert.doesNotMatch(globalsSource, /button,\s*\n\s*input,\s*\n\s*textarea,\s*\n\s*select\s*\{\s*font:\s*inherit/);
 });

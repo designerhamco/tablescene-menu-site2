@@ -191,7 +191,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
         <div className="mx-auto w-full max-w-7xl">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <h1 className="text-4xl font-black tracking-tight md:text-5xl">사업자 플랜 전환</h1>
+              <h1 className="type-page-title">사업자 플랜 전환</h1>
               <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-500">
                 새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 사업자 플랜으로 전환합니다.
               </p>
@@ -204,7 +204,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
           <section className="mb-6 rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
             <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
               <div>
-                <h2 className="text-2xl font-black tracking-tight">{typedMenuSite.name || "이름 없는 메뉴판"}</h2>
+                <h2 className="type-subsection-title">{typedMenuSite.name || "이름 없는 메뉴판"}</h2>
                 <p className="mt-2 break-all text-sm font-bold text-zinc-500">{publicUrl}</p>
               </div>
               <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-100">
@@ -226,7 +226,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
 
           {isPendingDelete ? (
             <section className="rounded-3xl border border-amber-100 bg-amber-50 p-8 text-center">
-              <h2 className="text-2xl font-black tracking-tight text-amber-900">고객지원 문의가 필요합니다</h2>
+              <h2 className="type-subsection-title text-amber-900">고객지원 문의가 필요합니다</h2>
               <p className="mx-auto mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-800">
                 복구 가능 기간이 종료되었습니다. 데이터 복구 가능 여부는 고객지원으로 문의해주세요.
               </p>

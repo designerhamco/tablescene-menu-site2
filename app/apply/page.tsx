@@ -23,7 +23,7 @@ export default function ApplyPage() {
       <main className="min-h-screen bg-white py-14 text-zinc-950 md:py-20">
         <div className="site-container">
           <header className="max-w-3xl pb-12 md:pb-16">
-            <h1 className="site-page-title">
+            <h1 className="type-page-title">
               매장에 맞는 디자인 선택
             </h1>
             <p className="site-body mt-5 max-w-2xl text-zinc-500">
@@ -39,7 +39,7 @@ export default function ApplyPage() {
 
           <section className="site-dark-cta mt-20 md:mt-28 md:flex md:items-end md:justify-between md:gap-12">
             <div className="max-w-2xl">
-              <h2 className="site-section-title">브랜드 맞춤 제작</h2>
+              <h2 className="type-section-title">브랜드 맞춤 제작</h2>
               <p className="site-body mt-5 text-zinc-400">
                 템플릿 범위를 넘어선 별도 브랜딩과 기능이 필요하다면 커스텀 제작을 상담해 주세요.
               </p>

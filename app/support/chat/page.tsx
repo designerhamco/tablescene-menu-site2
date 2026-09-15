@@ -22,7 +22,7 @@ export default function AiSupportChatPage() {
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-8 flex flex-col gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="site-page-title">AI 상담</h1>
+              <h1 className="type-page-title">AI 상담</h1>
               <p className="site-body mt-4 text-zinc-500">
                 아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다.
               </p>
