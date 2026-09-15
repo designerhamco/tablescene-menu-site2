@@ -26,6 +26,10 @@ body {
 :root {
   --site-content-max: 80rem;
   --site-gutter: clamp(1.25rem, 3vw, 2.5rem);
+  --site-page-space: clamp(3.5rem, 7vw, 6rem);
+  --site-page-space-compact: clamp(2.5rem, 5vw, 4rem);
+  --site-section-space: clamp(3rem, 6vw, 5rem);
+  --site-grid-gap: clamp(1rem, 2vw, 1.5rem);
 }
 
 /*
@@ -45,6 +49,23 @@ body {
   max-width: var(--site-content-max);
   margin-inline: auto;
   padding-inline: var(--site-gutter);
+}
+
+.site-page-spacing {
+  padding-block: var(--site-page-space);
+}
+
+.site-page-spacing-compact {
+  padding-block: var(--site-page-space-compact);
+}
+
+.site-section-spacing {
+  padding-block: var(--site-section-space);
+}
+
+.site-card-grid {
+  display: grid;
+  gap: var(--site-grid-gap);
 }
 
 /* Shared dark CTA surface used at the end of public pages. */
