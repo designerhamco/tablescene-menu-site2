@@ -91,17 +91,17 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 px-5 py-8" role="presentation">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5 py-8" role="presentation">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby={`reset-${kind}-title`}
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+            className="site-dialog site-dialog-panel w-full max-w-md p-6"
           >
             <h2 id={`reset-${kind}-title`} className="type-content-title break-keep text-zinc-950">
               {copy.title}
             </h2>
-            <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{copy.description}</p>
+            <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{copy.description}</p>
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"

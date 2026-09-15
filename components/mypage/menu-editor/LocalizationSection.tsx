@@ -1179,10 +1179,10 @@ function LocalizationSectionContent({
       </form>
 
       {overwriteRequest ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4">
-          <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div role="dialog" aria-modal="true" aria-label="기존 번역 교체 확인" className="site-dialog site-dialog-panel w-full max-w-sm p-5">
             <h3 className="type-content-title text-zinc-950">기존 번역 내용을 AI 번역 결과로 바꿀까요?</h3>
-            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+            <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
               저장 전까지 공개 메뉴판에는 반영되지 않습니다.
             </p>
             <div className="mt-5 flex justify-end gap-2">
