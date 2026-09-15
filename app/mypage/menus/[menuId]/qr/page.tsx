@@ -72,7 +72,7 @@ export default async function MenuQrManagementPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950 md:py-16">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <div className="mx-auto w-full max-w-6xl">
           <Link href="/mypage?tab=menus" className="text-sm font-bold text-emerald-700 hover:text-emerald-900">
             ← MY/메뉴판
@@ -94,7 +94,7 @@ export default async function MenuQrManagementPage({
                 tables={tableData.tables}
               />
             ) : (
-              <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+              <section className="site-card p-5 sm:p-6 md:p-8">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
                 <h2 className="type-subsection-title mt-2">메뉴판 공유 주소</h2>
                 <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">

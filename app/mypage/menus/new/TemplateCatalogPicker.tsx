@@ -71,10 +71,10 @@ export default function TemplateCatalogPicker() {
           return (
             <label
               key={template.key}
-              className={`group flex cursor-pointer flex-col rounded-3xl border bg-white p-3 transition-all ${
+              className={`site-card site-card-interactive group flex cursor-pointer flex-col p-3 ${
                 isSelected
-                  ? "border-zinc-950 shadow-xl shadow-zinc-900/10"
-                  : "border-zinc-200 shadow-sm hover:border-zinc-400"
+                  ? "border-zinc-950"
+                  : "border-zinc-200"
               }`}
             >
               <input
@@ -105,7 +105,7 @@ export default function TemplateCatalogPicker() {
             </label>
           );
         }) : (
-          <div className="rounded-3xl border border-dashed border-zinc-200 bg-white px-5 py-12 text-center lg:col-span-3">
+          <div className="site-card site-card-empty px-5 py-12 lg:col-span-3">
             <p className="text-base font-bold text-zinc-800">템플릿 준비 중입니다.</p>
             <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
               이 Basic 카테고리의 템플릿은 준비 중입니다.
