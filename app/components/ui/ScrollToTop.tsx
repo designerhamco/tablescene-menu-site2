@@ -68,7 +68,7 @@ const ScrollToTop = () => {
                     animate={{ opacity: 1, height: 40, scale: 1 }}
                     exit={{ opacity: 0, height: 0, scale: 0 }}
                     onClick={scrollToTop}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white group"
+                    className="group flex aspect-square h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
                     aria-label="맨 위로 이동"
                   >
                     <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
@@ -78,7 +78,7 @@ const ScrollToTop = () => {
 
               <button
                 onClick={scrollToBottom}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white group"
+                className="group flex aspect-square h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
                 aria-label="맨 아래로 이동"
               >
                 <ArrowDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />

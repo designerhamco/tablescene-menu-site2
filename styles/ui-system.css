@@ -126,12 +126,16 @@
 }
 
 .site-button-icon {
+  height: var(--ui-control-height-md);
   width: var(--ui-control-height-md);
   min-width: var(--ui-control-height-md);
+  aspect-ratio: 1;
+  flex: none;
   padding: 0;
 }
 
 .site-button-icon.site-button-sm {
+  height: var(--ui-control-height-sm);
   width: var(--ui-control-height-sm);
   min-width: var(--ui-control-height-sm);
 }
