@@ -38,6 +38,38 @@ test("메뉴판 고유 디자인은 사이트 버튼과 카드 호환 규칙에�
   assert.match(uiSystemSource, /:not\(\.menu-typography \*\)/);
 });
 
+test("사이트 피드백 색상은 성공·주의·오류·정보 의미 토큰으로 통일한다", () => {
+  for (const token of [
+    "--ui-success-surface",
+    "--ui-success-border",
+    "--ui-success-text",
+    "--ui-warning-surface",
+    "--ui-warning-border",
+    "--ui-warning-text",
+    "--ui-error-surface",
+    "--ui-error-border",
+    "--ui-error-text",
+    "--ui-info-surface",
+    "--ui-info-border",
+    "--ui-info-text",
+  ]) {
+    assert.match(uiSystemSource, new RegExp(`${token}:`));
+  }
+
+  for (const className of [
+    ".site-notice-success",
+    ".site-notice-warning",
+    ".site-notice-error",
+    ".site-notice-info",
+  ]) {
+    assert.match(uiSystemSource, new RegExp(className.replace(".", "\\.")));
+  }
+
+  assert.match(uiSystemSource, /:where\(\.bg-emerald-50, \.bg-emerald-100\):not\(\.menu-typography \*\)/);
+  assert.match(uiSystemSource, /:where\(\.bg-amber-50, \.bg-amber-100\):not\(\.menu-typography \*\)/);
+  assert.match(uiSystemSource, /:where\(\.bg-red-50, \.bg-red-100\):not\(\.menu-typography \*\)/);
+});
+
 test("주요 액션은 확대 모션 대신 색상 피드백을 사용한다", () => {
   for (const path of [
     "app/sign-in/page.tsx",
