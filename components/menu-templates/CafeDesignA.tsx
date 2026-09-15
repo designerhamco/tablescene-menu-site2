@@ -4787,9 +4787,13 @@ function CafeADebugOverlay({
 function CafeLanguageHoverControl({
   data,
   className = "",
+  menuPlacement = "bottom",
+  menuAlign = "right",
 }: {
   data: PublicMenuTemplateProps;
   className?: string;
+  menuPlacement?: "top" | "bottom";
+  menuAlign?: "left" | "right";
 }) {
   const visibleLocaleCount = Array.from(new Set(data.enabledLocales)).length;
   if (visibleLocaleCount <= 1) return null;
@@ -4797,7 +4801,14 @@ function CafeLanguageHoverControl({
   return (
     <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`} data-template-language-control="">
       <div>
-        <MenuLanguageSwitcher currentLocale={data.locale} enabledLocales={data.enabledLocales} compact triggerVariant="cafe" />
+        <MenuLanguageSwitcher
+          currentLocale={data.locale}
+          enabledLocales={data.enabledLocales}
+          compact
+          triggerVariant="cafe"
+          menuPlacement={menuPlacement}
+          menuAlign={menuAlign}
+        />
       </div>
     </div>
   );
@@ -5201,6 +5212,11 @@ function HeaderBlock({
 
   return (
     <header className={`w-full shrink-0 px-[clamp(24px,4vw,96px)] pt-8 pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
+      {isRoundFocusTemplate ? (
+        <div className="cafe-a-round-focus-mobile-utility-row" data-cafe-a-round-focus-mobile-utility-row="">
+          <CafeLanguageHoverControl data={data} className="cursor-default" />
+        </div>
+      ) : null}
       <div className="flex min-w-0 items-start justify-between gap-[clamp(16px,2vw,32px)]">
         <div className="min-w-0 max-w-5xl">
           <StoreIdentity
@@ -5215,7 +5231,7 @@ function HeaderBlock({
             </p>
           )}
         </div>
-        <CafeLanguageHoverControl data={data} className="cursor-default" />
+        {!isRoundFocusTemplate ? <CafeLanguageHoverControl data={data} className="cursor-default" /> : null}
       </div>
     </header>
   );
@@ -5275,7 +5291,7 @@ function SundayLineDesktopLanguageDock({ data }: { data: CafeDesignAProps }) {
       data-cafe-a-footer-placement="desktop"
       data-cafe-a-sunday-language-dock=""
     >
-      <CafeLanguageHoverControl data={data} />
+      <CafeLanguageHoverControl data={data} menuPlacement="top" />
     </div>
   );
 }
@@ -5423,7 +5439,12 @@ function DesktopFixedRail({
                 </div>
               </div>
             ) : null}
-            <CafeLanguageHoverControl data={data} className="cafe-a-round-focus-language-control" />
+            <CafeLanguageHoverControl
+              data={data}
+              className="cafe-a-round-focus-language-control"
+              menuPlacement="top"
+              menuAlign="left"
+            />
           </div>
         </div>
       ) : (

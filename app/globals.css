@@ -412,6 +412,7 @@ video {
   --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en));
   font-family: var(--menu-role-price-font-family, inherit);
+  font-variant-numeric: tabular-nums;
   font-size: clamp(0.9375rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--menu-role-price-size-scale, 1)), 1.36rem);
   font-weight: var(--menu-role-price-font-weight, 700);
 }
@@ -611,18 +612,21 @@ video {
 
 .cafe-a-typography .cafe-a-price-column-heading,
 .cafe-a-typography .cafe-a-price-column-cell {
+  justify-self: end;
   min-width: 0;
   overflow-wrap: anywhere;
-  text-align: center;
+  text-align: right;
+  width: 100%;
 }
 
 .cafe-a-typography .cafe-a-price-column-cell {
   align-items: flex-start;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .cafe-a-typography .cafe-a-price-area {
+  font-variant-numeric: tabular-nums;
   max-width: min(100%, 13rem);
 }
 
@@ -856,6 +860,10 @@ video {
 
 .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-round-focus-language-control {
   text-align: center;
+}
+
+.cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-round-focus-mobile-utility-row {
+  display: none;
 }
 
 .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-sunday-language-dock,
@@ -2323,11 +2331,18 @@ video {
     text-align: center;
   }
 
-  .cafe-a-typography[data-cafe-a-skin="round_focus"] header [data-template-language-control] {
-    position: absolute;
-    right: var(--round-focus-mobile-inset);
-    top: 2rem;
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] header .cafe-a-round-focus-mobile-utility-row {
+    align-items: center;
+    display: flex;
+    justify-content: flex-end;
+    min-height: 2.25rem;
+    position: relative;
+    width: 100%;
     z-index: 2;
+  }
+
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] header .cafe-a-round-focus-mobile-utility-row + div {
+    margin-top: clamp(8px, 2.4vw, 14px);
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] header > div {
