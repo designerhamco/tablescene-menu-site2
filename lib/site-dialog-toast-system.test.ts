@@ -25,6 +25,10 @@ const editorModalSources = [
   "../components/mypage/menu-editor/MenuManagementSection.tsx",
   "../components/mypage/menu-editor/ResetTabActionButton.tsx",
 ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8"));
+const applicationModalSources = [
+  "../components/apply/ApplyOrderForm.tsx",
+  "../components/consent/ConsentAgreementBox.tsx",
+].map((path) => readFileSync(new URL(path, import.meta.url), "utf8"));
 
 test("공통 모달과 패널은 중립선·무그림자 표면을 사용한다", () => {
   assert.match(uiSource, /\.site-dialog,/);
@@ -64,6 +68,14 @@ test("메뉴 편집기의 확인·초기화·AI 모달도 공통 표면 체계�
   for (const source of editorModalSources) {
     assert.match(source, /site-dialog-overlay/);
     assert.match(source, /site-dialog site-dialog-panel/);
+    assert.doesNotMatch(source, /fixed inset-0[^\n]*(?:bg-zinc-950|bg-black)/);
+  }
+});
+
+test("신청·동의 상세 모달도 모바일 시트형 공통 표면을 사용한다", () => {
+  for (const source of applicationModalSources) {
+    assert.match(source, /site-dialog-overlay/);
+    assert.match(source, /site-dialog site-dialog-panel site-dialog-sheet/);
     assert.doesNotMatch(source, /fixed inset-0[^\n]*(?:bg-zinc-950|bg-black)/);
   }
 });

@@ -3208,12 +3208,12 @@ function PhoneInput({
 
 function TermsModal({ title, details, onClose }: { title: string; details: string[]; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-zinc-950/45 p-0 md:items-center md:p-6" onClick={onClose}>
+    <div className="site-dialog-overlay fixed inset-0 z-50 flex items-end justify-center p-0 md:items-center md:p-6" onClick={onClose}>
       <section
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="max-h-[86vh] w-full rounded-t-3xl bg-white shadow-2xl md:max-w-xl md:rounded-3xl"
+        className="site-dialog site-dialog-panel site-dialog-sheet max-h-[86vh] w-full md:max-w-xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="border-b border-zinc-100 p-6">

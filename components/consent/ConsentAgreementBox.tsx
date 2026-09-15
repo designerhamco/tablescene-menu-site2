@@ -92,12 +92,12 @@ export function ConsentAgreementBox<T extends string>({
       </div>
 
       {activeItem ? (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-zinc-950/50 p-0 md:items-center md:p-6" onClick={onClose}>
+        <div className="site-dialog-overlay fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-6" onClick={onClose}>
           <section
             role="dialog"
             aria-modal="true"
             aria-label={activeItem.detailTitle}
-            className="max-h-[86vh] w-full rounded-t-3xl bg-white text-zinc-950 shadow-2xl md:max-w-3xl md:rounded-3xl"
+            className="site-dialog site-dialog-panel site-dialog-sheet max-h-[86vh] w-full text-zinc-950 md:max-w-3xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="border-b border-zinc-100 p-6">
