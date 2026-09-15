@@ -159,11 +159,14 @@ type OrderRecord = {
   created_at: string | null;
 };
 
-type AiCreditPurchaseTransaction = {
+type AiCreditTransaction = {
   id: string | null;
   menu_site_id: string | null;
   product_key: string | null;
   payment_id: string | null;
+  transaction_type: string | null;
+  credit_source: string | null;
+  feature_key: string | null;
   credit_amount: number | null;
   balance_after: number | null;
   created_at: string | null;
@@ -451,6 +454,25 @@ function getProductLabel(productKey: string | null | undefined) {
   if (key === personalTrialBasicProduct.product_key) return "아티메뉴 다이닝 개인 1개월 체험";
 
   return key || "상품명 확인 필요";
+}
+
+function getAiCreditFeatureLabel(featureKey: string | null | undefined) {
+  if (featureKey === "description_write") return "AI 메뉴 설명 작성";
+  if (featureKey === "partial_translation") return "AI 부분 번역";
+  if (featureKey === "menu_cleanup") return "AI 메뉴 정리";
+  if (featureKey === "full_translation") return "AI 전체 번역";
+  return "AI 기능 사용";
+}
+
+function getAiCreditTransactionLabel(transaction: AiCreditTransaction) {
+  if (transaction.transaction_type === "purchase") return getProductLabel(transaction.product_key);
+  if (transaction.transaction_type === "usage") return getAiCreditFeatureLabel(transaction.feature_key);
+  if (transaction.transaction_type === "grant") return "AI 웰컴 크레딧 지급";
+  if (transaction.transaction_type === "included_grant") return "AI 웰컴 크레딧 지급";
+  if (transaction.transaction_type === "expiration") return "AI 크레딧 사용 기간 만료";
+  if (transaction.transaction_type === "refund") return "AI 크레딧 환불 반영";
+  if (transaction.transaction_type === "adjustment") return "AI 크레딧 조정";
+  return "AI 크레딧 변경";
 }
 
 function getServiceName(planType: string | null | undefined, billingCycle: string | null | undefined) {
@@ -849,9 +871,9 @@ function getBillingHistoryServiceType(productKey: string | null | undefined, tem
 }
 
 function getBillingHistoryServiceTypeLabel(serviceType: BillingHistoryEntry["serviceType"]) {
-  if (serviceType === "trial") return "체험";
-  if (serviceType === "display") return "Display";
-  if (serviceType === "basic") return "Basic";
+  if (serviceType === "trial") return "이전 체험 상품";
+  if (serviceType === "display") return "아티메뉴 디스플레이";
+  if (serviceType === "basic") return "아티메뉴 다이닝";
   return "기타";
 }
 
@@ -868,7 +890,7 @@ function getBillingHistoryMethod(productKey: string | null | undefined, billingC
 function getBillingHistoryMethodLabel(method: BillingHistoryEntry["billingMethod"]) {
   if (method === "monthly") return "월결제 · 정기결제";
   if (method === "yearly") return "연결제 · 연 정기결제";
-  if (method === "trial") return "체험 결제";
+  if (method === "trial") return "이전 체험 상품 · 1회 결제";
   if (method === "one_time") return "1회 결제";
   return "결제 방식 확인 필요";
 }
@@ -1543,7 +1565,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   let businessSubscriptions: BusinessSubscription[] = [];
   let payments: PaymentRecord[] = [];
   let orders: OrderRecord[] = [];
-  let aiCreditPurchases: AiCreditPurchaseTransaction[] = [];
+  let aiCreditTransactions: AiCreditTransaction[] = [];
   let refundRequests: RefundRequestRecord[] = [];
   const paymentsErrors: string[] = [];
 
@@ -1586,7 +1608,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         businessSubscriptionsResult,
         paymentsResult,
         ordersResult,
-        aiCreditPurchasesResult,
+        aiCreditTransactionsResult,
         refundRequestsResult,
       ] = await Promise.all([
         runMypageQuery(
@@ -1614,12 +1636,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             .order("created_at", { ascending: false })
         ),
         runMypageQuery(
-          "ai_credit_transactions_purchases",
+          "ai_credit_transactions",
           adminSupabase
             .from("ai_credit_transactions" as never)
-            .select("id, menu_site_id, product_key, payment_id, credit_amount, balance_after, created_at")
+            .select("id, menu_site_id, product_key, payment_id, transaction_type, credit_source, feature_key, credit_amount, balance_after, created_at")
             .eq("user_id" as never, user.id as never)
-            .eq("transaction_type" as never, "purchase" as never)
             .order("created_at" as never, { ascending: false } as never)
         ),
         runMypageQuery(
@@ -1677,15 +1698,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         paymentsErrors.push("결제 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
 
-      if (!aiCreditPurchasesResult) {
-        paymentsErrors.push("AI 크레딧 충전 내역을 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
-      } else if (aiCreditPurchasesResult.error && !isMissingRelationError(aiCreditPurchasesResult.error, "ai_credit_transactions")) {
-        console.error("[mypage/payments] AI credit purchase query failed", {
+      if (!aiCreditTransactionsResult) {
+        paymentsErrors.push("AI 크레딧 충전/사용 내역을 불러오는 데 시간이 오래 걸려 건너뛰었습니다.");
+      } else if (aiCreditTransactionsResult.error && !isMissingRelationError(aiCreditTransactionsResult.error, "ai_credit_transactions")) {
+        console.error("[mypage/payments] AI credit transaction query failed", {
           userId: user.id,
-          code: aiCreditPurchasesResult.error.code,
-          message: aiCreditPurchasesResult.error.message,
+          code: aiCreditTransactionsResult.error.code,
+          message: aiCreditTransactionsResult.error.message,
         });
-        paymentsErrors.push("AI 크레딧 충전 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        paymentsErrors.push("AI 크레딧 충전/사용 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
 
       if (!refundRequestsResult) {
@@ -1708,7 +1729,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       }
       payments = (paymentsResult?.data ?? []) as PaymentRecord[];
       orders = (ordersResult?.data ?? []) as OrderRecord[];
-      aiCreditPurchases = (aiCreditPurchasesResult?.data ?? []) as unknown as AiCreditPurchaseTransaction[];
+      aiCreditTransactions = (aiCreditTransactionsResult?.data ?? []) as unknown as AiCreditTransaction[];
     } catch (paymentsError) {
       console.error("[mypage/payments] payment tab query failed", {
         userId: user.id,
@@ -1906,7 +1927,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       refundRequestBySubscriptionId.set(businessSubscriptionId, refundRequest);
     }
   }
-  const displayedAiCreditPurchases = aiCreditPurchases.slice(0, 8);
+  const displayedAiCreditTransactions = aiCreditTransactions.slice(0, 20);
   const billingHistoryEntries: BillingHistoryEntry[] = paymentHistory
     .filter(({ productKey }) => !getSafeString(productKey).startsWith("ai_credit"))
     .map(({ payment, order, productKey, menuSite }) => {
@@ -2227,7 +2248,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       } else {
         metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
-      metaItems.push({ label: "결제방식", value: "체험 결제" });
+      metaItems.push({ label: "결제방식", value: "이전 체험 상품" });
       metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
       const isFreeTrial = isActiveBusinessFreeTrial(activeBusinessSubscription);
@@ -2695,7 +2716,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           <aside className="space-y-4 lg:sticky lg:top-28">
             <MypageAccountCard
               email={user.email ?? "이메일 정보 없음"}
-              userId={user.id}
               roleLabel={accountRoleLabel}
               canShowOwnerCommerce={canShowOwnerCommerce}
               accountAiCreditRemaining={canShowOwnerCommerce ? accountAiCreditRemaining : undefined}
@@ -2834,7 +2854,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div>
                     <h2 className="type-subsection-title">구독/결제 내역</h2>
                     <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                      결제 기록과 AI 크레딧 충전 내역을 확인할 수 있습니다. 구독 해지, 환불 요청, 재구독 복구는 구독/결제 내역에서 관리하고, 메뉴판 운영은 내 메뉴판 탭에서 확인해주세요.
+                      결제 기록과 AI 크레딧 충전·사용 내역을 확인할 수 있습니다. 구독 해지, 환불 요청, 재구독 복구는 구독/결제 내역에서 관리하고, 메뉴판 운영은 내 메뉴판 탭에서 확인해주세요.
                     </p>
                   </div>
                 </div>
@@ -2844,7 +2864,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     결제내역
                   </Link>
                   <Link href="/mypage?tab=payments&billingTab=ai-credits" className={getBillingTabClassName(activeBillingTab === "ai-credits")}>
-                    AI 충전내역
+                    AI 충전/사용내역
                   </Link>
                 </nav>
 
@@ -2936,7 +2956,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   </div>
                                   <div>
                                     <dt className="text-xs font-bold text-zinc-400">결제 주기 / 금액</dt>
-                                    <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "체험 결제" : getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
+                                    <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "이전 체험 상품" : getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                   <div>
                                     <dt className="text-xs font-bold text-zinc-400">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : isBusinessFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"}</dt>
@@ -3232,52 +3252,63 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <section className="space-y-4">
                   <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                     <div>
-                      <h3 className="type-subsection-title">AI 크레딧 충전 내역</h3>
+                      <h3 className="type-subsection-title">AI 크레딧 충전/사용 내역</h3>
                       <p className="mt-2 max-w-2xl break-keep text-xs font-bold leading-relaxed text-amber-700">
                         AI 크레딧은 계정 공용으로 충전되며, 지급 후 단순 변심에 따른 취소/환불이 제한됩니다. 중복 결제 또는 미지급 건은 고객지원으로 문의해주세요.
                       </p>
                     </div>
-                    {aiCreditPurchases.length > displayedAiCreditPurchases.length ? (
-                      <p className="text-xs font-bold text-zinc-400">최근 {displayedAiCreditPurchases.length.toLocaleString("ko-KR")}건 표시</p>
+                    {aiCreditTransactions.length > displayedAiCreditTransactions.length ? (
+                      <p className="text-xs font-bold text-zinc-400">최근 {displayedAiCreditTransactions.length.toLocaleString("ko-KR")}건 표시</p>
                     ) : null}
                   </div>
 
-                  {displayedAiCreditPurchases.length > 0 ? (
+                  {displayedAiCreditTransactions.length > 0 ? (
                     <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-                      {displayedAiCreditPurchases.map((purchase, index) => {
-                        const product = getAiCreditPack(purchase.product_key);
+                      {displayedAiCreditTransactions.map((transaction, index) => {
+                        const isPurchase = transaction.transaction_type === "purchase";
+                        const product = isPurchase ? getAiCreditPack(transaction.product_key) : null;
                         const payment = payments.find((item) => {
-                          const paymentId = getSafeString(purchase.payment_id);
+                          const paymentId = getSafeString(transaction.payment_id);
                           return paymentId && (item.payment_id === paymentId || item.portone_payment_id === paymentId);
                         });
-                        const productName = product?.name ? `${product.name} 충전` : getProductLabel(purchase.product_key);
+                        const transactionName = getAiCreditTransactionLabel(transaction);
                         const paymentStatus = payment?.status ?? "paid";
-                        const paymentId = getSafeString(purchase.payment_id ?? payment?.payment_id ?? payment?.portone_payment_id ?? null);
+                        const paymentId = getSafeString(transaction.payment_id ?? payment?.payment_id ?? payment?.portone_payment_id ?? null);
                         const order = payment?.order_id ? orderById.get(payment.order_id) : orderByPaymentId.get(paymentId);
                         const receiptUrl = getPaymentReceiptUrl(payment, order);
+                        const menuSite = siteById.get(getSafeString(transaction.menu_site_id));
+                        const creditAmount = transaction.credit_amount ?? 0;
+                        const creditAmountLabel = `${creditAmount > 0 ? "+" : ""}${creditAmount.toLocaleString("ko-KR")}개`;
 
                         return (
-                          <article key={purchase.id ?? `${purchase.payment_id}-${purchase.created_at}`} className={`p-4 ${index > 0 ? "border-t border-zinc-100" : ""}`}>
+                          <article key={transaction.id ?? `${transaction.transaction_type}-${transaction.created_at}`} className={`p-4 ${index > 0 ? "border-t border-zinc-100" : ""}`}>
                             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                              <div>
-                                <h4 className="type-item-title text-zinc-950">{productName}</h4>
+                              <div className="min-w-0">
+                                <h4 className="type-item-title text-zinc-950">{transactionName}</h4>
                                 <p className="mt-1 text-xs font-bold text-zinc-500">
-                                  {formatDateTime(purchase.created_at)} · 계정 공용 크레딧 충전
+                                  {formatDateTime(transaction.created_at)}
+                                  {menuSite?.name ? ` · ${menuSite.name}` : " · 계정 공용"}
                                 </p>
-                                <p className="type-caption mt-1 font-mono text-zinc-400">결제번호 {maskPaymentId(paymentId)}</p>
+                                {isPurchase && paymentId ? (
+                                  <p className="type-caption mt-1 font-mono text-zinc-400">결제번호 {maskPaymentId(paymentId)}</p>
+                                ) : null}
                               </div>
                               <div className="text-left md:text-right">
-                                <p className="text-sm font-bold text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p>
-                                <p className="mt-1 text-xs font-bold text-emerald-700">AI 크레딧 {Math.max(0, purchase.credit_amount ?? product?.credits ?? 0).toLocaleString("ko-KR")}개 충전</p>
-                                <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
-                                  <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${getStateBadgeClassName(paymentStatus)}`}>
-                                    {getPaymentStatusLabel(paymentStatus)}
-                                  </span>
+                                {isPurchase ? <p className="text-sm font-bold text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p> : null}
+                                <p className={`text-sm font-bold ${creditAmount < 0 ? "text-zinc-700" : "text-emerald-700"}`}>{creditAmountLabel}</p>
+                                <p className="mt-1 text-xs font-bold text-zinc-400">
+                                  사용 후 잔여 {typeof transaction.balance_after === "number" ? `${transaction.balance_after.toLocaleString("ko-KR")}개` : "-"}
+                                </p>
+                                {isPurchase ? (
+                                  <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
+                                    <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${getStateBadgeClassName(paymentStatus)}`}>
+                                      {getPaymentStatusLabel(paymentStatus)}
+                                    </span>
                                   <PaymentDetailModal
-                                    productName={productName}
+                                    productName={transactionName}
                                     statusLabel={getPaymentStatusLabel(paymentStatus)}
                                     statusTone={getPaymentStatusTone(paymentStatus)}
-                                    paidAtLabel={formatDateTime(purchase.created_at ?? payment?.created_at ?? null)}
+                                    paidAtLabel={formatDateTime(transaction.created_at ?? payment?.created_at ?? null)}
                                     amountLabel={product ? formatKrw(product.amount) : typeof payment?.amount === "number" ? formatKrw(payment.amount) : "-"}
                                     pgLabel="PortOne 일반 결제"
                                     paymentIdLabel={paymentId || "결제번호 확인 필요"}
@@ -3285,7 +3316,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     menuName={null}
                                     isAiCreditPurchase
                                   />
-                                </div>
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
                           </article>
@@ -3294,8 +3326,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     </div>
                   ) : (
                     <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
-                      <h4 className="type-content-title">아직 AI 크레딧 충전 내역이 없습니다</h4>
-                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">AI 크레딧을 충전하면 결제 완료 내역과 충전 크레딧이 이곳에 표시됩니다.</p>
+                      <h4 className="type-content-title">아직 AI 크레딧 내역이 없습니다</h4>
+                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">AI 크레딧을 지급받거나 충전·사용하면 이곳에 기록됩니다.</p>
                     </article>
                   )}
                 </section>

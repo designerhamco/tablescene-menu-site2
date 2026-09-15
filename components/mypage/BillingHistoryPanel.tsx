@@ -114,15 +114,14 @@ const initialFilters: FilterState = {
 
 const serviceTypeFilterOptions = [
   { value: "all", label: "전체" },
-  { value: "basic", label: "Basic" },
-  { value: "display", label: "Display" },
+  { value: "basic", label: "아티메뉴 다이닝" },
+  { value: "display", label: "아티메뉴 디스플레이" },
 ];
 
 const billingMethodFilterOptions = [
   { value: "all", label: "전체" },
   { value: "monthly", label: "월결제" },
   { value: "yearly", label: "연결제" },
-  { value: "trial", label: "체험 결제" },
 ];
 
 const paymentStatusFilterOptions = [
@@ -711,7 +710,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                     </div>
                     <div>
                       <dt className="text-xs font-bold text-zinc-400">정기결제</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "trial" ? "체험 결제" : entry.billingMethod === "one_time" ? "1회 결제" : "정기결제"}</dd>
+                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "trial" ? "이전 체험 상품" : entry.billingMethod === "one_time" ? "1회 결제" : "정기결제"}</dd>
                     </div>
                     {entry.refundAmountLabel ? (
                       <div>

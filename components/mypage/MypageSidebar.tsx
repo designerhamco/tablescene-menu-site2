@@ -37,21 +37,18 @@ function DisabledNavigationItem({ label, reason }: { label: string; reason: stri
 
 export function MypageAccountCard({
   email,
-  userId,
   roleLabel,
   canShowOwnerCommerce,
   accountAiCreditRemaining,
 }: {
   email: string;
-  userId: string;
   roleLabel?: "사장" | "직원" | null;
   canShowOwnerCommerce: boolean;
   accountAiCreditRemaining?: number;
 }) {
   return (
     <section className="site-card p-6">
-      <h2 className="type-content-title break-all">{email}</h2>
-      <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {userId}</p>
+      <h2 className="type-content-title min-w-0 truncate" title={email}>{email}</h2>
       {roleLabel ? (
         <div className="mt-4 flex flex-wrap gap-2" aria-label="계정 역할">
           <span
@@ -64,19 +61,14 @@ export function MypageAccountCard({
         </div>
       ) : null}
       {canShowOwnerCommerce && accountAiCreditRemaining !== undefined ? (
-        <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">AI 도우미 크레딧</p>
-          <p className="mt-2 text-lg font-bold tracking-tight text-zinc-950">
-            잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")} 크레딧
-          </p>
-          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-800/80">
-            설명 작성, 메뉴 정리, 번역에 사용할 수 있어요.
-          </p>
+        <div className="mt-5 border-t border-zinc-100 pt-4">
+          <p className="text-xs font-bold text-zinc-400">AI 도우미 크레딧</p>
+          <p className="mt-1 text-sm font-bold text-zinc-950">잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")}개</p>
           <Link
             href="/mypage?tab=payments&billingTab=ai-credits"
-            className="mt-3 inline-flex text-xs font-bold text-emerald-800 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-950"
+            className="mt-2 inline-flex text-xs font-bold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-zinc-950"
           >
-            AI 충전내역 보기
+            AI 충전/사용내역
           </Link>
         </div>
       ) : null}
