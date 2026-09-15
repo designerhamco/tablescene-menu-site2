@@ -32,7 +32,10 @@ body {
  * follows the same edge gutter and desktop content width.
  */
 .site-gutter {
-  padding-inline: var(--site-gutter);
+  padding-inline: max(
+    var(--site-gutter),
+    calc((100vw - var(--site-content-max)) / 2 + var(--site-gutter))
+  );
 }
 
 .site-container {
