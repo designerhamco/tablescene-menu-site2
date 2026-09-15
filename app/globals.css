@@ -610,19 +610,23 @@ video {
   text-transform: uppercase;
 }
 
-.cafe-a-typography .cafe-a-price-column-heading,
-.cafe-a-typography .cafe-a-price-column-cell {
-  justify-self: end;
+.cafe-a-typography .cafe-a-price-column-heading {
+  justify-self: stretch;
   min-width: 0;
   overflow-wrap: anywhere;
-  text-align: right;
+  text-align: center;
   width: 100%;
 }
 
 .cafe-a-typography .cafe-a-price-column-cell {
   align-items: flex-start;
   display: flex;
+  justify-self: end;
   justify-content: flex-end;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+  width: 100%;
 }
 
 .cafe-a-typography .cafe-a-price-area {
@@ -869,6 +873,10 @@ video {
 .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-sunday-language-dock,
 .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-sunday-language-dock [data-template-language-control] {
   text-align: right;
+}
+
+.cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-sunday-language-dock {
+  right: -0.4375rem;
 }
 
 .cafe-a-typography .cafe-a-menu-category-top-divider {
