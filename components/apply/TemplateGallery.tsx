@@ -177,7 +177,7 @@ export default function TemplateGallery({
             return (
               <article key={template.key} className="group">
                 <Link href={`/templates/${template.key}/preview`} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${template.name} 새 창에서 미리보기`}>
-                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 transition-colors group-hover:border-zinc-400">
+                  <div className="overflow-hidden rounded-[1.5rem] bg-zinc-100 ring-1 ring-inset ring-zinc-200 transition-shadow group-hover:ring-zinc-400">
                     <TemplateThumbnail template={template} />
                   </div>
                 </Link>

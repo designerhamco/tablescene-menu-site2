@@ -37,7 +37,7 @@ export default function ApplyPage() {
             displayCheckoutEnabled={displayCheckoutEnabled}
           />
 
-          <section className="mt-20 rounded-[2rem] bg-zinc-950 px-7 py-12 text-white md:mt-28 md:flex md:items-end md:justify-between md:gap-12 md:rounded-[2.5rem] md:px-12 md:py-14">
+          <section className="site-dark-cta mt-20 md:mt-28 md:flex md:items-end md:justify-between md:gap-12">
             <div className="max-w-2xl">
               <h2 className="site-section-title">브랜드 맞춤 제작</h2>
               <p className="site-body mt-5 text-zinc-400">

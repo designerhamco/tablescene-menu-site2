@@ -81,10 +81,23 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Shared dark CTA surface used at the end of public pages. */
+.site-dark-cta {
+  border-radius: 2rem;
+  background: #09090b;
+  padding: 3.5rem 1.75rem;
+  color: #fff;
+}
+
 @media (min-width: 768px) {
   .site-page-title,
   .site-section-title {
     font-size: 3rem;
+  }
+
+  .site-dark-cta {
+    border-radius: 2.5rem;
+    padding: 5rem 4rem;
   }
 }
 
