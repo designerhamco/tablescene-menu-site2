@@ -71,3 +71,12 @@ test("활성 메뉴판 관리 화면은 공통 여백과 무그림자 표면을 
     assert.doesNotMatch(source, /shadow-(?:sm|md|lg|xl|2xl)/);
   }
 });
+
+test("메뉴 편집기 외곽과 주요 섹션은 공통 반응형 표면을 사용한다", () => {
+  const source = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
+
+  assert.match(source, /site-gutter site-page-spacing-compact/);
+  assert.match(source, /function SectionCard[\s\S]*?<section className="site-card p-5 sm:p-6">/);
+  assert.match(source, /<header className="site-card mb-6 p-5 sm:p-6">/);
+  assert.doesNotMatch(source, /shadow-(?:sm|md|lg|xl|2xl)/);
+});
