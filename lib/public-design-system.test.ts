@@ -4,7 +4,10 @@ import test from "node:test";
 
 const readSource = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 
+const globalsSource = readSource("../app/globals.css");
+const rootLayoutSource = readSource("../app/layout.tsx");
 const navbarSource = readSource("../app/components/layout/Navbar.tsx");
+const officialNavbarSource = readSource("../components/layout/OfficialSiteNavbar.tsx");
 const footerSource = readSource("../app/components/layout/Footer.tsx");
 const termsSource = readSource("../app/terms/page.tsx");
 const privacySource = readSource("../app/privacy/page.tsx");
@@ -15,6 +18,25 @@ const applySource = readSource("../app/apply/page.tsx");
 const templateGallerySource = readSource("../components/apply/TemplateGallery.tsx");
 const pricingSource = readSource("../app/pricing/page.tsx");
 const customSource = readSource("../app/custom/page.tsx");
+const mypageSource = readSource("../app/mypage/page.tsx");
+const mypageLoadingSource = readSource("../app/mypage/loading.tsx");
+const mypageErrorSource = readSource("../app/mypage/error.tsx");
+const mypageInquirySource = readSource("../app/mypage/inquiries/page.tsx");
+const mypageStaffSource = readSource("../app/mypage/staff/page.tsx");
+const mypageNewMenuSource = readSource("../app/mypage/menus/new/page.tsx");
+const mypageEditSource = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
+const mypageQrSource = readSource("../app/mypage/menus/[menuId]/qr/page.tsx");
+const mypageImportSource = readSource("../app/mypage/menus/[menuId]/import/page.tsx");
+const mypageConvertSource = readSource("../app/mypage/menus/[menuId]/convert/page.tsx");
+const mypagePreviewSource = readSource("../app/mypage/menus/[menuId]/preview/page.tsx");
+const operationPageSources = [
+  "calls",
+  "orders",
+  "pickup",
+  "sales",
+  "tables",
+].map((section) => readSource(`../app/mypage/menus/[menuId]/${section}/page.tsx`));
+const storeOperationsShellSource = readSource("../components/mypage/StoreOperationsShell.tsx");
 
 test("공통 헤더와 푸터는 페이지와 같은 사이트 컨테이너 여백을 쓴다", () => {
   assert.match(navbarSource, /site-container relative flex h-full/);
@@ -22,6 +44,45 @@ test("공통 헤더와 푸터는 페이지와 같은 사이트 컨테이너 여�
   assert.match(faqComponentSource, /<div className="site-container">/);
   assert.doesNotMatch(faqComponentSource, /md:max-w-6xl/);
   assert.match(faqSource, /<section className="site-container pb-24">/);
+});
+
+test("넓은 화면의 페이지 여백은 헤더와 같은 최대 폭 기준을 계산한다", () => {
+  assert.match(globalsSource, /\.site-gutter\s*\{[\s\S]*padding-inline:\s*max\(/);
+  assert.match(globalsSource, /calc\(\(100vw - var\(--site-content-max\)\) \/ 2 \+ var\(--site-gutter\)\)/);
+});
+
+test("공통 헤더는 Next 링크만 사용해 페이지 본문을 한 번에 전환한다", () => {
+  assert.match(navbarSource, /from 'next\/link'/);
+  assert.match(navbarSource, /usePathname/);
+  assert.doesNotMatch(navbarSource, /from 'react-router'/);
+  assert.doesNotMatch(officialNavbarSource, /BrowserRouter|ReloadNextRouteOnNavigate|router\.replace/);
+  assert.match(rootLayoutSource, /data-scroll-behavior="smooth"/);
+});
+
+test("마이페이지와 주요 서브페이지는 같은 사이트 여백 계약을 사용한다", () => {
+  for (const source of [
+    mypageSource,
+    mypageLoadingSource,
+    mypageErrorSource,
+    mypageInquirySource,
+    mypageStaffSource,
+    mypageNewMenuSource,
+    mypageEditSource,
+    mypageQrSource,
+    mypageImportSource,
+    mypageConvertSource,
+    mypagePreviewSource,
+    storeOperationsShellSource,
+  ]) {
+    assert.match(source, /site-gutter/);
+  }
+
+  for (const source of operationPageSources) {
+    assert.match(source, /StoreOperationsShell/);
+  }
+
+  assert.match(mypageStaffSource, /<OfficialSiteNavbar \/>/);
+  assert.match(mypageStaffSource, /<Footer \/>/);
 });
 
 test("공개 페이지의 검정 CTA는 홈과 같은 표면 규칙을 공유한다", () => {

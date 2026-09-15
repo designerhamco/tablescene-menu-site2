@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Bell, Menu, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
@@ -72,8 +73,7 @@ const Navbar = () => {
   });
   const isScrolledRef = useRef(false);
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
-  const location = useLocation();
-  const pathname = location.pathname;
+  const pathname = usePathname();
 
   const closeMobileMenu = () => {
     setIsOpen(false);
@@ -294,7 +294,7 @@ const Navbar = () => {
     <>
       <nav className={`fixed left-0 right-0 top-0 z-50 h-20 transition-all duration-300 ${navBgClass} ${navToneClass}`}>
         <div className="site-container relative flex h-full items-center justify-between">
-          <Link to="/" className="group z-50 flex shrink-0 items-center gap-3">
+          <Link href="/" className="group z-50 flex shrink-0 items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F8E731] transition-transform duration-300 group-hover:scale-105 md:h-10 md:w-10 md:rounded-xl">
               <img
                 src={logoImage}
@@ -320,7 +320,7 @@ const Navbar = () => {
                   className="relative flex h-full items-center"
                 >
                   <Link
-                    to={item.path}
+                    href={item.path}
                     aria-current={isActive ? 'page' : undefined}
                     aria-disabled={item.disabled ? true : undefined}
                     tabIndex={item.disabled ? -1 : undefined}
@@ -478,7 +478,7 @@ const Navbar = () => {
                     return (
                       <Link
                         key={item.path}
-                        to={item.path}
+                        href={item.path}
                         aria-current={isActive ? 'page' : undefined}
                         aria-disabled={item.disabled ? true : undefined}
                         tabIndex={item.disabled ? -1 : undefined}

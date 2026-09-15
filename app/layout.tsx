@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full scroll-smooth antialiased" suppressHydrationWarning>
+    <html lang="ko" className="h-full scroll-smooth antialiased" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         {children}
         <Suspense fallback={null}>
