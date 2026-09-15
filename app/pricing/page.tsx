@@ -59,7 +59,7 @@ export default function PricingPage() {
           <section aria-labelledby="basic-products-heading">
             <div className="mb-5 flex flex-col justify-between gap-2 md:flex-row md:items-end">
               <div>
-                <p className="text-sm font-black text-zinc-500">현재 신청 가능</p>
+                <p className="text-sm font-bold text-zinc-500">현재 신청 가능</p>
                 <h2 id="basic-products-heading" className="type-subsection-title mt-1">아티메뉴 다이닝 상품</h2>
               </div>
               <p className="break-keep text-sm font-bold text-zinc-400">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
@@ -67,10 +67,10 @@ export default function PricingPage() {
             <div className="grid gap-5 md:grid-cols-3">
               {publicBasicProducts.map((product) => (
                 <article key={product.slug} className="flex min-h-[310px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
-                  <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-600">{product.billingLabel}</span>
-                  <h3 className="mt-5 break-keep text-2xl font-black tracking-tight">{product.shortName}</h3>
+                  <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">{product.billingLabel}</span>
+                  <h3 className="type-subsection-title mt-5">{product.shortName}</h3>
                   <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{product.summary}</p>
-                  <p className="mt-6 text-2xl font-black text-zinc-950">{formatProductPrice(product.price)}</p>
+                  <p className="mt-6 text-2xl font-bold text-zinc-950">{formatProductPrice(product.price)}</p>
                   <p className="mt-1 text-xs font-bold text-zinc-400">정상가 {formatProductPrice(product.regularPrice)} · 부가세 포함</p>
                   <Link
                     href={`/products/${product.slug}`}
@@ -88,9 +88,9 @@ export default function PricingPage() {
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               {upcomingServices.map((plan) => (
                 <article key={plan.name} className="flex min-h-[250px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
-                  <h3 className="break-keep text-2xl font-black tracking-tight">{plan.name}</h3>
+                  <h3 className="type-subsection-title">{plan.name}</h3>
                   <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{plan.description}</p>
-                  <p className="mt-6 text-lg font-black text-zinc-950">{plan.price}</p>
+                  <p className="mt-6 text-lg font-bold text-zinc-950">{plan.price}</p>
                   {"href" in plan ? (
                     <Link
                       href={plan.href}

@@ -152,7 +152,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
     <section className="site-gutter py-20 md:py-28">
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto mb-10 max-w-3xl text-center">
-          <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+          <h2 className="type-section-title text-zinc-950">
             {data.title}
           </h2>
           {data.description ? (
@@ -174,17 +174,17 @@ export default function ServicePricingSection({ service }: { service: ServicePri
                 key={plan.label}
                 className="relative overflow-hidden rounded-[2rem] border border-zinc-950 bg-white p-7 text-zinc-950 md:p-9"
               >
-                <div className="absolute right-0 top-0 rounded-bl-[1.4rem] bg-[#F8E731] px-7 py-4 text-sm font-black text-zinc-950 md:text-base">
+                <div className="absolute right-0 top-0 rounded-bl-[1.4rem] bg-[#F8E731] px-7 py-4 text-sm font-bold text-zinc-950 md:text-base">
                   {plan.badge}
                 </div>
 
                 <div className="flex min-h-[360px] flex-col pt-6 md:min-h-[390px]">
                   <div>
                     <p className="text-base font-bold text-zinc-500">{plan.label}</p>
-                    <h4 className="mt-5 break-keep text-2xl font-bold tracking-tight md:text-3xl">
+                    <h4 className="type-subsection-title mt-5">
                       {plan.title}
                     </h4>
-                    <p className="mt-4 text-3xl font-black tracking-tight md:text-4xl">
+                    <p className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
                       {plan.price}
                     </p>
                     <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">

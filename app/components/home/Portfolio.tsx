@@ -72,7 +72,7 @@ const Portfolio = () => {
         
         {/* Header Section */}
         <div className="text-center mb-10 relative z-10">
-          <h2 className="text-3xl md:text-5xl font-bold mb-8 tracking-tight leading-tight text-black">
+          <h2 className="type-section-title mb-8 text-black">
             아티메뉴 서비스 화면 미리보기
           </h2>
           
@@ -134,7 +134,7 @@ const Portfolio = () => {
                             onClick={() => setActiveFeatureIndex(idx)}
                             className={`group transition-all duration-300 ${activeFeatureIndex === idx ? 'opacity-100 translate-x-0' : 'opacity-40 hover:opacity-70 hover:-translate-x-2'}`}
                         >
-                            <h3 className={`text-lg font-bold mb-1 ${activeFeatureIndex === idx ? 'text-black' : 'text-zinc-400'}`}>
+                            <h3 className={`type-content-title mb-1 ${activeFeatureIndex === idx ? 'text-black' : 'text-zinc-400'}`}>
                                 {feature.text}
                             </h3>
                             {activeFeatureIndex === idx && (
@@ -209,7 +209,7 @@ const Portfolio = () => {
                                 onClick={() => setActiveFeatureIndex(realIdx)}
                                 className={`group transition-all duration-300 ${activeFeatureIndex === realIdx ? 'opacity-100 translate-x-0' : 'opacity-40 hover:opacity-70 hover:translate-x-2'}`}
                             >
-                                <h3 className={`text-lg font-bold mb-1 ${activeFeatureIndex === realIdx ? 'text-black' : 'text-zinc-400'}`}>
+                                <h3 className={`type-content-title mb-1 ${activeFeatureIndex === realIdx ? 'text-black' : 'text-zinc-400'}`}>
                                     {feature.text}
                                 </h3>
                                 {activeFeatureIndex === realIdx && (
@@ -234,7 +234,7 @@ const Portfolio = () => {
                                 : 'bg-white border-zinc-200 text-zinc-400'
                             }`}
                         >
-                            <h3 className={`text-xs font-bold ${activeFeatureIndex === idx ? 'text-black' : 'text-zinc-400'}`}>
+                            <h3 className={`type-label ${activeFeatureIndex === idx ? 'text-black' : 'text-zinc-400'}`}>
                                 {feature.text}
                             </h3>
                         </button>

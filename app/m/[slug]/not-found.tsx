@@ -4,7 +4,7 @@ export default function PublicMenuNotFound() {
   return (
     <main className="site-gutter flex min-h-screen items-center justify-center bg-zinc-50 py-24 text-zinc-950">
       <section className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-sm">
-        <h1 className="text-3xl font-black tracking-tight">메뉴판을 열 수 없습니다</h1>
+        <h1 className="type-page-title">메뉴판을 열 수 없습니다</h1>
         <p className="mt-4 break-keep text-sm font-medium leading-relaxed text-zinc-500">
           주소가 잘못되었거나, 아직 공개 상태가 아닌 메뉴판입니다.
         </p>

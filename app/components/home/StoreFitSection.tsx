@@ -43,7 +43,7 @@ function SectionTitle() {
       transition={{ duration: 0.5 }}
       className="mx-auto mb-10 max-w-3xl text-center"
     >
-      <h2 className="break-keep text-3xl font-bold leading-tight tracking-tight text-zinc-950 md:text-5xl">
+      <h2 className="type-section-title text-zinc-950">
         메뉴판을 자주 바꾸는 매장이라면
       </h2>
       <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">

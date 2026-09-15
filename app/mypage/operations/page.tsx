@@ -101,7 +101,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             </p>
             <Link
               href="/mypage?tab=menus"
-              className="mt-6 inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-zinc-800"
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
             >
               나의 메뉴판 확인
             </Link>
@@ -165,12 +165,12 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             {recentCalls.map((call) => (
               <li key={call.id} className="flex items-center justify-between gap-4 border-t border-zinc-100 px-5 py-4 first:border-t-0">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black">호출 #{call.callNumber} · {call.tableLabel}</p>
+                  <p className="truncate text-sm font-bold">호출 #{call.callNumber} · {call.tableLabel}</p>
                   <p className="mt-1 text-xs font-bold text-zinc-400">
                     {call.requestLabel} · {formatKoreanDateTime(call.createdAt)}
                   </p>
                 </div>
-                <p className="shrink-0 text-xs font-black text-zinc-500">{CALL_STATUS_LABELS[call.status] ?? call.status}</p>
+                <p className="shrink-0 text-xs font-bold text-zinc-500">{CALL_STATUS_LABELS[call.status] ?? call.status}</p>
               </li>
             ))}
           </DashboardList>
@@ -191,8 +191,8 @@ function PermissionNotice({ message }: { message: string }) {
 function SummaryCard({ label, value, detail, href }: { label: string; value: string; detail: string; href: string | null }) {
   const content = (
     <>
-      <p className="text-xs font-black text-zinc-400">{label}</p>
-      <p className="mt-3 text-2xl font-black tracking-tight">{value}</p>
+      <p className="text-xs font-bold text-zinc-400">{label}</p>
+      <p className="mt-3 text-2xl font-bold tracking-tight">{value}</p>
       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">{detail}</p>
     </>
   );
@@ -222,8 +222,8 @@ function DashboardList({
   return (
     <article className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-5 py-4">
-        <h3 className="text-lg font-black">{title}</h3>
-        {href ? <Link href={href} className="text-xs font-black text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}
+        <h3 className="type-content-title">{title}</h3>
+        {href ? <Link href={href} className="text-xs font-bold text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}
       </div>
       {hasItems ? <ul>{children}</ul> : <p className="px-5 py-10 text-center text-sm font-bold text-zinc-400">{emptyLabel}</p>}
     </article>

@@ -169,7 +169,7 @@ const TimelineItem = ({ step, index, isEven }: { step: any, index: number, isEve
            </div>
         </div>
         
-        <h3 className="text-2xl md:text-3xl font-bold mb-4 text-zinc-900 tracking-tight leading-tight">{step.title}</h3>
+        <h3 className="type-subsection-title mb-4 text-zinc-900">{step.title}</h3>
         <p className="text-base md:text-lg text-zinc-500 leading-relaxed font-medium">
           {step.description}
         </p>

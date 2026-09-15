@@ -2,6 +2,19 @@
 
 @theme {
   --font-sans: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
+
+  /* Named utilities are aliases of the approved site typography scale. */
+  --text-xs: var(--font-size-100);
+  --text-sm: var(--font-size-200);
+  --text-base: var(--font-size-300);
+  --text-lg: var(--font-size-400);
+  --text-xl: var(--font-size-500);
+  --text-2xl: var(--font-size-600);
+  --text-3xl: var(--font-size-700);
+  --text-4xl: var(--font-size-800);
+  --text-5xl: var(--font-size-900);
+  --text-6xl: var(--font-size-1000);
+  --text-7xl: var(--font-size-1100);
   
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);

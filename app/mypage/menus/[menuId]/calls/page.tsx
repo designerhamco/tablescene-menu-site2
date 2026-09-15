@@ -57,7 +57,7 @@ export default async function CallDashboardPage({
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="calls">
       <div className="space-y-8">
         <header>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
           <h2 className="type-subsection-title mt-2">호출관리</h2>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             테이블의 직원 호출을 접수 확인하고 완료합니다. 손님이 취소한 호출과 완료 이력도 함께 확인할 수 있습니다.

@@ -71,7 +71,7 @@ export default async function SalesSummaryPage({
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="sales">
       <div className="space-y-8">
         <header>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
           <h2 className="type-subsection-title mt-2">매출요약</h2>
           <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             한국 시간 기준으로 주문 접수 수와 외부 결제 완료 금액을 확인합니다. 정산·PG 매출 보고서가 아닌 매장 운영용 요약입니다.
@@ -80,21 +80,21 @@ export default async function SalesSummaryPage({
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <p className="text-xs font-black text-zinc-400">오늘 주문</p>
-            <p className="mt-3 text-3xl font-black">{summary.today.orderCount.toLocaleString("ko-KR")}건</p>
+            <p className="text-xs font-bold text-zinc-400">오늘 주문</p>
+            <p className="mt-3 text-3xl font-bold">{summary.today.orderCount.toLocaleString("ko-KR")}건</p>
           </article>
           <article className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6 shadow-sm">
-            <p className="text-xs font-black text-emerald-700">오늘 결제 완료액</p>
-            <p className="mt-3 text-3xl font-black text-emerald-950">{formatAmount(summary.today.collectedAmount)}</p>
+            <p className="text-xs font-bold text-emerald-700">오늘 결제 완료액</p>
+            <p className="mt-3 text-3xl font-bold text-emerald-950">{formatAmount(summary.today.collectedAmount)}</p>
             <p className="mt-2 text-xs font-bold text-emerald-700">{summary.today.paidOrderCount.toLocaleString("ko-KR")}건</p>
           </article>
           <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <p className="text-xs font-black text-zinc-400">{summary.month}월 주문</p>
-            <p className="mt-3 text-3xl font-black">{summary.monthTotals.orderCount.toLocaleString("ko-KR")}건</p>
+            <p className="text-xs font-bold text-zinc-400">{summary.month}월 주문</p>
+            <p className="mt-3 text-3xl font-bold">{summary.monthTotals.orderCount.toLocaleString("ko-KR")}건</p>
           </article>
           <article className="rounded-3xl border border-sky-100 bg-sky-50 p-6 shadow-sm">
-            <p className="text-xs font-black text-sky-700">{summary.month}월 결제 완료액</p>
-            <p className="mt-3 text-3xl font-black text-sky-950">{formatAmount(summary.monthTotals.collectedAmount)}</p>
+            <p className="text-xs font-bold text-sky-700">{summary.month}월 결제 완료액</p>
+            <p className="mt-3 text-3xl font-bold text-sky-950">{formatAmount(summary.monthTotals.collectedAmount)}</p>
             <p className="mt-2 text-xs font-bold text-sky-700">{summary.monthTotals.paidOrderCount.toLocaleString("ko-KR")}건</p>
           </article>
         </section>
@@ -105,13 +105,13 @@ export default async function SalesSummaryPage({
               <h2 className="type-content-title">{summary.year}년 {summary.month}월 일별 현황</h2>
               <p className="mt-1 text-xs font-bold text-zinc-500">결제 완료 시각과 주문 접수 시각을 각각 한국 시간 날짜로 집계합니다.</p>
             </div>
-            <Link href={`/mypage/menus/${data.menuSite.id}/orders`} className="text-xs font-black text-emerald-700 underline underline-offset-4">
+            <Link href={`/mypage/menus/${data.menuSite.id}/orders`} className="text-xs font-bold text-emerald-700 underline underline-offset-4">
               주문관리 보기
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px] text-left text-sm">
-              <thead className="bg-zinc-50 text-xs font-black text-zinc-500">
+              <thead className="bg-zinc-50 text-xs font-bold text-zinc-500">
                 <tr>
                   <th className="px-6 py-3">날짜</th>
                   <th className="px-6 py-3 text-right">주문</th>
@@ -122,10 +122,10 @@ export default async function SalesSummaryPage({
               <tbody>
                 {visibleDays.map((day) => (
                   <tr key={day.date} className="border-t border-zinc-100">
-                    <td className="px-6 py-4 font-black">{day.date}</td>
+                    <td className="px-6 py-4 font-bold">{day.date}</td>
                     <td className="px-6 py-4 text-right font-bold">{day.orderCount.toLocaleString("ko-KR")}건</td>
                     <td className="px-6 py-4 text-right font-bold">{day.paidOrderCount.toLocaleString("ko-KR")}건</td>
-                    <td className="px-6 py-4 text-right font-black">{formatAmount(day.collectedAmount)}</td>
+                    <td className="px-6 py-4 text-right font-bold">{formatAmount(day.collectedAmount)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -144,10 +144,10 @@ export default async function SalesSummaryPage({
                 {summary.topItems.map((item, index) => (
                   <li key={item.name} className="flex items-center justify-between gap-4 rounded-2xl bg-zinc-50 px-4 py-3">
                     <div className="min-w-0">
-                      <p className="truncate font-black">{index + 1}. {item.name}</p>
+                      <p className="truncate font-bold">{index + 1}. {item.name}</p>
                       <p className="mt-1 text-xs font-bold text-zinc-500">{item.quantity.toLocaleString("ko-KR")}개</p>
                     </div>
-                    <p className="shrink-0 font-black">{formatAmount(item.collectedAmount)}</p>
+                    <p className="shrink-0 font-bold">{formatAmount(item.collectedAmount)}</p>
                   </li>
                 ))}
               </ol>
@@ -163,10 +163,10 @@ export default async function SalesSummaryPage({
                 ) : summary.paymentMethods.map((method) => (
                   <div key={method.method} className="flex items-center justify-between gap-4 rounded-2xl bg-zinc-50 px-4 py-3">
                     <div>
-                      <p className="font-black">{PAYMENT_METHOD_LABELS[method.method]}</p>
+                      <p className="font-bold">{PAYMENT_METHOD_LABELS[method.method]}</p>
                       <p className="mt-1 text-xs font-bold text-zinc-500">{method.orderCount.toLocaleString("ko-KR")}건</p>
                     </div>
-                    <p className="font-black">{formatAmount(method.collectedAmount)}</p>
+                    <p className="font-bold">{formatAmount(method.collectedAmount)}</p>
                   </div>
                 ))}
               </div>
@@ -176,13 +176,13 @@ export default async function SalesSummaryPage({
               <h2 className="type-content-title">취소·미결제 현황</h2>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl bg-rose-50 p-4 text-rose-950">
-                  <p className="text-xs font-black text-rose-700">취소 주문</p>
-                  <p className="mt-2 text-xl font-black">{summary.orderStates.cancelledOrderCount.toLocaleString("ko-KR")}건</p>
+                  <p className="text-xs font-bold text-rose-700">취소 주문</p>
+                  <p className="mt-2 text-xl font-bold">{summary.orderStates.cancelledOrderCount.toLocaleString("ko-KR")}건</p>
                   <p className="mt-1 text-xs font-bold">주문금액 {formatAmount(summary.orderStates.cancelledOrderAmount)}</p>
                 </div>
                 <div className="rounded-2xl bg-amber-50 p-4 text-amber-950">
-                  <p className="text-xs font-black text-amber-700">현재 미결제</p>
-                  <p className="mt-2 text-xl font-black">{summary.orderStates.unpaidOrderCount.toLocaleString("ko-KR")}건</p>
+                  <p className="text-xs font-bold text-amber-700">현재 미결제</p>
+                  <p className="mt-2 text-xl font-bold">{summary.orderStates.unpaidOrderCount.toLocaleString("ko-KR")}건</p>
                   <p className="mt-1 text-xs font-bold">주문금액 {formatAmount(summary.orderStates.unpaidOrderAmount)}</p>
                 </div>
               </div>

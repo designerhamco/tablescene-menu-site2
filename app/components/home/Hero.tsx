@@ -187,7 +187,7 @@ const Hero = () => {
           className="absolute inset-0 z-20 flex items-start justify-center px-6 pt-32 text-center pointer-events-none md:items-center md:justify-start md:px-[max(3rem,calc((100vw-80rem)/2+1.5rem))] md:pt-0 md:text-left"
         >
           <div className="max-w-2xl">
-            <h1 className="mb-5 text-3xl font-bold tracking-tight text-white drop-shadow-lg md:text-5xl lg:text-6xl">
+            <h1 className="type-display mb-5 text-white drop-shadow-lg">
               모든 매장을 위한<br />디지털 메뉴판 플랫폼
             </h1>
             <p className="mx-auto max-w-xl text-base font-medium text-white/90 drop-shadow-md md:mx-0 md:text-lg">
@@ -203,7 +203,7 @@ const Hero = () => {
            style={{ opacity: contentOpacity, scale: contentScale, y: contentY }}
            className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
         >
-          <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-5 tracking-tight leading-tight">
+          <h2 className="type-section-title mb-5 text-zinc-900">
             메뉴판 수정,<br/> 이제 다시 만들지 말고<br className="md:hidden"/> 직접 바꾸세요.
           </h2>
            <p className="text-zinc-600 text-base md:text-lg max-w-lg mx-auto font-medium leading-relaxed">

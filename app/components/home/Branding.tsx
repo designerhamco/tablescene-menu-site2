@@ -7,7 +7,7 @@ const Branding = () => {
     <section className="py-24 md:py-32 bg-[#0a0a0a] text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20 md:mb-32 max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold mb-8 tracking-tight">비주얼 스튜디오</h2>
+          <h2 className="type-section-title mb-8">비주얼 스튜디오</h2>
           <p className="text-lg text-zinc-400 leading-relaxed font-medium">
             메뉴는 단순한 리스트가 아닙니다. 브랜드의 첫인상입니다.<br className="hidden md:block" />
             비주얼 스튜디오는 당신의 요리를 식욕을 자극하는 장면으로 연출합니다.
@@ -21,7 +21,7 @@ const Branding = () => {
             viewport={{ once: true }}
             className="space-y-10"
           >
-             <h3 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white/95">매혹적인<br/>비주얼 스토리텔링</h3>
+             <h3 className="type-subsection-title text-white/95">매혹적인<br/>비주얼 스토리텔링</h3>
              <ul className="space-y-6">
               {['식욕을 자극하는 컬러 그레이딩', '브랜드 무드에 맞는 스타일링', '하이엔드 리터칭', '다양한 마케팅 활용성'].map((item, i) => (
                 <li key={i} className="flex items-center gap-4 text-zinc-300 text-lg font-medium">

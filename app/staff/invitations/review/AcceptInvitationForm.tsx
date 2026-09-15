@@ -31,7 +31,7 @@ export default function AcceptInvitationForm() {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-6 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
+        className="inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
       >
         {pending ? "초대 확인 중..." : "직원 초대 수락하기"}
       </button>

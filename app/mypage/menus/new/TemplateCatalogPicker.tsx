@@ -94,7 +94,7 @@ export default function TemplateCatalogPicker() {
                 className="border-0"
                 action={
                   <span
-                    className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-black ${
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold ${
                       isSelected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-transparent"
                     }`}
                   >
@@ -106,7 +106,7 @@ export default function TemplateCatalogPicker() {
           );
         }) : (
           <div className="rounded-3xl border border-dashed border-zinc-200 bg-white px-5 py-12 text-center lg:col-span-3">
-            <p className="text-base font-black text-zinc-800">템플릿 준비 중입니다.</p>
+            <p className="text-base font-bold text-zinc-800">템플릿 준비 중입니다.</p>
             <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
               이 Basic 카테고리의 템플릿은 준비 중입니다.
             </p>

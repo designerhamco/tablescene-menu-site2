@@ -60,7 +60,7 @@ const Features = () => {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight leading-tight text-white">단순한 디지털 메뉴 그 이상</h2>
+              <h2 className="type-section-title mb-6 text-white">단순한 디지털 메뉴 그 이상</h2>
               <p className="text-lg text-zinc-400 leading-relaxed font-medium">
                 단순히 보여주는 메뉴판이 아닙니다.<br className="hidden md:block"/>
                 브랜딩부터 운영 효율까지, 당신의 매장을 완벽하게 지원합니다.
@@ -77,7 +77,7 @@ const Features = () => {
                     onClick={() => setActiveIndex(index)}
                     className="w-full flex items-center justify-between py-4 group text-left transition-colors"
                   >
-                    <h3 className={`text-xl md:text-2xl font-bold transition-colors duration-300 ${activeIndex === index ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                    <h3 className={`type-content-title transition-colors duration-300 ${activeIndex === index ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
                       {feature.title}
                     </h3>
                     <div className={`p-2 rounded-full transition-colors duration-300 ${activeIndex === index ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-500 group-hover:bg-zinc-800'}`}>

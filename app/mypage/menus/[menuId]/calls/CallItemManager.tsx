@@ -64,7 +64,7 @@ export default function CallItemManager({
       />
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
-          <h2 className="text-2xl font-black tracking-tight">호출 항목 설정</h2>
+          <h2 className="type-subsection-title">호출 항목 설정</h2>
           <p className="mt-2 max-w-2xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             손님에게 보여줄 요청 항목을 최대 {MAX_STAFF_CALL_ITEMS}개까지 정합니다. 사용 중지를 해도 이전 호출 이력의 항목명은 그대로 보존됩니다.
           </p>
@@ -73,7 +73,7 @@ export default function CallItemManager({
           type="button"
           onClick={addItem}
           disabled={draft.length >= MAX_STAFF_CALL_ITEMS}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-xs font-black text-zinc-800 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-xs font-bold text-zinc-800 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           항목 추가
@@ -85,8 +85,8 @@ export default function CallItemManager({
         <input type="hidden" name="itemsJson" value={serializedItems} />
         {draft.map((item, index) => (
           <div key={item.key} className="grid gap-3 rounded-2xl border border-zinc-200 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-xs font-black text-zinc-600">{index + 1}</span>
-            <label className="text-xs font-black text-zinc-600">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600">{index + 1}</span>
+            <label className="text-xs font-bold text-zinc-600">
               항목 이름
               <input
                 value={item.label}
@@ -96,7 +96,7 @@ export default function CallItemManager({
                 className="mt-1.5 w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm font-bold text-zinc-950 outline-none focus:border-zinc-500"
               />
             </label>
-            <label className="flex items-center gap-2 text-xs font-black text-zinc-700">
+            <label className="flex items-center gap-2 text-xs font-bold text-zinc-700">
               <input
                 type="checkbox"
                 checked={item.active}
@@ -126,7 +126,7 @@ export default function CallItemManager({
         ) : null}
 
         <div className="flex justify-end pt-2">
-          <button type="submit" disabled={pending} className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60">
+          <button type="submit" disabled={pending} className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60">
             {pending ? "저장 중" : "호출 항목 저장"}
           </button>
         </div>

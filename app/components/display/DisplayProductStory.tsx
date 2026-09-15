@@ -30,10 +30,10 @@ function DisplayMenuScreen({ tone = "light" }: { tone?: "light" | "dark" | "warm
     <div className={`flex h-full flex-col overflow-hidden ${toneClass}`}>
       <div className="flex items-center justify-between border-b border-current/15 px-5 py-4">
         <div>
-          <p className="text-sm font-black tracking-[-0.04em]">AUBE COFFEE</p>
+          <p className="text-sm font-bold tracking-[-0.04em]">AUBE COFFEE</p>
           <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.2em] opacity-45">Coffee · Dessert</p>
         </div>
-        <span className="rounded-full bg-[#F8E731] px-2 py-1 text-[7px] font-black text-zinc-950">OPEN</span>
+        <span className="rounded-full bg-[#F8E731] px-2 py-1 text-[7px] font-bold text-zinc-950">OPEN</span>
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-[1.05fr_0.95fr] gap-4 p-5">
         <div className="overflow-hidden rounded-xl bg-zinc-300">
@@ -45,7 +45,7 @@ function DisplayMenuScreen({ tone = "light" }: { tone?: "light" | "dark" | "warm
         </div>
         <div className="flex flex-col justify-center gap-3">
           {menuColumns.map(([name, price]) => (
-            <div key={name} className="flex items-center justify-between gap-3 border-b border-current/15 pb-2 text-[9px] font-black md:text-[11px]">
+            <div key={name} className="flex items-center justify-between gap-3 border-b border-current/15 pb-2 text-[9px] font-bold md:text-[11px]">
               <span>{name}</span>
               <span>{price}</span>
             </div>

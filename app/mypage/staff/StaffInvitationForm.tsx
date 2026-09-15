@@ -47,7 +47,7 @@ export default function StaffInvitationForm({
         eventKey={state}
       />
       <div>
-        <h2 className="text-xl font-black tracking-tight text-zinc-950">직원 초대</h2>
+        <h2 className="type-content-title text-zinc-950">직원 초대</h2>
         <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
           한 번의 이메일로 여러 메뉴판에 같은 역할을 부여할 수 있습니다. 초대는 7일 동안 유효합니다.
         </p>
@@ -60,7 +60,7 @@ export default function StaffInvitationForm({
       ) : null}
 
       <label className="block space-y-2">
-        <span className="text-sm font-black text-zinc-800">직원 이메일</span>
+        <span className="text-sm font-bold text-zinc-800">직원 이메일</span>
         <input
           type="email"
           name="email"
@@ -73,7 +73,7 @@ export default function StaffInvitationForm({
       </label>
 
       <label className="block space-y-2">
-        <span className="text-sm font-black text-zinc-800">역할</span>
+        <span className="text-sm font-bold text-zinc-800">역할</span>
         <select
           name="role"
           value={selectedRole}
@@ -91,7 +91,7 @@ export default function StaffInvitationForm({
       </label>
 
       <fieldset disabled={unavailable || pending} className="space-y-3">
-        <legend className="text-sm font-black text-zinc-800">초대할 메뉴판</legend>
+        <legend className="text-sm font-bold text-zinc-800">초대할 메뉴판</legend>
         {menuSites.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
             {menuSites.map((menuSite, index) => (
@@ -107,7 +107,7 @@ export default function StaffInvitationForm({
                   className="mt-1 size-4 accent-emerald-600"
                 />
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-black text-zinc-900">{menuSite.name}</span>
+                  <span className="block truncate text-sm font-bold text-zinc-900">{menuSite.name}</span>
                   <span className="mt-1 block truncate text-xs font-semibold text-zinc-500">/menu/{menuSite.slug}</span>
                 </span>
               </label>
@@ -136,7 +136,7 @@ export default function StaffInvitationForm({
       <button
         type="submit"
         disabled={unavailable || pending}
-        className="inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300 md:w-auto"
+        className="inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300 md:w-auto"
       >
         {pending ? "초대 처리 중..." : "초대 이메일 보내기"}
       </button>

@@ -347,7 +347,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           {metricCards.map((metric) => (
             <article key={metric.label} className="rounded-3xl border border-white/10 bg-white p-6 text-zinc-950 shadow-2xl shadow-black/10">
               <p className="mb-3 break-keep text-sm font-bold text-zinc-500">{metric.label}</p>
-              <p className="text-4xl font-black tracking-tight">{metric.value.toLocaleString("ko-KR")}</p>
+              <p className="text-4xl font-bold tracking-tight">{metric.value.toLocaleString("ko-KR")}</p>
               {metric.error && <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-red-600">{metric.error}</p>}
             </article>
           ))}
@@ -450,15 +450,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                           className={`block p-4 transition-colors ${isSelected ? "bg-zinc-950 text-white" : "bg-white hover:bg-zinc-50"}`}
                         >
                           <div className="mb-2 flex items-center justify-between gap-3">
-                            <p className={`text-xs font-black ${isSelected ? "text-white/60" : "text-zinc-400"}`}>#{inquiryFrom + index + 1}</p>
-                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${isSelected ? "bg-white/15 text-white" : getStatusClassName(inquiry.status)}`}>
+                            <p className={`text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>#{inquiryFrom + index + 1}</p>
+                            <span className={`type-caption rounded-full px-2.5 py-1 ${isSelected ? "bg-white/15 text-white" : getStatusClassName(inquiry.status)}`}>
                               {getInquiryStatusLabel(inquiry.status)}
                             </span>
                           </div>
-                          <p className={`mb-2 w-fit rounded-full px-2.5 py-1 text-[10px] font-bold ${isSelected ? "bg-white/10 text-white/75" : "bg-zinc-100 text-zinc-500"}`}>
+                          <p className={`type-caption mb-2 w-fit rounded-full px-2.5 py-1 ${isSelected ? "bg-white/10 text-white/75" : "bg-zinc-100 text-zinc-500"}`}>
                             {getInquiryCategoryLabel(inquiry.category)}
                           </p>
-                          <h3 className="line-clamp-1 break-keep text-sm font-black">{inquiry.title}</h3>
+                          <h3 className="type-item-title line-clamp-1">{inquiry.title}</h3>
                           <p className={`mt-2 line-clamp-1 break-all text-xs font-medium ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
                             {inquiry.user_id}
                           </p>
@@ -503,7 +503,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                   <div className="rounded-3xl border border-zinc-100 bg-zinc-50 p-5">
                     <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-start">
                       <div>
-                        <h3 className="break-keep text-xl font-black">{selectedInquiry.title}</h3>
+                        <h3 className="type-content-title">{selectedInquiry.title}</h3>
                         <p className="mt-2 break-all text-xs font-medium text-zinc-400">user_id: {selectedInquiry.user_id}</p>
                         <p className="mt-1 text-xs font-medium text-zinc-400">유형 {getInquiryCategoryLabel(selectedInquiry.category)}</p>
                         <p className="mt-1 text-xs font-medium text-zinc-400">작성일 {formatDate(selectedInquiry.created_at)}</p>
@@ -622,7 +622,7 @@ function AdminError({ message }: { message: string }) {
 function EmptyState({ title, description }: { title: string; description: string }) {
   return (
     <div className="rounded-3xl border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center">
-      <h3 className="text-xl font-bold">{title}</h3>
+      <h3 className="type-content-title">{title}</h3>
       <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">{description}</p>
     </div>
   );

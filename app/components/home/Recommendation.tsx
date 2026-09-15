@@ -35,7 +35,7 @@ const Recommendation = () => {
           viewport={{ once: true }}
           className="mb-20 text-center max-w-3xl mx-auto"
         >
-          <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-6 leading-tight tracking-tight">
+          <h2 className="type-section-title mb-6 text-zinc-900">
             운영의 고민,<br />명쾌한 해답
           </h2>
           <p className="text-lg text-zinc-500 leading-relaxed font-medium">
@@ -58,7 +58,7 @@ const Recommendation = () => {
                 <div className="mb-6 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-all duration-300">
                   <Check className="w-5 h-5 text-primary group-hover:text-white transition-colors duration-300" strokeWidth={2} />
                 </div>
-                <h3 className="text-2xl font-bold text-zinc-900 mb-6 whitespace-pre-line leading-snug tracking-tight group-hover:text-primary transition-colors duration-300">
+                <h3 className="type-subsection-title mb-6 whitespace-pre-line text-zinc-900 transition-colors duration-300 group-hover:text-primary">
                   {item.solution}
                 </h3>
                 <p className="text-zinc-500 font-medium leading-relaxed whitespace-pre-line text-sm md:text-base">

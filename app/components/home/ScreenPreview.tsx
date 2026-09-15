@@ -73,7 +73,7 @@ const ScreenPreview = () => {
         
         {/* Title */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-zinc-900 mb-6 tracking-tight">
+          <h2 className="type-section-title mb-6 text-zinc-900">
             매장 운영의 진실,<br className="md:hidden" /> 눈으로 직접 확인하세요
           </h2>
           <p className="text-zinc-500 text-lg md:text-xl">
