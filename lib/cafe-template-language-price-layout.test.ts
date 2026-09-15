@@ -37,6 +37,11 @@ test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른
     globalStylesSource,
     /\.cafe-a-price-column-header,[\s\S]*\.cafe-a-price-columns-grid \{[\s\S]*grid-template-columns: repeat\(var\(--cafe-a-price-column-count\), max-content\);/,
   );
+  assert.match(globalStylesSource, /--cafe-a-price-column-gap: 0\.625rem;/);
+  assert.match(
+    globalStylesSource,
+    /--cafe-a-price-column-gap: clamp\(0\.48rem, calc\(0\.625rem \* var\(--fit-menu-gap-scale\)\), 0\.72rem\);/,
+  );
   assert.match(
     globalStylesSource,
     /\.cafe-a-price-column-sizer \{[\s\S]*display: grid;[\s\S]*grid-area: price-column;[\s\S]*letter-spacing: normal;[\s\S]*visibility: hidden;/,
