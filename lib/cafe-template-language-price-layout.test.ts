@@ -31,7 +31,7 @@ test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른
   );
   assert.match(
     globalStylesSource,
-    /\.cafe-a-price-column-heading \{[\s\S]*justify-self: stretch;[\s\S]*text-align: center;[\s\S]*width: 100%;/,
+    /\.cafe-a-price-column-heading \{[\s\S]*justify-self: end;[\s\S]*text-align: center;[\s\S]*width: min\(100%, 1\.6rem\);/,
   );
   assert.match(
     globalStylesSource,
