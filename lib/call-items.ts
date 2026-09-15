@@ -5,7 +5,7 @@ export type StaffCallItem = {
   active: boolean;
 };
 
-export const MAX_STAFF_CALL_ITEMS = 12;
+export const MAX_STAFF_CALL_ITEMS = 5;
 export const MAX_STAFF_CALL_ITEM_LABEL_LENGTH = 30;
 const STAFF_CALL_ITEM_KEY_PATTERN = /^[a-z0-9_]{1,64}$/;
 

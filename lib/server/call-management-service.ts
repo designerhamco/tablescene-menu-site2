@@ -44,8 +44,10 @@ export type CallDashboardCall = {
   status: string;
   nextStatus: StaffCallStaffStatus | null;
   acknowledgedBy: string | null;
+  acknowledgedByLabel: string | null;
   acknowledgedAt: string | null;
   completedBy: string | null;
+  completedByLabel: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
   createdAt: string;
@@ -114,8 +116,8 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
   await requireMenuSitePermission(menuSiteId, "call.manage");
   const supabase = createAdminClient();
 
-  const [siteResult, callsResult, tablesResult, callItems] = await Promise.all([
-    supabase.from("menu_sites").select("id, name, template_key").eq("id", menuSiteId).maybeSingle(),
+  const [siteResult, callsResult, tablesResult, callItems, acceptedInvitationsResult] = await Promise.all([
+    supabase.from("menu_sites").select("id, name, template_key, user_id").eq("id", menuSiteId).maybeSingle(),
     supabase
       .from("menu_customer_calls")
       .select("*")
@@ -124,6 +126,13 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
       .limit(100),
     supabase.from("menu_tables").select("id, label").eq("menu_site_id", menuSiteId),
     listStaffCallItems({ menuSiteId, includeInactive: true }),
+    supabase
+      .from("menu_site_invitations")
+      .select("accepted_by, email_normalized")
+      .eq("menu_site_id", menuSiteId)
+      .eq("status", "accepted")
+      .not("accepted_by", "is", null)
+      .order("accepted_at", { ascending: false }),
   ]);
   if (siteResult.error || !siteResult.data) {
     if (!siteResult.data && !siteResult.error) {
@@ -136,8 +145,19 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
   }
   if (callsResult.error) failRead(callsResult.error);
   if (tablesResult.error) failRead(tablesResult.error);
+  if (acceptedInvitationsResult.error) failRead(acceptedInvitationsResult.error);
 
   const tableLabelById = new Map((tablesResult.data ?? []).map((table) => [table.id, table.label]));
+  const actorLabelById = new Map<string, string>();
+  actorLabelById.set(siteResult.data.user_id, "사장");
+  for (const invitation of acceptedInvitationsResult.data ?? []) {
+    if (invitation.accepted_by && !actorLabelById.has(invitation.accepted_by)) {
+      actorLabelById.set(invitation.accepted_by, invitation.email_normalized);
+    }
+  }
+  const getActorLabel = (actorUserId: string | null) => actorUserId
+    ? actorLabelById.get(actorUserId) ?? "직원"
+    : null;
   const calls = (callsResult.data ?? []) as unknown as CallRow[];
   return {
     menuSite: siteResult.data,
@@ -151,8 +171,10 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
       status: call.status,
       nextStatus: getNextStaffCallStatus(call.status),
       acknowledgedBy: call.acknowledged_by,
+      acknowledgedByLabel: getActorLabel(call.acknowledged_by),
       acknowledgedAt: call.acknowledged_at,
       completedBy: call.completed_by,
+      completedByLabel: getActorLabel(call.completed_by),
       completedAt: call.completed_at,
       cancelledAt: call.cancelled_at,
       createdAt: call.created_at,

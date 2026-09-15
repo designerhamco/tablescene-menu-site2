@@ -76,6 +76,11 @@ test("call item input normalization constrains count, labels, duplicates, order,
     { key: "staff", label: "직원 호출", active: true },
     { key: "water", label: "직원 호출", active: true },
   ]), /같은 이름/);
+  assert.throws(() => callItems.normalizeStaffCallItems(Array.from({ length: 6 }, (_, index) => ({
+    key: `item_${index}`,
+    label: `호출 ${index}`,
+    active: true,
+  }))), /5개 이하/);
 });
 
 test("call item schema is server-only, forced-RLS, and never hard-deletes configuration", async () => {

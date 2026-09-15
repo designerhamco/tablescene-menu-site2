@@ -36,11 +36,10 @@ test("browser notification preference is scoped to a site and dashboard kind", (
   }), "menulink:dashboard-browser-notifications:calls:site-123");
 });
 
-test("browser notification requires explicit opt-in, permission, and a background page", () => {
+test("browser notification requires explicit opt-in and permission regardless of page attention", () => {
   const base = {
     enabled: true,
     permission: "granted" as const,
-    pageHasAttention: false,
     newCount: 2,
   };
 
@@ -49,7 +48,6 @@ test("browser notification requires explicit opt-in, permission, and a backgroun
   assert.equal(arrivalAlerts.shouldShowDashboardBrowserNotification({ ...base, permission: "default" }), false);
   assert.equal(arrivalAlerts.shouldShowDashboardBrowserNotification({ ...base, permission: "denied" }), false);
   assert.equal(arrivalAlerts.shouldShowDashboardBrowserNotification({ ...base, permission: "unsupported" }), false);
-  assert.equal(arrivalAlerts.shouldShowDashboardBrowserNotification({ ...base, pageHasAttention: true }), false);
   assert.equal(arrivalAlerts.shouldShowDashboardBrowserNotification({ ...base, newCount: 0 }), false);
 });
 
