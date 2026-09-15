@@ -79,18 +79,18 @@ export default function AccountDeletionPanel({
       </section>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-zinc-950/50 p-0 md:items-center md:p-6" onClick={() => setIsOpen(false)}>
+        <div className="site-dialog-overlay fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-6" onClick={() => setIsOpen(false)}>
           <section
             role="dialog"
             aria-modal="true"
             aria-label="회원탈퇴 신청"
-            className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 text-zinc-950 shadow-2xl md:max-w-2xl md:rounded-3xl"
+            className="site-dialog site-dialog-panel site-dialog-sheet max-h-[90vh] w-full overflow-y-auto p-6 text-zinc-950 md:max-w-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="type-subsection-title">회원탈퇴를 신청하시겠어요?</h3>
-                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
                   탈퇴 신청 즉시 계정 이용과 메뉴판 편집, 공개, QR, AI 기능 이용이 제한됩니다.
                 </p>
               </div>

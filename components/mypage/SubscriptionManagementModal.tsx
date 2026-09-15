@@ -292,8 +292,8 @@ export default function SubscriptionManagementModal({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4 py-8">
-          <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
+          <section role="dialog" aria-modal="true" aria-label="구독 관리" className="site-dialog site-dialog-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="type-subsection-title text-zinc-950">구독 관리</h2>
@@ -613,13 +613,13 @@ export default function SubscriptionManagementModal({
       )}
 
       {isConfirmingCancel && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-950/50 px-4 py-8">
-          <form onSubmit={submitCancellation} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="site-dialog-overlay fixed inset-0 z-[60] flex items-center justify-center px-4 py-8">
+          <form role="dialog" aria-modal="true" aria-label="구독 해지 확인" onSubmit={submitCancellation} className="site-dialog site-dialog-panel w-full max-w-lg p-6">
             <h2 className="type-subsection-title text-zinc-950">정말 구독을 해지하시겠어요?</h2>
-            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+            <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
               해지해도 이미 결제된 이용기간은 종료일까지 사용할 수 있습니다. {isYearlyBilling ? "다음 연간 결제일부터 결제는 중단됩니다." : "다음 결제일부터 결제는 중단됩니다."}
             </p>
-            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+            <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
               이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일 이내 다시 구독하면 기존 데이터를 계속 사용할 수 있습니다. 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
             </p>
             <label className="mt-5 block">

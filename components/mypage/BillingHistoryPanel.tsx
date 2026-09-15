@@ -389,13 +389,12 @@ function RestoreSubscriptionModal({
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 px-4 py-6">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+          <div role="dialog" aria-modal="true" aria-label="재구독하고 복구" className="site-dialog site-dialog-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-500">Subscription management</p>
-                <h3 className="type-subsection-title mt-2 break-keep text-zinc-950">재구독하고 복구</h3>
-                <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                <h3 className="type-subsection-title break-keep text-zinc-950">재구독하고 복구</h3>
+                <p className="site-dialog-description mt-2 break-keep font-bold leading-relaxed">
                   기존 메뉴판을 복구할 구독 상품을 선택해주세요.
                 </p>
               </div>

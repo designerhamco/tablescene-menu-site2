@@ -167,19 +167,19 @@ export default function AiCreditPurchaseModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 px-4 py-8">
+    <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="ai-credit-modal-title"
-        className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl"
+        className="site-dialog site-dialog-panel w-full max-w-2xl p-6"
       >
         <div className="flex items-start justify-between gap-5">
           <div>
             <h2 id="ai-credit-modal-title" className="type-subsection-title text-zinc-950">
               계정에 충전할 크레딧을 선택하세요
             </h2>
-            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+            <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
               충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
             </p>
           </div>

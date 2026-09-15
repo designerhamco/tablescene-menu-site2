@@ -59,12 +59,12 @@ export default function PaymentDetailModal({
       </button>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4 py-8">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="payment-detail-title"
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+            className="site-dialog site-dialog-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
