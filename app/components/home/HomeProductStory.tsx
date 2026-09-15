@@ -657,9 +657,9 @@ export function ResourceCtaSection({ service = "dining" }: { service?: Marketing
   const isDisplay = service === "display";
 
   return (
-    <section className="site-gutter bg-white pb-12 pt-0 md:pb-16 md:pt-0">
-      <div className="mx-auto max-w-[1280px]">
-        <motion.div {...fadeUp} className="relative overflow-hidden rounded-[2rem] bg-zinc-950 px-7 py-14 text-white md:min-h-[500px] md:rounded-[2.5rem] md:px-16 md:py-20 lg:grid lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+    <section className="bg-white pb-12 pt-0 md:pb-16 md:pt-0">
+      <div className="site-container">
+        <motion.div {...fadeUp} className="site-dark-cta relative overflow-hidden md:min-h-[500px] lg:grid lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
           <div className="relative z-10 max-w-2xl">
             <MarketingSectionCopy
               inverted

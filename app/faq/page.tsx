@@ -63,13 +63,13 @@ export default function FAQPage() {
           title="자주 묻는 질문"
           description="궁금한 주제를 선택하면 필요한 답을 빠르게 확인할 수 있습니다."
         />
-        {aiSupportEnabled ? <section className="site-container max-w-[1200px] pb-24">
-          <div className="flex flex-col items-start justify-between gap-5 rounded-3xl bg-zinc-950 px-7 py-8 text-white md:flex-row md:items-center md:px-10">
-            <div>
-              <h2 className="text-2xl font-black tracking-tight">답을 찾지 못했다면 AI 상담</h2>
-              <p className="mt-2 text-sm font-medium text-zinc-400">서비스 사용법을 빠르게 확인하고 필요한 경우 1:1 문의로 이어집니다.</p>
+        {aiSupportEnabled ? <section className="site-container pb-24">
+          <div className="site-dark-cta flex flex-col items-start justify-between gap-8 md:flex-row md:items-end md:gap-12">
+            <div className="max-w-2xl">
+              <h2 className="site-section-title">답을 찾지 못했다면 AI 상담</h2>
+              <p className="site-body mt-5 text-zinc-400">서비스 사용법을 빠르게 확인하고 필요한 경우 1:1 문의로 이어집니다.</p>
             </div>
-            <Link href="/support/chat" className="rounded-full bg-white px-5 py-3 text-sm font-black text-zinc-950 transition-colors hover:bg-zinc-200">AI 상담 시작</Link>
+            <Link href="/support/chat" className="inline-flex shrink-0 items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-200">AI 상담 시작</Link>
           </div>
         </section> : null}
       </main>

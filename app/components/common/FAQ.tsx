@@ -352,62 +352,63 @@ const FAQ = ({
   };
 
   return (
-    <section id={id} className={`site-gutter relative bg-white py-24 md:py-36 ${className}`}>
-      <div className={`mx-auto max-w-[1280px] ${homeDark ? 'rounded-[2rem] bg-zinc-950 px-6 py-16 text-white md:rounded-[2.5rem] md:px-14 md:py-20' : ''}`}>
-        <div className={`${align === "left" ? "text-left" : "text-center"} mb-10`}>
-          <h2 className={`site-section-title mb-6 ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
-            {title}
-          </h2>
-          {description ? (
-            <p className={`site-body ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              {description}
-            </p>
-          ) : null}
-        </div>
-
-        {/* Category Tabs */}
-        {data.length > 1 && (
-          <div className={`mb-10 flex flex-wrap gap-2 ${align === "left" ? "justify-start" : "justify-center"}`}>
-            {data.map((category, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleTabChange(idx)}
-                className={`px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
-                  activeTab === idx 
-                    ? homeDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
-                    : homeDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
-                }`}
-              >
-                {category.category}
-              </button>
-            ))}
+    <section id={id} className={`relative bg-white py-24 md:py-36 ${className}`}>
+      <div className="site-container">
+        <div className={homeDark ? "site-dark-cta" : ""}>
+          <div className={`${align === "left" ? "text-left" : "text-center"} mb-10`}>
+            <h2 className={`site-section-title mb-6 ${homeDark ? 'text-white' : 'text-zinc-900'}`}>
+              {title}
+            </h2>
+            {description ? (
+              <p className={`site-body ${homeDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                {description}
+              </p>
+            ) : null}
           </div>
-        )}
 
-        {/* FAQ List */}
-        <div className={`min-h-[400px] w-full rounded-2xl border p-4 md:max-w-6xl md:p-8 ${align === "left" ? "mr-auto" : "mx-auto"} ${homeDark ? 'border-zinc-700 bg-zinc-950' : 'border-zinc-200 bg-white'} ${showSupport ? 'mb-12' : ''}`}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              {data[activeTab].items.map((faq, index) => (
-                <FAQItem
-                  key={`${activeTab}-${index}`}
-                  index={index}
-                  item={faq}
-                  isOpen={openIndex === index}
-                  onToggle={() => setOpenIndex(openIndex === index ? null : index)}
-                  inverted={homeDark}
-                />
+          {/* Category Tabs */}
+          {data.length > 1 && (
+            <div className={`mb-10 flex flex-wrap gap-2 ${align === "left" ? "justify-start" : "justify-center"}`}>
+              {data.map((category, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleTabChange(idx)}
+                  className={`px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
+                    activeTab === idx
+                      ? homeDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
+                      : homeDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
+                  }`}
+                >
+                  {category.category}
+                </button>
               ))}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            </div>
+          )}
 
+          {/* FAQ List */}
+          <div className={`min-h-[400px] w-full rounded-2xl border p-4 md:p-8 ${homeDark ? 'border-zinc-700 bg-zinc-950' : 'border-zinc-200 bg-white'} ${showSupport ? 'mb-12' : ''}`}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {data[activeTab].items.map((faq, index) => (
+                  <FAQItem
+                    key={`${activeTab}-${index}`}
+                    index={index}
+                    item={faq}
+                    isOpen={openIndex === index}
+                    onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+                    inverted={homeDark}
+                  />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </section>
   );
