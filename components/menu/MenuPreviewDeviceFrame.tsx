@@ -66,9 +66,17 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
     orientation?: MenuPreviewOrientation;
     embedded?: boolean;
     actual?: boolean;
-  }) => "templateKey" in props && props.templateKey
-    ? buildTemplatePreviewUrl(props.templateKey, query as TemplatePreviewQuery, options)
-    : buildMenuPreviewUrl(props.menuId, query as MenuPreviewQuery, options);
+  }) => {
+    if (typeof props.templateKey === "string") {
+      return buildTemplatePreviewUrl(props.templateKey, query as TemplatePreviewQuery, options);
+    }
+
+    if (typeof props.menuId === "string") {
+      return buildMenuPreviewUrl(props.menuId, query as MenuPreviewQuery, options);
+    }
+
+    throw new Error("미리보기 대상을 확인할 수 없습니다.");
+  };
   const embeddedUrl = buildPreviewUrl({
     actual: true,
     embedded: true,
