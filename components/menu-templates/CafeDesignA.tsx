@@ -5251,7 +5251,6 @@ function DesktopToplineInformationHeader({
           titleClassName="cafe-a-store-title cafe-a-topline-title break-words text-center font-black uppercase leading-[0.96] text-[#191c1b]"
           logoClassName="max-h-[78px] max-w-[240px] object-contain"
         />
-        <CafeLanguageHoverControl data={data} className="cafe-a-topline-language-control" />
       </div>
 
       <aside className="cafe-a-topline-notices min-w-0 text-right text-[#58645f]" data-cafe-a-topline-notices="">
@@ -5262,6 +5261,22 @@ function DesktopToplineInformationHeader({
         ) : null}
       </aside>
     </section>
+  );
+}
+
+function SundayLineDesktopLanguageDock({ data }: { data: CafeDesignAProps }) {
+  const visibleLocaleCount = Array.from(new Set(data.enabledLocales)).length;
+  if (visibleLocaleCount <= 1) return null;
+
+  return (
+    <div
+      className="cafe-a-footer-info cafe-a-footer-info-anchor cafe-a-sunday-language-dock hidden lg:block"
+      data-cafe-a-footer-info=""
+      data-cafe-a-footer-placement="desktop"
+      data-cafe-a-sunday-language-dock=""
+    >
+      <CafeLanguageHoverControl data={data} />
+    </div>
   );
 }
 
@@ -5381,7 +5396,7 @@ function DesktopFixedRail({
             titleClassName="cafe-a-store-title cafe-a-rail-title break-words font-black uppercase leading-[0.96] text-[#191c1b]"
             logoClassName="max-h-[84px] max-w-[210px] object-contain"
           />
-          <CafeLanguageHoverControl data={data} />
+          {!isCenterColumn ? <CafeLanguageHoverControl data={data} /> : null}
         </div>
         {description && (
           <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-rail-description mt-3 break-keep text-[#3f4945] ${descriptionSizeClassName}`} data-cafe-a-store-description="">
@@ -5396,17 +5411,20 @@ function DesktopFixedRail({
               {children}
             </div>
           ) : null}
-          {infoRows.length > 0 ? (
-            <div className="cafe-a-round-focus-notices text-[#3f4945]" data-cafe-a-round-focus-notices="">
-              <div className="cafe-a-round-focus-notice-list">
-                {infoRows.map((row, index) => (
-                  <p key={`${index}-${row}`} className={`cafe-a-round-focus-notice cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap break-keep ${descriptionSizeClassName}`}>
-                    <ScriptAwareText text={row} />
-                  </p>
-                ))}
+          <div className="cafe-a-round-focus-footer-cluster" data-cafe-a-round-focus-footer-cluster="">
+            {infoRows.length > 0 ? (
+              <div className="cafe-a-round-focus-notices text-[#3f4945]" data-cafe-a-round-focus-notices="">
+                <div className="cafe-a-round-focus-notice-list">
+                  {infoRows.map((row, index) => (
+                    <p key={`${index}-${row}`} className={`cafe-a-round-focus-notice cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap break-keep ${descriptionSizeClassName}`}>
+                      <ScriptAwareText text={row} />
+                    </p>
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+            <CafeLanguageHoverControl data={data} className="cafe-a-round-focus-language-control" />
+          </div>
         </div>
       ) : (
         children
@@ -8343,6 +8361,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                     />
                   ) : null}
                   {renderDesktopMenuGrid()}
+                  <SundayLineDesktopLanguageDock data={data} />
                 </>
               ) : (
                 <>

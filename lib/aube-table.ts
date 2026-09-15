@@ -28,6 +28,11 @@ export type AubeTableCategoryLike = {
   visible: boolean;
 };
 
+export type AubeTableCourseDisplayLike = {
+  course_price?: number | null;
+  course_price_label?: string | null;
+};
+
 export type AubeTableItemLike = {
   id: string;
   menu_page_id?: string | null;
@@ -81,6 +86,11 @@ export function shouldUseAubeTableCoverLogo(
   failedLogoUrl: string | null,
 ) {
   return Boolean(logoUrl?.trim() && logoUrl !== failedLogoUrl);
+}
+
+export function shouldShowAubeTableCourseItemImages(course: AubeTableCourseDisplayLike) {
+  const hasConfiguredCoursePrice = course.course_price != null || Boolean(course.course_price_label?.trim());
+  return !hasConfiguredCoursePrice;
 }
 
 export function sortAubeTablePages<T extends AubeTablePageLike>(pages: readonly T[]) {

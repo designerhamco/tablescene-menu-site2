@@ -17,6 +17,7 @@ import {
   isAubeTableTemplate,
   normalizeAubeTableCoverBackgroundColor,
   normalizeAubeTableCoverBackgroundOpacity,
+  shouldShowAubeTableCourseItemImages,
   shouldUseAubeTableCoverLogo,
   validateAubeTablePublishStructure,
 } from "./aube-table";
@@ -74,6 +75,13 @@ test("오브 테이블 커버는 정상 로드 가능한 로고만 사용한다"
   assert.equal(shouldUseAubeTableCoverLogo("https://example.com/logo.svg", "https://example.com/logo.svg"), false);
   assert.equal(shouldUseAubeTableCoverLogo("", null), false);
   assert.equal(shouldUseAubeTableCoverLogo(null, null), false);
+});
+
+test("가격이 설정된 코스의 메뉴 사진은 숨기고 일반 카테고리 사진은 유지한다", () => {
+  assert.equal(shouldShowAubeTableCourseItemImages({ course_price: 185000, course_price_label: "₩185,000" }), false);
+  assert.equal(shouldShowAubeTableCourseItemImages({ course_price: 185000, course_price_label: null }), false);
+  assert.equal(shouldShowAubeTableCourseItemImages({ course_price: null, course_price_label: "변동 가격" }), false);
+  assert.equal(shouldShowAubeTableCourseItemImages({ course_price: null, course_price_label: null }), true);
 });
 
 test("노출 코스는 노출 메뉴를 한 개 이상 가져야 한다", () => {

@@ -20,6 +20,7 @@ import {
   normalizeAubeTableCoverBackgroundOpacity,
   normalizeAubeTableLayoutColumns,
   normalizeAubeTableTextAlignment,
+  shouldShowAubeTableCourseItemImages,
   shouldUseAubeTableCoverLogo,
   sortAubeTablePages,
 } from "@/lib/aube-table";
@@ -134,11 +135,19 @@ function CoursePrice({ course }: { course: CourseWithItems }) {
   return <p className="aube-table-course-price"><ScriptAwareText text={price} /></p>;
 }
 
-function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOptions: PublicMenuItemPriceOption[] }) {
+function MenuItemRow({
+  item,
+  priceOptions,
+  showImage = true,
+}: {
+  item: PublicMenuItem;
+  priceOptions: PublicMenuItemPriceOption[];
+  showImage?: boolean;
+}) {
   const price = item.price_visible === false ? "" : getPrice(item, priceOptions);
   return (
     <article className="aube-table-item" data-aube-table-item="">
-      {item.image_url ? <img className="aube-table-item-image" src={item.image_url} alt="" /> : null}
+      {showImage && item.image_url ? <img className="aube-table-item-image" src={item.image_url} alt="" /> : null}
       <div className="aube-table-item-copy">
         <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"}>
           <h3><ScriptAwareText text={item.name} /></h3>
@@ -153,6 +162,8 @@ function MenuItemRow({ item, priceOptions }: { item: PublicMenuItem; priceOption
 }
 
 function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceOptions: PublicMenuItemPriceOption[] }) {
+  const showItemImages = shouldShowAubeTableCourseItemImages(course);
+
   return (
     <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_COURSE_REVEAL_GROUP}>
       <motion.div variants={AUBE_TABLE_COURSE_REVEAL_HEADING}>
@@ -171,7 +182,14 @@ function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceO
         ) : null}
       </motion.div>
       <motion.div className="aube-table-course-items" variants={AUBE_TABLE_COURSE_REVEAL_ITEMS}>
-        {course.items.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={priceOptions} />)}
+        {course.items.map((item) => (
+          <MenuItemRow
+            key={item.id}
+            item={item}
+            priceOptions={priceOptions}
+            showImage={showItemImages}
+          />
+        ))}
       </motion.div>
     </motion.section>
   );
