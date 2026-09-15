@@ -15,6 +15,18 @@
   --ui-focus: #18181b;
   --ui-danger: #dc2626;
   --ui-danger-hover: #b91c1c;
+  --ui-success-surface: #f0fdf4;
+  --ui-success-border: #bbf7d0;
+  --ui-success-text: #166534;
+  --ui-warning-surface: #fffbeb;
+  --ui-warning-border: #fde68a;
+  --ui-warning-text: #92400e;
+  --ui-error-surface: #fef2f2;
+  --ui-error-border: #fecaca;
+  --ui-error-text: #b91c1c;
+  --ui-info-surface: #f4f4f5;
+  --ui-info-border: #d4d4d8;
+  --ui-info-text: #3f3f46;
   --ui-overlay: rgb(9 9 11 / 0.44);
   --ui-transition: 180ms cubic-bezier(0.2, 0, 0, 1);
 }
@@ -315,6 +327,81 @@ textarea.site-field,
   color: var(--ui-text) !important;
   box-shadow: none !important;
   font-family: var(--font-family-site) !important;
+}
+
+/*
+ * Feedback color contract. Status colors communicate meaning only; they are
+ * not used as decorative page accents. Legacy utility combinations below are
+ * normalized so existing screens follow the same palette during migration.
+ */
+.site-notice {
+  border: 1px solid var(--ui-info-border);
+  border-radius: var(--ui-radius-card-compact);
+  background: var(--ui-info-surface);
+  color: var(--ui-info-text);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.6;
+}
+
+.site-notice-success {
+  border-color: var(--ui-success-border);
+  background: var(--ui-success-surface);
+  color: var(--ui-success-text);
+}
+
+.site-notice-warning {
+  border-color: var(--ui-warning-border);
+  background: var(--ui-warning-surface);
+  color: var(--ui-warning-text);
+}
+
+.site-notice-error {
+  border-color: var(--ui-error-border);
+  background: var(--ui-error-surface);
+  color: var(--ui-error-text);
+}
+
+.site-notice-info {
+  border-color: var(--ui-info-border);
+  background: var(--ui-info-surface);
+  color: var(--ui-info-text);
+}
+
+:where(.bg-emerald-50, .bg-emerald-100):not(.menu-typography *) {
+  background-color: var(--ui-success-surface) !important;
+}
+
+:where(.border-emerald-100, .border-emerald-200):not(.menu-typography *) {
+  border-color: var(--ui-success-border) !important;
+}
+
+:where(.text-emerald-700, .text-emerald-800, .text-emerald-900):not(.menu-typography *) {
+  color: var(--ui-success-text) !important;
+}
+
+:where(.bg-amber-50, .bg-amber-100):not(.menu-typography *) {
+  background-color: var(--ui-warning-surface) !important;
+}
+
+:where(.border-amber-100, .border-amber-200):not(.menu-typography *) {
+  border-color: var(--ui-warning-border) !important;
+}
+
+:where(.text-amber-700, .text-amber-800, .text-amber-900):not(.menu-typography *) {
+  color: var(--ui-warning-text) !important;
+}
+
+:where(.bg-red-50, .bg-red-100):not(.menu-typography *) {
+  background-color: var(--ui-error-surface) !important;
+}
+
+:where(.border-red-100, .border-red-200):not(.menu-typography *) {
+  border-color: var(--ui-error-border) !important;
+}
+
+:where(.text-red-600, .text-red-700, .text-red-800, .text-red-900):not(.menu-typography *) {
+  color: var(--ui-error-text) !important;
 }
 
 @media (min-width: 768px) {
