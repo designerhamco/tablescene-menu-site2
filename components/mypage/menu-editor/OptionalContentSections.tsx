@@ -136,9 +136,9 @@ function SubmitButton({
 }) {
   const { pending } = useFormStatus();
   const className = {
-    dark: "bg-zinc-950 text-white hover:bg-zinc-800",
-    light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
-    danger: "border border-red-100 bg-red-50 text-red-700 hover:bg-red-100",
+    dark: "site-button-primary",
+    light: "site-button-secondary",
+    danger: "site-button-outline-danger",
   }[tone];
 
   const isSubmitButton = props.type !== "button";
@@ -149,7 +149,7 @@ function SubmitButton({
       type="submit"
       disabled={disabled || isPending}
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+      className={`site-button disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
     >
       {isPending ? (
         <>
@@ -165,7 +165,7 @@ function SubmitButton({
 
 function SectionCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-lg bg-white p-6 shadow-sm">
+    <section className="site-card site-card-compact p-6">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <h2 className="type-subsection-title">{title}</h2>
         {action && <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>}

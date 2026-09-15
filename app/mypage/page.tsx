@@ -2403,7 +2403,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const canShowOwnerCommerce = !isStaffOnlyAccount;
   const activeNavigationKey: MypageNavigationKey = activeTab;
   function renderStoreOperationsButton(extraClassName = "") {
-    const className = `${extraClassName} inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800`.trim();
+    const className = `${extraClassName} site-button site-button-primary`.trim();
 
     return (
       <Link
@@ -2419,9 +2419,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
-    const primaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-zinc-800";
-    const secondaryActionClassName = "inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100";
-    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-bold text-zinc-400";
+    const primaryActionClassName = "site-button site-button-primary site-button-sm";
+    const secondaryActionClassName = "site-button site-button-secondary site-button-sm";
+    const disabledActionClassName = "site-button site-button-secondary site-button-sm cursor-not-allowed text-zinc-400";
 
     function renderActionButton({
       label,
@@ -2466,7 +2466,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     }
 
     return (
-      <article key={card.key} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <article key={card.key} className="site-card p-5">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <h3 className="type-content-title">{card.title}</h3>
@@ -2536,12 +2536,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
-    const enabledPrimaryActionClassName = "inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-zinc-800";
-    const enabledSecondaryActionClassName = "inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-100";
-    const disabledActionClassName = "inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-bold text-zinc-400";
+    const enabledPrimaryActionClassName = "site-button site-button-primary site-button-sm";
+    const enabledSecondaryActionClassName = "site-button site-button-secondary site-button-sm";
+    const disabledActionClassName = "site-button site-button-secondary site-button-sm cursor-not-allowed text-zinc-400";
 
     return (
-      <article key={card.key} className="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
+      <article key={card.key} className="site-card p-5">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <h3 className="type-content-title">{card.title}</h3>
@@ -2596,7 +2596,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             href={`/mypage/menus/${card.siteId}/preview`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-xs font-bold text-sky-800 transition-colors hover:bg-sky-100"
+              className="site-button site-button-secondary site-button-sm"
           >
             미리보기
           </Link>

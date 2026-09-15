@@ -43,7 +43,7 @@ export default async function SignInPage({
       <ActionFeedbackToast message={notice} tone="success" />
       <ActionFeedbackToast message={errorMessage} tone="error" />
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
-        <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
+        <div className="site-card p-8">
           <div className="mb-8">
             <h1 className="type-subsection-title">로그인</h1>
             <p className="type-body-sm mt-3 text-zinc-500">
@@ -98,7 +98,7 @@ export default async function SignInPage({
 
             <button
               type="submit"
-              className="type-label w-full rounded-2xl bg-zinc-950 px-5 py-4 text-white transition-transform hover:scale-[1.01]"
+              className="site-button site-button-primary site-button-lg w-full"
             >
               로그인
             </button>

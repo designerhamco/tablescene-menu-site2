@@ -1038,12 +1038,12 @@ function SubmitButton({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; tone?: "dark" | "light" | "danger" | "final"; dirtyFormId?: string }) {
   const className = {
-    dark: "bg-zinc-950 text-white hover:bg-zinc-800",
-    light: "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100",
-    danger: "border border-red-100 bg-red-50 text-red-700 hover:bg-red-100",
-    final: "rounded-lg bg-zinc-950 text-white shadow-sm hover:bg-zinc-800",
+    dark: "site-button-primary",
+    light: "site-button-secondary",
+    danger: "site-button-outline-danger",
+    final: "site-button-primary",
   }[tone];
-  const buttonClassName = `inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`;
+  const buttonClassName = `site-button ${className} ${customClassName ?? ""}`;
 
   if (dirtyFormId) {
     return (

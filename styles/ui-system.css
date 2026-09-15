@@ -1,0 +1,387 @@
+:root {
+  --ui-control-height-sm: 2.5rem;
+  --ui-control-height-md: 2.75rem;
+  --ui-control-height-lg: 3.25rem;
+  --ui-radius-control: 999px;
+  --ui-radius-card: 1.5rem;
+  --ui-radius-card-compact: 1rem;
+  --ui-radius-surface: 1.25rem;
+  --ui-border: #e4e4e7;
+  --ui-border-strong: #d4d4d8;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #f4f4f5;
+  --ui-text: #09090b;
+  --ui-text-muted: #52525b;
+  --ui-focus: #18181b;
+  --ui-danger: #dc2626;
+  --ui-danger-hover: #b91c1c;
+  --ui-transition: 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/*
+ * ArtiMenu site component contract.
+ * Customer-editable menu templates and their public renderers keep their own
+ * design systems and are excluded through the .menu-typography boundary.
+ */
+.site-button {
+  display: inline-flex;
+  min-height: var(--ui-control-height-md);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  padding: 0.625rem 1.25rem;
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-strong);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-align: center;
+  transition:
+    background-color var(--ui-transition),
+    border-color var(--ui-transition),
+    color var(--ui-transition),
+    opacity var(--ui-transition);
+}
+
+.site-button:hover {
+  transform: none;
+}
+
+.site-button:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+
+.site-button:disabled,
+.site-button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.site-button-primary {
+  border-color: var(--ui-text);
+  background: var(--ui-text);
+  color: #ffffff;
+}
+
+.site-button-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color: #27272a;
+  background: #27272a;
+}
+
+.site-button-secondary {
+  border-color: var(--ui-border);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+}
+
+.site-button-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--ui-border-strong);
+  background: var(--ui-surface-muted);
+}
+
+.site-button-ghost {
+  background: transparent;
+  color: var(--ui-text-muted);
+}
+
+.site-button-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--ui-surface-muted);
+  color: var(--ui-text);
+}
+
+.site-button-danger {
+  border-color: var(--ui-danger);
+  background: var(--ui-danger);
+  color: #ffffff;
+}
+
+.site-button-danger:hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--ui-danger-hover);
+  background: var(--ui-danger-hover);
+}
+
+.site-button-outline-danger {
+  border-color: #fecaca;
+  background: var(--ui-surface);
+  color: var(--ui-danger);
+}
+
+.site-button-outline-danger:hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.site-button-sm {
+  min-height: var(--ui-control-height-sm);
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-100);
+}
+
+.site-button-lg {
+  min-height: var(--ui-control-height-lg);
+  padding: 0.875rem 1.5rem;
+  font-size: var(--font-size-300);
+}
+
+.site-button-icon {
+  width: var(--ui-control-height-md);
+  min-width: var(--ui-control-height-md);
+  padding: 0;
+}
+
+.site-button-icon.site-button-sm {
+  width: var(--ui-control-height-sm);
+  min-width: var(--ui-control-height-sm);
+}
+
+.site-card {
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: none;
+}
+
+.site-card-compact {
+  border-radius: var(--ui-radius-card-compact);
+}
+
+.site-card-muted {
+  border-color: transparent;
+  background: var(--ui-surface-muted);
+}
+
+.site-card-interactive {
+  transition:
+    background-color var(--ui-transition),
+    border-color var(--ui-transition),
+    color var(--ui-transition);
+}
+
+.site-card-interactive:hover {
+  border-color: var(--ui-border-strong);
+}
+
+.site-card-empty {
+  border-style: dashed;
+  background: var(--ui-surface);
+  text-align: center;
+}
+
+.site-nav-item {
+  display: flex;
+  min-height: var(--ui-control-height-md);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: var(--ui-radius-card-compact);
+  padding: 0.75rem 1rem;
+  color: var(--ui-text-muted);
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-strong);
+  line-height: 1.4;
+  transition:
+    background-color var(--ui-transition),
+    color var(--ui-transition),
+    opacity var(--ui-transition);
+}
+
+.site-nav-item:hover {
+  background: var(--ui-surface-muted);
+  color: var(--ui-text);
+}
+
+.site-nav-item-active {
+  background: var(--ui-text);
+  color: #ffffff;
+}
+
+.site-nav-item-active:hover {
+  background: #27272a;
+  color: #ffffff;
+}
+
+.site-nav-item-disabled {
+  cursor: not-allowed;
+  color: #d4d4d8;
+}
+
+.site-nav-item-disabled:hover {
+  background: transparent;
+  color: #d4d4d8;
+}
+
+/*
+ * Migration compatibility layer: active site screens still contain legacy
+ * Tailwind class combinations. These rules make their visual result follow
+ * the same component tokens while each screen is progressively moved to the
+ * semantic classes above.
+ */
+:where(button, a, [role="button"]):not(.menu-typography *) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, [role="button"]):not(.menu-typography *):focus-visible,
+:where(a[href]):not(.menu-typography *):focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)
+  :where(svg) {
+  flex: none;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="rounded-full"] {
+  border-radius: var(--ui-radius-control) !important;
+  box-shadow: none !important;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="rounded-full"][class*="px-"] {
+  min-height: var(--ui-control-height-sm);
+  font-weight: var(--font-weight-strong);
+  transition:
+    background-color var(--ui-transition),
+    border-color var(--ui-transition),
+    color var(--ui-transition),
+    opacity var(--ui-transition) !important;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-black"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-zinc-900"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-zinc-950"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-neutral-900"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-neutral-950"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-stone-900"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-stone-950"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-emerald-700"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-emerald-800"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-sky-800"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-sky-950"] {
+  min-height: var(--ui-control-height-md);
+  border-color: var(--ui-text) !important;
+  border-radius: var(--ui-radius-control) !important;
+  background-color: var(--ui-text) !important;
+  color: #ffffff !important;
+  font-weight: var(--font-weight-strong);
+  box-shadow: none !important;
+  transition:
+    background-color var(--ui-transition),
+    border-color var(--ui-transition),
+    color var(--ui-transition),
+    opacity var(--ui-transition) !important;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-black"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-zinc-900"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-zinc-950"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-neutral-900"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-neutral-950"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-stone-900"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-stone-950"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-emerald-700"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-emerald-800"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-sky-800"]:hover,
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-sky-950"]:hover {
+  border-color: #27272a !important;
+  background-color: #27272a !important;
+  color: #ffffff !important;
+  transform: none !important;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-white"][class~="border"]:is(
+    [class~="inline-flex"],
+    [class~="rounded-full"]
+  ) {
+  min-height: var(--ui-control-height-md);
+  border-color: var(--ui-border) !important;
+  border-radius: var(--ui-radius-control) !important;
+  background-color: var(--ui-surface) !important;
+  color: var(--ui-text) !important;
+  font-weight: var(--font-weight-strong);
+  box-shadow: none !important;
+  transition:
+    background-color var(--ui-transition),
+    border-color var(--ui-transition),
+    color var(--ui-transition),
+    opacity var(--ui-transition) !important;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-white"][class~="border"]:is(
+    [class~="inline-flex"],
+    [class~="rounded-full"]
+  ):hover {
+  border-color: var(--ui-border-strong) !important;
+  background-color: var(--ui-surface-muted) !important;
+  color: var(--ui-text) !important;
+  transform: none !important;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-red-600"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-rose-700"],
+:where(button, a, [role="button"]):not(.menu-typography *)[class~="bg-rose-800"] {
+  min-height: var(--ui-control-height-md);
+  border-color: var(--ui-danger) !important;
+  border-radius: var(--ui-radius-control) !important;
+  background-color: var(--ui-danger) !important;
+  color: #ffffff !important;
+  font-weight: var(--font-weight-strong);
+  box-shadow: none !important;
+}
+
+:where(button, a, [role="button"]):not(.menu-typography *):disabled,
+:where(button, a, [role="button"]):not(.menu-typography *)[aria-disabled="true"] {
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+:where(article, section, form, aside, div)[class~="bg-white"][class~="border"]:not(.menu-typography *),
+:where(div)[data-slot="card"]:not(.menu-typography *) {
+  border-color: var(--ui-border) !important;
+  box-shadow: none !important;
+}
+
+:where(article, section, form, aside, div)[class~="bg-white"][class~="shadow-sm"]:not(.menu-typography *),
+:where(article, section, form, aside, div)[class~="bg-white"][class~="shadow-md"]:not(.menu-typography *),
+:where(article, section, form, aside, div)[class~="bg-white"][class~="shadow-lg"]:not(.menu-typography *),
+:where(article, section, form, aside, div)[class~="bg-white"][class~="shadow-xl"]:not(.menu-typography *),
+:where(article, section, form, aside, div)[class~="bg-white"][class~="shadow-2xl"]:not(.menu-typography *) {
+  border: 1px solid var(--ui-border) !important;
+  box-shadow: none !important;
+}
+
+:where(article, section, form, aside, div)[class~="bg-white"][class~="rounded-3xl"]:not(.menu-typography *),
+:where(article, section, form, aside, div)[class~="bg-white"][class~="rounded-[2rem]"]:not(.menu-typography *) {
+  border-radius: var(--ui-radius-card) !important;
+}
+
+:where(article, section, form, aside, div)[class~="bg-white"][class~="rounded-2xl"]:not(.menu-typography *) {
+  border-radius: var(--ui-radius-surface) !important;
+}
+
+:where(article, section, form, aside, div)[class~="bg-white"][class~="rounded-xl"]:not(.menu-typography *),
+:where(article, section, form, aside, div)[class~="bg-white"][class~="rounded-lg"]:not(.menu-typography *) {
+  border-radius: var(--ui-radius-card-compact) !important;
+}
+
+@media (max-width: 639px) {
+  :root {
+    --ui-radius-card: 1.25rem;
+    --ui-radius-surface: 1rem;
+  }
+
+  .site-button-lg {
+    min-height: 3rem;
+    padding-inline: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-button,
+  .site-card-interactive {
+    transition: none;
+  }
+}

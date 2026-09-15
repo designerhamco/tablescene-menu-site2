@@ -134,7 +134,7 @@ function LocalizationSaveButton({ disabled = false, children = "저장" }: { dis
     <button
       type="submit"
       disabled={disabled || isPending}
-      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+      className="site-button site-button-primary shrink-0 disabled:bg-zinc-100 disabled:text-zinc-400"
     >
       {isPending ? (
         <>
@@ -164,7 +164,7 @@ function TranslationSubmitButton({
       type="button"
       onClick={onClick}
       disabled={disabled || pending}
-      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+      className="site-button site-button-primary shrink-0 disabled:bg-zinc-100 disabled:text-zinc-400"
     >
       {pending ? (
         <>

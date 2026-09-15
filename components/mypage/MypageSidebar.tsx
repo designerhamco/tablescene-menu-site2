@@ -13,8 +13,8 @@ export type MypageNavigationKey =
 
 function getNavigationClassName(isActive: boolean) {
   return isActive
-    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
-    : "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950";
+    ? "site-nav-item site-nav-item-active"
+    : "site-nav-item";
 }
 
 function NavigationCount({ active, children }: { active: boolean; children: React.ReactNode }) {
@@ -27,7 +27,7 @@ function DisabledNavigationItem({ label, reason }: { label: string; reason: stri
       aria-disabled="true"
       aria-label={`${label} 권한 없음: ${reason}`}
       title={reason}
-      className="flex cursor-not-allowed items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-300"
+      className="site-nav-item site-nav-item-disabled"
     >
       <span>{label}</span>
       <span className="text-xs font-bold">권한 없음</span>
@@ -49,7 +49,7 @@ export function MypageAccountCard({
   accountAiCreditRemaining?: number;
 }) {
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="site-card p-6">
       <h2 className="type-content-title break-all">{email}</h2>
       <p className="mt-3 break-all text-xs font-semibold leading-relaxed text-zinc-500">사용자 ID: {userId}</p>
       {roleLabel ? (
@@ -83,7 +83,7 @@ export function MypageAccountCard({
       <form action={signOutAction} className="mt-5">
         <button
           type="submit"
-          className="inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
+          className="site-button site-button-secondary w-full"
         >
           로그아웃
         </button>
@@ -106,7 +106,7 @@ export function MypageNavigation({
   unreadNotificationCount?: number;
 }) {
   return (
-    <nav className="rounded-3xl border border-zinc-200 bg-white p-3 shadow-sm" aria-label="마이페이지 메뉴">
+    <nav className="site-card p-3" aria-label="마이페이지 메뉴">
       <Link href="/mypage?tab=menus" className={getNavigationClassName(active === "menus")}>
         <span>내 메뉴판</span>
         <NavigationCount active={active === "menus"}>{totalMenuCount.toLocaleString("ko-KR")}</NavigationCount>

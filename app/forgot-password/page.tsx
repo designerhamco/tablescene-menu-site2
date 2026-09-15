@@ -47,7 +47,7 @@ export default async function ForgotPasswordPage({
       <ActionFeedbackToast message={notice} tone="success" />
       <ActionFeedbackToast message={errorMessage} tone="error" />
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
-        <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
+        <div className="site-card p-8">
           <div className="mb-8">
             <h1 className="type-subsection-title">비밀번호 재설정</h1>
             <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">

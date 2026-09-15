@@ -85,7 +85,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
         }}
         disabled={disabled}
         title={disabled ? "샘플 복원 기능은 안전한 draft 저장 구조 적용 후 사용할 수 있습니다." : undefined}
-        className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
+        className="site-button site-button-secondary disabled:bg-zinc-100 disabled:text-zinc-400"
       >
         {copy.buttonLabel}
       </button>
@@ -107,7 +107,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
                 type="button"
                 onClick={closeDialog}
                 disabled={isPending}
-                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
+                className="site-button site-button-secondary"
               >
                 취소
               </button>
@@ -115,7 +115,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
                 type="button"
                 onClick={handleReset}
                 disabled={isPending}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-200 sm:w-auto"
+                className="site-button site-button-danger w-full disabled:bg-red-200 sm:w-auto"
               >
                 {isPending ? (
                   <>

@@ -159,7 +159,7 @@ export default function TemplateGallery({
               key={group.key}
               type="button"
               onClick={() => selectIndustry(group.key)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${industry === group.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"}`}
+              className={`site-button site-button-sm shrink-0 ${industry === group.key ? "site-button-primary" : "site-button-secondary"}`}
             >
               {group.label}
             </button>
@@ -212,7 +212,7 @@ export default function TemplateGallery({
           })}
         </div>
       ) : (
-        <section className="mt-8 flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 px-6 text-center">
+        <section className="site-card site-card-empty mt-8 flex min-h-72 flex-col items-center justify-center bg-zinc-50 px-6">
           <h2 className="type-content-title text-zinc-950">{selectedIndustryLabel} 템플릿 준비 중</h2>
           <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
             매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.
@@ -226,7 +226,7 @@ export default function TemplateGallery({
             type="button"
             onClick={() => selectPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="grid h-10 w-10 place-items-center rounded-full text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+            className="site-button site-button-ghost site-button-sm site-button-icon text-zinc-600 disabled:opacity-30"
             aria-label="이전 템플릿 페이지"
           >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
@@ -236,7 +236,7 @@ export default function TemplateGallery({
               key={pageNumber}
               type="button"
               onClick={() => selectPage(pageNumber)}
-              className={`h-10 min-w-10 rounded-full px-3 text-sm font-bold transition-colors ${currentPage === pageNumber ? "bg-zinc-950 text-white" : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950"}`}
+              className={`site-button site-button-sm min-w-10 px-3 ${currentPage === pageNumber ? "site-button-primary" : "site-button-ghost"}`}
               aria-current={currentPage === pageNumber ? "page" : undefined}
               aria-label={`${pageNumber}페이지`}
             >
@@ -247,7 +247,7 @@ export default function TemplateGallery({
             type="button"
             onClick={() => selectPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="grid h-10 w-10 place-items-center rounded-full text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+            className="site-button site-button-ghost site-button-sm site-button-icon text-zinc-600 disabled:opacity-30"
             aria-label="다음 템플릿 페이지"
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />

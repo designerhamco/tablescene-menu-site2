@@ -2,6 +2,7 @@
 @import "../styles/tailwind.css";
 @import "../styles/theme.css";
 @import "../styles/typography.css";
+@import "../styles/ui-system.css";
 
 * {
   box-sizing: border-box;

@@ -30,8 +30,8 @@ function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSecti
 
 function getNavigationClassName(active: boolean) {
   return active
-    ? "flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
-    : "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950";
+    ? "site-nav-item site-nav-item-active"
+    : "site-nav-item";
 }
 
 export default async function StoreOperationsShell({
@@ -95,7 +95,7 @@ export default async function StoreOperationsShell({
                   canShowOwnerCommerce={false}
                 />
               ) : null}
-              <div className="rounded-3xl border border-zinc-200 bg-white p-3 shadow-sm">
+              <div className="site-card p-3">
                 {selectedSite ? (
                   <Link
                     href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
@@ -126,7 +126,7 @@ export default async function StoreOperationsShell({
                           aria-disabled="true"
                           aria-label={`${item.label} ${unavailableLabel}: ${unavailableReason}`}
                           title={unavailableReason}
-                          className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-zinc-300"
+                          className="site-nav-item site-nav-item-disabled"
                         >
                           <span>{item.label}</span>
                           <span className="text-xs font-bold">{unavailableLabel}</span>
