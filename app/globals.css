@@ -585,7 +585,7 @@ video {
 
 .cafe-a-typography .cafe-a-price-column-header,
 .cafe-a-typography .cafe-a-price-columns-grid {
-  --cafe-a-price-column-gap: 0.24rem;
+  --cafe-a-price-column-gap: 0.625rem;
   display: grid;
   gap: var(--cafe-a-price-column-gap);
   grid-template-columns: repeat(var(--cafe-a-price-column-count), max-content);
@@ -1783,12 +1783,12 @@ video {
   }
 
   .cafe-a-typography .cafe-a-price-column-header {
-    --cafe-a-price-column-gap: clamp(0.16rem, calc(0.26rem * var(--fit-menu-gap-scale)), 0.34rem);
+    --cafe-a-price-column-gap: clamp(0.48rem, calc(0.625rem * var(--fit-menu-gap-scale)), 0.72rem);
     --cafe-a-price-column-label-font-size: clamp(0.36rem, calc(0.58rem * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-supporting-size-scale, 1)), 0.72rem);
   }
 
   .cafe-a-typography .cafe-a-price-columns-grid {
-    --cafe-a-price-column-gap: clamp(0.16rem, calc(0.26rem * var(--fit-menu-gap-scale)), 0.34rem);
+    --cafe-a-price-column-gap: clamp(0.48rem, calc(0.625rem * var(--fit-menu-gap-scale)), 0.72rem);
     max-width: min(100%, 13rem);
   }
 
