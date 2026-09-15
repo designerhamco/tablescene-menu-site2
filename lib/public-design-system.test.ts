@@ -29,6 +29,8 @@ const mypageQrSource = readSource("../app/mypage/menus/[menuId]/qr/page.tsx");
 const mypageImportSource = readSource("../app/mypage/menus/[menuId]/import/page.tsx");
 const mypageConvertSource = readSource("../app/mypage/menus/[menuId]/convert/page.tsx");
 const mypagePreviewSource = readSource("../app/mypage/menus/[menuId]/preview/page.tsx");
+const displayProductStorySource = readSource("../app/components/display/DisplayProductStory.tsx");
+const templateShowcaseSource = readSource("../app/components/home/TemplateShowcase.tsx");
 const operationPageSources = [
   "calls",
   "orders",
@@ -83,6 +85,15 @@ test("마이페이지와 주요 서브페이지는 같은 사이트 여백 계�
 
   assert.match(mypageStaffSource, /<OfficialSiteNavbar \/>/);
   assert.match(mypageStaffSource, /<Footer \/>/);
+});
+
+test("전역 여백은 최대 폭 요소 안에 중복 적용하지 않는다", () => {
+  assert.doesNotMatch(mypageNewMenuSource, /site-gutter[^"\n]*max-w/);
+  assert.match(mypageNewMenuSource, /site-gutter w-full/);
+  assert.match(mypageNewMenuSource, /mx-auto w-full max-w-7xl/);
+  assert.doesNotMatch(displayProductStorySource, /site-gutter[^"\n]*max-w/);
+  assert.match(displayProductStorySource, /site-container absolute/);
+  assert.doesNotMatch(templateShowcaseSource, /site-gutter[^"\n]*max-w/);
 });
 
 test("공개 페이지의 검정 CTA는 홈과 같은 표면 규칙을 공유한다", () => {
