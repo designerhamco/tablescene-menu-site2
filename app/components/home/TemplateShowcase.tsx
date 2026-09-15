@@ -116,7 +116,7 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55 }}
-            className="site-gutter mx-auto mb-16 max-w-4xl text-center md:mb-20"
+            className="mx-auto mb-16 max-w-4xl px-[var(--site-gutter)] text-center md:mb-20"
           >
             <MarketingSectionCopy
               centered
