@@ -269,7 +269,7 @@
 
 ## 14. 출시 전 디자인·실사용 최종화
 
-- `IN_PROGRESS` 현재 Production 기능 베이스라인 재검증 — 오브 테이블 QA의 스마트호출 4개 항목·완료 이력 3건, 활성 테이블 1개, 대표·테이블별 QR 다운로드 성공 토스트를 화면과 DB에서 확인했다. Display 대기번호 공개 API·화면 200과 완료 이력 1건도 확인했다. 현재 QA 계정이 소유한 Display 메뉴판이 없어 새 번호 등록·픽업·수령 쓰기 흐름만 남음, `docs/runbooks/production-feature-baseline-qa.md`
+- `IN_PROGRESS` 현재 Production 기능 베이스라인 재검증 — 오브 테이블 QA의 스마트호출 4개 항목·완료 이력 3건, 활성 테이블 1개, 대표·테이블별 QR 다운로드 성공 토스트를 화면과 DB에서 확인했다. 호출 설정/내역 탭, 검색·상태·날짜·처리자 필터, 확인자·완료자와 각 처리 시각, 최대 5개 항목, 상시 화면 알림과 선택형 브라우저 알림·소리까지 Production `eb09e7e`에서 재검증했다. Display 대기번호 공개 API·화면 200과 완료 이력 1건도 확인했다. 현재 QA 계정이 소유한 Display 메뉴판이 없어 새 번호 등록·픽업·수령 쓰기 흐름만 남음, `docs/runbooks/production-feature-baseline-qa.md`
 - `IN_PROGRESS` 메뉴 제작 AI 실사용 E2E — 기존 Production QA 메뉴판에서 설명 생성 `-1`, 메뉴 정리 `-3`, 다국어 부분 번역 `-1` 거래와 최근 4크레딧의 정확한 잔액 감소를 확인했다. 신규 계정의 첫 메뉴 6크레딧 평생 1회 지급·추가 메뉴 미지급과 실패 롤백은 30일 무료체험 E2E에서 함께 확인, `docs/runbooks/production-feature-baseline-qa.md`
 - `NEEDS_HUMAN` 신규 결제·30일 무료체험 실제 E2E — 사업자 확인·실제 결제수단 등록, 0원 시작, 해지 예약·복구, 30일 종료 경계의 첫 결제·만료 우선순위를 확인. 실제 카드 입력 단계만 사용자 작업 필요
 - `DONE` 직원 권한 2차 설계 — 고정 역할을 `매니저`·`편집자`·`운영 직원`·`조회 전용` 프리셋으로 정리하고 직원별 허용/차단 덮어쓰기를 추가했다. 결제·구독·보관·삭제·직원 관리는 Owner 전용으로 유지하고 제한 기능은 숨기지 않고 비활성 사유를 표시한다. 2026-09-14 `20260914074800_add_staff_permission_overrides.sql`을 `tablescene-prod`에 단일 적용했으며, 검증 제약과 service-role 전용 RPC 권한을 postcheck했다. `docs/runbooks/staff-permission-overrides-migration.md`
