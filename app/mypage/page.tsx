@@ -610,8 +610,8 @@ function getEntitlementStatusLabel(status: string | null | undefined) {
     active: "이용 중",
     expired: "만료됨",
     archived: "보관 중",
-    pending_delete: "삭제됨",
-    deleted: "삭제됨",
+    pending_delete: "종료됨",
+    deleted: "종료됨",
   };
 
   return status ? labels[status] ?? status : "상태 확인 필요";
@@ -1157,7 +1157,7 @@ function getArchivedDisplayState({
   if (isRetentionDue) {
     return {
       key: "deleted",
-      label: "삭제됨",
+      label: "종료됨",
       className: "bg-zinc-100 text-zinc-600",
       message: "보관 기간이 종료되어 복구할 수 없습니다.",
       cta: null,
@@ -1324,7 +1324,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       : messageCode === "owner-commerce-permission-required"
         ? "구독과 결제 내역은 메뉴판 사장만 관리할 수 있습니다."
       : messageCode === "owner-menu-lifecycle-permission-required"
-        ? "보관·삭제된 메뉴판은 메뉴판 사장만 관리할 수 있습니다."
+        ? "보관·종료된 메뉴판은 메뉴판 사장만 관리할 수 있습니다."
       : messageCode === "staff-management-permission-required"
         ? "직원 관리는 소유한 메뉴판의 사장만 사용할 수 있습니다."
       : messageCode === "menu-edit-permission-required"
@@ -1847,7 +1847,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const entitlementStatus = entitlement?.status ?? null;
     const subscriptionStatus = subscription?.status ?? null;
 
-    if (entitlementStatus === "pending_delete" || entitlementStatus === "deleted") return "삭제됨";
+    if (entitlementStatus === "pending_delete" || entitlementStatus === "deleted") return "종료됨";
     if (menuSite?.status === "archived" || entitlementStatus === "archived") return "보관 중";
     if ((planType === "personal_trial" || planType === "personal_trial_basic_1month") && entitlementStatus === "expired") return "체험 기간 종료";
     if (isPastCancelScheduledSubscription(subscription, entitlement?.access_expires_at ?? null)) return "해지 종료";
@@ -2194,7 +2194,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const unavailableActionReason = isTrialPendingDelete
       ? "복구 가능 기간이 종료되어 사용할 수 없습니다."
       : section === "deleted"
-        ? "삭제된 메뉴판은 사용할 수 없습니다."
+        ? "종료된 메뉴판은 사용할 수 없습니다."
         : isAccessRestricted || hasPaymentIssue
         ? "보관 중에는 사용할 수 없습니다. 보관 기간 안에 재구독하면 다시 사용할 수 있습니다."
         : "현재 상태에서는 사용할 수 없습니다.";
@@ -2764,12 +2764,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 )}
                 {canShowOwnerCommerce ? (
                   <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
-                    삭제됨
+                    종료됨
                     <span className="ml-2 rounded-full px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
                   </Link>
                 ) : (
-                  <span aria-disabled="true" aria-label="삭제됨 권한 없음: 삭제된 메뉴판은 사장만 관리할 수 있습니다." title="삭제된 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
-                    삭제됨 <span className="type-caption ml-2">권한 없음</span>
+                  <span aria-disabled="true" aria-label="종료됨 권한 없음: 종료된 메뉴판은 사장만 관리할 수 있습니다." title="종료된 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
+                    종료됨 <span className="type-caption ml-2">권한 없음</span>
                   </span>
                 )}
               </nav>
@@ -2803,7 +2803,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
                   <h3 className="type-content-title">
-                    {activeMenuTab === "active" ? "이용 중인 메뉴판" : activeMenuTab === "holding" ? "보관 중인 메뉴판" : "삭제된 메뉴판"}
+                    {activeMenuTab === "active" ? "이용 중인 메뉴판" : activeMenuTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
                   </h3>
                   <p className="mt-1 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                     {activeMenuTab === "active"
@@ -2826,7 +2826,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               ) : (
                 <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
                   <h3 className="type-subsection-title">
-                    {activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "삭제된 메뉴판이 없습니다"}
+                    {activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
                   </h3>
                   <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     {activeMenuTab === "active"
@@ -3052,7 +3052,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                     <div>
                       <h3 className="type-subsection-title">
-                        {activeBillingTab === "holding" ? "보관 중인 메뉴판" : "삭제된 메뉴판"}
+                        {activeBillingTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
                       </h3>
                       <p className="mt-2 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-700">
                         {activeBillingTab === "holding"
@@ -3217,7 +3217,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   ) : (
                     <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
                       <h4 className="type-content-title">
-                        {activeBillingTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "삭제된 메뉴판이 없습니다"}
+                        {activeBillingTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
                       </h4>
                       <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
                         {activeBillingTab === "holding"
