@@ -56,7 +56,7 @@ export default function CallItemManager({
   const serializedItems = JSON.stringify(draft.map((item, sortOrder) => ({ ...item, sortOrder })));
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
+    <section className="rounded-3xl border border-zinc-200 bg-white p-5 md:p-6">
       <ActionFeedbackToast
         message={state.message}
         tone={state.status === "success" ? "success" : "error"}
@@ -68,6 +68,9 @@ export default function CallItemManager({
           <p className="mt-2 max-w-2xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
             손님에게 보여줄 요청 항목을 최대 {MAX_STAFF_CALL_ITEMS}개까지 정합니다. 사용 중지를 해도 이전 호출 이력의 항목명은 그대로 보존됩니다.
           </p>
+          {draft.length > MAX_STAFF_CALL_ITEMS ? (
+            <p className="mt-2 text-xs font-bold text-amber-700">기존 항목을 {MAX_STAFF_CALL_ITEMS}개 이하로 줄인 뒤 저장해 주세요.</p>
+          ) : null}
         </div>
         <button
           type="button"

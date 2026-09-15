@@ -44,17 +44,14 @@ export function getDashboardBrowserNotificationPreferenceKey({
 export function shouldShowDashboardBrowserNotification({
   enabled,
   permission,
-  pageHasAttention,
   newCount,
 }: {
   enabled: boolean;
   permission: DashboardBrowserNotificationPermission;
-  pageHasAttention: boolean;
   newCount: number;
 }) {
   return enabled
     && permission === "granted"
-    && !pageHasAttention
     && Number.isSafeInteger(newCount)
     && newCount > 0;
 }
