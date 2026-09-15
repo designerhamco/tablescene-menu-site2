@@ -65,7 +65,7 @@ export default function AiSupportChatLauncher() {
       <AnimatePresence>
         {open ? (
           <motion.div
-            className="fixed inset-0 z-50 bg-black/40 md:p-6"
+            className="site-dialog-overlay fixed inset-0 z-50 md:p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -78,7 +78,7 @@ export default function AiSupportChatLauncher() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="ai-support-dialog-title"
-              className="absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[1.75rem] bg-white text-zinc-950 md:inset-x-auto md:bottom-6 md:right-6 md:w-[min(680px,calc(100vw-48px))] md:rounded-[1.75rem] md:border md:border-zinc-200"
+              className="site-dialog site-dialog-sheet absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col overflow-hidden border-x-0 border-b-0 text-zinc-950 md:inset-x-auto md:bottom-6 md:right-6 md:w-[min(680px,calc(100vw-48px))] md:border"
               initial={{ opacity: 0, y: 36 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
