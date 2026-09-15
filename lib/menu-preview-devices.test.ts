@@ -7,6 +7,7 @@ import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
 
 import {
   buildMenuPreviewUrl,
+  buildTemplatePreviewUrl,
   getMenuPreviewFrame,
   MENU_PREVIEW_ORIENTATIONS,
   normalizeMenuPreviewDevice,
@@ -75,6 +76,10 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.match(html, />PC</);
   assert.match(html, />태블릿</);
   assert.match(html, />모바일</);
+  assert.doesNotMatch(html, /메뉴판 목록/);
+  assert.doesNotMatch(html, /새 창에서 실제 크기 보기/);
+  assert.doesNotMatch(html, /1440 × 900/);
+  assert.match(html, /기기 선택 도구 열기/);
 });
 
 test("framed preview URLs preserve only supported preview parameters", () => {
@@ -126,5 +131,20 @@ test("preview URLs preserve PG opt-in only for mobile frames", () => {
   assert.equal(
     buildMenuPreviewUrl("menu-a", {}, { device: "pc", paymentMode: "on" }),
     "/mypage/menus/menu-a/preview?device=pc",
+  );
+});
+
+test("template previews open in device frames without carrying recursive frame parameters", () => {
+  assert.equal(
+    buildTemplatePreviewUrl(
+      "cafe_sunday_line_a",
+      { lang: "en", copyQa: "long", device: "mobile", view: "actual" },
+      { device: "tablet", orientation: "portrait" },
+    ),
+    "/templates/cafe_sunday_line_a/preview?copyQa=long&lang=en&device=tablet&orientation=portrait",
+  );
+  assert.equal(
+    buildTemplatePreviewUrl("dining_aube_table_a", {}, { device: "pc", actual: true, embedded: true }),
+    "/templates/dining_aube_table_a/preview?device=pc&view=actual&embedded=1",
   );
 });

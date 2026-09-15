@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
+import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "@/lib/aube-table";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
@@ -10,6 +11,11 @@ import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOC
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
+import {
+  normalizeMenuPreviewDevice,
+  normalizeMenuPreviewOrientation,
+  shouldUseMenuPreviewDeviceFrame,
+} from "@/lib/menu-preview-devices";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
@@ -46,6 +52,10 @@ type PageProps = {
     pagePresentation?: string | string[];
     renderMode?: string | string[];
     orderCallQa?: string | string[];
+    device?: string | string[];
+    orientation?: string | string[];
+    view?: string | string[];
+    embedded?: string | string[];
   }>;
 };
 
@@ -1210,6 +1220,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function TemplatePreviewPage({ params, searchParams }: PageProps) {
   const { templateKey } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
+  const getFirstParam = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
   const layoutModeParam = Array.isArray(resolvedSearchParams.layoutMode)
     ? resolvedSearchParams.layoutMode[0]
     : resolvedSearchParams.layoutMode;
@@ -1230,6 +1241,21 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
 
   if (!isValidTemplateKey(templateKey)) {
     notFound();
+  }
+
+  const device = normalizeMenuPreviewDevice(getFirstParam(resolvedSearchParams.device));
+  const orientation = normalizeMenuPreviewOrientation(getFirstParam(resolvedSearchParams.orientation));
+  const isActualView = getFirstParam(resolvedSearchParams.view) === "actual";
+
+  if (!isActualView && shouldUseMenuPreviewDeviceFrame(templateKey)) {
+    return (
+      <MenuPreviewDeviceFrame
+        device={device}
+        orientation={orientation}
+        templateKey={templateKey}
+        query={resolvedSearchParams}
+      />
+    );
   }
 
   const fixtureData = applyPreviewFontSizeScale(

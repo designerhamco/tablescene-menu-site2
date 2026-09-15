@@ -12,6 +12,7 @@ import NotificationHistorySection, { type MypageNotificationEvent } from "@/comp
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import { MypageAccountCard, MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
+import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import {
   getInquiryErrorMessage,
@@ -39,7 +40,7 @@ import { NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getRemainingDaysUntilKst, getServiceLifecycleBucket, resolveServiceLifecycle } from "@/lib/mypage-service-lifecycle";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getTemplateByKey, getTemplateDisplayName } from "@/lib/templates";
 import { isTemplateSupportedForService } from "@/lib/template-types";
 import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
@@ -2299,6 +2300,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       title: getSafeString(site.name) || "이름 없는 메뉴판",
       slug,
       publicPath,
+      template: getTemplateByKey(site.template_key),
       templateLabel: site.template_key ? getTemplateDisplayName(site.template_key) : "-",
       serviceBadge,
       badges,
@@ -2374,6 +2376,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       siteId: site.menuSiteId,
       title: site.name || "이름 없는 메뉴판",
       publicPath,
+      template: getTemplateByKey(site.templateKey),
       templateLabel: site.templateKey ? getTemplateDisplayName(site.templateKey) : "-",
       roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
       statusLabel: getStatusLabel(site.status),
@@ -2467,6 +2470,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     return (
       <article key={card.key} className="site-card p-5">
+        <div className="mb-5 overflow-hidden rounded-[1.25rem] border border-zinc-100 bg-zinc-50">
+          <TemplateThumbnail template={card.template} />
+        </div>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <h3 className="type-content-title">{card.title}</h3>
@@ -2542,6 +2548,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     return (
       <article key={card.key} className="site-card p-5">
+        <div className="mb-5 overflow-hidden rounded-[1.25rem] border border-zinc-100 bg-zinc-50">
+          <TemplateThumbnail template={card.template} />
+        </div>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <h3 className="type-content-title">{card.title}</h3>
