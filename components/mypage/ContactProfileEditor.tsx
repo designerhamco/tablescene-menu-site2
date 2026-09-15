@@ -196,15 +196,18 @@ export default function ContactProfileEditor({
       </div>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4 py-8">
+        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
           <form
             onSubmit={submitContactProfile}
-            className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label="담당자 정보 수정"
+            className="site-dialog site-dialog-panel max-h-[90vh] w-full max-w-xl overflow-y-auto p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="type-subsection-title text-zinc-950">담당자 정보 수정</h2>
-                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
                   문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다. 사업자 인증 정보 변경은 고객지원으로 문의해주세요.
                 </p>
               </div>
