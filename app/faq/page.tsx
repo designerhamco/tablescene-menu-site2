@@ -20,7 +20,7 @@ export default function FAQPage() {
     <>
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-white text-zinc-950">
-        <section className="border-b border-zinc-200 py-16 md:py-24">
+        <section className="site-page-spacing border-b border-zinc-200">
           <div className="site-container">
             <h1 className="type-page-title max-w-3xl">
               필요한 도움을<br className="hidden md:block" /> 빠르게 확인
@@ -29,7 +29,7 @@ export default function FAQPage() {
               자주 묻는 질문을 먼저 확인하고, 더 자세한 도움이 필요하면 AI 상담이나 1:1 문의를 이용해 주세요.
             </p>
 
-            <div className="mt-12 grid gap-3 md:max-w-3xl md:grid-cols-2">
+            <div className="site-card-grid mt-12 md:max-w-3xl md:grid-cols-2">
               <AiSupportChatOpenButton className="site-card site-card-interactive group flex min-h-44 flex-col items-stretch justify-between p-6 text-left">
                 <Bot className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>

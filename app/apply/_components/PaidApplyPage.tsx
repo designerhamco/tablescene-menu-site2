@@ -99,7 +99,7 @@ export default async function PaidApplyPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-zinc-50 py-14 text-zinc-950 md:py-16">
+      <main className="site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <div className="site-container max-w-[1200px]">
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>

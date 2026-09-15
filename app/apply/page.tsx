@@ -20,7 +20,7 @@ export default function ApplyPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-white py-14 text-zinc-950 md:py-20">
+      <main className="site-page-spacing min-h-screen bg-white text-zinc-950">
         <div className="site-container">
           <header className="max-w-3xl pb-12 md:pb-16">
             <h1 className="type-page-title">

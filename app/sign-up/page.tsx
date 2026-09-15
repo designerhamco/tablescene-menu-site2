@@ -36,7 +36,7 @@ export default async function SignUpPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950 lg:py-20">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <section className="site-card mx-auto w-full max-w-xl p-6 sm:p-8">
           <div>
             <h1 className="type-subsection-title">아티메뉴 회원가입</h1>
