@@ -611,11 +611,11 @@ video {
 }
 
 .cafe-a-typography .cafe-a-price-column-heading {
-  justify-self: stretch;
+  justify-self: end;
   min-width: 0;
   overflow-wrap: anywhere;
   text-align: center;
-  width: 100%;
+  width: min(100%, 1.6rem);
 }
 
 .cafe-a-typography .cafe-a-price-column-cell {
