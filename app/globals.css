@@ -564,13 +564,11 @@ video {
 }
 
 .cafe-a-typography .cafe-a-category-heading-row {
-  --cafe-a-price-rail-safe-gap: 0.0625rem;
   align-items: center;
   column-gap: 0.75rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
   min-width: 0;
-  padding-inline-end: var(--cafe-a-price-rail-safe-gap);
 }
 
 .cafe-a-typography .cafe-a-category-title {
@@ -588,12 +586,10 @@ video {
 .cafe-a-typography .cafe-a-price-column-header,
 .cafe-a-typography .cafe-a-price-columns-grid {
   --cafe-a-price-column-gap: 0.24rem;
-  --cafe-a-price-column-width: clamp(1.95rem, 3.25vw, 2.24rem);
   display: grid;
   gap: var(--cafe-a-price-column-gap);
-  grid-template-columns: repeat(var(--cafe-a-price-column-count), minmax(0, var(--cafe-a-price-column-width)));
+  grid-template-columns: repeat(var(--cafe-a-price-column-count), max-content);
   justify-content: end;
-  justify-items: center;
   min-width: 0;
 }
 
@@ -612,6 +608,8 @@ video {
 }
 
 .cafe-a-typography .cafe-a-price-column-heading {
+  display: grid;
+  grid-template-areas: "price-column";
   justify-self: end;
   min-width: 0;
   position: relative;
@@ -619,10 +617,16 @@ video {
   width: max-content;
 }
 
-.cafe-a-typography .cafe-a-price-column-heading-anchor {
-  display: block;
+.cafe-a-typography .cafe-a-price-column-sizer {
+  display: grid;
+  grid-area: price-column;
   letter-spacing: normal;
+  line-height: 1;
   visibility: hidden;
+}
+
+.cafe-a-typography .cafe-a-price-column-sizer > * {
+  grid-area: 1 / 1;
   white-space: nowrap;
 }
 
@@ -645,13 +649,17 @@ video {
 
 .cafe-a-typography .cafe-a-price-column-cell {
   align-items: flex-start;
-  display: flex;
+  display: grid;
+  grid-template-areas: "price-column";
   justify-self: end;
-  justify-content: flex-end;
   min-width: 0;
-  overflow-wrap: anywhere;
   text-align: right;
-  width: 100%;
+  width: max-content;
+}
+
+.cafe-a-typography .cafe-a-price-column-cell > :not(.cafe-a-price-column-sizer) {
+  grid-area: price-column;
+  justify-self: end;
 }
 
 .cafe-a-typography .cafe-a-price-area {
@@ -744,11 +752,9 @@ video {
 }
 
 .cafe-a-typography .cafe-a-menu-item-has-price-columns {
-  --cafe-a-price-rail-safe-gap: 0.0625rem;
   align-items: start;
   column-gap: 0.75rem;
   grid-template-columns: minmax(0, 1fr) max-content;
-  padding-inline-end: var(--cafe-a-price-rail-safe-gap);
 }
 
 .cafe-a-typography .cafe-a-menu-item-with-image.cafe-a-menu-item-has-price-columns {

@@ -35,7 +35,11 @@ test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른
   );
   assert.match(
     globalStylesSource,
-    /\.cafe-a-price-column-heading-anchor \{[\s\S]*letter-spacing: normal;[\s\S]*visibility: hidden;[\s\S]*white-space: nowrap;/,
+    /\.cafe-a-price-column-header,[\s\S]*\.cafe-a-price-columns-grid \{[\s\S]*grid-template-columns: repeat\(var\(--cafe-a-price-column-count\), max-content\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-price-column-sizer \{[\s\S]*display: grid;[\s\S]*grid-area: price-column;[\s\S]*letter-spacing: normal;[\s\S]*visibility: hidden;/,
   );
   assert.match(
     globalStylesSource,
@@ -43,8 +47,21 @@ test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른
   );
   assert.match(
     globalStylesSource,
-    /\.cafe-a-price-column-cell \{[\s\S]*justify-self: end;[\s\S]*justify-content: flex-end;[\s\S]*text-align: right;[\s\S]*width: 100%;/,
+    /\.cafe-a-price-column-cell \{[\s\S]*display: grid;[\s\S]*grid-template-areas: "price-column";[\s\S]*justify-self: end;[\s\S]*text-align: right;[\s\S]*width: max-content;/,
   );
+  assert.match(
+    templateSource,
+    /function getCategoryPriceRailColumns\([\s\S]*widthCandidates: Array\.from\(candidatesByColumnId\.get\(column\.id\) \?\? \[\]\)/,
+  );
+  assert.match(
+    templateSource,
+    /function getColumnTimeSalePrice\([\s\S]*isTimeSaleCurrentlyActive\(timeSale\.promotion, nowMs\)/,
+  );
+  assert.match(
+    templateSource,
+    /<PriceColumnWidthSizer[\s\S]*candidates=\{priceRailColumns\?\.\[index\]\?\.widthCandidates/,
+  );
+  assert.doesNotMatch(globalStylesSource, /cafe-a-price-rail-safe-gap/);
 });
 
 test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이는 영역을 맞춘다", () => {

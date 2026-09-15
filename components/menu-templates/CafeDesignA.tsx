@@ -92,6 +92,11 @@ type CafeDesignAPriceToken = {
   originalPrice?: number | null;
   salePrice?: string;
 };
+type CafeDesignAPriceRailColumn = {
+  id: string;
+  label: string;
+  widthCandidates: string[];
+};
 type CafeDesignATimeSaleMatch = {
   promotion: PublicTimeSale;
   item?: PublicTimeSaleItem;
@@ -2108,6 +2113,83 @@ function getItemPriceTokensForCategory(
   };
 }
 
+function getColumnTimeSalePrice({
+  item,
+  token,
+  timeSale,
+  templateKey,
+  priceDisplayMode,
+  nowMs,
+}: {
+  item: MenuItem;
+  token: CafeDesignAPriceToken;
+  timeSale?: CafeDesignATimeSaleMatch;
+  templateKey: string | null | undefined;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
+  nowMs: number;
+}) {
+  const originalPrice = token.originalPrice;
+  const saleTarget = token.priceColumnId ? timeSale?.optionItemsByPriceColumnId.get(token.priceColumnId) : undefined;
+  const salePrice = saleTarget?.salePrice;
+  const canShowSale =
+    item.is_sold_out !== true &&
+    isCafeDesignATimeSaleTemplate(templateKey) &&
+    Boolean(timeSale && isTimeSaleCurrentlyActive(timeSale.promotion, nowMs)) &&
+    saleTarget?.visible !== false &&
+    typeof originalPrice === "number" &&
+    Number.isFinite(originalPrice) &&
+    originalPrice > 0 &&
+    typeof salePrice === "number" &&
+    Number.isFinite(salePrice) &&
+    salePrice > 0 &&
+    salePrice < originalPrice;
+
+  return canShowSale && saleTarget ? getTimeSalePriceDisplay(saleTarget, priceDisplayMode) : "";
+}
+
+function getCategoryPriceRailColumns({
+  category,
+  items,
+  timeSaleByItemId,
+  templateKey,
+  priceDisplayMode,
+  nowMs,
+}: {
+  category: MenuCategory;
+  items: MenuItem[];
+  timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
+  templateKey: string | null | undefined;
+  priceDisplayMode: CafeDesignAPriceDisplayMode;
+  nowMs: number;
+}): CafeDesignAPriceRailColumn[] {
+  const columns = getVisibleCategoryPriceColumns(category);
+  if (columns.length === 0) return [];
+
+  const candidatesByColumnId = new Map(columns.map((column) => [column.id, new Set<string>()]));
+  for (const item of items) {
+    const timeSale = timeSaleByItemId.get(item.id);
+    for (const token of getItemPriceColumnTokens(item, category, priceDisplayMode)) {
+      if (!token.priceColumnId) continue;
+      const candidates = candidatesByColumnId.get(token.priceColumnId);
+      if (!candidates) continue;
+
+      const regularPrice = token.price.trim();
+      if (regularPrice) candidates.add(regularPrice);
+      const salePrice = getColumnTimeSalePrice({ item, token, timeSale, templateKey, priceDisplayMode, nowMs }).trim();
+      if (salePrice) candidates.add(salePrice);
+    }
+  }
+
+  const hasAnyPrice = Array.from(candidatesByColumnId.values()).some((candidates) => candidates.size > 0);
+  if (!hasAnyPrice) return [];
+
+  return columns.map((column) => ({
+    id: column.id,
+    label: column.label.trim(),
+    widthCandidates: Array.from(candidatesByColumnId.get(column.id) ?? []).sort((a, b) => a.localeCompare(b, "ko")),
+  }));
+}
+
 function getItemPriceColumnDisplay(
   item: MenuItem,
   category: MenuCategory,
@@ -3114,11 +3196,11 @@ function getMenuDescriptionSizeClassName(density: MenuLayoutDensity) {
 function CategoryTitle({
   category,
   density,
-  items,
+  priceRailColumns,
 }: {
   category: MenuCategory;
   density: MenuLayoutDensity;
-  items?: MenuItem[];
+  priceRailColumns?: CafeDesignAPriceRailColumn[];
 }) {
   const spacingClassName = getCategoryTitleSpacing(density);
   const titleClassName = {
@@ -3138,9 +3220,9 @@ function CategoryTitle({
         >
           <ScriptAwareText text={category.name} />
         </h2>
-        {items ? (
+        {priceRailColumns && priceRailColumns.length > 0 ? (
           <div className="cafe-a-category-price-column-slot">
-            <CategoryPriceColumnHeader category={category} items={items} density={density} />
+            <CategoryPriceColumnHeader columns={priceRailColumns} density={density} />
           </div>
         ) : null}
       </div>
@@ -3154,19 +3236,12 @@ function CategoryTitle({
 }
 
 function CategoryPriceColumnHeader({
-  category,
-  items,
+  columns,
   density,
 }: {
-  category: MenuCategory;
-  items: MenuItem[];
+  columns: CafeDesignAPriceRailColumn[];
   density: MenuLayoutDensity;
 }) {
-  const columns = getVisibleCategoryPriceColumns(category);
-  if (columns.length === 0) return null;
-
-  const hasColumnPriceValues = items.some((item) => getVisibleItemPriceColumnValueMap(item, category).size > 0);
-  if (!hasColumnPriceValues) return null;
   const priceClassName = {
     spacious: "cafe-a-menu-price-size-spacious",
     default: "cafe-a-menu-price-size-default",
@@ -3181,16 +3256,34 @@ function CategoryPriceColumnHeader({
       aria-label="가격 옵션 컬럼"
     >
       {columns.map((column) => (
-        <span key={column.id} className={`cafe-a-price-column-heading cafe-a-menu-price ${priceClassName}`}>
-          <span aria-hidden="true" className="cafe-a-price-column-heading-anchor">
-            <ScriptAwareText text="0.0" />
-          </span>
+        <span key={column.id} className="cafe-a-price-column-heading">
+          <PriceColumnWidthSizer candidates={column.widthCandidates} priceClassName={priceClassName} />
           <span className="cafe-a-price-column-heading-label">
             <ScriptAwareText text={column.label} />
           </span>
         </span>
       ))}
     </div>
+  );
+}
+
+function PriceColumnWidthSizer({
+  candidates,
+  priceClassName,
+}: {
+  candidates: string[];
+  priceClassName: string;
+}) {
+  const sizingCandidates = candidates.length > 0 ? candidates : ["0.0"];
+
+  return (
+    <span aria-hidden="true" className={`cafe-a-price-column-sizer cafe-a-menu-price ${priceClassName}`} data-cafe-a-price-column-sizer="">
+      {sizingCandidates.map((candidate) => (
+        <span key={candidate}>
+          <ScriptAwareText text={candidate} />
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -3264,6 +3357,7 @@ function MenuItemRow({
   customBadgeStyles,
   locale,
   priceDisplayMode,
+  priceRailColumns,
   onOpenImage,
 }: {
   item: MenuItem;
@@ -3277,6 +3371,7 @@ function MenuItemRow({
   customBadgeStyles: unknown;
   locale: PublicMenuTemplateProps["locale"];
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
+  priceRailColumns?: CafeDesignAPriceRailColumn[];
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
@@ -3299,26 +3394,16 @@ function MenuItemRow({
   const timeSalePrice = showTimeSale && singleTimeSaleItem ? getTimeSalePriceDisplay(singleTimeSaleItem, priceDisplayMode) : "";
   const priceTokensWithColumnTimeSale = usesPriceColumns
     ? priceTokens.map((token) => {
-        const originalPrice = token.originalPrice;
-        const saleTarget = token.priceColumnId ? timeSale?.optionItemsByPriceColumnId.get(token.priceColumnId) : undefined;
-        const salePrice = saleTarget?.salePrice;
-        const showColumnTimeSale =
-          !isSoldOut &&
-          isCafeDesignATimeSaleTemplate(templateKey) &&
-          timeSale &&
-          isTimeSaleCurrentlyActive(timeSale.promotion, initialNowMs) &&
-          saleTarget?.visible !== false &&
-          typeof originalPrice === "number" &&
-          Number.isFinite(originalPrice) &&
-          originalPrice > 0 &&
-          typeof salePrice === "number" &&
-          Number.isFinite(salePrice) &&
-          salePrice > 0 &&
-          salePrice < originalPrice;
-
         return {
           ...token,
-          salePrice: showColumnTimeSale && saleTarget ? getTimeSalePriceDisplay(saleTarget, priceDisplayMode) : "",
+          salePrice: getColumnTimeSalePrice({
+            item,
+            token,
+            timeSale,
+            templateKey,
+            priceDisplayMode: priceDisplayMode ?? null,
+            nowMs: initialNowMs,
+          }),
         };
       })
     : priceTokens;
@@ -3447,6 +3532,10 @@ function MenuItemRow({
           >
             {priceTokensWithColumnTimeSale.map((token, index) => (
               <span key={`${token.label}-${token.price}-${index}`} className="cafe-a-price-column-cell">
+                <PriceColumnWidthSizer
+                  candidates={priceRailColumns?.[index]?.widthCandidates ?? [token.price, token.salePrice ?? ""].filter(Boolean)}
+                  priceClassName={priceClassName}
+                />
                 {token.price && token.salePrice && timeSale ? (
                   <TimeSalePriceBlock
                     timeSale={timeSale.promotion}
@@ -5503,6 +5592,15 @@ function MenuCategoryContentBlock({
   balancedSourceOrder?: number;
 }) {
   const groupKey = block.key;
+  const initialNowMs = useCafeATimeSaleInitialNowMs();
+  const priceRailColumns = getCategoryPriceRailColumns({
+    category: block.category,
+    items: block.items,
+    timeSaleByItemId,
+    templateKey: data.menuSite.template_key,
+    priceDisplayMode,
+    nowMs: initialNowMs,
+  });
   const balancedAttributes =
     balancedSourceOrder == null
       ? {}
@@ -5536,7 +5634,7 @@ function MenuCategoryContentBlock({
           data-cafe-a-category-divider-position="before"
         />
       ) : null}
-      <CategoryTitle category={block.category} density={density} items={block.items} />
+      <CategoryTitle category={block.category} density={density} priceRailColumns={priceRailColumns} />
       <div className="cafe-a-category-items">
         {block.items.map((item) => (
           <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
@@ -5552,6 +5650,7 @@ function MenuCategoryContentBlock({
               customBadgeStyles={customBadgeStyles}
               locale={data.locale}
               priceDisplayMode={priceDisplayMode}
+              priceRailColumns={priceRailColumns}
               onOpenImage={onOpenImage}
             />
           </div>
