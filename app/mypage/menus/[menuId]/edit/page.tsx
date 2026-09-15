@@ -830,19 +830,19 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center">
           <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
           </Link>
-          <div className="rounded-3xl border border-amber-100 bg-white p-8 shadow-sm">
+          <div className="site-card p-6 sm:p-8">
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{statusLabel}</span>
               <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">{templateDisplayName}</span>
             </div>
             <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 편집할 수 없습니다.</h1>
             <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
-            <p className="mt-4 break-keep rounded-2xl bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+            <p className="site-notice site-notice-warning mt-4 p-4">
               보관/만료 상태에서는 편집, 저장, 이미지 업로드, 샘플 되돌리기, 공개 설정 변경이 제한됩니다. 미리보기로 기존 메뉴판 상태는 확인할 수 있습니다.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -1106,7 +1106,7 @@ function normalizeFinalSaveError(error?: string | null) {
 
 function SectionCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-lg bg-white p-6 shadow-sm">
+    <section className="site-card p-5 sm:p-6">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <h2 className="type-subsection-title">{title}</h2>
         {action && <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>}
@@ -1128,7 +1128,7 @@ function HelpTooltip({ label, children }: { label: string; children: ReactNode }
       </button>
       <span
         role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-7 z-30 hidden w-72 -translate-x-1/2 rounded-lg border border-zinc-100 bg-white p-3 text-left text-xs font-semibold leading-relaxed text-zinc-600 shadow-xl group-hover/help:block group-focus-within/help:block"
+        className="site-card site-card-compact pointer-events-none absolute left-1/2 top-7 z-30 hidden w-72 -translate-x-1/2 p-3 text-left text-xs font-semibold leading-relaxed text-zinc-600 group-hover/help:block group-focus-within/help:block"
       >
         {children}
       </span>
@@ -1140,12 +1140,12 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
           </Link>
-          <section className="rounded-lg bg-white p-8 shadow-sm">
+          <section className="site-card p-6 sm:p-8">
             <h1 className="type-subsection-title text-zinc-950">아티메뉴 커스텀은 맞춤 제작형 서비스입니다.</h1>
             <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
@@ -1841,11 +1841,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
-        <header className="mb-6 rounded-lg bg-white p-6 shadow-sm">
+        <header className="site-card mb-6 p-5 sm:p-6">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
           </Link>
@@ -2426,15 +2426,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       initialBalance={aiCreditBalance}
                     />
                   ) : accessState?.canUseAi ? (
-                    <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-relaxed text-blue-800">
+                    <div className="site-notice site-notice-info p-4">
                       AI 기능은 소유자의 크레딧을 사용합니다. 크레딧 충전은 소유자에게 요청해주세요.
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                    <div className="site-notice site-notice-warning p-4">
                       현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
                     </div>
                   )}
-                  <div className="rounded-lg border border-zinc-100 bg-white p-4 text-xs font-bold leading-relaxed text-zinc-500 shadow-sm">
+                  <div className="site-card site-card-compact p-4 text-xs font-bold leading-relaxed text-zinc-500">
                     메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
                   </div>
                   <MenuManagementSection
