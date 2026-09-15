@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Bot, CircleHelp, MessageSquareText } from "lucide-react";
+import { Bot, MessageSquareText } from "lucide-react";
 import Link from "next/link";
 
 import FAQ, { DETAILED_FAQ_DATA } from "@/app/components/common/FAQ";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { isAiSupportChatEnabled } from "@/lib/ai-support-chat";
+
+import AiSupportChatOpenButton from "../support/chat/AiSupportChatOpenButton";
 
 export const metadata: Metadata = {
   title: "고객센터 | ArtiMenu",
@@ -27,15 +29,8 @@ export default function FAQPage() {
               자주 묻는 질문을 먼저 확인하고, 더 자세한 도움이 필요하면 AI 상담이나 1:1 문의를 이용해 주세요.
             </p>
 
-            <div className="mt-12 grid gap-3 md:grid-cols-3">
-              <Link href="#frequently-asked" className="site-card site-card-interactive group flex min-h-44 flex-col justify-between p-6">
-                <CircleHelp className="h-6 w-6 text-zinc-950" aria-hidden="true" />
-                <div>
-                  <p className="site-body-title">자주 묻는 질문</p>
-                  <p className="site-body-support mt-2 text-zinc-500">서비스, 요금, 메뉴판 관리 기준을 확인합니다.</p>
-                </div>
-              </Link>
-              <Link href="/support/chat" className="site-card site-card-interactive group flex min-h-44 flex-col justify-between p-6">
+            <div className="mt-12 grid gap-3 md:max-w-3xl md:grid-cols-2">
+              <AiSupportChatOpenButton className="site-card site-card-interactive group flex min-h-44 flex-col items-stretch justify-between p-6 text-left">
                 <Bot className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
                   <div className="flex items-center gap-2">
@@ -44,7 +39,7 @@ export default function FAQPage() {
                   </div>
                   <p className="site-body-support mt-2 text-zinc-500">기능과 이용 방법을 바로 질문합니다.</p>
                 </div>
-              </Link>
+              </AiSupportChatOpenButton>
               <Link href="/mypage/inquiries" className="site-card site-card-interactive group flex min-h-44 flex-col justify-between p-6">
                 <MessageSquareText className="h-6 w-6 text-zinc-950" aria-hidden="true" />
                 <div>
@@ -63,15 +58,6 @@ export default function FAQPage() {
           title="자주 묻는 질문"
           description="궁금한 주제를 선택하면 필요한 답을 빠르게 확인할 수 있습니다."
         />
-        {aiSupportEnabled ? <section className="site-container pb-24">
-          <div className="site-dark-cta flex flex-col items-start justify-between gap-8 md:flex-row md:items-end md:gap-12">
-            <div className="max-w-2xl">
-              <h2 className="type-section-title">답을 찾지 못했다면 AI 상담</h2>
-              <p className="site-body mt-5 text-zinc-400">서비스 사용법을 빠르게 확인하고 필요한 경우 1:1 문의로 이어집니다.</p>
-            </div>
-            <Link href="/support/chat" className="site-button site-button-secondary site-button-lg shrink-0">AI 상담 시작</Link>
-          </div>
-        </section> : null}
       </main>
       <Footer />
     </>
