@@ -930,7 +930,7 @@ function HelpTooltip({ label, children }: { label: string; children: ReactNode }
       </button>
       <span
         role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-7 z-30 hidden w-72 -translate-x-1/2 rounded-lg border border-zinc-100 bg-white p-3 text-left text-xs font-semibold leading-relaxed text-zinc-600 shadow-xl group-hover/help:block group-focus-within/help:block"
+        className="site-card site-card-compact pointer-events-none absolute left-1/2 top-7 z-30 hidden w-72 -translate-x-1/2 p-3 text-left text-xs font-semibold leading-relaxed text-zinc-600 group-hover/help:block group-focus-within/help:block"
       >
         {children}
       </span>
@@ -4010,7 +4010,7 @@ function MenuItemForm({
                     }}
                     className={`min-h-16 rounded-lg border px-4 py-3 text-left transition-colors ${
                       selected
-                        ? "border-zinc-950 bg-white text-zinc-950 shadow-sm"
+                        ? "border-zinc-950 bg-white text-zinc-950"
                         : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-800"
                     }`}
                     aria-pressed={selected}
@@ -4045,7 +4045,7 @@ function MenuItemForm({
                       onClick={() => onPriceDisplayModeChange(option.value)}
                       className={`min-h-10 rounded-lg px-4 text-xs font-bold transition-colors ${
                         selected
-                          ? "bg-zinc-950 text-white shadow-sm"
+                          ? "bg-zinc-950 text-white"
                           : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
                       }`}
                       aria-pressed={selected}
@@ -4492,7 +4492,7 @@ function MenuItemForm({
                           }}
                           className={`min-h-16 rounded-lg border px-4 py-3 text-left transition-colors ${
                             selected
-                              ? "border-zinc-950 bg-white text-zinc-950 shadow-sm"
+                              ? "border-zinc-950 bg-white text-zinc-950"
                               : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-800"
                           }`}
                           aria-pressed={selected}
@@ -5097,7 +5097,7 @@ function DraftPriceOptionsEditor({
 
             if (isEditing) {
               return (
-                <div key={option.id} className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+                <div key={option.id} className="rounded-lg border border-zinc-200 bg-white p-4">
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
                     <div>
                       <FieldLabel required>옵션명</FieldLabel>
@@ -8706,8 +8706,8 @@ export default function MenuManagementSection({
       data-rendered-widget-row-count={renderedWidgetRowCount}
       data-rendered-content-block-count={renderedContentBlockCount}
     >
-      <section className="rounded-lg bg-white p-6 shadow-sm">
-        <div className="mb-8 border-b border-zinc-100 pb-6">
+      <section className="site-card p-5 sm:p-6">
+        <div className="mb-6 border-b border-zinc-100 pb-5 sm:mb-8 sm:pb-6">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div className="min-w-0">
               <h2 className="type-subsection-title flex min-w-0 items-center gap-2">
@@ -9157,7 +9157,7 @@ export default function MenuManagementSection({
             </div>
           </aside>
 
-          <section className="min-w-0 rounded-lg border border-zinc-100 bg-white p-4 lg:p-6">
+          <section className="site-card site-card-compact min-w-0 p-4 lg:p-6">
             {canManagePages && isCreatingPage ? (
               <div>
                 <PanelHeader title={`새 ${labels.pageLabel} 추가`} description={`${labels.pageLabel}를 추가하면 왼쪽 구조 트리에 새 구역이 생깁니다.`} />

@@ -1114,7 +1114,7 @@ function LocalizationSectionContent({
                   onClick={() => setActiveTargetGroup(group)}
                   className={`rounded-md px-4 py-2 text-sm font-bold transition-colors ${
                     activeTargetGroup === group
-                      ? "bg-white text-zinc-950 shadow-sm"
+                      ? "bg-white text-zinc-950"
                       : "text-zinc-500 hover:bg-white/70 hover:text-zinc-800"
                   }`}
                 >
