@@ -43,3 +43,17 @@ test("매장 운영 대시보드는 주문·매출 데이터를 불러오거나 
   assert.match(dashboardSource, /label="활성 대기번호"/);
   assert.match(dashboardSource, /title="최근 호출"/);
 });
+
+test("매장 운영 화면은 공통 여백·카드·피드백 시스템을 사용한다", () => {
+  const shellSource = readSource("components/mypage/StoreOperationsShell.tsx");
+  const dashboardSource = readSource("app/mypage/operations/page.tsx");
+
+  assert.match(shellSource, /site-gutter site-page-spacing-compact/);
+  assert.match(shellSource, /site-card mb-6 flex gap-2 overflow-x-auto/);
+  assert.match(shellSource, /getNavigationClassName\(activeSection === "dashboard"\)/);
+  assert.doesNotMatch(shellSource, /shadow-sm/);
+
+  assert.match(dashboardSource, /site-card site-card-interactive/);
+  assert.match(dashboardSource, /site-notice site-notice-warning/);
+  assert.doesNotMatch(dashboardSource, /shadow-sm/);
+});

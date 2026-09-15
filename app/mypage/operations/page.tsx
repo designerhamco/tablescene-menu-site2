@@ -94,14 +94,14 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
       <StoreOperationsShell sites={operationsContext.sites} selectedSite={null} activeSection="dashboard">
         <div className="space-y-5">
           {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
-          <article className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm md:p-12">
+          <article className="site-card p-8 text-center md:p-12">
             <h2 className="type-subsection-title">운영 가능한 메뉴판이 없습니다</h2>
             <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
               현재 공개 중이고 이용 기간이 유효한 멀티페이지 또는 Display 메뉴판만 표시됩니다.
             </p>
             <Link
               href="/mypage?tab=menus"
-              className="mt-6 inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+              className="site-button site-button-primary mt-6"
             >
               나의 메뉴판 확인
             </Link>
@@ -129,7 +129,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
         <header>
           <h2 className="type-subsection-title">{selectedSite.name} 운영 현황</h2>
-          <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+          <p className="type-body-sm mt-3 break-keep text-zinc-500">
             현재 호출과 테이블, 대기번호 현황을 빠르게 확인합니다.
           </p>
         </header>
@@ -163,7 +163,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             hasItems={recentCalls.length > 0}
           >
             {recentCalls.map((call) => (
-              <li key={call.id} className="flex items-center justify-between gap-4 border-t border-zinc-100 px-5 py-4 first:border-t-0">
+              <li key={call.id} className="flex items-center justify-between gap-4 border-t border-zinc-100 px-4 py-4 first:border-t-0 sm:px-5">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold">호출 #{call.callNumber} · {call.tableLabel}</p>
                   <p className="mt-1 text-xs font-bold text-zinc-400">
@@ -182,7 +182,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
 
 function PermissionNotice({ message }: { message: string }) {
   return (
-    <p className="rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4 text-sm font-bold leading-relaxed text-amber-800" role="status">
+    <p className="site-notice site-notice-warning" role="status">
       {message}
     </p>
   );
@@ -191,18 +191,18 @@ function PermissionNotice({ message }: { message: string }) {
 function SummaryCard({ label, value, detail, href }: { label: string; value: string; detail: string; href: string | null }) {
   const content = (
     <>
-      <p className="text-xs font-bold text-zinc-400">{label}</p>
-      <p className="mt-3 text-2xl font-bold tracking-tight">{value}</p>
-      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">{detail}</p>
+      <p className="type-caption text-zinc-400">{label}</p>
+      <p className="type-content-title mt-3 tabular-nums">{value}</p>
+      <p className="type-caption mt-2 break-keep text-zinc-500">{detail}</p>
     </>
   );
 
   return href ? (
-    <Link href={href} className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50">
+    <Link href={href} className="site-card site-card-interactive p-5">
       {content}
     </Link>
   ) : (
-    <article className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">{content}</article>
+    <article className="site-card p-5">{content}</article>
   );
 }
 
@@ -220,8 +220,8 @@ function DashboardList({
   children: React.ReactNode;
 }) {
   return (
-    <article className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-5 py-4">
+    <article className="site-card overflow-hidden">
+      <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-4 sm:px-5">
         <h3 className="type-content-title">{title}</h3>
         {href ? <Link href={href} className="text-xs font-bold text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}
       </div>
