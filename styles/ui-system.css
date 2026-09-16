@@ -186,6 +186,34 @@
   }
 }
 
+/*
+ * Editor header shortcuts stack into one clear action column on phones.
+ * Wider screens retain the compact horizontal toolbar used beside the title.
+ */
+.site-editor-header-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.site-editor-header-actions > :is(button, a) {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .site-editor-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    width: auto;
+  }
+
+  .site-editor-header-actions > :is(button, a) {
+    width: auto;
+  }
+}
+
 .site-card {
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-card);
