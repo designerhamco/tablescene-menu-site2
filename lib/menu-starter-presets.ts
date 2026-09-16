@@ -4,6 +4,10 @@ import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
 import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
 import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
+import {
+  SINGLE_PAGE_STARTER_TRANSLATION_LOCALES,
+  getSinglePageStarterTranslations,
+} from "@/lib/template-demo-data/single-page-starter-translations";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import {
   getTemplateCategoryFromKey,
@@ -250,6 +254,11 @@ type MenuItemPriceColumnValueInsert = Database["public"]["Tables"]["menu_item_pr
 type MenuItemPriceOptionInsert = Database["public"]["Tables"]["menu_item_price_options"]["Insert"];
 type MenuPromotionInsert = Database["public"]["Tables"]["menu_promotions"]["Insert"];
 type MenuPromotionItemInsert = Database["public"]["Tables"]["menu_promotion_items"]["Insert"];
+type MenuSiteTranslationInsert = Database["public"]["Tables"]["menu_site_translations"]["Insert"];
+type MenuPageTranslationInsert = Database["public"]["Tables"]["menu_page_translations"]["Insert"];
+type MenuCategoryTranslationInsert = Database["public"]["Tables"]["menu_category_translations"]["Insert"];
+type MenuItemTranslationInsert = Database["public"]["Tables"]["menu_item_translations"]["Insert"];
+type MenuPromotionTranslationInsert = Database["public"]["Tables"]["menu_promotion_translations"]["Insert"];
 type MenuChefInsert = Database["public"]["Tables"]["menu_chefs"]["Insert"];
 type MenuEventInsert = Database["public"]["Tables"]["menu_events"]["Insert"];
 type MenuSocialLinkInsert = Database["public"]["Tables"]["menu_social_links"]["Insert"];
@@ -342,6 +351,7 @@ function item(
     key?: string;
     set_name?: string;
     price_label?: string | null;
+    price_note?: string | null;
     price_visible?: boolean;
     portion_label?: string;
     badge_label?: string | null;
@@ -2420,6 +2430,122 @@ function getJsonRecord(value: Json | null | undefined): Record<string, Json> {
   return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Record<string, Json>) } : {};
 }
 
+function getRequiredStarterTranslationId(map: Map<string, string>, key: string, kind: string) {
+  const id = map.get(key);
+  if (!id) {
+    throw new Error(`기본 ${kind} 번역 대상을 찾을 수 없습니다: ${key}`);
+  }
+  return id;
+}
+
+async function createSinglePageStarterTranslations(input: {
+  supabase: SupabaseClient;
+  menuSiteId: string;
+  preset: StarterPreset;
+  pageIdByStarterKey: Map<string, string>;
+  categoryIdByStarterKey: Map<string, string>;
+  itemIdByStarterKey: Map<string, string>;
+  promotionIdByStarterKey: Map<string, string>;
+}) {
+  const translations = getSinglePageStarterTranslations(input.preset.template_key);
+  if (!translations) return;
+
+  const siteRows: MenuSiteTranslationInsert[] = [];
+  const pageRows: MenuPageTranslationInsert[] = [];
+  const categoryRows: MenuCategoryTranslationInsert[] = [];
+  const itemRows: MenuItemTranslationInsert[] = [];
+  const promotionRows: MenuPromotionTranslationInsert[] = [];
+
+  for (const locale of SINGLE_PAGE_STARTER_TRANSLATION_LOCALES) {
+    const copy = translations[locale];
+    siteRows.push({
+      menu_site_id: input.menuSiteId,
+      locale,
+      status: "completed",
+      restaurant_name: copy.site.restaurantName,
+      restaurant_category: copy.site.restaurantCategory,
+      brand_description: copy.site.brandDescription,
+      intro_title: copy.site.restaurantName,
+      intro_description: copy.site.introDescription,
+      menu_cover_title: copy.site.restaurantName,
+      menu_cover_description: copy.site.menuCoverDescription,
+      about_description: copy.site.aboutDescription,
+      opening_hours: copy.site.footerNotices[0],
+      restaurant_address: copy.site.footerNotices[1],
+      restaurant_phone: copy.site.footerNotices[2],
+    });
+
+    for (const page of input.preset.pages) {
+      if (!page.key) throw new Error("기본 페이지 번역에는 안정적인 key가 필요합니다.");
+      pageRows.push({
+        menu_page_id: getRequiredStarterTranslationId(input.pageIdByStarterKey, page.key, "페이지"),
+        locale,
+        status: "completed",
+        title: copy.pageTitle,
+        description: page.description ? page.description : null,
+      });
+
+      for (const category of page.categories) {
+        if (!category.key) throw new Error("기본 카테고리 번역에는 안정적인 key가 필요합니다.");
+        const categoryName = copy.categoryNames[category.key];
+        if (!categoryName) throw new Error(`기본 카테고리 번역이 없습니다: ${input.preset.template_key}/${locale}/${category.key}`);
+        categoryRows.push({
+          category_id: getRequiredStarterTranslationId(input.categoryIdByStarterKey, category.key, "카테고리"),
+          locale,
+          status: "completed",
+          name: categoryName,
+          description: copy.categoryDescriptions?.[category.key] ?? null,
+        });
+
+        for (const menuItem of category.items) {
+          if (!menuItem.key) throw new Error("기본 메뉴 번역에는 안정적인 key가 필요합니다.");
+          const itemCopy = copy.items[menuItem.key];
+          if (!itemCopy) throw new Error(`기본 메뉴 번역이 없습니다: ${input.preset.template_key}/${locale}/${menuItem.key}`);
+          itemRows.push({
+            item_id: getRequiredStarterTranslationId(input.itemIdByStarterKey, menuItem.key, "메뉴"),
+            locale,
+            status: "completed",
+            name: itemCopy.name,
+            description: itemCopy.description,
+            set_name: menuItem.set_name ?? null,
+            price_label: menuItem.price_label ?? null,
+            price_note: menuItem.price_note ?? null,
+            portion_label: menuItem.portion_label ?? null,
+            badge_label: menuItem.badge_label ?? null,
+          });
+        }
+      }
+    }
+
+    for (const promotion of input.preset.time_sales ?? []) {
+      if (!promotion.key) throw new Error("기본 할인 번역에는 안정적인 key가 필요합니다.");
+      const promotionCopy = copy.promotions[promotion.key];
+      if (!promotionCopy) throw new Error(`기본 할인 번역이 없습니다: ${input.preset.template_key}/${locale}/${promotion.key}`);
+      promotionRows.push({
+        menu_promotion_id: getRequiredStarterTranslationId(input.promotionIdByStarterKey, promotion.key, "할인"),
+        locale,
+        status: "completed",
+        badge_text: promotionCopy.badgeText,
+        time_display_text: promotionCopy.timeDisplayText ?? null,
+      });
+    }
+  }
+
+  const translationInserts = [
+    ["menu_site_translations", siteRows, "메뉴판"],
+    ["menu_page_translations", pageRows, "페이지"],
+    ["menu_category_translations", categoryRows, "카테고리"],
+    ["menu_item_translations", itemRows, "메뉴"],
+    ["menu_promotion_translations", promotionRows, "할인"],
+  ] as const;
+
+  for (const [table, rows, label] of translationInserts) {
+    if (rows.length === 0) continue;
+    const { error } = await input.supabase.from(table).insert(rows as never);
+    if (error) throw new Error(`기본 ${label} 번역 생성에 실패했습니다: ${error.message}`);
+  }
+}
+
 async function applyStarterSiteDefaults(
   supabase: SupabaseClient,
   menuSiteId: string,
@@ -2458,6 +2584,9 @@ async function applyStarterSiteDefaults(
 
   const existingSettings = getJsonRecord(site?.settings as Json | null | undefined);
   const nextSettings = { ...presetSettings, ...existingSettings };
+  if (getSinglePageStarterTranslations(preset.template_key)) {
+    nextSettings.enabled_locales = ["ko", ...SINGLE_PAGE_STARTER_TRANSLATION_LOCALES];
+  }
   const hasPresetLogoUrl = Object.prototype.hasOwnProperty.call(preset.site, "logo_url");
   const hasPresetLogoPath = Object.prototype.hasOwnProperty.call(preset.site, "logo_path");
   const presetLogoUrl = hasPresetLogoUrl ? (preset.site.logo_url ?? null) : STARTER_PLACEHOLDERS.logo;
@@ -2897,6 +3026,11 @@ export async function createStarterMenuData(
   }
 
   const pageIdByTitle = new Map((pages ?? []).map((page) => [page.title, page.id]));
+  const pageIdByStarterKey = new Map<string, string>();
+  preset.pages.forEach((page) => {
+    const pageId = pageIdByTitle.get(page.title);
+    if (page.key && pageId) pageIdByStarterKey.set(page.key, pageId);
+  });
   const categoryInserts: AubeTableMenuCategoryInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title);
     return page.categories.map((category, index) => ({
@@ -2930,6 +3064,14 @@ export async function createStarterMenuData(
   }
 
   const categoryIdByKey = new Map((categories ?? []).map((category) => [`${category.menu_page_id ?? ""}:${category.name}`, category.id]));
+  const categoryIdByStarterKey = new Map<string, string>();
+  preset.pages.forEach((page) => {
+    const pageId = pageIdByTitle.get(page.title) ?? "";
+    page.categories.forEach((category) => {
+      const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`);
+      if (category.key && categoryId) categoryIdByStarterKey.set(category.key, categoryId);
+    });
+  });
   const categoryPriceColumnInserts: MenuCategoryPriceColumnInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title) ?? "";
     return page.categories.flatMap((category) => {
@@ -3175,6 +3317,7 @@ export async function createStarterMenuData(
   }
 
   const starterTimeSales = preset.time_sales ?? [];
+  const promotionIdByStarterKey = new Map<string, string>();
   if (starterTimeSales.length > 0) {
     for (const timeSale of starterTimeSales) {
       const campaignWindow = getStarterTimeSaleCampaignWindow(timeSale);
@@ -3242,6 +3385,7 @@ export async function createStarterMenuData(
         if (promotionError.code === "42P01" || promotionError.message.toLowerCase().includes("menu_promotions")) continue;
         throw new Error(`기본 타임세일 생성에 실패했습니다: ${promotionError.message}`);
       }
+      if (timeSale.key) promotionIdByStarterKey.set(timeSale.key, promotion.id);
 
       const promotionItemPayload: MenuPromotionItemInsert[] = resolvedTargets.map((target) => ({
         promotion_id: promotion.id,
@@ -3264,6 +3408,16 @@ export async function createStarterMenuData(
       }
     }
   }
+
+  await createSinglePageStarterTranslations({
+    supabase,
+    menuSiteId,
+    preset,
+    pageIdByStarterKey,
+    categoryIdByStarterKey,
+    itemIdByStarterKey,
+    promotionIdByStarterKey,
+  });
 
   const includeAuxiliaryContent = options.includeAuxiliaryContent !== false;
   const chefInserts: MenuChefInsert[] = useLeanPreset || !includeAuxiliaryContent
