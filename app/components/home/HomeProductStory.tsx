@@ -95,7 +95,7 @@ function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: num
         <div className={`flex items-center justify-between border-b border-black/10 ${compact ? "px-3 py-2" : "px-5 py-4"}`}>
           <div>
             <p className={`${compact ? "text-[8px]" : "text-sm"} font-bold tracking-[-0.03em]`}>{screen.name}</p>
-            <p className={`${compact ? "text-[5px]" : "text-[8px]"} mt-0.5 font-bold uppercase tracking-[0.14em] text-black/40`}>{screen.note}</p>
+            <p className={`${compact ? "text-[5px]" : "text-[8px]"} mt-0.5 font-bold uppercase tracking-[0.14em] text-black/65`}>{screen.note}</p>
           </div>
           <span className={`${compact ? "h-1.5 w-1.5" : "h-2.5 w-2.5"} rounded-full bg-zinc-950`} />
         </div>
@@ -103,7 +103,7 @@ function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: num
           <img src={screen.image} alt="" className="h-full min-h-0 w-full rounded-[0.55rem] object-cover" />
           <div className="flex min-h-0 flex-col justify-between rounded-[0.55rem] bg-white/75 p-2.5">
             <div>
-              <span className={`${compact ? "text-[4px]" : "text-[7px]"} font-bold uppercase tracking-[0.1em] text-black/35`}>Featured</span>
+              <span className={`${compact ? "text-[4px]" : "text-[7px]"} font-bold uppercase tracking-[0.1em] text-black/65`}>Featured</span>
               <p className={`${compact ? "mt-1 text-[6px]" : "mt-2 text-[11px]"} font-bold leading-tight`}>{screen.name}</p>
             </div>
             <div className="space-y-1">
