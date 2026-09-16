@@ -51,9 +51,15 @@ test("공개 화면 회귀 QA는 HTTP·콘솔·페이지·overflow·이미지 �
 
 test("공개 화면 회귀 QA는 메뉴판 미리보기 도움말의 최초 노출과 두 종료 방식을 검사한다", () => {
   assert.match(source, /getByRole\("dialog", \{ name: "메뉴판 미리보기 사용 안내" \}\)/);
-  assert.match(source, /getByRole\("button", \{ name: "미리보기 시작" \}\)/);
-  assert.match(source, /getByRole\("button", \{ name: "오늘 하루 보지 않기" \}\)/);
+  assert.match(source, /getByRole\("button", \{ name: "닫기", exact: true \}\)/);
+  assert.match(source, /getByRole\("checkbox", \{ name: "오늘 하루 보지 않기" \}\)/);
+  assert.match(source, /await hideTodayCheckbox\.check\(\);/);
+  assert.match(source, /await closeButton\.click\(\);/);
   assert.match(source, /preview guide reopens during the dismissed browser session/);
-  assert.match(source, /preview guide reopens after choosing hide for today/);
+  assert.match(source, /preview guide reopens after checking hide for today and closing/);
   assert.match(source, /route === "\/templates\/cafe_sunday_line_a\/preview"/);
+  assert.match(source, /inspectDisplayPreviewControls/);
+  assert.match(source, /data-display-preview-controls-visible/);
+  assert.match(source, /page\.mouse\.move\(viewport\.width \/ 2, viewport\.height - 4\)/);
+  assert.match(source, /display preview controls do not hide after leaving the bottom edge/);
 });

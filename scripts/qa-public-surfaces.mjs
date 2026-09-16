@@ -90,16 +90,16 @@ async function inspectPage(page) {
 async function inspectPreviewGuide(page) {
   const failures = [];
   const dialog = page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" });
-  const startButton = page.getByRole("button", { name: "미리보기 시작" });
-  const hideTodayButton = page.getByRole("button", { name: "오늘 하루 보지 않기" });
+  const closeButton = page.getByRole("button", { name: "닫기", exact: true });
+  const hideTodayCheckbox = page.getByRole("checkbox", { name: "오늘 하루 보지 않기" });
 
   if (!(await dialog.isVisible())) failures.push("preview guide dialog is not visible on the first visit");
-  if (!(await startButton.isVisible())) failures.push("preview guide start button is not visible");
-  if (!(await hideTodayButton.isVisible())) failures.push("preview guide hide-today button is not visible");
+  if (!(await closeButton.isVisible())) failures.push("preview guide close button is not visible");
+  if (!(await hideTodayCheckbox.isVisible())) failures.push("preview guide hide-today checkbox is not visible");
   if (failures.length > 0) return failures;
 
-  await startButton.click();
-  if (await dialog.isVisible()) failures.push("preview guide remains visible after starting the preview");
+  await closeButton.click();
+  if (await dialog.isVisible()) failures.push("preview guide remains visible after closing the guide");
 
   await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
   await page.waitForTimeout(100);
@@ -111,10 +111,49 @@ async function inspectPreviewGuide(page) {
   if (!(await dialog.isVisible())) failures.push("preview guide does not reopen after session dismissal is cleared");
 
   if (failures.length === 0) {
-    await hideTodayButton.click();
+    await hideTodayCheckbox.check();
+    await closeButton.click();
     await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
     await page.waitForTimeout(100);
-    if (await dialog.isVisible()) failures.push("preview guide reopens after choosing hide for today");
+    if (await dialog.isVisible()) failures.push("preview guide reopens after checking hide for today and closing");
+  }
+
+  return failures;
+}
+
+async function inspectDisplayPreviewControls(page) {
+  const failures = [];
+  const dialog = page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" });
+  const controls = page.locator("[data-display-preview-controls-visible]");
+  const pagination = page.locator("[data-display-preview-pagination]");
+
+  if (!(await dialog.isVisible())) failures.push("display preview guide is not visible on the first visit");
+  if (await dialog.getAttribute("data-preview-guide-variant") !== "display") {
+    failures.push("display preview guide does not use the display-only variant");
+  }
+  if (await page.getByText("PC·태블릿·모바일 버튼을 눌러").isVisible()) {
+    failures.push("display preview guide includes the device selector explanation");
+  }
+  if (!(await pagination.count())) failures.push("display preview pagination is missing");
+  if (failures.length > 0) return failures;
+
+  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  const viewport = page.viewportSize();
+  if (!viewport) return ["display preview viewport is unavailable"];
+
+  await page.mouse.move(viewport.width / 2, viewport.height * 0.2);
+  if (await controls.getAttribute("data-display-preview-controls-visible") !== "false") {
+    failures.push("display preview controls stay visible away from the bottom edge");
+  }
+
+  await page.mouse.move(viewport.width / 2, viewport.height - 4);
+  if (await controls.getAttribute("data-display-preview-controls-visible") !== "true") {
+    failures.push("display preview controls do not appear near the bottom edge");
+  }
+
+  await page.mouse.move(viewport.width / 2, viewport.height * 0.2);
+  if (await controls.getAttribute("data-display-preview-controls-visible") !== "false") {
+    failures.push("display preview controls do not hide after leaving the bottom edge");
   }
 
   return failures;
@@ -183,6 +222,11 @@ try {
         && route === "/templates/cafe_sunday_line_a/preview"
         ? await inspectPreviewGuide(page)
         : [];
+      const displayPreviewFailures = !navigationError
+        && viewport.key === "desktop"
+        && route === "/templates/display_menu_a/preview?page=3"
+        ? await inspectDisplayPreviewControls(page)
+        : [];
       const failures = [
         ...(navigationError ? [`navigation: ${navigationError}`] : []),
         ...(responseStatus === null || responseStatus >= 400 ? [`http: ${responseStatus ?? "no response"}`] : []),
@@ -193,6 +237,7 @@ try {
         ...pageErrors.map((message) => `pageerror: ${message}`),
         ...requestFailures.map((message) => `requestfailed: ${message}`),
         ...previewGuideFailures.map((message) => `preview guide: ${message}`),
+        ...displayPreviewFailures.map((message) => `display preview: ${message}`),
         ...measurement.blockingAccessibilityViolations.map(
           (violation) =>
             `accessibility ${violation.impact}: ${violation.id} · ${violation.help} · ${violation.targets.join(", ")}`,

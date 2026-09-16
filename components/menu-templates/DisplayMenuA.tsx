@@ -108,7 +108,6 @@ type DisplayFitMeasurement = {
 const DISPLAY_MAX_PRICE_OPTIONS = 3;
 const DISPLAY_OPTION_GRID_GAP = "calc(var(--display-row) * 0.26)";
 const DISPLAY_PUBLIC_PAGE_INTERVAL_MS = 8000;
-const DISPLAY_CONTROLS_AUTO_HIDE_MS = 2200;
 const DISPLAY_FIT_MAX_ITERATIONS = 10;
 const DISPLAY_FIT_MAX_PHASE = 4;
 const DISPLAY_FIT_MIN_SCALE = 0.08;
@@ -1529,31 +1528,18 @@ function DisplayPageIndicator({
   );
 }
 
-function useAutoHidingDisplayControls() {
-  const [visible, setVisible] = useState(true);
-  const hideTimerRef = useRef<number | null>(null);
+function useDisplayBottomControls() {
+  const [visible, setVisible] = useState(false);
 
   const reveal = useCallback(() => {
     setVisible(true);
-    if (hideTimerRef.current != null) window.clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = window.setTimeout(() => {
-      setVisible(false);
-      hideTimerRef.current = null;
-    }, DISPLAY_CONTROLS_AUTO_HIDE_MS);
   }, []);
 
-  useEffect(() => {
-    hideTimerRef.current = window.setTimeout(() => {
-      setVisible(false);
-      hideTimerRef.current = null;
-    }, DISPLAY_CONTROLS_AUTO_HIDE_MS);
-
-    return () => {
-      if (hideTimerRef.current != null) window.clearTimeout(hideTimerRef.current);
-    };
+  const hide = useCallback(() => {
+    setVisible(false);
   }, []);
 
-  return { visible, reveal };
+  return { visible, reveal, hide };
 }
 
 function useDisplayTimeSaleNowMs(
@@ -1699,7 +1685,15 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
   const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "ArtiMenu Display";
-  const displayControls = useAutoHidingDisplayControls();
+  const displayControls = useDisplayBottomControls();
+
+  function syncDisplayControlsToPointer(clientY: number) {
+    if (clientY >= window.innerHeight * 0.82) {
+      displayControls.reveal();
+      return;
+    }
+    displayControls.hide();
+  }
 
   function selectDisplayPage(pageId: string) {
     setSelectedPageId(pageId);
@@ -1748,15 +1742,18 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
       <main
         className="menu-typography relative h-screen w-screen overflow-hidden bg-[var(--display-surface-color)] text-[var(--display-text-color)]"
         style={typographyStyle}
-        onPointerMove={displayControls.reveal}
-        onPointerDown={displayControls.reveal}
+        onPointerMove={(event) => syncDisplayControlsToPointer(event.clientY)}
+        onPointerDown={(event) => syncDisplayControlsToPointer(event.clientY)}
+        onPointerLeave={displayControls.hide}
         onFocusCapture={displayControls.reveal}
         onKeyDown={displayControls.reveal}
+        data-display-preview-controls-visible={displayControls.visible ? "true" : "false"}
       >
         <h1 className="sr-only">{displayTitle}</h1>
         <h2 className="sr-only">{activePage.title}</h2>
         {showPreviewSelector && (
           <div
+            data-display-preview-pagination=""
             className={`absolute bottom-5 left-1/2 z-30 -translate-x-1/2 transition-opacity duration-300 ${
               displayControls.visible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             }`}
