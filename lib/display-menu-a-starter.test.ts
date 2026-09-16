@@ -13,14 +13,13 @@ test("Summer Blue starter keeps a concise menu and distinct discount copy", () =
   assert.equal(data.categories.length, 6);
   assert.equal(data.items.length, 29);
   assert.equal(data.items.filter((item) => item.badge_label).length, 6);
-  assert.equal(data.timeSales.length, 3);
+  assert.equal(data.timeSales.length, 2);
 
   assert.deepEqual(
     data.timeSales.map((sale) => [sale.badgeText, sale.displayText]),
     [
-      ["시즌추천", "썸머 시그니처 출시 기념"],
-      ["커피픽", "클래식 커피 추천 메뉴"],
-      ["페어링", "커피와 함께 즐기는 베이커리"],
+      ["시즌할인", "썸머 시그니처 특별가"],
+      ["커피할인", "클래식 커피 특별가"],
     ],
   );
   const targets = data.timeSales.flatMap((sale) => sale.items).map((target) => ({
@@ -34,7 +33,6 @@ test("Summer Blue starter keeps a concise menu and distinct discount copy", () =
       ["바질 크림 라떼", 6500, 5700, "template-preview-display-menu-a-category-0-0-price-column-ice"],
       ["카푸치노", 5000, 4300, "template-preview-display-menu-a-category-0-1-price-column-hot"],
       ["카푸치노", 5000, 4300, "template-preview-display-menu-a-category-0-1-price-column-ice"],
-      ["클래식 버터 스콘", 4500, 3900, null],
     ],
   );
 
@@ -51,15 +49,16 @@ test("Summer Blue starter keeps a concise menu and distinct discount copy", () =
   }
 
   const activeSales = getActiveDisplayMenuTimeSalesByItemId(data.timeSales, Date.parse("2026-09-14T03:00:00.000Z"));
-  assert.equal(activeSales.size, 3);
+  assert.equal(activeSales.size, 2);
   const basilSale = data.timeSales[0];
   const cappuccinoSale = data.timeSales[1];
-  const sconeSale = data.timeSales[2];
   assert.equal(activeSales.get(basilSale.items[0].menuItemId)?.optionItemsByPriceColumnId.get(basilSale.items[0].priceColumnId ?? "")?.salePrice, 5700);
   assert.equal(activeSales.get(basilSale.items[1].menuItemId)?.optionItemsByPriceColumnId.get(basilSale.items[1].priceColumnId ?? "")?.salePrice, 5700);
   assert.equal(activeSales.get(cappuccinoSale.items[0].menuItemId)?.optionItemsByPriceColumnId.get(cappuccinoSale.items[0].priceColumnId ?? "")?.salePrice, 4300);
   assert.equal(activeSales.get(cappuccinoSale.items[1].menuItemId)?.optionItemsByPriceColumnId.get(cappuccinoSale.items[1].priceColumnId ?? "")?.salePrice, 4300);
-  assert.equal(activeSales.get(sconeSale.items[0].menuItemId)?.item?.salePrice, 3900);
+  const scone = data.items.find((item) => item.name === "클래식 버터 스콘");
+  assert.ok(scone);
+  assert.equal(activeSales.has(scone.id), false);
 });
 
 test("Display translation flow includes visible menu and discount copy", () => {
