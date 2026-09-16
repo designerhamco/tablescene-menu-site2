@@ -4892,7 +4892,7 @@ function CafeLanguageHoverControl({
   menuPlacement = "bottom",
   menuAlign = "right",
 }: {
-  data: PublicMenuTemplateProps;
+  data: CafeDesignAProps;
   className?: string;
   menuPlacement?: "top" | "bottom";
   menuAlign?: "left" | "right";
@@ -4908,6 +4908,7 @@ function CafeLanguageHoverControl({
           enabledLocales={data.enabledLocales}
           compact
           triggerVariant="cafe"
+          tone={isMochaForestSkin(data.templateSkin) ? "inverse" : "default"}
           menuPlacement={menuPlacement}
           menuAlign={menuAlign}
         />

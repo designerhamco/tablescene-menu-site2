@@ -7,6 +7,49 @@ const templateSource = readFileSync(
   "utf8",
 );
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const languageSwitcherSource = readFileSync(
+  new URL("../components/menu-templates/shared/MenuLanguageSwitcher.tsx", import.meta.url),
+  "utf8",
+);
+
+test("원페이지 템플릿의 핵심 타이포그래피와 간격은 화면 크기에 따라 유동적으로 조절된다", () => {
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography \{[\s\S]*--cafe-a-category-title-size: clamp\([^;]*cqw[^;]*\);[\s\S]*--cafe-a-menu-title-size: clamp\([^;]*cqw[^;]*\);[\s\S]*container-type: inline-size;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /--board-padding: clamp\(2rem, 4\.2vmin, 4\.25rem\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /--sunday-line-column-gap: clamp\(1\.75rem, 3vw, 3\.5rem\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /--round-focus-mobile-inset: clamp\(1\.5rem, 4vw, 6rem\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /--mocha-mobile-section-rhythm: clamp\(1\.25rem, 5\.8vw, 1\.75rem\);/,
+  );
+  assert.doesNotMatch(
+    globalStylesSource,
+    /--mocha-mobile-(?:section-rhythm|category-header-item-gap|item-divider-(?:above|below)-gap):\s*[\d.]+px;/,
+  );
+});
+
+test("모카 포레스트 언어 선택 버튼은 어두운 배경용 흰색 톤을 사용한다", () => {
+  assert.match(
+    templateSource,
+    /tone=\{isMochaForestSkin\(data\.templateSkin\) \? "inverse" : "default"\}/,
+  );
+  assert.match(languageSwitcherSource, /tone\?: "default" \| "inverse";/);
+  assert.match(
+    languageSwitcherSource,
+    /tone === "inverse"[\s\S]*"text-white hover:bg-white\/10 focus-visible:ring-white\/40"/,
+  );
+});
 
 test("하단 언어 선택 UI는 목록을 위로 열어 화면 밖 잘림을 막는다", () => {
   assert.match(templateSource, /data-cafe-a-sunday-language-dock=""[\s\S]*menuPlacement="top"/);
