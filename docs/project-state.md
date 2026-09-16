@@ -1,8 +1,8 @@
 # ArtiMenu 프로젝트 상태
 
-최종 갱신: 2026-09-14
+최종 갱신: 2026-09-16
 
-기준선: `tablescene-next`의 `5eebdd7`에서 이번 상태 갱신 시작
+기준선: `tablescene-next`의 `f7543ab` (PR #202 병합 후)
 
 ## 현재 상태와 다음 선행 조건
 
@@ -13,6 +13,7 @@
 - 스마트호출 관리 내역은 `매장 운영 > 호출관리`에, Display 수동 대기번호는 같은 허브의 `대기번호`와 운영 대시보드에 구현되어 있다. Production runtime/site allowlist가 없으면 해당 기능만 fail closed 한다.
 - Display용 무료 수동 대기번호 MVP는 Order·PG·POS와 분리해 구현했다. 사장이 번호를 등록하고 픽업 요청·수령 완료를 처리하며 공개 대기판은 오늘의 준비 중·픽업 번호만 10초 간격으로 갱신한다. 대기판은 공개 메뉴판의 `template_key`와 저장된 한글·영문 글꼴 설정을 서버에서 해석해 템플릿별 전용 디자인을 적용한다. 현재 `썸머 블루(display_menu_a)`는 메뉴판과 같은 청록·화이트 팔레트 및 Pretendard·Alata 기본 타이포를 사용하고, 향후 Display 템플릿은 테마 registry에 전용 변형을 추가한다. server-only migration은 2026-09-01 명시적 사용자 승인 아래 `tablescene-prod`에 1회 적용했고 RLS·FORCE RLS·service-role 최소 권한·인덱스를 postcheck했다. 공개 Display pilot `260630test` 한 곳만 Production runtime/site allowlist로 활성화했으며 QA 번호 `9999`의 등록·공개 대기판·픽업 요청·수령 완료·DB 타임스탬프를 확인했다.
 - AI 상담 MVP는 서비스 사용법 안내만 제공하고 계정·결제·환불 실행과 민감정보 입력을 금지한다. OpenAI Responses API에 `store=false`로 요청하며 질문 500자·응답 300 token, 앱 메모리와 Vercel Firewall의 IP별 10분 6회 제한을 함께 적용한다. 이메일·전화번호·카드번호·인증코드 등 민감값은 외부 API 전송 전에 거부하고 확정할 수 없는 질문은 1:1 문의로 전환한다. `ArtiMenu AI Support` 전용 OpenAI 프로젝트는 `gpt-5.6-luna`만 허용하고 월 5달러 hard limit, 50%·80%·100% 알림, 15,000 TPM·10 RPM 제한을 적용했다. 개인정보 처리방침과 국외 이전 동의 UI를 확정한 뒤 2026-09-14 Production에 공개했으며 실제 안내 응답·민감정보 차단·1:1 문의 전환을 확인했다.
+- 공개 회귀 QA는 홈·신청·고객지원·인증·약관과 판매 템플릿을 PC `1440×900`·모바일 `390×844`로 순회한다. HTTP·빈 화면·가로 overflow·깨진 이미지·console/page error·같은 출처 요청 실패와 axe-core WCAG A/AA `critical`·`serious` 위반을 차단한다. 2026-09-16 PR #200 배포 후 Production 31개 화면에서 실패 0건을 확인했다. 로그인 이후 화면은 전용 QA 계정만 사용하는 별도 읽기 전용 runner로 마이페이지·편집기·매장 운영·직원 관리의 세션 유지, 잘린 액션과 동일 오류 범위를 검사하며 service-role key나 고객 계정을 사용하지 않는다.
 - 2026-09-01 사용자 승인 아래 Production `tablescene-prod`의 회원가입 인증·비밀번호 재설정 메일 제목과 HTML을 아티메뉴 템플릿으로 적용하고 저장 후 새로고침 재검증했다. Resend custom SMTP도 인증된 `dndcommerce.co.kr` 전용 key와 `아티메뉴 <no-reply@dndcommerce.co.kr>` 발신자로 활성화했다. 기존 QA 계정의 재설정 메일은 한국어 제목·본문·발신자와 `delivered` 상태를 확인했고 네이버 받은편지함 데스크톱에서도 정상 렌더링됐다. 별도 신규 QA 계정의 회원가입 메일도 Gmail에 실제 도착했으며 DKIM·SPF·DMARC 통과, 한국어 제목·HTML, 인증 링크의 `/auth/callback` → `/mypage` 이동과 로그인 세션 생성을 확인했다. 2026-09-09 TokenHash 기반 재설정 메일 수신·확인 화면·새 비밀번호 저장·새 비밀번호 로그인을 Production에서 완료했으며 만료 링크는 재요청 안내로 fail closed 한다. 실제 모바일 메일 클라이언트의 시각적 렌더링만 비기능 점검으로 남아 있다.
 - 판매 가능한 멀티페이지 디자인 `오브 테이블`의 편집·starter·미리보기·공개 renderer와 additive schema 초안을 구현하고 로컬 QA 완료
 - 두 번째 판매 멀티페이지 템플릿 `메종 마레`는 같은 데이터·편집·번역·스마트호출 계약을 재사용하되 PC·태블릿 왼쪽 페이지 메뉴와 모바일 상단 스와이프 탭을 사용한다. 버건디·아이보리 컬러, Noto Serif KR·Cormorant Garamond 기본 글꼴, 독립 모던 프렌치 스타터를 적용했다. 2026-09-14 Production 3개 viewport와 PC 페이지 이동·console error 0을 재확인하고 오브 테이블과 같은 9,900원 멀티페이지 신규 구매·동급 교체 후보로 승인했다.
