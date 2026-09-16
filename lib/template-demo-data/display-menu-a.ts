@@ -822,7 +822,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
       dailyEndTime: null,
       timezone: "Asia/Seoul",
       timeDisplayMode: "message",
-      displayText: "오픈 기념 한정 할인",
+      displayText: null,
       badgeText: "오픈할인",
       badgeBackgroundColor: "#126CA8",
       items: [
