@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -118,14 +118,17 @@ function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: num
 
 export function BrandHero() {
   const [screenIndex, setScreenIndex] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const interval = window.setInterval(() => {
       setScreenIndex((current) => (current + 1) % heroScreens.length);
     }, 3200);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
 
   return (
     <section className="site-gutter relative min-h-[760px] overflow-hidden bg-[linear-gradient(155deg,#a97e00_0%,#e5c546_24%,#fff0a3_100%)] pt-28 text-zinc-950 md:min-h-[930px] md:pt-36">
@@ -202,6 +205,7 @@ function DarkStorySection({
 
 function InputSyncVisual() {
   const [activeField, setActiveField] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
   const fields = [
     ["메뉴명", "흑임자 크림 라떼"],
     ["설명", "고소한 흑임자와 부드러운 크림"],
@@ -209,9 +213,11 @@ function InputSyncVisual() {
   ];
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const interval = window.setInterval(() => setActiveField((current) => (current + 1) % fields.length), 1800);
     return () => window.clearInterval(interval);
-  }, [fields.length]);
+  }, [fields.length, prefersReducedMotion]);
 
   return (
     <div className="grid h-full grid-cols-[0.82fr_1.18fr] bg-zinc-100 p-4 text-zinc-950 md:p-7">
@@ -243,11 +249,14 @@ function InputSyncVisual() {
 
 function LayoutModeVisual() {
   const [mode, setMode] = useState<"group" | "fill">("group");
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const interval = window.setInterval(() => setMode((current) => current === "group" ? "fill" : "group"), 2600);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
 
   return (
     <div className="flex h-full flex-col bg-[#eee8dc] p-5 text-zinc-950 md:p-8">
@@ -270,11 +279,14 @@ function LayoutModeVisual() {
 
 function CustomizationVisual() {
   const [mode, setMode] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const interval = window.setInterval(() => setMode((current) => (current + 1) % 4), 2300);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const labels = ["이미지 노출", "이미지 변경", "글자 스타일", "배경 색상"];
   return (
@@ -307,11 +319,14 @@ export function CustomizationSection() {
 
 function TimeSaleVisual() {
   const [remaining, setRemaining] = useState(18 * 60 * 60 + 42 * 60 + 9);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const interval = window.setInterval(() => setRemaining((current) => current > 0 ? current - 1 : 18 * 60 * 60 + 42 * 60 + 9), 1000);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const time = [Math.floor(remaining / 3600), Math.floor((remaining % 3600) / 60), remaining % 60].map((value) => String(value).padStart(2, "0")).join(":");
   return (
@@ -396,14 +411,17 @@ const fineDiningPages = [
 
 function MultiPageVisual() {
   const [pageIndex, setPageIndex] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const interval = window.setInterval(() => {
       setPageIndex((current) => (current + 1) % fineDiningPages.length);
     }, 2600);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const goToPage = (direction: number) => {
     setPageIndex((current) => (current + direction + fineDiningPages.length) % fineDiningPages.length);
