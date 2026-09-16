@@ -30,12 +30,12 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     );
 
     for (const sale of preset.time_sales ?? []) {
-      for (const target of sale.targets) {
+      for (const target of sale.targets ?? []) {
         const item = itemByKey.get(target.target_item_key);
         assert.ok(item, `${templateKey}: missing promotion target ${target.target_item_key}`);
         assert.notEqual(
           item.badge_label?.trim().toLocaleLowerCase(),
-          sale.badge_text.trim().toLocaleLowerCase(),
+          sale.badge_text?.trim().toLocaleLowerCase(),
           `${templateKey}: ${target.target_item_key} repeats the promotion badge`,
         );
       }
