@@ -14,9 +14,9 @@ Production처럼 다른 배포를 검사할 때만 기준 주소를 지정한다
 
 ```bash
 PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:public-surfaces
-
-검사는 공개 페이지의 HTTP·콘솔·가로 넘침·깨진 이미지·접근성 오류뿐 아니라 선데이 라인 미리보기에서 도움말이 최초 방문에 열리는지, `미리보기 시작`으로 현재 세션에서 닫히는지, `오늘 하루 보지 않기`로 같은 날 다시 열리지 않는지도 확인한다.
 ```
+
+검사는 공개 페이지의 HTTP·콘솔·가로 넘침·깨진 이미지·접근성 오류뿐 아니라 선데이 라인 미리보기에서 도움말이 최초 방문에 열리는지, 체크하지 않고 `닫기`를 눌러 현재 세션에서만 닫히는지, `오늘 하루 보지 않기`를 체크한 뒤 닫아 같은 날 다시 열리지 않는지도 확인한다.
 
 ## 범위
 
@@ -26,6 +26,7 @@ PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:p
 - HTTP 오류, 빈 본문, 2px 초과 가로 넘침, 깨진 가시 이미지, console error, page error, 같은 도메인 요청 실패
 - axe-core의 WCAG 2.0·2.1 A/AA 규칙 중 `critical`·`serious` 접근성 위반
 - Next.js가 화면 전환·prefetch 중 정상 취소한 `_rsc` 요청의 `net::ERR_ABORTED`는 실패에서 제외
+- 단일페이지 4종의 PC iframe은 `data-fit-presentation-state="ready"`, `data-fit-overflow="false"`여야 하며 메뉴·카테고리·위젯의 실제 바운딩 박스와 scroll 크기가 보드 경계를 넘지 않아야 함
 
 이 검사는 공개 route만 읽으며 로그인, 폼 제출, 결제, Production 데이터 write를 수행하지 않는다.
 
@@ -52,6 +53,8 @@ PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:p
 ## 2026-09-16 미리보기 도움말 배포 후 재검증
 
 PR #204에서 PC·태블릿·모바일 선택부와 브라우저 확대·축소 위치를 직접 짚는 반응형 미리보기 코치마크를 배포했다. PC와 `390×844` 모바일에서 안내 위치, `오늘 하루 보지 않기`, `미리보기 시작`, Escape 닫기와 첫 표시 로직을 확인했다.
+
+현재 UX에서는 `미리보기 시작`을 `닫기`로 바꾸고, `오늘 하루 보지 않기`는 별도 체크박스로 분리했다. 2026-09-16 로컬 31개 화면 회귀에서 이 두 닫기 경로와 Display 하단 제어, 단일페이지 4종의 fit 안정화·실제 DOM 잘림을 함께 검사해 실패 0건을 확인했다.
 
 첫 Production 전체 검사에서 홈페이지 자동 데모의 전환 중간 프레임이 명암 대비 위반으로 한 차례 탐지됐다. 단독 재검사에서는 재현되지 않았지만, 사용자 환경의 `prefers-reduced-motion`을 존중하도록 6개 자동 회전·전환·카운트다운을 PR #205에서 정지시켜 실제 접근성과 검사 결정성을 함께 보완했다.
 

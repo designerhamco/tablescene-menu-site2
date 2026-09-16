@@ -178,6 +178,65 @@ async function inspectDisplayPreviewControls(page) {
   return failures;
 }
 
+async function inspectCafeFitPresentation(page) {
+  const failures = [];
+  const previewFrame = page.frames().find((frame) => frame !== page.mainFrame() && frame.url().includes("view=actual"));
+  if (!previewFrame) return ["fitted menu preview iframe is missing"];
+
+  const board = previewFrame.locator(".cafe-a-desktop-fit-board");
+  await board.waitFor({ state: "attached", timeout: 5_000 }).catch(() => null);
+  if (!(await board.count())) return ["desktop fit board is missing"];
+
+  await previewFrame
+    .waitForFunction(() => {
+      const state = document.querySelector(".cafe-a-desktop-fit-board")?.getAttribute("data-fit-presentation-state");
+      return state === "ready" || state === "failed";
+    }, undefined, { timeout: Math.min(navigationTimeout, 30_000) })
+    .catch(() => null);
+
+  const presentationState = await board.getAttribute("data-fit-presentation-state");
+  const fitOverflow = await board.getAttribute("data-fit-overflow");
+  if (presentationState !== "ready") failures.push(`fit presentation did not become ready: ${presentationState ?? "missing"}`);
+  if (fitOverflow === "true") failures.push("fit engine reports overflow after stabilization");
+
+  const crop = await previewFrame.evaluate(() => {
+    const boardElement = document.querySelector(".cafe-a-desktop-fit-board");
+    const menuElement = boardElement?.querySelector("[data-cafe-a-fit-menu], .cafe-a-fit-menu-grid");
+    if (!(boardElement instanceof HTMLElement) || !(menuElement instanceof HTMLElement)) {
+      return { missing: true, clippedCount: 0, scrollOverflow: false };
+    }
+
+    const boardRect = boardElement.getBoundingClientRect();
+    const menuRect = menuElement.getBoundingClientRect();
+    const safeBottom = Math.min(boardRect.bottom, menuRect.bottom, window.innerHeight);
+    const visibleContent = [...menuElement.querySelectorAll(
+      "[data-cafe-a-category-heading], [data-cafe-a-menu-name], [data-cafe-a-menu-price], [data-cafe-a-widget-block]",
+    )].filter((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+    });
+    const clippedCount = visibleContent.filter((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.bottom > safeBottom + 1 || rect.right > boardRect.right + 1 || rect.left < boardRect.left - 1;
+    }).length;
+
+    return {
+      missing: false,
+      clippedCount,
+      scrollOverflow:
+        menuElement.scrollHeight > menuElement.clientHeight + 1 ||
+        menuElement.scrollWidth > menuElement.clientWidth + 1 ||
+        document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    };
+  });
+
+  if (crop.missing) failures.push("fit menu element is missing");
+  if (crop.clippedCount > 0) failures.push(`fit menu has ${crop.clippedCount} visibly clipped elements`);
+  if (crop.scrollOverflow) failures.push("fit menu has scroll overflow after stabilization");
+  return failures;
+}
+
 const browser = await chromium.launch({ headless: true });
 const results = [];
 
@@ -246,6 +305,11 @@ try {
         && route === "/templates/display_menu_a/preview?page=3"
         ? await inspectDisplayPreviewControls(page)
         : [];
+      const cafeFitFailures = !navigationError
+        && viewport.key === "desktop"
+        && /^\/templates\/cafe_(?:design|mocha_forest|sunday_line|round_focus)_a\/preview$/.test(route)
+        ? await inspectCafeFitPresentation(page)
+        : [];
       const failures = [
         ...(navigationError ? [`navigation: ${navigationError}`] : []),
         ...(responseStatus === null || responseStatus >= 400 ? [`http: ${responseStatus ?? "no response"}`] : []),
@@ -257,6 +321,7 @@ try {
         ...requestFailures.map((message) => `requestfailed: ${message}`),
         ...previewGuideFailures.map((message) => `preview guide: ${message}`),
         ...displayPreviewFailures.map((message) => `display preview: ${message}`),
+        ...cafeFitFailures.map((message) => `cafe fit: ${message}`),
         ...measurement.blockingAccessibilityViolations.map(
           (violation) =>
             `accessibility ${violation.impact}: ${violation.id} · ${violation.help} · ${violation.targets.join(", ")}`,

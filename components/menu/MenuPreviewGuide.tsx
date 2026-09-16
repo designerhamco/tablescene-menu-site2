@@ -61,11 +61,12 @@ function BrowserZoomGuide() {
       className="w-full overflow-hidden rounded-[1.5rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_18px_60px_rgba(0,0,0,0.2)]"
       aria-hidden="true"
     >
-      <div className="flex items-center justify-end gap-2 border-b border-zinc-200 bg-zinc-100 px-3 py-3">
-        <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-200 text-zinc-600">
-          <CircleUserRound className="h-5 w-5" strokeWidth={1.7} />
+      <div className="flex items-center gap-2 border-b border-zinc-200 bg-zinc-100 px-3 py-3">
+        <div className="h-8 min-w-0 flex-1 rounded-full border border-zinc-200 bg-white shadow-inner" />
+        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-300 text-zinc-600">
+          <CircleUserRound className="h-5 w-5 fill-zinc-500 text-zinc-500" strokeWidth={1.7} />
         </div>
-        <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-200">
+        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-200">
           <MoreVertical className="h-4 w-4" />
         </div>
       </div>
@@ -212,7 +213,7 @@ export default function MenuPreviewGuide({ device = "pc", variant = "device" }: 
 
       <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-zinc-950/85 via-zinc-950/65 to-transparent px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-12">
         <div className="flex w-full max-w-md flex-col gap-2 sm:flex-row sm:items-center sm:justify-center">
-          <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/30 bg-zinc-950/35 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10">
+          <label className="inline-flex cursor-pointer items-center justify-center gap-2 px-2 py-3 text-sm font-bold text-white">
             <input
               type="checkbox"
               checked={hideTodayChecked}

@@ -35,7 +35,7 @@ type MenuPreviewDeviceFrameProps = {
 
 export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProps) {
   const { device, orientation, query } = props;
-  const [isToolbarOpen, setIsToolbarOpen] = useState(false);
+  const [isToolbarOpen, setIsToolbarOpen] = useState(true);
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const buildPreviewUrl = (options: {
@@ -64,20 +64,11 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
 
   return (
     <main className="h-screen overflow-hidden bg-zinc-100 text-zinc-950">
-      <div
-        className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center"
-        onMouseLeave={() => setIsToolbarOpen(false)}
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-auto hidden h-5 w-full lg:block"
-          onMouseEnter={() => setIsToolbarOpen(true)}
-        />
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
         <header
           className={`pointer-events-auto flex max-w-[calc(100vw-1.5rem)] flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/15 bg-zinc-950/72 p-2 text-white backdrop-blur-xl transition-all duration-300 ease-out ${
-            showToolbar ? "translate-y-0 opacity-100" : "-translate-y-[calc(100%+1.25rem)] opacity-0"
+            showToolbar ? "translate-y-2 opacity-100" : "-translate-y-[calc(100%+1.25rem)] opacity-0"
           }`}
-          onMouseEnter={() => setIsToolbarOpen(true)}
         >
           <nav aria-label="미리보기 기기 선택" className="flex items-center gap-1">
               {(Object.keys(MENU_PREVIEW_DEVICES) as MenuPreviewDevice[]).map((candidate) => {
@@ -140,9 +131,9 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
         onClick={() => setIsToolbarOpen((open) => !open)}
         aria-expanded={showToolbar}
         aria-label={showToolbar ? "기기 선택 도구 닫기" : "기기 선택 도구 열기"}
-        className={`fixed left-1/2 top-0 z-[79] grid h-10 w-[min(13rem,calc(100vw-2rem))] -translate-x-1/2 place-items-center rounded-b-[1.35rem] border border-t-0 border-white/15 bg-zinc-950/88 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-opacity ${showToolbar ? "pointer-events-none opacity-0" : "opacity-100"}`}
+        className={`fixed left-1/2 top-0 z-[79] grid h-7 w-[min(10rem,calc(100vw-2rem))] -translate-x-1/2 place-items-center rounded-b-xl border border-t-0 border-white/15 bg-zinc-950/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-opacity ${showToolbar ? "pointer-events-none opacity-0" : "opacity-100"}`}
       >
-        <ChevronDown className="h-4 w-4" aria-hidden="true" />
+        <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
 
       <section

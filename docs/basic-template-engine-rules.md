@@ -64,7 +64,19 @@ Engine rules:
 
 Internal legacy values such as `balanced` or `balancedExperimental` may still exist for fallback/preview compatibility, but they are not the current customer-facing Basic standard.
 
-## 4. Shared visual shell rules
+## 4. Fit presentation safety
+
+Desktop fit engines measure multiple column, font, and spacing candidates against the live DOM. Those intermediate candidates must never be exposed as a customer-visible animation.
+
+- Keep the desktop board mounted so measurements remain real, but cover it with the fit-presentation layer until the layout is safe.
+- Reset presentation to `loading` when the board style, fitted menu size, viewport, image load, font readiness, or fit state changes.
+- Wait for a quiet stabilization window, then run `getCafeAActualDomCropMeasurement` against the final rendered DOM.
+- Reveal the board only as `data-fit-presentation-state="ready"` when actual crop is false.
+- If crop remains after the recovery grace period, use `failed` and keep the clipped menu hidden.
+- Mobile keeps its independent scrolling layout and does not wait for desktop fit.
+- Mocha Forest uses the full DOM-crop validation pass but skips the second final-fill boost. Running both optimizers made them compete and prolonged settling without improving the safe result.
+
+## 5. Shared visual shell rules
 
 Within the same template, layout modes may use different algorithms, but they must share the same visual shell.
 
@@ -89,7 +101,7 @@ The layout mode can change how content is distributed. It must not make the temp
 
 Current CafeA note: `orderedFit` has a slightly wider board padding correction in CSS. This is stable today, but it should be documented as a CafeA-specific correction, not silently copied as a Basic-wide default.
 
-## 5. CafeA current tokens and behavior
+## 6. CafeA current tokens and behavior
 
 CafeA desktop tokens currently live mostly in `app/globals.css`.
 
@@ -147,7 +159,7 @@ Disabled:
 
 CafeA starter/sample data is skin data, not engine logic.
 
-## 6. Fit/fill and density rules
+## 7. Fit/fill and density rules
 
 Basic fit/fill principles:
 
@@ -195,7 +207,7 @@ Values intentionally not centralized yet:
 - CafeA font scale, gap scale, candidate scale, fit/fill scoring, and density threshold values.
 - CafeA visual skin tokens such as cover rail, divider, badge/chip, and typography multipliers.
 
-## 7. Crop/overflow/ellipsis safety rules
+## 8. Crop/overflow/ellipsis safety rules
 
 Success requires visible content to be inside the board, not merely hidden.
 
@@ -212,7 +224,7 @@ Required safety checks for Basic templates:
 
 CafeA already has strong bottom crop and clipping checks through actual DOM measurement in `CafeDesignA.tsx`. It also checks scroll dimensions, rendered rectangles, and explicit right-edge safety metrics. Future templates should preserve this check before treating a candidate as safe.
 
-## 8. Capability rules
+## 9. Capability rules
 
 Basic engine code should read template capability rules instead of assuming all features exist.
 
@@ -227,7 +239,7 @@ Reusable capability-driven behavior:
 
 Current CafeA capability rules are defined in `lib/template-capabilities.ts`.
 
-## 9. Engine vs skin separation
+## 10. Engine vs skin separation
 
 CafeA is not yet extracted into a shared Basic engine package. In this stage, `components/menu-templates/CafeDesignA.tsx` marks the main engine-candidate and CafeA-skin-candidate sections with lightweight comments only. This is a visual no-op refactor: it documents reuse boundaries without changing layout behavior.
 
@@ -282,7 +294,7 @@ Future CafeB/CafeC templates should not recreate the Basic engine when their str
 
 CafeA is still not a fully separated common engine. Future CafeB/CafeC work should use these marked boundaries to decide what to reuse and what to replace.
 
-## 10. Risks and ambiguous areas
+## 11. Risks and ambiguous areas
 
 Current risks:
 
@@ -309,7 +321,7 @@ New template prohibition:
 - Do not hide crop with `overflow-hidden`.
 - Do not make `orderedFit` and `orderedBalancedFit` look like two different templates.
 
-## 11. Rules for future Basic templates
+## 12. Rules for future Basic templates
 
 For structurally similar templates:
 
@@ -333,7 +345,7 @@ Hard rule:
 
 The column count is a result. Design ratio and safety margin come first.
 
-## 12. QA policy
+## 13. QA policy
 
 Use representative QA for normal changes and wider DOM sweeps only for layout engine risk. The viewport lists are also recorded as constants in `lib/basic-template-constants.ts`.
 
@@ -381,7 +393,7 @@ Do not run the full screenshot or DOM sweep for every small change. Text labels,
 - Mocha Forest keeps its language control in a white inverse tone on the dark surface.
 - Contract tests, TypeScript, production build, responsive visual QA, and the 31-surface public regression runner passed before this rule was recorded.
 
-## 13. Refactor TODO
+## 14. Refactor TODO
 
 Before rebuilding CafeB from CafeA, consider these refactor steps:
 

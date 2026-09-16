@@ -63,3 +63,13 @@ test("공개 화면 회귀 QA는 메뉴판 미리보기 도움말의 최초 노�
   assert.match(source, /page\.mouse\.move\(viewport\.width \/ 2, viewport\.height - 4\)/);
   assert.match(source, /display preview controls do not hide after leaving the bottom edge/);
 });
+
+test("공개 화면 회귀 QA는 원페이지 배치 안정화와 실제 DOM 잘림을 검사한다", () => {
+  assert.match(source, /inspectCafeFitPresentation/);
+  assert.match(source, /data-fit-presentation-state/);
+  assert.match(source, /presentationState !== "ready"/);
+  assert.match(source, /fitOverflow === "true"/);
+  assert.match(source, /clippedCount/);
+  assert.match(source, /menuElement\.scrollHeight > menuElement\.clientHeight \+ 1/);
+  assert.match(source, /cafe fit: \$\{message\}/);
+});

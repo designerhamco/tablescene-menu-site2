@@ -160,6 +160,7 @@ type MenuPageGroup = {
   blocks: CafeDesignAContentBlock[];
 };
 type CafeDesignALayoutMode = "orderedFit" | "balanced" | "orderedBalancedFit";
+type CafeDesignAFitPresentationState = "loading" | "ready" | "failed";
 type CafeDesignABalancedVariant = "estimatedGreedy" | "sourceSequential" | "sourceRoundRobin" | "lastAwareGreedy" | "visibleExhaustive";
 type CafeDesignAFitState = {
   columns: number;
@@ -412,6 +413,8 @@ const ORDERED_BALANCED_DENSE_CATEGORY_THRESHOLD = 5;
 const ORDERED_BALANCED_DENSE_ITEM_THRESHOLD = 20;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP = 12;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = BALANCED_VISIBLE_GAP;
+const FIT_PRESENTATION_STABLE_MS = 320;
+const FIT_PRESENTATION_FAILURE_GRACE_MS = 1200;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_LEVELS = [
   { fontScale: 1.004, gapScale: 1.003 },
   { fontScale: 1.008, gapScale: 1.005 },
@@ -6148,6 +6151,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const desktopFitBoardRef = useRef<HTMLDivElement | null>(null);
   const desktopFitMenuRef = useRef<HTMLElement | null>(null);
   const [fitState, setFitState] = useState<CafeDesignAFitState>(DEFAULT_FIT_STATE);
+  const [fitPresentationState, setFitPresentationState] = useState<CafeDesignAFitPresentationState>("loading");
+  const [fitPresentationRevision, setFitPresentationRevision] = useState(0);
   const [orderedBalancedInitialColumns, setOrderedBalancedInitialColumns] = useState(2);
   const [orderedBalancedFitRevision, setOrderedBalancedFitRevision] = useState(0);
   const [orderedBalancedValidationRevision, setOrderedBalancedValidationRevision] = useState(0);
@@ -6338,6 +6343,126 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     cafeADebugCountersRef.current.layoutEpoch += 1;
     cafeADebugCountersRef.current.stateUpdateCount += 1;
   }, [fitState, layoutMode, orderedBalancedFinalFillBoost, orderedFitFinalFillCompensation]);
+
+  useLayoutEffect(() => {
+    const boardElement = desktopFitBoardRef.current;
+    const menuElement = desktopFitMenuRef.current;
+    if (!boardElement) return;
+
+    let revisionQueued = false;
+    const markLayoutUnstable = () => {
+      setFitPresentationState((currentState) => (currentState === "loading" ? currentState : "loading"));
+      if (revisionQueued) return;
+      revisionQueued = true;
+      queueMicrotask(() => {
+        revisionQueued = false;
+        setFitPresentationRevision((revision) => revision + 1);
+      });
+    };
+    const styleObserver = new MutationObserver(markLayoutUnstable);
+    const resizeObserver = new ResizeObserver(markLayoutUnstable);
+
+    styleObserver.observe(boardElement, { attributes: true, attributeFilter: ["style"] });
+    resizeObserver.observe(boardElement);
+    if (menuElement) resizeObserver.observe(menuElement);
+    boardElement.addEventListener("load", markLayoutUnstable, true);
+    window.addEventListener("resize", markLayoutUnstable);
+    window.visualViewport?.addEventListener("resize", markLayoutUnstable);
+
+    return () => {
+      styleObserver.disconnect();
+      resizeObserver.disconnect();
+      boardElement.removeEventListener("load", markLayoutUnstable, true);
+      window.removeEventListener("resize", markLayoutUnstable);
+      window.visualViewport?.removeEventListener("resize", markLayoutUnstable);
+    };
+  }, [layoutInputSignature]);
+
+  useLayoutEffect(() => {
+    const boardElement = desktopFitBoardRef.current;
+    const menuElement = desktopFitMenuRef.current;
+    if (!boardElement) return;
+
+    let cancelled = false;
+    let stableTimeoutId = 0;
+    let failureTimeoutId = 0;
+    let firstFrameId = 0;
+    let secondFrameId = 0;
+
+    queueMicrotask(() => {
+      if (!cancelled) setFitPresentationState("loading");
+    });
+
+    if (visiblePageGroups.length === 0 || !window.matchMedia("(min-width: 1024px)").matches) {
+      queueMicrotask(() => {
+        if (!cancelled) setFitPresentationState("ready");
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+    if (!menuElement || fitState.status === "idle") {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const verifyFinalLayout = () => {
+      if (cancelled) return;
+      firstFrameId = window.requestAnimationFrame(() => {
+        secondFrameId = window.requestAnimationFrame(() => {
+          if (cancelled) return;
+          const cropTolerance = layoutMode === "orderedBalancedFit" ? ORDERED_BALANCED_CROP_TOLERANCE : 1;
+          const cropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
+
+          if (!cropMeasurement.overflow) {
+            setFitPresentationState("ready");
+            return;
+          }
+
+          failureTimeoutId = window.setTimeout(() => {
+            if (cancelled) return;
+            const retryMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
+            setFitPresentationState(retryMeasurement.overflow ? "failed" : "ready");
+          }, FIT_PRESENTATION_FAILURE_GRACE_MS);
+        });
+      });
+    };
+
+    const waitForStableLayout = () => {
+      if (cancelled) return;
+      stableTimeoutId = window.setTimeout(verifyFinalLayout, FIT_PRESENTATION_STABLE_MS);
+    };
+
+    if ("fonts" in document && document.fonts.status !== "loaded") {
+      void document.fonts.ready.then(waitForStableLayout);
+    } else {
+      waitForStableLayout();
+    }
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(stableTimeoutId);
+      window.clearTimeout(failureTimeoutId);
+      window.cancelAnimationFrame(firstFrameId);
+      window.cancelAnimationFrame(secondFrameId);
+    };
+  }, [
+    fitPresentationRevision,
+    fitState.columns,
+    fitState.fontScale,
+    fitState.gapScale,
+    fitState.orderedBalancedBreaks,
+    fitState.orderedBalancedFingerprint,
+    fitState.overflow,
+    fitState.status,
+    layoutInputSignature,
+    layoutMode,
+    orderedBalancedFinalFillBoost.fontScale,
+    orderedBalancedFinalFillBoost.gapScale,
+    orderedFitFinalFillCompensation,
+    visiblePageGroups.length,
+  ]);
 
   useLayoutEffect(() => {
     if (layoutMode !== "orderedBalancedFit") return;
@@ -8101,6 +8226,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
   useEffect(() => {
     if (layoutMode !== "orderedBalancedFit") return;
+    // Mocha Forest already performs a full DOM-crop validation pass above.
+    // A second final-fill boost made both optimizers compete and prolonged the visible settling cycle.
+    if (isMochaForest) return;
 
     const boardElement = desktopFitBoardRef.current;
     const menuElement = desktopFitMenuRef.current;
@@ -8254,7 +8382,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [baseRenderFitState, fitState.orderedBalancedFingerprint, fitState.overflow, fitState.status, layoutInputSignature, layoutMode, orderedBalancedFinalFillBoost]);
+  }, [baseRenderFitState, fitState.orderedBalancedFingerprint, fitState.overflow, fitState.status, isMochaForest, layoutInputSignature, layoutMode, orderedBalancedFinalFillBoost]);
 
   const renderDesktopMenuGrid = ({ centerRail = false, includeFooter = false }: { centerRail?: boolean; includeFooter?: boolean } = {}) => {
     if (visiblePageGroups.length === 0) {
@@ -8425,7 +8553,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           <div
             ref={desktopFitBoardRef}
             className={`cafe-a-desktop-fit-board relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
+            aria-busy={fitPresentationState === "loading"}
             data-fit-status={fitState.status}
+            data-fit-presentation-state={fitPresentationState}
             data-layout-mode={layoutMode}
             data-fit-columns={renderFitState.columns}
             data-fit-font-scale={renderFitState.fontScale}
@@ -8555,6 +8685,34 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 {footerInfo}
               </>
             )}
+            <div
+              aria-hidden={fitPresentationState === "ready"}
+              aria-live="polite"
+              className={`absolute inset-0 z-[70] grid place-items-center px-6 text-center transition-opacity duration-200 ${
+                fitPresentationState === "ready" ? "pointer-events-none opacity-0" : "opacity-100"
+              }`}
+              data-cafe-a-fit-presentation=""
+              role="status"
+              style={{ backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
+            >
+              <div className="flex max-w-sm flex-col items-center rounded-[1.75rem] border border-black/10 bg-white/90 px-8 py-7 text-zinc-900 shadow-[0_18px_55px_rgba(0,0,0,0.12)] backdrop-blur-sm">
+                {fitPresentationState === "failed" ? (
+                  <div className="grid h-12 w-12 place-items-center rounded-full border-2 border-zinc-300 text-xl font-black" aria-hidden="true">!</div>
+                ) : (
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900 motion-reduce:animate-none" aria-hidden="true" />
+                )}
+                <p className="mt-5 text-lg font-black tracking-[-0.025em]">
+                  {fitPresentationState === "failed" ? "메뉴판 배치를 완료하지 못했어요" : "최적의 배치를 찾고 있어요"}
+                </p>
+                <p className="mt-2 text-sm font-semibold leading-relaxed text-zinc-600">
+                  {fitPresentationState === "failed"
+                    ? data.mode === "preview"
+                      ? "메뉴 수나 글자 크기를 조정한 뒤 다시 확인해 주세요."
+                      : "잠시 후 화면을 새로고침해 주세요."
+                    : "메뉴와 글자 크기를 화면에 맞추고 있습니다. 잠시만 기다려 주세요."}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </main>
