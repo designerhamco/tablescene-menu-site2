@@ -574,6 +574,193 @@ const cafeMochaForestStarterPreset: StarterPreset = cloneStarterPresetForTemplat
 const cafeSundayLineStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_sunday_line_a");
 const cafeRoundFocusStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_round_focus_a");
 
+cafeMochaForestStarterPreset.site = {
+  ...cafeMochaForestStarterPreset.site,
+  restaurant_name: "MOCHA FOREST",
+  intro_title: "MOCHA FOREST",
+  menu_cover_title: "MOCHA FOREST",
+  brand_description: "깊은 로스팅 향과 초콜릿의 풍미를 편안하게 즐길 수 있는 어두운 숲의 무드를 담은 커피 바입니다.",
+  intro_description: "깊은 로스팅 향과 초콜릿의 풍미를 담은 커피 바입니다.",
+  menu_cover_description: "깊은 로스팅 향과 초콜릿의 풍미를 담은 커피 바입니다.",
+  settings: {
+    ...(cafeMochaForestStarterPreset.site.settings ?? {}),
+    footer_notice_1: "Wi-Fi · MOCHA_GUEST",
+    footer_notice_2: "Instagram · @mocha.forest",
+    footer_notice_3: "디카페인 원두로 변경 가능합니다.",
+  },
+};
+cafeMochaForestStarterPreset.featured_item_name = "포레스트 모카";
+cafeMochaForestStarterPreset.featured_item_key = "forest-mocha";
+cafeMochaForestStarterPreset.featured_slides = [
+  {
+    id: "mocha-forest-featured-forest-mocha",
+    image_url: "/menu-templates/cafe_design_a/black-sesame-featured.jpg",
+    image_path: null,
+    featured_item_key: "forest-mocha",
+    featured_item_name: "포레스트 모카",
+    sort_order: 0,
+  },
+  {
+    id: "mocha-forest-featured-hazelnut-cream-latte",
+    image_url: "/menu-templates/cafe_design_a/nutty-cream-featured.jpg",
+    image_path: null,
+    featured_item_key: "hazelnut-cream-latte",
+    featured_item_name: "헤이즐넛 크림 라떼",
+    sort_order: 1,
+  },
+  {
+    id: "mocha-forest-featured-matcha-cloud",
+    image_url: "/menu-templates/cafe_design_a/malcha_present.jpg",
+    image_path: null,
+    featured_item_key: "matcha-cloud",
+    featured_item_name: "말차 클라우드",
+    sort_order: 2,
+  },
+];
+cafeMochaForestStarterPreset.time_sales = [
+  {
+    key: "americano-morning-deal",
+    name: "아메리카노 모닝딜",
+    schedule_type: "once",
+    badge_text: "모닝딜",
+    badge_background_color: "#E7C99A",
+    time_display_mode: "message",
+    time_display_text: "매일 오전 8시부터 10시까지",
+    targets: [
+      { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "hot", sale_price: 3000 },
+      { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "ice", sale_price: 3500 },
+    ],
+  },
+  {
+    key: "dark-chocolate-brownie-closeout",
+    name: "다크 초콜릿 브라우니 재고 마감",
+    schedule_type: "once",
+    duration_minutes: 60,
+    badge_text: "재고 마감",
+    badge_background_color: "#E7C99A",
+    time_display_mode: "countdown",
+    targets: [{ target_item_key: "dark-chocolate-brownie", target_item_name: "다크 초콜릿 브라우니", sale_price: 3200 }],
+  },
+];
+cafeMochaForestStarterPreset.pages = [
+  {
+    key: "main-menu",
+    title: "메뉴 페이지 1",
+    legacy_section_key: "main_menu",
+    categories: [
+      {
+        key: "signature-coffee",
+        name: "FOREST SIGNATURE",
+        section_key: "main_menu",
+        items: [
+          item("포레스트 모카", 6500, "다크 초콜릿과 에스프레소, 부드러운 크림의 시그니처 모카", {
+            key: "forest-mocha",
+            set_name: "FOREST MOCHA",
+            badge_label: "SIGNATURE",
+            recommended: true,
+            image_url: "/menu-templates/cafe_design_a/black-sesame.jpeg",
+            price_note: "ICE ONLY",
+          }),
+          item("헤이즐넛 크림 라떼", 6300, "구운 헤이즐넛 크림과 진한 에스프레소의 조화", {
+            key: "hazelnut-cream-latte",
+            set_name: "HAZELNUT CREAM LATTE",
+            badge_label: "BEST",
+            image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
+            price_note: "ICE ONLY",
+          }),
+          item("말차 클라우드", 6500, "제주 말차 위에 가벼운 크림을 올린 라떼", {
+            key: "matcha-cloud",
+            set_name: "MATCHA CLOUD",
+            badge_label: "NEW",
+            image_url: "/menu-templates/cafe_design_a/malcha.jpg",
+            price_note: "ICE ONLY",
+          }),
+        ],
+      },
+      {
+        key: "classic-coffee",
+        name: "ESPRESSO",
+        section_key: "main_menu",
+        price_columns: [
+          { key: "hot", label: "HOT" },
+          { key: "ice", label: "ICE" },
+        ],
+        items: [
+          item("아메리카노", 4000, "다크 초콜릿의 단맛과 묵직한 바디", {
+            key: "americano",
+            set_name: "AMERICANO",
+            price_column_values: [{ key: "hot", price: 4000 }, { key: "ice", price: 4500 }],
+          }),
+          item("카페 라떼", 5000, "에스프레소와 고소한 우유의 균형", {
+            key: "cafe-latte",
+            set_name: "CAFE LATTE",
+            price_column_values: [{ key: "hot", price: 5000 }, { key: "ice", price: 5500 }],
+          }),
+          item("플랫화이트", 5200, "더블 샷과 촘촘한 밀크폼의 진한 풍미", {
+            key: "flat-white",
+            set_name: "FLAT WHITE",
+            price_column_values: [{ key: "hot", price: 5200 }, { key: "ice", price: 5700 }],
+          }),
+          item("메이플 오트 라떼", 5800, "메이플의 은은한 단맛과 오트 밀크", {
+            key: "maple-oat-latte",
+            set_name: "MAPLE OAT LATTE",
+            price_column_values: [{ key: "hot", price: 5800 }, { key: "ice", price: 6300 }],
+          }),
+        ],
+      },
+      {
+        key: "non-coffee",
+        name: "CHOCOLATE",
+        section_key: "dessert_drink",
+        price_columns: [
+          { key: "hot", label: "HOT" },
+          { key: "ice", label: "ICE" },
+        ],
+        items: [
+          item("다크 초콜릿 라떼", 5800, "카카오의 깊고 진한 풍미", {
+            key: "dark-chocolate-latte",
+            set_name: "DARK CHOCOLATE LATTE",
+            price_column_values: [{ key: "hot", price: 5800 }, { key: "ice", price: 6300 }],
+          }),
+          item("솔티드 카라멜 초콜릿", 6200, "진한 초콜릿과 소금 카라멜의 조화", {
+            key: "salted-caramel-chocolate",
+            set_name: "SALTED CARAMEL CHOCOLATE",
+            price_column_values: [{ key: "hot", price: 6200 }, { key: "ice", price: 6700 }],
+          }),
+          item("카카오 오트 밀크", 6000, "카카오와 고소한 오트 밀크를 담은 음료", {
+            key: "cacao-oat-milk",
+            set_name: "CACAO OAT MILK",
+            price_column_values: [{ key: "hot", price: 6000 }, { key: "ice", price: 6500 }],
+          }),
+        ],
+      },
+      {
+        key: "ade",
+        name: "TEA & ADE",
+        section_key: "dessert_drink",
+        items: [
+          item("블랙티 플럼 에이드", 5800, "홍차와 자두의 산뜻한 탄산 음료", { key: "black-tea-plum-ade", set_name: "BLACK TEA PLUM ADE" }),
+          item("레몬 진저 티", 5500, "레몬과 생강을 따뜻하게 우린 티", { key: "lemon-ginger-tea", set_name: "LEMON GINGER TEA" }),
+          item("캐모마일 애플 티", 5500, "캐모마일과 사과 향의 편안한 블렌드", { key: "chamomile-apple-tea", set_name: "CHAMOMILE APPLE TEA" }),
+        ],
+      },
+      {
+        key: "bakery",
+        name: "DESSERT",
+        section_key: "dessert_drink",
+        items: [
+          item("다크 초콜릿 브라우니", 4500, "진한 다크 초콜릿을 넣어 촉촉하게 구운 브라우니", { key: "dark-chocolate-brownie", set_name: "DARK CHOCOLATE BROWNIE" }),
+          item("헤이즐넛 휘낭시에", 3800, "구운 헤이즐넛과 버터의 고소한 풍미", { key: "hazelnut-financier", set_name: "HAZELNUT FINANCIER" }),
+          item("얼그레이 파운드", 4200, "얼그레이 향을 담아 부드럽게 구운 파운드 케이크", { key: "earl-grey-pound-cake", set_name: "EARL GREY POUND CAKE" }),
+          item("카카오 까눌레", 3800, "카카오 향과 캐러멜라이즈드 겉면이 어우러진 까눌레", { key: "cacao-canele", set_name: "CACAO CANELE" }),
+          item("포레스트 티라미수", 6200, "에스프레소와 다크 카카오를 층층이 담은 티라미수", { key: "forest-tiramisu", set_name: "FOREST TIRAMISU" }),
+          item("모카 월넛 쿠키", 3500, "모카 향과 호두를 넣어 구운 촉촉한 쿠키", { key: "mocha-walnut-cookie", set_name: "MOCHA WALNUT COOKIE" }),
+        ],
+      },
+    ],
+  },
+];
+
 const cafeBrewChapterStarterPreset: StarterPreset = {
   key: "cafe",
   template_key: "cafe_brew_chapter_a",
@@ -923,6 +1110,18 @@ cafeSundayLineStarterPreset.pages = [
           }),
           item("레몬 마들렌", 3800, "레몬 향을 담아 촉촉하게 구운 마들렌", {
             key: "lemon-madeleine",
+          }),
+          item("피칸 카라멜 타르트", 6200, "고소한 피칸과 카라멜을 담은 바삭한 타르트", {
+            key: "pecan-caramel-tart",
+          }),
+          item("바닐라 푸딩", 5500, "바닐라 빈과 생크림으로 부드럽게 만든 푸딩", {
+            key: "vanilla-pudding",
+          }),
+          item("당근 크림치즈 케이크", 6200, "향신료를 더한 당근 케이크와 부드러운 크림치즈", {
+            key: "carrot-cream-cheese-cake",
+          }),
+          item("피스타치오 쿠키", 3800, "피스타치오를 듬뿍 넣어 고소하게 구운 쿠키", {
+            key: "pistachio-cookie",
           }),
         ],
       },
