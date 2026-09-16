@@ -2,7 +2,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
-import { Clock3, X, ZoomIn } from "lucide-react";
+import { Clock3, RefreshCw, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
@@ -160,7 +160,7 @@ type MenuPageGroup = {
   blocks: CafeDesignAContentBlock[];
 };
 type CafeDesignALayoutMode = "orderedFit" | "balanced" | "orderedBalancedFit";
-type CafeDesignAFitPresentationState = "loading" | "ready" | "failed";
+type CafeDesignAFitPresentationState = "loading" | "ready" | "reload";
 type CafeDesignABalancedVariant = "estimatedGreedy" | "sourceSequential" | "sourceRoundRobin" | "lastAwareGreedy" | "visibleExhaustive";
 type CafeDesignAFitState = {
   columns: number;
@@ -6423,7 +6423,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           failureTimeoutId = window.setTimeout(() => {
             if (cancelled) return;
             const retryMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
-            setFitPresentationState(retryMeasurement.overflow ? "failed" : "ready");
+            setFitPresentationState(retryMeasurement.overflow ? "reload" : "ready");
           }, FIT_PRESENTATION_FAILURE_GRACE_MS);
         });
       });
@@ -8696,21 +8696,29 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               style={{ backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
             >
               <div className="flex max-w-sm flex-col items-center rounded-[1.75rem] border border-black/10 bg-white/90 px-8 py-7 text-zinc-900 shadow-[0_18px_55px_rgba(0,0,0,0.12)] backdrop-blur-sm">
-                {fitPresentationState === "failed" ? (
+                {fitPresentationState === "reload" ? (
                   <div className="grid h-12 w-12 place-items-center rounded-full border-2 border-zinc-300 text-xl font-black" aria-hidden="true">!</div>
                 ) : (
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900 motion-reduce:animate-none" aria-hidden="true" />
                 )}
                 <p className="mt-5 text-lg font-black tracking-[-0.025em]">
-                  {fitPresentationState === "failed" ? "메뉴판 배치를 완료하지 못했어요" : "최적의 배치를 찾고 있어요"}
+                  {fitPresentationState === "reload" ? "화면을 다시 불러와 주세요" : "최적의 배치를 찾고 있어요"}
                 </p>
                 <p className="mt-2 text-sm font-semibold leading-relaxed text-zinc-600">
-                  {fitPresentationState === "failed"
-                    ? data.mode === "preview"
-                      ? "메뉴 수나 글자 크기를 조정한 뒤 다시 확인해 주세요."
-                      : "잠시 후 화면을 새로고침해 주세요."
+                  {fitPresentationState === "reload"
+                    ? "새로고침하면 메뉴판 배치를 다시 계산합니다."
                     : "메뉴와 글자 크기를 화면에 맞추고 있습니다. 잠시만 기다려 주세요."}
                 </p>
+                {fitPresentationState === "reload" ? (
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+                  >
+                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                    새로고침
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
