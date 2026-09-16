@@ -45,6 +45,15 @@ test("공개 화면 회귀 QA는 HTTP·콘솔·페이지·overflow·이미지 �
   assert.match(source, /values: \["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"\]/);
   assert.match(source, /violation\.impact === "critical" \|\| violation\.impact === "serious"/);
   assert.match(source, /accessibility \$\{violation\.impact\}/);
-  assert.match(source, /errorText === "net::ERR_ABORTED" && new URL\(request\.url\(\)\)\.searchParams\.has\("_rsc"\)/);
+  assert.match(source, /isPrefetch \|\| isDevReload/);
   assert.match(source, /if \(failed\.length > 0\) process\.exitCode = 1/);
+});
+
+test("공개 화면 회귀 QA는 메뉴판 미리보기 도움말의 최초 노출과 두 종료 방식을 검사한다", () => {
+  assert.match(source, /getByRole\("dialog", \{ name: "메뉴판 미리보기 사용 안내" \}\)/);
+  assert.match(source, /getByRole\("button", \{ name: "미리보기 시작" \}\)/);
+  assert.match(source, /getByRole\("button", \{ name: "오늘 하루 보지 않기" \}\)/);
+  assert.match(source, /preview guide reopens during the dismissed browser session/);
+  assert.match(source, /preview guide reopens after choosing hide for today/);
+  assert.match(source, /route === "\/templates\/cafe_sunday_line_a\/preview"/);
 });

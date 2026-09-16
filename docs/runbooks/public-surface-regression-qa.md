@@ -14,6 +14,8 @@ Production처럼 다른 배포를 검사할 때만 기준 주소를 지정한다
 
 ```bash
 PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:public-surfaces
+
+검사는 공개 페이지의 HTTP·콘솔·가로 넘침·깨진 이미지·접근성 오류뿐 아니라 선데이 라인 미리보기에서 도움말이 최초 방문에 열리는지, `미리보기 시작`으로 현재 세션에서 닫히는지, `오늘 하루 보지 않기`로 같은 날 다시 열리지 않는지도 확인한다.
 ```
 
 ## 범위
