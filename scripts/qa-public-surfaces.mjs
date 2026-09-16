@@ -39,7 +39,10 @@ function isSameOriginRequest(url) {
 
 function isCancelledNextPrefetch(request) {
   const errorText = request.failure()?.errorText || "";
-  return errorText === "net::ERR_ABORTED" && new URL(request.url()).searchParams.has("_rsc");
+  const url = new URL(request.url());
+  const isPrefetch = url.searchParams.has("_rsc");
+  const isDevReload = url.pathname === "/_next/static/chunks/main-app.js" && url.searchParams.has("v");
+  return errorText === "net::ERR_ABORTED" && (isPrefetch || isDevReload);
 }
 
 function isExpectedBrowserConsoleNoise(message) {
@@ -82,6 +85,39 @@ async function inspectPage(page) {
       blockingAccessibilityViolations,
     };
   });
+}
+
+async function inspectPreviewGuide(page) {
+  const failures = [];
+  const dialog = page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" });
+  const startButton = page.getByRole("button", { name: "미리보기 시작" });
+  const hideTodayButton = page.getByRole("button", { name: "오늘 하루 보지 않기" });
+
+  if (!(await dialog.isVisible())) failures.push("preview guide dialog is not visible on the first visit");
+  if (!(await startButton.isVisible())) failures.push("preview guide start button is not visible");
+  if (!(await hideTodayButton.isVisible())) failures.push("preview guide hide-today button is not visible");
+  if (failures.length > 0) return failures;
+
+  await startButton.click();
+  if (await dialog.isVisible()) failures.push("preview guide remains visible after starting the preview");
+
+  await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
+  await page.waitForTimeout(100);
+  if (await dialog.isVisible()) failures.push("preview guide reopens during the dismissed browser session");
+
+  await page.evaluate(() => window.sessionStorage.clear());
+  await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
+  await dialog.waitFor({ state: "visible", timeout: 2_000 }).catch(() => null);
+  if (!(await dialog.isVisible())) failures.push("preview guide does not reopen after session dismissal is cleared");
+
+  if (failures.length === 0) {
+    await hideTodayButton.click();
+    await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
+    await page.waitForTimeout(100);
+    if (await dialog.isVisible()) failures.push("preview guide reopens after choosing hide for today");
+  }
+
+  return failures;
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -142,6 +178,11 @@ try {
             blockingAccessibilityViolations: [],
           }
         : await inspectPage(page);
+      const previewGuideFailures = !navigationError
+        && viewport.key === "desktop"
+        && route === "/templates/cafe_sunday_line_a/preview"
+        ? await inspectPreviewGuide(page)
+        : [];
       const failures = [
         ...(navigationError ? [`navigation: ${navigationError}`] : []),
         ...(responseStatus === null || responseStatus >= 400 ? [`http: ${responseStatus ?? "no response"}`] : []),
@@ -151,6 +192,7 @@ try {
         ...consoleErrors.map((message) => `console: ${message}`),
         ...pageErrors.map((message) => `pageerror: ${message}`),
         ...requestFailures.map((message) => `requestfailed: ${message}`),
+        ...previewGuideFailures.map((message) => `preview guide: ${message}`),
         ...measurement.blockingAccessibilityViolations.map(
           (violation) =>
             `accessibility ${violation.impact}: ${violation.id} · ${violation.help} · ${violation.targets.join(", ")}`,
