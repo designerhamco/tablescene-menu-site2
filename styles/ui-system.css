@@ -153,6 +153,39 @@
   min-width: var(--ui-control-height-sm);
 }
 
+/*
+ * Editor save rows stay compact on desktop, while mobile actions use the
+ * available width so long labels and paired reset/save controls never crowd
+ * or overflow the form card.
+ */
+.site-editor-action-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card-compact);
+  background: var(--ui-surface-muted);
+  padding: 0.75rem;
+}
+
+.site-editor-action-row > :is(button, a) {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .site-editor-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .site-editor-action-row > :is(button, a) {
+    width: auto;
+  }
+}
+
 .site-card {
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-card);
