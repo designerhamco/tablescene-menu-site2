@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
+import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "@/lib/aube-table";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
@@ -1313,13 +1314,16 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     : undefined);
 
   return (
-    <MenuPageRenderer
-      mode={renderMode}
-      previewLayoutMode={previewLayoutMode}
-      initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
-      pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}
-      orderCallConfig={orderCallConfig}
-      {...data}
-    />
+    <>
+      <MenuPageRenderer
+        mode={renderMode}
+        previewLayoutMode={previewLayoutMode}
+        initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
+        pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}
+        orderCallConfig={orderCallConfig}
+        {...data}
+      />
+      {templateKey === "display_menu_a" && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
+    </>
   );
 }

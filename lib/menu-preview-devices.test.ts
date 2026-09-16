@@ -21,6 +21,18 @@ const previewFrameSource = readFileSync(
   new URL("../components/menu/MenuPreviewDeviceFrame.tsx", import.meta.url),
   "utf8",
 );
+const previewGuideSource = readFileSync(
+  new URL("../components/menu/MenuPreviewGuide.tsx", import.meta.url),
+  "utf8",
+);
+const displayTemplatePreviewSource = readFileSync(
+  new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url),
+  "utf8",
+);
+const displayTemplateSource = readFileSync(
+  new URL("../components/menu-templates/DisplayMenuA.tsx", import.meta.url),
+  "utf8",
+);
 
 test("Display preview opens at its real screen size without device frames", () => {
   assert.equal(shouldUseMenuPreviewDeviceFrame("display_menu_a"), false);
@@ -88,14 +100,43 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.match(html, /기기 선택 도구 열기/);
 });
 
-test("first preview guide uses anchored coachmarks and keeps both dismissal actions", () => {
-  assert.match(previewFrameSource, /GuideDeviceSelector/);
-  assert.match(previewFrameSource, /BrowserZoomGuide/);
-  assert.match(previewFrameSource, /PC·태블릿·모바일 버튼을 눌러/);
-  assert.match(previewFrameSource, /브라우저의 더보기\(···\)에서/);
-  assert.match(previewFrameSource, /오늘 하루 보지 않기/);
-  assert.match(previewFrameSource, /미리보기 시작/);
-  assert.match(previewFrameSource, /aria-modal="true"/);
+test("first preview guide uses anchored coachmarks and applies hide-today only through checkbox plus close", () => {
+  assert.match(previewFrameSource, /<MenuPreviewGuide device=\{device\} \/>/);
+  assert.match(previewGuideSource, /GuideDeviceSelector/);
+  assert.match(previewGuideSource, /BrowserZoomGuide/);
+  assert.match(previewGuideSource, /PC·태블릿·모바일 버튼을 눌러/);
+  assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
+  assert.match(previewGuideSource, /type="checkbox"/);
+  assert.match(previewGuideSource, /checked=\{hideTodayChecked\}/);
+  assert.match(previewGuideSource, /if \(hideTodayChecked\) \{[\s\S]*localStorage\.setItem\(PREVIEW_GUIDE_DATE_KEY/);
+  assert.match(previewGuideSource, /오늘 하루 보지 않기/);
+  assert.match(previewGuideSource, />닫기</);
+  assert.doesNotMatch(previewGuideSource, /미리보기 시작/);
+  assert.match(previewGuideSource, /aria-modal="true"/);
+});
+
+test("browser guide uses a round profile without guest text or an address pill", () => {
+  assert.match(previewGuideSource, /CircleUserRound/);
+  assert.doesNotMatch(previewGuideSource, /게스트/);
+  assert.doesNotMatch(previewGuideSource, /h-7 flex-1 rounded-full/);
+});
+
+test("display preview shows only the browser zoom guide and reveals pagination near the bottom", () => {
+  assert.match(
+    displayTemplatePreviewSource,
+    /templateKey === "display_menu_a" && !isActualView \? <MenuPreviewGuide variant="display" \/>/,
+  );
+  assert.match(previewGuideSource, /data-preview-guide-variant=\{variant\}/);
+  assert.match(previewGuideSource, /!isDisplayGuide \? \([\s\S]*<GuideDeviceSelector/);
+  assert.match(displayTemplateSource, /clientY >= window\.innerHeight \* 0\.82/);
+  assert.match(displayTemplateSource, /data-display-preview-pagination=""/);
+  assert.match(displayTemplateSource, /onPointerLeave=\{displayControls\.hide\}/);
+});
+
+test("collapsed device selector uses the centered dark horizontal pill", () => {
+  assert.match(previewFrameSource, /w-\[min\(13rem,calc\(100vw-2rem\)\)\]/);
+  assert.match(previewFrameSource, /rounded-b-\[1\.35rem\]/);
+  assert.match(previewFrameSource, /bg-zinc-950\/88/);
 });
 
 test("framed preview URLs preserve only supported preview parameters", () => {
