@@ -822,8 +822,8 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
       dailyEndTime: null,
       timezone: "Asia/Seoul",
       timeDisplayMode: "message",
-      displayText: "썸머 시그니처 출시 기념",
-      badgeText: "시즌추천",
+      displayText: "썸머 시그니처 특별가",
+      badgeText: "시즌할인",
       badgeBackgroundColor: "#126CA8",
       items: [
         {
@@ -846,7 +846,7 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
     },
     {
       id: `${siteId}-time-sale-cappuccino`,
-      name: "클래식 커피 추천",
+      name: "클래식 커피 할인",
       scheduleType: "once",
       startsAt: "2026-01-01T00:00:00.000Z",
       endsAt: "2099-12-31T23:59:59.999Z",
@@ -854,8 +854,8 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
       dailyEndTime: null,
       timezone: "Asia/Seoul",
       timeDisplayMode: "message",
-      displayText: "클래식 커피 추천 메뉴",
-      badgeText: "커피픽",
+      displayText: "클래식 커피 특별가",
+      badgeText: "커피할인",
       badgeBackgroundColor: "#126CA8",
       items: [
         {
@@ -872,30 +872,6 @@ export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null =
           priceColumnId: priceColumnId(0, 1, "ICE"),
           salePrice: 4300,
           salePriceLabel: "4.3",
-          visible: true,
-        },
-      ],
-    },
-    {
-      id: `${siteId}-time-sale-scone`,
-      name: "베이커리 페어링 추천",
-      scheduleType: "once",
-      startsAt: "2026-01-01T00:00:00.000Z",
-      endsAt: "2099-12-31T23:59:59.999Z",
-      dailyStartTime: null,
-      dailyEndTime: null,
-      timezone: "Asia/Seoul",
-      timeDisplayMode: "message",
-      displayText: "커피와 함께 즐기는 베이커리",
-      badgeText: "페어링",
-      badgeBackgroundColor: "#126CA8",
-      items: [
-        {
-          id: `${siteId}-time-sale-scone-target`,
-          menuItemId: itemId(0, 3, 0),
-          priceColumnId: null,
-          salePrice: 3900,
-          salePriceLabel: "3.9",
           visible: true,
         },
       ],
