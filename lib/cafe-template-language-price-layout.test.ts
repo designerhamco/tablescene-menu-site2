@@ -120,11 +120,15 @@ test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이�
 });
 
 test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {
-  assert.match(templateSource, /type CafeDesignAFitPresentationState = "loading" \| "ready" \| "failed"/);
+  assert.match(templateSource, /type CafeDesignAFitPresentationState = "loading" \| "ready" \| "reload"/);
   assert.match(templateSource, /data-fit-presentation-state=\{fitPresentationState\}/);
   assert.match(templateSource, /getCafeAActualDomCropMeasurement\(boardElement, menuElement, cropTolerance\)/);
   assert.match(templateSource, /최적의 배치를 찾고 있어요/);
   assert.match(templateSource, /메뉴와 글자 크기를 화면에 맞추고 있습니다/);
   assert.match(templateSource, /animate-spin[^"]*motion-reduce:animate-none/);
-  assert.match(templateSource, /retryMeasurement\.overflow \? "failed" : "ready"/);
+  assert.match(templateSource, /retryMeasurement\.overflow \? "reload" : "ready"/);
+  assert.match(templateSource, /화면을 다시 불러와 주세요/);
+  assert.match(templateSource, /새로고침하면 메뉴판 배치를 다시 계산합니다/);
+  assert.match(templateSource, /onClick=\{\(\) => window\.location\.reload\(\)\}/);
+  assert.match(templateSource, />\s*새로고침\s*<\/button>/);
 });

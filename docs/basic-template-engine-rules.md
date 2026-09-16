@@ -72,7 +72,7 @@ Desktop fit engines measure multiple column, font, and spacing candidates agains
 - Reset presentation to `loading` when the board style, fitted menu size, viewport, image load, font readiness, or fit state changes.
 - Wait for a quiet stabilization window, then run `getCafeAActualDomCropMeasurement` against the final rendered DOM.
 - Reveal the board only as `data-fit-presentation-state="ready"` when actual crop is false.
-- If crop remains after the recovery grace period, use `failed` and keep the clipped menu hidden.
+- If crop remains after the recovery grace period, use the exceptional `reload` recovery state, keep the clipped menu hidden, and provide an explicit refresh action that reruns the calculation. This is not an acceptable fitted result; every supported template must reach `ready` in regression QA.
 - Mobile keeps its independent scrolling layout and does not wait for desktop fit.
 - Mocha Forest uses the full DOM-crop validation pass but skips the second final-fill boost. Running both optimizers made them compete and prolonged settling without improving the safe result.
 

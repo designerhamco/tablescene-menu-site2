@@ -190,7 +190,7 @@ async function inspectCafeFitPresentation(page) {
   await previewFrame
     .waitForFunction(() => {
       const state = document.querySelector(".cafe-a-desktop-fit-board")?.getAttribute("data-fit-presentation-state");
-      return state === "ready" || state === "failed";
+      return state === "ready" || state === "reload";
     }, undefined, { timeout: Math.min(navigationTimeout, 30_000) })
     .catch(() => null);
 
