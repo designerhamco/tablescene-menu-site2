@@ -373,6 +373,14 @@ Final DOM sweep viewports for layout engine, fit/fill, or crop-risk changes:
 
 Do not run the full screenshot or DOM sweep for every small change. Text labels, starter data, and copy-only changes usually need lightweight QA. Layout engine, fit/fill scoring, column partition, padding, crop, overflow, or responsive shell changes need final DOM sweep.
 
+2026-09-16 final single-page design pass:
+
+- The four active single-page starters use screen-density targets rather than a fixed minimum item count.
+- Their default payloads include complete `ko`, `en`, `zh`, and `ja` translations and enabled locales.
+- Core typography and spacing use fluid viewport/container-relative values; fixed pixel values remain only where they represent hard safety or control-size boundaries.
+- Mocha Forest keeps its language control in a white inverse tone on the dark surface.
+- Contract tests, TypeScript, production build, responsive visual QA, and the 31-surface public regression runner passed before this rule was recorded.
+
 ## 13. Refactor TODO
 
 Before rebuilding CafeB from CafeA, consider these refactor steps:
