@@ -15,6 +15,7 @@ type MenuLanguageSwitcherProps = {
   extraSearchParams?: Record<string, string | null | undefined>;
   triggerVariant?: "default" | "cafe" | "aube";
   menuAlign?: "left" | "right";
+  tone?: "default" | "inverse";
 };
 
 const SHORT_LOCALE_LABELS: Record<SupportedLocale, string> = {
@@ -55,6 +56,7 @@ export default function MenuLanguageSwitcher({
   extraSearchParams,
   triggerVariant = "default",
   menuAlign = "right",
+  tone = "default",
 }: MenuLanguageSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -92,7 +94,11 @@ export default function MenuLanguageSwitcher({
 
   const triggerClassName =
     triggerVariant === "cafe"
-      ? `inline-flex cursor-pointer list-none items-center justify-center border border-transparent bg-transparent text-[#191c1b] shadow-none transition-colors hover:bg-black/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 [&::-webkit-details-marker]:hidden ${
+      ? `inline-flex cursor-pointer list-none items-center justify-center border border-transparent bg-transparent shadow-none transition-colors focus-visible:outline-none focus-visible:ring-2 [&::-webkit-details-marker]:hidden ${
+          tone === "inverse"
+            ? "text-white hover:bg-white/10 focus-visible:ring-white/40"
+            : "text-[#191c1b] hover:bg-black/[0.04] focus-visible:ring-black/20"
+        } ${
           compact ? "h-9 gap-1.5 rounded-md px-1.5 text-[13px] font-medium" : "h-10 gap-2 rounded-md px-2.5 text-xs font-bold"
         }`
       : triggerVariant === "aube"
