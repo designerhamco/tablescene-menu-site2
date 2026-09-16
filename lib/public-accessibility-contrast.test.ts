@@ -44,6 +44,16 @@ test("display starter badges use AA-safe foreground and background pairs", () =>
   );
 });
 
+test("homepage autoplay previews pause when reduced motion is requested", () => {
+  const productStory = readSource("../app/components/home/HomeProductStory.tsx");
+  const autoplayCount = productStory.match(/window\.setInterval/g)?.length ?? 0;
+  const reducedMotionGuardCount = productStory.match(/if \(prefersReducedMotion\) return;/g)?.length ?? 0;
+
+  assert.match(productStory, /import \{ AnimatePresence, motion, useReducedMotion \} from "motion\/react"/);
+  assert.equal(autoplayCount, 6);
+  assert.equal(reducedMotionGuardCount, autoplayCount);
+});
+
 test("Aube swipe attributes stay hydration-stable when reduced motion differs", () => {
   const aube = readSource("../components/menu-templates/DiningAubeTableA.tsx");
 
