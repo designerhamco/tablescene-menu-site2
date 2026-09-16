@@ -97,7 +97,8 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.doesNotMatch(html, /메뉴판 목록/);
   assert.doesNotMatch(html, /새 창에서 실제 크기 보기/);
   assert.doesNotMatch(html, /1440 × 900/);
-  assert.match(html, /기기 선택 도구 열기/);
+  assert.match(html, /기기 선택 도구 닫기/);
+  assert.match(html, /aria-expanded="true"/);
 });
 
 test("first preview guide uses anchored coachmarks and applies hide-today only through checkbox plus close", () => {
@@ -115,10 +116,11 @@ test("first preview guide uses anchored coachmarks and applies hide-today only t
   assert.match(previewGuideSource, /aria-modal="true"/);
 });
 
-test("browser guide uses a round profile without guest text or an address pill", () => {
+test("browser guide uses a filled round profile and restores the address pill without guest text", () => {
   assert.match(previewGuideSource, /CircleUserRound/);
+  assert.match(previewGuideSource, /fill-zinc-500 text-zinc-500/);
+  assert.match(previewGuideSource, /h-8 min-w-0 flex-1 rounded-full/);
   assert.doesNotMatch(previewGuideSource, /게스트/);
-  assert.doesNotMatch(previewGuideSource, /h-7 flex-1 rounded-full/);
 });
 
 test("display preview shows only the browser zoom guide and reveals pagination near the bottom", () => {
@@ -133,10 +135,18 @@ test("display preview shows only the browser zoom guide and reveals pagination n
   assert.match(displayTemplateSource, /onPointerLeave=\{displayControls\.hide\}/);
 });
 
-test("collapsed device selector uses the centered dark horizontal pill", () => {
-  assert.match(previewFrameSource, /w-\[min\(13rem,calc\(100vw-2rem\)\)\]/);
-  assert.match(previewFrameSource, /rounded-b-\[1\.35rem\]/);
-  assert.match(previewFrameSource, /bg-zinc-950\/88/);
+test("device selector is open by default and its manual collapsed state uses a thinner matching-opacity pill", () => {
+  assert.match(previewFrameSource, /useState\(true\)/);
+  assert.doesNotMatch(previewFrameSource, /onMouseEnter=/);
+  assert.doesNotMatch(previewFrameSource, /onMouseLeave=/);
+  assert.match(previewFrameSource, /h-7 w-\[min\(10rem,calc\(100vw-2rem\)\)\]/);
+  assert.match(previewFrameSource, /rounded-b-xl/);
+  assert.equal((previewFrameSource.match(/bg-zinc-950\/72/g) ?? []).length, 2);
+});
+
+test("hide-today checkbox is plain text control without a boxed container", () => {
+  assert.match(previewGuideSource, /<label className="inline-flex cursor-pointer items-center justify-center gap-2 px-2 py-3 text-sm font-bold text-white">/);
+  assert.doesNotMatch(previewGuideSource, /<label className="[^"]*(?:rounded-xl|border-white\/30|bg-zinc-950\/35)/);
 });
 
 test("framed preview URLs preserve only supported preview parameters", () => {

@@ -118,3 +118,13 @@ test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이�
     /\.cafe-a-typography\[data-cafe-a-skin="sunday_line"\] \.cafe-a-sunday-language-dock \{[\s\S]*right: -0\.4375rem;/,
   );
 });
+
+test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {
+  assert.match(templateSource, /type CafeDesignAFitPresentationState = "loading" \| "ready" \| "failed"/);
+  assert.match(templateSource, /data-fit-presentation-state=\{fitPresentationState\}/);
+  assert.match(templateSource, /getCafeAActualDomCropMeasurement\(boardElement, menuElement, cropTolerance\)/);
+  assert.match(templateSource, /최적의 배치를 찾고 있어요/);
+  assert.match(templateSource, /메뉴와 글자 크기를 화면에 맞추고 있습니다/);
+  assert.match(templateSource, /animate-spin[^"]*motion-reduce:animate-none/);
+  assert.match(templateSource, /retryMeasurement\.overflow \? "failed" : "ready"/);
+});
