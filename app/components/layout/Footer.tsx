@@ -65,7 +65,7 @@ const Footer = () => {
                   고객지원
                 </a>
               </div>
-              <p className="type-caption uppercase tracking-wide text-zinc-400">
+              <p className="type-caption uppercase tracking-wide text-zinc-600">
                 © 2026 ArtiMenu Studio.
               </p>
            </div>

@@ -129,7 +129,7 @@ export default function TemplateGallery({
               key={key}
               type="button"
               onClick={() => selectProduct(key)}
-              className={`shrink-0 border-b-2 pb-4 text-base font-bold transition-colors md:text-lg ${product === key ? "border-zinc-950 text-zinc-950" : "border-transparent text-zinc-400 hover:text-zinc-700"}`}
+              className={`shrink-0 border-b-2 pb-4 text-base font-bold transition-colors md:text-lg ${product === key ? "border-zinc-950 text-zinc-950" : "border-transparent text-zinc-600 hover:text-zinc-950"}`}
             >
               {label}
             </button>
@@ -184,7 +184,7 @@ export default function TemplateGallery({
                 <div className="pt-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs font-bold text-zinc-400">{industryLabel}</p>
+                      <p className="text-xs font-bold text-zinc-600">{industryLabel}</p>
                       <h2 className="type-content-title mt-1 text-zinc-950">{template.name}</h2>
                     </div>
                     <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">

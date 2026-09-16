@@ -34,17 +34,17 @@ export default function PricingPage() {
         <div className="mx-auto w-full max-w-6xl">
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <Link href="/mypage" className="mb-6 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+              <Link href="/mypage" className="mb-6 inline-block text-sm font-bold text-zinc-600 hover:text-zinc-950">
                 ← 마이페이지
               </Link>
               <h1 className="type-page-title">요금제 안내</h1>
-              <p className="site-body mt-4 max-w-2xl text-zinc-500">
+              <p className="site-body mt-4 max-w-2xl text-zinc-600">
                 요금제를 확인한 뒤 신청 페이지에서 상품을 선택해주세요. 실제 결제와 메뉴판 생성은 `/apply` 및 `/apply/basic` 흐름에서만 진행됩니다.
               </p>
-              <p className="site-body-support mt-3 font-bold text-zinc-400">
+              <p className="site-body-support mt-3 font-bold text-zinc-600">
                 ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
               </p>
-              <p className="site-body-support mt-2 font-bold text-zinc-400">
+              <p className="site-body-support mt-2 font-bold text-zinc-600">
                 정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.
               </p>
             </div>
@@ -59,19 +59,19 @@ export default function PricingPage() {
           <section aria-labelledby="basic-products-heading">
             <div className="mb-5 flex flex-col justify-between gap-2 md:flex-row md:items-end">
               <div>
-                <p className="text-sm font-bold text-zinc-500">현재 신청 가능</p>
+                <p className="text-sm font-bold text-zinc-600">현재 신청 가능</p>
                 <h2 id="basic-products-heading" className="type-subsection-title mt-1">아티메뉴 다이닝 상품</h2>
               </div>
-              <p className="break-keep text-sm font-bold text-zinc-400">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
+              <p className="break-keep text-sm font-bold text-zinc-600">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
             </div>
             <div className="grid gap-5 md:grid-cols-3">
               {publicBasicProducts.map((product) => (
                 <article key={product.slug} className="flex min-h-[310px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
                   <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">{product.billingLabel}</span>
                   <h3 className="type-subsection-title mt-5">{product.shortName}</h3>
-                  <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{product.summary}</p>
+                  <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{product.summary}</p>
                   <p className="mt-6 text-2xl font-bold text-zinc-950">{formatProductPrice(product.price)}</p>
-                  <p className="mt-1 text-xs font-bold text-zinc-400">정상가 {formatProductPrice(product.regularPrice)} · 부가세 포함</p>
+                  <p className="mt-1 text-xs font-bold text-zinc-600">정상가 {formatProductPrice(product.regularPrice)} · 부가세 포함</p>
                   <Link
                     href={`/products/${product.slug}`}
                     className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
@@ -89,7 +89,7 @@ export default function PricingPage() {
               {upcomingServices.map((plan) => (
                 <article key={plan.name} className="flex min-h-[250px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
                   <h3 className="type-subsection-title">{plan.name}</h3>
-                  <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">{plan.description}</p>
+                  <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{plan.description}</p>
                   <p className="mt-6 text-lg font-bold text-zinc-950">{plan.price}</p>
                   {"href" in plan ? (
                     <Link
@@ -99,7 +99,7 @@ export default function PricingPage() {
                       {plan.cta}
                     </Link>
                   ) : (
-                    <span className="mt-6 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm font-bold text-zinc-400">
+                    <span className="mt-6 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm font-bold text-zinc-600">
                       {plan.cta}
                     </span>
                   )}

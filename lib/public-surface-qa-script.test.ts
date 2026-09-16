@@ -25,16 +25,26 @@ test("공개 화면 회귀 QA는 핵심 페이지와 모든 판매 템플릿을 
 
   assert.match(source, /key: "desktop", width: 1440, height: 900/);
   assert.match(source, /key: "mobile", width: 390, height: 844/);
+  assert.match(source, /PUBLIC_SURFACE_QA_ROUTE/);
+  assert.match(source, /reducedMotion: "reduce"/);
+  assert.match(source, /serviceWorkers: "block"/);
   assert.equal(packageJson.scripts?.["qa:public-surfaces"], "node scripts/qa-public-surfaces.mjs");
 });
 
 test("공개 화면 회귀 QA는 HTTP·콘솔·페이지·overflow·이미지 실패를 차단한다", () => {
   assert.match(source, /responseStatus >= 400/);
+  assert.match(source, /waitUntil: "domcontentloaded"/);
+  assert.match(source, /waitForLoadState\("networkidle", \{ timeout: Math\.min\(navigationTimeout, 5_000\) \}\)\.catch/);
+  assert.match(source, /waitForFunction\(\(\) => document\.body\?\.innerText\.trim\(\)\.length >= 10/);
   assert.match(source, /horizontalOverflow > 2/);
   assert.match(source, /naturalWidth === 0/);
   assert.match(source, /message\.type\(\) === "error"/);
   assert.match(source, /page\.on\("pageerror"/);
   assert.match(source, /page\.on\("requestfailed"/);
+  assert.match(source, /Failed to load resource: net::ERR_CACHE_WRITE_FAILURE/);
+  assert.match(source, /values: \["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"\]/);
+  assert.match(source, /violation\.impact === "critical" \|\| violation\.impact === "serious"/);
+  assert.match(source, /accessibility \$\{violation\.impact\}/);
   assert.match(source, /errorText === "net::ERR_ABORTED" && new URL\(request\.url\(\)\)\.searchParams\.has\("_rsc"\)/);
   assert.match(source, /if \(failed\.length > 0\) process\.exitCode = 1/);
 });

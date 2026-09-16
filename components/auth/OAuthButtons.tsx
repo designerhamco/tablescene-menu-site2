@@ -67,7 +67,7 @@ export default function OAuthButtons({
       {showDivider ? (
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-zinc-200" />
-          <span className="text-xs font-bold text-zinc-400">
+          <span className="text-xs font-bold text-zinc-600">
             또는
           </span>
           <div className="h-px flex-1 bg-zinc-200" />

@@ -348,7 +348,7 @@ export default function DiningAubeTableA({
           animate="center"
           exit="exit"
           transition={prefersReducedMotion ? { duration: 0.01 } : AUBE_TABLE_STAGE_TRANSITION}
-          drag={!usesSidebarNavigation && units.length > 1 && !prefersReducedMotion ? "x" : false}
+          drag={!usesSidebarNavigation && units.length > 1 ? "x" : false}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.1}
           dragMomentum={false}

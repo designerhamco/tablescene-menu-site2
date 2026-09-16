@@ -82,7 +82,7 @@ export function ConsentAgreementBox<T extends string>({
               <button
                 type="button"
                 onClick={() => onOpen(key)}
-                className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
+                className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-200 hover:text-zinc-950"
               >
                 보기
               </button>

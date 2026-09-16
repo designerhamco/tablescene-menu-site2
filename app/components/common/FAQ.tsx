@@ -406,7 +406,7 @@ const FAQ = ({
                   className={`type-label rounded-full px-5 py-2.5 transition-all duration-300 ${
                     activeTab === idx
                       ? homeDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
-                      : homeDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
+                      : homeDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950'
                   }`}
                 >
                   {category.category}
@@ -425,7 +425,7 @@ const FAQ = ({
                   </p>
                   {searchResults.map((faq, index) => (
                     <div key={`${faq.category}-${faq.question}`}>
-                      <p className={`type-caption px-4 pt-5 ${homeDark ? "text-zinc-400" : "text-zinc-400"}`}>{faq.category}</p>
+                      <p className={`type-caption px-4 pt-5 ${homeDark ? "text-zinc-400" : "text-zinc-600"}`}>{faq.category}</p>
                       <FAQItem
                         item={faq}
                         isOpen={openIndex === index}
