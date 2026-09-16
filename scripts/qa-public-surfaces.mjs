@@ -156,6 +156,25 @@ async function inspectDisplayPreviewControls(page) {
     failures.push("display preview controls do not hide after leaving the bottom edge");
   }
 
+  const minimumPriceColumnGap = await page.evaluate(() => {
+    const gaps = [...document.querySelectorAll(".cafe-a-price-options-grid, .cafe-a-option-header-grid")]
+      .flatMap((grid) => {
+        const boxes = [...grid.children]
+          .map((child) => child.getBoundingClientRect())
+          .filter((box) => box.width > 0 && box.height > 0)
+          .sort((left, right) => left.left - right.left);
+
+        return boxes.slice(1).map((box, index) => box.left - boxes[index].right);
+      });
+
+    return gaps.length > 0 ? Math.min(...gaps) : null;
+  });
+  if (minimumPriceColumnGap === null) {
+    failures.push("display preview price option columns are missing");
+  } else if (minimumPriceColumnGap < 12) {
+    failures.push(`display preview price option columns are too close: ${minimumPriceColumnGap.toFixed(1)}px`);
+  }
+
   return failures;
 }
 

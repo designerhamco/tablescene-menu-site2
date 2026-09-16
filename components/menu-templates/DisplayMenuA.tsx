@@ -106,7 +106,7 @@ type DisplayFitMeasurement = {
 };
 
 const DISPLAY_MAX_PRICE_OPTIONS = 3;
-const DISPLAY_OPTION_GRID_GAP = "calc(var(--display-row) * 0.26)";
+const DISPLAY_OPTION_GRID_GAP = "clamp(16px, calc(var(--display-row) * 0.4), 34px)";
 const DISPLAY_PUBLIC_PAGE_INTERVAL_MS = 8000;
 const DISPLAY_FIT_MAX_ITERATIONS = 10;
 const DISPLAY_FIT_MAX_PHASE = 4;
@@ -367,7 +367,7 @@ function getOptionGridStyle(optionHeaders: DisplayOptionHeader[]): CSSProperties
   const optionCount = Math.max(optionHeaders.length, 1);
 
   return {
-    "--display-option-col-width": "clamp(48px, calc(var(--display-row) * 1.18), 104px)",
+    "--display-option-col-width": "clamp(52px, calc(var(--display-row) * 1.24), 112px)",
     "--display-option-grid-gap": DISPLAY_OPTION_GRID_GAP,
     gridTemplateColumns: `repeat(${optionCount}, var(--display-option-col-width))`,
     columnGap: "var(--display-option-grid-gap)",
