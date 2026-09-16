@@ -1870,12 +1870,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>
               </p>
             </div>
-            <div className="flex flex-col items-start gap-2 lg:items-end">
-              <div className="flex flex-wrap items-center justify-end gap-3">
+            <div className="flex w-full flex-col items-stretch gap-2 sm:items-end lg:w-auto">
+              <div className="site-editor-header-actions">
                 {accessContext.isOwner && site.status === "draft" && !isReadOnly ? (
                   <Link
                     href={`/mypage/menus/${site.id}/import`}
-                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                    className="site-button site-button-secondary"
                   >
                     메뉴 가져오기
                   </Link>
@@ -1885,12 +1885,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     href={previewUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white"
+                    className="site-button site-button-primary"
                   >
                     미리보기
                   </Link>
                 ) : (
-                  <button type="button" disabled className="cursor-not-allowed rounded-full bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                  <button type="button" disabled className="site-button site-button-primary">
                     미리보기
                   </button>
                 )}
@@ -1900,7 +1900,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       href={publicUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                      className="site-button site-button-secondary"
                     >
                       공개 페이지 보기
                     </Link>
@@ -1908,7 +1908,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <a
                         href={qrDownloadUrl}
                         download
-                        className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                        className="site-button site-button-secondary"
                       >
                         QR 다운로드
                       </a>
@@ -1916,16 +1916,16 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </>
                 ) : (
                   <>
-                    <button type="button" disabled title="공개 중인 활성 메뉴판에서만 사용할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                    <button type="button" disabled title="공개 중인 활성 메뉴판에서만 사용할 수 있습니다." className="site-button site-button-secondary">
                       공개 페이지 보기
                     </button>
-                    <button type="button" disabled title="공개 중인 메뉴판에서만 QR을 다운로드할 수 있습니다." className="cursor-not-allowed rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                    <button type="button" disabled title="공개 중인 메뉴판에서만 QR을 다운로드할 수 있습니다." className="site-button site-button-secondary">
                       QR 다운로드
                     </button>
                   </>
                 )}
               </div>
-              <p className="text-xs font-bold text-zinc-400">변경사항은 저장 후 반영됩니다.</p>
+              <p className="text-center text-xs font-bold text-zinc-400 sm:text-right">변경사항은 저장 후 반영됩니다.</p>
             </div>
           </div>
         </header>
