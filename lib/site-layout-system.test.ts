@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const globalsSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const uiSystemSource = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
 
 function readSource(path: string) {
   return readFileSync(new URL(path, import.meta.url), "utf8");
@@ -82,12 +83,18 @@ test("메뉴 편집기 외곽과 주요 섹션은 공통 반응형 표면을 사
 });
 
 test("메뉴 편집기의 탭과 구조 편집 패널도 공통 무그림자 표면을 사용한다", () => {
+  const editor = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
   const navigation = readSource("../components/mypage/menu-editor/MenuEditorNavigation.tsx");
   const management = readSource("../components/mypage/menu-editor/MenuManagementSection.tsx");
 
   assert.match(navigation, /site-card site-card-compact mb-6/);
+  assert.match(editor, /function FinalActionRow[\s\S]*?site-editor-action-row/);
   assert.match(management, /<section className="site-card p-5 sm:p-6">/);
   assert.match(management, /<section className="site-card site-card-compact min-w-0 p-4 lg:p-6">/);
+  assert.match(management, /function FinalActionRow[\s\S]*?site-editor-action-row/);
+  assert.match(uiSystemSource, /\.site-editor-action-row \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(uiSystemSource, /\.site-editor-action-row > :is\(button, a\) \{[\s\S]*?width: 100%/);
+  assert.match(uiSystemSource, /@media \(min-width: 640px\) \{[\s\S]*?\.site-editor-action-row \{[\s\S]*?display: flex/);
   assert.doesNotMatch(navigation, /shadow-(?:sm|md|lg|xl|2xl)/);
   assert.doesNotMatch(management, /shadow-(?:sm|md|lg|xl|2xl)/);
 });

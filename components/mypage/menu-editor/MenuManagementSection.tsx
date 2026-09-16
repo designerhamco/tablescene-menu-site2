@@ -1265,7 +1265,7 @@ function SubmitButton({
 
 function FinalActionRow({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-4">
+    <div className="site-editor-action-row">
       {children}
     </div>
   );
