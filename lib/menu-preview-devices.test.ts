@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -15,6 +16,11 @@ import {
   normalizeMenuPreviewPaymentMode,
   shouldUseMenuPreviewDeviceFrame,
 } from "./menu-preview-devices";
+
+const previewFrameSource = readFileSync(
+  new URL("../components/menu/MenuPreviewDeviceFrame.tsx", import.meta.url),
+  "utf8",
+);
 
 test("Display preview opens at its real screen size without device frames", () => {
   assert.equal(shouldUseMenuPreviewDeviceFrame("display_menu_a"), false);
@@ -80,6 +86,16 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.doesNotMatch(html, /새 창에서 실제 크기 보기/);
   assert.doesNotMatch(html, /1440 × 900/);
   assert.match(html, /기기 선택 도구 열기/);
+});
+
+test("first preview guide uses anchored coachmarks and keeps both dismissal actions", () => {
+  assert.match(previewFrameSource, /GuideDeviceSelector/);
+  assert.match(previewFrameSource, /BrowserZoomGuide/);
+  assert.match(previewFrameSource, /PC·태블릿·모바일 버튼을 눌러/);
+  assert.match(previewFrameSource, /브라우저의 더보기\(···\)에서/);
+  assert.match(previewFrameSource, /오늘 하루 보지 않기/);
+  assert.match(previewFrameSource, /미리보기 시작/);
+  assert.match(previewFrameSource, /aria-modal="true"/);
 });
 
 test("framed preview URLs preserve only supported preview parameters", () => {
