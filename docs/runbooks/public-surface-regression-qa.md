@@ -45,4 +45,4 @@ PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:p
 
 동일한 31개 화면에 axe-core WCAG A/AA 검사를 추가했다. 최초 검사에서 19개 화면에 낮은 명암 대비가 확인됐으며 모두 `color-contrast` 유형이었다. 공개 상품·FAQ·약관·인증 화면의 보조 문구, 홈페이지 미니 미리보기, Footer 저작권, Display 배지 기본 팔레트를 위치별로 보정했다.
 
-보정 후 로컬 31개 화면에서 심각도 `critical`·`serious` 접근성 위반은 0건이다. Production 기준선은 이 변경의 배포가 완료된 뒤 동일 명령으로 다시 확인한다.
+보정 후 로컬 31개 화면에서 심각도 `critical`·`serious` 접근성 위반은 0건이다. PR #200의 Vercel Preview 통과와 Production 배포 전환을 확인한 뒤 같은 명령을 다시 실행했으며, Production 31개 화면에서도 HTTP·렌더링·접근성 실패가 모두 0건이었다. 배포 전환 중 한 차례 구버전 HTML과 새 정적 청크가 교차해 일시적인 chunk 404가 관찰됐지만, 전환 완료 후 홈 단독 검사와 전체 검사를 연속 통과해 애플리케이션 회귀가 아님을 확인했다.
