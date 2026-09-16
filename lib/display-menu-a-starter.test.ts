@@ -21,7 +21,7 @@ test("Summer Blue starter keeps a concise menu and one visible launch discount",
     item: data.items.find((item) => item.id === target.menuItemId),
   }));
   assert.equal(sale.badgeText, "오픈할인");
-  assert.equal(sale.displayText, "오픈 기념 한정 할인");
+  assert.equal(sale.displayText, null);
   assert.deepEqual(
     targets.map(({ item, target }) => [item?.name, item?.price, target.salePrice, target.priceColumnId]),
     [
