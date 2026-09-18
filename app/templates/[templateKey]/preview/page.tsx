@@ -8,7 +8,7 @@ import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/t
 import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "@/lib/aube-table";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
-import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/locales";
+import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, type SupportedLocale } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
@@ -28,6 +28,7 @@ import { getNextTimeSaleStartMs } from "@/lib/menu-time-sale-schedule";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { DEFAULT_TEMPLATE_CONTENT_LIMITS, getTemplateContentLimits } from "@/lib/template-content-limits";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
+import { applyStarterPreviewLocalization } from "@/lib/template-demo-data/starter-preview-localization";
 import { MENU_WIDGET_SETTINGS_VERSION } from "@/lib/menu-widgets";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
@@ -460,12 +461,7 @@ function applyPreviewFontSizeScale(data: MenuPageData, fontSizeScale: string | s
 
 function applyPreviewLocale(data: MenuPageData, lang: string | string[] | undefined): MenuPageData {
   const rawLocale = Array.isArray(lang) ? lang[0] : lang;
-
-  return {
-    ...data,
-    locale: normalizeLocale(rawLocale),
-    enabledLocales: [...SUPPORTED_LOCALES],
-  };
+  return applyStarterPreviewLocalization(data, normalizeLocale(rawLocale));
 }
 
 function applyActiveTemplateLocaleQaFixture(
@@ -1310,6 +1306,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
         menuSiteId: data.menuSite.id,
         storeName: previewStoreName,
         templateKey,
+        locale: data.locale,
       })
     : undefined);
 

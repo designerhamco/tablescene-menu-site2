@@ -185,6 +185,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         menuSiteId: data.menuSite.id,
         storeName: data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
         templateKey: data.menuSite.template_key,
+        locale: data.locale,
       })
     : undefined;
 

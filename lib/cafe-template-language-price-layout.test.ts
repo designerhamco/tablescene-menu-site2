@@ -119,6 +119,25 @@ test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이�
   );
 });
 
+test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명의 타이포 위계와 상단 설명 비율을 유지한다", () => {
+  assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-category-title-boost: 1\.34;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.94;/);
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-topline-description,[\s\S]*\.cafe-a-topline-notice-text \{[\s\S]*--cafe-a-top-copy-layout-scale[\s\S]*0\.92rem/,
+  );
+  assert.match(globalStylesSource, /data-layout-mode="orderedBalancedFit"[\s\S]*--cafe-a-top-copy-layout-scale: var\(--ordered-balanced-menu-visual-scale\)/);
+  assert.match(globalStylesSource, /--cafe-a-top-copy-density-compensation: 0\.925/);
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-ordered-menu-flow \.cafe-a-category-title \{[\s\S]*2\.12rem/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-ordered-menu-flow \.cafe-a-menu-description,[\s\S]*0\.92rem/,
+  );
+});
+
 test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {
   assert.match(templateSource, /type CafeDesignAFitPresentationState = "loading" \| "ready" \| "reload"/);
   assert.match(templateSource, /data-fit-presentation-state=\{fitPresentationState\}/);
@@ -126,7 +145,9 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /최적의 배치를 찾고 있어요/);
   assert.match(templateSource, /메뉴와 글자 크기를 화면에 맞추고 있습니다/);
   assert.match(templateSource, /animate-spin[^"]*motion-reduce:animate-none/);
-  assert.match(templateSource, /retryMeasurement\.overflow \? "reload" : "ready"/);
+  assert.match(templateSource, /fitPresentationSafetyScale > FIT_PRESENTATION_MIN_SAFETY_SCALE/);
+  assert.match(templateSource, /currentScale \* FIT_PRESENTATION_SAFETY_STEP/);
+  assert.match(templateSource, /setFitPresentationState\("reload"\)/);
   assert.match(templateSource, /화면을 다시 불러와 주세요/);
   assert.match(templateSource, /새로고침하면 메뉴판 배치를 다시 계산합니다/);
   assert.match(templateSource, /onClick=\{\(\) => window\.location\.reload\(\)\}/);
