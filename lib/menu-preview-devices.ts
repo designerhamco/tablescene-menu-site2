@@ -18,6 +18,9 @@ export const MENU_PREVIEW_DEVICES = {
 
 export type MenuPreviewDevice = keyof typeof MENU_PREVIEW_DEVICES;
 
+export const DEFAULT_MENU_PREVIEW_DEVICE: MenuPreviewDevice = "tablet";
+export const MENU_PREVIEW_DEVICE_ORDER = ["tablet", "pc", "mobile"] as const satisfies readonly MenuPreviewDevice[];
+
 export function shouldUseMenuPreviewDeviceFrame(templateKey: string | null | undefined) {
   return templateKey !== "display_menu_a";
 }
@@ -44,8 +47,11 @@ export type MenuPreviewQuery = {
 
 export type TemplatePreviewQuery = Record<string, string | string[] | undefined>;
 
-export function normalizeMenuPreviewDevice(value: string | undefined): MenuPreviewDevice {
-  return value === "tablet" || value === "mobile" ? value : "pc";
+export function normalizeMenuPreviewDevice(
+  value: string | undefined,
+  fallback: MenuPreviewDevice = DEFAULT_MENU_PREVIEW_DEVICE,
+): MenuPreviewDevice {
+  return value === "pc" || value === "tablet" || value === "mobile" ? value : fallback;
 }
 
 export function normalizeMenuPreviewOrientation(value: string | undefined): MenuPreviewOrientation {

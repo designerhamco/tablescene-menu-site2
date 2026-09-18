@@ -45,7 +45,7 @@ try {
         if (message.type() === "error") errors.push(`console: ${message.text()}`);
       });
 
-      const route = `/templates/${templateKey}/preview?lang=${locale}&view=actual&embedded=1`;
+      const route = `/templates/${templateKey}/preview?lang=${locale}&device=pc&view=actual&embedded=1`;
       const response = await page.goto(new URL(route, baseUrl).toString(), {
         waitUntil: "domcontentloaded",
         timeout: navigationTimeout,
@@ -165,6 +165,17 @@ try {
       }
       await previewGuide.getByRole("button", { name: "닫기" }).click();
       await previewGuide.waitFor({ state: "hidden", timeout: navigationTimeout });
+    }
+    const deviceTabLabels = await toolbar.getByRole("navigation", { name: "미리보기 기기 선택" }).getByRole("link").allTextContents();
+    if (deviceTabLabels.map((label) => label.trim()).join(",") !== "태블릿,PC,모바일") {
+      failures.push(`device tab order is incorrect: ${deviceTabLabels.join(", ")}`);
+    }
+    if (await toolbar.getByRole("link", { name: "태블릿" }).getAttribute("aria-current") !== "page") {
+      failures.push("tablet is not selected by default");
+    }
+    const embeddedPreviewUrl = await page.locator("iframe").getAttribute("src");
+    if (!embeddedPreviewUrl?.includes("device=tablet") || !embeddedPreviewUrl.includes("orientation=landscape")) {
+      failures.push(`default embedded preview is not tablet landscape: ${embeddedPreviewUrl ?? "missing"}`);
     }
     const before = await toolbar.boundingBox();
     if (await toolbar.getAttribute("data-toolbar-open") !== "true") failures.push("device toolbar is not open by default");

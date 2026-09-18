@@ -11,6 +11,7 @@ import {
   buildMenuPreviewUrl,
   buildTemplatePreviewUrl,
   getMenuPreviewFrame,
+  MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_DEVICES,
   MENU_PREVIEW_ORIENTATIONS,
   type MenuPreviewDevice,
@@ -79,7 +80,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
             }`}
           >
             <nav aria-label="미리보기 기기 선택" className="flex items-center gap-1">
-              {(Object.keys(MENU_PREVIEW_DEVICES) as MenuPreviewDevice[]).map((candidate) => {
+              {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
                 const isSelected = candidate === device;
 
@@ -148,6 +149,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
 
       <section
         className={device === "pc" ? "h-screen w-screen overflow-hidden" : "h-screen overflow-auto px-4 py-16"}
+        tabIndex={device === "pc" ? undefined : 0}
         aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
       >
         <div

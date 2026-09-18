@@ -1240,11 +1240,15 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     notFound();
   }
 
-  const device = normalizeMenuPreviewDevice(getFirstParam(resolvedSearchParams.device));
+  const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(templateKey);
+  const device = normalizeMenuPreviewDevice(
+    getFirstParam(resolvedSearchParams.device),
+    usesDevicePreviewFrame ? "tablet" : "pc",
+  );
   const orientation = normalizeMenuPreviewOrientation(getFirstParam(resolvedSearchParams.orientation));
   const isActualView = getFirstParam(resolvedSearchParams.view) === "actual";
 
-  if (!isActualView && shouldUseMenuPreviewDeviceFrame(templateKey)) {
+  if (!isActualView && usesDevicePreviewFrame) {
     return (
       <MenuPreviewDeviceFrame
         device={device}
