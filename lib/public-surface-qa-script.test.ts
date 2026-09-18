@@ -66,6 +66,7 @@ test("공개 화면 회귀 QA는 메뉴판 미리보기 도움말의 최초 노�
 
 test("공개 화면 회귀 QA는 원페이지 배치 안정화와 실제 DOM 잘림을 검사한다", () => {
   assert.match(source, /inspectCafeFitPresentation/);
+  assert.match(source, /iframe\[src\*="view=actual"\][\s\S]*state: "attached"/);
   assert.match(source, /data-fit-presentation-state/);
   assert.match(source, /presentationState !== "ready"/);
   assert.match(source, /fitOverflow === "true"/);

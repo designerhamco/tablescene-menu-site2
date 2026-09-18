@@ -180,7 +180,16 @@ async function inspectDisplayPreviewControls(page) {
 
 async function inspectCafeFitPresentation(page) {
   const failures = [];
-  const previewFrame = page.frames().find((frame) => frame !== page.mainFrame() && frame.url().includes("view=actual"));
+  await page.locator('iframe[src*="view=actual"]').waitFor({
+    state: "attached",
+    timeout: Math.min(navigationTimeout, 10_000),
+  }).catch(() => null);
+  const frameDeadline = Date.now() + Math.min(navigationTimeout, 10_000);
+  let previewFrame = page.frames().find((frame) => frame !== page.mainFrame() && frame.url().includes("view=actual"));
+  while (!previewFrame && Date.now() < frameDeadline) {
+    await page.waitForTimeout(100);
+    previewFrame = page.frames().find((frame) => frame !== page.mainFrame() && frame.url().includes("view=actual"));
+  }
   if (!previewFrame) return ["fitted menu preview iframe is missing"];
 
   const board = previewFrame.locator(".cafe-a-desktop-fit-board");
