@@ -2938,11 +2938,6 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement, tem
   });
 }
 
-function isDefaultPageTitle(page: MenuPage) {
-  const title = page.title.trim();
-  return /^메뉴 페이지\s*\d+$/i.test(title) || /^page\s*\d+$/i.test(title);
-}
-
 function estimateMenuGroupHeight(
   group: MenuGroup,
   data: PublicMenuTemplateProps,
@@ -4000,7 +3995,7 @@ function CoverHero({
                 <ScriptAwareText text={featuredItem.name} />
               </h2>
               {featuredItem.description && (
-                <p className={`cafe-a-description-text cafe-a-featured-description mt-2 break-keep lg:line-clamp-2 ${featuredItemSoldOut ? "cafe-a-featured-sold-out-muted" : "text-white/82"}`} data-cafe-a-featured-description="">
+                <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-featured-description mt-2 break-keep lg:line-clamp-2 ${getMenuDescriptionSizeClassName(density)} ${featuredItemSoldOut ? "cafe-a-featured-sold-out-muted" : "text-white/82"}`} data-cafe-a-featured-description="">
                   <ScriptAwareText text={featuredItem.description} />
                 </p>
               )}
@@ -4052,13 +4047,16 @@ function StoreIdentity({
 function CafeAFooterInfo({
   data,
   capabilities,
+  density,
   placement = "desktop",
 }: {
   data: PublicMenuTemplateProps;
   capabilities: TemplateCapabilities;
+  density: MenuLayoutDensity;
   placement?: "desktop" | "mobile";
 }) {
   const infoRows = getCafeAFooterInfo(data, capabilities);
+  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   if (infoRows.length === 0) return null;
 
   return (
@@ -4069,7 +4067,7 @@ function CafeAFooterInfo({
       data-cafe-a-footer-info=""
       data-cafe-a-footer-placement={placement}
     >
-      <p className="cafe-a-description-text cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep">
+      <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
         <ScriptAwareText text={infoRows.join("\n")} />
       </p>
     </aside>
@@ -5312,11 +5310,9 @@ function HeaderBlock({
 }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
-  const isRoundFocusTemplate = data.menuSite.template_key === "cafe_round_focus_a";
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
-  const descriptionClassName = isRoundFocusTemplate
-    ? `cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-store-description mt-2 break-keep text-[#3f4945] ${descriptionSizeClassName}`
-    : "cafe-a-description-text cafe-a-store-description mt-2 break-keep text-[#3f4945]";
+  const descriptionClassName = `cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-store-description mt-2 break-keep text-[#3f4945] ${descriptionSizeClassName}`;
+  const isRoundFocusTemplate = data.menuSite.template_key === "cafe_round_focus_a";
 
   return (
     <header className={`w-full shrink-0 px-[clamp(24px,4vw,96px)] pt-8 pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
@@ -5348,12 +5344,15 @@ function HeaderBlock({
 function DesktopToplineInformationHeader({
   data,
   capabilities,
+  density,
 }: {
   data: CafeDesignAProps;
   capabilities: TemplateCapabilities;
+  density: MenuLayoutDensity;
 }) {
   const description = data.menuSite.brand_description || data.menuSite.description;
   const infoRows = getCafeAFooterInfo(data, capabilities);
+  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
 
   return (
     <section
@@ -5362,7 +5361,7 @@ function DesktopToplineInformationHeader({
     >
       <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
         {description ? (
-          <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-spacious cafe-a-topline-description break-keep text-[#3f4945]">
+          <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description break-keep text-[#3f4945] ${descriptionSizeClassName}`}>
             <ScriptAwareText text={description} />
           </p>
         ) : null}
@@ -5379,7 +5378,7 @@ function DesktopToplineInformationHeader({
 
       <aside className="cafe-a-topline-notices min-w-0 text-right text-[#58645f]" data-cafe-a-topline-notices="">
         {infoRows.length > 0 ? (
-          <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-size-spacious cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945]">
+          <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}>
             <ScriptAwareText text={infoRows.join("\n")} />
           </p>
         ) : null}
@@ -5407,16 +5406,19 @@ function SundayLineDesktopLanguageDock({ data }: { data: CafeDesignAProps }) {
 function SundayLineMobileNotices({
   data,
   capabilities,
+  density,
 }: {
   data: CafeDesignAProps;
   capabilities: TemplateCapabilities;
+  density: MenuLayoutDensity;
 }) {
   const infoRows = getCafeAFooterInfo(data, capabilities);
+  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   if (infoRows.length === 0) return null;
 
   return (
     <aside className="cafe-a-topline-mobile-notices px-[clamp(24px,4vw,96px)] pt-4 text-left text-[#58645f] md:hidden" data-cafe-a-topline-mobile-notices="">
-      <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap whitespace-pre-line break-keep">
+      <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
         <ScriptAwareText text={infoRows.join("\n")} />
       </p>
     </aside>
@@ -5776,7 +5778,6 @@ function MenuGroupsGrid({
   itemStackSpacing,
   outerGridGapClassName,
   menuAreaClassName,
-  showPageTitles,
   timeSaleByItemId,
   priceDisplayMode,
   onOpenImage,
@@ -5792,7 +5793,6 @@ function MenuGroupsGrid({
   itemStackSpacing: string;
   outerGridGapClassName: string;
   menuAreaClassName: string;
-  showPageTitles: boolean;
   timeSaleByItemId: Map<string, CafeDesignATimeSaleMatch>;
   priceDisplayMode: CafeDesignAPriceDisplayMode;
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
@@ -5810,13 +5810,6 @@ function MenuGroupsGrid({
     >
       {pageGroups.map((pageGroup) => (
         <div key={pageGroup.page.id} className="contents">
-          {showPageTitles && !isDefaultPageTitle(pageGroup.page) && (
-            <section className="md:col-span-2 lg:col-span-full">
-              <h2 className="border-b border-[#191c1b] pb-2 text-sm font-black uppercase tracking-[0.18em] text-[#3f4945]">
-                {pageGroup.page.title}
-              </h2>
-            </section>
-          )}
           {pageGroup.blocks.map((block) => {
             return (
               <MenuContentBlock
@@ -6163,6 +6156,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const [orderedFitFinalFillCompensation, setOrderedFitFinalFillCompensation] = useState(DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION);
   const [menuImagePreview, setMenuImagePreview] = useState<CafeMenuImagePreview | null>(null);
   const fitStateRef = useRef<CafeDesignAFitState>(DEFAULT_FIT_STATE);
+  const hasFitPresentationReadyRef = useRef(false);
   const menuImagePreviewTriggerRef = useRef<HTMLElement | null>(null);
   const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
   const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
@@ -6214,7 +6208,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       } as CSSProperties)
     : {};
   const shouldRenderToplineFeaturedHero = isSundayLine && shouldRenderMenuCoverSection && featuredHeroSlides.length > 0;
-  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} />;
+  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} density={density} />;
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
@@ -6296,6 +6290,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     [layoutMode, orderedFitFinalFillCompensation],
   );
   const fitGapStyle = useMemo(() => getFitGapStyle(density), [density]);
+  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const orderedBalancedPriceOptionSignature = useMemo(
     () =>
       data.priceOptions
@@ -6342,7 +6337,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
-      if (!cancelled) setFitPresentationSafetyScale(1);
+      if (cancelled) return;
+      hasFitPresentationReadyRef.current = false;
+      setFitPresentationState("loading");
+      setFitPresentationSafetyScale(1);
     });
     return () => {
       cancelled = true;
@@ -6375,7 +6373,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
     let revisionQueued = false;
     const markLayoutUnstable = () => {
-      setFitPresentationState((currentState) => (currentState === "loading" ? currentState : "loading"));
+      if (!hasFitPresentationReadyRef.current) {
+        setFitPresentationState((currentState) => (currentState === "loading" ? currentState : "loading"));
+      }
       if (revisionQueued) return;
       revisionQueued = true;
       queueMicrotask(() => {
@@ -6414,12 +6414,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     let secondFrameId = 0;
 
     queueMicrotask(() => {
-      if (!cancelled) setFitPresentationState("loading");
+      if (!cancelled && !hasFitPresentationReadyRef.current) setFitPresentationState("loading");
     });
 
     if (visiblePageGroups.length === 0 || !window.matchMedia("(min-width: 1024px)").matches) {
       queueMicrotask(() => {
-        if (!cancelled) setFitPresentationState("ready");
+        if (!cancelled) {
+          hasFitPresentationReadyRef.current = true;
+          setFitPresentationState("ready");
+        }
       });
       return () => {
         cancelled = true;
@@ -6440,6 +6443,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           const cropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
 
           if (!cropMeasurement.overflow) {
+            hasFitPresentationReadyRef.current = true;
             setFitPresentationState("ready");
             return;
           }
@@ -6448,6 +6452,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             if (cancelled) return;
             const retryMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
             if (!retryMeasurement.overflow) {
+              hasFitPresentationReadyRef.current = true;
               setFitPresentationState("ready");
               return;
             }
@@ -6455,7 +6460,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               setFitPresentationSafetyScale((currentScale) =>
                 roundFitScale(Math.max(FIT_PRESENTATION_MIN_SAFETY_SCALE, currentScale * FIT_PRESENTATION_SAFETY_STEP)),
               );
-              setFitPresentationState("loading");
+              if (!hasFitPresentationReadyRef.current) setFitPresentationState("loading");
               return;
             }
             setFitPresentationState("reload");
@@ -8506,7 +8511,6 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         itemStackSpacing={itemStackSpacing}
         outerGridGapClassName={outerGridGapClassName}
         menuAreaClassName={menuAreaClassName}
-        showPageTitles
         timeSaleByItemId={timeSaleByItemId}
         priceDisplayMode={priceDisplayMode}
         onOpenImage={openMenuImagePreview}
@@ -8547,7 +8551,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           ) : (
             <>
               <HeaderBlock data={data} density={density} className="lg:hidden" />
-              {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} /> : null}
+              {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} /> : null}
             </>
           )}
           <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] pt-6 pb-16 md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
@@ -8576,11 +8580,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 itemStackSpacing={itemStackSpacing}
                 outerGridGapClassName={outerGridGapClassName}
                 menuAreaClassName={menuAreaClassName}
-                showPageTitles
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
-                footerInfo={isSundayLine || isRoundFocus ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} placement="mobile" />}
+                footerInfo={isSundayLine || isRoundFocus ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} density={density} placement="mobile" />}
                 templateSkin={data.templateSkin}
               />
             )}
@@ -8588,7 +8591,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
           <div
             ref={desktopFitBoardRef}
-            className={`cafe-a-desktop-fit-board relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
+            className={`cafe-a-desktop-fit-board ${descriptionSizeClassName} relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
             aria-busy={fitPresentationState === "loading"}
             data-fit-status={fitState.status}
             data-fit-presentation-state={fitPresentationState}
@@ -8650,6 +8653,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                   <DesktopToplineInformationHeader
                     data={data}
                     capabilities={capabilities}
+                    density={density}
                   />
                   {shouldRenderToplineFeaturedHero ? (
                     <DesktopToplineFeaturedSlot

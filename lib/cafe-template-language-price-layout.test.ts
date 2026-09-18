@@ -37,6 +37,14 @@ test("원페이지 템플릿의 핵심 타이포그래피와 간격은 화면 �
     globalStylesSource,
     /--mocha-mobile-(?:section-rhythm|category-header-item-gap|item-divider-(?:above|below)-gap):\s*[\d.]+px;/,
   );
+  assert.match(globalStylesSource, /--cafe-a-category-title-size: clamp\(1\.26rem,[^;]*cqw[^;]*1\.56rem\);/);
+  assert.match(globalStylesSource, /--cafe-a-linked-supporting-copy-base-size:[^;]*vmin/);
+  assert.doesNotMatch(globalStylesSource, /--cafe-a-category-title-size:\s*[\d.]+px;/);
+});
+
+test("원페이지 내부 페이지명은 디자인 문구로 임의 노출하지 않는다", () => {
+  assert.doesNotMatch(templateSource, /showPageTitles/);
+  assert.doesNotMatch(templateSource, /pageGroup\.page\.title/);
 });
 
 test("모카 포레스트 언어 선택 버튼은 어두운 배경용 흰색 톤을 사용한다", () => {
@@ -124,18 +132,21 @@ test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명�
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.94;/);
   assert.match(
     globalStylesSource,
-    /\.cafe-a-topline-description,[\s\S]*\.cafe-a-topline-notice-text \{[\s\S]*--cafe-a-top-copy-layout-scale[\s\S]*0\.92rem/,
+    /\.cafe-a-topline-description,[\s\S]*\.cafe-a-topline-notice-text \{[\s\S]*font-size: var\(--cafe-a-linked-supporting-copy-size\)/,
   );
-  assert.match(globalStylesSource, /data-layout-mode="orderedBalancedFit"[\s\S]*--cafe-a-top-copy-layout-scale: var\(--ordered-balanced-menu-visual-scale\)/);
-  assert.match(globalStylesSource, /--cafe-a-top-copy-density-compensation: 0\.925/);
+  assert.match(globalStylesSource, /data-layout-mode="orderedFit"[^}]*--cafe-a-linked-supporting-copy-size: clamp\(/);
+  assert.match(globalStylesSource, /data-layout-mode="balanced"[^}]*data-layout-mode="orderedBalancedFit"[^}]*--cafe-a-linked-supporting-copy-size: clamp\(/);
   assert.match(
     globalStylesSource,
     /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-ordered-menu-flow \.cafe-a-category-title \{[\s\S]*2\.12rem/,
   );
   assert.match(
     globalStylesSource,
-    /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-ordered-menu-flow \.cafe-a-menu-description,[\s\S]*0\.92rem/,
+    /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-ordered-menu-flow \.cafe-a-menu-description,[\s\S]*font-size: var\(--cafe-a-linked-supporting-copy-size\)/,
   );
+  assert.match(templateSource, /cafe-a-menu-description cafe-a-featured-description/);
+  assert.match(templateSource, /cafe-a-menu-description cafe-a-store-description cafe-a-rail-description/);
+  assert.match(templateSource, /className=\{`cafe-a-desktop-fit-board \$\{descriptionSizeClassName\}/);
 });
 
 test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {
@@ -147,6 +158,8 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /animate-spin[^"]*motion-reduce:animate-none/);
   assert.match(templateSource, /fitPresentationSafetyScale > FIT_PRESENTATION_MIN_SAFETY_SCALE/);
   assert.match(templateSource, /currentScale \* FIT_PRESENTATION_SAFETY_STEP/);
+  assert.match(templateSource, /hasFitPresentationReadyRef\.current/);
+  assert.match(templateSource, /if \(!hasFitPresentationReadyRef\.current\) \{/);
   assert.match(templateSource, /setFitPresentationState\("reload"\)/);
   assert.match(templateSource, /화면을 다시 불러와 주세요/);
   assert.match(templateSource, /새로고침하면 메뉴판 배치를 다시 계산합니다/);

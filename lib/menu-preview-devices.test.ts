@@ -146,10 +146,10 @@ test("device selector is open by default and collapses upward while preserving t
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource, /w-\[min\(28rem,calc\(100vw-1\.5rem\)\)\]/);
+  assert.match(previewFrameSource, /w-\[min\(24rem,calc\(100vw-1\.5rem\)\)\]/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);
-  assert.equal((previewFrameSource.match(/bg-zinc-950\/72/g) ?? []).length, 1);
+  assert.equal((previewFrameSource.match(/bg-zinc-950\/64/g) ?? []).length, 1);
 });
 
 test("hide-today checkbox is plain text control without a boxed container", () => {
