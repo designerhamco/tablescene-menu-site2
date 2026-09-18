@@ -33,7 +33,7 @@ npm run qa:template-preview-locales
 - PC `1440×900`, 모바일 `390×844`; Display는 실제 매장 화면 용도에 맞춰 PC만 검사
 - HTTP 오류, 빈 본문, 2px 초과 가로 넘침, 깨진 가시 이미지, console error, page error, 같은 도메인 요청 실패
 - axe-core의 WCAG 2.0·2.1 A/AA 규칙 중 `critical`·`serious` 접근성 위반
-- Next.js가 화면 전환·prefetch 중 정상 취소한 `_rsc` 요청의 `net::ERR_ABORTED`는 실패에서 제외
+- Next.js가 화면 전환·prefetch 중 정상 취소한 `_rsc` 요청과 대표 슬라이드 교체 중 브라우저가 취소한 이미지 요청의 `net::ERR_ABORTED`는 실패에서 제외한다. 실제 가시 이미지의 로드 실패는 `naturalWidth === 0` 검사로 계속 차단한다.
 - 단일페이지 4종의 PC iframe은 `data-fit-presentation-state="ready"`, `data-fit-overflow="false"`여야 하며 메뉴·카테고리·위젯의 실제 바운딩 박스와 scroll 크기가 보드 경계를 넘지 않아야 함
 - 최종 DOM 경계가 넘치면 엔진은 메뉴 글자·간격 안전 배율을 낮춰 다시 검사하며, 최소 안전 배율에서도 실패한 경우에만 새로고침 복구 안내를 허용함
 

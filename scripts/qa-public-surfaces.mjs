@@ -42,7 +42,8 @@ function isCancelledNextPrefetch(request) {
   const url = new URL(request.url());
   const isPrefetch = url.searchParams.has("_rsc");
   const isDevReload = url.pathname === "/_next/static/chunks/main-app.js" && url.searchParams.has("v");
-  return errorText === "net::ERR_ABORTED" && (isPrefetch || isDevReload);
+  const isCancelledImage = request.resourceType() === "image";
+  return errorText === "net::ERR_ABORTED" && (isPrefetch || isDevReload || isCancelledImage);
 }
 
 function isExpectedBrowserConsoleNoise(message) {
