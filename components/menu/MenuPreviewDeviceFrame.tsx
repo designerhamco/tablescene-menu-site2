@@ -68,13 +68,13 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
         <header
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className="pointer-events-auto relative flex w-[min(24rem,calc(100vw-1.5rem))] flex-wrap items-center justify-center gap-2 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/64 p-2 pr-12 text-white backdrop-blur-xl transition-transform duration-300 ease-out"
+          className="pointer-events-auto relative w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/64 p-2 text-white backdrop-blur-xl transition-transform duration-300 ease-out"
           style={{ transform: showToolbar ? "translateY(0.5rem)" : "translateY(calc(-100% + 1.75rem))" }}
         >
           <div
             data-preview-device-toolbar-content=""
             aria-hidden={!showToolbar}
-            className={`flex flex-wrap items-center justify-center gap-2 transition-opacity duration-150 ${
+            className={`flex w-full flex-col items-center gap-1.5 px-9 transition-opacity duration-150 ${
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
@@ -104,7 +104,11 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
               })}
             </nav>
             {device === "tablet" ? (
-              <nav aria-label="태블릿 방향 선택" className="flex items-center gap-1 border-l border-white/20 pl-2">
+              <nav
+                aria-label="태블릿 방향 선택"
+                data-preview-tablet-orientation=""
+                className="flex items-center justify-center gap-1 rounded-xl bg-white/10 p-1"
+              >
                 {(Object.keys(MENU_PREVIEW_ORIENTATIONS) as MenuPreviewOrientation[]).map((candidate) => {
                   const isSelected = candidate === orientation;
 
@@ -115,7 +119,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                       scroll={false}
                       tabIndex={showToolbar ? undefined : -1}
                       aria-current={isSelected ? "page" : undefined}
-                      className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
+                      className={`min-w-16 rounded-lg px-3 py-1.5 text-center text-xs font-bold transition-colors ${
                         isSelected ? "bg-white text-zinc-950" : "text-white/70 hover:bg-white/10 hover:text-white"
                       }`}
                     >

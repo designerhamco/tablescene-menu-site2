@@ -67,11 +67,22 @@ test("하단 언어 선택 UI는 목록을 위로 열어 화면 밖 잘림을 �
   );
 });
 
-test("라운드 포커스 모바일 언어 UI는 제목과 분리된 상단 행을 사용한다", () => {
-  assert.match(templateSource, /data-cafe-a-round-focus-mobile-utility-row=""/);
+test("원페이지 모바일 언어 UI는 모든 스킨에서 제목과 분리된 상단 행을 사용한다", () => {
+  assert.match(templateSource, /data-cafe-a-mobile-language-row=""/);
+  assert.match(templateSource, /data-cafe-a-mobile-language-row=""[\s\S]*data-cafe-a-store-description=""/);
   assert.match(
     globalStylesSource,
-    /\.cafe-a-round-focus-mobile-utility-row \{[\s\S]*justify-content: flex-end;[\s\S]*width: 100%;/,
+    /\.cafe-a-mobile-language-row \{[\s\S]*justify-content: flex-end;[\s\S]*width: 100%;/,
+  );
+});
+
+test("태블릿 가로 화면은 PC보다 작은 맞춤 글자 비율을 사용한다", () => {
+  assert.match(templateSource, /TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 0\.9/);
+  assert.match(templateSource, /TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX = 1279/);
+  assert.match(templateSource, /getViewportFitFontScaleCandidates\(FIT_FONT_SCALE_CANDIDATES, window\.innerWidth\)/);
+  assert.match(
+    globalStylesSource,
+    /@media \(min-width: 1024px\) and \(max-width: 1279px\) \{[\s\S]*--cafe-a-shell-category-title-boost: 1\.1;[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.9;/,
   );
 });
 

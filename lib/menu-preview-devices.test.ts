@@ -149,6 +149,9 @@ test("device selector is open by default and collapses upward while preserving t
   assert.match(previewFrameSource, /w-\[min\(24rem,calc\(100vw-1\.5rem\)\)\]/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);
+  assert.match(previewFrameSource, /data-preview-tablet-orientation=""/);
+  assert.match(previewFrameSource, /flex w-full flex-col items-center gap-1\.5/);
+  assert.doesNotMatch(previewFrameSource, /border-l border-white\/20 pl-2/);
   assert.equal((previewFrameSource.match(/bg-zinc-950\/64/g) ?? []).length, 1);
 });
 
