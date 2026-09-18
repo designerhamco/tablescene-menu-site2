@@ -40,6 +40,7 @@ import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
 import {
   getOpenPromotionSnapshot,
   getPromotionApplyResult,
+  getPromotionAwareChargeAmount,
   isOpenPromotionProduct,
   normalizePromotionCode,
   type AppliedPromotionSnapshot,
@@ -992,6 +993,7 @@ export default function ApplyOrderForm({
       ? defaultOpenPromotion
       : appliedPromotion
     : null;
+  const checkoutAmount = getPromotionAwareChargeAmount(activeProduct.product_key, activePromotion) ?? activeProduct.amount;
   const [pendingPaymentCompletion, setPendingPaymentCompletion] = useState<PendingPaymentCompletion | null>(null);
   const [recoveryPaymentIdInput, setRecoveryPaymentIdInput] = useState(() => {
     return normalizeRecoverablePaymentId(initialRecoverPaymentId);
@@ -1136,13 +1138,14 @@ export default function ApplyOrderForm({
       consentContext: activeProduct.product_key === personalTrialBasicProduct.product_key ? "personal_trial_apply" : "paid_apply",
       promotionCode: activePromotion?.promotionCode ?? null,
       promotion: activePromotion,
-      amount: activeProduct.amount,
+      amount: checkoutAmount,
     }),
     [
       activeProduct,
       activeProductRequiresBusinessVerification,
       agreements,
       activePromotion,
+      checkoutAmount,
       businessVerificationState,
       currentPlanKey,
       form,
@@ -2082,7 +2085,7 @@ export default function ApplyOrderForm({
         channelKey,
         paymentId,
         orderName: activeProduct.name,
-        totalAmount: activeProduct.amount,
+        totalAmount: checkoutAmount,
         currency: activeProduct.currency,
         payMethod: "CARD",
         customer: {
@@ -2161,7 +2164,7 @@ export default function ApplyOrderForm({
   const isOpenPromotionApplied = Boolean(activePromotion && normalizePromotionCode(promotionCodeInput) === activePromotion.promotionCode);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="flex flex-col gap-6">
         {isMenuService && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
@@ -2417,7 +2420,7 @@ export default function ApplyOrderForm({
           </div>
 
           {filteredTemplates.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               {filteredTemplates.map((template) => {
               const isSelected = form.template_key === template.key;
               const tags = getMenuTemplateTags(template);
@@ -2749,7 +2752,7 @@ export default function ApplyOrderForm({
         </section>
       </div>
 
-      <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
+      <aside className="space-y-6 xl:sticky xl:top-8 xl:self-start">
         <section className="rounded-3xl bg-white p-7 shadow-sm">
           <h2 className="type-subsection-title">주문 요약</h2>
           <dl className="mt-6 space-y-4 text-sm font-medium">
@@ -2828,7 +2831,7 @@ export default function ApplyOrderForm({
             ) : null}
             {shouldStartFreeTrial ? (
               <>
-                <SummaryRow label="월 이용료" value={formatKrw(activeProduct.amount)} />
+                <SummaryRow label="월 이용료" value={formatKrw(checkoutAmount)} />
                 <SummaryRow label="오늘 결제 금액" value="0원" strong />
               </>
             ) : (isMenuService || (isScreenService && displayCheckoutQaEnabled)) && activePromotion ? (
@@ -2841,11 +2844,11 @@ export default function ApplyOrderForm({
                 <SummaryRow label="최종 결제금액" value={formatKrw(activePromotion.finalAmount)} strong />
               </>
             ) : (
-              <SummaryRow label={isMenuService ? "오늘 결제 금액" : "금액"} value={formatKrw(activeProduct.amount)} strong />
+              <SummaryRow label={isMenuService ? "오늘 결제 금액" : "금액"} value={formatKrw(checkoutAmount)} strong />
             )}
             {activePromotion ? <SummaryRow label="오픈 할인 적용 기간" value={openDiscountPolicy.durationLabel} /> : null}
             {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"} value={nextBillingLabel} /> : null}
-            {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정 금액" : "다음 결제 예정 금액"} value={formatKrw(activeProduct.amount)} /> : null}
+            {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정 금액" : "다음 결제 예정 금액"} value={formatKrw(checkoutAmount)} /> : null}
           </dl>
           {(isMenuService || isScreenService) && (
             <details className="mt-5 border-t border-zinc-200 pt-4 text-xs font-semibold leading-relaxed text-zinc-500">

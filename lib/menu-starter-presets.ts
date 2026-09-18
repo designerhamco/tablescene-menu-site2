@@ -761,8 +761,6 @@ cafeMochaForestStarterPreset.pages = [
         items: [
           item("다크 초콜릿 브라우니", 4500, "진한 다크 초콜릿을 넣어 촉촉하게 구운 브라우니", { key: "dark-chocolate-brownie", set_name: "DARK CHOCOLATE BROWNIE" }),
           item("헤이즐넛 휘낭시에", 3800, "구운 헤이즐넛과 버터의 고소한 풍미", { key: "hazelnut-financier", set_name: "HAZELNUT FINANCIER" }),
-          item("얼그레이 파운드", 4200, "얼그레이 향을 담아 부드럽게 구운 파운드 케이크", { key: "earl-grey-pound-cake", set_name: "EARL GREY POUND CAKE" }),
-          item("카카오 까눌레", 3800, "카카오 향과 캐러멜라이즈드 겉면이 어우러진 까눌레", { key: "cacao-canele", set_name: "CACAO CANELE" }),
           item("포레스트 티라미수", 6200, "에스프레소와 다크 카카오를 층층이 담은 티라미수", { key: "forest-tiramisu", set_name: "FOREST TIRAMISU" }),
           item("모카 월넛 쿠키", 3500, "모카 향과 호두를 넣어 구운 촉촉한 쿠키", { key: "mocha-walnut-cookie", set_name: "MOCHA WALNUT COOKIE" }),
         ],

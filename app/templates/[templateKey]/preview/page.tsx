@@ -1314,6 +1314,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     <>
       <MenuPageRenderer
         mode={renderMode}
+        previewDevice={isActualView ? device : undefined}
         previewLayoutMode={previewLayoutMode}
         initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
         pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}

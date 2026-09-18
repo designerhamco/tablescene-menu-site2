@@ -310,6 +310,7 @@ async function createPaymentFailedNotification({
   adminSupabase,
   subscription,
   product,
+  amount,
   paymentId,
   periodStart,
   failureMessage,
@@ -317,6 +318,7 @@ async function createPaymentFailedNotification({
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscription: DueSubscription;
   product: SubscriptionProduct;
+  amount: number;
   paymentId: string;
   periodStart: Date;
   failureMessage: string;
@@ -358,7 +360,7 @@ async function createPaymentFailedNotification({
         subscription_id: subscription.id,
         menu_site_id: subscription.menu_site_id,
         product_key: product.productKey,
-        amount: product.amount,
+        amount,
         billing_period: billingPeriod,
         payment_id: paymentId,
         failure_message: failureMessage,
@@ -375,6 +377,7 @@ async function createRenewalRecords({
   adminSupabase,
   subscription,
   product,
+  amount,
   paymentId,
   businessProfile,
   portonePayment,
@@ -382,6 +385,7 @@ async function createRenewalRecords({
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscription: DueSubscription;
   product: SubscriptionProduct;
+  amount: number;
   paymentId: string;
   businessProfile: BusinessProfile | null;
   portonePayment?: unknown;
@@ -412,7 +416,7 @@ async function createRenewalRecords({
       business_number: businessProfile?.business_registration_number ?? null,
       raw_payload: rawPayload,
       status: "paid",
-      total_amount: product.amount,
+      total_amount: amount,
     })
     .select("id")
     .single();
@@ -428,7 +432,7 @@ async function createRenewalRecords({
     payment_id: paymentId,
     portone_payment_id: paymentId,
     status: "paid",
-    amount: product.amount,
+    amount,
     raw_payload: rawPayload,
   });
 
@@ -870,6 +874,10 @@ async function processDueSubscription({
     return { subscriptionId: subscription.id, productKey: subscription.product_key, action: "skipped_invalid_product", nextBillingAt: subscription.next_billing_at };
   }
 
+  const renewalAmount = typeof subscription.amount === "number" && subscription.amount >= 0
+    ? subscription.amount
+    : product.amount;
+
   const renewalDisposition = getSubscriptionRenewalDisposition({
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
     billingKeyRef: subscription.billing_key_ref,
@@ -899,7 +907,7 @@ async function processDueSubscription({
       subscriptionId: subscription.id,
       productKey: subscription.product_key,
       action: "skipped_missing_billing_key",
-      amount: product.amount,
+      amount: renewalAmount,
       nextBillingAt: subscription.next_billing_at,
     };
   }
@@ -909,7 +917,7 @@ async function processDueSubscription({
       subscriptionId: subscription.id,
       productKey: subscription.product_key,
       action: "would_charge",
-      amount: product.amount,
+      amount: renewalAmount,
       nextBillingAt: periodEnd.toISOString(),
       paymentId,
     };
@@ -925,7 +933,7 @@ async function processDueSubscription({
       subscriptionId: subscription.id,
       productKey: subscription.product_key,
       action: "skipped_duplicate",
-      amount: product.amount,
+      amount: renewalAmount,
       nextBillingAt: subscription.next_billing_at,
       paymentId,
     };
@@ -937,20 +945,20 @@ async function processDueSubscription({
       paymentId,
       billingKey: billingKeyRef,
       orderName: getOrderName(product),
-      amount: product.amount,
+      amount: renewalAmount,
       customer: {
         id: subscription.user_id,
         name: businessProfile?.business_name ?? undefined,
       },
     });
-    await createRenewalRecords({ adminSupabase, subscription, product, paymentId, businessProfile, portonePayment: billingPayment.rawPayment });
+    await createRenewalRecords({ adminSupabase, subscription, product, amount: renewalAmount, paymentId, businessProfile, portonePayment: billingPayment.rawPayment });
     await markSubscriptionRenewed({ adminSupabase, subscription, paymentId, periodStart, periodEnd });
 
     return {
       subscriptionId: subscription.id,
       productKey: subscription.product_key,
       action: "charged",
-      amount: product.amount,
+      amount: renewalAmount,
       nextBillingAt: periodEnd.toISOString(),
       paymentId,
     };
@@ -962,6 +970,7 @@ async function processDueSubscription({
         adminSupabase,
         subscription,
         product,
+        amount: renewalAmount,
         paymentId,
         periodStart,
         failureMessage,
@@ -978,7 +987,7 @@ async function processDueSubscription({
       subscriptionId: subscription.id,
       productKey: subscription.product_key,
       action: "failed",
-      amount: product.amount,
+      amount: renewalAmount,
       nextBillingAt: subscription.next_billing_at,
       paymentId,
       message: failureMessage,

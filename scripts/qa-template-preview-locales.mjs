@@ -93,6 +93,7 @@ try {
           typography: {
             category: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-category-title"),
             item: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-menu-title"),
+            featuredItem: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-featured-title"),
             description: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-fit-menu-grid .cafe-a-menu-description"),
             linkedSupporting: visibleFontSizes(".cafe-a-desktop-fit-board [data-cafe-a-store-description], .cafe-a-desktop-fit-board [data-cafe-a-featured-description], .cafe-a-desktop-fit-board .cafe-a-topline-description, .cafe-a-desktop-fit-board .cafe-a-topline-notice-text, .cafe-a-desktop-fit-board [data-cafe-a-footer-info] .cafe-a-description-text, .cafe-a-desktop-fit-board .cafe-a-round-focus-notice"),
           },
@@ -119,11 +120,14 @@ try {
         if (visibleLines.includes(singlePageInternalTitleByLocale[locale])) {
           failures.push(`internal single-page title is visible: ${singlePageInternalTitleByLocale[locale]}`);
         }
-        const { category, item, description, linkedSupporting } = measurement.typography;
-        if (category === null || item === null || description === null) {
+        const { category, item, featuredItem, description, linkedSupporting } = measurement.typography;
+        if (category === null || item === null || featuredItem === null || description === null) {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
           if (category < item * 1.35) failures.push(`category hierarchy is too weak: ${category}px / ${item}px`);
+          if (Math.abs(featuredItem - item) > 0.15) {
+            failures.push(`featured item title is not linked to menu item title: ${featuredItem}px / ${item}px`);
+          }
           const mismatchedSupporting = linkedSupporting.filter((size) => Math.abs(size - description) > 0.15);
           if (mismatchedSupporting.length > 0) {
             failures.push(`supporting copy is not linked to menu descriptions: ${description}px / ${linkedSupporting.join(", ")}px`);

@@ -8,7 +8,7 @@ import {
   isValidMenuSlug,
   normalizeMenuSlug,
 } from "@/lib/payments";
-import { validatePromotionForOrder } from "@/lib/promotions";
+import { getPromotionAwareChargeAmount, validatePromotionForOrder } from "@/lib/promotions";
 import { createClient } from "@/lib/supabase/server";
 import {
   getTemplateCategoryFromKey,
@@ -100,6 +100,8 @@ export async function POST(request: Request) {
     });
   }
 
+  const expectedAmount = getPromotionAwareChargeAmount(productKey, promotionValidation.promotion);
+
   if (product.template_service === "display" && !isDisplayCheckoutQaEnabled()) {
     return jsonError("아티메뉴 디스플레이 신청은 아직 준비 중입니다.", 403, {
       productKey,
@@ -113,7 +115,7 @@ export async function POST(request: Request) {
     !isTemplateKey(templateKey) ||
     !templateCategory ||
     !isValidMenuSlug(desiredSlug) ||
-    amount !== product.amount ||
+    amount !== expectedAmount ||
     getString(order.plan_type) !== product.plan_type ||
     getString(order.payment_type) !== product.payment_type ||
     getString(order.billing_cycle) !== product.billing_cycle
@@ -124,7 +126,7 @@ export async function POST(request: Request) {
       planKey,
       hasTemplateCategory: Boolean(templateCategory),
       amount,
-      expectedAmount: product.amount,
+      expectedAmount,
     });
   }
 

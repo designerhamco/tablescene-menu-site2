@@ -78,12 +78,19 @@ test("원페이지 모바일 언어 UI는 모든 스킨에서 제목과 분리�
 
 test("태블릿 가로 화면은 PC보다 작은 맞춤 글자 비율을 사용한다", () => {
   assert.match(templateSource, /TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 0\.9/);
-  assert.match(templateSource, /TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX = 1279/);
-  assert.match(templateSource, /getViewportFitFontScaleCandidates\(FIT_FONT_SCALE_CANDIDATES, window\.innerWidth\)/);
+  assert.match(templateSource, /getPreviewFitFontScaleCandidates\(FIT_FONT_SCALE_CANDIDATES, data\.previewDevice === "tablet"\)/);
+  assert.match(templateSource, /data-preview-device=\{data\.previewDevice\}/);
   assert.match(
     globalStylesSource,
-    /@media \(min-width: 1024px\) and \(max-width: 1279px\) \{[\s\S]*--cafe-a-shell-category-title-boost: 1\.1;[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.9;/,
+    /@media \(min-width: 1024px\) \{[\s\S]*\.cafe-a-typography\[data-preview-device="tablet"\][\s\S]*--cafe-a-shell-category-title-boost: 1\.1;[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.9;/,
   );
+});
+
+test("대표 상품명은 메뉴 상품명과 동일한 유동 크기 변수를 사용한다", () => {
+  assert.match(globalStylesSource, /--cafe-a-linked-item-name-size:/);
+  assert.match(globalStylesSource, /\.cafe-a-featured-title \{[\s\S]*font-size: var\(--cafe-a-linked-item-name-size\);/);
+  assert.match(globalStylesSource, /\.cafe-a-menu-title \{[\s\S]*font-size: var\(--cafe-a-linked-item-name-size\);/);
+  assert.doesNotMatch(globalStylesSource, /--featured-title-ratio:/);
 });
 
 test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른쪽 끝선에 맞춘다", () => {
@@ -139,7 +146,7 @@ test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이�
 });
 
 test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명의 타이포 위계와 상단 설명 비율을 유지한다", () => {
-  assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-category-title-boost: 1\.34;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-category-title-boost: 1\.24;/);
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.94;/);
   assert.match(
     globalStylesSource,

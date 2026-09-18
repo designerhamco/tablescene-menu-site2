@@ -64,11 +64,11 @@ const ScrollToTop = () => {
               <AnimatePresence>
                 {isScrollingUp && (
                   <motion.button
-                    initial={{ opacity: 0, height: 0, scale: 0 }}
-                    animate={{ opacity: 1, height: 40, scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.75 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.75 }}
                     onClick={scrollToTop}
-                    className="group flex aspect-square h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
+                    className="group flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
                     aria-label="맨 위로 이동"
                   >
                     <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
@@ -78,7 +78,7 @@ const ScrollToTop = () => {
 
               <button
                 onClick={scrollToBottom}
-                className="group flex aspect-square h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
+                className="group flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition-all duration-300 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
                 aria-label="맨 아래로 이동"
               >
                 <ArrowDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />

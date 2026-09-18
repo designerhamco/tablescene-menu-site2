@@ -362,7 +362,7 @@ const Navbar = () => {
                   aria-label="알림"
                   aria-expanded={isNotificationOpen}
                   onClick={() => setIsNotificationOpen((current) => !current)}
-                  className={`relative inline-flex aspect-square h-10 w-10 shrink-0 items-center justify-center rounded-full border p-0 transition-colors ${secondaryButtonClass}`}
+                  className={`relative inline-flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full border p-0 transition-colors ${secondaryButtonClass}`}
                 >
                   <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
                   {unreadCount > 0 ? (
@@ -419,7 +419,7 @@ const Navbar = () => {
               <Link
                 href={NOTIFICATION_FALLBACK_HREF}
                 aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
-                className={`relative inline-flex aspect-square h-9 w-9 shrink-0 items-center justify-center p-0 transition-opacity lg:hidden ${menuButtonClass}`}
+                className={`relative inline-flex size-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-full p-0 transition-opacity lg:hidden ${menuButtonClass}`}
               >
                 <Bell size={23} strokeWidth={2.1} aria-hidden="true" />
                 {unreadCount > 0 ? (
