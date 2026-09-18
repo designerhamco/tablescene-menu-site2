@@ -109,3 +109,21 @@ test("mobile preview keeps Order dormant and shows Smart Call only for multi-pag
   assert.deepEqual(multi.orderCatalog, []);
   assert.equal(multi.checkoutModes, undefined);
 });
+
+test("preview table label follows the selected menu language", () => {
+  const labels = (["ko", "en", "zh", "ja"] as const).map((locale) =>
+    buildMenuPreviewOrderCallConfig({
+      menuSiteId: `site-${locale}`,
+      storeName: "ArtiMenu",
+      templateKey: "dining_aube_table_a",
+      locale,
+    }).tableLabel,
+  );
+
+  assert.deepEqual(labels, [
+    "TABLE 3 · 화면 미리보기",
+    "TABLE 3 · SCREEN PREVIEW",
+    "TABLE 3 · 屏幕预览",
+    "TABLE 3 · 画面プレビュー",
+  ]);
+});

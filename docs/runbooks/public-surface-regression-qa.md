@@ -1,6 +1,6 @@
 # 공개 화면 회귀 QA
 
-최종 갱신: 2026-09-16
+최종 갱신: 2026-09-18
 
 ## 실행
 
@@ -18,6 +18,14 @@ PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:p
 
 검사는 공개 페이지의 HTTP·콘솔·가로 넘침·깨진 이미지·접근성 오류뿐 아니라 선데이 라인 미리보기에서 도움말이 최초 방문에 열리는지, 체크하지 않고 `닫기`를 눌러 현재 세션에서만 닫히는지, `오늘 하루 보지 않기`를 체크한 뒤 닫아 같은 날 다시 열리지 않는지도 확인한다.
 
+`만들기`의 스타터 미리보기 언어 전환과 기기 툴바·선데이 라인 비율은 별도 실제 브라우저 검사로 확인한다.
+
+```bash
+npm run qa:template-preview-locales
+```
+
+이 검사는 활성 템플릿 7종의 영어·중국어·일본어 21개 실제 route에서 한글 fallback, HTTP/console/page 오류, 가로 overflow와 카페 fit `ready`를 확인한다. 이어 선데이 라인 wrapper에서 기기 툴바가 기본으로 열리고 동일 폭을 유지한 채 위로 접히는지, 카테고리·메뉴명·설명의 서체 위계와 상단 좌우 문구가 메뉴 설명 크기를 따르는지도 계산값으로 차단한다.
+
 ## 범위
 
 - 공개 홈·만들기·요금·고객센터·약관·개인정보·로그인·회원가입·비밀번호 재설정
@@ -27,6 +35,7 @@ PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:p
 - axe-core의 WCAG 2.0·2.1 A/AA 규칙 중 `critical`·`serious` 접근성 위반
 - Next.js가 화면 전환·prefetch 중 정상 취소한 `_rsc` 요청의 `net::ERR_ABORTED`는 실패에서 제외
 - 단일페이지 4종의 PC iframe은 `data-fit-presentation-state="ready"`, `data-fit-overflow="false"`여야 하며 메뉴·카테고리·위젯의 실제 바운딩 박스와 scroll 크기가 보드 경계를 넘지 않아야 함
+- 최종 DOM 경계가 넘치면 엔진은 메뉴 글자·간격 안전 배율을 낮춰 다시 검사하며, 최소 안전 배율에서도 실패한 경우에만 새로고침 복구 안내를 허용함
 
 이 검사는 공개 route만 읽으며 로그인, 폼 제출, 결제, Production 데이터 write를 수행하지 않는다.
 

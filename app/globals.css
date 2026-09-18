@@ -1304,6 +1304,11 @@ video {
     --sunday-line-bg: #ffffff;
     --sunday-line-band-bg: transparent;
     --sunday-line-line: transparent;
+    --cafe-a-shell-category-title-boost: 1.34;
+    --cafe-a-shell-menu-title-boost: 1.02;
+    --cafe-a-shell-menu-price-boost: 1.02;
+    --cafe-a-shell-menu-copy-boost: 0.94;
+    --cafe-a-top-copy-density-compensation: 0.925;
     background: var(--sunday-line-bg);
   }
 
@@ -1387,7 +1392,21 @@ video {
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-description,
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-notice-text {
-    font-size: clamp(0.44rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1)), 1.08rem);
+    font-size: clamp(0.4rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--cafe-a-top-copy-layout-scale, 1) * var(--cafe-a-shell-menu-copy-boost) * var(--cafe-a-top-copy-density-compensation, 1) * var(--menu-role-supporting-size-scale, 1)), 0.92rem);
+  }
+
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-category-title {
+    font-size: clamp(0.68rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 2.12rem);
+  }
+
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-title,
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow [data-cafe-a-widget-title] {
+    font-size: clamp(0.5rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-title-boost) * var(--menu-role-item-name-size-scale, 1)), 1.3rem);
+  }
+
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-description,
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow [data-cafe-a-widget-body] {
+    font-size: clamp(0.4rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1)), 0.92rem);
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-featured-slot {
@@ -1629,15 +1648,18 @@ video {
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] {
     --fit-menu-typography-scale: 1.01;
     --ordered-fit-menu-visual-scale: var(--cafe-a-shell-menu-visual-scale);
+    --cafe-a-top-copy-layout-scale: calc(var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation));
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="balanced"] {
     --fit-menu-typography-scale: 1.015;
+    --cafe-a-top-copy-layout-scale: 1;
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board[data-layout-mode="orderedBalancedFit"] {
     --fit-menu-typography-scale: 1.01;
     --ordered-balanced-menu-visual-scale: var(--cafe-a-shell-menu-visual-scale);
+    --cafe-a-top-copy-layout-scale: var(--ordered-balanced-menu-visual-scale);
   }
 
   .cafe-a-typography .cafe-a-fixed-rail {
@@ -2134,10 +2156,11 @@ video {
     --cafe-a-shell-category-heading-rhythm-scale: 0.76;
     --cafe-a-shell-category-items-padding: 0.62rem;
     --cafe-a-shell-item-rhythm-scale: 0.74;
-    --cafe-a-shell-category-title-boost: 1.14;
-    --cafe-a-shell-menu-title-boost: 1.06;
-    --cafe-a-shell-menu-price-boost: 1.06;
-    --cafe-a-shell-menu-copy-boost: 1.02;
+    --cafe-a-shell-category-title-boost: 1.3;
+    --cafe-a-shell-menu-title-boost: 1.02;
+    --cafe-a-shell-menu-price-boost: 1.02;
+    --cafe-a-shell-menu-copy-boost: 0.94;
+    --cafe-a-top-copy-density-compensation: 0.925;
     --fit-gap-y: 2rem;
     --fit-stack-gap: 1.25rem;
     --category-gap: var(--fit-gap-y);
@@ -2256,6 +2279,11 @@ video {
     overflow-wrap: anywhere;
   }
 
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-description,
+  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-notice-text {
+    font-size: clamp(0.4rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--cafe-a-top-copy-layout-scale, 1) * var(--cafe-a-shell-menu-copy-boost) * var(--cafe-a-top-copy-density-compensation, 1) * var(--menu-role-supporting-size-scale, 1)), 0.9rem);
+  }
+
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-featured-slot {
     display: block !important;
     grid-column: 1;
@@ -2327,12 +2355,12 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-category-title {
-    font-size: clamp(0.58rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 1.76rem);
+    font-size: clamp(0.64rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 2rem);
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-title,
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow [data-cafe-a-widget-title] {
-    font-size: clamp(0.48rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-title-boost) * var(--menu-role-item-name-size-scale, 1)), 1.28rem);
+    font-size: clamp(0.48rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-title-boost) * var(--menu-role-item-name-size-scale, 1)), 1.24rem);
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-price {
@@ -2342,7 +2370,7 @@ video {
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-meta,
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-description,
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow [data-cafe-a-widget-body] {
-    font-size: clamp(0.4rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1)), 0.96rem);
+    font-size: clamp(0.4rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1)), 0.9rem);
   }
 }
 

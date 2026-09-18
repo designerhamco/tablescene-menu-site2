@@ -2,6 +2,14 @@ import type { PublicMenuCategory, PublicMenuItem } from "@/components/menu-templ
 import type { OrderCallEntryConfig, PostpayOrderCatalogItem } from "@/components/public-menu/order-call/types";
 import { getDefaultStaffCallItems } from "@/lib/call-items";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
+import type { SupportedLocale } from "@/lib/locales";
+
+const PREVIEW_TABLE_LABELS: Record<SupportedLocale, string> = {
+  ko: "TABLE 3 · 화면 미리보기",
+  en: "TABLE 3 · SCREEN PREVIEW",
+  zh: "TABLE 3 · 屏幕预览",
+  ja: "TABLE 3 · 画面プレビュー",
+};
 
 function normalizePreviewPrice(value: number | null | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
@@ -50,10 +58,12 @@ export function buildMenuPreviewOrderCallConfig({
   menuSiteId,
   storeName,
   templateKey,
+  locale = "ko",
 }: {
   menuSiteId: string;
   storeName: string;
   templateKey: string;
+  locale?: SupportedLocale;
 }): OrderCallEntryConfig {
   const features = getDiningTemplateFeatures(templateKey);
 
@@ -65,7 +75,7 @@ export function buildMenuPreviewOrderCallConfig({
     orderingOpen: false,
     languageSlotEnabled: true,
     storeName,
-    tableLabel: "TABLE 3 · 화면 미리보기",
+    tableLabel: PREVIEW_TABLE_LABELS[locale],
     cartCount: 0,
     menuSiteId,
     orderCatalog: [],

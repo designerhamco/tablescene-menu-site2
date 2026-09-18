@@ -135,13 +135,15 @@ test("display preview shows only the browser zoom guide and reveals pagination n
   assert.match(displayTemplateSource, /onPointerLeave=\{displayControls\.hide\}/);
 });
 
-test("device selector is open by default and its manual collapsed state uses a thinner matching-opacity pill", () => {
+test("device selector is open by default and collapses upward while preserving the full toolbar width", () => {
   assert.match(previewFrameSource, /useState\(true\)/);
   assert.doesNotMatch(previewFrameSource, /onMouseEnter=/);
   assert.doesNotMatch(previewFrameSource, /onMouseLeave=/);
-  assert.match(previewFrameSource, /h-7 w-\[min\(10rem,calc\(100vw-2rem\)\)\]/);
-  assert.match(previewFrameSource, /rounded-b-xl/);
-  assert.equal((previewFrameSource.match(/bg-zinc-950\/72/g) ?? []).length, 2);
+  assert.match(previewFrameSource, /data-preview-device-toolbar=""/);
+  assert.match(previewFrameSource, /w-\[min\(28rem,calc\(100vw-1\.5rem\)\)\]/);
+  assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
+  assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);
+  assert.equal((previewFrameSource.match(/bg-zinc-950\/72/g) ?? []).length, 1);
 });
 
 test("hide-today checkbox is plain text control without a boxed container", () => {

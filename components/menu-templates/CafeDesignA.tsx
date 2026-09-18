@@ -430,6 +430,8 @@ const ORDERED_FIT_FINAL_FILL_COMPENSATION_LEVELS = [1.015, 1.025, 1.035, 1.045, 
 const ORDERED_FIT_FINAL_FILL_TRIGGER_GAP = 12;
 const ORDERED_FIT_FINAL_FILL_TARGET_GAP = 12;
 const ORDERED_FIT_FINAL_FILL_MIN_GAP = 2;
+const FIT_PRESENTATION_SAFETY_STEP = 0.94;
+const FIT_PRESENTATION_MIN_SAFETY_SCALE = 0.72;
 const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64, 0.62, 0.6, 0.58, 0.56, 0.54, 0.5, 0.48, 0.46] as const;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
@@ -6152,6 +6154,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const desktopFitMenuRef = useRef<HTMLElement | null>(null);
   const [fitState, setFitState] = useState<CafeDesignAFitState>(DEFAULT_FIT_STATE);
   const [fitPresentationState, setFitPresentationState] = useState<CafeDesignAFitPresentationState>("loading");
+  const [fitPresentationSafetyScale, setFitPresentationSafetyScale] = useState(1);
   const [fitPresentationRevision, setFitPresentationRevision] = useState(0);
   const [orderedBalancedInitialColumns, setOrderedBalancedInitialColumns] = useState(2);
   const [orderedBalancedFitRevision, setOrderedBalancedFitRevision] = useState(0);
@@ -6271,7 +6274,18 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     () => (layoutMode === "orderedBalancedFit" ? getBoostedFitState(baseRenderFitState, orderedBalancedFinalFillBoost) : baseRenderFitState),
     [baseRenderFitState, layoutMode, orderedBalancedFinalFillBoost],
   );
-  const fitStyle = useMemo(() => getFitStyle(baseRenderFitState, renderFitState), [baseRenderFitState, renderFitState]);
+  const safeRenderFitState = useMemo<CafeDesignAFitState>(
+    () =>
+      fitPresentationSafetyScale === 1
+        ? renderFitState
+        : {
+            ...renderFitState,
+            fontScale: roundFitScale(renderFitState.fontScale * fitPresentationSafetyScale),
+            gapScale: roundFitScale(renderFitState.gapScale * fitPresentationSafetyScale),
+          },
+    [fitPresentationSafetyScale, renderFitState],
+  );
+  const fitStyle = useMemo(() => getFitStyle(baseRenderFitState, safeRenderFitState), [baseRenderFitState, safeRenderFitState]);
   const orderedFitFillStyle = useMemo<CSSProperties>(
     () =>
       layoutMode === "orderedFit"
@@ -6324,6 +6338,16 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   useEffect(() => {
     fitStateRef.current = fitState;
   }, [fitState, layoutMode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setFitPresentationSafetyScale(1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [layoutInputSignature]);
 
   useEffect(() => {
     const nextSignature = [
@@ -6423,7 +6447,18 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           failureTimeoutId = window.setTimeout(() => {
             if (cancelled) return;
             const retryMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
-            setFitPresentationState(retryMeasurement.overflow ? "reload" : "ready");
+            if (!retryMeasurement.overflow) {
+              setFitPresentationState("ready");
+              return;
+            }
+            if (fitPresentationSafetyScale > FIT_PRESENTATION_MIN_SAFETY_SCALE + 0.001) {
+              setFitPresentationSafetyScale((currentScale) =>
+                roundFitScale(Math.max(FIT_PRESENTATION_MIN_SAFETY_SCALE, currentScale * FIT_PRESENTATION_SAFETY_STEP)),
+              );
+              setFitPresentationState("loading");
+              return;
+            }
+            setFitPresentationState("reload");
           }, FIT_PRESENTATION_FAILURE_GRACE_MS);
         });
       });
@@ -6449,6 +6484,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     };
   }, [
     fitPresentationRevision,
+    fitPresentationSafetyScale,
     fitState.columns,
     fitState.fontScale,
     fitState.gapScale,
@@ -8557,9 +8593,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             data-fit-status={fitState.status}
             data-fit-presentation-state={fitPresentationState}
             data-layout-mode={layoutMode}
-            data-fit-columns={renderFitState.columns}
-            data-fit-font-scale={renderFitState.fontScale}
-            data-fit-gap-scale={renderFitState.gapScale}
+            data-fit-columns={safeRenderFitState.columns}
+            data-fit-font-scale={safeRenderFitState.fontScale}
+            data-fit-gap-scale={safeRenderFitState.gapScale}
+            data-fit-presentation-safety-scale={fitPresentationSafetyScale}
             data-fit-final-font-boost={orderedBalancedFinalFillBoost.fontScale}
             data-fit-final-gap-boost={orderedBalancedFinalFillBoost.gapScale}
             data-fit-ordered-fit-base-visual-scale={layoutMode === "orderedFit" ? ORDERED_FIT_BASE_MENU_VISUAL_SCALE : undefined}
