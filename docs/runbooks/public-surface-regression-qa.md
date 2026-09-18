@@ -24,7 +24,7 @@ PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:p
 npm run qa:template-preview-locales
 ```
 
-이 검사는 활성 템플릿 7종의 영어·중국어·일본어 21개 실제 route에서 한글 fallback, HTTP/console/page 오류, 가로 overflow와 카페 fit `ready`를 확인한다. 이어 선데이 라인 wrapper에서 기기 툴바가 기본으로 열리고 동일 폭을 유지한 채 위로 접히는지, 카테고리·메뉴명·설명의 서체 위계와 상단 좌우 문구가 메뉴 설명 크기를 따르는지도 계산값으로 차단한다.
+이 검사는 활성 템플릿 7종의 영어·중국어·일본어 21개 실제 route에서 한글 fallback, HTTP/console/page 오류, 가로 overflow와 카페 fit `ready`를 확인한다. 단일페이지는 내부 페이지명이 디자인 문구로 노출되지 않는지, 카테고리명이 메뉴명보다 계산 크기 1.35배 이상인지, 메뉴 설명·대표 설명·가게 설명·상단 안내가 0.15px 이내로 동일한지도 실제 계산값으로 차단한다. 이어 선데이 라인 wrapper에서 기기 툴바가 기본으로 열리고 동일 폭을 유지한 채 위로 접히는지, 이미 `ready`인 메뉴판의 viewport를 바꾸어도 로딩 상태로 돌아가지 않고 재계산 후 `ready`·무잘림을 유지하는지 검사한다.
 
 ## 범위
 

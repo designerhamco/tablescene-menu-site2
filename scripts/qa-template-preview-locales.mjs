@@ -13,7 +13,18 @@ const templates = [
   "dining_aube_table_b",
   "display_menu_a",
 ].filter((templateKey) => !templateFilter || templateKey === templateFilter);
+const singlePageTemplates = new Set([
+  "cafe_design_a",
+  "cafe_mocha_forest_a",
+  "cafe_sunday_line_a",
+  "cafe_round_focus_a",
+]);
 const locales = ["en", "zh", "ja"].filter((locale) => !localeFilter || locale === localeFilter);
+const singlePageInternalTitleByLocale = {
+  en: "MENU",
+  zh: "菜单",
+  ja: "メニュー",
+};
 const hangulPattern = /[가-힣]/;
 const browser = await chromium.launch({ headless: true });
 const results = [];
@@ -48,6 +59,20 @@ try {
       }
 
       const measurement = await page.evaluate(() => {
+        const visibleFontSize = (selector) => {
+          const element = Array.from(document.querySelectorAll(selector)).find((candidate) => {
+            const rect = candidate.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          });
+          return element ? Number.parseFloat(getComputedStyle(element).fontSize) : null;
+        };
+        const visibleFontSizes = (selector) => Array.from(document.querySelectorAll(selector))
+          .filter((candidate) => {
+            const rect = candidate.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          })
+          .map((element) => Number.parseFloat(getComputedStyle(element).fontSize))
+          .filter(Number.isFinite);
         const textRoot = document.body.cloneNode(true);
         if (textRoot instanceof HTMLElement) {
           textRoot.querySelector("[data-cafe-a-fit-presentation]")?.remove();
@@ -65,6 +90,12 @@ try {
           fitOverflow: board?.getAttribute("data-fit-overflow") ?? null,
           fitColumns: board?.getAttribute("data-fit-columns") ?? null,
           fitFontScale: board?.getAttribute("data-fit-font-scale") ?? null,
+          typography: {
+            category: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-category-title"),
+            item: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-menu-title"),
+            description: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-fit-menu-grid .cafe-a-menu-description"),
+            linkedSupporting: visibleFontSizes(".cafe-a-desktop-fit-board [data-cafe-a-store-description], .cafe-a-desktop-fit-board [data-cafe-a-featured-description], .cafe-a-desktop-fit-board .cafe-a-topline-description, .cafe-a-desktop-fit-board .cafe-a-topline-notice-text, .cafe-a-desktop-fit-board [data-cafe-a-footer-info] .cafe-a-description-text, .cafe-a-desktop-fit-board .cafe-a-round-focus-notice"),
+          },
           boardRect: boardRect ? { width: boardRect.width, height: boardRect.height } : null,
           menuRect: menuRect ? { width: menuRect.width, height: menuRect.height } : null,
           menuScroll: menu instanceof HTMLElement
@@ -82,6 +113,22 @@ try {
       if (measurement.horizontalOverflow > 2) failures.push(`horizontal overflow: ${measurement.horizontalOverflow}px`);
       if (templateKey.startsWith("cafe_") && measurement.fitState !== "ready") {
         failures.push(`fit presentation did not become ready: ${measurement.fitState ?? "missing"} · ${JSON.stringify(measurement)}`);
+      }
+      if (singlePageTemplates.has(templateKey)) {
+        const visibleLines = measurement.text.split("\n").map((line) => line.trim()).filter(Boolean);
+        if (visibleLines.includes(singlePageInternalTitleByLocale[locale])) {
+          failures.push(`internal single-page title is visible: ${singlePageInternalTitleByLocale[locale]}`);
+        }
+        const { category, item, description, linkedSupporting } = measurement.typography;
+        if (category === null || item === null || description === null) {
+          failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
+        } else {
+          if (category < item * 1.35) failures.push(`category hierarchy is too weak: ${category}px / ${item}px`);
+          const mismatchedSupporting = linkedSupporting.filter((size) => Math.abs(size - description) > 0.15);
+          if (mismatchedSupporting.length > 0) {
+            failures.push(`supporting copy is not linked to menu descriptions: ${description}px / ${linkedSupporting.join(", ")}px`);
+          }
+        }
       }
 
       results.push({ templateKey, locale, route, failures });
@@ -161,6 +208,30 @@ try {
       if (Math.abs(topLeftSize - descriptionSize) > 0.15 || Math.abs(topRightSize - descriptionSize) > 0.15) {
         failures.push(`Sunday Line top copy does not follow description size: ${topLeftSize}px / ${topRightSize}px / ${descriptionSize}px`);
       }
+    }
+    await fitBoard.evaluate((element) => {
+      window.__artimenuFitPresentationStates = [];
+      window.__artimenuFitPresentationObserver?.disconnect();
+      window.__artimenuFitPresentationObserver = new MutationObserver(() => {
+        window.__artimenuFitPresentationStates.push(element.getAttribute("data-fit-presentation-state"));
+      });
+      window.__artimenuFitPresentationObserver.observe(element, { attributes: true, attributeFilter: ["data-fit-presentation-state"] });
+    });
+    await page.setViewportSize({ width: 1280, height: 820 });
+    await page.waitForTimeout(1_500);
+    const resizePresentation = await fitBoard.evaluate((element) => {
+      window.__artimenuFitPresentationObserver?.disconnect();
+      return {
+        current: element.getAttribute("data-fit-presentation-state"),
+        states: window.__artimenuFitPresentationStates ?? [],
+        overflow: element.getAttribute("data-fit-overflow"),
+      };
+    });
+    if (resizePresentation.states.includes("loading")) {
+      failures.push(`ready preview returned to loading during resize: ${resizePresentation.states.join(" -> ")}`);
+    }
+    if (resizePresentation.current !== "ready" || resizePresentation.overflow !== "false") {
+      failures.push(`resized preview is not ready and safe: ${JSON.stringify(resizePresentation)}`);
     }
     if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
     results.push({ templateKey: "preview-toolbar-and-sunday-line", locale: "en", route, failures });
