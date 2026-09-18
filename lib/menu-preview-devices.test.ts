@@ -117,8 +117,11 @@ test("first preview guide uses anchored coachmarks and applies hide-today only t
 });
 
 test("browser guide uses a filled round profile and restores the address pill without guest text", () => {
-  assert.match(previewGuideSource, /CircleUserRound/);
-  assert.match(previewGuideSource, /fill-zinc-500 text-zinc-500/);
+  assert.match(previewGuideSource, /UserRound/);
+  assert.match(previewGuideSource, /data-preview-guide-profile=""/);
+  assert.match(previewGuideSource, /data-preview-guide-profile-icon=""/);
+  assert.match(previewGuideSource, /bg-zinc-500/);
+  assert.match(previewGuideSource, /text-zinc-100/);
   assert.match(previewGuideSource, /h-8 min-w-0 flex-1 rounded-full/);
   assert.doesNotMatch(previewGuideSource, /게스트/);
 });
@@ -140,6 +143,9 @@ test("device selector is open by default and collapses upward while preserving t
   assert.doesNotMatch(previewFrameSource, /onMouseEnter=/);
   assert.doesNotMatch(previewFrameSource, /onMouseLeave=/);
   assert.match(previewFrameSource, /data-preview-device-toolbar=""/);
+  assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
+  assert.match(previewFrameSource, /pointer-events-none opacity-0/);
+  assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
   assert.match(previewFrameSource, /w-\[min\(28rem,calc\(100vw-1\.5rem\)\)\]/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);

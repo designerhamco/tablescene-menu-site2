@@ -106,8 +106,12 @@ try {
     const toolbar = page.locator("[data-preview-device-toolbar]");
     await toolbar.waitFor({ state: "visible", timeout: navigationTimeout });
     await page.waitForTimeout(500);
-    const previewGuide = page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" });
+    const previewGuide = page.locator("[data-preview-guide-variant]");
+    await previewGuide.waitFor({ state: "visible", timeout: 5_000 }).catch(() => null);
     if (await previewGuide.isVisible()) {
+      if (!(await previewGuide.locator("[data-preview-guide-profile-icon]").first().isVisible())) {
+        failures.push("browser guide profile icon is missing");
+      }
       await previewGuide.getByRole("button", { name: "닫기" }).click();
       await previewGuide.waitFor({ state: "hidden", timeout: navigationTimeout });
     }
@@ -117,6 +121,11 @@ try {
     await page.waitForTimeout(400);
     const after = await toolbar.boundingBox();
     if (await toolbar.getAttribute("data-toolbar-open") !== "false") failures.push("device toolbar did not collapse");
+    const collapsedContentOpacity = await toolbar.locator("[data-preview-device-toolbar-content]").evaluate((element) => (
+      Number.parseFloat(getComputedStyle(element).opacity)
+    ));
+    if (collapsedContentOpacity !== 0) failures.push(`collapsed device controls remain visible: opacity ${collapsedContentOpacity}`);
+    if (!(await toolbar.locator("button").isVisible())) failures.push("collapsed device toolbar arrow is missing");
     if (!before || !after) {
       failures.push("device toolbar bounds are unavailable");
     } else {

@@ -71,7 +71,14 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
           className="pointer-events-auto relative flex w-[min(28rem,calc(100vw-1.5rem))] flex-wrap items-center justify-center gap-2 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/72 p-2 pr-12 text-white backdrop-blur-xl transition-transform duration-300 ease-out"
           style={{ transform: showToolbar ? "translateY(0.5rem)" : "translateY(calc(-100% + 1.75rem))" }}
         >
-          <nav aria-label="미리보기 기기 선택" className="flex items-center gap-1">
+          <div
+            data-preview-device-toolbar-content=""
+            aria-hidden={!showToolbar}
+            className={`flex flex-wrap items-center justify-center gap-2 transition-opacity duration-150 ${
+              showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
+            }`}
+          >
+            <nav aria-label="미리보기 기기 선택" className="flex items-center gap-1">
               {(Object.keys(MENU_PREVIEW_DEVICES) as MenuPreviewDevice[]).map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
                 const isSelected = candidate === device;
@@ -84,6 +91,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                       orientation: candidate === "tablet" ? orientation : undefined,
                     })}
                     scroll={false}
+                    tabIndex={showToolbar ? undefined : -1}
                     aria-current={isSelected ? "page" : undefined}
                     className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
                       isSelected ? "bg-white text-zinc-950" : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -94,7 +102,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                   </Link>
                 );
               })}
-          </nav>
+            </nav>
             {device === "tablet" ? (
               <nav aria-label="태블릿 방향 선택" className="flex items-center gap-1 border-l border-white/20 pl-2">
                 {(Object.keys(MENU_PREVIEW_ORIENTATIONS) as MenuPreviewOrientation[]).map((candidate) => {
@@ -105,6 +113,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                       key={candidate}
                       href={buildPreviewUrl({ device, orientation: candidate })}
                       scroll={false}
+                      tabIndex={showToolbar ? undefined : -1}
                       aria-current={isSelected ? "page" : undefined}
                       className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
                         isSelected ? "bg-white text-zinc-950" : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -116,6 +125,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                 })}
               </nav>
             ) : null}
+          </div>
           <button
             type="button"
             onClick={() => setIsToolbarOpen((open) => !open)}
