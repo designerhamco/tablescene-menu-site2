@@ -434,7 +434,6 @@ const FIT_PRESENTATION_SAFETY_STEP = 0.94;
 const FIT_PRESENTATION_MIN_SAFETY_SCALE = 0.72;
 const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64, 0.62, 0.6, 0.58, 0.56, 0.54, 0.5, 0.48, 0.46] as const;
 const TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 0.9;
-const TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX = 1279;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
 const DEFAULT_FIT_STATE: CafeDesignAFitState = {
@@ -592,18 +591,18 @@ function getOrderedBalancedFitGapScale(fontScale: number, menuWidth: number) {
   return getFitGapScale(fontScale);
 }
 
-function getOrderedBalancedFitFontScaleCandidates(_viewportWidth: number, menuWidth: number) {
+function getOrderedBalancedFitFontScaleCandidates(isTabletPreview: boolean, menuWidth: number) {
   const widthCandidates = menuWidth < 760
     ? [...ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.85), 0.62]
     : ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES;
 
-  return _viewportWidth <= TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX
+  return isTabletPreview
     ? widthCandidates.filter((fontScale) => fontScale <= TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE)
     : widthCandidates;
 }
 
-function getViewportFitFontScaleCandidates<T extends number>(candidates: readonly T[], viewportWidth: number) {
-  return viewportWidth <= TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX
+function getPreviewFitFontScaleCandidates<T extends number>(candidates: readonly T[], isTabletPreview: boolean) {
+  return isTabletPreview
     ? candidates.filter((fontScale) => fontScale <= TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE)
     : candidates;
 }
@@ -3206,6 +3205,15 @@ function getMenuDescriptionSizeClassName(density: MenuLayoutDensity) {
   }[density];
 }
 
+function getMenuTitleSizeClassName(density: MenuLayoutDensity) {
+  return {
+    spacious: "cafe-a-menu-title-size-spacious",
+    default: "cafe-a-menu-title-size-default",
+    compact: "cafe-a-menu-title-size-compact",
+    ultraCompact: "cafe-a-menu-title-size-ultra-compact",
+  }[density];
+}
+
 function CategoryTitle({
   category,
   density,
@@ -3423,12 +3431,7 @@ function MenuItemRow({
   const showColumnTimeSale = usesPriceColumns && priceTokensWithColumnTimeSale.some((token) => Boolean(token.salePrice));
   const showMenuTimeSale = Boolean(timeSale && ((showTimeSale && timeSalePrice) || showColumnTimeSale));
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
-  const titleClassName = {
-    spacious: "cafe-a-menu-title-size-spacious",
-    default: "cafe-a-menu-title-size-default",
-    compact: "cafe-a-menu-title-size-compact",
-    ultraCompact: "cafe-a-menu-title-size-ultra-compact",
-  }[density];
+  const titleClassName = getMenuTitleSizeClassName(density);
   const descriptionClassName = "cafe-a-menu-description-wrap";
   const priceClassName = {
     spacious: "cafe-a-menu-price-size-spacious",
@@ -4004,7 +4007,7 @@ function CoverHero({
                   <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} />
                 </div>
               ) : null}
-              <h2 className={`cafe-a-featured-title break-words font-bold leading-tight ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-title="">
+              <h2 className={`cafe-a-featured-title ${getMenuTitleSizeClassName(density)} break-words font-bold leading-tight ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-title="">
                 <ScriptAwareText text={featuredItem.name} />
               </h2>
               {featuredItem.description && (
@@ -6819,7 +6822,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const unsafeCandidateKeys = new Set<string>();
 
       for (const columns of columnCandidates) {
-        for (const fontScale of getViewportFitFontScaleCandidates(ORDERED_FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
+        for (const fontScale of getPreviewFitFontScaleCandidates(ORDERED_FIT_FONT_SCALE_CANDIDATES, data.previewDevice === "tablet")) {
           const candidateKey = `${columns}:${fontScale}`;
           if (unsafeCandidateKeys.has(candidateKey)) continue;
           const maxBackoffFontScale = orderedFitBackoffLimitRef.current.fontScaleByColumns.get(columns);
@@ -6948,7 +6951,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       let fallbackScore = Number.POSITIVE_INFINITY;
 
       for (const columns of columnCandidates) {
-        for (const fontScale of getViewportFitFontScaleCandidates(FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
+        for (const fontScale of getPreviewFitFontScaleCandidates(FIT_FONT_SCALE_CANDIDATES, data.previewDevice === "tablet")) {
           applyFitCandidate(columns, fontScale);
           const blockMeasurements = getBalancedBlockMeasurements(fitMenuElement);
           if (blockMeasurements.length === 0) continue;
@@ -7202,14 +7205,13 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const effectiveColumnCandidates = getOrderedBalancedEffectiveColumnCandidates(columnCandidates, orderedBalancedFingerprint);
 
       const menuWidth = fitMenuElement.clientWidth;
-      const viewportWidth = window.innerWidth;
       const clippingTargetHeight = Math.min(
         fitMenuElement.clientHeight,
         Math.max(0, getCafeAClippingBottom(fitBoardElement, fitMenuElement) - fitMenuElement.getBoundingClientRect().top),
       );
       const targetHeight = clippingTargetHeight && clippingTargetHeight > 0 ? clippingTargetHeight : fitMenuElement.clientHeight || undefined;
       const fitsWidth = fitMenuElement.scrollWidth <= fitMenuElement.clientWidth + 1;
-      const fontScaleCandidates = getOrderedBalancedFitFontScaleCandidates(viewportWidth, menuWidth);
+      const fontScaleCandidates = getOrderedBalancedFitFontScaleCandidates(data.previewDevice === "tablet", menuWidth);
 
       for (const columns of effectiveColumnCandidates) {
         if (isOrderedBalancedColumnRejected(orderedBalancedFingerprint, columns)) continue;
@@ -7617,6 +7619,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       resizeObserver.disconnect();
     };
   }, [
+    data.previewDevice,
     density,
     hasCoverSection,
     hasVisibleItemImages,
@@ -7826,7 +7829,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             const currentFontScale = fitState.fontScale;
             let nextFillState: CafeDesignAFitState | null = null;
 
-            for (const candidateFontScale of getViewportFitFontScaleCandidates(ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
+            for (const candidateFontScale of getPreviewFitFontScaleCandidates(ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES, data.previewDevice === "tablet")) {
               if (candidateFontScale <= currentFontScale + ORDERED_BALANCED_SCALE_EPSILON) continue;
               const candidateGapScale = getOrderedBalancedFitGapScale(candidateFontScale, menuElement.clientWidth);
               boardElement.style.setProperty("--fit-font-scale", String(candidateFontScale));
@@ -8014,7 +8017,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [density, fitState, hasVisibleItemImages, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleFitBlockCount]);
+  }, [data.previewDevice, density, fitState, hasVisibleItemImages, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleFitBlockCount]);
 
   useEffect(() => {
     if (layoutMode !== "orderedFit") {
@@ -8126,7 +8129,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           }
         };
         const getOrderedFitBackoffState = () => {
-          for (const candidateFontScale of getViewportFitFontScaleCandidates(ORDERED_FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
+          for (const candidateFontScale of getPreviewFitFontScaleCandidates(ORDERED_FIT_FONT_SCALE_CANDIDATES, data.previewDevice === "tablet")) {
             if (candidateFontScale >= fitState.fontScale - 0.001) continue;
             const candidateGapScale = getOrderedFitGapScale(candidateFontScale, menuElement.clientWidth);
             boardElement.style.setProperty("--fit-font-scale", String(candidateFontScale));
@@ -8275,7 +8278,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [fitState, layoutInputSignature, layoutMode, orderedFitFinalFillCompensation]);
+  }, [data.previewDevice, fitState, layoutInputSignature, layoutMode, orderedFitFinalFillCompensation]);
 
   useEffect(() => {
     if (layoutMode !== "orderedBalancedFit") return;
@@ -8540,6 +8543,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
         data-cafe-a-skin={cafeASkinAttribute}
+        data-preview-device={data.previewDevice}
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">

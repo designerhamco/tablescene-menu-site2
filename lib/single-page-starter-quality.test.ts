@@ -5,7 +5,7 @@ import { getStarterPreset } from "./menu-starter-presets";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_design_a: [3, 4, 3, 3, 6],
-  cafe_mocha_forest_a: [3, 4, 3, 3, 6],
+  cafe_mocha_forest_a: [3, 4, 3, 3, 4],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
   cafe_round_focus_a: [3, 3, 3, 2, 2],
 } as const;

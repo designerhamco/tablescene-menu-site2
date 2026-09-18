@@ -67,6 +67,21 @@ export function getOpenPromotionSnapshot(productKey: string | null | undefined):
   };
 }
 
+export function getPromotionAwareChargeAmount(
+  productKey: string | null | undefined,
+  promotion: AppliedPromotionSnapshot | null,
+) {
+  const product = getPaymentProductDefinition(productKey);
+  if (!product) return null;
+
+  if (promotion) return positiveInteger(promotion.finalAmount);
+  if (isOpenPromotionProduct(productKey)) {
+    return positiveInteger(product.regular_amount);
+  }
+
+  return positiveInteger(product.amount);
+}
+
 export function getPromotionApplyResult(productKey: string | null | undefined, promotionCode: unknown) {
   const normalizedCode = normalizePromotionCode(promotionCode);
 

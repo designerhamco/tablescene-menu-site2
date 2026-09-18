@@ -19,7 +19,7 @@ import {
   normalizeMenuSlug,
   type MenuOrderPayload,
 } from "@/lib/payments";
-import { validatePromotionForOrder } from "@/lib/promotions";
+import { getPromotionAwareChargeAmount, validatePromotionForOrder } from "@/lib/promotions";
 import { getPaidBillingPayment, payWithBillingKey, PortOneBillingError } from "@/lib/portone-billing";
 import { portOneMockEnabled } from "@/lib/portone";
 import { grantAiWelcomeCreditsForFirstMenuCreation } from "@/lib/server/ai-credits-service";
@@ -174,6 +174,7 @@ async function createBusinessPaymentPaidNotification({
   menuSiteId,
   subscriptionId,
   product,
+  amount,
   mode,
 }: {
   userId: string;
@@ -182,6 +183,7 @@ async function createBusinessPaymentPaidNotification({
   menuSiteId: string;
   subscriptionId: string;
   product: SubscriptionProduct;
+  amount: number;
   mode: "new" | "convert";
 }) {
   try {
@@ -198,7 +200,7 @@ async function createBusinessPaymentPaidNotification({
         menu_site_id: menuSiteId,
         subscription_id: subscriptionId,
         product_key: product.productKey,
-        amount: product.amount,
+        amount,
         mode,
       },
     });
@@ -450,6 +452,9 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     promotionCode: payload.promotionCode,
     promotion: payload.promotion,
   });
+  const expectedAmount = promotionValidation.ok
+    ? getPromotionAwareChargeAmount(product?.productKey, promotionValidation.promotion)
+    : null;
 
   if (
     !product ||
@@ -458,7 +463,7 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
     !isTemplateKey(templateKey) ||
     !templateCategory ||
     !isValidMenuSlug(desiredSlug) ||
-    amount !== product.amount ||
+    amount !== expectedAmount ||
     getString(payload.plan_type) !== product.planType ||
     getString(payload.payment_type) !== product.paymentType ||
     getString(payload.billing_cycle) !== product.billingCycle ||
@@ -661,6 +666,7 @@ async function createPendingSubscription({
   businessProfileId,
   billingKey,
   product,
+  amount,
   menuSiteId,
   trialPeriod,
 }: {
@@ -670,6 +676,7 @@ async function createPendingSubscription({
   businessProfileId: string;
   billingKey: string;
   product: SubscriptionProduct;
+  amount: number;
   menuSiteId?: string | null;
   trialPeriod?: SubscriptionBillingPeriod | null;
 }) {
@@ -691,7 +698,7 @@ async function createPendingSubscription({
       billing_cycle: product.billingCycle,
       billing_key_ref: billingKey,
       status: "pending",
-      amount: product.amount,
+      amount,
       currency: product.currency,
       ...trialFields,
     }) as never)
@@ -916,6 +923,7 @@ async function getRecoverableSubscription({
   userId,
   businessProfileId,
   product,
+  amount,
   paymentId,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
@@ -923,6 +931,7 @@ async function getRecoverableSubscription({
   userId: string;
   businessProfileId: string;
   product: SubscriptionProduct;
+  amount: number;
   paymentId: string;
 }) {
   const { data, error } = await adminSupabase
@@ -951,7 +960,7 @@ async function getRecoverableSubscription({
     subscription.plan_type !== product.planType ||
     subscription.billing_cycle !== product.billingCycle ||
     !["pending", "failed", "active"].includes(subscription.status) ||
-    subscription.amount !== product.amount ||
+    subscription.amount !== amount ||
     (subscription.portone_payment_id !== null && subscription.portone_payment_id !== paymentId)
   ) {
     throw new BusinessSubscriptionRouteError(
@@ -1517,6 +1526,7 @@ async function createOrderAndPaymentRecords({
   paymentId,
   menuSiteId,
   product,
+  amount,
   businessProfile,
   portonePayment,
   consentSnapshot,
@@ -1527,6 +1537,7 @@ async function createOrderAndPaymentRecords({
   paymentId: string;
   menuSiteId: string;
   product: SubscriptionProduct;
+  amount: number;
   businessProfile: BusinessProfile;
   portonePayment?: unknown;
   consentSnapshot?: Json | null;
@@ -1610,7 +1621,7 @@ async function createOrderAndPaymentRecords({
         business_number: businessProfile.business_registration_number,
         raw_payload: safeRawPayload,
         status: "paid",
-        total_amount: product.amount,
+        total_amount: amount,
       })
       .select("id")
       .single();
@@ -1709,7 +1720,7 @@ async function createOrderAndPaymentRecords({
       payment_id: paymentId,
       portone_payment_id: paymentId,
       status: "paid",
-      amount: product.amount,
+      amount,
       raw_payload: safeRawPayload,
     });
 
@@ -2243,6 +2254,7 @@ export async function POST(request: Request) {
     });
   }
 
+  const chargeAmount = order?.amount ?? product.amount;
   const paymentId = canonicalPaymentId;
   const billingPeriod = getSubscriptionBillingPeriod(product, new Date(), startsWithFreeTrial);
   const nextBillingAt = billingPeriod.nextBillingAt;
@@ -2256,6 +2268,7 @@ export async function POST(request: Request) {
         userId: user.id,
         businessProfileId: businessProfile.id,
         product,
+        amount: chargeAmount,
         paymentId,
       });
       await ensureNoConflictingPaymentRecords({
@@ -2332,6 +2345,7 @@ export async function POST(request: Request) {
         businessProfileId: businessProfile.id,
         billingKey,
         product,
+        amount: chargeAmount,
         menuSiteId: existingMenuSite?.id ?? null,
         trialPeriod: startsWithFreeTrial ? billingPeriod : null,
       });
@@ -2408,7 +2422,7 @@ export async function POST(request: Request) {
       billingPayment = await getPaidBillingPayment({
         paymentId,
         orderName: getSubscriptionOrderName(product),
-        amount: product.amount,
+        amount: chargeAmount,
       });
       logBusinessSubscriptionDebug("portone_existing_payment_verify_done", {
         mode,
@@ -2421,12 +2435,12 @@ export async function POST(request: Request) {
       billingPayment = {
         paymentId,
         status: "PAID",
-        amount: product.amount,
+        amount: chargeAmount,
         rawPayment: {
           id: paymentId,
           paymentId,
           status: "PAID",
-          amount: product.amount,
+          amount: chargeAmount,
         },
       };
     } else {
@@ -2442,7 +2456,7 @@ export async function POST(request: Request) {
         paymentId,
         billingKey,
         orderName: getSubscriptionOrderName(product),
-        amount: product.amount,
+        amount: chargeAmount,
         customer: {
           id: user.id,
           name: businessProfile.business_name ?? businessProfile.representative_name ?? undefined,
@@ -2571,6 +2585,7 @@ export async function POST(request: Request) {
         paymentId,
         menuSiteId: menuSite.id,
         product,
+        amount: chargeAmount,
         businessProfile,
         portonePayment: billingPayment?.rawPayment,
         promotionSnapshot: (order?.promotion ?? null) as Json | null,
@@ -2594,6 +2609,7 @@ export async function POST(request: Request) {
         menuSiteId: menuSite.id,
         subscriptionId,
         product,
+        amount: chargeAmount,
         mode,
       });
     }

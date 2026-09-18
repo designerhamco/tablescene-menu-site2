@@ -9,7 +9,7 @@ import {
   personalTrialBasicProduct,
   type MenuOrderPayload,
 } from "@/lib/payments";
-import { validatePromotionForOrder } from "@/lib/promotions";
+import { getPromotionAwareChargeAmount, validatePromotionForOrder } from "@/lib/promotions";
 import { isDiningProductCompatibleWithTemplate, isLegacyDiningProductKey } from "@/lib/dining-product-tiers";
 import { portOneMockEnabled, requirePortOneApiSecret } from "@/lib/portone";
 import { grantAiWelcomeCreditsForFirstMenuCreation } from "@/lib/server/ai-credits-service";
@@ -410,6 +410,9 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     promotionCode: payload.promotionCode,
     promotion: payload.promotion,
   });
+  const expectedAmount = promotionValidation.ok
+    ? getPromotionAwareChargeAmount(productKey, promotionValidation.promotion)
+    : null;
 
   if (
     (planKey !== "basic" && planKey !== "large_screen" && planKey !== "qr_order") ||
@@ -418,7 +421,7 @@ function parseOrderPayload(value: unknown): MenuOrderPayload | null {
     !isValidMenuSlug(desiredSlug) ||
     !requestedProduct ||
     isLegacyDiningProductKey(requestedProduct.product_key) ||
-    amount !== requestedProduct.amount ||
+    amount !== expectedAmount ||
     planType !== requestedProduct.plan_type ||
     paymentType !== requestedProduct.payment_type ||
     billingCycle !== requestedProduct.billing_cycle

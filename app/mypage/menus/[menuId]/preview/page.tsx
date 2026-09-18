@@ -198,6 +198,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       ) : null}
       <MenuPageRenderer
         mode="preview"
+        previewDevice={isActualView ? device : undefined}
         debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         orderCallConfig={previewOrderCallConfig}

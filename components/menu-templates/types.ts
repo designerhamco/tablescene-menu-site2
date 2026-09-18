@@ -7,6 +7,7 @@ import type { MenuWidget } from "@/lib/menu-widgets";
 import type { PageSettings } from "@/types/menu";
 import type { TimeSaleDisplayMode } from "@/lib/menu-time-sales";
 import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
+import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 
 export type PublicMenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -177,6 +178,7 @@ export type PublicFeaturedSlide = {
 
 export type PublicMenuTemplateProps = {
   mode: "public" | "preview";
+  previewDevice?: MenuPreviewDevice;
   previewLayoutMode?: PcTabletLayoutMode;
   initialPreviewPageId?: string | null;
   pagePresentation?: "one" | "multi";

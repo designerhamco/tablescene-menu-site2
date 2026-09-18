@@ -23,9 +23,10 @@ test("헤더와 퀵 메뉴의 원형 아이콘 버튼은 가로세로가 같은 
   const scrollSource = readSource("app/components/ui/ScrollToTop.tsx");
   const uiSystemSource = readSource("styles/ui-system.css");
 
-  assert.match(navbarSource, /aspect-square h-10 w-10 shrink-0/);
-  assert.match(navbarSource, /aspect-square h-9 w-9 shrink-0/);
-  assert.match(scrollSource, /aspect-square h-10 w-10 shrink-0/g);
+  assert.match(navbarSource, /size-10 min-h-10 min-w-10 shrink-0/);
+  assert.match(navbarSource, /size-9 min-h-9 min-w-9 shrink-0/);
+  assert.match(scrollSource, /size-10 min-h-10 min-w-10 shrink-0/g);
+  assert.doesNotMatch(scrollSource, /height: 0/);
   assert.match(uiSystemSource, /\.site-button-icon \{[\s\S]*?height: var\(--ui-control-height-md\);[\s\S]*?aspect-ratio: 1;[\s\S]*?flex: none;/);
   assert.match(uiSystemSource, /\.site-button-icon\.site-button-sm \{[\s\S]*?height: var\(--ui-control-height-sm\);/);
 });
