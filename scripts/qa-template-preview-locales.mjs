@@ -168,8 +168,18 @@ try {
     }
     const before = await toolbar.boundingBox();
     if (await toolbar.getAttribute("data-toolbar-open") !== "true") failures.push("device toolbar is not open by default");
-    await toolbar.locator("button").click();
-    await page.waitForTimeout(400);
+    await toolbar.getByRole("button", { name: "기기 선택 도구 닫기" }).click();
+    await page.waitForFunction((beforeY) => {
+      const toolbarElement = document.querySelector("[data-preview-device-toolbar]");
+      const contentElement = document.querySelector("[data-preview-device-toolbar-content]");
+      if (!(toolbarElement instanceof HTMLElement) || !(contentElement instanceof HTMLElement)) return false;
+
+      const contentOpacity = Number.parseFloat(getComputedStyle(contentElement).opacity);
+      const toolbarHasMoved = beforeY === null || toolbarElement.getBoundingClientRect().y < beforeY - 10;
+      return toolbarElement.dataset.toolbarOpen === "false" && contentOpacity === 0 && toolbarHasMoved;
+    }, before?.y ?? null, { timeout: navigationTimeout }).catch(() => {
+      failures.push("device toolbar collapse transition did not settle");
+    });
     const after = await toolbar.boundingBox();
     if (await toolbar.getAttribute("data-toolbar-open") !== "false") failures.push("device toolbar did not collapse");
     const collapsedContentOpacity = await toolbar.locator("[data-preview-device-toolbar-content]").evaluate((element) => (
