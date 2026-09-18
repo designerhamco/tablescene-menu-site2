@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ChevronUp, Minus, MoreVertical, Plus, UserRound } from "lucide-react";
 
 import {
+  MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_DEVICES,
   type MenuPreviewDevice,
 } from "@/lib/menu-preview-devices";
@@ -34,7 +35,7 @@ function GuideDeviceSelector({ device }: { device: MenuPreviewDevice }) {
       className="flex items-center gap-1 rounded-2xl border-2 border-[#42E6C4] bg-zinc-950/86 p-2 text-white ring-4 ring-[#42E6C4]/20 backdrop-blur-xl"
       aria-hidden="true"
     >
-      {(Object.keys(MENU_PREVIEW_DEVICES) as MenuPreviewDevice[]).map((candidate) => {
+      {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
         const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
         const isSelected = candidate === device;
 
@@ -119,7 +120,7 @@ function GuideCallout({
   );
 }
 
-export default function MenuPreviewGuide({ device = "pc", variant = "device" }: MenuPreviewGuideProps) {
+export default function MenuPreviewGuide({ device = "tablet", variant = "device" }: MenuPreviewGuideProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hideTodayChecked, setHideTodayChecked] = useState(false);
   const isDisplayGuide = variant === "display";
@@ -184,7 +185,7 @@ export default function MenuPreviewGuide({ device = "pc", variant = "device" }: 
               <GuideDeviceSelector device={device} />
             </div>
             <GuideCallout pointer="top" className="absolute left-1/2 top-[7.75rem] w-[27rem] -translate-x-1/2">
-              PC·태블릿·모바일 버튼을 눌러<br />기기별 메뉴판을 확인할 수 있어요.
+              태블릿·PC·모바일 버튼을 눌러<br />기기별 메뉴판을 확인할 수 있어요.
             </GuideCallout>
           </>
         ) : null}
@@ -206,7 +207,7 @@ export default function MenuPreviewGuide({ device = "pc", variant = "device" }: 
               <GuideDeviceSelector device={device} />
             </div>
             <GuideCallout pointer="top" className="mx-auto mt-5 max-w-md">
-              PC·태블릿·모바일 버튼을 눌러<br className="hidden sm:block" /> 기기별 메뉴판을 확인할 수 있어요.
+              태블릿·PC·모바일 버튼을 눌러<br className="hidden sm:block" /> 기기별 메뉴판을 확인할 수 있어요.
             </GuideCallout>
           </>
         ) : null}

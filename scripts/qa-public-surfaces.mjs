@@ -132,7 +132,7 @@ async function inspectDisplayPreviewControls(page) {
   if (await dialog.getAttribute("data-preview-guide-variant") !== "display") {
     failures.push("display preview guide does not use the display-only variant");
   }
-  if (await page.getByText("PC·태블릿·모바일 버튼을 눌러").isVisible()) {
+  if (await page.getByText("태블릿·PC·모바일 버튼을 눌러").isVisible()) {
     failures.push("display preview guide includes the device selector explanation");
   }
   if (!(await pagination.count())) failures.push("display preview pagination is missing");

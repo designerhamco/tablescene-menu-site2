@@ -131,7 +131,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const requestedPageIndex = getPreviewPageIndex(query.page);
   const isActualView = getSearchParamValue(query.view) === "actual";
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
-  const device = normalizeMenuPreviewDevice(getSearchParamValue(query.device));
+  const requestedDevice = getSearchParamValue(query.device);
   const orientation = normalizeMenuPreviewOrientation(getSearchParamValue(query.orientation));
   const previewQuery: MenuPreviewQuery = {
     debugCafeA: getSearchParamValue(query.debugCafeA),
@@ -168,6 +168,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   }
 
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(data.menuSite.template_key);
+  const device = normalizeMenuPreviewDevice(requestedDevice, usesDevicePreviewFrame ? "tablet" : "pc");
 
   if (!isActualView && usesDevicePreviewFrame) {
     return (

@@ -9,7 +9,9 @@ import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
 import {
   buildMenuPreviewUrl,
   buildTemplatePreviewUrl,
+  DEFAULT_MENU_PREVIEW_DEVICE,
   getMenuPreviewFrame,
+  MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_ORIENTATIONS,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
@@ -29,6 +31,10 @@ const displayTemplatePreviewSource = readFileSync(
   new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url),
   "utf8",
 );
+const menuPreviewSource = readFileSync(
+  new URL("../app/mypage/menus/[menuId]/preview/page.tsx", import.meta.url),
+  "utf8",
+);
 const displayTemplateSource = readFileSync(
   new URL("../components/menu-templates/DisplayMenuA.tsx", import.meta.url),
   "utf8",
@@ -40,11 +46,21 @@ test("Display preview opens at its real screen size without device frames", () =
   assert.equal(shouldUseMenuPreviewDeviceFrame("dining_aube_table_a"), true);
 });
 
-test("preview device normalization defaults unknown values to PC", () => {
-  assert.equal(normalizeMenuPreviewDevice(undefined), "pc");
-  assert.equal(normalizeMenuPreviewDevice("wide-screen"), "pc");
+test("preview device normalization defaults to tablet and supports a display-only PC fallback", () => {
+  assert.equal(DEFAULT_MENU_PREVIEW_DEVICE, "tablet");
+  assert.equal(normalizeMenuPreviewDevice(undefined), "tablet");
+  assert.equal(normalizeMenuPreviewDevice("wide-screen"), "tablet");
+  assert.equal(normalizeMenuPreviewDevice(undefined, "pc"), "pc");
+  assert.equal(normalizeMenuPreviewDevice("wide-screen", "pc"), "pc");
+  assert.equal(normalizeMenuPreviewDevice("pc"), "pc");
   assert.equal(normalizeMenuPreviewDevice("tablet"), "tablet");
   assert.equal(normalizeMenuPreviewDevice("mobile"), "mobile");
+});
+
+test("preview selectors order tablet before PC and mobile while display previews keep a PC fallback", () => {
+  assert.deepEqual(MENU_PREVIEW_DEVICE_ORDER, ["tablet", "pc", "mobile"]);
+  assert.match(displayTemplatePreviewSource, /usesDevicePreviewFrame \? "tablet" : "pc"/);
+  assert.match(menuPreviewSource, /usesDevicePreviewFrame \? "tablet" : "pc"/);
 });
 
 test("preview orientation defaults to landscape and accepts explicit portrait", () => {
@@ -94,18 +110,35 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.match(html, />PC</);
   assert.match(html, />태블릿</);
   assert.match(html, />모바일</);
+  assert.ok(html.indexOf("태블릿") < html.indexOf(">PC<"));
+  assert.ok(html.indexOf(">PC<") < html.indexOf("모바일"));
   assert.doesNotMatch(html, /메뉴판 목록/);
   assert.doesNotMatch(html, /새 창에서 실제 크기 보기/);
   assert.doesNotMatch(html, /1440 × 900/);
   assert.match(html, /기기 선택 도구 닫기/);
   assert.match(html, /aria-expanded="true"/);
+  assert.doesNotMatch(html, /tabindex="0"/);
+});
+
+test("scrollable tablet and mobile preview frames are keyboard focusable", () => {
+  for (const device of ["tablet", "mobile"] as const) {
+    const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
+      device,
+      orientation: "landscape",
+      menuId: "4f7be4a1-90db-4e1f-987d-e91385f0bf91",
+      query: {},
+    }));
+
+    assert.match(html, /tabindex="0"/);
+  }
 });
 
 test("first preview guide uses anchored coachmarks and applies hide-today only through checkbox plus close", () => {
   assert.match(previewFrameSource, /<MenuPreviewGuide device=\{device\} \/>/);
   assert.match(previewGuideSource, /GuideDeviceSelector/);
   assert.match(previewGuideSource, /BrowserZoomGuide/);
-  assert.match(previewGuideSource, /PC·태블릿·모바일 버튼을 눌러/);
+  assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
+  assert.match(previewGuideSource, /device = "tablet"/);
   assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
   assert.match(previewGuideSource, /type="checkbox"/);
   assert.match(previewGuideSource, /checked=\{hideTodayChecked\}/);
