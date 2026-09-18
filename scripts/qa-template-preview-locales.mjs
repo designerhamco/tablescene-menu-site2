@@ -177,7 +177,26 @@ try {
     if (!embeddedPreviewUrl?.includes("device=tablet") || !embeddedPreviewUrl.includes("orientation=landscape")) {
       failures.push(`default embedded preview is not tablet landscape: ${embeddedPreviewUrl ?? "missing"}`);
     }
+    const deviceNavBounds = await toolbar.getByRole("navigation", { name: "미리보기 기기 선택" }).boundingBox();
+    const orientationNavBounds = await toolbar.getByRole("navigation", { name: "태블릿 방향 선택" }).boundingBox();
+    if (!deviceNavBounds || !orientationNavBounds) {
+      failures.push("tablet toolbar row bounds are unavailable");
+    } else {
+      const deviceNavCenter = deviceNavBounds.y + deviceNavBounds.height / 2;
+      const orientationNavCenter = orientationNavBounds.y + orientationNavBounds.height / 2;
+      if (Math.abs(deviceNavCenter - orientationNavCenter) > 2) {
+        failures.push(`tablet orientation controls are not inline: ${deviceNavCenter}px / ${orientationNavCenter}px`);
+      }
+    }
+    const toolbarBackground = await toolbar.evaluate((element) => getComputedStyle(element).backgroundColor);
+    const toolbarAlpha = Number.parseFloat(
+      toolbarBackground.match(/\/\s*([\d.]+)\s*\)$/)?.[1]
+        ?? toolbarBackground.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/)?.[1]
+        ?? "1",
+    );
+    if (toolbarAlpha > 0.55) failures.push(`device toolbar background is too opaque: ${toolbarBackground}`);
     const before = await toolbar.boundingBox();
+    if (before && before.height > 64) failures.push(`tablet toolbar is too tall: ${before.height}px`);
     if (await toolbar.getAttribute("data-toolbar-open") !== "true") failures.push("device toolbar is not open by default");
     await toolbar.getByRole("button", { name: "기기 선택 도구 닫기" }).click();
     await page.waitForFunction((beforeY) => {
