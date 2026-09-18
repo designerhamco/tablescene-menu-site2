@@ -433,6 +433,8 @@ const ORDERED_FIT_FINAL_FILL_MIN_GAP = 2;
 const FIT_PRESENTATION_SAFETY_STEP = 0.94;
 const FIT_PRESENTATION_MIN_SAFETY_SCALE = 0.72;
 const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64, 0.62, 0.6, 0.58, 0.56, 0.54, 0.5, 0.48, 0.46] as const;
+const TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 0.9;
+const TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX = 1279;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
 const DEFAULT_FIT_STATE: CafeDesignAFitState = {
@@ -591,8 +593,19 @@ function getOrderedBalancedFitGapScale(fontScale: number, menuWidth: number) {
 }
 
 function getOrderedBalancedFitFontScaleCandidates(_viewportWidth: number, menuWidth: number) {
-  if (menuWidth < 760) return [...ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.85), 0.62];
-  return ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES;
+  const widthCandidates = menuWidth < 760
+    ? [...ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES.filter((fontScale) => fontScale <= 0.85), 0.62]
+    : ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES;
+
+  return _viewportWidth <= TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX
+    ? widthCandidates.filter((fontScale) => fontScale <= TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE)
+    : widthCandidates;
+}
+
+function getViewportFitFontScaleCandidates<T extends number>(candidates: readonly T[], viewportWidth: number) {
+  return viewportWidth <= TABLET_LANDSCAPE_MAX_VIEWPORT_WIDTH_PX
+    ? candidates.filter((fontScale) => fontScale <= TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE)
+    : candidates;
 }
 
 function getOrderedFitGapScale(fontScale: number, menuWidth: number) {
@@ -5312,16 +5325,16 @@ function HeaderBlock({
   const description = data.menuSite.brand_description || data.menuSite.description;
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const descriptionClassName = `cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-store-description mt-2 break-keep text-[#3f4945] ${descriptionSizeClassName}`;
-  const isRoundFocusTemplate = data.menuSite.template_key === "cafe_round_focus_a";
+  const hasLanguageSwitcher = Array.from(new Set(data.enabledLocales)).length > 1;
 
   return (
     <header className={`w-full shrink-0 px-[clamp(24px,4vw,96px)] pt-8 pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
-      {isRoundFocusTemplate ? (
-        <div className="cafe-a-round-focus-mobile-utility-row" data-cafe-a-round-focus-mobile-utility-row="">
+      {hasLanguageSwitcher ? (
+        <div className="cafe-a-mobile-language-row" data-cafe-a-mobile-language-row="">
           <CafeLanguageHoverControl data={data} className="cursor-default" />
         </div>
       ) : null}
-      <div className="flex min-w-0 items-start justify-between gap-[clamp(16px,2vw,32px)]">
+      <div className="cafe-a-mobile-header-copy flex min-w-0 items-start gap-[clamp(16px,2vw,32px)]">
         <div className="min-w-0 max-w-5xl">
           <StoreIdentity
             data={data}
@@ -5335,7 +5348,6 @@ function HeaderBlock({
             </p>
           )}
         </div>
-        {!isRoundFocusTemplate ? <CafeLanguageHoverControl data={data} className="cursor-default" /> : null}
       </div>
     </header>
   );
@@ -6807,7 +6819,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const unsafeCandidateKeys = new Set<string>();
 
       for (const columns of columnCandidates) {
-        for (const fontScale of ORDERED_FIT_FONT_SCALE_CANDIDATES) {
+        for (const fontScale of getViewportFitFontScaleCandidates(ORDERED_FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
           const candidateKey = `${columns}:${fontScale}`;
           if (unsafeCandidateKeys.has(candidateKey)) continue;
           const maxBackoffFontScale = orderedFitBackoffLimitRef.current.fontScaleByColumns.get(columns);
@@ -6936,7 +6948,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       let fallbackScore = Number.POSITIVE_INFINITY;
 
       for (const columns of columnCandidates) {
-        for (const fontScale of FIT_FONT_SCALE_CANDIDATES) {
+        for (const fontScale of getViewportFitFontScaleCandidates(FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
           applyFitCandidate(columns, fontScale);
           const blockMeasurements = getBalancedBlockMeasurements(fitMenuElement);
           if (blockMeasurements.length === 0) continue;
@@ -7814,7 +7826,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             const currentFontScale = fitState.fontScale;
             let nextFillState: CafeDesignAFitState | null = null;
 
-            for (const candidateFontScale of ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES) {
+            for (const candidateFontScale of getViewportFitFontScaleCandidates(ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
               if (candidateFontScale <= currentFontScale + ORDERED_BALANCED_SCALE_EPSILON) continue;
               const candidateGapScale = getOrderedBalancedFitGapScale(candidateFontScale, menuElement.clientWidth);
               boardElement.style.setProperty("--fit-font-scale", String(candidateFontScale));
@@ -8114,7 +8126,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           }
         };
         const getOrderedFitBackoffState = () => {
-          for (const candidateFontScale of ORDERED_FIT_FONT_SCALE_CANDIDATES) {
+          for (const candidateFontScale of getViewportFitFontScaleCandidates(ORDERED_FIT_FONT_SCALE_CANDIDATES, window.innerWidth)) {
             if (candidateFontScale >= fitState.fontScale - 0.001) continue;
             const candidateGapScale = getOrderedFitGapScale(candidateFontScale, menuElement.clientWidth);
             boardElement.style.setProperty("--fit-font-scale", String(candidateFontScale));
