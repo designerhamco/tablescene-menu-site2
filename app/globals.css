@@ -1398,7 +1398,7 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-title {
-    font-size: calc(clamp(calc(1.9rem * var(--menu-role-brand-size-scale, 1)), calc(5.4vh * var(--menu-role-brand-size-scale, 1)), calc(3.5rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-device-type-scale));
+    font-size: calc(clamp(calc(1.9rem * var(--menu-role-brand-size-scale, 1)), calc(5.4vh * var(--menu-role-brand-size-scale, 1)), calc(3.5rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-device-type-scale) * var(--cafe-a-store-title-device-scale, 1));
     max-width: 11ch;
   }
 
@@ -2284,7 +2284,7 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-topline-title {
-    font-size: clamp(calc(1.3rem * var(--menu-role-brand-size-scale, 1)), calc(3.8vh * var(--menu-role-brand-size-scale, 1)), calc(2.55rem * var(--menu-role-brand-size-scale, 1)));
+    font-size: calc(clamp(calc(1.3rem * var(--menu-role-brand-size-scale, 1)), calc(3.8vh * var(--menu-role-brand-size-scale, 1)), calc(2.55rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-store-title-device-scale, 1));
     max-width: 10ch;
   }
 
@@ -2555,7 +2555,7 @@ video {
   }
 
   .cafe-a-typography[data-preview-device="tablet"][data-cafe-a-skin="sunday_line"] {
-    --cafe-a-store-title-device-scale: 0.82;
+    --cafe-a-store-title-device-scale: 0.94;
     --cafe-a-shell-category-title-boost: 1.1;
     --cafe-a-shell-menu-copy-boost: 0.9;
     --cafe-a-shell-menu-price-boost: 1;

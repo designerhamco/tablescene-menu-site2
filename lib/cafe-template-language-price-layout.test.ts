@@ -90,9 +90,10 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   );
   assert.match(
     globalStylesSource,
-    /data-preview-device="tablet"\]\[data-cafe-a-skin="sunday_line"\] \{[\s\S]*--cafe-a-store-title-device-scale: 0\.82;/,
+    /data-preview-device="tablet"\]\[data-cafe-a-skin="sunday_line"\] \{[\s\S]*--cafe-a-store-title-device-scale: 0\.94;/,
   );
   assert.match(globalStylesSource, /\.cafe-a-store-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
+  assert.match(globalStylesSource, /\.cafe-a-topline-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
 });
 
 test("대표 영역은 모든 기기에서 대응 메뉴 역할과 같은 크기를 따른다", () => {

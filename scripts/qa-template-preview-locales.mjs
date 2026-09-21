@@ -341,13 +341,16 @@ try {
           }
           if (deviceCase.device === "tablet") {
             const storeTitleMetrics = await page.locator(".cafe-a-typography").evaluate((element) => {
-              const title = element.querySelector(".cafe-a-store-title");
+              const title = Array.from(element.querySelectorAll(".cafe-a-store-title")).find((candidate) => {
+                const rect = candidate.getBoundingClientRect();
+                return rect.width > 0 && rect.height > 0;
+              });
               return {
                 scale: getComputedStyle(element).getPropertyValue("--cafe-a-store-title-device-scale").trim(),
                 fontSize: title ? Number.parseFloat(getComputedStyle(title).fontSize) : null,
               };
             });
-            if (storeTitleMetrics.scale !== "0.82" || storeTitleMetrics.fontSize === null || storeTitleMetrics.fontSize >= 48) {
+            if (storeTitleMetrics.scale !== "0.94" || storeTitleMetrics.fontSize === null || storeTitleMetrics.fontSize < 46 || storeTitleMetrics.fontSize >= 48) {
               failures.push(`Sunday Line tablet store title is not gently reduced: ${JSON.stringify(storeTitleMetrics)}`);
             }
           }
