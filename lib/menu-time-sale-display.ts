@@ -130,11 +130,7 @@ export function formatTimeSaleDigitalCountdownLabel(endsAtMs: number, nowMs: num
   const seconds = remainingSeconds % 60;
   const formatTwoDigit = (value: number) => String(value).padStart(2, "0");
 
-  if (hours > 0) {
-    return `${formatTwoDigit(hours)}:${formatTwoDigit(minutes)}:${formatTwoDigit(seconds)}`;
-  }
-
-  return `${formatTwoDigit(minutes)}:${formatTwoDigit(seconds)}`;
+  return `${formatTwoDigit(hours)}:${formatTwoDigit(minutes)}:${formatTwoDigit(seconds)}`;
 }
 
 export function isMenuTimeSaleActive(timeSale: MenuTimeSaleDisplaySource, nowMs: number) {

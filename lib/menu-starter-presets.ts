@@ -633,7 +633,7 @@ cafeMochaForestStarterPreset.time_sales = [
     name: "아메리카노 모닝딜",
     schedule_type: "once",
     badge_text: "모닝딜",
-    badge_background_color: "#E7C99A",
+    badge_background_color: "#6B3F32",
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -1030,13 +1030,11 @@ cafeSundayLineStarterPreset.pages = [
             set_name: "SUNDAY CREAM LATTE",
             badge_label: "SIGNATURE",
             recommended: true,
-            image_url: "/menu-templates/cafe_design_a/malcha.jpg",
           }),
           item("솔티드 메이플 라떼", 6800, "메이플의 은은한 단맛과 소금 크림을 더한 라떼", {
             key: "salted-maple-latte",
             set_name: "SALTED MAPLE LATTE",
             badge_label: "BEST",
-            image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
           }),
           item("오렌지 바닐라 콜드브루", 6800, "오렌지 향과 바닐라 크림을 더한 부드러운 콜드브루", {
             key: "orange-vanilla-cold-brew",
@@ -1192,6 +1190,18 @@ cafeRoundFocusStarterPreset.time_sales = [
       { target_item_key: "americano", target_item_name: "아메리카노", sale_price: 3900 },
     ],
   },
+  {
+    key: "fig-butter-scone-closeout",
+    name: "무화과 버터 스콘 재고 마감",
+    schedule_type: "once",
+    duration_minutes: 60,
+    badge_text: "재고 마감",
+    badge_background_color: "#9B4F33",
+    time_display_mode: "countdown",
+    targets: [
+      { target_item_key: "fig-butter-scone", target_item_name: "무화과 버터 스콘", sale_price: 3900 },
+    ],
+  },
 ];
 cafeRoundFocusStarterPreset.mixed_content_order = [
   { block_type: "category", page_key: "main-menu", category_key: "house-special", sort_order: 0, visible: true },
@@ -1228,6 +1238,7 @@ cafeRoundFocusStarterPreset.pages = [
             key: "orange-cream-coldbrew",
             set_name: "ORANGE CREAM COLD BREW",
             badge_label: "NEW",
+            image_url: "/menu-templates/cafe_design_a/black-sesame.jpeg",
           }),
         ],
       },
@@ -1248,6 +1259,10 @@ cafeRoundFocusStarterPreset.pages = [
             key: "cappuccino",
             set_name: "CAPPUCCINO",
           }),
+          item("롱블랙", 4200, "두 샷의 진한 향과 깔끔한 마무리", {
+            key: "long-black",
+            set_name: "LONG BLACK",
+          }),
         ],
       },
       {
@@ -1267,6 +1282,10 @@ cafeRoundFocusStarterPreset.pages = [
           item("말차 오트 밀크", 6200, "제주 말차와 고소한 오트 밀크의 조화", {
             key: "matcha-oat-milk",
             set_name: "MATCHA OAT MILK",
+          }),
+          item("솔티드 크림 라떼", 6300, "고소한 우유와 짭조름한 크림을 더한 라떼", {
+            key: "salted-cream-latte",
+            set_name: "SALTED CREAM LATTE",
           }),
         ],
       },

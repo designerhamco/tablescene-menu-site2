@@ -7,7 +7,7 @@ const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_design_a: [3, 4, 3, 3, 6],
   cafe_mocha_forest_a: [3, 4, 3, 3, 4],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
-  cafe_round_focus_a: [3, 3, 3, 2, 2],
+  cafe_round_focus_a: [3, 4, 4, 2, 2],
 } as const;
 
 for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_DENSITY_CONTRACT)) {
@@ -48,11 +48,12 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
   });
 }
 
-test("stock closeout starters use a sixty-minute live countdown", () => {
+test("every active single-page starter includes a sixty-minute stock closeout countdown", () => {
   const expectedCloseoutKeys = new Map([
     ["cafe_design_a", "classic-butter-scone-closeout"],
     ["cafe_mocha_forest_a", "dark-chocolate-brownie-closeout"],
     ["cafe_sunday_line_a", "brown-butter-scone-closeout"],
+    ["cafe_round_focus_a", "fig-butter-scone-closeout"],
   ]);
 
   for (const [templateKey, expectedSaleKey] of expectedCloseoutKeys) {
@@ -64,6 +65,20 @@ test("stock closeout starters use a sixty-minute live countdown", () => {
     assert.match(closeout.badge_text ?? "", /재고 마감/, `${templateKey}: stock closeout badge`);
   }
 
-  const roundFocusTimedSales = getStarterPreset("cafe_round_focus_a").time_sales?.filter((sale) => sale.duration_minutes === 60) ?? [];
-  assert.deepEqual(roundFocusTimedSales, []);
+});
+
+test("starter-specific image and promotion presentation stays intentional", () => {
+  const roundFocus = getStarterPreset("cafe_round_focus_a");
+  const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "house-special");
+  assert.equal(roundHouseSpecials?.items.length, 3);
+  assert.equal(roundHouseSpecials?.items.every((item) => Boolean(item.image_url)), true);
+
+  const sundayLine = getStarterPreset("cafe_sunday_line_a");
+  const sundayItems = sundayLine.pages[0]?.categories.flatMap((category) => category.items) ?? [];
+  for (const itemKey of ["sunday-cream-latte", "salted-maple-latte"]) {
+    assert.equal(sundayItems.find((item) => item.key === itemKey)?.image_url, undefined);
+  }
+
+  const mochaMorningDeal = getStarterPreset("cafe_mocha_forest_a").time_sales?.find((sale) => sale.key === "americano-morning-deal");
+  assert.equal(mochaMorningDeal?.badge_background_color, "#6B3F32");
 });

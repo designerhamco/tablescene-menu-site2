@@ -5568,7 +5568,10 @@ function DesktopFixedRail({
       <div className="cafe-a-fixed-rail-copy min-w-0">
         <div className="cafe-a-rail-heading flex min-w-0 flex-col items-stretch gap-[clamp(0.5rem,1.1vmin,0.875rem)]">
           {!isCenterColumn ? (
-            <div className="cafe-a-rail-language-row flex min-w-0 justify-end" data-cafe-a-rail-language-row="">
+            <div
+              className={`cafe-a-rail-language-row flex min-w-0 ${data.menuSite.template_key === "cafe_design_a" ? "justify-start" : "justify-end"}`}
+              data-cafe-a-rail-language-row=""
+            >
               <CafeLanguageHoverControl data={data} />
             </div>
           ) : null}

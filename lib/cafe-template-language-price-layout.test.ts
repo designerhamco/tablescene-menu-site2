@@ -82,6 +82,10 @@ test("오브 커피와 모카 포레스트의 PC·태블릿 언어 UI는 가게�
     /data-cafe-a-rail-language-row=""[\s\S]*<CafeLanguageHoverControl data=\{data\} \/>[\s\S]*<StoreIdentity/,
   );
   assert.match(templateSource, /!isCenterColumn \? \([\s\S]*data-cafe-a-rail-language-row=""/);
+  assert.match(
+    templateSource,
+    /data\.menuSite\.template_key === "cafe_design_a" \? "justify-start" : "justify-end"/,
+  );
 });
 
 test("재고 마감 카운트다운은 레이아웃이 흔들리지 않는 디지털 타이머를 사용한다", () => {
@@ -216,6 +220,10 @@ test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이�
 });
 
 test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명의 타이포 위계와 상단 설명 비율을 유지한다", () => {
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="sunday_line"\][\s\S]*\.cafe-a-category-title \{[\s\S]*var\(--cafe-a-linked-item-name-size\)[\s\S]*1\.22/,
+  );
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-category-title-boost: 1\.24;/);
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.94;/);
   assert.match(
@@ -226,7 +234,7 @@ test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명�
   assert.match(globalStylesSource, /data-layout-mode="balanced"[^}]*data-layout-mode="orderedBalancedFit"[^}]*--cafe-a-linked-supporting-copy-size: clamp\(/);
   assert.match(
     globalStylesSource,
-    /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-ordered-menu-flow \.cafe-a-category-title \{[\s\S]*2\.12rem/,
+    /data-cafe-a-skin="sunday_line"[^}]*:is\(\.cafe-a-ordered-menu-flow, \.cafe-a-balanced-menu-grid\) \.cafe-a-category-title \{[\s\S]*2\.12rem/,
   );
   assert.match(
     globalStylesSource,
