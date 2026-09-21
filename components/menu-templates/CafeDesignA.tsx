@@ -409,10 +409,12 @@ const ORDERED_BALANCED_ZOOM_SIMULATION_CROP_BUFFER = 28;
 const ORDERED_BALANCED_SETTLED_SWITCH_GAP = 6;
 const ORDERED_BALANCED_SETTLED_SCALE_DELTA = 0.12;
 const ORDERED_BALANCED_SCORE_HYSTERESIS = 4;
+const ORDERED_BALANCED_SAFE_CONVERGENCE_LIMIT = 3;
 const ORDERED_BALANCED_VIEWPORT_BUCKET = 24;
 const ORDERED_BALANCED_SIZE_BUCKET = 8;
 const ORDERED_BALANCED_DENSE_CATEGORY_THRESHOLD = 5;
 const ORDERED_BALANCED_DENSE_ITEM_THRESHOLD = 20;
+const MOCHA_FOREST_MENU_REGION_SAFETY_GAP = 0;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP = 12;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = BALANCED_VISIBLE_GAP;
 const FIT_PRESENTATION_STABLE_MS = 320;
@@ -1686,7 +1688,10 @@ function getCafeAActualDomCropMeasurement(
     return [columnSafeBottom - columnVisibleBottom];
   });
   const menuRegionSafeBottomGap = columnSafeBottomGaps.length > 0 ? Math.min(...columnSafeBottomGaps) : bottomGap;
-  const menuRegionSafeBottomOverflow = menuRegionSafeBottomGap < BALANCED_VISIBLE_GAP;
+  const menuRegionSafetyGap = boardElement.closest('[data-cafe-a-skin="mocha_forest"]')
+    ? MOCHA_FOREST_MENU_REGION_SAFETY_GAP
+    : BALANCED_VISIBLE_GAP;
+  const menuRegionSafeBottomOverflow = menuRegionSafeBottomGap < menuRegionSafetyGap;
   const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
   const footerRect = footerElement?.getBoundingClientRect();
   const boardRect = boardElement.getBoundingClientRect();
@@ -6841,6 +6846,16 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           }
 
           seenKeys.add(nextKey);
+          const hasValidatedSafeConvergenceCandidate =
+            seenKeys.size >= ORDERED_BALANCED_SAFE_CONVERGENCE_LIMIT &&
+            currentState.status !== "idle" &&
+            !currentState.overflow &&
+            !nextState.overflow &&
+            !orderedBalancedRejectedCandidateRef.current.has(currentKey);
+          if (hasValidatedSafeConvergenceCandidate) {
+            fitStateRef.current = currentState;
+            return currentState;
+          }
         }
 
         const resolvedState =
@@ -7589,7 +7604,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           layoutMode === "orderedFit"
             ? getOrderedFitColumnCandidates(menuWidth)
             : layoutMode === "orderedBalancedFit" && visibleWidgetCount > 0
-              ? getOrderedBalancedWidgetFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount)
+              ? isMochaForest && menuWidth >= 760
+                ? [3]
+                : getOrderedBalancedWidgetFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount)
               : hasVisibleItemImages
                 ? getImageMenuColumnCandidates(menuWidth, visibleFitBlockCount)
                 : layoutMode === "orderedBalancedFit"
@@ -7811,7 +7828,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     window.visualViewport?.addEventListener("resize", handleViewportChange);
     window.visualViewport?.addEventListener("scroll", handleViewportChange);
 
-    if ("fonts" in document && !fontReadyScheduled) {
+    if ("fonts" in document && document.fonts.status !== "loaded" && !fontReadyScheduled) {
       fontReadyScheduled = true;
       void document.fonts.ready.then(() => {
         if (cancelled) return;
@@ -7836,6 +7853,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     density,
     hasCoverSection,
     hasVisibleItemImages,
+    isMochaForest,
     layoutInputSignature,
     layoutMode,
     orderedBalancedFitRevision,

@@ -282,7 +282,9 @@ try {
           for (const category of categories) {
             const heading = category.querySelector(":scope > .cafe-a-category-heading");
             const items = Array.from(category.querySelectorAll(":scope > .cafe-a-category-items > .cafe-a-menu-item-stack")).filter(isVisible);
-            const itemRects = items.map((item) => item.getBoundingClientRect());
+            const itemRects = items.map((item) => (
+              item.querySelector(":scope > .cafe-a-menu-item") ?? item
+            ).getBoundingClientRect());
             for (let index = 1; index < itemRects.length; index += 1) {
               const gap = itemRects[index].top - itemRects[index - 1].bottom;
               if (gap >= 0) itemGaps.push(gap);
@@ -367,27 +369,31 @@ try {
         if (rhythm.itemGap === null || rhythm.titleGaps.length === 0) {
           failures.push(`spacing rhythm metrics are unavailable: ${JSON.stringify(rhythm)}`);
         } else {
-          if (rhythm.titleRatioToken !== "1") {
-            failures.push(`category-title ratio token is not fixed at 1: ${rhythm.titleRatioToken ?? "missing"}`);
+          const expectedTitleRatio = templateKey === "cafe_round_focus_a" ? 1.15 : 1;
+          const actualTitleRatioToken = Number.parseFloat(rhythm.titleRatioToken ?? "");
+          if (Math.abs(actualTitleRatioToken - expectedTitleRatio) > 0.001) {
+            failures.push(`category-title ratio token is incorrect: ${rhythm.titleRatioToken ?? "missing"} / ${expectedTitleRatio}`);
           }
           for (const titleGap of rhythm.titleGaps) {
             const ratio = titleGap / rhythm.itemGap;
-            if (Math.abs(ratio - 1) > 0.035) {
-              failures.push(`category title-to-first-item rhythm is not 1: ${titleGap}px / ${rhythm.itemGap}px = ${ratio}`);
+            if (Math.abs(ratio - expectedTitleRatio) > 0.035) {
+              failures.push(`category title-to-first-item rhythm is incorrect: ${titleGap}px / ${rhythm.itemGap}px = ${ratio}, expected ${expectedTitleRatio}`);
               break;
             }
           }
           if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
-            if (rhythm.categoryRatioToken !== "2.2") {
-              failures.push(`no-divider category ratio token is not fixed at 2.2: ${rhythm.categoryRatioToken ?? "missing"}`);
+            const expectedCategoryRatio = templateKey === "cafe_round_focus_a" ? 2.8 : 2.2;
+            const actualCategoryRatioToken = Number.parseFloat(rhythm.categoryRatioToken ?? "");
+            if (Math.abs(actualCategoryRatioToken - expectedCategoryRatio) > 0.001) {
+              failures.push(`no-divider category ratio token is incorrect: ${rhythm.categoryRatioToken ?? "missing"} / ${expectedCategoryRatio}`);
             }
             if (rhythm.categoryGaps.length === 0) {
               failures.push(`no-divider category gap metrics are unavailable: ${JSON.stringify(rhythm)}`);
             } else {
               for (const categoryGap of rhythm.categoryGaps) {
                 const ratio = categoryGap / rhythm.itemGap;
-                if (Math.abs(ratio - 2.2) > 0.055) {
-                  failures.push(`no-divider category rhythm is not 2.2: ${categoryGap}px / ${rhythm.itemGap}px = ${ratio}`);
+                if (Math.abs(ratio - expectedCategoryRatio) > 0.055) {
+                  failures.push(`no-divider category rhythm is incorrect: ${categoryGap}px / ${rhythm.itemGap}px = ${ratio}, expected ${expectedCategoryRatio}`);
                   break;
                 }
               }

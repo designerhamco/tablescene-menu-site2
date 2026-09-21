@@ -304,3 +304,18 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /onClick=\{\(\) => window\.location\.reload\(\)\}/);
   assert.match(templateSource, />\s*새로고침\s*<\/button>/);
 });
+
+test("ordered balanced fit은 안전 후보 순회를 제한해 로딩 상태에서 수렴한다", () => {
+  assert.match(templateSource, /const ORDERED_BALANCED_SAFE_CONVERGENCE_LIMIT = 3;/);
+  assert.match(
+    templateSource,
+    /seenKeys\.size >= ORDERED_BALANCED_SAFE_CONVERGENCE_LIMIT[\s\S]*!currentState\.overflow[\s\S]*!nextState\.overflow[\s\S]*!orderedBalancedRejectedCandidateRef\.current\.has\(currentKey\)/,
+  );
+  assert.match(templateSource, /"fonts" in document && document\.fonts\.status !== "loaded" && !fontReadyScheduled/);
+  assert.match(templateSource, /const MOCHA_FOREST_MENU_REGION_SAFETY_GAP = 0;/);
+  assert.match(
+    templateSource,
+    /boardElement\.closest\('\[data-cafe-a-skin="mocha_forest"\]'\)[\s\S]*MOCHA_FOREST_MENU_REGION_SAFETY_GAP[\s\S]*BALANCED_VISIBLE_GAP/,
+  );
+  assert.match(templateSource, /isMochaForest && menuWidth >= 760[\s\S]*\? \[3\]/);
+});

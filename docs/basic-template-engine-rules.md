@@ -391,6 +391,12 @@ Do not run the full screenshot or DOM sweep for every small change. Text labels,
 - Their default payloads include complete `ko`, `en`, `zh`, and `ja` translations and enabled locales.
 - Core typography and spacing use fluid viewport/container-relative values; fixed pixel values remain only where they represent hard safety or control-size boundaries.
 - Single-page and Display templates use the `canvas-fit` spacing contract. With item-to-item rhythm as `1`, category-title-to-first-item rhythm is also `1`, while categories without a divider use a visually distinct `2.2`. Fit changes the base rhythm only; these semantic ratios are applied exactly once and never multiplied by fit again. Multi-page templates use the separate `editorial-scroll` contract and never stretch content merely to fill a viewport. See `docs/template-spacing-contract.md`.
+- Round Focus applies the approved visual correction `1.15 / 2.8` for title-to-first-item / divider-free category spacing. Mocha Forest uses the shared `1 / 2.2` contract without an additional per-item bottom padding.
+- A bottom-docked Mocha Forest widget keeps a responsive footer safety margin of `clamp(5.5rem, board-padding * 3, 7.5rem)` so the widget remains bottom-aligned without entering the footer no-go region.
+- Mocha Forest's responsive column bottom padding is itself the menu-region safety gap. Crop validation must not require a second `BALANCED_VISIBLE_GAP` outside that padding; real rectangle, scroll, widget, footer, and right-edge overflow checks remain active.
+- Mocha Forest with a widget uses three menu columns whenever the desktop fit region is at least `760px`. Do not rescue it into two columns: longer CJK starter copy can pass simulation there but fail final DOM crop validation.
+- `orderedBalancedFit` must stop exploring after three distinct non-overflowing safe candidates and retain the current non-rejected candidate. Each pass already searches the full candidate set; actual DOM crop validation can still reject the retained candidate and resume fitting.
+- A resolved `document.fonts.ready` promise must not reset the fit candidate history on subsequent effect runs. Reset and remeasure only when fonts were still loading when the observer was attached.
 - Mocha Forest keeps its language control in a white inverse tone on the dark surface.
 - Contract tests, TypeScript, production build, responsive visual QA, and the 31-surface public regression runner passed before this rule was recorded.
 

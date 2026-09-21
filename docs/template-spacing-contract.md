@@ -23,6 +23,8 @@ The shared hierarchy is:
 
 Single-page skins inherit these values from the CafeA spacing tokens. A skin can adjust the bounded scale, but must not replace the semantic tokens with a fixed `px` margin, padding, or gap.
 
+Round Focus uses a visual correction of `1.15` from category title to first item and `2.8` between divider-free categories because its large title and title-only rows otherwise compress the perceived boundary. Mocha Forest keeps the shared `1` and `2.2` ratios and must not add per-item bottom padding on top of the shared item rhythm.
+
 Viewport and fit calculations may change the base item gap, but semantic ratios are constants applied exactly once after that base calculation. Do not multiply a semantic ratio by a fit, device, density, or viewport scale again.
 
 Display templates use the calculated content row (`--display-row`) as the base unit. Category-title-to-first-item spacing must use the same row-budget scale as item-to-item spacing.

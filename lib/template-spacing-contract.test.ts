@@ -27,6 +27,11 @@ test("단일페이지는 유동 기준 간격에 고정된 역할 비율을 한 
   assert.match(globalStylesSource, /--cafe-a-item-rhythm-gap: clamp\([^;]+var\(--fit-menu-gap-scale\)[^;]+\);/);
   assert.match(globalStylesSource, /--cafe-a-category-title-to-first-ratio: 1;/);
   assert.match(globalStylesSource, /--cafe-a-category-separation-ratio: 2\.2;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="round_focus"[\s\S]*--cafe-a-category-title-to-first-ratio: 1\.15;[\s\S]*--cafe-a-category-separation-ratio: 2\.8;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[\s\S]*cafe-a-menu-item-stack:not\(:last-child\)[\s\S]*padding-bottom: 0;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[\s\S]*data-cafe-a-widget-dock-bottom="true"[\s\S]*margin-bottom: clamp\(5\.5rem, calc\(var\(--board-padding\) \* 3\), 7\.5rem\);/);
+  assert.match(globalStylesSource, /cafe-a-round-focus-price-leader[\s\S]*radial-gradient\(circle, currentColor 0 1px, transparent 1\.2px\)/);
+  assert.doesNotMatch(globalStylesSource, /cafe-a-round-focus-price-leader[\s\S]{0,240}border-bottom: 1px dashed/);
   assert.match(globalStylesSource, /--cafe-a-category-title-to-items-gap: calc\(var\(--cafe-a-item-rhythm-gap\) \* var\(--cafe-a-category-title-to-first-ratio\)\);/);
   assert.match(globalStylesSource, /--cafe-a-category-no-divider-gap: calc\(var\(--cafe-a-item-rhythm-gap\) \* var\(--cafe-a-category-separation-ratio\)\);/);
   assert.doesNotMatch(globalStylesSource, /--cafe-a-category-separation-ratio:[^;]*fit/);
