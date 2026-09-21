@@ -224,6 +224,7 @@ export type StarterPreset = {
   key: StarterPresetKey;
   site: StarterSiteDefaults;
   template_key?: string;
+  menu_cover_enabled?: boolean;
   featured_item_name?: string;
   featured_item_key?: string;
   featured_slides?: StarterFeaturedSlide[];
@@ -633,7 +634,7 @@ cafeMochaForestStarterPreset.time_sales = [
     name: "아메리카노 모닝딜",
     schedule_type: "once",
     badge_text: "모닝딜",
-    badge_background_color: "#6B3F32",
+    badge_background_color: "#981D18",
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -647,10 +648,37 @@ cafeMochaForestStarterPreset.time_sales = [
     schedule_type: "once",
     duration_minutes: 60,
     badge_text: "재고 마감",
-    badge_background_color: "#E7C99A",
+    badge_background_color: "#981D18",
     time_display_mode: "countdown",
     targets: [{ target_item_key: "dark-chocolate-brownie", target_item_name: "다크 초콜릿 브라우니", sale_price: 3200 }],
   },
+];
+cafeMochaForestStarterPreset.widgets = [
+  {
+    key: "mocha-forest-image-widget",
+    page_key: "main-menu",
+    type: "image",
+    title: null,
+    description: null,
+    image_url: STARTER_PLACEHOLDERS.item,
+    image_path: null,
+    sort_order: 4,
+    visible: true,
+    settings: {
+      aspectRatio: "3:2",
+      objectFit: "cover",
+      textAlign: "left",
+      altText: "모카 포레스트 위젯 이미지",
+    },
+  },
+];
+cafeMochaForestStarterPreset.mixed_content_order = [
+  { block_type: "category", page_key: "main-menu", category_key: "signature-coffee", sort_order: 0, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "classic-coffee", sort_order: 1, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "non-coffee", sort_order: 2, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "ade", sort_order: 3, visible: true },
+  { block_type: "widget", page_key: "main-menu", widget_key: "mocha-forest-image-widget", sort_order: 4, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bakery", sort_order: 5, visible: true },
 ];
 cafeMochaForestStarterPreset.pages = [
   {
@@ -762,7 +790,6 @@ cafeMochaForestStarterPreset.pages = [
           item("다크 초콜릿 브라우니", 4500, "진한 다크 초콜릿을 넣어 촉촉하게 구운 브라우니", { key: "dark-chocolate-brownie", set_name: "DARK CHOCOLATE BROWNIE" }),
           item("헤이즐넛 휘낭시에", 3800, "구운 헤이즐넛과 버터의 고소한 풍미", { key: "hazelnut-financier", set_name: "HAZELNUT FINANCIER" }),
           item("포레스트 티라미수", 6200, "에스프레소와 다크 카카오를 층층이 담은 티라미수", { key: "forest-tiramisu", set_name: "FOREST TIRAMISU" }),
-          item("모카 월넛 쿠키", 3500, "모카 향과 호두를 넣어 구운 촉촉한 쿠키", { key: "mocha-walnut-cookie", set_name: "MOCHA WALNUT COOKIE" }),
         ],
       },
     ],
@@ -1160,6 +1187,7 @@ cafeRoundFocusStarterPreset.site = {
   brand_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
   intro_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
   menu_cover_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
+  cover_image_url: "",
   settings: {
     ...(cafeRoundFocusStarterPreset.site.settings ?? {}),
     footer_notice_1: "Wi-Fi · ROUND_GUEST",
@@ -1167,23 +1195,36 @@ cafeRoundFocusStarterPreset.site = {
     footer_notice_3: "디카페인 원두로 변경 가능합니다.",
   },
 };
-cafeRoundFocusStarterPreset.featured_item_name = "라운드 크림 커피";
-cafeRoundFocusStarterPreset.featured_item_key = "round-cream-coffee";
-cafeRoundFocusStarterPreset.featured_slides = [{
-  id: "round-focus-featured-round-cream-coffee",
-  image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
-  image_path: null,
-  featured_item_key: "round-cream-coffee",
-  featured_item_name: "라운드 크림 커피",
-  sort_order: 0,
-}];
+cafeRoundFocusStarterPreset.menu_cover_enabled = false;
+cafeRoundFocusStarterPreset.featured_item_name = undefined;
+cafeRoundFocusStarterPreset.featured_item_key = undefined;
+cafeRoundFocusStarterPreset.featured_slides = [];
+cafeRoundFocusStarterPreset.widgets = [
+  {
+    key: "round-focus-image-widget",
+    page_key: "main-menu",
+    type: "image",
+    title: null,
+    description: null,
+    image_url: STARTER_PLACEHOLDERS.item,
+    image_path: null,
+    sort_order: 3,
+    visible: true,
+    settings: {
+      aspectRatio: "3:2",
+      objectFit: "cover",
+      textAlign: "left",
+      altText: "라운드 포커스 위젯 이미지",
+    },
+  },
+];
 cafeRoundFocusStarterPreset.time_sales = [
   {
     key: "americano-morning-deal",
     name: "아메리카노 모닝딜",
     schedule_type: "once",
     badge_text: "모닝딜",
-    badge_background_color: "#9B4F33",
+    badge_background_color: "#F74602",
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -1196,7 +1237,7 @@ cafeRoundFocusStarterPreset.time_sales = [
     schedule_type: "once",
     duration_minutes: 60,
     badge_text: "재고 마감",
-    badge_background_color: "#9B4F33",
+    badge_background_color: "#F74602",
     time_display_mode: "countdown",
     targets: [
       { target_item_key: "fig-butter-scone", target_item_name: "무화과 버터 스콘", sale_price: 3900 },
@@ -1207,8 +1248,9 @@ cafeRoundFocusStarterPreset.mixed_content_order = [
   { block_type: "category", page_key: "main-menu", category_key: "house-special", sort_order: 0, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "espresso", sort_order: 1, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "milk-cream", sort_order: 2, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 3, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "bake", sort_order: 4, visible: true },
+  { block_type: "widget", page_key: "main-menu", widget_key: "round-focus-image-widget", sort_order: 3, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 4, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bake", sort_order: 5, visible: true },
 ];
 cafeRoundFocusStarterPreset.pages = [
   {
@@ -1225,20 +1267,16 @@ cafeRoundFocusStarterPreset.pages = [
             key: "round-cream-coffee",
             set_name: "ROUND CREAM COFFEE",
             badge_label: "SIGNATURE",
-            recommended: true,
-            image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
           }),
           item("브라운 슈가 플랫화이트", 6200, "브라운 슈가의 은은한 단맛을 담은 플랫화이트", {
             key: "brown-sugar-flat-white",
             set_name: "BROWN SUGAR FLAT WHITE",
             badge_label: "BEST",
-            image_url: "/menu-templates/cafe_design_a/malcha.jpg",
           }),
           item("오렌지 크림 콜드브루", 6800, "오렌지 향과 부드러운 크림을 더한 콜드브루", {
             key: "orange-cream-coldbrew",
             set_name: "ORANGE CREAM COLD BREW",
             badge_label: "NEW",
-            image_url: "/menu-templates/cafe_design_a/black-sesame.jpeg",
           }),
         ],
       },
@@ -2603,7 +2641,10 @@ async function applyStarterSiteDefaults(
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
   const resolvedStarterPageSettings = isAubeTableTemplate(preset.template_key)
     ? { ...starterPageSettings, multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(preset.template_key) }
-    : starterPageSettings;
+    : {
+        ...starterPageSettings,
+        menu_cover_enabled: preset.menu_cover_enabled ?? starterPageSettings.menu_cover_enabled,
+      };
   const presetSettings = getJsonRecord((preset.site.settings ?? null) as Json | null);
   const siteSelect =
     "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings, settings";

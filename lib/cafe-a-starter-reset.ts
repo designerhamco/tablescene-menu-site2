@@ -118,6 +118,7 @@ export type CafeAStarterResetFeaturedSlideDraft = {
 };
 
 export type CafeAStarterResetCoverSettings = {
+  menuCoverEnabled: boolean;
   menuCoverTitle: string;
   menuCoverDescription: string;
   coverImageUrl: string | null;
@@ -413,6 +414,7 @@ export function buildCafeAStarterResetSnapshot({
     featuredItemId: firstCompleteSlide?.featuredItemId ?? featuredItemId,
     featuredSlides,
     coverSettings: {
+      menuCoverEnabled: preset.menu_cover_enabled !== false,
       menuCoverTitle: preset.site.menu_cover_title,
       menuCoverDescription: preset.site.menu_cover_description,
       coverImageUrl,

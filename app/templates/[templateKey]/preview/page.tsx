@@ -29,7 +29,7 @@ import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { DEFAULT_TEMPLATE_CONTENT_LIMITS, getTemplateContentLimits } from "@/lib/template-content-limits";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { applyStarterPreviewLocalization } from "@/lib/template-demo-data/starter-preview-localization";
-import { MENU_WIDGET_SETTINGS_VERSION } from "@/lib/menu-widgets";
+import { MENU_WIDGET_SETTINGS_VERSION, type MenuWidget } from "@/lib/menu-widgets";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
@@ -87,6 +87,9 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     layout_columns: page.layout_columns ?? 1,
     text_alignment: page.text_alignment ?? "left",
   }));
+  const pageIdByStarterKey = new Map(
+    preset.pages.map((page, pageIndex) => [page.key ?? `page-${pageIndex + 1}`, pages[pageIndex]?.id ?? ""]),
+  );
 
   const categories: MenuPageData["categories"] = [];
   const items: MenuPageData["items"] = [];
@@ -232,6 +235,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
+    menu_cover_enabled: preset.menu_cover_enabled ?? getDefaultPageSettings().menu_cover_enabled,
     multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(templateKey),
     multi_page_cover_background_opacity: 75,
     featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
@@ -295,6 +299,71 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     if (startMs == null) return nextStart;
     return nextStart == null ? startMs : Math.min(nextStart, startMs);
   }, null);
+  const widgets = (preset.widgets ?? []).reduce<MenuWidget[]>((resolvedWidgets, widget, widgetIndex) => {
+    const menuPageId = widget.page_key
+      ? pageIdByStarterKey.get(widget.page_key) ?? null
+      : pages[0]?.id ?? null;
+    if (!menuPageId) return resolvedWidgets;
+
+    const baseWidget = {
+      id: `${siteId}-widget-${widget.key}`,
+      menuSiteId: siteId,
+      menuPageId,
+      sortOrder: widget.sort_order ?? widgetIndex,
+      visible: widget.visible !== false,
+    };
+
+    if (widget.type === "image") {
+      resolvedWidgets.push({
+        ...baseWidget,
+        type: "image",
+        title: null,
+        description: null,
+        imageUrl: widget.image_url ?? null,
+        imagePath: widget.image_path ?? null,
+        settings: {
+          schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
+          aspectRatio: widget.settings?.aspectRatio ?? "2:1",
+          objectFit: widget.settings?.objectFit ?? "cover",
+          altText: widget.settings?.altText ?? "메뉴 이미지",
+        },
+      });
+      return resolvedWidgets;
+    }
+
+    if (widget.type === "text") {
+      resolvedWidgets.push({
+        ...baseWidget,
+        type: "text",
+        title: widget.title ?? null,
+        description: widget.description ?? "",
+        imageUrl: null,
+        imagePath: null,
+        settings: {
+          schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
+          textAlign: widget.settings?.textAlign ?? "left",
+        },
+      });
+      return resolvedWidgets;
+    }
+
+    resolvedWidgets.push({
+      ...baseWidget,
+      type: "image_text",
+      title: widget.title ?? null,
+      description: widget.description ?? "",
+      imageUrl: widget.image_url ?? null,
+      imagePath: widget.image_path ?? null,
+      settings: {
+        schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
+        aspectRatio: widget.settings?.aspectRatio ?? "2:1",
+        objectFit: widget.settings?.objectFit ?? "cover",
+        textAlign: widget.settings?.textAlign ?? "left",
+        altText: widget.settings?.altText ?? "메뉴 이미지",
+      },
+    });
+    return resolvedWidgets;
+  }, []);
 
   return {
     locale: DEFAULT_LOCALE,
@@ -375,6 +444,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     timeSales,
     nextTimeSaleStartAt: nextTimeSaleStartMs == null ? null : new Date(nextTimeSaleStartMs).toISOString(),
     initialNowMs,
+    widgets,
     featuredSlides: featuredSlides.flatMap((slide) => {
       const item = slide.featured_item_id ? items.find((menuItem) => menuItem.id === slide.featured_item_id) : null;
       if (!slide.image_url || !item || item.visible === false) return [];

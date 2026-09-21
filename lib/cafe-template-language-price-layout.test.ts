@@ -76,15 +76,14 @@ test("원페이지 모바일 언어 UI는 모든 스킨에서 제목과 분리�
   );
 });
 
-test("오브 커피와 모카 포레스트의 PC·태블릿 언어 UI는 가게명 위 독립 행을 사용한다", () => {
+test("오브 커피는 설명 아래, 모카 포레스트는 가게명 위에 PC·태블릿 언어 UI를 둔다", () => {
   assert.match(
     templateSource,
-    /data-cafe-a-rail-language-row=""[\s\S]*<CafeLanguageHoverControl data=\{data\} \/>[\s\S]*<StoreIdentity/,
+    /!isCenterColumn && !isAubeCoffee[\s\S]*data-cafe-a-rail-language-row=""[\s\S]*<CafeLanguageHoverControl data=\{data\} \/>[\s\S]*<StoreIdentity/,
   );
-  assert.match(templateSource, /!isCenterColumn \? \([\s\S]*data-cafe-a-rail-language-row=""/);
   assert.match(
     templateSource,
-    /data\.menuSite\.template_key === "cafe_design_a" \? "justify-start" : "justify-end"/,
+    /!isCenterColumn && isAubeCoffee[\s\S]*cafe-a-rail-language-row-after-description[\s\S]*justify-start/,
   );
 });
 

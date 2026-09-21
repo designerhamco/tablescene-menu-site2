@@ -4,8 +4,8 @@ import test from "node:test";
 import { getStarterPreset } from "./menu-starter-presets";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
-  cafe_design_a: [3, 4, 3, 3, 6],
-  cafe_mocha_forest_a: [3, 4, 3, 3, 4],
+  cafe_design_a: [3, 4, 4, 4, 4],
+  cafe_mocha_forest_a: [3, 4, 3, 3, 3],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
   cafe_round_focus_a: [3, 4, 4, 2, 2],
 } as const;
@@ -71,7 +71,15 @@ test("starter-specific image and promotion presentation stays intentional", () =
   const roundFocus = getStarterPreset("cafe_round_focus_a");
   const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "house-special");
   assert.equal(roundHouseSpecials?.items.length, 3);
-  assert.equal(roundHouseSpecials?.items.every((item) => Boolean(item.image_url)), true);
+  assert.equal(roundHouseSpecials?.items.every((item) => !item.image_url), true);
+  assert.equal(roundFocus.menu_cover_enabled, false);
+  assert.equal(roundFocus.featured_slides?.length, 0);
+  assert.equal(roundFocus.widgets?.[0]?.type, "image");
+  assert.equal(roundFocus.widgets?.[0]?.image_url, "/placeholders/starter/menu-item.svg");
+
+  const mochaForest = getStarterPreset("cafe_mocha_forest_a");
+  assert.equal(mochaForest.widgets?.[0]?.type, "image");
+  assert.equal(mochaForest.widgets?.[0]?.image_url, "/placeholders/starter/menu-item.svg");
 
   const sundayLine = getStarterPreset("cafe_sunday_line_a");
   const sundayItems = sundayLine.pages[0]?.categories.flatMap((category) => category.items) ?? [];
@@ -79,6 +87,6 @@ test("starter-specific image and promotion presentation stays intentional", () =
     assert.equal(sundayItems.find((item) => item.key === itemKey)?.image_url, undefined);
   }
 
-  const mochaMorningDeal = getStarterPreset("cafe_mocha_forest_a").time_sales?.find((sale) => sale.key === "americano-morning-deal");
-  assert.equal(mochaMorningDeal?.badge_background_color, "#6B3F32");
+  const mochaMorningDeal = mochaForest.time_sales?.find((sale) => sale.key === "americano-morning-deal");
+  assert.equal(mochaMorningDeal?.badge_background_color, "#981D18");
 });

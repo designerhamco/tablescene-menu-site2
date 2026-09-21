@@ -3534,6 +3534,7 @@ function MenuItemRow({
         {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
         {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
         <MenuOrderAddButton itemId={item.id} itemName={item.name} />
+        <span className="cafe-a-round-focus-price-leader" aria-hidden="true" />
       </div>
       {hasSecondaryText && (
         <p className={`menu-font-en cafe-a-menu-meta ${metaSpacingClassName} break-words font-medium uppercase leading-snug ${metaTextColorClassName} ${metaClassName}`}>
@@ -5558,6 +5559,7 @@ function DesktopFixedRail({
   const description = site.brand_description || site.description;
   const isCenterColumn = variant === "brand_center_column";
   const infoRows = isCenterColumn ? getCafeAFooterInfo(data, capabilities) : [];
+  const isAubeCoffee = data.menuSite.template_key === "cafe_design_a";
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const mochaPanelAttributes = isMochaForestSkin(data.templateSkin)
     ? getMochaForestPanelAttributes("brown", 0, Math.max(1, mochaColumnCount ?? 1))
@@ -5567,9 +5569,9 @@ function DesktopFixedRail({
     <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col" data-cafe-a-brand-panel={variant} {...mochaPanelAttributes}>
       <div className="cafe-a-fixed-rail-copy min-w-0">
         <div className="cafe-a-rail-heading flex min-w-0 flex-col items-stretch gap-[clamp(0.5rem,1.1vmin,0.875rem)]">
-          {!isCenterColumn ? (
+          {!isCenterColumn && !isAubeCoffee ? (
             <div
-              className={`cafe-a-rail-language-row flex min-w-0 ${data.menuSite.template_key === "cafe_design_a" ? "justify-start" : "justify-end"}`}
+              className="cafe-a-rail-language-row flex min-w-0 justify-end"
               data-cafe-a-rail-language-row=""
             >
               <CafeLanguageHoverControl data={data} />
@@ -5587,6 +5589,11 @@ function DesktopFixedRail({
             <ScriptAwareText text={description} />
           </p>
         )}
+        {!isCenterColumn && isAubeCoffee ? (
+          <div className="cafe-a-rail-language-row cafe-a-rail-language-row-after-description mt-3 flex min-w-0 justify-start" data-cafe-a-rail-language-row="">
+            <CafeLanguageHoverControl data={data} />
+          </div>
+        ) : null}
       </div>
       {isCenterColumn ? (
         <div className="cafe-a-round-focus-lower-cluster min-w-0" data-cafe-a-round-focus-lower-cluster="">

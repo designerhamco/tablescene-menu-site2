@@ -6030,7 +6030,7 @@ async function saveCafeAStarterResetCoverAndFeaturedAfterMenuDraftSave({
 
   const nextPageSettings = getJsonObject(menuSite.page_settings);
   if (menuCoverCapabilities.coverMode !== "none") {
-    nextPageSettings.menu_cover_enabled = true;
+    nextPageSettings.menu_cover_enabled = snapshot.coverSettings.menuCoverEnabled;
   }
   if (menuCoverCapabilities.usesFeaturedItem) {
     nextPageSettings.featured_item_enabled = Boolean(remappedFeaturedItemId);
