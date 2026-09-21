@@ -415,6 +415,7 @@ const ORDERED_BALANCED_FINAL_FILL_BOOST_TRIGGER_GAP = 12;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_MIN_GAP = BALANCED_VISIBLE_GAP;
 const FIT_PRESENTATION_STABLE_MS = 320;
 const FIT_PRESENTATION_FAILURE_GRACE_MS = 1200;
+const FIT_PRESENTATION_FONT_WAIT_MS = 1500;
 const ORDERED_BALANCED_FINAL_FILL_BOOST_LEVELS = [
   { fontScale: 1.004, gapScale: 1.003 },
   { fontScale: 1.008, gapScale: 1.005 },
@@ -433,7 +434,7 @@ const ORDERED_FIT_FINAL_FILL_MIN_GAP = 2;
 const FIT_PRESENTATION_SAFETY_STEP = 0.94;
 const FIT_PRESENTATION_MIN_SAFETY_SCALE = 0.72;
 const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64, 0.62, 0.6, 0.58, 0.56, 0.54, 0.5, 0.48, 0.46] as const;
-const TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 0.9;
+const TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 1.34;
 const FIT_WARNING_FONT_SCALE = 0.75;
 const DEFAULT_BALANCED_VARIANT: CafeDesignABalancedVariant = "estimatedGreedy";
 const DEFAULT_FIT_STATE: CafeDesignAFitState = {
@@ -2591,10 +2592,10 @@ function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundC
   };
 }
 
-function TimeSaleBadge({ timeSale }: { timeSale: PublicTimeSale }) {
+function TimeSaleBadge({ timeSale, className = "" }: { timeSale: PublicTimeSale; className?: string }) {
   return (
     <span
-      className="menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none"
+      className={`menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}
       style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor)}
     >
       <ScriptAwareText text={timeSale.badgeText} />
@@ -3214,6 +3215,15 @@ function getMenuTitleSizeClassName(density: MenuLayoutDensity) {
   }[density];
 }
 
+function getMenuPriceSizeClassName(density: MenuLayoutDensity) {
+  return {
+    spacious: "cafe-a-menu-price-size-spacious",
+    default: "cafe-a-menu-price-size-default",
+    compact: "cafe-a-menu-price-size-compact",
+    ultraCompact: "cafe-a-menu-price-size-ultra-compact",
+  }[density];
+}
+
 function CategoryTitle({
   category,
   density,
@@ -3248,7 +3258,10 @@ function CategoryTitle({
         ) : null}
       </div>
       {category.description_visible && category.description && (
-        <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>
+        <p
+          className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}
+          data-cafe-a-category-description=""
+        >
           <ScriptAwareText text={category.description} />
         </p>
       )}
@@ -3263,12 +3276,7 @@ function CategoryPriceColumnHeader({
   columns: CafeDesignAPriceRailColumn[];
   density: MenuLayoutDensity;
 }) {
-  const priceClassName = {
-    spacious: "cafe-a-menu-price-size-spacious",
-    default: "cafe-a-menu-price-size-default",
-    compact: "cafe-a-menu-price-size-compact",
-    ultraCompact: "cafe-a-menu-price-size-ultra-compact",
-  }[density];
+  const priceClassName = getMenuPriceSizeClassName(density);
 
   return (
     <div
@@ -3313,11 +3321,13 @@ function Badge({
   capabilities,
   templateKey,
   customBadgeStyles,
+  className = "",
 }: {
   item: MenuItem;
   capabilities: TemplateCapabilities;
   templateKey: string | null;
   customBadgeStyles: unknown;
+  className?: string;
 }) {
   if (!capabilities.itemBadges) return null;
 
@@ -3327,7 +3337,11 @@ function Badge({
   const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
 
   return (
-    <span className="menu-badge cafe-a-menu-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
+    <span
+      className={`menu-badge cafe-a-menu-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none ${className}`}
+      style={getBadgeStyleCss(badgeStyle)}
+      data-cafe-a-menu-badge=""
+    >
       <ScriptAwareText text={label} />
     </span>
   );
@@ -3346,11 +3360,13 @@ function HeroOverlayBadge({
   capabilities,
   templateKey,
   customBadgeStyles,
+  className = "",
 }: {
   item: MenuItem;
   capabilities: TemplateCapabilities;
   templateKey: string | null;
   customBadgeStyles: unknown;
+  className?: string;
 }) {
   if (!capabilities.itemBadges) return null;
 
@@ -3360,7 +3376,11 @@ function HeroOverlayBadge({
   const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
 
   return (
-    <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
+    <span
+      className={`menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none ${className}`}
+      style={getBadgeStyleCss(badgeStyle)}
+      data-cafe-a-featured-badge=""
+    >
       <ScriptAwareText text={label} />
     </span>
   );
@@ -3433,12 +3453,7 @@ function MenuItemRow({
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
   const titleClassName = getMenuTitleSizeClassName(density);
   const descriptionClassName = "cafe-a-menu-description-wrap";
-  const priceClassName = {
-    spacious: "cafe-a-menu-price-size-spacious",
-    default: "cafe-a-menu-price-size-default",
-    compact: "cafe-a-menu-price-size-compact",
-    ultraCompact: "cafe-a-menu-price-size-ultra-compact",
-  }[density];
+  const priceClassName = getMenuPriceSizeClassName(density);
   const itemGridClassName = {
     spacious: "grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.75rem,auto)] sm:gap-4 lg:grid-cols-[minmax(0,1fr)_auto]",
     default: "grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.25rem,auto)] sm:gap-3 lg:grid-cols-[minmax(0,1fr)_auto]",
@@ -3505,9 +3520,9 @@ function MenuItemRow({
         <h3 className={`cafe-a-menu-title break-words font-bold leading-snug ${titleTextColorClassName} ${titleClassName}`} data-cafe-a-menu-name="">
           <ScriptAwareText text={item.name} />
         </h3>
-        {showSoldOutBadge ? <SoldOutBadge locale={locale} /> : null}
-        {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} /> : null}
-        {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
+        {showSoldOutBadge ? <SoldOutBadge locale={locale} className={titleClassName} /> : null}
+        {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
+        {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
         <MenuOrderAddButton itemId={item.id} itemName={item.name} />
       </div>
       {hasSecondaryText && (
@@ -3517,7 +3532,10 @@ function MenuItemRow({
       )}
       {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} locale={locale} /> : null}
       {hasDescriptionText && (
-        <p className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}>
+        <p
+          className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}
+          data-cafe-a-menu-description=""
+        >
           <ScriptAwareText text={descriptionText} />
         </p>
       )}
@@ -4000,11 +4018,11 @@ function CoverHero({
             <div className="min-w-0">
               {featuredItemSoldOut ? (
                 <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
-                  <SoldOutBadge locale={data.locale} className="cafe-a-featured-badge" />
+                  <SoldOutBadge locale={data.locale} className={`cafe-a-featured-badge ${getMenuTitleSizeClassName(density)}`} />
                 </div>
               ) : featuredBadgeLabel ? (
                 <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
-                  <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} />
+                  <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} className={getMenuTitleSizeClassName(density)} />
                 </div>
               ) : null}
               <h2 className={`cafe-a-featured-title ${getMenuTitleSizeClassName(density)} break-words font-bold leading-tight ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-title="">
@@ -4017,7 +4035,10 @@ function CoverHero({
               )}
             </div>
             {price && (
-              <p className={`menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-price="">
+              <p
+                className={`menu-price cafe-a-featured-price ${getMenuPriceSizeClassName(density)} shrink-0 whitespace-nowrap font-bold leading-none ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`}
+                data-cafe-a-featured-price=""
+              >
                 <ScriptAwareText text={price} />
               </p>
             )}
@@ -4083,7 +4104,10 @@ function CafeAFooterInfo({
       data-cafe-a-footer-info=""
       data-cafe-a-footer-placement={placement}
     >
-      <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
+      <p
+        className={`cafe-a-description-text cafe-a-menu-description cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}
+        data-cafe-a-store-description=""
+      >
         <ScriptAwareText text={infoRows.join("\n")} />
       </p>
     </aside>
@@ -6176,6 +6200,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
   const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
   const orderedBalancedRejectedColumnRef = useRef<Set<string>>(new Set());
+  const orderedBalancedSeenStateRef = useRef<{ sessionKey: string; keys: Set<string> }>({ sessionKey: "", keys: new Set() });
   const orderedFitRejectedFinalFillRef = useRef<{ sessionKey: string; keys: Set<string> }>({ sessionKey: "", keys: new Set() });
   const orderedFitBackoffLimitRef = useRef<{ sessionKey: string; fontScaleByColumns: Map<number, number> }>({
     sessionKey: "",
@@ -6305,6 +6330,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     [layoutMode, orderedFitFinalFillCompensation],
   );
   const fitGapStyle = useMemo(() => getFitGapStyle(density), [density]);
+  const titleSizeClassName = getMenuTitleSizeClassName(density);
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const orderedBalancedPriceOptionSignature = useMemo(
     () =>
@@ -6320,6 +6346,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       [
         data.mode,
         data.menuSite.template_key,
+        data.locale,
         layoutMode,
         visibleCategoryCount,
         visibleItemCount,
@@ -6331,6 +6358,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data.publicServiceType,
       ].join("|"),
     [
+      data.locale,
       data.menuSite.template_key,
       data.mode,
       data.publicServiceType,
@@ -6425,8 +6453,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     let cancelled = false;
     let stableTimeoutId = 0;
     let failureTimeoutId = 0;
+    let fontTimeoutId = 0;
     let firstFrameId = 0;
     let secondFrameId = 0;
+    let verificationScheduled = false;
 
     queueMicrotask(() => {
       if (!cancelled && !hasFitPresentationReadyRef.current) setFitPresentationState("loading");
@@ -6485,11 +6515,14 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     };
 
     const waitForStableLayout = () => {
-      if (cancelled) return;
+      if (cancelled || verificationScheduled) return;
+      verificationScheduled = true;
+      window.clearTimeout(fontTimeoutId);
       stableTimeoutId = window.setTimeout(verifyFinalLayout, FIT_PRESENTATION_STABLE_MS);
     };
 
     if ("fonts" in document && document.fonts.status !== "loaded") {
+      fontTimeoutId = window.setTimeout(waitForStableLayout, FIT_PRESENTATION_FONT_WAIT_MS);
       void document.fonts.ready.then(waitForStableLayout);
     } else {
       waitForStableLayout();
@@ -6499,6 +6532,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       cancelled = true;
       window.clearTimeout(stableTimeoutId);
       window.clearTimeout(failureTimeoutId);
+      window.clearTimeout(fontTimeoutId);
       window.cancelAnimationFrame(firstFrameId);
       window.cancelAnimationFrame(secondFrameId);
     };
@@ -6630,6 +6664,30 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             seenKeys.has(nextKey);
 
           if (isReturningToSeenCandidate) {
+            fitStateRef.current = currentState;
+            return currentState;
+          }
+
+          seenKeys.add(nextKey);
+        }
+
+        if (layoutMode === "orderedBalancedFit") {
+          const sessionKey = [layoutInputSignature, "orderedBalancedFit"].join("|");
+          if (orderedBalancedSeenStateRef.current.sessionKey !== sessionKey) {
+            orderedBalancedSeenStateRef.current = { sessionKey, keys: new Set() };
+          }
+          const seenKeys = orderedBalancedSeenStateRef.current.keys;
+          const currentKey = getOrderedBalancedCandidateKey(currentState);
+          const nextKey = getOrderedBalancedCandidateKey(nextState);
+          if (currentState.status !== "idle") seenKeys.add(currentKey);
+          const isReturningToSeenSafeCandidate =
+            currentState.status !== "idle" &&
+            !currentState.overflow &&
+            !nextState.overflow &&
+            currentKey !== nextKey &&
+            seenKeys.has(nextKey);
+
+          if (isReturningToSeenSafeCandidate) {
             fitStateRef.current = currentState;
             return currentState;
           }
@@ -7572,6 +7630,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     const handleViewportChange = () => {
       if (layoutMode === "orderedBalancedFit") {
         orderedBalancedFitCacheRef.current.clear();
+        orderedBalancedSeenStateRef.current = { sessionKey: "", keys: new Set() };
         setOrderedBalancedValidationRevision((revision) => revision + 1);
       }
       scheduleMeasure();
@@ -7605,7 +7664,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     if ("fonts" in document && !fontReadyScheduled) {
       fontReadyScheduled = true;
       void document.fonts.ready.then(() => {
-        if (!cancelled) scheduleMeasure();
+        if (cancelled) return;
+        if (layoutMode === "orderedBalancedFit") {
+          orderedBalancedSeenStateRef.current = { sessionKey: "", keys: new Set() };
+        }
+        scheduleMeasure();
       });
     }
 
@@ -7821,7 +7884,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             setOrderedBalancedFitRevision((revision) => revision + 1);
             return;
           }
-          if (actualCropMeasurement.bottomGap > 12) {
+          // Mocha Forest has its own image-heavy panel balance. Escalating its font
+          // scale again here competes with the primary fit pass and can oscillate
+          // between otherwise safe candidates, leaving the loading cover visible.
+          if (!isMochaForest && actualCropMeasurement.bottomGap > 12) {
             const previousFontScale = boardElement.style.getPropertyValue("--fit-font-scale");
             const previousGapScale = boardElement.style.getPropertyValue("--fit-gap-scale");
             const previousMenuFontScale = boardElement.style.getPropertyValue("--fit-menu-font-scale");
@@ -8017,7 +8083,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
     };
-  }, [data.previewDevice, density, fitState, hasVisibleItemImages, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleFitBlockCount]);
+  }, [data.previewDevice, density, fitState, hasVisibleItemImages, isMochaForest, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleFitBlockCount]);
 
   useEffect(() => {
     if (layoutMode !== "orderedFit") {
@@ -8540,9 +8606,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     <CafeATimeSaleInitialNowContext.Provider value={initialNowMs}>
       <CafeATypographyFontAssets typographySettings={typographySettings} />
       <main
-        className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
+        className={`menu-typography cafe-a-typography ${titleSizeClassName} group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden`}
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
         data-cafe-a-skin={cafeASkinAttribute}
+        data-template-key={data.menuSite.template_key ?? undefined}
         data-preview-device={data.previewDevice}
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
@@ -8607,7 +8674,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
           <div
             ref={desktopFitBoardRef}
-            className={`cafe-a-desktop-fit-board ${descriptionSizeClassName} relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
+            className={`cafe-a-desktop-fit-board ${titleSizeClassName} ${descriptionSizeClassName} relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
             aria-busy={fitPresentationState === "loading"}
             data-fit-status={fitState.status}
             data-fit-presentation-state={fitPresentationState}

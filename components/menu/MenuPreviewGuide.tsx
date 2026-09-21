@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronUp, Minus, MoreVertical, Plus, UserRound } from "lucide-react";
+import { ChevronUp, Minus, MoreVertical, Plus } from "lucide-react";
 
 import {
   MENU_PREVIEW_DEVICE_ORDER,
@@ -66,13 +66,17 @@ function BrowserZoomGuide() {
         <div className="h-8 min-w-0 flex-1 rounded-full border border-zinc-200 bg-white shadow-inner" />
         <div
           data-preview-guide-profile=""
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-500"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-300"
         >
-          <UserRound
+          <svg
             data-preview-guide-profile-icon=""
+            viewBox="0 0 24 24"
             className="h-5 w-5 text-zinc-100"
-            strokeWidth={2.2}
-          />
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="8" r="4" fill="currentColor" />
+            <path d="M5 21c.55-4.7 3.05-7 7-7s6.45 2.3 7 7H5Z" fill="currentColor" />
+          </svg>
         </div>
         <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-200">
           <MoreVertical className="h-4 w-4" />

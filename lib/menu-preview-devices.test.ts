@@ -150,11 +150,15 @@ test("first preview guide uses anchored coachmarks and applies hide-today only t
 });
 
 test("browser guide uses a filled round profile and restores the address pill without guest text", () => {
-  assert.match(previewGuideSource, /UserRound/);
+  assert.doesNotMatch(previewGuideSource, /UserRound/);
   assert.match(previewGuideSource, /data-preview-guide-profile=""/);
   assert.match(previewGuideSource, /data-preview-guide-profile-icon=""/);
-  assert.match(previewGuideSource, /bg-zinc-500/);
+  assert.match(previewGuideSource, /rounded-full bg-zinc-300/);
+  assert.match(previewGuideSource, /className="h-5 w-5 text-zinc-100"/);
+  assert.doesNotMatch(previewGuideSource, /bg-gradient-to-b from-zinc-400 to-zinc-500/);
   assert.match(previewGuideSource, /text-zinc-100/);
+  assert.match(previewGuideSource, /<circle[^>]*fill="currentColor"/);
+  assert.match(previewGuideSource, /<path[^>]*fill="currentColor"/);
   assert.match(previewGuideSource, /h-8 min-w-0 flex-1 rounded-full/);
   assert.doesNotMatch(previewGuideSource, /게스트/);
 });
@@ -182,10 +186,18 @@ test("device selector is open by default and collapses upward while preserving t
   assert.match(previewFrameSource, /w-\[min\(24rem,calc\(100vw-1\.5rem\)\)\]/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);
-  assert.match(previewFrameSource, /data-preview-tablet-orientation=""/);
-  assert.match(previewFrameSource, /flex w-full flex-col items-center gap-1\.5/);
+  assert.match(previewFrameSource, /RotateCwSquare/);
+  assert.match(previewFrameSource, /data-preview-tablet-orientation-toggle=""/);
+  assert.match(previewFrameSource, /orientation === "landscape" \? "portrait" : "landscape"/);
+  assert.match(previewFrameSource, /태블릿을 \$\{MENU_PREVIEW_ORIENTATIONS\[nextTabletOrientation\]\}로 회전/);
+  assert.doesNotMatch(previewFrameSource, /태블릿 방향 선택/);
+  assert.match(previewFrameSource, /flex w-full items-center gap-1\.5 pl-1 pr-10/);
+  assert.match(previewFrameSource, /bg-zinc-950\/48/);
+  assert.match(previewFrameSource, /backdrop-blur-\[2px\]/);
+  assert.doesNotMatch(previewFrameSource, /flex w-full flex-col items-center/);
+  assert.doesNotMatch(previewFrameSource, /backdrop-blur-xl/);
   assert.doesNotMatch(previewFrameSource, /border-l border-white\/20 pl-2/);
-  assert.equal((previewFrameSource.match(/bg-zinc-950\/64/g) ?? []).length, 1);
+  assert.equal((previewFrameSource.match(/bg-zinc-950\/48/g) ?? []).length, 1);
 });
 
 test("hide-today checkbox is plain text control without a boxed container", () => {

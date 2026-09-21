@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, RotateCwSquare } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
@@ -39,6 +39,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
+  const nextTabletOrientation: MenuPreviewOrientation = orientation === "landscape" ? "portrait" : "landscape";
   const buildPreviewUrl = (options: {
     device?: MenuPreviewDevice;
     orientation?: MenuPreviewOrientation;
@@ -69,17 +70,17 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
         <header
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className="pointer-events-auto relative w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/64 p-2 text-white backdrop-blur-xl transition-transform duration-300 ease-out"
+          className="pointer-events-auto relative w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/48 p-2 text-white backdrop-blur-[2px] transition-transform duration-300 ease-out"
           style={{ transform: showToolbar ? "translateY(0.5rem)" : "translateY(calc(-100% + 1.75rem))" }}
         >
           <div
             data-preview-device-toolbar-content=""
             aria-hidden={!showToolbar}
-            className={`flex w-full flex-col items-center gap-1.5 px-9 transition-opacity duration-150 ${
+            className={`flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
-            <nav aria-label="미리보기 기기 선택" className="flex items-center gap-1">
+            <nav aria-label="미리보기 기기 선택" className="flex min-w-0 flex-1 items-center justify-center gap-0.5">
               {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
                 const isSelected = candidate === device;
@@ -94,8 +95,8 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                     scroll={false}
                     tabIndex={showToolbar ? undefined : -1}
                     aria-current={isSelected ? "page" : undefined}
-                    className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
-                      isSelected ? "bg-white text-zinc-950" : "text-white/70 hover:bg-white/10 hover:text-white"
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold transition-colors sm:px-2.5 sm:text-sm ${
+                      isSelected ? "bg-white text-zinc-950" : "bg-zinc-950/45 text-white hover:bg-zinc-950/60"
                     }`}
                   >
                     <PreviewDeviceIcon device={candidate} />
@@ -105,30 +106,17 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
               })}
             </nav>
             {device === "tablet" ? (
-              <nav
-                aria-label="태블릿 방향 선택"
-                data-preview-tablet-orientation=""
-                className="flex items-center justify-center gap-1 rounded-xl bg-white/10 p-1"
+              <Link
+                aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
+                title={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
+                data-preview-tablet-orientation-toggle=""
+                href={buildPreviewUrl({ device, orientation: nextTabletOrientation })}
+                scroll={false}
+                tabIndex={showToolbar ? undefined : -1}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/20"
               >
-                {(Object.keys(MENU_PREVIEW_ORIENTATIONS) as MenuPreviewOrientation[]).map((candidate) => {
-                  const isSelected = candidate === orientation;
-
-                  return (
-                    <Link
-                      key={candidate}
-                      href={buildPreviewUrl({ device, orientation: candidate })}
-                      scroll={false}
-                      tabIndex={showToolbar ? undefined : -1}
-                      aria-current={isSelected ? "page" : undefined}
-                      className={`min-w-16 rounded-lg px-3 py-1.5 text-center text-xs font-bold transition-colors ${
-                        isSelected ? "bg-white text-zinc-950" : "text-white/70 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      {MENU_PREVIEW_ORIENTATIONS[candidate]}
-                    </Link>
-                  );
-                })}
-              </nav>
+                <RotateCwSquare className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.9} aria-hidden="true" />
+              </Link>
             ) : null}
           </div>
           <button
