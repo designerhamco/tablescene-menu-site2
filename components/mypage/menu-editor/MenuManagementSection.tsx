@@ -2943,8 +2943,6 @@ function MenuItemForm({
   supportsPriceNoteWithPriceColumns = false,
   priceDisplayMode,
   onPriceDisplayModeChange,
-  timeSaleOwnerItemId = null,
-  timeSaleItemId,
 }: {
   menuId: string;
   categories: MenuCategory[];
@@ -2984,8 +2982,6 @@ function MenuItemForm({
   supportsPriceNoteWithPriceColumns?: boolean;
   priceDisplayMode?: PriceDisplayMode;
   onPriceDisplayModeChange?: (mode: PriceDisplayMode) => void;
-  timeSaleOwnerItemId?: string | null;
-  timeSaleItemId?: string;
 }) {
   const initialBadgeLabel = draftItem?.badgeLabel ?? (item ? getMenuItemBadgeLabel(item) : "");
   const initialDefaultBadgeLabel = normalizeMenuBadgeLabel(initialBadgeLabel);
@@ -3146,21 +3142,16 @@ function MenuItemForm({
   const priceColumnValueInvalid = false;
   const canEditPriceNote = supportsPriceNote && (!hasVisiblePriceColumnValue || supportsPriceNoteWithPriceColumns);
   const isDirectPriceTextMode = isSingleMode && singlePriceInputMode === "text";
-  const currentTimeSaleItemId = timeSaleItemId ?? item?.id ?? "";
-  const hasTimeSaleOnAnotherItem = Boolean(timeSaleOwnerItemId && timeSaleOwnerItemId !== currentTimeSaleItemId);
   const basePriceNumber = Number(priceValue);
   const hasNumericBasePrice = Number.isFinite(basePriceNumber) && basePriceNumber > 0;
   const effectiveTimeSaleEnabled = timeSaleEnabled && !isDirectPriceTextMode;
   const timeSaleEligible =
     canManageTimeSales &&
-    !hasTimeSaleOnAnotherItem &&
     !isOptionsMode &&
     !isDirectPriceTextMode &&
     priceVisibleValue &&
     (hasVisiblePriceColumnValue ? visiblePriceColumnTimeSaleRows.length > 0 : hasNumericBasePrice);
-  const timeSaleBlockedMessage = hasTimeSaleOnAnotherItem
-    ? "MVP에서는 메뉴판당 타임세일 1개만 설정할 수 있습니다."
-    : isOptionsMode
+  const timeSaleBlockedMessage = isOptionsMode
       ? "옵션 가격이 있는 메뉴에는 타임세일을 사용할 수 없습니다."
       : isDirectPriceTextMode
         ? "직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다."
@@ -4339,7 +4330,7 @@ function MenuItemForm({
                 form={formId}
                 name="item_time_sale_enabled"
                 label="이 메뉴에 타임세일 적용"
-                description="메뉴판당 1개 메뉴에만 적용됩니다. 하단 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
+                description={`여러 메뉴에 적용할 수 있으며, 한 메뉴판에 최대 ${MAX_TIME_SALES_PER_MENU_SITE}개까지 등록할 수 있습니다. 하단 저장 후 반영됩니다.`}
                 defaultChecked={effectiveTimeSaleEnabled}
                 canTurnOn={timeSaleEligible || effectiveTimeSaleEnabled}
                 blockedMessage={timeSaleBlockedMessage}
@@ -5699,7 +5690,6 @@ export default function MenuManagementSection({
     ? Object.values(widgetDraftsById).filter((widget) => widget.menuPageId === visiblePageId && !deletedWidgetIds.has(widget.id)).length
     : 0;
   const reachedWidgetLimit = menuWidgetCapability.enabled && widgetCountForVisiblePage >= maxMenuWidgetsPerPage;
-  const timeSaleOwnerItemId = null;
   const isItemSelected = Boolean(editingItemId || isCreatingItem);
   const isWidgetSelected = hasWidgetSelection;
   const hasActiveWidgetEditorChanges = Boolean(activeWidgetEditor && hasWidgetEditorChanges(activeWidgetEditor));
@@ -9444,8 +9434,6 @@ export default function MenuManagementSection({
                   supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
                   priceDisplayMode={priceDisplayModeDraft}
                   onPriceDisplayModeChange={updatePriceDisplayModeDraft}
-                  timeSaleOwnerItemId={timeSaleOwnerItemId}
-                  timeSaleItemId={editingItemId}
                   draftOnly
                   draftItem={editingItemId ? pendingItemDrafts[editingItemId] : undefined}
                   draftName={editingItemId ? pendingItemDrafts[editingItemId]?.name : undefined}
@@ -9495,8 +9483,6 @@ export default function MenuManagementSection({
                   supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
                   priceDisplayMode={priceDisplayModeDraft}
                   onPriceDisplayModeChange={updatePriceDisplayModeDraft}
-                  timeSaleOwnerItemId={timeSaleOwnerItemId}
-                  timeSaleItemId={selectedEditingItem.id}
                   aiDescriptionUsage={localAiDescriptionUsage}
                   onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                   badgeStyles={badgeStyles}
@@ -9627,8 +9613,6 @@ export default function MenuManagementSection({
                           supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
                           priceDisplayMode={priceDisplayModeDraft}
                           onPriceDisplayModeChange={updatePriceDisplayModeDraft}
-                          timeSaleOwnerItemId={timeSaleOwnerItemId}
-                          timeSaleItemId={item.id}
                           aiDescriptionUsage={localAiDescriptionUsage}
                           onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
                           badgeStyles={badgeStyles}
@@ -10111,8 +10095,6 @@ function MenuItemCard({
   supportsPriceNoteWithPriceColumns = false,
   priceDisplayMode,
   onPriceDisplayModeChange,
-  timeSaleOwnerItemId = null,
-  timeSaleItemId,
   aiDescriptionUsage,
   onAiDescriptionUsageChange,
   badgeStyles,
@@ -10150,8 +10132,6 @@ function MenuItemCard({
   supportsPriceNoteWithPriceColumns?: boolean;
   priceDisplayMode?: PriceDisplayMode;
   onPriceDisplayModeChange?: (mode: PriceDisplayMode) => void;
-  timeSaleOwnerItemId?: string | null;
-  timeSaleItemId?: string;
   aiDescriptionUsage: { used: number; limit: number };
   onAiDescriptionUsageChange: (usage: { used: number; limit: number }) => void;
   badgeStyles: BadgeStyles;
@@ -10233,8 +10213,6 @@ function MenuItemCard({
             supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
             priceDisplayMode={priceDisplayMode}
             onPriceDisplayModeChange={onPriceDisplayModeChange}
-            timeSaleOwnerItemId={timeSaleOwnerItemId}
-            timeSaleItemId={timeSaleItemId ?? item.id}
             onCancel={onCancel}
             cancelLabel={isCopiedDraftItem ? "목록으로" : cancelLabel}
             deleteAction={

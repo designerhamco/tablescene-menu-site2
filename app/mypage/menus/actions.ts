@@ -508,7 +508,11 @@ async function getValidFeaturedItemIds(supabase: SupabaseServerClient, menuId: s
   return validItemIds;
 }
 
-function getFirstCompleteFeaturedSlide(featuredSlides: FeaturedSlideSettings[], validItemIds: Set<string>) {
+function getFirstFeaturedImageSlide(featuredSlides: FeaturedSlideSettings[]) {
+  return featuredSlides.find((slide) => Boolean(slide.image_url)) ?? null;
+}
+
+function getFirstLinkedFeaturedSlide(featuredSlides: FeaturedSlideSettings[], validItemIds: Set<string>) {
   return featuredSlides.find((slide) => Boolean(slide.image_url && slide.featured_item_id && validItemIds.has(slide.featured_item_id))) ?? null;
 }
 
@@ -3661,24 +3665,27 @@ export async function updateMenuCoverAction(formData: FormData) {
 
   if (hasFeaturedSlidesPayload && canUseFeaturedSlides) {
     const featuredSlides = parseFeaturedSlidesPayload(menuId, formData, featuredSlideMaxSlides);
-    const validFeaturedItemIds = await getValidFeaturedItemIds(supabase, menuId, featuredSlides);
-    const firstCompleteSlide = getFirstCompleteFeaturedSlide(featuredSlides, validFeaturedItemIds);
     const featuredSlidesEnabled = menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled");
+    const validFeaturedItemIds = featuredSlidesEnabled
+      ? await getValidFeaturedItemIds(supabase, menuId, featuredSlides)
+      : new Set<string>();
+    const firstImageSlide = getFirstFeaturedImageSlide(featuredSlides);
+    const firstLinkedSlide = getFirstLinkedFeaturedSlide(featuredSlides, validFeaturedItemIds);
     const nextSettings = {
       ...pageSettingsRecord,
       ...currentSettings,
       menu_cover_enabled: menuCoverEnabled,
       cover_image_visible: coverImageVisible,
       featured_item_enabled: featuredSlidesEnabled,
-      featured_item_id: firstCompleteSlide?.featured_item_id ?? null,
+      featured_item_id: firstLinkedSlide?.featured_item_id ?? null,
       [FEATURED_SLIDES_PAGE_SETTINGS_KEY]: featuredSlides,
     };
 
     const updatePayload: MenuSiteUpdate = {
       menu_cover_title: menuCoverTitle,
       menu_cover_description: menuCoverDescription,
-      cover_image_url: firstCompleteSlide?.image_url ?? null,
-      cover_image_path: firstCompleteSlide?.image_path ?? null,
+      cover_image_url: firstImageSlide?.image_url ?? null,
+      cover_image_path: firstImageSlide?.image_path ?? null,
       page_settings: nextSettings,
       updated_at: new Date().toISOString(),
     };
@@ -3695,8 +3702,8 @@ export async function updateMenuCoverAction(formData: FormData) {
         .update({
           menu_cover_title: menuCoverTitle,
           menu_cover_description: menuCoverDescription,
-          cover_image_url: firstCompleteSlide?.image_url ?? null,
-          cover_image_path: firstCompleteSlide?.image_path ?? null,
+          cover_image_url: firstImageSlide?.image_url ?? null,
+          cover_image_path: firstImageSlide?.image_path ?? null,
           page_settings: nextSettings,
           updated_at: new Date().toISOString(),
         })

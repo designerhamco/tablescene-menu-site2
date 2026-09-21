@@ -41,8 +41,8 @@ function normalizeSlides(slides: FeaturedSlideDraft[]) {
 }
 
 function getCompletionLabel(slide: FeaturedSlideDraft) {
-  if (slide.imageUrl && slide.featuredItemId) return "";
-  return "미완성 슬라이드 · 공개 메뉴판에는 표시되지 않습니다.";
+  if (slide.imageUrl) return "";
+  return "이미지를 등록해야 공개 메뉴판에 표시됩니다.";
 }
 
 export default function FeaturedSlidesEditor({
@@ -120,9 +120,9 @@ export default function FeaturedSlidesEditor({
     <div className="grid gap-4">
       <input ref={hiddenInputRef} type="hidden" name="featured_slides" value={JSON.stringify(slides)} readOnly />
       <div>
-        <h3 className="type-content-title text-zinc-950">대표 이미지와 상품</h3>
+        <h3 className="type-content-title text-zinc-950">대표 이미지</h3>
         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-          커버 이미지와 대표 상품을 최대 {effectiveMaxSlides}개까지 연결할 수 있습니다. 등록한 순서대로 대표 영역에 표시됩니다.
+          대표 이미지를 최대 {effectiveMaxSlides}개까지 등록할 수 있습니다. 상품 정보가 필요한 이미지만 상품을 선택하세요.
         </p>
       </div>
 
@@ -224,7 +224,7 @@ export default function FeaturedSlidesEditor({
                     ))}
                   </select>
                   <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                    같은 대표 상품은 한 번만 선택할 수 있습니다.
+                    선택 사항입니다. 선택하지 않으면 이미지만 표시되며, 같은 상품은 한 번만 연결할 수 있습니다.
                   </p>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
+import { buildPublicFeaturedSlides } from "@/lib/menu-featured-slides";
 import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
 import { parseMenuWidgetRows, type MenuWidgetRow } from "@/lib/menu-widget-db-mappers";
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
@@ -28,7 +29,6 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
-import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { isAubeTableTemplate } from "@/lib/aube-table";
 import { getReadyAubeTableLocales } from "@/lib/aube-table-language-readiness";
 import { mergePageSettings, sortMenuPages } from "@/types/menu";
@@ -45,7 +45,6 @@ type MenuCategory = PublicMenuTemplateProps["categories"][number];
 type MenuItem = PublicMenuTemplateProps["items"][number];
 type MenuCategoryPriceColumn = MenuCategory["priceColumns"][number];
 type MenuItemPriceColumnValue = MenuItem["priceColumnValues"][number];
-type PublicFeaturedSlide = NonNullable<PublicMenuTemplateProps["featuredSlides"]>[number];
 type MenuItemQueryRow = Omit<MenuItem, "default_name" | "priceNote" | "priceColumnValues"> & { price_note?: string | null };
 type MenuItemPriceOption = PublicMenuTemplateProps["priceOptions"][number];
 type MenuItemTrait = PublicMenuTemplateProps["traits"][number];
@@ -99,7 +98,6 @@ const socialLinkSelect = "id, type, label, display_name, url, visible, sort_orde
 const promotionSelect = "id, name, active, schedule_type, starts_at, ends_at, daily_start_time, daily_end_time, timezone, settings";
 const promotionItemSelect = "id, promotion_id, menu_item_id, price_column_id, sale_price, sale_price_label, visible";
 const futurePromotionItemSelect = "promotion_id, menu_item_id, price_column_id, visible";
-const legacyFeaturedSlideId = "legacy-featured-slide";
 
 function shouldLoadMenuWidgets(menuSite: MenuSite) {
   return menuSite.template_key === "cafe_design_a" || menuSite.template_key === "cafe_mocha_forest_a" || menuSite.template_key === "cafe_sunday_line_a" || menuSite.template_key === "cafe_round_focus_a";
@@ -169,80 +167,10 @@ function getPublicTimeSaleScheduleFields(promotion: MenuTimeSalePromotionRow) {
   };
 }
 
-function getFeaturedSlideLimit(templateKey: string | null | undefined) {
-  const capabilities = getTemplateCapabilities(templateKey);
-  if (!capabilities.featuredItemHero) return 0;
-  if (!capabilities.featuredItemCarousel) return 1;
-
-  return Math.max(0, Math.trunc(capabilities.featuredItemMaxSlides ?? 5));
-}
-
 function findLegacyFeaturedItemId(pageSettings: MenuPageData["pageSettings"], items: MenuItem[]) {
   if (!pageSettings.featured_item_id) return null;
 
   return items.find((item) => item.visible !== false && item.id === pageSettings.featured_item_id)?.id ?? null;
-}
-
-function buildPublicFeaturedSlides({
-  menuSite,
-  pageSettings,
-  items,
-}: {
-  menuSite: MenuSite;
-  pageSettings: MenuPageData["pageSettings"];
-  items: MenuItem[];
-}): PublicFeaturedSlide[] {
-  const maxSlides = getFeaturedSlideLimit(menuSite.template_key);
-  if (maxSlides <= 0) return [];
-  if (pageSettings.featured_item_enabled === false) return [];
-
-  const visibleItemIds = new Set(items.filter((item) => item.visible !== false).map((item) => item.id));
-  const seenFeaturedItemIds = new Set<string>();
-  const publicSlides: PublicFeaturedSlide[] = [];
-
-  const addSlide = ({
-    id,
-    imageUrl,
-    featuredItemId,
-  }: {
-    id: string;
-    imageUrl: string | null;
-    featuredItemId: string | null;
-  }) => {
-    const normalizedImageUrl = typeof imageUrl === "string" ? imageUrl.trim() : "";
-    const normalizedItemId = typeof featuredItemId === "string" ? featuredItemId.trim() : "";
-    if (!id || !normalizedImageUrl || !normalizedItemId) return;
-    if (!visibleItemIds.has(normalizedItemId) || seenFeaturedItemIds.has(normalizedItemId)) return;
-    if (publicSlides.length >= maxSlides) return;
-
-    seenFeaturedItemIds.add(normalizedItemId);
-    publicSlides.push({
-      id,
-      imageUrl: normalizedImageUrl,
-      featuredItemId: normalizedItemId,
-      sortOrder: publicSlides.length,
-    });
-  };
-
-  if (pageSettings.featured_slides !== undefined) {
-    for (const slide of pageSettings.featured_slides) {
-      addSlide({
-        id: slide.id,
-        imageUrl: slide.image_url,
-        featuredItemId: slide.featured_item_id,
-      });
-    }
-
-    return publicSlides;
-  }
-
-  addSlide({
-    id: legacyFeaturedSlideId,
-    imageUrl: menuSite.cover_image_url,
-    featuredItemId: findLegacyFeaturedItemId(pageSettings, items),
-  });
-
-  return publicSlides;
 }
 
 async function loadPublicTimeSales({
@@ -1190,8 +1118,11 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     priceColumnValues: itemPriceColumnValuesByItemId.get(item.id) ?? [],
   }));
   const featuredSlides = buildPublicFeaturedSlides({
-    menuSite,
-    pageSettings,
+    templateKey: menuSite.template_key,
+    featuredItemEnabled: pageSettings.featured_item_enabled !== false,
+    featuredSlides: pageSettings.featured_slides,
+    legacyCoverImageUrl: menuSite.cover_image_url,
+    legacyFeaturedItemId: findLegacyFeaturedItemId(pageSettings, itemsWithPriceColumnValues),
     items: itemsWithPriceColumnValues,
   });
   const priceOptions = isMissingPriceOptionsTable ? [] : ((priceOptionsData ?? []) as MenuItemPriceOption[]);

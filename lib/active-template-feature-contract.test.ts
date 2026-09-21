@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { getStarterPreset } from "./menu-starter-presets";
+import { MAX_TIME_SALES_PER_MENU_SITE } from "./menu-time-sale-validation";
 import { getMaxTimeSalesForTemplate, isBasicTimeSaleTemplate } from "./menu-time-sales";
-import { getTemplateCapabilities, type TemplateMenuCoverMode } from "./template-capabilities";
+import { getCoverDescription, getCoverTabLabel, getCoverToggleLabel, getTemplateCapabilities, type TemplateMenuCoverMode } from "./template-capabilities";
 import { mergeTypographySettings } from "./template-typography-presets";
 import { getTemplateByKey } from "./templates";
 
@@ -65,7 +66,24 @@ test("launch template typography defaults and Display-only size control stay exp
   assert.equal(displayCapabilities.priceOptions, true);
   assert.equal(displayCapabilities.menuCover.coverMode, "none");
   assert.equal(isBasicTimeSaleTemplate("display_menu_a"), true);
-  assert.equal(getMaxTimeSalesForTemplate("display_menu_a"), 1);
+  assert.equal(getMaxTimeSalesForTemplate("display_menu_a"), MAX_TIME_SALES_PER_MENU_SITE);
   assert.equal(displayTypography.korean_font_key, "pretendard");
   assert.equal(displayTypography.english_font_key, "alata");
+});
+
+test("active time-sale templates share the same menu-level limit", () => {
+  for (const templateKey of ["display_menu_a", ...Object.keys(BASIC_FEATURE_EXPECTATIONS)]) {
+    const maxTimeSales = getMaxTimeSalesForTemplate(templateKey);
+    if (isBasicTimeSaleTemplate(templateKey)) {
+      assert.equal(maxTimeSales, MAX_TIME_SALES_PER_MENU_SITE, `${templateKey}: time-sale limit`);
+    }
+  }
+});
+
+test("single-page cover controls describe the representative area instead of overlapping image toggles", () => {
+  assert.equal(getCoverTabLabel("section"), "대표 영역");
+  assert.equal(getCoverToggleLabel("section"), "대표 영역 사용");
+  assert.match(getCoverDescription("section"), /이미지만 보여주거나/);
+  assert.equal(getCoverTabLabel("page"), "커버 이미지");
+  assert.equal(getCoverToggleLabel("page"), "커버 페이지 사용");
 });

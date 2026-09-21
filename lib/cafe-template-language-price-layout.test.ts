@@ -76,6 +76,14 @@ test("원페이지 모바일 언어 UI는 모든 스킨에서 제목과 분리�
   );
 });
 
+test("오브 커피와 모카 포레스트의 PC·태블릿 언어 UI는 가게명 위 독립 행을 사용한다", () => {
+  assert.match(
+    templateSource,
+    /data-cafe-a-rail-language-row=""[\s\S]*<CafeLanguageHoverControl data=\{data\} \/>[\s\S]*<StoreIdentity/,
+  );
+  assert.match(templateSource, /!isCenterColumn \? \([\s\S]*data-cafe-a-rail-language-row=""/);
+});
+
 test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12배 큰 공통 글자 비율을 사용한다", () => {
   assert.match(templateSource, /TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 1\.34/);
   assert.match(templateSource, /getPreviewFitFontScaleCandidates\(FIT_FONT_SCALE_CANDIDATES, data\.previewDevice === "tablet"\)/);

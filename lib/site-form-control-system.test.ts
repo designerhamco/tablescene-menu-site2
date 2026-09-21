@@ -17,6 +17,8 @@ test("공통 폼은 포커스·비활성·오류 상태를 구분한다", () => 
   assert.match(uiSource, /\.site-field:focus,/);
   assert.match(uiSource, /outline: 2px solid var\(--ui-focus\)/);
   assert.match(uiSource, /\.site-field:disabled,/);
+  assert.match(uiSource, /\.site-field:read-only:not\(:disabled\),/);
+  assert.match(uiSource, /data-copyable-readonly="true"/);
   assert.match(uiSource, /\[aria-invalid="true"\]/);
   assert.match(uiSource, /:-webkit-autofill/);
 });

@@ -82,7 +82,7 @@ type CafeDesignAProps = PublicMenuTemplateProps & {
 type CafeDesignAFeaturedHeroSlide = {
   id: string;
   imageUrl: string | null;
-  item: MenuItem;
+  item: MenuItem | null;
 };
 type CafeDesignAPriceDisplayMode = PriceDisplayMode | null;
 type CafeDesignAPriceToken = {
@@ -2669,18 +2669,19 @@ function getFeaturedHeroSlides(data: PublicMenuTemplateProps, capabilities: Temp
 
   if (data.featuredSlides !== undefined) {
     return data.featuredSlides.flatMap((slide: PublicFeaturedSlide) => {
-      const slideItem = data.items.find((item) => item.id === slide.featuredItemId);
-      if (!slide.imageUrl || !slideItem || slideItem.visible === false) return [];
+      if (!slide.imageUrl) return [];
+      const slideItem = data.pageSettings.featured_item_enabled && slide.featuredItemId
+        ? data.items.find((item) => item.id === slide.featuredItemId && item.visible !== false) ?? null
+        : null;
       return [{ id: slide.id, imageUrl: slide.imageUrl, item: slideItem }];
     });
   }
 
-  if (!data.pageSettings.featured_item_enabled) return [];
+  const featuredItem = data.pageSettings.featured_item_enabled ? getLegacyFeaturedItem(data) : null;
+  const coverImageUrl = data.menuSite.cover_image_url ?? null;
+  if (!coverImageUrl) return [];
 
-  const featuredItem = getLegacyFeaturedItem(data);
-  if (!featuredItem) return [];
-
-  return [{ id: "legacy-featured-slide", imageUrl: data.menuSite.cover_image_url ?? null, item: featuredItem }];
+  return [{ id: "legacy-featured-slide", imageUrl: coverImageUrl, item: featuredItem }];
 }
 
 function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[] {
@@ -3974,7 +3975,9 @@ function CoverHero({
             />
           ) : null,
         )}
-        <div className="absolute inset-x-0 bottom-0 h-[72%] bg-[linear-gradient(to_top,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.46)_38%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0)_100%)]" />
+        {featuredItem ? (
+          <div className="absolute inset-x-0 bottom-0 h-[72%] bg-[linear-gradient(to_top,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.46)_38%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0)_100%)]" />
+        ) : null}
         {hasCarousel && (
           <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
             {featuredSlides.map((slide, index) => {
@@ -5554,14 +5557,18 @@ function DesktopFixedRail({
   return (
     <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col" data-cafe-a-brand-panel={variant} {...mochaPanelAttributes}>
       <div className="cafe-a-fixed-rail-copy min-w-0">
-        <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="cafe-a-rail-heading flex min-w-0 flex-col items-stretch gap-[clamp(0.5rem,1.1vmin,0.875rem)]">
+          {!isCenterColumn ? (
+            <div className="cafe-a-rail-language-row flex min-w-0 justify-end" data-cafe-a-rail-language-row="">
+              <CafeLanguageHoverControl data={data} />
+            </div>
+          ) : null}
           <StoreIdentity
             data={data}
             capabilities={capabilities}
             titleClassName="cafe-a-store-title cafe-a-rail-title break-words font-black uppercase leading-[0.96] text-[#191c1b]"
             logoClassName="max-h-[84px] max-w-[210px] object-contain"
           />
-          {!isCenterColumn ? <CafeLanguageHoverControl data={data} /> : null}
         </div>
         {description && (
           <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-rail-description mt-3 break-keep text-[#3f4945] ${descriptionSizeClassName}`} data-cafe-a-store-description="">

@@ -331,6 +331,39 @@ textarea.site-field,
   opacity: 0.72;
 }
 
+.site-field:read-only:not(:disabled),
+:where(input, textarea):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="color"],
+    [type="range"],
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    [type="image"],
+    [type="hidden"]
+  ):not(.menu-typography *):read-only:not(:disabled) {
+  cursor: not-allowed;
+  border-color: var(--ui-border);
+  background: var(--ui-surface-muted);
+  color: #71717a;
+  box-shadow: none;
+  opacity: 1;
+}
+
+.site-field:read-only:not(:disabled):focus,
+:where(input, textarea):not(.menu-typography *):read-only:not(:disabled):focus {
+  border-color: var(--ui-border);
+  outline: none;
+  box-shadow: none;
+}
+
+:where(input, textarea)[data-copyable-readonly="true"]:not(.menu-typography *):read-only:not(:disabled) {
+  cursor: text;
+  user-select: text;
+}
+
 :where(input[type="checkbox"], input[type="radio"]):not(.menu-typography *) {
   accent-color: var(--ui-text);
 }

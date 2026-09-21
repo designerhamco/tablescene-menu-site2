@@ -47,7 +47,7 @@ export function getMultiPageDataForPage(
     .filter((widget) => widget.visible && widget.menuPageId === page.id)
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
   const pageFeaturedSlides = (data.featuredSlides ?? [])
-    .filter((slide) => itemIds.has(slide.featuredItemId))
+    .filter((slide): slide is typeof slide & { featuredItemId: string } => Boolean(slide.featuredItemId && itemIds.has(slide.featuredItemId)))
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
   const nextPageSettings = {
     ...data.pageSettings,
