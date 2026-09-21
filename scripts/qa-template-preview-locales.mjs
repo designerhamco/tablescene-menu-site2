@@ -171,9 +171,10 @@ try {
 
   if (!templateFilter && !localeFilter) {
     const deviceCases = [
-      { device: "pc", viewport: { width: 1440, height: 900 }, query: "device=pc" },
-      { device: "tablet", viewport: { width: 1180, height: 820 }, query: "device=tablet&orientation=landscape" },
-      { device: "mobile", viewport: { width: 390, height: 844 }, query: "device=mobile" },
+      { id: "pc", device: "pc", viewport: { width: 1440, height: 900 }, query: "device=pc" },
+      { id: "tablet-landscape", device: "tablet", viewport: { width: 1180, height: 820 }, query: "device=tablet&orientation=landscape" },
+      { id: "tablet-portrait", device: "tablet", viewport: { width: 820, height: 1180 }, query: "device=tablet&orientation=portrait" },
+      { id: "mobile", device: "mobile", viewport: { width: 390, height: 844 }, query: "device=mobile" },
     ];
 
     for (const templateKey of singlePageTemplates) {
@@ -257,6 +258,68 @@ try {
           };
         });
 
+        const rhythm = await page.evaluate(() => {
+          const isVisible = (element) => {
+            const style = getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            return rect.width > 0
+              && rect.height > 0
+              && style.display !== "none"
+              && style.visibility !== "hidden"
+              && Number.parseFloat(style.opacity || "1") > 0
+              && !element.closest("[aria-hidden='true']");
+          };
+          const median = (values) => {
+            const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+            if (sorted.length === 0) return null;
+            const middle = Math.floor(sorted.length / 2);
+            return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+          };
+          const categories = Array.from(document.querySelectorAll(".cafe-a-menu-category-block")).filter(isVisible);
+          const itemGaps = [];
+          const titleGaps = [];
+
+          for (const category of categories) {
+            const heading = category.querySelector(":scope > .cafe-a-category-heading");
+            const items = Array.from(category.querySelectorAll(":scope > .cafe-a-category-items > .cafe-a-menu-item-stack")).filter(isVisible);
+            const itemRects = items.map((item) => item.getBoundingClientRect());
+            for (let index = 1; index < itemRects.length; index += 1) {
+              const gap = itemRects[index].top - itemRects[index - 1].bottom;
+              if (gap >= 0) itemGaps.push(gap);
+            }
+            if (heading && isVisible(heading) && itemRects[0]) {
+              titleGaps.push(itemRects[0].top - heading.getBoundingClientRect().bottom);
+            }
+          }
+
+          const categoryGaps = [];
+          const parents = [...new Set(categories.map((category) => category.parentElement).filter(Boolean))];
+          for (const parent of parents) {
+            const blocks = Array.from(parent.children).filter((child) => (
+              child.matches(".cafe-a-menu-category-block, .cafe-a-menu-widget-block") && isVisible(child)
+            ));
+            for (let index = 1; index < blocks.length; index += 1) {
+              const previous = blocks[index - 1];
+              const current = blocks[index];
+              if (!previous.matches(".cafe-a-menu-category-block") || !current.matches(".cafe-a-menu-category-block")) continue;
+              const previousRect = previous.getBoundingClientRect();
+              const currentRect = current.getBoundingClientRect();
+              if (Math.abs(previousRect.left - currentRect.left) > 2 || currentRect.top < previousRect.bottom) continue;
+              categoryGaps.push(currentRect.top - previousRect.bottom);
+            }
+          }
+
+          const root = document.querySelector(".cafe-a-typography");
+          const rootStyle = root ? getComputedStyle(root) : null;
+          return {
+            itemGap: median(itemGaps),
+            titleGaps,
+            categoryGaps,
+            titleRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-title-to-first-ratio").trim() ?? null,
+            categoryRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-separation-ratio").trim() ?? null,
+          };
+        });
+
         const compareTypography = (label, expected, actual, sizeScale = 1) => {
           if (!expected || !actual) {
             failures.push(`${label} typography is unavailable: ${JSON.stringify({ expected, actual })}`);
@@ -301,6 +364,36 @@ try {
           ));
           if (deviceTypeScale !== "1.12") failures.push(`tablet typography scale is incorrect: ${deviceTypeScale || "missing"}`);
         }
+        if (rhythm.itemGap === null || rhythm.titleGaps.length === 0) {
+          failures.push(`spacing rhythm metrics are unavailable: ${JSON.stringify(rhythm)}`);
+        } else {
+          if (rhythm.titleRatioToken !== "1.05") {
+            failures.push(`category-title ratio token is not fixed at 1.05: ${rhythm.titleRatioToken ?? "missing"}`);
+          }
+          for (const titleGap of rhythm.titleGaps) {
+            const ratio = titleGap / rhythm.itemGap;
+            if (Math.abs(ratio - 1.05) > 0.035) {
+              failures.push(`category title-to-first-item rhythm is not 1.05: ${titleGap}px / ${rhythm.itemGap}px = ${ratio}`);
+              break;
+            }
+          }
+          if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
+            if (rhythm.categoryRatioToken !== "1.6") {
+              failures.push(`no-divider category ratio token is not fixed at 1.6: ${rhythm.categoryRatioToken ?? "missing"}`);
+            }
+            if (rhythm.categoryGaps.length === 0) {
+              failures.push(`no-divider category gap metrics are unavailable: ${JSON.stringify(rhythm)}`);
+            } else {
+              for (const categoryGap of rhythm.categoryGaps) {
+                const ratio = categoryGap / rhythm.itemGap;
+                if (Math.abs(ratio - 1.6) > 0.055) {
+                  failures.push(`no-divider category rhythm is not 1.6: ${categoryGap}px / ${rhythm.itemGap}px = ${ratio}`);
+                  break;
+                }
+              }
+            }
+          }
+        }
         const supportingBaseline = usesNameAndPriceOnly ? typography.supporting[0]?.signature ?? null : typography.itemDescription;
         for (const target of typography.supporting) {
           compareTypography(target.label, supportingBaseline, target.signature);
@@ -320,13 +413,13 @@ try {
                 failures.push(`Aube/Mocha ${role} does not follow the Sunday hierarchy: ${actualRatio} / ${expectedRatio}`);
               }
             }
-            const sundayStoreTitleSize = { pc: 48.6, tablet: 46.62, mobile: 42.9 }[deviceCase.device];
-            if (Math.abs(typography.storeName.fontSize - sundayStoreTitleSize) > 0.25) {
+            const sundayStoreTitleSize = { pc: 48.6, "tablet-landscape": 46.62, mobile: 42.9 }[deviceCase.id];
+            if (sundayStoreTitleSize !== undefined && Math.abs(typography.storeName.fontSize - sundayStoreTitleSize) > 0.25) {
               failures.push(`Aube/Mocha store title does not follow the Sunday size: ${typography.storeName.fontSize}px / ${sundayStoreTitleSize}px`);
             }
           }
         }
-        if (templateKey === "cafe_round_focus_a" && deviceCase.device !== "mobile") {
+        if (templateKey === "cafe_round_focus_a" && (deviceCase.id === "pc" || deviceCase.id === "tablet-landscape")) {
           const columnWidths = await page.locator(".cafe-a-center-rail-menu-grid").evaluate((element) => (
             getComputedStyle(element).gridTemplateColumns
               .split(" ")
@@ -353,7 +446,7 @@ try {
             failures.push(`Round Focus spacing is too dense: ${JSON.stringify(spacing)}`);
           }
         }
-        if (templateKey === "cafe_sunday_line_a" && deviceCase.device !== "mobile") {
+        if (templateKey === "cafe_sunday_line_a" && (deviceCase.id === "pc" || deviceCase.id === "tablet-landscape")) {
           const spacing = await page.locator(".cafe-a-desktop-fit-board").evaluate((element) => {
             const style = getComputedStyle(element);
             return {
@@ -365,7 +458,7 @@ try {
           if (spacingIncrease < 3 || spacingIncrease > 12) {
             failures.push(`Sunday Line row spacing is not a subtle increase: ${JSON.stringify(spacing)}`);
           }
-          if (deviceCase.device === "tablet") {
+          if (deviceCase.id === "tablet-landscape") {
             const storeTitleMetrics = await page.locator(".cafe-a-typography").evaluate((element) => {
               const title = Array.from(element.querySelectorAll(".cafe-a-store-title")).find((candidate) => {
                 const rect = candidate.getBoundingClientRect();
@@ -390,7 +483,7 @@ try {
         if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
 
         results.push({
-          templateKey: `${templateKey}-${deviceCase.device}-typography`,
+          templateKey: `${templateKey}-${deviceCase.id}-role-contract`,
           locale: "ko",
           route,
           failures,

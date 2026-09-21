@@ -147,6 +147,10 @@ test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 �
   assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
   assert.match(
     globalStylesSource,
+    /data-cafe-a-skin="mocha_forest"\]\) \.cafe-a-cover-hero \.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-sunday-supporting-ratio\)/,
+  );
+  assert.match(
+    globalStylesSource,
     /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-price-size\) \* var\(--cafe-a-device-type-scale\)\);[\s\S]*font-weight: var\(--menu-role-price-font-weight, 700\);/,
   );
   assert.match(

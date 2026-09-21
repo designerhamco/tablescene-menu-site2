@@ -17,11 +17,13 @@ The shared hierarchy is:
 
 1. internal copy gap;
 2. item-to-item gap (`1`);
-3. category-title-to-first-item gap (`1`);
-4. category-to-category gap without a divider (`1.3` to `1.45`, target `1.4`);
+3. category-title-to-first-item gap (`1.05`);
+4. category-to-category gap without a divider (`1.6`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
 
 Single-page skins inherit these values from the CafeA spacing tokens. A skin can adjust the bounded scale, but must not replace the semantic tokens with a fixed `px` margin, padding, or gap.
+
+Viewport and fit calculations may change the base item gap, but semantic ratios are constants applied exactly once after that base calculation. Do not multiply a semantic ratio by a fit, device, density, or viewport scale again.
 
 Display templates use the calculated content row (`--display-row`) as the base unit. Category-title-to-first-item spacing must use the same row-budget scale as item-to-item spacing.
 
