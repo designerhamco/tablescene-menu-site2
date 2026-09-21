@@ -66,16 +66,16 @@ function BrowserZoomGuide() {
         <div className="h-8 min-w-0 flex-1 rounded-full border border-zinc-200 bg-white shadow-inner" />
         <div
           data-preview-guide-profile=""
-          className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-b from-zinc-400 to-zinc-500"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-300"
         >
           <svg
             data-preview-guide-profile-icon=""
             viewBox="0 0 24 24"
-            className="h-[1.65rem] w-[1.65rem] translate-y-[0.18rem] text-zinc-100"
+            className="h-5 w-5 text-zinc-100"
             aria-hidden="true"
           >
-            <circle cx="12" cy="7.4" r="4.15" fill="currentColor" />
-            <path d="M3.2 23.5c.35-6.15 3.78-9.25 8.8-9.25s8.45 3.1 8.8 9.25H3.2Z" fill="currentColor" />
+            <circle cx="12" cy="8" r="4" fill="currentColor" />
+            <path d="M5 21c.55-4.7 3.05-7 7-7s6.45 2.3 7 7H5Z" fill="currentColor" />
           </svg>
         </div>
         <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-200">

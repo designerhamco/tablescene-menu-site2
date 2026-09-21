@@ -24,6 +24,11 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     const itemKeys = categories.flatMap((category) => category.items.map((item) => item.key));
     assert.equal(itemKeys.every((key) => typeof key === "string" && key.length > 0), true);
     assert.equal(new Set(itemKeys).size, itemKeys.length);
+    assert.equal(
+      categories.flatMap((category) => category.items).every((item) => Boolean(item.set_name?.trim())),
+      true,
+      `${templateKey}: every starter item needs a secondary-language name`,
+    );
 
     const itemByKey = new Map(
       categories.flatMap((category) => category.items.map((item) => [item.key, item] as const)),

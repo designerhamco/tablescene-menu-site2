@@ -153,7 +153,9 @@ test("browser guide uses a filled round profile and restores the address pill wi
   assert.doesNotMatch(previewGuideSource, /UserRound/);
   assert.match(previewGuideSource, /data-preview-guide-profile=""/);
   assert.match(previewGuideSource, /data-preview-guide-profile-icon=""/);
-  assert.match(previewGuideSource, /bg-gradient-to-b from-zinc-400 to-zinc-500/);
+  assert.match(previewGuideSource, /rounded-full bg-zinc-300/);
+  assert.match(previewGuideSource, /className="h-5 w-5 text-zinc-100"/);
+  assert.doesNotMatch(previewGuideSource, /bg-gradient-to-b from-zinc-400 to-zinc-500/);
   assert.match(previewGuideSource, /text-zinc-100/);
   assert.match(previewGuideSource, /<circle[^>]*fill="currentColor"/);
   assert.match(previewGuideSource, /<path[^>]*fill="currentColor"/);

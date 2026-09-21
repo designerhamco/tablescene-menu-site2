@@ -1027,17 +1027,20 @@ cafeSundayLineStarterPreset.pages = [
         items: [
           item("선데이 크림 라떼", 6500, "고소한 크림과 에스프레소를 부드럽게 즐기는 시그니처 라떼", {
             key: "sunday-cream-latte",
+            set_name: "SUNDAY CREAM LATTE",
             badge_label: "SIGNATURE",
             recommended: true,
             image_url: "/menu-templates/cafe_design_a/malcha.jpg",
           }),
           item("솔티드 메이플 라떼", 6800, "메이플의 은은한 단맛과 소금 크림을 더한 라떼", {
             key: "salted-maple-latte",
+            set_name: "SALTED MAPLE LATTE",
             badge_label: "BEST",
             image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
           }),
           item("오렌지 바닐라 콜드브루", 6800, "오렌지 향과 바닐라 크림을 더한 부드러운 콜드브루", {
             key: "orange-vanilla-cold-brew",
+            set_name: "ORANGE VANILLA COLD BREW",
             badge_label: "NEW",
           }),
         ],
@@ -1053,6 +1056,7 @@ cafeSundayLineStarterPreset.pages = [
         items: [
           item("아메리카노", 4500, "균형 잡힌 고소함과 깔끔한 끝맛", {
             key: "americano",
+            set_name: "AMERICANO",
             price_column_values: [
               { key: "hot", price: 4500 },
               { key: "ice", price: 5000 },
@@ -1060,6 +1064,7 @@ cafeSundayLineStarterPreset.pages = [
           }),
           item("카페 라떼", 5500, "진한 에스프레소와 부드러운 우유", {
             key: "cafe-latte",
+            set_name: "CAFE LATTE",
             price_column_values: [
               { key: "hot", price: 5500 },
               { key: "ice", price: 6000 },
@@ -1067,6 +1072,7 @@ cafeSundayLineStarterPreset.pages = [
           }),
           item("플랫화이트", 5300, "진한 에스프레소와 촘촘한 밀크폼의 조화", {
             key: "flat-white",
+            set_name: "FLAT WHITE",
           }),
         ],
       },
@@ -1081,6 +1087,7 @@ cafeSundayLineStarterPreset.pages = [
         items: [
           item("말차 크림 라떼", 6500, "제주 말차와 담백한 크림의 조화", {
             key: "matcha-cream-latte",
+            set_name: "MATCHA CREAM LATTE",
             badge_label: "NEW",
             price_column_values: [
               { key: "hot", price: 6500 },
@@ -1089,6 +1096,7 @@ cafeSundayLineStarterPreset.pages = [
           }),
           item("다크 초콜릿 밀크", 6000, "진한 다크 초콜릿과 부드러운 우유를 담은 음료", {
             key: "dark-chocolate-milk",
+            set_name: "DARK CHOCOLATE MILK",
           }),
         ],
       },
@@ -1099,12 +1107,15 @@ cafeSundayLineStarterPreset.pages = [
         items: [
           item("자몽 로즈마리 에이드", 6300, "생자몽과 로즈마리 향이 산뜻한 에이드", {
             key: "grapefruit-rosemary-ade",
+            set_name: "GRAPEFRUIT ROSEMARY ADE",
           }),
           item("캐모마일 시트러스 티", 5800, "캐모마일과 감귤 향을 담은 블렌드 티", {
             key: "chamomile-citrus-tea",
+            set_name: "CHAMOMILE CITRUS TEA",
           }),
           item("얼그레이 피치 티", 5800, "얼그레이 향과 복숭아의 은은한 단맛", {
             key: "earl-grey-peach-tea",
+            set_name: "EARL GREY PEACH TEA",
           }),
         ],
       },
@@ -1115,21 +1126,27 @@ cafeSundayLineStarterPreset.pages = [
         items: [
           item("브라운 버터 스콘", 4800, "고소한 브라운 버터 풍미의 바삭한 스콘", {
             key: "brown-butter-scone",
+            set_name: "BROWN BUTTER SCONE",
           }),
           item("레몬 마들렌", 3800, "레몬 향을 담아 촉촉하게 구운 마들렌", {
             key: "lemon-madeleine",
+            set_name: "LEMON MADELEINE",
           }),
           item("피칸 카라멜 타르트", 6200, "고소한 피칸과 카라멜을 담은 바삭한 타르트", {
             key: "pecan-caramel-tart",
+            set_name: "PECAN CARAMEL TART",
           }),
           item("바닐라 푸딩", 5500, "바닐라 빈과 생크림으로 부드럽게 만든 푸딩", {
             key: "vanilla-pudding",
+            set_name: "VANILLA PUDDING",
           }),
           item("당근 크림치즈 케이크", 6200, "향신료를 더한 당근 케이크와 부드러운 크림치즈", {
             key: "carrot-cream-cheese-cake",
+            set_name: "CARROT CREAM CHEESE CAKE",
           }),
           item("피스타치오 쿠키", 3800, "피스타치오를 듬뿍 넣어 고소하게 구운 쿠키", {
             key: "pistachio-cookie",
+            set_name: "PISTACHIO COOKIE",
           }),
         ],
       },
@@ -1196,17 +1213,20 @@ cafeRoundFocusStarterPreset.pages = [
         items: [
           item("라운드 크림 커피", 6500, "부드러운 크림과 고소한 에스프레소의 시그니처 커피", {
             key: "round-cream-coffee",
+            set_name: "ROUND CREAM COFFEE",
             badge_label: "SIGNATURE",
             recommended: true,
             image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
           }),
           item("브라운 슈가 플랫화이트", 6200, "브라운 슈가의 은은한 단맛을 담은 플랫화이트", {
             key: "brown-sugar-flat-white",
+            set_name: "BROWN SUGAR FLAT WHITE",
             badge_label: "BEST",
             image_url: "/menu-templates/cafe_design_a/malcha.jpg",
           }),
           item("오렌지 크림 콜드브루", 6800, "오렌지 향과 부드러운 크림을 더한 콜드브루", {
             key: "orange-cream-coldbrew",
+            set_name: "ORANGE CREAM COLD BREW",
             badge_label: "NEW",
           }),
         ],
@@ -1218,12 +1238,15 @@ cafeRoundFocusStarterPreset.pages = [
         items: [
           item("에스프레소", 3500, "진한 향과 깔끔한 단맛", {
             key: "espresso",
+            set_name: "ESPRESSO",
           }),
           item("아메리카노", 4500, "견과류의 고소함과 균형 잡힌 끝맛", {
             key: "americano",
+            set_name: "AMERICANO",
           }),
           item("카푸치노", 5500, "풍성한 우유 거품과 진한 에스프레소", {
             key: "cappuccino",
+            set_name: "CAPPUCCINO",
           }),
         ],
       },
@@ -1234,13 +1257,16 @@ cafeRoundFocusStarterPreset.pages = [
         items: [
           item("카페 라떼", 5500, "에스프레소와 부드러운 우유의 조화", {
             key: "cafe-latte",
+            set_name: "CAFE LATTE",
           }),
           item("바닐라 빈 밀크", 6000, "바닐라 빈과 우유를 담은 달콤한 음료", {
             key: "vanilla-bean-milk",
+            set_name: "VANILLA BEAN MILK",
             badge_label: "NEW",
           }),
           item("말차 오트 밀크", 6200, "제주 말차와 고소한 오트 밀크의 조화", {
             key: "matcha-oat-milk",
+            set_name: "MATCHA OAT MILK",
           }),
         ],
       },
@@ -1251,9 +1277,11 @@ cafeRoundFocusStarterPreset.pages = [
         items: [
           item("시트러스 민트 에이드", 6200, "감귤과 민트 향이 산뜻한 에이드", {
             key: "citrus-mint-ade",
+            set_name: "CITRUS MINT ADE",
           }),
           item("얼그레이 피치 티", 5800, "얼그레이 향과 복숭아의 은은한 단맛", {
             key: "earl-grey-peach-tea",
+            set_name: "EARL GREY PEACH TEA",
           }),
         ],
       },
@@ -1264,9 +1292,11 @@ cafeRoundFocusStarterPreset.pages = [
         items: [
           item("무화과 버터 스콘", 4800, "무화과와 발효 버터를 넣어 구운 스콘", {
             key: "fig-butter-scone",
+            set_name: "FIG BUTTER SCONE",
           }),
           item("레몬 마들렌", 3800, "레몬 향을 담아 촉촉하게 구운 마들렌", {
             key: "lemon-madeleine",
+            set_name: "LEMON MADELEINE",
           }),
         ],
       },

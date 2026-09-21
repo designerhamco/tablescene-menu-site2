@@ -217,6 +217,7 @@ try {
 
           return {
             itemName: firstSignature("[data-cafe-a-menu-name]"),
+            secondaryName: firstSignature(".cafe-a-menu-meta"),
             featuredName: firstSignature("[data-cafe-a-featured-title]"),
             itemBadge: firstSignature("[data-cafe-a-menu-badge]"),
             featuredBadge: firstSignature("[data-cafe-a-featured-badge]"),
@@ -255,10 +256,22 @@ try {
           }
         };
 
-        compareTypography("featured item name", typography.itemName, typography.featuredName, 1.25);
-        compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, 1.25);
-        compareTypography("featured price", typography.itemPrice, typography.featuredPrice, 1.25);
-        compareTypography("featured description", typography.itemDescription, typography.featuredDescription, 1.25);
+        const featuredScale = deviceCase.device === "mobile" ? 1 : 1.25;
+        compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
+        compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
+        compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
+        compareTypography("featured description", typography.itemDescription, typography.featuredDescription, featuredScale);
+        if (!typography.secondaryName) {
+          failures.push("secondary-language menu names are missing");
+        } else if (Number.parseInt(typography.secondaryName.fontWeight, 10) < 600) {
+          failures.push(`secondary-language menu names are too light: ${typography.secondaryName.fontWeight}`);
+        }
+        if (deviceCase.device === "tablet") {
+          const deviceTypeScale = await page.locator(".cafe-a-typography").evaluate((element) => (
+            getComputedStyle(element).getPropertyValue("--cafe-a-device-type-scale").trim()
+          ));
+          if (deviceTypeScale !== "1.12") failures.push(`tablet typography scale is incorrect: ${deviceTypeScale || "missing"}`);
+        }
         for (const target of typography.supporting) {
           compareTypography(target.label, typography.itemDescription, target.signature);
         }
@@ -325,8 +338,18 @@ try {
     const previewGuide = page.locator("[data-preview-guide-variant]");
     await previewGuide.waitFor({ state: "visible", timeout: 5_000 }).catch(() => null);
     if (await previewGuide.isVisible()) {
-      if (!(await previewGuide.locator("[data-preview-guide-profile-icon]").first().isVisible())) {
+      const profileIcon = previewGuide.locator("[data-preview-guide-profile-icon]").first();
+      if (!(await profileIcon.isVisible())) {
         failures.push("browser guide profile icon is missing");
+      } else {
+        const profileStyle = await previewGuide.locator("[data-preview-guide-profile]").first().evaluate((element) => ({
+          backgroundColor: getComputedStyle(element).backgroundColor,
+          borderRadius: Number.parseFloat(getComputedStyle(element).borderRadius),
+          iconColor: getComputedStyle(element.querySelector("[data-preview-guide-profile-icon]")).color,
+        }));
+        if (profileStyle.backgroundColor === profileStyle.iconColor || profileStyle.borderRadius < 16) {
+          failures.push(`browser guide profile style is incorrect: ${JSON.stringify(profileStyle)}`);
+        }
       }
       await previewGuide.getByRole("button", { name: "닫기" }).click();
       await previewGuide.waitFor({ state: "hidden", timeout: navigationTimeout });
