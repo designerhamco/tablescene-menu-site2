@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { CafeAStarterFeaturedEnabledSwitch } from "@/components/mypage/menu-editor/CafeAStarterCoverDraftFields";
 import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 
@@ -27,6 +28,7 @@ type FeaturedSlidesEditorProps = {
   initialSlides: FeaturedSlideDraft[];
   itemOptions: FeaturedSlideItemOption[];
   maxSlides: number;
+  defaultFeaturedItemEnabled: boolean;
 };
 
 function createSlideId() {
@@ -51,6 +53,7 @@ export default function FeaturedSlidesEditor({
   initialSlides,
   itemOptions,
   maxSlides,
+  defaultFeaturedItemEnabled,
 }: FeaturedSlidesEditorProps) {
   const coordinator = useCafeAStarterResetCoordinator();
   const resetSnapshot = coordinator?.snapshot ?? null;
@@ -119,76 +122,65 @@ export default function FeaturedSlidesEditor({
   return (
     <div className="grid gap-4">
       <input ref={hiddenInputRef} type="hidden" name="featured_slides" value={JSON.stringify(slides)} readOnly />
-      <div>
-        <h3 className="type-content-title text-zinc-950">대표 이미지</h3>
-        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-          대표 이미지를 최대 {effectiveMaxSlides}개까지 등록할 수 있습니다. 상품 정보가 필요한 이미지만 상품을 선택하세요.
-        </p>
-      </div>
+      <section className="rounded-lg border border-zinc-100 bg-zinc-50 p-5" data-featured-image-editor="">
+        <div>
+          <h3 className="type-content-title text-zinc-950">대표 이미지</h3>
+          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            메뉴판 대표 영역에 보여줄 이미지를 최대 {effectiveMaxSlides}개까지 등록하고 순서를 정할 수 있습니다.
+          </p>
+        </div>
 
-      <div className="grid gap-4">
-        {slides.length === 0 && (
-          <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-5 text-sm font-bold text-zinc-400">
-            아직 등록된 대표 슬라이드가 없습니다.
-          </div>
-        )}
+        <div className="mt-5 grid gap-4">
+          {slides.length === 0 && (
+            <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-5 text-sm font-bold text-zinc-400">
+              아직 등록된 대표 이미지가 없습니다.
+            </div>
+          )}
 
-        {slides.map((slide, index) => {
-          const completionLabel = getCompletionLabel(slide);
-          const selectedItemIsInvalid = Boolean(slide.featuredItemId && !itemOptionIds.has(slide.featuredItemId));
-          const selectedItemIsDuplicate = Boolean(slide.featuredItemId && duplicateItemIds.has(slide.featuredItemId));
-          const takenItemIds = new Set(slides.filter((_, slideIndex) => slideIndex !== index).map((item) => item.featuredItemId).filter(Boolean));
+          {slides.map((slide, index) => {
+            const completionLabel = getCompletionLabel(slide);
 
-          return (
-            <section key={slide.id} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h4 className="type-label text-zinc-950">대표 슬라이드 {index + 1}</h4>
-                  {completionLabel && <p className="mt-1 break-keep text-xs font-bold text-amber-700">{completionLabel}</p>}
-                  {selectedItemIsInvalid && (
-                    <p className="mt-1 break-keep text-xs font-bold text-red-600">
-                      선택된 대표 상품이 삭제되었거나 숨김 처리되었습니다. 다른 상품을 선택해주세요.
-                    </p>
-                  )}
-                  {selectedItemIsDuplicate && (
-                    <p className="mt-1 break-keep text-xs font-bold text-red-600">같은 대표 상품은 한 번만 선택할 수 있습니다.</p>
-                  )}
+            return (
+              <section key={slide.id} className="rounded-lg border border-zinc-100 bg-white p-4">
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h4 className="type-label text-zinc-950">대표 이미지 {index + 1}</h4>
+                    {completionLabel && <p className="mt-1 break-keep text-xs font-bold text-amber-700">{completionLabel}</p>}
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveSlide(index, -1)}
+                      disabled={index === 0}
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 disabled:cursor-not-allowed disabled:text-zinc-300"
+                    >
+                      위로
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveSlide(index, 1)}
+                      disabled={index === slides.length - 1}
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 disabled:cursor-not-allowed disabled:text-zinc-300"
+                    >
+                      아래로
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSlides((current) => normalizeSlides(current.filter((item) => item.id !== slide.id)))}
+                      className="rounded-full border border-red-100 bg-white px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => moveSlide(index, -1)}
-                    disabled={index === 0}
-                    className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 disabled:cursor-not-allowed disabled:text-zinc-300"
-                  >
-                    위로
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveSlide(index, 1)}
-                    disabled={index === slides.length - 1}
-                    className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 disabled:cursor-not-allowed disabled:text-zinc-300"
-                  >
-                    아래로
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSlides((current) => normalizeSlides(current.filter((item) => item.id !== slide.id)))}
-                    className="rounded-full border border-red-100 bg-white px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
-                  >
-                    삭제
-                  </button>
-                </div>
-              </div>
 
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
                 <ImageUploadField
                   key={`${slide.id}:${slide.imageUrl ?? ""}`}
-                  label="커버 이미지"
+                  label={`대표 이미지 ${index + 1}`}
                   menuId={menuId}
                   target="site-cover-draft"
                   currentUrl={slide.imageUrl}
-                  description="이 슬라이드에 사용할 커버 이미지를 등록해주세요."
+                  description="이 순서에 표시할 대표 이미지를 등록해주세요. 상품 선택과 관계없이 이미지 단독으로 사용할 수 있습니다."
                   uploadSuccessMessage="새 대표 이미지는 저장 후 공개 메뉴판에 반영됩니다."
                   deleteConfirmTitle="이 대표 이미지를 삭제할까요?"
                   deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
@@ -200,66 +192,116 @@ export default function FeaturedSlidesEditor({
                     }))
                   }
                 />
+              </section>
+            );
+          })}
+        </div>
 
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="break-keep text-xs font-bold text-zinc-400">
+            {slides.length}/{effectiveMaxSlides}개 사용 중
+          </p>
+          <button
+            type="button"
+            onClick={() =>
+              setSlides((current) =>
+                current.length >= effectiveMaxSlides
+                  ? current
+                  : normalizeSlides([
+                      ...current,
+                      { id: createSlideId(), imageUrl: null, imagePath: null, featuredItemId: null, sortOrder: current.length },
+                    ])
+              )
+            }
+            disabled={slides.length >= effectiveMaxSlides}
+            className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+          >
+            대표 이미지 추가
+          </button>
+          {slides.length >= effectiveMaxSlides && (
+            <p className="basis-full break-keep text-right text-xs font-bold text-amber-700">
+              대표 이미지는 최대 {effectiveMaxSlides}개까지 등록할 수 있습니다.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-zinc-100 bg-zinc-50 p-5" data-featured-product-editor="">
+        <div>
+          <h3 className="type-content-title text-zinc-950">대표 상품</h3>
+          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            등록한 각 대표 이미지 위에 상품명·설명·배지·가격을 함께 보여줄지 선택합니다.
+          </p>
+        </div>
+
+        <div className="mt-5 rounded-lg border border-zinc-100 bg-white p-4">
+          <CafeAStarterFeaturedEnabledSwitch
+            defaultChecked={defaultFeaturedItemEnabled}
+            formId={formId}
+            label="대표 상품 정보 표시"
+          />
+          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+            끄면 대표 이미지만 표시됩니다. 등록한 이미지와 상품 연결 정보는 삭제되지 않습니다.
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-4">
+          {slides.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-5 text-sm font-bold text-zinc-400">
+              먼저 위의 대표 이미지 영역에서 이미지를 추가해주세요.
+            </div>
+          ) : slides.map((slide, index) => {
+            const completionLabel = getCompletionLabel(slide);
+            const selectedItemIsInvalid = Boolean(slide.featuredItemId && !itemOptionIds.has(slide.featuredItemId));
+            const selectedItemIsDuplicate = Boolean(slide.featuredItemId && duplicateItemIds.has(slide.featuredItemId));
+            const takenItemIds = new Set(slides.filter((_, slideIndex) => slideIndex !== index).map((item) => item.featuredItemId).filter(Boolean));
+
+            return (
+              <section key={slide.id} className="rounded-lg border border-zinc-100 bg-white p-4">
+              <div className="mb-3">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400" htmlFor={`featured-slide-item-${slide.id}`}>
-                    대표 상품
-                  </label>
-                  <select
-                    id={`featured-slide-item-${slide.id}`}
-                    value={slide.featuredItemId ?? ""}
-                    onChange={(event) => updateSlide(slide.id, (current) => ({ ...current, featuredItemId: event.target.value || null }))}
-                    className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
-                  >
-                    <option value="">대표로 보여줄 상품을 선택해주세요</option>
-                    {selectedItemIsInvalid && slide.featuredItemId && (
-                      <option value={slide.featuredItemId} disabled>
-                        선택된 상품 · 숨김 또는 삭제됨
-                      </option>
-                    )}
-                    {effectiveItemOptions.map((item) => (
-                      <option key={item.id} value={item.id} disabled={takenItemIds.has(item.id)}>
-                        {item.label} · {item.categoryName} · {item.price} · {item.imageStatus}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                    선택 사항입니다. 선택하지 않으면 이미지만 표시되며, 같은 상품은 한 번만 연결할 수 있습니다.
-                  </p>
+                  <h4 className="type-label text-zinc-950">대표 이미지 {index + 1}의 상품</h4>
+                  {completionLabel && <p className="mt-1 break-keep text-xs font-bold text-amber-700">이미지를 등록한 뒤 공개 메뉴판에 표시됩니다.</p>}
+                  {selectedItemIsInvalid && (
+                    <p className="mt-1 break-keep text-xs font-bold text-red-600">
+                      선택된 대표 상품이 삭제되었거나 숨김 처리되었습니다. 다른 상품을 선택해주세요.
+                    </p>
+                  )}
+                  {selectedItemIsDuplicate && (
+                    <p className="mt-1 break-keep text-xs font-bold text-red-600">같은 대표 상품은 한 번만 선택할 수 있습니다.</p>
+                  )}
                 </div>
               </div>
-            </section>
-          );
-        })}
-      </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="break-keep text-xs font-bold text-zinc-400">
-          {slides.length}/{effectiveMaxSlides}개 사용 중
-        </p>
-        <button
-          type="button"
-          onClick={() =>
-            setSlides((current) =>
-              current.length >= effectiveMaxSlides
-                ? current
-                : normalizeSlides([
-                    ...current,
-                    { id: createSlideId(), imageUrl: null, imagePath: null, featuredItemId: null, sortOrder: current.length },
-                  ])
-            )
-          }
-          disabled={slides.length >= effectiveMaxSlides}
-          className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
-        >
-          대표 슬라이드 추가
-        </button>
-        {slides.length >= effectiveMaxSlides && (
-          <p className="basis-full break-keep text-right text-xs font-bold text-amber-700">
-            대표 슬라이드는 최대 {effectiveMaxSlides}개까지 등록할 수 있습니다.
-          </p>
-        )}
-      </div>
+              <label className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400" htmlFor={`featured-slide-item-${slide.id}`}>
+                연결할 대표 상품
+              </label>
+              <select
+                id={`featured-slide-item-${slide.id}`}
+                value={slide.featuredItemId ?? ""}
+                onChange={(event) => updateSlide(slide.id, (current) => ({ ...current, featuredItemId: event.target.value || null }))}
+                className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+              >
+                <option value="">상품 정보 없이 이미지로만 표시</option>
+                {selectedItemIsInvalid && slide.featuredItemId && (
+                  <option value={slide.featuredItemId} disabled>
+                    선택된 상품 · 숨김 또는 삭제됨
+                  </option>
+                )}
+                {effectiveItemOptions.map((item) => (
+                  <option key={item.id} value={item.id} disabled={takenItemIds.has(item.id)}>
+                    {item.label} · {item.categoryName} · {item.price} · {item.imageStatus}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                선택하지 않으면 해당 순서에는 이미지만 표시됩니다. 같은 상품은 한 번만 연결할 수 있습니다.
+              </p>
+              </section>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

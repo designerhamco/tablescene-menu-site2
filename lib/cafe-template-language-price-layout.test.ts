@@ -84,6 +84,13 @@ test("오브 커피와 모카 포레스트의 PC·태블릿 언어 UI는 가게�
   assert.match(templateSource, /!isCenterColumn \? \([\s\S]*data-cafe-a-rail-language-row=""/);
 });
 
+test("재고 마감 카운트다운은 레이아웃이 흔들리지 않는 디지털 타이머를 사용한다", () => {
+  assert.match(templateSource, /formatTimeSaleDigitalCountdownLabel\(activeEndsAtMs, nowMs\)/);
+  assert.match(templateSource, /data-cafe-a-time-sale-digital-timer=/);
+  assert.match(templateSource, /role=\{isDigitalCountdown \? "timer" : undefined\}/);
+  assert.match(globalStylesSource, /\.cafe-a-time-sale-digital-value \{[\s\S]*font-variant-numeric: tabular-nums;[\s\S]*inline-size: 8ch;/);
+});
+
 test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12배 큰 공통 글자 비율을 사용한다", () => {
   assert.match(templateSource, /TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 1\.34/);
   assert.match(templateSource, /getPreviewFitFontScaleCandidates\(FIT_FONT_SCALE_CANDIDATES, data\.previewDevice === "tablet"\)/);

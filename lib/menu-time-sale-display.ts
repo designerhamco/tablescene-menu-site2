@@ -123,6 +123,20 @@ export function formatTimeSaleCountdownLabel(endsAtMs: number, nowMs: number, lo
   return `${minutes}분 남음`;
 }
 
+export function formatTimeSaleDigitalCountdownLabel(endsAtMs: number, nowMs: number) {
+  const remainingSeconds = Math.max(0, Math.ceil((endsAtMs - nowMs) / 1000));
+  const hours = Math.floor(remainingSeconds / 3600);
+  const minutes = Math.floor((remainingSeconds % 3600) / 60);
+  const seconds = remainingSeconds % 60;
+  const formatTwoDigit = (value: number) => String(value).padStart(2, "0");
+
+  if (hours > 0) {
+    return `${formatTwoDigit(hours)}:${formatTwoDigit(minutes)}:${formatTwoDigit(seconds)}`;
+  }
+
+  return `${formatTwoDigit(minutes)}:${formatTwoDigit(seconds)}`;
+}
+
 export function isMenuTimeSaleActive(timeSale: MenuTimeSaleDisplaySource, nowMs: number) {
   return isTimeSaleActiveAt(getTimeSaleSchedule(timeSale), nowMs);
 }

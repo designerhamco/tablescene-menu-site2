@@ -29,6 +29,7 @@ import {
   type PriceDisplayMode,
 } from "@/lib/menu-price-format";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
+import { formatTimeSaleDigitalCountdownLabel } from "@/lib/menu-time-sale-display";
 import { getReadableTextColorForTimeSaleBadge, normalizeTimeSaleBadgeBackgroundColor } from "@/lib/menu-time-sales";
 import {
   getActiveTimeSaleWindowEndMs,
@@ -2623,6 +2624,8 @@ function TimeSaleMenuBadge({ timeSale, locale }: { timeSale: PublicTimeSale; loc
   const activeEndsAtMs = getActiveTimeSaleEndMs(timeSale, nowMs);
   const displayText = timeSale.displayText?.trim() ?? "";
   let label = "";
+  let accessibleLabel = "";
+  const isDigitalCountdown = timeSale.timeDisplayMode === "countdown";
 
   if (timeSale.timeDisplayMode === "message") {
     label = displayText;
@@ -2632,7 +2635,8 @@ function TimeSaleMenuBadge({ timeSale, locale }: { timeSale: PublicTimeSale; loc
     }
   } else if (timeSale.timeDisplayMode === "countdown") {
     if (activeEndsAtMs != null && activeEndsAtMs > nowMs) {
-      label = formatCountdownLabel(activeEndsAtMs, nowMs, locale);
+      label = formatTimeSaleDigitalCountdownLabel(activeEndsAtMs, nowMs);
+      accessibleLabel = formatCountdownLabel(activeEndsAtMs, nowMs, locale);
     }
   } else if (activeEndsAtMs != null && activeEndsAtMs > nowMs) {
     label = formatTimeSaleDeadlineLabel(new Date(activeEndsAtMs).toISOString(), timeSale.timezone, nowMs, locale);
@@ -2642,11 +2646,16 @@ function TimeSaleMenuBadge({ timeSale, locale }: { timeSale: PublicTimeSale; loc
 
   return (
     <span
-      className="cafe-a-time-sale-time-text menu-font-en mb-0.5 mt-[0.3125rem] flex w-fit items-center gap-[0.25rem] font-black uppercase leading-snug tracking-[0.08em] tabular-nums"
+      className={`cafe-a-time-sale-time-text menu-font-en mb-0.5 mt-[0.3125rem] flex w-fit items-center gap-[0.25rem] font-black uppercase leading-snug tracking-[0.08em] tabular-nums ${isDigitalCountdown ? "cafe-a-time-sale-digital-timer" : ""}`}
       style={{ color: getCafeATimeSaleAccentColor(timeSale.badgeBackgroundColor) }}
+      data-cafe-a-time-sale-digital-timer={isDigitalCountdown ? "" : undefined}
+      role={isDigitalCountdown ? "timer" : undefined}
+      aria-label={isDigitalCountdown ? accessibleLabel : undefined}
     >
       <Clock3 aria-hidden="true" focusable="false" className="cafe-a-time-sale-time-icon" strokeWidth={2} />
-      <span className="tracking-normal"><ScriptAwareText text={label} /></span>
+      <span className={`tracking-normal ${isDigitalCountdown ? "cafe-a-time-sale-digital-value" : ""}`} aria-hidden={isDigitalCountdown ? true : undefined}>
+        <ScriptAwareText text={label} />
+      </span>
     </span>
   );
 }

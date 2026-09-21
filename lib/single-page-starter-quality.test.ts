@@ -47,3 +47,23 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     }
   });
 }
+
+test("stock closeout starters use a sixty-minute live countdown", () => {
+  const expectedCloseoutKeys = new Map([
+    ["cafe_design_a", "classic-butter-scone-closeout"],
+    ["cafe_mocha_forest_a", "dark-chocolate-brownie-closeout"],
+    ["cafe_sunday_line_a", "brown-butter-scone-closeout"],
+  ]);
+
+  for (const [templateKey, expectedSaleKey] of expectedCloseoutKeys) {
+    const preset = getStarterPreset(templateKey);
+    const closeout = preset.time_sales?.find((sale) => sale.key === expectedSaleKey);
+    assert.ok(closeout, `${templateKey}: stock closeout`);
+    assert.equal(closeout.duration_minutes, 60, `${templateKey}: stock closeout duration`);
+    assert.equal(closeout.time_display_mode, "countdown", `${templateKey}: stock closeout display mode`);
+    assert.match(closeout.badge_text ?? "", /재고 마감/, `${templateKey}: stock closeout badge`);
+  }
+
+  const roundFocusTimedSales = getStarterPreset("cafe_round_focus_a").time_sales?.filter((sale) => sale.duration_minutes === 60) ?? [];
+  assert.deepEqual(roundFocusTimedSales, []);
+});

@@ -886,6 +886,19 @@ video {
   width: 0.9em;
 }
 
+.cafe-a-typography .cafe-a-time-sale-digital-timer {
+  letter-spacing: 0;
+}
+
+.cafe-a-typography .cafe-a-time-sale-digital-value {
+  display: inline-block;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  inline-size: 8ch;
+  letter-spacing: 0.06em;
+  text-align: right;
+}
+
 @container (max-width: 240px) {
   .cafe-a-typography .cafe-a-category-heading-row {
     display: grid;

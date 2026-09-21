@@ -87,3 +87,11 @@ test("single-page cover controls describe the representative area instead of ove
   assert.equal(getCoverTabLabel("page"), "커버 이미지");
   assert.equal(getCoverToggleLabel("page"), "커버 페이지 사용");
 });
+
+test("active single-page representative areas allow up to five image slides", () => {
+  for (const templateKey of ["cafe_design_a", "cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a"]) {
+    const capabilities = getTemplateCapabilities(templateKey);
+    assert.equal(capabilities.featuredItemCarousel, true, `${templateKey}: representative image carousel`);
+    assert.equal(capabilities.featuredItemMaxSlides, 5, `${templateKey}: representative image limit`);
+  }
+});
