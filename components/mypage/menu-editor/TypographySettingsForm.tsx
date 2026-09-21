@@ -166,7 +166,7 @@ function FontPicker<Value extends string>({
           <h4 id={labelId} className="type-label text-zinc-950">{label}</h4>
           <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{description}</p>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-            현재 선택: <span className="text-zinc-700">{value ? selectedOption.label : `템플릿 기본값 (${defaultOption.label})`}</span>
+            현재 적용: <span className="text-zinc-700">{value ? selectedOption.label : `템플릿 기본값 · ${defaultOption.label}`}</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2" aria-label={`${label} 카테고리 필터`}>
@@ -197,7 +197,7 @@ function FontPicker<Value extends string>({
               value === "" ? "bg-zinc-950 text-white" : "bg-white text-zinc-700 hover:bg-zinc-100"
             }`}
           >
-            <span>템플릿 기본값 ({defaultOption.label})</span>
+            <span>템플릿 기본값 · {defaultOption.label}</span>
             {value === "" ? <span className="text-xs font-bold opacity-70">선택됨</span> : null}
           </button>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -351,6 +351,9 @@ export default function TypographySettingsForm({
                       ? "가게명과 페이지·코스명은 폰트와 색상을, 나머지 글자는 폰트만 조정합니다."
                       : "가게명과 카테고리명은 폰트와 색상을, 나머지 글자는 폰트만 조정합니다."}
                   </p>
+                  <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                    현재 템플릿 기본 폰트: 한글 <span className="text-zinc-700">{defaultFont.label}</span> · 영문/숫자 <span className="text-zinc-700">{safeDefaultEnglishFont.label}</span>
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -396,7 +399,7 @@ export default function TypographySettingsForm({
                           className="h-10 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 outline-none transition focus:border-zinc-950"
                         >
                           {koreanFontValue === MIXED_SELECT_VALUE ? <option value={MIXED_SELECT_VALUE}>기존 개별 설정 유지</option> : null}
-                          <option value="">템플릿 기본값 ({defaultFont.label})</option>
+                          <option value="">템플릿 기본값 · {defaultFont.label}</option>
                           {KOREAN_FONT_OPTIONS.map((option) => (
                             <option key={`ko-${group.key}-${option.value}`} value={option.value}>{option.label}</option>
                           ))}
@@ -411,7 +414,7 @@ export default function TypographySettingsForm({
                           className="h-10 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 outline-none transition focus:border-zinc-950"
                         >
                           {englishFontValue === MIXED_SELECT_VALUE ? <option value={MIXED_SELECT_VALUE}>기존 개별 설정 유지</option> : null}
-                          <option value="">템플릿 기본값 ({safeDefaultEnglishFont.label})</option>
+                          <option value="">템플릿 기본값 · {safeDefaultEnglishFont.label}</option>
                           {englishFontOptions.map((option) => (
                             <option key={`en-${group.key}-${option.value}`} value={option.value}>{option.label}</option>
                           ))}

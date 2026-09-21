@@ -607,17 +607,18 @@ export function getBasicPricingCapabilities(templateKey: string | null | undefin
 
 export function getCoverTabLabel(coverMode: TemplateMenuCoverMode): string | null {
   if (coverMode === "none") return null;
+  if (coverMode === "section") return "대표 영역";
   return "커버 이미지";
 }
 
 export function getCoverToggleLabel(coverMode: TemplateMenuCoverMode): string {
   if (coverMode === "page") return "커버 페이지 사용";
-  return "커버 이미지 사용";
+  return "대표 영역 사용";
 }
 
 export function getCoverDescription(coverMode: TemplateMenuCoverMode): string {
   if (coverMode === "section") {
-    return "메뉴판에 표시되는 대표 이미지와 추천 메뉴를 설정합니다.";
+    return "메뉴판의 대표 영역에 표시할 이미지를 설정합니다. 이미지만 보여주거나 대표 상품 정보를 함께 표시할 수 있습니다.";
   }
 
   if (coverMode === "page") {

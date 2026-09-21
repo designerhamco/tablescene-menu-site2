@@ -1,4 +1,5 @@
 import type { Json } from "@/lib/supabase/types";
+import { MAX_TIME_SALES_PER_MENU_SITE } from "@/lib/menu-time-sale-validation";
 import { normalizeDailyTime, normalizeTimeSaleScheduleType, type TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 import { normalizeTemplateKey } from "@/lib/templates";
 
@@ -125,12 +126,12 @@ export function shouldIncludeMenuTimeSaleSaveEntry(draft: MenuTimeSaleManagement
 }
 
 const BASIC_TIME_SALE_TEMPLATE_LIMITS = new Map<string, number>([
-  ["display_menu_a", 1],
-  ["cafe_design_a", 1],
-  ["cafe_mocha_forest_a", 1],
-  ["cafe_sunday_line_a", 1],
-  ["cafe_round_focus_a", 1],
-  ["cafe_brew_chapter_a", 1],
+  ["display_menu_a", MAX_TIME_SALES_PER_MENU_SITE],
+  ["cafe_design_a", MAX_TIME_SALES_PER_MENU_SITE],
+  ["cafe_mocha_forest_a", MAX_TIME_SALES_PER_MENU_SITE],
+  ["cafe_sunday_line_a", MAX_TIME_SALES_PER_MENU_SITE],
+  ["cafe_round_focus_a", MAX_TIME_SALES_PER_MENU_SITE],
+  ["cafe_brew_chapter_a", MAX_TIME_SALES_PER_MENU_SITE],
 ]);
 
 export function getMaxTimeSalesForTemplate(templateKey?: string | null, templateCategory?: string | null) {

@@ -1071,7 +1071,7 @@ video {
     width: 100%;
   }
 
-  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-fixed-rail-copy > div:first-child {
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-rail-heading {
     align-items: center;
     flex-direction: column;
     text-align: center;
@@ -1282,7 +1282,7 @@ video {
     grid-template-columns: minmax(220px, 0.78fr) minmax(0, 1.5fr);
   }
 
-  .cafe-a-typography .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] .cafe-a-fixed-rail-copy > div:first-child {
+  .cafe-a-typography .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] .cafe-a-rail-heading {
     align-items: start;
   }
 
@@ -1563,7 +1563,7 @@ video {
     width: 100%;
   }
 
-  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-fixed-rail-copy > div:first-child {
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-rail-heading {
     align-items: center;
     flex-direction: column;
     gap: clamp(0.5rem, 1vmin, 0.875rem);
@@ -1571,7 +1571,7 @@ video {
     width: 100%;
   }
 
-  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-fixed-rail-copy > div:first-child > button {
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-rail-heading > button {
     align-self: flex-end;
   }
 

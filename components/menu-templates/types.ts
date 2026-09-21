@@ -172,7 +172,7 @@ export type PublicMenuTimeSale = {
 export type PublicFeaturedSlide = {
   id: string;
   imageUrl: string;
-  featuredItemId: string;
+  featuredItemId: string | null;
   sortOrder: number;
 };
 

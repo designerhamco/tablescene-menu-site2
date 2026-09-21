@@ -2025,7 +2025,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <TextInput
                       value={publicUrl}
                       readOnly
-                      className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
+                      data-copyable-readonly="true"
                       helperText={
                         <>
                           QR 코드와 공유 링크에 사용되는 주소입니다. 결제 후에는 변경할 수 없습니다.
@@ -2039,7 +2039,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <TextInput
                       value={templateDisplayName}
                       readOnly
-                      className="cursor-not-allowed bg-zinc-100 text-zinc-600 focus:border-zinc-200"
                       helperText="디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다."
                     />
                   </div>
@@ -2326,10 +2325,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           <CafeAStarterFeaturedEnabledSwitch
                             defaultChecked={pageSettings.featured_item_enabled}
                             formId="menu-cover-form"
-                            label="대표 영역 사용"
+                            label="대표 상품 정보 표시"
                           />
                           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                            꺼도 등록한 대표 슬라이드는 삭제되지 않습니다. 다시 켜면 저장된 슬라이드를 그대로 사용할 수 있습니다.
+                            끄면 대표 이미지만 표시되고 상품명·설명·배지·가격은 숨겨집니다. 등록한 이미지와 상품 연결은 삭제되지 않습니다.
                           </p>
                         </div>
                         <FeaturedSlidesEditor
