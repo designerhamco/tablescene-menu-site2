@@ -476,7 +476,7 @@ video {
   --cafe-a-script-en-font: var(--menu-role-brand-font-en, var(--menu-font-en));
   color: var(--menu-role-brand-color, #191c1b);
   font-family: var(--menu-role-brand-font-family, inherit);
-  font-size: calc(clamp(2.25rem, calc(2.55rem * var(--menu-font-size-scale) * var(--menu-role-brand-size-scale, 1) + 0.9cqw), 3.25rem) * var(--cafe-a-device-type-scale));
+  font-size: calc(clamp(2.25rem, calc(2.55rem * var(--menu-font-size-scale) * var(--menu-role-brand-size-scale, 1) + 0.9cqw), 3.25rem) * var(--cafe-a-device-type-scale) * var(--cafe-a-store-title-device-scale, 1));
   font-weight: var(--menu-role-brand-font-weight, 900);
 }
 
@@ -2555,6 +2555,7 @@ video {
   }
 
   .cafe-a-typography[data-preview-device="tablet"][data-cafe-a-skin="sunday_line"] {
+    --cafe-a-store-title-device-scale: 0.82;
     --cafe-a-shell-category-title-boost: 1.1;
     --cafe-a-shell-menu-copy-boost: 0.9;
     --cafe-a-shell-menu-price-boost: 1;

@@ -339,6 +339,18 @@ try {
           if (spacingIncrease < 3 || spacingIncrease > 12) {
             failures.push(`Sunday Line row spacing is not a subtle increase: ${JSON.stringify(spacing)}`);
           }
+          if (deviceCase.device === "tablet") {
+            const storeTitleMetrics = await page.locator(".cafe-a-typography").evaluate((element) => {
+              const title = element.querySelector(".cafe-a-store-title");
+              return {
+                scale: getComputedStyle(element).getPropertyValue("--cafe-a-store-title-device-scale").trim(),
+                fontSize: title ? Number.parseFloat(getComputedStyle(title).fontSize) : null,
+              };
+            });
+            if (storeTitleMetrics.scale !== "0.82" || storeTitleMetrics.fontSize === null || storeTitleMetrics.fontSize >= 48) {
+              failures.push(`Sunday Line tablet store title is not gently reduced: ${JSON.stringify(storeTitleMetrics)}`);
+            }
+          }
         }
         if (templateKey === "cafe_mocha_forest_a") {
           const categoryScale = await page.locator(".cafe-a-typography").evaluate((element) => (

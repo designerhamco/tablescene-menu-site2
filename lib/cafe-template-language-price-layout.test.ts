@@ -88,6 +88,11 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
     globalStylesSource,
     /@media \(min-width: 1024px\) \{[\s\S]*\.cafe-a-typography\[data-preview-device="tablet"\][\s\S]*--cafe-a-shell-category-title-boost: 1\.1;[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.9;/,
   );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\]\[data-cafe-a-skin="sunday_line"\] \{[\s\S]*--cafe-a-store-title-device-scale: 0\.82;/,
+  );
+  assert.match(globalStylesSource, /\.cafe-a-store-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
 });
 
 test("대표 영역은 모든 기기에서 대응 메뉴 역할과 같은 크기를 따른다", () => {
