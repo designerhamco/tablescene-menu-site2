@@ -216,6 +216,7 @@ try {
           ));
 
           return {
+            storeName: firstSignature(".cafe-a-store-title"),
             categoryName: firstSignature(".cafe-a-category-title"),
             itemName: firstSignature("[data-cafe-a-menu-name]"),
             secondaryName: firstSignature(".cafe-a-menu-meta"),
@@ -283,20 +284,23 @@ try {
           compareTypography(target.label, typography.itemDescription, target.signature);
         }
         if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a") {
-          if (!typography.categoryName || !typography.itemName || !typography.secondaryName || !typography.itemDescription || !typography.optionName) {
+          if (!typography.storeName || !typography.categoryName || !typography.itemName || !typography.secondaryName || !typography.itemDescription || !typography.itemPrice || !typography.optionName) {
             failures.push(`Aube/Mocha hierarchy metrics are unavailable: ${JSON.stringify(typography)}`);
           } else {
-            if (typography.categoryName.fontSize < typography.itemName.fontSize * 1.16) {
-              failures.push(`Aube/Mocha category hierarchy is too weak: ${typography.categoryName.fontSize}px / ${typography.itemName.fontSize}px`);
+            const sundayHierarchy = {
+              pc: { categoryName: 1.5, secondaryName: 0.64, itemDescription: 0.71, itemPrice: 1, optionName: 0.56 },
+              tablet: { categoryName: 1.4, secondaryName: 0.63, itemDescription: 0.72, itemPrice: 1.04, optionName: 0.53 },
+              mobile: { categoryName: 1.34, secondaryName: 0.68, itemDescription: 0.81, itemPrice: 1.04, optionName: 0.62 },
+            }[deviceCase.device];
+            for (const [role, expectedRatio] of Object.entries(sundayHierarchy)) {
+              const actualRatio = typography[role].fontSize / typography.itemName.fontSize;
+              if (Math.abs(actualRatio - expectedRatio) > 0.025) {
+                failures.push(`Aube/Mocha ${role} does not follow the Sunday hierarchy: ${actualRatio} / ${expectedRatio}`);
+              }
             }
-            if (typography.secondaryName.fontSize < typography.itemName.fontSize * 0.64) {
-              failures.push(`Aube/Mocha secondary name is too small: ${typography.secondaryName.fontSize}px / ${typography.itemName.fontSize}px`);
-            }
-            if (typography.itemDescription.fontSize < typography.itemName.fontSize * 0.71) {
-              failures.push(`Aube/Mocha description is too small: ${typography.itemDescription.fontSize}px / ${typography.itemName.fontSize}px`);
-            }
-            if (typography.optionName.fontSize < typography.itemName.fontSize * 0.57) {
-              failures.push(`Aube/Mocha option name is too small: ${typography.optionName.fontSize}px / ${typography.itemName.fontSize}px`);
+            const sundayStoreTitleSize = { pc: 48.6, tablet: 46.62, mobile: 42.9 }[deviceCase.device];
+            if (Math.abs(typography.storeName.fontSize - sundayStoreTitleSize) > 0.25) {
+              failures.push(`Aube/Mocha store title does not follow the Sunday size: ${typography.storeName.fontSize}px / ${sundayStoreTitleSize}px`);
             }
           }
         }
@@ -359,7 +363,7 @@ try {
           const categoryScale = await page.locator(".cafe-a-typography").evaluate((element) => (
             getComputedStyle(element).getPropertyValue("--cafe-a-template-category-title-scale").trim()
           ));
-          if (categoryScale !== "1.14") failures.push(`Mocha Forest category scale is incorrect: ${categoryScale || "missing"}`);
+          if (categoryScale !== "1") failures.push(`Mocha Forest category scale is incorrect: ${categoryScale || "missing"}`);
         }
         if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
 

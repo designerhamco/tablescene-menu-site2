@@ -94,6 +94,7 @@ async function inspectPreviewGuide(page) {
   const closeButton = page.getByRole("button", { name: "닫기", exact: true });
   const hideTodayCheckbox = page.getByRole("checkbox", { name: "오늘 하루 보지 않기" });
 
+  await dialog.waitFor({ state: "visible", timeout: 2_000 }).catch(() => null);
   if (!(await dialog.isVisible())) failures.push("preview guide dialog is not visible on the first visit");
   if (!(await closeButton.isVisible())) failures.push("preview guide close button is not visible");
   if (!(await hideTodayCheckbox.isVisible())) failures.push("preview guide hide-today checkbox is not visible");
@@ -128,6 +129,7 @@ async function inspectDisplayPreviewControls(page) {
   const controls = page.locator("[data-display-preview-controls-visible]");
   const pagination = page.locator("[data-display-preview-pagination]");
 
+  await dialog.waitFor({ state: "visible", timeout: 2_000 }).catch(() => null);
   if (!(await dialog.isVisible())) failures.push("display preview guide is not visible on the first visit");
   if (await dialog.getAttribute("data-preview-guide-variant") !== "display") {
     failures.push("display preview guide does not use the display-only variant");

@@ -6330,6 +6330,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     [layoutMode, orderedFitFinalFillCompensation],
   );
   const fitGapStyle = useMemo(() => getFitGapStyle(density), [density]);
+  const titleSizeClassName = getMenuTitleSizeClassName(density);
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const orderedBalancedPriceOptionSignature = useMemo(
     () =>
@@ -8605,7 +8606,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     <CafeATimeSaleInitialNowContext.Provider value={initialNowMs}>
       <CafeATypographyFontAssets typographySettings={typographySettings} />
       <main
-        className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
+        className={`menu-typography cafe-a-typography ${titleSizeClassName} group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden`}
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
         data-cafe-a-skin={cafeASkinAttribute}
         data-template-key={data.menuSite.template_key ?? undefined}
@@ -8673,7 +8674,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
           <div
             ref={desktopFitBoardRef}
-            className={`cafe-a-desktop-fit-board ${descriptionSizeClassName} relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
+            className={`cafe-a-desktop-fit-board ${titleSizeClassName} ${descriptionSizeClassName} relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
             aria-busy={fitPresentationState === "loading"}
             data-fit-status={fitState.status}
             data-fit-presentation-state={fitPresentationState}

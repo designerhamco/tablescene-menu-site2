@@ -219,22 +219,32 @@ test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명�
   );
   assert.match(templateSource, /cafe-a-menu-description cafe-a-featured-description/);
   assert.match(templateSource, /cafe-a-menu-description cafe-a-store-description cafe-a-rail-description/);
-  assert.match(templateSource, /className=\{`cafe-a-desktop-fit-board \$\{descriptionSizeClassName\}/);
+  assert.match(templateSource, /className=\{`cafe-a-desktop-fit-board \$\{titleSizeClassName\} \$\{descriptionSizeClassName\}/);
 });
 
-test("단일 페이지별 미세 조정은 유동 비율과 동일 열 계약을 유지한다", () => {
+test("오브 커피와 모카 포레스트는 선데이 라인의 장치별 글자 위계를 공유한다", () => {
   assert.match(templateSource, /data-template-key=\{data\.menuSite\.template_key \?\? undefined\}/);
-  assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*--cafe-a-template-category-title-scale: 1\.06;/);
-  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1\.14;/);
-  assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*\.cafe-a-category-title \{[\s\S]*1\.24/);
-  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*\.cafe-a-category-title \{[\s\S]*1\.16/);
-  assert.match(globalStylesSource, /--cafe-a-template-secondary-copy-scale: 1\.08;/);
-  assert.match(globalStylesSource, /--cafe-a-template-supporting-copy-scale: 1\.08;/);
-  assert.match(globalStylesSource, /--cafe-a-template-option-label-scale: 1\.1;/);
-  assert.match(globalStylesSource, /var\(--cafe-a-linked-item-name-size\)[^;]*0\.65/);
+  assert.match(templateSource, /const titleSizeClassName = getMenuTitleSizeClassName\(density\);/);
+  assert.match(templateSource, /className=\{`menu-typography cafe-a-typography \$\{titleSizeClassName\}/);
+  assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*--cafe-a-template-category-title-scale: 1;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1;/);
+  assert.match(globalStylesSource, /--cafe-a-template-secondary-copy-scale: 1;/);
+  assert.match(globalStylesSource, /--cafe-a-template-supporting-copy-scale: 1;/);
+  assert.match(globalStylesSource, /--cafe-a-template-option-label-scale: 1;/);
   assert.match(globalStylesSource, /--cafe-a-template-shared-supporting-copy-base-size: clamp\(0\.76rem,/);
-  assert.match(globalStylesSource, /\.cafe-a-menu-description:not\(\.cafe-a-featured-description\),[\s\S]*0\.74rem/);
-  assert.match(globalStylesSource, /var\(--cafe-a-linked-item-name-size\)[^;]*0\.58/);
+  assert.match(globalStylesSource, /--cafe-a-sunday-category-ratio: 1\.34;[\s\S]*--cafe-a-sunday-secondary-ratio: 0\.68;[\s\S]*--cafe-a-sunday-supporting-ratio: 0\.81;[\s\S]*--cafe-a-sunday-price-ratio: 1\.04;[\s\S]*--cafe-a-sunday-option-ratio: 0\.62;/);
+  assert.match(globalStylesSource, /data-preview-device="tablet"[^}]*--cafe-a-store-title-device-scale: 0\.94;[\s\S]*--cafe-a-sunday-category-ratio: 1\.4;[\s\S]*--cafe-a-sunday-secondary-ratio: 0\.63;[\s\S]*--cafe-a-sunday-supporting-ratio: 0\.72;[\s\S]*--cafe-a-sunday-price-ratio: 1\.04;[\s\S]*--cafe-a-sunday-option-ratio: 0\.53;/);
+  assert.match(globalStylesSource, /not\(\[data-preview-device="tablet"\]\)[^{]*\{[^}]*--cafe-a-sunday-category-ratio: 1\.5;[\s\S]*--cafe-a-sunday-secondary-ratio: 0\.64;[\s\S]*--cafe-a-sunday-supporting-ratio: 0\.71;[\s\S]*--cafe-a-sunday-price-ratio: 1;[\s\S]*--cafe-a-sunday-option-ratio: 0\.56;/);
+  assert.match(globalStylesSource, /\.cafe-a-desktop-fit-board \.cafe-a-store-title \{[\s\S]*5\.4vh/);
+  assert.match(globalStylesSource, /header \.cafe-a-store-title \{[\s\S]*11vw/);
+  assert.match(globalStylesSource, /\.cafe-a-category-title \{[\s\S]*var\(--cafe-a-sunday-category-ratio\)/);
+  assert.match(globalStylesSource, /\.cafe-a-menu-meta \{[\s\S]*var\(--cafe-a-sunday-secondary-ratio\)/);
+  assert.match(globalStylesSource, /\.cafe-a-menu-description,[\s\S]*var\(--cafe-a-sunday-supporting-ratio\)/);
+  assert.match(globalStylesSource, /\.cafe-a-featured-price\) \{[\s\S]*var\(--cafe-a-sunday-price-ratio\)/);
+  assert.match(globalStylesSource, /\.cafe-a-price-label[\s\S]*var\(--cafe-a-sunday-option-ratio\)/);
+});
+
+test("단일 페이지별 미세 조정은 유동 간격과 동일 열 계약을 유지한다", () => {
   assert.match(globalStylesSource, /--sunday-line-row-gap: calc\(var\(--board-padding\) \+ clamp\(0\.25rem, 0\.55vmin, 0\.5rem\)\);/);
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-desktop-fit-board[^}]*row-gap: var\(--sunday-line-row-gap\);/);
   assert.equal((globalStylesSource.match(/grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/g) ?? []).length >= 4, true);
