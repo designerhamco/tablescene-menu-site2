@@ -109,7 +109,6 @@ test("원페이지 보조언어명은 공통 보조서체를 유지하면서 조
 test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 단일 타이포그래피 계약을 사용한다", () => {
   assert.match(globalStylesSource, /--cafe-a-linked-supporting-copy-size:/);
   assert.match(globalStylesSource, /--cafe-a-linked-price-size:/);
-  assert.match(globalStylesSource, /--cafe-a-linked-chip-size:/);
   assert.match(globalStylesSource, /\.cafe-a-menu-price-size-default \{[\s\S]*--cafe-a-menu-price-size:[^;]*vmin/);
   assert.doesNotMatch(globalStylesSource, /\.cafe-a-menu-price-size-(?:spacious|default|compact|ultra-compact) \{[^}]*--cafe-a-menu-price-size:[^;]*cqw/);
   assert.match(
@@ -128,16 +127,18 @@ test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 �
   );
   assert.match(
     globalStylesSource,
-    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-badge, \.cafe-a-featured-badge\) \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-chip-size\) \* var\(--cafe-a-device-type-scale\)\);/,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-badge, \.cafe-a-featured-badge\) \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-item-name-size\)[^;]*0\.62\);/,
   );
   assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-price \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
-  assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-badge \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
+  assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-badge \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-item-name-size\)[^;]*0\.62\);/);
   assert.match(templateSource, /function getMenuPriceSizeClassName\(density: MenuLayoutDensity\)/);
   assert.match(templateSource, /cafe-a-featured-price \$\{getMenuPriceSizeClassName\(density\)\}/);
   assert.match(templateSource, /data-cafe-a-menu-description=""/);
   assert.match(templateSource, /data-cafe-a-category-description=""/);
   assert.match(templateSource, /data-cafe-a-menu-badge=""/);
   assert.match(templateSource, /data-cafe-a-featured-badge=""/);
+  assert.match(templateSource, /<Badge[^>]*className=\{titleClassName\}/);
+  assert.match(templateSource, /<HeroOverlayBadge[^>]*className=\{getMenuTitleSizeClassName\(density\)\}/);
   assert.doesNotMatch(globalStylesSource, /--featured-price-ratio:/);
 });
 
@@ -220,6 +221,7 @@ test("단일 페이지별 미세 조정은 유동 비율과 동일 열 계약을
   assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*--cafe-a-template-category-title-scale: 1\.06;/);
   assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1\.14;/);
   assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*\.cafe-a-category-title \{[\s\S]*1\.24/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*\.cafe-a-category-title \{[\s\S]*1\.16/);
   assert.match(globalStylesSource, /--cafe-a-template-secondary-copy-scale: 1\.08;/);
   assert.match(globalStylesSource, /--cafe-a-template-supporting-copy-scale: 1\.08;/);
   assert.match(globalStylesSource, /--cafe-a-template-option-label-scale: 1\.1;/);

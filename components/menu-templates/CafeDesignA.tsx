@@ -2592,10 +2592,10 @@ function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundC
   };
 }
 
-function TimeSaleBadge({ timeSale }: { timeSale: PublicTimeSale }) {
+function TimeSaleBadge({ timeSale, className = "" }: { timeSale: PublicTimeSale; className?: string }) {
   return (
     <span
-      className="menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none"
+      className={`menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}
       style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor)}
     >
       <ScriptAwareText text={timeSale.badgeText} />
@@ -3321,11 +3321,13 @@ function Badge({
   capabilities,
   templateKey,
   customBadgeStyles,
+  className = "",
 }: {
   item: MenuItem;
   capabilities: TemplateCapabilities;
   templateKey: string | null;
   customBadgeStyles: unknown;
+  className?: string;
 }) {
   if (!capabilities.itemBadges) return null;
 
@@ -3336,7 +3338,7 @@ function Badge({
 
   return (
     <span
-      className="menu-badge cafe-a-menu-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none"
+      className={`menu-badge cafe-a-menu-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none ${className}`}
       style={getBadgeStyleCss(badgeStyle)}
       data-cafe-a-menu-badge=""
     >
@@ -3358,11 +3360,13 @@ function HeroOverlayBadge({
   capabilities,
   templateKey,
   customBadgeStyles,
+  className = "",
 }: {
   item: MenuItem;
   capabilities: TemplateCapabilities;
   templateKey: string | null;
   customBadgeStyles: unknown;
+  className?: string;
 }) {
   if (!capabilities.itemBadges) return null;
 
@@ -3373,7 +3377,7 @@ function HeroOverlayBadge({
 
   return (
     <span
-      className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none"
+      className={`menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none ${className}`}
       style={getBadgeStyleCss(badgeStyle)}
       data-cafe-a-featured-badge=""
     >
@@ -3516,9 +3520,9 @@ function MenuItemRow({
         <h3 className={`cafe-a-menu-title break-words font-bold leading-snug ${titleTextColorClassName} ${titleClassName}`} data-cafe-a-menu-name="">
           <ScriptAwareText text={item.name} />
         </h3>
-        {showSoldOutBadge ? <SoldOutBadge locale={locale} /> : null}
-        {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} /> : null}
-        {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} /> : null}
+        {showSoldOutBadge ? <SoldOutBadge locale={locale} className={titleClassName} /> : null}
+        {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
+        {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
         <MenuOrderAddButton itemId={item.id} itemName={item.name} />
       </div>
       {hasSecondaryText && (
@@ -4014,11 +4018,11 @@ function CoverHero({
             <div className="min-w-0">
               {featuredItemSoldOut ? (
                 <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
-                  <SoldOutBadge locale={data.locale} className="cafe-a-featured-badge" />
+                  <SoldOutBadge locale={data.locale} className={`cafe-a-featured-badge ${getMenuTitleSizeClassName(density)}`} />
                 </div>
               ) : featuredBadgeLabel ? (
                 <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
-                  <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} />
+                  <HeroOverlayBadge item={featuredItem} capabilities={capabilities} templateKey={data.menuSite.template_key} customBadgeStyles={customBadgeStyles} className={getMenuTitleSizeClassName(density)} />
                 </div>
               ) : null}
               <h2 className={`cafe-a-featured-title ${getMenuTitleSizeClassName(density)} break-words font-bold leading-tight ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-title="">

@@ -276,7 +276,6 @@ video {
   --cafe-a-linked-supporting-copy-size: clamp(0.44rem, calc(var(--cafe-a-linked-supporting-copy-base-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-menu-copy-boost, 1) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-template-supporting-copy-scale)), 1.08rem);
   --cafe-a-menu-price-size: clamp(0.98rem, calc(0.91rem + 0.22cqw), 1.14rem);
   --cafe-a-linked-price-size: clamp(0.48rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-menu-price-boost, 1) * var(--menu-role-price-size-scale, 1)), 1.52rem);
-  --cafe-a-linked-chip-size: clamp(0.625rem, calc(0.625rem * var(--menu-font-size-scale, 1)), 0.78rem);
   --cafe-a-menu-name-to-description-gap: clamp(0.1rem, calc(0.08rem + 0.08cqw), 0.18rem);
   --cafe-a-time-sale-font-ratio: 0.9;
   --cafe-a-sold-out-chip-background: #eef0ee;
@@ -1231,7 +1230,6 @@ video {
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board {
-    --cafe-a-linked-chip-size: clamp(0.38rem, calc(0.625rem * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1)), 0.78rem);
     --cafe-a-category-heading-bottom-gap: clamp(0.34rem, calc(0.75rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--cafe-a-shell-category-heading-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 0.78rem);
     --cafe-a-category-items-top-gap: clamp(0.4rem, calc(var(--cafe-a-shell-category-items-padding) * var(--fit-menu-gap-scale) * var(--ordered-fit-final-fill-compensation)), 0.76rem);
     --cafe-a-category-title-to-items-gap: calc(var(--cafe-a-category-heading-bottom-gap) + var(--cafe-a-category-items-top-gap));
@@ -3539,14 +3537,14 @@ video {
 }
 
 .cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
-  font-size: calc(var(--cafe-a-linked-chip-size) * var(--cafe-a-device-type-scale));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 0.62);
   font-weight: 900;
   letter-spacing: normal;
   line-height: 1;
 }
 
 .cafe-a-typography:not(.brew-chapter-template) .cafe-a-cover-hero .cafe-a-featured-badge {
-  font-size: calc(var(--cafe-a-linked-chip-size) * var(--cafe-a-featured-role-scale) * var(--cafe-a-device-type-scale));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 0.62);
 }
 
 /* Aube Coffee and Mocha Forest keep secondary copy close enough to item names for a natural hierarchy. */
@@ -3554,6 +3552,13 @@ video {
   font-size: max(
     calc(clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-category-title-boost, 1) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.12rem) * var(--cafe-a-device-type-scale)),
     calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 1.24)
+  );
+}
+
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-category-title {
+  font-size: max(
+    calc(clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-category-title-boost, 1) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.12rem) * var(--cafe-a-device-type-scale)),
+    calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 1.16)
   );
 }
 

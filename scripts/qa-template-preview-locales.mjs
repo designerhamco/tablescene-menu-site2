@@ -263,6 +263,11 @@ try {
         compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
         compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
         compareTypography("featured description", typography.itemDescription, typography.featuredDescription, featuredScale);
+        if (!typography.itemName || !typography.itemBadge) {
+          failures.push(`menu text chip ratio metrics are unavailable: ${JSON.stringify({ itemName: typography.itemName, itemBadge: typography.itemBadge })}`);
+        } else if (typography.itemBadge.fontSize < typography.itemName.fontSize * 0.61) {
+          failures.push(`menu text chip is too small: ${typography.itemBadge.fontSize}px / ${typography.itemName.fontSize}px`);
+        }
         if (!typography.secondaryName) {
           failures.push("secondary-language menu names are missing");
         } else if (Number.parseInt(typography.secondaryName.fontWeight, 10) < 600) {
