@@ -129,19 +129,37 @@ try {
           failures.push(`internal single-page title is visible: ${singlePageInternalTitleByLocale[locale]}`);
         }
         const { category, item, featuredItem, featuredDescription, description, linkedSupporting } = measurement.typography;
-        if (category === null || item === null || featuredItem === null || featuredDescription === null || description === null) {
+        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a";
+        if (category === null || item === null) {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
           if (category < item * 1.35) failures.push(`category hierarchy is too weak: ${category}px / ${item}px`);
-          if (Math.abs(featuredItem - item) > 0.18) {
+          if (!usesNameAndPriceOnly && featuredItem === null) {
+            failures.push(`featured item typography is unavailable: ${JSON.stringify(measurement.typography)}`);
+          } else if (featuredItem !== null && Math.abs(featuredItem - item) > 0.18) {
             failures.push(`featured item title is not linked to the menu item title: ${featuredItem}px / ${item}px`);
           }
-          if (Math.abs(featuredDescription - description) > 0.18) {
-            failures.push(`featured description is not linked to the menu description: ${featuredDescription}px / ${description}px`);
-          }
-          const mismatchedSupporting = linkedSupporting.filter((size) => Math.abs(size - description) > 0.15);
-          if (mismatchedSupporting.length > 0) {
-            failures.push(`supporting copy is not linked to menu descriptions: ${description}px / ${linkedSupporting.join(", ")}px`);
+          if (description === null) {
+            if (!usesNameAndPriceOnly) {
+              failures.push(`menu description typography is unavailable: ${JSON.stringify(measurement.typography)}`);
+            }
+            const supportingBaseline = linkedSupporting[0] ?? null;
+            const mismatchedSupporting = supportingBaseline === null
+              ? []
+              : linkedSupporting.filter((size) => Math.abs(size - supportingBaseline) > 0.15);
+            if (mismatchedSupporting.length > 0) {
+              failures.push(`supporting copy does not share one linked size: ${linkedSupporting.join(", ")}px`);
+            }
+          } else {
+            if (!usesNameAndPriceOnly && featuredDescription === null) {
+              failures.push(`featured description typography is unavailable: ${JSON.stringify(measurement.typography)}`);
+            } else if (featuredDescription !== null && Math.abs(featuredDescription - description) > 0.18) {
+              failures.push(`featured description is not linked to the menu description: ${featuredDescription}px / ${description}px`);
+            }
+            const mismatchedSupporting = linkedSupporting.filter((size) => Math.abs(size - description) > 0.15);
+            if (mismatchedSupporting.length > 0) {
+              failures.push(`supporting copy is not linked to menu descriptions: ${description}px / ${linkedSupporting.join(", ")}px`);
+            }
           }
         }
       }
@@ -259,19 +277,22 @@ try {
           }
         };
 
+        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a";
         const featuredScale = 1;
-        compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
-        compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
-        compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
-        compareTypography("featured description", typography.itemDescription, typography.featuredDescription, featuredScale);
+        if (!usesNameAndPriceOnly) {
+          compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
+          compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
+          compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
+          compareTypography("featured description", typography.itemDescription, typography.featuredDescription, featuredScale);
+        }
         if (!typography.itemName || !typography.itemBadge) {
           failures.push(`menu text chip ratio metrics are unavailable: ${JSON.stringify({ itemName: typography.itemName, itemBadge: typography.itemBadge })}`);
         } else if (typography.itemBadge.fontSize < typography.itemName.fontSize * 0.61) {
           failures.push(`menu text chip is too small: ${typography.itemBadge.fontSize}px / ${typography.itemName.fontSize}px`);
         }
-        if (!typography.secondaryName) {
+        if (!typography.secondaryName && !usesNameAndPriceOnly) {
           failures.push("secondary-language menu names are missing");
-        } else if (Number.parseInt(typography.secondaryName.fontWeight, 10) < 600) {
+        } else if (typography.secondaryName && Number.parseInt(typography.secondaryName.fontWeight, 10) < 600) {
           failures.push(`secondary-language menu names are too light: ${typography.secondaryName.fontWeight}`);
         }
         if (deviceCase.device === "tablet") {
@@ -280,8 +301,9 @@ try {
           ));
           if (deviceTypeScale !== "1.12") failures.push(`tablet typography scale is incorrect: ${deviceTypeScale || "missing"}`);
         }
+        const supportingBaseline = usesNameAndPriceOnly ? typography.supporting[0]?.signature ?? null : typography.itemDescription;
         for (const target of typography.supporting) {
-          compareTypography(target.label, typography.itemDescription, target.signature);
+          compareTypography(target.label, supportingBaseline, target.signature);
         }
         if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a") {
           if (!typography.storeName || !typography.categoryName || !typography.itemName || !typography.secondaryName || !typography.itemDescription || !typography.itemPrice || !typography.optionName) {

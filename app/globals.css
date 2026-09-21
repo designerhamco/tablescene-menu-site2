@@ -1793,6 +1793,14 @@ video {
     width: 100%;
   }
 
+  .cafe-a-typography .cafe-a-balanced-column > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"] {
+    margin-top: auto;
+  }
+
+  .cafe-a-typography .cafe-a-desktop-fit-board:has(> .cafe-a-footer-info-anchor) .cafe-a-balanced-column > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"] {
+    margin-bottom: clamp(4.5rem, calc(var(--board-padding) * 2.75), 7rem);
+  }
+
   .cafe-a-typography .cafe-a-ordered-menu-flow > .cafe-a-footer-info {
     break-inside: avoid;
     display: block;

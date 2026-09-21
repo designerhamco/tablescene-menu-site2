@@ -76,10 +76,16 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(roundFocus.featured_slides?.length, 0);
   assert.equal(roundFocus.widgets?.[0]?.type, "image");
   assert.equal(roundFocus.widgets?.[0]?.image_url, "/placeholders/starter/menu-item.svg");
+  const roundFocusLastBlock = roundFocus.mixed_content_order?.at(-1);
+  assert.equal(roundFocusLastBlock?.block_type, "widget");
+  assert.equal(roundFocusLastBlock?.block_type === "widget" ? roundFocusLastBlock.widget_key : null, "round-focus-image-widget");
 
   const mochaForest = getStarterPreset("cafe_mocha_forest_a");
   assert.equal(mochaForest.widgets?.[0]?.type, "image");
   assert.equal(mochaForest.widgets?.[0]?.image_url, "/placeholders/starter/menu-item.svg");
+  const mochaForestLastBlock = mochaForest.mixed_content_order?.at(-1);
+  assert.equal(mochaForestLastBlock?.block_type, "widget");
+  assert.equal(mochaForestLastBlock?.block_type === "widget" ? mochaForestLastBlock.widget_key : null, "mocha-forest-image-widget");
 
   const sundayLine = getStarterPreset("cafe_sunday_line_a");
   const sundayItems = sundayLine.pages[0]?.categories.flatMap((category) => category.items) ?? [];

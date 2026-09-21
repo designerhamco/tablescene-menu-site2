@@ -363,7 +363,7 @@ export function addWidgetContentBlock(
           insertedBlock,
           ...pageBlocks.slice(afterIndex + 1),
         ]
-      : [insertedBlock, ...pageBlocks];
+      : [...pageBlocks, insertedBlock];
 
   return replacePageContentBlocks(withoutWidget, args.pageId, nextBlocks);
 }

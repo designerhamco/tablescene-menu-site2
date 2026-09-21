@@ -8885,6 +8885,11 @@ export default function MenuManagementSection({
                 현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요.
               </p>
             )}
+            {menuWidgetCapability.enabled && (
+              <p className="mt-3 text-xs font-semibold leading-relaxed text-zinc-500">
+                위젯은 카테고리 사이로 이동할 수 있습니다. 메뉴 끝에 연속해 배치한 위젯은 PC·태블릿에서 마지막 열 하단에 정렬됩니다.
+              </p>
+            )}
 
             {sortedPages.length === 0 ? (
               <div className="mt-6 grid gap-3">

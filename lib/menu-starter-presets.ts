@@ -662,7 +662,7 @@ cafeMochaForestStarterPreset.widgets = [
     description: null,
     image_url: STARTER_PLACEHOLDERS.item,
     image_path: null,
-    sort_order: 4,
+    sort_order: 5,
     visible: true,
     settings: {
       aspectRatio: "3:2",
@@ -677,8 +677,8 @@ cafeMochaForestStarterPreset.mixed_content_order = [
   { block_type: "category", page_key: "main-menu", category_key: "classic-coffee", sort_order: 1, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "non-coffee", sort_order: 2, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "ade", sort_order: 3, visible: true },
-  { block_type: "widget", page_key: "main-menu", widget_key: "mocha-forest-image-widget", sort_order: 4, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "bakery", sort_order: 5, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bakery", sort_order: 4, visible: true },
+  { block_type: "widget", page_key: "main-menu", widget_key: "mocha-forest-image-widget", sort_order: 5, visible: true },
 ];
 cafeMochaForestStarterPreset.pages = [
   {
@@ -1208,7 +1208,7 @@ cafeRoundFocusStarterPreset.widgets = [
     description: null,
     image_url: STARTER_PLACEHOLDERS.item,
     image_path: null,
-    sort_order: 3,
+    sort_order: 5,
     visible: true,
     settings: {
       aspectRatio: "3:2",
@@ -1248,9 +1248,9 @@ cafeRoundFocusStarterPreset.mixed_content_order = [
   { block_type: "category", page_key: "main-menu", category_key: "house-special", sort_order: 0, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "espresso", sort_order: 1, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "milk-cream", sort_order: 2, visible: true },
-  { block_type: "widget", page_key: "main-menu", widget_key: "round-focus-image-widget", sort_order: 3, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 4, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "bake", sort_order: 5, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 3, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bake", sort_order: 4, visible: true },
+  { block_type: "widget", page_key: "main-menu", widget_key: "round-focus-image-widget", sort_order: 5, visible: true },
 ];
 cafeRoundFocusStarterPreset.pages = [
   {
