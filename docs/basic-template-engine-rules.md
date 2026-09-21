@@ -390,7 +390,7 @@ Do not run the full screenshot or DOM sweep for every small change. Text labels,
 - The four active single-page starters use screen-density targets rather than a fixed minimum item count.
 - Their default payloads include complete `ko`, `en`, `zh`, and `ja` translations and enabled locales.
 - Core typography and spacing use fluid viewport/container-relative values; fixed pixel values remain only where they represent hard safety or control-size boundaries.
-- Single-page and Display templates use the `canvas-fit` spacing contract. With item-to-item rhythm as `1`, category-title-to-first-item rhythm is `1.05` and categories without a divider use `1.6`. Fit changes the base rhythm only; these semantic ratios are applied exactly once and never multiplied by fit again. Multi-page templates use the separate `editorial-scroll` contract and never stretch content merely to fill a viewport. See `docs/template-spacing-contract.md`.
+- Single-page and Display templates use the `canvas-fit` spacing contract. With item-to-item rhythm as `1`, category-title-to-first-item rhythm is also `1`, while categories without a divider use a visually distinct `2.2`. Fit changes the base rhythm only; these semantic ratios are applied exactly once and never multiplied by fit again. Multi-page templates use the separate `editorial-scroll` contract and never stretch content merely to fill a viewport. See `docs/template-spacing-contract.md`.
 - Mocha Forest keeps its language control in a white inverse tone on the dark surface.
 - Contract tests, TypeScript, production build, responsive visual QA, and the 31-surface public regression runner passed before this rule was recorded.
 

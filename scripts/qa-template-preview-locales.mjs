@@ -367,27 +367,27 @@ try {
         if (rhythm.itemGap === null || rhythm.titleGaps.length === 0) {
           failures.push(`spacing rhythm metrics are unavailable: ${JSON.stringify(rhythm)}`);
         } else {
-          if (rhythm.titleRatioToken !== "1.05") {
-            failures.push(`category-title ratio token is not fixed at 1.05: ${rhythm.titleRatioToken ?? "missing"}`);
+          if (rhythm.titleRatioToken !== "1") {
+            failures.push(`category-title ratio token is not fixed at 1: ${rhythm.titleRatioToken ?? "missing"}`);
           }
           for (const titleGap of rhythm.titleGaps) {
             const ratio = titleGap / rhythm.itemGap;
-            if (Math.abs(ratio - 1.05) > 0.035) {
-              failures.push(`category title-to-first-item rhythm is not 1.05: ${titleGap}px / ${rhythm.itemGap}px = ${ratio}`);
+            if (Math.abs(ratio - 1) > 0.035) {
+              failures.push(`category title-to-first-item rhythm is not 1: ${titleGap}px / ${rhythm.itemGap}px = ${ratio}`);
               break;
             }
           }
           if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
-            if (rhythm.categoryRatioToken !== "1.6") {
-              failures.push(`no-divider category ratio token is not fixed at 1.6: ${rhythm.categoryRatioToken ?? "missing"}`);
+            if (rhythm.categoryRatioToken !== "2.2") {
+              failures.push(`no-divider category ratio token is not fixed at 2.2: ${rhythm.categoryRatioToken ?? "missing"}`);
             }
             if (rhythm.categoryGaps.length === 0) {
               failures.push(`no-divider category gap metrics are unavailable: ${JSON.stringify(rhythm)}`);
             } else {
               for (const categoryGap of rhythm.categoryGaps) {
                 const ratio = categoryGap / rhythm.itemGap;
-                if (Math.abs(ratio - 1.6) > 0.055) {
-                  failures.push(`no-divider category rhythm is not 1.6: ${categoryGap}px / ${rhythm.itemGap}px = ${ratio}`);
+                if (Math.abs(ratio - 2.2) > 0.055) {
+                  failures.push(`no-divider category rhythm is not 2.2: ${categoryGap}px / ${rhythm.itemGap}px = ${ratio}`);
                   break;
                 }
               }

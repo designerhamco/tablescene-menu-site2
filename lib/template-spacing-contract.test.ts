@@ -25,8 +25,8 @@ test("단일페이지는 유동 기준 간격에 고정된 역할 비율을 한 
   assert.match(cafeSource, /stack: "clamp\([^\n]+vmin[^\n]+\)"/);
   assert.match(globalStylesSource, /--cafe-a-page-inline: clamp\([^;]+vw[^;]+\);/);
   assert.match(globalStylesSource, /--cafe-a-item-rhythm-gap: clamp\([^;]+var\(--fit-menu-gap-scale\)[^;]+\);/);
-  assert.match(globalStylesSource, /--cafe-a-category-title-to-first-ratio: 1\.05;/);
-  assert.match(globalStylesSource, /--cafe-a-category-separation-ratio: 1\.6;/);
+  assert.match(globalStylesSource, /--cafe-a-category-title-to-first-ratio: 1;/);
+  assert.match(globalStylesSource, /--cafe-a-category-separation-ratio: 2\.2;/);
   assert.match(globalStylesSource, /--cafe-a-category-title-to-items-gap: calc\(var\(--cafe-a-item-rhythm-gap\) \* var\(--cafe-a-category-title-to-first-ratio\)\);/);
   assert.match(globalStylesSource, /--cafe-a-category-no-divider-gap: calc\(var\(--cafe-a-item-rhythm-gap\) \* var\(--cafe-a-category-separation-ratio\)\);/);
   assert.doesNotMatch(globalStylesSource, /--cafe-a-category-separation-ratio:[^;]*fit/);
@@ -62,8 +62,8 @@ test("멀티페이지는 fit/fill과 분리된 유동 editorial-scroll 계약을
 test("새 템플릿 간격 규칙은 두 엔진 계약과 고정값 예외를 문서화한다", () => {
   assert.match(contractSource, /data-spacing-contract="canvas-fit"/);
   assert.match(contractSource, /data-spacing-contract="editorial-scroll"/);
-  assert.match(contractSource, /category-title-to-first-item gap \(`1\.05`\)/);
-  assert.match(contractSource, /category-to-category gap without a divider \(`1\.6`\)/);
+  assert.match(contractSource, /category-title-to-first-item gap \(`1`\)/);
+  assert.match(contractSource, /category-to-category gap without a divider \(`2\.2`\)/);
   assert.match(contractSource, /semantic ratios are constants applied exactly once/);
   assert.match(contractSource, /hard safety bounds, one-pixel rules, safe-area offsets, and minimum control or touch sizes/);
 });

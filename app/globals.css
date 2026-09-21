@@ -269,8 +269,8 @@ video {
   --cafe-a-page-block-end: clamp(3rem, 8vmin, 5rem);
   --cafe-a-copy-block-gap: clamp(0.875rem, 2.4vmin, 1.25rem);
   --cafe-a-category-divider-gap: clamp(0.75rem, 2.8vmin, 1rem);
-  --cafe-a-category-title-to-first-ratio: 1.05;
-  --cafe-a-category-separation-ratio: 1.6;
+  --cafe-a-category-title-to-first-ratio: 1;
+  --cafe-a-category-separation-ratio: 2.2;
   --cafe-a-template-secondary-copy-scale: 1;
   --cafe-a-template-supporting-copy-scale: 1;
   --cafe-a-template-option-label-scale: 1;

@@ -17,8 +17,8 @@ The shared hierarchy is:
 
 1. internal copy gap;
 2. item-to-item gap (`1`);
-3. category-title-to-first-item gap (`1.05`);
-4. category-to-category gap without a divider (`1.6`);
+3. category-title-to-first-item gap (`1`);
+4. category-to-category gap without a divider (`2.2`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
 
 Single-page skins inherit these values from the CafeA spacing tokens. A skin can adjust the bounded scale, but must not replace the semantic tokens with a fixed `px` margin, padding, or gap.
