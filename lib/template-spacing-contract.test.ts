@@ -1,0 +1,65 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const cafeSource = readFileSync(
+  new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url),
+  "utf8",
+);
+const displaySource = readFileSync(
+  new URL("../components/menu-templates/DisplayMenuA.tsx", import.meta.url),
+  "utf8",
+);
+const multiPageSource = readFileSync(
+  new URL("../components/menu-templates/DiningAubeTableA.tsx", import.meta.url),
+  "utf8",
+);
+const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const contractSource = readFileSync(
+  new URL("../docs/template-spacing-contract.md", import.meta.url),
+  "utf8",
+);
+
+test("단일페이지는 유동 canvas-fit 간격 계약과 1.4 카테고리 위계를 사용한다", () => {
+  assert.match(cafeSource, /data-spacing-contract="canvas-fit"/);
+  assert.match(cafeSource, /stack: "clamp\([^\n]+vmin[^\n]+\)"/);
+  assert.match(globalStylesSource, /--cafe-a-page-inline: clamp\([^;]+vw[^;]+\);/);
+  assert.match(globalStylesSource, /--cafe-a-item-rhythm-gap: clamp\([^;]+var\(--fit-menu-gap-scale\)[^;]+\);/);
+  assert.match(globalStylesSource, /--cafe-a-category-title-to-items-gap: var\(--cafe-a-item-rhythm-gap\);/);
+  assert.match(globalStylesSource, /--cafe-a-category-separation-ratio: clamp\(1\.3, calc\(1\.4 \* var\(--fit-menu-gap-scale\)\), 1\.45\);/);
+  assert.match(globalStylesSource, /margin-bottom: var\(--cafe-a-item-rhythm-gap\);/);
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="round_focus"[\s\S]*data-cafe-a-visual-next-block-type="category"[\s\S]*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="mocha_forest"[\s\S]*data-cafe-a-visual-next-block-type="category"[\s\S]*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
+  );
+});
+
+test("Display는 화면 행 예산으로 카테고리와 메뉴 간격을 함께 계산한다", () => {
+  assert.match(displaySource, /data-spacing-contract="canvas-fit"/);
+  assert.match(displaySource, /const categoryHeadingGapScale = itemGapScale;/);
+  assert.match(displaySource, /--display-row": `\$\{rowCqh\}cqh`/);
+  assert.match(displaySource, /--display-column-padding-x": "clamp\([^\n]+vw[^\n]+\)"/);
+  assert.match(displaySource, /--display-column-padding-y": "clamp\([^\n]+vw[^\n]+\)"/);
+});
+
+test("멀티페이지는 fit/fill과 분리된 유동 editorial-scroll 계약을 사용한다", () => {
+  assert.match(multiPageSource, /data-spacing-contract="editorial-scroll"/);
+  assert.match(multiPageSource, /--aube-page-padding-top: clamp\([^;]+vh[^;]+\);/);
+  assert.match(multiPageSource, /--aube-page-padding-inline: clamp\([^;]+vw[^;]+\);/);
+  assert.match(multiPageSource, /--aube-space-section-start: clamp\(32px, 9vw, 40px\);/);
+  assert.match(multiPageSource, /--aube-mobile-tab-gap: clamp\([^;]+vw[^;]+\);/);
+  assert.doesNotMatch(multiPageSource, /\.aube-table-page \{ padding: 82px 24px 132px; \}/);
+  assert.doesNotMatch(multiPageSource, /--aube-space-section-start: 36px;/);
+});
+
+test("새 템플릿 간격 규칙은 두 엔진 계약과 고정값 예외를 문서화한다", () => {
+  assert.match(contractSource, /data-spacing-contract="canvas-fit"/);
+  assert.match(contractSource, /data-spacing-contract="editorial-scroll"/);
+  assert.match(contractSource, /category-title-to-first-item gap \(`1`\)/);
+  assert.match(contractSource, /category-to-category gap without a divider \(`1\.3` to `1\.45`, target `1\.4`\)/);
+  assert.match(contractSource, /hard safety bounds, one-pixel rules, safe-area offsets, and minimum control or touch sizes/);
+});

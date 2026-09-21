@@ -811,10 +811,34 @@ function shouldKeepOrderedBalancedSettledCandidate(currentState: CafeDesignAFitS
 
 function getFitGapStyle(density: MenuLayoutDensity): CSSProperties {
   const gapByDensity = {
-    spacious: { x: "clamp(48px, 3.4vw, 68px)", y: "2.5rem", stack: "1.5rem", line: "1.5", inline: "0.5rem" },
-    default: { x: "clamp(40px, 3.2vw, 58px)", y: "2rem", stack: "1.25rem", line: "1.45", inline: "0.375rem" },
-    compact: { x: "clamp(34px, 2.7vw, 50px)", y: "1.65rem", stack: "1rem", line: "1.4", inline: "0.3125rem" },
-    ultraCompact: { x: "clamp(30px, 2.4vw, 44px)", y: "1.35rem", stack: "0.75rem", line: "1.35", inline: "0.25rem" },
+    spacious: {
+      x: "clamp(48px, 3.4vw, 68px)",
+      y: "clamp(2rem, 3.2vmin, 2.5rem)",
+      stack: "clamp(1.2rem, 2vmin, 1.5rem)",
+      line: "1.5",
+      inline: "clamp(0.42rem, 0.7vmin, 0.5rem)",
+    },
+    default: {
+      x: "clamp(40px, 3.2vw, 58px)",
+      y: "clamp(1.65rem, 2.7vmin, 2rem)",
+      stack: "clamp(0.95rem, 1.65vmin, 1.25rem)",
+      line: "1.45",
+      inline: "clamp(0.32rem, 0.55vmin, 0.375rem)",
+    },
+    compact: {
+      x: "clamp(34px, 2.7vw, 50px)",
+      y: "clamp(1.35rem, 2.2vmin, 1.65rem)",
+      stack: "clamp(0.8rem, 1.35vmin, 1rem)",
+      line: "1.4",
+      inline: "clamp(0.27rem, 0.46vmin, 0.3125rem)",
+    },
+    ultraCompact: {
+      x: "clamp(30px, 2.4vw, 44px)",
+      y: "clamp(1.1rem, 1.8vmin, 1.35rem)",
+      stack: "clamp(0.625rem, 1vmin, 0.75rem)",
+      line: "1.35",
+      inline: "clamp(0.22rem, 0.38vmin, 0.25rem)",
+    },
   } satisfies Record<MenuLayoutDensity, { x: string; y: string; stack: string; line: string; inline: string }>;
   const gap = gapByDensity[density];
 
@@ -3234,19 +3258,19 @@ function getBalancedMenuColumns({
 
 function getCategoryTitleSpacing(density: MenuLayoutDensity) {
   return {
-    spacious: "mb-4",
-    default: "mb-3",
-    compact: "mb-3",
-    ultraCompact: "mb-2",
+    spacious: "cafe-a-rhythm-spacious",
+    default: "cafe-a-rhythm-default",
+    compact: "cafe-a-rhythm-compact",
+    ultraCompact: "cafe-a-rhythm-ultra-compact",
   }[density];
 }
 
 function getItemStackSpacing(density: MenuLayoutDensity) {
   return {
-    spacious: "mb-6",
-    default: "mb-5",
-    compact: "mb-4",
-    ultraCompact: "mb-3",
+    spacious: "cafe-a-rhythm-spacious",
+    default: "cafe-a-rhythm-default",
+    compact: "cafe-a-rhythm-compact",
+    ultraCompact: "cafe-a-rhythm-ultra-compact",
   }[density];
 }
 
@@ -5440,7 +5464,7 @@ function HeaderBlock({
   const hasLanguageSwitcher = Array.from(new Set(data.enabledLocales)).length > 1;
 
   return (
-    <header className={`w-full shrink-0 px-[clamp(24px,4vw,96px)] pt-8 pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
+    <header className={`w-full shrink-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
       {hasLanguageSwitcher ? (
         <div className="cafe-a-mobile-language-row" data-cafe-a-mobile-language-row="">
           <CafeLanguageHoverControl data={data} className="cursor-default" />
@@ -5541,7 +5565,7 @@ function SundayLineMobileNotices({
   if (infoRows.length === 0) return null;
 
   return (
-    <aside className="cafe-a-topline-mobile-notices px-[clamp(24px,4vw,96px)] pt-4 text-left text-[#58645f] md:hidden" data-cafe-a-topline-mobile-notices="">
+    <aside className="cafe-a-topline-mobile-notices px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-copy-block-gap)] text-left text-[#58645f] md:hidden" data-cafe-a-topline-mobile-notices="">
       <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
         <ScriptAwareText text={infoRows.join("\n")} />
       </p>
@@ -5761,7 +5785,7 @@ function MenuCategoryContentBlock({
   return (
     <section
       key={groupKey}
-      className={getCategoryBlockClassName()}
+      className={`${getCategoryBlockClassName()} ${itemStackSpacing}`}
       data-cafe-a-category-block=""
       data-cafe-a-block-type="category"
       data-cafe-a-category-divider-before={block.showDividerBeforeCategory ? "true" : undefined}
@@ -8739,6 +8763,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-cafe-a-skin={cafeASkinAttribute}
         data-template-key={data.menuSite.template_key ?? undefined}
         data-preview-device={data.previewDevice}
+        data-spacing-contract="canvas-fit"
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
@@ -8746,7 +8771,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="">
               <HeaderBlock data={data} density={density} />
               {shouldRenderMenuCoverSection && (
-                <div className="cafe-a-round-focus-mobile-featured-shell min-w-0 px-[clamp(24px,4vw,96px)] pt-6">
+                <div className="cafe-a-round-focus-mobile-featured-shell min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)]">
                   <CoverHero
                     data={data}
                     featuredSlides={featuredHeroSlides}
@@ -8765,7 +8790,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} /> : null}
             </>
           )}
-          <div className={`grid min-w-0 px-[clamp(24px,4vw,96px)] pt-6 pb-16 md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
+          <div className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
             {!isRoundFocus && shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
