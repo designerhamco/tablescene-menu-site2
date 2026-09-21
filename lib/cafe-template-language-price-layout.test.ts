@@ -93,6 +93,37 @@ test("대표 상품명은 메뉴 상품명과 동일한 유동 크기 변수를 
   assert.doesNotMatch(globalStylesSource, /--featured-title-ratio:/);
 });
 
+test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 단일 타이포그래피 계약을 사용한다", () => {
+  assert.match(globalStylesSource, /--cafe-a-linked-supporting-copy-size:/);
+  assert.match(globalStylesSource, /--cafe-a-linked-price-size:/);
+  assert.match(globalStylesSource, /--cafe-a-linked-chip-size:/);
+  assert.match(globalStylesSource, /\.cafe-a-menu-price-size-default \{[\s\S]*--cafe-a-menu-price-size:[^;]*vmin/);
+  assert.doesNotMatch(globalStylesSource, /\.cafe-a-menu-price-size-(?:spacious|default|compact|ultra-compact) \{[^}]*--cafe-a-menu-price-size:[^;]*cqw/);
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-title, \.cafe-a-featured-title\) \{[\s\S]*font-size: var\(--cafe-a-linked-item-name-size\);[\s\S]*line-height: 1\.375;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-description \{[\s\S]*font-size: var\(--cafe-a-linked-supporting-copy-size\);[\s\S]*line-height: 1\.45;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[\s\S]*font-size: var\(--cafe-a-linked-price-size\);[\s\S]*font-weight: var\(--menu-role-price-font-weight, 700\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-badge, \.cafe-a-featured-badge\) \{[\s\S]*font-size: var\(--cafe-a-linked-chip-size\);/,
+  );
+  assert.match(templateSource, /function getMenuPriceSizeClassName\(density: MenuLayoutDensity\)/);
+  assert.match(templateSource, /cafe-a-featured-price \$\{getMenuPriceSizeClassName\(density\)\}/);
+  assert.match(templateSource, /data-cafe-a-menu-description=""/);
+  assert.match(templateSource, /data-cafe-a-category-description=""/);
+  assert.match(templateSource, /data-cafe-a-menu-badge=""/);
+  assert.match(templateSource, /data-cafe-a-featured-badge=""/);
+  assert.doesNotMatch(globalStylesSource, /--featured-price-ratio:/);
+});
+
 test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른쪽 끝선에 맞춘다", () => {
   assert.match(
     globalStylesSource,

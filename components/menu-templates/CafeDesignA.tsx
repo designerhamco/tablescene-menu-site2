@@ -3214,6 +3214,15 @@ function getMenuTitleSizeClassName(density: MenuLayoutDensity) {
   }[density];
 }
 
+function getMenuPriceSizeClassName(density: MenuLayoutDensity) {
+  return {
+    spacious: "cafe-a-menu-price-size-spacious",
+    default: "cafe-a-menu-price-size-default",
+    compact: "cafe-a-menu-price-size-compact",
+    ultraCompact: "cafe-a-menu-price-size-ultra-compact",
+  }[density];
+}
+
 function CategoryTitle({
   category,
   density,
@@ -3248,7 +3257,10 @@ function CategoryTitle({
         ) : null}
       </div>
       {category.description_visible && category.description && (
-        <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}>
+        <p
+          className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}
+          data-cafe-a-category-description=""
+        >
           <ScriptAwareText text={category.description} />
         </p>
       )}
@@ -3263,12 +3275,7 @@ function CategoryPriceColumnHeader({
   columns: CafeDesignAPriceRailColumn[];
   density: MenuLayoutDensity;
 }) {
-  const priceClassName = {
-    spacious: "cafe-a-menu-price-size-spacious",
-    default: "cafe-a-menu-price-size-default",
-    compact: "cafe-a-menu-price-size-compact",
-    ultraCompact: "cafe-a-menu-price-size-ultra-compact",
-  }[density];
+  const priceClassName = getMenuPriceSizeClassName(density);
 
   return (
     <div
@@ -3327,7 +3334,11 @@ function Badge({
   const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
 
   return (
-    <span className="menu-badge cafe-a-menu-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
+    <span
+      className="menu-badge cafe-a-menu-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none"
+      style={getBadgeStyleCss(badgeStyle)}
+      data-cafe-a-menu-badge=""
+    >
       <ScriptAwareText text={label} />
     </span>
   );
@@ -3360,7 +3371,11 @@ function HeroOverlayBadge({
   const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
 
   return (
-    <span className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none" style={getBadgeStyleCss(badgeStyle)}>
+    <span
+      className="menu-badge cafe-a-menu-badge cafe-a-featured-badge inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none"
+      style={getBadgeStyleCss(badgeStyle)}
+      data-cafe-a-featured-badge=""
+    >
       <ScriptAwareText text={label} />
     </span>
   );
@@ -3433,12 +3448,7 @@ function MenuItemRow({
   const visibleTraits = capabilities.itemTraits && shouldShowMenuItemTraits(item, traits) ? traits.filter((trait) => trait.visible) : [];
   const titleClassName = getMenuTitleSizeClassName(density);
   const descriptionClassName = "cafe-a-menu-description-wrap";
-  const priceClassName = {
-    spacious: "cafe-a-menu-price-size-spacious",
-    default: "cafe-a-menu-price-size-default",
-    compact: "cafe-a-menu-price-size-compact",
-    ultraCompact: "cafe-a-menu-price-size-ultra-compact",
-  }[density];
+  const priceClassName = getMenuPriceSizeClassName(density);
   const itemGridClassName = {
     spacious: "grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.75rem,auto)] sm:gap-4 lg:grid-cols-[minmax(0,1fr)_auto]",
     default: "grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(3.25rem,auto)] sm:gap-3 lg:grid-cols-[minmax(0,1fr)_auto]",
@@ -3517,7 +3527,10 @@ function MenuItemRow({
       )}
       {showMenuTimeSale && timeSale ? <TimeSaleMenuBadge timeSale={timeSale.promotion} locale={locale} /> : null}
       {hasDescriptionText && (
-        <p className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}>
+        <p
+          className={`cafe-a-description-text cafe-a-menu-description break-keep ${descriptionTextColorClassName} ${descriptionTextClassName} ${descriptionClassName}`}
+          data-cafe-a-menu-description=""
+        >
           <ScriptAwareText text={descriptionText} />
         </p>
       )}
@@ -4017,7 +4030,10 @@ function CoverHero({
               )}
             </div>
             {price && (
-              <p className={`menu-price cafe-a-featured-price shrink-0 whitespace-nowrap font-black leading-none ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`} data-cafe-a-featured-price="">
+              <p
+                className={`menu-price cafe-a-featured-price ${getMenuPriceSizeClassName(density)} shrink-0 whitespace-nowrap font-bold leading-none ${featuredItemSoldOut ? "cafe-a-featured-sold-out-text" : ""}`}
+                data-cafe-a-featured-price=""
+              >
                 <ScriptAwareText text={price} />
               </p>
             )}
@@ -4083,7 +4099,10 @@ function CafeAFooterInfo({
       data-cafe-a-footer-info=""
       data-cafe-a-footer-placement={placement}
     >
-      <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
+      <p
+        className={`cafe-a-description-text cafe-a-menu-description cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}
+        data-cafe-a-store-description=""
+      >
         <ScriptAwareText text={infoRows.join("\n")} />
       </p>
     </aside>

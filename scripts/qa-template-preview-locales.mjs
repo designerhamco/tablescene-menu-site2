@@ -141,6 +141,124 @@ try {
   }
 
   if (!templateFilter && !localeFilter) {
+    const deviceCases = [
+      { device: "pc", viewport: { width: 1440, height: 900 }, query: "device=pc" },
+      { device: "tablet", viewport: { width: 1180, height: 820 }, query: "device=tablet&orientation=landscape" },
+      { device: "mobile", viewport: { width: 390, height: 844 }, query: "device=mobile" },
+    ];
+
+    for (const templateKey of singlePageTemplates) {
+      for (const deviceCase of deviceCases) {
+        const context = await browser.newContext({
+          viewport: deviceCase.viewport,
+          deviceScaleFactor: 1,
+          reducedMotion: "reduce",
+          serviceWorkers: "block",
+        });
+        const page = await context.newPage();
+        const failures = [];
+        page.on("pageerror", (error) => failures.push(`pageerror: ${error.message}`));
+        page.on("console", (message) => {
+          if (message.type() === "error") failures.push(`console: ${message.text()}`);
+        });
+
+        const route = `/templates/${templateKey}/preview?lang=ko&${deviceCase.query}&view=actual&embedded=1`;
+        const response = await page.goto(new URL(route, baseUrl).toString(), {
+          waitUntil: "domcontentloaded",
+          timeout: navigationTimeout,
+        });
+        await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => null);
+
+        if (deviceCase.device !== "mobile") {
+          await page.waitForFunction(() => (
+            document.querySelector(".cafe-a-desktop-fit-board")?.getAttribute("data-fit-presentation-state") === "ready"
+          ), undefined, { timeout: navigationTimeout }).catch(() => null);
+        }
+
+        const typography = await page.evaluate(() => {
+          const visibleElements = (selector) => Array.from(document.querySelectorAll(selector)).filter((candidate) => {
+            const style = getComputedStyle(candidate);
+            const rect = candidate.getBoundingClientRect();
+            return rect.width > 0
+              && rect.height > 0
+              && style.display !== "none"
+              && style.visibility !== "hidden"
+              && Number.parseFloat(style.opacity || "1") > 0
+              && !candidate.closest("[aria-hidden='true']");
+          });
+          const signature = (element) => {
+            if (!element) return null;
+            const style = getComputedStyle(element);
+            return {
+              fontSize: Number.parseFloat(style.fontSize),
+              fontFamily: style.fontFamily,
+              fontWeight: style.fontWeight,
+              fontStyle: style.fontStyle,
+              letterSpacing: style.letterSpacing,
+              lineHeight: style.lineHeight,
+              textTransform: style.textTransform,
+            };
+          };
+          const firstSignature = (selector) => signature(visibleElements(selector)[0]);
+          const labeledSignatures = (entries) => entries.flatMap(([label, selector]) => (
+            visibleElements(selector).map((element, index) => ({ label: `${label}[${index}]`, signature: signature(element) }))
+          ));
+
+          return {
+            itemName: firstSignature("[data-cafe-a-menu-name]"),
+            featuredName: firstSignature("[data-cafe-a-featured-title]"),
+            itemBadge: firstSignature("[data-cafe-a-menu-badge]"),
+            featuredBadge: firstSignature("[data-cafe-a-featured-badge]"),
+            itemPrice: firstSignature("[data-cafe-a-menu-price] .cafe-a-menu-price:not([data-cafe-a-price-column-sizer])"),
+            featuredPrice: firstSignature("[data-cafe-a-featured-price]"),
+            itemDescription: firstSignature("[data-cafe-a-menu-description]"),
+            supporting: labeledSignatures([
+              ["featured description", "[data-cafe-a-featured-description]"],
+              ["store description", "[data-cafe-a-store-description]"],
+              ["category description", "[data-cafe-a-category-description]"],
+              ["top description", ".cafe-a-topline-description"],
+              ["top notice", ".cafe-a-topline-notice-text"],
+              ["footer notice", "[data-cafe-a-footer-info] .cafe-a-description-text"],
+              ["round focus notice", ".cafe-a-round-focus-notice"],
+            ]),
+          };
+        });
+
+        const compareTypography = (label, expected, actual) => {
+          if (!expected || !actual) {
+            failures.push(`${label} typography is unavailable: ${JSON.stringify({ expected, actual })}`);
+            return;
+          }
+          if (Math.abs(expected.fontSize - actual.fontSize) > 0.15) {
+            failures.push(`${label} font size is not linked: ${expected.fontSize}px / ${actual.fontSize}px`);
+          }
+          for (const property of ["fontFamily", "fontWeight", "fontStyle", "letterSpacing", "lineHeight", "textTransform"]) {
+            if (expected[property] !== actual[property]) {
+              failures.push(`${label} ${property} is not linked: ${expected[property]} / ${actual[property]}`);
+            }
+          }
+        };
+
+        compareTypography("featured item name", typography.itemName, typography.featuredName);
+        compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge);
+        compareTypography("featured price", typography.itemPrice, typography.featuredPrice);
+        for (const target of typography.supporting) {
+          compareTypography(target.label, typography.itemDescription, target.signature);
+        }
+        if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
+
+        results.push({
+          templateKey: `${templateKey}-${deviceCase.device}-typography`,
+          locale: "ko",
+          route,
+          failures,
+        });
+        await context.close();
+      }
+    }
+  }
+
+  if (!templateFilter && !localeFilter) {
     const context = await browser.newContext({
       viewport: { width: 1440, height: 900 },
       deviceScaleFactor: 1,

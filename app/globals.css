@@ -269,7 +269,10 @@ video {
   --cafe-a-menu-meta-size: clamp(0.64rem, calc(0.6rem + 0.14cqw), 0.76rem);
   --cafe-a-menu-description-size: clamp(0.78rem, calc(0.73rem + 0.16cqw), 0.9rem);
   --cafe-a-linked-supporting-copy-base-size: clamp(0.78rem, calc(0.73rem + 0.16vmin), 0.9rem);
+  --cafe-a-linked-supporting-copy-size: clamp(0.44rem, calc(var(--cafe-a-linked-supporting-copy-base-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-menu-copy-boost, 1) * var(--menu-role-supporting-size-scale, 1)), 1.08rem);
   --cafe-a-menu-price-size: clamp(0.98rem, calc(0.91rem + 0.22cqw), 1.14rem);
+  --cafe-a-linked-price-size: clamp(0.48rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-menu-price-boost, 1) * var(--menu-role-price-size-scale, 1)), 1.52rem);
+  --cafe-a-linked-chip-size: clamp(0.625rem, calc(0.625rem * var(--menu-font-size-scale, 1)), 0.78rem);
   --cafe-a-menu-name-to-description-gap: clamp(0.1rem, calc(0.08rem + 0.08cqw), 0.18rem);
   --cafe-a-time-sale-font-ratio: 0.9;
   --cafe-a-sold-out-chip-background: #eef0ee;
@@ -339,20 +342,34 @@ video {
   --cafe-a-linked-supporting-copy-base-size: clamp(0.76rem, calc(0.72rem + 0.14vmin), 0.88rem);
 }
 
+.cafe-a-menu-description-size-spacious,
+.cafe-a-menu-description-size-default,
+.cafe-a-menu-description-size-compact,
+.cafe-a-menu-description-size-ultra-compact {
+  --cafe-a-linked-supporting-copy-size: clamp(0.44rem, calc(var(--cafe-a-linked-supporting-copy-base-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-menu-copy-boost, 1) * var(--menu-role-supporting-size-scale, 1)), 1.08rem);
+}
+
 .cafe-a-menu-price-size-spacious {
-  --cafe-a-menu-price-size: clamp(1.04rem, calc(0.98rem + 0.22cqw), 1.2rem);
+  --cafe-a-menu-price-size: clamp(1.04rem, calc(0.98rem + 0.22vmin), 1.2rem);
 }
 
 .cafe-a-menu-price-size-default {
-  --cafe-a-menu-price-size: clamp(0.98rem, calc(0.92rem + 0.2cqw), 1.14rem);
+  --cafe-a-menu-price-size: clamp(0.98rem, calc(0.92rem + 0.2vmin), 1.14rem);
 }
 
 .cafe-a-menu-price-size-compact {
-  --cafe-a-menu-price-size: clamp(0.92rem, calc(0.87rem + 0.18cqw), 1.06rem);
+  --cafe-a-menu-price-size: clamp(0.92rem, calc(0.87rem + 0.18vmin), 1.06rem);
 }
 
 .cafe-a-menu-price-size-ultra-compact {
-  --cafe-a-menu-price-size: clamp(0.86rem, calc(0.82rem + 0.15cqw), 1rem);
+  --cafe-a-menu-price-size: clamp(0.86rem, calc(0.82rem + 0.15vmin), 1rem);
+}
+
+.cafe-a-menu-price-size-spacious,
+.cafe-a-menu-price-size-default,
+.cafe-a-menu-price-size-compact,
+.cafe-a-menu-price-size-ultra-compact {
+  --cafe-a-linked-price-size: clamp(0.48rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1) * var(--cafe-a-shell-menu-price-boost, 1) * var(--menu-role-price-size-scale, 1)), 1.52rem);
 }
 
 .cafe-a-typography .cafe-a-category-title {
@@ -492,19 +509,6 @@ video {
 }
 
 .cafe-a-typography .cafe-a-cover-hero {
-  --featured-description-base: var(--cafe-a-menu-description-size);
-  --featured-price-ratio: 1.08;
-  --featured-price-base: calc(
-    var(--cafe-a-menu-price-size) *
-    var(--menu-font-size-scale, 1) *
-    var(--fit-menu-font-scale, 1) *
-    var(--fit-menu-typography-scale, 1) *
-    var(--ordered-fit-menu-visual-scale, 1) *
-    var(--ordered-balanced-menu-visual-scale, 1) *
-    var(--ordered-fit-final-fill-compensation, 1) *
-    var(--cafe-a-shell-menu-price-boost, 1) *
-    var(--featured-price-ratio)
-  );
   --featured-space-base: 1rem;
 }
 
@@ -520,7 +524,7 @@ video {
   --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   font-family: var(--menu-role-supporting-font-family, inherit);
-  font-size: clamp(0.8125rem, calc(var(--featured-description-base) * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 1rem);
+  font-size: var(--cafe-a-linked-supporting-copy-size);
   font-weight: var(--menu-role-supporting-font-weight, 400);
 }
 
@@ -536,12 +540,8 @@ video {
   --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en));
   font-family: var(--menu-role-price-font-family, inherit);
-  font-size: clamp(
-    calc(var(--featured-price-base) * var(--menu-role-price-size-scale, 1) * 0.9),
-    calc(var(--featured-price-base) * var(--menu-role-price-size-scale, 1) * 1 + 0.12cqw),
-    calc(var(--featured-price-base) * var(--menu-role-price-size-scale, 1) * 1.12)
-  );
-  font-weight: var(--menu-role-price-font-weight, 900);
+  font-size: var(--cafe-a-linked-price-size);
+  font-weight: var(--menu-role-price-font-weight, 700);
 }
 
 .cafe-a-typography .cafe-a-menu-badge,
@@ -1221,6 +1221,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-desktop-fit-board {
+    --cafe-a-linked-chip-size: clamp(0.38rem, calc(0.625rem * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--ordered-fit-menu-visual-scale, 1) * var(--ordered-balanced-menu-visual-scale, 1) * var(--ordered-fit-final-fill-compensation, 1)), 0.78rem);
     --cafe-a-category-heading-bottom-gap: clamp(0.34rem, calc(0.75rem * var(--fit-menu-gap-scale) * var(--ordered-fit-category-rhythm-scale) * var(--cafe-a-shell-category-heading-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 0.78rem);
     --cafe-a-category-items-top-gap: clamp(0.4rem, calc(var(--cafe-a-shell-category-items-padding) * var(--fit-menu-gap-scale) * var(--ordered-fit-final-fill-compensation)), 0.76rem);
     --cafe-a-category-title-to-items-gap: calc(var(--cafe-a-category-heading-bottom-gap) + var(--cafe-a-category-items-top-gap));
@@ -1723,12 +1724,6 @@ video {
     right: clamp(calc(var(--featured-space-base) * 0.88), calc(var(--featured-space-base) * 0.72 + 0.3vw), calc(var(--featured-space-base) * 1.06));
   }
 
-  @container (max-width: 360px) {
-    .cafe-a-typography .cafe-a-cover-hero {
-      --featured-price-ratio: 1.02;
-    }
-  }
-
   .cafe-a-typography .cafe-a-ordered-menu-flow {
     display: block;
     column-count: var(--fit-columns);
@@ -1954,7 +1949,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-menu-price {
-    font-size: clamp(0.48rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-price-size-scale, 1)), 1.36rem);
+    font-size: var(--cafe-a-linked-price-size);
   }
 
   .cafe-a-typography .cafe-a-menu-badge,
@@ -2055,7 +2050,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-ordered-menu-flow .cafe-a-menu-price {
-    font-size: clamp(0.52rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-price-boost) * var(--menu-role-price-size-scale, 1)), 1.52rem);
+    font-size: var(--cafe-a-linked-price-size);
   }
 
   .cafe-a-typography .cafe-a-ordered-menu-flow .cafe-a-menu-meta {
@@ -2081,7 +2076,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-menu-price {
-    font-size: clamp(0.52rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--ordered-balanced-menu-visual-scale) * var(--fit-menu-typography-scale) * var(--cafe-a-shell-menu-price-boost) * var(--menu-role-price-size-scale, 1)), 1.52rem);
+    font-size: var(--cafe-a-linked-price-size);
   }
 
   .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-menu-meta {
@@ -2382,7 +2377,7 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-price {
-    font-size: clamp(0.52rem, calc(var(--cafe-a-menu-price-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-price-boost) * var(--menu-role-price-size-scale, 1)), 1.42rem);
+    font-size: var(--cafe-a-linked-price-size);
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-meta,
@@ -3465,4 +3460,41 @@ video {
     margin-bottom: clamp(0.125rem, 1vw, 0.375rem);
   }
 
+}
+
+/*
+ * Single-page role contract: the same editable role must resolve to the same
+ * computed typography in menu rows, featured content, headings, and notices.
+ * Multi-page Brew Chapter and the separate display templates are excluded.
+ */
+.cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-title, .cafe-a-featured-title) {
+  font-family: var(--menu-role-item-name-font-family, inherit);
+  font-size: var(--cafe-a-linked-item-name-size);
+  font-weight: var(--menu-role-item-name-font-weight, 700);
+  letter-spacing: 0;
+  line-height: 1.375;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-menu-description {
+  font-family: var(--menu-role-supporting-font-family, inherit);
+  font-size: var(--cafe-a-linked-supporting-copy-size);
+  font-weight: var(--menu-role-supporting-font-weight, 400);
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+  font-family: var(--menu-role-price-font-family, inherit);
+  font-size: var(--cafe-a-linked-price-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--menu-role-price-font-weight, 700);
+  letter-spacing: normal;
+  line-height: 1;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
+  font-size: var(--cafe-a-linked-chip-size);
+  font-weight: 900;
+  letter-spacing: normal;
+  line-height: 1;
 }
