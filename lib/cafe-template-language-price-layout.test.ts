@@ -86,9 +86,10 @@ test("태블릿 가로 화면은 PC보다 작은 맞춤 글자 비율을 사용�
   );
 });
 
-test("대표 상품명은 메뉴 상품명과 동일한 유동 크기 변수를 사용한다", () => {
+test("대표 상품명은 메뉴 상품명 역할을 따르면서 1.25배 강조한다", () => {
   assert.match(globalStylesSource, /--cafe-a-linked-item-name-size:/);
-  assert.match(globalStylesSource, /\.cafe-a-featured-title \{[\s\S]*font-size: var\(--cafe-a-linked-item-name-size\);/);
+  assert.match(globalStylesSource, /--cafe-a-featured-role-scale: 1\.25;/);
+  assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-title \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-featured-role-scale\)\);/);
   assert.match(globalStylesSource, /\.cafe-a-menu-title \{[\s\S]*font-size: var\(--cafe-a-linked-item-name-size\);/);
   assert.doesNotMatch(globalStylesSource, /--featured-title-ratio:/);
 });
@@ -103,10 +104,12 @@ test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 �
     globalStylesSource,
     /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-title, \.cafe-a-featured-title\) \{[\s\S]*font-size: var\(--cafe-a-linked-item-name-size\);[\s\S]*line-height: 1\.375;/,
   );
+  assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-title \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
   assert.match(
     globalStylesSource,
     /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-description \{[\s\S]*font-size: var\(--cafe-a-linked-supporting-copy-size\);[\s\S]*line-height: 1\.45;/,
   );
+  assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
   assert.match(
     globalStylesSource,
     /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[\s\S]*font-size: var\(--cafe-a-linked-price-size\);[\s\S]*font-weight: var\(--menu-role-price-font-weight, 700\);/,
@@ -115,6 +118,8 @@ test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 �
     globalStylesSource,
     /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-badge, \.cafe-a-featured-badge\) \{[\s\S]*font-size: var\(--cafe-a-linked-chip-size\);/,
   );
+  assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-price \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
+  assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-badge \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
   assert.match(templateSource, /function getMenuPriceSizeClassName\(density: MenuLayoutDensity\)/);
   assert.match(templateSource, /cafe-a-featured-price \$\{getMenuPriceSizeClassName\(density\)\}/);
   assert.match(templateSource, /data-cafe-a-menu-description=""/);
@@ -198,8 +203,22 @@ test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명�
   assert.match(templateSource, /className=\{`cafe-a-desktop-fit-board \$\{descriptionSizeClassName\}/);
 });
 
+test("단일 페이지별 미세 조정은 유동 비율과 동일 열 계약을 유지한다", () => {
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1\.08;/);
+  assert.match(globalStylesSource, /--sunday-line-row-gap: calc\(var\(--board-padding\) \+ clamp\(0\.25rem, 0\.55vmin, 0\.5rem\)\);/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-desktop-fit-board[^}]*row-gap: var\(--sunday-line-row-gap\);/);
+  assert.equal((globalStylesSource.match(/grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/g) ?? []).length >= 4, true);
+  assert.doesNotMatch(globalStylesSource, /data-cafe-a-skin="round_focus"[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\((?:180|190)px, var\(--round-focus-center-width\)\) minmax\(0, 1fr\);/);
+});
+
 test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {
   assert.match(templateSource, /type CafeDesignAFitPresentationState = "loading" \| "ready" \| "reload"/);
+  assert.match(templateSource, /const FIT_PRESENTATION_FONT_WAIT_MS = 1500;/);
+  assert.match(templateSource, /fontTimeoutId = window\.setTimeout\(waitForStableLayout, FIT_PRESENTATION_FONT_WAIT_MS\)/);
+  assert.match(templateSource, /verificationScheduled = true;/);
+  assert.match(templateSource, /if \(!isMochaForest && actualCropMeasurement\.bottomGap > 12\)/);
+  assert.match(templateSource, /orderedBalancedSeenStateRef/);
+  assert.match(templateSource, /isReturningToSeenSafeCandidate/);
   assert.match(templateSource, /data-fit-presentation-state=\{fitPresentationState\}/);
   assert.match(templateSource, /getCafeAActualDomCropMeasurement\(boardElement, menuElement, cropTolerance\)/);
   assert.match(templateSource, /최적의 배치를 찾고 있어요/);

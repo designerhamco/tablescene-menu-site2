@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, RotateCwSquare } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
@@ -39,6 +39,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
+  const nextTabletOrientation: MenuPreviewOrientation = orientation === "landscape" ? "portrait" : "landscape";
   const buildPreviewUrl = (options: {
     device?: MenuPreviewDevice;
     orientation?: MenuPreviewOrientation;
@@ -105,30 +106,17 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
               })}
             </nav>
             {device === "tablet" ? (
-              <nav
-                aria-label="태블릿 방향 선택"
-                data-preview-tablet-orientation=""
-                className="flex shrink-0 items-center justify-center gap-0.5 rounded-xl bg-white/10 p-0.5"
+              <Link
+                aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
+                title={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
+                data-preview-tablet-orientation-toggle=""
+                href={buildPreviewUrl({ device, orientation: nextTabletOrientation })}
+                scroll={false}
+                tabIndex={showToolbar ? undefined : -1}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/20"
               >
-                {(Object.keys(MENU_PREVIEW_ORIENTATIONS) as MenuPreviewOrientation[]).map((candidate) => {
-                  const isSelected = candidate === orientation;
-
-                  return (
-                    <Link
-                      key={candidate}
-                      href={buildPreviewUrl({ device, orientation: candidate })}
-                      scroll={false}
-                      tabIndex={showToolbar ? undefined : -1}
-                      aria-current={isSelected ? "page" : undefined}
-                      className={`min-w-10 rounded-lg px-1.5 py-2 text-center text-xs font-bold transition-colors sm:min-w-11 sm:px-2 ${
-                        isSelected ? "bg-white text-zinc-950" : "bg-zinc-950/45 text-white hover:bg-zinc-950/60"
-                      }`}
-                    >
-                      {MENU_PREVIEW_ORIENTATIONS[candidate]}
-                    </Link>
-                  );
-                })}
-              </nav>
+                <RotateCwSquare className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.9} aria-hidden="true" />
+              </Link>
             ) : null}
           </div>
           <button

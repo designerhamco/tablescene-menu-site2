@@ -377,7 +377,7 @@ video {
   --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en));
   color: var(--menu-role-category-color, #191c1b);
   font-family: var(--menu-role-category-font-family, inherit);
-  font-size: clamp(1.125rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--menu-role-category-size-scale, 1)), 1.62rem);
+  font-size: clamp(1.125rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 1.62rem);
   font-weight: var(--menu-role-category-font-weight, 900);
 }
 
@@ -1002,7 +1002,7 @@ video {
     column-gap: var(--round-focus-column-gap);
     display: grid !important;
     flex: 1 1 auto;
-    grid-template-columns: minmax(0, 1fr) minmax(180px, var(--round-focus-center-width)) minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     height: 100%;
     margin: 0 auto;
     max-height: var(--cafe-a-desktop-max-visual-height);
@@ -1019,7 +1019,7 @@ video {
     display: grid !important;
     grid-column: 1 / -1;
     grid-row: 1;
-    grid-template-columns: minmax(0, 1fr) minmax(180px, var(--round-focus-center-width)) minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     height: 100%;
     min-height: 0;
     overflow: hidden;
@@ -1316,6 +1316,7 @@ video {
     --sunday-line-featured-column-width: max(13.75rem, calc((100% - var(--sunday-line-column-gap)) * 0.28));
     --sunday-line-menu-column-width: calc((100% - var(--sunday-line-featured-column-width) - (var(--sunday-line-column-gap) * 2)) / 2);
     --board-padding: var(--sunday-line-page-inset);
+    --sunday-line-row-gap: calc(var(--board-padding) + clamp(0.25rem, 0.55vmin, 0.5rem));
     --sunday-line-bg: #ffffff;
     --sunday-line-band-bg: transparent;
     --sunday-line-line: transparent;
@@ -1334,7 +1335,7 @@ video {
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
     background: var(--sunday-line-bg);
     column-gap: var(--sunday-line-column-gap);
-    row-gap: var(--board-padding);
+    row-gap: var(--sunday-line-row-gap);
     grid-template-columns: minmax(220px, 0.28fr) minmax(0, 0.72fr);
     grid-template-rows: auto minmax(0, 1fr);
   }
@@ -1415,7 +1416,7 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-category-title {
-    font-size: clamp(0.68rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 2.12rem);
+    font-size: clamp(0.68rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.12rem);
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-title,
@@ -1518,14 +1519,14 @@ video {
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_center_column"] {
     background: #ffffff;
     column-gap: var(--round-focus-column-gap);
-    grid-template-columns: minmax(0, 1fr) minmax(190px, var(--round-focus-center-width)) minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     padding-block: 0;
     padding-inline: var(--board-padding);
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_center_column"] .cafe-a-center-rail-menu-grid {
     column-gap: var(--round-focus-column-gap);
-    grid-template-columns: minmax(0, 1fr) minmax(190px, var(--round-focus-center-width)) minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     height: 100%;
   }
 
@@ -1923,7 +1924,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-category-title {
-    font-size: clamp(0.56rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-category-size-scale, 1)), 1.62rem);
+    font-size: clamp(0.56rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 1.62rem);
     line-height: clamp(1.04, calc(1.12 * var(--fit-menu-gap-scale) + 0.04), 1.12);
   }
 
@@ -2041,7 +2042,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-ordered-menu-flow .cafe-a-category-title {
-    font-size: clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 2.08rem);
+    font-size: clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.08rem);
   }
 
   .cafe-a-typography .cafe-a-ordered-menu-flow .cafe-a-menu-title,
@@ -2067,7 +2068,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-category-title {
-    font-size: clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 2.08rem);
+    font-size: clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.08rem);
   }
 
   .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-menu-title,
@@ -2147,6 +2148,7 @@ video {
     --sunday-line-featured-column-width: calc((100% - var(--sunday-line-column-gap)) * 0.28);
     --sunday-line-menu-column-width: calc((100% - var(--sunday-line-featured-column-width) - (var(--sunday-line-column-gap) * 3)) / 3);
     --board-padding: var(--sunday-line-page-inset);
+    --sunday-line-row-gap: calc(var(--board-padding) + clamp(0.25rem, 0.55vmin, 0.5rem));
     --cafe-a-desktop-max-visual-width: 1920px;
     --cafe-a-desktop-max-visual-height: 1080px;
     --featured-rail-column-fr: 1fr;
@@ -2208,7 +2210,7 @@ video {
     display: grid !important;
     flex: 1 1 auto;
     column-gap: var(--sunday-line-column-gap);
-    row-gap: var(--board-padding);
+    row-gap: var(--sunday-line-row-gap);
     grid-template-columns: minmax(160px, 0.28fr) minmax(0, 0.72fr);
     grid-template-rows: auto minmax(0, 1fr);
     height: 100%;
@@ -2368,7 +2370,7 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-category-title {
-    font-size: clamp(0.64rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1)), 2rem);
+    font-size: clamp(0.64rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2rem);
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-title,
@@ -2552,6 +2554,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] {
+  --cafe-a-template-category-title-scale: 1.08;
   --mocha-panel-primary: #191c1b;
   --mocha-panel-supporting: #4f5751;
   --mocha-panel-line: rgb(56 32 16 / 58%);
@@ -3475,12 +3478,24 @@ video {
   line-height: 1.375;
 }
 
+.cafe-a-typography:not(.brew-chapter-template) {
+  --cafe-a-featured-role-scale: 1.25;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-cover-hero .cafe-a-featured-title {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-featured-role-scale));
+}
+
 .cafe-a-typography:not(.brew-chapter-template) .cafe-a-menu-description {
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: var(--cafe-a-linked-supporting-copy-size);
   font-weight: var(--menu-role-supporting-font-weight, 400);
   letter-spacing: 0;
   line-height: 1.45;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-cover-hero .cafe-a-featured-description {
+  font-size: calc(var(--cafe-a-linked-supporting-copy-size) * var(--cafe-a-featured-role-scale));
 }
 
 .cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-price, .cafe-a-featured-price) {
@@ -3492,9 +3507,17 @@ video {
   line-height: 1;
 }
 
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-cover-hero .cafe-a-featured-price {
+  font-size: calc(var(--cafe-a-linked-price-size) * var(--cafe-a-featured-role-scale));
+}
+
 .cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
   font-size: var(--cafe-a-linked-chip-size);
   font-weight: 900;
   letter-spacing: normal;
   line-height: 1;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-cover-hero .cafe-a-featured-badge {
+  font-size: calc(var(--cafe-a-linked-chip-size) * var(--cafe-a-featured-role-scale));
 }
