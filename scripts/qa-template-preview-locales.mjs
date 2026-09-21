@@ -133,11 +133,11 @@ try {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
           if (category < item * 1.35) failures.push(`category hierarchy is too weak: ${category}px / ${item}px`);
-          if (Math.abs(featuredItem - item * 1.25) > 0.18) {
-            failures.push(`featured item title is not 1.25x the linked menu item title: ${featuredItem}px / ${item}px`);
+          if (Math.abs(featuredItem - item) > 0.18) {
+            failures.push(`featured item title is not linked to the menu item title: ${featuredItem}px / ${item}px`);
           }
-          if (Math.abs(featuredDescription - description * 1.25) > 0.18) {
-            failures.push(`featured description is not 1.25x the linked menu description: ${featuredDescription}px / ${description}px`);
+          if (Math.abs(featuredDescription - description) > 0.18) {
+            failures.push(`featured description is not linked to the menu description: ${featuredDescription}px / ${description}px`);
           }
           const mismatchedSupporting = linkedSupporting.filter((size) => Math.abs(size - description) > 0.15);
           if (mismatchedSupporting.length > 0) {
@@ -258,7 +258,7 @@ try {
           }
         };
 
-        const featuredScale = deviceCase.device === "mobile" ? 1 : 1.25;
+        const featuredScale = 1;
         compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
         compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
         compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);

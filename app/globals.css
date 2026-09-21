@@ -3506,16 +3506,6 @@ video {
 }
 
 .cafe-a-typography:not(.brew-chapter-template) {
-  --cafe-a-featured-role-scale: 1.25;
-}
-
-@media (max-width: 767px) {
-  .cafe-a-typography:not(.brew-chapter-template) {
-    --cafe-a-featured-role-scale: 1;
-  }
-}
-
-.cafe-a-typography:not(.brew-chapter-template)[data-preview-device="mobile"] {
   --cafe-a-featured-role-scale: 1;
 }
 

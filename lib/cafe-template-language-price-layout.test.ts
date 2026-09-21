@@ -90,11 +90,10 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   );
 });
 
-test("대표 상품명은 PC·태블릿에서 1.25배 강조하고 모바일에서는 메뉴 상품명 크기를 따른다", () => {
+test("대표 영역은 모든 기기에서 대응 메뉴 역할과 같은 크기를 따른다", () => {
   assert.match(globalStylesSource, /--cafe-a-linked-item-name-size:/);
-  assert.match(globalStylesSource, /--cafe-a-featured-role-scale: 1\.25;/);
-  assert.match(globalStylesSource, /@media \(max-width: 767px\) \{[\s\S]*--cafe-a-featured-role-scale: 1;/);
-  assert.match(globalStylesSource, /\[data-preview-device="mobile"\] \{[\s\S]*--cafe-a-featured-role-scale: 1;/);
+  assert.match(globalStylesSource, /\.cafe-a-typography:not\(\.brew-chapter-template\) \{[\s\S]*--cafe-a-featured-role-scale: 1;/);
+  assert.doesNotMatch(globalStylesSource, /--cafe-a-featured-role-scale: 1\.25;/);
   assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-title \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-featured-role-scale\) \* var\(--cafe-a-device-type-scale\)\);/);
   assert.match(globalStylesSource, /\.cafe-a-menu-title, \.cafe-a-featured-title\) \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-device-type-scale\)\);/);
   assert.doesNotMatch(globalStylesSource, /--featured-title-ratio:/);
