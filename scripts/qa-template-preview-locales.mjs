@@ -216,8 +216,10 @@ try {
           ));
 
           return {
+            categoryName: firstSignature(".cafe-a-category-title"),
             itemName: firstSignature("[data-cafe-a-menu-name]"),
             secondaryName: firstSignature(".cafe-a-menu-meta"),
+            optionName: firstSignature(".cafe-a-price-column-heading-label, .cafe-a-price-label"),
             featuredName: firstSignature("[data-cafe-a-featured-title]"),
             itemBadge: firstSignature("[data-cafe-a-menu-badge]"),
             featuredBadge: firstSignature("[data-cafe-a-featured-badge]"),
@@ -275,6 +277,24 @@ try {
         for (const target of typography.supporting) {
           compareTypography(target.label, typography.itemDescription, target.signature);
         }
+        if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a") {
+          if (!typography.categoryName || !typography.itemName || !typography.secondaryName || !typography.itemDescription || !typography.optionName) {
+            failures.push(`Aube/Mocha hierarchy metrics are unavailable: ${JSON.stringify(typography)}`);
+          } else {
+            if (typography.categoryName.fontSize < typography.itemName.fontSize * 1.16) {
+              failures.push(`Aube/Mocha category hierarchy is too weak: ${typography.categoryName.fontSize}px / ${typography.itemName.fontSize}px`);
+            }
+            if (typography.secondaryName.fontSize < typography.itemName.fontSize * 0.64) {
+              failures.push(`Aube/Mocha secondary name is too small: ${typography.secondaryName.fontSize}px / ${typography.itemName.fontSize}px`);
+            }
+            if (typography.itemDescription.fontSize < typography.itemName.fontSize * 0.71) {
+              failures.push(`Aube/Mocha description is too small: ${typography.itemDescription.fontSize}px / ${typography.itemName.fontSize}px`);
+            }
+            if (typography.optionName.fontSize < typography.itemName.fontSize * 0.57) {
+              failures.push(`Aube/Mocha option name is too small: ${typography.optionName.fontSize}px / ${typography.itemName.fontSize}px`);
+            }
+          }
+        }
         if (templateKey === "cafe_round_focus_a" && deviceCase.device !== "mobile") {
           const columnWidths = await page.locator(".cafe-a-center-rail-menu-grid").evaluate((element) => (
             getComputedStyle(element).gridTemplateColumns
@@ -284,6 +304,22 @@ try {
           ));
           if (columnWidths.length !== 3 || Math.max(...columnWidths) - Math.min(...columnWidths) > 1) {
             failures.push(`Round Focus columns are not 1:1:1: ${columnWidths.join(" / ")}`);
+          }
+          const spacing = await page.locator(".cafe-a-desktop-fit-board").evaluate((element) => {
+            const boardStyle = getComputedStyle(element);
+            const menuGrid = element.querySelector(".cafe-a-center-rail-menu-grid");
+            const column = menuGrid?.querySelector(".cafe-a-balanced-column");
+            const gridStyle = menuGrid ? getComputedStyle(menuGrid) : null;
+            const columnStyle = column ? getComputedStyle(column) : null;
+            return {
+              outerInline: Number.parseFloat(boardStyle.paddingLeft),
+              columnGap: Number.parseFloat(gridStyle?.columnGap ?? "0"),
+              columnBlock: Number.parseFloat(columnStyle?.paddingTop ?? "0"),
+              columnInline: Number.parseFloat(columnStyle?.paddingLeft ?? "0"),
+            };
+          });
+          if (spacing.outerInline < 35 || spacing.columnGap < 29 || spacing.columnBlock < 35 || spacing.columnInline < 7) {
+            failures.push(`Round Focus spacing is too dense: ${JSON.stringify(spacing)}`);
           }
         }
         if (templateKey === "cafe_sunday_line_a" && deviceCase.device !== "mobile") {
@@ -303,7 +339,7 @@ try {
           const categoryScale = await page.locator(".cafe-a-typography").evaluate((element) => (
             getComputedStyle(element).getPropertyValue("--cafe-a-template-category-title-scale").trim()
           ));
-          if (categoryScale !== "1.08") failures.push(`Mocha Forest category scale is incorrect: ${categoryScale || "missing"}`);
+          if (categoryScale !== "1.14") failures.push(`Mocha Forest category scale is incorrect: ${categoryScale || "missing"}`);
         }
         if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
 

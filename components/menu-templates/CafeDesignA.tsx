@@ -8604,6 +8604,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         className="menu-typography cafe-a-typography group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden"
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
         data-cafe-a-skin={cafeASkinAttribute}
+        data-template-key={data.menuSite.template_key ?? undefined}
         data-preview-device={data.previewDevice}
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >

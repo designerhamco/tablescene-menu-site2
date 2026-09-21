@@ -27,7 +27,7 @@ test("원페이지 템플릿의 핵심 타이포그래피와 간격은 화면 �
   );
   assert.match(
     globalStylesSource,
-    /--round-focus-mobile-inset: clamp\(1\.5rem, 4vw, 6rem\);/,
+    /--round-focus-mobile-inset: clamp\(1\.75rem, 5vw, 6rem\);/,
   );
   assert.match(
     globalStylesSource,
@@ -217,11 +217,25 @@ test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명�
 });
 
 test("단일 페이지별 미세 조정은 유동 비율과 동일 열 계약을 유지한다", () => {
-  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1\.08;/);
+  assert.match(templateSource, /data-template-key=\{data\.menuSite\.template_key \?\? undefined\}/);
+  assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*--cafe-a-template-category-title-scale: 1\.06;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1\.14;/);
+  assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*\.cafe-a-category-title \{[\s\S]*1\.24/);
+  assert.match(globalStylesSource, /--cafe-a-template-secondary-copy-scale: 1\.08;/);
+  assert.match(globalStylesSource, /--cafe-a-template-supporting-copy-scale: 1\.08;/);
+  assert.match(globalStylesSource, /--cafe-a-template-option-label-scale: 1\.1;/);
+  assert.match(globalStylesSource, /var\(--cafe-a-linked-item-name-size\)[^;]*0\.65/);
+  assert.match(globalStylesSource, /--cafe-a-template-shared-supporting-copy-base-size: clamp\(0\.76rem,/);
+  assert.match(globalStylesSource, /\.cafe-a-menu-description:not\(\.cafe-a-featured-description\),[\s\S]*0\.74rem/);
+  assert.match(globalStylesSource, /var\(--cafe-a-linked-item-name-size\)[^;]*0\.58/);
   assert.match(globalStylesSource, /--sunday-line-row-gap: calc\(var\(--board-padding\) \+ clamp\(0\.25rem, 0\.55vmin, 0\.5rem\)\);/);
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-desktop-fit-board[^}]*row-gap: var\(--sunday-line-row-gap\);/);
   assert.equal((globalStylesSource.match(/grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/g) ?? []).length >= 4, true);
   assert.doesNotMatch(globalStylesSource, /data-cafe-a-skin="round_focus"[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\((?:180|190)px, var\(--round-focus-center-width\)\) minmax\(0, 1fr\);/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="round_focus"[^}]*--board-padding: clamp\(2\.25rem, 5\.2vmin, 3\.5rem\);/);
+  assert.match(globalStylesSource, /--round-focus-column-gap: clamp\(1\.75rem, 3\.2vw, 3\.75rem\);/);
+  assert.match(globalStylesSource, /--round-focus-column-inset: clamp\(0\.5rem, 0\.7vw, 0\.75rem\);/);
+  assert.match(globalStylesSource, /\.cafe-a-center-rail-menu-grid > \.cafe-a-balanced-column \{[\s\S]*padding: var\(--board-padding\) var\(--round-focus-column-inset\);/);
 });
 
 test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {
