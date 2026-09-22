@@ -95,6 +95,7 @@ export function createMenuWidgetDraftFromWidget(widget: MenuWidget): MenuWidgetD
         widget.type === "text" || widget.type === "image_text"
           ? widget.settings.textAlign
           : "left",
+      placement: widget.settings.placement,
       altText:
         widget.type === "image" || widget.type === "image_text"
           ? widget.settings.altText ?? ""
@@ -363,7 +364,7 @@ export function addWidgetContentBlock(
           insertedBlock,
           ...pageBlocks.slice(afterIndex + 1),
         ]
-      : [insertedBlock, ...pageBlocks];
+      : [...pageBlocks, insertedBlock];
 
   return replacePageContentBlocks(withoutWidget, args.pageId, nextBlocks);
 }

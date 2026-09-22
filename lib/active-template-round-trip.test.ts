@@ -10,10 +10,10 @@ import {
 import { getStarterPreset } from "./menu-starter-presets";
 
 const ACTIVE_TEMPLATE_EXPECTATIONS = {
-  cafe_design_a: { pages: 1, categories: 5, items: 19 },
-  cafe_mocha_forest_a: { pages: 1, categories: 5, items: 17 },
+  cafe_design_a: { pages: 1, categories: 5, items: 18 },
+  cafe_mocha_forest_a: { pages: 1, categories: 5, items: 16 },
   cafe_sunday_line_a: { pages: 1, categories: 5, items: 17 },
-  cafe_round_focus_a: { pages: 1, categories: 5, items: 13 },
+  cafe_round_focus_a: { pages: 1, categories: 5, items: 15 },
   cafe_brew_chapter_a: { pages: 1, categories: 5, items: 15 },
   cafe_noir_a: { pages: 1, categories: 4, items: 20 },
   display_menu_a: { pages: 4, categories: 6, items: 17 },

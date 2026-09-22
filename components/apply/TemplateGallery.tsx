@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from "react";
 
 import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import { getDiningTemplateTier, getDiningTierLabel, type DiningTemplateTier } from "@/lib/dining-product-tiers";
-import type { TemplateCatalogItem, TemplateCategoryKey } from "@/lib/templates";
+import { getTemplatePreviewRouteKey, type TemplateCatalogItem, type TemplateCategoryKey } from "@/lib/templates";
 
 type ProductKey = "dining_single" | "dining_multi" | "display";
 type IndustryKey = "all" | "cafe_bakery" | "restaurant_dining" | "japanese" | "pub_bar" | "quick_meal";
@@ -176,7 +176,7 @@ export default function TemplateGallery({
 
             return (
               <article key={template.key} className="group">
-                <Link href={`/templates/${template.key}/preview`} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${template.name} 새 창에서 미리보기`}>
+                <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${template.name} 새 창에서 미리보기`}>
                   <div className="overflow-hidden rounded-[1.5rem] bg-zinc-100 ring-1 ring-inset ring-zinc-200 transition-shadow group-hover:ring-zinc-400">
                     <TemplateThumbnail template={template} />
                   </div>
@@ -195,7 +195,7 @@ export default function TemplateGallery({
                     {template.description}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <Link href={`/templates/${template.key}/preview`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b border-zinc-400 pb-1 text-sm font-bold text-zinc-700 hover:border-zinc-950 hover:text-zinc-950">
+                    <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b border-zinc-400 pb-1 text-sm font-bold text-zinc-700 hover:border-zinc-950 hover:text-zinc-950">
                       미리보기 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                     {startDisabled ? (

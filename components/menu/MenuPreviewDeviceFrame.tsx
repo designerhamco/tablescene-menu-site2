@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronUp, RotateCwSquare } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, RotateCwSquare } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
@@ -62,6 +62,12 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
     device,
     orientation,
   });
+  const detachedUrl = buildPreviewUrl({
+    actual: true,
+    embedded: true,
+    device,
+    orientation,
+  });
   const showToolbar = isToolbarOpen;
 
   return (
@@ -70,7 +76,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
         <header
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className="pointer-events-auto relative w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/48 p-2 text-white backdrop-blur-[2px] transition-transform duration-300 ease-out"
+          className="pointer-events-auto relative w-[min(27rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/48 p-2 text-white backdrop-blur-[2px] transition-transform duration-300 ease-out"
           style={{ transform: showToolbar ? "translateY(0.5rem)" : "translateY(calc(-100% + 1.75rem))" }}
         >
           <div
@@ -95,7 +101,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                     scroll={false}
                     tabIndex={showToolbar ? undefined : -1}
                     aria-current={isSelected ? "page" : undefined}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold transition-colors sm:px-2.5 sm:text-sm ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-2 py-2 text-xs font-bold transition-colors ${
                       isSelected ? "bg-white text-zinc-950" : "bg-zinc-950/45 text-white hover:bg-zinc-950/60"
                     }`}
                   >
@@ -118,6 +124,19 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                 <RotateCwSquare className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.9} aria-hidden="true" />
               </Link>
             ) : null}
+            <Link
+              href={detachedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="새 창에서 메뉴판 보기"
+              title="새 창에서 메뉴판 보기"
+              data-preview-detached-link=""
+              tabIndex={showToolbar ? undefined : -1}
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-zinc-950/45 px-2.5 text-[0.7rem] font-bold text-white transition-colors hover:bg-zinc-950/60"
+            >
+              <ExternalLink className="h-4 w-4" strokeWidth={1.9} aria-hidden="true" />
+              <span className="hidden min-[430px]:inline">새 창에서 보기</span>
+            </Link>
           </div>
           <button
             type="button"
@@ -141,6 +160,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
         aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
       >
         <div
+          data-preview-frame-shell=""
           className={device === "pc"
             ? "h-screen w-screen overflow-hidden bg-white"
             : "mx-auto overflow-hidden rounded-[28px] border-[10px] border-zinc-900 bg-white shadow-2xl"}

@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type {
   MenuWidgetAspectRatio,
   MenuWidgetObjectFit,
+  MenuWidgetPlacement,
   MenuWidgetTextAlign,
   MenuWidgetType,
 } from "@/lib/menu-widgets";
@@ -19,10 +20,13 @@ export type CafeAWidgetObjectFit = MenuWidgetObjectFit;
 
 export type CafeAWidgetTextAlign = MenuWidgetTextAlign;
 
+export type CafeAWidgetPlacement = MenuWidgetPlacement;
+
 type CafeAWidgetBase = {
   id: string;
   type: CafeAWidgetType;
   visible: boolean;
+  placement?: CafeAWidgetPlacement;
 };
 
 export type CafeAImageWidget = CafeAWidgetBase & {

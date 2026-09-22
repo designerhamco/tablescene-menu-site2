@@ -8885,6 +8885,11 @@ export default function MenuManagementSection({
                 현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요.
               </p>
             )}
+            {menuWidgetCapability.enabled && (
+              <p className="mt-3 text-xs font-semibold leading-relaxed text-zinc-500">
+                위젯은 카테고리 사이로 이동할 수 있으며, 위젯 추가·수정에서 콘텐츠 순서대로 배치하거나 마지막 열 하단에 정렬하도록 선택할 수 있습니다.
+              </p>
+            )}
 
             {sortedPages.length === 0 ? (
               <div className="mt-6 grid gap-3">
@@ -9264,6 +9269,7 @@ export default function MenuManagementSection({
                 <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
                   <DetailValue label="위젯 유형">{selectedWidgetDraft.type === "image" ? "이미지" : selectedWidgetDraft.type === "text" ? "텍스트" : "이미지 + 텍스트"}</DetailValue>
                   <DetailValue label="메뉴판 표시">{selectedWidgetDraft.visible ? "표시함" : "표시 안 함"}</DetailValue>
+                  <DetailValue label="배치 방식">{selectedWidgetDraft.settings.placement === "bottom" ? "마지막 열 하단 정렬" : "콘텐츠 이어붙이기"}</DetailValue>
                   {(selectedWidgetDraft.type === "text" || selectedWidgetDraft.type === "image_text") && (
                     <>
                       <DetailValue label="제목">{selectedWidgetDraft.title}</DetailValue>

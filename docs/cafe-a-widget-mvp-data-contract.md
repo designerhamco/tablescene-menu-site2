@@ -79,6 +79,7 @@ Presentation options are stored in `settings jsonb`:
 - `objectFit`
 - `textAlign`
 - `altText`
+- `placement`
 
 Unneeded settings are removed during normalization. For example, a text widget does not persist image ratio or
 alt text settings.
@@ -89,9 +90,11 @@ alt text settings.
 
 Type-specific settings:
 
-- `image`: `aspectRatio`, `objectFit`, optional `altText`
-- `text`: `textAlign`
-- `image_text`: `aspectRatio`, `objectFit`, `textAlign`, optional `altText`
+- `image`: `aspectRatio`, `objectFit`, `placement`, optional `altText`
+- `text`: `textAlign`, `placement`
+- `image_text`: `aspectRatio`, `objectFit`, `textAlign`, `placement`, optional `altText`
+
+`placement` is `flow` or `bottom`. `flow` follows the mixed category/widget order. `bottom` is collected into the final desktop/tablet column and the mobile content end, immediately above footer notices when present. Missing legacy values normalize to `bottom`, so the previous trailing-widget behavior remains compatible without a DB migration.
 
 ## 9. Required Fields
 

@@ -118,6 +118,7 @@ export type CafeAStarterResetFeaturedSlideDraft = {
 };
 
 export type CafeAStarterResetCoverSettings = {
+  menuCoverEnabled: boolean;
   menuCoverTitle: string;
   menuCoverDescription: string;
   coverImageUrl: string | null;
@@ -386,8 +387,9 @@ export function buildCafeAStarterResetSnapshot({
     createStarterFeaturedSlideDraft(slide, slideIndex, itemByKey, itemKeyByName)
   );
   const firstCompleteSlide = featuredSlides.find((slide) => Boolean(slide.imageUrl && slide.featuredItemId)) ?? null;
-  const coverImageUrl = firstCompleteSlide?.imageUrl ?? preset.site.cover_image_url ?? null;
-  const coverImagePath = firstCompleteSlide?.imagePath ?? null;
+  const firstImageSlide = featuredSlides.find((slide) => Boolean(slide.imageUrl)) ?? null;
+  const coverImageUrl = firstImageSlide?.imageUrl ?? preset.site.cover_image_url ?? null;
+  const coverImagePath = firstImageSlide?.imagePath ?? null;
   const timeSales = buildStarterTimeSales({
     timeSales: preset.time_sales ?? [],
     itemByKey,
@@ -413,6 +415,7 @@ export function buildCafeAStarterResetSnapshot({
     featuredItemId: firstCompleteSlide?.featuredItemId ?? featuredItemId,
     featuredSlides,
     coverSettings: {
+      menuCoverEnabled: preset.menu_cover_enabled !== false,
       menuCoverTitle: preset.site.menu_cover_title,
       menuCoverDescription: preset.site.menu_cover_description,
       coverImageUrl,
@@ -537,9 +540,6 @@ export function validateCafeAStarterResetSnapshot(
     errors.push(createError("INVALID_REFERENCE", "featuredItemId", "대표 상품 참조가 유효하지 않습니다."));
   }
   snapshot.featuredSlides.forEach((slide, index) => {
-    if (slide.imageUrl && !slide.featuredItemId) {
-      errors.push(createError("INVALID_REFERENCE", `featuredSlides.${index}.featuredItemId`, "대표 슬라이드는 reset item을 안정적으로 참조해야 합니다."));
-    }
     if (slide.featuredItemId && !itemIds.has(slide.featuredItemId)) {
       errors.push(createError("INVALID_REFERENCE", `featuredSlides.${index}.featuredItemId`, "대표 슬라이드의 상품 참조가 유효하지 않습니다."));
     }
@@ -768,6 +768,7 @@ function createStarterWidgetDraft(args: {
       aspectRatio: args.widget.settings?.aspectRatio ?? (args.widget.type === "image" ? "2:1" : "4:3"),
       objectFit: args.widget.settings?.objectFit ?? "cover",
       textAlign: args.widget.settings?.textAlign ?? "left",
+      placement: args.widget.settings?.placement ?? "bottom",
       altText: args.widget.settings?.altText ?? "",
     },
   };

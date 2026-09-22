@@ -190,6 +190,9 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
             </div>
             <GuideCallout pointer="top" className="absolute left-1/2 top-[7.75rem] w-[27rem] -translate-x-1/2">
               태블릿·PC·모바일 버튼을 눌러<br />기기별 메뉴판을 확인할 수 있어요.
+              <span className="mt-2 block text-sm font-semibold text-zinc-500">
+                실제 배치는 기기에 따라 달라질 수 있으니,<br />사용할 기기에서 최종 확인해 주세요.
+              </span>
             </GuideCallout>
           </>
         ) : null}
@@ -212,6 +215,9 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
             </div>
             <GuideCallout pointer="top" className="mx-auto mt-5 max-w-md">
               태블릿·PC·모바일 버튼을 눌러<br className="hidden sm:block" /> 기기별 메뉴판을 확인할 수 있어요.
+              <span className="mt-2 block text-sm font-semibold text-zinc-500">
+                실제 배치는 기기에 따라 달라질 수 있으니,<br className="hidden sm:block" /> 사용할 기기에서 최종 확인해 주세요.
+              </span>
             </GuideCallout>
           </>
         ) : null}

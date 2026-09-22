@@ -17,7 +17,7 @@ import {
   normalizeMenuPreviewOrientation,
   shouldUseMenuPreviewDeviceFrame,
 } from "@/lib/menu-preview-devices";
-import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
+import { getFirstCompleteStarterFeaturedSlide, getFirstStarterFeaturedImageSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
   DEFAULT_TIME_SALE_BADGE_TEXT,
@@ -29,9 +29,9 @@ import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { DEFAULT_TEMPLATE_CONTENT_LIMITS, getTemplateContentLimits } from "@/lib/template-content-limits";
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { applyStarterPreviewLocalization } from "@/lib/template-demo-data/starter-preview-localization";
-import { MENU_WIDGET_SETTINGS_VERSION } from "@/lib/menu-widgets";
+import { MENU_WIDGET_SETTINGS_VERSION, type MenuWidget } from "@/lib/menu-widgets";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
-import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
+import { getTemplateByKey, resolveTemplatePreviewRouteKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
 
 type PageProps = {
@@ -87,6 +87,9 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     layout_columns: page.layout_columns ?? 1,
     text_alignment: page.text_alignment ?? "left",
   }));
+  const pageIdByStarterKey = new Map(
+    preset.pages.map((page, pageIndex) => [page.key ?? `page-${pageIndex + 1}`, pages[pageIndex]?.id ?? ""]),
+  );
 
   const categories: MenuPageData["categories"] = [];
   const items: MenuPageData["items"] = [];
@@ -230,8 +233,10 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     : null;
   const featuredSlides = resolveStarterFeaturedSlides(preset, items);
   const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
+  const firstFeaturedImageSlide = getFirstStarterFeaturedImageSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
+    menu_cover_enabled: preset.menu_cover_enabled ?? getDefaultPageSettings().menu_cover_enabled,
     multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(templateKey),
     multi_page_cover_background_opacity: 75,
     featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
@@ -295,6 +300,74 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     if (startMs == null) return nextStart;
     return nextStart == null ? startMs : Math.min(nextStart, startMs);
   }, null);
+  const widgets = (preset.widgets ?? []).reduce<MenuWidget[]>((resolvedWidgets, widget, widgetIndex) => {
+    const menuPageId = widget.page_key
+      ? pageIdByStarterKey.get(widget.page_key) ?? null
+      : pages[0]?.id ?? null;
+    if (!menuPageId) return resolvedWidgets;
+
+    const baseWidget = {
+      id: `${siteId}-widget-${widget.key}`,
+      menuSiteId: siteId,
+      menuPageId,
+      sortOrder: widget.sort_order ?? widgetIndex,
+      visible: widget.visible !== false,
+    };
+
+    if (widget.type === "image") {
+      resolvedWidgets.push({
+        ...baseWidget,
+        type: "image",
+        title: null,
+        description: null,
+        imageUrl: widget.image_url ?? null,
+        imagePath: widget.image_path ?? null,
+        settings: {
+          schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
+          aspectRatio: widget.settings?.aspectRatio ?? "2:1",
+          objectFit: widget.settings?.objectFit ?? "cover",
+          placement: widget.settings?.placement ?? "bottom",
+          altText: widget.settings?.altText ?? "메뉴 이미지",
+        },
+      });
+      return resolvedWidgets;
+    }
+
+    if (widget.type === "text") {
+      resolvedWidgets.push({
+        ...baseWidget,
+        type: "text",
+        title: widget.title ?? null,
+        description: widget.description ?? "",
+        imageUrl: null,
+        imagePath: null,
+        settings: {
+          schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
+          textAlign: widget.settings?.textAlign ?? "left",
+          placement: widget.settings?.placement ?? "bottom",
+        },
+      });
+      return resolvedWidgets;
+    }
+
+    resolvedWidgets.push({
+      ...baseWidget,
+      type: "image_text",
+      title: widget.title ?? null,
+      description: widget.description ?? "",
+      imageUrl: widget.image_url ?? null,
+      imagePath: widget.image_path ?? null,
+      settings: {
+        schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
+        aspectRatio: widget.settings?.aspectRatio ?? "2:1",
+        objectFit: widget.settings?.objectFit ?? "cover",
+        textAlign: widget.settings?.textAlign ?? "left",
+        placement: widget.settings?.placement ?? "bottom",
+        altText: widget.settings?.altText ?? "메뉴 이미지",
+      },
+    });
+    return resolvedWidgets;
+  }, []);
 
   return {
     locale: DEFAULT_LOCALE,
@@ -310,7 +383,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       status: "published",
       description: template.description,
       logo_url: template.key === "cafe_noir_a" ? (preset.site.logo_url ?? null) : null,
-      cover_image_url: firstCompleteFeaturedSlide?.image_url ?? preset.site.cover_image_url,
+      cover_image_url: firstFeaturedImageSlide?.image_url ?? preset.site.cover_image_url,
       intro_image_url: null,
       brand_color: "#111111",
       business_name: preset.site.restaurant_name,
@@ -375,14 +448,15 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     timeSales,
     nextTimeSaleStartAt: nextTimeSaleStartMs == null ? null : new Date(nextTimeSaleStartMs).toISOString(),
     initialNowMs,
+    widgets,
     featuredSlides: featuredSlides.flatMap((slide) => {
       const item = slide.featured_item_id ? items.find((menuItem) => menuItem.id === slide.featured_item_id) : null;
-      if (!slide.image_url || !item || item.visible === false) return [];
+      if (!slide.image_url || item?.visible === false) return [];
       return [
         {
           id: slide.id,
           imageUrl: slide.image_url,
-          featuredItemId: item.id,
+          featuredItemId: item?.id ?? null,
           sortOrder: slide.sort_order,
         },
       ];
@@ -641,7 +715,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 0,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", altText: "말차 음료" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", placement: "bottom", altText: "말차 음료" },
         },
         {
           id: `${data.menuSite.id}-feature-qa-widget-text`,
@@ -654,7 +728,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 1,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, textAlign: "center" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, textAlign: "center", placement: "bottom" },
         },
         {
           id: `${data.menuSite.id}-feature-qa-widget-image-text`,
@@ -667,7 +741,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 2,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "3:2", objectFit: "cover", textAlign: "left", altText: "시즌 메뉴" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "3:2", objectFit: "cover", textAlign: "left", placement: "bottom", altText: "시즌 메뉴" },
         },
       ]
     : data.widgets;
@@ -1101,6 +1175,7 @@ function applyCafeAMultiPagePreviewFixture(data: MenuPageData, pagePresentation:
     settings: {
       schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
       textAlign: "left" as const,
+      placement: "bottom" as const,
     },
   } satisfies NonNullable<MenuPageData["widgets"]>[number];
 
@@ -1196,9 +1271,10 @@ function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | s
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { templateKey } = await params;
+  const { templateKey: routeTemplateKey } = await params;
+  const templateKey = resolveTemplatePreviewRouteKey(routeTemplateKey);
 
-  if (!isValidTemplateKey(templateKey)) {
+  if (!templateKey) {
     return {
       title: "템플릿 미리보기 | ArtiMenu",
       robots: { index: false, follow: false },
@@ -1215,7 +1291,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function TemplatePreviewPage({ params, searchParams }: PageProps) {
-  const { templateKey } = await params;
+  const { templateKey: routeTemplateKey } = await params;
+  const templateKey = resolveTemplatePreviewRouteKey(routeTemplateKey);
+  if (!templateKey) {
+    notFound();
+  }
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const getFirstParam = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
   const layoutModeParam = Array.isArray(resolvedSearchParams.layoutMode)
@@ -1235,10 +1315,6 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const displayPreviewSplitImagePosition = templateKey === "display_menu_a"
     ? getDisplayPreviewSplitImagePosition(resolvedSearchParams.qaSplitImagePosition)
     : null;
-
-  if (!isValidTemplateKey(templateKey)) {
-    notFound();
-  }
 
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(templateKey);
   const device = normalizeMenuPreviewDevice(

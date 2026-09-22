@@ -12,9 +12,9 @@ test("공개 화면 회귀 QA는 핵심 페이지와 모든 판매 템플릿을 
     '"/apply"',
     '"/faq"',
     '"/sign-in"',
-    '"/templates/cafe_design_a/preview"',
+    '"/templates/cafe_real_matcha_a/preview"',
     '"/templates/cafe_mocha_forest_a/preview"',
-    '"/templates/cafe_sunday_line_a/preview"',
+    '"/templates/cafe_sunday_roasters_a/preview"',
     '"/templates/cafe_round_focus_a/preview"',
     '"/templates/dining_aube_table_a/preview"',
     '"/templates/dining_aube_table_b/preview"',
@@ -58,7 +58,7 @@ test("공개 화면 회귀 QA는 메뉴판 미리보기 도움말의 최초 노�
   assert.match(source, /await closeButton\.click\(\);/);
   assert.match(source, /preview guide reopens during the dismissed browser session/);
   assert.match(source, /preview guide reopens after checking hide for today and closing/);
-  assert.match(source, /route === "\/templates\/cafe_sunday_line_a\/preview"/);
+  assert.match(source, /route === "\/templates\/cafe_sunday_roasters_a\/preview"/);
   assert.match(source, /inspectDisplayPreviewControls/);
   assert.match(source, /data-display-preview-controls-visible/);
   assert.match(source, /page\.mouse\.move\(viewport\.width \/ 2, viewport\.height - 4\)/);

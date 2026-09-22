@@ -11,6 +11,7 @@ import {
   MAX_MENU_WIDGET_TITLE_LENGTH,
   MENU_WIDGET_ASPECT_RATIOS,
   MENU_WIDGET_OBJECT_FITS,
+  MENU_WIDGET_PLACEMENTS,
   MENU_WIDGET_TEXT_ALIGNS,
   type MenuWidgetDraft,
   type MenuWidgetType,
@@ -54,6 +55,17 @@ const TEXT_ALIGN_LABELS: Record<string, string> = {
   left: "왼쪽",
   center: "가운데",
   right: "오른쪽",
+};
+
+const PLACEMENT_OPTIONS: Record<MenuWidgetDraft["settings"]["placement"], { label: string; description: string }> = {
+  flow: {
+    label: "콘텐츠 이어붙이기",
+    description: "편집페이지에서 지정한 콘텐츠 순서에 맞춰 바로 이어서 배치합니다.",
+  },
+  bottom: {
+    label: "마지막 열 하단 정렬",
+    description: "PC·태블릿에서는 마지막 열 하단, 안내사항이 있으면 그 바로 위에 배치합니다.",
+  },
 };
 
 export default function MenuWidgetDraftEditor({
@@ -104,6 +116,7 @@ export default function MenuWidgetDraftEditor({
         aspectRatio: type === "image" ? draft.settings.aspectRatio || "2:1" : draft.settings.aspectRatio || "4:3",
         objectFit: draft.settings.objectFit || "cover",
         textAlign: draft.settings.textAlign || "left",
+        placement: draft.settings.placement || "bottom",
         altText: type === "text" ? "" : draft.settings.altText,
       },
     };
@@ -139,6 +152,43 @@ export default function MenuWidgetDraftEditor({
             />
           </label>
         </div>
+
+        <FieldBlock label="배치 방식">
+          <div className="grid gap-3 md:grid-cols-2">
+            {MENU_WIDGET_PLACEMENTS.map((placement) => {
+              const option = PLACEMENT_OPTIONS[placement];
+              const selected = draft.settings.placement === placement;
+
+              return (
+                <label
+                  key={placement}
+                  className={`cursor-pointer rounded-xl border p-4 transition ${
+                    selected
+                      ? "border-zinc-950 bg-zinc-950 text-white"
+                      : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
+                  }`}
+                >
+                  <span className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name={`widget-placement-${draft.id}`}
+                      value={placement}
+                      checked={selected}
+                      onChange={() => patchSettings({ placement })}
+                      className="mt-0.5 h-4 w-4 shrink-0 border-zinc-300 text-zinc-950 focus:ring-zinc-950"
+                    />
+                    <span>
+                      <span className="block text-sm font-bold">{option.label}</span>
+                      <span className={`mt-1.5 block break-keep text-xs font-semibold leading-relaxed ${selected ? "text-zinc-300" : "text-zinc-500"}`}>
+                        {option.description}
+                      </span>
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </FieldBlock>
 
         {usesImage && (
           <MenuWidgetImageField

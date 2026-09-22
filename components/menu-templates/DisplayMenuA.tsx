@@ -179,9 +179,10 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
   const verticalFillScale = Math.min(Math.max((rowCqh - 5.2) / 2.4, 0), 1);
   const menuTitleScale = 0.354 + 0.06 * spaciousFillScale + 0.0185 * verticalFillScale;
   const categoryTitleScale = menuTitleScale * 1.21;
-  const categoryHeadingGapScale = 0.28 + 0.05 * spaciousFillScale + 0.035 * verticalFillScale;
   const categoryRuleGapScale = 0.12 + 0.02 * spaciousFillScale + 0.01 * verticalFillScale;
   const itemGapScale = 0.255 + 0.105 * spaciousFillScale + 0.05 * verticalFillScale;
+  // The category heading-to-first-item rhythm follows the same row budget as item-to-item spacing.
+  const categoryHeadingGapScale = itemGapScale;
   const titleGapScale = 0.18 + 0.03 * spaciousFillScale + 0.012 * verticalFillScale;
   const titleRowGapScale = 0.06 + 0.02 * spaciousFillScale;
   const badgeFontScale = 0.205 + 0.022 * spaciousFillScale;
@@ -1748,6 +1749,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
         onFocusCapture={displayControls.reveal}
         onKeyDown={displayControls.reveal}
         data-display-preview-controls-visible={displayControls.visible ? "true" : "false"}
+        data-spacing-contract="canvas-fit"
       >
         <h1 className="sr-only">{displayTitle}</h1>
         <h2 className="sr-only">{activePage.title}</h2>

@@ -76,12 +76,22 @@ test("원페이지 모바일 언어 UI는 모든 스킨에서 제목과 분리�
   );
 });
 
-test("오브 커피와 모카 포레스트의 PC·태블릿 언어 UI는 가게명 위 독립 행을 사용한다", () => {
+test("오브 커피는 설명 아래, 모카 포레스트는 가게명 위에 PC·태블릿 언어 UI를 둔다", () => {
   assert.match(
     templateSource,
-    /data-cafe-a-rail-language-row=""[\s\S]*<CafeLanguageHoverControl data=\{data\} \/>[\s\S]*<StoreIdentity/,
+    /!isCenterColumn && !isAubeCoffee[\s\S]*data-cafe-a-rail-language-row=""[\s\S]*<CafeLanguageHoverControl data=\{data\} \/>[\s\S]*<StoreIdentity/,
   );
-  assert.match(templateSource, /!isCenterColumn \? \([\s\S]*data-cafe-a-rail-language-row=""/);
+  assert.match(
+    templateSource,
+    /!isCenterColumn && isAubeCoffee[\s\S]*cafe-a-rail-language-row-after-description[\s\S]*justify-start[\s\S]*<CafeLanguageHoverControl data=\{data\} menuAlign="left"/,
+  );
+});
+
+test("재고 마감 카운트다운은 레이아웃이 흔들리지 않는 디지털 타이머를 사용한다", () => {
+  assert.match(templateSource, /formatTimeSaleDigitalCountdownLabel\(activeEndsAtMs, nowMs\)/);
+  assert.match(templateSource, /data-cafe-a-time-sale-digital-timer=/);
+  assert.match(templateSource, /role=\{isDigitalCountdown \? "timer" : undefined\}/);
+  assert.match(globalStylesSource, /\.cafe-a-time-sale-digital-value \{[\s\S]*font-variant-numeric: tabular-nums;[\s\S]*inline-size: 8ch;/);
 });
 
 test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12배 큰 공통 글자 비율을 사용한다", () => {
@@ -135,6 +145,10 @@ test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 �
     /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-description \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-supporting-copy-size\) \* var\(--cafe-a-device-type-scale\)\);[\s\S]*line-height: 1\.45;/,
   );
   assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="mocha_forest"\]\) \.cafe-a-cover-hero \.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-sunday-supporting-ratio\)/,
+  );
   assert.match(
     globalStylesSource,
     /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-price-size\) \* var\(--cafe-a-device-type-scale\)\);[\s\S]*font-weight: var\(--menu-role-price-font-weight, 700\);/,
@@ -209,6 +223,10 @@ test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이�
 });
 
 test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명의 타이포 위계와 상단 설명 비율을 유지한다", () => {
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="sunday_line"\][\s\S]*\.cafe-a-category-title \{[\s\S]*var\(--cafe-a-linked-item-name-size\)[\s\S]*1\.22/,
+  );
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-category-title-boost: 1\.24;/);
   assert.match(globalStylesSource, /data-cafe-a-skin="sunday_line"[\s\S]*--cafe-a-shell-menu-copy-boost: 0\.94;/);
   assert.match(
@@ -219,7 +237,7 @@ test("선데이 라인은 화면 채움 중에도 카테고리·메뉴·설명�
   assert.match(globalStylesSource, /data-layout-mode="balanced"[^}]*data-layout-mode="orderedBalancedFit"[^}]*--cafe-a-linked-supporting-copy-size: clamp\(/);
   assert.match(
     globalStylesSource,
-    /data-cafe-a-skin="sunday_line"[^}]*\.cafe-a-ordered-menu-flow \.cafe-a-category-title \{[\s\S]*2\.12rem/,
+    /data-cafe-a-skin="sunday_line"[^}]*:is\(\.cafe-a-ordered-menu-flow, \.cafe-a-balanced-menu-grid\) \.cafe-a-category-title \{[\s\S]*2\.12rem/,
   );
   assert.match(
     globalStylesSource,
@@ -285,4 +303,19 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /새로고침하면 메뉴판 배치를 다시 계산합니다/);
   assert.match(templateSource, /onClick=\{\(\) => window\.location\.reload\(\)\}/);
   assert.match(templateSource, />\s*새로고침\s*<\/button>/);
+});
+
+test("ordered balanced fit은 안전 후보 순회를 제한해 로딩 상태에서 수렴한다", () => {
+  assert.match(templateSource, /const ORDERED_BALANCED_SAFE_CONVERGENCE_LIMIT = 3;/);
+  assert.match(
+    templateSource,
+    /seenKeys\.size >= ORDERED_BALANCED_SAFE_CONVERGENCE_LIMIT[\s\S]*!currentState\.overflow[\s\S]*!nextState\.overflow[\s\S]*!orderedBalancedRejectedCandidateRef\.current\.has\(currentKey\)/,
+  );
+  assert.match(templateSource, /"fonts" in document && document\.fonts\.status !== "loaded" && !fontReadyScheduled/);
+  assert.match(templateSource, /const MOCHA_FOREST_MENU_REGION_SAFETY_GAP = 0;/);
+  assert.match(
+    templateSource,
+    /boardElement\.closest\('\[data-cafe-a-skin="mocha_forest"\]'\)[\s\S]*MOCHA_FOREST_MENU_REGION_SAFETY_GAP[\s\S]*BALANCED_VISIBLE_GAP/,
+  );
+  assert.match(templateSource, /isMochaForest && menuWidth >= 760[\s\S]*\? \[3\]/);
 });

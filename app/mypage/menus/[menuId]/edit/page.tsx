@@ -103,7 +103,7 @@ import {
   getCustomBadgeStyles,
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getTemplateDisplayName, getTemplatePreviewRouteKey } from "@/lib/templates";
 import {
   getSwitchableTemplatesForTemplate,
   getTemplateCommercialTier,
@@ -898,7 +898,7 @@ function TemplateSwitchThumbnail({ templateKey, templateName }: { templateKey: s
         className="pointer-events-none absolute left-0 top-0 h-[400%] w-[400%] origin-top-left border-0"
         loading="lazy"
         sandbox=""
-        src={`/templates/${templateKey}/preview${previewQuery}`}
+        src={`/templates/${getTemplatePreviewRouteKey(templateKey)}/preview${previewQuery}`}
         style={{ transform: "scale(0.25)" }}
         tabIndex={-1}
         title={`${templateName} 템플릿 미리보기`}
@@ -2320,23 +2320,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       </div>
                     )}
                     {canUseFeaturedSlides ? (
-                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
-                        <div className="mb-5">
-                          <CafeAStarterFeaturedEnabledSwitch
-                            defaultChecked={pageSettings.featured_item_enabled}
-                            formId="menu-cover-form"
-                            label="대표 상품 정보 표시"
-                          />
-                          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                            끄면 대표 이미지만 표시되고 상품명·설명·배지·가격은 숨겨집니다. 등록한 이미지와 상품 연결은 삭제되지 않습니다.
-                          </p>
-                        </div>
+                      <div className="md:col-span-2">
                         <FeaturedSlidesEditor
                           menuId={site.id}
                           formId="menu-cover-form"
                           initialSlides={featuredSlideDrafts}
                           itemOptions={featuredItemOptions}
                           maxSlides={featuredSlideMaxSlides}
+                          defaultFeaturedItemEnabled={pageSettings.featured_item_enabled}
                         />
                       </div>
                     ) : canUseFeaturedItemCover && (

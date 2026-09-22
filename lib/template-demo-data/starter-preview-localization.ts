@@ -325,7 +325,13 @@ function applySinglePageCopy(data: MenuPageData, locale: SinglePageStarterTransl
     }),
     items: data.items.map((item) => {
       const localized = itemCopyById.get(item.id);
-      return localized ? { ...item, name: localized.name, description: localized.description } : item;
+      return localized
+        ? {
+            ...item,
+            name: localized.name,
+            description: data.menuSite.template_key === "cafe_mocha_forest_a" ? null : localized.description,
+          }
+        : item;
     }),
     timeSales: data.timeSales.map((sale) => {
       const localized = promotionCopyById.get(sale.id);

@@ -13,9 +13,9 @@ export const TEMPLATE_CATEGORIES = [
     key: "cafe",
     label: "카페",
     templates: [
-      { key: "cafe_design_a", label: "오브 커피", design: "design_a" },
+      { key: "cafe_design_a", label: "REAL MATCHA", design: "design_a" },
       { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
-      { key: "cafe_sunday_line_a", label: "선데이 라인", design: "design_a" },
+      { key: "cafe_sunday_line_a", label: "선데이 로스터스", design: "design_a" },
       { key: "cafe_round_focus_a", label: "라운드 포커스", design: "design_a" },
       { key: "cafe_brew_chapter_a", label: "브루 챕터", design: "design_a" },
       { key: "cafe_noir_a", label: "누아 메뉴", design: "design_a" },
@@ -148,6 +148,15 @@ export type TemplateServiceKey = TemplateServiceType;
 export type TemplateCatalogStatus = "available" | "coming_soon" | "hidden" | "retired";
 export type { TemplateType };
 
+const TEMPLATE_PREVIEW_ROUTE_KEY_BY_TEMPLATE_KEY: Partial<Record<TemplateKey, string>> = {
+  cafe_design_a: "cafe_real_matcha_a",
+  cafe_sunday_line_a: "cafe_sunday_roasters_a",
+};
+
+const TEMPLATE_KEY_BY_PREVIEW_ROUTE_KEY = Object.fromEntries(
+  Object.entries(TEMPLATE_PREVIEW_ROUTE_KEY_BY_TEMPLATE_KEY).map(([templateKey, routeKey]) => [routeKey, templateKey]),
+) as Record<string, TemplateKey>;
+
 export const BASIC_TEMPLATE_CATEGORY_GROUPS = [
   { key: "cafe_bakery", label: "카페·베이커리", categoryKeys: ["cafe", "bakery", "dessert"] },
   { key: "food_dining", label: "레스토랑·다이닝", categoryKeys: ["restaurant", "brunch", "casual_dining", "fine_dining"] },
@@ -222,9 +231,9 @@ const templateDescriptionByDesign: Record<TemplateDesignKey, string> = {
 };
 
 const templateDescriptionByKey: Partial<Record<string, string>> = {
-  cafe_design_a: "차분한 카페 무드에 어울리는 기본 메뉴판 템플릿입니다.\n메뉴가 많아도 깔끔하게 정리해 보여주기 좋습니다.",
+  cafe_design_a: "선명한 그린 포인트와 맛차 시그니처 메뉴를 중심으로 구성한 카페 메뉴판입니다.",
   cafe_mocha_forest_a: "갈색·아이보리·초록 패널로 구성한 고급스러운 카페/베이커리 메뉴판입니다.",
-  cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 카페 메뉴판입니다.",
+  cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 로스터리 카페 메뉴판입니다.",
   cafe_round_focus_a: "브랜드 영역을 중앙 축에 두고 메뉴를 좌우로 나누는 카페 메뉴판입니다.",
   cafe_brew_chapter_a: "메뉴 페이지를 장처럼 넘기며 보는 멀티 페이지 카페 메뉴판입니다.",
   dining_aube_table_a: "커버와 여러 메뉴 페이지로 코스의 흐름을 섬세하게 보여주는 파인다이닝 메뉴판입니다.",
@@ -346,6 +355,15 @@ export function isLegacyTemplateKey(value: string): value is LegacyTemplateKey {
 
 export function isValidTemplateKey(value: string): value is TemplateKey {
   return templateKeys.includes(value as TemplateKey);
+}
+
+export function getTemplatePreviewRouteKey(templateKey: string): string {
+  return TEMPLATE_PREVIEW_ROUTE_KEY_BY_TEMPLATE_KEY[templateKey as TemplateKey] ?? templateKey;
+}
+
+export function resolveTemplatePreviewRouteKey(routeKey: string): TemplateKey | null {
+  if (isValidTemplateKey(routeKey)) return routeKey;
+  return TEMPLATE_KEY_BY_PREVIEW_ROUTE_KEY[routeKey] ?? null;
 }
 
 export function isKnownTemplateKey(value: string): value is AnyTemplateKey {

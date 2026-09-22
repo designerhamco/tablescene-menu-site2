@@ -14,6 +14,10 @@ export const MENU_WIDGET_TEXT_ALIGNS = ["left", "center", "right"] as const;
 
 export type MenuWidgetTextAlign = (typeof MENU_WIDGET_TEXT_ALIGNS)[number];
 
+export const MENU_WIDGET_PLACEMENTS = ["flow", "bottom"] as const;
+
+export type MenuWidgetPlacement = (typeof MENU_WIDGET_PLACEMENTS)[number];
+
 export const MENU_WIDGET_SETTINGS_VERSION = 1;
 export const MAX_MENU_WIDGETS_PER_PAGE = 3;
 export const MAX_MENU_WIDGET_TITLE_LENGTH = 30;
@@ -27,6 +31,7 @@ export type MenuWidgetSettingsV1 = {
   objectFit?: MenuWidgetObjectFit;
   textAlign?: MenuWidgetTextAlign;
   altText?: string;
+  placement?: MenuWidgetPlacement;
 };
 
 export type MenuWidgetBase = {
@@ -47,6 +52,7 @@ export type MenuImageWidget = MenuWidgetBase & {
   settings: MenuWidgetSettingsV1 & {
     aspectRatio: MenuWidgetAspectRatio;
     objectFit: MenuWidgetObjectFit;
+    placement: MenuWidgetPlacement;
     altText?: string;
   };
 };
@@ -59,6 +65,7 @@ export type MenuTextWidget = MenuWidgetBase & {
   description: string;
   settings: MenuWidgetSettingsV1 & {
     textAlign: MenuWidgetTextAlign;
+    placement: MenuWidgetPlacement;
   };
 };
 
@@ -72,6 +79,7 @@ export type MenuImageTextWidget = MenuWidgetBase & {
     aspectRatio: MenuWidgetAspectRatio;
     objectFit: MenuWidgetObjectFit;
     textAlign: MenuWidgetTextAlign;
+    placement: MenuWidgetPlacement;
     altText?: string;
   };
 };
@@ -92,6 +100,7 @@ export type MenuWidgetDraft = {
     aspectRatio: MenuWidgetAspectRatio;
     objectFit: MenuWidgetObjectFit;
     textAlign: MenuWidgetTextAlign;
+    placement: MenuWidgetPlacement;
     altText: string;
   };
 };
@@ -129,6 +138,7 @@ export type MenuWidgetValidationErrorCode =
   | "INVALID_ASPECT_RATIO"
   | "INVALID_OBJECT_FIT"
   | "INVALID_TEXT_ALIGN"
+  | "INVALID_PLACEMENT"
   | "TITLE_TOO_LONG"
   | "DESCRIPTION_TOO_LONG"
   | "ALT_TEXT_TOO_LONG"
@@ -163,6 +173,10 @@ export function isMenuWidgetTextAlign(value: unknown): value is MenuWidgetTextAl
   return typeof value === "string" && MENU_WIDGET_TEXT_ALIGNS.includes(value as MenuWidgetTextAlign);
 }
 
+export function isMenuWidgetPlacement(value: unknown): value is MenuWidgetPlacement {
+  return typeof value === "string" && MENU_WIDGET_PLACEMENTS.includes(value as MenuWidgetPlacement);
+}
+
 export function isEmphasisWidgetAspectRatio(ratio: MenuWidgetAspectRatio): boolean {
   return ratio === "3:4";
 }
@@ -190,6 +204,7 @@ export function createDefaultMenuWidgetDraft(
         aspectRatio: "2:1",
         objectFit: "cover",
         textAlign: "left",
+        placement: "bottom",
         altText: "",
       },
     };
@@ -202,6 +217,7 @@ export function createDefaultMenuWidgetDraft(
         aspectRatio: "4:3",
         objectFit: "cover",
         textAlign: "left",
+        placement: "bottom",
         altText: "",
       },
     };
@@ -213,6 +229,7 @@ export function createDefaultMenuWidgetDraft(
       aspectRatio: "4:3",
       objectFit: "cover",
       textAlign: "left",
+      placement: "bottom",
       altText: "",
     },
   };
@@ -247,6 +264,7 @@ export function normalizeMenuWidgetDraft(
   const title = normalizeText(draft.title);
   const description = normalizeText(draft.description);
   const altText = normalizeText(draft.settings.altText);
+  const placement = requireMenuWidgetPlacement(draft.settings.placement);
 
   if (draft.type === "image") {
     return {
@@ -260,6 +278,7 @@ export function normalizeMenuWidgetDraft(
         schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
         aspectRatio: requireMenuWidgetAspectRatio(draft.settings.aspectRatio),
         objectFit: requireMenuWidgetObjectFit(draft.settings.objectFit),
+        placement,
         ...(altText ? { altText } : {}),
       },
     };
@@ -276,6 +295,7 @@ export function normalizeMenuWidgetDraft(
       settings: {
         schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
         textAlign: requireMenuWidgetTextAlign(draft.settings.textAlign),
+        placement,
       },
     };
   }
@@ -292,6 +312,7 @@ export function normalizeMenuWidgetDraft(
       aspectRatio: requireMenuWidgetAspectRatio(draft.settings.aspectRatio),
       objectFit: requireMenuWidgetObjectFit(draft.settings.objectFit),
       textAlign: requireMenuWidgetTextAlign(draft.settings.textAlign),
+      placement,
       ...(altText ? { altText } : {}),
     },
   };
@@ -373,6 +394,10 @@ export function validateMenuWidgetDraft(draft: MenuWidgetDraft): MenuWidgetValid
 
   if ((draft.type === "text" || draft.type === "image_text") && !isMenuWidgetTextAlign(draft.settings.textAlign)) {
     errors.push(createMenuWidgetValidationError("INVALID_TEXT_ALIGN", "settings.textAlign", "지원하지 않는 텍스트 정렬입니다."));
+  }
+
+  if (!isMenuWidgetPlacement(draft.settings.placement)) {
+    errors.push(createMenuWidgetValidationError("INVALID_PLACEMENT", "settings.placement", "지원하지 않는 위젯 배치 방식입니다."));
   }
 
   return createMenuWidgetValidationResult(errors);
@@ -460,6 +485,11 @@ function requireMenuWidgetObjectFit(value: unknown): MenuWidgetObjectFit {
 
 function requireMenuWidgetTextAlign(value: unknown): MenuWidgetTextAlign {
   if (!isMenuWidgetTextAlign(value)) throw new TypeError("Invalid menu widget text align.");
+  return value;
+}
+
+function requireMenuWidgetPlacement(value: unknown): MenuWidgetPlacement {
+  if (!isMenuWidgetPlacement(value)) throw new TypeError("Invalid menu widget placement.");
   return value;
 }
 

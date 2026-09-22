@@ -42,7 +42,7 @@ export default function OrderServiceReviewContent() {
 
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
-              href="/templates/cafe_design_a/preview?orderCallQa=active"
+              href="/templates/cafe_real_matcha_a/preview?orderCallQa=active"
               className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
             >
               주문·호출 화면 미리보기

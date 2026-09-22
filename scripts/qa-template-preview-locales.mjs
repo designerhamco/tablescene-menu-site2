@@ -19,6 +19,10 @@ const singlePageTemplates = new Set([
   "cafe_sunday_line_a",
   "cafe_round_focus_a",
 ]);
+const previewRouteKey = (templateKey) => ({
+  cafe_design_a: "cafe_real_matcha_a",
+  cafe_sunday_line_a: "cafe_sunday_roasters_a",
+}[templateKey] ?? templateKey);
 const locales = ["en", "zh", "ja"].filter((locale) => !localeFilter || locale === localeFilter);
 const singlePageInternalTitleByLocale = {
   en: "MENU",
@@ -45,7 +49,7 @@ try {
         if (message.type() === "error") errors.push(`console: ${message.text()}`);
       });
 
-      const route = `/templates/${templateKey}/preview?lang=${locale}&device=pc&view=actual&embedded=1`;
+      const route = `/templates/${previewRouteKey(templateKey)}/preview?lang=${locale}&device=pc&view=actual&embedded=1`;
       const response = await page.goto(new URL(route, baseUrl).toString(), {
         waitUntil: "domcontentloaded",
         timeout: navigationTimeout,
@@ -129,19 +133,38 @@ try {
           failures.push(`internal single-page title is visible: ${singlePageInternalTitleByLocale[locale]}`);
         }
         const { category, item, featuredItem, featuredDescription, description, linkedSupporting } = measurement.typography;
-        if (category === null || item === null || featuredItem === null || featuredDescription === null || description === null) {
+        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a"
+          || templateKey === "cafe_mocha_forest_a";
+        if (category === null || item === null) {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
           if (category < item * 1.35) failures.push(`category hierarchy is too weak: ${category}px / ${item}px`);
-          if (Math.abs(featuredItem - item) > 0.18) {
+          if (!usesNameAndPriceOnly && featuredItem === null) {
+            failures.push(`featured item typography is unavailable: ${JSON.stringify(measurement.typography)}`);
+          } else if (featuredItem !== null && Math.abs(featuredItem - item) > 0.18) {
             failures.push(`featured item title is not linked to the menu item title: ${featuredItem}px / ${item}px`);
           }
-          if (Math.abs(featuredDescription - description) > 0.18) {
-            failures.push(`featured description is not linked to the menu description: ${featuredDescription}px / ${description}px`);
-          }
-          const mismatchedSupporting = linkedSupporting.filter((size) => Math.abs(size - description) > 0.15);
-          if (mismatchedSupporting.length > 0) {
-            failures.push(`supporting copy is not linked to menu descriptions: ${description}px / ${linkedSupporting.join(", ")}px`);
+          if (description === null) {
+            if (!usesNameAndPriceOnly) {
+              failures.push(`menu description typography is unavailable: ${JSON.stringify(measurement.typography)}`);
+            }
+            const supportingBaseline = linkedSupporting[0] ?? null;
+            const mismatchedSupporting = supportingBaseline === null
+              ? []
+              : linkedSupporting.filter((size) => Math.abs(size - supportingBaseline) > 0.15);
+            if (mismatchedSupporting.length > 0) {
+              failures.push(`supporting copy does not share one linked size: ${linkedSupporting.join(", ")}px`);
+            }
+          } else {
+            if (!usesNameAndPriceOnly && featuredDescription === null) {
+              failures.push(`featured description typography is unavailable: ${JSON.stringify(measurement.typography)}`);
+            } else if (featuredDescription !== null && Math.abs(featuredDescription - description) > 0.18) {
+              failures.push(`featured description is not linked to the menu description: ${featuredDescription}px / ${description}px`);
+            }
+            const mismatchedSupporting = linkedSupporting.filter((size) => Math.abs(size - description) > 0.15);
+            if (mismatchedSupporting.length > 0) {
+              failures.push(`supporting copy is not linked to menu descriptions: ${description}px / ${linkedSupporting.join(", ")}px`);
+            }
           }
         }
       }
@@ -153,9 +176,10 @@ try {
 
   if (!templateFilter && !localeFilter) {
     const deviceCases = [
-      { device: "pc", viewport: { width: 1440, height: 900 }, query: "device=pc" },
-      { device: "tablet", viewport: { width: 1180, height: 820 }, query: "device=tablet&orientation=landscape" },
-      { device: "mobile", viewport: { width: 390, height: 844 }, query: "device=mobile" },
+      { id: "pc", device: "pc", viewport: { width: 1440, height: 900 }, query: "device=pc" },
+      { id: "tablet-landscape", device: "tablet", viewport: { width: 1180, height: 820 }, query: "device=tablet&orientation=landscape" },
+      { id: "tablet-portrait", device: "tablet", viewport: { width: 820, height: 1180 }, query: "device=tablet&orientation=portrait" },
+      { id: "mobile", device: "mobile", viewport: { width: 390, height: 844 }, query: "device=mobile" },
     ];
 
     for (const templateKey of singlePageTemplates) {
@@ -173,7 +197,7 @@ try {
           if (message.type() === "error") failures.push(`console: ${message.text()}`);
         });
 
-        const route = `/templates/${templateKey}/preview?lang=ko&${deviceCase.query}&view=actual&embedded=1`;
+        const route = `/templates/${previewRouteKey(templateKey)}/preview?lang=ko&${deviceCase.query}&view=actual&embedded=1`;
         const response = await page.goto(new URL(route, baseUrl).toString(), {
           waitUntil: "domcontentloaded",
           timeout: navigationTimeout,
@@ -239,6 +263,101 @@ try {
           };
         });
 
+        const rhythm = await page.evaluate(() => {
+          const isVisible = (element) => {
+            const style = getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            return rect.width > 0
+              && rect.height > 0
+              && style.display !== "none"
+              && style.visibility !== "hidden"
+              && Number.parseFloat(style.opacity || "1") > 0
+              && !element.closest("[aria-hidden='true']");
+          };
+          const median = (values) => {
+            const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+            if (sorted.length === 0) return null;
+            const middle = Math.floor(sorted.length / 2);
+            return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+          };
+          const categories = Array.from(document.querySelectorAll(".cafe-a-menu-category-block")).filter(isVisible);
+          const itemGaps = [];
+          const titleGaps = [];
+
+          for (const category of categories) {
+            const heading = category.querySelector(":scope > .cafe-a-category-heading");
+            const items = Array.from(category.querySelectorAll(":scope > .cafe-a-category-items > .cafe-a-menu-item-stack")).filter(isVisible);
+            const itemRects = items.map((item) => (
+              item.querySelector(":scope > .cafe-a-menu-item") ?? item
+            ).getBoundingClientRect());
+            for (let index = 1; index < itemRects.length; index += 1) {
+              const gap = itemRects[index].top - itemRects[index - 1].bottom;
+              if (gap >= 0) itemGaps.push(gap);
+            }
+            if (heading && isVisible(heading) && itemRects[0]) {
+              titleGaps.push(itemRects[0].top - heading.getBoundingClientRect().bottom);
+            }
+          }
+
+          const categoryGaps = [];
+          const widgetTransitions = [];
+          const widgetFooterTransitions = [];
+          const topLevelBlocks = Array.from(document.querySelectorAll(".cafe-a-menu-category-block, .cafe-a-menu-widget-block")).filter(isVisible);
+          const parents = [...new Set(topLevelBlocks.map((block) => block.parentElement).filter(Boolean))];
+          for (const parent of parents) {
+            const blocks = Array.from(parent.children).filter((child) => (
+              child.matches(".cafe-a-menu-category-block, .cafe-a-menu-widget-block") && isVisible(child)
+            ));
+            for (let index = 1; index < blocks.length; index += 1) {
+              const previous = blocks[index - 1];
+              const current = blocks[index];
+              const previousRect = previous.getBoundingClientRect();
+              const currentRect = current.getBoundingClientRect();
+              if (Math.abs(previousRect.left - currentRect.left) > 2 || currentRect.top < previousRect.bottom) continue;
+              const previousIsCategory = previous.matches(".cafe-a-menu-category-block");
+              const currentIsCategory = current.matches(".cafe-a-menu-category-block");
+              if (previousIsCategory && currentIsCategory) {
+                categoryGaps.push(currentRect.top - previousRect.bottom);
+              }
+              if (!previousIsCategory || !currentIsCategory) {
+                const divider = current.querySelector(":scope > .cafe-a-menu-category-top-divider");
+                widgetTransitions.push({
+                  from: previousIsCategory ? "category" : "widget",
+                  to: currentIsCategory ? "category" : "widget",
+                  gap: currentRect.top - previousRect.bottom,
+                  marginBottom: Number.parseFloat(getComputedStyle(previous).marginBottom),
+                  hasVisibleDivider: Boolean(divider && isVisible(divider)),
+                });
+              }
+            }
+          }
+
+          const footers = Array.from(document.querySelectorAll('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]')).filter(isVisible);
+          for (const footer of footers) {
+            const previous = footer.previousElementSibling;
+            if (!previous?.matches('.cafe-a-menu-widget-block[data-cafe-a-widget-placement="bottom"]') || !isVisible(previous)) continue;
+            const previousRect = previous.getBoundingClientRect();
+            const footerRect = footer.getBoundingClientRect();
+            widgetFooterTransitions.push({
+              gap: footerRect.top - previousRect.bottom,
+              marginBottom: Number.parseFloat(getComputedStyle(previous).marginBottom),
+              footerMarginTop: Number.parseFloat(getComputedStyle(footer).marginTop),
+            });
+          }
+
+          const root = document.querySelector(".cafe-a-typography");
+          const rootStyle = root ? getComputedStyle(root) : null;
+          return {
+            itemGap: median(itemGaps),
+            titleGaps,
+            categoryGaps,
+            widgetTransitions,
+            widgetFooterTransitions,
+            titleRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-title-to-first-ratio").trim() ?? null,
+            categoryRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-separation-ratio").trim() ?? null,
+          };
+        });
+
         const compareTypography = (label, expected, actual, sizeScale = 1) => {
           if (!expected || !actual) {
             failures.push(`${label} typography is unavailable: ${JSON.stringify({ expected, actual })}`);
@@ -259,19 +378,23 @@ try {
           }
         };
 
+        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a"
+          || templateKey === "cafe_mocha_forest_a";
         const featuredScale = 1;
-        compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
-        compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
-        compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
-        compareTypography("featured description", typography.itemDescription, typography.featuredDescription, featuredScale);
-        if (!typography.itemName || !typography.itemBadge) {
+        if (!usesNameAndPriceOnly) {
+          compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
+          compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
+          compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
+          compareTypography("featured description", typography.itemDescription, typography.featuredDescription, featuredScale);
+        }
+        if (templateKey !== "cafe_mocha_forest_a" && (!typography.itemName || !typography.itemBadge)) {
           failures.push(`menu text chip ratio metrics are unavailable: ${JSON.stringify({ itemName: typography.itemName, itemBadge: typography.itemBadge })}`);
-        } else if (typography.itemBadge.fontSize < typography.itemName.fontSize * 0.61) {
+        } else if (templateKey !== "cafe_mocha_forest_a" && typography.itemBadge.fontSize < typography.itemName.fontSize * 0.61) {
           failures.push(`menu text chip is too small: ${typography.itemBadge.fontSize}px / ${typography.itemName.fontSize}px`);
         }
-        if (!typography.secondaryName) {
+        if (!typography.secondaryName && !usesNameAndPriceOnly) {
           failures.push("secondary-language menu names are missing");
-        } else if (Number.parseInt(typography.secondaryName.fontWeight, 10) < 600) {
+        } else if (typography.secondaryName && Number.parseInt(typography.secondaryName.fontWeight, 10) < 600) {
           failures.push(`secondary-language menu names are too light: ${typography.secondaryName.fontWeight}`);
         }
         if (deviceCase.device === "tablet") {
@@ -280,12 +403,81 @@ try {
           ));
           if (deviceTypeScale !== "1.12") failures.push(`tablet typography scale is incorrect: ${deviceTypeScale || "missing"}`);
         }
-        for (const target of typography.supporting) {
-          compareTypography(target.label, typography.itemDescription, target.signature);
+        if (rhythm.itemGap === null || rhythm.titleGaps.length === 0) {
+          failures.push(`spacing rhythm metrics are unavailable: ${JSON.stringify(rhythm)}`);
+        } else {
+          const expectedTitleRatio = templateKey === "cafe_round_focus_a" ? 1.15 : 1;
+          const actualTitleRatioToken = Number.parseFloat(rhythm.titleRatioToken ?? "");
+          if (Math.abs(actualTitleRatioToken - expectedTitleRatio) > 0.001) {
+            failures.push(`category-title ratio token is incorrect: ${rhythm.titleRatioToken ?? "missing"} / ${expectedTitleRatio}`);
+          }
+          for (const titleGap of rhythm.titleGaps) {
+            const ratio = titleGap / rhythm.itemGap;
+            if (Math.abs(ratio - expectedTitleRatio) > 0.035) {
+              failures.push(`category title-to-first-item rhythm is incorrect: ${titleGap}px / ${rhythm.itemGap}px = ${ratio}, expected ${expectedTitleRatio}`);
+              break;
+            }
+          }
+          if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
+            const expectedCategoryRatio = templateKey === "cafe_round_focus_a" ? 2.8 : 2.2;
+            const actualCategoryRatioToken = Number.parseFloat(rhythm.categoryRatioToken ?? "");
+            if (Math.abs(actualCategoryRatioToken - expectedCategoryRatio) > 0.001) {
+              failures.push(`no-divider category ratio token is incorrect: ${rhythm.categoryRatioToken ?? "missing"} / ${expectedCategoryRatio}`);
+            }
+            if (rhythm.categoryGaps.length === 0) {
+              failures.push(`no-divider category gap metrics are unavailable: ${JSON.stringify(rhythm)}`);
+            } else {
+              for (const categoryGap of rhythm.categoryGaps) {
+                const ratio = categoryGap / rhythm.itemGap;
+                if (Math.abs(ratio - expectedCategoryRatio) > 0.055) {
+                  failures.push(`no-divider category rhythm is incorrect: ${categoryGap}px / ${rhythm.itemGap}px = ${ratio}, expected ${expectedCategoryRatio}`);
+                  break;
+                }
+              }
+            }
+            if (rhythm.widgetTransitions.length > 0) {
+              for (const transition of rhythm.widgetTransitions) {
+                const expectedWidgetRatio = transition.to === "category" && transition.hasVisibleDivider
+                  ? expectedTitleRatio
+                  : expectedCategoryRatio;
+                const marginRatio = transition.marginBottom / rhythm.itemGap;
+                const visualRatio = transition.gap / rhythm.itemGap;
+                if (Math.abs(marginRatio - expectedWidgetRatio) > 0.055) {
+                  failures.push(`widget boundary margin is incorrect: ${JSON.stringify(transition)} / ${marginRatio}, expected ${expectedWidgetRatio}`);
+                  break;
+                }
+                if (visualRatio < expectedWidgetRatio - 0.055) {
+                  failures.push(`widget boundary is visually too narrow: ${JSON.stringify(transition)} / ${visualRatio}, expected at least ${expectedWidgetRatio}`);
+                  break;
+                }
+              }
+            }
+            if (deviceCase.viewport.width >= 1024 && templateKey === "cafe_mocha_forest_a") {
+              if (rhythm.widgetFooterTransitions.length === 0) {
+                failures.push(`bottom widget-to-footer metrics are unavailable: ${JSON.stringify(rhythm)}`);
+              } else {
+                for (const transition of rhythm.widgetFooterTransitions) {
+                  const marginRatio = transition.marginBottom / rhythm.itemGap;
+                  if (Math.abs(marginRatio - expectedCategoryRatio) > 0.055) {
+                    failures.push(`bottom widget-to-footer margin is incorrect: ${JSON.stringify(transition)} / ${marginRatio}, expected ${expectedCategoryRatio}`);
+                    break;
+                  }
+                  if (Math.abs(transition.gap - transition.marginBottom) > 0.5 || Math.abs(transition.footerMarginTop) > 0.5) {
+                    failures.push(`bottom widget-to-footer visual gap is incorrect: ${JSON.stringify(transition)}`);
+                    break;
+                  }
+                }
+              }
+            }
+          }
         }
-        if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a") {
+        const supportingBaseline = usesNameAndPriceOnly ? typography.supporting[0]?.signature ?? null : typography.itemDescription;
+        for (const target of typography.supporting) {
+          compareTypography(target.label, supportingBaseline, target.signature);
+        }
+        if (templateKey === "cafe_design_a") {
           if (!typography.storeName || !typography.categoryName || !typography.itemName || !typography.secondaryName || !typography.itemDescription || !typography.itemPrice || !typography.optionName) {
-            failures.push(`Aube/Mocha hierarchy metrics are unavailable: ${JSON.stringify(typography)}`);
+            failures.push(`Real Matcha hierarchy metrics are unavailable: ${JSON.stringify(typography)}`);
           } else {
             const sundayHierarchy = {
               pc: { categoryName: 1.5, secondaryName: 0.64, itemDescription: 0.71, itemPrice: 1, optionName: 0.56 },
@@ -295,16 +487,16 @@ try {
             for (const [role, expectedRatio] of Object.entries(sundayHierarchy)) {
               const actualRatio = typography[role].fontSize / typography.itemName.fontSize;
               if (Math.abs(actualRatio - expectedRatio) > 0.025) {
-                failures.push(`Aube/Mocha ${role} does not follow the Sunday hierarchy: ${actualRatio} / ${expectedRatio}`);
+                failures.push(`Real Matcha ${role} does not follow the Sunday hierarchy: ${actualRatio} / ${expectedRatio}`);
               }
             }
-            const sundayStoreTitleSize = { pc: 48.6, tablet: 46.62, mobile: 42.9 }[deviceCase.device];
-            if (Math.abs(typography.storeName.fontSize - sundayStoreTitleSize) > 0.25) {
-              failures.push(`Aube/Mocha store title does not follow the Sunday size: ${typography.storeName.fontSize}px / ${sundayStoreTitleSize}px`);
+            const sundayStoreTitleSize = { pc: 48.6, "tablet-landscape": 46.62, mobile: 42.9 }[deviceCase.id];
+            if (sundayStoreTitleSize !== undefined && Math.abs(typography.storeName.fontSize - sundayStoreTitleSize) > 0.25) {
+              failures.push(`Real Matcha store title does not follow the Sunday size: ${typography.storeName.fontSize}px / ${sundayStoreTitleSize}px`);
             }
           }
         }
-        if (templateKey === "cafe_round_focus_a" && deviceCase.device !== "mobile") {
+        if (templateKey === "cafe_round_focus_a" && (deviceCase.id === "pc" || deviceCase.id === "tablet-landscape")) {
           const columnWidths = await page.locator(".cafe-a-center-rail-menu-grid").evaluate((element) => (
             getComputedStyle(element).gridTemplateColumns
               .split(" ")
@@ -331,7 +523,7 @@ try {
             failures.push(`Round Focus spacing is too dense: ${JSON.stringify(spacing)}`);
           }
         }
-        if (templateKey === "cafe_sunday_line_a" && deviceCase.device !== "mobile") {
+        if (templateKey === "cafe_sunday_line_a" && (deviceCase.id === "pc" || deviceCase.id === "tablet-landscape")) {
           const spacing = await page.locator(".cafe-a-desktop-fit-board").evaluate((element) => {
             const style = getComputedStyle(element);
             return {
@@ -343,7 +535,7 @@ try {
           if (spacingIncrease < 3 || spacingIncrease > 12) {
             failures.push(`Sunday Line row spacing is not a subtle increase: ${JSON.stringify(spacing)}`);
           }
-          if (deviceCase.device === "tablet") {
+          if (deviceCase.id === "tablet-landscape") {
             const storeTitleMetrics = await page.locator(".cafe-a-typography").evaluate((element) => {
               const title = Array.from(element.querySelectorAll(".cafe-a-store-title")).find((candidate) => {
                 const rect = candidate.getBoundingClientRect();
@@ -368,7 +560,7 @@ try {
         if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
 
         results.push({
-          templateKey: `${templateKey}-${deviceCase.device}-typography`,
+          templateKey: `${templateKey}-${deviceCase.id}-role-contract`,
           locale: "ko",
           route,
           failures,
@@ -387,7 +579,7 @@ try {
     });
     const page = await context.newPage();
     const failures = [];
-    const route = "/templates/cafe_sunday_line_a/preview?lang=en";
+    const route = "/templates/cafe_sunday_roasters_a/preview?lang=en";
     const response = await page.goto(new URL(route, baseUrl).toString(), {
       waitUntil: "domcontentloaded",
       timeout: navigationTimeout,
@@ -402,13 +594,18 @@ try {
       if (!(await profileIcon.isVisible())) {
         failures.push("browser guide profile icon is missing");
       } else {
-        const profileStyle = await previewGuide.locator("[data-preview-guide-profile]").first().evaluate((element) => ({
-          backgroundColor: getComputedStyle(element).backgroundColor,
-          borderRadius: Number.parseFloat(getComputedStyle(element).borderRadius),
-          iconColor: getComputedStyle(element.querySelector("[data-preview-guide-profile-icon]")).color,
-        }));
-        if (profileStyle.backgroundColor === profileStyle.iconColor || profileStyle.borderRadius < 16) {
-          failures.push(`browser guide profile style is incorrect: ${JSON.stringify(profileStyle)}`);
+        const profileStyle = await profileIcon.evaluate((element) => {
+          const iconStyle = getComputedStyle(element);
+          const profile = element.closest("[data-preview-guide-profile]");
+          const profileStyle = profile instanceof HTMLElement ? getComputedStyle(profile) : null;
+          return {
+            iconColor: iconStyle.color,
+            profileBackground: profileStyle?.backgroundColor ?? "",
+            profileRadius: profileStyle ? Number.parseFloat(profileStyle.borderRadius) : 0,
+          };
+        });
+        if (profileStyle.profileBackground === profileStyle.iconColor || profileStyle.profileRadius < 16) {
+          failures.push(`browser guide profile icon style is invalid: ${JSON.stringify(profileStyle)}`);
         }
       }
       await previewGuide.getByRole("button", { name: "닫기" }).click();
@@ -460,6 +657,25 @@ try {
     const before = await toolbar.boundingBox();
     if (before && before.height > 64) failures.push(`tablet toolbar is too tall: ${before.height}px`);
     if (await toolbar.getAttribute("data-toolbar-open") !== "true") failures.push("device toolbar is not open by default");
+    const detachedLink = toolbar.getByRole("link", { name: "새 창에서 메뉴판 보기" });
+    const detachedHref = await detachedLink.getAttribute("href");
+    if (await detachedLink.getAttribute("target") !== "_blank") failures.push("detached preview does not target a new window");
+    if (!detachedHref?.includes("device=tablet") || !detachedHref.includes("orientation=landscape") || !detachedHref.includes("view=actual") || !detachedHref.includes("embedded=1")) {
+      failures.push(`detached preview does not preserve the selected device: ${detachedHref ?? "missing"}`);
+    }
+    const detachedPagePromise = context.waitForEvent("page", { timeout: navigationTimeout });
+    await detachedLink.click();
+    const detachedPage = await detachedPagePromise;
+    await detachedPage.waitForLoadState("domcontentloaded", { timeout: navigationTimeout });
+    if (await detachedPage.locator("[data-preview-device-toolbar]").count() !== 0) {
+      failures.push("detached preview still renders the device toolbar");
+    }
+    await detachedPage.waitForFunction(() => (
+      document.querySelector(".cafe-a-desktop-fit-board")?.getAttribute("data-fit-presentation-state") === "ready"
+    ), undefined, { timeout: navigationTimeout }).catch(() => {
+      failures.push("detached preview did not reach a ready layout");
+    });
+    await detachedPage.close();
     await toolbar.getByRole("button", { name: "기기 선택 도구 닫기" }).click();
     await page.waitForFunction((beforeY) => {
       const toolbarElement = document.querySelector("[data-preview-device-toolbar]");
@@ -478,7 +694,7 @@ try {
       Number.parseFloat(getComputedStyle(element).opacity)
     ));
     if (collapsedContentOpacity !== 0) failures.push(`collapsed device controls remain visible: opacity ${collapsedContentOpacity}`);
-    if (!(await toolbar.locator("button").isVisible())) failures.push("collapsed device toolbar arrow is missing");
+    if (!(await toolbar.getByRole("button", { name: "기기 선택 도구 열기" }).isVisible())) failures.push("collapsed device toolbar arrow is missing");
     if (!before || !after) {
       failures.push("device toolbar bounds are unavailable");
     } else {

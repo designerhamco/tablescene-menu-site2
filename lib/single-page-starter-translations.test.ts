@@ -20,7 +20,11 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
     assert.equal(pageKeys.length, preset.pages.length, "Korean starter pages must have stable keys");
     assert.equal(categoryKeys.length, preset.pages.flatMap((page) => page.categories).length, "Korean starter categories must have stable keys");
     assert.equal(itemKeys.length, items.length, "Korean starter items must have stable keys");
-    assert.equal(items.every((item) => item.name.trim() && item.description.trim()), true);
+    assert.equal(items.every((item) => item.name.trim()), true);
+    assert.equal(
+      items.every((item) => templateKey === "cafe_mocha_forest_a" ? !item.description.trim() : Boolean(item.description.trim())),
+      true,
+    );
 
     for (const locale of SINGLE_PAGE_STARTER_TRANSLATION_LOCALES) {
       const copy = translations[locale];

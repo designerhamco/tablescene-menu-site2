@@ -113,10 +113,14 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.ok(html.indexOf("태블릿") < html.indexOf(">PC<"));
   assert.ok(html.indexOf(">PC<") < html.indexOf("모바일"));
   assert.doesNotMatch(html, /메뉴판 목록/);
-  assert.doesNotMatch(html, /새 창에서 실제 크기 보기/);
+  assert.match(html, /새 창에서 메뉴판 보기/);
+  assert.match(html, /target="_blank"/);
+  assert.match(html, /view=actual&amp;embedded=1/);
   assert.doesNotMatch(html, /1440 × 900/);
   assert.match(html, /기기 선택 도구 닫기/);
   assert.match(html, /aria-expanded="true"/);
+  assert.doesNotMatch(html, /메뉴판 확대·축소/);
+  assert.doesNotMatch(html, /data-preview-zoom-controls/);
   assert.doesNotMatch(html, /tabindex="0"/);
 });
 
@@ -136,10 +140,12 @@ test("scrollable tablet and mobile preview frames are keyboard focusable", () =>
 test("first preview guide uses anchored coachmarks and applies hide-today only through checkbox plus close", () => {
   assert.match(previewFrameSource, /<MenuPreviewGuide device=\{device\} \/>/);
   assert.match(previewGuideSource, /GuideDeviceSelector/);
-  assert.match(previewGuideSource, /BrowserZoomGuide/);
+  assert.match(previewGuideSource, /<BrowserZoomGuide \/>/);
   assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
-  assert.match(previewGuideSource, /device = "tablet"/);
   assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
+  assert.match(previewGuideSource, /실제 배치는 기기에 따라 달라질 수 있으니/);
+  assert.match(previewGuideSource, /사용할 기기에서 최종 확인해 주세요/);
+  assert.match(previewGuideSource, /device = "tablet"/);
   assert.match(previewGuideSource, /type="checkbox"/);
   assert.match(previewGuideSource, /checked=\{hideTodayChecked\}/);
   assert.match(previewGuideSource, /if \(hideTodayChecked\) \{[\s\S]*localStorage\.setItem\(PREVIEW_GUIDE_DATE_KEY/);
@@ -183,7 +189,7 @@ test("device selector is open by default and collapses upward while preserving t
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource, /w-\[min\(24rem,calc\(100vw-1\.5rem\)\)\]/);
+  assert.match(previewFrameSource, /w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);
   assert.match(previewFrameSource, /RotateCwSquare/);
@@ -198,6 +204,12 @@ test("device selector is open by default and collapses upward while preserving t
   assert.doesNotMatch(previewFrameSource, /backdrop-blur-xl/);
   assert.doesNotMatch(previewFrameSource, /border-l border-white\/20 pl-2/);
   assert.equal((previewFrameSource.match(/bg-zinc-950\/48/g) ?? []).length, 1);
+  assert.match(previewFrameSource, /data-preview-detached-link=""/);
+  assert.match(previewFrameSource, /target="_blank"/);
+  assert.match(previewFrameSource, /rel="noopener noreferrer"/);
+  assert.match(previewFrameSource, /className="h-full w-full border-0 bg-white"/);
+  assert.doesNotMatch(previewFrameSource, /data-preview-zoom-controls/);
+  assert.doesNotMatch(previewFrameSource, /PREVIEW_ZOOM_STORAGE_PREFIX/);
 });
 
 test("hide-today checkbox is plain text control without a boxed container", () => {
@@ -264,7 +276,7 @@ test("template previews open in device frames without carrying recursive frame p
       { lang: "en", copyQa: "long", device: "mobile", view: "actual" },
       { device: "tablet", orientation: "portrait" },
     ),
-    "/templates/cafe_sunday_line_a/preview?copyQa=long&lang=en&device=tablet&orientation=portrait",
+    "/templates/cafe_sunday_roasters_a/preview?copyQa=long&lang=en&device=tablet&orientation=portrait",
   );
   assert.equal(
     buildTemplatePreviewUrl("dining_aube_table_a", {}, { device: "pc", actual: true, embedded: true }),

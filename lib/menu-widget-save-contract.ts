@@ -421,6 +421,7 @@ function cloneWidgetDraft(rawDraft: Record<string, unknown>): MenuWidgetDraft {
       aspectRatio: toStringValue(rawSettings.aspectRatio) as MenuWidgetDraft["settings"]["aspectRatio"],
       objectFit: toStringValue(rawSettings.objectFit) as MenuWidgetDraft["settings"]["objectFit"],
       textAlign: toStringValue(rawSettings.textAlign) as MenuWidgetDraft["settings"]["textAlign"],
+      placement: (toStringValue(rawSettings.placement) || "bottom") as MenuWidgetDraft["settings"]["placement"],
       altText: toStringValue(rawSettings.altText),
     },
   };
