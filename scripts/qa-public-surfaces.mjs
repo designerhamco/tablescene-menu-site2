@@ -15,9 +15,9 @@ const routes = [
   "/sign-in",
   "/sign-up",
   "/forgot-password",
-  "/templates/cafe_design_a/preview",
+  "/templates/cafe_real_matcha_a/preview",
   "/templates/cafe_mocha_forest_a/preview",
-  "/templates/cafe_sunday_line_a/preview",
+  "/templates/cafe_sunday_roasters_a/preview",
   "/templates/cafe_round_focus_a/preview",
   "/templates/dining_aube_table_a/preview",
   "/templates/dining_aube_table_b/preview",
@@ -309,7 +309,7 @@ try {
         : await inspectPage(page);
       const previewGuideFailures = !navigationError
         && viewport.key === "desktop"
-        && route === "/templates/cafe_sunday_line_a/preview"
+        && route === "/templates/cafe_sunday_roasters_a/preview"
         ? await inspectPreviewGuide(page)
         : [];
       const displayPreviewFailures = !navigationError

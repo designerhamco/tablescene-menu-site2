@@ -10,6 +10,7 @@ import {
   getFeaturedTemplatesForDisplayPage,
   getTemplateCategoryKeysForBasicGroup,
   getTemplateCategoryKeysForDisplayGroup,
+  getTemplatePreviewRouteKey,
   type BasicTemplateCategoryGroupKey,
   type DisplayTemplateCategoryGroupKey,
   type TemplateCatalogItem,
@@ -144,7 +145,7 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
               {marqueeTemplates.map((template, index) => (
                 <div key={`${template.key}-${index}`} className="w-[76vw] shrink-0 sm:w-[48vw] lg:w-[30vw] lg:max-w-[420px]">
                   {template.status === 'available' ? (
-                    <a href={`/templates/${template.key}/preview`} target="_blank" rel="noreferrer" aria-label={`${template.name} 템플릿 미리보기 새창으로 열기`} className="block">
+                    <a href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noreferrer" aria-label={`${template.name} 템플릿 미리보기 새창으로 열기`} className="block">
                       <TemplateThumbnail template={template} />
                     </a>
                   ) : (
@@ -228,7 +229,7 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
               >
                 {template.status === 'available' ? (
                   <a
-                    href={`/templates/${template.key}/preview`}
+                    href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`}
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`${template.name} 템플릿 미리보기 새창으로 열기`}

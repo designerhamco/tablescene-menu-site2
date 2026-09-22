@@ -154,6 +154,7 @@ export function buildTemplatePreviewUrl(
   if (options.embedded) searchParams.set("embedded", "1");
 
   const queryString = searchParams.toString();
-  const pathname = `/templates/${encodeURIComponent(templateKey)}/preview`;
+  const pathname = `/templates/${encodeURIComponent(getTemplatePreviewRouteKey(templateKey))}/preview`;
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
+import { getTemplatePreviewRouteKey } from "@/lib/templates";

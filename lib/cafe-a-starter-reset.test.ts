@@ -36,8 +36,8 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   const { snapshot } = result;
   assert.equal(snapshot.widgets.length, 0);
   assert.deepEqual(snapshot.referenceMap.widget, {});
-  assert.equal(snapshot.categoryPriceColumns.length > 0, true);
-  assert.equal(snapshot.itemPriceColumnValues.length > 0, true);
+  assert.equal(snapshot.categoryPriceColumns.length, 0);
+  assert.equal(snapshot.itemPriceColumnValues.length, 0);
   assert.deepEqual(snapshot.deletedPageIds, ["existing-page"]);
   assert.deepEqual(snapshot.deletedCategoryIds, ["existing-category"]);
   assert.deepEqual(snapshot.deletedItemIds, ["existing-item"]);
@@ -56,7 +56,7 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
     ["signature-coffee", "classic-coffee", "non-coffee", "ade", "bakery"],
   );
 
-  assert.equal(snapshot.featuredItemId, snapshot.referenceMap.item["jeju-matcha-cream-latte"]);
+  assert.equal(snapshot.featuredItemId, snapshot.referenceMap.item["real-matcha-cream-latte"]);
   assert.equal(snapshot.featuredSlides.length > 0, true);
   assert.equal(snapshot.featuredSlides.every((slide) => Boolean(slide.featuredItemId)), true);
 
@@ -72,6 +72,24 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   });
 
   assert.equal(snapshot.items.every((item) => item.isSoldOut === false), true);
+});
+
+test("Mocha Forest starter preserves a cover image without requiring a featured product", () => {
+  const result = buildCafeAStarterResetSnapshot({
+    preset: getStarterPreset("cafe_mocha_forest_a"),
+    idFactory: deterministicIdFactory,
+    now: fixedNow,
+  });
+
+  if (!result.ok) {
+    assert.fail(result.errors.map((error) => `${error.code}:${error.field}`).join(", "));
+  }
+
+  assert.equal(result.snapshot.featuredEnabled, false);
+  assert.equal(result.snapshot.featuredItemId, null);
+  assert.equal(result.snapshot.featuredSlides.length, 1);
+  assert.equal(result.snapshot.featuredSlides[0]?.featuredItemId, null);
+  assert.equal(result.snapshot.coverSettings.coverImageUrl, "/menu-templates/cafe_design_a/black-sesame-featured.jpg");
 });
 
 test("buildCafeAStarterResetSnapshot falls back for starters without widgets or mixed order", () => {

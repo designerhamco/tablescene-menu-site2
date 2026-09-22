@@ -8,9 +8,9 @@
 
 Basic 출시 대상:
 
-- 오브 커피 (`cafe_design_a`)
+- REAL MATCHA (`cafe_design_a`, 공개 미리보기 `cafe_real_matcha_a`)
 - 모카 포레스트 (`cafe_mocha_forest_a`)
-- 선데이 라인 (`cafe_sunday_line_a`)
+- 선데이 로스터스 (`cafe_sunday_line_a`, 공개 미리보기 `cafe_sunday_roasters_a`)
 - 라운드 포커스 (`cafe_round_focus_a`)
 - 오브 테이블 (`dining_aube_table_a`)
 - 메종 마레 (`dining_aube_table_b`)
@@ -30,9 +30,9 @@ Display 출시 대상:
 
 | 템플릿 | 390×844 | 1440×900 | 가로 넘침 | 깨진 이미지 | 콘솔 오류 |
 | --- | --- | --- | --- | --- | --- |
-| 오브 커피 | 통과 | 통과 | 없음 | 없음 | 없음 |
+| REAL MATCHA | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 모카 포레스트 | 통과 | 통과 | 없음 | 없음 | 없음 |
-| 선데이 라인 | 통과 | 통과 | 없음 | 없음 | 없음 |
+| 선데이 로스터스 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 라운드 포커스 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 오브 테이블 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 메종 마레 | 통과 | 통과 | 없음 | 없음 | 없음 |
@@ -46,8 +46,8 @@ Display 출시 대상:
 - 2026-08-31 메종 마레 production build에서 버건디·아이보리 전용 색상, Noto Serif KR·Cormorant Garamond 기본 글꼴, 독립 모던 프렌치 스타터를 확인했다. 1440×900·1180×820에서는 왼쪽 페이지 메뉴/오른쪽 콘텐츠, 390×844에서는 가로 스와이프 상단 페이지 탭으로 전환되며 하단 dot 부재, 페이지 클릭, 가로 overflow 없음과 오브 테이블 회귀가 통과했다.
 - 오브 테이블의 신규 저장 필드는 additive migration과 Production QA를 완료했다. 2026-09-14 오브 테이블·메종 마레를 같은 멀티페이지 9,900원 등급의 판매·교체 후보로 전환했다.
 
-- 오브 커피 대표 슬라이드, 가격 옵션, 배지, 품절, 타임세일, 이미지가 fixture에서 렌더링된다.
-- 오브 커피 starter reset 기대값을 현재 5개 category 계약에 맞추고, widget 길이 fixture를 실제 입력 제한인 제목 30자·본문 120자 안에서 경계 테스트하도록 복구했다.
+- 리얼 맛차 대표 슬라이드, 배지, 품절, 타임세일과 단일 가격이 fixture에서 렌더링된다. 일반 메뉴 썸네일과 HOT/ICE 가격 열은 현재 스타터에서 사용하지 않는다.
+- 리얼 맛차 starter reset 기대값을 현재 5개 category 계약에 맞추고, widget 길이 fixture를 실제 입력 제한인 제목 30자·본문 120자 안에서 경계 테스트하도록 복구했다.
 - 일본어 연속문자, 이미지+텍스트 widget 3개, 제목 30자·본문 120자 최대 입력을 1440×900에서 검사했으며 페이지·가로 overflow와 깨진 이미지는 없었다.
 - 브루 챕터의 커버와 6개 페이지 이동 control이 렌더링된다. `MAISON ECLAT` starter는 `docs/multi-page-template-product-contract.md`에 확정된 계약이다.
 - 썸머 블루 Display의 4개 페이지 전환이 동작하고 선택 페이지가 URL `page` query에 반영된다.

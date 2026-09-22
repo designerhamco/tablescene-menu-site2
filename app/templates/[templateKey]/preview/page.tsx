@@ -17,7 +17,7 @@ import {
   normalizeMenuPreviewOrientation,
   shouldUseMenuPreviewDeviceFrame,
 } from "@/lib/menu-preview-devices";
-import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
+import { getFirstCompleteStarterFeaturedSlide, getFirstStarterFeaturedImageSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import {
   DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR,
   DEFAULT_TIME_SALE_BADGE_TEXT,
@@ -31,7 +31,7 @@ import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib
 import { applyStarterPreviewLocalization } from "@/lib/template-demo-data/starter-preview-localization";
 import { MENU_WIDGET_SETTINGS_VERSION, type MenuWidget } from "@/lib/menu-widgets";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
-import { getTemplateByKey, isValidTemplateKey, type TemplateKey } from "@/lib/templates";
+import { getTemplateByKey, resolveTemplatePreviewRouteKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
 
 type PageProps = {
@@ -233,6 +233,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     : null;
   const featuredSlides = resolveStarterFeaturedSlides(preset, items);
   const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
+  const firstFeaturedImageSlide = getFirstStarterFeaturedImageSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
     menu_cover_enabled: preset.menu_cover_enabled ?? getDefaultPageSettings().menu_cover_enabled,
@@ -382,7 +383,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       status: "published",
       description: template.description,
       logo_url: template.key === "cafe_noir_a" ? (preset.site.logo_url ?? null) : null,
-      cover_image_url: firstCompleteFeaturedSlide?.image_url ?? preset.site.cover_image_url,
+      cover_image_url: firstFeaturedImageSlide?.image_url ?? preset.site.cover_image_url,
       intro_image_url: null,
       brand_color: "#111111",
       business_name: preset.site.restaurant_name,
@@ -450,12 +451,12 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
     widgets,
     featuredSlides: featuredSlides.flatMap((slide) => {
       const item = slide.featured_item_id ? items.find((menuItem) => menuItem.id === slide.featured_item_id) : null;
-      if (!slide.image_url || !item || item.visible === false) return [];
+      if (!slide.image_url || item?.visible === false) return [];
       return [
         {
           id: slide.id,
           imageUrl: slide.image_url,
-          featuredItemId: item.id,
+          featuredItemId: item?.id ?? null,
           sortOrder: slide.sort_order,
         },
       ];
@@ -1270,9 +1271,10 @@ function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | s
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { templateKey } = await params;
+  const { templateKey: routeTemplateKey } = await params;
+  const templateKey = resolveTemplatePreviewRouteKey(routeTemplateKey);
 
-  if (!isValidTemplateKey(templateKey)) {
+  if (!templateKey) {
     return {
       title: "템플릿 미리보기 | ArtiMenu",
       robots: { index: false, follow: false },
@@ -1289,7 +1291,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function TemplatePreviewPage({ params, searchParams }: PageProps) {
-  const { templateKey } = await params;
+  const { templateKey: routeTemplateKey } = await params;
+  const templateKey = resolveTemplatePreviewRouteKey(routeTemplateKey);
+  if (!templateKey) {
+    notFound();
+  }
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const getFirstParam = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
   const layoutModeParam = Array.isArray(resolvedSearchParams.layoutMode)
@@ -1309,10 +1315,6 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const displayPreviewSplitImagePosition = templateKey === "display_menu_a"
     ? getDisplayPreviewSplitImagePosition(resolvedSearchParams.qaSplitImagePosition)
     : null;
-
-  if (!isValidTemplateKey(templateKey)) {
-    notFound();
-  }
 
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(templateKey);
   const device = normalizeMenuPreviewDevice(

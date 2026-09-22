@@ -264,7 +264,7 @@ test("template previews open in device frames without carrying recursive frame p
       { lang: "en", copyQa: "long", device: "mobile", view: "actual" },
       { device: "tablet", orientation: "portrait" },
     ),
-    "/templates/cafe_sunday_line_a/preview?copyQa=long&lang=en&device=tablet&orientation=portrait",
+    "/templates/cafe_sunday_roasters_a/preview?copyQa=long&lang=en&device=tablet&orientation=portrait",
   );
   assert.equal(
     buildTemplatePreviewUrl("dining_aube_table_a", {}, { device: "pc", actual: true, embedded: true }),

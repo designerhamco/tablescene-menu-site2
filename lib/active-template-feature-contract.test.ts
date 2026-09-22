@@ -9,16 +9,17 @@ import { mergeTypographySettings } from "./template-typography-presets";
 import { getTemplateByKey } from "./templates";
 
 const BASIC_FEATURE_EXPECTATIONS = {
-  cafe_design_a: { widgets: true, images: true, starterImages: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
-  cafe_mocha_forest_a: { widgets: true, images: true, starterImages: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
-  cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
-  cafe_round_focus_a: { widgets: true, images: true, starterImages: false, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
-  cafe_brew_chapter_a: { widgets: false, images: true, starterImages: true, priceOptions: true, cover: "page", timeSales: 1, soldOut: 1 },
-  cafe_noir_a: { widgets: false, images: false, starterImages: false, priceOptions: false, cover: "none", timeSales: 0, soldOut: 0 },
+  cafe_design_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  cafe_mocha_forest_a: { widgets: true, images: true, starterImages: true, starterBadges: false, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  cafe_round_focus_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  cafe_brew_chapter_a: { widgets: false, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "page", timeSales: 1, soldOut: 1 },
+  cafe_noir_a: { widgets: false, images: false, starterImages: false, starterBadges: true, priceOptions: false, cover: "none", timeSales: 0, soldOut: 0 },
 } as const satisfies Record<string, {
   widgets: boolean;
   images: boolean;
   starterImages: boolean;
+  starterBadges: boolean;
   priceOptions: boolean;
   cover: TemplateMenuCoverMode;
   timeSales: number;
@@ -45,7 +46,7 @@ test("Basic launch starters retain the fixture evidence used by feature QA", () 
     assert.ok(items.length > 0, `${templateKey}: menu items`);
     assert.equal(preset.time_sales?.length ?? 0, expected.timeSales, `${templateKey}: time sales`);
     assert.equal(items.filter((item) => item.is_sold_out).length, expected.soldOut, `${templateKey}: sold out`);
-    assert.ok(items.some((item) => item.badge_label), `${templateKey}: badge`);
+    assert.equal(items.some((item) => item.badge_label), expected.starterBadges, `${templateKey}: badge`);
     assert.equal(items.some((item) => item.image_url), expected.starterImages, `${templateKey}: starter images`);
     assert.equal(Boolean(preset.site.cover_image_url), expected.cover !== "none" && templateKey !== "cafe_round_focus_a", `${templateKey}: cover image`);
   }

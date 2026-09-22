@@ -74,7 +74,7 @@ const DEFAULT_OPTIONS: CafeAWidgetLengthFixtureOptions = {
 };
 
 const TEXT_PARTS: Record<SupportedLocale, readonly string[]> = {
-  ko: ["오늘의 안내는 매장 이용과 메뉴 선택을 돕기 위한 짧은 문장입니다", "오브 커피는 편안한 흐름으로 정보를 전합니다"],
+  ko: ["오늘의 안내는 매장 이용과 메뉴 선택을 돕기 위한 짧은 문장입니다", "리얼 맛차는 편안한 흐름으로 정보를 전합니다"],
   en: ["Today notice keeps the menu board clear and easy to scan", "Aube Coffee shares helpful updates with a calm voice"],
   zh: ["今日公告用于帮助顾客轻松阅读菜单和选择饮品", "奥布咖啡用简洁文字传达门店信息"],
   ja: ["本日のお知らせはメニュー選びをわかりやすくします", "オーブコーヒーは落ち着いた言葉で案内します"],

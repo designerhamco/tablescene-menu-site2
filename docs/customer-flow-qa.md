@@ -31,8 +31,8 @@
 | `/forgot-password` | 비밀번호 재설정 화면 로드 |
 | `/pricing` | Basic·Display·Custom 요금제 화면 로드 |
 | `/apply/order` | 현재 제품 소개 route인 `/services/order`로 정상 연결 |
-| `/templates/cafe_design_a/preview` | 오브 커피 renderer와 메뉴 구역 로드 |
-| `/templates/cafe_design_a/preview?orderCallQa=active` | 공통 언어 변경 control, 테이블·직원 호출·장바구니 헤더와 두 dialog 정상 로드; 호출 기본 항목 선택은 실제 write 없음 |
+| `/templates/cafe_real_matcha_a/preview` | 리얼 맛차 renderer와 메뉴 구역 로드; 내부 저장 키 `cafe_design_a`와 호환 |
+| `/templates/cafe_real_matcha_a/preview?orderCallQa=active` | 공통 언어 변경 control, 테이블·직원 호출·장바구니 헤더와 두 dialog 정상 로드; 호출 기본 항목 선택은 실제 write 없음 |
 | `orderCallQa=call` / `order` / `no-session` | Call-only·Order-only 독립 노출과 세션 없음 action 비노출 확인 |
 | `/templates/display_menu_a/preview?orderCallQa=active` | Display에서 공통 Order/Call header 전체 비노출 확인 |
 | `/mypage/menus/[menuId]/preview?device=tablet` | orientation query가 없어도 가로 1180×820을 기본으로 표시하고 세로 전환 링크 제공 |

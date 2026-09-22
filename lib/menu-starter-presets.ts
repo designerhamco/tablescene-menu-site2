@@ -153,7 +153,7 @@ export type StarterFeaturedSlide = {
   image_url: string;
   image_path?: string | null;
   featured_item_key?: string;
-  featured_item_name: string;
+  featured_item_name?: string;
   sort_order: number;
 };
 
@@ -505,7 +505,7 @@ export function resolveStarterFeaturedSlides<T extends { id: string; name: strin
     id: slide.id,
     image_url: slide.image_url,
     image_path: slide.image_path ?? null,
-    featured_item_id: itemByName.get(slide.featured_item_name) ?? null,
+    featured_item_id: slide.featured_item_name ? itemByName.get(slide.featured_item_name) ?? null : null,
     sort_order: index,
   }));
 }
@@ -521,7 +521,7 @@ function resolveStarterFeaturedSlidesByKey(
     image_path: slide.image_path ?? null,
     featured_item_id:
       (slide.featured_item_key ? itemIdByStarterKey.get(slide.featured_item_key) ?? null : null) ??
-      itemIdByName.get(slide.featured_item_name) ??
+      (slide.featured_item_name ? itemIdByName.get(slide.featured_item_name) ?? null : null) ??
       null,
     sort_order: index,
   }));
@@ -531,12 +531,16 @@ export function getFirstCompleteStarterFeaturedSlide(slides: ResolvedStarterFeat
   return slides.find((slide) => Boolean(slide.image_url && slide.featured_item_id)) ?? null;
 }
 
+export function getFirstStarterFeaturedImageSlide(slides: ResolvedStarterFeaturedSlide[]) {
+  return slides.find((slide) => Boolean(slide.image_url)) ?? null;
+}
+
 const cafeDesignAStarterPreset: StarterPreset = {
   key: "cafe",
   template_key: "cafe_design_a",
   site: CAFE_DESIGN_A_STITCH_SAMPLE.site,
-  featured_item_name: "제주 말차 크림 라떼",
-  featured_item_key: "jeju-matcha-cream-latte",
+  featured_item_name: "리얼 맛차 크림 라떼",
+  featured_item_key: "real-matcha-cream-latte",
   featured_slides: CAFE_DESIGN_A_STITCH_SAMPLE.featured_slides.map((slide) => ({ ...slide })),
   time_sales: cloneStarterTimeSales(CAFE_DESIGN_A_STITCH_SAMPLE.time_sales),
   widgets: cloneStarterWidgets(CAFE_DESIGN_A_STITCH_SAMPLE.widgets),
@@ -555,8 +559,8 @@ const cafeDesignAStarterPreset: StarterPreset = {
           key: "key" in category ? category.key : undefined,
           name: category.name,
           section_key: "section_key" in category ? (category.section_key as MenuSectionKey) : (page.legacy_section_key as MenuSectionKey),
-          description: "description" in category ? category.description : undefined,
-          description_visible: "description_visible" in category ? category.description_visible : undefined,
+          description: "description" in category ? (category.description as string | null | undefined) : undefined,
+          description_visible: "description_visible" in category ? (category.description_visible as boolean | undefined) : undefined,
           price_columns: "price_columns" in category ? cloneStarterPriceColumns(category.price_columns) : undefined,
           items: category.items.map((menuItem) => {
             const sourceItem = menuItem as Partial<StarterItem> & Pick<StarterItem, "name" | "price" | "description">;
@@ -602,32 +606,14 @@ cafeMochaForestStarterPreset.site = {
     footer_notice_3: "디카페인 원두로 변경 가능합니다.",
   },
 };
-cafeMochaForestStarterPreset.featured_item_name = "포레스트 모카";
-cafeMochaForestStarterPreset.featured_item_key = "forest-mocha";
+cafeMochaForestStarterPreset.featured_item_name = undefined;
+cafeMochaForestStarterPreset.featured_item_key = undefined;
 cafeMochaForestStarterPreset.featured_slides = [
   {
-    id: "mocha-forest-featured-forest-mocha",
+    id: "mocha-forest-cover-image",
     image_url: "/menu-templates/cafe_design_a/black-sesame-featured.jpg",
     image_path: null,
-    featured_item_key: "forest-mocha",
-    featured_item_name: "포레스트 모카",
     sort_order: 0,
-  },
-  {
-    id: "mocha-forest-featured-hazelnut-cream-latte",
-    image_url: "/menu-templates/cafe_design_a/nutty-cream-featured.jpg",
-    image_path: null,
-    featured_item_key: "hazelnut-cream-latte",
-    featured_item_name: "헤이즐넛 크림 라떼",
-    sort_order: 1,
-  },
-  {
-    id: "mocha-forest-featured-matcha-cloud",
-    image_url: "/menu-templates/cafe_design_a/malcha_present.jpg",
-    image_path: null,
-    featured_item_key: "matcha-cloud",
-    featured_item_name: "말차 클라우드",
-    sort_order: 2,
   },
 ];
 cafeMochaForestStarterPreset.time_sales = [
@@ -640,8 +626,7 @@ cafeMochaForestStarterPreset.time_sales = [
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
-      { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "hot", sale_price: 3000 },
-      { target_item_key: "americano", target_item_name: "아메리카노", target_price_column_key: "ice", sale_price: 3500 },
+      { target_item_key: "americano", target_item_name: "아메리카노", sale_price: 3000 },
     ],
   },
   {
@@ -662,12 +647,12 @@ cafeMochaForestStarterPreset.widgets = [
     type: "image",
     title: null,
     description: null,
-    image_url: STARTER_PLACEHOLDERS.item,
+    image_url: "/menu-templates/cafe_design_a/malcha_present.jpg",
     image_path: null,
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "3:2",
+      aspectRatio: "3:4",
       objectFit: "cover",
       textAlign: "left",
       altText: "모카 포레스트 위젯 이미지",
@@ -693,25 +678,18 @@ cafeMochaForestStarterPreset.pages = [
         name: "FOREST SIGNATURE",
         section_key: "main_menu",
         items: [
-          item("포레스트 모카", 6500, "다크 초콜릿과 에스프레소, 부드러운 크림의 시그니처 모카", {
+          item("포레스트 모카", 6500, "", {
             key: "forest-mocha",
-            set_name: "FOREST MOCHA",
-            badge_label: "SIGNATURE",
-            recommended: true,
             image_url: "/menu-templates/cafe_design_a/black-sesame.jpeg",
             price_note: "ICE ONLY",
           }),
-          item("헤이즐넛 크림 라떼", 6300, "구운 헤이즐넛 크림과 진한 에스프레소의 조화", {
+          item("헤이즐넛 크림 라떼", 6300, "", {
             key: "hazelnut-cream-latte",
-            set_name: "HAZELNUT CREAM LATTE",
-            badge_label: "BEST",
             image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
             price_note: "ICE ONLY",
           }),
-          item("말차 클라우드", 6500, "제주 말차 위에 가벼운 크림을 올린 라떼", {
+          item("말차 클라우드", 6500, "", {
             key: "matcha-cloud",
-            set_name: "MATCHA CLOUD",
-            badge_label: "NEW",
             image_url: "/menu-templates/cafe_design_a/malcha.jpg",
             price_note: "ICE ONLY",
           }),
@@ -721,30 +699,18 @@ cafeMochaForestStarterPreset.pages = [
         key: "classic-coffee",
         name: "ESPRESSO",
         section_key: "main_menu",
-        price_columns: [
-          { key: "hot", label: "HOT" },
-          { key: "ice", label: "ICE" },
-        ],
         items: [
-          item("아메리카노", 4000, "다크 초콜릿의 단맛과 묵직한 바디", {
+          item("아메리카노", 4000, "", {
             key: "americano",
-            set_name: "AMERICANO",
-            price_column_values: [{ key: "hot", price: 4000 }, { key: "ice", price: 4500 }],
           }),
-          item("카페 라떼", 5000, "에스프레소와 고소한 우유의 균형", {
+          item("카페 라떼", 5000, "", {
             key: "cafe-latte",
-            set_name: "CAFE LATTE",
-            price_column_values: [{ key: "hot", price: 5000 }, { key: "ice", price: 5500 }],
           }),
-          item("플랫화이트", 5200, "더블 샷과 촘촘한 밀크폼의 진한 풍미", {
+          item("플랫화이트", 5200, "", {
             key: "flat-white",
-            set_name: "FLAT WHITE",
-            price_column_values: [{ key: "hot", price: 5200 }, { key: "ice", price: 5700 }],
           }),
-          item("메이플 오트 라떼", 5800, "메이플의 은은한 단맛과 오트 밀크", {
+          item("메이플 오트 라떼", 5800, "", {
             key: "maple-oat-latte",
-            set_name: "MAPLE OAT LATTE",
-            price_column_values: [{ key: "hot", price: 5800 }, { key: "ice", price: 6300 }],
           }),
         ],
       },
@@ -752,25 +718,15 @@ cafeMochaForestStarterPreset.pages = [
         key: "non-coffee",
         name: "CHOCOLATE",
         section_key: "dessert_drink",
-        price_columns: [
-          { key: "hot", label: "HOT" },
-          { key: "ice", label: "ICE" },
-        ],
         items: [
-          item("다크 초콜릿 라떼", 5800, "카카오의 깊고 진한 풍미", {
+          item("다크 초콜릿 라떼", 5800, "", {
             key: "dark-chocolate-latte",
-            set_name: "DARK CHOCOLATE LATTE",
-            price_column_values: [{ key: "hot", price: 5800 }, { key: "ice", price: 6300 }],
           }),
-          item("솔티드 카라멜 초콜릿", 6200, "진한 초콜릿과 소금 카라멜의 조화", {
+          item("솔티드 카라멜 초콜릿", 6200, "", {
             key: "salted-caramel-chocolate",
-            set_name: "SALTED CARAMEL CHOCOLATE",
-            price_column_values: [{ key: "hot", price: 6200 }, { key: "ice", price: 6700 }],
           }),
-          item("카카오 오트 밀크", 6000, "카카오와 고소한 오트 밀크를 담은 음료", {
+          item("카카오 오트 밀크", 6000, "", {
             key: "cacao-oat-milk",
-            set_name: "CACAO OAT MILK",
-            price_column_values: [{ key: "hot", price: 6000 }, { key: "ice", price: 6500 }],
           }),
         ],
       },
@@ -779,9 +735,9 @@ cafeMochaForestStarterPreset.pages = [
         name: "TEA & ADE",
         section_key: "dessert_drink",
         items: [
-          item("블랙티 플럼 에이드", 5800, "홍차와 자두의 산뜻한 탄산 음료", { key: "black-tea-plum-ade", set_name: "BLACK TEA PLUM ADE" }),
-          item("레몬 진저 티", 5500, "레몬과 생강을 따뜻하게 우린 티", { key: "lemon-ginger-tea", set_name: "LEMON GINGER TEA" }),
-          item("캐모마일 애플 티", 5500, "캐모마일과 사과 향의 편안한 블렌드", { key: "chamomile-apple-tea", set_name: "CHAMOMILE APPLE TEA" }),
+          item("블랙티 플럼 에이드", 5800, "", { key: "black-tea-plum-ade" }),
+          item("레몬 진저 티", 5500, "", { key: "lemon-ginger-tea" }),
+          item("캐모마일 애플 티", 5500, "", { key: "chamomile-apple-tea" }),
         ],
       },
       {
@@ -789,9 +745,9 @@ cafeMochaForestStarterPreset.pages = [
         name: "DESSERT",
         section_key: "dessert_drink",
         items: [
-          item("다크 초콜릿 브라우니", 4500, "진한 다크 초콜릿을 넣어 촉촉하게 구운 브라우니", { key: "dark-chocolate-brownie", set_name: "DARK CHOCOLATE BROWNIE" }),
-          item("헤이즐넛 휘낭시에", 3800, "구운 헤이즐넛과 버터의 고소한 풍미", { key: "hazelnut-financier", set_name: "HAZELNUT FINANCIER" }),
-          item("포레스트 티라미수", 6200, "에스프레소와 다크 카카오를 층층이 담은 티라미수", { key: "forest-tiramisu", set_name: "FOREST TIRAMISU" }),
+          item("다크 초콜릿 브라우니", 4500, "", { key: "dark-chocolate-brownie" }),
+          item("헤이즐넛 휘낭시에", 3800, "", { key: "hazelnut-financier" }),
+          item("포레스트 티라미수", 6200, "", { key: "forest-tiramisu" }),
         ],
       },
     ],
@@ -3292,8 +3248,9 @@ export async function createStarterMenuData(
 
   const starterFeaturedSlides = resolveStarterFeaturedSlidesByKey(preset, itemIdByStarterKey, itemIdByName);
   const firstCompleteStarterFeaturedSlide = getFirstCompleteStarterFeaturedSlide(starterFeaturedSlides);
+  const firstStarterFeaturedImageSlide = getFirstStarterFeaturedImageSlide(starterFeaturedSlides);
   const starterFeaturedItemNames = getStarterFeaturedItemNames(preset);
-  if (starterFeaturedItemNames.length > 0) {
+  if (starterFeaturedItemNames.length > 0 || starterFeaturedSlides.length > 0) {
     const featuredItemId =
       firstCompleteStarterFeaturedSlide?.featured_item_id ??
       (preset.featured_item_key ? itemIdByStarterKey.get(preset.featured_item_key) ?? null : null) ??
@@ -3301,7 +3258,7 @@ export async function createStarterMenuData(
       starterFeaturedItemNames.map((name) => itemIdByName.get(name) ?? null).find((id): id is string => Boolean(id)) ??
       null;
 
-    if (featuredItemId) {
+    if (featuredItemId || firstStarterFeaturedImageSlide) {
       const { data: siteSettings, error: siteSettingsError } = await supabase
         .from("menu_sites")
         .select("page_settings")
@@ -3314,7 +3271,7 @@ export async function createStarterMenuData(
 
       const nextPageSettings = {
         ...getJsonRecord(siteSettings?.page_settings),
-        featured_item_enabled: true,
+        featured_item_enabled: Boolean(featuredItemId),
         featured_item_id: featuredItemId,
         ...(starterFeaturedSlides.length > 0 ? { featured_slides: starterFeaturedSlides as unknown as Json } : {}),
       } satisfies Record<string, Json>;
@@ -3322,10 +3279,10 @@ export async function createStarterMenuData(
       const { error: featuredSettingsError } = await supabase
         .from("menu_sites")
         .update({
-          ...(firstCompleteStarterFeaturedSlide
+          ...(firstStarterFeaturedImageSlide
             ? {
-                cover_image_url: firstCompleteStarterFeaturedSlide.image_url,
-                cover_image_path: firstCompleteStarterFeaturedSlide.image_path,
+                cover_image_url: firstStarterFeaturedImageSlide.image_url,
+                cover_image_path: firstStarterFeaturedImageSlide.image_path,
               }
             : {}),
           page_settings: nextPageSettings as Json,

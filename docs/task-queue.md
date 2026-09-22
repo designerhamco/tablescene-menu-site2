@@ -50,10 +50,11 @@
 
 ## 3. 활성 템플릿 전체 기능 QA
 
+- `DONE` 단일페이지 표시명·스타터 개편 — 오브 커피를 `리얼 맛차`, 선데이 라인을 `선데이 로스터스`로 바꾸고 공개 미리보기 별칭 route를 연결하되 내부 저장 키는 호환 유지. 리얼 맛차는 맛차 메뉴·그린 칩·단일 가격·카테고리 제목선으로 재구성하고, 모카 포레스트는 밝은 베이지·이미지 전용 대표영역 1개·3:4 위젯·간소화된 메뉴 정보·전용 가게명 비율로 정리. 3개 외국어와 전체 기기 회귀 `38/38` 통과
 - `DONE` 실제 활성 템플릿 목록 확정 — `hidden`은 임시 판매 노출 상태이며 QA 제외 사유가 아님, `docs/active-template-qa.md`
-- `DONE` 오브 커피 — 반응형·dense/footer/widget/multi-page renderer와 격리 저장 round-trip
+- `DONE` 리얼 맛차(내부 키 `cafe_design_a`) — 반응형·dense/footer/widget/multi-page renderer와 격리 저장 round-trip
 - `DONE` 모카 포레스트 — 반응형 renderer와 격리 저장 round-trip
-- `DONE` 선데이 라인 — 반응형·dense·4개 locale 최대 길이 renderer와 격리 저장 round-trip
+- `DONE` 선데이 로스터스(내부 키 `cafe_sunday_line_a`) — 반응형·dense·4개 locale 최대 길이 renderer와 격리 저장 round-trip
 - `DONE` 라운드 포커스 — 반응형·대표 메뉴 없음 fallback renderer와 격리 저장 round-trip
 - `DONE` Brew Chapter — cover/no-cover/no-image·페이지 이동 renderer와 격리 저장 round-trip
 - `DONE` 기타 활성 템플릿 — 누아 메뉴 반응형 renderer·fail-closed capability·격리 저장 round-trip

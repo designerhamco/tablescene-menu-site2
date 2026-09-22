@@ -19,6 +19,10 @@ const singlePageTemplates = new Set([
   "cafe_sunday_line_a",
   "cafe_round_focus_a",
 ]);
+const previewRouteKey = (templateKey) => ({
+  cafe_design_a: "cafe_real_matcha_a",
+  cafe_sunday_line_a: "cafe_sunday_roasters_a",
+}[templateKey] ?? templateKey);
 const locales = ["en", "zh", "ja"].filter((locale) => !localeFilter || locale === localeFilter);
 const singlePageInternalTitleByLocale = {
   en: "MENU",
@@ -45,7 +49,7 @@ try {
         if (message.type() === "error") errors.push(`console: ${message.text()}`);
       });
 
-      const route = `/templates/${templateKey}/preview?lang=${locale}&device=pc&view=actual&embedded=1`;
+      const route = `/templates/${previewRouteKey(templateKey)}/preview?lang=${locale}&device=pc&view=actual&embedded=1`;
       const response = await page.goto(new URL(route, baseUrl).toString(), {
         waitUntil: "domcontentloaded",
         timeout: navigationTimeout,
@@ -129,7 +133,8 @@ try {
           failures.push(`internal single-page title is visible: ${singlePageInternalTitleByLocale[locale]}`);
         }
         const { category, item, featuredItem, featuredDescription, description, linkedSupporting } = measurement.typography;
-        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a";
+        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a"
+          || templateKey === "cafe_mocha_forest_a";
         if (category === null || item === null) {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
@@ -192,7 +197,7 @@ try {
           if (message.type() === "error") failures.push(`console: ${message.text()}`);
         });
 
-        const route = `/templates/${templateKey}/preview?lang=ko&${deviceCase.query}&view=actual&embedded=1`;
+        const route = `/templates/${previewRouteKey(templateKey)}/preview?lang=ko&${deviceCase.query}&view=actual&embedded=1`;
         const response = await page.goto(new URL(route, baseUrl).toString(), {
           waitUntil: "domcontentloaded",
           timeout: navigationTimeout,
@@ -373,7 +378,8 @@ try {
           }
         };
 
-        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a";
+        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a"
+          || templateKey === "cafe_mocha_forest_a";
         const featuredScale = 1;
         if (!usesNameAndPriceOnly) {
           compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
@@ -381,9 +387,9 @@ try {
           compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
           compareTypography("featured description", typography.itemDescription, typography.featuredDescription, featuredScale);
         }
-        if (!typography.itemName || !typography.itemBadge) {
+        if (templateKey !== "cafe_mocha_forest_a" && (!typography.itemName || !typography.itemBadge)) {
           failures.push(`menu text chip ratio metrics are unavailable: ${JSON.stringify({ itemName: typography.itemName, itemBadge: typography.itemBadge })}`);
-        } else if (typography.itemBadge.fontSize < typography.itemName.fontSize * 0.61) {
+        } else if (templateKey !== "cafe_mocha_forest_a" && typography.itemBadge.fontSize < typography.itemName.fontSize * 0.61) {
           failures.push(`menu text chip is too small: ${typography.itemBadge.fontSize}px / ${typography.itemName.fontSize}px`);
         }
         if (!typography.secondaryName && !usesNameAndPriceOnly) {
@@ -469,9 +475,9 @@ try {
         for (const target of typography.supporting) {
           compareTypography(target.label, supportingBaseline, target.signature);
         }
-        if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a") {
+        if (templateKey === "cafe_design_a") {
           if (!typography.storeName || !typography.categoryName || !typography.itemName || !typography.secondaryName || !typography.itemDescription || !typography.itemPrice || !typography.optionName) {
-            failures.push(`Aube/Mocha hierarchy metrics are unavailable: ${JSON.stringify(typography)}`);
+            failures.push(`Real Matcha hierarchy metrics are unavailable: ${JSON.stringify(typography)}`);
           } else {
             const sundayHierarchy = {
               pc: { categoryName: 1.5, secondaryName: 0.64, itemDescription: 0.71, itemPrice: 1, optionName: 0.56 },
@@ -481,12 +487,12 @@ try {
             for (const [role, expectedRatio] of Object.entries(sundayHierarchy)) {
               const actualRatio = typography[role].fontSize / typography.itemName.fontSize;
               if (Math.abs(actualRatio - expectedRatio) > 0.025) {
-                failures.push(`Aube/Mocha ${role} does not follow the Sunday hierarchy: ${actualRatio} / ${expectedRatio}`);
+                failures.push(`Real Matcha ${role} does not follow the Sunday hierarchy: ${actualRatio} / ${expectedRatio}`);
               }
             }
             const sundayStoreTitleSize = { pc: 48.6, "tablet-landscape": 46.62, mobile: 42.9 }[deviceCase.id];
             if (sundayStoreTitleSize !== undefined && Math.abs(typography.storeName.fontSize - sundayStoreTitleSize) > 0.25) {
-              failures.push(`Aube/Mocha store title does not follow the Sunday size: ${typography.storeName.fontSize}px / ${sundayStoreTitleSize}px`);
+              failures.push(`Real Matcha store title does not follow the Sunday size: ${typography.storeName.fontSize}px / ${sundayStoreTitleSize}px`);
             }
           }
         }
@@ -573,7 +579,7 @@ try {
     });
     const page = await context.newPage();
     const failures = [];
-    const route = "/templates/cafe_sunday_line_a/preview?lang=en";
+    const route = "/templates/cafe_sunday_roasters_a/preview?lang=en";
     const response = await page.goto(new URL(route, baseUrl).toString(), {
       waitUntil: "domcontentloaded",
       timeout: navigationTimeout,

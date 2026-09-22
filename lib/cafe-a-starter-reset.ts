@@ -387,8 +387,9 @@ export function buildCafeAStarterResetSnapshot({
     createStarterFeaturedSlideDraft(slide, slideIndex, itemByKey, itemKeyByName)
   );
   const firstCompleteSlide = featuredSlides.find((slide) => Boolean(slide.imageUrl && slide.featuredItemId)) ?? null;
-  const coverImageUrl = firstCompleteSlide?.imageUrl ?? preset.site.cover_image_url ?? null;
-  const coverImagePath = firstCompleteSlide?.imagePath ?? null;
+  const firstImageSlide = featuredSlides.find((slide) => Boolean(slide.imageUrl)) ?? null;
+  const coverImageUrl = firstImageSlide?.imageUrl ?? preset.site.cover_image_url ?? null;
+  const coverImagePath = firstImageSlide?.imagePath ?? null;
   const timeSales = buildStarterTimeSales({
     timeSales: preset.time_sales ?? [],
     itemByKey,
@@ -539,9 +540,6 @@ export function validateCafeAStarterResetSnapshot(
     errors.push(createError("INVALID_REFERENCE", "featuredItemId", "대표 상품 참조가 유효하지 않습니다."));
   }
   snapshot.featuredSlides.forEach((slide, index) => {
-    if (slide.imageUrl && !slide.featuredItemId) {
-      errors.push(createError("INVALID_REFERENCE", `featuredSlides.${index}.featuredItemId`, "대표 슬라이드는 reset item을 안정적으로 참조해야 합니다."));
-    }
     if (slide.featuredItemId && !itemIds.has(slide.featuredItemId)) {
       errors.push(createError("INVALID_REFERENCE", `featuredSlides.${index}.featuredItemId`, "대표 슬라이드의 상품 참조가 유효하지 않습니다."));
     }

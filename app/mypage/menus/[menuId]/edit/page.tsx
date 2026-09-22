@@ -103,7 +103,7 @@ import {
   getCustomBadgeStyles,
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getTemplateDisplayName, getTemplatePreviewRouteKey } from "@/lib/templates";
 import {
   getSwitchableTemplatesForTemplate,
   getTemplateCommercialTier,
@@ -898,7 +898,7 @@ function TemplateSwitchThumbnail({ templateKey, templateName }: { templateKey: s
         className="pointer-events-none absolute left-0 top-0 h-[400%] w-[400%] origin-top-left border-0"
         loading="lazy"
         sandbox=""
-        src={`/templates/${templateKey}/preview${previewQuery}`}
+        src={`/templates/${getTemplatePreviewRouteKey(templateKey)}/preview${previewQuery}`}
         style={{ transform: "scale(0.25)" }}
         tabIndex={-1}
         title={`${templateName} 템플릿 미리보기`}
