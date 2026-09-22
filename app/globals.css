@@ -1841,8 +1841,15 @@ video {
     margin-top: auto;
   }
 
-  .cafe-a-typography .cafe-a-desktop-fit-board:has(> .cafe-a-footer-info-anchor) .cafe-a-balanced-column > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"] {
-    margin-bottom: clamp(4.5rem, calc(var(--board-padding) * 2.75), 7rem);
+  .cafe-a-typography .cafe-a-fit-menu-grid > .cafe-a-footer-info-anchor,
+  .cafe-a-typography .cafe-a-balanced-column > .cafe-a-footer-info-anchor {
+    bottom: auto;
+    left: auto;
+    max-width: none;
+    position: static;
+    right: auto;
+    width: 100%;
+    z-index: auto;
   }
 
   .cafe-a-typography .cafe-a-ordered-menu-flow > .cafe-a-footer-info {
@@ -1853,7 +1860,23 @@ video {
 
   .cafe-a-typography .cafe-a-balanced-column > .cafe-a-footer-info {
     margin-top: auto;
-    padding-top: clamp(0.5rem, calc(var(--menu-item-gap) * var(--fit-menu-gap-scale)), 1rem);
+    padding-top: 0;
+  }
+
+  .cafe-a-typography .cafe-a-balanced-column:has(> .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"]) > .cafe-a-footer-info {
+    margin-top: 0;
+  }
+
+  .cafe-a-typography .cafe-a-balanced-column > .cafe-a-menu-widget-block[data-cafe-a-widget-placement="bottom"]:has(+ .cafe-a-footer-info) {
+    margin-bottom: var(--cafe-a-category-no-divider-gap);
+  }
+
+  .cafe-a-typography .cafe-a-ordered-menu-flow > .cafe-a-menu-widget-block[data-cafe-a-widget-placement="bottom"]:has(+ .cafe-a-footer-info) {
+    margin-bottom: var(--cafe-a-category-no-divider-gap);
+  }
+
+  .cafe-a-typography .cafe-a-ordered-menu-flow > .cafe-a-menu-widget-block[data-cafe-a-widget-placement="bottom"] + .cafe-a-footer-info {
+    margin-top: 0;
   }
 
   .cafe-a-typography .cafe-a-menu-category-block {
@@ -2908,10 +2931,6 @@ video {
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-fixed-rail {
     box-sizing: border-box;
     padding: var(--board-padding);
-  }
-
-  .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-desktop-fit-board:has(> .cafe-a-footer-info-anchor) .cafe-a-balanced-column > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"] {
-    margin-bottom: clamp(5.5rem, calc(var(--board-padding) * 3), 7.5rem);
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-fit-menu-grid {

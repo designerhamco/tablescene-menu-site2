@@ -21,7 +21,7 @@ The shared hierarchy is:
 4. category-to-category gap without a divider (`2.2`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
 
-Widgets are category-level content blocks. A category-to-widget or widget-to-widget boundary without a divider uses the same category-to-category ratio, and widget-to-category uses the same divider or no-divider rule as a category boundary. Bottom docking may add free space above a trailing widget, but it must never reduce this semantic minimum gap.
+Widgets are category-level content blocks. A category-to-widget or widget-to-widget boundary without a divider uses the same category-to-category ratio, and widget-to-category uses the same divider or no-divider rule as a category boundary. A `bottom` widget may add flexible space above its final-column stack, but widget-to-footer-notice spacing uses the same category-to-category token and must never be replaced by a separate fixed reserve.
 
 Single-page skins inherit these values from the CafeA spacing tokens. A skin can adjust the bounded scale, but must not replace the semantic tokens with a fixed `px` margin, padding, or gap.
 

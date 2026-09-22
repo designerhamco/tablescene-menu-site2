@@ -296,6 +296,7 @@ try {
 
           const categoryGaps = [];
           const widgetTransitions = [];
+          const widgetFooterTransitions = [];
           const topLevelBlocks = Array.from(document.querySelectorAll(".cafe-a-menu-category-block, .cafe-a-menu-widget-block")).filter(isVisible);
           const parents = [...new Set(topLevelBlocks.map((block) => block.parentElement).filter(Boolean))];
           for (const parent of parents) {
@@ -326,6 +327,19 @@ try {
             }
           }
 
+          const footers = Array.from(document.querySelectorAll('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]')).filter(isVisible);
+          for (const footer of footers) {
+            const previous = footer.previousElementSibling;
+            if (!previous?.matches('.cafe-a-menu-widget-block[data-cafe-a-widget-placement="bottom"]') || !isVisible(previous)) continue;
+            const previousRect = previous.getBoundingClientRect();
+            const footerRect = footer.getBoundingClientRect();
+            widgetFooterTransitions.push({
+              gap: footerRect.top - previousRect.bottom,
+              marginBottom: Number.parseFloat(getComputedStyle(previous).marginBottom),
+              footerMarginTop: Number.parseFloat(getComputedStyle(footer).marginTop),
+            });
+          }
+
           const root = document.querySelector(".cafe-a-typography");
           const rootStyle = root ? getComputedStyle(root) : null;
           return {
@@ -333,6 +347,7 @@ try {
             titleGaps,
             categoryGaps,
             widgetTransitions,
+            widgetFooterTransitions,
             titleRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-title-to-first-ratio").trim() ?? null,
             categoryRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-separation-ratio").trim() ?? null,
           };
@@ -428,6 +443,23 @@ try {
                 if (visualRatio < expectedWidgetRatio - 0.055) {
                   failures.push(`widget boundary is visually too narrow: ${JSON.stringify(transition)} / ${visualRatio}, expected at least ${expectedWidgetRatio}`);
                   break;
+                }
+              }
+            }
+            if (deviceCase.viewport.width >= 1024 && templateKey === "cafe_mocha_forest_a") {
+              if (rhythm.widgetFooterTransitions.length === 0) {
+                failures.push(`bottom widget-to-footer metrics are unavailable: ${JSON.stringify(rhythm)}`);
+              } else {
+                for (const transition of rhythm.widgetFooterTransitions) {
+                  const marginRatio = transition.marginBottom / rhythm.itemGap;
+                  if (Math.abs(marginRatio - expectedCategoryRatio) > 0.055) {
+                    failures.push(`bottom widget-to-footer margin is incorrect: ${JSON.stringify(transition)} / ${marginRatio}, expected ${expectedCategoryRatio}`);
+                    break;
+                  }
+                  if (Math.abs(transition.gap - transition.marginBottom) > 0.5 || Math.abs(transition.footerMarginTop) > 0.5) {
+                    failures.push(`bottom widget-to-footer visual gap is incorrect: ${JSON.stringify(transition)}`);
+                    break;
+                  }
                 }
               }
             }

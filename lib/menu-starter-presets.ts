@@ -31,6 +31,7 @@ import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 import type {
   MenuWidgetAspectRatio,
   MenuWidgetObjectFit,
+  MenuWidgetPlacement,
   MenuWidgetTextAlign,
   MenuWidgetType,
 } from "@/lib/menu-widgets";
@@ -192,6 +193,7 @@ export type StarterWidget = {
     aspectRatio?: MenuWidgetAspectRatio;
     objectFit?: MenuWidgetObjectFit;
     textAlign?: MenuWidgetTextAlign;
+    placement?: MenuWidgetPlacement;
     altText?: string;
   };
 };

@@ -8,12 +8,14 @@ import {
   type MenuWidgetAspectRatio,
   type MenuWidgetDraft,
   type MenuWidgetObjectFit,
+  type MenuWidgetPlacement,
   type MenuWidgetSettingsV1,
   type MenuWidgetTextAlign,
   type MenuWidgetType,
   type MenuWidgetValidationError,
   isMenuWidgetAspectRatio,
   isMenuWidgetObjectFit,
+  isMenuWidgetPlacement,
   isMenuWidgetTextAlign,
   isMenuWidgetType,
   normalizeMenuWidgetDraft,
@@ -40,7 +42,8 @@ export type MenuWidgetRowParseIssueCode =
   | "MISSING_TEXT"
   | "INVALID_ASPECT_RATIO"
   | "INVALID_OBJECT_FIT"
-  | "INVALID_TEXT_ALIGN";
+  | "INVALID_TEXT_ALIGN"
+  | "INVALID_PLACEMENT";
 
 export type MenuWidgetRowParseIssue = {
   code: MenuWidgetRowParseIssueCode;
@@ -222,15 +225,15 @@ export function parseMenuWidgetRows(rows: readonly MenuWidgetRow[]): {
 
 export function serializeMenuWidgetSettings(widget: MenuWidget): MenuWidgetSettingsV1 {
   if (widget.type === "image") {
-    return createImageSettings(widget.settings.aspectRatio, widget.settings.objectFit, widget.settings.altText);
+    return createImageSettings(widget.settings.aspectRatio, widget.settings.objectFit, widget.settings.placement, widget.settings.altText);
   }
 
   if (widget.type === "text") {
-    return createTextSettings(widget.settings.textAlign);
+    return createTextSettings(widget.settings.textAlign, widget.settings.placement);
   }
 
   return {
-    ...createImageSettings(widget.settings.aspectRatio, widget.settings.objectFit, widget.settings.altText),
+    ...createImageSettings(widget.settings.aspectRatio, widget.settings.objectFit, widget.settings.placement, widget.settings.altText),
     textAlign: widget.settings.textAlign,
   };
 }
@@ -349,7 +352,7 @@ function parseMenuWidgetSettings(
     };
   }
 
-  for (const key of ["aspectRatio", "objectFit", "textAlign", "altText"] as const) {
+  for (const key of ["aspectRatio", "objectFit", "textAlign", "altText", "placement"] as const) {
     const value = objectSettings[key];
     if (value != null && typeof value !== "string") {
       issues.push(createRowIssue("INVALID_SETTINGS", widgetId, `settings.${key}`, "위젯 설정 값은 문자열이어야 합니다."));
@@ -360,6 +363,7 @@ function parseMenuWidgetSettings(
   const objectFit = getOptionalStringSetting(objectSettings, "objectFit");
   const textAlign = getOptionalStringSetting(objectSettings, "textAlign");
   const altText = getOptionalStringSetting(objectSettings, "altText");
+  const placement = getOptionalStringSetting(objectSettings, "placement");
 
   if (aspectRatio != null && !isMenuWidgetAspectRatio(aspectRatio)) {
     issues.push(createRowIssue("INVALID_ASPECT_RATIO", widgetId, "settings.aspectRatio", "지원하지 않는 이미지 비율입니다."));
@@ -373,6 +377,10 @@ function parseMenuWidgetSettings(
     issues.push(createRowIssue("INVALID_TEXT_ALIGN", widgetId, "settings.textAlign", "지원하지 않는 텍스트 정렬입니다."));
   }
 
+  if (placement != null && !isMenuWidgetPlacement(placement)) {
+    issues.push(createRowIssue("INVALID_PLACEMENT", widgetId, "settings.placement", "지원하지 않는 위젯 배치 방식입니다."));
+  }
+
   if (issues.length > 0) {
     return { settings: null, issues };
   }
@@ -384,6 +392,7 @@ function parseMenuWidgetSettings(
       settings: createImageSettings(
         (aspectRatio as MenuWidgetAspectRatio | null) ?? "2:1",
         (objectFit as MenuWidgetObjectFit | null) ?? "cover",
+        (placement as MenuWidgetPlacement | null) ?? "bottom",
         normalizedAltText,
       ),
       issues: [],
@@ -392,7 +401,10 @@ function parseMenuWidgetSettings(
 
   if (type === "text") {
     return {
-      settings: createTextSettings((textAlign as MenuWidgetTextAlign | null) ?? "left"),
+      settings: createTextSettings(
+        (textAlign as MenuWidgetTextAlign | null) ?? "left",
+        (placement as MenuWidgetPlacement | null) ?? "bottom",
+      ),
       issues: [],
     };
   }
@@ -402,6 +414,7 @@ function parseMenuWidgetSettings(
       ...createImageSettings(
         (aspectRatio as MenuWidgetAspectRatio | null) ?? "4:3",
         (objectFit as MenuWidgetObjectFit | null) ?? "cover",
+        (placement as MenuWidgetPlacement | null) ?? "bottom",
         normalizedAltText,
       ),
       textAlign: (textAlign as MenuWidgetTextAlign | null) ?? "left",
@@ -413,6 +426,7 @@ function parseMenuWidgetSettings(
 function createImageSettings(
   aspectRatio: MenuWidgetAspectRatio,
   objectFit: MenuWidgetObjectFit,
+  placement: MenuWidgetPlacement,
   altText?: string | null,
 ): MenuImageWidget["settings"] {
   const normalizedAltText = normalizeText(altText);
@@ -420,14 +434,19 @@ function createImageSettings(
     schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
     aspectRatio,
     objectFit,
+    placement,
     ...(normalizedAltText ? { altText: normalizedAltText } : {}),
   };
 }
 
-function createTextSettings(textAlign: MenuWidgetTextAlign): MenuTextWidget["settings"] {
+function createTextSettings(
+  textAlign: MenuWidgetTextAlign,
+  placement: MenuWidgetPlacement,
+): MenuTextWidget["settings"] {
   return {
     schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
     textAlign,
+    placement,
   };
 }
 

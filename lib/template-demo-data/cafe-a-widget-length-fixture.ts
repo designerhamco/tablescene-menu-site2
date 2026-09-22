@@ -200,6 +200,7 @@ function createFixtureWidgetDraft(options: CafeAWidgetLengthFixtureOptions, inde
       aspectRatio: "4:3",
       objectFit: "cover",
       textAlign: options.align,
+      placement: "bottom",
       altText: `CafeA widget length fixture ${widgetNumber}`,
     },
   };

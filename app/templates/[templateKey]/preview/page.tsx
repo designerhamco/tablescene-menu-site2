@@ -325,6 +325,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
           aspectRatio: widget.settings?.aspectRatio ?? "2:1",
           objectFit: widget.settings?.objectFit ?? "cover",
+          placement: widget.settings?.placement ?? "bottom",
           altText: widget.settings?.altText ?? "메뉴 이미지",
         },
       });
@@ -342,6 +343,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         settings: {
           schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
           textAlign: widget.settings?.textAlign ?? "left",
+          placement: widget.settings?.placement ?? "bottom",
         },
       });
       return resolvedWidgets;
@@ -359,6 +361,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         aspectRatio: widget.settings?.aspectRatio ?? "2:1",
         objectFit: widget.settings?.objectFit ?? "cover",
         textAlign: widget.settings?.textAlign ?? "left",
+        placement: widget.settings?.placement ?? "bottom",
         altText: widget.settings?.altText ?? "메뉴 이미지",
       },
     });
@@ -711,7 +714,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 0,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", altText: "말차 음료" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", placement: "bottom", altText: "말차 음료" },
         },
         {
           id: `${data.menuSite.id}-feature-qa-widget-text`,
@@ -724,7 +727,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 1,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, textAlign: "center" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, textAlign: "center", placement: "bottom" },
         },
         {
           id: `${data.menuSite.id}-feature-qa-widget-image-text`,
@@ -737,7 +740,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 2,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "3:2", objectFit: "cover", textAlign: "left", altText: "시즌 메뉴" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "3:2", objectFit: "cover", textAlign: "left", placement: "bottom", altText: "시즌 메뉴" },
         },
       ]
     : data.widgets;
@@ -1171,6 +1174,7 @@ function applyCafeAMultiPagePreviewFixture(data: MenuPageData, pagePresentation:
     settings: {
       schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
       textAlign: "left" as const,
+      placement: "bottom" as const,
     },
   } satisfies NonNullable<MenuPageData["widgets"]>[number];
 
