@@ -590,18 +590,9 @@ try {
     const previewGuide = page.locator("[data-preview-guide-variant]");
     await previewGuide.waitFor({ state: "visible", timeout: 5_000 }).catch(() => null);
     if (await previewGuide.isVisible()) {
-      const profileIcon = previewGuide.locator("[data-preview-guide-profile-icon]").first();
-      if (!(await profileIcon.isVisible())) {
-        failures.push("browser guide profile icon is missing");
-      } else {
-        const profileStyle = await previewGuide.locator("[data-preview-guide-profile]").first().evaluate((element) => ({
-          backgroundColor: getComputedStyle(element).backgroundColor,
-          borderRadius: Number.parseFloat(getComputedStyle(element).borderRadius),
-          iconColor: getComputedStyle(element.querySelector("[data-preview-guide-profile-icon]")).color,
-        }));
-        if (profileStyle.backgroundColor === profileStyle.iconColor || profileStyle.borderRadius < 16) {
-          failures.push(`browser guide profile style is incorrect: ${JSON.stringify(profileStyle)}`);
-        }
+      const previewZoomGuide = previewGuide.locator("[data-preview-guide-zoom-controls]").first();
+      if (!(await previewZoomGuide.isVisible())) {
+        failures.push("preview zoom guide is missing");
       }
       await previewGuide.getByRole("button", { name: "닫기" }).click();
       await previewGuide.waitFor({ state: "hidden", timeout: navigationTimeout });
@@ -652,6 +643,45 @@ try {
     const before = await toolbar.boundingBox();
     if (before && before.height > 64) failures.push(`tablet toolbar is too tall: ${before.height}px`);
     if (await toolbar.getAttribute("data-toolbar-open") !== "true") failures.push("device toolbar is not open by default");
+    const frameShell = page.locator("[data-preview-frame-shell]");
+    const zoomedFrame = page.locator("[data-preview-zoomed-frame]");
+    const zoomControls = toolbar.locator("[data-preview-zoom-controls]");
+    const shellBeforeZoom = await frameShell.boundingBox();
+    const frameBeforeZoom = await zoomedFrame.evaluate((element) => ({
+      width: element.clientWidth,
+      height: element.clientHeight,
+      transform: getComputedStyle(element).transform,
+    }));
+    await zoomControls.getByRole("button", { name: "메뉴판 확대" }).click();
+    await page.waitForFunction(() => (
+      document.querySelector("[data-preview-frame-shell]")?.getAttribute("data-preview-zoom-percent") === "110"
+    ), undefined, { timeout: navigationTimeout });
+    await page.waitForFunction(() => {
+      const iframe = document.querySelector("[data-preview-zoomed-frame]");
+      const board = iframe?.contentDocument?.querySelector(".cafe-a-desktop-fit-board");
+      return iframe instanceof HTMLIFrameElement
+        && iframe.clientWidth < 1180
+        && board?.getAttribute("data-fit-presentation-state") === "ready"
+        && board?.getAttribute("data-fit-overflow") === "false";
+    }, undefined, { timeout: navigationTimeout }).catch(() => {
+      failures.push("zoomed preview did not reflow to a ready, non-overflowing layout");
+    });
+    const shellAfterZoom = await frameShell.boundingBox();
+    const frameAfterZoom = await zoomedFrame.evaluate((element) => ({
+      width: element.clientWidth,
+      height: element.clientHeight,
+      transform: getComputedStyle(element).transform,
+    }));
+    if (!shellBeforeZoom || !shellAfterZoom) {
+      failures.push("preview frame shell bounds are unavailable during zoom");
+    } else if (Math.abs(shellBeforeZoom.width - shellAfterZoom.width) > 0.5 || Math.abs(shellBeforeZoom.height - shellAfterZoom.height) > 0.5) {
+      failures.push(`preview frame shell changed size during zoom: ${JSON.stringify({ shellBeforeZoom, shellAfterZoom })}`);
+    }
+    if (frameAfterZoom.width >= frameBeforeZoom.width || frameAfterZoom.height >= frameBeforeZoom.height || frameAfterZoom.transform === frameBeforeZoom.transform) {
+      failures.push(`preview zoom did not change the inner layout viewport: ${JSON.stringify({ frameBeforeZoom, frameAfterZoom })}`);
+    }
+    await zoomControls.getByRole("button", { name: /메뉴판 배율 110%, 100%로 초기화/ }).click();
+    if (await frameShell.getAttribute("data-preview-zoom-percent") !== "100") failures.push("preview zoom did not reset to 100%");
     await toolbar.getByRole("button", { name: "기기 선택 도구 닫기" }).click();
     await page.waitForFunction((beforeY) => {
       const toolbarElement = document.querySelector("[data-preview-device-toolbar]");
@@ -670,7 +700,7 @@ try {
       Number.parseFloat(getComputedStyle(element).opacity)
     ));
     if (collapsedContentOpacity !== 0) failures.push(`collapsed device controls remain visible: opacity ${collapsedContentOpacity}`);
-    if (!(await toolbar.locator("button").isVisible())) failures.push("collapsed device toolbar arrow is missing");
+    if (!(await toolbar.getByRole("button", { name: "기기 선택 도구 열기" }).isVisible())) failures.push("collapsed device toolbar arrow is missing");
     if (!before || !after) {
       failures.push("device toolbar bounds are unavailable");
     } else {

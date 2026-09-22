@@ -10,13 +10,17 @@ import {
   buildMenuPreviewUrl,
   buildTemplatePreviewUrl,
   DEFAULT_MENU_PREVIEW_DEVICE,
+  DEFAULT_MENU_PREVIEW_ZOOM,
   getMenuPreviewFrame,
   MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_ORIENTATIONS,
+  MENU_PREVIEW_ZOOM_LEVELS,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
   normalizeMenuPreviewPaymentMode,
+  normalizeMenuPreviewZoom,
   shouldUseMenuPreviewDeviceFrame,
+  stepMenuPreviewZoom,
 } from "./menu-preview-devices";
 
 const previewFrameSource = readFileSync(
@@ -95,6 +99,17 @@ test("tablet landscape swaps the real iframe viewport dimensions", () => {
   });
 });
 
+test("preview zoom uses bounded browser-like steps and a 100 percent reset", () => {
+  assert.deepEqual(MENU_PREVIEW_ZOOM_LEVELS, [75, 90, 100, 110, 125]);
+  assert.equal(DEFAULT_MENU_PREVIEW_ZOOM, 100);
+  assert.equal(normalizeMenuPreviewZoom("110"), 110);
+  assert.equal(normalizeMenuPreviewZoom("115"), 100);
+  assert.equal(stepMenuPreviewZoom(100, -1), 90);
+  assert.equal(stepMenuPreviewZoom(100, 1), 110);
+  assert.equal(stepMenuPreviewZoom(75, -1), 75);
+  assert.equal(stepMenuPreviewZoom(125, 1), 125);
+});
+
 test("preview selector renders labeled PC, tablet, and mobile device icons", () => {
   const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
     device: "pc",
@@ -117,6 +132,12 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.doesNotMatch(html, /1440 × 900/);
   assert.match(html, /기기 선택 도구 닫기/);
   assert.match(html, /aria-expanded="true"/);
+  assert.match(html, /aria-label="메뉴판 확대·축소"/);
+  assert.match(html, /aria-label="메뉴판 축소"/);
+  assert.match(html, /aria-label="메뉴판 확대"/);
+  assert.match(html, />100%<\/button>/);
+  assert.match(html, /data-preview-zoom-percent="100"/);
+  assert.match(html, /transform:scale\(1\)/);
   assert.doesNotMatch(html, /tabindex="0"/);
 });
 
@@ -136,10 +157,10 @@ test("scrollable tablet and mobile preview frames are keyboard focusable", () =>
 test("first preview guide uses anchored coachmarks and applies hide-today only through checkbox plus close", () => {
   assert.match(previewFrameSource, /<MenuPreviewGuide device=\{device\} \/>/);
   assert.match(previewGuideSource, /GuideDeviceSelector/);
-  assert.match(previewGuideSource, /BrowserZoomGuide/);
-  assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
+  assert.match(previewGuideSource, /data-preview-guide-zoom-controls=""/);
+  assert.match(previewGuideSource, /메뉴판 안의 반응형 변화를 확인해 보세요/);
   assert.match(previewGuideSource, /device = "tablet"/);
-  assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
+  assert.match(previewGuideSource, /isDisplayGuide \? \([\s\S]*<BrowserZoomGuide/);
   assert.match(previewGuideSource, /type="checkbox"/);
   assert.match(previewGuideSource, /checked=\{hideTodayChecked\}/);
   assert.match(previewGuideSource, /if \(hideTodayChecked\) \{[\s\S]*localStorage\.setItem\(PREVIEW_GUIDE_DATE_KEY/);
@@ -183,7 +204,7 @@ test("device selector is open by default and collapses upward while preserving t
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource, /w-\[min\(24rem,calc\(100vw-1\.5rem\)\)\]/);
+  assert.match(previewFrameSource, /w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);
   assert.match(previewFrameSource, /RotateCwSquare/);
@@ -198,6 +219,11 @@ test("device selector is open by default and collapses upward while preserving t
   assert.doesNotMatch(previewFrameSource, /backdrop-blur-xl/);
   assert.doesNotMatch(previewFrameSource, /border-l border-white\/20 pl-2/);
   assert.equal((previewFrameSource.match(/bg-zinc-950\/48/g) ?? []).length, 1);
+  assert.match(previewFrameSource, /data-preview-zoom-controls=""/);
+  assert.match(previewFrameSource, /zoomedIframeSize/);
+  assert.match(previewFrameSource, /transform: `scale\(\$\{previewScale\}\)`/);
+  assert.match(previewFrameSource, /transformOrigin: "left top"/);
+  assert.match(previewFrameSource, /sessionStorage\.setItem\(`\$\{PREVIEW_ZOOM_STORAGE_PREFIX\}\$\{device\}`/);
 });
 
 test("hide-today checkbox is plain text control without a boxed container", () => {

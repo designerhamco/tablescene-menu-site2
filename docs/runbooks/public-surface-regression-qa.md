@@ -20,6 +20,8 @@ PUBLIC_SURFACE_QA_BASE_URL=https://tablescene-menu-site2.vercel.app npm run qa:p
 
 `만들기`의 스타터 미리보기 언어 전환과 기기 툴바·선데이 로스터스 비율은 별도 실제 브라우저 검사로 확인한다. 모바일 단일페이지 4종은 언어 UI가 제목 위 독립 행 오른쪽에 있는지, 태블릿은 공통 1.12 장치 글자 배율을 사용하는지, 화면 회전 아이콘이 가로·세로로 왕복하는지도 확인한다.
 
+단일·멀티페이지 기기 툴바의 `− / 현재 배율 / +`는 브라우저 페이지 자체가 아니라 iframe 내부의 layout viewport만 75·90·100·110·125% 단계로 바꾼다. 자동 검사는 110% 확대 시 외곽 프레임 크기가 유지되고 내부 viewport 폭·높이와 transform이 함께 바뀌며, 내부 fit이 다시 `ready`·`overflow=false`로 수렴한 뒤 100% 초기화되는지 확인한다. Display는 이 제어를 사용하지 않고 기존 브라우저 확대 안내를 유지한다.
+
 ```bash
 npm run qa:template-preview-locales
 ```
@@ -102,3 +104,9 @@ PR #205 배포 직후 첫 전체 검사에서는 오브 테이블 경로가 배�
 - `cafe_design_a`는 사용자 노출명 `리얼 맛차`와 공개 별칭 `/templates/cafe_real_matcha_a/preview`, `cafe_sunday_line_a`는 `선데이 로스터스`와 `/templates/cafe_sunday_roasters_a/preview`를 사용한다. 내부 키 route는 기존 링크 호환용으로 계속 해석한다.
 - 리얼 맛차의 메뉴 썸네일·가격 열·NEW 칩·카테고리 경계선 제거와 그린 칩·제목 밑줄·단일 가격을 확인했다.
 - 모카 포레스트의 상품 없는 대표 이미지 1개, 3:4 위젯, `#EFE4D0` 배경, 기간 할인 외 칩·보조언어명·상품설명·가격 열 제거와 fit `ready`·overflow 없음 상태를 확인했다.
+
+## 2026-09-22 미리보기 전용 확대·축소 기준선
+
+- 공개 화면 `31/31`, 템플릿 locale·기기·역할·간격·미리보기 확대 `38/38`, 실패 0건
+- 태블릿 가로 100→110% 확대에서 외곽 프레임 폭·높이는 유지되고 iframe layout viewport 폭·높이는 감소하며 CSS transform이 함께 변경되는 것을 실측했다.
+- 확대 직후 내부 단일페이지 fit은 `ready`, `overflow=false`로 다시 수렴하고 현재 배율 버튼으로 100% 초기화된다. 툴바는 새 제어를 포함해도 한 줄과 64px 이하 높이를 유지하고 접힌 상태에서는 제어가 보이거나 포커스를 받지 않는다.
