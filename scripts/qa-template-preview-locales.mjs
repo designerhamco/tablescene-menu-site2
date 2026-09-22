@@ -295,7 +295,9 @@ try {
           }
 
           const categoryGaps = [];
-          const parents = [...new Set(categories.map((category) => category.parentElement).filter(Boolean))];
+          const widgetTransitions = [];
+          const topLevelBlocks = Array.from(document.querySelectorAll(".cafe-a-menu-category-block, .cafe-a-menu-widget-block")).filter(isVisible);
+          const parents = [...new Set(topLevelBlocks.map((block) => block.parentElement).filter(Boolean))];
           for (const parent of parents) {
             const blocks = Array.from(parent.children).filter((child) => (
               child.matches(".cafe-a-menu-category-block, .cafe-a-menu-widget-block") && isVisible(child)
@@ -303,11 +305,24 @@ try {
             for (let index = 1; index < blocks.length; index += 1) {
               const previous = blocks[index - 1];
               const current = blocks[index];
-              if (!previous.matches(".cafe-a-menu-category-block") || !current.matches(".cafe-a-menu-category-block")) continue;
               const previousRect = previous.getBoundingClientRect();
               const currentRect = current.getBoundingClientRect();
               if (Math.abs(previousRect.left - currentRect.left) > 2 || currentRect.top < previousRect.bottom) continue;
-              categoryGaps.push(currentRect.top - previousRect.bottom);
+              const previousIsCategory = previous.matches(".cafe-a-menu-category-block");
+              const currentIsCategory = current.matches(".cafe-a-menu-category-block");
+              if (previousIsCategory && currentIsCategory) {
+                categoryGaps.push(currentRect.top - previousRect.bottom);
+              }
+              if (!previousIsCategory || !currentIsCategory) {
+                const divider = current.querySelector(":scope > .cafe-a-menu-category-top-divider");
+                widgetTransitions.push({
+                  from: previousIsCategory ? "category" : "widget",
+                  to: currentIsCategory ? "category" : "widget",
+                  gap: currentRect.top - previousRect.bottom,
+                  marginBottom: Number.parseFloat(getComputedStyle(previous).marginBottom),
+                  hasVisibleDivider: Boolean(divider && isVisible(divider)),
+                });
+              }
             }
           }
 
@@ -317,6 +332,7 @@ try {
             itemGap: median(itemGaps),
             titleGaps,
             categoryGaps,
+            widgetTransitions,
             titleRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-title-to-first-ratio").trim() ?? null,
             categoryRatioToken: rootStyle?.getPropertyValue("--cafe-a-category-separation-ratio").trim() ?? null,
           };
@@ -394,6 +410,23 @@ try {
                 const ratio = categoryGap / rhythm.itemGap;
                 if (Math.abs(ratio - expectedCategoryRatio) > 0.055) {
                   failures.push(`no-divider category rhythm is incorrect: ${categoryGap}px / ${rhythm.itemGap}px = ${ratio}, expected ${expectedCategoryRatio}`);
+                  break;
+                }
+              }
+            }
+            if (rhythm.widgetTransitions.length > 0) {
+              for (const transition of rhythm.widgetTransitions) {
+                const expectedWidgetRatio = transition.to === "category" && transition.hasVisibleDivider
+                  ? expectedTitleRatio
+                  : expectedCategoryRatio;
+                const marginRatio = transition.marginBottom / rhythm.itemGap;
+                const visualRatio = transition.gap / rhythm.itemGap;
+                if (Math.abs(marginRatio - expectedWidgetRatio) > 0.055) {
+                  failures.push(`widget boundary margin is incorrect: ${JSON.stringify(transition)} / ${marginRatio}, expected ${expectedWidgetRatio}`);
+                  break;
+                }
+                if (visualRatio < expectedWidgetRatio - 0.055) {
+                  failures.push(`widget boundary is visually too narrow: ${JSON.stringify(transition)} / ${visualRatio}, expected at least ${expectedWidgetRatio}`);
                   break;
                 }
               }

@@ -34,6 +34,24 @@ test("단일페이지는 유동 기준 간격에 고정된 역할 비율을 한 
   assert.doesNotMatch(globalStylesSource, /cafe-a-round-focus-price-leader[\s\S]{0,240}border-bottom: 1px dashed/);
   assert.match(globalStylesSource, /--cafe-a-category-title-to-items-gap: calc\(var\(--cafe-a-item-rhythm-gap\) \* var\(--cafe-a-category-title-to-first-ratio\)\);/);
   assert.match(globalStylesSource, /--cafe-a-category-no-divider-gap: calc\(var\(--cafe-a-item-rhythm-gap\) \* var\(--cafe-a-category-separation-ratio\)\);/);
+  assert.match(cafeSource, /className=\{`cafe-a-menu-widget-block min-w-0 break-inside-avoid \$\{itemStackSpacing\}`\}/);
+  assert.match(
+    globalStylesSource,
+    /cafe-a-menu-category-block\[data-cafe-a-next-block-type="widget"\][\s\S]*cafe-a-menu-widget-block\[data-cafe-a-next-block-type="widget"\][\s\S]*margin-bottom: calc\(var\(--cafe-a-local-item-rhythm-gap\) \* var\(--cafe-a-category-separation-ratio\)\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /cafe-a-menu-category-block\[data-cafe-a-visual-next-block-type="widget"\][\s\S]*cafe-a-menu-widget-block\[data-cafe-a-visual-next-block-type="widget"\][\s\S]*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /cafe-a-menu-category-block:last-of-type:not\(\[data-cafe-a-visual-next-block-type\]\) \{\s*margin-bottom: 0;/,
+  );
+  assert.doesNotMatch(
+    globalStylesSource,
+    /cafe-a-menu-category-block:last-of-type \{\s*margin-bottom: 0;/,
+  );
+  assert.doesNotMatch(globalStylesSource, /--cafe-a-widget-(?:transition|stack)-gap:/);
   assert.doesNotMatch(globalStylesSource, /--cafe-a-category-separation-ratio:[^;]*fit/);
   assert.match(globalStylesSource, /margin-bottom: var\(--cafe-a-item-rhythm-gap\);/);
   assert.match(

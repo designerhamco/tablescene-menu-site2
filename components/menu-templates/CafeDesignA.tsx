@@ -5838,6 +5838,7 @@ function MenuWidgetContentBlock({
   block,
   data,
   capabilities,
+  itemStackSpacing,
   visualNextBlockType,
   balancedSourceOrder,
   dockToBottom = false,
@@ -5845,6 +5846,7 @@ function MenuWidgetContentBlock({
   block: CafeDesignAWidgetContentBlock;
   data: PublicMenuTemplateProps;
   capabilities: TemplateCapabilities;
+  itemStackSpacing: string;
   visualNextBlockType?: CafeDesignAContentBlockType | null;
   balancedSourceOrder?: number;
   dockToBottom?: boolean;
@@ -5863,7 +5865,7 @@ function MenuWidgetContentBlock({
   return (
     <section
       key={block.key}
-      className="cafe-a-menu-widget-block min-w-0 break-inside-avoid"
+      className={`cafe-a-menu-widget-block min-w-0 break-inside-avoid ${itemStackSpacing}`}
       data-cafe-a-menu-widget-block=""
       data-cafe-a-block-type="widget"
       data-cafe-a-previous-block-type={block.previousVisibleBlockType ?? undefined}
@@ -5912,6 +5914,7 @@ function MenuContentBlock({
         block={block}
         data={data}
         capabilities={capabilities}
+        itemStackSpacing={itemStackSpacing}
         visualNextBlockType={visualNextBlockType}
         balancedSourceOrder={balancedSourceOrder}
         dockToBottom={dockWidgetToBottom}

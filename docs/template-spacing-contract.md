@@ -21,6 +21,8 @@ The shared hierarchy is:
 4. category-to-category gap without a divider (`2.2`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
 
+Widgets are category-level content blocks. A category-to-widget or widget-to-widget boundary without a divider uses the same category-to-category ratio, and widget-to-category uses the same divider or no-divider rule as a category boundary. Bottom docking may add free space above a trailing widget, but it must never reduce this semantic minimum gap.
+
 Single-page skins inherit these values from the CafeA spacing tokens. A skin can adjust the bounded scale, but must not replace the semantic tokens with a fixed `px` margin, padding, or gap.
 
 Round Focus uses a visual correction of `1.15` from category title to first item and `2.8` between divider-free categories because its large title and title-only rows otherwise compress the perceived boundary. Mocha Forest keeps the shared `1` and `2.2` ratios and must not add per-item bottom padding on top of the shared item rhythm.
