@@ -11,8 +11,8 @@ import {
 
 import PreviewDeviceIcon from "./PreviewDeviceIcon";
 
-const PREVIEW_GUIDE_DATE_KEY = "artimenu:menu-preview-guide-v5-hidden-date";
-const PREVIEW_GUIDE_SESSION_KEY = "artimenu:menu-preview-guide-v5-closed";
+const PREVIEW_GUIDE_DATE_KEY = "artimenu:menu-preview-guide-v4-hidden-date";
+const PREVIEW_GUIDE_SESSION_KEY = "artimenu:menu-preview-guide-v4-closed";
 
 type MenuPreviewGuideProps = {
   device?: MenuPreviewDevice;
@@ -51,11 +51,6 @@ function GuideDeviceSelector({ device }: { device: MenuPreviewDevice }) {
           </div>
         );
       })}
-      <div data-preview-guide-zoom-controls="" className="ml-1 flex h-9 items-center rounded-xl bg-white/12 p-0.5">
-        <span className="grid h-8 w-7 place-items-center rounded-lg"><Minus className="h-3.5 w-3.5" /></span>
-        <span className="min-w-11 px-1 text-center text-xs font-bold tabular-nums">100%</span>
-        <span className="grid h-8 w-7 place-items-center rounded-lg"><Plus className="h-3.5 w-3.5" /></span>
-      </div>
       <ChevronUp className="mx-1 h-4 w-4 text-white/65" strokeWidth={1.8} />
     </div>
   );
@@ -184,7 +179,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
       <p id="preview-guide-description" className="sr-only">
         {isDisplayGuide
           ? "브라우저 확대 축소 기능을 안내합니다."
-          : "기기별 미리보기 버튼과 메뉴판 전용 확대 축소 기능을 안내합니다."}
+          : "기기별 미리보기 버튼과 브라우저 확대 축소 기능을 안내합니다."}
       </p>
 
       <div className="hidden lg:block" aria-hidden="true">
@@ -194,23 +189,19 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
               <GuideDeviceSelector device={device} />
             </div>
             <GuideCallout pointer="top" className="absolute left-1/2 top-[7.75rem] w-[27rem] -translate-x-1/2">
-              기기를 바꾸거나 − · 100% · + 버튼으로<br />메뉴판 안의 반응형 변화를 확인해 보세요.
+              태블릿·PC·모바일 버튼을 눌러<br />기기별 메뉴판을 확인할 수 있어요.
             </GuideCallout>
           </>
         ) : null}
 
-        {isDisplayGuide ? (
-          <>
-            <div className="absolute right-5 top-5 w-[17.5rem]">
-              <BrowserZoomGuide />
-            </div>
-            <div className="absolute" style={{ right: "18.25rem", top: "17.25rem", width: "26rem" }}>
-              <GuideCallout pointer="right">
-                브라우저의 더보기(···)에서<br />확대·축소로 비율을 조절해 보세요.
-              </GuideCallout>
-            </div>
-          </>
-        ) : null}
+        <div className="absolute right-5 top-5 w-[17.5rem]">
+          <BrowserZoomGuide />
+        </div>
+        <div className="absolute" style={{ right: "18.25rem", top: "17.25rem", width: "26rem" }}>
+          <GuideCallout pointer="right">
+            브라우저의 더보기(···)에서<br />확대·축소로 비율을 조절해 보세요.
+          </GuideCallout>
+        </div>
       </div>
 
       <div className="h-full overflow-y-auto px-4 pb-36 pt-4 lg:hidden" aria-hidden="true">
@@ -220,20 +211,16 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
               <GuideDeviceSelector device={device} />
             </div>
             <GuideCallout pointer="top" className="mx-auto mt-5 max-w-md">
-              기기를 바꾸거나 − · 100% · + 버튼으로<br className="hidden sm:block" /> 메뉴판 안의 반응형 변화를 확인해 보세요.
+              태블릿·PC·모바일 버튼을 눌러<br className="hidden sm:block" /> 기기별 메뉴판을 확인할 수 있어요.
             </GuideCallout>
           </>
         ) : null}
-        {isDisplayGuide ? (
-          <>
-            <div className="mx-auto mt-8 w-full max-w-[18rem]">
-              <BrowserZoomGuide />
-            </div>
-            <GuideCallout pointer="top" className="mx-auto mt-5 max-w-md">
-              브라우저의 더보기(···)에서<br className="hidden sm:block" /> 확대·축소로 비율을 조절해 보세요.
-            </GuideCallout>
-          </>
-        ) : null}
+        <div className="mx-auto mt-8 w-full max-w-[18rem]">
+          <BrowserZoomGuide />
+        </div>
+        <GuideCallout pointer="top" className="mx-auto mt-5 max-w-md">
+          브라우저의 더보기(···)에서<br className="hidden sm:block" /> 확대·축소로 비율을 조절해 보세요.
+        </GuideCallout>
       </div>
 
       <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-zinc-950/85 via-zinc-950/65 to-transparent px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-12">

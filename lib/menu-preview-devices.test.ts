@@ -157,10 +157,10 @@ test("scrollable tablet and mobile preview frames are keyboard focusable", () =>
 test("first preview guide uses anchored coachmarks and applies hide-today only through checkbox plus close", () => {
   assert.match(previewFrameSource, /<MenuPreviewGuide device=\{device\} \/>/);
   assert.match(previewGuideSource, /GuideDeviceSelector/);
-  assert.match(previewGuideSource, /data-preview-guide-zoom-controls=""/);
-  assert.match(previewGuideSource, /메뉴판 안의 반응형 변화를 확인해 보세요/);
+  assert.match(previewGuideSource, /<BrowserZoomGuide \/>/);
+  assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
+  assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
   assert.match(previewGuideSource, /device = "tablet"/);
-  assert.match(previewGuideSource, /isDisplayGuide \? \([\s\S]*<BrowserZoomGuide/);
   assert.match(previewGuideSource, /type="checkbox"/);
   assert.match(previewGuideSource, /checked=\{hideTodayChecked\}/);
   assert.match(previewGuideSource, /if \(hideTodayChecked\) \{[\s\S]*localStorage\.setItem\(PREVIEW_GUIDE_DATE_KEY/);

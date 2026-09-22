@@ -590,9 +590,23 @@ try {
     const previewGuide = page.locator("[data-preview-guide-variant]");
     await previewGuide.waitFor({ state: "visible", timeout: 5_000 }).catch(() => null);
     if (await previewGuide.isVisible()) {
-      const previewZoomGuide = previewGuide.locator("[data-preview-guide-zoom-controls]").first();
-      if (!(await previewZoomGuide.isVisible())) {
-        failures.push("preview zoom guide is missing");
+      const profileIcon = previewGuide.locator("[data-preview-guide-profile-icon]").first();
+      if (!(await profileIcon.isVisible())) {
+        failures.push("browser guide profile icon is missing");
+      } else {
+        const profileStyle = await profileIcon.evaluate((element) => {
+          const iconStyle = getComputedStyle(element);
+          const profile = element.closest("[data-preview-guide-profile]");
+          const profileStyle = profile instanceof HTMLElement ? getComputedStyle(profile) : null;
+          return {
+            iconColor: iconStyle.color,
+            profileBackground: profileStyle?.backgroundColor ?? "",
+            profileRadius: profileStyle ? Number.parseFloat(profileStyle.borderRadius) : 0,
+          };
+        });
+        if (profileStyle.profileBackground === profileStyle.iconColor || profileStyle.profileRadius < 16) {
+          failures.push(`browser guide profile icon style is invalid: ${JSON.stringify(profileStyle)}`);
+        }
       }
       await previewGuide.getByRole("button", { name: "닫기" }).click();
       await previewGuide.waitFor({ state: "hidden", timeout: navigationTimeout });
