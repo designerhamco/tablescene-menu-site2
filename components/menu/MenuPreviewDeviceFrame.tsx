@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronUp, Minus, Plus, RotateCwSquare } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, RotateCwSquare } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
@@ -10,27 +10,15 @@ import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import {
   buildMenuPreviewUrl,
   buildTemplatePreviewUrl,
-  DEFAULT_MENU_PREVIEW_ZOOM,
   getMenuPreviewFrame,
   MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_DEVICES,
   MENU_PREVIEW_ORIENTATIONS,
-  MENU_PREVIEW_ZOOM_LEVELS,
-  normalizeMenuPreviewZoom,
-  stepMenuPreviewZoom,
   type MenuPreviewDevice,
   type MenuPreviewOrientation,
   type MenuPreviewQuery,
-  type MenuPreviewZoom,
   type TemplatePreviewQuery,
 } from "@/lib/menu-preview-devices";
-
-const PREVIEW_ZOOM_STORAGE_PREFIX = "artimenu:menu-preview-zoom:";
-const DEFAULT_PREVIEW_ZOOM_BY_DEVICE: Record<MenuPreviewDevice, MenuPreviewZoom> = {
-  tablet: DEFAULT_MENU_PREVIEW_ZOOM,
-  pc: DEFAULT_MENU_PREVIEW_ZOOM,
-  mobile: DEFAULT_MENU_PREVIEW_ZOOM,
-};
 
 type MenuPreviewDeviceFrameProps = {
   device: MenuPreviewDevice;
@@ -49,8 +37,6 @@ type MenuPreviewDeviceFrameProps = {
 export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProps) {
   const { device, orientation, query } = props;
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
-  const [previewZoomByDevice, setPreviewZoomByDevice] = useState(DEFAULT_PREVIEW_ZOOM_BY_DEVICE);
-  const previewZoom = previewZoomByDevice[device];
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const nextTabletOrientation: MenuPreviewOrientation = orientation === "landscape" ? "portrait" : "landscape";
@@ -76,29 +62,13 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
     device,
     orientation,
   });
+  const detachedUrl = buildPreviewUrl({
+    actual: true,
+    embedded: true,
+    device,
+    orientation,
+  });
   const showToolbar = isToolbarOpen;
-  const previewScale = previewZoom / 100;
-  const zoomedIframeSize = `${100 / previewScale}%`;
-
-  useEffect(() => {
-    const syncStoredZoom = window.requestAnimationFrame(() => {
-      setPreviewZoomByDevice({
-        tablet: normalizeMenuPreviewZoom(window.sessionStorage.getItem(`${PREVIEW_ZOOM_STORAGE_PREFIX}tablet`)),
-        pc: normalizeMenuPreviewZoom(window.sessionStorage.getItem(`${PREVIEW_ZOOM_STORAGE_PREFIX}pc`)),
-        mobile: normalizeMenuPreviewZoom(window.sessionStorage.getItem(`${PREVIEW_ZOOM_STORAGE_PREFIX}mobile`)),
-      });
-    });
-
-    return () => window.cancelAnimationFrame(syncStoredZoom);
-  }, []);
-
-  function updatePreviewZoom(nextZoom: MenuPreviewZoom) {
-    setPreviewZoomByDevice((current) => ({ ...current, [device]: nextZoom }));
-    window.sessionStorage.setItem(`${PREVIEW_ZOOM_STORAGE_PREFIX}${device}`, String(nextZoom));
-  }
-
-  const minimumZoom = MENU_PREVIEW_ZOOM_LEVELS[0];
-  const maximumZoom = MENU_PREVIEW_ZOOM_LEVELS[MENU_PREVIEW_ZOOM_LEVELS.length - 1];
 
   return (
     <main className="h-screen overflow-hidden bg-zinc-100 text-zinc-950">
@@ -154,46 +124,19 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                 <RotateCwSquare className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.9} aria-hidden="true" />
               </Link>
             ) : null}
-            <div
-              data-preview-zoom-controls=""
-              aria-label="메뉴판 확대·축소"
-              className="flex h-9 shrink-0 items-center rounded-xl bg-zinc-950/45 p-0.5"
-              role="group"
+            <Link
+              href={detachedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="새 창에서 메뉴판 보기"
+              title="새 창에서 메뉴판 보기"
+              data-preview-detached-link=""
+              tabIndex={showToolbar ? undefined : -1}
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-zinc-950/45 px-2.5 text-[0.7rem] font-bold text-white transition-colors hover:bg-zinc-950/60"
             >
-              <button
-                type="button"
-                aria-label="메뉴판 축소"
-                title="메뉴판 축소"
-                disabled={previewZoom === minimumZoom}
-                tabIndex={showToolbar ? undefined : -1}
-                onClick={() => updatePreviewZoom(stepMenuPreviewZoom(previewZoom, -1))}
-                className="grid h-8 w-7 place-items-center rounded-lg text-white transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:text-white/30"
-              >
-                <Minus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                aria-label={`메뉴판 배율 ${previewZoom}%, 100%로 초기화`}
-                title="100%로 초기화"
-                aria-pressed={previewZoom === DEFAULT_MENU_PREVIEW_ZOOM}
-                tabIndex={showToolbar ? undefined : -1}
-                onClick={() => updatePreviewZoom(DEFAULT_MENU_PREVIEW_ZOOM)}
-                className="h-8 min-w-11 rounded-lg px-1 text-[0.7rem] font-bold tabular-nums text-white transition-colors hover:bg-white/15"
-              >
-                {previewZoom}%
-              </button>
-              <button
-                type="button"
-                aria-label="메뉴판 확대"
-                title="메뉴판 확대"
-                disabled={previewZoom === maximumZoom}
-                tabIndex={showToolbar ? undefined : -1}
-                onClick={() => updatePreviewZoom(stepMenuPreviewZoom(previewZoom, 1))}
-                className="grid h-8 w-7 place-items-center rounded-lg text-white transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:text-white/30"
-              >
-                <Plus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden="true" />
-              </button>
-            </div>
+              <ExternalLink className="h-4 w-4" strokeWidth={1.9} aria-hidden="true" />
+              <span className="hidden min-[430px]:inline">새 창에서 보기</span>
+            </Link>
           </div>
           <button
             type="button"
@@ -218,7 +161,6 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
       >
         <div
           data-preview-frame-shell=""
-          data-preview-zoom-percent={previewZoom}
           className={device === "pc"
             ? "h-screen w-screen overflow-hidden bg-white"
             : "mx-auto overflow-hidden rounded-[28px] border-[10px] border-zinc-900 bg-white shadow-2xl"}
@@ -228,14 +170,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
             key={embeddedUrl}
             src={embeddedUrl}
             title={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
-            data-preview-zoomed-frame=""
-            className="border-0 bg-white"
-            style={{
-              width: zoomedIframeSize,
-              height: zoomedIframeSize,
-              transform: `scale(${previewScale})`,
-              transformOrigin: "left top",
-            }}
+            className="h-full w-full border-0 bg-white"
             referrerPolicy="no-referrer"
           />
         </div>

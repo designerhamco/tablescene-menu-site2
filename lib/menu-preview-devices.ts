@@ -21,26 +21,6 @@ export type MenuPreviewDevice = keyof typeof MENU_PREVIEW_DEVICES;
 export const DEFAULT_MENU_PREVIEW_DEVICE: MenuPreviewDevice = "tablet";
 export const MENU_PREVIEW_DEVICE_ORDER = ["tablet", "pc", "mobile"] as const satisfies readonly MenuPreviewDevice[];
 
-export const MENU_PREVIEW_ZOOM_LEVELS = [75, 90, 100, 110, 125] as const;
-export const DEFAULT_MENU_PREVIEW_ZOOM = 100;
-export type MenuPreviewZoom = (typeof MENU_PREVIEW_ZOOM_LEVELS)[number];
-
-export function normalizeMenuPreviewZoom(value: number | string | null | undefined): MenuPreviewZoom {
-  const numericValue = typeof value === "number" ? value : Number(value);
-  return MENU_PREVIEW_ZOOM_LEVELS.includes(numericValue as MenuPreviewZoom)
-    ? numericValue as MenuPreviewZoom
-    : DEFAULT_MENU_PREVIEW_ZOOM;
-}
-
-export function stepMenuPreviewZoom(current: MenuPreviewZoom, direction: -1 | 1): MenuPreviewZoom {
-  const currentIndex = MENU_PREVIEW_ZOOM_LEVELS.indexOf(current);
-  const nextIndex = Math.min(
-    MENU_PREVIEW_ZOOM_LEVELS.length - 1,
-    Math.max(0, currentIndex + direction),
-  );
-  return MENU_PREVIEW_ZOOM_LEVELS[nextIndex];
-}
-
 export function shouldUseMenuPreviewDeviceFrame(templateKey: string | null | undefined) {
   return templateKey !== "display_menu_a";
 }

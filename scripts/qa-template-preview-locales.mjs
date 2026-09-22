@@ -657,45 +657,25 @@ try {
     const before = await toolbar.boundingBox();
     if (before && before.height > 64) failures.push(`tablet toolbar is too tall: ${before.height}px`);
     if (await toolbar.getAttribute("data-toolbar-open") !== "true") failures.push("device toolbar is not open by default");
-    const frameShell = page.locator("[data-preview-frame-shell]");
-    const zoomedFrame = page.locator("[data-preview-zoomed-frame]");
-    const zoomControls = toolbar.locator("[data-preview-zoom-controls]");
-    const shellBeforeZoom = await frameShell.boundingBox();
-    const frameBeforeZoom = await zoomedFrame.evaluate((element) => ({
-      width: element.clientWidth,
-      height: element.clientHeight,
-      transform: getComputedStyle(element).transform,
-    }));
-    await zoomControls.getByRole("button", { name: "메뉴판 확대" }).click();
-    await page.waitForFunction(() => (
-      document.querySelector("[data-preview-frame-shell]")?.getAttribute("data-preview-zoom-percent") === "110"
-    ), undefined, { timeout: navigationTimeout });
-    await page.waitForFunction(() => {
-      const iframe = document.querySelector("[data-preview-zoomed-frame]");
-      const board = iframe?.contentDocument?.querySelector(".cafe-a-desktop-fit-board");
-      return iframe instanceof HTMLIFrameElement
-        && iframe.clientWidth < 1180
-        && board?.getAttribute("data-fit-presentation-state") === "ready"
-        && board?.getAttribute("data-fit-overflow") === "false";
-    }, undefined, { timeout: navigationTimeout }).catch(() => {
-      failures.push("zoomed preview did not reflow to a ready, non-overflowing layout");
+    const detachedLink = toolbar.getByRole("link", { name: "새 창에서 메뉴판 보기" });
+    const detachedHref = await detachedLink.getAttribute("href");
+    if (await detachedLink.getAttribute("target") !== "_blank") failures.push("detached preview does not target a new window");
+    if (!detachedHref?.includes("device=tablet") || !detachedHref.includes("orientation=landscape") || !detachedHref.includes("view=actual") || !detachedHref.includes("embedded=1")) {
+      failures.push(`detached preview does not preserve the selected device: ${detachedHref ?? "missing"}`);
+    }
+    const detachedPagePromise = context.waitForEvent("page", { timeout: navigationTimeout });
+    await detachedLink.click();
+    const detachedPage = await detachedPagePromise;
+    await detachedPage.waitForLoadState("domcontentloaded", { timeout: navigationTimeout });
+    if (await detachedPage.locator("[data-preview-device-toolbar]").count() !== 0) {
+      failures.push("detached preview still renders the device toolbar");
+    }
+    await detachedPage.waitForFunction(() => (
+      document.querySelector(".cafe-a-desktop-fit-board")?.getAttribute("data-fit-presentation-state") === "ready"
+    ), undefined, { timeout: navigationTimeout }).catch(() => {
+      failures.push("detached preview did not reach a ready layout");
     });
-    const shellAfterZoom = await frameShell.boundingBox();
-    const frameAfterZoom = await zoomedFrame.evaluate((element) => ({
-      width: element.clientWidth,
-      height: element.clientHeight,
-      transform: getComputedStyle(element).transform,
-    }));
-    if (!shellBeforeZoom || !shellAfterZoom) {
-      failures.push("preview frame shell bounds are unavailable during zoom");
-    } else if (Math.abs(shellBeforeZoom.width - shellAfterZoom.width) > 0.5 || Math.abs(shellBeforeZoom.height - shellAfterZoom.height) > 0.5) {
-      failures.push(`preview frame shell changed size during zoom: ${JSON.stringify({ shellBeforeZoom, shellAfterZoom })}`);
-    }
-    if (frameAfterZoom.width >= frameBeforeZoom.width || frameAfterZoom.height >= frameBeforeZoom.height || frameAfterZoom.transform === frameBeforeZoom.transform) {
-      failures.push(`preview zoom did not change the inner layout viewport: ${JSON.stringify({ frameBeforeZoom, frameAfterZoom })}`);
-    }
-    await zoomControls.getByRole("button", { name: /메뉴판 배율 110%, 100%로 초기화/ }).click();
-    if (await frameShell.getAttribute("data-preview-zoom-percent") !== "100") failures.push("preview zoom did not reset to 100%");
+    await detachedPage.close();
     await toolbar.getByRole("button", { name: "기기 선택 도구 닫기" }).click();
     await page.waitForFunction((beforeY) => {
       const toolbarElement = document.querySelector("[data-preview-device-toolbar]");

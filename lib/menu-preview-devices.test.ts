@@ -10,17 +10,13 @@ import {
   buildMenuPreviewUrl,
   buildTemplatePreviewUrl,
   DEFAULT_MENU_PREVIEW_DEVICE,
-  DEFAULT_MENU_PREVIEW_ZOOM,
   getMenuPreviewFrame,
   MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_ORIENTATIONS,
-  MENU_PREVIEW_ZOOM_LEVELS,
   normalizeMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
   normalizeMenuPreviewPaymentMode,
-  normalizeMenuPreviewZoom,
   shouldUseMenuPreviewDeviceFrame,
-  stepMenuPreviewZoom,
 } from "./menu-preview-devices";
 
 const previewFrameSource = readFileSync(
@@ -99,17 +95,6 @@ test("tablet landscape swaps the real iframe viewport dimensions", () => {
   });
 });
 
-test("preview zoom uses bounded browser-like steps and a 100 percent reset", () => {
-  assert.deepEqual(MENU_PREVIEW_ZOOM_LEVELS, [75, 90, 100, 110, 125]);
-  assert.equal(DEFAULT_MENU_PREVIEW_ZOOM, 100);
-  assert.equal(normalizeMenuPreviewZoom("110"), 110);
-  assert.equal(normalizeMenuPreviewZoom("115"), 100);
-  assert.equal(stepMenuPreviewZoom(100, -1), 90);
-  assert.equal(stepMenuPreviewZoom(100, 1), 110);
-  assert.equal(stepMenuPreviewZoom(75, -1), 75);
-  assert.equal(stepMenuPreviewZoom(125, 1), 125);
-});
-
 test("preview selector renders labeled PC, tablet, and mobile device icons", () => {
   const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
     device: "pc",
@@ -128,16 +113,14 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.ok(html.indexOf("태블릿") < html.indexOf(">PC<"));
   assert.ok(html.indexOf(">PC<") < html.indexOf("모바일"));
   assert.doesNotMatch(html, /메뉴판 목록/);
-  assert.doesNotMatch(html, /새 창에서 실제 크기 보기/);
+  assert.match(html, /새 창에서 메뉴판 보기/);
+  assert.match(html, /target="_blank"/);
+  assert.match(html, /view=actual&amp;embedded=1/);
   assert.doesNotMatch(html, /1440 × 900/);
   assert.match(html, /기기 선택 도구 닫기/);
   assert.match(html, /aria-expanded="true"/);
-  assert.match(html, /aria-label="메뉴판 확대·축소"/);
-  assert.match(html, /aria-label="메뉴판 축소"/);
-  assert.match(html, /aria-label="메뉴판 확대"/);
-  assert.match(html, />100%<\/button>/);
-  assert.match(html, /data-preview-zoom-percent="100"/);
-  assert.match(html, /transform:scale\(1\)/);
+  assert.doesNotMatch(html, /메뉴판 확대·축소/);
+  assert.doesNotMatch(html, /data-preview-zoom-controls/);
   assert.doesNotMatch(html, /tabindex="0"/);
 });
 
@@ -160,6 +143,8 @@ test("first preview guide uses anchored coachmarks and applies hide-today only t
   assert.match(previewGuideSource, /<BrowserZoomGuide \/>/);
   assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
   assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
+  assert.match(previewGuideSource, /실제 배치는 기기에 따라 달라질 수 있으니/);
+  assert.match(previewGuideSource, /사용할 기기에서 최종 확인해 주세요/);
   assert.match(previewGuideSource, /device = "tablet"/);
   assert.match(previewGuideSource, /type="checkbox"/);
   assert.match(previewGuideSource, /checked=\{hideTodayChecked\}/);
@@ -219,11 +204,12 @@ test("device selector is open by default and collapses upward while preserving t
   assert.doesNotMatch(previewFrameSource, /backdrop-blur-xl/);
   assert.doesNotMatch(previewFrameSource, /border-l border-white\/20 pl-2/);
   assert.equal((previewFrameSource.match(/bg-zinc-950\/48/g) ?? []).length, 1);
-  assert.match(previewFrameSource, /data-preview-zoom-controls=""/);
-  assert.match(previewFrameSource, /zoomedIframeSize/);
-  assert.match(previewFrameSource, /transform: `scale\(\$\{previewScale\}\)`/);
-  assert.match(previewFrameSource, /transformOrigin: "left top"/);
-  assert.match(previewFrameSource, /sessionStorage\.setItem\(`\$\{PREVIEW_ZOOM_STORAGE_PREFIX\}\$\{device\}`/);
+  assert.match(previewFrameSource, /data-preview-detached-link=""/);
+  assert.match(previewFrameSource, /target="_blank"/);
+  assert.match(previewFrameSource, /rel="noopener noreferrer"/);
+  assert.match(previewFrameSource, /className="h-full w-full border-0 bg-white"/);
+  assert.doesNotMatch(previewFrameSource, /data-preview-zoom-controls/);
+  assert.doesNotMatch(previewFrameSource, /PREVIEW_ZOOM_STORAGE_PREFIX/);
 });
 
 test("hide-today checkbox is plain text control without a boxed container", () => {
