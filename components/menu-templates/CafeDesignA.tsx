@@ -5726,7 +5726,7 @@ function DesktopFixedRail({
         )}
         {!isCenterColumn && isAubeCoffee ? (
           <div className="cafe-a-rail-language-row cafe-a-rail-language-row-after-description mt-3 flex min-w-0 justify-start" data-cafe-a-rail-language-row="">
-            <CafeLanguageHoverControl data={data} />
+            <CafeLanguageHoverControl data={data} menuAlign="left" />
           </div>
         ) : null}
       </div>

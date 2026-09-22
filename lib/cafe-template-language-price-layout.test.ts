@@ -83,7 +83,7 @@ test("오브 커피는 설명 아래, 모카 포레스트는 가게명 위에 PC
   );
   assert.match(
     templateSource,
-    /!isCenterColumn && isAubeCoffee[\s\S]*cafe-a-rail-language-row-after-description[\s\S]*justify-start/,
+    /!isCenterColumn && isAubeCoffee[\s\S]*cafe-a-rail-language-row-after-description[\s\S]*justify-start[\s\S]*<CafeLanguageHoverControl data=\{data\} menuAlign="left"/,
   );
 });
 
