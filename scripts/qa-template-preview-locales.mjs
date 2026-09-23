@@ -620,6 +620,88 @@ try {
 
   if (!templateFilter && !localeFilter) {
     const context = await browser.newContext({
+      viewport: { width: 1512, height: 706 },
+      deviceScaleFactor: 1,
+      reducedMotion: "reduce",
+      serviceWorkers: "block",
+    });
+    const page = await context.newPage();
+    const failures = [];
+    page.on("pageerror", (error) => failures.push(`pageerror: ${error.message}`));
+    page.on("console", (message) => {
+      if (message.type() === "error") failures.push(`console: ${message.text()}`);
+    });
+
+    const route = "/templates/cafe_round_focus_a/preview?lang=ko&device=tablet&orientation=landscape&view=actual&embedded=1";
+    const response = await page.goto(new URL(route, baseUrl).toString(), {
+      waitUntil: "domcontentloaded",
+      timeout: navigationTimeout,
+    });
+    await page.waitForFunction(() => (
+      document.querySelector(".cafe-a-desktop-fit-board")?.getAttribute("data-fit-presentation-state") === "ready"
+    ), undefined, { timeout: navigationTimeout }).catch(() => null);
+
+    const measurement = await page.locator(".cafe-a-desktop-fit-board").evaluate((board) => {
+      const menu = board.querySelector("[data-cafe-a-fit-menu]");
+      const widgetMedia = Array.from(board.querySelectorAll("[data-cafe-a-widget-media]")).find((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      });
+      const widgetColumn = widgetMedia?.closest("[data-cafe-a-balanced-column]");
+      const widgetRect = widgetMedia?.getBoundingClientRect();
+      const columnRect = widgetColumn?.getBoundingClientRect();
+      const columnStyle = widgetColumn ? getComputedStyle(widgetColumn) : null;
+      const columnPaddingBottom = Number.parseFloat(columnStyle?.paddingBottom ?? "0");
+
+      return {
+        state: board.getAttribute("data-fit-presentation-state"),
+        safetyScale: board.getAttribute("data-fit-presentation-safety-scale"),
+        fitFontScale: board.getAttribute("data-fit-font-scale"),
+        balancedVariant: board.getAttribute("data-fit-balanced-variant"),
+        menuScrollHeight: menu instanceof HTMLElement ? menu.scrollHeight : null,
+        menuClientHeight: menu instanceof HTMLElement ? menu.clientHeight : null,
+        widgetBottom: widgetRect?.bottom ?? null,
+        widgetAspectRatio: widgetRect ? widgetRect.width / widgetRect.height : null,
+        columnContentBottom: columnRect ? columnRect.bottom - columnPaddingBottom : null,
+      };
+    });
+
+    if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
+    if (measurement.state !== "ready") {
+      failures.push(`wide-short Round Focus preview did not become ready: ${JSON.stringify(measurement)}`);
+    }
+    if (measurement.safetyScale !== "1") {
+      failures.push(`wide-short Round Focus changed the approved design ratio: ${JSON.stringify(measurement)}`);
+    }
+    if (
+      measurement.menuScrollHeight !== null
+      && measurement.menuClientHeight !== null
+      && measurement.menuScrollHeight > measurement.menuClientHeight + 1
+    ) {
+      failures.push(`wide-short Round Focus menu still scrolls: ${JSON.stringify(measurement)}`);
+    }
+    if (
+      measurement.widgetBottom !== null
+      && measurement.columnContentBottom !== null
+      && measurement.widgetBottom > measurement.columnContentBottom + 1
+    ) {
+      failures.push(`wide-short Round Focus widget exceeds its column content box: ${JSON.stringify(measurement)}`);
+    }
+    if (measurement.widgetAspectRatio === null || Math.abs(measurement.widgetAspectRatio - 1.5) > 0.01) {
+      failures.push(`wide-short Round Focus widget changed its 3:2 ratio: ${JSON.stringify(measurement)}`);
+    }
+
+    results.push({
+      templateKey: "cafe_round_focus_a-wide-short-actual",
+      locale: "ko",
+      route,
+      failures,
+    });
+    await context.close();
+  }
+
+  if (!templateFilter && !localeFilter) {
+    const context = await browser.newContext({
       viewport: { width: 1440, height: 900 },
       deviceScaleFactor: 1,
       reducedMotion: "reduce",

@@ -1545,7 +1545,22 @@ function getBalancedMeasurementFromColumns({
 }): CafeDesignAFitMeasurement {
   const boardRect = boardElement.getBoundingClientRect();
   const menuRect = menuElement.getBoundingClientRect();
-  const rawFlowHeight = menuElement.clientHeight || menuRect.height;
+  const directColumnContentHeights = Array.from(
+    menuElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-column]"),
+  ).flatMap((columnElement) => {
+    const style = window.getComputedStyle(columnElement);
+    const paddingTop = Number.parseFloat(style.paddingTop);
+    const paddingBottom = Number.parseFloat(style.paddingBottom);
+    const verticalPadding =
+      (Number.isFinite(paddingTop) ? paddingTop : 0) +
+      (Number.isFinite(paddingBottom) ? paddingBottom : 0);
+    const contentHeight = columnElement.clientHeight - verticalPadding;
+    return contentHeight > 0 ? [contentHeight] : [];
+  });
+  const rawFlowHeight = Math.min(
+    menuElement.clientHeight || menuRect.height,
+    ...directColumnContentHeights,
+  );
   const simulationCropBuffer =
     includeClippingBottom && (window.visualViewport?.scale ?? 1) > 1.01
       ? ORDERED_BALANCED_ZOOM_SIMULATION_CROP_BUFFER
@@ -6250,6 +6265,13 @@ function getCenterRailContentColumns({
     return dockBottomWidgets(columns);
   }
 
+  if (variant === "sourceRoundRobin") {
+    orderedBlocks.forEach((block, index) => {
+      columns[index % columns.length]?.push(block);
+    });
+    return dockBottomWidgets(columns);
+  }
+
   const heights = [0, 0];
   orderedBlocks.forEach((block) => {
     const targetIndex = heights[0] <= heights[1] ? 0 : 1;
@@ -7211,7 +7233,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           const fitsWidth = fitMenuElement.scrollWidth <= fitMenuElement.clientWidth + 1;
 
           for (const variant of BALANCED_LAYOUT_VARIANTS) {
-            const simulatedColumns = createBalancedSimulatedColumns(blockMeasurements, columns, variant);
+            const simulatedColumns = dockBottomWidgetMeasurements(
+              createBalancedSimulatedColumns(blockMeasurements, columns, variant),
+            );
             const measurement = getBalancedMeasurementFromColumns({
               boardElement: fitBoardElement,
               menuElement: fitMenuElement,
@@ -8718,6 +8742,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     }
 
     if (centerRail) {
+      const centerRailColumnsVariant: CafeDesignABalancedVariant = isRoundFocus
+        ? "sourceRoundRobin"
+        : fitState.balancedVariant;
+
       return (
         <CenterRailMenuGrid
           fitRef={desktopFitMenuRef}
@@ -8728,7 +8756,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           customBadgeStyles={customBadgeStyles}
           itemStackSpacing={itemStackSpacing}
           outerGridGapClassName={outerGridGapClassName}
-          columnsVariant={fitState.balancedVariant}
+          columnsVariant={centerRailColumnsVariant}
           timeSaleByItemId={timeSaleByItemId}
           priceDisplayMode={priceDisplayMode}
           onOpenImage={openMenuImagePreview}
@@ -8893,7 +8921,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             data-fit-ordered-fit-effective-visual-scale={
               layoutMode === "orderedFit" ? roundFitScale(ORDERED_FIT_BASE_MENU_VISUAL_SCALE * orderedFitFinalFillCompensation) : undefined
             }
-            data-fit-balanced-variant={fitState.balancedVariant}
+            data-fit-balanced-variant={isRoundFocus ? "sourceRoundRobin" : fitState.balancedVariant}
             data-fit-ordered-balanced-breaks={fitState.orderedBalancedBreaks}
             data-fit-ordered-balanced-fingerprint={fitState.orderedBalancedFingerprint}
             data-fit-measured-columns={fitState.measuredColumns}

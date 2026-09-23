@@ -1245,6 +1245,11 @@ video {
     margin-bottom: calc(var(--cafe-a-local-item-rhythm-gap) * var(--cafe-a-category-separation-ratio));
   }
 
+  .cafe-a-typography:is([data-cafe-a-skin="mocha_forest"], [data-cafe-a-skin="round_focus"])
+    .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="widget"] {
+    margin-bottom: calc(var(--cafe-a-local-item-rhythm-gap) * var(--cafe-a-category-separation-ratio));
+  }
+
   .cafe-a-typography .cafe-a-menu-category-block[data-cafe-a-next-block-type="widget"] .cafe-a-category-items > .cafe-a-menu-item-stack:last-child {
     margin-bottom: 0;
   }
@@ -1859,6 +1864,45 @@ video {
 
   .cafe-a-typography .cafe-a-balanced-column > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"] {
     margin-top: auto;
+    flex-shrink: 1;
+    min-height: 0;
+  }
+
+  .cafe-a-typography .cafe-a-balanced-column
+    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
+    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio] {
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .cafe-a-typography .cafe-a-balanced-column
+    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
+    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio]
+    [data-cafe-a-widget-shell] {
+    display: flex;
+    height: 100%;
+    justify-content: flex-end;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .cafe-a-typography .cafe-a-balanced-column
+    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
+    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio]
+    [data-cafe-a-widget-media] {
+    flex: 0 1 auto;
+    height: 100%;
+    max-width: 100%;
+    min-height: 0;
+    width: auto;
+  }
+
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-balanced-column
+    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
+    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio]
+    [data-cafe-a-widget-media] {
+    min-height: clamp(10rem, 32vh, 14rem);
   }
 
   .cafe-a-typography .cafe-a-fit-menu-grid > .cafe-a-footer-info-anchor,
