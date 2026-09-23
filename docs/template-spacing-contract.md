@@ -18,14 +18,14 @@ The shared hierarchy is:
 1. internal copy gap;
 2. item-to-item gap (`1`);
 3. category-title-to-first-item gap (`1`);
-4. category-to-category gap without a divider (`2.2`);
+4. category-to-category gap without a divider (`2.6`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
 
 Widgets are category-level content blocks. A category-to-widget or widget-to-widget boundary without a divider uses the same category-to-category ratio, and widget-to-category uses the same divider or no-divider rule as a category boundary. A `bottom` widget may add flexible space above its final-column stack, but widget-to-footer-notice spacing uses the same category-to-category token and must never be replaced by a separate fixed reserve.
 
 Single-page skins inherit these values from the CafeA spacing tokens. A skin can adjust the bounded scale, but must not replace the semantic tokens with a fixed `px` margin, padding, or gap.
 
-Round Focus uses a visual correction of `1.15` from category title to first item and `2.8` between divider-free categories because its large title and title-only rows otherwise compress the perceived boundary. Mocha Forest keeps the shared `1` and `2.2` ratios and must not add per-item bottom padding on top of the shared item rhythm.
+Round Focus uses a visual correction of `1.15` from category title to first item and `2.8` between divider-free categories because its large title and title-only rows otherwise compress the perceived boundary. Real Matcha uses `2.9` between divider-free categories so its title underline and compact rows remain visually distinct. Mocha Forest keeps the shared `1` and `2.6` ratios and must not add per-item bottom padding on top of the shared item rhythm.
 
 Viewport and fit calculations may change the base item gap, but semantic ratios are constants applied exactly once after that base calculation. Do not multiply a semantic ratio by a fit, device, density, or viewport scale again.
 

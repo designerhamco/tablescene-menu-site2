@@ -77,6 +77,25 @@ try {
           })
           .map((element) => Number.parseFloat(getComputedStyle(element).fontSize))
           .filter(Number.isFinite);
+        const primaryFontFamily = (value) => value
+          .split(",")[0]
+          ?.replace(/["']/g, "")
+          .trim()
+          .toLocaleLowerCase() || null;
+        const noticeFontFamilies = Array.from(document.querySelectorAll(`
+          .cafe-a-footer-info .cafe-a-script-en,
+          .cafe-a-topline-notices .cafe-a-script-en,
+          .cafe-a-topline-mobile-notices .cafe-a-script-en,
+          .cafe-a-round-focus-notices .cafe-a-script-en,
+          .cafe-a-round-focus-mobile-notices .cafe-a-script-en,
+          .brew-chapter-cover-notices .cafe-a-script-en
+        `))
+          .filter((candidate) => {
+            const rect = candidate.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          })
+          .map((element) => primaryFontFamily(getComputedStyle(element).fontFamily))
+          .filter(Boolean);
         const textRoot = document.body.cloneNode(true);
         if (textRoot instanceof HTMLElement) {
           textRoot.querySelector("[data-cafe-a-fit-presentation]")?.remove();
@@ -84,9 +103,22 @@ try {
             .forEach((element) => element.remove());
         }
         const board = document.querySelector(".cafe-a-desktop-fit-board");
+        const typographyRoot = document.querySelector(".cafe-a-typography");
         const menu = board?.querySelector("[data-cafe-a-fit-menu], .cafe-a-fit-menu-grid");
         const boardRect = board?.getBoundingClientRect();
         const menuRect = menu?.getBoundingClientRect();
+        const widgetShellStyles = Array.from(document.querySelectorAll("[data-cafe-a-widget-shell]"))
+          .filter((candidate) => {
+            const rect = candidate.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          })
+          .map((element) => {
+            const style = getComputedStyle(element);
+            return {
+              borderWidth: style.borderWidth,
+              boxShadow: style.boxShadow,
+            };
+          });
         return {
           text: textRoot instanceof HTMLElement ? textRoot.innerText.trim() : "",
           horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
@@ -101,6 +133,11 @@ try {
           fitFinalFontBoost: board?.getAttribute("data-fit-final-font-boost") ?? null,
           fitFinalGapBoost: board?.getAttribute("data-fit-final-gap-boost") ?? null,
           fitFingerprint: board?.getAttribute("data-fit-ordered-balanced-fingerprint") ?? null,
+          koreanFontFamily: typographyRoot
+            ? primaryFontFamily(getComputedStyle(typographyRoot).getPropertyValue("--menu-font-ko"))
+            : null,
+          noticeFontFamilies,
+          widgetShellStyles,
           typography: {
             category: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-category-title"),
             item: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-menu-title"),
@@ -135,6 +172,17 @@ try {
         const { category, item, featuredItem, featuredDescription, description, linkedSupporting } = measurement.typography;
         const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a"
           || templateKey === "cafe_mocha_forest_a";
+        if (!measurement.koreanFontFamily || measurement.noticeFontFamilies.length === 0) {
+          failures.push(`footer notice font metrics are unavailable: ${JSON.stringify({ koreanFontFamily: measurement.koreanFontFamily, noticeFontFamilies: measurement.noticeFontFamilies })}`);
+        } else if (measurement.noticeFontFamilies.some((fontFamily) => fontFamily !== measurement.koreanFontFamily)) {
+          failures.push(`footer notices do not force the Korean font: ${measurement.noticeFontFamilies.join(", ")} / ${measurement.koreanFontFamily}`);
+        }
+        if (measurement.widgetShellStyles.some((style) => style.borderWidth !== "0px" || style.boxShadow !== "none")) {
+          failures.push(`widget shell still has a border or shadow: ${JSON.stringify(measurement.widgetShellStyles)}`);
+        }
+        if (templateKey === "cafe_round_focus_a" && (!measurement.text.includes("NO IMAGE") || measurement.text.includes("MENU IMAGE"))) {
+          failures.push("empty Round Focus widget does not use the NO IMAGE fallback");
+        }
         if (category === null || item === null) {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
@@ -419,7 +467,7 @@ try {
             }
           }
           if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
-            const expectedCategoryRatio = templateKey === "cafe_round_focus_a" ? 2.8 : 2.2;
+            const expectedCategoryRatio = templateKey === "cafe_round_focus_a" ? 2.8 : 2.6;
             const actualCategoryRatioToken = Number.parseFloat(rhythm.categoryRatioToken ?? "");
             if (Math.abs(actualCategoryRatioToken - expectedCategoryRatio) > 0.001) {
               failures.push(`no-divider category ratio token is incorrect: ${rhythm.categoryRatioToken ?? "missing"} / ${expectedCategoryRatio}`);
@@ -490,9 +538,9 @@ try {
                 failures.push(`Real Matcha ${role} does not follow the Sunday hierarchy: ${actualRatio} / ${expectedRatio}`);
               }
             }
-            const sundayStoreTitleSize = { pc: 48.6, "tablet-landscape": 46.62, mobile: 42.9 }[deviceCase.id];
-            if (sundayStoreTitleSize !== undefined && Math.abs(typography.storeName.fontSize - sundayStoreTitleSize) > 0.25) {
-              failures.push(`Real Matcha store title does not follow the Sunday size: ${typography.storeName.fontSize}px / ${sundayStoreTitleSize}px`);
+            const expectedRealMatchaStoreTitleSize = { pc: 51.516, "tablet-landscape": 50.5855, mobile: 45.474 }[deviceCase.id];
+            if (expectedRealMatchaStoreTitleSize !== undefined && Math.abs(typography.storeName.fontSize - expectedRealMatchaStoreTitleSize) > 0.25) {
+              failures.push(`Real Matcha store title size is incorrect: ${typography.storeName.fontSize}px / ${expectedRealMatchaStoreTitleSize}px`);
             }
           }
         }
@@ -698,7 +746,9 @@ try {
     if (!before || !after) {
       failures.push("device toolbar bounds are unavailable");
     } else {
-      if (Math.abs(before.width - after.width) > 0.5) failures.push(`device toolbar width changed: ${before.width}px -> ${after.width}px`);
+      if (after.width > 88 || after.width >= before.width * 0.3) {
+        failures.push(`collapsed device toolbar is not compact enough: ${before.width}px -> ${after.width}px`);
+      }
       if (after.y >= before.y - 10) failures.push(`device toolbar did not slide upward: ${before.y}px -> ${after.y}px`);
     }
 

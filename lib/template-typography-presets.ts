@@ -116,18 +116,29 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   cafe_design_a: {
     korean_font_key: "pretendard",
-    english_font_key: "alata",
+    english_font_key: "oswald",
     font_size_scale_key: "m",
   },
   cafe_mocha_forest_a: {
     korean_font_key: "pretendard",
-    english_font_key: "alata",
+    english_font_key: "chelsea-market",
     font_size_scale_key: "m",
   },
   cafe_sunday_line_a: {
     korean_font_key: "pretendard",
-    english_font_key: "alata",
+    english_font_key: "federo",
     font_size_scale_key: "m",
+    typography_roles: {
+      ...createDefaultTypographyRoleSettings(),
+      brand: {
+        ...createDefaultTypographyRoleSettings().brand,
+        color: "#24369C",
+      },
+      category: {
+        ...createDefaultTypographyRoleSettings().category,
+        color: "#24369C",
+      },
+    },
   },
   cafe_round_focus_a: {
     korean_font_key: "pretendard",
@@ -264,7 +275,7 @@ export function getDefaultTypographyPreset(templateKey?: string | null): Typogra
       preset?.font_size_scale_key ?? DEFAULT_TYPOGRAPHY_PRESET.font_size_scale_key,
       templateKey
     ),
-    typography_roles: createDefaultTypographyRoleSettings(),
+    typography_roles: normalizeTypographyRoleSettings(preset?.typography_roles, templateKey),
   };
 }
 

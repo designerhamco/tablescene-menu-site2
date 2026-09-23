@@ -76,8 +76,14 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
         <header
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className="pointer-events-auto relative w-[min(27rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/48 p-2 text-white backdrop-blur-[2px] transition-transform duration-300 ease-out"
-          style={{ transform: showToolbar ? "translateY(0.5rem)" : "translateY(calc(-100% + 1.75rem))" }}
+          className={`pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/48 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
+            showToolbar ? "w-[min(27rem,calc(100vw-1.5rem))]" : "w-20 max-w-20"
+          }`}
+          style={{
+            transform: showToolbar ? "translateY(0.5rem)" : "translateY(calc(-100% + 1.75rem))",
+            width: showToolbar ? undefined : "5rem",
+            maxWidth: showToolbar ? undefined : "5rem",
+          }}
         >
           <div
             data-preview-device-toolbar-content=""

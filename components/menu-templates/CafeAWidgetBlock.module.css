@@ -15,7 +15,8 @@
 }
 
 .shell {
-  border: 1px solid var(--cafe-a-widget-border);
+  border: 0;
+  box-shadow: none;
   min-width: 0;
   overflow: visible;
 }
@@ -49,7 +50,7 @@
   align-items: center;
   color: var(--cafe-a-widget-muted);
   display: flex;
-  font-size: 0.72rem;
+  font-size: clamp(0.68rem, 1.25vmin, 0.82rem);
   font-weight: 700;
   height: 100%;
   justify-content: center;

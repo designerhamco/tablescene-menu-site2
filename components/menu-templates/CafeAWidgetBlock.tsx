@@ -82,10 +82,13 @@ function renderMedia(widget: CafeAImageWidget | CafeAImageTextWidget) {
   const mediaStyle = {
     "--cafe-a-widget-ratio": ASPECT_RATIO_VALUE[widget.aspectRatio],
   } as CSSProperties;
+  const hasRenderableImage = Boolean(
+    widget.imageUrl && !widget.imageUrl.startsWith("/placeholders/starter/"),
+  );
 
   return (
     <div className={styles.mediaFrame} style={mediaStyle} data-cafe-a-widget-media>
-      {widget.imageUrl ? (
+      {hasRenderableImage && widget.imageUrl ? (
         <img
           src={widget.imageUrl}
           alt={widget.altText}
@@ -95,7 +98,7 @@ function renderMedia(widget: CafeAImageWidget | CafeAImageTextWidget) {
           )}
         />
       ) : (
-        <div className={styles.fallback}>이미지 준비 중</div>
+        <div className={styles.fallback}>NO IMAGE</div>
       )}
     </div>
   );

@@ -10,7 +10,7 @@ import { getTemplateByKey } from "./templates";
 
 const BASIC_FEATURE_EXPECTATIONS = {
   cafe_design_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
-  cafe_mocha_forest_a: { widgets: true, images: true, starterImages: true, starterBadges: false, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  cafe_mocha_forest_a: { widgets: true, images: true, starterImages: false, starterBadges: false, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_round_focus_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_brew_chapter_a: { widgets: false, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "page", timeSales: 1, soldOut: 1 },
@@ -56,7 +56,15 @@ test("launch template typography defaults and Display-only size control stay exp
   for (const templateKey of Object.keys(BASIC_FEATURE_EXPECTATIONS)) {
     const typography = mergeTypographySettings(templateKey);
     assert.equal(typography.korean_font_key, "pretendard", `${templateKey}: Korean font`);
-    assert.equal(typography.english_font_key, templateKey === "cafe_noir_a" ? "cutive-mono" : "alata", `${templateKey}: English font`);
+    const expectedEnglishFont = {
+      cafe_design_a: "oswald",
+      cafe_mocha_forest_a: "chelsea-market",
+      cafe_sunday_line_a: "federo",
+      cafe_round_focus_a: "alata",
+      cafe_brew_chapter_a: "alata",
+      cafe_noir_a: "cutive-mono",
+    }[templateKey];
+    assert.equal(typography.english_font_key, expectedEnglishFont, `${templateKey}: English font`);
     assert.equal(getTemplateCapabilities(templateKey).typographyFontSizeControl, "hidden", `${templateKey}: size control`);
   }
 

@@ -611,7 +611,7 @@ cafeMochaForestStarterPreset.featured_item_key = undefined;
 cafeMochaForestStarterPreset.featured_slides = [
   {
     id: "mocha-forest-cover-image",
-    image_url: "/menu-templates/cafe_design_a/black-sesame-featured.jpg",
+    image_url: "/menu-templates/cafe_mocha_forest_a/featured.png",
     image_path: null,
     sort_order: 0,
   },
@@ -647,15 +647,16 @@ cafeMochaForestStarterPreset.widgets = [
     type: "image",
     title: null,
     description: null,
-    image_url: "/menu-templates/cafe_design_a/malcha_present.jpg",
+    image_url: "/menu-templates/cafe_mocha_forest_a/widget-character.png",
     image_path: null,
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "3:4",
-      objectFit: "cover",
+      aspectRatio: "4:3",
+      objectFit: "contain",
       textAlign: "left",
-      altText: "모카 포레스트 위젯 이미지",
+      placement: "bottom",
+      altText: "모카 포레스트 캐릭터",
     },
   },
 ];
@@ -678,19 +679,16 @@ cafeMochaForestStarterPreset.pages = [
         name: "FOREST SIGNATURE",
         section_key: "main_menu",
         items: [
-          item("포레스트 모카", 6500, "", {
+          item("포레스트 모카", 6500, "다크 초콜릿과 에스프레소에 부드러운 크림을 더한 시그니처 모카", {
             key: "forest-mocha",
-            image_url: "/menu-templates/cafe_design_a/black-sesame.jpeg",
             price_note: "ICE ONLY",
           }),
-          item("헤이즐넛 크림 라떼", 6300, "", {
+          item("헤이즐넛 크림 라떼", 6300, "구운 헤이즐넛 크림과 진한 에스프레소의 고소한 조화", {
             key: "hazelnut-cream-latte",
-            image_url: "/menu-templates/cafe_design_a/nutty-cream.jpeg",
             price_note: "ICE ONLY",
           }),
-          item("말차 클라우드", 6500, "", {
+          item("말차 클라우드", 6500, "제주 말차 라떼 위에 가벼운 크림을 올린 부드러운 한 잔", {
             key: "matcha-cloud",
-            image_url: "/menu-templates/cafe_design_a/malcha.jpg",
             price_note: "ICE ONLY",
           }),
         ],
@@ -712,6 +710,9 @@ cafeMochaForestStarterPreset.pages = [
           item("메이플 오트 라떼", 5800, "", {
             key: "maple-oat-latte",
           }),
+          item("바닐라 크림 콜드브루", 5900, "", {
+            key: "vanilla-cream-cold-brew",
+          }),
         ],
       },
       {
@@ -727,6 +728,9 @@ cafeMochaForestStarterPreset.pages = [
           }),
           item("카카오 오트 밀크", 6000, "", {
             key: "cacao-oat-milk",
+          }),
+          item("오렌지 모카 밀크", 6100, "", {
+            key: "orange-mocha-milk",
           }),
         ],
       },

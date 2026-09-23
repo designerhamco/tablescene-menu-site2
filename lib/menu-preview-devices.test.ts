@@ -181,7 +181,7 @@ test("display preview shows only the browser zoom guide and reveals pagination n
   assert.match(displayTemplateSource, /onPointerLeave=\{displayControls\.hide\}/);
 });
 
-test("device selector is open by default and collapses upward while preserving the full toolbar width", () => {
+test("device selector is open by default and collapses upward into a compact handle", () => {
   assert.match(previewFrameSource, /useState\(true\)/);
   assert.doesNotMatch(previewFrameSource, /onMouseEnter=/);
   assert.doesNotMatch(previewFrameSource, /onMouseLeave=/);
@@ -189,9 +189,10 @@ test("device selector is open by default and collapses upward while preserving t
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource, /w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]/);
+  assert.match(previewFrameSource, /showToolbar \? "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
+  assert.match(previewFrameSource, /width: showToolbar \? undefined : "5rem"/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
-  assert.match(previewFrameSource, /transition-transform duration-300 ease-out/);
+  assert.match(previewFrameSource, /transition-\[width,transform\] duration-300 ease-out/);
   assert.match(previewFrameSource, /RotateCwSquare/);
   assert.match(previewFrameSource, /data-preview-tablet-orientation-toggle=""/);
   assert.match(previewFrameSource, /orientation === "landscape" \? "portrait" : "landscape"/);

@@ -5,7 +5,7 @@ import { getStarterPreset } from "./menu-starter-presets";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_design_a: [3, 4, 3, 3, 5],
-  cafe_mocha_forest_a: [3, 4, 3, 3, 3],
+  cafe_mocha_forest_a: [3, 5, 4, 3, 3],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
   cafe_round_focus_a: [3, 4, 4, 2, 2],
 } as const;
@@ -26,7 +26,10 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     assert.equal(new Set(itemKeys).size, itemKeys.length);
     if (templateKey === "cafe_mocha_forest_a") {
       assert.equal(categories.flatMap((category) => category.items).every((item) => !item.set_name?.trim()), true);
-      assert.equal(categories.flatMap((category) => category.items).every((item) => !item.description?.trim()), true);
+      const mochaItems = categories.flatMap((category) => category.items);
+      const signatureItems = categories.find((category) => category.key === "signature-coffee")?.items ?? [];
+      assert.equal(signatureItems.every((item) => Boolean(item.description?.trim())), true);
+      assert.equal(mochaItems.filter((item) => !signatureItems.includes(item)).every((item) => !item.description?.trim()), true);
       assert.equal(categories.flatMap((category) => category.items).every((item) => !item.badge_label?.trim()), true);
     } else {
       assert.equal(
@@ -88,11 +91,16 @@ test("starter-specific image and promotion presentation stays intentional", () =
 
   const mochaForest = getStarterPreset("cafe_mocha_forest_a");
   assert.equal(mochaForest.widgets?.[0]?.type, "image");
-  assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_design_a/malcha_present.jpg");
-  assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "3:4");
+  assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/widget-character.png");
+  assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "4:3");
+  assert.equal(mochaForest.widgets?.[0]?.settings?.placement, "bottom");
   assert.equal(mochaForest.featured_item_key, undefined);
   assert.equal(mochaForest.featured_slides?.length, 1);
+  assert.equal(mochaForest.featured_slides?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/featured.png");
   assert.equal(mochaForest.featured_slides?.[0]?.featured_item_key, undefined);
+  const mochaSignatureItems = mochaForest.pages[0]?.categories.find((category) => category.key === "signature-coffee")?.items ?? [];
+  assert.equal(mochaSignatureItems.every((item) => !item.image_url), true);
+  assert.equal(mochaSignatureItems.every((item) => Boolean(item.description?.trim())), true);
   const mochaForestLastBlock = mochaForest.mixed_content_order?.at(-1);
   assert.equal(mochaForestLastBlock?.block_type, "widget");
   assert.equal(mochaForestLastBlock?.block_type === "widget" ? mochaForestLastBlock.widget_key : null, "mocha-forest-image-widget");
