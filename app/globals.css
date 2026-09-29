@@ -1035,7 +1035,19 @@ video {
     --round-focus-center-width: clamp(13.125rem, 30vw, 17.5rem);
     --round-focus-center-inset: clamp(1rem, 2vw, 1.5rem);
     --round-focus-column-gap: clamp(1.125rem, 2.8vw, 1.75rem);
-    --round-focus-panel-bg: linear-gradient(180deg, #e7662c 0%, #e7662c 76%, #f1a01a 100%);
+    --round-focus-panel-bg: linear-gradient(
+      180deg,
+      #f5ebce 0%,
+      #f6eccf 20%,
+      #f7e6c5 30%,
+      #f7daa2 40%,
+      #fcc36e 50%,
+      #f29b3c 60%,
+      #e7762c 70%,
+      #d85a35 80%,
+      #c74633 90%,
+      #c43e34 100%
+    );
     --round-focus-text: #17130f;
     --round-focus-muted: #302720;
     --round-focus-accent: #17130f;
@@ -1105,8 +1117,8 @@ video {
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-center-rail-menu-grid > .cafe-a-balanced-column {
     box-sizing: border-box;
-    padding: var(--board-padding) var(--round-focus-column-inset)
-      calc(var(--board-padding) - clamp(0.5rem, 1vmin, 0.75rem));
+    padding: var(--round-focus-column-block-start) var(--round-focus-column-inset)
+      var(--round-focus-column-block-end);
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-center-rail-menu-grid > .cafe-a-balanced-column:first-child {
@@ -1128,7 +1140,8 @@ video {
     grid-row: 1;
     height: 100%;
     min-height: 0;
-    padding: clamp(1.625rem, 3.6vmin, 2.5rem) var(--round-focus-center-inset) var(--round-focus-center-inset);
+    padding: var(--round-focus-column-block-start) var(--round-focus-center-inset)
+      var(--round-focus-column-block-end);
     z-index: 1;
   }
 
@@ -1622,7 +1635,19 @@ video {
     --round-focus-center-inset: clamp(1.4rem, 2.35vw, 2.5rem);
     --round-focus-column-gap: clamp(1.75rem, 3.2vw, 3.75rem);
     --round-focus-column-inset: clamp(0.5rem, 0.7vw, 0.75rem);
-    --round-focus-panel-bg: linear-gradient(180deg, #e7662c 0%, #e7662c 76%, #f1a01a 100%);
+    --round-focus-panel-bg: linear-gradient(
+      180deg,
+      #f5ebce 0%,
+      #f6eccf 20%,
+      #f7e6c5 30%,
+      #f7daa2 40%,
+      #fcc36e 50%,
+      #f29b3c 60%,
+      #e7762c 70%,
+      #d85a35 80%,
+      #c74633 90%,
+      #c43e34 100%
+    );
     --round-focus-text: #17130f;
     --round-focus-muted: #302720;
     --round-focus-accent: #17130f;
@@ -1648,8 +1673,8 @@ video {
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_center_column"] .cafe-a-center-rail-menu-grid > .cafe-a-balanced-column {
     box-sizing: border-box;
-    padding: var(--board-padding) var(--round-focus-column-inset)
-      calc(var(--board-padding) - clamp(0.5rem, 1vmin, 0.75rem));
+    padding: var(--round-focus-column-block-start) var(--round-focus-column-inset)
+      var(--round-focus-column-block-end);
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_center_column"] .cafe-a-fixed-rail {
@@ -1658,7 +1683,8 @@ video {
     flex-direction: column;
     gap: 0;
     height: 100%;
-    padding: clamp(1.75rem, 3.2vmin, 3.25rem) var(--round-focus-center-inset) var(--round-focus-center-inset);
+    padding: var(--round-focus-column-block-start) var(--round-focus-center-inset)
+      var(--round-focus-column-block-end);
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-fixed-rail-copy {
@@ -2576,7 +2602,19 @@ video {
   .cafe-a-typography[data-cafe-a-skin="round_focus"] {
     --round-focus-mobile-inset: clamp(1.75rem, 5vw, 6rem);
     --round-focus-mobile-cover-min-height: 400px;
-    --round-focus-panel-bg: linear-gradient(180deg, #e7662c 0%, #e7662c 76%, #f1a01a 100%);
+    --round-focus-panel-bg: linear-gradient(
+      180deg,
+      #f5ebce 0%,
+      #f6eccf 20%,
+      #f7e6c5 30%,
+      #f7daa2 40%,
+      #fcc36e 50%,
+      #f29b3c 60%,
+      #e7762c 70%,
+      #d85a35 80%,
+      #c74633 90%,
+      #c43e34 100%
+    );
     background: #ffffff;
   }
 
@@ -2744,6 +2782,8 @@ video {
 
 .cafe-a-typography[data-cafe-a-skin="round_focus"] {
   --round-focus-brand-boost: 1.1;
+  --round-focus-column-block-start: var(--board-padding);
+  --round-focus-column-block-end: calc(var(--board-padding) - clamp(0.5rem, 1vmin, 0.75rem));
   --cafe-a-category-title-to-first-ratio: 1.25;
   --cafe-a-category-separation-ratio: 3.6;
 }
@@ -2788,6 +2828,18 @@ video {
   height: 1px;
   min-width: clamp(0.15rem, 0.35vw, 0.4rem);
   opacity: 0.44;
+}
+
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-cafe-a-skin="round_focus"]:is([data-preview-device="pc"], :not([data-preview-device])) {
+    --cafe-a-device-type-scale: 1.06;
+  }
+
+  .cafe-a-typography[data-cafe-a-skin="round_focus"]:is([data-preview-device="pc"], :not([data-preview-device])) .cafe-a-round-focus-price-leader {
+    flex: 0 1 clamp(1.25rem, 3.2vw, 3rem);
+    margin-inline-start: auto;
+    max-width: clamp(1.25rem, 3.2vw, 3rem);
+  }
 }
 
 .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-time-sale-badge {

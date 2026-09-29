@@ -169,7 +169,11 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   assert.match(globalStylesSource, /--round-focus-brand-boost: 1\.1;/);
   assert.match(
     globalStylesSource,
-    /--round-focus-panel-bg: linear-gradient\(180deg, #e7662c 0%, #e7662c 76%, #f1a01a 100%\);/,
+    /--round-focus-panel-bg: linear-gradient\([\s\S]*#f5ebce 0%,[\s\S]*#fcc36e 50%,[\s\S]*#c43e34 100%[\s\S]*\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /round_focus"\]:is\(\[data-preview-device="pc"\], :not\(\[data-preview-device\]\)\) \{\s*--cafe-a-device-type-scale: 1\.06;/,
   );
   assert.match(
     globalStylesSource,
@@ -392,7 +396,11 @@ test("단일 페이지별 미세 조정은 유동 간격과 동일 열 계약을
   assert.match(globalStylesSource, /--round-focus-column-inset: clamp\(0\.5rem, 0\.7vw, 0\.75rem\);/);
   assert.match(
     globalStylesSource,
-    /\.cafe-a-center-rail-menu-grid > \.cafe-a-balanced-column \{[\s\S]*padding: var\(--board-padding\) var\(--round-focus-column-inset\)[\s\S]*calc\(var\(--board-padding\) - clamp\(0\.5rem, 1vmin, 0\.75rem\)\);/,
+    /\.cafe-a-center-rail-menu-grid > \.cafe-a-balanced-column \{[\s\S]*padding: var\(--round-focus-column-block-start\) var\(--round-focus-column-inset\)[\s\S]*var\(--round-focus-column-block-end\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-fixed-rail \{[\s\S]*padding: var\(--round-focus-column-block-start\) var\(--round-focus-center-inset\)[\s\S]*var\(--round-focus-column-block-end\);/,
   );
   assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-category-separation-ratio: 3;/);
   assert.match(

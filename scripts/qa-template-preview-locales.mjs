@@ -603,17 +603,47 @@ try {
             const boardStyle = getComputedStyle(element);
             const menuGrid = element.querySelector(".cafe-a-center-rail-menu-grid");
             const column = menuGrid?.querySelector(".cafe-a-balanced-column");
+            const rail = menuGrid?.querySelector(".cafe-a-fixed-rail");
+            const leader = Array.from(menuGrid?.querySelectorAll(".cafe-a-round-focus-price-leader") ?? [])
+              .find((candidate) => candidate.getBoundingClientRect().width > 0);
             const gridStyle = menuGrid ? getComputedStyle(menuGrid) : null;
             const columnStyle = column ? getComputedStyle(column) : null;
+            const railStyle = rail ? getComputedStyle(rail) : null;
+            const typographyRoot = element.closest(".cafe-a-typography");
             return {
               outerInline: Number.parseFloat(boardStyle.paddingLeft),
               columnGap: Number.parseFloat(gridStyle?.columnGap ?? "0"),
               columnBlock: Number.parseFloat(columnStyle?.paddingTop ?? "0"),
+              columnBlockEnd: Number.parseFloat(columnStyle?.paddingBottom ?? "0"),
               columnInline: Number.parseFloat(columnStyle?.paddingLeft ?? "0"),
+              railBlock: Number.parseFloat(railStyle?.paddingTop ?? "0"),
+              railBlockEnd: Number.parseFloat(railStyle?.paddingBottom ?? "0"),
+              railBackgroundImage: railStyle?.backgroundImage ?? "none",
+              leaderWidth: leader ? leader.getBoundingClientRect().width : null,
+              deviceTypeScale: typographyRoot
+                ? getComputedStyle(typographyRoot).getPropertyValue("--cafe-a-device-type-scale").trim()
+                : "",
             };
           });
           if (spacing.outerInline < 35 || spacing.columnGap < 29 || spacing.columnBlock < 35 || spacing.columnInline < 7) {
             failures.push(`Round Focus spacing is too dense: ${JSON.stringify(spacing)}`);
+          }
+          if (
+            Math.abs(spacing.railBlock - spacing.columnBlock) > 0.5
+            || Math.abs(spacing.railBlockEnd - spacing.columnBlockEnd) > 0.5
+          ) {
+            failures.push(`Rosy Orange rail block padding does not match menu columns: ${JSON.stringify(spacing)}`);
+          }
+          if (!spacing.railBackgroundImage.includes("rgb(245, 235, 206)") || !spacing.railBackgroundImage.includes("rgb(196, 62, 52)")) {
+            failures.push(`Rosy Orange reference gradient is missing: ${spacing.railBackgroundImage}`);
+          }
+          if (deviceCase.id === "pc") {
+            if (spacing.deviceTypeScale !== "1.06") {
+              failures.push(`Rosy Orange PC typography scale is incorrect: ${spacing.deviceTypeScale || "missing"} / 1.06`);
+            }
+            if (spacing.leaderWidth === null || spacing.leaderWidth > 49) {
+              failures.push(`Rosy Orange PC dot leader is too long: ${JSON.stringify(spacing)}`);
+            }
           }
         }
         if (templateKey === "cafe_sunday_line_a" && (deviceCase.id === "pc" || deviceCase.id === "tablet-landscape")) {

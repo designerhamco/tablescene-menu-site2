@@ -104,6 +104,10 @@ test("starter-specific image and promotion presentation stays intentional", () =
   const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "house-special");
   assert.equal(roundHouseSpecials?.items.length, 3);
   assert.equal(roundHouseSpecials?.items.every((item) => Boolean(item.image_url)), true);
+  const roundVanillaBeanMilk = roundFocus.pages[0]?.categories
+    .flatMap((category) => category.items)
+    .find((item) => item.key === "vanilla-bean-milk");
+  assert.equal(roundVanillaBeanMilk?.badge_label, undefined);
   assert.equal(roundFocus.menu_cover_enabled, false);
   assert.equal(roundFocus.featured_slides?.length, 0);
   assert.equal(roundFocus.widgets?.[0]?.type, "image");

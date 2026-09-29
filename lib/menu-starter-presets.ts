@@ -1320,7 +1320,6 @@ cafeRoundFocusStarterPreset.pages = [
           }),
           item("바닐라 빈 밀크", 6000, "", {
             key: "vanilla-bean-milk",
-            badge_label: "NEW",
           }),
           item("말차 오트 밀크", 6200, "", {
             key: "matcha-oat-milk",
