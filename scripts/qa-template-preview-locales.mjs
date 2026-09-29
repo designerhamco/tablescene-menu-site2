@@ -314,6 +314,7 @@ try {
               letterSpacing: style.letterSpacing,
               lineHeight: style.lineHeight,
               textTransform: style.textTransform,
+              color: style.color,
             };
           };
           const firstSignature = (selector) => signature(visibleElements(selector)[0]);
@@ -491,6 +492,14 @@ try {
             failures.push(`tablet typography scale is incorrect: ${deviceTypeScale || "missing"} / ${expectedDeviceTypeScale}`);
           }
         }
+        if (templateKey === "cafe_round_focus_a") {
+          if (typography.storeName?.color !== "rgb(164, 46, 46)" || typography.categoryName?.color !== "rgb(164, 46, 46)") {
+            failures.push(`Rosy Orange editable titles do not use #A42E2E on ${deviceCase.id}: ${JSON.stringify(typography)}`);
+          }
+          if (typography.itemName?.color === "rgb(164, 46, 46)" || typography.itemName?.color === "rgb(0, 0, 0)") {
+            failures.push(`Rosy Orange item names lost their independent dark tone on ${deviceCase.id}: ${JSON.stringify(typography)}`);
+          }
+        }
         if (rhythm.itemGap === null || rhythm.titleGaps.length === 0) {
           failures.push(`spacing rhythm metrics are unavailable: ${JSON.stringify(rhythm)}`);
         } else {
@@ -596,20 +605,23 @@ try {
               .map((value) => Number.parseFloat(value))
               .filter(Number.isFinite)
           ));
-          if (columnWidths.length !== 3 || Math.max(...columnWidths) - Math.min(...columnWidths) > 1) {
-            failures.push(`Round Focus columns are not 1:1:1: ${columnWidths.join(" / ")}`);
+          if (![3, 4, 5].includes(columnWidths.length) || Math.max(...columnWidths) - Math.min(...columnWidths) > 1) {
+            failures.push(`Rosy Orange dynamic columns are not equal-width: ${columnWidths.join(" / ")}`);
           }
           const spacing = await page.locator(".cafe-a-desktop-fit-board").evaluate((element) => {
             const boardStyle = getComputedStyle(element);
             const menuGrid = element.querySelector(".cafe-a-center-rail-menu-grid");
             const column = menuGrid?.querySelector(".cafe-a-balanced-column");
-            const rail = menuGrid?.querySelector(".cafe-a-fixed-rail");
+            const rail = element.querySelector(".cafe-a-fixed-rail");
             const leader = Array.from(menuGrid?.querySelectorAll(".cafe-a-round-focus-price-leader") ?? [])
               .find((candidate) => candidate.getBoundingClientRect().width > 0);
             const gridStyle = menuGrid ? getComputedStyle(menuGrid) : null;
             const columnStyle = column ? getComputedStyle(column) : null;
             const railStyle = rail ? getComputedStyle(rail) : null;
             const typographyRoot = element.closest(".cafe-a-typography");
+            const storeTitle = element.querySelector(".cafe-a-store-title");
+            const categoryTitle = element.querySelector(".cafe-a-category-title");
+            const menuTitle = element.querySelector(".cafe-a-menu-title");
             return {
               outerInline: Number.parseFloat(boardStyle.paddingLeft),
               columnGap: Number.parseFloat(gridStyle?.columnGap ?? "0"),
@@ -623,6 +635,9 @@ try {
               deviceTypeScale: typographyRoot
                 ? getComputedStyle(typographyRoot).getPropertyValue("--cafe-a-device-type-scale").trim()
                 : "",
+              storeTitleColor: storeTitle ? getComputedStyle(storeTitle).color : null,
+              categoryTitleColor: categoryTitle ? getComputedStyle(categoryTitle).color : null,
+              menuTitleColor: menuTitle ? getComputedStyle(menuTitle).color : null,
             };
           });
           if (spacing.outerInline < 35 || spacing.columnGap < 29 || spacing.columnBlock < 35 || spacing.columnInline < 7) {
@@ -636,6 +651,12 @@ try {
           }
           if (!spacing.railBackgroundImage.includes("rgb(245, 235, 206)") || !spacing.railBackgroundImage.includes("rgb(196, 62, 52)")) {
             failures.push(`Rosy Orange reference gradient is missing: ${spacing.railBackgroundImage}`);
+          }
+          if (spacing.storeTitleColor !== "rgb(164, 46, 46)" || spacing.categoryTitleColor !== "rgb(164, 46, 46)") {
+            failures.push(`Rosy Orange editable titles do not use #A42E2E: ${JSON.stringify(spacing)}`);
+          }
+          if (spacing.menuTitleColor === "rgb(164, 46, 46)" || spacing.menuTitleColor === "rgb(0, 0, 0)") {
+            failures.push(`Rosy Orange menu copy lost its independent dark tone: ${JSON.stringify(spacing)}`);
           }
           if (deviceCase.id === "pc") {
             if (spacing.deviceTypeScale !== "1.06") {

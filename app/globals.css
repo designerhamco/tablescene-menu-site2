@@ -2919,7 +2919,6 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-skin="round_focus"] :is(
-  .cafe-a-category-title,
   .cafe-a-menu-title,
   .cafe-a-menu-price,
   .cafe-a-price-area,
@@ -2929,6 +2928,19 @@ video {
   .cafe-a-time-sale-time-text
 ) {
   color: #17130f;
+}
+
+.cafe-a-typography[data-cafe-a-skin="round_focus"] :is(
+  .cafe-a-category-title
+) {
+  color: #a42e2e;
+}
+
+.cafe-a-typography[data-cafe-a-skin="round_focus"] :is(
+  .cafe-a-fixed-rail,
+  header
+) .cafe-a-store-title {
+  color: #a42e2e;
 }
 
 .cafe-a-typography[data-cafe-a-skin="round_focus"] [data-cafe-a-widget-block] {

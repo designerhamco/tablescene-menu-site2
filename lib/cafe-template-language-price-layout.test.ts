@@ -75,6 +75,14 @@ test("Rosy Orange는 보조언어를 숨기고 제목 위계를 보장한다", (
   assert.match(globalStylesSource, /round_focus"\] \.cafe-a-menu-item-image-slot \{\s*border-radius: 0;/);
   assert.match(
     globalStylesSource,
+    /round_focus"\] :is\([\s\S]*\.cafe-a-category-title[\s\S]*\) \{\s*color: #a42e2e;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /round_focus"\] :is\([\s\S]*\.cafe-a-fixed-rail,[\s\S]*header[\s\S]*\) \.cafe-a-store-title \{\s*color: #a42e2e;/,
+  );
+  assert.match(
+    globalStylesSource,
     /round_focus"\] \.cafe-a-balanced-menu-grid \.cafe-a-category-title \{[\s\S]*calc\(var\(--cafe-a-linked-item-name-size\)[\s\S]*1\.5\)/,
   );
 });
