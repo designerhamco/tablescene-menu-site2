@@ -61,14 +61,14 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   assert.deepEqual(
     snapshot.featuredSlides.map((slide) => slide.imageUrl),
     [
+      "/menu-templates/cafe_design_a/real-matcha-menu-featured.jpg",
       "/menu-templates/cafe_design_a/real-matcha-latte-featured.jpg",
       "/menu-templates/cafe_design_a/real-matcha-cream-latte-featured.jpg",
-      "/menu-templates/cafe_design_a/real-matcha-menu-featured.jpg",
     ],
   );
-  assert.equal(snapshot.featuredSlides[0]?.featuredItemId, snapshot.referenceMap.item["real-matcha-latte"]);
-  assert.equal(snapshot.featuredSlides[1]?.featuredItemId, snapshot.referenceMap.item["real-matcha-cream-latte"]);
-  assert.equal(snapshot.featuredSlides[2]?.featuredItemId, null);
+  assert.equal(snapshot.featuredSlides[0]?.featuredItemId, null);
+  assert.equal(snapshot.featuredSlides[1]?.featuredItemId, snapshot.referenceMap.item["real-matcha-latte"]);
+  assert.equal(snapshot.featuredSlides[2]?.featuredItemId, snapshot.referenceMap.item["real-matcha-cream-latte"]);
 
   assert.equal(snapshot.timeSales.length, 2);
   snapshot.timeSales.forEach((timeSale) => {

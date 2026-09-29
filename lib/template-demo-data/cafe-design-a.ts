@@ -18,7 +18,7 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
     opening_hours: "매일 10:00 - 21:00",
     restaurant_address: "서울시 예시구 맛차로 12",
     restaurant_phone: "02-0000-0000",
-    cover_image_url: CAFE_A_REAL_MATCHA_LATTE_FEATURED_IMAGE,
+    cover_image_url: CAFE_A_REAL_MATCHA_MENU_FEATURED_IMAGE,
     settings: {
       footer_notice_1: "Wi-Fi REAL_MATCHA · PW 1234-5678",
       footer_notice_2: "Instagram @real.matcha",
@@ -27,12 +27,18 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
   },
   featured_slides: [
     {
+      id: "real-matcha-featured-menu",
+      image_url: CAFE_A_REAL_MATCHA_MENU_FEATURED_IMAGE,
+      image_path: null,
+      sort_order: 0,
+    },
+    {
       id: "real-matcha-featured-latte",
       image_url: CAFE_A_REAL_MATCHA_LATTE_FEATURED_IMAGE,
       image_path: null,
       featured_item_key: "real-matcha-latte",
       featured_item_name: "리얼 맛차 라떼",
-      sort_order: 0,
+      sort_order: 1,
     },
     {
       id: "real-matcha-featured-cream-latte",
@@ -40,12 +46,6 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
       image_path: null,
       featured_item_key: "real-matcha-cream-latte",
       featured_item_name: "리얼 맛차 크림 라떼",
-      sort_order: 1,
-    },
-    {
-      id: "real-matcha-featured-menu",
-      image_url: CAFE_A_REAL_MATCHA_MENU_FEATURED_IMAGE,
-      image_path: null,
       sort_order: 2,
     },
   ],
