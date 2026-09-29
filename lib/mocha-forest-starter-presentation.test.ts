@@ -64,3 +64,10 @@ test("Mocha Forest slightly reduces the linked supporting copy off mobile", () =
     /data-cafe-a-skin="mocha_forest"\] \{[\s\S]*--cafe-a-template-supporting-copy-scale: 1;/,
   );
 });
+
+test("Mocha Forest text chips use a subtle corner radius", () => {
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_mocha_forest_a"\]\[data-cafe-a-skin="mocha_forest"\] :is\(\s*\.cafe-a-menu-badge,\s*\.cafe-a-featured-badge,\s*\.cafe-a-menu-chip\s*\) \{\s*border-radius: 0\.25rem;/,
+  );
+});

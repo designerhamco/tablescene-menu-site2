@@ -3884,6 +3884,15 @@ video {
   --cafe-a-sunday-price-ratio: 0.96;
 }
 
+/* Keep Mocha Forest's text chips crisp while softening their corners slightly. */
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"] :is(
+  .cafe-a-menu-badge,
+  .cafe-a-featured-badge,
+  .cafe-a-menu-chip
+) {
+  border-radius: 0.25rem;
+}
+
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] {
   --cafe-a-category-title-to-first-ratio: 1.2;
   --cafe-a-sunday-price-ratio: 0.98;
