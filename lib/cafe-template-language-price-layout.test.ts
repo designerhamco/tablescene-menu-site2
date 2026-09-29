@@ -126,6 +126,18 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
     globalStylesSource,
     /data-preview-device="tablet"\]\[data-cafe-a-skin="round_focus"\] \{[\s\S]*--cafe-a-device-type-scale: 1\.04;/,
   );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\]\[data-cafe-a-skin="round_focus"\] \{[\s\S]*--cafe-a-shell-category-title-boost: 1\.15;[\s\S]*--cafe-a-shell-menu-copy-boost: 1\.12;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /--round-focus-panel-bg: linear-gradient\(180deg, #e7662c 0%, #e7662c 76%, #f1a01a 100%\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /cafe-a-round-focus-mobile-notices \{[\s\S]*padding-bottom: clamp\(28px, 7vw, 44px\);/,
+  );
   assert.match(globalStylesSource, /\.cafe-a-store-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
   assert.match(globalStylesSource, /\.cafe-a-topline-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
 });

@@ -16,7 +16,7 @@ export const TEMPLATE_CATEGORIES = [
       { key: "cafe_design_a", label: "REAL MATCHA", design: "design_a" },
       { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
       { key: "cafe_sunday_line_a", label: "선데이 로스터스", design: "design_a" },
-      { key: "cafe_round_focus_a", label: "라운드 포커스", design: "design_a" },
+      { key: "cafe_round_focus_a", label: "ROSY ORANGE", design: "design_a" },
       { key: "cafe_brew_chapter_a", label: "브루 챕터", design: "design_a" },
       { key: "cafe_noir_a", label: "누아 메뉴", design: "design_a" },
       { key: "cafe_design_b", label: "Cafe Design B", design: "design_b" },

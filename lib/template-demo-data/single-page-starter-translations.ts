@@ -417,13 +417,13 @@ const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
 const ROUND_FOCUS_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   en: {
     site: {
-      restaurantName: "ROUND ROASTERS",
+      restaurantName: "ROSY ORANGE",
       restaurantCategory: "Cafe",
       brandDescription: "Coffee for every day, made with rounded aromas and comforting flavors.",
       introDescription: "Coffee for every day, made with rounded aromas and comforting flavors.",
       menuCoverDescription: "Coffee for every day, made with rounded aromas and comforting flavors.",
       aboutDescription: "Easygoing coffee with round aromas and a clean finish.",
-      footerNotices: ["Wi-Fi · ROUND_GUEST", "Instagram · @round.roasters", "Decaf beans are available."],
+      footerNotices: ["Wi-Fi · ROSY_GUEST", "Instagram · @rosy.orange", "Decaf beans are available."],
     },
     pageTitle: "Menu",
     categoryNames: { "house-special": "HOUSE SPECIALS", espresso: "ESPRESSO", "milk-cream": "MILK & CREAM", "tea-ade": "TEA & ADE", bake: "BAKE" },
@@ -448,13 +448,13 @@ const ROUND_FOCUS_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   },
   zh: {
     site: {
-      restaurantName: "ROUND ROASTERS",
+      restaurantName: "ROSY ORANGE",
       restaurantCategory: "咖啡馆",
       brandDescription: "以圆润香气和舒适风味，制作适合每日享用的咖啡。",
       introDescription: "以圆润香气和舒适风味，制作适合每日享用的咖啡。",
       menuCoverDescription: "以圆润香气和舒适风味，制作适合每日享用的咖啡。",
       aboutDescription: "圆润香气与清爽余味的日常咖啡。",
-      footerNotices: ["Wi-Fi · ROUND_GUEST", "Instagram · @round.roasters", "可更换为低咖啡因咖啡豆。"],
+      footerNotices: ["Wi-Fi · ROSY_GUEST", "Instagram · @rosy.orange", "可更换为低咖啡因咖啡豆。"],
     },
     pageTitle: "菜单",
     categoryNames: { "house-special": "本店招牌", espresso: "浓缩咖啡", "milk-cream": "牛奶与奶油", "tea-ade": "茶与气泡饮", bake: "烘焙" },
@@ -479,13 +479,13 @@ const ROUND_FOCUS_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   },
   ja: {
     site: {
-      restaurantName: "ROUND ROASTERS",
+      restaurantName: "ROSY ORANGE",
       restaurantCategory: "カフェ",
       brandDescription: "丸みのある香りと心地よい味わいで、毎日のコーヒーを作ります。",
       introDescription: "丸みのある香りと心地よい味わいで、毎日のコーヒーを作ります。",
       menuCoverDescription: "丸みのある香りと心地よい味わいで、毎日のコーヒーを作ります。",
       aboutDescription: "丸みのある香りとすっきりした後味のデイリーコーヒー。",
-      footerNotices: ["Wi-Fi · ROUND_GUEST", "Instagram · @round.roasters", "デカフェ豆に変更できます。"],
+      footerNotices: ["Wi-Fi · ROSY_GUEST", "Instagram · @rosy.orange", "デカフェ豆に変更できます。"],
     },
     pageTitle: "メニュー",
     categoryNames: { "house-special": "ハウススペシャル", espresso: "エスプレッソ", "milk-cream": "ミルク＆クリーム", "tea-ade": "ティー＆エイド", bake: "ベイク" },

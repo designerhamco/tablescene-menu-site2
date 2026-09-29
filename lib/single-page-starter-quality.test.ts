@@ -82,6 +82,11 @@ test("every active single-page starter includes a sixty-minute stock closeout co
 
 test("starter-specific image and promotion presentation stays intentional", () => {
   const roundFocus = getStarterPreset("cafe_round_focus_a");
+  assert.equal(roundFocus.site.restaurant_name, "ROSY ORANGE");
+  assert.equal(roundFocus.site.intro_title, "ROSY ORANGE");
+  assert.equal(roundFocus.site.menu_cover_title, "ROSY ORANGE");
+  assert.equal(roundFocus.site.settings?.footer_notice_1, "Wi-Fi · ROSY_GUEST");
+  assert.equal(roundFocus.site.settings?.footer_notice_2, "Instagram · @rosy.orange");
   const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "house-special");
   assert.equal(roundHouseSpecials?.items.length, 3);
   assert.equal(roundHouseSpecials?.items.every((item) => !item.image_url), true);

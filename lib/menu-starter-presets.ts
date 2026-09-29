@@ -1187,17 +1187,17 @@ cafeSundayLineStarterPreset.pages = [
 
 cafeRoundFocusStarterPreset.site = {
   ...cafeRoundFocusStarterPreset.site,
-  restaurant_name: "ROUND ROASTERS",
-  intro_title: "ROUND ROASTERS",
-  menu_cover_title: "ROUND ROASTERS",
+  restaurant_name: "ROSY ORANGE",
+  intro_title: "ROSY ORANGE",
+  menu_cover_title: "ROSY ORANGE",
   brand_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
   intro_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
   menu_cover_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
   cover_image_url: "",
   settings: {
     ...(cafeRoundFocusStarterPreset.site.settings ?? {}),
-    footer_notice_1: "Wi-Fi · ROUND_GUEST",
-    footer_notice_2: "Instagram · @round.roasters",
+    footer_notice_1: "Wi-Fi · ROSY_GUEST",
+    footer_notice_2: "Instagram · @rosy.orange",
     footer_notice_3: "디카페인 원두로 변경 가능합니다.",
   },
 };
@@ -1220,7 +1220,7 @@ cafeRoundFocusStarterPreset.widgets = [
       aspectRatio: "4:3",
       objectFit: "cover",
       textAlign: "left",
-      altText: "라운드 포커스 위젯 이미지",
+      altText: "ROSY ORANGE 위젯 이미지",
     },
   },
 ];
