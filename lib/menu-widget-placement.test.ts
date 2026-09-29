@@ -21,6 +21,10 @@ const widgetEditorSource = readFileSync(
   new URL("../components/mypage/menu-editor/MenuWidgetDraftEditor.tsx", import.meta.url),
   "utf8",
 );
+const widgetStylesSource = readFileSync(
+  new URL("../components/menu-templates/CafeAWidgetBlock.module.css", import.meta.url),
+  "utf8",
+);
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 
 function createCategoryBlock(id: string, sortOrder: number) {
@@ -140,4 +144,15 @@ test("a docked widget and footer notices share the item rhythm gap", () => {
     /cafe-a-balanced-column:has\(> \.cafe-a-menu-widget-block\[data-cafe-a-widget-dock-bottom="true"\]\) > \.cafe-a-footer-info \{\s*margin-top: 0;/,
   );
   assert.match(templateSource, /renderDesktopMenuGrid\(\{ includeFooter: true \}\)/);
+});
+
+test("single-page image widgets use a mobile-only 2:1 presentation ratio", () => {
+  assert.match(
+    widgetStylesSource,
+    /@media \(max-width: 767px\) \{[\s\S]*\.mediaFrame \{\s*aspect-ratio: 2 \/ 1;/,
+  );
+  assert.match(
+    widgetEditorSource,
+    /선택한 비율은 PC·태블릿에 적용되며, 모바일에서는 모든 이미지 위젯이 2:1로 표시됩니다\./,
+  );
 });

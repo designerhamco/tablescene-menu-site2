@@ -96,6 +96,8 @@ Type-specific settings:
 
 `placement` is `flow` or `bottom`. `flow` follows the mixed category/widget order. `bottom` is collected into the final desktop/tablet column and the mobile content end, immediately above footer notices when present. Missing legacy values normalize to `bottom`, so the previous trailing-widget behavior remains compatible without a DB migration.
 
+The stored `aspectRatio` remains the PC/tablet presentation choice. On mobile, every image or image-text widget media frame renders at `2:1` without rewriting the stored setting. The menu editor explains this mobile-only override beside the aspect-ratio field.
+
 ## 9. Required Fields
 
 `image`:

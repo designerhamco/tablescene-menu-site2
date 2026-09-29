@@ -116,6 +116,10 @@
 }
 
 @media (max-width: 767px) {
+  .mediaFrame {
+    aspect-ratio: 2 / 1;
+  }
+
   .copy {
     padding: 0.78rem;
   }

@@ -242,6 +242,9 @@ export default function MenuWidgetDraftEditor({
                   <option key={ratio} value={ratio}>{ASPECT_RATIO_LABELS[ratio] ?? ratio}</option>
                 ))}
               </select>
+              <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+                선택한 비율은 PC·태블릿에 적용되며, 모바일에서는 모든 이미지 위젯이 2:1로 표시됩니다.
+              </p>
             </FieldBlock>
             <FieldBlock label="이미지 맞춤">
               <select
