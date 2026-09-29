@@ -91,6 +91,10 @@ export function createMenuWidgetDraftFromWidget(widget: MenuWidget): MenuWidgetD
         widget.type === "image" || widget.type === "image_text"
           ? widget.settings.objectFit
           : "cover",
+      objectPosition:
+        widget.type === "image" || widget.type === "image_text"
+          ? widget.settings.objectPosition
+          : "center",
       textAlign:
         widget.type === "text" || widget.type === "image_text"
           ? widget.settings.textAlign

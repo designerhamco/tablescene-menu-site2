@@ -161,12 +161,15 @@ test("모카 포레스트는 PC 전체 글자를 소폭 키우고 태블릿 상�
   );
 });
 
-test("태블릿 상품명 칩이 실제로 다음 줄로 밀릴 때만 긴 단일 가격 옵션을 세로로 배치한다", () => {
+test("모카 포레스트 태블릿에서만 상품명 칩이 밀릴 때 긴 단일 가격 옵션을 세로로 배치한다", () => {
   assert.match(templateSource, /function useAdaptiveTabletPriceOptionLayout\(/);
   assert.match(templateSource, /previewDevice === "tablet"/);
   assert.match(templateSource, /querySelectorAll<HTMLElement>\("\.cafe-a-menu-badge"\)/);
   assert.match(templateSource, /badgeRect\.top >= titleRect\.bottom \+ 0\.5/);
-  assert.match(templateSource, /!usesPriceColumns && priceTokens\.length === 1 && Boolean\(priceTokens\[0\]\?\.label\.trim\(\)\)/);
+  assert.match(
+    templateSource,
+    /templateKey === "cafe_mocha_forest_a" &&\s*!usesPriceColumns &&\s*priceTokens\.length === 1 &&\s*Boolean\(priceTokens\[0\]\?\.label\.trim\(\)\)/,
+  );
   assert.match(templateSource, /data-cafe-a-tablet-price-layout=\{stackPriceOption \? "stacked" : undefined\}/);
   assert.match(
     globalStylesSource,
@@ -367,6 +370,10 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /hasFlushBottomContent/);
   assert.match(templateSource, /hasFlushBottomContent \? -cropTolerance : menuRegionSafetyGap/);
   assert.match(templateSource, /fontFamily: "var\(--font-family-site\)"/);
+  assert.match(
+    globalStylesSource,
+    /\.menu-typography \[data-cafe-a-fit-presentation\],\s*\.menu-typography \[data-cafe-a-fit-presentation\] \* \{\s*font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif !important;/,
+  );
   assert.match(templateSource, /최적의 배치를 찾고 있어요/);
   assert.match(templateSource, /메뉴와 글자 크기를 화면에 맞추고 있습니다/);
   assert.match(templateSource, /animate-spin[^"]*motion-reduce:animate-none/);

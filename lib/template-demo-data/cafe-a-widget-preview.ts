@@ -15,6 +15,7 @@ export const CAFE_A_WIDGET_TYPE_FIXTURES: CafeAWidgetPreview[] = [
     altText: "제주 말차 크림 라떼",
     aspectRatio: "4:3",
     objectFit: "cover",
+    objectPosition: "top-left",
   },
   {
     id: "widget-type-text",
@@ -47,6 +48,7 @@ export const CAFE_A_WIDGET_RATIO_FIXTURES: CafeAWidgetPreview[] = [
     altText: "흑임자 크림 라떼 와이드 이미지",
     aspectRatio: "3:1",
     objectFit: "contain",
+    objectPosition: "bottom-right",
   },
   {
     id: "widget-ratio-2-1-cover",

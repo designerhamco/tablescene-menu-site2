@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type {
   MenuWidgetAspectRatio,
   MenuWidgetObjectFit,
+  MenuWidgetObjectPosition,
   MenuWidgetPlacement,
   MenuWidgetTextAlign,
   MenuWidgetType,
@@ -17,6 +18,8 @@ export type CafeAWidgetType = MenuWidgetType;
 export type CafeAWidgetAspectRatio = MenuWidgetAspectRatio;
 
 export type CafeAWidgetObjectFit = MenuWidgetObjectFit;
+
+export type CafeAWidgetObjectPosition = MenuWidgetObjectPosition;
 
 export type CafeAWidgetTextAlign = MenuWidgetTextAlign;
 
@@ -35,6 +38,7 @@ export type CafeAImageWidget = CafeAWidgetBase & {
   altText: string;
   aspectRatio: CafeAWidgetAspectRatio;
   objectFit: CafeAWidgetObjectFit;
+  objectPosition?: CafeAWidgetObjectPosition;
 };
 
 export type CafeATextWidget = CafeAWidgetBase & {
@@ -52,6 +56,7 @@ export type CafeAImageTextWidget = CafeAWidgetBase & {
   body: string;
   aspectRatio: CafeAWidgetAspectRatio;
   objectFit: CafeAWidgetObjectFit;
+  objectPosition?: CafeAWidgetObjectPosition;
   textAlign: CafeAWidgetTextAlign;
 };
 
@@ -73,6 +78,18 @@ const ASPECT_RATIO_VALUE: Record<CafeAWidgetAspectRatio, string> = {
   "1:3": "1 / 3",
 };
 
+const OBJECT_POSITION_VALUE: Record<CafeAWidgetObjectPosition, string> = {
+  "top-left": "left top",
+  "top-center": "center top",
+  "top-right": "right top",
+  "center-left": "left center",
+  center: "center center",
+  "center-right": "right center",
+  "bottom-left": "left bottom",
+  "bottom-center": "center bottom",
+  "bottom-right": "right bottom",
+};
+
 function joinClassNames(...classNames: Array<string | false | null | undefined>) {
   return classNames.filter(Boolean).join(" ");
 }
@@ -88,6 +105,7 @@ function renderMedia(widget: CafeAImageWidget | CafeAImageTextWidget) {
   const hasRenderableImage = Boolean(
     widget.imageUrl && !widget.imageUrl.startsWith("/placeholders/starter/"),
   );
+  const objectPosition = widget.objectPosition ?? "center";
 
   return (
     <div
@@ -100,6 +118,8 @@ function renderMedia(widget: CafeAImageWidget | CafeAImageTextWidget) {
         <img
           src={widget.imageUrl}
           alt={widget.altText}
+          data-widget-object-position={objectPosition}
+          style={{ objectPosition: OBJECT_POSITION_VALUE[objectPosition] }}
           className={joinClassNames(
             styles.media,
             widget.objectFit === "contain" ? styles.mediaContain : styles.mediaCover,

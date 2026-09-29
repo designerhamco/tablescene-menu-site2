@@ -226,6 +226,12 @@ video {
   font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
 }
 
+/* Preview status UI belongs to ArtiMenu, not to the selected menu template. */
+.menu-typography [data-cafe-a-fit-presentation],
+.menu-typography [data-cafe-a-fit-presentation] * {
+  font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif !important;
+}
+
 .menu-typography .text-xs {
   font-size: clamp(0.7rem, calc(0.75rem * var(--menu-font-size-scale)), 0.82rem);
 }
@@ -530,9 +536,9 @@ video {
   .cafe-a-round-focus-mobile-notices,
   .brew-chapter-cover-notices
 ) {
-  --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
-  --cafe-a-script-en-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
-  font-family: var(--menu-role-supporting-font-ko, var(--menu-font-ko)), system-ui, sans-serif;
+  --cafe-a-script-ko-font: "Pretendard";
+  --cafe-a-script-en-font: "Pretendard";
+  font-family: "Pretendard", system-ui, sans-serif;
   font-weight: var(--menu-role-supporting-font-weight, 400);
   letter-spacing: 0;
   overflow-wrap: anywhere;
@@ -546,9 +552,9 @@ video {
   .cafe-a-round-focus-mobile-notices,
   .brew-chapter-cover-notices
 ) .cafe-a-description-text {
-  --cafe-a-script-ko-font: var(--menu-font-ko);
-  --cafe-a-script-en-font: var(--menu-font-ko);
-  font-family: var(--menu-font-ko), system-ui, sans-serif;
+  --cafe-a-script-ko-font: "Pretendard";
+  --cafe-a-script-en-font: "Pretendard";
+  font-family: "Pretendard", system-ui, sans-serif;
 }
 
 .cafe-a-typography .cafe-a-footer-info-anchor {
@@ -2807,6 +2813,20 @@ video {
   background: var(--mocha-forest-ivory, #f4eddc);
 }
 
+/* Mocha Forest keeps mobile copy unchanged and slightly quiets the linked supporting role on larger screens. */
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"]:is(
+  [data-preview-device="pc"],
+  [data-preview-device="tablet"]
+) {
+  --cafe-a-template-supporting-copy-scale: 0.96;
+}
+
+@media (min-width: 768px) {
+  .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"]:not([data-preview-device]) {
+    --cafe-a-template-supporting-copy-scale: 0.96;
+  }
+}
+
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-menu-category-top-divider {
   display: none;
 }
@@ -3865,7 +3885,26 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] {
+  --cafe-a-category-title-to-first-ratio: 1.2;
   --cafe-a-sunday-price-ratio: 0.98;
+}
+
+/* Keep mobile spacing intact while giving Mocha Forest's category label a little more hierarchy. */
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="mobile"] {
+  --cafe-a-sunday-category-ratio: 1.44;
+}
+
+@media (max-width: 767px) {
+  .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"]:not([data-preview-device="tablet"]):not([data-preview-device="pc"]) {
+    --cafe-a-sunday-category-ratio: 1.44;
+  }
+}
+
+/* Public tablet/desktop layouts and their previews share the wider category-to-first-item rhythm. */
+@media (min-width: 768px) {
+  .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"]:not([data-preview-device="mobile"]) {
+    --cafe-a-category-title-to-first-ratio: 1.2;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -3918,12 +3957,12 @@ video {
   .cafe-a-description-text,
   .cafe-a-time-sale-time-text
 ) {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
 }
 
 /* Cover selectors carry extra specificity; keep the featured description on the same role ratio in tablet portrait/mobile layouts too. */
 .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-cover-hero .cafe-a-featured-description {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
 }
 
 .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) :is(.cafe-a-menu-price, .cafe-a-featured-price) {
@@ -3947,7 +3986,7 @@ video {
     .cafe-a-description-text,
     .cafe-a-time-sale-time-text
   ) {
-    font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio));
+    font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
   }
 
   .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(.cafe-a-menu-price, .cafe-a-featured-price) {
@@ -3970,7 +4009,7 @@ video {
 
 .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-description, .cafe-a-time-sale-time-text),
 .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-cover-hero .cafe-a-featured-description {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-mocha-tablet-product-text-scale));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-mocha-tablet-product-text-scale) * var(--cafe-a-template-supporting-copy-scale));
 }
 
 .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-price, .cafe-a-featured-price) {

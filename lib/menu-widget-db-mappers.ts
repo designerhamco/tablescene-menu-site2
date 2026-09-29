@@ -8,6 +8,7 @@ import {
   type MenuWidgetAspectRatio,
   type MenuWidgetDraft,
   type MenuWidgetObjectFit,
+  type MenuWidgetObjectPosition,
   type MenuWidgetPlacement,
   type MenuWidgetSettingsV1,
   type MenuWidgetTextAlign,
@@ -15,6 +16,7 @@ import {
   type MenuWidgetValidationError,
   isMenuWidgetAspectRatio,
   isMenuWidgetObjectFit,
+  isMenuWidgetObjectPosition,
   isMenuWidgetPlacement,
   isMenuWidgetTextAlign,
   isMenuWidgetType,
@@ -42,6 +44,7 @@ export type MenuWidgetRowParseIssueCode =
   | "MISSING_TEXT"
   | "INVALID_ASPECT_RATIO"
   | "INVALID_OBJECT_FIT"
+  | "INVALID_OBJECT_POSITION"
   | "INVALID_TEXT_ALIGN"
   | "INVALID_PLACEMENT";
 
@@ -225,7 +228,13 @@ export function parseMenuWidgetRows(rows: readonly MenuWidgetRow[]): {
 
 export function serializeMenuWidgetSettings(widget: MenuWidget): MenuWidgetSettingsV1 {
   if (widget.type === "image") {
-    return createImageSettings(widget.settings.aspectRatio, widget.settings.objectFit, widget.settings.placement, widget.settings.altText);
+    return createImageSettings(
+      widget.settings.aspectRatio,
+      widget.settings.objectFit,
+      widget.settings.objectPosition,
+      widget.settings.placement,
+      widget.settings.altText,
+    );
   }
 
   if (widget.type === "text") {
@@ -233,7 +242,13 @@ export function serializeMenuWidgetSettings(widget: MenuWidget): MenuWidgetSetti
   }
 
   return {
-    ...createImageSettings(widget.settings.aspectRatio, widget.settings.objectFit, widget.settings.placement, widget.settings.altText),
+    ...createImageSettings(
+      widget.settings.aspectRatio,
+      widget.settings.objectFit,
+      widget.settings.objectPosition,
+      widget.settings.placement,
+      widget.settings.altText,
+    ),
     textAlign: widget.settings.textAlign,
   };
 }
@@ -352,7 +367,7 @@ function parseMenuWidgetSettings(
     };
   }
 
-  for (const key of ["aspectRatio", "objectFit", "textAlign", "altText", "placement"] as const) {
+  for (const key of ["aspectRatio", "objectFit", "objectPosition", "textAlign", "altText", "placement"] as const) {
     const value = objectSettings[key];
     if (value != null && typeof value !== "string") {
       issues.push(createRowIssue("INVALID_SETTINGS", widgetId, `settings.${key}`, "위젯 설정 값은 문자열이어야 합니다."));
@@ -361,6 +376,7 @@ function parseMenuWidgetSettings(
 
   const aspectRatio = getOptionalStringSetting(objectSettings, "aspectRatio");
   const objectFit = getOptionalStringSetting(objectSettings, "objectFit");
+  const objectPosition = getOptionalStringSetting(objectSettings, "objectPosition");
   const textAlign = getOptionalStringSetting(objectSettings, "textAlign");
   const altText = getOptionalStringSetting(objectSettings, "altText");
   const placement = getOptionalStringSetting(objectSettings, "placement");
@@ -371,6 +387,10 @@ function parseMenuWidgetSettings(
 
   if (objectFit != null && !isMenuWidgetObjectFit(objectFit)) {
     issues.push(createRowIssue("INVALID_OBJECT_FIT", widgetId, "settings.objectFit", "지원하지 않는 이미지 맞춤 방식입니다."));
+  }
+
+  if (objectPosition != null && !isMenuWidgetObjectPosition(objectPosition)) {
+    issues.push(createRowIssue("INVALID_OBJECT_POSITION", widgetId, "settings.objectPosition", "지원하지 않는 이미지 기준 위치입니다."));
   }
 
   if (textAlign != null && !isMenuWidgetTextAlign(textAlign)) {
@@ -392,6 +412,7 @@ function parseMenuWidgetSettings(
       settings: createImageSettings(
         (aspectRatio as MenuWidgetAspectRatio | null) ?? "2:1",
         (objectFit as MenuWidgetObjectFit | null) ?? "cover",
+        (objectPosition as MenuWidgetObjectPosition | null) ?? "center",
         (placement as MenuWidgetPlacement | null) ?? "bottom",
         normalizedAltText,
       ),
@@ -414,6 +435,7 @@ function parseMenuWidgetSettings(
       ...createImageSettings(
         (aspectRatio as MenuWidgetAspectRatio | null) ?? "4:3",
         (objectFit as MenuWidgetObjectFit | null) ?? "cover",
+        (objectPosition as MenuWidgetObjectPosition | null) ?? "center",
         (placement as MenuWidgetPlacement | null) ?? "bottom",
         normalizedAltText,
       ),
@@ -426,6 +448,7 @@ function parseMenuWidgetSettings(
 function createImageSettings(
   aspectRatio: MenuWidgetAspectRatio,
   objectFit: MenuWidgetObjectFit,
+  objectPosition: MenuWidgetObjectPosition,
   placement: MenuWidgetPlacement,
   altText?: string | null,
 ): MenuImageWidget["settings"] {
@@ -434,6 +457,7 @@ function createImageSettings(
     schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
     aspectRatio,
     objectFit,
+    objectPosition,
     placement,
     ...(normalizedAltText ? { altText: normalizedAltText } : {}),
   };

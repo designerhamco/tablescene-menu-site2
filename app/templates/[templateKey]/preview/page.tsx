@@ -329,6 +329,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
           schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
           aspectRatio: widget.settings?.aspectRatio ?? "2:1",
           objectFit: widget.settings?.objectFit ?? "cover",
+          objectPosition: widget.settings?.objectPosition ?? "center",
           placement: widget.settings?.placement ?? "bottom",
           altText: widget.settings?.altText ?? "메뉴 이미지",
         },
@@ -364,6 +365,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
         schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
         aspectRatio: widget.settings?.aspectRatio ?? "2:1",
         objectFit: widget.settings?.objectFit ?? "cover",
+        objectPosition: widget.settings?.objectPosition ?? "center",
         textAlign: widget.settings?.textAlign ?? "left",
         placement: widget.settings?.placement ?? "bottom",
         altText: widget.settings?.altText ?? "메뉴 이미지",
@@ -718,7 +720,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 0,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", placement: "bottom", altText: "말차 음료" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", objectPosition: "center", placement: "bottom", altText: "말차 음료" },
         },
         {
           id: `${data.menuSite.id}-feature-qa-widget-text`,
@@ -744,7 +746,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 2,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", textAlign: "left", placement: "bottom", altText: "시즌 메뉴" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", objectPosition: "center", textAlign: "left", placement: "bottom", altText: "시즌 메뉴" },
         },
       ]
     : data.widgets;

@@ -2905,6 +2905,7 @@ function getCafeAWidgetPreview(widget: PublicMenuWidget): CafeAWidgetPreview | n
       altText,
       aspectRatio: widget.settings.aspectRatio,
       objectFit: widget.settings.objectFit,
+      objectPosition: widget.settings.objectPosition,
       placement: widget.settings.placement,
     };
   }
@@ -2931,6 +2932,7 @@ function getCafeAWidgetPreview(widget: PublicMenuWidget): CafeAWidgetPreview | n
     body: widget.description,
     aspectRatio: widget.settings.aspectRatio,
     objectFit: widget.settings.objectFit,
+    objectPosition: widget.settings.objectPosition,
     textAlign: widget.settings.textAlign,
     placement: widget.settings.placement,
   };
@@ -3792,7 +3794,10 @@ function MenuItemRow({
   const showSoldOutBadge = isSoldOut;
   const showRegularBadge = !isSoldOut && !showMenuTimeSale;
   const hasSingleLabeledPriceOption =
-    !usesPriceColumns && priceTokens.length === 1 && Boolean(priceTokens[0]?.label.trim());
+    templateKey === "cafe_mocha_forest_a" &&
+    !usesPriceColumns &&
+    priceTokens.length === 1 &&
+    Boolean(priceTokens[0]?.label.trim());
   const { itemRef, stackPriceOption } = useAdaptiveTabletPriceOptionLayout({
     hasSingleLabeledPriceOption,
     previewDevice,
@@ -5817,9 +5822,10 @@ function DesktopToplineFeaturedSlot({
 function CafeATypographyFontAssets({ typographySettings }: { typographySettings: TypographySettings }) {
   const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
+  const noticeFontAssets = getKoreanFontLoadAssets("pretendard");
   const roleFontAssets = getTypographyRoleFontLoadAssets(typographySettings.typography_roles);
 
-  return <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets, ...roleFontAssets]} />;
+  return <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets, noticeFontAssets, ...roleFontAssets]} />;
 }
 
 function DesktopFixedRail({

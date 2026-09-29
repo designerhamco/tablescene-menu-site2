@@ -14,6 +14,20 @@ export const MENU_WIDGET_OBJECT_FITS = ["cover", "contain"] as const;
 
 export type MenuWidgetObjectFit = (typeof MENU_WIDGET_OBJECT_FITS)[number];
 
+export const MENU_WIDGET_OBJECT_POSITIONS = [
+  "top-left",
+  "top-center",
+  "top-right",
+  "center-left",
+  "center",
+  "center-right",
+  "bottom-left",
+  "bottom-center",
+  "bottom-right",
+] as const;
+
+export type MenuWidgetObjectPosition = (typeof MENU_WIDGET_OBJECT_POSITIONS)[number];
+
 export const MENU_WIDGET_TEXT_ALIGNS = ["left", "center", "right"] as const;
 
 export type MenuWidgetTextAlign = (typeof MENU_WIDGET_TEXT_ALIGNS)[number];
@@ -33,6 +47,7 @@ export type MenuWidgetSettingsV1 = {
   schemaVersion: typeof MENU_WIDGET_SETTINGS_VERSION;
   aspectRatio?: MenuWidgetAspectRatio;
   objectFit?: MenuWidgetObjectFit;
+  objectPosition?: MenuWidgetObjectPosition;
   textAlign?: MenuWidgetTextAlign;
   altText?: string;
   placement?: MenuWidgetPlacement;
@@ -56,6 +71,7 @@ export type MenuImageWidget = MenuWidgetBase & {
   settings: MenuWidgetSettingsV1 & {
     aspectRatio: MenuWidgetAspectRatio;
     objectFit: MenuWidgetObjectFit;
+    objectPosition: MenuWidgetObjectPosition;
     placement: MenuWidgetPlacement;
     altText?: string;
   };
@@ -82,6 +98,7 @@ export type MenuImageTextWidget = MenuWidgetBase & {
   settings: MenuWidgetSettingsV1 & {
     aspectRatio: MenuWidgetAspectRatio;
     objectFit: MenuWidgetObjectFit;
+    objectPosition: MenuWidgetObjectPosition;
     textAlign: MenuWidgetTextAlign;
     placement: MenuWidgetPlacement;
     altText?: string;
@@ -103,6 +120,7 @@ export type MenuWidgetDraft = {
   settings: {
     aspectRatio: MenuWidgetAspectRatio;
     objectFit: MenuWidgetObjectFit;
+    objectPosition?: MenuWidgetObjectPosition;
     textAlign: MenuWidgetTextAlign;
     placement: MenuWidgetPlacement;
     altText: string;
@@ -141,6 +159,7 @@ export type MenuWidgetValidationErrorCode =
   | "MISSING_TEXT"
   | "INVALID_ASPECT_RATIO"
   | "INVALID_OBJECT_FIT"
+  | "INVALID_OBJECT_POSITION"
   | "INVALID_TEXT_ALIGN"
   | "INVALID_PLACEMENT"
   | "TITLE_TOO_LONG"
@@ -174,6 +193,10 @@ export function isMenuWidgetAspectRatio(value: unknown): value is MenuWidgetAspe
 
 export function isMenuWidgetObjectFit(value: unknown): value is MenuWidgetObjectFit {
   return typeof value === "string" && MENU_WIDGET_OBJECT_FITS.includes(value as MenuWidgetObjectFit);
+}
+
+export function isMenuWidgetObjectPosition(value: unknown): value is MenuWidgetObjectPosition {
+  return typeof value === "string" && MENU_WIDGET_OBJECT_POSITIONS.includes(value as MenuWidgetObjectPosition);
 }
 
 export function isMenuWidgetTextAlign(value: unknown): value is MenuWidgetTextAlign {
@@ -210,6 +233,7 @@ export function createDefaultMenuWidgetDraft(
       settings: {
         aspectRatio: "2:1",
         objectFit: "cover",
+        objectPosition: "center",
         textAlign: "left",
         placement: "bottom",
         altText: "",
@@ -223,6 +247,7 @@ export function createDefaultMenuWidgetDraft(
       settings: {
         aspectRatio: "4:3",
         objectFit: "cover",
+        objectPosition: "center",
         textAlign: "left",
         placement: "bottom",
         altText: "",
@@ -235,6 +260,7 @@ export function createDefaultMenuWidgetDraft(
     settings: {
       aspectRatio: "4:3",
       objectFit: "cover",
+      objectPosition: "center",
       textAlign: "left",
       placement: "bottom",
       altText: "",
@@ -285,6 +311,7 @@ export function normalizeMenuWidgetDraft(
         schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
         aspectRatio: requireMenuWidgetAspectRatio(draft.settings.aspectRatio),
         objectFit: requireMenuWidgetObjectFit(draft.settings.objectFit),
+        objectPosition: requireMenuWidgetObjectPosition(draft.settings.objectPosition ?? "center"),
         placement,
         ...(altText ? { altText } : {}),
       },
@@ -318,6 +345,7 @@ export function normalizeMenuWidgetDraft(
       schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
       aspectRatio: requireMenuWidgetAspectRatio(draft.settings.aspectRatio),
       objectFit: requireMenuWidgetObjectFit(draft.settings.objectFit),
+      objectPosition: requireMenuWidgetObjectPosition(draft.settings.objectPosition ?? "center"),
       textAlign: requireMenuWidgetTextAlign(draft.settings.textAlign),
       placement,
       ...(altText ? { altText } : {}),
@@ -397,6 +425,14 @@ export function validateMenuWidgetDraft(draft: MenuWidgetDraft): MenuWidgetValid
 
   if ((draft.type === "image" || draft.type === "image_text") && !isMenuWidgetObjectFit(draft.settings.objectFit)) {
     errors.push(createMenuWidgetValidationError("INVALID_OBJECT_FIT", "settings.objectFit", "지원하지 않는 이미지 맞춤 방식입니다."));
+  }
+
+  if (
+    (draft.type === "image" || draft.type === "image_text") &&
+    draft.settings.objectPosition != null &&
+    !isMenuWidgetObjectPosition(draft.settings.objectPosition)
+  ) {
+    errors.push(createMenuWidgetValidationError("INVALID_OBJECT_POSITION", "settings.objectPosition", "지원하지 않는 이미지 기준 위치입니다."));
   }
 
   if ((draft.type === "text" || draft.type === "image_text") && !isMenuWidgetTextAlign(draft.settings.textAlign)) {
@@ -487,6 +523,11 @@ function requireMenuWidgetAspectRatio(value: unknown): MenuWidgetAspectRatio {
 
 function requireMenuWidgetObjectFit(value: unknown): MenuWidgetObjectFit {
   if (!isMenuWidgetObjectFit(value)) throw new TypeError("Invalid menu widget object fit.");
+  return value;
+}
+
+function requireMenuWidgetObjectPosition(value: unknown): MenuWidgetObjectPosition {
+  if (!isMenuWidgetObjectPosition(value)) throw new TypeError("Invalid menu widget object position.");
   return value;
 }
 

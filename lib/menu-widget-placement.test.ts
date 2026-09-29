@@ -11,6 +11,7 @@ import { parseMenuWidgetRow } from "./menu-widget-db-mappers";
 import {
   createDefaultMenuWidgetDraft,
   MENU_WIDGET_ASPECT_RATIOS,
+  MENU_WIDGET_OBJECT_POSITIONS,
   normalizeMenuWidgetDraft,
 } from "./menu-widgets";
 
@@ -28,6 +29,10 @@ const widgetEditorSource = readFileSync(
 );
 const widgetStylesSource = readFileSync(
   new URL("../components/menu-templates/CafeAWidgetBlock.module.css", import.meta.url),
+  "utf8",
+);
+const widgetBlockSource = readFileSync(
+  new URL("../components/menu-templates/CafeAWidgetBlock.tsx", import.meta.url),
   "utf8",
 );
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -89,6 +94,37 @@ test("new widgets default to bottom placement and preserve an explicit flow sele
   assert.equal(widget.settings.placement, "flow");
 });
 
+test("image widgets default to a centered focal point and preserve all nine positions", () => {
+  assert.deepEqual(MENU_WIDGET_OBJECT_POSITIONS, [
+    "top-left",
+    "top-center",
+    "top-right",
+    "center-left",
+    "center",
+    "center-right",
+    "bottom-left",
+    "bottom-center",
+    "bottom-right",
+  ]);
+
+  const draft = createDefaultMenuWidgetDraft("image", {
+    id: "widget-image",
+    menuPageId: "page-1",
+    sortOrder: 0,
+  });
+  assert.equal(draft.settings.objectPosition, "center");
+
+  draft.imageUrl = "/widget.png";
+  draft.settings.objectPosition = "bottom-right";
+  const widget = normalizeMenuWidgetDraft(draft, { menuSiteId: "site-1" });
+  assert.equal(widget.type, "image");
+  if (widget.type === "image") assert.equal(widget.settings.objectPosition, "bottom-right");
+
+  assert.match(widgetEditorSource, /MENU_WIDGET_OBJECT_POSITIONS\.map/);
+  assert.match(widgetEditorSource, /이미지 기준 위치/);
+  assert.match(widgetBlockSource, /style=\{\{ objectPosition: OBJECT_POSITION_VALUE\[objectPosition\] \}\}/);
+});
+
 test("persisted widget settings accept legacy rows and explicit placement values", () => {
   const createRow = (placement?: "flow" | "bottom") => ({
     id: "00000000-0000-4000-8000-000000000001",
@@ -134,6 +170,29 @@ test("persisted widget settings accept legacy rows and explicit placement values
   assert.equal(legacyRatioResult.ok, true);
   if (legacyRatioResult.ok) {
     assert.equal(createMenuWidgetDraftFromWidget(legacyRatioResult.widget).settings.aspectRatio, "4:3");
+    assert.equal(legacyRatioResult.widget.type, "image");
+    if (legacyRatioResult.widget.type === "image") {
+      assert.equal(legacyRatioResult.widget.settings.objectPosition, "center");
+    }
+  }
+
+  const positionedResult = parseMenuWidgetRow({
+    ...createRow("bottom"),
+    widget_type: "image",
+    title: null,
+    description: null,
+    image_url: "/positioned-widget.png",
+    settings: {
+      schemaVersion: 1,
+      aspectRatio: "2:1",
+      objectFit: "cover",
+      objectPosition: "top-left",
+      placement: "bottom",
+    },
+  } as unknown as Parameters<typeof parseMenuWidgetRow>[0]);
+  assert.equal(positionedResult.ok, true);
+  if (positionedResult.ok && positionedResult.widget.type === "image") {
+    assert.equal(positionedResult.widget.settings.objectPosition, "top-left");
   }
 });
 

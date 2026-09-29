@@ -97,6 +97,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(mochaForest.widgets?.[0]?.type, "image");
   assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/widget-character.png");
   assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "3:1");
+  assert.equal(mochaForest.widgets?.[0]?.settings?.objectFit, "contain");
+  assert.equal(mochaForest.widgets?.[0]?.settings?.objectPosition, "bottom-right");
   assert.equal(mochaForest.widgets?.[0]?.settings?.placement, "bottom");
   assert.equal(mochaForest.featured_item_key, undefined);
   assert.equal(mochaForest.featured_slides?.length, 1);
@@ -116,9 +118,34 @@ test("starter-specific image and promotion presentation stays intentional", () =
 
   const sundayLine = getStarterPreset("cafe_sunday_line_a");
   const sundayItems = sundayLine.pages[0]?.categories.flatMap((category) => category.items) ?? [];
+  assert.deepEqual(
+    sundayLine.featured_slides?.map((slide) => ({
+      imageUrl: slide.image_url,
+      itemKey: slide.featured_item_key ?? null,
+    })),
+    [
+      {
+        imageUrl: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-01.png",
+        itemKey: "orange-vanilla-cold-brew",
+      },
+      {
+        imageUrl: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-02.png",
+        itemKey: "salted-maple-latte",
+      },
+      {
+        imageUrl: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-03.png",
+        itemKey: "sunday-cream-latte",
+      },
+    ],
+  );
+  assert.deepEqual(
+    sundayLine.time_sales?.map((timeSale) => timeSale.badge_background_color),
+    ["#F76A03", "#F76A03"],
+  );
   for (const itemKey of ["sunday-cream-latte", "salted-maple-latte"]) {
     assert.equal(sundayItems.find((item) => item.key === itemKey)?.image_url, undefined);
   }
+  assert.equal(sundayItems.find((item) => item.key === "matcha-cream-latte")?.badge_label, undefined);
 
   const mochaMorningDeal = mochaForest.time_sales?.find((sale) => sale.key === "americano-morning-deal");
   assert.equal(mochaMorningDeal?.badge_background_color, "#852322");

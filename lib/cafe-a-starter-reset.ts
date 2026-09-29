@@ -781,6 +781,7 @@ function createStarterWidgetDraft(args: {
     settings: {
       aspectRatio: args.widget.settings?.aspectRatio ?? (args.widget.type === "image" ? "2:1" : "4:3"),
       objectFit: args.widget.settings?.objectFit ?? "cover",
+      objectPosition: args.widget.settings?.objectPosition ?? "center",
       textAlign: args.widget.settings?.textAlign ?? "left",
       placement: args.widget.settings?.placement ?? "bottom",
       altText: args.widget.settings?.altText ?? "",

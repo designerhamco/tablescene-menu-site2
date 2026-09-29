@@ -1464,6 +1464,23 @@ function cloneMenuWidgetDraft(draft: MenuWidgetDraft): MenuWidgetDraft {
   };
 }
 
+const MENU_WIDGET_OBJECT_FIT_LABELS: Record<MenuWidgetDraft["settings"]["objectFit"], string> = {
+  cover: "채우기",
+  contain: "전체 보이기",
+};
+
+const MENU_WIDGET_OBJECT_POSITION_LABELS: Record<NonNullable<MenuWidgetDraft["settings"]["objectPosition"]>, string> = {
+  "top-left": "상단 왼쪽",
+  "top-center": "상단 가운데",
+  "top-right": "상단 오른쪽",
+  "center-left": "가운데 왼쪽",
+  center: "정중앙",
+  "center-right": "가운데 오른쪽",
+  "bottom-left": "하단 왼쪽",
+  "bottom-center": "하단 가운데",
+  "bottom-right": "하단 오른쪽",
+};
+
 function hasWidgetEditorChanges(editor: WidgetEditorState) {
   if (editor.mode === "create" || editor.mode === "copy") return true;
   if (!editor.baseDraft) return true;
@@ -9282,6 +9299,10 @@ export default function MenuManagementSection({
                     <>
                       <DetailValue label="이미지">{selectedWidgetDraft.imageUrl || selectedWidgetDraft.imagePath ? "등록됨" : "없음"}</DetailValue>
                       <DetailValue label="이미지 비율">{selectedWidgetDraft.settings.aspectRatio}</DetailValue>
+                      <DetailValue label="이미지 맞춤">{MENU_WIDGET_OBJECT_FIT_LABELS[selectedWidgetDraft.settings.objectFit]}</DetailValue>
+                      <DetailValue label="이미지 기준 위치">
+                        {MENU_WIDGET_OBJECT_POSITION_LABELS[selectedWidgetDraft.settings.objectPosition ?? "center"]}
+                      </DetailValue>
                     </>
                   )}
                 </div>

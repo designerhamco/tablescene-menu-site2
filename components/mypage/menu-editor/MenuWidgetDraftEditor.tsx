@@ -11,6 +11,7 @@ import {
   MAX_MENU_WIDGET_TITLE_LENGTH,
   MENU_WIDGET_ASPECT_RATIOS,
   MENU_WIDGET_OBJECT_FITS,
+  MENU_WIDGET_OBJECT_POSITIONS,
   MENU_WIDGET_PLACEMENTS,
   MENU_WIDGET_TEXT_ALIGNS,
   type MenuWidgetDraft,
@@ -51,6 +52,18 @@ const ASPECT_RATIO_LABELS: Record<string, string> = {
 const OBJECT_FIT_LABELS: Record<string, string> = {
   cover: "채우기",
   contain: "전체 보이기",
+};
+
+const OBJECT_POSITION_LABELS: Record<string, string> = {
+  "top-left": "상단 왼쪽",
+  "top-center": "상단 가운데",
+  "top-right": "상단 오른쪽",
+  "center-left": "가운데 왼쪽",
+  center: "정중앙",
+  "center-right": "가운데 오른쪽",
+  "bottom-left": "하단 왼쪽",
+  "bottom-center": "하단 가운데",
+  "bottom-right": "하단 오른쪽",
 };
 
 const TEXT_ALIGN_LABELS: Record<string, string> = {
@@ -117,6 +130,7 @@ export default function MenuWidgetDraftEditor({
       settings: {
         aspectRatio: type === "image" ? draft.settings.aspectRatio || "2:1" : draft.settings.aspectRatio || "4:3",
         objectFit: draft.settings.objectFit || "cover",
+        objectPosition: draft.settings.objectPosition || "center",
         textAlign: draft.settings.textAlign || "left",
         placement: draft.settings.placement || "bottom",
         altText: type === "text" ? "" : draft.settings.altText,
@@ -259,6 +273,33 @@ export default function MenuWidgetDraftEditor({
                 ))}
               </select>
             </FieldBlock>
+            <div className="md:col-span-2">
+              <FieldBlock label="이미지 기준 위치">
+                <div className="grid grid-cols-3 gap-2" role="group" aria-label="이미지 기준 위치">
+                  {MENU_WIDGET_OBJECT_POSITIONS.map((position) => {
+                    const selected = (draft.settings.objectPosition ?? "center") === position;
+                    return (
+                      <button
+                        key={position}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => patchSettings({ objectPosition: position })}
+                        className={`min-h-11 rounded-lg border px-2 py-2 text-xs font-bold transition ${
+                          selected
+                            ? "border-zinc-950 bg-zinc-950 text-white"
+                            : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
+                        }`}
+                      >
+                        {OBJECT_POSITION_LABELS[position] ?? position}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+                  채우기에서는 잘리는 영역의 기준을, 전체 보이기에서는 남는 여백의 위치를 정합니다.
+                </p>
+              </FieldBlock>
+            </div>
             <div className="md:col-span-2">
               <FieldBlock label="이미지 대체 텍스트">
                 <input

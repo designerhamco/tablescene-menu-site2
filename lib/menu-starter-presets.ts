@@ -31,6 +31,7 @@ import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
 import type {
   MenuWidgetAspectRatio,
   MenuWidgetObjectFit,
+  MenuWidgetObjectPosition,
   MenuWidgetPlacement,
   MenuWidgetTextAlign,
   MenuWidgetType,
@@ -192,6 +193,7 @@ export type StarterWidget = {
   settings?: {
     aspectRatio?: MenuWidgetAspectRatio;
     objectFit?: MenuWidgetObjectFit;
+    objectPosition?: MenuWidgetObjectPosition;
     textAlign?: MenuWidgetTextAlign;
     placement?: MenuWidgetPlacement;
     altText?: string;
@@ -610,6 +612,11 @@ cafeMochaForestStarterPreset.site = {
   menu_cover_description: "깊은 로스팅 향과 초콜릿의 풍미를 담은 커피 바입니다.",
   settings: {
     ...(cafeMochaForestStarterPreset.site.settings ?? {}),
+    typography: {
+      korean_font_key: "pretendard",
+      english_font_key: "lemon",
+      font_size_scale_key: "m",
+    },
     footer_notice_1: "Wi-Fi · MOCHA_GUEST",
     footer_notice_2: "Instagram · @mocha.forest",
     footer_notice_3: "디카페인 원두로 변경 가능합니다.",
@@ -666,6 +673,7 @@ cafeMochaForestStarterPreset.widgets = [
     settings: {
       aspectRatio: "3:1",
       objectFit: "contain",
+      objectPosition: "bottom-right",
       textAlign: "left",
       placement: "bottom",
       altText: "모카 포레스트 캐릭터",
@@ -978,20 +986,41 @@ cafeSundayLineStarterPreset.site = {
     footer_notice_3: "반려동물은 야외 좌석만 이용 가능합니다.",
   },
 };
-cafeSundayLineStarterPreset.featured_item_name = "선데이 크림 라떼";
-cafeSundayLineStarterPreset.featured_item_key = "sunday-cream-latte";
-cafeSundayLineStarterPreset.featured_slides = cafeSundayLineStarterPreset.featured_slides?.map((slide) => ({
-  ...slide,
-  featured_item_key: "sunday-cream-latte",
-  featured_item_name: "선데이 크림 라떼",
-}));
+cafeSundayLineStarterPreset.featured_item_name = "오렌지 바닐라 콜드브루";
+cafeSundayLineStarterPreset.featured_item_key = "orange-vanilla-cold-brew";
+cafeSundayLineStarterPreset.featured_slides = [
+  {
+    id: "sunday-roasters-featured-orange-vanilla-cold-brew",
+    image_url: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-01.png",
+    image_path: null,
+    featured_item_key: "orange-vanilla-cold-brew",
+    featured_item_name: "오렌지 바닐라 콜드브루",
+    sort_order: 0,
+  },
+  {
+    id: "sunday-roasters-featured-salted-maple-latte",
+    image_url: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-02.png",
+    image_path: null,
+    featured_item_key: "salted-maple-latte",
+    featured_item_name: "솔티드 메이플 라떼",
+    sort_order: 1,
+  },
+  {
+    id: "sunday-roasters-featured-sunday-cream-latte",
+    image_url: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-03.png",
+    image_path: null,
+    featured_item_key: "sunday-cream-latte",
+    featured_item_name: "선데이 크림 라떼",
+    sort_order: 2,
+  },
+];
 cafeSundayLineStarterPreset.time_sales = [
   {
     key: "americano-morning-deal",
     name: "아메리카노 모닝딜",
     schedule_type: "once",
     badge_text: "모닝딜",
-    badge_background_color: "#A30000",
+    badge_background_color: "#F76A03",
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -1005,7 +1034,7 @@ cafeSundayLineStarterPreset.time_sales = [
     schedule_type: "once",
     duration_minutes: 60,
     badge_text: "재고 마감",
-    badge_background_color: "#A30000",
+    badge_background_color: "#F76A03",
     time_display_mode: "countdown",
     targets: [
       { target_item_key: "brown-butter-scone", target_item_name: "브라운 버터 스콘", sale_price: 3800 },
@@ -1091,7 +1120,6 @@ cafeSundayLineStarterPreset.pages = [
           item("말차 크림 라떼", 6500, "제주 말차와 담백한 크림의 조화", {
             key: "matcha-cream-latte",
             set_name: "MATCHA CREAM LATTE",
-            badge_label: "NEW",
             price_column_values: [
               { key: "hot", price: 6500 },
               { key: "ice", price: 7000 },
