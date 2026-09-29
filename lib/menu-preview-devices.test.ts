@@ -143,6 +143,7 @@ test("first preview guide uses anchored coachmarks and applies hide-today only t
   assert.match(previewGuideSource, /<BrowserZoomGuide \/>/);
   assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
   assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
+  assert.match(previewGuideSource, /\* ‘새 창에서 보기’로 연 화면에서 확대·축소해 주세요/);
   assert.match(previewGuideSource, /실제 배치는 기기에 따라 달라질 수 있으니/);
   assert.match(previewGuideSource, /사용할 기기에서 최종 확인해 주세요/);
   assert.match(previewGuideSource, /device = "tablet"/);
