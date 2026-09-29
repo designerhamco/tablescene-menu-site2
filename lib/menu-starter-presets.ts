@@ -1196,6 +1196,11 @@ cafeRoundFocusStarterPreset.site = {
   cover_image_url: "",
   settings: {
     ...(cafeRoundFocusStarterPreset.site.settings ?? {}),
+    typography: {
+      korean_font_key: "pretendard",
+      english_font_key: "aboreto",
+      font_size_scale_key: "m",
+    },
     footer_notice_1: "Wi-Fi · ROSY_GUEST",
     footer_notice_2: "Instagram · @rosy.orange",
     footer_notice_3: "디카페인 원두로 변경 가능합니다.",
@@ -1212,12 +1217,12 @@ cafeRoundFocusStarterPreset.widgets = [
     type: "image",
     title: null,
     description: null,
-    image_url: STARTER_PLACEHOLDERS.item,
+    image_url: "/menu-templates/cafe_round_focus_a/rosy-orange-widget.png",
     image_path: null,
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "4:3",
+      aspectRatio: "3:1",
       objectFit: "cover",
       textAlign: "left",
       altText: "ROSY ORANGE 위젯 이미지",
@@ -1229,8 +1234,8 @@ cafeRoundFocusStarterPreset.time_sales = [
     key: "americano-morning-deal",
     name: "아메리카노 모닝딜",
     schedule_type: "once",
-    badge_text: "모닝딜",
-    badge_background_color: "#F74602",
+    badge_text: "MORNING DEAL",
+    badge_background_color: "#F47A32",
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -1242,8 +1247,8 @@ cafeRoundFocusStarterPreset.time_sales = [
     name: "무화과 버터 스콘 재고 마감",
     schedule_type: "once",
     duration_minutes: 60,
-    badge_text: "재고 마감",
-    badge_background_color: "#F74602",
+    badge_text: "LAST BATCH",
+    badge_background_color: "#F47A32",
     time_display_mode: "countdown",
     targets: [
       { target_item_key: "fig-butter-scone", target_item_name: "무화과 버터 스콘", sale_price: 3900 },
@@ -1269,20 +1274,20 @@ cafeRoundFocusStarterPreset.pages = [
         name: "HOUSE SPECIALS",
         section_key: "main_menu",
         items: [
-          item("라운드 크림 커피", 6500, "부드러운 크림과 고소한 에스프레소의 시그니처 커피", {
+          item("라운드 크림 커피", 6500, "고소한 에스프레소 위에 부드러운 크림을 올린 시그니처 커피", {
             key: "round-cream-coffee",
-            set_name: "ROUND CREAM COFFEE",
             badge_label: "SIGNATURE",
+            image_url: "/menu-templates/cafe_round_focus_a/round-cream-coffee.jpg",
           }),
-          item("브라운 슈가 플랫화이트", 6200, "브라운 슈가의 은은한 단맛을 담은 플랫화이트", {
+          item("브라운 슈가 플랫화이트", 6200, "브라운 슈가의 은은한 단맛을 더한 부드러운 플랫화이트", {
             key: "brown-sugar-flat-white",
-            set_name: "BROWN SUGAR FLAT WHITE",
             badge_label: "BEST",
+            image_url: "/menu-templates/cafe_round_focus_a/brown-sugar-flat-white.jpg",
           }),
-          item("오렌지 크림 콜드브루", 6800, "오렌지 향과 부드러운 크림을 더한 콜드브루", {
+          item("오렌지 크림 콜드브루", 6800, "향긋한 오렌지와 크림이 어우러진 산뜻한 콜드브루", {
             key: "orange-cream-coldbrew",
-            set_name: "ORANGE CREAM COLD BREW",
             badge_label: "NEW",
+            image_url: "/menu-templates/cafe_round_focus_a/orange-cream-coldbrew.jpg",
           }),
         ],
       },
@@ -1291,21 +1296,17 @@ cafeRoundFocusStarterPreset.pages = [
         name: "ESPRESSO",
         section_key: "main_menu",
         items: [
-          item("에스프레소", 3500, "진한 향과 깔끔한 단맛", {
+          item("에스프레소", 3500, "", {
             key: "espresso",
-            set_name: "ESPRESSO",
           }),
-          item("아메리카노", 4500, "견과류의 고소함과 균형 잡힌 끝맛", {
+          item("아메리카노", 4500, "", {
             key: "americano",
-            set_name: "AMERICANO",
           }),
-          item("카푸치노", 5500, "풍성한 우유 거품과 진한 에스프레소", {
+          item("카푸치노", 5500, "", {
             key: "cappuccino",
-            set_name: "CAPPUCCINO",
           }),
-          item("롱블랙", 4200, "두 샷의 진한 향과 깔끔한 마무리", {
+          item("롱블랙", 4200, "", {
             key: "long-black",
-            set_name: "LONG BLACK",
           }),
         ],
       },
@@ -1314,22 +1315,18 @@ cafeRoundFocusStarterPreset.pages = [
         name: "MILK & CREAM",
         section_key: "main_menu",
         items: [
-          item("카페 라떼", 5500, "에스프레소와 부드러운 우유의 조화", {
+          item("카페 라떼", 5500, "", {
             key: "cafe-latte",
-            set_name: "CAFE LATTE",
           }),
-          item("바닐라 빈 밀크", 6000, "바닐라 빈과 우유를 담은 달콤한 음료", {
+          item("바닐라 빈 밀크", 6000, "", {
             key: "vanilla-bean-milk",
-            set_name: "VANILLA BEAN MILK",
             badge_label: "NEW",
           }),
-          item("말차 오트 밀크", 6200, "제주 말차와 고소한 오트 밀크의 조화", {
+          item("말차 오트 밀크", 6200, "", {
             key: "matcha-oat-milk",
-            set_name: "MATCHA OAT MILK",
           }),
-          item("솔티드 크림 라떼", 6300, "고소한 우유와 짭조름한 크림을 더한 라떼", {
+          item("솔티드 크림 라떼", 6300, "", {
             key: "salted-cream-latte",
-            set_name: "SALTED CREAM LATTE",
           }),
         ],
       },
@@ -1338,13 +1335,17 @@ cafeRoundFocusStarterPreset.pages = [
         name: "TEA & ADE",
         section_key: "dessert_drink",
         items: [
-          item("시트러스 민트 에이드", 6200, "감귤과 민트 향이 산뜻한 에이드", {
+          item("시트러스 민트 에이드", 6200, "", {
             key: "citrus-mint-ade",
-            set_name: "CITRUS MINT ADE",
           }),
-          item("얼그레이 피치 티", 5800, "얼그레이 향과 복숭아의 은은한 단맛", {
+          item("얼그레이 피치 티", 5800, "", {
             key: "earl-grey-peach-tea",
-            set_name: "EARL GREY PEACH TEA",
+          }),
+          item("히비스커스 베리 티", 5800, "", {
+            key: "hibiscus-berry-tea",
+          }),
+          item("오렌지 토닉 에이드", 6400, "", {
+            key: "orange-tonic-ade",
           }),
         ],
       },
@@ -1353,13 +1354,17 @@ cafeRoundFocusStarterPreset.pages = [
         name: "BAKE",
         section_key: "dessert_drink",
         items: [
-          item("무화과 버터 스콘", 4800, "무화과와 발효 버터를 넣어 구운 스콘", {
+          item("무화과 버터 스콘", 4800, "", {
             key: "fig-butter-scone",
-            set_name: "FIG BUTTER SCONE",
           }),
-          item("레몬 마들렌", 3800, "레몬 향을 담아 촉촉하게 구운 마들렌", {
+          item("레몬 마들렌", 3800, "", {
             key: "lemon-madeleine",
-            set_name: "LEMON MADELEINE",
+          }),
+          item("오렌지 파운드 케이크", 4500, "", {
+            key: "orange-pound-cake",
+          }),
+          item("초콜릿 피낭시에", 4200, "", {
+            key: "chocolate-financier",
           }),
         ],
       },

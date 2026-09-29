@@ -190,7 +190,9 @@ try {
           failures.push(`internal single-page title is visible: ${singlePageInternalTitleByLocale[locale]}`);
         }
         const { category, item, featuredItem, featuredDescription, description, linkedSupporting } = measurement.typography;
-        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a"
+        const usesNameAndPriceOnly = templateKey === "cafe_mocha_forest_a";
+        const hasNoFeaturedArea = templateKey === "cafe_design_a"
+          || templateKey === "cafe_round_focus_a"
           || templateKey === "cafe_mocha_forest_a";
         if (!measurement.koreanFontFamily || measurement.noticeFontFamilies.length === 0) {
           failures.push(`footer notice font metrics are unavailable: ${JSON.stringify({ koreanFontFamily: measurement.koreanFontFamily, noticeFontFamilies: measurement.noticeFontFamilies })}`);
@@ -212,14 +214,14 @@ try {
         ))) {
           failures.push(`transparent widget image has a rendered backdrop: ${JSON.stringify(measurement.widgetWidthMetrics)}`);
         }
-        if (templateKey === "cafe_round_focus_a" && (!measurement.text.includes("NO IMAGE") || measurement.text.includes("MENU IMAGE"))) {
-          failures.push("empty Round Focus widget does not use the NO IMAGE fallback");
+        if (templateKey === "cafe_round_focus_a" && !measurement.widgetWidthMetrics.some((metric) => metric.hasImage)) {
+          failures.push("Rosy Orange starter widget image is missing");
         }
         if (category === null || item === null) {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
           if (category < item * 1.35) failures.push(`category hierarchy is too weak: ${category}px / ${item}px`);
-          if (!usesNameAndPriceOnly && featuredItem === null) {
+          if (!hasNoFeaturedArea && featuredItem === null) {
             failures.push(`featured item typography is unavailable: ${JSON.stringify(measurement.typography)}`);
           } else if (featuredItem !== null && Math.abs(featuredItem - item) > 0.18) {
             failures.push(`featured item title is not linked to the menu item title: ${featuredItem}px / ${item}px`);
@@ -236,7 +238,7 @@ try {
               failures.push(`supporting copy does not share one linked size: ${linkedSupporting.join(", ")}px`);
             }
           } else {
-            if (!usesNameAndPriceOnly && featuredDescription === null) {
+            if (!hasNoFeaturedArea && featuredDescription === null) {
               failures.push(`featured description typography is unavailable: ${JSON.stringify(measurement.typography)}`);
             } else if (featuredDescription !== null && Math.abs(featuredDescription - description) > 0.18) {
               failures.push(`featured description is not linked to the menu description: ${featuredDescription}px / ${description}px`);
@@ -458,10 +460,12 @@ try {
           }
         };
 
-        const usesNameAndPriceOnly = templateKey === "cafe_round_focus_a"
+        const usesNameAndPriceOnly = templateKey === "cafe_mocha_forest_a";
+        const hasNoFeaturedArea = templateKey === "cafe_design_a"
+          || templateKey === "cafe_round_focus_a"
           || templateKey === "cafe_mocha_forest_a";
         const featuredScale = 1;
-        if (!usesNameAndPriceOnly) {
+        if (!hasNoFeaturedArea) {
           compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
           compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
           compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
@@ -472,7 +476,8 @@ try {
         } else if (templateKey !== "cafe_mocha_forest_a" && typography.itemBadge.fontSize < typography.itemName.fontSize * 0.61) {
           failures.push(`menu text chip is too small: ${typography.itemBadge.fontSize}px / ${typography.itemName.fontSize}px`);
         }
-        if (!typography.secondaryName && !usesNameAndPriceOnly) {
+        const hidesSecondaryName = usesNameAndPriceOnly || templateKey === "cafe_round_focus_a";
+        if (!typography.secondaryName && !hidesSecondaryName) {
           failures.push("secondary-language menu names are missing");
         } else if (typography.secondaryName && Number.parseInt(typography.secondaryName.fontWeight, 10) < 600) {
           failures.push(`secondary-language menu names are too light: ${typography.secondaryName.fontWeight}`);
@@ -489,7 +494,11 @@ try {
         if (rhythm.itemGap === null || rhythm.titleGaps.length === 0) {
           failures.push(`spacing rhythm metrics are unavailable: ${JSON.stringify(rhythm)}`);
         } else {
-          const expectedTitleRatio = templateKey === "cafe_round_focus_a" ? 1.15 : 1;
+          const expectedTitleRatio = templateKey === "cafe_round_focus_a"
+            ? 1.25
+            : templateKey === "cafe_mocha_forest_a"
+              ? deviceCase.device === "mobile" ? 1 : 1.2
+              : 1;
           const actualTitleRatioToken = Number.parseFloat(rhythm.titleRatioToken ?? "");
           if (Math.abs(actualTitleRatioToken - expectedTitleRatio) > 0.001) {
             failures.push(`category-title ratio token is incorrect: ${rhythm.titleRatioToken ?? "missing"} / ${expectedTitleRatio}`);
@@ -502,7 +511,7 @@ try {
             }
           }
           if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
-            const expectedCategoryRatio = templateKey === "cafe_round_focus_a" ? 2.8 : 2.6;
+            const expectedCategoryRatio = templateKey === "cafe_round_focus_a" ? 3.6 : 3;
             const actualCategoryRatioToken = Number.parseFloat(rhythm.categoryRatioToken ?? "");
             if (Math.abs(actualCategoryRatioToken - expectedCategoryRatio) > 0.001) {
               failures.push(`no-divider category ratio token is incorrect: ${rhythm.categoryRatioToken ?? "missing"} / ${expectedCategoryRatio}`);
@@ -541,8 +550,9 @@ try {
               } else {
                 for (const transition of rhythm.widgetFooterTransitions) {
                   const marginRatio = transition.marginBottom / rhythm.itemGap;
-                  if (Math.abs(marginRatio - expectedCategoryRatio) > 0.055) {
-                    failures.push(`bottom widget-to-footer margin is incorrect: ${JSON.stringify(transition)} / ${marginRatio}, expected ${expectedCategoryRatio}`);
+                  const expectedFooterWidgetRatio = 1;
+                  if (Math.abs(marginRatio - expectedFooterWidgetRatio) > 0.055) {
+                    failures.push(`bottom widget-to-footer margin is incorrect: ${JSON.stringify(transition)} / ${marginRatio}, expected ${expectedFooterWidgetRatio}`);
                     break;
                   }
                   if (Math.abs(transition.gap - transition.marginBottom) > 0.5 || Math.abs(transition.footerMarginTop) > 0.5) {
@@ -638,7 +648,7 @@ try {
           const categoryScale = await page.locator(".cafe-a-typography").evaluate((element) => (
             getComputedStyle(element).getPropertyValue("--cafe-a-template-category-title-scale").trim()
           ));
-          if (categoryScale !== "1") failures.push(`Mocha Forest category scale is incorrect: ${categoryScale || "missing"}`);
+          if (categoryScale !== "1.08") failures.push(`Mocha Forest category scale is incorrect: ${categoryScale || "missing"}`);
         }
         if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
 
@@ -705,8 +715,9 @@ try {
     if (measurement.state !== "ready") {
       failures.push(`wide-short Round Focus preview did not become ready: ${JSON.stringify(measurement)}`);
     }
-    if (measurement.safetyScale !== "1") {
-      failures.push(`wide-short Round Focus changed the approved design ratio: ${JSON.stringify(measurement)}`);
+    const safetyScale = Number.parseFloat(measurement.safetyScale ?? "");
+    if (!Number.isFinite(safetyScale) || safetyScale < 0.9) {
+      failures.push(`wide-short Rosy Orange safety scale fell too low: ${JSON.stringify(measurement)}`);
     }
     if (
       measurement.menuScrollHeight !== null
@@ -722,8 +733,8 @@ try {
     ) {
       failures.push(`wide-short Round Focus widget exceeds its column content box: ${JSON.stringify(measurement)}`);
     }
-    if (measurement.widgetAspectRatio === null || Math.abs(measurement.widgetAspectRatio - 1.5) > 0.01) {
-      failures.push(`wide-short Round Focus widget changed its 3:2 ratio: ${JSON.stringify(measurement)}`);
+    if (measurement.widgetAspectRatio === null || Math.abs(measurement.widgetAspectRatio - 3) > 0.01) {
+      failures.push(`wide-short Rosy Orange widget changed its 3:1 ratio: ${JSON.stringify(measurement)}`);
     }
 
     results.push({

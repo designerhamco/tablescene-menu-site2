@@ -6434,6 +6434,8 @@ function CenterRailMenuGrid({
   onOpenImage,
   fitRef,
   footerInfo,
+  columns,
+  orderedBalancedBreaks,
 }: {
   pageGroups: MenuPageGroup[];
   density: MenuLayoutDensity;
@@ -6448,14 +6450,25 @@ function CenterRailMenuGrid({
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
   fitRef?: RefObject<HTMLElement | null>;
   footerInfo?: ReactNode;
+  columns: number;
+  orderedBalancedBreaks?: string;
 }) {
   const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
   const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
   const bottomWidgetStackStartKey = getBottomWidgetBlocks(orderedBlocks)[0]?.key ?? null;
-  const centerRailColumns = useMemo(
-    () => getCenterRailContentColumns({ pageGroups, data, capabilities, variant: columnsVariant }),
-    [capabilities, columnsVariant, data, pageGroups],
-  );
+  const centerRailColumns = useMemo(() => {
+    if (columnsVariant === "sourceSequential") {
+      return getOrderedBalancedMenuColumns({
+        pageGroups,
+        columns,
+        data,
+        capabilities,
+        orderedBalancedBreaks: orderedBalancedBreaks ?? "",
+      }).map((column) => column.blocks);
+    }
+
+    return getCenterRailContentColumns({ pageGroups, data, capabilities, variant: columnsVariant });
+  }, [capabilities, columns, columnsVariant, data, orderedBalancedBreaks, pageGroups]);
 
   return (
     <section
@@ -6624,6 +6637,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     const imageModeColumns = visibleFitBlockCount > 1 ? 3 : 1;
     const shouldClampImageModeColumns =
       hasVisibleItemImages &&
+      !isRoundFocus &&
       (layoutMode !== "orderedBalancedFit" || (fitState.orderedBalancedFingerprint && visibleWidgetCount === 0));
     if (shouldClampImageModeColumns) {
       return {
@@ -6645,6 +6659,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     fitState,
     hasVisibleItemImages,
     isDenseOrderedBalanced,
+    isRoundFocus,
     layoutMode,
     orderedBalancedInitialColumns,
     visibleContentBlockCount,
@@ -7804,7 +7819,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         const previousOrderedFitCategoryRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-category-rhythm-scale");
         const previousOrderedFitTextRhythmScale = fitBoardElement.style.getPropertyValue("--ordered-fit-text-rhythm-scale");
         const columnCandidates =
-          layoutMode === "orderedFit"
+          isRoundFocus
+            ? getOrderedBalancedWidgetFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount).filter((columns) => columns <= 4)
+            : layoutMode === "orderedFit"
             ? getOrderedFitColumnCandidates(menuWidth)
             : layoutMode === "orderedBalancedFit" && visibleWidgetCount > 0
               ? isMochaForest && menuWidth >= 760
@@ -8909,6 +8926,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           priceDisplayMode={priceDisplayMode}
           onOpenImage={openMenuImagePreview}
           footerInfo={includeFooter ? footerInfo : undefined}
+          columns={isRoundFocus ? renderFitState.columns : 2}
+          orderedBalancedBreaks={isRoundFocus ? fitState.orderedBalancedBreaks : undefined}
         />
       );
     }

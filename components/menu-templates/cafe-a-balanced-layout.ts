@@ -252,22 +252,23 @@ export function getCafeAOrderedBalancedSequentialColumns<TBlock extends CafeAOrd
   blocks: readonly TBlock[],
   safeColumns: number,
 ) {
-  const columns: CafeAOrderedBalancedColumn<TBlock>[] = Array.from({ length: safeColumns }, () => ({ blocks: [], height: 0 }));
+  const normalizedColumns = Number.isFinite(safeColumns) ? Math.max(1, Math.floor(safeColumns)) : 1;
+  const columns: CafeAOrderedBalancedColumn<TBlock>[] = Array.from({ length: normalizedColumns }, () => ({ blocks: [], height: 0 }));
   const totalHeight = blocks.reduce((total, block) => total + block.height, 0);
-  const targetHeight = safeColumns > 0 ? totalHeight / safeColumns : totalHeight;
+  const targetHeight = totalHeight / normalizedColumns;
   let columnIndex = 0;
 
   blocks.forEach((block, blockIndex) => {
     const currentColumn = columns[columnIndex] ?? columns[columns.length - 1];
     const remainingBlocks = blocks.length - blockIndex;
-    const remainingColumns = safeColumns - columnIndex;
+    const remainingColumns = normalizedColumns - columnIndex;
     const projectedHeight =
       currentColumn.height +
       (currentColumn.blocks.length > 0 ? currentColumn.blocks[currentColumn.blocks.length - 1]?.marginBottom ?? 0 : 0) +
       block.height;
     const shouldAdvance =
       currentColumn.blocks.length > 0 &&
-      columnIndex < safeColumns - 1 &&
+      columnIndex < normalizedColumns - 1 &&
       projectedHeight > targetHeight &&
       remainingBlocks >= remainingColumns;
 

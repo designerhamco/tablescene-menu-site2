@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { getStarterPreset } from "./menu-starter-presets";
+import { TEMPLATE_BADGE_STYLE_PRESETS } from "./template-badge-styles";
+import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_design_a: [3, 4, 3, 3, 5],
   cafe_mocha_forest_a: [3, 5, 4, 3, 3],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
-  cafe_round_focus_a: [3, 4, 4, 2, 2],
+  cafe_round_focus_a: [3, 4, 4, 4, 4],
 } as const;
 
 for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_DENSITY_CONTRACT)) {
@@ -24,17 +26,25 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     const itemKeys = categories.flatMap((category) => category.items.map((item) => item.key));
     assert.equal(itemKeys.every((key) => typeof key === "string" && key.length > 0), true);
     assert.equal(new Set(itemKeys).size, itemKeys.length);
-    if (templateKey === "cafe_mocha_forest_a") {
-      assert.equal(categories.flatMap((category) => category.items).every((item) => !item.set_name?.trim()), true);
-      const mochaItems = categories.flatMap((category) => category.items);
-      assert.equal(mochaItems.every((item) => Boolean(item.description?.trim())), true);
-      const mochaBadges = new Map(
-        mochaItems.filter((item) => item.badge_label?.trim()).map((item) => [item.key, item.badge_label] as const),
-      );
-      assert.deepEqual(mochaBadges, new Map([
-        ["forest-mocha", "SIGNATURE"],
-        ["hazelnut-cream-latte", "BEST"],
-      ]));
+    if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
+      const items = categories.flatMap((category) => category.items);
+      assert.equal(items.every((item) => !item.set_name?.trim()), true);
+      if (templateKey === "cafe_mocha_forest_a") {
+        assert.equal(items.every((item) => Boolean(item.description?.trim())), true);
+        const mochaBadges = new Map(
+          items.filter((item) => item.badge_label?.trim()).map((item) => [item.key, item.badge_label] as const),
+        );
+        assert.deepEqual(mochaBadges, new Map([
+          ["forest-mocha", "SIGNATURE"],
+          ["hazelnut-cream-latte", "BEST"],
+        ]));
+      } else {
+        const houseSpecialDescriptions = new Set(["round-cream-coffee", "brown-sugar-flat-white", "orange-cream-coldbrew"]);
+        assert.equal(
+          items.every((item) => houseSpecialDescriptions.has(item.key ?? "") ? Boolean(item.description.trim()) : !item.description.trim()),
+          true,
+        );
+      }
     } else {
       assert.equal(
         categories.flatMap((category) => category.items).every((item) => Boolean(item.set_name?.trim())),
@@ -75,7 +85,11 @@ test("every active single-page starter includes a sixty-minute stock closeout co
     assert.ok(closeout, `${templateKey}: stock closeout`);
     assert.equal(closeout.duration_minutes, 60, `${templateKey}: stock closeout duration`);
     assert.equal(closeout.time_display_mode, "countdown", `${templateKey}: stock closeout display mode`);
-    assert.match(closeout.badge_text ?? "", /재고 마감/, `${templateKey}: stock closeout badge`);
+    assert.match(
+      closeout.badge_text ?? "",
+      templateKey === "cafe_round_focus_a" ? /LAST BATCH/ : /재고 마감/,
+      `${templateKey}: stock closeout badge`,
+    );
   }
 
 });
@@ -89,11 +103,25 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(roundFocus.site.settings?.footer_notice_2, "Instagram · @rosy.orange");
   const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "house-special");
   assert.equal(roundHouseSpecials?.items.length, 3);
-  assert.equal(roundHouseSpecials?.items.every((item) => !item.image_url), true);
+  assert.equal(roundHouseSpecials?.items.every((item) => Boolean(item.image_url)), true);
   assert.equal(roundFocus.menu_cover_enabled, false);
   assert.equal(roundFocus.featured_slides?.length, 0);
   assert.equal(roundFocus.widgets?.[0]?.type, "image");
-  assert.equal(roundFocus.widgets?.[0]?.image_url, "/placeholders/starter/menu-item.svg");
+  assert.equal(roundFocus.widgets?.[0]?.image_url, "/menu-templates/cafe_round_focus_a/rosy-orange-widget.png");
+  assert.equal(roundFocus.widgets?.[0]?.settings?.aspectRatio, "3:1");
+  assert.deepEqual(roundFocus.time_sales?.map((sale) => sale.badge_text), ["MORNING DEAL", "LAST BATCH"]);
+  assert.equal(roundFocus.time_sales?.every((sale) => sale.badge_background_color === "#F47A32"), true);
+  assert.equal(
+    Object.values(TEMPLATE_BADGE_STYLE_PRESETS.cafe_round_focus_a ?? {}).every(
+      (style) => style?.background_color === "#F47A32" && style.text_color === "#111111",
+    ),
+    true,
+  );
+  const roundTranslations = getSinglePageStarterTranslations("cafe_round_focus_a");
+  for (const locale of ["en", "zh", "ja"] as const) {
+    assert.equal(roundTranslations?.[locale].promotions["americano-morning-deal"]?.badgeText, "MORNING DEAL");
+    assert.equal(roundTranslations?.[locale].promotions["fig-butter-scone-closeout"]?.badgeText, "LAST BATCH");
+  }
   const roundFocusLastBlock = roundFocus.mixed_content_order?.at(-1);
   assert.equal(roundFocusLastBlock?.block_type, "widget");
   assert.equal(roundFocusLastBlock?.block_type === "widget" ? roundFocusLastBlock.widget_key : null, "round-focus-image-widget");

@@ -142,7 +142,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   cafe_round_focus_a: {
     korean_font_key: "pretendard",
-    english_font_key: "alata",
+    english_font_key: "aboreto",
     font_size_scale_key: "m",
   },
   cafe_brew_chapter_a: {

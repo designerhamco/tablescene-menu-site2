@@ -7,6 +7,10 @@ const templateSource = readFileSync(
   "utf8",
 );
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const balancedLayoutSource = readFileSync(
+  new URL("../components/menu-templates/cafe-a-balanced-layout.ts", import.meta.url),
+  "utf8",
+);
 const languageSwitcherSource = readFileSync(
   new URL("../components/menu-templates/shared/MenuLanguageSwitcher.tsx", import.meta.url),
   "utf8",
@@ -45,6 +49,34 @@ test("원페이지 템플릿의 핵심 타이포그래피와 간격은 화면 �
 test("원페이지 내부 페이지명은 디자인 문구로 임의 노출하지 않는다", () => {
   assert.doesNotMatch(templateSource, /showPageTitles/);
   assert.doesNotMatch(templateSource, /pageGroup\.page\.title/);
+});
+
+test("Rosy Orange는 내용 열 수에 따라 중앙 레일을 동적으로 배치한다", () => {
+  assert.match(templateSource, /columns=\{isRoundFocus \? renderFitState\.columns : 2\}/);
+  assert.doesNotMatch(templateSource, /isRoundFocus\s*\? \[2\]/);
+  assert.match(
+    globalStylesSource,
+    /round_focus"\] \.cafe-a-desktop-fit-board\[data-fit-columns="2"\][\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);[\s\S]*\.cafe-a-fixed-rail \{[\s\S]*grid-column: 2;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /round_focus"\] \.cafe-a-desktop-fit-board\[data-fit-columns="3"\][\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);[\s\S]*\.cafe-a-fixed-rail \{[\s\S]*grid-column: 2;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /round_focus"\] \.cafe-a-desktop-fit-board\[data-fit-columns="4"\][\s\S]*grid-template-columns: repeat\(5, minmax\(0, 1fr\)\);[\s\S]*\.cafe-a-fixed-rail \{[\s\S]*grid-column: 3;/,
+  );
+  assert.match(balancedLayoutSource, /Number\.isFinite\(safeColumns\) \? Math\.max\(1, Math\.floor\(safeColumns\)\) : 1/);
+});
+
+test("Rosy Orange는 보조언어를 숨기고 제목 위계를 보장한다", () => {
+  assert.match(globalStylesSource, /round_focus"\] \.cafe-a-menu-meta \{\s*display: none !important;/);
+  assert.doesNotMatch(globalStylesSource, /round_focus[\s\S]{0,220}\.cafe-a-menu-copy[\s\S]{0,220}display:\s*flex/);
+  assert.match(globalStylesSource, /round_focus"\] \.cafe-a-menu-item-image-slot \{\s*border-radius: 0;/);
+  assert.match(
+    globalStylesSource,
+    /round_focus"\] \.cafe-a-balanced-menu-grid \.cafe-a-category-title \{[\s\S]*calc\(var\(--cafe-a-linked-item-name-size\)[\s\S]*1\.5\)/,
+  );
 });
 
 test("모카 포레스트 언어 선택 버튼은 어두운 배경용 베이지 톤을 사용한다", () => {
@@ -128,11 +160,11 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   );
   assert.match(
     globalStylesSource,
-    /data-preview-device="tablet"\]\[data-cafe-a-skin="round_focus"\] \{[\s\S]*--cafe-a-shell-category-title-boost: 1\.1;[\s\S]*--cafe-a-shell-menu-copy-boost: 1\.08;/,
+    /data-preview-device="tablet"\]\[data-cafe-a-skin="round_focus"\] \{[\s\S]*--cafe-a-shell-category-title-boost: 1\.18;[\s\S]*--cafe-a-shell-menu-copy-boost: 1\.08;/,
   );
   assert.match(
     globalStylesSource,
-    /data-cafe-a-skin="round_focus"\] \{[\s\S]*--cafe-a-shell-category-title-boost: 1\.06;[\s\S]*--cafe-a-shell-menu-copy-boost: 1\.04;/,
+    /data-cafe-a-skin="round_focus"\] \{[\s\S]*--cafe-a-shell-category-title-boost: 1\.18;[\s\S]*--cafe-a-shell-menu-copy-boost: 1\.04;/,
   );
   assert.match(globalStylesSource, /--round-focus-brand-boost: 1\.1;/);
   assert.match(
@@ -358,7 +390,10 @@ test("단일 페이지별 미세 조정은 유동 간격과 동일 열 계약을
   assert.match(globalStylesSource, /data-cafe-a-skin="round_focus"[^}]*--board-padding: clamp\(2\.25rem, 5\.2vmin, 3\.5rem\);/);
   assert.match(globalStylesSource, /--round-focus-column-gap: clamp\(1\.75rem, 3\.2vw, 3\.75rem\);/);
   assert.match(globalStylesSource, /--round-focus-column-inset: clamp\(0\.5rem, 0\.7vw, 0\.75rem\);/);
-  assert.match(globalStylesSource, /\.cafe-a-center-rail-menu-grid > \.cafe-a-balanced-column \{[\s\S]*padding: var\(--board-padding\) var\(--round-focus-column-inset\);/);
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-center-rail-menu-grid > \.cafe-a-balanced-column \{[\s\S]*padding: var\(--board-padding\) var\(--round-focus-column-inset\)[\s\S]*calc\(var\(--board-padding\) - clamp\(0\.5rem, 1vmin, 0\.75rem\)\);/,
+  );
   assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-category-separation-ratio: 3;/);
   assert.match(
     globalStylesSource,

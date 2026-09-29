@@ -12,7 +12,7 @@ const BASIC_FEATURE_EXPECTATIONS = {
   cafe_design_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_mocha_forest_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
-  cafe_round_focus_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  cafe_round_focus_a: { widgets: true, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_brew_chapter_a: { widgets: false, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "page", timeSales: 1, soldOut: 1 },
   cafe_noir_a: { widgets: false, images: false, starterImages: false, starterBadges: true, priceOptions: false, cover: "none", timeSales: 0, soldOut: 0 },
 } as const satisfies Record<string, {
@@ -60,7 +60,7 @@ test("launch template typography defaults and Display-only size control stay exp
       cafe_design_a: "oswald",
       cafe_mocha_forest_a: "chelsea-market",
       cafe_sunday_line_a: "federo",
-      cafe_round_focus_a: "alata",
+      cafe_round_focus_a: "aboreto",
       cafe_brew_chapter_a: "alata",
       cafe_noir_a: "cutive-mono",
     }[templateKey];
