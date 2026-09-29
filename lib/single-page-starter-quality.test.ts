@@ -102,6 +102,9 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(mochaForest.featured_slides?.length, 1);
   assert.equal(mochaForest.featured_slides?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/featured.png");
   assert.equal(mochaForest.featured_slides?.[0]?.featured_item_key, undefined);
+  assert.equal(mochaForest.menu_cover_visible_pc, true);
+  assert.equal(mochaForest.menu_cover_visible_tablet, true);
+  assert.equal(mochaForest.menu_cover_visible_mobile, false);
   const mochaSignatureItems = mochaForest.pages[0]?.categories.find((category) => category.key === "signature-coffee")?.items ?? [];
   assert.equal(mochaSignatureItems.every((item) => !item.image_url), true);
   assert.equal(mochaSignatureItems.every((item) => Boolean(item.description?.trim())), true);

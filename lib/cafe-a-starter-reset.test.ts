@@ -103,6 +103,9 @@ test("Mocha Forest starter preserves a cover image without requiring a featured 
   assert.equal(result.snapshot.featuredSlides.length, 1);
   assert.equal(result.snapshot.featuredSlides[0]?.featuredItemId, null);
   assert.equal(result.snapshot.coverSettings.coverImageUrl, "/menu-templates/cafe_mocha_forest_a/featured.png");
+  assert.equal(result.snapshot.coverSettings.menuCoverVisiblePc, true);
+  assert.equal(result.snapshot.coverSettings.menuCoverVisibleTablet, true);
+  assert.equal(result.snapshot.coverSettings.menuCoverVisibleMobile, false);
 });
 
 test("buildCafeAStarterResetSnapshot falls back for starters without widgets or mixed order", () => {

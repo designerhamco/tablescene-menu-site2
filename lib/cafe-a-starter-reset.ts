@@ -419,9 +419,9 @@ export function buildCafeAStarterResetSnapshot({
     featuredSlides,
     coverSettings: {
       menuCoverEnabled: preset.menu_cover_enabled !== false,
-      menuCoverVisiblePc: true,
-      menuCoverVisibleTablet: true,
-      menuCoverVisibleMobile: true,
+      menuCoverVisiblePc: preset.menu_cover_visible_pc !== false,
+      menuCoverVisibleTablet: preset.menu_cover_visible_tablet !== false,
+      menuCoverVisibleMobile: preset.menu_cover_visible_mobile !== false,
       menuCoverTitle: preset.site.menu_cover_title,
       menuCoverDescription: preset.site.menu_cover_description,
       coverImageUrl,

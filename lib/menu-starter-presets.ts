@@ -227,6 +227,9 @@ export type StarterPreset = {
   site: StarterSiteDefaults;
   template_key?: string;
   menu_cover_enabled?: boolean;
+  menu_cover_visible_pc?: boolean;
+  menu_cover_visible_tablet?: boolean;
+  menu_cover_visible_mobile?: boolean;
   featured_item_name?: string;
   featured_item_key?: string;
   featured_slides?: StarterFeaturedSlide[];
@@ -614,6 +617,9 @@ cafeMochaForestStarterPreset.site = {
 };
 cafeMochaForestStarterPreset.featured_item_name = undefined;
 cafeMochaForestStarterPreset.featured_item_key = undefined;
+cafeMochaForestStarterPreset.menu_cover_visible_pc = true;
+cafeMochaForestStarterPreset.menu_cover_visible_tablet = true;
+cafeMochaForestStarterPreset.menu_cover_visible_mobile = false;
 cafeMochaForestStarterPreset.featured_slides = [
   {
     id: "mocha-forest-cover-image",
@@ -2611,12 +2617,16 @@ async function applyStarterSiteDefaults(
 ) {
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
-  const resolvedStarterPageSettings = isAubeTableTemplate(preset.template_key)
-    ? { ...starterPageSettings, multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(preset.template_key) }
-    : {
-        ...starterPageSettings,
-        menu_cover_enabled: preset.menu_cover_enabled ?? starterPageSettings.menu_cover_enabled,
-      };
+  const resolvedStarterPageSettings = {
+    ...starterPageSettings,
+    menu_cover_enabled: preset.menu_cover_enabled ?? starterPageSettings.menu_cover_enabled,
+    menu_cover_visible_pc: preset.menu_cover_visible_pc ?? starterPageSettings.menu_cover_visible_pc,
+    menu_cover_visible_tablet: preset.menu_cover_visible_tablet ?? starterPageSettings.menu_cover_visible_tablet,
+    menu_cover_visible_mobile: preset.menu_cover_visible_mobile ?? starterPageSettings.menu_cover_visible_mobile,
+    ...(isAubeTableTemplate(preset.template_key)
+      ? { multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(preset.template_key) }
+      : {}),
+  };
   const presetSettings = getJsonRecord((preset.site.settings ?? null) as Json | null);
   const siteSelect =
     "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings, settings";

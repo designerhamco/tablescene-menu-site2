@@ -237,6 +237,9 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const pageSettings = {
     ...getDefaultPageSettings(),
     menu_cover_enabled: preset.menu_cover_enabled ?? getDefaultPageSettings().menu_cover_enabled,
+    menu_cover_visible_pc: preset.menu_cover_visible_pc ?? getDefaultPageSettings().menu_cover_visible_pc,
+    menu_cover_visible_tablet: preset.menu_cover_visible_tablet ?? getDefaultPageSettings().menu_cover_visible_tablet,
+    menu_cover_visible_mobile: preset.menu_cover_visible_mobile ?? getDefaultPageSettings().menu_cover_visible_mobile,
     multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(templateKey),
     multi_page_cover_background_opacity: 75,
     featured_item_enabled: Boolean(firstCompleteFeaturedSlide?.featured_item_id ?? featuredItem?.id),
