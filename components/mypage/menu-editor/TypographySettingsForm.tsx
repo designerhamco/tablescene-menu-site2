@@ -266,14 +266,14 @@ export default function TypographySettingsForm({
   const isRoundFocusTemplate = templateKey === "cafe_round_focus_a";
   const isMochaForestTemplate = templateKey === "cafe_mocha_forest_a";
   const cafeAMiniPreviewBrandText = isRoundFocusTemplate
-    ? "라운드 로스터스 ROUND 2026"
+    ? "로지 오렌지 ROSY ORANGE"
     : isSundayLineTemplate
       ? "선데이 로스터스 SUNDAY 2026"
       : isMochaForestTemplate
         ? "모카 포레스트 MOCHA 2026"
         : "리얼 맛차 REAL MATCHA 2026";
   const cafeAMiniPreviewDescriptionText = isRoundFocusTemplate
-    ? "둥근 향과 Comfortable 커피를 준비하는 로스터리입니다."
+    ? "시트러스와 Deep 스피릿이 어우러지는 칵테일 바입니다."
     : isSundayLineTemplate
     ? "좋은 원두와 Simple 디저트를 준비하는 로스터리입니다."
     : isMochaForestTemplate

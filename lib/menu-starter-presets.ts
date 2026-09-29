@@ -1188,11 +1188,13 @@ cafeSundayLineStarterPreset.pages = [
 cafeRoundFocusStarterPreset.site = {
   ...cafeRoundFocusStarterPreset.site,
   restaurant_name: "ROSY ORANGE",
+  restaurant_category: "바/주점",
+  restaurant_type: "pub_bar",
   intro_title: "ROSY ORANGE",
   menu_cover_title: "ROSY ORANGE",
-  brand_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
-  intro_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
-  menu_cover_description: "둥근 향과 편안한 맛을 담아 매일의 커피를 만듭니다.",
+  brand_description: "선명한 시트러스와 깊은 스피릿이 어우러지는 감각적인 칵테일 바입니다.",
+  intro_description: "선명한 시트러스와 깊은 스피릿이 어우러지는 감각적인 칵테일 바입니다.",
+  menu_cover_description: "선명한 시트러스와 깊은 스피릿이 어우러지는 감각적인 칵테일 바입니다.",
   cover_image_url: "",
   settings: {
     ...(cafeRoundFocusStarterPreset.site.settings ?? {}),
@@ -1203,7 +1205,7 @@ cafeRoundFocusStarterPreset.site = {
     },
     footer_notice_1: "Wi-Fi · ROSY_GUEST",
     footer_notice_2: "Instagram · @rosy.orange",
-    footer_notice_3: "디카페인 원두로 변경 가능합니다.",
+    footer_notice_3: "논알코올 칵테일로 변경 가능합니다.",
   },
 };
 cafeRoundFocusStarterPreset.menu_cover_enabled = false;
@@ -1225,42 +1227,42 @@ cafeRoundFocusStarterPreset.widgets = [
       aspectRatio: "3:1",
       objectFit: "cover",
       textAlign: "left",
-      altText: "ROSY ORANGE 위젯 이미지",
+      altText: "ROSY ORANGE 칵테일 이미지",
     },
   },
 ];
 cafeRoundFocusStarterPreset.time_sales = [
   {
-    key: "americano-morning-deal",
-    name: "아메리카노 모닝딜",
+    key: "classic-highball-happy-hour",
+    name: "클래식 하이볼 해피아워",
     schedule_type: "once",
-    badge_text: "MORNING DEAL",
+    badge_text: "HAPPY HOUR",
     badge_background_color: "#F47A32",
     time_display_mode: "message",
-    time_display_text: "매일 오전 8시부터 10시까지",
+    time_display_text: "매일 오후 6시부터 8시까지",
     targets: [
-      { target_item_key: "americano", target_item_name: "아메리카노", sale_price: 3900 },
+      { target_item_key: "classic-highball", target_item_name: "클래식 하이볼", sale_price: 7000 },
     ],
   },
   {
-    key: "fig-butter-scone-closeout",
-    name: "무화과 버터 스콘 재고 마감",
+    key: "truffle-fries-last-call",
+    name: "트러플 감자튀김 라스트 콜",
     schedule_type: "once",
     duration_minutes: 60,
-    badge_text: "LAST BATCH",
+    badge_text: "LAST CALL",
     badge_background_color: "#F47A32",
     time_display_mode: "countdown",
     targets: [
-      { target_item_key: "fig-butter-scone", target_item_name: "무화과 버터 스콘", sale_price: 3900 },
+      { target_item_key: "truffle-fries", target_item_name: "트러플 감자튀김", sale_price: 7000 },
     ],
   },
 ];
 cafeRoundFocusStarterPreset.mixed_content_order = [
-  { block_type: "category", page_key: "main-menu", category_key: "house-special", sort_order: 0, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "espresso", sort_order: 1, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "milk-cream", sort_order: 2, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 3, visible: true },
-  { block_type: "category", page_key: "main-menu", category_key: "bake", sort_order: 4, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "signature-cocktails", sort_order: 0, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "highball", sort_order: 1, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "wine-beer", sort_order: 2, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "zero-proof", sort_order: 3, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bar-bites", sort_order: 4, visible: true },
   { block_type: "widget", page_key: "main-menu", widget_key: "round-focus-image-widget", sort_order: 5, visible: true },
 ];
 cafeRoundFocusStarterPreset.pages = [
@@ -1270,100 +1272,100 @@ cafeRoundFocusStarterPreset.pages = [
     legacy_section_key: "main_menu",
     categories: [
       {
-        key: "house-special",
-        name: "HOUSE SPECIALS",
+        key: "signature-cocktails",
+        name: "SIGNATURE COCKTAILS",
         section_key: "main_menu",
         items: [
-          item("라운드 크림 커피", 6500, "고소한 에스프레소 위에 부드러운 크림을 올린 시그니처 커피", {
-            key: "round-cream-coffee",
+          item("로지 오렌지", 14000, "오렌지 비터와 허브, 스파클링 와인이 어우러진 시그니처 칵테일", {
+            key: "rosy-orange",
             badge_label: "SIGNATURE",
-            image_url: "/menu-templates/cafe_round_focus_a/round-cream-coffee.jpg",
+            image_url: "/menu-templates/cafe_round_focus_a/rosy-orange-cocktail.jpg",
           }),
-          item("브라운 슈가 플랫화이트", 6200, "브라운 슈가의 은은한 단맛을 더한 부드러운 플랫화이트", {
-            key: "brown-sugar-flat-white",
+          item("브라운 슈가 러시안", 15000, "보드카와 커피 리큐어에 브라운 슈가 크림을 더한 부드러운 칵테일", {
+            key: "brown-sugar-russian",
             badge_label: "BEST",
-            image_url: "/menu-templates/cafe_round_focus_a/brown-sugar-flat-white.jpg",
+            image_url: "/menu-templates/cafe_round_focus_a/brown-sugar-russian.jpg",
           }),
-          item("오렌지 크림 콜드브루", 6800, "향긋한 오렌지와 크림이 어우러진 산뜻한 콜드브루", {
-            key: "orange-cream-coldbrew",
+          item("바질 진 토닉", 13500, "진과 토닉에 바질과 라임 향을 더한 산뜻한 시그니처", {
+            key: "basil-gin-tonic",
             badge_label: "NEW",
-            image_url: "/menu-templates/cafe_round_focus_a/orange-cream-coldbrew.jpg",
+            image_url: "/menu-templates/cafe_round_focus_a/basil-gin-tonic.jpg",
           }),
         ],
       },
       {
-        key: "espresso",
-        name: "ESPRESSO",
+        key: "highball",
+        name: "HIGHBALL",
         section_key: "main_menu",
         items: [
-          item("에스프레소", 3500, "", {
-            key: "espresso",
+          item("클래식 하이볼", 9000, "위스키와 탄산을 깔끔하게 즐기는 정통 하이볼", {
+            key: "classic-highball",
           }),
-          item("아메리카노", 4500, "", {
-            key: "americano",
+          item("유자 진저 하이볼", 10500, "유자의 산뜻함과 진저의 알싸함을 더한 하이볼", {
+            key: "yuja-ginger-highball",
           }),
-          item("카푸치노", 5500, "", {
-            key: "cappuccino",
+          item("얼그레이 하이볼", 11000, "얼그레이 향과 위스키가 은은하게 이어지는 하이볼", {
+            key: "earl-grey-highball",
           }),
-          item("롱블랙", 4200, "", {
-            key: "long-black",
+          item("피치 우롱 하이볼", 10500, "복숭아의 달콤함과 우롱차의 깊은 향을 담은 하이볼", {
+            key: "peach-oolong-highball",
           }),
         ],
       },
       {
-        key: "milk-cream",
-        name: "MILK & CREAM",
+        key: "wine-beer",
+        name: "WINE & BEER",
         section_key: "main_menu",
         items: [
-          item("카페 라떼", 5500, "", {
-            key: "cafe-latte",
+          item("하우스 레드 와인", 9000, "잘 익은 붉은 과실 향과 부드러운 탄닌의 글라스 와인", {
+            key: "house-red-wine",
           }),
-          item("바닐라 빈 밀크", 6000, "", {
-            key: "vanilla-bean-milk",
+          item("하우스 화이트 와인", 9000, "산뜻한 산미와 가벼운 꽃향이 어우러진 글라스 와인", {
+            key: "house-white-wine",
           }),
-          item("말차 오트 밀크", 6200, "", {
-            key: "matcha-oat-milk",
+          item("스파클링 와인", 11000, "섬세한 기포와 드라이한 마무리가 돋보이는 스파클링", {
+            key: "sparkling-wine",
           }),
-          item("솔티드 크림 라떼", 6300, "", {
-            key: "salted-cream-latte",
+          item("크래프트 라거", 8500, "고소한 몰트와 산뜻한 홉 향의 청량한 라거", {
+            key: "craft-lager",
           }),
         ],
       },
       {
-        key: "tea-ade",
-        name: "TEA & ADE",
+        key: "zero-proof",
+        name: "ZERO PROOF",
         section_key: "dessert_drink",
         items: [
-          item("시트러스 민트 에이드", 6200, "", {
-            key: "citrus-mint-ade",
+          item("로지 시트러스 소다", 7500, "오렌지와 자몽을 탄산으로 가볍게 즐기는 시트러스 소다", {
+            key: "rosy-citrus-soda",
           }),
-          item("얼그레이 피치 티", 5800, "", {
+          item("진저 라임 토닉", 7000, "생강의 알싸함과 라임의 산미가 또렷한 토닉", {
+            key: "ginger-lime-tonic",
+          }),
+          item("얼그레이 피치 티", 6500, "베르가못 향과 복숭아의 달콤함이 어우러진 아이스 티", {
             key: "earl-grey-peach-tea",
           }),
-          item("히비스커스 베리 티", 5800, "", {
-            key: "hibiscus-berry-tea",
-          }),
-          item("오렌지 토닉 에이드", 6400, "", {
-            key: "orange-tonic-ade",
+          item("무알코올 모히토", 8000, "민트와 라임을 시원하게 살린 제로 프루프 모히토", {
+            key: "virgin-mojito",
           }),
         ],
       },
       {
-        key: "bake",
-        name: "BAKE",
+        key: "bar-bites",
+        name: "BAR BITES",
         section_key: "dessert_drink",
         items: [
-          item("무화과 버터 스콘", 4800, "", {
-            key: "fig-butter-scone",
+          item("트러플 감자튀김", 9000, "바삭한 감자튀김에 트러플 향과 파르메산을 더한 안주", {
+            key: "truffle-fries",
           }),
-          item("레몬 마들렌", 3800, "", {
-            key: "lemon-madeleine",
+          item("하몽 & 올리브", 12000, "짭조름한 하몽과 허브에 절인 올리브 플레이트", {
+            key: "jamon-olives",
           }),
-          item("오렌지 파운드 케이크", 4500, "", {
-            key: "orange-pound-cake",
+          item("스파이시 치킨 윙", 14000, "매콤달콤한 글레이즈를 입혀 구운 치킨 윙", {
+            key: "spicy-chicken-wings",
           }),
-          item("초콜릿 피낭시에", 4200, "", {
-            key: "chocolate-financier",
+          item("치즈 플래터", 18000, "세 가지 치즈와 크래커, 제철 과일을 곁들인 플래터", {
+            key: "cheese-platter",
           }),
         ],
       },

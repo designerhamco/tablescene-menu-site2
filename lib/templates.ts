@@ -16,7 +16,6 @@ export const TEMPLATE_CATEGORIES = [
       { key: "cafe_design_a", label: "REAL MATCHA", design: "design_a" },
       { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
       { key: "cafe_sunday_line_a", label: "선데이 로스터스", design: "design_a" },
-      { key: "cafe_round_focus_a", label: "ROSY ORANGE", design: "design_a" },
       { key: "cafe_brew_chapter_a", label: "브루 챕터", design: "design_a" },
       { key: "cafe_noir_a", label: "누아 메뉴", design: "design_a" },
       { key: "cafe_design_b", label: "Cafe Design B", design: "design_b" },
@@ -87,7 +86,9 @@ export const TEMPLATE_CATEGORIES = [
   {
     key: "pub_bar",
     label: "주점/바",
-    templates: [],
+    templates: [
+      { key: "cafe_round_focus_a", label: "ROSY ORANGE", design: "design_a" },
+    ],
   },
   {
     key: "hair_salon",
@@ -234,7 +235,7 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
   cafe_design_a: "선명한 그린 포인트와 맛차 시그니처 메뉴를 중심으로 구성한 카페 메뉴판입니다.",
   cafe_mocha_forest_a: "갈색·아이보리·초록 패널로 구성한 고급스러운 카페/베이커리 메뉴판입니다.",
   cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 로스터리 카페 메뉴판입니다.",
-  cafe_round_focus_a: "브랜드 영역을 중앙 축에 두고 메뉴를 좌우로 나누는 카페 메뉴판입니다.",
+  cafe_round_focus_a: "오렌지 그라데이션 브랜드 영역을 중앙 축에 두고 칵테일과 하이볼, 바 푸드를 좌우로 나누는 바·주점 메뉴판입니다.",
   cafe_brew_chapter_a: "메뉴 페이지를 장처럼 넘기며 보는 멀티 페이지 카페 메뉴판입니다.",
   dining_aube_table_a: "커버와 여러 메뉴 페이지로 코스의 흐름을 섬세하게 보여주는 파인다이닝 메뉴판입니다.",
   dining_aube_table_b: "버건디 사이드 메뉴와 아이보리 지면으로 구성한 모던 프렌치 멀티페이지 메뉴판입니다.",

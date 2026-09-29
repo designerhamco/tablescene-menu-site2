@@ -39,11 +39,7 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
           ["hazelnut-cream-latte", "BEST"],
         ]));
       } else {
-        const houseSpecialDescriptions = new Set(["round-cream-coffee", "brown-sugar-flat-white", "orange-cream-coldbrew"]);
-        assert.equal(
-          items.every((item) => houseSpecialDescriptions.has(item.key ?? "") ? Boolean(item.description.trim()) : !item.description.trim()),
-          true,
-        );
+        assert.equal(items.every((item) => Boolean(item.description.trim())), true);
       }
     } else {
       assert.equal(
@@ -76,7 +72,7 @@ test("every active single-page starter includes a sixty-minute stock closeout co
     ["cafe_design_a", "classic-butter-scone-closeout"],
     ["cafe_mocha_forest_a", "dark-chocolate-brownie-closeout"],
     ["cafe_sunday_line_a", "brown-butter-scone-closeout"],
-    ["cafe_round_focus_a", "fig-butter-scone-closeout"],
+    ["cafe_round_focus_a", "truffle-fries-last-call"],
   ]);
 
   for (const [templateKey, expectedSaleKey] of expectedCloseoutKeys) {
@@ -87,7 +83,7 @@ test("every active single-page starter includes a sixty-minute stock closeout co
     assert.equal(closeout.time_display_mode, "countdown", `${templateKey}: stock closeout display mode`);
     assert.match(
       closeout.badge_text ?? "",
-      templateKey === "cafe_round_focus_a" ? /LAST BATCH/ : /재고 마감/,
+      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : /재고 마감/,
       `${templateKey}: stock closeout badge`,
     );
   }
@@ -97,23 +93,26 @@ test("every active single-page starter includes a sixty-minute stock closeout co
 test("starter-specific image and promotion presentation stays intentional", () => {
   const roundFocus = getStarterPreset("cafe_round_focus_a");
   assert.equal(roundFocus.site.restaurant_name, "ROSY ORANGE");
+  assert.equal(roundFocus.site.restaurant_category, "바/주점");
+  assert.equal(roundFocus.site.restaurant_type, "pub_bar");
   assert.equal(roundFocus.site.intro_title, "ROSY ORANGE");
   assert.equal(roundFocus.site.menu_cover_title, "ROSY ORANGE");
   assert.equal(roundFocus.site.settings?.footer_notice_1, "Wi-Fi · ROSY_GUEST");
   assert.equal(roundFocus.site.settings?.footer_notice_2, "Instagram · @rosy.orange");
-  const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "house-special");
+  assert.equal(roundFocus.site.settings?.footer_notice_3, "논알코올 칵테일로 변경 가능합니다.");
+  const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "signature-cocktails");
   assert.equal(roundHouseSpecials?.items.length, 3);
   assert.equal(roundHouseSpecials?.items.every((item) => Boolean(item.image_url)), true);
-  const roundVanillaBeanMilk = roundFocus.pages[0]?.categories
+  const roundHouseWhiteWine = roundFocus.pages[0]?.categories
     .flatMap((category) => category.items)
-    .find((item) => item.key === "vanilla-bean-milk");
-  assert.equal(roundVanillaBeanMilk?.badge_label, undefined);
+    .find((item) => item.key === "house-white-wine");
+  assert.equal(roundHouseWhiteWine?.badge_label, undefined);
   assert.equal(roundFocus.menu_cover_enabled, false);
   assert.equal(roundFocus.featured_slides?.length, 0);
   assert.equal(roundFocus.widgets?.[0]?.type, "image");
   assert.equal(roundFocus.widgets?.[0]?.image_url, "/menu-templates/cafe_round_focus_a/rosy-orange-widget.png");
   assert.equal(roundFocus.widgets?.[0]?.settings?.aspectRatio, "3:1");
-  assert.deepEqual(roundFocus.time_sales?.map((sale) => sale.badge_text), ["MORNING DEAL", "LAST BATCH"]);
+  assert.deepEqual(roundFocus.time_sales?.map((sale) => sale.badge_text), ["HAPPY HOUR", "LAST CALL"]);
   assert.equal(roundFocus.time_sales?.every((sale) => sale.badge_background_color === "#F47A32"), true);
   assert.equal(
     Object.values(TEMPLATE_BADGE_STYLE_PRESETS.cafe_round_focus_a ?? {}).every(
@@ -123,8 +122,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
   );
   const roundTranslations = getSinglePageStarterTranslations("cafe_round_focus_a");
   for (const locale of ["en", "zh", "ja"] as const) {
-    assert.equal(roundTranslations?.[locale].promotions["americano-morning-deal"]?.badgeText, "MORNING DEAL");
-    assert.equal(roundTranslations?.[locale].promotions["fig-butter-scone-closeout"]?.badgeText, "LAST BATCH");
+    assert.equal(roundTranslations?.[locale].promotions["classic-highball-happy-hour"]?.badgeText, "HAPPY HOUR");
+    assert.equal(roundTranslations?.[locale].promotions["truffle-fries-last-call"]?.badgeText, "LAST CALL");
   }
   const roundFocusLastBlock = roundFocus.mixed_content_order?.at(-1);
   assert.equal(roundFocusLastBlock?.block_type, "widget");

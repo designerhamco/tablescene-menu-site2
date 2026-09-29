@@ -41,6 +41,10 @@ test("every Basic launch template is service-compatible without changing catalog
     templateCatalog.find((template) => template.key === "cafe_round_focus_a")?.label,
     "ROSY ORANGE",
   );
+  assert.equal(
+    templateCatalog.find((template) => template.key === "cafe_round_focus_a")?.template_category,
+    "pub_bar",
+  );
 });
 
 test("every Basic launch template exposes the approved editing and localization flow", () => {
