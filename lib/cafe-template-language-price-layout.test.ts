@@ -161,6 +161,19 @@ test("모카 포레스트는 PC 전체 글자를 소폭 키우고 태블릿 상�
   );
 });
 
+test("태블릿 상품명 칩이 실제로 다음 줄로 밀릴 때만 긴 단일 가격 옵션을 세로로 배치한다", () => {
+  assert.match(templateSource, /function useAdaptiveTabletPriceOptionLayout\(/);
+  assert.match(templateSource, /previewDevice === "tablet"/);
+  assert.match(templateSource, /querySelectorAll<HTMLElement>\("\.cafe-a-menu-badge"\)/);
+  assert.match(templateSource, /badgeRect\.top >= titleRect\.bottom \+ 0\.5/);
+  assert.match(templateSource, /!usesPriceColumns && priceTokens\.length === 1 && Boolean\(priceTokens\[0\]\?\.label\.trim\(\)\)/);
+  assert.match(templateSource, /data-cafe-a-tablet-price-layout=\{stackPriceOption \? "stacked" : undefined\}/);
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-tablet-price-layout="stacked"\] \.cafe-a-price-pair \{[\s\S]*align-items: flex-end;[\s\S]*flex-direction: column;/,
+  );
+});
+
 test("대표 영역은 모든 기기에서 대응 메뉴 역할과 같은 크기를 따른다", () => {
   assert.match(globalStylesSource, /--cafe-a-linked-item-name-size:/);
   assert.match(globalStylesSource, /\.cafe-a-typography:not\(\.brew-chapter-template\) \{[\s\S]*--cafe-a-featured-role-scale: 1;/);

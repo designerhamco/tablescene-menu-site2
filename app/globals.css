@@ -848,6 +848,18 @@ video {
   max-width: 100%;
 }
 
+/* On tablets, reclaim title-row space only after the title badge has actually wrapped. */
+.cafe-a-typography [data-cafe-a-tablet-price-layout="stacked"] .cafe-a-price-token {
+  align-items: flex-end;
+}
+
+.cafe-a-typography [data-cafe-a-tablet-price-layout="stacked"] .cafe-a-price-pair {
+  align-items: flex-end;
+  column-gap: 0;
+  flex-direction: column;
+  row-gap: 0.18rem;
+}
+
 @media (max-width: 767px) {
   .cafe-a-typography .cafe-a-price-pair-with-note {
     column-gap: 0.375rem;

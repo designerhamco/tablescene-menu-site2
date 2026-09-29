@@ -3583,6 +3583,85 @@ function HeroOverlayBadge({
   );
 }
 
+function isCafeATabletPricePresentation(previewDevice: MenuPreviewDevice | undefined) {
+  if (previewDevice) return previewDevice === "tablet";
+  return getMenuDeviceForViewportWidth(window.innerWidth) === "tablet";
+}
+
+function useAdaptiveTabletPriceOptionLayout({
+  hasSingleLabeledPriceOption,
+  previewDevice,
+}: {
+  hasSingleLabeledPriceOption: boolean;
+  previewDevice: MenuPreviewDevice | undefined;
+}) {
+  const itemRef = useRef<HTMLElement | null>(null);
+  const [stackPriceOption, setStackPriceOption] = useState(false);
+
+  useLayoutEffect(() => {
+    const itemElement = itemRef.current;
+    if (!itemElement) return;
+
+    let frameId = 0;
+    let disposed = false;
+
+    const measure = () => {
+      if (disposed) return;
+
+      if (!hasSingleLabeledPriceOption || !isCafeATabletPricePresentation(previewDevice)) {
+        setStackPriceOption((current) => (current ? false : current));
+        return;
+      }
+
+      const previousLayout = itemElement.getAttribute("data-cafe-a-tablet-price-layout");
+      itemElement.removeAttribute("data-cafe-a-tablet-price-layout");
+
+      const titleElement = itemElement.querySelector<HTMLElement>("[data-cafe-a-menu-name]");
+      const titleRowElement = itemElement.querySelector<HTMLElement>(".cafe-a-menu-title-row");
+      const badgeElements = titleRowElement
+        ? Array.from(titleRowElement.querySelectorAll<HTMLElement>(".cafe-a-menu-badge"))
+        : [];
+      const titleRect = titleElement?.getBoundingClientRect();
+      const badgeWrapsBelowTitle = Boolean(
+        titleRect &&
+          titleRect.width > 0 &&
+          titleRect.height > 0 &&
+          badgeElements.some((badgeElement) => {
+            const badgeRect = badgeElement.getBoundingClientRect();
+            return badgeRect.width > 0 && badgeRect.height > 0 && badgeRect.top >= titleRect.bottom + 0.5;
+          }),
+      );
+
+      if (previousLayout) {
+        itemElement.setAttribute("data-cafe-a-tablet-price-layout", previousLayout);
+      }
+
+      setStackPriceOption((current) => (current === badgeWrapsBelowTitle ? current : badgeWrapsBelowTitle));
+    };
+
+    const scheduleMeasure = () => {
+      if (disposed) return;
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(measure);
+    };
+
+    scheduleMeasure();
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleMeasure);
+    resizeObserver?.observe(itemElement);
+    window.addEventListener("resize", scheduleMeasure);
+    void document.fonts.ready.then(scheduleMeasure);
+
+    return () => {
+      disposed = true;
+      window.cancelAnimationFrame(frameId);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", scheduleMeasure);
+    };
+  }, [hasSingleLabeledPriceOption, previewDevice]);
+
+  return { itemRef, stackPriceOption };
+}
+
 function MenuItemRow({
   item,
   category,
@@ -3596,6 +3675,7 @@ function MenuItemRow({
   locale,
   priceDisplayMode,
   priceRailColumns,
+  previewDevice,
   onOpenImage,
 }: {
   item: MenuItem;
@@ -3610,6 +3690,7 @@ function MenuItemRow({
   locale: PublicMenuTemplateProps["locale"];
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
   priceRailColumns?: CafeDesignAPriceRailColumn[];
+  previewDevice?: MenuPreviewDevice;
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
@@ -3710,6 +3791,12 @@ function MenuItemRow({
   const priceMutedColorClassName = isSoldOut ? "cafe-a-sold-out-muted" : "text-[#191c1b]/45";
   const showSoldOutBadge = isSoldOut;
   const showRegularBadge = !isSoldOut && !showMenuTimeSale;
+  const hasSingleLabeledPriceOption =
+    !usesPriceColumns && priceTokens.length === 1 && Boolean(priceTokens[0]?.label.trim());
+  const { itemRef, stackPriceOption } = useAdaptiveTabletPriceOptionLayout({
+    hasSingleLabeledPriceOption,
+    previewDevice,
+  });
 
   const menuCopyElement = (
     <div className="cafe-a-menu-copy min-w-0">
@@ -3833,10 +3920,12 @@ function MenuItemRow({
 
   return (
     <article
+      ref={itemRef}
       className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
       data-cafe-a-content-variant={contentVariant}
       data-cafe-a-menu-item=""
       data-cafe-a-sold-out={isSoldOut ? "true" : undefined}
+      data-cafe-a-tablet-price-layout={stackPriceOption ? "stacked" : undefined}
     >
       {hasItemImage && (
         <button
@@ -5916,6 +6005,7 @@ function MenuCategoryContentBlock({
               locale={data.locale}
               priceDisplayMode={priceDisplayMode}
               priceRailColumns={priceRailColumns}
+              previewDevice={data.previewDevice}
               onOpenImage={onOpenImage}
             />
           </div>
