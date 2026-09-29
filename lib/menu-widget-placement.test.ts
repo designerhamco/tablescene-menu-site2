@@ -130,10 +130,10 @@ test("bottom placement is persisted independently from content order and docks i
   assert.match(editorSource, /위젯 추가·수정에서 콘텐츠 순서대로 배치하거나 마지막 열 하단에 정렬하도록 선택/);
 });
 
-test("a docked widget and footer notices share the category separation gap", () => {
+test("a docked widget and footer notices share the item rhythm gap", () => {
   assert.match(
     globalStylesSource,
-    /data-cafe-a-widget-placement="bottom"\]:has\(\+ \.cafe-a-footer-info\) \{\s*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
+    /data-cafe-a-widget-placement="bottom"\]:has\(\+ \.cafe-a-footer-info\) \{\s*margin-bottom: var\(--cafe-a-item-rhythm-gap\);/,
   );
   assert.match(
     globalStylesSource,

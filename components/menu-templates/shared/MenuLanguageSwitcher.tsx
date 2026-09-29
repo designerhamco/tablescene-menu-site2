@@ -96,7 +96,7 @@ export default function MenuLanguageSwitcher({
     triggerVariant === "cafe"
       ? `inline-flex cursor-pointer list-none items-center justify-center border border-transparent bg-transparent shadow-none transition-colors focus-visible:outline-none focus-visible:ring-2 [&::-webkit-details-marker]:hidden ${
           tone === "inverse"
-            ? "text-white hover:bg-white/10 focus-visible:ring-white/40"
+            ? "text-[#F4EDDC] hover:bg-[#F4EDDC]/10 focus-visible:ring-[#F4EDDC]/40"
             : "text-[#191c1b] hover:bg-black/[0.04] focus-visible:ring-black/20"
         } ${
           compact ? "h-9 gap-1.5 rounded-md px-1.5 text-[13px] font-medium" : "h-10 gap-2 rounded-md px-2.5 text-xs font-bold"

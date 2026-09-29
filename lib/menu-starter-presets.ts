@@ -622,7 +622,7 @@ cafeMochaForestStarterPreset.time_sales = [
     name: "아메리카노 모닝딜",
     schedule_type: "once",
     badge_text: "모닝딜",
-    badge_background_color: "#981D18",
+    badge_background_color: "#852322",
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -635,7 +635,7 @@ cafeMochaForestStarterPreset.time_sales = [
     schedule_type: "once",
     duration_minutes: 60,
     badge_text: "재고 마감",
-    badge_background_color: "#981D18",
+    badge_background_color: "#852322",
     time_display_mode: "countdown",
     targets: [{ target_item_key: "dark-chocolate-brownie", target_item_name: "다크 초콜릿 브라우니", sale_price: 3200 }],
   },
@@ -652,7 +652,7 @@ cafeMochaForestStarterPreset.widgets = [
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "4:3",
+      aspectRatio: "2:1",
       objectFit: "contain",
       textAlign: "left",
       placement: "bottom",
@@ -682,10 +682,14 @@ cafeMochaForestStarterPreset.pages = [
           item("포레스트 모카", 6500, "다크 초콜릿과 에스프레소에 부드러운 크림을 더한 시그니처 모카", {
             key: "forest-mocha",
             price_note: "ICE ONLY",
+            badge_label: "SIGNATURE",
+            recommended: true,
           }),
           item("헤이즐넛 크림 라떼", 6300, "구운 헤이즐넛 크림과 진한 에스프레소의 고소한 조화", {
             key: "hazelnut-cream-latte",
             price_note: "ICE ONLY",
+            badge_label: "BEST",
+            recommended: true,
           }),
           item("말차 클라우드", 6500, "제주 말차 라떼 위에 가벼운 크림을 올린 부드러운 한 잔", {
             key: "matcha-cloud",
@@ -698,19 +702,19 @@ cafeMochaForestStarterPreset.pages = [
         name: "ESPRESSO",
         section_key: "main_menu",
         items: [
-          item("아메리카노", 4000, "", {
+          item("아메리카노", 4000, "다크 초콜릿처럼 묵직한 단맛과 깊은 로스팅 향", {
             key: "americano",
           }),
-          item("카페 라떼", 5000, "", {
+          item("카페 라떼", 5000, "진한 에스프레소와 고소한 우유의 부드러운 균형", {
             key: "cafe-latte",
           }),
-          item("플랫화이트", 5200, "", {
+          item("플랫화이트", 5200, "더블 샷과 촘촘한 밀크폼이 어우러진 진한 커피", {
             key: "flat-white",
           }),
-          item("메이플 오트 라떼", 5800, "", {
+          item("메이플 오트 라떼", 5800, "은은한 메이플 단맛과 고소한 오트 밀크의 조화", {
             key: "maple-oat-latte",
           }),
-          item("바닐라 크림 콜드브루", 5900, "", {
+          item("바닐라 크림 콜드브루", 5900, "부드러운 콜드브루 위에 바닐라 크림을 올린 커피", {
             key: "vanilla-cream-cold-brew",
           }),
         ],
@@ -720,16 +724,16 @@ cafeMochaForestStarterPreset.pages = [
         name: "CHOCOLATE",
         section_key: "dessert_drink",
         items: [
-          item("다크 초콜릿 라떼", 5800, "", {
+          item("다크 초콜릿 라떼", 5800, "진한 다크 카카오의 깊고 묵직한 풍미", {
             key: "dark-chocolate-latte",
           }),
-          item("솔티드 카라멜 초콜릿", 6200, "", {
+          item("솔티드 카라멜 초콜릿", 6200, "진한 초콜릿과 솔티드 카라멜의 달콤짭짤한 조화", {
             key: "salted-caramel-chocolate",
           }),
-          item("카카오 오트 밀크", 6000, "", {
+          item("카카오 오트 밀크", 6000, "카카오와 고소한 오트 밀크를 담은 부드러운 음료", {
             key: "cacao-oat-milk",
           }),
-          item("오렌지 모카 밀크", 6100, "", {
+          item("오렌지 모카 밀크", 6100, "부드러운 초콜릿 밀크에 은은한 오렌지 향을 더한 음료", {
             key: "orange-mocha-milk",
           }),
         ],
@@ -739,9 +743,9 @@ cafeMochaForestStarterPreset.pages = [
         name: "TEA & ADE",
         section_key: "dessert_drink",
         items: [
-          item("블랙티 플럼 에이드", 5800, "", { key: "black-tea-plum-ade" }),
-          item("레몬 진저 티", 5500, "", { key: "lemon-ginger-tea" }),
-          item("캐모마일 애플 티", 5500, "", { key: "chamomile-apple-tea" }),
+          item("블랙티 플럼 에이드", 5800, "홍차와 자두의 산뜻한 향을 담은 탄산 에이드", { key: "black-tea-plum-ade" }),
+          item("레몬 진저 티", 5500, "레몬과 생강을 따뜻하게 우려낸 향긋한 티", { key: "lemon-ginger-tea" }),
+          item("캐모마일 애플 티", 5500, "캐모마일과 사과 향이 편안하게 어우러진 블렌드 티", { key: "chamomile-apple-tea" }),
         ],
       },
       {
@@ -749,9 +753,9 @@ cafeMochaForestStarterPreset.pages = [
         name: "DESSERT",
         section_key: "dessert_drink",
         items: [
-          item("다크 초콜릿 브라우니", 4500, "", { key: "dark-chocolate-brownie" }),
-          item("헤이즐넛 휘낭시에", 3800, "", { key: "hazelnut-financier" }),
-          item("포레스트 티라미수", 6200, "", { key: "forest-tiramisu" }),
+          item("다크 초콜릿 브라우니", 4500, "진한 다크 초콜릿을 넣어 촉촉하게 구운 브라우니", { key: "dark-chocolate-brownie" }),
+          item("헤이즐넛 휘낭시에", 3800, "구운 헤이즐넛과 버터 풍미가 진한 휘낭시에", { key: "hazelnut-financier" }),
+          item("포레스트 티라미수", 6200, "에스프레소와 다크 카카오를 층층이 담은 티라미수", { key: "forest-tiramisu" }),
         ],
       },
     ],

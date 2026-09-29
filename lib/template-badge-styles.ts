@@ -61,11 +61,11 @@ export const TEMPLATE_BADGE_STYLE_PRESETS: Record<string, Partial<BadgeStyles>> 
     default: { background_color: "#2AA36D", text_color: "#FFFFFF" },
   },
   cafe_mocha_forest_a: {
-    best: { background_color: "#981D18", text_color: "#EFE4D0" },
-    signature: { background_color: "#981D18", text_color: "#EFE4D0" },
-    new: { background_color: "#981D18", text_color: "#EFE4D0" },
-    recommended: { background_color: "#981D18", text_color: "#EFE4D0" },
-    default: { background_color: "#981D18", text_color: "#EFE4D0" },
+    best: { background_color: "#852322", text_color: "#F4EDDC" },
+    signature: { background_color: "#852322", text_color: "#F4EDDC" },
+    new: { background_color: "#852322", text_color: "#F4EDDC" },
+    recommended: { background_color: "#852322", text_color: "#F4EDDC" },
+    default: { background_color: "#852322", text_color: "#F4EDDC" },
   },
   cafe_sunday_line_a: {
     best: { background_color: "#24369C", text_color: "#FFFFFF" },

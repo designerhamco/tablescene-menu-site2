@@ -329,7 +329,7 @@ function applySinglePageCopy(data: MenuPageData, locale: SinglePageStarterTransl
         ? {
             ...item,
             name: localized.name,
-            description: data.menuSite.template_key === "cafe_mocha_forest_a" ? null : localized.description,
+            description: localized.description,
           }
         : item;
     }),

@@ -21,11 +21,7 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
     assert.equal(categoryKeys.length, preset.pages.flatMap((page) => page.categories).length, "Korean starter categories must have stable keys");
     assert.equal(itemKeys.length, items.length, "Korean starter items must have stable keys");
     assert.equal(items.every((item) => item.name.trim()), true);
-    assert.equal(items.every((item) => {
-      if (templateKey !== "cafe_mocha_forest_a") return Boolean(item.description.trim());
-      const signatureKeys = new Set(["forest-mocha", "hazelnut-cream-latte", "matcha-cloud"]);
-      return signatureKeys.has(item.key ?? "") ? Boolean(item.description.trim()) : !item.description.trim();
-    }), true);
+    assert.equal(items.every((item) => Boolean(item.description.trim())), true);
 
     for (const locale of SINGLE_PAGE_STARTER_TRANSLATION_LOCALES) {
       const copy = translations[locale];

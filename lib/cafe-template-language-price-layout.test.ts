@@ -47,7 +47,7 @@ test("원페이지 내부 페이지명은 디자인 문구로 임의 노출하�
   assert.doesNotMatch(templateSource, /pageGroup\.page\.title/);
 });
 
-test("모카 포레스트 언어 선택 버튼은 어두운 배경용 흰색 톤을 사용한다", () => {
+test("모카 포레스트 언어 선택 버튼은 어두운 배경용 베이지 톤을 사용한다", () => {
   assert.match(
     templateSource,
     /tone=\{isMochaForestSkin\(data\.templateSkin\) \? "inverse" : "default"\}/,
@@ -55,7 +55,19 @@ test("모카 포레스트 언어 선택 버튼은 어두운 배경용 흰색 톤
   assert.match(languageSwitcherSource, /tone\?: "default" \| "inverse";/);
   assert.match(
     languageSwitcherSource,
-    /tone === "inverse"[\s\S]*"text-white hover:bg-white\/10 focus-visible:ring-white\/40"/,
+    /tone === "inverse"[\s\S]*"text-\[#F4EDDC\] hover:bg-\[#F4EDDC\]\/10 focus-visible:ring-\[#F4EDDC\]\/40"/,
+  );
+});
+
+test("모카 포레스트 모바일은 데스크톱과 같은 베이지·와인 역할 색상을 사용한다", () => {
+  assert.match(globalStylesSource, /--mocha-panel-primary: #852322;[\s\S]*background: var\(--mocha-forest-ivory, #f4eddc\);/);
+  assert.match(
+    globalStylesSource,
+    /@media \(max-width: 1023px\)[\s\S]*\.cafe-a-fit-menu-grid :is\([\s\S]*\.cafe-a-category-title,[\s\S]*\.cafe-a-menu-title,[\s\S]*\.cafe-a-menu-price,[\s\S]*color: var\(--mocha-panel-primary\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /@media \(max-width: 1023px\)[\s\S]*\.cafe-a-fit-menu-grid :is\([\s\S]*\.cafe-a-menu-description,[\s\S]*\.cafe-a-description-text,[\s\S]*color: var\(--mocha-panel-supporting\);/,
   );
 });
 
@@ -257,7 +269,7 @@ test("오브 커피와 모카 포레스트는 선데이 라인의 장치별 글�
   assert.match(templateSource, /const titleSizeClassName = getMenuTitleSizeClassName\(density\);/);
   assert.match(templateSource, /className=\{`menu-typography cafe-a-typography \$\{titleSizeClassName\}/);
   assert.match(globalStylesSource, /data-template-key="cafe_design_a"[^}]*--cafe-a-template-category-title-scale: 1;/);
-  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1;/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-template-category-title-scale: 1\.08;/);
   assert.match(globalStylesSource, /--cafe-a-template-secondary-copy-scale: 1;/);
   assert.match(globalStylesSource, /--cafe-a-template-supporting-copy-scale: 1;/);
   assert.match(globalStylesSource, /--cafe-a-template-option-label-scale: 1;/);
@@ -267,7 +279,7 @@ test("오브 커피와 모카 포레스트는 선데이 라인의 장치별 글�
   assert.match(globalStylesSource, /not\(\[data-preview-device="tablet"\]\)[^{]*\{[^}]*--cafe-a-sunday-category-ratio: 1\.5;[\s\S]*--cafe-a-sunday-secondary-ratio: 0\.64;[\s\S]*--cafe-a-sunday-supporting-ratio: 0\.71;[\s\S]*--cafe-a-sunday-price-ratio: 1;[\s\S]*--cafe-a-sunday-option-ratio: 0\.56;/);
   assert.match(globalStylesSource, /\.cafe-a-desktop-fit-board \.cafe-a-store-title \{[\s\S]*5\.4vh/);
   assert.match(globalStylesSource, /header \.cafe-a-store-title \{[\s\S]*11vw/);
-  assert.match(globalStylesSource, /\.cafe-a-category-title \{[\s\S]*var\(--cafe-a-sunday-category-ratio\)/);
+  assert.match(globalStylesSource, /\.cafe-a-category-title \{[\s\S]*var\(--cafe-a-sunday-category-ratio\)[\s\S]*var\(--cafe-a-template-category-title-scale, 1\)/);
   assert.match(globalStylesSource, /\.cafe-a-menu-meta \{[\s\S]*var\(--cafe-a-sunday-secondary-ratio\)/);
   assert.match(globalStylesSource, /\.cafe-a-menu-description,[\s\S]*var\(--cafe-a-sunday-supporting-ratio\)/);
   assert.match(globalStylesSource, /\.cafe-a-featured-price\) \{[\s\S]*var\(--cafe-a-sunday-price-ratio\)/);
@@ -283,6 +295,19 @@ test("단일 페이지별 미세 조정은 유동 간격과 동일 열 계약을
   assert.match(globalStylesSource, /--round-focus-column-gap: clamp\(1\.75rem, 3\.2vw, 3\.75rem\);/);
   assert.match(globalStylesSource, /--round-focus-column-inset: clamp\(0\.5rem, 0\.7vw, 0\.75rem\);/);
   assert.match(globalStylesSource, /\.cafe-a-center-rail-menu-grid > \.cafe-a-balanced-column \{[\s\S]*padding: var\(--board-padding\) var\(--round-focus-column-inset\);/);
+  assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[^}]*--cafe-a-category-separation-ratio: 3;/);
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="mocha_forest"[^}]*\.cafe-a-balanced-column \{[\s\S]*padding-block: calc\(var\(--board-padding\) \+ clamp\(0\.3rem, 0\.65vmin, 0\.55rem\)\);[\s\S]*padding-inline: calc\(var\(--board-padding\) \+ clamp\(0\.35rem, 0\.75vmin, 0\.65rem\)\);/,
+  );
+  assert.equal(
+    (
+      globalStylesSource.match(
+        /\.cafe-a-menu-widget-block\[data-cafe-a-widget-placement="bottom"\]:has\(\+ \.cafe-a-footer-info\) \{\s*margin-bottom: var\(--cafe-a-item-rhythm-gap\);/g,
+      ) ?? []
+    ).length,
+    2,
+  );
 });
 
 test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {

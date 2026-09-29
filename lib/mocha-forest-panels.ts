@@ -1,9 +1,9 @@
 export const MOCHA_FOREST_TEMPLATE_KEY = "cafe_mocha_forest_a" as const;
 
 export const MOCHA_FOREST_PANEL_COLORS = {
-  brown: "#981D18",
-  ivory: "#EFE4D0",
-  green: "#EFE4D0",
+  brown: "#852322",
+  ivory: "#F4EDDC",
+  green: "#F4EDDC",
 } as const;
 
 export type MochaForestPanel = keyof typeof MOCHA_FOREST_PANEL_COLORS;
