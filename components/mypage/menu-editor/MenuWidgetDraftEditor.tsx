@@ -39,11 +39,13 @@ type MenuWidgetDraftEditorProps = {
 };
 
 const ASPECT_RATIO_LABELS: Record<string, string> = {
+  "3:1": "가로형 3:1",
   "2:1": "가로형 2:1",
-  "3:2": "가로형 3:2",
-  "4:3": "기본 4:3",
-  "1:1": "정사각형",
+  "4:3": "가로형 4:3",
+  "1:1": "정사각형 1:1",
   "3:4": "세로형 3:4",
+  "1:2": "세로형 1:2",
+  "1:3": "세로형 1:3",
 };
 
 const OBJECT_FIT_LABELS: Record<string, string> = {
@@ -243,7 +245,7 @@ export default function MenuWidgetDraftEditor({
                 ))}
               </select>
               <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
-                선택한 비율은 PC·태블릿에 적용되며, 모바일에서는 모든 이미지 위젯이 2:1로 표시됩니다.
+                선택한 비율이 PC·태블릿·모바일에 동일하게 적용됩니다.
               </p>
             </FieldBlock>
             <FieldBlock label="이미지 맞춤">

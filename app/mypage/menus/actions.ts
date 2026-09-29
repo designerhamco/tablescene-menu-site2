@@ -3168,6 +3168,13 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
   const nextPageSettings = {
     ...getJsonObject(menuSite.page_settings),
     cover_image_visible: true,
+    ...(getTemplateCapabilities(menuSite.template_key).menuCover.coverMode === "section"
+      ? {
+          menu_cover_visible_pc: true,
+          menu_cover_visible_tablet: true,
+          menu_cover_visible_mobile: true,
+        }
+      : {}),
     featured_item_enabled: Boolean(featuredItemId),
     featured_item_id: featuredItemId,
     ...(preset.featured_slides ? { [FEATURED_SLIDES_PAGE_SETTINGS_KEY]: starterFeaturedSlides } : {}),
@@ -3627,6 +3634,20 @@ export async function updateMenuCoverAction(formData: FormData) {
   assertMenuSiteDraftImage(menuId, draftCoverImageUrl, draftCoverImagePath, "cover");
   const pageSettingsRecord = getJsonObject(menuSite.page_settings);
   const currentSettings = mergePageSettings(menuSite.page_settings);
+  const supportsMenuCoverDeviceVisibility = menuCoverCapabilities.coverMode === "section";
+  const hasMenuCoverDeviceVisibilityPayload =
+    supportsMenuCoverDeviceVisibility && getBoolean(formData, "menu_cover_device_visibility_present");
+  const menuCoverDeviceVisibilitySettings = {
+    menu_cover_visible_pc: hasMenuCoverDeviceVisibilityPayload
+      ? getBoolean(formData, "menu_cover_visible_pc")
+      : currentSettings.menu_cover_visible_pc,
+    menu_cover_visible_tablet: hasMenuCoverDeviceVisibilityPayload
+      ? getBoolean(formData, "menu_cover_visible_tablet")
+      : currentSettings.menu_cover_visible_tablet,
+    menu_cover_visible_mobile: hasMenuCoverDeviceVisibilityPayload
+      ? getBoolean(formData, "menu_cover_visible_mobile")
+      : currentSettings.menu_cover_visible_mobile,
+  };
   const coverBackgroundColor = isAubeTable
     ? normalizeAubeTableCoverBackgroundColor(getString(formData, "multi_page_cover_background_color"))
     : currentSettings.multi_page_cover_background_color;
@@ -3675,6 +3696,7 @@ export async function updateMenuCoverAction(formData: FormData) {
       ...pageSettingsRecord,
       ...currentSettings,
       menu_cover_enabled: menuCoverEnabled,
+      ...menuCoverDeviceVisibilitySettings,
       cover_image_visible: coverImageVisible,
       featured_item_enabled: featuredSlidesEnabled,
       featured_item_id: firstLinkedSlide?.featured_item_id ?? null,
@@ -3743,6 +3765,7 @@ export async function updateMenuCoverAction(formData: FormData) {
         ...pageSettingsRecord,
         ...currentSettings,
         menu_cover_enabled: true,
+        ...menuCoverDeviceVisibilitySettings,
         cover_image_visible: coverImageVisible,
         featured_item_enabled: featuredItemEnabled,
         featured_item_id: featuredItemEnabled ? featuredItemId : null,
@@ -3752,12 +3775,14 @@ export async function updateMenuCoverAction(formData: FormData) {
         ...pageSettingsRecord,
         ...currentSettings,
         menu_cover_enabled: false,
+        ...menuCoverDeviceVisibilitySettings,
         cover_image_visible: coverImageVisible,
       }
     : {
         ...pageSettingsRecord,
         ...currentSettings,
         menu_cover_enabled: menuCoverEnabled,
+        ...menuCoverDeviceVisibilitySettings,
         cover_image_visible: coverImageVisible,
         featured_item_enabled: false,
         featured_item_id: null,
@@ -6031,6 +6056,11 @@ async function saveCafeAStarterResetCoverAndFeaturedAfterMenuDraftSave({
   const nextPageSettings = getJsonObject(menuSite.page_settings);
   if (menuCoverCapabilities.coverMode !== "none") {
     nextPageSettings.menu_cover_enabled = snapshot.coverSettings.menuCoverEnabled;
+  }
+  if (menuCoverCapabilities.coverMode === "section") {
+    nextPageSettings.menu_cover_visible_pc = snapshot.coverSettings.menuCoverVisiblePc;
+    nextPageSettings.menu_cover_visible_tablet = snapshot.coverSettings.menuCoverVisibleTablet;
+    nextPageSettings.menu_cover_visible_mobile = snapshot.coverSettings.menuCoverVisibleMobile;
   }
   if (menuCoverCapabilities.usesFeaturedItem) {
     nextPageSettings.featured_item_enabled = Boolean(remappedFeaturedItemId);

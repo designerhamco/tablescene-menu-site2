@@ -40,6 +40,15 @@ export const CAFE_A_WIDGET_TYPE_FIXTURES: CafeAWidgetPreview[] = [
 
 export const CAFE_A_WIDGET_RATIO_FIXTURES: CafeAWidgetPreview[] = [
   {
+    id: "widget-ratio-3-1-contain",
+    type: "image",
+    visible: true,
+    imageUrl: BLACK_SESAME_IMAGE,
+    altText: "흑임자 크림 라떼 와이드 이미지",
+    aspectRatio: "3:1",
+    objectFit: "contain",
+  },
+  {
     id: "widget-ratio-2-1-cover",
     type: "image",
     visible: true,
@@ -49,12 +58,12 @@ export const CAFE_A_WIDGET_RATIO_FIXTURES: CafeAWidgetPreview[] = [
     objectFit: "cover",
   },
   {
-    id: "widget-ratio-3-2-contain",
+    id: "widget-ratio-4-3-contain",
     type: "image",
     visible: true,
     imageUrl: BLACK_SESAME_IMAGE,
     altText: "흑임자 크림 라떼",
-    aspectRatio: "3:2",
+    aspectRatio: "4:3",
     objectFit: "contain",
   },
   {
@@ -73,6 +82,24 @@ export const CAFE_A_WIDGET_RATIO_FIXTURES: CafeAWidgetPreview[] = [
     imageUrl: NUTTY_FEATURED_IMAGE,
     altText: "너티 크림 라떼 세로 이미지",
     aspectRatio: "3:4",
+    objectFit: "cover",
+  },
+  {
+    id: "widget-ratio-1-2",
+    type: "image",
+    visible: true,
+    imageUrl: NUTTY_FEATURED_IMAGE,
+    altText: "너티 크림 라떼 긴 세로 이미지",
+    aspectRatio: "1:2",
+    objectFit: "cover",
+  },
+  {
+    id: "widget-ratio-1-3",
+    type: "image",
+    visible: true,
+    imageUrl: NUTTY_FEATURED_IMAGE,
+    altText: "너티 크림 라떼 포스터 이미지",
+    aspectRatio: "1:3",
     objectFit: "cover",
   },
 ];

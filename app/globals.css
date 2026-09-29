@@ -3868,6 +3868,11 @@ video {
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"]:not([data-preview-device="tablet"]) {
     --cafe-a-sunday-price-ratio: 0.96;
   }
+
+  /* Mocha Forest has a little more room on PC, so lift the full type hierarchy together. */
+  .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"]:not([data-preview-device="tablet"]) {
+    --cafe-a-device-type-scale: 1.04;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -3936,6 +3941,45 @@ video {
   .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(.cafe-a-menu-price, .cafe-a-featured-price) {
     font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio));
   }
+}
+
+/* Keep tablet headings stable while making only Mocha Forest's product copy slightly quieter. */
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] {
+  --cafe-a-mocha-tablet-product-text-scale: 0.97;
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-title, .cafe-a-featured-title) {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-mocha-tablet-product-text-scale));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-menu-meta {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio) * var(--cafe-a-mocha-tablet-product-text-scale));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-description, .cafe-a-time-sale-time-text),
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-cover-hero .cafe-a-featured-description {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-mocha-tablet-product-text-scale));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio) * var(--cafe-a-mocha-tablet-product-text-scale));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 0.62 * var(--cafe-a-mocha-tablet-product-text-scale));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(
+  .cafe-a-menu-chip,
+  .cafe-a-price-column-header,
+  .cafe-a-price-column-heading-label,
+  .cafe-a-price-label
+) {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-option-ratio) * var(--cafe-a-mocha-tablet-product-text-scale));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-price-note {
+  font-size: calc(clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.72rem) * var(--cafe-a-mocha-tablet-product-text-scale));
 }
 
 /* Mocha Forest deliberately carries a stronger brand scale than the shared single-page hierarchy. */

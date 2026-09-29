@@ -43,6 +43,9 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   assert.deepEqual(snapshot.deletedItemIds, ["existing-item"]);
   assert.deepEqual(snapshot.deletedWidgetIds, ["existing-widget"]);
   assert.equal(snapshot.saveContractGaps.length, 0);
+  assert.equal(snapshot.coverSettings.menuCoverVisiblePc, true);
+  assert.equal(snapshot.coverSettings.menuCoverVisibleTablet, true);
+  assert.equal(snapshot.coverSettings.menuCoverVisibleMobile, true);
 
   const pageId = snapshot.pages[0]?.id;
   assert.ok(pageId);
@@ -261,7 +264,7 @@ function createTestStarterWidget(): NonNullable<StarterPreset["widgets"]>[number
     visible: true,
     sort_order: 5,
     settings: {
-      aspectRatio: "3:2",
+      aspectRatio: "4:3",
       objectFit: "cover",
       textAlign: "left",
       altText: "테스트 이미지",

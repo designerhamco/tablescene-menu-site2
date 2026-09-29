@@ -31,6 +31,9 @@ export type MenuSocialLinkTranslation = Database["public"]["Tables"]["menu_socia
 export type PageSettings = {
   intro_enabled: boolean;
   menu_cover_enabled: boolean;
+  menu_cover_visible_pc: boolean;
+  menu_cover_visible_tablet: boolean;
+  menu_cover_visible_mobile: boolean;
   cover_image_visible: boolean;
   set_menu_enabled: boolean;
   main_menu_enabled: boolean;
@@ -87,6 +90,9 @@ export type DefaultMenuPageInput = Pick<
 export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   intro_enabled: true,
   menu_cover_enabled: true,
+  menu_cover_visible_pc: true,
+  menu_cover_visible_tablet: true,
+  menu_cover_visible_mobile: true,
   cover_image_visible: true,
   set_menu_enabled: true,
   main_menu_enabled: true,
@@ -103,6 +109,9 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
 const PAGE_SETTING_BOOLEAN_KEYS = [
   "intro_enabled",
   "menu_cover_enabled",
+  "menu_cover_visible_pc",
+  "menu_cover_visible_tablet",
+  "menu_cover_visible_mobile",
   "cover_image_visible",
   "set_menu_enabled",
   "main_menu_enabled",

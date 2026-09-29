@@ -119,6 +119,9 @@ export type CafeAStarterResetFeaturedSlideDraft = {
 
 export type CafeAStarterResetCoverSettings = {
   menuCoverEnabled: boolean;
+  menuCoverVisiblePc: boolean;
+  menuCoverVisibleTablet: boolean;
+  menuCoverVisibleMobile: boolean;
   menuCoverTitle: string;
   menuCoverDescription: string;
   coverImageUrl: string | null;
@@ -416,6 +419,9 @@ export function buildCafeAStarterResetSnapshot({
     featuredSlides,
     coverSettings: {
       menuCoverEnabled: preset.menu_cover_enabled !== false,
+      menuCoverVisiblePc: true,
+      menuCoverVisibleTablet: true,
+      menuCoverVisibleMobile: true,
       menuCoverTitle: preset.site.menu_cover_title,
       menuCoverDescription: preset.site.menu_cover_description,
       coverImageUrl,
@@ -555,6 +561,14 @@ export function validateCafeAStarterResetSnapshot(
       }
     });
   });
+  if (
+    typeof snapshot.coverSettings.menuCoverEnabled !== "boolean" ||
+    typeof snapshot.coverSettings.menuCoverVisiblePc !== "boolean" ||
+    typeof snapshot.coverSettings.menuCoverVisibleTablet !== "boolean" ||
+    typeof snapshot.coverSettings.menuCoverVisibleMobile !== "boolean"
+  ) {
+    errors.push(createError("INVALID_VISIBLE", "coverSettings", "대표 영역의 기기별 표시 설정은 boolean이어야 합니다."));
+  }
   snapshot.saveContractGaps.forEach((gap, index) => {
     errors.push(createError("SAVE_CONTRACT_GAP", `saveContractGaps.${index}`, gap));
   });

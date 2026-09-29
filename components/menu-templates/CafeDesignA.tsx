@@ -22,7 +22,9 @@ import {
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
+import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
+import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import {
   formatMenuPriceByMode,
@@ -118,6 +120,27 @@ function normalizeInitialNowMs(value: number | null | undefined) {
 
 function useCafeATimeSaleInitialNowMs() {
   return useContext(CafeATimeSaleInitialNowContext);
+}
+
+function getMenuDeviceForViewportWidth(width: number): MenuPreviewDevice {
+  if (width < 768) return "mobile";
+  if (width < 1280) return "tablet";
+  return "pc";
+}
+
+function useMenuCoverRenderDevice(previewDevice: MenuPreviewDevice | undefined) {
+  const [viewportDevice, setViewportDevice] = useState<MenuPreviewDevice>(previewDevice ?? "pc");
+
+  useEffect(() => {
+    if (previewDevice) return;
+
+    const updateViewportDevice = () => setViewportDevice(getMenuDeviceForViewportWidth(window.innerWidth));
+    updateViewportDevice();
+    window.addEventListener("resize", updateViewportDevice);
+    return () => window.removeEventListener("resize", updateViewportDevice);
+  }, [previewDevice]);
+
+  return previewDevice ?? viewportDevice;
 }
 const CAFE_A_TIME_SALE_ACCENT = "#C62828";
 const CAFE_A_SOLD_OUT_LABELS: Record<CafeDesignALocale, string> = {
@@ -3078,11 +3101,14 @@ function estimateWidgetHeight(widget: CafeAWidgetPreview) {
   const ratioWeight = widget.type === "text"
     ? 0
     : {
+        "3:1": 1,
         "2:1": 1.45,
         "3:2": 1.8,
         "4:3": 2.1,
         "1:1": 2.7,
         "3:4": 3.3,
+        "1:2": 4.5,
+        "1:3": 6,
       }[widget.aspectRatio];
 
   if (widget.type === "image") return ratioWeight + 0.3;
@@ -6448,10 +6474,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
   const onePageLayoutShell = getFixedOnePageLayoutShell(data.menuSite.template_key);
+  const menuCoverRenderDevice = useMenuCoverRenderDevice(data.previewDevice);
   const hasCoverSection =
     publicCapabilities.menuCoverPage &&
     capabilities.menuCover.coverMode === "section" &&
-    data.pageSettings.menu_cover_enabled !== false;
+    data.pageSettings.menu_cover_enabled !== false &&
+    isMenuCoverVisibleOnDevice(data.pageSettings, menuCoverRenderDevice);
   const shouldRenderMenuCoverSection =
     hasCoverSection;
   const menuAreaClassName = getMenuAreaClassName(hasCoverSection, onePageLayoutShell);
@@ -6578,6 +6606,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         visibleImageSignature,
         typographySizeScaleKey,
         density,
+        menuCoverRenderDevice,
+        hasCoverSection,
         data.publicServiceType,
       ].join("|"),
     [
@@ -6587,6 +6617,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       data.publicServiceType,
       density,
       layoutMode,
+      hasCoverSection,
+      menuCoverRenderDevice,
       typographySizeScaleKey,
       visibleCategoryCount,
       visibleContentBlockCount,

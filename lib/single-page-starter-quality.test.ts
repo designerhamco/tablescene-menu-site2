@@ -96,7 +96,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   const mochaForest = getStarterPreset("cafe_mocha_forest_a");
   assert.equal(mochaForest.widgets?.[0]?.type, "image");
   assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/widget-character.png");
-  assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "2:1");
+  assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "3:1");
   assert.equal(mochaForest.widgets?.[0]?.settings?.placement, "bottom");
   assert.equal(mochaForest.featured_item_key, undefined);
   assert.equal(mochaForest.featured_slides?.length, 1);

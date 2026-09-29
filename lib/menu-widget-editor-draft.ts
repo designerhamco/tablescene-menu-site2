@@ -85,7 +85,7 @@ export function createMenuWidgetDraftFromWidget(widget: MenuWidget): MenuWidgetD
     settings: {
       aspectRatio:
         widget.type === "image" || widget.type === "image_text"
-          ? widget.settings.aspectRatio
+          ? (widget.settings.aspectRatio === "3:2" ? "4:3" : widget.settings.aspectRatio)
           : "4:3",
       objectFit:
         widget.type === "image" || widget.type === "image_text"

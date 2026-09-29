@@ -4,10 +4,15 @@ import test from "node:test";
 
 import {
   addWidgetContentBlock,
+  createMenuWidgetDraftFromWidget,
   type MenuEditorContentBlockDraftsByPageId,
 } from "./menu-widget-editor-draft";
 import { parseMenuWidgetRow } from "./menu-widget-db-mappers";
-import { createDefaultMenuWidgetDraft, normalizeMenuWidgetDraft } from "./menu-widgets";
+import {
+  createDefaultMenuWidgetDraft,
+  MENU_WIDGET_ASPECT_RATIOS,
+  normalizeMenuWidgetDraft,
+} from "./menu-widgets";
 
 const templateSource = readFileSync(
   new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url),
@@ -112,6 +117,24 @@ test("persisted widget settings accept legacy rows and explicit placement values
   const flowResult = parseMenuWidgetRow(createRow("flow"));
   assert.equal(flowResult.ok, true);
   if (flowResult.ok) assert.equal(flowResult.widget.settings.placement, "flow");
+
+  const legacyRatioResult = parseMenuWidgetRow({
+    ...createRow("bottom"),
+    widget_type: "image",
+    title: null,
+    description: null,
+    image_url: "/legacy-widget.png",
+    settings: {
+      schemaVersion: 1,
+      aspectRatio: "3:2",
+      objectFit: "cover",
+      placement: "bottom",
+    },
+  } as unknown as Parameters<typeof parseMenuWidgetRow>[0]);
+  assert.equal(legacyRatioResult.ok, true);
+  if (legacyRatioResult.ok) {
+    assert.equal(createMenuWidgetDraftFromWidget(legacyRatioResult.widget).settings.aspectRatio, "4:3");
+  }
 });
 
 test("bottom placement is persisted independently from content order and docks in the final column", () => {
@@ -146,13 +169,11 @@ test("a docked widget and footer notices share the item rhythm gap", () => {
   assert.match(templateSource, /renderDesktopMenuGrid\(\{ includeFooter: true \}\)/);
 });
 
-test("single-page image widgets use a mobile-only 2:1 presentation ratio", () => {
-  assert.match(
-    widgetStylesSource,
-    /@media \(max-width: 767px\) \{[\s\S]*\.mediaFrame \{\s*aspect-ratio: 2 \/ 1;/,
-  );
+test("single-page image widgets expose the approved ratios on every device", () => {
+  assert.deepEqual(MENU_WIDGET_ASPECT_RATIOS, ["3:1", "2:1", "4:3", "1:1", "3:4", "1:2", "1:3"]);
+  assert.doesNotMatch(widgetStylesSource, /\.mediaFrame \{\s*aspect-ratio: 2 \/ 1;/);
   assert.match(
     widgetEditorSource,
-    /선택한 비율은 PC·태블릿에 적용되며, 모바일에서는 모든 이미지 위젯이 2:1로 표시됩니다\./,
+    /선택한 비율이 PC·태블릿·모바일에 동일하게 적용됩니다\./,
   );
 });

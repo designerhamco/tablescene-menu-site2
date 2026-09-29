@@ -47,6 +47,7 @@ import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import type { AiCreditBalance } from "@/lib/ai-credits";
 import { getFirstCompleteStarterFeaturedSlide, getStarterPreset, resolveStarterFeaturedSlides } from "@/lib/menu-starter-presets";
 import CoverDraftToggleSection from "@/components/mypage/menu-editor/CoverDraftToggleSection";
+import CoverDeviceVisibilityFields from "@/components/mypage/menu-editor/CoverDeviceVisibilityFields";
 import {
   getMenuEditorCapabilitiesForMenuSite,
   getMenuEditorServiceTypeForMenuSite,
@@ -1596,6 +1597,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     ? getSettingsString(siteSettings, "footer_notice_3")
     : getSettingsString(siteSettings, "footer_sns_text") || getSettingsString(siteSettings, "footer_note");
   const menuCoverEnabled = pageSettings.menu_cover_enabled !== false;
+  const supportsMenuCoverDeviceVisibility = coverMode === "section";
   const coverImageVisible = pageSettings.cover_image_visible !== false;
   const coverTabLabel = getCoverTabLabel(coverMode);
   const coverToggleLabel = getCoverToggleLabel(coverMode);
@@ -2239,6 +2241,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     defaultChecked={menuCoverEnabled}
                     inactiveMessage={`${coverToggleLabel}을 켜면 아래 설정을 편집할 수 있습니다. 꺼도 기존 입력값은 삭제되지 않습니다.`}
                   >
+                    {supportsMenuCoverDeviceVisibility && (
+                      <CoverDeviceVisibilityFields
+                        defaultPcVisible={pageSettings.menu_cover_visible_pc !== false}
+                        defaultTabletVisible={pageSettings.menu_cover_visible_tablet !== false}
+                        defaultMobileVisible={pageSettings.menu_cover_visible_mobile !== false}
+                      />
+                    )}
                     {menuCoverCapabilities.usesCoverTitle && (
                       <div className="md:col-span-2">
                         <FieldLabel required>커버 제목</FieldLabel>

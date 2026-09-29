@@ -6,6 +6,7 @@ import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAsset
 import MenuGnb from "@/components/menu-templates/shared/MenuGnb";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
+import { getMenuCoverResponsiveVisibilityClassName } from "@/lib/menu-cover-device-visibility";
 import { getMenuPublicCapabilities, type MenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
@@ -523,6 +524,7 @@ export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
     publicCapabilities.menuCoverPage &&
     capabilities.menuCover.coverMode !== "none" &&
     pageSettings.menu_cover_enabled !== false;
+  const menuCover = shouldRenderMenuCover ? <MenuCoverSection data={data} capabilities={capabilities} /> : null;
 
   return (
     <>
@@ -530,7 +532,11 @@ export default function BasicMenuTemplate(data: PublicMenuTemplateProps) {
       <div id="intro" className="menu-typography text-zinc-950" style={{ ...getTypographyCssVariables(typographySettings), backgroundColor }}>
         {publicCapabilities.introPage && pageSettings.intro_enabled && <IntroSection data={data} />}
         <MenuGnb site={data.menuSite} currentLocale={data.locale} enabledLocales={data.enabledLocales} />
-        {shouldRenderMenuCover && <MenuCoverSection data={data} capabilities={capabilities} />}
+        {menuCover && capabilities.menuCover.coverMode === "section" ? (
+          <div className={getMenuCoverResponsiveVisibilityClassName(pageSettings)}>{menuCover}</div>
+        ) : (
+          menuCover
+        )}
         {publicCapabilities.menuPages && <MenuPagesSection data={data} capabilities={capabilities} />}
         {publicCapabilities.aboutPage && pageSettings.about_enabled && (
           <AboutSection data={data} capabilities={capabilities} publicCapabilities={publicCapabilities} />

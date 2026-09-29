@@ -2,9 +2,13 @@ export const MENU_WIDGET_TYPES = ["image", "text", "image_text"] as const;
 
 export type MenuWidgetType = (typeof MENU_WIDGET_TYPES)[number];
 
-export const MENU_WIDGET_ASPECT_RATIOS = ["2:1", "3:2", "4:3", "1:1", "3:4"] as const;
+export const MENU_WIDGET_ASPECT_RATIOS = ["3:1", "2:1", "4:3", "1:1", "3:4", "1:2", "1:3"] as const;
 
-export type MenuWidgetAspectRatio = (typeof MENU_WIDGET_ASPECT_RATIOS)[number];
+const LEGACY_MENU_WIDGET_ASPECT_RATIOS = ["3:2"] as const;
+
+export type MenuWidgetAspectRatio =
+  | (typeof MENU_WIDGET_ASPECT_RATIOS)[number]
+  | (typeof LEGACY_MENU_WIDGET_ASPECT_RATIOS)[number];
 
 export const MENU_WIDGET_OBJECT_FITS = ["cover", "contain"] as const;
 
@@ -162,7 +166,10 @@ export function isMenuWidgetType(value: unknown): value is MenuWidgetType {
 }
 
 export function isMenuWidgetAspectRatio(value: unknown): value is MenuWidgetAspectRatio {
-  return typeof value === "string" && MENU_WIDGET_ASPECT_RATIOS.includes(value as MenuWidgetAspectRatio);
+  return typeof value === "string" && (
+    (MENU_WIDGET_ASPECT_RATIOS as readonly string[]).includes(value)
+    || (LEGACY_MENU_WIDGET_ASPECT_RATIOS as readonly string[]).includes(value)
+  );
 }
 
 export function isMenuWidgetObjectFit(value: unknown): value is MenuWidgetObjectFit {
@@ -178,7 +185,7 @@ export function isMenuWidgetPlacement(value: unknown): value is MenuWidgetPlacem
 }
 
 export function isEmphasisWidgetAspectRatio(ratio: MenuWidgetAspectRatio): boolean {
-  return ratio === "3:4";
+  return ratio === "3:4" || ratio === "1:2" || ratio === "1:3";
 }
 
 export function createDefaultMenuWidgetDraft(

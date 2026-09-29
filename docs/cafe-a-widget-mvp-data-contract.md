@@ -27,14 +27,17 @@ new runtime MVP contract. They must be audited before the next migration.
 
 Supported ratios:
 
+- `3:1`
 - `2:1`
-- `3:2`
 - `4:3`
 - `1:1`
 - `3:4`
+- `1:2`
+- `1:3`
 
-`3:4` is allowed, but treated as an emphasis ratio. The editor should use it deliberately because it takes more
-vertical space, especially on mobile.
+`3:4`, `1:2`, and `1:3` are emphasis ratios. The editor should use the tall ratios deliberately because they take
+more vertical space, especially on mobile. Legacy persisted `3:2` data remains readable and normalizes to `4:3`
+when it is opened in the editor.
 
 ## 4. Page Limit
 
@@ -96,7 +99,7 @@ Type-specific settings:
 
 `placement` is `flow` or `bottom`. `flow` follows the mixed category/widget order. `bottom` is collected into the final desktop/tablet column and the mobile content end, immediately above footer notices when present. Missing legacy values normalize to `bottom`, so the previous trailing-widget behavior remains compatible without a DB migration.
 
-The stored `aspectRatio` remains the PC/tablet presentation choice. On mobile, every image or image-text widget media frame renders at `2:1` without rewriting the stored setting. The menu editor explains this mobile-only override beside the aspect-ratio field.
+The stored `aspectRatio` is the presentation ratio on PC, tablet, and mobile. The editor explains that one saved choice applies to every device.
 
 ## 9. Required Fields
 

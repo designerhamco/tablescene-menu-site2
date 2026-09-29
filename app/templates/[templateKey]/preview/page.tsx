@@ -741,7 +741,7 @@ function applyActiveTemplateFeatureQaFixture(
           imagePath: null,
           sortOrder: 2,
           visible: true,
-          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "3:2", objectFit: "cover", textAlign: "left", placement: "bottom", altText: "시즌 메뉴" },
+          settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, aspectRatio: "4:3", objectFit: "cover", textAlign: "left", placement: "bottom", altText: "시즌 메뉴" },
         },
       ]
     : data.widgets;

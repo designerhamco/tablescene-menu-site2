@@ -296,6 +296,9 @@ const BREW_CHAPTER_MAIN_ITEM_IMAGE = "/menu-templates/cafe_design_a/nutty-cream.
 const STARTER_PAGE_SETTINGS = {
   intro_enabled: true,
   menu_cover_enabled: true,
+  menu_cover_visible_pc: true,
+  menu_cover_visible_tablet: true,
+  menu_cover_visible_mobile: true,
   cover_image_visible: true,
   set_menu_enabled: true,
   main_menu_enabled: true,
@@ -314,6 +317,9 @@ const STARTER_PAGE_SETTINGS = {
 const MENU_SCREEN_STARTER_PAGE_SETTINGS = {
   intro_enabled: false,
   menu_cover_enabled: true,
+  menu_cover_visible_pc: true,
+  menu_cover_visible_tablet: true,
+  menu_cover_visible_mobile: true,
   cover_image_visible: true,
   set_menu_enabled: true,
   main_menu_enabled: true,
@@ -652,7 +658,7 @@ cafeMochaForestStarterPreset.widgets = [
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "2:1",
+      aspectRatio: "3:1",
       objectFit: "contain",
       textAlign: "left",
       placement: "bottom",
@@ -1177,7 +1183,7 @@ cafeRoundFocusStarterPreset.widgets = [
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "3:2",
+      aspectRatio: "4:3",
       objectFit: "cover",
       textAlign: "left",
       altText: "라운드 포커스 위젯 이미지",

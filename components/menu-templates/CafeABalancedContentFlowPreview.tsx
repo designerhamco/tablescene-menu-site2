@@ -53,11 +53,14 @@ const MAX_EXHAUSTIVE_COLUMNS = 4;
 const TARGET_MAX_VISIBLE_GAP = 36;
 
 const ASPECT_RATIO_HEIGHT_MULTIPLIER: Record<CafeAWidgetAspectRatio, number> = {
+  "3:1": 1 / 3,
   "2:1": 1 / 2,
   "3:2": 2 / 3,
   "4:3": 3 / 4,
   "1:1": 1,
   "3:4": 4 / 3,
+  "1:2": 2,
+  "1:3": 3,
 };
 
 function estimateLineCount(text: string, charsPerLine: number) {

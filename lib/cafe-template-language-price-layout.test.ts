@@ -130,6 +130,37 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   assert.match(globalStylesSource, /\.cafe-a-topline-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
 });
 
+test("모카 포레스트는 PC 전체 글자를 소폭 키우고 태블릿 상품 역할만 소폭 줄인다", () => {
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_mocha_forest_a"\]\[data-cafe-a-skin="mocha_forest"\]:not\(\[data-preview-device="tablet"\]\) \{[\s\S]*--cafe-a-device-type-scale: 1\.04;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_mocha_forest_a"\]\[data-cafe-a-skin="mocha_forest"\]\[data-preview-device="tablet"\] \{[\s\S]*--cafe-a-mocha-tablet-product-text-scale: 0\.97;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] :is\(\.cafe-a-menu-title, \.cafe-a-featured-title\) \{[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] \.cafe-a-menu-meta \{[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] :is\(\.cafe-a-menu-description, \.cafe-a-time-sale-time-text\),[\s\S]*\.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] :is\([\s\S]*\.cafe-a-menu-chip,[\s\S]*\.cafe-a-price-label[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+  );
+});
+
 test("대표 영역은 모든 기기에서 대응 메뉴 역할과 같은 크기를 따른다", () => {
   assert.match(globalStylesSource, /--cafe-a-linked-item-name-size:/);
   assert.match(globalStylesSource, /\.cafe-a-typography:not\(\.brew-chapter-template\) \{[\s\S]*--cafe-a-featured-role-scale: 1;/);

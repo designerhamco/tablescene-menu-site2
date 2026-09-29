@@ -218,7 +218,7 @@ export default function CafeAWidgetLabPage() {
 
           <WidgetLabSection
             title="Aspect Ratios"
-            description="2:1, 3:2 contain, 1:1, 3:4 이미지 비율을 확인합니다."
+            description="3:1, 2:1, 4:3, 1:1, 3:4, 1:2, 1:3 이미지 비율을 확인합니다."
             widgets={CAFE_A_WIDGET_RATIO_FIXTURES}
           />
 
